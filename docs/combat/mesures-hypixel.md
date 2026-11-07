@@ -26,14 +26,15 @@ valeur, un nouveau profil (`hypixel-approx-v2`) : on ne modifie pas un profil d�
 ### Méthode
 
 - Un coup reçu est un paquet de vitesse (0x12) pour le joueur, avec l'animation de coup reçu
-  (statut 2, paquet 0x1A) reçue à moins de 20 ms. Les 1 062 paquets de vitesse ont tous la leur.
+  (statut 2, paquet 0x1A) reçue à moins de 100 ms. Les 1 062 paquets de vitesse ont tous la leur,
+  à 12 ms au plus.
 - L'état au sol de la victime vient de sa dernière ligne de tick avant le paquet.
 - Le sprint de l'attaquant tel que le serveur l'a utilisé vient de l'enregistrement de
   l'attaquant : ses paquets de sprint (0x0B, actions 3 et 4) rejoués dans l'ordre, avec la règle
   vanilla qui arrête le sprint après un coup en sprint qui compte.
 - Les deux horloges sont recalées sur les animations de coup reçu vues des deux côtés.
 - La poussée horizontale de sprint est retrouvée à partir du regard de l'attaquant, lu dans son
-  dernier paquet de position envoyé avant l'attaque.
+  dernier paquet de regard envoyé avant l'attaque (0x05 ou 0x06).
 - Les chiffres viennent de l'outil d'analyse kb-analyzer (tools/kb-analyzer, PR séparée), lancé
   sur les quatre enregistrements ; une première analyse par scripts avait donné les mêmes valeurs.
 
