@@ -16,10 +16,24 @@ java {
     toolchain.languageVersion.set(JavaLanguageVersion.of(8))
 }
 
+// The end-to-end test (run-e2e-test.sh) starts the dev client with these properties: it joins the
+// test server at start-up and records from the first connection, in its own game directory.
+val e2eServer: String? = providers.gradleProperty("rago.e2e.server").orNull
+val e2eLabel: String? = providers.gradleProperty("rago.e2e.label").orNull
+
 loom {
     forge {
         // Forge 1.8.9 ships its patches packed with pack200, which recent JDKs no longer include.
         pack200Provider.set(dev.architectury.pack200.java.Pack200Adapter())
+    }
+    if (e2eServer != null) {
+        runConfigs.named("client") {
+            val host = e2eServer.substringBeforeLast(':')
+            val port = e2eServer.substringAfterLast(':')
+            programArgs("--server", host, "--port", port)
+            property("rago.kbrecorder.autostart", e2eLabel ?: "e2e")
+            runDir = "build/e2e-client"
+        }
     }
 }
 

@@ -44,6 +44,7 @@ class RecorderTest {
         assertTrue(lines.get(0).startsWith("{\"type\":\"session\",\"ms\":" + START_MILLIS + ",\"nano\":1000,\"tick\":0,\"format\":1,"));
         assertTrue(lines.get(0).contains("\"label\":\"premier hit\",\"player\":\"Sofiene\",\"uuid\":\"uuid\",\"server\":\"mc.hypixel.net\""));
         assertEquals("{\"type\":\"tick\",\"ms\":" + START_MILLIS + ",\"nano\":1000,\"tick\":1,\"x\":1.5}", lines.get(1));
+        // RecorderCheckTest.MOD_VELOCITY_LINE in tools/kb-control reads this exact line: change both together.
         assertEquals("{\"type\":\"packet\",\"ms\":" + (START_MILLIS + 50) + ",\"nano\":50001000,\"tick\":1,"
                 + "\"dir\":\"in\",\"id\":18,\"name\":\"entity_velocity\",\"data\":\"BwAKABQAHg==\"}", lines.get(2));
         assertTrue(lines.get(3).startsWith("{\"type\":\"mark\"") && lines.get(3).endsWith("\"text\":\"combo 3\"}"));

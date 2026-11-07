@@ -12,8 +12,10 @@ import net.minecraftforge.fml.common.event.FMLInitializationEvent;
  * it, to measure a server's knockback. It reads only what the client already receives and sends,
  * and changes nothing in the game.
  */
+// acceptableRemoteVersions "*": the server does not need the mod, so the client can join any
+// server with it, vanilla or Bukkit (Hypixel, the Rago test server).
 @Mod(modid = KbRecorderMod.MOD_ID, name = "Rago KB Recorder", version = KbRecorderMod.VERSION,
-        acceptedMinecraftVersions = "[1.8.9]")
+        acceptedMinecraftVersions = "[1.8.9]", acceptableRemoteVersions = "*")
 public final class KbRecorderMod {
 
     static final String MOD_ID = "ragokbrecorder";
