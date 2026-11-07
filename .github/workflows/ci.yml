@@ -116,6 +116,9 @@ jobs:
           else
             echo "No report: the control test stopped before the check. See the job log and the artifact." >> "$GITHUB_STEP_SUMMARY"
           fi
+          if [ -f control-run/report-hit-delay.md ]; then
+            cat control-run/report-hit-delay.md >> "$GITHUB_STEP_SUMMARY"
+          fi
 
       - uses: actions/upload-artifact@v7
         if: always()
@@ -123,7 +126,9 @@ jobs:
           name: kb-control-run-java${{ matrix.server-java }}
           path: |
             control-run/report.md
+            control-run/report-hit-delay.md
             control-run/received.jsonl
+            control-run/bursts.jsonl
             control-run/server.log
             control-run/server/logs/
             control-run/server/plugins/RagoCombatEngine/hits/

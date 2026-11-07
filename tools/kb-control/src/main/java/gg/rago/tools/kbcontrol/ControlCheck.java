@@ -78,6 +78,7 @@ public final class ControlCheck {
         Path report = null;
         KnockbackProfile server = PANDASPIGOT_DEFAULT;
         int minHits = 1;
+        long until = Long.MAX_VALUE;
         for (int i = 0; i < args.length; i++) {
             String value = i + 1 < args.length ? args[i + 1] : null;
             switch (args[i]) {
@@ -97,6 +98,10 @@ public final class ControlCheck {
                     minHits = Integer.parseInt(require(value, args[i]));
                     i++;
                     break;
+                case "--until":
+                    until = Long.parseLong(require(value, args[i]));
+                    i++;
+                    break;
                 case "--server-knockback":
                     server = serverKnockback(require(value, args[i]));
                     i++;
@@ -111,7 +116,11 @@ public final class ControlCheck {
             return;
         }
 
-        Result result = new ControlCheck(server).check(readHits(hits), readReceived(received), readAttacks(received),
+        // Hits logged after the control bots finished belong to the next test on the same server.
+        long last = until;
+        List<RecordedHit> controlHits = readHits(hits);
+        controlHits.removeIf(hit -> hit.time > last);
+        Result result = new ControlCheck(server).check(controlHits, readReceived(received), readAttacks(received),
                 minHits);
         String markdown = result.toMarkdown();
         System.out.println(markdown);
@@ -124,7 +133,7 @@ public final class ControlCheck {
     private static void usage(String problem) {
         System.err.println(problem);
         System.err.println("usage: ControlCheck --hits <file or directory> --received <file>"
-                + " [--server-knockback pandaspigot|vanilla] [--min-hits N] [--report <file>]");
+                + " [--server-knockback pandaspigot|vanilla] [--min-hits N] [--until <epoch ms>] [--report <file>]");
         System.exit(2);
     }
 
@@ -147,6 +156,15 @@ public final class ControlCheck {
     }
 
     static List<RecordedHit> readHits(Path path) throws IOException {
+        List<RecordedHit> hits = new ArrayList<>();
+        for (JsonObject json : readHitLines(path)) {
+            hits.add(RecordedHit.fromJson(json));
+        }
+        return hits;
+    }
+
+    /** The melee lines of a hit log file, or of every .jsonl file of a directory, in name order. */
+    static List<JsonObject> readHitLines(Path path) throws IOException {
         List<Path> files = new ArrayList<>();
         if (Files.isDirectory(path)) {
             try (Stream<Path> stream = Files.list(path)) {
@@ -156,15 +174,15 @@ public final class ControlCheck {
         } else {
             files.add(path);
         }
-        List<RecordedHit> hits = new ArrayList<>();
+        List<JsonObject> lines = new ArrayList<>();
         for (Path file : files) {
             for (JsonObject json : readJsonLines(file)) {
                 if ("melee".equals(json.get("type").getAsString())) {
-                    hits.add(RecordedHit.fromJson(json));
+                    lines.add(json);
                 }
             }
         }
-        return hits;
+        return lines;
     }
 
     static List<ReceivedVelocity> readReceived(Path path) throws IOException {
@@ -188,7 +206,7 @@ public final class ControlCheck {
         return attacks;
     }
 
-    private static List<JsonObject> readJsonLines(Path file) throws IOException {
+    static List<JsonObject> readJsonLines(Path file) throws IOException {
         List<JsonObject> objects = new ArrayList<>();
         for (String line : Files.readAllLines(file, StandardCharsets.UTF_8)) {
             if (!line.trim().isEmpty()) {

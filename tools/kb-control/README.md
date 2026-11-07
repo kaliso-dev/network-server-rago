@@ -35,8 +35,19 @@ mesuré plus tard soit vraiment celui que les joueurs ressentent.
      le test) ;
    - la couverture : les trois phases, sprint et sans sprint, enchantement, victime en l'air.
 
+4. Sur le même serveur, deux autres bots (`bots/hit-delay-bots.mjs`) testent le réglage
+   `hit-delay-ticks` du moteur. Pendant une « rafale » de 3 secondes, `RagoAttacker` frappe deux
+   fois par tick ; le moteur applique `still`, un profil de test qui ne pousse pas, pour que la
+   victime reste à portée. Trois rafales : délai vanilla (10 ticks), délai de 9 ticks, puis 9 ticks
+   après la mort et la réapparition de la victime (le serveur recrée alors le joueur, et le moteur
+   doit lui redonner son cooldown). `HitDelayCheck` lit le journal des hits : dans une rafale,
+   deux coups ne sont jamais plus proches que le délai, au moins 75 % des intervalles valent
+   exactement le délai (un tick lent peut en allonger un), et il y a au moins 5 coups.
+   `ControlCheck` laisse de côté ces coups, journalisés après la fin des bots de contrôle.
+
 Le test échoue au moindre écart. Le rapport (`report.md`) donne, par mode, profil et sprint, le
-nombre de coups vérifiés et l'écart maximal avec le vanilla exact.
+nombre de coups vérifiés et l'écart maximal avec le vanilla exact ; `report-hit-delay.md` donne
+les intervalles de chaque rafale, en ticks.
 
 ## Lancer le test
 
@@ -64,7 +75,9 @@ Le vérificateur seul, sur des fichiers déjà produits :
 ```bash
 tools/kb-control/build/install/kb-control/bin/kb-control \
   --hits control-run/server/plugins/RagoCombatEngine/hits --received control-run/received.jsonl \
-  --server-knockback pandaspigot --min-hits 108 --report report.md
+  --server-knockback pandaspigot --min-hits 108 --until <heure de la ligne done> --report report.md
+java -cp "tools/kb-control/build/install/kb-control/lib/*" gg.rago.tools.kbcontrol.HitDelayCheck \
+  --hits control-run/server/plugins/RagoCombatEngine/hits --bursts control-run/bursts.jsonl
 ```
 
 ## Limites

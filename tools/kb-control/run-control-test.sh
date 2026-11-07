@@ -3,7 +3,8 @@
 #
 # 1. downloads PandaSpigot (cached in control-run/cache) and sets up a flat, offline-mode test
 #    server bound to 127.0.0.1 with the engine plugin and its hit log turned on;
-# 2. lets two bots (bots/control-bots.mjs) hit each other in observe and override modes;
+# 2. lets two bots (bots/control-bots.mjs) hit each other in observe and override modes, then
+#    checks the hit delay setting with bots/hit-delay-bots.mjs (bursts of attacks);
 # 3. checks every velocity packet the bots received with ControlCheck and rago-combat-model.
 #
 # Run from anywhere, after the build:
@@ -22,8 +23,9 @@
 #   KB_HITS_PER_PHASE   hits per phase (default 36)
 #   KB_RUN_DIR          working directory (default control-run at the repository root)
 #
-# Output, in KB_RUN_DIR: report.md, received.jsonl, server.log and server/ with the hit log in
-# server/plugins/RagoCombatEngine/hits/. Exit status 0 only if the control test passed.
+# Output, in KB_RUN_DIR: report.md, report-hit-delay.md, received.jsonl, bursts.jsonl, server.log
+# and server/ with the hit log in server/plugins/RagoCombatEngine/hits/. Exit status 0 only if the
+# control test and the hit delay test passed.
 set -euo pipefail
 
 ROOT=$(cd "$(dirname "${BASH_SOURCE[0]}")/../.." && pwd)
@@ -65,7 +67,8 @@ if (exec 3<>"/dev/tcp/127.0.0.1/$PORT") 2>/dev/null; then
 fi
 
 mkdir -p "$CACHE_DIR"
-rm -rf "$SERVER_DIR" "$RUN_DIR/received.jsonl" "$RUN_DIR/report.md" "$RUN_DIR/server.log"
+rm -rf "$SERVER_DIR" "$RUN_DIR/received.jsonl" "$RUN_DIR/report.md" "$RUN_DIR/server.log" \
+  "$RUN_DIR/bursts.jsonl" "$RUN_DIR/report-hit-delay.md"
 mkdir -p "$SERVER_DIR/plugins/RagoCombatEngine"
 
 # --- PandaSpigot -------------------------------------------------------------------------------
@@ -125,7 +128,8 @@ cat >"$SERVER_DIR/ops.json" <<EOF
 EOF
 
 # Engine settings for the test. control-alt is an arbitrary test profile, far enough from vanilla
-# to change every packet; it is not a tuning proposal.
+# to change every packet; it is not a tuning proposal. still pushes by nothing: the hit delay bots
+# use it to keep the victim in reach.
 cat >"$SERVER_DIR/plugins/RagoCombatEngine/config.yml" <<'EOF'
 mode: observe
 active-profile: vanilla
@@ -139,6 +143,13 @@ profiles:
     vertical-limit: 0.39
     extra-horizontal: 0.45
     extra-vertical: 0.085
+  still:
+    friction: 1.0
+    horizontal: 0.0
+    vertical: 0.0
+    vertical-limit: 0.0
+    extra-horizontal: 0.0
+    extra-vertical: 0.0
 EOF
 
 SERVER_LOG=$RUN_DIR/server.log
@@ -192,6 +203,12 @@ log "running the bots ($PHASES phases, $HITS_PER_PHASE hits each)"
 bots_status=0
 KB_HOST=127.0.0.1 KB_PORT=$PORT KB_RECEIVED=$RUN_DIR/received.jsonl KB_HITS_PER_PHASE=$HITS_PER_PHASE \
   node "$ROOT/tools/kb-control/bots/control-bots.mjs" || bots_status=$?
+delay_status=0
+if [[ $bots_status -eq 0 ]]; then
+  log "running the hit delay bots"
+  KB_HOST=127.0.0.1 KB_PORT=$PORT KB_BURSTS=$RUN_DIR/bursts.jsonl \
+    node "$ROOT/tools/kb-control/bots/hit-delay-bots.mjs" || delay_status=$?
+fi
 stop_server
 
 if [[ $bots_status -ne 0 ]]; then
@@ -201,5 +218,22 @@ fi
 
 # --- Check -------------------------------------------------------------------------------------
 log "checking the hits"
+# The hit delay bots ran on the same server after the control bots: their hits are left out here.
+control_done=$(python3 -c 'import json, sys
+for line in open(sys.argv[1], encoding="utf-8"):
+    line = json.loads(line)
+    if line["type"] == "done":
+        print(line["time"])' "$RUN_DIR/received.jsonl")
+[[ -n "$control_done" ]] || fail "received.jsonl has no done line"
+control_status=0
 "$CHECKER" --hits "$SERVER_DIR/plugins/RagoCombatEngine/hits" --received "$RUN_DIR/received.jsonl" \
-  --server-knockback pandaspigot --min-hits $((PHASES * HITS_PER_PHASE)) --report "$RUN_DIR/report.md"
+  --server-knockback pandaspigot --min-hits $((PHASES * HITS_PER_PHASE)) --until "$control_done" \
+  --report "$RUN_DIR/report.md" || control_status=$?
+
+log "checking the hit delay"
+delay_check_status=0
+"$SERVER_JAVA" -cp "$ROOT/tools/kb-control/build/install/kb-control/lib/*" gg.rago.tools.kbcontrol.HitDelayCheck \
+  --hits "$SERVER_DIR/plugins/RagoCombatEngine/hits" --bursts "$RUN_DIR/bursts.jsonl" \
+  --report "$RUN_DIR/report-hit-delay.md" || delay_check_status=$?
+[[ $delay_status -eq 0 ]] || fail "the hit delay bots stopped with status $delay_status"
+[[ $control_status -eq 0 && $delay_check_status -eq 0 ]] || fail "see $RUN_DIR/report.md and $RUN_DIR/report-hit-delay.md"
