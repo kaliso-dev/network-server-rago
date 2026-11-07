@@ -41,7 +41,7 @@ Un build Gradle à part, parce que l'outillage Forge 1.8.9 ne tourne pas sous Gr
 | --- | --- | --- | --- |
 | `org.spigotmc:spigot-api` | 1.8.8-R0.1-SNAPSHOT | plugins (`compileOnly`, fournie par le serveur) | l'API que PandaSpigot implémente ; publiée seulement sur le dépôt Nexus de SpigotMC, limité dans le build aux groupes `org.spigotmc` et `org.bukkit`. Sa dépendance `net.md-5:bungeecord-chat:1.8-SNAPSHOT` (l'API des messages de chat cliquables) n'est plus servie ni par SpigotMC ni par Maven Central : elle est exclue (voir plus bas) |
 | JUnit Jupiter | 5.14.4 | tests | JUnit 5 est la dernière ligne qui tourne encore sous Java 8 (JUnit 6 exige Java 17) |
-| Gson | 2.15.0 | `tools/kb-control` uniquement | lecture des fichiers JSON du test ; bytecode Java 8 vérifié ; jamais embarqué dans un plugin (les plugins écrivent leur JSON eux-mêmes, et le serveur 1.8.8 fournit déjà sa propre vieille Gson) |
+| Gson | 2.15.0 | `tools/kb-control` et `tools/kb-analyzer` uniquement | lecture des fichiers JSON du test ; bytecode Java 8 vérifié ; jamais embarqué dans un plugin (les plugins écrivent leur JSON eux-mêmes, et le serveur 1.8.8 fournit déjà sa propre vieille Gson) |
 | mineflayer | 4.39.0 | bots du test de contrôle (Node.js) | maintenu ; la version 1.8.8 fait partie des versions testées par le projet ; figée par `package-lock.json` |
 | PandaSpigot | build 226 (`git-PandaSpigot-226`, MC 1.8.8) | serveur du test de contrôle | téléchargé depuis downloads.hpfxd.com ; somme SHA-256 `ac73146b275230cbd0612ef0f3d6b40333abd3182beae457cad5321efff6359b`, vérifiée à chaque test ; le test de contrôle y passe sous Java 8 (108 coups sur 108 exacts) |
 

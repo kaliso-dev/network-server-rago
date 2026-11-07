@@ -30,6 +30,7 @@ build-logic/                 conventions Gradle partagées (Java 8, tests, plugi
 combat/rago-combat-model/    calcul exact du knockback 1.8.8 et physique du client 1.8.9 (sans dépendance)
 combat/rago-combat-engine/   plugin RagoCombatEngine : profils de knockback, /kb, journal des hits
 tools/kb-control/            test de contrôle sur un vrai serveur PandaSpigot, avec deux bots
+tools/kb-analyzer/           compare le knockback de deux serveurs à partir des enregistrements
 tools/kb-recorder/           mod client Forge 1.8.9 qui enregistre les coups reçus, pour les mesures
 tools/local-server/          serveur de test à lancer sur son PC, avec le moteur
 docs/                        formule du knockback, compatibilité et dépendances
@@ -37,7 +38,8 @@ docs/                        formule du knockback, compatibilité et dépendance
 
 Chaque module a son README : [combat-model](combat/rago-combat-model/README.md),
 [combat-engine](combat/rago-combat-engine/README.md), [kb-control](tools/kb-control/README.md),
-[kb-recorder](tools/kb-recorder/README.md), [local-server](tools/local-server/README.md).
+[kb-analyzer](tools/kb-analyzer/README.md), [kb-recorder](tools/kb-recorder/README.md),
+[local-server](tools/local-server/README.md).
 
 ## Construire et tester
 
