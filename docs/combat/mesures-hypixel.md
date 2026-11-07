@@ -60,6 +60,31 @@ plafond 0,4.
 Effet sur la hauteur d'un coup en sprint au sol : 1,31 bloc sur Hypixel, 1,49 bloc en vanilla
 (13 % de plus), et 12 ticks en l'air au lieu de 13.
 
+### Coups en l'air pendant un combo : l'effet du ping
+
+En l'air, la valeur verticale dépend de la vitesse verticale que le serveur garde pour la victime.
+Sur les coups d'un combo (8,5 à 12,5 ticks après le coup précédent), on peut retrouver depuis le
+paquet le moment où le serveur a remis cette vitesse à zéro avant de la refaire tomber, compté en
+ticks après le coup précédent :
+
+| Victime | Ping (attaque vers animation) | Remise à zéro, la plus fréquente |
+| --- | --- | --- |
+| qRago, notre serveur | 0 ms | 6 ticks (24 sur 28 au premier combat, 11 sur 17 au second) |
+| godemy, notre serveur | 46-48 ms | 7 ticks (30 sur 66, puis 15 sur 24) |
+| godemy, Hypixel | 140 ms | 8 ou 9 ticks, ou plus (65 sur 110) |
+| qRago, Hypixel | 163 ms | 9 ticks ou plus (49 sur 87) |
+
+La remise à zéro arrive à peu près 6 ticks plus le ping après le coup précédent. Quand elle arrive
+au moment du coup suivant ou plus tard, ce coup prend le plafond (3 200, ou 3 760 en sprint) :
+c'est le cas d'un tiers des coups en l'air des combos sur Hypixel, et de presque aucun chez nous.
+Ce n'est donc pas une règle différente d'Hypixel mais l'effet du ping, que notre serveur reproduit
+de la même façon : avec 150 ms, un joueur comboté monte plus haut, sur Hypixel comme ici. Un test
+avec du ping ajouté sur notre serveur doit encore le confirmer.
+
+Conséquence : la sensation d'Hypixel dépend du ping de celui qui joue. Un joueur européen à 30 ms
+sur Rago aura des combos en l'air plus bas que ceux qu'il connaît sur Hypixel à 150 ms, avec
+exactement les mêmes réglages.
+
 ### Résultats : horizontal
 
 - Sans sprint : 0,400 bloc par tick exactement pour 158 coups sur 229 (et 204 sur 298 chez nous) ;
@@ -109,6 +134,14 @@ de « double coup » sur Hypixel, seulement un délai plus court.
 - Réglage `hit-delay-ticks: 9` : le moteur donne aux joueurs un cooldown de dégâts de 18 ticks,
   dont la moitié fait le délai entre deux coups.
 
+### Contrôle sur notre serveur
+
+Le même jour, un second combat d'environ 80 secondes sur notre serveur avec `hypixel-approx-v1` et
+`hit-delay-ticks: 9` (159 coups) redonne les valeurs d'Hypixel : 2 886 sans sprint et 3 446 en
+sprint au sol, un pas de sprint de 560, la poussée horizontale de 0,4 et de 0,5 en plus en sprint,
+et 44 % des intervalles entre deux coups à 9 ticks (45 % sur Hypixel). Les attaques envoyées au
+moins 425 ms après la précédente ont compté 69 fois sur 71.
+
 ### Limites
 
 - Housing seulement. Le Bedwars peut avoir d'autres réglages : à vérifier par un enregistrement
@@ -117,5 +150,6 @@ de « double coup » sur Hypixel, seulement un délai plus court.
   pêche, les projectiles, les explosions et boules de feu.
 - Le délai est mesuré sur des coups d'épée ; le moteur l'applique à tous les dégâts, comme le fait
   le cooldown de Minecraft.
-- La vitesse « côté serveur » de la victime avant un coup en combo ne se voit pas dans les
-  paquets ; les valeurs en combo ne servent qu'à vérifier la poussée de sprint.
+- La vitesse « côté serveur » de la victime avant un coup en combo ne se lit pas directement : elle
+  est déduite du paquet, en supposant la gravité vanilla depuis la remise à zéro. Le lien avec le
+  ping repose sur deux joueurs et deux pings par serveur.
