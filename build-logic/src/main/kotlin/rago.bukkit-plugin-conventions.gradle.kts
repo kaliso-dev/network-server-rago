@@ -16,10 +16,12 @@ tasks.processResources {
 // rago-combat-model) are copied into it. Third-party libraries will need relocation
 // (Shadow) when the first one is added; there are none yet.
 tasks.jar {
-    val runtimeJars = configurations.runtimeClasspath.map { classpath ->
-        classpath.filter { it.name.endsWith(".jar") }.map { zipTree(it) }
-    }
-    from(runtimeJars) {
+    // The jars must be built before they are unpacked here: the lazy `from {}` below does not
+    // carry that dependency, so it is declared explicitly (Gradle 9 fails the build otherwise).
+    dependsOn(configurations.runtimeClasspath)
+    from({
+        configurations.runtimeClasspath.get().filter { it.name.endsWith(".jar") }.map { zipTree(it) }
+    }) {
         exclude("META-INF/MANIFEST.MF")
     }
     duplicatesStrategy = DuplicatesStrategy.EXCLUDE
