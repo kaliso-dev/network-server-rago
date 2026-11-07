@@ -35,12 +35,14 @@ public final class RagoCombatEngine extends JavaPlugin {
 
         getServer().getScheduler().runTaskTimer(this, () -> tick++, 0L, 1L);
         getServer().getPluginManager().registerEvents(new KnockbackListener(this), this);
+        getServer().getPluginManager().registerEvents(new HitDelayListener(this), this);
+        applyHitDelay();
         PluginCommand command = getCommand("kb");
         KbCommand executor = new KbCommand(this);
         command.setExecutor(executor);
         command.setTabCompleter(executor);
         getLogger().info("Mode " + settings.mode().configName() + ", default profile " + settings.defaultProfile()
-                + ", profiles " + settings.profiles().keySet());
+                + ", profiles " + settings.profiles().keySet() + ", hit delay " + settings.hitDelayTicks() + " ticks");
     }
 
     @Override
@@ -63,6 +65,7 @@ public final class RagoCombatEngine extends JavaPlugin {
 
     void updateSettings(EngineSettings newSettings) {
         settings = newSettings;
+        applyHitDelay();
     }
 
     /**
@@ -74,6 +77,21 @@ public final class RagoCombatEngine extends JavaPlugin {
         reloadConfig();
         settings = EngineSettings.load(getConfig());
         applyRecorderSetting();
+        applyHitDelay();
+    }
+
+    /** Gives every online player the damage cooldown of the current hit delay. Main thread only. */
+    void applyHitDelay() {
+        for (Player player : getServer().getOnlinePlayers()) {
+            applyHitDelay(player);
+        }
+    }
+
+    void applyHitDelay(Player player) {
+        int ticks = settings.maximumNoDamageTicks();
+        if (player.getMaximumNoDamageTicks() != ticks) {
+            player.setMaximumNoDamageTicks(ticks);
+        }
     }
 
     private void applyRecorderSetting() {
