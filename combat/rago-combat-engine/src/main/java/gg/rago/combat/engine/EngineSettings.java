@@ -177,8 +177,8 @@ final class EngineSettings {
 
     /**
      * The ping, in milliseconds, that melee hits are simulated for: a victim with less ping gets its
-     * knockback later ({@link #knockbackDelayMs}) and computed from an older motion
-     * ({@link #simulatedDelayTicks}), as with that ping. 0 turns the simulation off.
+     * knockback later ({@link #knockbackDelayMs}), as with that ping, or, when the knockback cannot
+     * wait, computed from an older motion ({@link #simulatedDelayTicks}). 0 turns the simulation off.
      */
     int pingSimulationMs() {
         return pingSimulationMs;
@@ -201,18 +201,18 @@ final class EngineSettings {
     }
 
     /**
-     * How long the victim's knockback packet waits before it is sent, in milliseconds.
+     * How long the victim's knockback packet waits before it is sent, in milliseconds: the ping the
+     * victim lacks, or 0 when the setting does not hold the knockback back.
      *
-     * <p>With real ping, the victim is pushed once the attack has reached the server (half of the
-     * attacker's ping) and the knockback has come back to the victim (half of the victim's). Until
-     * then the victim can still hit back, which is what makes trades. The wait adds the two halves
-     * the players lack. 0 when the setting does not hold the knockback back.
+     * <p>Counted from the hit on the server, a victim with real ping gets the knockback and sends
+     * back its new movements one whole round trip of its own later. Until its movements arrive the
+     * server keeps its old motion, which sets the height of the next hit of a combo, and its own
+     * attacks still count, which makes trades. Neither depends on the attacker's ping. Adding the
+     * attacker's missing ping too made combos one tick higher than on Hypixel for a victim with
+     * more ping than its attacker (docs/combat/mesures-hypixel.md, Bedwars measure).
      */
-    int knockbackDelayMs(int attackerPingMs, int victimPingMs) {
-        if (!pingSimulationDelaysKnockback) {
-            return 0;
-        }
-        return missingPingMs(attackerPingMs) / 2 + missingPingMs(victimPingMs) / 2;
+    int knockbackDelayMs(int victimPingMs) {
+        return pingSimulationDelaysKnockback ? missingPingMs(victimPingMs) : 0;
     }
 
     /**
@@ -222,7 +222,8 @@ final class EngineSettings {
      * so the motion it has at the next hit of a combo depends on the victim's ping only. A
      * knockback that waits {@code knockbackDelayMs} already shifts the victim's movements by that
      * much; the rest of the victim's missing ping comes from the motion history, rounded to whole
-     * ticks of 50 ms.
+     * ticks of 50 ms. With the knockback held back, nothing is left: the history only serves when
+     * the knockback leaves on time.
      *
      * @param knockbackDelayMs the wait actually applied to this hit's knockback
      */

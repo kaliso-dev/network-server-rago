@@ -24,15 +24,12 @@ hit-delay-ticks: 10
 
 # Ping simulé en combat, en millisecondes (0 = désactivé, 500 au plus). Expérimental : voir
 # docs/combat/mesures-hypixel.md. Pour les coups au corps à corps seulement, le moteur fait comme si
-# chaque joueur qui a moins de ce ping l'avait. Les blocs et les déplacements ne changent pas.
-# - Le kb part en retard vers la victime : de la moitié du ping qui manque à l'attaquant (le trajet
-#   de l'attaque vers le serveur), plus la moitié de celui qui manque à la victime (le trajet du kb).
-#   Pendant ce temps, la victime peut encore rendre le coup, comme avec du vrai ping. Avec 150, entre
-#   deux joueurs à 0 ms : 75 + 75 = 150 ms.
-# - Le kb est calculé avec le mouvement de la victime d'il y a quelques ticks, pour la part de son
-#   ping manquant que le retard du kb ne couvre pas déjà. Plus le ping est haut, plus le serveur
-#   apprend tard le mouvement de la victime après un coup, et plus le coup suivant d'un combo envoie
-#   haut.
+# chaque victime qui a moins de ce ping l'avait. Les blocs et les déplacements ne changent pas.
+# Le kb part en retard vers la victime, du ping qui lui manque : avec 150, 150 ms pour une victime à
+# 0 ms, 102 ms pour une à 48 ms. Pendant ce temps, la victime peut encore rendre le coup, et le
+# serveur garde son mouvement d'avant le coup : le coup suivant d'un combo l'envoie plus haut, comme
+# avec du vrai ping. D'après la mesure du Bedwars, un joueur à 150 ms sur Hypixel y a les combos
+# d'environ 120 ici : c'est la valeur à essayer d'abord.
 ping-simulation-ms: 0
 
 # false : le kb part sans retard, et tout le ping qui manque à la victime passe par le mouvement plus

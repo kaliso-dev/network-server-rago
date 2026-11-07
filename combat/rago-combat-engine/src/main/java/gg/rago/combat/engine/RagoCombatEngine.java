@@ -93,13 +93,13 @@ public final class RagoCombatEngine extends JavaPlugin {
      * motion to compute it with (the current one, or an older one for a victim with less ping than
      * the simulated ping). Without the simulation: the current motion and no wait.
      */
-    SimulatedPing simulatePing(Player attacker, Player victim, Vec3 current) {
+    SimulatedPing simulatePing(Player victim, Vec3 current) {
         EngineSettings now = settings;
         if (now.pingSimulationMs() == 0) {
             return new SimulatedPing(current, 0, 0);
         }
         int victimPing = pingOf(victim);
-        int knockbackDelay = now.knockbackDelayMs(pingOf(attacker), victimPing);
+        int knockbackDelay = now.knockbackDelayMs(victimPing);
         if (knockbackDelay > 0 && (now.mode() != EngineMode.OVERRIDE || !delayedKnockback.isAvailable(victim))) {
             // The engine does not send this knockback, or cannot hold it back: the motion does it all.
             knockbackDelay = 0;

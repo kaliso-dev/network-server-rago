@@ -101,7 +101,7 @@ final class KbCommand implements TabExecutor {
         sender.sendMessage(ChatColor.GRAY + "Ping simulé pour le kb : " + ChatColor.WHITE
                 + (settings.pingSimulationMs() == 0 ? "désactivé" : settings.pingSimulationMs() + " ms")
                 + ChatColor.GRAY + (settings.pingSimulationDelaysKnockback()
-                        ? " (kb retardé et mouvement plus ancien)" : " (mouvement plus ancien seulement)"));
+                        ? " (kb retardé)" : " (mouvement plus ancien seulement)"));
         sender.sendMessage(ChatColor.GRAY + "Journal des hits : " + ChatColor.WHITE
                 + (settings.recordHits() ? "actif (" + plugin.droppedRecords() + " perdus)" : "inactif"));
     }

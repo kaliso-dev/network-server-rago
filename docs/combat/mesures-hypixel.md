@@ -10,7 +10,7 @@ valeur, un nouveau profil (`hypixel-approx-v2`) : on ne modifie pas un profil d�
 
 - Deux joueurs, qRago et godemy, se battent à l'épée, chacun avec le mod kb-recorder 0.1.0
   (tools/kb-recorder). Les deux enregistrent en même temps : chaque coup est vu des deux côtés.
-- Hypixel, en Housing. Le Bedwars n'est pas encore mesuré.
+- Hypixel, en Housing. Le Bedwars est mesuré plus bas (mesure 2).
 - Ping mesuré entre l'envoi d'une attaque et l'animation de coup reçu de l'adversaire : 163 ms
   pour qRago, 140 ms pour godemy. Hypixel affiche un ping de 1 dans le tab, inutilisable.
 - Même combat sur notre serveur de test (PandaSpigot 226, RagoCombatEngine en `override` avec
@@ -175,8 +175,7 @@ condition.
 
 ### Limites
 
-- Housing seulement. Le Bedwars peut avoir d'autres réglages : à vérifier par un enregistrement
-  en partie de Bedwars avant d'en faire le réglage du Ranked.
+- Housing seulement. Le Bedwars, mesuré ensuite (mesure 2), donne les mêmes valeurs.
 - Deux joueurs, environ 4 minutes et demie. Non mesurés : l'enchantement Knockback, la canne à
   pêche, les projectiles, les explosions et boules de feu.
 - Le délai est mesuré sur des coups d'épée ; le moteur l'applique à tous les dégâts, comme le fait
@@ -184,3 +183,92 @@ condition.
 - La vitesse « côté serveur » de la victime avant un coup en combo ne se lit pas directement : elle
   est déduite du paquet, en supposant la gravité vanilla depuis la remise à zéro. Le lien avec le
   ping repose sur deux joueurs et deux pings par serveur.
+
+## Mesure 2 : 7 novembre 2026, Bedwars, 1v1
+
+### Conditions
+
+- Les deux mêmes joueurs, dans une partie de Bedwars sur Hypixel, dans deux équipes, chacun avec
+  kb-recorder 0.1.0. 42 secondes de combat, 30 + 38 coups reçus, tous retrouvés dans
+  l'enregistrement de l'attaquant.
+- Ping mesuré entre l'attaque et l'animation de coup reçu : 171 ms pour qRago, 147 ms pour godemy.
+- Comparé au Housing (mesure 1) et au combat du même soir sur notre serveur avec `/kb pingsim` à
+  150 puis 120, dans la première formule du retard du kb (la moitié du ping qui manque à
+  l'attaquant, plus la moitié de celui qui manque à la victime).
+
+### Résultats : comme en Housing
+
+| | Bedwars | Housing |
+| --- | --- | --- |
+| Vertical au sol, sans sprint et avec sprint | 2 886 et 3 446 | 2 886 et 3 446 |
+| Pas de sprint | 560 | 560 |
+| Horizontal sans sprint, et poussée en plus du sprint | 0,400 et 0,500 | 0,400 et 0,500 |
+| Intervalles de 9 ticks, et de 10 ticks | 45 % et 38 % | 45 % et 29 % |
+| Attaques qui comptent, à moins de 425 ms de la précédente qui a compté | 0 sur 230 | 8 sur 1 541 |
+| Attaques qui comptent, à 425-474 ms | 21 sur 23 | 140 sur 157 |
+
+Chaque paquet de kb arrive avec son animation de coup reçu, et jamais deux sur le même joueur à
+moins de 8 ticks : un « double hit » n'est pas deux kb coup sur coup, en Bedwars non plus. Seule
+différence vue : en Housing, le kb arrive dans les 2 ms qui suivent l'animation ; en Bedwars,
+5 paquets sur 68 arrivent 25 à 36 ms après.
+
+`hypixel-approx-v1` et `hit-delay-ticks: 9` valent donc aussi pour le Bedwars ; cette mesure ne
+demande pas de profil v2.
+
+Sur notre serveur, les attaques de godemy (le seul des deux à ne pas jouer en local) envoyées
+425 ms ou plus après sa précédente qui a compté ont toutes compté, 21 sur 21, d'après le journal
+des hits du serveur. kb-analyzer en comptait moins : ce soir-là, le délai entre son attaque et
+l'animation variait plus, et l'outil a relié quelques animations à la mauvaise attaque.
+
+### Hauteur des combos et ping simulé
+
+Coups reçus en l'air, selon l'intervalle depuis le coup précédent sur la même victime, et la part
+de ceux qui prennent le plafond (3 200, ou 3 760 en sprint) :
+
+| | 9 ticks | 10 ticks |
+| --- | --- | --- |
+| Hypixel, Housing et Bedwars | 80 sur 140 (57 %) | 1 sur 65 (2 %) |
+| Notre serveur, `/kb pingsim` 150 puis 120, première formule | 47 sur 57 (82 %) | 18 sur 30 (60 %) |
+| Notre serveur, clumsy (environ 150 ms de vrai ping en plus) | 27 sur 44 (61 %) | 9 sur 28 (32 %) |
+
+Les deux premières lignes viennent des enregistrements des joueurs, la dernière du journal des
+hits (il n'y a pas eu d'enregistrement avec clumsy). Avec le ping simulé comme avec clumsy, la
+victime part donc plus souvent au plafond que sur Hypixel.
+
+Ce qui le règle, c'est le moment où le serveur voit la victime quitter le sol après le coup
+précédent : il lui donne alors la vitesse d'un saut (0,42), qui baisse à chaque tick, et le coup
+suivant prend le plafond tant qu'elle n'est pas devenue négative, soit 6 ticks. Ce moment se lit
+dans la valeur des coups en l'air qui ne prennent pas le plafond, et chez nous aussi dans
+`liveVictimMotion` du journal :
+
+| Victime | Hypixel | Notre serveur, `/kb pingsim 120`, première formule | Notre serveur, sans ping simulé |
+| --- | --- | --- | --- |
+| qRago (0 ms chez nous) | 4 ticks | 3 ticks, plus 1 tick de mouvement plus ancien | 1 ou 2 ticks |
+| godemy (48 à 59 ms chez nous) | 3 ou 4 ticks | 5 ticks (18 sur 22) | 2 ou 3 ticks |
+
+Deux causes :
+
+- **La première formule comptait le ping de l'attaquant.** Compté depuis le coup sur le serveur,
+  une victime avec du vrai ping reçoit son kb et renvoie ses déplacements un aller-retour à elle
+  plus tard : le ping de l'attaquant n'y change rien. En ajoutant la moitié du ping manquant de
+  qRago (0 ms), la formule retardait le kb de godemy d'environ 30 ms de trop, et sa victime
+  montait d'un tick de trop. Le retard vaut maintenant le ping qui manque à la victime, sans
+  celui de l'attaquant.
+- **Le ping que mesure le mod sur Hypixel compte un peu plus que le trajet.** À ping égal, ce
+  moment arrive à peu près 0,7 tick plus tôt sur Hypixel que chez nous : chez nous, environ
+  1,3 tick plus l'aller-retour. L'explication la plus probable est l'attente du tick avant
+  qu'Hypixel traite l'attaque, qui compte dans le délai de l'attaque à l'animation mais ne retarde
+  pas le coup suivant. Un joueur à 150 ms sur Hypixel a donc à peu près les combos d'un joueur à
+  110-130 ms chez nous : 120 est la valeur à essayer, à confirmer par un combat enregistré.
+
+Détail : après un saut, la vitesse verticale qu'Hypixel garde pour la victime passe de 0,003 à
+-0,0755, alors que le serveur 1.8 la remet à 0 sous 0,005 puis la fait tomber à -0,0784. Un coup
+en l'air à ce moment vaut 2 898 sur Hypixel et 2 886 chez nous (3 458 et 3 446 en sprint). Ce
+petit écart, 0,0015 bloc par tick, n'est pas reproduit.
+
+### Limites
+
+- 42 secondes de Bedwars : 68 coups, et seulement 8 coups en l'air à 10 ticks.
+- Le moment où le serveur voit la victime quitter le sol est déduit des paquets sur Hypixel, en
+  supposant la gravité vanilla ; chez nous, il est lu dans le journal du serveur.
+- La correction de la formule et la valeur 120 ne sont pas encore vérifiées en jeu.

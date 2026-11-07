@@ -67,7 +67,7 @@ final class KnockbackListener implements Listener {
         Location victimLocation = victim.getLocation();
         Vector motion = victim.getVelocity();
         Vec3 liveMotion = new Vec3(motion.getX(), motion.getY(), motion.getZ());
-        SimulatedPing simulated = plugin.simulatePing(attacker, victim, liveMotion);
+        SimulatedPing simulated = plugin.simulatePing(victim, liveMotion);
         boolean sprinting = attacker.isSprinting();
         int enchantment = knockbackEnchantment(attacker);
         MeleeHit hit = new MeleeHit(

@@ -31,7 +31,7 @@ class EngineSettingsTest {
         assertEquals(20, settings.maximumNoDamageTicks());
         assertEquals(0, settings.pingSimulationMs());
         assertTrue(settings.pingSimulationDelaysKnockback());
-        assertEquals(0, settings.knockbackDelayMs(0, 0));
+        assertEquals(0, settings.knockbackDelayMs(0));
         assertEquals(0, settings.simulatedDelayTicks(0, 0));
     }
 
@@ -88,17 +88,16 @@ class EngineSettingsTest {
         assertEquals(0, settings.missingPingMs(150));
         assertEquals(0, settings.missingPingMs(400));
         assertEquals(150, settings.missingPingMs(-1));
-        // Half of what each player lacks: the attack's way to the server, the knockback's way back.
-        assertEquals(150, settings.knockbackDelayMs(0, 0));
-        assertEquals(126, settings.knockbackDelayMs(0, 48));
-        assertEquals(126, settings.knockbackDelayMs(48, 0));
-        assertEquals(75, settings.knockbackDelayMs(200, 0));
-        assertEquals(0, settings.knockbackDelayMs(150, 150));
-        assertEquals(500, settings.withPingSimulationMs(500).knockbackDelayMs(0, 0));
-        assertEquals(0, settings.withPingSimulationMs(0).knockbackDelayMs(0, 0));
-        // The motion covers what the knockback's wait leaves of the victim's missing ping.
-        assertEquals(0, settings.simulatedDelayTicks(0, 150));
-        assertEquals(0, settings.simulatedDelayTicks(48, 126));
+        // The wait is the ping the victim lacks; the attacker's does not count.
+        assertEquals(150, settings.knockbackDelayMs(0));
+        assertEquals(102, settings.knockbackDelayMs(48));
+        assertEquals(0, settings.knockbackDelayMs(150));
+        assertEquals(0, settings.knockbackDelayMs(200));
+        assertEquals(500, settings.withPingSimulationMs(500).knockbackDelayMs(0));
+        assertEquals(0, settings.withPingSimulationMs(0).knockbackDelayMs(0));
+        // The motion covers what the knockback's wait leaves of the victim's missing ping: nothing.
+        assertEquals(0, settings.simulatedDelayTicks(0, settings.knockbackDelayMs(0)));
+        assertEquals(0, settings.simulatedDelayTicks(48, settings.knockbackDelayMs(48)));
         assertEquals(2, settings.simulatedDelayTicks(0, 75));
         assertEquals(0, settings.simulatedDelayTicks(150, 0));
     }
@@ -109,7 +108,7 @@ class EngineSettingsTest {
                 "ping-simulation-ms: 150\nping-simulation-delays-knockback: false\n"));
 
         assertFalse(settings.pingSimulationDelaysKnockback());
-        assertEquals(0, settings.knockbackDelayMs(0, 0));
+        assertEquals(0, settings.knockbackDelayMs(0));
         assertTrue(settings.withPingSimulationDelaysKnockback(true).pingSimulationDelaysKnockback());
         assertFalse(settings.withHitDelayTicks(9).withPingSimulationMs(100).pingSimulationDelaysKnockback());
         assertThrows(IllegalArgumentException.class,
