@@ -24,6 +24,7 @@ public final class RagoCombatEngine extends JavaPlugin {
     private final Set<UUID> debugViewers = new HashSet<>();
     private long tick;
     private final MotionHistory motionHistory = new MotionHistory();
+    private DelayedKnockback delayedKnockback;
     /** Set once if the server does not expose the players' ping: they then count as 0 ms. */
     private boolean pingUnavailable;
 
@@ -39,6 +40,7 @@ public final class RagoCombatEngine extends JavaPlugin {
             return;
         }
         applyRecorderSetting();
+        delayedKnockback = new DelayedKnockback(getLogger());
 
         getServer().getScheduler().runTaskTimer(this, this::endOfTick, 0L, 1L);
         getServer().getPluginManager().registerEvents(new KnockbackListener(this), this);
@@ -50,7 +52,8 @@ public final class RagoCombatEngine extends JavaPlugin {
         command.setTabCompleter(executor);
         getLogger().info("Mode " + settings.mode().configName() + ", default profile " + settings.defaultProfile()
                 + ", profiles " + settings.profiles().keySet() + ", hit delay " + settings.hitDelayTicks() + " ticks"
-                + ", ping simulation " + settings.pingSimulationMs() + " ms");
+                + ", ping simulation " + settings.pingSimulationMs() + " ms"
+                + (settings.pingSimulationDelaysKnockback() ? " (knockback delayed)" : " (motion only)"));
     }
 
     @Override
@@ -61,6 +64,10 @@ public final class RagoCombatEngine extends JavaPlugin {
         }
         debugViewers.clear();
         motionHistory.clear();
+        if (delayedKnockback != null) {
+            delayedKnockback.shutdown();
+            delayedKnockback = null;
+        }
     }
 
     /**
@@ -82,16 +89,29 @@ public final class RagoCombatEngine extends JavaPlugin {
     }
 
     /**
-     * The victim's motion to compute a hit with: the current one, or with the ping simulation on,
-     * the one the victim had as many ticks before as its ping falls short of the simulated ping.
-     *
-     * @return the motion and the delay used, in ticks
+     * What the ping simulation changes for a hit: how long the victim's knockback waits, and the
+     * motion to compute it with (the current one, or an older one for a victim with less ping than
+     * the simulated ping). Without the simulation: the current motion and no wait.
      */
-    DelayedMotion motionForHit(Player victim, Vec3 current) {
-        int delay = settings.simulatedDelayTicks(settings.pingSimulationMs() == 0 ? 0 : pingOf(victim));
-        Vec3 motion = motionHistory.delayed(victim.getUniqueId(), tick, delay, current);
+    SimulatedPing simulatePing(Player attacker, Player victim, Vec3 current) {
+        EngineSettings now = settings;
+        if (now.pingSimulationMs() == 0) {
+            return new SimulatedPing(current, 0, 0);
+        }
+        int victimPing = pingOf(victim);
+        int knockbackDelay = now.knockbackDelayMs(pingOf(attacker), victimPing);
+        if (knockbackDelay > 0 && (now.mode() != EngineMode.OVERRIDE || !delayedKnockback.isAvailable(victim))) {
+            // The engine does not send this knockback, or cannot hold it back: the motion does it all.
+            knockbackDelay = 0;
+        }
+        int ticks = now.simulatedDelayTicks(victimPing, knockbackDelay);
+        Vec3 motion = motionHistory.delayed(victim.getUniqueId(), tick, ticks, current);
         // A missing sample gives back the current motion itself: then no delay was applied.
-        return new DelayedMotion(motion, motion == current ? 0 : delay);
+        return new SimulatedPing(motion, motion == current ? 0 : ticks, knockbackDelay);
+    }
+
+    DelayedKnockback delayedKnockback() {
+        return delayedKnockback;
     }
 
     void forgetMotion(UUID player) {
@@ -196,6 +216,8 @@ public final class RagoCombatEngine extends JavaPlugin {
                 + ChatColor.WHITE + record.victim + ChatColor.GRAY
                 + " | niv. " + record.hit.knockbackLevel() + (record.sprinting ? " (sprint)" : "")
                 + " | " + record.profile.name() + (record.applied ? "" : " (observe)")
+                + (record.knockbackDelayMs == 0 ? "" : " | ping simulé, kb envoyé " + record.knockbackDelayMs
+                        + " ms plus tard")
                 + (record.simulatedDelayTicks == 0 ? "" : " | ping simulé, mouvement d'il y a "
                         + record.simulatedDelayTicks + " ticks")
                 + " | paquet " + ChatColor.WHITE + record.packet;

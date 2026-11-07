@@ -22,13 +22,22 @@ world-profiles: {}
 # Il vaut pour tous les dégâts (chute, feu, flèches), pas seulement le corps à corps. De 1 à 20.
 hit-delay-ticks: 10
 
-# Ping simulé pour le calcul du kb, en millisecondes (0 = désactivé, 500 au plus). Après un coup, le
-# serveur garde le mouvement de la victime et ne le met à jour qu'une fois que son client, ayant reçu
-# le kb, renvoie ses déplacements : plus le ping est haut, plus c'est tard, et plus le coup suivant
-# d'un combo envoie haut. Avec 150, une victime à 30 ms est frappée avec son mouvement d'il y a
-# 2 ticks (150 - 30 = 120 ms), comme si elle avait 150 ms. Une victime qui a déjà ce ping ou plus
-# n'est pas touchée. Expérimental : voir docs/combat/mesures-hypixel.md.
+# Ping simulé en combat, en millisecondes (0 = désactivé, 500 au plus). Expérimental : voir
+# docs/combat/mesures-hypixel.md. Pour les coups au corps à corps seulement, le moteur fait comme si
+# chaque joueur qui a moins de ce ping l'avait. Les blocs et les déplacements ne changent pas.
+# - Le kb part en retard vers la victime : de la moitié du ping qui manque à l'attaquant (le trajet
+#   de l'attaque vers le serveur), plus la moitié de celui qui manque à la victime (le trajet du kb).
+#   Pendant ce temps, la victime peut encore rendre le coup, comme avec du vrai ping. Avec 150, entre
+#   deux joueurs à 0 ms : 75 + 75 = 150 ms.
+# - Le kb est calculé avec le mouvement de la victime d'il y a quelques ticks, pour la part de son
+#   ping manquant que le retard du kb ne couvre pas déjà. Plus le ping est haut, plus le serveur
+#   apprend tard le mouvement de la victime après un coup, et plus le coup suivant d'un combo envoie
+#   haut.
 ping-simulation-ms: 0
+
+# false : le kb part sans retard, et tout le ping qui manque à la victime passe par le mouvement plus
+# ancien (la première version du réglage).
+ping-simulation-delays-knockback: true
 
 # Écrit chaque hit dans plugins/RagoCombatEngine/hits/hits-AAAA-MM-JJ.jsonl pour l'analyse.
 record-hits: false

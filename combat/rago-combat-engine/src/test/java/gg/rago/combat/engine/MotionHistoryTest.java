@@ -25,11 +25,31 @@ class MotionHistoryTest {
         }
         Vec3 current = new Vec3(0.0D, 0.42D, 0.0D);
 
-        // A hit during tick 31: the latest sample, of tick 30, is one tick old.
+        // A hit during tick 31, after the victim's movement of tick 31: the latest sample, of
+        // tick 30, is one movement old.
         assertSame(current, history.delayed(VICTIM, 30L, 0, current));
         assertSame(samples[30], history.delayed(VICTIM, 30L, 1, current));
         assertSame(samples[28], history.delayed(VICTIM, 30L, 3, current));
         assertSame(samples[21], history.delayed(VICTIM, 30L, 10, current));
+    }
+
+    @Test
+    void aHitBeforeTheVictimsMovementOfTheTickGoesOneSampleFurther() {
+        MotionHistory history = new MotionHistory();
+        Vec3[] samples = new Vec3[31];
+        for (int tick = 1; tick <= 30; tick++) {
+            samples[tick] = motion(tick);
+            history.record(VICTIM, tick, samples[tick]);
+        }
+        // The server has not handled the victim's movement of tick 31 yet: its motion is still the
+        // one of the latest sample.
+        Vec3 current = motion(30);
+
+        assertSame(current, history.delayed(VICTIM, 30L, 0, current));
+        assertSame(samples[29], history.delayed(VICTIM, 30L, 1, current));
+        assertSame(samples[27], history.delayed(VICTIM, 30L, 3, current));
+        assertSame(samples[30 - (MotionHistory.CAPACITY - 1)],
+                history.delayed(VICTIM, 30L, MotionHistory.CAPACITY - 1, current));
     }
 
     @Test

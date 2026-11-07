@@ -45,7 +45,8 @@ mode: override            # override : applique le profil ; observe : calcule et
 active-profile: vanilla   # profil utilisé partout, sauf dans les mondes de world-profiles
 world-profiles: {}        # par monde, par exemple { arena_a: vanilla, arena_b: test-a }
 hit-delay-ticks: 10       # délai entre deux coups, en ticks (vanilla 10, Hypixel mesuré 9), de 1 à 20
-ping-simulation-ms: 0     # ping simulé pour le calcul du kb (0 = désactivé, 500 au plus), expérimental
+ping-simulation-ms: 0     # ping simulé pour les coups (0 = désactivé, 500 au plus), expérimental
+ping-simulation-delays-knockback: true  # false : le ping simulé ne retarde pas le kb
 record-hits: false        # journal des hits (voir plus bas)
 profiles: {}              # profils de test, en plus de vanilla
 ```
@@ -86,21 +87,45 @@ garde, mais le moteur ne dépend pas de ce détail), et dès que le réglage cha
 
 ## Ping simulé (expérimental)
 
-Après un coup, le serveur 1.8 envoie le kb à la victime mais garde son mouvement à lui ; il ne le
-met à jour qu'une fois que le client de la victime, ayant reçu le kb, renvoie ses déplacements. Le
-coup suivant d'un combo dépend de ce mouvement : plus la victime a de ping, plus il est ancien, et
-plus elle part haut. Les mesures sur Hypixel, faites à 140-160 ms, en donnent l'effet
-([mesures](../../docs/combat/mesures-hypixel.md)).
+Les joueurs habitués à Hypixel y jouent souvent à 140-160 ms. Le ping y change deux choses au corps
+à corps ([mesures, et test avec du ping ajouté](../../docs/combat/mesures-hypixel.md)) :
 
-`ping-simulation-ms` (ou `/kb pingsim <ms>`) reproduit cet effet pour les joueurs qui ont moins de
-ping : le kb d'une victime est calculé avec son mouvement d'il y a autant de ticks (de 50 ms,
-arrondi) qu'il lui manque de ping. Avec 150, une victime à 30 ms est frappée avec son mouvement
-d'il y a 2 ticks ; une victime à 150 ms ou plus ne change pas. Seul le calcul du kb change : les
-dégâts, le délai entre deux coups et la position des joueurs restent ceux du serveur.
+- **Les trades.** La victime n'est poussée qu'une fois que l'attaque a fait le trajet jusqu'au
+  serveur (la moitié du ping de l'attaquant) et le kb celui jusqu'à elle (la moitié du sien).
+  Jusque-là, elle voit encore l'attaquant à portée et peut lui rendre le coup.
+- **La hauteur des combos.** Après un coup, le serveur 1.8 envoie le kb à la victime mais garde son
+  mouvement à lui. Il ne le met à jour qu'une fois que le client de la victime, ayant reçu le kb,
+  renvoie ses déplacements, soit un aller-retour plus tard. Le coup suivant d'un combo dépend de
+  ce mouvement : plus la victime a de ping, plus il est ancien, et plus elle part haut.
 
-Le ping de chaque joueur est celui que le serveur mesure (aller-retour du keep-alive, lissé). Tant
-que le réglage vaut 0, le moteur n'enregistre aucun mouvement. Il reste à vérifier en jeu, et par
-un enregistrement avec du ping réel ajouté, que l'effet est le même que celui du ping.
+`ping-simulation-ms` (ou `/kb pingsim <ms>`) fait comme si chaque joueur qui a moins de ping avait
+celui-là, pour les coups au corps à corps entre joueurs seulement :
+
+1. **Le kb part en retard** : de la moitié du ping qui manque à l'attaquant, plus la moitié de
+   celui qui manque à la victime. Avec 150, entre deux joueurs à 0 ms, le paquet de kb part 150 ms
+   après le coup ; entre un joueur à 0 ms et un à 48 ms, 75 + 51 = 126 ms. Le serveur, lui, garde
+   le mouvement de la victime d'avant le coup, comme quand il envoie le kb tout de suite, et ne
+   l'envoie à personne d'autre.
+2. **Le mouvement plus ancien** : le retard du kb décale déjà d'autant les déplacements de la
+   victime. Le reste du ping qui lui manque est pris dans les mouvements des derniers ticks : son
+   kb est calculé avec son mouvement d'il y a autant de ticks (de 50 ms, arrondi). Entre deux
+   joueurs à 0 ms, le retard du kb couvre tout et le mouvement est l'actuel.
+
+Avec `ping-simulation-delays-knockback: false` (ou `/kb pingsim kb off`), le kb part tout de suite
+et tout le ping qui manque à la victime passe par le mouvement plus ancien : avec 150, une victime
+à 30 ms est frappée avec son mouvement d'il y a 2 ticks. C'est la première version du réglage, qui
+reproduit la hauteur des combos mais pas les trades.
+
+Une victime et un attaquant qui ont déjà ce ping ou plus ne changent pas. Les dégâts, l'animation
+de coup reçu, le délai entre deux coups et la position des joueurs restent ceux du serveur : la
+victime voit donc l'animation avant d'être poussée. Le ping de chaque joueur est celui que le
+serveur mesure (aller-retour du keep-alive, lissé). Tant que le réglage vaut 0, le moteur
+n'enregistre aucun mouvement.
+
+L'API Bukkit de 1.8 ne sait ni envoyer un paquet de vitesse plus tard, ni empêcher le serveur de
+l'envoyer sans changer son mouvement. Le moteur passe donc par les classes du serveur, trouvées par
+réflexion (`DelayedKnockback`). S'il ne les trouve pas, il le dit une fois dans la console et le kb
+part sans retard.
 
 ## Commande `/kb`
 
@@ -114,7 +139,8 @@ Permission `rago.combat.admin` (opérateurs par défaut).
 | `/kb world <monde> <profil\|default>` | profil d'un monde, ou retour au profil par défaut |
 | `/kb mode <override\|observe>` | change le mode |
 | `/kb hitdelay <ticks>` | change le délai entre deux coups (vanilla 10, Hypixel mesuré 9) |
-| `/kb pingsim <ms>` | change le ping simulé pour le calcul du kb (0 = désactivé) |
+| `/kb pingsim <ms>` | change le ping simulé pour les coups (0 = désactivé) |
+| `/kb pingsim kb <on\|off>` | retarde ou non le kb dans le ping simulé |
 | `/kb debug` | affiche dans le chat de celui qui tape la commande chaque coup et son paquet |
 | `/kb reload` | relit config.yml ; s'il est invalide, les réglages actuels restent en place |
 
@@ -137,7 +163,8 @@ Avec `record-hits: true`, chaque coup est écrit dans
 - `velocity` (calculée avec le profil), `packet` (la même en unités de paquet), `applied`
   (`true` si le moteur l'a posée, `false` en mode observe) ;
 - `pingSimulationMs` (le réglage), `simulatedDelayTicks` (l'âge en ticks de `victimMotion`, 0 sans
-  ping simulé) et `liveVictimMotion` (la vitesse côté serveur au moment du coup).
+  ping simulé), `knockbackDelayMs` (le retard du paquet de kb, 0 sans ping simulé) et
+  `liveVictimMotion` (la vitesse côté serveur au moment du coup).
 
 L'écriture passe par une file de 10 000 lignes ; si le disque ne suit pas, les lignes en trop
 sont perdues et comptées (`/kb status`), le thread principal n'attend jamais. Ce format est lu par

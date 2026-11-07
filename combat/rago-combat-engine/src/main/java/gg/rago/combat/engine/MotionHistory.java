@@ -19,8 +19,8 @@ import java.util.UUID;
  */
 final class MotionHistory {
 
-    /** Enough for the longest delay the settings allow. */
-    static final int CAPACITY = EngineSettings.MAX_PING_SIMULATION_MS / 50 + 1;
+    /** Enough for the longest delay the settings allow, one tick further back. */
+    static final int CAPACITY = EngineSettings.MAX_PING_SIMULATION_MS / 50 + 2;
 
     private static final class Samples {
         final long[] ticks = new long[CAPACITY];
@@ -28,6 +28,12 @@ final class MotionHistory {
 
         Samples() {
             Arrays.fill(ticks, Long.MIN_VALUE);
+        }
+
+        /** The sample of {@code tick}, or null if it was never taken or has been overwritten. */
+        Vec3 at(long tick) {
+            int slot = (int) Math.floorMod(tick, (long) CAPACITY);
+            return ticks[slot] == tick ? motions[slot] : null;
         }
     }
 
@@ -45,10 +51,16 @@ final class MotionHistory {
      * The motion to use for a hit, as if the server had received the victim's movements
      * {@code delayTicks} ticks later.
      *
-     * <p>A server tick handles the players' packets (moves and attacks) before the scheduler runs, and
-     * the samples are taken by the scheduler. So during a hit, {@code lastTick}, the tick of the
-     * latest sample, ended one tick before the current motion: a delay of one tick takes that
-     * sample, a delay of {@code n} ticks the one taken {@code n - 1} ticks before it.
+     * <p>The server changes a player's motion when it handles that player's movement packet (one per
+     * client tick), and it handles the packets of a tick in the order they arrived, attacks
+     * included, before the scheduler takes the samples. So during a hit, the victim's movement of
+     * the current tick may or may not have been handled yet:
+     * <ul>
+     *   <li>if it has, the current motion is one movement newer than the latest sample, the one of
+     *       {@code lastTick}: a delay of {@code n} ticks takes the sample of {@code lastTick - (n - 1)};
+     *   <li>if not, the current motion is still the latest sample: a delay of {@code n} ticks takes
+     *       the sample of {@code lastTick - n}.
+     * </ul>
      *
      * @return {@code current} when the delay is 0 or the sample is missing (a player who just
      *     joined, or a simulation just turned on), else the sample
@@ -61,9 +73,11 @@ final class MotionHistory {
         if (samples == null) {
             return current;
         }
-        long wanted = lastTick - (Math.min(delayTicks, CAPACITY) - 1);
-        int slot = (int) Math.floorMod(wanted, (long) CAPACITY);
-        return samples.ticks[slot] == wanted ? samples.motions[slot] : current;
+        int delay = Math.min(delayTicks, CAPACITY - 1);
+        Vec3 latest = samples.at(lastTick);
+        boolean movedThisTick = latest == null || !latest.equals(current);
+        Vec3 sample = samples.at(lastTick - delay + (movedThisTick ? 1 : 0));
+        return sample != null ? sample : current;
     }
 
     void forget(UUID player) {

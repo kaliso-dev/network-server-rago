@@ -22,6 +22,7 @@ final class EngineSettings {
     static final int MIN_PING_SIMULATION_MS = 0;
     static final int MAX_PING_SIMULATION_MS = 500;
     static final String KEY_PING_SIMULATION_MS = "ping-simulation-ms";
+    static final String KEY_PING_SIMULATION_DELAYS_KNOCKBACK = "ping-simulation-delays-knockback";
 
     private final EngineMode mode;
     private final String defaultProfile;
@@ -30,9 +31,11 @@ final class EngineSettings {
     private final boolean recordHits;
     private final int hitDelayTicks;
     private final int pingSimulationMs;
+    private final boolean pingSimulationDelaysKnockback;
 
     private EngineSettings(EngineMode mode, String defaultProfile, Map<String, KnockbackProfile> profiles,
-            Map<String, String> worldProfiles, boolean recordHits, int hitDelayTicks, int pingSimulationMs) {
+            Map<String, String> worldProfiles, boolean recordHits, int hitDelayTicks, int pingSimulationMs,
+            boolean pingSimulationDelaysKnockback) {
         this.mode = mode;
         this.defaultProfile = defaultProfile;
         this.profiles = Collections.unmodifiableMap(new LinkedHashMap<>(profiles));
@@ -40,6 +43,7 @@ final class EngineSettings {
         this.recordHits = recordHits;
         this.hitDelayTicks = requireHitDelay(hitDelayTicks);
         this.pingSimulationMs = requirePingSimulation(pingSimulationMs);
+        this.pingSimulationDelaysKnockback = pingSimulationDelaysKnockback;
     }
 
     /**
@@ -85,7 +89,7 @@ final class EngineSettings {
         }
 
         return new EngineSettings(mode, defaultProfile, profiles, worldProfiles, config.getBoolean("record-hits", false),
-                readHitDelay(config), readPingSimulation(config));
+                readHitDelay(config), readPingSimulation(config), readDelaysKnockback(config));
     }
 
     private static int readHitDelay(ConfigurationSection config) {
@@ -119,6 +123,15 @@ final class EngineSettings {
                     + " and " + MAX_PING_SIMULATION_MS + ", got " + millis);
         }
         return millis;
+    }
+
+    private static boolean readDelaysKnockback(ConfigurationSection config) {
+        Object value = config.get(KEY_PING_SIMULATION_DELAYS_KNOCKBACK, true);
+        if (!(value instanceof Boolean)) {
+            throw new IllegalArgumentException(KEY_PING_SIMULATION_DELAYS_KNOCKBACK + " must be true or false, got "
+                    + value);
+        }
+        return (Boolean) value;
     }
 
     private static void requireProfile(Map<String, KnockbackProfile> profiles, String name, String where) {
@@ -163,22 +176,59 @@ final class EngineSettings {
     }
 
     /**
-     * The ping, in milliseconds, that the knockback is computed for: a victim with less ping is hit
-     * as if the server still had its motion of a few ticks before. 0 turns the simulation off.
+     * The ping, in milliseconds, that melee hits are simulated for: a victim with less ping gets its
+     * knockback later ({@link #knockbackDelayMs}) and computed from an older motion
+     * ({@link #simulatedDelayTicks}), as with that ping. 0 turns the simulation off.
      */
     int pingSimulationMs() {
         return pingSimulationMs;
     }
 
+    /** Whether the simulation also holds back the victim's knockback packet ({@link #knockbackDelayMs}). */
+    boolean pingSimulationDelaysKnockback() {
+        return pingSimulationDelaysKnockback;
+    }
+
     /**
-     * How many ticks back to take the victim's motion from, for a victim whose real ping is
-     * {@code realPingMs}: the missing ping, rounded to whole ticks of 50 ms, or 0.
+     * How much ping a player whose real ping is {@code realPingMs} lacks to reach the simulated
+     * one, in milliseconds: 0 when the simulation is off or the player already has that much.
      */
-    int simulatedDelayTicks(int realPingMs) {
+    int missingPingMs(int realPingMs) {
         if (pingSimulationMs == 0 || realPingMs >= pingSimulationMs) {
             return 0;
         }
-        return Math.round((pingSimulationMs - Math.max(0, realPingMs)) / 50.0F);
+        return pingSimulationMs - Math.max(0, realPingMs);
+    }
+
+    /**
+     * How long the victim's knockback packet waits before it is sent, in milliseconds.
+     *
+     * <p>With real ping, the victim is pushed once the attack has reached the server (half of the
+     * attacker's ping) and the knockback has come back to the victim (half of the victim's). Until
+     * then the victim can still hit back, which is what makes trades. The wait adds the two halves
+     * the players lack. 0 when the setting does not hold the knockback back.
+     */
+    int knockbackDelayMs(int attackerPingMs, int victimPingMs) {
+        if (!pingSimulationDelaysKnockback) {
+            return 0;
+        }
+        return missingPingMs(attackerPingMs) / 2 + missingPingMs(victimPingMs) / 2;
+    }
+
+    /**
+     * How many ticks back to take the victim's motion from.
+     *
+     * <p>The server learns the victim's movements a whole round trip after sending the knockback,
+     * so the motion it has at the next hit of a combo depends on the victim's ping only. A
+     * knockback that waits {@code knockbackDelayMs} already shifts the victim's movements by that
+     * much; the rest of the victim's missing ping comes from the motion history, rounded to whole
+     * ticks of 50 ms.
+     *
+     * @param knockbackDelayMs the wait actually applied to this hit's knockback
+     */
+    int simulatedDelayTicks(int victimPingMs, int knockbackDelayMs) {
+        int rest = missingPingMs(victimPingMs) - knockbackDelayMs;
+        return rest <= 0 ? 0 : Math.round(rest / 50.0F);
     }
 
     /** The profile that applies to hits in this world. */
@@ -189,12 +239,13 @@ final class EngineSettings {
 
     EngineSettings withMode(EngineMode newMode) {
         return new EngineSettings(newMode, defaultProfile, profiles, worldProfiles, recordHits, hitDelayTicks,
-                pingSimulationMs);
+                pingSimulationMs, pingSimulationDelaysKnockback);
     }
 
     EngineSettings withDefaultProfile(String name) {
         requireProfile(profiles, name, "profile");
-        return new EngineSettings(mode, name, profiles, worldProfiles, recordHits, hitDelayTicks, pingSimulationMs);
+        return new EngineSettings(mode, name, profiles, worldProfiles, recordHits, hitDelayTicks, pingSimulationMs,
+                pingSimulationDelaysKnockback);
     }
 
     /** @param name a profile name, or {@code null} to make the world use the default profile */
@@ -206,16 +257,24 @@ final class EngineSettings {
             requireProfile(profiles, name, "world " + world);
             worlds.put(world, name);
         }
-        return new EngineSettings(mode, defaultProfile, profiles, worlds, recordHits, hitDelayTicks, pingSimulationMs);
+        return new EngineSettings(mode, defaultProfile, profiles, worlds, recordHits, hitDelayTicks, pingSimulationMs,
+                pingSimulationDelaysKnockback);
     }
 
     /** @throws IllegalArgumentException if the delay is out of range */
     EngineSettings withHitDelayTicks(int ticks) {
-        return new EngineSettings(mode, defaultProfile, profiles, worldProfiles, recordHits, ticks, pingSimulationMs);
+        return new EngineSettings(mode, defaultProfile, profiles, worldProfiles, recordHits, ticks, pingSimulationMs,
+                pingSimulationDelaysKnockback);
     }
 
     /** @throws IllegalArgumentException if the ping is out of range */
     EngineSettings withPingSimulationMs(int millis) {
-        return new EngineSettings(mode, defaultProfile, profiles, worldProfiles, recordHits, hitDelayTicks, millis);
+        return new EngineSettings(mode, defaultProfile, profiles, worldProfiles, recordHits, hitDelayTicks, millis,
+                pingSimulationDelaysKnockback);
+    }
+
+    EngineSettings withPingSimulationDelaysKnockback(boolean delays) {
+        return new EngineSettings(mode, defaultProfile, profiles, worldProfiles, recordHits, hitDelayTicks,
+                pingSimulationMs, delays);
     }
 }

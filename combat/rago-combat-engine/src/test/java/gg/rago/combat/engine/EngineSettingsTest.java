@@ -30,7 +30,9 @@ class EngineSettingsTest {
         assertEquals(10, settings.hitDelayTicks());
         assertEquals(20, settings.maximumNoDamageTicks());
         assertEquals(0, settings.pingSimulationMs());
-        assertEquals(0, settings.simulatedDelayTicks(0));
+        assertTrue(settings.pingSimulationDelaysKnockback());
+        assertEquals(0, settings.knockbackDelayMs(0, 0));
+        assertEquals(0, settings.simulatedDelayTicks(0, 0));
     }
 
     @Test
@@ -76,20 +78,58 @@ class EngineSettingsTest {
     }
 
     @Test
-    void pingSimulationDelaysVictimsWithLessPing() throws Exception {
+    void pingSimulationDelaysTheKnockbackOfPlayersWithLessPing() throws Exception {
         EngineSettings settings = EngineSettings.load(yaml("ping-simulation-ms: 150\n"));
 
         assertEquals(150, settings.pingSimulationMs());
-        assertEquals(3, settings.simulatedDelayTicks(0));
-        assertEquals(2, settings.simulatedDelayTicks(30));
-        assertEquals(2, settings.simulatedDelayTicks(48));
-        assertEquals(1, settings.simulatedDelayTicks(100));
-        assertEquals(0, settings.simulatedDelayTicks(140));
-        assertEquals(0, settings.simulatedDelayTicks(150));
-        assertEquals(0, settings.simulatedDelayTicks(400));
-        assertEquals(3, settings.simulatedDelayTicks(-1));
-        assertEquals(10, settings.withPingSimulationMs(500).simulatedDelayTicks(0));
-        assertEquals(0, settings.withPingSimulationMs(0).simulatedDelayTicks(0));
+        assertTrue(settings.pingSimulationDelaysKnockback());
+        assertEquals(150, settings.missingPingMs(0));
+        assertEquals(102, settings.missingPingMs(48));
+        assertEquals(0, settings.missingPingMs(150));
+        assertEquals(0, settings.missingPingMs(400));
+        assertEquals(150, settings.missingPingMs(-1));
+        // Half of what each player lacks: the attack's way to the server, the knockback's way back.
+        assertEquals(150, settings.knockbackDelayMs(0, 0));
+        assertEquals(126, settings.knockbackDelayMs(0, 48));
+        assertEquals(126, settings.knockbackDelayMs(48, 0));
+        assertEquals(75, settings.knockbackDelayMs(200, 0));
+        assertEquals(0, settings.knockbackDelayMs(150, 150));
+        assertEquals(500, settings.withPingSimulationMs(500).knockbackDelayMs(0, 0));
+        assertEquals(0, settings.withPingSimulationMs(0).knockbackDelayMs(0, 0));
+        // The motion covers what the knockback's wait leaves of the victim's missing ping.
+        assertEquals(0, settings.simulatedDelayTicks(0, 150));
+        assertEquals(0, settings.simulatedDelayTicks(48, 126));
+        assertEquals(2, settings.simulatedDelayTicks(0, 75));
+        assertEquals(0, settings.simulatedDelayTicks(150, 0));
+    }
+
+    @Test
+    void pingSimulationCanLeaveTheKnockbackOnTime() throws Exception {
+        EngineSettings settings = EngineSettings.load(yaml(
+                "ping-simulation-ms: 150\nping-simulation-delays-knockback: false\n"));
+
+        assertFalse(settings.pingSimulationDelaysKnockback());
+        assertEquals(0, settings.knockbackDelayMs(0, 0));
+        assertTrue(settings.withPingSimulationDelaysKnockback(true).pingSimulationDelaysKnockback());
+        assertFalse(settings.withHitDelayTicks(9).withPingSimulationMs(100).pingSimulationDelaysKnockback());
+        assertThrows(IllegalArgumentException.class,
+                () -> EngineSettings.load(yaml("ping-simulation-delays-knockback: 1\n")));
+        // Without a wait, the whole missing ping comes from the motion, rounded to ticks of 50 ms.
+        assertEquals(3, settings.simulatedDelayTicks(0, 0));
+        assertEquals(2, settings.simulatedDelayTicks(30, 0));
+        assertEquals(2, settings.simulatedDelayTicks(48, 0));
+        assertEquals(1, settings.simulatedDelayTicks(100, 0));
+        assertEquals(0, settings.simulatedDelayTicks(140, 0));
+        assertEquals(0, settings.simulatedDelayTicks(150, 0));
+        assertEquals(0, settings.simulatedDelayTicks(400, 0));
+        assertEquals(3, settings.simulatedDelayTicks(-1, 0));
+        assertEquals(10, settings.withPingSimulationMs(500).simulatedDelayTicks(0, 0));
+        assertEquals(0, settings.withPingSimulationMs(0).simulatedDelayTicks(0, 0));
+    }
+
+    @Test
+    void pingSimulationRangeIsChecked() throws Exception {
+        EngineSettings settings = EngineSettings.load(yaml("ping-simulation-ms: 150\n"));
         assertEquals(150, settings.withHitDelayTicks(9).withMode(EngineMode.OBSERVE).withDefaultProfile("vanilla")
                 .withWorldProfile("arena", "vanilla").pingSimulationMs());
         for (String value : new String[] {"-1", "501", "1.5", "cent"}) {

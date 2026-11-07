@@ -23,10 +23,12 @@ final class PendingHit {
     final Vec3 liveVictimMotion;
     /** How many ticks old the motion in {@link #hit} is: 0 unless the ping simulation is on. */
     final int simulatedDelayTicks;
+    /** How long the knockback waits before it is sent to the victim, in ms: 0 unless the ping simulation is on. */
+    final int knockbackDelayMs;
 
     PendingHit(UUID victimId, long tick, String attackerName, String victimName, int victimEntityId,
             boolean sprinting, int knockbackEnchantment, boolean victimOnGround, MeleeHit hit, Vec3 liveVictimMotion,
-            int simulatedDelayTicks) {
+            int simulatedDelayTicks, int knockbackDelayMs) {
         this.victimId = victimId;
         this.tick = tick;
         this.attackerName = attackerName;
@@ -38,5 +40,6 @@ final class PendingHit {
         this.hit = hit;
         this.liveVictimMotion = liveVictimMotion;
         this.simulatedDelayTicks = simulatedDelayTicks;
+        this.knockbackDelayMs = knockbackDelayMs;
     }
 }

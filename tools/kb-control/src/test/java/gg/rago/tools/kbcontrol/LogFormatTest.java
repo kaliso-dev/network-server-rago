@@ -33,7 +33,7 @@ class LogFormatTest {
             + "\"victimMotion\":[0.03333333333333333,-0.0784000015258789,-1.0E-7]},"
             + "\"velocity\":[-0.3944655881428242,0.4088823520436006,1.0518537649986386],"
             + "\"packet\":[-3155,3271,8414],\"applied\":true,\"pingSimulationMs\":0,\"simulatedDelayTicks\":0,"
-            + "\"liveVictimMotion\":[0.03333333333333333,-0.0784000015258789,-1.0E-7]}";
+            + "\"knockbackDelayMs\":0,\"liveVictimMotion\":[0.03333333333333333,-0.0784000015258789,-1.0E-7]}";
 
     /** A line written by bots/control-bots.mjs when the victim receives a velocity packet. */
     static final String BOT_LINE = "{\"type\":\"velocity\",\"time\":1700000000125,\"bot\":\"RagoVictim\","

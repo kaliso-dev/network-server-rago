@@ -21,12 +21,12 @@ class HitRecordTest {
         MeleeHit hit = new MeleeHit(10.123456789012345D, -4.5D, 37.25F, 1, 11.0D, -2.25D, motion);
         Vec3 live = new Vec3(0.0D, 0.25D, 0.0D);
         PendingHit pending = new PendingHit(UUID.randomUUID(), 42L, "Att\"acker", "Victim", 7, true, 0, true, hit, live,
-                3);
+                3, 120);
         KnockbackProfile profile = KnockbackProfile.of("test-a", 2.0D, 0.35D, 0.35D, 0.4D, 0.425D, 0.1D);
         Vec3 velocity = new KnockbackCalculator().compute(profile, hit);
 
-        String json = new HitRecord(1_000L, 42L, EngineMode.OVERRIDE, profile, "arena", pending, velocity, true, 150)
-                .toJson();
+        String json = new HitRecord(1_000L, 42L, EngineMode.OVERRIDE, profile, "arena", pending, velocity, true, 150,
+                120).toJson();
         JsonObject object = parse(json);
 
         assertTrue(!json.contains("\n"));
@@ -46,6 +46,7 @@ class HitRecordTest {
         assertTrue(object.get("applied").getAsBoolean());
         assertEquals(150, object.get("pingSimulationMs").getAsInt());
         assertEquals(3, object.get("simulatedDelayTicks").getAsInt());
+        assertEquals(120, object.get("knockbackDelayMs").getAsInt());
         assertEquals(0.25D, object.getAsJsonArray("liveVictimMotion").get(1).getAsDouble());
     }
 
@@ -58,12 +59,12 @@ class HitRecordTest {
         Vec3 motion = new Vec3(0.1D / 3.0D, (0.0D - 0.08D) * 0.9800000190734863D, -1.0E-7D);
         MeleeHit hit = new MeleeHit(10.123456789012345D, -4.5D, 37.25F, 2, 11.0D, -2.25D, motion);
         PendingHit pending = new PendingHit(new UUID(1L, 2L), 42L, "RagoAttacker", "RagoVictim", 7, true, 1, false,
-                hit, motion, 0);
+                hit, motion, 0, 0);
         KnockbackProfile profile = KnockbackProfile.of("control-alt", 1.7D, 0.36D, 0.37D, 0.39D, 0.45D, 0.085D);
         Vec3 velocity = new KnockbackCalculator().compute(profile, hit);
 
         String json = new HitRecord(1700000000123L, 42L, EngineMode.OVERRIDE, profile, "kb-control", pending,
-                velocity, true, 0).toJson();
+                velocity, true, 0, 0).toJson();
 
         assertEquals("{\"type\":\"melee\",\"time\":1700000000123,\"tick\":42,\"mode\":\"override\","
                 + "\"profile\":\"control-alt\",\"profileValues\":{\"friction\":1.7,\"horizontal\":0.36,\"vertical\":0.37,"
@@ -74,7 +75,7 @@ class HitRecordTest {
                 + "\"victimMotion\":[0.03333333333333333,-0.0784000015258789,-1.0E-7]},"
                 + "\"velocity\":[-0.3944655881428242,0.4088823520436006,1.0518537649986386],"
                 + "\"packet\":[-3155,3271,8414],\"applied\":true,\"pingSimulationMs\":0,\"simulatedDelayTicks\":0,"
-                + "\"liveVictimMotion\":[0.03333333333333333,-0.0784000015258789,-1.0E-7]}", json);
+                + "\"knockbackDelayMs\":0,\"liveVictimMotion\":[0.03333333333333333,-0.0784000015258789,-1.0E-7]}", json);
     }
 
     @SuppressWarnings("deprecation")

@@ -78,8 +78,8 @@ La remise à zéro arrive à peu près 6 ticks plus le ping après le coup préc
 au moment du coup suivant ou plus tard, ce coup prend le plafond (3 200, ou 3 760 en sprint) :
 c'est le cas d'un tiers des coups en l'air des combos sur Hypixel, et de presque aucun chez nous.
 Ce n'est donc pas une règle différente d'Hypixel mais l'effet du ping, que notre serveur reproduit
-de la même façon : avec 150 ms, un joueur comboté monte plus haut, sur Hypixel comme ici. Un test
-avec du ping ajouté sur notre serveur doit encore le confirmer.
+de la même façon : avec 150 ms, un joueur comboté monte plus haut, sur Hypixel comme ici. Le test
+avec du ping ajouté sur notre serveur, plus bas, le confirme.
 
 Conséquence : la sensation d'Hypixel dépend du ping de celui qui joue. Un joueur européen à 30 ms
 sur Rago aura des combos en l'air plus bas que ceux qu'il connaît sur Hypixel à 150 ms, avec
@@ -141,6 +141,37 @@ Le même jour, un second combat d'environ 80 secondes sur notre serveur avec `hy
 sprint au sol, un pas de sprint de 560, la poussée horizontale de 0,4 et de 0,5 en plus en sprint,
 et 44 % des intervalles entre deux coups à 9 ticks (45 % sur Hypixel). Les attaques envoyées au
 moins 425 ms après la précédente ont compté 69 fois sur 71.
+
+### Test avec du ping ajouté sur notre serveur
+
+Le même soir, sur notre serveur avec `hypixel-approx-v1` et 9 ticks, trois joueurs ont enchaîné
+des combats avec le journal des hits du moteur, dans trois conditions : avec clumsy (75 ms de
+retard dans chaque sens sur le port du serveur, environ 150 ms de ping en plus pour tous), avec la
+première version de `/kb pingsim` à 160 (le mouvement plus ancien seulement, sans retard du kb), et
+sans rien.
+
+| Condition | Coups des combos en l'air au plafond | Coups rendus dans les 300 ms |
+| --- | --- | --- |
+| Clumsy, environ 150 ms de plus | 40 sur 92 (43 %) | 45 sur 118 (38 %) |
+| `/kb pingsim 160`, mouvement seulement | 16 sur 50 (32 %) | 23 sur 78 (29 %) |
+| Sans rien | 13 sur 95 (14 %) | 9 sur 42 (21 %) |
+
+Les coups des combos sont ceux qui arrivent 8 à 13 ticks après le coup précédent sur la même
+victime, tous joueurs confondus ; sur Hypixel, un tiers d'entre eux prennent le plafond. Les coups
+rendus sont ceux d'une même paire de joueurs, présente dans les trois conditions : un coup est
+rendu quand la victime touche son attaquant dans les 6 ticks qui suivent.
+
+Le ping réel ajouté donne donc les combos d'Hypixel, et le mouvement plus ancien s'en approche. Le
+ressenti des joueurs : avec clumsy, « vraiment Hypixel », mais tout le jeu lagge (blocs,
+déplacements) ; avec le ping simulé, peu de différence. Ce qui manque au ping simulé, ce sont les
+trades : avec du vrai ping, la victime ne reçoit son kb qu'après le trajet de l'attaque jusqu'au
+serveur et celui du kb jusqu'à elle, et peut rendre le coup jusque-là. D'où la seconde version du
+réglage, qui retarde aussi le paquet de kb (README du moteur).
+
+Le journal montre aussi que la première version prenait parfois un mouvement plus récent d'un tick
+que prévu : quand l'attaque arrive avant le mouvement de la victime dans le même tick du serveur.
+La seconde version en tient compte. Les échantillons restent petits, une centaine de coups par
+condition.
 
 ### Limites
 

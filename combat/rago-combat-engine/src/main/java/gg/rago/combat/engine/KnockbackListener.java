@@ -67,17 +67,17 @@ final class KnockbackListener implements Listener {
         Location victimLocation = victim.getLocation();
         Vector motion = victim.getVelocity();
         Vec3 liveMotion = new Vec3(motion.getX(), motion.getY(), motion.getZ());
-        DelayedMotion used = plugin.motionForHit(victim, liveMotion);
+        SimulatedPing simulated = plugin.simulatePing(attacker, victim, liveMotion);
         boolean sprinting = attacker.isSprinting();
         int enchantment = knockbackEnchantment(attacker);
         MeleeHit hit = new MeleeHit(
                 attackerLocation.getX(), attackerLocation.getZ(), attackerLocation.getYaw(),
                 enchantment + (sprinting ? 1 : 0),
                 victimLocation.getX(), victimLocation.getZ(),
-                used.motion);
+                simulated.motion);
         pending = new PendingHit(victim.getUniqueId(), plugin.currentTick(), attacker.getName(), victim.getName(),
                 victim.getEntityId(), sprinting, enchantment, reportedOnGround(victim), hit, liveMotion,
-                used.delayTicks);
+                simulated.motionDelayTicks, simulated.knockbackDelayMs);
     }
 
     @EventHandler(priority = EventPriority.HIGHEST, ignoreCancelled = true)
@@ -94,7 +94,14 @@ final class KnockbackListener implements Listener {
         KnockbackProfile profile = settings.profileFor(world);
         Vec3 velocity = calculator.compute(profile, hit.hit);
         boolean applied = settings.mode() == EngineMode.OVERRIDE;
-        if (applied) {
+        int knockbackDelayMs = 0;
+        if (applied && hit.knockbackDelayMs > 0
+                && plugin.delayedKnockback().sendLater(victim, hit.liveVictimMotion, velocity, hit.knockbackDelayMs)) {
+            // The ping simulation: the same packet, sent later. Cancelling the event stops the
+            // server from sending it now; sendLater has done the rest of what the server does.
+            event.setCancelled(true);
+            knockbackDelayMs = hit.knockbackDelayMs;
+        } else if (applied) {
             Vector bukkitVelocity = new Vector(velocity.x(), velocity.y(), velocity.z());
             event.setVelocity(bukkitVelocity);
             // The server only copies the event's vector onto the player when it differs from the
@@ -104,7 +111,7 @@ final class KnockbackListener implements Listener {
             victim.setVelocity(bukkitVelocity);
         }
         plugin.report(new HitRecord(System.currentTimeMillis(), hit.tick, settings.mode(), profile, world,
-                hit, velocity, applied, settings.pingSimulationMs()));
+                hit, velocity, applied, settings.pingSimulationMs(), knockbackDelayMs));
     }
 
     @EventHandler(priority = EventPriority.MONITOR)

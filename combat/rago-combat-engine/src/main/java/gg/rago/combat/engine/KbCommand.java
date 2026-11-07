@@ -67,9 +67,13 @@ final class KbCommand implements TabExecutor {
                 return change(sender, "délai entre deux coups -> " + args[1] + " ticks",
                         () -> plugin.settings().withHitDelayTicks(parseTicks(args[1])));
             case "pingsim":
+                if (args.length == 3 && args[1].equalsIgnoreCase("kb")) {
+                    return change(sender, "ping simulé, kb retardé -> " + args[2].toLowerCase(Locale.ROOT),
+                            () -> plugin.settings().withPingSimulationDelaysKnockback(parseOnOff(args[2])));
+                }
                 if (args.length != 2) {
                     return usage(sender, "/" + label + " pingsim <ms> (0 = désactivé, "
-                            + EngineSettings.MAX_PING_SIMULATION_MS + " au plus)");
+                            + EngineSettings.MAX_PING_SIMULATION_MS + " au plus) ou /" + label + " pingsim kb <on|off>");
                 }
                 return change(sender, "ping simulé pour le kb -> " + args[1] + " ms",
                         () -> plugin.settings().withPingSimulationMs(parseMillis(args[1])));
@@ -95,7 +99,9 @@ final class KbCommand implements TabExecutor {
         sender.sendMessage(ChatColor.GRAY + "Délai entre deux coups : " + ChatColor.WHITE + settings.hitDelayTicks()
                 + " ticks" + ChatColor.GRAY + " (vanilla " + EngineSettings.VANILLA_HIT_DELAY_TICKS + ")");
         sender.sendMessage(ChatColor.GRAY + "Ping simulé pour le kb : " + ChatColor.WHITE
-                + (settings.pingSimulationMs() == 0 ? "désactivé" : settings.pingSimulationMs() + " ms"));
+                + (settings.pingSimulationMs() == 0 ? "désactivé" : settings.pingSimulationMs() + " ms")
+                + ChatColor.GRAY + (settings.pingSimulationDelaysKnockback()
+                        ? " (kb retardé et mouvement plus ancien)" : " (mouvement plus ancien seulement)"));
         sender.sendMessage(ChatColor.GRAY + "Journal des hits : " + ChatColor.WHITE
                 + (settings.recordHits() ? "actif (" + plugin.droppedRecords() + " perdus)" : "inactif"));
     }
@@ -155,6 +161,17 @@ final class KbCommand implements TabExecutor {
         }
     }
 
+    private static boolean parseOnOff(String text) {
+        switch (text.toLowerCase(Locale.ROOT)) {
+            case "on":
+                return true;
+            case "off":
+                return false;
+            default:
+                throw new IllegalArgumentException("on ou off attendu : " + text);
+        }
+    }
+
     private static int parseMillis(String text) {
         try {
             return Integer.parseInt(text);
@@ -188,7 +205,10 @@ final class KbCommand implements TabExecutor {
             return matching(Arrays.asList("9", String.valueOf(EngineSettings.VANILLA_HIT_DELAY_TICKS)), args[1]);
         }
         if (args.length == 2 && sub.equals("pingsim")) {
-            return matching(Arrays.asList("0", "150"), args[1]);
+            return matching(Arrays.asList("0", "150", "kb"), args[1]);
+        }
+        if (args.length == 3 && sub.equals("pingsim") && args[1].equalsIgnoreCase("kb")) {
+            return matching(Arrays.asList("on", "off"), args[2]);
         }
         if (args.length == 2 && sub.equals("world")) {
             List<String> worlds = new ArrayList<>();
