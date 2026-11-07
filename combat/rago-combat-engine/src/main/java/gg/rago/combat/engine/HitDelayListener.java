@@ -11,10 +11,10 @@ import org.bukkit.event.player.PlayerRespawnEvent;
 /**
  * Gives every player the damage cooldown of the {@code hit-delay-ticks} setting.
  *
- * <p>The cooldown length belongs to the server's player entity, and a 1.8 server makes a new one
- * when the player respawns or changes world, with the default of 20 ticks (a hit delay of 10).
- * So the length is set again one tick after each of these events, once the new entity is in
- * place, as well as on join and whenever the setting changes.
+ * <p>The cooldown length belongs to the server's player entity. Vanilla 1.8 makes a new entity,
+ * with the default of 20 ticks (a hit delay of 10), when the player respawns or changes world;
+ * CraftBukkit keeps the same one. So as not to depend on the server, the length is set again one
+ * tick after each of these events, as well as on join and whenever the setting changes.
  */
 final class HitDelayListener implements Listener {
 

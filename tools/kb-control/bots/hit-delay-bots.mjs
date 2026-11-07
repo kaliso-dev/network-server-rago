@@ -2,8 +2,8 @@
 //
 // RagoAttacker hits RagoVictim twice per tick for a few seconds, a "burst", with the engine's
 // hit delay set by /kb hitdelay: the vanilla 10 ticks, then 9, then 9 again after the victim died
-// and respawned (the server makes a new player entity then, with the default cooldown, so the
-// engine must set it again). HitDelayCheck (tools/kb-control) reads the bursts and the engine's
+// and respawned (vanilla makes a new player entity then, with the default cooldown; the engine
+// sets the cooldown again whatever the server does). HitDelayCheck (tools/kb-control) reads the bursts and the engine's
 // hit log and checks that the hits of a burst are exactly the delay apart, in server ticks.
 //
 // The engine runs in override mode with the "still" test profile, which pushes the victim by
@@ -130,6 +130,10 @@ async function respawnVictim (attacker, victim) {
   attacker.chat(`/kill ${VICTIM}`)
   // mineflayer answers the death screen with a respawn request by itself.
   await Promise.race([respawned, sleep(10000).then(() => { throw new Error('the victim did not respawn') })])
+  // The world spawn of a flat world can be far from the attacker, out of its tracking range:
+  // bring the victim back first.
+  await sleep(500)
+  await placeFacing(attacker, victim)
   await waitFor(() => attacker.entities[victim.entity.id] != null, 10000, 'the attacker to see the respawned victim')
   await sleep(INVULNERABLE_WAIT_MS)
   await protect(attacker, victim)

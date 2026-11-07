@@ -80,8 +80,8 @@ compte un toutes les 9 ticks (450 ms) d'après les mesures.
 
 `hit-delay-ticks` règle ce délai : le moteur donne à chaque joueur un cooldown de deux fois cette
 valeur (`setMaximumNoDamageTicks`), à la connexion, une tick après une réapparition ou un
-changement de monde (le serveur recrée alors le joueur avec 20 ticks), et dès que le réglage
-change. Le cooldown vaut pour tous les dégâts (chute, feu, flèches), comme en vanilla.
+changement de monde (le Minecraft vanilla recrée alors le joueur avec 20 ticks ; CraftBukkit le
+garde, mais le moteur ne dépend pas de ce détail), et dès que le réglage change. Le cooldown vaut pour tous les dégâts (chute, feu, flèches), comme en vanilla.
 
 ## Commande `/kb`
 

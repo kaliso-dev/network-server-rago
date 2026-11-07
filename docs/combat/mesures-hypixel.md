@@ -20,6 +20,7 @@ valeur, un nouveau profil (`hypixel-approx-v2`) : on ne modifie pas un profil d�
 | --- | --- | --- |
 | Durée (qRago / godemy) | 266 s / 277 s | 220 s / 220 s |
 | Paquets de vitesse reçus | 261 + 283 = 544 | 254 + 264 = 518 |
+| Coups retrouvés dans l'enregistrement de l'attaquant | 258 + 271 | 252 + 260 |
 | Lignes perdues | 0 | 0 |
 
 ### Méthode
@@ -33,19 +34,20 @@ valeur, un nouveau profil (`hypixel-approx-v2`) : on ne modifie pas un profil d�
 - Les deux horloges sont recalées sur les animations de coup reçu vues des deux côtés.
 - La poussée horizontale de sprint est retrouvée à partir du regard de l'attaquant, lu dans son
   dernier paquet de position envoyé avant l'attaque.
-- Les chiffres viennent d'une première analyse par scripts. L'outil d'analyse versionné qui les
-  recalcule arrive dans une PR séparée.
+- Les chiffres viennent de l'outil d'analyse kb-analyzer (tools/kb-analyzer, PR séparée), lancé
+  sur les quatre enregistrements ; une première analyse par scripts avait donné les mêmes valeurs.
 
 ### Résultats : vertical
 
-Valeurs du paquet (8 000 unités = 1 bloc par tick), les plus fréquentes :
+Valeurs du paquet (8 000 unités = 1 bloc par tick), les plus fréquentes, avec le sprint de
+l'attaquant tel que le serveur l'a utilisé :
 
 | Coup | Hypixel | Notre serveur (vanilla) |
 | --- | --- | --- |
-| Sans sprint, victime au sol | 2 886 (98 coups) | 2 886 (181 coups) |
-| Sprint, victime au sol | **3 446** (148 coups) | 3 686 (139 coups) |
-| Sans sprint, au plafond (victime qui monte) | 3 200 (47 coups) | 3 200 |
-| Sprint, au plafond | **3 760** (32 coups) | 4 000 |
+| Sans sprint, victime au sol | 2 886 (85 coups sur 135) | 2 886 (167 sur 235) |
+| Sprint, victime au sol | **3 446** (127 sur 191) | 3 686 (131 sur 175) |
+| Sans sprint, victime en l'air | 3 200, le plafond (37 sur 94) | 1 982 (20 sur 63) ; 3 200 (6) |
+| Sprint, victime en l'air | **3 760** (30 sur 109) | 3 077 (8 sur 39) ; 4 000 (4) |
 
 Chaque valeur courante sans sprint a sa jumelle en sprint 560 unités plus haut sur Hypixel
 (2 886/3 446, 2 898/3 458, 2 590/3 150, 3 200/3 760), contre 800 unités chez nous. Le sprint
@@ -59,10 +61,10 @@ Effet sur la hauteur d'un coup en sprint au sol : 1,31 bloc sur Hypixel, 1,49 bl
 
 ### Résultats : horizontal
 
-- Sans sprint : 0,400 bloc par tick exactement pour 186 coups sur 544 (et 217 sur 518 chez nous) ;
+- Sans sprint : 0,400 bloc par tick exactement pour 158 coups sur 229 (et 204 sur 298 chez nous) ;
   les autres sont des coups en combo, où s'ajoute la moitié de la vitesse d'avant.
 - Sprint : la poussée en plus dans la direction du regard de l'attaquant vaut 0,50 à 0,005 près
-  pour 203 des 300 coups en sprint sur Hypixel (68 %), et pour 107 sur 162 chez nous (66 %), où
+  pour 203 des 300 coups en sprint sur Hypixel (68 %), et pour 152 sur 214 chez nous (71 %), où
   elle vaut 0,5 par construction. Les autres coups sont des combos ou des sprints mal classés,
   aussi nombreux des deux côtés : rien n'indique une autre valeur sur Hypixel.
 
@@ -80,21 +82,25 @@ Intervalle entre deux animations de coup reçu sur le même joueur, vu par les d
 | 525 à 574 ms (11 ticks) | 69 | 174 |
 
 Côté attaquant, part des attaques qui comptent selon le temps écoulé depuis le coup précédent qui
-a compté (horloge de l'attaquant ; les attaques de qRago chez nous, à 0 ms de ping, sont laissées
-de côté) :
+a compté, dans l'horloge de l'attaquant :
 
-| Depuis le coup précédent | Hypixel | Notre serveur |
-| --- | --- | --- |
-| moins de 400 ms | 2 sur 1 438 | 0 sur 779 |
-| 400 à 424 ms | 7 sur 104 | 1 sur 60 |
-| 425 à 449 ms | **51 sur 55** | 0 sur 25 |
-| 450 à 474 ms | **107 sur 120** | 0 sur 77 |
-| 475 à 499 ms | 17 sur 19 | **41 sur 41** |
+| Depuis le coup précédent | Hypixel (les deux joueurs) | Notre serveur, godemy (46 ms) | Notre serveur, qRago (0 ms) |
+| --- | --- | --- | --- |
+| moins de 400 ms | 1 sur 1 437 | 0 sur 779 | 0 sur 648 |
+| 400 à 424 ms | 7 sur 104 | 1 sur 60 | 0 sur 90 |
+| 425 à 449 ms | **45 sur 49** | 0 sur 25 | 2 sur 24 |
+| 450 à 474 ms | **95 sur 108** | 0 sur 77 | 12 sur 104 |
+| 475 à 499 ms | 16 sur 18 | **32 sur 32** | 18 sur 26 |
+| 500 à 524 ms | 69 sur 72 | 51 sur 53 | 54 sur 69 |
+
+qRago jouait sur la machine qui faisait tourner le serveur : sa courbe est plus floue, sans
+explication sûre pour l'instant (le client et le serveur se partagent le processeur).
 
 Sur Hypixel, un coup compte 9 ticks (450 ms) après le précédent ; en vanilla, 10 ticks (500 ms).
 Les paquets d'Hypixel arrivent par lots espacés de 50 ms, ce qui situe son serveur à 20 ticks par
-seconde pendant la mesure : 450 ms font bien 9 ticks. Sur aucun des deux serveurs une attaque plus
-rapprochée ne compte : il n'y a pas de « double coup » sur Hypixel, seulement un délai plus court.
+seconde pendant la mesure : 450 ms font bien 9 ticks. Presque aucune attaque plus rapprochée ne
+compte (8 sur 1 541 sous 425 ms sur Hypixel, ce qui reste dans les écarts du réseau) : il n'y a pas
+de « double coup » sur Hypixel, seulement un délai plus court.
 
 ### Ce qu'on en tire
 

@@ -39,8 +39,8 @@ mesuré plus tard soit vraiment celui que les joueurs ressentent.
    `hit-delay-ticks` du moteur. Pendant une « rafale » de 3 secondes, `RagoAttacker` frappe deux
    fois par tick ; le moteur applique `still`, un profil de test qui ne pousse pas, pour que la
    victime reste à portée. Trois rafales : délai vanilla (10 ticks), délai de 9 ticks, puis 9 ticks
-   après la mort et la réapparition de la victime (le serveur recrée alors le joueur, et le moteur
-   doit lui redonner son cooldown). `HitDelayCheck` lit le journal des hits : dans une rafale,
+   après la mort et la réapparition de la victime (le Minecraft vanilla recrée alors le joueur, et
+   le moteur redonne le cooldown à ce moment-là). `HitDelayCheck` lit le journal des hits : dans une rafale,
    deux coups ne sont jamais plus proches que le délai, au moins 75 % des intervalles valent
    exactement le délai (un tick lent peut en allonger un), et il y a au moins 5 coups.
    `ControlCheck` laisse de côté ces coups, journalisés après la fin des bots de contrôle.
