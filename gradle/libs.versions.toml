@@ -1,0 +1,13 @@
+# Versions used by the whole build. Anything that runs inside a 1.8.8 server must stay
+# compatible with Java 8 (see docs/compatibility.md).
+[versions]
+junit = "5.14.4"            # JUnit 5 is the last line that still runs on Java 8 (JUnit 6 needs Java 17)
+spigot-api = "1.8.8-R0.1-SNAPSHOT"
+gson = "2.15.0"             # tools only, never shipped inside a server plugin
+
+[libraries]
+junit-bom = { module = "org.junit:junit-bom", version.ref = "junit" }
+junit-jupiter = { module = "org.junit.jupiter:junit-jupiter" }
+junit-platform-launcher = { module = "org.junit.platform:junit-platform-launcher" }
+spigot-api = { module = "org.spigotmc:spigot-api", version.ref = "spigot-api" }
+gson = { module = "com.google.code.gson:gson", version.ref = "gson" }
