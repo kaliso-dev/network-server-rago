@@ -15,7 +15,7 @@ Jalon en cours : **M1, « Labo KB »**, le moteur de combat et de quoi le vérif
 | --- | --- |
 | `rago-combat-model` : calcul exact du knockback 1.8.8 et de la trajectoire client 1.8.9 | fait, testé (identique au code vanilla sur 200 000 coups) |
 | `rago-combat-engine` : plugin qui applique un profil de knockback, commande `/kb`, journal des hits | fait, testé ; test de contrôle sur un vrai serveur en CI |
-| `tools/kb-control` : test de contrôle avec bots sur un vrai PandaSpigot | fait, lancé par la CI |
+| `tools/kb-control` : test de contrôle avec bots sur un vrai PandaSpigot | fait, lancé par la CI : 108 coups sur 108 exacts sur PandaSpigot 1.8.8 (build 226) |
 | Mesure du knockback d'Hypixel (module d'enregistrement dans Rago Client) | prochaine étape |
 | Proxy, lobby, base de données, Bedwars, Ranked, statistiques, cosmétiques | à venir, voir la feuille de route |
 

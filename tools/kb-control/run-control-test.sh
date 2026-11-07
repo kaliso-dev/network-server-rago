@@ -16,8 +16,8 @@
 #
 # Settings (environment variables):
 #   KB_SERVER_JAVA      java binary for the server (default: java on PATH); 1.8.8 servers run on Java 8
-#   PANDASPIGOT_URL     server download (default: the latest 1.8.8 build from downloads.hpfxd.com)
-#   PANDASPIGOT_SHA256  expected SHA-256 of the download; checked when set
+#   PANDASPIGOT_URL     server download (default: PandaSpigot build 226, the build this test passed on)
+#   PANDASPIGOT_SHA256  expected SHA-256 of the download (default: that of build 226; empty skips the check)
 #   KB_PORT             server port on 127.0.0.1 (default 25565)
 #   KB_HITS_PER_PHASE   hits per phase (default 36)
 #   KB_RUN_DIR          working directory (default control-run at the repository root)
@@ -31,8 +31,9 @@ RUN_DIR=${KB_RUN_DIR:-$ROOT/control-run}
 SERVER_DIR=$RUN_DIR/server
 CACHE_DIR=$RUN_DIR/cache
 SERVER_JAVA=${KB_SERVER_JAVA:-java}
-PANDASPIGOT_URL=${PANDASPIGOT_URL:-https://downloads.hpfxd.com/v2/projects/pandaspigot/versions/1.8.8/builds/latest/downloads/paperclip}
-PANDASPIGOT_SHA256=${PANDASPIGOT_SHA256:-}
+# The PandaSpigot build the control test passed on. To try another build, give its URL and SHA-256.
+PANDASPIGOT_URL=${PANDASPIGOT_URL:-https://downloads.hpfxd.com/v2/projects/pandaspigot/versions/1.8.8/builds/226/downloads/paperclip}
+PANDASPIGOT_SHA256=${PANDASPIGOT_SHA256-ac73146b275230cbd0612ef0f3d6b40333abd3182beae457cad5321efff6359b}
 PORT=${KB_PORT:-25565}
 HITS_PER_PHASE=${KB_HITS_PER_PHASE:-36}
 PHASES=3
@@ -68,7 +69,8 @@ rm -rf "$SERVER_DIR" "$RUN_DIR/received.jsonl" "$RUN_DIR/report.md" "$RUN_DIR/se
 mkdir -p "$SERVER_DIR/plugins/RagoCombatEngine"
 
 # --- PandaSpigot -------------------------------------------------------------------------------
-SERVER_JAR=$CACHE_DIR/pandaspigot-paperclip.jar
+# One cached jar per download URL, so that changing the URL downloads again.
+SERVER_JAR=$CACHE_DIR/pandaspigot-$(printf '%s' "$PANDASPIGOT_URL" | sha256sum | cut -c1-16).jar
 if [[ ! -s "$SERVER_JAR" ]]; then
   log "downloading PandaSpigot from $PANDASPIGOT_URL"
   curl -fsSL --retry 3 --retry-delay 5 -o "$SERVER_JAR.part" "$PANDASPIGOT_URL"
@@ -77,7 +79,8 @@ fi
 actual_sha256=$(sha256sum "$SERVER_JAR" | cut -d' ' -f1)
 log "PandaSpigot jar SHA-256: $actual_sha256"
 if [[ -n "$PANDASPIGOT_SHA256" && "$actual_sha256" != "$PANDASPIGOT_SHA256" ]]; then
-  fail "PandaSpigot SHA-256 is $actual_sha256, expected $PANDASPIGOT_SHA256"
+  fail "PandaSpigot SHA-256 is $actual_sha256, expected $PANDASPIGOT_SHA256" \
+    "(for another build, set PANDASPIGOT_SHA256 to its SHA-256, or to an empty value to skip the check)"
 fi
 
 # --- Test server -------------------------------------------------------------------------------
