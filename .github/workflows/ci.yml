@@ -1,0 +1,104 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  build:
+    name: Build and unit tests
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v7
+
+      - uses: actions/setup-java@v6
+        with:
+          distribution: temurin
+          java-version: 21
+
+      - uses: gradle/actions/wrapper-validation@v6
+
+      - uses: gradle/actions/setup-gradle@v6
+
+      # Compiles every module with --release 8, the plugins against the real Spigot 1.8.8 API.
+      - run: ./gradlew build
+
+      - uses: actions/upload-artifact@v7
+        if: always()
+        with:
+          name: test-reports
+          path: '**/build/reports/tests/'
+          if-no-files-found: ignore
+
+      - uses: actions/upload-artifact@v7
+        with:
+          name: rago-combat-engine
+          path: combat/rago-combat-engine/build/libs/*.jar
+          if-no-files-found: error
+
+  control-test:
+    name: KB control test (PandaSpigot 1.8.8)
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v7
+
+      # The server runs on Java 8, like the production 1.8.8 servers; Gradle runs on Java 21.
+      - uses: actions/setup-java@v6
+        with:
+          distribution: temurin
+          java-version: |
+            8
+            21
+
+      - uses: gradle/actions/setup-gradle@v6
+
+      - uses: actions/setup-node@v7
+        with:
+          node-version: 22
+          cache: npm
+          cache-dependency-path: tools/kb-control/bots/package-lock.json
+
+      - run: ./gradlew assemble :kb-control:installDist
+
+      - run: npm ci
+        working-directory: tools/kb-control/bots
+
+      - name: Run the control test
+        env:
+          # The test starts a Minecraft server, which requires accepting the Minecraft EULA:
+          # https://aka.ms/MinecraftEULA
+          KB_ACCEPT_EULA: "true"
+          KB_SERVER_JAVA: ${{ env.JAVA_HOME_8_X64 }}/bin/java
+        run: tools/kb-control/run-control-test.sh
+
+      - name: Report
+        if: always()
+        run: |
+          if [ -f control-run/report.md ]; then
+            cat control-run/report.md >> "$GITHUB_STEP_SUMMARY"
+          else
+            echo "No report: the control test stopped before the check. See the job log and the artifact." >> "$GITHUB_STEP_SUMMARY"
+          fi
+
+      - uses: actions/upload-artifact@v7
+        if: always()
+        with:
+          name: kb-control-run
+          path: |
+            control-run/report.md
+            control-run/received.jsonl
+            control-run/server.log
+            control-run/server/logs/
+            control-run/server/plugins/RagoCombatEngine/hits/
+          if-no-files-found: warn

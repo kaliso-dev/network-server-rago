@@ -1,0 +1,15 @@
+{
+  "name": "rago-kb-control-bots",
+  "private": true,
+  "description": "Two offline-mode bots that hit each other on a local 1.8.8 test server and record the velocity packets they receive.",
+  "type": "module",
+  "engines": {
+    "node": ">=20"
+  },
+  "scripts": {
+    "start": "node control-bots.mjs"
+  },
+  "dependencies": {
+    "mineflayer": "4.39.0"
+  }
+}
