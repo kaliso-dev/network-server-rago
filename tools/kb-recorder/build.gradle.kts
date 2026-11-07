@@ -51,8 +51,10 @@ if (e2eServer != null) {
             runCatching { runClient.javaClass.getMethod("getMain").invoke(runClient) as String }
                 .getOrElse { runClient.mainClass.get() }
         })
-        args(runClient.args)
-        jvmArgs(runClient.jvmArgs)
+        args(runClient.args.orEmpty())
+        jvmArgs(runClient.jvmArgs.orEmpty())
+        // Minecraft 1.8.9's launcher only runs on Java 8 (it casts the class loader to URLClassLoader).
+        javaLauncher.set(javaToolchains.launcherFor { languageVersion.set(JavaLanguageVersion.of(8)) })
         workingDir = file(e2eClientDir)
         doFirst { workingDir.mkdirs() }
     }
