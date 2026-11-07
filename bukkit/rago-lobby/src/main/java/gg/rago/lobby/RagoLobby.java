@@ -3,6 +3,7 @@ package gg.rago.lobby;
 import gg.rago.game.GameMode;
 import gg.rago.lobby.api.LobbyService;
 import gg.rago.lobby.api.MatchHost;
+import gg.rago.lobby.api.VoidGenerator;
 import java.io.File;
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;

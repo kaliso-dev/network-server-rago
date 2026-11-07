@@ -1,4 +1,4 @@
-package gg.rago.lobby;
+package gg.rago.lobby.api;
 
 import java.util.Collections;
 import java.util.List;
@@ -9,13 +9,14 @@ import org.bukkit.generator.BlockPopulator;
 import org.bukkit.generator.ChunkGenerator;
 
 /**
- * Generates nothing: every chunk of the lobby world is air, so nothing grows around the lobby map
- * when someone looks past its edge. The same generator as RagoBuildTools' empty worlds.
+ * Generates nothing: every chunk is air. For the lobby world, so that nothing grows around the
+ * lobby map when someone looks past its edge, and for the arena worlds of the game plugins. The
+ * same generator as RagoBuildTools' empty worlds.
  */
-final class VoidGenerator extends ChunkGenerator {
+public final class VoidGenerator extends ChunkGenerator {
 
-    /** Height of the platform of a new lobby world. */
-    static final int PLATFORM_Y = 64;
+    /** Height of the platform of a new lobby world, and of the spawn of an empty world. */
+    public static final int PLATFORM_Y = 64;
 
     @Override
     public ChunkData generateChunkData(World world, Random random, int chunkX, int chunkZ, BiomeGrid biomes) {

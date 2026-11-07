@@ -65,7 +65,8 @@ jobs:
           cp tools/local-server/lancer-windows.bat tools/local-server/lancer.ps1 \
             tools/local-server/lancer-mac-linux.sh tools/local-server/server.properties "$kit/"
           cp tools/local-server/README.md "$kit/LISEZ-MOI.txt"
-          cp combat/rago-combat-engine/build/libs/*.jar tools/build-tools/build/libs/*.jar "$kit/plugins/"
+          cp combat/rago-combat-engine/build/libs/*.jar tools/build-tools/build/libs/*.jar \
+            bukkit/rago-lobby/build/libs/*.jar bukkit/rago-practice/build/libs/*.jar "$kit/plugins/"
           ls -lR "$kit"
 
       - uses: actions/upload-artifact@v7
@@ -136,6 +137,57 @@ jobs:
             control-run/server.log
             control-run/server/logs/
             control-run/server/plugins/RagoCombatEngine/hits/
+          if-no-files-found: warn
+
+  lobby-test:
+    name: Lobby and sumo test (PandaSpigot 1.8.8, Java ${{ matrix.server-java }})
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    strategy:
+      fail-fast: false
+      matrix:
+        server-java: [8, 21]
+    steps:
+      - uses: actions/checkout@v7
+
+      - uses: actions/setup-java@v6
+        with:
+          distribution: temurin
+          java-version: |
+            8
+            21
+
+      - uses: gradle/actions/setup-gradle@v6
+
+      - uses: actions/setup-node@v7
+        with:
+          node-version: 22
+          cache: npm
+          cache-dependency-path: tools/kb-control/bots/package-lock.json
+
+      - run: ./gradlew assemble
+
+      - run: npm ci
+        working-directory: tools/kb-control/bots
+
+      - name: Run the lobby and sumo test
+        env:
+          # The test starts a Minecraft server, which requires accepting the Minecraft EULA:
+          # https://aka.ms/MinecraftEULA
+          KB_ACCEPT_EULA: "true"
+          SERVER_JAVA_HOME: JAVA_HOME_${{ matrix.server-java }}_X64
+        run: |
+          KB_SERVER_JAVA="${!SERVER_JAVA_HOME}/bin/java"
+          export KB_SERVER_JAVA
+          tools/lobby-check/run-lobby-test.sh
+
+      - uses: actions/upload-artifact@v7
+        if: always()
+        with:
+          name: lobby-test-java${{ matrix.server-java }}
+          path: |
+            lobby-run/server.log
+            lobby-run/server/logs/
           if-no-files-found: warn
 
   # Starts the local test server the way a player does (tools/local-server), on Linux (the same
@@ -231,6 +283,8 @@ jobs:
           expect '[RagoCombatEngine] Mode override, default profile vanilla' logs/latest.log
           expect '[WorldEdit] Enabling WorldEdit v6.1' logs/latest.log
           expect "[RagoBuildTools] Mondes de $data/mondes" logs/latest.log
+          expect '[RagoLobby] Lobby dans le monde lobby' logs/latest.log
+          expect 'nes dans le monde arenes' logs/latest.log
           echo 'monde creer ci vide' >&3
           wait_for 'Monde ci cr' 30 || fail "/monde creer did not create the world"
           echo 'schematic list' >&3
@@ -242,6 +296,7 @@ jobs:
 
           start_server 2
           expect '[RagoBuildTools] Monde ci charg' logs/latest.log
+          [ -f "$data/mondes/lobby/level.dat" ] || fail "the lobby world was not saved in $data/mondes"
           archive=$(ls "$data"/sauvegardes/mondes-*.tar.gz | sort | tail -n 1)
           echo "Backup: $archive"
           tar -tzf "$archive" > backup.txt
@@ -291,7 +346,8 @@ jobs:
 
           Invoke-Launch 1
           foreach ($expected in 'git-PandaSpigot-226', '[RagoCombatEngine] Mode override, default profile vanilla',
-              '[WorldEdit] Enabling WorldEdit v6.1', "[RagoBuildTools] Mondes de $data\mondes") {
+              '[WorldEdit] Enabling WorldEdit v6.1', "[RagoBuildTools] Mondes de $data\mondes",
+              '[RagoLobby] Lobby dans le monde lobby', 'nes dans le monde arenes') {
             Assert-Log $expected
           }
           $config = Get-Content plugins/WorldEdit/config.yml -Raw

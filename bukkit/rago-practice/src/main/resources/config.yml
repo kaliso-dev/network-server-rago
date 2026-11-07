@@ -1,0 +1,15 @@
+# RagoPractice : les modes d'entraînement joués depuis le lobby. Mode d'emploi : le README du module.
+
+# Le monde des arènes : un monde vide créé par le plugin s'il n'existe pas. Chaque partie a sa
+# propre zone, à "espacement" blocs de la précédente, et le serveur joue "arenes-max" parties à la
+# fois au plus. Au-delà, les joueurs gardent leur place dans la file.
+monde-arenes: arenes
+espacement: 200
+arenes-max: 16
+
+# Duel sumo (mode "sumo" du lobby) : fais tomber l'autre de la plateforme. Pas de dégâts, seulement
+# le knockback de RagoCombatEngine.
+sumo:
+  points-pour-gagner: 3
+  # Rayon de la plateforme ronde, en blocs (4 à 15).
+  rayon: 7

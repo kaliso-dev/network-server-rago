@@ -1,0 +1,6 @@
+name: RagoPractice
+version: ${version}
+main: gg.rago.practice.RagoPractice
+author: Rago
+description: Les modes d'entraînement de Rago Practice, joués depuis le lobby (duel sumo pour commencer).
+depend: [RagoLobby]

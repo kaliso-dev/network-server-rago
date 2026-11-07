@@ -20,6 +20,7 @@ node_modules
 # Local test servers and their output
 run/
 control-run/
+lobby-run/
 
 # OS
 .DS_Store
