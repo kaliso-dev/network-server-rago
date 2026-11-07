@@ -32,7 +32,8 @@ import java.util.stream.Stream;
  *       must be exactly what the model computes with the server's knockback settings, which
  *       checks the inputs the engine captures against the server's real computation, and within
  *       one packet unit of exact vanilla 1.8.8;</li>
- *   <li>every velocity packet the bots received must belong to a logged hit.</li>
+ *   <li>every velocity packet the bots received must belong to a logged hit, and every attack the
+ *       bots sent must give one (the report lists the attacks that gave none).</li>
  * </ul>
  *
  * <p>Usage: {@code ControlCheck --hits <file or directory> --received <file>
@@ -44,6 +45,10 @@ public final class ControlCheck {
     /** Packets may be stamped slightly before the log line, and arrive up to this long after it. */
     static final long MATCH_BEFORE_MILLIS = 50L;
     static final long MATCH_AFTER_MILLIS = 2000L;
+    /** The server logs a hit within a tick or two of the attack; the bots attack once a second. */
+    static final long ATTACK_MATCH_MILLIS = 900L;
+    /** At most this many attacks without a hit are listed in the report. */
+    static final int LISTED_ATTACKS = 10;
     /** Allowed difference between the server's own knockback and exact vanilla, in packet units. */
     static final int VANILLA_TOLERANCE = 1;
 
@@ -172,12 +177,12 @@ public final class ControlCheck {
         return received;
     }
 
-    /** Number of attacks the bots sent (type "attack" in received.jsonl). */
-    static int readAttacks(Path path) throws IOException {
-        int attacks = 0;
+    /** The attacks the bots sent (type "attack" in received.jsonl). */
+    static List<BotAttack> readAttacks(Path path) throws IOException {
+        List<BotAttack> attacks = new ArrayList<>();
         for (JsonObject json : readJsonLines(path)) {
             if ("attack".equals(json.get("type").getAsString())) {
-                attacks++;
+                attacks.add(BotAttack.fromJson(json));
             }
         }
         return attacks;
@@ -199,10 +204,10 @@ public final class ControlCheck {
      * without a packet and a packet without a hit, or a second packet for the same hit, both fail;
      * a missing packet does not shift the packets of the following hits.
      *
-     * @param attacks number of attacks the bots sent, or -1 if unknown: every attack must give
-     *                exactly one logged hit
+     * @param attacks the attacks the bots sent, or null if unknown: every attack must give exactly
+     *                one logged hit
      */
-    Result check(List<RecordedHit> hits, List<ReceivedVelocity> received, int attacks, int minHits) {
+    Result check(List<RecordedHit> hits, List<ReceivedVelocity> received, List<BotAttack> attacks, int minHits) {
         List<RecordedHit> sortedHits = new ArrayList<>(hits);
         sortedHits.sort(Comparator.comparingLong(hit -> hit.time));
         List<ReceivedVelocity> sortedPackets = new ArrayList<>(received);
@@ -238,15 +243,47 @@ public final class ControlCheck {
         for (ReceivedVelocity packet : unexpected) {
             result.unexpected(packet);
         }
-        if (attacks >= 0 && attacks != hits.size()) {
-            result.failures.add("the bots attacked " + attacks + " times but the engine logged " + hits.size()
-                    + " hits");
+        if (attacks != null) {
+            if (attacks.size() != hits.size()) {
+                result.failures.add("the bots attacked " + attacks.size() + " times but the engine logged "
+                        + hits.size() + " hits");
+            }
+            List<BotAttack> missed = attacksWithoutHit(attacks, sortedHits);
+            if (!missed.isEmpty()) {
+                List<BotAttack> listed = missed.subList(0, Math.min(missed.size(), LISTED_ATTACKS));
+                result.failures.add("no hit logged for " + listed.stream().map(BotAttack::toString)
+                        .collect(Collectors.joining(", "))
+                        + (missed.size() > listed.size() ? " and " + (missed.size() - listed.size()) + " more" : ""));
+            }
         }
         return result;
     }
 
     Result check(List<RecordedHit> hits, List<ReceivedVelocity> received, int minHits) {
-        return check(hits, received, -1, minHits);
+        return check(hits, received, null, minHits);
+    }
+
+    /** The attacks followed by no logged hit within {@link #ATTACK_MATCH_MILLIS}; each hit answers one attack. */
+    static List<BotAttack> attacksWithoutHit(List<BotAttack> attacks, List<RecordedHit> sortedHits) {
+        List<BotAttack> sortedAttacks = new ArrayList<>(attacks);
+        sortedAttacks.sort(Comparator.comparingLong(attack -> attack.time));
+        boolean[] answered = new boolean[sortedHits.size()];
+        List<BotAttack> missed = new ArrayList<>();
+        for (BotAttack attack : sortedAttacks) {
+            int hit = -1;
+            for (int i = 0; i < sortedHits.size() && hit < 0; i++) {
+                long delay = sortedHits.get(i).time - attack.time;
+                if (!answered[i] && delay >= -MATCH_BEFORE_MILLIS && delay <= ATTACK_MATCH_MILLIS) {
+                    hit = i;
+                }
+            }
+            if (hit < 0) {
+                missed.add(attack);
+            } else {
+                answered[hit] = true;
+            }
+        }
+        return missed;
     }
 
     private void checkHit(RecordedHit hit, VelocityPacket received, Result result) {

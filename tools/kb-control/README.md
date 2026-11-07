@@ -29,8 +29,9 @@ mesuré plus tard soit vraiment celui que les joueurs ressentent.
      réglages par défaut de PandaSpigot, et à une unité au plus du vanilla exact. Cela vérifie
      aussi que le moteur lit les bonnes entrées : une erreur de position, d'angle, de sprint ou
      de vitesse se verrait ici ;
-   - chaque attaque des bots a donné un coup journalisé, et chaque paquet reçu appartient à un
-     coup (un paquet en double ferait échouer le test) ;
+   - chaque attaque des bots a donné un coup journalisé (le rapport liste celles qui n'en ont
+     donné aucun), et chaque paquet reçu appartient à un coup (un paquet en double ferait échouer
+     le test) ;
    - la couverture : les trois phases, sprint et sans sprint, enchantement, victime en l'air.
 
 Le test échoue au moindre écart. Le rapport (`report.md`) donne, par mode, profil et sprint, le

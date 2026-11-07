@@ -190,12 +190,35 @@ class ControlCheckTest {
 
     @Test
     void everyAttackMustGiveOneLoggedHit() {
-        assertTrue(pandaSpigot.check(hits, received, hits.size(), hits.size()).passed());
+        List<BotAttack> attacks = new ArrayList<>();
+        for (RecordedHit hit : hits) {
+            attacks.add(new BotAttack(hit.time - 20L, "test #" + attacks.size()));
+        }
+        assertTrue(pandaSpigot.check(hits, received, attacks, hits.size()).passed());
 
-        ControlCheck.Result result = pandaSpigot.check(hits, received, hits.size() + 1, hits.size());
+        // Two attacks the server ignored: one before the first hit, one a second after the last.
+        attacks.add(0, new BotAttack(0L, "early"));
+        attacks.add(new BotAttack(9_000L, "late"));
+        ControlCheck.Result result = pandaSpigot.check(hits, received, attacks, hits.size());
 
-        assertEquals(1, result.failures().size(), result::toMarkdown);
-        assertEquals("the bots attacked 9 times but the engine logged 8 hits", result.failures().get(0));
+        assertEquals(2, result.failures().size(), result::toMarkdown);
+        assertEquals("the bots attacked 10 times but the engine logged 8 hits", result.failures().get(0));
+        assertEquals("no hit logged for early, late", result.failures().get(1));
+    }
+
+    @Test
+    void attacksWithoutHitAreMatchedOneHitEach() {
+        List<RecordedHit> sorted = hits.subList(0, 2);
+        // A hit answers only the attack just before it, and only once.
+        List<BotAttack> attacks = new ArrayList<>();
+        attacks.add(new BotAttack(980L, "first"));
+        attacks.add(new BotAttack(990L, "second"));
+        attacks.add(new BotAttack(1_990L, "third"));
+
+        List<BotAttack> missed = ControlCheck.attacksWithoutHit(attacks, sorted);
+
+        assertEquals(1, missed.size());
+        assertEquals("second", missed.get(0).description);
     }
 
     @Test

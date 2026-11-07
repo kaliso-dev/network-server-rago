@@ -38,6 +38,10 @@ class LogFormatTest {
     static final String BOT_LINE = "{\"type\":\"velocity\",\"time\":1700000000125,\"bot\":\"RagoVictim\","
             + "\"entityId\":7,\"packet\":[-3155,3271,8414]}";
 
+    /** A line written by bots/control-bots.mjs for each attack. */
+    static final String ATTACK_LINE = "{\"type\":\"attack\",\"time\":1700000000120,\"phase\":\"override-control-alt\","
+            + "\"index\":5,\"sprint\":true,\"enchantment\":1,\"victim\":\"walk\",\"airTicks\":0,\"distance\":2.1234}";
+
     @TempDir
     Path directory;
 
@@ -72,12 +76,15 @@ class LogFormatTest {
     @Test
     void readsTheVelocityPacketsTheBotsReceived() throws IOException {
         Path received = directory.resolve("received.jsonl");
-        write(received, "{\"type\":\"phase\",\"time\":1700000000000,\"name\":\"override-control-alt\"}", BOT_LINE,
-                "{\"type\":\"attack\",\"time\":1700000000120,\"scenario\":\"sprint\"}");
+        write(received, "{\"type\":\"phase\",\"time\":1700000000000,\"name\":\"override-control-alt\"}", ATTACK_LINE,
+                BOT_LINE);
 
         List<ReceivedVelocity> read = ControlCheck.readReceived(received);
+        List<BotAttack> attacks = ControlCheck.readAttacks(received);
 
-        assertEquals(1, ControlCheck.readAttacks(received));
+        assertEquals(1, attacks.size());
+        assertEquals(1700000000120L, attacks.get(0).time);
+        assertEquals("override-control-alt #5 (sprint, Knockback 1, victim walk)", attacks.get(0).description);
         assertEquals(1, read.size());
         assertEquals(1700000000125L, read.get(0).time);
         assertEquals(7, read.get(0).entityId);
