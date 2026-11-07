@@ -80,6 +80,11 @@ source "$ROOT/tools/kb-control/test-server.sh"
 rm -f "$RUN_DIR/report.md" "$RUN_DIR/recording.jsonl" "$RUN_DIR/attacks.jsonl" "$CLIENT_LOG"
 prepare_test_server "$ATTACKER"
 
+# The client log without Java stack frames, which hide the error lines in a CI log.
+show_client_log() {
+  grep -v -E '^[[:space:]]+(at |\.\.\. [0-9]+ more)' "$CLIENT_LOG" | tail -n 150 >&2 || true
+}
+
 GRADLE_PID=
 stop_client() {
   local pid
@@ -147,13 +152,13 @@ for _ in $(seq 1 "$CLIENT_TIMEOUT"); do
     "$SERVER_LOG" "$SERVER_DIR/logs/latest.log" 2>/dev/null | head -n 1 | sed 's/\[.*//' || true)
   [[ -n "$victim" ]] && break
   if ! kill -0 "$GRADLE_PID" 2>/dev/null; then
-    tail -n 80 "$CLIENT_LOG" >&2 || true
+    show_client_log
     fail "the client stopped before joining the server"
   fi
   sleep 1
 done
 if [[ -z "$victim" ]]; then
-  tail -n 80 "$CLIENT_LOG" >&2 || true
+  show_client_log
   fail "the client did not join the server within $CLIENT_TIMEOUT s"
 fi
 log "the client joined as $victim"
