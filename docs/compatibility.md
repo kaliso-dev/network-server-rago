@@ -37,8 +37,10 @@ d'en ajouter une : vérifier qu'elle est maintenue, compatible Java 8 si elle to
 CleanroomGenerator 1.0.0 (2012) et VoidGenerator (2011, « All Rights Reserved »). Les mondes de
 build sont gérés par `tools/build-tools`, un plugin du projet.
 
-Les plugins n'embarquent pour l'instant que `rago-combat-model`, un module du projet sans
-dépendance. Quand un plugin aura besoin d'une bibliothèque tierce, elle devra être relocalisée
+Les plugins n'embarquent pour l'instant que des modules du projet sans dépendance :
+`rago-combat-model` dans RagoCombatEngine, `rago-game-model` dans RagoLobby. RagoPractice ne copie
+pas `rago-game-model` : il prend les classes de RagoLobby (`depend`), pour que les deux plugins
+partagent les mêmes classes (`MatchProposal`, `LobbyService`). Quand un plugin aura besoin d'une bibliothèque tierce, elle devra être relocalisée
 (plugin Shadow) pour ne pas entrer en conflit avec celles du serveur ou d'autres plugins.
 
 `bungeecord-chat` est exclu de `spigot-api` parce que la version 1.8-SNAPSHOT qu'elle demande

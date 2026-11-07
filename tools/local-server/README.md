@@ -2,7 +2,8 @@
 
 Ce dossier lance sur ton ordinateur un serveur Minecraft 1.8.8 (PandaSpigot) avec le moteur de
 combat RagoCombatEngine, pour essayer le knockback en jeu avec ton client 1.8.9 (Rago Client ou
-le client normal). Il sert aussi à construire les maps et les lobbys : WorldEdit et les outils de
+le client normal). On y arrive dans le lobby de Rago Practice, d'où on lance un duel sumo contre
+un autre joueur. Il sert aussi à construire les maps et les lobbys : WorldEdit et les outils de
 build Rago sont installés, et tes mondes sont sauvegardés à chaque lancement.
 
 Le moteur applique pour l'instant le profil vanilla : le knockback exact de Minecraft 1.8.8. Il
@@ -53,6 +54,41 @@ Pour utiliser les commandes du moteur, deviens opérateur : dans la fenêtre du 
 « op TonPseudo » puis Entrée.
 
 
+## Le lobby et le duel sumo
+
+En te connectant, tu arrives dans le lobby (le monde lobby, une plateforme tant que ta map n'est
+pas installée). Dans ta barre d'objets :
+
+- la boussole (clic droit) : le sélecteur des modes de jeu. Clique sur un mode pour entrer dans sa
+  file d'attente, clique dessus à nouveau pour la quitter. Pour l'instant seul le duel sumo est
+  ouvert ; les autres modes affichent « Bientôt disponible » ;
+- le colorant rouge, quand tu es dans une file : quitter la file ;
+- le colorant vert ou gris : cacher ou revoir les autres joueurs du lobby.
+
+À droite, le scoreboard montre les joueurs connectés, ta file et ton temps d'attente.
+
+Le duel sumo : dès que deux joueurs sont dans la file, ils partent sur une plateforme ronde. Le
+premier qui tombe donne un point à l'autre, le premier à 3 points gagne. Il n'y a pas de dégâts,
+seulement le knockback du moteur : c'est le mode pour tester le knockback à deux. Chaque manche
+commence par un compte à rebours de 3 secondes, immobile. À la fin, les deux joueurs reviennent
+au lobby.
+
+Commandes :
+
+- /spawn : retour au spawn du lobby. Pendant un duel, c'est un abandon.
+- /file sumo pour entrer dans la file du duel, /file quitter pour en sortir.
+- /lobby modes : les modes du lobby et leur file.
+- /lobby setspawn (opérateurs) : place le spawn du lobby là où tu es.
+- /lobby build (opérateurs) : mode construction dans le lobby (créatif, tu peux modifier la map) ;
+  retape-le pour en sortir.
+- /monde tp world (opérateurs) : aller au monde plat du test de knockback, comme avant.
+
+Pour mettre ta map de lobby : importe-la avec /monde importer (voir « Construire »), puis dans
+plugins/RagoLobby/config.yml remplace « monde: lobby » par le nom de ton monde, relance le
+serveur, va dans ton lobby et tape /lobby setspawn là où les joueurs doivent apparaître. La liste
+des modes, leurs noms, leurs icônes et le texte du scoreboard se règlent dans le même fichier.
+
+
 ## Trouver un adversaire
 
 Le knockback se sent quand quelqu'un te frappe. Il te faut donc un deuxième joueur :
@@ -83,10 +119,11 @@ Les réglages sont expliqués dans la documentation du moteur
 
 Deviens opérateur (« op TonPseudo » dans la fenêtre du serveur), puis dans le jeu :
 
-- /monde creer lobby : crée un monde vide nommé lobby et t'y emmène, en créatif, sur un bloc de
-  bedrock. /monde creer lobby plat crée un monde plat à la place.
-- /monde tp lobby : y retourner. /monde tp world : revenir au monde du test de knockback (en
-  survie).
+- /monde creer mon-lobby : crée un monde vide nommé mon-lobby et t'y emmène, en créatif, sur un
+  bloc de bedrock. /monde creer mon-lobby plat crée un monde plat à la place. (Le nom lobby est
+  déjà pris par le lobby de Rago.)
+- /monde tp mon-lobby : y retourner. /monde tp world : revenir au monde du test de knockback (en
+  survie). /spawn : revenir au lobby.
 - /monde : la liste des mondes.
 - /monde spawn : place le point d'apparition du monde là où tu es.
 - /vitesse 3 : vole plus vite (de 1, la vitesse normale, à 10). /nv : vision nocturne.
@@ -123,7 +160,8 @@ Tes mondes ne sont pas dans ce dossier, mais dans le dossier Rago de ton dossier
 
 Il contient :
 
-- mondes : un dossier par monde (world est le monde du test de knockback) ;
+- mondes : un dossier par monde (world est le monde du test de knockback, lobby le lobby et
+  arenes les plateformes des duels) ;
 - schematics : les schematics de WorldEdit ;
 - sauvegardes : une copie des mondes et des schematics faite à chaque lancement du serveur, avant
   qu'il démarre. Les 10 plus récentes sont gardées. Sur Windows ce sont des fichiers .zip, sur Mac
@@ -167,10 +205,12 @@ tes schematics et tes sauvegardes dans le dossier Rago. Il faut seulement redeve
 ## Pour les développeurs
 
 La CI assemble ce dossier à chaque push (artefact « rago-serveur-de-test ») : les fichiers de
-tools/local-server, ce mode d'emploi renommé LISEZ-MOI.txt, et les jars de RagoCombatEngine et de
-RagoBuildTools (tools/build-tools) dans plugins/. Elle démarre le serveur deux fois, sur Linux et
-Windows, avec Java 8 et Java 21 : elle vérifie que les plugins s'activent, qu'un monde créé au
-premier lancement est retrouvé au second, et que le second lancement le sauvegarde.
+tools/local-server, ce mode d'emploi renommé LISEZ-MOI.txt, et les jars de RagoCombatEngine, de
+RagoBuildTools (tools/build-tools), de RagoLobby (bukkit/rago-lobby) et de RagoPractice
+(bukkit/rago-practice) dans plugins/. Elle démarre le serveur deux fois, sur Linux et Windows,
+avec Java 8 et Java 21 : elle vérifie que les plugins s'activent, qu'un monde créé au premier
+lancement est retrouvé au second, et que le second lancement le sauvegarde. Le lobby et le duel
+sumo sont joués par deux bots dans un autre test (tools/lobby-check).
 
 Les deux scripts téléchargent le build 226 de PandaSpigot (celui sur lequel passe le test de
 contrôle) et WorldEdit 6.1, et vérifient leur somme SHA-256. La CI vérifie que les deux scripts
