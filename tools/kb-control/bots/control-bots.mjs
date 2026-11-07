@@ -31,6 +31,11 @@ const GROUND_Y = 4
 // A hit only counts fully 10 ticks after the previous one. Keeping attacks a second apart also
 // keeps each velocity packet far from the next hit, so pairing packets with hits is unambiguous.
 const MIN_ATTACK_GAP_MS = 1000
+// A player who just joined cannot be hurt for 60 ticks (EntityPlayer.invulnerableTicks in 1.8.8):
+// an attack in that window gives no hit at all, so the first phase waits for it to end. The
+// server sends the world age on join and then every 20 ticks.
+const SPAWN_INVULNERABILITY_TICKS = 60
+const TIME_UPDATE_TICKS = 20
 const TEST_TIMEOUT_MS = 15 * 60 * 1000
 
 const PHASES = [
@@ -275,8 +280,13 @@ async function main () {
     const attacker = await join(ATTACKER)
     const victim = await join(VICTIM)
     console.log(`joined: ${ATTACKER} entity ${attacker.entity.id}, ${VICTIM} entity ${victim.entity.id}`)
+    await waitFor(() => victim.time.age != null, 5000, 'the world age')
+    const victimJoinAge = victim.time.age
     await waitFor(() => attacker.entities[victim.entity.id] != null, 10000, 'the attacker to see the victim')
     await prepare(attacker, victim)
+    // One more time update as a margin, since the known world age is refreshed every 20 ticks.
+    await waitFor(() => victim.time.age >= victimJoinAge + SPAWN_INVULNERABILITY_TICKS + TIME_UPDATE_TICKS,
+      15000, 'the end of the victim spawn invulnerability')
 
     recording = true
     for (const phase of PHASES) {

@@ -20,6 +20,8 @@ mesuré plus tard soit vraiment celui que les joueurs ressentent.
    Chaque phase mélange coups avec et sans sprint, à main nue et avec des bâtons Knockback I et
    II, sur une victime immobile, qui marche ou en plein saut, à des distances et angles variés.
    Les bots écrivent chaque paquet de vitesse reçu et chaque attaque dans `received.jsonl`.
+   Avant le premier coup, ils attendent la fin de l'invulnérabilité de la victime qui vient de se
+   connecter (60 ticks en 1.8.8, pendant lesquels un coup ne fait rien).
 3. `ControlCheck` associe chaque paquet reçu au coup journalisé par le moteur, puis vérifie :
    - **coups appliqués** : la vitesse du journal est exactement celle que donne le modèle avec
      les entrées du journal, et le client a reçu exactement ce paquet ;
