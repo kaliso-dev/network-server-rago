@@ -17,7 +17,7 @@ PANDASPIGOT_SHA256=ac73146b275230cbd0612ef0f3d6b40333abd3182beae457cad5321efff63
 SERVER_JAR=pandaspigot-226.jar
 # WorldEdit 6.1, la dernière version pour Bukkit 1.8 (https://dev.bukkit.org/projects/worldedit/files/880435).
 WORLDEDIT_URL=https://mediafilez.forgecdn.net/files/880/435/worldedit-bukkit-6.1.jar
-WORLDEDIT_SHA256=@WORLDEDIT_SHA256@
+WORLDEDIT_SHA256=b9d3f0648e47424d66d94081b21a26504de0fbe6843f3d977c023aec066d4496
 WORLDEDIT_JAR=plugins/worldedit-bukkit-6.1.jar
 
 cd "$(dirname "$0")"

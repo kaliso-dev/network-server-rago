@@ -18,7 +18,7 @@ $PandaSpigotSha256 = 'ac73146b275230cbd0612ef0f3d6b40333abd3182beae457cad5321eff
 $ServerJar = 'pandaspigot-226.jar'
 # WorldEdit 6.1, la dernière version pour Bukkit 1.8 (https://dev.bukkit.org/projects/worldedit/files/880435).
 $WorldEditUrl = 'https://mediafilez.forgecdn.net/files/880/435/worldedit-bukkit-6.1.jar'
-$WorldEditSha256 = '@WORLDEDIT_SHA256@'
+$WorldEditSha256 = 'b9d3f0648e47424d66d94081b21a26504de0fbe6843f3d977c023aec066d4496'
 $WorldEditJar = 'plugins\worldedit-bukkit-6.1.jar'
 
 Set-Location -LiteralPath $PSScriptRoot
