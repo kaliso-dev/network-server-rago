@@ -11,7 +11,7 @@ d'en ajouter une : vérifier qu'elle est maintenue, compatible Java 8 si elle to
 | Client des joueurs | Minecraft 1.8.9 (protocole 47) | Rago Client (Forge 1.8.9) ou client vanilla : le serveur n'exige jamais Rago Client |
 | Serveurs de jeu | PandaSpigot 1.8.8 | fork maintenu de Paper 1.8.8 ; implémente l'API Spigot 1.8.8 |
 | Bytecode des modules | Java 8 | tout est compilé avec `--release 8`, même sur un JDK récent |
-| Java des serveurs | Java 8 pour le test de contrôle | le choix pour la production (8 ou plus récent, PandaSpigot accepte les deux) se fera au jalon infrastructure |
+| Java des serveurs | Java 8 et Java 21 | le test de contrôle et le serveur de test local (`tools/local-server`) passent sous les deux ; le choix pour la production se fera au jalon infrastructure |
 
 ## Build
 
