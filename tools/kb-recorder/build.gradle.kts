@@ -20,6 +20,8 @@ java {
 // test server at start-up and records from the first connection, in its own game directory.
 val e2eServer: String? = providers.gradleProperty("rago.e2e.server").orNull
 val e2eLabel: String? = providers.gradleProperty("rago.e2e.label").orNull
+/** Game directory of the test client, relative to this project (run-e2e-test.sh uses the same). */
+val e2eClientDir = "build/e2e-client"
 
 loom {
     forge {
@@ -32,8 +34,27 @@ loom {
             val port = e2eServer.substringAfterLast(':')
             programArgs("--server", host, "--port", port)
             property("rago.kbrecorder.autostart", e2eLabel ?: "e2e")
-            runDir = "build/e2e-client"
+            runDir = e2eClientDir
         }
+    }
+}
+
+if (e2eServer != null) {
+    // Loom 0.10's runClient fails Gradle 8's task validation (its "main" property has no input
+    // annotation), so the test starts the same launch, with the same classpath and arguments, from
+    // a plain JavaExec task.
+    tasks.register<JavaExec>("runE2eClient") {
+        val runClient = tasks.getByName<JavaExec>("runClient")
+        dependsOn(runClient.dependsOn)
+        classpath = runClient.classpath
+        mainClass.set(providers.provider {
+            runCatching { runClient.javaClass.getMethod("getMain").invoke(runClient) as String }
+                .getOrElse { runClient.mainClass.get() }
+        })
+        args(runClient.args)
+        jvmArgs(runClient.jvmArgs)
+        workingDir = file(e2eClientDir)
+        doFirst { workingDir.mkdirs() }
     }
 }
 

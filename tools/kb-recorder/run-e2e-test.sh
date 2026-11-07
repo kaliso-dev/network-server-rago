@@ -5,8 +5,9 @@
 #
 # 1. sets up the control test's server (tools/kb-control/test-server.sh): offline mode, bound to
 #    127.0.0.1, RagoCombatEngine with its hit log;
-# 2. starts the mod in the Forge 1.8.9 dev client (Loom's runClient), which joins the server and
-#    starts recording at the first connection (property rago.kbrecorder.autostart);
+# 2. starts the mod in the Forge 1.8.9 dev client (task runE2eClient: the launch of Loom's
+#    runClient), which joins the server and starts recording at the first connection (property
+#    rago.kbrecorder.autostart);
 # 3. an attacker bot (tools/kb-control/bots/recorder-attacker.mjs) hits the client, with the
 #    server's own knockback and then with the engine's control-alt test profile;
 # 4. stops the client with SIGTERM, which makes the mod close its file in its shutdown hook, and
@@ -127,13 +128,13 @@ snooperEnabled:false
 soundCategory_master:0.0
 EOF
 
-log "starting the Minecraft 1.8.9 client with the mod (Gradle runClient)"
+log "starting the Minecraft 1.8.9 client with the mod (Gradle runE2eClient)"
 (
   cd "$MOD_DIR"
   if [[ -n "$GRADLE_JAVA_HOME" ]]; then
     export JAVA_HOME=$GRADLE_JAVA_HOME
   fi
-  exec ./gradlew runClient --console=plain ${GRADLE_ARGS[@]+"${GRADLE_ARGS[@]}"} \
+  exec ./gradlew runE2eClient --console=plain ${GRADLE_ARGS[@]+"${GRADLE_ARGS[@]}"} \
     "-Prago.e2e.server=127.0.0.1:$PORT" "-Prago.e2e.label=$LABEL"
 ) >"$CLIENT_LOG" 2>&1 &
 GRADLE_PID=$!

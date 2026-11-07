@@ -8,7 +8,7 @@ mesuré plus tard soit vraiment celui que les joueurs ressentent.
 ## Ce qui se passe
 
 1. `run-control-test.sh` télécharge PandaSpigot 1.8.8 (le build 226, dont il vérifie la somme
-   SHA-256) et monte un serveur de test (monde plat, mode hors ligne, accessible seulement depuis
+   SHA-256) et monte, avec `test-server.sh`, un serveur de test (monde plat, mode hors ligne, accessible seulement depuis
    la machine ; en CI, une fois sous Java 8 et une fois sous Java 21) avec RagoCombatEngine et son
    journal des hits.
 2. Deux bots (`bots/control-bots.mjs`, avec [mineflayer](https://github.com/PrismarineJS/mineflayer)) :
@@ -66,6 +66,13 @@ tools/kb-control/build/install/kb-control/bin/kb-control \
   --hits control-run/server/plugins/RagoCombatEngine/hits --received control-run/received.jsonl \
   --server-knockback pandaspigot --min-hits 108 --report report.md
 ```
+
+## Le test du mod d'enregistrement
+
+Ce dossier sert aussi au test de bout en bout de [kb-recorder](../kb-recorder/README.md#test-de-bout-en-bout) :
+`test-server.sh` monte le même serveur de test pour les deux tests, `bots/recorder-attacker.mjs`
+frappe le vrai client qui a le mod, et `RecorderCheck` compare son enregistrement au journal du
+moteur.
 
 ## Limites
 

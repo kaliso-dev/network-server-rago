@@ -77,6 +77,38 @@ Il faut un JDK 17 pour lancer Gradle et un JDK 8 pour compiler (Gradle le télé
 trouve pas). Le jar à installer est dans `build/libs/`. La CI le construit à chaque push et pull
 request (job « KB recorder mod »).
 
+## Test de bout en bout
+
+`run-e2e-test.sh` vérifie le mod dans un vrai client Minecraft 1.8.9, sur le serveur de test du
+[test de contrôle](../kb-control/README.md) (PandaSpigot 1.8.8 avec le moteur de combat et son
+journal des coups) :
+
+1. le client Forge de développement (le même lancement que `./gradlew runClient`) se connecte au
+   serveur au démarrage, et le mod commence à enregistrer à la première connexion ;
+2. un bot attaquant (`tools/kb-control/bots/recorder-attacker.mjs`) frappe le client 24 fois, avec
+   et sans sprint : d'abord avec le knockback du serveur, puis avec le profil de test `control-alt`
+   appliqué par le moteur ;
+3. le client est arrêté (signal SIGTERM), ce qui ferme le fichier comme quand on quitte le jeu ;
+4. `RecorderCheck` (`tools/kb-control`) compare l'enregistrement au journal du moteur. Pour chaque
+   coup, il faut exactement un paquet de vitesse pour le joueur, identique à celui que le serveur
+   a envoyé, l'animation de coup reçu (statut d'entité 2), et dans le dernier tick avant le coup
+   l'attaquant avec le sprint que le serveur a utilisé. Le fichier doit aussi commencer par sa
+   ligne de session, finir par sa ligne de fin sans ligne perdue ni erreur, et avoir un tick
+   enregistré par tick client, sans trou.
+
+En CI, le job « KB recorder end-to-end test » le lance sous un écran virtuel (Xvfb) ; le rapport
+apparaît dans le résumé du job et l'enregistrement dans l'artefact `kb-recorder-e2e-run`. Sur
+Linux, avec Java 8 et 17, Node.js 20+ et Xvfb :
+
+```bash
+./gradlew :rago-combat-engine:assemble :kb-control:installDist
+(cd tools/kb-control/bots && npm ci)
+KB_ACCEPT_EULA=true xvfb-run -a tools/kb-recorder/run-e2e-test.sh
+```
+
+Le test fait tourner le code du mod dans le client de développement, pas le jar remappé que l'on
+installe : les deux viennent des mêmes sources, et le build vérifie que le remappage réussit.
+
 ## Limites
 
 - Le mod enregistre ce que voit le client : la position des autres joueurs est celle que le serveur
