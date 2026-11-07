@@ -17,6 +17,7 @@ Jalon en cours : **M1, « Labo KB »**, le moteur de combat et de quoi le vérif
 | `rago-combat-engine` : plugin qui applique un profil de knockback, commande `/kb`, journal des hits | fait, testé ; test de contrôle sur un vrai serveur en CI |
 | `tools/kb-control` : test de contrôle avec bots sur un vrai PandaSpigot | fait, lancé par la CI : 108 coups sur 108 exacts sur PandaSpigot 1.8.8 (build 226) |
 | `tools/local-server` : serveur de test à lancer sur son PC (Windows, Mac, Linux) pour essayer le knockback en jeu | fait, assemblé et démarré par la CI |
+| `tools/build-tools` : plugin RagoBuildTools pour construire sur le serveur de test (mondes vides, créatif, protection, sauvegardes) avec WorldEdit | fait, testé ; démarré deux fois par la CI avec le serveur de test |
 | Mesure du knockback d'Hypixel (module d'enregistrement dans Rago Client) | prochaine étape |
 | Proxy, lobby, base de données, Bedwars, Ranked, statistiques, cosmétiques | à venir, voir la feuille de route |
 
@@ -30,13 +31,14 @@ build-logic/                 conventions Gradle partagées (Java 8, tests, plugi
 combat/rago-combat-model/    calcul exact du knockback 1.8.8 et physique du client 1.8.9 (sans dépendance)
 combat/rago-combat-engine/   plugin RagoCombatEngine : profils de knockback, /kb, journal des hits
 tools/kb-control/            test de contrôle sur un vrai serveur PandaSpigot, avec deux bots
-tools/local-server/          serveur de test à lancer sur son PC, avec le moteur
+tools/local-server/          serveur de test à lancer sur son PC, avec le moteur et les outils de build
+tools/build-tools/           plugin RagoBuildTools : mondes de build, protection, enregistrement fréquent
 docs/                        formule du knockback, compatibilité et dépendances
 ```
 
 Chaque module a son README : [combat-model](combat/rago-combat-model/README.md),
 [combat-engine](combat/rago-combat-engine/README.md), [kb-control](tools/kb-control/README.md),
-[local-server](tools/local-server/README.md).
+[local-server](tools/local-server/README.md), [build-tools](tools/build-tools/README.md).
 
 ## Construire et tester
 

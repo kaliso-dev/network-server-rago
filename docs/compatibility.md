@@ -30,6 +30,12 @@ d'en ajouter une : vérifier qu'elle est maintenue, compatible Java 8 si elle to
 | Gson | 2.15.0 | `tools/kb-control` uniquement | lecture des fichiers JSON du test ; bytecode Java 8 vérifié ; jamais embarqué dans un plugin (les plugins écrivent leur JSON eux-mêmes, et le serveur 1.8.8 fournit déjà sa propre vieille Gson) |
 | mineflayer | 4.39.0 | bots du test de contrôle (Node.js) | maintenu ; la version 1.8.8 fait partie des versions testées par le projet ; figée par `package-lock.json` |
 | PandaSpigot | build 226 (`git-PandaSpigot-226`, MC 1.8.8) | serveur du test de contrôle | téléchargé depuis downloads.hpfxd.com ; somme SHA-256 `ac73146b275230cbd0612ef0f3d6b40333abd3182beae457cad5321efff6359b`, vérifiée à chaque test ; le test de contrôle y passe sous Java 8 (108 coups sur 108 exacts) |
+| WorldEdit | 6.1 (`worldedit-bukkit-6.1.jar`, 28 mai 2015) | serveur de test local (`tools/local-server`) uniquement, pour construire | la dernière version de WorldEdit pour Bukkit 1.8 (son journal des changements : « Spigot for 1.8 from 1.8 to 1.8.8 ») ; plus maintenue, mais c'est un outil de construction et non une base du réseau, et il n'en existe pas de plus récente pour 1.8. Licence GPLv3 : il n'est pas copié dans le dossier distribué, les lanceurs le téléchargent depuis le lien de [sa page sur dev.bukkit.org](https://dev.bukkit.org/projects/worldedit/files/880435) et vérifient sa somme SHA-256, que la CI compare au MD5 affiché sur cette page (`13749e1701499d379765bb218191035a`) ; jamais sur un serveur de production |
+
+Écartés pour le serveur de build : Multiverse-Core, dont la seule version qui cite 1.8 est la bêta
+2.5-b699 de 2015 (la 2.5.0 stable demande 1.9 ou plus), et les générateurs de monde vide
+CleanroomGenerator 1.0.0 (2012) et VoidGenerator (2011, « All Rights Reserved »). Les mondes de
+build sont gérés par `tools/build-tools`, un plugin du projet.
 
 Les plugins n'embarquent pour l'instant que `rago-combat-model`, un module du projet sans
 dépendance. Quand un plugin aura besoin d'une bibliothèque tierce, elle devra être relocalisée
