@@ -196,13 +196,17 @@ jobs:
           $launcher = Start-Process -FilePath cmd.exe -ArgumentList '/c', 'lancer-windows.bat' -PassThru `
             -RedirectStandardOutput launch.log -RedirectStandardError launch.err -WorkingDirectory $PWD
           $started = $false
-          $deadline = (Get-Date).AddMinutes(8)
+          $launchedAt = Get-Date
+          $deadline = $launchedAt.AddMinutes(8)
           while ((Get-Date) -lt $deadline) {
             if ((Test-Path logs/latest.log) -and (Select-String -Path logs/latest.log -Pattern 'Done (' -SimpleMatch -Quiet)) {
               $started = $true
               break
             }
             if ($launcher.HasExited) { break }
+            # Once lancer.ps1 has ended, the batch file waits on "pause": stop waiting for the server.
+            $launcherScript = @(Get-CimInstance Win32_Process -Filter "ParentProcessId = $($launcher.Id) AND Name = 'powershell.exe'")
+            if ($launcherScript.Count -eq 0 -and ((Get-Date) - $launchedAt).TotalSeconds -gt 15) { break }
             Start-Sleep -Seconds 2
           }
           Get-Content launch.log, launch.err -ErrorAction SilentlyContinue

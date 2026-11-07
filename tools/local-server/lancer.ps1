@@ -75,7 +75,15 @@ if (-not (Test-Path -LiteralPath $ServerJar) -or (Get-Item -LiteralPath $ServerJ
     }
     Move-Item -LiteralPath "$ServerJar.part" -Destination $ServerJar -Force
 }
-$ActualSha256 = (Get-FileHash -LiteralPath $ServerJar -Algorithm SHA256).Hash.ToLowerInvariant()
+# La somme est calculée avec .NET et non avec Get-FileHash : lancé depuis PowerShell 7, Windows
+# PowerShell 5.1 hérite de ses chemins de modules et ne trouve plus Get-FileHash.
+$Stream = [IO.File]::OpenRead((Join-Path $PSScriptRoot $ServerJar))
+try {
+    $HashBytes = [Security.Cryptography.SHA256]::Create().ComputeHash($Stream)
+} finally {
+    $Stream.Dispose()
+}
+$ActualSha256 = ([BitConverter]::ToString($HashBytes) -replace '-', '').ToLowerInvariant()
 if ($ActualSha256 -ne $PandaSpigotSha256) {
     Remove-Item -LiteralPath $ServerJar -Force
     Stop-With ("le fichier PandaSpigot téléchargé n'est pas le bon (somme $ActualSha256). Il a été supprimé : " +
