@@ -45,6 +45,7 @@ mode: override            # override : applique le profil ; observe : calcule et
 active-profile: vanilla   # profil utilisé partout, sauf dans les mondes de world-profiles
 world-profiles: {}        # par monde, par exemple { arena_a: vanilla, arena_b: test-a }
 hit-delay-ticks: 10       # délai entre deux coups, en ticks (vanilla 10, Hypixel mesuré 9), de 1 à 20
+ping-simulation-ms: 0     # ping simulé pour le calcul du kb (0 = désactivé, 500 au plus), expérimental
 record-hits: false        # journal des hits (voir plus bas)
 profiles: {}              # profils de test, en plus de vanilla
 ```
@@ -83,18 +84,37 @@ valeur (`setMaximumNoDamageTicks`), à la connexion, une tick après une réappa
 changement de monde (le Minecraft vanilla recrée alors le joueur avec 20 ticks ; CraftBukkit le
 garde, mais le moteur ne dépend pas de ce détail), et dès que le réglage change. Le cooldown vaut pour tous les dégâts (chute, feu, flèches), comme en vanilla.
 
+## Ping simulé (expérimental)
+
+Après un coup, le serveur 1.8 envoie le kb à la victime mais garde son mouvement à lui ; il ne le
+met à jour qu'une fois que le client de la victime, ayant reçu le kb, renvoie ses déplacements. Le
+coup suivant d'un combo dépend de ce mouvement : plus la victime a de ping, plus il est ancien, et
+plus elle part haut. Les mesures sur Hypixel, faites à 140-160 ms, en donnent l'effet
+([mesures](../../docs/combat/mesures-hypixel.md)).
+
+`ping-simulation-ms` (ou `/kb pingsim <ms>`) reproduit cet effet pour les joueurs qui ont moins de
+ping : le kb d'une victime est calculé avec son mouvement d'il y a autant de ticks (de 50 ms,
+arrondi) qu'il lui manque de ping. Avec 150, une victime à 30 ms est frappée avec son mouvement
+d'il y a 2 ticks ; une victime à 150 ms ou plus ne change pas. Seul le calcul du kb change : les
+dégâts, le délai entre deux coups et la position des joueurs restent ceux du serveur.
+
+Le ping de chaque joueur est celui que le serveur mesure (aller-retour du keep-alive, lissé). Tant
+que le réglage vaut 0, le moteur n'enregistre aucun mouvement. Il reste à vérifier en jeu, et par
+un enregistrement avec du ping réel ajouté, que l'effet est le même que celui du ping.
+
 ## Commande `/kb`
 
 Permission `rago.combat.admin` (opérateurs par défaut).
 
 | Commande | Effet |
 | --- | --- |
-| `/kb` ou `/kb status` | mode, profil par défaut, profils par monde, délai entre deux coups, état du journal |
+| `/kb` ou `/kb status` | mode, profil par défaut, profils par monde, délai entre deux coups, ping simulé, état du journal |
 | `/kb profiles` | liste des profils et de leurs valeurs |
 | `/kb profile <nom>` | change le profil par défaut |
 | `/kb world <monde> <profil\|default>` | profil d'un monde, ou retour au profil par défaut |
 | `/kb mode <override\|observe>` | change le mode |
 | `/kb hitdelay <ticks>` | change le délai entre deux coups (vanilla 10, Hypixel mesuré 9) |
+| `/kb pingsim <ms>` | change le ping simulé pour le calcul du kb (0 = désactivé) |
 | `/kb debug` | affiche dans le chat de celui qui tape la commande chaque coup et son paquet |
 | `/kb reload` | relit config.yml ; s'il est invalide, les réglages actuels restent en place |
 
@@ -113,9 +133,11 @@ Avec `record-hits: true`, chaque coup est écrit dans
   `victimOnGround` (état au sol envoyé par le client de la victime, gardé pour l'analyse
   seulement) ;
 - `input` : `attackerX`, `attackerZ`, `attackerYaw`, `knockbackLevel`, `victimX`, `victimZ`,
-  `victimMotion` (vitesse côté serveur de la victime) ;
+  `victimMotion` (vitesse côté serveur de la victime utilisée pour le calcul) ;
 - `velocity` (calculée avec le profil), `packet` (la même en unités de paquet), `applied`
-  (`true` si le moteur l'a posée, `false` en mode observe).
+  (`true` si le moteur l'a posée, `false` en mode observe) ;
+- `pingSimulationMs` (le réglage), `simulatedDelayTicks` (l'âge en ticks de `victimMotion`, 0 sans
+  ping simulé) et `liveVictimMotion` (la vitesse côté serveur au moment du coup).
 
 L'écriture passe par une file de 10 000 lignes ; si le disque ne suit pas, les lignes en trop
 sont perdues et comptées (`/kb status`), le thread principal n'attend jamais. Ce format est lu par

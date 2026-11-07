@@ -1,5 +1,8 @@
 package gg.rago.combat.engine;
 
+import gg.rago.combat.model.Vec3;
+import java.lang.reflect.Field;
+import java.lang.reflect.Method;
 import java.util.HashSet;
 import java.util.Set;
 import java.util.UUID;
@@ -8,6 +11,7 @@ import org.bukkit.ChatColor;
 import org.bukkit.command.PluginCommand;
 import org.bukkit.entity.Player;
 import org.bukkit.plugin.java.JavaPlugin;
+import org.bukkit.util.Vector;
 
 /**
  * RagoCombatEngine: applies a measurable, configurable knockback profile to melee hits between
@@ -19,6 +23,9 @@ public final class RagoCombatEngine extends JavaPlugin {
     private HitRecorder recorder;
     private final Set<UUID> debugViewers = new HashSet<>();
     private long tick;
+    private final MotionHistory motionHistory = new MotionHistory();
+    /** Set once if the server does not expose the players' ping: they then count as 0 ms. */
+    private boolean pingUnavailable;
 
     @Override
     public void onEnable() {
@@ -33,7 +40,7 @@ public final class RagoCombatEngine extends JavaPlugin {
         }
         applyRecorderSetting();
 
-        getServer().getScheduler().runTaskTimer(this, () -> tick++, 0L, 1L);
+        getServer().getScheduler().runTaskTimer(this, this::endOfTick, 0L, 1L);
         getServer().getPluginManager().registerEvents(new KnockbackListener(this), this);
         getServer().getPluginManager().registerEvents(new HitDelayListener(this), this);
         applyHitDelay();
@@ -42,7 +49,8 @@ public final class RagoCombatEngine extends JavaPlugin {
         command.setExecutor(executor);
         command.setTabCompleter(executor);
         getLogger().info("Mode " + settings.mode().configName() + ", default profile " + settings.defaultProfile()
-                + ", profiles " + settings.profiles().keySet() + ", hit delay " + settings.hitDelayTicks() + " ticks");
+                + ", profiles " + settings.profiles().keySet() + ", hit delay " + settings.hitDelayTicks() + " ticks"
+                + ", ping simulation " + settings.pingSimulationMs() + " ms");
     }
 
     @Override
@@ -52,6 +60,63 @@ public final class RagoCombatEngine extends JavaPlugin {
             recorder = null;
         }
         debugViewers.clear();
+        motionHistory.clear();
+    }
+
+    /**
+     * Runs once per tick, after the players' packets of the tick: counts the tick and, while the
+     * ping simulation is on, records every player's motion.
+     */
+    private void endOfTick() {
+        tick++;
+        if (settings.pingSimulationMs() == 0) {
+            if (!motionHistory.isEmpty()) {
+                motionHistory.clear();
+            }
+            return;
+        }
+        for (Player player : getServer().getOnlinePlayers()) {
+            Vector motion = player.getVelocity();
+            motionHistory.record(player.getUniqueId(), tick, new Vec3(motion.getX(), motion.getY(), motion.getZ()));
+        }
+    }
+
+    /**
+     * The victim's motion to compute a hit with: the current one, or with the ping simulation on,
+     * the one the victim had as many ticks before as its ping falls short of the simulated ping.
+     *
+     * @return the motion and the delay used, in ticks
+     */
+    DelayedMotion motionForHit(Player victim, Vec3 current) {
+        int delay = settings.simulatedDelayTicks(settings.pingSimulationMs() == 0 ? 0 : pingOf(victim));
+        Vec3 motion = motionHistory.delayed(victim.getUniqueId(), tick, delay, current);
+        // A missing sample gives back the current motion itself: then no delay was applied.
+        return new DelayedMotion(motion, motion == current ? 0 : delay);
+    }
+
+    void forgetMotion(UUID player) {
+        motionHistory.forget(player);
+    }
+
+    /**
+     * The player's ping as the server measures it (the keep-alive round trip, smoothed). The
+     * Bukkit API of 1.8 has no getter for it, so it is read from the server's player object.
+     */
+    int pingOf(Player player) {
+        if (pingUnavailable) {
+            return 0;
+        }
+        try {
+            Method getHandle = player.getClass().getMethod("getHandle");
+            Object handle = getHandle.invoke(player);
+            Field ping = handle.getClass().getField("ping");
+            return ping.getInt(handle);
+        } catch (ReflectiveOperationException | RuntimeException e) {
+            pingUnavailable = true;
+            getLogger().warning("The players' ping cannot be read on this server (" + e
+                    + "): the ping simulation counts every player as 0 ms.");
+            return 0;
+        }
     }
 
     /** Server ticks since the plugin was enabled. Main thread only. */
@@ -131,6 +196,8 @@ public final class RagoCombatEngine extends JavaPlugin {
                 + ChatColor.WHITE + record.victim + ChatColor.GRAY
                 + " | niv. " + record.hit.knockbackLevel() + (record.sprinting ? " (sprint)" : "")
                 + " | " + record.profile.name() + (record.applied ? "" : " (observe)")
+                + (record.simulatedDelayTicks == 0 ? "" : " | ping simulé, mouvement d'il y a "
+                        + record.simulatedDelayTicks + " ticks")
                 + " | paquet " + ChatColor.WHITE + record.packet;
         for (UUID viewer : debugViewers) {
             Player player = getServer().getPlayer(viewer);

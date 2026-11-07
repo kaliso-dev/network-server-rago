@@ -21,7 +21,7 @@ import org.bukkit.entity.Player;
 final class KbCommand implements TabExecutor {
 
     private static final List<String> SUBCOMMANDS = Collections.unmodifiableList(Arrays.asList(
-            "status", "profiles", "profile", "world", "mode", "hitdelay", "debug", "reload"));
+            "status", "profiles", "profile", "world", "mode", "hitdelay", "pingsim", "debug", "reload"));
     private static final String DEFAULT_WORLD_PROFILE = "default";
 
     private final RagoCombatEngine plugin;
@@ -66,6 +66,13 @@ final class KbCommand implements TabExecutor {
                 }
                 return change(sender, "délai entre deux coups -> " + args[1] + " ticks",
                         () -> plugin.settings().withHitDelayTicks(parseTicks(args[1])));
+            case "pingsim":
+                if (args.length != 2) {
+                    return usage(sender, "/" + label + " pingsim <ms> (0 = désactivé, "
+                            + EngineSettings.MAX_PING_SIMULATION_MS + " au plus)");
+                }
+                return change(sender, "ping simulé pour le kb -> " + args[1] + " ms",
+                        () -> plugin.settings().withPingSimulationMs(parseMillis(args[1])));
             case "debug":
                 debug(sender);
                 return true;
@@ -87,6 +94,8 @@ final class KbCommand implements TabExecutor {
         }
         sender.sendMessage(ChatColor.GRAY + "Délai entre deux coups : " + ChatColor.WHITE + settings.hitDelayTicks()
                 + " ticks" + ChatColor.GRAY + " (vanilla " + EngineSettings.VANILLA_HIT_DELAY_TICKS + ")");
+        sender.sendMessage(ChatColor.GRAY + "Ping simulé pour le kb : " + ChatColor.WHITE
+                + (settings.pingSimulationMs() == 0 ? "désactivé" : settings.pingSimulationMs() + " ms"));
         sender.sendMessage(ChatColor.GRAY + "Journal des hits : " + ChatColor.WHITE
                 + (settings.recordHits() ? "actif (" + plugin.droppedRecords() + " perdus)" : "inactif"));
     }
@@ -146,6 +155,14 @@ final class KbCommand implements TabExecutor {
         }
     }
 
+    private static int parseMillis(String text) {
+        try {
+            return Integer.parseInt(text);
+        } catch (NumberFormatException e) {
+            throw new IllegalArgumentException("nombre de millisecondes invalide : " + text);
+        }
+    }
+
     private static boolean usage(CommandSender sender, String usage) {
         sender.sendMessage(ChatColor.RED + "Usage : " + usage);
         return true;
@@ -169,6 +186,9 @@ final class KbCommand implements TabExecutor {
         }
         if (args.length == 2 && sub.equals("hitdelay")) {
             return matching(Arrays.asList("9", String.valueOf(EngineSettings.VANILLA_HIT_DELAY_TICKS)), args[1]);
+        }
+        if (args.length == 2 && sub.equals("pingsim")) {
+            return matching(Arrays.asList("0", "150"), args[1]);
         }
         if (args.length == 2 && sub.equals("world")) {
             List<String> worlds = new ArrayList<>();

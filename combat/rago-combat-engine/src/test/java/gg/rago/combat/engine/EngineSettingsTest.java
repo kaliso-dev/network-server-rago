@@ -29,6 +29,8 @@ class EngineSettingsTest {
         assertEquals(KnockbackProfile.vanilla(), settings.profileFor("world"));
         assertEquals(10, settings.hitDelayTicks());
         assertEquals(20, settings.maximumNoDamageTicks());
+        assertEquals(0, settings.pingSimulationMs());
+        assertEquals(0, settings.simulatedDelayTicks(0));
     }
 
     @Test
@@ -71,6 +73,30 @@ class EngineSettingsTest {
         assertThrows(IllegalArgumentException.class, () -> settings.withHitDelayTicks(21));
         assertEquals(1, settings.withHitDelayTicks(1).hitDelayTicks());
         assertEquals(20, settings.withHitDelayTicks(20).hitDelayTicks());
+    }
+
+    @Test
+    void pingSimulationDelaysVictimsWithLessPing() throws Exception {
+        EngineSettings settings = EngineSettings.load(yaml("ping-simulation-ms: 150\n"));
+
+        assertEquals(150, settings.pingSimulationMs());
+        assertEquals(3, settings.simulatedDelayTicks(0));
+        assertEquals(2, settings.simulatedDelayTicks(30));
+        assertEquals(2, settings.simulatedDelayTicks(48));
+        assertEquals(1, settings.simulatedDelayTicks(100));
+        assertEquals(0, settings.simulatedDelayTicks(140));
+        assertEquals(0, settings.simulatedDelayTicks(150));
+        assertEquals(0, settings.simulatedDelayTicks(400));
+        assertEquals(3, settings.simulatedDelayTicks(-1));
+        assertEquals(10, settings.withPingSimulationMs(500).simulatedDelayTicks(0));
+        assertEquals(0, settings.withPingSimulationMs(0).simulatedDelayTicks(0));
+        assertEquals(150, settings.withHitDelayTicks(9).withMode(EngineMode.OBSERVE).withDefaultProfile("vanilla")
+                .withWorldProfile("arena", "vanilla").pingSimulationMs());
+        for (String value : new String[] {"-1", "501", "1.5", "cent"}) {
+            assertThrows(IllegalArgumentException.class,
+                    () -> EngineSettings.load(yaml("ping-simulation-ms: " + value + "\n")), value);
+        }
+        assertThrows(IllegalArgumentException.class, () -> settings.withPingSimulationMs(501));
     }
 
     @Test

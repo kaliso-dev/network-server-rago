@@ -22,6 +22,14 @@ world-profiles: {}
 # Il vaut pour tous les dégâts (chute, feu, flèches), pas seulement le corps à corps. De 1 à 20.
 hit-delay-ticks: 10
 
+# Ping simulé pour le calcul du kb, en millisecondes (0 = désactivé, 500 au plus). Après un coup, le
+# serveur garde le mouvement de la victime et ne le met à jour qu'une fois que son client, ayant reçu
+# le kb, renvoie ses déplacements : plus le ping est haut, plus c'est tard, et plus le coup suivant
+# d'un combo envoie haut. Avec 150, une victime à 30 ms est frappée avec son mouvement d'il y a
+# 2 ticks (150 - 30 = 120 ms), comme si elle avait 150 ms. Une victime qui a déjà ce ping ou plus
+# n'est pas touchée. Expérimental : voir docs/combat/mesures-hypixel.md.
+ping-simulation-ms: 0
+
 # Écrit chaque hit dans plugins/RagoCombatEngine/hits/hits-AAAA-MM-JJ.jsonl pour l'analyse.
 record-hits: false
 

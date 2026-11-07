@@ -13,6 +13,7 @@ import org.bukkit.event.EventPriority;
 import org.bukkit.event.Listener;
 import org.bukkit.event.entity.EntityDamageByEntityEvent;
 import org.bukkit.event.entity.EntityDamageEvent.DamageCause;
+import org.bukkit.event.player.PlayerQuitEvent;
 import org.bukkit.event.player.PlayerVelocityEvent;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.util.Vector;
@@ -65,15 +66,18 @@ final class KnockbackListener implements Listener {
         Location attackerLocation = attacker.getLocation();
         Location victimLocation = victim.getLocation();
         Vector motion = victim.getVelocity();
+        Vec3 liveMotion = new Vec3(motion.getX(), motion.getY(), motion.getZ());
+        DelayedMotion used = plugin.motionForHit(victim, liveMotion);
         boolean sprinting = attacker.isSprinting();
         int enchantment = knockbackEnchantment(attacker);
         MeleeHit hit = new MeleeHit(
                 attackerLocation.getX(), attackerLocation.getZ(), attackerLocation.getYaw(),
                 enchantment + (sprinting ? 1 : 0),
                 victimLocation.getX(), victimLocation.getZ(),
-                new Vec3(motion.getX(), motion.getY(), motion.getZ()));
+                used.motion);
         pending = new PendingHit(victim.getUniqueId(), plugin.currentTick(), attacker.getName(), victim.getName(),
-                victim.getEntityId(), sprinting, enchantment, reportedOnGround(victim), hit);
+                victim.getEntityId(), sprinting, enchantment, reportedOnGround(victim), hit, liveMotion,
+                used.delayTicks);
     }
 
     @EventHandler(priority = EventPriority.HIGHEST, ignoreCancelled = true)
@@ -100,7 +104,12 @@ final class KnockbackListener implements Listener {
             victim.setVelocity(bukkitVelocity);
         }
         plugin.report(new HitRecord(System.currentTimeMillis(), hit.tick, settings.mode(), profile, world,
-                hit, velocity, applied));
+                hit, velocity, applied, settings.pingSimulationMs()));
+    }
+
+    @EventHandler(priority = EventPriority.MONITOR)
+    public void onQuit(PlayerQuitEvent event) {
+        plugin.forgetMotion(event.getPlayer().getUniqueId());
     }
 
     /**

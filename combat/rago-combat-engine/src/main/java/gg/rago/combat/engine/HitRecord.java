@@ -23,9 +23,12 @@ final class HitRecord {
     final Vec3 velocity;
     final VelocityPacket packet;
     final boolean applied;
+    final int pingSimulationMs;
+    final int simulatedDelayTicks;
+    final Vec3 liveVictimMotion;
 
     HitRecord(long epochMillis, long tick, EngineMode mode, KnockbackProfile profile, String world, PendingHit pending,
-            Vec3 velocity, boolean applied) {
+            Vec3 velocity, boolean applied, int pingSimulationMs) {
         this.epochMillis = epochMillis;
         this.tick = tick;
         this.mode = mode;
@@ -41,6 +44,9 @@ final class HitRecord {
         this.velocity = velocity;
         this.packet = VelocityPacket.encode(velocity);
         this.applied = applied;
+        this.pingSimulationMs = pingSimulationMs;
+        this.simulatedDelayTicks = pending.simulatedDelayTicks;
+        this.liveVictimMotion = pending.liveVictimMotion;
     }
 
     /**
@@ -84,7 +90,12 @@ final class HitRecord {
                 .append(velocity.z()).append("],");
         json.append("\"packet\":[").append(packet.x()).append(',').append(packet.y()).append(',')
                 .append(packet.z()).append("],");
-        json.append("\"applied\":").append(applied);
+        json.append("\"applied\":").append(applied).append(',');
+        // Ping simulation: input.victimMotion above is the motion the velocity was computed with.
+        number(json, "pingSimulationMs", pingSimulationMs).append(',');
+        number(json, "simulatedDelayTicks", simulatedDelayTicks).append(',');
+        json.append("\"liveVictimMotion\":[").append(liveVictimMotion.x()).append(',').append(liveVictimMotion.y())
+                .append(',').append(liveVictimMotion.z()).append(']');
         return json.append('}').toString();
     }
 
