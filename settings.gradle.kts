@@ -37,3 +37,4 @@ fun module(name: String, dir: String) {
 module("rago-combat-model", "combat/rago-combat-model")
 module("rago-combat-engine", "combat/rago-combat-engine")
 module("kb-control", "tools/kb-control")
+module("rago-build-tools", "tools/build-tools")

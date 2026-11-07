@@ -1,0 +1,5 @@
+# RagoBuildTools : outils de build du serveur de test Rago (jamais sur un serveur de production).
+
+# Toutes les combien de minutes tous les mondes sont enregistrés sur le disque, en plus de
+# l'enregistrement de Minecraft toutes les 5 minutes. 0 : seulement celui de Minecraft.
+sauvegarde-auto-minutes: 2
