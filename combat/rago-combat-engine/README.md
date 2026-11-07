@@ -78,11 +78,41 @@ Permission `rago.combat.admin` (opérateurs par défaut).
 | `/kb world <monde> <profil\|default>` | profil d'un monde, ou retour au profil par défaut |
 | `/kb mode <override\|observe>` | change le mode |
 | `/kb debug` | affiche dans le chat de celui qui tape la commande chaque coup et son paquet |
+| `/kb sparring [sprint\|normal\|alterne] [ticks]` | un attaquant invisible frappe celui qui tape la commande (voir plus bas) |
+| `/kb sparring stop` | arrête le sparring |
 | `/kb reload` | relit config.yml ; s'il est invalide, les réglages actuels restent en place |
 
 Les changements faits par `/kb` durent jusqu'au prochain redémarrage ou `/kb reload` ; pour les
 garder, il faut les écrire dans config.yml. Chaque changement est écrit dans la console avec
 `[audit]` et le nom de son auteur.
+
+## Sparring : sentir un profil sans adversaire
+
+`/kb sparring` fait frapper le joueur qui tape la commande par un attaquant que personne ne voit,
+placé à 3 blocs devant lui, dans la direction horizontale où il regarde, et tourné vers lui : le
+joueur est poussé droit en arrière, comme dans un combat face à face. Il suffit de regarder dans
+une direction et de se laisser pousser, au sol, en marchant ou en sautant.
+
+- `sprint` (par défaut) : des coups sprint ; `normal` : sans sprint ; `alterne` : un coup sprint
+  puis un coup normal, pour sentir la différence.
+- L'intervalle va de 10 ticks (le plus rapide qu'un vrai combat permette, puisqu'un joueur ne
+  reprend un coup plein que 10 ticks après le précédent) à 200 ticks ; 20 par défaut (une seconde).
+- Le sparring s'arrête avec `/kb sparring stop` ou quand le joueur se déconnecte.
+
+Chaque coup est calculé exactement comme un vrai coup, avec le profil du monde du joueur, quel
+que soit le mode (`observe` ou `override`) : mêmes entrées (positions, angle, sprint, mouvement du
+joueur côté serveur), même calcul, même paquet. Le joueur voit et entend le coup (animation et son
+de dégât), sans perdre de vie. Les coups vont dans `/kb debug` et dans le journal, avec
+`"attacker":"(sparring)"`.
+
+Une différence avec un vrai coup : après un vrai coup, le serveur envoie le paquet de vitesse puis
+remet aussitôt le mouvement que la victime avait avant, pour que le knockback ne compte pas deux
+fois au coup suivant. Un plugin ne peut pas envoyer un paquet de vitesse sans changer ce
+mouvement : le sparring remet donc le mouvement d'avant au tick suivant, et annule l'événement de
+vitesse de cette remise pour qu'aucun deuxième paquet ne parte. Le paquet reçu par le joueur est
+exactement celui du profil ; seul le mouvement côté serveur garde le knockback un tick de plus.
+Le test de contrôle vérifie qu'il n'y a qu'un paquet par coup et que le coup suivant part bien du
+mouvement remis.
 
 ## Journal des hits
 

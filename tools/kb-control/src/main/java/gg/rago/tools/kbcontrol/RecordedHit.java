@@ -14,7 +14,11 @@ import gg.rago.combat.model.VelocityPacket;
  */
 final class RecordedHit {
 
+    /** The attacker name the engine logs for the hits of {@code /kb sparring}. */
+    static final String SPARRING_ATTACKER = "(sparring)";
+
     final long time;
+    final String attacker;
     final String mode;
     final KnockbackProfile profile;
     final int victimEntityId;
@@ -27,7 +31,14 @@ final class RecordedHit {
 
     RecordedHit(long time, String mode, KnockbackProfile profile, int victimEntityId, boolean sprinting,
             boolean victimOnGround, MeleeHit hit, Vec3 velocity, VelocityPacket packet, boolean applied) {
+        this(time, "", mode, profile, victimEntityId, sprinting, victimOnGround, hit, velocity, packet, applied);
+    }
+
+    RecordedHit(long time, String attacker, String mode, KnockbackProfile profile, int victimEntityId,
+            boolean sprinting, boolean victimOnGround, MeleeHit hit, Vec3 velocity, VelocityPacket packet,
+            boolean applied) {
         this.time = time;
+        this.attacker = attacker;
         this.mode = mode;
         this.profile = profile;
         this.victimEntityId = victimEntityId;
@@ -61,6 +72,7 @@ final class RecordedHit {
         JsonArray packet = json.getAsJsonArray("packet");
         return new RecordedHit(
                 json.get("time").getAsLong(),
+                json.has("attacker") ? json.get("attacker").getAsString() : "",
                 json.get("mode").getAsString(),
                 profile,
                 json.get("victimEntityId").getAsInt(),
@@ -76,9 +88,14 @@ final class RecordedHit {
         return new Vec3(array.get(0).getAsDouble(), array.get(1).getAsDouble(), array.get(2).getAsDouble());
     }
 
-    /** Category used in the report, for example "override / vanilla / sprint". */
+    /** A hit of {@code /kb sparring}: no bot attacked, the engine hit the victim itself. */
+    boolean sparring() {
+        return SPARRING_ATTACKER.equals(attacker);
+    }
+
+    /** Category used in the report, for example "override / vanilla / sprint" or "sparring / vanilla / sprint". */
     String category() {
-        return mode + " / " + profile.name() + " / " + (sprinting ? "sprint" : "no sprint");
+        return (sparring() ? "sparring" : mode) + " / " + profile.name() + " / " + (sprinting ? "sprint" : "no sprint");
     }
 
     @Override

@@ -6,7 +6,7 @@ description: Moteur de combat Rago, knockback paramétrable et mesurable pour le
 commands:
   kb:
     description: Réglages du moteur de combat (staff).
-    usage: /kb <status|profiles|profile|world|mode|debug|reload>
+    usage: /kb <status|profiles|profile|world|mode|debug|sparring|reload>
     permission: rago.combat.admin
     permission-message: Commande réservée au staff.
 permissions:

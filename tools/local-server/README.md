@@ -71,6 +71,11 @@ un compte Minecraft.
 - /kb : mode, profil et réglages actuels.
 - /kb profiles : les profils et leurs valeurs.
 - /kb debug : affiche dans ton chat chaque coup et la vitesse envoyée.
+- /kb sparring : un attaquant invisible te frappe toutes les secondes, sans te faire de dégâts,
+  pour sentir le knockback seul. Regarde dans une direction : il est devant toi et te pousse en
+  arrière. /kb sparring normal pour des coups sans sprint, /kb sparring alterne pour un coup
+  sprint puis un coup normal, /kb sparring sprint 10 pour un coup toutes les 10 ticks (le plus
+  rapide d'un vrai combat). /kb sparring stop pour arrêter.
 - /kb mode observe : le serveur garde son propre knockback, le moteur ne fait qu'observer.
 - /kb mode override : le moteur applique son profil (réglage par défaut).
 
