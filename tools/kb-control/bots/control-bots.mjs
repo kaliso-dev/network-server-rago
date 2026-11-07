@@ -110,6 +110,16 @@ function scenario (index) {
   }
 }
 
+/** Like waitFor, but gives up quietly: false if the condition did not come true in time. */
+async function waitUntil (condition, timeoutMs) {
+  const deadline = Date.now() + timeoutMs
+  while (!condition()) {
+    if (Date.now() > deadline) return false
+    await sleep(20)
+  }
+  return true
+}
+
 async function waitFor (condition, timeoutMs, what) {
   const deadline = Date.now() + timeoutMs
   while (!condition()) {
@@ -124,8 +134,10 @@ function join (username) {
     const fail = (reason) => reject(new Error(`${username} could not join: ${reason?.message ?? JSON.stringify(reason)}`))
     bot.once('error', fail)
     bot.once('kicked', fail)
+    bot.velocityPackets = 0
     bot._client.on('entity_velocity', (packet) => {
       if (bot.entity == null || packet.entityId !== bot.entity.id) return
+      bot.velocityPackets++
       record({
         // Packets received before the first phase are kept for the record but not checked.
         type: recording ? 'velocity' : 'velocity-before-test',
@@ -249,6 +261,7 @@ async function hit (attacker, victim, phase, index) {
   if (wait > 0) await sleep(wait)
   const target = attacker.entities[victim.entity.id]
   if (target == null) throw new Error('the attacker does not see the victim entity')
+  const packetsBefore = victim.velocityPackets
   attacker.attack(target)
   lastAttack = Date.now()
   record({
@@ -265,6 +278,10 @@ async function hit (attacker, victim, phase, index) {
 
   await sleep(100)
   victim.clearControlStates()
+  // With the ping simulation, the knockback reaches the victim about 150 ms after the hit: the
+  // next teleport must not come before it, or the late push would move the victim away from where
+  // the next hit is set up. An attack that gave no knockback is reported by ControlCheck.
+  await waitUntil(() => victim.velocityPackets > packetsBefore, 900)
 }
 
 let abortHandler = null
