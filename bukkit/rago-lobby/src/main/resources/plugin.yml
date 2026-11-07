@@ -1,0 +1,23 @@
+name: RagoLobby
+version: ${version}
+main: gg.rago.lobby.RagoLobby
+author: Rago
+description: Le lobby principal de Rago Practice (spawn, protection, sélecteur de modes, files d'attente).
+# RagoBuildTools charge les mondes de build (avec leur générateur vide) : il passe avant, pour que
+# le lobby trouve sa map déjà chargée.
+softdepend: [RagoBuildTools]
+commands:
+  spawn:
+    description: Retour au spawn du lobby.
+    usage: /spawn
+    aliases: [hub]
+  file:
+    description: Entrer dans la file d'un mode, ou la quitter.
+    usage: /file <mode|quitter>
+  lobby:
+    description: Gérer le lobby (staff).
+    usage: /lobby <setspawn|build|modes>
+permissions:
+  rago.lobby.admin:
+    description: Placer le spawn du lobby et le modifier en mode construction.
+    default: op
