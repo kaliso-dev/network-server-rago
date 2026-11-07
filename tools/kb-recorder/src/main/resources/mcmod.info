@@ -1,0 +1,12 @@
+[
+  {
+    "modid": "ragokbrecorder",
+    "name": "Rago KB Recorder",
+    "description": "Enregistre le knockback reçu et les paquets de combat, sans rien modifier. Commande : /kbrec.",
+    "version": "${version}",
+    "mcversion": "1.8.9",
+    "url": "https://github.com/kaliso-dev/network-server-rago",
+    "authorList": ["Rago"],
+    "dependencies": []
+  }
+]

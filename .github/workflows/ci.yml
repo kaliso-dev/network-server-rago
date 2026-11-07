@@ -65,6 +65,44 @@ jobs:
           path: build/rago-serveur-de-test/
           if-no-files-found: error
 
+  # The client mod that records knockback (tools/kb-recorder). It is a separate Gradle build: the
+  # Forge 1.8.9 toolchain needs Gradle 8 and compiles with a Java 8 toolchain.
+  kb-recorder:
+    name: KB recorder mod (Forge 1.8.9)
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    defaults:
+      run:
+        working-directory: tools/kb-recorder
+    steps:
+      - uses: actions/checkout@v7
+
+      # Java 8 compiles the mod; Java 17 runs Gradle.
+      - uses: actions/setup-java@v6
+        with:
+          distribution: temurin
+          java-version: |
+            8
+            17
+
+      - uses: gradle/actions/setup-gradle@v6
+
+      - name: Build and test the mod
+        run: ./gradlew build --stacktrace -Porg.gradle.java.installations.fromEnv=JAVA_HOME_8_X64
+
+      - uses: actions/upload-artifact@v7
+        if: always()
+        with:
+          name: kb-recorder-test-reports
+          path: tools/kb-recorder/build/reports/tests/
+          if-no-files-found: ignore
+
+      - uses: actions/upload-artifact@v7
+        with:
+          name: rago-kb-recorder
+          path: tools/kb-recorder/build/libs/*.jar
+          if-no-files-found: error
+
   control-test:
     name: KB control test (PandaSpigot 1.8.8, Java ${{ matrix.server-java }})
     runs-on: ubuntu-latest
