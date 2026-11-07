@@ -17,11 +17,12 @@ Jalon en cours : **M1, « Labo KB »**, le moteur de combat et de quoi le vérif
 | `rago-combat-engine` : plugin qui applique un profil de knockback, commande `/kb`, journal des hits | fait, testé ; test de contrôle sur un vrai serveur en CI |
 | `tools/kb-control` : test de contrôle avec bots sur un vrai PandaSpigot | fait, lancé par la CI : 108 coups sur 108 exacts sur PandaSpigot 1.8.8 (build 226) |
 | `tools/local-server` : serveur de test à lancer sur son PC (Windows, Mac, Linux) pour essayer le knockback en jeu | fait, assemblé et démarré par la CI |
-| Mesure du knockback d'Hypixel (module d'enregistrement dans Rago Client) | prochaine étape |
+| Mesure du knockback d'Hypixel et profil `hypixel-approx-v1` | mesuré en Housing 1v1 ([mesures](docs/combat/mesures-hypixel.md)) ; à confirmer en Bedwars |
 | Proxy, lobby, base de données, Bedwars, Ranked, statistiques, cosmétiques | à venir, voir la feuille de route |
 
-Rien n'est encore en production. **Aucun profil « Hypixel » n'existe pour l'instant** : il sera
-construit à partir de mesures, et le document de la formule explique comment.
+Rien n'est encore en production. Le profil `hypixel-approx-v1` et le délai de 9 ticks entre deux
+coups viennent de combats enregistrés sur Hypixel, en Housing : ils restent à vérifier en Bedwars,
+et le knockback des enchantements, des cannes et des projectiles n'est pas encore mesuré.
 
 ## Structure
 

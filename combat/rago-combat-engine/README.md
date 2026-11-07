@@ -125,4 +125,5 @@ sont perdues et comptées (`/kb status`), le thread principal n'attend jamais. C
 
 - Tests unitaires : `./gradlew :rago-combat-engine:test` (réglages, format du journal).
 - Test de contrôle sur un vrai serveur PandaSpigot, avec des bots :
-  [tools/kb-control](../../tools/kb-control/README.md).
+  [tools/kb-control](../../tools/kb-control/README.md). Il vérifie le knockback envoyé, puis le
+  délai entre deux coups (10 ticks, 9 ticks, et 9 ticks encore après une réapparition).
