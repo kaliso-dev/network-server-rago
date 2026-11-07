@@ -16,13 +16,12 @@ dependencyResolutionManagement {
             name = "MavenCentralMirror"
         }
         mavenCentral()
-        // Spigot API 1.8.8 and its bungeecord-chat snapshot are only published on SpigotMC's Nexus.
+        // Spigot API 1.8.8 is only published on SpigotMC's Nexus.
         maven("https://hub.spigotmc.org/nexus/content/repositories/snapshots/") {
             name = "SpigotMC"
             content {
                 includeGroup("org.spigotmc")
                 includeGroup("org.bukkit")
-                includeGroup("net.md-5")
             }
         }
     }
