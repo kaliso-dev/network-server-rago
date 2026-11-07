@@ -1,0 +1,26 @@
+# Gradle and Kotlin
+.gradle/
+.kotlin/
+build/
+!gradle/wrapper/gradle-wrapper.jar
+
+# IDE
+.idea/
+*.iml
+.vscode/
+.settings/
+.project
+.classpath
+bin/
+out/
+
+# Node (control test bots)
+node_modules
+
+# Local test servers and their output
+run/
+control-run/
+
+# OS
+.DS_Store
+Thumbs.db
