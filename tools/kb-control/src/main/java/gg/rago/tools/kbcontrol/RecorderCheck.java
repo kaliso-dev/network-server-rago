@@ -31,7 +31,8 @@ import java.util.stream.Collectors;
  *   <li>every hit the engine logged reached the recording as exactly one velocity packet for the
  *       player, equal to the packet the server sent, and the recording has no other velocity packet
  *       for the player;</li>
- *   <li>every hit has the hurt animation (entity status 2) of the player;</li>
+ *   <li>every hit has the player's hurt animation (entity status 2), recorded just before its
+ *       velocity packet;</li>
  *   <li>in the last tick line before each hit, the attacker's sprint flag is the one the server used;</li>
  *   <li>every attack the bot sent gave one logged hit.</li>
  * </ul>
@@ -43,6 +44,12 @@ public final class RecorderCheck {
     static final int ENTITY_STATUS = 0x1A;
     /** Entity status of a hurt living entity (the red flash and the hurt sound). */
     static final int STATUS_HURT = 2;
+    /**
+     * The server sends the hurt animation while it applies the damage, before the knockback, so
+     * before it logs the hit. It is looked for in the client's own times: recorded at most this long
+     * before the hit's velocity packet. Hits are more than a second apart.
+     */
+    static final long HURT_BEFORE_VELOCITY_MILLIS = 500L;
     /** Line format of the recordings this check reads (Recorder.FORMAT in the mod). */
     static final int FORMAT = 1;
     /**
@@ -159,7 +166,7 @@ public final class RecorderCheck {
         hurts.sort(Comparator.comparingLong(packet -> packet.ms));
 
         Map<RecordedHit, Packet> velocityOf = pair(sortedHits, velocities, player, result, "velocity packet");
-        Map<RecordedHit, Packet> hurtOf = pair(sortedHits, hurts, player, null, null);
+        boolean[] hurtUsed = new boolean[hurts.size()];
         for (RecordedHit hit : sortedHits) {
             if (hit.victimEntityId != player) {
                 result.fail(hit, "the engine logged a hit on entity " + hit.victimEntityId + ", not on the player "
@@ -172,8 +179,9 @@ public final class RecorderCheck {
                 problem = "no velocity packet for the player in the recording";
             } else if (!velocity.velocity().equals(hit.packet)) {
                 problem = "the recording has " + velocity.velocity() + " but the server sent " + hit.packet;
-            } else if (!hurtOf.containsKey(hit)) {
-                problem = "no hurt animation (entity status 2) for the player in the recording";
+            } else if (!takeHurt(hurts, hurtUsed, velocity, result)) {
+                problem = "no hurt animation (entity status 2) for the player in the "
+                        + HURT_BEFORE_VELOCITY_MILLIS + " ms before its velocity packet";
             } else {
                 problem = checkAttackerSprint(recording, hit, attacker);
             }
@@ -271,9 +279,28 @@ public final class RecorderCheck {
     }
 
     /**
+     * Takes the latest unused hurt animation recorded in the {@link #HURT_BEFORE_VELOCITY_MILLIS}
+     * before the velocity packet, or returns false.
+     */
+    private static boolean takeHurt(List<Packet> sortedHurts, boolean[] used, Packet velocity, Result result) {
+        int found = -1;
+        for (int i = 0; i < sortedHurts.size() && sortedHurts.get(i).ms <= velocity.ms; i++) {
+            if (!used[i] && sortedHurts.get(i).ms >= velocity.ms - HURT_BEFORE_VELOCITY_MILLIS) {
+                found = i;
+            }
+        }
+        if (found < 0) {
+            return false;
+        }
+        used[found] = true;
+        result.maxHurtLeadMillis = Math.max(result.maxHurtLeadMillis, velocity.ms - sortedHurts.get(found).ms);
+        return true;
+    }
+
+    /**
      * Gives each packet to the latest hit logged before it, within the windows of
-     * {@link ControlCheck}, as ControlCheck does for the bots. With a result, a packet that matches
-     * no hit, or a second packet for the same hit, is a problem.
+     * {@link ControlCheck}, as ControlCheck does for the bots. A packet that matches no hit, or a
+     * second packet for the same hit, is a problem.
      */
     private static Map<RecordedHit, Packet> pair(List<RecordedHit> sortedHits, List<Packet> packets, int player,
             Result result, String what) {
@@ -289,10 +316,8 @@ public final class RecorderCheck {
                 }
             }
             if (owner == null || pairs.containsKey(owner)) {
-                if (result != null) {
-                    result.problems.add(what + " " + packet.velocity() + " recorded at " + packet.ms
-                            + " matches no logged hit");
-                }
+                result.problems.add(what + " " + packet.velocity() + " recorded at " + packet.ms
+                        + " matches no logged hit");
             } else {
                 pairs.put(owner, packet);
             }
@@ -507,6 +532,8 @@ public final class RecorderCheck {
         int ticks;
         double ticksPerSecond;
         int sentPackets;
+        /** Longest time between a hit's hurt animation and its velocity packet, in the recording. */
+        long maxHurtLeadMillis;
         String player;
         int playerEntity;
 
@@ -563,7 +590,8 @@ public final class RecorderCheck {
             if (ticksPerSecond > 0) {
                 md.append(String.format(Locale.ROOT, " (%.1f per second)", ticksPerSecond));
             }
-            md.append(" and ").append(sentPackets).append(" packets it sent.\n\n");
+            md.append(" and ").append(sentPackets).append(" packets it sent. The hurt animation came at most ")
+                    .append(maxHurtLeadMillis).append(" ms before the velocity packet.\n\n");
             md.append("| Mode / profile / attacker | Passed | Failed |\n");
             md.append("| --- | --- | --- |\n");
             for (Map.Entry<String, int[]> entry : categories.entrySet()) {

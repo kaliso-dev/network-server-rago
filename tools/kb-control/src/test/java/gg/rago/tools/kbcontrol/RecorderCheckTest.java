@@ -57,6 +57,10 @@ class RecorderCheckTest {
         boolean closed = true;
         int dropped;
         boolean hurt = true;
+        /** How long before the logged hit time the server sent the hurt animation. */
+        long hurtLead;
+        /** Hit without a hurt animation, or -1. */
+        int hitWithoutHurt = -1;
         Integer skippedTick;
         Boolean attackerSprintOverride;
         final List<String> extra = new ArrayList<>();
@@ -70,13 +74,14 @@ class RecorderCheckTest {
             int written = 0;
             for (long ms = START + 50L; ms <= START + 5_000L; ms += 50L) {
                 tick++;
-                for (RecordedHit hit : hits) {
+                for (int i = 0; i < hits.size(); i++) {
+                    RecordedHit hit = hits.get(i);
                     if (hit.time > ms - 50L && hit.time <= ms) {
                         long at = hit.time + 3L;
-                        out.add(packetLine(at, tick, true, RecorderCheck.ENTITY_VELOCITY, velocity(PLAYER, hit.packet)));
-                        if (hurt) {
-                            out.add(packetLine(at, tick, true, RecorderCheck.ENTITY_STATUS, status(PLAYER, 2)));
+                        if (hurt && i != hitWithoutHurt) {
+                            out.add(packetLine(at - hurtLead, tick, true, RecorderCheck.ENTITY_STATUS, status(PLAYER, 2)));
                         }
+                        out.add(packetLine(at, tick, true, RecorderCheck.ENTITY_VELOCITY, velocity(PLAYER, hit.packet)));
                     }
                 }
                 if (skippedTick != null && skippedTick == tick) {
@@ -228,6 +233,32 @@ class RecorderCheckTest {
 
         assertFalse(result.passed());
         assertTrue(mentions(result, "no hurt animation"), result::toMarkdown);
+    }
+
+    @Test
+    void theHurtAnimationMayComeWellBeforeTheLoggedHit() {
+        // The server sends it while it applies the damage, before the damage event handlers and the
+        // knockback: when those are slow, the hit log and the velocity packet come later, not it.
+        RecordingBuilder builder = new RecordingBuilder();
+        builder.hurtLead = 300L;
+
+        RecorderCheck.Result result = check(builder);
+
+        assertTrue(result.passed(), result::toMarkdown);
+        assertEquals(300L, result.maxHurtLeadMillis);
+    }
+
+    @Test
+    void theHurtAnimationOfAnEarlierHitDoesNotCount() {
+        RecordingBuilder builder = new RecordingBuilder();
+        builder.hitWithoutHurt = 1;
+
+        RecorderCheck.Result result = check(builder);
+
+        assertFalse(result.passed());
+        assertTrue(mentions(result, "sprint at " + (START + 2_000L)), result::toMarkdown);
+        assertTrue(mentions(result, "no hurt animation"), result::toMarkdown);
+        assertEquals(1, result.problems.size(), result::toMarkdown);
     }
 
     @Test

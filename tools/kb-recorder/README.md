@@ -91,10 +91,10 @@ journal des coups) :
 3. le client est arrêté (signal SIGTERM), ce qui ferme le fichier comme quand on quitte le jeu ;
 4. `RecorderCheck` (`tools/kb-control`) compare l'enregistrement au journal du moteur. Pour chaque
    coup, il faut exactement un paquet de vitesse pour le joueur, identique à celui que le serveur
-   a envoyé, l'animation de coup reçu (statut d'entité 2), et dans le dernier tick avant le coup
-   l'attaquant avec le sprint que le serveur a utilisé. Le fichier doit aussi commencer par sa
-   ligne de session, finir par sa ligne de fin sans ligne perdue ni erreur, et avoir un tick
-   enregistré par tick client, sans trou.
+   a envoyé, l'animation de coup reçu (statut d'entité 2) juste avant ce paquet, et dans le dernier
+   tick avant le coup l'attaquant avec le sprint que le serveur a utilisé. Le fichier doit aussi
+   commencer par sa ligne de session, finir par sa ligne de fin sans ligne perdue ni erreur, et
+   avoir un tick enregistré par tick client, sans trou.
 
 En CI, le job « KB recorder end-to-end test » le lance sous un écran virtuel (Xvfb) ; le rapport
 apparaît dans le résumé du job et l'enregistrement dans l'artefact `kb-recorder-e2e-run`. Sur
