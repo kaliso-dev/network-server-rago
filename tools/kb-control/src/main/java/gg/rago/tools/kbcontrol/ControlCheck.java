@@ -47,6 +47,12 @@ public final class ControlCheck {
     static final long MATCH_AFTER_MILLIS = 2000L;
     /** The server logs a hit within a tick or two of the attack; the bots attack once a second. */
     static final long ATTACK_MATCH_MILLIS = 900L;
+    /**
+     * A knockback the engine held back (ping simulation) must reach the client no earlier than the
+     * wait, give or take the clock's resolution, and not much later.
+     */
+    static final long DELAY_EARLY_MILLIS = 5L;
+    static final long DELAY_LATE_MILLIS = 500L;
     /** At most this many attacks without a hit are listed in the report. */
     static final int LISTED_ATTACKS = 10;
     /** Allowed difference between the server's own knockback and exact vanilla, in packet units. */
@@ -78,6 +84,7 @@ public final class ControlCheck {
         Path report = null;
         KnockbackProfile server = PANDASPIGOT_DEFAULT;
         int minHits = 1;
+        int minDelayedHits = 0;
         long until = Long.MAX_VALUE;
         for (int i = 0; i < args.length; i++) {
             String value = i + 1 < args.length ? args[i + 1] : null;
@@ -96,6 +103,10 @@ public final class ControlCheck {
                     break;
                 case "--min-hits":
                     minHits = Integer.parseInt(require(value, args[i]));
+                    i++;
+                    break;
+                case "--min-delayed-hits":
+                    minDelayedHits = Integer.parseInt(require(value, args[i]));
                     i++;
                     break;
                 case "--until":
@@ -121,7 +132,7 @@ public final class ControlCheck {
         List<RecordedHit> controlHits = readHits(hits);
         controlHits.removeIf(hit -> hit.time > last);
         Result result = new ControlCheck(server).check(controlHits, readReceived(received), readAttacks(received),
-                minHits);
+                minHits, minDelayedHits);
         String markdown = result.toMarkdown();
         System.out.println(markdown);
         if (report != null) {
@@ -133,7 +144,8 @@ public final class ControlCheck {
     private static void usage(String problem) {
         System.err.println(problem);
         System.err.println("usage: ControlCheck --hits <file or directory> --received <file>"
-                + " [--server-knockback pandaspigot|vanilla] [--min-hits N] [--until <epoch ms>] [--report <file>]");
+                + " [--server-knockback pandaspigot|vanilla] [--min-hits N] [--min-delayed-hits N]"
+                + " [--until <epoch ms>] [--report <file>]");
         System.exit(2);
     }
 
@@ -224,14 +236,17 @@ public final class ControlCheck {
      *
      * @param attacks the attacks the bots sent, or null if unknown: every attack must give exactly
      *                one logged hit
+     * @param minDelayedHits how many hits must have had their knockback held back by the ping
+     *                       simulation, and reached the client that much later
      */
-    Result check(List<RecordedHit> hits, List<ReceivedVelocity> received, List<BotAttack> attacks, int minHits) {
+    Result check(List<RecordedHit> hits, List<ReceivedVelocity> received, List<BotAttack> attacks, int minHits,
+            int minDelayedHits) {
         List<RecordedHit> sortedHits = new ArrayList<>(hits);
         sortedHits.sort(Comparator.comparingLong(hit -> hit.time));
         List<ReceivedVelocity> sortedPackets = new ArrayList<>(received);
         sortedPackets.sort(Comparator.comparingLong(packet -> packet.time));
 
-        Result result = new Result(minHits, serverKnockback);
+        Result result = new Result(minHits, minDelayedHits, serverKnockback);
         Map<RecordedHit, ReceivedVelocity> pairs = new IdentityHashMap<>();
         List<ReceivedVelocity> unexpected = new ArrayList<>();
         for (ReceivedVelocity packet : sortedPackets) {
@@ -254,7 +269,7 @@ public final class ControlCheck {
             ReceivedVelocity packet = pairs.get(hit);
             if (packet == null) {
                 result.fail(hit, "no velocity packet reached the victim");
-            } else {
+            } else if (arrivedOnTime(hit, packet, result)) {
                 checkHit(hit, packet.packet, result);
             }
         }
@@ -277,8 +292,30 @@ public final class ControlCheck {
         return result;
     }
 
+    Result check(List<RecordedHit> hits, List<ReceivedVelocity> received, List<BotAttack> attacks, int minHits) {
+        return check(hits, received, attacks, minHits, 0);
+    }
+
     Result check(List<RecordedHit> hits, List<ReceivedVelocity> received, int minHits) {
-        return check(hits, received, null, minHits);
+        return check(hits, received, null, minHits, 0);
+    }
+
+    /**
+     * A knockback the ping simulation held back must arrive that much after the hit was logged:
+     * the engine schedules the packet just before it logs the hit, on the same clock as the bots.
+     */
+    private static boolean arrivedOnTime(RecordedHit hit, ReceivedVelocity packet, Result result) {
+        if (hit.knockbackDelayMs == 0) {
+            return true;
+        }
+        long late = packet.time - hit.time - hit.knockbackDelayMs;
+        if (late < -DELAY_EARLY_MILLIS || late > DELAY_LATE_MILLIS) {
+            result.fail(hit, "the engine held the knockback back " + hit.knockbackDelayMs
+                    + " ms but the client received it " + (packet.time - hit.time) + " ms after the hit");
+            return false;
+        }
+        result.delayed(late);
+        return true;
     }
 
     /** The attacks followed by no logged hit within {@link #ATTACK_MATCH_MILLIS}; each hit answers one attack. */
@@ -340,6 +377,7 @@ public final class ControlCheck {
     /** Outcome of a control run. */
     static final class Result {
         private final int minHits;
+        private final int minDelayedHits;
         private final KnockbackProfile serverKnockback;
         /** Per category: passed, failed, largest difference with exact vanilla (packet units). */
         private final Map<String, int[]> categories = new TreeMap<>();
@@ -352,10 +390,21 @@ public final class ControlCheck {
         private int overriddenNoSprint;
         private int enchanted;
         private int airborne;
+        private int delayed;
+        private long minLate = Long.MAX_VALUE;
+        private long maxLate = Long.MIN_VALUE;
 
-        Result(int minHits, KnockbackProfile serverKnockback) {
+        Result(int minHits, int minDelayedHits, KnockbackProfile serverKnockback) {
             this.minHits = minHits;
+            this.minDelayedHits = minDelayedHits;
             this.serverKnockback = serverKnockback;
+        }
+
+        /** A held back knockback that arrived {@code late} ms after its wait ended. */
+        void delayed(long late) {
+            delayed++;
+            minLate = Math.min(minLate, late);
+            maxLate = Math.max(maxLate, late);
         }
 
         void pass(RecordedHit hit, int vanillaDifference) {
@@ -422,6 +471,10 @@ public final class ControlCheck {
             if (airborne == 0) {
                 problems.add("no hit on a victim in the air");
             }
+            if (delayed < minDelayedHits) {
+                problems.add("only " + delayed + " hits had their knockback held back by the ping simulation, at least "
+                        + minDelayedHits + " expected");
+            }
             return problems;
         }
 
@@ -447,6 +500,11 @@ public final class ControlCheck {
                     .append(VANILLA_TOLERANCE).append(" unit (1/8000 block per tick).\n\n");
             md.append("Coverage: ").append(enchanted).append(" hits with Knockback enchantment, ")
                     .append(airborne).append(" hits on a victim in the air.\n");
+            if (delayed > 0) {
+                md.append("\nPing simulation: ").append(delayed).append(" hits had their knockback held back; each"
+                        + " reached the client between ").append(minLate).append(" and ").append(maxLate)
+                        .append(" ms after the end of its wait.\n");
+            }
             List<String> problems = new ArrayList<>(failures);
             problems.addAll(coverageProblems());
             if (!problems.isEmpty()) {

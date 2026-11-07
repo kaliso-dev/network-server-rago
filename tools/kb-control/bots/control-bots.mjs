@@ -1,8 +1,9 @@
 // Control-test bots for RagoCombatEngine (see ../README.md).
 //
-// RagoAttacker hits RagoVictim on a local 1.8.8 test server in three phases: the server's own
-// knockback observed by the engine, the engine's override with the vanilla profile, and the
-// override with the control-alt test profile. Each phase mixes sprint and non-sprint hits, bare
+// RagoAttacker hits RagoVictim on a local 1.8.8 test server in four phases: the server's own
+// knockback observed by the engine, the engine's override with the vanilla profile, the override
+// with the control-alt test profile, and the vanilla profile with the ping simulation at 150 ms,
+// which holds each knockback packet back (both bots have about 0 ms of ping here). Each phase mixes sprint and non-sprint hits, bare
 // hand and Knockback I/II sticks, and a victim standing, walking or in the middle of a jump.
 //
 // Both bots write to a JSON-lines file every velocity packet the server sends them for their own
@@ -41,7 +42,8 @@ const TEST_TIMEOUT_MS = 15 * 60 * 1000
 const PHASES = [
   { name: 'observe-vanilla', commands: ['/kb mode observe', '/kb profile vanilla'] },
   { name: 'override-vanilla', commands: ['/kb mode override', '/kb profile vanilla'] },
-  { name: 'override-control-alt', commands: ['/kb mode override', '/kb profile control-alt'] }
+  { name: 'override-control-alt', commands: ['/kb mode override', '/kb profile control-alt'] },
+  { name: 'override-ping-simulation', commands: ['/kb mode override', '/kb profile vanilla', '/kb pingsim 150'] }
 ]
 
 // Hotbar slots: 0 is left empty (bare hand), 1 and 2 hold Knockback I and II sticks.
@@ -299,6 +301,8 @@ async function main () {
         await hit(attacker, victim, phase, index)
       }
     }
+    // The hit delay bots that run next expect knockback without the ping simulation.
+    await command(attacker, '/kb pingsim 0', /^OK : /)
     // Leave time for the last velocity packet to arrive.
     await sleep(1000)
     recording = false

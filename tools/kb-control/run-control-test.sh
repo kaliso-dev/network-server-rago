@@ -3,7 +3,8 @@
 #
 # 1. downloads PandaSpigot (cached in control-run/cache) and sets up a flat, offline-mode test
 #    server bound to 127.0.0.1 with the engine plugin and its hit log turned on;
-# 2. lets two bots (bots/control-bots.mjs) hit each other in observe and override modes, then
+# 2. lets two bots (bots/control-bots.mjs) hit each other in observe and override modes, the last
+#    phase with the ping simulation (knockback held back), then
 #    checks the hit delay setting with bots/hit-delay-bots.mjs (bursts of attacks);
 # 3. checks every velocity packet the bots received with ControlCheck and rago-combat-model.
 #
@@ -38,7 +39,7 @@ PANDASPIGOT_URL=${PANDASPIGOT_URL:-https://downloads.hpfxd.com/v2/projects/panda
 PANDASPIGOT_SHA256=${PANDASPIGOT_SHA256-ac73146b275230cbd0612ef0f3d6b40333abd3182beae457cad5321efff6359b}
 PORT=${KB_PORT:-25565}
 HITS_PER_PHASE=${KB_HITS_PER_PHASE:-36}
-PHASES=3
+PHASES=4
 ATTACKER=RagoAttacker
 
 log() { printf '[control-test] %s\n' "$*"; }
@@ -227,7 +228,8 @@ for line in open(sys.argv[1], encoding="utf-8"):
 [[ -n "$control_done" ]] || fail "received.jsonl has no done line"
 control_status=0
 "$CHECKER" --hits "$SERVER_DIR/plugins/RagoCombatEngine/hits" --received "$RUN_DIR/received.jsonl" \
-  --server-knockback pandaspigot --min-hits $((PHASES * HITS_PER_PHASE)) --until "$control_done" \
+  --server-knockback pandaspigot --min-hits $((PHASES * HITS_PER_PHASE)) --min-delayed-hits "$HITS_PER_PHASE" \
+  --until "$control_done" \
   --report "$RUN_DIR/report.md" || control_status=$?
 
 log "checking the hit delay"

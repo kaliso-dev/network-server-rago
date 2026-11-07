@@ -24,9 +24,19 @@ final class RecordedHit {
     final Vec3 velocity;
     final VelocityPacket packet;
     final boolean applied;
+    /** The ping simulation setting, 0 when off or in a log written before it existed. */
+    final int pingSimulationMs;
+    /** How long the engine held the knockback packet back, in ms (ping simulation), else 0. */
+    final int knockbackDelayMs;
 
     RecordedHit(long time, String mode, KnockbackProfile profile, int victimEntityId, boolean sprinting,
             boolean victimOnGround, MeleeHit hit, Vec3 velocity, VelocityPacket packet, boolean applied) {
+        this(time, mode, profile, victimEntityId, sprinting, victimOnGround, hit, velocity, packet, applied, 0, 0);
+    }
+
+    RecordedHit(long time, String mode, KnockbackProfile profile, int victimEntityId, boolean sprinting,
+            boolean victimOnGround, MeleeHit hit, Vec3 velocity, VelocityPacket packet, boolean applied,
+            int pingSimulationMs, int knockbackDelayMs) {
         this.time = time;
         this.mode = mode;
         this.profile = profile;
@@ -37,6 +47,8 @@ final class RecordedHit {
         this.velocity = velocity;
         this.packet = packet;
         this.applied = applied;
+        this.pingSimulationMs = pingSimulationMs;
+        this.knockbackDelayMs = knockbackDelayMs;
     }
 
     static RecordedHit fromJson(JsonObject json) {
@@ -69,7 +81,13 @@ final class RecordedHit {
                 hit,
                 vec(json.getAsJsonArray("velocity")),
                 new VelocityPacket(packet.get(0).getAsInt(), packet.get(1).getAsInt(), packet.get(2).getAsInt()),
-                json.get("applied").getAsBoolean());
+                json.get("applied").getAsBoolean(),
+                optionalInt(json, "pingSimulationMs"),
+                optionalInt(json, "knockbackDelayMs"));
+    }
+
+    private static int optionalInt(JsonObject json, String name) {
+        return json.has(name) ? json.get(name).getAsInt() : 0;
     }
 
     private static Vec3 vec(JsonArray array) {

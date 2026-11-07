@@ -76,6 +76,40 @@ class ControlCheckTest {
         assertTrue(result.toMarkdown().startsWith("## RagoCombatEngine control test: PASSED"));
     }
 
+    /** A ping simulation hit: the engine held the knockback back {@code delay} ms, the client got it after {@code after}. */
+    private void delayed(long time, int delay, long after) {
+        MeleeHit hit = new MeleeHit(0.0D, 0.0D, 45.0F, 1, 1.5D, 1.0D, STANDING);
+        Vec3 velocity = model.compute(KnockbackProfile.vanilla(), hit);
+        hits.add(new RecordedHit(time, "override", KnockbackProfile.vanilla(), VICTIM, true, true, hit, velocity,
+                VelocityPacket.encode(velocity), true, 150, delay));
+        received.add(new ReceivedVelocity(time + after, VICTIM, VelocityPacket.encode(velocity)));
+    }
+
+    @Test
+    void aHeldBackKnockbackMustArriveThatMuchLater() {
+        delayed(9_000L, 150, 152L);
+        delayed(10_000L, 126, 127L);
+        ControlCheck.Result onTime = pandaSpigot.check(hits, received, null, hits.size(), 2);
+        assertTrue(onTime.passed(), onTime::toMarkdown);
+        assertTrue(onTime.toMarkdown().contains("2 hits had their knockback held back"), onTime::toMarkdown);
+
+        delayed(11_000L, 150, 20L);
+        ControlCheck.Result early = pandaSpigot.check(hits, received, null, hits.size(), 2);
+        assertFalse(early.passed());
+        assertTrue(early.failures().get(0).contains("received it 20 ms after the hit"), early::toMarkdown);
+    }
+
+    @Test
+    void theControlTestNeedsHeldBackKnockbacksWhenAsked() {
+        delayed(9_000L, 150, 151L);
+
+        assertTrue(pandaSpigot.check(hits, received, null, hits.size(), 1).passed());
+        ControlCheck.Result result = pandaSpigot.check(hits, received, null, hits.size(), 2);
+        assertFalse(result.passed());
+        assertTrue(result.coverageProblems().get(0).contains("only 1 hits had their knockback held back"),
+                result::toMarkdown);
+    }
+
     @Test
     void anOverridePacketMustReachTheClientUnchanged() {
         ReceivedVelocity sent = received.get(5);

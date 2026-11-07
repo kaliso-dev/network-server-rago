@@ -12,11 +12,13 @@ mesuré plus tard soit vraiment celui que les joueurs ressentent.
    la machine ; en CI, une fois sous Java 8 et une fois sous Java 21) avec RagoCombatEngine et son
    journal des hits.
 2. Deux bots (`bots/control-bots.mjs`, avec [mineflayer](https://github.com/PrismarineJS/mineflayer)) :
-   `RagoAttacker` frappe `RagoVictim` en trois phases de 36 coups :
+   `RagoAttacker` frappe `RagoVictim` en quatre phases de 36 coups :
    - `observe-vanilla` : le moteur observe, le serveur garde son propre knockback ;
    - `override-vanilla` : le moteur applique le profil vanilla ;
    - `override-control-alt` : le moteur applique `control-alt`, un profil de test volontairement
-     différent du vanilla (valeurs arbitraires, ce n'est pas un réglage proposé).
+     différent du vanilla (valeurs arbitraires, ce n'est pas un réglage proposé) ;
+   - `override-ping-simulation` : le profil vanilla avec `/kb pingsim 150`. Les deux bots ont
+     environ 0 ms de ping, donc le moteur retient chaque paquet de kb environ 150 ms.
 
    Chaque phase mélange coups avec et sans sprint, à main nue et avec des bâtons Knockback I et
    II, sur une victime immobile, qui marche ou en plein saut, à des distances et angles variés.
@@ -33,7 +35,12 @@ mesuré plus tard soit vraiment celui que les joueurs ressentent.
    - chaque attaque des bots a donné un coup journalisé (le rapport liste celles qui n'en ont
      donné aucun), et chaque paquet reçu appartient à un coup (un paquet en double ferait échouer
      le test) ;
-   - la couverture : les trois phases, sprint et sans sprint, enchantement, victime en l'air.
+   - **ping simulé** : un paquet de kb retenu par le moteur arrive au client au moins aussi tard
+     que le retard journalisé (`knockbackDelayMs`), et moins de 500 ms après. Il arrive une seule
+     fois : un paquet envoyé tout de suite par le serveur en plus se verrait comme un paquet en
+     double ;
+   - la couverture : les quatre phases, sprint et sans sprint, enchantement, victime en l'air, et
+     au moins 36 coups au kb retenu (`--min-delayed-hits`).
 
 4. Sur le même serveur, deux autres bots (`bots/hit-delay-bots.mjs`) testent le réglage
    `hit-delay-ticks` du moteur. Pendant une « rafale » de 3 secondes, `RagoAttacker` frappe deux
