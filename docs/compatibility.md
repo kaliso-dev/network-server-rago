@@ -21,6 +21,20 @@ d'en ajouter une : vérifier qu'elle est maintenue, compatible Java 8 si elle to
 | Gradle | 9.8.2, par le wrapper (`./gradlew`) | somme SHA-256 de la distribution vérifiée par le wrapper ; le jar du wrapper est vérifié en CI (`wrapper-validation`) |
 | Node.js | 20 ou plus (la CI utilise 22) | seulement pour les bots du test de contrôle |
 
+## Mod client `tools/kb-recorder`
+
+Un build Gradle à part, parce que l'outillage Forge 1.8.9 ne tourne pas sous Gradle 9.
+
+| Élément | Version | Remarques |
+| --- | --- | --- |
+| Minecraft Forge | 1.8.9-11.15.1.2318 | la dernière version de Forge pour 1.8.9, celle des clients PvP |
+| Loom d'Essential (`gg.essential.loom`) | 0.10.0.5, figée | fork d'Architectury Loom maintenu par Essential, le seul outil de build actuel qui sait encore faire un mod Forge 1.8.9 ; servi par repo.essential.gg |
+| `dev.architectury.architectury-pack200` | 0.1.3 | Pack200, retiré du JDK 14, dont l'installateur de Forge 1.8.9 a besoin |
+| Mappings MCP | `mcp_stable` 22-1.8.9 | les noms de Forge 1.8.9 |
+| Gradle | 8.8, par le wrapper de `tools/kb-recorder` | somme SHA-256 de la distribution vérifiée par le wrapper ; Loom 0.10 ne marche pas sous Gradle 9 |
+| `org.gradle.toolchains.foojay-resolver-convention` | 0.8.0 | télécharge un JDK 8 pour compiler s'il n'y en a pas sur la machine |
+| JDK | 17 pour lancer Gradle, 8 pour compiler | le mod tourne dans le client 1.8.9, sous Java 8 |
+
 ## Dépendances
 
 | Dépendance | Version | Utilisée par | Pourquoi, et ce qui a été vérifié |
