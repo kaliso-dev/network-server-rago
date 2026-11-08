@@ -37,14 +37,15 @@ class LobbySettingsTest {
         assertEquals("lobby", settings.world());
         assertEquals(0, settings.voidHeight());
         assertEquals(1000, settings.defaultRating());
-        assertEquals(6, settings.modes().size());
+        assertEquals(10, settings.modes().size());
 
         GameMode ranked = settings.catalog().get("ranked-1v1");
         assertTrue(ranked.ranked());
         assertEquals("1v1", ranked.format());
         assertTrue(settings.catalog().get("ranked-2v2").ranked());
         assertEquals("2v2", settings.catalog().get("ranked-2v2").format());
-        assertEquals("solo", settings.catalog().get("pont").format());
+        assertEquals("solo", settings.catalog().get("clutch").format());
+        assertEquals("2v2", settings.catalog().get("block-fight-2v2").format());
         assertFalse(settings.catalog().get("sumo").ranked());
         assertEquals(Material.BED, settings.display("ranked-1v1").icon());
         assertEquals(Material.FIREBALL, settings.display("fireball").icon());

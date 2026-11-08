@@ -62,24 +62,6 @@ modes:
       - "Fais tomber l'autre de la"
       - "plateforme : idéal pour"
       - "travailler le knockback."
-  pont:
-    nom: "&bEntraînement pont"
-    icone: SANDSTONE
-    equipes: 1
-    joueurs-par-equipe: 1
-    classe: false
-    description:
-      - "Seul : traverse le vide"
-      - "en posant tes blocs."
-  clutch:
-    nom: "&bEntraînement clutch"
-    icone: LADDER
-    equipes: 1
-    joueurs-par-equipe: 1
-    classe: false
-    description:
-      - "Seul : tu prends un coup,"
-      - "pose un bloc pour te sauver."
   fireball:
     nom: "&cFireball fight"
     icone: FIREBALL
@@ -89,3 +71,56 @@ modes:
     description:
       - "Boules de feu et TNT :"
       - "le dernier debout gagne."
+  clutch:
+    nom: "&bBlock clutch"
+    icone: LADDER
+    equipes: 1
+    joueurs-par-equipe: 1
+    classe: false
+    description:
+      - "Seul : tu prends un coup,"
+      - "pose un bloc pour te sauver."
+  block-fight-1v1:
+    nom: "&bBlock placement 1v1"
+    icone: SANDSTONE
+    equipes: 2
+    joueurs-par-equipe: 1
+    classe: false
+    description:
+      - "Pose tes blocs plus vite"
+      - "que l'autre pour gagner."
+  block-fight-2v2:
+    nom: "&bBlock placement 2v2"
+    icone: SANDSTONE
+    equipes: 2
+    joueurs-par-equipe: 2
+    classe: false
+    description:
+      - "Block placement à deux"
+      - "contre deux."
+  top-fight-1v1:
+    nom: "&eTop fight 1v1"
+    icone: GOLD_SWORD
+    equipes: 2
+    joueurs-par-equipe: 1
+    classe: false
+    description:
+      - "Un duel Top fight."
+  top-fight-2v2:
+    nom: "&eTop fight 2v2"
+    icone: GOLD_SWORD
+    equipes: 2
+    joueurs-par-equipe: 2
+    classe: false
+    description:
+      - "Top fight à deux contre deux."
+  ffa:
+    nom: "&cFFA Ranked Bedwars"
+    icone: STONE_SWORD
+    equipes: 1
+    joueurs-par-equipe: 1
+    classe: false
+    description:
+      - "Tous contre tous sur une"
+      - "plateforme d'Invasion,"
+      - "avec le kit Ranked Bedwars."
