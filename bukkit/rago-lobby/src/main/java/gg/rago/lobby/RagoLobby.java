@@ -95,7 +95,7 @@ public final class RagoLobby extends JavaPlugin implements LobbyService {
         stats = new StatsService(this, settings.defaultRating(), settings.levels(), writer, this::write, this::xpChanged);
         ranks = new NetworkRanks(stats.book());
         menu = new ModeMenu(settings, queues, stats.book());
-        scoreboard = new LobbyScoreboard(settings, queues, stats.book());
+        scoreboard = new LobbyScoreboard(settings, queues, stats.book(), state);
         duels = new DuelRequests(settings, state, queues);
         menu.setDuels(duels);
         stats.load();

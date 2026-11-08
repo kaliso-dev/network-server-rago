@@ -18,8 +18,9 @@ import org.bukkit.inventory.meta.ItemMeta;
  * per category (a zone of the lobby); clicking one opens that category's modes, with a back
  * button in the bottom row. Without categories, every mode is shown at once. Modes are seven per
  * row, framed by an empty row above and below. Clicking a playable mode joins its queue; clicking
- * the mode one waits for leaves it. Hovering a mode shows the best win streak ever reached in it,
- * by whom, and the player's own. Open menus are refreshed every second, for the queue counts.
+ * the mode one waits for leaves it. Hovering a mode shows the player's win streak of the day in
+ * it, and the three teams with the longest streaks of the day (every name of a team of two or
+ * more), as on Minemen. Open menus are refreshed every second, for the queue counts.
  */
 final class ModeMenu {
 
@@ -283,19 +284,25 @@ final class ModeMenu {
         return item;
     }
 
-    /** The best win streak ever reached in the mode, by whom, and the viewer's own best. */
+    /** Lines of the top of the day under "Daily Streak". */
+    static final int TOP_STREAKS = 3;
+
+    /**
+     * As on Minemen: "Daily Streak: 2", the viewer's wins in a row in this mode (0 if they have not
+     * won today), then the three longest streaks of the day, "1. Alice, Bob - 24".
+     */
     List<String> streakLines(GameMode mode, HumanEntity viewer) {
-        StatsBook.Ranking streaks = book.ranking(BoardStat.STREAK, StatsPeriod.ALL, mode.id(), System.currentTimeMillis());
+        long now = System.currentTimeMillis();
+        PlayerStats stats = viewer == null ? null : book.get(viewer.getUniqueId());
+        ModeStats mine = stats == null ? null : stats.mode(mode.id());
+        int own = mine != null && StatsPeriod.dayKey(now).equals(mine.day) ? mine.streak : 0;
         List<String> lines = new ArrayList<>();
-        if (streaks.rows().isEmpty()) {
-            lines.add(ChatColor.GRAY + "Top win streak: " + ChatColor.DARK_GRAY + "nobody yet");
-        } else {
-            StatsBook.Row top = streaks.rows().get(0);
-            lines.add(ChatColor.GRAY + "Top win streak: " + ChatColor.GOLD + top.value() + ChatColor.GRAY + " ("
-                    + ChatColor.WHITE + top.name() + ChatColor.GRAY + ")");
+        lines.add(ChatColor.YELLOW + "Daily Streak: " + own);
+        List<StatsBook.TeamRow> top = book.topStreaks(mode.id(), StatsPeriod.DAY, now);
+        for (int i = 0; i < top.size() && i < TOP_STREAKS; i++) {
+            lines.add(ChatColor.YELLOW + " " + (i + 1) + ". " + ChatColor.WHITE + top.get(i).names() + ChatColor.YELLOW
+                    + " - " + top.get(i).value());
         }
-        StatsBook.Row own = viewer == null ? null : streaks.rowOf(viewer.getUniqueId());
-        lines.add(ChatColor.GRAY + "Your best win streak: " + ChatColor.YELLOW + (own == null ? 0 : own.value()));
         return lines;
     }
 }

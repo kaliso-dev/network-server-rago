@@ -15,12 +15,17 @@ dans les files d'attente des modes de jeu.
 - **Le sélecteur.** Un menu avec un objet par mode, sept par ligne : son format (1v1, 2v2, solo),
   sa description, le nombre de joueurs en file. Un clic entre dans la file, un deuxième en sort.
   Un mode qu'aucun plugin de jeu ne prend en charge affiche « Bientôt disponible ». Survoler un
-  mode (boussole ou menu d'un PNJ) montre aussi la meilleure série de victoires jamais faite dans
-  ce mode, par qui, et la meilleure du joueur.
+  mode (boussole ou menu d'un PNJ) montre aussi, comme sur Minemen, « Daily Streak » (les
+  victoires d'affilée du joueur dans ce mode aujourd'hui) puis les trois plus longues séries du
+  jour, avec les pseudos de toute l'équipe en 2v2, 3v3... (« 1. Alice, Bob - 24 »). Une série
+  appartient à une équipe : les mêmes joueurs ensemble. Elles sont gardées dans
+  `plugins/RagoLobby/stats/equipes/`, un fichier par mode.
 - **Les files d'attente.** Le matchmaking de `rago-game-model`, une fois par seconde. Un joueur
   n'attend que dans une file à la fois.
 - **Le scoreboard.** Les joueurs connectés, le niveau Network, le rang et l'XP du joueur, la file
-  et le temps d'attente. Une ligne n'est renvoyée que quand elle change.
+  et le temps d'attente. En partie : le mode et le ping du joueur, et en 1v1 l'adversaire et son
+  ping (vert sous 80 ms, jaune sous 150, rouge au-delà). Une ligne n'est renvoyée que quand elle
+  change.
 - **Le niveau Network.** Chaque partie donne de l'XP (50 pour une victoire, 15 pour une défaite),
   chaque kill 5 de plus. On commence niveau 1, et chaque niveau demande 50 XP de plus que le
   précédent (100, 150, 200...). Certains niveaux donnent un rang (Iron au 5, Gold au 10, Diamond

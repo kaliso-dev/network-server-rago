@@ -19,6 +19,8 @@ class StatsBookTest {
     private static final UUID ALICE = new UUID(0, 1);
     private static final UUID BOB = new UUID(0, 2);
     private static final UUID CARL = new UUID(0, 3);
+    private static final UUID DAVE = new UUID(0, 4);
+    private static final GameMode DUO = new GameMode("block-fight-2v2", "Block fight 2v2", 2, 2, false);
     /** Saturday 7 November 2026, 22:00 in Paris. */
     private static final long SATURDAY = at(2026, 11, 7, 22, 0);
     private static final long SUNDAY = at(2026, 11, 8, 10, 0);
@@ -28,7 +30,8 @@ class StatsBookTest {
         return ZonedDateTime.of(year, month, day, hour, minute, 0, 0, StatsPeriod.ZONE).toInstant().toEpochMilli();
     }
 
-    private static final StatsBook.Names NAMES = id -> id.equals(ALICE) ? "Alice" : id.equals(BOB) ? "Bob" : "Carl";
+    private static final StatsBook.Names NAMES = id -> id.equals(ALICE) ? "Alice" : id.equals(BOB) ? "Bob"
+            : id.equals(CARL) ? "Carl" : "Dave";
 
     private static void win(StatsBook book, GameMode mode, UUID winner, UUID loser, long millis) {
         book.record(mode, Collections.singletonList(winner), Collections.singletonList(loser), NAMES, millis);
@@ -177,6 +180,77 @@ class StatsBookTest {
         assertEquals(1, read.mode("sumo").deaths);
         assertEquals(1, read.kills(StatsPeriod.DAY, null, StatsPeriod.dayKey(SUNDAY), StatsPeriod.weekKey(SUNDAY)));
         assertEquals(1, read.kills(StatsPeriod.WEEK, null, StatsPeriod.dayKey(SUNDAY), StatsPeriod.weekKey(SUNDAY)));
+    }
+
+    private static void duo(StatsBook book, UUID winner1, UUID winner2, UUID loser1, UUID loser2, long millis) {
+        book.record(DUO, Arrays.asList(winner1, winner2), Arrays.asList(loser1, loser2), NAMES, millis);
+    }
+
+    private static List<String> teamNames(List<StatsBook.TeamRow> rows) {
+        List<String> names = new java.util.ArrayList<>();
+        for (StatsBook.TeamRow row : rows) {
+            names.add(row.names() + " - " + row.value());
+        }
+        return names;
+    }
+
+    @Test
+    void teamsHaveTheirOwnWinStreaks() {
+        StatsBook book = new StatsBook(1000, NetworkLevel.DEFAULT);
+        duo(book, BOB, ALICE, CARL, DAVE, SUNDAY);
+        duo(book, ALICE, BOB, CARL, DAVE, SUNDAY);
+        duo(book, ALICE, CARL, BOB, DAVE, SUNDAY);
+        assertEquals(Arrays.asList("Alice, Bob - 2", "Alice, Carl - 1"),
+                teamNames(book.topStreaks("block-fight-2v2", StatsPeriod.DAY, SUNDAY)),
+                "the names of the whole team; Alice and Bob keep their streak when they play apart");
+        duo(book, CARL, DAVE, ALICE, BOB, SUNDAY);
+        assertEquals(Arrays.asList("Alice, Bob - 2", "Alice, Carl - 1", "Carl, Dave - 1"),
+                teamNames(book.topStreaks("block-fight-2v2", StatsPeriod.DAY, SUNDAY)), "a lost game ends the streak, not the best");
+        duo(book, ALICE, BOB, CARL, DAVE, SUNDAY);
+        assertEquals("Alice, Bob - 2", teamNames(book.topStreaks("block-fight-2v2", StatsPeriod.DAY, SUNDAY)).get(0));
+        assertEquals(1, book.teams("block-fight-2v2").stream().filter(t -> t.players().contains(BOB)
+                && t.players().contains(ALICE)).findFirst().get().streak, "starting again from one");
+        assertTrue(book.topStreaks("block-fight-2v2", StatsPeriod.DAY, MONDAY).isEmpty(), "a new day");
+        assertEquals("Alice, Bob - 2", teamNames(book.topStreaks("block-fight-2v2", StatsPeriod.ALL, MONDAY)).get(0));
+        assertTrue(book.topStreaks("sumo", StatsPeriod.DAY, SUNDAY).isEmpty());
+        win(book, SUMO, CARL, ALICE, SUNDAY);
+        assertEquals(Arrays.asList("Carl - 1"), teamNames(book.topStreaks("sumo", StatsPeriod.DAY, SUNDAY)), "a 1v1: one name");
+    }
+
+    @Test
+    void theLosersOfAGameOfSeveralTeamsAllLoseTheirStreak() {
+        GameMode ffa = new GameMode("ffa", "FFA", 4, 1, false);
+        StatsBook book = new StatsBook(1000, NetworkLevel.DEFAULT);
+        book.record(ffa, Collections.singletonList(ALICE), Arrays.asList(BOB, CARL, DAVE), NAMES, SUNDAY);
+        book.record(ffa, Collections.singletonList(BOB), Arrays.asList(ALICE, CARL, DAVE), NAMES, SUNDAY);
+        book.record(ffa, Collections.singletonList(BOB), Arrays.asList(ALICE, CARL, DAVE), NAMES, SUNDAY);
+        for (TeamStreak team : book.teams("ffa")) {
+            assertEquals(team.players().contains(BOB) ? 2 : 0, team.streak);
+        }
+    }
+
+    @Test
+    void filesKeepTheTeamStreaks() throws Exception {
+        StatsBook book = new StatsBook(1000, NetworkLevel.DEFAULT);
+        duo(book, ALICE, BOB, CARL, DAVE, SATURDAY);
+        duo(book, ALICE, BOB, CARL, DAVE, SUNDAY);
+        String yaml = StatsFiles.teamsToYaml("block-fight-2v2", book.teams("block-fight-2v2"));
+        List<TeamStreak> read = StatsFiles.teamsFromYaml(yaml);
+        assertEquals(1, read.size());
+        TeamStreak team = read.get(0);
+        assertEquals(TeamStreak.key(Arrays.asList(BOB, ALICE)), team.key());
+        assertEquals(2, team.streak);
+        assertEquals(2, team.best);
+        assertEquals(2, team.best(StatsPeriod.DAY, StatsPeriod.dayKey(SUNDAY), StatsPeriod.weekKey(SUNDAY)),
+                "a streak that goes on past midnight counts whole on the new day");
+        assertEquals(0, team.best(StatsPeriod.DAY, StatsPeriod.dayKey(MONDAY), StatsPeriod.weekKey(MONDAY)));
+        assertEquals(2, team.best(StatsPeriod.WEEK, StatsPeriod.dayKey(SUNDAY), StatsPeriod.weekKey(SUNDAY)));
+        assertEquals(yaml, StatsFiles.teamsToYaml("block-fight-2v2", read));
+        StatsBook loaded = new StatsBook(1000, NetworkLevel.DEFAULT);
+        assertTrue(loaded.loadTeam("block-fight-2v2", team));
+        assertEquals(1, loaded.topStreaks("block-fight-2v2", StatsPeriod.ALL, SUNDAY).size());
+        assertEquals("?, ?", loaded.topStreaks("block-fight-2v2", StatsPeriod.ALL, SUNDAY).get(0).names(),
+                "no player stats loaded: no names");
     }
 
     @Test

@@ -4,15 +4,16 @@
 // and play the way a player does:
 //   1. both arrive in the lobby: adventure mode, the selector in the first hotbar slot, the sidebar;
 //      the Duels NPC is a Steve holding a sword, out of the tab list, and a click on it opens Duels;
-//   2. RagoUn opens the selector with a right click, opens the Duels category (nobody has a win
-//      streak in sumo yet), then clicks the sumo duel; RagoDeux types /queue sumo;
-//   3. the duel starts after a 3, 2, 1 countdown in titles: RagoUn walks up to RagoDeux and hits it once (knockback, no damage), then
+//   2. RagoUn opens the selector with a right click, opens the Duels category (Daily Streak: 0 on
+//      the sumo, nobody in its top yet), then clicks the sumo duel; RagoDeux types /queue sumo;
+//   3. the duel starts after a 3, 2, 1 countdown in titles, the sidebar shows the opponent and both
+//      pings: RagoUn walks up to RagoDeux and hits it once (knockback, no damage), then
 //      RagoDeux walks off the platform three times, so RagoUn wins 3 - 0;
 //   4. both come back to the lobby, and read their own stats above the stats NPC and on the
 //      leaderboard wall (RagoUn first with one win, and three kills); a click on the stats NPC opens
 //      the stats menu; the XP bar shows the Network level; clicks on the main leaderboard go from the
 //      Elo to the kills (a left click: the kills of the week) and to the Network level; the sumo of
-//      the Duels NPC shows RagoUn's win streak;
+//      the Duels NPC shows RagoUn first in the top win streaks of the day;
 //   5. a second duel, which RagoUn leaves with /spawn: RagoDeux wins by forfeit;
 //   6. RagoUn challenges RagoDeux with /duel, RagoDeux accepts, then leaves with /spawn.
 //
@@ -162,7 +163,9 @@ async function openSelectorAndJoinSumo (bot) {
   const icon = duels.slots[SUMO_SLOT]
   if (icon?.name !== 'slime_ball') throw new Error(`${bot.username}: slot ${SUMO_SLOT} holds ${icon?.name}, not the sumo duel`)
   const lore = JSON.stringify(icon.nbt ?? null)
-  if (!lore.includes('Top win streak: §8nobody yet')) throw new Error(`${bot.username}: no top win streak on the sumo: ${lore}`)
+  if (!lore.includes('§eDaily Streak: 0') || lore.includes(' 1. ')) {
+    throw new Error(`${bot.username}: the sumo should show Daily Streak: 0 and nobody in its top: ${lore}`)
+  }
   const from = mark(bot)
   // The server cancels the click (the menu cannot be emptied): do not wait for its acceptance.
   bot.clickWindow(SUMO_SLOT, 0, 0).catch(() => {})
@@ -243,7 +246,21 @@ async function checkMainLeaderboard (bot) {
   log('the main leaderboard goes from the Elo to the kills (left click: the week) and to the Network level')
 }
 
-/** The Duels NPC opens Duels: hovering the sumo shows the best win streak, and whose it is. */
+/** The lines of the sidebar, top to bottom, without colours. */
+function sidebarLines (bot) {
+  return (bot.scoreboard?.sidebar?.items ?? []).map((item) => String(item.name).replace(/§./g, ''))
+}
+
+/** In a 1v1, the sidebar shows the opponent, the player's ping and theirs. */
+async function expectDuelSidebar (bot, opponent) {
+  await waitFor(() => {
+    const lines = sidebarLines(bot)
+    return lines.includes(`Opponent: ${opponent}`) && lines.some((line) => /^Your ping: \d+ ms$/.test(line)) &&
+      lines.some((line) => /^Their ping: \d+ ms$/.test(line))
+  }, 5000, `${bot.username} to see ${opponent} and both pings in the sidebar: ${JSON.stringify(sidebarLines(bot))}`)
+}
+
+/** The Duels NPC opens Duels: hovering the sumo shows the top win streaks of the day, as on Minemen. */
 async function checkTopStreak (bot) {
   const npc = npcAt(bot, DUELS_NPC)
   const opened = new Promise((resolve) => bot.once('windowOpen', resolve))
@@ -251,11 +268,11 @@ async function checkTopStreak (bot) {
   const window = await Promise.race([opened, sleep(5000).then(() => null)])
   if (window == null) throw new Error('a click on the Duels NPC did not open a menu')
   const lore = JSON.stringify(window.slots[SUMO_SLOT]?.nbt ?? null)
-  if (!lore.includes('Top win streak: §61§7 (§fRagoUn§7)') || !lore.includes('Your best win streak: §e0')) {
+  if (!lore.includes('§eDaily Streak: 0') || !lore.includes('§e 1. §fRagoUn§e - 1')) {
     throw new Error(`${bot.username}: the sumo of the Duels NPC does not show RagoUn's streak: ${lore}`)
   }
   bot.closeWindow(window)
-  log('the sumo shows the top win streak (1, RagoUn) and the player\'s own')
+  log('the sumo shows Daily Streak: 0 for RagoDeux and RagoUn first of the day with 1')
 }
 
 /**
@@ -334,6 +351,9 @@ async function main () {
   await waitFor(() => one.game.gameMode === 'survival' && two.game.gameMode === 'survival', 5000, 'survival mode in the duel')
   if (hotbarItem(one, 0) != null) throw new Error('the lobby items are still there in the duel')
   log('the duel started')
+  await expectDuelSidebar(one, 'RagoDeux')
+  await expectDuelSidebar(two, 'RagoUn')
+  log(`sidebar in the duel: ${JSON.stringify(sidebarLines(one))}`)
 
   for (let round = 1; round <= POINTS_TO_WIN; round++) {
     await chatLine(two, /Fight!/, 10000, fromTwo)

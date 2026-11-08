@@ -1,6 +1,8 @@
 package gg.rago.lobby;
 
 import gg.rago.game.GameMode;
+import java.lang.reflect.Field;
+import java.lang.reflect.Method;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -21,7 +23,8 @@ import org.bukkit.scoreboard.Team;
  * text changes, at most once a second. The scoreboard also hides the name tags of the NPC bodies
  * (team {@link #NPC_TEAM}): their names float above them as lines of their own. And it puts every
  * player in the team of their rank, whose prefix shows the rank above their head and in the tab
- * list, the highest ranks first.
+ * list, the highest ranks first. In a game, the sidebar shows the mode and the player's ping, and
+ * in a 1v1 the opponent and their ping.
  */
 final class LobbyScoreboard {
 
@@ -33,16 +36,59 @@ final class LobbyScoreboard {
     /** Team names are 16 characters at most, team prefixes too. */
     private static final int MAX_TEAM = 16;
 
+    /** Below this ping (in milliseconds) it shows in green, below the next one in yellow, else red. */
+    static final int GOOD_PING = 80;
+    static final int FAIR_PING = 150;
+
+    private static Method getHandle;
+    private static Field pingField;
+    private static boolean noPing;
+
     private final LobbySettings settings;
     private final QueueController queues;
     private final StatsBook book;
+    private final LobbyState state;
     private final Map<UUID, Scoreboard> boards = new HashMap<>();
     private final Map<UUID, List<String>> shown = new HashMap<>();
 
-    LobbyScoreboard(LobbySettings settings, QueueController queues, StatsBook book) {
+    LobbyScoreboard(LobbySettings settings, QueueController queues, StatsBook book, LobbyState state) {
         this.settings = settings;
         this.queues = queues;
         this.book = book;
+        this.state = state;
+    }
+
+    /**
+     * The player's ping in milliseconds, as the server measures it (the keep-alive round trip), or
+     * -1 if this server does not say. The 1.8.8 API has no method for it: it is the field ping of
+     * the server's player, read once found.
+     */
+    static int pingOf(Player player) {
+        if (noPing) {
+            return -1;
+        }
+        try {
+            if (getHandle == null) {
+                getHandle = player.getClass().getMethod("getHandle");
+            }
+            Object handle = getHandle.invoke(player);
+            if (pingField == null) {
+                pingField = handle.getClass().getField("ping");
+            }
+            return pingField.getInt(handle);
+        } catch (ReflectiveOperationException | RuntimeException e) {
+            noPing = true;
+            return -1;
+        }
+    }
+
+    /** "§a42 ms": green when good, yellow when fair, red when bad; "§7?" when unknown. */
+    static String pingText(int ping) {
+        if (ping < 0) {
+            return ChatColor.GRAY + "?";
+        }
+        ChatColor colour = ping < GOOD_PING ? ChatColor.GREEN : ping < FAIR_PING ? ChatColor.YELLOW : ChatColor.RED;
+        return colour + "" + ping + " ms";
     }
 
     /**
@@ -134,6 +180,10 @@ final class LobbyScoreboard {
 
     /** The lines, top to bottom. Blank lines differ by an invisible colour code. */
     private List<String> lines(Player player) {
+        String modeId = state.gameOf(player.getUniqueId());
+        if (modeId != null) {
+            return gameLines(player, modeId);
+        }
         List<String> lines = new ArrayList<>();
         lines.add(blank(0));
         lines.add(ChatColor.WHITE + "Players: " + ChatColor.GREEN + Bukkit.getOnlinePlayers().size());
@@ -156,6 +206,30 @@ final class LobbyScoreboard {
             lines.add(cut(ChatColor.WHITE + "Queue: " + mode.name()));
             lines.add(ChatColor.WHITE + "Waiting: " + ChatColor.YELLOW
                     + clock(queues.waited(player, System.currentTimeMillis())));
+        }
+        lines.add(blank(2));
+        lines.add(cut(settings.address()));
+        return lines;
+    }
+
+    /** In a game: the mode, the player's ping, and in a 1v1 the opponent and their ping. */
+    private List<String> gameLines(Player player, String modeId) {
+        List<String> lines = new ArrayList<>();
+        lines.add(blank(0));
+        GameMode mode = settings.catalog().get(modeId);
+        lines.add(cut(ChatColor.WHITE + "Mode: " + (mode == null ? modeId : mode.name())));
+        lines.add(blank(1));
+        List<UUID> opponents = state.opponentsOf(player.getUniqueId());
+        if (opponents.size() == 1) {
+            Player opponent = Bukkit.getPlayer(opponents.get(0));
+            PlayerStats stats = book.get(opponents.get(0));
+            String name = opponent != null ? opponent.getName() : stats != null ? stats.name() : "?";
+            lines.add(cut(ChatColor.WHITE + "Opponent: " + ChatColor.RED + name));
+            lines.add(blank(3));
+            lines.add(ChatColor.WHITE + "Your ping: " + pingText(pingOf(player)));
+            lines.add(ChatColor.WHITE + "Their ping: " + (opponent == null ? ChatColor.GRAY + "left" : pingText(pingOf(opponent))));
+        } else {
+            lines.add(ChatColor.WHITE + "Your ping: " + pingText(pingOf(player)));
         }
         lines.add(blank(2));
         lines.add(cut(settings.address()));

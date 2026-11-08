@@ -5,9 +5,11 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.UUID;
 
 /**
@@ -72,10 +74,39 @@ final class StatsBook {
         }
     }
 
+    /** One line of a team streak leaderboard: the names of the team, and its streak. */
+    static final class TeamRow {
+        private final List<UUID> players;
+        private final String names;
+        private final int value;
+
+        TeamRow(List<UUID> players, String names, int value) {
+            this.players = players;
+            this.names = names;
+            this.value = value;
+        }
+
+        List<UUID> players() {
+            return players;
+        }
+
+        /** "Alice, Bob": the names in alphabetical order. */
+        String names() {
+            return names;
+        }
+
+        int value() {
+            return value;
+        }
+    }
+
     private final int defaultRating;
     private final NetworkLevel levels;
     private final Map<UUID, PlayerStats> players = new HashMap<>();
+    /** The streaks of the teams of each mode, by mode id, then by {@link TeamStreak#key}. */
+    private final Map<String, Map<String, TeamStreak>> teams = new HashMap<>();
     private final Map<String, Ranking> rankings = new HashMap<>();
+    private final Map<String, List<TeamRow>> teamRankings = new HashMap<>();
     private String rankedDay = "";
 
     StatsBook(int defaultRating, NetworkLevel levels) {
@@ -103,7 +134,7 @@ final class StatsBook {
             return false;
         }
         players.put(stats.id(), stats);
-        rankings.clear();
+        forgetRankings();
         return true;
     }
 
@@ -118,16 +149,65 @@ final class StatsBook {
     PlayerStats seen(UUID player, String name) {
         PlayerStats stats = players.get(player);
         if (stats != null && stats.rename(name)) {
-            rankings.clear();
+            forgetRankings();
             return stats;
         }
         return null;
     }
 
+    /** Adds a team's streak read from a file, unless the team already has one in memory. */
+    boolean loadTeam(String modeId, TeamStreak team) {
+        Map<String, TeamStreak> mine = teamsOf(modeId);
+        if (mine.containsKey(team.key())) {
+            return false;
+        }
+        mine.put(team.key(), team);
+        forgetRankings();
+        return true;
+    }
+
+    /** The streaks of every team that won a game of this mode. */
+    Collection<TeamStreak> teams(String modeId) {
+        Map<String, TeamStreak> mine = teams.get(modeId);
+        return mine == null ? Collections.<TeamStreak>emptyList() : Collections.unmodifiableCollection(mine.values());
+    }
+
+    private Map<String, TeamStreak> teamsOf(String modeId) {
+        Map<String, TeamStreak> mine = teams.get(modeId);
+        if (mine == null) {
+            mine = new HashMap<>();
+            teams.put(modeId, mine);
+        }
+        return mine;
+    }
+
+    /**
+     * The winners' team goes on with its streak; the streak of every team among the losers ends.
+     * The losers of a game of more than two teams come as one list: any team made only of losers
+     * lost.
+     */
+    private void recordTeams(String modeId, Collection<UUID> winners, Collection<UUID> losers, String day, String week) {
+        Map<String, TeamStreak> mine = teamsOf(modeId);
+        String key = TeamStreak.key(winners);
+        TeamStreak won = mine.get(key);
+        if (won == null) {
+            won = new TeamStreak(winners);
+            mine.put(key, won);
+        }
+        won.win(day, week);
+        Set<UUID> beaten = new HashSet<>(losers);
+        beaten.removeAll(winners);
+        for (TeamStreak team : mine.values()) {
+            if (team != won && beaten.containsAll(team.players())) {
+                team.lose();
+            }
+        }
+    }
+
     /**
      * A game is over: one side won, the other lost. Everyone gets Network XP, the winners more. A
      * ranked game also moves the ELO of both sides (the classic formula, on the average of each
-     * side). Returns the stats that changed.
+     * side). The winners' team goes on with its win streak. Returns the stats that changed.
      */
     List<PlayerStats> record(GameMode mode, Collection<UUID> winners, Collection<UUID> losers, Names names, long millis) {
         List<PlayerStats> changed = new ArrayList<>();
@@ -161,7 +241,8 @@ final class StatsBook {
                 changed.add(stats);
             }
         }
-        rankings.clear();
+        recordTeams(mode.id(), winners, losers, day, week);
+        forgetRankings();
         return changed;
     }
 
@@ -183,7 +264,7 @@ final class StatsBook {
             dead.modeOrNew(modeId).death();
             changed.add(dead);
         }
-        rankings.clear();
+        forgetRankings();
         return changed;
     }
 
@@ -227,10 +308,7 @@ final class StatsBook {
     Ranking ranking(BoardStat stat, StatsPeriod period, String modeId, long millis) {
         String day = StatsPeriod.dayKey(millis);
         String week = StatsPeriod.weekKey(millis);
-        if (!day.equals(rankedDay)) {
-            rankings.clear();
-            rankedDay = day;
-        }
+        newDay(day);
         String key = stat + "/" + (stat.periodic() ? period : "") + "/" + (stat == BoardStat.LEVEL ? "" : modeId);
         Ranking ranking = rankings.get(key);
         if (ranking != null) {
@@ -269,6 +347,52 @@ final class StatsBook {
         ranking = new Ranking(rows);
         rankings.put(key, ranking);
         return ranking;
+    }
+
+    /**
+     * The teams with the longest win streaks of a mode over a period, best first: their names and
+     * their streak. Teams at zero are left out; ties keep the alphabetical order of the names.
+     */
+    List<TeamRow> topStreaks(String modeId, StatsPeriod period, long millis) {
+        String day = StatsPeriod.dayKey(millis);
+        String week = StatsPeriod.weekKey(millis);
+        newDay(day);
+        String key = modeId + "/" + period;
+        List<TeamRow> rows = teamRankings.get(key);
+        if (rows != null) {
+            return rows;
+        }
+        rows = new ArrayList<>();
+        for (TeamStreak team : teams(modeId)) {
+            int value = team.best(period, day, week);
+            if (value > 0) {
+                List<String> names = new ArrayList<>();
+                for (UUID id : team.players()) {
+                    PlayerStats stats = players.get(id);
+                    names.add(stats == null ? "?" : stats.name());
+                }
+                Collections.sort(names, String.CASE_INSENSITIVE_ORDER);
+                rows.add(new TeamRow(team.players(), String.join(", ", names), value));
+            }
+        }
+        Collections.sort(rows, (a, b) -> a.value() != b.value() ? Integer.compare(b.value(), a.value())
+                : a.names().compareToIgnoreCase(b.names()));
+        rows = Collections.unmodifiableList(rows);
+        teamRankings.put(key, rows);
+        return rows;
+    }
+
+    /** A new day: the leaderboards of the day before are forgotten. */
+    private void newDay(String day) {
+        if (!day.equals(rankedDay)) {
+            forgetRankings();
+            rankedDay = day;
+        }
+    }
+
+    private void forgetRankings() {
+        rankings.clear();
+        teamRankings.clear();
     }
 
     int size() {

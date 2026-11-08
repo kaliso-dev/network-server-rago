@@ -63,6 +63,19 @@ final class StatsService {
     void load() {
         io.execute(() -> {
             final List<PlayerStats> loaded = new ArrayList<>();
+            final Map<String, List<TeamStreak>> loadedTeams = new HashMap<>();
+            File[] teamFiles = new File(folder, StatsFiles.TEAMS_FOLDER).listFiles((dir, name) -> name.endsWith(".yml"));
+            if (teamFiles != null) {
+                for (File file : teamFiles) {
+                    String name = file.getName();
+                    try {
+                        String text = new String(Files.readAllBytes(file.toPath()), StandardCharsets.UTF_8);
+                        loadedTeams.put(name.substring(0, name.length() - ".yml".length()), StatsFiles.teamsFromYaml(text));
+                    } catch (IOException | org.bukkit.configuration.InvalidConfigurationException e) {
+                        plugin.getLogger().log(Level.WARNING, "Séries d'équipes illisibles, ignorées : " + file, e);
+                    }
+                }
+            }
             File[] files = folder.listFiles((dir, name) -> name.endsWith(".yml"));
             if (files != null) {
                 for (File file : files) {
@@ -88,6 +101,11 @@ final class StatsService {
                             }
                         }
                     }
+                    for (Map.Entry<String, List<TeamStreak>> mode : loadedTeams.entrySet()) {
+                        for (TeamStreak team : mode.getValue()) {
+                            book.loadTeam(mode.getKey(), team);
+                        }
+                    }
                     plugin.getLogger().info("Stats de " + added + " joueurs chargées");
                 });
             }
@@ -100,7 +118,12 @@ final class StatsService {
      */
     void record(GameMode mode, Collection<UUID> winners, Collection<UUID> losers) {
         Map<UUID, Integer> before = xpOf(winners, losers);
-        for (PlayerStats stats : book.record(mode, winners, losers, StatsService::nameOf, System.currentTimeMillis())) {
+        List<PlayerStats> changed = book.record(mode, winners, losers, StatsService::nameOf, System.currentTimeMillis());
+        if (!changed.isEmpty()) {
+            writer.write(new File(new File(folder, StatsFiles.TEAMS_FOLDER), mode.id() + ".yml"),
+                    StatsFiles.teamsToYaml(mode.id(), book.teams(mode.id())));
+        }
+        for (PlayerStats stats : changed) {
             save(stats);
             Integer old = before.get(stats.id());
             Player player = Bukkit.getPlayer(stats.id());

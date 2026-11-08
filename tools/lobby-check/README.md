@@ -9,15 +9,16 @@ jouent comme des joueurs :
    le scoreboard ;
 2. RagoUn ouvre le sélecteur d'un clic droit et clique sur le duel sumo ; RagoDeux tape
    `/queue sumo` ;
-3. le duel démarre, après le décompte 3, 2, 1, « Fight! » affiché en titre (sans fondu) :
+3. le duel démarre, après le décompte 3, 2, 1, « Fight! » affiché en titre (sans fondu), et le
+   scoreboard montre l'adversaire et le ping des deux joueurs :
    RagoUn frappe RagoDeux une fois (il doit recevoir du knockback et aucun
    dégât), puis RagoDeux tombe trois fois de la plateforme : RagoUn gagne 3 - 0 ;
 4. les deux reviennent au lobby, au spawn, avec les objets du lobby. Chacun lit son profil
    au-dessus du PNJ de stats (victoires, kills) et les classements (RagoUn premier, 3 kills) ; la
    barre d'XP montre le niveau Network (65 XP pour RagoUn : la victoire et trois kills, 15 pour
    RagoDeux) ; RagoUn clique sur le classement principal (clic droit : Elo, puis Kills, clic
-   gauche : la semaine, clic droit : niveau Network) ; dans le menu du PNJ Duels, le sumo montre la
-   meilleure série de victoires (1, RagoUn) ;
+   gauche : la semaine, clic droit : niveau Network) ; dans le menu du PNJ Duels, le sumo montre
+   « Daily Streak: 0 » pour RagoDeux et RagoUn premier des séries du jour ;
 5. un second duel, que RagoUn quitte avec `/spawn` : RagoDeux gagne par abandon.
 6. RagoUn défie RagoDeux avec `/duel RagoDeux sumo`, RagoDeux accepte avec `/duel accept RagoUn`
    (ce que lance le bouton cliquable), le duel démarre sans passer par la file, puis RagoDeux

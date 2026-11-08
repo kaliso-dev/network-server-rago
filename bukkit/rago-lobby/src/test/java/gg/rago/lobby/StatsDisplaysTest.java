@@ -127,6 +127,36 @@ class StatsDisplaysTest {
     }
 
     @Test
+    void theModeMenuShowsTheDailyStreaksAsOnMinemen() throws Exception {
+        LobbySettings settings = bundledSettings();
+        StatsBook book = new StatsBook(1000, settings.levels());
+        ModeMenu menu = new ModeMenu(settings, null, book);
+        long now = System.currentTimeMillis();
+        assertEquals(Collections.singletonList("§eDaily Streak: 0"),
+                menu.streakLines(settings.catalog().get("block-fight-2v2"), player(ALICE)), "nobody yet: no top");
+        UUID carl = new UUID(0, 3);
+        UUID dave = new UUID(0, 4);
+        StatsBook.Names names = id -> id.equals(ALICE) ? "Alice" : id.equals(BOB) ? "bob" : id.equals(carl) ? "Carl" : "Dave";
+        for (int i = 0; i < 2; i++) {
+            book.record(settings.catalog().get("block-fight-2v2"), Arrays.asList(BOB, ALICE), Arrays.asList(carl, dave), names, now);
+        }
+        book.record(settings.catalog().get("block-fight-2v2"), Arrays.asList(carl, dave), Arrays.asList(ALICE, BOB), names, now);
+        assertEquals(Arrays.asList("§eDaily Streak: 0", "§e 1. §fAlice, bob§e - 2", "§e 2. §fCarl, Dave§e - 1"),
+                menu.streakLines(settings.catalog().get("block-fight-2v2"), player(ALICE)));
+        assertEquals("§eDaily Streak: 1", menu.streakLines(settings.catalog().get("block-fight-2v2"), player(carl)).get(0),
+                "the viewer's wins in a row");
+    }
+
+    @Test
+    void pingsAreColouredByQuality() {
+        assertEquals("§a12 ms", LobbyScoreboard.pingText(12));
+        assertEquals("§e" + LobbyScoreboard.GOOD_PING + " ms", LobbyScoreboard.pingText(LobbyScoreboard.GOOD_PING));
+        assertEquals("§c300 ms", LobbyScoreboard.pingText(300));
+        assertEquals("§7?", LobbyScoreboard.pingText(-1));
+        assertEquals(-1, LobbyScoreboard.pingOf(player(ALICE)), "not a server's player: no ping");
+    }
+
+    @Test
     void theProfileShowsTheLevelAndTheKills() throws Exception {
         LobbySettings settings = bundledSettings();
         StatsBook book = new StatsBook(1000, settings.levels());

@@ -208,6 +208,15 @@ final class QueueController {
         for (Player player : players) {
             lobby.enterGame(player, modeId);
         }
+        for (List<QueueEntry> team : match.teams()) {
+            List<UUID> others = new ArrayList<>(match.players());
+            for (QueueEntry entry : team) {
+                others.remove(entry.player());
+            }
+            for (QueueEntry entry : team) {
+                state.setOpponents(entry.player(), others);
+            }
+        }
         boolean started;
         try {
             started = host.start(match);
