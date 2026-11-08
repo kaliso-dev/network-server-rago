@@ -56,6 +56,7 @@ final class LobbyListener implements Listener {
     @EventHandler(priority = EventPriority.HIGHEST)
     public void onJoin(PlayerJoinEvent event) {
         event.setJoinMessage(null);
+        lobby.joined(event.getPlayer());
         lobby.sendToLobby(event.getPlayer());
     }
 
@@ -128,6 +129,10 @@ final class LobbyListener implements Listener {
             return;
         }
         Player player = (Player) event.getWhoClicked();
+        if (event.getView().getTopInventory().getHolder() instanceof StatsMenu.Holder) {
+            event.setCancelled(true);
+            return;
+        }
         if (event.getView().getTopInventory().getHolder() instanceof ModeMenu.Holder) {
             event.setCancelled(true);
             if (event.getRawSlot() >= 0 && event.getRawSlot() < event.getView().getTopInventory().getSize()) {
@@ -144,6 +149,7 @@ final class LobbyListener implements Listener {
     @EventHandler(priority = EventPriority.LOW)
     public void onInventoryDrag(InventoryDragEvent event) {
         if (event.getView().getTopInventory().getHolder() instanceof ModeMenu.Holder
+                || event.getView().getTopInventory().getHolder() instanceof StatsMenu.Holder
                 || (event.getWhoClicked() instanceof Player && state.isProtected((Player) event.getWhoClicked()))) {
             event.setCancelled(true);
         }

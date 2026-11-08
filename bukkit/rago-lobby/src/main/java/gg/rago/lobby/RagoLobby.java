@@ -10,6 +10,7 @@ import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.StandardCopyOption;
 import java.util.List;
+import java.util.UUID;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
@@ -45,6 +46,8 @@ public final class RagoLobby extends JavaPlugin implements LobbyService {
     private LobbyNpcs npcs;
     private FakeEntities fakes;
     private DuelRequests duels;
+    private StatsService stats;
+    private StatsDisplays statsDisplays;
 
     @Override
     public void onEnable() {
@@ -92,10 +95,13 @@ public final class RagoLobby extends JavaPlugin implements LobbyService {
         scoreboard = new LobbyScoreboard(settings, queues);
         duels = new DuelRequests(settings, state, queues);
         menu.setDuels(duels);
+        stats = new StatsService(this, settings.defaultRating(), writer, this::write);
+        stats.load();
         fakes = new FakeEntities(this, world);
         fakes.start();
         getServer().getPluginManager().registerEvents(fakes, this);
-        npcs = new LobbyNpcs(settings, state, points, queues, menu, fakes);
+        statsDisplays = new StatsDisplays(settings, stats.book(), new StatsMenu(settings, stats.book()), fakes);
+        npcs = new LobbyNpcs(settings, state, points, queues, menu, fakes, statsDisplays);
         getServer().getPluginManager().registerEvents(npcs, this);
 
         getServer().getPluginManager().registerEvents(new LobbyListener(this, state, visibility), this);
@@ -254,6 +260,7 @@ public final class RagoLobby extends JavaPlugin implements LobbyService {
     }
 
     void forget(Player player) {
+        statsDisplays.forget(player.getUniqueId());
         queues.forget(player.getUniqueId());
         duels.forget(player.getUniqueId());
         visibility.forget(player.getUniqueId());
@@ -333,6 +340,10 @@ public final class RagoLobby extends JavaPlugin implements LobbyService {
     private void write(final File file, final String text) {
         writer.execute(() -> {
             try {
+                File folder = file.getParentFile();
+                if (folder != null && !folder.isDirectory() && !folder.mkdirs()) {
+                    throw new IOException("impossible de créer " + folder);
+                }
                 File part = new File(file.getPath() + ".part");
                 Files.write(part.toPath(), text.getBytes(StandardCharsets.UTF_8));
                 Files.move(part.toPath(), file.toPath(), StandardCopyOption.REPLACE_EXISTING);
@@ -417,6 +428,21 @@ public final class RagoLobby extends JavaPlugin implements LobbyService {
     @Override
     public boolean isInGame(Player player) {
         return state.isInGame(player);
+    }
+
+    @Override
+    public void recordMatch(String modeId, List<UUID> winners, List<UUID> losers) {
+        GameMode mode = settings.catalog().get(modeId);
+        if (mode == null) {
+            getLogger().warning("Résultat d'un mode inconnu ignoré : " + modeId);
+            return;
+        }
+        stats.record(mode, winners, losers);
+    }
+
+    /** The player joined: their name, for the leaderboards. */
+    void joined(Player player) {
+        stats.seen(player);
     }
 
     // --- For the other classes of the plugin ----------------------------------------------------

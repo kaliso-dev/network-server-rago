@@ -88,11 +88,32 @@ pnj:
   aimtrainer:
     nom: "&eAim trainer"
     modes: [aim-trainer]
+  # Les PNJ de stats (type: stats) : chacun voit son propre profil au-dessus, et un clic ouvre ses
+  # stats mode par mode. nom : la première ligne du profil.
+  statsjoueur1:
+    nom: "&6&lTon profil Rago"
+    type: stats
+  statsjoueur2:
+    nom: "&6&lTon profil Rago"
+    type: stats
 
-# Les classements du lobby, sur leur point : le titre affiché. Leur contenu viendra avec les
-# statistiques.
+# Les murs de classements, sur leur point : des tableaux côte à côte, face au spawn, le premier à
+# gauche. Chacun montre le top 10, la place du joueur et la remise à zéro.
+#   nom       le titre au-dessus du mur (facultatif)
+#   tableaux  de 1 à 5 parmi :
+#     victoires  les victoires, tous modes confondus
+#     parties    les parties jouées
+#     series     la meilleure série de victoires
+#     elo        l'ELO d'un mode classé
+# Un clic sur un tableau change sa période (du jour, de la semaine, à vie) pour celui qui clique ;
+# sur un tableau elo, il change de mode classé (1v1, 2v2, 3v3, 4v4).
 classements:
-  leaderboardprincipal: "&e&lClassement Ranked"
+  leaderboardprincipal:
+    nom: "&e&lClassement Ranked"
+    tableaux: [elo]
+  leaderboardstats:
+    nom: "&e&lClassements"
+    tableaux: [victoires, series, parties]
 
 # Les modes, dans l'ordre du sélecteur. L'identifiant (la clé) ne contient que des minuscules sans
 # accent, des chiffres et des tirets. Un mode reste « Bientôt » dans le sélecteur tant qu'aucun

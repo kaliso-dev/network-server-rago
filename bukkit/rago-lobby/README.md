@@ -57,12 +57,32 @@ générateur vide ; un monde de build peut donc servir de lobby.
   vers le spawn, qui tient l'icône du mode, avec son nom et le nombre de joueurs en file au-dessus
   de la tête. Un clic rejoint la file du mode, ou ouvre un menu quand le PNJ a plusieurs modes. Les
   PNJ réapparaissent quand un point bouge.
-- `classements:` affiche un titre sur un point ; le contenu viendra avec les statistiques.
+- `pnj:` avec `type: stats` place un PNJ de stats : un Steve qui tient un livre, avec au-dessus
+  le profil de celui qui le regarde (victoires, défaites, meilleure série, victoires du jour, ELO
+  de chaque mode classé). Chaque joueur lit le sien. Un clic ouvre « Tes stats » : la tête du
+  joueur avec ses totaux, puis chaque mode avec ses stats (survoler un mode pour les lire).
+- `classements:` place un mur de classements sur un point : de 1 à 5 tableaux côte à côte, face au
+  spawn (`tableaux: [victoires, series, parties, elo]`). Chaque tableau montre le top 10, la place
+  de celui qui regarde et quand il repart de zéro. Un clic sur un tableau change sa période pour
+  ce joueur (du jour, de la semaine, à vie) ; sur un tableau `elo`, il change de mode classé.
 
 Les PNJ n'existent que dans les paquets envoyés aux joueurs (plugin PacketEvents, installé à côté
 de RagoLobby) : le serveur ne les voit pas, ils ne bougent pas et ne prennent pas de coups. Ils
 quittent la liste des joueurs (Tab) deux secondes après être apparus, et le scoreboard du lobby
 cache leur nom au-dessus de la tête (équipe `pnj`).
+
+## Les stats
+
+Les plugins de jeu donnent le résultat de chaque partie au lobby (`recordMatch`, voir plus bas) :
+victoires, défaites, série de victoires en cours et meilleure série, par mode, à vie, du jour et
+de la semaine (heure de Paris : le jour repart à minuit, la semaine le lundi à minuit). Un abandon
+compte comme une défaite. Une partie d'un mode classé fait aussi bouger l'ELO des deux camps
+(formule classique, 32 points au plus par partie, 1000 au départ). Le duel sumo est le premier
+mode qui compte.
+
+Sur le serveur de test, les stats sont gardées dans `plugins/RagoLobby/stats/` (un fichier par
+joueur), lues au démarrage et écrites à chaque partie, jamais sur le thread principal. Sur le
+réseau, elles passeront dans la base de données.
 
 ## Pour les plugins de jeu
 
@@ -79,15 +99,15 @@ lobby.registerHost(this, "sumo", host);   // ouvre la file du mode "sumo"
 connectés et au lobby ; il renvoie `false` s'il ne peut pas la démarrer (aucune arène libre), et
 les joueurs gardent leur place dans la file. Pendant la partie, les joueurs appartiennent au jeu,
 qui les rend avec `lobby.sendToLobby(player)`. `MatchHost.abandon(player)` est appelé quand un
-joueur tape `/spawn` en pleine partie.
+joueur tape `/spawn` en pleine partie. À la fin, `lobby.recordMatch("sumo", gagnants, perdants)`
+compte la partie dans les stats et les classements.
 
 Sur le réseau, les files passeront dans le proxy (`rago-proxy`) et les serveurs de jeu recevront
 leurs parties de lui ; le côté `MatchHost` d'un plugin de jeu ne changera pas.
 
 ## Ce qui n'est pas encore là
 
-- L'ELO réel, les statistiques et les classements : ils viendront avec la base de données
-  (`rago-data`) et `rago-ranked`.
+- Les stats partagées entre serveurs : elles viendront avec la base de données (`rago-data`).
 - Des skins choisis pour les PNJ, les groupes et les cosmétiques.
 
 ## Construire et tester

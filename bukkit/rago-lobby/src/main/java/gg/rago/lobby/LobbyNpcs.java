@@ -26,13 +26,13 @@ import org.bukkit.event.world.ChunkUnloadEvent;
 import org.bukkit.inventory.ItemStack;
 
 /**
- * The NPCs and leaderboards of the lobby, standing on the /lobby points named in config.yml. An
- * NPC is a player with the Steve skin ({@link FakePlayer}, sent through PacketEvents) holding the
- * icon of its mode or category, facing the spawn, with its name and its queue count floating
- * above its head (two invisible armor stands); a leaderboard is two floating lines until the
- * stats exist. A click on an NPC or its lines (left or right) joins its mode's queue, or opens a
- * menu of its modes when it has several or when its mode is not open yet (the menu then says
- * so). Main thread only.
+ * The NPCs and leaderboards of the lobby, standing on the /lobby points named in config.yml. A
+ * mode NPC is a player with the Steve skin ({@link FakePlayer}, sent through PacketEvents)
+ * holding the icon of its mode or category, facing the spawn, with its name and its queue count
+ * floating above its head (two invisible armor stands). A click on it or its lines (left or
+ * right) joins its mode's queue, or opens a menu of its modes when it has several or when its
+ * mode is not open yet (the menu then says so). Stats NPCs and leaderboard walls are drawn by
+ * {@link StatsDisplays}. Main thread only.
  */
 final class LobbyNpcs implements Listener {
 
@@ -51,6 +51,7 @@ final class LobbyNpcs implements Listener {
     private final QueueController queues;
     private final ModeMenu menu;
     private final FakeEntities fakes;
+    private final StatsDisplays displays;
 
     /** Every stand we spawned, to the point it belongs to. */
     private final Map<UUID, String> stands = new HashMap<>();
@@ -60,13 +61,14 @@ final class LobbyNpcs implements Listener {
     private final Map<UUID, Long> lastClick = new HashMap<>();
 
     LobbyNpcs(LobbySettings settings, LobbyState state, LobbyPoints points, QueueController queues, ModeMenu menu,
-            FakeEntities fakes) {
+            FakeEntities fakes, StatsDisplays displays) {
         this.settings = settings;
         this.state = state;
         this.points = points;
         this.queues = queues;
         this.menu = menu;
         this.fakes = fakes;
+        this.displays = displays;
     }
 
     /**
@@ -98,9 +100,10 @@ final class LobbyNpcs implements Listener {
             chunk.load();
             keptChunks.add(key(chunk.getX(), chunk.getZ()));
             removeOldStands(base);
-            if (npc.leaderboard()) {
-                label(npc, base.clone().add(0, LINE, 0), npc.name());
-                label(npc, base.clone(), ChatColor.GRAY + "Le classement de la saison arrive bientôt");
+            if (npc.kind() == LobbyNpc.Kind.LEADERBOARDS) {
+                displays.addWall(npc, base);
+            } else if (npc.kind() == LobbyNpc.Kind.STATS) {
+                displays.addStatsNpc(npc, bodyName(index), base);
             } else {
                 body(npc, index, base);
                 Location lowest = base.clone().add(0, ABOVE_HEAD - FakeHologram.NAME_HEIGHT, 0);
@@ -206,7 +209,7 @@ final class LobbyNpcs implements Listener {
 
     private void click(Player player, String point) {
         LobbyNpc npc = point == null ? null : settings.npc(point);
-        if (npc == null || npc.leaderboard() || !state.isProtected(player)) {
+        if (npc == null || npc.kind() != LobbyNpc.Kind.MODES || !state.isProtected(player)) {
             return;
         }
         long now = System.currentTimeMillis();

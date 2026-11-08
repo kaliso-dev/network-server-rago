@@ -1,5 +1,7 @@
 package gg.rago.lobby.api;
 
+import java.util.List;
+import java.util.UUID;
 import org.bukkit.entity.Player;
 import org.bukkit.plugin.Plugin;
 
@@ -31,4 +33,11 @@ public interface LobbyService {
 
     /** True while the player belongs to a game started by a {@link MatchHost}. */
     boolean isInGame(Player player);
+
+    /**
+     * A game of this mode is over: one side won, the other lost (a forfeit is a loss). The lobby
+     * counts it in the stats, the leaderboards and, for a ranked mode, the ELO. Players may have
+     * left the server already.
+     */
+    void recordMatch(String modeId, List<UUID> winners, List<UUID> losers);
 }

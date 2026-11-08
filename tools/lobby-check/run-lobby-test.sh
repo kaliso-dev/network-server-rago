@@ -162,8 +162,12 @@ bots_status=0
 KB_HOST=127.0.0.1 KB_PORT=$PORT node "$ROOT/tools/kb-control/bots/lobby-bots.mjs" || bots_status=$?
 stop_server
 
-# Any error or exception logged by the server fails the test, even if the bots passed.
-if grep -n -E 'ERROR\]|SEVERE|Exception' "$SERVER_LOG" >&2; then
+# Any error or exception logged by the server fails the test, even if the bots passed. One is
+# left out: the PacketEvents plugin always asks GitHub for its latest version, and GitHub often
+# answers 403 to the CI machines; it only logs that failure and carries on.
+if grep -n -E 'ERROR\]|SEVERE|Exception' "$SERVER_LOG" \
+    | grep -v -F -e 'Failed to parse packetevents version' \
+        -e 'https://api.github.com/repos/retrooper/packetevents/releases/latest' >&2; then
   fail "the server log has errors (above)"
 fi
 [[ $bots_status -eq 0 ]] || { tail -n 60 "$SERVER_LOG" >&2; fail "the bots stopped with status $bots_status"; }

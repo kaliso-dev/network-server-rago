@@ -85,10 +85,12 @@ Commandes :
 - /lobby setspawn (opérateurs) : place le spawn du lobby là où tu es.
 - /lobby build (opérateurs) : mode construction dans le lobby (créatif, tu peux modifier la map) ;
   retape-le pour en sortir.
-- /lobby point nom (opérateurs) : marque un endroit du lobby, par exemple pnj-sumo ou
-  classement-1v1. Ce sont les emplacements des futurs PNJ des modes et des classements. Retape-le
-  ailleurs pour le déplacer ; /lobby points pour la liste, /lobby point tp nom pour y aller,
-  /lobby point retirer nom pour l'enlever.
+- /lobby point nom (opérateurs) : marque un endroit du lobby, où se mettent les PNJ et les
+  classements de plugins/RagoLobby/config.yml (le nom du point est leur clé). Retape-le ailleurs
+  pour le déplacer ; /lobby points pour la liste, /lobby point tp nom pour y aller,
+  /lobby point retirer nom pour l'enlever. Les PNJ de stats sont sur statsjoueur1 et
+  statsjoueur2, le mur de classements du jour, de la semaine et à vie sur leaderboardstats, le
+  classement Ranked sur leaderboardprincipal.
 - /monde tp world (opérateurs) : aller au monde plat du test de knockback, comme avant.
 
 Le plus simple pour construire le lobby : construis directement dans le monde lobby. Tape

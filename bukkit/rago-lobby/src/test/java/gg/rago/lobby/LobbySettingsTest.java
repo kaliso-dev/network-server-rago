@@ -74,7 +74,7 @@ class LobbySettingsTest {
     @Test
     void readsTheBundledNpcs() throws Exception {
         LobbySettings settings = LobbySettings.load(bundledConfig());
-        assertEquals(13, settings.npcs().size());
+        assertEquals(16, settings.npcs().size());
         LobbyNpc duels = settings.npc("attackdefenseversionrbw");
         assertEquals("duels", duels.category());
         assertEquals(settings.modesIn("duels").size(), duels.modeIds().size(), "a category NPC holds its modes");
@@ -82,7 +82,21 @@ class LobbySettingsTest {
         LobbyNpc ranked = settings.npc("rankedbedwars1v1ou2v2elo");
         assertEquals(java.util.Arrays.asList("ranked-1v1", "ranked-2v2", "ranked-3v3", "ranked-4v4"), ranked.modeIds());
         assertTrue(settings.npc("leaderboardprincipal").leaderboard());
+        assertEquals(java.util.Collections.singletonList(BoardStat.ELO), settings.npc("leaderboardprincipal").boards());
+        assertEquals(java.util.Arrays.asList(BoardStat.WINS, BoardStat.STREAK, BoardStat.GAMES),
+                settings.npc("leaderboardstats").boards());
         assertFalse(ranked.leaderboard());
+        assertEquals(LobbyNpc.Kind.STATS, settings.npc("statsjoueur1").kind());
+        assertEquals(LobbyNpc.Kind.STATS, settings.npc("statsjoueur2").kind());
+        assertTrue(settings.npc("statsjoueur1").hasBody());
+        assertEquals(LobbyNpc.Kind.MODES, ranked.kind());
+    }
+
+    @Test
+    void readsTheShortLeaderboardForm() throws Exception {
+        LobbySettings settings = LobbySettings.load(yaml("classements:\n  mur: '&eTitre'\nmodes:\n  sumo: {}\n"));
+        assertEquals(java.util.Collections.singletonList(BoardStat.WINS), settings.npc("mur").boards());
+        assertEquals("§eTitre", settings.npc("mur").name());
     }
 
     @Test
@@ -91,6 +105,10 @@ class LobbySettingsTest {
         assertInvalid("pnj:\n  pnj-sumo: {}\nmodes:\n  sumo: {}\n", "pnj.pnj-sumo");
         assertInvalid("pnj:\n  pnj-duels:\n    categorie: autre\nmodes:\n  sumo: {}\n", "pnj.pnj-duels.categorie");
         assertInvalid("pnj:\n  a:\n    modes: [sumo]\nclassements:\n  a: Titre\nmodes:\n  sumo: {}\n", "classements.a");
+        assertInvalid("pnj:\n  a:\n    type: stats\n    modes: [sumo]\nmodes:\n  sumo: {}\n", "pnj.a");
+        assertInvalid("pnj:\n  a:\n    type: autre\nmodes:\n  sumo: {}\n", "pnj.a.type");
+        assertInvalid("classements:\n  a:\n    tableaux: [kills]\nmodes:\n  sumo: {}\n", "classements.a.tableaux");
+        assertInvalid("classements:\n  a:\n    nom: Mur\nmodes:\n  sumo: {}\n", "classements.a.tableaux");
     }
 
     @Test

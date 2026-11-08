@@ -1,5 +1,6 @@
 package gg.rago.practice;
 
+import java.util.Collections;
 import java.util.UUID;
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
@@ -171,6 +172,9 @@ final class SumoMatch {
     private void end(int winner, boolean forfeit) {
         phase = Phase.ENDED;
         cancelCountdown();
+        // Counted in the stats and the leaderboards; a forfeit is a loss.
+        plugin.lobby().recordMatch(SumoHost.MODE_ID, Collections.singletonList(players[winner]),
+                Collections.singletonList(players[1 - winner]));
         for (int side = 0; side < 2; side++) {
             Player player = Bukkit.getPlayer(players[side]);
             if (player == null) {

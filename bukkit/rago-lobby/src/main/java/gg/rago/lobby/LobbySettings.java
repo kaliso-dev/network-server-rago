@@ -30,6 +30,8 @@ final class LobbySettings {
     static final int MAX_MODES_PER_CATEGORY = 28;
     /** One row of the category menu. */
     static final int MAX_CATEGORIES = 7;
+    /** Leaderboards side by side on one point. */
+    static final int MAX_BOARDS = 5;
 
     private final List<ModeDisplay> modes;
     private final List<ModeCategory> categories;
@@ -129,6 +131,18 @@ final class LobbySettings {
                 if (!LobbyPoints.validName(point)) {
                     throw new IllegalArgumentException(where + " : ce n'est pas un nom de point valide");
                 }
+                points.add(point);
+                String type = npc.getString("type", "modes");
+                if ("stats".equals(type)) {
+                    if (npc.contains("modes") || npc.contains("categorie")) {
+                        throw new IllegalArgumentException(where + " : un PNJ de stats n'a ni modes ni categorie");
+                    }
+                    npcs.add(LobbyNpc.stats(point, colour(npc.getString("nom", "&6&lTon profil"))));
+                    continue;
+                }
+                if (!"modes".equals(type)) {
+                    throw new IllegalArgumentException(where + ".type : « " + type + " » n'est pas modes ou stats");
+                }
                 String category = npc.getString("categorie");
                 List<String> ids = new ArrayList<>(npc.getStringList("modes"));
                 if (category != null) {
@@ -157,18 +171,38 @@ final class LobbySettings {
                         throw new IllegalArgumentException(where + ".modes : « " + id + " » n'est pas un des modes");
                     }
                 }
-                points.add(point);
-                npcs.add(new LobbyNpc(point, colour(npc.getString("nom", point)), ids, category));
+                npcs.add(LobbyNpc.modes(point, colour(npc.getString("nom", point)), ids, category));
             }
         }
         ConfigurationSection boards = config.getConfigurationSection("classements");
         if (boards != null) {
             for (String point : boards.getKeys(false)) {
+                String where = "classements." + point;
                 if (!LobbyPoints.validName(point) || !points.add(point)) {
-                    throw new IllegalArgumentException("classements." + point
-                            + " : nom de point invalide, ou point déjà pris par un PNJ");
+                    throw new IllegalArgumentException(where + " : nom de point invalide, ou point déjà pris par un PNJ");
                 }
-                npcs.add(new LobbyNpc(point, colour(boards.getString(point, point)), new ArrayList<String>(), null));
+                List<BoardStat> stats = new ArrayList<>();
+                String name;
+                ConfigurationSection board = boards.getConfigurationSection(point);
+                if (board == null) {
+                    // The short form: only the title, over a board of wins.
+                    name = boards.getString(point, point);
+                    stats.add(BoardStat.WINS);
+                } else {
+                    name = board.getString("nom", "");
+                    for (String key : board.getStringList("tableaux")) {
+                        BoardStat stat = BoardStat.of(key);
+                        if (stat == null) {
+                            throw new IllegalArgumentException(where + ".tableaux : « " + key
+                                    + " » n'est pas victoires, parties, series ou elo");
+                        }
+                        stats.add(stat);
+                    }
+                    if (stats.isEmpty() || stats.size() > MAX_BOARDS) {
+                        throw new IllegalArgumentException(where + ".tableaux : de 1 à " + MAX_BOARDS + " tableaux");
+                    }
+                }
+                npcs.add(LobbyNpc.leaderboards(point, colour(name), stats));
             }
         }
         return npcs;

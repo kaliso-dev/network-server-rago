@@ -9,7 +9,8 @@
 //      /file sumo;
 //   3. the duel starts after a 3, 2, 1 countdown in titles: RagoUn walks up to RagoDeux and hits it once (knockback, no damage), then
 //      RagoDeux walks off the platform three times, so RagoUn wins 3 - 0;
-//   4. both come back to the lobby;
+//   4. both come back to the lobby, and read their own stats above the stats NPC and on the
+//      leaderboard wall (RagoUn first with one win); a click on the stats NPC opens the stats menu;
 //   5. a second duel, which RagoUn leaves with /spawn: RagoDeux wins by forfeit;
 //   6. RagoUn challenges RagoDeux with /duel, RagoDeux accepts, then leaves with /spawn.
 //
@@ -28,8 +29,10 @@ const LOBBY_SPAWN = { x: 0.5, y: 65, z: 0.5 }
 const DUELS_SLOT = 12
 const SUMO_SLOT = 10
 const POINTS_TO_WIN = 3
-// run-lobby-test.sh places the NPC of the Duels category (point attackdefenseversionrbw) here.
+// run-lobby-test.sh places the NPC of the Duels category (point attackdefenseversionrbw), a stats
+// NPC (statsjoueur1) and a wall of leaderboards (leaderboardstats) around the spawn.
 const DUELS_NPC = { x: 3.5, y: 65, z: 0.5 }
+const STATS_NPC = { x: -3.5, y: 65, z: 0.5 }
 
 let finishing = false
 
@@ -190,6 +193,47 @@ async function checkDuelsNpc (bot) {
   log('the Duels NPC is a Steve holding a sword, out of the tab list, and its click opens Duels')
 }
 
+/** Every line of floating text this bot sees: the names of the armor stands, without colours. */
+function floatingTexts (bot) {
+  return Object.values(bot.entities)
+    .map((e) => e.metadata?.[2])
+    .filter((name) => typeof name === 'string' && name !== '')
+    .map((name) => name.replace(/§./g, ''))
+}
+
+async function expectFloating (bot, text, what) {
+  await waitFor(() => floatingTexts(bot).includes(text), 5000,
+    `${bot.username} to read "${text}" (${what}); floating texts: ${JSON.stringify(floatingTexts(bot))}`)
+}
+
+/**
+ * After the 3 - 0: each bot reads its own profile above the stats NPC and the same leaderboard,
+ * and a click on the stats NPC opens the stats menu.
+ */
+async function checkStats (one, two) {
+  await expectFloating(one, 'Victoires : 1', 'the profile of the winner')
+  await expectFloating(one, 'Défaites : 0', 'the profile of the winner')
+  await expectFloating(two, 'Victoires : 0', 'the profile of the loser')
+  await expectFloating(two, 'Défaites : 1', 'the profile of the loser')
+  await expectFloating(one, '1. RagoUn - 1', 'the wins of the day')
+  await expectFloating(two, '1. RagoUn - 1', 'the wins of the day')
+  await expectFloating(one, 'Toi : #1 - 1', 'the place of the winner')
+  await expectFloating(two, 'Toi : pas encore classé', 'the place of the loser')
+  const npc = npcAt(one, STATS_NPC)
+  if (npc == null) throw new Error('RagoUn does not see the stats NPC')
+  const opened = new Promise((resolve) => one.once('windowOpen', resolve))
+  one.activateEntity(npc)
+  const window = await Promise.race([opened, sleep(5000).then(() => null)])
+  if (window == null) throw new Error('a click on the stats NPC did not open a menu')
+  const title = typeof window.title === 'string' ? window.title : JSON.stringify(window.title)
+  if (!title.includes('Tes stats')) throw new Error(`the stats NPC opened ${title}`)
+  const sumo = window.slots.find((item) => item?.name === 'slime_ball')
+  const lore = JSON.stringify(sumo?.nbt ?? null)
+  if (!lore.includes('Victoires : §a1')) throw new Error(`no sumo win in the stats menu: ${lore}`)
+  one.closeWindow(window)
+  log('stats: each bot reads its own profile, the leaderboard has RagoUn first, the menu opens')
+}
+
 async function fallOff (bot) {
   bot.setControlState('back', true)
   bot.setControlState('jump', true)
@@ -270,6 +314,7 @@ async function main () {
   await expectInLobby(one, 'after the duel')
   await expectInLobby(two, 'after the duel')
   log('both are back in the lobby')
+  await checkStats(one, two)
 
   // 5. A forfeit.
   fromOne = mark(one)

@@ -5,20 +5,52 @@ import java.util.List;
 
 /**
  * What stands on a lobby point (config.yml, pnj: and classements:): a mode NPC that opens its
- * modes or a whole category, or a leaderboard. Immutable.
+ * modes or a whole category, a stats NPC that shows each player their own stats, or a wall of
+ * leaderboards. Immutable.
  */
 final class LobbyNpc {
 
+    enum Kind {
+        /** Opens its modes, or the menu of its category. */
+        MODES,
+        /** Shows each player their stats above it; a click opens them mode by mode. */
+        STATS,
+        /** A wall of leaderboards. */
+        LEADERBOARDS
+    }
+
     private final String point;
     private final String name;
+    private final Kind kind;
     private final List<String> modeIds;
     private final String category;
+    private final List<BoardStat> boards;
 
-    LobbyNpc(String point, String name, List<String> modeIds, String category) {
+    private LobbyNpc(String point, String name, Kind kind, List<String> modeIds, String category, List<BoardStat> boards) {
         this.point = point;
         this.name = name;
+        this.kind = kind;
         this.modeIds = Collections.unmodifiableList(modeIds);
         this.category = category;
+        this.boards = Collections.unmodifiableList(boards);
+    }
+
+    /** An NPC of these modes, or of a whole category (then modeIds are the category's modes). */
+    static LobbyNpc modes(String point, String name, List<String> modeIds, String category) {
+        return new LobbyNpc(point, name, Kind.MODES, modeIds, category, Collections.<BoardStat>emptyList());
+    }
+
+    static LobbyNpc stats(String point, String name) {
+        return new LobbyNpc(point, name, Kind.STATS, Collections.<String>emptyList(), null,
+                Collections.<BoardStat>emptyList());
+    }
+
+    static LobbyNpc leaderboards(String point, String name, List<BoardStat> boards) {
+        return new LobbyNpc(point, name, Kind.LEADERBOARDS, Collections.<String>emptyList(), null, boards);
+    }
+
+    Kind kind() {
+        return kind;
     }
 
     /** The category whose menu it opens, or null for an NPC of its own modes. */
@@ -36,12 +68,22 @@ final class LobbyNpc {
         return name;
     }
 
-    /** The modes it opens, in order; empty for a leaderboard. */
+    /** The modes it opens, in order; empty for a stats NPC or a leaderboard wall. */
     List<String> modeIds() {
         return modeIds;
     }
 
+    /** The leaderboards of a wall, left to right; empty otherwise. */
+    List<BoardStat> boards() {
+        return boards;
+    }
+
     boolean leaderboard() {
-        return modeIds.isEmpty();
+        return kind == Kind.LEADERBOARDS;
+    }
+
+    /** Stands as a player (a mode or stats NPC), not as floating text. */
+    boolean hasBody() {
+        return kind != Kind.LEADERBOARDS;
     }
 }
