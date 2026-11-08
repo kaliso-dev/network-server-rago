@@ -54,6 +54,22 @@ jobs:
             echo "::error::lancer-mac-linux.sh and lancer.ps1 do not pin the same SHA-256 sums"; exit 1; }
           echo "$sums"
 
+      # PacketEvents comes from its GitHub release: the launchers and the lobby test must pin the
+      # SHA-256 that GitHub computed for that file when it was published.
+      - name: Check the PacketEvents pin against its GitHub release
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          release=$(gh api repos/retrooper/packetevents/releases/tags/v2.14.0)
+          printf '%s' "$release" | jq -r '.assets[] | [.name, .digest, .browser_download_url] | @tsv'
+          digest=$(printf '%s' "$release" | jq -r '.assets[] | select(.name == "packetevents-spigot-2.14.0.jar") | .digest')
+          echo "packetevents-spigot-2.14.0.jar: $digest"
+          [[ "$digest" == sha256:* ]] || { echo "::error::no SHA-256 for packetevents-spigot-2.14.0.jar on its release"; exit 1; }
+          for file in tools/local-server/lancer-mac-linux.sh tools/local-server/lancer.ps1 tools/lobby-check/run-lobby-test.sh; do
+            grep -qF "${digest#sha256:}" "$file" || {
+              echo "::error::$file does not pin the SHA-256 of the PacketEvents release ($digest)"; exit 1; }
+          done
+
       # The local test server for players (tools/local-server): the launchers, the settings, the
       # guide as LISEZ-MOI.txt and the plugins. The zip of this artifact is what a player downloads.
       # WorldEdit is not in it: the launchers download it from its publisher and check its sum.

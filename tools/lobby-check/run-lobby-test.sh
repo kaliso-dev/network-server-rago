@@ -1,8 +1,9 @@
 #!/usr/bin/env bash
 # Lobby and sumo test on a real PandaSpigot 1.8.8 server, on this machine.
 #
-# 1. downloads PandaSpigot (cached, the same build as the KB control test) and sets up an
-#    offline-mode server bound to 127.0.0.1 with RagoCombatEngine, RagoLobby and RagoPractice;
+# 1. downloads PandaSpigot (cached, the same build as the KB control test) and PacketEvents, and
+#    sets up an offline-mode server bound to 127.0.0.1 with RagoCombatEngine, RagoLobby and
+#    RagoPractice;
 # 2. lets two bots (tools/kb-control/bots/lobby-bots.mjs) go through the lobby, the selector, the
 #    queue, a sumo duel won 3 - 0, the return to the lobby and a forfeit;
 # 3. fails if the bots fail, or if the server log has an error or an exception.
@@ -26,6 +27,9 @@ CACHE_DIR=$RUN_DIR/cache
 SERVER_JAVA=${KB_SERVER_JAVA:-java}
 PANDASPIGOT_URL=https://downloads.hpfxd.com/v2/projects/pandaspigot/versions/1.8.8/builds/226/downloads/paperclip
 PANDASPIGOT_SHA256=ac73146b275230cbd0612ef0f3d6b40333abd3182beae457cad5321efff6359b
+# The same PacketEvents as the local test server's launchers (RagoLobby depends on it).
+PACKETEVENTS_URL=https://github.com/retrooper/packetevents/releases/download/v2.14.0/packetevents-spigot-2.14.0.jar
+PACKETEVENTS_SHA256=0000000000000000000000000000000000000000000000000000000000000000
 PORT=${KB_PORT:-25565}
 
 log() { printf '[lobby-test] %s\n' "$*"; }
@@ -68,7 +72,17 @@ fi
 actual_sha256=$(sha256sum "$SERVER_JAR" | cut -d' ' -f1)
 [[ "$actual_sha256" == "$PANDASPIGOT_SHA256" ]] || fail "PandaSpigot SHA-256 is $actual_sha256, expected $PANDASPIGOT_SHA256"
 
+PACKETEVENTS_JAR=$CACHE_DIR/packetevents-spigot-2.14.0.jar
+if [[ ! -s "$PACKETEVENTS_JAR" ]]; then
+  log "downloading PacketEvents from $PACKETEVENTS_URL"
+  curl -fsSL --retry 3 --retry-delay 5 -o "$PACKETEVENTS_JAR.part" "$PACKETEVENTS_URL"
+  mv "$PACKETEVENTS_JAR.part" "$PACKETEVENTS_JAR"
+fi
+actual_sha256=$(sha256sum "$PACKETEVENTS_JAR" | cut -d' ' -f1)
+[[ "$actual_sha256" == "$PACKETEVENTS_SHA256" ]] || fail "PacketEvents SHA-256 is $actual_sha256, expected $PACKETEVENTS_SHA256"
+
 cp "$SERVER_JAR" "$SERVER_DIR/server.jar"
+cp "$PACKETEVENTS_JAR" "$SERVER_DIR/plugins/packetevents.jar"
 cp "$ENGINE_JAR" "$SERVER_DIR/plugins/RagoCombatEngine.jar"
 cp "$LOBBY_JAR" "$SERVER_DIR/plugins/RagoLobby.jar"
 cp "$PRACTICE_JAR" "$SERVER_DIR/plugins/RagoPractice.jar"
@@ -80,6 +94,16 @@ sed -e 's/^online-mode=.*/online-mode=false/' -e 's/^server-ip=.*/server-ip=127.
 cat >"$SERVER_DIR/bukkit.yml" <<'YAML'
 settings:
   allow-end: false
+YAML
+# The NPC of the Duels category, three blocks from the spawn of the new lobby world.
+mkdir -p "$SERVER_DIR/lobby"
+cat >"$SERVER_DIR/lobby/points.yml" <<'YAML'
+attackdefenseversionrbw:
+  x: 3.5
+  y: 65.0
+  z: 0.5
+  yaw: 0.0
+  pitch: 0.0
 YAML
 
 SERVER_LOG=$RUN_DIR/server.log

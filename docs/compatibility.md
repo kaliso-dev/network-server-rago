@@ -26,6 +26,7 @@ d'en ajouter une : vérifier qu'elle est maintenue, compatible Java 8 si elle to
 | Dépendance | Version | Utilisée par | Pourquoi, et ce qui a été vérifié |
 | --- | --- | --- | --- |
 | `org.spigotmc:spigot-api` | 1.8.8-R0.1-SNAPSHOT | plugins (`compileOnly`, fournie par le serveur) | l'API que PandaSpigot implémente ; publiée seulement sur le dépôt Nexus de SpigotMC, limité dans le build aux groupes `org.spigotmc` et `org.bukkit`. Sa dépendance `net.md-5:bungeecord-chat:1.8-SNAPSHOT` (l'API des messages de chat cliquables) n'est plus servie ni par SpigotMC ni par Maven Central : elle est exclue (voir plus bas) |
+| PacketEvents (`com.github.retrooper:packetevents-spigot`) | 2.14.0 | RagoLobby (`compileOnly` ; le plugin `packetevents` est installé à côté, `depend` dans `plugin.yml`) | envoie les PNJ en forme de joueur (skin Steve) et les textes propres à chaque joueur, que l'API 1.8.8 ne sait pas faire ; maintenu (versions 2.x publiées en continu), compilé pour Java 8, serveurs 1.8.8 et plus ; publié sur le dépôt Maven de CodeMC, limité au groupe `com.github.retrooper`. Licence GPLv3 : comme WorldEdit, il n'est pas copié dans le dossier distribué ; les lanceurs et le test du lobby téléchargent le jar de sa [release GitHub](https://github.com/retrooper/packetevents/releases/tag/v2.14.0) et vérifient sa somme SHA-256, que la CI compare à celle que GitHub a calculée pour ce fichier |
 | JUnit Jupiter | 5.14.4 | tests | JUnit 5 est la dernière ligne qui tourne encore sous Java 8 (JUnit 6 exige Java 17) |
 | Gson | 2.15.0 | `tools/kb-control` uniquement | lecture des fichiers JSON du test ; bytecode Java 8 vérifié ; jamais embarqué dans un plugin (les plugins écrivent leur JSON eux-mêmes, et le serveur 1.8.8 fournit déjà sa propre vieille Gson) |
 | mineflayer | 4.39.0 | bots du test de contrôle (Node.js) | maintenu ; la version 1.8.8 fait partie des versions testées par le projet ; figée par `package-lock.json` |
@@ -37,7 +38,8 @@ d'en ajouter une : vérifier qu'elle est maintenue, compatible Java 8 si elle to
 CleanroomGenerator 1.0.0 (2012) et VoidGenerator (2011, « All Rights Reserved »). Les mondes de
 build sont gérés par `tools/build-tools`, un plugin du projet.
 
-Les plugins n'embarquent pour l'instant que des modules du projet sans dépendance :
+PacketEvents n'est pas embarqué : c'est un plugin à part, chargé avant RagoLobby. Les plugins
+n'embarquent pour l'instant que des modules du projet sans dépendance :
 `rago-combat-model` dans RagoCombatEngine, `rago-game-model` dans RagoLobby. RagoPractice ne copie
 pas `rago-game-model` : il prend les classes de RagoLobby (`depend`), pour que les deux plugins
 partagent les mêmes classes (`MatchProposal`, `LobbyService`). Quand un plugin aura besoin d'une bibliothèque tierce, elle devra être relocalisée

@@ -53,13 +53,16 @@ générateur vide ; un monde de build peut donc servir de lobby.
 - `categories:` range les modes par zone du lobby : la boussole montre les catégories, puis les
   modes de celle qu'on choisit (7 catégories, 28 modes par catégorie au plus). Chaque mode dit sa
   `categorie:`.
-- `pnj:` place un PNJ sur un point de `/lobby point` (la clé) : un porte-armure qui tient l'icône
-  du mode, son nom et le nombre de joueurs en file au-dessus. Un clic rejoint la file du mode, ou
-  ouvre un menu quand le PNJ a plusieurs modes. Les PNJ réapparaissent quand un point bouge.
+- `pnj:` place un PNJ sur un point de `/lobby point` (la clé) : un joueur au skin de Steve, tourné
+  vers le spawn, qui tient l'icône du mode, avec son nom et le nombre de joueurs en file au-dessus
+  de la tête. Un clic rejoint la file du mode, ou ouvre un menu quand le PNJ a plusieurs modes. Les
+  PNJ réapparaissent quand un point bouge.
 - `classements:` affiche un titre sur un point ; le contenu viendra avec les statistiques.
 
-Les porte-armures seront remplacés par des PNJ à skin (PacketEvents) plus tard, sans changer la
-configuration.
+Les PNJ n'existent que dans les paquets envoyés aux joueurs (plugin PacketEvents, installé à côté
+de RagoLobby) : le serveur ne les voit pas, ils ne bougent pas et ne prennent pas de coups. Ils
+quittent la liste des joueurs (Tab) deux secondes après être apparus, et le scoreboard du lobby
+cache leur nom au-dessus de la tête (équipe `pnj`).
 
 ## Pour les plugins de jeu
 
@@ -85,7 +88,7 @@ leurs parties de lui ; le côté `MatchHost` d'un plugin de jeu ne changera pas.
 
 - L'ELO réel, les statistiques et les classements : ils viendront avec la base de données
   (`rago-data`) et `rago-ranked`.
-- Les PNJ et les hologrammes du lobby (avec PacketEvents), les groupes et les cosmétiques.
+- Des skins choisis pour les PNJ, les groupes et les cosmétiques.
 
 ## Construire et tester
 

@@ -10,14 +10,20 @@ import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
 import org.bukkit.entity.Player;
 import org.bukkit.scoreboard.DisplaySlot;
+import org.bukkit.scoreboard.NameTagVisibility;
 import org.bukkit.scoreboard.Objective;
 import org.bukkit.scoreboard.Scoreboard;
+import org.bukkit.scoreboard.Team;
 
 /**
  * The lobby sidebar: players online, the queue one waits in and for how long. Each player has a
  * scoreboard of their own; a line is sent again only when its text changes, at most once a second.
+ * The scoreboard also hides the name tags of the NPC bodies (team {@link #NPC_TEAM}): their names
+ * float above them as lines of their own.
  */
 final class LobbyScoreboard {
+
+    static final String NPC_TEAM = "pnj";
 
     /** Entries of a 1.8 scoreboard are 40 characters at most. */
     private static final int MAX_LINE = 40;
@@ -40,6 +46,11 @@ final class LobbyScoreboard {
             Objective objective = board.registerNewObjective("rago", "dummy");
             objective.setDisplayName(settings.title());
             objective.setDisplaySlot(DisplaySlot.SIDEBAR);
+            Team npcs = board.registerNewTeam(NPC_TEAM);
+            npcs.setNameTagVisibility(NameTagVisibility.NEVER);
+            for (int i = 0; i < settings.npcs().size(); i++) {
+                npcs.addEntry(LobbyNpcs.bodyName(i));
+            }
             boards.put(player.getUniqueId(), board);
             shown.put(player.getUniqueId(), new ArrayList<String>());
         }

@@ -43,6 +43,7 @@ public final class RagoLobby extends JavaPlugin implements LobbyService {
     private ExecutorService writer;
     private LobbyPoints points;
     private LobbyNpcs npcs;
+    private FakeEntities fakes;
     private DuelRequests duels;
 
     @Override
@@ -91,7 +92,10 @@ public final class RagoLobby extends JavaPlugin implements LobbyService {
         scoreboard = new LobbyScoreboard(settings, queues);
         duels = new DuelRequests(settings, state, queues);
         menu.setDuels(duels);
-        npcs = new LobbyNpcs(settings, state, points, queues, menu);
+        fakes = new FakeEntities(this, world);
+        fakes.start();
+        getServer().getPluginManager().registerEvents(fakes, this);
+        npcs = new LobbyNpcs(settings, state, points, queues, menu, fakes);
         getServer().getPluginManager().registerEvents(npcs, this);
 
         getServer().getPluginManager().registerEvents(new LobbyListener(this, state, visibility), this);
@@ -109,6 +113,7 @@ public final class RagoLobby extends JavaPlugin implements LobbyService {
             menu.refreshOpen();
             npcs.update();
         }, 20L, 20L);
+        getServer().getScheduler().runTaskTimer(this, fakes::tick, 10L, 10L);
         int placed = npcs.spawnAll();
         List<String> missing = npcs.missingPoints();
         getLogger().info(placed + " PNJ et classements placés" + (missing.isEmpty() ? ""
@@ -127,6 +132,9 @@ public final class RagoLobby extends JavaPlugin implements LobbyService {
         getServer().getServicesManager().unregisterAll(this);
         if (npcs != null) {
             npcs.removeAll();
+        }
+        if (fakes != null) {
+            fakes.stop();
         }
         if (writer != null) {
             writer.shutdown();

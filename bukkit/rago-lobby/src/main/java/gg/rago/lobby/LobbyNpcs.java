@@ -26,24 +26,31 @@ import org.bukkit.event.world.ChunkUnloadEvent;
 import org.bukkit.inventory.ItemStack;
 
 /**
- * The NPCs and leaderboards of the lobby, standing on the /lobby points named in config.yml. For
- * now they are armor stands: a visible one holding the icon of the first mode, with the NPC's name
- * and its queue count above it; a leaderboard is two floating lines until rago-stats exists. A
- * click on an NPC (left or right) joins its mode's queue, or opens a menu of its modes when it has
- * several or when its mode is not open yet (the menu then says so). Main thread only.
+ * The NPCs and leaderboards of the lobby, standing on the /lobby points named in config.yml. An
+ * NPC is a player with the Steve skin ({@link FakePlayer}, sent through PacketEvents) holding the
+ * icon of its mode or category, facing the spawn, with its name and its queue count floating
+ * above its head (two invisible armor stands); a leaderboard is two floating lines until the
+ * stats exist. A click on an NPC or its lines (left or right) joins its mode's queue, or opens a
+ * menu of its modes when it has several or when its mode is not open yet (the menu then says
+ * so). Main thread only.
  */
 final class LobbyNpcs implements Listener {
 
     /** Starts the name of every stand we spawn, so that a restart finds the old ones. */
     private static final String MARKER = ChatColor.RESET.toString() + ChatColor.RESET;
-    private static final double LINE = 0.3;
+    private static final double LINE = FakeHologram.LINE;
+    /** Height above the NPC's feet of its lowest line, just above its head (a player is 1.8 high). */
+    static final double ABOVE_HEAD = 2.25;
     private static final long CLICK_COOLDOWN_MS = 300;
+    /** Prefix of the NPC bodies' names: a colour code, so that no real player has one of them. */
+    private static final String BODY_NAME = ChatColor.DARK_GRAY + "pnj";
 
     private final LobbySettings settings;
     private final LobbyState state;
     private final LobbyPoints points;
     private final QueueController queues;
     private final ModeMenu menu;
+    private final FakeEntities fakes;
 
     /** Every stand we spawned, to the point it belongs to. */
     private final Map<UUID, String> stands = new HashMap<>();
@@ -52,12 +59,22 @@ final class LobbyNpcs implements Listener {
     private final Set<Long> keptChunks = new HashSet<>();
     private final Map<UUID, Long> lastClick = new HashMap<>();
 
-    LobbyNpcs(LobbySettings settings, LobbyState state, LobbyPoints points, QueueController queues, ModeMenu menu) {
+    LobbyNpcs(LobbySettings settings, LobbyState state, LobbyPoints points, QueueController queues, ModeMenu menu,
+            FakeEntities fakes) {
         this.settings = settings;
         this.state = state;
         this.points = points;
         this.queues = queues;
         this.menu = menu;
+        this.fakes = fakes;
+    }
+
+    /**
+     * The name of the body of the NPC at this index of {@link LobbySettings#npcs()}: the lobby
+     * scoreboard hides the name tags of these names.
+     */
+    static String bodyName(int index) {
+        return BODY_NAME + index;
     }
 
     /** (Re)spawns everything, after the start or after a point moved. Returns how many stand. */
@@ -65,7 +82,9 @@ final class LobbyNpcs implements Listener {
         removeAll();
         World world = state.world();
         int placed = 0;
-        for (LobbyNpc npc : settings.npcs()) {
+        List<LobbyNpc> npcs = settings.npcs();
+        for (int index = 0; index < npcs.size(); index++) {
+            LobbyNpc npc = npcs.get(index);
             SpawnPoint point = points.get(npc.point());
             if (point == null) {
                 continue;
@@ -83,9 +102,10 @@ final class LobbyNpcs implements Listener {
                 label(npc, base.clone().add(0, LINE, 0), npc.name());
                 label(npc, base.clone(), ChatColor.GRAY + "Le classement de la saison arrive bientôt");
             } else {
-                body(npc, base);
-                label(npc, base.clone().add(0, LINE, 0), npc.name());
-                countLines.put(npc.point(), label(npc, base.clone(), countText(npc)));
+                body(npc, index, base);
+                Location lowest = base.clone().add(0, ABOVE_HEAD - FakeHologram.NAME_HEIGHT, 0);
+                label(npc, lowest.clone().add(0, LINE, 0), npc.name());
+                countLines.put(npc.point(), label(npc, lowest, countText(npc)));
             }
             placed++;
         }
@@ -102,6 +122,7 @@ final class LobbyNpcs implements Listener {
         stands.clear();
         countLines.clear();
         keptChunks.clear();
+        fakes.clear();
     }
 
     /** Once a second: the queue counts. */
@@ -133,15 +154,10 @@ final class LobbyNpcs implements Listener {
                 + ChatColor.GREEN + "Clic pour jouer";
     }
 
-    private void body(LobbyNpc npc, Location at) {
-        ArmorStand stand = spawn(npc, at);
-        stand.setVisible(true);
-        stand.setArms(true);
-        stand.setBasePlate(false);
-        stand.setCustomNameVisible(false);
+    private void body(final LobbyNpc npc, int index, Location at) {
         ModeCategory category = npc.category() == null ? null : settings.category(npc.category());
-        stand.setItemInHand(new ItemStack(category != null ? category.icon()
-                : settings.display(npc.modeIds().get(0)).icon()));
+        ItemStack icon = new ItemStack(category != null ? category.icon() : settings.display(npc.modeIds().get(0)).icon());
+        fakes.add(new FakePlayer(at, bodyName(index), icon, player -> click(player, npc.point())));
     }
 
     private ArmorStand label(LobbyNpc npc, Location at, String text) {
@@ -188,8 +204,7 @@ final class LobbyNpcs implements Listener {
 
     // --- Clicks and protection ------------------------------------------------------------------
 
-    private void click(Player player, Entity entity) {
-        String point = stands.get(entity.getUniqueId());
+    private void click(Player player, String point) {
         LobbyNpc npc = point == null ? null : settings.npc(point);
         if (npc == null || npc.leaderboard() || !state.isProtected(player)) {
             return;
@@ -213,7 +228,7 @@ final class LobbyNpcs implements Listener {
     public void onInteract(PlayerInteractEntityEvent event) {
         if (stands.containsKey(event.getRightClicked().getUniqueId())) {
             event.setCancelled(true);
-            click(event.getPlayer(), event.getRightClicked());
+            click(event.getPlayer(), stands.get(event.getRightClicked().getUniqueId()));
         }
     }
 
@@ -232,7 +247,7 @@ final class LobbyNpcs implements Listener {
         event.setCancelled(true);
         if (event instanceof EntityDamageByEntityEvent
                 && ((EntityDamageByEntityEvent) event).getDamager() instanceof Player) {
-            click((Player) ((EntityDamageByEntityEvent) event).getDamager(), event.getEntity());
+            click((Player) ((EntityDamageByEntityEvent) event).getDamager(), stands.get(event.getEntity().getUniqueId()));
         }
     }
 

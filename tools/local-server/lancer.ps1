@@ -1,5 +1,5 @@
-﻿# Serveur de test local Rago Practice (Windows) : PandaSpigot 1.8.8 avec RagoCombatEngine, WorldEdit
-# et RagoBuildTools. Mode d'emploi : LISEZ-MOI.txt. Lancement : double-clic sur lancer-windows.bat.
+﻿# Serveur de test local Rago Practice (Windows) : PandaSpigot 1.8.8 avec RagoCombatEngine, WorldEdit,
+# PacketEvents et les plugins Rago. Mode d'emploi : LISEZ-MOI.txt. Lancement : double-clic sur lancer-windows.bat.
 #
 # Réglages facultatifs (variables d'environnement) :
 #   RAGO_JAVA          programme java à utiliser (par défaut : %JAVA_HOME%\bin\java.exe, sinon java)
@@ -20,6 +20,10 @@ $ServerJar = 'pandaspigot-226.jar'
 $WorldEditUrl = 'https://mediafilez.forgecdn.net/files/880/435/worldedit-bukkit-6.1.jar'
 $WorldEditSha256 = 'b9d3f0648e47424d66d94081b21a26504de0fbe6843f3d977c023aec066d4496'
 $WorldEditJar = 'plugins\worldedit-bukkit-6.1.jar'
+# PacketEvents 2.14.0, dont RagoLobby a besoin pour ses PNJ (https://github.com/retrooper/packetevents).
+$PacketEventsUrl = 'https://github.com/retrooper/packetevents/releases/download/v2.14.0/packetevents-spigot-2.14.0.jar'
+$PacketEventsSha256 = '0000000000000000000000000000000000000000000000000000000000000000'
+$PacketEventsJar = 'plugins\packetevents-spigot-2.14.0.jar'
 
 Set-Location -LiteralPath $PSScriptRoot
 
@@ -104,6 +108,7 @@ function Get-Verified([string]$Name, [string]$Url, [string]$Sha256, [string]$Fil
 [void][IO.Directory]::CreateDirectory((Join-Path $PSScriptRoot 'plugins'))
 Get-Verified 'PandaSpigot 1.8.8 (build 226)' $PandaSpigotUrl $PandaSpigotSha256 $ServerJar
 Get-Verified 'WorldEdit 6.1' $WorldEditUrl $WorldEditSha256 $WorldEditJar
+Get-Verified 'PacketEvents 2.14.0' $PacketEventsUrl $PacketEventsSha256 $PacketEventsJar
 
 # --- Mondes, schematics et sauvegardes -------------------------------------------------------------
 # Ils sont rangés hors de ce dossier : une nouvelle version du serveur de test les retrouve.

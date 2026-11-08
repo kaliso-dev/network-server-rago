@@ -41,7 +41,8 @@ Mac :
    dans la fenêtre du Terminal, puis appuie sur Entrée.
 3. Lis le CLUF de Minecraft (le lien s'affiche) et réponds oui pour l'accepter.
 
-Le premier lancement télécharge PandaSpigot, WorldEdit puis le serveur Minecraft 1.8.8 de Mojang :
+Le premier lancement télécharge PandaSpigot, WorldEdit, PacketEvents (pour les PNJ du lobby) puis
+le serveur Minecraft 1.8.8 de Mojang :
 il prend une minute ou deux. Le serveur est prêt quand la fenêtre affiche une ligne qui commence par
 « Done ». Les lancements suivants sont plus rapides.
 
@@ -226,9 +227,11 @@ lancement est retrouvé au second, et que le second lancement le sauvegarde. Le 
 sumo sont joués par deux bots dans un autre test (tools/lobby-check).
 
 Les deux scripts téléchargent le build 226 de PandaSpigot (celui sur lequel passe le test de
-contrôle) et WorldEdit 6.1, et vérifient leur somme SHA-256. La CI vérifie que les deux scripts
-fixent les mêmes sommes, et que celle de WorldEdit correspond au MD5 affiché par dev.bukkit.org.
-WorldEdit n'est pas dans le dossier assemblé : il est téléchargé chez son éditeur au lancement.
+contrôle), WorldEdit 6.1 et PacketEvents 2.14.0, et vérifient leur somme SHA-256. La CI vérifie
+que les deux scripts fixent les mêmes sommes, que celle de WorldEdit correspond au MD5 affiché par
+dev.bukkit.org, et que celle de PacketEvents est celle que GitHub donne pour le fichier de sa
+release. WorldEdit et PacketEvents ne sont pas dans le dossier assemblé : ils sont téléchargés
+chez leur éditeur au lancement.
 
 Le serveur range ses mondes dans RAGO_DONNEES/mondes (option --world-container), les schematics de
 WorldEdit dans RAGO_DONNEES/schematics (le script écrit plugins/WorldEdit/config.yml s'il n'existe

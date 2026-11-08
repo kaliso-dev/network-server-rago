@@ -3,6 +3,7 @@
 // Two bots join a local 1.8.8 test server that runs RagoLobby, RagoPractice and RagoCombatEngine
 // and play the way a player does:
 //   1. both arrive in the lobby: adventure mode, the selector in the first hotbar slot, the sidebar;
+//      the Duels NPC is a Steve holding a sword, out of the tab list, and a click on it opens Duels;
 //   2. RagoUn opens the selector with a right click, opens the Duels category, then clicks the sumo
 //      duel; RagoDeux types
 //      /file sumo;
@@ -27,6 +28,8 @@ const LOBBY_SPAWN = { x: 0.5, y: 65, z: 0.5 }
 const DUELS_SLOT = 12
 const SUMO_SLOT = 10
 const POINTS_TO_WIN = 3
+// run-lobby-test.sh places the NPC of the Duels category (point attackdefenseversionrbw) here.
+const DUELS_NPC = { x: 3.5, y: 65, z: 0.5 }
 
 let finishing = false
 
@@ -159,6 +162,34 @@ async function openSelectorAndJoinSumo (bot) {
   log(`${bot.username} joined the sumo queue from the selector`)
 }
 
+/** The NPC body standing on a point: a player whose name starts with a colour code. */
+function npcAt (bot, where) {
+  return Object.values(bot.entities).find((e) => e.type === 'player' && e.username?.startsWith('§8pnj') &&
+    Math.hypot(e.position.x - where.x, e.position.y - where.y, e.position.z - where.z) < 0.5)
+}
+
+/** The Duels NPC: a Steve with the category's sword, out of the tab list, name tag hidden; a click opens Duels. */
+async function checkDuelsNpc (bot) {
+  await waitFor(() => npcAt(bot, DUELS_NPC) != null, 10000,
+    `the Duels NPC at ${JSON.stringify(DUELS_NPC)}; players: ${JSON.stringify(Object.values(bot.entities)
+      .filter((e) => e.type === 'player').map((e) => [e.username, e.position]))}`)
+  const npc = npcAt(bot, DUELS_NPC)
+  await waitFor(() => npc.heldItem?.name === 'iron_sword', 5000, `the Duels NPC holding a sword (holds ${npc.heldItem?.name})`)
+  const team = bot.teamMap?.[npc.username]
+  if (team?.team !== 'pnj' || team.nameTagVisibility !== 'never') {
+    throw new Error(`the name tag of ${JSON.stringify(npc.username)} is not hidden: team ${team?.team}, ${team?.nameTagVisibility}`)
+  }
+  await waitFor(() => bot.players[npc.username] == null, 5000, `${JSON.stringify(npc.username)} to leave the tab list`)
+  const opened = new Promise((resolve) => bot.once('windowOpen', resolve))
+  bot.activateEntity(npc)
+  const window = await Promise.race([opened, sleep(5000).then(() => null)])
+  if (window == null) throw new Error('a click on the Duels NPC did not open a menu')
+  const title = typeof window.title === 'string' ? window.title : JSON.stringify(window.title)
+  if (!title.includes('Duels')) throw new Error(`the Duels NPC opened ${title}`)
+  bot.closeWindow(window)
+  log('the Duels NPC is a Steve holding a sword, out of the tab list, and its click opens Duels')
+}
+
 async function fallOff (bot) {
   bot.setControlState('back', true)
   bot.setControlState('jump', true)
@@ -180,6 +211,7 @@ async function main () {
   await waitFor(() => (one.scoreboard?.sidebar?.title ?? '').includes('RAGO PRACTICE'), 5000,
     `the lobby sidebar; sidebar: ${JSON.stringify(one.scoreboard?.sidebar?.title)}`)
   log('lobby: adventure mode, selector, visibility item and sidebar are there')
+  await checkDuelsNpc(one)
 
   // 2. The queue.
   await openSelectorAndJoinSumo(one)

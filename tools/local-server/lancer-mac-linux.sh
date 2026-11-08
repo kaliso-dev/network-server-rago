@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # Serveur de test local Rago Practice (macOS et Linux) : PandaSpigot 1.8.8 avec RagoCombatEngine,
-# WorldEdit et RagoBuildTools. Mode d'emploi : LISEZ-MOI.txt. Lancement : bash lancer-mac-linux.sh
+# WorldEdit, PacketEvents et les plugins Rago. Mode d'emploi : LISEZ-MOI.txt. Lancement : bash lancer-mac-linux.sh
 #
 # Réglages facultatifs (variables d'environnement) :
 #   RAGO_JAVA          programme java à utiliser (par défaut : $JAVA_HOME/bin/java, sinon java)
@@ -19,6 +19,10 @@ SERVER_JAR=pandaspigot-226.jar
 WORLDEDIT_URL=https://mediafilez.forgecdn.net/files/880/435/worldedit-bukkit-6.1.jar
 WORLDEDIT_SHA256=b9d3f0648e47424d66d94081b21a26504de0fbe6843f3d977c023aec066d4496
 WORLDEDIT_JAR=plugins/worldedit-bukkit-6.1.jar
+# PacketEvents 2.14.0, dont RagoLobby a besoin pour ses PNJ (https://github.com/retrooper/packetevents).
+PACKETEVENTS_URL=https://github.com/retrooper/packetevents/releases/download/v2.14.0/packetevents-spigot-2.14.0.jar
+PACKETEVENTS_SHA256=0000000000000000000000000000000000000000000000000000000000000000
+PACKETEVENTS_JAR=plugins/packetevents-spigot-2.14.0.jar
 
 cd "$(dirname "$0")"
 
@@ -88,6 +92,7 @@ fetch_verified() {
 mkdir -p plugins
 fetch_verified "PandaSpigot 1.8.8 (build 226)" "$PANDASPIGOT_URL" "$PANDASPIGOT_SHA256" "$SERVER_JAR"
 fetch_verified "WorldEdit 6.1" "$WORLDEDIT_URL" "$WORLDEDIT_SHA256" "$WORLDEDIT_JAR"
+fetch_verified "PacketEvents 2.14.0" "$PACKETEVENTS_URL" "$PACKETEVENTS_SHA256" "$PACKETEVENTS_JAR"
 
 # --- Mondes, schematics et sauvegardes ------------------------------------------------------------
 # Ils sont rangés hors de ce dossier : une nouvelle version du serveur de test les retrouve.

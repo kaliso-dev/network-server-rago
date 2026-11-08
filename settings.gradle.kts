@@ -24,6 +24,13 @@ dependencyResolutionManagement {
                 includeGroup("org.bukkit")
             }
         }
+        // PacketEvents is only published on CodeMC's repository.
+        maven("https://repo.codemc.io/repository/maven-releases/") {
+            name = "CodeMC"
+            content {
+                includeGroup("com.github.retrooper")
+            }
+        }
     }
 }
 
