@@ -36,8 +36,11 @@ Les maps ne sont pas dans ce dépôt.
 - **Le shop et les améliorations** : sous les blocs barrière que les maps d'Hypixel gardent
   au-dessus de la tête de leurs PNJ, un de chaque côté du spawn ; s'il n'y en a que d'un côté, le
   reflet de l'autre PNJ de l'autre côté de l'île ; sinon la niche (une case murée sauf d'un côté) de
-  chaque côté du spawn ; sinon le bord de l'île, entre le spawn et le générateur. Tournés vers la
-  sortie de leur niche, ou vers le spawn.
+  chaque côté du spawn ; sinon le bord de l'île, entre le spawn et le générateur. Quand les
+  barrières sont trop basses pour un villageois (une dalle sous une ligne de barrières, comme sur
+  Sky Rise, Extinction ou Gelato), elles gardent le devant de la niche : le PNJ va dans la niche
+  juste derrière. Tournés d'un quart de tour vers la sortie de leur niche, ou vers le spawn.
+  RagoBedwars fait la même correction en jeu, pour les `bedwars.yml` déjà écrits.
 - **Diamant et émeraude** : les blocs de diamant et d'émeraude seuls que les maps d'Hypixel posent
   sous leurs générateurs ; sinon les groupes de blocs de diamant (ou d'émeraude) qui décorent leurs
   îles ; sinon la forme de la map (les îles les plus éloignées pour le diamant, le milieu pour

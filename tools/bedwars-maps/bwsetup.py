@@ -24,6 +24,8 @@ NOT_FLOOR = PASS | LIQUID | {26, 54, 130, 146, 85, 113, 188, 189, 190, 191, 192,
                              102, 160, 166, 18, 161, 65, 81, 92, 120, 127, 140, 144, 64, 71, 193, 194, 195, 196, 197, 96,
                              167, 117, 118, 116, 145}
 SLABS = {44, 126, 182}
+# How tall a villager is: an NPC needs this much room under whatever is above its head.
+NPC_HEIGHT = 1.95
 
 # The teams in RagoBedwars' order, with the data values of the wool/clay/glass that mark them.
 TEAMS = [('red', [14]), ('blue', [11]), ('green', [5, 13]), ('yellow', [4]), ('aqua', [9, 3]), ('white', [0]),
@@ -31,10 +33,10 @@ TEAMS = [('red', [14]), ('blue', [11]), ('green', [5, 13]), ('yellow', [4]), ('a
 COLOURED = [35, 159, 95, 160, 171]
 
 
-def yaw_towards(dx, dz):
-    """Minecraft yaw looking along (dx, dz), rounded to 45 degrees."""
+def yaw_towards(dx, dz, step=45.0):
+    """Minecraft yaw looking along (dx, dz), rounded to 45 degrees (or another step)."""
     yaw = math.degrees(math.atan2(-dx, dz))
-    return float((round(yaw / 45.0) * 45) % 360)
+    return float((round(yaw / step) * step) % 360)
 
 
 class Setup:
@@ -416,9 +418,71 @@ class Setup:
                 continue
             h = collections.Counter(f[2] for f in floors).most_common(1)[0][0]
             floors = [f for f in floors if f[2] == h]
+            way = None
+            if min(lowest[(f[0], f[1])] for f in floors) - h < NPC_HEIGHT:
+                # too low for a villager: the barriers guard the front of its niche (a slab under them,
+                # as on Sky Rise or Extinction), and the NPC stands in the niche behind, facing out
+                behind = self.behind_guard(floors, s)
+                if behind is None:
+                    continue
+                floors, h, way = behind
             spots.append({'x': float(np.mean([f[0] for f in floors])) + 0.5, 'z': float(np.mean([f[1] for f in floors])) + 0.5,
-                          'h': h, 'way': None})
+                          'h': h, 'way': way})
         return spots
+
+    def floor_top(self, i, k, near):
+        """The top of the floor of this column at about this height (a slab's half included), or None."""
+        w = self.w
+        for f in range(int(math.ceil(near)), int(math.floor(near)) - 3, -1):
+            if not ids_pass(w, i, f, k):
+                if not (0 <= f < 256 and 0 <= i < w.sx and 0 <= k < w.sz) or int(w.ids[i, f, k]) in NOT_FLOOR:
+                    return None
+                return f + 0.5 if int(w.ids[i, f, k]) in SLABS and not int(w.data[i, f, k]) & 8 else f + 1.0
+        return None
+
+    def behind_guard(self, guard, s):
+        """The cells next to these guarded ones where a villager stands: room for its height, walled in
+        on the sides (a niche), the farther from the bed the better. With the way out, towards the guard."""
+        w = self.w
+        guard_cells = {(g[0], g[1]) for g in guard}
+        best = None
+        for di, dk in ((1, 0), (-1, 0), (0, 1), (0, -1)):
+            cells = []
+            for i, k, top in guard:
+                ni, nk = i + di, k + dk
+                if (ni, nk) in guard_cells:
+                    cells = None
+                    break
+                ntop = self.floor_top(ni, nk, top)
+                if ntop is None or abs(ntop - top) > 1.0:
+                    cells = None
+                    break
+                base = int(math.floor(ntop + 0.01))
+                if not all(ids_pass(w, ni, y, nk) for y in range(base if ntop == base else base + 1, int(ntop + NPC_HEIGHT) + 1)):
+                    cells = None
+                    break
+                cells.append((ni, nk, ntop))
+            if not cells:
+                continue
+            tops = collections.Counter(c[2] for c in cells).most_common(1)[0][0]
+            cells = [c for c in cells if c[2] == tops]
+            inside = {(c[0], c[1]) for c in cells}
+            walls = 0
+            for ni, nk, ntop in cells:
+                for ei, ek in ((1, 0), (-1, 0), (0, 1), (0, -1)):
+                    q = (ni + ei, nk + ek)
+                    if q in inside or q in guard_cells:
+                        continue
+                    if not ids_pass(w, q[0], int(math.floor(ntop + 0.01)) + 1, q[1]):
+                        walls += 1
+            mi = float(np.mean([c[0] for c in cells]))
+            mk = float(np.mean([c[1] for c in cells]))
+            score = (walls, (mi - s[0]) ** 2 + (mk - s[2]) ** 2)
+            if best is None or score > best[0]:
+                best = (score, cells, tops, (-di, -dk))
+        if best is None:
+            return None
+        return best[1], best[2], best[3]
 
     def niches(self, level, cellset, boxes):
         """The NPC niches: small groups of cells walled in all round but on one side, where they open."""
@@ -471,8 +535,11 @@ class Setup:
         if isinstance(spot, dict):
             x, z = self.w.world_xz(spot['x'], spot['z'])
             way = spot['way'] or (towards[0] - spot['x'], towards[1] - spot['z'])
-            return {'x': float(x), 'y': spot['h'], 'z': float(z), 'yaw': yaw_towards(*way)}
-        return self.point(spot, face=(towards[0] - spot[0] - 0.5, towards[1] - spot[2] - 0.5))
+            # a quarter turn, as Hypixel's NPCs stand: straight out of their niche
+            return {'x': float(x), 'y': spot['h'], 'z': float(z), 'yaw': yaw_towards(*way, step=90.0)}
+        p = self.point(spot)
+        p['yaw'] = yaw_towards(towards[0] - spot[0] - 0.5, towards[1] - spot[2] - 0.5, step=90.0)
+        return p
 
     def point(self, c, face=None, centre=False):
         i, y, k = c

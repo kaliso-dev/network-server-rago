@@ -199,9 +199,10 @@ final class BedwarsGame {
             Location spot = team.points.generator.in(world);
             forges.add(new Generator(spot, Material.IRON_INGOT, forge.iron(map.world(), teamSize, islands), null));
             forges.add(new Generator(spot, Material.GOLD_INGOT, forge.gold(), null));
-            spawnNpc(team.points.shop.in(world), ChatColor.AQUA + "ITEM SHOP", null);
+            Location spawn = team.points.spawn.in(world);
+            spawnNpc(team.points.shop.in(world), spawn, ChatColor.AQUA + "ITEM SHOP", null);
             if (team.points.upgrades != null) {
-                spawnNpc(team.points.upgrades.in(world), ChatColor.AQUA + (teamSize <= 1 ? "SOLO UPGRADES"
+                spawnNpc(team.points.upgrades.in(world), spawn, ChatColor.AQUA + (teamSize <= 1 ? "SOLO UPGRADES"
                         : "TEAM UPGRADES"), team);
             }
         }
@@ -265,12 +266,12 @@ final class BedwarsGame {
      * A villager on its point, its name floating above it on two lines as on Hypixel ("ITEM SHOP",
      * "RIGHT CLICK"): the lines are invisible armour stands, which every client shows.
      */
-    private void spawnNpc(Location point, String name, Team upgradesOf) {
-        // straight out of its niche, as on Hypixel: the yaw of its point, to the nearest quarter turn
-        Location spot = point.clone();
-        spot.setYaw(Math.round(point.getYaw() / 90f) * 90f);
-        spot.setPitch(0f);
-        spot.getChunk().load();
+    private void spawnNpc(Location point, Location spawn, String name, Team upgradesOf) {
+        point.getChunk().load();
+        // in its niche, straight out of it, as on Hypixel: not on the guard in front of it (NpcSpot)
+        NpcSpot fitted = NpcSpot.fit(blocks(point.getWorld()), point.getX(), point.getY(), point.getZ(), point.getYaw(),
+                spawn.getX(), spawn.getZ());
+        Location spot = new Location(point.getWorld(), fitted.x, fitted.y, fitted.z, fitted.yaw, 0f);
         Villager villager = spot.getWorld().spawn(spot, Villager.class);
         villager.setProfession(Villager.Profession.FARMER);
         villager.setAdult();
@@ -283,6 +284,31 @@ final class BedwarsGame {
         if (upgradesOf != null) {
             upgradeNpcs.put(villager, upgradesOf);
         }
+    }
+
+    /** The blocks of this world as an NPC sees them: what it cannot stand in, and how high each floor is. */
+    static NpcSpot.Blocks blocks(World world) {
+        return new NpcSpot.Blocks() {
+            @Override
+            public boolean solid(int x, int y, int z) {
+                return y >= 0 && y < 256 && world.getBlockAt(x, y, z).getType().isSolid();
+            }
+
+            @Override
+            @SuppressWarnings("deprecation") // Block#getData: the 1.8 data value, the top bit of a slab's
+            public double height(int x, int y, int z) {
+                if (y < 0 || y >= 256) {
+                    return 0;
+                }
+                org.bukkit.block.Block block = world.getBlockAt(x, y, z);
+                Material type = block.getType();
+                if (!type.isSolid()) {
+                    return 0;
+                }
+                boolean slab = type == Material.STEP || type == Material.WOOD_STEP || type == Material.STONE_SLAB2;
+                return slab && (block.getData() & 8) == 0 ? 0.5 : 1.0;
+            }
+        };
     }
 
     /** A line of text floating here: an invisible armour stand that nothing can touch or click. */
