@@ -145,6 +145,7 @@ public final class RagoPractice extends JavaPlugin {
         register("attack-defense-1v1", (h, m, a, t) -> new AttackDefense(h, m, a, t, build, attack, rounds), slots, spacing, false);
         register("attack-defense-2v2", (h, m, a, t) -> new AttackDefense(h, m, a, t, build, attack, rounds), slots, spacing, false);
         register("fireball", FireballFight::new, slots, spacing, false);
+        register("clutch", ClutchTraining::new, slots, spacing, false);
     }
 
     private void register(String modeId, PracticeHost.Factory factory, int slots, int spacing, boolean open) {
