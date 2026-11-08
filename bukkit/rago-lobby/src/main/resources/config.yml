@@ -194,3 +194,21 @@ modes:
       - "Simulation de fin de partie"
       - "RBW à deux contre deux,"
       - "sur Sky Rise."
+  attack-defense-1v1:
+    nom: "&cAttack and defense 1v1"
+    icone: IRON_SWORD
+    equipes: 2
+    joueurs-par-equipe: 1
+    classe: false
+    description:
+      - "Un joueur attaque le lit,"
+      - "l'autre le défend."
+  attack-defense-2v2:
+    nom: "&cAttack and defense 2v2"
+    icone: IRON_SWORD
+    equipes: 2
+    joueurs-par-equipe: 2
+    classe: false
+    description:
+      - "Une équipe attaque le lit,"
+      - "l'autre le défend."
