@@ -28,17 +28,21 @@ Les maps ne sont pas dans ce dépôt.
   (la couleur du thème de la map est partout, celle de l'équipe seulement chez elle). Les cartes à
   2, 4 et 8 équipes prennent les 2, 4 ou 8 premières couleurs (red, blue, green, yellow, aqua,
   white, pink, gray), comme sur Hypixel.
-- **Le générateur** : la fosse de dalles un demi-bloc sous le sol où tombent les objets ; sinon une
-  fosse d'un bloc ; sinon le fond de l'île, dans l'axe du lit. Une marche entre deux sols n'est pas
-  une fosse.
-- **Le spawn** : entre le coffre et l'ender chest, sinon entre le lit et le générateur, tourné vers
-  le lit.
-- **Le shop et les améliorations** : de chaque côté de l'île, entre le spawn et le générateur,
-  tournés vers le spawn.
+- **Le générateur** : la fosse de dalles un demi-bloc sous le sol où tombent les objets (sous le sol
+  de l'île, ou sous le sol qui l'entoure) ; sinon une fosse d'un bloc ; sinon le fond de l'île, dans
+  l'axe du lit. Une marche entre deux sols n'est pas une fosse, et la place d'un PNJ non plus.
+- **Le spawn** : entre le coffre et l'ender chest (trouvés par leurs blocs), sinon entre le lit et le
+  générateur, tourné vers le lit.
+- **Le shop et les améliorations** : sous les blocs barrière que les maps d'Hypixel gardent
+  au-dessus de la tête de leurs PNJ, un de chaque côté du spawn ; s'il n'y en a que d'un côté, le
+  reflet de l'autre PNJ de l'autre côté de l'île ; sinon la niche (une case murée sauf d'un côté) de
+  chaque côté du spawn ; sinon le bord de l'île, entre le spawn et le générateur. Tournés vers la
+  sortie de leur niche, ou vers le spawn.
 - **Diamant et émeraude** : les blocs de diamant et d'émeraude seuls que les maps d'Hypixel posent
   sous leurs générateurs ; sinon les groupes de blocs de diamant (ou d'émeraude) qui décorent leurs
   îles ; sinon la forme de la map (les îles les plus éloignées pour le diamant, le milieu pour
   l'émeraude). Quatre générateurs de diamant ; quatre d'émeraude sur une map à 8 équipes, deux sinon.
 
-Sur 54 maps solo/doubles et 4 équipes, toutes ont eu leurs équipes complètes. Les points trouvés
-par la forme de la map sont les moins sûrs : à regarder en premier.
+Sur 54 maps solo/doubles et 4 équipes, toutes ont eu leurs équipes complètes, et 344 îles sur 408
+ont leurs deux PNJ sous des barrières. Les points trouvés par la forme de la map, et les PNJ placés
+au bord de l'île, sont les moins sûrs : à regarder en premier.

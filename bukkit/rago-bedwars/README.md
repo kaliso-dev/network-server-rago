@@ -8,7 +8,9 @@ moteur.
 ## La partie
 
 - Chaque équipe apparaît sur son île, avec une épée en bois et une armure en cuir à sa couleur.
-  Compte à rebours de 3 secondes, immobile, puis « Fight! ».
+  Compte à rebours de 3 secondes, immobile, puis « Fight! ». Sur une map qui a plus d'îles que la
+  partie n'a d'équipes, les équipes prennent des îles éloignées (un duel sur une map à 4 se joue sur
+  deux îles opposées, rouge contre vert), et les lits des îles vides sont enlevés.
 - **Générateurs** : chaque île a son générateur de fer et d'or ; les générateurs de diamant et
   d'émeraude affichent leur tier et le temps avant le prochain objet. Ils passent tier II puis III
   pendant la partie.
@@ -23,7 +25,9 @@ moteur.
   achetés vont dans la case que leur donne le hotbar manager Hypixel du joueur, si elle est libre.
   L'armure achetée reste jusqu'à la fin ; la pioche et la hache montent tier par tier et perdent un
   tier à chaque mort ; les cisailles restent. TNT allumée en la posant, boules de feu lancées au
-  clic droit, seau d'eau à usage unique.
+  clic droit (leur explosion fait 1 cœur à celui qui la lance et 1,5 aux autres, avant l'armure,
+  réglable dans `boule-de-feu:`, et garde son recul : on peut sauter dessus), seau d'eau à usage
+  unique.
 - **Morts** : un coup qui tuerait, une chute dans le vide ou une chute mortelle. Le kill revient au
   dernier joueur qui a frappé dans les 10 secondes, avec le fer, l'or, les diamants et les
   émeraudes du mort. Tant que son lit tient, le joueur revient au bout de 5 secondes (il regarde la

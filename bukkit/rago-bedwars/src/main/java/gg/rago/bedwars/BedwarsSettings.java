@@ -34,9 +34,12 @@ final class BedwarsSettings {
     private final int emeraldIII;
     private final int bedsGone;
     private final int gameEnd;
+    /** The damage of a fireball's blast, before the armour: on its thrower, on the other players. */
+    private final double fireballSelf;
+    private final double fireballOthers;
 
     private BedwarsSettings(List<String> modes, int maxGames, boolean demo, int respawnSeconds, Rate iron, Rate gold,
-            List<Rate> diamond, List<Rate> emerald, int[] events) {
+            List<Rate> diamond, List<Rate> emerald, int[] events, double[] fireball) {
         this.modes = Collections.unmodifiableList(modes);
         this.maxGames = maxGames;
         this.demo = demo;
@@ -51,6 +54,8 @@ final class BedwarsSettings {
         this.emeraldIII = events[3];
         this.bedsGone = events[4];
         this.gameEnd = events[5];
+        this.fireballSelf = fireball[0];
+        this.fireballOthers = fireball[1];
     }
 
     /** The settings of config.yml. Throws IllegalArgumentException naming the wrong setting. */
@@ -88,8 +93,18 @@ final class BedwarsSettings {
             }
             previous = events[i];
         }
+        double[] fireball = {damage(config, "boule-de-feu.degats-sur-soi", 2.0),
+            damage(config, "boule-de-feu.degats-sur-les-autres", 3.0)};
         return new BedwarsSettings(modes, maxGames, config.getBoolean("carte-demo", true), respawn, iron, gold, diamond,
-                emerald, events);
+                emerald, events, fireball);
+    }
+
+    private static double damage(ConfigurationSection config, String path, double fallback) {
+        double damage = config.getDouble(path, fallback);
+        if (damage < 0 || damage > 20) {
+            throw new IllegalArgumentException(path + ": in half hearts, from 0 to 20");
+        }
+        return damage;
     }
 
     private static Rate rate(ConfigurationSection config, String path, double seconds, int max) {
@@ -182,5 +197,15 @@ final class BedwarsSettings {
 
     int gameEnd() {
         return gameEnd;
+    }
+
+    /** The damage of a fireball's blast on its thrower, in half hearts before the armour. */
+    double fireballSelf() {
+        return fireballSelf;
+    }
+
+    /** The damage of a fireball on the other players, in half hearts before the armour. */
+    double fireballOthers() {
+        return fireballOthers;
     }
 }

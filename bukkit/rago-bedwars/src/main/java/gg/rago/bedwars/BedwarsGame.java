@@ -131,7 +131,7 @@ final class BedwarsGame {
         this.modeName = modeName;
         this.settings = plugin.settings();
         this.catalog = plugin.catalog();
-        List<TeamColor> colors = instance.map().completeTeams();
+        List<TeamColor> colors = instance.map().playingTeams(sides.size());
         for (int i = 0; i < sides.size(); i++) {
             TeamColor color = colors.get(i);
             Team team = new Team(color, instance.map().teams().get(color));
@@ -173,6 +173,14 @@ final class BedwarsGame {
     void begin() {
         World world = instance.world();
         BedwarsMap map = instance.map();
+        // The islands nobody plays on have no bed, as on Hypixel; the copy puts it back after the game.
+        for (Map.Entry<TeamColor, BedwarsMap.Team> entry : map.teams().entrySet()) {
+            if (entry.getValue().bed != null && !playing(entry.getKey())) {
+                for (Block half : Instance.bedOf(entry.getValue().bed.blockIn(world))) {
+                    half.setType(Material.AIR, false);
+                }
+            }
+        }
         for (Team team : teams) {
             Location spot = team.points.generator.in(world);
             generators.add(new Generator(spot, Material.IRON_INGOT, settings.iron(), null));
@@ -428,6 +436,16 @@ final class BedwarsGame {
     }
 
     // --- Beds -----------------------------------------------------------------------------------
+
+    /** True if this colour plays in this game. */
+    private boolean playing(TeamColor color) {
+        for (Team team : teams) {
+            if (team.color == color) {
+                return true;
+            }
+        }
+        return false;
+    }
 
     /** The team whose bed this block is part of, or null. */
     Team bedTeam(Block block) {

@@ -38,6 +38,8 @@ class BedwarsSettingsTest {
         assertEquals(6 * 60, settings.diamondII());
         assertEquals(30 * 60, settings.bedsGone());
         assertEquals(45 * 60, settings.gameEnd());
+        assertEquals(2.0, settings.fireballSelf());
+        assertEquals(3.0, settings.fireballOthers());
     }
 
     @Test
@@ -47,6 +49,7 @@ class BedwarsSettingsTest {
         assertEquals(20, settings.iron().ticks);
         assertEquals(3, settings.emerald().size());
         assertEquals(24 * 60, settings.emeraldIII());
+        assertEquals(2.0, settings.fireballSelf());
     }
 
     @Test
@@ -57,6 +60,7 @@ class BedwarsSettingsTest {
         assertProblem("generateurs:\n  fer:\n    secondes: 0", "generateurs.fer.secondes");
         assertProblem("generateurs:\n  diamant:\n    secondes: [30, 20]", "generateurs.diamant.secondes");
         assertProblem("evenements:\n  diamant-2: 20", "evenements.emeraude-2");
+        assertProblem("boule-de-feu:\n  degats-sur-soi: -1", "boule-de-feu.degats-sur-soi");
     }
 
     private static void assertProblem(String yaml, String setting) {

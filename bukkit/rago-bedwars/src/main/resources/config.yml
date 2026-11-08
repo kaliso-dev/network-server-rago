@@ -46,3 +46,9 @@ evenements:
   emeraude-3: 24
   fin-des-lits: 30
   fin-de-partie: 45
+
+# A fireball's blast does a fixed damage, in half hearts before the armour, so that a fireball jump
+# only costs a heart: on the player who threw it, and on the other players it hits (from 0 to 20).
+boule-de-feu:
+  degats-sur-soi: 2.0
+  degats-sur-les-autres: 3.0

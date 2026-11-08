@@ -24,7 +24,8 @@
 //      start on their islands with a wooden sword and leather armour, the sidebar lists the teams;
 //      after "Fight!" they pick up the iron of their generator standing on their spawn, RagoUn opens
 //      the item shop villager and buys wool from its Quick Buy, cannot place it near its spawn,
-//      places it by its bed and breaks it again, cannot break its own bed; RagoDeux walks off its
+//      places it by its bed and breaks it again, cannot break its own bed, buys a fireball and
+//      jumps on it at its feet (about a heart lost, not its life); RagoDeux walks off its
 //      island, dies in the void and respawns (its bed stands), then leaves with /spawn: RagoUn
 //      wins, and both are back in the lobby.
 //
@@ -499,6 +500,61 @@ async function shopAndBuild (bot) {
   await chatLine(bot, /You can't destroy your own bed!/, 5000, from)
   await waitFor(() => bot.blockAt(new V(side * 28, BEDWARS_FLOOR + 1, 0))?.name === 'bed', 5000, `${bot.username} to see its bed stand`)
   log(`${bot.username} cannot break its own bed`)
+  await fireballJump(bot)
+}
+
+/**
+ * A fireball thrown at its own feet from the spawn: the blast lifts the bot and takes about a
+ * heart, not the 20 hearts of a vanilla blast at point blank. run-lobby-test.sh makes the iron
+ * generators four times faster, so that the 40 iron come in time.
+ */
+async function fireballJump (bot) {
+  await waitFor(() => countOf(bot, 'iron_ingot') >= 40, 30000,
+    `${bot.username} to pick up 40 iron for a fireball (has ${countOf(bot, 'iron_ingot')})`)
+  const opened = new Promise((resolve) => bot.once('windowOpen', resolve))
+  bot.activateEntity(shopVillager(bot))
+  const shop = await Promise.race([opened, sleep(5000).then(() => null)])
+  if (shop == null) throw new Error(`${bot.username}: the item shop did not open again`)
+  // The default Quick Buy: the fireball is the third item of the third row (slot 39).
+  if (shop.slots[39]?.name !== 'fire_charge') {
+    throw new Error(`${bot.username}: slot 39 of the Quick Buy holds ${shop.slots[39]?.name}, not the fireball`)
+  }
+  let from = mark(bot)
+  bot.clickWindow(39, 0, 0).catch(() => {})
+  await chatLine(bot, /You purchased Fireball/, 5000, from)
+  bot.closeWindow(shop)
+  await waitFor(() => countOf(bot, 'fire_charge') === 1, 5000, `${bot.username} to get its fireball`)
+  await bot.equip(bot.inventory.items().find((item) => item.name === 'fire_charge'), 'hand')
+  await bot.look(bot.entity.yaw, -Math.PI / 2, true)
+  await sleep(200)
+  const floor = bot.entity.position.y
+  const before = bot.health
+  const healths = []
+  let highest = floor
+  const onHealth = () => healths.push(bot.health)
+  const onMove = () => { highest = Math.max(highest, bot.entity.position.y) }
+  bot.on('health', onHealth)
+  bot.on('move', onMove)
+  from = mark(bot)
+  bot.activateItem()
+  try {
+    await waitFor(() => healths.some((health) => health < before), 5000,
+      `${bot.username} to be hurt by the blast of its fireball (health ${bot.health})`)
+    // the bot goes up and lands again: the fall can hurt too
+    await sleep(3000)
+  } finally {
+    bot.removeListener('health', onHealth)
+    bot.removeListener('move', onMove)
+  }
+  const blast = before - healths.find((health) => health < before)
+  if (blast > 3) throw new Error(`${bot.username} lost ${blast} health to the blast of its own fireball`)
+  const died = chats.get(bot.username).slice(from).some((line) => /RagoUn (died|fell into the void)/.test(line))
+  if (died || bot.game.gameMode !== 'survival' || bot.health < 12) {
+    throw new Error(`${bot.username} did not survive its fireball jump: ${bot.game.gameMode}, health ${bot.health}`)
+  }
+  if (highest < floor + 1.5) throw new Error(`the fireball did not lift ${bot.username}: up to ${highest}, from ${floor}`)
+  if (countOf(bot, 'fire_charge') !== 0) throw new Error(`${bot.username} still holds its fireball`)
+  log(`${bot.username} jumped on its fireball: up ${(highest - floor).toFixed(1)} blocks, ${blast.toFixed(1)} health lost to the blast, ${bot.health.toFixed(1)} left`)
 }
 
 /** RagoDeux walks off the back of its island: the void kills it, and it respawns since its bed stands. */

@@ -106,7 +106,9 @@ class Setup:
     def team_beds(self):
         w = self.w
         beds = self.beds()
-        chests = [(t['x'] - w.x0, t['y'], t['z'] - w.z0) for t in w.tiles if t.get('id') == 'Chest']
+        # by their blocks: a ripped map can lose the tile entity of a chest
+        chests = sorted({(t['x'] - w.x0, t['y'], t['z'] - w.z0) for t in w.tiles if t.get('id') == 'Chest'}
+                        | {tuple(int(v) for v in p) for p in np.argwhere(w.ids == 54)})
         enders = [tuple(int(v) for v in p) for p in np.argwhere(w.ids == 130)]
         boxes = chests + enders
         team = []
@@ -211,9 +213,15 @@ class Setup:
         # generator: a pit of slabs half a block under the floor, where the items fall; else a small
         # pit a block under it; else the back of the island, on its axis
         floor_h = collections.Counter(self.h(*c) for c in level).most_common(1)[0][0]
+        # the NPCs' places, under their barriers: never the generator
+        marked = self.barrier_spots(b['foot'], radius=20)
+        npc_places = [(n['x'], n['z']) for n in marked]
 
-        def find_pits(sunk, most):
+        def find_pits(sunk, most, sunk_by=None):
             pits = []
+            # no generator where an NPC stands
+            sunk = {q: c for q, c in sunk.items()
+                    if all((q[0] + 0.5 - px) ** 2 + (q[1] + 0.5 - pz) ** 2 >= 2.5 ** 2 for px, pz in npc_places)}
             left = set(sunk)
             while left:
                 start = left.pop()
@@ -232,11 +240,20 @@ class Setup:
                            and self.h(*cellset[(x + dx, z + dz)]) < hg - 0.1
                            for x, z in group for dx, dz in ((1, 0), (-1, 0), (0, 1), (0, -1)))
                 chests = any(abs(q[0] - x) + abs(q[2] - z) <= 1 for q in b['boxes'] for x, z in group)
+                # sunk into the floor around it: the cells next to it mostly half a block higher
+                around = collections.Counter(self.h(*cellset[(x + dx, z + dz)]) - hg for x, z in group
+                                             for dx, dz in ((1, 0), (-1, 0), (0, 1), (0, -1))
+                                             if (x + dx, z + dz) not in inside and (x + dx, z + dz) in cellset)
+                if sunk_by is not None and (not around or abs(around.most_common(1)[0][0] - sunk_by) > 0.01):
+                    continue
                 if 3 <= len(group) <= most and not step and not chests:
                     pits.append([sunk[q] for q in group])
             return pits
 
         pits = find_pits({(c[0], c[2]): c for c in level if self.slab_below[c] and self.h(*c) == floor_h - 0.5}, 40)
+        if not pits:
+            # the floor of the island is not the floor of its base: slabs half a block under theirs
+            pits = find_pits({(c[0], c[2]): c for c in level if self.slab_below[c]}, 40, sunk_by=0.5)
         how_g = 'slab pit'
         if not pits:
             pits = find_pits({(c[0], c[2]): c for c in level if floor_h - 1.5 <= self.h(*c) <= floor_h - 0.9}, 100)
@@ -267,10 +284,65 @@ class Setup:
             how = 'between bed and generator'
         s = snap(target, avoid=[g])
         sa = float((np.array([s[0] + 0.5, s[2] + 0.5]) - bed_xz) @ u)
-        # shop and upgrades: on each side, from the spawn to the generator
+        # shop and upgrades: in the niche on each side of the spawn where the map puts its NPCs; else
+        # on each side, from the spawn to the generator
         sxz = np.array([s[0] + 0.5, s[2] + 0.5])
-        side = []
+        niches = self.niches(level, cellset, b['boxes'])
+        # Hypixel's maps keep barriers over the NPCs' heads: where there are some, there they stand
+        under_barriers = {}
         for sign in (1, -1):
+            best = None
+            for n in marked:
+                nxz = np.array([n['x'], n['z']])
+                sd = float(((nxz - sxz) ** 2).sum())
+                if sign * float((nxz - sxz) @ v) < 1.5 or abs(n['h'] - self.h(*s)) > 2.5 or sd > 16 ** 2:
+                    continue
+                if best is None or sd < best[0]:
+                    best = (sd, n)
+            if best is not None:
+                under_barriers[sign] = best[1]
+        side = []
+        how_n = []
+        for sign in (1, -1):
+            if sign in under_barriers:
+                side.append(under_barriers[sign])
+                how_n.append('barriers')
+                continue
+            if -sign in under_barriers:
+                # the islands are symmetric: the mirror image of the other NPC's place
+                n = under_barriers[-sign]
+                d = np.array([n['x'], n['z']]) - bed_xz
+                m = bed_xz + (d @ u) * u - (d @ v) * v
+                near = [c for c in level if abs(c[0] + 0.5 - m[0]) <= 1.5 and abs(c[2] + 0.5 - m[1]) <= 1.5]
+                if near and (m[0] - g[0] - 0.5) ** 2 + (m[1] - g[2] - 0.5) ** 2 >= 9:
+                    c0 = min(near, key=lambda c: (c[0] + 0.5 - m[0]) ** 2 + (c[2] + 0.5 - m[1]) ** 2)
+                    same = [c for c in near if self.h(*c) == self.h(*c0)]
+                    side.append({'x': float(np.mean([c[0] for c in same])) + 0.5,
+                                 'z': float(np.mean([c[2] for c in same])) + 0.5, 'h': self.h(*c0), 'way': None})
+                    how_n.append('mirror')
+                    continue
+            best = None
+            for n in niches:
+                nxz = np.array([n['x'], n['z']])
+                na = float((nxz - bed_xz) @ u)
+                nl = float((nxz - bed_xz) @ v)
+                sl = float((sxz - bed_xz) @ v)
+                if sign * (nl - sl) < 1.5 or abs(n['h'] - self.h(*s)) > 2.0:
+                    continue
+                if na < min(sa, ga) - 6 or na > max(sa, ga) + 2:
+                    continue
+                gd = (n['x'] - g[0] - 0.5) ** 2 + (n['z'] - g[2] - 0.5) ** 2
+                sd = float(((nxz - sxz) ** 2).sum())
+                if gd < 9 or sd > 14 ** 2:
+                    continue
+                # the floor of the spawn first: a nook a step up is not where the NPC stands
+                rank = (abs(n['h'] - self.h(*s)) > 0.5, sd)
+                if best is None or rank < best[0]:
+                    best = (rank, n)
+            if best is not None:
+                side.append(best[1])
+                how_n.append('niche')
+                continue
             pick = None
             best = -1e9
             for c, ai, li in zip(level, a, l):
@@ -290,16 +362,117 @@ class Setup:
                 if inner is not None and abs(self.h(*inner) - self.h(*pick)) <= 1:
                     pick = inner
             side.append(pick)
-        shop, upgrades = side
+            how_n.append('side')
+        shop, upgrades = [self.npc(c, sxz) for c in side]
         team = {
             'bed': b, 'island': b['island'], 'axis': u, 'cells': len(level),
             'spawn': self.point(s, face=(fi + 0.5 - (s[0] + 0.5), fk + 0.5 - (s[2] + 0.5))),
             'generator': self.point(g, centre=True),
-            'shop': self.point(shop, face=(sxz[0] - shop[0] - 0.5, sxz[1] - shop[2] - 0.5)) if shop else None,
-            'upgrades': self.point(upgrades, face=(sxz[0] - upgrades[0] - 0.5, sxz[1] - upgrades[2] - 0.5)) if upgrades else None,
-            'how': how + ', generator: ' + how_g,
+            'shop': shop,
+            'upgrades': upgrades,
+            'how': how + ', generator: ' + how_g + ', NPCs: ' + '/'.join(how_n),
         }
         return team
+
+    def barrier_spots(self, s, radius=16):
+        """Where NPCs stood near this cell: under a group of barrier blocks, on the floor below."""
+        w = self.w
+        if not hasattr(self, 'barriers'):
+            self.barriers = np.argwhere(w.ids == 166)
+        sy = s[1]
+        bar = self.barriers
+        near = bar[(np.abs(bar[:, 0] - s[0]) <= radius) & (np.abs(bar[:, 2] - s[2]) <= radius)
+                   & (bar[:, 1] >= sy - 2) & (bar[:, 1] <= sy + 8)]
+        left = {tuple(int(v) for v in p) for p in near}
+        spots = []
+        while left:
+            start = left.pop()
+            group, todo = [start], [start]
+            while todo:
+                i, y, k = todo.pop()
+                for d in ((1, 0, 0), (-1, 0, 0), (0, 1, 0), (0, -1, 0), (0, 0, 1), (0, 0, -1)):
+                    n = (i + d[0], y + d[1], k + d[2])
+                    if n in left:
+                        left.remove(n)
+                        group.append(n)
+                        todo.append(n)
+            if len(group) > 60:
+                continue
+            lowest = {}
+            for i, y, k in group:
+                lowest[(i, k)] = min(y, lowest.get((i, k), 999))
+            floors = []
+            for (i, k), y in lowest.items():
+                # some air under the barrier, then a floor
+                f = y - 1
+                while f > y - 4 and ids_pass(w, i, f, k):
+                    f -= 1
+                if f == y - 1 or f <= y - 4:
+                    continue
+                top = f + 0.5 if int(w.ids[i, f, k]) in SLABS and not int(w.data[i, f, k]) & 8 else f + 1.0
+                if y - top >= 1.0:
+                    floors.append((i, k, top))
+            if not floors:
+                continue
+            h = collections.Counter(f[2] for f in floors).most_common(1)[0][0]
+            floors = [f for f in floors if f[2] == h]
+            spots.append({'x': float(np.mean([f[0] for f in floors])) + 0.5, 'z': float(np.mean([f[1] for f in floors])) + 0.5,
+                          'h': h, 'way': None})
+        return spots
+
+    def niches(self, level, cellset, boxes):
+        """The NPC niches: small groups of cells walled in all round but on one side, where they open."""
+        w = self.w
+
+        def blocked(i, y, k):
+            return not (ids_pass(w, i, y, k) and ids_pass(w, i, y + 1, k))
+
+        walled = set()
+        for c in level:
+            i, y, k = c
+            around = sum(blocked(i + di, y, k + dk) for di in (-1, 0, 1) for dk in (-1, 0, 1) if di or dk)
+            if around >= 6 and not any(max(abs(q[0] - i), abs(q[2] - k)) <= 1 and abs(q[1] - y) <= 2 for q in boxes):
+                walled.add(c)
+        found = []
+        left = set(walled)
+        while left:
+            start = left.pop()
+            group, todo = [start], [start]
+            while todo:
+                i, y, k = todo.pop()
+                for di, dk in ((1, 0), (-1, 0), (0, 1), (0, -1)):
+                    n = (i + di, y, k + dk)
+                    if n in left:
+                        left.remove(n)
+                        group.append(n)
+                        todo.append(n)
+            if len(group) > 4:
+                continue
+            inside = {(c[0], c[2]) for c in group}
+            ways = set()
+            for i, y, k in group:
+                for di, dk in ((1, 0), (-1, 0), (0, 1), (0, -1)):
+                    if (i + di, k + dk) in inside:
+                        continue
+                    n = cellset.get((i + di, k + dk))
+                    if not blocked(i + di, y, k + dk) or (n is not None and abs(self.h(*n) - self.h(i, y, k)) <= 1):
+                        ways.add((di, dk))
+            if len(ways) != 1:
+                continue
+            way = ways.pop()
+            found.append({'x': float(np.mean([c[0] for c in group])) + 0.5, 'z': float(np.mean([c[2] for c in group])) + 0.5,
+                          'h': min(self.h(*c) for c in group), 'way': way, 'cells': group})
+        return found
+
+    def npc(self, spot, towards):
+        """A shop or upgrades point: in its niche facing out of it, or on a cell facing the spawn."""
+        if spot is None:
+            return None
+        if isinstance(spot, dict):
+            x, z = self.w.world_xz(spot['x'], spot['z'])
+            way = spot['way'] or (towards[0] - spot['x'], towards[1] - spot['z'])
+            return {'x': float(x), 'y': spot['h'], 'z': float(z), 'yaw': yaw_towards(*way)}
+        return self.point(spot, face=(towards[0] - spot[0] - 0.5, towards[1] - spot[2] - 0.5))
 
     def point(self, c, face=None, centre=False):
         i, y, k = c
@@ -563,7 +736,7 @@ class Setup:
 
 
 def ids_pass(w, i, y, k):
-    if 0 <= y < 256:
+    if 0 <= y < 256 and 0 <= i < w.sx and 0 <= k < w.sz:
         return int(w.ids[i, y, k]) in PASS
     return True
 

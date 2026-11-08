@@ -27,6 +27,39 @@ class BedwarsMapTest {
         assertTrue(map.missing().get(map.missing().size() - 1).startsWith("at least 2 complete teams"));
     }
 
+    /** A complete team whose spawn is here. */
+    private static void island(BedwarsMap map, TeamColor color, double x, double z) {
+        BedwarsMap.Team team = map.team(color);
+        team.spawn = new MapPoint(x, 65, z, 0f, 0f);
+        team.bed = new MapPoint(x / 2, 66, z / 2, 0f, 0f);
+        team.generator = new MapPoint(x, 64.5, z, 0f, 0f);
+        team.shop = new MapPoint(x + 4, 65, z, 0f, 0f);
+    }
+
+    @Test
+    void aDuelIsPlayedOnOppositeIslands() {
+        // Archway: red in the north, blue in the east, green in the south, yellow in the west
+        BedwarsMap map = new BedwarsMap("Archway");
+        island(map, TeamColor.RED, -13.5, -72.5);
+        island(map, TeamColor.BLUE, 73.5, -13.5);
+        island(map, TeamColor.GREEN, 14.5, 73.5);
+        island(map, TeamColor.YELLOW, -72.5, 14.5);
+        assertEquals(Arrays.asList(TeamColor.RED, TeamColor.GREEN), map.playingTeams(2));
+        assertEquals(Arrays.asList(TeamColor.RED, TeamColor.BLUE, TeamColor.GREEN), map.playingTeams(3));
+        assertEquals(map.completeTeams(), map.playingTeams(4));
+        assertEquals(map.completeTeams(), map.playingTeams(8));
+        // eight islands on a circle, in the order of the colours: a duel takes the opposite one
+        BedwarsMap eight = new BedwarsMap("Lighthouse");
+        for (int i = 0; i < 8; i++) {
+            double angle = i * Math.PI / 4;
+            island(eight, TeamColor.values()[i], 80 * Math.cos(angle), 80 * Math.sin(angle));
+        }
+        assertEquals(Arrays.asList(TeamColor.values()[0], TeamColor.values()[4]), eight.playingTeams(2));
+        assertEquals(Arrays.asList(TeamColor.values()[0], TeamColor.values()[2], TeamColor.values()[4],
+                TeamColor.values()[6]), eight.playingTeams(4));
+        assertEquals(Arrays.asList(TeamColor.RED, TeamColor.BLUE), demo().playingTeams(2));
+    }
+
     @Test
     void aCompleteMapIsPlayedOnceEnabled() {
         BedwarsMap map = demo();

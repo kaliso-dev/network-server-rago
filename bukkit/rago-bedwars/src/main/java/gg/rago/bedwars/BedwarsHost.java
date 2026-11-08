@@ -23,6 +23,7 @@ import org.bukkit.Material;
 import org.bukkit.World;
 import org.bukkit.block.Block;
 import org.bukkit.entity.Entity;
+import org.bukkit.entity.Fireball;
 import org.bukkit.entity.Player;
 import org.bukkit.entity.Projectile;
 import org.bukkit.entity.TNTPrimed;
@@ -314,6 +315,12 @@ final class BedwarsHost implements MatchHost, Listener {
                 // Their own fireball or TNT: the damage and the jump, nobody to credit.
                 attacker = null;
             }
+        }
+        if (event instanceof EntityDamageByEntityEvent
+                && ((EntityDamageByEntityEvent) event).getDamager() instanceof Fireball) {
+            // The blast of a fireball of power 3 would take some 20 hearts at point blank: a fixed
+            // damage, which the armour still reduces, and the knockback of the blast, as on Hypixel.
+            event.setDamage(attacker == null ? plugin.settings().fireballSelf() : plugin.settings().fireballOthers());
         }
         if (event.getFinalDamage() >= victim.getHealth()) {
             event.setCancelled(true);

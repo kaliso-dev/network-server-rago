@@ -105,6 +105,49 @@ final class BedwarsMap {
         return complete;
     }
 
+    /**
+     * The complete teams a game of this many teams is played with: the first one, then each time
+     * the one whose spawn is farthest from those already taken, as on Hypixel (a duel on a map of
+     * four is played on two opposite islands). In the order of the colours.
+     */
+    List<TeamColor> playingTeams(int count) {
+        List<TeamColor> complete = completeTeams();
+        if (count >= complete.size()) {
+            return complete;
+        }
+        List<TeamColor> chosen = new ArrayList<>();
+        if (count <= 0) {
+            return chosen;
+        }
+        chosen.add(complete.get(0));
+        while (chosen.size() < count) {
+            TeamColor best = null;
+            double bestDistance = -1;
+            for (TeamColor color : complete) {
+                if (chosen.contains(color)) {
+                    continue;
+                }
+                MapPoint spawn = teams.get(color).spawn;
+                double nearest = Double.MAX_VALUE;
+                for (TeamColor taken : chosen) {
+                    MapPoint other = teams.get(taken).spawn;
+                    double dx = spawn.x() - other.x();
+                    double dz = spawn.z() - other.z();
+                    nearest = Math.min(nearest, dx * dx + dz * dz);
+                }
+                // a tie keeps the first colour
+                if (nearest > bestDistance + 1e-6) {
+                    best = color;
+                    bestDistance = nearest;
+                }
+            }
+            chosen.add(best);
+        }
+        List<TeamColor> ordered = new ArrayList<>(complete);
+        ordered.retainAll(chosen);
+        return ordered;
+    }
+
     /** What the map still needs to be played, for /bw info: empty when it can be. */
     List<String> missing() {
         List<String> missing = new ArrayList<>();
