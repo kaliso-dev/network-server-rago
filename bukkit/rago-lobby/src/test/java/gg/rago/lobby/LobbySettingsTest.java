@@ -80,7 +80,7 @@ class LobbySettingsTest {
         assertEquals(settings.modesIn("duels").size(), duels.modeIds().size(), "a category NPC holds its modes");
         assertTrue(duels.modeIds().contains("kb-displace"));
         LobbyNpc ranked = settings.npc("rankedbedwars1v1ou2v2elo");
-        assertEquals(java.util.Arrays.asList("ranked-1v1", "ranked-2v2"), ranked.modeIds());
+        assertEquals(java.util.Arrays.asList("ranked-1v1", "ranked-2v2", "ranked-3v3", "ranked-4v4"), ranked.modeIds());
         assertTrue(settings.npc("leaderboardprincipal").leaderboard());
         assertFalse(ranked.leaderboard());
     }
