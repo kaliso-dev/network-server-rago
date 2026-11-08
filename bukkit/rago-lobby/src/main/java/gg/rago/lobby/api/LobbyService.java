@@ -3,6 +3,7 @@ package gg.rago.lobby.api;
 import java.util.List;
 import java.util.UUID;
 import org.bukkit.entity.Player;
+import org.bukkit.inventory.ItemStack;
 import org.bukkit.plugin.Plugin;
 
 /**
@@ -47,4 +48,12 @@ public interface LobbyService {
      * Counted in the stats and the kill leaderboards, of the day, the week and ever.
      */
     void recordKill(String modeId, UUID killer, UUID victim);
+
+    /**
+     * The kit of this mode (kit: in the lobby's config.yml) as the player arranged it in the kit
+     * editor, the book of the lobby hotbar: 36 stacks, the hotbar (0 to 8) then the inventory (9 to
+     * 35), null for an empty slot. A game gives it with {@code player.getInventory().setContents(kit)}
+     * when it starts. Null when the mode has no kit.
+     */
+    ItemStack[] kit(Player player, String modeId);
 }

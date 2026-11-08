@@ -2,11 +2,15 @@
 //
 // Two bots join a local 1.8.8 test server that runs RagoLobby, RagoPractice and RagoCombatEngine
 // and play the way a player does:
-//   1. both arrive in the lobby: adventure mode, the selector in the first hotbar slot, the sidebar;
-//      the Duels NPC is a Steve holding a sword, out of the tab list, and a click on it opens Duels;
+//   1. both arrive in the lobby: adventure mode, the selector in the first hotbar slot, the kit
+//      editor book in the second, the sidebar; the Duels NPC is a Steve holding a sword, out of
+//      the tab list, and a click on it opens Duels; RagoUn opens the kit editor with the book and
+//      moves the stick of the sumo kit (run-lobby-test.sh gives the sumo one) from the first
+//      hotbar slot to the fourth, saves, and finds it there when it opens the editor again;
 //   2. RagoUn opens the selector with a right click, opens the Duels category (Daily Streak: 0 on
 //      the sumo, nobody in its top yet), then clicks the sumo duel; RagoDeux types /queue sumo;
-//   3. the duel starts after a 3, 2, 1 countdown in titles, the sidebar shows the opponent and both
+//   3. the duel starts after a 3, 2, 1 countdown in titles, each bot gets the stick where it put
+//      it (RagoUn: fourth slot, RagoDeux: the kit's first), the sidebar shows the opponent and both
 //      pings: RagoUn walks up to RagoDeux and hits it once (knockback, no damage), then
 //      RagoDeux walks off the platform three times, so RagoUn wins 3 - 0;
 //   4. both come back to the lobby, and read their own stats above the stats NPC and on the
@@ -37,6 +41,12 @@ const POINTS_TO_WIN = 3
 // (leaderboardprincipal) and the kills leaderboard (leaderboardplayer) around the spawn.
 const DUELS_NPC = { x: 3.5, y: 65, z: 0.5 }
 const STATS_NPC = { x: -3.5, y: 65, z: 0.5 }
+// The kit editor: the book in the second hotbar slot, the Save button of its chest of 27 slots,
+// whose window shows the player's hotbar from slot 54 (27 of the chest, 27 of the inventory).
+const KIT_EDITOR_SLOT = 1
+const KIT_SAVE = 11
+const EDITOR_HOTBAR = 54
+const STICK_SLOT = 3
 
 let finishing = false
 
@@ -171,6 +181,57 @@ async function openSelectorAndJoinSumo (bot) {
   bot.clickWindow(SUMO_SLOT, 0, 0).catch(() => {})
   await chatLine(bot, /You joined the queue for .*Sumo duel/, 5000, from)
   log(`${bot.username} joined the sumo queue from the selector`)
+}
+
+function windowTitle (window) {
+  return typeof window.title === 'string' ? window.title : JSON.stringify(window.title)
+}
+
+/** The book of the hotbar, then the sumo in its list of modes: the editor of the sumo kit. */
+async function openSumoKit (bot) {
+  bot.setQuickBarSlot(KIT_EDITOR_SLOT)
+  await sleep(250)
+  const listOpened = new Promise((resolve) => bot.once('windowOpen', resolve))
+  bot.activateItem()
+  const list = await Promise.race([listOpened, sleep(5000).then(() => null)])
+  if (list == null) throw new Error(`${bot.username}: the kit editor did not open on a right click on the book`)
+  if (!windowTitle(list).includes('Kit editor')) throw new Error(`${bot.username}: the book opened ${windowTitle(list)}`)
+  const sumo = list.slots.findIndex((item, slot) => slot < list.inventoryStart &&
+    JSON.stringify(item?.nbt ?? null).includes('Sumo duel'))
+  if (sumo < 0) throw new Error(`${bot.username}: no sumo in the kit editor: ${JSON.stringify(list.slots.map((item) => item?.name))}`)
+  const editorOpened = new Promise((resolve) => bot.once('windowOpen', resolve))
+  // The server cancels the click (the list cannot be emptied): do not wait for its acceptance.
+  bot.clickWindow(sumo, 0, 0).catch(() => {})
+  const editor = await Promise.race([editorOpened, sleep(5000).then(() => null)])
+  if (editor == null) throw new Error(`${bot.username}: a click on the sumo did not open its kit`)
+  if (!windowTitle(editor).includes('Kit: Sumo duel')) throw new Error(`${bot.username}: the sumo opened ${windowTitle(editor)}`)
+  return editor
+}
+
+/** The stick of the sumo kit goes from the first hotbar slot to the fourth, and stays there. */
+async function arrangeSumoKit (bot) {
+  const editor = await openSumoKit(bot)
+  await waitFor(() => editor.slots[EDITOR_HOTBAR]?.name === 'stick', 5000,
+    `${bot.username} to get the stick of the sumo kit in the first hotbar slot: ${JSON.stringify(editor.slots.slice(EDITOR_HOTBAR).map((item) => item?.name))}`)
+  await bot.clickWindow(EDITOR_HOTBAR, 0, 0)
+  await bot.clickWindow(EDITOR_HOTBAR + STICK_SLOT, 0, 0)
+  let from = mark(bot)
+  bot.clickWindow(KIT_SAVE, 0, 0).catch(() => {})
+  await chatLine(bot, /Kit saved for Sumo duel/, 5000, from)
+  await waitFor(() => bot.currentWindow == null && hotbarItem(bot, 0)?.name === 'compass' &&
+    hotbarItem(bot, KIT_EDITOR_SLOT)?.name === 'book', 5000, `${bot.username} to get the lobby hotbar back after saving`)
+  log(`${bot.username} moved the stick of the sumo kit to hotbar slot ${STICK_SLOT + 1} and saved`)
+
+  const again = await openSumoKit(bot)
+  await waitFor(() => again.slots[EDITOR_HOTBAR + STICK_SLOT]?.name === 'stick' && again.slots[EDITOR_HOTBAR] == null, 5000,
+    `${bot.username} to find the stick where it put it: ${JSON.stringify(again.slots.slice(EDITOR_HOTBAR).map((item) => item?.name))}`)
+  from = mark(bot)
+  // Closing the editor saves too.
+  bot.closeWindow(again)
+  await chatLine(bot, /Kit saved for Sumo duel/, 5000, from)
+  await expectInLobby(bot, 'after the kit editor')
+  bot.setQuickBarSlot(0)
+  log(`${bot.username} finds the stick in slot ${STICK_SLOT + 1} when it opens the editor again`)
 }
 
 /** The NPC body standing on a point: a player whose name starts with a colour code. */
@@ -338,10 +399,14 @@ async function main () {
   await expectInLobby(one, 'on joining')
   await expectInLobby(two, 'on joining')
   if (hotbarItem(one, 8)?.name !== 'dye') throw new Error(`no visibility item in slot 8: ${hotbarItem(one, 8)?.name}`)
+  if (hotbarItem(one, KIT_EDITOR_SLOT)?.name !== 'book') {
+    throw new Error(`no kit editor in slot ${KIT_EDITOR_SLOT}: ${hotbarItem(one, KIT_EDITOR_SLOT)?.name}`)
+  }
   await waitFor(() => (one.scoreboard?.sidebar?.title ?? '').includes('RAGO PRACTICE'), 5000,
     `the lobby sidebar; sidebar: ${JSON.stringify(one.scoreboard?.sidebar?.title)}`)
   log('lobby: adventure mode, selector, visibility item and sidebar are there')
   await checkDuelsNpc(one)
+  await arrangeSumoKit(one)
 
   // 2. The queue.
   await openSelectorAndJoinSumo(one)
@@ -354,7 +419,9 @@ async function main () {
   await chatLine(two, /Sumo duel against RagoUn/, 10000, fromTwo)
   await waitFor(() => one.game.gameMode === 'survival' && two.game.gameMode === 'survival', 5000, 'survival mode in the duel')
   if (hotbarItem(one, 0) != null) throw new Error('the lobby items are still there in the duel')
-  log('the duel started')
+  await waitFor(() => hotbarItem(one, STICK_SLOT)?.name === 'stick' && hotbarItem(two, 0)?.name === 'stick', 5000,
+    `the sumo kit as each bot arranged it: RagoUn slot ${STICK_SLOT} ${hotbarItem(one, STICK_SLOT)?.name}, RagoDeux slot 0 ${hotbarItem(two, 0)?.name}`)
+  log('the duel started, with the stick where each bot put it')
   await expectDuelSidebar(one, 'RagoDeux')
   await expectDuelSidebar(two, 'RagoUn')
   log(`sidebar in the duel: ${JSON.stringify(sidebarLines(one))}`)

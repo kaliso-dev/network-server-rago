@@ -2,6 +2,7 @@ package gg.rago.lobby;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
@@ -152,6 +153,31 @@ class LobbySettingsTest {
         assertInvalid("niveau:\n  rangs:\n    un: '[A]'\nmodes:\n  sumo: {}\n", "niveau.rangs.un");
         assertInvalid("niveau:\n  rangs:\n    1: '[A]'\nmodes:\n  sumo: {}\n", "niveau.rangs.1");
         assertInvalid("niveau:\n  rangs:\n    5: '&a[Beaucoup trop long]'\nmodes:\n  sumo: {}\n", "niveau.rangs.5");
+    }
+
+    @Test
+    void readsTheKits() throws Exception {
+        LobbySettings settings = LobbySettings.load(bundledConfig());
+        assertNull(settings.display("sumo").kit(), "a sumo is fought bare-handed");
+        assertEquals(Material.DIAMOND_SWORD, settings.display("boxing").kit().item(0).material());
+        assertEquals(KitItem.parse("FIREBALL 16"), settings.display("fireball").kit().item(1));
+
+        Kit bySlot = LobbySettings.load(yaml("modes:\n  sumo:\n    kit:\n      3: STICK\n      9: 'WOOL:14 64'\n"))
+                .display("sumo").kit();
+        assertNull(bySlot.item(0));
+        assertEquals(Material.STICK, bySlot.item(3).material());
+        assertEquals(KitItem.parse("WOOL:14 64"), bySlot.item(9), "slot 9: the top left of the inventory");
+        Kit withGaps = LobbySettings.load(yaml("modes:\n  sumo:\n    kit: [STICK, '', AIR, ENDER_PEARL]\n"))
+                .display("sumo").kit();
+        assertNull(withGaps.item(1));
+        assertNull(withGaps.item(2));
+        assertEquals(Material.ENDER_PEARL, withGaps.item(3).material());
+        assertNull(LobbySettings.load(yaml("modes:\n  sumo:\n    kit: []\n")).display("sumo").kit(), "no items: no kit");
+
+        assertInvalid("modes:\n  sumo:\n    kit: [BATON]\n", "modes.sumo.kit[0]");
+        assertInvalid("modes:\n  sumo:\n    kit: [STICK, 'WOOL 100']\n", "modes.sumo.kit[1]");
+        assertInvalid("modes:\n  sumo:\n    kit:\n      36: STICK\n", "modes.sumo.kit.36");
+        assertInvalid("modes:\n  sumo:\n    kit: STICK\n", "modes.sumo.kit");
     }
 
     @Test

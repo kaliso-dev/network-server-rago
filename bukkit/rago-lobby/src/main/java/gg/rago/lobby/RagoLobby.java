@@ -21,6 +21,7 @@ import org.bukkit.Material;
 import org.bukkit.World;
 import org.bukkit.WorldCreator;
 import org.bukkit.entity.Player;
+import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.PlayerInventory;
 import org.bukkit.plugin.Plugin;
 import org.bukkit.plugin.ServicePriority;
@@ -49,6 +50,8 @@ public final class RagoLobby extends JavaPlugin implements LobbyService {
     private StatsService stats;
     private StatsDisplays statsDisplays;
     private NetworkRanks ranks;
+    private KitLayouts kits;
+    private KitEditor kitEditor;
 
     @Override
     public void onEnable() {
@@ -94,6 +97,8 @@ public final class RagoLobby extends JavaPlugin implements LobbyService {
         queues = new QueueController(this, settings, state, this::queuesChanged);
         stats = new StatsService(this, settings.defaultRating(), settings.levels(), writer, this::write, this::xpChanged);
         ranks = new NetworkRanks(stats.book());
+        kits = new KitLayouts(this, writer, this::write);
+        kitEditor = new KitEditor(this, settings, kits, state, this::giveHotbar);
         menu = new ModeMenu(settings, queues, stats.book());
         scoreboard = new LobbyScoreboard(settings, queues, stats.book(), state);
         duels = new DuelRequests(settings, state, queues);
@@ -109,6 +114,7 @@ public final class RagoLobby extends JavaPlugin implements LobbyService {
         getServer().getPluginManager().registerEvents(new LobbyListener(this, state, visibility), this);
         getServer().getPluginManager().registerEvents(new HostWatcher(queues), this);
         getServer().getPluginManager().registerEvents(ranks, this);
+        getServer().getPluginManager().registerEvents(kitEditor, this);
         LobbyCommands commands = new LobbyCommands(this);
         for (String name : new String[] {"lobby", "spawn", "queue", "duel"}) {
             getCommand(name).setExecutor(commands);
@@ -134,6 +140,7 @@ public final class RagoLobby extends JavaPlugin implements LobbyService {
 
         // After a /reload: everyone online is brought back to the lobby.
         for (Player player : getServer().getOnlinePlayers()) {
+            kits.load(player.getUniqueId());
             sendToLobby(player);
         }
         getLogger().info("Lobby dans le monde " + world.getName() + ", " + settings.modes().size() + " modes : "
@@ -148,6 +155,9 @@ public final class RagoLobby extends JavaPlugin implements LobbyService {
         }
         if (fakes != null) {
             fakes.stop();
+        }
+        if (kitEditor != null) {
+            kitEditor.closeAll();
         }
         if (writer != null) {
             writer.shutdown();
@@ -287,6 +297,8 @@ public final class RagoLobby extends JavaPlugin implements LobbyService {
     }
 
     void forget(Player player) {
+        kitEditor.forget(player.getUniqueId());
+        kits.forget(player.getUniqueId());
         statsDisplays.forget(player.getUniqueId());
         ranks.forget(player.getUniqueId());
         queues.forget(player.getUniqueId());
@@ -303,6 +315,9 @@ public final class RagoLobby extends JavaPlugin implements LobbyService {
                 break;
             case LEAVE_QUEUE:
                 queues.leave(player, true);
+                break;
+            case KIT_EDITOR:
+                kitEditor.openModes(player);
                 break;
             case HIDE_PLAYERS:
             case SHOW_PLAYERS:
@@ -321,10 +336,15 @@ public final class RagoLobby extends JavaPlugin implements LobbyService {
     }
 
     private void giveHotbar(Player player) {
+        if (kitEditor.isEditing(player)) {
+            // The inventory holds the kit being arranged: the hotbar comes back when the editor closes.
+            return;
+        }
         PlayerInventory inventory = player.getInventory();
         inventory.clear();
         inventory.setArmorContents(null);
         inventory.setItem(HotbarItem.SELECTOR.slot(), HotbarItem.SELECTOR.create());
+        inventory.setItem(HotbarItem.KIT_EDITOR.slot(), HotbarItem.KIT_EDITOR.create());
         if (queues.queueOf(player) != null) {
             inventory.setItem(HotbarItem.LEAVE_QUEUE.slot(), HotbarItem.LEAVE_QUEUE.create());
         }
@@ -477,8 +497,23 @@ public final class RagoLobby extends JavaPlugin implements LobbyService {
         stats.kill(modeId, killer, victim);
     }
 
-    /** The player joined: their name, for the leaderboards. */
+    @Override
+    public ItemStack[] kit(Player player, String modeId) {
+        ModeDisplay display = settings.display(modeId);
+        if (display == null || display.kit() == null) {
+            return null;
+        }
+        KitItem[] arranged = display.kit().arrange(kits.get(player.getUniqueId(), modeId));
+        ItemStack[] items = new ItemStack[Kit.SLOTS];
+        for (int slot = 0; slot < Kit.SLOTS; slot++) {
+            items[slot] = arranged[slot] == null ? null : arranged[slot].toItem();
+        }
+        return items;
+    }
+
+    /** The player joined: their name, for the leaderboards, and their kit layouts. */
     void joined(Player player) {
+        kits.load(player.getUniqueId());
         stats.seen(player);
         ranks.refresh(player);
     }
@@ -499,6 +534,10 @@ public final class RagoLobby extends JavaPlugin implements LobbyService {
 
     ModeMenu menu() {
         return menu;
+    }
+
+    KitEditor kitEditor() {
+        return kitEditor;
     }
 
     LobbyState state() {

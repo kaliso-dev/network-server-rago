@@ -12,12 +12,23 @@ final class ModeDisplay {
     private final Material icon;
     private final List<String> description;
     private final String category;
+    private final Kit kit;
 
     ModeDisplay(GameMode mode, Material icon, List<String> description, String category) {
+        this(mode, icon, description, category, null);
+    }
+
+    ModeDisplay(GameMode mode, Material icon, List<String> description, String category, Kit kit) {
         this.mode = mode;
         this.icon = icon;
         this.description = Collections.unmodifiableList(description);
         this.category = category;
+        this.kit = kit;
+    }
+
+    /** The items the mode gives, which players arrange in the kit editor; null when it gives none. */
+    Kit kit() {
+        return kit;
     }
 
     /** The id of the mode's category, or null when the selector has no categories. */

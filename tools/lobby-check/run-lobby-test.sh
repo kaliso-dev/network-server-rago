@@ -95,6 +95,12 @@ cat >"$SERVER_DIR/bukkit.yml" <<'YAML'
 settings:
   allow-end: false
 YAML
+# The bundled config.yml of the lobby, with a kit for the sumo (it gives none by default): a stick,
+# which the bots move in the kit editor and find where they put it in the duel.
+mkdir -p "$SERVER_DIR/plugins/RagoLobby"
+sed '/^  sumo:$/a\    kit: [STICK]' "$ROOT/bukkit/rago-lobby/src/main/resources/config.yml" \
+  >"$SERVER_DIR/plugins/RagoLobby/config.yml"
+grep -q '^    kit: \[STICK\]$' "$SERVER_DIR/plugins/RagoLobby/config.yml" || fail "could not give the sumo a kit"
 # Around the spawn of the new lobby world: the NPC of the Duels category, a stats NPC, a wall of
 # leaderboards, the main leaderboard (within click range of the spawn) and the kills leaderboard.
 mkdir -p "$SERVER_DIR/lobby"

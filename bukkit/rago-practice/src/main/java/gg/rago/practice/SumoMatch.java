@@ -8,6 +8,7 @@ import org.bukkit.GameMode;
 import org.bukkit.Location;
 import org.bukkit.Sound;
 import org.bukkit.entity.Player;
+import org.bukkit.inventory.ItemStack;
 import org.bukkit.potion.PotionEffect;
 import org.bukkit.scheduler.BukkitTask;
 
@@ -248,10 +249,16 @@ final class SumoMatch {
         }
     }
 
-    private static void prepare(Player player) {
+    private void prepare(Player player) {
         player.closeInventory();
         player.getInventory().clear();
         player.getInventory().setArmorContents(null);
+        // A sumo gives no items, unless its kit: in the lobby's config.yml has some (a stick...):
+        // then the player gets them as they arranged them in the kit editor.
+        ItemStack[] kit = plugin.lobby().kit(player, SumoHost.MODE_ID);
+        if (kit != null) {
+            player.getInventory().setContents(kit);
+        }
         player.updateInventory();
         player.setGameMode(GameMode.SURVIVAL);
         player.setAllowFlight(false);

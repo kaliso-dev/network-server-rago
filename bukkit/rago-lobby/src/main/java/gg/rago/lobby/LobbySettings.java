@@ -335,7 +335,60 @@ final class LobbySettings {
                         + " » n'est pas une des catégories (categories: en haut du fichier)");
             }
         }
-        return new ModeDisplay(mode, icon, description(section), category);
+        return new ModeDisplay(mode, icon, description(section), category, readKit(where + ".kit", section));
+    }
+
+    /**
+     * kit: the items of the mode, by slot (0 to 8 the hotbar, 9 to 35 the inventory). Either a list,
+     * whose first item goes in slot 0 ("" or AIR for an empty slot), or slot: item lines. Null when
+     * the mode gives no items.
+     */
+    private static Kit readKit(String where, ConfigurationSection section) {
+        if (!section.contains("kit")) {
+            return null;
+        }
+        List<KitItem> items = new ArrayList<>();
+        ConfigurationSection bySlot = section.getConfigurationSection("kit");
+        if (bySlot != null) {
+            for (int i = 0; i < Kit.SLOTS; i++) {
+                items.add(null);
+            }
+            for (String key : bySlot.getKeys(false)) {
+                int slot;
+                try {
+                    slot = Integer.parseInt(key.trim());
+                } catch (NumberFormatException e) {
+                    slot = -1;
+                }
+                if (slot < 0 || slot >= Kit.SLOTS) {
+                    throw new IllegalArgumentException(where + "." + key + ": the key is a slot, from 0 to "
+                            + (Kit.SLOTS - 1) + " (0 to 8: the hotbar)");
+                }
+                items.set(slot, kitItem(where + "." + key, bySlot.getString(key)));
+            }
+        } else {
+            List<?> list = section.getList("kit");
+            if (list == null) {
+                throw new IllegalArgumentException(where + ": a list of items, or slot: item lines");
+            }
+            if (list.size() > Kit.SLOTS) {
+                throw new IllegalArgumentException(where + ": " + Kit.SLOTS + " items at most, the slots of an inventory");
+            }
+            for (int i = 0; i < list.size(); i++) {
+                Object entry = list.get(i);
+                items.add(kitItem(where + "[" + i + "]", entry == null ? null : String.valueOf(entry)));
+            }
+        }
+        Kit kit = new Kit(items);
+        return kit.isEmpty() ? null : kit;
+    }
+
+    private static KitItem kitItem(String where, String text) {
+        try {
+            return KitItem.parse(text);
+        } catch (IllegalArgumentException e) {
+            throw new IllegalArgumentException(where + ": " + e.getMessage(), e);
+        }
     }
 
     static String colour(String text) {

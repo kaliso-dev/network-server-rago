@@ -15,6 +15,8 @@ enum HotbarItem {
 
     SELECTOR(0, Material.COMPASS, 0, ChatColor.GREEN + "Game modes " + ChatColor.GRAY + "(right click)",
             "Pick a mode and join", "its queue."),
+    KIT_EDITOR(1, Material.BOOK, 0, ChatColor.GOLD + "Kit editor " + ChatColor.GRAY + "(right click)",
+            "Arrange the items of a mode's", "kit as you like: your next", "games give it this way."),
     LEAVE_QUEUE(4, Material.INK_SACK, 1, ChatColor.RED + "Leave the queue " + ChatColor.GRAY + "(right click)",
             "You leave the queue."),
     HIDE_PLAYERS(8, Material.INK_SACK, 10, ChatColor.GREEN + "Players: shown " + ChatColor.GRAY + "(right click)",

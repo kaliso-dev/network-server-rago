@@ -301,6 +301,7 @@ modes:
     equipes: 2
     joueurs-par-equipe: 1
     classe: false
+    kit: [STONE_SWORD, "WOOL 64", "WOOL 64", SHEARS, "GOLDEN_APPLE 2"]
     description:
       - "A fight on a bridge between two"
       - "islands, a realistic Bedwars platform."
@@ -311,6 +312,7 @@ modes:
     equipes: 2
     joueurs-par-equipe: 1
     classe: false
+    kit: [WOOD_SWORD, "SANDSTONE 64", "SANDSTONE 64", "SANDSTONE 64"]
     description:
       - "Place your blocks faster"
       - "than the other player to win."
@@ -362,6 +364,7 @@ modes:
     equipes: 2
     joueurs-par-equipe: 1
     classe: false
+    kit: [DIAMOND_SWORD]
     description:
       - "First to 100 hits,"
       - "to work on your combos."
@@ -372,6 +375,7 @@ modes:
     equipes: 2
     joueurs-par-equipe: 1
     classe: false
+    kit: [IRON_SWORD, "FIREBALL 16", "TNT 4", "WOOL 64", SHEARS]
     description:
       - "Fireballs and TNT:"
       - "the last one standing wins."
@@ -382,6 +386,7 @@ modes:
     equipes: 2
     joueurs-par-equipe: 1
     classe: false
+    kit: [IRON_SWORD, "WOOL 64", "ENDER_STONE 32", SHEARS, WOOD_PICKAXE]
     description:
       - "One player attacks the bed,"
       - "the other defends it."
@@ -402,6 +407,7 @@ modes:
     equipes: 2
     joueurs-par-equipe: 1
     classe: false
+    kit: [IRON_SWORD, "WOOL 64", "GOLDEN_APPLE 3", ENDER_PEARL]
     description:
       - "A Top fight duel."
   top-fight-2v2:

@@ -129,6 +129,11 @@ final class LobbyListener implements Listener {
             return;
         }
         Player player = (Player) event.getWhoClicked();
+        if (event.getView().getTopInventory().getHolder() instanceof KitEditor.Holder) {
+            // The kit editor decides: the items of the kit move in the player's own inventory.
+            lobby.kitEditor().click(event, (KitEditor.Holder) event.getView().getTopInventory().getHolder());
+            return;
+        }
         if (event.getView().getTopInventory().getHolder() instanceof StatsMenu.Holder) {
             event.setCancelled(true);
             return;
@@ -148,6 +153,10 @@ final class LobbyListener implements Listener {
 
     @EventHandler(priority = EventPriority.LOW)
     public void onInventoryDrag(InventoryDragEvent event) {
+        if (event.getView().getTopInventory().getHolder() instanceof KitEditor.Holder) {
+            lobby.kitEditor().drag(event, (KitEditor.Holder) event.getView().getTopInventory().getHolder());
+            return;
+        }
         if (event.getView().getTopInventory().getHolder() instanceof ModeMenu.Holder
                 || event.getView().getTopInventory().getHolder() instanceof StatsMenu.Holder
                 || (event.getWhoClicked() instanceof Player && state.isProtected((Player) event.getWhoClicked()))) {

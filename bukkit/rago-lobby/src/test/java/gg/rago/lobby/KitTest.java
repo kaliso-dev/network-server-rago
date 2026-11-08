@@ -1,0 +1,157 @@
+package gg.rago.lobby;
+
+import static org.junit.jupiter.api.Assertions.assertArrayEquals;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertNull;
+import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assertions.assertTrue;
+
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.Map;
+import java.util.TreeMap;
+import org.bukkit.Material;
+import org.bukkit.inventory.ItemStack;
+import org.junit.jupiter.api.Test;
+
+class KitTest {
+
+    private static final KitItem SWORD = KitItem.parse("IRON_SWORD");
+    private static final KitItem WOOL = KitItem.parse("WOOL 64");
+    private static final KitItem PEARL = KitItem.parse("ENDER_PEARL");
+
+    /** Sword, wool, wool, an empty slot, a pearl. */
+    private static Kit kit() {
+        return new Kit(Arrays.asList(SWORD, WOOL, WOOL, null, PEARL));
+    }
+
+    @Test
+    void readsTheItemsOfConfigYml() {
+        assertEquals(Material.IRON_SWORD, SWORD.material());
+        assertEquals(1, SWORD.amount());
+        assertEquals(64, WOOL.amount());
+        KitItem red = KitItem.parse(" wool:14  32 ");
+        assertEquals(Material.WOOL, red.material());
+        assertEquals(14, red.data());
+        assertEquals(32, red.amount());
+        assertEquals("WOOL:14 32", red.toString());
+        assertNull(KitItem.parse(""));
+        assertNull(KitItem.parse("AIR"));
+        assertNull(KitItem.parse(null));
+        assertThrows(IllegalArgumentException.class, () -> KitItem.parse("NOT_AN_ITEM"));
+        assertThrows(IllegalArgumentException.class, () -> KitItem.parse("WOOL 65"));
+        assertThrows(IllegalArgumentException.class, () -> KitItem.parse("WOOL 0"));
+        assertThrows(IllegalArgumentException.class, () -> KitItem.parse("WOOL many"));
+        assertThrows(IllegalArgumentException.class, () -> KitItem.parse("WOOL:red 64"));
+        assertThrows(IllegalArgumentException.class, () -> KitItem.parse("WOOL 64 64"));
+    }
+
+    @Test
+    void anItemOfTheInventoryIsAKitItemWhenItIsTheSameStack() {
+        assertEquals(WOOL, KitItem.of(new ItemStack(Material.WOOL, 64)));
+        assertFalse(WOOL.equals(KitItem.of(new ItemStack(Material.WOOL, 32))), "a split stack is another stack");
+        assertFalse(WOOL.equals(KitItem.of(new ItemStack(Material.WOOL, 64, (short) 14))), "red wool is not white wool");
+        assertNull(KitItem.of(null));
+        assertNull(KitItem.of(new ItemStack(Material.AIR)));
+        ItemStack item = KitItem.parse("WOOL:14 32").toItem();
+        assertEquals(Material.WOOL, item.getType());
+        assertEquals(32, item.getAmount());
+        assertEquals(14, item.getDurability());
+    }
+
+    @Test
+    void withoutALayoutTheKitGivesItsOwnSlots() {
+        KitItem[] arranged = kit().arrange(null);
+        assertEquals(Kit.SLOTS, arranged.length);
+        assertEquals(SWORD, arranged[0]);
+        assertEquals(WOOL, arranged[1]);
+        assertNull(arranged[3]);
+        assertEquals(PEARL, arranged[4]);
+        assertArrayEquals(arranged, kit().arrange(Kit.defaultLayout()));
+        assertTrue(new Kit(Collections.<KitItem>emptyList()).isEmpty());
+        assertFalse(kit().isEmpty());
+        assertThrows(IllegalArgumentException.class, () -> new Kit(Collections.nCopies(Kit.SLOTS + 1, SWORD)));
+    }
+
+    @Test
+    void theLayoutOfAnEditedInventoryGivesTheSameInventoryBack() {
+        Kit kit = kit();
+        KitItem[] edited = new KitItem[Kit.SLOTS];
+        // The sword in the fourth hotbar slot, the pearl first, a wool in the inventory.
+        edited[3] = SWORD;
+        edited[0] = PEARL;
+        edited[1] = WOOL;
+        edited[20] = WOOL;
+        int[] layout = kit.layoutOf(edited);
+        assertEquals(3, layout[0]);
+        assertEquals(1, layout[1], "a wool left in its slot stays there");
+        assertEquals(20, layout[2], "the other wool is the one moved");
+        assertEquals(0, layout[4]);
+        assertEquals(-1, layout[3], "an empty slot of the kit");
+        assertArrayEquals(edited, kit.arrange(layout));
+        assertFalse(Kit.isDefault(layout));
+    }
+
+    @Test
+    void equalStacksAreInterchangeable() {
+        Kit kit = kit();
+        KitItem[] edited = new KitItem[Kit.SLOTS];
+        edited[0] = SWORD;
+        edited[4] = PEARL;
+        edited[7] = WOOL;
+        edited[8] = WOOL;
+        assertArrayEquals(edited, kit.arrange(kit.layoutOf(edited)));
+    }
+
+    @Test
+    void theKitsOwnLayoutIsTheDefault() {
+        Kit kit = kit();
+        int[] layout = kit.layoutOf(kit.arrange(null));
+        assertTrue(Kit.isDefault(layout), Arrays.toString(layout));
+        assertTrue(Kit.isDefault(Kit.defaultLayout()));
+    }
+
+    @Test
+    void aLayoutForAnOlderKitStillGivesEveryItem() {
+        int[] layout = Kit.defaultLayout();
+        // Two items asked for the same slot, one for a slot out of the inventory.
+        layout[0] = 8;
+        layout[1] = 8;
+        layout[4] = 99;
+        KitItem[] arranged = kit().arrange(layout);
+        assertEquals(SWORD, arranged[8]);
+        assertEquals(WOOL, arranged[1], "slot 8 is taken: back to its own slot");
+        assertEquals(WOOL, arranged[2]);
+        assertEquals(PEARL, arranged[4]);
+        // A lost item (not in the edited inventory) keeps the kit's slot.
+        KitItem[] edited = new KitItem[Kit.SLOTS];
+        edited[0] = SWORD;
+        int[] lost = kit().layoutOf(edited);
+        assertEquals(-1, lost[4]);
+        assertEquals(PEARL, kit().arrange(lost)[4]);
+        // The sword's own slot taken by the pearl: the sword goes to the first free slot.
+        int[] taken = Kit.defaultLayout();
+        taken[4] = 0;
+        KitItem[] moved = kit().arrange(taken);
+        assertEquals(PEARL, moved[0]);
+        assertEquals(SWORD, moved[3]);
+    }
+
+    @Test
+    void layoutsGoToAFileAndBack() throws Exception {
+        Map<String, int[]> layouts = new TreeMap<>();
+        int[] boxing = Kit.defaultLayout();
+        boxing[0] = 3;
+        layouts.put("boxing", boxing);
+        Map<String, int[]> read = KitLayouts.fromYaml(KitLayouts.toYaml(layouts));
+        assertEquals(Collections.singleton("boxing"), read.keySet());
+        assertArrayEquals(boxing, read.get("boxing"));
+        Map<String, int[]> odd = KitLayouts.fromYaml("modes:\n  sumo: [5, 40, -7]\n");
+        assertEquals(5, odd.get("sumo")[0]);
+        assertEquals(-1, odd.get("sumo")[1], "out of the inventory");
+        assertEquals(-1, odd.get("sumo")[2]);
+        assertEquals(-1, odd.get("sumo")[35], "a short list");
+        assertTrue(KitLayouts.fromYaml("").isEmpty());
+    }
+}
