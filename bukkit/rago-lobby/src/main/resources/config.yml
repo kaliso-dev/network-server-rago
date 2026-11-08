@@ -53,10 +53,10 @@ categories:
 pnj:
   rankedbedwars1v1ou2v2elo:
     nom: "&6&lRanked Bedwars"
-    modes: [ranked-1v1, ranked-2v2]
+    modes: [ranked-1v1, ranked-2v2, ranked-3v3, ranked-4v4]
   privategame:
     nom: "&6Partie privée"
-    modes: [partie-privee]
+    modes: [partie-privee, top-fight-prive]
   rbwffa:
     nom: "&cFFA et Top fight"
     modes: [ffa, top-fight-1v1, top-fight-2v2]
@@ -65,7 +65,7 @@ pnj:
     modes: [skyrise-1v1, skyrise-2v2]
   firstrushnebucgelatosoloduo:
     nom: "&eFirst rush"
-    modes: [first-rush]
+    modes: [first-rush, first-rush-duo]
   invispracticearwhayinvasion:
     nom: "&5Invis practice"
     modes: [invis-practice]
@@ -77,12 +77,12 @@ pnj:
     modes: [free-ffa]
   blockplacementarena:
     nom: "&bBlock placement"
-    modes: [block-fight-1v1, block-fight-2v2]
-  # Un seul PNJ par zone de côté : il ouvre toute la catégorie.
-  duels:
+    modes: [block-fight-1v1, block-fight-2v2, block-fight-arena]
+  # Un seul PNJ par zone de côté, sur le panneau de devant : il ouvre toute la catégorie.
+  attackdefenseversionrbw:
     nom: "&a&lDuels"
     categorie: duels
-  practice:
+  blockinpractice:
     nom: "&b&lPractice"
     categorie: entrainement
   aimtrainer:
@@ -127,6 +127,26 @@ modes:
     description:
       - "Bedwars classé à deux contre"
       - "deux, sur Invasion ou Lectus."
+  ranked-3v3:
+    nom: "&6Ranked Bedwars 3v3"
+    categorie: ranked
+    icone: DIAMOND_CHESTPLATE
+    equipes: 2
+    joueurs-par-equipe: 3
+    classe: true
+    description:
+      - "Bedwars classé à trois contre"
+      - "trois, sur Invasion ou Lectus."
+  ranked-4v4:
+    nom: "&6Ranked Bedwars 4v4"
+    categorie: ranked
+    icone: DIAMOND_BLOCK
+    equipes: 2
+    joueurs-par-equipe: 4
+    classe: true
+    description:
+      - "Bedwars classé à quatre contre"
+      - "quatre, sur Invasion ou Lectus."
   partie-privee:
     nom: "&6Partie privée"
     categorie: ranked
@@ -136,8 +156,18 @@ modes:
     classe: false
     description:
       - "Une vraie partie de RBW privée,"
-      - "sur une map toute faite :"
-      - "l'hôte invite ses joueurs."
+      - "1v1, 2v2, 3v3 ou 4v4 : le nombre"
+      - "de joueurs est détecté tout seul."
+  top-fight-prive:
+    nom: "&eTop fight privé"
+    categorie: ranked
+    icone: GOLD_SWORD
+    equipes: 2
+    joueurs-par-equipe: 1
+    classe: false
+    description:
+      - "Top fight en 1v1 ou 2v2 entre amis,"
+      - "sur une plateforme déjà faite."
   ffa:
     nom: "&cFFA Ranked Bedwars"
     categorie: ranked
@@ -181,7 +211,7 @@ modes:
       - "Un Bedwars en duo, type RBW,"
       - "sur Sky Rise."
   first-rush:
-    nom: "&eSolo Bedwars 1v1 first rush"
+    nom: "&eFirst rush solo"
     categorie: ranked
     icone: IRON_PICKAXE
     equipes: 1
@@ -189,8 +219,19 @@ modes:
     classe: false
     description:
       - "Seul : simule le premier rush"
-      - "d'un Bedwars 1v1, sur Nebuc,"
-      - "Gelato ou Sky Rise."
+      - "d'un Bedwars, sur Gelato"
+      - "ou Nebuc."
+  first-rush-duo:
+    nom: "&eFirst rush duo"
+    categorie: ranked
+    icone: IRON_PICKAXE
+    equipes: 1
+    joueurs-par-equipe: 2
+    classe: false
+    description:
+      - "À deux : simule le premier rush"
+      - "d'un Bedwars, sur Gelato"
+      - "ou Nebuc."
   invis-practice:
     nom: "&5Invis practice"
     categorie: ranked
@@ -199,9 +240,9 @@ modes:
     joueurs-par-equipe: 1
     classe: false
     description:
-      - "Combat contre un adversaire"
-      - "invisible, sur Invasion"
-      - "ou Archway."
+      - "Sur Invasion ou Archway, 6 joueurs"
+      - "au plus, manches de 2 minutes :"
+      - "1 invisible contre 1 à 4 défenseurs."
   bridge-fight:
     nom: "&bBridge fight"
     categorie: ranked
@@ -232,6 +273,16 @@ modes:
     description:
       - "Block placement à deux"
       - "contre deux."
+  block-fight-arena:
+    nom: "&bBlock placement arena"
+    categorie: ranked
+    icone: SANDSTONE
+    equipes: 1
+    joueurs-par-equipe: 1
+    classe: false
+    description:
+      - "Block placement en arène,"
+      - "avec tout le monde."
   scenarios-ranked:
     nom: "&4Scénarios du Ranked"
     categorie: ranked

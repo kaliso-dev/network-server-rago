@@ -37,7 +37,7 @@ class LobbySettingsTest {
         assertEquals("lobby", settings.world());
         assertEquals(0, settings.voidHeight());
         assertEquals(1000, settings.defaultRating());
-        assertEquals(32, settings.modes().size());
+        assertEquals(37, settings.modes().size());
 
         GameMode ranked = settings.catalog().get("ranked-1v1");
         assertTrue(ranked.ranked());
@@ -75,7 +75,7 @@ class LobbySettingsTest {
     void readsTheBundledNpcs() throws Exception {
         LobbySettings settings = LobbySettings.load(bundledConfig());
         assertEquals(13, settings.npcs().size());
-        LobbyNpc duels = settings.npc("duels");
+        LobbyNpc duels = settings.npc("attackdefenseversionrbw");
         assertEquals("duels", duels.category());
         assertEquals(settings.modesIn("duels").size(), duels.modeIds().size(), "a category NPC holds its modes");
         assertTrue(duels.modeIds().contains("kb-displace"));

@@ -133,8 +133,19 @@ final class LobbyCommands implements TabExecutor {
         player.sendMessage(ChatColor.AQUA + "Points du lobby :");
         for (java.util.Map.Entry<String, SpawnPoint> entry : all.entrySet()) {
             SpawnPoint p = entry.getValue();
+            LobbyNpc npc = lobby.settings().npc(entry.getKey());
             player.sendMessage(ChatColor.GRAY + " " + entry.getKey() + " : " + (int) Math.floor(p.x()) + " "
-                    + (int) Math.floor(p.y()) + " " + (int) Math.floor(p.z()));
+                    + (int) Math.floor(p.y()) + " " + (int) Math.floor(p.z())
+                    + (npc == null ? ChatColor.DARK_GRAY + " (aucun PNJ)" : ChatColor.GREEN + " → " + npc.name()));
+        }
+        List<String> missing = new ArrayList<>();
+        for (LobbyNpc npc : lobby.settings().npcs()) {
+            if (!all.containsKey(npc.point())) {
+                missing.add(npc.point());
+            }
+        }
+        if (!missing.isEmpty()) {
+            player.sendMessage(ChatColor.YELLOW + "PNJ sans point (/lobby point <nom>) : " + String.join(", ", missing));
         }
     }
 
