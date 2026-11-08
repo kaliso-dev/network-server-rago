@@ -32,14 +32,20 @@ final class LobbySettings {
     static final int MAX_CATEGORIES = 7;
     /** Leaderboards side by side on one point. */
     static final int MAX_BOARDS = 5;
+    /** A rank and a space fit in the 16 characters of a 1.8 team prefix. */
+    static final int MAX_RANK = 15;
+    static final int MAX_XP = 1_000_000;
 
     private final List<ModeDisplay> modes;
     private final List<ModeCategory> categories;
     private final List<LobbyNpc> npcs;
     private final ModeCatalog catalog;
+    private final NetworkLevel levels;
 
     private LobbySettings(String world, int voidHeight, String title, String address, int defaultRating,
-            RatingWindow window, List<ModeCategory> categories, List<ModeDisplay> modes, List<LobbyNpc> npcs) {
+            RatingWindow window, List<ModeCategory> categories, List<ModeDisplay> modes, List<LobbyNpc> npcs,
+            NetworkLevel levels) {
+        this.levels = levels;
         this.categories = Collections.unmodifiableList(categories);
         this.npcs = Collections.unmodifiableList(npcs);
         this.world = world;
@@ -109,8 +115,10 @@ final class LobbySettings {
             modes.add(display);
         }
         List<LobbyNpc> npcs = readNpcs(config, modes, categories);
+        NetworkLevel levels = readLevels(config.getConfigurationSection("niveau"));
         try {
-            return new LobbySettings(world, voidHeight, title, address, defaultRating, window, categories, modes, npcs);
+            return new LobbySettings(world, voidHeight, title, address, defaultRating, window, categories, modes, npcs,
+                    levels);
         } catch (IllegalArgumentException e) {
             throw new IllegalArgumentException("modes : " + e.getMessage(), e);
         }
@@ -181,22 +189,34 @@ final class LobbySettings {
                 if (!LobbyPoints.validName(point) || !points.add(point)) {
                     throw new IllegalArgumentException(where + " : nom de point invalide, ou point déjà pris par un PNJ");
                 }
-                List<BoardStat> stats = new ArrayList<>();
+                List<List<BoardStat>> stats = new ArrayList<>();
                 String name;
                 ConfigurationSection board = boards.getConfigurationSection(point);
                 if (board == null) {
                     // The short form: only the title, over a board of wins.
                     name = boards.getString(point, point);
-                    stats.add(BoardStat.WINS);
+                    stats.add(Collections.singletonList(BoardStat.WINS));
                 } else {
                     name = board.getString("nom", "");
-                    for (String key : board.getStringList("tableaux")) {
-                        BoardStat stat = BoardStat.of(key);
-                        if (stat == null) {
-                            throw new IllegalArgumentException(where + ".tableaux : « " + key
-                                    + " » n'est pas victoires, parties, series ou elo");
+                    List<?> entries = board.getList("tableaux");
+                    for (Object entry : entries == null ? Collections.emptyList() : entries) {
+                        // A list in the list: one board whose right click goes from one stat to the next.
+                        List<?> keys = entry instanceof List ? (List<?>) entry : Collections.singletonList(entry);
+                        List<BoardStat> variables = new ArrayList<>();
+                        for (Object key : keys) {
+                            BoardStat stat = BoardStat.of(String.valueOf(key));
+                            if (stat == null) {
+                                throw new IllegalArgumentException(where + ".tableaux : « " + key + " » n'est pas "
+                                        + BoardStat.keys());
+                            }
+                            if (!variables.contains(stat)) {
+                                variables.add(stat);
+                            }
                         }
-                        stats.add(stat);
+                        if (variables.isEmpty()) {
+                            throw new IllegalArgumentException(where + ".tableaux : un tableau vide");
+                        }
+                        stats.add(variables);
                     }
                     if (stats.isEmpty() || stats.size() > MAX_BOARDS) {
                         throw new IllegalArgumentException(where + ".tableaux : de 1 à " + MAX_BOARDS + " tableaux");
@@ -206,6 +226,51 @@ final class LobbySettings {
             }
         }
         return npcs;
+    }
+
+    /** niveau: the XP of a game and of a kill, the XP of each level, and the ranks. */
+    private static NetworkLevel readLevels(ConfigurationSection section) {
+        if (section == null) {
+            return NetworkLevel.DEFAULT;
+        }
+        int win = xp(section, "xp-victoire", NetworkLevel.DEFAULT.winXp(), 0);
+        int loss = xp(section, "xp-defaite", NetworkLevel.DEFAULT.lossXp(), 0);
+        int kill = xp(section, "xp-kill", NetworkLevel.DEFAULT.killXp(), 0);
+        int first = xp(section, "xp-niveau-2", NetworkLevel.DEFAULT.xpToNext(1), 1);
+        int extra = xp(section, "xp-en-plus-par-niveau", NetworkLevel.DEFAULT.xpToNext(2) - NetworkLevel.DEFAULT.xpToNext(1), 0);
+        Map<Integer, String> ranks = new HashMap<>();
+        ConfigurationSection list = section.getConfigurationSection("rangs");
+        if (list == null && !section.contains("rangs")) {
+            ranks.putAll(NetworkLevel.DEFAULT.ranks());
+        } else if (list != null) {
+            for (String key : list.getKeys(false)) {
+                int level;
+                try {
+                    level = Integer.parseInt(key.trim());
+                } catch (NumberFormatException e) {
+                    level = 0;
+                }
+                if (level < 2 || level > NetworkLevel.MAX_LEVEL) {
+                    throw new IllegalArgumentException("niveau.rangs." + key + " : la clé est le niveau du rang, de 2 à "
+                            + NetworkLevel.MAX_LEVEL);
+                }
+                String rank = colour(list.getString(key, ""));
+                if (ChatColor.stripColor(rank).trim().isEmpty() || rank.length() > MAX_RANK) {
+                    throw new IllegalArgumentException("niveau.rangs." + key + " : de 1 à " + MAX_RANK
+                            + " caractères, codes de couleur compris");
+                }
+                ranks.put(level, rank);
+            }
+        }
+        return new NetworkLevel(win, loss, kill, first, extra, ranks);
+    }
+
+    private static int xp(ConfigurationSection section, String key, int fallback, int min) {
+        int value = section.getInt(key, fallback);
+        if (value < min || value > MAX_XP) {
+            throw new IllegalArgumentException("niveau." + key + " : de " + min + " à " + MAX_XP);
+        }
+        return value;
     }
 
     private static List<ModeCategory> readCategories(ConfigurationSection section) {
@@ -304,6 +369,11 @@ final class LobbySettings {
 
     RatingWindow window() {
         return window;
+    }
+
+    /** The XP, the levels and the ranks of the Network level. */
+    NetworkLevel levels() {
+        return levels;
     }
 
     /** The modes in the order of config.yml, which is the order of the selector. */

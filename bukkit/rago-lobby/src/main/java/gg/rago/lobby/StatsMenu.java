@@ -3,6 +3,7 @@ package gg.rago.lobby;
 import gg.rago.game.GameMode;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
 import org.bukkit.Material;
@@ -65,6 +66,22 @@ final class StatsMenu {
         meta.setOwner(player.getName());
         meta.setDisplayName(ChatColor.GOLD + "" + ChatColor.BOLD + player.getName());
         List<String> lore = new ArrayList<>();
+        NetworkLevel levels = book.levels();
+        int xp = stats == null ? 0 : stats.xp();
+        int level = levels.level(xp);
+        String rank = levels.rank(level);
+        lore.add(ChatColor.GRAY + "Network level: " + ChatColor.AQUA + level);
+        lore.add(ChatColor.GRAY + "Rank: " + (rank == null ? ChatColor.DARK_GRAY + "none yet" : rank));
+        if (level < NetworkLevel.MAX_LEVEL) {
+            lore.add(ChatColor.GRAY + "XP: " + ChatColor.AQUA + levels.xpIntoLevel(xp) + ChatColor.GRAY + "/"
+                    + levels.xpToNext(level) + " to level " + (level + 1));
+        }
+        Map.Entry<Integer, String> next = levels.nextRank(level);
+        if (next != null) {
+            lore.add(ChatColor.GRAY + "Next rank: " + next.getValue() + ChatColor.GRAY + " at level " + next.getKey());
+        }
+        lore.add(ChatColor.GRAY + "Total XP: " + ChatColor.AQUA + xp);
+        lore.add("");
         lore.add(ChatColor.GRAY + "All modes");
         lore.add("");
         int wins = stats == null ? 0 : stats.wins(StatsPeriod.ALL, null, day, week);
@@ -74,9 +91,16 @@ final class StatsMenu {
         lore.add(line("Games played", ChatColor.WHITE, wins + losses));
         lore.add(ChatColor.GRAY + "W/L ratio: " + ChatColor.YELLOW + ratio(wins, losses));
         lore.add(line("Best win streak", ChatColor.YELLOW, stats == null ? 0 : stats.best(StatsPeriod.ALL, null, day, week)));
+        int kills = stats == null ? 0 : stats.kills(StatsPeriod.ALL, null, day, week);
+        int deaths = stats == null ? 0 : stats.deaths();
+        lore.add(line("Kills", ChatColor.GREEN, kills));
+        lore.add(line("Deaths", ChatColor.RED, deaths));
+        lore.add(ChatColor.GRAY + "K/D ratio: " + ChatColor.YELLOW + ratio(kills, deaths));
         lore.add("");
         lore.add(line("Wins today", ChatColor.GREEN, stats == null ? 0 : stats.wins(StatsPeriod.DAY, null, day, week)));
         lore.add(line("Wins this week", ChatColor.GREEN, stats == null ? 0 : stats.wins(StatsPeriod.WEEK, null, day, week)));
+        lore.add(line("Kills today", ChatColor.GREEN, stats == null ? 0 : stats.kills(StatsPeriod.DAY, null, day, week)));
+        lore.add(line("Kills this week", ChatColor.GREEN, stats == null ? 0 : stats.kills(StatsPeriod.WEEK, null, day, week)));
         List<GameMode> ranked = rankedModes(settings);
         if (!ranked.isEmpty()) {
             lore.add("");
@@ -97,7 +121,7 @@ final class StatsMenu {
         meta.setDisplayName(ChatColor.RESET + mode.name());
         List<String> lore = new ArrayList<>();
         ModeStats m = stats == null ? null : stats.mode(mode.id());
-        if (m == null || m.games() == 0) {
+        if (m == null || m.games() == 0 && m.kills == 0 && m.deaths == 0) {
             lore.add(ChatColor.DARK_GRAY + "No game yet");
         } else {
             lore.add(line("Wins", ChatColor.GREEN, m.wins));
@@ -105,6 +129,9 @@ final class StatsMenu {
             lore.add(ChatColor.GRAY + "W/L ratio: " + ChatColor.YELLOW + ratio(m.wins, m.losses));
             lore.add(line("Current win streak", ChatColor.YELLOW, m.streak));
             lore.add(line("Best win streak", ChatColor.YELLOW, m.bestStreak));
+            lore.add(line("Kills", ChatColor.GREEN, m.kills));
+            lore.add(line("Deaths", ChatColor.RED, m.deaths));
+            lore.add(ChatColor.GRAY + "K/D ratio: " + ChatColor.YELLOW + ratio(m.kills, m.deaths));
             lore.add("");
             lore.add(line("Wins today", ChatColor.GREEN, m.wins(StatsPeriod.DAY, day, week)));
             lore.add(line("Wins this week", ChatColor.GREEN, m.wins(StatsPeriod.WEEK, day, week)));

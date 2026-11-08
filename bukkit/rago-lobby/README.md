@@ -14,11 +14,21 @@ dans les files d'attente des modes de jeu.
   file ; le colorant vert ou gris cache ou montre les autres joueurs du lobby.
 - **Le sélecteur.** Un menu avec un objet par mode, sept par ligne : son format (1v1, 2v2, solo),
   sa description, le nombre de joueurs en file. Un clic entre dans la file, un deuxième en sort.
-  Un mode qu'aucun plugin de jeu ne prend en charge affiche « Bientôt disponible ».
+  Un mode qu'aucun plugin de jeu ne prend en charge affiche « Bientôt disponible ». Survoler un
+  mode (boussole ou menu d'un PNJ) montre aussi la meilleure série de victoires jamais faite dans
+  ce mode, par qui, et la meilleure du joueur.
 - **Les files d'attente.** Le matchmaking de `rago-game-model`, une fois par seconde. Un joueur
   n'attend que dans une file à la fois.
-- **Le scoreboard.** Les joueurs connectés, la file et le temps d'attente. Une ligne n'est
-  renvoyée que quand elle change.
+- **Le scoreboard.** Les joueurs connectés, le niveau Network, le rang et l'XP du joueur, la file
+  et le temps d'attente. Une ligne n'est renvoyée que quand elle change.
+- **Le niveau Network.** Chaque partie donne de l'XP (50 pour une victoire, 15 pour une défaite),
+  chaque kill 5 de plus. On commence niveau 1, et chaque niveau demande 50 XP de plus que le
+  précédent (100, 150, 200...). Certains niveaux donnent un rang (Iron au 5, Gold au 10, Diamond
+  au 20, Emerald au 30, Sapphire au 50, Ruby au 75, Crystal au 100), affiché dans le chat
+  (`[12] [Gold] Pseudo: message`), au-dessus de la tête, dans le Tab (les plus hauts rangs en
+  premier) et dans le scoreboard. La barre d'XP du lobby montre le niveau et l'avancée vers le
+  suivant. Un message et un son à chaque niveau, un message à chaque nouveau rang. Tout se règle
+  dans `niveau:` de config.yml.
 
 ## Commandes
 
@@ -62,13 +72,20 @@ générateur vide ; un monde de build peut donc servir de lobby.
   de la tête. Un clic rejoint la file du mode, ou ouvre un menu quand le PNJ a plusieurs modes. Les
   PNJ réapparaissent quand un point bouge.
 - `pnj:` avec `type: stats` place un PNJ de stats : un Steve qui tient un livre, avec au-dessus
-  le profil de celui qui le regarde (victoires, défaites, meilleure série, victoires du jour, ELO
-  de chaque mode classé). Chaque joueur lit le sien. Un clic ouvre « Your stats » : la tête du
-  joueur avec ses totaux, puis chaque mode avec ses stats (survoler un mode pour les lire).
+  le profil de celui qui le regarde (niveau Network et rang, victoires, défaites, kills, meilleure
+  série, victoires du jour, ELO de chaque mode classé). Chaque joueur lit le sien. Un clic ouvre
+  « Your stats » : la tête du joueur avec son niveau, son XP, son rang, le prochain rang et ses
+  totaux (kills, morts et K/D compris), puis chaque mode avec ses stats (survoler un mode pour les
+  lire).
 - `classements:` place un mur de classements sur un point : de 1 à 5 tableaux côte à côte, face au
-  spawn (`tableaux: [victoires, series, parties, elo]`). Chaque tableau montre le top 10, la place
-  de celui qui regarde et quand il repart de zéro. Un clic sur un tableau change sa période pour
-  ce joueur (du jour, de la semaine, à vie) ; sur un tableau `elo`, il change de mode classé.
+  spawn (`tableaux: [victoires, series, parties, kills, niveau, elo]`). Chaque tableau montre le
+  top 10, la place de celui qui regarde et quand il repart de zéro. Un clic sur un tableau change
+  sa période pour ce joueur (du jour, de la semaine, à vie) ; sur un tableau `elo`, il change de
+  mode classé. Un tableau peut regrouper plusieurs classements entre crochets
+  (`tableaux: [[elo, kills, niveau]]`, celui de leaderboardprincipal) : un clic droit passe au
+  classement suivant, un clic gauche change la période ou le mode classé. Le tableau `niveau` est
+  classé par XP et montre le niveau. leaderboardplayer montre les kills du jour, de la semaine et
+  à vie.
 
 Les PNJ n'existent que dans les paquets envoyés aux joueurs (plugin PacketEvents, installé à côté
 de RagoLobby) : le serveur ne les voit pas, ils ne bougent pas et ne prennent pas de coups. Ils
@@ -80,7 +97,9 @@ cache leur nom au-dessus de la tête (équipe `pnj`).
 Les plugins de jeu donnent le résultat de chaque partie au lobby (`recordMatch`, voir plus bas) :
 victoires, défaites, série de victoires en cours et meilleure série, par mode, à vie, du jour et
 de la semaine (heure de Paris : le jour repart à minuit, la semaine le lundi à minuit). Un abandon
-compte comme une défaite. Une partie d'un mode classé fait aussi bouger l'ELO des deux camps
+compte comme une défaite. Les kills et les morts aussi (`recordKill`) : au sumo, chaque point est
+un kill pour celui qui le marque et une mort pour celui qui tombe. Chaque joueur garde aussi son
+XP Network. Une partie d'un mode classé fait aussi bouger l'ELO des deux camps
 (formule classique, 32 points au plus par partie, 1000 au départ). Le duel sumo est le premier
 mode qui compte.
 
@@ -103,8 +122,9 @@ lobby.registerHost(this, "sumo", host);   // ouvre la file du mode "sumo"
 connectés et au lobby ; il renvoie `false` s'il ne peut pas la démarrer (aucune arène libre), et
 les joueurs gardent leur place dans la file. Pendant la partie, les joueurs appartiennent au jeu,
 qui les rend avec `lobby.sendToLobby(player)`. `MatchHost.abandon(player)` est appelé quand un
-joueur tape `/spawn` en pleine partie. À la fin, `lobby.recordMatch("sumo", gagnants, perdants)`
-compte la partie dans les stats et les classements.
+joueur tape `/spawn` en pleine partie. `lobby.recordKill("sumo", tueur, victime)` compte un kill
+(et l'XP qui va avec). À la fin, `lobby.recordMatch("sumo", gagnants, perdants)` compte la partie
+dans les stats, les classements et l'XP Network.
 
 Sur le réseau, les files passeront dans le proxy (`rago-proxy`) et les serveurs de jeu recevront
 leurs parties de lui ; le côté `MatchHost` d'un plugin de jeu ne changera pas.

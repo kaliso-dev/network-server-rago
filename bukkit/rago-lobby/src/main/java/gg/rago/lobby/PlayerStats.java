@@ -11,6 +11,8 @@ final class PlayerStats {
     private final UUID id;
     private String name;
     private final Map<String, ModeStats> modes = new LinkedHashMap<>();
+    /** Network XP, every mode together (see {@link NetworkLevel}). */
+    private int xp;
 
     PlayerStats(UUID id, String name) {
         this.id = id;
@@ -33,6 +35,14 @@ final class PlayerStats {
         }
         name = newName;
         return true;
+    }
+
+    int xp() {
+        return xp;
+    }
+
+    void addXp(int gained) {
+        xp = (int) Math.min(Integer.MAX_VALUE, Math.max(0L, (long) xp + gained));
     }
 
     /** The stats of this mode, or null if the player never played it. */
@@ -83,6 +93,25 @@ final class PlayerStats {
             }
         }
         return best;
+    }
+
+    /** Kills of one mode, or of every mode when modeId is null. */
+    int kills(StatsPeriod period, String modeId, String day, String week) {
+        int total = 0;
+        for (Map.Entry<String, ModeStats> entry : modes.entrySet()) {
+            if (modeId == null || modeId.equals(entry.getKey())) {
+                total += entry.getValue().kills(period, day, week);
+            }
+        }
+        return total;
+    }
+
+    int deaths() {
+        int total = 0;
+        for (ModeStats stats : modes.values()) {
+            total += stats.deaths;
+        }
+        return total;
     }
 
     int losses() {

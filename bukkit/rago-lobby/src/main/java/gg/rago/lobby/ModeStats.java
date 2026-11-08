@@ -13,16 +13,20 @@ final class ModeStats {
     int bestStreak;
     /** The ELO of a ranked mode; 0 before the first ranked game. */
     int elo;
+    int kills;
+    int deaths;
 
     String day = "";
     int dayWins;
     int dayGames;
     int dayBest;
+    int dayKills;
 
     String week = "";
     int weekWins;
     int weekGames;
     int weekBest;
+    int weekKills;
 
     /** One game, won or lost, played on this day of this week. */
     void record(boolean won, String dayKey, String weekKey) {
@@ -43,8 +47,31 @@ final class ModeStats {
         }
     }
 
+    /** The player killed someone (in a sumo: knocked them off), on this day of this week. */
+    void kill(String dayKey, String weekKey) {
+        roll(dayKey, weekKey);
+        kills++;
+        dayKills++;
+        weekKills++;
+    }
+
+    void death() {
+        deaths++;
+    }
+
     int games() {
         return wins + losses;
+    }
+
+    int kills(StatsPeriod period, String dayKey, String weekKey) {
+        switch (period) {
+            case DAY:
+                return dayKey.equals(day) ? dayKills : 0;
+            case WEEK:
+                return weekKey.equals(week) ? weekKills : 0;
+            default:
+                return kills;
+        }
     }
 
     boolean rated() {
@@ -90,12 +117,14 @@ final class ModeStats {
             dayWins = 0;
             dayGames = 0;
             dayBest = 0;
+            dayKills = 0;
         }
         if (!weekKey.equals(week)) {
             week = weekKey;
             weekWins = 0;
             weekGames = 0;
             weekBest = 0;
+            weekKills = 0;
         }
     }
 }

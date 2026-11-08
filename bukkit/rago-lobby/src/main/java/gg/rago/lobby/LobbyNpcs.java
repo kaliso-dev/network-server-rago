@@ -160,7 +160,7 @@ final class LobbyNpcs implements Listener {
     private void body(final LobbyNpc npc, int index, Location at) {
         ModeCategory category = npc.category() == null ? null : settings.category(npc.category());
         ItemStack icon = new ItemStack(category != null ? category.icon() : settings.display(npc.modeIds().get(0)).icon());
-        fakes.add(new FakePlayer(at, bodyName(index), icon, player -> click(player, npc.point())));
+        fakes.add(new FakePlayer(at, bodyName(index), icon, (player, left) -> click(player, npc.point())));
     }
 
     private ArmorStand label(LobbyNpc npc, Location at, String text) {

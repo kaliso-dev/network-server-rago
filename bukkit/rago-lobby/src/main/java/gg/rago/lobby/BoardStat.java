@@ -4,22 +4,36 @@ package gg.rago.lobby;
 enum BoardStat {
 
     /** Games won, of the day, of the week or ever: a click changes the period. */
-    WINS("victoires", "Wins", true),
+    WINS("victoires", "Wins", Choice.PERIOD),
     /** Games played, of the day, of the week or ever. */
-    GAMES("parties", "Games played", true),
+    GAMES("parties", "Games played", Choice.PERIOD),
     /** The longest run of wins reached during the day, the week or ever. */
-    STREAK("series", "Best win streak", true),
+    STREAK("series", "Best win streak", Choice.PERIOD),
+    /** Kills (in a sumo, knocking the other player off), of the day, of the week or ever. */
+    KILLS("kills", "Kills", Choice.PERIOD),
+    /** The Network level, ranked by XP. */
+    LEVEL("niveau", "Network level", Choice.NONE),
     /** The ELO of a ranked mode: a click changes the mode. */
-    ELO("elo", "Ranked Elo", false);
+    ELO("elo", "Ranked Elo", Choice.RANKED_MODE);
+
+    /** What a click on a board of this stat changes. */
+    enum Choice {
+        /** Day, week or ever. */
+        PERIOD,
+        /** One of the ranked modes. */
+        RANKED_MODE,
+        /** Nothing: there is one board. */
+        NONE
+    }
 
     private final String key;
     private final String title;
-    private final boolean periodic;
+    private final Choice choice;
 
-    BoardStat(String key, String title, boolean periodic) {
+    BoardStat(String key, String title, Choice choice) {
         this.key = key;
         this.title = title;
-        this.periodic = periodic;
+        this.choice = choice;
     }
 
     /** The name in config.yml. */
@@ -32,9 +46,13 @@ enum BoardStat {
         return title;
     }
 
-    /** True if a click changes its period; false for the ELO, whose clicks change the mode. */
+    Choice choice() {
+        return choice;
+    }
+
+    /** True if a click changes its period. */
     boolean periodic() {
-        return periodic;
+        return choice == Choice.PERIOD;
     }
 
     /** The stat of this config.yml name, or null. */
@@ -45,5 +63,15 @@ enum BoardStat {
             }
         }
         return null;
+    }
+
+    /** "victoires, parties, series, kills, niveau ou elo", for the errors of config.yml. */
+    static String keys() {
+        StringBuilder text = new StringBuilder();
+        BoardStat[] all = values();
+        for (int i = 0; i < all.length; i++) {
+            text.append(i == 0 ? "" : i == all.length - 1 ? " ou " : ", ").append(all[i].key);
+        }
+        return text.toString();
     }
 }

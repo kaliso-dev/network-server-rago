@@ -36,7 +36,7 @@ class StatsBookTest {
 
     @Test
     void countsWinsLossesAndStreaks() {
-        StatsBook book = new StatsBook(1000);
+        StatsBook book = new StatsBook(1000, NetworkLevel.DEFAULT);
         win(book, SUMO, ALICE, BOB, SATURDAY);
         win(book, SUMO, ALICE, BOB, SATURDAY);
         win(book, SUMO, BOB, ALICE, SATURDAY);
@@ -54,7 +54,7 @@ class StatsBookTest {
 
     @Test
     void dayAndWeekCountersStartAgain() {
-        StatsBook book = new StatsBook(1000);
+        StatsBook book = new StatsBook(1000, NetworkLevel.DEFAULT);
         win(book, SUMO, ALICE, BOB, SATURDAY);
         win(book, SUMO, ALICE, BOB, SUNDAY);
         PlayerStats alice = book.get(ALICE);
@@ -77,7 +77,7 @@ class StatsBookTest {
 
     @Test
     void ranksBestFirstAndLeavesZerosOut() {
-        StatsBook book = new StatsBook(1000);
+        StatsBook book = new StatsBook(1000, NetworkLevel.DEFAULT);
         win(book, SUMO, BOB, CARL, SUNDAY);
         win(book, SUMO, ALICE, CARL, SUNDAY);
         win(book, SUMO, ALICE, CARL, SUNDAY);
@@ -97,7 +97,7 @@ class StatsBookTest {
 
     @Test
     void tiesKeepTheAlphabeticalOrder() {
-        StatsBook book = new StatsBook(1000);
+        StatsBook book = new StatsBook(1000, NetworkLevel.DEFAULT);
         win(book, SUMO, CARL, BOB, SUNDAY);
         win(book, SUMO, ALICE, BOB, SUNDAY);
         assertEquals(Arrays.asList("Alice", "Carl"), names(book.ranking(BoardStat.WINS, StatsPeriod.ALL, null, SUNDAY).rows()));
@@ -105,7 +105,7 @@ class StatsBookTest {
 
     @Test
     void rankedGamesMoveTheElo() {
-        StatsBook book = new StatsBook(1000);
+        StatsBook book = new StatsBook(1000, NetworkLevel.DEFAULT);
         assertEquals(1000, book.elo(ALICE, "ranked-1v1"));
         win(book, RANKED, ALICE, BOB, SUNDAY);
         assertEquals(1016, book.elo(ALICE, "ranked-1v1"));
@@ -121,8 +121,67 @@ class StatsBookTest {
     }
 
     @Test
+    void gamesAndKillsGiveNetworkXp() {
+        StatsBook book = new StatsBook(1000, NetworkLevel.DEFAULT);
+        assertEquals(1, book.level(ALICE), "everyone starts at level 1");
+        win(book, SUMO, ALICE, BOB, SUNDAY);
+        assertEquals(50, book.get(ALICE).xp(), "a win");
+        assertEquals(15, book.get(BOB).xp(), "a game played");
+        assertEquals(2, book.kill("sumo", ALICE, BOB, NAMES, SUNDAY).size());
+        assertEquals(55, book.get(ALICE).xp(), "a kill");
+        assertEquals(15, book.get(BOB).xp(), "dying gives nothing");
+        win(book, SUMO, ALICE, BOB, SUNDAY);
+        assertEquals(2, book.level(ALICE), "105 XP: level 2 from 100");
+        StatsBook.Ranking level = book.ranking(BoardStat.LEVEL, StatsPeriod.DAY, "sumo", SUNDAY);
+        assertEquals(Arrays.asList("Alice", "Bob"), names(level.rows()));
+        assertEquals(105, level.rows().get(0).value(), "ranked by XP");
+        assertTrue(book.kill("sumo", ALICE, ALICE, NAMES, SUNDAY).isEmpty(), "no kill of oneself");
+        assertEquals(1, book.kill("sumo", CARL, null, NAMES, SUNDAY).size(), "a kill without a known victim");
+        assertEquals(5, book.get(CARL).xp());
+    }
+
+    @Test
+    void killsHaveTheirDayWeekAndLifetime() {
+        StatsBook book = new StatsBook(1000, NetworkLevel.DEFAULT);
+        book.kill("sumo", ALICE, BOB, NAMES, SATURDAY);
+        book.kill("sumo", ALICE, BOB, NAMES, SUNDAY);
+        book.kill("ranked-1v1", BOB, ALICE, NAMES, SUNDAY);
+        book.kill("sumo", BOB, ALICE, NAMES, MONDAY);
+        PlayerStats alice = book.get(ALICE);
+        assertEquals(1, alice.kills(StatsPeriod.DAY, null, StatsPeriod.dayKey(SUNDAY), StatsPeriod.weekKey(SUNDAY)));
+        assertEquals(2, alice.kills(StatsPeriod.WEEK, null, StatsPeriod.dayKey(SUNDAY), StatsPeriod.weekKey(SUNDAY)));
+        assertEquals(0, alice.kills(StatsPeriod.WEEK, null, StatsPeriod.dayKey(MONDAY), StatsPeriod.weekKey(MONDAY)),
+                "a new week");
+        assertEquals(2, alice.kills(StatsPeriod.ALL, "sumo", "", ""));
+        assertEquals(2, alice.deaths());
+        assertEquals(1, alice.mode("ranked-1v1").deaths);
+        assertEquals(Arrays.asList("Bob"), names(book.ranking(BoardStat.KILLS, StatsPeriod.DAY, null, MONDAY).rows()));
+        assertEquals(Arrays.asList("Bob"), names(book.ranking(BoardStat.KILLS, StatsPeriod.WEEK, null, MONDAY).rows()));
+        StatsBook.Ranking ever = book.ranking(BoardStat.KILLS, StatsPeriod.ALL, null, MONDAY);
+        assertEquals(Arrays.asList("Alice", "Bob"), names(ever.rows()), "a tie: alphabetical");
+        assertEquals(2, ever.rows().get(1).value());
+        assertEquals(Arrays.asList("Alice", "Bob"),
+                names(book.ranking(BoardStat.KILLS, StatsPeriod.ALL, "sumo", MONDAY).rows()), "one mode");
+        assertEquals(1, book.ranking(BoardStat.KILLS, StatsPeriod.ALL, "sumo", MONDAY).rows().get(1).value());
+    }
+
+    @Test
+    void filesKeepTheKillsAndTheXp() throws Exception {
+        StatsBook book = new StatsBook(1000, NetworkLevel.DEFAULT);
+        win(book, SUMO, ALICE, BOB, SUNDAY);
+        book.kill("sumo", ALICE, BOB, NAMES, SUNDAY);
+        book.kill("sumo", BOB, ALICE, NAMES, SUNDAY);
+        PlayerStats read = StatsFiles.fromYaml(ALICE, StatsFiles.toYaml(book.get(ALICE)));
+        assertEquals(55, read.xp());
+        assertEquals(1, read.mode("sumo").kills);
+        assertEquals(1, read.mode("sumo").deaths);
+        assertEquals(1, read.kills(StatsPeriod.DAY, null, StatsPeriod.dayKey(SUNDAY), StatsPeriod.weekKey(SUNDAY)));
+        assertEquals(1, read.kills(StatsPeriod.WEEK, null, StatsPeriod.dayKey(SUNDAY), StatsPeriod.weekKey(SUNDAY)));
+    }
+
+    @Test
     void keepsTheNameUpToDate() {
-        StatsBook book = new StatsBook(1000);
+        StatsBook book = new StatsBook(1000, NetworkLevel.DEFAULT);
         win(book, SUMO, ALICE, BOB, SUNDAY);
         assertNull(book.seen(ALICE, "Alice"));
         assertEquals("Alicia", book.seen(ALICE, "Alicia").name());
@@ -132,7 +191,7 @@ class StatsBookTest {
 
     @Test
     void filesKeepEverything() throws Exception {
-        StatsBook book = new StatsBook(1000);
+        StatsBook book = new StatsBook(1000, NetworkLevel.DEFAULT);
         win(book, SUMO, ALICE, BOB, SATURDAY);
         win(book, RANKED, ALICE, BOB, SUNDAY);
         PlayerStats alice = book.get(ALICE);
@@ -141,7 +200,7 @@ class StatsBookTest {
         assertEquals(StatsFiles.toYaml(alice), StatsFiles.toYaml(read));
         assertEquals(1016, read.mode("ranked-1v1").elo);
         assertEquals(0, read.mode("sumo").elo);
-        StatsBook loaded = new StatsBook(1000);
+        StatsBook loaded = new StatsBook(1000, NetworkLevel.DEFAULT);
         assertTrue(loaded.load(read));
         assertEquals(1016, loaded.elo(ALICE, "ranked-1v1"));
     }

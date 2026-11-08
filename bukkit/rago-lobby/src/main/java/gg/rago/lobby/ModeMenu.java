@@ -18,7 +18,8 @@ import org.bukkit.inventory.meta.ItemMeta;
  * per category (a zone of the lobby); clicking one opens that category's modes, with a back
  * button in the bottom row. Without categories, every mode is shown at once. Modes are seven per
  * row, framed by an empty row above and below. Clicking a playable mode joins its queue; clicking
- * the mode one waits for leaves it. Open menus are refreshed every second, for the queue counts.
+ * the mode one waits for leaves it. Hovering a mode shows the best win streak ever reached in it,
+ * by whom, and the player's own. Open menus are refreshed every second, for the queue counts.
  */
 final class ModeMenu {
 
@@ -53,6 +54,7 @@ final class ModeMenu {
 
     private final LobbySettings settings;
     private final QueueController queues;
+    private final StatsBook book;
     private DuelRequests duels;
 
     void setDuels(DuelRequests duels) {
@@ -65,9 +67,10 @@ final class ModeMenu {
                 "Duel " + (target.getName().length() > 24 ? target.getName().substring(0, 24) : target.getName()));
     }
 
-    ModeMenu(LobbySettings settings, QueueController queues) {
+    ModeMenu(LobbySettings settings, QueueController queues, StatsBook book) {
         this.settings = settings;
         this.queues = queues;
+        this.book = book;
     }
 
     /** The compass: the categories if there are any, else every mode. */
@@ -220,7 +223,7 @@ final class ModeMenu {
         List<ModeDisplay> modes = modesFor(view);
         int last = hasBack(view) ? backSlot(inventory.getSize()) - 4 : inventory.getSize();
         for (int i = 0; i < modes.size() && slotOf(i) < last; i++) {
-            inventory.setItem(slotOf(i), icon(modes.get(i), modes.get(i).mode().equals(current)));
+            inventory.setItem(slotOf(i), icon(modes.get(i), modes.get(i).mode().equals(current), viewer));
         }
         if (hasBack(view)) {
             ItemStack back = new ItemStack(Material.ARROW);
@@ -256,7 +259,7 @@ final class ModeMenu {
         return item;
     }
 
-    private ItemStack icon(ModeDisplay display, boolean waitingHere) {
+    private ItemStack icon(ModeDisplay display, boolean waitingHere, HumanEntity viewer) {
         GameMode mode = display.mode();
         ItemStack item = new ItemStack(display.icon());
         ItemMeta meta = item.getItemMeta();
@@ -265,6 +268,8 @@ final class ModeMenu {
         lore.add(ChatColor.DARK_GRAY + mode.format() + (mode.ranked() ? " · ranked" : ""));
         lore.add("");
         lore.addAll(display.description());
+        lore.add("");
+        lore.addAll(streakLines(mode, viewer));
         lore.add("");
         if (!queues.isPlayable(mode.id())) {
             lore.add(ChatColor.GRAY + "Coming soon");
@@ -276,5 +281,21 @@ final class ModeMenu {
         meta.setLore(lore);
         item.setItemMeta(meta);
         return item;
+    }
+
+    /** The best win streak ever reached in the mode, by whom, and the viewer's own best. */
+    List<String> streakLines(GameMode mode, HumanEntity viewer) {
+        StatsBook.Ranking streaks = book.ranking(BoardStat.STREAK, StatsPeriod.ALL, mode.id(), System.currentTimeMillis());
+        List<String> lines = new ArrayList<>();
+        if (streaks.rows().isEmpty()) {
+            lines.add(ChatColor.GRAY + "Top win streak: " + ChatColor.DARK_GRAY + "nobody yet");
+        } else {
+            StatsBook.Row top = streaks.rows().get(0);
+            lines.add(ChatColor.GRAY + "Top win streak: " + ChatColor.GOLD + top.value() + ChatColor.GRAY + " ("
+                    + ChatColor.WHITE + top.name() + ChatColor.GRAY + ")");
+        }
+        StatsBook.Row own = viewer == null ? null : streaks.rowOf(viewer.getUniqueId());
+        lines.add(ChatColor.GRAY + "Your best win streak: " + ChatColor.YELLOW + (own == null ? 0 : own.value()));
+        return lines;
     }
 }

@@ -95,8 +95,8 @@ cat >"$SERVER_DIR/bukkit.yml" <<'YAML'
 settings:
   allow-end: false
 YAML
-# Around the spawn of the new lobby world: the NPC of the Duels category, a stats NPC and a wall of
-# leaderboards.
+# Around the spawn of the new lobby world: the NPC of the Duels category, a stats NPC, a wall of
+# leaderboards, the main leaderboard (within click range of the spawn) and the kills leaderboard.
 mkdir -p "$SERVER_DIR/lobby"
 cat >"$SERVER_DIR/lobby/points.yml" <<'YAML'
 attackdefenseversionrbw:
@@ -116,6 +116,18 @@ leaderboardstats:
   y: 65.0
   z: -6.5
   yaw: 0.0
+  pitch: 0.0
+leaderboardprincipal:
+  x: 0.5
+  y: 65.0
+  z: 5.5
+  yaw: 180.0
+  pitch: 0.0
+leaderboardplayer:
+  x: 7.5
+  y: 65.0
+  z: 5.5
+  yaw: 180.0
   pitch: 0.0
 YAML
 

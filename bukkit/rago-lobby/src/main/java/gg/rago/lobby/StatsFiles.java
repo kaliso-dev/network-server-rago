@@ -26,6 +26,7 @@ final class StatsFiles {
         YamlConfiguration yaml = new YamlConfiguration();
         yaml.options().header("Stats de " + stats.name() + ", écrites par RagoLobby.");
         yaml.set("nom", stats.name());
+        yaml.set("xp", stats.xp());
         for (Map.Entry<String, ModeStats> entry : stats.modes().entrySet()) {
             ModeStats m = entry.getValue();
             ConfigurationSection section = yaml.createSection("modes." + entry.getKey());
@@ -36,14 +37,18 @@ final class StatsFiles {
             if (m.rated()) {
                 section.set("elo", m.elo);
             }
+            section.set("kills", m.kills);
+            section.set("morts", m.deaths);
             section.set("jour.date", m.day);
             section.set("jour.victoires", m.dayWins);
             section.set("jour.parties", m.dayGames);
             section.set("jour.meilleure-serie", m.dayBest);
+            section.set("jour.kills", m.dayKills);
             section.set("semaine.date", m.week);
             section.set("semaine.victoires", m.weekWins);
             section.set("semaine.parties", m.weekGames);
             section.set("semaine.meilleure-serie", m.weekBest);
+            section.set("semaine.kills", m.weekKills);
         }
         return yaml.saveToString();
     }
@@ -53,6 +58,7 @@ final class StatsFiles {
         YamlConfiguration yaml = new YamlConfiguration();
         yaml.loadFromString(text);
         PlayerStats stats = new PlayerStats(player, yaml.getString("nom", "?"));
+        stats.addXp(Math.max(0, yaml.getInt("xp")));
         ConfigurationSection modes = yaml.getConfigurationSection("modes");
         if (modes != null) {
             for (String modeId : modes.getKeys(false)) {
@@ -66,14 +72,18 @@ final class StatsFiles {
                 m.streak = Math.max(0, section.getInt("serie"));
                 m.bestStreak = Math.max(m.streak, section.getInt("meilleure-serie"));
                 m.elo = Math.max(0, section.getInt("elo"));
+                m.kills = Math.max(0, section.getInt("kills"));
+                m.deaths = Math.max(0, section.getInt("morts"));
                 m.day = section.getString("jour.date", "");
                 m.dayWins = Math.max(0, section.getInt("jour.victoires"));
                 m.dayGames = Math.max(0, section.getInt("jour.parties"));
                 m.dayBest = Math.max(0, section.getInt("jour.meilleure-serie"));
+                m.dayKills = Math.max(0, section.getInt("jour.kills"));
                 m.week = section.getString("semaine.date", "");
                 m.weekWins = Math.max(0, section.getInt("semaine.victoires"));
                 m.weekGames = Math.max(0, section.getInt("semaine.parties"));
                 m.weekBest = Math.max(0, section.getInt("semaine.meilleure-serie"));
+                m.weekKills = Math.max(0, section.getInt("semaine.kills"));
             }
         }
         return stats;

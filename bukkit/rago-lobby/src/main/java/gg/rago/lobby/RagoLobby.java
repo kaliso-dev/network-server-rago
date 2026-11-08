@@ -48,6 +48,7 @@ public final class RagoLobby extends JavaPlugin implements LobbyService {
     private DuelRequests duels;
     private StatsService stats;
     private StatsDisplays statsDisplays;
+    private NetworkRanks ranks;
 
     @Override
     public void onEnable() {
@@ -91,11 +92,12 @@ public final class RagoLobby extends JavaPlugin implements LobbyService {
         state = new LobbyState(world, spawn);
         visibility = new Visibility();
         queues = new QueueController(this, settings, state, this::queuesChanged);
-        menu = new ModeMenu(settings, queues);
-        scoreboard = new LobbyScoreboard(settings, queues);
+        stats = new StatsService(this, settings.defaultRating(), settings.levels(), writer, this::write, this::xpChanged);
+        ranks = new NetworkRanks(stats.book());
+        menu = new ModeMenu(settings, queues, stats.book());
+        scoreboard = new LobbyScoreboard(settings, queues, stats.book());
         duels = new DuelRequests(settings, state, queues);
         menu.setDuels(duels);
-        stats = new StatsService(this, settings.defaultRating(), writer, this::write);
         stats.load();
         fakes = new FakeEntities(this, world);
         fakes.start();
@@ -106,6 +108,7 @@ public final class RagoLobby extends JavaPlugin implements LobbyService {
 
         getServer().getPluginManager().registerEvents(new LobbyListener(this, state, visibility), this);
         getServer().getPluginManager().registerEvents(new HostWatcher(queues), this);
+        getServer().getPluginManager().registerEvents(ranks, this);
         LobbyCommands commands = new LobbyCommands(this);
         for (String name : new String[] {"lobby", "spawn", "queue", "duel"}) {
             getCommand(name).setExecutor(commands);
@@ -115,6 +118,10 @@ public final class RagoLobby extends JavaPlugin implements LobbyService {
 
         getServer().getScheduler().runTaskTimer(this, () -> {
             queues.tick();
+            for (Player player : getServer().getOnlinePlayers()) {
+                // The stats are read after the start: the ranks follow once they are there.
+                ranks.refresh(player);
+            }
             scoreboard.updateAll();
             menu.refreshOpen();
             npcs.update();
@@ -213,8 +220,7 @@ public final class RagoLobby extends JavaPlugin implements LobbyService {
         player.setExhaustion(0f);
         player.setFireTicks(0);
         player.setFallDistance(0f);
-        player.setLevel(0);
-        player.setExp(0f);
+        showLevel(player);
         for (PotionEffect effect : player.getActivePotionEffects()) {
             player.removePotionEffect(effect.getType());
         }
@@ -222,6 +228,27 @@ public final class RagoLobby extends JavaPlugin implements LobbyService {
         scoreboard.show(player);
         visibility.applyInLobby(player, state);
         visibility.hideFromHiders(player, state);
+    }
+
+    /** The XP bar shows the Network level, and how far the player is towards the next one. */
+    private void showLevel(Player player) {
+        PlayerStats mine = stats.book().get(player.getUniqueId());
+        int xp = mine == null ? 0 : mine.xp();
+        player.setLevel(settings.levels().level(xp));
+        player.setExp(settings.levels().progress(xp));
+    }
+
+    /** A player's Network XP changed: their rank in the chat, their XP bar in the lobby, the sidebars. */
+    private void xpChanged(UUID id) {
+        Player player = getServer().getPlayer(id);
+        if (player == null) {
+            return;
+        }
+        ranks.refresh(player);
+        if (state.isProtected(player)) {
+            showLevel(player);
+        }
+        scoreboard.updateAll();
     }
 
     /** The player belongs to a game from now on: sees and is seen by everyone. */
@@ -261,6 +288,7 @@ public final class RagoLobby extends JavaPlugin implements LobbyService {
 
     void forget(Player player) {
         statsDisplays.forget(player.getUniqueId());
+        ranks.forget(player.getUniqueId());
         queues.forget(player.getUniqueId());
         duels.forget(player.getUniqueId());
         visibility.forget(player.getUniqueId());
@@ -440,9 +468,19 @@ public final class RagoLobby extends JavaPlugin implements LobbyService {
         stats.record(mode, winners, losers);
     }
 
+    @Override
+    public void recordKill(String modeId, UUID killer, UUID victim) {
+        if (settings.catalog().get(modeId) == null) {
+            getLogger().warning("Kill d'un mode inconnu ignoré : " + modeId);
+            return;
+        }
+        stats.kill(modeId, killer, victim);
+    }
+
     /** The player joined: their name, for the leaderboards. */
     void joined(Player player) {
         stats.seen(player);
+        ranks.refresh(player);
     }
 
     // --- For the other classes of the plugin ----------------------------------------------------

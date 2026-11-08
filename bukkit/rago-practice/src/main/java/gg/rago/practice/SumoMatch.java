@@ -139,6 +139,8 @@ final class SumoMatch {
             return;
         }
         int scorer = 1 - side;
+        // A point is a kill for the scorer and a death for the player who fell.
+        plugin.lobby().recordKill(SumoHost.MODE_ID, players[scorer], players[side]);
         boolean won = score.point(scorer);
         for (int s = 0; s < 2; s++) {
             Player p = Bukkit.getPlayer(players[s]);

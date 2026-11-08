@@ -40,4 +40,11 @@ public interface LobbyService {
      * left the server already.
      */
     void recordMatch(String modeId, List<UUID> winners, List<UUID> losers);
+
+    /**
+     * A kill in a game of this mode (in a sumo: the victim fell off and the killer got the point).
+     * The killer gets a kill and some Network XP, the victim a death (null when nobody died).
+     * Counted in the stats and the kill leaderboards, of the day, the week and ever.
+     */
+    void recordKill(String modeId, UUID killer, UUID victim);
 }

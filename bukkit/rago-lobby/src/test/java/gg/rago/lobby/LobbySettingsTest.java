@@ -9,6 +9,8 @@ import gg.rago.game.GameMode;
 import java.io.InputStreamReader;
 import java.io.Reader;
 import java.nio.charset.StandardCharsets;
+import java.util.Arrays;
+import java.util.Collections;
 import org.bukkit.Material;
 import org.bukkit.configuration.InvalidConfigurationException;
 import org.bukkit.configuration.file.YamlConfiguration;
@@ -74,7 +76,7 @@ class LobbySettingsTest {
     @Test
     void readsTheBundledNpcs() throws Exception {
         LobbySettings settings = LobbySettings.load(bundledConfig());
-        assertEquals(16, settings.npcs().size());
+        assertEquals(17, settings.npcs().size());
         LobbyNpc duels = settings.npc("attackdefenseversionrbw");
         assertEquals("duels", duels.category());
         assertEquals(settings.modesIn("duels").size(), duels.modeIds().size(), "a category NPC holds its modes");
@@ -82,9 +84,12 @@ class LobbySettingsTest {
         LobbyNpc ranked = settings.npc("rankedbedwars1v1ou2v2elo");
         assertEquals(java.util.Arrays.asList("ranked-1v1", "ranked-2v2", "ranked-3v3", "ranked-4v4"), ranked.modeIds());
         assertTrue(settings.npc("leaderboardprincipal").leaderboard());
-        assertEquals(java.util.Collections.singletonList(BoardStat.ELO), settings.npc("leaderboardprincipal").boards());
-        assertEquals(java.util.Arrays.asList(BoardStat.WINS, BoardStat.STREAK, BoardStat.GAMES),
-                settings.npc("leaderboardstats").boards());
+        assertEquals(Collections.singletonList(Arrays.asList(BoardStat.ELO, BoardStat.KILLS, BoardStat.LEVEL)),
+                settings.npc("leaderboardprincipal").boards(), "one board, a right click goes to the next stat");
+        assertEquals(Arrays.asList(Collections.singletonList(BoardStat.WINS), Collections.singletonList(BoardStat.STREAK),
+                Collections.singletonList(BoardStat.GAMES)), settings.npc("leaderboardstats").boards());
+        assertEquals(Collections.singletonList(Collections.singletonList(BoardStat.KILLS)),
+                settings.npc("leaderboardplayer").boards());
         assertFalse(ranked.leaderboard());
         assertEquals(LobbyNpc.Kind.STATS, settings.npc("statsjoueur1").kind());
         assertEquals(LobbyNpc.Kind.STATS, settings.npc("statsjoueur2").kind());
@@ -95,7 +100,7 @@ class LobbySettingsTest {
     @Test
     void readsTheShortLeaderboardForm() throws Exception {
         LobbySettings settings = LobbySettings.load(yaml("classements:\n  mur: '&eTitre'\nmodes:\n  sumo: {}\n"));
-        assertEquals(java.util.Collections.singletonList(BoardStat.WINS), settings.npc("mur").boards());
+        assertEquals(Collections.singletonList(Collections.singletonList(BoardStat.WINS)), settings.npc("mur").boards());
         assertEquals("§eTitre", settings.npc("mur").name());
     }
 
@@ -107,8 +112,45 @@ class LobbySettingsTest {
         assertInvalid("pnj:\n  a:\n    modes: [sumo]\nclassements:\n  a: Titre\nmodes:\n  sumo: {}\n", "classements.a");
         assertInvalid("pnj:\n  a:\n    type: stats\n    modes: [sumo]\nmodes:\n  sumo: {}\n", "pnj.a");
         assertInvalid("pnj:\n  a:\n    type: autre\nmodes:\n  sumo: {}\n", "pnj.a.type");
-        assertInvalid("classements:\n  a:\n    tableaux: [kills]\nmodes:\n  sumo: {}\n", "classements.a.tableaux");
+        assertInvalid("classements:\n  a:\n    tableaux: [morts]\nmodes:\n  sumo: {}\n", "classements.a.tableaux");
+        assertInvalid("classements:\n  a:\n    tableaux: [[elo, morts]]\nmodes:\n  sumo: {}\n", "classements.a.tableaux");
+        assertInvalid("classements:\n  a:\n    tableaux: [[]]\nmodes:\n  sumo: {}\n", "classements.a.tableaux");
         assertInvalid("classements:\n  a:\n    nom: Mur\nmodes:\n  sumo: {}\n", "classements.a.tableaux");
+    }
+
+    @Test
+    void readsBoardsOfSeveralStats() throws Exception {
+        LobbySettings settings = LobbySettings.load(yaml(
+                "classements:\n  mur:\n    tableaux: [[kills, niveau, kills], victoires]\nmodes:\n  sumo: {}\n"));
+        assertEquals(Arrays.asList(Arrays.asList(BoardStat.KILLS, BoardStat.LEVEL), Collections.singletonList(BoardStat.WINS)),
+                settings.npc("mur").boards(), "a stat twice on a board counts once");
+    }
+
+    @Test
+    void readsTheNetworkLevel() throws Exception {
+        NetworkLevel bundled = LobbySettings.load(bundledConfig()).levels();
+        assertEquals(50, bundled.winXp());
+        assertEquals(15, bundled.lossXp());
+        assertEquals(5, bundled.killXp());
+        assertEquals(100, bundled.xpToNext(1));
+        assertEquals(150, bundled.xpToNext(2));
+        assertEquals(NetworkLevel.DEFAULT.ranks(), bundled.ranks());
+
+        NetworkLevel levels = LobbySettings.load(yaml("niveau:\n  xp-victoire: 10\n  xp-niveau-2: 20\n"
+                + "  xp-en-plus-par-niveau: 0\n  rangs:\n    3: '&a[Vert]'\nmodes:\n  sumo: {}\n")).levels();
+        assertEquals(10, levels.winXp());
+        assertEquals(15, levels.lossXp(), "the default when missing");
+        assertEquals(20, levels.xpToNext(7));
+        assertEquals(Collections.singletonMap(3, "§a[Vert]"), levels.ranks());
+        assertEquals(NetworkLevel.DEFAULT.ranks(), LobbySettings.load(yaml("modes:\n  sumo: {}\n")).levels().ranks());
+        assertTrue(LobbySettings.load(yaml("niveau:\n  rangs: {}\nmodes:\n  sumo: {}\n")).levels().ranks().isEmpty(),
+                "rangs: {} means no rank at all");
+
+        assertInvalid("niveau:\n  xp-niveau-2: 0\nmodes:\n  sumo: {}\n", "niveau.xp-niveau-2");
+        assertInvalid("niveau:\n  xp-kill: -1\nmodes:\n  sumo: {}\n", "niveau.xp-kill");
+        assertInvalid("niveau:\n  rangs:\n    un: '[A]'\nmodes:\n  sumo: {}\n", "niveau.rangs.un");
+        assertInvalid("niveau:\n  rangs:\n    1: '[A]'\nmodes:\n  sumo: {}\n", "niveau.rangs.1");
+        assertInvalid("niveau:\n  rangs:\n    5: '&a[Beaucoup trop long]'\nmodes:\n  sumo: {}\n", "niveau.rangs.5");
     }
 
     @Test

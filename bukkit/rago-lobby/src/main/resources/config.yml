@@ -97,6 +97,28 @@ pnj:
     nom: "&6&lYour Rago profile"
     type: stats
 
+# Le niveau Network : chaque partie donne de l'XP à tous ceux qui l'ont jouée (plus pour une
+# victoire), chaque kill un peu plus. Tout le monde commence niveau 1 ; passer du niveau n au
+# niveau n + 1 demande xp-niveau-2 + xp-en-plus-par-niveau × (n - 1) XP (100, 150, 200... par
+# défaut). Le niveau s'affiche dans la barre d'XP du lobby, le scoreboard et le chat.
+#   rangs   le rang gagné en atteignant un niveau (15 caractères au plus, couleurs comprises) :
+#           affiché dans le chat, au-dessus de la tête, dans la liste des joueurs (tab) et le
+#           scoreboard. Le joueur garde le plus haut rang atteint.
+niveau:
+  xp-victoire: 50
+  xp-defaite: 15
+  xp-kill: 5
+  xp-niveau-2: 100
+  xp-en-plus-par-niveau: 50
+  rangs:
+    5: "&f[Iron]"
+    10: "&6[Gold]"
+    20: "&b[Diamond]"
+    30: "&2[Emerald]"
+    50: "&3[Sapphire]"
+    75: "&4[Ruby]"
+    100: "&d[Crystal]"
+
 # Les murs de classements, sur leur point : des tableaux côte à côte, face au spawn, le premier à
 # gauche. Chacun montre le top 10, la place du joueur et la remise à zéro.
 #   nom       le titre au-dessus du mur (facultatif)
@@ -104,16 +126,23 @@ pnj:
 #     victoires  les victoires, tous modes confondus
 #     parties    les parties jouées
 #     series     la meilleure série de victoires
+#     kills      les kills (au sumo : faire tomber l'autre)
+#     niveau     le niveau Network
 #     elo        l'ELO d'un mode classé
 # Un clic sur un tableau change sa période (du jour, de la semaine, à vie) pour celui qui clique ;
 # sur un tableau elo, il change de mode classé (1v1, 2v2, 3v3, 4v4).
+# Un tableau peut regrouper plusieurs classements entre crochets, par exemple [elo, kills, niveau] :
+# un clic droit passe au suivant, un clic gauche change la période ou le mode classé.
 classements:
   leaderboardprincipal:
-    nom: "&e&lRanked leaderboard"
-    tableaux: [elo]
+    nom: "&e&lTop players"
+    tableaux: [[elo, kills, niveau]]
   leaderboardstats:
     nom: "&e&lLeaderboards"
     tableaux: [victoires, series, parties]
+  leaderboardplayer:
+    nom: "&e&lTop kills"
+    tableaux: [kills]
 
 # Les modes, dans l'ordre du sélecteur. L'identifiant (la clé) ne contient que des minuscules sans
 # accent, des chiffres et des tirets. Un mode reste « Bientôt » dans le sélecteur tant qu'aucun

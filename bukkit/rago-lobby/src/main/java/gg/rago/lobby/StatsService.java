@@ -7,12 +7,17 @@ import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.Collections;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.UUID;
 import java.util.concurrent.Executor;
 import java.util.logging.Level;
 import org.bukkit.Bukkit;
+import org.bukkit.ChatColor;
 import org.bukkit.OfflinePlayer;
+import org.bukkit.Sound;
 import org.bukkit.entity.Player;
 import org.bukkit.plugin.Plugin;
 
@@ -29,15 +34,22 @@ final class StatsService {
         void write(File file, String text);
     }
 
+    interface XpListener {
+        /** The player's Network XP changed (their level, their rank may have too). Main thread. */
+        void xpChanged(UUID player);
+    }
+
     private final Plugin plugin;
     private final StatsBook book;
     private final File folder;
     private final Executor io;
     private final Writer writer;
+    private final XpListener xpListener;
 
-    StatsService(Plugin plugin, int defaultRating, Executor io, Writer writer) {
+    StatsService(Plugin plugin, int defaultRating, NetworkLevel levels, Executor io, Writer writer, XpListener xpListener) {
         this.plugin = plugin;
-        this.book = new StatsBook(defaultRating);
+        this.book = new StatsBook(defaultRating, levels);
+        this.xpListener = xpListener;
         this.folder = new File(plugin.getDataFolder(), StatsFiles.FOLDER);
         this.io = io;
         this.writer = writer;
@@ -70,6 +82,10 @@ final class StatsService {
                     for (PlayerStats stats : loaded) {
                         if (book.load(stats)) {
                             added++;
+                            if (Bukkit.getPlayer(stats.id()) != null) {
+                                // Online before the files were read (a /reload): level and rank follow.
+                                xpListener.xpChanged(stats.id());
+                            }
                         }
                     }
                     plugin.getLogger().info("Stats de " + added + " joueurs chargées");
@@ -78,11 +94,68 @@ final class StatsService {
         });
     }
 
-    /** A game is over: records it and writes the files of the players whose stats changed. */
+    /**
+     * A game is over: records it, tells everyone the XP they got (and a new level or rank), and
+     * writes the files of the players whose stats changed.
+     */
     void record(GameMode mode, Collection<UUID> winners, Collection<UUID> losers) {
+        Map<UUID, Integer> before = xpOf(winners, losers);
         for (PlayerStats stats : book.record(mode, winners, losers, StatsService::nameOf, System.currentTimeMillis())) {
             save(stats);
+            Integer old = before.get(stats.id());
+            Player player = Bukkit.getPlayer(stats.id());
+            if (player != null && old != null && stats.xp() > old) {
+                player.sendMessage(ChatColor.AQUA + "+" + (stats.xp() - old) + " Network XP"
+                        + ChatColor.GRAY + " (" + (winners.contains(stats.id()) ? "win" : "game played") + ")");
+            }
+            gained(stats, old);
         }
+    }
+
+    /** A kill in a game: counts it, gives the killer some XP, and writes both files. */
+    void kill(String modeId, UUID killer, UUID victim) {
+        Map<UUID, Integer> before = xpOf(Collections.singletonList(killer),
+                victim == null ? Collections.<UUID>emptyList() : Collections.singletonList(victim));
+        for (PlayerStats stats : book.kill(modeId, killer, victim, StatsService::nameOf, System.currentTimeMillis())) {
+            save(stats);
+            Integer old = before.get(stats.id());
+            Player player = Bukkit.getPlayer(stats.id());
+            if (player != null && old != null && stats.xp() > old) {
+                player.sendMessage(ChatColor.AQUA + "+" + (stats.xp() - old) + " Network XP" + ChatColor.GRAY + " (kill)");
+            }
+            gained(stats, old);
+        }
+    }
+
+    private Map<UUID, Integer> xpOf(Collection<UUID> some, Collection<UUID> others) {
+        Map<UUID, Integer> xp = new HashMap<>();
+        List<UUID> all = new ArrayList<>(some);
+        all.addAll(others);
+        for (UUID id : all) {
+            PlayerStats stats = book.get(id);
+            xp.put(id, stats == null ? 0 : stats.xp());
+        }
+        return xp;
+    }
+
+    /** After an XP gain: a new level, a new rank, and the listener. */
+    private void gained(PlayerStats stats, Integer oldXp) {
+        if (oldXp == null || stats.xp() == oldXp) {
+            return;
+        }
+        NetworkLevel levels = book.levels();
+        int oldLevel = levels.level(oldXp);
+        int level = levels.level(stats.xp());
+        Player player = Bukkit.getPlayer(stats.id());
+        if (player != null && level > oldLevel) {
+            player.sendMessage(ChatColor.AQUA + "" + ChatColor.BOLD + "LEVEL UP! " + ChatColor.GRAY + "You are now "
+                    + ChatColor.AQUA + "Network Level " + level + ChatColor.GRAY + ".");
+            player.playSound(player.getLocation(), Sound.LEVEL_UP, 1f, 1f);
+            if (levels.rankLevel(level) != levels.rankLevel(oldLevel) && levels.rank(level) != null) {
+                player.sendMessage(ChatColor.GOLD + "You unlocked the rank " + levels.rank(level) + ChatColor.GOLD + "!");
+            }
+        }
+        xpListener.xpChanged(stats.id());
     }
 
     /** The player joined: keeps their name up to date. */

@@ -4,13 +4,15 @@
 // and play the way a player does:
 //   1. both arrive in the lobby: adventure mode, the selector in the first hotbar slot, the sidebar;
 //      the Duels NPC is a Steve holding a sword, out of the tab list, and a click on it opens Duels;
-//   2. RagoUn opens the selector with a right click, opens the Duels category, then clicks the sumo
-//      duel; RagoDeux types
-//      /queue sumo;
+//   2. RagoUn opens the selector with a right click, opens the Duels category (nobody has a win
+//      streak in sumo yet), then clicks the sumo duel; RagoDeux types /queue sumo;
 //   3. the duel starts after a 3, 2, 1 countdown in titles: RagoUn walks up to RagoDeux and hits it once (knockback, no damage), then
 //      RagoDeux walks off the platform three times, so RagoUn wins 3 - 0;
 //   4. both come back to the lobby, and read their own stats above the stats NPC and on the
-//      leaderboard wall (RagoUn first with one win); a click on the stats NPC opens the stats menu;
+//      leaderboard wall (RagoUn first with one win, and three kills); a click on the stats NPC opens
+//      the stats menu; the XP bar shows the Network level; clicks on the main leaderboard go from the
+//      Elo to the kills (a left click: the kills of the week) and to the Network level; the sumo of
+//      the Duels NPC shows RagoUn's win streak;
 //   5. a second duel, which RagoUn leaves with /spawn: RagoDeux wins by forfeit;
 //   6. RagoUn challenges RagoDeux with /duel, RagoDeux accepts, then leaves with /spawn.
 //
@@ -30,7 +32,8 @@ const DUELS_SLOT = 12
 const SUMO_SLOT = 10
 const POINTS_TO_WIN = 3
 // run-lobby-test.sh places the NPC of the Duels category (point attackdefenseversionrbw), a stats
-// NPC (statsjoueur1) and a wall of leaderboards (leaderboardstats) around the spawn.
+// NPC (statsjoueur1), a wall of leaderboards (leaderboardstats), the main leaderboard
+// (leaderboardprincipal) and the kills leaderboard (leaderboardplayer) around the spawn.
 const DUELS_NPC = { x: 3.5, y: 65, z: 0.5 }
 const STATS_NPC = { x: -3.5, y: 65, z: 0.5 }
 
@@ -158,6 +161,8 @@ async function openSelectorAndJoinSumo (bot) {
   if (!duelsTitle.includes('Duels')) throw new Error(`${bot.username}: unexpected category title ${duelsTitle}`)
   const icon = duels.slots[SUMO_SLOT]
   if (icon?.name !== 'slime_ball') throw new Error(`${bot.username}: slot ${SUMO_SLOT} holds ${icon?.name}, not the sumo duel`)
+  const lore = JSON.stringify(icon.nbt ?? null)
+  if (!lore.includes('Top win streak: §8nobody yet')) throw new Error(`${bot.username}: no top win streak on the sumo: ${lore}`)
   const from = mark(bot)
   // The server cancels the click (the menu cannot be emptied): do not wait for its acceptance.
   bot.clickWindow(SUMO_SLOT, 0, 0).catch(() => {})
@@ -206,6 +211,53 @@ async function expectFloating (bot, text, what) {
     `${bot.username} to read "${text}" (${what}); floating texts: ${JSON.stringify(floatingTexts(bot))}`)
 }
 
+/** The armor stand showing this line of floating text, without colours. */
+function floatingEntity (bot, text) {
+  return Object.values(bot.entities).find((e) => typeof e.metadata?.[2] === 'string' &&
+    e.metadata[2].replace(/§./g, '') === text)
+}
+
+/** The XP bar: the Network level, and how far towards the next one. */
+async function expectLevel (bot, level, progress) {
+  await waitFor(() => bot.experience?.level === level && Math.abs((bot.experience?.progress ?? -1) - progress) < 0.02,
+    5000, `${bot.username} to see level ${level} at ${progress} in the XP bar: ${JSON.stringify(bot.experience)}`)
+}
+
+/**
+ * The main leaderboard (one board, three stats): a right click on it goes from the Elo to the
+ * kills, a left click changes their period, a right click goes on to the Network level.
+ */
+async function checkMainLeaderboard (bot) {
+  await expectFloating(bot, 'Ranked Elo', 'the main leaderboard')
+  const title = floatingEntity(bot, 'Ranked Elo')
+  const text = () => (title.metadata?.[2] ?? '').replace(/§./g, '')
+  bot.activateEntity(title)
+  await waitFor(() => text() === 'Kills', 5000, `a right click to turn the main leaderboard to the kills: ${text()}`)
+  await expectFloating(bot, '1. RagoUn - 3', 'the kills of the day on the main leaderboard')
+  await sleep(500)
+  bot.attack(title)
+  await expectFloating(bot, 'All modes · Weekly', 'a left click: the kills of the week')
+  await sleep(500)
+  bot.activateEntity(title)
+  await waitFor(() => text() === 'Network level', 5000, `a right click to turn the main leaderboard to the level: ${text()}`)
+  log('the main leaderboard goes from the Elo to the kills (left click: the week) and to the Network level')
+}
+
+/** The Duels NPC opens Duels: hovering the sumo shows the best win streak, and whose it is. */
+async function checkTopStreak (bot) {
+  const npc = npcAt(bot, DUELS_NPC)
+  const opened = new Promise((resolve) => bot.once('windowOpen', resolve))
+  bot.activateEntity(npc)
+  const window = await Promise.race([opened, sleep(5000).then(() => null)])
+  if (window == null) throw new Error('a click on the Duels NPC did not open a menu')
+  const lore = JSON.stringify(window.slots[SUMO_SLOT]?.nbt ?? null)
+  if (!lore.includes('Top win streak: §61 §7(§fRagoUn§7)') || !lore.includes('Your best win streak: §e0')) {
+    throw new Error(`${bot.username}: the sumo of the Duels NPC does not show RagoUn's streak: ${lore}`)
+  }
+  bot.closeWindow(window)
+  log('the sumo shows the top win streak (1, RagoUn) and the player\'s own')
+}
+
 /**
  * After the 3 - 0: each bot reads its own profile above the stats NPC and the same leaderboard,
  * and a click on the stats NPC opens the stats menu.
@@ -230,8 +282,21 @@ async function checkStats (one, two) {
   const sumo = window.slots.find((item) => item?.name === 'slime_ball')
   const lore = JSON.stringify(sumo?.nbt ?? null)
   if (!lore.includes('Wins: §a1')) throw new Error(`no sumo win in the stats menu: ${lore}`)
+  if (!lore.includes('Kills: §a3')) throw new Error(`no sumo kills in the stats menu: ${lore}`)
   one.closeWindow(window)
   log('stats: each bot reads its own profile, the leaderboard has RagoUn first, the menu opens')
+  // Three points: three kills for RagoUn, three deaths for RagoDeux.
+  await expectFloating(one, 'Kills: 3', 'the kills of the winner')
+  await expectFloating(two, 'Kills: 0', 'the kills of the loser')
+  await expectFloating(two, '1. RagoUn - 3', 'the kills of the day on leaderboardplayer')
+  // Network XP: 50 for the win and 5 a kill (65 of the 100 of level 1), 15 for the game lost.
+  await expectLevel(one, 1, 0.65)
+  await expectLevel(two, 1, 0.15)
+  await chatLine(one, /\+50 Network XP \(win\)/, 5000)
+  await chatLine(two, /\+15 Network XP \(game played\)/, 5000)
+  log('Network level: RagoUn 65 XP, RagoDeux 15 XP, in the XP bar; three kills on the boards')
+  await checkMainLeaderboard(one)
+  await checkTopStreak(two)
 }
 
 async function fallOff (bot) {

@@ -24,9 +24,10 @@ final class LobbyNpc {
     private final Kind kind;
     private final List<String> modeIds;
     private final String category;
-    private final List<BoardStat> boards;
+    private final List<List<BoardStat>> boards;
 
-    private LobbyNpc(String point, String name, Kind kind, List<String> modeIds, String category, List<BoardStat> boards) {
+    private LobbyNpc(String point, String name, Kind kind, List<String> modeIds, String category,
+            List<List<BoardStat>> boards) {
         this.point = point;
         this.name = name;
         this.kind = kind;
@@ -37,15 +38,16 @@ final class LobbyNpc {
 
     /** An NPC of these modes, or of a whole category (then modeIds are the category's modes). */
     static LobbyNpc modes(String point, String name, List<String> modeIds, String category) {
-        return new LobbyNpc(point, name, Kind.MODES, modeIds, category, Collections.<BoardStat>emptyList());
+        return new LobbyNpc(point, name, Kind.MODES, modeIds, category, Collections.<List<BoardStat>>emptyList());
     }
 
     static LobbyNpc stats(String point, String name) {
         return new LobbyNpc(point, name, Kind.STATS, Collections.<String>emptyList(), null,
-                Collections.<BoardStat>emptyList());
+                Collections.<List<BoardStat>>emptyList());
     }
 
-    static LobbyNpc leaderboards(String point, String name, List<BoardStat> boards) {
+    /** A wall of boards, left to right; each board shows its first stat, a right click the next one. */
+    static LobbyNpc leaderboards(String point, String name, List<List<BoardStat>> boards) {
         return new LobbyNpc(point, name, Kind.LEADERBOARDS, Collections.<String>emptyList(), null, boards);
     }
 
@@ -73,8 +75,8 @@ final class LobbyNpc {
         return modeIds;
     }
 
-    /** The leaderboards of a wall, left to right; empty otherwise. */
-    List<BoardStat> boards() {
+    /** The leaderboards of a wall, left to right, each with its stats; empty otherwise. */
+    List<List<BoardStat>> boards() {
         return boards;
     }
 

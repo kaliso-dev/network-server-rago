@@ -92,15 +92,16 @@ final class FakeEntities implements Listener {
         void forget(UUID viewer) {
         }
 
-        void click(Player player) {
+        void click(Player player, boolean left) {
             if (clicker != null) {
-                clicker.click(player);
+                clicker.click(player, left);
             }
         }
     }
 
     interface Clicker {
-        void click(Player player);
+        /** @param left true for a left click (an attack), false for a right click */
+        void click(Player player, boolean left);
     }
 
     private final Plugin plugin;
@@ -135,7 +136,8 @@ final class FakeEntities implements Listener {
                     return;
                 }
                 final UUID clicker = event.getUser().getUUID();
-                Bukkit.getScheduler().runTask(plugin, () -> clicked(clicker, fake));
+                final boolean left = packet.getAction() == WrapperPlayClientInteractEntity.InteractAction.ATTACK;
+                Bukkit.getScheduler().runTask(plugin, () -> clicked(clicker, fake, left));
             }
         });
     }
@@ -226,13 +228,13 @@ final class FakeEntities implements Listener {
         return seen != null && seen.contains(fake);
     }
 
-    private void clicked(UUID clicker, Fake fake) {
+    private void clicked(UUID clicker, Fake fake, boolean left) {
         Player player = Bukkit.getPlayer(clicker);
         if (player == null || !fakes.contains(fake) || !player.getWorld().equals(world)
                 || player.getLocation().distanceSquared(fake.at) > CLICK_RANGE * CLICK_RANGE) {
             return;
         }
-        fake.click(player);
+        fake.click(player, left);
     }
 
     /** The client no longer has any fake: sent again at the next tick. */

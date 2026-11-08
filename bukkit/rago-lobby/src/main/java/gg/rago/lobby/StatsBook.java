@@ -73,12 +73,24 @@ final class StatsBook {
     }
 
     private final int defaultRating;
+    private final NetworkLevel levels;
     private final Map<UUID, PlayerStats> players = new HashMap<>();
     private final Map<String, Ranking> rankings = new HashMap<>();
     private String rankedDay = "";
 
-    StatsBook(int defaultRating) {
+    StatsBook(int defaultRating, NetworkLevel levels) {
         this.defaultRating = defaultRating;
+        this.levels = levels;
+    }
+
+    NetworkLevel levels() {
+        return levels;
+    }
+
+    /** The Network level of the player: 1 without stats. */
+    int level(UUID player) {
+        PlayerStats stats = players.get(player);
+        return levels.level(stats == null ? 0 : stats.xp());
     }
 
     PlayerStats get(UUID player) {
@@ -113,8 +125,9 @@ final class StatsBook {
     }
 
     /**
-     * A game is over: one side won, the other lost. A ranked game also moves the ELO of both
-     * sides (the classic formula, on the average of each side). Returns the stats that changed.
+     * A game is over: one side won, the other lost. Everyone gets Network XP, the winners more. A
+     * ranked game also moves the ELO of both sides (the classic formula, on the average of each
+     * side). Returns the stats that changed.
      */
     List<PlayerStats> record(GameMode mode, Collection<UUID> winners, Collection<UUID> losers, Names names, long millis) {
         List<PlayerStats> changed = new ArrayList<>();
@@ -137,12 +150,38 @@ final class StatsBook {
             }
         }
         for (UUID id : new LinkedHashSet<>(winners)) {
-            changed.add(play(id, names, mode.id(), true, day, week, newElo.get(id)));
+            PlayerStats stats = play(id, names, mode.id(), true, day, week, newElo.get(id));
+            stats.addXp(levels.winXp());
+            changed.add(stats);
         }
         for (UUID id : new LinkedHashSet<>(losers)) {
             if (!winners.contains(id)) {
-                changed.add(play(id, names, mode.id(), false, day, week, newElo.get(id)));
+                PlayerStats stats = play(id, names, mode.id(), false, day, week, newElo.get(id));
+                stats.addXp(levels.lossXp());
+                changed.add(stats);
             }
+        }
+        rankings.clear();
+        return changed;
+    }
+
+    /**
+     * A kill in a game of this mode (in a sumo: the victim fell): a kill and some XP for the killer,
+     * a death for the victim (null if nobody died, unknown). Returns the stats that changed.
+     */
+    List<PlayerStats> kill(String modeId, UUID killer, UUID victim, Names names, long millis) {
+        List<PlayerStats> changed = new ArrayList<>();
+        if (killer == null || killer.equals(victim)) {
+            return changed;
+        }
+        PlayerStats stats = statsOf(killer, names);
+        stats.modeOrNew(modeId).kill(StatsPeriod.dayKey(millis), StatsPeriod.weekKey(millis));
+        stats.addXp(levels.killXp());
+        changed.add(stats);
+        if (victim != null) {
+            PlayerStats dead = statsOf(victim, names);
+            dead.modeOrNew(modeId).death();
+            changed.add(dead);
         }
         rankings.clear();
         return changed;
@@ -153,12 +192,17 @@ final class StatsBook {
         String of(UUID player);
     }
 
-    private PlayerStats play(UUID id, Names names, String modeId, boolean won, String day, String week, Integer elo) {
+    private PlayerStats statsOf(UUID id, Names names) {
         PlayerStats stats = players.get(id);
         if (stats == null) {
             stats = new PlayerStats(id, names.of(id));
             players.put(id, stats);
         }
+        return stats;
+    }
+
+    private PlayerStats play(UUID id, Names names, String modeId, boolean won, String day, String week, Integer elo) {
+        PlayerStats stats = statsOf(id, names);
         ModeStats mode = stats.modeOrNew(modeId);
         mode.record(won, day, week);
         if (elo != null) {
@@ -176,9 +220,9 @@ final class StatsBook {
     }
 
     /**
-     * A leaderboard: wins, games or best streak over a period, of one mode or of all (modeId
-     * null), or the ELO of one ranked mode (the period is then ignored). Players at zero are left
-     * out; ties keep the alphabetical order of the names.
+     * A leaderboard: wins, games, best streak or kills over a period, of one mode or of all (modeId
+     * null), the ELO of one ranked mode, or the Network XP (the period is then ignored; the board
+     * shows the level). Players at zero are left out; ties keep the alphabetical order of the names.
      */
     Ranking ranking(BoardStat stat, StatsPeriod period, String modeId, long millis) {
         String day = StatsPeriod.dayKey(millis);
@@ -187,7 +231,7 @@ final class StatsBook {
             rankings.clear();
             rankedDay = day;
         }
-        String key = stat + "/" + (stat.periodic() ? period : "") + "/" + modeId;
+        String key = stat + "/" + (stat.periodic() ? period : "") + "/" + (stat == BoardStat.LEVEL ? "" : modeId);
         Ranking ranking = rankings.get(key);
         if (ranking != null) {
             return ranking;
@@ -204,6 +248,12 @@ final class StatsBook {
                     break;
                 case STREAK:
                     value = stats.best(period, modeId, day, week);
+                    break;
+                case KILLS:
+                    value = stats.kills(period, modeId, day, week);
+                    break;
+                case LEVEL:
+                    value = stats.xp();
                     break;
                 default:
                     ModeStats mode = modeId == null ? null : stats.mode(modeId);
