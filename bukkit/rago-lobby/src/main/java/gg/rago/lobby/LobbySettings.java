@@ -22,6 +22,9 @@ final class LobbySettings {
     private final String address;
     private final int defaultRating;
     private final RatingWindow window;
+    /** What the selector shows: five rows of seven, in a six-row chest. */
+    static final int MAX_MODES = 35;
+
     private final List<ModeDisplay> modes;
     private final ModeCatalog catalog;
 
@@ -70,6 +73,9 @@ final class LobbySettings {
         ConfigurationSection section = config.getConfigurationSection("modes");
         if (section == null || section.getKeys(false).isEmpty()) {
             throw new IllegalArgumentException("modes : la liste des modes est vide");
+        }
+        if (section.getKeys(false).size() > MAX_MODES) {
+            throw new IllegalArgumentException("modes : " + MAX_MODES + " modes au plus, le sélecteur n'en affiche pas davantage");
         }
         List<ModeDisplay> modes = new ArrayList<>();
         for (String id : section.getKeys(false)) {

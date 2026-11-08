@@ -81,7 +81,8 @@ modes:
       - "Seul : clutch simple, double"
       - "clutch, extend... Tu prends"
       - "un coup, pose tes blocs pour"
-      - "te sauver."
+      - "te sauver. Ou kb aléatoire"
+      - "au-dessus du vide."
   block-fight-1v1:
     nom: "&bBlock placement 1v1"
     icone: SANDSTONE
@@ -143,8 +144,8 @@ modes:
     joueurs-par-equipe: 1
     classe: false
     description:
-      - "Combat sur un pont, sur une"
-      - "plateforme réaliste de Bedwars."
+      - "Combat sur un pont entre deux"
+      - "îles, plateforme réaliste de Bedwars."
   block-in:
     nom: "&bEntraînement block in"
     icone: ENDER_STONE
@@ -153,8 +154,8 @@ modes:
     classe: false
     description:
       - "Seul : protège ton lit avec"
-      - "tes blocs, le plus vite"
-      - "possible, chronométré."
+      - "tes blocs en 10 secondes,"
+      - "chronométré."
   first-rush:
     nom: "&eSolo Bedwars 1v1 first rush"
     icone: IRON_PICKAXE
@@ -266,4 +267,60 @@ modes:
     classe: false
     description:
       - "Un bot qui bouge et rend"
-      - "les coups, pour travailler ses combos."
+      - "les coups, pour travailler ses"
+      - "combos (sparring)."
+  duel-epee:
+    nom: "&fDuel épée"
+    icone: IRON_SWORD
+    equipes: 2
+    joueurs-par-equipe: 1
+    classe: false
+    description:
+      - "Duel à l'épée avec le"
+      - "knockback mesuré du serveur."
+  boxing:
+    nom: "&fBoxing"
+    icone: DIAMOND_SWORD
+    equipes: 2
+    joueurs-par-equipe: 1
+    classe: false
+    description:
+      - "Premier à 100 coups,"
+      - "pour travailler ses combos."
+  bridge-chrono:
+    nom: "&bBridge au chrono"
+    icone: SANDSTONE
+    equipes: 1
+    joueurs-par-equipe: 1
+    classe: false
+    description:
+      - "Chrono par technique : ninja,"
+      - "god bridge, telly... contre ton"
+      - "meilleur temps ou celui du top 1."
+  bed-break:
+    nom: "&cCasse de lit"
+    icone: BED
+    equipes: 1
+    joueurs-par-equipe: 1
+    classe: false
+    description:
+      - "Casser une défense de lit"
+      - "le plus vite possible, au chrono."
+  fireball-practice:
+    nom: "&6Fireball practice"
+    icone: FIREBALL
+    equipes: 1
+    joueurs-par-equipe: 1
+    classe: false
+    description:
+      - "Sauter à la fireball et"
+      - "renvoyer les fireballs."
+  scenarios-ranked:
+    nom: "&4Scénarios du Ranked"
+    icone: REDSTONE
+    equipes: 1
+    joueurs-par-equipe: 1
+    classe: false
+    description:
+      - "Défendre son lit à 1 contre 2,"
+      - "clutch final à 2 cœurs... noté."

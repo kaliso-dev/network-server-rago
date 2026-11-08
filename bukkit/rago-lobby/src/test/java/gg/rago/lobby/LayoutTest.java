@@ -11,6 +11,7 @@ class LayoutTest {
         assertEquals(10, ModeMenu.slotOf(0));
         assertEquals(16, ModeMenu.slotOf(6));
         assertEquals(19, ModeMenu.slotOf(7));
+        assertEquals(52, ModeMenu.slotOf(LobbySettings.MAX_MODES - 1));
     }
 
     @Test
