@@ -597,10 +597,14 @@ final class BedwarsHost implements MatchHost, Listener {
             return;
         }
         // A right click only: denying the block on a left click would also stop it from being broken (the beds).
+        ItemStack item = event.getItem();
         if (event.getAction() == Action.RIGHT_CLICK_BLOCK && NOT_USED.contains(event.getClickedBlock().getType())) {
             event.setUseInteractedBlock(Event.Result.DENY);
+            if (item != null && item.getType().isBlock()) {
+                // Denying the block alone also stops the block in hand from being placed against it: wool on a bed.
+                event.setUseItemInHand(Event.Result.ALLOW);
+            }
         }
-        ItemStack item = event.getItem();
         if (item != null && item.getType() == Material.FIREBALL
                 && (event.getAction() == Action.RIGHT_CLICK_AIR || event.getAction() == Action.RIGHT_CLICK_BLOCK)) {
             event.setCancelled(true);

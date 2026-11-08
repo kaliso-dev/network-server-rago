@@ -24,6 +24,7 @@ import org.bukkit.event.Listener;
 import org.bukkit.event.block.Action;
 import org.bukkit.event.block.BlockBreakEvent;
 import org.bukkit.event.block.BlockPlaceEvent;
+import org.bukkit.event.entity.CreatureSpawnEvent;
 import org.bukkit.event.entity.EntityCombustEvent;
 import org.bukkit.event.entity.EntityDamageEvent;
 import org.bukkit.event.entity.EntityDeathEvent;
@@ -35,6 +36,7 @@ import org.bukkit.event.entity.PlayerDeathEvent;
 import org.bukkit.event.entity.ProjectileHitEvent;
 import org.bukkit.event.entity.ProjectileLaunchEvent;
 import org.bukkit.event.player.PlayerAnimationEvent;
+import org.bukkit.event.player.PlayerArmorStandManipulateEvent;
 import org.bukkit.event.player.PlayerBucketEmptyEvent;
 import org.bukkit.event.player.PlayerDropItemEvent;
 import org.bukkit.event.player.PlayerInteractEntityEvent;
@@ -490,6 +492,11 @@ final class PracticeGames implements Listener {
                 && event.getClickedBlock().getType() == Material.BED_BLOCK) {
             // no sleeping, no "you can only sleep at night"
             event.setUseInteractedBlock(Event.Result.DENY);
+            ItemStack item = event.getItem();
+            if (item != null && item.getType().isBlock()) {
+                // denying the bed alone also stops the block in hand from being placed against it
+                event.setUseItemInHand(Event.Result.ALLOW);
+            }
         }
         if (spectating(player)) {
             return;
@@ -500,6 +507,22 @@ final class PracticeGames implements Listener {
     @EventHandler(priority = EventPriority.HIGH, ignoreCancelled = true)
     public void onInteractEntity(PlayerInteractEntityEvent event) {
         if (byPlayer.containsKey(event.getPlayer().getUniqueId())) {
+            event.setCancelled(true);
+        }
+    }
+
+    /** The armour of a target (an armour stand) is not the players' to take: its own event. */
+    @EventHandler(priority = EventPriority.HIGH, ignoreCancelled = true)
+    public void onArmourStand(PlayerArmorStandManipulateEvent event) {
+        if (byPlayer.containsKey(event.getPlayer().getUniqueId()) || byEntity.containsKey(event.getRightClicked().getUniqueId())) {
+            event.setCancelled(true);
+        }
+    }
+
+    /** No mob comes into the arenas but the games' own (no zombie reinforcements...). */
+    @EventHandler(priority = EventPriority.HIGH, ignoreCancelled = true)
+    public void onCreatureSpawn(CreatureSpawnEvent event) {
+        if (event.getEntity().getWorld().equals(world) && event.getSpawnReason() != CreatureSpawnEvent.SpawnReason.CUSTOM) {
             event.setCancelled(true);
         }
     }
@@ -550,6 +573,8 @@ final class PracticeGames implements Listener {
         }
         if (shooter != null && byPlayer.get(shooter.getUniqueId()) == game) {
             game.projectileHit(shooter, projectile);
+        } else if (shooter == null && byEntity.get(projectile.getUniqueId()) == game) {
+            game.ownLanded(projectile);
         }
     }
 

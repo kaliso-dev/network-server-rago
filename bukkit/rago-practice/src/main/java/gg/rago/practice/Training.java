@@ -8,6 +8,7 @@ import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
 import org.bukkit.Material;
 import org.bukkit.Sound;
+import org.bukkit.block.Block;
 import org.bukkit.entity.Player;
 import org.bukkit.event.block.Action;
 import org.bukkit.event.entity.EntityDamageEvent;
@@ -250,5 +251,29 @@ abstract class Training extends PracticeGame {
     @Override
     boolean refills() {
         return true;
+    }
+
+    /** The time now, in milliseconds, for the timers. */
+    static long now() {
+        return System.nanoTime() / 1000000L;
+    }
+
+    /** The sidebar again, five times a second: a timer that runs shows it. Called from tick(). */
+    void refresh() {
+        if (tickCount % 4 == 0) {
+            sidebars();
+        }
+    }
+
+    /**
+     * True if this block is in the box around (cx, cz) of the arena: this far on x and z, from
+     * below to above the floor.
+     */
+    boolean near(Block block, int cx, int cz, int radius, int below, int above) {
+        int dx = block.getX() - arena.centreX() - cx;
+        int dz = block.getZ() - arena.centreZ() - cz;
+        int dy = block.getY() - arena.floorY();
+        return block.getWorld().equals(arena.world()) && Math.abs(dx) <= radius && Math.abs(dz) <= radius
+                && dy >= -below && dy <= above;
     }
 }

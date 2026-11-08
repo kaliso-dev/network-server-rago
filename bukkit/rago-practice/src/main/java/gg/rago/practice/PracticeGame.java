@@ -234,6 +234,10 @@ abstract class PracticeGame {
     void projectileHit(Player shooter, Projectile projectile) {
     }
 
+    /** A projectile of the game itself (no player threw it: a cannon's fireball) landed. */
+    void ownLanded(Projectile projectile) {
+    }
+
     /** A pearl of this player lands: the event can be cancelled. */
     void pearled(Player player, PlayerTeleportEvent event) {
     }
