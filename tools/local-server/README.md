@@ -199,7 +199,8 @@ Il contient :
 
 - mondes : un dossier par monde (world est le monde du test de knockback, lobby le lobby,
   arenes les plateformes des duels et bw-demo la map de démo de Bed Wars ; les dossiers bw_...
-  sont les copies où se jouent les parties de Bed Wars, supprimées à l'arrêt du serveur) ;
+  sont les copies où se jouent les parties de Bed Wars, supprimées à l'arrêt du serveur ou au
+  lancement suivant) ;
 - schematics : les schematics de WorldEdit ;
 - sauvegardes : une copie des mondes et des schematics faite à chaque lancement du serveur, avant
   qu'il démarre. Les 10 plus récentes sont gardées. Sur Windows ce sont des fichiers .zip, sur Mac

@@ -92,7 +92,10 @@ public final class RagoBedwars extends JavaPlugin {
             host.abortAll();
             host = null;
         }
-        if (instances != null) {
+        // On the server's own thread (the stop command), the game worlds are unloaded and deleted.
+        // Stopped by a signal, the server disables its plugins from another thread while its worlds
+        // still tick: they are left as they are, and deleted at the next start.
+        if (instances != null && getServer().isPrimaryThread()) {
             instances.unloadAll();
         }
         if (lobby != null) {

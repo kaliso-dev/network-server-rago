@@ -183,12 +183,6 @@ log "server started with the lobby, the sumo duel and Bed Wars"
 bots_status=0
 KB_HOST=127.0.0.1 KB_PORT=$PORT node "$ROOT/tools/kb-control/bots/lobby-bots.mjs" || bots_status=$?
 stop_server
-# The Bed Wars game was played in a copy of the demo map, made when the server started, and the
-# copy is deleted when the server stops.
-server_log_has '[RagoBedwars] Game world bw_bw-demo_1 ready (map bw-demo)' \
-  || { grep -n 'RagoBedwars' "$SERVER_LOG" >&2 || true; fail "no copy of the demo map was made"; }
-[[ ! -e "$SERVER_DIR/bw_bw-demo_1" ]] || fail "the game world bw_bw-demo_1 was not deleted when the server stopped"
-[[ -f "$SERVER_DIR/bw-demo/bedwars.yml" ]] || fail "the demo map has no bedwars.yml"
 
 # Any error or exception logged by the server fails the test, even if the bots passed. One is
 # left out: the PacketEvents plugin always asks GitHub for its latest version, and GitHub often
@@ -199,4 +193,8 @@ if grep -n -E 'ERROR\]|SEVERE|Exception' "$SERVER_LOG" \
   fail "the server log has errors (above)"
 fi
 [[ $bots_status -eq 0 ]] || { tail -n 60 "$SERVER_LOG" >&2; fail "the bots stopped with status $bots_status"; }
+# The Bed Wars game was played in a copy of the demo map, made when the server started.
+server_log_has '[RagoBedwars] Game world bw_bw-demo_1 ready (map bw-demo)' \
+  || { grep -n 'RagoBedwars' "$SERVER_LOG" >&2 || true; fail "no copy of the demo map was made"; }
+[[ -f "$SERVER_DIR/bw-demo/bedwars.yml" ]] || fail "the demo map has no bedwars.yml"
 log "PASSED"

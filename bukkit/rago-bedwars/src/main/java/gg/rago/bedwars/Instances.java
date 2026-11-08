@@ -263,8 +263,9 @@ final class Instances {
     }
 
     /**
-     * The plugin stops: every game world is unloaded and deleted at once, so that the backups of
-     * the worlds made before the next start do not hold them (what is left is deleted at the start).
+     * The plugin stops, on the server's thread: every game world is unloaded and deleted at once, so
+     * that the backups of the worlds made before the next start do not hold them (what is left is
+     * deleted at the start).
      */
     void unloadAll() {
         for (Instance instance : new ArrayList<>(instances)) {

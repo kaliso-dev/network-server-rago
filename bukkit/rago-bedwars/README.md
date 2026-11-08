@@ -84,7 +84,8 @@ Chaque partie se joue dans une copie de sa map (`bw_<map>_<n>`), jamais dans la 
 La première copie est faite quelques secondes après le démarrage, les suivantes quand il n'y en a
 plus de libre (pendant ce temps, les joueurs gardent leur place dans la file). Après une partie, la
 copie retire les blocs posés, remet les lits et les blocs que l'eau ou les blocs avaient
-remplacés, et sert à la partie suivante. Les copies sont supprimées quand le serveur s'arrête.
+remplacés, et sert à la partie suivante. Les copies sont supprimées quand le serveur s'arrête (ou,
+s'il a été coupé net, au démarrage suivant).
 `parties-max` limite le nombre de copies, donc de parties en même temps.
 
 ## Configuration

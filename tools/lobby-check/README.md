@@ -37,7 +37,7 @@ jouent comme des joueurs :
    Quick Buy, ne peut pas la poser près de son spawn, la pose à côté de son lit et la recasse, et ne
    peut pas casser son propre lit. RagoDeux recule hors de son île, meurt dans le vide et revient
    sur son île 5 secondes plus tard (son lit tient), puis tape `/spawn` : RagoUn gagne et les deux
-   reviennent au lobby. La copie de la map est supprimée à l'arrêt du serveur.
+   reviennent au lobby.
 
 Le test échoue si un bot n'obtient pas ce qu'il attend, ou si le journal du serveur contient une
 erreur ou une exception.

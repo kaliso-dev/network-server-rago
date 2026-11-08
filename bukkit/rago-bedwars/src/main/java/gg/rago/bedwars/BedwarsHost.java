@@ -534,7 +534,8 @@ final class BedwarsHost implements MatchHost, Listener {
         if (event.getAction() == Action.PHYSICAL) {
             return;
         }
-        if (event.getClickedBlock() != null && NOT_USED.contains(event.getClickedBlock().getType())) {
+        // A right click only: denying the block on a left click would also stop it from being broken (the beds).
+        if (event.getAction() == Action.RIGHT_CLICK_BLOCK && NOT_USED.contains(event.getClickedBlock().getType())) {
             event.setUseInteractedBlock(Event.Result.DENY);
         }
         ItemStack item = event.getItem();
