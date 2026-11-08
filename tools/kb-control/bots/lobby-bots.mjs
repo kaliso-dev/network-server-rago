@@ -505,8 +505,8 @@ async function shopAndBuild (bot) {
 
 /**
  * A fireball thrown at its own feet from the spawn: the blast lifts the bot and takes about a
- * heart, not the 20 hearts of a vanilla blast at point blank. run-lobby-test.sh makes the iron
- * generators four times faster, so that the 40 iron come in time.
+ * heart, not the 20 hearts of a vanilla blast at point blank (the fall back costs a few more).
+ * run-lobby-test.sh makes the iron generators four times faster, so that the 40 iron come in time.
  */
 async function fireballJump (bot) {
   await waitFor(() => countOf(bot, 'iron_ingot') >= 40, 30000,
@@ -553,8 +553,10 @@ async function fireballJump (bot) {
   const blast = before - healths.find((health) => health < before)
   if (blast > 3) throw new Error(`${bot.username} lost ${blast} health to the blast of its own fireball`)
   const died = chats.get(bot.username).slice(from).some((line) => /RagoUn (died|fell into the void)/.test(line))
-  if (died || bot.game.gameMode !== 'survival' || bot.health < 12) {
-    throw new Error(`${bot.username} did not survive its fireball jump: ${bot.game.gameMode}, health ${bot.health}`)
+  // A jump straight up climbs some ten blocks: the fall back costs about three hearts more.
+  if (died || bot.game.gameMode !== 'survival' || bot.health < 8) {
+    throw new Error(`${bot.username} did not survive its fireball jump: ${bot.game.gameMode}, health ${bot.health}, ` +
+      `${blast} lost to the blast, up ${(highest - floor).toFixed(1)} blocks`)
   }
   if (highest < floor + 1.5) throw new Error(`the fireball did not lift ${bot.username}: up to ${highest}, from ${floor}`)
   if (countOf(bot, 'fire_charge') !== 0) throw new Error(`${bot.username} still holds its fireball`)
