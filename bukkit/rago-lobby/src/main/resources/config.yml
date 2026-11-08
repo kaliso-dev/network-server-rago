@@ -240,3 +240,12 @@ modes:
     description:
       - "Entraînement aux échelles :"
       - "poser et grimper vite (block ladder)."
+  pearl-practice:
+    nom: "&5Pearl practice"
+    icone: ENDER_PEARL
+    equipes: 1
+    joueurs-par-equipe: 1
+    classe: false
+    description:
+      - "Lancers de perles dans des"
+      - "situations réelles de Bedwars."
