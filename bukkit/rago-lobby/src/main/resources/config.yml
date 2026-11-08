@@ -143,3 +143,13 @@ modes:
     description:
       - "Combat sur un pont, sur une"
       - "plateforme réaliste de Bedwars."
+  block-in:
+    nom: "&bEntraînement block in"
+    icone: ENDER_STONE
+    equipes: 1
+    joueurs-par-equipe: 1
+    classe: false
+    description:
+      - "Seul : protège ton lit avec"
+      - "tes blocs, le plus vite"
+      - "possible, chronométré."
