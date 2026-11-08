@@ -231,3 +231,12 @@ modes:
     description:
       - "Entraînement à la visée,"
       - "seul, cibles mobiles."
+  ladder-practice:
+    nom: "&6Ladder practice"
+    icone: VINE
+    equipes: 1
+    joueurs-par-equipe: 1
+    classe: false
+    description:
+      - "Entraînement aux échelles :"
+      - "poser et grimper vite (block ladder)."
