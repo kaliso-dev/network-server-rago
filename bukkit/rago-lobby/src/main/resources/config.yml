@@ -324,3 +324,22 @@ modes:
     description:
       - "Défendre son lit à 1 contre 2,"
       - "clutch final à 2 cœurs... noté."
+  kb-displace:
+    nom: "&bKB displace 1v1"
+    icone: STICK
+    equipes: 2
+    joueurs-par-equipe: 1
+    classe: false
+    description:
+      - "Sur un pont : fais tomber"
+      - "ton adversaire au kb, sans"
+      - "tomber toi-même."
+  kb-displace-bot:
+    nom: "&bKB displace contre un bot"
+    icone: STICK
+    equipes: 1
+    joueurs-par-equipe: 1
+    classe: false
+    description:
+      - "Sur un pont, seul contre un"
+      - "bot : le faire tomber au kb."
