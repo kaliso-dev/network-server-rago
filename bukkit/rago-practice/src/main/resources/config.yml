@@ -14,3 +14,20 @@ sumo:
   points-pour-gagner: 3
   # Radius of the round platform, in blocks (4 to 15).
   rayon: 7
+
+# The other duels: how many points win (in boxing, how many hits). A point is a death or a fall
+# into the void of the other side; in 2v2, when both players of a side are out of the round.
+points-pour-gagner:
+  boxing: 100
+  kb-displace: 3
+  bridge-fight: 3
+  block-fight: 5
+  top-fight: 3
+
+# Attack and defense: the defenders build for construction-secondes while the attackers wait,
+# then the attackers have attaque-secondes to break the bed. The sides swap each round; manches
+# is even, so that each side attacks as often.
+attaque-defense:
+  construction-secondes: 30
+  attaque-secondes: 120
+  manches: 2

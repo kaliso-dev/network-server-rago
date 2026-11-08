@@ -2,5 +2,5 @@ name: RagoPractice
 version: ${version}
 main: gg.rago.practice.RagoPractice
 author: Rago
-description: The practice modes of Rago Practice, played from the lobby (sumo duel to begin with).
+description: The practice modes of Rago Practice, played from the lobby: duels, trainings, bots and an open arena.
 depend: [RagoLobby]

@@ -238,6 +238,7 @@ modes:
     equipes: 2
     joueurs-par-equipe: 1
     classe: false
+    kit: [IRON_SWORD, "WOOL 64", "GOLDEN_APPLE 3", ENDER_PEARL]
     description:
       - "Top fight in 1v1 or 2v2 with friends,"
       - "on a ready-made platform."
@@ -340,8 +341,10 @@ modes:
     classe: false
     kit: [WOOD_SWORD, "SANDSTONE 64", "SANDSTONE 64", "SANDSTONE 64"]
     description:
-      - "Place your blocks faster"
-      - "than the other player to win."
+      - "Two platforms over the void,"
+      - "blocks that never run out:"
+      - "build, clutch, knock them off."
+      - "First to 5."
   block-fight-2v2:
     nom: "&bBlock placement 2v2"
     categorie: ranked
@@ -349,9 +352,10 @@ modes:
     equipes: 2
     joueurs-par-equipe: 2
     classe: false
+    kit: [WOOD_SWORD, "SANDSTONE 64", "SANDSTONE 64", "SANDSTONE 64"]
     description:
       - "Block placement, two"
-      - "against two."
+      - "against two. First to 5."
   block-fight-arena:
     nom: "&bBlock placement arena"
     categorie: ranked
@@ -415,7 +419,9 @@ modes:
     kit: [IRON_SWORD, "WOOL 64", "ENDER_STONE 32", SHEARS, WOOD_PICKAXE]
     description:
       - "One player attacks the bed,"
-      - "the other defends it."
+      - "the other defends it: 30 s to"
+      - "build, 2 min to break it, then"
+      - "the roles swap."
   attack-defense-2v2:
     nom: "&cAttack and defense 2v2"
     categorie: duels
@@ -423,6 +429,7 @@ modes:
     equipes: 2
     joueurs-par-equipe: 2
     classe: false
+    kit: [IRON_SWORD, "WOOL 64", "ENDER_STONE 32", SHEARS, WOOD_PICKAXE]
     description:
       - "One team attacks the bed,"
       - "the other defends it."
@@ -435,7 +442,9 @@ modes:
     classe: false
     kit: [IRON_SWORD, "WOOL 64", "GOLDEN_APPLE 3", ENDER_PEARL]
     description:
-      - "A Top fight duel."
+      - "Fight on top of a ready-made"
+      - "bed defense (end stone, wood,"
+      - "wool), RBW gear. First to 3."
   top-fight-2v2:
     nom: "&eTop fight 2v2"
     categorie: ranked
@@ -443,6 +452,7 @@ modes:
     equipes: 2
     joueurs-par-equipe: 2
     classe: false
+    kit: [IRON_SWORD, "WOOL 64", "GOLDEN_APPLE 3", ENDER_PEARL]
     description:
       - "Top fight, two against two."
   clutch:
@@ -497,6 +507,7 @@ modes:
     equipes: 2
     joueurs-par-equipe: 1
     classe: false
+    kit: [STONE_SWORD, "WOOL 64"]
     description:
       - "On a bridge: knock your"
       - "opponent off with kb, without"
