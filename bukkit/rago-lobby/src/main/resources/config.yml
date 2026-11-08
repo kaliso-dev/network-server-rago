@@ -249,3 +249,12 @@ modes:
     description:
       - "Lancers de perles dans des"
       - "situations réelles de Bedwars."
+  shop-practice:
+    nom: "&aShop buyer practice"
+    icone: GOLD_INGOT
+    equipes: 1
+    joueurs-par-equipe: 1
+    classe: false
+    description:
+      - "Acheter vite au shop"
+      - "et optimiser son shop."
