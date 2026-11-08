@@ -5,7 +5,9 @@ import gg.rago.game.ModeCatalog;
 import gg.rago.game.RatingWindow;
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import org.bukkit.ChatColor;
 import org.bukkit.Material;
 import org.bukkit.configuration.ConfigurationSection;
@@ -22,14 +24,20 @@ final class LobbySettings {
     private final String address;
     private final int defaultRating;
     private final RatingWindow window;
-    /** What the selector shows: five rows of seven, in a six-row chest. */
+    /** What the selector shows without categories: five rows of seven, in a six-row chest. */
     static final int MAX_MODES = 35;
+    /** What a category's menu shows: four rows of seven, the last row keeping the back button. */
+    static final int MAX_MODES_PER_CATEGORY = 28;
+    /** One row of the category menu. */
+    static final int MAX_CATEGORIES = 7;
 
     private final List<ModeDisplay> modes;
+    private final List<ModeCategory> categories;
     private final ModeCatalog catalog;
 
     private LobbySettings(String world, int voidHeight, String title, String address, int defaultRating,
-            RatingWindow window, List<ModeDisplay> modes) {
+            RatingWindow window, List<ModeCategory> categories, List<ModeDisplay> modes) {
+        this.categories = Collections.unmodifiableList(categories);
         this.world = world;
         this.voidHeight = voidHeight;
         this.title = title;
@@ -74,25 +82,75 @@ final class LobbySettings {
         if (section == null || section.getKeys(false).isEmpty()) {
             throw new IllegalArgumentException("modes : la liste des modes est vide");
         }
-        if (section.getKeys(false).size() > MAX_MODES) {
-            throw new IllegalArgumentException("modes : " + MAX_MODES + " modes au plus, le sélecteur n'en affiche pas davantage");
+        List<ModeCategory> categories = readCategories(config.getConfigurationSection("categories"));
+        if (categories.isEmpty() && section.getKeys(false).size() > MAX_MODES) {
+            throw new IllegalArgumentException("modes : " + MAX_MODES + " modes au plus sans catégories, le sélecteur"
+                    + " n'en affiche pas davantage");
         }
+        Map<String, Integer> perCategory = new HashMap<>();
         List<ModeDisplay> modes = new ArrayList<>();
         for (String id : section.getKeys(false)) {
             ConfigurationSection mode = section.getConfigurationSection(id);
             if (mode == null) {
                 throw new IllegalArgumentException("modes." + id + " : ce n'est pas une section");
             }
-            modes.add(readMode(id, mode));
+            ModeDisplay display = readMode(id, mode, categories);
+            if (display.category() != null) {
+                int count = perCategory.merge(display.category(), 1, Integer::sum);
+                if (count > MAX_MODES_PER_CATEGORY) {
+                    throw new IllegalArgumentException("modes." + id + ".categorie : " + MAX_MODES_PER_CATEGORY
+                            + " modes au plus par catégorie");
+                }
+            }
+            modes.add(display);
         }
         try {
-            return new LobbySettings(world, voidHeight, title, address, defaultRating, window, modes);
+            return new LobbySettings(world, voidHeight, title, address, defaultRating, window, categories, modes);
         } catch (IllegalArgumentException e) {
             throw new IllegalArgumentException("modes : " + e.getMessage(), e);
         }
     }
 
-    private static ModeDisplay readMode(String id, ConfigurationSection section) {
+    private static List<ModeCategory> readCategories(ConfigurationSection section) {
+        List<ModeCategory> categories = new ArrayList<>();
+        if (section == null) {
+            return categories;
+        }
+        if (section.getKeys(false).size() > MAX_CATEGORIES) {
+            throw new IllegalArgumentException("categories : " + MAX_CATEGORIES + " catégories au plus");
+        }
+        for (String id : section.getKeys(false)) {
+            String where = "categories." + id;
+            ConfigurationSection category = section.getConfigurationSection(id);
+            if (category == null) {
+                throw new IllegalArgumentException(where + " : ce n'est pas une section");
+            }
+            if (!id.matches("[a-z0-9][a-z0-9-]{0,31}")) {
+                throw new IllegalArgumentException(where + " : minuscules sans accent, chiffres et tirets seulement");
+            }
+            categories.add(new ModeCategory(id, colour(category.getString("nom", id)),
+                    icon(where, category.getString("icone", "CHEST")), description(category)));
+        }
+        return categories;
+    }
+
+    private static Material icon(String where, String iconName) {
+        Material icon = Material.matchMaterial(iconName);
+        if (icon == null || icon == Material.AIR) {
+            throw new IllegalArgumentException(where + ".icone : « " + iconName + " » n'est pas un objet de Minecraft 1.8");
+        }
+        return icon;
+    }
+
+    private static List<String> description(ConfigurationSection section) {
+        List<String> description = new ArrayList<>();
+        for (String line : section.getStringList("description")) {
+            description.add(colour("&7" + line));
+        }
+        return description;
+    }
+
+    private static ModeDisplay readMode(String id, ConfigurationSection section, List<ModeCategory> categories) {
         String where = "modes." + id;
         String name = colour(section.getString("nom", id));
         GameMode mode;
@@ -102,16 +160,20 @@ final class LobbySettings {
         } catch (IllegalArgumentException e) {
             throw new IllegalArgumentException(where + " : " + e.getMessage(), e);
         }
-        String iconName = section.getString("icone", "PAPER");
-        Material icon = Material.matchMaterial(iconName);
-        if (icon == null || icon == Material.AIR) {
-            throw new IllegalArgumentException(where + ".icone : « " + iconName + " » n'est pas un objet de Minecraft 1.8");
+        Material icon = icon(where, section.getString("icone", "PAPER"));
+        String category = null;
+        if (!categories.isEmpty()) {
+            category = section.getString("categorie");
+            boolean known = false;
+            for (ModeCategory c : categories) {
+                known |= c.id().equals(category);
+            }
+            if (!known) {
+                throw new IllegalArgumentException(where + ".categorie : « " + category
+                        + " » n'est pas une des catégories (categories: en haut du fichier)");
+            }
         }
-        List<String> description = new ArrayList<>();
-        for (String line : section.getStringList("description")) {
-            description.add(colour("&7" + line));
-        }
-        return new ModeDisplay(mode, icon, description);
+        return new ModeDisplay(mode, icon, description(section), category);
     }
 
     static String colour(String text) {
@@ -150,6 +212,34 @@ final class LobbySettings {
     /** The modes in the order of config.yml, which is the order of the selector. */
     List<ModeDisplay> modes() {
         return modes;
+    }
+
+    /** The categories in the order of config.yml; empty when the selector shows every mode at once. */
+    List<ModeCategory> categories() {
+        return categories;
+    }
+
+    ModeCategory category(String id) {
+        for (ModeCategory category : categories) {
+            if (category.id().equals(id)) {
+                return category;
+            }
+        }
+        return null;
+    }
+
+    /** The modes of one category (all of them for null), in the order of config.yml. */
+    List<ModeDisplay> modesIn(String categoryId) {
+        if (categoryId == null) {
+            return modes;
+        }
+        List<ModeDisplay> result = new ArrayList<>();
+        for (ModeDisplay display : modes) {
+            if (categoryId.equals(display.category())) {
+                result.add(display);
+            }
+        }
+        return result;
     }
 
     ModeCatalog catalog() {

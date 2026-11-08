@@ -5,6 +5,7 @@ import java.util.ArrayList;
 import java.util.List;
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
+import org.bukkit.Material;
 import org.bukkit.entity.HumanEntity;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.Inventory;
@@ -13,18 +14,33 @@ import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.ItemMeta;
 
 /**
- * The mode selector: a chest menu with one item per mode, seven per row, framed by an empty row
- * above and below. Clicking a playable mode joins its queue; clicking the mode one waits for
- * leaves it. Open menus are refreshed every second, for the queue counts.
+ * The mode selector, a chest menu. With categories in config.yml, the compass first shows one item
+ * per category (a zone of the lobby); clicking one opens that category's modes, with a back
+ * button in the bottom row. Without categories, every mode is shown at once. Modes are seven per
+ * row, framed by an empty row above and below. Clicking a playable mode joins its queue; clicking
+ * the mode one waits for leaves it. Open menus are refreshed every second, for the queue counts.
  */
 final class ModeMenu {
 
     static final String TITLE = "Modes de jeu";
     private static final int PER_ROW = 7;
 
-    /** Marks our inventories: a click in one of them is a click in the selector. */
+    /**
+     * Marks our inventories: a click in one of them is a click in the selector. The view is the
+     * category menu (CATEGORIES), one category's modes (its id), or every mode (null).
+     */
     static final class Holder implements InventoryHolder {
+        static final String CATEGORIES = "";
         private Inventory inventory;
+        private final String view;
+
+        Holder(String view) {
+            this.view = view;
+        }
+
+        String view() {
+            return view;
+        }
 
         @Override
         public Inventory getInventory() {
@@ -40,11 +56,34 @@ final class ModeMenu {
         this.queues = queues;
     }
 
+    /** The compass: the categories if there are any, else every mode. */
     void open(Player player) {
-        int modes = settings.modes().size();
-        int rows = Math.min(6, 2 + (modes + PER_ROW - 1) / PER_ROW);
-        Holder holder = new Holder();
-        Inventory inventory = Bukkit.createInventory(holder, rows * 9, TITLE);
+        if (settings.categories().isEmpty()) {
+            show(player, null, 2 + rowsFor(settings.modes().size()), TITLE);
+        } else {
+            show(player, Holder.CATEGORIES, 3, TITLE);
+        }
+    }
+
+    /** One category's modes, from the category menu or later from a lobby NPC. False if unknown. */
+    boolean openCategory(Player player, String categoryId) {
+        ModeCategory category = settings.category(categoryId);
+        if (category == null) {
+            return false;
+        }
+        String title = ChatColor.stripColor(category.name());
+        show(player, categoryId, 3 + rowsFor(settings.modesIn(categoryId).size()),
+                title.length() > 32 ? title.substring(0, 32) : title);
+        return true;
+    }
+
+    private static int rowsFor(int modes) {
+        return Math.max(1, (modes + PER_ROW - 1) / PER_ROW);
+    }
+
+    private void show(Player player, String view, int rows, String title) {
+        Holder holder = new Holder(view);
+        Inventory inventory = Bukkit.createInventory(holder, Math.min(6, rows) * 9, title);
         holder.inventory = inventory;
         fill(inventory, player);
         player.openInventory(inventory);
@@ -55,20 +94,40 @@ final class ModeMenu {
         return (1 + index / PER_ROW) * 9 + 1 + index % PER_ROW;
     }
 
-    /** The mode shown in this slot, or null. */
-    GameMode modeAt(int slot) {
-        List<ModeDisplay> modes = settings.modes();
-        for (int i = 0; i < modes.size(); i++) {
-            if (slotOf(i) == slot) {
-                return modes.get(i).mode();
-            }
-        }
-        return null;
+    /** The slot of the n-th of {@code count} categories, centred in the middle row. */
+    static int categorySlot(int index, int count) {
+        return 9 + (9 - count) / 2 + index;
     }
 
-    /** Clicked in our menu: join or leave the mode's queue. */
-    void click(Player player, int slot) {
-        GameMode mode = modeAt(slot);
+    /** The back button: middle of the bottom row. */
+    static int backSlot(int size) {
+        return size - 5;
+    }
+
+    /** Clicked in our menu: open a category, go back, or join or leave a mode's queue. */
+    void click(Player player, Holder holder, int slot) {
+        String view = holder.view();
+        if (Holder.CATEGORIES.equals(view)) {
+            List<ModeCategory> categories = settings.categories();
+            for (int i = 0; i < categories.size(); i++) {
+                if (categorySlot(i, categories.size()) == slot) {
+                    openCategory(player, categories.get(i).id());
+                    return;
+                }
+            }
+            return;
+        }
+        if (view != null && slot == backSlot(holder.getInventory().getSize())) {
+            open(player);
+            return;
+        }
+        List<ModeDisplay> modes = settings.modesIn(view);
+        GameMode mode = null;
+        for (int i = 0; i < modes.size(); i++) {
+            if (slotOf(i) == slot) {
+                mode = modes.get(i).mode();
+            }
+        }
         if (mode == null) {
             return;
         }
@@ -94,11 +153,52 @@ final class ModeMenu {
     }
 
     private void fill(Inventory inventory, HumanEntity viewer) {
-        List<ModeDisplay> modes = settings.modes();
+        String view = ((Holder) inventory.getHolder()).view();
         GameMode current = viewer instanceof Player ? queues.queueOf((Player) viewer) : null;
-        for (int i = 0; i < modes.size() && slotOf(i) < inventory.getSize(); i++) {
+        if (Holder.CATEGORIES.equals(view)) {
+            List<ModeCategory> categories = settings.categories();
+            for (int i = 0; i < categories.size(); i++) {
+                inventory.setItem(categorySlot(i, categories.size()), icon(categories.get(i), current));
+            }
+            return;
+        }
+        List<ModeDisplay> modes = settings.modesIn(view);
+        int last = view == null ? inventory.getSize() : backSlot(inventory.getSize()) - 4;
+        for (int i = 0; i < modes.size() && slotOf(i) < last; i++) {
             inventory.setItem(slotOf(i), icon(modes.get(i), modes.get(i).mode().equals(current)));
         }
+        if (view != null) {
+            ItemStack back = new ItemStack(Material.ARROW);
+            ItemMeta meta = back.getItemMeta();
+            meta.setDisplayName(ChatColor.GRAY + "Retour aux catégories");
+            back.setItemMeta(meta);
+            inventory.setItem(backSlot(inventory.getSize()), back);
+        }
+    }
+
+    private ItemStack icon(ModeCategory category, GameMode current) {
+        ItemStack item = new ItemStack(category.icon());
+        ItemMeta meta = item.getItemMeta();
+        meta.setDisplayName(category.name());
+        List<String> lore = new ArrayList<>(category.description());
+        List<ModeDisplay> modes = settings.modesIn(category.id());
+        int waiting = 0;
+        boolean here = false;
+        for (ModeDisplay display : modes) {
+            if (queues.isPlayable(display.mode().id())) {
+                waiting += queues.waiting(display.mode().id());
+            }
+            here |= display.mode().equals(current);
+        }
+        lore.add("");
+        lore.add(ChatColor.GRAY + "" + modes.size() + " modes, " + ChatColor.WHITE + waiting + ChatColor.GRAY + " en file");
+        if (here) {
+            lore.add(ChatColor.YELLOW + "Tu es dans une file de cette catégorie");
+        }
+        lore.add(ChatColor.GREEN + "Clic pour voir les modes");
+        meta.setLore(lore);
+        item.setItemMeta(meta);
+        return item;
     }
 
     private ItemStack icon(ModeDisplay display, boolean waitingHere) {

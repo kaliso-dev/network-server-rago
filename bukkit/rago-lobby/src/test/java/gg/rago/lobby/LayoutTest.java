@@ -12,6 +12,11 @@ class LayoutTest {
         assertEquals(16, ModeMenu.slotOf(6));
         assertEquals(19, ModeMenu.slotOf(7));
         assertEquals(52, ModeMenu.slotOf(LobbySettings.MAX_MODES - 1));
+        assertEquals(43, ModeMenu.slotOf(LobbySettings.MAX_MODES_PER_CATEGORY - 1), "above the back button's row");
+        assertEquals(12, ModeMenu.categorySlot(0, 3));
+        assertEquals(13, ModeMenu.categorySlot(1, 3));
+        assertEquals(10, ModeMenu.categorySlot(0, 7));
+        assertEquals(49, ModeMenu.backSlot(54));
     }
 
     @Test

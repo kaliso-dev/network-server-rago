@@ -11,11 +11,18 @@ final class ModeDisplay {
     private final GameMode mode;
     private final Material icon;
     private final List<String> description;
+    private final String category;
 
-    ModeDisplay(GameMode mode, Material icon, List<String> description) {
+    ModeDisplay(GameMode mode, Material icon, List<String> description, String category) {
         this.mode = mode;
         this.icon = icon;
         this.description = Collections.unmodifiableList(description);
+        this.category = category;
+    }
+
+    /** The id of the mode's category, or null when the selector has no categories. */
+    String category() {
+        return category;
     }
 
     GameMode mode() {

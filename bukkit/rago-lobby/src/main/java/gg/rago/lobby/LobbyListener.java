@@ -130,8 +130,9 @@ final class LobbyListener implements Listener {
         Player player = (Player) event.getWhoClicked();
         if (event.getView().getTopInventory().getHolder() instanceof ModeMenu.Holder) {
             event.setCancelled(true);
-            if (event.getRawSlot() < event.getView().getTopInventory().getSize()) {
-                lobby.menu().click(player, event.getRawSlot());
+            if (event.getRawSlot() >= 0 && event.getRawSlot() < event.getView().getTopInventory().getSize()) {
+                lobby.menu().click(player, (ModeMenu.Holder) event.getView().getTopInventory().getHolder(),
+                        event.getRawSlot());
             }
             return;
         }

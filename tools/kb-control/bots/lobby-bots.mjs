@@ -3,7 +3,8 @@
 // Two bots join a local 1.8.8 test server that runs RagoLobby, RagoPractice and RagoCombatEngine
 // and play the way a player does:
 //   1. both arrive in the lobby: adventure mode, the selector in the first hotbar slot, the sidebar;
-//   2. RagoUn opens the selector with a right click and clicks the sumo duel; RagoDeux types
+//   2. RagoUn opens the selector with a right click, opens the Duels category, then clicks the sumo
+//      duel; RagoDeux types
 //      /file sumo;
 //   3. the duel starts: RagoUn walks up to RagoDeux and hits it once (knockback, no damage), then
 //      RagoDeux walks off the platform three times, so RagoUn wins 3 - 0;
@@ -20,8 +21,10 @@ const PORT = Number(process.env.KB_PORT ?? '25565')
 const TEST_TIMEOUT_MS = 5 * 60 * 1000
 // A new lobby world has a platform at y = 64: players stand at y = 65, at the centre.
 const LOBBY_SPAWN = { x: 0.5, y: 65, z: 0.5 }
-// The sumo duel is the third mode of the bundled config.yml: slot 12 of the selector.
-const SUMO_SLOT = 12
+// The bundled config.yml has three categories, centred in the middle row: Duels is the second, in
+// slot 13. Sumo is the first mode of Duels: slot 10 of its menu.
+const DUELS_SLOT = 13
+const SUMO_SLOT = 10
 const POINTS_TO_WIN = 3
 
 let finishing = false
@@ -118,7 +121,16 @@ async function openSelectorAndJoinSumo (bot) {
   if (window == null) throw new Error(`${bot.username}: the selector did not open on a right click`)
   const title = typeof window.title === 'string' ? window.title : JSON.stringify(window.title)
   if (!title.includes('Modes de jeu')) throw new Error(`${bot.username}: unexpected window title ${title}`)
-  const icon = window.slots[SUMO_SLOT]
+  if (window.slots[DUELS_SLOT]?.name !== 'iron_sword') {
+    throw new Error(`${bot.username}: slot ${DUELS_SLOT} holds ${window.slots[DUELS_SLOT]?.name}, not the Duels category`)
+  }
+  const duelsOpened = new Promise((resolve) => bot.once('windowOpen', resolve))
+  bot.clickWindow(DUELS_SLOT, 0, 0).catch(() => {})
+  const duels = await Promise.race([duelsOpened, sleep(5000).then(() => null)])
+  if (duels == null) throw new Error(`${bot.username}: the Duels category did not open`)
+  const duelsTitle = typeof duels.title === 'string' ? duels.title : JSON.stringify(duels.title)
+  if (!duelsTitle.includes('Duels')) throw new Error(`${bot.username}: unexpected category title ${duelsTitle}`)
+  const icon = duels.slots[SUMO_SLOT]
   if (icon?.name !== 'slime_ball') throw new Error(`${bot.username}: slot ${SUMO_SLOT} holds ${icon?.name}, not the sumo duel`)
   const from = mark(bot)
   // The server cancels the click (the menu cannot be emptied): do not wait for its acceptance.

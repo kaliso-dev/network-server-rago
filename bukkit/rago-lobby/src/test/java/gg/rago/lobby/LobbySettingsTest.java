@@ -55,6 +55,31 @@ class LobbySettingsTest {
     }
 
     @Test
+    void groupsTheBundledModesByCategory() throws Exception {
+        LobbySettings settings = LobbySettings.load(bundledConfig());
+        assertEquals(3, settings.categories().size());
+        assertEquals("ranked", settings.categories().get(0).id());
+        assertEquals("duels", settings.categories().get(1).id());
+        assertEquals(Material.IRON_SWORD, settings.categories().get(1).icon());
+        assertEquals("sumo", settings.modesIn("duels").get(0).mode().id());
+        int total = 0;
+        for (ModeCategory category : settings.categories()) {
+            int count = settings.modesIn(category.id()).size();
+            assertTrue(count > 0 && count <= LobbySettings.MAX_MODES_PER_CATEGORY, category.id() + ": " + count);
+            total += count;
+        }
+        assertEquals(settings.modes().size(), total, "every mode is in a category");
+    }
+
+    @Test
+    void checksCategories() {
+        String categories = "categories:\n  duels:\n    nom: Duels\n";
+        assertInvalid(categories + "modes:\n  sumo: {}\n", "modes.sumo.categorie");
+        assertInvalid(categories + "modes:\n  sumo:\n    categorie: autre\n", "modes.sumo.categorie");
+        assertInvalid("categories:\n  Duels: {}\nmodes:\n  sumo: {}\n", "categories.Duels");
+    }
+
+    @Test
     void translatesColours() throws Exception {
         LobbySettings settings = LobbySettings.load(yaml("modes:\n  sumo:\n    nom: '&aSumo'\n    description: [Ligne]\n"));
         assertEquals("§aSumo", settings.catalog().get("sumo").name());

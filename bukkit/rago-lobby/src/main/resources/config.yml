@@ -22,6 +22,29 @@ file:
   ecart-elo-secondes: 10
   ecart-elo-max: 500
 
+# Les catégories du sélecteur, une par zone du lobby, dans l'ordre du menu (7 au plus). La boussole
+# montre d'abord les catégories, puis les modes de celle qu'on choisit (28 au plus par catégorie).
+# Sans section categories, la boussole montre tous les modes d'un coup (35 au plus).
+categories:
+  ranked:
+    nom: "&6&lRanked Bedwars"
+    icone: BED
+    description:
+      - "Le classé et les modes Bedwars :"
+      - "ranked, FFA, first rush, end game..."
+  duels:
+    nom: "&a&lDuels"
+    icone: IRON_SWORD
+    description:
+      - "Sumo, épée, boxing, fireball,"
+      - "top fight, block placement..."
+  entrainement:
+    nom: "&b&lEntraînement"
+    icone: SANDSTONE
+    description:
+      - "Seul ou contre un bot : clutch,"
+      - "bridge, block in, perles, shop..."
+
 # Les modes, dans l'ordre du sélecteur. L'identifiant (la clé) ne contient que des minuscules sans
 # accent, des chiffres et des tirets. Un mode reste « Bientôt » dans le sélecteur tant qu'aucun
 # plugin de jeu ne le prend en charge.
@@ -29,11 +52,13 @@ file:
 #   icone              l'objet affiché dans le sélecteur (nom d'objet de Minecraft 1.8)
 #   equipes            le nombre d'équipes d'une partie
 #   joueurs-par-equipe le nombre de joueurs de chaque équipe
+#   categorie          la catégorie du mode (une de categories: ci-dessus)
 #   classe             true pour un mode classé (ELO)
 #   description        les lignes sous le nom
 modes:
   ranked-1v1:
     nom: "&6Ranked Bedwars 1v1"
+    categorie: ranked
     icone: BED
     equipes: 2
     joueurs-par-equipe: 1
@@ -45,6 +70,7 @@ modes:
       - "à chaque partie."
   ranked-2v2:
     nom: "&6Ranked Bedwars 2v2"
+    categorie: ranked
     icone: DIAMOND_SWORD
     equipes: 2
     joueurs-par-equipe: 2
@@ -52,8 +78,104 @@ modes:
     description:
       - "Bedwars classé à deux contre"
       - "deux, sur Invasion ou Lectus."
+  ffa:
+    nom: "&cFFA Ranked Bedwars"
+    categorie: ranked
+    icone: STONE_SWORD
+    equipes: 1
+    joueurs-par-equipe: 1
+    classe: false
+    description:
+      - "Tous contre tous sur une"
+      - "plateforme d'Invasion,"
+      - "avec le kit Ranked Bedwars."
+  free-ffa:
+    nom: "&aFree FFA"
+    categorie: ranked
+    icone: EMERALD
+    equipes: 1
+    joueurs-par-equipe: 1
+    classe: false
+    description:
+      - "Archway en tous contre tous,"
+      - "boutique personnalisée (fer, or,"
+      - "diamants, émeraudes) et top fight."
+  first-rush:
+    nom: "&eSolo Bedwars 1v1 first rush"
+    categorie: ranked
+    icone: IRON_PICKAXE
+    equipes: 1
+    joueurs-par-equipe: 1
+    classe: false
+    description:
+      - "Seul : simule le premier rush"
+      - "d'un Bedwars 1v1, sur Nebuc,"
+      - "Gelato ou Sky Rise."
+  end-game-1v1:
+    nom: "&6End game 1v1"
+    categorie: ranked
+    icone: DIAMOND_CHESTPLATE
+    equipes: 2
+    joueurs-par-equipe: 1
+    classe: false
+    description:
+      - "Simulation de fin de partie"
+      - "RBW sur Sky Rise."
+  end-game-2v2:
+    nom: "&6End game 2v2"
+    categorie: ranked
+    icone: DIAMOND_CHESTPLATE
+    equipes: 2
+    joueurs-par-equipe: 2
+    classe: false
+    description:
+      - "Simulation de fin de partie"
+      - "RBW à deux contre deux,"
+      - "sur Sky Rise."
+  invis-practice:
+    nom: "&5Invis practice"
+    categorie: ranked
+    icone: POTION
+    equipes: 2
+    joueurs-par-equipe: 1
+    classe: false
+    description:
+      - "Combat contre un adversaire"
+      - "invisible, sur Invasion"
+      - "ou Archway."
+  attack-defense-1v1:
+    nom: "&cAttack and defense 1v1"
+    categorie: ranked
+    icone: IRON_SWORD
+    equipes: 2
+    joueurs-par-equipe: 1
+    classe: false
+    description:
+      - "Un joueur attaque le lit,"
+      - "l'autre le défend."
+  attack-defense-2v2:
+    nom: "&cAttack and defense 2v2"
+    categorie: ranked
+    icone: IRON_SWORD
+    equipes: 2
+    joueurs-par-equipe: 2
+    classe: false
+    description:
+      - "Une équipe attaque le lit,"
+      - "l'autre le défend."
+  scenarios-ranked:
+    nom: "&4Scénarios du Ranked"
+    categorie: ranked
+    icone: REDSTONE
+    equipes: 1
+    joueurs-par-equipe: 1
+    classe: false
+    description:
+      - "Défendre son lit à 1 contre 2,"
+      - "clutch final à 2 cœurs... noté."
   sumo:
     nom: "&aDuel sumo"
+    categorie: duels
     icone: SLIME_BALL
     equipes: 2
     joueurs-par-equipe: 1
@@ -62,8 +184,40 @@ modes:
       - "Fais tomber l'autre de la"
       - "plateforme : idéal pour"
       - "travailler le knockback."
+  duel-epee:
+    nom: "&fDuel épée"
+    categorie: duels
+    icone: IRON_SWORD
+    equipes: 2
+    joueurs-par-equipe: 1
+    classe: false
+    description:
+      - "Duel à l'épée avec le"
+      - "knockback mesuré du serveur."
+  boxing:
+    nom: "&fBoxing"
+    categorie: duels
+    icone: DIAMOND_SWORD
+    equipes: 2
+    joueurs-par-equipe: 1
+    classe: false
+    description:
+      - "Premier à 100 coups,"
+      - "pour travailler ses combos."
+  kb-displace:
+    nom: "&bKB displace 1v1"
+    categorie: duels
+    icone: STICK
+    equipes: 2
+    joueurs-par-equipe: 1
+    classe: false
+    description:
+      - "Sur un pont : fais tomber"
+      - "ton adversaire au kb, sans"
+      - "tomber toi-même."
   fireball:
     nom: "&cFireball fight"
+    categorie: duels
     icone: FIREBALL
     equipes: 2
     joueurs-par-equipe: 1
@@ -71,8 +225,68 @@ modes:
     description:
       - "Boules de feu et TNT :"
       - "le dernier debout gagne."
+  top-fight-1v1:
+    nom: "&eTop fight 1v1"
+    categorie: duels
+    icone: GOLD_SWORD
+    equipes: 2
+    joueurs-par-equipe: 1
+    classe: false
+    description:
+      - "Un duel Top fight."
+  top-fight-2v2:
+    nom: "&eTop fight 2v2"
+    categorie: duels
+    icone: GOLD_SWORD
+    equipes: 2
+    joueurs-par-equipe: 2
+    classe: false
+    description:
+      - "Top fight à deux contre deux."
+  block-fight-1v1:
+    nom: "&bBlock placement 1v1"
+    categorie: duels
+    icone: SANDSTONE
+    equipes: 2
+    joueurs-par-equipe: 1
+    classe: false
+    description:
+      - "Pose tes blocs plus vite"
+      - "que l'autre pour gagner."
+  block-fight-2v2:
+    nom: "&bBlock placement 2v2"
+    categorie: duels
+    icone: SANDSTONE
+    equipes: 2
+    joueurs-par-equipe: 2
+    classe: false
+    description:
+      - "Block placement à deux"
+      - "contre deux."
+  bridge-fight:
+    nom: "&bBridge fight"
+    categorie: duels
+    icone: WOOL
+    equipes: 2
+    joueurs-par-equipe: 1
+    classe: false
+    description:
+      - "Combat sur un pont entre deux"
+      - "îles, plateforme réaliste de Bedwars."
+  arene-libre:
+    nom: "&aArène libre"
+    categorie: duels
+    icone: STICK
+    equipes: 1
+    joueurs-par-equipe: 1
+    classe: false
+    description:
+      - "Entrée libre, sans règles"
+      - "ni dégâts : combote à"
+      - "l'infini."
   clutch:
     nom: "&bBlock clutch"
+    categorie: entrainement
     icone: LADDER
     equipes: 1
     joueurs-par-equipe: 1
@@ -83,212 +297,9 @@ modes:
       - "un coup, pose tes blocs pour"
       - "te sauver. Ou kb aléatoire"
       - "au-dessus du vide."
-  block-fight-1v1:
-    nom: "&bBlock placement 1v1"
-    icone: SANDSTONE
-    equipes: 2
-    joueurs-par-equipe: 1
-    classe: false
-    description:
-      - "Pose tes blocs plus vite"
-      - "que l'autre pour gagner."
-  block-fight-2v2:
-    nom: "&bBlock placement 2v2"
-    icone: SANDSTONE
-    equipes: 2
-    joueurs-par-equipe: 2
-    classe: false
-    description:
-      - "Block placement à deux"
-      - "contre deux."
-  top-fight-1v1:
-    nom: "&eTop fight 1v1"
-    icone: GOLD_SWORD
-    equipes: 2
-    joueurs-par-equipe: 1
-    classe: false
-    description:
-      - "Un duel Top fight."
-  top-fight-2v2:
-    nom: "&eTop fight 2v2"
-    icone: GOLD_SWORD
-    equipes: 2
-    joueurs-par-equipe: 2
-    classe: false
-    description:
-      - "Top fight à deux contre deux."
-  ffa:
-    nom: "&cFFA Ranked Bedwars"
-    icone: STONE_SWORD
-    equipes: 1
-    joueurs-par-equipe: 1
-    classe: false
-    description:
-      - "Tous contre tous sur une"
-      - "plateforme d'Invasion,"
-      - "avec le kit Ranked Bedwars."
-  arene-libre:
-    nom: "&aArène libre"
-    icone: STICK
-    equipes: 1
-    joueurs-par-equipe: 1
-    classe: false
-    description:
-      - "Entrée libre, sans règles"
-      - "ni dégâts : combote à"
-      - "l'infini."
-  bridge-fight:
-    nom: "&bBridge fight"
-    icone: WOOL
-    equipes: 2
-    joueurs-par-equipe: 1
-    classe: false
-    description:
-      - "Combat sur un pont entre deux"
-      - "îles, plateforme réaliste de Bedwars."
-  block-in:
-    nom: "&bEntraînement block in"
-    icone: ENDER_STONE
-    equipes: 1
-    joueurs-par-equipe: 1
-    classe: false
-    description:
-      - "Seul : protège ton lit avec"
-      - "tes blocs en 10 secondes,"
-      - "chronométré."
-  first-rush:
-    nom: "&eSolo Bedwars 1v1 first rush"
-    icone: IRON_PICKAXE
-    equipes: 1
-    joueurs-par-equipe: 1
-    classe: false
-    description:
-      - "Seul : simule le premier rush"
-      - "d'un Bedwars 1v1, sur Nebuc,"
-      - "Gelato ou Sky Rise."
-  invis-practice:
-    nom: "&5Invis practice"
-    icone: POTION
-    equipes: 2
-    joueurs-par-equipe: 1
-    classe: false
-    description:
-      - "Combat contre un adversaire"
-      - "invisible, sur Invasion"
-      - "ou Archway."
-  end-game-1v1:
-    nom: "&6End game 1v1"
-    icone: DIAMOND_CHESTPLATE
-    equipes: 2
-    joueurs-par-equipe: 1
-    classe: false
-    description:
-      - "Simulation de fin de partie"
-      - "RBW sur Sky Rise."
-  end-game-2v2:
-    nom: "&6End game 2v2"
-    icone: DIAMOND_CHESTPLATE
-    equipes: 2
-    joueurs-par-equipe: 2
-    classe: false
-    description:
-      - "Simulation de fin de partie"
-      - "RBW à deux contre deux,"
-      - "sur Sky Rise."
-  attack-defense-1v1:
-    nom: "&cAttack and defense 1v1"
-    icone: IRON_SWORD
-    equipes: 2
-    joueurs-par-equipe: 1
-    classe: false
-    description:
-      - "Un joueur attaque le lit,"
-      - "l'autre le défend."
-  attack-defense-2v2:
-    nom: "&cAttack and defense 2v2"
-    icone: IRON_SWORD
-    equipes: 2
-    joueurs-par-equipe: 2
-    classe: false
-    description:
-      - "Une équipe attaque le lit,"
-      - "l'autre le défend."
-  free-ffa:
-    nom: "&aFree FFA"
-    icone: EMERALD
-    equipes: 1
-    joueurs-par-equipe: 1
-    classe: false
-    description:
-      - "Archway en tous contre tous,"
-      - "boutique personnalisée (fer, or,"
-      - "diamants, émeraudes) et top fight."
-  aim-trainer:
-    nom: "&eAim trainer"
-    icone: BOW
-    equipes: 1
-    joueurs-par-equipe: 1
-    classe: false
-    description:
-      - "Entraînement à la visée,"
-      - "seul, cibles mobiles."
-  ladder-practice:
-    nom: "&6Ladder practice"
-    icone: VINE
-    equipes: 1
-    joueurs-par-equipe: 1
-    classe: false
-    description:
-      - "Entraînement aux échelles :"
-      - "poser et grimper vite (block ladder)."
-  pearl-practice:
-    nom: "&5Pearl practice"
-    icone: ENDER_PEARL
-    equipes: 1
-    joueurs-par-equipe: 1
-    classe: false
-    description:
-      - "Lancers de perles dans des"
-      - "situations réelles de Bedwars."
-  shop-practice:
-    nom: "&aShop buyer practice"
-    icone: GOLD_INGOT
-    equipes: 1
-    joueurs-par-equipe: 1
-    classe: false
-    description:
-      - "Acheter vite au shop"
-      - "et optimiser son shop."
-  combo-bot:
-    nom: "&dBot de combo"
-    icone: SKULL_ITEM
-    equipes: 1
-    joueurs-par-equipe: 1
-    classe: false
-    description:
-      - "Un bot qui bouge et rend"
-      - "les coups, pour travailler ses"
-      - "combos (sparring)."
-  duel-epee:
-    nom: "&fDuel épée"
-    icone: IRON_SWORD
-    equipes: 2
-    joueurs-par-equipe: 1
-    classe: false
-    description:
-      - "Duel à l'épée avec le"
-      - "knockback mesuré du serveur."
-  boxing:
-    nom: "&fBoxing"
-    icone: DIAMOND_SWORD
-    equipes: 2
-    joueurs-par-equipe: 1
-    classe: false
-    description:
-      - "Premier à 100 coups,"
-      - "pour travailler ses combos."
   bridge-chrono:
     nom: "&bBridge au chrono"
+    categorie: entrainement
     icone: SANDSTONE
     equipes: 1
     joueurs-par-equipe: 1
@@ -297,8 +308,30 @@ modes:
       - "Chrono par technique : ninja,"
       - "god bridge, telly... contre ton"
       - "meilleur temps ou celui du top 1."
+  block-in:
+    nom: "&bEntraînement block in"
+    categorie: entrainement
+    icone: ENDER_STONE
+    equipes: 1
+    joueurs-par-equipe: 1
+    classe: false
+    description:
+      - "Seul : protège ton lit avec"
+      - "tes blocs en 10 secondes,"
+      - "chronométré."
+  ladder-practice:
+    nom: "&6Ladder practice"
+    categorie: entrainement
+    icone: VINE
+    equipes: 1
+    joueurs-par-equipe: 1
+    classe: false
+    description:
+      - "Entraînement aux échelles :"
+      - "poser et grimper vite (block ladder)."
   bed-break:
     nom: "&cCasse de lit"
+    categorie: entrainement
     icone: BED
     equipes: 1
     joueurs-par-equipe: 1
@@ -308,6 +341,7 @@ modes:
       - "le plus vite possible, au chrono."
   fireball-practice:
     nom: "&6Fireball practice"
+    categorie: entrainement
     icone: FIREBALL
     equipes: 1
     joueurs-par-equipe: 1
@@ -315,27 +349,40 @@ modes:
     description:
       - "Sauter à la fireball et"
       - "renvoyer les fireballs."
-  scenarios-ranked:
-    nom: "&4Scénarios du Ranked"
-    icone: REDSTONE
+  pearl-practice:
+    nom: "&5Pearl practice"
+    categorie: entrainement
+    icone: ENDER_PEARL
     equipes: 1
     joueurs-par-equipe: 1
     classe: false
     description:
-      - "Défendre son lit à 1 contre 2,"
-      - "clutch final à 2 cœurs... noté."
-  kb-displace:
-    nom: "&bKB displace 1v1"
-    icone: STICK
-    equipes: 2
+      - "Lancers de perles dans des"
+      - "situations réelles de Bedwars."
+  shop-practice:
+    nom: "&aShop buyer practice"
+    categorie: entrainement
+    icone: GOLD_INGOT
+    equipes: 1
     joueurs-par-equipe: 1
     classe: false
     description:
-      - "Sur un pont : fais tomber"
-      - "ton adversaire au kb, sans"
-      - "tomber toi-même."
+      - "Acheter vite au shop"
+      - "et optimiser son shop."
+  combo-bot:
+    nom: "&dBot de combo"
+    categorie: entrainement
+    icone: SKULL_ITEM
+    equipes: 1
+    joueurs-par-equipe: 1
+    classe: false
+    description:
+      - "Un bot qui bouge et rend"
+      - "les coups, pour travailler ses"
+      - "combos (sparring)."
   kb-displace-bot:
     nom: "&bKB displace contre un bot"
+    categorie: entrainement
     icone: STICK
     equipes: 1
     joueurs-par-equipe: 1
@@ -343,3 +390,13 @@ modes:
     description:
       - "Sur un pont, seul contre un"
       - "bot : le faire tomber au kb."
+  aim-trainer:
+    nom: "&eAim trainer"
+    categorie: entrainement
+    icone: BOW
+    equipes: 1
+    joueurs-par-equipe: 1
+    classe: false
+    description:
+      - "Entraînement à la visée,"
+      - "seul, cibles mobiles."
