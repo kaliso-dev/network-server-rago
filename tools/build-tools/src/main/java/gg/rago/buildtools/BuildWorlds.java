@@ -60,9 +60,9 @@ final class BuildWorlds {
                 } else {
                     settings.put(name, world);
                 }
-                logger.info("Monde " + name + " chargé (" + describe(world) + ")");
+                logger.info("World " + name + " loaded (" + describe(world) + ")");
             } catch (IOException | RuntimeException e) {
-                logger.log(Level.SEVERE, "Le monde " + name + " n'a pas été chargé : " + e.getMessage(), e);
+                logger.log(Level.SEVERE, "The world " + name + " was not loaded: " + e.getMessage(), e);
             }
         }
     }
@@ -81,7 +81,7 @@ final class BuildWorlds {
                     + "use /monde import " + name + " if it is a map.");
         }
         if (!folder.mkdirs()) {
-            throw new IOException("impossible de créer le dossier " + folder);
+            throw new IOException("cannot create the folder " + folder);
         }
         WorldSettings world = WorldSettings.forNewWorld(generator);
         World created;
@@ -91,7 +91,7 @@ final class BuildWorlds {
         } catch (IOException | RuntimeException e) {
             // Leave no half-made folder behind, or the name could never be used again.
             if (!WorldSettings.fileIn(folder).delete() || !folder.delete()) {
-                logger.warning("Le dossier " + folder + " est resté après l'échec : supprime-le à la main.");
+                logger.warning("The folder " + folder + " is left after the failure: delete it by hand.");
             }
             throw e;
         }
@@ -101,7 +101,7 @@ final class BuildWorlds {
             created.setSpawnLocation(0, VoidGenerator.PLATFORM_Y + 1, 0);
         }
         created.save();
-        logger.info("Monde " + name + " créé (" + describe(world) + ")");
+        logger.info("World " + name + " created (" + describe(world) + ")");
         return created;
     }
 
@@ -134,10 +134,10 @@ final class BuildWorlds {
         World imported = load(name, world);
         imported.setTime(NOON);
         imported.save();
-        logger.info("Monde " + name + " importé (" + describe(world) + ")");
+        logger.info("World " + name + " imported (" + describe(world) + ")");
         if (version != LevelVersion.BEFORE_1_9) {
-            logger.warning("La map " + name + " vient de Minecraft 1.9 à 1.12 (DataVersion " + version
-                    + ") : les blocs ajoutés après 1.8 ont disparu.");
+            logger.warning("The map " + name + " comes from Minecraft 1.9 to 1.12 (DataVersion " + version
+                    + "): the blocks added after 1.8 are gone.");
         }
         return imported;
     }

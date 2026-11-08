@@ -5,12 +5,16 @@ RagoCombatEngine, RagoLobby et RagoPractice. Deux bots mineflayer (le script
 `tools/kb-control/bots/lobby-bots.mjs`, qui partage les dépendances des bots du test de contrôle)
 jouent comme des joueurs :
 
-1. ils arrivent dans le lobby : mode aventure, la boussole et le colorant dans la barre d'objets,
-   le scoreboard ;
+1. ils arrivent dans le lobby : mode aventure, la boussole, le livre de l'éditeur de kit et le
+   colorant dans la barre d'objets, le scoreboard. Le script donne au sumo un kit d'un bâton (le
+   config.yml fourni n'en a pas) : RagoUn ouvre l'éditeur avec le livre, choisit le sumo, déplace
+   le bâton de la première case à la quatrième, enregistre, et le retrouve là en rouvrant
+   l'éditeur ;
 2. RagoUn ouvre le sélecteur d'un clic droit et clique sur le duel sumo ; RagoDeux tape
    `/queue sumo` ;
-3. le duel démarre, après le décompte 3, 2, 1, « Fight! » affiché en titre (sans fondu), et le
-   scoreboard montre l'adversaire et le ping des deux joueurs :
+3. le duel démarre, après le décompte 3, 2, 1, « Fight! » affiché en titre (sans fondu), chacun a
+   le bâton là où il l'a rangé (RagoUn : quatrième case, RagoDeux : la première, celle du kit), et
+   le scoreboard montre l'adversaire et le ping des deux joueurs :
    RagoUn frappe RagoDeux une fois (il doit recevoir du knockback et aucun
    dégât), puis RagoDeux tombe trois fois de la plateforme : RagoUn gagne 3 - 0 ;
 4. les deux reviennent au lobby, au spawn, avec les objets du lobby. Chacun lit son profil

@@ -59,7 +59,7 @@ public final class RagoLobby extends JavaPlugin implements LobbyService {
         try {
             settings = LobbySettings.load(getConfig());
         } catch (IllegalArgumentException e) {
-            getLogger().severe("config.yml est invalide, RagoLobby est désactivé : " + e.getMessage());
+            getLogger().severe("config.yml is invalid, RagoLobby is disabled: " + e.getMessage());
             getServer().getPluginManager().disablePlugin(this);
             return;
         }
@@ -72,7 +72,7 @@ public final class RagoLobby extends JavaPlugin implements LobbyService {
                 spawn = SpawnPoint.read(new File(getDataFolder(), SpawnPoint.FILE_NAME));
             }
         } catch (IOException e) {
-            getLogger().warning(e.getMessage() + " : le spawn du monde est utilisé");
+            getLogger().warning(e.getMessage() + ": the spawn of the world is used");
             spawn = null;
         }
         if (spawn == null) {
@@ -83,7 +83,7 @@ public final class RagoLobby extends JavaPlugin implements LobbyService {
         try {
             points = LobbyPoints.read(new File(world.getWorldFolder(), LobbyPoints.FILE_NAME));
         } catch (IOException e) {
-            getLogger().warning(e.getMessage() + " : les points du lobby sont ignorés");
+            getLogger().warning(e.getMessage() + ": the points of the lobby are ignored");
             points = new LobbyPoints();
         }
 
@@ -135,15 +135,15 @@ public final class RagoLobby extends JavaPlugin implements LobbyService {
         getServer().getScheduler().runTaskTimer(this, fakes::tick, 10L, 10L);
         int placed = npcs.spawnAll();
         List<String> missing = npcs.missingPoints();
-        getLogger().info(placed + " PNJ et classements placés" + (missing.isEmpty() ? ""
-                : ", sans point pour : " + String.join(", ", missing) + " (/lobby point <nom>)"));
+        getLogger().info(placed + " NPCs and leaderboards placed" + (missing.isEmpty() ? ""
+                : ", no point for: " + String.join(", ", missing) + " (/lobby point <name>)"));
 
         // After a /reload: everyone online is brought back to the lobby.
         for (Player player : getServer().getOnlinePlayers()) {
             kits.load(player.getUniqueId());
             sendToLobby(player);
         }
-        getLogger().info("Lobby dans le monde " + world.getName() + ", " + settings.modes().size() + " modes : "
+        getLogger().info("Lobby in the world " + world.getName() + ", " + settings.modes().size() + " modes: "
                 + settings.catalog().all());
     }
 
@@ -189,8 +189,8 @@ public final class RagoLobby extends JavaPlugin implements LobbyService {
             }
             world.setSpawnLocation(0, y + 1, 0);
             world.save();
-            getLogger().info("Monde " + name + " créé : un monde vide avec une plateforme. Mets ta map à la place"
-                    + " (monde: dans config.yml) puis /lobby setspawn.");
+            getLogger().info("World " + name + " created: an empty world with a platform. Put your map instead"
+                    + " (monde: in config.yml), then /lobby setspawn.");
         }
         return world;
     }
@@ -390,18 +390,18 @@ public final class RagoLobby extends JavaPlugin implements LobbyService {
             try {
                 File folder = file.getParentFile();
                 if (folder != null && !folder.isDirectory() && !folder.mkdirs()) {
-                    throw new IOException("impossible de créer " + folder);
+                    throw new IOException("cannot create " + folder);
                 }
                 File part = new File(file.getPath() + ".part");
                 Files.write(part.toPath(), text.getBytes(StandardCharsets.UTF_8));
                 Files.move(part.toPath(), file.toPath(), StandardCopyOption.REPLACE_EXISTING);
             } catch (IOException e) {
-                getLogger().log(Level.WARNING, "Impossible d'écrire " + file, e);
+                getLogger().log(Level.WARNING, "Cannot write " + file, e);
             }
         });
     }
 
-    /** /lobby point <nom>: places a named spot where the player stands. */
+    /** /lobby point <name>: places a named spot where the player stands. */
     void setPoint(Player player, String name) {
         if (!player.getWorld().equals(state.world())) {
             player.sendMessage(ChatColor.RED + "You are not in the lobby.");
@@ -419,7 +419,7 @@ public final class RagoLobby extends JavaPlugin implements LobbyService {
         player.sendMessage(ChatColor.GREEN + "Point " + name + (moved ? " moved here." : " placed here."));
     }
 
-    /** /lobby point retirer <nom>. */
+    /** /lobby point remove <name>. */
     void removePoint(Player player, String name) {
         if (!points.remove(name)) {
             player.sendMessage(ChatColor.RED + "There is no point " + name + ". /lobby points for the list.");
@@ -430,7 +430,7 @@ public final class RagoLobby extends JavaPlugin implements LobbyService {
         player.sendMessage(ChatColor.GREEN + "Point " + name + " removed.");
     }
 
-    /** /lobby point tp <nom>. */
+    /** /lobby point tp <name>. */
     void goToPoint(Player player, String name) {
         SpawnPoint point = points.get(name);
         if (point == null) {
@@ -482,7 +482,7 @@ public final class RagoLobby extends JavaPlugin implements LobbyService {
     public void recordMatch(String modeId, List<UUID> winners, List<UUID> losers) {
         GameMode mode = settings.catalog().get(modeId);
         if (mode == null) {
-            getLogger().warning("Résultat d'un mode inconnu ignoré : " + modeId);
+            getLogger().warning("Result of an unknown mode ignored: " + modeId);
             return;
         }
         stats.record(mode, winners, losers);
@@ -491,7 +491,7 @@ public final class RagoLobby extends JavaPlugin implements LobbyService {
     @Override
     public void recordKill(String modeId, UUID killer, UUID victim) {
         if (settings.catalog().get(modeId) == null) {
-            getLogger().warning("Kill d'un mode inconnu ignoré : " + modeId);
+            getLogger().warning("Kill in an unknown mode ignored: " + modeId);
             return;
         }
         stats.kill(modeId, killer, victim);

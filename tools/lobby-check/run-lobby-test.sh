@@ -170,8 +170,8 @@ if [[ "$started" != true ]]; then
   tail -n 80 "$SERVER_LOG" >&2 || true
   fail "the server did not start"
 fi
-# Without accents: Java 8 may write the log in the system charset.
-for expected in '[RagoLobby] Lobby dans le monde lobby' 'Mode sumo jou' 'nes dans le monde arenes'; do
+for expected in '[RagoLobby] Lobby in the world lobby' 'Mode sumo hosted by RagoPractice' \
+    '[RagoPractice] Arenas in the world arenes'; do
   server_log_has "$expected" || { grep -n 'Rago' "$SERVER_LOG" >&2 || true; fail "missing in the server log: $expected"; }
 done
 log "server started with the lobby and the sumo duel"

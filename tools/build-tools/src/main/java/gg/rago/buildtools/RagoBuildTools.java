@@ -34,11 +34,11 @@ public final class RagoBuildTools extends JavaPlugin {
         if (minutes > 0) {
             long period = minutes * 60L * 20L;
             getServer().getScheduler().runTaskTimer(this, worlds::saveAll, period, period);
-            getLogger().info("Mondes de " + getServer().getWorldContainer().getAbsolutePath()
-                    + ", enregistrés toutes les " + minutes + " minute(s)");
+            getLogger().info("Worlds of " + getServer().getWorldContainer().getAbsolutePath()
+                    + ", saved every " + minutes + " minute(s)");
         } else {
-            getLogger().info("Mondes de " + getServer().getWorldContainer().getAbsolutePath()
-                    + ", sans enregistrement automatique en plus de celui de Minecraft");
+            getLogger().info("Worlds of " + getServer().getWorldContainer().getAbsolutePath()
+                    + ", with no automatic save besides Minecraft's own");
         }
     }
 }

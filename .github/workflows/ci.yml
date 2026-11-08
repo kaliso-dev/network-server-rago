@@ -298,11 +298,11 @@ jobs:
           expect 'git-PandaSpigot-226' logs/latest.log
           expect '[RagoCombatEngine] Mode override, default profile vanilla' logs/latest.log
           expect '[WorldEdit] Enabling WorldEdit v6.1' logs/latest.log
-          expect "[RagoBuildTools] Mondes de $data/mondes" logs/latest.log
-          expect '[RagoLobby] Lobby dans le monde lobby' logs/latest.log
-          expect 'nes dans le monde arenes' logs/latest.log
+          expect "[RagoBuildTools] Worlds of $data/mondes" logs/latest.log
+          expect '[RagoLobby] Lobby in the world lobby' logs/latest.log
+          expect '[RagoPractice] Arenas in the world arenes' logs/latest.log
           echo 'monde creer ci vide' >&3
-          wait_for 'Monde ci cr' 30 || fail "/monde creer did not create the world"
+          wait_for 'World ci created' 30 || fail "/monde creer did not create the world"
           echo 'schematic list' >&3
           wait_for 'ci-test' 15 || fail "WorldEdit does not list the schematics of $data/schematics"
           expect "dir: '$data/schematics'" plugins/WorldEdit/config.yml
@@ -311,7 +311,7 @@ jobs:
           expect 'generateur: vide' "$data/mondes/ci/rago-monde.yml"
 
           start_server 2
-          expect '[RagoBuildTools] Monde ci charg' logs/latest.log
+          expect '[RagoBuildTools] World ci loaded' logs/latest.log
           [ -f "$data/mondes/lobby/level.dat" ] || fail "the lobby world was not saved in $data/mondes"
           archive=$(ls "$data"/sauvegardes/mondes-*.tar.gz | sort | tail -n 1)
           echo "Backup: $archive"
@@ -362,8 +362,8 @@ jobs:
 
           Invoke-Launch 1
           foreach ($expected in 'git-PandaSpigot-226', '[RagoCombatEngine] Mode override, default profile vanilla',
-              '[WorldEdit] Enabling WorldEdit v6.1', "[RagoBuildTools] Mondes de $data\mondes",
-              '[RagoLobby] Lobby dans le monde lobby', 'nes dans le monde arenes') {
+              '[WorldEdit] Enabling WorldEdit v6.1', "[RagoBuildTools] Worlds of $data\mondes",
+              '[RagoLobby] Lobby in the world lobby', '[RagoPractice] Arenas in the world arenes') {
             Assert-Log $expected
           }
           $config = Get-Content plugins/WorldEdit/config.yml -Raw

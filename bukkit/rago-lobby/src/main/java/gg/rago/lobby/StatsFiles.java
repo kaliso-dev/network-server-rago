@@ -30,7 +30,7 @@ final class StatsFiles {
 
     static String toYaml(PlayerStats stats) {
         YamlConfiguration yaml = new YamlConfiguration();
-        yaml.options().header("Stats de " + stats.name() + ", écrites par RagoLobby.");
+        yaml.options().header("Stats of " + stats.name() + ", written by RagoLobby.");
         yaml.set("nom", stats.name());
         yaml.set("xp", stats.xp());
         for (Map.Entry<String, ModeStats> entry : stats.modes().entrySet()) {
@@ -62,7 +62,7 @@ final class StatsFiles {
     /** The win streaks of a mode's teams. */
     static String teamsToYaml(String modeId, Collection<TeamStreak> teams) {
         YamlConfiguration yaml = new YamlConfiguration();
-        yaml.options().header("Séries de victoires des équipes du mode " + modeId + ", écrites par RagoLobby.");
+        yaml.options().header("Win streaks of the teams of the mode " + modeId + ", written by RagoLobby.");
         List<Map<String, Object>> list = new ArrayList<>();
         for (TeamStreak team : teams) {
             Map<String, Object> entry = new LinkedHashMap<>();

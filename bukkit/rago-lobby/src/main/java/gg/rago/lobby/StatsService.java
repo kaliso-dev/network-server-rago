@@ -72,7 +72,7 @@ final class StatsService {
                         String text = new String(Files.readAllBytes(file.toPath()), StandardCharsets.UTF_8);
                         loadedTeams.put(name.substring(0, name.length() - ".yml".length()), StatsFiles.teamsFromYaml(text));
                     } catch (IOException | org.bukkit.configuration.InvalidConfigurationException e) {
-                        plugin.getLogger().log(Level.WARNING, "Séries d'équipes illisibles, ignorées : " + file, e);
+                        plugin.getLogger().log(Level.WARNING, "Unreadable team streaks, ignored: " + file, e);
                     }
                 }
             }
@@ -85,7 +85,7 @@ final class StatsService {
                         String text = new String(Files.readAllBytes(file.toPath()), StandardCharsets.UTF_8);
                         loaded.add(StatsFiles.fromYaml(id, text));
                     } catch (IllegalArgumentException | IOException | org.bukkit.configuration.InvalidConfigurationException e) {
-                        plugin.getLogger().log(Level.WARNING, "Stats illisibles, ignorées : " + file, e);
+                        plugin.getLogger().log(Level.WARNING, "Unreadable stats, ignored: " + file, e);
                     }
                 }
             }
@@ -106,7 +106,7 @@ final class StatsService {
                             book.loadTeam(mode.getKey(), team);
                         }
                     }
-                    plugin.getLogger().info("Stats de " + added + " joueurs chargées");
+                    plugin.getLogger().info("Stats of " + added + " players loaded");
                 });
             }
         });

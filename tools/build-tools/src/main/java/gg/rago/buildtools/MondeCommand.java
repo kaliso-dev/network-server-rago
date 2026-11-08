@@ -69,7 +69,7 @@ final class MondeCommand implements TabExecutor {
             case "save":
                 worlds.saveAll();
                 sender.sendMessage(PREFIX + "Every world is saved to disk.");
-                logger.info("Mondes enregistrés (" + sender.getName() + ")");
+                logger.info("Worlds saved (" + sender.getName() + ")");
                 return true;
             default:
                 return usage(sender, "/" + label + " <list|create|import|tp|spawn|save>");

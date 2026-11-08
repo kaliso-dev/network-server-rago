@@ -77,7 +77,7 @@ final class SpawnPoint {
     /** The text of spawn.yml for this spawn, built on the main thread and written elsewhere. */
     String toYaml() {
         YamlConfiguration yaml = new YamlConfiguration();
-        yaml.options().header("Point d'apparition du lobby, écrit par /lobby setspawn.");
+        yaml.options().header("The spawn of the lobby, written by /lobby setspawn.");
         yaml.set("x", x);
         yaml.set("y", y);
         yaml.set("z", z);

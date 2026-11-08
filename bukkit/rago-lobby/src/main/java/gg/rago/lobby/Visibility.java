@@ -9,7 +9,7 @@ import org.bukkit.Bukkit;
 import org.bukkit.entity.Player;
 
 /**
- * "Joueurs : cachés": a player in the lobby may hide everyone else. Only in the lobby: a player
+ * "Players: hidden": a player in the lobby may hide everyone else. Only in the lobby: a player
  * who leaves for a game sees everyone again, and the choice comes back on returning.
  */
 final class Visibility {

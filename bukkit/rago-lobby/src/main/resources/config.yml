@@ -1,20 +1,21 @@
-# RagoLobby : le lobby principal de Rago Practice. Mode d'emploi : le README du module.
+# RagoLobby: the main lobby of Rago Practice. How to use it: the README of the module.
+# The keys stay in French (monde, titre, modes...): only the comments and the texts are English.
 
-# Le monde du lobby. S'il n'existe pas, le plugin le crée : un monde vide avec une petite
-# plateforme. Pour utiliser ta map, mets ici le nom de son monde (par exemple celui donné à
-# /monde importer), puis /lobby setspawn à l'endroit voulu.
+# The lobby world. If it does not exist, the plugin creates it: an empty world with a small
+# platform. To use your map, put the name of its world here (for example the one given to
+# /monde import), then /lobby setspawn where you want the spawn.
 monde: lobby
 
-# Sous cette hauteur, un joueur qui tombe du lobby revient au spawn.
+# Below this height, a player who falls off the lobby goes back to the spawn.
 hauteur-vide: 0
 
-# Le scoreboard du lobby : son titre (32 caractères au plus) et sa dernière ligne.
+# The lobby scoreboard: its title (32 characters at most) and its last line.
 titre: "&b&lRAGO PRACTICE"
 adresse: "&7rago.gg"
 
-# Les files d'attente. Tant que la base de données n'existe pas, tout le monde a le même ELO.
-# En classé, l'écart d'ELO accepté commence à ecart-elo-initial et grandit de ecart-elo-pas
-# toutes les ecart-elo-secondes d'attente, jusqu'à ecart-elo-max.
+# The queues. Until the database exists, everyone has the same ELO. In ranked, the ELO gap
+# accepted starts at ecart-elo-initial and grows by ecart-elo-pas every ecart-elo-secondes of
+# waiting, up to ecart-elo-max.
 file:
   elo-par-defaut: 1000
   ecart-elo-initial: 100
@@ -22,10 +23,10 @@ file:
   ecart-elo-secondes: 10
   ecart-elo-max: 500
 
-# Les catégories du sélecteur, une par zone du lobby, dans l'ordre du menu (7 au plus) : de gauche
-# à droite comme dans le lobby. La boussole
-# montre d'abord les catégories, puis les modes de celle qu'on choisit (28 au plus par catégorie).
-# Sans section categories, la boussole montre tous les modes d'un coup (35 au plus).
+# The categories of the selector, one per zone of the lobby, in the order of the menu (7 at most):
+# left to right, as in the lobby. The compass first shows the categories, then the modes of the
+# one picked (28 at most per category). Without a categories section, the compass shows every
+# mode at once (35 at most).
 categories:
   duels:
     nom: "&a&lDuels"
@@ -47,9 +48,9 @@ categories:
       - "Alone or against a bot: clutch,"
       - "block in, fast defense, fireball..."
 
-# Les PNJ du lobby. Chacun se tient sur un point placé par /lobby point <nom> (la clé) et ouvre
-# ses modes : un clic rejoint la file s'il n'en a qu'un, sinon ouvre un menu de ses modes.
-# Un PNJ dont le point n'est pas encore placé n'apparaît pas.
+# The NPCs of the lobby. Each one stands on a point placed with /lobby point <name> (the key) and
+# opens its modes: a click joins the queue if it has only one, else opens a menu of its modes.
+# An NPC whose point is not placed yet does not show.
 pnj:
   rankedbedwars1v1ou2v2elo:
     nom: "&6&lRanked Bedwars"
@@ -78,7 +79,7 @@ pnj:
   blockplacementarena:
     nom: "&bBlock placement"
     modes: [block-fight-1v1, block-fight-2v2, block-fight-arena]
-  # Un seul PNJ par zone de côté, sur le panneau de devant : il ouvre toute la catégorie.
+  # One NPC per side zone, on the front sign: it opens the whole category.
   attackdefenseversionrbw:
     nom: "&a&lDuels"
     categorie: duels
@@ -88,8 +89,8 @@ pnj:
   aimtrainer:
     nom: "&eAim trainer"
     modes: [aim-trainer]
-  # Les PNJ de stats (type: stats) : chacun voit son propre profil au-dessus, et un clic ouvre ses
-  # stats mode par mode. nom : la première ligne du profil.
+  # The stats NPCs (type: stats): everyone sees their own profile above it, and a click opens
+  # their stats mode by mode. nom: the first line of the profile.
   statsjoueur1:
     nom: "&6&lYour Rago profile"
     type: stats
@@ -97,13 +98,13 @@ pnj:
     nom: "&6&lYour Rago profile"
     type: stats
 
-# Le niveau Network : chaque partie donne de l'XP à tous ceux qui l'ont jouée (plus pour une
-# victoire), chaque kill un peu plus. Tout le monde commence niveau 1 ; passer du niveau n au
-# niveau n + 1 demande xp-niveau-2 + xp-en-plus-par-niveau × (n - 1) XP (100, 150, 200... par
-# défaut). Le niveau s'affiche dans la barre d'XP du lobby, le scoreboard et le chat.
-#   rangs   le rang gagné en atteignant un niveau (15 caractères au plus, couleurs comprises) :
-#           affiché dans le chat, au-dessus de la tête, dans la liste des joueurs (tab) et le
-#           scoreboard. Le joueur garde le plus haut rang atteint.
+# The Network level: every game gives XP to everyone who played it (more for a win), every kill
+# a little more. Everyone starts at level 1; going from level n to level n + 1 takes
+# xp-niveau-2 + xp-en-plus-par-niveau x (n - 1) XP (100, 150, 200... by default). The level shows
+# in the XP bar of the lobby, the scoreboard and the chat.
+#   rangs   the rank earned on reaching a level (15 characters at most, colours included): shown
+#           in the chat, above the head, in the player list (tab) and the scoreboard. A player
+#           keeps the highest rank reached.
 niveau:
   xp-victoire: 50
   xp-defaite: 15
@@ -119,20 +120,20 @@ niveau:
     75: "&4[Ruby]"
     100: "&d[Crystal]"
 
-# Les murs de classements, sur leur point : des tableaux côte à côte, face au spawn, le premier à
-# gauche. Chacun montre le top 10, la place du joueur et la remise à zéro.
-#   nom       le titre au-dessus du mur (facultatif)
-#   tableaux  de 1 à 5 parmi :
-#     victoires  les victoires, tous modes confondus
-#     parties    les parties jouées
-#     series     la meilleure série de victoires
-#     kills      les kills (au sumo : faire tomber l'autre)
-#     niveau     le niveau Network
-#     elo        l'ELO d'un mode classé
-# Un clic sur un tableau change sa période (du jour, de la semaine, à vie) pour celui qui clique ;
-# sur un tableau elo, il change de mode classé (1v1, 2v2, 3v3, 4v4).
-# Un tableau peut regrouper plusieurs classements entre crochets, par exemple [elo, kills, niveau] :
-# un clic droit passe au suivant, un clic gauche change la période ou le mode classé.
+# The leaderboard walls, on their point: boards side by side, facing the spawn, the first on the
+# left. Each one shows the top 10, the player's place and when it resets.
+#   nom       the title above the wall (optional)
+#   tableaux  from 1 to 5 of:
+#     victoires  the wins, all modes together
+#     parties    the games played
+#     series     the best win streak
+#     kills      the kills (in a sumo: knocking the other one off)
+#     niveau     the Network level
+#     elo        the ELO of a ranked mode
+# A click on a board changes its period (daily, weekly, lifetime) for the one who clicks; on an elo
+# board, it changes the ranked mode (1v1, 2v2, 3v3, 4v4).
+# A board can group several leaderboards in brackets, for example [elo, kills, niveau]: a right
+# click goes to the next one, a left click changes the period or the ranked mode.
 classements:
   leaderboardprincipal:
     nom: "&e&lTop players"
@@ -140,21 +141,33 @@ classements:
   leaderboardstats:
     nom: "&e&lLeaderboards"
     tableaux: [victoires, series, parties]
-  # Les kills au milieu (sur le point), les séries à gauche, le niveau Network à droite.
+  # The kills in the middle (on the point), the win streaks on the left, the Network level on the right.
   leaderboardplayer:
     nom: "&e&lPlayer leaderboards"
     tableaux: [series, kills, niveau]
 
-# Les modes, dans l'ordre du sélecteur. L'identifiant (la clé) ne contient que des minuscules sans
-# accent, des chiffres et des tirets. Un mode reste « Bientôt » dans le sélecteur tant qu'aucun
-# plugin de jeu ne le prend en charge.
-#   nom                le nom affiché (codes de couleur avec &)
-#   icone              l'objet affiché dans le sélecteur (nom d'objet de Minecraft 1.8)
-#   equipes            le nombre d'équipes d'une partie
-#   joueurs-par-equipe le nombre de joueurs de chaque équipe
-#   categorie          la catégorie du mode (une de categories: ci-dessus)
-#   classe             true pour un mode classé (ELO)
-#   description        les lignes sous le nom
+# The modes, in the order of the selector. The id (the key) holds only lowercase letters without
+# accents, digits and dashes. A mode stays "Coming soon" in the selector until a game plugin
+# hosts it.
+#   nom                the name shown (colour codes with &)
+#   icone              the item shown in the selector (a Minecraft 1.8 item name)
+#   equipes            the number of teams in a game
+#   joueurs-par-equipe the number of players in each team
+#   categorie          the category of the mode (one of categories: above)
+#   classe             true for a ranked mode (ELO)
+#   description        the lines under the name
+#   kit                the items the mode gives, which players arrange as they like with the kit
+#                      editor (the book of the lobby hotbar). A list: the first item goes in the
+#                      first hotbar slot, and so on ("" for an empty slot); slots 0 to 8 are the
+#                      hotbar, 9 to 35 the inventory, from the top row. An item is ITEM, ITEM amount
+#                      or ITEM:data amount, for example IRON_SWORD, "WOOL 64", "WOOL:14 64" (red).
+#                      Or slot: item lines:
+#                        kit:
+#                          0: IRON_SWORD
+#                          8: "ENDER_PEARL 2"
+#                      The kits below are examples, to adjust: their modes have no game yet. The
+#                      sumo has none (bare hands); give it one, a stick for example, to try the
+#                      editor in a duel.
 modes:
   ranked-1v1:
     nom: "&6Ranked Bedwars 1v1"

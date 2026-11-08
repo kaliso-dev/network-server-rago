@@ -73,7 +73,7 @@ final class LobbyPoints {
 
     String toYaml() {
         YamlConfiguration yaml = new YamlConfiguration();
-        yaml.options().header("Les points du lobby, placés par /lobby point <nom>.");
+        yaml.options().header("The points of the lobby, placed by /lobby point <name>.");
         for (Map.Entry<String, SpawnPoint> entry : points.entrySet()) {
             SpawnPoint p = entry.getValue();
             ConfigurationSection section = yaml.createSection(entry.getKey());

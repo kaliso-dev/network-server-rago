@@ -14,7 +14,7 @@ import org.bukkit.configuration.ConfigurationSection;
 
 /**
  * The lobby's config.yml, read and checked once. Immutable. An invalid file throws
- * {@link IllegalArgumentException} with a message for the server owner, in French.
+ * {@link IllegalArgumentException} with a message for the server owner.
  */
 final class LobbySettings {
 
@@ -65,16 +65,16 @@ final class LobbySettings {
     static LobbySettings load(ConfigurationSection config) {
         String world = config.getString("monde", "lobby");
         if (!world.matches("[A-Za-z0-9_-]{1,32}")) {
-            throw new IllegalArgumentException("monde : « " + world + " » n'est pas un nom de monde valide");
+            throw new IllegalArgumentException("monde: \"" + world + "\" is not a valid world name");
         }
         int voidHeight = config.getInt("hauteur-vide", 0);
         String title = colour(config.getString("titre", "&b&lRAGO PRACTICE"));
         if (ChatColor.stripColor(title).isEmpty() || title.length() > 32) {
-            throw new IllegalArgumentException("titre : entre 1 et 32 caractères, codes de couleur compris");
+            throw new IllegalArgumentException("titre: from 1 to 32 characters, colour codes included");
         }
         String address = colour(config.getString("adresse", "&7rago.gg"));
         if (address.length() > 40) {
-            throw new IllegalArgumentException("adresse : 40 caractères au plus, codes de couleur compris");
+            throw new IllegalArgumentException("adresse: 40 characters at most, colour codes included");
         }
 
         ConfigurationSection queue = config.getConfigurationSection("file");
@@ -85,31 +85,31 @@ final class LobbySettings {
                     queue.getInt("ecart-elo-initial", 100), queue.getInt("ecart-elo-pas", 50),
                     queue.getInt("ecart-elo-secondes", 10), queue.getInt("ecart-elo-max", 500));
         } catch (IllegalArgumentException e) {
-            throw new IllegalArgumentException("file : écart d'ELO invalide (" + e.getMessage() + ")", e);
+            throw new IllegalArgumentException("file: invalid ELO range (" + e.getMessage() + ")", e);
         }
 
         ConfigurationSection section = config.getConfigurationSection("modes");
         if (section == null || section.getKeys(false).isEmpty()) {
-            throw new IllegalArgumentException("modes : la liste des modes est vide");
+            throw new IllegalArgumentException("modes: the list of modes is empty");
         }
         List<ModeCategory> categories = readCategories(config.getConfigurationSection("categories"));
         if (categories.isEmpty() && section.getKeys(false).size() > MAX_MODES) {
-            throw new IllegalArgumentException("modes : " + MAX_MODES + " modes au plus sans catégories, le sélecteur"
-                    + " n'en affiche pas davantage");
+            throw new IllegalArgumentException("modes: " + MAX_MODES + " modes at most without categories, the selector"
+                    + " shows no more");
         }
         Map<String, Integer> perCategory = new HashMap<>();
         List<ModeDisplay> modes = new ArrayList<>();
         for (String id : section.getKeys(false)) {
             ConfigurationSection mode = section.getConfigurationSection(id);
             if (mode == null) {
-                throw new IllegalArgumentException("modes." + id + " : ce n'est pas une section");
+                throw new IllegalArgumentException("modes." + id + ": not a section");
             }
             ModeDisplay display = readMode(id, mode, categories);
             if (display.category() != null) {
                 int count = perCategory.merge(display.category(), 1, Integer::sum);
                 if (count > MAX_MODES_PER_CATEGORY) {
-                    throw new IllegalArgumentException("modes." + id + ".categorie : " + MAX_MODES_PER_CATEGORY
-                            + " modes au plus par catégorie");
+                    throw new IllegalArgumentException("modes." + id + ".categorie: " + MAX_MODES_PER_CATEGORY
+                            + " modes at most in a category");
                 }
             }
             modes.add(display);
@@ -120,7 +120,7 @@ final class LobbySettings {
             return new LobbySettings(world, voidHeight, title, address, defaultRating, window, categories, modes, npcs,
                     levels);
         } catch (IllegalArgumentException e) {
-            throw new IllegalArgumentException("modes : " + e.getMessage(), e);
+            throw new IllegalArgumentException("modes: " + e.getMessage(), e);
         }
     }
 
@@ -134,22 +134,22 @@ final class LobbySettings {
                 String where = "pnj." + point;
                 ConfigurationSection npc = section.getConfigurationSection(point);
                 if (npc == null) {
-                    throw new IllegalArgumentException(where + " : ce n'est pas une section");
+                    throw new IllegalArgumentException(where + ": not a section");
                 }
                 if (!LobbyPoints.validName(point)) {
-                    throw new IllegalArgumentException(where + " : ce n'est pas un nom de point valide");
+                    throw new IllegalArgumentException(where + ": not a valid point name");
                 }
                 points.add(point);
                 String type = npc.getString("type", "modes");
                 if ("stats".equals(type)) {
                     if (npc.contains("modes") || npc.contains("categorie")) {
-                        throw new IllegalArgumentException(where + " : un PNJ de stats n'a ni modes ni categorie");
+                        throw new IllegalArgumentException(where + ": a stats NPC has neither modes nor categorie");
                     }
                     npcs.add(LobbyNpc.stats(point, colour(npc.getString("nom", "&6&lYour profile"))));
                     continue;
                 }
                 if (!"modes".equals(type)) {
-                    throw new IllegalArgumentException(where + ".type : « " + type + " » n'est pas modes ou stats");
+                    throw new IllegalArgumentException(where + ".type: \"" + type + "\" is not modes or stats");
                 }
                 String category = npc.getString("categorie");
                 List<String> ids = new ArrayList<>(npc.getStringList("modes"));
@@ -159,8 +159,8 @@ final class LobbySettings {
                         known |= c.id().equals(category);
                     }
                     if (!known || !ids.isEmpty()) {
-                        throw new IllegalArgumentException(where + ".categorie : « " + category
-                                + " » n'est pas une des catégories, ou le PNJ a aussi des modes");
+                        throw new IllegalArgumentException(where + ".categorie: \"" + category
+                                + "\" is not one of the categories, or the NPC has modes too");
                     }
                     for (ModeDisplay display : modes) {
                         if (category.equals(display.category())) {
@@ -168,7 +168,7 @@ final class LobbySettings {
                         }
                     }
                 } else if (ids.isEmpty()) {
-                    throw new IllegalArgumentException(where + ".modes : au moins un mode, ou une categorie");
+                    throw new IllegalArgumentException(where + ".modes: at least one mode, or a categorie");
                 }
                 for (String id : ids) {
                     boolean known = false;
@@ -176,7 +176,7 @@ final class LobbySettings {
                         known |= display.mode().id().equals(id);
                     }
                     if (!known) {
-                        throw new IllegalArgumentException(where + ".modes : « " + id + " » n'est pas un des modes");
+                        throw new IllegalArgumentException(where + ".modes: \"" + id + "\" is not one of the modes");
                     }
                 }
                 npcs.add(LobbyNpc.modes(point, colour(npc.getString("nom", point)), ids, category));
@@ -187,7 +187,7 @@ final class LobbySettings {
             for (String point : boards.getKeys(false)) {
                 String where = "classements." + point;
                 if (!LobbyPoints.validName(point) || !points.add(point)) {
-                    throw new IllegalArgumentException(where + " : nom de point invalide, ou point déjà pris par un PNJ");
+                    throw new IllegalArgumentException(where + ": invalid point name, or a point an NPC already has");
                 }
                 List<List<BoardStat>> stats = new ArrayList<>();
                 String name;
@@ -206,7 +206,7 @@ final class LobbySettings {
                         for (Object key : keys) {
                             BoardStat stat = BoardStat.of(String.valueOf(key));
                             if (stat == null) {
-                                throw new IllegalArgumentException(where + ".tableaux : « " + key + " » n'est pas "
+                                throw new IllegalArgumentException(where + ".tableaux: \"" + key + "\" is not "
                                         + BoardStat.keys());
                             }
                             if (!variables.contains(stat)) {
@@ -214,12 +214,12 @@ final class LobbySettings {
                             }
                         }
                         if (variables.isEmpty()) {
-                            throw new IllegalArgumentException(where + ".tableaux : un tableau vide");
+                            throw new IllegalArgumentException(where + ".tableaux: an empty board");
                         }
                         stats.add(variables);
                     }
                     if (stats.isEmpty() || stats.size() > MAX_BOARDS) {
-                        throw new IllegalArgumentException(where + ".tableaux : de 1 à " + MAX_BOARDS + " tableaux");
+                        throw new IllegalArgumentException(where + ".tableaux: from 1 to " + MAX_BOARDS + " boards");
                     }
                 }
                 npcs.add(LobbyNpc.leaderboards(point, colour(name), stats));
@@ -251,13 +251,13 @@ final class LobbySettings {
                     level = 0;
                 }
                 if (level < 2 || level > NetworkLevel.MAX_LEVEL) {
-                    throw new IllegalArgumentException("niveau.rangs." + key + " : la clé est le niveau du rang, de 2 à "
+                    throw new IllegalArgumentException("niveau.rangs." + key + ": the key is the level of the rank, from 2 to "
                             + NetworkLevel.MAX_LEVEL);
                 }
                 String rank = colour(list.getString(key, ""));
                 if (ChatColor.stripColor(rank).trim().isEmpty() || rank.length() > MAX_RANK) {
-                    throw new IllegalArgumentException("niveau.rangs." + key + " : de 1 à " + MAX_RANK
-                            + " caractères, codes de couleur compris");
+                    throw new IllegalArgumentException("niveau.rangs." + key + ": from 1 to " + MAX_RANK
+                            + " characters, colour codes included");
                 }
                 ranks.put(level, rank);
             }
@@ -268,7 +268,7 @@ final class LobbySettings {
     private static int xp(ConfigurationSection section, String key, int fallback, int min) {
         int value = section.getInt(key, fallback);
         if (value < min || value > MAX_XP) {
-            throw new IllegalArgumentException("niveau." + key + " : de " + min + " à " + MAX_XP);
+            throw new IllegalArgumentException("niveau." + key + ": from " + min + " to " + MAX_XP);
         }
         return value;
     }
@@ -279,16 +279,16 @@ final class LobbySettings {
             return categories;
         }
         if (section.getKeys(false).size() > MAX_CATEGORIES) {
-            throw new IllegalArgumentException("categories : " + MAX_CATEGORIES + " catégories au plus");
+            throw new IllegalArgumentException("categories: " + MAX_CATEGORIES + " categories at most");
         }
         for (String id : section.getKeys(false)) {
             String where = "categories." + id;
             ConfigurationSection category = section.getConfigurationSection(id);
             if (category == null) {
-                throw new IllegalArgumentException(where + " : ce n'est pas une section");
+                throw new IllegalArgumentException(where + ": not a section");
             }
             if (!id.matches("[a-z0-9][a-z0-9-]{0,31}")) {
-                throw new IllegalArgumentException(where + " : minuscules sans accent, chiffres et tirets seulement");
+                throw new IllegalArgumentException(where + ": lowercase letters without accents, digits and dashes only");
             }
             categories.add(new ModeCategory(id, colour(category.getString("nom", id)),
                     icon(where, category.getString("icone", "CHEST")), description(category)));
@@ -299,7 +299,7 @@ final class LobbySettings {
     private static Material icon(String where, String iconName) {
         Material icon = Material.matchMaterial(iconName);
         if (icon == null || icon == Material.AIR) {
-            throw new IllegalArgumentException(where + ".icone : « " + iconName + " » n'est pas un objet de Minecraft 1.8");
+            throw new IllegalArgumentException(where + ".icone: \"" + iconName + "\" is not a Minecraft 1.8 item");
         }
         return icon;
     }
@@ -320,7 +320,7 @@ final class LobbySettings {
             mode = new GameMode(id, name, section.getInt("equipes", 2), section.getInt("joueurs-par-equipe", 1),
                     section.getBoolean("classe", false));
         } catch (IllegalArgumentException e) {
-            throw new IllegalArgumentException(where + " : " + e.getMessage(), e);
+            throw new IllegalArgumentException(where + ": " + e.getMessage(), e);
         }
         Material icon = icon(where, section.getString("icone", "PAPER"));
         String category = null;
@@ -331,8 +331,8 @@ final class LobbySettings {
                 known |= c.id().equals(category);
             }
             if (!known) {
-                throw new IllegalArgumentException(where + ".categorie : « " + category
-                        + " » n'est pas une des catégories (categories: en haut du fichier)");
+                throw new IllegalArgumentException(where + ".categorie: \"" + category
+                        + "\" is not one of the categories (categories: at the top of the file)");
             }
         }
         return new ModeDisplay(mode, icon, description(section), category, readKit(where + ".kit", section));

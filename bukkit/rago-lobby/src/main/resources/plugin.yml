@@ -3,9 +3,9 @@ version: ${version}
 main: gg.rago.lobby.RagoLobby
 author: Rago
 description: The main lobby of Rago Practice (spawn, protection, mode selector, queues).
-# PacketEvents (plugin à part, maintenu) envoie les PNJ en forme de joueur et les textes propres à
-# chaque joueur. RagoBuildTools charge les mondes de build (avec leur générateur vide) : il passe
-# avant, pour que le lobby trouve sa map déjà chargée.
+# PacketEvents (a separate, maintained plugin) sends the player-shaped NPCs and the texts of each
+# player. RagoBuildTools loads the build worlds (with their empty generator): it goes first, so
+# that the lobby finds its map already loaded.
 depend: [packetevents]
 softdepend: [RagoBuildTools]
 commands:

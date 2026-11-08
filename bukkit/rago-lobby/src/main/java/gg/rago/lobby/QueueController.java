@@ -56,7 +56,7 @@ final class QueueController {
         }
         hosts.put(modeId, host);
         hostPlugins.put(modeId, plugin);
-        logger.info("Mode " + modeId + " joué par " + plugin.getName());
+        logger.info("Mode " + modeId + " hosted by " + plugin.getName());
         onChange.run();
         return true;
     }
@@ -221,7 +221,7 @@ final class QueueController {
         try {
             started = host.start(match);
         } catch (RuntimeException e) {
-            logger.log(Level.SEVERE, "Le mode " + modeId + " n'a pas pu démarrer une partie", e);
+            logger.log(Level.SEVERE, "The mode " + modeId + " could not start a game", e);
             started = false;
         }
         if (started) {

@@ -65,12 +65,12 @@ enum BoardStat {
         return null;
     }
 
-    /** "victoires, parties, series, kills, niveau ou elo", for the errors of config.yml. */
+    /** "victoires, parties, series, kills, niveau or elo", for the errors of config.yml. */
     static String keys() {
         StringBuilder text = new StringBuilder();
         BoardStat[] all = values();
         for (int i = 0; i < all.length; i++) {
-            text.append(i == 0 ? "" : i == all.length - 1 ? " ou " : ", ").append(all[i].key);
+            text.append(i == 0 ? "" : i == all.length - 1 ? " or " : ", ").append(all[i].key);
         }
         return text.toString();
     }

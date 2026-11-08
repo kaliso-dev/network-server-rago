@@ -33,7 +33,7 @@ Windows :
    Si Windows affiche « Windows a protégé votre ordinateur », clique sur « Informations
    complémentaires » puis « Exécuter quand même ». S'il demande si tu veux exécuter un fichier
    dont l'éditeur n'est pas vérifié, clique sur « Exécuter ».
-3. Lis le CLUF de Minecraft (le lien s'affiche) et réponds oui pour l'accepter.
+3. Lis le CLUF de Minecraft (le lien s'affiche) et réponds yes (ou oui) pour l'accepter.
 4. Si le pare-feu Windows demande l'accès réseau pour Java : coche seulement « Réseaux privés »
    si des amis sur le même Wi-Fi doivent se connecter, sinon clique sur Annuler (localhost
    marche quand même).
@@ -43,7 +43,7 @@ Mac :
 1. Décompresse le dossier (double-clic sur le fichier .zip).
 2. Ouvre Terminal, tape « bash » suivi d'un espace, fais glisser le fichier lancer-mac-linux.sh
    dans la fenêtre du Terminal, puis appuie sur Entrée.
-3. Lis le CLUF de Minecraft (le lien s'affiche) et réponds oui pour l'accepter.
+3. Lis le CLUF de Minecraft (le lien s'affiche) et réponds yes (ou oui) pour l'accepter.
 
 Le premier lancement télécharge PandaSpigot, WorldEdit, PacketEvents (pour les PNJ du lobby) puis
 le serveur Minecraft 1.8.8 de Mojang :

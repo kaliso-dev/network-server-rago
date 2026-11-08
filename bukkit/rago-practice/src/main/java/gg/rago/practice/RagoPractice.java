@@ -24,7 +24,7 @@ public final class RagoPractice extends JavaPlugin {
         saveDefaultConfig();
         lobby = getServer().getServicesManager().load(LobbyService.class);
         if (lobby == null) {
-            getLogger().severe("RagoLobby n'est pas actif : RagoPractice est désactivé.");
+            getLogger().severe("RagoLobby is not running: RagoPractice is disabled.");
             getServer().getPluginManager().disablePlugin(this);
             return;
         }
@@ -35,7 +35,7 @@ public final class RagoPractice extends JavaPlugin {
         int points = getConfig().getInt("sumo.points-pour-gagner", 3);
         String problem = check(worldName, spacing, slots, radius, points);
         if (problem != null) {
-            getLogger().severe("config.yml est invalide, RagoPractice est désactivé : " + problem);
+            getLogger().severe("config.yml is invalid, RagoPractice is disabled: " + problem);
             getServer().getPluginManager().disablePlugin(this);
             return;
         }
@@ -55,9 +55,9 @@ public final class RagoPractice extends JavaPlugin {
         sumo = new SumoHost(this, world, new ArenaGrid(slots, spacing), radius, points);
         getServer().getPluginManager().registerEvents(sumo, this);
         if (!lobby.registerHost(this, SumoHost.MODE_ID, sumo)) {
-            getLogger().warning("Le lobby n'a pas de mode « " + SumoHost.MODE_ID + " » dans sa config.yml : le duel sumo reste fermé.");
+            getLogger().warning("The lobby has no mode \"" + SumoHost.MODE_ID + "\" in its config.yml: the sumo duel stays closed.");
         }
-        getLogger().info("Arènes dans le monde " + world.getName() + " : " + slots + " parties à la fois au plus");
+        getLogger().info("Arenas in the world " + world.getName() + ": " + slots + " games at once at most");
     }
 
     @Override
@@ -71,25 +71,25 @@ public final class RagoPractice extends JavaPlugin {
         }
     }
 
-    /** What is wrong with these settings, in French, or null. */
+    /** What is wrong with these settings, or null. */
     static String check(String world, int spacing, int slots, int radius, int points) {
         if (world == null || !world.matches("[A-Za-z0-9_-]{1,32}")) {
-            return "monde-arenes : « " + world + " » n'est pas un nom de monde valide";
+            return "monde-arenes: \"" + world + "\" is not a valid world name";
         }
         if (spacing < 100) {
-            return "espacement : 100 blocs au moins, pour que deux parties ne se voient pas";
+            return "espacement: 100 blocks at least, so that two games do not see each other";
         }
         if (slots < 1 || slots > 64) {
-            return "arenes-max : entre 1 et 64";
+            return "arenes-max: from 1 to 64";
         }
         if (radius < 4 || radius > 15) {
-            return "sumo.rayon : entre 4 et 15";
+            return "sumo.rayon: from 4 to 15";
         }
         if (spacing < 2 * radius + 100) {
-            return "espacement : trop petit pour ce rayon";
+            return "espacement: too small for this radius";
         }
         if (points < 1 || points > 10) {
-            return "sumo.points-pour-gagner : entre 1 et 10";
+            return "sumo.points-pour-gagner: from 1 to 10";
         }
         return null;
     }

@@ -10,8 +10,19 @@ dans les files d'attente des modes de jeu.
 - **La protection.** Dans le monde du lobby : pas de dégâts, pas de faim, rien à poser, casser,
   jeter ou ramasser, pas de coffres ni de portes, pas de pluie, pas de nuit, pas de monstres. Les
   autres mondes (arènes, monde du test de knockback, mondes de build) ne sont pas touchés.
-- **La barre d'objets.** La boussole ouvre le sélecteur des modes ; le colorant rouge quitte la
-  file ; le colorant vert ou gris cache ou montre les autres joueurs du lobby.
+- **La barre d'objets.** La boussole ouvre le sélecteur des modes ; le livre ouvre l'éditeur de
+  kit ; le colorant rouge quitte la file ; le colorant vert ou gris cache ou montre les autres
+  joueurs du lobby.
+- **L'éditeur de kit.** Le livre (deuxième case) liste les modes qui ont un kit (`kit:` sous le
+  mode dans config.yml). Un clic sur un mode met son kit dans l'inventaire du joueur, rangé comme
+  il l'a laissé la dernière fois, sous un petit coffre : Save, Reset (le rangement du kit) et
+  Cancel. Le joueur déplace et échange les objets comme il veut ; il ne peut pas couper une pile,
+  en fusionner deux, jeter un objet ni en mettre un dans le coffre. Fermer le coffre enregistre
+  aussi. Le rangement est gardé par joueur et par mode dans `plugins/RagoLobby/kits/<uuid>.yml` :
+  ses prochaines parties de ce mode lui donnent le kit comme ça. Les exemples de kits de
+  config.yml (boxing, fireball, bridge fight...) sont à ajuster : ces modes n'ont pas encore de
+  jeu. Le sumo n'a pas de kit par défaut (mains nues) ; donne-lui-en un, par exemple
+  `kit: [STICK]`, pour essayer l'éditeur en duel.
 - **Le sélecteur.** Un menu avec un objet par mode, sept par ligne : son format (1v1, 2v2, solo),
   sa description, le nombre de joueurs en file. Un clic entre dans la file, un deuxième en sort.
   Un mode qu'aucun plugin de jeu ne prend en charge affiche « Bientôt disponible ». Survoler un
@@ -37,9 +48,10 @@ dans les files d'attente des modes de jeu.
 
 ## Commandes
 
-Le jeu est en anglais : les messages, les menus, les PNJ et les commandes. Les mots français de la
-première version (`quitter`, `accepter`, `refuser`, `retirer`) marchent toujours. Les noms et les
-descriptions des modes sont dans `config.yml`, où ses clés et ses commentaires restent en français.
+Tout est en anglais : les messages, les menus, les PNJ, les commandes, la console et les
+commentaires de `config.yml`. Les mots français de la première version (`quitter`, `accepter`,
+`refuser`, `retirer`) marchent toujours, et les clés de `config.yml` restent en français (`monde`,
+`modes`, `nom`...) pour que les fichiers déjà écrits marchent sans changement.
 
 | Commande | Effet | Permission |
 | --- | --- | --- |
@@ -125,7 +137,9 @@ lobby.registerHost(this, "sumo", host);   // ouvre la file du mode "sumo"
 
 `MatchHost.start(match)` reçoit chaque partie trouvée, sur le thread principal, avec les joueurs
 connectés et au lobby ; il renvoie `false` s'il ne peut pas la démarrer (aucune arène libre), et
-les joueurs gardent leur place dans la file. Pendant la partie, les joueurs appartiennent au jeu,
+les joueurs gardent leur place dans la file. Au départ, `lobby.kit(player, "sumo")` donne le kit du
+mode rangé comme le joueur l'a voulu (36 cases, `null` si le mode n'a pas de kit), à donner avec
+`player.getInventory().setContents(kit)`. Pendant la partie, les joueurs appartiennent au jeu,
 qui les rend avec `lobby.sendToLobby(player)`. `MatchHost.abandon(player)` est appelé quand un
 joueur tape `/spawn` en pleine partie. `lobby.recordKill("sumo", tueur, victime)` compte un kill
 (et l'XP qui va avec). À la fin, `lobby.recordMatch("sumo", gagnants, perdants)` compte la partie

@@ -33,8 +33,8 @@ final class Titles {
             send.invoke(connection, timings.newInstance(fadeIn, stay, fadeOut));
         } catch (ReflectiveOperationException | RuntimeException | LinkageError e) {
             broken = true;
-            logger.warning("Titres : les durées ne peuvent pas être réglées sur ce serveur ("
-                    + e.getClass().getSimpleName() + "), les titres gardent les durées par défaut.");
+            logger.warning("Titles: their timings cannot be set on this server ("
+                    + e.getClass().getSimpleName() + "), the titles keep the default timings.");
         }
     }
 }

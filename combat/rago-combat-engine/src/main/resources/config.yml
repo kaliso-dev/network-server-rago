@@ -1,35 +1,35 @@
 # RagoCombatEngine
 #
-# override : le moteur remplace le knockback du serveur par celui du profil.
-# observe  : le moteur calcule et journalise, mais le serveur garde son propre knockback.
+# override: the engine replaces the server's knockback with the profile's.
+# observe:  the engine computes and logs, but the server keeps its own knockback.
 mode: override
 
-# Profil appliqué partout, sauf dans les mondes listés sous world-profiles.
-# "vanilla" est intégré : c'est le knockback exact de Minecraft 1.8.8, il ne se redéfinit pas.
+# The profile used everywhere, except in the worlds listed under world-profiles.
+# "vanilla" is built in: the exact knockback of Minecraft 1.8.8, it cannot be redefined.
 active-profile: vanilla
 
-# Profil par monde, pour comparer deux profils sur deux arènes. Exemple :
+# A profile per world, to compare two profiles on two arenas. Example:
 # world-profiles:
 #   arena_a: vanilla
 #   arena_b: test-a
 world-profiles: {}
 
-# Écrit chaque hit dans plugins/RagoCombatEngine/hits/hits-AAAA-MM-JJ.jsonl pour l'analyse.
+# Writes every hit to plugins/RagoCombatEngine/hits/hits-YYYY-MM-DD.jsonl for analysis.
 record-hits: false
 
-# Profils de test. Les six clés sont obligatoires et aucune autre n'est acceptée.
-# Les valeurs d'Hypixel ne sont pas publiques : un profil censé s'en approcher doit venir
-# des mesures (docs/combat/knockback-1.8.8.md), jamais d'une supposition.
+# Test profiles. The six keys are required and no other is accepted.
+# Hypixel's values are not public: a profile meant to come close to them must come from
+# measurements (docs/combat/knockback-1.8.8.md), never from a guess.
 #
-# friction         : la vitesse côté serveur de la victime est divisée par ce nombre (vanilla 2.0)
-# horizontal       : poussée horizontale à l'opposé de l'attaquant (vanilla 0.4000000059604645)
-# vertical         : poussée verticale (vanilla 0.4000000059604645)
-# vertical-limit   : plafond de la vitesse verticale après la poussée (vanilla 0.4000000059604645)
-# extra-horizontal : poussée en plus par niveau (sprint = 1 niveau, enchant Knockback = 1 par niveau),
-#                    dans la direction où regarde l'attaquant (vanilla 0.5)
-# extra-vertical   : poussée verticale en plus quand le niveau est au moins 1 (vanilla 0.1)
+# friction:         the victim's server-side velocity is divided by this number (vanilla 2.0)
+# horizontal:       horizontal push away from the attacker (vanilla 0.4000000059604645)
+# vertical:         vertical push (vanilla 0.4000000059604645)
+# vertical-limit:   cap of the vertical velocity after the push (vanilla 0.4000000059604645)
+# extra-horizontal: extra push per level (sprint = 1 level, Knockback enchantment = 1 per level),
+#                   in the direction the attacker looks (vanilla 0.5)
+# extra-vertical:   extra vertical push when the level is at least 1 (vanilla 0.1)
 profiles: {}
-# Exemple de format (valeurs arbitraires, pas un réglage recommandé) :
+# Example of the format (arbitrary values, not a recommended setting):
 # profiles:
 #   test-a:
 #     friction: 2.0
