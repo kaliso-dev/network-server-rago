@@ -165,3 +165,13 @@ modes:
       - "Seul : simule le premier rush"
       - "d'un Bedwars 1v1, sur Nebuc,"
       - "Gelato ou Sky Rise."
+  invis-endgame:
+    nom: "&5Invis practice : end game"
+    icone: POTION
+    equipes: 2
+    joueurs-par-equipe: 1
+    classe: false
+    description:
+      - "Simulation de fin de partie"
+      - "Bedwars : stuff de fin, et"
+      - "un adversaire invisible."
