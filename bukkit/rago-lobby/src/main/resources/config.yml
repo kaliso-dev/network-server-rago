@@ -32,33 +32,26 @@ file:
 #   classe             true pour un mode classé (ELO)
 #   description        les lignes sous le nom
 modes:
-  bedwars-1v1-classe:
-    nom: "&6Bedwars 1v1 classé"
+  ranked-1v1:
+    nom: "&6Ranked Bedwars 1v1"
     icone: BED
     equipes: 2
     joueurs-par-equipe: 1
     classe: true
     description:
-      - "Le mode classé de Rago :"
+      - "Bedwars classé en 1v1,"
+      - "sur Invasion ou Lectus :"
       - "ton ELO monte ou descend"
       - "à chaque partie."
-  bedwars-1v1:
-    nom: "&eBedwars 1v1"
-    icone: IRON_SWORD
-    equipes: 2
-    joueurs-par-equipe: 1
-    classe: false
-    description:
-      - "Une partie de Bedwars 1v1,"
-      - "sans enjeu d'ELO."
-  bedwars-2v2:
-    nom: "&eBedwars 2v2"
+  ranked-2v2:
+    nom: "&6Ranked Bedwars 2v2"
     icone: DIAMOND_SWORD
     equipes: 2
     joueurs-par-equipe: 2
-    classe: false
+    classe: true
     description:
-      - "Bedwars à deux contre deux."
+      - "Bedwars classé à deux contre"
+      - "deux, sur Invasion ou Lectus."
   sumo:
     nom: "&aDuel sumo"
     icone: SLIME_BALL

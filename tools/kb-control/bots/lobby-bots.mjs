@@ -20,8 +20,8 @@ const PORT = Number(process.env.KB_PORT ?? '25565')
 const TEST_TIMEOUT_MS = 5 * 60 * 1000
 // A new lobby world has a platform at y = 64: players stand at y = 65, at the centre.
 const LOBBY_SPAWN = { x: 0.5, y: 65, z: 0.5 }
-// The sumo duel is the fourth mode of the bundled config.yml: slot 13 of the selector.
-const SUMO_SLOT = 13
+// The sumo duel is the third mode of the bundled config.yml: slot 12 of the selector.
+const SUMO_SLOT = 12
 const POINTS_TO_WIN = 3
 
 let finishing = false

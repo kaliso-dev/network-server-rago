@@ -37,17 +37,18 @@ class LobbySettingsTest {
         assertEquals("lobby", settings.world());
         assertEquals(0, settings.voidHeight());
         assertEquals(1000, settings.defaultRating());
-        assertEquals(7, settings.modes().size());
+        assertEquals(6, settings.modes().size());
 
-        GameMode ranked = settings.catalog().get("bedwars-1v1-classe");
+        GameMode ranked = settings.catalog().get("ranked-1v1");
         assertTrue(ranked.ranked());
         assertEquals("1v1", ranked.format());
-        assertEquals("2v2", settings.catalog().get("bedwars-2v2").format());
+        assertTrue(settings.catalog().get("ranked-2v2").ranked());
+        assertEquals("2v2", settings.catalog().get("ranked-2v2").format());
         assertEquals("solo", settings.catalog().get("pont").format());
         assertFalse(settings.catalog().get("sumo").ranked());
-        assertEquals(Material.BED, settings.display("bedwars-1v1-classe").icon());
+        assertEquals(Material.BED, settings.display("ranked-1v1").icon());
         assertEquals(Material.FIREBALL, settings.display("fireball").icon());
-        assertEquals("bedwars-1v1-classe", settings.modes().get(0).mode().id(), "the order of config.yml");
+        assertEquals("ranked-1v1", settings.modes().get(0).mode().id(), "the order of config.yml");
         assertTrue(settings.title().length() <= 32);
         assertEquals(500, settings.window().width(3_600_000));
     }
