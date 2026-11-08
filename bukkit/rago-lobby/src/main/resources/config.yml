@@ -212,3 +212,13 @@ modes:
     description:
       - "Une équipe attaque le lit,"
       - "l'autre le défend."
+  free-ffa:
+    nom: "&aFree FFA"
+    icone: EMERALD
+    equipes: 1
+    joueurs-par-equipe: 1
+    classe: false
+    description:
+      - "Archway en tous contre tous,"
+      - "boutique personnalisée (fer, or,"
+      - "diamants, émeraudes) et top fight."
