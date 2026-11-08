@@ -29,7 +29,7 @@ PANDASPIGOT_URL=https://downloads.hpfxd.com/v2/projects/pandaspigot/versions/1.8
 PANDASPIGOT_SHA256=ac73146b275230cbd0612ef0f3d6b40333abd3182beae457cad5321efff6359b
 # The same PacketEvents as the local test server's launchers (RagoLobby depends on it).
 PACKETEVENTS_URL=https://github.com/retrooper/packetevents/releases/download/v2.14.0/packetevents-spigot-2.14.0.jar
-PACKETEVENTS_SHA256=0000000000000000000000000000000000000000000000000000000000000000
+PACKETEVENTS_SHA256=060087c58ec268eae7dd0eb1f17ac3bea1eaadda1693414141ff64e506091bd7
 PORT=${KB_PORT:-25565}
 
 log() { printf '[lobby-test] %s\n' "$*"; }
@@ -95,13 +95,26 @@ cat >"$SERVER_DIR/bukkit.yml" <<'YAML'
 settings:
   allow-end: false
 YAML
-# The NPC of the Duels category, three blocks from the spawn of the new lobby world.
+# Around the spawn of the new lobby world: the NPC of the Duels category, a stats NPC and a wall of
+# leaderboards.
 mkdir -p "$SERVER_DIR/lobby"
 cat >"$SERVER_DIR/lobby/points.yml" <<'YAML'
 attackdefenseversionrbw:
   x: 3.5
   y: 65.0
   z: 0.5
+  yaw: 0.0
+  pitch: 0.0
+statsjoueur1:
+  x: -3.5
+  y: 65.0
+  z: 0.5
+  yaw: 0.0
+  pitch: 0.0
+leaderboardstats:
+  x: 0.5
+  y: 65.0
+  z: -6.5
   yaw: 0.0
   pitch: 0.0
 YAML

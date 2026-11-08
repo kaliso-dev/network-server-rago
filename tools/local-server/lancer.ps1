@@ -22,7 +22,7 @@ $WorldEditSha256 = 'b9d3f0648e47424d66d94081b21a26504de0fbe6843f3d977c023aec066d
 $WorldEditJar = 'plugins\worldedit-bukkit-6.1.jar'
 # PacketEvents 2.14.0, dont RagoLobby a besoin pour ses PNJ (https://github.com/retrooper/packetevents).
 $PacketEventsUrl = 'https://github.com/retrooper/packetevents/releases/download/v2.14.0/packetevents-spigot-2.14.0.jar'
-$PacketEventsSha256 = '0000000000000000000000000000000000000000000000000000000000000000'
+$PacketEventsSha256 = '060087c58ec268eae7dd0eb1f17ac3bea1eaadda1693414141ff64e506091bd7'
 $PacketEventsJar = 'plugins\packetevents-spigot-2.14.0.jar'
 
 Set-Location -LiteralPath $PSScriptRoot

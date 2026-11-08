@@ -21,7 +21,7 @@ WORLDEDIT_SHA256=b9d3f0648e47424d66d94081b21a26504de0fbe6843f3d977c023aec066d449
 WORLDEDIT_JAR=plugins/worldedit-bukkit-6.1.jar
 # PacketEvents 2.14.0, dont RagoLobby a besoin pour ses PNJ (https://github.com/retrooper/packetevents).
 PACKETEVENTS_URL=https://github.com/retrooper/packetevents/releases/download/v2.14.0/packetevents-spigot-2.14.0.jar
-PACKETEVENTS_SHA256=0000000000000000000000000000000000000000000000000000000000000000
+PACKETEVENTS_SHA256=060087c58ec268eae7dd0eb1f17ac3bea1eaadda1693414141ff64e506091bd7
 PACKETEVENTS_JAR=plugins/packetevents-spigot-2.14.0.jar
 
 cd "$(dirname "$0")"
