@@ -124,7 +124,7 @@ leaderboardprincipal:
   yaw: 180.0
   pitch: 0.0
 leaderboardplayer:
-  x: 7.5
+  x: 12.5
   y: 65.0
   z: 5.5
   yaw: 180.0

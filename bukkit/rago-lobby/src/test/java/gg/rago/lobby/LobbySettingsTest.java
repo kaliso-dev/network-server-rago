@@ -88,8 +88,9 @@ class LobbySettingsTest {
                 settings.npc("leaderboardprincipal").boards(), "one board, a right click goes to the next stat");
         assertEquals(Arrays.asList(Collections.singletonList(BoardStat.WINS), Collections.singletonList(BoardStat.STREAK),
                 Collections.singletonList(BoardStat.GAMES)), settings.npc("leaderboardstats").boards());
-        assertEquals(Collections.singletonList(Collections.singletonList(BoardStat.KILLS)),
-                settings.npc("leaderboardplayer").boards());
+        assertEquals(Arrays.asList(Collections.singletonList(BoardStat.STREAK), Collections.singletonList(BoardStat.KILLS),
+                Collections.singletonList(BoardStat.LEVEL)), settings.npc("leaderboardplayer").boards(),
+                "the kills in the middle, on the point");
         assertFalse(ranked.leaderboard());
         assertEquals(LobbyNpc.Kind.STATS, settings.npc("statsjoueur1").kind());
         assertEquals(LobbyNpc.Kind.STATS, settings.npc("statsjoueur2").kind());

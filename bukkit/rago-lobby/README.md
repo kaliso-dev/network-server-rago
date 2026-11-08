@@ -90,7 +90,7 @@ générateur vide ; un monde de build peut donc servir de lobby.
   (`tableaux: [[elo, kills, niveau]]`, celui de leaderboardprincipal) : un clic droit passe au
   classement suivant, un clic gauche change la période ou le mode classé. Le tableau `niveau` est
   classé par XP et montre le niveau. leaderboardplayer montre les kills du jour, de la semaine et
-  à vie.
+  à vie, entre les meilleures séries de victoires (à gauche) et le niveau Network (à droite).
 
 Les PNJ n'existent que dans les paquets envoyés aux joueurs (plugin PacketEvents, installé à côté
 de RagoLobby) : le serveur ne les voit pas, ils ne bougent pas et ne prennent pas de coups. Ils

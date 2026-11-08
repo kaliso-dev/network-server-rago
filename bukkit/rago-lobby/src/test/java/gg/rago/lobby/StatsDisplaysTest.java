@@ -111,7 +111,7 @@ class StatsDisplaysTest {
         StatsBook book = new StatsBook(1000, settings.levels());
         StatsDisplays displays = new StatsDisplays(settings, book, new StatsMenu(settings, book), new FakeEntities(null, null));
         Player bob = player(BOB);
-        List<BoardStat> stats = settings.npc("leaderboardplayer").boards().get(0);
+        List<BoardStat> stats = settings.npc("leaderboardplayer").boards().get(1);
         assertEquals(Collections.singletonList(BoardStat.KILLS), stats);
         List<String> lines = plain(displays.board(stats, "p#0", bob, SUNDAY));
         assertEquals(Arrays.asList("Kills", "All modes · Daily", "", "Nobody yet"), lines.subList(0, 4));

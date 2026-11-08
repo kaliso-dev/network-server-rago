@@ -140,9 +140,10 @@ classements:
   leaderboardstats:
     nom: "&e&lLeaderboards"
     tableaux: [victoires, series, parties]
+  # Les kills au milieu (sur le point), les séries à gauche, le niveau Network à droite.
   leaderboardplayer:
-    nom: "&e&lTop kills"
-    tableaux: [kills]
+    nom: "&e&lPlayer leaderboards"
+    tableaux: [series, kills, niveau]
 
 # Les modes, dans l'ordre du sélecteur. L'identifiant (la clé) ne contient que des minuscules sans
 # accent, des chiffres et des tirets. Un mode reste « Bientôt » dans le sélecteur tant qu'aucun

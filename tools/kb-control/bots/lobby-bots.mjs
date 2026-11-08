@@ -306,6 +306,10 @@ async function checkStats (one, two) {
   await expectFloating(one, 'Kills: 3', 'the kills of the winner')
   await expectFloating(two, 'Kills: 0', 'the kills of the loser')
   await expectFloating(two, '1. RagoUn - 3', 'the kills of the day on leaderboardplayer')
+  // leaderboardplayer: the best win streaks on the left of the kills, the Network level on the right.
+  await waitFor(() => floatingTexts(two).filter((text) => text === 'Best win streak').length === 2 &&
+    floatingTexts(two).includes('Network level'), 5000,
+  `the streaks and the level next to the kills on leaderboardplayer: ${JSON.stringify(floatingTexts(two))}`)
   // Network XP: 50 for the win and 5 a kill (65 of the 100 of level 1), 15 for the game lost.
   await expectLevel(one, 1, 0.65)
   await expectLevel(two, 1, 0.15)

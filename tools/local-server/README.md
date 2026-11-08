@@ -96,7 +96,7 @@ Commandes :
   statsjoueur2, le mur de classements du jour, de la semaine et à vie sur leaderboardstats, le
   classement principal sur leaderboardprincipal (clic droit : Elo, puis Kills, puis niveau
   Network ; clic gauche : la période ou le mode classé), les kills du jour, de la semaine et à vie
-  sur leaderboardplayer.
+  sur leaderboardplayer, avec les séries de victoires à gauche et le niveau Network à droite.
 - /monde tp world (opérateurs) : aller au monde plat du test de knockback, comme avant.
 
 Le plus simple pour construire le lobby : construis directement dans le monde lobby. Tape
