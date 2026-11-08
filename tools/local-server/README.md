@@ -11,6 +11,10 @@ n'y a pas encore de profil Hypixel, il viendra des mesures.
 
 C'est un serveur de test, pour toi et quelques amis : il n'est pas fait pour être ouvert au public.
 
+En jeu, tout est en anglais (menus, messages, PNJ, commandes). Les anciennes commandes en français
+(/file, /duel accepter, /monde creer...) marchent toujours. La fenêtre du serveur, elle, reste en
+français.
+
 
 ## Ce qu'il faut
 
@@ -72,15 +76,15 @@ Le duel sumo : dès que deux joueurs sont dans la file, ils partent sur une plat
 premier qui tombe donne un point à l'autre, le premier à 3 points gagne. Il n'y a pas de dégâts,
 seulement le knockback du moteur : c'est le mode pour tester le knockback à deux. Chaque manche
 commence par un compte à rebours de 3 secondes, immobile, affiché en grand à l'écran (3, 2, 1,
-« Combat ! »). À la fin, les deux joueurs reviennent
+« Fight! »). À la fin, les deux joueurs reviennent
 au lobby tout de suite.
 
 Commandes :
 
 - /spawn : retour au spawn du lobby. Pendant un duel, c'est un abandon.
-- /file sumo pour entrer dans la file du duel, /file quitter pour en sortir.
+- /queue sumo pour entrer dans la file du duel, /queue leave pour en sortir (/file marche aussi).
 - /duel Pseudo : défier un ami dans un mode 1v1 (un menu s'ouvre) ; il répond avec
-  /duel accepter TonPseudo ou /duel refuser TonPseudo.
+  /duel accept TonPseudo ou /duel deny TonPseudo (ou en cliquant sur [Accept] ou [Deny]).
 - /lobby modes : les modes du lobby et leur file.
 - /lobby setspawn (opérateurs) : place le spawn du lobby là où tu es.
 - /lobby build (opérateurs) : mode construction dans le lobby (créatif, tu peux modifier la map) ;
@@ -88,7 +92,7 @@ Commandes :
 - /lobby point nom (opérateurs) : marque un endroit du lobby, où se mettent les PNJ et les
   classements de plugins/RagoLobby/config.yml (le nom du point est leur clé). Retape-le ailleurs
   pour le déplacer ; /lobby points pour la liste, /lobby point tp nom pour y aller,
-  /lobby point retirer nom pour l'enlever. Les PNJ de stats sont sur statsjoueur1 et
+  /lobby point remove nom pour l'enlever. Les PNJ de stats sont sur statsjoueur1 et
   statsjoueur2, le mur de classements du jour, de la semaine et à vie sur leaderboardstats, le
   classement Ranked sur leaderboardprincipal.
 - /monde tp world (opérateurs) : aller au monde plat du test de knockback, comme avant.
@@ -99,7 +103,7 @@ Le plus simple pour construire le lobby : construis directement dans le monde lo
 dossier du monde lobby (dans mondes) : ils restent quand tu mets à jour le serveur de test, et
 partent avec la map quand tu me l'envoies.
 
-Si ta map est déjà faite ailleurs : importe-la avec /monde importer (voir « Construire »), puis dans
+Si ta map est déjà faite ailleurs : importe-la avec /monde import (voir « Construire »), puis dans
 plugins/RagoLobby/config.yml remplace « monde: lobby » par le nom de ton monde, relance le
 serveur, va dans ton lobby et tape /lobby setspawn là où les joueurs doivent apparaître. La liste
 des modes, leurs noms, leurs icônes et le texte du scoreboard se règlent dans le même fichier.
@@ -135,14 +139,14 @@ Les réglages sont expliqués dans la documentation du moteur
 
 Deviens opérateur (« op TonPseudo » dans la fenêtre du serveur), puis dans le jeu :
 
-- /monde creer mon-lobby : crée un monde vide nommé mon-lobby et t'y emmène, en créatif, sur un
-  bloc de bedrock. /monde creer mon-lobby plat crée un monde plat à la place. (Le nom lobby est
+- /monde create mon-lobby : crée un monde vide nommé mon-lobby et t'y emmène, en créatif, sur un
+  bloc de bedrock. /monde create mon-lobby flat crée un monde plat à la place. (Le nom lobby est
   déjà pris par le lobby de Rago.)
 - /monde tp mon-lobby : y retourner. /monde tp world : revenir au monde du test de knockback (en
   survie). /spawn : revenir au lobby.
 - /monde : la liste des mondes.
 - /monde spawn : place le point d'apparition du monde là où tu es.
-- /vitesse 3 : vole plus vite (de 1, la vitesse normale, à 10). /nv : vision nocturne.
+- /speed 3 : vole plus vite (de 1, la vitesse normale, à 10). /nv : vision nocturne.
 - WorldEdit : la hache en bois (//wand) pour sélectionner, puis //set, //replace, //copy,
   //paste, //undo... Le guide de WorldEdit est sur https://worldedit.enginehub.org/en/latest/ ;
   il est écrit pour WorldEdit 7, mais les commandes de base sont les mêmes en 6.1.
@@ -156,7 +160,7 @@ Les noms de monde ne prennent que des minuscules sans accent, des chiffres, - et
 Pour importer une map téléchargée :
 
 - si c'est un dossier de monde (il contient level.dat et un dossier region) : copie-le dans le
-  dossier mondes (voir plus bas), puis tape /monde importer nom-du-dossier. La map doit venir de
+  dossier mondes (voir plus bas), puis tape /monde import nom-du-dossier. La map doit venir de
   Minecraft 1.8 à 1.12 : une map enregistrée en 1.13 ou plus récent est refusée, parce que le
   serveur 1.8 l'abîmerait ;
 - si c'est un schematic (.schematic) : copie-le dans le dossier schematics, crée un monde vide,
@@ -184,7 +188,7 @@ Il contient :
   des .tar.gz.
 
 Pendant que le serveur tourne, tous les mondes sont aussi écrits sur le disque toutes les
-2 minutes, et /monde sauver le fait tout de suite. Si quelque chose casse un build, //undo de
+2 minutes, et /monde save le fait tout de suite. Si quelque chose casse un build, //undo de
 WorldEdit annule les dernières modifications.
 
 Pour revenir à une sauvegarde : arrête le serveur, renomme le dossier mondes (par exemple en

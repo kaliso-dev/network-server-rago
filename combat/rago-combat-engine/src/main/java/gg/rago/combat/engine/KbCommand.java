@@ -42,16 +42,16 @@ final class KbCommand implements TabExecutor {
                 return true;
             case "profile":
                 if (args.length != 2) {
-                    return usage(sender, "/" + label + " profile <nom>");
+                    return usage(sender, "/" + label + " profile <name>");
                 }
-                return change(sender, "profil par défaut -> " + args[1],
+                return change(sender, "default profile -> " + args[1],
                         () -> plugin.settings().withDefaultProfile(args[1]));
             case "world":
                 if (args.length != 3) {
-                    return usage(sender, "/" + label + " world <monde> <profil|default>");
+                    return usage(sender, "/" + label + " world <world> <profile|default>");
                 }
                 String profile = DEFAULT_WORLD_PROFILE.equalsIgnoreCase(args[2]) ? null : args[2];
-                return change(sender, "monde " + args[1] + " -> " + (profile == null ? "profil par défaut" : profile),
+                return change(sender, "world " + args[1] + " -> " + (profile == null ? "default profile" : profile),
                         () -> plugin.settings().withWorldProfile(args[1], profile));
             case "mode":
                 if (args.length != 2) {
@@ -73,13 +73,13 @@ final class KbCommand implements TabExecutor {
     private void status(CommandSender sender) {
         EngineSettings settings = plugin.settings();
         sender.sendMessage(ChatColor.RED + "RagoCombatEngine " + ChatColor.GRAY + plugin.getDescription().getVersion());
-        sender.sendMessage(ChatColor.GRAY + "Mode : " + ChatColor.WHITE + settings.mode().configName());
-        sender.sendMessage(ChatColor.GRAY + "Profil par défaut : " + ChatColor.WHITE + settings.defaultProfile());
+        sender.sendMessage(ChatColor.GRAY + "Mode: " + ChatColor.WHITE + settings.mode().configName());
+        sender.sendMessage(ChatColor.GRAY + "Default profile: " + ChatColor.WHITE + settings.defaultProfile());
         for (Map.Entry<String, String> entry : settings.worldProfiles().entrySet()) {
-            sender.sendMessage(ChatColor.GRAY + "  monde " + entry.getKey() + " : " + ChatColor.WHITE + entry.getValue());
+            sender.sendMessage(ChatColor.GRAY + "  world " + entry.getKey() + ": " + ChatColor.WHITE + entry.getValue());
         }
-        sender.sendMessage(ChatColor.GRAY + "Journal des hits : " + ChatColor.WHITE
-                + (settings.recordHits() ? "actif (" + plugin.droppedRecords() + " perdus)" : "inactif"));
+        sender.sendMessage(ChatColor.GRAY + "Hit log: " + ChatColor.WHITE
+                + (settings.recordHits() ? "on (" + plugin.droppedRecords() + " lost)" : "off"));
     }
 
     private void profiles(CommandSender sender) {
@@ -104,33 +104,33 @@ final class KbCommand implements TabExecutor {
             return true;
         }
         plugin.audit(sender.getName(), description);
-        sender.sendMessage(ChatColor.GRAY + "OK : " + ChatColor.WHITE + description
-                + ChatColor.GRAY + " (jusqu'au prochain redémarrage ou /kb reload)");
+        sender.sendMessage(ChatColor.GRAY + "OK: " + ChatColor.WHITE + description
+                + ChatColor.GRAY + " (until the next restart or /kb reload)");
         return true;
     }
 
     private void debug(CommandSender sender) {
         if (!(sender instanceof Player)) {
-            sender.sendMessage(ChatColor.RED + "Le debug s'affiche en jeu : lance la commande depuis un joueur.");
+            sender.sendMessage(ChatColor.RED + "The debug shows in game: run the command as a player.");
             return;
         }
         boolean enabled = plugin.toggleDebug(((Player) sender).getUniqueId());
-        sender.sendMessage(ChatColor.GRAY + "Debug KB : " + ChatColor.WHITE + (enabled ? "activé" : "désactivé"));
+        sender.sendMessage(ChatColor.GRAY + "KB debug: " + ChatColor.WHITE + (enabled ? "on" : "off"));
     }
 
     private void reload(CommandSender sender) {
         try {
             plugin.reloadSettings();
         } catch (IllegalArgumentException e) {
-            sender.sendMessage(ChatColor.RED + "config.yml invalide, réglages actuels conservés : " + e.getMessage());
+            sender.sendMessage(ChatColor.RED + "Invalid config.yml, the current settings are kept: " + e.getMessage());
             return;
         }
-        plugin.audit(sender.getName(), "config.yml rechargé");
-        sender.sendMessage(ChatColor.GRAY + "config.yml rechargé.");
+        plugin.audit(sender.getName(), "config.yml reloaded");
+        sender.sendMessage(ChatColor.GRAY + "config.yml reloaded.");
     }
 
     private static boolean usage(CommandSender sender, String usage) {
-        sender.sendMessage(ChatColor.RED + "Usage : " + usage);
+        sender.sendMessage(ChatColor.RED + "Usage: " + usage);
         return true;
     }
 

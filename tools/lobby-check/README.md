@@ -8,13 +8,13 @@ jouent comme des joueurs :
 1. ils arrivent dans le lobby : mode aventure, la boussole et le colorant dans la barre d'objets,
    le scoreboard ;
 2. RagoUn ouvre le sélecteur d'un clic droit et clique sur le duel sumo ; RagoDeux tape
-   `/file sumo` ;
-3. le duel démarre, après le décompte 3, 2, 1, « Combat ! » affiché en titre (sans fondu) :
+   `/queue sumo` ;
+3. le duel démarre, après le décompte 3, 2, 1, « Fight! » affiché en titre (sans fondu) :
    RagoUn frappe RagoDeux une fois (il doit recevoir du knockback et aucun
    dégât), puis RagoDeux tombe trois fois de la plateforme : RagoUn gagne 3 - 0 ;
 4. les deux reviennent au lobby, au spawn, avec les objets du lobby ;
 5. un second duel, que RagoUn quitte avec `/spawn` : RagoDeux gagne par abandon.
-6. RagoUn défie RagoDeux avec `/duel RagoDeux sumo`, RagoDeux accepte avec `/duel accepter RagoUn`
+6. RagoUn défie RagoDeux avec `/duel RagoDeux sumo`, RagoDeux accepte avec `/duel accept RagoUn`
    (ce que lance le bouton cliquable), le duel démarre sans passer par la file, puis RagoDeux
    abandonne.
 

@@ -151,10 +151,10 @@ final class LobbyNpcs implements Listener {
             }
         }
         if (!playable) {
-            return ChatColor.DARK_GRAY + "Bientôt disponible";
+            return ChatColor.DARK_GRAY + "Coming soon";
         }
-        return ChatColor.WHITE + "" + waiting + ChatColor.GRAY + " en file " + ChatColor.DARK_GRAY + "· "
-                + ChatColor.GREEN + "Clic pour jouer";
+        return ChatColor.WHITE + "" + waiting + ChatColor.GRAY + " in queue " + ChatColor.DARK_GRAY + "· "
+                + ChatColor.GREEN + "Click to play";
     }
 
     private void body(final LobbyNpc npc, int index, Location at) {

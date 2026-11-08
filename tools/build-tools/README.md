@@ -6,9 +6,9 @@ serveur de test : il n'ira jamais sur un serveur de production.
 
 ## Ce qu'il fait
 
-- **Des mondes de build.** `/monde creer <nom> vide` crée un monde vide (de l'air partout, un bloc
-  de bedrock sous le point d'apparition), `/monde creer <nom> plat` un monde plat de Minecraft.
-  Une map téléchargée s'ajoute avec `/monde importer <dossier>`.
+- **Des mondes de build.** `/monde create <nom> void` crée un monde vide (de l'air partout, un bloc
+  de bedrock sous le point d'apparition), `/monde create <nom> flat` un monde plat de Minecraft.
+  Une map téléchargée s'ajoute avec `/monde import <dossier>`.
 - **Le bon mode de jeu.** En entrant dans un monde de build, on passe en créatif. Dans les autres
   mondes (le monde plat du test de knockback), on repasse en survie.
 - **La protection.** Dans un monde de build, seuls les constructeurs (`rago.build.construire`, les
@@ -21,22 +21,26 @@ serveur de test : il n'ira jamais sur un serveur de production.
   apparaissent seuls. Un briquet allume encore un feu, qui ne se propage pas.
 - **Un enregistrement fréquent.** Tous les mondes sont écrits sur le disque toutes les 2 minutes
   (`sauvegarde-auto-minutes` dans `config.yml`), en plus de l'enregistrement de Minecraft toutes
-  les 5 minutes. `/monde sauver` le fait tout de suite.
-- **Deux commandes de confort.** `/vitesse <1-10>` règle la vitesse de vol (1 est la vitesse
+  les 5 minutes. `/monde save` le fait tout de suite.
+- **Deux commandes de confort.** `/speed <1-10>` règle la vitesse de vol (1 est la vitesse
   normale ; la vitesse de marche ne change jamais, pour ne pas fausser les tests de knockback) et
   `/nv` active ou enlève la vision nocturne.
 
 ## Commandes
 
+Les messages et les sous-commandes sont en anglais ; `/monde` s'appelle aussi `/world`, `/vitesse`
+`/speed`. Les mots français de la première version (`liste`, `creer`, `importer`, `sauver`, `vide`,
+`plat`) marchent toujours.
+
 | Commande | Effet |
 | --- | --- |
-| `/monde` ou `/monde liste` | les mondes, leur type et leurs joueurs, et les maps à importer |
-| `/monde creer <nom> [vide\|plat]` | crée un monde de build (vide par défaut) et t'y emmène |
-| `/monde importer <dossier>` | ajoute une map copiée dans le dossier des mondes et t'y emmène |
+| `/monde` ou `/monde list` | les mondes, leur type et leurs joueurs, et les maps à importer |
+| `/monde create <nom> [void\|flat]` | crée un monde de build (vide par défaut) et t'y emmène |
+| `/monde import <dossier>` | ajoute une map copiée dans le dossier des mondes et t'y emmène |
 | `/monde tp <nom>` | t'emmène au point d'apparition d'un monde |
 | `/monde spawn` | place le point d'apparition du monde là où tu es |
-| `/monde sauver` | écrit tout de suite tous les mondes sur le disque |
-| `/vitesse <1-10>` | vitesse de vol |
+| `/monde save` | écrit tout de suite tous les mondes sur le disque |
+| `/speed <1-10>` | vitesse de vol |
 | `/nv` | vision nocturne |
 
 Toutes les commandes demandent `rago.build.admin` (les opérateurs). `liste`, `creer`, `importer`
@@ -64,7 +68,7 @@ map quand on vole au-delà de ses bords.
 
 ## Importer une map
 
-`/monde importer` lit d'abord la version de Minecraft qui a enregistré la map (`DataVersion` dans
+`/monde import` lit d'abord la version de Minecraft qui a enregistré la map (`DataVersion` dans
 son `level.dat`) :
 
 - sans `DataVersion` (1.8 ou plus ancien) : la map s'ouvre telle quelle ;

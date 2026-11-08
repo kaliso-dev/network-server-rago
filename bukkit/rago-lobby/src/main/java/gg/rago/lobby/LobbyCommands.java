@@ -12,13 +12,14 @@ import org.bukkit.command.TabExecutor;
 import org.bukkit.entity.Player;
 
 /**
- * /spawn, /file and /lobby.
+ * /spawn, /queue (alias /file), /duel and /lobby. The French words of the first version
+ * (quitter, accepter, refuser, retirer) still work.
  *
  * <ul>
  *   <li>{@code /spawn}: back to the lobby spawn (from a game, through the game, which counts it as
  *       a forfeit).
- *   <li>{@code /file <mode>} joins a queue, {@code /file quitter} leaves it.
- *   <li>{@code /lobby setspawn|build|modes|points}, {@code /lobby point <nom>|retirer <nom>|tp <nom>}:
+ *   <li>{@code /queue <mode>} joins a queue, {@code /queue leave} leaves it.
+ *   <li>{@code /lobby setspawn|build|modes|points}, {@code /lobby point <name>|remove <name>|tp <name>}:
  *       for the staff ({@code rago.lobby.admin}).
  * </ul>
  */
@@ -40,7 +41,7 @@ final class LobbyCommands implements TabExecutor {
             return true;
         }
         if (!(sender instanceof Player)) {
-            sender.sendMessage("Commande réservée aux joueurs.");
+            sender.sendMessage("Only players can use this command.");
             return true;
         }
         Player player = (Player) sender;
@@ -48,7 +49,7 @@ final class LobbyCommands implements TabExecutor {
             case "spawn":
                 lobby.goToSpawn(player);
                 return true;
-            case "file":
+            case "queue":
                 return queue(player, args);
             case "duel":
                 return duel(player, args);
@@ -63,19 +64,19 @@ final class LobbyCommands implements TabExecutor {
         if (args.length != 1) {
             return false;
         }
-        if (args[0].equalsIgnoreCase("quitter")) {
+        if (args[0].equalsIgnoreCase("leave") || args[0].equalsIgnoreCase("quitter")) {
             if (lobby.queues().leave(player, true) == null) {
-                player.sendMessage(ChatColor.GRAY + "Tu n'es dans aucune file.");
+                player.sendMessage(ChatColor.GRAY + "You are not in a queue.");
             }
             return true;
         }
         GameMode mode = lobby.mode(args[0].toLowerCase(java.util.Locale.ROOT));
         if (mode == null) {
-            player.sendMessage(ChatColor.RED + "Mode inconnu. Les modes : " + modeIds());
+            player.sendMessage(ChatColor.RED + "Unknown mode. The modes: " + modeIds());
             return true;
         }
         if (!lobby.state().isInLobby(player)) {
-            player.sendMessage(ChatColor.RED + "Reviens au lobby (/spawn) pour entrer dans une file.");
+            player.sendMessage(ChatColor.RED + "Go back to the lobby (/spawn) to join a queue.");
             return true;
         }
         lobby.queues().join(player, mode);
@@ -83,11 +84,11 @@ final class LobbyCommands implements TabExecutor {
     }
 
     private boolean duel(Player player, String[] args) {
-        if (args.length == 2 && args[0].equalsIgnoreCase("accepter")) {
+        if (args.length == 2 && (args[0].equalsIgnoreCase("accept") || args[0].equalsIgnoreCase("accepter"))) {
             lobby.duels().accept(player, args[1]);
             return true;
         }
-        if (args.length == 2 && args[0].equalsIgnoreCase("refuser")) {
+        if (args.length == 2 && (args[0].equalsIgnoreCase("deny") || args[0].equalsIgnoreCase("refuser"))) {
             lobby.duels().refuse(player, args[1]);
             return true;
         }
@@ -104,7 +105,7 @@ final class LobbyCommands implements TabExecutor {
         }
         GameMode mode = lobby.mode(args[1].toLowerCase(java.util.Locale.ROOT));
         if (mode == null) {
-            player.sendMessage(ChatColor.RED + "Mode inconnu.");
+            player.sendMessage(ChatColor.RED + "Unknown mode.");
             return true;
         }
         lobby.duels().challenge(player, target, mode);
@@ -143,7 +144,7 @@ final class LobbyCommands implements TabExecutor {
             lobby.setPoint(player, args[1].toLowerCase(java.util.Locale.ROOT));
             return true;
         }
-        if (args.length == 3 && args[1].equalsIgnoreCase("retirer")) {
+        if (args.length == 3 && (args[1].equalsIgnoreCase("remove") || args[1].equalsIgnoreCase("retirer"))) {
             lobby.removePoint(player, args[2].toLowerCase(java.util.Locale.ROOT));
             return true;
         }
@@ -151,23 +152,23 @@ final class LobbyCommands implements TabExecutor {
             lobby.goToPoint(player, args[2].toLowerCase(java.util.Locale.ROOT));
             return true;
         }
-        player.sendMessage(ChatColor.RED + "/lobby point <nom>, /lobby point retirer <nom>, /lobby point tp <nom>");
+        player.sendMessage(ChatColor.RED + "/lobby point <name>, /lobby point remove <name>, /lobby point tp <name>");
         return true;
     }
 
     private void listPoints(Player player) {
         java.util.Map<String, SpawnPoint> all = lobby.points().all();
         if (all.isEmpty()) {
-            player.sendMessage(ChatColor.GRAY + "Aucun point. /lobby point <nom> en place un là où tu es.");
+            player.sendMessage(ChatColor.GRAY + "No point yet. /lobby point <name> places one where you stand.");
             return;
         }
-        player.sendMessage(ChatColor.AQUA + "Points du lobby :");
+        player.sendMessage(ChatColor.AQUA + "Lobby points:");
         for (java.util.Map.Entry<String, SpawnPoint> entry : all.entrySet()) {
             SpawnPoint p = entry.getValue();
             LobbyNpc npc = lobby.settings().npc(entry.getKey());
-            player.sendMessage(ChatColor.GRAY + " " + entry.getKey() + " : " + (int) Math.floor(p.x()) + " "
+            player.sendMessage(ChatColor.GRAY + " " + entry.getKey() + ": " + (int) Math.floor(p.x()) + " "
                     + (int) Math.floor(p.y()) + " " + (int) Math.floor(p.z())
-                    + (npc == null ? ChatColor.DARK_GRAY + " (aucun PNJ)" : ChatColor.GREEN + " → " + npc.name()));
+                    + (npc == null ? ChatColor.DARK_GRAY + " (no NPC)" : ChatColor.GREEN + " → " + npc.name()));
         }
         List<String> missing = new ArrayList<>();
         for (LobbyNpc npc : lobby.settings().npcs()) {
@@ -176,18 +177,18 @@ final class LobbyCommands implements TabExecutor {
             }
         }
         if (!missing.isEmpty()) {
-            player.sendMessage(ChatColor.YELLOW + "PNJ sans point (/lobby point <nom>) : " + String.join(", ", missing));
+            player.sendMessage(ChatColor.YELLOW + "NPCs without a point (/lobby point <name>): " + String.join(", ", missing));
         }
     }
 
     private void listModes(CommandSender sender) {
-        sender.sendMessage(ChatColor.AQUA + "Modes du lobby :");
+        sender.sendMessage(ChatColor.AQUA + "Lobby modes:");
         for (GameMode mode : lobby.settings().catalog().all()) {
             boolean playable = lobby.queues().isPlayable(mode.id());
-            sender.sendMessage(ChatColor.GRAY + " " + mode.id() + " : " + mode.name() + ChatColor.GRAY + " (" + mode.format()
-                    + (mode.ranked() ? ", classé" : "") + ") "
-                    + (playable ? ChatColor.GREEN + "ouvert, " + lobby.queues().waiting(mode.id()) + " en file"
-                            : ChatColor.DARK_GRAY + "bientôt"));
+            sender.sendMessage(ChatColor.GRAY + " " + mode.id() + ": " + mode.name() + ChatColor.GRAY + " (" + mode.format()
+                    + (mode.ranked() ? ", ranked" : "") + ") "
+                    + (playable ? ChatColor.GREEN + "open, " + lobby.queues().waiting(mode.id()) + " in queue"
+                            : ChatColor.DARK_GRAY + "coming soon"));
         }
     }
 
@@ -199,17 +200,21 @@ final class LobbyCommands implements TabExecutor {
         return String.join(", ", ids);
     }
 
+    private static boolean isAnswer(String word) {
+        return Arrays.asList("accept", "deny", "accepter", "refuser").contains(word.toLowerCase(java.util.Locale.ROOT));
+    }
+
     @Override
     public List<String> onTabComplete(CommandSender sender, Command command, String alias, String[] args) {
         List<String> options = new ArrayList<>();
         if (command.getName().equals("duel")) {
             if (args.length == 1) {
-                options.add("accepter");
-                options.add("refuser");
+                options.add("accept");
+                options.add("deny");
                 for (Player online : org.bukkit.Bukkit.getOnlinePlayers()) {
                     options.add(online.getName());
                 }
-            } else if (args.length == 2 && !args[0].equalsIgnoreCase("accepter") && !args[0].equalsIgnoreCase("refuser")) {
+            } else if (args.length == 2 && !isAnswer(args[0])) {
                 for (ModeDisplay display : lobby.duels().duelModes()) {
                     options.add(display.mode().id());
                 }
@@ -226,8 +231,8 @@ final class LobbyCommands implements TabExecutor {
         if (args.length != 1) {
             return Collections.emptyList();
         }
-        if (command.getName().equals("file")) {
-            options.add("quitter");
+        if (command.getName().equals("queue")) {
+            options.add("leave");
             for (GameMode mode : lobby.settings().catalog().all()) {
                 options.add(mode.id());
             }

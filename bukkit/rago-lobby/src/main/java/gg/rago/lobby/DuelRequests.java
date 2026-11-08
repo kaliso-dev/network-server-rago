@@ -62,19 +62,19 @@ final class DuelRequests {
     /** Checks both players can duel; tells the challenger why not. */
     boolean canChallenge(Player challenger, Player target) {
         if (target == null) {
-            challenger.sendMessage(ChatColor.RED + "Ce joueur n'est pas connecté.");
+            challenger.sendMessage(ChatColor.RED + "That player is not online.");
             return false;
         }
         if (target.equals(challenger)) {
-            challenger.sendMessage(ChatColor.RED + "Tu ne peux pas te défier toi-même.");
+            challenger.sendMessage(ChatColor.RED + "You cannot duel yourself.");
             return false;
         }
         if (!state.isInLobby(challenger) || state.isInGame(challenger)) {
-            challenger.sendMessage(ChatColor.RED + "Reviens au lobby (/spawn) pour lancer un duel.");
+            challenger.sendMessage(ChatColor.RED + "Go back to the lobby (/spawn) to start a duel.");
             return false;
         }
         if (!state.isInLobby(target) || state.isInGame(target)) {
-            challenger.sendMessage(ChatColor.RED + target.getName() + " est déjà en partie.");
+            challenger.sendMessage(ChatColor.RED + target.getName() + " is already in a game.");
             return false;
         }
         return true;
@@ -85,11 +85,11 @@ final class DuelRequests {
             return;
         }
         if (!isDuelMode(mode)) {
-            challenger.sendMessage(ChatColor.RED + "On ne peut se défier qu'en 1v1.");
+            challenger.sendMessage(ChatColor.RED + "Duels are 1v1 only.");
             return;
         }
         if (!queues.isPlayable(mode.id())) {
-            challenger.sendMessage(ChatColor.GRAY + mode.name() + ChatColor.GRAY + " arrive bientôt.");
+            challenger.sendMessage(ChatColor.GRAY + mode.name() + ChatColor.GRAY + " is coming soon.");
             return;
         }
         Map<UUID, Request> forTarget = pending.get(target.getUniqueId());
@@ -98,21 +98,21 @@ final class DuelRequests {
             pending.put(target.getUniqueId(), forTarget);
         }
         forTarget.put(challenger.getUniqueId(), new Request(mode.id(), System.currentTimeMillis() + EXPIRY_MS));
-        challenger.sendMessage(ChatColor.GREEN + "Défi envoyé à " + target.getName() + " en " + mode.name()
-                + ChatColor.GREEN + ". Il a une minute pour accepter.");
-        target.sendMessage(ChatColor.YELLOW + challenger.getName() + " te défie en " + mode.name() + ChatColor.YELLOW
-                + " ! Clique pour répondre (ou /duel accepter " + challenger.getName() + ") :");
+        challenger.sendMessage(ChatColor.GREEN + "Duel request sent to " + target.getName() + " in " + mode.name()
+                + ChatColor.GREEN + ". They have one minute to accept.");
+        target.sendMessage(ChatColor.YELLOW + challenger.getName() + " challenges you to " + mode.name() + ChatColor.YELLOW
+                + "! Click to answer (or /duel accept " + challenger.getName() + "):");
         // Clickable buttons through the vanilla /tellraw: the chat component API (bungeecord-chat)
         // is not on our compile classpath. Player names are letters, digits and _ only.
         Bukkit.dispatchCommand(Bukkit.getConsoleSender(), "tellraw " + target.getName() + " " + buttons(challenger.getName()));
     }
 
-    /** The JSON of the [Accepter] [Refuser] line for a challenge from this player. */
+    /** The JSON of the [Accept] [Deny] line for a challenge from this player. */
     static String buttons(String challenger) {
         return "[\"\","
-                + button("[Accepter]", "green", "/duel accepter " + challenger, "Lancer le duel")
+                + button("[Accept]", "green", "/duel accept " + challenger, "Start the duel")
                 + ",{\"text\":\"   \"},"
-                + button("[Refuser]", "red", "/duel refuser " + challenger, "Refuser le défi")
+                + button("[Deny]", "red", "/duel deny " + challenger, "Deny the duel")
                 + "]";
     }
 
@@ -126,7 +126,7 @@ final class DuelRequests {
         Player challenger = Bukkit.getPlayerExact(challengerName);
         Request request = take(target, challenger);
         if (request == null) {
-            target.sendMessage(ChatColor.RED + "Aucun défi de " + challengerName + " en attente.");
+            target.sendMessage(ChatColor.RED + "No pending duel request from " + challengerName + ".");
             return;
         }
         if (!canChallenge(target, challenger)) {
@@ -134,7 +134,7 @@ final class DuelRequests {
         }
         GameMode mode = settings.catalog().get(request.modeId);
         if (mode == null || !queues.isPlayable(mode.id())) {
-            target.sendMessage(ChatColor.GRAY + "Ce mode n'est plus ouvert.");
+            target.sendMessage(ChatColor.GRAY + "This mode is not open any more.");
             return;
         }
         long now = System.currentTimeMillis();
@@ -149,11 +149,11 @@ final class DuelRequests {
     void refuse(Player target, String challengerName) {
         Player challenger = Bukkit.getPlayerExact(challengerName);
         if (take(target, challenger) == null) {
-            target.sendMessage(ChatColor.RED + "Aucun défi de " + challengerName + " en attente.");
+            target.sendMessage(ChatColor.RED + "No pending duel request from " + challengerName + ".");
             return;
         }
-        target.sendMessage(ChatColor.GRAY + "Défi refusé.");
-        challenger.sendMessage(ChatColor.RED + target.getName() + " a refusé ton défi.");
+        target.sendMessage(ChatColor.GRAY + "Duel request denied.");
+        challenger.sendMessage(ChatColor.RED + target.getName() + " denied your duel request.");
     }
 
     /** Removes and returns a live request of challenger to target, or null. */

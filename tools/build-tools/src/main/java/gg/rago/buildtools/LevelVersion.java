@@ -60,7 +60,7 @@ final class LevelVersion {
     static int read(InputStream compressed) throws IOException {
         DataInputStream in = new DataInputStream(new BufferedInputStream(new GZIPInputStream(compressed)));
         if (in.readUnsignedByte() != TAG_COMPOUND) {
-            throw new IOException("level.dat ne commence pas par un compound NBT");
+            throw new IOException("level.dat does not start with an NBT compound");
         }
         in.readUTF();
         // Root compound: look for "Data", skip the rest.
@@ -93,7 +93,7 @@ final class LevelVersion {
 
     private static void skip(DataInputStream in, int type, int depth) throws IOException {
         if (depth > MAX_DEPTH) {
-            throw new IOException("level.dat est imbriqué trop profondément");
+            throw new IOException("level.dat is nested too deeply");
         }
         switch (type) {
             case TAG_BYTE:
@@ -141,14 +141,14 @@ final class LevelVersion {
                 skipBytes(in, 8L * length(in));
                 break;
             default:
-                throw new IOException("type NBT inconnu dans level.dat : " + type);
+                throw new IOException("unknown NBT type in level.dat: " + type);
         }
     }
 
     private static int length(DataInputStream in) throws IOException {
         int length = in.readInt();
         if (length < 0) {
-            throw new IOException("longueur négative dans level.dat");
+            throw new IOException("negative length in level.dat");
         }
         return length;
     }
@@ -160,7 +160,7 @@ final class LevelVersion {
             if (skipped <= 0) {
                 // skip() may return 0 before the end: read one byte to tell "slow" from "ended".
                 if (in.read() < 0) {
-                    throw new IOException("level.dat est tronqué");
+                    throw new IOException("level.dat is truncated");
                 }
                 skipped = 1;
             }

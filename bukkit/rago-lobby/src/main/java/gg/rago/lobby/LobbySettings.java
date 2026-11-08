@@ -137,7 +137,7 @@ final class LobbySettings {
                     if (npc.contains("modes") || npc.contains("categorie")) {
                         throw new IllegalArgumentException(where + " : un PNJ de stats n'a ni modes ni categorie");
                     }
-                    npcs.add(LobbyNpc.stats(point, colour(npc.getString("nom", "&6&lTon profil"))));
+                    npcs.add(LobbyNpc.stats(point, colour(npc.getString("nom", "&6&lYour profile"))));
                     continue;
                 }
                 if (!"modes".equals(type)) {

@@ -45,7 +45,7 @@ final class StatsMenu {
         List<ModeDisplay> modes = settings.modes();
         int slots = Math.min(54, FIRST_MODE_SLOT + ((modes.size() + 8) / 9) * 9);
         Holder holder = new Holder();
-        Inventory inventory = Bukkit.createInventory(holder, slots, "Tes stats");
+        Inventory inventory = Bukkit.createInventory(holder, slots, "Your stats");
         holder.inventory = inventory;
         long now = System.currentTimeMillis();
         String day = StatsPeriod.dayKey(now);
@@ -65,23 +65,23 @@ final class StatsMenu {
         meta.setOwner(player.getName());
         meta.setDisplayName(ChatColor.GOLD + "" + ChatColor.BOLD + player.getName());
         List<String> lore = new ArrayList<>();
-        lore.add(ChatColor.GRAY + "Tous les modes");
+        lore.add(ChatColor.GRAY + "All modes");
         lore.add("");
         int wins = stats == null ? 0 : stats.wins(StatsPeriod.ALL, null, day, week);
         int losses = stats == null ? 0 : stats.losses();
-        lore.add(line("Victoires", ChatColor.GREEN, wins));
-        lore.add(line("Défaites", ChatColor.RED, losses));
-        lore.add(line("Parties jouées", ChatColor.WHITE, wins + losses));
-        lore.add(ChatColor.GRAY + "Ratio V/D : " + ChatColor.YELLOW + ratio(wins, losses));
-        lore.add(line("Meilleure série", ChatColor.YELLOW, stats == null ? 0 : stats.best(StatsPeriod.ALL, null, day, week)));
+        lore.add(line("Wins", ChatColor.GREEN, wins));
+        lore.add(line("Losses", ChatColor.RED, losses));
+        lore.add(line("Games played", ChatColor.WHITE, wins + losses));
+        lore.add(ChatColor.GRAY + "W/L ratio: " + ChatColor.YELLOW + ratio(wins, losses));
+        lore.add(line("Best win streak", ChatColor.YELLOW, stats == null ? 0 : stats.best(StatsPeriod.ALL, null, day, week)));
         lore.add("");
-        lore.add(line("Victoires aujourd'hui", ChatColor.GREEN, stats == null ? 0 : stats.wins(StatsPeriod.DAY, null, day, week)));
-        lore.add(line("Victoires cette semaine", ChatColor.GREEN, stats == null ? 0 : stats.wins(StatsPeriod.WEEK, null, day, week)));
+        lore.add(line("Wins today", ChatColor.GREEN, stats == null ? 0 : stats.wins(StatsPeriod.DAY, null, day, week)));
+        lore.add(line("Wins this week", ChatColor.GREEN, stats == null ? 0 : stats.wins(StatsPeriod.WEEK, null, day, week)));
         List<GameMode> ranked = rankedModes(settings);
         if (!ranked.isEmpty()) {
             lore.add("");
             for (GameMode mode : ranked) {
-                lore.add(ChatColor.GRAY + "Elo " + shortName(mode) + " : " + ChatColor.AQUA
+                lore.add(ChatColor.GRAY + "Elo " + shortName(mode) + ": " + ChatColor.AQUA
                         + book.elo(player.getUniqueId(), mode.id()));
             }
         }
@@ -98,19 +98,19 @@ final class StatsMenu {
         List<String> lore = new ArrayList<>();
         ModeStats m = stats == null ? null : stats.mode(mode.id());
         if (m == null || m.games() == 0) {
-            lore.add(ChatColor.DARK_GRAY + "Aucune partie pour l'instant");
+            lore.add(ChatColor.DARK_GRAY + "No game yet");
         } else {
-            lore.add(line("Victoires", ChatColor.GREEN, m.wins));
-            lore.add(line("Défaites", ChatColor.RED, m.losses));
-            lore.add(ChatColor.GRAY + "Ratio V/D : " + ChatColor.YELLOW + ratio(m.wins, m.losses));
-            lore.add(line("Série actuelle", ChatColor.YELLOW, m.streak));
-            lore.add(line("Meilleure série", ChatColor.YELLOW, m.bestStreak));
+            lore.add(line("Wins", ChatColor.GREEN, m.wins));
+            lore.add(line("Losses", ChatColor.RED, m.losses));
+            lore.add(ChatColor.GRAY + "W/L ratio: " + ChatColor.YELLOW + ratio(m.wins, m.losses));
+            lore.add(line("Current win streak", ChatColor.YELLOW, m.streak));
+            lore.add(line("Best win streak", ChatColor.YELLOW, m.bestStreak));
             lore.add("");
-            lore.add(line("Victoires aujourd'hui", ChatColor.GREEN, m.wins(StatsPeriod.DAY, day, week)));
-            lore.add(line("Victoires cette semaine", ChatColor.GREEN, m.wins(StatsPeriod.WEEK, day, week)));
+            lore.add(line("Wins today", ChatColor.GREEN, m.wins(StatsPeriod.DAY, day, week)));
+            lore.add(line("Wins this week", ChatColor.GREEN, m.wins(StatsPeriod.WEEK, day, week)));
         }
         if (mode.ranked()) {
-            lore.add(ChatColor.GRAY + "Elo : " + ChatColor.AQUA + book.elo(player.getUniqueId(), mode.id()));
+            lore.add(ChatColor.GRAY + "Elo: " + ChatColor.AQUA + book.elo(player.getUniqueId(), mode.id()));
         }
         meta.setLore(lore);
         icon.setItemMeta(meta);
@@ -118,7 +118,7 @@ final class StatsMenu {
     }
 
     private static String line(String what, ChatColor colour, int value) {
-        return ChatColor.GRAY + what + " : " + colour + value;
+        return ChatColor.GRAY + what + ": " + colour + value;
     }
 
     /** 2.5, or the wins alone when there is no loss. */

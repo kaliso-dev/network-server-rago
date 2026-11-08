@@ -84,8 +84,8 @@ final class SumoMatch {
             Player player = Bukkit.getPlayer(players[side]);
             if (player != null) {
                 prepare(player);
-                player.sendMessage(ChatColor.GREEN + "Duel sumo contre " + ChatColor.WHITE + names[1 - side]
-                        + ChatColor.GREEN + " : le premier à " + score.target() + " points gagne.");
+                player.sendMessage(ChatColor.GREEN + "Sumo duel against " + ChatColor.WHITE + names[1 - side]
+                        + ChatColor.GREEN + ": first to " + score.target() + " points wins.");
             }
         }
         startRound();
@@ -115,8 +115,8 @@ final class SumoMatch {
                 }
                 cancelCountdown();
                 phase = Phase.FIGHT;
-                broadcast(ChatColor.GREEN + "Combat !", Sound.NOTE_PLING);
-                title(ChatColor.GREEN + "" + ChatColor.BOLD + "Combat !");
+                broadcast(ChatColor.GREEN + "Fight!", Sound.NOTE_PLING);
+                title(ChatColor.GREEN + "" + ChatColor.BOLD + "Fight!");
             }
         }, 0L, 20L);
     }
@@ -143,7 +143,7 @@ final class SumoMatch {
         for (int s = 0; s < 2; s++) {
             Player p = Bukkit.getPlayer(players[s]);
             if (p != null) {
-                p.sendMessage((s == scorer ? ChatColor.GREEN + "Point pour toi" : ChatColor.RED + "Point pour " + names[scorer])
+                p.sendMessage((s == scorer ? ChatColor.GREEN + "Your point" : ChatColor.RED + "Point for " + names[scorer])
                         + ChatColor.GRAY + " (" + score.text(s) + ")");
             }
         }
@@ -181,11 +181,11 @@ final class SumoMatch {
                 continue;
             }
             if (side == winner) {
-                player.sendMessage(ChatColor.GOLD + "Victoire !" + ChatColor.GRAY + " (" + score.text(side) + ")"
-                        + (forfeit ? ChatColor.GRAY + " " + names[1 - side] + " a abandonné." : ""));
+                player.sendMessage(ChatColor.GOLD + "Victory!" + ChatColor.GRAY + " (" + score.text(side) + ")"
+                        + (forfeit ? ChatColor.GRAY + " " + names[1 - side] + " gave up." : ""));
                 player.playSound(player.getLocation(), Sound.LEVEL_UP, 1f, 1f);
             } else {
-                player.sendMessage(ChatColor.RED + "Défaite." + ChatColor.GRAY + " (" + score.text(side) + ")");
+                player.sendMessage(ChatColor.RED + "Defeat." + ChatColor.GRAY + " (" + score.text(side) + ")");
             }
         }
         Bukkit.getScheduler().runTaskLater(plugin, this::backToLobby, END_DELAY_TICKS);
@@ -210,7 +210,7 @@ final class SumoMatch {
         for (UUID id : players) {
             Player player = Bukkit.getPlayer(id);
             if (player != null && host.matchOf(id) == this) {
-                player.sendMessage(ChatColor.RED + "Le duel est arrêté : le serveur redémarre ses modes.");
+                player.sendMessage(ChatColor.RED + "The duel is stopped: the server is restarting its modes.");
                 host.release(id);
                 plugin.lobby().sendToLobby(player);
             }

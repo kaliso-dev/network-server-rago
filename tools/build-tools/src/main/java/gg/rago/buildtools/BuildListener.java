@@ -108,7 +108,7 @@ final class BuildListener implements Listener {
     private void guard(Player player, World world, Cancellable event) {
         if (player != null && isProtected(world) && !player.hasPermission(BUILD_PERMISSION)) {
             event.setCancelled(true);
-            player.sendMessage(ChatColor.RED + "Ce monde est protégé : seuls les constructeurs peuvent le modifier.");
+            player.sendMessage(ChatColor.RED + "This world is protected: only builders can change it.");
         }
     }
 

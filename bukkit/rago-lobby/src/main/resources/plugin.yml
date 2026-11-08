@@ -2,7 +2,7 @@ name: RagoLobby
 version: ${version}
 main: gg.rago.lobby.RagoLobby
 author: Rago
-description: Le lobby principal de Rago Practice (spawn, protection, sélecteur de modes, files d'attente).
+description: The main lobby of Rago Practice (spawn, protection, mode selector, queues).
 # PacketEvents (plugin à part, maintenu) envoie les PNJ en forme de joueur et les textes propres à
 # chaque joueur. RagoBuildTools charge les mondes de build (avec leur générateur vide) : il passe
 # avant, pour que le lobby trouve sa map déjà chargée.
@@ -10,19 +10,20 @@ depend: [packetevents]
 softdepend: [RagoBuildTools]
 commands:
   spawn:
-    description: Retour au spawn du lobby.
+    description: Back to the lobby spawn.
     usage: /spawn
     aliases: [hub]
-  file:
-    description: Entrer dans la file d'un mode, ou la quitter.
-    usage: /file <mode|quitter>
+  queue:
+    description: Join the queue of a mode, or leave it.
+    usage: /queue <mode|leave>
+    aliases: [file, q]
   duel:
-    description: Défier un joueur du lobby en 1v1.
-    usage: /duel <joueur> [mode], /duel accepter <joueur>, /duel refuser <joueur>
+    description: Challenge a lobby player to a 1v1.
+    usage: /duel <player> [mode], /duel accept <player>, /duel deny <player>
   lobby:
-    description: Gérer le lobby (staff).
-    usage: /lobby <setspawn|build|modes|points|point <nom>|point retirer <nom>|point tp <nom>>
+    description: Manage the lobby (staff).
+    usage: /lobby <setspawn|build|modes|points|point <name>|point remove <name>|point tp <name>>
 permissions:
   rago.lobby.admin:
-    description: Placer le spawn et les points du lobby, et le modifier en mode construction.
+    description: Place the lobby spawn and points, and edit the lobby in build mode.
     default: op

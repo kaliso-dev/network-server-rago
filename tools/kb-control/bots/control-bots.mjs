@@ -291,7 +291,7 @@ async function main () {
     recording = true
     for (const phase of PHASES) {
       for (const text of phase.commands) {
-        await command(attacker, text, /^OK : /)
+        await command(attacker, text, /^OK: /)
       }
       record({ type: 'phase', time: Date.now(), name: phase.name })
       console.log(`phase ${phase.name}: ${HITS_PER_PHASE} hits`)

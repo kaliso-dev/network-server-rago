@@ -111,9 +111,9 @@ public final class RagoCombatEngine extends JavaPlugin {
         }
         String message = ChatColor.DARK_GRAY + "[KB] " + ChatColor.WHITE + record.attacker + ChatColor.GRAY + " -> "
                 + ChatColor.WHITE + record.victim + ChatColor.GRAY
-                + " | niv. " + record.hit.knockbackLevel() + (record.sprinting ? " (sprint)" : "")
+                + " | lvl " + record.hit.knockbackLevel() + (record.sprinting ? " (sprint)" : "")
                 + " | " + record.profile.name() + (record.applied ? "" : " (observe)")
-                + " | paquet " + ChatColor.WHITE + record.packet;
+                + " | packet " + ChatColor.WHITE + record.packet;
         for (UUID viewer : debugViewers) {
             Player player = getServer().getPlayer(viewer);
             if (player != null) {

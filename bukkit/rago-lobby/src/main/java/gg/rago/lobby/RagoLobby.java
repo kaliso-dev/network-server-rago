@@ -107,7 +107,7 @@ public final class RagoLobby extends JavaPlugin implements LobbyService {
         getServer().getPluginManager().registerEvents(new LobbyListener(this, state, visibility), this);
         getServer().getPluginManager().registerEvents(new HostWatcher(queues), this);
         LobbyCommands commands = new LobbyCommands(this);
-        for (String name : new String[] {"lobby", "spawn", "file", "duel"}) {
+        for (String name : new String[] {"lobby", "spawn", "queue", "duel"}) {
             getCommand(name).setExecutor(commands);
             getCommand(name).setTabCompleter(commands);
         }
@@ -279,13 +279,13 @@ public final class RagoLobby extends JavaPlugin implements LobbyService {
             case HIDE_PLAYERS:
             case SHOW_PLAYERS:
                 if (!visibility.toggle(player, System.currentTimeMillis())) {
-                    player.sendMessage(ChatColor.GRAY + "Attends un peu avant de changer à nouveau.");
+                    player.sendMessage(ChatColor.GRAY + "Wait a moment before switching again.");
                     return;
                 }
                 visibility.applyInLobby(player, state);
                 giveHotbar(player);
-                player.sendMessage(visibility.hides(player) ? ChatColor.GRAY + "Les autres joueurs sont cachés."
-                        : ChatColor.GREEN + "Les autres joueurs sont visibles.");
+                player.sendMessage(visibility.hides(player) ? ChatColor.GRAY + "The other players are hidden."
+                        : ChatColor.GREEN + "The other players are shown.");
                 break;
             default:
                 break;
@@ -324,8 +324,8 @@ public final class RagoLobby extends JavaPlugin implements LobbyService {
     /** /lobby setspawn. */
     void setSpawn(Player player) {
         if (!player.getWorld().equals(state.world())) {
-            player.sendMessage(ChatColor.RED + "Tu n'es pas dans le monde du lobby (" + state.world().getName()
-                    + "). Pour changer de monde : monde: dans plugins/RagoLobby/config.yml.");
+            player.sendMessage(ChatColor.RED + "You are not in the lobby world (" + state.world().getName()
+                    + "). To change the world: monde: in plugins/RagoLobby/config.yml.");
             return;
         }
         SpawnPoint spawn = SpawnPoint.of(player.getLocation());
@@ -333,7 +333,7 @@ public final class RagoLobby extends JavaPlugin implements LobbyService {
         player.getWorld().setSpawnLocation(player.getLocation().getBlockX(), player.getLocation().getBlockY(),
                 player.getLocation().getBlockZ());
         write(new File(state.world().getWorldFolder(), SpawnPoint.FILE_NAME), spawn.toYaml());
-        player.sendMessage(ChatColor.GREEN + "Spawn du lobby placé ici.");
+        player.sendMessage(ChatColor.GREEN + "Lobby spawn set here.");
     }
 
     /** Writes a file on the writer thread, through a .part file so that a crash leaves the old one. */
@@ -356,37 +356,37 @@ public final class RagoLobby extends JavaPlugin implements LobbyService {
     /** /lobby point <nom>: places a named spot where the player stands. */
     void setPoint(Player player, String name) {
         if (!player.getWorld().equals(state.world())) {
-            player.sendMessage(ChatColor.RED + "Tu n'es pas dans le lobby.");
+            player.sendMessage(ChatColor.RED + "You are not in the lobby.");
             return;
         }
         boolean moved = points.get(name) != null;
         if (!points.set(name, SpawnPoint.of(player.getLocation()))) {
             player.sendMessage(ChatColor.RED + (LobbyPoints.validName(name)
-                    ? LobbyPoints.MAX_POINTS + " points au plus."
-                    : "Nom invalide : minuscules sans accent, chiffres et tirets, 32 caractères au plus."));
+                    ? "At most " + LobbyPoints.MAX_POINTS + " points."
+                    : "Invalid name: lowercase letters without accents, digits and dashes, 32 characters at most."));
             return;
         }
         write(new File(state.world().getWorldFolder(), LobbyPoints.FILE_NAME), points.toYaml());
         npcs.spawnAll();
-        player.sendMessage(ChatColor.GREEN + "Point " + name + (moved ? " déplacé ici." : " placé ici."));
+        player.sendMessage(ChatColor.GREEN + "Point " + name + (moved ? " moved here." : " placed here."));
     }
 
     /** /lobby point retirer <nom>. */
     void removePoint(Player player, String name) {
         if (!points.remove(name)) {
-            player.sendMessage(ChatColor.RED + "Il n'y a pas de point " + name + ". /lobby points pour la liste.");
+            player.sendMessage(ChatColor.RED + "There is no point " + name + ". /lobby points for the list.");
             return;
         }
         write(new File(state.world().getWorldFolder(), LobbyPoints.FILE_NAME), points.toYaml());
         npcs.spawnAll();
-        player.sendMessage(ChatColor.GREEN + "Point " + name + " retiré.");
+        player.sendMessage(ChatColor.GREEN + "Point " + name + " removed.");
     }
 
     /** /lobby point tp <nom>. */
     void goToPoint(Player player, String name) {
         SpawnPoint point = points.get(name);
         if (point == null) {
-            player.sendMessage(ChatColor.RED + "Il n'y a pas de point " + name + ". /lobby points pour la liste.");
+            player.sendMessage(ChatColor.RED + "There is no point " + name + ". /lobby points for the list.");
             return;
         }
         player.teleport(point.in(state.world()));
@@ -399,17 +399,17 @@ public final class RagoLobby extends JavaPlugin implements LobbyService {
     /** /lobby build: switches the build mode. */
     void toggleBuild(Player player) {
         if (!player.getWorld().equals(state.world())) {
-            player.sendMessage(ChatColor.RED + "Tu n'es pas dans le lobby.");
+            player.sendMessage(ChatColor.RED + "You are not in the lobby.");
             return;
         }
         if (state.toggleBuilding(player.getUniqueId())) {
             queues.leave(player, true);
             player.getInventory().clear();
             player.setGameMode(org.bukkit.GameMode.CREATIVE);
-            player.sendMessage(ChatColor.GREEN + "Mode construction : tu peux modifier le lobby. /lobby build pour en sortir.");
+            player.sendMessage(ChatColor.GREEN + "Build mode: you can edit the lobby. /lobby build to leave it.");
         } else {
             resetForLobby(player);
-            player.sendMessage(ChatColor.GREEN + "Mode construction terminé.");
+            player.sendMessage(ChatColor.GREEN + "Build mode off.");
         }
     }
 

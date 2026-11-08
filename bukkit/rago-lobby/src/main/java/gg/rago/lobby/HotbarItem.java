@@ -13,14 +13,14 @@ import org.bukkit.inventory.meta.ItemMeta;
  */
 enum HotbarItem {
 
-    SELECTOR(0, Material.COMPASS, 0, ChatColor.GREEN + "Modes de jeu " + ChatColor.GRAY + "(clic droit)",
-            "Choisis un mode et entre", "dans sa file d'attente."),
-    LEAVE_QUEUE(4, Material.INK_SACK, 1, ChatColor.RED + "Quitter la file " + ChatColor.GRAY + "(clic droit)",
-            "Tu quittes la file d'attente."),
-    HIDE_PLAYERS(8, Material.INK_SACK, 10, ChatColor.GREEN + "Joueurs : visibles " + ChatColor.GRAY + "(clic droit)",
-            "Clic droit pour cacher", "les autres joueurs."),
-    SHOW_PLAYERS(8, Material.INK_SACK, 8, ChatColor.GRAY + "Joueurs : cachés " + ChatColor.GRAY + "(clic droit)",
-            "Clic droit pour revoir", "les autres joueurs.");
+    SELECTOR(0, Material.COMPASS, 0, ChatColor.GREEN + "Game modes " + ChatColor.GRAY + "(right click)",
+            "Pick a mode and join", "its queue."),
+    LEAVE_QUEUE(4, Material.INK_SACK, 1, ChatColor.RED + "Leave the queue " + ChatColor.GRAY + "(right click)",
+            "You leave the queue."),
+    HIDE_PLAYERS(8, Material.INK_SACK, 10, ChatColor.GREEN + "Players: shown " + ChatColor.GRAY + "(right click)",
+            "Right click to hide", "the other players."),
+    SHOW_PLAYERS(8, Material.INK_SACK, 8, ChatColor.GRAY + "Players: hidden " + ChatColor.GRAY + "(right click)",
+            "Right click to show", "the other players again.");
 
     private final int slot;
     private final Material material;

@@ -89,14 +89,14 @@ final class QueueController {
 
     // --- Players --------------------------------------------------------------------------------
 
-    /** The player clicked a mode in the selector, or typed /file. */
+    /** The player clicked a mode in the selector, or typed /queue. */
     void join(Player player, GameMode mode) {
         if (state.isInGame(player)) {
-            player.sendMessage(ChatColor.RED + "Tu es déjà en partie.");
+            player.sendMessage(ChatColor.RED + "You are already in a game.");
             return;
         }
         if (!isPlayable(mode.id())) {
-            player.sendMessage(ChatColor.GRAY + mode.name() + ChatColor.GRAY + " arrive bientôt.");
+            player.sendMessage(ChatColor.GRAY + mode.name() + ChatColor.GRAY + " is coming soon.");
             return;
         }
         Matchmaker.JoinResult result = matchmaker.join(player.getUniqueId(), mode.id(), settings.defaultRating(),
@@ -105,15 +105,15 @@ final class QueueController {
             case JOINED:
             case SWITCHED:
                 toldNoArena.remove(player.getUniqueId());
-                player.sendMessage(ChatColor.GREEN + "Tu es dans la file " + mode.name() + ChatColor.GREEN + " ("
-                        + mode.format() + ", " + matchmaker.waiting(mode.id()) + " en attente).");
+                player.sendMessage(ChatColor.GREEN + "You joined the queue for " + mode.name() + ChatColor.GREEN + " ("
+                        + mode.format() + ", " + matchmaker.waiting(mode.id()) + " waiting).");
                 onChange.run();
                 break;
             case ALREADY_WAITING:
-                player.sendMessage(ChatColor.GRAY + "Tu es déjà dans cette file.");
+                player.sendMessage(ChatColor.GRAY + "You are already in this queue.");
                 break;
             default:
-                player.sendMessage(ChatColor.RED + "Ce mode n'existe pas.");
+                player.sendMessage(ChatColor.RED + "This mode does not exist.");
                 break;
         }
     }
@@ -124,7 +124,7 @@ final class QueueController {
         toldNoArena.remove(player.getUniqueId());
         if (left != null) {
             if (tell) {
-                player.sendMessage(ChatColor.YELLOW + "Tu as quitté la file " + left.name() + ChatColor.YELLOW + ".");
+                player.sendMessage(ChatColor.YELLOW + "You left the queue for " + left.name() + ChatColor.YELLOW + ".");
             }
             onChange.run();
         }
@@ -227,14 +227,14 @@ final class QueueController {
         }
         if (!requeue) {
             for (Player player : players) {
-                player.sendMessage(ChatColor.YELLOW + "Aucune arène libre pour l'instant : réessaie dans un moment.");
+                player.sendMessage(ChatColor.YELLOW + "No free arena right now: try again in a moment.");
             }
             return false;
         }
         requeueOnline(match);
         for (Player player : players) {
             if (toldNoArena.add(player.getUniqueId())) {
-                player.sendMessage(ChatColor.YELLOW + "Aucune arène libre pour l'instant : tu gardes ta place dans la file.");
+                player.sendMessage(ChatColor.YELLOW + "No free arena right now: you keep your place in the queue.");
             }
         }
         return false;
@@ -259,7 +259,7 @@ final class QueueController {
             GameMode mode = matchmaker.queueOf(player.getUniqueId());
             if (mode != null && mode.id().equals(modeId)) {
                 matchmaker.leave(player.getUniqueId());
-                player.sendMessage(ChatColor.RED + "La file " + mode.name() + ChatColor.RED + " est fermée.");
+                player.sendMessage(ChatColor.RED + "The queue for " + mode.name() + ChatColor.RED + " is closed.");
             }
         }
     }

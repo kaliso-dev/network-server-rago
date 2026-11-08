@@ -6,7 +6,7 @@
 //      the Duels NPC is a Steve holding a sword, out of the tab list, and a click on it opens Duels;
 //   2. RagoUn opens the selector with a right click, opens the Duels category, then clicks the sumo
 //      duel; RagoDeux types
-//      /file sumo;
+//      /queue sumo;
 //   3. the duel starts after a 3, 2, 1 countdown in titles: RagoUn walks up to RagoDeux and hits it once (knockback, no damage), then
 //      RagoDeux walks off the platform three times, so RagoUn wins 3 - 0;
 //   4. both come back to the lobby, and read their own stats above the stats NPC and on the
@@ -146,7 +146,7 @@ async function openSelectorAndJoinSumo (bot) {
   const window = await Promise.race([opened, sleep(5000).then(() => null)])
   if (window == null) throw new Error(`${bot.username}: the selector did not open on a right click`)
   const title = typeof window.title === 'string' ? window.title : JSON.stringify(window.title)
-  if (!title.includes('Modes de jeu')) throw new Error(`${bot.username}: unexpected window title ${title}`)
+  if (!title.includes('Game modes')) throw new Error(`${bot.username}: unexpected window title ${title}`)
   if (window.slots[DUELS_SLOT]?.name !== 'iron_sword') {
     throw new Error(`${bot.username}: slot ${DUELS_SLOT} holds ${window.slots[DUELS_SLOT]?.name}, not the Duels category`)
   }
@@ -161,7 +161,7 @@ async function openSelectorAndJoinSumo (bot) {
   const from = mark(bot)
   // The server cancels the click (the menu cannot be emptied): do not wait for its acceptance.
   bot.clickWindow(SUMO_SLOT, 0, 0).catch(() => {})
-  await chatLine(bot, /Tu es dans la file .*Duel sumo/, 5000, from)
+  await chatLine(bot, /You joined the queue for .*Sumo duel/, 5000, from)
   log(`${bot.username} joined the sumo queue from the selector`)
 }
 
@@ -211,14 +211,14 @@ async function expectFloating (bot, text, what) {
  * and a click on the stats NPC opens the stats menu.
  */
 async function checkStats (one, two) {
-  await expectFloating(one, 'Victoires : 1', 'the profile of the winner')
-  await expectFloating(one, 'Défaites : 0', 'the profile of the winner')
-  await expectFloating(two, 'Victoires : 0', 'the profile of the loser')
-  await expectFloating(two, 'Défaites : 1', 'the profile of the loser')
+  await expectFloating(one, 'Wins: 1', 'the profile of the winner')
+  await expectFloating(one, 'Losses: 0', 'the profile of the winner')
+  await expectFloating(two, 'Wins: 0', 'the profile of the loser')
+  await expectFloating(two, 'Losses: 1', 'the profile of the loser')
   await expectFloating(one, '1. RagoUn - 1', 'the wins of the day')
   await expectFloating(two, '1. RagoUn - 1', 'the wins of the day')
-  await expectFloating(one, 'Toi : #1 - 1', 'the place of the winner')
-  await expectFloating(two, 'Toi : pas encore classé', 'the place of the loser')
+  await expectFloating(one, 'You: #1 - 1', 'the place of the winner')
+  await expectFloating(two, 'You: not ranked yet', 'the place of the loser')
   const npc = npcAt(one, STATS_NPC)
   if (npc == null) throw new Error('RagoUn does not see the stats NPC')
   const opened = new Promise((resolve) => one.once('windowOpen', resolve))
@@ -226,10 +226,10 @@ async function checkStats (one, two) {
   const window = await Promise.race([opened, sleep(5000).then(() => null)])
   if (window == null) throw new Error('a click on the stats NPC did not open a menu')
   const title = typeof window.title === 'string' ? window.title : JSON.stringify(window.title)
-  if (!title.includes('Tes stats')) throw new Error(`the stats NPC opened ${title}`)
+  if (!title.includes('Your stats')) throw new Error(`the stats NPC opened ${title}`)
   const sumo = window.slots.find((item) => item?.name === 'slime_ball')
   const lore = JSON.stringify(sumo?.nbt ?? null)
-  if (!lore.includes('Victoires : §a1')) throw new Error(`no sumo win in the stats menu: ${lore}`)
+  if (!lore.includes('Wins: §a1')) throw new Error(`no sumo win in the stats menu: ${lore}`)
   one.closeWindow(window)
   log('stats: each bot reads its own profile, the leaderboard has RagoUn first, the menu opens')
 }
@@ -261,30 +261,30 @@ async function main () {
   await openSelectorAndJoinSumo(one)
   let fromOne = mark(one)
   let fromTwo = mark(two)
-  two.chat('/file sumo')
+  two.chat('/queue sumo')
 
   // 3. The duel.
-  await chatLine(one, /Duel sumo contre RagoDeux/, 10000, fromOne)
-  await chatLine(two, /Duel sumo contre RagoUn/, 10000, fromTwo)
+  await chatLine(one, /Sumo duel against RagoDeux/, 10000, fromOne)
+  await chatLine(two, /Sumo duel against RagoUn/, 10000, fromTwo)
   await waitFor(() => one.game.gameMode === 'survival' && two.game.gameMode === 'survival', 5000, 'survival mode in the duel')
   if (hotbarItem(one, 0) != null) throw new Error('the lobby items are still there in the duel')
   log('the duel started')
 
   for (let round = 1; round <= POINTS_TO_WIN; round++) {
-    await chatLine(two, /Combat !/, 10000, fromTwo)
+    await chatLine(two, /Fight!/, 10000, fromTwo)
     fromOne = mark(one)
     fromTwo = mark(two)
     if (round === 1) {
-      // The countdown is also shown as a big title: 3, 2, 1, Combat !, each one at once.
-      await waitFor(() => two.titles.includes('Combat !'), 2000, `the countdown titles; titles: ${JSON.stringify(two.titles)}`)
+      // The countdown is also shown as a big title: 3, 2, 1, Fight!, each one at once.
+      await waitFor(() => two.titles.includes('Fight!'), 2000, `the countdown titles; titles: ${JSON.stringify(two.titles)}`)
       const countdown = two.titles.slice(-4)
-      if (JSON.stringify(countdown) !== JSON.stringify(['3', '2', '1', 'Combat !'])) {
+      if (JSON.stringify(countdown) !== JSON.stringify(['3', '2', '1', 'Fight!'])) {
         throw new Error(`unexpected countdown titles: ${JSON.stringify(two.titles)}`)
       }
       if (!two.titleTimes.some(([fadeIn]) => fadeIn === 0)) {
         throw new Error(`the countdown titles do not show at once; timings: ${JSON.stringify(two.titleTimes)}`)
       }
-      log('countdown: titles 3, 2, 1, Combat !')
+      log('countdown: titles 3, 2, 1, Fight!')
       // RagoUn walks to RagoDeux and hits it once: knockback, but no damage.
       const target = playerEntity(one, two)
       if (target == null) throw new Error('RagoUn does not see RagoDeux in the duel')
@@ -301,13 +301,13 @@ async function main () {
       log('hit: RagoDeux got knockback and no damage')
     }
     await fallOff(two)
-    await chatLine(two, /Point pour RagoUn/, 10000, fromTwo)
+    await chatLine(two, /Point for RagoUn/, 10000, fromTwo)
     stop(two)
-    await chatLine(one, /Point pour toi/, 5000, fromOne)
+    await chatLine(one, /Your point/, 5000, fromOne)
     log(`round ${round}: RagoDeux fell, point for RagoUn`)
   }
-  await chatLine(one, /Victoire !.*3 - 0/, 5000, fromOne)
-  await chatLine(two, /Défaite.*0 - 3/, 5000, fromTwo)
+  await chatLine(one, /Victory!.*3 - 0/, 5000, fromOne)
+  await chatLine(two, /Defeat.*0 - 3/, 5000, fromTwo)
   log('RagoUn won 3 - 0')
 
   // 4. Back to the lobby.
@@ -319,26 +319,27 @@ async function main () {
   // 5. A forfeit.
   fromOne = mark(one)
   fromTwo = mark(two)
-  one.chat('/file sumo')
+  one.chat('/queue sumo')
+  // The French name of the first version still works.
   two.chat('/file sumo')
-  await chatLine(one, /Duel sumo contre RagoDeux/, 10000, fromOne)
-  await chatLine(two, /Duel sumo contre RagoUn/, 10000, fromTwo)
+  await chatLine(one, /Sumo duel against RagoDeux/, 10000, fromOne)
+  await chatLine(two, /Sumo duel against RagoUn/, 10000, fromTwo)
   one.chat('/spawn')
   await expectInLobby(one, 'after /spawn in a duel')
-  await chatLine(two, /Victoire !.*RagoUn a abandonné/, 5000, fromTwo)
+  await chatLine(two, /Victory!.*RagoUn gave up/, 5000, fromTwo)
   await expectInLobby(two, 'after winning by forfeit')
   log('/spawn in a duel: RagoUn is back in the lobby, RagoDeux wins by forfeit')
 
-  // 6. A friendly challenge: /duel, then /duel accepter (the clickable button runs the same).
+  // 6. A friendly challenge: /duel, then /duel accept (the clickable button runs the same).
   fromOne = mark(one)
   fromTwo = mark(two)
   one.chat('/duel RagoDeux sumo')
-  await chatLine(two, /RagoUn te défie en .*Duel sumo/, 5000, fromTwo)
-  two.chat('/duel accepter RagoUn')
-  await chatLine(one, /Duel sumo contre RagoDeux/, 10000, fromOne)
-  await chatLine(two, /Duel sumo contre RagoUn/, 10000, fromTwo)
+  await chatLine(two, /RagoUn challenges you to .*Sumo duel/, 5000, fromTwo)
+  two.chat('/duel accept RagoUn')
+  await chatLine(one, /Sumo duel against RagoDeux/, 10000, fromOne)
+  await chatLine(two, /Sumo duel against RagoUn/, 10000, fromTwo)
   two.chat('/spawn')
-  await chatLine(one, /Victoire !.*RagoDeux a abandonné/, 5000, fromOne)
+  await chatLine(one, /Victory!.*RagoDeux gave up/, 5000, fromOne)
   await expectInLobby(one, 'after the /duel match')
   await expectInLobby(two, 'after /spawn in the /duel match')
   log('/duel: RagoDeux accepted, the duel started without the queue')

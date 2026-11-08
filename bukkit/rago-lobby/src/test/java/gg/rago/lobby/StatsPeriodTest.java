@@ -23,11 +23,11 @@ class StatsPeriodTest {
     @Test
     void saysWhenThePeriodStartsAgain() {
         long evening = at(2026, 11, 8, 22, 30);
-        assertEquals("Remise à zéro dans 2 h", StatsPeriod.DAY.resetText(evening));
-        assertEquals("Remise à zéro dans 2 h", StatsPeriod.WEEK.resetText(evening));
-        assertEquals("Remise à zéro dans 15 min", StatsPeriod.DAY.resetText(at(2026, 11, 8, 23, 45)));
-        assertEquals("Remise à zéro dans 7 jours", StatsPeriod.WEEK.resetText(at(2026, 11, 9, 0, 0)));
-        assertEquals("Jamais remis à zéro", StatsPeriod.ALL.resetText(evening));
+        assertEquals("Resets in 2 h", StatsPeriod.DAY.resetText(evening));
+        assertEquals("Resets in 2 h", StatsPeriod.WEEK.resetText(evening));
+        assertEquals("Resets in 15 min", StatsPeriod.DAY.resetText(at(2026, 11, 8, 23, 45)));
+        assertEquals("Resets in 7 days", StatsPeriod.WEEK.resetText(at(2026, 11, 9, 0, 0)));
+        assertEquals("Never resets", StatsPeriod.ALL.resetText(evening));
         assertEquals(StatsPeriod.WEEK, StatsPeriod.DAY.next());
         assertEquals(StatsPeriod.DAY, StatsPeriod.ALL.next());
     }

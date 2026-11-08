@@ -2,27 +2,29 @@ name: RagoBuildTools
 version: ${version}
 main: gg.rago.buildtools.RagoBuildTools
 author: Rago
-description: Outils de build du serveur de test Rago (mondes vides, créatif, protection, enregistrement fréquent).
+description: Build tools of the Rago test server (empty worlds, creative, protection, frequent saving).
 commands:
   monde:
-    description: Lister, créer, importer et visiter les mondes de build.
-    usage: /monde <liste|creer|importer|tp|spawn|sauver>
+    description: List, create, import and visit the build worlds.
+    usage: /monde <list|create|import|tp|spawn|save>
+    aliases: [world, worlds]
     permission: rago.build.admin
-    permission-message: Commande réservée aux constructeurs.
+    permission-message: This command is for the builders.
   vitesse:
-    description: Vitesse de vol, de 1 (normale) à 10.
-    usage: /vitesse <1-10>
+    description: Flying speed, from 1 (normal) to 10.
+    usage: /speed <1-10>
+    aliases: [speed]
     permission: rago.build.admin
-    permission-message: Commande réservée aux constructeurs.
+    permission-message: This command is for the builders.
   nv:
-    description: Active ou enlève la vision nocturne.
+    description: Turns night vision on or off.
     usage: /nv
     permission: rago.build.admin
-    permission-message: Commande réservée aux constructeurs.
+    permission-message: This command is for the builders.
 permissions:
   rago.build.admin:
-    description: Gérer les mondes de build et utiliser /vitesse et /nv.
+    description: Manage the build worlds and use /speed and /nv.
     default: op
   rago.build.construire:
-    description: Poser et casser des blocs dans les mondes protégés.
+    description: Place and break blocks in the protected worlds.
     default: op

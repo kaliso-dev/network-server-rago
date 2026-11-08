@@ -22,7 +22,7 @@ import org.bukkit.inventory.meta.ItemMeta;
  */
 final class ModeMenu {
 
-    static final String TITLE = "Modes de jeu";
+    static final String TITLE = "Game modes";
     private static final int PER_ROW = 7;
 
     /**
@@ -59,10 +59,10 @@ final class ModeMenu {
         this.duels = duels;
     }
 
-    /** /duel <joueur>: the 1v1 modes, a click challenges that player. */
+    /** /duel <player>: the 1v1 modes, a click challenges that player. */
     void openDuel(Player player, Player target) {
         show(player, Holder.DUEL + target.getUniqueId(), 2 + rowsFor(duels.duelModes().size()),
-                "Défier " + (target.getName().length() > 24 ? target.getName().substring(0, 24) : target.getName()));
+                "Duel " + (target.getName().length() > 24 ? target.getName().substring(0, 24) : target.getName()));
     }
 
     ModeMenu(LobbySettings settings, QueueController queues) {
@@ -225,7 +225,7 @@ final class ModeMenu {
         if (hasBack(view)) {
             ItemStack back = new ItemStack(Material.ARROW);
             ItemMeta meta = back.getItemMeta();
-            meta.setDisplayName(ChatColor.GRAY + "Retour aux catégories");
+            meta.setDisplayName(ChatColor.GRAY + "Back to the categories");
             back.setItemMeta(meta);
             inventory.setItem(backSlot(inventory.getSize()), back);
         }
@@ -246,11 +246,11 @@ final class ModeMenu {
             here |= display.mode().equals(current);
         }
         lore.add("");
-        lore.add(ChatColor.GRAY + "" + modes.size() + " modes, " + ChatColor.WHITE + waiting + ChatColor.GRAY + " en file");
+        lore.add(ChatColor.GRAY + "" + modes.size() + " modes, " + ChatColor.WHITE + waiting + ChatColor.GRAY + " in queue");
         if (here) {
-            lore.add(ChatColor.YELLOW + "Tu es dans une file de cette catégorie");
+            lore.add(ChatColor.YELLOW + "You are in a queue of this category");
         }
-        lore.add(ChatColor.GREEN + "Clic pour voir les modes");
+        lore.add(ChatColor.GREEN + "Click to see the modes");
         meta.setLore(lore);
         item.setItemMeta(meta);
         return item;
@@ -262,16 +262,16 @@ final class ModeMenu {
         ItemMeta meta = item.getItemMeta();
         meta.setDisplayName(mode.name());
         List<String> lore = new ArrayList<>();
-        lore.add(ChatColor.DARK_GRAY + mode.format() + (mode.ranked() ? " · classé" : ""));
+        lore.add(ChatColor.DARK_GRAY + mode.format() + (mode.ranked() ? " · ranked" : ""));
         lore.add("");
         lore.addAll(display.description());
         lore.add("");
         if (!queues.isPlayable(mode.id())) {
-            lore.add(ChatColor.GRAY + "Bientôt disponible");
+            lore.add(ChatColor.GRAY + "Coming soon");
         } else {
-            lore.add(ChatColor.GRAY + "En file : " + ChatColor.WHITE + queues.waiting(mode.id()));
-            lore.add(waitingHere ? ChatColor.YELLOW + "Tu es dans cette file : clic pour la quitter"
-                    : ChatColor.GREEN + "Clic pour rejoindre la file");
+            lore.add(ChatColor.GRAY + "In queue: " + ChatColor.WHITE + queues.waiting(mode.id()));
+            lore.add(waitingHere ? ChatColor.YELLOW + "You are in this queue: click to leave it"
+                    : ChatColor.GREEN + "Click to join the queue");
         }
         meta.setLore(lore);
         item.setItemMeta(meta);

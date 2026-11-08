@@ -10,7 +10,7 @@ Un plugin Bukkit 1.8.8 qui joue des modes du lobby (`bukkit/rago-lobby`). Pour l
 - Pas de dégâts : les coups ne font que du knockback, celui de RagoCombatEngine.
 - Chaque manche commence par un compte à rebours de 3 secondes, joueurs immobiles, face à face à
   6 blocs l'un de l'autre. Le décompte s'affiche en grand au milieu de l'écran (3, 2, 1,
-  « Combat ! ») et dans le chat.
+  « Fight! ») et dans le chat.
 - Quitter le serveur ou taper `/spawn` pendant le duel, c'est perdre par abandon.
 - À la fin, les deux joueurs reviennent au lobby tout de suite.
 

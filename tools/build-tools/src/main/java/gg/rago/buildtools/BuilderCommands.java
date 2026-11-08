@@ -24,7 +24,7 @@ final class BuilderCommands implements TabExecutor {
     @Override
     public boolean onCommand(CommandSender sender, Command command, String label, String[] args) {
         if (!(sender instanceof Player)) {
-            sender.sendMessage("Commande réservée aux joueurs.");
+            sender.sendMessage("Only players can use this command.");
             return true;
         }
         Player player = (Player) sender;
@@ -39,12 +39,12 @@ final class BuilderCommands implements TabExecutor {
     private static void speed(Player player, String label, String[] args) {
         Integer speed = args.length == 1 ? parseSpeed(args[0]) : null;
         if (speed == null) {
-            player.sendMessage(PREFIX + "Utilisation : /" + label + " <" + MIN_SPEED + "-" + MAX_SPEED
-                    + "> (1 est la vitesse normale de vol)");
+            player.sendMessage(PREFIX + "Usage: /" + label + " <" + MIN_SPEED + "-" + MAX_SPEED
+                    + "> (1 is the normal flying speed)");
             return;
         }
         player.setFlySpeed(flySpeed(speed));
-        player.sendMessage(PREFIX + "Vitesse de vol : " + speed + ".");
+        player.sendMessage(PREFIX + "Flying speed: " + speed + ".");
     }
 
     /** The value Minecraft expects for a speed from 1 (its normal flying speed, 0.1) to 10 (1.0). */
@@ -65,10 +65,10 @@ final class BuilderCommands implements TabExecutor {
     private static void nightVision(Player player) {
         if (player.hasPotionEffect(PotionEffectType.NIGHT_VISION)) {
             player.removePotionEffect(PotionEffectType.NIGHT_VISION);
-            player.sendMessage(PREFIX + "Vision nocturne désactivée.");
+            player.sendMessage(PREFIX + "Night vision off.");
         } else {
             player.addPotionEffect(new PotionEffect(PotionEffectType.NIGHT_VISION, Integer.MAX_VALUE, 0, true, false));
-            player.sendMessage(PREFIX + "Vision nocturne activée (tape /nv pour l'enlever).");
+            player.sendMessage(PREFIX + "Night vision on (type /nv to remove it).");
         }
     }
 

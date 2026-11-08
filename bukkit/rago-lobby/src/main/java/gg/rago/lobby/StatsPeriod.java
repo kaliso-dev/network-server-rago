@@ -14,9 +14,9 @@ import java.time.temporal.TemporalAdjusters;
  */
 enum StatsPeriod {
 
-    DAY("du jour"),
-    WEEK("de la semaine"),
-    ALL("à vie");
+    DAY("Daily"),
+    WEEK("Weekly"),
+    ALL("Lifetime");
 
     static final ZoneId ZONE = ZoneId.of("Europe/Paris");
 
@@ -26,7 +26,7 @@ enum StatsPeriod {
         this.label = label;
     }
 
-    /** "du jour", "de la semaine", "à vie". */
+    /** "Daily", "Weekly", "Lifetime". */
     String label() {
         return label;
     }
@@ -65,20 +65,20 @@ enum StatsPeriod {
         return next.toInstant().toEpochMilli() - millis;
     }
 
-    /** "Remise à zéro dans 5 h", "dans 12 min", or "Jamais remis à zéro". */
+    /** "Resets in 5 h", "Resets in 12 min", or "Never resets". */
     String resetText(long millis) {
         long left = untilReset(millis);
         if (left < 0) {
-            return "Jamais remis à zéro";
+            return "Never resets";
         }
         long minutes = Math.max(1L, (left + 59_999L) / 60_000L);
         if (minutes >= 48 * 60) {
-            return "Remise à zéro dans " + (minutes + 24 * 60 - 1) / (24 * 60) + " jours";
+            return "Resets in " + (minutes + 24 * 60 - 1) / (24 * 60) + " days";
         }
         if (minutes >= 60) {
-            return "Remise à zéro dans " + (minutes + 59) / 60 + " h";
+            return "Resets in " + (minutes + 59) / 60 + " h";
         }
-        return "Remise à zéro dans " + minutes + " min";
+        return "Resets in " + minutes + " min";
     }
 
     private static LocalDate date(long millis) {

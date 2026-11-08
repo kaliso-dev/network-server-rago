@@ -75,10 +75,10 @@ final class StatsDisplays {
         PlayerStats stats = book.get(viewer.getUniqueId());
         List<String> lines = new ArrayList<>();
         lines.add(npc.name());
-        lines.add(ChatColor.GRAY + "Victoires : " + ChatColor.GREEN + (stats == null ? 0 : stats.wins(StatsPeriod.ALL, null, day, week)));
-        lines.add(ChatColor.GRAY + "Défaites : " + ChatColor.RED + (stats == null ? 0 : stats.losses()));
-        lines.add(ChatColor.GRAY + "Meilleure série : " + ChatColor.YELLOW + (stats == null ? 0 : stats.best(StatsPeriod.ALL, null, day, week)));
-        lines.add(ChatColor.GRAY + "Victoires aujourd'hui : " + ChatColor.GREEN
+        lines.add(ChatColor.GRAY + "Wins: " + ChatColor.GREEN + (stats == null ? 0 : stats.wins(StatsPeriod.ALL, null, day, week)));
+        lines.add(ChatColor.GRAY + "Losses: " + ChatColor.RED + (stats == null ? 0 : stats.losses()));
+        lines.add(ChatColor.GRAY + "Best win streak: " + ChatColor.YELLOW + (stats == null ? 0 : stats.best(StatsPeriod.ALL, null, day, week)));
+        lines.add(ChatColor.GRAY + "Wins today: " + ChatColor.GREEN
                 + (stats == null ? 0 : stats.wins(StatsPeriod.DAY, null, day, week)));
         // The ELO of the ranked modes, two per line.
         for (int i = 0; i < 4; i += 2) {
@@ -88,12 +88,12 @@ final class StatsDisplays {
                     line.append(ChatColor.DARK_GRAY).append(" · ");
                 }
                 GameMode mode = ranked.get(j);
-                line.append(ChatColor.GRAY).append("Elo ").append(StatsMenu.shortName(mode)).append(" : ")
+                line.append(ChatColor.GRAY).append("Elo ").append(StatsMenu.shortName(mode)).append(": ")
                         .append(ChatColor.AQUA).append(book.elo(viewer.getUniqueId(), mode.id()));
             }
             lines.add(line.toString());
         }
-        lines.add(ChatColor.YELLOW + "" + ChatColor.BOLD + "CLIQUE POUR TES STATS");
+        lines.add(ChatColor.YELLOW + "" + ChatColor.BOLD + "CLICK FOR YOUR STATS");
         return lines;
     }
 
@@ -134,9 +134,9 @@ final class StatsDisplays {
         List<String> lines = new ArrayList<>();
         lines.add(ChatColor.AQUA + "" + ChatColor.BOLD + stat.title());
         if (stat.periodic()) {
-            lines.add(ChatColor.GRAY + "Tous les modes " + ChatColor.DARK_GRAY + "· " + ChatColor.WHITE + period.label());
+            lines.add(ChatColor.GRAY + "All modes " + ChatColor.DARK_GRAY + "· " + ChatColor.WHITE + period.label());
         } else {
-            lines.add(ChatColor.GRAY + (mode == null ? "Aucun mode classé" : ChatColor.stripColor(mode.name())));
+            lines.add(ChatColor.GRAY + (mode == null ? "No ranked mode" : ChatColor.stripColor(mode.name())));
         }
         lines.add("");
         StatsBook.Ranking ranking = stat.periodic() || mode != null
@@ -148,19 +148,19 @@ final class StatsDisplays {
                 lines.add(ChatColor.YELLOW + "" + (i + 1) + ". " + ChatColor.WHITE + row.name() + ChatColor.GRAY + " - "
                         + ChatColor.YELLOW + row.value());
             } else if (i == 0) {
-                lines.add(ChatColor.GRAY + "Personne pour l'instant");
+                lines.add(ChatColor.GRAY + "Nobody yet");
             } else {
                 lines.add("");
             }
         }
         lines.add("");
         StatsBook.Row own = ranking == null ? null : ranking.rowOf(viewer.getUniqueId());
-        lines.add(own == null ? ChatColor.GRAY + "Toi : " + ChatColor.DARK_GRAY + "pas encore classé"
-                : ChatColor.GRAY + "Toi : " + ChatColor.YELLOW + "#" + ranking.position(viewer.getUniqueId())
+        lines.add(own == null ? ChatColor.GRAY + "You: " + ChatColor.DARK_GRAY + "not ranked yet"
+                : ChatColor.GRAY + "You: " + ChatColor.YELLOW + "#" + ranking.position(viewer.getUniqueId())
                         + ChatColor.GRAY + " - " + ChatColor.YELLOW + own.value());
         lines.add("");
-        lines.add(ChatColor.GRAY + (stat.periodic() ? period.resetText(now) : "Elo de la saison"));
-        lines.add(ChatColor.GOLD + (stat.periodic() ? "Clique pour changer la période" : "Clique pour changer de mode"));
+        lines.add(ChatColor.GRAY + (stat.periodic() ? period.resetText(now) : "Season Elo"));
+        lines.add(ChatColor.GOLD + (stat.periodic() ? "Click to change the period" : "Click to change the mode"));
         return lines;
     }
 

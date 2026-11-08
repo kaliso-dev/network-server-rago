@@ -4,13 +4,13 @@ package gg.rago.lobby;
 enum BoardStat {
 
     /** Games won, of the day, of the week or ever: a click changes the period. */
-    WINS("victoires", "Victoires", true),
+    WINS("victoires", "Wins", true),
     /** Games played, of the day, of the week or ever. */
-    GAMES("parties", "Parties jouées", true),
+    GAMES("parties", "Games played", true),
     /** The longest run of wins reached during the day, the week or ever. */
-    STREAK("series", "Meilleure série", true),
+    STREAK("series", "Best win streak", true),
     /** The ELO of a ranked mode: a click changes the mode. */
-    ELO("elo", "Elo Ranked", false);
+    ELO("elo", "Ranked Elo", false);
 
     private final String key;
     private final String title;

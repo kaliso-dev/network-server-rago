@@ -245,6 +245,6 @@ final class LobbyListener implements Listener {
     }
 
     static String noPermission() {
-        return ChatColor.RED + "Commande réservée au staff.";
+        return ChatColor.RED + "This command is for the staff.";
     }
 }

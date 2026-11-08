@@ -95,14 +95,14 @@ final class LobbyScoreboard {
     private List<String> lines(Player player) {
         List<String> lines = new ArrayList<>();
         lines.add(blank(0));
-        lines.add(ChatColor.WHITE + "Joueurs : " + ChatColor.GREEN + Bukkit.getOnlinePlayers().size());
+        lines.add(ChatColor.WHITE + "Players: " + ChatColor.GREEN + Bukkit.getOnlinePlayers().size());
         lines.add(blank(1));
         GameMode mode = queues.queueOf(player);
         if (mode == null) {
-            lines.add(ChatColor.WHITE + "File : " + ChatColor.GRAY + "aucune");
+            lines.add(ChatColor.WHITE + "Queue: " + ChatColor.GRAY + "none");
         } else {
-            lines.add(cut(ChatColor.WHITE + "File : " + mode.name()));
-            lines.add(ChatColor.WHITE + "Attente : " + ChatColor.YELLOW
+            lines.add(cut(ChatColor.WHITE + "Queue: " + mode.name()));
+            lines.add(ChatColor.WHITE + "Waiting: " + ChatColor.YELLOW
                     + clock(queues.waited(player, System.currentTimeMillis())));
         }
         lines.add(blank(2));

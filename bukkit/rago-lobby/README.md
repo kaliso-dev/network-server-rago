@@ -22,16 +22,20 @@ dans les files d'attente des modes de jeu.
 
 ## Commandes
 
+Le jeu est en anglais : les messages, les menus, les PNJ et les commandes. Les mots français de la
+première version (`quitter`, `accepter`, `refuser`, `retirer`) marchent toujours. Les noms et les
+descriptions des modes sont dans `config.yml`, où ses clés et ses commentaires restent en français.
+
 | Commande | Effet | Permission |
 | --- | --- | --- |
 | `/spawn` (ou `/hub`) | retour au spawn ; pendant une partie, c'est un abandon | tout le monde |
-| `/file <mode>`, `/file quitter` | entrer dans une file, en sortir | tout le monde |
+| `/queue <mode>`, `/queue leave` (ou `/file`, `/q`) | entrer dans une file, en sortir | tout le monde |
 | `/duel <joueur> [mode]` | défier un joueur du lobby dans un mode 1v1 (sans mode : un menu des modes 1v1) | tout le monde |
-| `/duel accepter <joueur>`, `/duel refuser <joueur>` | répondre à un défi (valable une minute) | tout le monde |
+| `/duel accept <joueur>`, `/duel deny <joueur>` | répondre à un défi (valable une minute) | tout le monde |
 | `/lobby modes` | les modes et leur file (aussi depuis la console) | tout le monde |
 | `/lobby setspawn` | place le spawn du lobby là où tu es (écrit dans `spawn.yml`, dans le dossier du monde du lobby) | `rago.lobby.admin` |
 | `/lobby point <nom>` | place ou déplace un point nommé là où tu es : où iront les PNJ des modes, les classements, les décorations (écrit dans `points.yml`, dans le dossier du monde) | `rago.lobby.admin` |
-| `/lobby point retirer <nom>`, `/lobby point tp <nom>`, `/lobby points` | retirer un point, y aller, la liste | `rago.lobby.admin` |
+| `/lobby point remove <nom>`, `/lobby point tp <nom>`, `/lobby points` | retirer un point, y aller, la liste | `rago.lobby.admin` |
 | `/lobby build` | mode construction dans le lobby (créatif, protection levée) | `rago.lobby.admin` |
 
 ## Configuration
@@ -59,7 +63,7 @@ générateur vide ; un monde de build peut donc servir de lobby.
   PNJ réapparaissent quand un point bouge.
 - `pnj:` avec `type: stats` place un PNJ de stats : un Steve qui tient un livre, avec au-dessus
   le profil de celui qui le regarde (victoires, défaites, meilleure série, victoires du jour, ELO
-  de chaque mode classé). Chaque joueur lit le sien. Un clic ouvre « Tes stats » : la tête du
+  de chaque mode classé). Chaque joueur lit le sien. Un clic ouvre « Your stats » : la tête du
   joueur avec ses totaux, puis chaque mode avec ses stats (survoler un mode pour les lire).
 - `classements:` place un mur de classements sur un point : de 1 à 5 tableaux côte à côte, face au
   spawn (`tableaux: [victoires, series, parties, elo]`). Chaque tableau montre le top 10, la place
