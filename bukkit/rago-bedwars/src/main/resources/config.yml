@@ -1,0 +1,48 @@
+# RagoBedwars: the Bed Wars modes of the lobby, with the rules of a classic Hypixel game.
+# Each game is played in a copy of its map (bw_<map>_<n>), made ready again after the game; the
+# maps themselves are set up with /bw (see the README of the plugin).
+
+# The lobby modes this plugin plays: their ids in the lobby's config.yml. Each needs a map with at
+# least as many complete teams as the mode has teams.
+modes:
+  - ranked-1v1
+  - ranked-2v2
+  - ranked-3v3
+  - ranked-4v4
+
+# How many game worlds the server keeps at most, so how many games at once (from 1 to 50).
+parties-max: 8
+
+# true: the plugin creates its own demo map, bw-demo, the first time (two islands, a middle with an
+# emerald generator, two diamond islands), so that a game can be played before any real map.
+carte-demo: true
+
+# Seconds before a dead player comes back, while their team's bed stands (from 0 to 30).
+reapparition-secondes: 5
+
+# The generators: one item every so many seconds, at most so many lying on it. The diamond and
+# emerald generators have three tiers (I, II, III), faster and faster.
+generateurs:
+  fer:
+    secondes: 1.0
+    max: 48
+  or:
+    secondes: 6.0
+    max: 16
+  diamant:
+    secondes: [30, 23, 12]
+    max: 4
+  emeraude:
+    secondes: [65, 50, 35]
+    max: 2
+
+# When things happen, in minutes of game, each after the one above it: the diamond and emerald
+# generators go up a tier, the beds left are destroyed (nobody respawns any more), and the game
+# ends in a draw.
+evenements:
+  diamant-2: 6
+  emeraude-2: 12
+  diamant-3: 18
+  emeraude-3: 24
+  fin-des-lits: 30
+  fin-de-partie: 45

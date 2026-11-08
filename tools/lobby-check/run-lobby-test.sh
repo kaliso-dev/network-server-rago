@@ -2,10 +2,11 @@
 # Lobby and sumo test on a real PandaSpigot 1.8.8 server, on this machine.
 #
 # 1. downloads PandaSpigot (cached, the same build as the KB control test) and PacketEvents, and
-#    sets up an offline-mode server bound to 127.0.0.1 with RagoCombatEngine, RagoLobby and
-#    RagoPractice;
+#    sets up an offline-mode server bound to 127.0.0.1 with RagoCombatEngine, RagoLobby,
+#    RagoPractice and RagoBedwars;
 # 2. lets two bots (tools/kb-control/bots/lobby-bots.mjs) go through the lobby, the selector, the
-#    queue, a sumo duel won 3 - 0, the return to the lobby and a forfeit;
+#    queue, a sumo duel won 3 - 0, the return to the lobby, a forfeit, and a game of Ranked
+#    Bedwars 1v1 on the demo map of RagoBedwars;
 # 3. fails if the bots fail, or if the server log has an error or an exception.
 #
 # Run from anywhere, after the build:
@@ -53,6 +54,7 @@ jar_of() {
 ENGINE_JAR=$(jar_of combat/rago-combat-engine)
 LOBBY_JAR=$(jar_of bukkit/rago-lobby)
 PRACTICE_JAR=$(jar_of bukkit/rago-practice)
+BEDWARS_JAR=$(jar_of bukkit/rago-bedwars)
 [[ -d "$ROOT/tools/kb-control/bots/node_modules/mineflayer" ]] || fail "bot dependencies missing (run npm ci in tools/kb-control/bots)"
 
 if (exec 3<>"/dev/tcp/127.0.0.1/$PORT") 2>/dev/null; then
@@ -86,6 +88,7 @@ cp "$PACKETEVENTS_JAR" "$SERVER_DIR/plugins/packetevents.jar"
 cp "$ENGINE_JAR" "$SERVER_DIR/plugins/RagoCombatEngine.jar"
 cp "$LOBBY_JAR" "$SERVER_DIR/plugins/RagoLobby.jar"
 cp "$PRACTICE_JAR" "$SERVER_DIR/plugins/RagoPractice.jar"
+cp "$BEDWARS_JAR" "$SERVER_DIR/plugins/RagoBedwars.jar"
 echo "eula=true" >"$SERVER_DIR/eula.txt"
 
 # The settings of the local test server (tools/local-server), in offline mode for the bots.
@@ -171,14 +174,21 @@ if [[ "$started" != true ]]; then
   fail "the server did not start"
 fi
 for expected in '[RagoLobby] Lobby in the world lobby' 'Mode sumo hosted by RagoPractice' \
-    '[RagoPractice] Arenas in the world arenes'; do
+    '[RagoPractice] Arenas in the world arenes' '[RagoBedwars] Demo map bw-demo created' \
+    'Mode ranked-1v1 hosted by RagoBedwars' '[RagoBedwars] Bed Wars maps ready: bw-demo;'; do
   server_log_has "$expected" || { grep -n 'Rago' "$SERVER_LOG" >&2 || true; fail "missing in the server log: $expected"; }
 done
-log "server started with the lobby and the sumo duel"
+log "server started with the lobby, the sumo duel and Bed Wars"
 
 bots_status=0
 KB_HOST=127.0.0.1 KB_PORT=$PORT node "$ROOT/tools/kb-control/bots/lobby-bots.mjs" || bots_status=$?
 stop_server
+# The Bed Wars game was played in a copy of the demo map, made when the server started, and the
+# copy is deleted when the server stops.
+server_log_has '[RagoBedwars] Game world bw_bw-demo_1 ready (map bw-demo)' \
+  || { grep -n 'RagoBedwars' "$SERVER_LOG" >&2 || true; fail "no copy of the demo map was made"; }
+[[ ! -e "$SERVER_DIR/bw_bw-demo_1" ]] || fail "the game world bw_bw-demo_1 was not deleted when the server stopped"
+[[ -f "$SERVER_DIR/bw-demo/bedwars.yml" ]] || fail "the demo map has no bedwars.yml"
 
 # Any error or exception logged by the server fails the test, even if the bots passed. One is
 # left out: the PacketEvents plugin always asks GitHub for its latest version, and GitHub often

@@ -32,6 +32,8 @@ final class LobbyScoreboard {
 
     /** Entries of a 1.8 scoreboard are 40 characters at most. */
     private static final int MAX_LINE = 40;
+    /** A sidebar shows 15 lines: a game gives 12, around the first blank and the address. */
+    static final int MAX_GAME_LINES = 12;
 
     /** Team names are 16 characters at most, team prefixes too. */
     private static final int MAX_TEAM = 16;
@@ -50,6 +52,8 @@ final class LobbyScoreboard {
     private final LobbyState state;
     private final Map<UUID, Scoreboard> boards = new HashMap<>();
     private final Map<UUID, List<String>> shown = new HashMap<>();
+    /** The lines a game gave for its players (LobbyService#setGameSidebar). */
+    private final Map<UUID, List<String>> gameLines = new HashMap<>();
 
     LobbyScoreboard(LobbySettings settings, QueueController queues, StatsBook book, LobbyState state) {
         this.settings = settings;
@@ -176,6 +180,16 @@ final class LobbyScoreboard {
     void forget(UUID player) {
         boards.remove(player);
         shown.remove(player);
+        gameLines.remove(player);
+    }
+
+    /** The lines a game shows in the player's sidebar, or null for the lobby's own game lines. */
+    void setGameLines(UUID player, List<String> lines) {
+        if (lines == null) {
+            gameLines.remove(player);
+        } else {
+            gameLines.put(player, new ArrayList<>(lines));
+        }
     }
 
     /** The lines, top to bottom. Blank lines differ by an invisible colour code. */
@@ -214,6 +228,10 @@ final class LobbyScoreboard {
 
     /** In a game: the mode, the player's ping, and in a 1v1 the opponent and their ping. */
     private List<String> gameLines(Player player, String modeId) {
+        List<String> given = gameLines.get(player.getUniqueId());
+        if (given != null) {
+            return givenLines(given, settings.address());
+        }
         List<String> lines = new ArrayList<>();
         lines.add(blank(0));
         GameMode mode = settings.catalog().get(modeId);
@@ -233,6 +251,26 @@ final class LobbyScoreboard {
         }
         lines.add(blank(2));
         lines.add(cut(settings.address()));
+        return lines;
+    }
+
+    /**
+     * The lines a game gave, as sidebar entries: an entry shows once, so a blank line or a line
+     * already there gets an invisible colour code of its own.
+     */
+    static List<String> givenLines(List<String> given, String address) {
+        List<String> lines = new ArrayList<>();
+        lines.add(blank(0));
+        int unique = 4;
+        for (String line : given.subList(0, Math.min(given.size(), MAX_GAME_LINES))) {
+            String text = line == null ? "" : line;
+            if (text.isEmpty() || lines.contains(cut(text))) {
+                text = (text.length() > MAX_LINE - 4 ? text.substring(0, MAX_LINE - 4) : text) + blank(unique++);
+            }
+            lines.add(cut(text));
+        }
+        lines.add(blank(2));
+        lines.add(cut(address));
         return lines;
     }
 

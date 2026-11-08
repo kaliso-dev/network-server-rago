@@ -19,7 +19,14 @@
 //      Elo to the kills (a left click: the kills of the week) and to the Network level; the sumo of
 //      the Duels NPC shows RagoUn first in the top win streaks of the day;
 //   5. a second duel, which RagoUn leaves with /spawn: RagoDeux wins by forfeit;
-//   6. RagoUn challenges RagoDeux with /duel, RagoDeux accepts, then leaves with /spawn.
+//   6. RagoUn challenges RagoDeux with /duel, RagoDeux accepts, then leaves with /spawn;
+//   7. a game of Ranked Bedwars 1v1 on the demo map of RagoBedwars: both type /queue ranked-1v1,
+//      start on their islands with a wooden sword and leather armour, the sidebar lists the teams;
+//      after "Fight!" they pick up the iron of their generator standing on their spawn, RagoUn opens
+//      the item shop villager and buys wool from its Quick Buy, cannot place it near its spawn,
+//      places it by its bed and breaks it again, cannot break its own bed; RagoDeux walks off its
+//      island, dies in the void and respawns (its bed stands), then leaves with /spawn: RagoUn
+//      wins, and both are back in the lobby.
 //
 // Environment: KB_HOST (127.0.0.1), KB_PORT (25565).
 
@@ -28,7 +35,7 @@ import mineflayer from 'mineflayer'
 
 const HOST = process.env.KB_HOST ?? '127.0.0.1'
 const PORT = Number(process.env.KB_PORT ?? '25565')
-const TEST_TIMEOUT_MS = 5 * 60 * 1000
+const TEST_TIMEOUT_MS = 7 * 60 * 1000
 // A new lobby world has a platform at y = 64: players stand at y = 65, at the centre.
 const LOBBY_SPAWN = { x: 0.5, y: 65, z: 0.5 }
 // The bundled config.yml has three categories, centred in the middle row: Duels is the first, in
@@ -414,6 +421,125 @@ async function checkStats (one, two) {
   await checkTopStreak(two)
 }
 
+// The demo map of RagoBedwars (bw-demo): the red island in the west, the blue one in the east,
+// mirrored. Each team's spawn is at x = 32.5 on its side (33.5 for blue), its generator one block
+// behind, its bed (foot, then head) at x = 27 and 28, the item shop villager at z = 4.5.
+const BEDWARS_FLOOR = 64
+
+/** -1 on the red island (west), +1 on the blue one. */
+function islandSide (bot) {
+  return bot.entity.position.x < 0 ? -1 : 1
+}
+
+function countOf (bot, name) {
+  return bot.inventory.items().filter((item) => item.name === name).reduce((sum, item) => sum + item.count, 0)
+}
+
+/** The start of a Bed Wars game: on the island, the wooden sword, the leather armour, the teams in the sidebar. */
+async function expectBedwarsStart (bot, from) {
+  const line = await chatLine(bot, /Ranked Bedwars 1v1 on bw-demo: you are in the (Red|Blue) team/, 15000, from)
+  await waitFor(() => bot.game.gameMode === 'survival' && countOf(bot, 'wooden_sword') === 1 &&
+    bot.inventory.slots[5]?.name === 'leather_helmet', 5000,
+  `${bot.username} to start with a wooden sword and leather armour: ${bot.game.gameMode}, ${JSON.stringify(bot.inventory.items().map((item) => item.name))}, helmet ${bot.inventory.slots[5]?.name}`)
+  const team = line.includes('Red team') ? 'Red' : 'Blue'
+  if ((team === 'Red') !== (islandSide(bot) < 0)) throw new Error(`${bot.username} is in the ${team} team at ${bot.entity.position}`)
+  await waitFor(() => {
+    const lines = sidebarLines(bot)
+    return lines.some((text) => text === `${team[0]} ${team}: ✔ YOU`) && lines.includes('Kills: 0') &&
+      lines.includes('Final Kills: 0') && lines.includes('Beds Broken: 0')
+  }, 5000, `${bot.username} to see the teams and its kills in the sidebar: ${JSON.stringify(sidebarLines(bot))}`)
+  return team
+}
+
+/** The item shop villager of the bot's island, by its name. */
+function shopVillager (bot) {
+  return Object.values(bot.entities).find((e) => /villager/i.test(e.name ?? '') &&
+    String(e.metadata?.[2] ?? '').includes('ITEM SHOP') && Math.sign(e.position.x) === islandSide(bot))
+}
+
+/** RagoUn: the shop opens on a click, wool from the Quick Buy, placed by the bed and broken again. */
+async function shopAndBuild (bot) {
+  const V = bot.entity.position.constructor
+  const side = islandSide(bot)
+  await waitFor(() => countOf(bot, 'iron_ingot') >= 4, 15000,
+    `${bot.username} to pick up 4 iron on its spawn (has ${countOf(bot, 'iron_ingot')})`)
+  await waitFor(() => shopVillager(bot) != null, 5000, `${bot.username} to see its item shop villager`)
+  const opened = new Promise((resolve) => bot.once('windowOpen', resolve))
+  bot.activateEntity(shopVillager(bot))
+  const shop = await Promise.race([opened, sleep(5000).then(() => null)])
+  if (shop == null) throw new Error(`${bot.username}: a click on the item shop villager did not open the shop`)
+  if (!windowTitle(shop).includes('Item Shop')) throw new Error(`${bot.username}: the villager opened ${windowTitle(shop)}`)
+  // The default Quick Buy (nothing imported from Hypixel): wool in the first slot of the first row.
+  if (shop.slots[19]?.name !== 'wool') {
+    throw new Error(`${bot.username}: the Quick Buy starts with ${shop.slots[19]?.name}, not wool`)
+  }
+  let from = mark(bot)
+  bot.clickWindow(19, 0, 0).catch(() => {})
+  await chatLine(bot, /You purchased Wool/, 5000, from)
+  bot.closeWindow(shop)
+  await waitFor(() => countOf(bot, 'wool') === 16, 5000, `${bot.username} to get 16 wool (has ${countOf(bot, 'wool')})`)
+  log(`${bot.username} picked up iron on its spawn and bought wool in the item shop`)
+
+  await bot.equip(bot.inventory.items().find((item) => item.name === 'wool'), 'hand')
+  const up = new V(0, 1, 0)
+  // Two blocks from the spawn: protected.
+  from = mark(bot)
+  await bot.placeBlock(bot.blockAt(new V(side * 31, BEDWARS_FLOOR, 0)), up).catch(() => {})
+  await chatLine(bot, /You can't place blocks here!/, 5000, from)
+  // Next to the head of the bed: a defence.
+  const defence = new V(side * 29, BEDWARS_FLOOR + 1, 0)
+  await bot.placeBlock(bot.blockAt(new V(side * 29, BEDWARS_FLOOR, 0)), up)
+  await waitFor(() => bot.blockAt(defence)?.name === 'wool', 5000, `${bot.username} to see its wool by the bed`)
+  await bot.dig(bot.blockAt(defence))
+  await waitFor(() => bot.blockAt(defence)?.name === 'air', 5000, `${bot.username} to break its wool again`)
+  log(`${bot.username}: no block near the spawn; wool placed by the bed and broken again`)
+  // Its own bed cannot be broken.
+  from = mark(bot)
+  bot.dig(bot.blockAt(new V(side * 28, BEDWARS_FLOOR + 1, 0))).catch(() => {})
+  await chatLine(bot, /You can't destroy your own bed!/, 5000, from)
+  await waitFor(() => bot.blockAt(new V(side * 28, BEDWARS_FLOOR + 1, 0))?.name === 'bed', 5000, `${bot.username} to see its bed stand`)
+  log(`${bot.username} cannot break its own bed`)
+}
+
+/** RagoDeux walks off the back of its island: the void kills it, and it respawns since its bed stands. */
+async function voidAndRespawn (bot, other) {
+  const V = bot.entity.position.constructor
+  const fromBot = mark(bot)
+  const fromOther = mark(other)
+  await bot.lookAt(new V(0, BEDWARS_FLOOR + 1.6, 0.5), true)
+  bot.setControlState('back', true)
+  await chatLine(bot, /RagoDeux fell into the void\./, 10000, fromBot)
+  stop(bot)
+  await chatLine(other, /RagoDeux fell into the void\./, 5000, fromOther)
+  await waitFor(() => bot.game.gameMode === 'spectator', 5000, `${bot.username} to watch as a spectator while it waits`)
+  await chatLine(bot, /You have respawned!/, 10000, fromBot)
+  await waitFor(() => bot.game.gameMode === 'survival' && countOf(bot, 'wooden_sword') === 1 &&
+    Math.abs(bot.entity.position.y - (BEDWARS_FLOOR + 1)) < 0.5, 5000,
+  `${bot.username} back on its island with its sword: ${bot.game.gameMode} at ${bot.entity.position}`)
+  log(`${bot.username} fell into the void and respawned`)
+}
+
+/** Ranked Bedwars 1v1 on the demo map, ending with RagoDeux leaving: RagoUn wins. */
+async function playBedwars (one, two) {
+  const fromOne = mark(one)
+  const fromTwo = mark(two)
+  one.chat('/queue ranked-1v1')
+  two.chat('/queue ranked-1v1')
+  await expectBedwarsStart(one, fromOne)
+  await expectBedwarsStart(two, fromTwo)
+  log('Bed Wars: both on their islands, with a wooden sword, leather armour and the teams in the sidebar')
+  await chatLine(one, /Fight!/, 10000, fromOne)
+  await shopAndBuild(one)
+  await voidAndRespawn(two, one)
+  const fromEnd = mark(one)
+  two.chat('/spawn')
+  await chatLine(one, /RagoDeux left the game\./, 5000, fromEnd)
+  await chatLine(one, /Winner: (Red|Blue) - RagoUn/, 5000, fromEnd)
+  await expectInLobby(one, 'after the Bed Wars game')
+  await expectInLobby(two, 'after /spawn in the Bed Wars game')
+  log('Bed Wars: RagoDeux left, RagoUn won, both are back in the lobby')
+}
+
 async function fallOff (bot) {
   bot.setControlState('back', true)
   bot.setControlState('jump', true)
@@ -533,6 +659,9 @@ async function main () {
   await expectInLobby(one, 'after the /duel match')
   await expectInLobby(two, 'after /spawn in the /duel match')
   log('/duel: RagoDeux accepted, the duel started without the queue')
+
+  // 7. Ranked Bedwars 1v1 (RagoBedwars), on its demo map.
+  await playBedwars(one, two)
 
   finishing = true
   one.quit()

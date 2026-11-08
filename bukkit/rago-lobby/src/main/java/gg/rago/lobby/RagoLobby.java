@@ -220,6 +220,7 @@ public final class RagoLobby extends JavaPlugin implements LobbyService {
     @Override
     public void sendToLobby(Player player) {
         state.leaveGame(player.getUniqueId());
+        scoreboard.setGameLines(player.getUniqueId(), null);
         if (state.isBuilding(player)) {
             state.toggleBuilding(player.getUniqueId());
         }
@@ -280,6 +281,7 @@ public final class RagoLobby extends JavaPlugin implements LobbyService {
     /** The game did not start after all. */
     void cancelGame(Player player) {
         state.leaveGame(player.getUniqueId());
+        scoreboard.setGameLines(player.getUniqueId(), null);
         if (player.getWorld().equals(state.world())) {
             giveHotbar(player);
             visibility.applyInLobby(player, state);
@@ -524,6 +526,12 @@ public final class RagoLobby extends JavaPlugin implements LobbyService {
     public List<String> hypixelQuickBuy(Player player) {
         HypixelProfile profile = hypixel.get(player.getUniqueId());
         return profile == null ? null : profile.quickBuy();
+    }
+
+    @Override
+    public void setGameSidebar(Player player, List<String> lines) {
+        scoreboard.setGameLines(player.getUniqueId(), lines);
+        scoreboard.update(player);
     }
 
     @Override

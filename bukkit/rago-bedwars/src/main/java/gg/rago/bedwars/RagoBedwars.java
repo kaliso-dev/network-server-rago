@@ -1,0 +1,146 @@
+package gg.rago.bedwars;
+
+import gg.rago.lobby.api.LobbyService;
+import java.io.File;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.TimeUnit;
+import org.bukkit.command.PluginCommand;
+import org.bukkit.plugin.java.JavaPlugin;
+
+/**
+ * RagoBedwars: the Bed Wars modes played from the lobby (Ranked Bedwars 1v1 to 4v4 to begin
+ * with), on the maps set up with /bw, each game in a copy of its map. See the module README.
+ */
+public final class RagoBedwars extends JavaPlugin {
+
+    /** After the start, the time before the first copy of a map is made, so that the first match does not wait. */
+    private static final long PREWARM_TICKS = 100L;
+
+    private LobbyService lobby;
+    private BedwarsSettings settings;
+    private ShopCatalog catalog;
+    private ExecutorService io;
+    private MapStore maps;
+    private Instances instances;
+    private BedwarsHost host;
+
+    @Override
+    public void onEnable() {
+        saveDefaultConfig();
+        lobby = getServer().getServicesManager().load(LobbyService.class);
+        if (lobby == null) {
+            getLogger().severe("RagoLobby is not running: RagoBedwars is disabled.");
+            getServer().getPluginManager().disablePlugin(this);
+            return;
+        }
+        try {
+            settings = BedwarsSettings.read(getConfig());
+        } catch (IllegalArgumentException e) {
+            getLogger().severe("config.yml is invalid, RagoBedwars is disabled: " + e.getMessage());
+            getServer().getPluginManager().disablePlugin(this);
+            return;
+        }
+        catalog = ShopCatalog.standard();
+        io = Executors.newSingleThreadExecutor(task -> {
+            Thread thread = new Thread(task, "RagoBedwars-io");
+            thread.setDaemon(true);
+            return thread;
+        });
+        File container = getServer().getWorldContainer();
+        maps = new MapStore(container, io, getLogger());
+        instances = new Instances(this, container, io, settings.maxGames());
+        instances.deleteLeftovers();
+        maps.loadAll();
+        if (settings.demo() && DemoMap.buildIfMissing()) {
+            BedwarsMap demo = maps.getOrCreate(DemoMap.WORLD);
+            DemoMap.layout(demo);
+            maps.save(demo);
+            getLogger().info("Demo map " + DemoMap.WORLD + " created (carte-demo: false in config.yml turns it off)");
+        }
+
+        host = new BedwarsHost(this);
+        getServer().getPluginManager().registerEvents(host, this);
+        MapCommands commands = new MapCommands(this);
+        PluginCommand bw = getCommand("bw");
+        bw.setExecutor(commands);
+        bw.setTabCompleter(commands);
+
+        List<String> hosted = new ArrayList<>();
+        for (String mode : settings.modes()) {
+            if (lobby.registerHost(this, mode, host)) {
+                hosted.add(mode);
+            } else {
+                getLogger().warning("The lobby has no mode \"" + mode + "\" in its config.yml: it stays closed.");
+            }
+        }
+        List<BedwarsMap> playable = playableMaps();
+        List<String> names = new ArrayList<>();
+        for (BedwarsMap map : playable) {
+            names.add(map.world());
+        }
+        getLogger().info("Bed Wars maps ready: " + (names.isEmpty() ? "none (set one up with /bw)" : String.join(", ", names))
+                + "; modes " + hosted + "; " + settings.maxGames() + " games at once at most");
+        getServer().getScheduler().runTaskLater(this, () -> instances.prepare(playableMaps()), PREWARM_TICKS);
+    }
+
+    @Override
+    public void onDisable() {
+        if (host != null) {
+            host.abortAll();
+            host = null;
+        }
+        if (instances != null) {
+            instances.unloadAll();
+        }
+        if (lobby != null) {
+            lobby.unregisterHosts(this);
+        }
+        if (io != null) {
+            // The map files being written are finished; the copies being made are deleted at the next start.
+            io.shutdown();
+            try {
+                io.awaitTermination(5, TimeUnit.SECONDS);
+            } catch (InterruptedException e) {
+                Thread.currentThread().interrupt();
+            }
+        }
+    }
+
+    /** Every map that can be played now, whatever its number of teams. */
+    List<BedwarsMap> playableMaps() {
+        List<BedwarsMap> playable = new ArrayList<>();
+        for (BedwarsMap map : maps.all()) {
+            if (map.playable()) {
+                playable.add(map);
+            }
+        }
+        return playable;
+    }
+
+    LobbyService lobby() {
+        return lobby;
+    }
+
+    BedwarsSettings settings() {
+        return settings;
+    }
+
+    ShopCatalog catalog() {
+        return catalog;
+    }
+
+    MapStore maps() {
+        return maps;
+    }
+
+    Instances instances() {
+        return instances;
+    }
+
+    BedwarsHost host() {
+        return host;
+    }
+}

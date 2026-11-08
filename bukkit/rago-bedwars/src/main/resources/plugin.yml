@@ -1,0 +1,16 @@
+name: RagoBedwars
+version: ${version}
+main: gg.rago.bedwars.RagoBedwars
+author: Rago
+description: The Bed Wars modes of Rago Practice, played from the lobby (Ranked Bedwars to begin with).
+depend: [RagoLobby]
+softdepend: [RagoBuildTools]
+commands:
+  bw:
+    description: Sets up the Bed Wars maps (spawns, beds, generators, shops).
+    aliases: [bedwars]
+    usage: /bw help
+permissions:
+  rago.bedwars.admin:
+    description: Sets up the Bed Wars maps with /bw.
+    default: op

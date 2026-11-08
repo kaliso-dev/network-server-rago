@@ -82,7 +82,8 @@ jobs:
             tools/local-server/lancer-mac-linux.sh tools/local-server/server.properties "$kit/"
           cp tools/local-server/README.md "$kit/LISEZ-MOI.txt"
           cp combat/rago-combat-engine/build/libs/*.jar tools/build-tools/build/libs/*.jar \
-            bukkit/rago-lobby/build/libs/*.jar bukkit/rago-practice/build/libs/*.jar "$kit/plugins/"
+            bukkit/rago-lobby/build/libs/*.jar bukkit/rago-practice/build/libs/*.jar \
+            bukkit/rago-bedwars/build/libs/*.jar "$kit/plugins/"
           ls -lR "$kit"
 
       - uses: actions/upload-artifact@v7
@@ -301,6 +302,7 @@ jobs:
           expect "[RagoBuildTools] Worlds of $data/mondes" logs/latest.log
           expect '[RagoLobby] Lobby in the world lobby' logs/latest.log
           expect '[RagoPractice] Arenas in the world arenes' logs/latest.log
+          expect '[RagoBedwars] Bed Wars maps ready: bw-demo;' logs/latest.log
           echo 'monde creer ci vide' >&3
           wait_for 'World ci created' 30 || fail "/monde creer did not create the world"
           echo 'schematic list' >&3
@@ -312,6 +314,9 @@ jobs:
 
           start_server 2
           expect '[RagoBuildTools] World ci loaded' logs/latest.log
+          # The demo map of RagoBedwars, made at the first launch, is read back from its folder.
+          [ -f "$data/mondes/bw-demo/bedwars.yml" ] || fail "the Bed Wars demo map was not saved in $data/mondes"
+          expect '[RagoBedwars] Bed Wars maps ready: bw-demo;' logs/latest.log
           [ -f "$data/mondes/lobby/level.dat" ] || fail "the lobby world was not saved in $data/mondes"
           archive=$(ls "$data"/sauvegardes/mondes-*.tar.gz | sort | tail -n 1)
           echo "Backup: $archive"
@@ -363,7 +368,8 @@ jobs:
           Invoke-Launch 1
           foreach ($expected in 'git-PandaSpigot-226', '[RagoCombatEngine] Mode override, default profile vanilla',
               '[WorldEdit] Enabling WorldEdit v6.1', "[RagoBuildTools] Worlds of $data\mondes",
-              '[RagoLobby] Lobby in the world lobby', '[RagoPractice] Arenas in the world arenes') {
+              '[RagoLobby] Lobby in the world lobby', '[RagoPractice] Arenas in the world arenes',
+              '[RagoBedwars] Bed Wars maps ready: bw-demo;') {
             Assert-Log $expected
           }
           $config = Get-Content plugins/WorldEdit/config.yml -Raw

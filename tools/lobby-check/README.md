@@ -1,7 +1,7 @@
-# lobby-check : le lobby et le duel sumo joués par deux bots
+# lobby-check : le lobby, le duel sumo et Bed Wars joués par deux bots
 
 Un test sur un vrai serveur PandaSpigot 1.8.8 (le build 226 du test de contrôle), avec
-RagoCombatEngine, RagoLobby et RagoPractice. Deux bots mineflayer (le script
+RagoCombatEngine, RagoLobby, RagoPractice et RagoBedwars. Deux bots mineflayer (le script
 `tools/kb-control/bots/lobby-bots.mjs`, qui partage les dépendances des bots du test de contrôle)
 jouent comme des joueurs :
 
@@ -28,7 +28,16 @@ jouent comme des joueurs :
 5. un second duel, que RagoUn quitte avec `/spawn` : RagoDeux gagne par abandon.
 6. RagoUn défie RagoDeux avec `/duel RagoDeux sumo`, RagoDeux accepte avec `/duel accept RagoUn`
    (ce que lance le bouton cliquable), le duel démarre sans passer par la file, puis RagoDeux
-   abandonne.
+   abandonne ;
+7. une partie de Ranked Bedwars 1v1 sur la map de démo de RagoBedwars (`bw-demo`, créée au
+   démarrage, et copiée dans `bw_bw-demo_1` où se joue la partie) : les deux tapent
+   `/queue ranked-1v1`, arrivent sur leur île avec une épée en bois et une armure en cuir, le
+   scoreboard montre les équipes et les kills. Après « Fight! », RagoUn ramasse le fer de son
+   générateur sans bouger de son spawn, ouvre le shop du villageois, achète de la laine dans le
+   Quick Buy, ne peut pas la poser près de son spawn, la pose à côté de son lit et la recasse, et ne
+   peut pas casser son propre lit. RagoDeux recule hors de son île, meurt dans le vide et revient
+   sur son île 5 secondes plus tard (son lit tient), puis tape `/spawn` : RagoUn gagne et les deux
+   reviennent au lobby. La copie de la map est supprimée à l'arrêt du serveur.
 
 Le test échoue si un bot n'obtient pas ce qu'il attend, ou si le journal du serveur contient une
 erreur ou une exception.

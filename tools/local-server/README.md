@@ -65,8 +65,8 @@ En te connectant, tu arrives dans le lobby (le monde lobby, une plateforme tant 
 pas installée). Dans ta barre d'objets :
 
 - la boussole (clic droit) : le sélecteur des modes de jeu. Clique sur un mode pour entrer dans sa
-  file d'attente, clique dessus à nouveau pour la quitter. Pour l'instant seul le duel sumo est
-  ouvert ; les autres modes affichent « Bientôt disponible » ;
+  file d'attente, clique dessus à nouveau pour la quitter. Pour l'instant le duel sumo et les
+  Ranked Bedwars sont ouverts ; les autres modes affichent « Bientôt disponible » ;
 - le colorant rouge, quand tu es dans une file : quitter la file ;
 - le colorant vert ou gris : cacher ou revoir les autres joueurs du lobby.
 
@@ -109,6 +109,21 @@ Si ta map est déjà faite ailleurs : importe-la avec /monde import (voir « Con
 plugins/RagoLobby/config.yml remplace « monde: lobby » par le nom de ton monde, relance le
 serveur, va dans ton lobby et tape /lobby setspawn là où les joueurs doivent apparaître. La liste
 des modes, leurs noms, leurs icônes et le texte du scoreboard se règlent dans le même fichier.
+
+
+## Bed Wars
+
+Les modes Ranked Bedwars (1v1 à 4v4) sont ouverts dans le sélecteur, ou avec /queue ranked-1v1.
+La partie suit les règles d'Hypixel : lits, générateurs, shop (le villageois de ton île), final
+kills. Si tu as copié ton shop d'Hypixel (/hypixel import), ton Quick Buy et ton hotbar manager
+sont ceux de la partie.
+
+Au premier lancement, le plugin crée sa propre petite map, bw-demo, pour jouer tout de suite. Pour
+installer une vraie map : mets le dossier du monde dans mondes, /monde import NomDeLaMap,
+/bw edit NomDeLaMap, puis place ses points avec /bw spawn red, /bw bed red, /bw generator red,
+/bw shop red (la même chose pour chaque équipe), /bw diamond et /bw emerald sur chaque générateur,
+/bw spectators, et /bw enable. /bw info dit ce qui manque, /bw help donne toutes les commandes. Le
+détail est dans le README de bukkit/rago-bedwars.
 
 
 ## Trouver un adversaire
@@ -182,8 +197,9 @@ Tes mondes ne sont pas dans ce dossier, mais dans le dossier Rago de ton dossier
 
 Il contient :
 
-- mondes : un dossier par monde (world est le monde du test de knockback, lobby le lobby et
-  arenes les plateformes des duels) ;
+- mondes : un dossier par monde (world est le monde du test de knockback, lobby le lobby,
+  arenes les plateformes des duels et bw-demo la map de démo de Bed Wars ; les dossiers bw_...
+  sont les copies où se jouent les parties de Bed Wars, supprimées à l'arrêt du serveur) ;
 - schematics : les schematics de WorldEdit ;
 - sauvegardes : une copie des mondes et des schematics faite à chaque lancement du serveur, avant
   qu'il démarre. Les 10 plus récentes sont gardées. Sur Windows ce sont des fichiers .zip, sur Mac
@@ -228,8 +244,8 @@ tes schematics et tes sauvegardes dans le dossier Rago. Il faut seulement redeve
 
 La CI assemble ce dossier à chaque push (artefact « rago-serveur-de-test ») : les fichiers de
 tools/local-server, ce mode d'emploi renommé LISEZ-MOI.txt, et les jars de RagoCombatEngine, de
-RagoBuildTools (tools/build-tools), de RagoLobby (bukkit/rago-lobby) et de RagoPractice
-(bukkit/rago-practice) dans plugins/. Elle démarre le serveur deux fois, sur Linux et Windows,
+RagoBuildTools (tools/build-tools), de RagoLobby (bukkit/rago-lobby), de RagoPractice
+(bukkit/rago-practice) et de RagoBedwars (bukkit/rago-bedwars) dans plugins/. Elle démarre le serveur deux fois, sur Linux et Windows,
 avec Java 8 et Java 21 : elle vérifie que les plugins s'activent, qu'un monde créé au premier
 lancement est retrouvé au second, et que le second lancement le sauvegarde. Le lobby et le duel
 sumo sont joués par deux bots dans un autre test (tools/lobby-check).

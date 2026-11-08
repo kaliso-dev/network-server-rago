@@ -72,4 +72,12 @@ public interface LobbyService {
      * null for a free slot. Null when the player imported nothing, or had no hotbar manager.
      */
     List<String> hypixelHotbar(Player player);
+
+    /**
+     * The lines a game shows in the player's sidebar while they play, top to bottom, between the
+     * lobby's title and its address: 12 lines at most, 40 characters each, colour codes with §, ""
+     * for a blank line. Null gives back the lobby's own game lines (the mode and the ping). The
+     * lobby forgets them when the player comes back to it.
+     */
+    void setGameSidebar(Player player, List<String> lines);
 }

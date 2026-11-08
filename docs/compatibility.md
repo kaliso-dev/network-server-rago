@@ -40,8 +40,8 @@ build sont gérés par `tools/build-tools`, un plugin du projet.
 
 PacketEvents n'est pas embarqué : c'est un plugin à part, chargé avant RagoLobby. Les plugins
 n'embarquent pour l'instant que des modules du projet sans dépendance :
-`rago-combat-model` dans RagoCombatEngine, `rago-game-model` dans RagoLobby. RagoPractice ne copie
-pas `rago-game-model` : il prend les classes de RagoLobby (`depend`), pour que les deux plugins
+`rago-combat-model` dans RagoCombatEngine, `rago-game-model` dans RagoLobby. RagoPractice et
+RagoBedwars ne copient pas `rago-game-model` : ils prennent les classes de RagoLobby (`depend`), pour que les plugins
 partagent les mêmes classes (`MatchProposal`, `LobbyService`). Quand un plugin aura besoin d'une bibliothèque tierce, elle devra être relocalisée
 (plugin Shadow) pour ne pas entrer en conflit avec celles du serveur ou d'autres plugins.
 
