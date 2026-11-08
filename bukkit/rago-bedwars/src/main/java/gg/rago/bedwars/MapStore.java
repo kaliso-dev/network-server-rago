@@ -71,14 +71,44 @@ final class MapStore {
         return Collections.unmodifiableCollection(maps.values());
     }
 
-    /**
-     * The maps a game of this many teams can be played on: enabled, with exactly that many complete
-     * teams; if none has exactly that many, those that have more (the game uses the first teams).
-     */
+    /** The maps a game of this many teams can be played on: see {@link #choose}. */
     List<BedwarsMap> playable(int teams) {
+        return choose(maps.values(), teams);
+    }
+
+    /**
+     * The maps among these that a game of this many teams can be played on: enabled, with exactly
+     * that many complete teams; if none has exactly that many, those that have more (the game uses
+     * the first teams). The demo map is only played when no other map can be.
+     */
+    static List<BedwarsMap> choose(Collection<BedwarsMap> maps, int teams) {
+        List<BedwarsMap> real = new ArrayList<>();
+        List<BedwarsMap> demo = new ArrayList<>();
+        for (BedwarsMap map : maps) {
+            (DemoMap.WORLD.equals(map.world()) ? demo : real).add(map);
+        }
+        List<BedwarsMap> chosen = fitting(real, teams);
+        return chosen.isEmpty() ? fitting(demo, teams) : chosen;
+    }
+
+    /**
+     * These playable maps without the demo map, unless it is the only one: the maps a copy is made
+     * of before anyone asks for a game.
+     */
+    static List<BedwarsMap> inAdvance(Collection<BedwarsMap> playable) {
+        List<BedwarsMap> real = new ArrayList<>();
+        for (BedwarsMap map : playable) {
+            if (!DemoMap.WORLD.equals(map.world())) {
+                real.add(map);
+            }
+        }
+        return real.isEmpty() ? new ArrayList<>(playable) : real;
+    }
+
+    private static List<BedwarsMap> fitting(Collection<BedwarsMap> maps, int teams) {
         List<BedwarsMap> exact = new ArrayList<>();
         List<BedwarsMap> bigger = new ArrayList<>();
-        for (BedwarsMap map : maps.values()) {
+        for (BedwarsMap map : maps) {
             if (!map.playable()) {
                 continue;
             }

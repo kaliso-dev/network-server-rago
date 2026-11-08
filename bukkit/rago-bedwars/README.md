@@ -74,9 +74,14 @@ Une map à N équipes complètes sert aux modes de N équipes, et à ceux qui en
 map n'a exactement leur nombre (les premières équipes jouent). Une équipe est complète avec son
 spawn, son lit, son générateur et son shop.
 
+Pour une map d'Hypixel, [tools/bedwars-maps](../../tools/bedwars-maps/README.md) trouve tous ces
+points à partir des lits, des coffres et des îles, et écrit le `bedwars.yml` : il ne reste qu'à
+les vérifier en jeu.
+
 **La map de démo** : au premier démarrage, le plugin crée `bw-demo`, une map à lui (deux îles
 rouge et bleue face à face, un milieu avec un générateur d'émeraude et deux îles de diamant), pour
-jouer tout de suite. `carte-demo: false` dans le config.yml l'empêche de la créer.
+jouer tout de suite. Elle ne sert que tant qu'aucune autre map ne peut accueillir le mode.
+`carte-demo: false` dans le config.yml l'empêche de la créer.
 
 ## Les copies
 

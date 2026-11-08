@@ -118,8 +118,10 @@ La partie suit les règles d'Hypixel : lits, générateurs, shop (le villageois 
 kills. Si tu as copié ton shop d'Hypixel (/hypixel import), ton Quick Buy et ton hotbar manager
 sont ceux de la partie.
 
-Au premier lancement, le plugin crée sa propre petite map, bw-demo, pour jouer tout de suite. Pour
-installer une vraie map : mets le dossier du monde dans mondes, /monde import NomDeLaMap,
+Au premier lancement, le plugin crée sa propre petite map, bw-demo, pour jouer tout de suite ; elle
+ne sert plus dès qu'une vraie map peut accueillir le mode. Une map dont le dossier contient déjà son
+bedwars.yml (fait par tools/bedwars-maps) se joue dès qu'elle est dans mondes, au lancement suivant.
+Pour installer une autre map : mets le dossier du monde dans mondes, /monde import NomDeLaMap,
 /bw edit NomDeLaMap, puis place ses points avec /bw spawn red, /bw bed red, /bw generator red,
 /bw shop red (la même chose pour chaque équipe), /bw diamond et /bw emerald sur chaque générateur,
 /bw spectators, et /bw enable. /bw info dit ce qui manque, /bw help donne toutes les commandes. Le

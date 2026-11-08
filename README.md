@@ -23,6 +23,7 @@ Jalon en cours : **M1, « Labo KB »**, le moteur de combat et de quoi le vérif
 | `bukkit/rago-lobby` : plugin RagoLobby, le lobby principal (spawn, protection, sélecteur de modes, files, scoreboard) | fait, testé ; joué par deux bots en CI |
 | `bukkit/rago-practice` : plugin RagoPractice, le duel sumo, premier mode jouable du lobby | fait, testé ; joué par deux bots en CI |
 | `bukkit/rago-bedwars` : plugin RagoBedwars, Ranked Bedwars 1v1 à 4v4 (lits, générateurs, shop avec le quick buy Hypixel), maps réglées avec `/bw` | première version, testée ; une partie jouée par deux bots en CI |
+| `tools/bedwars-maps` : outil qui trouve les points d'une map Bed Wars d'Hypixel (lits, couleurs, générateurs, spawns, shops) et écrit son `bedwars.yml` | fait ; essayé sur 54 maps solo/doubles et 4 équipes |
 | Améliorations d'équipe et objets spéciaux de Bed Wars, autres modes, proxy, base de données, Ranked, statistiques, cosmétiques | à venir, voir la feuille de route et le [plan du lobby et des modes](https://claude.ai/artifact/TCFxyP3KsZsRagZhBMNPeo) |
 
 Rien n'est encore en production. **Aucun profil « Hypixel » n'existe pour l'instant** : il sera
@@ -42,6 +43,7 @@ tools/kb-control/            test de contrôle sur un vrai serveur PandaSpigot, 
 tools/local-server/          serveur de test à lancer sur son PC, avec le moteur et les outils de build
 tools/build-tools/           plugin RagoBuildTools : mondes de build, protection, enregistrement fréquent
 tools/lobby-check/           test du lobby, du duel sumo et de Bed Wars sur un vrai serveur, avec deux bots
+tools/bedwars-maps/          outil qui trouve les points d'une map Bed Wars et écrit son bedwars.yml
 docs/                        formule du knockback, compatibilité et dépendances
 ```
 
@@ -49,7 +51,8 @@ Chaque module a son README : [combat-model](combat/rago-combat-model/README.md),
 [combat-engine](combat/rago-combat-engine/README.md), [kb-control](tools/kb-control/README.md),
 [local-server](tools/local-server/README.md), [build-tools](tools/build-tools/README.md),
 [game-model](game/rago-game-model/README.md), [lobby](bukkit/rago-lobby/README.md),
-[practice](bukkit/rago-practice/README.md), [bedwars](bukkit/rago-bedwars/README.md), [lobby-check](tools/lobby-check/README.md).
+[practice](bukkit/rago-practice/README.md), [bedwars](bukkit/rago-bedwars/README.md), [lobby-check](tools/lobby-check/README.md),
+[bedwars-maps](tools/bedwars-maps/README.md).
 
 ## Construire et tester
 

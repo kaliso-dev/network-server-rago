@@ -83,7 +83,9 @@ public final class RagoBedwars extends JavaPlugin {
         }
         getLogger().info("Bed Wars maps ready: " + (names.isEmpty() ? "none (set one up with /bw)" : String.join(", ", names))
                 + "; modes " + hosted + "; " + settings.maxGames() + " games at once at most");
-        getServer().getScheduler().runTaskLater(this, () -> instances.prepare(playableMaps()), PREWARM_TICKS);
+        // the first copy is of a real map when there is one: the demo map only serves without them
+        getServer().getScheduler().runTaskLater(this,
+                () -> instances.prepare(MapStore.inAdvance(playableMaps())), PREWARM_TICKS);
     }
 
     @Override
