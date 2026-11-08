@@ -46,6 +46,19 @@ monde : ils partent avec la map quand on l'envoie, et survivent à une mise à j
 Le plugin se charge après RagoBuildTools (`softdepend`), qui charge les mondes de build avec leur
 générateur vide ; un monde de build peut donc servir de lobby.
 
+## Catégories, PNJ et classements
+
+- `categories:` range les modes par zone du lobby : la boussole montre les catégories, puis les
+  modes de celle qu'on choisit (7 catégories, 28 modes par catégorie au plus). Chaque mode dit sa
+  `categorie:`.
+- `pnj:` place un PNJ sur un point de `/lobby point` (la clé) : un porte-armure qui tient l'icône
+  du mode, son nom et le nombre de joueurs en file au-dessus. Un clic rejoint la file du mode, ou
+  ouvre un menu quand le PNJ a plusieurs modes. Les PNJ réapparaissent quand un point bouge.
+- `classements:` affiche un titre sur un point ; le contenu viendra avec les statistiques.
+
+Les porte-armures seront remplacés par des PNJ à skin (PacketEvents) plus tard, sans changer la
+configuration.
+
 ## Pour les plugins de jeu
 
 Un plugin de jeu dépend de RagoLobby (`depend: [RagoLobby]` dans son `plugin.yml`, et

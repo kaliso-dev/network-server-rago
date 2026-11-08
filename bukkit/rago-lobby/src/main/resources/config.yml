@@ -22,28 +22,100 @@ file:
   ecart-elo-secondes: 10
   ecart-elo-max: 500
 
-# Les catégories du sélecteur, une par zone du lobby, dans l'ordre du menu (7 au plus). La boussole
+# Les catégories du sélecteur, une par zone du lobby, dans l'ordre du menu (7 au plus) : de gauche
+# à droite comme dans le lobby. La boussole
 # montre d'abord les catégories, puis les modes de celle qu'on choisit (28 au plus par catégorie).
 # Sans section categories, la boussole montre tous les modes d'un coup (35 au plus).
 categories:
-  ranked:
-    nom: "&6&lRanked Bedwars"
-    icone: BED
-    description:
-      - "Le classé et les modes Bedwars :"
-      - "ranked, FFA, first rush, end game..."
   duels:
     nom: "&a&lDuels"
     icone: IRON_SWORD
     description:
       - "Sumo, épée, boxing, fireball,"
-      - "top fight, block placement..."
+      - "attack and defense, top fight..."
+  ranked:
+    nom: "&6&lRanked Bedwars"
+    icone: BED
+    description:
+      - "Le classé et les modes Bedwars :"
+      - "ranked, partie privée, FFA,"
+      - "first rush, end game..."
   entrainement:
     nom: "&b&lEntraînement"
     icone: SANDSTONE
     description:
       - "Seul ou contre un bot : clutch,"
-      - "bridge, block in, perles, shop..."
+      - "block in, fast defense, bridge..."
+
+# Les PNJ du lobby. Chacun se tient sur un point placé par /lobby point <nom> (la clé) et ouvre
+# ses modes : un clic rejoint la file s'il n'en a qu'un, sinon ouvre un menu de ses modes.
+# Un PNJ dont le point n'est pas encore placé n'apparaît pas.
+pnj:
+  rankedbedwars1v1ou2v2elo:
+    nom: "&6&lRanked Bedwars"
+    modes: [ranked-1v1, ranked-2v2]
+  privategame:
+    nom: "&6Partie privée"
+    modes: [partie-privee]
+  rbwffa:
+    nom: "&cFFA Ranked Bedwars"
+    modes: [ffa]
+  rbwsolo1v1ou2v2skyrise:
+    nom: "&6End game"
+    modes: [end-game-1v1, end-game-2v2]
+  firstrushnebucgelatosoloduo:
+    nom: "&eFirst rush"
+    modes: [first-rush]
+  invispracticearwhayinvasion:
+    nom: "&5Invis practice"
+    modes: [invis-practice]
+  realisticplat:
+    nom: "&bBridge fight"
+    modes: [bridge-fight]
+  freearenacombo:
+    nom: "&fArène libre"
+    modes: [arene-libre]
+  blockplacementarena:
+    nom: "&bBlock placement"
+    modes: [block-fight-1v1, block-fight-2v2]
+  attackdefenseversionrbw:
+    nom: "&cAttack and defense"
+    modes: [attack-defense-1v1, attack-defense-2v2]
+  boxingcombo:
+    nom: "&fBoxing"
+    modes: [boxing]
+  fireballfight:
+    nom: "&cFireball fight"
+    modes: [fireball]
+  blockclutchpractice:
+    nom: "&bBlock clutch"
+    modes: [clutch]
+  blockinpractice:
+    nom: "&bBlock in"
+    modes: [block-in]
+  fastdefensepractice:
+    nom: "&bFast defense"
+    modes: [fast-defense]
+  bridgepractice:
+    nom: "&bBridge au chrono"
+    modes: [bridge-chrono]
+  kbdisplacepractice:
+    nom: "&bKB displace"
+    modes: [kb-displace, kb-displace-bot]
+  ladderpractice:
+    nom: "&6Ladder practice"
+    modes: [ladder-practice]
+  pearlpractice:
+    nom: "&5Pearl practice"
+    modes: [pearl-practice]
+  fastshoppractice:
+    nom: "&aShop buyer"
+    modes: [shop-practice]
+
+# Les classements du lobby, sur leur point : le titre affiché. Leur contenu viendra avec les
+# statistiques.
+classements:
+  leaderboardprincipal: "&e&lClassement Ranked"
 
 # Les modes, dans l'ordre du sélecteur. L'identifiant (la clé) ne contient que des minuscules sans
 # accent, des chiffres et des tirets. Un mode reste « Bientôt » dans le sélecteur tant qu'aucun
@@ -78,6 +150,17 @@ modes:
     description:
       - "Bedwars classé à deux contre"
       - "deux, sur Invasion ou Lectus."
+  partie-privee:
+    nom: "&6Partie privée"
+    categorie: ranked
+    icone: NAME_TAG
+    equipes: 2
+    joueurs-par-equipe: 1
+    classe: false
+    description:
+      - "Une vraie partie de RBW privée,"
+      - "sur une map toute faite :"
+      - "l'hôte invite ses joueurs."
   ffa:
     nom: "&cFFA Ranked Bedwars"
     categorie: ranked
@@ -100,17 +183,6 @@ modes:
       - "Archway en tous contre tous,"
       - "boutique personnalisée (fer, or,"
       - "diamants, émeraudes) et top fight."
-  first-rush:
-    nom: "&eSolo Bedwars 1v1 first rush"
-    categorie: ranked
-    icone: IRON_PICKAXE
-    equipes: 1
-    joueurs-par-equipe: 1
-    classe: false
-    description:
-      - "Seul : simule le premier rush"
-      - "d'un Bedwars 1v1, sur Nebuc,"
-      - "Gelato ou Sky Rise."
   end-game-1v1:
     nom: "&6End game 1v1"
     categorie: ranked
@@ -132,6 +204,17 @@ modes:
       - "Simulation de fin de partie"
       - "RBW à deux contre deux,"
       - "sur Sky Rise."
+  first-rush:
+    nom: "&eSolo Bedwars 1v1 first rush"
+    categorie: ranked
+    icone: IRON_PICKAXE
+    equipes: 1
+    joueurs-par-equipe: 1
+    classe: false
+    description:
+      - "Seul : simule le premier rush"
+      - "d'un Bedwars 1v1, sur Nebuc,"
+      - "Gelato ou Sky Rise."
   invis-practice:
     nom: "&5Invis practice"
     categorie: ranked
@@ -143,26 +226,47 @@ modes:
       - "Combat contre un adversaire"
       - "invisible, sur Invasion"
       - "ou Archway."
-  attack-defense-1v1:
-    nom: "&cAttack and defense 1v1"
+  bridge-fight:
+    nom: "&bBridge fight"
     categorie: ranked
-    icone: IRON_SWORD
+    icone: WOOL
     equipes: 2
     joueurs-par-equipe: 1
     classe: false
     description:
-      - "Un joueur attaque le lit,"
-      - "l'autre le défend."
-  attack-defense-2v2:
-    nom: "&cAttack and defense 2v2"
+      - "Combat sur un pont entre deux"
+      - "îles, plateforme réaliste de Bedwars."
+  arene-libre:
+    nom: "&aArène libre"
     categorie: ranked
-    icone: IRON_SWORD
+    icone: STICK
+    equipes: 1
+    joueurs-par-equipe: 1
+    classe: false
+    description:
+      - "Entrée libre, sans règles"
+      - "ni dégâts : combote à"
+      - "l'infini."
+  block-fight-1v1:
+    nom: "&bBlock placement 1v1"
+    categorie: ranked
+    icone: SANDSTONE
+    equipes: 2
+    joueurs-par-equipe: 1
+    classe: false
+    description:
+      - "Pose tes blocs plus vite"
+      - "que l'autre pour gagner."
+  block-fight-2v2:
+    nom: "&bBlock placement 2v2"
+    categorie: ranked
+    icone: SANDSTONE
     equipes: 2
     joueurs-par-equipe: 2
     classe: false
     description:
-      - "Une équipe attaque le lit,"
-      - "l'autre le défend."
+      - "Block placement à deux"
+      - "contre deux."
   scenarios-ranked:
     nom: "&4Scénarios du Ranked"
     categorie: ranked
@@ -204,17 +308,6 @@ modes:
     description:
       - "Premier à 100 coups,"
       - "pour travailler ses combos."
-  kb-displace:
-    nom: "&bKB displace 1v1"
-    categorie: duels
-    icone: STICK
-    equipes: 2
-    joueurs-par-equipe: 1
-    classe: false
-    description:
-      - "Sur un pont : fais tomber"
-      - "ton adversaire au kb, sans"
-      - "tomber toi-même."
   fireball:
     nom: "&cFireball fight"
     categorie: duels
@@ -225,6 +318,26 @@ modes:
     description:
       - "Boules de feu et TNT :"
       - "le dernier debout gagne."
+  attack-defense-1v1:
+    nom: "&cAttack and defense 1v1"
+    categorie: duels
+    icone: IRON_SWORD
+    equipes: 2
+    joueurs-par-equipe: 1
+    classe: false
+    description:
+      - "Un joueur attaque le lit,"
+      - "l'autre le défend."
+  attack-defense-2v2:
+    nom: "&cAttack and defense 2v2"
+    categorie: duels
+    icone: IRON_SWORD
+    equipes: 2
+    joueurs-par-equipe: 2
+    classe: false
+    description:
+      - "Une équipe attaque le lit,"
+      - "l'autre le défend."
   top-fight-1v1:
     nom: "&eTop fight 1v1"
     categorie: duels
@@ -243,47 +356,6 @@ modes:
     classe: false
     description:
       - "Top fight à deux contre deux."
-  block-fight-1v1:
-    nom: "&bBlock placement 1v1"
-    categorie: duels
-    icone: SANDSTONE
-    equipes: 2
-    joueurs-par-equipe: 1
-    classe: false
-    description:
-      - "Pose tes blocs plus vite"
-      - "que l'autre pour gagner."
-  block-fight-2v2:
-    nom: "&bBlock placement 2v2"
-    categorie: duels
-    icone: SANDSTONE
-    equipes: 2
-    joueurs-par-equipe: 2
-    classe: false
-    description:
-      - "Block placement à deux"
-      - "contre deux."
-  bridge-fight:
-    nom: "&bBridge fight"
-    categorie: duels
-    icone: WOOL
-    equipes: 2
-    joueurs-par-equipe: 1
-    classe: false
-    description:
-      - "Combat sur un pont entre deux"
-      - "îles, plateforme réaliste de Bedwars."
-  arene-libre:
-    nom: "&aArène libre"
-    categorie: duels
-    icone: STICK
-    equipes: 1
-    joueurs-par-equipe: 1
-    classe: false
-    description:
-      - "Entrée libre, sans règles"
-      - "ni dégâts : combote à"
-      - "l'infini."
   clutch:
     nom: "&bBlock clutch"
     categorie: entrainement
@@ -297,6 +369,27 @@ modes:
       - "un coup, pose tes blocs pour"
       - "te sauver. Ou kb aléatoire"
       - "au-dessus du vide."
+  block-in:
+    nom: "&bEntraînement block in"
+    categorie: entrainement
+    icone: ENDER_STONE
+    equipes: 1
+    joueurs-par-equipe: 1
+    classe: false
+    description:
+      - "Se block in le plus vite"
+      - "possible sur une défense."
+  fast-defense:
+    nom: "&bFast defense"
+    categorie: entrainement
+    icone: OBSIDIAN
+    equipes: 1
+    joueurs-par-equipe: 1
+    classe: false
+    description:
+      - "Construire une défense de lit"
+      - "le plus vite possible,"
+      - "défense RBW ou solo."
   bridge-chrono:
     nom: "&bBridge au chrono"
     categorie: entrainement
@@ -308,17 +401,27 @@ modes:
       - "Chrono par technique : ninja,"
       - "god bridge, telly... contre ton"
       - "meilleur temps ou celui du top 1."
-  block-in:
-    nom: "&bEntraînement block in"
+  kb-displace:
+    nom: "&bKB displace 1v1"
     categorie: entrainement
-    icone: ENDER_STONE
+    icone: STICK
+    equipes: 2
+    joueurs-par-equipe: 1
+    classe: false
+    description:
+      - "Sur un pont : fais tomber"
+      - "ton adversaire au kb, sans"
+      - "tomber toi-même."
+  kb-displace-bot:
+    nom: "&bKB displace contre un bot"
+    categorie: entrainement
+    icone: STICK
     equipes: 1
     joueurs-par-equipe: 1
     classe: false
     description:
-      - "Seul : protège ton lit avec"
-      - "tes blocs en 10 secondes,"
-      - "chronométré."
+      - "Sur un pont, seul contre un"
+      - "bot : le faire tomber au kb."
   ladder-practice:
     nom: "&6Ladder practice"
     categorie: entrainement
@@ -329,26 +432,6 @@ modes:
     description:
       - "Entraînement aux échelles :"
       - "poser et grimper vite (block ladder)."
-  bed-break:
-    nom: "&cCasse de lit"
-    categorie: entrainement
-    icone: BED
-    equipes: 1
-    joueurs-par-equipe: 1
-    classe: false
-    description:
-      - "Casser une défense de lit"
-      - "le plus vite possible, au chrono."
-  fireball-practice:
-    nom: "&6Fireball practice"
-    categorie: entrainement
-    icone: FIREBALL
-    equipes: 1
-    joueurs-par-equipe: 1
-    classe: false
-    description:
-      - "Sauter à la fireball et"
-      - "renvoyer les fireballs."
   pearl-practice:
     nom: "&5Pearl practice"
     categorie: entrainement
@@ -369,6 +452,26 @@ modes:
     description:
       - "Acheter vite au shop"
       - "et optimiser son shop."
+  fireball-practice:
+    nom: "&6Fireball practice"
+    categorie: entrainement
+    icone: FIREBALL
+    equipes: 1
+    joueurs-par-equipe: 1
+    classe: false
+    description:
+      - "Sauter à la fireball et"
+      - "renvoyer les fireballs."
+  bed-break:
+    nom: "&cCasse de lit"
+    categorie: entrainement
+    icone: BED
+    equipes: 1
+    joueurs-par-equipe: 1
+    classe: false
+    description:
+      - "Casser une défense de lit"
+      - "le plus vite possible, au chrono."
   combo-bot:
     nom: "&dBot de combo"
     categorie: entrainement
@@ -380,16 +483,6 @@ modes:
       - "Un bot qui bouge et rend"
       - "les coups, pour travailler ses"
       - "combos (sparring)."
-  kb-displace-bot:
-    nom: "&bKB displace contre un bot"
-    categorie: entrainement
-    icone: STICK
-    equipes: 1
-    joueurs-par-equipe: 1
-    classe: false
-    description:
-      - "Sur un pont, seul contre un"
-      - "bot : le faire tomber au kb."
   aim-trainer:
     nom: "&eAim trainer"
     categorie: entrainement

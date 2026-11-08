@@ -27,10 +27,12 @@ final class ModeMenu {
 
     /**
      * Marks our inventories: a click in one of them is a click in the selector. The view is the
-     * category menu (CATEGORIES), one category's modes (its id), or every mode (null).
+     * category menu (CATEGORIES), one category's modes (its id), an NPC's modes (NPC + its
+     * point), or every mode (null).
      */
     static final class Holder implements InventoryHolder {
         static final String CATEGORIES = "";
+        static final String NPC = "pnj:";
         private Inventory inventory;
         private final String view;
 
@@ -77,6 +79,33 @@ final class ModeMenu {
         return true;
     }
 
+    /** The modes of a lobby NPC that has several. */
+    void openNpc(Player player, LobbyNpc npc) {
+        String title = ChatColor.stripColor(npc.name());
+        show(player, Holder.NPC + npc.point(), 2 + rowsFor(npc.modeIds().size()),
+                title.length() > 32 ? title.substring(0, 32) : title);
+    }
+
+    /** The modes a view shows. */
+    private List<ModeDisplay> modesFor(String view) {
+        if (view != null && view.startsWith(Holder.NPC)) {
+            List<ModeDisplay> result = new ArrayList<>();
+            LobbyNpc npc = settings.npc(view.substring(Holder.NPC.length()));
+            if (npc != null) {
+                for (String id : npc.modeIds()) {
+                    result.add(settings.display(id));
+                }
+            }
+            return result;
+        }
+        return settings.modesIn(view);
+    }
+
+    /** Whether a view has the back button: only a category's modes. */
+    private static boolean hasBack(String view) {
+        return view != null && !view.startsWith(Holder.NPC);
+    }
+
     private static int rowsFor(int modes) {
         return Math.max(1, (modes + PER_ROW - 1) / PER_ROW);
     }
@@ -117,11 +146,11 @@ final class ModeMenu {
             }
             return;
         }
-        if (view != null && slot == backSlot(holder.getInventory().getSize())) {
+        if (hasBack(view) && slot == backSlot(holder.getInventory().getSize())) {
             open(player);
             return;
         }
-        List<ModeDisplay> modes = settings.modesIn(view);
+        List<ModeDisplay> modes = modesFor(view);
         GameMode mode = null;
         for (int i = 0; i < modes.size(); i++) {
             if (slotOf(i) == slot) {
@@ -131,6 +160,11 @@ final class ModeMenu {
         if (mode == null) {
             return;
         }
+        toggle(player, mode);
+    }
+
+    /** Joins the mode's queue, or leaves it if the player already waits for it. */
+    void toggle(Player player, GameMode mode) {
         GameMode current = queues.queueOf(player);
         if (mode.equals(current)) {
             queues.leave(player, true);
@@ -162,12 +196,12 @@ final class ModeMenu {
             }
             return;
         }
-        List<ModeDisplay> modes = settings.modesIn(view);
-        int last = view == null ? inventory.getSize() : backSlot(inventory.getSize()) - 4;
+        List<ModeDisplay> modes = modesFor(view);
+        int last = hasBack(view) ? backSlot(inventory.getSize()) - 4 : inventory.getSize();
         for (int i = 0; i < modes.size() && slotOf(i) < last; i++) {
             inventory.setItem(slotOf(i), icon(modes.get(i), modes.get(i).mode().equals(current)));
         }
-        if (view != null) {
+        if (hasBack(view)) {
             ItemStack back = new ItemStack(Material.ARROW);
             ItemMeta meta = back.getItemMeta();
             meta.setDisplayName(ChatColor.GRAY + "Retour aux catégories");

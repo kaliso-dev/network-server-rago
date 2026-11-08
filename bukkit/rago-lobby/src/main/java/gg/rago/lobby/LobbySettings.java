@@ -33,11 +33,13 @@ final class LobbySettings {
 
     private final List<ModeDisplay> modes;
     private final List<ModeCategory> categories;
+    private final List<LobbyNpc> npcs;
     private final ModeCatalog catalog;
 
     private LobbySettings(String world, int voidHeight, String title, String address, int defaultRating,
-            RatingWindow window, List<ModeCategory> categories, List<ModeDisplay> modes) {
+            RatingWindow window, List<ModeCategory> categories, List<ModeDisplay> modes, List<LobbyNpc> npcs) {
         this.categories = Collections.unmodifiableList(categories);
+        this.npcs = Collections.unmodifiableList(npcs);
         this.world = world;
         this.voidHeight = voidHeight;
         this.title = title;
@@ -104,11 +106,56 @@ final class LobbySettings {
             }
             modes.add(display);
         }
+        List<LobbyNpc> npcs = readNpcs(config, modes);
         try {
-            return new LobbySettings(world, voidHeight, title, address, defaultRating, window, categories, modes);
+            return new LobbySettings(world, voidHeight, title, address, defaultRating, window, categories, modes, npcs);
         } catch (IllegalArgumentException e) {
             throw new IllegalArgumentException("modes : " + e.getMessage(), e);
         }
+    }
+
+    private static List<LobbyNpc> readNpcs(ConfigurationSection config, List<ModeDisplay> modes) {
+        List<LobbyNpc> npcs = new ArrayList<>();
+        java.util.Set<String> points = new java.util.HashSet<>();
+        ConfigurationSection section = config.getConfigurationSection("pnj");
+        if (section != null) {
+            for (String point : section.getKeys(false)) {
+                String where = "pnj." + point;
+                ConfigurationSection npc = section.getConfigurationSection(point);
+                if (npc == null) {
+                    throw new IllegalArgumentException(where + " : ce n'est pas une section");
+                }
+                if (!LobbyPoints.validName(point)) {
+                    throw new IllegalArgumentException(where + " : ce n'est pas un nom de point valide");
+                }
+                List<String> ids = npc.getStringList("modes");
+                if (ids.isEmpty()) {
+                    throw new IllegalArgumentException(where + ".modes : au moins un mode");
+                }
+                for (String id : ids) {
+                    boolean known = false;
+                    for (ModeDisplay display : modes) {
+                        known |= display.mode().id().equals(id);
+                    }
+                    if (!known) {
+                        throw new IllegalArgumentException(where + ".modes : « " + id + " » n'est pas un des modes");
+                    }
+                }
+                points.add(point);
+                npcs.add(new LobbyNpc(point, colour(npc.getString("nom", point)), new ArrayList<>(ids)));
+            }
+        }
+        ConfigurationSection boards = config.getConfigurationSection("classements");
+        if (boards != null) {
+            for (String point : boards.getKeys(false)) {
+                if (!LobbyPoints.validName(point) || !points.add(point)) {
+                    throw new IllegalArgumentException("classements." + point
+                            + " : nom de point invalide, ou point déjà pris par un PNJ");
+                }
+                npcs.add(new LobbyNpc(point, colour(boards.getString(point, point)), new ArrayList<String>()));
+            }
+        }
+        return npcs;
     }
 
     private static List<ModeCategory> readCategories(ConfigurationSection section) {
@@ -217,6 +264,20 @@ final class LobbySettings {
     /** The categories in the order of config.yml; empty when the selector shows every mode at once. */
     List<ModeCategory> categories() {
         return categories;
+    }
+
+    /** The NPCs and leaderboards of the lobby, by point. */
+    List<LobbyNpc> npcs() {
+        return npcs;
+    }
+
+    LobbyNpc npc(String point) {
+        for (LobbyNpc npc : npcs) {
+            if (npc.point().equals(point)) {
+                return npc;
+            }
+        }
+        return null;
     }
 
     ModeCategory category(String id) {

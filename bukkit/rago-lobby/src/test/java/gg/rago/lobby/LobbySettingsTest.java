@@ -37,7 +37,7 @@ class LobbySettingsTest {
         assertEquals("lobby", settings.world());
         assertEquals(0, settings.voidHeight());
         assertEquals(1000, settings.defaultRating());
-        assertEquals(33, settings.modes().size());
+        assertEquals(35, settings.modes().size());
 
         GameMode ranked = settings.catalog().get("ranked-1v1");
         assertTrue(ranked.ranked());
@@ -58,9 +58,9 @@ class LobbySettingsTest {
     void groupsTheBundledModesByCategory() throws Exception {
         LobbySettings settings = LobbySettings.load(bundledConfig());
         assertEquals(3, settings.categories().size());
-        assertEquals("ranked", settings.categories().get(0).id());
-        assertEquals("duels", settings.categories().get(1).id());
-        assertEquals(Material.IRON_SWORD, settings.categories().get(1).icon());
+        assertEquals("duels", settings.categories().get(0).id(), "left to right, as in the lobby");
+        assertEquals("ranked", settings.categories().get(1).id());
+        assertEquals(Material.IRON_SWORD, settings.categories().get(0).icon());
         assertEquals("sumo", settings.modesIn("duels").get(0).mode().id());
         int total = 0;
         for (ModeCategory category : settings.categories()) {
@@ -69,6 +69,23 @@ class LobbySettingsTest {
             total += count;
         }
         assertEquals(settings.modes().size(), total, "every mode is in a category");
+    }
+
+    @Test
+    void readsTheBundledNpcs() throws Exception {
+        LobbySettings settings = LobbySettings.load(bundledConfig());
+        assertEquals(21, settings.npcs().size());
+        LobbyNpc ranked = settings.npc("rankedbedwars1v1ou2v2elo");
+        assertEquals(java.util.Arrays.asList("ranked-1v1", "ranked-2v2"), ranked.modeIds());
+        assertTrue(settings.npc("leaderboardprincipal").leaderboard());
+        assertFalse(ranked.leaderboard());
+    }
+
+    @Test
+    void checksNpcs() {
+        assertInvalid("pnj:\n  pnj-sumo:\n    modes: [autre]\nmodes:\n  sumo: {}\n", "pnj.pnj-sumo.modes");
+        assertInvalid("pnj:\n  pnj-sumo: {}\nmodes:\n  sumo: {}\n", "pnj.pnj-sumo");
+        assertInvalid("pnj:\n  a:\n    modes: [sumo]\nclassements:\n  a: Titre\nmodes:\n  sumo: {}\n", "classements.a");
     }
 
     @Test

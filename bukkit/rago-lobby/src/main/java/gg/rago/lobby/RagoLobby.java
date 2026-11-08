@@ -9,6 +9,7 @@ import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.StandardCopyOption;
+import java.util.List;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
@@ -41,6 +42,7 @@ public final class RagoLobby extends JavaPlugin implements LobbyService {
     /** Writes files (spawn.yml, points.yml) away from the main thread, one at a time. */
     private ExecutorService writer;
     private LobbyPoints points;
+    private LobbyNpcs npcs;
 
     @Override
     public void onEnable() {
@@ -86,6 +88,8 @@ public final class RagoLobby extends JavaPlugin implements LobbyService {
         queues = new QueueController(this, settings, state, this::queuesChanged);
         menu = new ModeMenu(settings, queues);
         scoreboard = new LobbyScoreboard(settings, queues);
+        npcs = new LobbyNpcs(settings, state, points, queues, menu);
+        getServer().getPluginManager().registerEvents(npcs, this);
 
         getServer().getPluginManager().registerEvents(new LobbyListener(this, state, visibility), this);
         getServer().getPluginManager().registerEvents(new HostWatcher(queues), this);
@@ -100,7 +104,12 @@ public final class RagoLobby extends JavaPlugin implements LobbyService {
             queues.tick();
             scoreboard.updateAll();
             menu.refreshOpen();
+            npcs.update();
         }, 20L, 20L);
+        int placed = npcs.spawnAll();
+        List<String> missing = npcs.missingPoints();
+        getLogger().info(placed + " PNJ et classements placés" + (missing.isEmpty() ? ""
+                : ", sans point pour : " + String.join(", ", missing) + " (/lobby point <nom>)"));
 
         // After a /reload: everyone online is brought back to the lobby.
         for (Player player : getServer().getOnlinePlayers()) {
@@ -113,6 +122,9 @@ public final class RagoLobby extends JavaPlugin implements LobbyService {
     @Override
     public void onDisable() {
         getServer().getServicesManager().unregisterAll(this);
+        if (npcs != null) {
+            npcs.removeAll();
+        }
         if (writer != null) {
             writer.shutdown();
             try {
@@ -332,6 +344,7 @@ public final class RagoLobby extends JavaPlugin implements LobbyService {
             return;
         }
         write(new File(state.world().getWorldFolder(), LobbyPoints.FILE_NAME), points.toYaml());
+        npcs.spawnAll();
         player.sendMessage(ChatColor.GREEN + "Point " + name + (moved ? " déplacé ici." : " placé ici."));
     }
 
@@ -342,6 +355,7 @@ public final class RagoLobby extends JavaPlugin implements LobbyService {
             return;
         }
         write(new File(state.world().getWorldFolder(), LobbyPoints.FILE_NAME), points.toYaml());
+        npcs.spawnAll();
         player.sendMessage(ChatColor.GREEN + "Point " + name + " retiré.");
     }
 
