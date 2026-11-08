@@ -165,23 +165,32 @@ modes:
       - "Seul : simule le premier rush"
       - "d'un Bedwars 1v1, sur Nebuc,"
       - "Gelato ou Sky Rise."
-  invis-endgame-1v1:
-    nom: "&5Invis end game 1v1"
+  invis-practice:
+    nom: "&5Invis practice"
     icone: POTION
     equipes: 2
     joueurs-par-equipe: 1
     classe: false
     description:
-      - "Fin de partie RBW sur Sky Rise :"
-      - "stuff de fin, et un adversaire"
-      - "invisible."
-  invis-endgame-2v2:
-    nom: "&5Invis end game 2v2"
-    icone: POTION
+      - "Combat contre un adversaire"
+      - "invisible, sur Invasion"
+      - "ou Archway."
+  end-game-1v1:
+    nom: "&6End game 1v1"
+    icone: DIAMOND_CHESTPLATE
+    equipes: 2
+    joueurs-par-equipe: 1
+    classe: false
+    description:
+      - "Simulation de fin de partie"
+      - "RBW sur Sky Rise."
+  end-game-2v2:
+    nom: "&6End game 2v2"
+    icone: DIAMOND_CHESTPLATE
     equipes: 2
     joueurs-par-equipe: 2
     classe: false
     description:
-      - "Fin de partie RBW à deux contre"
-      - "deux sur Sky Rise, adversaires"
-      - "invisibles."
+      - "Simulation de fin de partie"
+      - "RBW à deux contre deux,"
+      - "sur Sky Rise."
