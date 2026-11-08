@@ -158,10 +158,10 @@ modes:
   first-rush:
     nom: "&eSolo Bedwars 1v1 first rush"
     icone: IRON_PICKAXE
-    equipes: 2
+    equipes: 1
     joueurs-par-equipe: 1
     classe: false
     description:
-      - "Entraîne ton premier rush"
-      - "en solo Bedwars 1v1, sur"
-      - "Nebuc ou Gelato."
+      - "Seul : simule le premier rush"
+      - "d'un Bedwars 1v1, sur Nebuc,"
+      - "Gelato ou Sky Rise."
