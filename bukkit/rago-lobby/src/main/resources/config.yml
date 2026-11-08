@@ -134,3 +134,12 @@ modes:
       - "Entrée libre, sans règles"
       - "ni dégâts : combote à"
       - "l'infini."
+  bridge-fight:
+    nom: "&bBridge fight"
+    icone: WOOL
+    equipes: 2
+    joueurs-par-equipe: 1
+    classe: false
+    description:
+      - "Combat sur un pont, sur une"
+      - "plateforme réaliste de Bedwars."
