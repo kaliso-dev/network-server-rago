@@ -258,3 +258,12 @@ modes:
     description:
       - "Acheter vite au shop"
       - "et optimiser son shop."
+  combo-bot:
+    nom: "&dBot de combo"
+    icone: SKULL_ITEM
+    equipes: 1
+    joueurs-par-equipe: 1
+    classe: false
+    description:
+      - "Un bot qui bouge et rend"
+      - "les coups, pour travailler ses combos."
