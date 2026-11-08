@@ -525,7 +525,9 @@ async function fireballJump (bot) {
   bot.closeWindow(shop)
   await waitFor(() => countOf(bot, 'fire_charge') === 1, 5000, `${bot.username} to get its fireball`)
   await bot.equip(bot.inventory.items().find((item) => item.name === 'fire_charge'), 'hand')
-  await bot.look(bot.entity.yaw, -Math.PI / 2, true)
+  const ground = bot.blockAt(bot.entity.position.offset(0, -0.5, 0))
+  if (ground == null || ground.name === 'air') throw new Error(`${bot.username} is not standing on a block`)
+  await bot.lookAt(ground.position.offset(0.5, 1, 0.5), true)
   await sleep(200)
   const floor = bot.entity.position.y
   const before = bot.health
@@ -536,7 +538,9 @@ async function fireballJump (bot) {
   bot.on('health', onHealth)
   bot.on('move', onMove)
   from = mark(bot)
-  bot.activateItem()
+  // A right click on the floor, as a player does: the use packet in the air that activateItem sends
+  // is dropped by the server when the player looks at a block just after placing one (the wool).
+  bot.activateBlock(ground).catch(() => {})
   try {
     await waitFor(() => healths.some((health) => health < before), 5000,
       `${bot.username} to be hurt by the blast of its fireball (health ${bot.health})`)
