@@ -50,6 +50,8 @@ final class LobbyCommands implements TabExecutor {
                 return true;
             case "file":
                 return queue(player, args);
+            case "duel":
+                return duel(player, args);
             case "lobby":
                 return admin(player, args);
             default:
@@ -77,6 +79,35 @@ final class LobbyCommands implements TabExecutor {
             return true;
         }
         lobby.queues().join(player, mode);
+        return true;
+    }
+
+    private boolean duel(Player player, String[] args) {
+        if (args.length == 2 && args[0].equalsIgnoreCase("accepter")) {
+            lobby.duels().accept(player, args[1]);
+            return true;
+        }
+        if (args.length == 2 && args[0].equalsIgnoreCase("refuser")) {
+            lobby.duels().refuse(player, args[1]);
+            return true;
+        }
+        if (args.length == 0 || args.length > 2) {
+            return false;
+        }
+        Player target = org.bukkit.Bukkit.getPlayerExact(args[0]);
+        if (!lobby.duels().canChallenge(player, target)) {
+            return true;
+        }
+        if (args.length == 1) {
+            lobby.menu().openDuel(player, target);
+            return true;
+        }
+        GameMode mode = lobby.mode(args[1].toLowerCase(java.util.Locale.ROOT));
+        if (mode == null) {
+            player.sendMessage(ChatColor.RED + "Mode inconnu.");
+            return true;
+        }
+        lobby.duels().challenge(player, target, mode);
         return true;
     }
 
@@ -170,10 +201,31 @@ final class LobbyCommands implements TabExecutor {
 
     @Override
     public List<String> onTabComplete(CommandSender sender, Command command, String alias, String[] args) {
+        List<String> options = new ArrayList<>();
+        if (command.getName().equals("duel")) {
+            if (args.length == 1) {
+                options.add("accepter");
+                options.add("refuser");
+                for (Player online : org.bukkit.Bukkit.getOnlinePlayers()) {
+                    options.add(online.getName());
+                }
+            } else if (args.length == 2 && !args[0].equalsIgnoreCase("accepter") && !args[0].equalsIgnoreCase("refuser")) {
+                for (ModeDisplay display : lobby.duels().duelModes()) {
+                    options.add(display.mode().id());
+                }
+            }
+            List<String> matching = new ArrayList<>();
+            String typed = args[args.length - 1].toLowerCase(java.util.Locale.ROOT);
+            for (String option : options) {
+                if (option.toLowerCase(java.util.Locale.ROOT).startsWith(typed)) {
+                    matching.add(option);
+                }
+            }
+            return matching;
+        }
         if (args.length != 1) {
             return Collections.emptyList();
         }
-        List<String> options = new ArrayList<>();
         if (command.getName().equals("file")) {
             options.add("quitter");
             for (GameMode mode : lobby.settings().catalog().all()) {

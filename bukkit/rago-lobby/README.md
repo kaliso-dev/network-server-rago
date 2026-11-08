@@ -26,6 +26,8 @@ dans les files d'attente des modes de jeu.
 | --- | --- | --- |
 | `/spawn` (ou `/hub`) | retour au spawn ; pendant une partie, c'est un abandon | tout le monde |
 | `/file <mode>`, `/file quitter` | entrer dans une file, en sortir | tout le monde |
+| `/duel <joueur> [mode]` | défier un joueur du lobby dans un mode 1v1 (sans mode : un menu des modes 1v1) | tout le monde |
+| `/duel accepter <joueur>`, `/duel refuser <joueur>` | répondre à un défi (valable une minute) | tout le monde |
 | `/lobby modes` | les modes et leur file (aussi depuis la console) | tout le monde |
 | `/lobby setspawn` | place le spawn du lobby là où tu es (écrit dans `spawn.yml`, dans le dossier du monde du lobby) | `rago.lobby.admin` |
 | `/lobby point <nom>` | place ou déplace un point nommé là où tu es : où iront les PNJ des modes, les classements, les décorations (écrit dans `points.yml`, dans le dossier du monde) | `rago.lobby.admin` |

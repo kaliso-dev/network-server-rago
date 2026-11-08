@@ -33,6 +33,7 @@ final class ModeMenu {
     static final class Holder implements InventoryHolder {
         static final String CATEGORIES = "";
         static final String NPC = "pnj:";
+        static final String DUEL = "duel:";
         private Inventory inventory;
         private final String view;
 
@@ -52,6 +53,17 @@ final class ModeMenu {
 
     private final LobbySettings settings;
     private final QueueController queues;
+    private DuelRequests duels;
+
+    void setDuels(DuelRequests duels) {
+        this.duels = duels;
+    }
+
+    /** /duel <joueur>: the 1v1 modes, a click challenges that player. */
+    void openDuel(Player player, Player target) {
+        show(player, Holder.DUEL + target.getUniqueId(), 2 + rowsFor(duels.duelModes().size()),
+                "Défier " + (target.getName().length() > 24 ? target.getName().substring(0, 24) : target.getName()));
+    }
 
     ModeMenu(LobbySettings settings, QueueController queues) {
         this.settings = settings;
@@ -88,6 +100,9 @@ final class ModeMenu {
 
     /** The modes a view shows. */
     private List<ModeDisplay> modesFor(String view) {
+        if (view != null && view.startsWith(Holder.DUEL)) {
+            return duels.duelModes();
+        }
         if (view != null && view.startsWith(Holder.NPC)) {
             List<ModeDisplay> result = new ArrayList<>();
             LobbyNpc npc = settings.npc(view.substring(Holder.NPC.length()));
@@ -103,7 +118,7 @@ final class ModeMenu {
 
     /** Whether a view has the back button: only a category's modes. */
     private static boolean hasBack(String view) {
-        return view != null && !view.startsWith(Holder.NPC);
+        return view != null && !view.startsWith(Holder.NPC) && !view.startsWith(Holder.DUEL);
     }
 
     private static int rowsFor(int modes) {
@@ -158,6 +173,12 @@ final class ModeMenu {
             }
         }
         if (mode == null) {
+            return;
+        }
+        if (view != null && view.startsWith(Holder.DUEL)) {
+            player.closeInventory();
+            Player target = Bukkit.getPlayer(java.util.UUID.fromString(view.substring(Holder.DUEL.length())));
+            duels.challenge(player, target, mode);
             return;
         }
         toggle(player, mode);

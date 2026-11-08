@@ -71,6 +71,10 @@ final class LobbyNpcs implements Listener {
                 continue;
             }
             Location base = point.in(world);
+            // Facing the spawn, where players come from, whatever way the builder looked.
+            Location spawn = state.spawn();
+            base.setYaw(yawTowards(base.getX(), base.getZ(), spawn.getX(), spawn.getZ()));
+            base.setPitch(0f);
             Chunk chunk = base.getChunk();
             chunk.load();
             keptChunks.add(key(chunk.getX(), chunk.getZ()));
@@ -166,6 +170,16 @@ final class LobbyNpcs implements Listener {
                 entity.remove();
             }
         }
+    }
+
+    /** The Minecraft yaw that looks from (x, z) to (toX, toZ): 0 is south (+z), 90 is west (-x). */
+    static float yawTowards(double x, double z, double toX, double toZ) {
+        double dx = toX - x;
+        double dz = toZ - z;
+        if (dx == 0 && dz == 0) {
+            return 0f;
+        }
+        return (float) Math.toDegrees(Math.atan2(-dx, dz));
     }
 
     private static long key(int x, int z) {

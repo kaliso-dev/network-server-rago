@@ -26,4 +26,12 @@ class LayoutTest {
         assertEquals("12:05", LobbyScoreboard.clock(725_000));
         assertEquals("0:00", LobbyScoreboard.clock(-1));
     }
+
+    @Test
+    void npcsFaceTheSpawn() {
+        assertEquals(0f, LobbyNpcs.yawTowards(0, 0, 0, 10), 0.001f, "south");
+        assertEquals(90f, LobbyNpcs.yawTowards(0, 0, -10, 0), 0.001f, "west");
+        assertEquals(-90f, LobbyNpcs.yawTowards(0, 0, 10, 0), 0.001f, "east");
+        assertEquals(180f, Math.abs(LobbyNpcs.yawTowards(0, 0, 0, -10)), 0.001f, "north");
+    }
 }

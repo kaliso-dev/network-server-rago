@@ -77,6 +77,8 @@ Commandes :
 
 - /spawn : retour au spawn du lobby. Pendant un duel, c'est un abandon.
 - /file sumo pour entrer dans la file du duel, /file quitter pour en sortir.
+- /duel Pseudo : défier un ami dans un mode 1v1 (un menu s'ouvre) ; il répond avec
+  /duel accepter TonPseudo ou /duel refuser TonPseudo.
 - /lobby modes : les modes du lobby et leur file.
 - /lobby setspawn (opérateurs) : place le spawn du lobby là où tu es.
 - /lobby build (opérateurs) : mode construction dans le lobby (créatif, tu peux modifier la map) ;

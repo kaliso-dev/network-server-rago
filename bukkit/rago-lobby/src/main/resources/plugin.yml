@@ -14,6 +14,9 @@ commands:
   file:
     description: Entrer dans la file d'un mode, ou la quitter.
     usage: /file <mode|quitter>
+  duel:
+    description: Défier un joueur du lobby en 1v1.
+    usage: /duel <joueur> [mode], /duel accepter <joueur>, /duel refuser <joueur>
   lobby:
     description: Gérer le lobby (staff).
     usage: /lobby <setspawn|build|modes|points|point <nom>|point retirer <nom>|point tp <nom>>

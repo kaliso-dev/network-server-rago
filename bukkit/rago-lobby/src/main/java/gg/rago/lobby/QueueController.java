@@ -167,6 +167,26 @@ final class QueueController {
     }
 
     private void start(MatchProposal match) {
+        start(match, true);
+    }
+
+    /**
+     * Starts a match without the queue (a /duel between two players in the lobby). Both leave any
+     * queue first. False, with the players told why, if the game could not start.
+     */
+    boolean startDirect(MatchProposal match) {
+        for (UUID id : match.players()) {
+            Player player = Bukkit.getPlayer(id);
+            if (player != null) {
+                matchmaker.leave(id);
+            }
+        }
+        boolean started = start(match, false);
+        onChange.run();
+        return started;
+    }
+
+    private boolean start(MatchProposal match, boolean requeue) {
         String modeId = match.mode().id();
         MatchHost host = hosts.get(modeId);
         List<Player> players = new ArrayList<>();
@@ -179,8 +199,10 @@ final class QueueController {
             }
         }
         if (host == null || players.size() != match.players().size()) {
-            requeueOnline(match);
-            return;
+            if (requeue) {
+                requeueOnline(match);
+            }
+            return false;
         }
         // The players belong to the game before it starts: the host teleports them during start().
         for (Player player : players) {
@@ -197,11 +219,17 @@ final class QueueController {
             for (Player player : players) {
                 toldNoArena.remove(player.getUniqueId());
             }
-            return;
+            return true;
         }
         // Not started: still in the lobby, unless the host had already teleported someone.
         for (Player player : players) {
             lobby.cancelGame(player);
+        }
+        if (!requeue) {
+            for (Player player : players) {
+                player.sendMessage(ChatColor.YELLOW + "Aucune arène libre pour l'instant : réessaie dans un moment.");
+            }
+            return false;
         }
         requeueOnline(match);
         for (Player player : players) {
@@ -209,6 +237,7 @@ final class QueueController {
                 player.sendMessage(ChatColor.YELLOW + "Aucune arène libre pour l'instant : tu gardes ta place dans la file.");
             }
         }
+        return false;
     }
 
     /**

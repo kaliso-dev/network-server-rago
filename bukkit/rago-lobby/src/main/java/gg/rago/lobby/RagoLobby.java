@@ -43,6 +43,7 @@ public final class RagoLobby extends JavaPlugin implements LobbyService {
     private ExecutorService writer;
     private LobbyPoints points;
     private LobbyNpcs npcs;
+    private DuelRequests duels;
 
     @Override
     public void onEnable() {
@@ -88,13 +89,15 @@ public final class RagoLobby extends JavaPlugin implements LobbyService {
         queues = new QueueController(this, settings, state, this::queuesChanged);
         menu = new ModeMenu(settings, queues);
         scoreboard = new LobbyScoreboard(settings, queues);
+        duels = new DuelRequests(settings, state, queues);
+        menu.setDuels(duels);
         npcs = new LobbyNpcs(settings, state, points, queues, menu);
         getServer().getPluginManager().registerEvents(npcs, this);
 
         getServer().getPluginManager().registerEvents(new LobbyListener(this, state, visibility), this);
         getServer().getPluginManager().registerEvents(new HostWatcher(queues), this);
         LobbyCommands commands = new LobbyCommands(this);
-        for (String name : new String[] {"lobby", "spawn", "file"}) {
+        for (String name : new String[] {"lobby", "spawn", "file", "duel"}) {
             getCommand(name).setExecutor(commands);
             getCommand(name).setTabCompleter(commands);
         }
@@ -244,6 +247,7 @@ public final class RagoLobby extends JavaPlugin implements LobbyService {
 
     void forget(Player player) {
         queues.forget(player.getUniqueId());
+        duels.forget(player.getUniqueId());
         visibility.forget(player.getUniqueId());
         scoreboard.forget(player.getUniqueId());
         state.forget(player.getUniqueId());
@@ -408,6 +412,10 @@ public final class RagoLobby extends JavaPlugin implements LobbyService {
     }
 
     // --- For the other classes of the plugin ----------------------------------------------------
+
+    DuelRequests duels() {
+        return duels;
+    }
 
     LobbySettings settings() {
         return settings;
