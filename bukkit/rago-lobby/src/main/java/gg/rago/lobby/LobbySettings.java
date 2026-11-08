@@ -106,7 +106,7 @@ final class LobbySettings {
             }
             modes.add(display);
         }
-        List<LobbyNpc> npcs = readNpcs(config, modes);
+        List<LobbyNpc> npcs = readNpcs(config, modes, categories);
         try {
             return new LobbySettings(world, voidHeight, title, address, defaultRating, window, categories, modes, npcs);
         } catch (IllegalArgumentException e) {
@@ -114,7 +114,8 @@ final class LobbySettings {
         }
     }
 
-    private static List<LobbyNpc> readNpcs(ConfigurationSection config, List<ModeDisplay> modes) {
+    private static List<LobbyNpc> readNpcs(ConfigurationSection config, List<ModeDisplay> modes,
+            List<ModeCategory> categories) {
         List<LobbyNpc> npcs = new ArrayList<>();
         java.util.Set<String> points = new java.util.HashSet<>();
         ConfigurationSection section = config.getConfigurationSection("pnj");
@@ -128,9 +129,24 @@ final class LobbySettings {
                 if (!LobbyPoints.validName(point)) {
                     throw new IllegalArgumentException(where + " : ce n'est pas un nom de point valide");
                 }
-                List<String> ids = npc.getStringList("modes");
-                if (ids.isEmpty()) {
-                    throw new IllegalArgumentException(where + ".modes : au moins un mode");
+                String category = npc.getString("categorie");
+                List<String> ids = new ArrayList<>(npc.getStringList("modes"));
+                if (category != null) {
+                    boolean known = false;
+                    for (ModeCategory c : categories) {
+                        known |= c.id().equals(category);
+                    }
+                    if (!known || !ids.isEmpty()) {
+                        throw new IllegalArgumentException(where + ".categorie : « " + category
+                                + " » n'est pas une des catégories, ou le PNJ a aussi des modes");
+                    }
+                    for (ModeDisplay display : modes) {
+                        if (category.equals(display.category())) {
+                            ids.add(display.mode().id());
+                        }
+                    }
+                } else if (ids.isEmpty()) {
+                    throw new IllegalArgumentException(where + ".modes : au moins un mode, ou une categorie");
                 }
                 for (String id : ids) {
                     boolean known = false;
@@ -142,7 +158,7 @@ final class LobbySettings {
                     }
                 }
                 points.add(point);
-                npcs.add(new LobbyNpc(point, colour(npc.getString("nom", point)), new ArrayList<>(ids)));
+                npcs.add(new LobbyNpc(point, colour(npc.getString("nom", point)), ids, category));
             }
         }
         ConfigurationSection boards = config.getConfigurationSection("classements");
@@ -152,7 +168,7 @@ final class LobbySettings {
                     throw new IllegalArgumentException("classements." + point
                             + " : nom de point invalide, ou point déjà pris par un PNJ");
                 }
-                npcs.add(new LobbyNpc(point, colour(boards.getString(point, point)), new ArrayList<String>()));
+                npcs.add(new LobbyNpc(point, colour(boards.getString(point, point)), new ArrayList<String>(), null));
             }
         }
         return npcs;

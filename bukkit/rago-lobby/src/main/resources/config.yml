@@ -32,20 +32,20 @@ categories:
     icone: IRON_SWORD
     description:
       - "Sumo, boxing, fireball fight,"
-      - "attack and defense."
+      - "attack and defense, KB displace."
   ranked:
     nom: "&6&lRanked Bedwars"
     icone: BED
     description:
       - "Le classé et les modes Bedwars :"
       - "ranked, partie privée, FFA,"
-      - "Arena Free, top fight, end game..."
+      - "Arena Free, top fight, Sky Rise..."
   entrainement:
     nom: "&b&lEntraînement"
     icone: SANDSTONE
     description:
       - "Seul ou contre un bot : clutch,"
-      - "block in, fast defense, bridge..."
+      - "block in, fast defense, fireball..."
 
 # Les PNJ du lobby. Chacun se tient sur un point placé par /lobby point <nom> (la clé) et ouvre
 # ses modes : un clic rejoint la file s'il n'en a qu'un, sinon ouvre un menu de ses modes.
@@ -58,11 +58,11 @@ pnj:
     nom: "&6Partie privée"
     modes: [partie-privee]
   rbwffa:
-    nom: "&cFFA Ranked Bedwars"
-    modes: [ffa]
+    nom: "&cFFA et Top fight"
+    modes: [ffa, top-fight-1v1, top-fight-2v2]
   rbwsolo1v1ou2v2skyrise:
-    nom: "&6End game"
-    modes: [end-game-1v1, end-game-2v2]
+    nom: "&6RBW Sky Rise"
+    modes: [skyrise-1v1, skyrise-2v2]
   firstrushnebucgelatosoloduo:
     nom: "&eFirst rush"
     modes: [first-rush]
@@ -75,51 +75,16 @@ pnj:
   freearenacombo:
     nom: "&aArena Free"
     modes: [free-ffa]
-  topfight:
-    nom: "&6Top fight"
-    modes: [top-fight-1v1, top-fight-2v2]
   blockplacementarena:
     nom: "&bBlock placement"
     modes: [block-fight-1v1, block-fight-2v2]
-  attackdefenseversionrbw:
-    nom: "&cAttack and defense"
-    modes: [attack-defense-1v1, attack-defense-2v2]
-  sumo:
-    nom: "&aSumo"
-    modes: [sumo]
-  boxingcombo:
-    nom: "&fBoxing"
-    modes: [boxing]
-  fireballfight:
-    nom: "&cFireball fight"
-    modes: [fireball]
-  blockclutchpractice:
-    nom: "&bBlock clutch"
-    modes: [clutch]
-  blockinpractice:
-    nom: "&bBlock in"
-    modes: [block-in]
-  fastdefensepractice:
-    nom: "&bFast defense"
-    modes: [fast-defense]
-  bridgepractice:
-    nom: "&bBridge au chrono"
-    modes: [bridge-chrono]
-  kbdisplacepractice:
-    nom: "&bKB displace"
-    modes: [kb-displace, kb-displace-bot]
-  ladderpractice:
-    nom: "&6Ladder practice"
-    modes: [ladder-practice]
-  pearlpractice:
-    nom: "&5Pearl practice"
-    modes: [pearl-practice]
-  fastshoppractice:
-    nom: "&aShop buyer"
-    modes: [shop-practice]
-  fireballpractice:
-    nom: "&6Fireball practice"
-    modes: [fireball-practice]
+  # Un seul PNJ par zone de côté : il ouvre toute la catégorie.
+  duels:
+    nom: "&a&lDuels"
+    categorie: duels
+  practice:
+    nom: "&b&lPractice"
+    categorie: entrainement
   aimtrainer:
     nom: "&eAim trainer"
     modes: [aim-trainer]
@@ -195,26 +160,25 @@ modes:
       - "Archway en tous contre tous :"
       - "combo à l'infini, boutique"
       - "personnalisée et top fight."
-  end-game-1v1:
-    nom: "&6End game 1v1"
+  skyrise-1v1:
+    nom: "&6RBW Sky Rise 1v1"
     categorie: ranked
     icone: DIAMOND_CHESTPLATE
     equipes: 2
     joueurs-par-equipe: 1
     classe: false
     description:
-      - "Simulation de fin de partie"
-      - "RBW sur Sky Rise."
-  end-game-2v2:
-    nom: "&6End game 2v2"
+      - "Un Bedwars en solo, type RBW,"
+      - "sur Sky Rise."
+  skyrise-2v2:
+    nom: "&6RBW Sky Rise 2v2"
     categorie: ranked
     icone: DIAMOND_CHESTPLATE
     equipes: 2
     joueurs-par-equipe: 2
     classe: false
     description:
-      - "Simulation de fin de partie"
-      - "RBW à deux contre deux,"
+      - "Un Bedwars en duo, type RBW,"
       - "sur Sky Rise."
   first-rush:
     nom: "&eSolo Bedwars 1v1 first rush"
@@ -394,7 +358,7 @@ modes:
       - "meilleur temps ou celui du top 1."
   kb-displace:
     nom: "&bKB displace 1v1"
-    categorie: entrainement
+    categorie: duels
     icone: STICK
     equipes: 2
     joueurs-par-equipe: 1
@@ -405,7 +369,7 @@ modes:
       - "tomber toi-même."
   kb-displace-bot:
     nom: "&bKB displace contre un bot"
-    categorie: entrainement
+    categorie: duels
     icone: STICK
     equipes: 1
     joueurs-par-equipe: 1

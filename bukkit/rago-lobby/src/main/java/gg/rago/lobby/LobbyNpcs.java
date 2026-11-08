@@ -135,8 +135,9 @@ final class LobbyNpcs implements Listener {
         stand.setArms(true);
         stand.setBasePlate(false);
         stand.setCustomNameVisible(false);
-        ModeDisplay first = settings.display(npc.modeIds().get(0));
-        stand.setItemInHand(new ItemStack(first.icon()));
+        ModeCategory category = npc.category() == null ? null : settings.category(npc.category());
+        stand.setItemInHand(new ItemStack(category != null ? category.icon()
+                : settings.display(npc.modeIds().get(0)).icon()));
     }
 
     private ArmorStand label(LobbyNpc npc, Location at, String text) {
@@ -184,7 +185,9 @@ final class LobbyNpcs implements Listener {
         if (last != null && now - last < CLICK_COOLDOWN_MS) {
             return;
         }
-        if (npc.modeIds().size() == 1) {
+        if (npc.category() != null) {
+            menu.openCategory(player, npc.category());
+        } else if (npc.modeIds().size() == 1) {
             GameMode mode = settings.catalog().get(npc.modeIds().get(0));
             menu.toggle(player, mode);
         } else {

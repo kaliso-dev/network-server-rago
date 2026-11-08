@@ -74,7 +74,11 @@ class LobbySettingsTest {
     @Test
     void readsTheBundledNpcs() throws Exception {
         LobbySettings settings = LobbySettings.load(bundledConfig());
-        assertEquals(25, settings.npcs().size());
+        assertEquals(13, settings.npcs().size());
+        LobbyNpc duels = settings.npc("duels");
+        assertEquals("duels", duels.category());
+        assertEquals(settings.modesIn("duels").size(), duels.modeIds().size(), "a category NPC holds its modes");
+        assertTrue(duels.modeIds().contains("kb-displace"));
         LobbyNpc ranked = settings.npc("rankedbedwars1v1ou2v2elo");
         assertEquals(java.util.Arrays.asList("ranked-1v1", "ranked-2v2"), ranked.modeIds());
         assertTrue(settings.npc("leaderboardprincipal").leaderboard());
@@ -85,6 +89,7 @@ class LobbySettingsTest {
     void checksNpcs() {
         assertInvalid("pnj:\n  pnj-sumo:\n    modes: [autre]\nmodes:\n  sumo: {}\n", "pnj.pnj-sumo.modes");
         assertInvalid("pnj:\n  pnj-sumo: {}\nmodes:\n  sumo: {}\n", "pnj.pnj-sumo");
+        assertInvalid("pnj:\n  pnj-duels:\n    categorie: autre\nmodes:\n  sumo: {}\n", "pnj.pnj-duels.categorie");
         assertInvalid("pnj:\n  a:\n    modes: [sumo]\nclassements:\n  a: Titre\nmodes:\n  sumo: {}\n", "classements.a");
     }
 
