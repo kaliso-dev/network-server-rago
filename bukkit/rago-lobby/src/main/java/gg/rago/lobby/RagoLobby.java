@@ -52,6 +52,7 @@ public final class RagoLobby extends JavaPlugin implements LobbyService {
     private NetworkRanks ranks;
     private KitLayouts kits;
     private KitEditor kitEditor;
+    private HypixelProfiles hypixel;
 
     @Override
     public void onEnable() {
@@ -98,7 +99,8 @@ public final class RagoLobby extends JavaPlugin implements LobbyService {
         stats = new StatsService(this, settings.defaultRating(), settings.levels(), writer, this::write, this::xpChanged);
         ranks = new NetworkRanks(stats.book());
         kits = new KitLayouts(this, writer, this::write);
-        kitEditor = new KitEditor(this, settings, kits, state, this::giveHotbar);
+        hypixel = new HypixelProfiles(this, settings.hypixelKey(), writer, this::write);
+        kitEditor = new KitEditor(this, settings, kits, state, this::giveHotbar, hypixel);
         menu = new ModeMenu(settings, queues, stats.book());
         scoreboard = new LobbyScoreboard(settings, queues, stats.book(), state);
         duels = new DuelRequests(settings, state, queues);
@@ -116,7 +118,7 @@ public final class RagoLobby extends JavaPlugin implements LobbyService {
         getServer().getPluginManager().registerEvents(ranks, this);
         getServer().getPluginManager().registerEvents(kitEditor, this);
         LobbyCommands commands = new LobbyCommands(this);
-        for (String name : new String[] {"lobby", "spawn", "queue", "duel"}) {
+        for (String name : new String[] {"lobby", "spawn", "queue", "duel", "hypixel"}) {
             getCommand(name).setExecutor(commands);
             getCommand(name).setTabCompleter(commands);
         }
@@ -141,10 +143,13 @@ public final class RagoLobby extends JavaPlugin implements LobbyService {
         // After a /reload: everyone online is brought back to the lobby.
         for (Player player : getServer().getOnlinePlayers()) {
             kits.load(player.getUniqueId());
+            hypixel.load(player.getUniqueId());
             sendToLobby(player);
         }
         getLogger().info("Lobby in the world " + world.getName() + ", " + settings.modes().size() + " modes: "
                 + settings.catalog().all());
+        getLogger().info(hypixel.enabled() ? "Hypixel import on: players can copy their Bed Wars shop (/hypixel import)"
+                : "Hypixel import off: no API key in hypixel.cle-api of config.yml");
     }
 
     @Override
@@ -158,6 +163,9 @@ public final class RagoLobby extends JavaPlugin implements LobbyService {
         }
         if (kitEditor != null) {
             kitEditor.closeAll();
+        }
+        if (hypixel != null) {
+            hypixel.stop();
         }
         if (writer != null) {
             writer.shutdown();
@@ -299,6 +307,7 @@ public final class RagoLobby extends JavaPlugin implements LobbyService {
     void forget(Player player) {
         kitEditor.forget(player.getUniqueId());
         kits.forget(player.getUniqueId());
+        hypixel.forget(player.getUniqueId());
         statsDisplays.forget(player.getUniqueId());
         ranks.forget(player.getUniqueId());
         queues.forget(player.getUniqueId());
@@ -511,9 +520,22 @@ public final class RagoLobby extends JavaPlugin implements LobbyService {
         return items;
     }
 
-    /** The player joined: their name, for the leaderboards, and their kit layouts. */
+    @Override
+    public List<String> hypixelQuickBuy(Player player) {
+        HypixelProfile profile = hypixel.get(player.getUniqueId());
+        return profile == null ? null : profile.quickBuy();
+    }
+
+    @Override
+    public List<String> hypixelHotbar(Player player) {
+        HypixelProfile profile = hypixel.get(player.getUniqueId());
+        return profile == null ? null : profile.hotbar();
+    }
+
+    /** The player joined: their name, for the leaderboards, their kit layouts and their Hypixel shop. */
     void joined(Player player) {
         kits.load(player.getUniqueId());
+        hypixel.load(player.getUniqueId());
         stats.seen(player);
         ranks.refresh(player);
     }
@@ -538,6 +560,10 @@ public final class RagoLobby extends JavaPlugin implements LobbyService {
 
     KitEditor kitEditor() {
         return kitEditor;
+    }
+
+    HypixelProfiles hypixel() {
+        return hypixel;
     }
 
     LobbyState state() {

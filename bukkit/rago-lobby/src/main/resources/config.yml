@@ -146,6 +146,15 @@ classements:
     nom: "&e&lPlayer leaderboards"
     tableaux: [series, kills, niveau]
 
+# The Hypixel import: players copy the quick buy of their Bed Wars shop and their hotbar manager
+# from Hypixel, in one click (the emerald in the kit editor book) or with /hypixel import <name>,
+# for the Bed Wars modes and Fast Shop. It asks the Hypixel API with the server's own key:
+#   cle-api  the API key of your application on https://developer.hypixel.net ("" turns the
+#            import off). Never share it, and never put it in a public repository: anyone with it
+#            can use your limits. Each player can import once a minute.
+hypixel:
+  cle-api: ""
+
 # The modes, in the order of the selector. The id (the key) holds only lowercase letters without
 # accents, digits and dashes. A mode stays "Coming soon" in the selector until a game plugin
 # hosts it.
@@ -239,6 +248,7 @@ modes:
     equipes: 1
     joueurs-par-equipe: 1
     classe: false
+    kit: [IRON_SWORD, "WOOL 64", "WOOL 64", SHEARS, IRON_PICKAXE, "GOLDEN_APPLE 3", "FIREBALL 4", ENDER_PEARL, "TNT 2"]
     description:
       - "Free for all on an"
       - "Invasion platform,"
@@ -303,6 +313,7 @@ modes:
     equipes: 2
     joueurs-par-equipe: 1
     classe: false
+    kit: [IRON_SWORD, "WOOL 64", SHEARS, "GOLDEN_APPLE 2", "FIREBALL 2", "POTION:8206"]
     description:
       - "On Invasion or Archway, 6 players"
       - "at most, 2-minute rounds:"

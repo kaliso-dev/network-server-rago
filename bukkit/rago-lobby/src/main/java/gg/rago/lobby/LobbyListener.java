@@ -134,7 +134,8 @@ final class LobbyListener implements Listener {
             lobby.kitEditor().click(event, (KitEditor.Holder) event.getView().getTopInventory().getHolder());
             return;
         }
-        if (event.getView().getTopInventory().getHolder() instanceof StatsMenu.Holder) {
+        if (event.getView().getTopInventory().getHolder() instanceof StatsMenu.Holder
+                || event.getView().getTopInventory().getHolder() instanceof HypixelMenu.Holder) {
             event.setCancelled(true);
             return;
         }
@@ -159,6 +160,7 @@ final class LobbyListener implements Listener {
         }
         if (event.getView().getTopInventory().getHolder() instanceof ModeMenu.Holder
                 || event.getView().getTopInventory().getHolder() instanceof StatsMenu.Holder
+                || event.getView().getTopInventory().getHolder() instanceof HypixelMenu.Holder
                 || (event.getWhoClicked() instanceof Player && state.isProtected((Player) event.getWhoClicked()))) {
             event.setCancelled(true);
         }

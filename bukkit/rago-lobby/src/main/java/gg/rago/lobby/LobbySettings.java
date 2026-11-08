@@ -41,11 +41,13 @@ final class LobbySettings {
     private final List<LobbyNpc> npcs;
     private final ModeCatalog catalog;
     private final NetworkLevel levels;
+    private final String hypixelKey;
 
     private LobbySettings(String world, int voidHeight, String title, String address, int defaultRating,
             RatingWindow window, List<ModeCategory> categories, List<ModeDisplay> modes, List<LobbyNpc> npcs,
-            NetworkLevel levels) {
+            NetworkLevel levels, String hypixelKey) {
         this.levels = levels;
+        this.hypixelKey = hypixelKey;
         this.categories = Collections.unmodifiableList(categories);
         this.npcs = Collections.unmodifiableList(npcs);
         this.world = world;
@@ -116,9 +118,14 @@ final class LobbySettings {
         }
         List<LobbyNpc> npcs = readNpcs(config, modes, categories);
         NetworkLevel levels = readLevels(config.getConfigurationSection("niveau"));
+        String hypixelKey = config.getString("hypixel.cle-api", "").trim();
+        if (!hypixelKey.isEmpty() && !hypixelKey.matches("[0-9a-fA-F-]{32,36}")) {
+            throw new IllegalArgumentException("hypixel.cle-api: not a Hypixel API key (32 hexadecimal digits"
+                    + " with dashes, from developer.hypixel.net), or \"\" for no import");
+        }
         try {
             return new LobbySettings(world, voidHeight, title, address, defaultRating, window, categories, modes, npcs,
-                    levels);
+                    levels, hypixelKey);
         } catch (IllegalArgumentException e) {
             throw new IllegalArgumentException("modes: " + e.getMessage(), e);
         }
@@ -422,6 +429,11 @@ final class LobbySettings {
 
     RatingWindow window() {
         return window;
+    }
+
+    /** The server's Hypixel API key, for players to import their Bed Wars settings; "" for none. */
+    String hypixelKey() {
+        return hypixelKey;
     }
 
     /** The XP, the levels and the ranks of the Network level. */

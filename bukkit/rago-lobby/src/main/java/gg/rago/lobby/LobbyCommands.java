@@ -12,13 +12,15 @@ import org.bukkit.command.TabExecutor;
 import org.bukkit.entity.Player;
 
 /**
- * /spawn, /queue (alias /file), /duel and /lobby. The French words of the first version
+ * /spawn, /queue (alias /file), /duel, /hypixel and /lobby. The French words of the first version
  * (quitter, accepter, refuser, retirer) still work.
  *
  * <ul>
  *   <li>{@code /spawn}: back to the lobby spawn (from a game, through the game, which counts it as
  *       a forfeit).
  *   <li>{@code /queue <mode>} joins a queue, {@code /queue leave} leaves it.
+ *   <li>{@code /hypixel import [name]} copies the Bed Wars shop and hotbar manager of a Hypixel
+ *       account (the player's own without a name), {@code /hypixel shop} shows it.
  *   <li>{@code /lobby setspawn|build|modes|points}, {@code /lobby point <name>|remove <name>|tp <name>}:
  *       for the staff ({@code rago.lobby.admin}).
  * </ul>
@@ -36,6 +38,9 @@ final class LobbyCommands implements TabExecutor {
     @Override
     public boolean onCommand(CommandSender sender, Command command, String label, String[] args) {
         String name = command.getName();
+        if (name.equals("hypixel") && args.length == 0) {
+            return false;
+        }
         if (name.equals("lobby") && args.length > 0 && args[0].equalsIgnoreCase("modes")) {
             listModes(sender);
             return true;
@@ -53,6 +58,8 @@ final class LobbyCommands implements TabExecutor {
                 return queue(player, args);
             case "duel":
                 return duel(player, args);
+            case "hypixel":
+                return hypixel(player, args);
             case "lobby":
                 return admin(player, args);
             default:
@@ -110,6 +117,26 @@ final class LobbyCommands implements TabExecutor {
         }
         lobby.duels().challenge(player, target, mode);
         return true;
+    }
+
+    /** /hypixel import [name]: copies a Bed Wars shop from Hypixel. /hypixel shop: shows it. */
+    private boolean hypixel(Player player, String[] args) {
+        String sub = args[0].toLowerCase(java.util.Locale.ROOT);
+        if (sub.equals("import") && args.length <= 2) {
+            lobby.hypixel().importFor(player, args.length == 2 ? args[1] : null);
+            return true;
+        }
+        if (sub.equals("shop") && args.length == 1) {
+            HypixelProfile profile = lobby.hypixel().get(player.getUniqueId());
+            if (profile == null) {
+                player.sendMessage(ChatColor.GRAY + "You have not imported a Hypixel shop yet: /hypixel import, or"
+                        + " /hypixel import <name> for another account.");
+            } else {
+                HypixelMenu.open(player, profile);
+            }
+            return true;
+        }
+        return false;
     }
 
     private boolean admin(Player player, String[] args) {
@@ -231,7 +258,10 @@ final class LobbyCommands implements TabExecutor {
         if (args.length != 1) {
             return Collections.emptyList();
         }
-        if (command.getName().equals("queue")) {
+        if (command.getName().equals("hypixel")) {
+            options.add("import");
+            options.add("shop");
+        } else if (command.getName().equals("queue")) {
             options.add("leave");
             for (GameMode mode : lobby.settings().catalog().all()) {
                 options.add(mode.id());

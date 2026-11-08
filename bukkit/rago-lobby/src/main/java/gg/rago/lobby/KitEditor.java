@@ -31,7 +31,8 @@ import org.bukkit.plugin.Plugin;
  * a small chest above it: Save, Reset (the kit's own layout) and Cancel. The player moves the items
  * of their inventory where they want them; closing the chest saves too. The items stay the
  * server's: they can be moved, not split, merged, dropped or put in the chest. The lobby hotbar
- * comes back once the chest is closed. Main thread only.
+ * comes back once the chest is closed. The bottom row of the list copies the player's Bed Wars
+ * shop and hotbar manager from Hypixel in one click, and shows them. Main thread only.
  */
 final class KitEditor implements Listener {
 
@@ -41,8 +42,11 @@ final class KitEditor implements Listener {
     static final int SAVE = 11;
     static final int RESET = 13;
     static final int CANCEL = 15;
-    /** The list of modes is one chest of six rows at most. */
-    static final int MAX_MODES = 54;
+    /** The list of modes is one chest of six rows at most, the last one for the Hypixel buttons. */
+    static final int MAX_MODES = 45;
+    /** In the last row of the list: copy the Hypixel shop, and show it. */
+    static final int IMPORT_COLUMN = 3;
+    static final int SHOP_COLUMN = 5;
 
     /** Marks our chests: the list of modes (no mode), or the editor of one mode's kit. */
     static final class Holder implements InventoryHolder {
@@ -71,11 +75,14 @@ final class KitEditor implements Listener {
     private final KitLayouts layouts;
     private final LobbyState state;
     private final Consumer<Player> lobbyHotbar;
+    private final HypixelProfiles hypixel;
     /** The players arranging a kit, and its mode. */
     private final Map<UUID, String> editing = new HashMap<>();
 
-    KitEditor(Plugin plugin, LobbySettings settings, KitLayouts layouts, LobbyState state, Consumer<Player> lobbyHotbar) {
+    KitEditor(Plugin plugin, LobbySettings settings, KitLayouts layouts, LobbyState state, Consumer<Player> lobbyHotbar,
+            HypixelProfiles hypixel) {
         this.plugin = plugin;
+        this.hypixel = hypixel;
         this.settings = settings;
         this.layouts = layouts;
         this.state = state;
@@ -98,20 +105,32 @@ final class KitEditor implements Listener {
         return editing.containsKey(player.getUniqueId());
     }
 
-    /** The book: the modes whose kit can be arranged. */
+    /** The book: the modes whose kit can be arranged, and the Hypixel shop. */
     void openModes(Player player) {
         List<ModeDisplay> modes = modes();
-        if (modes.isEmpty()) {
-            player.sendMessage(ChatColor.GRAY + "No mode has a kit to arrange yet.");
-            return;
-        }
         List<String> ids = new ArrayList<>();
         for (ModeDisplay display : modes) {
             ids.add(display.mode().id());
         }
         Holder holder = new Holder(null, Collections.unmodifiableList(ids));
-        Inventory inventory = Bukkit.createInventory(holder, 9 * ((modes.size() + 8) / 9), TITLE);
+        int size = 9 * ((modes.size() + 8) / 9 + 1);
+        Inventory inventory = Bukkit.createInventory(holder, size, TITLE);
         holder.inventory = inventory;
+        HypixelProfile imported = hypixel.get(player.getUniqueId());
+        inventory.setItem(size - 9 + IMPORT_COLUMN, hypixel.enabled()
+                ? item(Material.EMERALD, 0, ChatColor.GREEN + "Import your Hypixel shop",
+                        ChatColor.GRAY + "One click: copies the quick buy",
+                        ChatColor.GRAY + "and the hotbar manager of your",
+                        ChatColor.GRAY + "Hypixel account, for the Bed Wars",
+                        ChatColor.GRAY + "modes and Fast Shop.", "",
+                        ChatColor.GRAY + "Another account: " + ChatColor.WHITE + "/hypixel import <name>")
+                : item(Material.EMERALD, 0, ChatColor.GRAY + "Import your Hypixel shop",
+                        ChatColor.RED + "Not set up on this server yet."));
+        inventory.setItem(size - 9 + SHOP_COLUMN, item(Material.CHEST, 0, ChatColor.GOLD + "Your Hypixel shop",
+                imported == null ? ChatColor.GRAY + "Nothing imported yet."
+                        : ChatColor.GRAY + "The quick buy of " + ChatColor.WHITE + imported.name()
+                                + ChatColor.GRAY + ": " + imported.items() + " items.",
+                "", ChatColor.YELLOW + "Click to see it"));
         for (int slot = 0; slot < modes.size(); slot++) {
             ModeDisplay display = modes.get(slot);
             boolean arranged = layouts.get(player.getUniqueId(), display.mode().id()) != null;
@@ -160,6 +179,25 @@ final class KitEditor implements Listener {
         int top = event.getView().getTopInventory().getSize();
         if (holder.modeId == null) {
             event.setCancelled(true);
+            if (raw == top - 9 + IMPORT_COLUMN) {
+                closeLater(player);
+                hypixel.importFor(player, null);
+                return;
+            }
+            if (raw == top - 9 + SHOP_COLUMN) {
+                final HypixelProfile imported = hypixel.get(player.getUniqueId());
+                if (imported == null) {
+                    player.sendMessage(ChatColor.GRAY + "You have not imported your Hypixel shop yet: click the"
+                            + " emerald, or /hypixel import <name>.");
+                    return;
+                }
+                Bukkit.getScheduler().runTask(plugin, () -> {
+                    if (player.isOnline() && player.getOpenInventory().getTopInventory().getHolder() == holder) {
+                        HypixelMenu.open(player, imported);
+                    }
+                });
+                return;
+            }
             if (raw >= 0 && raw < holder.modes.size()) {
                 final String modeId = holder.modes.get(raw);
                 // Not from inside the click: the next tick opens the editor.

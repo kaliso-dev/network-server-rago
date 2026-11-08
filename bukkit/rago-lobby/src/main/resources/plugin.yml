@@ -20,6 +20,9 @@ commands:
   duel:
     description: Challenge a lobby player to a 1v1.
     usage: /duel <player> [mode], /duel accept <player>, /duel deny <player>
+  hypixel:
+    description: Copy your Bed Wars shop and hotbar manager from Hypixel, or see it.
+    usage: /hypixel import [name], /hypixel shop
   lobby:
     description: Manage the lobby (staff).
     usage: /lobby <setspawn|build|modes|points|point <name>|point remove <name>|point tp <name>>

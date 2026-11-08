@@ -161,6 +161,9 @@ class LobbySettingsTest {
         assertNull(settings.display("sumo").kit(), "a sumo is fought bare-handed");
         assertEquals(Material.DIAMOND_SWORD, settings.display("boxing").kit().item(0).material());
         assertEquals(KitItem.parse("FIREBALL 16"), settings.display("fireball").kit().item(1));
+        assertEquals(Material.IRON_SWORD, settings.display("ffa").kit().item(0).material());
+        assertEquals(KitItem.parse("POTION:8206"), settings.display("invis-practice").kit().item(5),
+                "the invisibility potion of the invisible player");
 
         Kit bySlot = LobbySettings.load(yaml("modes:\n  sumo:\n    kit:\n      3: STICK\n      9: 'WOOL:14 64'\n"))
                 .display("sumo").kit();
@@ -178,6 +181,16 @@ class LobbySettingsTest {
         assertInvalid("modes:\n  sumo:\n    kit: [STICK, 'WOOL 100']\n", "modes.sumo.kit[1]");
         assertInvalid("modes:\n  sumo:\n    kit:\n      36: STICK\n", "modes.sumo.kit.36");
         assertInvalid("modes:\n  sumo:\n    kit: STICK\n", "modes.sumo.kit");
+    }
+
+    @Test
+    void readsTheHypixelKey() throws Exception {
+        assertEquals("", LobbySettings.load(bundledConfig()).hypixelKey(), "never commit a key: the import is off");
+        String key = "0f2e1c4a-1b2c-4d3e-8f90-a1b2c3d4e5f6";
+        assertEquals(key, LobbySettings.load(yaml("hypixel:\n  cle-api: ' " + key + " '\nmodes:\n  sumo: {}\n"))
+                .hypixelKey());
+        assertEquals("", LobbySettings.load(yaml("modes:\n  sumo: {}\n")).hypixelKey());
+        assertInvalid("hypixel:\n  cle-api: my-key\nmodes:\n  sumo: {}\n", "hypixel.cle-api");
     }
 
     @Test

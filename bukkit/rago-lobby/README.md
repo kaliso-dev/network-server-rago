@@ -23,6 +23,19 @@ dans les files d'attente des modes de jeu.
   config.yml (boxing, fireball, bridge fight...) sont à ajuster : ces modes n'ont pas encore de
   jeu. Le sumo n'a pas de kit par défaut (mains nues) ; donne-lui-en un, par exemple
   `kit: [STICK]`, pour essayer l'éditeur en duel.
+- **L'import Hypixel.** Pour les modes qui se jouent sur une map de Bed Wars (Ranked Bedwars,
+  First Rush, Private Game) et Fast Shop, chaque joueur copie son shop Hypixel : le quick buy
+  (les 21 cases, trois lignes de sept) et le hotbar manager (le genre d'objet de chaque case de la
+  barre). En un clic avec l'émeraude en bas du livre (son propre compte Hypixel), ou avec
+  `/hypixel import <pseudo>` (n'importe quel compte). Le coffre à côté de l'émeraude, ou
+  `/hypixel shop`, montre ce qui a été copié. C'est gardé par joueur dans
+  `plugins/RagoLobby/hypixel/<uuid>.yml`, et les plugins de jeu le lisent par `LobbyService`
+  (voir plus bas). Il faut une clé d'API Hypixel dans `hypixel.cle-api` de config.yml : sans clé,
+  l'import dit qu'il n'est pas encore en place. La clé se crée sur
+  [developer.hypixel.net](https://developer.hypixel.net) (une application pour le serveur) ; elle
+  ne se partage pas et ne se met jamais dans le dépôt. Un joueur peut importer une fois par minute,
+  et tout le serveur cent fois en cinq minutes, sous la limite d'une clé (300 requêtes en cinq
+  minutes). Hypixel n'envoie le quick buy que si le joueur l'a déjà modifié une fois.
 - **Le sélecteur.** Un menu avec un objet par mode, sept par ligne : son format (1v1, 2v2, solo),
   sa description, le nombre de joueurs en file. Un clic entre dans la file, un deuxième en sort.
   Un mode qu'aucun plugin de jeu ne prend en charge affiche « Bientôt disponible ». Survoler un
@@ -59,6 +72,8 @@ commentaires de `config.yml`. Les mots français de la première version (`quitt
 | `/queue <mode>`, `/queue leave` (ou `/file`, `/q`) | entrer dans une file, en sortir | tout le monde |
 | `/duel <joueur> [mode]` | défier un joueur du lobby dans un mode 1v1 (sans mode : un menu des modes 1v1) | tout le monde |
 | `/duel accept <joueur>`, `/duel deny <joueur>` | répondre à un défi (valable une minute) | tout le monde |
+| `/hypixel import [pseudo]` | copier le shop Bed Wars (quick buy et hotbar manager) de son compte Hypixel, ou de celui de ce pseudo | tout le monde |
+| `/hypixel shop` | voir le shop Hypixel copié | tout le monde |
 | `/lobby modes` | les modes et leur file (aussi depuis la console) | tout le monde |
 | `/lobby setspawn` | place le spawn du lobby là où tu es (écrit dans `spawn.yml`, dans le dossier du monde du lobby) | `rago.lobby.admin` |
 | `/lobby point <nom>` | place ou déplace un point nommé là où tu es : où iront les PNJ des modes, les classements, les décorations (écrit dans `points.yml`, dans le dossier du monde) | `rago.lobby.admin` |
@@ -144,6 +159,13 @@ qui les rend avec `lobby.sendToLobby(player)`. `MatchHost.abandon(player)` est a
 joueur tape `/spawn` en pleine partie. `lobby.recordKill("sumo", tueur, victime)` compte un kill
 (et l'XP qui va avec). À la fin, `lobby.recordMatch("sumo", gagnants, perdants)` compte la partie
 dans les stats, les classements et l'XP Network.
+
+Les modes Bed Wars et Fast Shop rangent leur shop avec `lobby.hypixelQuickBuy(player)` : les 21
+cases du quick buy copié de Hypixel (les identifiants Hypixel, `wool`, `stone_sword`,
+`speed_ii_potion_(45_seconds)`..., `null` pour une case vide), et la barre avec
+`lobby.hypixelHotbar(player)` : le genre d'objet de chaque case (`Melee`, `Blocks`, `Tools`,
+`Ranged`, `Potions`, `Utility`, `Compass`, `null` pour une case libre). Les deux renvoient `null`
+si le joueur n'a rien importé.
 
 Sur le réseau, les files passeront dans le proxy (`rago-proxy`) et les serveurs de jeu recevront
 leurs parties de lui ; le côté `MatchHost` d'un plugin de jeu ne changera pas.

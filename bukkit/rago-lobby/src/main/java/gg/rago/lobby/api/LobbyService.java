@@ -56,4 +56,20 @@ public interface LobbyService {
      * when it starts. Null when the mode has no kit.
      */
     ItemStack[] kit(Player player, String modeId);
+
+    /**
+     * The quick buy of the Bed Wars shop the player copied from Hypixel (the emerald of the kit
+     * editor, or /hypixel import [name]): 21 Hypixel item ids, three rows of seven as in the
+     * Hypixel shop, such as "wool", "stone_sword" or "speed_ii_potion_(45_seconds)"; null for an
+     * empty slot. For the Bed Wars modes and Fast Shop, which lay out their shop with it. Null when
+     * the player imported nothing.
+     */
+    List<String> hypixelQuickBuy(Player player);
+
+    /**
+     * The hotbar manager the player copied from Hypixel: for each of the 9 hotbar slots, the kind of
+     * item that goes there ("Melee", "Blocks", "Tools", "Ranged", "Potions", "Utility", "Compass"),
+     * null for a free slot. Null when the player imported nothing, or had no hotbar manager.
+     */
+    List<String> hypixelHotbar(Player player);
 }

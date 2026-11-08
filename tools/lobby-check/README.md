@@ -9,7 +9,9 @@ jouent comme des joueurs :
    colorant dans la barre d'objets, le scoreboard. Le script donne au sumo un kit d'un bâton (le
    config.yml fourni n'en a pas) : RagoUn ouvre l'éditeur avec le livre, choisit le sumo, déplace
    le bâton de la première case à la quatrième, enregistre, et le retrouve là en rouvrant
-   l'éditeur ;
+   l'éditeur. Le serveur de test n'a pas de clé d'API Hypixel : RagoDeux trouve l'émeraude et le
+   coffre de l'import Hypixel en bas du livre, et l'émeraude comme `/hypixel import Notch` disent
+   que l'import n'est pas en place, `/hypixel shop` que rien n'a été importé ;
 2. RagoUn ouvre le sélecteur d'un clic droit et clique sur le duel sumo ; RagoDeux tape
    `/queue sumo` ;
 3. le duel démarre, après le décompte 3, 2, 1, « Fight! » affiché en titre (sans fondu), chacun a

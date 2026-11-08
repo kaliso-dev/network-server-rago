@@ -45,6 +45,9 @@ const STATS_NPC = { x: -3.5, y: 65, z: 0.5 }
 // whose window shows the player's hotbar from slot 54 (27 of the chest, 27 of the inventory).
 const KIT_EDITOR_SLOT = 1
 const KIT_SAVE = 11
+/** The Hypixel buttons in the last row of the book: import, then the imported shop. */
+const HYPIXEL_IMPORT = 3
+const HYPIXEL_SHOP = 5
 const EDITOR_HOTBAR = 54
 const STICK_SLOT = 3
 
@@ -234,6 +237,36 @@ async function arrangeSumoKit (bot) {
   log(`${bot.username} finds the stick in slot ${STICK_SLOT + 1} when it opens the editor again`)
 }
 
+/**
+ * The test server has no Hypixel API key (hypixel.cle-api): the emerald of the book and
+ * /hypixel import say so, and /hypixel shop that nothing was imported.
+ */
+async function checkHypixelImport (bot) {
+  bot.setQuickBarSlot(KIT_EDITOR_SLOT)
+  await sleep(250)
+  const listOpened = new Promise((resolve) => bot.once('windowOpen', resolve))
+  bot.activateItem()
+  const list = await Promise.race([listOpened, sleep(5000).then(() => null)])
+  if (list == null) throw new Error(`${bot.username}: the kit editor did not open on a right click on the book`)
+  const lastRow = list.inventoryStart - 9
+  const buttons = [list.slots[lastRow + HYPIXEL_IMPORT]?.name, list.slots[lastRow + HYPIXEL_SHOP]?.name]
+  if (buttons[0] !== 'emerald' || buttons[1] !== 'chest') {
+    throw new Error(`${bot.username}: no Hypixel buttons in the last row of the book: ${JSON.stringify(buttons)}`)
+  }
+  let from = mark(bot)
+  bot.clickWindow(lastRow + HYPIXEL_IMPORT, 0, 0).catch(() => {})
+  await chatLine(bot, /The Hypixel import is not set up on this server yet/, 5000, from)
+  await waitFor(() => bot.currentWindow == null, 5000, `${bot.username} to see the book close after a click on the emerald`)
+  bot.setQuickBarSlot(0)
+  from = mark(bot)
+  bot.chat('/hypixel import Notch')
+  await chatLine(bot, /The Hypixel import is not set up on this server yet/, 5000, from)
+  from = mark(bot)
+  bot.chat('/hypixel shop')
+  await chatLine(bot, /You have not imported a Hypixel shop yet/, 5000, from)
+  log(`${bot.username}: the emerald of the book and /hypixel import say the import needs an API key, /hypixel shop that nothing was imported`)
+}
+
 /** The NPC body standing on a point: a player whose name starts with a colour code. */
 function npcAt (bot, where) {
   return Object.values(bot.entities).find((e) => e.type === 'player' && e.username?.startsWith('§8pnj') &&
@@ -407,6 +440,7 @@ async function main () {
   log('lobby: adventure mode, selector, visibility item and sidebar are there')
   await checkDuelsNpc(one)
   await arrangeSumoKit(one)
+  await checkHypixelImport(two)
 
   // 2. The queue.
   await openSelectorAndJoinSumo(one)
