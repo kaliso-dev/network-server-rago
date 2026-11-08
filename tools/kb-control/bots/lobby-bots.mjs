@@ -251,7 +251,7 @@ async function checkTopStreak (bot) {
   const window = await Promise.race([opened, sleep(5000).then(() => null)])
   if (window == null) throw new Error('a click on the Duels NPC did not open a menu')
   const lore = JSON.stringify(window.slots[SUMO_SLOT]?.nbt ?? null)
-  if (!lore.includes('Top win streak: §61 §7(§fRagoUn§7)') || !lore.includes('Your best win streak: §e0')) {
+  if (!lore.includes('Top win streak: §61§7 (§fRagoUn§7)') || !lore.includes('Your best win streak: §e0')) {
     throw new Error(`${bot.username}: the sumo of the Duels NPC does not show RagoUn's streak: ${lore}`)
   }
   bot.closeWindow(window)
