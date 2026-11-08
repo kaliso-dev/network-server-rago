@@ -71,7 +71,7 @@ Le duel sumo : dès que deux joueurs sont dans la file, ils partent sur une plat
 premier qui tombe donne un point à l'autre, le premier à 3 points gagne. Il n'y a pas de dégâts,
 seulement le knockback du moteur : c'est le mode pour tester le knockback à deux. Chaque manche
 commence par un compte à rebours de 3 secondes, immobile. À la fin, les deux joueurs reviennent
-au lobby.
+au lobby tout de suite.
 
 Commandes :
 

@@ -11,7 +11,7 @@ Un plugin Bukkit 1.8.8 qui joue des modes du lobby (`bukkit/rago-lobby`). Pour l
 - Chaque manche commence par un compte à rebours de 3 secondes, joueurs immobiles, face à face à
   6 blocs l'un de l'autre.
 - Quitter le serveur ou taper `/spawn` pendant le duel, c'est perdre par abandon.
-- À la fin, les deux joueurs reviennent au lobby après 3 secondes.
+- À la fin, les deux joueurs reviennent au lobby tout de suite.
 
 ## Les arènes
 

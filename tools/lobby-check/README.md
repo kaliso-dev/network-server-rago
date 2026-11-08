@@ -13,6 +13,9 @@ jouent comme des joueurs :
    dégât), puis RagoDeux tombe trois fois de la plateforme : RagoUn gagne 3 - 0 ;
 4. les deux reviennent au lobby, au spawn, avec les objets du lobby ;
 5. un second duel, que RagoUn quitte avec `/spawn` : RagoDeux gagne par abandon.
+6. RagoUn défie RagoDeux avec `/duel RagoDeux sumo`, RagoDeux accepte avec `/duel accepter RagoUn`
+   (ce que lance le bouton cliquable), le duel démarre sans passer par la file, puis RagoDeux
+   abandonne.
 
 Le test échoue si un bot n'obtient pas ce qu'il attend, ou si le journal du serveur contient une
 erreur ou une exception.

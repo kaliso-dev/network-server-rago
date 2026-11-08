@@ -30,7 +30,7 @@ import org.bukkit.inventory.ItemStack;
  * now they are armor stands: a visible one holding the icon of the first mode, with the NPC's name
  * and its queue count above it; a leaderboard is two floating lines until rago-stats exists. A
  * click on an NPC (left or right) joins its mode's queue, or opens a menu of its modes when it has
- * several. Main thread only.
+ * several or when its mode is not open yet (the menu then says so). Main thread only.
  */
 final class LobbyNpcs implements Listener {
 
@@ -201,7 +201,7 @@ final class LobbyNpcs implements Listener {
         }
         if (npc.category() != null) {
             menu.openCategory(player, npc.category());
-        } else if (npc.modeIds().size() == 1) {
+        } else if (npc.modeIds().size() == 1 && queues.isPlayable(npc.modeIds().get(0))) {
             GameMode mode = settings.catalog().get(npc.modeIds().get(0));
             menu.toggle(player, mode);
         } else {

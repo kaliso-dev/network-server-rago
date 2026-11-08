@@ -9,7 +9,8 @@
 //   3. the duel starts: RagoUn walks up to RagoDeux and hits it once (knockback, no damage), then
 //      RagoDeux walks off the platform three times, so RagoUn wins 3 - 0;
 //   4. both come back to the lobby;
-//   5. a second duel, which RagoUn leaves with /spawn: RagoDeux wins by forfeit.
+//   5. a second duel, which RagoUn leaves with /spawn: RagoDeux wins by forfeit;
+//   6. RagoUn challenges RagoDeux with /duel, RagoDeux accepts, then leaves with /spawn.
 //
 // Environment: KB_HOST (127.0.0.1), KB_PORT (25565).
 
@@ -221,6 +222,20 @@ async function main () {
   await chatLine(two, /Victoire !.*RagoUn a abandonné/, 5000, fromTwo)
   await expectInLobby(two, 'after winning by forfeit')
   log('/spawn in a duel: RagoUn is back in the lobby, RagoDeux wins by forfeit')
+
+  // 6. A friendly challenge: /duel, then /duel accepter (the clickable button runs the same).
+  fromOne = mark(one)
+  fromTwo = mark(two)
+  one.chat('/duel RagoDeux sumo')
+  await chatLine(two, /RagoUn te défie en .*Duel sumo/, 5000, fromTwo)
+  two.chat('/duel accepter RagoUn')
+  await chatLine(one, /Duel sumo contre RagoDeux/, 10000, fromOne)
+  await chatLine(two, /Duel sumo contre RagoUn/, 10000, fromTwo)
+  two.chat('/spawn')
+  await chatLine(one, /Victoire !.*RagoDeux a abandonné/, 5000, fromOne)
+  await expectInLobby(one, 'after the /duel match')
+  await expectInLobby(two, 'after /spawn in the /duel match')
+  log('/duel: RagoDeux accepted, the duel started without the queue')
 
   finishing = true
   one.quit()

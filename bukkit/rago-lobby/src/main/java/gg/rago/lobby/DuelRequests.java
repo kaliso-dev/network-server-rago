@@ -101,8 +101,25 @@ final class DuelRequests {
         challenger.sendMessage(ChatColor.GREEN + "Défi envoyé à " + target.getName() + " en " + mode.name()
                 + ChatColor.GREEN + ". Il a une minute pour accepter.");
         target.sendMessage(ChatColor.YELLOW + challenger.getName() + " te défie en " + mode.name() + ChatColor.YELLOW
-                + " ! " + ChatColor.GREEN + "/duel accepter " + challenger.getName() + ChatColor.YELLOW + " pour jouer, "
-                + ChatColor.RED + "/duel refuser " + challenger.getName());
+                + " ! Clique pour répondre (ou /duel accepter " + challenger.getName() + ") :");
+        // Clickable buttons through the vanilla /tellraw: the chat component API (bungeecord-chat)
+        // is not on our compile classpath. Player names are letters, digits and _ only.
+        Bukkit.dispatchCommand(Bukkit.getConsoleSender(), "tellraw " + target.getName() + " " + buttons(challenger.getName()));
+    }
+
+    /** The JSON of the [Accepter] [Refuser] line for a challenge from this player. */
+    static String buttons(String challenger) {
+        return "[\"\","
+                + button("[Accepter]", "green", "/duel accepter " + challenger, "Lancer le duel")
+                + ",{\"text\":\"   \"},"
+                + button("[Refuser]", "red", "/duel refuser " + challenger, "Refuser le défi")
+                + "]";
+    }
+
+    private static String button(String text, String colour, String command, String hover) {
+        return "{\"text\":\"" + text + "\",\"color\":\"" + colour + "\",\"bold\":true,"
+                + "\"clickEvent\":{\"action\":\"run_command\",\"value\":\"" + command + "\"},"
+                + "\"hoverEvent\":{\"action\":\"show_text\",\"value\":\"" + hover + "\"}}";
     }
 
     void accept(Player target, String challengerName) {

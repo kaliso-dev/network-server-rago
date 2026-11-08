@@ -23,8 +23,8 @@ final class SumoMatch {
     private static final double START_DISTANCE = 3.0;
     /** Below the platform by this much, a player has fallen. */
     static final double FALL_DEPTH = 3.0;
-    /** Time between the end and the return to the lobby, in ticks. */
-    private static final long END_DELAY_TICKS = 60L;
+    /** Time between the end and the return to the lobby, in ticks: the next tick, out of the event. */
+    private static final long END_DELAY_TICKS = 1L;
 
     private final RagoPractice plugin;
     private final SumoHost host;
@@ -171,7 +171,6 @@ final class SumoMatch {
             } else {
                 player.sendMessage(ChatColor.RED + "Défaite." + ChatColor.GRAY + " (" + score.text(side) + ")");
             }
-            player.sendMessage(ChatColor.GRAY + "Retour au lobby dans 3 secondes.");
         }
         Bukkit.getScheduler().runTaskLater(plugin, this::backToLobby, END_DELAY_TICKS);
     }
