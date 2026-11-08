@@ -124,3 +124,13 @@ modes:
       - "Tous contre tous sur une"
       - "plateforme d'Invasion,"
       - "avec le kit Ranked Bedwars."
+  arene-libre:
+    nom: "&aArène libre"
+    icone: STICK
+    equipes: 1
+    joueurs-par-equipe: 1
+    classe: false
+    description:
+      - "Entrée libre, sans règles"
+      - "ni dégâts : combote à"
+      - "l'infini."
