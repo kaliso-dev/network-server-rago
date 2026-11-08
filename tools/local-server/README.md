@@ -70,7 +70,8 @@ pas installée). Dans ta barre d'objets :
 Le duel sumo : dès que deux joueurs sont dans la file, ils partent sur une plateforme ronde. Le
 premier qui tombe donne un point à l'autre, le premier à 3 points gagne. Il n'y a pas de dégâts,
 seulement le knockback du moteur : c'est le mode pour tester le knockback à deux. Chaque manche
-commence par un compte à rebours de 3 secondes, immobile. À la fin, les deux joueurs reviennent
+commence par un compte à rebours de 3 secondes, immobile, affiché en grand à l'écran (3, 2, 1,
+« Combat ! »). À la fin, les deux joueurs reviennent
 au lobby tout de suite.
 
 Commandes :

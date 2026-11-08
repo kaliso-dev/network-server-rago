@@ -9,7 +9,8 @@ jouent comme des joueurs :
    le scoreboard ;
 2. RagoUn ouvre le sélecteur d'un clic droit et clique sur le duel sumo ; RagoDeux tape
    `/file sumo` ;
-3. le duel démarre : RagoUn frappe RagoDeux une fois (il doit recevoir du knockback et aucun
+3. le duel démarre, après le décompte 3, 2, 1, « Combat ! » affiché en titre (sans fondu) :
+   RagoUn frappe RagoDeux une fois (il doit recevoir du knockback et aucun
    dégât), puis RagoDeux tombe trois fois de la plateforme : RagoUn gagne 3 - 0 ;
 4. les deux reviennent au lobby, au spawn, avec les objets du lobby ;
 5. un second duel, que RagoUn quitte avec `/spawn` : RagoDeux gagne par abandon.

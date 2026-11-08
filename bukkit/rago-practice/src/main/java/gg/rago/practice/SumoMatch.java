@@ -12,8 +12,9 @@ import org.bukkit.scheduler.BukkitTask;
 
 /**
  * One sumo duel in one arena slot: two players on a round platform, the first one off it gives a
- * point to the other, first to N points wins. Each round starts with a three-second countdown
- * during which both players stand still. Main thread only.
+ * point to the other, first to N points wins. Each round starts with a three-second countdown,
+ * in the chat and as a big title (3, 2, 1, Combat !), during which both players stand still. Main
+ * thread only.
  */
 final class SumoMatch {
 
@@ -25,6 +26,15 @@ final class SumoMatch {
     static final double FALL_DEPTH = 3.0;
     /** Time between the end and the return to the lobby, in ticks: the next tick, out of the event. */
     private static final long END_DELAY_TICKS = 1L;
+    /**
+     * Title timings, in ticks: each number shows at once and stays until the next one, and
+     * "Combat !" fades out quickly so that it does not hide the fight.
+     */
+    private static final int TITLE_FADE_IN = 0;
+    private static final int TITLE_STAY = 22;
+    private static final int TITLE_FADE_OUT = 6;
+    /** Colours of the countdown titles: 1 in red, 2 in gold, 3 in yellow. */
+    private static final ChatColor[] COUNTDOWN_COLOURS = {ChatColor.RED, ChatColor.GOLD, ChatColor.YELLOW};
 
     private final RagoPractice plugin;
     private final SumoHost host;
@@ -98,12 +108,14 @@ final class SumoMatch {
             public void run() {
                 if (left > 0) {
                     broadcast(ChatColor.YELLOW + "" + left + "...", Sound.NOTE_STICKS);
+                    title(COUNTDOWN_COLOURS[left - 1] + "" + ChatColor.BOLD + left);
                     left--;
                     return;
                 }
                 cancelCountdown();
                 phase = Phase.FIGHT;
                 broadcast(ChatColor.GREEN + "Combat !", Sound.NOTE_PLING);
+                title(ChatColor.GREEN + "" + ChatColor.BOLD + "Combat !");
             }
         }, 0L, 20L);
     }
@@ -214,6 +226,18 @@ final class SumoMatch {
             if (player != null && host.matchOf(id) == this) {
                 player.sendMessage(message);
                 player.playSound(player.getLocation(), sound, 1f, 1f);
+            }
+        }
+    }
+
+    /** Shows the text as a big title in the middle of both players' screens. */
+    @SuppressWarnings("deprecation") // Player#sendTitle is marked "API subject to change" in 1.8.8
+    private void title(String text) {
+        for (UUID id : players) {
+            Player player = Bukkit.getPlayer(id);
+            if (player != null && host.matchOf(id) == this) {
+                Titles.times(plugin.getLogger(), player, TITLE_FADE_IN, TITLE_STAY, TITLE_FADE_OUT);
+                player.sendTitle(text, "");
             }
         }
     }

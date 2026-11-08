@@ -6,7 +6,7 @@
 //   2. RagoUn opens the selector with a right click, opens the Duels category, then clicks the sumo
 //      duel; RagoDeux types
 //      /file sumo;
-//   3. the duel starts: RagoUn walks up to RagoDeux and hits it once (knockback, no damage), then
+//   3. the duel starts after a 3, 2, 1 countdown in titles: RagoUn walks up to RagoDeux and hits it once (knockback, no damage), then
 //      RagoDeux walks off the platform three times, so RagoUn wins 3 - 0;
 //   4. both come back to the lobby;
 //   5. a second duel, which RagoUn leaves with /spawn: RagoDeux wins by forfeit;
@@ -49,6 +49,21 @@ async function waitFor (condition, timeoutMs, what) {
   }
 }
 
+/** The plain text of a chat component, given as JSON or as text, without colour codes. */
+function plainText (text) {
+  const flatten = (part) => {
+    if (typeof part === 'string') return part
+    if (part == null || typeof part !== 'object') return ''
+    if (Array.isArray(part)) return part.map(flatten).join('')
+    return (part.text ?? '') + (part.extra ?? []).map(flatten).join('')
+  }
+  let value = text
+  try {
+    value = flatten(JSON.parse(text))
+  } catch {}
+  return String(value).replace(/§./g, '')
+}
+
 /** Every chat line a bot received, so that a test can wait for a line sent a moment ago. */
 const chats = new Map()
 
@@ -57,6 +72,10 @@ function join (username) {
     const bot = mineflayer.createBot({ host: HOST, port: PORT, username, auth: 'offline', version: '1.8.8' })
     chats.set(username, [])
     bot.velocities = []
+    bot.titles = []
+    bot.titleTimes = []
+    bot.on('title', (text, type) => { if (type === 'title') bot.titles.push(plainText(text)) })
+    bot.on('title_times', (fadeIn, stay, fadeOut) => bot.titleTimes.push([fadeIn, stay, fadeOut]))
     const fail = (reason) => reject(new Error(`${username} could not join: ${reason?.message ?? JSON.stringify(reason)}`))
     bot.once('error', fail)
     bot.once('kicked', fail)
@@ -180,6 +199,16 @@ async function main () {
     fromOne = mark(one)
     fromTwo = mark(two)
     if (round === 1) {
+      // The countdown is also shown as a big title: 3, 2, 1, Combat !, each one at once.
+      await waitFor(() => two.titles.includes('Combat !'), 2000, `the countdown titles; titles: ${JSON.stringify(two.titles)}`)
+      const countdown = two.titles.slice(-4)
+      if (JSON.stringify(countdown) !== JSON.stringify(['3', '2', '1', 'Combat !'])) {
+        throw new Error(`unexpected countdown titles: ${JSON.stringify(two.titles)}`)
+      }
+      if (!two.titleTimes.some(([fadeIn]) => fadeIn === 0)) {
+        throw new Error(`the countdown titles do not show at once; timings: ${JSON.stringify(two.titleTimes)}`)
+      }
+      log('countdown: titles 3, 2, 1, Combat !')
       // RagoUn walks to RagoDeux and hits it once: knockback, but no damage.
       const target = playerEntity(one, two)
       if (target == null) throw new Error('RagoUn does not see RagoDeux in the duel')
