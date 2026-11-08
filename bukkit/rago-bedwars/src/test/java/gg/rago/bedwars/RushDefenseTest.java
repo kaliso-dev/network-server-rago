@@ -60,6 +60,6 @@ class RushDefenseTest {
         assertTrue(RushDefense.coloured(Material.WOOL));
         assertTrue(RushDefense.coloured(Material.STAINED_CLAY));
         assertTrue(RushDefense.coloured(Material.STAINED_GLASS));
-        assertFalse(RushDefense.coloured(Material.END_STONE));
+        assertFalse(RushDefense.coloured(Material.ENDER_STONE));
     }
 }
