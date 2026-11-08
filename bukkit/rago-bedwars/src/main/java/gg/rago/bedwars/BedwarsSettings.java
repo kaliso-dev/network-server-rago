@@ -1,11 +1,11 @@
 package gg.rago.bedwars;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
-import org.bukkit.Material;
 import org.bukkit.configuration.ConfigurationSection;
 
 /** The settings of config.yml, checked. Immutable. */
@@ -22,13 +22,135 @@ final class BedwarsSettings {
         }
     }
 
+    /** The speed of an island forge, as on Hypixel: its number of iron nodes. */
+    enum Speed {
+        SLOW(1, "lente"), MEDIUM(2, "moyenne"), FAST(3, "rapide");
+
+        final int nodes;
+        final String word;
+
+        Speed(int nodes, String word) {
+            this.nodes = nodes;
+            this.word = word;
+        }
+
+        /** lente, moyenne or rapide (or slow, medium, fast); null for another word. */
+        static Speed of(String word) {
+            String key = word.trim().toLowerCase(java.util.Locale.ROOT);
+            for (Speed speed : values()) {
+                if (speed.word.equals(key) || speed.name().toLowerCase(java.util.Locale.ROOT).equals(key)) {
+                    return speed;
+                }
+            }
+            return null;
+        }
+    }
+
+    /**
+     * The island forges, as on Hypixel: each iron node drops an ingot every so many seconds; a forge
+     * has the nodes of its map's speed, one more on a map of four teams or fewer; gold at its own
+     * pace; twice as fast at the start of the game.
+     */
+    static final class Forge {
+        final double nodeSeconds;
+        final double goldSeconds;
+        final int maxIron;
+        final int maxGold;
+        final int fastStartSeconds;
+        final Speed fallback;
+        /** By map name in lower case: the speed in solo, then with teams of two or more. */
+        final Map<String, Speed[]> maps;
+
+        Forge(double nodeSeconds, double goldSeconds, int maxIron, int maxGold, int fastStartSeconds, Speed fallback,
+                Map<String, Speed[]> maps) {
+            this.nodeSeconds = nodeSeconds;
+            this.goldSeconds = goldSeconds;
+            this.maxIron = maxIron;
+            this.maxGold = maxGold;
+            this.fastStartSeconds = fastStartSeconds;
+            this.fallback = fallback;
+            this.maps = Collections.unmodifiableMap(maps);
+        }
+
+        /** The speed of this map's forge for teams of this many players. */
+        Speed speed(String map, int teamSize) {
+            Speed[] speeds = maps.get(map.toLowerCase(java.util.Locale.ROOT));
+            return speeds == null ? fallback : speeds[teamSize <= 1 ? 0 : 1];
+        }
+
+        /** The iron of an island of this map, for a game of teams of this many players. */
+        Rate iron(String map, int teamSize, int islands) {
+            int nodes = speed(map, teamSize).nodes + (islands <= 4 ? 1 : 0);
+            return new Rate(Math.max(1, (int) Math.round(nodeSeconds * 20 / nodes)), maxIron);
+        }
+
+        Rate gold() {
+            return new Rate(Math.max(1, (int) Math.round(goldSeconds * 20)), maxGold);
+        }
+    }
+
+    /**
+     * The fireball, as on Hypixel (the values of BedWars1058, the open copy of it): its speed at the
+     * throw, in blocks a tick; the push of its blast on the players around it (within radius blocks
+     * on each axis), away from the blast and upwards, which replaces the blast's own; its fixed
+     * damage, armour or not, in half hearts.
+     */
+    static final class Fireball {
+        final double speed;
+        final double radius;
+        final double horizontal;
+        final double vertical;
+        final double self;
+        final double enemies;
+        final double teammates;
+
+        Fireball(double speed, double radius, double horizontal, double vertical, double self, double enemies,
+                double teammates) {
+            this.speed = speed;
+            this.radius = radius;
+            this.horizontal = horizontal;
+            this.vertical = vertical;
+            this.self = self;
+            this.enemies = enemies;
+            this.teammates = teammates;
+        }
+
+        /**
+         * The velocity the blast at (bx, by, bz) gives a player standing at (px, py, pz), as
+         * BedWars1058 computes it: away from the blast horizontally, and up; more up when the blast
+         * is under the player's feet (a fireball jump).
+         */
+        double[] push(double bx, double by, double bz, double px, double py, double pz) {
+            double dx = bx - px;
+            double dy = by - py;
+            double dz = bz - pz;
+            double length = Math.sqrt(dx * dx + dy * dy + dz * dz);
+            if (length < 1e-6) {
+                dx = 0;
+                dy = 1;
+                dz = 0;
+                length = 1;
+            }
+            double nx = dx / length;
+            double ny = dy / length;
+            double nz = dz / length;
+            double y = ny < 0 ? ny + 1.5 : ny;
+            y = y <= 0.5 ? vertical * 1.5 : y * vertical * 1.5;
+            return new double[] {-nx * horizontal, y, -nz * horizontal};
+        }
+
+        /** True if a player at this offset from the blast is pushed by it. */
+        boolean reaches(double dx, double dy, double dz) {
+            return Math.abs(dx) <= radius && Math.abs(dy) <= radius && Math.abs(dz) <= radius;
+        }
+    }
+
     /** The modes this plugin plays, each with the names of its maps (empty: every map). */
     private final Map<String, List<String>> modes;
     private final int maxGames;
     private final boolean demo;
     private final int respawnSeconds;
-    private final Rate iron;
-    private final Rate gold;
+    private final Forge forge;
     private final List<Rate> diamond;
     private final List<Rate> emerald;
     /** In seconds of game: tier II and III of the diamonds and the emeralds, the end of the beds, the end. */
@@ -38,22 +160,17 @@ final class BedwarsSettings {
     private final int emeraldIII;
     private final int bedsGone;
     private final int gameEnd;
-    /** The damage of a fireball's blast, before the armour: on its thrower, on the other players. */
-    private final double fireballSelf;
-    private final double fireballOthers;
-    /** The modes of one team: the layers of the defense around the bed they rush, and their time limit. */
-    private final List<Material> rushDefense;
-    private final int rushSeconds;
+    private final Fireball fireball;
+    /** The modes whose teams play on neighbouring islands (First Rush), not opposite ones. */
+    private final List<String> neighbourModes;
 
-    private BedwarsSettings(Map<String, List<String>> modes, int maxGames, boolean demo, int respawnSeconds, Rate iron,
-            Rate gold, List<Rate> diamond, List<Rate> emerald, int[] events, double[] fireball, List<Material> rushDefense,
-            int rushSeconds) {
+    private BedwarsSettings(Map<String, List<String>> modes, int maxGames, boolean demo, int respawnSeconds, Forge forge,
+            List<Rate> diamond, List<Rate> emerald, int[] events, Fireball fireball, List<String> neighbourModes) {
         this.modes = Collections.unmodifiableMap(modes);
         this.maxGames = maxGames;
         this.demo = demo;
         this.respawnSeconds = respawnSeconds;
-        this.iron = iron;
-        this.gold = gold;
+        this.forge = forge;
         this.diamond = Collections.unmodifiableList(diamond);
         this.emerald = Collections.unmodifiableList(emerald);
         this.diamondII = events[0];
@@ -62,16 +179,12 @@ final class BedwarsSettings {
         this.emeraldIII = events[3];
         this.bedsGone = events[4];
         this.gameEnd = events[5];
-        this.fireballSelf = fireball[0];
-        this.fireballOthers = fireball[1];
-        this.rushDefense = Collections.unmodifiableList(rushDefense);
-        this.rushSeconds = rushSeconds;
+        this.fireball = fireball;
+        this.neighbourModes = Collections.unmodifiableList(neighbourModes);
     }
 
     /** The word for every map, in the maps of a mode. */
     static final String EVERY_MAP = "toutes";
-    /** At most this many layers of defense around the bed of a rush. */
-    static final int MAX_DEFENSE = 4;
 
     /** The settings of config.yml. Throws IllegalArgumentException naming the wrong setting. */
     static BedwarsSettings read(ConfigurationSection config) {
@@ -84,8 +197,7 @@ final class BedwarsSettings {
         if (respawn < 0 || respawn > 30) {
             throw new IllegalArgumentException("reapparition-secondes: from 0 to 30");
         }
-        Rate iron = rate(config, "generateurs.fer", 1.0, 48);
-        Rate gold = rate(config, "generateurs.or", 6.0, 16);
+        Forge forge = forge(config);
         List<Rate> diamond = tiers(config, "generateurs.diamant", new double[] {30, 23, 12}, 4);
         List<Rate> emerald = tiers(config, "generateurs.emeraude", new double[] {65, 50, 35}, 2);
         String[] keys = {"diamant-2", "emeraude-2", "diamant-3", "emeraude-3", "fin-des-lits", "fin-de-partie"};
@@ -101,28 +213,21 @@ final class BedwarsSettings {
             }
             previous = events[i];
         }
-        double[] fireball = {damage(config, "boule-de-feu.degats-sur-soi", 2.0),
-            damage(config, "boule-de-feu.degats-sur-les-autres", 3.0)};
-        List<Material> defense = new ArrayList<>();
-        List<String> layers = config.contains("premier-rush.defense") ? config.getStringList("premier-rush.defense")
-                : Collections.singletonList("WOOL");
-        for (String name : layers) {
-            Material block = block(name);
-            if (block == null || !block.isBlock() || !block.isSolid()) {
-                throw new IllegalArgumentException("premier-rush.defense: \"" + name + "\" is not a solid block, "
-                        + "such as WOOL or END_STONE");
-            }
-            defense.add(block);
+        Fireball fireball = new Fireball(number(config, "boule-de-feu.vitesse", 1.0, 0.1, 5),
+                number(config, "boule-de-feu.rayon", 3, 1, 8),
+                number(config, "boule-de-feu.recul-horizontal", 1.0, 0, 5),
+                number(config, "boule-de-feu.recul-vertical", 0.65, 0, 5),
+                damage(config, "boule-de-feu.degats-sur-soi", 2.0),
+                damage(config, "boule-de-feu.degats-sur-les-autres", 2.0),
+                damage(config, "boule-de-feu.degats-sur-les-coequipiers", 0.0));
+        List<String> neighbours = new ArrayList<>();
+        List<String> listed = config.contains("iles-voisines") ? config.getStringList("iles-voisines")
+                : Arrays.asList("first-rush", "first-rush-duo");
+        for (String mode : listed) {
+            neighbours.add(modeId(mode, "iles-voisines"));
         }
-        if (defense.size() > MAX_DEFENSE) {
-            throw new IllegalArgumentException("premier-rush.defense: " + MAX_DEFENSE + " layers at most");
-        }
-        double rushMinutes = config.getDouble("premier-rush.minutes", 5);
-        if (rushMinutes < 0.5 || rushMinutes > 60) {
-            throw new IllegalArgumentException("premier-rush.minutes: from 0.5 to 60");
-        }
-        return new BedwarsSettings(modes, maxGames, config.getBoolean("carte-demo", true), respawn, iron, gold, diamond,
-                emerald, events, fireball, defense, (int) Math.round(rushMinutes * 60));
+        return new BedwarsSettings(modes, maxGames, config.getBoolean("carte-demo", true), respawn, forge, diamond,
+                emerald, events, fireball, neighbours);
     }
 
     /**
@@ -161,18 +266,6 @@ final class BedwarsSettings {
         return modes;
     }
 
-    /** A block by its 1.8 name, or by the names players know: END_STONE (ENDER_STONE in 1.8), PLANKS (WOOD). */
-    static Material block(String name) {
-        String key = name.trim().toUpperCase(java.util.Locale.ROOT).replace(' ', '_');
-        if (key.equals("END_STONE") || key.equals("ENDSTONE")) {
-            return Material.ENDER_STONE;
-        }
-        if (key.equals("PLANKS")) {
-            return Material.WOOD;
-        }
-        return Material.matchMaterial(key);
-    }
-
     private static String modeId(String mode, String path) {
         String id = mode.trim();
         if (!id.matches("[a-z0-9-]{1,32}")) {
@@ -181,24 +274,64 @@ final class BedwarsSettings {
         return id;
     }
 
+    /** forge: the island forges; their speed on each map (lente, moyenne, rapide, or one for solo and one for teams). */
+    private static Forge forge(ConfigurationSection config) {
+        double nodeSeconds = number(config, "forge.fer-secondes-par-noeud", 3.0, 0.25, 600);
+        double goldSeconds = number(config, "forge.or-secondes", 12.0, 0.25, 600);
+        int maxIron = (int) number(config, "forge.max-fer", 48, 1, 256);
+        int maxGold = (int) number(config, "forge.max-or", 16, 1, 256);
+        int fastStart = (int) number(config, "forge.debut-rapide-secondes", 30, 0, 600);
+        Speed fallback = speed(config.getString("forge.vitesse-par-defaut", "rapide"), "forge.vitesse-par-defaut");
+        Map<String, Speed[]> maps = new LinkedHashMap<>();
+        if (!config.contains("forge.vitesses")) {
+            maps.put("lighthouse", new Speed[] {Speed.SLOW, Speed.MEDIUM});
+            maps.put("lotus", new Speed[] {Speed.SLOW, Speed.MEDIUM});
+        } else if (config.isConfigurationSection("forge.vitesses")) {
+            ConfigurationSection section = config.getConfigurationSection("forge.vitesses");
+            for (String map : section.getKeys(false)) {
+                String path = "forge.vitesses." + map;
+                Speed[] speeds;
+                if (section.isConfigurationSection(map)) {
+                    speeds = new Speed[] {speed(section.getString(map + ".solo", ""), path + ".solo"),
+                        speed(section.getString(map + ".equipes", ""), path + ".equipes")};
+                } else {
+                    Speed one = speed(String.valueOf(section.get(map)), path);
+                    speeds = new Speed[] {one, one};
+                }
+                maps.put(map.toLowerCase(java.util.Locale.ROOT), speeds);
+            }
+        } else {
+            throw new IllegalArgumentException("forge.vitesses: each map with its speed, such as Lotus: lente");
+        }
+        return new Forge(nodeSeconds, goldSeconds, maxIron, maxGold, fastStart, fallback, maps);
+    }
+
+    private static Speed speed(String word, String path) {
+        Speed speed = Speed.of(word);
+        if (speed == null) {
+            throw new IllegalArgumentException(path + ": lente, moyenne or rapide");
+        }
+        return speed;
+    }
+
+    private static double number(ConfigurationSection config, String path, double fallback, double min, double max) {
+        double value = config.getDouble(path, fallback);
+        if (value < min || value > max) {
+            throw new IllegalArgumentException(path + ": from " + plain(min) + " to " + plain(max));
+        }
+        return value;
+    }
+
+    private static String plain(double value) {
+        return value == Math.rint(value) ? String.valueOf((long) value) : String.valueOf(value);
+    }
+
     private static double damage(ConfigurationSection config, String path, double fallback) {
         double damage = config.getDouble(path, fallback);
         if (damage < 0 || damage > 20) {
             throw new IllegalArgumentException(path + ": in half hearts, from 0 to 20");
         }
         return damage;
-    }
-
-    private static Rate rate(ConfigurationSection config, String path, double seconds, int max) {
-        double every = config.getDouble(path + ".secondes", seconds);
-        int most = config.getInt(path + ".max", max);
-        if (every < 0.25 || every > 600) {
-            throw new IllegalArgumentException(path + ".secondes: from 0.25 to 600");
-        }
-        if (most < 1 || most > 256) {
-            throw new IllegalArgumentException(path + ".max: from 1 to 256");
-        }
-        return new Rate((int) Math.round(every * 20), most);
     }
 
     private static List<Rate> tiers(ConfigurationSection config, String path, double[] seconds, int max) {
@@ -246,12 +379,9 @@ final class BedwarsSettings {
         return respawnSeconds;
     }
 
-    Rate iron() {
-        return iron;
-    }
-
-    Rate gold() {
-        return gold;
+    /** The island forges. */
+    Forge forge() {
+        return forge;
     }
 
     /** Tier I, II and III. */
@@ -287,23 +417,12 @@ final class BedwarsSettings {
         return gameEnd;
     }
 
-    /** The damage of a fireball's blast on its thrower, in half hearts before the armour. */
-    double fireballSelf() {
-        return fireballSelf;
+    Fireball fireball() {
+        return fireball;
     }
 
-    /** The damage of a fireball on the other players, in half hearts before the armour. */
-    double fireballOthers() {
-        return fireballOthers;
-    }
-
-    /** The layers of blocks around the bed a team of one rushes, from the bed outwards (WOOL: the island's colour). */
-    List<Material> rushDefense() {
-        return rushDefense;
-    }
-
-    /** The time limit of a rush, in seconds. */
-    int rushSeconds() {
-        return rushSeconds;
+    /** True if the teams of this mode play on neighbouring islands (First Rush), not opposite ones. */
+    boolean neighbours(String modeId) {
+        return neighbourModes.contains(modeId);
     }
 }

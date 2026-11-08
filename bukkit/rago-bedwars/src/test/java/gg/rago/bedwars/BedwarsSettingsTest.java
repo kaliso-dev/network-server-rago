@@ -10,7 +10,6 @@ import java.io.Reader;
 import java.nio.charset.StandardCharsets;
 import java.util.Arrays;
 import java.util.Collections;
-import org.bukkit.Material;
 import org.bukkit.configuration.file.YamlConfiguration;
 import org.junit.jupiter.api.Test;
 
@@ -35,13 +34,24 @@ class BedwarsSettingsTest {
         assertEquals(10, settings.mapsOf("first-rush").size());
         assertEquals(settings.mapsOf("first-rush"), settings.mapsOf("first-rush-duo"));
         assertTrue(settings.mapsOf("sumo").isEmpty());
-        assertEquals(Collections.singletonList(Material.WOOL), settings.rushDefense());
-        assertEquals(300, settings.rushSeconds());
+        assertTrue(settings.neighbours("first-rush"));
+        assertTrue(settings.neighbours("first-rush-duo"));
+        assertTrue(!settings.neighbours("skyrise-1v1"));
         assertEquals(8, settings.maxGames());
         assertTrue(settings.demo());
         assertEquals(5, settings.respawnSeconds());
-        assertEquals(20, settings.iron().ticks);
-        assertEquals(120, settings.gold().ticks);
+        BedwarsSettings.Forge forge = settings.forge();
+        // Sky Rise, 8 islands, fast: 3 nodes of an ingot every 3 s
+        assertEquals(20, forge.iron("SkyRise", 1, 8).ticks);
+        assertEquals(48, forge.iron("SkyRise", 1, 8).max);
+        // Lotus: slow in solo, medium in doubles
+        assertEquals(60, forge.iron("Lotus", 1, 8).ticks);
+        assertEquals(30, forge.iron("lotus", 2, 8).ticks);
+        // a ranked map of 4 islands, not listed: fast, and a node more
+        assertEquals(15, forge.iron("Archway", 2, 4).ticks);
+        assertEquals(240, forge.gold().ticks);
+        assertEquals(16, forge.gold().max);
+        assertEquals(30, forge.fastStartSeconds);
         assertEquals(600, settings.diamond().get(0).ticks);
         assertEquals(240, settings.diamond().get(2).ticks);
         assertEquals(4, settings.diamond().get(1).max);
@@ -49,40 +59,70 @@ class BedwarsSettingsTest {
         assertEquals(6 * 60, settings.diamondII());
         assertEquals(30 * 60, settings.bedsGone());
         assertEquals(45 * 60, settings.gameEnd());
-        assertEquals(2.0, settings.fireballSelf());
-        assertEquals(3.0, settings.fireballOthers());
+        BedwarsSettings.Fireball fireball = settings.fireball();
+        assertEquals(1.0, fireball.speed);
+        assertEquals(2.0, fireball.self);
+        assertEquals(2.0, fireball.enemies);
+        assertEquals(0.0, fireball.teammates);
+    }
+
+    @Test
+    void theFireballPushesAsOnHypixel() {
+        BedwarsSettings.Fireball fireball = BedwarsSettings.read(new YamlConfiguration()).fireball();
+        // under the feet: straight up, 0.65 x 1.5
+        assertPush(0, 0.975, 0, fireball.push(0, 0, 0, 0, 0, 0));
+        assertPush(0, 0.975, 0, fireball.push(0, -0.5, 0, 0, 0, 0));
+        // level with the player, in front: thrown back, and up
+        assertPush(-1.0, 0.975, 0, fireball.push(1, 0, 0, 0, 0, 0));
+        // above and in front: back, and up as much as the blast is above
+        double[] push = fireball.push(0.5, 1, 0, 0, 0, 0);
+        assertPush(-0.5 / Math.sqrt(1.25), 0.975 / Math.sqrt(1.25), 0, push);
+        assertTrue(fireball.reaches(3, -3, 3));
+        assertTrue(!fireball.reaches(3.1, 0, 0));
+    }
+
+    private static void assertPush(double x, double y, double z, double[] push) {
+        assertEquals(x, push[0], 1e-9, "x");
+        assertEquals(y, push[1], 1e-9, "y");
+        assertEquals(z, push[2], 1e-9, "z");
     }
 
     @Test
     void anEmptyConfigGivesTheDefaults() {
         BedwarsSettings settings = BedwarsSettings.read(new YamlConfiguration());
         assertTrue(settings.modes().isEmpty());
-        assertEquals(20, settings.iron().ticks);
+        assertEquals(20, settings.forge().iron("Gelato", 1, 8).ticks);
+        assertEquals(60, settings.forge().iron("Lighthouse", 1, 8).ticks);
         assertEquals(3, settings.emerald().size());
         assertEquals(24 * 60, settings.emeraldIII());
-        assertEquals(2.0, settings.fireballSelf());
-        assertEquals(Collections.singletonList(Material.WOOL), settings.rushDefense());
-        assertEquals(300, settings.rushSeconds());
+        assertEquals(2.0, settings.fireball().self);
+        assertTrue(settings.neighbours("first-rush"));
     }
 
     @Test
     void modesTakeTheirMaps() throws Exception {
         YamlConfiguration config = new YamlConfiguration();
         config.loadFromString("modes:\n  ranked-1v1: toutes\n  first-rush: [Gelato, Nebuc]\n"
-                + "premier-rush:\n  defense: [END_STONE, wool]\n  minutes: 2.5");
+                + "iles-voisines: [first-rush]\nforge:\n  vitesse-par-defaut: lente\n  vitesses:\n    Gelato: moyenne\n"
+                + "    Nebuc: {solo: rapide, equipes: lente}");
         BedwarsSettings settings = BedwarsSettings.read(config);
         assertEquals(Arrays.asList("ranked-1v1", "first-rush"), settings.modes());
         assertTrue(settings.mapsOf("ranked-1v1").isEmpty(), "toutes: every map");
         assertEquals(Arrays.asList("Gelato", "Nebuc"), settings.mapsOf("first-rush"));
-        assertEquals(Arrays.asList(Material.ENDER_STONE, Material.WOOL), settings.rushDefense());
-        assertEquals(150, settings.rushSeconds());
+        assertTrue(settings.neighbours("first-rush"));
+        assertTrue(!settings.neighbours("first-rush-duo"));
+        BedwarsSettings.Forge forge = settings.forge();
+        assertEquals(BedwarsSettings.Speed.MEDIUM, forge.speed("Gelato", 1));
+        assertEquals(BedwarsSettings.Speed.FAST, forge.speed("Nebuc", 1));
+        assertEquals(BedwarsSettings.Speed.SLOW, forge.speed("Nebuc", 4));
+        assertEquals(BedwarsSettings.Speed.SLOW, forge.speed("Lotus", 2), "not listed: the default");
         // the list of the first version: each mode on every map
         config = new YamlConfiguration();
-        config.loadFromString("modes:\n  - ranked-1v1\n  - ranked-2v2\npremier-rush:\n  defense: []");
+        config.loadFromString("modes:\n  - ranked-1v1\n  - ranked-2v2\niles-voisines: []");
         settings = BedwarsSettings.read(config);
         assertEquals(Arrays.asList("ranked-1v1", "ranked-2v2"), settings.modes());
         assertTrue(settings.mapsOf("ranked-2v2").isEmpty());
-        assertTrue(settings.rushDefense().isEmpty(), "no defense");
+        assertTrue(!settings.neighbours("first-rush"), "none on neighbouring islands");
     }
 
     @Test
@@ -90,17 +130,20 @@ class BedwarsSettingsTest {
         assertProblem("modes: [\"Ranked 1v1\"]", "modes");
         assertProblem("parties-max: 0", "parties-max");
         assertProblem("reapparition-secondes: 60", "reapparition-secondes");
-        assertProblem("generateurs:\n  fer:\n    secondes: 0", "generateurs.fer.secondes");
+        assertProblem("forge:\n  fer-secondes-par-noeud: 0", "forge.fer-secondes-par-noeud");
+        assertProblem("forge:\n  vitesses:\n    Lotus: vite", "forge.vitesses.Lotus");
+        assertProblem("forge:\n  vitesses:\n    Lotus: {solo: lente}", "forge.vitesses.Lotus.equipes");
+        assertProblem("forge:\n  vitesses: [Lotus]", "forge.vitesses");
+        assertProblem("forge:\n  vitesse-par-defaut: vite", "forge.vitesse-par-defaut");
         assertProblem("generateurs:\n  diamant:\n    secondes: [30, 20]", "generateurs.diamant.secondes");
         assertProblem("evenements:\n  diamant-2: 20", "evenements.emeraude-2");
         assertProblem("boule-de-feu:\n  degats-sur-soi: -1", "boule-de-feu.degats-sur-soi");
+        assertProblem("boule-de-feu:\n  rayon: 20", "boule-de-feu.rayon");
+        assertProblem("iles-voisines: [\"First Rush\"]", "iles-voisines");
         assertProblem("modes:\n  first-rush: Gelato", "modes.first-rush");
         assertProblem("modes:\n  first-rush: []", "modes.first-rush");
         assertProblem("modes:\n  first-rush: [\"Gel ato\"]", "modes.first-rush");
         assertProblem("modes:\n  First Rush: [Gelato]", "modes");
-        assertProblem("premier-rush:\n  defense: [TORCH]", "premier-rush.defense");
-        assertProblem("premier-rush:\n  defense: [WOOL, WOOL, WOOL, WOOL, WOOL]", "premier-rush.defense");
-        assertProblem("premier-rush:\n  minutes: 0", "premier-rush.minutes");
     }
 
     private static void assertProblem(String yaml, String setting) {

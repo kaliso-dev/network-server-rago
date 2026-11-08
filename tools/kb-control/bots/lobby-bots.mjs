@@ -23,15 +23,14 @@
 //   7. a game of Ranked Bedwars 1v1 on the demo map of RagoBedwars: both type /queue ranked-1v1,
 //      start on their islands with a wooden sword and leather armour, the sidebar lists the teams;
 //      after "Fight!" they pick up the iron of their generator standing on their spawn, RagoUn opens
-//      the item shop villager and buys wool from its Quick Buy, cannot place it near its spawn,
+//      the item shop villager (under its floating name, ITEM SHOP) and buys wool from its Quick Buy, cannot place it near its spawn,
 //      places it by its bed and breaks it again, cannot break its own bed, buys a fireball and
-//      jumps on it at its feet (about a heart lost, not its life); RagoDeux walks off its
+//      jumps on it at its feet (the blast lifts it and takes a heart, not its life); RagoDeux walks off its
 //      island, dies in the void and respawns (its bed stands), then leaves with /spawn: RagoUn
 //      wins, and both are back in the lobby;
-//   8. a First Rush each: RagoUn asks for a map the mode does not have, then for bw-demo, RagoDeux
-//      for any map; each plays alone on the red island of its own copy, the blue bed has a layer of
-//      blue wool around it and the sidebar shows the time; run-lobby-test.sh gives the rush 30
-//      seconds, so the time runs out and both come back to the lobby.
+//   8. a First Rush, a real 1v1: RagoUn asks for a map the mode does not have, then for bw-demo,
+//      RagoDeux for any map; they meet on bw-demo, one red and one blue, with the events of a real
+//      game in the sidebar; RagoDeux leaves with /spawn, RagoUn wins and both are back in the lobby.
 //
 // Environment: KB_HOST (127.0.0.1), KB_PORT (25565).
 
@@ -441,8 +440,8 @@ function countOf (bot, name) {
 }
 
 /** The start of a Bed Wars game: on the island, the wooden sword, the leather armour, the teams in the sidebar. */
-async function expectBedwarsStart (bot, from) {
-  const line = await chatLine(bot, /Ranked Bedwars 1v1 on bw-demo: you are in the (Red|Blue) team/, 15000, from)
+async function expectBedwarsStart (bot, from, mode = 'Ranked Bedwars 1v1') {
+  const line = await chatLine(bot, new RegExp(`${mode} on bw-demo: you are in the (Red|Blue) team\\. Protect your bed`), 15000, from)
   await waitFor(() => bot.game.gameMode === 'survival' && countOf(bot, 'wooden_sword') === 1 &&
     bot.inventory.slots[5]?.name === 'leather_helmet', 5000,
   `${bot.username} to start with a wooden sword and leather armour: ${bot.game.gameMode}, ${JSON.stringify(bot.inventory.items().map((item) => item.name))}, helmet ${bot.inventory.slots[5]?.name}`)
@@ -456,10 +455,14 @@ async function expectBedwarsStart (bot, from) {
   return team
 }
 
-/** The item shop villager of the bot's island, by its name. */
+/** The item shop villager of the bot's island: under its name, ITEM SHOP, which floats above it as on Hypixel. */
 function shopVillager (bot) {
+  const label = Object.values(bot.entities).find((e) => String(e.metadata?.[2] ?? '').includes('ITEM SHOP') &&
+    Math.sign(e.position.x) === islandSide(bot))
+  if (label == null) return null
   return Object.values(bot.entities).find((e) => /villager/i.test(e.name ?? '') &&
-    String(e.metadata?.[2] ?? '').includes('ITEM SHOP') && Math.sign(e.position.x) === islandSide(bot))
+    Math.abs(e.position.x - label.position.x) < 0.6 && Math.abs(e.position.z - label.position.z) < 0.6 &&
+    e.position.y < label.position.y)
 }
 
 /** RagoUn: the shop opens on a click, wool from the Quick Buy, placed by the bed and broken again. */
@@ -606,9 +609,8 @@ async function playBedwars (one, two) {
   log('Bed Wars: RagoDeux left, RagoUn won, both are back in the lobby')
 }
 
-/** A First Rush each, on two copies of the demo map, until the time runs out. */
+/** First Rush: a real 1v1 on two neighbouring islands, on the map chosen in the queue. */
 async function playFirstRush (one, two) {
-  const V = one.entity.position.constructor
   let fromOne = mark(one)
   one.chat('/queue first-rush Nowhere')
   await chatLine(one, /This mode has no choice of map\./, 5000, fromOne)
@@ -617,30 +619,22 @@ async function playFirstRush (one, two) {
   one.chat('/queue first-rush bw-demo')
   two.chat('/queue first-rush random')
   await chatLine(one, /You joined the queue for First rush solo on bw-demo/, 5000, fromOne)
-  for (const bot of [one, two]) {
-    const from = bot === one ? fromOne : fromTwo
-    await chatLine(bot, /First rush solo on bw-demo: you are in the Red team\. Break the Blue bed of the next island/, 15000, from)
-    await waitFor(() => bot.game.gameMode === 'survival' && islandSide(bot) < 0, 5000,
-      `${bot.username} on the red island: ${bot.game.gameMode} at ${bot.entity.position}`)
-  }
-  if (playerEntity(one, two) != null) throw new Error('RagoUn sees RagoDeux: their rushes share a world')
-  // The blue bed (27 and 28, 65, 0) behind one layer of blue wool, on its sides and on top.
-  const defense = [new V(26, 65, 0), new V(29, 65, 0), new V(27, 65, 1), new V(28, 65, -1), new V(27, 66, 0)]
-  await waitFor(() => defense.every((spot) => one.blockAt(spot)?.name === 'wool' && one.blockAt(spot)?.metadata === 11),
-    5000, `blue wool around the blue bed: ${JSON.stringify(defense.map((spot) => [one.blockAt(spot)?.name, one.blockAt(spot)?.metadata]))}`)
+  const teamOne = await expectBedwarsStart(one, fromOne, 'First rush solo')
+  const teamTwo = await expectBedwarsStart(two, fromTwo, 'First rush solo')
+  if (teamOne === teamTwo) throw new Error(`both bots are in the ${teamOne} team of the First Rush`)
+  await waitFor(() => playerEntity(one, two) != null, 5000, 'RagoUn to see RagoDeux: they play the same game')
   await chatLine(one, /Fight!/, 10000, fromOne)
-  await waitFor(() => {
-    const lines = sidebarLines(one)
-    return lines.some((text) => /^Time: 0:\d\d \/ 0:30$/.test(text)) && lines.includes('R Red: ✔ YOU') &&
-      lines.includes('B Blue: ✔')
-  }, 5000, `the time and the blue bed in the sidebar: ${JSON.stringify(sidebarLines(one))}`)
-  log('First Rush: each bot alone on its red island, the blue bed behind blue wool, the time in the sidebar')
-  for (const bot of [one, two]) {
-    const from = bot === one ? fromOne : fromTwo
-    await chatLine(bot, /Time is up: the Blue bed still stands\./, 40000, from)
-    await expectInLobby(bot, 'after the First Rush')
-  }
-  log('First Rush: the time ran out, both are back in the lobby')
+  // no clock of a rush: the events of a real game
+  await waitFor(() => sidebarLines(one).some((text) => /^Diamond II in \d+:\d\d$/.test(text)), 5000,
+    `the next event in the sidebar of the First Rush: ${JSON.stringify(sidebarLines(one))}`)
+  log(`First Rush: RagoUn (${teamOne}) against RagoDeux (${teamTwo}) on bw-demo, a real game`)
+  const fromEnd = mark(one)
+  two.chat('/spawn')
+  await chatLine(one, /RagoDeux left the game\./, 5000, fromEnd)
+  await chatLine(one, /Winner: (Red|Blue) - RagoUn/, 5000, fromEnd)
+  await expectInLobby(one, 'after the First Rush')
+  await expectInLobby(two, 'after /spawn in the First Rush')
+  log('First Rush: RagoDeux left, RagoUn won, both are back in the lobby')
 }
 
 async function fallOff (bot) {

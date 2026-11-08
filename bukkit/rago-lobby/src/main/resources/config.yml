@@ -288,26 +288,26 @@ modes:
     nom: "&eFirst rush solo"
     categorie: ranked
     icone: IRON_PICKAXE
-    equipes: 1
+    equipes: 2
     joueurs-par-equipe: 1
     classe: false
     description:
-      - "Solo: practise the first rush"
-      - "of a Bedwars game: break the"
-      - "defended bed of the next island"
-      - "against the clock. Choose the map."
+      - "A real Bedwars 1v1, RBW style,"
+      - "on two islands side by side:"
+      - "the first rush decides it."
+      - "Choose the map."
   first-rush-duo:
     nom: "&eFirst rush duo"
     categorie: ranked
     icone: IRON_PICKAXE
-    equipes: 1
+    equipes: 2
     joueurs-par-equipe: 2
     classe: false
     description:
-      - "Duo: practise the first rush"
-      - "of a Bedwars game: break the"
-      - "defended bed of the next island"
-      - "against the clock. Choose the map."
+      - "A real Bedwars 2v2, RBW style,"
+      - "on two islands side by side:"
+      - "the first rush decides it."
+      - "Choose the map."
   invis-practice:
     nom: "&5Invis practice"
     categorie: ranked

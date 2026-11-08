@@ -149,38 +149,45 @@ final class BedwarsMap {
     }
 
     /**
-     * The islands of a rush (a mode of one team): the first complete team, which plays, then the one
-     * whose spawn is nearest to it, whose bed is rushed (a tie keeps the first colour). Fewer than two
-     * complete teams: what there is.
+     * The complete teams a game of this many teams is played with on neighbouring islands (First
+     * Rush): the first one, then each time the one whose spawn is nearest to those already taken (a
+     * tie keeps the first colour). In the order of the colours.
      */
-    List<TeamColor> rushTeams() {
+    List<TeamColor> neighbourTeams(int count) {
         List<TeamColor> complete = completeTeams();
+        if (count >= complete.size()) {
+            return complete;
+        }
         List<TeamColor> chosen = new ArrayList<>();
-        if (complete.isEmpty()) {
+        if (count <= 0) {
             return chosen;
         }
-        TeamColor own = complete.get(0);
-        chosen.add(own);
-        MapPoint spawn = teams.get(own).spawn;
-        TeamColor nearest = null;
-        double best = Double.MAX_VALUE;
-        for (TeamColor color : complete) {
-            if (color == own) {
-                continue;
+        chosen.add(complete.get(0));
+        while (chosen.size() < count) {
+            TeamColor best = null;
+            double bestDistance = Double.MAX_VALUE;
+            for (TeamColor color : complete) {
+                if (chosen.contains(color)) {
+                    continue;
+                }
+                MapPoint spawn = teams.get(color).spawn;
+                double nearest = Double.MAX_VALUE;
+                for (TeamColor taken : chosen) {
+                    MapPoint other = teams.get(taken).spawn;
+                    double dx = spawn.x() - other.x();
+                    double dz = spawn.z() - other.z();
+                    nearest = Math.min(nearest, dx * dx + dz * dz);
+                }
+                if (nearest < bestDistance - 1e-6) {
+                    best = color;
+                    bestDistance = nearest;
+                }
             }
-            MapPoint other = teams.get(color).spawn;
-            double dx = spawn.x() - other.x();
-            double dz = spawn.z() - other.z();
-            double distance = dx * dx + dz * dz;
-            if (distance < best - 1e-6) {
-                nearest = color;
-                best = distance;
-            }
+            chosen.add(best);
         }
-        if (nearest != null) {
-            chosen.add(nearest);
-        }
-        return chosen;
+        List<TeamColor> ordered = new ArrayList<>(complete);
+        ordered.retainAll(chosen);
+        return ordered;
     }
 
     /** What the map still needs to be played, for /bw info: empty when it can be. */

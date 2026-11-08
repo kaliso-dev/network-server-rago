@@ -4,8 +4,7 @@
 
 # The lobby modes this plugin plays (their ids in the lobby's config.yml), each with its maps: the
 # names of their world folders, or toutes for every map. A map needs at least as many complete
-# teams as the mode has teams (two for a mode of one team, which rushes the nearest island). A map
-# that is not on the server is skipped; a mode none of whose maps is ready plays on the demo map.
+# teams as the mode has teams. A map that is not on the server is skipped; a mode none of whose maps is ready plays on the demo map.
 # With two maps or more, the players choose theirs when they join the queue, or take any map (the
 # ranked modes always draw the map at random).
 modes:
@@ -28,15 +27,37 @@ carte-demo: true
 # Seconds before a dead player comes back, while their team's bed stands (from 0 to 30).
 reapparition-secondes: 5
 
-# The generators: one item every so many seconds, at most so many lying on it. The diamond and
-# emerald generators have three tiers (I, II, III), faster and faster.
+# The modes whose teams play on neighbouring islands (First Rush: the first island and the one
+# next to it), instead of opposite islands as in the other modes.
+iles-voisines: [first-rush, first-rush-duo]
+
+# The forge of each island, as on Hypixel: an iron node drops an ingot every
+# fer-secondes-par-noeud seconds (20 a minute), and a forge has 1 node on the slow maps (lente),
+# 2 on the medium ones (moyenne), 3 on the fast ones (rapide), and one more on the maps of four
+# teams; gold: an ingot every or-secondes. At most max-fer iron and max-or gold lie on it. During
+# the first debut-rapide-secondes of a game, it goes twice as fast.
+#   vitesses   each map's speed, by the name of its world folder: one speed, or one for solo and
+#              one for teams of two or more ({solo: lente, equipes: moyenne}, as Lighthouse and
+#              Lotus on Hypixel). A map not listed: vitesse-par-defaut (rapide, as every Hypixel map
+#              since 2019).
+forge:
+  fer-secondes-par-noeud: 3
+  or-secondes: 12
+  max-fer: 48
+  max-or: 16
+  debut-rapide-secondes: 30
+  vitesse-par-defaut: rapide
+  vitesses:
+    Acropolis: rapide
+    Cascade: rapide
+    Crogorm: rapide
+    SkyRise: rapide
+    Lighthouse: {solo: lente, equipes: moyenne}
+    Lotus: {solo: lente, equipes: moyenne}
+
+# The diamond and emerald generators: one item every so many seconds, at most so many lying on
+# it; three tiers (I, II, III), faster and faster.
 generateurs:
-  fer:
-    secondes: 1.0
-    max: 48
-  or:
-    secondes: 6.0
-    max: 16
   diamant:
     secondes: [30, 23, 12]
     max: 4
@@ -55,17 +76,20 @@ evenements:
   fin-des-lits: 30
   fin-de-partie: 45
 
-# A fireball's blast does a fixed damage, in half hearts before the armour, so that a fireball jump
-# only costs a heart: on the player who threw it, and on the other players it hits (from 0 to 20).
+# The fireball, as on Hypixel (the values of BedWars1058, the open copy of Hypixel's Bed Wars):
+#   vitesse            its speed when thrown, in blocks a tick; it then speeds up a little
+#   rayon              its blast pushes the players up to this many blocks away, on each axis
+#   recul-horizontal   the push away from the blast, horizontally (more when the blast is level
+#                      with the player, as when it lands just in front of their feet)
+#   recul-vertical     the push upwards (x 1.5): a fireball jump
+#   degats-...         its fixed damage, armour or not, in half hearts (0 to 20): on the player who
+#                      threw it, on the other teams, on their own team
+# The blast itself only breaks placed blocks, never the blast-proof glass or the obsidian.
 boule-de-feu:
+  vitesse: 1.0
+  rayon: 3
+  recul-horizontal: 1.0
+  recul-vertical: 0.65
   degats-sur-soi: 2.0
-  degats-sur-les-autres: 3.0
-
-# The modes of one team (First Rush): the players rush the bed of the nearest island, against the
-# clock, from their own island with its generator and shops. Nobody plays on that island, but its
-# bed has a defense: the layers of blocks around it, from the bed outwards (WOOL, STAINED_CLAY and
-# STAINED_GLASS take the colour of that island; END_STONE, WOOD, OBSIDIAN... as they are; [] for
-# none), 4 at most. The bed broken ends the rush; so does the time limit, in minutes.
-premier-rush:
-  defense: [WOOL]
-  minutes: 5
+  degats-sur-les-autres: 2.0
+  degats-sur-les-coequipiers: 0.0

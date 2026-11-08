@@ -104,14 +104,12 @@ mkdir -p "$SERVER_DIR/plugins/RagoLobby"
 sed '/^  sumo:$/a\    kit: [STICK]' "$ROOT/bukkit/rago-lobby/src/main/resources/config.yml" \
   >"$SERVER_DIR/plugins/RagoLobby/config.yml"
 grep -q '^    kit: \[STICK\]$' "$SERVER_DIR/plugins/RagoLobby/config.yml" || fail "could not give the sumo a kit"
-# The bundled config.yml of RagoBedwars, with iron four times faster (the fireball, 40 iron, comes
-# in ten seconds) and a First Rush of 30 seconds (the bots see its time run out).
+# The bundled config.yml of RagoBedwars, with iron three times faster (the fireball, 40 iron, comes
+# in ten seconds).
 mkdir -p "$SERVER_DIR/plugins/RagoBedwars"
-sed -e '/^  fer:$/,/^  or:$/ s/^    secondes: 1.0$/    secondes: 0.25/' \
-  -e '/^premier-rush:$/,$ s/^  minutes: 5$/  minutes: 0.5/' \
+sed -e 's/^  fer-secondes-par-noeud: 3$/  fer-secondes-par-noeud: 1/' \
   "$ROOT/bukkit/rago-bedwars/src/main/resources/config.yml" >"$SERVER_DIR/plugins/RagoBedwars/config.yml"
-grep -q '^    secondes: 0.25$' "$SERVER_DIR/plugins/RagoBedwars/config.yml" || fail "could not speed up the iron"
-grep -q '^  minutes: 0.5$' "$SERVER_DIR/plugins/RagoBedwars/config.yml" || fail "could not shorten the First Rush"
+grep -q '^  fer-secondes-par-noeud: 1$' "$SERVER_DIR/plugins/RagoBedwars/config.yml" || fail "could not speed up the iron"
 # Around the spawn of the new lobby world: the NPC of the Duels category, a stats NPC, a wall of
 # leaderboards, the main leaderboard (within click range of the spawn) and the kills leaderboard.
 mkdir -p "$SERVER_DIR/lobby"

@@ -72,8 +72,8 @@ final class Generator {
     /** Time passes: drops an item when its time has come. */
     void tick(int ticks) {
         left -= ticks;
-        if (left <= 0) {
-            left = rate.ticks;
+        while (left <= 0) {
+            left += rate.ticks;
             drop();
         }
     }

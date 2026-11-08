@@ -48,6 +48,7 @@ import org.bukkit.event.entity.EntityDamageEvent;
 import org.bukkit.event.entity.EntityExplodeEvent;
 import org.bukkit.event.entity.FoodLevelChangeEvent;
 import org.bukkit.event.entity.PlayerDeathEvent;
+import org.bukkit.event.entity.ProjectileHitEvent;
 import org.bukkit.event.inventory.CraftItemEvent;
 import org.bukkit.event.inventory.InventoryClickEvent;
 import org.bukkit.event.inventory.InventoryDragEvent;
@@ -157,7 +158,7 @@ final class BedwarsHost implements MatchHost, Listener {
         return true;
     }
 
-    /** The islands a game of this mode needs: one per team, and the one a team of one rushes. */
+    /** The islands a game of this mode needs: one per team, two at least. */
     static int islands(GameMode mode) {
         return Math.max(2, mode.teams());
     }
@@ -337,6 +338,13 @@ final class BedwarsHost implements MatchHost, Listener {
             event.setCancelled(true);
             return;
         }
+        if (event instanceof EntityDamageByEntityEvent
+                && ((EntityDamageByEntityEvent) event).getDamager() instanceof Fireball) {
+            // A fireball's hit and blast: neither its damage nor its push, which the server would
+            // give with them; its own push and damage, as on Hypixel, come when it lands (onLand).
+            event.setCancelled(true);
+            return;
+        }
         Gamer target = game.gamer(victim.getUniqueId());
         Player attacker = null;
         if (event instanceof EntityDamageByEntityEvent) {
@@ -354,15 +362,24 @@ final class BedwarsHost implements MatchHost, Listener {
                 attacker = null;
             }
         }
-        if (event instanceof EntityDamageByEntityEvent
-                && ((EntityDamageByEntityEvent) event).getDamager() instanceof Fireball) {
-            // The blast of a fireball of power 3 would take some 20 hearts at point blank: a fixed
-            // damage, which the armour still reduces, and the knockback of the blast, as on Hypixel.
-            event.setDamage(attacker == null ? plugin.settings().fireballSelf() : plugin.settings().fireballOthers());
-        }
         if (event.getFinalDamage() >= victim.getHealth()) {
             event.setCancelled(true);
             game.kill(victim, attacker, false);
+        }
+    }
+
+    /**
+     * A fireball lands (it has just exploded): it pushes the players around and hurts them, as on
+     * Hypixel. The blast itself, which only breaks placed blocks, hurts and pushes nobody (onDamage).
+     */
+    @EventHandler(priority = EventPriority.MONITOR)
+    public void onLand(ProjectileHitEvent event) {
+        if (!(event.getEntity() instanceof Fireball) || !isGameWorld(event.getEntity().getWorld())) {
+            return;
+        }
+        BedwarsGame game = gameIn(event.getEntity().getWorld());
+        if (game != null) {
+            game.blast((Fireball) event.getEntity(), attacker(event.getEntity()));
         }
     }
 
