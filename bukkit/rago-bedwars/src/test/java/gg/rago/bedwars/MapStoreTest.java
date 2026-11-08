@@ -76,8 +76,8 @@ class MapStoreTest {
         List<BedwarsMap> all = Arrays.asList(demo, archway, gelato, nebuc);
         assertEquals(Arrays.asList(nebuc, gelato), MapStore.named(all, 2, Arrays.asList("nebuc", "Gelato", "Missing")),
                 "the maps named, in their order, whatever the case");
-        assertEquals(Collections.singletonList(archway), MapStore.named(all, 2, Collections.<String>emptyList()),
-                "every map: the one with the closest number of teams");
+        assertEquals(Arrays.asList(archway, gelato, nebuc), MapStore.named(all, 2, Collections.<String>emptyList()),
+                "every map: none has exactly two teams, so those with more, and never the demo map");
         assertEquals(Collections.singletonList(demo), MapStore.named(all, 2, Collections.singletonList("Missing")),
                 "none of its maps is on the server: the demo map");
         assertTrue(MapStore.named(Arrays.asList(archway, gelato), 2, Collections.singletonList("Missing")).isEmpty());
