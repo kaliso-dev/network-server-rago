@@ -27,7 +27,9 @@ dans les files d'attente des modes de jeu.
 | `/spawn` (ou `/hub`) | retour au spawn ; pendant une partie, c'est un abandon | tout le monde |
 | `/file <mode>`, `/file quitter` | entrer dans une file, en sortir | tout le monde |
 | `/lobby modes` | les modes et leur file (aussi depuis la console) | tout le monde |
-| `/lobby setspawn` | place le spawn du lobby là où tu es (écrit dans `spawn.yml`) | `rago.lobby.admin` |
+| `/lobby setspawn` | place le spawn du lobby là où tu es (écrit dans `spawn.yml`, dans le dossier du monde du lobby) | `rago.lobby.admin` |
+| `/lobby point <nom>` | place ou déplace un point nommé là où tu es : où iront les PNJ des modes, les classements, les décorations (écrit dans `points.yml`, dans le dossier du monde) | `rago.lobby.admin` |
+| `/lobby point retirer <nom>`, `/lobby point tp <nom>`, `/lobby points` | retirer un point, y aller, la liste | `rago.lobby.admin` |
 | `/lobby build` | mode construction dans le lobby (créatif, protection levée) | `rago.lobby.admin` |
 
 ## Configuration
@@ -38,7 +40,9 @@ joueurs par équipe, classé, description). Le fichier fourni explique chaque r�
 invalide désactive le plugin avec un message qui dit quoi corriger.
 
 Si le monde du lobby n'existe pas, le plugin le crée : un monde vide avec une plateforme de
-quartz. Pour utiliser une vraie map, mets le nom de son monde dans `monde`, puis `/lobby setspawn`.
+quartz. On peut construire le lobby directement dedans (`/lobby build`), ou mettre le nom d'un autre
+monde dans `monde`, puis `/lobby setspawn`. Le spawn et les points sont rangés dans le dossier du
+monde : ils partent avec la map quand on l'envoie, et survivent à une mise à jour du plugin.
 Le plugin se charge après RagoBuildTools (`softdepend`), qui charge les mondes de build avec leur
 générateur vide ; un monde de build peut donc servir de lobby.
 

@@ -7,7 +7,7 @@ import org.bukkit.World;
 import org.bukkit.configuration.InvalidConfigurationException;
 import org.bukkit.configuration.file.YamlConfiguration;
 
-/** The lobby spawn, kept in spawn.yml in the plugin folder. Immutable. */
+/** The lobby spawn, kept in spawn.yml in the lobby world's folder, so that it travels with the map. Immutable. */
 final class SpawnPoint {
 
     static final String FILE_NAME = "spawn.yml";
@@ -34,8 +34,24 @@ final class SpawnPoint {
         return new Location(world, x, y, z, yaw, pitch);
     }
 
+    double x() {
+        return x;
+    }
+
     double y() {
         return y;
+    }
+
+    double z() {
+        return z;
+    }
+
+    float yaw() {
+        return yaw;
+    }
+
+    float pitch() {
+        return pitch;
     }
 
     /** The spawn written in this file, or null if there is no file. */

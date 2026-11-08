@@ -38,8 +38,9 @@ public final class RagoLobby extends JavaPlugin implements LobbyService {
     private QueueController queues;
     private ModeMenu menu;
     private LobbyScoreboard scoreboard;
-    /** Writes files (spawn.yml) away from the main thread, one at a time. */
+    /** Writes files (spawn.yml, points.yml) away from the main thread, one at a time. */
     private ExecutorService writer;
+    private LobbyPoints points;
 
     @Override
     public void onEnable() {
@@ -54,7 +55,11 @@ public final class RagoLobby extends JavaPlugin implements LobbyService {
         World world = loadWorld(settings.world());
         SpawnPoint spawn;
         try {
-            spawn = SpawnPoint.read(new File(getDataFolder(), SpawnPoint.FILE_NAME));
+            spawn = SpawnPoint.read(new File(world.getWorldFolder(), SpawnPoint.FILE_NAME));
+            if (spawn == null) {
+                // Before the spawn moved into the map's folder, it was in the plugin folder.
+                spawn = SpawnPoint.read(new File(getDataFolder(), SpawnPoint.FILE_NAME));
+            }
         } catch (IOException e) {
             getLogger().warning(e.getMessage() + " : le spawn du monde est utilisé");
             spawn = null;
@@ -64,6 +69,12 @@ public final class RagoLobby extends JavaPlugin implements LobbyService {
             spawn = new SpawnPoint(worldSpawn.getBlockX() + 0.5, worldSpawn.getBlockY(), worldSpawn.getBlockZ() + 0.5, 0f, 0f);
         }
         quietWorld(world);
+        try {
+            points = LobbyPoints.read(new File(world.getWorldFolder(), LobbyPoints.FILE_NAME));
+        } catch (IOException e) {
+            getLogger().warning(e.getMessage() + " : les points du lobby sont ignorés");
+            points = new LobbyPoints();
+        }
 
         writer = Executors.newSingleThreadExecutor(task -> {
             Thread thread = new Thread(task, "RagoLobby-writer");
@@ -290,18 +301,62 @@ public final class RagoLobby extends JavaPlugin implements LobbyService {
         state.setSpawn(spawn);
         player.getWorld().setSpawnLocation(player.getLocation().getBlockX(), player.getLocation().getBlockY(),
                 player.getLocation().getBlockZ());
-        final String yaml = spawn.toYaml();
-        final File file = new File(getDataFolder(), SpawnPoint.FILE_NAME);
+        write(new File(state.world().getWorldFolder(), SpawnPoint.FILE_NAME), spawn.toYaml());
+        player.sendMessage(ChatColor.GREEN + "Spawn du lobby placé ici.");
+    }
+
+    /** Writes a file on the writer thread, through a .part file so that a crash leaves the old one. */
+    private void write(final File file, final String text) {
         writer.execute(() -> {
             try {
                 File part = new File(file.getPath() + ".part");
-                Files.write(part.toPath(), yaml.getBytes(StandardCharsets.UTF_8));
+                Files.write(part.toPath(), text.getBytes(StandardCharsets.UTF_8));
                 Files.move(part.toPath(), file.toPath(), StandardCopyOption.REPLACE_EXISTING);
             } catch (IOException e) {
                 getLogger().log(Level.WARNING, "Impossible d'écrire " + file, e);
             }
         });
-        player.sendMessage(ChatColor.GREEN + "Spawn du lobby placé ici.");
+    }
+
+    /** /lobby point <nom>: places a named spot where the player stands. */
+    void setPoint(Player player, String name) {
+        if (!player.getWorld().equals(state.world())) {
+            player.sendMessage(ChatColor.RED + "Tu n'es pas dans le lobby.");
+            return;
+        }
+        boolean moved = points.get(name) != null;
+        if (!points.set(name, SpawnPoint.of(player.getLocation()))) {
+            player.sendMessage(ChatColor.RED + (LobbyPoints.validName(name)
+                    ? LobbyPoints.MAX_POINTS + " points au plus."
+                    : "Nom invalide : minuscules sans accent, chiffres et tirets, 32 caractères au plus."));
+            return;
+        }
+        write(new File(state.world().getWorldFolder(), LobbyPoints.FILE_NAME), points.toYaml());
+        player.sendMessage(ChatColor.GREEN + "Point " + name + (moved ? " déplacé ici." : " placé ici."));
+    }
+
+    /** /lobby point retirer <nom>. */
+    void removePoint(Player player, String name) {
+        if (!points.remove(name)) {
+            player.sendMessage(ChatColor.RED + "Il n'y a pas de point " + name + ". /lobby points pour la liste.");
+            return;
+        }
+        write(new File(state.world().getWorldFolder(), LobbyPoints.FILE_NAME), points.toYaml());
+        player.sendMessage(ChatColor.GREEN + "Point " + name + " retiré.");
+    }
+
+    /** /lobby point tp <nom>. */
+    void goToPoint(Player player, String name) {
+        SpawnPoint point = points.get(name);
+        if (point == null) {
+            player.sendMessage(ChatColor.RED + "Il n'y a pas de point " + name + ". /lobby points pour la liste.");
+            return;
+        }
+        player.teleport(point.in(state.world()));
+    }
+
+    LobbyPoints points() {
+        return points;
     }
 
     /** /lobby build: switches the build mode. */

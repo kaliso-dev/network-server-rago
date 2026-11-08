@@ -81,9 +81,19 @@ Commandes :
 - /lobby setspawn (opérateurs) : place le spawn du lobby là où tu es.
 - /lobby build (opérateurs) : mode construction dans le lobby (créatif, tu peux modifier la map) ;
   retape-le pour en sortir.
+- /lobby point nom (opérateurs) : marque un endroit du lobby, par exemple pnj-sumo ou
+  classement-1v1. Ce sont les emplacements des futurs PNJ des modes et des classements. Retape-le
+  ailleurs pour le déplacer ; /lobby points pour la liste, /lobby point tp nom pour y aller,
+  /lobby point retirer nom pour l'enlever.
 - /monde tp world (opérateurs) : aller au monde plat du test de knockback, comme avant.
 
-Pour mettre ta map de lobby : importe-la avec /monde importer (voir « Construire »), puis dans
+Le plus simple pour construire le lobby : construis directement dans le monde lobby. Tape
+/lobby build pour passer en créatif (WorldEdit marche aussi), construis, puis place le spawn avec
+/lobby setspawn et les emplacements avec /lobby point. Le spawn et les points sont gardés dans le
+dossier du monde lobby (dans mondes) : ils restent quand tu mets à jour le serveur de test, et
+partent avec la map quand tu me l'envoies.
+
+Si ta map est déjà faite ailleurs : importe-la avec /monde importer (voir « Construire »), puis dans
 plugins/RagoLobby/config.yml remplace « monde: lobby » par le nom de ton monde, relance le
 serveur, va dans ton lobby et tape /lobby setspawn là où les joueurs doivent apparaître. La liste
 des modes, leurs noms, leurs icônes et le texte du scoreboard se règlent dans le même fichier.

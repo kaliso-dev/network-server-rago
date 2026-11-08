@@ -16,8 +16,8 @@ commands:
     usage: /file <mode|quitter>
   lobby:
     description: Gérer le lobby (staff).
-    usage: /lobby <setspawn|build|modes>
+    usage: /lobby <setspawn|build|modes|points|point <nom>|point retirer <nom>|point tp <nom>>
 permissions:
   rago.lobby.admin:
-    description: Placer le spawn du lobby et le modifier en mode construction.
+    description: Placer le spawn et les points du lobby, et le modifier en mode construction.
     default: op

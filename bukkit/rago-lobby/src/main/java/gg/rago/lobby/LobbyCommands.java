@@ -18,12 +18,13 @@ import org.bukkit.entity.Player;
  *   <li>{@code /spawn}: back to the lobby spawn (from a game, through the game, which counts it as
  *       a forfeit).
  *   <li>{@code /file <mode>} joins a queue, {@code /file quitter} leaves it.
- *   <li>{@code /lobby setspawn|build|modes}: for the staff ({@code rago.lobby.admin}).
+ *   <li>{@code /lobby setspawn|build|modes|points}, {@code /lobby point <nom>|retirer <nom>|tp <nom>}:
+ *       for the staff ({@code rago.lobby.admin}).
  * </ul>
  */
 final class LobbyCommands implements TabExecutor {
 
-    private static final List<String> ADMIN = Arrays.asList("setspawn", "build", "modes");
+    private static final List<String> ADMIN = Arrays.asList("setspawn", "build", "modes", "point", "points");
 
     private final RagoLobby lobby;
 
@@ -84,10 +85,17 @@ final class LobbyCommands implements TabExecutor {
             player.sendMessage(LobbyListener.noPermission());
             return true;
         }
+        String sub = args.length == 0 ? "" : args[0].toLowerCase(java.util.Locale.ROOT);
+        if (sub.equals("point")) {
+            return point(player, args);
+        }
         if (args.length != 1) {
             return false;
         }
-        switch (args[0].toLowerCase(java.util.Locale.ROOT)) {
+        switch (sub) {
+            case "points":
+                listPoints(player);
+                return true;
             case "setspawn":
                 lobby.setSpawn(player);
                 return true;
@@ -96,6 +104,37 @@ final class LobbyCommands implements TabExecutor {
                 return true;
             default:
                 return false;
+        }
+    }
+
+    private boolean point(Player player, String[] args) {
+        if (args.length == 2) {
+            lobby.setPoint(player, args[1].toLowerCase(java.util.Locale.ROOT));
+            return true;
+        }
+        if (args.length == 3 && args[1].equalsIgnoreCase("retirer")) {
+            lobby.removePoint(player, args[2].toLowerCase(java.util.Locale.ROOT));
+            return true;
+        }
+        if (args.length == 3 && args[1].equalsIgnoreCase("tp")) {
+            lobby.goToPoint(player, args[2].toLowerCase(java.util.Locale.ROOT));
+            return true;
+        }
+        player.sendMessage(ChatColor.RED + "/lobby point <nom>, /lobby point retirer <nom>, /lobby point tp <nom>");
+        return true;
+    }
+
+    private void listPoints(Player player) {
+        java.util.Map<String, SpawnPoint> all = lobby.points().all();
+        if (all.isEmpty()) {
+            player.sendMessage(ChatColor.GRAY + "Aucun point. /lobby point <nom> en place un là où tu es.");
+            return;
+        }
+        player.sendMessage(ChatColor.AQUA + "Points du lobby :");
+        for (java.util.Map.Entry<String, SpawnPoint> entry : all.entrySet()) {
+            SpawnPoint p = entry.getValue();
+            player.sendMessage(ChatColor.GRAY + " " + entry.getKey() + " : " + (int) Math.floor(p.x()) + " "
+                    + (int) Math.floor(p.y()) + " " + (int) Math.floor(p.z()));
         }
     }
 
