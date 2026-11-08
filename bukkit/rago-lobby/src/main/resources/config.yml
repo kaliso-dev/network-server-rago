@@ -78,8 +78,10 @@ modes:
     joueurs-par-equipe: 1
     classe: false
     description:
-      - "Seul : tu prends un coup,"
-      - "pose un bloc pour te sauver."
+      - "Seul : clutch simple, double"
+      - "clutch, extend... Tu prends"
+      - "un coup, pose tes blocs pour"
+      - "te sauver."
   block-fight-1v1:
     nom: "&bBlock placement 1v1"
     icone: SANDSTONE
