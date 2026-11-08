@@ -37,7 +37,7 @@ class LobbySettingsTest {
         assertEquals("lobby", settings.world());
         assertEquals(0, settings.voidHeight());
         assertEquals(1000, settings.defaultRating());
-        assertEquals(20, settings.modes().size());
+        assertEquals(21, settings.modes().size());
 
         GameMode ranked = settings.catalog().get("ranked-1v1");
         assertTrue(ranked.ranked());
