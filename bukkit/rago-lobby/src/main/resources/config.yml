@@ -31,15 +31,15 @@ categories:
     nom: "&a&lDuels"
     icone: IRON_SWORD
     description:
-      - "Sumo, épée, boxing, fireball,"
-      - "attack and defense, top fight..."
+      - "Sumo, boxing, fireball fight,"
+      - "attack and defense."
   ranked:
     nom: "&6&lRanked Bedwars"
     icone: BED
     description:
       - "Le classé et les modes Bedwars :"
       - "ranked, partie privée, FFA,"
-      - "first rush, end game..."
+      - "Arena Free, top fight, end game..."
   entrainement:
     nom: "&b&lEntraînement"
     icone: SANDSTONE
@@ -73,14 +73,20 @@ pnj:
     nom: "&bBridge fight"
     modes: [bridge-fight]
   freearenacombo:
-    nom: "&fArène libre"
-    modes: [arene-libre]
+    nom: "&aArena Free"
+    modes: [free-ffa]
+  topfight:
+    nom: "&6Top fight"
+    modes: [top-fight-1v1, top-fight-2v2]
   blockplacementarena:
     nom: "&bBlock placement"
     modes: [block-fight-1v1, block-fight-2v2]
   attackdefenseversionrbw:
     nom: "&cAttack and defense"
     modes: [attack-defense-1v1, attack-defense-2v2]
+  sumo:
+    nom: "&aSumo"
+    modes: [sumo]
   boxingcombo:
     nom: "&fBoxing"
     modes: [boxing]
@@ -111,6 +117,12 @@ pnj:
   fastshoppractice:
     nom: "&aShop buyer"
     modes: [shop-practice]
+  fireballpractice:
+    nom: "&6Fireball practice"
+    modes: [fireball-practice]
+  aimtrainer:
+    nom: "&eAim trainer"
+    modes: [aim-trainer]
 
 # Les classements du lobby, sur leur point : le titre affiché. Leur contenu viendra avec les
 # statistiques.
@@ -173,16 +185,16 @@ modes:
       - "plateforme d'Invasion,"
       - "avec le kit Ranked Bedwars."
   free-ffa:
-    nom: "&aFree FFA"
+    nom: "&aArena Free"
     categorie: ranked
     icone: EMERALD
     equipes: 1
     joueurs-par-equipe: 1
     classe: false
     description:
-      - "Archway en tous contre tous,"
-      - "boutique personnalisée (fer, or,"
-      - "diamants, émeraudes) et top fight."
+      - "Archway en tous contre tous :"
+      - "combo à l'infini, boutique"
+      - "personnalisée et top fight."
   end-game-1v1:
     nom: "&6End game 1v1"
     categorie: ranked
@@ -236,17 +248,6 @@ modes:
     description:
       - "Combat sur un pont entre deux"
       - "îles, plateforme réaliste de Bedwars."
-  arene-libre:
-    nom: "&aArène libre"
-    categorie: ranked
-    icone: STICK
-    equipes: 1
-    joueurs-par-equipe: 1
-    classe: false
-    description:
-      - "Entrée libre, sans règles"
-      - "ni dégâts : combote à"
-      - "l'infini."
   block-fight-1v1:
     nom: "&bBlock placement 1v1"
     categorie: ranked
@@ -288,16 +289,6 @@ modes:
       - "Fais tomber l'autre de la"
       - "plateforme : idéal pour"
       - "travailler le knockback."
-  duel-epee:
-    nom: "&fDuel épée"
-    categorie: duels
-    icone: IRON_SWORD
-    equipes: 2
-    joueurs-par-equipe: 1
-    classe: false
-    description:
-      - "Duel à l'épée avec le"
-      - "knockback mesuré du serveur."
   boxing:
     nom: "&fBoxing"
     categorie: duels
@@ -340,7 +331,7 @@ modes:
       - "l'autre le défend."
   top-fight-1v1:
     nom: "&eTop fight 1v1"
-    categorie: duels
+    categorie: ranked
     icone: GOLD_SWORD
     equipes: 2
     joueurs-par-equipe: 1
@@ -349,7 +340,7 @@ modes:
       - "Un duel Top fight."
   top-fight-2v2:
     nom: "&eTop fight 2v2"
-    categorie: duels
+    categorie: ranked
     icone: GOLD_SWORD
     equipes: 2
     joueurs-par-equipe: 2
@@ -462,16 +453,6 @@ modes:
     description:
       - "Sauter à la fireball et"
       - "renvoyer les fireballs."
-  bed-break:
-    nom: "&cCasse de lit"
-    categorie: entrainement
-    icone: BED
-    equipes: 1
-    joueurs-par-equipe: 1
-    classe: false
-    description:
-      - "Casser une défense de lit"
-      - "le plus vite possible, au chrono."
   combo-bot:
     nom: "&dBot de combo"
     categorie: entrainement

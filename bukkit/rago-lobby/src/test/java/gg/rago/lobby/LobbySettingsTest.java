@@ -37,7 +37,7 @@ class LobbySettingsTest {
         assertEquals("lobby", settings.world());
         assertEquals(0, settings.voidHeight());
         assertEquals(1000, settings.defaultRating());
-        assertEquals(35, settings.modes().size());
+        assertEquals(32, settings.modes().size());
 
         GameMode ranked = settings.catalog().get("ranked-1v1");
         assertTrue(ranked.ranked());
@@ -74,7 +74,7 @@ class LobbySettingsTest {
     @Test
     void readsTheBundledNpcs() throws Exception {
         LobbySettings settings = LobbySettings.load(bundledConfig());
-        assertEquals(21, settings.npcs().size());
+        assertEquals(25, settings.npcs().size());
         LobbyNpc ranked = settings.npc("rankedbedwars1v1ou2v2elo");
         assertEquals(java.util.Arrays.asList("ranked-1v1", "ranked-2v2"), ranked.modeIds());
         assertTrue(settings.npc("leaderboardprincipal").leaderboard());
