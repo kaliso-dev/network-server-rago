@@ -20,8 +20,9 @@ class DuelRequestsTest {
     @Test
     void buttonsRunTheCommands() {
         String json = DuelRequests.buttons("Rago_1");
-        assertTrue(json.contains("\"value\":\"/duel accepter Rago_1\""), json);
-        assertTrue(json.contains("\"value\":\"/duel refuser Rago_1\""), json);
+        assertTrue(json.contains("\"value\":\"/duel accept Rago_1\""), json);
+        assertTrue(json.contains("\"value\":\"/duel deny Rago_1\""), json);
+        assertTrue(json.contains("[Accept]") && json.contains("[Deny]"), json);
         assertEquals(count(json, '{'), count(json, '}'), "balanced braces: " + json);
         assertTrue(json.startsWith("[") && json.endsWith("]"));
     }
