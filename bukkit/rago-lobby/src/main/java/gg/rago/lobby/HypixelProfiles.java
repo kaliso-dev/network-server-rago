@@ -43,6 +43,8 @@ final class HypixelProfiles {
     /** At most this many imports for the whole server in {@link #WINDOW_MS}. */
     static final int MAX_IMPORTS = 100;
     static final long WINDOW_MS = 5 * 60_000L;
+    /** After Hypixel refused the key or asked to slow down, nobody imports for this long. */
+    static final long PAUSE_MS = 60_000L;
     private static final int TIMEOUT_MS = 8_000;
     private static final String MOJANG = "https://api.mojang.com/users/profiles/minecraft/";
     private static final String HYPIXEL = "https://api.hypixel.net/v2/player?uuid=";
@@ -60,6 +62,23 @@ final class HypixelProfiles {
     /** When the last imports of the server started, the oldest first. */
     private final Deque<Long> recent = new ArrayDeque<>();
     private final Set<UUID> importing = new HashSet<>();
+    /** Until when the import is paused, and what it tells the players meanwhile. */
+    private long pausedUntil;
+    private String pauseMessage = "";
+
+    /** A request that failed: the console reads the message, the player {@link #forPlayer}. */
+    static final class Failure extends IOException {
+        private static final long serialVersionUID = 1L;
+        final String forPlayer;
+        /** True when asking again soon cannot help (a refused key, too many requests). */
+        final boolean pause;
+
+        Failure(String log, String forPlayer, boolean pause) {
+            super(log);
+            this.forPlayer = forPlayer;
+            this.pause = pause;
+        }
+    }
 
     HypixelProfiles(Plugin plugin, String apiKey, Executor io, StatsService.Writer writer) {
         this.plugin = plugin;
@@ -99,6 +118,11 @@ final class HypixelProfiles {
             return;
         }
         final long now = System.currentTimeMillis();
+        if (now < pausedUntil) {
+            player.sendMessage(ChatColor.RED + pauseMessage + ChatColor.GRAY + " Next try in "
+                    + ((pausedUntil - now) / 1000 + 1) + " seconds.");
+            return;
+        }
         lastImport.values().removeIf(time -> now - time >= COOLDOWN_MS);
         while (!recent.isEmpty() && now - recent.peekFirst() >= WINDOW_MS) {
             recent.pollFirst();
@@ -125,12 +149,15 @@ final class HypixelProfiles {
         web.execute(() -> {
             HypixelProfile imported = null;
             String problem;
+            // The player's own doing (a wrong name, no Bed Wars shop): their minute of waiting stays.
+            boolean theirs = false;
+            boolean pause = false;
             try {
                 UUID uuid = own != null ? own : mojangUuid(asked);
                 if (uuid == null) {
                     throw new IllegalArgumentException("No Minecraft account is named " + asked + ".");
                 }
-                String json = fetch(HYPIXEL + uuid, apiKey);
+                String json = fetch("Hypixel", HYPIXEL + uuid, apiKey);
                 if (json == null) {
                     throw new IOException("Hypixel answered nothing");
                 }
@@ -138,12 +165,19 @@ final class HypixelProfiles {
                 problem = null;
             } catch (IllegalArgumentException e) {
                 problem = e.getMessage();
-            } catch (IOException | RuntimeException e) {
+                theirs = true;
+            } catch (Failure e) {
                 plugin.getLogger().warning("Hypixel import for " + asked + " failed: " + e.getMessage());
+                problem = e.forPlayer;
+                pause = e.pause;
+            } catch (IOException | RuntimeException e) {
+                plugin.getLogger().warning("Hypixel import for " + asked + " failed: " + e);
                 problem = "Hypixel did not answer. Try again in a moment.";
             }
             final HypixelProfile profile = imported;
             final String message = problem;
+            final boolean playersFault = theirs;
+            final boolean pauseAll = pause;
             if (!plugin.isEnabled()) {
                 return;
             }
@@ -152,6 +186,14 @@ final class HypixelProfiles {
                 // The player may have left meanwhile, or come back: the one online now, if any.
                 Player online = Bukkit.getPlayer(id);
                 if (profile == null) {
+                    if (!playersFault) {
+                        // Not their fault: they can try again without waiting a minute.
+                        lastImport.remove(id);
+                    }
+                    if (pauseAll) {
+                        pausedUntil = System.currentTimeMillis() + PAUSE_MS;
+                        pauseMessage = message;
+                    }
                     if (online != null) {
                         online.sendMessage(ChatColor.RED + message);
                     }
@@ -209,7 +251,7 @@ final class HypixelProfiles {
 
     /** The Mojang UUID of a name, or null if no account has it. */
     static UUID mojangUuid(String name) throws IOException {
-        String json = fetch(MOJANG + name, null);
+        String json = fetch("Mojang", MOJANG + name, null);
         if (json == null || json.trim().isEmpty()) {
             return null;
         }
@@ -230,8 +272,11 @@ final class HypixelProfiles {
                 + hex.substring(16, 20) + "-" + hex.substring(20));
     }
 
-    /** The body of a GET, or null for 204 and 404 (nothing there). Away from the main thread only. */
-    private static String fetch(String address, String apiKey) throws IOException {
+    /**
+     * The body of a GET to Mojang or Hypixel (the service), or null for 204 and 404 (nothing there).
+     * An answer with an error is a {@link Failure}. Away from the main thread only.
+     */
+    static String fetch(String service, String address, String apiKey) throws IOException {
         HttpURLConnection connection = (HttpURLConnection) new URL(address).openConnection();
         try {
             connection.setConnectTimeout(TIMEOUT_MS);
@@ -247,17 +292,22 @@ final class HypixelProfiles {
             }
             InputStream stream = status >= 400 ? connection.getErrorStream() : connection.getInputStream();
             String body = stream == null ? "" : read(stream);
-            if (status == 403) {
-                throw new IOException(connection.getURL().getHost() + " refused the request (403"
-                        + (apiKey != null ? ", is hypixel.cle-api in config.yml a valid key?" : "") + "): " + body);
+            if (status < 400) {
+                return body;
+            }
+            String shown = body.length() > 200 ? body.substring(0, 200) + "..." : body;
+            if (status == 403 && apiKey != null) {
+                throw new Failure(service + " refused the API key (403): " + shown + ". A new application works once"
+                        + " Hypixel has approved it (developer.hypixel.net); otherwise check hypixel.cle-api in config.yml.",
+                        "Hypixel refused this server's API key, so the import does not work yet. The console says why.",
+                        true);
             }
             if (status == 429) {
-                throw new IOException(connection.getURL().getHost() + " asks to slow down (429)");
+                throw new Failure(service + " asks to slow down (429): " + shown,
+                        service + " gets too many requests right now.", true);
             }
-            if (status >= 400) {
-                throw new IOException(connection.getURL().getHost() + " answered " + status + ": " + body);
-            }
-            return body;
+            throw new Failure(service + " answered " + status + ": " + shown,
+                    service + " answered with an error (" + status + "). Try again in a moment.", status == 403);
         } finally {
             connection.disconnect();
         }
