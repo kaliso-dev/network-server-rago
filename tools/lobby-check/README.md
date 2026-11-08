@@ -43,6 +43,10 @@ jouent comme des joueurs :
    `bw-demo`, RagoDeux n'importe quelle map (`random`) ; ils se retrouvent sur `bw-demo`, l'un
    rouge, l'autre bleu, avec les événements d'une vraie partie dans le scoreboard. RagoDeux tape
    `/spawn` : RagoUn gagne et les deux reviennent au lobby.
+9. une party : RagoUn invite RagoDeux avec `/p RagoDeux`, RagoDeux accepte, `/party list` et
+   `/pc` marchent ; RagoDeux ne peut pas lancer de file (seul le chef le fait). RagoUn lance le
+   sumo : partie privée entre eux, sans stats ni XP. RagoUn lance Ranked Bedwars 2v2 : la party
+   attend dans la même équipe, et quitte la file avec RagoDeux. RagoUn dissout la party.
 
 Le test échoue si un bot n'obtient pas ce qu'il attend, ou si le journal du serveur contient une
 erreur ou une exception.

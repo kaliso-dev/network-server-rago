@@ -141,7 +141,7 @@ final class DuelRequests {
         List<List<QueueEntry>> teams = Arrays.asList(
                 Collections.singletonList(new QueueEntry(challenger.getUniqueId(), settings.defaultRating(), now)),
                 Collections.singletonList(new QueueEntry(target.getUniqueId(), settings.defaultRating(), now)));
-        if (queues.startDirect(new MatchProposal(mode, teams))) {
+        if (queues.startDirect(new MatchProposal(mode, teams), false)) {
             pending.remove(challenger.getUniqueId());
         }
     }

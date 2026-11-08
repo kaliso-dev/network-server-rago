@@ -23,6 +23,20 @@ dans les files d'attente des modes de jeu.
   config.yml (boxing, fireball, bridge fight...) sont à ajuster : ces modes n'ont pas encore de
   jeu. Le sumo n'a pas de kit par défaut (mains nues) ; donne-lui-en un, par exemple
   `kit: [STICK]`, pour essayer l'éditeur en duel.
+- **Les parties, comme sur Hypixel.** `/p <joueur>` (ou `/party invite`) invite ; l'invitation
+  dure une minute, avec un « Click here to join! » cliquable, et la party naît avec la première
+  invitation (8 joueurs au plus). `/party accept`, `leave`, `list`, `kick`, `transfer`, `warp`
+  (les membres du lobby viennent au chef), `disband`, et le chat de party avec `/pc <message>` ou
+  `/chat party` (`/chat all` pour revenir). Les messages sont entre deux lignes bleues. Seul le
+  chef lance une file, pour toute la party :
+  - une party qui remplit toute la partie (deux joueurs dans un mode 1v1, quatre dans un 2v2...)
+    joue tout de suite une partie privée entre ses joueurs, qui ne compte dans aucune stat (ni
+    ELO, ni XP) ;
+  - une party qui tient dans une équipe (deux joueurs en 2v2, 3v3 ou 4v4) attend dans la file et
+    joue dans la même équipe, contre d'autres joueurs (en classé, avec la moyenne de ses ELO) ;
+  - plus grande qu'une équipe sans remplir la partie, elle est refusée.
+  Un joueur qui quitte la file, la party, ou le serveur fait sortir toute la party de la file. Un
+  chef qui part laisse la party au joueur suivant.
 - **L'import Hypixel.** Pour les modes qui se jouent sur une map de Bed Wars (Ranked Bedwars,
   First Rush, Private Game) et Fast Shop, chaque joueur copie son shop Hypixel : le quick buy
   (les 21 cases, trois lignes de sept) et le hotbar manager (le genre d'objet de chaque case de la
@@ -76,6 +90,9 @@ commentaires de `config.yml`. Les mots français de la première version (`quitt
 | `/queue <mode> [map]`, `/queue leave` (ou `/file`, `/q`) | entrer dans une file (sur une map, ou `random`), en sortir | tout le monde |
 | `/duel <joueur> [mode]` | défier un joueur du lobby dans un mode 1v1 (sans mode : un menu des modes 1v1) | tout le monde |
 | `/duel accept <joueur>`, `/duel deny <joueur>` | répondre à un défi (valable une minute) | tout le monde |
+| `/party invite <joueur>` (ou `/p <joueur>`), `/party accept <joueur>` | inviter dans sa party (valable une minute), rejoindre une party | tout le monde |
+| `/party leave`, `list`, `kick <joueur>`, `transfer <joueur>`, `warp`, `disband` | quitter, voir, gérer la party (le chef) | tout le monde |
+| `/pc <message>`, `/chat party`, `/chat all` | écrire à sa party, y envoyer tout son chat, revenir au chat de tous | tout le monde |
 | `/hypixel import [pseudo]` | copier le shop Bed Wars (quick buy et hotbar manager) de son compte Hypixel, ou de celui de ce pseudo | tout le monde |
 | `/hypixel shop` | voir le shop Hypixel copié | tout le monde |
 | `/lobby modes` | les modes et leur file (aussi depuis la console) | tout le monde |

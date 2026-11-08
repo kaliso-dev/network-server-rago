@@ -6,8 +6,10 @@ import gg.rago.game.Matchmaker;
 import gg.rago.game.QueueEntry;
 import gg.rago.lobby.api.MatchHost;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -22,6 +24,10 @@ import org.bukkit.plugin.Plugin;
 /**
  * The local queues: the lobby's matchmaker and the game plugins that play each mode. Once a
  * second, the matches found are handed to their {@link MatchHost}. Main thread only.
+ *
+ * <p>A party queues as on Hypixel: only its leader joins, for everyone. A party that fills a whole
+ * match (two in a 1v1, four in a 2v2) plays a private game against itself at once, which counts in
+ * no stats; a party that fits in a team waits for the others, and plays in one team.
  *
  * <p>This is the queue of the local test server, where the lobby and the games share one server.
  * On the network the same {@link Matchmaker} runs in the proxy (rago-proxy, jalon Ranked).
@@ -38,11 +44,13 @@ final class QueueController {
     /** Players already told that no arena is free, so that they are told once, not every second. */
     private final Set<UUID> toldNoArena = new HashSet<>();
     private final Runnable onChange;
+    private final PartyBook parties;
 
-    QueueController(RagoLobby lobby, LobbySettings settings, LobbyState state, Runnable onChange) {
+    QueueController(RagoLobby lobby, LobbySettings settings, LobbyState state, PartyBook parties, Runnable onChange) {
         this.lobby = lobby;
         this.settings = settings;
         this.state = state;
+        this.parties = parties;
         this.logger = lobby.getLogger();
         this.matchmaker = new Matchmaker(settings.catalog().all(), settings.window());
         this.onChange = onChange;
@@ -104,6 +112,11 @@ final class QueueController {
             player.sendMessage(ChatColor.GRAY + mode.name() + ChatColor.GRAY + " is coming soon.");
             return;
         }
+        PartyBook.Party party = parties.together(player.getUniqueId());
+        if (party != null) {
+            joinTogether(player, party, mode, map);
+            return;
+        }
         Matchmaker.JoinResult result = matchmaker.join(player.getUniqueId(), mode.id(), settings.defaultRating(),
                 System.currentTimeMillis(), map);
         switch (result) {
@@ -121,6 +134,110 @@ final class QueueController {
             default:
                 player.sendMessage(ChatColor.RED + "This mode does not exist.");
                 break;
+        }
+    }
+
+    /** The leader queues the party: a private game if it fills the match, else the queue, in one team. */
+    private void joinTogether(Player leader, PartyBook.Party party, GameMode mode, String map) {
+        if (!party.isLeader(leader.getUniqueId())) {
+            Parties.boxed(leader, ChatColor.RED + "Only the party leader can join a queue.");
+            return;
+        }
+        List<Player> players = new ArrayList<>();
+        for (UUID id : party.members()) {
+            Player member = Bukkit.getPlayer(id);
+            if (member == null || !state.isInLobby(member) || state.isInGame(member)) {
+                Parties.boxed(leader, ChatColor.RED + (member == null ? "A player of your party" : member.getName())
+                        + " is not in the lobby: your party cannot join a queue.");
+                return;
+            }
+            players.add(member);
+        }
+        if (mode.teams() >= 2 && players.size() == mode.playersPerMatch()) {
+            startPrivate(party, players, mode, map);
+            return;
+        }
+        if (players.size() > mode.playersPerTeam()) {
+            Parties.boxed(leader, ChatColor.RED + "Your party has " + players.size() + " players: too many for "
+                    + mode.name() + ChatColor.RED + " (" + mode.format() + ").");
+            return;
+        }
+        Map<UUID, Integer> ratings = new LinkedHashMap<>();
+        for (Player member : players) {
+            ratings.put(member.getUniqueId(), settings.defaultRating());
+        }
+        Matchmaker.JoinResult result = matchmaker.joinParty(party.id(), ratings, mode.id(), System.currentTimeMillis(), map);
+        switch (result) {
+            case JOINED:
+            case SWITCHED:
+                for (Player member : players) {
+                    toldNoArena.remove(member.getUniqueId());
+                    member.sendMessage(ChatColor.GREEN + "Your party joined the queue for " + mode.name() + ChatColor.GREEN
+                            + (map == null ? "" : " on " + ChatColor.WHITE + map + ChatColor.GREEN) + " ("
+                            + mode.format() + ", " + matchmaker.waiting(mode.id()) + " waiting). You will play in the same team.");
+                }
+                onChange.run();
+                break;
+            case ALREADY_WAITING:
+                leader.sendMessage(ChatColor.GRAY + "Your party is already in this queue.");
+                break;
+            case PARTY_TOO_BIG:
+                leader.sendMessage(ChatColor.RED + "Your party is too big for this mode.");
+                break;
+            default:
+                leader.sendMessage(ChatColor.RED + "This mode does not exist.");
+                break;
+        }
+    }
+
+    /** The party fills the match: a private game between its players, teams dealt in turn, counted nowhere. */
+    private void startPrivate(PartyBook.Party party, List<Player> players, GameMode mode, String map) {
+        long now = System.currentTimeMillis();
+        List<List<QueueEntry>> teams = new ArrayList<>();
+        List<List<String>> names = new ArrayList<>();
+        for (int t = 0; t < mode.teams(); t++) {
+            teams.add(new ArrayList<>());
+            names.add(new ArrayList<>());
+        }
+        for (int i = 0; i < players.size(); i++) {
+            Player member = players.get(i);
+            teams.get(i % mode.teams()).add(new QueueEntry(member.getUniqueId(), settings.defaultRating(), now, map, party.id()));
+            names.get(i % mode.teams()).add(member.getName());
+        }
+        List<String> sides = new ArrayList<>();
+        for (List<String> side : names) {
+            sides.add(String.join(" and ", side));
+        }
+        for (Player member : players) {
+            member.sendMessage(ChatColor.LIGHT_PURPLE + "Private game of your party in " + mode.name() + ChatColor.LIGHT_PURPLE
+                    + ": " + ChatColor.WHITE + String.join(ChatColor.LIGHT_PURPLE + " vs " + ChatColor.WHITE, sides)
+                    + ChatColor.LIGHT_PURPLE + ". It counts in no stats.");
+        }
+        startDirect(new MatchProposal(mode, teams), true);
+    }
+
+    /**
+     * The players of a party changed (one joined, left, was kicked, the party was disbanded or
+     * transferred): those who waited, with their party or alone, leave the queue.
+     */
+    void partyChanged(Collection<UUID> players) {
+        for (UUID id : players) {
+            GameMode mode = matchmaker.queueOf(id);
+            if (mode == null) {
+                continue;
+            }
+            List<UUID> together = matchmaker.partyOf(id);
+            matchmaker.leave(id);
+            for (UUID member : together) {
+                toldNoArena.remove(member);
+                Player online = Bukkit.getPlayer(member);
+                if (online != null) {
+                    online.sendMessage(ChatColor.YELLOW + "The party changed: "
+                            + (together.size() > 1 ? "your party left" : "you left") + " the queue for " + mode.name()
+                            + ChatColor.YELLOW + ".");
+                }
+            }
+            onChange.run();
         }
     }
 
@@ -153,22 +270,42 @@ final class QueueController {
         return matchmaker.waitingFor(modeId, map);
     }
 
-    /** Returns the mode left, or null if the player was not waiting. */
+    /** Returns the mode left, or null if the player was not waiting. With a party, the whole party leaves. */
     GameMode leave(Player player, boolean tell) {
+        List<UUID> together = matchmaker.partyOf(player.getUniqueId());
         GameMode left = matchmaker.leave(player.getUniqueId());
         toldNoArena.remove(player.getUniqueId());
         if (left != null) {
-            if (tell) {
+            if (tell && together.size() < 2) {
                 player.sendMessage(ChatColor.YELLOW + "You left the queue for " + left.name() + ChatColor.YELLOW + ".");
+            }
+            if (together.size() >= 2) {
+                for (UUID member : together) {
+                    toldNoArena.remove(member);
+                    Player online = Bukkit.getPlayer(member);
+                    if (online != null && (tell || !online.equals(player))) {
+                        online.sendMessage(ChatColor.YELLOW + (online.equals(player) ? "You" : player.getName())
+                                + " left the queue: your party left the queue for " + left.name() + ChatColor.YELLOW + ".");
+                    }
+                }
             }
             onChange.run();
         }
         return left;
     }
 
-    /** The player left the server. */
+    /** The player left the server: their party leaves the queue with them. */
     void forget(UUID player) {
-        if (matchmaker.leave(player) != null) {
+        List<UUID> together = matchmaker.partyOf(player);
+        GameMode left = matchmaker.leave(player);
+        if (left != null) {
+            for (UUID member : together) {
+                Player online = Bukkit.getPlayer(member);
+                if (online != null && !member.equals(player)) {
+                    online.sendMessage(ChatColor.YELLOW + "A player of your party left the server: your party left the queue for "
+                            + left.name() + ChatColor.YELLOW + ".");
+                }
+            }
             onChange.run();
         }
         toldNoArena.remove(player);
@@ -206,22 +343,27 @@ final class QueueController {
     }
 
     /**
-     * Starts a match without the queue (a /duel between two players in the lobby). Both leave any
-     * queue first. False, with the players told why, if the game could not start.
+     * Starts a match without the queue (a /duel between two players in the lobby, or the private
+     * game of a party, which counts in no stats). The players leave any queue first. False, with the
+     * players told why, if the game could not start.
      */
-    boolean startDirect(MatchProposal match) {
+    boolean startDirect(MatchProposal match, boolean privateGame) {
         for (UUID id : match.players()) {
             Player player = Bukkit.getPlayer(id);
             if (player != null) {
                 matchmaker.leave(id);
             }
         }
-        boolean started = start(match, false);
+        boolean started = start(match, false, privateGame);
         onChange.run();
         return started;
     }
 
     private boolean start(MatchProposal match, boolean requeue) {
+        return start(match, requeue, false);
+    }
+
+    private boolean start(MatchProposal match, boolean requeue, boolean privateGame) {
         String modeId = match.mode().id();
         MatchHost host = hosts.get(modeId);
         List<Player> players = new ArrayList<>();
@@ -242,6 +384,9 @@ final class QueueController {
         // The players belong to the game before it starts: the host teleports them during start().
         for (Player player : players) {
             lobby.enterGame(player, modeId);
+            if (privateGame) {
+                state.markPrivate(player.getUniqueId());
+            }
         }
         for (List<QueueEntry> team : match.teams()) {
             List<UUID> others = new ArrayList<>(match.players());
@@ -286,15 +431,26 @@ final class QueueController {
 
     /**
      * Puts back in the queue, at their original place, the players of this match who are still
-     * online, in the lobby and not waiting elsewhere.
+     * online, in the lobby and not waiting elsewhere; a party only when all of its players are.
      */
     private void requeueOnline(MatchProposal match) {
+        Set<UUID> brokenParties = new HashSet<>();
         for (QueueEntry entry : match.entries()) {
             Player player = Bukkit.getPlayer(entry.player());
-            if (player != null && state.isInLobby(player) && matchmaker.queueOf(entry.player()) == null) {
-                matchmaker.join(entry.player(), match.mode().id(), entry.rating(), entry.joinedAtMillis(), entry.map());
+            if (entry.party() != null && (player == null || !state.isInLobby(player))) {
+                brokenParties.add(entry.party());
             }
         }
+        List<QueueEntry> back = new ArrayList<>();
+        for (QueueEntry entry : match.entries()) {
+            Player player = Bukkit.getPlayer(entry.player());
+            if (player != null && state.isInLobby(player) && !brokenParties.contains(entry.party())) {
+                back.add(entry);
+            } else if (player != null && entry.party() != null && brokenParties.contains(entry.party())) {
+                player.sendMessage(ChatColor.YELLOW + "A player of your party is not in the lobby any more: your party left the queue.");
+            }
+        }
+        matchmaker.requeue(match.mode().id(), back);
     }
 
     /** A mode closed (its plugin was disabled): its players leave the queue. */

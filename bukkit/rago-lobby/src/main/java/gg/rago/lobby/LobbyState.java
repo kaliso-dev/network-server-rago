@@ -22,6 +22,8 @@ final class LobbyState {
     private final Map<UUID, String> inGame = new HashMap<>();
     private final Map<UUID, List<UUID>> opponents = new HashMap<>();
     private final Set<UUID> building = new HashSet<>();
+    /** The players of a party's private game: it counts in no stats. */
+    private final Set<UUID> privateGame = new HashSet<>();
 
     LobbyState(World world, SpawnPoint spawn) {
         this.world = world;
@@ -67,6 +69,18 @@ final class LobbyState {
     void leaveGame(UUID player) {
         inGame.remove(player);
         opponents.remove(player);
+        privateGame.remove(player);
+    }
+
+    /** The player's game is a party's private game: it counts in no stats. */
+    void markPrivate(UUID player) {
+        if (inGame.containsKey(player)) {
+            privateGame.add(player);
+        }
+    }
+
+    boolean isInPrivateGame(UUID player) {
+        return privateGame.contains(player);
     }
 
     /** The players of the other teams of the player's game, for the sidebar. */
@@ -97,5 +111,6 @@ final class LobbyState {
         inGame.remove(player);
         opponents.remove(player);
         building.remove(player);
+        privateGame.remove(player);
     }
 }

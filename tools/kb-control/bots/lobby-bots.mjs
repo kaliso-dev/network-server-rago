@@ -30,7 +30,11 @@
 //      wins, and both are back in the lobby;
 //   8. a First Rush, a real 1v1: RagoUn asks for a map the mode does not have, then for bw-demo,
 //      RagoDeux for any map; they meet on bw-demo, one red and one blue, with the events of a real
-//      game in the sidebar; RagoDeux leaves with /spawn, RagoUn wins and both are back in the lobby.
+//      game in the sidebar; RagoDeux leaves with /spawn, RagoUn wins and both are back in the lobby;
+//   9. a party: RagoUn invites RagoDeux with /p, RagoDeux accepts, /party list and /pc; RagoDeux
+//      cannot queue (only the leader does); RagoUn queues the sumo: a private game between them,
+//      without stats or XP; RagoUn queues Ranked Bedwars 2v2: the party waits in one team, and
+//      leaves the queue with RagoDeux; RagoUn disbands the party.
 //
 // Environment: KB_HOST (127.0.0.1), KB_PORT (25565).
 
@@ -621,8 +625,8 @@ async function playFirstRush (one, two) {
   await chatLine(one, /You joined the queue for First rush solo on bw-demo/, 5000, fromOne)
   const teamOne = await expectBedwarsStart(one, fromOne, 'First rush solo')
   const teamTwo = await expectBedwarsStart(two, fromTwo, 'First rush solo')
+  // the demo map has two islands only, about 60 blocks apart (out of sight): they are the neighbours
   if (teamOne === teamTwo) throw new Error(`both bots are in the ${teamOne} team of the First Rush`)
-  await waitFor(() => playerEntity(one, two) != null, 5000, 'RagoUn to see RagoDeux: they play the same game')
   await chatLine(one, /Fight!/, 10000, fromOne)
   // no clock of a rush: the events of a real game
   await waitFor(() => sidebarLines(one).some((text) => /^Diamond II in \d+:\d\d$/.test(text)), 5000,
@@ -635,6 +639,55 @@ async function playFirstRush (one, two) {
   await expectInLobby(one, 'after the First Rush')
   await expectInLobby(two, 'after /spawn in the First Rush')
   log('First Rush: RagoDeux left, RagoUn won, both are back in the lobby')
+}
+
+async function playParty (one, two) {
+  let fromOne = mark(one)
+  let fromTwo = mark(two)
+  one.chat('/p RagoDeux')
+  await chatLine(one, /invited .*RagoDeux to the party! They have 60 seconds to accept\./, 5000, fromOne)
+  await chatLine(two, /RagoUn has invited you to join their party!/, 5000, fromTwo)
+  await chatLine(two, /Click here to join!/, 5000, fromTwo)
+  two.chat('/party accept RagoUn')
+  await chatLine(two, /You have joined .*RagoUn's party!/, 5000, fromTwo)
+  await chatLine(one, /RagoDeux joined the party\./, 5000, fromOne)
+  one.chat('/party list')
+  await chatLine(one, /Party Members \(2\)/, 5000, fromOne)
+  two.chat('/pc gg')
+  await chatLine(one, /Party > .*RagoDeux: gg/, 5000, fromOne)
+  two.chat('/queue sumo')
+  await chatLine(two, /Only the party leader can join a queue\./, 5000, fromTwo)
+  log('party: /p invite, the clickable invite, /party accept, /party list, /pc; only the leader queues')
+
+  // two in a 1v1 mode: a private game between them, counted nowhere
+  fromOne = mark(one)
+  fromTwo = mark(two)
+  one.chat('/queue sumo')
+  await chatLine(one, /Private game of your party in .*: RagoUn vs RagoDeux\. It counts in no stats\./, 5000, fromOne)
+  await chatLine(two, /Private game of your party in .*: RagoUn vs RagoDeux\./, 5000, fromTwo)
+  await chatLine(one, /Sumo duel against RagoDeux/, 10000, fromOne)
+  await chatLine(two, /Sumo duel against RagoUn/, 10000, fromTwo)
+  two.chat('/spawn')
+  await chatLine(one, /Victory!.*RagoDeux gave up/, 5000, fromOne)
+  await expectInLobby(one, 'after the private game')
+  await expectInLobby(two, 'after /spawn in the private game')
+  await sleep(1000)
+  const xp = chats.get(one.username).slice(fromOne).find((line) => /Network XP/.test(line))
+  if (xp != null) throw new Error(`the private game of the party was counted: ${xp}`)
+  log('party: two in a 1v1 mode play a private game against each other, without stats')
+
+  // two in a 2v2 mode: the queue, in one team
+  fromOne = mark(one)
+  fromTwo = mark(two)
+  one.chat('/queue ranked-2v2')
+  await chatLine(one, /Your party joined the queue for .*You will play in the same team\./, 5000, fromOne)
+  await chatLine(two, /Your party joined the queue for .*You will play in the same team\./, 5000, fromTwo)
+  two.chat('/queue leave')
+  await chatLine(two, /You left the queue: your party left the queue for/, 5000, fromTwo)
+  await chatLine(one, /RagoDeux left the queue: your party left the queue for/, 5000, fromOne)
+  one.chat('/party disband')
+  await chatLine(two, /RagoUn has disbanded the party!/, 5000, fromTwo)
+  log('party: in a 2v2 mode the party queues together, leaves together, then is disbanded')
 }
 
 async function fallOff (bot) {
@@ -760,8 +813,11 @@ async function main () {
   // 7. Ranked Bedwars 1v1 (RagoBedwars), on its demo map.
   await playBedwars(one, two)
 
-  // 8. First Rush, alone against the clock.
+  // 8. First Rush: a real game on two islands side by side.
   await playFirstRush(one, two)
+
+  // 9. A party: a private game in a 1v1 mode, the queue in one team in a 2v2 mode.
+  await playParty(one, two)
 
   finishing = true
   one.quit()

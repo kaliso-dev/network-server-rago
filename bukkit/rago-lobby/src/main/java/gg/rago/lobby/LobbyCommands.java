@@ -16,6 +16,8 @@ import org.bukkit.entity.Player;
  * (quitter, accepter, refuser, retirer) still work.
  *
  * <ul>
+ *   <li>{@code /party} (alias {@code /p}), {@code /pc <message>}, {@code /chat <party|all>}: the
+ *       parties, as on Hypixel ({@link Parties}).
  *   <li>{@code /spawn}: back to the lobby spawn (from a game, through the game, which counts it as
  *       a forfeit).
  *   <li>{@code /queue <mode> [map]} joins a queue (on that map, for a mode that offers a choice:
@@ -52,6 +54,16 @@ final class LobbyCommands implements TabExecutor {
         }
         Player player = (Player) sender;
         switch (name) {
+            case "party":
+                return lobby.parties().command(player, args);
+            case "pc":
+                if (args.length == 0) {
+                    return false;
+                }
+                lobby.parties().chat(player, String.join(" ", args));
+                return true;
+            case "chat":
+                return lobby.parties().channel(player, args);
             case "spawn":
                 lobby.goToSpawn(player);
                 return true;
@@ -252,6 +264,21 @@ final class LobbyCommands implements TabExecutor {
     @Override
     public List<String> onTabComplete(CommandSender sender, Command command, String alias, String[] args) {
         List<String> options = new ArrayList<>();
+        if (command.getName().equals("party")) {
+            if (args.length == 1) {
+                options.addAll(Parties.subcommands());
+            }
+            if (args.length == 1 || (args.length == 2 && !args[0].equalsIgnoreCase("leave") && !args[0].equalsIgnoreCase("list")
+                    && !args[0].equalsIgnoreCase("disband") && !args[0].equalsIgnoreCase("warp") && !args[0].equalsIgnoreCase("chat"))) {
+                for (Player online : org.bukkit.Bukkit.getOnlinePlayers()) {
+                    options.add(online.getName());
+                }
+            }
+            return startingWith(options, args[args.length - 1]);
+        }
+        if (command.getName().equals("chat") && args.length == 1) {
+            return startingWith(Arrays.asList("party", "all"), args[0]);
+        }
         if (command.getName().equals("duel")) {
             if (args.length == 1) {
                 options.add("accept");
@@ -305,6 +332,17 @@ final class LobbyCommands implements TabExecutor {
         List<String> matching = new ArrayList<>();
         for (String option : options) {
             if (option.startsWith(args[0].toLowerCase(java.util.Locale.ROOT))) {
+                matching.add(option);
+            }
+        }
+        return matching;
+    }
+
+    private static List<String> startingWith(List<String> options, String typed) {
+        List<String> matching = new ArrayList<>();
+        String lower = typed.toLowerCase(java.util.Locale.ROOT);
+        for (String option : options) {
+            if (option.toLowerCase(java.util.Locale.ROOT).startsWith(lower)) {
                 matching.add(option);
             }
         }

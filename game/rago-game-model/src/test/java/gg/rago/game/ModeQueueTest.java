@@ -215,4 +215,117 @@ class ModeQueueTest {
         assertEquals("Lectus", match.map());
         assertEquals(Arrays.asList(close), queue.entries());
     }
+
+    private static QueueEntry member(int n, int rating, long joinedAt, String map, int party) {
+        return new QueueEntry(new UUID(0, n), rating, joinedAt, map, new UUID(1, party));
+    }
+
+    private static List<UUID> ids(int... numbers) {
+        List<UUID> ids = new ArrayList<>();
+        for (int n : numbers) {
+            ids.add(new UUID(0, n));
+        }
+        return ids;
+    }
+
+    @Test
+    void aPartyPlaysInOneTeam() {
+        ModeQueue queue = new ModeQueue(new GameMode("bw-2v2", "Bedwars 2v2", 2, 2, false), WINDOW);
+        queue.add(entry(1, 1000, 0));
+        queue.add(member(2, 1000, 1, null, 1));
+        queue.add(member(3, 1000, 1, null, 1));
+        queue.add(entry(4, 1000, 2));
+        MatchProposal match = queue.poll(0).get(0);
+        assertEquals(ids(1, 4), players(match.teams().get(0)));
+        assertEquals(ids(2, 3), players(match.teams().get(1)), "the party together");
+        assertEquals(0, queue.size());
+    }
+
+    @Test
+    void aPartyWaitsForPlayersWhoFitAroundIt() {
+        ModeQueue queue = new ModeQueue(new GameMode("bw-2v2", "Bedwars 2v2", 2, 2, false), WINDOW);
+        queue.add(member(1, 1000, 0, null, 1));
+        queue.add(member(2, 1000, 0, null, 1));
+        queue.add(entry(3, 1000, 1));
+        assertTrue(queue.poll(0).isEmpty(), "a party of two and one player: not a 2v2");
+        queue.add(member(4, 1000, 2, null, 2));
+        queue.add(member(5, 1000, 2, null, 2));
+        MatchProposal match = queue.poll(0).get(0);
+        assertEquals(ids(1, 2), players(match.teams().get(0)));
+        assertEquals(ids(4, 5), players(match.teams().get(1)), "party against party, the player alone waits");
+        assertEquals(ids(3), players(queue.entries()));
+    }
+
+    @Test
+    void partiesFitTheTeamsWhateverTheirOrder() {
+        ModeQueue queue = new ModeQueue(new GameMode("bw-4v4", "Bedwars 4v4", 2, 4, false), WINDOW);
+        queue.add(member(1, 1000, 0, null, 1));
+        queue.add(member(2, 1000, 0, null, 1));
+        queue.add(entry(3, 1000, 1));
+        queue.add(entry(4, 1000, 2));
+        for (int n = 5; n <= 8; n++) {
+            queue.add(member(n, 1000, 3, null, 2));
+        }
+        MatchProposal match = queue.poll(0).get(0);
+        assertEquals(ids(5, 6, 7, 8), players(match.teams().get(0)));
+        assertEquals(ids(1, 2, 3, 4), players(match.teams().get(1)));
+    }
+
+    @Test
+    void aPartyBiggerThanATeamNeverPlays() {
+        ModeQueue queue = new ModeQueue(new GameMode("sumo", "Sumo", 2, 1, false), WINDOW);
+        queue.add(member(1, 1000, 0, null, 1));
+        queue.add(member(2, 1000, 0, null, 1));
+        assertTrue(queue.poll(0).isEmpty());
+        queue.add(entry(3, 1000, 1));
+        queue.add(entry(4, 1000, 2));
+        assertEquals(ids(3, 4), queue.poll(0).get(0).players());
+    }
+
+    @Test
+    void aPartyKeepsItsMap() {
+        ModeQueue queue = new ModeQueue(new GameMode("bw-2v2", "Bedwars 2v2", 2, 2, false), WINDOW);
+        queue.add(member(1, 1000, 0, "Gelato", 1));
+        queue.add(member(2, 1000, 0, "Gelato", 1));
+        queue.add(entry(3, 1000, 1, "Nebuc"));
+        queue.add(entry(4, 1000, 2, null));
+        queue.add(entry(5, 1000, 3, "Nebuc"));
+        assertTrue(queue.poll(0).isEmpty(), "one player takes Gelato, the two others want Nebuc");
+        queue.add(entry(6, 1000, 4, "gelato"));
+        MatchProposal match = queue.poll(0).get(0);
+        assertEquals("Gelato", match.map());
+        assertEquals(ids(1, 2, 4, 6), sorted(match.players()));
+    }
+
+    private static List<UUID> sorted(List<UUID> players) {
+        List<UUID> copy = new ArrayList<>(players);
+        copy.sort(null);
+        return copy;
+    }
+
+    @Test
+    void rankedRatesAPartyByItsAverage() {
+        ModeQueue queue = new ModeQueue(new GameMode("ranked-2v2", "Ranked 2v2", 2, 2, true), WINDOW);
+        queue.add(member(1, 1000, 0, null, 1));
+        queue.add(member(2, 2000, 0, null, 1));
+        queue.add(entry(3, 3000, 1));
+        queue.add(entry(4, 1490, 2));
+        queue.add(entry(5, 1520, 3));
+        MatchProposal match = queue.poll(0).get(0);
+        assertEquals(ids(1, 2), players(match.teams().get(0)), "1500 on average");
+        assertEquals(ids(5, 4), players(match.teams().get(1)));
+        assertEquals(ids(3), players(queue.entries()));
+    }
+
+    @Test
+    void removingAPlayerOfAPartyTakesTheParty() {
+        ModeQueue queue = new ModeQueue(new GameMode("bw-2v2", "Bedwars 2v2", 2, 2, false), WINDOW);
+        queue.add(member(1, 1000, 0, null, 1));
+        queue.add(entry(3, 1000, 1));
+        queue.add(member(2, 1000, 0, null, 1));
+        assertEquals(ids(1, 2), players(queue.withParty(new UUID(0, 2))));
+        assertEquals(2, queue.removeWithParty(new UUID(0, 2)).size());
+        assertEquals(ids(3), players(queue.entries()));
+        assertTrue(queue.removeWithParty(new UUID(0, 9)).isEmpty());
+    }
 }

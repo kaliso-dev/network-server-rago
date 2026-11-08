@@ -20,6 +20,16 @@ commands:
   duel:
     description: Challenge a lobby player to a 1v1.
     usage: /duel <player> [mode], /duel accept <player>, /duel deny <player>
+  party:
+    description: Parties as on Hypixel. Only the leader joins a queue, for the whole party.
+    usage: /party <invite|accept|leave|list|kick|transfer|warp|disband|chat> [player], or /p <player>
+    aliases: [p]
+  pc:
+    description: Send a message to your party.
+    usage: /pc <message>
+  chat:
+    description: Send your chat to your party, or to everyone.
+    usage: /chat <party|all>
   hypixel:
     description: Copy your Bed Wars shop and hotbar manager from Hypixel, or see it.
     usage: /hypixel import [name], /hypixel shop

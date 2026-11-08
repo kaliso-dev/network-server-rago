@@ -33,6 +33,12 @@ final class NetworkRanks implements Listener {
         prefixes.remove(player);
     }
 
+    /** The player's level and rank as the chat shows them, before the name. */
+    String prefixOf(UUID player) {
+        String prefix = prefixes.get(player);
+        return prefix == null ? ChatColor.GRAY + "[1] " : prefix;
+    }
+
     /** "§7[12] §6[Gold] ", or "§7[3] §7" below the first rank. */
     static String prefix(StatsBook book, UUID player) {
         int level = book.level(player);

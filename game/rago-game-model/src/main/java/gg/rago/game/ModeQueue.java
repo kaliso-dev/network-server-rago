@@ -5,7 +5,9 @@ import java.util.Collection;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.HashSet;
+import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
 import java.util.UUID;
@@ -23,7 +25,9 @@ import java.util.UUID;
  * </ul>
  *
  * <p>In both, the players of a match agree on the map: a player who chose a map only plays with
- * players who chose the same one or none.
+ * players who chose the same one or none. The players of a party ({@link QueueEntry#party()}) wait
+ * as one: they play the same match, in the same team, with the party's average rating in a ranked
+ * mode. A party never has more players than a team.
  *
  * <p>Not thread-safe: on a Bukkit server it lives on the main thread, where it only does a few
  * comparisons per second.
@@ -32,6 +36,8 @@ public final class ModeQueue {
 
     private static final Comparator<QueueEntry> BY_JOIN_TIME =
             Comparator.comparingLong(QueueEntry::joinedAtMillis);
+    /** The most combinations tried for one oldest player at each poll, so that a long queue stays cheap. */
+    private static final int MAX_STEPS = 5_000;
 
     private final GameMode mode;
     private final RatingWindow window;
@@ -87,9 +93,32 @@ public final class ModeQueue {
         }
     }
 
+    /** Takes this player's entry out (alone: their party stays). */
     public boolean remove(UUID player) {
         QueueEntry entry = find(player);
         return entry != null && waiting.remove(entry);
+    }
+
+    /** Takes this player out with their whole party, and returns the entries taken (none if not waiting). */
+    public List<QueueEntry> removeWithParty(UUID player) {
+        List<QueueEntry> removed = withParty(player);
+        waiting.removeAll(removed);
+        return removed;
+    }
+
+    /** This player's entry and those of their party, oldest first; empty if not waiting. */
+    public List<QueueEntry> withParty(UUID player) {
+        QueueEntry entry = find(player);
+        List<QueueEntry> party = new ArrayList<>();
+        if (entry == null) {
+            return party;
+        }
+        for (QueueEntry other : waiting) {
+            if (other.unit().equals(entry.unit())) {
+                party.add(other);
+            }
+        }
+        return party;
     }
 
     /** The waiting entries, oldest first. */
@@ -99,100 +128,177 @@ public final class ModeQueue {
 
     /** Takes out every match that can start now and returns them, the oldest players first. */
     public List<MatchProposal> poll(long nowMillis) {
-        return mode.ranked() ? pollRanked(nowMillis) : pollInOrder();
-    }
-
-    private List<MatchProposal> pollInOrder() {
         List<MatchProposal> matches = new ArrayList<>();
-        int needed = mode.playersPerMatch();
         Set<UUID> taken = new HashSet<>();
-        for (QueueEntry anchor : waiting) {
-            if (taken.contains(anchor.player())) {
+        List<Unit> units = units();
+        for (Unit anchor : units) {
+            if (taken.contains(anchor.id)) {
                 continue;
             }
-            List<QueueEntry> others = new ArrayList<>();
-            for (QueueEntry other : waiting) {
-                if (other != anchor && !taken.contains(other.player())) {
-                    others.add(other);
-                }
-            }
-            List<QueueEntry> players = sameMap(anchor, others, needed);
-            if (players == null) {
-                continue;
-            }
-            List<List<QueueEntry>> teams = emptyTeams();
-            for (int i = 0; i < players.size(); i++) {
-                teams.get(i % mode.teams()).add(players.get(i));
-                taken.add(players.get(i).player());
-            }
-            matches.add(new MatchProposal(mode, teams));
-        }
-        waiting.removeIf(entry -> taken.contains(entry.player()));
-        return matches;
-    }
-
-    /**
-     * The anchor and the first of these others that agree with it on the map, {@code needed} players
-     * in all, or null if there are not enough. The first who chose a map sets it for the match.
-     */
-    private static List<QueueEntry> sameMap(QueueEntry anchor, List<QueueEntry> others, int needed) {
-        List<QueueEntry> players = new ArrayList<>();
-        players.add(anchor);
-        String map = anchor.map();
-        for (QueueEntry other : others) {
-            if (players.size() >= needed) {
-                break;
-            }
-            if (other.accepts(map)) {
-                players.add(other);
-                if (map == null) {
-                    map = other.map();
-                }
-            }
-        }
-        return players.size() == needed ? players : null;
-    }
-
-    private List<MatchProposal> pollRanked(long nowMillis) {
-        List<MatchProposal> matches = new ArrayList<>();
-        int needed = mode.playersPerMatch();
-        Set<UUID> taken = new HashSet<>();
-        for (QueueEntry anchor : waiting) {
-            if (taken.contains(anchor.player())) {
-                continue;
-            }
-            int anchorWidth = window.width(anchor.waitedMillis(nowMillis));
-            List<QueueEntry> candidates = new ArrayList<>();
-            for (QueueEntry other : waiting) {
-                if (other == anchor || taken.contains(other.player())) {
-                    continue;
-                }
-                int gap = Math.abs(other.rating() - anchor.rating());
-                int width = Math.min(anchorWidth, window.width(other.waitedMillis(nowMillis)));
-                if (gap <= width) {
+            List<Unit> candidates = new ArrayList<>();
+            for (Unit other : units) {
+                if (other != anchor && !taken.contains(other.id) && (!mode.ranked() || closeEnough(anchor, other, nowMillis))) {
                     candidates.add(other);
                 }
             }
-            if (candidates.size() < needed - 1) {
+            if (mode.ranked()) {
+                // Closest rating first; equal gaps go to whoever waited longest (the sort is stable).
+                candidates.sort(Comparator.comparingDouble(other -> Math.abs(other.rating - anchor.rating)));
+            }
+            List<List<QueueEntry>> teams = pick(anchor, candidates);
+            if (teams == null) {
                 continue;
             }
-            // Closest rating first; equal gaps go to whoever waited longest (the list is stable).
-            candidates.sort(Comparator.comparingInt(other -> Math.abs(other.rating() - anchor.rating())));
-            List<QueueEntry> players = sameMap(anchor, candidates, needed);
-            if (players == null) {
-                continue;
+            MatchProposal match = new MatchProposal(mode, teams);
+            for (QueueEntry entry : match.entries()) {
+                taken.add(entry.unit());
             }
-            for (QueueEntry entry : players) {
-                taken.add(entry.player());
-            }
-            matches.add(new MatchProposal(mode, balance(players)));
+            matches.add(match);
         }
-        waiting.removeIf(entry -> taken.contains(entry.player()));
+        waiting.removeIf(entry -> taken.contains(entry.unit()));
         return matches;
     }
 
+    /** Both sides accept the gap between their ratings, each with the tolerance of its waiting time. */
+    private boolean closeEnough(Unit anchor, Unit other, long nowMillis) {
+        double gap = Math.abs(other.rating - anchor.rating);
+        int width = Math.min(window.width(anchor.waitedMillis(nowMillis)), window.width(other.waitedMillis(nowMillis)));
+        return gap <= width;
+    }
+
+    // --- Who plays -------------------------------------------------------------------------------
+
+    /** A player alone, or a party: they wait, and are matched, as one. */
+    private static final class Unit {
+        final UUID id;
+        final List<QueueEntry> entries = new ArrayList<>();
+        /** The map chosen (a party chose one map for all), or null. */
+        String map;
+        long joinedAtMillis = Long.MAX_VALUE;
+        /** The average rating of the players. */
+        double rating;
+
+        Unit(UUID id) {
+            this.id = id;
+        }
+
+        int size() {
+            return entries.size();
+        }
+
+        long waitedMillis(long nowMillis) {
+            return Math.max(0L, nowMillis - joinedAtMillis);
+        }
+
+        boolean accepts(String chosen) {
+            return map == null || chosen == null || map.equalsIgnoreCase(chosen);
+        }
+    }
+
+    /** The waiting players as units, in the order of their oldest player. */
+    private List<Unit> units() {
+        Map<UUID, Unit> units = new LinkedHashMap<>();
+        for (QueueEntry entry : waiting) {
+            Unit unit = units.get(entry.unit());
+            if (unit == null) {
+                unit = new Unit(entry.unit());
+                units.put(entry.unit(), unit);
+            }
+            unit.entries.add(entry);
+            if (unit.map == null) {
+                unit.map = entry.map();
+            }
+            unit.joinedAtMillis = Math.min(unit.joinedAtMillis, entry.joinedAtMillis());
+        }
+        for (Unit unit : units.values()) {
+            double sum = 0;
+            for (QueueEntry entry : unit.entries) {
+                sum += entry.rating();
+            }
+            unit.rating = sum / unit.size();
+        }
+        return new ArrayList<>(units.values());
+    }
+
+    /**
+     * The teams of a match of the anchor and the first of these candidates that agree with it on the
+     * map, fill the match exactly and fit in its teams with each party whole; null if there are not
+     * enough. The first who chose a map sets it for the match.
+     */
+    private List<List<QueueEntry>> pick(Unit anchor, List<Unit> candidates) {
+        int needed = mode.playersPerMatch();
+        int available = anchor.size();
+        for (Unit candidate : candidates) {
+            if (candidate.accepts(anchor.map)) {
+                available += candidate.size();
+            }
+        }
+        if (available < needed || anchor.size() > mode.playersPerTeam()) {
+            return null;
+        }
+        List<Unit> chosen = new ArrayList<>();
+        chosen.add(anchor);
+        return search(candidates, 0, chosen, anchor.size(), anchor.map, new int[] {MAX_STEPS});
+    }
+
+    /**
+     * Depth first, the oldest candidates first: the first combination found is the fairest. Returns
+     * its teams, or null.
+     */
+    private List<List<QueueEntry>> search(List<Unit> candidates, int from, List<Unit> chosen, int count, String map,
+            int[] steps) {
+        if (count == mode.playersPerMatch()) {
+            return teams(chosen);
+        }
+        for (int i = from; i < candidates.size(); i++) {
+            if (--steps[0] < 0) {
+                return null;
+            }
+            Unit unit = candidates.get(i);
+            if (count + unit.size() > mode.playersPerMatch() || unit.size() > mode.playersPerTeam() || !unit.accepts(map)) {
+                continue;
+            }
+            chosen.add(unit);
+            List<List<QueueEntry>> teams = search(candidates, i + 1, chosen, count + unit.size(),
+                    map == null ? unit.map : map, steps);
+            if (teams != null) {
+                return teams;
+            }
+            chosen.remove(chosen.size() - 1);
+        }
+        return null;
+    }
+
+    // --- The teams -------------------------------------------------------------------------------
+
+    /** The teams of these units, each party whole in one team; null if they do not fit. */
+    private List<List<QueueEntry>> teams(List<Unit> units) {
+        boolean alone = true;
+        for (Unit unit : units) {
+            alone &= unit.size() == 1;
+        }
+        if (alone) {
+            List<QueueEntry> players = new ArrayList<>();
+            for (Unit unit : units) {
+                players.add(unit.entries.get(0));
+            }
+            return mode.ranked() ? snake(players) : dealt(players);
+        }
+        List<List<QueueEntry>> teams = mode.ranked() ? balancedParties(units) : partiesInTurn(units);
+        return teams != null ? teams : packed(units);
+    }
+
+    /** In turn: the first player in the first team, the second in the second, and so on. */
+    private List<List<QueueEntry>> dealt(List<QueueEntry> players) {
+        List<List<QueueEntry>> teams = emptyTeams();
+        for (int i = 0; i < players.size(); i++) {
+            teams.get(i % mode.teams()).add(players.get(i));
+        }
+        return teams;
+    }
+
     /** Snake draft by rating: 1-2-2-1 for two teams, so that the totals stay close. */
-    private List<List<QueueEntry>> balance(List<QueueEntry> players) {
+    private List<List<QueueEntry>> snake(List<QueueEntry> players) {
         List<QueueEntry> sorted = new ArrayList<>(players);
         sorted.sort(Comparator.comparingInt(QueueEntry::rating).reversed());
         List<List<QueueEntry>> teams = emptyTeams();
@@ -204,6 +310,81 @@ public final class ModeQueue {
             teams.get(team).add(sorted.get(i));
         }
         return teams;
+    }
+
+    /** In the order they came, each party or player in the team with the most room left; null if one does not fit. */
+    private List<List<QueueEntry>> partiesInTurn(List<Unit> units) {
+        List<List<QueueEntry>> teams = emptyTeams();
+        for (Unit unit : units) {
+            int best = -1;
+            for (int t = 0; t < teams.size(); t++) {
+                int room = mode.playersPerTeam() - teams.get(t).size();
+                if (room >= unit.size() && (best < 0 || room > mode.playersPerTeam() - teams.get(best).size())) {
+                    best = t;
+                }
+            }
+            if (best < 0) {
+                return null;
+            }
+            teams.get(best).addAll(unit.entries);
+        }
+        return teams;
+    }
+
+    /**
+     * The biggest parties first, the best rated first, each in the team with room whose total rating
+     * is the lowest; null if one does not fit.
+     */
+    private List<List<QueueEntry>> balancedParties(List<Unit> units) {
+        List<Unit> sorted = new ArrayList<>(units);
+        sorted.sort(Comparator.comparingInt(Unit::size).reversed()
+                .thenComparing(Comparator.comparingDouble((Unit unit) -> unit.rating).reversed()));
+        List<List<QueueEntry>> teams = emptyTeams();
+        long[] totals = new long[teams.size()];
+        for (Unit unit : sorted) {
+            int best = -1;
+            for (int t = 0; t < teams.size(); t++) {
+                if (mode.playersPerTeam() - teams.get(t).size() >= unit.size() && (best < 0 || totals[t] < totals[best])) {
+                    best = t;
+                }
+            }
+            if (best < 0) {
+                return null;
+            }
+            teams.get(best).addAll(unit.entries);
+            for (QueueEntry entry : unit.entries) {
+                totals[best] += entry.rating();
+            }
+        }
+        return teams;
+    }
+
+    /** Any way the parties fit in the teams (the biggest first), or null if none. */
+    private List<List<QueueEntry>> packed(List<Unit> units) {
+        List<Unit> sorted = new ArrayList<>(units);
+        sorted.sort(Comparator.comparingInt(Unit::size).reversed());
+        List<List<QueueEntry>> teams = emptyTeams();
+        return pack(sorted, 0, teams) ? teams : null;
+    }
+
+    private boolean pack(List<Unit> units, int index, List<List<QueueEntry>> teams) {
+        if (index == units.size()) {
+            return true;
+        }
+        Unit unit = units.get(index);
+        Set<Integer> triedSizes = new HashSet<>();
+        for (List<QueueEntry> team : teams) {
+            // Two teams with as many players are the same choice: try one.
+            if (mode.playersPerTeam() - team.size() < unit.size() || !triedSizes.add(team.size())) {
+                continue;
+            }
+            team.addAll(unit.entries);
+            if (pack(units, index + 1, teams)) {
+                return true;
+            }
+            team.subList(team.size() - unit.size(), team.size()).clear();
+        }
+        return false;
     }
 
     private List<List<QueueEntry>> emptyTeams() {

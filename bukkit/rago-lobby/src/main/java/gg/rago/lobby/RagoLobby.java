@@ -53,6 +53,7 @@ public final class RagoLobby extends JavaPlugin implements LobbyService {
     private KitLayouts kits;
     private KitEditor kitEditor;
     private HypixelProfiles hypixel;
+    private Parties parties;
 
     @Override
     public void onEnable() {
@@ -95,9 +96,12 @@ public final class RagoLobby extends JavaPlugin implements LobbyService {
         });
         state = new LobbyState(world, spawn);
         visibility = new Visibility();
-        queues = new QueueController(this, settings, state, this::queuesChanged);
+        PartyBook partyBook = new PartyBook();
+        queues = new QueueController(this, settings, state, partyBook, this::queuesChanged);
         stats = new StatsService(this, settings.defaultRating(), settings.levels(), writer, this::write, this::xpChanged);
         ranks = new NetworkRanks(stats.book());
+        parties = new Parties(this, partyBook, state, ranks);
+        parties.setQueues(queues);
         kits = new KitLayouts(this, writer, this::write);
         hypixel = new HypixelProfiles(this, settings.hypixelKey(), writer, this::write);
         kitEditor = new KitEditor(this, settings, kits, state, this::giveHotbar, hypixel);
@@ -116,9 +120,10 @@ public final class RagoLobby extends JavaPlugin implements LobbyService {
         getServer().getPluginManager().registerEvents(new LobbyListener(this, state, visibility), this);
         getServer().getPluginManager().registerEvents(new HostWatcher(queues), this);
         getServer().getPluginManager().registerEvents(ranks, this);
+        getServer().getPluginManager().registerEvents(parties, this);
         getServer().getPluginManager().registerEvents(kitEditor, this);
         LobbyCommands commands = new LobbyCommands(this);
-        for (String name : new String[] {"lobby", "spawn", "queue", "duel", "hypixel"}) {
+        for (String name : new String[] {"lobby", "spawn", "queue", "duel", "hypixel", "party", "pc", "chat"}) {
             getCommand(name).setExecutor(commands);
             getCommand(name).setTabCompleter(commands);
         }
@@ -126,6 +131,7 @@ public final class RagoLobby extends JavaPlugin implements LobbyService {
 
         getServer().getScheduler().runTaskTimer(this, () -> {
             queues.tick();
+            parties.tick();
             for (Player player : getServer().getOnlinePlayers()) {
                 // The stats are read after the start: the ranks follow once they are there.
                 ranks.refresh(player);
@@ -313,6 +319,7 @@ public final class RagoLobby extends JavaPlugin implements LobbyService {
         statsDisplays.forget(player.getUniqueId());
         ranks.forget(player.getUniqueId());
         queues.forget(player.getUniqueId());
+        parties.forget(player.getUniqueId());
         duels.forget(player.getUniqueId());
         visibility.forget(player.getUniqueId());
         scoreboard.forget(player.getUniqueId());
@@ -496,6 +503,10 @@ public final class RagoLobby extends JavaPlugin implements LobbyService {
             getLogger().warning("Result of an unknown mode ignored: " + modeId);
             return;
         }
+        if (isPrivate(winners) || isPrivate(losers)) {
+            getLogger().info("Private game of a party in " + modeId + ": not counted in the stats");
+            return;
+        }
         stats.record(mode, winners, losers);
     }
 
@@ -505,7 +516,20 @@ public final class RagoLobby extends JavaPlugin implements LobbyService {
             getLogger().warning("Kill in an unknown mode ignored: " + modeId);
             return;
         }
+        if ((killer != null && state.isInPrivateGame(killer)) || (victim != null && state.isInPrivateGame(victim))) {
+            return;
+        }
         stats.kill(modeId, killer, victim);
+    }
+
+    /** True if one of these players plays a party's private game. */
+    private boolean isPrivate(List<UUID> players) {
+        for (UUID player : players) {
+            if (state.isInPrivateGame(player)) {
+                return true;
+            }
+        }
+        return false;
     }
 
     @Override
@@ -552,6 +576,10 @@ public final class RagoLobby extends JavaPlugin implements LobbyService {
 
     DuelRequests duels() {
         return duels;
+    }
+
+    Parties parties() {
+        return parties;
     }
 
     LobbySettings settings() {
