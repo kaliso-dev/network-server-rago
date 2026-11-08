@@ -86,9 +86,23 @@ final class QueueController {
         }
     }
 
-    /** True if a game plugin plays this mode: its queue is open. */
+    /**
+     * True if a game plugin plays this mode: its queue is open. A private game whose size follows
+     * the party is open when one of the modes it plays is.
+     */
     boolean isPlayable(String modeId) {
-        return hosts.containsKey(modeId);
+        if (hosts.containsKey(modeId)) {
+            return true;
+        }
+        List<GameMode> targets = settings.privateRoutes().get(modeId);
+        if (targets != null) {
+            for (GameMode target : targets) {
+                if (hosts.containsKey(target.id())) {
+                    return true;
+                }
+            }
+        }
+        return false;
     }
 
     MatchHost hostOf(String modeId) {
@@ -106,6 +120,10 @@ final class QueueController {
     void join(Player player, GameMode mode, String map) {
         if (state.isInGame(player)) {
             player.sendMessage(ChatColor.RED + "You are already in a game.");
+            return;
+        }
+        if (settings.privateRoutes().containsKey(mode.id())) {
+            joinPrivate(player, mode, map);
             return;
         }
         if (!isPlayable(mode.id())) {
@@ -135,6 +153,51 @@ final class QueueController {
                 player.sendMessage(ChatColor.RED + "This mode does not exist.");
                 break;
         }
+    }
+
+    /**
+     * A private game whose size follows the party: the party plays the mode of the list made for
+     * its size (two players: a 1v1, four: a 2v2...), against itself, in no stats.
+     */
+    private void joinPrivate(Player player, GameMode mode, String map) {
+        PartyBook.Party party = parties.together(player.getUniqueId());
+        if (party == null) {
+            Parties.boxed(player, ChatColor.LIGHT_PURPLE + mode.name() + ChatColor.LIGHT_PURPLE
+                    + " is played with your party: invite your friends with " + ChatColor.WHITE + "/party invite <name>"
+                    + ChatColor.LIGHT_PURPLE + ", then click again. The size of the game follows the party.");
+            return;
+        }
+        if (!party.isLeader(player.getUniqueId())) {
+            Parties.boxed(player, ChatColor.RED + "Only the party leader can start a private game.");
+            return;
+        }
+        List<Player> players = new ArrayList<>();
+        for (UUID id : party.members()) {
+            Player member = Bukkit.getPlayer(id);
+            if (member == null || !state.isInLobby(member) || state.isInGame(member)) {
+                Parties.boxed(player, ChatColor.RED + (member == null ? "A player of your party" : member.getName())
+                        + " is not in the lobby: your party cannot start a game.");
+                return;
+            }
+            players.add(member);
+        }
+        GameMode chosen = null;
+        List<String> sizes = new ArrayList<>();
+        for (GameMode target : settings.privateRoutes().get(mode.id())) {
+            if (hosts.containsKey(target.id())) {
+                sizes.add(String.valueOf(target.playersPerMatch()));
+                if (chosen == null && target.playersPerMatch() == players.size()) {
+                    chosen = target;
+                }
+            }
+        }
+        if (chosen == null) {
+            Parties.boxed(player, ChatColor.RED + (sizes.isEmpty() ? mode.name() + ChatColor.RED + " is coming soon."
+                    : "Your party has " + players.size() + " players: " + mode.name() + ChatColor.RED + " is played with "
+                    + String.join(", ", sizes) + " players, two teams of the same size."));
+            return;
+        }
+        startPrivate(party, players, chosen, map);
     }
 
     /** The leader queues the party: a private game if it fills the match, else the queue, in one team. */

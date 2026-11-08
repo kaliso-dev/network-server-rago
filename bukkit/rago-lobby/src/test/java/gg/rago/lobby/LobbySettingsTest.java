@@ -202,6 +202,36 @@ class LobbySettingsTest {
     }
 
     @Test
+    void privateGamesFollowThePartySizeFromTheSmallestMode() throws Exception {
+        LobbySettings settings = LobbySettings.load(bundledConfig());
+        java.util.List<GameMode> rbw = settings.privateRoutes().get("partie-privee");
+        assertEquals(Arrays.asList("ranked-1v1", "ranked-2v2", "ranked-3v3", "ranked-4v4"), ids(rbw));
+        assertEquals(Arrays.asList("top-fight-1v1", "top-fight-2v2"), ids(settings.privateRoutes().get("top-fight-prive")));
+        assertNull(settings.privateRoutes().get("ranked-1v1"));
+
+        LobbySettings unordered = LobbySettings.load(yaml("parties-privees:\n  prive: [duo, solo]\nmodes:\n  prive: {}\n"
+                + "  solo: {equipes: 2, joueurs-par-equipe: 1}\n  duo: {equipes: 2, joueurs-par-equipe: 2}\n"));
+        assertEquals(Arrays.asList("solo", "duo"), ids(unordered.privateRoutes().get("prive")));
+    }
+
+    @Test
+    void refusesPrivateGamesOfUnknownOrOneTeamModes() {
+        assertInvalid("parties-privees:\n  prive: [solo]\nmodes:\n  prive: {}\n", "parties-privees.prive");
+        assertInvalid("parties-privees:\n  prive: [solo]\nmodes:\n  prive: {}\n  solo: {equipes: 1}\n",
+                "parties-privees.prive");
+        assertInvalid("parties-privees:\n  autre: [solo]\nmodes:\n  solo: {}\n", "parties-privees.autre");
+        assertInvalid("parties-privees:\n  prive: []\nmodes:\n  prive: {}\n", "parties-privees.prive");
+    }
+
+    private static java.util.List<String> ids(java.util.List<GameMode> modes) {
+        java.util.List<String> ids = new java.util.ArrayList<>();
+        for (GameMode mode : modes) {
+            ids.add(mode.id());
+        }
+        return ids;
+    }
+
+    @Test
     void translatesColours() throws Exception {
         LobbySettings settings = LobbySettings.load(yaml("modes:\n  sumo:\n    nom: '&aSumo'\n    description: [Ligne]\n"));
         assertEquals("§aSumo", settings.catalog().get("sumo").name());

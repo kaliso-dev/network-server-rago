@@ -155,6 +155,14 @@ classements:
 hypixel:
   cle-api: ""
 
+# The private games whose size follows the party: a party leader who clicks one of these modes
+# starts a private game of the party against itself (in no stats), in the one of its modes made
+# for the party's size: 2 players play the 1v1, 4 the 2v2, 6 the 3v3, 8 the 4v4. A player without
+# a party is asked to make one (/party invite <name>).
+parties-privees:
+  partie-privee: [ranked-1v1, ranked-2v2, ranked-3v3, ranked-4v4]
+  top-fight-prive: [top-fight-1v1, top-fight-2v2]
+
 # The modes, in the order of the selector. The id (the key) holds only lowercase letters without
 # accents, digits and dashes. A mode stays "Coming soon" in the selector until a game plugin
 # hosts it.
@@ -228,9 +236,9 @@ modes:
     joueurs-par-equipe: 1
     classe: false
     description:
-      - "A real private RBW game,"
-      - "1v1, 2v2, 3v3 or 4v4: the player"
-      - "count is detected on its own."
+      - "A real private RBW game with your"
+      - "party: 1v1, 2v2, 3v3 or 4v4, the"
+      - "size follows the party."
   top-fight-prive:
     nom: "&ePrivate top fight"
     categorie: ranked
@@ -238,10 +246,10 @@ modes:
     equipes: 2
     joueurs-par-equipe: 1
     classe: false
-    kit: [IRON_SWORD, "WOOL 64", "GOLDEN_APPLE 3", ENDER_PEARL]
     description:
-      - "Top fight in 1v1 or 2v2 with friends,"
-      - "on a ready-made platform."
+      - "Top fight with your party, on a"
+      - "ready-made platform: 1v1 or 2v2,"
+      - "the size follows the party."
   ffa:
     nom: "&cFFA Ranked Bedwars"
     categorie: ranked

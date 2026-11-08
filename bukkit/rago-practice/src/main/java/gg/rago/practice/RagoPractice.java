@@ -141,7 +141,6 @@ public final class RagoPractice extends JavaPlugin {
         register("block-fight-2v2", (h, m, a, t) -> new BlockFight(h, m, a, t, blocks), slots, spacing, false);
         register("top-fight-1v1", (h, m, a, t) -> new TopFight(h, m, a, t, top), slots, spacing, false);
         register("top-fight-2v2", (h, m, a, t) -> new TopFight(h, m, a, t, top), slots, spacing, false);
-        register("top-fight-prive", (h, m, a, t) -> new TopFight(h, m, a, t, top), slots, spacing, false);
         register("attack-defense-1v1", (h, m, a, t) -> new AttackDefense(h, m, a, t, build, attack, rounds), slots, spacing, false);
         register("attack-defense-2v2", (h, m, a, t) -> new AttackDefense(h, m, a, t, build, attack, rounds), slots, spacing, false);
         register("fireball", FireballFight::new, slots, spacing, false);

@@ -42,12 +42,14 @@ final class LobbySettings {
     private final ModeCatalog catalog;
     private final NetworkLevel levels;
     private final String hypixelKey;
+    private final Map<String, List<GameMode>> privateRoutes;
 
     private LobbySettings(String world, int voidHeight, String title, String address, int defaultRating,
             RatingWindow window, List<ModeCategory> categories, List<ModeDisplay> modes, List<LobbyNpc> npcs,
-            NetworkLevel levels, String hypixelKey) {
+            NetworkLevel levels, String hypixelKey, Map<String, List<GameMode>> privateRoutes) {
         this.levels = levels;
         this.hypixelKey = hypixelKey;
+        this.privateRoutes = Collections.unmodifiableMap(privateRoutes);
         this.categories = Collections.unmodifiableList(categories);
         this.npcs = Collections.unmodifiableList(npcs);
         this.world = world;
@@ -123,12 +125,59 @@ final class LobbySettings {
             throw new IllegalArgumentException("hypixel.cle-api: not a Hypixel API key (32 hexadecimal digits"
                     + " with dashes, from developer.hypixel.net), or \"\" for no import");
         }
+        Map<String, List<GameMode>> privateRoutes = readPrivateRoutes(config.getConfigurationSection("parties-privees"), modes);
         try {
             return new LobbySettings(world, voidHeight, title, address, defaultRating, window, categories, modes, npcs,
-                    levels, hypixelKey);
+                    levels, hypixelKey, privateRoutes);
         } catch (IllegalArgumentException e) {
             throw new IllegalArgumentException("modes: " + e.getMessage(), e);
         }
+    }
+
+    /**
+     * The private games whose size follows the party: for each such mode, the modes it plays, from
+     * the smallest. Each is a mode of the list with two teams or more.
+     */
+    private static Map<String, List<GameMode>> readPrivateRoutes(ConfigurationSection section, List<ModeDisplay> modes) {
+        Map<String, List<GameMode>> routes = new HashMap<>();
+        if (section == null) {
+            return routes;
+        }
+        Map<String, GameMode> byId = new HashMap<>();
+        for (ModeDisplay display : modes) {
+            byId.put(display.mode().id(), display.mode());
+        }
+        for (String id : section.getKeys(false)) {
+            if (!byId.containsKey(id)) {
+                throw new IllegalArgumentException("parties-privees." + id + ": no mode " + id + " in modes");
+            }
+            List<GameMode> targets = new ArrayList<>();
+            for (String target : section.getStringList(id)) {
+                GameMode mode = byId.get(target);
+                if (mode == null) {
+                    throw new IllegalArgumentException("parties-privees." + id + ": no mode " + target + " in modes");
+                }
+                if (mode.teams() < 2) {
+                    throw new IllegalArgumentException("parties-privees." + id + ": " + target
+                            + " has one team, a private game needs two at least");
+                }
+                if (target.equals(id)) {
+                    throw new IllegalArgumentException("parties-privees." + id + ": a mode cannot play itself");
+                }
+                targets.add(mode);
+            }
+            if (targets.isEmpty()) {
+                throw new IllegalArgumentException("parties-privees." + id + ": a list of modes, as [ranked-1v1, ranked-2v2]");
+            }
+            targets.sort((a, b) -> Integer.compare(a.playersPerMatch(), b.playersPerMatch()));
+            routes.put(id, targets);
+        }
+        return routes;
+    }
+
+    /** The private game modes whose size follows the party, with the modes each plays, smallest first. */
+    Map<String, List<GameMode>> privateRoutes() {
+        return privateRoutes;
     }
 
     private static List<LobbyNpc> readNpcs(ConfigurationSection config, List<ModeDisplay> modes,
