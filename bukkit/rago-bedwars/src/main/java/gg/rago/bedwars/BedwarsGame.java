@@ -34,7 +34,11 @@ import org.bukkit.util.Vector;
  * One Bed Wars game in one game world: the teams on their islands, their beds, generators and
  * shops, the deaths, the beds broken and the final kills, the timed events (the diamond and emerald
  * generators going up a tier, the end of the beds, the end of the game), until one team is left.
- * The result goes to the lobby's stats; everyone goes back to the lobby at once. Main thread only.
+ * The result goes to the lobby's stats; everyone goes back to the lobby at once.
+ *
+ * <p>A mode of one team is a rush (First Rush): the team plays from its island against the clock,
+ * to break the bed of the nearest island, where nobody plays but a defense stands around the bed.
+ * The bed broken, or the time up, ends it. Main thread only.
  */
 final class BedwarsGame {
 
@@ -109,6 +113,8 @@ final class BedwarsGame {
     private final BedwarsSettings settings;
     private final ShopCatalog catalog;
     private final List<Team> teams = new ArrayList<>();
+    /** A rush: the team of nobody whose bed the players break, else null. */
+    private final Team target;
     private final Map<UUID, Gamer> gamers = new LinkedHashMap<>();
     private final List<Generator> generators = new ArrayList<>();
     private final List<Generator> diamonds = new ArrayList<>();
@@ -118,6 +124,9 @@ final class BedwarsGame {
     private final Map<Entity, Team> upgradeNpcs = new HashMap<>();
     private Phase phase = Phase.STARTING;
     private int seconds;
+    /** When the fight started, and when a rush broke its bed (0 until then): System.currentTimeMillis(). */
+    private long fightAt;
+    private long rushedAt;
     private BukkitTask clock;
     private BukkitTask ticker;
     private BukkitTask countdown;
@@ -131,7 +140,8 @@ final class BedwarsGame {
         this.modeName = modeName;
         this.settings = plugin.settings();
         this.catalog = plugin.catalog();
-        List<TeamColor> colors = instance.map().playingTeams(sides.size());
+        boolean rush = sides.size() == 1;
+        List<TeamColor> colors = rush ? instance.map().rushTeams() : instance.map().playingTeams(sides.size());
         for (int i = 0; i < sides.size(); i++) {
             TeamColor color = colors.get(i);
             Team team = new Team(color, instance.map().teams().get(color));
@@ -141,6 +151,12 @@ final class BedwarsGame {
                 gamers.put(player.getUniqueId(), new Gamer(player, team, plugin.lobby().hypixelHotbar(player),
                         catalog.quickBuy(plugin.lobby().hypixelQuickBuy(player))));
             }
+        }
+        if (rush && colors.size() > 1) {
+            target = new Team(colors.get(1), instance.map().teams().get(colors.get(1)));
+            teams.add(target);
+        } else {
+            target = null;
         }
     }
 
@@ -182,6 +198,10 @@ final class BedwarsGame {
             }
         }
         for (Team team : teams) {
+            if (team.members.isEmpty()) {
+                // the island of a rush: nobody plays there, its generator and shops stay off
+                continue;
+            }
             Location spot = team.points.generator.in(world);
             generators.add(new Generator(spot, Material.IRON_INGOT, settings.iron(), null));
             generators.add(new Generator(spot, Material.GOLD_INGOT, settings.gold(), null));
@@ -213,7 +233,12 @@ final class BedwarsGame {
             giveKit(player, gamer);
             player.sendMessage(ChatColor.GREEN + "" + ChatColor.BOLD + modeName + ChatColor.GREEN + " on "
                     + ChatColor.WHITE + map.world() + ChatColor.GREEN + ": you are in the " + gamer.team.color.coloured()
-                    + ChatColor.GREEN + " team. Protect your bed and destroy the others'!");
+                    + ChatColor.GREEN + (target == null ? " team. Protect your bed and destroy the others'!"
+                    : " team. Break the " + target.color.coloured() + ChatColor.GREEN + " bed of the next island, "
+                    + "behind its defense, before " + clock(settings.rushSeconds()) + "!"));
+        }
+        if (target != null) {
+            defend(target);
         }
         clock = Bukkit.getScheduler().runTaskTimer(plugin, this::second, 20L, 20L);
         countdown = Bukkit.getScheduler().runTaskTimer(plugin, new Runnable() {
@@ -231,6 +256,7 @@ final class BedwarsGame {
                 cancel(countdown);
                 countdown = null;
                 phase = Phase.PLAYING;
+                fightAt = System.currentTimeMillis();
                 broadcast(ChatColor.GREEN + "Fight!", Sound.NOTE_PLING);
                 title(ChatColor.GREEN + "" + ChatColor.BOLD + "Fight!", "");
                 ticker = Bukkit.getScheduler().runTaskTimer(plugin, () -> {
@@ -241,6 +267,33 @@ final class BedwarsGame {
             }
         }, 0L, 20L);
         sidebars();
+    }
+
+    /** The defense of the rushed bed: its layers, from the bed outwards, where there is air. */
+    @SuppressWarnings("deprecation") // Block#setTypeIdAndData and Material#getId: the 1.8 way to set a block with its data
+    private void defend(Team team) {
+        World world = instance.world();
+        List<int[]> bed = new ArrayList<>();
+        for (Block half : Instance.bedOf(team.points.bed.blockIn(world))) {
+            bed.add(new int[] {half.getX(), half.getY(), half.getZ()});
+        }
+        List<Material> materials = settings.rushDefense();
+        List<List<int[]>> layers = RushDefense.layers(bed, materials.size());
+        for (int i = 0; i < layers.size(); i++) {
+            Material material = materials.get(i);
+            byte data = RushDefense.coloured(material) ? (byte) team.color.woolData() : 0;
+            for (int[] spot : layers.get(i)) {
+                if (spot[1] < 0 || spot[1] > 255) {
+                    continue;
+                }
+                Block block = world.getBlockAt(spot[0], spot[1], spot[2]);
+                if (block.getType() == Material.AIR) {
+                    block.setTypeIdAndData(material.getId(), data, false);
+                    // breakable as a placed block, and gone after the game
+                    instance.markPlaced(block, 0, (byte) 0);
+                }
+            }
+        }
     }
 
     private void spawnNpc(Location spot, String name, Team upgradesOf) {
@@ -300,7 +353,14 @@ final class BedwarsGame {
         }
         if (phase == Phase.PLAYING) {
             seconds++;
-            events();
+            if (target == null) {
+                events();
+            } else if (seconds >= settings.rushSeconds()) {
+                broadcast(ChatColor.YELLOW + "Time is up: the " + target.color.coloured() + ChatColor.YELLOW
+                        + " bed still stands.", Sound.NOTE_BASS);
+                end(null);
+                return;
+            }
         }
         for (Generator generator : diamonds) {
             generator.refreshText();
@@ -380,7 +440,14 @@ final class BedwarsGame {
 
     private List<String> lines(Gamer viewer) {
         List<String> lines = new ArrayList<>();
-        lines.add(phase == Phase.STARTING ? ChatColor.WHITE + "Starting..." : nextEvent());
+        if (phase == Phase.STARTING) {
+            lines.add(ChatColor.WHITE + "Starting...");
+        } else if (target != null) {
+            lines.add(ChatColor.WHITE + "Time: " + ChatColor.GREEN + clock(seconds) + ChatColor.GRAY + " / "
+                    + clock(settings.rushSeconds()));
+        } else {
+            lines.add(nextEvent());
+        }
         lines.add("");
         for (Team team : teams) {
             int alive = 0;
@@ -481,6 +548,17 @@ final class BedwarsGame {
             }
         }
         sidebars();
+        if (team == target) {
+            rushedAt = System.currentTimeMillis();
+            end(gamer.team);
+        }
+    }
+
+    /** How long a rush took, from the fight to the bed broken: "0:42.3". */
+    static String rushTime(long millis) {
+        long tenths = Math.max(0L, millis) / 100;
+        long secondsPart = tenths / 10 % 60;
+        return (tenths / 600) + ":" + (secondsPart < 10 ? "0" : "") + secondsPart + "." + tenths % 10;
     }
 
     private void destroyBed(Team team) {
@@ -645,6 +723,16 @@ final class BedwarsGame {
         if (phase == Phase.ENDED) {
             return;
         }
+        if (target != null) {
+            // a rush ends with its bed broken or the time up, or when nobody is left
+            for (Gamer gamer : gamers.values()) {
+                if (!gamer.eliminated) {
+                    return;
+                }
+            }
+            end(null);
+            return;
+        }
         List<Team> alive = new ArrayList<>();
         for (Team team : teams) {
             for (UUID member : team.members) {
@@ -664,6 +752,10 @@ final class BedwarsGame {
     private void end(Team winner) {
         phase = Phase.ENDED;
         stopTasks();
+        if (target != null) {
+            endRush(winner);
+            return;
+        }
         if (winner != null) {
             List<UUID> winners = new ArrayList<>(winner.members);
             List<UUID> losers = new ArrayList<>();
@@ -706,6 +798,32 @@ final class BedwarsGame {
             player.sendMessage(ChatColor.GREEN + "" + ChatColor.STRIKETHROUGH + "                                        ");
         }
         // The next tick, out of the event that ended the game: everyone goes back to the lobby.
+        Bukkit.getScheduler().runTask(plugin, this::backToLobby);
+    }
+
+    /** A rush is over: its bed broken by this team (with the time), or not (null). Practice: no result is counted. */
+    private void endRush(Team rushers) {
+        String time = rushers == null ? null : rushTime(rushedAt - fightAt);
+        for (Gamer gamer : gamers.values()) {
+            Player player = Bukkit.getPlayer(gamer.id);
+            if (player == null || host.gameOf(gamer.id) != this) {
+                continue;
+            }
+            if (time == null) {
+                player.sendTitle(ChatColor.RED + "" + ChatColor.BOLD + "TIME IS UP", ChatColor.WHITE + "The bed still stands.");
+            } else {
+                player.sendTitle(ChatColor.GOLD + "" + ChatColor.BOLD + "BED BROKEN!", ChatColor.WHITE + "in " + time);
+                player.playSound(player.getLocation(), Sound.LEVEL_UP, 1f, 1f);
+            }
+            player.sendMessage(ChatColor.GREEN + "" + ChatColor.STRIKETHROUGH + "                                        ");
+            player.sendMessage(ChatColor.WHITE + "" + ChatColor.BOLD + "  " + modeName + ChatColor.GRAY + " on "
+                    + instance.map().world());
+            player.sendMessage(time == null ? ChatColor.YELLOW + "  The " + target.color.coloured() + ChatColor.YELLOW
+                    + " bed still stands."
+                    : ChatColor.YELLOW + "  The " + target.color.coloured() + ChatColor.YELLOW + " bed broken in "
+                    + ChatColor.WHITE + time + ChatColor.YELLOW + " by " + names(rushers) + ".");
+            player.sendMessage(ChatColor.GREEN + "" + ChatColor.STRIKETHROUGH + "                                        ");
+        }
         Bukkit.getScheduler().runTask(plugin, this::backToLobby);
     }
 

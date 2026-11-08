@@ -71,4 +71,19 @@ class MatchmakerTest {
         assertEquals(PONT, matchmaker.queueOf(B));
         assertEquals(1, matchmaker.waiting("sumo"));
     }
+
+    @Test
+    void choosingAnotherMapKeepsThePlace() {
+        Matchmaker matchmaker = matchmaker();
+        assertEquals(Matchmaker.JoinResult.JOINED, matchmaker.join(A, "sumo", 1000, 0, "Gelato"));
+        assertEquals(Matchmaker.JoinResult.ALREADY_WAITING, matchmaker.join(A, "sumo", 1000, 5, "gelato"));
+        assertEquals(1, matchmaker.waitingFor("sumo", "Gelato"));
+        assertEquals(Matchmaker.JoinResult.SWITCHED, matchmaker.join(A, "sumo", 1000, 10, "Nebuc"));
+        assertEquals("Nebuc", matchmaker.entryOf(A).map());
+        assertEquals(0, matchmaker.entryOf(A).joinedAtMillis(), "the same place in the queue");
+        assertEquals(0, matchmaker.waitingFor("sumo", "Gelato"));
+        assertEquals(Matchmaker.JoinResult.SWITCHED, matchmaker.join(A, "sumo", 1000, 20));
+        assertNull(matchmaker.entryOf(A).map(), "any map");
+        assertEquals(1, matchmaker.waiting("sumo"));
+    }
 }

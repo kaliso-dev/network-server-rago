@@ -18,7 +18,8 @@ import org.bukkit.entity.Player;
  * <ul>
  *   <li>{@code /spawn}: back to the lobby spawn (from a game, through the game, which counts it as
  *       a forfeit).
- *   <li>{@code /queue <mode>} joins a queue, {@code /queue leave} leaves it.
+ *   <li>{@code /queue <mode> [map]} joins a queue (on that map, for a mode that offers a choice:
+ *       {@code random} or nothing for any map), {@code /queue leave} leaves it.
  *   <li>{@code /hypixel import [name]} copies the Bed Wars shop and hotbar manager of a Hypixel
  *       account (the player's own without a name), {@code /hypixel shop} shows it.
  *   <li>{@code /lobby setspawn|build|modes|points}, {@code /lobby point <name>|remove <name>|tp <name>}:
@@ -67,8 +68,11 @@ final class LobbyCommands implements TabExecutor {
         }
     }
 
+    /** The word for "any map" in /queue (and its French form). */
+    static final List<String> ANY_MAP = Arrays.asList("random", "aleatoire");
+
     private boolean queue(Player player, String[] args) {
-        if (args.length != 1) {
+        if (args.length != 1 && args.length != 2) {
             return false;
         }
         if (args[0].equalsIgnoreCase("leave") || args[0].equalsIgnoreCase("quitter")) {
@@ -86,7 +90,21 @@ final class LobbyCommands implements TabExecutor {
             player.sendMessage(ChatColor.RED + "Go back to the lobby (/spawn) to join a queue.");
             return true;
         }
-        lobby.queues().join(player, mode);
+        String map = null;
+        if (args.length == 2 && !ANY_MAP.contains(args[1].toLowerCase(java.util.Locale.ROOT))) {
+            List<String> maps = lobby.queues().mapsOf(mode);
+            for (String name : maps) {
+                if (name.equalsIgnoreCase(args[1])) {
+                    map = name;
+                }
+            }
+            if (map == null) {
+                player.sendMessage(ChatColor.RED + (maps.size() < 2 ? "This mode has no choice of map."
+                        : "Unknown map. The maps of this mode: " + String.join(", ", maps) + " (or random)."));
+                return true;
+            }
+        }
+        lobby.queues().join(player, mode, map);
         return true;
     }
 
@@ -250,6 +268,21 @@ final class LobbyCommands implements TabExecutor {
             String typed = args[args.length - 1].toLowerCase(java.util.Locale.ROOT);
             for (String option : options) {
                 if (option.toLowerCase(java.util.Locale.ROOT).startsWith(typed)) {
+                    matching.add(option);
+                }
+            }
+            return matching;
+        }
+        if (command.getName().equals("queue") && args.length == 2) {
+            GameMode mode = lobby.mode(args[0].toLowerCase(java.util.Locale.ROOT));
+            List<String> maps = mode == null ? Collections.<String>emptyList() : lobby.queues().mapsOf(mode);
+            List<String> matching = new ArrayList<>();
+            if (maps.size() >= 2) {
+                options.add("random");
+                options.addAll(maps);
+            }
+            for (String option : options) {
+                if (option.toLowerCase(java.util.Locale.ROOT).startsWith(args[1].toLowerCase(java.util.Locale.ROOT))) {
                     matching.add(option);
                 }
             }

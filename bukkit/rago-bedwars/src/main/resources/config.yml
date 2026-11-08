@@ -2,13 +2,21 @@
 # Each game is played in a copy of its map (bw_<map>_<n>), made ready again after the game; the
 # maps themselves are set up with /bw (see the README of the plugin).
 
-# The lobby modes this plugin plays: their ids in the lobby's config.yml. Each needs a map with at
-# least as many complete teams as the mode has teams.
+# The lobby modes this plugin plays (their ids in the lobby's config.yml), each with its maps: the
+# names of their world folders, or toutes for every map. A map needs at least as many complete
+# teams as the mode has teams (two for a mode of one team, which rushes the nearest island). A map
+# that is not on the server is skipped; a mode none of whose maps is ready plays on the demo map.
+# With two maps or more, the players choose theirs when they join the queue, or take any map (the
+# ranked modes always draw the map at random).
 modes:
-  - ranked-1v1
-  - ranked-2v2
-  - ranked-3v3
-  - ranked-4v4
+  ranked-1v1: [Archway, Invasion, Lectus, Extinction, Paladin, Rise]
+  ranked-2v2: [Archway, Invasion, Lectus, Extinction, Paladin, Rise]
+  ranked-3v3: [Archway, Invasion, Lectus, Extinction, Paladin, Rise]
+  ranked-4v4: [Archway, Invasion, Lectus, Extinction, Paladin, Rise]
+  skyrise-1v1: [SkyRise]
+  skyrise-2v2: [SkyRise]
+  first-rush: [Acropolis, Ambush, Aqil, Cascade, Crogorm, Frosted, Gelato, Lighthouse, Lotus, Nebuc]
+  first-rush-duo: [Acropolis, Ambush, Aqil, Cascade, Crogorm, Frosted, Gelato, Lighthouse, Lotus, Nebuc]
 
 # How many game worlds the server keeps at most, so how many games at once (from 1 to 50).
 parties-max: 8
@@ -52,3 +60,12 @@ evenements:
 boule-de-feu:
   degats-sur-soi: 2.0
   degats-sur-les-autres: 3.0
+
+# The modes of one team (First Rush): the players rush the bed of the nearest island, against the
+# clock, from their own island with its generator and shops. Nobody plays on that island, but its
+# bed has a defense: the layers of blocks around it, from the bed outwards (WOOL, STAINED_CLAY and
+# STAINED_GLASS take the colour of that island; END_STONE, WOOD, OBSIDIAN... as they are; [] for
+# none), 4 at most. The bed broken ends the rush; so does the time limit, in minutes.
+premier-rush:
+  defense: [WOOL]
+  minutes: 5

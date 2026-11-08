@@ -27,7 +27,11 @@
 //      places it by its bed and breaks it again, cannot break its own bed, buys a fireball and
 //      jumps on it at its feet (about a heart lost, not its life); RagoDeux walks off its
 //      island, dies in the void and respawns (its bed stands), then leaves with /spawn: RagoUn
-//      wins, and both are back in the lobby.
+//      wins, and both are back in the lobby;
+//   8. a First Rush each: RagoUn asks for a map the mode does not have, then for bw-demo, RagoDeux
+//      for any map; each plays alone on the red island of its own copy, the blue bed has a layer of
+//      blue wool around it and the sidebar shows the time; run-lobby-test.sh gives the rush 30
+//      seconds, so the time runs out and both come back to the lobby.
 //
 // Environment: KB_HOST (127.0.0.1), KB_PORT (25565).
 
@@ -602,6 +606,43 @@ async function playBedwars (one, two) {
   log('Bed Wars: RagoDeux left, RagoUn won, both are back in the lobby')
 }
 
+/** A First Rush each, on two copies of the demo map, until the time runs out. */
+async function playFirstRush (one, two) {
+  const V = one.entity.position.constructor
+  let fromOne = mark(one)
+  one.chat('/queue first-rush Nowhere')
+  await chatLine(one, /This mode has no choice of map\./, 5000, fromOne)
+  fromOne = mark(one)
+  const fromTwo = mark(two)
+  one.chat('/queue first-rush bw-demo')
+  two.chat('/queue first-rush random')
+  await chatLine(one, /You joined the queue for First rush solo on bw-demo/, 5000, fromOne)
+  for (const bot of [one, two]) {
+    const from = bot === one ? fromOne : fromTwo
+    await chatLine(bot, /First rush solo on bw-demo: you are in the Red team\. Break the Blue bed of the next island/, 15000, from)
+    await waitFor(() => bot.game.gameMode === 'survival' && islandSide(bot) < 0, 5000,
+      `${bot.username} on the red island: ${bot.game.gameMode} at ${bot.entity.position}`)
+  }
+  if (playerEntity(one, two) != null) throw new Error('RagoUn sees RagoDeux: their rushes share a world')
+  // The blue bed (27 and 28, 65, 0) behind one layer of blue wool, on its sides and on top.
+  const defense = [new V(26, 65, 0), new V(29, 65, 0), new V(27, 65, 1), new V(28, 65, -1), new V(27, 66, 0)]
+  await waitFor(() => defense.every((spot) => one.blockAt(spot)?.name === 'wool' && one.blockAt(spot)?.metadata === 11),
+    5000, `blue wool around the blue bed: ${JSON.stringify(defense.map((spot) => [one.blockAt(spot)?.name, one.blockAt(spot)?.metadata]))}`)
+  await chatLine(one, /Fight!/, 10000, fromOne)
+  await waitFor(() => {
+    const lines = sidebarLines(one)
+    return lines.some((text) => /^Time: 0:\d\d \/ 0:30$/.test(text)) && lines.includes('R Red: ✔ YOU') &&
+      lines.includes('B Blue: ✔')
+  }, 5000, `the time and the blue bed in the sidebar: ${JSON.stringify(sidebarLines(one))}`)
+  log('First Rush: each bot alone on its red island, the blue bed behind blue wool, the time in the sidebar')
+  for (const bot of [one, two]) {
+    const from = bot === one ? fromOne : fromTwo
+    await chatLine(bot, /Time is up: the Blue bed still stands\./, 40000, from)
+    await expectInLobby(bot, 'after the First Rush')
+  }
+  log('First Rush: the time ran out, both are back in the lobby')
+}
+
 async function fallOff (bot) {
   bot.setControlState('back', true)
   bot.setControlState('jump', true)
@@ -724,6 +765,9 @@ async function main () {
 
   // 7. Ranked Bedwars 1v1 (RagoBedwars), on its demo map.
   await playBedwars(one, two)
+
+  // 8. First Rush, alone against the clock.
+  await playFirstRush(one, two)
 
   finishing = true
   one.quit()

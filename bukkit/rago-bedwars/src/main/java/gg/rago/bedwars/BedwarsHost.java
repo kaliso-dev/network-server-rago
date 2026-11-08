@@ -116,17 +116,28 @@ final class BedwarsHost implements MatchHost, Listener {
             }
             sides.add(side);
         }
-        List<BedwarsMap> maps = plugin.maps().playable(mode.teams());
+        List<BedwarsMap> maps = mapsFor(mode);
         if (maps.isEmpty()) {
             noMap(mode, sides);
             return false;
         }
+        // the map the players chose, while it can still be played; else any map of the mode
+        List<BedwarsMap> chosen = new ArrayList<>();
+        for (BedwarsMap map : maps) {
+            if (map.world().equalsIgnoreCase(match.map())) {
+                chosen.add(map);
+            }
+        }
+        if (!chosen.isEmpty()) {
+            maps = chosen;
+        }
         Instance instance = plugin.instances().acquire(maps);
         if (instance == null) {
-            plugin.instances().prepare(maps);
+            // a match waits: a copy of one of its maps is made, room made for it if need be
+            plugin.instances().prepare(maps, true);
             return false;
         }
-        if (instance.map().completeTeams().size() < sides.size()) {
+        if (instance.map().completeTeams().size() < islands(mode)) {
             plugin.instances().release(instance);
             return false;
         }
@@ -139,18 +150,45 @@ final class BedwarsHost implements MatchHost, Listener {
         }
         running.add(game);
         game.begin();
-        // The next match should not wait for a copy: one is made now if none is left.
+        // The next match should not wait for a copy: one is made now if none is left and there is room.
         if (!plugin.instances().hasFree(maps)) {
-            plugin.instances().prepare(maps);
+            plugin.instances().prepare(maps, false);
         }
         return true;
+    }
+
+    /** The islands a game of this mode needs: one per team, and the one a team of one rushes. */
+    static int islands(GameMode mode) {
+        return Math.max(2, mode.teams());
+    }
+
+    /** The maps this mode can be played on now (config.yml: modes), the demo map when none can. */
+    List<BedwarsMap> mapsFor(GameMode mode) {
+        return plugin.maps().playable(islands(mode), plugin.settings().mapsOf(mode.id()));
+    }
+
+    /**
+     * The maps a player may choose for this mode in the lobby: its maps that can be played now. The
+     * ranked modes draw the map at random: no choice.
+     */
+    @Override
+    public List<String> maps(GameMode mode) {
+        List<String> names = new ArrayList<>();
+        if (mode.ranked()) {
+            return names;
+        }
+        for (BedwarsMap map : mapsFor(mode)) {
+            names.add(map.world());
+        }
+        return names;
     }
 
     private void noMap(GameMode mode, List<List<Player>> sides) {
         if (!warnedNoMap) {
             warnedNoMap = true;
-            plugin.getLogger().warning("A " + mode.id() + " match is waiting, but no Bed Wars map of " + mode.teams()
-                    + " teams is ready: set one up with /bw (see the README of RagoBedwars).");
+            plugin.getLogger().warning("A " + mode.id() + " match is waiting, but none of its Bed Wars maps "
+                    + plugin.settings().mapsOf(mode.id()) + " with " + islands(mode)
+                    + " teams is ready: install it, or set one up with /bw (see the README of RagoBedwars).");
         }
         for (List<Player> side : sides) {
             for (Player player : side) {

@@ -18,9 +18,10 @@ import org.bukkit.inventory.meta.ItemMeta;
  * per category (a zone of the lobby); clicking one opens that category's modes, with a back
  * button in the bottom row. Without categories, every mode is shown at once. Modes are seven per
  * row, framed by an empty row above and below. Clicking a playable mode joins its queue; clicking
- * the mode one waits for leaves it. Hovering a mode shows the player's win streak of the day in
- * it, and the three teams with the longest streaks of the day (every name of a team of two or
- * more), as on Minemen. Open menus are refreshed every second, for the queue counts.
+ * the mode one waits for leaves it. A mode whose game offers several maps first asks which one:
+ * a map, or any map (the queue is shorter). Hovering a mode shows the player's win streak of the
+ * day in it, and the three teams with the longest streaks of the day (every name of a team of two
+ * or more), as on Minemen. Open menus are refreshed every second, for the queue counts.
  */
 final class ModeMenu {
 
@@ -36,6 +37,7 @@ final class ModeMenu {
         static final String CATEGORIES = "";
         static final String NPC = "pnj:";
         static final String DUEL = "duel:";
+        static final String MAPS = "maps:";
         private Inventory inventory;
         private final String view;
 
@@ -100,6 +102,18 @@ final class ModeMenu {
         String title = ChatColor.stripColor(npc.name());
         show(player, Holder.NPC + npc.point(), 2 + rowsFor(npc.modeIds().size()),
                 title.length() > 32 ? title.substring(0, 32) : title);
+    }
+
+    /** The maps of a mode, to choose from before joining its queue. */
+    void openMaps(Player player, GameMode mode) {
+        int entries = 1 + queues.mapsOf(mode).size();
+        String title = ChatColor.stripColor(mode.name()) + ": map";
+        show(player, Holder.MAPS + mode.id(), 3 + rowsFor(entries), title.length() > 32 ? title.substring(0, 32) : title);
+    }
+
+    /** The mode of a map view, or null for another view. */
+    private GameMode mapsMode(String view) {
+        return view != null && view.startsWith(Holder.MAPS) ? settings.catalog().get(view.substring(Holder.MAPS.length())) : null;
     }
 
     /** The modes a view shows. */
@@ -169,6 +183,11 @@ final class ModeMenu {
             open(player);
             return;
         }
+        GameMode mapsOf = mapsMode(view);
+        if (mapsOf != null) {
+            clickMap(player, mapsOf, slot);
+            return;
+        }
         List<ModeDisplay> modes = modesFor(view);
         GameMode mode = null;
         for (int i = 0; i < modes.size(); i++) {
@@ -188,13 +207,45 @@ final class ModeMenu {
         toggle(player, mode);
     }
 
-    /** Joins the mode's queue, or leaves it if the player already waits for it. */
+    /**
+     * Joins the mode's queue, or leaves it if the player already waits for it. A mode with several
+     * maps first opens their menu.
+     */
     void toggle(Player player, GameMode mode) {
         GameMode current = queues.queueOf(player);
         if (mode.equals(current)) {
             queues.leave(player, true);
+        } else if (queues.isPlayable(mode.id()) && queues.mapsOf(mode).size() >= 2) {
+            openMaps(player, mode);
+            return;
         } else {
             queues.join(player, mode);
+        }
+        if (queues.queueOf(player) != null) {
+            player.closeInventory();
+        }
+    }
+
+    /** Clicked in a mode's map menu: any map (the first item) or one of them; the map one waits for leaves the queue. */
+    private void clickMap(Player player, GameMode mode, int slot) {
+        List<String> maps = queues.mapsOf(mode);
+        boolean found = slot == slotOf(0);
+        String map = null;
+        for (int i = 0; i < maps.size(); i++) {
+            if (slotOf(i + 1) == slot) {
+                found = true;
+                map = maps.get(i);
+            }
+        }
+        if (!found) {
+            return;
+        }
+        boolean waitingHere = mode.equals(queues.queueOf(player));
+        String waitingFor = waitingHere ? queues.mapOf(player) : null;
+        if (waitingHere && (map == null ? waitingFor == null : map.equalsIgnoreCase(waitingFor))) {
+            queues.leave(player, true);
+        } else {
+            queues.join(player, mode, map);
         }
         if (queues.queueOf(player) != null) {
             player.closeInventory();
@@ -214,6 +265,11 @@ final class ModeMenu {
     private void fill(Inventory inventory, HumanEntity viewer) {
         String view = ((Holder) inventory.getHolder()).view();
         GameMode current = viewer instanceof Player ? queues.queueOf((Player) viewer) : null;
+        GameMode mapsOf = mapsMode(view);
+        if (mapsOf != null) {
+            fillMaps(inventory, mapsOf, mapsOf.equals(current), viewer instanceof Player ? queues.mapOf((Player) viewer) : null);
+            return;
+        }
         if (Holder.CATEGORIES.equals(view)) {
             List<ModeCategory> categories = settings.categories();
             for (int i = 0; i < categories.size(); i++) {
@@ -233,6 +289,46 @@ final class ModeMenu {
             back.setItemMeta(meta);
             inventory.setItem(backSlot(inventory.getSize()), back);
         }
+    }
+
+    /** The map menu: any map first, then each map, and the back button. */
+    private void fillMaps(Inventory inventory, GameMode mode, boolean waitingHere, String waitingFor) {
+        List<String> maps = queues.mapsOf(mode);
+        int last = backSlot(inventory.getSize()) - 4;
+        ItemStack any = new ItemStack(Material.NETHER_STAR);
+        ItemMeta meta = any.getItemMeta();
+        meta.setDisplayName(ChatColor.GREEN + "" + ChatColor.BOLD + "Random map");
+        List<String> lore = new ArrayList<>();
+        lore.add(ChatColor.GRAY + "Any of the " + maps.size() + " maps:");
+        lore.add(ChatColor.GRAY + "the shortest wait.");
+        lore.add("");
+        lore.add(ChatColor.GRAY + "In queue: " + ChatColor.WHITE + queues.waiting(mode.id()));
+        lore.add(waitingHere && waitingFor == null ? ChatColor.YELLOW + "You are in this queue: click to leave it"
+                : ChatColor.GREEN + "Click to join the queue");
+        meta.setLore(lore);
+        any.setItemMeta(meta);
+        inventory.setItem(slotOf(0), any);
+        for (int i = 0; i < maps.size() && slotOf(i + 1) < last; i++) {
+            String map = maps.get(i);
+            boolean chosen = waitingHere && map.equalsIgnoreCase(waitingFor);
+            ItemStack item = new ItemStack(Material.EMPTY_MAP);
+            meta = item.getItemMeta();
+            meta.setDisplayName((chosen ? ChatColor.YELLOW : ChatColor.AQUA) + map);
+            lore = new ArrayList<>();
+            lore.add(ChatColor.DARK_GRAY + ChatColor.stripColor(mode.name()));
+            lore.add("");
+            lore.add(ChatColor.GRAY + "Waiting for this map: " + ChatColor.WHITE + queues.waitingFor(mode.id(), map));
+            lore.add(chosen ? ChatColor.YELLOW + "You are in this queue: click to leave it"
+                    : ChatColor.GREEN + "Click to play on " + map);
+            meta.setLore(lore);
+            item.setItemMeta(meta);
+            inventory.setItem(slotOf(i + 1), item);
+        }
+        ItemStack back = new ItemStack(Material.ARROW);
+        meta = back.getItemMeta();
+        meta.setDisplayName(ChatColor.GRAY + "Back to the categories");
+        back.setItemMeta(meta);
+        inventory.setItem(backSlot(inventory.getSize()), back);
     }
 
     private ItemStack icon(ModeCategory category, GameMode current) {
@@ -276,7 +372,13 @@ final class ModeMenu {
             lore.add(ChatColor.GRAY + "Coming soon");
         } else {
             lore.add(ChatColor.GRAY + "In queue: " + ChatColor.WHITE + queues.waiting(mode.id()));
+            int maps = queues.mapsOf(mode).size();
+            String waitingFor = waitingHere && viewer instanceof Player ? queues.mapOf((Player) viewer) : null;
+            if (waitingFor != null) {
+                lore.add(ChatColor.GRAY + "Your map: " + ChatColor.WHITE + waitingFor);
+            }
             lore.add(waitingHere ? ChatColor.YELLOW + "You are in this queue: click to leave it"
+                    : maps >= 2 ? ChatColor.GREEN + "Click to choose the map (" + maps + ")"
                     : ChatColor.GREEN + "Click to join the queue");
         }
         meta.setLore(lore);

@@ -11,8 +11,9 @@ import org.bukkit.command.PluginCommand;
 import org.bukkit.plugin.java.JavaPlugin;
 
 /**
- * RagoBedwars: the Bed Wars modes played from the lobby (Ranked Bedwars 1v1 to 4v4 to begin
- * with), on the maps set up with /bw, each game in a copy of its map. See the module README.
+ * RagoBedwars: the Bed Wars modes played from the lobby (Ranked Bedwars 1v1 to 4v4, RBW on Sky
+ * Rise, First Rush), each on its own maps, set up with /bw or the map tool, each game in a copy of
+ * its map. See the module README.
  */
 public final class RagoBedwars extends JavaPlugin {
 
@@ -83,9 +84,21 @@ public final class RagoBedwars extends JavaPlugin {
         }
         getLogger().info("Bed Wars maps ready: " + (names.isEmpty() ? "none (set one up with /bw)" : String.join(", ", names))
                 + "; modes " + hosted + "; " + settings.maxGames() + " games at once at most");
+        for (String mode : hosted) {
+            List<String> missing = new ArrayList<>();
+            for (String map : settings.mapsOf(mode)) {
+                if (maps.get(map) == null || !maps.get(map).playable()) {
+                    missing.add(map);
+                }
+            }
+            if (!missing.isEmpty()) {
+                getLogger().warning("Mode " + mode + ": " + String.join(", ", missing) + " not ready (no folder with a "
+                        + BedwarsMap.FILE_NAME + " in the worlds folder, or not complete): skipped");
+            }
+        }
         // the first copy is of a real map when there is one: the demo map only serves without them
         getServer().getScheduler().runTaskLater(this,
-                () -> instances.prepare(MapStore.inAdvance(playableMaps())), PREWARM_TICKS);
+                () -> instances.prepare(MapStore.inAdvance(playableMaps()), false), PREWARM_TICKS);
     }
 
     @Override

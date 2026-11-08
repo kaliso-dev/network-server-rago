@@ -1,9 +1,9 @@
 # RagoBedwars : les modes Bed Wars
 
-Un plugin Bukkit 1.8.8 qui joue les modes Bed Wars du lobby (`bukkit/rago-lobby`) : pour
-l'instant **Ranked Bedwars 1v1, 2v2, 3v3 et 4v4**, avec les règles d'une partie classique
-d'Hypixel. Les autres modes (Private Game, First Rush, Sky Rise, FFA) viendront sur le même
-moteur.
+Un plugin Bukkit 1.8.8 qui joue les modes Bed Wars du lobby (`bukkit/rago-lobby`) : **Ranked
+Bedwars 1v1, 2v2, 3v3 et 4v4**, **RBW Sky Rise** en solo et en duo, avec les règles d'une partie
+classique d'Hypixel, et **First Rush** en solo et en duo (le rush de l'île voisine, chronométré).
+Chaque mode a ses maps. Les autres modes (Private Game, FFA) viendront sur le même moteur.
 
 ## La partie
 
@@ -42,6 +42,17 @@ moteur.
   défaites, ELO du mode classé, kills), puis tout le monde revient au lobby. Quitter le serveur ou
   taper `/spawn` pendant la partie, c'est l'abandonner (une défaite).
 
+## First Rush
+
+Un mode d'une seule équipe (`first-rush`, `first-rush-duo`) est un rush : le joueur (ou le duo)
+part de son île, avec son générateur et ses shops, pour casser le lit de l'**île la plus proche**.
+Personne ne joue sur cette île, mais son lit a une défense, posée au début comme un joueur l'aurait
+fait : une couche de laine à sa couleur autour et au-dessus du lit (réglable dans `premier-rush:`,
+jusqu'à 4 couches, par exemple `[END_STONE, WOOL]`). Le scoreboard montre le temps. Le lit cassé
+termine le rush avec le temps (« Bed broken in 0:42.3 ») ; au bout de 5 minutes (`minutes:`), le
+temps est écoulé. On revient au lobby dans les deux cas. C'est de l'entraînement : pas de victoire
+ni de défaite dans les stats. On réapparaît normalement après une chute, puisque son lit tient.
+
 Pas encore dans cette version : les améliorations d'équipe (le villageois « TEAM UPGRADES »
 répond qu'elles arrivent), les pièges, le Bedbug, le Dream Defender, le Bridge Egg, le Magic
 Milk et la Pop-up Tower (affichés « Coming soon » dans le shop), les coffres d'équipe et
@@ -74,9 +85,18 @@ red et blue :
 un générateur (le plus proche, à 5 blocs), `/bw disable` ferme la map. Chaque changement est
 enregistré tout de suite ; les parties en cours gardent la map comme elle était.
 
-Une map à N équipes complètes sert aux modes de N équipes, et à ceux qui en ont moins si aucune
-map n'a exactement leur nombre (les premières équipes jouent). Une équipe est complète avec son
-spawn, son lit, son générateur et son shop.
+**Les maps de chaque mode** : dans `modes:` du config.yml, chaque mode a sa liste de maps (les noms
+de leurs dossiers), ou `toutes`. Par défaut : les Ranked sur Archway, Invasion, Lectus, Extinction,
+Paladin et Rise ; RBW Sky Rise sur SkyRise ; First Rush sur Acropolis, Ambush, Aqil, Cascade,
+Crogorm, Frosted, Gelato, Lighthouse, Lotus et Nebuc. Une map absente du serveur est sautée (la
+console le dit au démarrage). Quand un mode a deux maps prêtes ou plus, le joueur **choisit sa
+map** en cliquant le mode dans le sélecteur (ou `/queue first-rush Gelato`), ou prend « Random
+map » pour attendre moins ; il ne joue qu'avec ceux qui ont choisi la même map ou n'importe
+laquelle. Les modes classés (Ranked) tirent toujours la map au hasard.
+
+Une map sert à un mode si elle a au moins autant d'équipes complètes que le mode a d'équipes (deux
+pour First Rush) ; celles qui en ont exactement autant passent d'abord (les équipes prennent des
+îles éloignées). Une équipe est complète avec son spawn, son lit, son générateur et son shop.
 
 Pour une map d'Hypixel, [tools/bedwars-maps](../../tools/bedwars-maps/README.md) trouve tous ces
 points à partir des lits, des coffres et des îles, et écrit le `bedwars.yml` : il ne reste qu'à
@@ -84,7 +104,7 @@ les vérifier en jeu.
 
 **La map de démo** : au premier démarrage, le plugin crée `bw-demo`, une map à lui (deux îles
 rouge et bleue face à face, un milieu avec un générateur d'émeraude et deux îles de diamant), pour
-jouer tout de suite. Elle ne sert que tant qu'aucune autre map ne peut accueillir le mode.
+jouer tout de suite. Elle ne sert que tant qu'aucune des maps du mode ne peut l'accueillir.
 `carte-demo: false` dans le config.yml l'empêche de la créer.
 
 ## Les copies
@@ -95,13 +115,17 @@ plus de libre (pendant ce temps, les joueurs gardent leur place dans la file). A
 copie retire les blocs posés, remet les lits et les blocs que l'eau ou les blocs avaient
 remplacés, et sert à la partie suivante. Les copies sont supprimées quand le serveur s'arrête (ou,
 s'il a été coupé net, au démarrage suivant).
-`parties-max` limite le nombre de copies, donc de parties en même temps.
+`parties-max` limite le nombre de copies, donc de parties en même temps. À la limite, une partie
+qui attend une map sans copie libre fait de la place : une copie libre d'une autre map est
+retirée.
 
 ## Configuration
 
-`plugins/RagoBedwars/config.yml` : les modes joués (leurs ids dans le config.yml du lobby),
-`parties-max`, `carte-demo`, le temps de réapparition, la vitesse et le maximum de chaque
-générateur (trois tiers pour le diamant et l'émeraude) et les minutes des événements.
+`plugins/RagoBedwars/config.yml` : les modes joués (leurs ids dans le config.yml du lobby) avec
+leurs maps, `parties-max`, `carte-demo`, le temps de réapparition, la vitesse et le maximum de
+chaque générateur (trois tiers pour le diamant et l'émeraude), les minutes des événements, les
+dégâts des boules de feu et la défense et la durée de First Rush. L'ancienne forme de `modes:` (une
+simple liste) se lit encore : chaque mode sur toutes les maps.
 
 ## Construire et tester
 
@@ -109,7 +133,8 @@ générateur (trois tiers pour le diamant et l'émeraude) et les minutes des év
 ./gradlew :rago-bedwars:build
 ```
 
-Les maps (lecture et écriture de `bedwars.yml`), le catalogue du shop et la lecture des ids
-Hypixel, la configuration et la map de démo ont des tests unitaires. Une partie de Ranked Bedwars
-1v1 sur la map de démo est jouée par deux bots sur un vrai serveur : voir
+Les maps (lecture et écriture de `bedwars.yml`, les maps de chaque mode, les îles d'un duel et
+d'un rush), la défense d'un rush, le catalogue du shop et la lecture des ids Hypixel, la
+configuration et la map de démo ont des tests unitaires. Une partie de Ranked Bedwars 1v1 et deux
+First Rush sur la map de démo sont joués par deux bots sur un vrai serveur : voir
 [tools/lobby-check](../../tools/lobby-check/README.md).

@@ -132,15 +132,40 @@ final class Instances {
 
     /**
      * Starts copying one of these maps, at random, if the server may have one more game world and
-     * no copy is already on its way. The game can start once it is loaded.
+     * no copy is already on its way. The game can start once it is loaded. At the limit of game
+     * worlds, {@code makeRoom} unloads a free copy of another map first (a match is waiting for one
+     * of these maps); without it, nothing is done.
      */
-    void prepare(List<BedwarsMap> maps) {
-        if (maps.isEmpty() || !preparing.isEmpty() || instances.size() >= max) {
+    void prepare(List<BedwarsMap> maps, boolean makeRoom) {
+        if (maps.isEmpty() || !preparing.isEmpty()) {
+            return;
+        }
+        if (instances.size() >= max && !(makeRoom && unloadFreeOtherThan(maps))) {
             return;
         }
         List<BedwarsMap> shuffled = new ArrayList<>(maps);
         Collections.shuffle(shuffled);
         prepare(shuffled.get(0));
+    }
+
+    /** Unloads a free copy of a map that is not one of these. False if every copy is busy or of these maps. */
+    private boolean unloadFreeOtherThan(List<BedwarsMap> maps) {
+        for (Instance instance : new ArrayList<>(instances)) {
+            if (instance.busy()) {
+                continue;
+            }
+            boolean wanted = false;
+            for (BedwarsMap map : maps) {
+                wanted |= map.world().equalsIgnoreCase(instance.map().world());
+            }
+            if (!wanted) {
+                plugin.getLogger().info("Game world " + instance.world().getName() + " unloaded: room for a copy of "
+                        + maps.get(0).world() + (maps.size() > 1 ? " or another map of its mode" : ""));
+                unload(instance);
+                return true;
+            }
+        }
+        return false;
     }
 
     /**

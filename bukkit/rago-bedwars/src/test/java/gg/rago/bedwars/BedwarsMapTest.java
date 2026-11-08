@@ -61,6 +61,27 @@ class BedwarsMapTest {
     }
 
     @Test
+    void aRushTakesTheNearestIsland() {
+        // Gelato: the islands go by pairs, red and blue side by side in the north
+        BedwarsMap gelato = new BedwarsMap("Gelato");
+        double[][] spawns = {{-18.5, -78.5}, {19.5, -78.5}, {79.5, -18.5}, {79.5, 19.5}, {19.5, 79.5}, {-18.5, 79.5},
+            {-78.5, 19.5}, {-78.5, -18.5}};
+        for (int i = 0; i < spawns.length; i++) {
+            island(gelato, TeamColor.values()[i], spawns[i][0], spawns[i][1]);
+        }
+        assertEquals(Arrays.asList(TeamColor.RED, TeamColor.BLUE), gelato.rushTeams());
+        BedwarsMap map = new BedwarsMap("Square");
+        island(map, TeamColor.RED, 0, 0);
+        island(map, TeamColor.BLUE, 100, 0);
+        island(map, TeamColor.GREEN, 0, 60);
+        assertEquals(Arrays.asList(TeamColor.RED, TeamColor.GREEN), map.rushTeams());
+        assertEquals(Arrays.asList(TeamColor.RED, TeamColor.BLUE), demo().rushTeams());
+        BedwarsMap alone = new BedwarsMap("Alone");
+        island(alone, TeamColor.RED, 0, 0);
+        assertEquals(Collections.singletonList(TeamColor.RED), alone.rushTeams());
+    }
+
+    @Test
     void aCompleteMapIsPlayedOnceEnabled() {
         BedwarsMap map = demo();
         assertTrue(map.missing().isEmpty(), map.missing().toString());

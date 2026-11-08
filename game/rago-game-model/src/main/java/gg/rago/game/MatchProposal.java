@@ -9,7 +9,7 @@ import java.util.UUID;
 /**
  * A match the matchmaker found: the mode, and the players of each team, as queue entries so that a
  * match that cannot start (no free arena) goes back to the queue with its original waiting times.
- * Immutable.
+ * The players agree on the map: those who chose one chose the same. Immutable.
  */
 public final class MatchProposal {
 
@@ -47,6 +47,16 @@ public final class MatchProposal {
             all.addAll(team);
         }
         return all;
+    }
+
+    /** The map the players chose (the first one who chose, the others chose the same or none), or null: any map. */
+    public String map() {
+        for (QueueEntry entry : entries()) {
+            if (entry.map() != null) {
+                return entry.map();
+            }
+        }
+        return null;
     }
 
     /** Every player, team after team. */

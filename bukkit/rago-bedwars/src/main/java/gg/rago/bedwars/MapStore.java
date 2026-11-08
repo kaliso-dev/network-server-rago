@@ -76,6 +76,36 @@ final class MapStore {
         return choose(maps.values(), teams);
     }
 
+    /** The maps of these names (empty: every map) a game of this many teams can be played on: see {@link #named}. */
+    List<BedwarsMap> playable(int teams, List<String> names) {
+        return named(maps.values(), teams, names);
+    }
+
+    /**
+     * Among these maps, those of these names (in their order; empty: all of them) that a game of
+     * this many teams can be played on (see {@link #choose}). The demo map stands in when none of
+     * them can.
+     */
+    static List<BedwarsMap> named(Collection<BedwarsMap> maps, int teams, List<String> names) {
+        if (names.isEmpty()) {
+            return choose(maps, teams);
+        }
+        List<BedwarsMap> chosen = new ArrayList<>();
+        for (String name : names) {
+            for (BedwarsMap map : maps) {
+                if (map.world().equalsIgnoreCase(name) && !chosen.contains(map)) {
+                    chosen.add(map);
+                }
+            }
+        }
+        for (BedwarsMap map : maps) {
+            if (DemoMap.WORLD.equals(map.world()) && !chosen.contains(map)) {
+                chosen.add(map);
+            }
+        }
+        return choose(chosen, teams);
+    }
+
     /**
      * The maps among these that a game of this many teams can be played on: enabled, with exactly
      * that many complete teams; if none has exactly that many, those that have more (the game uses

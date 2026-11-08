@@ -9,6 +9,8 @@ import java.io.InputStreamReader;
 import java.io.Reader;
 import java.nio.charset.StandardCharsets;
 import java.util.Arrays;
+import java.util.Collections;
+import org.bukkit.Material;
 import org.bukkit.configuration.file.YamlConfiguration;
 import org.junit.jupiter.api.Test;
 
@@ -25,7 +27,16 @@ class BedwarsSettingsTest {
     @Test
     void readsTheBundledConfig() throws Exception {
         BedwarsSettings settings = BedwarsSettings.read(bundled());
-        assertEquals(Arrays.asList("ranked-1v1", "ranked-2v2", "ranked-3v3", "ranked-4v4"), settings.modes());
+        assertEquals(Arrays.asList("ranked-1v1", "ranked-2v2", "ranked-3v3", "ranked-4v4", "skyrise-1v1", "skyrise-2v2",
+                "first-rush", "first-rush-duo"), settings.modes());
+        assertEquals(Arrays.asList("Archway", "Invasion", "Lectus", "Extinction", "Paladin", "Rise"),
+                settings.mapsOf("ranked-2v2"));
+        assertEquals(Collections.singletonList("SkyRise"), settings.mapsOf("skyrise-1v1"));
+        assertEquals(10, settings.mapsOf("first-rush").size());
+        assertEquals(settings.mapsOf("first-rush"), settings.mapsOf("first-rush-duo"));
+        assertTrue(settings.mapsOf("sumo").isEmpty());
+        assertEquals(Collections.singletonList(Material.WOOL), settings.rushDefense());
+        assertEquals(300, settings.rushSeconds());
         assertEquals(8, settings.maxGames());
         assertTrue(settings.demo());
         assertEquals(5, settings.respawnSeconds());
@@ -50,6 +61,28 @@ class BedwarsSettingsTest {
         assertEquals(3, settings.emerald().size());
         assertEquals(24 * 60, settings.emeraldIII());
         assertEquals(2.0, settings.fireballSelf());
+        assertEquals(Collections.singletonList(Material.WOOL), settings.rushDefense());
+        assertEquals(300, settings.rushSeconds());
+    }
+
+    @Test
+    void modesTakeTheirMaps() throws Exception {
+        YamlConfiguration config = new YamlConfiguration();
+        config.loadFromString("modes:\n  ranked-1v1: toutes\n  first-rush: [Gelato, Nebuc]\n"
+                + "premier-rush:\n  defense: [END_STONE, wool]\n  minutes: 2.5");
+        BedwarsSettings settings = BedwarsSettings.read(config);
+        assertEquals(Arrays.asList("ranked-1v1", "first-rush"), settings.modes());
+        assertTrue(settings.mapsOf("ranked-1v1").isEmpty(), "toutes: every map");
+        assertEquals(Arrays.asList("Gelato", "Nebuc"), settings.mapsOf("first-rush"));
+        assertEquals(Arrays.asList(Material.ENDER_STONE, Material.WOOL), settings.rushDefense());
+        assertEquals(150, settings.rushSeconds());
+        // the list of the first version: each mode on every map
+        config = new YamlConfiguration();
+        config.loadFromString("modes:\n  - ranked-1v1\n  - ranked-2v2\npremier-rush:\n  defense: []");
+        settings = BedwarsSettings.read(config);
+        assertEquals(Arrays.asList("ranked-1v1", "ranked-2v2"), settings.modes());
+        assertTrue(settings.mapsOf("ranked-2v2").isEmpty());
+        assertTrue(settings.rushDefense().isEmpty(), "no defense");
     }
 
     @Test
@@ -61,6 +94,13 @@ class BedwarsSettingsTest {
         assertProblem("generateurs:\n  diamant:\n    secondes: [30, 20]", "generateurs.diamant.secondes");
         assertProblem("evenements:\n  diamant-2: 20", "evenements.emeraude-2");
         assertProblem("boule-de-feu:\n  degats-sur-soi: -1", "boule-de-feu.degats-sur-soi");
+        assertProblem("modes:\n  first-rush: Gelato", "modes.first-rush");
+        assertProblem("modes:\n  first-rush: []", "modes.first-rush");
+        assertProblem("modes:\n  first-rush: [\"Gel ato\"]", "modes.first-rush");
+        assertProblem("modes:\n  First Rush: [Gelato]", "modes");
+        assertProblem("premier-rush:\n  defense: [TORCH]", "premier-rush.defense");
+        assertProblem("premier-rush:\n  defense: [WOOL, WOOL, WOOL, WOOL, WOOL]", "premier-rush.defense");
+        assertProblem("premier-rush:\n  minutes: 0", "premier-rush.minutes");
     }
 
     private static void assertProblem(String yaml, String setting) {

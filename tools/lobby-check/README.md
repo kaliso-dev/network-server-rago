@@ -38,6 +38,10 @@ jouent comme des joueurs :
    peut pas casser son propre lit. RagoDeux recule hors de son île, meurt dans le vide et revient
    sur son île 5 secondes plus tard (son lit tient), puis tape `/spawn` : RagoUn gagne et les deux
    reviennent au lobby.
+8. un First Rush chacun : RagoUn demande une map que le mode n'a pas (refusée), puis `bw-demo`,
+   RagoDeux n'importe quelle map (`random`) ; chacun joue seul, sur l'île rouge de sa propre copie
+   de la map, le lit bleu a une couche de laine bleue autour et le scoreboard montre le temps. Le
+   script donne 30 secondes au rush : le temps s'écoule et les deux reviennent au lobby.
 
 Le test échoue si un bot n'obtient pas ce qu'il attend, ou si le journal du serveur contient une
 erreur ou une exception.

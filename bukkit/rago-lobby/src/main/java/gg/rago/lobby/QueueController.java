@@ -89,8 +89,13 @@ final class QueueController {
 
     // --- Players --------------------------------------------------------------------------------
 
-    /** The player clicked a mode in the selector, or typed /queue. */
+    /** The player clicked a mode in the selector, or typed /queue: any map. */
     void join(Player player, GameMode mode) {
+        join(player, mode, null);
+    }
+
+    /** Joins the mode's queue for this map (null: any map, the host chooses). */
+    void join(Player player, GameMode mode, String map) {
         if (state.isInGame(player)) {
             player.sendMessage(ChatColor.RED + "You are already in a game.");
             return;
@@ -100,12 +105,13 @@ final class QueueController {
             return;
         }
         Matchmaker.JoinResult result = matchmaker.join(player.getUniqueId(), mode.id(), settings.defaultRating(),
-                System.currentTimeMillis());
+                System.currentTimeMillis(), map);
         switch (result) {
             case JOINED:
             case SWITCHED:
                 toldNoArena.remove(player.getUniqueId());
-                player.sendMessage(ChatColor.GREEN + "You joined the queue for " + mode.name() + ChatColor.GREEN + " ("
+                player.sendMessage(ChatColor.GREEN + "You joined the queue for " + mode.name() + ChatColor.GREEN
+                        + (map == null ? "" : " on " + ChatColor.WHITE + map + ChatColor.GREEN) + " ("
                         + mode.format() + ", " + matchmaker.waiting(mode.id()) + " waiting).");
                 onChange.run();
                 break;
@@ -116,6 +122,35 @@ final class QueueController {
                 player.sendMessage(ChatColor.RED + "This mode does not exist.");
                 break;
         }
+    }
+
+    /**
+     * The maps a player may choose from for this mode, as its host offers them: empty when the mode
+     * has no host, or offers no choice.
+     */
+    List<String> mapsOf(GameMode mode) {
+        MatchHost host = hosts.get(mode.id());
+        if (host == null) {
+            return new ArrayList<>();
+        }
+        try {
+            List<String> maps = host.maps(mode);
+            return maps == null ? new ArrayList<>() : new ArrayList<>(maps);
+        } catch (RuntimeException e) {
+            logger.log(Level.WARNING, "The mode " + mode.id() + " could not list its maps", e);
+            return new ArrayList<>();
+        }
+    }
+
+    /** The map the player waits for (null: any map, or not waiting). */
+    String mapOf(Player player) {
+        QueueEntry entry = matchmaker.entryOf(player.getUniqueId());
+        return entry == null ? null : entry.map();
+    }
+
+    /** How many players wait in this mode's queue for this very map. */
+    int waitingFor(String modeId, String map) {
+        return matchmaker.waitingFor(modeId, map);
     }
 
     /** Returns the mode left, or null if the player was not waiting. */
@@ -257,7 +292,7 @@ final class QueueController {
         for (QueueEntry entry : match.entries()) {
             Player player = Bukkit.getPlayer(entry.player());
             if (player != null && state.isInLobby(player) && matchmaker.queueOf(entry.player()) == null) {
-                matchmaker.join(entry.player(), match.mode().id(), entry.rating(), entry.joinedAtMillis());
+                matchmaker.join(entry.player(), match.mode().id(), entry.rating(), entry.joinedAtMillis(), entry.map());
             }
         }
     }

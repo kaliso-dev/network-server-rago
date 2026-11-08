@@ -38,6 +38,10 @@ dans les files d'attente des modes de jeu.
   minutes). Hypixel n'envoie le quick buy que si le joueur l'a déjà modifié une fois.
 - **Le sélecteur.** Un menu avec un objet par mode, sept par ligne : son format (1v1, 2v2, solo),
   sa description, le nombre de joueurs en file. Un clic entre dans la file, un deuxième en sort.
+  Quand le jeu d'un mode propose plusieurs maps (First Rush), le clic ouvre d'abord le menu des
+  maps : « Random map » (n'importe laquelle, l'attente la plus courte) puis chaque map, avec le
+  nombre de joueurs qui l'attendent. Un joueur qui a choisi une map ne joue qu'avec ceux qui ont
+  choisi la même ou n'importe laquelle. `/queue <mode> <map>` fait la même chose.
   Un mode qu'aucun plugin de jeu ne prend en charge affiche « Bientôt disponible ». Survoler un
   mode (boussole ou menu d'un PNJ) montre aussi, comme sur Minemen, « Daily Streak » (les
   victoires d'affilée du joueur dans ce mode aujourd'hui) puis les trois plus longues séries du
@@ -69,7 +73,7 @@ commentaires de `config.yml`. Les mots français de la première version (`quitt
 | Commande | Effet | Permission |
 | --- | --- | --- |
 | `/spawn` (ou `/hub`) | retour au spawn ; pendant une partie, c'est un abandon | tout le monde |
-| `/queue <mode>`, `/queue leave` (ou `/file`, `/q`) | entrer dans une file, en sortir | tout le monde |
+| `/queue <mode> [map]`, `/queue leave` (ou `/file`, `/q`) | entrer dans une file (sur une map, ou `random`), en sortir | tout le monde |
 | `/duel <joueur> [mode]` | défier un joueur du lobby dans un mode 1v1 (sans mode : un menu des modes 1v1) | tout le monde |
 | `/duel accept <joueur>`, `/duel deny <joueur>` | répondre à un défi (valable une minute) | tout le monde |
 | `/hypixel import [pseudo]` | copier le shop Bed Wars (quick buy et hotbar manager) de son compte Hypixel, ou de celui de ce pseudo | tout le monde |

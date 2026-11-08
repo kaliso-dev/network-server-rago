@@ -293,8 +293,9 @@ modes:
     classe: false
     description:
       - "Solo: practise the first rush"
-      - "of a Bedwars game, on Gelato"
-      - "or Nebuc."
+      - "of a Bedwars game: break the"
+      - "defended bed of the next island"
+      - "against the clock. Choose the map."
   first-rush-duo:
     nom: "&eFirst rush duo"
     categorie: ranked
@@ -304,8 +305,9 @@ modes:
     classe: false
     description:
       - "Duo: practise the first rush"
-      - "of a Bedwars game, on Gelato"
-      - "or Nebuc."
+      - "of a Bedwars game: break the"
+      - "defended bed of the next island"
+      - "against the clock. Choose the map."
   invis-practice:
     nom: "&5Invis practice"
     categorie: ranked

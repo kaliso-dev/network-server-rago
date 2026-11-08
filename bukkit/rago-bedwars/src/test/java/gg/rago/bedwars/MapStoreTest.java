@@ -68,6 +68,24 @@ class MapStoreTest {
     }
 
     @Test
+    void eachModePlaysOnItsOwnMaps() {
+        BedwarsMap demo = demo();
+        BedwarsMap archway = withTeams("Archway", 4);
+        BedwarsMap gelato = withTeams("Gelato", 8);
+        BedwarsMap nebuc = withTeams("Nebuc", 8);
+        List<BedwarsMap> all = Arrays.asList(demo, archway, gelato, nebuc);
+        assertEquals(Arrays.asList(nebuc, gelato), MapStore.named(all, 2, Arrays.asList("nebuc", "Gelato", "Missing")),
+                "the maps named, in their order, whatever the case");
+        assertEquals(Collections.singletonList(archway), MapStore.named(all, 2, Collections.<String>emptyList()),
+                "every map: the one with the closest number of teams");
+        assertEquals(Collections.singletonList(demo), MapStore.named(all, 2, Collections.singletonList("Missing")),
+                "none of its maps is on the server: the demo map");
+        assertTrue(MapStore.named(Arrays.asList(archway, gelato), 2, Collections.singletonList("Missing")).isEmpty());
+        gelato.setEnabled(false);
+        assertEquals(Collections.singletonList(nebuc), MapStore.named(all, 2, Arrays.asList("Gelato", "Nebuc")));
+    }
+
+    @Test
     void readsTheFilesOfTheMapTool() throws Exception {
         // bedwars.yml as tools/bedwars-maps writes it, for a map whose points it found
         String text = String.join("\n",

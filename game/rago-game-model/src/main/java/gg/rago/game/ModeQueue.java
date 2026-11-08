@@ -22,6 +22,9 @@ import java.util.UUID;
  *       The teams are then balanced by rating.
  * </ul>
  *
+ * <p>In both, the players of a match agree on the map: a player who chose a map only plays with
+ * players who chose the same one or none.
+ *
  * <p>Not thread-safe: on a Bukkit server it lives on the main thread, where it only does a few
  * comparisons per second.
  */
@@ -102,16 +105,52 @@ public final class ModeQueue {
     private List<MatchProposal> pollInOrder() {
         List<MatchProposal> matches = new ArrayList<>();
         int needed = mode.playersPerMatch();
-        while (waiting.size() >= needed) {
-            List<QueueEntry> players = new ArrayList<>(waiting.subList(0, needed));
-            waiting.subList(0, needed).clear();
+        Set<UUID> taken = new HashSet<>();
+        for (QueueEntry anchor : waiting) {
+            if (taken.contains(anchor.player())) {
+                continue;
+            }
+            List<QueueEntry> others = new ArrayList<>();
+            for (QueueEntry other : waiting) {
+                if (other != anchor && !taken.contains(other.player())) {
+                    others.add(other);
+                }
+            }
+            List<QueueEntry> players = sameMap(anchor, others, needed);
+            if (players == null) {
+                continue;
+            }
             List<List<QueueEntry>> teams = emptyTeams();
             for (int i = 0; i < players.size(); i++) {
                 teams.get(i % mode.teams()).add(players.get(i));
+                taken.add(players.get(i).player());
             }
             matches.add(new MatchProposal(mode, teams));
         }
+        waiting.removeIf(entry -> taken.contains(entry.player()));
         return matches;
+    }
+
+    /**
+     * The anchor and the first of these others that agree with it on the map, {@code needed} players
+     * in all, or null if there are not enough. The first who chose a map sets it for the match.
+     */
+    private static List<QueueEntry> sameMap(QueueEntry anchor, List<QueueEntry> others, int needed) {
+        List<QueueEntry> players = new ArrayList<>();
+        players.add(anchor);
+        String map = anchor.map();
+        for (QueueEntry other : others) {
+            if (players.size() >= needed) {
+                break;
+            }
+            if (other.accepts(map)) {
+                players.add(other);
+                if (map == null) {
+                    map = other.map();
+                }
+            }
+        }
+        return players.size() == needed ? players : null;
     }
 
     private List<MatchProposal> pollRanked(long nowMillis) {
@@ -139,9 +178,10 @@ public final class ModeQueue {
             }
             // Closest rating first; equal gaps go to whoever waited longest (the list is stable).
             candidates.sort(Comparator.comparingInt(other -> Math.abs(other.rating() - anchor.rating())));
-            List<QueueEntry> players = new ArrayList<>();
-            players.add(anchor);
-            players.addAll(candidates.subList(0, needed - 1));
+            List<QueueEntry> players = sameMap(anchor, candidates, needed);
+            if (players == null) {
+                continue;
+            }
             for (QueueEntry entry : players) {
                 taken.add(entry.player());
             }

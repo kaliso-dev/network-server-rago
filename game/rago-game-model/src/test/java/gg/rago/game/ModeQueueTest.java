@@ -2,6 +2,7 @@ package gg.rago.game;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.util.ArrayList;
@@ -16,6 +17,10 @@ class ModeQueueTest {
 
     private static QueueEntry entry(int n, int rating, long joinedAt) {
         return new QueueEntry(new UUID(0, n), rating, joinedAt);
+    }
+
+    private static QueueEntry entry(int n, int rating, long joinedAt, String map) {
+        return new QueueEntry(new UUID(0, n), rating, joinedAt, map);
     }
 
     private static List<UUID> players(List<QueueEntry> entries) {
@@ -150,5 +155,64 @@ class ModeQueueTest {
         assertTrue(queue.remove(b.player()));
         assertFalse(queue.remove(b.player()));
         assertEquals(Arrays.asList(a, c), queue.entries());
+    }
+
+    @Test
+    void playersWhoChoseAMapOnlyPlayThere() {
+        ModeQueue queue = new ModeQueue(new GameMode("first-rush-duo", "First rush duo", 1, 2, false), WINDOW);
+        QueueEntry gelato = entry(1, 0, 0, "Gelato");
+        QueueEntry nebuc = entry(2, 0, 1, "Nebuc");
+        QueueEntry any = entry(3, 0, 2, null);
+        QueueEntry nebucToo = entry(4, 0, 3, "nebuc");
+        queue.add(gelato);
+        queue.add(nebuc);
+        queue.add(any);
+        queue.add(nebucToo);
+
+        List<MatchProposal> matches = queue.poll(0);
+        assertEquals(2, matches.size());
+        assertEquals(Arrays.asList(gelato.player(), any.player()), matches.get(0).players(),
+                "the oldest plays with the first who takes any map");
+        assertEquals("Gelato", matches.get(0).map());
+        assertEquals(Arrays.asList(nebuc.player(), nebucToo.player()), matches.get(1).players());
+        assertEquals("Nebuc", matches.get(1).map());
+        assertEquals(0, queue.size());
+    }
+
+    @Test
+    void differentMapsNeverMeet() {
+        ModeQueue queue = new ModeQueue(new GameMode("sumo", "Sumo", 2, 1, false), WINDOW);
+        queue.add(entry(1, 0, 0, "Gelato"));
+        queue.add(entry(2, 0, 1, "Nebuc"));
+        assertTrue(queue.poll(0).isEmpty());
+        queue.add(entry(3, 0, 2, null));
+        MatchProposal match = queue.poll(0).get(0);
+        assertEquals(Arrays.asList(new UUID(0, 1), new UUID(0, 3)), match.players());
+        assertEquals(Arrays.asList(new UUID(0, 2)), players(queue.entries()));
+    }
+
+    @Test
+    void aSoloPlayerPlaysOnTheMapChosenOrAny() {
+        ModeQueue queue = new ModeQueue(new GameMode("first-rush", "First rush", 1, 1, false), WINDOW);
+        queue.add(entry(1, 0, 0, "Gelato"));
+        queue.add(entry(2, 0, 1, null));
+        List<MatchProposal> matches = queue.poll(0);
+        assertEquals("Gelato", matches.get(0).map());
+        assertNull(matches.get(1).map(), "the host chooses");
+    }
+
+    @Test
+    void rankedSkipsTheClosestRatingOnAnotherMap() {
+        ModeQueue queue = new ModeQueue(new GameMode("ranked", "Ranked", 2, 1, true), WINDOW);
+        QueueEntry oldest = entry(1, 1000, 0, "Lectus");
+        QueueEntry close = entry(2, 1005, 1, "Archway");
+        QueueEntry farther = entry(3, 1050, 2, null);
+        queue.add(oldest);
+        queue.add(close);
+        queue.add(farther);
+        MatchProposal match = queue.poll(5).get(0);
+        assertEquals(Arrays.asList(oldest.player(), farther.player()), sortedByRatingDesc(match));
+        assertEquals("Lectus", match.map());
+        assertEquals(Arrays.asList(close), queue.entries());
     }
 }

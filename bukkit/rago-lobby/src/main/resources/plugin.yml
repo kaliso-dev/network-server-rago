@@ -15,7 +15,7 @@ commands:
     aliases: [hub]
   queue:
     description: Join the queue of a mode, or leave it.
-    usage: /queue <mode|leave>
+    usage: /queue <mode> [map] | /queue leave
     aliases: [file, q]
   duel:
     description: Challenge a lobby player to a 1v1.

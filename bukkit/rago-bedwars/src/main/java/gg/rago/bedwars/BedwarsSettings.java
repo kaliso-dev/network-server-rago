@@ -2,7 +2,10 @@ package gg.rago.bedwars;
 
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.Map;
+import org.bukkit.Material;
 import org.bukkit.configuration.ConfigurationSection;
 
 /** The settings of config.yml, checked. Immutable. */
@@ -19,7 +22,8 @@ final class BedwarsSettings {
         }
     }
 
-    private final List<String> modes;
+    /** The modes this plugin plays, each with the names of its maps (empty: every map). */
+    private final Map<String, List<String>> modes;
     private final int maxGames;
     private final boolean demo;
     private final int respawnSeconds;
@@ -37,10 +41,14 @@ final class BedwarsSettings {
     /** The damage of a fireball's blast, before the armour: on its thrower, on the other players. */
     private final double fireballSelf;
     private final double fireballOthers;
+    /** The modes of one team: the layers of the defense around the bed they rush, and their time limit. */
+    private final List<Material> rushDefense;
+    private final int rushSeconds;
 
-    private BedwarsSettings(List<String> modes, int maxGames, boolean demo, int respawnSeconds, Rate iron, Rate gold,
-            List<Rate> diamond, List<Rate> emerald, int[] events, double[] fireball) {
-        this.modes = Collections.unmodifiableList(modes);
+    private BedwarsSettings(Map<String, List<String>> modes, int maxGames, boolean demo, int respawnSeconds, Rate iron,
+            Rate gold, List<Rate> diamond, List<Rate> emerald, int[] events, double[] fireball, List<Material> rushDefense,
+            int rushSeconds) {
+        this.modes = Collections.unmodifiableMap(modes);
         this.maxGames = maxGames;
         this.demo = demo;
         this.respawnSeconds = respawnSeconds;
@@ -56,18 +64,18 @@ final class BedwarsSettings {
         this.gameEnd = events[5];
         this.fireballSelf = fireball[0];
         this.fireballOthers = fireball[1];
+        this.rushDefense = Collections.unmodifiableList(rushDefense);
+        this.rushSeconds = rushSeconds;
     }
+
+    /** The word for every map, in the maps of a mode. */
+    static final String EVERY_MAP = "toutes";
+    /** At most this many layers of defense around the bed of a rush. */
+    static final int MAX_DEFENSE = 4;
 
     /** The settings of config.yml. Throws IllegalArgumentException naming the wrong setting. */
     static BedwarsSettings read(ConfigurationSection config) {
-        List<String> modes = new ArrayList<>();
-        for (String mode : config.getStringList("modes")) {
-            String id = mode.trim();
-            if (!id.matches("[a-z0-9-]{1,32}")) {
-                throw new IllegalArgumentException("modes: \"" + mode + "\" is not a mode id of the lobby");
-            }
-            modes.add(id);
-        }
+        Map<String, List<String>> modes = modes(config);
         int maxGames = config.getInt("parties-max", 8);
         if (maxGames < 1 || maxGames > 50) {
             throw new IllegalArgumentException("parties-max: from 1 to 50");
@@ -95,8 +103,82 @@ final class BedwarsSettings {
         }
         double[] fireball = {damage(config, "boule-de-feu.degats-sur-soi", 2.0),
             damage(config, "boule-de-feu.degats-sur-les-autres", 3.0)};
+        List<Material> defense = new ArrayList<>();
+        List<String> layers = config.contains("premier-rush.defense") ? config.getStringList("premier-rush.defense")
+                : Collections.singletonList("WOOL");
+        for (String name : layers) {
+            Material block = block(name);
+            if (block == null || !block.isBlock() || !block.isSolid()) {
+                throw new IllegalArgumentException("premier-rush.defense: \"" + name + "\" is not a solid block, "
+                        + "such as WOOL or END_STONE");
+            }
+            defense.add(block);
+        }
+        if (defense.size() > MAX_DEFENSE) {
+            throw new IllegalArgumentException("premier-rush.defense: " + MAX_DEFENSE + " layers at most");
+        }
+        double rushMinutes = config.getDouble("premier-rush.minutes", 5);
+        if (rushMinutes < 0.5 || rushMinutes > 60) {
+            throw new IllegalArgumentException("premier-rush.minutes: from 0.5 to 60");
+        }
         return new BedwarsSettings(modes, maxGames, config.getBoolean("carte-demo", true), respawn, iron, gold, diamond,
-                emerald, events, fireball);
+                emerald, events, fireball, defense, (int) Math.round(rushMinutes * 60));
+    }
+
+    /**
+     * modes: each mode with its maps (a list of names, or toutes), or the list of the first version
+     * (each mode on every map).
+     */
+    private static Map<String, List<String>> modes(ConfigurationSection config) {
+        Map<String, List<String>> modes = new LinkedHashMap<>();
+        if (!config.isConfigurationSection("modes")) {
+            for (String mode : config.getStringList("modes")) {
+                modes.put(modeId(mode, "modes"), new ArrayList<String>());
+            }
+            return modes;
+        }
+        ConfigurationSection section = config.getConfigurationSection("modes");
+        for (String key : section.getKeys(false)) {
+            String id = modeId(key, "modes");
+            String path = "modes." + key;
+            List<String> maps = new ArrayList<>();
+            if (section.isList(key)) {
+                for (String map : section.getStringList(key)) {
+                    String name = map.trim();
+                    if (!name.matches("[A-Za-z0-9_-]{1,64}")) {
+                        throw new IllegalArgumentException(path + ": \"" + map + "\" is not a map (the name of its world folder)");
+                    }
+                    maps.add(name);
+                }
+                if (maps.isEmpty()) {
+                    throw new IllegalArgumentException(path + ": at least one map, or " + EVERY_MAP);
+                }
+            } else if (!EVERY_MAP.equalsIgnoreCase(String.valueOf(section.get(key)).trim())) {
+                throw new IllegalArgumentException(path + ": a list of maps, such as [Gelato, Nebuc], or " + EVERY_MAP);
+            }
+            modes.put(id, maps);
+        }
+        return modes;
+    }
+
+    /** A block by its 1.8 name, or by the names players know: END_STONE (ENDER_STONE in 1.8), PLANKS (WOOD). */
+    static Material block(String name) {
+        String key = name.trim().toUpperCase(java.util.Locale.ROOT).replace(' ', '_');
+        if (key.equals("END_STONE") || key.equals("ENDSTONE")) {
+            return Material.ENDER_STONE;
+        }
+        if (key.equals("PLANKS")) {
+            return Material.WOOD;
+        }
+        return Material.matchMaterial(key);
+    }
+
+    private static String modeId(String mode, String path) {
+        String id = mode.trim();
+        if (!id.matches("[a-z0-9-]{1,32}")) {
+            throw new IllegalArgumentException(path + ": \"" + mode + "\" is not a mode id of the lobby");
+        }
+        return id;
     }
 
     private static double damage(ConfigurationSection config, String path, double fallback) {
@@ -141,7 +223,13 @@ final class BedwarsSettings {
 
     /** The lobby modes this plugin plays. */
     List<String> modes() {
-        return modes;
+        return new ArrayList<>(modes.keySet());
+    }
+
+    /** The names of this mode's maps, in the order given; empty for every map. */
+    List<String> mapsOf(String modeId) {
+        List<String> maps = modes.get(modeId);
+        return maps == null ? Collections.<String>emptyList() : Collections.unmodifiableList(maps);
     }
 
     /** How many game worlds the server keeps at most, so how many games at once. */
@@ -207,5 +295,15 @@ final class BedwarsSettings {
     /** The damage of a fireball on the other players, in half hearts before the armour. */
     double fireballOthers() {
         return fireballOthers;
+    }
+
+    /** The layers of blocks around the bed a team of one rushes, from the bed outwards (WOOL: the island's colour). */
+    List<Material> rushDefense() {
+        return rushDefense;
+    }
+
+    /** The time limit of a rush, in seconds. */
+    int rushSeconds() {
+        return rushSeconds;
     }
 }

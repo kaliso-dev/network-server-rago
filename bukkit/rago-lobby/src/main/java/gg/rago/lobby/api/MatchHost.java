@@ -1,6 +1,9 @@
 package gg.rago.lobby.api;
 
+import gg.rago.game.GameMode;
 import gg.rago.game.MatchProposal;
+import java.util.Collections;
+import java.util.List;
 import org.bukkit.entity.Player;
 
 /**
@@ -22,4 +25,13 @@ public interface MatchHost {
      * host ends the player's part (a forfeit) and calls {@link LobbyService#sendToLobby(Player)}.
      */
     void abandon(Player player);
+
+    /**
+     * The maps a player may choose from when joining this mode's queue, in the order the menu shows
+     * them. With two or more, the selector asks which one (or any); the match then carries the
+     * choice ({@link MatchProposal#map()}). Empty, the default: no choice, the host picks the map.
+     */
+    default List<String> maps(GameMode mode) {
+        return Collections.emptyList();
+    }
 }

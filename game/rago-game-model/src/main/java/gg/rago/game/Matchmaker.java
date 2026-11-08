@@ -37,19 +37,34 @@ public final class Matchmaker {
         }
     }
 
+    /** Joins this mode's queue, on any map. */
     public JoinResult join(UUID player, String modeId, int rating, long nowMillis) {
+        return join(player, modeId, rating, nowMillis, null);
+    }
+
+    /**
+     * Joins this mode's queue for this map (null: any map). Choosing another map of the mode one
+     * waits for keeps the place in the queue (SWITCHED).
+     */
+    public JoinResult join(UUID player, String modeId, int rating, long nowMillis, String map) {
         ModeQueue queue = queues.get(modeId);
         if (queue == null) {
             return JoinResult.UNKNOWN_MODE;
         }
         String current = queueOf.get(player);
         if (modeId.equals(current)) {
-            return JoinResult.ALREADY_WAITING;
+            QueueEntry waiting = queue.find(player);
+            if (QueueEntry.sameMap(waiting.map(), map)) {
+                return JoinResult.ALREADY_WAITING;
+            }
+            queue.remove(player);
+            queue.add(new QueueEntry(player, waiting.rating(), waiting.joinedAtMillis(), map));
+            return JoinResult.SWITCHED;
         }
         if (current != null) {
             queues.get(current).remove(player);
         }
-        queue.add(new QueueEntry(player, rating, nowMillis));
+        queue.add(new QueueEntry(player, rating, nowMillis, map));
         queueOf.put(player, modeId);
         return current == null ? JoinResult.JOINED : JoinResult.SWITCHED;
     }
@@ -80,6 +95,20 @@ public final class Matchmaker {
     public int waiting(String modeId) {
         ModeQueue queue = queues.get(modeId);
         return queue == null ? 0 : queue.size();
+    }
+
+    /** How many players wait in this mode's queue for this very map (not those who take any map). */
+    public int waitingFor(String modeId, String map) {
+        ModeQueue queue = queues.get(modeId);
+        int count = 0;
+        if (queue != null && map != null) {
+            for (QueueEntry entry : queue.entries()) {
+                if (map.equalsIgnoreCase(entry.map())) {
+                    count++;
+                }
+            }
+        }
+        return count;
     }
 
     public int waitingTotal() {
