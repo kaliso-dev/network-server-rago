@@ -31,9 +31,12 @@ stats du lobby. Quitter le serveur ou taper `/spawn` pendant le duel, c'est perd
   essai : défenseur tombé, un point pour l'attaquant ; les rôles changent à chaque coup (ou après
   15 secondes sans coup). Le défenseur reste à sa place, coups sans dégâts, pas de blocs. Premier
   à 3.
-- **Block placement 1v1 et 2v2**, comme le BlockFight de Minemen : deux petites plateformes au-dessus
-  du vide, une épée en bois et des blocs sans fin ; construire, clutch, se bloquer, faire tomber.
-  Premier à 5.
+- **Block placement 1v1 et 2v2**, sur les maps de block placement du propriétaire
+  (`block-fight.cartes` dans `config.yml` : chaque camp part de son bloc d'or, en 2v2 côte à
+  côte), copiées comme celles du sumo : épée en bois Sharpness I, pioche et hache Efficiency I,
+  cisailles, deux stacks de laine, 12 end stone, 16 échelles, armure en fer Protection IV.
+  Construire, clutch, casser leurs blocs, faire tomber. Premier à 5. Sans ces mondes, deux
+  petites plateformes au-dessus du vide.
 - **Top fight 1v1 et 2v2** : une île dont le lit a une défense de trois couches (end stone, bois,
   laine) ; on grimpe et on se bat dessus, en stuff de Ranked Bedwars. Premier à 3.
 - **Attack and defense 1v1 et 2v2**, comme un rush en solo sur Hypixel : le défenseur est chez
@@ -75,6 +78,15 @@ et chaque variante son record : le meilleur score du joueur et celui du serveur,
   deux de plus devant, puis de la laine sur le tout (32 blocs). Chrono.
 - **Bridge** : 31 blocs de vide par technique (god bridge, breezily, ninja, telly, speed bridge),
   dont les règles sont vérifiées. Chrono.
+- **Block extend**, comme dans un vrai bed fight, sur la map BlockClutchExtend du propriétaire
+  (`block-extend` dans `config.yml`) : le joueur part d'une place exacte d'un pont, prend un coup
+  et se sauve avec sa laine bleue. Trois niveaux, le coup de plus en plus fort : Or, un gros coup
+  de face qui l'envoie vers les blocs d'or du pont plus bas, où il clutch ; Diamant, un coup
+  normal par la droite, il se retourne et extend jusqu'aux blocs de diamant ; Émeraude, un gros
+  coup de face depuis le haut, il atterrit et clutch sur les blocs d'émeraude plus bas. Les blocs
+  d'or, de diamant et d'émeraude de la map sont de la laine dans le jeu. Chaque niveau donne sa
+  place de départ (F3), le bloc où se sauver, la force du coup et d'où il vient (`coup` : devant,
+  droite, gauche, derriere, ou `vers` un point). Un réglage ajoute des échelles. Série.
 - **Ladder practice** : un mur d'end stone de 12 blocs à monter avec des échelles, ou la tour de
   laine sous les pieds. Chrono.
 - **Pearl practice** : sur un morceau de Sky Rise (l'île rouge, l'île aux diamants en face, l'île

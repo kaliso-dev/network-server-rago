@@ -28,6 +28,8 @@ final class MapCopy {
     /** Redstone wire, repeaters, comparators, torches, levers, buttons, pressure plates, signs. */
     private static final int[] LOOSE_MECHANISMS = {55, 93, 94, 149, 150, 75, 76, 69, 77, 143, 70, 72, 147, 148, 63, 68};
 
+    private static final int WOOL_ID = 35;
+
     /** Each block: x, y, z from the origin, id, data. */
     private final int[] blocks;
 
@@ -215,6 +217,52 @@ final class MapCopy {
             }
         }
         return new MapCopy(Arrays.copyOf(kept, n));
+    }
+
+    /**
+     * The markers the owner put on the map (blocks of these ids: the gold where a player starts...)
+     * become wool, of the colour of a wool block next to them (white when there is none): the map
+     * plays as it looks.
+     */
+    MapCopy markersAsWool(int... ids) {
+        Map<Long, Integer> wool = new HashMap<>();
+        for (int i = 0; i < blocks.length; i += 5) {
+            if (blocks[i + 3] == WOOL_ID) {
+                wool.put(key(blocks[i], blocks[i + 1], blocks[i + 2]), blocks[i + 4]);
+            }
+        }
+        int[] changed = blocks.clone();
+        for (int i = 0; i < changed.length; i += 5) {
+            if (!contains(ids, changed[i + 3])) {
+                continue;
+            }
+            int colour = 0;
+            search:
+            for (int dy : new int[] {0, -1, 1}) {
+                for (int dx = -1; dx <= 1; dx++) {
+                    for (int dz = -1; dz <= 1; dz++) {
+                        Integer data = wool.get(key(changed[i] + dx, changed[i + 1] + dy, changed[i + 2] + dz));
+                        if (data != null) {
+                            colour = data;
+                            break search;
+                        }
+                    }
+                }
+            }
+            changed[i + 3] = WOOL_ID;
+            changed[i + 4] = colour;
+        }
+        return new MapCopy(changed);
+    }
+
+    /** The id and data of the block at this place of the copy, packed as id * 16 + data; 0 for air. */
+    int blockAt(int x, int y, int z) {
+        for (int i = 0; i < blocks.length; i += 5) {
+            if (blocks[i] == x && blocks[i + 1] == y && blocks[i + 2] == z) {
+                return blocks[i + 3] << 4 | blocks[i + 4];
+            }
+        }
+        return 0;
     }
 
     /** True if the copy holds a block of this id at this place. */

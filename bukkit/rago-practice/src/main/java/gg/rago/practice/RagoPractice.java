@@ -8,11 +8,13 @@ import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.logging.Level;
 import org.bukkit.World;
 import org.bukkit.WorldCreator;
+import org.bukkit.configuration.ConfigurationSection;
 import org.bukkit.configuration.file.FileConfiguration;
 import org.bukkit.plugin.java.JavaPlugin;
 
@@ -146,8 +148,9 @@ public final class RagoPractice extends JavaPlugin {
         List<MapZones.ZoneMap> arenas = zoneMaps(config, "boxing.cartes", spacing, "the boxing and the combo bot");
         onMaps(register("boxing", (h, m, a, t) -> new Boxing(h, m, a, t, boxing), slots, spacing, false), arenas);
         register("kb-displace", (h, m, a, t) -> new KbDisplace(h, m, a, t, kb), slots, spacing, false);
-        register("block-fight-1v1", (h, m, a, t) -> new BlockFight(h, m, a, t, blocks), slots, spacing, false);
-        register("block-fight-2v2", (h, m, a, t) -> new BlockFight(h, m, a, t, blocks), slots, spacing, false);
+        List<MapZones.ZoneMap> blockMaps = zoneMaps(config, "block-fight.cartes", spacing, "the block placement");
+        onMaps(register("block-fight-1v1", (h, m, a, t) -> new BlockFight(h, m, a, t, blocks), slots, spacing, false), blockMaps);
+        onMaps(register("block-fight-2v2", (h, m, a, t) -> new BlockFight(h, m, a, t, blocks), slots, spacing, false), blockMaps);
         register("top-fight-1v1", (h, m, a, t) -> new TopFight(h, m, a, t, top), slots, spacing, false);
         register("top-fight-2v2", (h, m, a, t) -> new TopFight(h, m, a, t, top), slots, spacing, false);
         AttackDefense.Base base = attackDefenseBase(config, spacing);
@@ -173,6 +176,103 @@ public final class RagoPractice extends JavaPlugin {
         register("block-edit", BlockEditTraining::new, slots, spacing, false);
         register("block-edit-duel", (h, m, a, t) -> new BlockEditDuel(h, m, a, t, edit), slots, spacing, false);
         register("bridge-fight-1v1", (h, m, a, t) -> new BridgeDuel(h, m, a, t, bridge), slots, spacing, false);
+        BlockExtendTraining.Course course = blockExtendCourse(config, spacing);
+        register("block-extend", (h, m, a, t) -> new BlockExtendTraining(h, m, a, t, course), slots, spacing, false);
+    }
+
+    /**
+     * The course of the block extend (block-extend): the owner's map copied once, its gold, diamond
+     * and emerald markers turned to wool, and its three levels (or, diamant, emeraude). With a
+     * mistake in the section, the plugin's own levels on plain blocks; without the world, the
+     * levels of the section on plain blocks.
+     */
+    private BlockExtendTraining.Course blockExtendCourse(FileConfiguration config, int spacing) {
+        ConfigurationSection section = config.getConfigurationSection("block-extend");
+        String problem = section == null ? "the section is missing" : checkBlockExtend(section, spacing);
+        if (problem != null) {
+            getLogger().warning("block-extend in config.yml: " + problem + ". The block extend plays on the plugin's own blocks.");
+            return new BlockExtendTraining.Course(null, BlockExtendTraining.plainLevels());
+        }
+        int[] origin = numbers(section.getList("centre"), 3);
+        BlockExtendTraining.Level[] levels = new BlockExtendTraining.Level[BlockExtendTraining.IDS.length];
+        for (int i = 0; i < levels.length; i++) {
+            ConfigurationSection level = section.getConfigurationSection("niveaux." + BlockExtendTraining.IDS[i]);
+            List<?> start = level.getList("depart");
+            double[] at = new double[5];
+            for (int k = 0; k < 5; k++) {
+                at[k] = number(start.get(k)) - (k < 3 ? origin[k] : 0);
+            }
+            int[] target = numbers(level.getList("cible"), 3);
+            for (int k = 0; k < 3; k++) {
+                target[k] -= origin[k];
+            }
+            List<?> force = level.getList("force");
+            double[] way;
+            if (level.isList("vers")) {
+                List<?> towards = level.getList("vers");
+                way = BlockExtendTraining.towards(at, number(towards.get(0)) - origin[0], number(towards.get(1)) - origin[2]);
+            } else {
+                way = BlockExtendTraining.thrown((float) at[3], BlockExtendTraining.From.of(level.getString("coup", "devant")));
+            }
+            levels[i] = new BlockExtendTraining.Level(BlockExtendTraining.IDS[i], BlockExtendTraining.LABELS[i], at, target, way,
+                    number(force.get(0)), number(force.get(1)));
+        }
+        MapCopy copy = MapCopy.read(section.getString("monde", ""), numbers(section.getList("zone"), 6), origin, getLogger(),
+                "the block extend");
+        if (copy != null) {
+            copy = copy.markersAsWool(BlockExtendTraining.MARKERS);
+        }
+        return new BlockExtendTraining.Course(copy, levels);
+    }
+
+    /** What is wrong with the block-extend section, or null. */
+    static String checkBlockExtend(ConfigurationSection section, int spacing) {
+        String world = section.getString("monde", "");
+        Map<String, Object> zoneMap = new HashMap<>();
+        zoneMap.put("monde", world.trim().isEmpty() ? "-" : world);
+        zoneMap.put("centre", section.getList("centre"));
+        zoneMap.put("zone", section.getList("zone"));
+        String zoneProblem = checkZoneMap(zoneMap, spacing);
+        if (zoneProblem != null) {
+            return zoneProblem;
+        }
+        for (String id : BlockExtendTraining.IDS) {
+            ConfigurationSection level = section.getConfigurationSection("niveaux." + id);
+            String where = "niveaux." + id;
+            if (level == null) {
+                return where + ": the level is missing";
+            }
+            if (!numbersOf(level.getList("depart"), 5)) {
+                return where + ".depart: x, y, z, yaw, pitch, as F3 gives them";
+            }
+            if (numbers(level.getList("cible"), 3) == null) {
+                return where + ".cible: x, y, z of the block to land on, whole numbers";
+            }
+            if (!numbersOf(level.getList("force"), 2)) {
+                return where + ".force: horizontal, vertical (a hit of a fight: 0.42, 0.36)";
+            }
+            if (level.contains("vers")) {
+                if (!numbersOf(level.getList("vers"), 2)) {
+                    return where + ".vers: x, z of the point the hit throws towards";
+                }
+            } else if (BlockExtendTraining.From.of(level.getString("coup", "devant")) == null) {
+                return where + ".coup: devant, droite, gauche or derriere";
+            }
+        }
+        return null;
+    }
+
+    /** True if the value is a list of this many numbers. */
+    private static boolean numbersOf(Object value, int size) {
+        if (!(value instanceof List) || ((List<?>) value).size() != size) {
+            return false;
+        }
+        for (Object each : (List<?>) value) {
+            if (!(each instanceof Number)) {
+                return false;
+            }
+        }
+        return true;
     }
 
     /**

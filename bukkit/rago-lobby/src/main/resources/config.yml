@@ -546,11 +546,13 @@ modes:
     equipes: 2
     joueurs-par-equipe: 1
     classe: false
-    kit: [WOOD_SWORD, "SANDSTONE 64", "SANDSTONE 64", "SANDSTONE 64"]
+    kit: [WOOD_SWORD, WOOD_PICKAXE, WOOD_AXE, SHEARS, "WOOL 64", "ENDER_STONE 12", "WOOL 64", "LADDER 16"]
     description:
-      - "Two platforms over the void,"
-      - "blocks that never run out:"
-      - "build, clutch, knock them off."
+      - "On the block placement maps:"
+      - "wool, end stone and ladders,"
+      - "iron armour, Protection IV."
+      - "Build, clutch, break their"
+      - "blocks, knock them off."
       - "First to 5."
   block-fight-2v2:
     nom: "&bBlock placement 2v2"
@@ -559,10 +561,11 @@ modes:
     equipes: 2
     joueurs-par-equipe: 2
     classe: false
-    kit: [WOOD_SWORD, "SANDSTONE 64", "SANDSTONE 64", "SANDSTONE 64"]
+    kit: [WOOD_SWORD, WOOD_PICKAXE, WOOD_AXE, SHEARS, "WOOL 64", "ENDER_STONE 12", "WOOL 64", "LADDER 16"]
     description:
       - "Block placement, two"
-      - "against two. First to 5."
+      - "against two, with the kit"
+      - "of the maps. First to 5."
   block-fight-arena:
     nom: "&bBlock placement arena"
     categorie: ranked
@@ -748,6 +751,20 @@ modes:
       - "jump a gap too long, extend"
       - "your wool in the air (5+1,"
       - "6+0, 6+1, 7+0, 7-1, 7-2)."
+  block-extend:
+    nom: "&bBlock extend"
+    categorie: entrainement
+    icone: WOOL
+    equipes: 1
+    joueurs-par-equipe: 1
+    classe: false
+    description:
+      - "As in a real bed fight: take"
+      - "a hit on the bridge, save"
+      - "yourself with your wool."
+      - "Gold, Diamond, Emerald: the"
+      - "hit gets bigger. Ladders:"
+      - "an option."
   kb-displace:
     nom: "&bKB displace 1v1"
     categorie: duels

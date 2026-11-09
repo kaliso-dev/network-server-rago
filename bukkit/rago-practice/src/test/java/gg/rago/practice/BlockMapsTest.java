@@ -1,0 +1,124 @@
+package gg.rago.practice;
+
+import static org.junit.jupiter.api.Assertions.assertArrayEquals;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertNull;
+import static org.junit.jupiter.api.Assertions.assertTrue;
+
+import java.io.InputStreamReader;
+import java.nio.charset.StandardCharsets;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
+import org.bukkit.configuration.ConfigurationSection;
+import org.bukkit.configuration.file.YamlConfiguration;
+import org.junit.jupiter.api.Test;
+
+/** The block placement on the owner's maps, and the block extend on BlockClutchExtend. */
+class BlockMapsTest {
+
+    private static YamlConfiguration bundled() {
+        return YamlConfiguration.loadConfiguration(new InputStreamReader(
+                RagoPractice.class.getResourceAsStream("/config.yml"), StandardCharsets.UTF_8));
+    }
+
+    @Test
+    void theBundledBlockPlacementMapsAreCheckedAndHaveTwoStarts() {
+        YamlConfiguration config = bundled();
+        List<Map<?, ?>> maps = config.getMapList("block-fight.cartes");
+        assertEquals(3, maps.size());
+        Set<String> names = new HashSet<>();
+        for (Map<?, ?> map : maps) {
+            assertNull(RagoPractice.checkZoneMap(map, config.getInt("espacement")), String.valueOf(map));
+            assertTrue(names.add(String.valueOf(map.get("monde"))));
+            assertEquals(2, ((List<?>) map.get("departs")).size(), String.valueOf(map.get("monde")));
+        }
+        // the points of the duel stay where they were
+        assertEquals(5, config.getInt("points-pour-gagner.block-fight"));
+    }
+
+    @Test
+    void theBundledBlockExtendIsChecked() {
+        YamlConfiguration config = bundled();
+        ConfigurationSection section = config.getConfigurationSection("block-extend");
+        assertNotNull(section);
+        assertNull(RagoPractice.checkBlockExtend(section, config.getInt("espacement")));
+        assertEquals(870604.589, section.getDoubleList("niveaux.or.depart").get(0), 1e-9, "the exact start of the screenshot");
+    }
+
+    @Test
+    void aWrongBlockExtendIsToldWhy() throws Exception {
+        YamlConfiguration config = bundled();
+        int spacing = config.getInt("espacement");
+        ConfigurationSection section = config.getConfigurationSection("block-extend");
+        section.set("niveaux.diamant.coup", "dessus");
+        assertTrue(RagoPractice.checkBlockExtend(section, spacing).startsWith("niveaux.diamant.coup"));
+        section.set("niveaux.diamant.coup", "droite");
+        section.set("niveaux.or.depart", java.util.Arrays.asList(870604.589, 101, 870630.939));
+        assertTrue(RagoPractice.checkBlockExtend(section, spacing).startsWith("niveaux.or.depart"));
+        section.set("niveaux.emeraude", null);
+        section.set("niveaux.or.depart", java.util.Arrays.asList(870604.589, 101, 870630.939, -179.9, 1.3));
+        assertTrue(RagoPractice.checkBlockExtend(section, spacing).startsWith("niveaux.emeraude"));
+    }
+
+    @Test
+    void aHitThrowsAwayFromWhereItComes() {
+        // looking south (+z): the right hand is west (-x)
+        assertArrayEquals(new double[] {0, -1}, BlockExtendTraining.thrown(0f, BlockExtendTraining.From.FRONT), 1e-9);
+        assertArrayEquals(new double[] {0, 1}, BlockExtendTraining.thrown(0f, BlockExtendTraining.From.BACK), 1e-9);
+        assertArrayEquals(new double[] {1, 0}, BlockExtendTraining.thrown(0f, BlockExtendTraining.From.RIGHT), 1e-9);
+        assertArrayEquals(new double[] {-1, 0}, BlockExtendTraining.thrown(0f, BlockExtendTraining.From.LEFT), 1e-9);
+        // looking north (180), as on the levels of the map: a hit from the front throws south
+        assertArrayEquals(new double[] {0, 1}, BlockExtendTraining.thrown(180f, BlockExtendTraining.From.FRONT), 1e-9);
+    }
+
+    @Test
+    void theWordsOfTheHitAreFrenchOrEnglish() {
+        assertEquals(BlockExtendTraining.From.RIGHT, BlockExtendTraining.From.of("droite"));
+        assertEquals(BlockExtendTraining.From.FRONT, BlockExtendTraining.From.of(" Devant "));
+        assertEquals(BlockExtendTraining.From.BACK, BlockExtendTraining.From.of("derrière"));
+        assertEquals(BlockExtendTraining.From.LEFT, BlockExtendTraining.From.of("left"));
+        assertNull(BlockExtendTraining.From.of("dessus"));
+    }
+
+    @Test
+    void aHitTowardsAPointHasLengthOne() {
+        double[] start = {0, 10, 0, 180, 0};
+        assertArrayEquals(new double[] {0.6, 0.8}, BlockExtendTraining.towards(start, 3, 4), 1e-9);
+        // right under the start: straight back
+        assertArrayEquals(BlockExtendTraining.thrown(180f, BlockExtendTraining.From.FRONT),
+                BlockExtendTraining.towards(start, 0, 0), 1e-9);
+    }
+
+    @Test
+    void theLevelsLandBelowAndAwayFromTheirStart() {
+        for (BlockExtendTraining.Level level : BlockExtendTraining.plainLevels()) {
+            assertTrue(level.target[1] < level.start[1], level.id + ": the target is below the start");
+            assertEquals(1.0, Math.hypot(level.way[0], level.way[1]), 1e-9, level.id);
+            assertTrue(level.horizontal > 0 && level.vertical > 0, level.id);
+        }
+        BlockExtendTraining.Level gold = BlockExtendTraining.plainLevels()[0];
+        BlockExtendTraining.Level diamond = BlockExtendTraining.plainLevels()[1];
+        assertTrue(gold.horizontal > diamond.horizontal, "the gold hit is the big one");
+    }
+
+    @Test
+    void theMarkersOfTheMapBecomeTheWoolNextToThem() {
+        MapCopy copy = MapCopy.of(
+                0, 0, 0, 41, 0, // gold, next to blue wool
+                1, 0, 0, 35, 11,
+                5, 0, 5, 57, 0, // diamond, alone
+                9, 0, 9, 133, 0, // emerald, on red wool
+                9, -1, 9, 35, 14,
+                3, 0, 3, 1, 0); // stone stays
+        MapCopy played = copy.markersAsWool(BlockExtendTraining.MARKERS);
+        assertEquals(35 << 4 | 11, played.blockAt(0, 0, 0));
+        assertEquals(35 << 4, played.blockAt(5, 0, 5));
+        assertEquals(35 << 4 | 14, played.blockAt(9, 0, 9));
+        assertEquals(1 << 4, played.blockAt(3, 0, 3));
+        assertEquals(41 << 4, copy.blockAt(0, 0, 0), "the copy itself is left as it was");
+        assertEquals(0, played.blockAt(7, 7, 7));
+    }
+}
