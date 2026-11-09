@@ -199,9 +199,9 @@ final class Ranks {
     /** The PREMIUM rank: sold on the web store, with the perks of the network and a pink gradient name. */
     static RankDef premium() {
         return new RankDef(PREMIUM, "§d[PREMIUM] ", "§d", "§f", false, Arrays.asList("rago.perk.chat", "rago.perk.fly",
-                "rago.perk.join", "rago.perk.nick", "rago.perk.message"), null, 0, 0, Material.NETHER_STAR, Arrays.asList(
-                        "A pink gradient name and the §d§l✦§7 badge", "+50% Network XP in every game",
-                        "/fly in the lobby", "/nick: play under another name", "Your own message above your head",
+                "rago.perk.join", "rago.perk.nick", "rago.perk.message", "rago.perk.speed"), null, 0, 0, Material.NETHER_STAR,
+                Arrays.asList("A pink gradient name and the §d§l✦§7 badge", "+50% Network XP in every game",
+                        "/fly in the lobby", "Speed I, II or III in the lobby (settings)", "/nick: play under another name", "Your own message above your head",
                         "Your arrival announced, with a firework", "White messages, no chat cooldown"),
                 1.5, "rose", PREMIUM, true);
     }

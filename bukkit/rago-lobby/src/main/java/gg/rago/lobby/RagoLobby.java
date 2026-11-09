@@ -363,6 +363,7 @@ public final class RagoLobby extends JavaPlugin implements LobbyService {
         for (PotionEffect effect : player.getActivePotionEffects()) {
             player.removePotionEffect(effect.getType());
         }
+        applyLobbySpeed(player);
         giveHotbar(player);
         scoreboard.show(player);
         visibility.applyInLobby(player, state);
@@ -375,6 +376,20 @@ public final class RagoLobby extends JavaPlugin implements LobbyService {
         int xp = mine == null ? 0 : mine.xp();
         player.setLevel(settings.levels().level(xp));
         player.setExp(settings.levels().progress(xp));
+    }
+
+    /** The highest Speed of the lobby. */
+    static final int MAX_LOBBY_SPEED = 3;
+
+    /** The Speed the player chose for the lobby, if their rank has it (rago.perk.speed). */
+    void applyLobbySpeed(Player player) {
+        player.removePotionEffect(org.bukkit.potion.PotionEffectType.SPEED);
+        PlayerStats mine = stats.book().get(player.getUniqueId());
+        int level = mine == null ? 0 : mine.lobbySpeed();
+        if (level > 0 && player.hasPermission("rago.perk.speed") && state.isProtected(player)) {
+            player.addPotionEffect(new PotionEffect(org.bukkit.potion.PotionEffectType.SPEED, Integer.MAX_VALUE, level - 1,
+                    true, false), true);
+        }
     }
 
     /** /fly: flying in the lobby, for the ranks that have it. */
@@ -478,6 +493,24 @@ public final class RagoLobby extends JavaPlugin implements LobbyService {
         state.forget(player.getUniqueId());
     }
 
+    /** The gadget of the hotbar's fourth slot this player chose: the teleport stick at first. */
+    HotbarItem gadgetOf(Player player) {
+        PlayerStats mine = stats.book().get(player.getUniqueId());
+        return LobbyGadgets.gadget(mine == null ? null : mine.gadget());
+    }
+
+    /** The gadget menu: the gadget chosen goes in the hotbar, and stays from one visit to the next. */
+    void openGadgets(Player player) {
+        gadgets.openMenu(player, gadgetOf(player), (p, gadget) -> {
+            PlayerStats mine = profiles.of(p);
+            mine.setGadget(gadget == HotbarItem.TELEPORT ? null : gadget.name());
+            stats.save(mine);
+            if (state.isProtected(p)) {
+                giveHotbar(p);
+            }
+        });
+    }
+
     /** A click of this player, if they aim at a leaderboard: true if it went to one. */
     boolean clickBoard(Player player, boolean left) {
         return statsDisplays != null && statsDisplays.clickAimed(player, left);
@@ -498,7 +531,12 @@ public final class RagoLobby extends JavaPlugin implements LobbyService {
                 gadgets.throwFireball(player);
                 break;
             case TELEPORT:
-                gadgets.teleport(player);
+            case GRAPPLE:
+            case PAINTBALL:
+            case FIREWORKS:
+            case POPPER:
+            case LEAP:
+                gadgets.use(player, item);
                 break;
             case LEVEL:
                 levelMenu.open(player);
@@ -536,7 +574,8 @@ public final class RagoLobby extends JavaPlugin implements LobbyService {
         inventory.setItem(HotbarItem.SELECTOR.slot(), HotbarItem.SELECTOR.create());
         inventory.setItem(HotbarItem.KIT_EDITOR.slot(), HotbarItem.KIT_EDITOR.create());
         inventory.setItem(HotbarItem.FIREBALL.slot(), HotbarItem.FIREBALL.create());
-        inventory.setItem(HotbarItem.TELEPORT.slot(), HotbarItem.TELEPORT.create());
+        HotbarItem gadget = gadgetOf(player);
+        inventory.setItem(gadget.slot(), gadget.create());
         inventory.setItem(HotbarItem.LEVEL.slot(), HotbarItem.LEVEL.create());
         if (queues.queueOf(player) != null) {
             inventory.setItem(HotbarItem.LEAVE_QUEUE.slot(), HotbarItem.LEAVE_QUEUE.create());
@@ -992,6 +1031,10 @@ public final class RagoLobby extends JavaPlugin implements LobbyService {
 
     StatsService stats() {
         return stats;
+    }
+
+    LobbyGadgets gadgets() {
+        return gadgets;
     }
 
     DuelRequests duels() {

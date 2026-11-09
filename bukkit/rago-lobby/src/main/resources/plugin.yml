@@ -189,6 +189,7 @@ permissions:
       rago.perk.chat: true
       rago.perk.fly: true
       rago.perk.nick: true
+      rago.perk.speed: true
   # The perks of the ranks of the shop.
   rago.perk.chat:
     description: No chat cooldown, the same message twice allowed.
@@ -204,4 +205,7 @@ permissions:
     default: false
   rago.perk.message:
     description: Your own message above your head.
+    default: false
+  rago.perk.speed:
+    description: Speed I, II or III in the lobby, chosen in the settings.
     default: false

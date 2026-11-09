@@ -19,7 +19,18 @@ dans les files d'attente des modes de jeu.
   emmène sur le bloc qu'on regarde, à 20 blocs au plus, jamais à travers un mur : le premier bloc
   sur le chemin est celui où on arrive, sur lui s'il y a la place, sinon juste devant (ou dessous,
   quand on vise un plafond). En visant le vide, il emmène 20 blocs devant, en l'air. Une fois toutes
-  les 2 secondes.
+  les 2 secondes. Le bâton est l'un des gadgets de la 4e case, comme sur Hypixel : un clic gauche
+  dessus (ou « Gadgets » dans le profil) ouvre les autres, et celui qu'on prend reste d'une visite
+  à l'autre. Le grappin (on vole jusqu'au bloc accroché, à 32 blocs au plus), le pistolet à
+  paintball (les blocs touchés se colorent quelques secondes, aux yeux des joueurs seulement), le
+  lanceur de feux d'artifice, le party popper (cookies et bonbons que personne ne ramasse, et de la
+  musique) et la plume de saut.
+- **Les slimes du lobby.** Un bloc de slime est un tremplin, comme les launch pads de Hypixel : il
+  lance celui qui marche dessus là où il regarde (`slime: {avant: 2.0, haut: 0.9}` ; 0 et 0 pour
+  des slimes ordinaires).
+- **La vitesse du lobby (PREMIUM).** Dans les réglages du profil, « Lobby speed » : Speed I, II ou
+  III dans le lobby, ou rien (clic gauche plus vite, clic droit moins vite). La permission est
+  `rago.perk.speed`.
 - **L'éditeur de kit.** Le livre (deuxième case) liste les modes qui ont un kit (`kit:` sous le
   mode dans config.yml). Un clic sur un mode met son kit dans l'inventaire du joueur, rangé comme
   il l'a laissé la dernière fois, sous un petit coffre : Save, Reset (le rangement du kit) et

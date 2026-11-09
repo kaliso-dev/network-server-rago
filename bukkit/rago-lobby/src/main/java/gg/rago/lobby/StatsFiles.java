@@ -59,6 +59,8 @@ final class StatsFiles {
         yaml.set("profil.reglages.parties", stats.partyInvites());
         yaml.set("profil.reglages.amis", stats.friendRequests());
         yaml.set("profil.reglages.duels", stats.duelRequests());
+        yaml.set("profil.reglages.vitesse", stats.lobbySpeed());
+        yaml.set("profil.gadget", stats.gadget());
         yaml.set("profil.quotidien.date", stats.dailyDay());
         yaml.set("profil.quotidien.serie", stats.dailyStreak());
         if (stats.colourChoice() != null) {
@@ -200,6 +202,8 @@ final class StatsFiles {
         stats.setPartyInvites(yaml.getBoolean("profil.reglages.parties", true));
         stats.setFriendRequests(yaml.getBoolean("profil.reglages.amis", true));
         stats.setDuelRequests(yaml.getBoolean("profil.reglages.duels", true));
+        stats.setLobbySpeed(yaml.getInt("profil.reglages.vitesse", 0));
+        stats.setGadget(yaml.getString("profil.gadget", null));
         stats.setDaily(yaml.getString("profil.quotidien.date", ""), yaml.getInt("profil.quotidien.serie"));
         stats.choose(NameStyle.Kind.COLOUR, yaml.getString("profil.style.couleur", null));
         stats.choose(NameStyle.Kind.BADGE, yaml.getString("profil.style.badge", null));

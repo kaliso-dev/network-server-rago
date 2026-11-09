@@ -83,6 +83,33 @@ class LobbyGadgetsTest {
     }
 
     @Test
+    void theSlimeBlocksThrowWhereThePlayerLooks() {
+        double[] south = LobbyGadgets.launch(0f, 2.0, 0.9);
+        assertEquals(0, south[0], 1e-9);
+        assertEquals(0.9, south[1], 1e-9);
+        assertEquals(2.0, south[2], 1e-9, "yaw 0 looks south: +z");
+        double[] west = LobbyGadgets.launch(90f, 2.0, 0.9);
+        assertEquals(-2.0, west[0], 1e-9, "yaw 90 looks west: -x");
+        assertEquals(0, west[2], 1e-9);
+    }
+
+    @Test
+    void theGrapplingHookFliesToTheBlockHooked() {
+        double[] pull = LobbyGadgets.pull(0, 64, 0, 20.5, 70, 0.5);
+        assertTrue(pull[0] > 1.5, "towards it: " + pull[0]);
+        assertTrue(pull[1] > 0.5, "and up, to arc to it: " + pull[1]);
+        assertTrue(Math.abs(pull[2]) < 0.1);
+        double[] near = LobbyGadgets.pull(0, 64, 0, 3, 64, 0);
+        assertTrue(near[0] < pull[0], "slower when near");
+        assertEquals(HotbarItem.TELEPORT, LobbyGadgets.gadget(null), "the teleport stick at first");
+        assertEquals(HotbarItem.LEAP, LobbyGadgets.gadget("LEAP"));
+        assertEquals(HotbarItem.TELEPORT, LobbyGadgets.gadget("SHOP"), "only a gadget");
+        for (HotbarItem gadget : LobbyGadgets.GADGETS) {
+            assertTrue(gadget.gadget(), gadget + " in the fourth slot");
+        }
+    }
+
+    @Test
     void aFireballUnderTheFeetThrowsUp() {
         double[] jump = LobbyGadgets.push(0, 0, 0, 0, 0.5, 0);
         assertEquals(0, jump[0], 1e-9);

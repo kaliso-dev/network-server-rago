@@ -63,6 +63,8 @@ class NetworkFeaturesTest {
         assertTrue(ranks.permissions("helper", Collections.<String>emptyList()).containsAll(Arrays.asList("rago.staff",
                 "rago.perk.join", "rago.perk.fly", "rago.perk.chat", "rago.perk.nick", "rago.perk.message")));
         assertTrue(ranks.permissions(null, Collections.singletonList("premium")).contains("rago.perk.fly"));
+        assertTrue(ranks.permissions(null, Collections.singletonList("premium")).contains("rago.perk.speed"),
+                "Speed in the lobby, chosen in the settings");
         assertTrue(ranks.sold().isEmpty(), "nothing for Rago Points: PREMIUM is on the web store");
         List<String> shown = new ArrayList<>();
         for (RankDef rank : ranks.forSale()) {

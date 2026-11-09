@@ -148,6 +148,11 @@ final class ProfileMenu {
                     "Your level, the rewards of every", "5 levels, the daily and weekly", "quests.", "",
                     ChatColor.YELLOW + "Click to open")), (p, right) -> levels.open(p));
         }
+        menu.set(34, ClickMenu.item(Material.FISHING_ROD, 0, ChatColor.YELLOW + "Gadgets", listOf(
+                "The gadget of your hotbar: the", "teleport stick, the grappling", "hook, the paintball gun, the",
+                "firework launcher, the party", "popper or the leap feather.", "", "Now: " + ChatColor.YELLOW
+                        + ChatColor.stripColor(lobby.gadgetOf(player).create().getItemMeta().getDisplayName()).replace(" (right click)", ""),
+                "", ChatColor.YELLOW + "Click to change")), (p, right) -> lobby.openGadgets(p));
         boolean ready = profiles.dailyReady(player.getUniqueId());
         menu.set(40, ClickMenu.item(ready ? Material.CHEST : Material.ENDER_CHEST, ChatColor.AQUA + "Daily reward",
                 ready ? ChatColor.YELLOW + "Click to claim" : ChatColor.GRAY + "Claimed today, come back tomorrow"),
@@ -217,8 +222,32 @@ final class ProfileMenu {
                     profile.setDuelRequests(!profile.duelRequests());
                     saved(p, profile);
                 });
+        boolean speedPerk = player.hasPermission("rago.perk.speed");
+        int speed = profile.lobbySpeed();
+        org.bukkit.inventory.ItemStack speedItem = toggle(Material.FEATHER, "Lobby speed",
+                speed == 0 ? "Off" : "Speed " + roman(speed), speed > 0, "Walk faster in the lobby:", "Speed I, II or III, or off.",
+                "Left click: faster, right", "click: slower.");
+        if (!speedPerk) {
+            speedItem = ClickMenu.item(Material.FEATHER, 0, ChatColor.RED + "Lobby speed", listOf("Walk faster in the lobby:",
+                    "Speed I, II or III.", "", ChatColor.LIGHT_PURPLE + "With the [PREMIUM] rank"));
+        }
+        menu.set(22, speedItem, (p, right) -> {
+            if (!p.hasPermission("rago.perk.speed")) {
+                p.sendMessage(ChatColor.LIGHT_PURPLE + "The lobby speed comes with the [PREMIUM] rank: /store");
+                return;
+            }
+            int now = profile.lobbySpeed();
+            profile.setLobbySpeed(right ? (now + RagoLobby.MAX_LOBBY_SPEED) % (RagoLobby.MAX_LOBBY_SPEED + 1)
+                    : (now + 1) % (RagoLobby.MAX_LOBBY_SPEED + 1));
+            lobby.applyLobbySpeed(p);
+            saved(p, profile);
+        });
         menu.set(31, ClickMenu.back("My profile"), (p, right) -> open(p));
         menu.open(player);
+    }
+
+    static String roman(int n) {
+        return n == 1 ? "I" : n == 2 ? "II" : n == 3 ? "III" : String.valueOf(n);
     }
 
     private void saved(Player player, PlayerStats profile) {

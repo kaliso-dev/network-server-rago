@@ -9,6 +9,13 @@ monde: lobby
 # Below this height, a player who falls off the lobby goes back to the spawn.
 hauteur-vide: 0
 
+# The slime blocks of the lobby are launch pads, as on Hypixel: they throw whoever steps on them
+# where they look, avant forward and haut up (blocks per tick, 0 to 4; avant: 0 and haut: 0 for
+# plain slime blocks).
+slime:
+  avant: 2.0
+  haut: 0.9
+
 # The lobby scoreboard: its title (32 characters at most) and its last line.
 titre: "&e&lRAGO PRACTICE"
 adresse: "&erago.gg"
@@ -256,7 +263,8 @@ quetes:
 #                mutechat), rago.staff (staff chat, vanish, freeze, mutes, kicks, warnings),
 #                rago.perk.chat (no chat cooldown), rago.perk.fly (/fly in the lobby),
 #                rago.perk.join (the lobby hears the arrival), rago.perk.nick (/nick),
-#                rago.perk.message (a message of one's own above the head), or a permission of
+#                rago.perk.message (a message of one's own above the head), rago.perk.speed
+#                (Speed I, II or III in the lobby, chosen in the settings), or a permission of
 #                another plugin; "-permission" takes one away
 #   herite       the rank whose permissions (and colours, badges, boost) this one also has
 #   boost-xp     the Network XP of its players is multiplied by this (1.5: half more)
@@ -310,14 +318,14 @@ rangs:
   premium:
     prefixe: "&d[PREMIUM] "
     couleur: "&d"
-    permissions: [rago.perk.chat, rago.perk.fly, rago.perk.join, rago.perk.nick, rago.perk.message]
+    permissions: [rago.perk.chat, rago.perk.fly, rago.perk.join, rago.perk.nick, rago.perk.message, rago.perk.speed]
     boost-xp: 1.5
     style: rose
     badge: premium
     boutique-en-ligne: true
     icone: NETHER_STAR
     avantages: ["A pink gradient name and the &d&l✦&7 badge", "+50% Network XP in every game", "/fly in the lobby",
-      "/nick: play under another name", "Your own message above your head", "Your arrival announced, with a firework",
+      "Speed I, II or III in the lobby (settings)", "/nick: play under another name", "Your own message above your head", "Your arrival announced, with a firework",
       "White messages, no chat cooldown"]
 
 # The colours of name and the badges (/style). A colour is a gradient along the letters of the

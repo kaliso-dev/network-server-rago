@@ -20,7 +20,19 @@ enum HotbarItem {
     FIREBALL(2, Material.FIREBALL, 0, ChatColor.GOLD + "Fireball " + ChatColor.GRAY + "(right click)",
             "Throw it where you look: its blast", "pushes the players around it.", "Under your feet: a fireball jump."),
     TELEPORT(3, Material.BLAZE_ROD, 0, ChatColor.YELLOW + "Teleport stick " + ChatColor.GRAY + "(right click)",
-            "Takes you onto the block you", "look at, 20 blocks away at most.", "Not through the walls!"),
+            "Takes you onto the block you", "look at, 20 blocks away at most,", "or 20 blocks ahead in the air.",
+            "Not through the walls!", "", "Left click: another gadget"),
+    // The other gadgets take the place of the teleport stick (slot 3), chosen in the gadget menu.
+    GRAPPLE(3, Material.FISHING_ROD, 0, ChatColor.YELLOW + "Grappling hook " + ChatColor.GRAY + "(right click)",
+            "Hook the block you look at,", "32 blocks away at most, and fly", "to it.", "", "Left click: another gadget"),
+    PAINTBALL(3, Material.SNOW_BALL, 0, ChatColor.YELLOW + "Paintball gun " + ChatColor.GRAY + "(right click)",
+            "Paint the lobby: each ball", "colours the blocks it hits", "for a few seconds.", "", "Left click: another gadget"),
+    FIREWORKS(3, Material.FIREWORK, 0, ChatColor.YELLOW + "Firework launcher " + ChatColor.GRAY + "(right click)",
+            "A firework of random colours,", "every three seconds.", "", "Left click: another gadget"),
+    POPPER(3, Material.CAKE, 0, ChatColor.YELLOW + "Party popper " + ChatColor.GRAY + "(right click)",
+            "Cookies, sweets and music", "for everyone around.", "", "Left click: another gadget"),
+    LEAP(3, Material.FEATHER, 0, ChatColor.YELLOW + "Leap feather " + ChatColor.GRAY + "(right click)",
+            "A big leap where you look.", "", "Left click: another gadget"),
     LEAVE_QUEUE(4, Material.INK_SACK, 1, ChatColor.RED + "Leave the queue " + ChatColor.GRAY + "(right click)",
             "You leave the queue."),
     LEVEL(5, Material.BREWING_STAND_ITEM, 0, ChatColor.AQUA + "Network Level " + ChatColor.GRAY + "(right click)",
@@ -50,6 +62,11 @@ enum HotbarItem {
 
     int slot() {
         return slot;
+    }
+
+    /** True for the gadgets of slot 3: the teleport stick and the others of the gadget menu. */
+    boolean gadget() {
+        return slot == 3;
     }
 
     ItemStack create() {

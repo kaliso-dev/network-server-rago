@@ -32,6 +32,10 @@ final class PlayerStats {
     private boolean partyInvites = true;
     private boolean friendRequests = true;
     private boolean duelRequests = true;
+    /** The Speed of the lobby (PREMIUM): 0 for none, else the level of the effect, 1 to 3. */
+    private int lobbySpeed;
+    /** The gadget of the hotbar (the name of its HotbarItem), null for the teleport stick. */
+    private String gadget;
     /** The day the daily reward was last claimed ("" never), and the days in a row. */
     private String dailyDay = "";
     private int dailyStreak;
@@ -190,6 +194,22 @@ final class PlayerStats {
 
     void setDuelRequests(boolean duelRequests) {
         this.duelRequests = duelRequests;
+    }
+
+    int lobbySpeed() {
+        return lobbySpeed;
+    }
+
+    String gadget() {
+        return gadget;
+    }
+
+    void setGadget(String gadget) {
+        this.gadget = gadget;
+    }
+
+    void setLobbySpeed(int lobbySpeed) {
+        this.lobbySpeed = Math.max(0, Math.min(RagoLobby.MAX_LOBBY_SPEED, lobbySpeed));
     }
 
     String dailyDay() {

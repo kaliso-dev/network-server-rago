@@ -96,6 +96,16 @@ final class LobbyListener implements Listener {
         if (event.getTo().getY() < lobby.settings().voidHeight() && state.isInLobby(event.getPlayer())) {
             event.getPlayer().teleport(state.spawn());
             event.getPlayer().setFallDistance(0f);
+            return;
+        }
+        if (event.getFrom().getBlockX() == event.getTo().getBlockX() && event.getFrom().getBlockY() == event.getTo().getBlockY()
+                && event.getFrom().getBlockZ() == event.getTo().getBlockZ() && event.getFrom().getY() == event.getTo().getY()) {
+            return;
+        }
+        Player player = event.getPlayer();
+        if (state.isProtected(player) && !player.isFlying()
+                && event.getTo().clone().subtract(0, 0.2, 0).getBlock().getType() == Material.SLIME_BLOCK) {
+            lobby.gadgets().slime(player, lobby.settings().slimeForward(), lobby.settings().slimeUp());
         }
     }
 
@@ -136,6 +146,8 @@ final class LobbyListener implements Listener {
         event.setCancelled(true);
         if (event.getAction() == Action.RIGHT_CLICK_AIR || event.getAction() == Action.RIGHT_CLICK_BLOCK) {
             lobby.use(player, item);
+        } else if (item.gadget() && (event.getAction() == Action.LEFT_CLICK_AIR || event.getAction() == Action.LEFT_CLICK_BLOCK)) {
+            lobby.openGadgets(player);
         }
     }
 

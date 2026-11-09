@@ -20,6 +20,9 @@ final class LobbySettings {
 
     private final String world;
     private final int voidHeight;
+    /** The throw of the slime blocks of the lobby: forward and up, in blocks per tick. */
+    private double slimeForward = 2.0;
+    private double slimeUp = 0.9;
     private final String title;
     private final String address;
     private final int defaultRating;
@@ -137,9 +140,17 @@ final class LobbySettings {
                     + " with dashes, from developer.hypixel.net), or \"\" for no import");
         }
         Map<String, List<GameMode>> privateRoutes = readPrivateRoutes(config.getConfigurationSection("parties-privees"), modes);
+        double slimeForward = config.getDouble("slime.avant", 2.0);
+        double slimeUp = config.getDouble("slime.haut", 0.9);
+        if (slimeForward < 0 || slimeForward > 4 || slimeUp < 0 || slimeUp > 4) {
+            throw new IllegalArgumentException("slime: avant and haut from 0 to 4");
+        }
         try {
-            return new LobbySettings(world, voidHeight, title, address, defaultRating, window, categories, groups, modes,
-                    npcs, levels, hypixelKey, privateRoutes);
+            LobbySettings settings = new LobbySettings(world, voidHeight, title, address, defaultRating, window, categories,
+                    groups, modes, npcs, levels, hypixelKey, privateRoutes);
+            settings.slimeForward = slimeForward;
+            settings.slimeUp = slimeUp;
+            return settings;
         } catch (IllegalArgumentException e) {
             throw new IllegalArgumentException("modes: " + e.getMessage(), e);
         }
@@ -522,6 +533,16 @@ final class LobbySettings {
     /** Below this height, a player in the lobby goes back to the spawn. */
     int voidHeight() {
         return voidHeight;
+    }
+
+    /** How hard a slime block of the lobby throws forward (0: not at all). */
+    double slimeForward() {
+        return slimeForward;
+    }
+
+    /** How hard a slime block of the lobby throws up. */
+    double slimeUp() {
+        return slimeUp;
     }
 
     /** Scoreboard title, coloured. */
