@@ -478,6 +478,11 @@ public final class RagoLobby extends JavaPlugin implements LobbyService {
         state.forget(player.getUniqueId());
     }
 
+    /** A click of this player, if they aim at a leaderboard: true if it went to one. */
+    boolean clickBoard(Player player, boolean left) {
+        return statsDisplays != null && statsDisplays.clickAimed(player, left);
+    }
+
     void use(Player player, HotbarItem item) {
         switch (item) {
             case SELECTOR:

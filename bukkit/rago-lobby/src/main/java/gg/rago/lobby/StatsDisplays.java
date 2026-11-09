@@ -11,8 +11,10 @@ import java.util.function.Function;
 import org.bukkit.ChatColor;
 import org.bukkit.Location;
 import org.bukkit.Material;
+import org.bukkit.World;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
+import org.bukkit.util.Vector;
 
 /**
  * What the stats show in the lobby, each player reading their own:
@@ -23,7 +25,11 @@ import org.bukkit.inventory.ItemStack;
  * <li>a leaderboard wall: boards side by side, each with its top 10, the player's own place and
  * when it starts again. A click on a board changes its period (day, week, ever) for that player,
  * or its mode for an ELO board. A board with several stats goes to the next one on a right
- * click, and changes the period or the mode on a left click.
+ * click, and changes the period or the mode on a left click; a click (either) on its line "Click
+ * here: next leaderboard" or "Click here: change the period" does what the line says. A board is
+ * clicked from as far as {@link #AIM_REACH} blocks, anywhere on its text: the player's look is
+ * followed to it (the armor stands of its lines are too thin to aim at, and an entity is only
+ * clicked from 3 blocks).
  * </ul>
  * Main thread only.
  */
@@ -39,8 +45,34 @@ final class StatsDisplays {
     private static final double BOARD_BOTTOM = 1.2;
     private static final int PROFILE_LINES = 10;
     private static final long CLICK_COOLDOWN_MS = 300;
+    /** How far a board is clicked from, in blocks. */
+    static final double AIM_REACH = 16;
+    /** Half the width of a board's text, in blocks (its lines are about 4 blocks wide). */
+    static final double AIM_HALF_WIDTH = 2.3;
+    /** The lines "Click here": the first two after the reset line. */
+    static final int FIRST_CLICK_LINE = 3 + TOP + 4;
     /** The colour of the place above a step: gold, silver, bronze, then grey. */
     private static final ChatColor[] PODIUM_COLOURS = {ChatColor.GOLD, ChatColor.WHITE, ChatColor.RED, ChatColor.GRAY};
+
+    /** A board in the world: the point under its text, and what it shows. */
+    private static final class Spot {
+        final World world;
+        final double x;
+        final double z;
+        /** Where the name of its last line floats. */
+        final double bottom;
+        final List<BoardStat> stats;
+        final String key;
+
+        Spot(Location bottom, List<BoardStat> stats, String key) {
+            this.world = bottom.getWorld();
+            this.x = bottom.getX();
+            this.z = bottom.getZ();
+            this.bottom = bottom.getY();
+            this.stats = stats;
+            this.key = key;
+        }
+    }
 
     /** What one player looks at on one board: which of its stats, and which period or mode. */
     private static final class Choice {
@@ -55,6 +87,8 @@ final class StatsDisplays {
     private final List<GameMode> ranked;
     private final Map<UUID, Map<String, Choice>> choices = new HashMap<>();
     private final Map<UUID, Long> lastClick = new HashMap<>();
+    /** Where the boards are, for the clicks from a distance. */
+    private final List<Spot> spots = new ArrayList<>();
     /** The skins of the podiums: none until {@link #setSkins}. */
     private Function<UUID, Skin> skins = player -> null;
 
@@ -131,9 +165,10 @@ final class StatsDisplays {
             final String key = wall.point() + "#" + i;
             double offset = (i - (boards.size() - 1) / 2.0) * BOARD_GAP;
             Location bottom = base.clone().add(rightX * offset, BOARD_BOTTOM, rightZ * offset);
+            spots.add(new Spot(bottom, stats, key));
             fakes.add(new FakeHologram(bottom, BOARD_LINES, viewer -> board(stats, key, viewer, System.currentTimeMillis()),
                     (player, left) -> {
-                        if (cooled(player)) {
+                        if (!clickAimed(player, left) && cooled(player)) {
                             next(player, stats, key, left);
                         }
                     }));
@@ -225,16 +260,12 @@ final class StatsDisplays {
                 break;
         }
         if (stats.size() > 1) {
-            lines.add(ChatColor.GOLD + "Right click: next leaderboard");
-            if (stat.choice() == BoardStat.Choice.PERIOD) {
-                lines.add(ChatColor.GOLD + "Left click: change the period");
-            } else if (stat.choice() == BoardStat.Choice.RANKED_MODE) {
-                lines.add(ChatColor.GOLD + "Left click: change the mode");
-            }
-        } else if (stat.choice() == BoardStat.Choice.PERIOD) {
-            lines.add(ChatColor.GOLD + "Click to change the period");
+            lines.add(ChatColor.GOLD + "" + ChatColor.BOLD + "\u00bb " + ChatColor.GOLD + "Click here: next leaderboard");
+        }
+        if (stat.choice() == BoardStat.Choice.PERIOD) {
+            lines.add(ChatColor.YELLOW + "" + ChatColor.BOLD + "\u00bb " + ChatColor.YELLOW + "Click here: change the period");
         } else if (stat.choice() == BoardStat.Choice.RANKED_MODE) {
-            lines.add(ChatColor.GOLD + "Click to change the mode");
+            lines.add(ChatColor.YELLOW + "" + ChatColor.BOLD + "\u00bb " + ChatColor.YELLOW + "Click here: change the mode");
         }
         return lines;
     }
@@ -333,7 +364,8 @@ final class StatsDisplays {
 
     void next(UUID player, List<BoardStat> stats, String key, boolean left) {
         Choice choice = choice(player, key);
-        if (stats.size() > 1 && !left) {
+        boolean nothingToChange = stats.get(choice.stat % stats.size()).choice() == BoardStat.Choice.NONE;
+        if (stats.size() > 1 && (!left || nothingToChange)) {
             choice.stat = (choice.stat + 1) % stats.size();
             choice.option = 0;
             return;
@@ -352,6 +384,95 @@ final class StatsDisplays {
                 break;
         }
         choice.option = (choice.option + 1) % count;
+    }
+
+    /**
+     * A click on line {@code line} (0 for the title) of a board: its line "next leaderboard" goes to
+     * the next stat, its line "change the period" (or mode) changes it, and elsewhere the button
+     * decides as in {@link #next}.
+     */
+    void clickLine(UUID player, List<BoardStat> stats, String key, int line, boolean left) {
+        int next = stats.size() > 1 ? FIRST_CLICK_LINE : -1;
+        int change = stats.size() > 1 ? FIRST_CLICK_LINE + 1 : FIRST_CLICK_LINE;
+        if (line == next) {
+            next(player, stats, key, false);
+        } else if (line == change || stats.size() == 1) {
+            next(player, stats, key, true);
+        } else {
+            next(player, stats, key, left);
+        }
+    }
+
+    /**
+     * A click of this player, if they aim at a board within {@link #AIM_REACH} blocks: true if it
+     * went to one (the nearest one aimed at), even when it came too soon after the last.
+     */
+    boolean clickAimed(Player player, boolean left) {
+        if (spots.isEmpty()) {
+            return false;
+        }
+        Location eye = player.getEyeLocation();
+        Vector way = eye.getDirection();
+        Spot aimed = null;
+        double nearest = Double.MAX_VALUE;
+        double height = 0;
+        for (Spot spot : spots) {
+            if (!spot.world.equals(eye.getWorld())) {
+                continue;
+            }
+            double low = spot.bottom - FakeHologram.LINE / 2;
+            double high = spot.bottom + (BOARD_LINES - 1) * FakeHologram.LINE + FakeHologram.LINE / 2;
+            double distance = aim(eye.getX(), eye.getY(), eye.getZ(), way.getX(), way.getY(), way.getZ(),
+                    spot.x, spot.z, low, high, AIM_HALF_WIDTH, AIM_REACH);
+            if (distance >= 0 && distance < nearest) {
+                nearest = distance;
+                aimed = spot;
+                height = eye.getY() + way.getY() * distance - spot.bottom;
+            }
+        }
+        if (aimed == null) {
+            return false;
+        }
+        if (cooled(player)) {
+            clickLine(player.getUniqueId(), aimed.stats, aimed.key, lineAt(height), left);
+        }
+        return true;
+    }
+
+    /** The line of a board at this height above the name of its last line (0 for the title). */
+    static int lineAt(double height) {
+        return BOARD_LINES - 1 - (int) Math.round(height / FakeHologram.LINE);
+    }
+
+    /**
+     * How far along the look (eye, unit way) it meets the text of a board, or -1 when it misses it.
+     * The text of floating names always faces the one who reads it: the board is a rectangle
+     * standing on the vertical line through (x, z), turned to the eye, halfWidth to each side of
+     * the line, from low to high.
+     */
+    static double aim(double eyeX, double eyeY, double eyeZ, double wayX, double wayY, double wayZ,
+            double x, double z, double low, double high, double halfWidth, double reach) {
+        double toEyeX = eyeX - x;
+        double toEyeZ = eyeZ - z;
+        double away = Math.sqrt(toEyeX * toEyeX + toEyeZ * toEyeZ);
+        if (away < 0.5) {
+            return -1;
+        }
+        double normalX = toEyeX / away;
+        double normalZ = toEyeZ / away;
+        double towards = wayX * normalX + wayZ * normalZ;
+        if (towards > -1e-6) {
+            return -1;
+        }
+        double distance = away / -towards;
+        if (distance > reach) {
+            return -1;
+        }
+        double atX = toEyeX + wayX * distance;
+        double atZ = toEyeZ + wayZ * distance;
+        double aside = Math.abs(atX * -normalZ + atZ * normalX);
+        double y = eyeY + wayY * distance;
+        return aside <= halfWidth && y >= low && y <= high ? distance : -1;
     }
 
     private boolean cooled(Player player) {

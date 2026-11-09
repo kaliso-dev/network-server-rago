@@ -18,6 +18,8 @@ import org.bukkit.event.entity.FoodLevelChangeEvent;
 import org.bukkit.event.hanging.HangingBreakByEntityEvent;
 import org.bukkit.event.inventory.InventoryClickEvent;
 import org.bukkit.event.inventory.InventoryDragEvent;
+import org.bukkit.event.player.PlayerAnimationEvent;
+import org.bukkit.event.player.PlayerAnimationType;
 import org.bukkit.event.player.PlayerArmorStandManipulateEvent;
 import org.bukkit.event.player.PlayerBucketEmptyEvent;
 import org.bukkit.event.player.PlayerChangedWorldEvent;
@@ -118,6 +120,12 @@ final class LobbyListener implements Listener {
             lobby.daily().claim(player);
             return;
         }
+        boolean right = event.getAction() == Action.RIGHT_CLICK_AIR || event.getAction() == Action.RIGHT_CLICK_BLOCK;
+        if (right && lobby.clickBoard(player, false)) {
+            // A right click on a leaderboard, the hotbar item in the hand or not.
+            event.setCancelled(true);
+            return;
+        }
         // Chests, doors, buttons and the like are not used in the lobby.
         event.setUseInteractedBlock(Event.Result.DENY);
         HotbarItem item = HotbarItem.of(event.getItem());
@@ -128,6 +136,14 @@ final class LobbyListener implements Listener {
         event.setCancelled(true);
         if (event.getAction() == Action.RIGHT_CLICK_AIR || event.getAction() == Action.RIGHT_CLICK_BLOCK) {
             lobby.use(player, item);
+        }
+    }
+
+    /** Every left click swings the arm, on a block, an entity or the air: a leaderboard aimed at takes it. */
+    @EventHandler(priority = EventPriority.LOW)
+    public void onSwing(PlayerAnimationEvent event) {
+        if (event.getAnimationType() == PlayerAnimationType.ARM_SWING && state.isProtected(event.getPlayer())) {
+            lobby.clickBoard(event.getPlayer(), true);
         }
     }
 

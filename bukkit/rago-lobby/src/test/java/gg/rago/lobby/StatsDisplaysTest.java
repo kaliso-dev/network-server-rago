@@ -75,8 +75,8 @@ class StatsDisplaysTest {
         assertEquals(StatsDisplays.BOARD_LINES, elo.size());
         assertEquals("Ranked Elo", elo.get(0));
         assertEquals("Ranked Bedwars 1v1", elo.get(1));
-        assertEquals("Right click: next leaderboard", elo.get(elo.size() - 2));
-        assertEquals("Left click: change the mode", elo.get(elo.size() - 1));
+        assertEquals("» Click here: next leaderboard", elo.get(StatsDisplays.FIRST_CLICK_LINE));
+        assertEquals("» Click here: change the mode", elo.get(StatsDisplays.FIRST_CLICK_LINE + 1));
         displays.next(alice, stats, key, true);
         assertEquals("Ranked Bedwars 2v2", plain(displays.board(stats, key, alice, SUNDAY)).get(1), "a left click changes the mode");
 
@@ -86,7 +86,7 @@ class StatsDisplaysTest {
         assertEquals("All modes · Daily", kills.get(1), "from its first period");
         assertEquals("1. Alice - 2", kills.get(3));
         assertEquals("You: #1 - 2", kills.get(3 + StatsDisplays.TOP + 1));
-        assertEquals("Left click: change the period", kills.get(kills.size() - 1));
+        assertEquals("» Click here: change the period", kills.get(kills.size() - 1));
         displays.next(alice, stats, key, true);
         assertEquals("All modes · Weekly", plain(displays.board(stats, key, alice, SUNDAY)).get(1));
         displays.next(alice, stats, key, true);
@@ -116,7 +116,7 @@ class StatsDisplaysTest {
         List<String> lines = plain(displays.board(stats, "p#0", bob, SUNDAY));
         assertEquals(Arrays.asList("Kills", "All modes · Daily", "", "Nobody yet"), lines.subList(0, 4));
         assertEquals("You: not ranked yet", lines.get(3 + StatsDisplays.TOP + 1));
-        assertEquals("Click to change the period", lines.get(lines.size() - 1));
+        assertEquals("» Click here: change the period", lines.get(StatsDisplays.FIRST_CLICK_LINE));
         for (boolean left : new boolean[] {false, true}) {
             displays.next(bob, stats, "p#0", left);
         }
@@ -124,6 +124,56 @@ class StatsDisplaysTest {
                 "both clicks change the period");
         displays.next(bob, stats, "p#0", false);
         assertEquals("All modes · Daily", plain(displays.board(stats, "p#0", bob, SUNDAY)).get(1));
+    }
+
+    @Test
+    void eachClickLineDoesWhatItSaysWhicheverTheButton() throws Exception {
+        LobbySettings settings = bundledSettings();
+        StatsBook book = new StatsBook(1000, settings.levels());
+        StatsDisplays displays = new StatsDisplays(settings, book, new StatsMenu(settings, book), new FakeEntities(null, null));
+        Player alice = player(ALICE);
+        List<BoardStat> stats = settings.npc("leaderboardprincipal").boards().get(0);
+        String key = "main#0";
+        displays.clickLine(ALICE, stats, key, StatsDisplays.FIRST_CLICK_LINE + 1, false);
+        assertEquals("Ranked Bedwars 2v2", plain(displays.board(stats, key, alice, SUNDAY)).get(1),
+                "a right click on the line of the mode changes the mode");
+        displays.clickLine(ALICE, stats, key, StatsDisplays.FIRST_CLICK_LINE, true);
+        assertEquals("Kills", plain(displays.board(stats, key, alice, SUNDAY)).get(0),
+                "a left click on the line of the next leaderboard goes to it");
+        displays.clickLine(ALICE, stats, key, 5, true);
+        assertEquals("All modes · Weekly", plain(displays.board(stats, key, alice, SUNDAY)).get(1),
+                "elsewhere, a left click changes the period");
+        displays.clickLine(ALICE, stats, key, 5, false);
+        assertEquals("Network level", plain(displays.board(stats, key, alice, SUNDAY)).get(0));
+        displays.clickLine(ALICE, stats, key, 5, true);
+        assertEquals("Ranked Elo", plain(displays.board(stats, key, alice, SUNDAY)).get(0),
+                "nothing to change on the level: a left click goes on to the next leaderboard");
+    }
+
+    @Test
+    void aBoardIsAimedAtFromAfarOnItsText() {
+        double line = FakeHologram.LINE;
+        double bottom = 65;
+        double low = bottom - line / 2;
+        double high = bottom + (StatsDisplays.BOARD_LINES - 1) * line + line / 2;
+        double reach = StatsDisplays.AIM_REACH;
+        double half = StatsDisplays.AIM_HALF_WIDTH;
+        // Ten blocks south of the board, looking north at the height of its last line.
+        assertEquals(10, StatsDisplays.aim(0, bottom, 10, 0, 0, -1, 0, 0, low, high, half, reach), 1e-9);
+        assertTrue(StatsDisplays.aim(2, bottom, 10, 0, 0, -1, 0, 0, low, high, half, reach) > 0, "two blocks aside: on its text");
+        assertEquals(-1, StatsDisplays.aim(3, bottom, 10, 0, 0, -1, 0, 0, low, high, half, reach), "three: beside it");
+        assertEquals(-1, StatsDisplays.aim(0, bottom, 10, 0, 0, 1, 0, 0, low, high, half, reach), "turned away");
+        assertEquals(-1, StatsDisplays.aim(0, bottom, 20, 0, 0, -1, 0, 0, low, high, half, reach), "too far");
+        assertEquals(-1, StatsDisplays.aim(0, high + 0.5, 10, 0, 0, -1, 0, 0, low, high, half, reach), "over it");
+        // From the east, looking west and a little up: on its fifth line from the bottom.
+        double up = 4 * line / 6;
+        double norm = Math.sqrt(1 + up * up);
+        double distance = StatsDisplays.aim(6, bottom, 0.5, -1 / norm, up / norm, 0, 0, 0, low, high, half, reach);
+        assertTrue(distance > 0);
+        assertEquals(StatsDisplays.BOARD_LINES - 5, StatsDisplays.lineAt(up / norm * distance));
+        assertEquals(StatsDisplays.BOARD_LINES - 1, StatsDisplays.lineAt(0.1));
+        assertEquals(StatsDisplays.FIRST_CLICK_LINE, StatsDisplays.lineAt(line + 0.05),
+                "the line above the last one, on a board with two click lines");
     }
 
     @Test
