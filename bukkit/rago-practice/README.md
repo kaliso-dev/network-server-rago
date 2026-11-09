@@ -134,16 +134,25 @@ On revient tout de suite après une chute ou une mort, les blocs posés partent 
 
 ## Le bridge fight
 
-Un FFA ouvert à tous, comme l'arène de block placement : quatre plateformes de laine côte à côte
-au-dessus du vide, chacune de deux couleurs comme une plateforme de top fight (bleu et jaune, rouge
-et blanc, orange et noir, vert et vert clair), en stuff de Ranked Bedwars (armure de fer, épée en
-pierre, pommes d'or), vrais dégâts. On ne pose aucun bloc : un pont relie chaque bout de plateforme
-à un petit carré, et une passerelle le long de chaque bout relie les carrés de toutes les
-plateformes, donc on passe d'une arène à l'autre à pied. La plateforme d'un joueur suit l'endroit
-où il marche ; la boussole y emmène aussi (pas pendant un combat). Après une mort ou une chute, on
-revient sur un carré de la dernière plateforme où on était, et l'armure prend la couleur de ce
-bout. Trois secondes sans dégâts au retour, sauf si on frappe le premier. Les kills comptent dans
-les stats du mode.
+Un FFA ouvert à tous, comme l'arène de block placement, en stuff de Ranked Bedwars (armure de fer,
+épée en pierre, pommes d'or), vrais dégâts, sans poser de bloc. Il se joue sur la map du
+propriétaire (`bridge-fight.cartes` dans `config.yml`, le monde `Bridge Fight Plateform`) : son
+étage du bas, copié une fois, avec ses cinq plateformes (deux bleu et jaune, deux noir et vert, le
+H rouge et jaune) et les trois portails entre elles. Les plateformes sont ses sols de laine ou
+d'argile à la hauteur du `centre` ; un portail, c'est la cabine autour d'une lanterne aquatique
+posée au sol (7 sur 7, 9 de haut). Un clic sur un portail (clic droit en le visant, ou clic
+gauche sur un de ses blocs) emmène sur la plateforme de l'autre côté, celle qu'on regarde à
+travers lui, au bout le plus proche du portail ; le portail du milieu, qui n'a rien en face côté
+nord, ouvre le menu des plateformes. Pas de portail pendant un combat. Les barrières de la map ne
+sont pas copiées : celui qui tombe tombe dans le vide. Sans ce monde, quatre plateformes de laine
+côte à côte au-dessus du vide (bleu et jaune, rouge et blanc, orange et noir, vert et vert clair) :
+un pont relie chaque bout de plateforme à un petit carré, et une passerelle le long de chaque bout
+relie les carrés, donc on passe d'une plateforme à l'autre à pied.
+
+La plateforme d'un joueur suit l'endroit où il est ; la boussole emmène sur n'importe laquelle (pas
+pendant un combat). Après une mort ou une chute, on revient à un bout de la dernière plateforme où
+on était, et l'armure prend la couleur de ce bout. Trois secondes sans dégâts au retour, sauf si on
+frappe le premier. Les kills comptent dans les stats du mode.
 
 `bridge-fight-1v1` est le vrai 1v1, à part : une seule plateforme (rouge à l'ouest, bleu à l'est)
 avec ses carrés et ses ponts, le même stuff, aucun bloc. Une mort ou une chute donne le point à

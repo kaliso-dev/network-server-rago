@@ -174,7 +174,7 @@ public final class RagoPractice extends JavaPlugin {
         List<MapZones.ZoneMap> arenaMaps = withoutBlocks(zoneMaps(config, "block-fight-arena.cartes", spacing,
                 "the block placement arena"), GOLD_ID);
         onMaps(register("block-fight-arena", BlockArena::new, slots, spacing, true), arenaMaps);
-        register("bridge-fight", BridgeArena::new, slots, spacing, true);
+        onMaps(register("bridge-fight", BridgeArena::new, slots, spacing, true), bridgeMaps(config, spacing));
         register("scenarios-ranked", RankedScenarios::new, slots, spacing, false);
         register("clutch-top-fight", (h, m, a, t) -> new ClutchTraining(h, m, a, t, true), slots, ClutchTraining.SPACING, false);
         register("block-edit", BlockEditTraining::new, slots, spacing, false);
@@ -561,6 +561,28 @@ public final class RagoPractice extends JavaPlugin {
         hosted.add("(" + modeId + ")");
         getLogger().warning("The lobby has no mode \"" + modeId + "\" in its config.yml: it stays closed.");
         return null;
+    }
+
+    /**
+     * The maps of the bridge fight (bridge-fight.cartes), without their barriers: a player knocked
+     * off falls into the void, and no invisible wall stops the knockback. A map with no platform at
+     * the height of its centre is left out.
+     */
+    private List<MapZones.ZoneMap> bridgeMaps(FileConfiguration config, int spacing) {
+        List<MapZones.ZoneMap> kept = new ArrayList<>();
+        for (MapZones.ZoneMap map : withoutBlocks(zoneMaps(config, "bridge-fight.cartes", spacing, "the bridge fight"),
+                BridgeArena.BARRIER_ID)) {
+            List<BridgeArena.Platform> platforms = BridgeArena.platformsOf(map.copy);
+            if (platforms.isEmpty()) {
+                getLogger().warning("bridge-fight.cartes in config.yml: \"" + map.name + "\" has no platform of wool or stained"
+                        + " clay at the height of its centre. The map is left out.");
+                continue;
+            }
+            getLogger().info("The bridge fight on \"" + map.name + "\": " + platforms.size() + " platforms, "
+                    + BridgeArena.portalsOf(map.copy).size() + " portals.");
+            kept.add(map);
+        }
+        return kept;
     }
 
     /** The maps without their blocks of this id (the gold that only marks the middle). */

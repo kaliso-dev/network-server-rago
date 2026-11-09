@@ -278,6 +278,17 @@ final class MapCopy {
         return places;
     }
 
+    /** The blocks of these ids: x, y, z from the origin, id, data each. */
+    List<int[]> blocksOf(int... ids) {
+        List<int[]> found = new ArrayList<>();
+        for (int i = 0; i < blocks.length; i += 5) {
+            if (contains(ids, blocks[i + 3])) {
+                found.add(Arrays.copyOfRange(blocks, i, i + 5));
+            }
+        }
+        return found;
+    }
+
     /** True if the copy holds a block of this id at this place. */
     boolean has(int x, int y, int z, int id) {
         for (int i = 0; i < blocks.length; i += 5) {

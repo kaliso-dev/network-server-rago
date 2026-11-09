@@ -116,6 +116,20 @@ block-fight-arena:
       centre: [-85, 102, 93]
       zone: [-126, 99, 52, -45, 120, 137]
 
+# The bridge fight (open to everyone) plays on this map of the owner: the lowest floor of "Bridge
+# Fight Plateform", its five platforms (two blue and yellow, two black and lime, the red H in
+# yellow) and the three portals between them. The platforms are its floors of wool or stained clay at
+# the height of the centre; a portal is a booth around a sea lantern on its floor (7 by 7, 9 high).
+# A click on a portal takes the player to the platform on the other side of it, the one they look
+# at through it; the portal with none in line (the middle one) opens the menu of the platforms.
+# Its barriers are not copied: a player knocked off falls into the void. Without that world: four
+# platforms of the plugin's own, linked by bridges.
+bridge-fight:
+  cartes:
+    - monde: "Bridge Fight Plateform"
+      centre: [85, 107, 83]
+      zone: [58, 105, 50, 112, 116, 112]
+
 # The fireball fight plays on these maps of the owner, as the boxing on its arenas: "departs",
 # where each side starts (x, y of the feet, z, yaw). The beds are the map's own: each bed belongs
 # to the side whose start is nearer. Without maps: two islands of the plugin's own.
