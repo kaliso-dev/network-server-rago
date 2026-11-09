@@ -59,6 +59,21 @@ deux équipes jouent sur des **îles voisines** au lieu d'îles opposées (`iles
 config.yml) : le premier rush décide souvent de la partie. Le joueur choisit sa map parmi les dix
 maps duo.
 
+## Top Bridge
+
+`top-bridge-1v1` et `top-bridge-2v2` sont de vraies parties de RBW sur les 20 maps de la file,
+avec le **top bridge** construit sur Antenna : au début de la partie, le plugin pose sur la copie
+une plateforme de laine de 17 blocs de large au-dessus du milieu, chaque moitié à la couleur de
+l'équipe de son côté (un bloc blanc au centre), et depuis le bord de chaque île un escalier de laine
+d'un bloc de large qui monte d'un bloc tous les deux blocs. Sur Antenna, c'est exactement la
+construction d'origine : 16 blocs au-dessus des lits (y 99), 79 blocs de long, 1445 blocs. Sur les
+autres maps, la plateforme reste à 16 blocs au-dessus des lits si rien de la map n'est dedans ni
+juste au-dessus, sinon elle prend la hauteur la plus proche où elle est dégagée ; elle est plus
+basse quand les îles sont proches, pour garder au moins 16 blocs de long. Entre deux lits qui ne
+sont pas alignés (Invasion, Lectus), tout suit la ligne d'un lit à l'autre. On construit jusqu'à
+10 blocs au-dessus de la plateforme ; elle ne se casse pas, et la copie l'enlève après la partie.
+Les modes qui l'ont sont listés dans `top-bridge:` du config.yml.
+
 ## Améliorations et pièges
 
 Le villageois « TEAM UPGRADES » de chaque île ouvre « Upgrades & Traps », comme sur Hypixel. Tout
@@ -159,6 +174,15 @@ red et blue :
    spawn le plus haut) et `/bw void 40` (la hauteur où l'on meurt ; sinon 30 blocs sous le spawn le
    plus bas).
 7. `/bw info` dit ce qui manque ; `/bw enable` ouvre la map aux parties.
+8. Facultatif, à écrire dans le `bedwars.yml` : `retirer:`, des boîtes de blocs que chaque copie
+   enlève en étant faite, toutes ou seulement certains blocs. Antenna s'en sert pour laisser de
+   côté la plateforme de laine construite dessus (le mode Top Bridge pose la sienne) :
+   ```yaml
+   retirer:
+   - de: {x: -8, y: 81, z: -73}
+     a: {x: 8, y: 120, z: 73}
+     blocs: [WOOL]
+   ```
 
 `/bw maps` liste les maps, `/bw remove red|diamond|emerald|diamonds|emeralds` enlève une équipe ou
 un générateur (le plus proche, à 5 blocs), `/bw disable` ferme la map. Chaque changement est

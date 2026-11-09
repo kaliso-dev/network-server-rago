@@ -243,6 +243,10 @@ final class Instances {
         world.setGameRuleValue("mobGriefing", "false");
         world.setGameRuleValue("keepInventory", "true");
         world.setTime(6000L);
+        for (BedwarsMap.Removal removal : map.removals()) {
+            plugin.getLogger().info("Game world " + name + ": " + removal.apply(world) + " blocks left out (retirer in "
+                    + BedwarsMap.FILE_NAME + ")");
+        }
         instances.add(new Instance(map, world));
         plugin.getLogger().info("Game world " + name + " ready (map " + map.world() + ")");
     }

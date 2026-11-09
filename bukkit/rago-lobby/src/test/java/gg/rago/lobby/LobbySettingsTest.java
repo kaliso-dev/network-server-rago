@@ -40,7 +40,10 @@ class LobbySettingsTest {
         assertEquals("lobby", settings.world());
         assertEquals(0, settings.voidHeight());
         assertEquals(0, settings.defaultRating(), "a ranked ELO starts at 0, in Coal");
-        assertEquals(42, settings.modes().size());
+        assertEquals(44, settings.modes().size());
+        assertFalse(settings.catalog().get("top-bridge-1v1").ranked(), "Top Bridge: no ELO");
+        assertEquals("2v2", settings.catalog().get("top-bridge-2v2").format());
+        assertTrue(settings.npc("rbwffa").modeIds().contains("top-bridge-1v1"));
 
         GameMode ranked = settings.catalog().get("ranked-1v1");
         assertTrue(ranked.ranked());

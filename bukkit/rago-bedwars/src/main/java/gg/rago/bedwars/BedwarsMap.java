@@ -5,6 +5,7 @@ import java.util.Collections;
 import java.util.EnumMap;
 import java.util.List;
 import java.util.Map;
+import org.bukkit.Material;
 import org.bukkit.configuration.ConfigurationSection;
 import org.bukkit.configuration.InvalidConfigurationException;
 import org.bukkit.configuration.file.YamlConfiguration;
@@ -62,6 +63,113 @@ final class BedwarsMap {
     private final List<MapPoint> diamonds = new ArrayList<>();
     private final List<MapPoint> emeralds = new ArrayList<>();
     private MapPoint spectators;
+    private final List<Removal> removals = new ArrayList<>();
+
+    /**
+     * A box of the map taken out of each game's copy when it is made (retirer:): all its blocks, or
+     * only those of some materials. Antenna has one: the owner's top bridge, which the ranked games
+     * leave out (the Top Bridge mode builds its own on every map). Immutable.
+     */
+    static final class Removal {
+        final int minX;
+        final int minY;
+        final int minZ;
+        final int maxX;
+        final int maxY;
+        final int maxZ;
+        /** Empty: every block. */
+        final List<Material> materials;
+
+        Removal(int x1, int y1, int z1, int x2, int y2, int z2, List<Material> materials) {
+            this.minX = Math.min(x1, x2);
+            this.minY = Math.max(0, Math.min(y1, y2));
+            this.minZ = Math.min(z1, z2);
+            this.maxX = Math.max(x1, x2);
+            this.maxY = Math.min(255, Math.max(y1, y2));
+            this.maxZ = Math.max(z1, z2);
+            this.materials = Collections.unmodifiableList(new ArrayList<>(materials));
+        }
+
+        boolean takes(Material type) {
+            return type != Material.AIR && (materials.isEmpty() || materials.contains(type));
+        }
+
+        /** Takes the blocks out of this world; returns how many. */
+        int apply(org.bukkit.World world) {
+            int removed = 0;
+            for (int x = minX; x <= maxX; x++) {
+                for (int z = minZ; z <= maxZ; z++) {
+                    for (int y = minY; y <= maxY; y++) {
+                        org.bukkit.block.Block block = world.getBlockAt(x, y, z);
+                        if (takes(block.getType())) {
+                            block.setType(Material.AIR, false);
+                            removed++;
+                        }
+                    }
+                }
+            }
+            return removed;
+        }
+
+        Map<String, Object> toMap() {
+            Map<String, Object> map = new java.util.LinkedHashMap<>();
+            map.put("de", corner(minX, minY, minZ));
+            map.put("a", corner(maxX, maxY, maxZ));
+            if (!materials.isEmpty()) {
+                List<String> names = new ArrayList<>();
+                for (Material material : materials) {
+                    names.add(material.name());
+                }
+                map.put("blocs", names);
+            }
+            return map;
+        }
+
+        private static Map<String, Object> corner(int x, int y, int z) {
+            Map<String, Object> map = new java.util.LinkedHashMap<>();
+            map.put("x", x);
+            map.put("y", y);
+            map.put("z", z);
+            return map;
+        }
+
+        static Removal fromMap(Map<?, ?> map, String where) {
+            int[] from = corner(map.get("de"), where + ".de");
+            int[] to = corner(map.get("a"), where + ".a");
+            List<Material> materials = new ArrayList<>();
+            Object blocks = map.get("blocs");
+            if (blocks != null) {
+                if (!(blocks instanceof List)) {
+                    throw new IllegalArgumentException(where + ".blocs: a list of blocks, for example [WOOL]");
+                }
+                for (Object name : (List<?>) blocks) {
+                    Material material = Material.matchMaterial(String.valueOf(name));
+                    if (material == null || !material.isBlock()) {
+                        throw new IllegalArgumentException(where + ".blocs: \"" + name + "\" is not a block");
+                    }
+                    materials.add(material);
+                }
+            }
+            return new Removal(from[0], from[1], from[2], to[0], to[1], to[2], materials);
+        }
+
+        private static int[] corner(Object value, String where) {
+            if (!(value instanceof Map)) {
+                throw new IllegalArgumentException(where + ": x, y and z");
+            }
+            Map<?, ?> map = (Map<?, ?>) value;
+            int[] xyz = new int[3];
+            String[] keys = {"x", "y", "z"};
+            for (int i = 0; i < 3; i++) {
+                Object number = map.get(keys[i]);
+                if (!(number instanceof Number)) {
+                    throw new IllegalArgumentException(where + "." + keys[i] + ": a whole number");
+                }
+                xyz[i] = ((Number) number).intValue();
+            }
+            return xyz;
+        }
+    }
 
     BedwarsMap(String world) {
         this.world = world;
@@ -291,6 +399,11 @@ final class BedwarsMap {
         return voidY != Integer.MIN_VALUE;
     }
 
+    /** What each game's copy leaves out (retirer:), often nothing. */
+    List<Removal> removals() {
+        return Collections.unmodifiableList(removals);
+    }
+
     /** A copy, for a game: what the map was when the game's world was copied. */
     BedwarsMap copy() {
         try {
@@ -324,6 +437,13 @@ final class BedwarsMap {
         yaml.set("diamants", maps(diamonds));
         yaml.set("emeraudes", maps(emeralds));
         write(yaml, "spectateurs", spectators);
+        if (!removals.isEmpty()) {
+            List<Map<String, Object>> boxes = new ArrayList<>();
+            for (Removal removal : removals) {
+                boxes.add(removal.toMap());
+            }
+            yaml.set("retirer", boxes);
+        }
         return yaml.saveToString();
     }
 
@@ -380,6 +500,10 @@ final class BedwarsMap {
         map.diamonds.addAll(points(yaml.getMapList("diamants"), "diamants"));
         map.emeralds.addAll(points(yaml.getMapList("emeraudes"), "emeraudes"));
         map.spectators = point(yaml, "spectateurs", null);
+        List<Map<?, ?>> boxes = yaml.getMapList("retirer");
+        for (int i = 0; i < boxes.size(); i++) {
+            map.removals.add(Removal.fromMap(boxes.get(i), "retirer[" + i + "]"));
+        }
         return map;
     }
 

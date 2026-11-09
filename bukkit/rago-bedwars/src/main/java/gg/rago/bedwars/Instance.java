@@ -44,6 +44,8 @@ final class Instance {
     private final Set<Long> placed = new HashSet<>();
     /** What the placed blocks and the flowing water replaced, when it was not air: id << 4 | data. */
     private final Map<Long, Integer> replaced = new HashMap<>();
+    /** What the game built as part of the map (a top bridge) replaced: id << 4 | data. */
+    private final Map<Long, Integer> built = new HashMap<>();
     private boolean busy;
     private boolean discarded;
 
@@ -143,6 +145,19 @@ final class Instance {
         }
     }
 
+    /**
+     * A block the game builds as part of the map, for this game only (a top bridge): players cannot
+     * break it, and the rollback puts back what was there.
+     */
+    @SuppressWarnings("deprecation") // Block#setTypeIdAndData: the 1.8 way to set a block with its data
+    void build(Block block, Material type, byte data) {
+        long key = key(block.getX(), block.getY(), block.getZ());
+        if (!built.containsKey(key)) {
+            built.put(key, block.getTypeId() << 4 | (dataOf(block) & 0xF));
+        }
+        block.setTypeIdAndData(type.getId(), data, false);
+    }
+
     /** The map as it was: no placed block, the beds back, no item or entity left. */
     @SuppressWarnings("deprecation") // Block#setTypeIdAndData: the 1.8 way to set a block with its data
     void rollback() {
@@ -156,6 +171,12 @@ final class Instance {
                     (byte) (entry.getValue() & 0xF), false);
         }
         replaced.clear();
+        for (Map.Entry<Long, Integer> entry : built.entrySet()) {
+            long key = entry.getKey();
+            world.getBlockAt(xOf(key), yOf(key), zOf(key)).setTypeIdAndData(entry.getValue() >> 4,
+                    (byte) (entry.getValue() & 0xF), false);
+        }
+        built.clear();
         for (BedHalf half : beds) {
             world.getBlockAt(half.x, half.y, half.z).setTypeIdAndData(Material.BED_BLOCK.getId(), half.data, false);
         }

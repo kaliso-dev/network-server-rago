@@ -158,6 +158,8 @@ class BedwarsGame {
     private final Map<Block, Inventory> chests = new HashMap<>();
     /** The invisible players, whose armour the others do not see. */
     private final Set<UUID> hidden = new HashSet<>();
+    /** The build limit of this game when it is not the map's (above a top bridge), else 0. */
+    private int buildLimit;
 
     BedwarsGame(RagoBedwars plugin, BedwarsHost host, Instance instance, String modeId, String modeName,
             List<List<Player>> sides) {
@@ -237,6 +239,9 @@ class BedwarsGame {
     void begin() {
         phase = Phase.STARTING;
         removeUnusedBeds();
+        if (settings.topBridge(modeId)) {
+            buildTopBridge();
+        }
         if (economy()) {
             economyUp(islands());
         }
@@ -291,6 +296,28 @@ class BedwarsGame {
             }
         }, 0L, 20L);
         sidebars();
+    }
+
+    /**
+     * Top Bridge: the platform over the middle and the stairways up to it, between the beds of the
+     * first two teams, in the copy of the map (the rollback takes them away). Players may then build
+     * up to a little above the platform.
+     */
+    void buildTopBridge() {
+        if (teams.size() < 2 || teams.get(0).points.bed == null || teams.get(1).points.bed == null) {
+            return;
+        }
+        final World world = instance.world();
+        TopBridge bridge = TopBridge.plan(teams.get(0).color, teams.get(0).points.bed, teams.get(1).color,
+                teams.get(1).points.bed, (x, y, z) -> world.getBlockAt(x, y, z).getType() != Material.AIR);
+        if (bridge == null) {
+            plugin.getLogger().warning("No room for a top bridge on " + instance.map().world() + ": the islands are too near");
+            return;
+        }
+        for (TopBridge.Piece piece : bridge.pieces()) {
+            instance.build(world.getBlockAt(piece.x, piece.y, piece.z), Material.WOOL, (byte) piece.woolData());
+        }
+        buildLimit = Math.max(instance.map().buildLimit(), Math.min(255, bridge.height() + TopBridge.BUILD_ABOVE));
     }
 
     /** The islands nobody plays on have no bed, as on Hypixel; the copy puts them back after the game. */
@@ -722,7 +749,7 @@ class BedwarsGame {
      */
     String cannotBuildAt(Block block) {
         BedwarsMap map = instance.map();
-        if (block.getY() > map.buildLimit()) {
+        if (block.getY() > (buildLimit > 0 ? buildLimit : map.buildLimit())) {
             return "Build height limit reached!";
         }
         for (BedwarsMap.Team team : map.teams().values()) {

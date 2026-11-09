@@ -26,7 +26,8 @@ class BedwarsSettingsTest {
     @Test
     void readsTheBundledConfig() throws Exception {
         BedwarsSettings settings = BedwarsSettings.read(bundled());
-        assertEquals(Arrays.asList("ranked-1v1", "ranked-2v2", "ranked-3v3", "ranked-4v4", "skyrise-1v1", "skyrise-2v2",
+        assertEquals(Arrays.asList("ranked-1v1", "ranked-2v2", "ranked-3v3", "ranked-4v4", "top-bridge-1v1",
+                "top-bridge-2v2", "skyrise-1v1", "skyrise-2v2",
                 "first-rush", "first-rush-duo", "ffa", "free-ffa", "invis-practice", "shop-practice"), settings.modes());
         assertEquals(BedwarsSettings.Kind.CLASSIC, settings.kind("ranked-1v1"));
         assertEquals(BedwarsSettings.Kind.FFA, settings.kind("ffa"));
@@ -47,6 +48,10 @@ class BedwarsSettingsTest {
         assertTrue(settings.neighbours("first-rush"));
         assertTrue(settings.neighbours("first-rush-duo"));
         assertTrue(!settings.neighbours("skyrise-1v1"));
+        assertEquals(settings.mapsOf("ranked-1v1"), settings.mapsOf("top-bridge-1v1"), "Top Bridge on the 20 maps");
+        assertEquals(settings.mapsOf("ranked-1v1"), settings.mapsOf("top-bridge-2v2"));
+        assertTrue(settings.topBridge("top-bridge-1v1") && settings.topBridge("top-bridge-2v2"));
+        assertTrue(!settings.topBridge("ranked-1v1"), "the ranked games stay as on Hypixel");
         assertEquals(8, settings.maxGames());
         assertTrue(settings.demo());
         assertEquals(5, settings.respawnSeconds());

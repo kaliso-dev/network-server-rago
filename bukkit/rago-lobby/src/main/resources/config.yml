@@ -61,7 +61,7 @@ pnj:
     modes: [partie-privee, top-fight-prive]
   rbwffa:
     nom: "&cFFA and Top fight"
-    modes: [ffa, top-fight-1v1, top-fight-2v2]
+    modes: [ffa, top-fight-1v1, top-fight-2v2, top-bridge-1v1, top-bridge-2v2]
   rbwsolo1v1ou2v2skyrise:
     nom: "&6RBW Sky Rise"
     modes: [skyrise-1v1, skyrise-2v2]
@@ -473,6 +473,27 @@ modes:
     description:
       - "Ranked Bedwars, four against"
       - "four, on the RBW maps."
+  top-bridge-1v1:
+    nom: "&eTop Bridge 1v1"
+    categorie: ranked
+    icone: LADDER
+    equipes: 2
+    joueurs-par-equipe: 1
+    classe: false
+    description:
+      - "A real RBW game on the 20 maps,"
+      - "with the top bridge of Antenna:"
+      - "stairs of wool from each island"
+      - "up to a platform over the middle."
+  top-bridge-2v2:
+    nom: "&eTop Bridge 2v2"
+    categorie: ranked
+    icone: LADDER
+    equipes: 2
+    joueurs-par-equipe: 2
+    classe: false
+    description:
+      - "Top Bridge, two against two."
   partie-privee:
     nom: "&6Private game"
     categorie: ranked

@@ -13,6 +13,8 @@ modes:
   ranked-2v2: [Antenna, Aquarium, Archway, Artemis, Boletum, Carapace, Catalyst, Chained, Eastwood, Extinction, Invasion, Katsu, Lectus, Obelisk, Paladin, Planet98, Rise, Stonekeep, Swashbuckle, Treenan]
   ranked-3v3: [Antenna, Aquarium, Archway, Artemis, Boletum, Carapace, Catalyst, Chained, Eastwood, Extinction, Invasion, Katsu, Lectus, Obelisk, Paladin, Planet98, Rise, Stonekeep, Swashbuckle, Treenan]
   ranked-4v4: [Antenna, Aquarium, Archway, Artemis, Boletum, Carapace, Catalyst, Chained, Eastwood, Extinction, Invasion, Katsu, Lectus, Obelisk, Paladin, Planet98, Rise, Stonekeep, Swashbuckle, Treenan]
+  top-bridge-1v1: [Antenna, Aquarium, Archway, Artemis, Boletum, Carapace, Catalyst, Chained, Eastwood, Extinction, Invasion, Katsu, Lectus, Obelisk, Paladin, Planet98, Rise, Stonekeep, Swashbuckle, Treenan]
+  top-bridge-2v2: [Antenna, Aquarium, Archway, Artemis, Boletum, Carapace, Catalyst, Chained, Eastwood, Extinction, Invasion, Katsu, Lectus, Obelisk, Paladin, Planet98, Rise, Stonekeep, Swashbuckle, Treenan]
   skyrise-1v1: [SkyRise]
   skyrise-2v2: [SkyRise]
   first-rush: [Acropolis, Ambush, Aqil, Cascade, Crogorm, Frosted, Gelato, Lighthouse, Lotus, Nebuc]
@@ -51,6 +53,14 @@ carte-demo: true
 
 # Seconds before a dead player comes back, while their team's bed stands (from 0 to 30).
 reapparition-secondes: 5
+
+# The modes whose games have a top bridge, the one the owner built on Antenna, on every map: when
+# the game starts, a platform of wool 17 blocks wide high over the middle, in the colours of the two
+# teams, and from the front of each island a stairway of wool up to it (one block up every two).
+# It is 16 blocks above the beds, as on Antenna, or a little higher or lower where the map is in
+# the way or the islands are near. Players build up to 10 blocks above it, and cannot break it; it
+# goes with the game.
+top-bridge: [top-bridge-1v1, top-bridge-2v2]
 
 # The modes whose teams play on neighbouring islands (First Rush: the first island and the one
 # next to it), instead of opposite islands as in the other modes.

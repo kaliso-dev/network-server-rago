@@ -203,10 +203,12 @@ final class BedwarsSettings {
     private final Fireball fireball;
     /** The modes whose teams play on neighbouring islands (First Rush), not opposite ones. */
     private final List<String> neighbourModes;
+    /** The modes whose games have a top bridge (Top Bridge). */
+    private final List<String> topBridgeModes;
 
     private BedwarsSettings(Map<String, List<String>> modes, Map<String, Kind> kinds, int maxGames, boolean demo,
             int respawnSeconds, Forge forge, List<Rate> diamond, List<Rate> emerald, int[] events, Fireball fireball,
-            List<String> neighbourModes) {
+            List<String> neighbourModes, List<String> topBridgeModes) {
         this.modes = Collections.unmodifiableMap(modes);
         this.kinds = Collections.unmodifiableMap(kinds);
         this.maxGames = maxGames;
@@ -223,6 +225,7 @@ final class BedwarsSettings {
         this.gameEnd = events[5];
         this.fireball = fireball;
         this.neighbourModes = Collections.unmodifiableList(neighbourModes);
+        this.topBridgeModes = Collections.unmodifiableList(topBridgeModes);
     }
 
     /** The word for every map, in the maps of a mode. */
@@ -268,8 +271,12 @@ final class BedwarsSettings {
         for (String mode : listed) {
             neighbours.add(modeId(mode, "iles-voisines"));
         }
+        List<String> topBridge = new ArrayList<>();
+        for (String mode : config.getStringList("top-bridge")) {
+            topBridge.add(modeId(mode, "top-bridge"));
+        }
         return new BedwarsSettings(modes, kinds(config), maxGames, config.getBoolean("carte-demo", true), respawn, forge,
-                diamond, emerald, events, fireball, neighbours);
+                diamond, emerald, events, fireball, neighbours, topBridge);
     }
 
     /** jeux: the modes that are not a classic game, each with its kind. */
@@ -492,5 +499,10 @@ final class BedwarsSettings {
     /** True if the teams of this mode play on neighbouring islands (First Rush), not opposite ones. */
     boolean neighbours(String modeId) {
         return neighbourModes.contains(modeId);
+    }
+
+    /** True if the games of this mode have a top bridge over the middle (see {@link TopBridge}). */
+    boolean topBridge(String modeId) {
+        return topBridgeModes.contains(modeId);
     }
 }
