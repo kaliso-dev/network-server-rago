@@ -212,6 +212,23 @@ final class ShopItem {
         return effectSeconds;
     }
 
+    /** The same item at another price. */
+    ShopItem costing(int newPrice, Currency newCurrency) {
+        Builder builder = new Builder(id, name, category, kind, material, amount);
+        builder.data = data;
+        builder.currency = newCurrency;
+        builder.price = newPrice;
+        builder.tier = tier;
+        builder.enchantment = enchantment;
+        builder.enchantmentLevel = enchantmentLevel;
+        builder.second = second;
+        builder.secondLevel = secondLevel;
+        builder.effect = effect;
+        builder.effectLevel = effectLevel;
+        builder.effectSeconds = effectSeconds;
+        return builder.build();
+    }
+
     @Override
     public String toString() {
         return id;

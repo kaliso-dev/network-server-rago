@@ -132,6 +132,18 @@ final class BedwarsHost implements MatchHost, Listener {
         if (!chosen.isEmpty()) {
             maps = chosen;
         }
+        BedwarsSettings.Kind kind = plugin.settings().kind(mode.id());
+        BedwarsGame joinable = kind == BedwarsSettings.Kind.CLASSIC ? null : joinable(mode.id(), maps);
+        if (joinable != null) {
+            // an open game with room, an invis practice still waiting for its players: in it at once
+            for (List<Player> side : sides) {
+                for (Player player : side) {
+                    toldNoMap.remove(player.getUniqueId());
+                    joinable.join(player);
+                }
+            }
+            return true;
+        }
         Instance instance = plugin.instances().acquire(maps);
         if (instance == null) {
             // a match waits: a copy of one of its maps is made, room made for it if need be
@@ -142,7 +154,7 @@ final class BedwarsHost implements MatchHost, Listener {
             plugin.instances().release(instance);
             return false;
         }
-        BedwarsGame game = new BedwarsGame(plugin, this, instance, mode.id(), ChatColor.stripColor(mode.name()), sides);
+        BedwarsGame game = create(kind, instance, mode, sides);
         for (List<Player> side : sides) {
             for (Player player : side) {
                 games.put(player.getUniqueId(), game);
@@ -156,6 +168,38 @@ final class BedwarsHost implements MatchHost, Listener {
             plugin.instances().prepare(maps, false);
         }
         return true;
+    }
+
+    /** A new game of this kind. */
+    private BedwarsGame create(BedwarsSettings.Kind kind, Instance instance, GameMode mode, List<List<Player>> sides) {
+        String name = ChatColor.stripColor(mode.name());
+        switch (kind) {
+            case FFA:
+                return new FfaGame(plugin, this, instance, mode.id(), name, sides, false);
+            case ARENA:
+                return new FfaGame(plugin, this, instance, mode.id(), name, sides, true);
+            case INVIS:
+                return new InvisGame(plugin, this, instance, mode.id(), name, sides);
+            case FAST_SHOP:
+                return new FastShopGame(plugin, this, instance, mode.id(), name, sides);
+            default:
+                return new BedwarsGame(plugin, this, instance, mode.id(), name, sides);
+        }
+    }
+
+    /** A game of this mode a player can join now, on one of these maps; null if none. */
+    private BedwarsGame joinable(String modeId, List<BedwarsMap> maps) {
+        for (BedwarsGame game : running) {
+            if (!game.modeId().equals(modeId) || !game.joinable()) {
+                continue;
+            }
+            for (BedwarsMap map : maps) {
+                if (map.world().equalsIgnoreCase(game.instance().map().world())) {
+                    return game;
+                }
+            }
+        }
+        return null;
     }
 
     /** The islands a game of this mode needs: one per team, two at least. */
@@ -221,6 +265,11 @@ final class BedwarsHost implements MatchHost, Listener {
     /** The player no longer belongs to their game. */
     void release(UUID player) {
         games.remove(player);
+    }
+
+    /** The player joined this game while it was on (an open game, a practice waiting for its players). */
+    void joined(UUID player, BedwarsGame game) {
+        games.put(player, game);
     }
 
     /** The game is over and its players are gone: its world is made ready for the next one. */
@@ -352,7 +401,7 @@ final class BedwarsHost implements MatchHost, Listener {
             if (attacker != null && !attacker.equals(victim)) {
                 Gamer author = game.gamer(attacker.getUniqueId());
                 if (author == null || games.get(attacker.getUniqueId()) != game || author.team == target.team
-                        || author.respawning || author.eliminated) {
+                        || author.respawning || author.eliminated || !game.pvp()) {
                     event.setCancelled(true);
                     return;
                 }
@@ -483,6 +532,7 @@ final class BedwarsHost implements MatchHost, Listener {
         }
         game.instance().markPlaced(block, event.getBlockReplacedState().getTypeId(),
                 event.getBlockReplacedState().getRawData());
+        game.placed(player, block);
     }
 
     @EventHandler(priority = EventPriority.HIGH, ignoreCancelled = true)
@@ -538,6 +588,7 @@ final class BedwarsHost implements MatchHost, Listener {
             return;
         }
         game.instance().markPlaced(block);
+        game.placed(player, block);
         // The bucket is used up, as on Hypixel.
         Bukkit.getScheduler().runTask(plugin, () -> {
             ItemStack hand = player.getItemInHand();
@@ -596,6 +647,12 @@ final class BedwarsHost implements MatchHost, Listener {
         if (event.getAction() == Action.PHYSICAL) {
             return;
         }
+        if (!game.itemsUsable() && event.getItem() != null
+                && (event.getAction() == Action.RIGHT_CLICK_AIR || event.getAction() == Action.RIGHT_CLICK_BLOCK)) {
+            // the shop practice: the items bought are only shown
+            event.setCancelled(true);
+            return;
+        }
         // A right click only: denying the block on a left click would also stop it from being broken (the beds).
         ItemStack item = event.getItem();
         if (event.getAction() == Action.RIGHT_CLICK_BLOCK && NOT_USED.contains(event.getClickedBlock().getType())) {
@@ -630,6 +687,7 @@ final class BedwarsHost implements MatchHost, Listener {
         if (game.isUpgrades(clicked)) {
             game.upgradesClicked(player);
         } else if (game.isShop(clicked)) {
+            game.shopOpened(player);
             ShopMenu.open(player, game, null);
         }
     }

@@ -259,9 +259,10 @@ modes:
     classe: false
     kit: [IRON_SWORD, "WOOL 64", "WOOL 64", SHEARS, IRON_PICKAXE, "GOLDEN_APPLE 3", "FIREBALL 4", ENDER_PEARL, "TNT 2"]
     description:
-      - "Free for all on an"
-      - "Invasion platform,"
-      - "with the Ranked Bedwars kit."
+      - "Free for all on Invasion,"
+      - "with the Ranked Bedwars kit:"
+      - "come and go when you like,"
+      - "a kill heals you."
   free-ffa:
     nom: "&aArena Free"
     categorie: ranked
@@ -270,9 +271,10 @@ modes:
     joueurs-par-equipe: 1
     classe: false
     description:
-      - "Archway, free for all:"
-      - "endless combos, a custom"
-      - "shop and top fight."
+      - "Archway, free for all: the"
+      - "forges, a shop of its own,"
+      - "and defenses ready on the"
+      - "beds for top fights."
   skyrise-1v1:
     nom: "&6RBW Sky Rise 1v1"
     categorie: ranked
@@ -321,14 +323,16 @@ modes:
     nom: "&5Invis practice"
     categorie: ranked
     icone: POTION
-    equipes: 2
+    equipes: 1
     joueurs-par-equipe: 1
     classe: false
-    kit: [IRON_SWORD, "WOOL 64", SHEARS, "GOLDEN_APPLE 2", "FIREBALL 2", "POTION:8206"]
+    # the kit of the invisible player; the defenders have iron armour, a sword, wool and shears
+    kit: [IRON_SWORD, "WOOL 64", SHEARS, IRON_PICKAXE, "GOLDEN_APPLE 2", "FIREBALL 2"]
     description:
-      - "On Invasion or Archway, 6 players"
-      - "at most, 2-minute rounds:"
-      - "1 invisible against 1 to 4 defenders."
+      - "Invasion or Archway, 2 to 6"
+      - "players, 2-minute rounds: 1"
+      - "invisible against 1 to 4"
+      - "defenders, each one in turn."
   bridge-fight:
     nom: "&bBridge fight"
     categorie: ranked
@@ -551,15 +555,17 @@ modes:
       - "Pearl throws in real"
       - "Bedwars situations."
   shop-practice:
-    nom: "&aShop buyer practice"
+    nom: "&aFast Shop"
     categorie: entrainement
     icone: GOLD_INGOT
     equipes: 1
     joueurs-par-equipe: 1
     classe: false
     description:
-      - "Buy fast at the shop"
-      - "and optimise your shop."
+      - "Buy lists of items as fast"
+      - "as you can, with your own"
+      - "Hypixel quick buy (copy it"
+      - "in one click: the book)."
   fireball-practice:
     nom: "&6Fireball practice"
     categorie: entrainement

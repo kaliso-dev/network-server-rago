@@ -38,9 +38,10 @@ import org.bukkit.util.Vector;
  * generators going up a tier, the end of the beds, the end of the game), until one team is left.
  * The result goes to the lobby's stats; everyone goes back to the lobby at once. Main thread only.
  */
-final class BedwarsGame {
+class BedwarsGame {
 
-    enum Phase { STARTING, PLAYING, ENDED }
+    /** WAITING: a practice that waits for its players; STARTING: the countdown, everyone frozen. */
+    enum Phase { WAITING, STARTING, PLAYING, ENDED }
 
     /** A team in this game. */
     static final class Team {
@@ -59,7 +60,8 @@ final class BedwarsGame {
     static final class Gamer {
         final UUID id;
         final String name;
-        final Team team;
+        /** The team: it changes between the rounds of a practice (invis practice). */
+        Team team;
         final List<String> hotbar;
         final List<ShopItem> quickBuy;
         boolean eliminated;
@@ -103,40 +105,48 @@ final class BedwarsGame {
     private static final String CHECK = "✔";
     private static final String CROSS = "✘";
 
-    private final RagoBedwars plugin;
-    private final BedwarsHost host;
-    private final Instance instance;
-    private final String modeId;
-    private final String modeName;
-    private final BedwarsSettings settings;
-    private final ShopCatalog catalog;
-    private final List<Team> teams = new ArrayList<>();
-    private final Map<UUID, Gamer> gamers = new LinkedHashMap<>();
-    private final List<Generator> generators = new ArrayList<>();
+    final RagoBedwars plugin;
+    final BedwarsHost host;
+    final Instance instance;
+    final String modeId;
+    final String modeName;
+    final BedwarsSettings settings;
+    final ShopCatalog catalog;
+    final List<Team> teams = new ArrayList<>();
+    final Map<UUID, Gamer> gamers = new LinkedHashMap<>();
+    final List<Generator> generators = new ArrayList<>();
     /** The island forges: iron and gold. */
-    private final List<Generator> forges = new ArrayList<>();
-    private final List<Generator> diamonds = new ArrayList<>();
-    private final List<Generator> emeralds = new ArrayList<>();
+    final List<Generator> forges = new ArrayList<>();
+    final List<Generator> diamonds = new ArrayList<>();
+    final List<Generator> emeralds = new ArrayList<>();
     /** The shop and upgrades NPCs, and where they stand. */
     private final Map<Entity, Location> npcs = new HashMap<>();
     private final Map<Entity, Team> upgradeNpcs = new HashMap<>();
     /** The names floating above them. */
     private final List<ArmorStand> labels = new ArrayList<>();
-    private Phase phase = Phase.STARTING;
-    private int seconds;
+    Phase phase = Phase.STARTING;
+    int seconds;
     private BukkitTask clock;
     private BukkitTask ticker;
     private BukkitTask countdown;
+    /** The tasks of a kind of game (its rounds, its waiting room): stopped with the game. */
+    private final List<BukkitTask> tasks = new ArrayList<>();
 
     BedwarsGame(RagoBedwars plugin, BedwarsHost host, Instance instance, String modeId, String modeName,
             List<List<Player>> sides) {
+        this(plugin, host, instance, modeId, modeName, sides, plugin.catalog());
+    }
+
+    /** A game whose shop sells this catalog. */
+    BedwarsGame(RagoBedwars plugin, BedwarsHost host, Instance instance, String modeId, String modeName,
+            List<List<Player>> sides, ShopCatalog catalog) {
         this.plugin = plugin;
         this.host = host;
         this.instance = instance;
         this.modeId = modeId;
         this.modeName = modeName;
         this.settings = plugin.settings();
-        this.catalog = plugin.catalog();
+        this.catalog = catalog;
         // First Rush: neighbouring islands; the other modes: opposite ones, as on Hypixel
         List<TeamColor> colors = settings.neighbours(modeId) ? instance.map().neighbourTeams(sides.size())
                 : instance.map().playingTeams(sides.size());
@@ -146,10 +156,29 @@ final class BedwarsGame {
             teams.add(team);
             for (Player player : sides.get(i)) {
                 team.members.add(player.getUniqueId());
-                gamers.put(player.getUniqueId(), new Gamer(player, team, plugin.lobby().hypixelHotbar(player),
-                        catalog.quickBuy(plugin.lobby().hypixelQuickBuy(player))));
+                gamers.put(player.getUniqueId(), newGamer(player, team));
             }
         }
+    }
+
+    /** A player of this game, in this team, with their Hypixel hotbar and quick buy. */
+    Gamer newGamer(Player player, Team team) {
+        return new Gamer(player, team, plugin.lobby().hypixelHotbar(player),
+                catalog.quickBuy(plugin.lobby().hypixelQuickBuy(player)));
+    }
+
+    /** A task of this game, every period ticks after delay: stopped with the game. */
+    BukkitTask repeat(long delay, long period, Runnable task) {
+        BukkitTask scheduled = Bukkit.getScheduler().runTaskTimer(plugin, task, delay, period);
+        tasks.add(scheduled);
+        return scheduled;
+    }
+
+    /** A task of this game, once, after delay ticks: not run if the game stops first. */
+    BukkitTask later(long delay, Runnable task) {
+        BukkitTask scheduled = Bukkit.getScheduler().runTaskLater(plugin, task, delay);
+        tasks.add(scheduled);
+        return scheduled;
     }
 
     Instance instance() {
@@ -179,29 +208,98 @@ final class BedwarsGame {
     // --- Start ----------------------------------------------------------------------------------
 
     void begin() {
+        phase = Phase.STARTING;
+        removeUnusedBeds();
+        if (economy()) {
+            economyUp(islands());
+        }
+        setUp();
+        for (Gamer gamer : gamers.values()) {
+            Player player = Bukkit.getPlayer(gamer.id);
+            if (player == null) {
+                continue;
+            }
+            place(player, gamer);
+            welcome(player, gamer);
+        }
+        clock = Bukkit.getScheduler().runTaskTimer(plugin, this::second, 20L, 20L);
+        final int total = countdownSeconds();
+        countdown = Bukkit.getScheduler().runTaskTimer(plugin, new Runnable() {
+            private int left = total;
+
+            @Override
+            public void run() {
+                if (left > 0) {
+                    broadcast(ChatColor.YELLOW + "The game starts in " + ChatColor.RED + left + ChatColor.YELLOW + "...",
+                            Sound.NOTE_STICKS);
+                    title(ChatColor.RED + "" + ChatColor.BOLD + left, "");
+                    left--;
+                    return;
+                }
+                cancel(countdown);
+                countdown = null;
+                phase = Phase.PLAYING;
+                if (total > 0) {
+                    broadcast(ChatColor.GREEN + "Fight!", Sound.NOTE_PLING);
+                    title(ChatColor.GREEN + "" + ChatColor.BOLD + "Fight!", "");
+                }
+                ticker = Bukkit.getScheduler().runTaskTimer(plugin, () -> {
+                    // the forges go twice as fast at the start of the game, as on Hypixel
+                    int forgeTicks = seconds < settings.forge().fastStartSeconds ? 10 : 5;
+                    for (Generator generator : generators) {
+                        generator.tick(forges.contains(generator) ? forgeTicks : 5);
+                    }
+                    if (phase == Phase.PLAYING) {
+                        quarter();
+                    }
+                }, 5L, 5L);
+                started();
+            }
+        }, 0L, 20L);
+        sidebars();
+    }
+
+    /** The islands nobody plays on have no bed, as on Hypixel; the copy puts them back after the game. */
+    void removeUnusedBeds() {
         World world = instance.world();
-        BedwarsMap map = instance.map();
-        // The islands nobody plays on have no bed, as on Hypixel; the copy puts it back after the game.
-        for (Map.Entry<TeamColor, BedwarsMap.Team> entry : map.teams().entrySet()) {
+        for (Map.Entry<TeamColor, BedwarsMap.Team> entry : instance.map().teams().entrySet()) {
             if (entry.getValue().bed != null && !playing(entry.getKey())) {
                 for (Block half : Instance.bedOf(entry.getValue().bed.blockIn(world))) {
                     half.setType(Material.AIR, false);
                 }
             }
         }
+    }
+
+    /** A player takes their place for the start: ready, on their spawn, with their kit. */
+    void place(Player player, Gamer gamer) {
+        prepare(player);
+        player.teleport(spawnOf(gamer));
+        giveKit(player, gamer);
+    }
+
+    /** The islands that get a forge and shops (the teams' own, in a classic game). */
+    List<Team> islands() {
+        return teams;
+    }
+
+    /** The forges, shops and upgrades of these teams' islands, and the diamond and emerald generators. */
+    void economyUp(List<Team> islands) {
+        World world = instance.world();
+        BedwarsMap map = instance.map();
         BedwarsSettings.Forge forge = settings.forge();
         int teamSize = 0;
-        for (Team team : teams) {
+        for (Team team : islands) {
             teamSize = Math.max(teamSize, team.members.size());
         }
-        int islands = map.completeTeams().size();
-        for (Team team : teams) {
+        int count = map.completeTeams().size();
+        for (Team team : islands) {
             Location spot = team.points.generator.in(world);
-            forges.add(new Generator(spot, Material.IRON_INGOT, forge.iron(map.world(), teamSize, islands), null));
+            forges.add(new Generator(spot, Material.IRON_INGOT, forge.iron(map.world(), teamSize, count), null));
             forges.add(new Generator(spot, Material.GOLD_INGOT, forge.gold(), null));
             Location spawn = team.points.spawn.in(world);
             spawnNpc(team.points.shop.in(world), spawn, ChatColor.AQUA + "ITEM SHOP", null);
-            if (team.points.upgrades != null) {
+            if (team.points.upgrades != null && upgrades()) {
                 spawnNpc(team.points.upgrades.in(world), spawn, ChatColor.AQUA + (teamSize <= 1 ? "SOLO UPGRADES"
                         : "TEAM UPGRADES"), team);
             }
@@ -220,53 +318,134 @@ final class BedwarsGame {
         for (Generator generator : generators) {
             generator.showText();
         }
-        for (Gamer gamer : gamers.values()) {
-            Player player = Bukkit.getPlayer(gamer.id);
-            if (player == null) {
-                continue;
-            }
-            prepare(player);
-            player.teleport(gamer.team.points.spawn.in(world));
-            giveKit(player, gamer);
-            player.sendMessage(ChatColor.GREEN + "" + ChatColor.BOLD + modeName + ChatColor.GREEN + " on "
-                    + ChatColor.WHITE + map.world() + ChatColor.GREEN + ": you are in the " + gamer.team.color.coloured()
-                    + ChatColor.GREEN + " team. Protect your bed and destroy the others'!");
-        }
-        clock = Bukkit.getScheduler().runTaskTimer(plugin, this::second, 20L, 20L);
-        countdown = Bukkit.getScheduler().runTaskTimer(plugin, new Runnable() {
-            private int left = 3;
+    }
 
-            @Override
-            public void run() {
-                if (left > 0) {
-                    broadcast(ChatColor.YELLOW + "The game starts in " + ChatColor.RED + left + ChatColor.YELLOW + "...",
-                            Sound.NOTE_STICKS);
-                    title(ChatColor.RED + "" + ChatColor.BOLD + left, "");
-                    left--;
-                    return;
-                }
-                cancel(countdown);
-                countdown = null;
-                phase = Phase.PLAYING;
-                broadcast(ChatColor.GREEN + "Fight!", Sound.NOTE_PLING);
-                title(ChatColor.GREEN + "" + ChatColor.BOLD + "Fight!", "");
-                ticker = Bukkit.getScheduler().runTaskTimer(plugin, () -> {
-                    // the forges go twice as fast at the start of the game, as on Hypixel
-                    int forgeTicks = seconds < settings.forge().fastStartSeconds ? 10 : 5;
-                    for (Generator generator : generators) {
-                        generator.tick(forges.contains(generator) ? forgeTicks : 5);
-                    }
-                }, 5L, 5L);
+    // --- What a kind of game changes (a FFA, a practice) ----------------------------------------
+
+    /** True if the islands have their forge and shops, and the map its diamonds and emeralds. */
+    boolean economy() {
+        return true;
+    }
+
+    /** True if the islands have their upgrades NPC. */
+    boolean upgrades() {
+        return true;
+    }
+
+    /** Before the players are placed: what the game builds or changes on the map. */
+    void setUp() {
+    }
+
+    /** The seconds of the countdown before the game. */
+    int countdownSeconds() {
+        return 3;
+    }
+
+    /** The countdown is over: the game is on. */
+    void started() {
+    }
+
+    /** Where this player starts, and comes back to life. */
+    Location spawnOf(Gamer gamer) {
+        return gamer.team.points.spawn.in(instance.world());
+    }
+
+    /** The first message of the game. */
+    void welcome(Player player, Gamer gamer) {
+        player.sendMessage(ChatColor.GREEN + "" + ChatColor.BOLD + modeName + ChatColor.GREEN + " on "
+                + ChatColor.WHITE + instance.map().world() + ChatColor.GREEN + ": you are in the " + gamer.team.color.coloured()
+                + ChatColor.GREEN + " team. Protect your bed and destroy the others'!");
+    }
+
+    /** True if this death is the last of the player (their bed is gone). */
+    boolean finalDeath(Gamer gamer) {
+        return !gamer.team.bed;
+    }
+
+    /** The seconds before a dead player comes back. */
+    int respawnSeconds() {
+        return settings.respawnSeconds();
+    }
+
+    /** A player died (author: who gets the kill, or null), after the game counted it. */
+    void died(Gamer victim, Gamer author, boolean finalKill) {
+    }
+
+    /** Four times a second, while the game is on. */
+    void quarter() {
+    }
+
+    /** Once a second, while the game is on, after the timed events. */
+    void everySecond() {
+    }
+
+    /** True if a player can join this game while it is on (an open game with room): see {@link #join}. */
+    boolean joinable() {
+        return false;
+    }
+
+    /** A player joins this game while it is on. Only when {@link #joinable()}. */
+    void join(Player player) {
+        throw new IllegalStateException(modeId + " cannot be joined while it is on");
+    }
+
+    /** A player placed this block (it is marked as placed already). */
+    void placed(Player player, Block block) {
+    }
+
+    /** A player opened the item shop. */
+    void shopOpened(Player player) {
+    }
+
+    /** True if the players of different teams can hurt each other. */
+    boolean pvp() {
+        return true;
+    }
+
+    /** True if the players can use their items (eat, drink, throw, shoot); false: the shop practice. */
+    boolean itemsUsable() {
+        return true;
+    }
+
+    /**
+     * The kit of the mode as the player arranged it in the lobby's kit editor, ready to play: the
+     * wool in the team's colour, the swords, tools and shears unbreakable. Null if the mode has none.
+     */
+    ItemStack[] lobbyKit(Player player, Gamer gamer) {
+        ItemStack[] kit = plugin.lobby().kit(player, modeId);
+        if (kit == null) {
+            return null;
+        }
+        ItemStack[] ready = new ItemStack[kit.length];
+        for (int i = 0; i < kit.length; i++) {
+            ready[i] = kit[i] == null ? null : kitItem(kit[i].clone(), gamer);
+        }
+        return ready;
+    }
+
+    /** An item of a kit as a game gives it: wool, clay and glass in the team's colour; tools unbreakable. */
+    static ItemStack kitItem(ItemStack item, Gamer gamer) {
+        Material type = item.getType();
+        if (type == Material.WOOL || type == Material.STAINED_CLAY || type == Material.STAINED_GLASS) {
+            item.setDurability(gamer.team.color.woolData());
+        }
+        String name = type.name();
+        if (name.endsWith("_SWORD") || name.endsWith("_PICKAXE") || name.endsWith("_AXE") || type == Material.SHEARS
+                || type == Material.BOW) {
+            ItemMeta meta = item.getItemMeta();
+            if (meta != null) {
+                meta.spigot().setUnbreakable(true);
+                item.setItemMeta(meta);
             }
-        }, 0L, 20L);
-        sidebars();
+        }
+        return item;
     }
 
     /**
      * A villager on its point, its name floating above it on two lines as on Hypixel ("ITEM SHOP",
      * "RIGHT CLICK"): the lines are invisible armour stands, which every client shows.
      */
-    private void spawnNpc(Location point, Location spawn, String name, Team upgradesOf) {
+    void spawnNpc(Location point, Location spawn, String name, Team upgradesOf) {
         point.getChunk().load();
         // in its niche, straight out of it, as on Hypixel: not on the guard in front of it (NpcSpot)
         NpcSpot fitted = NpcSpot.fit(blocks(point.getWorld()), point.getX(), point.getY(), point.getZ(), point.getYaw(),
@@ -339,7 +518,7 @@ final class BedwarsGame {
         return npcs.containsKey(entity);
     }
 
-    private void prepare(Player player) {
+    void prepare(Player player) {
         player.closeInventory();
         player.getInventory().clear();
         player.getInventory().setArmorContents(null);
@@ -351,7 +530,7 @@ final class BedwarsGame {
         player.setExp(0f);
     }
 
-    private static void heal(Player player) {
+    static void heal(Player player) {
         player.setHealth(player.getMaxHealth());
         player.setFoodLevel(20);
         player.setSaturation(5f);
@@ -372,6 +551,9 @@ final class BedwarsGame {
         if (phase == Phase.PLAYING) {
             seconds++;
             events();
+            if (phase == Phase.PLAYING) {
+                everySecond();
+            }
         }
         for (Generator generator : diamonds) {
             generator.refreshText();
@@ -389,7 +571,8 @@ final class BedwarsGame {
         }
     }
 
-    private void events() {
+    /** The timed events of a game: the generators going up a tier, the end of the beds, the end. */
+    void events() {
         if (seconds == settings.diamondII()) {
             upgrade(diamonds, 2, settings.diamond().get(1), "Diamond");
         } else if (seconds == settings.emeraldII()) {
@@ -440,7 +623,7 @@ final class BedwarsGame {
         return (seconds / 60) + ":" + (s < 10 ? "0" : "") + s;
     }
 
-    private void sidebars() {
+    void sidebars() {
         for (Gamer gamer : gamers.values()) {
             Player player = Bukkit.getPlayer(gamer.id);
             if (player != null && host.gameOf(gamer.id) == this) {
@@ -449,7 +632,7 @@ final class BedwarsGame {
         }
     }
 
-    private List<String> lines(Gamer viewer) {
+    List<String> lines(Gamer viewer) {
         List<String> lines = new ArrayList<>();
         lines.add(phase == Phase.STARTING ? ChatColor.WHITE + "Starting..." : nextEvent());
         lines.add("");
@@ -554,7 +737,7 @@ final class BedwarsGame {
         sidebars();
     }
 
-    private void destroyBed(Team team) {
+    void destroyBed(Team team) {
         team.bed = false;
         for (Block half : Instance.bedOf(team.points.bed.blockIn(instance.world()))) {
             half.setType(Material.AIR, false);
@@ -577,8 +760,11 @@ final class BedwarsGame {
         Gamer gamer = gamers.get(victim.getUniqueId());
         if (gamer == null || phase != Phase.PLAYING || gamer.respawning || gamer.eliminated) {
             if (gamer != null && voidDeath) {
-                victim.teleport(phase == Phase.STARTING ? gamer.team.points.spawn.in(instance.world())
-                        : instance.map().spectatorPoint().in(instance.world()));
+                // before the game or between two rounds, back on the spawn; a spectator, back to the spectators
+                victim.setFallDistance(0f);
+                boolean spectating = gamer.eliminated || gamer.respawning || victim.getGameMode() == GameMode.SPECTATOR;
+                victim.teleport(spectating || phase == Phase.ENDED ? instance.map().spectatorPoint().in(instance.world())
+                        : spawnOf(gamer));
             }
             return;
         }
@@ -591,7 +777,7 @@ final class BedwarsGame {
             author = null;
         }
         gamer.lastDamager = null;
-        boolean finalKill = !gamer.team.bed;
+        boolean finalKill = finalDeath(gamer);
         String how = voidDeath ? (author == null ? " fell into the void." : " was knocked into the void by ")
                 : (author == null ? " died." : " was killed by ");
         broadcast(gamer.coloured() + ChatColor.GRAY + how + (author == null ? "" : author.coloured() + ChatColor.GRAY + ".")
@@ -624,19 +810,28 @@ final class BedwarsGame {
         victim.teleport(instance.map().spectatorPoint().in(instance.world()));
         if (finalKill) {
             gamer.eliminated = true;
-            victim.sendTitle(ChatColor.RED + "" + ChatColor.BOLD + "YOU DIED!", ChatColor.GRAY + "You are now a spectator.");
-            victim.sendMessage(ChatColor.GRAY + "You are out of the game. /spawn to go back to the lobby.");
+            outOfGame(victim, gamer);
+            died(gamer, author, true);
             sidebars();
             checkEnd();
             return;
         }
         gamer.respawning = true;
-        respawnLater(victim, gamer);
+        died(gamer, author, false);
+        if (phase == Phase.PLAYING && gamer.respawning) {
+            respawnLater(victim, gamer);
+        }
         sidebars();
     }
 
+    /** A final death: what the player is told. */
+    void outOfGame(Player victim, Gamer gamer) {
+        victim.sendTitle(ChatColor.RED + "" + ChatColor.BOLD + "YOU DIED!", ChatColor.GRAY + "You are now a spectator.");
+        victim.sendMessage(ChatColor.GRAY + "You are out of the game. /spawn to go back to the lobby.");
+    }
+
     /** The victim's iron, gold, diamonds and emeralds go to the killer. */
-    private void loot(Player victim, Player killer) {
+    void loot(Player victim, Player killer) {
         List<String> got = new ArrayList<>();
         for (Currency currency : Currency.values()) {
             int count = count(victim, currency);
@@ -653,7 +848,7 @@ final class BedwarsGame {
     }
 
     private void respawnLater(final Player victim, final Gamer gamer) {
-        final int total = settings.respawnSeconds();
+        final int total = respawnSeconds();
         if (total <= 0) {
             respawn(victim, gamer);
             return;
@@ -682,12 +877,12 @@ final class BedwarsGame {
         }, 20L, 20L);
     }
 
-    private void respawn(Player player, Gamer gamer) {
+    void respawn(Player player, Gamer gamer) {
         gamer.respawning = false;
         gamer.respawn = null;
         heal(player);
         player.setGameMode(GameMode.SURVIVAL);
-        player.teleport(gamer.team.points.spawn.in(instance.world()));
+        player.teleport(spawnOf(gamer));
         giveKit(player, gamer);
         player.sendTitle(ChatColor.GREEN + "" + ChatColor.BOLD + "RESPAWNED!", "");
         player.sendMessage(ChatColor.YELLOW + "You have respawned!");
@@ -696,14 +891,23 @@ final class BedwarsGame {
     /** The player left the game: out of the server, or /spawn. Their team plays on without them. */
     void leave(Player player, boolean toLobby) {
         Gamer gamer = gamers.get(player.getUniqueId());
-        if (gamer == null) {
+        if (gamer == null || host.gameOf(gamer.id) != this) {
+            if (toLobby) {
+                plugin.lobby().sendToLobby(player);
+            }
             return;
         }
         host.release(gamer.id);
-        if (!gamer.eliminated && phase != Phase.ENDED) {
+        if (phase != Phase.ENDED) {
+            boolean wasPlaying = !gamer.eliminated;
             gamer.eliminated = true;
+            gamer.respawning = false;
             cancel(gamer.respawn);
-            broadcast(gamer.coloured() + ChatColor.GRAY + " left the game.", null);
+            gamer.respawn = null;
+            if (wasPlaying) {
+                broadcast(gamer.coloured() + ChatColor.GRAY + " left the game.", null);
+            }
+            left(gamer);
             sidebars();
             checkEnd();
         }
@@ -712,7 +916,28 @@ final class BedwarsGame {
         }
     }
 
-    private void checkEnd() {
+    /** A player left the game: no longer in it, already counted out. */
+    void left(Gamer gamer) {
+    }
+
+    /** True while this player is still in this game (online, not gone back to the lobby). */
+    boolean present(Gamer gamer) {
+        return host.gameOf(gamer.id) == this && Bukkit.getPlayer(gamer.id) != null;
+    }
+
+    /** The players still in this game. */
+    List<Gamer> present() {
+        List<Gamer> here = new ArrayList<>();
+        for (Gamer gamer : gamers.values()) {
+            if (present(gamer)) {
+                here.add(gamer);
+            }
+        }
+        return here;
+    }
+
+    /** The game is over when one team is left (or none). */
+    void checkEnd() {
         if (phase == Phase.ENDED) {
             return;
         }
@@ -732,7 +957,7 @@ final class BedwarsGame {
 
     // --- End ------------------------------------------------------------------------------------
 
-    private void end(Team winner) {
+    void end(Team winner) {
         phase = Phase.ENDED;
         stopTasks();
         if (winner != null) {
@@ -780,6 +1005,16 @@ final class BedwarsGame {
         Bukkit.getScheduler().runTask(plugin, this::backToLobby);
     }
 
+    /** The game ends without a result (an open game left by its last player). */
+    void close() {
+        if (phase == Phase.ENDED) {
+            return;
+        }
+        phase = Phase.ENDED;
+        stopTasks();
+        Bukkit.getScheduler().runTask(plugin, this::backToLobby);
+    }
+
     private String names(Team team) {
         List<String> names = new ArrayList<>();
         for (UUID member : team.members) {
@@ -788,7 +1023,7 @@ final class BedwarsGame {
         return String.join(", ", names);
     }
 
-    private void backToLobby() {
+    void backToLobby() {
         for (Gamer gamer : gamers.values()) {
             Player player = Bukkit.getPlayer(gamer.id);
             if (player != null && host.gameOf(gamer.id) == this) {
@@ -815,20 +1050,24 @@ final class BedwarsGame {
         cleanUp();
     }
 
-    private void stopTasks() {
+    void stopTasks() {
         cancel(clock);
         cancel(ticker);
         cancel(countdown);
         clock = null;
         ticker = null;
         countdown = null;
+        for (BukkitTask task : tasks) {
+            cancel(task);
+        }
+        tasks.clear();
         for (Gamer gamer : gamers.values()) {
             cancel(gamer.respawn);
             gamer.respawn = null;
         }
     }
 
-    private void cleanUp() {
+    void cleanUp() {
         for (Generator generator : generators) {
             generator.remove();
         }
@@ -843,7 +1082,7 @@ final class BedwarsGame {
         upgradeNpcs.clear();
     }
 
-    private static void cancel(BukkitTask task) {
+    static void cancel(BukkitTask task) {
         if (task != null) {
             task.cancel();
         }
@@ -992,7 +1231,7 @@ final class BedwarsGame {
     }
 
     /** At the start and after each death: the wooden sword, the armour, the tools and shears kept. */
-    private void giveKit(Player player, Gamer gamer) {
+    void giveKit(Player player, Gamer gamer) {
         PlayerInventory inventory = player.getInventory();
         inventory.clear();
         wearArmor(player, gamer);
@@ -1020,7 +1259,7 @@ final class BedwarsGame {
         {Material.DIAMOND_LEGGINGS, Material.DIAMOND_BOOTS},
     };
 
-    private void wearArmor(Player player, Gamer gamer) {
+    void wearArmor(Player player, Gamer gamer) {
         PlayerInventory inventory = player.getInventory();
         inventory.setHelmet(armor(Material.LEATHER_HELMET, gamer));
         inventory.setChestplate(armor(Material.LEATHER_CHESTPLATE, gamer));
@@ -1162,7 +1401,7 @@ final class BedwarsGame {
         }
     }
 
-    private void title(String title, String subtitle) {
+    void title(String title, String subtitle) {
         for (Gamer gamer : gamers.values()) {
             Player player = Bukkit.getPlayer(gamer.id);
             if (player != null && host.gameOf(gamer.id) == this) {

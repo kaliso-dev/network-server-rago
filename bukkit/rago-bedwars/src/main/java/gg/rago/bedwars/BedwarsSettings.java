@@ -145,8 +145,48 @@ final class BedwarsSettings {
         }
     }
 
+    /** The kind of game a mode plays (jeux: in config.yml). */
+    enum Kind {
+        /** A Bed Wars game: beds, forges, shops, until one team is left. */
+        CLASSIC("classique"),
+        /** Free for all with the mode's kit, no bed, back at once after a death. */
+        FFA("ffa"),
+        /** Free for all with the forges, diamonds, emeralds and a shop of its own, and defenses ready for top fights. */
+        ARENA("arene"),
+        /** Invis practice: 2 to 6 players, rounds of 2 minutes, one invisible against the others. */
+        INVIS("invis"),
+        /** Fast Shop: lists of items to buy as fast as possible, with the player's own quick buy. */
+        FAST_SHOP("fast-shop");
+
+        final String word;
+
+        Kind(String word) {
+            this.word = word;
+        }
+
+        static Kind of(String word) {
+            String key = word.trim().toLowerCase(java.util.Locale.ROOT);
+            for (Kind kind : values()) {
+                if (kind.word.equals(key)) {
+                    return kind;
+                }
+            }
+            return null;
+        }
+
+        static String words() {
+            List<String> words = new ArrayList<>();
+            for (Kind kind : values()) {
+                words.add(kind.word);
+            }
+            return String.join(", ", words);
+        }
+    }
+
     /** The modes this plugin plays, each with the names of its maps (empty: every map). */
     private final Map<String, List<String>> modes;
+    /** The modes that are not a classic game, with their kind. */
+    private final Map<String, Kind> kinds;
     private final int maxGames;
     private final boolean demo;
     private final int respawnSeconds;
@@ -164,9 +204,11 @@ final class BedwarsSettings {
     /** The modes whose teams play on neighbouring islands (First Rush), not opposite ones. */
     private final List<String> neighbourModes;
 
-    private BedwarsSettings(Map<String, List<String>> modes, int maxGames, boolean demo, int respawnSeconds, Forge forge,
-            List<Rate> diamond, List<Rate> emerald, int[] events, Fireball fireball, List<String> neighbourModes) {
+    private BedwarsSettings(Map<String, List<String>> modes, Map<String, Kind> kinds, int maxGames, boolean demo,
+            int respawnSeconds, Forge forge, List<Rate> diamond, List<Rate> emerald, int[] events, Fireball fireball,
+            List<String> neighbourModes) {
         this.modes = Collections.unmodifiableMap(modes);
+        this.kinds = Collections.unmodifiableMap(kinds);
         this.maxGames = maxGames;
         this.demo = demo;
         this.respawnSeconds = respawnSeconds;
@@ -226,8 +268,28 @@ final class BedwarsSettings {
         for (String mode : listed) {
             neighbours.add(modeId(mode, "iles-voisines"));
         }
-        return new BedwarsSettings(modes, maxGames, config.getBoolean("carte-demo", true), respawn, forge, diamond,
-                emerald, events, fireball, neighbours);
+        return new BedwarsSettings(modes, kinds(config), maxGames, config.getBoolean("carte-demo", true), respawn, forge,
+                diamond, emerald, events, fireball, neighbours);
+    }
+
+    /** jeux: the modes that are not a classic game, each with its kind. */
+    private static Map<String, Kind> kinds(ConfigurationSection config) {
+        Map<String, Kind> kinds = new LinkedHashMap<>();
+        if (!config.contains("jeux")) {
+            return kinds;
+        }
+        if (!config.isConfigurationSection("jeux")) {
+            throw new IllegalArgumentException("jeux: each mode with its kind of game, such as ffa: ffa");
+        }
+        ConfigurationSection section = config.getConfigurationSection("jeux");
+        for (String key : section.getKeys(false)) {
+            Kind kind = Kind.of(String.valueOf(section.get(key)));
+            if (kind == null) {
+                throw new IllegalArgumentException("jeux." + key + ": " + Kind.words());
+            }
+            kinds.put(modeId(key, "jeux"), kind);
+        }
+        return kinds;
     }
 
     /**
@@ -357,6 +419,12 @@ final class BedwarsSettings {
     /** The lobby modes this plugin plays. */
     List<String> modes() {
         return new ArrayList<>(modes.keySet());
+    }
+
+    /** The kind of game of this mode: a classic Bed Wars game unless jeux: says otherwise. */
+    Kind kind(String modeId) {
+        Kind kind = kinds.get(modeId);
+        return kind == null ? Kind.CLASSIC : kind;
     }
 
     /** The names of this mode's maps, in the order given; empty for every map. */

@@ -16,6 +16,30 @@ modes:
   skyrise-2v2: [SkyRise]
   first-rush: [Acropolis, Ambush, Aqil, Cascade, Crogorm, Frosted, Gelato, Lighthouse, Lotus, Nebuc]
   first-rush-duo: [Acropolis, Ambush, Aqil, Cascade, Crogorm, Frosted, Gelato, Lighthouse, Lotus, Nebuc]
+  ffa: [Invasion]
+  free-ffa: [Archway]
+  invis-practice: [Invasion, Archway]
+  shop-practice: [Archway]
+
+# The modes that are not a classic Bed Wars game, each with its kind of game:
+#   ffa        free for all, open: players join and leave when they like, each for themselves, and
+#              come back 3 seconds after a death on the island farthest from the others; the
+#              mode's kit (the lobby's kit editor) and iron armour at each life, a kill heals the
+#              killer; the blocks placed go after 45 seconds
+#   arene      the same with the forges, the diamonds and emeralds and a shop of its own (the
+#              diamonds buy Sharpness, Power II, Strength...), the armour and tools kept as in Bed
+#              Wars, and on each bed a defense of three layers ready for top fights
+#   invis      invis practice: 2 to 6 players on the map chosen, rounds of 2 minutes, one invisible
+#              (the mode's kit, no armour) against the others (iron armour, a defense on their
+#              bed), each player in turn; it starts 20 seconds after the second player joins
+#   fast-shop  Fast Shop: each player on an island with its shop, lists of items to buy as fast as
+#              possible with their own quick buy (copied from Hypixel in the lobby), and records
+# A mode not listed is a classic game.
+jeux:
+  ffa: ffa
+  free-ffa: arene
+  invis-practice: invis
+  shop-practice: fast-shop
 
 # How many game worlds the server keeps at most, so how many games at once (from 1 to 50).
 parties-max: 8

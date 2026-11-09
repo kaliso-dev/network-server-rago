@@ -128,6 +128,21 @@ final class Instance {
         placed.remove(key(block.getX(), block.getY(), block.getZ()));
     }
 
+    /** A placed block goes: what the map had there comes back (air, tall grass...). */
+    @SuppressWarnings("deprecation") // Block#setTypeIdAndData: the 1.8 way to set a block with its data
+    void restore(Block block) {
+        long key = key(block.getX(), block.getY(), block.getZ());
+        if (!placed.remove(key)) {
+            return;
+        }
+        Integer before = replaced.remove(key);
+        if (before == null) {
+            block.setType(Material.AIR, false);
+        } else {
+            block.setTypeIdAndData(before >> 4, (byte) (before & 0xF), false);
+        }
+    }
+
     /** The map as it was: no placed block, the beds back, no item or entity left. */
     @SuppressWarnings("deprecation") // Block#setTypeIdAndData: the 1.8 way to set a block with its data
     void rollback() {

@@ -126,6 +126,58 @@ final class ShopCatalog {
         return new ShopCatalog(items, pickaxes, axes);
     }
 
+    /**
+     * The shop of the arena (Free FFA): the usual items without the ones still to come, the
+     * diamond armour and sword, the obsidian cheaper, and what the diamonds buy, since the arena
+     * has no team upgrades: a sword with Sharpness, a Power II bow, Regeneration and Strength
+     * potions, an enchanted golden apple.
+     */
+    static ShopCatalog arena() {
+        ShopCatalog standard = standard();
+        List<ShopItem> items = new ArrayList<>();
+        for (ShopItem item : standard.items) {
+            if (item.kind() == Kind.COMING_SOON) {
+                continue;
+            }
+            switch (item.id()) {
+                case "obsidian":
+                    items.add(item.costing(2, Currency.EMERALD));
+                    break;
+                case "diamond_sword":
+                    items.add(item.costing(3, Currency.EMERALD));
+                    items.add(ShopItem.of("sharp_sword", "Diamond Sword (Sharpness I)", Category.MELEE, Kind.SWORD,
+                            Material.DIAMOND_SWORD, 1).costs(4, Currency.DIAMOND).enchant(Enchantment.DAMAGE_ALL, 1).build());
+                    break;
+                case "diamond_boots":
+                    items.add(item.costing(4, Currency.EMERALD));
+                    break;
+                case "bow_(power_i__punch_i)":
+                    items.add(item);
+                    items.add(ShopItem.of("power_bow", "Bow (Power II)", Category.RANGED, Kind.ITEM, Material.BOW, 1)
+                            .costs(3, Currency.DIAMOND).enchant(Enchantment.ARROW_DAMAGE, 2).build());
+                    break;
+                case "invisibility":
+                    items.add(item);
+                    items.add(ShopItem.of("regeneration", "Regeneration II Potion (10 seconds)", Category.POTIONS,
+                            Kind.POTION, Material.POTION, 1).data(8193).costs(2, Currency.DIAMOND)
+                            .effect(PotionEffectType.REGENERATION, 2, 10).build());
+                    items.add(ShopItem.of("strength", "Strength I Potion (15 seconds)", Category.POTIONS, Kind.POTION,
+                            Material.POTION, 1).data(8201).costs(3, Currency.DIAMOND)
+                            .effect(PotionEffectType.INCREASE_DAMAGE, 1, 15).build());
+                    break;
+                case "golden_apple":
+                    items.add(item);
+                    items.add(ShopItem.of("enchanted_apple", "Enchanted Golden Apple", Category.UTILITY, Kind.ITEM,
+                            Material.GOLDEN_APPLE, 1).data(1).costs(6, Currency.DIAMOND).build());
+                    break;
+                default:
+                    items.add(item);
+                    break;
+            }
+        }
+        return new ShopCatalog(items, standard.pickaxes, standard.axes);
+    }
+
     /** A pickaxe or axe tier: tier is its place in the list (0 wooden), level its Efficiency. */
     private static ShopItem tool(String id, String name, Kind kind, Material material, int price, Currency currency,
             int efficiency, int tier) {

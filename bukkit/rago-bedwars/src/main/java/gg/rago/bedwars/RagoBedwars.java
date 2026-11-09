@@ -23,6 +23,8 @@ public final class RagoBedwars extends JavaPlugin {
     private LobbyService lobby;
     private BedwarsSettings settings;
     private ShopCatalog catalog;
+    private ShopCatalog arenaCatalog;
+    private FastShopRecords fastShopRecords;
     private ExecutorService io;
     private MapStore maps;
     private Instances instances;
@@ -45,6 +47,7 @@ public final class RagoBedwars extends JavaPlugin {
             return;
         }
         catalog = ShopCatalog.standard();
+        arenaCatalog = ShopCatalog.arena();
         io = Executors.newSingleThreadExecutor(task -> {
             Thread thread = new Thread(task, "RagoBedwars-io");
             thread.setDaemon(true);
@@ -52,6 +55,8 @@ public final class RagoBedwars extends JavaPlugin {
         });
         File container = getServer().getWorldContainer();
         maps = new MapStore(container, io, getLogger());
+        fastShopRecords = new FastShopRecords(new File(getDataFolder(), "fastshop.yml"), io, getLogger());
+        fastShopRecords.load();
         instances = new Instances(this, container, io, settings.maxGames());
         instances.deleteLeftovers();
         maps.loadAll();
@@ -148,6 +153,16 @@ public final class RagoBedwars extends JavaPlugin {
 
     ShopCatalog catalog() {
         return catalog;
+    }
+
+    /** The best times of Fast Shop. */
+    FastShopRecords fastShopRecords() {
+        return fastShopRecords;
+    }
+
+    /** The shop of the arena (Free FFA). */
+    ShopCatalog arenaCatalog() {
+        return arenaCatalog;
     }
 
     MapStore maps() {

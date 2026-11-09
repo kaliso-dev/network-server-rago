@@ -27,7 +27,15 @@ class BedwarsSettingsTest {
     void readsTheBundledConfig() throws Exception {
         BedwarsSettings settings = BedwarsSettings.read(bundled());
         assertEquals(Arrays.asList("ranked-1v1", "ranked-2v2", "ranked-3v3", "ranked-4v4", "skyrise-1v1", "skyrise-2v2",
-                "first-rush", "first-rush-duo"), settings.modes());
+                "first-rush", "first-rush-duo", "ffa", "free-ffa", "invis-practice", "shop-practice"), settings.modes());
+        assertEquals(BedwarsSettings.Kind.CLASSIC, settings.kind("ranked-1v1"));
+        assertEquals(BedwarsSettings.Kind.FFA, settings.kind("ffa"));
+        assertEquals(BedwarsSettings.Kind.ARENA, settings.kind("free-ffa"));
+        assertEquals(BedwarsSettings.Kind.INVIS, settings.kind("invis-practice"));
+        assertEquals(BedwarsSettings.Kind.FAST_SHOP, settings.kind("shop-practice"));
+        assertEquals(Collections.singletonList("Invasion"), settings.mapsOf("ffa"));
+        assertEquals(Collections.singletonList("Archway"), settings.mapsOf("free-ffa"));
+        assertEquals(Arrays.asList("Invasion", "Archway"), settings.mapsOf("invis-practice"));
         assertEquals(Arrays.asList("Archway", "Invasion", "Lectus", "Extinction", "Paladin", "Rise"),
                 settings.mapsOf("ranked-2v2"));
         assertEquals(Collections.singletonList("SkyRise"), settings.mapsOf("skyrise-1v1"));
@@ -85,6 +93,23 @@ class BedwarsSettingsTest {
         assertEquals(x, push[0], 1e-9, "x");
         assertEquals(y, push[1], 1e-9, "y");
         assertEquals(z, push[2], 1e-9, "z");
+    }
+
+    @Test
+    void eachModeHasItsKindOfGame() throws Exception {
+        YamlConfiguration config = new YamlConfiguration();
+        config.loadFromString("modes:\n  ffa: [Invasion]\n  invis-practice: toutes\njeux:\n  ffa: FFA\n  invis-practice: invis");
+        BedwarsSettings settings = BedwarsSettings.read(config);
+        assertEquals(BedwarsSettings.Kind.FFA, settings.kind("ffa"));
+        assertEquals(BedwarsSettings.Kind.INVIS, settings.kind("invis-practice"));
+        assertEquals(BedwarsSettings.Kind.CLASSIC, settings.kind("ranked-1v1"), "not listed: a classic game");
+        YamlConfiguration wrong = new YamlConfiguration();
+        wrong.loadFromString("jeux:\n  ffa: battle-royale");
+        IllegalArgumentException error = assertThrows(IllegalArgumentException.class, () -> BedwarsSettings.read(wrong));
+        assertTrue(error.getMessage().startsWith("jeux.ffa: "), error.getMessage());
+        YamlConfiguration list = new YamlConfiguration();
+        list.loadFromString("jeux: [ffa]");
+        assertThrows(IllegalArgumentException.class, () -> BedwarsSettings.read(list));
     }
 
     @Test

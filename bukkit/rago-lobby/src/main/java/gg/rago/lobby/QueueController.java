@@ -7,6 +7,7 @@ import gg.rago.game.QueueEntry;
 import gg.rago.lobby.api.MatchHost;
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.LinkedHashMap;
@@ -218,6 +219,16 @@ final class QueueController {
         }
         if (mode.teams() >= 2 && players.size() == mode.playersPerMatch()) {
             startPrivate(party, players, mode, map);
+            return;
+        }
+        if (mode.teams() == 1 && mode.playersPerTeam() == 1 && players.size() > 1) {
+            // a free for all, the invis practice, a training: the party goes in together, one after
+            // the other, so that an open game or a practice waiting for its players takes them all
+            long now = System.currentTimeMillis();
+            for (Player member : players) {
+                startDirect(new MatchProposal(mode, Collections.singletonList(Collections.singletonList(
+                        new QueueEntry(member.getUniqueId(), settings.defaultRating(), now, map, party.id())))), false);
+            }
             return;
         }
         if (players.size() > mode.playersPerTeam()) {
