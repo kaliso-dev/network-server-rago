@@ -46,9 +46,9 @@ const PORT = Number(process.env.KB_PORT ?? '25565')
 const TEST_TIMEOUT_MS = 7 * 60 * 1000
 // A new lobby world has a platform at y = 64: players stand at y = 65, at the centre.
 const LOBBY_SPAWN = { x: 0.5, y: 65, z: 0.5 }
-// The bundled config.yml has three categories, centred in the middle row: Duels is the first, in
-// slot 12. Sumo is the first mode of Duels: slot 10 of its menu.
-const DUELS_SLOT = 12
+// The bundled config.yml has three categories, one slot apart in the middle row: Duels is the
+// first, on the left, in slot 11. Sumo is the first mode of Duels: slot 10 of its menu.
+const DUELS_SLOT = 11
 const SUMO_SLOT = 10
 const POINTS_TO_WIN = 3
 // run-lobby-test.sh places the NPC of the Duels category (point attackdefenseversionrbw), a stats
