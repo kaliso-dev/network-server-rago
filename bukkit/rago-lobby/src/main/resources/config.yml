@@ -564,9 +564,9 @@ modes:
     classe: false
     kit: [STONE_SWORD, "WOOL 64"]
     description:
-      - "On a bridge: knock your"
-      - "opponent off with kb, without"
-      - "falling yourself."
+      - "A Bed Fight top fight: one boxed"
+      - "on top of the defense, the other"
+      - "knocks them off. Roles swap."
   kb-displace-bot:
     nom: "&bKB displace against a bot"
     categorie: duels
@@ -575,8 +575,9 @@ modes:
     joueurs-par-equipe: 1
     classe: false
     description:
-      - "On a bridge, alone against a"
-      - "bot: knock it off with kb."
+      - "The bot is boxed on top of the"
+      - "defense, open on the sides:"
+      - "knock it off, fast."
   ladder-practice:
     nom: "&6Ladder practice"
     categorie: entrainement

@@ -20,8 +20,12 @@ stats du lobby. Quitter le serveur ou taper `/spawn` pendant le duel, c'est perd
   mondes, `boxing.cartes`), tirées au hasard, chacun sur son bloc de diamant ; sans elles, un ring
   fermé. Speed II, une épée sans dégâts ; le premier à 100 coups gagne. Le scoreboard compte les
   coups et le combo. Les arènes sont copiées comme les maps du sumo et ne sont pas dans le dépôt.
-- **KB displace** : un pont d'un bloc au-dessus du vide, que du knockback ; faire tomber l'autre,
-  se rattraper avec sa laine. Premier à 3.
+- **KB displace**, comme le top fight d'un Bed Fight de Minemen : une île de Bed Wars dont le lit a
+  une défense de trois couches. Un joueur est boxé en haut de la défense (de la laine devant,
+  derrière et au-dessus, ouvert sur les côtés, son épée seulement) ; l'autre part du pied de la
+  défense, monte et doit le faire tomber du haut au knockback en 20 secondes. Tombé du haut : un
+  point pour l'attaquant ; tenu : un point pour le boxé. Les rôles changent à chaque manche ;
+  coups sans dégâts. Premier à 3.
 - **Block placement 1v1 et 2v2**, comme le BlockFight de Minemen : deux petites plateformes au-dessus
   du vide, une épée en bois et des blocs sans fin ; construire, clutch, se bloquer, faire tomber.
   Premier à 5.
@@ -81,7 +85,9 @@ et chaque variante son record : le meilleur score du joueur et celui du serveur,
 - **Combo bot** : un bot qui fonce et rend les coups, sans dégâts ; le plus long combo. Facile,
   normal (Speed I), difficile (Speed II). Sur les arènes du boxing : le joueur sur le premier
   bloc de diamant, le bot 8 blocs devant lui.
-- **KB displace contre un bot** : le pont du KB displace, faire tomber le bot sans tomber. Série.
+- **KB displace contre un bot** : le même top fight, le bot boxé en haut de la défense, ouvert sur
+  les côtés : monter et le faire tomber du haut le plus vite possible (le score est le temps). Le
+  bot reste immobile, ou rend les coups quand on est à sa portée.
 - **Block edit**, comme sur la map Block Edit Practice du propriétaire : une cage de verre, un mur
   de laine rouge de 5 sur 3, et derrière, un bot dans une petite pièce en bois. Casser un bloc du
   mur, frapper le bot par le trou, remettre le bloc avant qu'il ne frappe. Le bot frappe comme un

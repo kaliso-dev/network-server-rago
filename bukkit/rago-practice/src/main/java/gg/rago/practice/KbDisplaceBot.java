@@ -5,6 +5,7 @@ import java.util.List;
 import java.util.UUID;
 import org.bukkit.ChatColor;
 import org.bukkit.Color;
+import org.bukkit.EntityEffect;
 import org.bukkit.Location;
 import org.bukkit.Material;
 import org.bukkit.Sound;
@@ -15,39 +16,56 @@ import org.bukkit.entity.Zombie;
 import org.bukkit.event.block.BlockPlaceEvent;
 import org.bukkit.event.entity.EntityDamageEvent;
 import org.bukkit.inventory.ItemStack;
+import org.bukkit.util.Vector;
 
 /**
- * KB displace against a bot: the bridge of the KB displace duel, the player at one end and a bot
- * at the other that walks up and hits. No damage, only knockback: knock the bot off the bridge
- * without falling; clutch with your wool. Each bot knocked off adds one to the streak, a fall
- * ends it.
+ * KB displace against a bot: the top fight of the KB displace duel, the bot boxed on top of the
+ * defense, open on the sides. Climb and knock it off the top with the knockback of your hits, as
+ * fast as you can: the score is the time. The bot stands still, or hits back when you are in its
+ * reach.
  */
 final class KbDisplaceBot extends Training {
 
+    /** After a hit, the bot flies this long before it stands back in its box. */
+    private static final int KNOCKED_TICKS = 14;
+    /** The bot that hits back: from this far, every this many ticks. */
+    private static final double BOT_REACH = 3.0;
+    private static final int BOT_HIT_TICKS = 12;
+
     private Zombie bot;
-    private int streak;
+    private long startedAt;
+    private int knockedUntil;
+    private int lastBotHit;
     private boolean scored;
 
     KbDisplaceBot(PracticeHost host, GameMode mode, Arena arena, List<List<Player>> teams) {
         super(host, mode, arena, teams,
-                new Variant("normal", "Normal bot", false, "knock-offs"),
-                new Variant("fast", "Fast bot", false, "knock-offs"));
+                new Variant("still", "Still bot", true, ""),
+                new Variant("fights", "Bot hits back", true, ""));
+    }
+
+    private boolean fights() {
+        return current().id.equals("fights");
     }
 
     @Override
     String describe() {
-        return current().id.equals("fast") ? "the bot has Speed I: knock it off the bridge before it knocks you off."
-                : "knock the bot off the bridge with your hits, without falling.";
+        return "the bot is boxed on top of the defense, open on the sides: climb and knock it off the top"
+                + (fights() ? ", it hits back." : ".");
     }
 
     @Override
     void build() {
-        KbDisplace.bridge(arena);
+        KbDisplace.topFight(arena);
     }
 
     @Override
     Location spawnOf(UUID player) {
-        return arena.at(-3.5, 1, 0.5, -90f);
+        return KbDisplace.attackerStart(arena);
+    }
+
+    private Location botSpot() {
+        return arena.at(KbDisplace.TOP_X, KbDisplace.TOP, KbDisplace.TOP_Z, 0f);
     }
 
     @Override
@@ -67,20 +85,23 @@ final class KbDisplaceBot extends Training {
 
     @Override
     boolean canPlace(Player player, Block block, BlockPlaceEvent event) {
-        return arena.contains(block, KbDisplace.HALF + 8, 8, 6);
+        return arena.contains(block, 12, 6, KbDisplace.TOP + 4);
     }
 
     @Override
     void roundReset() {
         scored = false;
+        knockedUntil = 0;
+        lastBotHit = 0;
         Bots.remove(this, bot);
         bot = null;
+        KbDisplace.box(arena, Shapes.BLUE);
     }
 
     @Override
     void onFight() {
-        bot = Bots.spawn(this, arena.at(4.5, 1, 0.5, 90f), "Bot", Color.BLUE, variant);
-        Bots.chase(bot, player());
+        bot = Bots.spawn(this, botSpot(), "Boxed bot", Color.BLUE, 0);
+        startedAt = now();
     }
 
     @Override
@@ -90,29 +111,48 @@ final class KbDisplaceBot extends Training {
     }
 
     @Override
+    boolean mayTarget(Entity entity, Entity target) {
+        // the bot stays in its box, it does not hunt
+        return false;
+    }
+
+    @Override
     void tick() {
+        refresh();
         Player player = player();
         if (player == null || bot == null || scored) {
             return;
         }
-        if (tickCount % 20 == 0) {
-            Bots.chase(bot, player);
-        }
-        if (!bot.isValid() || bot.getLocation().getY() < arena.floorY() - 3 || !arena.near(bot.getLocation(), 40)) {
+        Location at = bot.getLocation();
+        if (!bot.isValid() || KbDisplace.offTheTop(at.getY() - arena.floorY())) {
             scored = true;
-            streak++;
-            player.sendMessage(ChatColor.GREEN + "Knocked off! " + ChatColor.GRAY + "Streak: " + ChatColor.WHITE + streak);
-            sound(player, Sound.ORB_PICKUP, 1.2f);
-            score(streak, true);
+            long took = now() - startedAt;
+            player.sendMessage(ChatColor.GREEN + "Off the top! " + ChatColor.WHITE + time(took) + " s");
+            score(took);
             Bots.remove(this, bot);
             bot = null;
             again(30L);
+            return;
         }
-    }
-
-    @Override
-    boolean mayTarget(Entity entity, Entity target) {
-        return target instanceof Player && target.getUniqueId().equals(me);
+        Location look = player.getLocation();
+        if (tickCount >= knockedUntil) {
+            // back in its box, facing the player
+            Location spot = botSpot();
+            Vector way = look.toVector().subtract(spot.toVector());
+            spot.setYaw((float) Math.toDegrees(Math.atan2(-way.getX(), way.getZ())));
+            bot.teleport(spot);
+        }
+        if (fights() && tickCount - lastBotHit >= BOT_HIT_TICKS && tickCount >= knockedUntil
+                && look.distanceSquared(at) <= BOT_REACH * BOT_REACH) {
+            lastBotHit = tickCount;
+            Vector push = look.toVector().subtract(at.toVector()).setY(0);
+            if (push.lengthSquared() > 0) {
+                push.normalize().multiply(0.4);
+            }
+            player.setVelocity(push.setY(0.36));
+            player.playEffect(EntityEffect.HURT);
+            sound(player, Sound.HURT_FLESH, 1f);
+        }
     }
 
     @Override
@@ -122,32 +162,22 @@ final class KbDisplaceBot extends Training {
             return;
         }
         event.setDamage(0.0);
+        knockedUntil = tickCount + KNOCKED_TICKS;
     }
 
     @Override
     void entityHurt(Entity entity, EntityDamageEvent event) {
-        // the void, a fall: the bot never dies of it, it is knocked off
+        // a fall, the void: the bot never dies of it, it is knocked off
         event.setCancelled(true);
     }
 
     @Override
-    boolean damage(Player victim, Player attacker, EntityDamageEvent event) {
-        if (bot == null || damager(event) != bot) {
-            return false;
-        }
-        event.setDamage(0.0);
-        return true;
-    }
-
-    @Override
     void fell(Player player) {
-        String end = streak > 0 ? " The streak of " + streak + " ends." : "";
-        streak = 0;
-        failed("The bot knocked you off." + end);
+        failed("You fell.");
     }
 
     @Override
     void trainingLines(List<String> lines) {
-        lines.add(ChatColor.WHITE + "Streak: " + ChatColor.GREEN + streak);
+        lines.add(ChatColor.WHITE + "Time: " + ChatColor.GREEN + (scored || bot == null ? "-" : time(now() - startedAt) + " s"));
     }
 }
