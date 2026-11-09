@@ -54,6 +54,7 @@ public final class RagoLobby extends JavaPlugin implements LobbyService {
     private LobbyPoints points;
     private LobbyNpcs npcs;
     private DailyChest daily;
+    private LobbyGadgets gadgets;
     private FakeEntities fakes;
     private DuelRequests duels;
     private StatsService stats;
@@ -169,6 +170,8 @@ public final class RagoLobby extends JavaPlugin implements LobbyService {
         getServer().getPluginManager().registerEvents(cosmetics, this);
         getServer().getPluginManager().registerEvents(info, this);
         getServer().getPluginManager().registerEvents(new PearlGuard(), this);
+        gadgets = new LobbyGadgets(this);
+        getServer().getPluginManager().registerEvents(gadgets, this);
         cosmetics.start();
         getServer().getPluginManager().registerEvents(kitEditor, this);
         LobbyCommands commands = new LobbyCommands(this);
@@ -233,6 +236,9 @@ public final class RagoLobby extends JavaPlugin implements LobbyService {
         }
         if (cosmetics != null) {
             cosmetics.stop();
+        }
+        if (gadgets != null) {
+            gadgets.clear();
         }
         for (Player player : getServer().getOnlinePlayers()) {
             if (player.getOpenInventory().getTopInventory().getHolder() instanceof ClickMenu) {
@@ -434,6 +440,7 @@ public final class RagoLobby extends JavaPlugin implements LobbyService {
         parties.forget(player.getUniqueId());
         duels.forget(player.getUniqueId());
         visibility.forget(player.getUniqueId());
+        gadgets.forget(player.getUniqueId());
         scoreboard.forget(player.getUniqueId());
         state.forget(player.getUniqueId());
     }
@@ -448,6 +455,12 @@ public final class RagoLobby extends JavaPlugin implements LobbyService {
                 break;
             case KIT_EDITOR:
                 kitEditor.openModes(player);
+                break;
+            case FIREBALL:
+                gadgets.throwFireball(player);
+                break;
+            case TELEPORT:
+                gadgets.teleport(player);
                 break;
             case SHOP:
                 shop.open(player);
@@ -481,6 +494,8 @@ public final class RagoLobby extends JavaPlugin implements LobbyService {
         inventory.setArmorContents(null);
         inventory.setItem(HotbarItem.SELECTOR.slot(), HotbarItem.SELECTOR.create());
         inventory.setItem(HotbarItem.KIT_EDITOR.slot(), HotbarItem.KIT_EDITOR.create());
+        inventory.setItem(HotbarItem.FIREBALL.slot(), HotbarItem.FIREBALL.create());
+        inventory.setItem(HotbarItem.TELEPORT.slot(), HotbarItem.TELEPORT.create());
         if (queues.queueOf(player) != null) {
             inventory.setItem(HotbarItem.LEAVE_QUEUE.slot(), HotbarItem.LEAVE_QUEUE.create());
         }

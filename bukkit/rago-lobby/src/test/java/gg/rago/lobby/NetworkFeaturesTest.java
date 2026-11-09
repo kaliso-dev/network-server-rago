@@ -205,7 +205,8 @@ class NetworkFeaturesTest {
         assertEquals(2, settings.motd().size());
         assertEquals(5, settings.announceMinutes());
         assertTrue(settings.link("discord").get(0).contains("discord"));
-        assertNull(settings.link("site"), "no website yet");
+        assertTrue(settings.link("site").get(0).contains("rago-optimizer.com"));
+        assertTrue(settings.link("boutique").get(0).contains("rago-optimizer.com"));
     }
 
     @Test

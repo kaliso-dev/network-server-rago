@@ -12,7 +12,12 @@ dans les files d'attente des modes de jeu.
   autres mondes (arènes, monde du test de knockback, mondes de build) ne sont pas touchés.
 - **La barre d'objets.** La boussole ouvre le sélecteur des modes ; le livre ouvre l'éditeur de
   kit ; le colorant rouge quitte la file ; le colorant vert ou gris cache ou montre les autres
-  joueurs du lobby.
+  joueurs du lobby. La fireball part là où on regarde, comme en Bed Wars, et son souffle pousse
+  les joueurs autour comme sur Hypixel : sous ses pieds, c'est un fireball jump (une toutes les
+  demi-secondes, elle ne blesse personne et ne casse rien). Le bâton de blaze (teleport stick)
+  emmène sur le bloc qu'on regarde, à 20 blocs au plus, jamais à travers un mur : le premier bloc
+  sur le chemin est celui où on arrive, sur lui s'il y a la place, sinon juste devant (ou dessous,
+  quand on vise un plafond).
 - **L'éditeur de kit.** Le livre (deuxième case) liste les modes qui ont un kit (`kit:` sous le
   mode dans config.yml). Un clic sur un mode met son kit dans l'inventaire du joueur, rangé comme
   il l'a laissé la dernière fois, sous un petit coffre : Save, Reset (le rangement du kit) et

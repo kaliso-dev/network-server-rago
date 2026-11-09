@@ -121,7 +121,7 @@ final class ServerSettings {
         Map<String, List<String>> links = new LinkedHashMap<>();
         ConfigurationSection l = config.getConfigurationSection("liens");
         if (l == null) {
-            links.put("discord", Collections.singletonList(ChatColor.BLUE + "Our Discord: " + ChatColor.WHITE + "discord.gg/rago"));
+            links.put("discord", Collections.singletonList(ChatColor.BLUE + "Our Discord: " + ChatColor.WHITE + "discord.gg/ragooptimizer"));
             links.put("regles", defaultRules());
         } else {
             for (String key : l.getKeys(false)) {

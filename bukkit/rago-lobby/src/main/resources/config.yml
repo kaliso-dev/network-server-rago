@@ -288,10 +288,13 @@ annonces:
     - "&bClaim your daily reward with /daily: a few days in a row give more."
     - "&bAdd your friends with /friend add <name>, and play with them in a /party."
     - "&bClimb the ranked divisions, from Coal to Obsidian: /top elo."
+    - "&bNews, store and more on &frago-optimizer.com&b."
 
 # What /discord, /site, /rules and /store show (one line or a list).
 liens:
-  discord: "&9Our Discord: &fdiscord.gg/rago"
+  discord: "&9Our Discord: &fdiscord.gg/ragooptimizer"
+  site: "&bOur website: &frago-optimizer.com"
+  boutique: "&aThe store: &frago-optimizer.com"
   regles:
     - "&6&lRules"
     - "&71. No cheats, macros or unfair mods."

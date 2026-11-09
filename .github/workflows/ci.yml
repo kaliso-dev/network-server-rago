@@ -71,7 +71,8 @@ jobs:
           done
 
       # The local test server for players (tools/local-server): the launchers, the settings, the
-      # guide as LISEZ-MOI.txt and the plugins. The zip of this artifact is what a player downloads.
+      # server icon (the Rago Practice logo), the guide as LISEZ-MOI.txt and the plugins. The zip of
+      # this artifact is what a player downloads.
       # WorldEdit is not in it: the launchers download it from its publisher and check its sum.
       - name: Assemble the local test server
         run: |
@@ -79,7 +80,8 @@ jobs:
           rm -rf "$kit"
           mkdir -p "$kit/plugins"
           cp tools/local-server/lancer-windows.bat tools/local-server/lancer.ps1 \
-            tools/local-server/lancer-mac-linux.sh tools/local-server/server.properties "$kit/"
+            tools/local-server/lancer-mac-linux.sh tools/local-server/server.properties \
+            tools/local-server/server-icon.png "$kit/"
           cp tools/local-server/README.md "$kit/LISEZ-MOI.txt"
           cp combat/rago-combat-engine/build/libs/*.jar tools/build-tools/build/libs/*.jar \
             bukkit/rago-lobby/build/libs/*.jar bukkit/rago-practice/build/libs/*.jar \
