@@ -15,8 +15,11 @@ stats du lobby. Quitter le serveur ou taper `/spawn` pendant le duel, c'est perd
   Des coups sans dégâts, le premier qui tombe (ou touche l'eau) donne un point ; premier à 3.
   Chaque manche commence par 3 secondes immobiles, face à face. Les maps sont copiées dans les
   zones du sumo au démarrage, quelques milliers de blocs par tick ; elles ne sont pas dans le dépôt.
-- **Boxing**, comme sur Minemen : un ring fermé, Speed II, une épée sans dégâts ; le premier à
-  100 coups gagne. Le scoreboard compte les coups et le combo.
+- **Boxing**, comme sur Minemen : sur les arènes Minemen de 2022 du propriétaire (Cobble, Shy Guy,
+  Redstone, Cave, Fishtank, Goku, Lollipop, Pokemon : les mondes `Minemen …` du dossier des
+  mondes, `boxing.cartes`), tirées au hasard, chacun sur son bloc de diamant ; sans elles, un ring
+  fermé. Speed II, une épée sans dégâts ; le premier à 100 coups gagne. Le scoreboard compte les
+  coups et le combo. Les arènes sont copiées comme les maps du sumo et ne sont pas dans le dépôt.
 - **KB displace** : un pont d'un bloc au-dessus du vide, que du knockback ; faire tomber l'autre,
   se rattraper avec sa laine. Premier à 3.
 - **Block placement 1v1 et 2v2**, comme le BlockFight de Minemen : deux petites plateformes au-dessus
@@ -76,7 +79,8 @@ et chaque variante son record : le meilleur score du joueur et celui du serveur,
   cette XP en XP Network, plus 1 pour 10 coups (`aim-trainer` dans `config.yml`), et voit le top 5
   de la variante. `/aimtop [strafe|jump|circle]` montre le top de partout.
 - **Combo bot** : un bot qui fonce et rend les coups, sans dégâts ; le plus long combo. Facile,
-  normal (Speed I), difficile (Speed II).
+  normal (Speed I), difficile (Speed II). Sur les arènes du boxing : le joueur sur le premier
+  bloc de diamant, le bot 8 blocs devant lui.
 - **KB displace contre un bot** : le pont du KB displace, faire tomber le bot sans tomber. Série.
 - **Block edit**, comme sur la map Block Edit Practice du propriétaire : une cage de verre, un mur
   de laine rouge de 5 sur 3, et derrière, un bot dans une petite pièce en bois. Casser un bloc du

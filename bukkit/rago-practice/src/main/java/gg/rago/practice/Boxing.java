@@ -14,8 +14,9 @@ import org.bukkit.potion.PotionEffect;
 import org.bukkit.potion.PotionEffectType;
 
 /**
- * Boxing, as on Minemen: in a closed ring, with Speed II and a sword that does no damage, the first
- * to land 100 hits wins. Every hit gives the knockback of a real one; the sidebar counts the hits
+ * Boxing, as on Minemen: on one of the Minemen arenas of the server (see {@link MapZones}), or a
+ * closed ring without them, with Speed II and a sword that does no damage, the first to land 100
+ * hits wins. Every hit gives the knockback of a real one; the sidebar counts the hits
  * and the combo.
  */
 final class Boxing extends Duel {
@@ -45,6 +46,9 @@ final class Boxing extends Duel {
 
     @Override
     void build() {
+        if (arena.map() != null) {
+            return;
+        }
         Shapes.floor(arena, -12, -12, 12, 12, -1, Material.STAINED_CLAY, Shapes.GRAY);
         Shapes.floor(arena, -11, -11, 11, 11, 0, Material.WOOL, Shapes.WHITE);
         Shapes.walls(arena, -12, -12, 12, 12, 0, 1, Material.STAINED_CLAY, Shapes.GRAY);
@@ -62,6 +66,10 @@ final class Boxing extends Duel {
     @Override
     Location spawnOf(UUID player) {
         int side = sideOf(player);
+        Location start = arena.mapStart(Math.max(0, side));
+        if (start != null) {
+            return start;
+        }
         return side == 0 ? arena.at(-4.5, 1, 0.5, -90f) : arena.at(5.5, 1, 0.5, 90f);
     }
 

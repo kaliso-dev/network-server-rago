@@ -35,6 +35,31 @@ class SumoMapsTest {
     }
 
     @Test
+    void theBundledBoxingArenasAreCheckedAndHaveTwoStarts() throws Exception {
+        YamlConfiguration config = YamlConfiguration.loadConfiguration(new InputStreamReader(
+                RagoPractice.class.getResourceAsStream("/config.yml"), StandardCharsets.UTF_8));
+        List<Map<?, ?>> maps = config.getMapList("boxing.cartes");
+        assertEquals(8, maps.size());
+        Set<String> names = new HashSet<>();
+        for (Map<?, ?> map : maps) {
+            assertNull(RagoPractice.checkZoneMap(map, config.getInt("espacement")), String.valueOf(map));
+            assertTrue(names.add(String.valueOf(map.get("monde"))));
+            assertEquals(2, ((List<?>) map.get("departs")).size(), String.valueOf(map.get("monde")));
+        }
+    }
+
+    @Test
+    void aWrongStartIsToldWhy() {
+        Map<String, Object> map = map("A", Arrays.asList(0, 64, 0), Arrays.asList(-40, 60, -40, 40, 100, 40));
+        map.put("departs", Arrays.asList(Arrays.asList(-30, 65, 0, -90), Arrays.asList(30, 65, 0, 90)));
+        assertNull(RagoPractice.checkZoneMap(map, 200));
+        map.put("departs", Arrays.asList(Arrays.asList(-30, 65, 0)));
+        assertTrue(RagoPractice.checkZoneMap(map, 200).startsWith("departs"));
+        map.put("departs", Arrays.asList(Arrays.asList(-50, 65, 0, -90)));
+        assertTrue(RagoPractice.checkZoneMap(map, 200).contains("in the zone"));
+    }
+
+    @Test
     void aWrongMapIsToldWhy() {
         assertNull(RagoPractice.checkZoneMap(map("Ponsen", Arrays.asList(0, 64, 0), Arrays.asList(-47, 53, -47, 47, 116, 47)), 200));
         assertTrue(RagoPractice.checkZoneMap(map("", Arrays.asList(0, 64, 0), Arrays.asList(-4, 60, -4, 4, 70, 4)), 200)

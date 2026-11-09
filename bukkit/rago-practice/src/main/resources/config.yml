@@ -36,6 +36,45 @@ sumo:
       centre: [0, 95, 0]
       zone: [-22, 57, -24, 22, 96, 44]
 
+# The boxing and the combo bot play on these arenas, as the sumo on its maps: the Minemen arenas
+# of 2022 the owner gave (worlds of the folder of the worlds). "departs": where the two players
+# start, x, y of the feet, z, yaw (the diamond blocks of the map). The combo bot starts the player
+# on the first one and the bot 8 blocks in front of them. Without these worlds: a ring.
+boxing:
+  cartes:
+    - monde: "Minemen Cobble"
+      centre: [2529, 66, 2449]
+      zone: [2503, 65, 2403, 2555, 106, 2496]
+      departs: [[2529, 67, 2408, 0], [2529, 67, 2491, 180]]
+    - monde: "Minemen Shy Guy"
+      centre: [6943, 65, 7025]
+      zone: [6893, 64, 6994, 6993, 103, 7056]
+      departs: [[6905, 66, 7025, -90], [6981, 66, 7025, 90]]
+    - monde: "Minemen Redstone"
+      centre: [11060, 89, 11073]
+      zone: [11009, 81, 11022, 11111, 130, 11124]
+      departs: [[11024, 90, 11073, -90], [11096, 90, 11073, 90]]
+    - monde: "Minemen Cave"
+      centre: [8037, 192, 8000]
+      zone: [7995, 186, 7962, 8079, 255, 8038]
+      departs: [[8000, 193, 8000, -90], [8075, 193, 8000, 90]]
+    - monde: "Minemen Fishtank"
+      centre: [11500, 187, 11457]
+      zone: [11451, 184, 11408, 11549, 242, 11506]
+      departs: [[11500, 188, 11414, 0], [11500, 188, 11500, 180]]
+    - monde: "Minemen Goku"
+      centre: [6561, 79, 6541]
+      zone: [6513, 78, 6508, 6609, 139, 6574]
+      departs: [[6517, 80, 6541, -90], [6605, 80, 6541, 90]]
+    - monde: "Minemen Lollipop"
+      centre: [5856, 68, 6187]
+      zone: [5814, 68, 6142, 5904, 158, 6233]
+      departs: [[5856, 69, 6146, 0], [5856, 69, 6229, 180]]
+    - monde: "Minemen Pokemon"
+      centre: [12946, 72, 12962]
+      zone: [12897, 71, 12928, 12995, 132, 12996]
+      departs: [[12902, 73, 12962, -90], [12990, 73, 12962, 90]]
+
 # The other duels: how many points win (in boxing, how many hits). A point is a death or a fall
 # into the void of the other side; in 2v2, when both players of a side are out of the round.
 points-pour-gagner:

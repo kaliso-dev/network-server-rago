@@ -35,6 +35,8 @@ public final class RagoPractice extends JavaPlugin {
 
     private LobbyService lobby;
     private SumoHost sumo;
+    /** The maps being copied into the zones of the modes that play on maps. */
+    private final List<MapZones> mapZones = new ArrayList<>();
     private PracticeGames games;
     private Records records;
     private final List<String> hosted = new ArrayList<>();
@@ -140,7 +142,8 @@ public final class RagoPractice extends JavaPlugin {
         int aimHits = config.getInt("aim-trainer.touches-par-xp", 10);
         BlockInTraining.Island island = blockInIsland(config);
 
-        register("boxing", (h, m, a, t) -> new Boxing(h, m, a, t, boxing), slots, spacing, false);
+        List<MapZones.ZoneMap> arenas = zoneMaps(config, "boxing.cartes", spacing, "the boxing and the combo bot");
+        onMaps(register("boxing", (h, m, a, t) -> new Boxing(h, m, a, t, boxing), slots, spacing, false), arenas);
         register("kb-displace", (h, m, a, t) -> new KbDisplace(h, m, a, t, kb), slots, spacing, false);
         register("block-fight-1v1", (h, m, a, t) -> new BlockFight(h, m, a, t, blocks), slots, spacing, false);
         register("block-fight-2v2", (h, m, a, t) -> new BlockFight(h, m, a, t, blocks), slots, spacing, false);
@@ -159,7 +162,7 @@ public final class RagoPractice extends JavaPlugin {
         register("pearl-practice", (h, m, a, t) -> new PearlTraining(h, m, a, t, skyRise), slots, spacing, false);
         register("fireball-practice", FireballTraining::new, slots, spacing, false);
         register("aim-trainer", (h, m, a, t) -> new AimTrainer(h, m, a, t, aimXp, aimHits), slots, spacing, false);
-        register("combo-bot", ComboBot::new, slots, spacing, false);
+        onMaps(register("combo-bot", ComboBot::new, slots, spacing, false), arenas);
         register("kb-displace-bot", KbDisplaceBot::new, slots, spacing, false);
         register("block-fight-arena", BlockArena::new, slots, spacing, true);
         register("bridge-fight", BridgeArena::new, slots, spacing, true);
@@ -239,9 +242,16 @@ public final class RagoPractice extends JavaPlugin {
             for (int i = 0; i < 6; i++) {
                 box[i] = (int) number(zone.get(i));
             }
+            List<?> departs = entry.get("departs") instanceof List ? (List<?>) entry.get("departs") : new ArrayList<>();
+            double[][] starts = new double[departs.size()][];
+            for (int i = 0; i < starts.length; i++) {
+                List<?> start = (List<?>) departs.get(i);
+                starts[i] = new double[] {number(start.get(0)) - origin[0] + 0.5, number(start.get(1)) - origin[1],
+                    number(start.get(2)) - origin[2] + 0.5, number(start.get(3))};
+            }
             MapCopy copy = MapCopy.read(name, box, origin, getLogger(), what);
             if (copy != null) {
-                maps.add(new MapZones.ZoneMap(name, copy));
+                maps.add(new MapZones.ZoneMap(name, copy, starts));
             }
         }
         return maps;
@@ -273,6 +283,23 @@ public final class RagoPractice extends JavaPlugin {
         for (int i : new int[] {0, 2}) {
             if (Math.abs(zone[i] - centre[i]) > half || Math.abs(zone[i + 3] - centre[i]) > half) {
                 return "zone: at most " + half + " blocks from the centre on x and z (espacement / 2)";
+            }
+        }
+        Object departs = entry.get("departs");
+        if (departs != null) {
+            if (!(departs instanceof List)) {
+                return "departs: a list of starts, x, y, z, yaw each";
+            }
+            for (Object start : (List<?>) departs) {
+                int[] place = numbers(start, 4);
+                if (place == null) {
+                    return "departs: x, y, z, yaw for each start, whole numbers";
+                }
+                for (int i = 0; i < 3; i++) {
+                    if (place[i] < Math.min(zone[i], zone[i + 3]) || place[i] > Math.max(zone[i], zone[i + 3])) {
+                        return "departs: each start in the zone";
+                    }
+                }
             }
         }
         return null;
@@ -327,20 +354,36 @@ public final class RagoPractice extends JavaPlugin {
         return null;
     }
 
-    private void register(String modeId, PracticeHost.Factory factory, int slots, int spacing, boolean open) {
+    /** The host of the mode, or null when the lobby does not have the mode. */
+    private PracticeHost register(String modeId, PracticeHost.Factory factory, int slots, int spacing, boolean open) {
         int row = FIRST_ROW_Z + ROW_SPACING * hosted.size();
         PracticeHost host = new PracticeHost(this, games, modeId, factory, new ArenaGrid(open ? 1 : slots, spacing), row, open);
         if (lobby.registerHost(this, modeId, host)) {
             hosted.add(modeId);
-        } else {
-            // its row stays reserved, so that the other modes keep their zones
-            hosted.add("(" + modeId + ")");
-            getLogger().warning("The lobby has no mode \"" + modeId + "\" in its config.yml: it stays closed.");
+            return host;
+        }
+        // its row stays reserved, so that the other modes keep their zones
+        hosted.add("(" + modeId + ")");
+        getLogger().warning("The lobby has no mode \"" + modeId + "\" in its config.yml: it stays closed.");
+        return null;
+    }
+
+    /** The mode plays on these maps, if it is open and there are some. */
+    private void onMaps(PracticeHost host, List<MapZones.ZoneMap> maps) {
+        if (host != null) {
+            MapZones zones = host.useMaps(maps);
+            if (zones != null) {
+                mapZones.add(zones);
+            }
         }
     }
 
     @Override
     public void onDisable() {
+        for (MapZones zones : mapZones) {
+            zones.stop();
+        }
+        mapZones.clear();
         if (sumo != null) {
             sumo.abortAll();
             sumo = null;

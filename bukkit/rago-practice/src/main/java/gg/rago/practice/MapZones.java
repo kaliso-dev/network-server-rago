@@ -21,14 +21,24 @@ import org.bukkit.scheduler.BukkitTask;
  */
 final class MapZones {
 
-    /** A map: the name of its world and its blocks, the middle of the top of its platform at the origin. */
+    /**
+     * A map: the name of its world and its blocks, the middle of the top of its platform at the
+     * origin, and where the players start on it (x, y of the feet, z, yaw from the origin), if the
+     * config says.
+     */
     static final class ZoneMap {
         final String name;
         final MapCopy copy;
+        final double[][] starts;
 
         ZoneMap(String name, MapCopy copy) {
+            this(name, copy, new double[0][]);
+        }
+
+        ZoneMap(String name, MapCopy copy, double[][] starts) {
             this.name = name;
             this.copy = copy;
+            this.starts = starts;
         }
     }
 

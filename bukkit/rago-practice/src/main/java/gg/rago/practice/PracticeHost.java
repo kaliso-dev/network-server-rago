@@ -35,6 +35,8 @@ final class PracticeHost implements MatchHost {
     private final boolean open;
     private final Set<Integer> built = new HashSet<>();
     private PracticeGame openGame;
+    /** The maps copied into the zones of the mode, or null when the mode builds its own arena. */
+    private MapZones zones;
 
     /**
      * @param rowZ the z of the mode's row of zones in the arena world
@@ -57,6 +59,19 @@ final class PracticeHost implements MatchHost {
 
     String modeId() {
         return modeId;
+    }
+
+    /**
+     * The games of this mode play on these maps, copied into its zones from now on, a few blocks
+     * each tick; nothing happens without maps. Returns the zones, to stop at the end.
+     */
+    MapZones useMaps(List<MapZones.ZoneMap> maps) {
+        if (maps.isEmpty()) {
+            return null;
+        }
+        zones = new MapZones(games.world(), grid, RagoPractice.ARENA_Y, rowZ, maps);
+        zones.start(plugin);
+        return zones;
     }
 
     // --- MatchHost ------------------------------------------------------------------------------
@@ -83,11 +98,15 @@ final class PracticeHost implements MatchHost {
             }
             return true;
         }
-        int slot = grid.acquire();
+        int slot = zones != null ? zones.take() : grid.acquire();
         if (slot < 0) {
             return false;
         }
-        Arena arena = new Arena(games.world(), slot, grid.centreX(slot), RagoPractice.ARENA_Y, rowZ, built.add(slot));
+        // a zone of a map holds the map already: the mode builds nothing there
+        Arena arena = new Arena(games.world(), slot, grid.centreX(slot), RagoPractice.ARENA_Y, rowZ, zones == null && built.add(slot));
+        if (zones != null) {
+            arena.onMap(zones.mapOf(slot));
+        }
         PracticeGame game;
         try {
             game = factory.create(this, match.mode(), arena, teams);

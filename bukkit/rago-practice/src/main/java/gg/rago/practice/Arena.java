@@ -36,6 +36,8 @@ final class Arena {
     private final boolean fresh;
     private final Map<Block, Before> changed = new LinkedHashMap<>();
     private final Set<Block> placed = new HashSet<>();
+    /** The map copied into the zone, or null when the mode builds its own arena. */
+    private MapZones.ZoneMap map;
 
     /**
      * @param fresh true the first time this zone is used by its mode: the mode builds it then
@@ -51,6 +53,24 @@ final class Arena {
 
     World world() {
         return world;
+    }
+
+    /** The map copied into the zone, or null when the mode builds its own arena. */
+    MapZones.ZoneMap map() {
+        return map;
+    }
+
+    void onMap(MapZones.ZoneMap map) {
+        this.map = map;
+    }
+
+    /** Where player number n starts on the map of the zone, or null without a map that says. */
+    Location mapStart(int n) {
+        if (map == null || map.starts.length == 0) {
+            return null;
+        }
+        double[] start = map.starts[n % map.starts.length];
+        return at(start[0], start[1], start[2], (float) start[3]);
     }
 
     int slot() {

@@ -17,7 +17,8 @@ import org.bukkit.event.entity.EntityDamageEvent;
 import org.bukkit.inventory.ItemStack;
 
 /**
- * Combo bot: sparring in a ring against a bot that runs at the player and hits back. The hits
+ * Combo bot: sparring against a bot that runs at the player and hits back, on the arenas of the
+ * boxing (or a ring without them). The hits
  * hurt no one, only their knockback counts, as in boxing: a combo is the hits in a row on the bot
  * before it hits back (or two seconds without a hit). The score is the longest combo. Easy,
  * normal (Speed I) or hard (Speed II).
@@ -26,6 +27,8 @@ final class ComboBot extends Training {
 
     /** A combo ends after this long without a hit. */
     private static final int COMBO_TICKS = 40;
+    /** On a map, the bot starts this far in front of the player. */
+    static final double BOT_AHEAD = 8;
 
     private Zombie bot;
     private int combo;
@@ -53,6 +56,9 @@ final class ComboBot extends Training {
 
     @Override
     void build() {
+        if (arena.map() != null) {
+            return;
+        }
         Shapes.floor(arena, -11, -11, 11, 11, 0, Material.WOOL, Shapes.WHITE);
         Shapes.walls(arena, -12, -12, 12, 12, 0, 1, Material.STAINED_CLAY, Shapes.GRAY);
         Shapes.floor(arena, -12, -12, 12, 12, -1, Material.STAINED_CLAY, Shapes.GRAY);
@@ -61,7 +67,28 @@ final class ComboBot extends Training {
 
     @Override
     Location spawnOf(UUID player) {
-        return arena.at(-5.5, 1, 0.5, -90f);
+        Location start = arena.mapStart(0);
+        return start != null ? start : arena.at(-5.5, 1, 0.5, -90f);
+    }
+
+    /**
+     * Where the bot starts: on a map, this far in front of the player towards the other start,
+     * facing them; else across the ring.
+     */
+    private Location botStart() {
+        Location mine = arena.mapStart(0);
+        Location other = arena.mapStart(1);
+        if (mine == null || other == null) {
+            return arena.at(5.5, 1, 0.5, 90f);
+        }
+        Location at = mine.clone().add(other.toVector().subtract(mine.toVector()).normalize().multiply(BOT_AHEAD));
+        at.setYaw(mine.getYaw() + 180f);
+        return at;
+    }
+
+    /** How far the bot may go from the middle of the zone before it is put back. */
+    private double range() {
+        return arena.map() != null ? 70 : 14;
     }
 
     @Override
@@ -89,7 +116,7 @@ final class ComboBot extends Training {
 
     @Override
     void onFight() {
-        bot = Bots.spawn(this, arena.at(5.5, 1, 0.5, 90f), "Combo bot", Color.RED, variant);
+        bot = Bots.spawn(this, botStart(), "Combo bot", Color.RED, variant);
         Bots.chase(bot, player());
     }
 
@@ -108,8 +135,8 @@ final class ComboBot extends Training {
         if (tickCount % 20 == 0) {
             Bots.chase(bot, player);
         }
-        if (!bot.isValid() || !arena.near(bot.getLocation(), 14) || bot.getLocation().getY() < arena.floorY()) {
-            bot.teleport(arena.at(5.5, 1, 0.5, 90f));
+        if (!bot.isValid() || !arena.near(bot.getLocation(), range()) || bot.getLocation().getY() < arena.floorY() - 6) {
+            bot.teleport(botStart());
         }
         if (combo > 0 && tickCount - lastHit > COMBO_TICKS) {
             endCombo(player, null);
