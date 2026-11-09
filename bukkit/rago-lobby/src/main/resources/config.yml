@@ -73,7 +73,7 @@ pnj:
     modes: [invis-practice]
   realisticplat:
     nom: "&bBridge fight"
-    modes: [bridge-fight]
+    modes: [bridge-fight, bridge-fight-1v1]
   freearenacombo:
     nom: "&aArena Free"
     modes: [free-ffa]
@@ -521,11 +521,23 @@ modes:
     equipes: 1
     joueurs-par-equipe: 1
     classe: false
-    kit: [STONE_SWORD, "WOOL 64", "WOOL 64", SHEARS, "GOLDEN_APPLE 2"]
+    kit: [STONE_SWORD, "GOLDEN_APPLE 2"]
     description:
-      - "Open to everyone: four wool"
-      - "platforms, pick yours with the"
-      - "compass, come back next to it."
+      - "Free for all, no blocks: four"
+      - "wool platforms linked by bridges,"
+      - "walk from one to another."
+  bridge-fight-1v1:
+    nom: "&bBridge fight 1v1"
+    categorie: ranked
+    icone: WOOL
+    equipes: 2
+    joueurs-par-equipe: 1
+    classe: false
+    kit: [STONE_SWORD, "GOLDEN_APPLE 2"]
+    description:
+      - "A real 1v1 on a platform of its"
+      - "own, no blocks: a kill or a fall"
+      - "is a point. First to 5."
   block-fight-1v1:
     nom: "&bBlock placement 1v1"
     categorie: ranked

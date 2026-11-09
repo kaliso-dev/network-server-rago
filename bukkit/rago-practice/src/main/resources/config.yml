@@ -83,6 +83,7 @@ points-pour-gagner:
   block-fight: 5
   top-fight: 3
   block-edit: 5
+  bridge-fight: 5
 
 # Attack and defense, as a rush of a solo Bed Wars game on Hypixel: the defender is at home next
 # to a bed with no defense, the attacker already on a bridge with three blocks of void left. The

@@ -1,9 +1,7 @@
 package gg.rago.practice;
 
 import gg.rago.game.GameMode;
-import java.util.ArrayDeque;
 import java.util.ArrayList;
-import java.util.Deque;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -25,12 +23,13 @@ import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.PlayerInventory;
 
 /**
- * The bridge fight, open to everyone like the block placement arena: four wool platforms side by
- * side over the void, each of two colours as a top fight platform, in Ranked Bedwars gear (iron
- * armour, stone sword, wool, shears, golden apples) with real damage. A player picks the platform
- * they fight on with the compass (the least crowded one at first); after a death or a fall they
- * come back next to it, on a small pad at one of its ends, and bridge onto it. The blocks placed
- * go away after thirty seconds. The kills count in the stats of the mode.
+ * The bridge fight, a free for all open to everyone like the block placement arena: four wool
+ * platforms side by side over the void, each of two colours as a top fight platform, in Ranked
+ * Bedwars gear (iron armour, stone sword, golden apples) with real damage. Nobody places blocks:
+ * a bridge leads from a pad at each end to the tip of its platform, and a walkway along each end
+ * links the pads, so a player walks from one platform to another (or takes the compass, out of a
+ * fight). After a death or a fall they come back on a pad of the platform they were on. The kills
+ * count in the stats of the mode. The 1v1 with points is {@link BridgeDuel}.
  */
 final class BridgeArena extends PracticeGame {
 
@@ -69,9 +68,12 @@ final class BridgeArena extends PracticeGame {
     };
     /** The tips of the platforms are this far from their centre, along the row. */
     static final int HALF_LENGTH = 15;
-    /** The centre of the spawn pads, this far from the centre of their platform: a short bridge to build. */
+    /** The centre of the spawn pads, this far from the centre of their platform, a short bridge away. */
     static final int PAD = HALF_LENGTH + 5;
-    private static final int DECAY_TICKS = 600;
+    /** The walkways along the row go this far past the outer platforms. */
+    static final int WALK = 1;
+    /** How often the platform of each player follows where they are, in ticks. */
+    private static final int FOLLOW_TICKS = 10;
     /** A player who just came back can't be hurt for this long, unless they hit first. */
     private static final long PROTECTION_MS = 3000L;
     static final String MENU_ITEM = ChatColor.GREEN + "Choose a platform " + ChatColor.GRAY + "(right click)";
@@ -80,7 +82,6 @@ final class BridgeArena extends PracticeGame {
     static final int[] MENU_SLOTS = {1, 3, 5, 7};
 
     private final Random random = new Random();
-    private final Deque<Object[]> decaying = new ArrayDeque<>();
     private final Map<UUID, Integer> platformOf = new HashMap<>();
     /** The end of their platform each player came back at: -1 west, 1 east. */
     private final Map<UUID, Integer> endOf = new HashMap<>();
@@ -109,18 +110,61 @@ final class BridgeArena extends PracticeGame {
         return best;
     }
 
+    /** The platform nearest to this place across the row (its offset along z from the centre). */
+    static int nearest(double z) {
+        int best = 0;
+        for (int i = 1; i < PLATFORMS.length; i++) {
+            if (Math.abs(z - (PLATFORMS[i].z + 0.5)) < Math.abs(z - (PLATFORMS[best].z + 0.5))) {
+                best = i;
+            }
+        }
+        return best;
+    }
+
     @Override
     void build() {
+        int from = Integer.MAX_VALUE;
+        int to = Integer.MIN_VALUE;
         for (Platform platform : PLATFORMS) {
-            for (int x = -HALF_LENGTH; x <= HALF_LENGTH; x++) {
-                for (int z = -halfWidth(x); z <= halfWidth(x); z++) {
-                    arena.build(x, 0, platform.z + z, Material.WOOL, platform.colourAt(x, z));
+            buildPlatform(arena, platform.z, platform);
+            from = Math.min(from, platform.z - 1 - WALK);
+            to = Math.max(to, platform.z + 1 + WALK);
+        }
+        // the walkways along the row, one at each end through the pads: every platform on foot
+        for (int end = -1; end <= 1; end += 2) {
+            for (int z = from; z <= to; z++) {
+                if (!onPad(z)) {
+                    arena.build(end * PAD, 0, z, Material.WOOL, Shapes.LIGHT_GRAY);
                 }
             }
-            // the pads, each of the colour of its end
-            for (int end = -1; end <= 1; end += 2) {
-                int colour = end < 0 ? platform.first : platform.second;
-                Shapes.floor(arena, end * PAD - 1, platform.z - 1, end * PAD + 1, platform.z + 1, 0, Material.WOOL, colour);
+        }
+    }
+
+    /** True if this place across the row is on the pads of a platform. */
+    static boolean onPad(int z) {
+        for (Platform platform : PLATFORMS) {
+            if (Math.abs(z - platform.z) <= 1) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    /**
+     * A platform centred this far across the row, the pads at its ends and the bridges from the
+     * pads to its tips, each end of the colour of its half.
+     */
+    static void buildPlatform(Arena arena, int z0, Platform platform) {
+        for (int x = -HALF_LENGTH; x <= HALF_LENGTH; x++) {
+            for (int z = -halfWidth(x); z <= halfWidth(x); z++) {
+                arena.build(x, 0, z0 + z, Material.WOOL, platform.colourAt(x, z));
+            }
+        }
+        for (int end = -1; end <= 1; end += 2) {
+            int colour = end < 0 ? platform.first : platform.second;
+            Shapes.floor(arena, end * PAD - 1, z0 - 1, end * PAD + 1, z0 + 1, 0, Material.WOOL, colour);
+            for (int along = HALF_LENGTH + 1; along < PAD - 1; along++) {
+                arena.build(end * along, 0, z0, Material.WOOL, colour);
             }
         }
     }
@@ -183,14 +227,7 @@ final class BridgeArena extends PracticeGame {
 
     @Override
     ItemStack[] defaultKit(Player player) {
-        return new ItemStack[] {new ItemStack(Material.STONE_SWORD), new ItemStack(Material.WOOL, 64),
-            new ItemStack(Material.WOOL, 64), new ItemStack(Material.SHEARS), new ItemStack(Material.GOLDEN_APPLE, 2)};
-    }
-
-    /** The colour of the end the player came back at: their wool and their armour. */
-    private int woolOf(UUID player) {
-        Platform platform = platformOf(player);
-        return endOf.getOrDefault(player, -1) < 0 ? platform.first : platform.second;
+        return new ItemStack[] {new ItemStack(Material.STONE_SWORD), new ItemStack(Material.GOLDEN_APPLE, 2)};
     }
 
     @Override
@@ -202,15 +239,6 @@ final class BridgeArena extends PracticeGame {
     @Override
     void afterKit(Player player) {
         PlayerInventory inventory = player.getInventory();
-        short colour = (short) woolOf(player.getUniqueId());
-        ItemStack[] contents = inventory.getContents();
-        for (int slot = 0; slot < contents.length; slot++) {
-            ItemStack item = contents[slot];
-            if (item != null && item.getType() == Material.WOOL) {
-                item.setDurability(colour);
-                inventory.setItem(slot, item);
-            }
-        }
         ItemStack menu = named(Material.COMPASS, 1, 0, MENU_ITEM, ChatColor.GRAY + "Now: " + platformOf(player.getUniqueId()).chat
                 + platformOf(player.getUniqueId()).name);
         ItemStack there = inventory.getItem(8);
@@ -292,30 +320,45 @@ final class BridgeArena extends PracticeGame {
 
     @Override
     boolean canPlace(Player player, Block block, BlockPlaceEvent event) {
-        return arena.contains(block, 45, 12, 16);
+        player.sendMessage(ChatColor.RED + "No blocks in the bridge fight: walk the bridges.");
+        return false;
     }
 
-    @Override
-    void placed(Player player, Block block) {
-        decaying.addLast(new Object[] {block, tickCount});
-    }
-
+    /** The platform of each player follows where they walk: they come back on its pads. */
     @Override
     void tick() {
-        while (!decaying.isEmpty() && tickCount - (Integer) decaying.peekFirst()[1] >= DECAY_TICKS) {
-            Block block = (Block) decaying.pollFirst()[0];
-            if (arena.isPlaced(block)) {
-                arena.restore(block);
+        if (tickCount % FOLLOW_TICKS != 0) {
+            return;
+        }
+        boolean moved = false;
+        for (Player player : online()) {
+            double[] at = arena.offset(player.getLocation());
+            if (at[1] < -1 || Math.abs(at[0]) > PAD + 2) {
+                continue;
             }
+            UUID id = player.getUniqueId();
+            int platform = nearest(at[2]);
+            Integer was = platformOf.put(id, platform);
+            if (was == null || was != platform) {
+                moved = true;
+                if (was != null) {
+                    streaks.remove(id);
+                    player.sendMessage(ChatColor.GRAY + "Now on the " + PLATFORMS[platform].chat + PLATFORMS[platform].name
+                            + ChatColor.GRAY + " platform.");
+                }
+            }
+        }
+        if (moved) {
+            sidebars();
         }
     }
 
     @Override
     void intro(Player player) {
         player.sendMessage(ChatColor.AQUA + "" + ChatColor.BOLD + "Bridge fight" + ChatColor.GRAY
-                + " - four platforms, everyone in one arena, real damage. You come back next to your platform:"
-                + " bridge onto it and fight. Your blocks go away after 30 seconds.");
-        player.sendMessage(ChatColor.GRAY + "The compass changes platform (not in a fight). /spawn takes you back to the lobby.");
+                + " - four platforms, everyone in one arena, real damage, no blocks. Walk the bridges from"
+                + " one platform to another: you come back on the pads of the one you were on.");
+        player.sendMessage(ChatColor.GRAY + "The compass takes you to a platform (not in a fight). /spawn takes you back to the lobby.");
         for (Player other : online()) {
             if (!other.equals(player)) {
                 other.sendMessage(ChatColor.GRAY + player.getName() + " joined the bridge fight.");

@@ -109,15 +109,20 @@ mort, les blocs posés partent au bout de 15 secondes, les kills comptent dans l
 
 ## Le bridge fight
 
-Ouvert à tous, comme l'arène de block placement : quatre plateformes de laine côte à côte au-dessus
-du vide, chacune de deux couleurs comme une plateforme de top fight (bleu et jaune, rouge et blanc,
-orange et noir, vert et vert clair), en stuff de Ranked Bedwars (armure de fer, épée en pierre,
-laine, cisailles, pommes d'or), vrais dégâts. On arrive sur la plateforme où il y a le moins de
-monde ; la boussole ouvre un menu pour en changer (pas pendant un combat). Après une mort ou une
-chute, on revient à côté de sa plateforme, sur un petit carré à l'un de ses bouts, à trois blocs :
-on bridge dessus et on se bat. La laine et l'armure en cuir prennent la couleur de ce bout. Trois
-secondes sans dégâts au retour, sauf si on frappe le premier. Les blocs posés partent au bout de
-30 secondes, les kills comptent dans les stats du mode.
+Un FFA ouvert à tous, comme l'arène de block placement : quatre plateformes de laine côte à côte
+au-dessus du vide, chacune de deux couleurs comme une plateforme de top fight (bleu et jaune, rouge
+et blanc, orange et noir, vert et vert clair), en stuff de Ranked Bedwars (armure de fer, épée en
+pierre, pommes d'or), vrais dégâts. On ne pose aucun bloc : un pont relie chaque bout de plateforme
+à un petit carré, et une passerelle le long de chaque bout relie les carrés de toutes les
+plateformes, donc on passe d'une arène à l'autre à pied. La plateforme d'un joueur suit l'endroit
+où il marche ; la boussole y emmène aussi (pas pendant un combat). Après une mort ou une chute, on
+revient sur un carré de la dernière plateforme où on était, et l'armure prend la couleur de ce
+bout. Trois secondes sans dégâts au retour, sauf si on frappe le premier. Les kills comptent dans
+les stats du mode.
+
+`bridge-fight-1v1` est le vrai 1v1, à part : une seule plateforme (rouge à l'ouest, bleu à l'est)
+avec ses carrés et ses ponts, le même stuff, aucun bloc. Une mort ou une chute donne le point à
+l'autre ; le premier à `points-pour-gagner.bridge-fight` (5) gagne.
 
 ## Les scénarios classés
 
