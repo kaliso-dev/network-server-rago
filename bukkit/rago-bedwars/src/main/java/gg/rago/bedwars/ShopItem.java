@@ -31,6 +31,8 @@ final class ShopItem {
         SHEARS,
         /** A potion with an effect of its own (1.8 potions have no 45-second effects). */
         POTION,
+        /** A special item of Bed Wars, named in the hotbar, that does its own thing when used (see {@link Utilities}). */
+        UTILITY,
         /** Not in this version yet: shown, not sold. */
         COMING_SOON
     }

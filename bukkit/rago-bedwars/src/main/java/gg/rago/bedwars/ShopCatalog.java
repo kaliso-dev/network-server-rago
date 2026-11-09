@@ -113,30 +113,30 @@ final class ShopCatalog {
                 .costs(3, Currency.GOLD).build());
         items.add(ShopItem.of("sponge", "Sponge", Category.UTILITY, Kind.ITEM, Material.SPONGE, 4)
                 .costs(3, Currency.GOLD).build());
-        items.add(ShopItem.of("bedbug", "Bedbug", Category.UTILITY, Kind.COMING_SOON, Material.SNOW_BALL, 1)
+        items.add(ShopItem.of("bedbug", "Bedbug", Category.UTILITY, Kind.UTILITY, Material.SNOW_BALL, 1)
                 .costs(24, Currency.IRON).build());
-        items.add(ShopItem.of("dream_defender", "Dream Defender", Category.UTILITY, Kind.COMING_SOON,
+        items.add(ShopItem.of("dream_defender", "Dream Defender", Category.UTILITY, Kind.UTILITY,
                 Material.MONSTER_EGG, 1).data(99).costs(120, Currency.IRON).build());
-        items.add(ShopItem.of("bridge_egg", "Bridge Egg", Category.UTILITY, Kind.COMING_SOON, Material.EGG, 1)
+        items.add(ShopItem.of("bridge_egg", "Bridge Egg", Category.UTILITY, Kind.UTILITY, Material.EGG, 1)
                 .costs(1, Currency.EMERALD).build());
-        items.add(ShopItem.of("milk", "Magic Milk", Category.UTILITY, Kind.COMING_SOON, Material.MILK_BUCKET, 1)
+        items.add(ShopItem.of("milk", "Magic Milk", Category.UTILITY, Kind.UTILITY, Material.MILK_BUCKET, 1)
                 .costs(4, Currency.GOLD).build());
-        items.add(ShopItem.of("tower", "Compact Pop-up Tower", Category.UTILITY, Kind.COMING_SOON, Material.CHEST, 1)
+        items.add(ShopItem.of("tower", "Compact Pop-up Tower", Category.UTILITY, Kind.UTILITY, Material.CHEST, 1)
                 .costs(24, Currency.IRON).build());
         return new ShopCatalog(items, pickaxes, axes);
     }
 
     /**
-     * The shop of the arena (Free FFA): the usual items without the ones still to come, the
-     * diamond armour and sword, the obsidian cheaper, and what the diamonds buy, since the arena
-     * has no team upgrades: a sword with Sharpness, a Power II bow, Regeneration and Strength
-     * potions, an enchanted golden apple.
+     * The shop of the arena (Free FFA): the usual items without those of a base (the Magic Milk
+     * against traps, the Dream Defender), the diamond armour and sword cheaper, the obsidian too,
+     * and what the diamonds buy, since the arena has no team upgrades: a sword with Sharpness, a
+     * Power II bow, Regeneration and Strength potions, an enchanted golden apple.
      */
     static ShopCatalog arena() {
         ShopCatalog standard = standard();
         List<ShopItem> items = new ArrayList<>();
         for (ShopItem item : standard.items) {
-            if (item.kind() == Kind.COMING_SOON) {
+            if (item.kind() == Kind.COMING_SOON || item.id().equals("milk") || item.id().equals("dream_defender")) {
                 continue;
             }
             switch (item.id()) {

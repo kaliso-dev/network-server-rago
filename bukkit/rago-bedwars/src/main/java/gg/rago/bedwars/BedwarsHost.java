@@ -22,10 +22,14 @@ import org.bukkit.Location;
 import org.bukkit.Material;
 import org.bukkit.World;
 import org.bukkit.block.Block;
+import org.bukkit.entity.Egg;
 import org.bukkit.entity.Entity;
 import org.bukkit.entity.Fireball;
+import org.bukkit.entity.IronGolem;
+import org.bukkit.entity.LivingEntity;
 import org.bukkit.entity.Player;
 import org.bukkit.entity.Projectile;
+import org.bukkit.entity.Snowball;
 import org.bukkit.entity.TNTPrimed;
 import org.bukkit.entity.Villager;
 import org.bukkit.event.Event;
@@ -45,10 +49,13 @@ import org.bukkit.event.block.LeavesDecayEvent;
 import org.bukkit.event.entity.CreatureSpawnEvent;
 import org.bukkit.event.entity.EntityDamageByEntityEvent;
 import org.bukkit.event.entity.EntityDamageEvent;
+import org.bukkit.event.entity.EntityDeathEvent;
 import org.bukkit.event.entity.EntityExplodeEvent;
+import org.bukkit.event.entity.EntityTargetEvent;
 import org.bukkit.event.entity.FoodLevelChangeEvent;
 import org.bukkit.event.entity.PlayerDeathEvent;
 import org.bukkit.event.entity.ProjectileHitEvent;
+import org.bukkit.event.entity.ProjectileLaunchEvent;
 import org.bukkit.event.inventory.CraftItemEvent;
 import org.bukkit.event.inventory.InventoryClickEvent;
 import org.bukkit.event.inventory.InventoryDragEvent;
@@ -58,6 +65,7 @@ import org.bukkit.event.player.PlayerBucketEmptyEvent;
 import org.bukkit.event.player.PlayerBucketFillEvent;
 import org.bukkit.event.player.PlayerChangedWorldEvent;
 import org.bukkit.event.player.PlayerDropItemEvent;
+import org.bukkit.event.player.PlayerEggThrowEvent;
 import org.bukkit.event.player.PlayerInteractEntityEvent;
 import org.bukkit.event.player.PlayerInteractEvent;
 import org.bukkit.event.player.PlayerItemConsumeEvent;
@@ -84,6 +92,8 @@ final class BedwarsHost implements MatchHost, Listener {
             Material.WORKBENCH, Material.ANVIL, Material.ENCHANTMENT_TABLE, Material.BREWING_STAND, Material.HOPPER,
             Material.DISPENSER, Material.DROPPER, Material.BEACON, Material.JUKEBOX, Material.NOTE_BLOCK,
             Material.CAULDRON, Material.ITEM_FRAME, Material.FLOWER_POT);
+    /** The chests a game opens as its own: the island's chest, the ender chest. */
+    private static final Set<Material> CHESTS = EnumSet.of(Material.CHEST, Material.TRAPPED_CHEST, Material.ENDER_CHEST);
     /** Placed blocks that explosions do not break, as on Hypixel. */
     private static final Set<Material> BLAST_PROOF = EnumSet.of(Material.STAINED_GLASS, Material.OBSIDIAN,
             Material.BED_BLOCK);
@@ -369,7 +379,7 @@ final class BedwarsHost implements MatchHost, Listener {
     public void onDamage(EntityDamageEvent event) {
         Entity entity = event.getEntity();
         if (!(entity instanceof Player)) {
-            if (isGameWorld(entity.getWorld())) {
+            if (isGameWorld(entity.getWorld()) && !creatureHurt(event)) {
                 event.setCancelled(true);
             }
             return;
@@ -397,8 +407,24 @@ final class BedwarsHost implements MatchHost, Listener {
         }
         Gamer target = game.gamer(victim.getUniqueId());
         Player attacker = null;
-        if (event instanceof EntityDamageByEntityEvent) {
-            attacker = attacker(((EntityDamageByEntityEvent) event).getDamager());
+        Entity damager = event instanceof EntityDamageByEntityEvent ? ((EntityDamageByEntityEvent) event).getDamager() : null;
+        Utilities.Summoned creature = damager == null ? null : game.utilities.summoned(damager);
+        if (creature != null) {
+            // a Bedbug or a Dream Defender: never on its own team; its kills are its owner's
+            if (creature.team == target.team || !game.pvp()) {
+                event.setCancelled(true);
+                return;
+            }
+            if (damager instanceof IronGolem) {
+                event.setDamage(Utilities.DEFENDER_DAMAGE);
+            }
+            attacker = game.utilities.owner(damager);
+            Gamer owner = attacker == null ? null : game.gamer(attacker.getUniqueId());
+            if (owner != null) {
+                game.hit(target, owner);
+            }
+        } else if (damager != null) {
+            attacker = attacker(damager);
             if (attacker != null && !attacker.equals(victim)) {
                 Gamer author = game.gamer(attacker.getUniqueId());
                 if (author == null || games.get(attacker.getUniqueId()) != game || author.team == target.team
@@ -424,12 +450,99 @@ final class BedwarsHost implements MatchHost, Listener {
      */
     @EventHandler(priority = EventPriority.MONITOR)
     public void onLand(ProjectileHitEvent event) {
-        if (!(event.getEntity() instanceof Fireball) || !isGameWorld(event.getEntity().getWorld())) {
+        Projectile projectile = event.getEntity();
+        if (!isGameWorld(projectile.getWorld())) {
             return;
         }
+        BedwarsGame game = gameIn(projectile.getWorld());
+        if (game == null) {
+            return;
+        }
+        if (projectile instanceof Fireball) {
+            game.blast((Fireball) projectile, attacker(projectile));
+        } else if (projectile instanceof Snowball && projectile.getShooter() instanceof Player) {
+            // the Bedbug: a silverfish where it lands
+            Player thrower = (Player) projectile.getShooter();
+            if (playing(thrower) == game) {
+                game.utilities.bedbug(thrower, projectile.getLocation());
+            }
+        }
+    }
+
+    /** A Bridge Egg thrown: its bridge follows it. */
+    @EventHandler(priority = EventPriority.MONITOR, ignoreCancelled = true)
+    public void onLaunch(ProjectileLaunchEvent event) {
+        Projectile projectile = event.getEntity();
+        if (projectile instanceof Egg && projectile.getShooter() instanceof Player) {
+            Player thrower = (Player) projectile.getShooter();
+            BedwarsGame game = playing(thrower);
+            if (game != null) {
+                game.utilities.bridgeEgg(thrower, (Egg) projectile);
+            }
+        }
+    }
+
+    @EventHandler
+    public void onEggThrow(PlayerEggThrowEvent event) {
+        if (games.containsKey(event.getPlayer().getUniqueId()) || isGameWorld(event.getPlayer().getWorld())) {
+            event.setHatching(false);
+        }
+    }
+
+    /**
+     * True if this damage to a creature of a game stands (a Bedbug, a Dream Defender): from an
+     * enemy, a fall, a fire, never from its own team. Every other creature of a game world is safe.
+     */
+    private boolean creatureHurt(EntityDamageEvent event) {
         BedwarsGame game = gameIn(event.getEntity().getWorld());
+        Utilities.Summoned creature = game == null ? null : game.utilities.summoned(event.getEntity());
+        if (creature == null || game.phase() != Phase.PLAYING) {
+            return false;
+        }
+        if (!(event instanceof EntityDamageByEntityEvent)) {
+            return true;
+        }
+        Entity damager = ((EntityDamageByEntityEvent) event).getDamager();
+        Utilities.Summoned other = game.utilities.summoned(damager);
+        if (other != null) {
+            return other.team != creature.team;
+        }
+        Player attacker = attacker(damager);
+        if (attacker == null) {
+            return true;
+        }
+        Gamer gamer = game.gamer(attacker.getUniqueId());
+        return gamer != null && gamer.team != creature.team && playing(attacker) == game;
+    }
+
+    /** The creatures of a game go for their enemies only; no other creature goes for anyone. */
+    @EventHandler(priority = EventPriority.HIGH, ignoreCancelled = true)
+    public void onTarget(EntityTargetEvent event) {
+        Entity entity = event.getEntity();
+        if (!isGameWorld(entity.getWorld())) {
+            return;
+        }
+        BedwarsGame game = gameIn(entity.getWorld());
+        Utilities.Summoned creature = game == null ? null : game.utilities.summoned(entity);
+        if (creature == null) {
+            event.setCancelled(true);
+        } else if (event.getTarget() != null && !game.utilities.enemy(creature, event.getTarget())) {
+            event.setCancelled(true);
+        }
+    }
+
+    /** A creature of a game dies: it leaves nothing. */
+    @EventHandler
+    public void onCreatureDeath(EntityDeathEvent event) {
+        LivingEntity entity = event.getEntity();
+        if (entity instanceof Player || !isGameWorld(entity.getWorld())) {
+            return;
+        }
+        event.getDrops().clear();
+        event.setDroppedExp(0);
+        BedwarsGame game = gameIn(entity.getWorld());
         if (game != null) {
-            game.blast((Fireball) event.getEntity(), attacker(event.getEntity()));
+            game.utilities.died(entity);
         }
     }
 
@@ -529,6 +642,13 @@ final class BedwarsHost implements MatchHost, Listener {
             TNTPrimed tnt = block.getWorld().spawn(block.getLocation().add(0.5, 0, 0.5), TNTPrimed.class);
             tnt.setFuseTicks(BedwarsGame.TNT_FUSE_TICKS);
             tntOwners.put(tnt, player.getUniqueId());
+            return;
+        }
+        if (block.getType() == Material.CHEST) {
+            // the Compact Pop-up Tower: no chest, the tower around it
+            event.setCancelled(true);
+            useOne(player);
+            game.utilities.tower(player, block);
             return;
         }
         game.instance().markPlaced(block, event.getBlockReplacedState().getTypeId(),
@@ -656,6 +776,33 @@ final class BedwarsHost implements MatchHost, Listener {
         }
         // A right click only: denying the block on a left click would also stop it from being broken (the beds).
         ItemStack item = event.getItem();
+        boolean right = event.getAction() == Action.RIGHT_CLICK_AIR || event.getAction() == Action.RIGHT_CLICK_BLOCK;
+        if (event.getAction() == Action.RIGHT_CLICK_BLOCK && CHESTS.contains(event.getClickedBlock().getType())
+                && !(player.isSneaking() && item != null && item.getType().isBlock())) {
+            // the chests of the islands and the ender chests, those of this game
+            event.setCancelled(true);
+            if (playing(player) == game) {
+                player.openInventory(game.chest(event.getClickedBlock(), game.gamer(player.getUniqueId())));
+            }
+            return;
+        }
+        if (right && item != null && (item.getType() == Material.SNOW_BALL || item.getType() == Material.EGG
+                || item.getType() == Material.MONSTER_EGG)) {
+            // the Bedbug, the Bridge Egg, the Dream Defender: only while playing
+            if (playing(player) != game) {
+                event.setCancelled(true);
+                return;
+            }
+            if (item.getType() == Material.MONSTER_EGG) {
+                event.setCancelled(true);
+                if (event.getAction() == Action.RIGHT_CLICK_BLOCK) {
+                    useOne(player);
+                    game.utilities.defender(player, event.getClickedBlock().getRelative(event.getBlockFace()).getLocation()
+                            .add(0.5, 0, 0.5));
+                }
+                return;
+            }
+        }
         if (event.getAction() == Action.RIGHT_CLICK_BLOCK && NOT_USED.contains(event.getClickedBlock().getType())) {
             event.setUseInteractedBlock(Event.Result.DENY);
             if (item != null && item.getType().isBlock()) {
@@ -697,6 +844,31 @@ final class BedwarsHost implements MatchHost, Listener {
     public void onArmorStand(PlayerArmorStandManipulateEvent event) {
         if (isGameWorld(event.getRightClicked().getWorld())) {
             event.setCancelled(true);
+        }
+    }
+
+    /** The Magic Milk: it keeps its drinker from the traps, and their potions stay. */
+    @EventHandler(priority = EventPriority.HIGH, ignoreCancelled = true)
+    public void onMilk(PlayerItemConsumeEvent event) {
+        Player player = event.getPlayer();
+        BedwarsGame game = games.get(player.getUniqueId());
+        if (game == null || event.getItem().getType() != Material.MILK_BUCKET) {
+            return;
+        }
+        event.setCancelled(true);
+        if (playing(player) == game) {
+            useOne(player);
+            game.utilities.milk(player, game.gamer(player.getUniqueId()));
+        }
+    }
+
+    /** One of the item in hand is used up. */
+    private static void useOne(Player player) {
+        ItemStack hand = player.getItemInHand();
+        if (hand != null && hand.getAmount() > 1) {
+            hand.setAmount(hand.getAmount() - 1);
+        } else {
+            player.setItemInHand(null);
         }
     }
 

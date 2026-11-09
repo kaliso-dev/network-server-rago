@@ -23,6 +23,7 @@ import org.bukkit.entity.ArmorStand;
 import org.bukkit.entity.Entity;
 import org.bukkit.entity.Player;
 import org.bukkit.entity.Villager;
+import org.bukkit.inventory.Inventory;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.PlayerInventory;
 import org.bukkit.inventory.meta.ItemMeta;
@@ -93,6 +94,8 @@ class BedwarsGame {
         long lastFireball;
         /** Until when the Magic Milk keeps the player from setting off the traps. */
         long milkUntil;
+        /** Their ender chest in this game, made when first opened. */
+        Inventory enderChest;
         BukkitTask respawn;
 
         Gamer(Player player, Team team, List<String> hotbar, List<ShopItem> quickBuy) {
@@ -146,6 +149,10 @@ class BedwarsGame {
     private BukkitTask countdown;
     /** The tasks of a kind of game (its rounds, its waiting room): stopped with the game. */
     private final List<BukkitTask> tasks = new ArrayList<>();
+    /** The Bedbugs, the Dream Defenders, the Bridge Eggs, the Pop-up Towers, the Magic Milk. */
+    final Utilities utilities = new Utilities(this);
+    /** The chests of the map as the players fill them in this game: the map's own stay empty. */
+    private final Map<Block, Inventory> chests = new HashMap<>();
 
     BedwarsGame(RagoBedwars plugin, BedwarsHost host, Instance instance, String modeId, String modeName,
             List<List<Player>> sides) {
@@ -582,6 +589,7 @@ class BedwarsGame {
                         teamEffects(player, gamer);
                     }
                 }
+                utilities.second();
                 everySecond();
             }
         }
@@ -1099,6 +1107,8 @@ class BedwarsGame {
     }
 
     void cleanUp() {
+        utilities.clear();
+        chests.clear();
         for (Generator generator : generators) {
             generator.remove();
         }
@@ -1261,6 +1271,9 @@ class BedwarsGame {
             potion.clearCustomEffects();
             potion.addCustomEffect(new PotionEffect(item.effect(), item.effectSeconds() * 20, item.effectLevel() - 1), true);
             potion.setDisplayName(ChatColor.WHITE + item.name());
+        }
+        if (item.kind() == ShopItem.Kind.UTILITY) {
+            meta.setDisplayName(ChatColor.WHITE + item.name());
         }
         stack.setItemMeta(meta);
         return stack;
@@ -1434,6 +1447,25 @@ class BedwarsGame {
     /** True if the NPC is the upgrades NPC of a team. */
     boolean isUpgrades(Entity entity) {
         return upgradeNpcs.containsKey(entity);
+    }
+
+    /**
+     * What a chest of the map holds in this game, as on Hypixel: the same chest for everyone who
+     * opens it (the island's chest, an enemy's too); an ender chest, each player's own.
+     */
+    Inventory chest(Block block, Gamer gamer) {
+        if (block.getType() == Material.ENDER_CHEST) {
+            if (gamer.enderChest == null) {
+                gamer.enderChest = Bukkit.createInventory(null, 27, "Ender Chest");
+            }
+            return gamer.enderChest;
+        }
+        Inventory chest = chests.get(block);
+        if (chest == null) {
+            chest = Bukkit.createInventory(null, 27, "Chest");
+            chests.put(block, chest);
+        }
+        return chest;
     }
 
     /** How many players a team has, for the prices of the upgrades (those of 3v3v3v3 and 4v4v4v4 from 3). */
