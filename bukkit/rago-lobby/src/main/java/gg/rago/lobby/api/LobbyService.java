@@ -67,6 +67,15 @@ public interface LobbyService {
     ItemStack[] kit(Player player, String modeId);
 
     /**
+     * A kit that the game makes itself (a mode without kit: in config.yml), in the order the player
+     * arranged it in an earlier game of this mode; as it is the first time. The lobby keeps the kit:
+     * when the player arranges their inventory in a game, it remembers where each item went.
+     */
+    default ItemStack[] arrange(Player player, String modeId, ItemStack[] kit) {
+        return kit;
+    }
+
+    /**
      * The quick buy of the Bed Wars shop the player copied from Hypixel (the emerald of the kit
      * editor, or /hypixel import [name]): 21 Hypixel item ids, three rows of seven as in the
      * Hypixel shop, such as "wool", "stone_sword" or "speed_ii_potion_(45_seconds)"; null for an

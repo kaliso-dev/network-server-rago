@@ -13,19 +13,23 @@ import java.util.UUID;
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
 import org.bukkit.GameMode;
+import org.bukkit.Location;
 import org.bukkit.Material;
 import org.bukkit.Sound;
 import org.bukkit.block.Block;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.PlayerInventory;
+import org.bukkit.inventory.meta.PotionMeta;
+import org.bukkit.potion.PotionEffect;
 import org.bukkit.potion.PotionEffectType;
 import org.bukkit.scheduler.BukkitTask;
 
 /**
  * Invis practice: 2 to 6 players on a Bed Wars map (Invasion, Lectus or Archway), in rounds of
- * three minutes. Each round, one player is the attacker, on their island with the owner's kit
- * arranged in the lobby's kit editor: an invisibility potion and a Jump V potion, 16 planks, a
+ * three minutes. Each round, one player is the attacker, at mid (the emerald generator nearest the
+ * middle, facing the bed), with the owner's kit arranged in the lobby's kit editor: an invisibility
+ * potion that lasts the whole round, without a name above the head, and a Jump V potion, 16 planks, a
  * golden pickaxe, a fireball, an iron axe, shears, a stone sword, 2 Bridge Eggs, 2 stacks of wool,
  * and Protection I armour (hidden while invisible, as on Hypixel). The others defend the bed of the
  * next island, under a defense of end stone and wool: shears, wooden tools and Haste, an iron sword
@@ -331,7 +335,70 @@ final class InvisGame extends BedwarsGame {
             give(player, gamer, stack(catalog().pickaxes().get(0), gamer), ShopItem.Category.TOOLS);
             give(player, gamer, stack(catalog().axes().get(0), gamer), ShopItem.Category.TOOLS);
         }
+        if (gamer.id.equals(invisible)) {
+            longInvisibility(inventory);
+        }
         player.updateInventory();
+    }
+
+    /** The attacker's invisibility lasts the whole round, three minutes, not the shop's 30 seconds. */
+    private static void longInvisibility(PlayerInventory inventory) {
+        for (ItemStack stack : inventory.getContents()) {
+            if (stack == null || stack.getType() != Material.POTION || !(stack.getItemMeta() instanceof PotionMeta)) {
+                continue;
+            }
+            PotionMeta meta = (PotionMeta) stack.getItemMeta();
+            if (!meta.hasCustomEffect(PotionEffectType.INVISIBILITY)) {
+                continue;
+            }
+            meta.removeCustomEffect(PotionEffectType.INVISIBILITY);
+            meta.addCustomEffect(new PotionEffect(PotionEffectType.INVISIBILITY, ROUND_SECONDS * 20, 0), true);
+            meta.setDisplayName(ChatColor.WHITE + "Invisibility Potion (3 minutes)");
+            stack.setItemMeta(meta);
+        }
+    }
+
+    /** The attacker starts at mid, as in a game, looking at the bed to break; the defenders on their island. */
+    @Override
+    Location spawnOf(Gamer gamer) {
+        Location mid = gamer.id.equals(invisible) ? mid() : null;
+        return mid != null ? mid : super.spawnOf(gamer);
+    }
+
+    /** The emerald generator nearest the middle of the map, facing the defended bed; null without emeralds. */
+    private Location mid() {
+        List<MapPoint> emeralds = instance.map().emeralds();
+        if (emeralds.isEmpty()) {
+            return null;
+        }
+        double cx = 0;
+        double cz = 0;
+        for (MapPoint point : emeralds) {
+            cx += point.x();
+            cz += point.z();
+        }
+        cx /= emeralds.size();
+        cz /= emeralds.size();
+        MapPoint nearest = emeralds.get(0);
+        for (MapPoint point : emeralds) {
+            if (square(point.x() - cx) + square(point.z() - cz) < square(nearest.x() - cx) + square(nearest.z() - cz)) {
+                nearest = point;
+            }
+        }
+        Location at = nearest.in(instance.world());
+        MapPoint bed = defenders.points.bed;
+        at.setYaw(yawTowards(bed.x() + 0.5 - at.getX(), bed.z() + 0.5 - at.getZ()));
+        at.setPitch(0f);
+        return at;
+    }
+
+    private static double square(double value) {
+        return value * value;
+    }
+
+    /** The yaw that looks along (dx, dz): 0 to the south (+z), 90 to the west (-x), as Minecraft counts. */
+    static float yawTowards(double dx, double dz) {
+        return (float) Math.toDegrees(Math.atan2(-dx, dz));
     }
 
     private ShopItem catalogItem(String id) {
@@ -394,8 +461,8 @@ final class InvisGame extends BedwarsGame {
         String who = invisibleGamer == null ? "the invisible" : invisibleGamer.coloured();
         if (gamer.id.equals(invisible)) {
             player.sendMessage(head + "you " + ChatColor.WHITE + "attack" + ChatColor.LIGHT_PURPLE
-                    + ". Drink your invisibility potion and break the bed of the " + defenders.color.coloured()
-                    + ChatColor.LIGHT_PURPLE + " island next to yours in three minutes. One life.");
+                    + ". Drink your invisibility potion (it lasts the round) and break the bed of the "
+                    + defenders.color.coloured() + ChatColor.LIGHT_PURPLE + " island in three minutes. One life.");
             player.sendTitle(ChatColor.LIGHT_PURPLE + "" + ChatColor.BOLD + "ATTACK",
                     ChatColor.WHITE + "Break the " + defenders.color.coloured() + ChatColor.WHITE + " bed in 3 minutes");
         } else if (watching.contains(gamer.id)) {

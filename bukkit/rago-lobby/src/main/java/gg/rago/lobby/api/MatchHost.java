@@ -21,6 +21,15 @@ public interface MatchHost {
     boolean start(MatchProposal match);
 
     /**
+     * False while this match cannot start yet but soon will (a copy of its map is being made): the
+     * lobby keeps the players where they are and asks again each second, before calling
+     * {@link #start}. Asking may get the room ready (start the copy). True by default.
+     */
+    default boolean ready(MatchProposal match) {
+        return true;
+    }
+
+    /**
      * The player asked to go back to the lobby in the middle of the game (/spawn, /lobby). The
      * host ends the player's part (a forfeit) and calls {@link LobbyService#sendToLobby(Player)}.
      */

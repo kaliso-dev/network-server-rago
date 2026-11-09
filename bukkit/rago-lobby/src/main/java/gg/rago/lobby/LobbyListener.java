@@ -1,6 +1,7 @@
 package gg.rago.lobby;
 
 import org.bukkit.ChatColor;
+import org.bukkit.Material;
 import org.bukkit.entity.Entity;
 import org.bukkit.entity.Player;
 import org.bukkit.event.Cancellable;
@@ -23,6 +24,7 @@ import org.bukkit.event.player.PlayerChangedWorldEvent;
 import org.bukkit.event.player.PlayerDropItemEvent;
 import org.bukkit.event.player.PlayerInteractEntityEvent;
 import org.bukkit.event.player.PlayerInteractEvent;
+import org.bukkit.event.player.PlayerItemConsumeEvent;
 import org.bukkit.event.player.PlayerJoinEvent;
 import org.bukkit.event.player.PlayerMoveEvent;
 import org.bukkit.event.player.PlayerPickupItemEvent;
@@ -266,5 +268,13 @@ final class LobbyListener implements Listener {
 
     static String noPermission() {
         return ChatColor.RED + "This command is for the staff.";
+    }
+
+    /** A potion drunk (invisibility): the names above the heads follow at once, not within a second. */
+    @EventHandler(priority = EventPriority.MONITOR, ignoreCancelled = true)
+    public void onDrink(PlayerItemConsumeEvent event) {
+        if (event.getItem().getType() == Material.POTION) {
+            lobby.getServer().getScheduler().runTask(lobby, lobby::refreshBoards);
+        }
     }
 }

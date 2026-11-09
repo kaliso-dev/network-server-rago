@@ -44,6 +44,10 @@ final class QueueController {
     private final Map<String, Plugin> hostPlugins = new HashMap<>();
     /** Players already told that no arena is free, so that they are told once, not every second. */
     private final Set<UUID> toldNoArena = new HashSet<>();
+    /** How long a duel or a party's private game waits for its map to be ready. */
+    static final long DIRECT_WAIT_MILLIS = 30_000L;
+    /** Duels and private games of parties waiting for their map: started as soon as it is ready. */
+    private final List<DirectWait> waitingDirect = new ArrayList<>();
     private final Runnable onChange;
     private final PartyBook parties;
     /** The ELO of the players, for the ranked queues; null until the stats exist. */
@@ -420,8 +424,9 @@ final class QueueController {
 
     // --- Matches --------------------------------------------------------------------------------
 
-    /** Once a second: starts the matches that were found. */
+    /** Once a second: starts the matches that were found, and the direct ones whose map is ready. */
     void tick() {
+        startWaiting();
         List<MatchProposal> matches = matchmaker.poll(System.currentTimeMillis());
         for (MatchProposal match : matches) {
             start(match);
@@ -447,9 +452,91 @@ final class QueueController {
                 matchmaker.leave(id);
             }
         }
+        forgetWaiting(match.players());
+        MatchHost host = hosts.get(match.mode().id());
+        if (host != null && !ready(host, match)) {
+            // a copy of the map is being made: the game starts as soon as it is there
+            waitingDirect.add(new DirectWait(match, privateGame, System.currentTimeMillis() + DIRECT_WAIT_MILLIS));
+            tell(match, ChatColor.YELLOW + "The map is being prepared: the game starts in a moment.");
+            onChange.run();
+            return true;
+        }
         boolean started = start(match, false, privateGame);
         onChange.run();
         return started;
+    }
+
+    /** A duel or a private game waiting for its map. */
+    private static final class DirectWait {
+        final MatchProposal match;
+        final boolean privateGame;
+        final long until;
+
+        DirectWait(MatchProposal match, boolean privateGame, long until) {
+            this.match = match;
+            this.privateGame = privateGame;
+            this.until = until;
+        }
+    }
+
+    private void startWaiting() {
+        if (waitingDirect.isEmpty()) {
+            return;
+        }
+        long now = System.currentTimeMillis();
+        for (DirectWait wait : new ArrayList<>(waitingDirect)) {
+            MatchHost host = hosts.get(wait.match.mode().id());
+            if (host == null || !stillFree(wait.match)) {
+                waitingDirect.remove(wait);
+                tell(wait.match, ChatColor.GRAY + "The game was cancelled: a player is no longer in the lobby.");
+            } else if (ready(host, wait.match)) {
+                waitingDirect.remove(wait);
+                start(wait.match, false, wait.privateGame);
+                onChange.run();
+            } else if (now > wait.until) {
+                waitingDirect.remove(wait);
+                tell(wait.match, ChatColor.YELLOW + "No free arena right now: try again in a moment.");
+            }
+        }
+    }
+
+    /** Every player of the match is online, in the lobby, in no game and in no queue. */
+    private boolean stillFree(MatchProposal match) {
+        for (UUID id : match.players()) {
+            Player player = Bukkit.getPlayer(id);
+            if (player == null || !state.isInLobby(player) || state.isInGame(player) || matchmaker.queueOf(id) != null) {
+                return false;
+            }
+        }
+        return true;
+    }
+
+    /** These players start something else: a game they waited for is dropped. */
+    private void forgetWaiting(Collection<UUID> players) {
+        for (java.util.Iterator<DirectWait> it = waitingDirect.iterator(); it.hasNext();) {
+            if (!Collections.disjoint(it.next().match.players(), players)) {
+                it.remove();
+            }
+        }
+    }
+
+    /** The host's answer; a host that fails to answer is asked to start, which tells the players. */
+    private boolean ready(MatchHost host, MatchProposal match) {
+        try {
+            return host.ready(match);
+        } catch (RuntimeException e) {
+            logger.log(Level.WARNING, "The mode " + match.mode().id() + " could not tell if a game can start", e);
+            return true;
+        }
+    }
+
+    private static void tell(MatchProposal match, String message) {
+        for (UUID id : match.players()) {
+            Player player = Bukkit.getPlayer(id);
+            if (player != null) {
+                player.sendMessage(message);
+            }
+        }
     }
 
     private boolean start(MatchProposal match, boolean requeue) {
@@ -471,6 +558,16 @@ final class QueueController {
         if (host == null || players.size() != match.players().size()) {
             if (requeue) {
                 requeueOnline(match);
+            }
+            return false;
+        }
+        if (requeue && !ready(host, match)) {
+            // the map is being copied: the players wait in the queue, where they are
+            requeueOnline(match);
+            for (Player player : players) {
+                if (toldNoArena.add(player.getUniqueId())) {
+                    player.sendMessage(ChatColor.YELLOW + "The map is being prepared: you keep your place in the queue.");
+                }
             }
             return false;
         }

@@ -154,4 +154,49 @@ class KitTest {
         assertEquals(-1, odd.get("sumo")[35], "a short list");
         assertTrue(KitLayouts.fromYaml("").isEmpty());
     }
+
+    @Test
+    void anInventoryArrangedInAGameIsReadWithItsUsedBlocks() {
+        Kit kit = kit();
+        KitItem[] played = new KitItem[Kit.SLOTS];
+        // the pearl first, the sword third; a few blocks of one wool already placed
+        played[0] = PEARL;
+        played[2] = SWORD;
+        played[1] = WOOL;
+        played[8] = KitItem.of(new ItemStack(Material.WOOL, 40));
+        int[] strict = kit.layoutOf(played);
+        assertFalse(kit.complete(strict), "a stack of 40 is not the kit's 64");
+        int[] loose = kit.layoutOf(played, true);
+        assertTrue(kit.complete(loose));
+        assertEquals(2, loose[0]);
+        assertEquals(0, loose[4]);
+        assertEquals(1, loose[1], "the full wool stays in its slot");
+        assertEquals(8, loose[2]);
+        // another role's inventory (no pearl) is not this kit
+        played[0] = null;
+        assertFalse(kit.complete(kit.layoutOf(played, true)));
+        assertEquals(-1, KitEditor.moves(loose)[1], "in its own slot: not a move");
+        assertEquals(2, KitEditor.moves(loose)[0]);
+    }
+
+    @Test
+    void theKitOfAGameIsPlacedSlotBySlot() {
+        Kit kit = Kit.of(new ItemStack[] {new ItemStack(Material.IRON_SWORD), new ItemStack(Material.WOOL, 64), null,
+            new ItemStack(Material.ENDER_PEARL)});
+        assertEquals(SWORD, kit.item(0));
+        assertEquals(PEARL, kit.item(3));
+        int[] layout = Kit.defaultLayout();
+        layout[0] = 3;
+        layout[3] = 0;
+        int[] to = kit.placement(layout);
+        assertEquals(3, to[0]);
+        assertEquals(1, to[1]);
+        assertEquals(-1, to[2], "an empty slot");
+        assertEquals(0, to[3]);
+        KitItem[] arranged = kit.arrange(layout);
+        assertEquals(PEARL, arranged[0]);
+        assertEquals(SWORD, arranged[3]);
+        layout[1] = 3;
+        assertEquals(1, kit.placement(layout)[1], "a slot already taken: the item keeps its own");
+    }
 }

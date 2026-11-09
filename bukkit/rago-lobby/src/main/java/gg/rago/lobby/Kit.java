@@ -60,28 +60,64 @@ final class Kit {
      * layout made for an older kit still gives every item.
      */
     KitItem[] arrange(int[] layout) {
+        int[] to = placement(layout);
         KitItem[] arranged = new KitItem[SLOTS];
-        boolean[] placed = new boolean[SLOTS];
         for (int slot = 0; slot < SLOTS; slot++) {
-            int target = layout != null && slot < layout.length ? layout[slot] : -1;
-            if (items[slot] != null && target >= 0 && target < SLOTS && arranged[target] == null) {
-                arranged[target] = items[slot];
-                placed[slot] = true;
-            }
-        }
-        for (int slot = 0; slot < SLOTS; slot++) {
-            if (items[slot] != null && !placed[slot] && arranged[slot] == null) {
-                arranged[slot] = items[slot];
-                placed[slot] = true;
-            }
-        }
-        for (int slot = 0; slot < SLOTS; slot++) {
-            int target = items[slot] == null || placed[slot] ? -1 : firstFree(arranged);
-            if (target >= 0) {
-                arranged[target] = items[slot];
+            if (to[slot] >= 0) {
+                arranged[to[slot]] = items[slot];
             }
         }
         return arranged;
+    }
+
+    /** Where each slot of the kit goes with this layout (-1 for an empty slot), as {@link #arrange} places it. */
+    int[] placement(int[] layout) {
+        int[] to = defaultLayout();
+        boolean[] taken = new boolean[SLOTS];
+        for (int slot = 0; slot < SLOTS; slot++) {
+            int target = layout != null && slot < layout.length ? layout[slot] : -1;
+            if (items[slot] != null && target >= 0 && target < SLOTS && !taken[target]) {
+                to[slot] = target;
+                taken[target] = true;
+            }
+        }
+        for (int slot = 0; slot < SLOTS; slot++) {
+            if (items[slot] != null && to[slot] < 0 && !taken[slot]) {
+                to[slot] = slot;
+                taken[slot] = true;
+            }
+        }
+        for (int slot = 0; slot < SLOTS; slot++) {
+            if (items[slot] != null && to[slot] < 0) {
+                for (int free = 0; free < SLOTS; free++) {
+                    if (!taken[free]) {
+                        to[slot] = free;
+                        taken[free] = true;
+                        break;
+                    }
+                }
+            }
+        }
+        return to;
+    }
+
+    /** The kit of these stacks, slot for slot (the first 36): a kit that a game makes itself. */
+    static Kit of(org.bukkit.inventory.ItemStack[] stacks) {
+        List<KitItem> items = new java.util.ArrayList<>();
+        for (int slot = 0; slot < SLOTS && slot < stacks.length; slot++) {
+            items.add(KitItem.of(stacks[slot]));
+        }
+        return new Kit(items);
+    }
+
+    /** True if every item of the kit was found in the layout: the inventory holds the whole kit. */
+    boolean complete(int[] layout) {
+        for (int slot = 0; slot < SLOTS; slot++) {
+            if (items[slot] != null && (slot >= layout.length || layout[slot] < 0)) {
+                return false;
+            }
+        }
+        return true;
     }
 
     /**
@@ -89,11 +125,19 @@ final class Kit {
      * is. Equal stacks are interchangeable. An item that is not found keeps the kit's slot (-1).
      */
     int[] layoutOf(KitItem[] edited) {
+        return layoutOf(edited, false);
+    }
+
+    /**
+     * The same, where a stack may hold fewer items than the kit gave (anyAmount): an inventory
+     * arranged in a game, after a few blocks were placed.
+     */
+    int[] layoutOf(KitItem[] edited, boolean anyAmount) {
         int[] layout = defaultLayout();
         boolean[] used = new boolean[SLOTS];
         // An item still in its own slot stays there, so that equal stacks keep their places.
         for (int slot = 0; slot < SLOTS; slot++) {
-            if (items[slot] != null && slot < edited.length && items[slot].equals(edited[slot])) {
+            if (items[slot] != null && slot < edited.length && same(items[slot], edited[slot], anyAmount)) {
                 layout[slot] = slot;
                 used[slot] = true;
             }
@@ -103,7 +147,7 @@ final class Kit {
                 continue;
             }
             for (int where = 0; where < SLOTS && where < edited.length; where++) {
-                if (!used[where] && items[slot].equals(edited[where])) {
+                if (!used[where] && same(items[slot], edited[where], anyAmount)) {
                     layout[slot] = where;
                     used[where] = true;
                     break;
@@ -113,12 +157,10 @@ final class Kit {
         return layout;
     }
 
-    private static int firstFree(KitItem[] slots) {
-        for (int slot = 0; slot < slots.length; slot++) {
-            if (slots[slot] == null) {
-                return slot;
-            }
+    private static boolean same(KitItem kit, KitItem found, boolean anyAmount) {
+        if (!anyAmount || found == null) {
+            return kit.equals(found);
         }
-        return -1;
+        return kit.material() == found.material() && kit.data() == found.data() && found.amount() <= kit.amount();
     }
 }

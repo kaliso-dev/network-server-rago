@@ -711,6 +711,41 @@ public final class RagoLobby extends JavaPlugin implements LobbyService {
     }
 
     @Override
+    public ItemStack[] arrange(Player player, String modeId, ItemStack[] kit) {
+        if (kit == null) {
+            return null;
+        }
+        Kit known = Kit.of(kit);
+        if (known.isEmpty()) {
+            return kit;
+        }
+        kitEditor.learn(modeId, known);
+        int[] to = known.placement(kits.get(player.getUniqueId(), modeId));
+        ItemStack[] arranged = new ItemStack[Math.max(kit.length, Kit.SLOTS)];
+        for (int slot = Kit.SLOTS; slot < kit.length; slot++) {
+            arranged[slot] = kit[slot];
+        }
+        List<ItemStack> unread = new ArrayList<>();
+        for (int slot = 0; slot < Kit.SLOTS && slot < kit.length; slot++) {
+            if (kit[slot] != null && to[slot] >= 0) {
+                arranged[to[slot]] = kit[slot];
+            } else if (kit[slot] != null && kit[slot].getType() != Material.AIR) {
+                unread.add(kit[slot]);
+            }
+        }
+        // a stack the kit does not read (more than 64 items): the first free slot
+        for (ItemStack stack : unread) {
+            for (int slot = 0; slot < Kit.SLOTS; slot++) {
+                if (arranged[slot] == null) {
+                    arranged[slot] = stack;
+                    break;
+                }
+            }
+        }
+        return arranged;
+    }
+
+    @Override
     public List<String> hypixelQuickBuy(Player player) {
         HypixelProfile profile = hypixel.get(player.getUniqueId());
         return profile == null ? null : profile.quickBuy();

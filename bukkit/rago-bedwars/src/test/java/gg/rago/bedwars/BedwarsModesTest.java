@@ -173,4 +173,12 @@ class BedwarsModesTest {
         assertEquals(4, InvisGame.DEFENDER_PROTECTION);
         assertNull(InvisGame.catalogItem(shop, "nothing"));
     }
+
+    @Test
+    void theInvisibleLooksAtTheBedFromMid() {
+        assertEquals(0f, InvisGame.yawTowards(0, 5), 0.001f, "south");
+        assertEquals(90f, InvisGame.yawTowards(-5, 0), 0.001f, "west");
+        assertEquals(-90f, InvisGame.yawTowards(5, 0), 0.001f, "east");
+        assertEquals(180f, Math.abs(InvisGame.yawTowards(0, -5)), 0.001f, "north");
+    }
 }

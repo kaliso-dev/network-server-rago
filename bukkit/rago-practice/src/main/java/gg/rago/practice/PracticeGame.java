@@ -596,14 +596,15 @@ abstract class PracticeGame {
         lastHitAt.remove(victim);
     }
 
-    /** The player's own kit as they arranged it in the lobby's kit editor, or the mode's default. */
+    /** The player's own kit as they arranged it (kit editor, or an earlier game), or the mode's default. */
     void giveKit(Player player) {
         PlayerInventory inventory = player.getInventory();
         inventory.clear();
         inventory.setArmorContents(null);
         ItemStack[] kit = plugin.lobby().kit(player, mode.id());
         if (kit == null) {
-            kit = defaultKit(player);
+            // the mode's own kit, in the order the player arranged it in an earlier game
+            kit = plugin.lobby().arrange(player, mode.id(), defaultKit(player));
         }
         if (kit != null) {
             inventory.setContents(kit);

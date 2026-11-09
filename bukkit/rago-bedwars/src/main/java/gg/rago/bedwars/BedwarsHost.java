@@ -119,6 +119,36 @@ final class BedwarsHost implements MatchHost, Listener {
     // --- MatchHost ------------------------------------------------------------------------------
 
     @Override
+    public boolean ready(MatchProposal match) {
+        List<BedwarsMap> maps = mapsOf(match);
+        if (maps.isEmpty()) {
+            // start() tells the players that no map plays this mode
+            return true;
+        }
+        if (plugin.settings().kind(match.mode().id()) != BedwarsSettings.Kind.CLASSIC
+                && joinable(match.mode().id(), maps) != null) {
+            return true;
+        }
+        if (plugin.instances().hasFree(maps)) {
+            return true;
+        }
+        plugin.instances().prepare(maps, true);
+        return false;
+    }
+
+    /** The maps of the match's mode; only the one the players chose, while it can still be played. */
+    private List<BedwarsMap> mapsOf(MatchProposal match) {
+        List<BedwarsMap> maps = mapsFor(match.mode());
+        List<BedwarsMap> chosen = new ArrayList<>();
+        for (BedwarsMap map : maps) {
+            if (map.world().equalsIgnoreCase(match.map())) {
+                chosen.add(map);
+            }
+        }
+        return chosen.isEmpty() ? maps : chosen;
+    }
+
+    @Override
     public boolean start(MatchProposal match) {
         GameMode mode = match.mode();
         List<List<Player>> sides = new ArrayList<>();
@@ -133,20 +163,10 @@ final class BedwarsHost implements MatchHost, Listener {
             }
             sides.add(side);
         }
-        List<BedwarsMap> maps = mapsFor(mode);
+        List<BedwarsMap> maps = mapsOf(match);
         if (maps.isEmpty()) {
             noMap(mode, sides);
             return false;
-        }
-        // the map the players chose, while it can still be played; else any map of the mode
-        List<BedwarsMap> chosen = new ArrayList<>();
-        for (BedwarsMap map : maps) {
-            if (map.world().equalsIgnoreCase(match.map())) {
-                chosen.add(map);
-            }
-        }
-        if (!chosen.isEmpty()) {
-            maps = chosen;
         }
         BedwarsSettings.Kind kind = plugin.settings().kind(mode.id());
         BedwarsGame joinable = kind == BedwarsSettings.Kind.CLASSIC ? null : joinable(mode.id(), maps);

@@ -11,6 +11,7 @@ import java.util.UUID;
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
 import org.bukkit.entity.Player;
+import org.bukkit.potion.PotionEffectType;
 import org.bukkit.scoreboard.DisplaySlot;
 import org.bukkit.scoreboard.NameTagVisibility;
 import org.bukkit.scoreboard.Objective;
@@ -45,11 +46,14 @@ final class LobbyScoreboard {
         final String team;
         final String prefix;
         final String suffix;
+        /** Invisible: no name above the head (a 1.8 team shows it otherwise, potion or not). */
+        final boolean hidden;
 
-        Tag(String team, String prefix, String suffix) {
+        Tag(String team, String prefix, String suffix, boolean hidden) {
             this.team = team;
             this.prefix = prefix;
             this.suffix = suffix;
+            this.hidden = hidden;
         }
     }
 
@@ -197,6 +201,7 @@ final class LobbyScoreboard {
                 numbers.put(id, number);
             }
             String suffix = fit(" " + levels.tag(book.level(id)));
+            boolean hidden = other.hasPotionEffect(PotionEffectType.INVISIBILITY);
             String game = gamePrefixes.get(id);
             if (game != null) {
                 Integer order = prefixTeams.get(game);
@@ -204,10 +209,10 @@ final class LobbyScoreboard {
                     order = prefixTeams.size();
                     prefixTeams.put(game, order);
                 }
-                tags.put(id, new Tag(teamName(true, order, number), game, suffix));
+                tags.put(id, new Tag(teamName(true, order, number), game, suffix, hidden));
             } else {
                 RankDef rank = NetworkRanks.rankOf(book, ranks, id);
-                tags.put(id, new Tag(teamName(false, ranks.position(rank), number), fit(rank.tagPrefix()), suffix));
+                tags.put(id, new Tag(teamName(false, ranks.position(rank), number), fit(rank.tagPrefix()), suffix, hidden));
             }
         }
         return tags;
@@ -249,6 +254,10 @@ final class LobbyScoreboard {
             }
             if (!tag.suffix.equals(team.getSuffix())) {
                 team.setSuffix(tag.suffix);
+            }
+            NameTagVisibility visibility = tag.hidden ? NameTagVisibility.NEVER : NameTagVisibility.ALWAYS;
+            if (team.getNameTagVisibility() != visibility) {
+                team.setNameTagVisibility(visibility);
             }
             if (!team.hasEntry(other.getName())) {
                 // addEntry takes the player out of their old team.

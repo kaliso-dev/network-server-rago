@@ -13,6 +13,7 @@ import org.bukkit.ChatColor;
 import org.bukkit.Material;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
+import org.bukkit.event.EventPriority;
 import org.bukkit.event.Listener;
 import org.bukkit.event.inventory.DragType;
 import org.bukkit.event.inventory.InventoryClickEvent;
@@ -78,6 +79,8 @@ final class KitEditor implements Listener {
     private final HypixelProfiles hypixel;
     /** The players arranging a kit, and its mode. */
     private final Map<UUID, String> editing = new HashMap<>();
+    /** The kits that games make themselves, by mode: learnt when a game gives one. */
+    private final Map<String, Kit> codeKits = new HashMap<>();
 
     KitEditor(Plugin plugin, LobbySettings settings, KitLayouts layouts, LobbyState state, Consumer<Player> lobbyHotbar,
             HypixelProfiles hypixel) {
@@ -279,6 +282,63 @@ final class KitEditor implements Listener {
         if (!whole) {
             event.setCancelled(true);
         }
+    }
+
+    /** A game gave this kit, that it makes itself: the player's arrangement of it can be kept. */
+    void learn(String modeId, Kit kit) {
+        codeKits.put(modeId, kit);
+    }
+
+    /** The mode's kit: the one of config.yml, else the one its game gave last; null if none. */
+    private Kit kitOf(String modeId) {
+        ModeDisplay display = settings.display(modeId);
+        if (display != null && display.kit() != null) {
+            return display.kit();
+        }
+        return codeKits.get(modeId);
+    }
+
+    /**
+     * A player in a game closed their inventory: where they put the kit's items is kept for the
+     * mode the first time (even with a few blocks used), then again whenever they change it with the
+     * whole kit still there. Nothing for an inventory that is not the kit (another role's items).
+     */
+    @EventHandler(priority = EventPriority.MONITOR)
+    public void onArranged(InventoryCloseEvent event) {
+        if (!(event.getPlayer() instanceof Player)) {
+            return;
+        }
+        Player player = (Player) event.getPlayer();
+        UUID id = player.getUniqueId();
+        String modeId = state.gameOf(id);
+        Kit kit = modeId == null || editing.containsKey(id) ? null : kitOf(modeId);
+        if (kit == null) {
+            return;
+        }
+        KitItem[] found = new KitItem[Kit.SLOTS];
+        PlayerInventory inventory = player.getInventory();
+        for (int slot = 0; slot < Kit.SLOTS; slot++) {
+            found[slot] = KitItem.of(inventory.getItem(slot));
+        }
+        int[] saved = layouts.get(id, modeId);
+        int[] layout = kit.layoutOf(found, saved == null);
+        if (!kit.complete(layout) || Arrays.equals(moves(layout), saved == null ? moves(Kit.defaultLayout()) : moves(saved))) {
+            return;
+        }
+        layouts.set(id, modeId, layout);
+        ModeDisplay display = settings.display(modeId);
+        String name = display == null ? modeId : ChatColor.stripColor(display.mode().name());
+        player.sendMessage(ChatColor.GREEN + "Kit layout saved for " + name + ": your next games give it this way.");
+    }
+
+    /** The layout's moves only: an item in its own slot counts as not moved. */
+    static int[] moves(int[] layout) {
+        int[] moves = new int[Kit.SLOTS];
+        for (int slot = 0; slot < Kit.SLOTS; slot++) {
+            int target = slot < layout.length ? layout[slot] : -1;
+            moves[slot] = target == slot ? -1 : target;
+        }
+        return moves;
     }
 
     @EventHandler
