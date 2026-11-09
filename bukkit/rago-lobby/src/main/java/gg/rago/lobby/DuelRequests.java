@@ -40,9 +40,16 @@ final class DuelRequests {
     /** Whether a player may challenge another (their settings): yes to everyone by default. */
     private java.util.function.BiPredicate<Player, Player> gate = (from, to) -> true;
 
+    private java.util.function.Predicate<UUID> frozen = id -> false;
+
     /** Who may challenge whom: the gate tells the challenger why not. */
     void setGate(java.util.function.BiPredicate<Player, Player> gate) {
         this.gate = gate;
+    }
+
+    /** The players frozen by the staff: no duel for them, sent or accepted. */
+    void setFrozen(java.util.function.Predicate<UUID> frozen) {
+        this.frozen = frozen;
     }
 
     DuelRequests(LobbySettings settings, LobbyState state, QueueController queues) {
@@ -87,6 +94,10 @@ final class DuelRequests {
         }
         if (!state.isInLobby(target) || state.isInGame(target)) {
             challenger.sendMessage(ChatColor.RED + target.getName() + " is already in a game.");
+            return false;
+        }
+        if (frozen.test(challenger.getUniqueId()) || frozen.test(target.getUniqueId())) {
+            challenger.sendMessage(ChatColor.RED + "No duel with a player frozen by the staff.");
             return false;
         }
         return true;

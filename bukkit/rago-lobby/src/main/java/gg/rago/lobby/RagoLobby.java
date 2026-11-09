@@ -142,6 +142,7 @@ public final class RagoLobby extends JavaPlugin implements LobbyService {
         scoreboard = new LobbyScoreboard(settings, queues, stats.book(), state, server.ranks());
         duels = new DuelRequests(settings, state, queues);
         duels.setGate(social::acceptsDuel);
+        duels.setFrozen(this::isFrozen);
         menu.setDuels(duels);
         stats.load();
         fakes = new FakeEntities(this, world);
@@ -358,6 +359,11 @@ public final class RagoLobby extends JavaPlugin implements LobbyService {
     }
 
     /** The player belongs to a game from now on: sees and is seen by everyone. */
+    /** Frozen by the staff (a check in progress): no game until they are let go. */
+    boolean isFrozen(UUID player) {
+        return staff != null && staff.frozen(player);
+    }
+
     void enterGame(Player player, String modeId) {
         state.enterGame(player.getUniqueId(), modeId);
         gameKills.remove(player.getUniqueId());

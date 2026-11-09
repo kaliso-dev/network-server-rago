@@ -134,6 +134,10 @@ final class QueueController {
             player.sendMessage(ChatColor.RED + "You are already in a game.");
             return;
         }
+        if (lobby.isFrozen(player.getUniqueId())) {
+            player.sendMessage(ChatColor.RED + "You are frozen by the staff: you cannot join a game.");
+            return;
+        }
         if (settings.privateRoutes().containsKey(mode.id())) {
             joinPrivate(player, mode, map);
             return;
@@ -224,6 +228,10 @@ final class QueueController {
             if (member == null || !state.isInLobby(member) || state.isInGame(member)) {
                 Parties.boxed(leader, ChatColor.RED + (member == null ? "A player of your party" : member.getName())
                         + " is not in the lobby: your party cannot join a queue.");
+                return;
+            }
+            if (lobby.isFrozen(id)) {
+                Parties.boxed(leader, ChatColor.RED + member.getName() + " is frozen by the staff: your party cannot join a queue.");
                 return;
             }
             players.add(member);
