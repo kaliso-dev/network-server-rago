@@ -30,6 +30,10 @@ stats du lobby. Quitter le serveur ou taper `/spawn` pendant le duel, c'est perd
 - **Fireball fight** : chaque camp a son île et son lit sous une défense de bois et de laine, des
   boules de feu, de la TNT, de la laine et une épée. Tant que le lit tient, on revient au bout de
   3 secondes ; ensuite, une mort est définitive. Le dernier camp debout gagne.
+- **Block edit 1v1** : la station du block edit avec une pièce de chaque côté du mur de laine.
+  Casser un bloc du mur, frapper l'autre par le trou, et remettre un bloc dans le mur avant qu'il
+  ne frappe : un point. S'il frappe en retour d'abord, le point passe de son côté. Coups sans
+  dégâts, que le knockback. Premier à 5 (`points-pour-gagner.block-edit`).
 
 ## Les entraînements
 
@@ -74,6 +78,12 @@ et chaque variante son record : le meilleur score du joueur et celui du serveur,
 - **Combo bot** : un bot qui fonce et rend les coups, sans dégâts ; le plus long combo. Facile,
   normal (Speed I), difficile (Speed II).
 - **KB displace contre un bot** : le pont du KB displace, faire tomber le bot sans tomber. Série.
+- **Block edit**, comme sur la map Block Edit Practice du propriétaire : une cage de verre, un mur
+  de laine rouge de 5 sur 3, et derrière, un bot dans une petite pièce en bois. Casser un bloc du
+  mur, frapper le bot par le trou, remettre le bloc avant qu'il ne frappe. Le bot frappe comme un
+  joueur, à 3 blocs, une fois qu'il a vu le trou pendant son temps de réaction ; la hotbar règle
+  sa vitesse (500, 350 ou 200 ms). Chaque edit propre ajoute à la série, un coup du bot la finit ;
+  un record par vitesse. La station est construite par le plugin, la map n'est pas copiée.
 
 ## L'arène de block placement
 

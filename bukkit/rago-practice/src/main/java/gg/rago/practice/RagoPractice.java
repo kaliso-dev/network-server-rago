@@ -18,9 +18,9 @@ import org.bukkit.plugin.java.JavaPlugin;
 
 /**
  * RagoPractice: the practice modes played from the lobby. Duels (sumo, boxing, KB displace, block
- * fight, top fight, attack and defense, fireball fight), the trainings (clutch, block in, fast
- * defense, extends, ladder clutch, pearls, fireballs, aim), the bots, and the open arenas (block
- * placement, bridge fight), each in zones of an empty world. See the module README.
+ * fight, top fight, attack and defense, fireball fight, block edit), the trainings (clutch, block
+ * in, fast defense, extends, ladder clutch, pearls, fireballs, aim, block edit), the bots, and the
+ * open arenas (block placement, bridge fight), each in zones of an empty world. See the README.
  */
 public final class RagoPractice extends JavaPlugin {
 
@@ -132,6 +132,7 @@ public final class RagoPractice extends JavaPlugin {
         int kb = config.getInt("points-pour-gagner.kb-displace", 3);
         int blocks = config.getInt("points-pour-gagner.block-fight", 5);
         int top = config.getInt("points-pour-gagner.top-fight", 3);
+        int edit = config.getInt("points-pour-gagner.block-edit", 5);
         int build = config.getInt("attaque-defense.construction-secondes", 30);
         int attack = config.getInt("attaque-defense.attaque-secondes", 120);
         int rounds = config.getInt("attaque-defense.manches", 2);
@@ -164,6 +165,8 @@ public final class RagoPractice extends JavaPlugin {
         register("bridge-fight", BridgeArena::new, slots, spacing, true);
         register("scenarios-ranked", RankedScenarios::new, slots, spacing, false);
         register("clutch-top-fight", (h, m, a, t) -> new ClutchTraining(h, m, a, t, true), slots, ClutchTraining.SPACING, false);
+        register("block-edit", BlockEditTraining::new, slots, spacing, false);
+        register("block-edit-duel", (h, m, a, t) -> new BlockEditDuel(h, m, a, t, edit), slots, spacing, false);
     }
 
     /**
@@ -381,6 +384,7 @@ public final class RagoPractice extends JavaPlugin {
             {"points-pour-gagner.kb-displace", "3", "1", "10"},
             {"points-pour-gagner.block-fight", "5", "1", "20"},
             {"points-pour-gagner.top-fight", "3", "1", "10"},
+            {"points-pour-gagner.block-edit", "5", "1", "20"},
             {"attaque-defense.construction-secondes", "30", "5", "120"},
             {"attaque-defense.attaque-secondes", "120", "30", "600"},
             {"attaque-defense.manches", "2", "2", "10"},

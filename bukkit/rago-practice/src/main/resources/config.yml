@@ -43,6 +43,7 @@ points-pour-gagner:
   kb-displace: 3
   block-fight: 5
   top-fight: 3
+  block-edit: 5
 
 # Attack and defense: the defenders build for construction-secondes while the attackers wait,
 # then the attackers have attaque-secondes to break the bed. The sides swap each round; manches
