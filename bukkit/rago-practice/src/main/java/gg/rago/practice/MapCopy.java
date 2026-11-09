@@ -39,6 +39,23 @@ final class MapCopy {
         return blocks.length / 5;
     }
 
+    /**
+     * Places the blocks from number {@code from}, {@code max} at most, the origin on (ox, oy, oz) of
+     * the world; returns the number of the next block to place ({@link #size()} once all are).
+     */
+    @SuppressWarnings("deprecation") // Block#setTypeIdAndData: the 1.8 way to set a block with its data
+    int place(World world, int ox, int oy, int oz, int from, int max) {
+        int end = (int) Math.min(size(), (long) from + max);
+        for (int n = from; n < end; n++) {
+            int i = n * 5;
+            int y = oy + blocks[i + 1];
+            if (y >= 0 && y < 256) {
+                world.getBlockAt(ox + blocks[i], y, oz + blocks[i + 2]).setTypeIdAndData(blocks[i + 3], (byte) blocks[i + 4], false);
+            }
+        }
+        return end;
+    }
+
     /** The blocks into the arena (built: kept from round to round). */
     void build(Arena arena) {
         for (int i = 0; i < blocks.length; i += 5) {
@@ -104,15 +121,15 @@ final class MapCopy {
     /**
      * Reads the box (corners included) of the world with this name, if the server has it; the
      * origin lands on the centre of the zone. Null when the world is not there, with a word in the
-     * log. A world the plugin loads for this goes again once read.
+     * log about what plays without it. A world the plugin loads for this goes again once read.
      */
-    static MapCopy read(String worldName, int[] box, int[] origin, Logger log) {
+    static MapCopy read(String worldName, int[] box, int[] origin, Logger log, String what) {
         World world = Bukkit.getWorld(worldName);
         boolean loaded = false;
         if (world == null) {
             File folder = new File(Bukkit.getWorldContainer(), worldName);
             if (!new File(folder, "level.dat").isFile()) {
-                log.info("No world \"" + worldName + "\" in the folder of the worlds: the block in training plays on the plugin's own island.");
+                log.info("No world \"" + worldName + "\" in the folder of the worlds: " + what + " plays without it.");
                 return null;
             }
             world = new WorldCreator(worldName).generator(new VoidGenerator()).generateStructures(false).createWorld();
@@ -167,7 +184,7 @@ final class MapCopy {
             }
         }
         MapCopy copy = new MapCopy(Arrays.copyOf(blocks, n));
-        log.info("The block in training plays on the map \"" + worldName + "\": " + copy.size() + " blocks copied.");
+        log.info(Character.toUpperCase(what.charAt(0)) + what.substring(1) + " plays on the map \"" + worldName + "\": " + copy.size() + " blocks copied.");
         return copy;
     }
 

@@ -42,17 +42,21 @@ final class SumoMatch {
     private final SumoHost host;
     private final int slot;
     private final Location centre;
+    /** The name of the map, or null on the plain platform. */
+    private final String map;
     private final UUID[] players;
     private final String[] names;
     private final DuelScore score;
     private Phase phase = Phase.COUNTDOWN;
     private BukkitTask countdown;
 
-    SumoMatch(RagoPractice plugin, SumoHost host, int slot, Location centre, Player first, Player second, int target) {
+    SumoMatch(RagoPractice plugin, SumoHost host, int slot, Location centre, String map, Player first, Player second,
+            int target) {
         this.plugin = plugin;
         this.host = host;
         this.slot = slot;
         this.centre = centre;
+        this.map = map;
         this.players = new UUID[] {first.getUniqueId(), second.getUniqueId()};
         this.names = new String[] {first.getName(), second.getName()};
         this.score = new DuelScore(target);
@@ -86,6 +90,7 @@ final class SumoMatch {
             if (player != null) {
                 prepare(player);
                 player.sendMessage(ChatColor.GREEN + "Sumo duel against " + ChatColor.WHITE + names[1 - side]
+                        + (map == null ? "" : ChatColor.GREEN + " on " + ChatColor.WHITE + map)
                         + ChatColor.GREEN + ": first to " + score.target() + " points wins.");
             }
         }
@@ -125,6 +130,10 @@ final class SumoMatch {
     /** Where a side stands at the start of a round, facing the other side. */
     Location startOf(int side) {
         Location start = centre.clone().add(side == 0 ? -START_DISTANCE : START_DISTANCE, 0, 0);
+        // a map's platform can rise a little away from its middle: the feet go over it
+        for (int i = 0; i < 3 && start.getBlock().getType().isSolid(); i++) {
+            start.add(0, 1, 0);
+        }
         start.setYaw(side == 0 ? -90f : 90f);
         start.setPitch(0f);
         return start;

@@ -12,8 +12,29 @@ arenes-max: 16
 # only the knockback of RagoCombatEngine.
 sumo:
   points-pour-gagner: 3
-  # Radius of the round platform, in blocks (4 to 15).
+  # Radius of the round platform, in blocks (4 to 15), when none of the maps below is on the server.
   rayon: 7
+  # The sumo maps: worlds of the folder of the worlds (mondes). Each zone of the sumo gets one of
+  # them, copied from the start of the server (a few thousand blocks each tick), and each duel
+  # draws one at random. "centre": the block in the middle of the top of the platform (standing on
+  # it, F3 gives x, y + 1, z); "zone": the two corners of the box copied around it, at most
+  # espacement / 2 - 1 blocks from the centre on x and z. A map the server does not have is left out.
+  cartes:
+    - monde: "Ponsen"
+      centre: [0, 64, 0]
+      zone: [-47, 53, -47, 47, 116, 47]
+    - monde: "Fort Royale"
+      centre: [0, 71, 0]
+      zone: [-34, 58, -35, 34, 108, 35]
+    - monde: "White Crystal"
+      centre: [0, 64, 0]
+      zone: [-55, 47, -79, 53, 158, 55]
+    - monde: "Space Mine"
+      centre: [0, 64, 0]
+      zone: [-89, 0, -91, 60, 126, 98]
+    - monde: "Sumo"
+      centre: [0, 95, 0]
+      zone: [-22, 57, -24, 22, 96, 44]
 
 # The other duels: how many points win (in boxing, how many hits). A point is a death or a fall
 # into the void of the other side; in 2v2, when both players of a side are out of the round.

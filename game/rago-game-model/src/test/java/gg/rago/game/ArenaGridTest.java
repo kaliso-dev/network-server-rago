@@ -25,6 +25,18 @@ class ArenaGridTest {
     }
 
     @Test
+    void takesAGivenFreeSlot() {
+        ArenaGrid grid = new ArenaGrid(3, 200);
+        assertTrue(grid.take(2));
+        assertFalse(grid.take(2), "already taken");
+        assertFalse(grid.take(3), "no such slot");
+        assertFalse(grid.take(-1));
+        assertEquals(0, grid.acquire());
+        assertEquals(1, grid.acquire());
+        assertEquals(-1, grid.acquire());
+    }
+
+    @Test
     void refusesBadUse() {
         ArenaGrid grid = new ArenaGrid(2, 200);
         assertThrows(IllegalArgumentException.class, () -> grid.release(0));

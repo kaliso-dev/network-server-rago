@@ -9,6 +9,7 @@ import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 import java.util.logging.Level;
 import org.bukkit.World;
 import org.bukkit.WorldCreator;
@@ -67,7 +68,8 @@ public final class RagoPractice extends JavaPlugin {
         records = new Records(this, new File(getDataFolder(), "records.yml"));
         records.load();
 
-        sumo = new SumoHost(this, world, new ArenaGrid(slots, spacing), radius, points);
+        sumo = new SumoHost(this, world, new ArenaGrid(slots, spacing), radius, points, zoneMaps(config, "sumo.cartes", spacing,
+                "the sumo"));
         getServer().getPluginManager().registerEvents(sumo, this);
         if (!lobby.registerHost(this, SumoHost.MODE_ID, sumo)) {
             getLogger().warning("The lobby has no mode \"" + SumoHost.MODE_ID + "\" in its config.yml: the sumo duel stays closed.");
@@ -187,11 +189,90 @@ public final class RagoPractice extends JavaPlugin {
         for (int i = 0; i < 6; i++) {
             box[i] = zone.get(i);
         }
-        MapCopy copy = MapCopy.read(config.getString("block-in.monde", ""), box, origin, getLogger());
+        MapCopy copy = MapCopy.read(config.getString("block-in.monde", ""), box, origin, getLogger(),
+                "the block in training");
         if (copy != null) {
             copy = copy.without(BlockInTraining.defensePlaces(hx, hz));
         }
         return new BlockInTraining.Island(copy, hx, hz, places);
+    }
+
+    /**
+     * The maps of a list of config.yml (monde, centre, zone each) the server has, each read once:
+     * the middle of the top of its platform lands on the centre of the zones.
+     */
+    private List<MapZones.ZoneMap> zoneMaps(FileConfiguration config, String path, int spacing, String what) {
+        List<MapZones.ZoneMap> maps = new ArrayList<>();
+        for (Map<?, ?> entry : config.getMapList(path)) {
+            String problem = checkZoneMap(entry, spacing);
+            if (problem != null) {
+                getLogger().warning(path + " in config.yml: " + problem + ". The map is left out.");
+                continue;
+            }
+            String name = String.valueOf(entry.get("monde"));
+            List<?> centre = (List<?>) entry.get("centre");
+            List<?> zone = (List<?>) entry.get("zone");
+            int[] origin = new int[3];
+            int[] box = new int[6];
+            for (int i = 0; i < 3; i++) {
+                origin[i] = (int) number(centre.get(i));
+            }
+            for (int i = 0; i < 6; i++) {
+                box[i] = (int) number(zone.get(i));
+            }
+            MapCopy copy = MapCopy.read(name, box, origin, getLogger(), what);
+            if (copy != null) {
+                maps.add(new MapZones.ZoneMap(name, copy));
+            }
+        }
+        return maps;
+    }
+
+    /**
+     * What is wrong with a map of a list (monde, centre, zone), or null. The zone holds the centre
+     * and stays in its zone of the arena world: less than half the spacing from the centre.
+     */
+    static String checkZoneMap(Map<?, ?> entry, int spacing) {
+        Object world = entry.get("monde");
+        if (world == null || String.valueOf(world).trim().isEmpty()) {
+            return "monde: the name of the world";
+        }
+        int[] centre = numbers(entry.get("centre"), 3);
+        if (centre == null) {
+            return "centre: x, y, z of the block in the middle of the top of the platform";
+        }
+        int[] zone = numbers(entry.get("zone"), 6);
+        if (zone == null) {
+            return "zone: the two corners of the box copied, x, y, z each";
+        }
+        for (int i = 0; i < 3; i++) {
+            if (centre[i] < Math.min(zone[i], zone[i + 3]) || centre[i] > Math.max(zone[i], zone[i + 3])) {
+                return "zone: the box holds the centre";
+            }
+        }
+        int half = spacing / 2 - 1;
+        for (int i : new int[] {0, 2}) {
+            if (Math.abs(zone[i] - centre[i]) > half || Math.abs(zone[i + 3] - centre[i]) > half) {
+                return "zone: at most " + half + " blocks from the centre on x and z (espacement / 2)";
+            }
+        }
+        return null;
+    }
+
+    /** The whole numbers of a list of this size, or null. */
+    private static int[] numbers(Object value, int size) {
+        if (!(value instanceof List) || ((List<?>) value).size() != size) {
+            return null;
+        }
+        int[] numbers = new int[size];
+        for (int i = 0; i < size; i++) {
+            Object each = ((List<?>) value).get(i);
+            if (!(each instanceof Number)) {
+                return null;
+            }
+            numbers[i] = ((Number) each).intValue();
+        }
+        return numbers;
     }
 
     private static double number(Object value) {

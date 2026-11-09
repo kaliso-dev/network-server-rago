@@ -31,6 +31,15 @@ public final class ArenaGrid {
         return slot;
     }
 
+    /** Takes this slot if it is free: true if it is now taken. */
+    public boolean take(int slot) {
+        if (slot < 0 || slot >= slots || used.get(slot)) {
+            return false;
+        }
+        used.set(slot);
+        return true;
+    }
+
     public void release(int slot) {
         if (slot < 0 || slot >= slots || !used.get(slot)) {
             throw new IllegalArgumentException("slot " + slot + " is not in use");

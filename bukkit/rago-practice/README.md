@@ -9,8 +9,11 @@ Chaque mode prend son kit dans l'éditeur de kit du lobby, rangé comme le joueu
 Deux joueurs (ou deux équipes de deux), par la file ou par `/duel`. Le résultat compte dans les
 stats du lobby. Quitter le serveur ou taper `/spawn` pendant le duel, c'est perdre par abandon.
 
-- **Sumo** : une plateforme ronde, des coups sans dégâts, le premier qui tombe donne un point ;
-  premier à 3. Chaque manche commence par 3 secondes immobiles, face à face.
+- **Sumo** : sur les maps sumo du serveur (Ponsen, Fort Royale, White Crystal, Space Mine, Sumo,
+  dans le dossier des mondes), tirées au hasard à chaque duel ; sans elles, une plateforme ronde.
+  Des coups sans dégâts, le premier qui tombe (ou touche l'eau) donne un point ; premier à 3.
+  Chaque manche commence par 3 secondes immobiles, face à face. Les maps sont copiées dans les
+  zones du sumo au démarrage, quelques milliers de blocs par tick ; elles ne sont pas dans le dépôt.
 - **Boxing**, comme sur Minemen : un ring fermé, Speed II, une épée sans dégâts ; le premier à
   100 coups gagne. Le scoreboard compte les coups et le combo.
 - **KB displace** : un pont d'un bloc au-dessus du vide, que du knockback ; faire tomber l'autre,
@@ -91,8 +94,9 @@ que les zones déjà construites ne bougent pas.
 ## Configuration
 
 `plugins/RagoPractice/config.yml` : le monde des arènes, l'espacement, le nombre maximal de
-parties, les points pour gagner de chaque duel, le rayon du sumo, et les temps de l'attack and
-defense.
+parties, les points pour gagner de chaque duel, le rayon du sumo et ses maps (`sumo.cartes` :
+le monde, le centre de la plateforme, la boîte copiée), la map du block in, et les temps de
+l'attack and defense.
 
 ## Construire et tester
 

@@ -31,9 +31,10 @@ import org.bukkit.event.player.PlayerPickupItemEvent;
 import org.bukkit.event.player.PlayerQuitEvent;
 
 /**
- * Plays the "sumo" mode of the lobby: takes an arena slot for each match, builds its round
- * platform the first time the slot is used, and applies the duel rules to its players (no damage,
- * only knockback; no blocks, no items; standing still during the countdown).
+ * Plays the "sumo" mode of the lobby: takes an arena slot for each match, on one of the sumo maps
+ * of the server (see {@link MapZones}) or, without them, on a round platform built the first time
+ * the slot is used, and applies the duel rules to its players (no damage, only knockback; no
+ * blocks, no items; standing still during the countdown; the water under the maps is a fall).
  */
 final class SumoHost implements MatchHost, Listener {
 
@@ -44,16 +45,20 @@ final class SumoHost implements MatchHost, Listener {
     private final ArenaGrid grid;
     private final int radius;
     private final int target;
+    /** The sumo maps, copied into the slots; empty: the plain platform. */
+    private final MapZones zones;
     private final Set<Integer> built = new HashSet<>();
     private final Map<UUID, SumoMatch> matches = new HashMap<>();
     private final List<SumoMatch> running = new ArrayList<>();
 
-    SumoHost(RagoPractice plugin, World world, ArenaGrid grid, int radius, int target) {
+    SumoHost(RagoPractice plugin, World world, ArenaGrid grid, int radius, int target, List<MapZones.ZoneMap> maps) {
         this.plugin = plugin;
         this.world = world;
         this.grid = grid;
         this.radius = radius;
         this.target = target;
+        this.zones = new MapZones(world, grid, RagoPractice.ARENA_Y, 0, maps);
+        zones.start(plugin);
     }
 
     // --- MatchHost ------------------------------------------------------------------------------
@@ -65,12 +70,13 @@ final class SumoHost implements MatchHost, Listener {
         if (first == null || second == null) {
             return false;
         }
-        int slot = grid.acquire();
+        int slot = zones.isEmpty() ? grid.acquire() : zones.take();
         if (slot < 0) {
             return false;
         }
         Location centre = platform(slot);
-        SumoMatch duel = new SumoMatch(plugin, this, slot, centre, first, second, target);
+        String map = zones.isEmpty() ? null : zones.mapOf(slot).name;
+        SumoMatch duel = new SumoMatch(plugin, this, slot, centre, map, first, second, target);
         matches.put(first.getUniqueId(), duel);
         matches.put(second.getUniqueId(), duel);
         running.add(duel);
@@ -113,6 +119,7 @@ final class SumoHost implements MatchHost, Listener {
 
     /** The plugin is being disabled: every duel stops, its players go back to the lobby. */
     void abortAll() {
+        zones.stop();
         for (SumoMatch duel : new ArrayList<>(running)) {
             duel.abort();
             finished(duel);
@@ -123,11 +130,11 @@ final class SumoHost implements MatchHost, Listener {
         return running.size();
     }
 
-    /** The centre of the slot's platform, standing on it. Built the first time. */
+    /** The centre of the slot's platform, standing on it. The plain one is built the first time. */
     private Location platform(int slot) {
         int cx = grid.centreX(slot);
         int y = RagoPractice.ARENA_Y;
-        if (built.add(slot)) {
+        if (zones.isEmpty() && built.add(slot)) {
             int r2 = radius * radius;
             for (int x = -radius; x <= radius; x++) {
                 for (int z = -radius; z <= radius; z++) {
@@ -158,7 +165,7 @@ final class SumoHost implements MatchHost, Listener {
             event.setTo(still);
             return;
         }
-        if (to.getY() < duel.fallY()) {
+        if (to.getY() < duel.fallY() || to.getBlock().isLiquid()) {
             duel.fell(event.getPlayer());
         }
     }
