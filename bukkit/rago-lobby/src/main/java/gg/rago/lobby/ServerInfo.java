@@ -3,9 +3,17 @@ package gg.rago.lobby;
 import java.lang.reflect.Constructor;
 import java.lang.reflect.Field;
 import java.lang.reflect.Method;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
+import java.util.UUID;
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
+import org.bukkit.Color;
+import org.bukkit.Effect;
+import org.bukkit.FireworkEffect;
+import org.bukkit.Location;
+import org.bukkit.Sound;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
@@ -14,13 +22,17 @@ import org.bukkit.event.server.ServerListPingEvent;
 /**
  * What a real server shows around the game: the header and footer of the tab list (the players
  * online, the player's ping), the message of the server list, the announcements of the lobby, the
- * arrival of the ranks that have it (rago.perk.join). The 1.8.8 API has no tab header: it goes
+ * arrival of the players in the lobby. The 1.8.8 API has no tab header: it goes
  * through the server's own packet, found by reflection; if it cannot be found, there is no header.
  */
 final class ServerInfo implements Listener {
 
+    /** A player's arrival is not told again for this long: a run of short games does not flood the chat. */
+    static final long ARRIVAL_AGAIN_MS = 60_000L;
+
     private final RagoLobby lobby;
     private final ServerSettings server;
+    private final Map<UUID, Long> arrivals = new HashMap<>();
     private int nextAnnouncement;
     private boolean tabBroken;
     private Constructor<?> tabPacket;
@@ -83,18 +95,96 @@ final class ServerInfo implements Listener {
         }
     }
 
-    /** A rank with rago.perk.join arrives: the lobby hears it, as on Hypixel. */
-    void joined(Player player) {
-        if (!player.hasPermission("rago.perk.join") || !lobby.canBeSeen(player)) {
+    /**
+     * A player arrives in the lobby, joining the server or back from a game, and the lobby hears
+     * it: a player with a rank in the Hypixel line framed by arrows, with a burst of particles and
+     * a sound (and a firework of their colour with rago.perk.join); the others in a grey line. Not
+     * again within a minute, nor for the vanished staff.
+     */
+    void arrived(Player player) {
+        if (!lobby.canBeSeen(player)) {
             return;
         }
-        String line = ChatColor.AQUA + " >" + ChatColor.RED + ">" + ChatColor.GREEN + "> " + ChatColor.RESET
-                + lobby.profiles().displayName(player.getUniqueId(), player.getName()) + ChatColor.GOLD + " joined the lobby! "
-                + ChatColor.GREEN + "<" + ChatColor.RED + "<" + ChatColor.AQUA + "<";
+        UUID id = player.getUniqueId();
+        long now = System.currentTimeMillis();
+        Long last = arrivals.get(id);
+        if (last != null && now - last < ARRIVAL_AGAIN_MS) {
+            return;
+        }
+        arrivals.put(id, now);
+        RankDef rank = lobby.profiles().rank(id);
+        boolean ranked = rank != Ranks.DEFAULT;
+        String line = arrivalLine(lobby.profiles().displayName(id, player.getName()), ranked);
         for (Player other : Bukkit.getOnlinePlayers()) {
-            if (lobby.state().isInLobby(other)) {
+            if (lobby.state().isInLobby(other) || other.equals(player)) {
                 other.sendMessage(line);
             }
+        }
+        if (ranked) {
+            Location at = player.getLocation();
+            at.getWorld().spigot().playEffect(at.clone().add(0, 1, 0), Effect.HAPPY_VILLAGER, 0, 0, 0.6f, 0.9f, 0.6f, 0f, 30, 48);
+            at.getWorld().playSound(at, Sound.LEVEL_UP, 0.8f, 1.4f);
+            if (player.hasPermission("rago.perk.join")) {
+                lobby.cosmeticEffects().firework(at.clone().add(0, 2, 0), FireworkEffect.builder()
+                        .with(FireworkEffect.Type.BALL_LARGE).withColor(colourOf(rank.nameColour()))
+                        .withFade(Color.WHITE).withFlicker().build());
+            }
+        }
+    }
+
+    /** The player left: their next arrival is told. */
+    void forget(UUID player) {
+        arrivals.remove(player);
+    }
+
+    /** "»» [VIP] Name joined the lobby! ««" for a rank, "Name joined the lobby." in grey for the others. */
+    static String arrivalLine(String displayName, boolean ranked) {
+        if (!ranked) {
+            return ChatColor.GRAY + ChatColor.stripColor(displayName) + " joined the lobby.";
+        }
+        return ChatColor.AQUA + " >" + ChatColor.RED + ">" + ChatColor.GREEN + "> " + ChatColor.RESET + displayName
+                + ChatColor.GOLD + " joined the lobby! " + ChatColor.GREEN + "<" + ChatColor.RED + "<" + ChatColor.AQUA + "<";
+    }
+
+    /** The colour of a firework for a name colour ("§a"): white when it is not one. */
+    static Color colourOf(String nameColour) {
+        ChatColor colour = nameColour == null || nameColour.length() < 2 ? null : ChatColor.getByChar(nameColour.charAt(1));
+        if (colour == null) {
+            return Color.WHITE;
+        }
+        switch (colour) {
+            case DARK_RED:
+                return Color.MAROON;
+            case RED:
+                return Color.RED;
+            case GOLD:
+                return Color.ORANGE;
+            case YELLOW:
+                return Color.YELLOW;
+            case DARK_GREEN:
+                return Color.GREEN;
+            case GREEN:
+                return Color.LIME;
+            case AQUA:
+                return Color.AQUA;
+            case DARK_AQUA:
+                return Color.TEAL;
+            case DARK_BLUE:
+                return Color.NAVY;
+            case BLUE:
+                return Color.BLUE;
+            case LIGHT_PURPLE:
+                return Color.FUCHSIA;
+            case DARK_PURPLE:
+                return Color.PURPLE;
+            case GRAY:
+                return Color.SILVER;
+            case DARK_GRAY:
+                return Color.GRAY;
+            case BLACK:
+                return Color.BLACK;
+            default:
+                return Color.WHITE;
         }
     }
 

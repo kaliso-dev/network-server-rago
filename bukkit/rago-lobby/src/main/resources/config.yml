@@ -10,8 +10,8 @@ monde: lobby
 hauteur-vide: 0
 
 # The lobby scoreboard: its title (32 characters at most) and its last line.
-titre: "&b&lRAGO PRACTICE"
-adresse: "&7rago.gg"
+titre: "&e&lRAGO PRACTICE"
+adresse: "&erago.gg"
 
 # The queues. A ranked queue matches players by their ELO (see elo: below), from
 # elo-par-defaut before a player's first ranked game: the ELO gap accepted starts at
@@ -43,7 +43,7 @@ categories:
       - "ranked, private game, FFA,"
       - "Arena Free, top fight, Sky Rise..."
   entrainement:
-    nom: "&b&lTraining"
+    nom: "&b&lPractice"
     icone: SANDSTONE
     description:
       - "Alone or against a bot: clutch,"
@@ -178,8 +178,8 @@ rangs:
     permissions: [rago.staff, rago.lobby.admin]
     herite: vipplus
   media:
-    prefixe: "&5[MEDIA] "
-    couleur: "&5"
+    prefixe: "&c[&fMEDIA&c] "
+    couleur: "&c"
     herite: elite
     avantages: ["For content creators", "Everything of ELITE"]
   legend:
@@ -191,14 +191,14 @@ rangs:
     icone: GOLD_BLOCK
     avantages: ["The [LEGEND] prefix in gold", "Everything of ELITE"]
   elite:
-    prefixe: "&d[ELITE] "
-    couleur: "&d"
+    prefixe: "&b[ELITE] "
+    couleur: "&b"
     permissions: [rago.perk.join]
     herite: vipplus
     prix: 40000
     niveau: 50
     icone: DIAMOND_BLOCK
-    avantages: ["Your arrival is announced in the lobby", "Everything of VIP+"]
+    avantages: ["A firework when you arrive in the lobby", "Everything of VIP+"]
   vipplus:
     prefixe: "&a[VIP&6+&a] "
     couleur: "&a"
@@ -215,7 +215,7 @@ rangs:
     prix: 5000
     niveau: 10
     icone: EMERALD
-    avantages: ["White messages in the chat", "No chat cooldown"]
+    avantages: ["Your arrival announced in style", "White messages in the chat", "No chat cooldown"]
 
 # The ELO of the ranked modes, by division as on the Ranked Bedwars servers: everyone starts at 0,
 # a division from its elo up to the next one's. A win gives "victoire" ELO and a loss takes
@@ -268,11 +268,12 @@ chat:
 # {ping} the player's ping.
 tab:
   haut:
-    - "&b&lRAGO &f&lPRACTICE"
-    - "&7{joueurs} players online"
+    - "&bYou are playing on &e&lRAGO.GG"
+    - ""
   bas:
-    - "&7Your ping: &f{ping} ms"
-    - "&brago.gg"
+    - ""
+    - "&a{joueurs} players online &8- &7Ping: &f{ping} ms"
+    - "&aRanks, Rago Points & MORE! &c&l/SHOP"
 
 # The message under the server's name in the server list (2 lines).
 motd:

@@ -182,7 +182,7 @@ final class CosmeticEffects implements Listener {
     }
 
     /** A firework that bursts at once and hurts nobody (1.8 fireworks do no damage). */
-    private void firework(Location at, FireworkEffect effect) {
+    void firework(Location at, FireworkEffect effect) {
         Firework firework = (Firework) at.getWorld().spawnEntity(at, EntityType.FIREWORK);
         FireworkMeta meta = firework.getFireworkMeta();
         meta.clearEffects();

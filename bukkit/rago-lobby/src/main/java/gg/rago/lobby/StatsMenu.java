@@ -3,6 +3,7 @@ package gg.rago.lobby;
 import gg.rago.game.GameMode;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.UUID;
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
 import org.bukkit.Material;
@@ -42,28 +43,34 @@ final class StatsMenu {
     }
 
     void open(Player player) {
+        open(player, player.getUniqueId(), player.getName());
+    }
+
+    /** The stats of another player (a player clicked in the lobby), or the viewer's own. */
+    void open(Player viewer, UUID player, String name) {
         List<ModeDisplay> modes = settings.modes();
         int slots = Math.min(54, FIRST_MODE_SLOT + ((modes.size() + 8) / 9) * 9);
         Holder holder = new Holder();
-        Inventory inventory = Bukkit.createInventory(holder, slots, "Your stats");
+        String title = player.equals(viewer.getUniqueId()) ? "Your stats" : "Stats of " + name;
+        Inventory inventory = Bukkit.createInventory(holder, slots, title.length() > 32 ? title.substring(0, 32) : title);
         holder.inventory = inventory;
         long now = System.currentTimeMillis();
         String day = StatsPeriod.dayKey(now);
         String week = StatsPeriod.weekKey(now);
-        PlayerStats stats = book.get(player.getUniqueId());
-        inventory.setItem(HEAD_SLOT, head(player, stats, day, week));
+        PlayerStats stats = book.get(player);
+        inventory.setItem(HEAD_SLOT, head(player, name, stats, day, week));
         for (int i = 0; i < modes.size() && FIRST_MODE_SLOT + i < slots; i++) {
             inventory.setItem(FIRST_MODE_SLOT + i, mode(player, modes.get(i), stats, day, week));
         }
-        player.openInventory(inventory);
+        viewer.openInventory(inventory);
     }
 
     @SuppressWarnings("deprecation") // SkullMeta#setOwner(String) is the 1.8.8 way to show a player's head
-    private ItemStack head(Player player, PlayerStats stats, String day, String week) {
+    private ItemStack head(UUID player, String name, PlayerStats stats, String day, String week) {
         ItemStack head = new ItemStack(Material.SKULL_ITEM, 1, (short) 3);
         SkullMeta meta = (SkullMeta) head.getItemMeta();
-        meta.setOwner(player.getName());
-        meta.setDisplayName(ChatColor.GOLD + "" + ChatColor.BOLD + player.getName());
+        meta.setOwner(name);
+        meta.setDisplayName(ChatColor.GOLD + "" + ChatColor.BOLD + name);
         List<String> lore = new ArrayList<>();
         NetworkLevel levels = book.levels();
         int xp = stats == null ? 0 : stats.xp();
@@ -104,7 +111,7 @@ final class StatsMenu {
             lore.add("");
             for (GameMode mode : ranked) {
                 lore.add(ChatColor.GRAY + "Elo " + shortName(mode) + ": "
-                        + book.ladder().format(book.elo(player.getUniqueId(), mode.id())));
+                        + book.ladder().format(book.elo(player, mode.id())));
             }
         }
         meta.setLore(lore);
@@ -112,7 +119,7 @@ final class StatsMenu {
         return head;
     }
 
-    private ItemStack mode(Player player, ModeDisplay display, PlayerStats stats, String day, String week) {
+    private ItemStack mode(UUID player, ModeDisplay display, PlayerStats stats, String day, String week) {
         GameMode mode = display.mode();
         ItemStack icon = new ItemStack(display.icon());
         ItemMeta meta = icon.getItemMeta();
@@ -135,7 +142,7 @@ final class StatsMenu {
             lore.add(line("Wins this week", ChatColor.GREEN, m.wins(StatsPeriod.WEEK, day, week)));
         }
         if (mode.ranked()) {
-            lore.add(ChatColor.GRAY + "Elo: " + book.ladder().format(book.elo(player.getUniqueId(), mode.id())));
+            lore.add(ChatColor.GRAY + "Elo: " + book.ladder().format(book.elo(player, mode.id())));
         }
         meta.setLore(lore);
         icon.setItemMeta(meta);

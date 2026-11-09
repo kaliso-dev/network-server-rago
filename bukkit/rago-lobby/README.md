@@ -64,8 +64,10 @@ dans les files d'attente des modes de jeu.
   `plugins/RagoLobby/stats/equipes/`, un fichier par mode.
 - **Les files d'attente.** Le matchmaking de `rago-game-model`, une fois par seconde. Un joueur
   n'attend que dans une file à la fois.
-- **Le scoreboard.** Les joueurs connectés, le niveau Network, le rang et l'XP du joueur, la file
-  et le temps d'attente. En partie : le mode et le ping du joueur, et en 1v1 l'adversaire et son
+- **Le scoreboard.** Comme le lobby principal d'Hypixel, titre en jaune : la date, le rang, le
+  niveau et l'avancée vers le suivant en %, les Rago Points, la meilleure division classée, le
+  lobby et les joueurs connectés, la file et le temps d'attente quand on attend, l'adresse en
+  jaune. Le Tab aussi (« You are playing on RAGO.GG », les joueurs et le ping, la boutique). En partie : le mode et le ping du joueur, et en 1v1 l'adversaire et son
   ping (vert sous 80 ms, jaune sous 150, rouge au-delà). Une ligne n'est renvoyée que quand elle
   change.
 - **Le niveau Network.** Chaque partie donne de l'XP (50 pour une victoire, 15 pour une défaite),
@@ -91,6 +93,19 @@ dans les files d'attente des modes de jeu.
   divisions ; le MVP de la partie (le plus de kills) gagne 5 de plus. La file classée apparie
   les joueurs par ELO. Ces valeurs sont les nôtres (les chiffres de RBW ne sont pas publics), et
   se règlent dans `elo:`.
+- **L'arrivée au lobby.** Chaque arrivée (connexion ou retour d'une partie) s'annonce au lobby,
+  une fois par minute au plus : en gris pour un joueur sans rang, comme sur Hypixel
+  (`>>> [VIP] Pseudo joined the lobby! <<<`) avec des particules et un son pour un rang, et un
+  feu d'artifice de sa couleur avec `rago.perk.join` (ELITE et au-dessus).
+- **Le coffre de la récompense du jour.** `/lobby point daily` pose un coffre à cet endroit (au
+  spawn), avec au-dessus « DAILY REWARD », si la récompense attend ou dans combien de temps vient
+  la suivante, et la série de jours. Un clic dessus la donne, comme `/daily`.
+- **Le clic sur un joueur.** Un clic droit sur un joueur du lobby ouvre son menu : sa tête avec
+  son rang, son niveau et ses divisions, un duel (le choix du mode), ses stats mode par mode, une
+  invitation dans sa party, une demande d'ami et un rang à lui offrir.
+- **Offrir un rang (`/gift <joueur>`).** Les rangs de la boutique, payés avec ses propres Rago
+  Points : il faut le niveau et le prix du rang, comme pour l'acheter pour soi. Celui qui le reçoit
+  est prévenu, et le lobby aussi.
 - **Le profil (`/profile`)** : rang, niveau, points, divisions, stats, amis, boutique et
   réglages (messages privés, invitations de party, demandes d'ami et défis, chacun activable).
 - **Les amis et les messages privés.** `/friend` (100 amis au plus, demandes cliquables qui
@@ -129,6 +144,7 @@ commentaires de `config.yml`. Les mots français de la première version (`quitt
 | `/lobby point remove <nom>`, `/lobby point tp <nom>`, `/lobby points` | retirer un point, y aller, la liste | `rago.lobby.admin` |
 | `/lobby build` | mode construction dans le lobby (créatif, protection levée) | `rago.lobby.admin` |
 | `/shop` (ou `/boutique`), `/profile` (ou `/me`), `/daily` | la boutique, son profil, la récompense du jour | tout le monde |
+| `/gift <joueur>` (ou `/cadeau`) | offrir un rang de la boutique avec ses Rago Points | tout le monde |
 | `/friend add\|accept\|deny\|remove\|list\|requests\|toggle <joueur>` (ou `/f`) | les amis | tout le monde |
 | `/msg <joueur> <message>` (ou `/tell`, `/w`), `/r <message>` | message privé, réponse | tout le monde |
 | `/stats [joueur]`, `/top elo\|level\|wins\|kills\|streak\|games\|points [mode]` | les stats, les meilleurs | tout le monde |

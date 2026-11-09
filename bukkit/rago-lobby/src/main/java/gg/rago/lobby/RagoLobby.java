@@ -53,6 +53,7 @@ public final class RagoLobby extends JavaPlugin implements LobbyService {
     private ExecutorService writer;
     private LobbyPoints points;
     private LobbyNpcs npcs;
+    private DailyChest daily;
     private FakeEntities fakes;
     private DuelRequests duels;
     private StatsService stats;
@@ -75,6 +76,8 @@ public final class RagoLobby extends JavaPlugin implements LobbyService {
     private final Map<UUID, Integer> gameKills = new HashMap<>();
     /** The players who turned /fly on in the lobby. */
     private final Set<UUID> flying = new HashSet<>();
+    /** The players whose arrival the lobby was already told since they joined. */
+    private final Set<UUID> arrivedOnce = new HashSet<>();
     private int seconds;
 
     @Override
@@ -156,6 +159,7 @@ public final class RagoLobby extends JavaPlugin implements LobbyService {
         getServer().getPluginManager().registerEvents(npcs, this);
 
         getServer().getPluginManager().registerEvents(new LobbyListener(this, state, visibility), this);
+        getServer().getPluginManager().registerEvents(new PlayerMenu(this, statsMenu), this);
         getServer().getPluginManager().registerEvents(new HostWatcher(queues), this);
         getServer().getPluginManager().registerEvents(punishments, this);
         // before the parties: a muted player does not talk in the party channel either
@@ -195,7 +199,8 @@ public final class RagoLobby extends JavaPlugin implements LobbyService {
             npcs.update();
         }, 20L, 20L);
         getServer().getScheduler().runTaskTimer(this, fakes::tick, 10L, 10L);
-        int placed = npcs.spawnAll();
+        daily = new DailyChest(profiles);
+        int placed = placeDecor();
         List<String> missing = npcs.missingPoints();
         getLogger().info(placed + " NPCs and leaderboards placed" + (missing.isEmpty() ? ""
                 : ", no point for: " + String.join(", ", missing) + " (/lobby point <name>)"));
@@ -205,6 +210,7 @@ public final class RagoLobby extends JavaPlugin implements LobbyService {
             kits.load(player.getUniqueId());
             hypixel.load(player.getUniqueId());
             profiles.apply(player);
+            arrivedOnce.add(player.getUniqueId());
             sendToLobby(player);
         }
         getLogger().info("Lobby in the world " + world.getName() + ", " + settings.modes().size() + " modes: "
@@ -288,6 +294,7 @@ public final class RagoLobby extends JavaPlugin implements LobbyService {
 
     @Override
     public void sendToLobby(Player player) {
+        boolean fromGame = state.gameOf(player.getUniqueId()) != null;
         state.leaveGame(player.getUniqueId());
         scoreboard.setGameLines(player.getUniqueId(), null);
         scoreboard.setGamePrefix(player.getUniqueId(), null);
@@ -296,6 +303,10 @@ public final class RagoLobby extends JavaPlugin implements LobbyService {
         }
         player.teleport(state.spawn());
         resetForLobby(player);
+        if (fromGame || !arrivedOnce.contains(player.getUniqueId())) {
+            arrivedOnce.add(player.getUniqueId());
+            info.arrived(player);
+        }
     }
 
     /** Puts the player in the lobby state where they stand. */
@@ -405,6 +416,8 @@ public final class RagoLobby extends JavaPlugin implements LobbyService {
     }
 
     void forget(Player player) {
+        arrivedOnce.remove(player.getUniqueId());
+        info.forget(player.getUniqueId());
         social.announce(player, false);
         staff.quit(player);
         social.forget(player.getUniqueId());
@@ -550,7 +563,7 @@ public final class RagoLobby extends JavaPlugin implements LobbyService {
             return;
         }
         write(new File(state.world().getWorldFolder(), LobbyPoints.FILE_NAME), points.toYaml());
-        npcs.spawnAll();
+        placeDecor();
         player.sendMessage(ChatColor.GREEN + "Point " + name + (moved ? " moved here." : " placed here."));
     }
 
@@ -561,7 +574,7 @@ public final class RagoLobby extends JavaPlugin implements LobbyService {
             return;
         }
         write(new File(state.world().getWorldFolder(), LobbyPoints.FILE_NAME), points.toYaml());
-        npcs.spawnAll();
+        placeDecor();
         player.sendMessage(ChatColor.GREEN + "Point " + name + " removed.");
     }
 
@@ -573,6 +586,17 @@ public final class RagoLobby extends JavaPlugin implements LobbyService {
             return;
         }
         player.teleport(point.in(state.world()));
+    }
+
+    /** The NPCs, the leaderboards, then the daily chest, on their points. The number of NPCs placed. */
+    private int placeDecor() {
+        int placed = npcs.spawnAll();
+        daily.place(points, state.world(), fakes);
+        return placed;
+    }
+
+    DailyChest daily() {
+        return daily;
     }
 
     LobbyPoints points() {
@@ -777,7 +801,6 @@ public final class RagoLobby extends JavaPlugin implements LobbyService {
         profiles.apply(player);
         visibility.applyVanish(player, state);
         social.announce(player, true);
-        info.joined(player);
         if (profiles.dailyReady(player.getUniqueId())) {
             player.sendMessage(ChatColor.AQUA + "Your daily reward is waiting: " + ChatColor.YELLOW + "/daily");
         }
@@ -792,6 +815,10 @@ public final class RagoLobby extends JavaPlugin implements LobbyService {
                 player.sendMessage(line);
             }
         }
+    }
+
+    CosmeticEffects cosmeticEffects() {
+        return cosmetics;
     }
 
     /** The sidebars and name tags follow a change of rank or points, within a second anyway. */

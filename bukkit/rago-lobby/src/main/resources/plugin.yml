@@ -40,6 +40,10 @@ commands:
     description: The Rago Shop, ranks and cosmetics bought with Rago Points.
     usage: /shop
     aliases: [boutique]
+  gift:
+    description: Gift a rank of the shop to another player, with your Rago Points.
+    usage: /gift <player>
+    aliases: [cadeau]
   profile:
     description: Your profile, stats, friends and settings.
     usage: /profile

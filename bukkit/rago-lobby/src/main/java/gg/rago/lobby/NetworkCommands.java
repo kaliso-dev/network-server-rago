@@ -20,7 +20,7 @@ import org.bukkit.entity.Player;
  */
 final class NetworkCommands implements CommandExecutor, TabCompleter {
 
-    static final String[] NAMES = {"shop", "profile", "daily", "friend", "msg", "reply", "rank", "points", "top", "stats",
+    static final String[] NAMES = {"shop", "gift", "profile", "daily", "friend", "msg", "reply", "rank", "points", "top", "stats",
         "fly", "staffchat", "vanish", "freeze", "report", "clearchat", "mutechat", "ban", "unban", "mute", "unmute", "kick",
         "warn", "history", "discord", "rules", "site", "store"};
 
@@ -64,6 +64,20 @@ final class NetworkCommands implements CommandExecutor, TabCompleter {
             case "profile":
                 if ((player = player(sender)) != null) {
                     lobby.profileMenu().open(player);
+                }
+                return true;
+            case "gift":
+                if ((player = player(sender)) != null) {
+                    if (args.length != 1) {
+                        player.sendMessage(ChatColor.RED + "Usage: /gift <player>");
+                    } else {
+                        PlayerStats target = profileOf(player, args[0]);
+                        if (target != null && target.id().equals(player.getUniqueId())) {
+                            player.sendMessage(ChatColor.RED + "For yourself, buy it in the shop: /shop");
+                        } else if (target != null) {
+                            lobby.shop().openGift(player, target);
+                        }
+                    }
                 }
                 return true;
             case "daily":

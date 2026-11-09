@@ -306,30 +306,30 @@ final class LobbyScoreboard {
         if (modeId != null) {
             return gameLines(player, modeId);
         }
+        // As the main lobby of Hypixel: the date, the player, the lobby, the address.
         List<String> lines = new ArrayList<>();
+        lines.add(ChatColor.GRAY + date(System.currentTimeMillis()) + " " + ChatColor.DARK_GRAY + "L1");
         lines.add(blank(0));
-        lines.add(ChatColor.WHITE + "Players: " + ChatColor.GREEN + Bukkit.getOnlinePlayers().size());
-        lines.add(blank(1));
         NetworkLevel levels = book.levels();
         PlayerStats stats = book.get(player.getUniqueId());
         int xp = stats == null ? 0 : stats.xp();
         int level = levels.level(xp);
         RankDef rank = NetworkRanks.rankOf(book, ranks, player.getUniqueId());
-        lines.add(cut(ChatColor.WHITE + "Rank: " + (rank == Ranks.DEFAULT ? ChatColor.GRAY + "None" : rank.prefix().trim())));
-        lines.add(ChatColor.WHITE + "Level: " + levels.tag(level));
-        lines.add(level >= NetworkLevel.MAX_LEVEL ? ChatColor.WHITE + "XP: " + ChatColor.AQUA + "max"
-                : ChatColor.WHITE + "XP: " + ChatColor.AQUA + levels.xpIntoLevel(xp) + ChatColor.GRAY + "/"
-                        + levels.xpToNext(level));
+        lines.add(cut(ChatColor.WHITE + "Rank: " + (rank == Ranks.DEFAULT ? ChatColor.GRAY + "Default" : rank.prefix().trim())));
+        lines.add(ChatColor.WHITE + "Rago Level: " + levels.tag(level));
+        lines.add(ChatColor.WHITE + "Progress: " + ChatColor.AQUA
+                + (level >= NetworkLevel.MAX_LEVEL ? "max" : percent(levels.progress(xp))));
         lines.add(ChatColor.WHITE + "Rago Points: " + ChatColor.GOLD + String.format("%,d", stats == null ? 0 : stats.points()));
         int best = bestElo(player.getUniqueId());
         if (best >= 0) {
             lines.add(cut(ChatColor.WHITE + "Ranked: " + book.ladder().format(best)));
         }
-        lines.add(blank(3));
+        lines.add(blank(1));
+        lines.add(ChatColor.WHITE + "Lobby: " + ChatColor.GREEN + "#1");
+        lines.add(ChatColor.WHITE + "Players: " + ChatColor.GREEN + String.format("%,d", Bukkit.getOnlinePlayers().size()));
         GameMode mode = queues.queueOf(player);
-        if (mode == null) {
-            lines.add(ChatColor.WHITE + "Queue: " + ChatColor.GRAY + "none");
-        } else {
+        if (mode != null) {
+            lines.add(blank(3));
             lines.add(cut(ChatColor.WHITE + "Queue: " + mode.name()));
             lines.add(ChatColor.WHITE + "Waiting: " + ChatColor.YELLOW
                     + clock(queues.waited(player, System.currentTimeMillis())));
@@ -337,6 +337,18 @@ final class LobbyScoreboard {
         lines.add(blank(2));
         lines.add(cut(settings.address()));
         return lines;
+    }
+
+    /** "09/11/26": the day of the server's time zone, day first. */
+    static String date(long millis) {
+        return java.time.Instant.ofEpochMilli(millis).atZone(StatsPeriod.ZONE)
+                .format(java.time.format.DateTimeFormatter.ofPattern("dd/MM/yy"));
+    }
+
+    /** "45%" for 0.45; never 100% before the level is reached. */
+    static String percent(float progress) {
+        int value = (int) Math.floor(Math.max(0f, Math.min(1f, progress)) * 100f);
+        return Math.min(99, value) + "%";
     }
 
     /** The player's highest ELO of the ranked modes, or -1 without a ranked mode. */

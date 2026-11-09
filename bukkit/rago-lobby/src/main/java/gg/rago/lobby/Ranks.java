@@ -136,17 +136,18 @@ final class Ranks {
         ranks.add(staff("mod", "§2[MOD] ", "§2", "helper", "rago.mod"));
         ranks.add(staff("helper", "§9[HELPER] ", "§9", "elite", "rago.staff"));
         ranks.add(staff("builder", "§3[BUILDER] ", "§3", "vipplus", "rago.staff", "rago.lobby.admin"));
-        ranks.add(new RankDef("media", "§5[MEDIA] ", "§5", "§f", false, Collections.<String>emptyList(), "elite",
+        ranks.add(new RankDef("media", "§c[§fMEDIA§c] ", "§c", "§f", false, Collections.<String>emptyList(), "elite",
                 0, 0, Material.NAME_TAG, Arrays.asList("For content creators", "Everything of ELITE")));
         ranks.add(new RankDef("legend", "§6[LEGEND] ", "§6", "§f", false, Collections.<String>emptyList(), "elite",
                 100_000, 100, Material.GOLD_BLOCK, Arrays.asList("The [LEGEND] prefix in gold", "Everything of ELITE")));
-        ranks.add(new RankDef("elite", "§d[ELITE] ", "§d", "§f", false, Arrays.asList("rago.perk.join"), "vipplus",
-                40_000, 50, Material.DIAMOND_BLOCK, Arrays.asList("Your arrival is announced in the lobby",
+        ranks.add(new RankDef("elite", "§b[ELITE] ", "§b", "§f", false, Arrays.asList("rago.perk.join"), "vipplus",
+                40_000, 50, Material.DIAMOND_BLOCK, Arrays.asList("A firework when you arrive in the lobby",
                         "Everything of VIP+")));
         ranks.add(new RankDef("vipplus", "§a[VIP§6+§a] ", "§a", "§f", false, Arrays.asList("rago.perk.fly"), "vip",
                 15_000, 25, Material.EMERALD_BLOCK, Arrays.asList("/fly in the lobby", "Everything of VIP")));
         ranks.add(new RankDef("vip", "§a[VIP] ", "§a", "§f", false, Arrays.asList("rago.perk.chat"), null,
-                5_000, 10, Material.EMERALD, Arrays.asList("White messages in the chat", "No chat cooldown")));
+                5_000, 10, Material.EMERALD, Arrays.asList("Your arrival announced in style",
+                        "White messages in the chat", "No chat cooldown")));
         return new Ranks(ranks);
     }
 

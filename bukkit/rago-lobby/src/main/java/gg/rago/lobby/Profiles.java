@@ -136,6 +136,48 @@ final class Profiles {
                 + " bought the rank " + rank.prefix().trim() + ChatColor.GOLD + " in the shop!");
     }
 
+    /**
+     * Gives a rank of the shop to another player, paid with the giver's Rago Points: the giver needs
+     * its level and its price, as to buy it for themselves; the one who gets it, nothing.
+     */
+    void giftRank(Player giver, PlayerStats target, RankDef rank) {
+        if (!rank.sold()) {
+            giver.sendMessage(ChatColor.RED + "This rank is not sold in the shop.");
+            return;
+        }
+        if (target.id().equals(giver.getUniqueId())) {
+            giver.sendMessage(ChatColor.RED + "For yourself, buy it in the shop: /shop");
+            return;
+        }
+        if (owns(target, rank)) {
+            giver.sendMessage(ChatColor.RED + target.name() + " already has " + rank.prefix().trim() + ChatColor.RED + ".");
+            return;
+        }
+        String why = cannotBuy(giver, rank.price(), rank.level());
+        if (why != null) {
+            giver.sendMessage(ChatColor.RED + why);
+            return;
+        }
+        PlayerStats mine = of(giver);
+        mine.addPoints(-rank.price());
+        changed(mine);
+        target.boughtRanks().add(rank.id());
+        changed(target);
+        giver.sendMessage(ChatColor.GREEN + "You gifted the rank " + rank.prefix().trim() + ChatColor.GREEN + " to "
+                + displayName(target.id(), target.name()) + ChatColor.GREEN + " for " + ChatColor.GOLD
+                + String.format("%,d", rank.price()) + " Rago Points" + ChatColor.GREEN + "!");
+        giver.playSound(giver.getLocation(), Sound.LEVEL_UP, 1f, 1.2f);
+        Player got = lobby.getServer().getPlayer(target.id());
+        if (got != null) {
+            got.sendMessage(ChatColor.GOLD + "✪ " + displayName(giver.getUniqueId(), giver.getName()) + ChatColor.GOLD
+                    + " gifted you the rank " + rank.prefix().trim() + ChatColor.GOLD + "!");
+            got.playSound(got.getLocation(), Sound.LEVEL_UP, 1f, 1.2f);
+        }
+        lobby.announce(ChatColor.GOLD + "✪ " + displayName(giver.getUniqueId(), giver.getName()) + ChatColor.GOLD
+                + " gifted the rank " + rank.prefix().trim() + ChatColor.GOLD + " to " + displayName(target.id(), target.name())
+                + ChatColor.GOLD + "!");
+    }
+
     void buyCosmetic(Player player, Cosmetic cosmetic) {
         PlayerStats profile = of(player);
         if (profile.cosmetics().contains(cosmetic.id())) {

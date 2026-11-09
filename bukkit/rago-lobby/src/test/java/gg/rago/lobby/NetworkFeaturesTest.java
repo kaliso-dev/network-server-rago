@@ -15,8 +15,10 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.time.ZonedDateTime;
 import java.util.UUID;
 import java.util.concurrent.TimeUnit;
+import org.bukkit.Color;
 import org.bukkit.Material;
 import org.bukkit.configuration.InvalidConfigurationException;
 import org.bukkit.configuration.file.YamlConfiguration;
@@ -199,6 +201,7 @@ class NetworkFeaturesTest {
         assertEquals(2000L, settings.chatCooldownMillis());
         assertTrue(settings.blockRepeats());
         assertEquals(2, settings.tabHeader().size());
+        assertEquals(3, settings.tabFooter().size());
         assertEquals(2, settings.motd().size());
         assertEquals(5, settings.announceMinutes());
         assertTrue(settings.link("discord").get(0).contains("discord"));
@@ -231,6 +234,27 @@ class NetworkFeaturesTest {
         assertInvalid("chat:\n  delai-secondes: 61\n", "chat.delai-secondes");
         assertInvalid("annonces:\n  minutes: 0\n", "annonces.minutes");
         assertInvalid("liens:\n  twitter: 'x'\n", "liens.twitter");
+    }
+
+    @Test
+    void theLobbyHearsEveryArrivalAndTheRanksInStyle() {
+        String ranked = ServerInfo.arrivalLine("§a[VIP] §aSofiene", true);
+        assertTrue(ranked.contains("§a[VIP] §aSofiene"), ranked);
+        assertTrue(ranked.contains("joined the lobby!"), ranked);
+        assertEquals("§7Sofiene joined the lobby.", ServerInfo.arrivalLine("§7Sofiene", false));
+        assertEquals(Color.LIME, ServerInfo.colourOf("§a"), "the firework of a VIP");
+        assertEquals(Color.AQUA, ServerInfo.colourOf("§b"));
+        assertEquals(Color.WHITE, ServerInfo.colourOf(""));
+    }
+
+    @Test
+    void theSidebarReadsLikeHypixels() {
+        long noon = ZonedDateTime.of(2026, 11, 9, 12, 0, 0, 0, StatsPeriod.ZONE).toInstant().toEpochMilli();
+        assertEquals("09/11/26", LobbyScoreboard.date(noon), "day first");
+        assertEquals("0%", LobbyScoreboard.percent(0f));
+        assertEquals("45%", LobbyScoreboard.percent(0.456f));
+        assertEquals("99%", LobbyScoreboard.percent(0.9999f), "never 100% before the level");
+        assertTrue(LobbyPoints.validName(DailyChest.POINT), "/lobby point daily places the chest");
     }
 
     @Test

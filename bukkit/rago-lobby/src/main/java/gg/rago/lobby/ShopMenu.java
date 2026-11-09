@@ -123,6 +123,43 @@ final class ShopMenu {
         menu.open(player);
     }
 
+    /** The ranks to gift another player (/gift, or the menu of a player clicked in the lobby). */
+    void openGift(Player player, PlayerStats target) {
+        List<RankDef> sold = profiles.server().ranks().sold();
+        ClickMenu menu = new ClickMenu(Math.min(6, 2 + (sold.size() + 6) / 7), "Gift a rank: " + target.name());
+        PlayerStats profile = profiles.of(player);
+        int level = book.level(player.getUniqueId());
+        for (int i = 0; i < sold.size(); i++) {
+            final RankDef rank = sold.get(i);
+            List<String> lore = new ArrayList<>();
+            for (String perk : rank.perks()) {
+                lore.add(ChatColor.WHITE + "• " + ChatColor.GRAY + perk);
+            }
+            lore.add("");
+            lore.add("Price: " + ChatColor.GOLD + String.format("%,d", rank.price()) + " Rago Points");
+            lore.add("Your level needed: " + book.levels().tag(rank.level()));
+            lore.add("");
+            final boolean owned = profiles.owns(target, rank);
+            if (owned) {
+                lore.add(ChatColor.GREEN + target.name() + " has it");
+            } else if (level < rank.level()) {
+                lore.add(ChatColor.RED + "Unlocks at level " + rank.level());
+            } else if (profile.points() < rank.price()) {
+                lore.add(ChatColor.RED + "Not enough Rago Points");
+            } else {
+                lore.add(ChatColor.YELLOW + "Click to gift it to " + target.name());
+            }
+            menu.set(slotOf(i), ClickMenu.item(rank.icon(), 0, rank.prefix().trim(), lore), (p, right) -> {
+                if (!owned) {
+                    confirm(p, rank.prefix().trim() + ChatColor.GREEN + " for " + target.name(), rank.price(),
+                            () -> profiles.giftRank(p, target, rank), () -> openGift(p, target));
+                }
+            });
+        }
+        menu.set(menu.size() - 5, ClickMenu.item(Material.BARRIER, ChatColor.RED + "Close"), (p, right) -> p.closeInventory());
+        menu.open(player);
+    }
+
     // --- Cosmetics ------------------------------------------------------------------------------
 
     void openType(Player player, final Cosmetic.Type type) {

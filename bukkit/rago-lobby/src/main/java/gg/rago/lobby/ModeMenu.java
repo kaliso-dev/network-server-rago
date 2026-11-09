@@ -156,8 +156,15 @@ final class ModeMenu {
         return (1 + index / PER_ROW) * 9 + 1 + index % PER_ROW;
     }
 
-    /** The slot of the n-th of {@code count} categories, centred in the middle row. */
+    /**
+     * The slot of the n-th of {@code count} categories, centred in the middle row: one slot apart
+     * up to four, as on Hypixel (the duels on the left, the practice on the right, as in the lobby),
+     * side by side beyond.
+     */
     static int categorySlot(int index, int count) {
+        if (count <= 4) {
+            return 9 + (9 - (2 * count - 1)) / 2 + 2 * index;
+        }
         return 9 + (9 - count) / 2 + index;
     }
 

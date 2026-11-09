@@ -112,6 +112,12 @@ final class LobbyListener implements Listener {
             }
             return;
         }
+        if (event.getClickedBlock() != null && lobby.daily() != null && lobby.daily().isChest(event.getClickedBlock())) {
+            // The daily chest of the spawn, whatever is in the hand.
+            event.setCancelled(true);
+            lobby.daily().claim(player);
+            return;
+        }
         // Chests, doors, buttons and the like are not used in the lobby.
         event.setUseInteractedBlock(Event.Result.DENY);
         HotbarItem item = HotbarItem.of(event.getItem());
