@@ -23,6 +23,10 @@ import org.bukkit.inventory.ItemStack;
  * other), drops on it, blocks themselves in and digs down to the bed. The time runs from the first
  * block placed (or broken); the chat then gives how long each layer took, as the map did. The
  * island is the map's own when the server has it (see {@link MapCopy}), else a plain one.
+ *
+ * <p>As in a game, an enemy comes two seconds after the start (a setting turns it off): about once a
+ * second, a player with a side open at their feet or head is hit from it, and a player blocked in
+ * sees one of the blocks they placed around them broken. The defense itself is never touched.
  */
 final class BlockInTraining extends Training {
 
@@ -59,6 +63,15 @@ final class BlockInTraining extends Training {
     /** When each layer was first broken (wood/wool, glass, end stone, bed), 0 until then. */
     private final long[] splits = new long[4];
     private boolean done;
+    /** The enemy who hits the player and breaks their block-in. */
+    private final Setting enemy;
+    /** The enemy comes this long after the start, then acts every ACT_MS or so. */
+    static final long ENEMY_AFTER_MS = 2000L;
+    private static final long ACT_MS = 1100L;
+    private long nextAct;
+    private final java.util.Random random = new java.util.Random();
+    /** The four sides around the player, at their feet and head. */
+    private static final int[][] SIDES = {{1, 0}, {-1, 0}, {0, 1}, {0, -1}};
 
     BlockInTraining(PracticeHost host, GameMode mode, Arena arena, List<List<Player>> teams, Island island) {
         super(host, mode, arena, teams,
@@ -67,6 +80,7 @@ final class BlockInTraining extends Training {
                 new Variant("two", "2 layers", true, ""));
         this.island = island;
         this.layers = Shapes.defense(0, BED_Y, 0, island.hx, island.hz, 3);
+        this.enemy = toggle("Enemy (hits, breaks)", true);
     }
 
     /** The places of the bed and of its three layers: the copy of the map leaves them out. */
@@ -144,6 +158,7 @@ final class BlockInTraining extends Training {
     @Override
     void roundReset() {
         started = 0;
+        nextAct = 0;
         done = false;
         Arrays.fill(splits, 0L);
         defense.clear();
@@ -249,7 +264,48 @@ final class BlockInTraining extends Training {
             failed("A minute and the bed still stands: start again.");
             return;
         }
+        if (enemy.on() && started != 0 && now() - started >= ENEMY_AFTER_MS && now() >= nextAct) {
+            nextAct = now() + ACT_MS - 300 + random.nextInt(600);
+            enemyActs(player);
+        }
         refresh();
+    }
+
+    /**
+     * The enemy's turn: a hit through a side left open at the feet or head, else one of the
+     * blocks the player placed around them goes.
+     */
+    private void enemyActs(Player player) {
+        Block feet = player.getLocation().getBlock();
+        List<int[]> open = new ArrayList<>();
+        List<Block> theirs = new ArrayList<>();
+        for (int[] side : SIDES) {
+            for (int up = 0; up <= 1; up++) {
+                Block next = feet.getRelative(side[0], up, side[1]);
+                if (!next.getType().isSolid()) {
+                    open.add(side);
+                } else if (arena.isPlaced(next) && !defense.contains(next)) {
+                    theirs.add(next);
+                }
+            }
+        }
+        if (!open.isEmpty()) {
+            int[] side = open.get(random.nextInt(open.size()));
+            // pushed away from the open side, as by a sword hit from there
+            double push = 0.32 + random.nextDouble() * 0.08;
+            player.setVelocity(new org.bukkit.util.Vector(-side[0] * push, 0.3, -side[1] * push));
+            player.playEffect(org.bukkit.EntityEffect.HURT);
+            sound(player, Sound.HURT_FLESH, 1f);
+            return;
+        }
+        if (theirs.isEmpty()) {
+            return;
+        }
+        Block target = theirs.get(random.nextInt(theirs.size()));
+        @SuppressWarnings("deprecation") // the block id of the break effect, as 1.8 takes it
+        int id = target.getTypeId();
+        target.getWorld().playEffect(target.getLocation(), org.bukkit.Effect.STEP_SOUND, id);
+        arena.restore(target);
     }
 
     @Override

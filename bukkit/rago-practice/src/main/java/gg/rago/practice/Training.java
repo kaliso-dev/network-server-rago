@@ -191,6 +191,23 @@ abstract class Training extends PracticeGame {
      */
     void controls(Player player) {
         PlayerInventory inventory = player.getInventory();
+        // an item of the kit the player keeps where the controls go moves out of their way
+        int needed = 1 + (variants.size() > 1 ? 2 : 0);
+        for (Setting setting : settings) {
+            needed += setting.toggle ? 1 : 2;
+        }
+        int lowest = Math.max(0, RESTART_SLOT - needed + 1);
+        for (int at = lowest; at <= RESTART_SLOT; at++) {
+            ItemStack there = inventory.getItem(at);
+            if (there == null || there.getType() == Material.AIR || isControl(there)) {
+                continue;
+            }
+            int free = freeSlotOutside(inventory, lowest);
+            if (free >= 0) {
+                inventory.setItem(free, there);
+                inventory.setItem(at, null);
+            }
+        }
         int slot = RESTART_SLOT;
         inventory.setItem(slot--, named(Material.BLAZE_ROD, 1, 0, RESTART_ITEM));
         if (variants.size() > 1) {
@@ -217,6 +234,29 @@ abstract class Training extends PracticeGame {
                         ChatColor.GRAY + "Right click: lower"));
             }
         }
+    }
+
+    /** The restart or a dye of the bar of controls. */
+    static boolean isControl(ItemStack item) {
+        if (!item.hasItemMeta() || !item.getItemMeta().hasDisplayName()) {
+            return false;
+        }
+        return item.getType() == Material.INK_SACK
+                || item.getType() == Material.BLAZE_ROD && RESTART_ITEM.equals(item.getItemMeta().getDisplayName());
+    }
+
+    /** The first empty slot of the hotbar left of the controls, else of the inventory; -1 if none. */
+    private static int freeSlotOutside(PlayerInventory inventory, int lowest) {
+        for (int slot = 0; slot < 36; slot++) {
+            if (slot >= lowest && slot <= RESTART_SLOT) {
+                continue;
+            }
+            ItemStack item = inventory.getItem(slot);
+            if (item == null || item.getType() == Material.AIR) {
+                return slot;
+            }
+        }
+        return -1;
     }
 
     /** If this item is a control (the mode, a setting), applies it and returns true. */

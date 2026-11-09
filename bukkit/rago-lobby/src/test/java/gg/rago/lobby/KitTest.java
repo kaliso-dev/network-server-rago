@@ -176,6 +176,12 @@ class KitTest {
         played[0] = null;
         assertFalse(kit.complete(kit.layoutOf(played, true)));
         assertEquals(-1, KitEditor.moves(loose)[1], "in its own slot: not a move");
+        // a game gives the wool in its team's colour: still the kit's wool
+        played[0] = PEARL;
+        played[1] = KitItem.of(new ItemStack(Material.WOOL, 64, (short) 14));
+        assertTrue(kit.complete(kit.layoutOf(played, true)));
+        assertTrue(Kit.dyed(Material.STAINED_CLAY));
+        assertFalse(Kit.dyed(Material.ENDER_STONE));
         assertEquals(2, KitEditor.moves(loose)[0]);
     }
 

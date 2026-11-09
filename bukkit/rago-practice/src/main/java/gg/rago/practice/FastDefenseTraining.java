@@ -22,7 +22,8 @@ import org.bukkit.inventory.ItemStack;
  * Two defenses, as the owner builds them: the Ranked Bedwars one, end stone (the top of the bed,
  * two rows on each side, one block at each end) under a layer of glass, its side rows left bare;
  * and the solo one, end stone over the bed and two more in front, then wool over all of it. Each
- * place takes its block; the time runs from the first block to the last place filled.
+ * place takes its block; the time runs from the first block to the last place filled. Before each
+ * attempt, the defense to build shows for three seconds, with a countdown, then goes.
  */
 final class FastDefenseTraining extends Training {
 
@@ -32,9 +33,14 @@ final class FastDefenseTraining extends Training {
 
     /** Each place of the defense ("x,y,z" offsets) and its block, for each variant. */
     private final List<Map<String, Material>> places = new ArrayList<>();
+    /** How long the defense to build shows before each attempt. */
+    static final int PREVIEW_SECONDS = 3;
     private long started;
     private int filled;
     private boolean done;
+    /** The seconds left while the defense to build shows; 0 once the player builds. */
+    private int previewLeft;
+    private long refusedAt;
 
     FastDefenseTraining(PracticeHost host, GameMode mode, Arena arena, List<List<Player>> teams) {
         super(host, mode, arena, teams,
@@ -129,6 +135,52 @@ final class FastDefenseTraining extends Training {
         started = 0;
         filled = 0;
         done = false;
+        previewLeft = PREVIEW_SECONDS;
+        showDefense(true);
+        final int roundNow = round;
+        for (int second = 0; second <= PREVIEW_SECONDS; second++) {
+            final int left = PREVIEW_SECONDS - second;
+            later(1L + 20L * second, () -> {
+                if (round == roundNow) {
+                    preview(left);
+                }
+            });
+        }
+    }
+
+    /** A second of the preview: the countdown, then the defense goes and the player builds it. */
+    private void preview(int left) {
+        Player player = player();
+        previewLeft = left;
+        if (left > 0) {
+            if (player != null) {
+                title(player, ChatColor.YELLOW + "" + ChatColor.BOLD + left, ChatColor.WHITE + "Look at the defense to build");
+                sound(player, Sound.NOTE_STICKS, 1f);
+            }
+        } else {
+            showDefense(false);
+            if (player != null) {
+                title(player, ChatColor.GREEN + "" + ChatColor.BOLD + "BUILD!", ChatColor.WHITE + describe());
+                sound(player, Sound.NOTE_PLING, 1.5f);
+            }
+        }
+        sidebars();
+    }
+
+    /** The defense to build, in place for the preview, or gone. */
+    private void showDefense(boolean shown) {
+        for (Map.Entry<String, Material> place : places.get(variant).entrySet()) {
+            String[] xyz = place.getKey().split(",");
+            int x = Integer.parseInt(xyz[0]);
+            int y = Integer.parseInt(xyz[1]);
+            int z = Integer.parseInt(xyz[2]);
+            if (shown) {
+                Material type = place.getValue();
+                arena.put(x, y, z, type, type == Material.ENDER_STONE ? 0 : Shapes.BLUE);
+            } else {
+                arena.restore(arena.block(x, y, z));
+            }
+        }
     }
 
     /** The block a place of the defense takes, or null if the block is not on one. */
@@ -139,6 +191,13 @@ final class FastDefenseTraining extends Training {
 
     @Override
     boolean canPlace(Player player, Block block, BlockPlaceEvent event) {
+        if (previewLeft > 0) {
+            if (now() - refusedAt > 1000) {
+                refusedAt = now();
+                player.sendMessage(ChatColor.YELLOW + "Look at the defense first: you build it in " + previewLeft + " s.");
+            }
+            return false;
+        }
         if (done) {
             return false;
         }
@@ -159,19 +218,14 @@ final class FastDefenseTraining extends Training {
     }
 
     @Override
-    void placed(Player player, Block block) {
-        if (started == 0) {
-            started = now();
-        }
-        if (wantedAt(block) != null) {
-            filled++;
-        }
+    boolean canBreak(Player player, Block block) {
+        return previewLeft == 0 && super.canBreak(player, block);
     }
 
     @Override
-    void broke(Player player, Block block) {
-        if (wantedAt(block) != null) {
-            filled--;
+    void placed(Player player, Block block) {
+        if (started == 0) {
+            started = now();
         }
     }
 
@@ -182,7 +236,9 @@ final class FastDefenseTraining extends Training {
             return;
         }
         long elapsed = now() - started;
-        if (filled >= places.get(variant).size() && complete()) {
+        // read from the blocks themselves: a place filled any way counts, a place emptied does not
+        filled = filledPlaces();
+        if (filled >= places.get(variant).size()) {
             done = true;
             score(elapsed);
             sound(player, Sound.ANVIL_LAND, 1.6f);
@@ -202,16 +258,17 @@ final class FastDefenseTraining extends Training {
         return 10000L + 500L * places.get(variant).size();
     }
 
-    /** Every place holds its block. */
-    private boolean complete() {
+    /** How many places hold their block. */
+    private int filledPlaces() {
+        int count = 0;
         for (Map.Entry<String, Material> place : places.get(variant).entrySet()) {
             String[] xyz = place.getKey().split(",");
             Block block = arena.block(Integer.parseInt(xyz[0]), Integer.parseInt(xyz[1]), Integer.parseInt(xyz[2]));
-            if (block.getType() != place.getValue()) {
-                return false;
+            if (block.getType() == place.getValue()) {
+                count++;
             }
         }
-        return true;
+        return count;
     }
 
     @Override
@@ -219,6 +276,7 @@ final class FastDefenseTraining extends Training {
         long elapsed = started == 0 ? 0 : now() - started;
         lines.add(ChatColor.WHITE + "Time: " + ChatColor.GREEN + time(elapsed) + " s");
         lines.add(ChatColor.WHITE + "Blocks: " + ChatColor.GREEN + filled + ChatColor.GRAY + "/" + places.get(variant).size());
-        lines.add(ChatColor.GRAY + (started == 0 ? "Place a block to start" : done ? "Defense done!" : "Cover the bed!"));
+        lines.add(ChatColor.GRAY + (previewLeft > 0 ? "Look at the defense: " + ChatColor.YELLOW + previewLeft + " s"
+                : started == 0 ? "Place a block to start" : done ? "Defense done!" : "Cover the bed!"));
     }
 }

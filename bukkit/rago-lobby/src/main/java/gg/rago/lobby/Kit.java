@@ -157,10 +157,31 @@ final class Kit {
         return layout;
     }
 
+    /**
+     * The kit's item, found in the inventory: the same block, in any colour for the blocks a game
+     * dyes in its team's colour; the same amount, or no more with anyAmount.
+     */
     private static boolean same(KitItem kit, KitItem found, boolean anyAmount) {
-        if (!anyAmount || found == null) {
-            return kit.equals(found);
+        if (found == null || kit.material() != found.material()) {
+            return false;
         }
-        return kit.material() == found.material() && kit.data() == found.data() && found.amount() <= kit.amount();
+        if (kit.data() != found.data() && !dyed(kit.material())) {
+            return false;
+        }
+        return anyAmount ? found.amount() <= kit.amount() : found.amount() == kit.amount();
+    }
+
+    /** The blocks a game gives in its team's colour. */
+    static boolean dyed(org.bukkit.Material type) {
+        switch (type) {
+            case WOOL:
+            case STAINED_CLAY:
+            case STAINED_GLASS:
+            case STAINED_GLASS_PANE:
+            case CARPET:
+                return true;
+            default:
+                return false;
+        }
     }
 }
