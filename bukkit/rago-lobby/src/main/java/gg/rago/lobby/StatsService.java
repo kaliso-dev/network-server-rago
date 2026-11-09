@@ -41,14 +41,17 @@ final class StatsService {
 
     private final Plugin plugin;
     private final StatsBook book;
+    private final ServerSettings server;
     private final File folder;
     private final Executor io;
     private final Writer writer;
     private final XpListener xpListener;
 
-    StatsService(Plugin plugin, int defaultRating, NetworkLevel levels, Executor io, Writer writer, XpListener xpListener) {
+    StatsService(Plugin plugin, int defaultRating, NetworkLevel levels, ServerSettings server, Executor io, Writer writer,
+            XpListener xpListener) {
         this.plugin = plugin;
-        this.book = new StatsBook(defaultRating, levels);
+        this.server = server;
+        this.book = new StatsBook(defaultRating, levels, server.elo());
         this.xpListener = xpListener;
         this.folder = new File(plugin.getDataFolder(), StatsFiles.FOLDER);
         this.io = io;
@@ -113,25 +116,70 @@ final class StatsService {
     }
 
     /**
-     * A game is over: records it, tells everyone the XP they got (and a new level or rank), and
-     * writes the files of the players whose stats changed.
+     * A game is over: records it, tells everyone the XP, the Rago Points and in ranked the ELO they
+     * got (and a new level or division), and writes the files of the players whose stats changed.
+     * The MVPs (the most kills of the game) get the ELO bonus of the ladder.
      */
-    void record(GameMode mode, Collection<UUID> winners, Collection<UUID> losers) {
+    void record(GameMode mode, Collection<UUID> winners, Collection<UUID> losers, Collection<UUID> mvps) {
         Map<UUID, Integer> before = xpOf(winners, losers);
-        List<PlayerStats> changed = book.record(mode, winners, losers, StatsService::nameOf, System.currentTimeMillis());
+        Map<UUID, Integer> eloBefore = new HashMap<>();
+        if (mode.ranked()) {
+            List<UUID> all = new ArrayList<>(winners);
+            all.addAll(losers);
+            for (UUID id : all) {
+                eloBefore.put(id, book.elo(id, mode.id()));
+            }
+        }
+        List<PlayerStats> changed = book.record(mode, winners, losers, StatsService::nameOf, System.currentTimeMillis(), mvps);
         if (!changed.isEmpty()) {
             writer.write(new File(new File(folder, StatsFiles.TEAMS_FOLDER), mode.id() + ".yml"),
                     StatsFiles.teamsToYaml(mode.id(), book.teams(mode.id())));
         }
         for (PlayerStats stats : changed) {
-            save(stats);
             Integer old = before.get(stats.id());
             Player player = Bukkit.getPlayer(stats.id());
+            boolean won = winners.contains(stats.id());
             if (player != null && old != null && stats.xp() > old) {
                 player.sendMessage(ChatColor.AQUA + "+" + (stats.xp() - old) + " Network XP"
-                        + ChatColor.GRAY + " (" + (winners.contains(stats.id()) ? "win" : "game played") + ")");
+                        + ChatColor.GRAY + " (" + (won ? "win" : "game played") + ")");
+            }
+            points(stats, won ? server.points().win : server.points().loss, won ? "win" : "game played");
+            Integer oldElo = eloBefore.get(stats.id());
+            if (player != null && oldElo != null) {
+                tellElo(player, oldElo, book.elo(stats.id(), mode.id()), mvps.contains(stats.id()));
             }
             gained(stats, old);
+            save(stats);
+        }
+    }
+
+    /** "Ranked ELO: Gold 245 (+30)", and a new division. */
+    private void tellElo(Player player, int before, int after, boolean mvp) {
+        EloLadder ladder = book.ladder();
+        int change = after - before;
+        player.sendMessage(ChatColor.GRAY + "Ranked ELO: " + ladder.format(after) + " " + (change >= 0 ? ChatColor.GREEN + "(+"
+                : ChatColor.RED + "(") + change + ")" + (mvp ? ChatColor.GOLD + " MVP +" + ladder.mvpBonus() : ""));
+        EloLadder.Division from = ladder.division(before);
+        EloLadder.Division to = ladder.division(after);
+        if (to.min() > from.min()) {
+            player.sendMessage(ChatColor.GREEN + "" + ChatColor.BOLD + "PROMOTED! " + ChatColor.GRAY + "You reached "
+                    + to.coloured() + ChatColor.GRAY + ".");
+            player.playSound(player.getLocation(), Sound.LEVEL_UP, 1f, 1.5f);
+        } else if (to.min() < from.min()) {
+            player.sendMessage(ChatColor.RED + "" + ChatColor.BOLD + "DEMOTED. " + ChatColor.GRAY + "You are back in "
+                    + to.coloured() + ChatColor.GRAY + ".");
+        }
+    }
+
+    /** Rago Points earned: added and told (the file is written by the caller). */
+    private void points(PlayerStats stats, int amount, String reason) {
+        if (amount <= 0) {
+            return;
+        }
+        stats.addPoints(amount);
+        Player player = Bukkit.getPlayer(stats.id());
+        if (player != null) {
+            player.sendMessage(ChatColor.GOLD + "+" + amount + " Rago Points" + ChatColor.GRAY + " (" + reason + ")");
         }
     }
 
@@ -140,13 +188,16 @@ final class StatsService {
         Map<UUID, Integer> before = xpOf(Collections.singletonList(killer),
                 victim == null ? Collections.<UUID>emptyList() : Collections.singletonList(victim));
         for (PlayerStats stats : book.kill(modeId, killer, victim, StatsService::nameOf, System.currentTimeMillis())) {
-            save(stats);
             Integer old = before.get(stats.id());
             Player player = Bukkit.getPlayer(stats.id());
             if (player != null && old != null && stats.xp() > old) {
                 player.sendMessage(ChatColor.AQUA + "+" + (stats.xp() - old) + " Network XP" + ChatColor.GRAY + " (kill)");
             }
+            if (stats.id().equals(killer)) {
+                points(stats, server.points().kill, "kill");
+            }
             gained(stats, old);
+            save(stats);
         }
     }
 
@@ -158,12 +209,12 @@ final class StatsService {
         if (stats == null) {
             return;
         }
-        save(stats);
         Player player = Bukkit.getPlayer(id);
         if (player != null && stats.xp() > old) {
             player.sendMessage(ChatColor.AQUA + "+" + (stats.xp() - old) + " Network XP" + ChatColor.GRAY + " (" + reason + ")");
         }
         gained(stats, old);
+        save(stats);
     }
 
     private Map<UUID, Integer> xpOf(Collection<UUID> some, Collection<UUID> others) {
@@ -177,7 +228,11 @@ final class StatsService {
         return xp;
     }
 
-    /** After an XP gain: a new level, a new rank, and the listener. */
+    /**
+     * After an XP gain: a new level gives Rago Points (the level times the points of a level), maybe
+     * a new colour of the level tag, and unlocks what the shop sells at that level. Then the listener.
+     * The caller writes the file.
+     */
     private void gained(PlayerStats stats, Integer oldXp) {
         if (oldXp == null || stats.xp() == oldXp) {
             return;
@@ -185,16 +240,43 @@ final class StatsService {
         NetworkLevel levels = book.levels();
         int oldLevel = levels.level(oldXp);
         int level = levels.level(stats.xp());
-        Player player = Bukkit.getPlayer(stats.id());
-        if (player != null && level > oldLevel) {
-            player.sendMessage(ChatColor.AQUA + "" + ChatColor.BOLD + "LEVEL UP! " + ChatColor.GRAY + "You are now "
-                    + ChatColor.AQUA + "Network Level " + level + ChatColor.GRAY + ".");
-            player.playSound(player.getLocation(), Sound.LEVEL_UP, 1f, 1f);
-            if (levels.rankLevel(level) != levels.rankLevel(oldLevel) && levels.rank(level) != null) {
-                player.sendMessage(ChatColor.GOLD + "You unlocked the rank " + levels.rank(level) + ChatColor.GOLD + "!");
+        if (level > oldLevel) {
+            int reward = 0;
+            for (int reached = oldLevel + 1; reached <= level; reached++) {
+                reward += reached * server.points().perLevel;
             }
+            Player player = Bukkit.getPlayer(stats.id());
+            if (player != null) {
+                player.sendMessage(ChatColor.AQUA + "" + ChatColor.BOLD + "LEVEL UP! " + ChatColor.GRAY + "You are now "
+                        + ChatColor.AQUA + "Network Level " + level + " " + levels.tag(level) + ChatColor.GRAY + ".");
+                player.playSound(player.getLocation(), Sound.LEVEL_UP, 1f, 1f);
+                if (!levels.colour(level).equals(levels.colour(oldLevel))) {
+                    player.sendMessage(ChatColor.GRAY + "Your level tag has a new colour: " + levels.tag(level));
+                }
+                for (String unlocked : unlocked(oldLevel, level)) {
+                    player.sendMessage(ChatColor.GRAY + "Unlocked in the shop (/shop): " + unlocked);
+                }
+            }
+            points(stats, reward, "level " + level);
         }
         xpListener.xpChanged(stats.id());
+    }
+
+    /** What the shop sells from a level above the old one up to the new one. */
+    private List<String> unlocked(int oldLevel, int level) {
+        List<String> unlocked = new ArrayList<>();
+        for (RankDef rank : server.ranks().sold()) {
+            if (rank.level() > oldLevel && rank.level() <= level) {
+                unlocked.add(rank.prefix().trim());
+            }
+        }
+        for (Cosmetic cosmetic : server.cosmetics().values()) {
+            if (cosmetic.level() > oldLevel && cosmetic.level() <= level) {
+                unlocked.add(ChatColor.YELLOW + cosmetic.name() + ChatColor.GRAY + " (" + cosmetic.type().title().toLowerCase(
+                        java.util.Locale.ROOT) + ")");
+            }
+        }
+        return unlocked;
     }
 
     /** The player joined: keeps their name up to date. */
@@ -205,7 +287,8 @@ final class StatsService {
         }
     }
 
-    private void save(PlayerStats stats) {
+    /** Writes the player's file, away from the main thread. */
+    void save(PlayerStats stats) {
         writer.write(new File(folder, StatsFiles.fileName(stats.id())), StatsFiles.toYaml(stats));
     }
 

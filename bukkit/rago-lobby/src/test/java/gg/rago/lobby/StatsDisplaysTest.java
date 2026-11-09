@@ -166,7 +166,7 @@ class StatsDisplaysTest {
         book.kill("sumo", ALICE, BOB, NAMES, SUNDAY);
         StatsDisplays displays = new StatsDisplays(settings, book, new StatsMenu(settings, book), new FakeEntities(null, null));
         List<String> lines = plain(displays.profile(settings.npc("statsjoueur1"), player(ALICE)));
-        assertTrue(lines.contains("Network level: 6 [Iron]"), lines.toString());
+        assertTrue(lines.contains("Network level: [6" + NetworkLevel.STAR + "]"), lines.toString());
         assertTrue(lines.contains("Kills: 1"), lines.toString());
         assertEquals("CLICK FOR YOUR STATS", lines.get(lines.size() - 1));
     }

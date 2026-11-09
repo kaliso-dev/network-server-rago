@@ -70,12 +70,40 @@ dans les files d'attente des modes de jeu.
   change.
 - **Le niveau Network.** Chaque partie donne de l'XP (50 pour une victoire, 15 pour une défaite),
   chaque kill 5 de plus. On commence niveau 1, et chaque niveau demande 50 XP de plus que le
-  précédent (100, 150, 200...). Certains niveaux donnent un rang (Iron au 5, Gold au 10, Diamond
-  au 20, Emerald au 30, Sapphire au 50, Ruby au 75, Crystal au 100), affiché dans le chat
-  (`[12] [Gold] Pseudo: message`), au-dessus de la tête, dans le Tab (les plus hauts rangs en
-  premier) et dans le scoreboard. La barre d'XP du lobby montre le niveau et l'avancée vers le
-  suivant. Un message et un son à chaque niveau, un message à chaque nouveau rang. Tout se règle
-  dans `niveau:` de config.yml.
+  précédent (100, 150, 200...). Le niveau s'affiche comme sur Hypixel, `[12✫]`, au-dessus de la
+  tête, dans le Tab et dans le chat, avec une couleur par palier de 10 niveaux (gris, blanc, or,
+  aqua, vert, cyan, rouge, rose, bleu, violet, puis jaune au 100). La barre d'XP du lobby montre le
+  niveau et l'avancée vers le suivant. Un message et un son à chaque niveau, un message à chaque
+  nouvelle couleur, avec ce que le niveau débloque dans la boutique. Tout se règle dans `niveau:`.
+- **Les rangs.** Onze rangs dans `rangs:` (OWNER, ADMIN, DEV, MOD, HELPER, BUILDER, MEDIA,
+  LEGEND, ELITE, VIP+, VIP), chacun avec son préfixe, la couleur du pseudo, la couleur du chat,
+  ses permissions et le rang dont il hérite. Un joueur montre le plus haut de ses rangs, dans le
+  chat (`[12✫] [VIP] Pseudo: message`), au-dessus de la tête et dans le Tab (les plus hauts rangs
+  en premier). Les rangs du staff se donnent avec `/rank set`, les autres s'achètent aussi.
+- **Les Rago Points et la boutique (`/shop`).** Les points se gagnent en partie (20 par victoire,
+  5 par défaite, 2 par kill), à chaque niveau (le niveau fois 10) et avec la récompense du jour
+  (`/daily` : 100, plus 25 par jour d'affilée, jusqu'à 7 jours). La boutique vend les rangs VIP,
+  VIP+, ELITE et LEGEND et 18 cosmétiques (traînées de projectiles, effets de kill, effets de
+  victoire), chacun débloqué à un niveau Network. Prix et niveaux se changent dans `rangs:` et
+  `boutique:`. Les cosmétiques ne jouent qu'en partie.
+- **L'ELO classé.** Chaque mode classé a son ELO, qui commence à 0, et onze divisions de Coal
+  (0) à Obsidian (1000). Une victoire rapporte plus et une défaite coûte moins dans les basses
+  divisions ; le MVP de la partie (le plus de kills) gagne 5 de plus. La file classée apparie
+  les joueurs par ELO. Ces valeurs sont les nôtres (les chiffres de RBW ne sont pas publics), et
+  se règlent dans `elo:`.
+- **Le profil (`/profile`)** : rang, niveau, points, divisions, stats, amis, boutique et
+  réglages (messages privés, invitations de party, demandes d'ami et défis, chacun activable).
+- **Les amis et les messages privés.** `/friend` (100 amis au plus, demandes cliquables qui
+  expirent après 5 minutes, « Friend > X joined. »), `/msg` et `/r`.
+- **Le staff.** Le chat du staff, le vanish, le freeze (pour une vérification), les reports, le
+  nettoyage et la coupure du chat, les bans et mutes temporaires ou définitifs, les kicks, les
+  avertissements et l'historique de chaque joueur (`sanctions.yml`). Un membre du staff ne peut
+  pas sanctionner un autre membre du staff, sauf un admin. Chaque sanction est annoncée au staff.
+- **Le chat.** Sans rang, 2 secondes entre deux messages et pas deux fois le même message (le
+  staff et les rangs avec `rago.perk.chat` n'ont ni l'un ni l'autre).
+- **Le serveur.** La liste des serveurs montre le MOTD de `motd:`, le Tab a un en-tête et un pied
+  (`tab:`, avec le nombre de joueurs et le ping), et le lobby entend une astuce toutes les 5
+  minutes (`annonces:`). `/discord`, `/rules`, `/site` et `/store` montrent `liens:`.
 
 ## Commandes
 
@@ -100,6 +128,16 @@ commentaires de `config.yml`. Les mots français de la première version (`quitt
 | `/lobby point <nom>` | place ou déplace un point nommé là où tu es : où iront les PNJ des modes, les classements, les décorations (écrit dans `points.yml`, dans le dossier du monde) | `rago.lobby.admin` |
 | `/lobby point remove <nom>`, `/lobby point tp <nom>`, `/lobby points` | retirer un point, y aller, la liste | `rago.lobby.admin` |
 | `/lobby build` | mode construction dans le lobby (créatif, protection levée) | `rago.lobby.admin` |
+| `/shop` (ou `/boutique`), `/profile` (ou `/me`), `/daily` | la boutique, son profil, la récompense du jour | tout le monde |
+| `/friend add\|accept\|deny\|remove\|list\|requests\|toggle <joueur>` (ou `/f`) | les amis | tout le monde |
+| `/msg <joueur> <message>` (ou `/tell`, `/w`), `/r <message>` | message privé, réponse | tout le monde |
+| `/stats [joueur]`, `/top elo\|level\|wins\|kills\|streak\|games\|points [mode]` | les stats, les meilleurs | tout le monde |
+| `/report <joueur> <raison>`, `/discord`, `/rules`, `/site`, `/store` | signaler un joueur, les liens | tout le monde |
+| `/fly` | voler dans le lobby | `rago.perk.fly` (VIP+) |
+| `/staffchat [message]` (ou `/sc`), `/vanish` (ou `/v`), `/freeze <joueur>`, `/clearchat` | chat du staff, invisible, figer un joueur, vider le chat | `rago.staff` |
+| `/mute <joueur> [durée] <raison>`, `/unmute`, `/kick`, `/warn`, `/history <joueur>` | sanctions (durée : `30m`, `2h`, `7d`, `2w` ou `perm`) | `rago.staff` |
+| `/ban <joueur> [durée] <raison>`, `/unban`, `/mutechat` | bans, couper le chat | `rago.mod` |
+| `/rank list\|set\|give\|take <joueur> <rang>`, `/points give\|take\|set <joueur> <nombre>` | les rangs et les points (aussi depuis la console) | `rago.admin` |
 
 ## Configuration
 
@@ -195,7 +233,7 @@ leurs parties de lui ; le côté `MatchHost` d'un plugin de jeu ne changera pas.
 ## Ce qui n'est pas encore là
 
 - Les stats partagées entre serveurs : elles viendront avec la base de données (`rago-data`).
-- Des skins choisis pour les PNJ, les groupes et les cosmétiques.
+- Des skins choisis pour les PNJ, et des cosmétiques pour le lobby (chapeaux, familiers).
 
 ## Construire et tester
 
@@ -204,5 +242,6 @@ leurs parties de lui ; le côté `MatchHost` d'un plugin de jeu ne changera pas.
 ```
 
 Les tests unitaires lisent le `config.yml` fourni et des configurations invalides, `spawn.yml`, la
-disposition du sélecteur et l'horloge du scoreboard. Le comportement en jeu est testé par deux
+disposition du sélecteur, l'horloge du scoreboard, les rangs, les divisions ELO, la récompense du
+jour, les durées et le fichier des sanctions. Le comportement en jeu est testé par deux
 bots sur un vrai serveur : voir [tools/lobby-check](../../tools/lobby-check/README.md).

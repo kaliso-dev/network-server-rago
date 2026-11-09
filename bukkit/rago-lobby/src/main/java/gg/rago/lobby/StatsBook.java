@@ -18,9 +18,6 @@ import java.util.UUID;
  */
 final class StatsBook {
 
-    /** How much one ranked game moves the ELO at most. */
-    static final int K_FACTOR = 32;
-
     /** One line of a leaderboard. */
     static final class Row {
         private final UUID id;
@@ -102,6 +99,7 @@ final class StatsBook {
 
     private final int defaultRating;
     private final NetworkLevel levels;
+    private final EloLadder ladder;
     private final Map<UUID, PlayerStats> players = new HashMap<>();
     /** The streaks of the teams of each mode, by mode id, then by {@link TeamStreak#key}. */
     private final Map<String, Map<String, TeamStreak>> teams = new HashMap<>();
@@ -110,12 +108,47 @@ final class StatsBook {
     private String rankedDay = "";
 
     StatsBook(int defaultRating, NetworkLevel levels) {
+        this(defaultRating, levels, EloLadder.DEFAULT);
+    }
+
+    StatsBook(int defaultRating, NetworkLevel levels, EloLadder ladder) {
         this.defaultRating = defaultRating;
         this.levels = levels;
+        this.ladder = ladder;
     }
 
     NetworkLevel levels() {
         return levels;
+    }
+
+    EloLadder ladder() {
+        return ladder;
+    }
+
+    /** The player's stats and profile, made empty the first time (a new player). */
+    PlayerStats profile(UUID player, String name) {
+        PlayerStats stats = players.get(player);
+        if (stats == null) {
+            stats = new PlayerStats(player, name);
+            players.put(player, stats);
+        }
+        return stats;
+    }
+
+    /** Every player the book knows, online or not. */
+    Collection<PlayerStats> all() {
+        return Collections.unmodifiableCollection(players.values());
+    }
+
+    /** The player who last had this name (ignoring case), or null. */
+    PlayerStats byName(String name) {
+        PlayerStats found = null;
+        for (PlayerStats stats : players.values()) {
+            if (stats.name().equalsIgnoreCase(name)) {
+                found = stats;
+            }
+        }
+        return found;
     }
 
     /** The Network level of the player: 1 without stats. */
@@ -142,7 +175,8 @@ final class StatsBook {
     int elo(UUID player, String modeId) {
         PlayerStats stats = players.get(player);
         ModeStats mode = stats == null ? null : stats.mode(modeId);
-        return mode != null && mode.rated() ? mode.elo : defaultRating;
+        // a player who played the mode has their ELO, even at 0: the floor of the ladder
+        return mode != null && mode.games() > 0 ? mode.elo : defaultRating;
     }
 
     /** The player is online under this name. Returns their stats if the name changed, else null. */
@@ -206,10 +240,16 @@ final class StatsBook {
 
     /**
      * A game is over: one side won, the other lost. Everyone gets Network XP, the winners more. A
-     * ranked game also moves the ELO of both sides (the classic formula, on the average of each
-     * side). The winners' team goes on with its win streak. Returns the stats that changed.
+     * ranked game also moves the ELO of everyone in it, by their division ({@link EloLadder}): the
+     * MVPs (the most kills of the game) get the bonus. The winners' team goes on with its win
+     * streak. Returns the stats that changed.
      */
     List<PlayerStats> record(GameMode mode, Collection<UUID> winners, Collection<UUID> losers, Names names, long millis) {
+        return record(mode, winners, losers, names, millis, Collections.<UUID>emptySet());
+    }
+
+    List<PlayerStats> record(GameMode mode, Collection<UUID> winners, Collection<UUID> losers, Names names, long millis,
+            Collection<UUID> mvps) {
         List<PlayerStats> changed = new ArrayList<>();
         if (winners.isEmpty() || losers.isEmpty()) {
             return changed;
@@ -218,15 +258,13 @@ final class StatsBook {
         String week = StatsPeriod.weekKey(millis);
         Map<UUID, Integer> newElo = new HashMap<>();
         if (mode.ranked()) {
-            double winnerRating = average(winners, mode.id());
-            double loserRating = average(losers, mode.id());
-            double expected = 1.0 / (1.0 + Math.pow(10.0, (loserRating - winnerRating) / 400.0));
-            int gain = (int) Math.round(K_FACTOR * (1.0 - expected));
             for (UUID id : winners) {
-                newElo.put(id, elo(id, mode.id()) + gain);
+                newElo.put(id, ladder.after(elo(id, mode.id()), true, mvps.contains(id)));
             }
             for (UUID id : losers) {
-                newElo.put(id, Math.max(1, elo(id, mode.id()) - gain));
+                if (!winners.contains(id)) {
+                    newElo.put(id, ladder.after(elo(id, mode.id()), false, mvps.contains(id)));
+                }
             }
         }
         for (UUID id : new LinkedHashSet<>(winners)) {
@@ -303,18 +341,11 @@ final class StatsBook {
         return stats;
     }
 
-    private double average(Collection<UUID> side, String modeId) {
-        double total = 0;
-        for (UUID id : side) {
-            total += elo(id, modeId);
-        }
-        return total / side.size();
-    }
-
     /**
      * A leaderboard: wins, games, best streak or kills over a period, of one mode or of all (modeId
      * null), the ELO of one ranked mode, or the Network XP (the period is then ignored; the board
-     * shows the level). Players at zero are left out; ties keep the alphabetical order of the names.
+     * shows the level). Players at zero are left out, but for the ELO: a player of the mode at 0 is
+     * in the first division. Ties keep the alphabetical order of the names.
      */
     Ranking ranking(BoardStat stat, StatsPeriod period, String modeId, long millis) {
         String day = StatsPeriod.dayKey(millis);
@@ -345,11 +376,12 @@ final class StatsBook {
                     value = stats.xp();
                     break;
                 default:
+                    // every player of the mode, even at 0 ELO (the bottom of Coal)
                     ModeStats mode = modeId == null ? null : stats.mode(modeId);
-                    value = mode != null && mode.rated() ? mode.elo : 0;
+                    value = mode != null && mode.games() > 0 ? mode.elo : -1;
                     break;
             }
-            if (value > 0) {
+            if (value > 0 || value == 0 && stat == BoardStat.ELO) {
                 rows.add(new Row(stats.id(), stats.name(), value));
             }
         }

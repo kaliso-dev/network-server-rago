@@ -136,23 +136,25 @@ class LobbySettingsTest {
         assertEquals(5, bundled.killXp());
         assertEquals(100, bundled.xpToNext(1));
         assertEquals(150, bundled.xpToNext(2));
-        assertEquals(NetworkLevel.DEFAULT.ranks(), bundled.ranks());
+        assertEquals(NetworkLevel.DEFAULT.colours(), bundled.colours());
 
         NetworkLevel levels = LobbySettings.load(yaml("niveau:\n  xp-victoire: 10\n  xp-niveau-2: 20\n"
-                + "  xp-en-plus-par-niveau: 0\n  rangs:\n    3: '&a[Vert]'\nmodes:\n  sumo: {}\n")).levels();
+                + "  xp-en-plus-par-niveau: 0\n  couleurs:\n    3: '&a'\nmodes:\n  sumo: {}\n")).levels();
         assertEquals(10, levels.winXp());
         assertEquals(15, levels.lossXp(), "the default when missing");
         assertEquals(20, levels.xpToNext(7));
-        assertEquals(Collections.singletonMap(3, "§a[Vert]"), levels.ranks());
-        assertEquals(NetworkLevel.DEFAULT.ranks(), LobbySettings.load(yaml("modes:\n  sumo: {}\n")).levels().ranks());
-        assertTrue(LobbySettings.load(yaml("niveau:\n  rangs: {}\nmodes:\n  sumo: {}\n")).levels().ranks().isEmpty(),
-                "rangs: {} means no rank at all");
+        assertEquals(Collections.singletonMap(3, "§a"), levels.colours());
+        assertEquals("§a[5" + NetworkLevel.STAR + "]", levels.tag(5));
+        assertEquals(NetworkLevel.DEFAULT.colours(), LobbySettings.load(yaml("modes:\n  sumo: {}\n")).levels().colours());
+        assertEquals(NetworkLevel.DEFAULT.colours(), LobbySettings.load(yaml(
+                "niveau:\n  rangs:\n    5: '&f[Iron]'\nmodes:\n  sumo: {}\n")).levels().colours(),
+                "the level ranks of the first version are ignored");
 
         assertInvalid("niveau:\n  xp-niveau-2: 0\nmodes:\n  sumo: {}\n", "niveau.xp-niveau-2");
         assertInvalid("niveau:\n  xp-kill: -1\nmodes:\n  sumo: {}\n", "niveau.xp-kill");
-        assertInvalid("niveau:\n  rangs:\n    un: '[A]'\nmodes:\n  sumo: {}\n", "niveau.rangs.un");
-        assertInvalid("niveau:\n  rangs:\n    1: '[A]'\nmodes:\n  sumo: {}\n", "niveau.rangs.1");
-        assertInvalid("niveau:\n  rangs:\n    5: '&a[Beaucoup trop long]'\nmodes:\n  sumo: {}\n", "niveau.rangs.5");
+        assertInvalid("niveau:\n  couleurs:\n    un: '&a'\nmodes:\n  sumo: {}\n", "niveau.couleurs.un");
+        assertInvalid("niveau:\n  couleurs:\n    0: '&a'\nmodes:\n  sumo: {}\n", "niveau.couleurs.0");
+        assertInvalid("niveau:\n  couleurs:\n    5: '&a[VIP]'\nmodes:\n  sumo: {}\n", "niveau.couleurs.5");
     }
 
     @Test

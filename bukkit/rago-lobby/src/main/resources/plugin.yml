@@ -36,7 +36,138 @@ commands:
   lobby:
     description: Back to the lobby spawn. The staff also manage the lobby with it.
     usage: /lobby, or (staff) /lobby <setspawn|build|modes|points|point <name>|point remove <name>|point tp <name>>
+  shop:
+    description: The Rago Shop, ranks and cosmetics bought with Rago Points.
+    usage: /shop
+    aliases: [boutique]
+  profile:
+    description: Your profile, stats, friends and settings.
+    usage: /profile
+    aliases: [profil, me]
+  daily:
+    description: Claim your daily Rago Points.
+    usage: /daily
+    aliases: [reward, quotidien]
+  friend:
+    description: Friends as on Hypixel.
+    usage: /friend <add|accept|deny|remove|list|requests|toggle> [player], or /f <player>
+    aliases: [f, friends, ami, amis]
+  msg:
+    description: A private message.
+    usage: /msg <player> <message>
+    aliases: [tell, w, whisper, m, message]
+  reply:
+    description: Reply to your last private message.
+    usage: /r <message>
+    aliases: [r]
+  rank:
+    description: Your rank; the staff give and take ranks with it.
+    usage: /rank, or (admin) /rank <list|set|give|take> <player> <rank>
+    aliases: [rang]
+  points:
+    description: Your Rago Points; the admins give and take some with it.
+    usage: /points, or (admin) /points <give|take|set> <player> <amount>
+  top:
+    description: The leaderboards in the chat.
+    usage: /top <elo|level|wins|kills|streak|games|points> [ranked mode]
+    aliases: [leaderboard, lb]
+  stats:
+    description: A player's profile in the chat.
+    usage: /stats [player]
+  fly:
+    description: Fly in the lobby (VIP+ and above).
+    usage: /fly
+  staffchat:
+    description: The staff chat.
+    usage: /sc [message]
+    aliases: [sc]
+  vanish:
+    description: Hide from everyone but the staff.
+    usage: /vanish
+    aliases: [v]
+  freeze:
+    description: Freeze a player for a check.
+    usage: /freeze <player>
+    aliases: [ss]
+  report:
+    description: Report a player to the staff.
+    usage: /report <player> <reason>
+    aliases: [wdr]
+  clearchat:
+    description: Clear the chat.
+    usage: /clearchat
+    aliases: [cc]
+  mutechat:
+    description: Mute the chat for everyone but the staff.
+    usage: /mutechat
+  ban:
+    description: Ban a player, for a time or for good.
+    usage: /ban <player> [30m|2h|7d|perm] [reason]
+    aliases: [tempban]
+  unban:
+    description: Lift a ban.
+    usage: /unban <player>
+    aliases: [pardon]
+  mute:
+    description: Mute a player, for a time or for good.
+    usage: /mute <player> [30m|2h|7d|perm] [reason]
+    aliases: [tempmute]
+  unmute:
+    description: Lift a mute.
+    usage: /unmute <player>
+  kick:
+    description: Kick a player.
+    usage: /kick <player> [reason]
+  warn:
+    description: Warn a player.
+    usage: /warn <player> <reason>
+  history:
+    description: The sanctions of a player.
+    usage: /history <player>
+    aliases: [hist, sanctions]
+  discord:
+    description: The Discord of the server.
+    usage: /discord
+  rules:
+    description: The rules of the server.
+    usage: /rules
+    aliases: [regles]
+  site:
+    description: The website of the server.
+    usage: /site
+    aliases: [website]
+  store:
+    description: The web store of the server.
+    usage: /store
 permissions:
   rago.lobby.admin:
     description: Place the lobby spawn and points, and edit the lobby in build mode.
     default: op
+  # The staff, each level with the one below (the ranks of config.yml give them: rangs.<rank>.permissions).
+  rago.admin:
+    description: Ranks, Rago Points, and everything of the moderators.
+    default: op
+    children:
+      rago.mod: true
+      rago.lobby.admin: true
+  rago.mod:
+    description: Bans, unbans and muting the whole chat, and everything of the helpers.
+    default: op
+    children:
+      rago.staff: true
+  rago.staff:
+    description: The staff chat, vanish, freeze, mutes, kicks, warnings and histories; no chat cooldown.
+    default: op
+    children:
+      rago.perk.chat: true
+      rago.perk.fly: true
+  # The perks of the ranks of the shop.
+  rago.perk.chat:
+    description: No chat cooldown, the same message twice allowed.
+    default: false
+  rago.perk.fly:
+    description: /fly in the lobby.
+    default: false
+  rago.perk.join:
+    description: The lobby hears your arrival.
+    default: false

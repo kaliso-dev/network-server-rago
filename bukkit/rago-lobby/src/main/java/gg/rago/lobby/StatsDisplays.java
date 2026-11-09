@@ -81,10 +81,9 @@ final class StatsDisplays {
         String week = StatsPeriod.weekKey(now);
         PlayerStats stats = book.get(viewer.getUniqueId());
         int level = book.level(viewer.getUniqueId());
-        String rank = book.levels().rank(level);
         List<String> lines = new ArrayList<>();
         lines.add(npc.name());
-        lines.add(ChatColor.GRAY + "Network level: " + ChatColor.AQUA + level + (rank == null ? "" : " " + rank));
+        lines.add(ChatColor.GRAY + "Network level: " + book.levels().tag(level));
         lines.add(ChatColor.GRAY + "Wins: " + ChatColor.GREEN + (stats == null ? 0 : stats.wins(StatsPeriod.ALL, null, day, week)));
         lines.add(ChatColor.GRAY + "Losses: " + ChatColor.RED + (stats == null ? 0 : stats.losses()));
         lines.add(ChatColor.GRAY + "Kills: " + ChatColor.GREEN + (stats == null ? 0 : stats.kills(StatsPeriod.ALL, null, day, week)));
@@ -100,7 +99,7 @@ final class StatsDisplays {
                 }
                 GameMode mode = ranked.get(j);
                 line.append(ChatColor.GRAY).append("Elo ").append(StatsMenu.shortName(mode)).append(": ")
-                        .append(ChatColor.AQUA).append(book.elo(viewer.getUniqueId(), mode.id()));
+                        .append(book.ladder().format(book.elo(viewer.getUniqueId(), mode.id())));
             }
             lines.add(line.toString());
         }
@@ -165,7 +164,7 @@ final class StatsDisplays {
             if (i < rows.size()) {
                 StatsBook.Row row = rows.get(i);
                 lines.add(ChatColor.YELLOW + "" + (i + 1) + ". " + ChatColor.WHITE + row.name() + ChatColor.GRAY + " - "
-                        + ChatColor.YELLOW + shown(stat, row.value()));
+                        + shown(stat, row.value()));
             } else if (i == 0) {
                 lines.add(ChatColor.GRAY + "Nobody yet");
             } else {
@@ -176,7 +175,7 @@ final class StatsDisplays {
         StatsBook.Row own = ranking == null ? null : ranking.rowOf(viewer.getUniqueId());
         lines.add(own == null ? ChatColor.GRAY + "You: " + ChatColor.DARK_GRAY + "not ranked yet"
                 : ChatColor.GRAY + "You: " + ChatColor.YELLOW + "#" + ranking.position(viewer.getUniqueId())
-                        + ChatColor.GRAY + " - " + ChatColor.YELLOW + shown(stat, own.value()));
+                        + ChatColor.GRAY + " - " + shown(stat, own.value()));
         lines.add("");
         switch (stat.choice()) {
             case PERIOD:
@@ -204,9 +203,18 @@ final class StatsDisplays {
         return lines;
     }
 
-    /** The value a board shows: the level for the Network level (ranked by XP). */
-    private int shown(BoardStat stat, int value) {
-        return stat == BoardStat.LEVEL ? book.levels().level(value) : value;
+    /**
+     * The value a board shows: the level for the Network level (ranked by XP), the division with
+     * the ELO ("Gold 245"), the number otherwise.
+     */
+    private String shown(BoardStat stat, int value) {
+        if (stat == BoardStat.LEVEL) {
+            return book.levels().colour(book.levels().level(value)) + book.levels().level(value);
+        }
+        if (stat == BoardStat.ELO) {
+            return book.ladder().format(value);
+        }
+        return ChatColor.YELLOW + String.valueOf(value);
     }
 
     private Choice choice(UUID player, String key) {

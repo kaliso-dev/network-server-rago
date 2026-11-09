@@ -20,6 +20,11 @@ final class StatsFiles {
     static final String FOLDER = "stats";
     /** The team streaks, in the stats folder: one file per mode. */
     static final String TEAMS_FOLDER = "equipes";
+    /**
+     * The ELO of a file of another season is not read: the season of the divisions (from 0, as on
+     * the Ranked Bedwars servers) started everyone again from 0.
+     */
+    static final int ELO_SEASON = 2;
 
     private StatsFiles() {
     }
@@ -33,6 +38,29 @@ final class StatsFiles {
         yaml.options().header("Stats of " + stats.name() + ", written by RagoLobby.");
         yaml.set("nom", stats.name());
         yaml.set("xp", stats.xp());
+        yaml.set("elo-saison", ELO_SEASON);
+        yaml.set("profil.points", stats.points());
+        if (stats.rank() != null) {
+            yaml.set("profil.rang", stats.rank());
+        }
+        yaml.set("profil.rangs-achetes", new ArrayList<>(stats.boughtRanks()));
+        yaml.set("profil.cosmetiques", new ArrayList<>(stats.cosmetics()));
+        for (Cosmetic.Type type : Cosmetic.Type.values()) {
+            if (stats.equipped(type) != null) {
+                yaml.set("profil.equipes." + type.id(), stats.equipped(type));
+            }
+        }
+        List<String> friends = new ArrayList<>();
+        for (UUID friend : stats.friends()) {
+            friends.add(friend.toString());
+        }
+        yaml.set("profil.amis", friends);
+        yaml.set("profil.reglages.messages", stats.messages().id());
+        yaml.set("profil.reglages.parties", stats.partyInvites());
+        yaml.set("profil.reglages.amis", stats.friendRequests());
+        yaml.set("profil.reglages.duels", stats.duelRequests());
+        yaml.set("profil.quotidien.date", stats.dailyDay());
+        yaml.set("profil.quotidien.serie", stats.dailyStreak());
         for (Map.Entry<String, ModeStats> entry : stats.modes().entrySet()) {
             ModeStats m = entry.getValue();
             ConfigurationSection section = yaml.createSection("modes." + entry.getKey());
@@ -123,6 +151,30 @@ final class StatsFiles {
         yaml.loadFromString(text);
         PlayerStats stats = new PlayerStats(player, yaml.getString("nom", "?"));
         stats.addXp(Math.max(0, yaml.getInt("xp")));
+        boolean thisSeason = yaml.getInt("elo-saison", 1) == ELO_SEASON;
+        stats.addPoints(Math.max(0, yaml.getInt("profil.points")));
+        String rank = yaml.getString("profil.rang", null);
+        stats.setRank(rank == null || rank.trim().isEmpty() ? null : rank.trim());
+        stats.boughtRanks().addAll(yaml.getStringList("profil.rangs-achetes"));
+        stats.cosmetics().addAll(yaml.getStringList("profil.cosmetiques"));
+        for (Cosmetic.Type type : Cosmetic.Type.values()) {
+            String equipped = yaml.getString("profil.equipes." + type.id(), null);
+            if (equipped != null && stats.cosmetics().contains(equipped)) {
+                stats.equip(type, equipped);
+            }
+        }
+        for (String friend : yaml.getStringList("profil.amis")) {
+            try {
+                stats.friends().add(UUID.fromString(friend));
+            } catch (IllegalArgumentException e) {
+                // an unreadable friend is left out
+            }
+        }
+        stats.setMessages(PlayerStats.MessageSetting.of(yaml.getString("profil.reglages.messages", "all")));
+        stats.setPartyInvites(yaml.getBoolean("profil.reglages.parties", true));
+        stats.setFriendRequests(yaml.getBoolean("profil.reglages.amis", true));
+        stats.setDuelRequests(yaml.getBoolean("profil.reglages.duels", true));
+        stats.setDaily(yaml.getString("profil.quotidien.date", ""), yaml.getInt("profil.quotidien.serie"));
         ConfigurationSection modes = yaml.getConfigurationSection("modes");
         if (modes != null) {
             for (String modeId : modes.getKeys(false)) {
@@ -135,7 +187,7 @@ final class StatsFiles {
                 m.losses = Math.max(0, section.getInt("defaites"));
                 m.streak = Math.max(0, section.getInt("serie"));
                 m.bestStreak = Math.max(m.streak, section.getInt("meilleure-serie"));
-                m.elo = Math.max(0, section.getInt("elo"));
+                m.elo = thisSeason ? Math.max(0, section.getInt("elo")) : 0;
                 m.kills = Math.max(0, section.getInt("kills"));
                 m.deaths = Math.max(0, section.getInt("morts"));
                 m.day = section.getString("jour.date", "");

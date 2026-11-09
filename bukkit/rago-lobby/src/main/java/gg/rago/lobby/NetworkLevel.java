@@ -8,24 +8,27 @@ import java.util.TreeMap;
 /**
  * The Network level (config.yml, niveau:): every game gives XP to everyone in it (more for a win),
  * every kill a little more. Everyone starts at level 1; going from level n to n + 1 takes
- * {@code firstLevelXp + extraPerLevel * (n - 1)} XP. Reaching some levels gives a rank, shown in
- * the chat, the tab list, above the head and in the sidebar. Immutable.
+ * {@code firstLevelXp + extraPerLevel * (n - 1)} XP. The level shows as "[12✫]" in the chat,
+ * after the name above the head and in the tab list, in the colour of its tier (every 10 levels by
+ * default: grey, white, gold, aqua...). Immutable.
  */
 final class NetworkLevel {
 
     /** Above this, the level stops counting (it would take millions of games). */
     static final int MAX_LEVEL = 10_000;
+    /** After the level, as Hypixel shows the Bed Wars stars. */
+    static final String STAR = "\u272B";
 
-    static final NetworkLevel DEFAULT = new NetworkLevel(50, 15, 5, 100, 50, defaultRanks());
+    static final NetworkLevel DEFAULT = new NetworkLevel(50, 15, 5, 100, 50, defaultColours());
 
     private final int winXp;
     private final int lossXp;
     private final int killXp;
     private final int firstLevelXp;
     private final int extraPerLevel;
-    private final TreeMap<Integer, String> ranks;
+    private final TreeMap<Integer, String> colours;
 
-    NetworkLevel(int winXp, int lossXp, int killXp, int firstLevelXp, int extraPerLevel, Map<Integer, String> ranks) {
+    NetworkLevel(int winXp, int lossXp, int killXp, int firstLevelXp, int extraPerLevel, Map<Integer, String> colours) {
         if (firstLevelXp < 1 || extraPerLevel < 0 || winXp < 0 || lossXp < 0 || killXp < 0) {
             throw new IllegalArgumentException("invalid XP settings");
         }
@@ -34,19 +37,24 @@ final class NetworkLevel {
         this.killXp = killXp;
         this.firstLevelXp = firstLevelXp;
         this.extraPerLevel = extraPerLevel;
-        this.ranks = new TreeMap<>(ranks);
+        this.colours = new TreeMap<>(colours);
     }
 
-    private static Map<Integer, String> defaultRanks() {
-        Map<Integer, String> ranks = new TreeMap<>();
-        ranks.put(5, "§f[Iron]");
-        ranks.put(10, "§6[Gold]");
-        ranks.put(20, "§b[Diamond]");
-        ranks.put(30, "§2[Emerald]");
-        ranks.put(50, "§3[Sapphire]");
-        ranks.put(75, "§4[Ruby]");
-        ranks.put(100, "§d[Crystal]");
-        return ranks;
+    /** The colour of each tier of 10 levels, from the grey of level 1. */
+    private static Map<Integer, String> defaultColours() {
+        Map<Integer, String> colours = new TreeMap<>();
+        colours.put(1, "\u00a77");
+        colours.put(10, "\u00a7f");
+        colours.put(20, "\u00a76");
+        colours.put(30, "\u00a7b");
+        colours.put(40, "\u00a72");
+        colours.put(50, "\u00a73");
+        colours.put(60, "\u00a74");
+        colours.put(70, "\u00a7d");
+        colours.put(80, "\u00a79");
+        colours.put(90, "\u00a75");
+        colours.put(100, "\u00a7e");
+        return colours;
     }
 
     int winXp() {
@@ -99,25 +107,25 @@ final class NetworkLevel {
         return Math.max(0f, Math.min(0.999f, progress));
     }
 
-    /** The rank of this level (with its colours), or null below the first rank. */
-    String rank(int level) {
-        Map.Entry<Integer, String> entry = ranks.floorEntry(level);
-        return entry == null ? null : entry.getValue();
+    /** The colour codes of this level's tier ("§6"), grey below the first tier. */
+    String colour(int level) {
+        Map.Entry<Integer, String> entry = colours.floorEntry(level);
+        return entry == null ? "\u00a77" : entry.getValue();
     }
 
-    /** The level that gives this player's rank, or 0 without a rank: the same for the same rank. */
-    int rankLevel(int level) {
-        Integer key = ranks.floorKey(level);
-        return key == null ? 0 : key;
+    /** "§6[12✫]": the level as the chat and the name tags show it. */
+    String tag(int level) {
+        return colour(level) + "[" + level + STAR + "]";
     }
 
-    /** The first rank above this level, or null when the player has the last one. */
-    Map.Entry<Integer, String> nextRank(int level) {
-        return ranks.higherEntry(level);
+    /** The first level of the next tier, or 0 in the last one. */
+    int nextTier(int level) {
+        Integer next = colours.higherKey(level);
+        return next == null ? 0 : next;
     }
 
-    /** Every rank, by the level that gives it. */
-    SortedMap<Integer, String> ranks() {
-        return Collections.unmodifiableSortedMap(ranks);
+    /** Every tier, by its first level. */
+    SortedMap<Integer, String> colours() {
+        return Collections.unmodifiableSortedMap(colours);
     }
 }

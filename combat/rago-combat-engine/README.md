@@ -45,6 +45,7 @@ mode: override            # override : applique le profil ; observe : calcule et
 active-profile: vanilla   # profil utilisé partout, sauf dans les mondes de world-profiles
 world-profiles: {}        # par monde, par exemple { arena_a: vanilla, arena_b: test-a }
 record-hits: false        # journal des hits (voir plus bas)
+player-tracker-ticks: 1   # positions des joueurs envoyées aux autres : 1 (chaque tick) ou 2 (vanilla)
 profiles: {}              # profils de test, en plus de vanilla
 ```
 
@@ -62,6 +63,16 @@ Un profil a exactement ces six clés (aucune autre n'est acceptée) :
 Les composantes doivent rester entre −3.9 et 3.9, la limite du paquet. Le nom d'un profil :
 minuscules, chiffres, `-` et `_`, 32 caractères au plus. `vanilla` est intégré et ne peut pas être
 redéfini.
+
+### Hitreg : `player-tracker-ticks`
+
+Minecraft 1.8.8 n'envoie la position d'un joueur aux autres qu'un tick sur deux : on voit
+l'adversaire jusqu'à 100 ms en retard, et on vise là où il était. Avec `1` (la valeur fournie,
+comme sur les serveurs practice), la position part à chaque tick : on touche là où on voit le
+joueur. Le knockback n'est pas touché. L'API 1.8.8 n'a pas ce réglage : le plugin change l'entrée
+du joueur dans le tracker du serveur, à son arrivée, à chaque changement de monde et à chaque
+respawn. Si le serveur n'a pas ce tracker, rien n'est changé et la console le dit une fois.
+Les deux valeurs se testent sans risque : le réglage se lit au démarrage.
 
 Aucun profil « Hypixel » n'est fourni : ses valeurs ne sont pas publiques et seront mesurées
 (voir la doc de la formule).

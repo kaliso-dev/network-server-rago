@@ -22,9 +22,11 @@ import org.bukkit.scoreboard.Team;
  * and for how long. Each player has a scoreboard of their own; a line is sent again only when its
  * text changes, at most once a second. The scoreboard also hides the name tags of the NPC bodies
  * (team {@link #NPC_TEAM}): their names float above them as lines of their own. And it puts every
- * player in the team of their rank, whose prefix shows the rank above their head and in the tab
- * list, the highest ranks first. In a game, the sidebar shows the mode and the player's ping, and
- * in a 1v1 the opponent and their ping.
+ * player in a team of their own, whose prefix shows their rank (in a game: their team, as the game
+ * says) and whose suffix shows their Network level, above their head and in the tab list: "§c[ADMIN]
+ * §cSofiene §6[12✫]". The tab list sorts the teams by name: the players of a game first, then the
+ * highest ranks. In a game, the sidebar shows the mode and the player's ping, and in a 1v1 the
+ * opponent and their ping.
  */
 final class LobbyScoreboard {
 
@@ -35,8 +37,21 @@ final class LobbyScoreboard {
     /** A sidebar shows 15 lines: a game gives 12, around the first blank and the address. */
     static final int MAX_GAME_LINES = 12;
 
-    /** Team names are 16 characters at most, team prefixes too. */
+    /** Team names are 16 characters at most, team prefixes and suffixes too. */
     private static final int MAX_TEAM = 16;
+
+    /** A player's team on every scoreboard: its name (for the order of the tab list), prefix and suffix. */
+    static final class Tag {
+        final String team;
+        final String prefix;
+        final String suffix;
+
+        Tag(String team, String prefix, String suffix) {
+            this.team = team;
+            this.prefix = prefix;
+            this.suffix = suffix;
+        }
+    }
 
     /** Below this ping (in milliseconds) it shows in green, below the next one in yellow, else red. */
     static final int GOOD_PING = 80;
@@ -50,20 +65,26 @@ final class LobbyScoreboard {
     private final QueueController queues;
     private final StatsBook book;
     private final LobbyState state;
+    private final Ranks ranks;
     private final Map<UUID, Scoreboard> boards = new HashMap<>();
+    /** A number for each player seen, for the names of their teams. */
+    private final Map<UUID, Integer> numbers = new HashMap<>();
+    /** On each player's scoreboard, the team of each other player. */
+    private final Map<UUID, Map<UUID, String>> placed = new HashMap<>();
     private final Map<UUID, List<String>> shown = new HashMap<>();
     /** The lines a game gave for its players (LobbyService#setGameSidebar). */
     private final Map<UUID, List<String>> gameLines = new HashMap<>();
     /** What a game puts before the names of its players, their team (LobbyService#setGameNameTag). */
     private final Map<UUID, String> gamePrefixes = new HashMap<>();
-    /** The scoreboard team of each of those prefixes, the same on every scoreboard. */
-    private final Map<String, String> prefixTeams = new HashMap<>();
+    /** The number of each of those prefixes, the same on every scoreboard: its teams sort together. */
+    private final Map<String, Integer> prefixTeams = new HashMap<>();
 
-    LobbyScoreboard(LobbySettings settings, QueueController queues, StatsBook book, LobbyState state) {
+    LobbyScoreboard(LobbySettings settings, QueueController queues, StatsBook book, LobbyState state, Ranks ranks) {
         this.settings = settings;
         this.queues = queues;
         this.book = book;
         this.state = state;
+        this.ranks = ranks;
     }
 
     /**
@@ -100,20 +121,20 @@ final class LobbyScoreboard {
     }
 
     /**
-     * The team of the players who reached this rank (0: no rank yet). The tab list sorts teams by
-     * name, so the higher the rank, the smaller the name.
+     * The team of a player: in a game, "g" and the number of their game's prefix; in the lobby, "r"
+     * and the position of their rank (00 the highest); then the player's own number. The tab list
+     * sorts the teams by name.
      */
-    static String rankTeam(int rankLevel) {
-        return String.format("r%05d", NetworkLevel.MAX_LEVEL - Math.max(0, rankLevel));
+    static String teamName(boolean inGame, int order, int number) {
+        // both keys have a fixed width: two teams never end up with the same name
+        String game = Integer.toString(Math.min(order, 1295), 36);
+        String key = inGame ? "g" + (game.length() == 1 ? "0" : "") + game : String.format("r%02d", Math.min(order, 99));
+        return key + Integer.toString(number, 36);
     }
 
-    /** The prefix of a rank's team: the rank and a space, or nothing below the first rank. */
-    static String rankPrefix(String rank) {
-        if (rank == null) {
-            return "";
-        }
-        String prefix = rank + " ";
-        return prefix.length() <= MAX_TEAM ? prefix : rank.substring(0, Math.min(rank.length(), MAX_TEAM));
+    /** A prefix or a suffix fits in 16 characters. */
+    static String fit(String text) {
+        return text.length() <= MAX_TEAM ? text : text.substring(0, MAX_TEAM);
     }
 
     /** Shows the lobby sidebar to this player (on joining and on coming back from a game). */
@@ -129,10 +150,7 @@ final class LobbyScoreboard {
             for (int i = 0; i < settings.npcs().size(); i++) {
                 npcs.addEntry(LobbyNpcs.bodyName(i));
             }
-            board.registerNewTeam(rankTeam(0)).setPrefix("");
-            for (Map.Entry<Integer, String> rank : settings.levels().ranks().entrySet()) {
-                board.registerNewTeam(rankTeam(rank.getKey())).setPrefix(rankPrefix(rank.getValue()));
-            }
+            placed.remove(player.getUniqueId());
             boards.put(player.getUniqueId(), board);
             shown.put(player.getUniqueId(), new ArrayList<String>());
         }
@@ -141,11 +159,15 @@ final class LobbyScoreboard {
     }
 
     void update(Player player) {
+        update(player, tags());
+    }
+
+    private void update(Player player, Map<UUID, Tag> tags) {
         Scoreboard board = boards.get(player.getUniqueId());
         if (board == null || player.getScoreboard() != board) {
             return;
         }
-        syncRanks(board);
+        syncTags(player.getUniqueId(), board, tags);
         Objective objective = board.getObjective("rago");
         List<String> lines = lines(player);
         List<String> before = shown.get(player.getUniqueId());
@@ -163,38 +185,77 @@ final class LobbyScoreboard {
         shown.put(player.getUniqueId(), lines);
     }
 
-    /** Every online player in the team of their rank, or of their game's team, on this scoreboard. */
-    private void syncRanks(Scoreboard board) {
+    /** The team of every online player, worked out once for every scoreboard. */
+    private Map<UUID, Tag> tags() {
+        Map<UUID, Tag> tags = new HashMap<>();
         NetworkLevel levels = book.levels();
         for (Player other : Bukkit.getOnlinePlayers()) {
-            String prefix = gamePrefixes.get(other.getUniqueId());
-            Team team = prefix != null ? gameTeam(board, prefix)
-                    : board.getTeam(rankTeam(levels.rankLevel(book.level(other.getUniqueId()))));
-            if (team != null && !team.hasEntry(other.getName())) {
-                // addEntry takes the player out of their old team.
-                team.addEntry(other.getName());
+            UUID id = other.getUniqueId();
+            Integer number = numbers.get(id);
+            if (number == null) {
+                number = numbers.size();
+                numbers.put(id, number);
+            }
+            String suffix = fit(" " + levels.tag(book.level(id)));
+            String game = gamePrefixes.get(id);
+            if (game != null) {
+                Integer order = prefixTeams.get(game);
+                if (order == null) {
+                    order = prefixTeams.size();
+                    prefixTeams.put(game, order);
+                }
+                tags.put(id, new Tag(teamName(true, order, number), game, suffix));
+            } else {
+                RankDef rank = NetworkRanks.rankOf(book, ranks, id);
+                tags.put(id, new Tag(teamName(false, ranks.position(rank), number), fit(rank.tagPrefix()), suffix));
             }
         }
+        return tags;
     }
 
     /**
-     * The team of the players whose game puts this before their names, made on this scoreboard the
-     * first time ("g0", "g1"...: before the ranks in the tab list). An invisible teammate stays
-     * wholly invisible, as an enemy.
+     * Every online player in their own team on this scoreboard, with their prefix and suffix; the
+     * teams of the players who left, or who changed team, go.
      */
-    private Team gameTeam(Scoreboard board, String prefix) {
-        String name = prefixTeams.get(prefix);
-        if (name == null) {
-            name = "g" + prefixTeams.size();
-            prefixTeams.put(prefix, name);
+    private void syncTags(UUID viewer, Scoreboard board, Map<UUID, Tag> tags) {
+        Map<UUID, String> mine = placed.get(viewer);
+        if (mine == null) {
+            mine = new HashMap<>();
+            placed.put(viewer, mine);
         }
-        Team team = board.getTeam(name);
-        if (team == null) {
-            team = board.registerNewTeam(name);
-            team.setPrefix(prefix);
-            team.setCanSeeFriendlyInvisibles(false);
+        java.util.Iterator<Map.Entry<UUID, String>> gone = mine.entrySet().iterator();
+        while (gone.hasNext()) {
+            Map.Entry<UUID, String> entry = gone.next();
+            Tag tag = tags.get(entry.getKey());
+            if (tag == null || !tag.team.equals(entry.getValue())) {
+                Team old = board.getTeam(entry.getValue());
+                if (old != null) {
+                    old.unregister();
+                }
+                gone.remove();
+            }
         }
-        return team;
+        for (Player other : Bukkit.getOnlinePlayers()) {
+            Tag tag = tags.get(other.getUniqueId());
+            if (tag == null) {
+                continue;
+            }
+            Team team = board.getTeam(tag.team);
+            if (team == null) {
+                team = board.registerNewTeam(tag.team);
+            }
+            if (!tag.prefix.equals(team.getPrefix())) {
+                team.setPrefix(tag.prefix);
+            }
+            if (!tag.suffix.equals(team.getSuffix())) {
+                team.setSuffix(tag.suffix);
+            }
+            if (!team.hasEntry(other.getName())) {
+                // addEntry takes the player out of their old team.
+                team.addEntry(other.getName());
+            }
+            mine.put(other.getUniqueId(), tag.team);
+        }
     }
 
     /** What shows before the player's name while they play (16 characters at most), or null for their rank. */
@@ -207,13 +268,15 @@ final class LobbyScoreboard {
     }
 
     void updateAll() {
+        Map<UUID, Tag> tags = tags();
         for (Player player : Bukkit.getOnlinePlayers()) {
-            update(player);
+            update(player, tags);
         }
     }
 
     void forget(UUID player) {
         boards.remove(player);
+        placed.remove(player);
         shown.remove(player);
         gameLines.remove(player);
         gamePrefixes.remove(player);
@@ -242,12 +305,17 @@ final class LobbyScoreboard {
         PlayerStats stats = book.get(player.getUniqueId());
         int xp = stats == null ? 0 : stats.xp();
         int level = levels.level(xp);
-        String rank = levels.rank(level);
-        lines.add(ChatColor.WHITE + "Level: " + ChatColor.AQUA + level);
-        lines.add(cut(ChatColor.WHITE + "Rank: " + (rank == null ? ChatColor.GRAY + "none" : rank)));
+        RankDef rank = NetworkRanks.rankOf(book, ranks, player.getUniqueId());
+        lines.add(cut(ChatColor.WHITE + "Rank: " + (rank == Ranks.DEFAULT ? ChatColor.GRAY + "None" : rank.prefix().trim())));
+        lines.add(ChatColor.WHITE + "Level: " + levels.tag(level));
         lines.add(level >= NetworkLevel.MAX_LEVEL ? ChatColor.WHITE + "XP: " + ChatColor.AQUA + "max"
                 : ChatColor.WHITE + "XP: " + ChatColor.AQUA + levels.xpIntoLevel(xp) + ChatColor.GRAY + "/"
                         + levels.xpToNext(level));
+        lines.add(ChatColor.WHITE + "Rago Points: " + ChatColor.GOLD + String.format("%,d", stats == null ? 0 : stats.points()));
+        int best = bestElo(player.getUniqueId());
+        if (best >= 0) {
+            lines.add(cut(ChatColor.WHITE + "Ranked: " + book.ladder().format(best)));
+        }
         lines.add(blank(3));
         GameMode mode = queues.queueOf(player);
         if (mode == null) {
@@ -260,6 +328,17 @@ final class LobbyScoreboard {
         lines.add(blank(2));
         lines.add(cut(settings.address()));
         return lines;
+    }
+
+    /** The player's highest ELO of the ranked modes, or -1 without a ranked mode. */
+    private int bestElo(UUID player) {
+        int best = -1;
+        for (GameMode mode : settings.catalog().all()) {
+            if (mode.ranked()) {
+                best = Math.max(best, book.elo(player, mode.id()));
+            }
+        }
+        return best;
     }
 
     /** In a game: the mode, the player's ping, and in a 1v1 the opponent and their ping. */

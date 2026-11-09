@@ -23,8 +23,10 @@ public final class RagoCombatEngine extends JavaPlugin {
     @Override
     public void onEnable() {
         saveDefaultConfig();
+        int trackerTicks;
         try {
             settings = EngineSettings.load(getConfig());
+            trackerTicks = TrackerTuner.read(getConfig());
         } catch (IllegalArgumentException e) {
             // Never run a competitive server on half-read settings: stop here, loudly.
             getLogger().log(Level.SEVERE, "config.yml is invalid, RagoCombatEngine is disabled: " + e.getMessage());
@@ -35,12 +37,20 @@ public final class RagoCombatEngine extends JavaPlugin {
 
         getServer().getScheduler().runTaskTimer(this, () -> tick++, 0L, 1L);
         getServer().getPluginManager().registerEvents(new KnockbackListener(this), this);
+        TrackerTuner tuner = new TrackerTuner(this, trackerTicks);
+        if (tuner.active()) {
+            getServer().getPluginManager().registerEvents(tuner, this);
+            for (Player player : getServer().getOnlinePlayers()) {
+                tuner.apply(player);
+            }
+        }
         PluginCommand command = getCommand("kb");
         KbCommand executor = new KbCommand(this);
         command.setExecutor(executor);
         command.setTabCompleter(executor);
         getLogger().info("Mode " + settings.mode().configName() + ", default profile " + settings.defaultProfile()
-                + ", profiles " + settings.profiles().keySet());
+                + ", profiles " + settings.profiles().keySet() + ", player positions every " + trackerTicks
+                + (trackerTicks == 1 ? " tick" : " ticks"));
     }
 
     @Override

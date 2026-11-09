@@ -37,6 +37,13 @@ final class DuelRequests {
     private final QueueController queues;
     /** Target, then challenger, then the request. */
     private final Map<UUID, Map<UUID, Request>> pending = new HashMap<>();
+    /** Whether a player may challenge another (their settings): yes to everyone by default. */
+    private java.util.function.BiPredicate<Player, Player> gate = (from, to) -> true;
+
+    /** Who may challenge whom: the gate tells the challenger why not. */
+    void setGate(java.util.function.BiPredicate<Player, Player> gate) {
+        this.gate = gate;
+    }
 
     DuelRequests(LobbySettings settings, LobbyState state, QueueController queues) {
         this.settings = settings;
@@ -61,6 +68,11 @@ final class DuelRequests {
 
     /** Checks both players can duel; tells the challenger why not. */
     boolean canChallenge(Player challenger, Player target) {
+        return canPlay(challenger, target) && gate.test(challenger, target);
+    }
+
+    /** Checks both players can play a duel now; tells the first why not. */
+    private boolean canPlay(Player challenger, Player target) {
         if (target == null) {
             challenger.sendMessage(ChatColor.RED + "That player is not online.");
             return false;
@@ -129,7 +141,7 @@ final class DuelRequests {
             target.sendMessage(ChatColor.RED + "No pending duel request from " + challengerName + ".");
             return;
         }
-        if (!canChallenge(target, challenger)) {
+        if (!canPlay(target, challenger)) {
             return;
         }
         GameMode mode = settings.catalog().get(request.modeId);

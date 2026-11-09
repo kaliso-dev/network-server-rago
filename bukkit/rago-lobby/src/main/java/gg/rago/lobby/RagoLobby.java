@@ -9,7 +9,12 @@ import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.StandardCopyOption;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Map;
+import java.util.Set;
 import java.util.UUID;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
@@ -23,6 +28,7 @@ import org.bukkit.WorldCreator;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.PlayerInventory;
+import org.bukkit.inventory.meta.SkullMeta;
 import org.bukkit.plugin.Plugin;
 import org.bukkit.plugin.ServicePriority;
 import org.bukkit.plugin.java.JavaPlugin;
@@ -30,8 +36,10 @@ import org.bukkit.potion.PotionEffect;
 
 /**
  * RagoLobby: the main lobby of Rago Practice. The spawn and its protection, the hotbar, the mode
- * selector and its local queues, the sidebar, and hiding players. The game plugins plug into it
- * through {@link LobbyService}. See the module README.
+ * selector and its local queues, the sidebar, and hiding players; the network around them: the
+ * Network level and the ranks, the Rago Points and the shop, the ranked divisions, friends and
+ * private messages, the staff's tools and sanctions. The game plugins plug into it through
+ * {@link LobbyService}. See the module README.
  */
 public final class RagoLobby extends JavaPlugin implements LobbyService {
 
@@ -54,12 +62,27 @@ public final class RagoLobby extends JavaPlugin implements LobbyService {
     private KitEditor kitEditor;
     private HypixelProfiles hypixel;
     private Parties parties;
+    private ServerSettings server;
+    private Profiles profiles;
+    private ShopMenu shop;
+    private ProfileMenu profileMenu;
+    private Social social;
+    private CosmeticEffects cosmetics;
+    private Punishments punishments;
+    private StaffTools staff;
+    private ServerInfo info;
+    /** The kills of each player in their current game, for the MVP of a ranked game. */
+    private final Map<UUID, Integer> gameKills = new HashMap<>();
+    /** The players who turned /fly on in the lobby. */
+    private final Set<UUID> flying = new HashSet<>();
+    private int seconds;
 
     @Override
     public void onEnable() {
         saveDefaultConfig();
         try {
             settings = LobbySettings.load(getConfig());
+            server = ServerSettings.load(getConfig());
         } catch (IllegalArgumentException e) {
             getLogger().severe("config.yml is invalid, RagoLobby is disabled: " + e.getMessage());
             getServer().getPluginManager().disablePlugin(this);
@@ -98,40 +121,69 @@ public final class RagoLobby extends JavaPlugin implements LobbyService {
         visibility = new Visibility();
         PartyBook partyBook = new PartyBook();
         queues = new QueueController(this, settings, state, partyBook, this::queuesChanged);
-        stats = new StatsService(this, settings.defaultRating(), settings.levels(), writer, this::write, this::xpChanged);
-        ranks = new NetworkRanks(stats.book());
+        stats = new StatsService(this, settings.defaultRating(), settings.levels(), server, writer, this::write, this::xpChanged);
+        queues.setBook(stats.book());
+        ranks = new NetworkRanks(stats.book(), server.ranks());
+        profiles = new Profiles(this, server, stats, ranks);
+        social = new Social(this, stats, profiles);
+        punishments = new Punishments(this, stats.book(), writer, this::write);
+        punishments.load();
+        staff = new StaffTools(this, server, punishments);
+        visibility.setVanish(staff::vanished);
+        info = new ServerInfo(this, server);
+        cosmetics = new CosmeticEffects(this, profiles, state);
         parties = new Parties(this, partyBook, state, ranks);
         parties.setQueues(queues);
+        parties.setGate(social::acceptsParty);
         kits = new KitLayouts(this, writer, this::write);
         hypixel = new HypixelProfiles(this, settings.hypixelKey(), writer, this::write);
         kitEditor = new KitEditor(this, settings, kits, state, this::giveHotbar, hypixel);
         menu = new ModeMenu(settings, queues, stats.book());
-        scoreboard = new LobbyScoreboard(settings, queues, stats.book(), state);
+        scoreboard = new LobbyScoreboard(settings, queues, stats.book(), state, server.ranks());
         duels = new DuelRequests(settings, state, queues);
+        duels.setGate(social::acceptsDuel);
         menu.setDuels(duels);
         stats.load();
         fakes = new FakeEntities(this, world);
         fakes.start();
         getServer().getPluginManager().registerEvents(fakes, this);
-        statsDisplays = new StatsDisplays(settings, stats.book(), new StatsMenu(settings, stats.book()), fakes);
+        StatsMenu statsMenu = new StatsMenu(settings, stats.book());
+        statsDisplays = new StatsDisplays(settings, stats.book(), statsMenu, fakes);
+        shop = new ShopMenu(profiles, stats.book());
+        profileMenu = new ProfileMenu(this, profiles, social, stats, statsMenu, shop);
         npcs = new LobbyNpcs(settings, state, points, queues, menu, fakes, statsDisplays);
         getServer().getPluginManager().registerEvents(npcs, this);
 
         getServer().getPluginManager().registerEvents(new LobbyListener(this, state, visibility), this);
         getServer().getPluginManager().registerEvents(new HostWatcher(queues), this);
+        getServer().getPluginManager().registerEvents(punishments, this);
+        // before the parties: a muted player does not talk in the party channel either
+        getServer().getPluginManager().registerEvents(staff, this);
         getServer().getPluginManager().registerEvents(ranks, this);
         getServer().getPluginManager().registerEvents(parties, this);
+        getServer().getPluginManager().registerEvents(cosmetics, this);
+        getServer().getPluginManager().registerEvents(info, this);
+        cosmetics.start();
         getServer().getPluginManager().registerEvents(kitEditor, this);
         LobbyCommands commands = new LobbyCommands(this);
         for (String name : new String[] {"lobby", "spawn", "queue", "duel", "hypixel", "party", "pc", "chat"}) {
             getCommand(name).setExecutor(commands);
             getCommand(name).setTabCompleter(commands);
         }
+        NetworkCommands network = new NetworkCommands(this);
+        for (String name : NetworkCommands.NAMES) {
+            getCommand(name).setExecutor(network);
+            getCommand(name).setTabCompleter(network);
+        }
         getServer().getServicesManager().register(LobbyService.class, this, this, ServicePriority.Normal);
 
         getServer().getScheduler().runTaskTimer(this, () -> {
+            seconds++;
             queues.tick();
             parties.tick();
+            social.expire();
+            staff.tick(seconds);
+            info.tick(seconds);
             for (Player player : getServer().getOnlinePlayers()) {
                 // The stats are read after the start: the ranks follow once they are there.
                 ranks.refresh(player);
@@ -150,6 +202,7 @@ public final class RagoLobby extends JavaPlugin implements LobbyService {
         for (Player player : getServer().getOnlinePlayers()) {
             kits.load(player.getUniqueId());
             hypixel.load(player.getUniqueId());
+            profiles.apply(player);
             sendToLobby(player);
         }
         getLogger().info("Lobby in the world " + world.getName() + ", " + settings.modes().size() + " modes: "
@@ -169,6 +222,14 @@ public final class RagoLobby extends JavaPlugin implements LobbyService {
         }
         if (kitEditor != null) {
             kitEditor.closeAll();
+        }
+        if (cosmetics != null) {
+            cosmetics.stop();
+        }
+        for (Player player : getServer().getOnlinePlayers()) {
+            if (player.getOpenInventory().getTopInventory().getHolder() instanceof ClickMenu) {
+                player.closeInventory();
+            }
         }
         if (hypixel != null) {
             hypixel.stop();
@@ -238,7 +299,8 @@ public final class RagoLobby extends JavaPlugin implements LobbyService {
     /** Puts the player in the lobby state where they stand. */
     void resetForLobby(Player player) {
         player.setGameMode(org.bukkit.GameMode.ADVENTURE);
-        player.setAllowFlight(false);
+        boolean fly = flying.contains(player.getUniqueId()) && player.hasPermission("rago.perk.fly");
+        player.setAllowFlight(fly);
         player.setFlying(false);
         player.setHealth(player.getMaxHealth());
         player.setFoodLevel(20);
@@ -264,6 +326,23 @@ public final class RagoLobby extends JavaPlugin implements LobbyService {
         player.setExp(settings.levels().progress(xp));
     }
 
+    /** /fly: flying in the lobby, for the ranks that have it. */
+    void toggleFly(Player player) {
+        if (!state.isInLobby(player) || state.isInGame(player)) {
+            player.sendMessage(ChatColor.RED + "You can only fly in the lobby.");
+            return;
+        }
+        if (flying.remove(player.getUniqueId())) {
+            player.setAllowFlight(false);
+            player.setFlying(false);
+            player.sendMessage(ChatColor.RED + "Flight off.");
+        } else {
+            flying.add(player.getUniqueId());
+            player.setAllowFlight(true);
+            player.sendMessage(ChatColor.GREEN + "Flight on. /fly again to land.");
+        }
+    }
+
     /** A player's Network XP changed: their rank in the chat, their XP bar in the lobby, the sidebars. */
     private void xpChanged(UUID id) {
         Player player = getServer().getPlayer(id);
@@ -280,7 +359,10 @@ public final class RagoLobby extends JavaPlugin implements LobbyService {
     /** The player belongs to a game from now on: sees and is seen by everyone. */
     void enterGame(Player player, String modeId) {
         state.enterGame(player.getUniqueId(), modeId);
+        gameKills.remove(player.getUniqueId());
         player.closeInventory();
+        player.setAllowFlight(false);
+        player.setFlying(false);
         visibility.showAll(player);
         visibility.revealToAll(player);
     }
@@ -315,6 +397,13 @@ public final class RagoLobby extends JavaPlugin implements LobbyService {
     }
 
     void forget(Player player) {
+        social.announce(player, false);
+        staff.quit(player);
+        social.forget(player.getUniqueId());
+        profiles.forget(player.getUniqueId());
+        cosmetics.forget(player.getUniqueId());
+        gameKills.remove(player.getUniqueId());
+        flying.remove(player.getUniqueId());
         kitEditor.forget(player.getUniqueId());
         kits.forget(player.getUniqueId());
         hypixel.forget(player.getUniqueId());
@@ -338,6 +427,12 @@ public final class RagoLobby extends JavaPlugin implements LobbyService {
                 break;
             case KIT_EDITOR:
                 kitEditor.openModes(player);
+                break;
+            case SHOP:
+                shop.open(player);
+                break;
+            case PROFILE:
+                profileMenu.open(player);
                 break;
             case HIDE_PLAYERS:
             case SHOW_PLAYERS:
@@ -368,9 +463,21 @@ public final class RagoLobby extends JavaPlugin implements LobbyService {
         if (queues.queueOf(player) != null) {
             inventory.setItem(HotbarItem.LEAVE_QUEUE.slot(), HotbarItem.LEAVE_QUEUE.create());
         }
+        inventory.setItem(HotbarItem.SHOP.slot(), HotbarItem.SHOP.create());
+        inventory.setItem(HotbarItem.PROFILE.slot(), ownHead(player));
         HotbarItem eye = visibility.hides(player) ? HotbarItem.SHOW_PLAYERS : HotbarItem.HIDE_PLAYERS;
         inventory.setItem(eye.slot(), eye.create());
         player.updateInventory();
+    }
+
+    /** The profile item with the player's own head. */
+    @SuppressWarnings("deprecation") // SkullMeta#setOwner(String) is the 1.8.8 way to show a player's head
+    private static ItemStack ownHead(Player player) {
+        ItemStack head = HotbarItem.PROFILE.create();
+        SkullMeta meta = (SkullMeta) head.getItemMeta();
+        meta.setOwner(player.getName());
+        head.setItemMeta(meta);
+        return head;
     }
 
     /** A queue changed: the hotbars (leave item), the sidebars and the open selectors follow. */
@@ -509,7 +616,37 @@ public final class RagoLobby extends JavaPlugin implements LobbyService {
             getLogger().info("Private game of a party in " + modeId + ": not counted in the stats");
             return;
         }
-        stats.record(mode, winners, losers);
+        stats.record(mode, winners, losers, mvps(winners, losers));
+        for (UUID winner : winners) {
+            cosmetics.win(winner);
+        }
+        for (UUID player : winners) {
+            gameKills.remove(player);
+        }
+        for (UUID player : losers) {
+            gameKills.remove(player);
+        }
+    }
+
+    /** The MVPs of a game: the most kills, at least one. */
+    private List<UUID> mvps(List<UUID> winners, List<UUID> losers) {
+        List<UUID> all = new ArrayList<>(winners);
+        all.addAll(losers);
+        int best = 0;
+        for (UUID player : all) {
+            Integer kills = gameKills.get(player);
+            best = Math.max(best, kills == null ? 0 : kills);
+        }
+        List<UUID> mvps = new ArrayList<>();
+        if (best > 0) {
+            for (UUID player : all) {
+                Integer kills = gameKills.get(player);
+                if (kills != null && kills == best && !mvps.contains(player)) {
+                    mvps.add(player);
+                }
+            }
+        }
+        return mvps;
     }
 
     @Override
@@ -522,6 +659,11 @@ public final class RagoLobby extends JavaPlugin implements LobbyService {
             return;
         }
         stats.kill(modeId, killer, victim);
+        if (killer != null && !killer.equals(victim)) {
+            Integer kills = gameKills.get(killer);
+            gameKills.put(killer, kills == null ? 1 : kills + 1);
+            cosmetics.kill(killer, victim);
+        }
     }
 
     @Override
@@ -589,10 +731,87 @@ public final class RagoLobby extends JavaPlugin implements LobbyService {
         kits.load(player.getUniqueId());
         hypixel.load(player.getUniqueId());
         stats.seen(player);
-        ranks.refresh(player);
+        profiles.apply(player);
+        visibility.applyVanish(player, state);
+        social.announce(player, true);
+        info.joined(player);
+        if (profiles.dailyReady(player.getUniqueId())) {
+            player.sendMessage(ChatColor.AQUA + "Your daily reward is waiting: " + ChatColor.YELLOW + "/daily");
+        }
     }
 
     // --- For the other classes of the plugin ----------------------------------------------------
+
+    /** A line for every player in the lobby. */
+    void announce(String line) {
+        for (Player player : getServer().getOnlinePlayers()) {
+            if (state.isInLobby(player)) {
+                player.sendMessage(line);
+            }
+        }
+    }
+
+    /** The sidebars and name tags follow a change of rank or points, within a second anyway. */
+    void refreshBoards() {
+        scoreboard.updateAll();
+    }
+
+    boolean canSee(Player viewer, Player target) {
+        return visibility.canSee(viewer, target);
+    }
+
+    /** False for a vanished member of the staff. */
+    boolean canBeSeen(Player player) {
+        return !staff.vanished(player.getUniqueId());
+    }
+
+    /** The staff vanished or came back. */
+    void applyVanish(Player player) {
+        visibility.applyVanish(player, state);
+    }
+
+    /** What a muted player reads when they try to talk, or null. */
+    String mutedFor(Player player) {
+        return punishments.mutedMessage(player.getUniqueId());
+    }
+
+    /** True if this player's rank, given by the staff, is a staff rank. */
+    boolean isStaffRank(PlayerStats profile) {
+        RankDef rank = profile.rank() == null ? null : server.ranks().get(profile.rank());
+        return rank != null && rank.staff();
+    }
+
+    ServerSettings server() {
+        return server;
+    }
+
+    Profiles profiles() {
+        return profiles;
+    }
+
+    ShopMenu shop() {
+        return shop;
+    }
+
+    ProfileMenu profileMenu() {
+        return profileMenu;
+    }
+
+    Social social() {
+        return social;
+    }
+
+    StaffTools staff() {
+        return staff;
+    }
+
+    Punishments punishments() {
+        return punishments;
+    }
+
+    StatsService stats() {
+        return stats;
+    }
 
     DuelRequests duels() {
         return duels;

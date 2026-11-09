@@ -41,6 +41,11 @@ enum StatsPeriod {
         return date(millis).toString();
     }
 
+    /** The day before this one: 2026-11-07. */
+    static String previousDayKey(long millis) {
+        return date(millis).minusDays(1).toString();
+    }
+
     /** 2026-W45, the ISO week. */
     static String weekKey(long millis) {
         LocalDate date = date(millis);

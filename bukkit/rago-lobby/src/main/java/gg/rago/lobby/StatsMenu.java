@@ -3,7 +3,6 @@ package gg.rago.lobby;
 import gg.rago.game.GameMode;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Map;
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
 import org.bukkit.Material;
@@ -69,18 +68,17 @@ final class StatsMenu {
         NetworkLevel levels = book.levels();
         int xp = stats == null ? 0 : stats.xp();
         int level = levels.level(xp);
-        String rank = levels.rank(level);
-        lore.add(ChatColor.GRAY + "Network level: " + ChatColor.AQUA + level);
-        lore.add(ChatColor.GRAY + "Rank: " + (rank == null ? ChatColor.DARK_GRAY + "none yet" : rank));
+        lore.add(ChatColor.GRAY + "Network level: " + levels.tag(level));
         if (level < NetworkLevel.MAX_LEVEL) {
             lore.add(ChatColor.GRAY + "XP: " + ChatColor.AQUA + levels.xpIntoLevel(xp) + ChatColor.GRAY + "/"
                     + levels.xpToNext(level) + " to level " + (level + 1));
         }
-        Map.Entry<Integer, String> next = levels.nextRank(level);
-        if (next != null) {
-            lore.add(ChatColor.GRAY + "Next rank: " + next.getValue() + ChatColor.GRAY + " at level " + next.getKey());
+        int tier = levels.nextTier(level);
+        if (tier > 0) {
+            lore.add(ChatColor.GRAY + "Next colour: " + levels.tag(tier));
         }
         lore.add(ChatColor.GRAY + "Total XP: " + ChatColor.AQUA + xp);
+        lore.add(ChatColor.GRAY + "Rago Points: " + ChatColor.GOLD + String.format("%,d", stats == null ? 0 : stats.points()));
         lore.add("");
         lore.add(ChatColor.GRAY + "All modes");
         lore.add("");
@@ -105,8 +103,8 @@ final class StatsMenu {
         if (!ranked.isEmpty()) {
             lore.add("");
             for (GameMode mode : ranked) {
-                lore.add(ChatColor.GRAY + "Elo " + shortName(mode) + ": " + ChatColor.AQUA
-                        + book.elo(player.getUniqueId(), mode.id()));
+                lore.add(ChatColor.GRAY + "Elo " + shortName(mode) + ": "
+                        + book.ladder().format(book.elo(player.getUniqueId(), mode.id())));
             }
         }
         meta.setLore(lore);
@@ -137,7 +135,7 @@ final class StatsMenu {
             lore.add(line("Wins this week", ChatColor.GREEN, m.wins(StatsPeriod.WEEK, day, week)));
         }
         if (mode.ranked()) {
-            lore.add(ChatColor.GRAY + "Elo: " + ChatColor.AQUA + book.elo(player.getUniqueId(), mode.id()));
+            lore.add(ChatColor.GRAY + "Elo: " + book.ladder().format(book.elo(player.getUniqueId(), mode.id())));
         }
         meta.setLore(lore);
         icon.setItemMeta(meta);

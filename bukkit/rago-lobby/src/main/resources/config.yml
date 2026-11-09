@@ -13,11 +13,12 @@ hauteur-vide: 0
 titre: "&b&lRAGO PRACTICE"
 adresse: "&7rago.gg"
 
-# The queues. Until the database exists, everyone has the same ELO. In ranked, the ELO gap
-# accepted starts at ecart-elo-initial and grows by ecart-elo-pas every ecart-elo-secondes of
-# waiting, up to ecart-elo-max.
+# The queues. A ranked queue matches players by their ELO (see elo: below), from
+# elo-par-defaut before a player's first ranked game: the ELO gap accepted starts at
+# ecart-elo-initial and grows by ecart-elo-pas every ecart-elo-secondes of waiting, up to
+# ecart-elo-max.
 file:
-  elo-par-defaut: 1000
+  elo-par-defaut: 0
   ecart-elo-initial: 100
   ecart-elo-pas: 50
   ecart-elo-secondes: 10
@@ -101,24 +102,201 @@ pnj:
 # The Network level: every game gives XP to everyone who played it (more for a win), every kill
 # a little more. Everyone starts at level 1; going from level n to level n + 1 takes
 # xp-niveau-2 + xp-en-plus-par-niveau x (n - 1) XP (100, 150, 200... by default). The level shows
-# in the XP bar of the lobby, the scoreboard and the chat.
-#   rangs   the rank earned on reaching a level (15 characters at most, colours included): shown
-#           in the chat, above the head, in the player list (tab) and the scoreboard. A player
-#           keeps the highest rank reached.
+# as [12*] (a star) before the name in the chat, after it above the head and in the tab list, in the XP
+# bar of the lobby and the scoreboard. It unlocks the ranks and the cosmetics of the shop.
+#   couleurs  the colour of the [12*] from each level on, by tier (one or two colour codes)
 niveau:
   xp-victoire: 50
   xp-defaite: 15
   xp-kill: 5
   xp-niveau-2: 100
   xp-en-plus-par-niveau: 50
-  rangs:
-    5: "&f[Iron]"
-    10: "&6[Gold]"
-    20: "&b[Diamond]"
-    30: "&2[Emerald]"
-    50: "&3[Sapphire]"
-    75: "&4[Ruby]"
-    100: "&d[Crystal]"
+  couleurs:
+    1: "&7"
+    10: "&f"
+    20: "&6"
+    30: "&b"
+    40: "&2"
+    50: "&3"
+    60: "&4"
+    70: "&d"
+    80: "&9"
+    90: "&5"
+    100: "&e"
+
+# The ranks, the highest first: the order of the tab list, and a player shows the highest of
+# theirs. The staff give a rank with /rank set <player> <rank>; the ranks with a price are sold in
+# the shop (/shop) for Rago Points, once the player reaches their level. A player has the
+# permissions of all their ranks, and of the ranks these inherit (herite).
+#   prefixe      before the name ("&c[ADMIN] "): with the colour of the name, 16 characters at most
+#   couleur      the colour of the name
+#   chat         the colour of the messages (a player without a rank writes in grey)
+#   staff        true for a staff rank: never sold
+#   permissions  what the rank gives: rago.admin (ranks, points, and all below), rago.mod (bans,
+#                mutechat), rago.staff (staff chat, vanish, freeze, mutes, kicks, warnings),
+#                rago.perk.chat (no chat cooldown), rago.perk.fly (/fly in the lobby),
+#                rago.perk.join (the lobby hears the arrival), or a permission of another plugin;
+#                "-permission" takes one away
+#   herite       the rank whose permissions this one also has
+#   prix, niveau the price in Rago Points and the Network level needed (prix: 0 = not sold)
+#   icone        the item in the shop; avantages: its lines
+rangs:
+  owner:
+    prefixe: "&4[OWNER] "
+    couleur: "&4"
+    staff: true
+    permissions: [rago.admin]
+    herite: admin
+  admin:
+    prefixe: "&c[ADMIN] "
+    couleur: "&c"
+    staff: true
+    permissions: [rago.admin]
+    herite: mod
+  dev:
+    prefixe: "&b[DEV] "
+    couleur: "&b"
+    staff: true
+    permissions: [rago.admin]
+    herite: mod
+  mod:
+    prefixe: "&2[MOD] "
+    couleur: "&2"
+    staff: true
+    permissions: [rago.mod]
+    herite: helper
+  helper:
+    prefixe: "&9[HELPER] "
+    couleur: "&9"
+    staff: true
+    permissions: [rago.staff]
+    herite: elite
+  builder:
+    prefixe: "&3[BUILDER] "
+    couleur: "&3"
+    staff: true
+    permissions: [rago.staff, rago.lobby.admin]
+    herite: vipplus
+  media:
+    prefixe: "&5[MEDIA] "
+    couleur: "&5"
+    herite: elite
+    avantages: ["For content creators", "Everything of ELITE"]
+  legend:
+    prefixe: "&6[LEGEND] "
+    couleur: "&6"
+    herite: elite
+    prix: 100000
+    niveau: 100
+    icone: GOLD_BLOCK
+    avantages: ["The [LEGEND] prefix in gold", "Everything of ELITE"]
+  elite:
+    prefixe: "&d[ELITE] "
+    couleur: "&d"
+    permissions: [rago.perk.join]
+    herite: vipplus
+    prix: 40000
+    niveau: 50
+    icone: DIAMOND_BLOCK
+    avantages: ["Your arrival is announced in the lobby", "Everything of VIP+"]
+  vipplus:
+    prefixe: "&a[VIP&6+&a] "
+    couleur: "&a"
+    permissions: [rago.perk.fly]
+    herite: vip
+    prix: 15000
+    niveau: 25
+    icone: EMERALD_BLOCK
+    avantages: ["/fly in the lobby", "Everything of VIP"]
+  vip:
+    prefixe: "&a[VIP] "
+    couleur: "&a"
+    permissions: [rago.perk.chat]
+    prix: 5000
+    niveau: 10
+    icone: EMERALD
+    avantages: ["White messages in the chat", "No chat cooldown"]
+
+# The ELO of the ranked modes, by division as on the Ranked Bedwars servers: everyone starts at 0,
+# a division from its elo up to the next one's. A win gives "victoire" ELO and a loss takes
+# "defaite", set by the player's division: much to win and little to lose at the bottom, the
+# other way round at the top. The MVP of a game (the most kills) gets bonus-mvp more, won or lost.
+# The ELO never goes below 0.
+elo:
+  bonus-mvp: 5
+  divisions:
+    Coal: {couleur: "&8", elo: 0, victoire: 35, defaite: 5}
+    Iron: {couleur: "&f", elo: 100, victoire: 30, defaite: 10}
+    Gold: {couleur: "&6", elo: 200, victoire: 30, defaite: 15}
+    Diamond: {couleur: "&b", elo: 300, victoire: 25, defaite: 15}
+    Emerald: {couleur: "&2", elo: 400, victoire: 25, defaite: 20}
+    Sapphire: {couleur: "&3", elo: 500, victoire: 20, defaite: 20}
+    Ruby: {couleur: "&4", elo: 600, victoire: 20, defaite: 25}
+    Crystal: {couleur: "&d", elo: 700, victoire: 15, defaite: 25}
+    Opal: {couleur: "&9", elo: 800, victoire: 15, defaite: 30}
+    Amethyst: {couleur: "&5", elo: 900, victoire: 10, defaite: 30}
+    Obsidian: {couleur: "&0", elo: 1000, victoire: 10, defaite: 35}
+
+# The Rago Points, spent in the shop: for a win, a game played (lost), a kill, each new level
+# (the level times par-niveau: 100 for level 10), and the daily reward (/daily): quotidien, plus
+# quotidien-serie for each day in a row, up to 7 days.
+rago-points:
+  victoire: 20
+  defaite: 5
+  kill: 2
+  par-niveau: 10
+  quotidien: 100
+  quotidien-serie: 25
+
+# The cosmetics of the shop: projectile trails, kill effects and victory effects. Each one has a
+# price in Rago Points and a Network level needed, which can be changed here by its name:
+#   trail-clouds, trail-flames, trail-hearts, trail-emeralds, trail-notes, trail-magic,
+#   trail-ender, trail-redstone, kill-blood, kill-hearts, kill-flames, kill-lightning,
+#   kill-firework, kill-explosion, win-hearts, win-fireworks, win-flames, win-party
+# for example:
+#   trail-flames: {prix: 1000, niveau: 1}
+boutique: {}
+
+# The chat: players without a rank wait delai-secondes between two messages, and cannot send the
+# same message twice in a row (bloquer-repetition). The ranks with rago.perk.chat and the staff
+# have neither.
+chat:
+  delai-secondes: 2
+  bloquer-repetition: true
+
+# The header and footer of the tab list (4 lines each at most): {joueurs} the players online,
+# {ping} the player's ping.
+tab:
+  haut:
+    - "&b&lRAGO &f&lPRACTICE"
+    - "&7{joueurs} players online"
+  bas:
+    - "&7Your ping: &f{ping} ms"
+    - "&brago.gg"
+
+# The message under the server's name in the server list (2 lines).
+motd:
+  - "&b&lRAGO PRACTICE &7- &f1.8 PvP & Ranked Bedwars"
+  - "&eRanks, shop and ranked ELO divisions!"
+
+# The tips told to the lobby, one every "minutes", in turn.
+annonces:
+  minutes: 5
+  messages:
+    - "&bEarn Rago Points in every game and spend them in the shop (/shop)."
+    - "&bClaim your daily reward with /daily: a few days in a row give more."
+    - "&bAdd your friends with /friend add <name>, and play with them in a /party."
+    - "&bClimb the ranked divisions, from Coal to Obsidian: /top elo."
+
+# What /discord, /site, /rules and /store show (one line or a list).
+liens:
+  discord: "&9Our Discord: &fdiscord.gg/rago"
+  regles:
+    - "&6&lRules"
+    - "&71. No cheats, macros or unfair mods."
+    - "&72. No insults, spam or advertising."
+    - "&73. No teaming in solo modes, no boosting."
+    - "&74. Respect the staff: their word is final."
 
 # The leaderboard walls, on their point: boards side by side, facing the spawn, the first on the
 # left. Each one shows the top 10, the player's place and when it resets.

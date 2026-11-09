@@ -17,6 +17,11 @@ world-profiles: {}
 # Writes every hit to plugins/RagoCombatEngine/hits/hits-YYYY-MM-DD.jsonl for analysis.
 record-hits: false
 
+# How often the server sends each player's position to the others, in ticks. Minecraft 1.8.8 uses
+# 2: the others see a player up to 100 ms late. 1, as practice servers do, halves that delay, for
+# hits that land where the player is seen (a little more bandwidth). The knockback is not touched.
+player-tracker-ticks: 1
+
 # Test profiles. The six keys are required and no other is accepted.
 # Hypixel's values are not public: a profile meant to come close to them must come from
 # measurements (docs/combat/knockback-1.8.8.md), never from a guess.

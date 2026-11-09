@@ -139,6 +139,14 @@ final class LobbyListener implements Listener {
             event.setCancelled(true);
             return;
         }
+        if (event.getView().getTopInventory().getHolder() instanceof ClickMenu) {
+            event.setCancelled(true);
+            ClickMenu menu = (ClickMenu) event.getView().getTopInventory().getHolder();
+            if (event.getRawSlot() >= 0 && event.getRawSlot() < menu.size()) {
+                menu.click(player, event.getRawSlot(), event.isRightClick());
+            }
+            return;
+        }
         if (event.getView().getTopInventory().getHolder() instanceof ModeMenu.Holder) {
             event.setCancelled(true);
             if (event.getRawSlot() >= 0 && event.getRawSlot() < event.getView().getTopInventory().getSize()) {
@@ -161,6 +169,7 @@ final class LobbyListener implements Listener {
         if (event.getView().getTopInventory().getHolder() instanceof ModeMenu.Holder
                 || event.getView().getTopInventory().getHolder() instanceof StatsMenu.Holder
                 || event.getView().getTopInventory().getHolder() instanceof HypixelMenu.Holder
+                || event.getView().getTopInventory().getHolder() instanceof ClickMenu
                 || (event.getWhoClicked() instanceof Player && state.isProtected((Player) event.getWhoClicked()))) {
             event.setCancelled(true);
         }

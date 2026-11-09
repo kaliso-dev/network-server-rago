@@ -32,8 +32,6 @@ final class LobbySettings {
     static final int MAX_CATEGORIES = 7;
     /** Leaderboards side by side on one point. */
     static final int MAX_BOARDS = 5;
-    /** A rank and a space fit in the 16 characters of a 1.8 team prefix. */
-    static final int MAX_RANK = 15;
     static final int MAX_XP = 1_000_000;
 
     private final List<ModeDisplay> modes;
@@ -284,7 +282,11 @@ final class LobbySettings {
         return npcs;
     }
 
-    /** niveau: the XP of a game and of a kill, the XP of each level, and the ranks. */
+    /**
+     * niveau: the XP of a game and of a kill, the XP of each level, and the colour of each tier of
+     * levels (couleurs: the first level of the tier, then its colour codes). The ranks of the first
+     * version (rangs) gave way to the ranks of the shop: they are ignored.
+     */
     private static NetworkLevel readLevels(ConfigurationSection section) {
         if (section == null) {
             return NetworkLevel.DEFAULT;
@@ -294,11 +296,11 @@ final class LobbySettings {
         int kill = xp(section, "xp-kill", NetworkLevel.DEFAULT.killXp(), 0);
         int first = xp(section, "xp-niveau-2", NetworkLevel.DEFAULT.xpToNext(1), 1);
         int extra = xp(section, "xp-en-plus-par-niveau", NetworkLevel.DEFAULT.xpToNext(2) - NetworkLevel.DEFAULT.xpToNext(1), 0);
-        Map<Integer, String> ranks = new HashMap<>();
-        ConfigurationSection list = section.getConfigurationSection("rangs");
-        if (list == null && !section.contains("rangs")) {
-            ranks.putAll(NetworkLevel.DEFAULT.ranks());
-        } else if (list != null) {
+        Map<Integer, String> colours = new HashMap<>();
+        ConfigurationSection list = section.getConfigurationSection("couleurs");
+        if (list == null) {
+            colours.putAll(NetworkLevel.DEFAULT.colours());
+        } else {
             for (String key : list.getKeys(false)) {
                 int level;
                 try {
@@ -306,19 +308,23 @@ final class LobbySettings {
                 } catch (NumberFormatException e) {
                     level = 0;
                 }
-                if (level < 2 || level > NetworkLevel.MAX_LEVEL) {
-                    throw new IllegalArgumentException("niveau.rangs." + key + ": the key is the level of the rank, from 2 to "
-                            + NetworkLevel.MAX_LEVEL);
+                if (level < 1 || level > NetworkLevel.MAX_LEVEL) {
+                    throw new IllegalArgumentException("niveau.couleurs." + key + ": the key is the first level of the tier,"
+                            + " from 1 to " + NetworkLevel.MAX_LEVEL);
                 }
-                String rank = colour(list.getString(key, ""));
-                if (ChatColor.stripColor(rank).trim().isEmpty() || rank.length() > MAX_RANK) {
-                    throw new IllegalArgumentException("niveau.rangs." + key + ": from 1 to " + MAX_RANK
-                            + " characters, colour codes included");
+                String colour = colour(list.getString(key, ""));
+                if (!isColourCodes(colour)) {
+                    throw new IllegalArgumentException("niveau.couleurs." + key + ": one or two colour codes, such as &6 or &6&l");
                 }
-                ranks.put(level, rank);
+                colours.put(level, colour);
             }
         }
-        return new NetworkLevel(win, loss, kill, first, extra, ranks);
+        return new NetworkLevel(win, loss, kill, first, extra, colours);
+    }
+
+    /** True for one or two colour or format codes, and nothing else ("§6", "§6§l"). */
+    static boolean isColourCodes(String text) {
+        return text.matches("(\u00a7[0-9a-fk-or]){1,2}");
     }
 
     private static int xp(ConfigurationSection section, String key, int fallback, int min) {

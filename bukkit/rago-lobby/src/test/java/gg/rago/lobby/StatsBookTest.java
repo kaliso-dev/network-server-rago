@@ -108,16 +108,21 @@ class StatsBookTest {
 
     @Test
     void rankedGamesMoveTheElo() {
-        StatsBook book = new StatsBook(1000, NetworkLevel.DEFAULT);
-        assertEquals(1000, book.elo(ALICE, "ranked-1v1"));
+        StatsBook book = new StatsBook(0, NetworkLevel.DEFAULT);
+        assertEquals(0, book.elo(ALICE, "ranked-1v1"));
         win(book, RANKED, ALICE, BOB, SUNDAY);
-        assertEquals(1016, book.elo(ALICE, "ranked-1v1"));
-        assertEquals(984, book.elo(BOB, "ranked-1v1"));
+        assertEquals(35, book.elo(ALICE, "ranked-1v1"), "a win in Coal");
+        assertEquals(0, book.elo(BOB, "ranked-1v1"), "never below 0");
         win(book, RANKED, ALICE, BOB, SUNDAY);
-        assertTrue(book.elo(ALICE, "ranked-1v1") < 1032, "beating a weaker player gives less");
-        assertEquals(2000, book.elo(ALICE, "ranked-1v1") + book.elo(BOB, "ranked-1v1"));
+        assertEquals(70, book.elo(ALICE, "ranked-1v1"));
+        book.record(RANKED, Collections.singletonList(BOB), Collections.singletonList(ALICE), NAMES, SUNDAY,
+                Collections.singletonList(ALICE));
+        assertEquals(70, book.elo(ALICE, "ranked-1v1"), "a loss in Coal (-5) for the MVP (+5)");
+        assertEquals(35, book.elo(BOB, "ranked-1v1"));
         StatsBook.Ranking elo = book.ranking(BoardStat.ELO, StatsPeriod.DAY, "ranked-1v1", SUNDAY);
         assertEquals(Arrays.asList("Alice", "Bob"), names(elo.rows()));
+        assertTrue(new StatsBook(0, NetworkLevel.DEFAULT).ranking(BoardStat.ELO, StatsPeriod.DAY, "ranked-1v1", SUNDAY)
+                .rows().isEmpty(), "nobody before the first game");
         // An unranked mode does not touch the ELO.
         win(book, SUMO, BOB, ALICE, SUNDAY);
         assertEquals(0, book.get(BOB).mode("sumo").elo);
@@ -277,18 +282,39 @@ class StatsBookTest {
 
     @Test
     void filesKeepEverything() throws Exception {
-        StatsBook book = new StatsBook(1000, NetworkLevel.DEFAULT);
+        StatsBook book = new StatsBook(0, NetworkLevel.DEFAULT);
         win(book, SUMO, ALICE, BOB, SATURDAY);
         win(book, RANKED, ALICE, BOB, SUNDAY);
         PlayerStats alice = book.get(ALICE);
+        alice.addPoints(1234);
+        alice.setRank("admin");
+        alice.boughtRanks().add("vip");
+        alice.cosmetics().add("trail-flames");
+        alice.equip(Cosmetic.Type.TRAIL, "trail-flames");
+        alice.friends().add(BOB);
+        alice.setMessages(PlayerStats.MessageSetting.FRIENDS);
+        alice.setPartyInvites(false);
+        alice.setDaily("2026-11-08", 3);
         PlayerStats read = StatsFiles.fromYaml(ALICE, StatsFiles.toYaml(alice));
         assertEquals("Alice", read.name());
         assertEquals(StatsFiles.toYaml(alice), StatsFiles.toYaml(read));
-        assertEquals(1016, read.mode("ranked-1v1").elo);
+        assertEquals(35, read.mode("ranked-1v1").elo);
         assertEquals(0, read.mode("sumo").elo);
-        StatsBook loaded = new StatsBook(1000, NetworkLevel.DEFAULT);
+        assertEquals(1234, read.points());
+        assertEquals("admin", read.rank());
+        assertTrue(read.boughtRanks().contains("vip"));
+        assertEquals("trail-flames", read.equipped(Cosmetic.Type.TRAIL));
+        assertTrue(read.friends().contains(BOB));
+        assertEquals(PlayerStats.MessageSetting.FRIENDS, read.messages());
+        assertTrue(!read.partyInvites());
+        assertEquals(3, read.dailyStreak());
+        StatsBook loaded = new StatsBook(0, NetworkLevel.DEFAULT);
         assertTrue(loaded.load(read));
-        assertEquals(1016, loaded.elo(ALICE, "ranked-1v1"));
+        assertEquals(35, loaded.elo(ALICE, "ranked-1v1"));
+        // a file of the first season (ELO from 1000) starts the divisions again from 0
+        String old = StatsFiles.toYaml(alice).replace("elo-saison: " + StatsFiles.ELO_SEASON, "elo-saison: 1");
+        assertEquals(0, StatsFiles.fromYaml(ALICE, old).mode("ranked-1v1").elo);
+        assertEquals(1234, StatsFiles.fromYaml(ALICE, old).points(), "the rest of the file stays");
     }
 
     private static List<String> names(List<StatsBook.Row> rows) {

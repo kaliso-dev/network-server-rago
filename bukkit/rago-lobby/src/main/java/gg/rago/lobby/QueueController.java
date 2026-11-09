@@ -46,6 +46,8 @@ final class QueueController {
     private final Set<UUID> toldNoArena = new HashSet<>();
     private final Runnable onChange;
     private final PartyBook parties;
+    /** The ELO of the players, for the ranked queues; null until the stats exist. */
+    private StatsBook book;
 
     QueueController(RagoLobby lobby, LobbySettings settings, LobbyState state, PartyBook parties, Runnable onChange) {
         this.lobby = lobby;
@@ -55,6 +57,15 @@ final class QueueController {
         this.logger = lobby.getLogger();
         this.matchmaker = new Matchmaker(settings.catalog().all(), settings.window());
         this.onChange = onChange;
+    }
+
+    void setBook(StatsBook book) {
+        this.book = book;
+    }
+
+    /** The player's ELO in this mode: what a ranked queue matches on. */
+    int rating(UUID player, GameMode mode) {
+        return book == null ? settings.defaultRating() : book.elo(player, mode.id());
     }
 
     // --- Hosts ----------------------------------------------------------------------------------
@@ -136,7 +147,7 @@ final class QueueController {
             joinTogether(player, party, mode, map);
             return;
         }
-        Matchmaker.JoinResult result = matchmaker.join(player.getUniqueId(), mode.id(), settings.defaultRating(),
+        Matchmaker.JoinResult result = matchmaker.join(player.getUniqueId(), mode.id(), rating(player.getUniqueId(), mode),
                 System.currentTimeMillis(), map);
         switch (result) {
             case JOINED:
@@ -238,7 +249,7 @@ final class QueueController {
         }
         Map<UUID, Integer> ratings = new LinkedHashMap<>();
         for (Player member : players) {
-            ratings.put(member.getUniqueId(), settings.defaultRating());
+            ratings.put(member.getUniqueId(), rating(member.getUniqueId(), mode));
         }
         Matchmaker.JoinResult result = matchmaker.joinParty(party.id(), ratings, mode.id(), System.currentTimeMillis(), map);
         switch (result) {

@@ -10,15 +10,59 @@ import org.bukkit.entity.Player;
 
 /**
  * "Players: hidden": a player in the lobby may hide everyone else. Only in the lobby: a player
- * who leaves for a game sees everyone again, and the choice comes back on returning.
+ * who leaves for a game sees everyone again, and the choice comes back on returning. A vanished
+ * member of the staff stays hidden from everyone but the staff, in the lobby and in the games.
  */
 final class Visibility {
+
+    /** Who is vanished. */
+    interface Vanish {
+        boolean vanished(UUID player);
+    }
 
     /** Hiding and showing everyone is cheap, but not something to spam. */
     private static final long COOLDOWN_MILLIS = 3_000L;
 
     private final Set<UUID> hiding = new HashSet<>();
     private final Map<UUID, Long> lastToggle = new HashMap<>();
+    private Vanish vanish = player -> false;
+
+    void setVanish(Vanish vanish) {
+        this.vanish = vanish;
+    }
+
+    /** False for a vanished member of the staff, to a viewer outside the staff. */
+    boolean canSee(Player viewer, Player target) {
+        return viewer == target || !vanish.vanished(target.getUniqueId()) || viewer.hasPermission("rago.staff");
+    }
+
+    private void show(Player viewer, Player target) {
+        if (canSee(viewer, target)) {
+            viewer.showPlayer(target);
+        } else {
+            viewer.hidePlayer(target);
+        }
+    }
+
+    /**
+     * The player vanished, came back, or joined: the others see them or not (those hiding the lobby
+     * players still do not), and they see the vanished staff or not.
+     */
+    void applyVanish(Player player, LobbyState state) {
+        for (Player other : Bukkit.getOnlinePlayers()) {
+            if (other == player) {
+                continue;
+            }
+            if (!canSee(other, player)) {
+                other.hidePlayer(player);
+            } else if (!(hides(other) && state.isInLobby(other) && state.isInLobby(player))) {
+                other.showPlayer(player);
+            }
+            if (!canSee(player, other)) {
+                player.hidePlayer(other);
+            }
+        }
+    }
 
     boolean hides(Player player) {
         return hiding.contains(player.getUniqueId());
@@ -47,7 +91,7 @@ final class Visibility {
             if (hide && state.isInLobby(other)) {
                 player.hidePlayer(other);
             } else {
-                player.showPlayer(other);
+                show(player, other);
             }
         }
     }
@@ -56,7 +100,7 @@ final class Visibility {
     void showAll(Player player) {
         for (Player other : Bukkit.getOnlinePlayers()) {
             if (other != player) {
-                player.showPlayer(other);
+                show(player, other);
             }
         }
     }
@@ -74,7 +118,7 @@ final class Visibility {
     void revealToAll(Player leaving) {
         for (Player other : Bukkit.getOnlinePlayers()) {
             if (other != leaving) {
-                other.showPlayer(leaving);
+                show(other, leaving);
             }
         }
     }

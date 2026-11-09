@@ -34,6 +34,8 @@ final class Parties implements Listener {
     private final LobbyState state;
     private final NetworkRanks ranks;
     private QueueController queues;
+    /** Whether a player may invite another (their settings): yes to everyone by default. */
+    private java.util.function.BiPredicate<Player, Player> gate = (from, to) -> true;
     /** The players whose chat goes to their party (/chat party). Read by the chat thread. */
     private final Set<UUID> partyChannel = ConcurrentHashMap.newKeySet();
 
@@ -46,6 +48,11 @@ final class Parties implements Listener {
 
     void setQueues(QueueController queues) {
         this.queues = queues;
+    }
+
+    /** Who may invite whom: the gate tells the inviter why not. */
+    void setGate(java.util.function.BiPredicate<Player, Player> gate) {
+        this.gate = gate;
     }
 
     PartyBook book() {
@@ -163,8 +170,11 @@ final class Parties implements Listener {
 
     private void invite(Player player, String name) {
         Player target = Bukkit.getPlayerExact(name);
-        if (target == null) {
+        if (target == null || !lobby.canSee(player, target)) {
             boxed(player, ChatColor.RED + "Couldn't find a player with that name!");
+            return;
+        }
+        if (!target.equals(player) && !gate.test(player, target)) {
             return;
         }
         PartyBook.Invite result = book.invite(player.getUniqueId(), target.getUniqueId(), System.currentTimeMillis());
@@ -380,6 +390,11 @@ final class Parties implements Listener {
         }
         if (message.trim().isEmpty()) {
             boxed(player, ChatColor.RED + "Usage: /pc <message>");
+            return;
+        }
+        String muted = lobby.mutedFor(player);
+        if (muted != null) {
+            player.sendMessage(muted);
             return;
         }
         String line = ChatColor.BLUE + "Party " + ChatColor.DARK_GRAY + "> " + name(player) + ChatColor.WHITE + ": " + message;
