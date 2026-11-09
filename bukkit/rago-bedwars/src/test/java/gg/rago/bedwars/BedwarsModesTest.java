@@ -82,9 +82,9 @@ class BedwarsModesTest {
                 assertNotNull(shop.byId(id), order.id + ": " + id + " is sold");
             }
         }
-        Map<Currency, Integer> firstBuy = FastShopGame.cost(shop, FastShopGame.ORDERS.get(0).items);
-        assertEquals(Integer.valueOf(4 + 4 + 10 + 24), firstBuy.get(Currency.IRON));
-        assertEquals(1, firstBuy.size());
+        Map<Currency, Integer> rushStart = FastShopGame.cost(shop, FastShopGame.ORDERS.get(0).items);
+        assertEquals(Integer.valueOf(4 + 4 + 10), rushStart.get(Currency.IRON));
+        assertEquals(1, rushStart.size());
         // the pickaxe tier after tier: wooden then iron, 10 iron each; the axe 10, the shears 20
         assertEquals(Integer.valueOf(50), FastShopGame.cost(shop, Arrays.asList("pickaxe", "pickaxe", "axe", "shears"))
                 .get(Currency.IRON));
@@ -98,23 +98,33 @@ class BedwarsModesTest {
     }
 
     @Test
-    void aRandomFastShopListCanAlwaysBeBought() {
-        ShopCatalog shop = ShopCatalog.standard();
+    void theFastShopListsAreRealBuysThatTheShopAccepts() {
         List<String> armour = Arrays.asList("chainmail", "iron_boots", "diamond_boots");
-        Random random = new Random(42);
-        for (int i = 0; i < 500; i++) {
-            List<String> list = FastShopGame.randomList(random);
-            assertEquals(5, list.size());
+        Set<String> ids = new HashSet<>();
+        for (FastShopGame.Order order : FastShopGame.ORDERS) {
+            assertTrue(ids.add(order.id), "one record per list: " + order.id);
+            assertTrue(order.items.size() >= 3 && order.items.size() <= 7, order.id + " fits the sidebar");
             int armours = 0;
-            for (String id : list) {
-                assertNotNull(shop.byId(id), id);
+            for (String id : order.items) {
                 if (armour.contains(id)) {
                     armours++;
                 }
             }
-            assertTrue(armours <= 1, "one armour at most: the next would be refused " + list);
-            assertTrue(list.indexOf("shears") == list.lastIndexOf("shears"), "shears once " + list);
+            assertTrue(armours <= 1, "one armour at most: the next would be refused " + order.id);
+            assertTrue(order.items.indexOf("shears") == order.items.lastIndexOf("shears"), "shears once " + order.id);
         }
+        // the defenses of the fast defense: 12 end stone and 16 glass, 12 end stone and 32 wool
+        assertEquals(Arrays.asList("end_stone", "glass", "glass", "glass", "glass"), order("ranked-defense").items);
+        assertEquals(Arrays.asList("end_stone", "wool", "wool"), order("solo-defense").items);
+    }
+
+    private static FastShopGame.Order order(String id) {
+        for (FastShopGame.Order order : FastShopGame.ORDERS) {
+            if (order.id.equals(id)) {
+                return order;
+            }
+        }
+        throw new AssertionError(id);
     }
 
     @Test

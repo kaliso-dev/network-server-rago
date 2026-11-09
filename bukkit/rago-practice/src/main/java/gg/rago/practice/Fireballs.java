@@ -1,5 +1,6 @@
 package gg.rago.practice;
 
+import gg.rago.lobby.api.FireballAim;
 import org.bukkit.Location;
 import org.bukkit.entity.Fireball;
 import org.bukkit.entity.Player;
@@ -8,8 +9,9 @@ import org.bukkit.util.Vector;
 
 /**
  * The Bed Wars fireball, with the values of Hypixel (those of BedWars1058, as in RagoBedwars):
- * thrown at speed 1 where the player looks, it pushes the players up to 3 blocks away from where
- * it lands, and hurts them by 1 heart. The math is pure Java.
+ * thrown at speed 1 where the player looks, speeding up by 0.1 each tick (see {@link FireballAim}),
+ * it pushes the players up to 3 blocks away from where it lands, and hurts them by 1 heart. The
+ * math is pure Java.
  */
 final class Fireballs {
 
@@ -39,7 +41,8 @@ final class Fireballs {
         fireball.setIsIncendiary(false);
         fireball.setYield(YIELD);
         Vector direction = player.getEyeLocation().getDirection();
-        fireball.setDirection(direction);
+        // not Fireball#setDirection: on 1.8 it makes the fireball ten times too fast
+        FireballAim.aim(fireball, direction);
         fireball.setVelocity(direction.clone().multiply(SPEED));
         return fireball;
     }
@@ -56,7 +59,10 @@ final class Fireballs {
         Fireball fireball = from.getWorld().spawn(start, org.bukkit.entity.LargeFireball.class);
         fireball.setIsIncendiary(false);
         fireball.setYield(0f);
-        fireball.setDirection(direction);
+        if (!FireballAim.aim(fireball, direction)) {
+            // without it, a fireball of the world's own would slow down and stop
+            fireball.setDirection(direction);
+        }
         fireball.setVelocity(direction.clone().multiply(speed));
         return fireball;
     }

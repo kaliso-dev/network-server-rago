@@ -2,6 +2,7 @@ package gg.rago.bedwars;
 
 import gg.rago.bedwars.ShopItem.Category;
 import gg.rago.bedwars.ShopItem.Currency;
+import gg.rago.lobby.api.FireballAim;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
@@ -1399,8 +1400,9 @@ class BedwarsGame {
         fireball.setIsIncendiary(false);
         fireball.setYield(FIREBALL_YIELD);
         Vector direction = player.getEyeLocation().getDirection();
-        // straight where the player looks, a little faster each tick, as on Hypixel
-        fireball.setDirection(direction);
+        // straight where the player looks, 0.1 faster each tick, as on Hypixel (not Fireball#setDirection:
+        // on 1.8 it makes the fireball ten times too fast)
+        FireballAim.aim(fireball, direction);
         fireball.setVelocity(direction.clone().multiply(settings.fireball().speed));
         return true;
     }

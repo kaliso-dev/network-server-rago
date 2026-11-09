@@ -10,7 +10,6 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
-import java.util.Random;
 import java.util.UUID;
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
@@ -24,23 +23,21 @@ import org.bukkit.inventory.PlayerInventory;
 /**
  * Fast Shop: buying in the item shop as fast as possible, with the player's own quick buy (copied
  * from Hypixel in the lobby: the emerald of the kit editor, or /hypixel import name). Each player
- * has an island of a Bed Wars map and its shop, a list of items to buy and just the iron, gold
- * and emeralds it takes; the time runs from the opening of the shop to the last item bought.
- * Seven lists, one after the other, each with its records: the first buy, iron armour, the tools,
- * a fireball fight, a bed defense, a rush, and a list drawn at random. A click on an item that is
- * not on the list buys nothing and counts as a misclick. Open: players come and go; nobody can
- * hit anyone, and what is bought is only shown (nothing is placed, thrown, eaten or drunk). Main
- * thread only.
+ * has an island of a Bed Wars map and its shop, a list of items to buy in order and just the
+ * iron, gold and emeralds it takes; the time runs from the opening of the shop to the last item
+ * bought. The lists are what is bought in Ranked Bed Wars and in a clutch, one after the other,
+ * each with its records. A click on anything but the next item of the list buys nothing and counts
+ * as a misclick. Open: players come and go; nobody can hit anyone, and what is bought is only
+ * shown (nothing is placed, thrown, eaten or drunk). Main thread only.
  */
 final class FastShopGame extends BedwarsGame {
 
     /** At most this many players on one island. */
     static final int PER_ISLAND = 2;
-    private static final int RANDOM_ITEMS = 5;
     /** After a list, the next one comes this long after. */
     private static final long NEXT_TICKS = 50L;
 
-    /** A list to buy: its id (for the records), its name, the shop ids, one per click. */
+    /** A list to buy: its id (for the records), its name, the shop ids in the order to buy, one per click. */
     static final class Order {
         final String id;
         final String name;
@@ -53,47 +50,43 @@ final class FastShopGame extends BedwarsGame {
         }
     }
 
-    /** The lists, in the order they come. The last one is drawn at random each time. */
+    /** The lists, in the order they come: what is bought in Ranked Bed Wars and in a clutch. */
     static final List<Order> ORDERS = Collections.unmodifiableList(Arrays.asList(
-            new Order("first-buy", "First buy", "wool", "wool", "stone_sword", "chainmail"),
-            new Order("iron-armour", "Iron armour", "iron_boots", "wool", "wool", "golden_apple", "golden_apple"),
-            new Order("tools", "Tools", "pickaxe", "pickaxe", "axe", "shears"),
-            new Order("fireball-fight", "Fireball fight", "fireball", "fireball", "fireball", "fireball", "wool", "wool",
-                    "golden_apple"),
-            new Order("bed-defense", "Bed defense", "end_stone", "end_stone", "plank", "plank", "wool", "wool"),
-            new Order("rush", "Rush", "iron_sword", "wool", "wool", "wool", "tnt", "ender_pearl", "speed"),
-            new Order("random", "Random list")));
+            new Order("rush-start", "Rush start", "wool", "wool", "stone_sword"),
+            new Order("ranked-defense", "Ranked bed defense", "end_stone", "glass", "glass", "glass", "glass"),
+            new Order("solo-defense", "Solo bed defense", "end_stone", "wool", "wool"),
+            new Order("first-rotation", "Iron armour and tools", "iron_boots", "pickaxe", "shears"),
+            new Order("fireball-fight", "Fireball fight", "fireball", "fireball", "golden_apple", "wool"),
+            new Order("bed-break", "Bed break", "pickaxe", "pickaxe", "shears", "tnt"),
+            new Order("clutch-bed", "Clutch: your bed is attacked", "wool", "wool", "fireball", "golden_apple"),
+            new Order("clutch-respawn", "Clutch: back from a death", "stone_sword", "wool", "wool", "golden_apple"),
+            new Order("emeralds", "Emeralds: the late game", "diamond_boots", "ender_pearl", "golden_apple"),
+            new Order("invis-rush", "Invisibility rush", "invisibility", "jump", "wool", "wool", "fireball")));
 
-    /** What the random list draws from: each id once at most, but the blocks and what is used up. */
-    private static final List<String> RANDOM_POOL = Collections.unmodifiableList(Arrays.asList("wool", "clay", "glass",
-            "end_stone", "ladder", "plank", "obsidian", "stone_sword", "iron_sword", "diamond_sword", "stick", "chainmail",
-            "iron_boots", "diamond_boots", "shears", "pickaxe", "axe", "arrow", "bow", "speed", "jump", "invisibility",
-            "golden_apple", "fireball", "tnt", "ender_pearl", "water", "sponge"));
-    private static final List<String> ARMOUR = Arrays.asList("chainmail", "iron_boots", "diamond_boots");
-    private static final List<String> REPEATABLE = Arrays.asList("wool", "clay", "glass", "end_stone", "ladder", "plank",
-            "obsidian", "arrow", "golden_apple", "fireball", "tnt");
-
-    /** A player's list being bought. */
+    /** A player's list being bought, in order. */
     private static final class Run {
         final Order order;
         final List<String> items;
-        final List<String> left;
+        /** How many items of the list are bought: the next one is items[bought]. */
+        int bought;
         long started;
         long finished;
         int misclicks;
 
-        Run(Order order, List<String> items) {
+        Run(Order order) {
             this.order = order;
-            this.items = items;
-            this.left = new ArrayList<>(items);
+            this.items = order.items;
         }
 
         boolean done() {
-            return left.isEmpty();
+            return bought >= items.size();
+        }
+
+        String next() {
+            return done() ? null : items.get(bought);
         }
     }
 
-    private final Random random = new Random();
     private final FastShopRecords records;
     /** Every island of the map, each with a shop. */
     private final List<Team> islands = new ArrayList<>();
@@ -293,8 +286,8 @@ final class FastShopGame extends BedwarsGame {
             newRun(player, gamer);
             return;
         }
-        List<String> items = order.items.isEmpty() ? randomList(random) : order.items;
-        Run run = new Run(order, items);
+        List<String> items = order.items;
+        Run run = new Run(order);
         runs.put(gamer.id, run);
         gamer.armor = 0;
         gamer.pickaxe = -1;
@@ -315,30 +308,13 @@ final class FastShopGame extends BedwarsGame {
             }
         }
         player.updateInventory();
-        List<String> names = new ArrayList<>();
-        for (String id : items) {
-            ShopItem item = catalog.byId(id);
-            names.add(item == null ? id : shortName(item));
+        player.sendMessage(ChatColor.AQUA + "" + ChatColor.BOLD + order.name + ChatColor.AQUA + ": buy in this order.");
+        for (int i = 0; i < items.size(); i++) {
+            player.sendMessage(ChatColor.GRAY + " " + (i + 1) + ". " + ChatColor.WHITE + nameOf(items.get(i)));
         }
-        player.sendMessage(ChatColor.AQUA + "" + ChatColor.BOLD + order.name + ChatColor.AQUA + ": " + ChatColor.WHITE
-                + String.join(ChatColor.GRAY + ", " + ChatColor.WHITE, names) + ChatColor.AQUA + ". Open the shop: the time starts.");
+        player.sendMessage(ChatColor.AQUA + "Open the shop: the time starts.");
         player.playSound(player.getLocation(), Sound.ORB_PICKUP, 1f, 1f);
         sidebars();
-    }
-
-    /** Five items drawn from the shop: one armour at most, each tool or potion once. */
-    static List<String> randomList(Random random) {
-        List<String> drawn = new ArrayList<>();
-        boolean armour = false;
-        while (drawn.size() < RANDOM_ITEMS) {
-            String id = RANDOM_POOL.get(random.nextInt(RANDOM_POOL.size()));
-            if (ARMOUR.contains(id) ? armour : drawn.contains(id) && !REPEATABLE.contains(id)) {
-                continue;
-            }
-            armour |= ARMOUR.contains(id);
-            drawn.add(id);
-        }
-        return drawn;
     }
 
     /** What these clicks cost in this shop, the pickaxe and the axe tier after tier. */
@@ -363,6 +339,11 @@ final class FastShopGame extends BedwarsGame {
         return cost;
     }
 
+    private String nameOf(String id) {
+        ShopItem item = catalog.byId(id);
+        return item == null ? id : shortName(item);
+    }
+
     private static String shortName(ShopItem item) {
         String name = item.name().replace("Permanent ", "");
         int cut = name.indexOf(" (");
@@ -377,7 +358,7 @@ final class FastShopGame extends BedwarsGame {
         }
     }
 
-    /** Only what is on the list can be bought; the last item stops the time. */
+    /** Only the next item of the list can be bought; the last one stops the time. */
     @Override
     boolean buy(Player player, ShopItem item) {
         Gamer gamer = gamers.get(player.getUniqueId());
@@ -386,9 +367,11 @@ final class FastShopGame extends BedwarsGame {
             return false;
         }
         ShopItem bought = shown(gamer, item);
-        if (!run.left.contains(bought.id())) {
+        if (!bought.id().equals(run.next())) {
             run.misclicks++;
-            player.sendMessage(ChatColor.RED + shortName(bought) + " is not on your list.");
+            player.sendMessage(ChatColor.RED + (run.items.contains(bought.id()) ? "Not yet: " : "Not on your list: ")
+                    + ChatColor.WHITE + shortName(bought) + ChatColor.RED + ". Next: " + ChatColor.WHITE + nameOf(run.next())
+                    + ChatColor.RED + ".");
             player.playSound(player.getLocation(), Sound.VILLAGER_NO, 1f, 1f);
             return false;
         }
@@ -398,7 +381,7 @@ final class FastShopGame extends BedwarsGame {
         if (!super.buy(player, item)) {
             return false;
         }
-        run.left.remove(bought.id());
+        run.bought++;
         if (run.done()) {
             finished(player, gamer, run);
         } else {
@@ -456,8 +439,8 @@ final class FastShopGame extends BedwarsGame {
         if (run == null) {
             return lines;
         }
-        lines.add(ChatColor.WHITE + run.order.name + ": " + ChatColor.GREEN + (run.items.size() - run.left.size())
-                + ChatColor.GRAY + "/" + run.items.size());
+        String title = run.order.name.length() > 24 ? run.order.name.substring(0, 24) : run.order.name;
+        lines.add(ChatColor.WHITE + title + ": " + ChatColor.GREEN + run.bought + ChatColor.GRAY + "/" + run.items.size());
         long elapsed = run.started == 0 ? 0 : (run.done() ? run.finished : System.currentTimeMillis()) - run.started;
         lines.add(ChatColor.WHITE + "Time: " + ChatColor.GREEN + (run.started == 0 ? "-" : seconds(elapsed) + " s"));
         Long best = records.best(run.order.id, viewer.id);
@@ -468,15 +451,17 @@ final class FastShopGame extends BedwarsGame {
             lines.add(ChatColor.WHITE + "Record: " + ChatColor.GOLD + seconds(top.millis) + " s " + ChatColor.GRAY + name);
         }
         lines.add("");
-        // what is left to buy, as many lines as there is room for
-        List<String> shown = new ArrayList<>();
-        for (String id : run.left) {
-            ShopItem item = catalog.byId(id);
-            String name = item == null ? id : shortName(item);
-            shown.add(ChatColor.RED + "✘ " + ChatColor.WHITE + (name.length() > 30 ? name.substring(0, 30) : name));
-        }
-        for (int i = 0; i < shown.size() && lines.size() < 12; i++) {
-            lines.add(shown.get(i));
+        // the list in order: what is bought, the next item, then the rest, as many as there is room for
+        for (int i = 0; i < run.items.size() && lines.size() < 14; i++) {
+            String name = nameOf(run.items.get(i));
+            name = name.length() > 24 ? name.substring(0, 24) : name;
+            if (i < run.bought) {
+                lines.add(ChatColor.GREEN + "✔ " + ChatColor.GRAY + (i + 1) + ". " + name);
+            } else if (i == run.bought) {
+                lines.add(ChatColor.YELLOW + "➜ " + ChatColor.WHITE + ChatColor.BOLD + (i + 1) + ". " + name);
+            } else {
+                lines.add(ChatColor.DARK_GRAY + "  " + ChatColor.WHITE + (i + 1) + ". " + name);
+            }
         }
         return lines;
     }
