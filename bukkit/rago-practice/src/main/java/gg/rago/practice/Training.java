@@ -14,12 +14,14 @@ import org.bukkit.event.block.Action;
 import org.bukkit.event.entity.EntityDamageEvent;
 import org.bukkit.event.player.PlayerInteractEvent;
 import org.bukkit.inventory.ItemStack;
+import org.bukkit.inventory.PlayerInventory;
 
 /**
  * A solo training: one player, attempts one after the other (each on the arena as built), a
- * personal best and the server's best for each of its variants, kept in records.yml. Two items
- * at the end of the hotbar: the variant (when there are several) and a restart. No damage, no
- * stats: the player leaves with /spawn.
+ * personal best and the server's best for each of its variants, kept in records.yml. At the end
+ * of the hotbar, a bar of controls: a red dye lowers and a green dye raises, the mode (when there
+ * are several) and each setting of the training, the number on the dyes giving where it is now;
+ * a blaze rod restarts. No damage, no stats: the player leaves with /spawn.
  */
 abstract class Training extends PracticeGame {
 
@@ -40,13 +42,68 @@ abstract class Training extends PracticeGame {
         }
     }
 
-    static final String MODE_ITEM = ChatColor.GREEN + "Change mode" + ChatColor.GRAY + " (right click)";
+    /**
+     * A setting of the training the player changes from the hotbar: a whole number from min to max,
+     * or on and off (one item flips it).
+     */
+    static final class Setting {
+        final String label;
+        final int min;
+        final int max;
+        final boolean toggle;
+        int value;
+
+        Setting(String label, int min, int max, int value, boolean toggle) {
+            this.label = label;
+            this.min = min;
+            this.max = max;
+            this.value = value;
+            this.toggle = toggle;
+        }
+
+        boolean on() {
+            return value != 0;
+        }
+
+        /** The value as the player reads it: "3/5" with a bar, or On / Off. */
+        String text() {
+            if (toggle) {
+                return on() ? ChatColor.GREEN + "On" : ChatColor.RED + "Off";
+            }
+            StringBuilder bar = new StringBuilder();
+            for (int i = min; i <= max && max - min <= 10; i++) {
+                bar.append(i <= value ? ChatColor.GREEN : ChatColor.DARK_GRAY).append('|');
+            }
+            return bar + " " + ChatColor.WHITE + value + ChatColor.GRAY + "/" + max;
+        }
+
+        /** One step lower (-1) or higher (+1), within min and max; true if it changed. */
+        boolean step(int by) {
+            int next = toggle ? (on() ? 0 : 1) : Math.max(min, Math.min(max, value + by));
+            if (next == value) {
+                return false;
+            }
+            value = next;
+            return true;
+        }
+    }
+
     static final String RESTART_ITEM = ChatColor.YELLOW + "Restart" + ChatColor.GRAY + " (right click)";
-    static final int MODE_SLOT = 7;
+    static final String PREVIOUS_MODE = ChatColor.RED + "\u25C0 Previous mode";
+    static final String NEXT_MODE = ChatColor.GREEN + "Next mode \u25B6";
+    static final String LOWER = ChatColor.RED + "- ";
+    static final String RAISE = ChatColor.GREEN + "+ ";
+    static final String SWITCH = ChatColor.YELLOW + "";
     static final int RESTART_SLOT = 8;
+    /** The dyes: red lowers, green raises, gray is a setting that is off. */
+    static final int RED_DYE = 1;
+    static final int GREEN_DYE = 10;
+    static final int GRAY_DYE = 8;
 
     final List<Variant> variants = new ArrayList<>();
     int variant;
+    /** The settings of the training, in the hotbar after the mode. */
+    final List<Setting> settings = new ArrayList<>();
     final UUID me;
     private final String myName;
     /** The last score of the player, for the sidebar. */
@@ -103,13 +160,98 @@ abstract class Training extends PracticeGame {
         return kit();
     }
 
+    /** A setting of this training, from lowest to highest, starting at value. */
+    Setting setting(String label, int min, int max, int value) {
+        Setting setting = new Setting(label, min, max, value, false);
+        settings.add(setting);
+        return setting;
+    }
+
+    /** An on and off setting of this training. */
+    Setting toggle(String label, boolean on) {
+        Setting setting = new Setting(label, 0, 1, on ? 1 : 0, true);
+        settings.add(setting);
+        return setting;
+    }
+
+    /** A setting was changed from the hotbar: by default, the attempt starts again with it. */
+    void settingChanged(Setting setting) {
+        startRound();
+    }
+
     @Override
     void afterKit(Player player) {
+        controls(player);
+    }
+
+    /**
+     * The bar of controls, from the right of the hotbar: the restart, the mode (previous, next),
+     * then each setting (lower, raise; or one item for on and off). The number on a dye is where
+     * the mode or the setting is now.
+     */
+    void controls(Player player) {
+        PlayerInventory inventory = player.getInventory();
+        int slot = RESTART_SLOT;
+        inventory.setItem(slot--, named(Material.BLAZE_ROD, 1, 0, RESTART_ITEM));
         if (variants.size() > 1) {
-            player.getInventory().setItem(MODE_SLOT, named(Material.NETHER_STAR, 1, 0, MODE_ITEM,
-                    ChatColor.GRAY + "Now: " + ChatColor.WHITE + current().label));
+            String now = ChatColor.GRAY + "Now: " + ChatColor.WHITE + current().label + ChatColor.GRAY + " (" + (variant + 1)
+                    + "/" + variants.size() + ")";
+            inventory.setItem(slot--, named(Material.INK_SACK, variant + 1, GREEN_DYE, NEXT_MODE, now, ChatColor.GRAY + "Right click"));
+            inventory.setItem(slot--, named(Material.INK_SACK, variant + 1, RED_DYE, PREVIOUS_MODE, now, ChatColor.GRAY + "Right click"));
         }
-        player.getInventory().setItem(RESTART_SLOT, named(Material.BLAZE_ROD, 1, 0, RESTART_ITEM));
+        for (Setting setting : settings) {
+            if (slot < 0) {
+                break;
+            }
+            String now = ChatColor.GRAY + "Now: " + setting.text();
+            if (setting.toggle) {
+                inventory.setItem(slot--, named(Material.INK_SACK, 1, setting.on() ? GREEN_DYE : GRAY_DYE,
+                        SWITCH + setting.label + ": " + setting.text(), ChatColor.GRAY + "Right click: on or off"));
+                continue;
+            }
+            int amount = Math.max(1, Math.min(64, setting.value));
+            inventory.setItem(slot--, named(Material.INK_SACK, amount, GREEN_DYE, RAISE + setting.label, now,
+                    ChatColor.GRAY + "Right click: raise"));
+            if (slot >= 0) {
+                inventory.setItem(slot--, named(Material.INK_SACK, amount, RED_DYE, LOWER + setting.label, now,
+                        ChatColor.GRAY + "Right click: lower"));
+            }
+        }
+    }
+
+    /** If this item is a control (the mode, a setting), applies it and returns true. */
+    private boolean control(Player player, ItemStack item) {
+        if (item == null || item.getType() != Material.INK_SACK || !item.hasItemMeta() || !item.getItemMeta().hasDisplayName()) {
+            return false;
+        }
+        String name = item.getItemMeta().getDisplayName();
+        if (name.equals(PREVIOUS_MODE) || name.equals(NEXT_MODE)) {
+            int by = name.equals(NEXT_MODE) ? 1 : -1;
+            variant = (variant + by + variants.size()) % variants.size();
+            player.sendMessage(ChatColor.GREEN + "Mode: " + ChatColor.WHITE + current().label + ChatColor.GRAY + " - " + describe());
+            sound(player, Sound.CLICK, by > 0 ? 1.2f : 0.9f);
+            startRound();
+            return true;
+        }
+        for (Setting setting : settings) {
+            int by = name.equals(RAISE + setting.label) ? 1 : name.equals(LOWER + setting.label) ? -1
+                    : name.startsWith(SWITCH + setting.label + ": ") && setting.toggle ? 1 : 0;
+            if (by == 0) {
+                continue;
+            }
+            if (!setting.step(by)) {
+                player.sendMessage(ChatColor.GRAY + setting.label + " is already at its " + (by > 0 ? "highest" : "lowest") + ".");
+                sound(player, Sound.VILLAGER_NO, 1f);
+                return true;
+            }
+            player.sendMessage(ChatColor.GREEN + setting.label + ": " + setting.text());
+            sound(player, Sound.CLICK, by > 0 ? 1.2f : 0.9f);
+            controls(player);
+            player.updateInventory();
+            settingChanged(setting);
+            return true;
+        }
+        return false;
     }
 
     @Override
@@ -119,12 +261,8 @@ abstract class Training extends PracticeGame {
             return;
         }
         ItemStack item = event.getItem();
-        if (isNamed(item, Material.NETHER_STAR, MODE_ITEM)) {
+        if (control(player, item)) {
             event.setCancelled(true);
-            variant = (variant + 1) % variants.size();
-            player.sendMessage(ChatColor.GREEN + "Mode: " + ChatColor.WHITE + current().label + ChatColor.GRAY + " - " + describe());
-            sound(player, Sound.CLICK, 1f);
-            startRound();
             return;
         }
         if (isNamed(item, Material.BLAZE_ROD, RESTART_ITEM)) {
@@ -147,7 +285,13 @@ abstract class Training extends PracticeGame {
     void intro(Player player) {
         player.sendMessage(ChatColor.AQUA + "" + ChatColor.BOLD + ChatColor.stripColor(mode.name()) + ChatColor.GRAY
                 + " - " + ChatColor.WHITE + current().label + ChatColor.GRAY + ": " + describe());
-        player.sendMessage(ChatColor.GRAY + "The star changes the mode, the blaze rod restarts, /spawn takes you back to the lobby.");
+        if (variants.size() > 1 || !settings.isEmpty()) {
+            player.sendMessage(ChatColor.GRAY + "Hotbar: " + ChatColor.RED + "red dye" + ChatColor.GRAY + " lowers, "
+                    + ChatColor.GREEN + "green dye" + ChatColor.GRAY + " raises (the mode, the settings: the number on the dye is where"
+                    + " it is), " + ChatColor.YELLOW + "blaze rod" + ChatColor.GRAY + " restarts. /spawn: back to the lobby.");
+        } else {
+            player.sendMessage(ChatColor.GRAY + "The blaze rod restarts, /spawn takes you back to the lobby.");
+        }
     }
 
     /** The text of a score: "4.512 s" or "12 clutches". */

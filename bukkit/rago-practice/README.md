@@ -35,7 +35,7 @@ stats du lobby. Quitter le serveur ou taper `/spawn` pendant le duel, c'est perd
 
 ## Les entraînements
 
-Un joueur seul. Chaque entraînement a ses variantes (l'étoile les change, la blaze rod recommence),
+Un joueur seul. Chaque entraînement a ses variantes (dans la hotbar, le colorant rouge baisse et le vert monte, le mode puis les réglages, le nombre sur le colorant dit où on en est ; la blaze rod recommence),
 et chaque variante son record : le meilleur score du joueur et celui du serveur, gardés dans
 `plugins/RagoPractice/records.yml` et affichés dans le scoreboard avec le rang du joueur.
 
