@@ -266,7 +266,9 @@ générateur vide ; un monde de build peut donc servir de lobby.
   (`tableaux: [[elo, kills, niveau]]`, celui de leaderboardprincipal) : un clic droit passe au
   classement suivant, un clic gauche change la période ou le mode classé, et un clic sur la ligne
   « Click here: next leaderboard » ou « Click here: change the period » fait ce qu'elle dit. Un
-  tableau se clique de 16 blocs, n'importe où sur son texte : le plugin suit le regard du joueur. Le tableau `niveau` est
+  clic gauche atteint un tableau de 16 blocs, n'importe où sur son texte : le plugin suit le
+  regard du joueur. Un clic droit ne l'atteint que de près : plus loin, l'objet en main (boussole,
+  livre...) garde le clic droit. Le tableau `niveau` est
   classé par XP et montre le niveau. leaderboardplayer montre les kills du jour, de la semaine et
   à vie, entre les meilleures séries de victoires (à gauche) et le niveau Network (à droite).
 - `podium:` (dans un mur de `classements:`) : jusqu'à 5 marches, la 1re place d'abord. Sur chacune

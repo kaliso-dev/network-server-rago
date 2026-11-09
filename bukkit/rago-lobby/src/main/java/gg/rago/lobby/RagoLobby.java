@@ -522,6 +522,11 @@ public final class RagoLobby extends JavaPlugin implements LobbyService {
         return statsDisplays != null && statsDisplays.clickAimed(player, left);
     }
 
+    /** True if this player aims at a leaderboard: their left click goes to it. */
+    boolean aimsAtBoard(Player player) {
+        return statsDisplays != null && statsDisplays.aimed(player);
+    }
+
     void use(Player player, HotbarItem item) {
         switch (item) {
             case SELECTOR:

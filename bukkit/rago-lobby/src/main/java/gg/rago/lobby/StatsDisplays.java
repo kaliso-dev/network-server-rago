@@ -26,10 +26,11 @@ import org.bukkit.util.Vector;
  * when it starts again. A click on a board changes its period (day, week, ever) for that player,
  * or its mode for an ELO board. A board with several stats goes to the next one on a right
  * click, and changes the period or the mode on a left click; a click (either) on its line "Click
- * here: next leaderboard" or "Click here: change the period" does what the line says. A board is
- * clicked from as far as {@link #AIM_REACH} blocks, anywhere on its text: the player's look is
- * followed to it (the armor stands of its lines are too thin to aim at, and an entity is only
- * clicked from 3 blocks).
+ * here: next leaderboard" or "Click here: change the period" does what the line says. A left
+ * click goes to a board from as far as {@link #AIM_REACH} blocks, anywhere on its text: the
+ * player's look is followed to it (the armor stands of its lines are too thin to aim at, and an
+ * entity is only clicked from 3 blocks). A right click goes to it from up close only: further, the
+ * item in the hand (the compass, the book...) keeps it.
  * </ul>
  * Main thread only.
  */
@@ -408,8 +409,36 @@ final class StatsDisplays {
      * went to one (the nearest one aimed at), even when it came too soon after the last.
      */
     boolean clickAimed(Player player, boolean left) {
-        if (spots.isEmpty()) {
+        Aim aim = aimOf(player);
+        if (aim == null) {
             return false;
+        }
+        if (cooled(player)) {
+            clickLine(player.getUniqueId(), aim.spot.stats, aim.spot.key, lineAt(aim.height), left);
+        }
+        return true;
+    }
+
+    /** True if this player aims at a board within {@link #AIM_REACH} blocks: a left click goes to it. */
+    boolean aimed(Player player) {
+        return aimOf(player) != null;
+    }
+
+    /** The board a player aims at, and how high on it. */
+    private static final class Aim {
+        final Spot spot;
+        final double height;
+
+        Aim(Spot spot, double height) {
+            this.spot = spot;
+            this.height = height;
+        }
+    }
+
+    /** The nearest board this player aims at, or null. */
+    private Aim aimOf(Player player) {
+        if (spots.isEmpty()) {
+            return null;
         }
         Location eye = player.getEyeLocation();
         Vector way = eye.getDirection();
@@ -430,13 +459,7 @@ final class StatsDisplays {
                 height = eye.getY() + way.getY() * distance - spot.bottom;
             }
         }
-        if (aimed == null) {
-            return false;
-        }
-        if (cooled(player)) {
-            clickLine(player.getUniqueId(), aimed.stats, aimed.key, lineAt(height), left);
-        }
-        return true;
+        return aimed == null ? null : new Aim(aimed, height);
     }
 
     /** The line of a board at this height above the name of its last line (0 for the title). */

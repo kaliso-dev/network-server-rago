@@ -130,12 +130,6 @@ final class LobbyListener implements Listener {
             lobby.daily().claim(player);
             return;
         }
-        boolean right = event.getAction() == Action.RIGHT_CLICK_AIR || event.getAction() == Action.RIGHT_CLICK_BLOCK;
-        if (right && lobby.clickBoard(player, false)) {
-            // A right click on a leaderboard, the hotbar item in the hand or not.
-            event.setCancelled(true);
-            return;
-        }
         // Chests, doors, buttons and the like are not used in the lobby.
         event.setUseInteractedBlock(Event.Result.DENY);
         HotbarItem item = HotbarItem.of(event.getItem());
@@ -146,7 +140,9 @@ final class LobbyListener implements Listener {
         event.setCancelled(true);
         if (event.getAction() == Action.RIGHT_CLICK_AIR || event.getAction() == Action.RIGHT_CLICK_BLOCK) {
             lobby.use(player, item);
-        } else if (item.gadget() && (event.getAction() == Action.LEFT_CLICK_AIR || event.getAction() == Action.LEFT_CLICK_BLOCK)) {
+        } else if (item.gadget() && (event.getAction() == Action.LEFT_CLICK_AIR || event.getAction() == Action.LEFT_CLICK_BLOCK)
+                && !lobby.aimsAtBoard(player)) {
+            // A left click on a leaderboard goes to the board (onSwing), not to the gadgets.
             lobby.openGadgets(player);
         }
     }
