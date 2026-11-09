@@ -162,7 +162,8 @@ class LobbySettingsTest {
         LobbySettings settings = LobbySettings.load(bundledConfig());
         assertNull(settings.display("sumo").kit(), "a sumo is fought bare-handed");
         assertEquals(Material.DIAMOND_SWORD, settings.display("boxing").kit().item(0).material());
-        assertEquals(KitItem.parse("FIREBALL 16"), settings.display("fireball").kit().item(1));
+        assertEquals(KitItem.parse("FIREBALL 6"), settings.display("fireball").kit().item(3), "the kit of the fireball maps");
+        assertEquals(KitItem.parse("LADDER 16"), settings.display("block-fight-1v1").kit().item(7), "the kit of the block placement maps");
         assertEquals(Material.IRON_SWORD, settings.display("ffa").kit().item(0).material());
         assertEquals(Material.GOLD_PICKAXE, settings.display("invis-practice").kit().item(4).material(),
                 "the attacker's pickaxe, for the end stone of the defense");

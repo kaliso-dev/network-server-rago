@@ -2,9 +2,11 @@ package gg.rago.practice;
 
 import gg.rago.lobby.api.VoidGenerator;
 import java.io.File;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.logging.Logger;
@@ -263,6 +265,17 @@ final class MapCopy {
             }
         }
         return 0;
+    }
+
+    /** Where the copy holds blocks of this id: x, y, z from the origin each. */
+    List<int[]> find(int id) {
+        List<int[]> places = new ArrayList<>();
+        for (int i = 0; i < blocks.length; i += 5) {
+            if (blocks[i + 3] == id) {
+                places.add(new int[] {blocks[i], blocks[i + 1], blocks[i + 2]});
+            }
+        }
+        return places;
     }
 
     /** True if the copy holds a block of this id at this place. */

@@ -628,10 +628,11 @@ modes:
     equipes: 2
     joueurs-par-equipe: 1
     classe: false
-    kit: [IRON_SWORD, "FIREBALL 16", "TNT 4", "WOOL 64", SHEARS]
+    kit: [STONE_SWORD, WOOD_PICKAXE, WOOD_AXE, "FIREBALL 6", "WOOL 64", "ENDER_STONE 8", "TNT 2", SHEARS, "LADDER 8"]
     description:
-      - "Fireballs and TNT:"
-      - "the last one standing wins."
+      - "Fireballs and TNT: break"
+      - "their bed, the last one"
+      - "standing wins."
   attack-defense-1v1:
     nom: "&cAttack and defense 1v1"
     categorie: duels

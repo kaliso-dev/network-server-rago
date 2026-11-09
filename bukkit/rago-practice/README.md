@@ -48,9 +48,12 @@ stats du lobby. Quitter le serveur ou taper `/spawn` pendant le duel, c'est perd
   de lits cassés gagne, et à égalité le plus rapide. L'île est l'île rouge de Lotus
   (`attaque-defense` dans la config : le monde, la zone, le lit, le départ du défenseur et le
   pont) ; sans ce monde, une île simple.
-- **Fireball fight** : chaque camp a son île et son lit sous une défense de bois et de laine, des
-  boules de feu, de la TNT, de la laine et une épée. Tant que le lit tient, on revient au bout de
-  3 secondes ; ensuite, une mort est définitive. Le dernier camp debout gagne.
+- **Fireball fight** : chaque camp a son île et son lit sous une défense de bois et de laine. Le
+  stuff des maps du propriétaire : épée en pierre, pioche et hache Efficiency I, 6 boules de feu,
+  un stack de laine, 8 end stone, 2 TNT, cisailles, 8 échelles, armure en cuir. Tant que le lit
+  tient, on revient au bout de 3 secondes ; ensuite, une mort est définitive. Le dernier camp
+  debout gagne. Sur une map de `fireball.cartes` (`config.yml`), chaque camp part de son départ et
+  les lits sont ceux de la map (un lit est au camp dont le départ est le plus proche).
 - **Block edit 1v1** : la station du block edit avec une pièce de chaque côté du mur de laine.
   Casser un bloc du mur, frapper l'autre par le trou, et remettre un bloc dans le mur avant qu'il
   ne frappe : un point. S'il frappe en retour d'abord, le point passe de son côté. Coups sans

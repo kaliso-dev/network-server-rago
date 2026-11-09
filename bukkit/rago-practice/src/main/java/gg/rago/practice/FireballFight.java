@@ -21,10 +21,13 @@ import org.bukkit.event.player.PlayerInteractEvent;
 import org.bukkit.inventory.ItemStack;
 
 /**
- * Fireball fight: each side has an island and a bed under a defense of wood and wool, fireballs,
- * TNT, wool and a sword. While its bed stands, a dead player comes back in 3 seconds; once it is
- * broken, a death is final. The last side standing wins. Fireballs and TNT as in Bed Wars: they
- * push, they hurt a little, and they only blow up wool, wood and the blocks the players placed.
+ * Fireball fight: each side has an island and a bed under a defense of wood and wool. The kit of
+ * the owner's maps: a stone sword, a pickaxe and an axe (Efficiency I), 6 fireballs, wool, end
+ * stone, 2 TNT, shears and ladders. While its bed stands, a dead player comes back in 3 seconds;
+ * once it is broken, a death is final. The last side standing wins. Fireballs and TNT as in Bed
+ * Wars: they push, they hurt a little, and they only blow up wool, wood and the blocks the players
+ * placed. On a map of fireball.cartes (config.yml), each side starts on its start and the beds are
+ * the map's own: a bed is the side's whose start is nearer.
  */
 final class FireballFight extends Duel {
 
@@ -57,19 +60,37 @@ final class FireballFight extends Duel {
         return "break the bed";
     }
 
+    /** True on a map of the owner's, with a start for each side. */
+    private boolean onMap() {
+        return arena.map() != null && arena.map().starts.length >= 2;
+    }
+
     @Override
     void build() {
+        if (arena.map() != null) {
+            return;
+        }
         Shapes.island(arena, -19, -5, -11, 5, Material.STAINED_CLAY, Shapes.RED, Material.HARD_CLAY, 0);
         Shapes.island(arena, 11, -5, 19, 5, Material.STAINED_CLAY, Shapes.BLUE, Material.HARD_CLAY, 0);
         Shapes.island(arena, -2, -2, 2, 2, Material.WOOL, Shapes.WHITE, Material.HARD_CLAY, 0);
     }
 
     @Override
+    @SuppressWarnings("deprecation") // Material#getId: the block id of the beds in the copy of the map
     void roundReset() {
         super.roundReset();
         respawning.clear();
         beds[0] = true;
         beds[1] = true;
+        if (onMap()) {
+            // the map's own beds, put back with the rest of the map at each restore
+            beds[0] = false;
+            beds[1] = false;
+            for (int[] bed : arena.map().copy.find(Material.BED_BLOCK.getId())) {
+                beds[sideAt(bed[0], bed[2])] = true;
+            }
+            return;
+        }
         for (int side = 0; side < 2; side++) {
             int sign = side == 0 ? -1 : 1;
             Shapes.putBed(arena, sign * BED_X, 1, 0, sign, 0);
@@ -81,19 +102,36 @@ final class FireballFight extends Duel {
     @Override
     Location spawnOf(UUID player) {
         int side = sideOf(player);
+        Location start = arena.mapStart(Math.max(0, side));
+        if (start != null && onMap()) {
+            // teammates side by side, across the way they look
+            double across = across(player) * 2;
+            double yaw = Math.toRadians(start.getYaw());
+            return start.add(-Math.cos(yaw) * across, 0, -Math.sin(yaw) * across);
+        }
         double z = across(player) * 2 + 0.5;
         return side == 0 ? arena.at(-11.5, 1, z, -90f) : arena.at(12.5, 1, z, 90f);
     }
 
     @Override
     double fallY() {
-        return arena.floorY() - 10;
+        return arena.floorY() - (arena.map() != null ? 20 : 10);
     }
 
     @Override
     ItemStack[] defaultKit(Player player) {
-        return new ItemStack[] {new ItemStack(Material.IRON_SWORD), new ItemStack(Material.FIREBALL, 16),
-            new ItemStack(Material.TNT, 4), new ItemStack(Material.WOOL, 64), new ItemStack(Material.SHEARS)};
+        return new ItemStack[] {new ItemStack(Material.STONE_SWORD), new ItemStack(Material.WOOD_PICKAXE),
+            new ItemStack(Material.WOOD_AXE), new ItemStack(Material.FIREBALL, 6), new ItemStack(Material.WOOL, 64),
+            new ItemStack(Material.ENDER_STONE, 8), new ItemStack(Material.TNT, 2), new ItemStack(Material.SHEARS),
+            new ItemStack(Material.LADDER, 8)};
+    }
+
+    /** Efficiency I on the pickaxe and the axe, wherever the player put them. */
+    @Override
+    void afterKit(Player player) {
+        ItemStack[] items = player.getInventory().getContents();
+        BlockFight.enchantTools(items);
+        player.getInventory().setContents(items);
     }
 
     @Override
@@ -138,12 +176,33 @@ final class FireballFight extends Duel {
             host.litBy(tnt, player);
             return false;
         }
+        if (arena.map() != null) {
+            return arena.contains(block, 95, 20, 30);
+        }
         return arena.contains(block, 32, 12, 16);
     }
 
     /** The side whose bed this block is, from where it stands. */
     private int bedSide(Block block) {
-        return block.getX() < arena.centreX() ? 0 : 1;
+        return sideAt(block.getX() - arena.centreX(), block.getZ() - arena.centreZ());
+    }
+
+    /**
+     * The side of this place (x, z from the centre): on a map, the side whose start is nearer;
+     * on the plugin's islands, the red side west of the middle.
+     */
+    private int sideAt(double x, double z) {
+        if (!onMap()) {
+            return x < 0 ? 0 : 1;
+        }
+        return nearer(arena.map().starts[0], arena.map().starts[1], x + 0.5, z + 0.5);
+    }
+
+    /** 0 if the point (x, z) is nearer the first start than the second one, else 1. */
+    static int nearer(double[] first, double[] second, double x, double z) {
+        double d0 = (first[0] - x) * (first[0] - x) + (first[2] - z) * (first[2] - z);
+        double d1 = (second[0] - x) * (second[0] - x) + (second[2] - z) * (second[2] - z);
+        return d0 <= d1 ? 0 : 1;
     }
 
     @Override

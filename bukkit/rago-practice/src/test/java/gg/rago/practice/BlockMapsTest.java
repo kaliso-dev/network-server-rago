@@ -105,6 +105,24 @@ class BlockMapsTest {
     }
 
     @Test
+    void aBedOfAFireballMapIsTheSideOfTheNearerStart() {
+        double[] west = {-80.5, 1, 0.5, -90};
+        double[] east = {80.5, 1, 0.5, 90};
+        assertEquals(0, FireballFight.nearer(west, east, -70, 3));
+        assertEquals(1, FireballFight.nearer(west, east, 75, -3));
+        assertEquals(0, FireballFight.nearer(west, east, 0, 0), "in the very middle: the first side");
+        assertTrue(bundled().isList("fireball.cartes"));
+    }
+
+    @Test
+    void theCopyFindsItsBeds() {
+        MapCopy copy = MapCopy.of(1, 0, 0, 26, 1, 2, 0, 0, 26, 9, 5, 0, 0, 35, 0);
+        assertEquals(2, copy.find(26).size());
+        assertArrayEquals(new int[] {2, 0, 0}, copy.find(26).get(1));
+        assertTrue(copy.find(41).isEmpty());
+    }
+
+    @Test
     void theMarkersOfTheMapBecomeTheWoolNextToThem() {
         MapCopy copy = MapCopy.of(
                 0, 0, 0, 41, 0, // gold, next to blue wool
