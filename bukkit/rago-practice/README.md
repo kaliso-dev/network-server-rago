@@ -56,7 +56,12 @@ et chaque variante son record : le meilleur score du joueur et celui du serveur,
 - **Fireball practice** : le saut à la boule de feu sur une falaise de 4 blocs, au-dessus de 10
   blocs de vide, ou renvoyer les boules d'un canon. Série.
 - **Aim trainer** : une cible de la taille d'un joueur qui strafe, saute ou tourne autour ; 30
-  secondes, les coups qui touchent et la précision.
+  secondes, les coups qui touchent et la précision. Chaque seconde où le viseur reste sur la
+  cible (12 ticks sur 20) ou la touche donne de l'XP, avec un son qui monte avec la série (et un
+  carillon toutes les 5 secondes d'affilée) ; une seconde à côté ne donne rien. Le niveau de la
+  barre d'XP montre l'XP de l'essai, la barre le temps qui reste. À la fin, le joueur reçoit
+  cette XP en XP Network, plus 1 pour 10 coups (`aim-trainer` dans `config.yml`), et voit le top 5
+  de la variante. `/aimtop [strafe|jump|circle]` montre le top de partout.
 - **Combo bot** : un bot qui fonce et rend les coups, sans dégâts ; le plus long combo. Facile,
   normal (Speed I), difficile (Speed II).
 - **KB displace contre un bot** : le pont du KB displace, faire tomber le bot sans tomber. Série.

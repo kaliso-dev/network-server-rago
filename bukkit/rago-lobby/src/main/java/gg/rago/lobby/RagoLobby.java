@@ -524,6 +524,18 @@ public final class RagoLobby extends JavaPlugin implements LobbyService {
         stats.kill(modeId, killer, victim);
     }
 
+    @Override
+    public void giveXp(String modeId, UUID player, int xp, String reason) {
+        if (settings.catalog().get(modeId) == null) {
+            getLogger().warning("XP of an unknown mode ignored: " + modeId);
+            return;
+        }
+        if (player == null || xp <= 0 || state.isInPrivateGame(player)) {
+            return;
+        }
+        stats.giveXp(player, xp, reason);
+    }
+
     /** True if one of these players plays a party's private game. */
     private boolean isPrivate(List<UUID> players) {
         for (UUID player : players) {

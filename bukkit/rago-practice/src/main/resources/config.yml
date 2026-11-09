@@ -53,6 +53,12 @@ attaque-defense:
   attaque-secondes: 120
   manches: 2
 
+# Aim trainer: each second with the crosshair on the target (or a hit) gives xp-par-seconde
+# Network XP, and the end of the attempt one more for each touches-par-xp hits (100 hits: 10).
+aim-trainer:
+  xp-par-seconde: 1
+  touches-par-xp: 10
+
 # Block in practice on your own map, Ultimate Block-In Practice: put the folder of the world in the
 # folder of the worlds (mondes) of the server. Its island is copied into each zone, without the
 # command blocks and the redstone; the bed and its defense come back at each attempt. Without

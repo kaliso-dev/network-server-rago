@@ -4,3 +4,8 @@ main: gg.rago.practice.RagoPractice
 author: Rago
 description: "The practice modes of Rago Practice, played from the lobby (duels, trainings, bots and an open arena)."
 depend: [RagoLobby]
+commands:
+  aimtop:
+    description: The best scores of the aim trainer.
+    usage: /aimtop [strafe|jump|circle]
+    aliases: [topaim]

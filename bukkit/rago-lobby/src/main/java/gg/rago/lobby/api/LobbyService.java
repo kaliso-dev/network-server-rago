@@ -50,6 +50,15 @@ public interface LobbyService {
     void recordKill(String modeId, UUID killer, UUID victim);
 
     /**
+     * Network XP earned in a training of this mode (the aim trainer gives it for the seconds on the
+     * target and the score): the lobby adds it to the player's stats, tells them ("+12 Network XP
+     * (aim trainer)") and shows a new level or rank. Nothing in a party's private game, nor for 0
+     * or less. A lobby without Network XP ignores it.
+     */
+    default void giveXp(String modeId, UUID player, int xp, String reason) {
+    }
+
+    /**
      * The kit of this mode (kit: in the lobby's config.yml) as the player arranged it in the kit
      * editor, the book of the lobby hotbar: 36 stacks, the hotbar (0 to 8) then the inventory (9 to
      * 35), null for an empty slot. A game gives it with {@code player.getInventory().setContents(kit)}

@@ -78,6 +78,7 @@ public final class RagoPractice extends JavaPlugin {
         games = new PracticeGames(this, world);
         getServer().getPluginManager().registerEvents(games, this);
         registerModes(config, world, slots, spacing);
+        getCommand("aimtop").setExecutor(new AimTop(this));
         getLogger().info("Arenas in the world " + world.getName() + ": " + slots + " games of each mode at once at most. Modes: "
                 + String.join(", ", hosted));
     }
@@ -135,6 +136,8 @@ public final class RagoPractice extends JavaPlugin {
         int build = config.getInt("attaque-defense.construction-secondes", 30);
         int attack = config.getInt("attaque-defense.attaque-secondes", 120);
         int rounds = config.getInt("attaque-defense.manches", 2);
+        int aimXp = config.getInt("aim-trainer.xp-par-seconde", 1);
+        int aimHits = config.getInt("aim-trainer.touches-par-xp", 10);
         BlockInTraining.Island island = blockInIsland(config);
 
         register("boxing", (h, m, a, t) -> new Boxing(h, m, a, t, boxing), slots, spacing, false);
@@ -154,7 +157,7 @@ public final class RagoPractice extends JavaPlugin {
         register("ladder-practice", LadderTraining::new, slots, spacing, false);
         register("pearl-practice", PearlTraining::new, slots, spacing, false);
         register("fireball-practice", FireballTraining::new, slots, spacing, false);
-        register("aim-trainer", AimTrainer::new, slots, spacing, false);
+        register("aim-trainer", (h, m, a, t) -> new AimTrainer(h, m, a, t, aimXp, aimHits), slots, spacing, false);
         register("combo-bot", ComboBot::new, slots, spacing, false);
         register("kb-displace-bot", KbDisplaceBot::new, slots, spacing, false);
         register("block-fight-arena", BlockArena::new, slots, spacing, true);
@@ -369,6 +372,8 @@ public final class RagoPractice extends JavaPlugin {
             {"attaque-defense.construction-secondes", "30", "5", "120"},
             {"attaque-defense.attaque-secondes", "120", "30", "600"},
             {"attaque-defense.manches", "2", "2", "10"},
+            {"aim-trainer.xp-par-seconde", "1", "0", "10"},
+            {"aim-trainer.touches-par-xp", "10", "1", "100"},
         };
         for (String[] range : ranges) {
             int value = config.getInt(range[0], Integer.parseInt(range[1]));

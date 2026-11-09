@@ -150,6 +150,22 @@ final class StatsService {
         }
     }
 
+    /** Network XP earned in a training: adds it, tells the player, and writes their file. */
+    void giveXp(UUID id, int xp, String reason) {
+        PlayerStats before = book.get(id);
+        int old = before == null ? 0 : before.xp();
+        PlayerStats stats = book.giveXp(id, xp, StatsService::nameOf);
+        if (stats == null) {
+            return;
+        }
+        save(stats);
+        Player player = Bukkit.getPlayer(id);
+        if (player != null && stats.xp() > old) {
+            player.sendMessage(ChatColor.AQUA + "+" + (stats.xp() - old) + " Network XP" + ChatColor.GRAY + " (" + reason + ")");
+        }
+        gained(stats, old);
+    }
+
     private Map<UUID, Integer> xpOf(Collection<UUID> some, Collection<UUID> others) {
         Map<UUID, Integer> xp = new HashMap<>();
         List<UUID> all = new ArrayList<>(some);

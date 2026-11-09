@@ -178,7 +178,8 @@ mode rangé comme le joueur l'a voulu (36 cases, `null` si le mode n'a pas de ki
 `player.getInventory().setContents(kit)`. Pendant la partie, les joueurs appartiennent au jeu,
 qui les rend avec `lobby.sendToLobby(player)`. `MatchHost.abandon(player)` est appelé quand un
 joueur tape `/spawn` en pleine partie. `lobby.recordKill("sumo", tueur, victime)` compte un kill
-(et l'XP qui va avec). À la fin, `lobby.recordMatch("sumo", gagnants, perdants)` compte la partie
+(et l'XP qui va avec). Un entraînement donne de l'XP Network avec
+`lobby.giveXp("aim-trainer", joueur, xp, "aim trainer")` (rien dans une partie privée). À la fin, `lobby.recordMatch("sumo", gagnants, perdants)` compte la partie
 dans les stats, les classements et l'XP Network.
 
 Les modes Bed Wars et Fast Shop rangent leur shop avec `lobby.hypixelQuickBuy(player)` : les 21

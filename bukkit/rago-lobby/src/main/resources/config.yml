@@ -600,4 +600,6 @@ modes:
     classe: false
     description:
       - "Aim training, solo,"
-      - "moving targets."
+      - "moving targets. XP for"
+      - "each second on the target,"
+      - "and a top of the best."

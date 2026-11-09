@@ -268,6 +268,17 @@ final class StatsBook {
         return changed;
     }
 
+    /** Network XP earned in a training: added to the player's stats, returned (null for 0 or less). */
+    PlayerStats giveXp(UUID player, int xp, Names names) {
+        if (player == null || xp <= 0) {
+            return null;
+        }
+        PlayerStats stats = statsOf(player, names);
+        stats.addXp(xp);
+        forgetRankings();
+        return stats;
+    }
+
     /** Where to find the name of a player who has no stats yet. */
     interface Names {
         String of(UUID player);

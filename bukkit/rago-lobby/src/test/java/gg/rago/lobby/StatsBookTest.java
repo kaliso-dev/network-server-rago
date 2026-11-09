@@ -144,6 +144,18 @@ class StatsBookTest {
     }
 
     @Test
+    void aTrainingGivesTheXpItEarned() {
+        StatsBook book = new StatsBook(1000, NetworkLevel.DEFAULT);
+        assertEquals(37, book.giveXp(ALICE, 37, NAMES).xp());
+        assertEquals("Alice", book.get(ALICE).name());
+        assertNull(book.giveXp(ALICE, 0, NAMES), "nothing for nothing");
+        assertNull(book.giveXp(BOB, -5, NAMES));
+        assertNull(book.get(BOB));
+        book.giveXp(ALICE, 63, NAMES);
+        assertEquals(2, book.level(ALICE), "100 XP: level 2");
+    }
+
+    @Test
     void killsHaveTheirDayWeekAndLifetime() {
         StatsBook book = new StatsBook(1000, NetworkLevel.DEFAULT);
         book.kill("sumo", ALICE, BOB, NAMES, SATURDAY);
