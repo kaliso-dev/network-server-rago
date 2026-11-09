@@ -20,7 +20,9 @@ stats du lobby. Quitter le serveur ou taper `/spawn` pendant le duel, c'est perd
   mondes, `boxing.cartes`), tirées au hasard, chacun sur son bloc de diamant ; sans elles, un ring
   fermé. Speed II, une épée sans dégâts ; le premier à 100 coups gagne. Le scoreboard compte les
   coups et le combo. `/speed` enlève la Speed au joueur qui la tape, ou la lui rend (tout de
-  suite en partie, sinon pour ses prochains boxings, jusqu'au redémarrage). Les arènes sont copiées comme les maps du sumo et ne sont pas dans le dépôt.
+  suite en partie, sinon pour ses prochains boxings, jusqu'au redémarrage). Avec un nombre, c'est
+  toujours la vitesse de vol des builders (`/vitesse` de RagoBuildTools). Les arènes sont copiées
+  comme les maps du sumo et ne sont pas dans le dépôt.
 - **KB displace**, comme un vrai top fight de Bed Fight : un pont d'un bloc de large, et le
   défenseur en haut de la défense, un bloc plus bas que le pont, le pont devant lui et un bloc
   derrière, rien sur les côtés. L'attaquant court sur le pont et, dans le tick du coup, tourne la
