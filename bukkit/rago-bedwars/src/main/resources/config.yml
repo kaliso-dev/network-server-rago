@@ -16,7 +16,7 @@ modes:
   skyrise-2v2: [SkyRise]
   first-rush: [Acropolis, Ambush, Aqil, Cascade, Crogorm, Frosted, Gelato, Lighthouse, Lotus, Nebuc]
   first-rush-duo: [Acropolis, Ambush, Aqil, Cascade, Crogorm, Frosted, Gelato, Lighthouse, Lotus, Nebuc]
-  ffa: [Invasion]
+  ffa: [Archway, Paladin]
   free-ffa: [Archway]
   invis-practice: [Invasion, Lectus, Archway]
   shop-practice: [Archway]

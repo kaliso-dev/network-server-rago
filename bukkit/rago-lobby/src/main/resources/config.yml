@@ -259,8 +259,8 @@ modes:
     classe: false
     kit: [IRON_SWORD, "WOOL 64", "WOOL 64", SHEARS, IRON_PICKAXE, "GOLDEN_APPLE 3", "FIREBALL 4", ENDER_PEARL, "TNT 2"]
     description:
-      - "Free for all on Invasion,"
-      - "with the Ranked Bedwars kit:"
+      - "Free for all on Archway or"
+      - "Paladin, the Ranked Bedwars kit:"
       - "come and go when you like,"
       - "a kill heals you."
   free-ffa:

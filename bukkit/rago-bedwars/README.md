@@ -113,7 +113,8 @@ Les objets de la catégorie Utility du shop, comme sur Hypixel :
 
 Dans `jeux:` du config.yml, un mode peut jouer autre chose qu'une partie classique :
 
-- **FFA** (`ffa`) : chacun pour soi, ouvert, on entre et on sort quand on veut. Le kit du mode (à
+- **FFA** (`ffa`, sur Archway et Paladin, au choix dans la file) : chacun pour soi, ouvert, on
+  entre et on sort quand on veut. Le kit du mode (à
   ranger dans l'éditeur de kit du lobby) et une armure de fer à chaque vie ; on revient 3 secondes
   après une mort sur l'île la plus éloignée des autres ; un kill soigne ; les blocs posés partent au
   bout de 45 secondes ; les kills comptent dans les stats.
