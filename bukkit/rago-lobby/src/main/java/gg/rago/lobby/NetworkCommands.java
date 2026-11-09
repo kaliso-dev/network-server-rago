@@ -22,7 +22,7 @@ final class NetworkCommands implements CommandExecutor, TabCompleter {
 
     static final String[] NAMES = {"shop", "gift", "profile", "daily", "friend", "msg", "reply", "rank", "points", "top", "stats",
         "fly", "staffchat", "vanish", "freeze", "report", "clearchat", "mutechat", "ban", "unban", "mute", "unmute", "kick",
-        "warn", "history", "discord", "rules", "site", "store", "style", "level", "quests", "display", "nick", "realname"};
+        "warn", "history", "staff", "discord", "rules", "site", "store", "style", "level", "quests", "display", "nick", "realname"};
 
     private static final String[] TOPS = {"elo", "level", "wins", "kills", "streak", "games", "points"};
 
@@ -204,6 +204,15 @@ final class NetworkCommands implements CommandExecutor, TabCompleter {
             case "history":
                 if (allowed(sender, "rago.staff")) {
                     lobby.punishments().history(sender, args);
+                }
+                return true;
+            case "staff":
+                if ((player = player(sender)) != null && allowed(player, "rago.staff")) {
+                    if (args.length > 0 && Bukkit.getPlayerExact(args[0]) != null) {
+                        lobby.staffPanel().openPlayer(player, Bukkit.getPlayerExact(args[0]).getName());
+                    } else {
+                        lobby.staffPanel().open(player, 0);
+                    }
                 }
                 return true;
             case "discord":

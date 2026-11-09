@@ -214,6 +214,7 @@ commentaires de `config.yml`. Les mots français de la première version (`quitt
 | `/realname <nick>` | qui joue sous ce nick | `rago.staff` |
 | `/style give\|take <joueur> <couleur-feu\|badge-rago>`, `/style list` | donner ou retirer un style (la boutique en ligne, depuis la console) | `rago.admin` |
 | `/staffchat [message]` (ou `/sc`), `/vanish` (ou `/v`), `/freeze <joueur>`, `/clearchat` | chat du staff, invisible, figer un joueur, vider le chat | `rago.staff` |
+| `/staff [joueur]` (ou `/panel`, `/sp`), ou « Staff » dans le menu d'un joueur | le panel du staff : les joueurs en ligne (où ils sont, leur ping, figés ou mute), et pour chacun se téléporter à lui ou l'amener, le figer, le mute ou le ban (une raison et une durée en deux clics), le kick, l'avertir, lire son historique ; chaque bouton passe par la commande qu'il remplace, avec ses vérifications (un helper ne ban pas) | `rago.staff` |
 | `/mute <joueur> [durée] <raison>`, `/unmute`, `/kick`, `/warn`, `/history <joueur>` | sanctions (durée : `30m`, `2h`, `7d`, `2w` ou `perm`) | `rago.staff` |
 | `/ban <joueur> [durée] <raison>`, `/unban`, `/mutechat` | bans, couper le chat | `rago.mod` |
 | `/rank list\|set\|give\|take <joueur> <rang>`, `/points give\|take\|set <joueur> <nombre>` | les rangs et les points (aussi depuis la console) | `rago.admin` |

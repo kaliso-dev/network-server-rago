@@ -77,6 +77,7 @@ public final class RagoLobby extends JavaPlugin implements LobbyService {
     private CosmeticEffects cosmetics;
     private Punishments punishments;
     private StaffTools staff;
+    private final StaffPanel staffPanel = new StaffPanel(this);
     private ServerInfo info;
     /** The kills of each player in their current game, for the MVP of a ranked game. */
     private final Map<UUID, Integer> gameKills = new HashMap<>();
@@ -1019,6 +1020,10 @@ public final class RagoLobby extends JavaPlugin implements LobbyService {
 
     Social social() {
         return social;
+    }
+
+    StaffPanel staffPanel() {
+        return staffPanel;
     }
 
     StaffTools staff() {

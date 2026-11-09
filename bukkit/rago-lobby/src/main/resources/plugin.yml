@@ -112,6 +112,10 @@ commands:
     description: Hide from everyone but the staff.
     usage: /vanish
     aliases: [v]
+  staff:
+    description: The staff panel - the players online, and for each one teleport, freeze, mute, kick, warn or ban.
+    usage: /staff [player]
+    aliases: [panel, sp]
   freeze:
     description: Freeze a player for a check.
     usage: /freeze <player>

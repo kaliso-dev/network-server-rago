@@ -25,6 +25,7 @@ final class PlayerMenu implements Listener {
     static final int PARTY = 23;
     static final int FRIEND = 25;
     static final int GIFT = 31;
+    static final int STAFF = 35;
 
     private final RagoLobby lobby;
     private final StatsMenu stats;
@@ -73,6 +74,11 @@ final class PlayerMenu implements Listener {
                     });
         menu.set(GIFT, ClickMenu.item(Material.GOLD_INGOT, ChatColor.GOLD + "Gift a rank", "Give " + name + " a rank",
                 "with your Rago Points.", "", ChatColor.YELLOW + "Click to choose"), (p, right) -> lobby.shop().openGift(p, profile));
+        if (player.hasPermission("rago.staff")) {
+            menu.set(STAFF, ClickMenu.item(Material.REDSTONE_COMPARATOR, ChatColor.RED + "Staff", "Teleport, freeze, mute,",
+                    "kick, warn or ban " + name + ".", "", ChatColor.YELLOW + "Click to open"),
+                    (p, right) -> lobby.staffPanel().openPlayer(p, name));
+        }
         menu.open(player);
     }
 
