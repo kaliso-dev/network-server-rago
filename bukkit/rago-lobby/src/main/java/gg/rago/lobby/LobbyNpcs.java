@@ -79,6 +79,11 @@ final class LobbyNpcs implements Listener {
         return BODY_NAME + index;
     }
 
+    /** The name of the body on this step of a podium (0 for the first place), hidden the same way. */
+    static String podiumName(int place) {
+        return BODY_NAME + "p" + place;
+    }
+
     /** (Re)spawns everything, after the start or after a point moved. Returns how many stand. */
     int spawnAll() {
         removeAll();
@@ -102,6 +107,10 @@ final class LobbyNpcs implements Listener {
             removeOldStands(base);
             if (npc.kind() == LobbyNpc.Kind.LEADERBOARDS) {
                 displays.addWall(npc, base);
+                List<Location> steps = steps(npc, world, spawn);
+                if (!steps.isEmpty()) {
+                    displays.addPodium(npc, steps);
+                }
             } else if (npc.kind() == LobbyNpc.Kind.STATS) {
                 displays.addStatsNpc(npc, bodyName(index), base);
             } else {
@@ -113,6 +122,31 @@ final class LobbyNpcs implements Listener {
             placed++;
         }
         return placed;
+    }
+
+    /**
+     * Where the podium of a wall stands, first place first: on its points or coordinates, facing the
+     * spawn. A step on a point not placed yet is left out, with the ones after it.
+     */
+    private List<Location> steps(LobbyNpc wall, World world, Location spawn) {
+        List<Location> steps = new ArrayList<>();
+        for (String step : wall.podium()) {
+            double[] xyz = LobbyNpc.coordinates(step);
+            Location at;
+            if (xyz != null) {
+                at = new Location(world, xyz[0], xyz[1], xyz[2]);
+            } else {
+                SpawnPoint point = points.get(step);
+                if (point == null) {
+                    break;
+                }
+                at = point.in(world);
+            }
+            at.setYaw(yawTowards(at.getX(), at.getZ(), spawn.getX(), spawn.getZ()));
+            at.setPitch(0f);
+            steps.add(at);
+        }
+        return steps;
     }
 
     /** Removes every stand we spawned (on disable, and before a respawn). */

@@ -2,10 +2,12 @@ package gg.rago.lobby;
 
 import gg.rago.game.GameMode;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.UUID;
+import java.util.function.Function;
 import org.bukkit.ChatColor;
 import org.bukkit.Location;
 import org.bukkit.Material;
@@ -37,6 +39,8 @@ final class StatsDisplays {
     private static final double BOARD_BOTTOM = 1.2;
     private static final int PROFILE_LINES = 10;
     private static final long CLICK_COOLDOWN_MS = 300;
+    /** The colour of the place above a step: gold, silver, bronze, then grey. */
+    private static final ChatColor[] PODIUM_COLOURS = {ChatColor.GOLD, ChatColor.WHITE, ChatColor.RED, ChatColor.GRAY};
 
     /** What one player looks at on one board: which of its stats, and which period or mode. */
     private static final class Choice {
@@ -51,6 +55,8 @@ final class StatsDisplays {
     private final List<GameMode> ranked;
     private final Map<UUID, Map<String, Choice>> choices = new HashMap<>();
     private final Map<UUID, Long> lastClick = new HashMap<>();
+    /** The skins of the podiums: none until {@link #setSkins}. */
+    private Function<UUID, Skin> skins = player -> null;
 
     StatsDisplays(LobbySettings settings, StatsBook book, StatsMenu menu, FakeEntities fakes) {
         this.settings = settings;
@@ -58,6 +64,10 @@ final class StatsDisplays {
         this.menu = menu;
         this.fakes = fakes;
         this.ranked = StatsMenu.rankedModes(settings);
+    }
+
+    void setSkins(Function<UUID, Skin> skins) {
+        this.skins = skins;
     }
 
     // --- Stats NPC ------------------------------------------------------------------------------
@@ -136,13 +146,40 @@ final class StatsDisplays {
         }
     }
 
-    /** The lines of a board for this player. */
-    List<String> board(List<BoardStat> stats, String key, Player viewer, long now) {
-        Choice choice = choice(viewer.getUniqueId(), key);
+    /** What a player reads on a board now: the stat, its period or ranked mode, and the ranking. */
+    private static final class View {
+        final BoardStat stat;
+        final StatsPeriod period;
+        /** The ranked mode of an ELO board, or null. */
+        final GameMode mode;
+        /** Null for an ELO board without any ranked mode. */
+        final StatsBook.Ranking ranking;
+
+        View(BoardStat stat, StatsPeriod period, GameMode mode, StatsBook.Ranking ranking) {
+            this.stat = stat;
+            this.period = period;
+            this.mode = mode;
+            this.ranking = ranking;
+        }
+    }
+
+    private View view(List<BoardStat> stats, String key, UUID viewer, long now) {
+        Choice choice = choice(viewer, key);
         BoardStat stat = stats.get(choice.stat % stats.size());
         StatsPeriod period = StatsPeriod.values()[choice.option % StatsPeriod.values().length];
         GameMode mode = stat.choice() != BoardStat.Choice.RANKED_MODE || ranked.isEmpty() ? null
                 : ranked.get(choice.option % ranked.size());
+        StatsBook.Ranking ranking = stat.choice() != BoardStat.Choice.RANKED_MODE || mode != null
+                ? book.ranking(stat, period, mode == null ? null : mode.id(), now) : null;
+        return new View(stat, period, mode, ranking);
+    }
+
+    /** The lines of a board for this player. */
+    List<String> board(List<BoardStat> stats, String key, Player viewer, long now) {
+        View view = view(stats, key, viewer.getUniqueId(), now);
+        BoardStat stat = view.stat;
+        StatsPeriod period = view.period;
+        GameMode mode = view.mode;
         List<String> lines = new ArrayList<>();
         lines.add(ChatColor.AQUA + "" + ChatColor.BOLD + stat.title());
         switch (stat.choice()) {
@@ -157,8 +194,7 @@ final class StatsDisplays {
                 break;
         }
         lines.add("");
-        StatsBook.Ranking ranking = stat.choice() != BoardStat.Choice.RANKED_MODE || mode != null
-                ? book.ranking(stat, period, mode == null ? null : mode.id(), now) : null;
+        StatsBook.Ranking ranking = view.ranking;
         List<StatsBook.Row> rows = ranking == null ? new ArrayList<StatsBook.Row>() : ranking.rows();
         for (int i = 0; i < TOP; i++) {
             if (i < rows.size()) {
@@ -203,6 +239,61 @@ final class StatsDisplays {
         return lines;
     }
 
+    // --- Podiums ---------------------------------------------------------------------------------
+
+    /**
+     * The podium of a wall: on each step, the player at that place of what this viewer reads on the
+     * wall's first board, in their skin, with a line above saying who they are and their score. A
+     * click on one opens their stats.
+     */
+    void addPodium(LobbyNpc wall, List<Location> steps) {
+        final List<BoardStat> stats = wall.boards().get(0);
+        final String key = wall.point() + "#0";
+        for (int i = 0; i < steps.size(); i++) {
+            final int place = i;
+            final PodiumPlace.Holder holder = viewer -> holder(stats, key, viewer.getUniqueId(), place, System.currentTimeMillis());
+            FakeEntities.Clicker open = (player, left) -> {
+                StatsBook.Row row = holder.of(player);
+                if (row != null && cooled(player)) {
+                    menu.open(player, row.id(), row.name());
+                }
+            };
+            Location step = steps.get(i);
+            fakes.add(new PodiumPlace(step, LobbyNpcs.podiumName(i), holder, player -> skins.apply(player), open));
+            fakes.add(new FakeHologram(step.clone().add(0, LobbyNpcs.ABOVE_HEAD, 0), 1,
+                    viewer -> Collections.singletonList(podiumLine(stats, key, viewer.getUniqueId(), place,
+                            System.currentTimeMillis())), open));
+        }
+    }
+
+    /** The player at this place (0 for the first) of the board for this viewer, or null. */
+    StatsBook.Row holder(List<BoardStat> stats, String key, UUID viewer, int place, long now) {
+        View view = view(stats, key, viewer, now);
+        return view.ranking == null || place >= view.ranking.rows().size() ? null : view.ranking.rows().get(place);
+    }
+
+    /** "#1 Sofiene - Gold 245": the line above a step of the podium, for this viewer. */
+    String podiumLine(List<BoardStat> stats, String key, UUID viewer, int place, long now) {
+        View view = view(stats, key, viewer, now);
+        String rank = "#" + (place + 1);
+        if (view.ranking == null || place >= view.ranking.rows().size()) {
+            return ChatColor.DARK_GRAY + rank + " " + ChatColor.GRAY + "Nobody yet";
+        }
+        StatsBook.Row row = view.ranking.rows().get(place);
+        String score;
+        if (view.stat == BoardStat.ELO) {
+            score = book.ladder().format(row.value());
+        } else if (view.stat == BoardStat.LEVEL) {
+            int level = book.levels().level(row.value());
+            score = ChatColor.GRAY + "Level " + book.levels().colour(level) + level;
+        } else {
+            score = ChatColor.YELLOW + String.valueOf(row.value()) + ChatColor.GRAY + " "
+                    + view.stat.title().toLowerCase(java.util.Locale.ROOT);
+        }
+        return PODIUM_COLOURS[Math.min(place, PODIUM_COLOURS.length - 1)].toString() + ChatColor.BOLD + rank + " " + ChatColor.WHITE
+                + row.name() + ChatColor.DARK_GRAY + " - " + score;
+    }
+
     /**
      * The value a board shows: the level for the Network level (ranked by XP), the division with
      * the ELO ("Gold 245"), the number otherwise.
@@ -237,7 +328,11 @@ final class StatsDisplays {
      * the period or the mode.
      */
     void next(Player player, List<BoardStat> stats, String key, boolean left) {
-        Choice choice = choice(player.getUniqueId(), key);
+        next(player.getUniqueId(), stats, key, left);
+    }
+
+    void next(UUID player, List<BoardStat> stats, String key, boolean left) {
+        Choice choice = choice(player, key);
         if (stats.size() > 1 && !left) {
             choice.stat = (choice.stat + 1) % stats.size();
             choice.option = 0;

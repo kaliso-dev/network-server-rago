@@ -43,6 +43,8 @@ final class PlayerStats {
     private String headMessage;
     /** The name the player plays under (/nick), or null. */
     private String nick;
+    /** Their skin at their last join, for the podiums, or null. */
+    private Skin skin;
     /** The highest Network level whose rewards the player got. */
     private int rewardsLevel;
     /** The day and the week of the quests' progress, and the progress of each quest by its key. */
@@ -244,6 +246,15 @@ final class PlayerStats {
 
     void setNick(String nick) {
         this.nick = nick == null || nick.isEmpty() ? null : nick;
+    }
+
+    /** Their skin at their last join (or as Mojang gave it), or null. */
+    Skin skin() {
+        return skin;
+    }
+
+    void setSkin(Skin skin) {
+        this.skin = skin;
     }
 
     int rewardsLevel() {

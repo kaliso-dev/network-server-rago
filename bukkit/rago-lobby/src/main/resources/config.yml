@@ -372,10 +372,17 @@ liens:
 # board, it changes the ranked mode (1v1, 2v2, 3v3, 4v4).
 # A board can group several leaderboards in brackets, for example [elo, kills, niveau]: a right
 # click goes to the next one, a left click changes the period or the ranked mode.
+#   podium    the steps of a podium (optional, up to 5, the first place first): on each one stands
+#             the player at that place of the first board, in their skin, with their name and score
+#             above. Each player sees the top of what they read on the board (ELO, kills or level,
+#             the period, the ranked mode). A step is a /lobby point, or "x y z": where the feet of
+#             who stands on it go. A click on a step opens that player's stats.
 classements:
   leaderboardprincipal:
     nom: "&e&lTop players"
     tableaux: [[elo, kills, niveau]]
+    # The podium behind the board: the emerald (1st), the diamond (2nd), the gold block (3rd).
+    podium: ["0.5 67 57.5", "-1.5 66 57.5", "2.5 65 57.5"]
   leaderboardstats:
     nom: "&e&lLeaderboards"
     tableaux: [victoires, series, parties]

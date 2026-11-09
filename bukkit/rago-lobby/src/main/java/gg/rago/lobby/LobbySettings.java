@@ -32,6 +32,8 @@ final class LobbySettings {
     static final int MAX_CATEGORIES = 7;
     /** Leaderboards side by side on one point. */
     static final int MAX_BOARDS = 5;
+    /** Steps of the podium of a leaderboard wall. */
+    static final int MAX_PODIUM = 5;
     static final int MAX_XP = 1_000_000;
 
     private final List<ModeDisplay> modes;
@@ -244,6 +246,7 @@ final class LobbySettings {
                     throw new IllegalArgumentException(where + ": invalid point name, or a point an NPC already has");
                 }
                 List<List<BoardStat>> stats = new ArrayList<>();
+                List<String> podium = new ArrayList<>();
                 String name;
                 ConfigurationSection board = boards.getConfigurationSection(point);
                 if (board == null) {
@@ -275,8 +278,18 @@ final class LobbySettings {
                     if (stats.isEmpty() || stats.size() > MAX_BOARDS) {
                         throw new IllegalArgumentException(where + ".tableaux: from 1 to " + MAX_BOARDS + " boards");
                     }
+                    for (String step : board.getStringList("podium")) {
+                        if (LobbyNpc.coordinates(step) == null && !LobbyPoints.validName(step)) {
+                            throw new IllegalArgumentException(where + ".podium: \"" + step + "\" is neither a point name"
+                                    + " nor \"x y z\"");
+                        }
+                        podium.add(step.trim());
+                    }
+                    if (podium.size() > MAX_PODIUM) {
+                        throw new IllegalArgumentException(where + ".podium: at most " + MAX_PODIUM + " steps");
+                    }
                 }
-                npcs.add(LobbyNpc.leaderboards(point, colour(name), stats));
+                npcs.add(LobbyNpc.leaderboards(point, colour(name), stats, podium));
             }
         }
         return npcs;

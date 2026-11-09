@@ -244,6 +244,14 @@ générateur vide ; un monde de build peut donc servir de lobby.
   classement suivant, un clic gauche change la période ou le mode classé. Le tableau `niveau` est
   classé par XP et montre le niveau. leaderboardplayer montre les kills du jour, de la semaine et
   à vie, entre les meilleures séries de victoires (à gauche) et le niveau Network (à droite).
+- `podium:` (dans un mur de `classements:`) : jusqu'à 5 marches, la 1re place d'abord. Sur chacune
+  se tient le joueur à cette place du premier tableau du mur, avec son skin, et une ligne au-dessus
+  (« #1 Pseudo - Gold 245 »). Chaque joueur voit le top de ce qu'il lit sur le tableau : ELO, kills
+  ou niveau, la période, le mode classé. Une marche est un point `/lobby point`, ou `"x y z"` (là où
+  vont les pieds). Un clic sur une marche ouvre les stats de ce joueur. Celui de leaderboardprincipal
+  est le podium derrière le tableau : émeraude (1er), diamant (2e), bloc d'or (3e). Le skin d'un
+  joueur est gardé dans ses stats à chaque connexion ; pour un joueur pas revenu depuis, le lobby
+  le demande une fois aux serveurs de Mojang (serveur en online-mode ou derrière BungeeCord).
 
 Les PNJ n'existent que dans les paquets envoyés aux joueurs (plugin PacketEvents, installé à côté
 de RagoLobby) : le serveur ne les voit pas, ils ne bougent pas et ne prennent pas de coups. Ils

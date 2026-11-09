@@ -159,6 +159,9 @@ final class LobbyScoreboard {
             for (int i = 0; i < settings.npcs().size(); i++) {
                 npcs.addEntry(LobbyNpcs.bodyName(i));
             }
+            for (int i = 0; i < LobbySettings.MAX_PODIUM; i++) {
+                npcs.addEntry(LobbyNpcs.podiumName(i));
+            }
             placed.remove(player.getUniqueId());
             boards.put(player.getUniqueId(), board);
             shown.put(player.getUniqueId(), new ArrayList<String>());

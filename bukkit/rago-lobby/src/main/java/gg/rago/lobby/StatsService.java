@@ -382,11 +382,23 @@ final class StatsService {
         return unlocked;
     }
 
-    /** The player joined: keeps their name up to date, gives the rewards of levels passed before. */
+    /**
+     * The player joined: keeps their name and skin (for the podiums) up to date, gives the rewards
+     * of levels passed before.
+     */
     void seen(Player player) {
         PlayerStats renamed = book.seen(player.getUniqueId(), player.getName());
         PlayerStats stats = book.get(player.getUniqueId());
-        if (renamed != null | (stats != null && claimRewards(stats))) {
+        boolean changed = renamed != null;
+        if (stats != null) {
+            Skin skin = Skin.of(player);
+            if (skin != null && !skin.equals(stats.skin())) {
+                stats.setSkin(skin);
+                changed = true;
+            }
+            changed |= claimRewards(stats);
+        }
+        if (changed && stats != null) {
             save(stats);
         }
     }

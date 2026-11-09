@@ -63,6 +63,7 @@ public final class RagoLobby extends JavaPlugin implements LobbyService {
     private KitLayouts kits;
     private KitEditor kitEditor;
     private HypixelProfiles hypixel;
+    private Skins skins;
     private Parties parties;
     private ServerSettings server;
     private Profiles profiles;
@@ -160,6 +161,8 @@ public final class RagoLobby extends JavaPlugin implements LobbyService {
         getServer().getPluginManager().registerEvents(fakes, this);
         StatsMenu statsMenu = new StatsMenu(settings, stats.book());
         statsDisplays = new StatsDisplays(settings, stats.book(), statsMenu, fakes);
+        skins = new Skins(this, stats);
+        statsDisplays.setSkins(skins::of);
         shop = new ShopMenu(profiles, stats.book());
         profileMenu = new ProfileMenu(this, profiles, social, stats, statsMenu, shop);
         levelMenu = new LevelMenu(stats.book(), server);
@@ -273,6 +276,9 @@ public final class RagoLobby extends JavaPlugin implements LobbyService {
         }
         if (hypixel != null) {
             hypixel.stop();
+        }
+        if (skins != null) {
+            skins.stop();
         }
         if (writer != null) {
             writer.shutdown();

@@ -73,6 +73,10 @@ final class StatsFiles {
         if (stats.headMessage() != null) {
             yaml.set("profil.tete.message", stats.headMessage());
         }
+        if (stats.skin() != null) {
+            yaml.set("profil.skin.valeur", stats.skin().value());
+            yaml.set("profil.skin.signature", stats.skin().signature());
+        }
         if (stats.nick() != null) {
             yaml.set("profil.nick", stats.nick());
         }
@@ -202,6 +206,7 @@ final class StatsFiles {
         stats.setHeadLine(yaml.getString("profil.tete.affichage", null));
         stats.setHeadMessage(yaml.getString("profil.tete.message", null));
         stats.setNick(yaml.getString("profil.nick", null));
+        stats.setSkin(Skin.of(yaml.getString("profil.skin.valeur", null), yaml.getString("profil.skin.signature", null)));
         stats.setRewardsLevel(yaml.getInt("profil.recompenses-niveau"));
         stats.setQuestPeriod(yaml.getString("profil.quetes.jour", ""), yaml.getString("profil.quetes.semaine", ""));
         ConfigurationSection quests = yaml.getConfigurationSection("profil.quetes.progres");
