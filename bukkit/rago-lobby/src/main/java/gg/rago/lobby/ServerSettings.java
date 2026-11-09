@@ -10,7 +10,8 @@ import org.bukkit.Material;
 import org.bukkit.configuration.ConfigurationSection;
 
 /**
- * What makes the lobby a network, from config.yml: the ranks (rangs), the ELO divisions (elo), the
+ * What makes the lobby a network, from config.yml: the ranks (rangs), the colours of name and the
+ * badges (styles), the ELO divisions (elo), the
  * Rago Points (rago-points), the prices of the shop (boutique), the chat rules (chat), the tab
  * list (tab), the server list message (motd), the announcements (annonces) and the links (liens).
  * Every section is optional: a config.yml of an earlier version gets the defaults. Immutable.
@@ -48,6 +49,7 @@ final class ServerSettings {
     static final int MAX_POINTS = 100_000_000;
 
     private final Ranks ranks;
+    private final Map<String, NameStyle> styles;
     private final EloLadder elo;
     private final Points points;
     private final Map<String, Cosmetic> cosmetics;
@@ -60,10 +62,11 @@ final class ServerSettings {
     private final List<String> announcements;
     private final Map<String, List<String>> links;
 
-    private ServerSettings(Ranks ranks, EloLadder elo, Points points, Map<String, Cosmetic> cosmetics, long chatCooldownMillis,
+    private ServerSettings(Ranks ranks, Map<String, NameStyle> styles, EloLadder elo, Points points, Map<String, Cosmetic> cosmetics, long chatCooldownMillis,
             boolean blockRepeats, List<String> tabHeader, List<String> tabFooter, List<String> motd, int announceMinutes,
             List<String> announcements, Map<String, List<String>> links) {
         this.ranks = ranks;
+        this.styles = Collections.unmodifiableMap(styles);
         this.elo = elo;
         this.points = points;
         this.cosmetics = Collections.unmodifiableMap(cosmetics);
@@ -78,7 +81,8 @@ final class ServerSettings {
     }
 
     static ServerSettings load(ConfigurationSection config) {
-        Ranks ranks = readRanks(config.getConfigurationSection("rangs"));
+        Map<String, NameStyle> styles = readStyles(config.getConfigurationSection("styles"));
+        Ranks ranks = readRanks(config.getConfigurationSection("rangs"), styles);
         EloLadder elo = readElo(config.getConfigurationSection("elo"));
         ConfigurationSection p = config.getConfigurationSection("rago-points");
         Points points = new Points(count(p, "rago-points", "victoire", 20), count(p, "rago-points", "defaite", 5),
@@ -131,15 +135,19 @@ final class ServerSettings {
                 links.put(key, lines(l, key, Collections.<String>emptyList(), 15));
             }
         }
-        return new ServerSettings(ranks, elo, points, cosmetics, cooldown * 1000L, repeats, header, footer, motd, minutes,
+        return new ServerSettings(ranks, styles, elo, points, cosmetics, cooldown * 1000L, repeats, header, footer, motd, minutes,
                 announcements, links);
     }
 
     // --- Ranks ----------------------------------------------------------------------------------
 
-    private static Ranks readRanks(ConfigurationSection section) {
+    private static Ranks readRanks(ConfigurationSection section, Map<String, NameStyle> styles) {
         if (section == null) {
-            return Ranks.defaults();
+            Ranks ranks = Ranks.defaults();
+            for (RankDef rank : ranks.all()) {
+                checkStyles("rangs." + rank.id(), rank.style(), rank.badge(), styles);
+            }
+            return ranks;
         }
         List<RankDef> ranks = new ArrayList<>();
         for (String id : section.getKeys(false)) {
@@ -186,9 +194,84 @@ final class ServerSettings {
             for (String perk : rank.getStringList("avantages")) {
                 perks.add(LobbySettings.colour(perk));
             }
-            ranks.add(new RankDef(id, prefix, colour, chat, staff, permissions, parent, price, level, icon, perks));
+            double boost = rank.getDouble("boost-xp", 1.0);
+            if (boost < 1.0 || boost > 5.0) {
+                throw new IllegalArgumentException(where + ".boost-xp: from 1 (none) to 5, such as 1.5 for half more XP");
+            }
+            String style = rank.getString("style", null);
+            String badge = rank.getString("badge", null);
+            checkStyles(where, style, badge, styles);
+            boolean webStore = rank.getBoolean("boutique-en-ligne", false);
+            if (staff && webStore) {
+                throw new IllegalArgumentException(where + ".boutique-en-ligne: a staff rank is not sold");
+            }
+            ranks.add(new RankDef(id, prefix, colour, chat, staff, permissions, parent, price, level, icon, perks, boost,
+                    style, badge, webStore));
         }
         return new Ranks(ranks);
+    }
+
+    private static void checkStyles(String where, String style, String badge, Map<String, NameStyle> styles) {
+        if (style != null && !styles.containsKey(NameStyle.key(NameStyle.Kind.COLOUR, style))) {
+            throw new IllegalArgumentException(where + ".style: no colour " + style + " in styles.couleurs");
+        }
+        if (badge != null && !styles.containsKey(NameStyle.key(NameStyle.Kind.BADGE, badge))) {
+            throw new IllegalArgumentException(where + ".badge: no badge " + badge + " in styles.badges");
+        }
+    }
+
+    // --- Styles ---------------------------------------------------------------------------------
+
+    /**
+     * styles: the colours of name (couleurs: nom, degrade, gras, obtention) and the badges (badges:
+     * nom, texte, obtention). A list left out is the plugin's own.
+     */
+    private static Map<String, NameStyle> readStyles(ConfigurationSection section) {
+        Map<String, NameStyle> catalogue = NameStyle.catalogue();
+        Map<String, NameStyle> styles = new LinkedHashMap<>();
+        for (NameStyle.Kind kind : NameStyle.Kind.values()) {
+            ConfigurationSection list = section == null ? null : section.getConfigurationSection(kind.section());
+            if (list == null) {
+                for (NameStyle style : catalogue.values()) {
+                    if (style.kind() == kind) {
+                        styles.put(style.key(), style);
+                    }
+                }
+                continue;
+            }
+            for (String id : list.getKeys(false)) {
+                String where = "styles." + kind.section() + "." + id;
+                ConfigurationSection one = list.getConfigurationSection(id);
+                if (one == null || !id.matches("[a-z0-9-]{1,16}")) {
+                    throw new IllegalArgumentException(where + ": a section, its name 1 to 16 lowercase letters, digits or -");
+                }
+                String name = one.getString("nom", id);
+                if (name.isEmpty() || name.length() > 24) {
+                    throw new IllegalArgumentException(where + ".nom: 1 to 24 characters");
+                }
+                NameStyle.Obtain obtain = NameStyle.Obtain.of(one.getString("obtention", "achat"));
+                if (obtain == null) {
+                    throw new IllegalArgumentException(where + ".obtention: premium, achat or niveau");
+                }
+                String text;
+                if (kind == NameStyle.Kind.COLOUR) {
+                    text = one.getString("degrade", "").toLowerCase(java.util.Locale.ROOT).replace("&", "");
+                    if (!NameStyle.isStops(text)) {
+                        throw new IllegalArgumentException(where + ".degrade: the colours from the first letter to the last,"
+                                + " 1 to 16 colour characters (0 to 9, a to f), such as 5ddfd");
+                    }
+                } else {
+                    text = LobbySettings.colour(one.getString("texte", ""));
+                    if (ChatColor.stripColor(text).trim().isEmpty() || text.length() > NameStyle.MAX_BADGE) {
+                        throw new IllegalArgumentException(where + ".texte: the badge, " + NameStyle.MAX_BADGE
+                                + " characters at most, colour codes included");
+                    }
+                }
+                NameStyle style = new NameStyle(kind, id, name, text, one.getBoolean("gras", false), obtain);
+                styles.put(style.key(), style);
+            }
+        }
+        return styles;
     }
 
     // --- ELO ------------------------------------------------------------------------------------
@@ -308,6 +391,26 @@ final class ServerSettings {
 
     Ranks ranks() {
         return ranks;
+    }
+
+    /** Every colour of name and badge, by key ("couleur-rose", "badge-rago"), the colours first. */
+    Map<String, NameStyle> styles() {
+        return styles;
+    }
+
+    /** The colour of name or the badge with this id, or null. */
+    NameStyle style(NameStyle.Kind kind, String id) {
+        return id == null ? null : styles.get(NameStyle.key(kind, id));
+    }
+
+    List<NameStyle> styles(NameStyle.Kind kind) {
+        List<NameStyle> list = new ArrayList<>();
+        for (NameStyle style : styles.values()) {
+            if (style.kind() == kind) {
+                list.add(style);
+            }
+        }
+        return list;
     }
 
     EloLadder elo() {

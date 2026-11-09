@@ -15,10 +15,15 @@ final class ShopMenu {
 
     private final Profiles profiles;
     private final StatsBook book;
+    private StyleMenu styles;
 
     ShopMenu(Profiles profiles, StatsBook book) {
         this.profiles = profiles;
         this.book = book;
+    }
+
+    void setStyles(StyleMenu styles) {
+        this.styles = styles;
     }
 
     /** The main page: the player's points, then the ranks and each type of cosmetic. */
@@ -36,11 +41,11 @@ final class ShopMenu {
                         + ChatColor.WHITE + "+" + profiles.server().points().loss + ChatColor.GRAY + " a game played,",
                 ChatColor.WHITE + "+" + profiles.server().points().kill + ChatColor.GRAY + " a kill, and more each level."), null);
         List<String> rankLore = new ArrayList<>();
-        rankLore.add("Ranks unlocked by your Network");
-        rankLore.add("level, bought with Rago Points.");
+        rankLore.add("The ranks of the network and");
+        rankLore.add("what they give.");
         rankLore.add("");
-        for (RankDef rank : profiles.server().ranks().sold()) {
-            rankLore.add(rank.prefix().trim() + ChatColor.GRAY + " - level " + rank.level());
+        for (RankDef rank : profiles.server().ranks().forSale()) {
+            rankLore.add(rank.prefix().trim() + ChatColor.GRAY + (rank.sold() ? " - level " + rank.level() : " - web store"));
         }
         rankLore.add("");
         rankLore.add(ChatColor.YELLOW + "Click to browse");
@@ -67,6 +72,12 @@ final class ShopMenu {
             menu.set(slot, ClickMenu.item(type.icon(), 0, ChatColor.GREEN + type.title(), lore), (p, right) -> openType(p, type));
             slot += 2;
         }
+        if (styles != null) {
+            menu.set(29, ClickMenu.item(Material.NAME_TAG, 0, ChatColor.LIGHT_PURPLE + "Name colours & badges", listOf(
+                    "Gradient names, and badges after",
+                    "your name: §c§lRAGO§7, §6§lBETTER§7, §4§lPVP§7...",
+                    "", ChatColor.YELLOW + "Click to browse")), (p, right) -> styles.open(p));
+        }
         boolean ready = profiles.dailyReady(player.getUniqueId());
         int next = profiles.server().points().dailyReward(
                 Profiles.nextStreak(profile.dailyDay(), profile.dailyStreak(), StatsPeriod.dayKey(System.currentTimeMillis()),
@@ -89,7 +100,7 @@ final class ShopMenu {
     // --- Ranks ----------------------------------------------------------------------------------
 
     void openRanks(Player player) {
-        List<RankDef> sold = profiles.server().ranks().sold();
+        List<RankDef> sold = profiles.server().ranks().forSale();
         ClickMenu menu = new ClickMenu(Math.min(6, 2 + (sold.size() + 6) / 7), "Shop - Ranks");
         PlayerStats profile = profiles.of(player);
         int level = book.level(player.getUniqueId());
@@ -100,10 +111,23 @@ final class ShopMenu {
                 lore.add(ChatColor.WHITE + "• " + ChatColor.GRAY + perk);
             }
             lore.add("");
+            final boolean owned = profiles.owns(profile, rank);
+            if (!rank.sold()) {
+                lore.add(ChatColor.GOLD + "On the web store");
+                lore.add("");
+                lore.add(owned ? ChatColor.GREEN + "You have it" : ChatColor.YELLOW + "Click for the link");
+                menu.set(slotOf(i), ClickMenu.item(rank.icon(), 0, rank.prefix().trim(), lore), (p, right) -> {
+                    p.closeInventory();
+                    List<String> store = profiles.server().link("boutique");
+                    for (String line : store == null ? listOf(ChatColor.GRAY + "The store opens soon.") : store) {
+                        p.sendMessage(line);
+                    }
+                });
+                continue;
+            }
             lore.add("Price: " + ChatColor.GOLD + String.format("%,d", rank.price()) + " Rago Points");
             lore.add("Level needed: " + book.levels().tag(rank.level()));
             lore.add("");
-            final boolean owned = profiles.owns(profile, rank);
             if (owned) {
                 lore.add(ChatColor.GREEN + "You have it");
             } else if (level < rank.level()) {
@@ -126,6 +150,14 @@ final class ShopMenu {
     /** The ranks to gift another player (/gift, or the menu of a player clicked in the lobby). */
     void openGift(Player player, PlayerStats target) {
         List<RankDef> sold = profiles.server().ranks().sold();
+        if (sold.isEmpty()) {
+            player.sendMessage(ChatColor.GRAY + "No rank is sold for Rago Points. The ranks of the web store can be gifted there:");
+            List<String> store = profiles.server().link("boutique");
+            for (String line : store == null ? listOf(ChatColor.GRAY + "The store opens soon.") : store) {
+                player.sendMessage(line);
+            }
+            return;
+        }
         ClickMenu menu = new ClickMenu(Math.min(6, 2 + (sold.size() + 6) / 7), "Gift a rank: " + target.name());
         PlayerStats profile = profiles.of(player);
         int level = book.level(player.getUniqueId());

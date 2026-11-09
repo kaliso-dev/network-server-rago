@@ -141,7 +141,7 @@ final class StatsService {
             boolean won = winners.contains(stats.id());
             if (player != null && old != null && stats.xp() > old) {
                 player.sendMessage(ChatColor.AQUA + "+" + (stats.xp() - old) + " Network XP"
-                        + ChatColor.GRAY + " (" + (won ? "win" : "game played") + ")");
+                        + ChatColor.GRAY + " (" + (won ? "win" : "game played") + ")" + boostNote(stats.id()));
             }
             points(stats, won ? server.points().win : server.points().loss, won ? "win" : "game played");
             Integer oldElo = eloBefore.get(stats.id());
@@ -191,7 +191,8 @@ final class StatsService {
             Integer old = before.get(stats.id());
             Player player = Bukkit.getPlayer(stats.id());
             if (player != null && old != null && stats.xp() > old) {
-                player.sendMessage(ChatColor.AQUA + "+" + (stats.xp() - old) + " Network XP" + ChatColor.GRAY + " (kill)");
+                player.sendMessage(ChatColor.AQUA + "+" + (stats.xp() - old) + " Network XP" + ChatColor.GRAY + " (kill)"
+                        + boostNote(stats.id()));
             }
             if (stats.id().equals(killer)) {
                 points(stats, server.points().kill, "kill");
@@ -211,10 +212,24 @@ final class StatsService {
         }
         Player player = Bukkit.getPlayer(id);
         if (player != null && stats.xp() > old) {
-            player.sendMessage(ChatColor.AQUA + "+" + (stats.xp() - old) + " Network XP" + ChatColor.GRAY + " (" + reason + ")");
+            player.sendMessage(ChatColor.AQUA + "+" + (stats.xp() - old) + " Network XP" + ChatColor.GRAY + " (" + reason + ")"
+                    + boostNote(id));
         }
         gained(stats, old);
         save(stats);
+    }
+
+    /** " x1.5 boost" after the XP of a player with a boost, else "". */
+    private String boostNote(UUID player) {
+        return boostText(book.boost(player));
+    }
+
+    static String boostText(double boost) {
+        if (boost <= 1.0) {
+            return "";
+        }
+        String times = boost == Math.rint(boost) ? String.valueOf((long) boost) : String.valueOf(Math.round(boost * 100) / 100.0);
+        return ChatColor.LIGHT_PURPLE + " x" + times + " boost";
     }
 
     private Map<UUID, Integer> xpOf(Collection<UUID> some, Collection<UUID> others) {

@@ -1,0 +1,105 @@
+package gg.rago.lobby;
+
+import java.util.UUID;
+import java.util.function.Function;
+import java.util.function.Predicate;
+
+/**
+ * How a player's name looks: their rank, the colour of their name (a gradient of
+ * {@link NameStyle}, or the colour of the rank) and their badge. A player wears what they chose
+ * (/style) if they still own it, else what their rank gives. They own a colour or a badge they
+ * bought on the store or won with a level (in their cosmetics), and those of their ranks (the pink
+ * gradient and the ✦ of PREMIUM). Main thread only.
+ */
+final class NameLooks {
+
+    private final StatsBook book;
+    private final ServerSettings server;
+
+    NameLooks(StatsBook book, ServerSettings server) {
+        this.book = book;
+        this.server = server;
+    }
+
+    ServerSettings server() {
+        return server;
+    }
+
+    /** The rank a player shows. */
+    RankDef rank(UUID player) {
+        return NetworkRanks.rankOf(book, server.ranks(), player);
+    }
+
+    /** True if the player may wear this colour or badge. */
+    boolean owns(PlayerStats profile, NameStyle style) {
+        return profile != null && (profile.cosmetics().contains(style.key())
+                || server.ranks().styles(profile.rank(), profile.boughtRanks()).contains(style.key()));
+    }
+
+    /** The colour of name the player wears, or null for the plain colour of their rank. */
+    NameStyle colour(UUID player) {
+        return worn(player, NameStyle.Kind.COLOUR);
+    }
+
+    /** The badge the player wears, or null. */
+    NameStyle badge(UUID player) {
+        return worn(player, NameStyle.Kind.BADGE);
+    }
+
+    private NameStyle worn(UUID player, NameStyle.Kind kind) {
+        PlayerStats profile = book.get(player);
+        if (profile == null) {
+            return null;
+        }
+        RankDef rank = rank(player);
+        String chosen = kind == NameStyle.Kind.COLOUR ? profile.colourChoice() : profile.badgeChoice();
+        String given = kind == NameStyle.Kind.COLOUR ? rank.style() : rank.badge();
+        return wear(chosen, given, id -> server.style(kind, id), style -> owns(profile, style));
+    }
+
+    /**
+     * What a player wears: the style chosen if they own it, none if they chose none (""), else the
+     * one of their rank if they own it.
+     */
+    static NameStyle wear(String chosen, String given, Function<String, NameStyle> find, Predicate<NameStyle> owned) {
+        if (chosen != null && chosen.isEmpty()) {
+            return null;
+        }
+        for (String id : new String[] {chosen, given}) {
+            NameStyle style = id == null ? null : find.apply(id);
+            if (style != null && owned.test(style)) {
+                return style;
+            }
+        }
+        return null;
+    }
+
+    /** The name in the player's colour: a gradient, or the colour of their rank. */
+    String name(UUID player, String plain) {
+        NameStyle colour = colour(player);
+        return colour != null ? colour.apply(plain) : rank(player).nameColour() + plain;
+    }
+
+    /** "§d[PREMIUM] §5So§dfi§fene": the rank and the name, as the messages show a player. */
+    String display(UUID player, String plain) {
+        return rank(player).prefix() + name(player, plain);
+    }
+
+    /** " §d§l✦": the badge after the name, or "" without one. */
+    String badgeAfter(UUID player) {
+        NameStyle badge = badge(player);
+        return badge == null ? "" : " " + badge.text();
+    }
+
+    /** The colour codes of the name above the head, where the name takes one colour. */
+    String headColour(UUID player) {
+        NameStyle colour = colour(player);
+        return colour != null ? colour.mainColour() : rank(player).nameColour();
+    }
+
+    /** What the player's Network XP is multiplied by: 1.5 with PREMIUM. */
+    double xpBoost(UUID player) {
+        PlayerStats profile = book.get(player);
+        return profile == null ? 1.0 : server.ranks().xpBoost(profile.rank(), profile.boughtRanks());
+    }
+}

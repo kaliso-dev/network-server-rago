@@ -22,7 +22,7 @@ final class NetworkCommands implements CommandExecutor, TabCompleter {
 
     static final String[] NAMES = {"shop", "gift", "profile", "daily", "friend", "msg", "reply", "rank", "points", "top", "stats",
         "fly", "staffchat", "vanish", "freeze", "report", "clearchat", "mutechat", "ban", "unban", "mute", "unmute", "kick",
-        "warn", "history", "discord", "rules", "site", "store"};
+        "warn", "history", "discord", "rules", "site", "store", "style"};
 
     private static final String[] TOPS = {"elo", "level", "wins", "kills", "streak", "games", "points"};
 
@@ -218,9 +218,67 @@ final class NetworkCommands implements CommandExecutor, TabCompleter {
             case "store":
                 link(sender, "boutique");
                 return true;
+            case "style":
+                style(sender, args);
+                return true;
             default:
                 return false;
         }
+    }
+
+    // --- Colours of name and badges -------------------------------------------------------------
+
+    /**
+     * /style: the menu. The admins and the console (the web store) give and take the colours and
+     * badges: /style give|take &lt;player&gt; &lt;couleur-feu|badge-rago&gt;, /style list.
+     */
+    private void style(CommandSender sender, String[] args) {
+        ServerSettings server = lobby.server();
+        if (args.length == 0 || !sender.hasPermission("rago.admin")) {
+            Player player = player(sender);
+            if (player != null) {
+                lobby.styleMenu().open(player);
+            }
+            return;
+        }
+        String sub = args[0].toLowerCase(Locale.ROOT);
+        if (sub.equals("list")) {
+            for (NameStyle style : server.styles().values()) {
+                sender.sendMessage(ChatColor.YELLOW + style.key() + ChatColor.GRAY + " " + style.sample() + ChatColor.GRAY
+                        + " (" + style.obtain().name().toLowerCase(Locale.ROOT) + ")");
+            }
+            return;
+        }
+        if (args.length != 3 || !sub.matches("give|take")) {
+            sender.sendMessage(ChatColor.RED + "Usage: /style <give|take> <player> <couleur-feu|badge-rago>, /style list");
+            return;
+        }
+        NameStyle style = styleNamed(server, args[2]);
+        if (style == null) {
+            sender.sendMessage(ChatColor.RED + "No colour or badge " + args[2] + ". /style list");
+            return;
+        }
+        PlayerStats target = profileOf(sender, args[1]);
+        if (target == null) {
+            return;
+        }
+        boolean done = sub.equals("give") ? lobby.profiles().giveStyle(target, style) : lobby.profiles().takeStyle(target, style);
+        sender.sendMessage(done ? ChatColor.GREEN + target.name() + (sub.equals("give") ? " now owns " : " no longer owns ")
+                + style.key() + "." : ChatColor.GRAY + target.name() + (sub.equals("give") ? " already owns " : " does not own ")
+                + style.key() + ".");
+        lobby.getLogger().info(sender.getName() + ": /style " + String.join(" ", args));
+    }
+
+    /** "couleur-feu", "badge-rago", or the id alone when no colour and badge share it. */
+    static NameStyle styleNamed(ServerSettings server, String typed) {
+        String key = typed.toLowerCase(Locale.ROOT);
+        NameStyle exact = server.styles().get(key);
+        if (exact != null) {
+            return exact;
+        }
+        NameStyle colour = server.style(NameStyle.Kind.COLOUR, key);
+        NameStyle badge = server.style(NameStyle.Kind.BADGE, key);
+        return colour != null && badge != null ? null : colour != null ? colour : badge;
     }
 
     private void link(CommandSender sender, String key) {
@@ -482,6 +540,15 @@ final class NetworkCommands implements CommandExecutor, TabCompleter {
                     for (RankDef rank : lobby.server().ranks().all()) {
                         options.add(rank.id());
                     }
+                }
+                break;
+            case "style":
+                if (args.length == 1 && sender.hasPermission("rago.admin")) {
+                    options.addAll(Arrays.asList("give", "take", "list"));
+                } else if (args.length == 2 && sender.hasPermission("rago.admin")) {
+                    options.addAll(onlineNames(sender));
+                } else if (args.length == 3 && sender.hasPermission("rago.admin")) {
+                    options.addAll(lobby.server().styles().keySet());
                 }
                 break;
             case "points":

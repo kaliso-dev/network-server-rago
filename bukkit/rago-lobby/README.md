@@ -82,17 +82,31 @@ dans les files d'attente des modes de jeu.
   aqua, vert, cyan, rouge, rose, bleu, violet, puis jaune au 100). La barre d'XP du lobby montre le
   niveau et l'avancée vers le suivant. Un message et un son à chaque niveau, un message à chaque
   nouvelle couleur, avec ce que le niveau débloque dans la boutique. Tout se règle dans `niveau:`.
-- **Les rangs.** Onze rangs dans `rangs:` (OWNER, ADMIN, DEV, MOD, HELPER, BUILDER, MEDIA,
-  LEGEND, ELITE, VIP+, VIP), chacun avec son préfixe, la couleur du pseudo, la couleur du chat,
-  ses permissions et le rang dont il hérite. Un joueur montre le plus haut de ses rangs, dans le
-  chat (`[12✫] [VIP] Pseudo: message`), au-dessus de la tête et dans le Tab (les plus hauts rangs
-  en premier). Les rangs du staff se donnent avec `/rank set`, les autres s'achètent aussi.
+- **Les rangs.** Huit rangs dans `rangs:` (OWNER, ADMIN, DEV, MOD, HELPER, BUILDER, MEDIA et
+  PREMIUM), chacun avec son préfixe, la couleur du pseudo, la couleur du chat, ses permissions et
+  le rang dont il hérite. Un joueur montre le plus haut de ses rangs, dans le chat
+  (`[12✫] [PREMIUM] Pseudo ✦: message`), au-dessus de la tête et dans le Tab (les plus hauts rangs
+  en premier). Les rangs du staff se donnent avec `/rank set`.
+- **Le rang PREMIUM.** Le seul rang à acheter, sur la boutique en ligne (rago-optimizer.com) :
+  la boutique du jeu montre ce qu'il donne et le lien, la boutique en ligne le donne depuis la
+  console avec `/rank give <joueur> premium`. Il donne un pseudo en dégradé rose et le badge
+  `✦`, +50 % d'XP Network (`boost-xp: 1.5`), `/fly` au lobby, `/nick`, un message à soi
+  au-dessus de la tête, l'arrivée annoncée avec un feu d'artifice, des messages blancs sans délai.
+  Le staff et MEDIA en héritent.
+- **Les couleurs de pseudo et les badges (`/style`).** Un pseudo peut prendre un dégradé (les
+  16 couleurs de la 1.8, d'une lettre à l'autre : Pink, Fire, Ocean, Forest, Sunset, Ice,
+  Galaxy, Rainbow, Shadow, et Aqua, Gold, Legend pour les niveaux) et un badge après le pseudo
+  (`✦`, RAGO, BETTER, PVP, YT, `✫100`). Le dégradé se voit dans le chat, le Tab et les messages ;
+  au-dessus de la tête un pseudo n'a qu'une couleur, celle du milieu du dégradé. Chaque style dit
+  comment l'avoir : avec PREMIUM, sur la boutique en ligne (`/style give <joueur> couleur-feu`
+  depuis la console), ou comme récompense de niveau. Le menu (`/style`, le profil, la boutique)
+  montre le rendu, ce qu'on a et comment avoir le reste. Tout se règle dans `styles:`.
 - **Les Rago Points et la boutique (`/shop`).** Les points se gagnent en partie (20 par victoire,
   5 par défaite, 2 par kill), à chaque niveau (le niveau fois 10) et avec la récompense du jour
-  (`/daily` : 100, plus 25 par jour d'affilée, jusqu'à 7 jours). La boutique vend les rangs VIP,
-  VIP+, ELITE et LEGEND et 18 cosmétiques (traînées de projectiles, effets de kill, effets de
-  victoire), chacun débloqué à un niveau Network. Prix et niveaux se changent dans `rangs:` et
-  `boutique:`. Les cosmétiques ne jouent qu'en partie.
+  (`/daily` : 100, plus 25 par jour d'affilée, jusqu'à 7 jours). La boutique vend 18 cosmétiques
+  (traînées de projectiles, effets de kill, effets de victoire), chacun débloqué à un niveau
+  Network, et montre le rang PREMIUM et les styles de pseudo. Un rang peut aussi se vendre en
+  points (`prix:` et `niveau:` dans `rangs:`). Les cosmétiques ne jouent qu'en partie.
 - **L'ELO classé.** Chaque mode classé a son ELO, qui commence à 0, et onze divisions de Coal
   (0) à Obsidian (1000). Une victoire rapporte plus et une défaite coûte moins dans les basses
   divisions ; le MVP de la partie (le plus de kills) gagne 5 de plus. La file classée apparie
@@ -101,7 +115,7 @@ dans les files d'attente des modes de jeu.
 - **L'arrivée au lobby.** Chaque arrivée (connexion ou retour d'une partie) s'annonce au lobby,
   une fois par minute au plus : en gris pour un joueur sans rang, comme sur Hypixel
   (`>>> [VIP] Pseudo joined the lobby! <<<`) avec des particules et un son pour un rang, et un
-  feu d'artifice de sa couleur avec `rago.perk.join` (ELITE et au-dessus).
+  feu d'artifice de sa couleur avec `rago.perk.join` (PREMIUM et le staff).
 - **Le coffre de la récompense du jour.** `/lobby point daily` pose un coffre à cet endroit (au
   spawn), avec au-dessus « DAILY REWARD », si la récompense attend ou dans combien de temps vient
   la suivante, et la série de jours. Un clic dessus la donne, comme `/daily`.
@@ -149,12 +163,14 @@ commentaires de `config.yml`. Les mots français de la première version (`quitt
 | `/lobby point remove <nom>`, `/lobby point tp <nom>`, `/lobby points` | retirer un point, y aller, la liste | `rago.lobby.admin` |
 | `/lobby build` | mode construction dans le lobby (créatif, protection levée) | `rago.lobby.admin` |
 | `/shop` (ou `/boutique`), `/profile` (ou `/me`), `/daily` | la boutique, son profil, la récompense du jour | tout le monde |
-| `/gift <joueur>` (ou `/cadeau`) | offrir un rang de la boutique avec ses Rago Points | tout le monde |
+| `/gift <joueur>` (ou `/cadeau`) | offrir un rang vendu en Rago Points (PREMIUM s'offre sur la boutique en ligne) | tout le monde |
 | `/friend add\|accept\|deny\|remove\|list\|requests\|toggle <joueur>` (ou `/f`) | les amis | tout le monde |
 | `/msg <joueur> <message>` (ou `/tell`, `/w`), `/r <message>` | message privé, réponse | tout le monde |
 | `/stats [joueur]`, `/top elo\|level\|wins\|kills\|streak\|games\|points [mode]` | les stats, les meilleurs | tout le monde |
 | `/report <joueur> <raison>`, `/discord`, `/rules`, `/site`, `/store` | signaler un joueur, les liens | tout le monde |
-| `/fly` | voler dans le lobby | `rago.perk.fly` (VIP+) |
+| `/fly` | voler dans le lobby | `rago.perk.fly` (PREMIUM) |
+| `/style` (ou `/couleur`, `/badge`) | choisir sa couleur de pseudo et son badge | tout le monde |
+| `/style give\|take <joueur> <couleur-feu\|badge-rago>`, `/style list` | donner ou retirer un style (la boutique en ligne, depuis la console) | `rago.admin` |
 | `/staffchat [message]` (ou `/sc`), `/vanish` (ou `/v`), `/freeze <joueur>`, `/clearchat` | chat du staff, invisible, figer un joueur, vider le chat | `rago.staff` |
 | `/mute <joueur> [durée] <raison>`, `/unmute`, `/kick`, `/warn`, `/history <joueur>` | sanctions (durée : `30m`, `2h`, `7d`, `2w` ou `perm`) | `rago.staff` |
 | `/ban <joueur> [durée] <raison>`, `/unban`, `/mutechat` | bans, couper le chat | `rago.mod` |

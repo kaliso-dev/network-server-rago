@@ -288,8 +288,11 @@ class StatsBookTest {
         PlayerStats alice = book.get(ALICE);
         alice.addPoints(1234);
         alice.setRank("admin");
-        alice.boughtRanks().add("vip");
+        alice.boughtRanks().add("premium");
         alice.cosmetics().add("trail-flames");
+        alice.cosmetics().add("couleur-feu");
+        alice.choose(NameStyle.Kind.COLOUR, "feu");
+        alice.choose(NameStyle.Kind.BADGE, "");
         alice.equip(Cosmetic.Type.TRAIL, "trail-flames");
         alice.friends().add(BOB);
         alice.setMessages(PlayerStats.MessageSetting.FRIENDS);
@@ -302,7 +305,9 @@ class StatsBookTest {
         assertEquals(0, read.mode("sumo").elo);
         assertEquals(1234, read.points());
         assertEquals("admin", read.rank());
-        assertTrue(read.boughtRanks().contains("vip"));
+        assertTrue(read.boughtRanks().contains("premium"));
+        assertEquals("feu", read.colourChoice());
+        assertEquals("", read.badgeChoice(), "no badge, by choice");
         assertEquals("trail-flames", read.equipped(Cosmetic.Type.TRAIL));
         assertTrue(read.friends().contains(BOB));
         assertEquals(PlayerStats.MessageSetting.FRIENDS, read.messages());

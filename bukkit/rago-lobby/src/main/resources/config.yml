@@ -125,9 +125,9 @@ niveau:
     100: "&e"
 
 # The ranks, the highest first: the order of the tab list, and a player shows the highest of
-# theirs. The staff give a rank with /rank set <player> <rank>; the ranks with a price are sold in
-# the shop (/shop) for Rago Points, once the player reaches their level. A player has the
-# permissions of all their ranks, and of the ranks these inherit (herite).
+# theirs. The staff give a rank with /rank set <player> <rank>, the web store (or an admin) with
+# /rank give <player> premium. A player has the permissions of all their ranks, and of the ranks
+# these inherit (herite).
 #   prefixe      before the name ("&c[ADMIN] "): with the colour of the name, 16 characters at most
 #   couleur      the colour of the name
 #   chat         the colour of the messages (a player without a rank writes in grey)
@@ -135,10 +135,15 @@ niveau:
 #   permissions  what the rank gives: rago.admin (ranks, points, and all below), rago.mod (bans,
 #                mutechat), rago.staff (staff chat, vanish, freeze, mutes, kicks, warnings),
 #                rago.perk.chat (no chat cooldown), rago.perk.fly (/fly in the lobby),
-#                rago.perk.join (the lobby hears the arrival), or a permission of another plugin;
-#                "-permission" takes one away
-#   herite       the rank whose permissions this one also has
-#   prix, niveau the price in Rago Points and the Network level needed (prix: 0 = not sold)
+#                rago.perk.join (the lobby hears the arrival), rago.perk.nick (/nick),
+#                rago.perk.message (a message of one's own above the head), or a permission of
+#                another plugin; "-permission" takes one away
+#   herite       the rank whose permissions (and colours, badges, boost) this one also has
+#   boost-xp     the Network XP of its players is multiplied by this (1.5: half more)
+#   style, badge the colour of name and the badge (of styles:) its players wear until they choose
+#                another with /style; they own them as long as they have the rank
+#   boutique-en-ligne  true: sold on the web store, the shop shows the link (liens.boutique)
+#   prix, niveau the price in Rago Points and the Network level needed in the shop (prix: 0 = not sold)
 #   icone        the item in the shop; avantages: its lines
 rangs:
   owner:
@@ -170,52 +175,60 @@ rangs:
     couleur: "&9"
     staff: true
     permissions: [rago.staff]
-    herite: elite
+    herite: premium
   builder:
     prefixe: "&3[BUILDER] "
     couleur: "&3"
     staff: true
     permissions: [rago.staff, rago.lobby.admin]
-    herite: vipplus
+    herite: premium
   media:
     prefixe: "&c[&fMEDIA&c] "
     couleur: "&c"
-    herite: elite
-    avantages: ["For content creators", "Everything of ELITE"]
-  legend:
-    prefixe: "&6[LEGEND] "
-    couleur: "&6"
-    herite: elite
-    prix: 100000
-    niveau: 100
-    icone: GOLD_BLOCK
-    avantages: ["The [LEGEND] prefix in gold", "Everything of ELITE"]
-  elite:
-    prefixe: "&b[ELITE] "
-    couleur: "&b"
-    permissions: [rago.perk.join]
-    herite: vipplus
-    prix: 40000
-    niveau: 50
-    icone: DIAMOND_BLOCK
-    avantages: ["A firework when you arrive in the lobby", "Everything of VIP+"]
-  vipplus:
-    prefixe: "&a[VIP&6+&a] "
-    couleur: "&a"
-    permissions: [rago.perk.fly]
-    herite: vip
-    prix: 15000
-    niveau: 25
-    icone: EMERALD_BLOCK
-    avantages: ["/fly in the lobby", "Everything of VIP"]
-  vip:
-    prefixe: "&a[VIP] "
-    couleur: "&a"
-    permissions: [rago.perk.chat]
-    prix: 5000
-    niveau: 10
-    icone: EMERALD
-    avantages: ["Your arrival announced in style", "White messages in the chat", "No chat cooldown"]
+    herite: premium
+    avantages: ["For content creators", "Everything of PREMIUM"]
+  premium:
+    prefixe: "&d[PREMIUM] "
+    couleur: "&d"
+    permissions: [rago.perk.chat, rago.perk.fly, rago.perk.join, rago.perk.nick, rago.perk.message]
+    boost-xp: 1.5
+    style: rose
+    badge: premium
+    boutique-en-ligne: true
+    icone: NETHER_STAR
+    avantages: ["A pink gradient name and the &d&l✦&7 badge", "+50% Network XP in every game", "/fly in the lobby",
+      "/nick: play under another name", "Your own message above your head", "Your arrival announced, with a firework",
+      "White messages, no chat cooldown"]
+
+# The colours of name and the badges (/style). A colour is a gradient along the letters of the
+# name, made of the 16 colours of 1.8 (degrade: the colour characters from the first letter to the
+# last, 0 to 9 and a to f: "5ddfd" goes from purple to pink to white; one character for one colour);
+# gras: true for a bold name. Above the head a name takes one colour: the middle one. A badge is a
+# short word after the name (texte, 15 characters at most with its colour codes). obtention says
+# how a player gets it: premium (with a rank whose style or badge it is), achat (the web store
+# gives it: /style give <player> couleur-feu, from the console), niveau (a reward of the Network
+# levels, niveau.recompenses). A player wears one colour and one badge at a time.
+styles:
+  couleurs:
+    rose: {nom: "Pink", degrade: "5ddfd", obtention: premium}
+    feu: {nom: "Fire", degrade: "4c6e", obtention: achat}
+    ocean: {nom: "Ocean", degrade: "19b3", obtention: achat}
+    foret: {nom: "Forest", degrade: "2ae", obtention: achat}
+    coucher: {nom: "Sunset", degrade: "5dc6e", obtention: achat}
+    glace: {nom: "Ice", degrade: "fb3b", obtention: achat}
+    galaxie: {nom: "Galaxy", degrade: "159d", obtention: achat}
+    arc-en-ciel: {nom: "Rainbow", degrade: "c6eab9d", obtention: achat}
+    ombre: {nom: "Shadow", degrade: "0878", obtention: achat}
+    aqua: {nom: "Aqua", degrade: "b", obtention: niveau}
+    or: {nom: "Gold", degrade: "6", obtention: niveau}
+    legende: {nom: "Legend", degrade: "6eef6", gras: true, obtention: niveau}
+  badges:
+    premium: {nom: "Premium", texte: "&d&l✦", obtention: premium}
+    rago: {nom: "RAGO", texte: "&c&lRAGO", obtention: achat}
+    better: {nom: "BETTER", texte: "&6&lBETTER", obtention: achat}
+    pvp: {nom: "PVP", texte: "&4&lPVP", obtention: achat}
+    yt: {nom: "YT", texte: "&c&lYT", obtention: achat}
+    centurion: {nom: "Centurion", texte: "&e&l✫100", obtention: niveau}
 
 # The ELO of the ranked modes, by division as on the Ranked Bedwars servers: everyone starts at 0,
 # a division from its elo up to the next one's. A win gives "victoire" ELO and a loss takes

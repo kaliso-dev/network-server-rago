@@ -79,8 +79,12 @@ commands:
     description: A player's profile in the chat.
     usage: /stats [player]
   fly:
-    description: Fly in the lobby (VIP+ and above).
+    description: Fly in the lobby (PREMIUM and the staff).
     usage: /fly
+  style:
+    description: Your colour of name and badge; the admins and the web store give and take them.
+    usage: /style, or (admin, console) /style <give|take> <player> <couleur-feu|badge-rago>, /style list
+    aliases: [styles, couleur, badge]
   staffchat:
     description: The staff chat.
     usage: /sc [message]
@@ -165,6 +169,7 @@ permissions:
     children:
       rago.perk.chat: true
       rago.perk.fly: true
+      rago.perk.nick: true
   # The perks of the ranks of the shop.
   rago.perk.chat:
     description: No chat cooldown, the same message twice allowed.
@@ -174,4 +179,10 @@ permissions:
     default: false
   rago.perk.join:
     description: The lobby hears your arrival.
+    default: false
+  rago.perk.nick:
+    description: /nick, play under another name.
+    default: false
+  rago.perk.message:
+    description: Your own message above your head.
     default: false

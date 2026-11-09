@@ -12,48 +12,52 @@ import org.bukkit.event.player.AsyncPlayerChatEvent;
 
 /**
  * The Network level and the rank in the chat, as on Hypixel: "§6[12✫] §c[ADMIN] Sofiene§f: hello",
- * the messages of a player without a rank in grey. The chat runs on its own threads, so the prefix
- * of each player is computed on the main thread ({@link #refresh}) and only read from the chat.
+ * the name in the player's colour (a gradient with PREMIUM) and their badge after it, the messages
+ * of a player without a rank in grey. The chat runs on its own threads, so the look of each player
+ * is computed on the main thread ({@link #refresh}) and only read from the chat.
  */
 final class NetworkRanks implements Listener {
 
-    /** What the chat shows of a player: before the name, and the colour of the messages. */
+    /** What the chat shows of a player: the level and rank, the name and badge, the colour of the messages. */
     private static final class Look {
         final String prefix;
+        final String name;
         final String chat;
 
-        Look(String prefix, String chat) {
+        Look(String prefix, String name, String chat) {
             this.prefix = prefix;
+            this.name = name;
             this.chat = chat;
         }
     }
 
-    private static final Look NEW_PLAYER = new Look(ChatColor.GRAY + "[1" + NetworkLevel.STAR + "] " + ChatColor.GRAY,
-            ChatColor.GRAY.toString());
+    private static final String NEW_PREFIX = ChatColor.GRAY + "[1" + NetworkLevel.STAR + "] " + ChatColor.GRAY;
 
     private final StatsBook book;
-    private final Ranks ranks;
+    private final NameLooks names;
     private final Map<UUID, Look> looks = new ConcurrentHashMap<>();
 
-    NetworkRanks(StatsBook book, Ranks ranks) {
+    NetworkRanks(StatsBook book, NameLooks names) {
         this.book = book;
-        this.ranks = ranks;
+        this.names = names;
     }
 
-    /** Main thread: the player's level or rank may have changed. */
+    /** Main thread: the player's level, rank or style may have changed. */
     void refresh(Player player) {
         UUID id = player.getUniqueId();
-        looks.put(id, new Look(prefix(book, ranks, id), rankOf(book, ranks, id).chatColour()));
+        RankDef rank = names.rank(id);
+        looks.put(id, new Look(book.levels().tag(book.level(id)) + " " + rank.prefix(),
+                names.name(id, player.getName()) + names.badgeAfter(id), rank.chatColour()));
     }
 
     void forget(UUID player) {
         looks.remove(player);
     }
 
-    /** The player's level and rank as the chat shows them, before the name. */
-    String prefixOf(UUID player) {
+    /** The player as the chat shows them: "§6[12✫] §d[PREMIUM] §5So§dfi§fene §d§l✦". */
+    String chatName(UUID player, String name) {
         Look look = looks.get(player);
-        return (look == null ? NEW_PLAYER : look).prefix;
+        return look == null ? NEW_PREFIX + name : look.prefix + look.name;
     }
 
     /** The rank a player shows: the highest of the one the staff gave and those they bought. */
@@ -71,10 +75,11 @@ final class NetworkRanks implements Listener {
     @EventHandler(priority = EventPriority.HIGH, ignoreCancelled = true)
     public void onChat(AsyncPlayerChatEvent event) {
         Look look = looks.get(event.getPlayer().getUniqueId());
-        if (look == null) {
-            look = NEW_PLAYER;
-        }
         // The format goes through String.format: a % in a rank must not be read as a placeholder.
-        event.setFormat(look.prefix.replace("%", "%%") + "%1$s" + look.chat + ": " + "%2$s");
+        if (look == null) {
+            event.setFormat(NEW_PREFIX + "%1$s" + ChatColor.GRAY + ": %2$s");
+        } else {
+            event.setFormat((look.prefix + look.name).replace("%", "%%") + look.chat + ": %2$s");
+        }
     }
 }

@@ -7,7 +7,9 @@ import org.bukkit.Material;
 /**
  * A rank of config.yml (rangs:): its prefix before the name ("§c[ADMIN] "), the colour of the name
  * and of the messages, its permissions (with those of the rank it inherits), and for a rank of the
- * shop its price in Rago Points and the Network level it asks. A staff rank is given with
+ * shop its price in Rago Points and the Network level it asks. A rank can also boost the Network
+ * XP of its players, give them a style of name and a badge they wear by default ({@link NameStyle}),
+ * and be sold on the web store instead of the shop (the PREMIUM rank). A staff rank is given with
  * /rank set, never sold. Immutable.
  */
 final class RankDef {
@@ -26,9 +28,19 @@ final class RankDef {
     private final int level;
     private final Material icon;
     private final List<String> perks;
+    private final double xpBoost;
+    private final String style;
+    private final String badge;
+    private final boolean webStore;
 
     RankDef(String id, String prefix, String nameColour, String chatColour, boolean staff, List<String> permissions,
             String parent, int price, int level, Material icon, List<String> perks) {
+        this(id, prefix, nameColour, chatColour, staff, permissions, parent, price, level, icon, perks, 1.0, null, null, false);
+    }
+
+    RankDef(String id, String prefix, String nameColour, String chatColour, boolean staff, List<String> permissions,
+            String parent, int price, int level, Material icon, List<String> perks, double xpBoost, String style,
+            String badge, boolean webStore) {
         this.id = id;
         this.prefix = prefix;
         this.nameColour = nameColour;
@@ -40,6 +52,10 @@ final class RankDef {
         this.level = level;
         this.icon = icon;
         this.perks = Collections.unmodifiableList(perks);
+        this.xpBoost = xpBoost;
+        this.style = style;
+        this.badge = badge;
+        this.webStore = webStore;
     }
 
     String id() {
@@ -96,6 +112,26 @@ final class RankDef {
     /** What the rank gives, for the shop. */
     List<String> perks() {
         return perks;
+    }
+
+    /** What the Network XP of its players is multiplied by: 1 for none, 1.5 for half more. */
+    double xpBoost() {
+        return xpBoost;
+    }
+
+    /** The id of the colour of name its players wear until they choose another ("rose"), or null. */
+    String style() {
+        return style;
+    }
+
+    /** The id of the badge its players wear until they choose another ("premium"), or null. */
+    String badge() {
+        return badge;
+    }
+
+    /** True for a rank sold on the web store (the shop shows where), not for Rago Points. */
+    boolean webStore() {
+        return webStore;
     }
 
     /** The prefix and the colour of the name, as a team prefix shows them. */

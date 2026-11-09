@@ -35,6 +35,9 @@ final class PlayerStats {
     /** The day the daily reward was last claimed ("" never), and the days in a row. */
     private String dailyDay = "";
     private int dailyStreak;
+    /** The colour of name and the badge chosen (/style): null for the rank's, "" for none. */
+    private String colourChoice;
+    private String badgeChoice;
 
     /** Who may send this player private messages. */
     enum MessageSetting {
@@ -187,6 +190,24 @@ final class PlayerStats {
     void setDaily(String day, int streak) {
         this.dailyDay = day == null ? "" : day;
         this.dailyStreak = Math.max(0, streak);
+    }
+
+    /** The id of the colour of name chosen: null for the one of the rank, "" for the plain colour of the rank. */
+    String colourChoice() {
+        return colourChoice;
+    }
+
+    /** The id of the badge chosen: null for the one of the rank, "" for none. */
+    String badgeChoice() {
+        return badgeChoice;
+    }
+
+    void choose(NameStyle.Kind kind, String id) {
+        if (kind == NameStyle.Kind.COLOUR) {
+            colourChoice = id;
+        } else {
+            badgeChoice = id;
+        }
     }
 
     /** The stats of this mode, or null if the player never played it. */

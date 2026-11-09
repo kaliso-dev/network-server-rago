@@ -21,13 +21,19 @@ final class Profiles {
     private final ServerSettings server;
     private final StatsService stats;
     private final NetworkRanks chat;
+    private final NameLooks names;
     private final Map<UUID, PermissionAttachment> attachments = new HashMap<>();
 
-    Profiles(RagoLobby lobby, ServerSettings server, StatsService stats, NetworkRanks chat) {
+    Profiles(RagoLobby lobby, ServerSettings server, StatsService stats, NetworkRanks chat, NameLooks names) {
         this.lobby = lobby;
         this.server = server;
         this.stats = stats;
         this.chat = chat;
+        this.names = names;
+    }
+
+    NameLooks names() {
+        return names;
     }
 
     ServerSettings server() {
@@ -41,13 +47,12 @@ final class Profiles {
 
     /** The rank a player shows. */
     RankDef rank(UUID player) {
-        return NetworkRanks.rankOf(stats.book(), server.ranks(), player);
+        return names.rank(player);
     }
 
-    /** "§c[ADMIN] §cSofiene", or "§7Sofiene" for a player without a rank. */
+    /** "§c[ADMIN] §cSofiene", "§d[PREMIUM] §5So§dfi§fene", or "§7Sofiene" for a player without a rank. */
     String displayName(UUID player, String name) {
-        RankDef rank = rank(player);
-        return rank.prefix() + rank.nameColour() + name;
+        return names.display(player, name);
     }
 
     /** True if the player owns this rank or a higher one that inherits it. */
@@ -221,6 +226,57 @@ final class Profiles {
         String id = profile == null ? null : profile.equipped(type);
         Cosmetic cosmetic = id == null ? null : server.cosmetics().get(id);
         return cosmetic != null && profile.cosmetics().contains(id) ? cosmetic : null;
+    }
+
+    // --- Colours of name and badges -------------------------------------------------------------
+
+    /**
+     * Wears a colour or a badge the player owns, or takes it off if they wear it (null: the plain
+     * colour of the rank, no badge).
+     */
+    void wear(Player player, NameStyle.Kind kind, NameStyle style) {
+        PlayerStats profile = of(player);
+        if (style != null && !names.owns(profile, style)) {
+            return;
+        }
+        NameStyle worn = kind == NameStyle.Kind.COLOUR ? names.colour(player.getUniqueId()) : names.badge(player.getUniqueId());
+        if (style == null || style == worn) {
+            profile.choose(kind, "");
+            player.sendMessage(ChatColor.GRAY + (kind == NameStyle.Kind.COLOUR ? "Your name takes the colour of your rank again."
+                    : "Badge taken off."));
+        } else {
+            profile.choose(kind, style.id());
+            player.sendMessage(ChatColor.GREEN + (kind == NameStyle.Kind.COLOUR ? "Your name now looks like this: "
+                    + style.apply(player.getName()) : "Your badge: " + style.text()));
+        }
+        player.playSound(player.getLocation(), Sound.CLICK, 1f, 1f);
+        changed(profile);
+    }
+
+    /** /style give: the store sold it, or the staff gives it. Returns false if they had it. */
+    boolean giveStyle(PlayerStats profile, NameStyle style) {
+        if (!profile.cosmetics().add(style.key())) {
+            return false;
+        }
+        profile.choose(style.kind(), style.id());
+        changed(profile);
+        Player got = lobby.getServer().getPlayer(profile.id());
+        if (got != null) {
+            got.sendMessage(ChatColor.LIGHT_PURPLE + "✦ " + ChatColor.GREEN + "You got the "
+                    + (style.kind() == NameStyle.Kind.COLOUR ? "colour of name " + style.apply(style.name())
+                    : "badge " + style.text()) + ChatColor.GREEN + ". You wear it now (/style to change).");
+            got.playSound(got.getLocation(), Sound.LEVEL_UP, 1f, 1.5f);
+        }
+        return true;
+    }
+
+    /** /style take. Returns false if they did not have it. */
+    boolean takeStyle(PlayerStats profile, NameStyle style) {
+        if (!profile.cosmetics().remove(style.key())) {
+            return false;
+        }
+        changed(profile);
+        return true;
     }
 
     // --- Daily reward ---------------------------------------------------------------------------

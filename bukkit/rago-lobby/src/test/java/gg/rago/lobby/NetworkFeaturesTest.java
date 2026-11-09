@@ -54,24 +54,29 @@ class NetworkFeaturesTest {
     void theHighestRankShowsAndThePermissionsAddUp() {
         Ranks ranks = Ranks.defaults();
         assertEquals("owner", ranks.all().get(0).id(), "the highest first");
-        assertEquals("vip", ranks.best(null, Collections.singletonList("vip")).id());
-        assertEquals("elite", ranks.best(null, Arrays.asList("vip", "elite", "vipplus")).id());
-        assertEquals("mod", ranks.best("mod", Collections.singletonList("legend")).id(), "the staff rank is higher");
+        assertEquals("premium", ranks.best(null, Collections.singletonList("premium")).id());
+        assertEquals("mod", ranks.best("mod", Collections.singletonList("premium")).id(), "the staff rank is higher");
         assertEquals(Ranks.DEFAULT, ranks.best(null, Collections.<String>emptyList()));
         assertEquals(Ranks.DEFAULT, ranks.best("gone", Collections.singletonList("gone too")), "unknown ranks left out");
-        assertTrue(ranks.has(null, Collections.singletonList("elite"), "vip"), "ELITE inherits VIP+ and VIP");
-        assertFalse(ranks.has(null, Collections.singletonList("vip"), "elite"));
-        assertTrue(ranks.permissions("helper", Collections.<String>emptyList())
-                .containsAll(Arrays.asList("rago.staff", "rago.perk.join", "rago.perk.fly", "rago.perk.chat")));
-        assertFalse(ranks.permissions(null, Collections.singletonList("vip")).contains("rago.perk.fly"));
-        List<String> sold = new ArrayList<>();
-        for (RankDef rank : ranks.sold()) {
-            sold.add(rank.id());
+        assertTrue(ranks.has("admin", Collections.<String>emptyList(), "premium"), "the staff has everything of PREMIUM");
+        assertFalse(ranks.has(null, Collections.singletonList("premium"), "helper"));
+        assertTrue(ranks.permissions("helper", Collections.<String>emptyList()).containsAll(Arrays.asList("rago.staff",
+                "rago.perk.join", "rago.perk.fly", "rago.perk.chat", "rago.perk.nick", "rago.perk.message")));
+        assertTrue(ranks.permissions(null, Collections.singletonList("premium")).contains("rago.perk.fly"));
+        assertTrue(ranks.sold().isEmpty(), "nothing for Rago Points: PREMIUM is on the web store");
+        List<String> shown = new ArrayList<>();
+        for (RankDef rank : ranks.forSale()) {
+            shown.add(rank.id());
         }
-        assertEquals(Arrays.asList("vip", "vipplus", "elite", "legend"), sold, "the cheapest first, no staff rank");
-        assertTrue(ranks.position(ranks.get("owner")) < ranks.position(ranks.get("vip")));
+        assertEquals(Collections.singletonList("premium"), shown, "one rank to buy");
+        assertTrue(ranks.position(ranks.get("owner")) < ranks.position(ranks.get("premium")));
         assertEquals(ranks.all().size(), ranks.position(Ranks.DEFAULT), "no rank comes last");
-        assertEquals("VIP+", ranks.get("vipplus").displayName().replaceAll("§.", ""));
+        assertEquals("PREMIUM", ranks.get("premium").displayName());
+        assertEquals(1.5, ranks.xpBoost(null, Collections.singletonList("premium")), 1e-9);
+        assertEquals(1.5, ranks.xpBoost("mod", Collections.<String>emptyList()), 1e-9, "inherited");
+        assertEquals(1.0, ranks.xpBoost(null, Collections.<String>emptyList()), 1e-9);
+        assertEquals(new java.util.LinkedHashSet<>(Arrays.asList("couleur-rose", "badge-premium")),
+                ranks.styles(null, Collections.singletonList("premium")));
     }
 
     @Test
@@ -186,12 +191,25 @@ class NetworkFeaturesTest {
         assertEquals(Ranks.defaults().all().size(), ranks.all().size());
         assertEquals("§c[ADMIN] ", ranks.get("admin").prefix());
         assertTrue(ranks.get("admin").staff());
-        assertEquals("§a[VIP§6+§a] ", ranks.get("vipplus").prefix());
-        assertEquals(15_000, ranks.get("vipplus").price());
-        assertEquals(25, ranks.get("vipplus").level());
-        assertEquals(Material.EMERALD_BLOCK, ranks.get("vipplus").icon());
-        assertEquals(Ranks.defaults().permissions(null, Collections.singletonList("legend")),
-                ranks.permissions(null, Collections.singletonList("legend")), "the same as the plugin's own ranks");
+        RankDef premium = ranks.get("premium");
+        RankDef own = Ranks.premium();
+        assertEquals(own.prefix(), premium.prefix());
+        assertEquals(own.xpBoost(), premium.xpBoost(), 1e-9);
+        assertEquals(own.style(), premium.style());
+        assertEquals(own.badge(), premium.badge());
+        assertTrue(premium.webStore());
+        assertEquals(0, premium.price());
+        assertEquals(Material.NETHER_STAR, premium.icon());
+        assertEquals(own.perks().size(), premium.perks().size());
+        assertEquals(Ranks.defaults().permissions("admin", Collections.singletonList("premium")),
+                ranks.permissions("admin", Collections.singletonList("premium")), "the same as the plugin's own ranks");
+        assertEquals(NameStyle.catalogue().keySet(), settings.styles().keySet(), "the plugin's own styles");
+        for (NameStyle style : NameStyle.catalogue().values()) {
+            NameStyle read = settings.styles().get(style.key());
+            assertEquals(style.text(), read.text(), style.key());
+            assertEquals(style.obtain(), read.obtain(), style.key());
+            assertEquals(style.sample(), read.sample(), style.key());
+        }
         assertEquals(EloLadder.DEFAULT.divisions().size(), settings.elo().divisions().size());
         assertEquals(35, settings.elo().after(0, true, false));
         assertEquals(5, settings.elo().mvpBonus());
@@ -235,6 +253,13 @@ class NetworkFeaturesTest {
         assertInvalid("chat:\n  delai-secondes: 61\n", "chat.delai-secondes");
         assertInvalid("annonces:\n  minutes: 0\n", "annonces.minutes");
         assertInvalid("liens:\n  twitter: 'x'\n", "liens.twitter");
+        assertInvalid("rangs:\n  vip:\n    style: nothing\n", "rangs.vip.style");
+        assertInvalid("rangs:\n  vip:\n    badge: nothing\n", "rangs.vip.badge");
+        assertInvalid("rangs:\n  vip:\n    boost-xp: 10\n", "rangs.vip.boost-xp");
+        assertInvalid("rangs:\n  mod:\n    staff: true\n    boutique-en-ligne: true\n", "rangs.mod.boutique-en-ligne");
+        assertInvalid("styles:\n  couleurs:\n    feu: {degrade: 'red'}\n", "styles.couleurs.feu.degrade");
+        assertInvalid("styles:\n  badges:\n    long: {texte: '&c&lMUCH TOO LONG'}\n", "styles.badges.long.texte");
+        assertInvalid("styles:\n  badges:\n    rago: {texte: '&cRAGO', obtention: free}\n", "styles.badges.rago.obtention");
     }
 
     @Test

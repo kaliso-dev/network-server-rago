@@ -24,10 +24,11 @@ import org.bukkit.scoreboard.Team;
  * text changes, at most once a second. The scoreboard also hides the name tags of the NPC bodies
  * (team {@link #NPC_TEAM}): their names float above them as lines of their own. And it puts every
  * player in a team of their own, whose prefix shows their rank (in a game: their team, as the game
- * says) and whose suffix shows their Network level, above their head and in the tab list: "§c[ADMIN]
- * §cSofiene §6[12✫]". The tab list sorts the teams by name: the players of a game first, then the
- * highest ranks. In a game, the sidebar shows the mode and the player's ping, and in a 1v1 the
- * opponent and their ping.
+ * says) and whose suffix shows their badge and Network level, above their head: "§c[ADMIN] §cSofiene
+ * §6[12✫]" (a name takes one colour there: the middle one of a gradient). In the lobby the tab list
+ * shows the whole look, the gradient too: "§6[12✫] §d[PREMIUM] §5So§dfi§fene §d§l✦". The tab list
+ * sorts the teams by name: the players of a game first, then the highest ranks. In a game, the
+ * sidebar shows the mode and the player's ping, and in a 1v1 the opponent and their ping.
  */
 final class LobbyScoreboard {
 
@@ -70,7 +71,10 @@ final class LobbyScoreboard {
     private final StatsBook book;
     private final LobbyState state;
     private final Ranks ranks;
+    private final NameLooks names;
     private final Map<UUID, Scoreboard> boards = new HashMap<>();
+    /** The name each player shows in the tab list, as last sent (null: their plain name). */
+    private final Map<UUID, String> listNames = new HashMap<>();
     /** A number for each player seen, for the names of their teams. */
     private final Map<UUID, Integer> numbers = new HashMap<>();
     /** On each player's scoreboard, the team of each other player. */
@@ -83,12 +87,13 @@ final class LobbyScoreboard {
     /** The number of each of those prefixes, the same on every scoreboard: its teams sort together. */
     private final Map<String, Integer> prefixTeams = new HashMap<>();
 
-    LobbyScoreboard(LobbySettings settings, QueueController queues, StatsBook book, LobbyState state, Ranks ranks) {
+    LobbyScoreboard(LobbySettings settings, QueueController queues, StatsBook book, LobbyState state, NameLooks names) {
         this.settings = settings;
         this.queues = queues;
         this.book = book;
         this.state = state;
-        this.ranks = ranks;
+        this.names = names;
+        this.ranks = names.server().ranks();
     }
 
     /**
@@ -200,9 +205,12 @@ final class LobbyScoreboard {
                 number = numbers.size();
                 numbers.put(id, number);
             }
-            String suffix = fit(" " + levels.tag(book.level(id)));
+            String level = " " + levels.tag(book.level(id));
             boolean hidden = other.hasPotionEffect(PotionEffectType.INVISIBILITY);
             String game = gamePrefixes.get(id);
+            String suffix = game != null ? fit(level) : suffix(names.badgeAfter(id), level);
+            listName(other, game != null ? null : levels.tag(book.level(id)) + " " + names.display(id, other.getName())
+                    + names.badgeAfter(id));
             if (game != null) {
                 Integer order = prefixTeams.get(game);
                 if (order == null) {
@@ -211,11 +219,34 @@ final class LobbyScoreboard {
                 }
                 tags.put(id, new Tag(teamName(true, order, number), game, suffix, hidden));
             } else {
-                RankDef rank = NetworkRanks.rankOf(book, ranks, id);
-                tags.put(id, new Tag(teamName(false, ranks.position(rank), number), fit(rank.tagPrefix()), suffix, hidden));
+                RankDef rank = names.rank(id);
+                tags.put(id, new Tag(teamName(false, ranks.position(rank), number), fit(rank.prefix() + names.headColour(id)),
+                        suffix, hidden));
             }
         }
         return tags;
+    }
+
+    /** The badge and the level after the name, or the badge alone when both do not fit in 16 characters. */
+    static String suffix(String badge, String level) {
+        if ((badge + level).length() <= MAX_TEAM) {
+            return badge + level;
+        }
+        return badge.isEmpty() ? fit(level) : fit(badge);
+    }
+
+    /** The name of the player in the tab list (null: their plain name, which the game's team colours). */
+    private void listName(Player player, String name) {
+        String before = listNames.get(player.getUniqueId());
+        if (name == null ? before == null : name.equals(before)) {
+            return;
+        }
+        player.setPlayerListName(name);
+        if (name == null) {
+            listNames.remove(player.getUniqueId());
+        } else {
+            listNames.put(player.getUniqueId(), name);
+        }
     }
 
     /**
@@ -289,6 +320,7 @@ final class LobbyScoreboard {
         shown.remove(player);
         gameLines.remove(player);
         gamePrefixes.remove(player);
+        listNames.remove(player);
     }
 
     /** The lines a game shows in the player's sidebar, or null for the lobby's own game lines. */

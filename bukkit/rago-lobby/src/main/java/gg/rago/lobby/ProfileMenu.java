@@ -20,6 +20,7 @@ final class ProfileMenu {
     private final StatsService stats;
     private final StatsMenu statsMenu;
     private final ShopMenu shop;
+    private StyleMenu styles;
 
     ProfileMenu(RagoLobby lobby, Profiles profiles, Social social, StatsService stats, StatsMenu statsMenu, ShopMenu shop) {
         this.lobby = lobby;
@@ -60,6 +61,10 @@ final class ProfileMenu {
         return lore;
     }
 
+    void setStyles(StyleMenu styles) {
+        this.styles = styles;
+    }
+
     /** "▮▮▮▮▮▯▯▯▯▯". */
     static String bar(float progress) {
         int full = Math.max(0, Math.min(10, Math.round(progress * 10)));
@@ -88,6 +93,14 @@ final class ProfileMenu {
         menu.set(25, ClickMenu.item(Material.REDSTONE_COMPARATOR, ChatColor.GREEN + "Settings", "Private messages,",
                 "party invites, friend and", "duel requests.", "", ChatColor.YELLOW + "Click to change"),
                 (p, right) -> openSettings(p));
+        if (styles != null) {
+            NameStyle badge = profiles.names().badge(player.getUniqueId());
+            menu.set(30, ClickMenu.item(Material.NAME_TAG, 0, ChatColor.LIGHT_PURPLE + "Name colour & badge", listOf(
+                    "Your name: " + profiles.names().name(player.getUniqueId(), player.getName()),
+                    "Your badge: " + (badge == null ? ChatColor.DARK_GRAY + "none" : badge.text()),
+                    "", "Gradients and badges such as", "§c§lRAGO§7, §6§lBETTER§7, §4§lPVP§7 or §c§lYT§7.",
+                    "", ChatColor.YELLOW + "Click to change")), (p, right) -> styles.open(p));
+        }
         boolean ready = profiles.dailyReady(player.getUniqueId());
         menu.set(40, ClickMenu.item(ready ? Material.CHEST : Material.ENDER_CHEST, ChatColor.AQUA + "Daily reward",
                 ready ? ChatColor.YELLOW + "Click to claim" : ChatColor.GRAY + "Claimed today, come back tomorrow"),

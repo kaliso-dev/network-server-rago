@@ -71,13 +71,13 @@ class NetworkLevelTest {
         assertEquals("§7[1" + NetworkLevel.STAR + "] §7", NetworkRanks.prefix(book, ranks, alice));
         PlayerStats stats = new PlayerStats(alice, "Alice");
         stats.addXp(1000);
-        stats.boughtRanks().add("vip");
+        stats.boughtRanks().add("premium");
         book.load(stats);
         assertEquals(LEVELS.level(1000), book.level(alice));
-        assertEquals("§7[" + LEVELS.level(1000) + NetworkLevel.STAR + "] §a[VIP] §a", NetworkRanks.prefix(book, ranks, alice));
+        assertEquals("§7[" + LEVELS.level(1000) + NetworkLevel.STAR + "] §d[PREMIUM] §d", NetworkRanks.prefix(book, ranks, alice));
         stats.setRank("admin");
         assertEquals("admin", NetworkRanks.rankOf(book, ranks, alice).id(), "the highest of the ranks");
         stats.setRank("unknown");
-        assertEquals("vip", NetworkRanks.rankOf(book, ranks, alice).id(), "an unknown rank is left out");
+        assertEquals("premium", NetworkRanks.rankOf(book, ranks, alice).id(), "an unknown rank is left out");
     }
 }

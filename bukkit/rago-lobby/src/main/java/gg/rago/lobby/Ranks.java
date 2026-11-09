@@ -16,7 +16,8 @@ import org.bukkit.Material;
  * Every rank of config.yml (rangs:), the highest first: the order of the list is the order of the
  * tab list, and the rank a player shows is the highest of theirs. A player has the rank the staff
  * gave them (/rank set) and the ranks they bought in the shop; they have the permissions of all of
- * them, with those of the ranks each one inherits. Immutable.
+ * them, with those of the ranks each one inherits, and the colours of name and badges they give.
+ * Immutable.
  */
 final class Ranks {
 
@@ -76,6 +77,22 @@ final class Ranks {
         return sold;
     }
 
+    /** The ranks the shop shows: those of the web store, then those sold for Rago Points, the cheapest first. */
+    List<RankDef> forSale() {
+        List<RankDef> shown = new ArrayList<>();
+        for (RankDef rank : ranks) {
+            if (rank.webStore() && !rank.staff()) {
+                shown.add(rank);
+            }
+        }
+        for (RankDef rank : sold()) {
+            if (!shown.contains(rank)) {
+                shown.add(rank);
+            }
+        }
+        return shown;
+    }
+
     /** 0 for the highest rank; a player without a rank comes after all of them. */
     int position(RankDef rank) {
         int index = ranks.indexOf(rank);
@@ -112,43 +129,81 @@ final class Ranks {
         return false;
     }
 
-    /** Every permission of these ranks and of the ranks they inherit. */
-    Set<String> permissions(String given, Collection<String> bought) {
-        Set<String> permissions = new LinkedHashSet<>();
+    /** These ranks and every rank they inherit, each once (unknown ids left out). */
+    private List<RankDef> withInherited(String given, Collection<String> bought) {
+        Set<RankDef> all = new LinkedHashSet<>();
         List<String> ids = new ArrayList<>(bought);
         ids.add(given);
         for (String id : ids) {
             RankDef at = id == null ? null : byId.get(id);
-            while (at != null) {
-                permissions.addAll(at.permissions());
+            while (at != null && all.add(at)) {
                 at = at.parent() == null ? null : byId.get(at.parent());
             }
+        }
+        return new ArrayList<>(all);
+    }
+
+    /** Every permission of these ranks and of the ranks they inherit. */
+    Set<String> permissions(String given, Collection<String> bought) {
+        Set<String> permissions = new LinkedHashSet<>();
+        for (RankDef rank : withInherited(given, bought)) {
+            permissions.addAll(rank.permissions());
         }
         return permissions;
     }
 
-    /** The ranks of a config.yml without rangs: the staff, then the ranks of the shop. */
+    /** The highest XP boost of these ranks and of the ranks they inherit: 1 for none. */
+    double xpBoost(String given, Collection<String> bought) {
+        double boost = 1.0;
+        for (RankDef rank : withInherited(given, bought)) {
+            boost = Math.max(boost, rank.xpBoost());
+        }
+        return boost;
+    }
+
+    /**
+     * The colours and badges these ranks give, with those of the ranks they inherit, by key
+     * ("couleur-rose", "badge-premium"): a player owns them as long as they have the rank.
+     */
+    Set<String> styles(String given, Collection<String> bought) {
+        Set<String> keys = new LinkedHashSet<>();
+        for (RankDef rank : withInherited(given, bought)) {
+            if (rank.style() != null) {
+                keys.add(NameStyle.key(NameStyle.Kind.COLOUR, rank.style()));
+            }
+            if (rank.badge() != null) {
+                keys.add(NameStyle.key(NameStyle.Kind.BADGE, rank.badge()));
+            }
+        }
+        return keys;
+    }
+
+    /** The ranks of a config.yml without rangs: the staff, then the PREMIUM rank of the web store. */
     static Ranks defaults() {
         List<RankDef> ranks = new ArrayList<>();
         ranks.add(staff("owner", "§4[OWNER] ", "§4", "admin", "rago.admin"));
         ranks.add(staff("admin", "§c[ADMIN] ", "§c", "mod", "rago.admin"));
         ranks.add(staff("dev", "§b[DEV] ", "§b", "mod", "rago.admin"));
         ranks.add(staff("mod", "§2[MOD] ", "§2", "helper", "rago.mod"));
-        ranks.add(staff("helper", "§9[HELPER] ", "§9", "elite", "rago.staff"));
-        ranks.add(staff("builder", "§3[BUILDER] ", "§3", "vipplus", "rago.staff", "rago.lobby.admin"));
-        ranks.add(new RankDef("media", "§c[§fMEDIA§c] ", "§c", "§f", false, Collections.<String>emptyList(), "elite",
-                0, 0, Material.NAME_TAG, Arrays.asList("For content creators", "Everything of ELITE")));
-        ranks.add(new RankDef("legend", "§6[LEGEND] ", "§6", "§f", false, Collections.<String>emptyList(), "elite",
-                100_000, 100, Material.GOLD_BLOCK, Arrays.asList("The [LEGEND] prefix in gold", "Everything of ELITE")));
-        ranks.add(new RankDef("elite", "§b[ELITE] ", "§b", "§f", false, Arrays.asList("rago.perk.join"), "vipplus",
-                40_000, 50, Material.DIAMOND_BLOCK, Arrays.asList("A firework when you arrive in the lobby",
-                        "Everything of VIP+")));
-        ranks.add(new RankDef("vipplus", "§a[VIP§6+§a] ", "§a", "§f", false, Arrays.asList("rago.perk.fly"), "vip",
-                15_000, 25, Material.EMERALD_BLOCK, Arrays.asList("/fly in the lobby", "Everything of VIP")));
-        ranks.add(new RankDef("vip", "§a[VIP] ", "§a", "§f", false, Arrays.asList("rago.perk.chat"), null,
-                5_000, 10, Material.EMERALD, Arrays.asList("Your arrival announced in style",
-                        "White messages in the chat", "No chat cooldown")));
+        ranks.add(staff("helper", "§9[HELPER] ", "§9", PREMIUM, "rago.staff"));
+        ranks.add(staff("builder", "§3[BUILDER] ", "§3", PREMIUM, "rago.staff", "rago.lobby.admin"));
+        ranks.add(new RankDef("media", "§c[§fMEDIA§c] ", "§c", "§f", false, Collections.<String>emptyList(), PREMIUM,
+                0, 0, Material.NAME_TAG, Arrays.asList("For content creators", "Everything of PREMIUM")));
+        ranks.add(premium());
         return new Ranks(ranks);
+    }
+
+    /** The id of the one rank of the web store. */
+    static final String PREMIUM = "premium";
+
+    /** The PREMIUM rank: sold on the web store, with the perks of the network and a pink gradient name. */
+    static RankDef premium() {
+        return new RankDef(PREMIUM, "§d[PREMIUM] ", "§d", "§f", false, Arrays.asList("rago.perk.chat", "rago.perk.fly",
+                "rago.perk.join", "rago.perk.nick", "rago.perk.message"), null, 0, 0, Material.NETHER_STAR, Arrays.asList(
+                        "A pink gradient name and the §d§l✦§7 badge", "+50% Network XP in every game",
+                        "/fly in the lobby", "/nick: play under another name", "Your own message above your head",
+                        "Your arrival announced, with a firework", "White messages, no chat cooldown"),
+                1.5, "rose", PREMIUM, true);
     }
 
     private static RankDef staff(String id, String prefix, String colour, String parent, String... permissions) {

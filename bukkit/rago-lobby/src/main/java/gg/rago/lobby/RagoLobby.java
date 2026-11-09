@@ -67,6 +67,7 @@ public final class RagoLobby extends JavaPlugin implements LobbyService {
     private ServerSettings server;
     private Profiles profiles;
     private ShopMenu shop;
+    private StyleMenu styleMenu;
     private ProfileMenu profileMenu;
     private Social social;
     private CosmeticEffects cosmetics;
@@ -127,8 +128,10 @@ public final class RagoLobby extends JavaPlugin implements LobbyService {
         queues = new QueueController(this, settings, state, partyBook, this::queuesChanged);
         stats = new StatsService(this, settings.defaultRating(), settings.levels(), server, writer, this::write, this::xpChanged);
         queues.setBook(stats.book());
-        ranks = new NetworkRanks(stats.book(), server.ranks());
-        profiles = new Profiles(this, server, stats, ranks);
+        NameLooks names = new NameLooks(stats.book(), server);
+        stats.book().setBoost(names::xpBoost);
+        ranks = new NetworkRanks(stats.book(), names);
+        profiles = new Profiles(this, server, stats, ranks, names);
         social = new Social(this, stats, profiles);
         punishments = new Punishments(this, stats.book(), writer, this::write);
         punishments.load();
@@ -143,7 +146,7 @@ public final class RagoLobby extends JavaPlugin implements LobbyService {
         hypixel = new HypixelProfiles(this, settings.hypixelKey(), writer, this::write);
         kitEditor = new KitEditor(this, settings, kits, state, this::giveHotbar, hypixel);
         menu = new ModeMenu(settings, queues, stats.book());
-        scoreboard = new LobbyScoreboard(settings, queues, stats.book(), state, server.ranks());
+        scoreboard = new LobbyScoreboard(settings, queues, stats.book(), state, names);
         duels = new DuelRequests(settings, state, queues);
         duels.setGate(social::acceptsDuel);
         duels.setFrozen(this::isFrozen);
@@ -156,6 +159,10 @@ public final class RagoLobby extends JavaPlugin implements LobbyService {
         statsDisplays = new StatsDisplays(settings, stats.book(), statsMenu, fakes);
         shop = new ShopMenu(profiles, stats.book());
         profileMenu = new ProfileMenu(this, profiles, social, stats, statsMenu, shop);
+        styleMenu = new StyleMenu(profiles, stats.book());
+        styleMenu.setBack((p, right) -> profileMenu.open(p));
+        shop.setStyles(styleMenu);
+        profileMenu.setStyles(styleMenu);
         npcs = new LobbyNpcs(settings, state, points, queues, menu, fakes, statsDisplays);
         getServer().getPluginManager().registerEvents(npcs, this);
 
@@ -872,6 +879,10 @@ public final class RagoLobby extends JavaPlugin implements LobbyService {
 
     Profiles profiles() {
         return profiles;
+    }
+
+    StyleMenu styleMenu() {
+        return styleMenu;
     }
 
     ShopMenu shop() {

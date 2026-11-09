@@ -523,7 +523,7 @@ final class Parties implements Listener {
 
     /** The name with the level and rank, as in the chat. */
     private String name(Player player) {
-        return ranks.prefixOf(player.getUniqueId()) + player.getName();
+        return ranks.chatName(player.getUniqueId(), player.getName());
     }
 
     private String nameOf(UUID id) {

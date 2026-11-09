@@ -61,6 +61,12 @@ final class StatsFiles {
         yaml.set("profil.reglages.duels", stats.duelRequests());
         yaml.set("profil.quotidien.date", stats.dailyDay());
         yaml.set("profil.quotidien.serie", stats.dailyStreak());
+        if (stats.colourChoice() != null) {
+            yaml.set("profil.style.couleur", stats.colourChoice());
+        }
+        if (stats.badgeChoice() != null) {
+            yaml.set("profil.style.badge", stats.badgeChoice());
+        }
         for (Map.Entry<String, ModeStats> entry : stats.modes().entrySet()) {
             ModeStats m = entry.getValue();
             ConfigurationSection section = yaml.createSection("modes." + entry.getKey());
@@ -175,6 +181,8 @@ final class StatsFiles {
         stats.setFriendRequests(yaml.getBoolean("profil.reglages.amis", true));
         stats.setDuelRequests(yaml.getBoolean("profil.reglages.duels", true));
         stats.setDaily(yaml.getString("profil.quotidien.date", ""), yaml.getInt("profil.quotidien.serie"));
+        stats.choose(NameStyle.Kind.COLOUR, yaml.getString("profil.style.couleur", null));
+        stats.choose(NameStyle.Kind.BADGE, yaml.getString("profil.style.badge", null));
         ConfigurationSection modes = yaml.getConfigurationSection("modes");
         if (modes != null) {
             for (String modeId : modes.getKeys(false)) {

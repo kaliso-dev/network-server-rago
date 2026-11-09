@@ -106,6 +106,8 @@ final class StatsBook {
     private final Map<String, Ranking> rankings = new HashMap<>();
     private final Map<String, List<TeamRow>> teamRankings = new HashMap<>();
     private String rankedDay = "";
+    /** What each player's Network XP is multiplied by (the boost of PREMIUM): 1 by default. */
+    private java.util.function.ToDoubleFunction<UUID> boost = player -> 1.0;
 
     StatsBook(int defaultRating, NetworkLevel levels) {
         this(defaultRating, levels, EloLadder.DEFAULT);
@@ -119,6 +121,20 @@ final class StatsBook {
 
     NetworkLevel levels() {
         return levels;
+    }
+
+    void setBoost(java.util.function.ToDoubleFunction<UUID> boost) {
+        this.boost = boost;
+    }
+
+    /** What the player's Network XP is multiplied by: 1 without a boost. */
+    double boost(UUID player) {
+        return Math.max(1.0, boost.applyAsDouble(player));
+    }
+
+    /** The XP the player gets for this much: more with a boost, rounded. */
+    int boosted(UUID player, int xp) {
+        return (int) Math.min(Integer.MAX_VALUE, Math.round(xp * boost(player)));
     }
 
     EloLadder ladder() {
@@ -269,13 +285,13 @@ final class StatsBook {
         }
         for (UUID id : new LinkedHashSet<>(winners)) {
             PlayerStats stats = play(id, names, mode.id(), true, day, week, newElo.get(id));
-            stats.addXp(levels.winXp());
+            stats.addXp(boosted(id, levels.winXp()));
             changed.add(stats);
         }
         for (UUID id : new LinkedHashSet<>(losers)) {
             if (!winners.contains(id)) {
                 PlayerStats stats = play(id, names, mode.id(), false, day, week, newElo.get(id));
-                stats.addXp(levels.lossXp());
+                stats.addXp(boosted(id, levels.lossXp()));
                 changed.add(stats);
             }
         }
@@ -295,7 +311,7 @@ final class StatsBook {
         }
         PlayerStats stats = statsOf(killer, names);
         stats.modeOrNew(modeId).kill(StatsPeriod.dayKey(millis), StatsPeriod.weekKey(millis));
-        stats.addXp(levels.killXp());
+        stats.addXp(boosted(killer, levels.killXp()));
         changed.add(stats);
         if (victim != null) {
             PlayerStats dead = statsOf(victim, names);
@@ -306,13 +322,13 @@ final class StatsBook {
         return changed;
     }
 
-    /** Network XP earned in a training: added to the player's stats, returned (null for 0 or less). */
+    /** Network XP earned in a training (boosted): added to the player's stats, returned (null for 0 or less). */
     PlayerStats giveXp(UUID player, int xp, Names names) {
         if (player == null || xp <= 0) {
             return null;
         }
         PlayerStats stats = statsOf(player, names);
-        stats.addXp(xp);
+        stats.addXp(boosted(player, xp));
         forgetRankings();
         return stats;
     }
