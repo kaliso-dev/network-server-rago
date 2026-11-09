@@ -12,7 +12,7 @@ commands:
   spawn:
     description: Back to the lobby spawn.
     usage: /spawn
-    aliases: [hub]
+    aliases: [hub, l]
   queue:
     description: Join the queue of a mode, or leave it.
     usage: /queue <mode> [map] | /queue leave
@@ -34,8 +34,8 @@ commands:
     description: Copy your Bed Wars shop and hotbar manager from Hypixel, or see it.
     usage: /hypixel import [name], /hypixel shop
   lobby:
-    description: Manage the lobby (staff).
-    usage: /lobby <setspawn|build|modes|points|point <name>|point remove <name>|point tp <name>>
+    description: Back to the lobby spawn. The staff also manage the lobby with it.
+    usage: /lobby, or (staff) /lobby <setspawn|build|modes|points|point <name>|point remove <name>|point tp <name>>
 permissions:
   rago.lobby.admin:
     description: Place the lobby spawn and points, and edit the lobby in build mode.

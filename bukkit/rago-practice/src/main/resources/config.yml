@@ -31,3 +31,20 @@ attaque-defense:
   construction-secondes: 30
   attaque-secondes: 120
   manches: 2
+
+# Block in practice on your own map, Ultimate Block-In Practice: put the folder of the world in the
+# folder of the worlds (mondes) of the server. Its island is copied into each zone, without the
+# command blocks and the redstone; the bed and its defense come back at each attempt. Without
+# that world, the training plays on a plain island of the plugin's own.
+block-in:
+  monde: "Ultimate Block-In Practice"
+  # the foot and the head of the bed, on the map
+  lit: [-72, 66, -26]
+  tete: [-73, 66, -26]
+  # the two corners of the box copied: the whole island, under the bed and over it
+  zone: [-92, 50, -42, -60, 80, -12]
+  # where the player starts, as /tp on the map: x, y, z, yaw, pitch. The first one on the side
+  # of the wood, the second one on the side of the wool (the corners of the ring of glass).
+  departs:
+    - [-68, 76, -22, 135, 60]
+    - [-68, 76, -30, 45, 60]

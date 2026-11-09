@@ -481,15 +481,16 @@ modes:
       - "save yourself. Or random kb"
       - "above the void."
   block-in:
-    nom: "&bBlock in training"
+    nom: "&bBlock in practice"
     categorie: entrainement
     icone: ENDER_STONE
     equipes: 1
     joueurs-par-equipe: 1
     classe: false
     description:
-      - "Block yourself in as fast"
-      - "as you can on a defense."
+      - "Drop on a bed defense, block"
+      - "yourself in and dig to the bed:"
+      - "the time of each layer."
   fast-defense:
     nom: "&bFast defense"
     categorie: entrainement
@@ -501,17 +502,18 @@ modes:
       - "Build a bed defense"
       - "as fast as you can,"
       - "RBW or solo defense."
-  bridge-chrono:
-    nom: "&bTimed bridge"
+  extend-practice:
+    nom: "&bExtend practice"
     categorie: entrainement
-    icone: SANDSTONE
+    icone: QUARTZ_BLOCK
     equipes: 1
     joueurs-par-equipe: 1
     classe: false
     description:
-      - "Timed by technique: ninja,"
-      - "god bridge, telly... against your"
-      - "best time or the top 1's."
+      - "Double and triple extends:"
+      - "jump a gap too long, extend"
+      - "your wool in the air (5+1,"
+      - "6+0, 6+1, 7+0, 7-1, 7-2)."
   kb-displace:
     nom: "&bKB displace 1v1"
     categorie: duels
@@ -537,13 +539,14 @@ modes:
   ladder-practice:
     nom: "&6Ladder practice"
     categorie: entrainement
-    icone: VINE
+    icone: LADDER
     equipes: 1
     joueurs-par-equipe: 1
     classe: false
     description:
-      - "Ladder training: place"
-      - "and climb fast (block ladder)."
+      - "Block-ladder clutch: jump from"
+      - "4 to 24 blocks, wool and a"
+      - "ladder before the ground."
   pearl-practice:
     nom: "&5Pearl practice"
     categorie: entrainement

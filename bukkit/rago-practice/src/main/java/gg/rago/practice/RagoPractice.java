@@ -18,7 +18,7 @@ import org.bukkit.plugin.java.JavaPlugin;
 /**
  * RagoPractice: the practice modes played from the lobby. Duels (sumo, boxing, KB displace, bridge
  * fight, block fight, top fight, attack and defense, fireball fight), the trainings (clutch, block
- * in, fast defense, timed bridge, ladders, pearls, fireballs, aim), the bots, and the open block
+ * in, fast defense, extends, ladder clutch, pearls, fireballs, aim), the bots, and the open block
  * placement arena, each in zones of an empty world. See the module README.
  */
 public final class RagoPractice extends JavaPlugin {
@@ -133,6 +133,7 @@ public final class RagoPractice extends JavaPlugin {
         int build = config.getInt("attaque-defense.construction-secondes", 30);
         int attack = config.getInt("attaque-defense.attaque-secondes", 120);
         int rounds = config.getInt("attaque-defense.manches", 2);
+        BlockInTraining.Island island = blockInIsland(config);
 
         register("boxing", (h, m, a, t) -> new Boxing(h, m, a, t, boxing), slots, spacing, false);
         register("kb-displace", (h, m, a, t) -> new KbDisplace(h, m, a, t, kb), slots, spacing, false);
@@ -145,9 +146,9 @@ public final class RagoPractice extends JavaPlugin {
         register("attack-defense-2v2", (h, m, a, t) -> new AttackDefense(h, m, a, t, build, attack, rounds), slots, spacing, false);
         register("fireball", FireballFight::new, slots, spacing, false);
         register("clutch", ClutchTraining::new, slots, spacing, false);
-        register("block-in", BlockInTraining::new, slots, spacing, false);
+        register("block-in", (h, m, a, t) -> new BlockInTraining(h, m, a, t, island), slots, spacing, false);
         register("fast-defense", FastDefenseTraining::new, slots, spacing, false);
-        register("bridge-chrono", BridgeTraining::new, slots, spacing, false);
+        register("extend-practice", ExtendTraining::new, slots, spacing, false);
         register("ladder-practice", LadderTraining::new, slots, spacing, false);
         register("pearl-practice", PearlTraining::new, slots, spacing, false);
         register("fireball-practice", FireballTraining::new, slots, spacing, false);
@@ -156,6 +157,74 @@ public final class RagoPractice extends JavaPlugin {
         register("kb-displace-bot", KbDisplaceBot::new, slots, spacing, false);
         register("block-fight-arena", BlockArena::new, slots, spacing, true);
         register("scenarios-ranked", RankedScenarios::new, slots, spacing, false);
+    }
+
+    /**
+     * The island of the block in training: the owner's map (block-in.monde) copied without its
+     * command blocks, the bed and its defense left out (each attempt puts them back); without that
+     * world, the plugin's plain island. The starts are the map's, from the foot of the bed.
+     */
+    private BlockInTraining.Island blockInIsland(FileConfiguration config) {
+        List<Integer> bed = config.getIntegerList("block-in.lit");
+        List<Integer> head = config.getIntegerList("block-in.tete");
+        List<Integer> zone = config.getIntegerList("block-in.zone");
+        List<?> starts = config.getList("block-in.departs");
+        String problem = checkBlockIn(bed, head, zone, starts);
+        if (problem != null) {
+            getLogger().warning("block-in in config.yml: " + problem + ". The block in training plays on the plugin's own island.");
+            return new BlockInTraining.Island(null, -1, 0, new double[][] {{4.5, 11, 4.5, 135, 60}, {4.5, 11, -3.5, 45, 60}});
+        }
+        int hx = head.get(0) - bed.get(0);
+        int hz = head.get(2) - bed.get(2);
+        int[] origin = {bed.get(0), bed.get(1) - BlockInTraining.BED_Y, bed.get(2)};
+        double[][] places = new double[starts.size()][];
+        for (int i = 0; i < places.length; i++) {
+            List<?> start = (List<?>) starts.get(i);
+            places[i] = new double[] {number(start.get(0)) - origin[0] + 0.5, number(start.get(1)) - origin[1],
+                number(start.get(2)) - origin[2] + 0.5, number(start.get(3)), number(start.get(4))};
+        }
+        int[] box = new int[6];
+        for (int i = 0; i < 6; i++) {
+            box[i] = zone.get(i);
+        }
+        MapCopy copy = MapCopy.read(config.getString("block-in.monde", ""), box, origin, getLogger());
+        if (copy != null) {
+            copy = copy.without(BlockInTraining.defensePlaces(hx, hz));
+        }
+        return new BlockInTraining.Island(copy, hx, hz, places);
+    }
+
+    private static double number(Object value) {
+        return value instanceof Number ? ((Number) value).doubleValue() : Double.parseDouble(String.valueOf(value));
+    }
+
+    /** What is wrong with the block-in section, or null. */
+    static String checkBlockIn(List<Integer> bed, List<Integer> head, List<Integer> zone, List<?> starts) {
+        if (bed.size() != 3 || head.size() != 3) {
+            return "lit and tete: x, y, z each";
+        }
+        if (!bed.get(1).equals(head.get(1)) || Math.abs(head.get(0) - bed.get(0)) + Math.abs(head.get(2) - bed.get(2)) != 1) {
+            return "tete: the block next to lit, on the same level";
+        }
+        if (zone.size() != 6) {
+            return "zone: the two corners of the island, x, y, z each";
+        }
+        if (starts == null || starts.isEmpty()) {
+            return "departs: at least one start, x, y, z, yaw, pitch";
+        }
+        for (Object start : starts) {
+            if (!(start instanceof List) || ((List<?>) start).size() != 5) {
+                return "departs: x, y, z, yaw, pitch for each start";
+            }
+            for (Object value : (List<?>) start) {
+                try {
+                    number(value);
+                } catch (NumberFormatException e) {
+                    return "departs: \"" + value + "\" is not a number";
+                }
+            }
+        }
+        return null;
     }
 
     private void register(String modeId, PracticeHost.Factory factory, int slots, int spacing, boolean open) {

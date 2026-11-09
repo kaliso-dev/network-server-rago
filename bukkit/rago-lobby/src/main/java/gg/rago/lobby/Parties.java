@@ -15,7 +15,6 @@ import org.bukkit.event.EventHandler;
 import org.bukkit.event.EventPriority;
 import org.bukkit.event.Listener;
 import org.bukkit.event.player.AsyncPlayerChatEvent;
-import org.bukkit.plugin.Plugin;
 
 /**
  * /party (/p), /pc and /chat, as on Hypixel: invites that last a minute and are clicked to accept,
@@ -30,7 +29,7 @@ final class Parties implements Listener {
     private static final List<String> SUBCOMMANDS = Arrays.asList("invite", "accept", "leave", "list", "disband",
             "kick", "remove", "transfer", "promote", "warp", "chat");
 
-    private final Plugin plugin;
+    private final RagoLobby lobby;
     private final PartyBook book;
     private final LobbyState state;
     private final NetworkRanks ranks;
@@ -38,8 +37,8 @@ final class Parties implements Listener {
     /** The players whose chat goes to their party (/chat party). Read by the chat thread. */
     private final Set<UUID> partyChannel = ConcurrentHashMap.newKeySet();
 
-    Parties(Plugin plugin, PartyBook book, LobbyState state, NetworkRanks ranks) {
-        this.plugin = plugin;
+    Parties(RagoLobby lobby, PartyBook book, LobbyState state, NetworkRanks ranks) {
+        this.lobby = lobby;
         this.book = book;
         this.state = state;
         this.ranks = ranks;
@@ -151,7 +150,7 @@ final class Parties implements Listener {
         help(player, "/party list", "Lists the members of your party");
         help(player, "/party kick <player>", "Removes the player from your party");
         help(player, "/party transfer <player>", "Transfers the party to another player");
-        help(player, "/party warp", "Brings the members in the lobby to you");
+        help(player, "/party warp", "Brings your party members to you");
         help(player, "/party disband", "Disbands the party");
         help(player, "/pc <message>", "Sends a chat message to the entire party");
         help(player, "/chat <party|all>", "Sends your chat to the party, or to everyone");
@@ -334,25 +333,38 @@ final class Parties implements Listener {
                 + name(player));
     }
 
-    /** The members in the lobby come to the leader, when the leader is in the lobby too. */
+    /**
+     * As on Hypixel, every online member comes to the leader: a member in a game leaves it (as with
+     * /spawn, a forfeit in a duel), a member elsewhere comes back to the lobby, then each one stands
+     * where the leader stands. The leader warps from the lobby.
+     */
     private void warp(Player player) {
         PartyBook.Party party = book.together(player.getUniqueId());
         if (party == null || !party.isLeader(player.getUniqueId())) {
             boxed(player, ChatColor.RED + (party == null ? "You are not currently in a party." : "You are not the party leader!"));
             return;
         }
-        if (!state.isProtected(player)) {
-            boxed(player, ChatColor.RED + "Go back to the lobby (/spawn) to warp your party.");
+        if (!state.isInLobby(player)) {
+            boxed(player, ChatColor.RED + "Go back to the lobby (/l) to warp your party.");
             return;
         }
         int warped = 0;
         for (UUID member : party.members()) {
             Player other = Bukkit.getPlayer(member);
-            if (other != null && !other.equals(player) && state.isProtected(other)) {
-                other.teleport(player.getLocation());
-                boxed(other, name(player) + ChatColor.YELLOW + " summoned you to their lobby.");
-                warped++;
+            if (other == null || other.equals(player)) {
+                continue;
             }
+            if (state.isInGame(other)) {
+                lobby.goToSpawn(other);
+            } else if (!state.isInLobby(other)) {
+                lobby.sendToLobby(other);
+            }
+            if (!state.isInLobby(other)) {
+                continue;
+            }
+            other.teleport(player.getLocation());
+            boxed(other, name(player) + ChatColor.YELLOW + " summoned you to their lobby.");
+            warped++;
         }
         boxed(player, ChatColor.YELLOW + "You summoned " + ChatColor.RED + warped + ChatColor.YELLOW
                 + (warped == 1 ? " player" : " players") + " to your lobby.");
@@ -377,7 +389,7 @@ final class Parties implements Listener {
                 other.sendMessage(line);
             }
         }
-        plugin.getLogger().info("[Party] " + player.getName() + ": " + message);
+        lobby.getLogger().info("[Party] " + player.getName() + ": " + message);
     }
 
     /** /chat party: what the player writes goes to the party, sent from the main thread. */
@@ -389,7 +401,7 @@ final class Parties implements Listener {
         }
         event.setCancelled(true);
         String message = event.getMessage();
-        Bukkit.getScheduler().runTask(plugin, () -> {
+        Bukkit.getScheduler().runTask(lobby, () -> {
             if (player.isOnline()) {
                 chat(player, message);
             }

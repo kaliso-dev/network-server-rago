@@ -18,8 +18,8 @@ import org.bukkit.entity.Player;
  * <ul>
  *   <li>{@code /party} (alias {@code /p}), {@code /pc <message>}, {@code /chat <party|all>}: the
  *       parties, as on Hypixel ({@link Parties}).
- *   <li>{@code /spawn}: back to the lobby spawn (from a game, through the game, which counts it as
- *       a forfeit).
+ *   <li>{@code /spawn}, {@code /lobby}, {@code /l}, {@code /hub}: back to the lobby spawn (from a game,
+ *       through the game, which counts it as a forfeit).
  *   <li>{@code /queue <mode> [map]} joins a queue (on that map, for a mode that offers a choice:
  *       {@code random} or nothing for any map), {@code /queue leave} leaves it.
  *   <li>{@code /hypixel import [name]} copies the Bed Wars shop and hotbar manager of a Hypixel
@@ -74,6 +74,12 @@ final class LobbyCommands implements TabExecutor {
             case "hypixel":
                 return hypixel(player, args);
             case "lobby":
+                // /lobby and /l take everyone back, as on Hypixel; the staff words stay for the staff
+                if (args.length == 0 || !player.hasPermission("rago.lobby.admin")
+                        || !ADMIN.contains(args[0].toLowerCase(java.util.Locale.ROOT))) {
+                    lobby.goToSpawn(player);
+                    return true;
+                }
                 return admin(player, args);
             default:
                 return false;
