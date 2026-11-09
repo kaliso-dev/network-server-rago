@@ -23,6 +23,8 @@ final class Bots {
 
     /** A bot at this place, this fast (0: a zombie's pace, 1: Speed I, 2: Speed II). */
     static Zombie spawn(PracticeGame game, Location at, String name, Color colour, int speed) {
+        // a bot far from the player may stand in a chunk not loaded yet: no entity goes into one
+        at.getChunk().load();
         Zombie zombie = at.getWorld().spawn(at, Zombie.class);
         zombie.setBaby(false);
         zombie.setVillager(false);
