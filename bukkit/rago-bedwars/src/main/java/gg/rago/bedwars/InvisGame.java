@@ -134,7 +134,7 @@ final class InvisGame extends BedwarsGame {
         host.joined(id, this);
         waitHere(player);
         int count = present().size();
-        broadcast(ChatColor.GRAY + player.getName() + " joined the invis practice (" + ChatColor.WHITE + count + "/"
+        broadcast(ChatColor.GRAY + player.getDisplayName() + " joined the invis practice (" + ChatColor.WHITE + count + "/"
                 + MAX_PLAYERS + ChatColor.GRAY + ").", Sound.CLICK);
         if (count >= MAX_PLAYERS && waitLeft > FULL_WAIT_SECONDS) {
             waitLeft = FULL_WAIT_SECONDS;

@@ -67,6 +67,15 @@ final class StatsFiles {
         if (stats.badgeChoice() != null) {
             yaml.set("profil.style.badge", stats.badgeChoice());
         }
+        if (stats.headLine() != null) {
+            yaml.set("profil.tete.affichage", stats.headLine());
+        }
+        if (stats.headMessage() != null) {
+            yaml.set("profil.tete.message", stats.headMessage());
+        }
+        if (stats.nick() != null) {
+            yaml.set("profil.nick", stats.nick());
+        }
         yaml.set("profil.recompenses-niveau", stats.rewardsLevel());
         yaml.set("profil.quetes.jour", stats.questDay());
         yaml.set("profil.quetes.semaine", stats.questWeek());
@@ -190,6 +199,9 @@ final class StatsFiles {
         stats.setDaily(yaml.getString("profil.quotidien.date", ""), yaml.getInt("profil.quotidien.serie"));
         stats.choose(NameStyle.Kind.COLOUR, yaml.getString("profil.style.couleur", null));
         stats.choose(NameStyle.Kind.BADGE, yaml.getString("profil.style.badge", null));
+        stats.setHeadLine(yaml.getString("profil.tete.affichage", null));
+        stats.setHeadMessage(yaml.getString("profil.tete.message", null));
+        stats.setNick(yaml.getString("profil.nick", null));
         stats.setRewardsLevel(yaml.getInt("profil.recompenses-niveau"));
         stats.setQuestPeriod(yaml.getString("profil.quetes.jour", ""), yaml.getString("profil.quetes.semaine", ""));
         ConfigurationSection quests = yaml.getConfigurationSection("profil.quetes.progres");

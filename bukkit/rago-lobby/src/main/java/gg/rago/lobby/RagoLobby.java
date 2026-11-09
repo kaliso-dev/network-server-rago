@@ -69,6 +69,8 @@ public final class RagoLobby extends JavaPlugin implements LobbyService {
     private ShopMenu shop;
     private StyleMenu styleMenu;
     private LevelMenu levelMenu;
+    private Nicks nicks;
+    private HeadLines headLines;
     private ProfileMenu profileMenu;
     private Social social;
     private CosmeticEffects cosmetics;
@@ -183,6 +185,12 @@ public final class RagoLobby extends JavaPlugin implements LobbyService {
         getServer().getPluginManager().registerEvents(new PearlGuard(), this);
         gadgets = new LobbyGadgets(this);
         getServer().getPluginManager().registerEvents(gadgets, this);
+        nicks = new Nicks();
+        nicks.start();
+        profiles.names().setNicks(nicks::nick);
+        headLines = new HeadLines(world, this::headLine);
+        headLines.start();
+        getServer().getPluginManager().registerEvents(headLines, this);
         cosmetics.start();
         getServer().getPluginManager().registerEvents(kitEditor, this);
         LobbyCommands commands = new LobbyCommands(this);
@@ -209,6 +217,7 @@ public final class RagoLobby extends JavaPlugin implements LobbyService {
                 ranks.refresh(player);
             }
             scoreboard.updateAll();
+            headLines.tick();
             menu.refreshOpen();
             npcs.update();
         }, 20L, 20L);
@@ -250,6 +259,12 @@ public final class RagoLobby extends JavaPlugin implements LobbyService {
         }
         if (gadgets != null) {
             gadgets.clear();
+        }
+        if (headLines != null) {
+            headLines.stop();
+        }
+        if (nicks != null) {
+            nicks.stop();
         }
         for (Player player : getServer().getOnlinePlayers()) {
             if (player.getOpenInventory().getTopInventory().getHolder() instanceof ClickMenu) {
@@ -452,6 +467,7 @@ public final class RagoLobby extends JavaPlugin implements LobbyService {
         duels.forget(player.getUniqueId());
         visibility.forget(player.getUniqueId());
         gadgets.forget(player.getUniqueId());
+        nicks.forget(player.getUniqueId());
         scoreboard.forget(player.getUniqueId());
         state.forget(player.getUniqueId());
     }
@@ -823,12 +839,58 @@ public final class RagoLobby extends JavaPlugin implements LobbyService {
         return profile == null ? null : profile.hotbar();
     }
 
+    /** The line above the name of a lobby player (none while nicked): what they chose, the ELO by default. */
+    private String headLine(Player player) {
+        UUID id = player.getUniqueId();
+        if (nicks.nick(id) != null) {
+            return "";
+        }
+        PlayerStats profile = stats.book().get(id);
+        HeadLines.Shown shown = profile == null || profile.headLine() == null ? HeadLines.Shown.ELO
+                : HeadLines.Shown.of(profile.headLine());
+        if (shown == null || shown == HeadLines.Shown.MESSAGE && (profile.headMessage() == null
+                || !player.hasPermission("rago.perk.message"))) {
+            shown = HeadLines.Shown.ELO;
+        }
+        int elo = -1;
+        for (GameMode mode : settings.catalog().all()) {
+            ModeStats played = profile == null ? null : profile.mode(mode.id());
+            if (mode.ranked() && played != null && played.games() > 0) {
+                elo = Math.max(elo, played.elo);
+            }
+        }
+        long now = System.currentTimeMillis();
+        String day = StatsPeriod.dayKey(now);
+        String week = StatsPeriod.weekKey(now);
+        return HeadLines.line(shown, elo, elo < 0 ? "" : stats.book().ladder().format(elo),
+                stats.book().levels().tag(stats.book().level(id)),
+                profile == null ? 0 : profile.wins(StatsPeriod.ALL, null, day, week),
+                profile == null ? 0 : profile.kills(StatsPeriod.ALL, null, day, week),
+                profile == null ? 0 : profile.best(StatsPeriod.ALL, null, day, week),
+                profile == null ? null : profile.headMessage());
+    }
+
+    Nicks nicks() {
+        return nicks;
+    }
+
     /** The player joined: their name, for the leaderboards, their kit layouts and their Hypixel shop. */
     void joined(Player player) {
         kits.load(player.getUniqueId());
         hypixel.load(player.getUniqueId());
         stats.seen(player);
         profiles.apply(player);
+        PlayerStats profile = stats.book().get(player.getUniqueId());
+        if (profile != null && profile.nick() != null) {
+            if (player.hasPermission("rago.perk.nick")) {
+                nicks.restore(player, profile.nick());
+                player.sendMessage(ChatColor.GRAY + "You play as " + ChatColor.WHITE + profile.nick() + ChatColor.GRAY
+                        + " (/nick reset to stop).");
+            } else {
+                profile.setNick(null);
+                stats.save(profile);
+            }
+        }
         visibility.applyVanish(player, state);
         social.announce(player, true);
         if (profiles.dailyReady(player.getUniqueId())) {

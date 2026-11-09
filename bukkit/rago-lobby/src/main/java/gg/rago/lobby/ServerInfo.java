@@ -112,9 +112,9 @@ final class ServerInfo implements Listener {
             return;
         }
         arrivals.put(id, now);
-        RankDef rank = lobby.profiles().rank(id);
+        RankDef rank = lobby.profiles().names().shownRank(id);
         boolean ranked = rank != Ranks.DEFAULT;
-        String line = arrivalLine(lobby.profiles().displayName(id, player.getName()), ranked);
+        String line = arrivalLine(lobby.profiles().names().shown(id, player.getName()), ranked);
         for (Player other : Bukkit.getOnlinePlayers()) {
             if (lobby.state().isInLobby(other) || other.equals(player)) {
                 other.sendMessage(line);

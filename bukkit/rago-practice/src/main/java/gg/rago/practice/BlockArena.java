@@ -220,7 +220,7 @@ final class BlockArena extends PracticeGame {
     private void broadcastJoin(Player player) {
         for (Player other : online()) {
             if (!other.equals(player)) {
-                other.sendMessage(ChatColor.GRAY + player.getName() + " joined the arena.");
+                other.sendMessage(ChatColor.GRAY + player.getDisplayName() + " joined the arena.");
             }
         }
     }
@@ -243,8 +243,8 @@ final class BlockArena extends PracticeGame {
             plugin.lobby().recordKill(mode.id(), killer.getUniqueId(), victim.getUniqueId());
             kills.merge(by, 1, Integer::sum);
             int streak = streaks.merge(by, 1, Integer::sum);
-            broadcast(ChatColor.RED + victim.getName() + ChatColor.GRAY + " was knocked off by " + ChatColor.GREEN
-                    + killer.getName() + (streak >= 3 ? ChatColor.GOLD + " (" + streak + " in a row)" : ""), null);
+            broadcast(ChatColor.RED + victim.getDisplayName() + ChatColor.GRAY + " was knocked off by " + ChatColor.GREEN
+                    + killer.getDisplayName() + (streak >= 3 ? ChatColor.GOLD + " (" + streak + " in a row)" : ""), null);
             sound(killer, Sound.ORB_PICKUP, 1.2f);
         } else {
             victim.sendMessage(ChatColor.GRAY + "You fell.");
@@ -265,7 +265,7 @@ final class BlockArena extends PracticeGame {
             if (online().isEmpty()) {
                 finish(-1, null);
             } else {
-                broadcast(ChatColor.GRAY + player.getName() + " left the arena.", null);
+                broadcast(ChatColor.GRAY + player.getDisplayName() + " left the arena.", null);
                 sidebars();
             }
         }

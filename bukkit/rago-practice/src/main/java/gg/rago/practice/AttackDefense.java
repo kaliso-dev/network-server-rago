@@ -253,7 +253,7 @@ final class AttackDefense extends Duel {
         long took = System.currentTimeMillis() - attackStart;
         breakTime[side] = breakTime[side] < 0 ? took : breakTime[side] + took;
         points[side]++;
-        broadcast(ChatColor.BOLD + "BED DESTRUCTION > " + ChatColor.RESET + CHAT[side] + player.getName() + ChatColor.GRAY
+        broadcast(ChatColor.BOLD + "BED DESTRUCTION > " + ChatColor.RESET + CHAT[side] + player.getDisplayName() + ChatColor.GRAY
                 + " broke the bed in " + ChatColor.WHITE + time(took) + " s" + ChatColor.GRAY + "!", Sound.ENDERDRAGON_GROWL);
         endRound();
     }

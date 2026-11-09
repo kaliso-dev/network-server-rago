@@ -78,7 +78,7 @@ abstract class PracticeGame {
             List<UUID> side = new ArrayList<>();
             for (Player player : team) {
                 side.add(player.getUniqueId());
-                names.put(player.getUniqueId(), player.getName());
+                names.put(player.getUniqueId(), player.getDisplayName());
                 sideOf.put(player.getUniqueId(), sides.size());
             }
             sides.add(side);
@@ -566,7 +566,7 @@ abstract class PracticeGame {
         side.add(id);
         sideOf.put(id, sides.size());
         sides.add(side);
-        names.put(id, player.getName());
+        names.put(id, player.getDisplayName());
         host.joined(id, this);
         prepare(player);
         intro(player);

@@ -498,7 +498,7 @@ final class RankedScenarios extends Training {
     /** A rusher is out, said as Hypixel says it. */
     private void stopped(Player player, String how) {
         int left = rushers.size();
-        player.sendMessage(ChatColor.RED + "Rusher " + ChatColor.GRAY + how + " " + ChatColor.BLUE + player.getName()
+        player.sendMessage(ChatColor.RED + "Rusher " + ChatColor.GRAY + how + " " + ChatColor.BLUE + player.getDisplayName()
                 + ChatColor.GRAY + ". " + ChatColor.AQUA + ChatColor.BOLD + "FINAL KILL!"
                 + (left > 0 ? ChatColor.GRAY + " " + left + (left == 1 ? " rusher" : " rushers") + " left." : ""));
         sound(player, Sound.ORB_PICKUP, 1.4f);
@@ -539,7 +539,7 @@ final class RankedScenarios extends Training {
         opponent = null;
         streak++;
         bestStreak = Math.max(bestStreak, streak);
-        player.sendMessage(ChatColor.RED + "Opponent " + ChatColor.GRAY + how + " " + ChatColor.BLUE + player.getName()
+        player.sendMessage(ChatColor.RED + "Opponent " + ChatColor.GRAY + how + " " + ChatColor.BLUE + player.getDisplayName()
                 + ChatColor.GRAY + ". " + ChatColor.AQUA + ChatColor.BOLD + "FINAL KILL!");
         title(ChatColor.GOLD + "" + ChatColor.BOLD + "CLUTCH!", ChatColor.WHITE + "Streak: " + ChatColor.GREEN + streak);
         sound(player, Sound.ORB_PICKUP, 1.2f);

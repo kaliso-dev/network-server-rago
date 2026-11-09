@@ -228,7 +228,7 @@ final class FireballFight extends Duel {
         }
         beds[side] = false;
         broadcast(ChatColor.BOLD + "BED DESTRUCTION > " + ChatColor.RESET + CHAT[side] + TEAMS[side] + " bed"
-                + ChatColor.GRAY + " was destroyed by " + CHAT[1 - side] + player.getName() + ChatColor.GRAY + "!", Sound.ENDERDRAGON_GROWL);
+                + ChatColor.GRAY + " was destroyed by " + CHAT[1 - side] + player.getDisplayName() + ChatColor.GRAY + "!", Sound.ENDERDRAGON_GROWL);
         for (Player victim : online(side)) {
             title(victim, ChatColor.RED + "BED DESTROYED!", ChatColor.GRAY + "You will no longer respawn!");
         }
@@ -260,7 +260,7 @@ final class FireballFight extends Duel {
         forgetHits(id);
         if (!beds[side]) {
             out.add(id);
-            broadcast(CHAT[side] + player.getName() + ChatColor.GRAY + " is " + ChatColor.RED + "eliminated" + ChatColor.GRAY + "!", null);
+            broadcast(CHAT[side] + player.getDisplayName() + ChatColor.GRAY + " is " + ChatColor.RED + "eliminated" + ChatColor.GRAY + "!", null);
             if (!alive(side)) {
                 points[1 - side]++;
                 finish(1 - side, null);

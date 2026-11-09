@@ -361,7 +361,7 @@ final class BridgeArena extends PracticeGame {
         player.sendMessage(ChatColor.GRAY + "The compass takes you to a platform (not in a fight). /spawn takes you back to the lobby.");
         for (Player other : online()) {
             if (!other.equals(player)) {
-                other.sendMessage(ChatColor.GRAY + player.getName() + " joined the bridge fight.");
+                other.sendMessage(ChatColor.GRAY + player.getDisplayName() + " joined the bridge fight.");
             }
         }
     }
@@ -384,8 +384,8 @@ final class BridgeArena extends PracticeGame {
             plugin.lobby().recordKill(mode.id(), killer.getUniqueId(), victim.getUniqueId());
             kills.merge(by, 1, Integer::sum);
             int streak = streaks.merge(by, 1, Integer::sum);
-            broadcast(ChatColor.RED + victim.getName() + ChatColor.GRAY + " was killed by " + ChatColor.GREEN
-                    + killer.getName() + (streak >= 3 ? ChatColor.GOLD + " (" + streak + " in a row)" : ""), null);
+            broadcast(ChatColor.RED + victim.getDisplayName() + ChatColor.GRAY + " was killed by " + ChatColor.GREEN
+                    + killer.getDisplayName() + (streak >= 3 ? ChatColor.GOLD + " (" + streak + " in a row)" : ""), null);
             sound(killer, Sound.ORB_PICKUP, 1.2f);
         } else {
             victim.sendMessage(ChatColor.GRAY + "You fell.");
@@ -408,7 +408,7 @@ final class BridgeArena extends PracticeGame {
             if (online().isEmpty()) {
                 finish(-1, null);
             } else {
-                broadcast(ChatColor.GRAY + player.getName() + " left the bridge fight.", null);
+                broadcast(ChatColor.GRAY + player.getDisplayName() + " left the bridge fight.", null);
                 sidebars();
             }
         }

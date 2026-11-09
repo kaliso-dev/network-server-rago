@@ -58,7 +58,7 @@ final class SumoMatch {
         this.centre = centre;
         this.map = map;
         this.players = new UUID[] {first.getUniqueId(), second.getUniqueId()};
-        this.names = new String[] {first.getName(), second.getName()};
+        this.names = new String[] {first.getDisplayName(), second.getDisplayName()};
         this.score = new DuelScore(target);
     }
 

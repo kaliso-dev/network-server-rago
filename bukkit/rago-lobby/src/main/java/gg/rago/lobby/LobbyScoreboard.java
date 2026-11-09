@@ -205,12 +205,12 @@ final class LobbyScoreboard {
                 number = numbers.size();
                 numbers.put(id, number);
             }
-            String level = " " + levels.tag(book.level(id));
+            String level = " " + levels.tag(names.shownLevel(id));
             boolean hidden = other.hasPotionEffect(PotionEffectType.INVISIBILITY);
             String game = gamePrefixes.get(id);
-            String suffix = game != null ? fit(level) : suffix(names.badgeAfter(id), level);
-            listName(other, game != null ? null : levels.tag(book.level(id)) + " " + names.display(id, other.getName())
-                    + names.badgeAfter(id));
+            String suffix = game != null ? fit(level) : suffix(names.shownBadge(id), level);
+            listName(other, game != null ? null : levels.tag(names.shownLevel(id)) + " " + names.shown(id, other.getName())
+                    + names.shownBadge(id));
             if (game != null) {
                 Integer order = prefixTeams.get(game);
                 if (order == null) {
@@ -219,9 +219,8 @@ final class LobbyScoreboard {
                 }
                 tags.put(id, new Tag(teamName(true, order, number), game, suffix, hidden));
             } else {
-                RankDef rank = names.rank(id);
-                tags.put(id, new Tag(teamName(false, ranks.position(rank), number), fit(rank.prefix() + names.headColour(id)),
-                        suffix, hidden));
+                RankDef rank = names.shownRank(id);
+                tags.put(id, new Tag(teamName(false, ranks.position(rank), number), fit(names.headPrefix(id)), suffix, hidden));
             }
         }
         return tags;
@@ -290,9 +289,12 @@ final class LobbyScoreboard {
             if (team.getNameTagVisibility() != visibility) {
                 team.setNameTagVisibility(visibility);
             }
-            if (!team.hasEntry(other.getName())) {
+            // a client knows a nicked player by the nick, but the player knows themselves by their name
+            String entry = other.getUniqueId().equals(viewer) ? other.getName() : names.shownName(other.getUniqueId(),
+                    other.getName());
+            if (!team.hasEntry(entry)) {
                 // addEntry takes the player out of their old team.
-                team.addEntry(other.getName());
+                team.addEntry(entry);
             }
             mine.put(other.getUniqueId(), tag.team);
         }

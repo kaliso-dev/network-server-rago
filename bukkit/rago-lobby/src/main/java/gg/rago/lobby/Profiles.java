@@ -279,6 +279,90 @@ final class Profiles {
         return true;
     }
 
+    // --- The line above the name, the nick ------------------------------------------------------
+
+    /** What the player shows above their name. */
+    void setHeadLine(Player player, HeadLines.Shown shown) {
+        PlayerStats profile = of(player);
+        if (shown == HeadLines.Shown.MESSAGE) {
+            if (!player.hasPermission("rago.perk.message")) {
+                player.sendMessage(ChatColor.RED + "Your own message above your name comes with " + ChatColor.LIGHT_PURPLE
+                        + "[PREMIUM]" + ChatColor.RED + ".");
+                return;
+            }
+            if (profile.headMessage() == null) {
+                player.sendMessage(ChatColor.YELLOW + "Write it first: /display message <text> (" + HeadLines.MAX_MESSAGE
+                        + " characters, & for the colours)");
+                return;
+            }
+        }
+        profile.setHeadLine(shown.id());
+        stats.save(profile);
+        player.sendMessage(ChatColor.GREEN + "Above your name: " + ChatColor.YELLOW + shown.title() + ChatColor.GREEN + ".");
+        player.playSound(player.getLocation(), Sound.CLICK, 1f, 1f);
+    }
+
+    /** PREMIUM: the message above the name, which it then shows. */
+    void setHeadMessage(Player player, String typed) {
+        if (!player.hasPermission("rago.perk.message")) {
+            player.sendMessage(ChatColor.RED + "Your own message above your name comes with " + ChatColor.LIGHT_PURPLE
+                    + "[PREMIUM]" + ChatColor.RED + ".");
+            return;
+        }
+        String message = HeadLines.cleanMessage(typed);
+        if (ChatColor.stripColor(message).trim().isEmpty()) {
+            player.sendMessage(ChatColor.RED + "Usage: /display message <text>");
+            return;
+        }
+        PlayerStats profile = of(player);
+        profile.setHeadMessage(message);
+        profile.setHeadLine(HeadLines.Shown.MESSAGE.id());
+        stats.save(profile);
+        player.sendMessage(ChatColor.GREEN + "Above your name: " + ChatColor.RESET + message);
+        player.playSound(player.getLocation(), Sound.CLICK, 1f, 1f);
+    }
+
+    /**
+     * PREMIUM: plays under another name (null: their own). Not the name of a player of the server,
+     * nor a nick someone wears.
+     */
+    void nick(Player player, Nicks nicks, String nick) {
+        PlayerStats profile = of(player);
+        if (nick == null) {
+            if (profile.nick() == null) {
+                player.sendMessage(ChatColor.GRAY + "You play under your own name.");
+                return;
+            }
+            profile.setNick(null);
+            stats.save(profile);
+            nicks.set(player, null);
+            player.sendMessage(ChatColor.GREEN + "You play under your own name again.");
+            lobby.refreshBoards();
+            return;
+        }
+        if (!Nicks.validName(nick)) {
+            player.sendMessage(ChatColor.RED + "A nick is 3 to 16 letters, digits or _.");
+            return;
+        }
+        PlayerStats known = stats.book().byName(nick);
+        Player wearer = nicks.byNick(nick);
+        if ((known != null && !known.id().equals(player.getUniqueId())) || lobby.getServer().getPlayerExact(nick) != null
+                || (wearer != null && wearer != player)) {
+            player.sendMessage(ChatColor.RED + "Someone plays under that name: choose another one.");
+            return;
+        }
+        if (nick.equalsIgnoreCase(player.getName())) {
+            nick(player, nicks, null);
+            return;
+        }
+        profile.setNick(nick);
+        stats.save(profile);
+        nicks.set(player, nick);
+        player.sendMessage(ChatColor.GREEN + "You now play as " + ChatColor.WHITE + nick + ChatColor.GREEN
+                + ": the others see a new player, without your rank, badge or skin. " + ChatColor.GRAY + "/nick reset to stop.");
+        lobby.refreshBoards();
+    }
+
     // --- Daily reward ---------------------------------------------------------------------------
 
     /**

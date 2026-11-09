@@ -15,6 +15,8 @@ final class NameLooks {
 
     private final StatsBook book;
     private final ServerSettings server;
+    /** The name each player plays under (/nick), or null. */
+    private Function<UUID, String> nicks = player -> null;
 
     NameLooks(StatsBook book, ServerSettings server) {
         this.book = book;
@@ -23,6 +25,52 @@ final class NameLooks {
 
     ServerSettings server() {
         return server;
+    }
+
+    void setNicks(Function<UUID, String> nicks) {
+        this.nicks = nicks;
+    }
+
+    // --- What the other players see: a nicked player looks like a new player -------------------
+
+    /** The name the player plays under (/nick), or null. */
+    String nick(UUID player) {
+        return nicks.apply(player);
+    }
+
+    /** The name the others see: the nick, or the real name. */
+    String shownName(UUID player, String real) {
+        String nick = nick(player);
+        return nick != null ? nick : real;
+    }
+
+    /** {@link #display}, or for a nicked player a grey name without a rank. */
+    String shown(UUID player, String real) {
+        String nick = nick(player);
+        return nick != null ? Ranks.DEFAULT.nameColour() + nick : display(player, real);
+    }
+
+    /** {@link #badgeAfter}, nothing for a nicked player. */
+    String shownBadge(UUID player) {
+        return nick(player) != null ? "" : badgeAfter(player);
+    }
+
+    /** The rank the others see: none for a nicked player. */
+    RankDef shownRank(UUID player) {
+        return nick(player) != null ? Ranks.DEFAULT : rank(player);
+    }
+
+    /** The prefix of the name above the head: the rank and the colour of the name. */
+    String headPrefix(UUID player) {
+        if (nick(player) != null) {
+            return Ranks.DEFAULT.tagPrefix();
+        }
+        return rank(player).prefix() + headColour(player);
+    }
+
+    /** The Network level the others see: 1 for a nicked player. */
+    int shownLevel(UUID player) {
+        return nick(player) != null ? 1 : book.level(player);
     }
 
     /** The rank a player shows. */

@@ -22,7 +22,7 @@ final class NetworkCommands implements CommandExecutor, TabCompleter {
 
     static final String[] NAMES = {"shop", "gift", "profile", "daily", "friend", "msg", "reply", "rank", "points", "top", "stats",
         "fly", "staffchat", "vanish", "freeze", "report", "clearchat", "mutechat", "ban", "unban", "mute", "unmute", "kick",
-        "warn", "history", "discord", "rules", "site", "store", "style", "level", "quests"};
+        "warn", "history", "discord", "rules", "site", "store", "style", "level", "quests", "display", "nick", "realname"};
 
     private static final String[] TOPS = {"elo", "level", "wins", "kills", "streak", "games", "points"};
 
@@ -220,6 +220,45 @@ final class NetworkCommands implements CommandExecutor, TabCompleter {
                 return true;
             case "style":
                 style(sender, args);
+                return true;
+            case "display":
+                if ((player = player(sender)) != null) {
+                    if (args.length == 0) {
+                        lobby.profileMenu().openDisplay(player);
+                    } else if (args[0].equalsIgnoreCase("message")) {
+                        lobby.profiles().setHeadMessage(player, rest(args, 1));
+                    } else {
+                        HeadLines.Shown shown = HeadLines.Shown.of(args[0]);
+                        if (shown == null) {
+                            player.sendMessage(ChatColor.RED + "Usage: /display <elo|level|wins|kills|streak|message|none>,"
+                                    + " /display message <text>");
+                        } else {
+                            lobby.profiles().setHeadLine(player, shown);
+                        }
+                    }
+                }
+                return true;
+            case "nick":
+                if ((player = player(sender)) != null && allowed(player, "rago.perk.nick")) {
+                    if (label.equalsIgnoreCase("unnick") || args.length == 1 && args[0].matches("(?i)reset|off|remove")) {
+                        lobby.profiles().nick(player, lobby.nicks(), null);
+                    } else if (args.length != 1) {
+                        String nick = lobby.nicks().nick(player.getUniqueId());
+                        player.sendMessage(ChatColor.GRAY + (nick == null ? "You play under your own name." : "You play as "
+                                + ChatColor.WHITE + nick + ChatColor.GRAY + ".") + " " + ChatColor.YELLOW + "/nick <name>"
+                                + ChatColor.GRAY + ", " + ChatColor.YELLOW + "/nick reset");
+                    } else {
+                        lobby.profiles().nick(player, lobby.nicks(), args[0]);
+                    }
+                }
+                return true;
+            case "realname":
+                if (allowed(sender, "rago.staff")) {
+                    Player nicked = args.length == 1 ? lobby.nicks().byNick(args[0]) : null;
+                    sender.sendMessage(args.length != 1 ? ChatColor.RED + "Usage: /realname <nick>" : nicked == null
+                            ? ChatColor.GRAY + "Nobody plays as " + args[0] + "." : ChatColor.WHITE + args[0] + ChatColor.GRAY
+                                    + " is " + lobby.profiles().displayName(nicked.getUniqueId(), nicked.getName()));
+                }
                 return true;
             case "level":
                 if ((player = player(sender)) != null) {
@@ -550,6 +589,16 @@ final class NetworkCommands implements CommandExecutor, TabCompleter {
                     for (RankDef rank : lobby.server().ranks().all()) {
                         options.add(rank.id());
                     }
+                }
+                break;
+            case "display":
+                if (args.length == 1) {
+                    options.addAll(Arrays.asList("elo", "level", "wins", "kills", "streak", "message", "none"));
+                }
+                break;
+            case "nick":
+                if (args.length == 1) {
+                    options.add("reset");
                 }
                 break;
             case "style":

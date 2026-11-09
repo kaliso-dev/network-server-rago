@@ -107,6 +107,17 @@ dans les files d'attente des modes de jeu.
   `✦`, +50 % d'XP Network (`boost-xp: 1.5`), `/fly` au lobby, `/nick`, un message à soi
   au-dessus de la tête, l'arrivée annoncée avec un feu d'artifice, des messages blancs sans délai.
   Le staff et MEDIA en héritent.
+- **La ligne au-dessus du pseudo (`/display`).** Au lobby, chaque joueur a une ligne au-dessus
+  de son pseudo, qu'il choisit : son ELO classé (par défaut, « Unranked » sans partie classée),
+  son niveau, ses victoires, ses kills, sa meilleure série, un message à lui (PREMIUM :
+  `/display message <texte>`, 32 caractères, couleurs avec `&`, sans texte brouillé) ou rien. Le
+  menu est dans le profil. C'est un porte-armure invisible, sans hitbox, connu des seuls clients,
+  qui suit le joueur (mêmes paquets de mouvement) ; la ligne change au plus une fois par seconde.
+- **`/nick` (PREMIUM).** On joue sous un autre pseudo (3 à 16 lettres, chiffres ou `_`, pas celui
+  d'un joueur du serveur) : les autres voient ce pseudo au-dessus de la tête, dans le Tab, le chat
+  et les messages des parties, avec le skin par défaut, sans rang, sans badge, sans ligne et au
+  niveau 1. Les stats restent celles du vrai pseudo. Le nick est gardé d'une connexion à l'autre ;
+  `/nick reset` l'enlève, `/realname <nick>` (staff) dit qui c'est.
 - **Les couleurs de pseudo et les badges (`/style`).** Un pseudo peut prendre un dégradé (les
   16 couleurs de la 1.8, d'une lettre à l'autre : Pink, Fire, Ocean, Forest, Sunset, Ice,
   Galaxy, Rainbow, Shadow, et Aqua, Gold, Legend pour les niveaux) et un badge après le pseudo
@@ -185,6 +196,10 @@ commentaires de `config.yml`. Les mots français de la première version (`quitt
 | `/fly` | voler dans le lobby | `rago.perk.fly` (PREMIUM) |
 | `/style` (ou `/couleur`, `/badge`) | choisir sa couleur de pseudo et son badge | tout le monde |
 | `/level` (ou `/niveau`), `/quests` (ou `/quetes`) | son niveau et ses récompenses, les quêtes | tout le monde |
+| `/display <elo\|level\|wins\|kills\|streak\|none>` | la ligne au-dessus de son pseudo | tout le monde |
+| `/display message <texte>` | son propre message au-dessus du pseudo | `rago.perk.message` (PREMIUM) |
+| `/nick <pseudo>`, `/nick reset` (ou `/unnick`) | jouer sous un autre pseudo | `rago.perk.nick` (PREMIUM) |
+| `/realname <nick>` | qui joue sous ce nick | `rago.staff` |
 | `/style give\|take <joueur> <couleur-feu\|badge-rago>`, `/style list` | donner ou retirer un style (la boutique en ligne, depuis la console) | `rago.admin` |
 | `/staffchat [message]` (ou `/sc`), `/vanish` (ou `/v`), `/freeze <joueur>`, `/clearchat` | chat du staff, invisible, figer un joueur, vider le chat | `rago.staff` |
 | `/mute <joueur> [durée] <raison>`, `/unmute`, `/kick`, `/warn`, `/history <joueur>` | sanctions (durée : `30m`, `2h`, `7d`, `2w` ou `perm`) | `rago.staff` |

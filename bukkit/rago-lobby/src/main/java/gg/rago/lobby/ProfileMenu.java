@@ -70,6 +70,37 @@ final class ProfileMenu {
         this.levels = levels;
     }
 
+    /** What shows above the name: each choice, with the line it gives. */
+    void openDisplay(Player player) {
+        PlayerStats profile = profiles.of(player);
+        HeadLines.Shown now = HeadLines.Shown.of(profile.headLine() == null ? "elo" : profile.headLine());
+        ClickMenu menu = new ClickMenu(4, "Above your name");
+        int slot = 10;
+        for (HeadLines.Shown shown : HeadLines.Shown.values()) {
+            List<String> lore = new ArrayList<>();
+            for (String line : shown.description()) {
+                lore.add(line);
+            }
+            lore.add("");
+            if (shown == HeadLines.Shown.MESSAGE) {
+                lore.add(profile.headMessage() == null ? ChatColor.DARK_GRAY + "No message yet" : "Yours: " + ChatColor.RESET
+                        + profile.headMessage());
+                lore.add("");
+                if (!player.hasPermission("rago.perk.message")) {
+                    lore.add(ChatColor.LIGHT_PURPLE + "With the [PREMIUM] rank");
+                }
+            }
+            lore.add(shown == now ? ChatColor.GREEN + "Shown" : ChatColor.YELLOW + "Click to show it");
+            menu.set(slot++, ClickMenu.item(shown.icon(), 0, (shown == now ? ChatColor.GREEN : ChatColor.YELLOW) + shown.title(),
+                    lore), (p, right) -> {
+                        profiles.setHeadLine(p, shown);
+                        openDisplay(p);
+                    });
+        }
+        menu.set(31, ClickMenu.back("My profile"), (p, right) -> open(p));
+        menu.open(player);
+    }
+
     /** "▮▮▮▮▮▯▯▯▯▯". */
     static String bar(float progress) {
         int full = Math.max(0, Math.min(10, Math.round(progress * 10)));
@@ -106,6 +137,12 @@ final class ProfileMenu {
                     "", "Gradients and badges such as", "§c§lRAGO§7, §6§lBETTER§7, §4§lPVP§7 or §c§lYT§7.",
                     "", ChatColor.YELLOW + "Click to change")), (p, right) -> styles.open(p));
         }
+        PlayerStats mine = profiles.of(player);
+        HeadLines.Shown above = HeadLines.Shown.of(mine.headLine() == null ? "elo" : mine.headLine());
+        menu.set(28, ClickMenu.item(Material.SIGN, 0, ChatColor.GREEN + "Above your name", listOf(
+                "What the others read above", "your name: your ELO, level,", "wins, kills, best streak, or",
+                "a message of yours (PREMIUM).", "", "Now: " + ChatColor.YELLOW + (above == null ? "Ranked ELO" : above.title()), "",
+                ChatColor.YELLOW + "Click to change")), (p, right) -> openDisplay(p));
         if (levels != null) {
             menu.set(32, ClickMenu.item(Material.BREWING_STAND_ITEM, 0, ChatColor.AQUA + "Network Level & quests", listOf(
                     "Your level, the rewards of every", "5 levels, the daily and weekly", "quests.", "",

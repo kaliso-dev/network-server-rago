@@ -103,7 +103,7 @@ class BedwarsGame {
 
         Gamer(Player player, Team team, List<String> hotbar, List<ShopItem> quickBuy) {
             this.id = player.getUniqueId();
-            this.name = player.getName();
+            this.name = player.getDisplayName();
             this.team = team;
             this.hotbar = hotbar;
             this.quickBuy = quickBuy;

@@ -38,6 +38,11 @@ final class PlayerStats {
     /** The colour of name and the badge chosen (/style): null for the rank's, "" for none. */
     private String colourChoice;
     private String badgeChoice;
+    /** What shows above the name (an id of {@link HeadLines.Shown}, null for the ELO), and the custom message. */
+    private String headLine;
+    private String headMessage;
+    /** The name the player plays under (/nick), or null. */
+    private String nick;
     /** The highest Network level whose rewards the player got. */
     private int rewardsLevel;
     /** The day and the week of the quests' progress, and the progress of each quest by its key. */
@@ -214,6 +219,31 @@ final class PlayerStats {
         } else {
             badgeChoice = id;
         }
+    }
+
+    String headLine() {
+        return headLine;
+    }
+
+    void setHeadLine(String headLine) {
+        this.headLine = headLine;
+    }
+
+    String headMessage() {
+        return headMessage;
+    }
+
+    void setHeadMessage(String headMessage) {
+        this.headMessage = headMessage == null || headMessage.isEmpty() ? null : headMessage;
+    }
+
+    /** The name the player plays under, or null. */
+    String nick() {
+        return nick;
+    }
+
+    void setNick(String nick) {
+        this.nick = nick == null || nick.isEmpty() ? null : nick;
     }
 
     int rewardsLevel() {

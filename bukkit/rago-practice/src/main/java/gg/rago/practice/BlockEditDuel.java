@@ -115,7 +115,7 @@ final class BlockEditDuel extends Duel {
     void placed(Player player, Block block) {
         int side = sideOf(player.getUniqueId());
         if (scores(pending, side)) {
-            broadcast(CHAT[side] + player.getName() + ChatColor.GRAY + " made a clean edit.", null);
+            broadcast(CHAT[side] + player.getDisplayName() + ChatColor.GRAY + " made a clean edit.", null);
             point(side);
         }
     }

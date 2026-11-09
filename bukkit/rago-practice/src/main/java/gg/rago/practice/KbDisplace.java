@@ -203,7 +203,7 @@ final class KbDisplace extends Duel {
         }
         if (knockedUntil >= 0) {
             if (tickCount >= knockedUntil) {
-                broadcast(CHAT[1 - attacker()] + defender.getName() + ChatColor.GRAY + " held: the roles swap.", null);
+                broadcast(CHAT[1 - attacker()] + defender.getDisplayName() + ChatColor.GRAY + " held: the roles swap.", null);
                 startRound();
             }
             return;
@@ -224,7 +224,7 @@ final class KbDisplace extends Duel {
         if (!attackers.isEmpty() && counts()) {
             plugin.lobby().recordKill(mode.id(), attackers.get(0).getUniqueId(), defender.getUniqueId());
         }
-        broadcast(CHAT[side] + namesOf(side) + ChatColor.GRAY + " displaced " + CHAT[1 - side] + defender.getName()
+        broadcast(CHAT[side] + namesOf(side) + ChatColor.GRAY + " displaced " + CHAT[1 - side] + defender.getDisplayName()
                 + ChatColor.GRAY + "!", Sound.NOTE_PLING);
         point(side);
     }
@@ -237,7 +237,7 @@ final class KbDisplace extends Duel {
             return;
         }
         if (sideOf(player.getUniqueId()) == attacker()) {
-            broadcast(CHAT[attacker()] + player.getName() + ChatColor.GRAY + " fell: the roles swap.", null);
+            broadcast(CHAT[attacker()] + player.getDisplayName() + ChatColor.GRAY + " fell: the roles swap.", null);
             startRound();
         } else {
             displaced(player);

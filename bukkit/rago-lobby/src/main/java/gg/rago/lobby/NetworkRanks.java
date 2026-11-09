@@ -45,9 +45,10 @@ final class NetworkRanks implements Listener {
     /** Main thread: the player's level, rank or style may have changed. */
     void refresh(Player player) {
         UUID id = player.getUniqueId();
-        RankDef rank = names.rank(id);
-        looks.put(id, new Look(book.levels().tag(book.level(id)) + " " + rank.prefix(),
-                names.name(id, player.getName()) + names.badgeAfter(id), rank.chatColour()));
+        RankDef rank = names.shownRank(id);
+        String name = names.nick(id) != null ? names.shown(id, player.getName()) : names.name(id, player.getName());
+        looks.put(id, new Look(book.levels().tag(names.shownLevel(id)) + " " + rank.prefix(), name + names.shownBadge(id),
+                rank.chatColour()));
     }
 
     void forget(UUID player) {

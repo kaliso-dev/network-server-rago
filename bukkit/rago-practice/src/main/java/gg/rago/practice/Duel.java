@@ -101,7 +101,7 @@ abstract class Duel extends PracticeGame {
 
     void deathMessage(Player player, UUID by, boolean fell) {
         int side = sideOf(player.getUniqueId());
-        String victim = CHAT[side] + player.getName() + ChatColor.GRAY;
+        String victim = CHAT[side] + player.getDisplayName() + ChatColor.GRAY;
         String text;
         if (by == null) {
             text = victim + (fell ? " fell into the void." : " died.");
@@ -176,7 +176,7 @@ abstract class Duel extends PracticeGame {
         lines.add(ChatColor.WHITE + "Your ping: " + Ping.text(me));
         List<Player> them = online(1 - side);
         if (them.size() == 1) {
-            lines.add(cut(ChatColor.WHITE + "Opponent: " + CHAT[1 - side] + them.get(0).getName()));
+            lines.add(cut(ChatColor.WHITE + "Opponent: " + CHAT[1 - side] + them.get(0).getDisplayName()));
             lines.add(ChatColor.WHITE + "Their ping: " + Ping.text(them.get(0)));
         } else {
             lines.add(cut(ChatColor.WHITE + "Opponents: " + CHAT[1 - side] + them.size()));
