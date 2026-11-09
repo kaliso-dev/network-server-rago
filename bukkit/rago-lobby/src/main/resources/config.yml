@@ -571,8 +571,11 @@ modes:
     joueurs-par-equipe: 1
     classe: false
     description:
-      - "Pearl throws in real"
-      - "Bedwars situations."
+      - "On a part of Sky Rise: pearl"
+      - "to the diamond island, to the"
+      - "middle, or back after a hit."
+      - "Save a short pearl with wool,"
+      - "not under the lower limit."
   shop-practice:
     nom: "&aFast Shop"
     categorie: entrainement

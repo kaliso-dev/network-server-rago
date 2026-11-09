@@ -57,8 +57,13 @@ et chaque variante son record : le meilleur score du joueur et celui du serveur,
   dont les règles sont vérifiées. Chrono.
 - **Ladder practice** : un mur d'end stone de 12 blocs à monter avec des échelles, ou la tour de
   laine sous les pieds. Chrono.
-- **Pearl practice** : une perle par essai, vers une île qui change de place, vers une île
-  lointaine, ou pour revenir sur son île après un coup qui envoie dans le vide. Série.
+- **Pearl practice** : sur un morceau de Sky Rise (l'île rouge, l'île aux diamants en face, l'île
+  aux émeraudes du milieu), copié du monde `SkyRise` du dossier des mondes (`pearl` dans
+  `config.yml`), sinon des îles simples aux mêmes places. Une perle et un stack de laine par
+  essai : vers l'île aux diamants, vers le milieu, ou pour revenir sur son île après un coup qui
+  envoie dans le vide. Une perle trop courte se rattrape avec des blocs (pearl block clutch), mais
+  aucun bloc ne se pose sous la limite basse (`limite-basse`, y 55), comme sur Hypixel. L'essai
+  compte quand le joueur tient debout sur l'île visée. Série.
 - **Fireball practice** : le saut à la boule de feu sur une falaise de 4 blocs, au-dessus de 10
   blocs de vide, ou renvoyer les boules d'un canon. Série.
 - **Aim trainer** : une cible de la taille d'un joueur qui strafe, saute ou tourne autour ; 30

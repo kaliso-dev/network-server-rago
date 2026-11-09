@@ -156,7 +156,8 @@ public final class RagoPractice extends JavaPlugin {
         register("fast-defense", FastDefenseTraining::new, slots, spacing, false);
         register("extend-practice", ExtendTraining::new, slots, spacing, false);
         register("ladder-practice", LadderTraining::new, slots, spacing, false);
-        register("pearl-practice", PearlTraining::new, slots, spacing, false);
+        PearlTraining.Island skyRise = pearlIsland(config);
+        register("pearl-practice", (h, m, a, t) -> new PearlTraining(h, m, a, t, skyRise), slots, spacing, false);
         register("fireball-practice", FireballTraining::new, slots, spacing, false);
         register("aim-trainer", (h, m, a, t) -> new AimTrainer(h, m, a, t, aimXp, aimHits), slots, spacing, false);
         register("combo-bot", ComboBot::new, slots, spacing, false);
@@ -200,6 +201,17 @@ public final class RagoPractice extends JavaPlugin {
             copy = copy.without(BlockInTraining.defensePlaces(hx, hz));
         }
         return new BlockInTraining.Island(copy, hx, hz, places);
+    }
+
+    /**
+     * The part of Sky Rise of the pearl practice (pearl.monde): the red island, the diamond island
+     * and the middle, copied once; without that world, plain islands at the same places.
+     */
+    private PearlTraining.Island pearlIsland(FileConfiguration config) {
+        int limit = config.getInt("pearl.limite-basse", 55);
+        MapCopy copy = MapCopy.read(config.getString("pearl.monde", ""), PearlTraining.BOX.clone(), PearlTraining.ORIGIN.clone(),
+                getLogger(), "the pearl practice");
+        return new PearlTraining.Island(copy, limit);
     }
 
     /**
@@ -376,6 +388,7 @@ public final class RagoPractice extends JavaPlugin {
             {"attaque-defense.manches", "2", "2", "10"},
             {"aim-trainer.xp-par-seconde", "1", "0", "10"},
             {"aim-trainer.touches-par-xp", "10", "1", "100"},
+            {"pearl.limite-basse", "55", "0", "70"},
         };
         for (String[] range : ranges) {
             int value = config.getInt(range[0], Integer.parseInt(range[1]));

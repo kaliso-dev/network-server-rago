@@ -59,6 +59,14 @@ aim-trainer:
   xp-par-seconde: 1
   touches-par-xp: 10
 
+# Pearl practice on a part of Sky Rise (the red island, the diamond island in front of it and the
+# emerald island of the middle): put the folder of the world in the folder of the worlds (mondes).
+# Without it, plain islands at the same places. No block goes under limite-basse (the height on
+# the map), as under the islands on Hypixel.
+pearl:
+  monde: SkyRise
+  limite-basse: 55
+
 # Block in practice on your own map, Ultimate Block-In Practice: put the folder of the world in the
 # folder of the worlds (mondes) of the server. Its island is copied into each zone, without the
 # command blocks and the redstone; the bed and its defense come back at each attempt. Without

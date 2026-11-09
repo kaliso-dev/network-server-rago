@@ -9,78 +9,166 @@ import org.bukkit.EntityEffect;
 import org.bukkit.Location;
 import org.bukkit.Material;
 import org.bukkit.Sound;
+import org.bukkit.block.Block;
 import org.bukkit.entity.EnderPearl;
 import org.bukkit.entity.Player;
 import org.bukkit.entity.Projectile;
+import org.bukkit.event.block.BlockPlaceEvent;
 import org.bukkit.event.entity.ProjectileLaunchEvent;
 import org.bukkit.event.player.PlayerTeleportEvent;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.util.Vector;
 
 /**
- * Pearl practice, in real Bed Wars situations, with one pearl a try: to an island that is
- * somewhere else each time (higher, lower, to the side), to an island far away (as to the middle),
- * or back onto your island after a hit that sends you into the void. Each good pearl adds one to
- * the streak; a miss ends it.
+ * Pearl practice on a part of Sky Rise: the red island, the diamond island in front of it and the
+ * emerald island of the middle. One pearl and a stack of wool a try: pearl onto the diamond
+ * island, pearl to the middle, or pearl back to your island after a hit that sends you into the
+ * void. A pearl that lands short can be saved with blocks (a pearl block clutch), but no block
+ * goes below the lower limit of the map, as on Hypixel. The try counts once the player stands on
+ * the island aimed at; each one adds to the streak, a miss ends it.
+ *
+ * <p>The islands are the map's when the server has the world (see {@link MapCopy}); else plain
+ * islands of the same size, at the same places.
  */
 final class PearlTraining extends Training {
 
+    /** A situation of the map: where the player starts, and the island they must reach. */
+    static final class Situation {
+        final String id;
+        final String label;
+        final String what;
+        /** The start on the map: x, y (the feet), z, yaw. */
+        final double[] start;
+        /** The island to reach on the map: x1, y1, z1, x2, y2, z2. */
+        final int[] target;
+        /** True when a hit sends the player into the void first. */
+        final boolean hit;
+
+        Situation(String id, String label, String what, double[] start, int[] target, boolean hit) {
+            this.id = id;
+            this.label = label;
+            this.what = what;
+            this.start = start;
+            this.target = target;
+            this.hit = hit;
+        }
+    }
+
+    /** The map's place of the arena's centre: the floor under the red bed of Sky Rise. */
+    static final int[] ORIGIN = {-36, 70, -81};
+    /** The part of Sky Rise copied: x1, y1, z1, x2, y2, z2 on the map. */
+    static final int[] BOX = {-60, 34, -108, -1, 80, -2};
+    /** The red island, the diamond island and the emerald island of the middle, on Sky Rise. */
+    static final int[] RED_ISLAND = {-59, 36, -107, -17, 80, -75};
+    static final int[] DIAMOND_ISLAND = {-50, 30, -50, -23, 82, -22};
+    static final int[] MIDDLE_ISLAND = {-18, 30, -18, -2, 78, -2};
+    static final Situation[] SITUATIONS = {
+        new Situation("diamond", "To the diamond island", "pearl from the front of your island onto the diamond island.",
+                new double[] {-35.5, 71, -75.5, 0}, grown(DIAMOND_ISLAND), false),
+        new Situation("middle", "To the middle", "pearl from the diamond island onto the emerald island of the middle.",
+                new double[] {-36.5, 71, -22.5, -65}, grown(MIDDLE_ISLAND), false),
+        new Situation("save", "Back to your island", "a hit sends you into the void: pearl back to your island, and place"
+                + " blocks if you land short (not below the limit).", new double[] {-35.5, 71, -75.5, 180}, grown(RED_ISLAND), true),
+    };
+    /** Ticks standing still on the island aimed at that make a good pearl. */
+    private static final int STAND_TICKS = 10;
     /** A pearl in the air this long has fallen into the void. */
     private static final int LOST_TICKS = 140;
-    private static final int TARGET_HALF = 2;
 
+    /** The island of the training: the copy of Sky Rise (or null) and its lower limit on the map. */
+    static final class Island {
+        final MapCopy copy;
+        final int limitY;
+
+        Island(MapCopy copy, int limitY) {
+            this.copy = copy;
+            this.limitY = limitY;
+        }
+    }
+
+    private final Island island;
     private final Random random = new Random();
     private int streak;
-    /** The centre of the target island (offsets), and its top. */
-    private int tx;
-    private int ty;
-    private int tz;
     private int thrownTick = -1;
+    private boolean landed;
+    private boolean placedAny;
     private int hitIn;
-    private boolean saved;
+    private int standing;
+    private long limitTold;
 
-    PearlTraining(PracticeHost host, GameMode mode, Arena arena, List<List<Player>> teams) {
-        super(host, mode, arena, teams,
-                new Variant("island", "To an island", false, "pearls"),
-                new Variant("far", "Long pearl", false, "pearls"),
-                new Variant("save", "Pearl to save yourself", false, "saves"));
+    PearlTraining(PracticeHost host, GameMode mode, Arena arena, List<List<Player>> teams, Island island) {
+        super(host, mode, arena, teams, variants());
+        this.island = island;
+    }
+
+    private static Variant[] variants() {
+        Variant[] variants = new Variant[SITUATIONS.length];
+        for (int i = 0; i < variants.length; i++) {
+            variants[i] = new Variant(SITUATIONS[i].id, SITUATIONS[i].label, false, SITUATIONS[i].hit ? "saves" : "pearls");
+        }
+        return variants;
+    }
+
+    /** The island's box one block wider on each side, from a little under its top: a player on it. */
+    private static int[] grown(int[] box) {
+        return new int[] {box[0] - 1, 66, box[2] - 1, box[3] + 1, box[4] + 4, box[5] + 1};
+    }
+
+    /** True if this point of the map is in the box (x1, y1, z1, x2, y2, z2). */
+    static boolean inside(int[] box, double x, double y, double z) {
+        return x >= box[0] && x < box[3] + 1 && y >= box[1] && y < box[4] + 1 && z >= box[2] && z < box[5] + 1;
+    }
+
+    /** True if no block may be placed at this height of the map, as under the islands on Hypixel. */
+    static boolean belowLimit(int y, int limitY) {
+        return y < limitY;
+    }
+
+    private Situation situation() {
+        for (Situation situation : SITUATIONS) {
+            if (situation.id.equals(current().id)) {
+                return situation;
+            }
+        }
+        return SITUATIONS[0];
     }
 
     @Override
     String describe() {
-        switch (current().id) {
-            case "far":
-                return "pearl onto the island far away, as to the middle.";
-            case "save":
-                return "a hit sends you into the void: pearl back onto your island.";
-            default:
-                return "pearl onto the green island, somewhere else each time.";
-        }
-    }
-
-    private boolean saving() {
-        return current().id.equals("save");
+        return situation().what;
     }
 
     @Override
     void build() {
-        Shapes.island(arena, -3, -3, 3, 3, Material.WOOD, 0, Material.LOG, 0);
+        if (island.copy != null) {
+            island.copy.build(arena);
+            return;
+        }
+        plain(RED_ISLAND, Material.WOOD);
+        plain(DIAMOND_ISLAND, Material.SANDSTONE);
+        plain(MIDDLE_ISLAND, Material.STONE);
+    }
+
+    /** A plain island over the footprint of a map's island, its top at the map's floor. */
+    private void plain(int[] box, Material top) {
+        Shapes.island(arena, box[0] - ORIGIN[0], box[2] - ORIGIN[2], box[3] - ORIGIN[0], box[5] - ORIGIN[2], top, 0,
+                Material.STONE, 0);
     }
 
     @Override
     Location spawnOf(UUID player) {
-        // to save yourself: on the edge, back to the void
-        return saving() ? arena.at(2.5, 1, 0.5, 90f) : arena.at(0.5, 1, 0.5, -90f);
+        double[] start = situation().start;
+        return arena.at(start[0] - ORIGIN[0], start[1] - ORIGIN[1], start[2] - ORIGIN[2], (float) start[3]);
     }
 
     @Override
     double fallY() {
-        return arena.floorY() - (saving() ? 25 : 15);
+        return arena.floorY() - 50;
     }
 
     @Override
     ItemStack[] kit() {
-        return new ItemStack[] {new ItemStack(Material.ENDER_PEARL, 1)};
+        return new ItemStack[] {new ItemStack(Material.ENDER_PEARL, 1), new ItemStack(Material.WOOL, 64, (short) Shapes.RED)};
     }
 
     @Override
@@ -91,37 +179,16 @@ final class PearlTraining extends Training {
     @Override
     void roundReset() {
         thrownTick = -1;
-        saved = false;
-        hitIn = 20 + random.nextInt(30);
-        if (saving()) {
-            return;
-        }
-        boolean far = current().id.equals("far");
-        double distance = far ? 34 + random.nextInt(10) : 14 + random.nextInt(14);
-        double angle = Math.toRadians(random.nextInt(100) - 50);
-        tx = (int) Math.round(Math.cos(angle) * distance);
-        tz = (int) Math.round(Math.sin(angle) * distance);
-        ty = far ? random.nextInt(5) - 1 : random.nextInt(9) - 3;
-        for (int x = tx - TARGET_HALF; x <= tx + TARGET_HALF; x++) {
-            for (int z = tz - TARGET_HALF; z <= tz + TARGET_HALF; z++) {
-                arena.put(x, ty, z, Material.STAINED_CLAY, Shapes.LIME);
-            }
-        }
-        arena.put(tx, ty, tz, Material.GOLD_BLOCK, 0);
-        arena.put(tx, ty - 1, tz, Material.STAINED_CLAY, Shapes.GREEN);
+        landed = false;
+        placedAny = false;
+        standing = 0;
+        hitIn = situation().hit ? 20 + random.nextInt(30) : 0;
     }
 
-    @Override
-    void onFight() {
-        Player player = player();
-        if (player != null && !saving()) {
-            // look at the target
-            Location at = player.getLocation();
-            Vector to = arena.at(tx + 0.5, ty + 1, tz + 0.5).toVector().subtract(at.toVector());
-            at.setDirection(to);
-            at.setPitch(0f);
-            player.teleport(at);
-        }
+    /** Where the player is, on the map. */
+    private double[] onMap(Location at) {
+        double[] offset = arena.offset(at);
+        return new double[] {offset[0] + ORIGIN[0], offset[1] + ORIGIN[1], offset[2] + ORIGIN[2]};
     }
 
     @Override
@@ -130,48 +197,78 @@ final class PearlTraining extends Training {
         if (player == null) {
             return;
         }
-        if (saving() && hitIn > 0 && --hitIn == 0) {
-            // the hit that sends you off, as a player would give it
+        if (hitIn > 0 && --hitIn == 0) {
+            // the hit that sends you off, as a sprint hit with a knockback stick would
             double side = random.nextDouble() * 0.4 - 0.2;
-            player.setVelocity(new Vector(1.05 + random.nextDouble() * 0.2, 0.42, side));
+            player.setVelocity(new Vector(side, 0.45, 1.1 + random.nextDouble() * 0.25));
             player.playEffect(EntityEffect.HURT);
             sound(player, Sound.HURT_FLESH, 1f);
         }
-        if (thrownTick >= 0 && tickCount - thrownTick > LOST_TICKS) {
+        if (thrownTick >= 0 && !landed && tickCount - thrownTick > LOST_TICKS) {
             missed("Your pearl fell into the void.");
+            return;
+        }
+        boolean tried = landed || (situation().hit && hitIn == 0 && (thrownTick >= 0 || placedAny));
+        if (!tried) {
+            return;
+        }
+        if (!onGround(player)) {
+            standing = 0;
+            return;
+        }
+        if (++standing < STAND_TICKS) {
+            return;
+        }
+        double[] at = onMap(player.getLocation());
+        if (inside(situation().target, at[0], at[1], at[2])) {
+            success(player, situation().hit ? "Saved!" : "On the island!");
+        } else {
+            missed("Not on the island you aimed at.");
         }
     }
 
     @Override
     void launched(Player player, Projectile projectile, ProjectileLaunchEvent event) {
-        if (projectile instanceof EnderPearl) {
-            thrownTick = tickCount;
+        if (!(projectile instanceof EnderPearl)) {
+            return;
         }
+        if (hitIn > 0) {
+            event.setCancelled(true);
+            player.getInventory().addItem(new ItemStack(Material.ENDER_PEARL, 1));
+            player.sendMessage(ChatColor.GRAY + "Wait for the hit.");
+            return;
+        }
+        thrownTick = tickCount;
     }
 
     @Override
     void pearled(Player player, PlayerTeleportEvent event) {
-        thrownTick = -1;
-        Location to = event.getTo();
-        double[] at = arena.offset(to);
-        if (saving()) {
-            if (Math.abs(at[0]) <= 3.7 && Math.abs(at[2]) <= 3.7 && at[1] >= 0.5 && at[1] <= 4) {
-                saved = true;
-                success(player, "Saved!");
-            } else {
-                event.setCancelled(true);
-                missed("Your pearl missed the island.");
+        landed = true;
+        standing = 0;
+    }
+
+    @Override
+    boolean canPlace(Player player, Block block, BlockPlaceEvent event) {
+        int x = block.getX() - arena.centreX() + ORIGIN[0];
+        int y = block.getY() - arena.floorY() + ORIGIN[1];
+        int z = block.getZ() - arena.centreZ() + ORIGIN[2];
+        if (hitIn > 0 || (!situation().hit && thrownTick < 0)) {
+            // the pearl first: blocks only save a pearl that lands short
+            return false;
+        }
+        if (belowLimit(y, island.limitY)) {
+            if (now() - limitTold > 1000) {
+                limitTold = now();
+                player.sendMessage(ChatColor.RED + "You can't place blocks this low!");
             }
-            return;
+            return false;
         }
-        double dx = at[0] - (tx + 0.5);
-        double dz = at[2] - (tz + 0.5);
-        if (Math.abs(dx) <= TARGET_HALF + 0.8 && Math.abs(dz) <= TARGET_HALF + 0.8 && at[1] >= ty + 0.5 && at[1] <= ty + 4) {
-            success(player, "On the island!");
-        } else {
-            event.setCancelled(true);
-            missed("Missed by " + Math.round(Math.sqrt(dx * dx + dz * dz)) + " blocks.");
-        }
+        return x >= BOX[0] && x <= BOX[3] && z >= BOX[2] && z <= BOX[5] && y <= ORIGIN[1] + 15;
+    }
+
+    @Override
+    void placed(Player player, Block block) {
+        placedAny = true;
     }
 
     private void success(Player player, String what) {
@@ -179,29 +276,28 @@ final class PearlTraining extends Training {
         player.sendMessage(ChatColor.GREEN + what + " " + ChatColor.GRAY + "Streak: " + ChatColor.WHITE + streak);
         sound(player, Sound.ORB_PICKUP, 1.2f);
         score(streak, true);
-        hitIn = 0;
-        again(saving() ? 25L : 15L);
+        thrownTick = -1;
+        landed = false;
+        placedAny = false;
+        standing = Integer.MIN_VALUE;
+        again(15L);
     }
 
     private void missed(String why) {
         String end = streak > 0 ? " The streak of " + streak + " ends." : "";
         streak = 0;
+        standing = Integer.MIN_VALUE;
         failed(why + end);
     }
 
     @Override
     void fell(Player player) {
-        if (saved) {
-            return;
-        }
-        missed(saving() ? "You fell: throw your pearl back at your island as soon as you are hit." : "You fell.");
+        missed(situation().hit ? "You fell: pearl back to your island as soon as you are hit." : "You fell.");
     }
 
     @Override
     void trainingLines(List<String> lines) {
         lines.add(ChatColor.WHITE + "Streak: " + ChatColor.GREEN + streak);
-        if (!saving()) {
-            lines.add(ChatColor.WHITE + "Distance: " + ChatColor.GREEN + Math.round(Math.sqrt(tx * tx + tz * tz)) + " blocks");
-        }
+        lines.add(ChatColor.WHITE + "No block under " + ChatColor.RED + "y " + island.limitY);
     }
 }
