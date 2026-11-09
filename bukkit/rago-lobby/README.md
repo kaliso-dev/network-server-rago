@@ -86,8 +86,12 @@ dans les files d'attente des modes de jeu.
   niveau et l'avancée vers le suivant en %, les Rago Points, la meilleure division classée, le
   lobby et les joueurs connectés, la file et le temps d'attente quand on attend, l'adresse en
   jaune. Le Tab aussi (« You are playing on RAGO.GG », les joueurs et le ping, la boutique). En partie : le mode et le ping du joueur, et en 1v1 l'adversaire et son
-  ping (vert sous 80 ms, jaune sous 150, rouge au-delà). Une ligne n'est renvoyée que quand elle
-  change.
+  ping (vert sous 80 ms, jaune sous 150, rouge au-delà). Un jeu qui donne ses propres lignes sans
+  ping (Bed Wars, entraînements) reçoit en dessous « Your ping » et « Their ping » (celui de
+  l'adversaire en 1v1, de chacun jusqu'à trois, la moyenne au-delà). Une ligne n'est renvoyée que
+  quand elle change. En partie, la vie des joueurs autour s'affiche sous leur nom (« 20 ❤ », l'absorption
+  comprise), mise à jour à chaque tick, et leur niveau Network reste après leur nom au-dessus de
+  leur tête.
 - **Le niveau Network.** Chaque partie donne de l'XP (50 pour une victoire, 15 pour une défaite),
   chaque kill 5 de plus. On commence niveau 1, et chaque niveau demande 50 XP de plus que le
   précédent (100, 150, 200...). Le niveau s'affiche comme sur Hypixel, `[12✫]`, au-dessus de la

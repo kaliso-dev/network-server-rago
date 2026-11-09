@@ -28,11 +28,18 @@ import org.bukkit.scoreboard.Team;
  * §6[12✫]" (a name takes one colour there: the middle one of a gradient). In the lobby the tab list
  * shows the whole look, the gradient too: "§6[12✫] §d[PREMIUM] §5So§dfi§fene §d§l✦". The tab list
  * sorts the teams by name: the players of a game first, then the highest ranks. In a game, the
- * sidebar shows the mode and the player's ping, and in a 1v1 the opponent and their ping.
+ * sidebar shows the mode and the player's ping, and in a 1v1 the opponent and their ping; a game
+ * that gives its own lines and shows no ping gets them after its lines. And in a game, the health
+ * of the players around (their absorption too) shows under their names, as on Hypixel: "20 ❤".
  */
 final class LobbyScoreboard {
 
     static final String NPC_TEAM = "pnj";
+
+    /** The objective under the names, in a game: the health. */
+    static final String HEALTH = "vie";
+    /** How far the health under the names is kept up to date, in blocks. */
+    private static final double HEALTH_RANGE = 48;
 
     /** Entries of a 1.8 scoreboard are 40 characters at most. */
     private static final int MAX_LINE = 40;
@@ -65,6 +72,8 @@ final class LobbyScoreboard {
     private static Method getHandle;
     private static Field pingField;
     private static boolean noPing;
+    private static Method absorptionMethod;
+    private static boolean noAbsorption;
 
     private final LobbySettings settings;
     private final QueueController queues;
@@ -120,6 +129,34 @@ final class LobbyScoreboard {
         }
     }
 
+    /**
+     * The hearts of absorption of the player (a golden apple's), in health points: the 1.8.8 API
+     * has no method for it, the server's player has (getAbsorptionHearts). 0 if this server does not say.
+     */
+    static float absorptionOf(Player player) {
+        if (noAbsorption) {
+            return 0;
+        }
+        try {
+            if (getHandle == null) {
+                getHandle = player.getClass().getMethod("getHandle");
+            }
+            Object handle = getHandle.invoke(player);
+            if (absorptionMethod == null) {
+                absorptionMethod = handle.getClass().getMethod("getAbsorptionHearts");
+            }
+            return ((Number) absorptionMethod.invoke(handle)).floatValue();
+        } catch (ReflectiveOperationException | RuntimeException e) {
+            noAbsorption = true;
+            return 0;
+        }
+    }
+
+    /** The number under a name: the health and the absorption, in health points, rounded up (20 for full). */
+    static int healthPoints(double health, double absorption) {
+        return (int) Math.ceil(Math.max(0, health) + Math.max(0, absorption));
+    }
+
     /** "§a42 ms": green when good, yellow when fair, red when bad; "§7?" when unknown. */
     static String pingText(int ping) {
         if (ping < 0) {
@@ -154,6 +191,7 @@ final class LobbyScoreboard {
             Objective objective = board.registerNewObjective("rago", "dummy");
             objective.setDisplayName(settings.title());
             objective.setDisplaySlot(DisplaySlot.SIDEBAR);
+            board.registerNewObjective(HEALTH, "dummy").setDisplayName(ChatColor.RED + "\u2764");
             Team npcs = board.registerNewTeam(NPC_TEAM);
             npcs.setNameTagVisibility(NameTagVisibility.NEVER);
             for (int i = 0; i < settings.npcs().size(); i++) {
@@ -312,6 +350,42 @@ final class LobbyScoreboard {
         }
     }
 
+    /**
+     * In a game, the health of the players around under their names (each tick: a hit shows at
+     * once); in the lobby, nothing under the names.
+     */
+    void updateHealth() {
+        for (Player viewer : Bukkit.getOnlinePlayers()) {
+            Scoreboard board = boards.get(viewer.getUniqueId());
+            if (board == null || viewer.getScoreboard() != board) {
+                continue;
+            }
+            Objective health = board.getObjective(HEALTH);
+            if (health == null) {
+                continue;
+            }
+            if (state.gameOf(viewer.getUniqueId()) == null) {
+                if (health.getDisplaySlot() == DisplaySlot.BELOW_NAME) {
+                    board.clearSlot(DisplaySlot.BELOW_NAME);
+                }
+                continue;
+            }
+            if (health.getDisplaySlot() != DisplaySlot.BELOW_NAME) {
+                health.setDisplaySlot(DisplaySlot.BELOW_NAME);
+            }
+            for (Player other : viewer.getWorld().getPlayers()) {
+                if (other == viewer || other.getLocation().distanceSquared(viewer.getLocation()) > HEALTH_RANGE * HEALTH_RANGE) {
+                    continue;
+                }
+                // the client knows a nicked player by the nick
+                String entry = names.shownName(other.getUniqueId(), other.getName());
+                int points = healthPoints(other.getHealth(), absorptionOf(other));
+                // a score is sent only when it changes
+                health.getScore(entry).setScore(points);
+            }
+        }
+    }
+
     /** The names only (tab list and above the heads): for the animated colours, twice a second. */
     void updateNames() {
         Map<UUID, Tag> tags = tags();
@@ -414,7 +488,7 @@ final class LobbyScoreboard {
     private List<String> gameLines(Player player, String modeId) {
         List<String> given = gameLines.get(player.getUniqueId());
         if (given != null) {
-            return givenLines(given, settings.address());
+            return givenLines(given, showsPing(given) ? new ArrayList<String>() : pingLines(player), settings.address());
         }
         List<String> lines = new ArrayList<>();
         lines.add(blank(0));
@@ -438,15 +512,85 @@ final class LobbyScoreboard {
         return lines;
     }
 
+    /** True if these lines of a game show a ping already. */
+    static boolean showsPing(List<String> given) {
+        for (String line : given) {
+            if (line != null && ChatColor.stripColor(line).toLowerCase(java.util.Locale.ROOT).contains("ping")) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    /**
+     * The ping lines the lobby adds to a game's own: a blank line, the player's ping, and the
+     * opponents': the one of a 1v1, each of up to three, or the average of more.
+     */
+    private List<String> pingLines(Player player) {
+        List<Integer> theirs = new ArrayList<>();
+        for (UUID opponent : state.opponentsOf(player.getUniqueId())) {
+            Player other = Bukkit.getPlayer(opponent);
+            if (other != null) {
+                theirs.add(pingOf(other));
+            }
+        }
+        return pingLines(pingOf(player), theirs, !state.opponentsOf(player.getUniqueId()).isEmpty());
+    }
+
+    /** The ping lines, for a player of this ping against opponents of these (online ones; none: left). */
+    static List<String> pingLines(int mine, List<Integer> theirs, boolean opponents) {
+        List<String> lines = new ArrayList<>();
+        lines.add("");
+        lines.add(ChatColor.WHITE + "Your ping: " + pingText(mine));
+        if (!opponents) {
+            return lines;
+        }
+        if (theirs.isEmpty()) {
+            lines.add(ChatColor.WHITE + "Their ping: " + ChatColor.GRAY + "left");
+        } else if (theirs.size() == 1) {
+            lines.add(ChatColor.WHITE + "Their ping: " + pingText(theirs.get(0)));
+        } else if (theirs.size() <= 3) {
+            StringBuilder text = new StringBuilder(ChatColor.WHITE + "Their ping: ");
+            for (int i = 0; i < theirs.size(); i++) {
+                String one = pingText(theirs.get(i));
+                // "§a42 ms": the unit once, at the end
+                text.append(i > 0 ? ChatColor.GRAY + "/" : "").append(i < theirs.size() - 1 ? one.replace(" ms", "") : one);
+            }
+            lines.add(cut(text.toString()));
+        } else {
+            int sum = 0;
+            int known = 0;
+            for (int ping : theirs) {
+                if (ping >= 0) {
+                    sum += ping;
+                    known++;
+                }
+            }
+            lines.add(ChatColor.WHITE + "Their ping: " + (known == 0 ? pingText(-1) : ChatColor.GRAY + "~" + pingText(sum / known)));
+        }
+        return lines;
+    }
+
     /**
      * The lines a game gave, as sidebar entries: an entry shows once, so a blank line or a line
      * already there gets an invisible colour code of its own.
      */
     static List<String> givenLines(List<String> given, String address) {
+        return givenLines(given, new ArrayList<String>(), address);
+    }
+
+    /**
+     * The lines a game gave, then these lines of the lobby (the ping), as sidebar entries: the
+     * game's are cut to leave them room; an entry shows once, so a blank line or a line already
+     * there gets an invisible colour code of its own.
+     */
+    static List<String> givenLines(List<String> given, List<String> added, String address) {
+        List<String> all = new ArrayList<>(given.subList(0, Math.min(given.size(), MAX_GAME_LINES - added.size())));
+        all.addAll(added);
         List<String> lines = new ArrayList<>();
         lines.add(blank(0));
         int unique = 4;
-        for (String line : given.subList(0, Math.min(given.size(), MAX_GAME_LINES))) {
+        for (String line : all) {
             String text = line == null ? "" : line;
             if (text.isEmpty() || lines.contains(cut(text))) {
                 text = (text.length() > MAX_LINE - 4 ? text.substring(0, MAX_LINE - 4) : text) + blank(unique++);
