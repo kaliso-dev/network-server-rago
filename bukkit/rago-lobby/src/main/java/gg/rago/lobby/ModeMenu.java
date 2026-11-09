@@ -16,7 +16,8 @@ import org.bukkit.inventory.meta.ItemMeta;
 /**
  * The mode selector, a chest menu. With categories in config.yml, the compass first shows one item
  * per category (a zone of the lobby); clicking one opens that category's modes, with a back
- * button in the bottom row. Without categories, every mode is shown at once. Modes are seven per
+ * button in the bottom row. The modes of one group (groupes: in config.yml, the sizes of one game:
+ * 1v1, 2v2...) are one item there, which opens them side by side, as the games of Hypixel. Without categories, every mode is shown at once. Modes are seven per
  * row, framed by an empty row above and below. Clicking a playable mode joins its queue; clicking
  * the mode one waits for leaves it. A mode whose game offers several maps first asks which one:
  * a map, or any map (the queue is shorter). Hovering a mode shows the player's win streak of the
@@ -38,6 +39,7 @@ final class ModeMenu {
         static final String NPC = "pnj:";
         static final String DUEL = "duel:";
         static final String MAPS = "maps:";
+        static final String GROUP = "groupe:";
         private Inventory inventory;
         private final String view;
 
@@ -92,9 +94,27 @@ final class ModeMenu {
             return false;
         }
         String title = ChatColor.stripColor(category.name());
-        show(player, categoryId, 3 + rowsFor(settings.modesIn(categoryId).size()),
+        show(player, categoryId, 3 + rowsFor(settings.entriesIn(categoryId).size()),
                 title.length() > 32 ? title.substring(0, 32) : title);
         return true;
+    }
+
+    /** The modes of a group, side by side, with the back button to their category. */
+    void openGroup(Player player, ModeCategory group) {
+        String title = ChatColor.stripColor(group.name());
+        int modes = settings.modesOfGroup(group.id()).size();
+        show(player, Holder.GROUP + group.id(), modes <= 4 ? 4 : 3 + rowsFor(modes),
+                title.length() > 32 ? title.substring(0, 32) : title);
+    }
+
+    /** The group of a group view, or null for another view. */
+    private ModeCategory groupOf(String view) {
+        return view != null && view.startsWith(Holder.GROUP) ? settings.group(view.substring(Holder.GROUP.length())) : null;
+    }
+
+    /** The slot of the n-th of {@code count} modes of a view: a group's few modes are centred. */
+    private static int slotIn(String view, int index, int count) {
+        return view != null && view.startsWith(Holder.GROUP) && count <= 4 ? categorySlot(index, count) : slotOf(index);
     }
 
     /** The modes of a lobby NPC that has several. */
@@ -131,6 +151,9 @@ final class ModeMenu {
             }
             return result;
         }
+        if (view != null && view.startsWith(Holder.GROUP)) {
+            return settings.modesOfGroup(view.substring(Holder.GROUP.length()));
+        }
         return settings.modesIn(view);
     }
 
@@ -158,7 +181,7 @@ final class ModeMenu {
 
     /**
      * The slot of the n-th of {@code count} categories, centred in the middle row: one slot apart
-     * up to four, as on Hypixel (the duels on the left, the practice on the right, as in the lobby),
+     * up to four, as on Hypixel (the practice on the left, the duels on the right, as in the lobby),
      * side by side beyond.
      */
     static int categorySlot(int index, int count) {
@@ -187,7 +210,12 @@ final class ModeMenu {
             return;
         }
         if (hasBack(view) && slot == backSlot(holder.getInventory().getSize())) {
-            open(player);
+            List<ModeDisplay> grouped = groupOf(view) == null ? null : modesFor(view);
+            if (grouped != null && !grouped.isEmpty() && grouped.get(0).category() != null) {
+                openCategory(player, grouped.get(0).category());
+            } else {
+                open(player);
+            }
             return;
         }
         GameMode mapsOf = mapsMode(view);
@@ -195,10 +223,24 @@ final class ModeMenu {
             clickMap(player, mapsOf, slot);
             return;
         }
+        if (settings.category(view) != null) {
+            List<LobbySettings.Entry> entries = settings.entriesIn(view);
+            for (int i = 0; i < entries.size(); i++) {
+                if (slotOf(i) == slot) {
+                    if (entries.get(i).group != null) {
+                        openGroup(player, entries.get(i).group);
+                    } else {
+                        toggle(player, entries.get(i).mode.mode());
+                    }
+                    return;
+                }
+            }
+            return;
+        }
         List<ModeDisplay> modes = modesFor(view);
         GameMode mode = null;
         for (int i = 0; i < modes.size(); i++) {
-            if (slotOf(i) == slot) {
+            if (slotIn(view, i, modes.size()) == slot) {
                 mode = modes.get(i).mode();
             }
         }
@@ -284,15 +326,25 @@ final class ModeMenu {
             }
             return;
         }
-        List<ModeDisplay> modes = modesFor(view);
         int last = hasBack(view) ? backSlot(inventory.getSize()) - 4 : inventory.getSize();
-        for (int i = 0; i < modes.size() && slotOf(i) < last; i++) {
-            inventory.setItem(slotOf(i), icon(modes.get(i), modes.get(i).mode().equals(current), viewer));
+        if (settings.category(view) != null) {
+            List<LobbySettings.Entry> entries = settings.entriesIn(view);
+            for (int i = 0; i < entries.size() && slotOf(i) < last; i++) {
+                LobbySettings.Entry entry = entries.get(i);
+                inventory.setItem(slotOf(i), entry.group != null ? icon(entry.group, current, viewer)
+                        : icon(entry.mode, entry.mode.mode().equals(current), viewer));
+            }
+        } else {
+            List<ModeDisplay> modes = modesFor(view);
+            for (int i = 0; i < modes.size() && slotIn(view, i, modes.size()) < last; i++) {
+                inventory.setItem(slotIn(view, i, modes.size()), icon(modes.get(i), modes.get(i).mode().equals(current), viewer));
+            }
         }
         if (hasBack(view)) {
             ItemStack back = new ItemStack(Material.ARROW);
             ItemMeta meta = back.getItemMeta();
-            meta.setDisplayName(ChatColor.GRAY + "Back to the categories");
+            ModeCategory group = groupOf(view);
+            meta.setDisplayName(ChatColor.GRAY + (group != null ? "Back to the modes" : "Back to the categories"));
             back.setItemMeta(meta);
             inventory.setItem(backSlot(inventory.getSize()), back);
         }
@@ -352,12 +404,43 @@ final class ModeMenu {
             }
             here |= display.mode().equals(current);
         }
+        int games = settings.entriesIn(category.id()).size();
         lore.add("");
-        lore.add(ChatColor.GRAY + "" + modes.size() + " modes, " + ChatColor.WHITE + waiting + ChatColor.GRAY + " in queue");
+        lore.add(ChatColor.GRAY + "" + games + (games == 1 ? " game, " : " games, ") + ChatColor.WHITE + waiting
+                + ChatColor.GRAY + " in queue");
         if (here) {
             lore.add(ChatColor.YELLOW + "You are in a queue of this category");
         }
         lore.add(ChatColor.GREEN + "Click to see the modes");
+        meta.setLore(lore);
+        item.setItemMeta(meta);
+        return item;
+    }
+
+    /** A group in its category: its name, what it is, and each of its modes with its queue. */
+    private ItemStack icon(ModeCategory group, GameMode current, HumanEntity viewer) {
+        ItemStack item = new ItemStack(group.icon());
+        ItemMeta meta = item.getItemMeta();
+        meta.setDisplayName(group.name());
+        List<String> lore = new ArrayList<>(group.description());
+        lore.add("");
+        String waitingIn = null;
+        for (ModeDisplay display : settings.modesOfGroup(group.id())) {
+            GameMode mode = display.mode();
+            boolean here = mode.equals(current);
+            if (here) {
+                waitingIn = ChatColor.stripColor(mode.name());
+            }
+            lore.add((here ? ChatColor.YELLOW + "\u25b8 " : ChatColor.DARK_GRAY + "\u25b8 ") + ChatColor.WHITE
+                    + ChatColor.stripColor(mode.name()) + ChatColor.GRAY + ": "
+                    + (queues.isPlayable(mode.id()) ? ChatColor.WHITE + "" + queues.waiting(mode.id()) + ChatColor.GRAY + " in queue"
+                            : ChatColor.GRAY + "coming soon"));
+        }
+        lore.add("");
+        if (waitingIn != null) {
+            lore.add(ChatColor.YELLOW + "You are in the queue of " + waitingIn);
+        }
+        lore.add(ChatColor.GREEN + "Click to choose");
         meta.setLore(lore);
         item.setItemMeta(meta);
         return item;

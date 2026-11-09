@@ -12,6 +12,7 @@ import java.io.Reader;
 import java.nio.charset.StandardCharsets;
 import java.util.Arrays;
 import java.util.Collections;
+import java.util.List;
 import org.bukkit.Material;
 import org.bukkit.configuration.InvalidConfigurationException;
 import org.bukkit.configuration.file.YamlConfiguration;
@@ -40,7 +41,7 @@ class LobbySettingsTest {
         assertEquals("lobby", settings.world());
         assertEquals(0, settings.voidHeight());
         assertEquals(0, settings.defaultRating(), "a ranked ELO starts at 0, in Coal");
-        assertEquals(44, settings.modes().size());
+        assertEquals(46, settings.modes().size());
         assertFalse(settings.catalog().get("top-bridge-1v1").ranked(), "Top Bridge: no ELO");
         assertEquals("2v2", settings.catalog().get("top-bridge-2v2").format());
         assertTrue(settings.npc("rbwffa").modeIds().contains("top-bridge-1v1"));
@@ -64,10 +65,12 @@ class LobbySettingsTest {
     void groupsTheBundledModesByCategory() throws Exception {
         LobbySettings settings = LobbySettings.load(bundledConfig());
         assertEquals(3, settings.categories().size());
-        assertEquals("duels", settings.categories().get(0).id(), "left to right, as in the lobby");
+        assertEquals("entrainement", settings.categories().get(0).id(), "left to right: the practice on the left");
         assertEquals("ranked", settings.categories().get(1).id());
-        assertEquals(Material.IRON_SWORD, settings.categories().get(0).icon());
+        assertEquals("duels", settings.categories().get(2).id(), "the duels on the right");
+        assertEquals(Material.IRON_SWORD, settings.categories().get(2).icon());
         assertEquals("sumo", settings.modesIn("duels").get(0).mode().id());
+        assertEquals("entrainement", settings.display("kb-displace-bot").category(), "against a bot: practice");
         int total = 0;
         for (ModeCategory category : settings.categories()) {
             int count = settings.modesIn(category.id()).size();
@@ -75,6 +78,41 @@ class LobbySettingsTest {
             total += count;
         }
         assertEquals(settings.modes().size(), total, "every mode is in a category");
+    }
+
+    @Test
+    void theSizesOfOneGameAreOneItemOfTheirCategory() throws Exception {
+        LobbySettings settings = LobbySettings.load(bundledConfig());
+        List<LobbySettings.Entry> ranked = settings.entriesIn("ranked");
+        assertEquals("ranked", ranked.get(0).group.id(), "Ranked Bedwars first");
+        assertEquals(Arrays.asList("ranked-1v1", "ranked-2v2", "ranked-3v3", "ranked-4v4"),
+                displayIds(settings.modesOfGroup("ranked")));
+        assertEquals(Arrays.asList("top-bridge-1v1", "top-bridge-2v2", "top-bridge-ffa"),
+                displayIds(settings.modesOfGroup("top-bridge")));
+        assertEquals(Arrays.asList("block-fight-1v1", "block-fight-2v2", "block-fight-arena"),
+                displayIds(settings.modesOfGroup("block-placement")));
+        assertTrue(ranked.size() <= 14, "two rows at most: " + ranked.size());
+        for (LobbySettings.Entry entry : ranked) {
+            assertTrue(entry.group != null || !entry.mode.mode().id().equals("top-fight-1v1"), "the top fight 1v1 is gone");
+        }
+        assertTrue(settings.display("top-fight-1v1").hidden(), "but the private top fight of two still plays it");
+        assertEquals(Arrays.asList("top-fight-1v1", "top-fight-2v2"), ids(settings.privateRoutes().get("top-fight-prive")));
+        int shown = 0;
+        for (ModeCategory category : settings.categories()) {
+            for (LobbySettings.Entry entry : settings.entriesIn(category.id())) {
+                shown += entry.group != null ? settings.modesOfGroup(entry.group.id()).size() : 1;
+            }
+        }
+        assertEquals(settings.modes().size() - 1, shown, "every mode but the hidden one is in the selector, once");
+        assertInvalid("groupes:\n  g: {}\nmodes:\n  sumo:\n    groupe: autre\n", "modes.sumo.groupe");
+    }
+
+    private static List<String> displayIds(List<ModeDisplay> displays) {
+        List<String> ids = new java.util.ArrayList<>();
+        for (ModeDisplay display : displays) {
+            ids.add(display.mode().id());
+        }
+        return ids;
     }
 
     @Test

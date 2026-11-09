@@ -222,9 +222,14 @@ générateur vide ; un monde de build peut donc servir de lobby.
 
 ## Catégories, PNJ et classements
 
-- `categories:` range les modes par zone du lobby : la boussole montre les catégories, puis les
-  modes de celle qu'on choisit (7 catégories, 28 modes par catégorie au plus). Chaque mode dit sa
-  `categorie:`.
+- `categories:` range les modes par zone du lobby : la boussole montre les catégories (Practice à
+  gauche, Ranked Bedwars au milieu, Duels à droite), puis les jeux de celle qu'on choisit
+  (7 catégories, 28 modes par catégorie au plus). Chaque mode dit sa `categorie:`.
+- `groupes:` réunit les tailles d'un même jeu en un seul objet de sa catégorie, comme les jeux de
+  Hypixel : Ranked Bedwars ouvre 1v1, 2v2, 3v3 et 4v4 côte à côte, Top Bridge ouvre 1v1, 2v2 et
+  FFA, etc. Un mode y entre avec `groupe:` ; l'objet du groupe montre chaque taille avec sa file.
+  Un mode `cache: true` ne paraît pas dans la boussole et ne se joue qu'en partie privée (le Top
+  fight 1v1, pour la partie privée Top fight d'une party de deux).
 - `pnj:` place un PNJ sur un point de `/lobby point` (la clé) : un joueur au skin de Steve, tourné
   vers le spawn, qui tient l'icône du mode, avec son nom et le nombre de joueurs en file au-dessus
   de la tête. Un clic rejoint la file du mode, ou ouvre un menu quand le PNJ a plusieurs modes. Les
@@ -241,7 +246,9 @@ générateur vide ; un monde de build peut donc servir de lobby.
   sa période pour ce joueur (du jour, de la semaine, à vie) ; sur un tableau `elo`, il change de
   mode classé. Un tableau peut regrouper plusieurs classements entre crochets
   (`tableaux: [[elo, kills, niveau]]`, celui de leaderboardprincipal) : un clic droit passe au
-  classement suivant, un clic gauche change la période ou le mode classé. Le tableau `niveau` est
+  classement suivant, un clic gauche change la période ou le mode classé, et un clic sur la ligne
+  « Click here: next leaderboard » ou « Click here: change the period » fait ce qu'elle dit. Un
+  tableau se clique de 16 blocs, n'importe où sur son texte : le plugin suit le regard du joueur. Le tableau `niveau` est
   classé par XP et montre le niveau. leaderboardplayer montre les kills du jour, de la semaine et
   à vie, entre les meilleures séries de victoires (à gauche) et le niveau Network (à droite).
 - `podium:` (dans un mur de `classements:`) : jusqu'à 5 marches, la 1re place d'abord. Sur chacune

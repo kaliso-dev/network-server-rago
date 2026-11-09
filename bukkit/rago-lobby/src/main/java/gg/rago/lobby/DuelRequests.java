@@ -62,7 +62,7 @@ final class DuelRequests {
     List<ModeDisplay> duelModes() {
         List<ModeDisplay> modes = new ArrayList<>();
         for (ModeDisplay display : settings.modes()) {
-            if (isDuelMode(display.mode())) {
+            if (isDuelMode(display.mode()) && !display.hidden()) {
                 modes.add(display);
             }
         }

@@ -13,12 +13,21 @@ final class ModeDisplay {
     private final List<String> description;
     private final String category;
     private final Kit kit;
+    private final String group;
+    private final boolean hidden;
 
     ModeDisplay(GameMode mode, Material icon, List<String> description, String category) {
         this(mode, icon, description, category, null);
     }
 
     ModeDisplay(GameMode mode, Material icon, List<String> description, String category, Kit kit) {
+        this(mode, icon, description, category, kit, null, false);
+    }
+
+    ModeDisplay(GameMode mode, Material icon, List<String> description, String category, Kit kit, String group,
+            boolean hidden) {
+        this.group = group;
+        this.hidden = hidden;
         this.mode = mode;
         this.icon = icon;
         this.description = Collections.unmodifiableList(description);
@@ -29,6 +38,16 @@ final class ModeDisplay {
     /** The items the mode gives, which players arrange in the kit editor; null when it gives none. */
     Kit kit() {
         return kit;
+    }
+
+    /** True for a mode played only through a private game (cache: true): not in the selector. */
+    boolean hidden() {
+        return hidden;
+    }
+
+    /** The id of the mode's group (the sizes of one game, one item of its category), or null. */
+    String group() {
+        return group;
     }
 
     /** The id of the mode's category, or null when the selector has no categories. */

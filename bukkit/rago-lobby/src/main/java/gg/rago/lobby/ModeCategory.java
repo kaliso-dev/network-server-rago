@@ -4,7 +4,10 @@ import java.util.Collections;
 import java.util.List;
 import org.bukkit.Material;
 
-/** A group of modes in the selector, matching a zone of the lobby. Immutable. */
+/**
+ * A category of the selector, matching a zone of the lobby; or a group of a category (groupes:
+ * in config.yml), the sizes of one game shown as one item. Immutable.
+ */
 final class ModeCategory {
 
     private final String id;

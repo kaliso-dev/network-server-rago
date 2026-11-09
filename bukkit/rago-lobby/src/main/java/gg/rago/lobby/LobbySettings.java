@@ -38,6 +38,7 @@ final class LobbySettings {
 
     private final List<ModeDisplay> modes;
     private final List<ModeCategory> categories;
+    private final List<ModeCategory> groups;
     private final List<LobbyNpc> npcs;
     private final ModeCatalog catalog;
     private final NetworkLevel levels;
@@ -45,8 +46,9 @@ final class LobbySettings {
     private final Map<String, List<GameMode>> privateRoutes;
 
     private LobbySettings(String world, int voidHeight, String title, String address, int defaultRating,
-            RatingWindow window, List<ModeCategory> categories, List<ModeDisplay> modes, List<LobbyNpc> npcs,
-            NetworkLevel levels, String hypixelKey, Map<String, List<GameMode>> privateRoutes) {
+            RatingWindow window, List<ModeCategory> categories, List<ModeCategory> groups, List<ModeDisplay> modes,
+            List<LobbyNpc> npcs, NetworkLevel levels, String hypixelKey, Map<String, List<GameMode>> privateRoutes) {
+        this.groups = Collections.unmodifiableList(groups);
         this.levels = levels;
         this.hypixelKey = hypixelKey;
         this.privateRoutes = Collections.unmodifiableMap(privateRoutes);
@@ -101,14 +103,23 @@ final class LobbySettings {
             throw new IllegalArgumentException("modes: " + MAX_MODES + " modes at most without categories, the selector"
                     + " shows no more");
         }
+        List<ModeCategory> groups = readGroups(config.getConfigurationSection("groupes"));
         Map<String, Integer> perCategory = new HashMap<>();
+        Map<String, String> groupCategory = new HashMap<>();
         List<ModeDisplay> modes = new ArrayList<>();
         for (String id : section.getKeys(false)) {
             ConfigurationSection mode = section.getConfigurationSection(id);
             if (mode == null) {
                 throw new IllegalArgumentException("modes." + id + ": not a section");
             }
-            ModeDisplay display = readMode(id, mode, categories);
+            ModeDisplay display = readMode(id, mode, categories, groups);
+            if (display.group() != null) {
+                String before = groupCategory.putIfAbsent(display.group(), String.valueOf(display.category()));
+                if (before != null && !before.equals(String.valueOf(display.category()))) {
+                    throw new IllegalArgumentException("modes." + id + ".groupe: the modes of the group \"" + display.group()
+                            + "\" are all of one category");
+                }
+            }
             if (display.category() != null) {
                 int count = perCategory.merge(display.category(), 1, Integer::sum);
                 if (count > MAX_MODES_PER_CATEGORY) {
@@ -127,8 +138,8 @@ final class LobbySettings {
         }
         Map<String, List<GameMode>> privateRoutes = readPrivateRoutes(config.getConfigurationSection("parties-privees"), modes);
         try {
-            return new LobbySettings(world, voidHeight, title, address, defaultRating, window, categories, modes, npcs,
-                    levels, hypixelKey, privateRoutes);
+            return new LobbySettings(world, voidHeight, title, address, defaultRating, window, categories, groups, modes,
+                    npcs, levels, hypixelKey, privateRoutes);
         } catch (IllegalArgumentException e) {
             throw new IllegalArgumentException("modes: " + e.getMessage(), e);
         }
@@ -371,6 +382,27 @@ final class LobbySettings {
         return categories;
     }
 
+    /** groupes: the sizes of one game, one item in their category (nom, icone, description). */
+    private static List<ModeCategory> readGroups(ConfigurationSection section) {
+        List<ModeCategory> groups = new ArrayList<>();
+        if (section == null) {
+            return groups;
+        }
+        for (String id : section.getKeys(false)) {
+            String where = "groupes." + id;
+            ConfigurationSection group = section.getConfigurationSection(id);
+            if (group == null) {
+                throw new IllegalArgumentException(where + ": not a section");
+            }
+            if (!id.matches("[a-z0-9][a-z0-9-]{0,31}")) {
+                throw new IllegalArgumentException(where + ": lowercase letters without accents, digits and dashes only");
+            }
+            groups.add(new ModeCategory(id, colour(group.getString("nom", id)),
+                    icon(where, group.getString("icone", "CHEST")), description(group)));
+        }
+        return groups;
+    }
+
     private static Material icon(String where, String iconName) {
         Material icon = Material.matchMaterial(iconName);
         if (icon == null || icon == Material.AIR) {
@@ -387,7 +419,8 @@ final class LobbySettings {
         return description;
     }
 
-    private static ModeDisplay readMode(String id, ConfigurationSection section, List<ModeCategory> categories) {
+    private static ModeDisplay readMode(String id, ConfigurationSection section, List<ModeCategory> categories,
+            List<ModeCategory> groups) {
         String where = "modes." + id;
         String name = colour(section.getString("nom", id));
         GameMode mode;
@@ -410,7 +443,18 @@ final class LobbySettings {
                         + "\" is not one of the categories (categories: at the top of the file)");
             }
         }
-        return new ModeDisplay(mode, icon, description(section), category, readKit(where + ".kit", section));
+        String group = section.getString("groupe");
+        if (group != null) {
+            boolean known = false;
+            for (ModeCategory g : groups) {
+                known |= g.id().equals(group);
+            }
+            if (!known) {
+                throw new IllegalArgumentException(where + ".groupe: \"" + group + "\" is not one of the groupes");
+            }
+        }
+        return new ModeDisplay(mode, icon, description(section), category, readKit(where + ".kit", section), group,
+                section.getBoolean("cache", false));
     }
 
     /**
@@ -540,6 +584,58 @@ final class LobbySettings {
             }
         }
         return null;
+    }
+
+    /** A group of modes by id, or null. */
+    ModeCategory group(String id) {
+        for (ModeCategory group : groups) {
+            if (group.id().equals(id)) {
+                return group;
+            }
+        }
+        return null;
+    }
+
+    /** The modes of one group, in the order of config.yml. */
+    List<ModeDisplay> modesOfGroup(String groupId) {
+        List<ModeDisplay> result = new ArrayList<>();
+        for (ModeDisplay display : modes) {
+            if (groupId.equals(display.group()) && !display.hidden()) {
+                result.add(display);
+            }
+        }
+        return result;
+    }
+
+    /** An item of a category's menu: a mode, or a group of modes. */
+    static final class Entry {
+        final ModeDisplay mode;
+        final ModeCategory group;
+
+        Entry(ModeDisplay mode, ModeCategory group) {
+            this.mode = mode;
+            this.group = group;
+        }
+    }
+
+    /**
+     * The items of a category (of every mode for null): each mode, but the modes of one group as
+     * one item, where the first of them is in config.yml.
+     */
+    List<Entry> entriesIn(String categoryId) {
+        List<Entry> entries = new ArrayList<>();
+        java.util.Set<String> seen = new java.util.HashSet<>();
+        for (ModeDisplay display : modesIn(categoryId)) {
+            if (display.hidden()) {
+                continue;
+            }
+            if (display.group() == null) {
+                entries.add(new Entry(display, null));
+            } else if (seen.add(display.group())) {
+                entries.add(new Entry(null, group(display.group())));
+            }
+        }
+        return entries;
     }
 
     /** The modes of one category (all of them for null), in the order of config.yml. */

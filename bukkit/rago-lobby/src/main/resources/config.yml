@@ -25,29 +25,106 @@ file:
   ecart-elo-max: 500
 
 # The categories of the selector, one per zone of the lobby, in the order of the menu (7 at most):
-# left to right, as in the lobby. The compass first shows the categories, then the modes of the
-# one picked (28 at most per category). Without a categories section, the compass shows every
-# mode at once (35 at most).
+# left to right, as in the lobby. The compass first shows the categories, then the games of the
+# one picked (28 modes at most per category). Without a categories section, the compass shows
+# every mode at once (35 at most).
 categories:
-  duels:
-    nom: "&a&lDuels"
-    icone: IRON_SWORD
-    description:
-      - "Sumo, boxing, fireball fight,"
-      - "attack and defense, KB displace."
-  ranked:
-    nom: "&6&lRanked Bedwars"
-    icone: BED
-    description:
-      - "Ranked and the Bedwars modes:"
-      - "ranked, private game, FFA,"
-      - "Arena Free, top fight, Sky Rise..."
   entrainement:
     nom: "&b&lPractice"
     icone: SANDSTONE
     description:
       - "Alone or against a bot: clutch,"
-      - "block in, fast defense, fireball..."
+      - "block in, fast defense, extend,"
+      - "pearls, fireballs, bow, aim..."
+  ranked:
+    nom: "&6&lRanked Bedwars"
+    icone: BED
+    description:
+      - "Ranked and the Bedwars modes:"
+      - "Sky Rise, first rush, Top Bridge,"
+      - "FFA, top fight, bridge fight..."
+  duels:
+    nom: "&a&lDuels"
+    icone: IRON_SWORD
+    description:
+      - "Sumo, boxing, KB displace,"
+      - "fireball fight, attack and"
+      - "defense: against a player."
+
+# The groups: the sizes of one game (1v1, 2v2...), one item in their category which opens them
+# side by side, as the games of Hypixel. A mode is in a group with groupe: (the modes of a group
+# are of one category); the item shows where its first mode is in the list of the modes.
+groupes:
+  ranked:
+    nom: "&6&lRanked Bedwars"
+    icone: BED
+    description:
+      - "Ranked Bedwars on the 20 maps"
+      - "of the RBW queue: your ELO goes"
+      - "up or down after every game."
+  skyrise:
+    nom: "&6RBW Sky Rise"
+    icone: DIAMOND_CHESTPLATE
+    description:
+      - "A Bedwars, RBW style,"
+      - "on Sky Rise."
+  first-rush:
+    nom: "&eFirst rush"
+    icone: IRON_PICKAXE
+    description:
+      - "A real Bedwars, RBW style, on"
+      - "two islands side by side: the"
+      - "first rush decides it."
+  top-bridge:
+    nom: "&eTop Bridge"
+    icone: LADDER
+    description:
+      - "A real RBW game with the top"
+      - "bridge of Antenna: stairs of"
+      - "wool up to a platform over the"
+      - "middle. Or free for all on it."
+  ffa:
+    nom: "&cFree for all"
+    icone: STONE_SWORD
+    description:
+      - "Come and go when you like:"
+      - "the FFA with the Ranked Bedwars"
+      - "kit, or Arena Free on Archway."
+  bridge-fight:
+    nom: "&bBridge fight"
+    icone: WOOL
+    description:
+      - "Fights on wool platforms,"
+      - "no blocks: free for all,"
+      - "or a 1v1, first to 5."
+  block-placement:
+    nom: "&bBlock placement"
+    icone: SANDSTONE
+    description:
+      - "Build, clutch and fight on the"
+      - "block placement maps: 1v1, 2v2,"
+      - "or the arena with everyone."
+  prive:
+    nom: "&6Private games"
+    icone: NAME_TAG
+    description:
+      - "With your party: a real RBW"
+      - "game or a top fight, the size"
+      - "follows the party."
+  attack-defense:
+    nom: "&cAttack and defense"
+    icone: IRON_SWORD
+    description:
+      - "A rush, as on Hypixel: the"
+      - "attacker on the bridge, the"
+      - "defender covers the bed fast."
+  clutch:
+    nom: "&bBlock clutch"
+    icone: LADDER
+    description:
+      - "A hit throws you off: place"
+      - "your wool to save yourself."
+      - "On an island, or a top fight."
 
 # The NPCs of the lobby. Each one stands on a point placed with /lobby point <name> (the key) and
 # opens its modes: a click joins the queue if it has only one, else opens a menu of its modes.
@@ -61,7 +138,7 @@ pnj:
     modes: [partie-privee, top-fight-prive]
   rbwffa:
     nom: "&cFFA and Top fight"
-    modes: [ffa, top-fight-1v1, top-fight-2v2, top-bridge-1v1, top-bridge-2v2]
+    modes: [ffa, top-fight-2v2, top-bridge-1v1, top-bridge-2v2, top-bridge-ffa]
   rbwsolo1v1ou2v2skyrise:
     nom: "&6RBW Sky Rise"
     modes: [skyrise-1v1, skyrise-2v2]
@@ -416,6 +493,8 @@ parties-privees:
 #   equipes            the number of teams in a game
 #   joueurs-par-equipe the number of players in each team
 #   categorie          the category of the mode (one of categories: above)
+#   groupe             the group of the mode in its category (one of groupes: above), if any
+#   cache              true: not in the selector, played only through a private game
 #   classe             true for a ranked mode (ELO)
 #   description        the lines under the name
 #   kit                the items the mode gives, which players arrange as they like with the kit
@@ -434,6 +513,7 @@ modes:
   ranked-1v1:
     nom: "&6Ranked Bedwars 1v1"
     categorie: ranked
+    groupe: ranked
     icone: BED
     equipes: 2
     joueurs-par-equipe: 1
@@ -446,6 +526,7 @@ modes:
   ranked-2v2:
     nom: "&6Ranked Bedwars 2v2"
     categorie: ranked
+    groupe: ranked
     icone: DIAMOND_SWORD
     equipes: 2
     joueurs-par-equipe: 2
@@ -456,6 +537,7 @@ modes:
   ranked-3v3:
     nom: "&6Ranked Bedwars 3v3"
     categorie: ranked
+    groupe: ranked
     icone: DIAMOND_CHESTPLATE
     equipes: 2
     joueurs-par-equipe: 3
@@ -466,6 +548,7 @@ modes:
   ranked-4v4:
     nom: "&6Ranked Bedwars 4v4"
     categorie: ranked
+    groupe: ranked
     icone: DIAMOND_BLOCK
     equipes: 2
     joueurs-par-equipe: 4
@@ -473,9 +556,58 @@ modes:
     description:
       - "Ranked Bedwars, four against"
       - "four, on the RBW maps."
+  skyrise-1v1:
+    nom: "&6RBW Sky Rise 1v1"
+    categorie: ranked
+    groupe: skyrise
+    icone: DIAMOND_CHESTPLATE
+    equipes: 2
+    joueurs-par-equipe: 1
+    classe: false
+    description:
+      - "A solo Bedwars, RBW style,"
+      - "on Sky Rise."
+  skyrise-2v2:
+    nom: "&6RBW Sky Rise 2v2"
+    categorie: ranked
+    groupe: skyrise
+    icone: DIAMOND_CHESTPLATE
+    equipes: 2
+    joueurs-par-equipe: 2
+    classe: false
+    description:
+      - "A duo Bedwars, RBW style,"
+      - "on Sky Rise."
+  first-rush:
+    nom: "&eFirst rush solo"
+    categorie: ranked
+    groupe: first-rush
+    icone: IRON_PICKAXE
+    equipes: 2
+    joueurs-par-equipe: 1
+    classe: false
+    description:
+      - "A real Bedwars 1v1, RBW style,"
+      - "on two islands side by side:"
+      - "the first rush decides it."
+      - "Choose the map."
+  first-rush-duo:
+    nom: "&eFirst rush duo"
+    categorie: ranked
+    groupe: first-rush
+    icone: IRON_PICKAXE
+    equipes: 2
+    joueurs-par-equipe: 2
+    classe: false
+    description:
+      - "A real Bedwars 2v2, RBW style,"
+      - "on two islands side by side:"
+      - "the first rush decides it."
+      - "Choose the map."
   top-bridge-1v1:
     nom: "&eTop Bridge 1v1"
     categorie: ranked
+    groupe: top-bridge
     icone: LADDER
     equipes: 2
     joueurs-par-equipe: 1
@@ -488,37 +620,30 @@ modes:
   top-bridge-2v2:
     nom: "&eTop Bridge 2v2"
     categorie: ranked
+    groupe: top-bridge
     icone: LADDER
     equipes: 2
     joueurs-par-equipe: 2
     classe: false
     description:
       - "Top Bridge, two against two."
-  partie-privee:
-    nom: "&6Private game"
+  top-bridge-ffa:
+    nom: "&eTop Bridge FFA"
     categorie: ranked
-    icone: NAME_TAG
-    equipes: 2
+    groupe: top-bridge
+    icone: LADDER
+    equipes: 1
     joueurs-par-equipe: 1
     classe: false
     description:
-      - "A real private RBW game with your"
-      - "party: 1v1, 2v2, 3v3 or 4v4, the"
-      - "size follows the party."
-  top-fight-prive:
-    nom: "&ePrivate top fight"
-    categorie: ranked
-    icone: GOLD_SWORD
-    equipes: 2
-    joueurs-par-equipe: 1
-    classe: false
-    description:
-      - "Top fight with your party, on a"
-      - "ready-made platform: 1v1 or 2v2,"
-      - "the size follows the party."
+      - "The top bridge of Antenna, free"
+      - "for all: come and go when you"
+      - "like and fight everyone on the"
+      - "platform, the RBW kit."
   ffa:
     nom: "&cFFA Ranked Bedwars"
     categorie: ranked
+    groupe: ffa
     icone: STONE_SWORD
     equipes: 1
     joueurs-par-equipe: 1
@@ -532,6 +657,7 @@ modes:
   free-ffa:
     nom: "&aArena Free"
     categorie: ranked
+    groupe: ffa
     icone: EMERALD
     equipes: 1
     joueurs-par-equipe: 1
@@ -541,50 +667,6 @@ modes:
       - "forges, a shop of its own,"
       - "and defenses ready on the"
       - "beds for top fights."
-  skyrise-1v1:
-    nom: "&6RBW Sky Rise 1v1"
-    categorie: ranked
-    icone: DIAMOND_CHESTPLATE
-    equipes: 2
-    joueurs-par-equipe: 1
-    classe: false
-    description:
-      - "A solo Bedwars, RBW style,"
-      - "on Sky Rise."
-  skyrise-2v2:
-    nom: "&6RBW Sky Rise 2v2"
-    categorie: ranked
-    icone: DIAMOND_CHESTPLATE
-    equipes: 2
-    joueurs-par-equipe: 2
-    classe: false
-    description:
-      - "A duo Bedwars, RBW style,"
-      - "on Sky Rise."
-  first-rush:
-    nom: "&eFirst rush solo"
-    categorie: ranked
-    icone: IRON_PICKAXE
-    equipes: 2
-    joueurs-par-equipe: 1
-    classe: false
-    description:
-      - "A real Bedwars 1v1, RBW style,"
-      - "on two islands side by side:"
-      - "the first rush decides it."
-      - "Choose the map."
-  first-rush-duo:
-    nom: "&eFirst rush duo"
-    categorie: ranked
-    icone: IRON_PICKAXE
-    equipes: 2
-    joueurs-par-equipe: 2
-    classe: false
-    description:
-      - "A real Bedwars 2v2, RBW style,"
-      - "on two islands side by side:"
-      - "the first rush decides it."
-      - "Choose the map."
   invis-practice:
     nom: "&5Invis practice"
     categorie: ranked
@@ -602,9 +684,35 @@ modes:
       - "with an invis potion against"
       - "the defenders of the bed,"
       - "each player in turn."
+  top-fight-2v2:
+    nom: "&eTop fight 2v2"
+    categorie: ranked
+    icone: GOLD_SWORD
+    equipes: 2
+    joueurs-par-equipe: 2
+    classe: false
+    kit: [IRON_SWORD, "WOOL 64", "GOLDEN_APPLE 3", ENDER_PEARL]
+    description:
+      - "Top fight, two against two."
+  top-fight-1v1:
+    nom: "&eTop fight 1v1"
+    categorie: ranked
+    # only through the private top fight of a party of two (Top Bridge 1v1 and Bridge fight 1v1
+    # are the 1v1 fights of the selector)
+    cache: true
+    icone: GOLD_SWORD
+    equipes: 2
+    joueurs-par-equipe: 1
+    classe: false
+    kit: [IRON_SWORD, "WOOL 64", "GOLDEN_APPLE 3", ENDER_PEARL]
+    description:
+      - "Fight on top of a ready-made"
+      - "bed defense (end stone, wood,"
+      - "wool), RBW gear. First to 3."
   bridge-fight:
     nom: "&bBridge fight"
     categorie: ranked
+    groupe: bridge-fight
     icone: WOOL
     equipes: 1
     joueurs-par-equipe: 1
@@ -617,6 +725,7 @@ modes:
   bridge-fight-1v1:
     nom: "&bBridge fight 1v1"
     categorie: ranked
+    groupe: bridge-fight
     icone: WOOL
     equipes: 2
     joueurs-par-equipe: 1
@@ -629,6 +738,7 @@ modes:
   block-fight-1v1:
     nom: "&bBlock placement 1v1"
     categorie: ranked
+    groupe: block-placement
     icone: SANDSTONE
     equipes: 2
     joueurs-par-equipe: 1
@@ -644,6 +754,7 @@ modes:
   block-fight-2v2:
     nom: "&bBlock placement 2v2"
     categorie: ranked
+    groupe: block-placement
     icone: SANDSTONE
     equipes: 2
     joueurs-par-equipe: 2
@@ -656,6 +767,7 @@ modes:
   block-fight-arena:
     nom: "&bBlock placement arena"
     categorie: ranked
+    groupe: block-placement
     icone: SANDSTONE
     equipes: 1
     joueurs-par-equipe: 1
@@ -673,6 +785,30 @@ modes:
     description:
       - "Defend your bed 1 against 2,"
       - "final clutch on 2 hearts... scored."
+  partie-privee:
+    nom: "&6Private game"
+    categorie: ranked
+    groupe: prive
+    icone: NAME_TAG
+    equipes: 2
+    joueurs-par-equipe: 1
+    classe: false
+    description:
+      - "A real private RBW game with your"
+      - "party: 1v1, 2v2, 3v3 or 4v4, the"
+      - "size follows the party."
+  top-fight-prive:
+    nom: "&ePrivate top fight"
+    categorie: ranked
+    groupe: prive
+    icone: GOLD_SWORD
+    equipes: 2
+    joueurs-par-equipe: 1
+    classe: false
+    description:
+      - "Top fight with your party, on a"
+      - "ready-made platform: 1v1 or 2v2,"
+      - "the size follows the party."
   sumo:
     nom: "&aSumo duel"
     categorie: duels
@@ -696,6 +832,18 @@ modes:
       - "First to 100 hits,"
       - "to work on your combos."
       - "/speed: Speed II off or on."
+  kb-displace:
+    nom: "&bKB displace 1v1"
+    categorie: duels
+    icone: STICK
+    equipes: 2
+    joueurs-par-equipe: 1
+    classe: false
+    kit: [STONE_SWORD]
+    description:
+      - "A real top fight: run along the"
+      - "bridge and knock the defender"
+      - "off sideways. Roles swap each hit."
   block-edit-duel:
     nom: "&bBlock edit 1v1"
     categorie: duels
@@ -723,6 +871,7 @@ modes:
   attack-defense-1v1:
     nom: "&cAttack and defense 1v1"
     categorie: duels
+    groupe: attack-defense
     icone: IRON_SWORD
     equipes: 2
     joueurs-par-equipe: 1
@@ -736,6 +885,7 @@ modes:
   attack-defense-2v2:
     nom: "&cAttack and defense 2v2"
     categorie: duels
+    groupe: attack-defense
     icone: IRON_SWORD
     equipes: 2
     joueurs-par-equipe: 2
@@ -745,31 +895,10 @@ modes:
       - "A rush, as on Hypixel: one"
       - "team is already on the bridge,"
       - "the other covers its bed fast."
-  top-fight-1v1:
-    nom: "&eTop fight 1v1"
-    categorie: ranked
-    icone: GOLD_SWORD
-    equipes: 2
-    joueurs-par-equipe: 1
-    classe: false
-    kit: [IRON_SWORD, "WOOL 64", "GOLDEN_APPLE 3", ENDER_PEARL]
-    description:
-      - "Fight on top of a ready-made"
-      - "bed defense (end stone, wood,"
-      - "wool), RBW gear. First to 3."
-  top-fight-2v2:
-    nom: "&eTop fight 2v2"
-    categorie: ranked
-    icone: GOLD_SWORD
-    equipes: 2
-    joueurs-par-equipe: 2
-    classe: false
-    kit: [IRON_SWORD, "WOOL 64", "GOLDEN_APPLE 3", ENDER_PEARL]
-    description:
-      - "Top fight, two against two."
   clutch:
     nom: "&bBlock clutch"
     categorie: entrainement
+    groupe: clutch
     icone: LADDER
     equipes: 1
     joueurs-par-equipe: 1
@@ -784,6 +913,7 @@ modes:
   clutch-top-fight:
     nom: "&bBlock clutch: top fight"
     categorie: entrainement
+    groupe: clutch
     icone: WOOL
     equipes: 1
     joueurs-par-equipe: 1
@@ -792,18 +922,6 @@ modes:
       - "The block clutch on a top"
       - "fight platform, at the build"
       - "limit: no block above it."
-  block-edit:
-    nom: "&bBlock edit"
-    categorie: entrainement
-    icone: SHEARS
-    equipes: 1
-    joueurs-par-equipe: 1
-    classe: false
-    kit: [WOOD_SWORD, SHEARS, "WOOL 64"]
-    description:
-      - "Break a block of the wall, hit"
-      - "the bot behind it, put the block"
-      - "back before it hits you."
   block-in:
     nom: "&bBlock in practice"
     categorie: entrainement
@@ -827,6 +945,18 @@ modes:
       - "as fast as you can: Ranked"
       - "(end stone, glass) or solo"
       - "(end stone, wool)."
+  block-edit:
+    nom: "&bBlock edit"
+    categorie: entrainement
+    icone: SHEARS
+    equipes: 1
+    joueurs-par-equipe: 1
+    classe: false
+    kit: [WOOD_SWORD, SHEARS, "WOOL 64"]
+    description:
+      - "Break a block of the wall, hit"
+      - "the bot behind it, put the block"
+      - "back before it hits you."
   extend-practice:
     nom: "&bExtend practice"
     categorie: entrainement
@@ -853,29 +983,6 @@ modes:
       - "Gold, Diamond, Emerald: the"
       - "hit gets bigger. Ladders:"
       - "an option."
-  kb-displace:
-    nom: "&bKB displace 1v1"
-    categorie: duels
-    icone: STICK
-    equipes: 2
-    joueurs-par-equipe: 1
-    classe: false
-    kit: [STONE_SWORD]
-    description:
-      - "A real top fight: run along the"
-      - "bridge and knock the defender"
-      - "off sideways. Roles swap each hit."
-  kb-displace-bot:
-    nom: "&bKB displace against a bot"
-    categorie: duels
-    icone: STICK
-    equipes: 1
-    joueurs-par-equipe: 1
-    classe: false
-    description:
-      - "Run, turn your head, hit: knock"
-      - "the bot off sideways. Back at"
-      - "the start after each hit."
   ladder-practice:
     nom: "&6Ladder practice"
     categorie: entrainement
@@ -900,6 +1007,16 @@ modes:
       - "middle, or back after a hit."
       - "Save a short pearl with wool,"
       - "not under the lower limit."
+  fireball-practice:
+    nom: "&6Fireball practice"
+    categorie: entrainement
+    icone: FIREBALL
+    equipes: 1
+    joueurs-par-equipe: 1
+    classe: false
+    description:
+      - "Fireball jumps and"
+      - "sending fireballs back."
   shop-practice:
     nom: "&aFast Shop"
     categorie: entrainement
@@ -912,16 +1029,6 @@ modes:
       - "as you can, with your own"
       - "Hypixel quick buy (copy it"
       - "in one click: the book)."
-  fireball-practice:
-    nom: "&6Fireball practice"
-    categorie: entrainement
-    icone: FIREBALL
-    equipes: 1
-    joueurs-par-equipe: 1
-    classe: false
-    description:
-      - "Fireball jumps and"
-      - "sending fireballs back."
   combo-bot:
     nom: "&dCombo bot"
     categorie: entrainement
@@ -933,6 +1040,30 @@ modes:
       - "A bot that moves and hits"
       - "back, to work on your"
       - "combos (sparring)."
+  kb-displace-bot:
+    nom: "&bKB displace against a bot"
+    categorie: entrainement
+    icone: STICK
+    equipes: 1
+    joueurs-par-equipe: 1
+    classe: false
+    description:
+      - "Run, turn your head, hit: knock"
+      - "the bot off sideways. Back at"
+      - "the start after each hit."
+  bow-training:
+    nom: "&aBow training"
+    categorie: entrainement
+    icone: BOW
+    equipes: 1
+    joueurs-par-equipe: 1
+    classe: false
+    description:
+      - "On a real Bed Wars map: shoot"
+      - "the bots bridging to your"
+      - "island, or a friend in 1v1"
+      - "(/duel). Hits, accuracy and"
+      - "the longest shot."
   aim-trainer:
     nom: "&eAim trainer"
     categorie: entrainement
