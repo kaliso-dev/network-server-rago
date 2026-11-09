@@ -54,6 +54,10 @@ final class LobbyScoreboard {
     private final Map<UUID, List<String>> shown = new HashMap<>();
     /** The lines a game gave for its players (LobbyService#setGameSidebar). */
     private final Map<UUID, List<String>> gameLines = new HashMap<>();
+    /** What a game puts before the names of its players, their team (LobbyService#setGameNameTag). */
+    private final Map<UUID, String> gamePrefixes = new HashMap<>();
+    /** The scoreboard team of each of those prefixes, the same on every scoreboard. */
+    private final Map<String, String> prefixTeams = new HashMap<>();
 
     LobbyScoreboard(LobbySettings settings, QueueController queues, StatsBook book, LobbyState state) {
         this.settings = settings;
@@ -159,15 +163,46 @@ final class LobbyScoreboard {
         shown.put(player.getUniqueId(), lines);
     }
 
-    /** Every online player in the team of their rank, on this scoreboard. */
+    /** Every online player in the team of their rank, or of their game's team, on this scoreboard. */
     private void syncRanks(Scoreboard board) {
         NetworkLevel levels = book.levels();
         for (Player other : Bukkit.getOnlinePlayers()) {
-            Team team = board.getTeam(rankTeam(levels.rankLevel(book.level(other.getUniqueId()))));
+            String prefix = gamePrefixes.get(other.getUniqueId());
+            Team team = prefix != null ? gameTeam(board, prefix)
+                    : board.getTeam(rankTeam(levels.rankLevel(book.level(other.getUniqueId()))));
             if (team != null && !team.hasEntry(other.getName())) {
                 // addEntry takes the player out of their old team.
                 team.addEntry(other.getName());
             }
+        }
+    }
+
+    /**
+     * The team of the players whose game puts this before their names, made on this scoreboard the
+     * first time ("g0", "g1"...: before the ranks in the tab list). An invisible teammate stays
+     * wholly invisible, as an enemy.
+     */
+    private Team gameTeam(Scoreboard board, String prefix) {
+        String name = prefixTeams.get(prefix);
+        if (name == null) {
+            name = "g" + prefixTeams.size();
+            prefixTeams.put(prefix, name);
+        }
+        Team team = board.getTeam(name);
+        if (team == null) {
+            team = board.registerNewTeam(name);
+            team.setPrefix(prefix);
+            team.setCanSeeFriendlyInvisibles(false);
+        }
+        return team;
+    }
+
+    /** What shows before the player's name while they play (16 characters at most), or null for their rank. */
+    void setGamePrefix(UUID player, String prefix) {
+        if (prefix == null) {
+            gamePrefixes.remove(player);
+        } else {
+            gamePrefixes.put(player, prefix.length() <= MAX_TEAM ? prefix : prefix.substring(0, MAX_TEAM));
         }
     }
 
@@ -181,6 +216,7 @@ final class LobbyScoreboard {
         boards.remove(player);
         shown.remove(player);
         gameLines.remove(player);
+        gamePrefixes.remove(player);
     }
 
     /** The lines a game shows in the player's sidebar, or null for the lobby's own game lines. */

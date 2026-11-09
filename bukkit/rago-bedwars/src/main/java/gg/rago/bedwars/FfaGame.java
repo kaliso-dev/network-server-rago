@@ -114,6 +114,12 @@ final class FfaGame extends BedwarsGame {
         return false;
     }
 
+    /** The names keep the players' ranks: no teams to show. */
+    @Override
+    boolean teamNameTags() {
+        return false;
+    }
+
     @Override
     boolean upgrades() {
         return false;

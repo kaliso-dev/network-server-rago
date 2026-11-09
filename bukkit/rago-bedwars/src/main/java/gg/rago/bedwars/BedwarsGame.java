@@ -247,6 +247,9 @@ class BedwarsGame {
             }
             place(player, gamer);
             welcome(player, gamer);
+            if (teamNameTags()) {
+                plugin.lobby().setGameNameTag(player, gamer.team.color.letter() + " " + gamer.team.color.chat());
+            }
         }
         clock = Bukkit.getScheduler().runTaskTimer(plugin, this::second, 20L, 20L);
         repeat(2L, 2L, this::hideArmour);
@@ -444,6 +447,11 @@ class BedwarsGame {
      */
     boolean chatTeams() {
         return teamSize() > 1;
+    }
+
+    /** True if the names of the players show their team, as on Hypixel ("R Steve" in red): a classic game. */
+    boolean teamNameTags() {
+        return true;
     }
 
     /** True if the players can use their items (eat, drink, throw, shoot); false: the shop practice. */

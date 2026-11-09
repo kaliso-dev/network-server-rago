@@ -95,8 +95,10 @@ Les objets de la catégorie Utility du shop, comme sur Hypixel :
   regarde : quatre murs de 5 blocs, une échelle à l'intérieur, un toit plus large avec ses créneaux.
   Elle ne remplace aucun bloc et ne se pose jamais dans un joueur.
 
-## Coffres, chat et invisibilité
+## Coffres, noms, chat et invisibilité
 
+- **Noms** : dans une partie classique, au-dessus de la tête et dans la liste Tab, le pseudo montre
+  l'équipe comme sur Hypixel (« **R** Steve » en rouge) ; le rang revient au retour au lobby.
 - **Coffres** : le coffre d'une île est le même pour tous ceux qui l'ouvrent (on peut piller celui
   d'un ennemi), l'ender chest est à chacun.
 - **Chat** : chaque partie a son chat, à part du lobby. Dans un mode à équipes, on parle à son

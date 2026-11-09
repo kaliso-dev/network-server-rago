@@ -80,4 +80,13 @@ public interface LobbyService {
      * lobby forgets them when the player comes back to it.
      */
     void setGameSidebar(Player player, List<String> lines);
+
+    /**
+     * What shows before the player's name, above their head and in the tab list, while they play:
+     * their team as Hypixel shows it in Bed Wars ("§c§lR §c": the team's letter, then the name in
+     * its colour). 16 characters at most, colour codes with §. Null gives back the player's rank.
+     * The lobby forgets it when the player comes back to it. A lobby without name tags ignores it.
+     */
+    default void setGameNameTag(Player player, String prefix) {
+    }
 }

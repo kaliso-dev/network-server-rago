@@ -227,6 +227,7 @@ public final class RagoLobby extends JavaPlugin implements LobbyService {
     public void sendToLobby(Player player) {
         state.leaveGame(player.getUniqueId());
         scoreboard.setGameLines(player.getUniqueId(), null);
+        scoreboard.setGamePrefix(player.getUniqueId(), null);
         if (state.isBuilding(player)) {
             state.toggleBuilding(player.getUniqueId());
         }
@@ -288,6 +289,7 @@ public final class RagoLobby extends JavaPlugin implements LobbyService {
     void cancelGame(Player player) {
         state.leaveGame(player.getUniqueId());
         scoreboard.setGameLines(player.getUniqueId(), null);
+        scoreboard.setGamePrefix(player.getUniqueId(), null);
         if (player.getWorld().equals(state.world())) {
             giveHotbar(player);
             visibility.applyInLobby(player, state);
@@ -556,6 +558,12 @@ public final class RagoLobby extends JavaPlugin implements LobbyService {
     public void setGameSidebar(Player player, List<String> lines) {
         scoreboard.setGameLines(player.getUniqueId(), lines);
         scoreboard.update(player);
+    }
+
+    @Override
+    public void setGameNameTag(Player player, String prefix) {
+        // every scoreboard takes it at its next update, within a second
+        scoreboard.setGamePrefix(player.getUniqueId(), prefix);
     }
 
     @Override

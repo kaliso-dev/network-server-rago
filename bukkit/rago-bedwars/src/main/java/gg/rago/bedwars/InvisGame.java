@@ -241,6 +241,12 @@ final class InvisGame extends BedwarsGame {
         return false;
     }
 
+    /** The names keep the players' ranks: no teams to show. */
+    @Override
+    boolean teamNameTags() {
+        return false;
+    }
+
     @Override
     int countdownSeconds() {
         return ROUND_COUNTDOWN;

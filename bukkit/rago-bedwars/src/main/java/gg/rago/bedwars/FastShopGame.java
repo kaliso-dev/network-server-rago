@@ -171,6 +171,12 @@ final class FastShopGame extends BedwarsGame {
         return false;
     }
 
+    /** The names keep the players' ranks: no teams to show. */
+    @Override
+    boolean teamNameTags() {
+        return false;
+    }
+
     /** The map stays as it is: the beds too. */
     @Override
     void removeUnusedBeds() {
