@@ -500,8 +500,9 @@ modes:
     classe: false
     description:
       - "Build a bed defense"
-      - "as fast as you can,"
-      - "RBW or solo defense."
+      - "as fast as you can: Ranked"
+      - "(end stone, glass) or solo"
+      - "(end stone, wool)."
   extend-practice:
     nom: "&bExtend practice"
     categorie: entrainement

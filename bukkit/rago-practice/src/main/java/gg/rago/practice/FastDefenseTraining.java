@@ -2,9 +2,11 @@ package gg.rago.practice;
 
 import gg.rago.game.GameMode;
 import java.util.ArrayList;
-import java.util.HashMap;
+import java.util.HashSet;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.UUID;
 import org.bukkit.ChatColor;
 import org.bukkit.Location;
@@ -16,88 +18,105 @@ import org.bukkit.event.block.BlockPlaceEvent;
 import org.bukkit.inventory.ItemStack;
 
 /**
- * Fast defense: a bed on an island, and the player covers it as fast as they can, layer by layer
- * as in a game: one layer of wool (solo), two (end stone then wool) or three (end stone, wood and
- * wool, as in Ranked Bedwars). Each place takes the block of its layer; the time runs from the
- * first block to the last place filled.
+ * Fast defense: a bed on an island, and the player covers it as fast as they can, as in a game.
+ * Two defenses, as the owner builds them: the Ranked Bedwars one, end stone (the top of the bed,
+ * two rows on each side, one block at each end) under a layer of glass, its side rows left bare;
+ * and the solo one, end stone over the bed and two more in front, then wool over all of it. Each
+ * place takes its block; the time runs from the first block to the last place filled.
  */
 final class FastDefenseTraining extends Training {
 
-    private static final int BED_X = 0;
     private static final int BED_Y = 1;
+    /** The side of the player, in front of the bed: z below 0. The bed lies along x, foot at x 0. */
+    private static final int FRONT = -1;
 
-    /** Each place of the defense ("x,y,z" offsets) and the layer it belongs to, for each variant. */
-    private final List<Map<String, Integer>> places = new ArrayList<>();
+    /** Each place of the defense ("x,y,z" offsets) and its block, for each variant. */
+    private final List<Map<String, Material>> places = new ArrayList<>();
     private long started;
     private int filled;
     private boolean done;
 
     FastDefenseTraining(PracticeHost host, GameMode mode, Arena arena, List<List<Player>> teams) {
         super(host, mode, arena, teams,
-                new Variant("one", "1 layer (wool)", true, ""),
-                new Variant("two", "2 layers (end stone, wool)", true, ""),
-                new Variant("three", "3 layers (RBW)", true, ""));
-        for (int layers = 1; layers <= 3; layers++) {
-            Map<String, Integer> map = new HashMap<>();
-            List<List<int[]>> defense = Shapes.defense(BED_X, BED_Y, 0, 1, 0, layers);
-            for (int layer = 0; layer < defense.size(); layer++) {
-                for (int[] place : defense.get(layer)) {
-                    map.put(key(place[0], place[1], place[2]), layer);
-                }
-            }
-            places.add(map);
-        }
+                new Variant("ranked", "Ranked (end stone, glass)", true, ""),
+                new Variant("solo", "Solo (end stone, wool)", true, ""));
+        places.add(defense(true));
+        places.add(defense(false));
     }
 
     private static String key(int x, int y, int z) {
         return x + "," + y + "," + z;
     }
 
-    private int layers() {
-        return variant + 1;
+    /**
+     * The places of a defense and their blocks: the Ranked one (end stone and glass) or the solo
+     * one (end stone and wool). The bed lies from (0, 1, 0) to (1, 1, 0).
+     */
+    static Map<String, Material> defense(boolean ranked) {
+        List<List<int[]>> layers = Shapes.defense(0, BED_Y, 0, 1, 0, 2);
+        Map<String, Material> defense = new LinkedHashMap<>();
+        for (int[] place : layers.get(0)) {
+            defense.put(key(place[0], place[1], place[2]), Material.ENDER_STONE);
+        }
+        // the second row of end stone on the sides: both sides in Ranked, the front one in solo
+        for (int x = 0; x <= 1; x++) {
+            defense.put(key(x, BED_Y, 2 * FRONT), Material.ENDER_STONE);
+            if (ranked) {
+                defense.put(key(x, BED_Y, -2 * FRONT), Material.ENDER_STONE);
+            }
+        }
+        if (ranked) {
+            for (int[] place : layers.get(1)) {
+                defense.putIfAbsent(key(place[0], place[1], place[2]), Material.STAINED_GLASS);
+            }
+            return defense;
+        }
+        // the wool: every free place next to the bed or the end stone, over the ground
+        Set<String> solid = new HashSet<>(defense.keySet());
+        solid.add(key(0, BED_Y, 0));
+        solid.add(key(1, BED_Y, 0));
+        int[][] sides = {{1, 0, 0}, {-1, 0, 0}, {0, 1, 0}, {0, -1, 0}, {0, 0, 1}, {0, 0, -1}};
+        for (String each : solid) {
+            String[] xyz = each.split(",");
+            for (int[] side : sides) {
+                int x = Integer.parseInt(xyz[0]) + side[0];
+                int y = Integer.parseInt(xyz[1]) + side[1];
+                int z = Integer.parseInt(xyz[2]) + side[2];
+                if (y >= BED_Y && !solid.contains(key(x, y, z))) {
+                    defense.put(key(x, y, z), Material.WOOL);
+                }
+            }
+        }
+        return defense;
     }
 
-    /** The block of this layer (0: touches the bed) of a defense of so many layers. */
-    static Material typeOf(int layer, int layers) {
-        if (layer == layers - 1) {
-            return Material.WOOL;
-        }
-        return layer == 0 ? Material.ENDER_STONE : Material.WOOD;
+    private boolean ranked() {
+        return variant == 0;
     }
 
     @Override
     String describe() {
-        switch (current().id) {
-            case "two":
-                return "end stone against the bed, then wool over it (26 blocks).";
-            case "three":
-                return "end stone against the bed, then wood, then wool (58 blocks).";
-            default:
-                return "cover your bed with one layer of wool (8 blocks).";
-        }
+        return ranked() ? "end stone around the bed (two rows on each side), then glass over it (26 blocks)."
+                : "end stone around the bed and two more in front, then wool over all of it (32 blocks).";
     }
 
     @Override
     void build() {
         Shapes.island(arena, -7, -6, 8, 6, Material.WOOD, 0, Material.LOG, 0);
-        Shapes.bed(arena, BED_X, BED_Y, 0, 1, 0);
+        Shapes.bed(arena, 0, BED_Y, 0, 1, 0);
     }
 
+    /** In front of the bed, facing it, as the owner stands to build the defense. */
     @Override
     Location spawnOf(UUID player) {
-        return arena.at(-layers() - 2.5, 1, 0.5, -90f);
+        return arena.at(1.0, 1, 5.5 * FRONT, 0f);
     }
 
     @Override
     ItemStack[] kit() {
-        switch (layers()) {
-            case 1:
-                return new ItemStack[] {stack(Material.WOOL)};
-            case 2:
-                return new ItemStack[] {stack(Material.ENDER_STONE), stack(Material.WOOL)};
-            default:
-                return new ItemStack[] {stack(Material.ENDER_STONE), stack(Material.WOOD), stack(Material.WOOL)};
-        }
+        ItemStack outside = ranked() ? new ItemStack(Material.STAINED_GLASS, 64, (short) Shapes.BLUE)
+                : new ItemStack(Material.WOOL, 64, (short) Shapes.BLUE);
+        return new ItemStack[] {stack(Material.ENDER_STONE), outside};
     }
 
     @Override
@@ -112,7 +131,8 @@ final class FastDefenseTraining extends Training {
         done = false;
     }
 
-    private Integer layerOf(Block block) {
+    /** The block a place of the defense takes, or null if the block is not on one. */
+    private Material wantedAt(Block block) {
         return places.get(variant).get(key(block.getX() - arena.centreX(), block.getY() - arena.floorY(),
                 block.getZ() - arena.centreZ()));
     }
@@ -122,21 +142,20 @@ final class FastDefenseTraining extends Training {
         if (done) {
             return false;
         }
-        Integer layer = layerOf(block);
-        if (layer == null) {
+        Material wanted = wantedAt(block);
+        if (wanted == null) {
             // a block to stand on is fine, near the bed
             return near(block, 0, 0, 7, 0, 6);
         }
-        Material wanted = typeOf(layer, layers());
         if (block.getType() != wanted) {
-            player.sendMessage(ChatColor.RED + "Layer " + (layer + 1) + " is " + nameOf(wanted) + ".");
+            player.sendMessage(ChatColor.RED + "This place takes " + nameOf(wanted) + ".");
             return false;
         }
         return true;
     }
 
     private static String nameOf(Material type) {
-        return type == Material.ENDER_STONE ? "end stone" : type == Material.WOOD ? "wood" : "wool";
+        return type == Material.ENDER_STONE ? "end stone" : type == Material.STAINED_GLASS ? "glass" : "wool";
     }
 
     @Override
@@ -144,14 +163,14 @@ final class FastDefenseTraining extends Training {
         if (started == 0) {
             started = now();
         }
-        if (layerOf(block) != null) {
+        if (wantedAt(block) != null) {
             filled++;
         }
     }
 
     @Override
     void broke(Player player, Block block) {
-        if (layerOf(block) != null) {
+        if (wantedAt(block) != null) {
             filled--;
         }
     }
@@ -183,12 +202,12 @@ final class FastDefenseTraining extends Training {
         return 10000L + 500L * places.get(variant).size();
     }
 
-    /** Every place holds the block of its layer. */
+    /** Every place holds its block. */
     private boolean complete() {
-        for (Map.Entry<String, Integer> place : places.get(variant).entrySet()) {
+        for (Map.Entry<String, Material> place : places.get(variant).entrySet()) {
             String[] xyz = place.getKey().split(",");
             Block block = arena.block(Integer.parseInt(xyz[0]), Integer.parseInt(xyz[1]), Integer.parseInt(xyz[2]));
-            if (block.getType() != typeOf(place.getValue(), layers())) {
+            if (block.getType() != place.getValue()) {
                 return false;
             }
         }

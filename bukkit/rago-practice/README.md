@@ -43,8 +43,10 @@ et chaque variante son record : le meilleur score du joueur et celui du serveur,
   Simple, double (un deuxième coup en l'air), knockback au hasard, long knockback. Série de clutchs.
 - **Block in** : s'enfermer le plus vite possible (les quatre côtés aux pieds et à la tête, et
   au-dessus), sur le sol, sur une défense de lit ou sur un bloc au-dessus du vide. Chrono.
-- **Fast defense** : couvrir son lit couche par couche, en laine (8 blocs), end stone puis laine
-  (26) ou end stone, bois et laine comme en Ranked Bedwars (58). Chrono.
+- **Fast defense** : couvrir son lit le plus vite possible, avec les défenses du propriétaire.
+  Ranked : end stone (le dessus du lit, deux rangées de chaque côté, un bloc à chaque bout) puis
+  du verre par-dessus, les rangées du bord restant nues (26 blocs). Solo : end stone sur le lit et
+  deux de plus devant, puis de la laine sur le tout (32 blocs). Chrono.
 - **Bridge** : 31 blocs de vide par technique (god bridge, breezily, ninja, telly, speed bridge),
   dont les règles sont vérifiées. Chrono.
 - **Ladder practice** : un mur d'end stone de 12 blocs à monter avec des échelles, ou la tour de
