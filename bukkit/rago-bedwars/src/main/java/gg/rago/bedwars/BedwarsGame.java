@@ -18,6 +18,7 @@ import org.bukkit.Material;
 import org.bukkit.Sound;
 import org.bukkit.World;
 import org.bukkit.block.Block;
+import org.bukkit.enchantments.Enchantment;
 import org.bukkit.entity.ArmorStand;
 import org.bukkit.entity.Entity;
 import org.bukkit.entity.Player;
@@ -49,10 +50,22 @@ class BedwarsGame {
         final BedwarsMap.Team points;
         final List<UUID> members = new ArrayList<>();
         boolean bed = true;
+        /** Its upgrades and traps, bought at the upgrades NPC. */
+        final Upgrades upgrades = new Upgrades();
+        /** How far its base goes around its spawn: for its traps and its Heal Pool. */
+        final double baseRadius;
 
         Team(TeamColor color, BedwarsMap.Team points) {
             this.color = color;
             this.points = points;
+            this.baseRadius = Upgrades.baseRadius(points);
+        }
+
+        /** True if this place is in the team's base. */
+        boolean inBase(Location location) {
+            MapPoint spawn = points == null ? null : points.spawn;
+            return spawn != null && Upgrades.inBase(location.getX() - spawn.x(), location.getY() - spawn.y(),
+                    location.getZ() - spawn.z(), baseRadius);
         }
     }
 
@@ -78,6 +91,8 @@ class BedwarsGame {
         int finalKills;
         int beds;
         long lastFireball;
+        /** Until when the Magic Milk keeps the player from setting off the traps. */
+        long milkUntil;
         BukkitTask respawn;
 
         Gamer(Player player, Team team, List<String> hotbar, List<ShopItem> quickBuy) {
@@ -250,6 +265,9 @@ class BedwarsGame {
                         generator.tick(forges.contains(generator) ? forgeTicks : 5);
                     }
                     if (phase == Phase.PLAYING) {
+                        checkTraps();
+                    }
+                    if (phase == Phase.PLAYING) {
                         quarter();
                     }
                 }, 5L, 5L);
@@ -295,8 +313,14 @@ class BedwarsGame {
         int count = map.completeTeams().size();
         for (Team team : islands) {
             Location spot = team.points.generator.in(world);
-            forges.add(new Generator(spot, Material.IRON_INGOT, forge.iron(map.world(), teamSize, count), null));
-            forges.add(new Generator(spot, Material.GOLD_INGOT, forge.gold(), null));
+            Upgrades upgrades = team.upgrades;
+            upgrades.forge = spot;
+            upgrades.ironRate = forge.iron(map.world(), teamSize, count);
+            upgrades.goldRate = forge.gold();
+            upgrades.iron = new Generator(spot, Material.IRON_INGOT, upgrades.ironRate, null);
+            upgrades.gold = new Generator(spot, Material.GOLD_INGOT, upgrades.goldRate, null);
+            forges.add(upgrades.iron);
+            forges.add(upgrades.gold);
             Location spawn = team.points.spawn.in(world);
             spawnNpc(team.points.shop.in(world), spawn, ChatColor.AQUA + "ITEM SHOP", null);
             if (team.points.upgrades != null && upgrades()) {
@@ -552,6 +576,12 @@ class BedwarsGame {
             seconds++;
             events();
             if (phase == Phase.PLAYING) {
+                for (Gamer gamer : gamers.values()) {
+                    Player player = Bukkit.getPlayer(gamer.id);
+                    if (player != null && !gamer.eliminated && !gamer.respawning && host.gameOf(gamer.id) == this) {
+                        teamEffects(player, gamer);
+                    }
+                }
                 everySecond();
             }
         }
@@ -884,6 +914,7 @@ class BedwarsGame {
         player.setGameMode(GameMode.SURVIVAL);
         player.teleport(spawnOf(gamer));
         giveKit(player, gamer);
+        teamEffects(player, gamer);
         player.sendTitle(ChatColor.GREEN + "" + ChatColor.BOLD + "RESPAWNED!", "");
         player.sendMessage(ChatColor.YELLOW + "You have respawned!");
     }
@@ -1212,8 +1243,13 @@ class BedwarsGame {
         }
         switch (item.kind()) {
             case SWORD:
-            case PICKAXE:
             case AXE:
+                if (gamer.team.upgrades.sharpness() && !meta.hasEnchant(Enchantment.DAMAGE_ALL)) {
+                    meta.addEnchant(Enchantment.DAMAGE_ALL, 1, true);
+                }
+                meta.spigot().setUnbreakable(true);
+                break;
+            case PICKAXE:
             case SHEARS:
                 meta.spigot().setUnbreakable(true);
                 break;
@@ -1238,6 +1274,9 @@ class BedwarsGame {
         ItemStack sword = new ItemStack(Material.WOOD_SWORD);
         ItemMeta meta = sword.getItemMeta();
         meta.spigot().setUnbreakable(true);
+        if (gamer.team.upgrades.sharpness()) {
+            meta.addEnchant(Enchantment.DAMAGE_ALL, 1, true);
+        }
         sword.setItemMeta(meta);
         give(player, gamer, sword, Category.MELEE);
         if (gamer.pickaxe >= 0) {
@@ -1272,6 +1311,9 @@ class BedwarsGame {
         ItemMeta meta = item.getItemMeta();
         if (meta instanceof LeatherArmorMeta) {
             ((LeatherArmorMeta) meta).setColor(gamer.team.color.leather());
+        }
+        if (gamer.team.upgrades.protection() > 0) {
+            meta.addEnchant(Enchantment.PROTECTION_ENVIRONMENTAL, gamer.team.upgrades.protection(), true);
         }
         meta.spigot().setUnbreakable(true);
         item.setItemMeta(meta);
@@ -1377,14 +1419,281 @@ class BedwarsGame {
         }
     }
 
+    // --- Team upgrades and traps ----------------------------------------------------------------
+
+    /** The effects of the upgrades last the whole game: Haste, the Heal Pool's Regeneration. */
+    private static final int FOREVER = Integer.MAX_VALUE;
+    /** A Regeneration this long is the Heal Pool's (a golden apple's lasts seconds). */
+    private static final int POOL_MARK = 20 * 60 * 60;
+
     /** The team upgrades NPC was clicked. */
     void upgradesClicked(Player player) {
-        player.sendMessage(ChatColor.YELLOW + "Team upgrades (Sharpness, Protection, Haste, traps...) come in the next version.");
+        UpgradeMenu.open(player, this);
     }
 
     /** True if the NPC is the upgrades NPC of a team. */
     boolean isUpgrades(Entity entity) {
         return upgradeNpcs.containsKey(entity);
+    }
+
+    /** How many players a team has, for the prices of the upgrades (those of 3v3v3v3 and 4v4v4v4 from 3). */
+    int teamSize() {
+        int size = 1;
+        for (Team team : teams) {
+            size = Math.max(size, team.members.size());
+        }
+        return size;
+    }
+
+    /** The player buys the next tier of this upgrade for their team. True if they did. */
+    boolean buyUpgrade(Player player, Upgrades.Kind kind) {
+        Gamer gamer = gamers.get(player.getUniqueId());
+        if (gamer == null || phase != Phase.PLAYING || gamer.respawning || gamer.eliminated) {
+            return false;
+        }
+        Team team = gamer.team;
+        int tier = team.upgrades.tier(kind) + 1;
+        if (tier > kind.tiers()) {
+            refuse(player, "You already unlocked this upgrade!");
+            return false;
+        }
+        if (!pay(player, kind.price(tier, teamSize()))) {
+            return false;
+        }
+        team.upgrades.setTier(kind, tier);
+        upgraded(team, kind, tier);
+        purchased(team, gamer, kind.tierName(tier));
+        return true;
+    }
+
+    /** The player buys this trap for their team: it waits its turn in the queue. True if they did. */
+    boolean buyTrap(Player player, Upgrades.Trap trap) {
+        Gamer gamer = gamers.get(player.getUniqueId());
+        if (gamer == null || phase != Phase.PLAYING || gamer.respawning || gamer.eliminated) {
+            return false;
+        }
+        Upgrades upgrades = gamer.team.upgrades;
+        if (upgrades.traps.size() >= Upgrades.MAX_TRAPS) {
+            refuse(player, "Trap queue full!");
+            return false;
+        }
+        if (!pay(player, Upgrades.trapPrice(upgrades.traps.size()))) {
+            return false;
+        }
+        upgrades.traps.add(trap);
+        purchased(gamer.team, gamer, trap.displayName);
+        return true;
+    }
+
+    private static void refuse(Player player, String why) {
+        player.sendMessage(ChatColor.RED + why);
+        player.playSound(player.getLocation(), Sound.VILLAGER_NO, 1f, 1f);
+    }
+
+    /** Takes this many diamonds from the player, if they have them. */
+    private static boolean pay(Player player, int diamonds) {
+        int have = count(player, Currency.DIAMOND);
+        if (have < diamonds) {
+            refuse(player, "You don't have enough Diamonds! Need " + (diamonds - have) + " more!");
+            return false;
+        }
+        player.getInventory().removeItem(new ItemStack(Currency.DIAMOND.material(), diamonds));
+        return true;
+    }
+
+    /** The whole team hears of an upgrade or a trap bought, as on Hypixel. */
+    private void purchased(Team team, Gamer buyer, String what) {
+        for (UUID member : team.members) {
+            Player player = Bukkit.getPlayer(member);
+            if (player != null && host.gameOf(member) == this) {
+                player.sendMessage(buyer.coloured() + ChatColor.GREEN + " purchased " + ChatColor.GOLD + what);
+                if (member.equals(buyer.id)) {
+                    player.playSound(player.getLocation(), Sound.NOTE_PLING, 1f, 2f);
+                }
+            }
+        }
+    }
+
+    /** A tier of an upgrade bought: what changes at once (the rest comes each second, and with each item). */
+    private void upgraded(Team team, Upgrades.Kind kind, int tier) {
+        Upgrades upgrades = team.upgrades;
+        if (kind == Upgrades.Kind.FORGE) {
+            if (upgrades.iron == null) {
+                return;
+            }
+            double speed = Upgrades.forgeSpeed(tier);
+            upgrades.iron.upgrade(1, Upgrades.faster(upgrades.ironRate, speed));
+            upgrades.gold.upgrade(1, Upgrades.faster(upgrades.goldRate, speed));
+            if (tier >= 3 && upgrades.emerald == null) {
+                upgrades.emerald = new Generator(upgrades.forge, Material.EMERALD, new BedwarsSettings.Rate(
+                        Upgrades.EMERALD_FORGE_TICKS, settings.emerald().get(0).max), null);
+                generators.add(upgrades.emerald);
+            }
+            return;
+        }
+        for (UUID member : team.members) {
+            Gamer gamer = gamers.get(member);
+            Player player = Bukkit.getPlayer(member);
+            if (gamer == null || player == null || gamer.eliminated || gamer.respawning || host.gameOf(member) != this) {
+                continue;
+            }
+            if (kind == Upgrades.Kind.REINFORCED_ARMOR) {
+                wearArmor(player, gamer);
+            }
+            teamEffects(player, gamer);
+        }
+    }
+
+    /**
+     * The upgrades of the player's team on them, each second and at each respawn: Haste, Sharpness on
+     * the swords and axes they carry, the Heal Pool's Regeneration while they are in their base.
+     */
+    void teamEffects(Player player, Gamer gamer) {
+        Upgrades upgrades = gamer.team.upgrades;
+        if (upgrades.haste() > 0) {
+            keep(player, PotionEffectType.FAST_DIGGING, upgrades.haste() - 1);
+        }
+        if (upgrades.sharpness()) {
+            sharpen(player.getInventory());
+        }
+        if (upgrades.healPool()) {
+            if (gamer.team.inBase(player.getLocation())) {
+                keep(player, PotionEffectType.REGENERATION, 0);
+            } else {
+                PotionEffect pool = effect(player, PotionEffectType.REGENERATION);
+                if (pool != null && pool.getAmplifier() == 0 && pool.getDuration() > POOL_MARK) {
+                    player.removePotionEffect(PotionEffectType.REGENERATION);
+                }
+            }
+        }
+    }
+
+    /**
+     * Gives the effect for the rest of the game, unless the player has it already, as strong: given
+     * again each second, it would never heal (Regeneration heals on its countdown).
+     */
+    private static void keep(Player player, PotionEffectType type, int amplifier) {
+        PotionEffect now = effect(player, type);
+        if (now == null || now.getAmplifier() < amplifier) {
+            player.addPotionEffect(new PotionEffect(type, FOREVER, amplifier, true, false), true);
+        }
+    }
+
+    /** Gives the effect, unless the player has it already, as strong and as long (a potion of the shop). */
+    static void boost(Player player, PotionEffectType type, int ticks, int amplifier) {
+        PotionEffect now = effect(player, type);
+        if (now == null || now.getAmplifier() < amplifier || now.getAmplifier() == amplifier && now.getDuration() < ticks) {
+            player.addPotionEffect(new PotionEffect(type, ticks, amplifier), true);
+        }
+    }
+
+    static PotionEffect effect(Player player, PotionEffectType type) {
+        for (PotionEffect effect : player.getActivePotionEffects()) {
+            if (effect.getType().equals(type)) {
+                return effect;
+            }
+        }
+        return null;
+    }
+
+    /** Sharpness I on the swords and axes of this inventory that have none. */
+    static void sharpen(PlayerInventory inventory) {
+        for (int slot = 0; slot < inventory.getSize(); slot++) {
+            ItemStack item = inventory.getItem(slot);
+            if (item == null || !sharpened(item.getType()) || item.containsEnchantment(Enchantment.DAMAGE_ALL)) {
+                continue;
+            }
+            ItemMeta meta = item.getItemMeta();
+            meta.addEnchant(Enchantment.DAMAGE_ALL, 1, true);
+            item.setItemMeta(meta);
+            inventory.setItem(slot, item);
+        }
+    }
+
+    /** True for the items Sharpened Swords sharpens: the swords and the axes. */
+    static boolean sharpened(Material type) {
+        String name = type.name();
+        return name.endsWith("_SWORD") || name.endsWith("_AXE");
+    }
+
+    /** Four times a second: an enemy in a base sets off its next trap, once the base has had its rest. */
+    private void checkTraps() {
+        long now = System.currentTimeMillis();
+        for (Team team : teams) {
+            Upgrades upgrades = team.upgrades;
+            if (upgrades.traps.isEmpty() || now < upgrades.trapReadyAt || !standing(team)) {
+                continue;
+            }
+            for (Gamer intruder : gamers.values()) {
+                if (intruder.team == team || intruder.eliminated || intruder.respawning || now < intruder.milkUntil) {
+                    continue;
+                }
+                Player player = Bukkit.getPlayer(intruder.id);
+                if (player == null || host.gameOf(intruder.id) != this || player.getGameMode() == GameMode.SPECTATOR
+                        || !team.inBase(player.getLocation())) {
+                    continue;
+                }
+                upgrades.trapReadyAt = now + Upgrades.TRAP_COOLDOWN_MS;
+                trigger(team, upgrades.traps.remove(0), intruder, player);
+                break;
+            }
+        }
+    }
+
+    /** True while one of the team still plays. */
+    private boolean standing(Team team) {
+        for (UUID member : team.members) {
+            Gamer gamer = gamers.get(member);
+            if (gamer != null && !gamer.eliminated) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    /** The trap goes off on this intruder: its effect, and the team told, as on Hypixel. */
+    private void trigger(Team team, Upgrades.Trap trap, Gamer intruder, Player player) {
+        switch (trap) {
+            case ITS_A_TRAP:
+                boost(player, PotionEffectType.BLINDNESS, 8 * 20, 0);
+                boost(player, PotionEffectType.SLOW, 8 * 20, 0);
+                break;
+            case COUNTER_OFFENSIVE:
+                for (UUID member : team.members) {
+                    Gamer ally = gamers.get(member);
+                    Player allyPlayer = Bukkit.getPlayer(member);
+                    if (ally != null && allyPlayer != null && !ally.eliminated && !ally.respawning
+                            && host.gameOf(member) == this && team.inBase(allyPlayer.getLocation())) {
+                        boost(allyPlayer, PotionEffectType.SPEED, 15 * 20, 1);
+                        boost(allyPlayer, PotionEffectType.JUMP, 15 * 20, 1);
+                    }
+                }
+                break;
+            case ALARM:
+                player.removePotionEffect(PotionEffectType.INVISIBILITY);
+                break;
+            case MINER_FATIGUE:
+                boost(player, PotionEffectType.SLOW_DIGGING, 10 * 20, 0);
+                break;
+            default:
+                break;
+        }
+        boolean alarm = trap == Upgrades.Trap.ALARM;
+        String title = ChatColor.RED + "" + ChatColor.BOLD + (alarm ? "ALARM!!!" : "TRAP TRIGGERED!");
+        String subtitle = alarm ? ChatColor.WHITE + "Enemy " + intruder.coloured() + ChatColor.WHITE + " entered your base!"
+                : ChatColor.WHITE + "Your " + ChatColor.GREEN + trap.displayName + ChatColor.WHITE + " was set off!";
+        String message = alarm ? ChatColor.RED + "" + ChatColor.BOLD + "ALARM!!! " + ChatColor.GRAY + "Your Alarm Trap was set off by "
+                + intruder.coloured() + ChatColor.GRAY + " of the " + intruder.team.color.coloured() + ChatColor.GRAY + " team!"
+                : ChatColor.RED + "" + ChatColor.BOLD + "TRAP TRIGGERED! " + ChatColor.GRAY + "Your " + ChatColor.GREEN
+                + trap.displayName + ChatColor.GRAY + " was set off!";
+        for (UUID member : team.members) {
+            Player ally = Bukkit.getPlayer(member);
+            if (ally != null && host.gameOf(member) == this) {
+                ally.sendTitle(title, subtitle);
+                ally.sendMessage(message);
+                ally.playSound(ally.getLocation(), alarm ? Sound.NOTE_PLING : Sound.ENDERMAN_TELEPORT, 1f, alarm ? 0.5f : 1f);
+            }
+        }
     }
 
     // --- Messages -------------------------------------------------------------------------------

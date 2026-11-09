@@ -117,7 +117,10 @@ final class Generator {
         dropped.clear();
     }
 
+    private static final String[] ROMAN = {"I", "II", "III", "IV", "V"};
+
+    /** A tier as Hypixel writes it: "II", "IV". */
     static String roman(int tier) {
-        return tier == 1 ? "I" : tier == 2 ? "II" : tier == 3 ? "III" : String.valueOf(tier);
+        return tier >= 1 && tier <= ROMAN.length ? ROMAN[tier - 1] : String.valueOf(tier);
     }
 }

@@ -66,6 +66,7 @@ import org.bukkit.event.player.PlayerPickupItemEvent;
 import org.bukkit.event.player.PlayerQuitEvent;
 import org.bukkit.event.player.PlayerRespawnEvent;
 import org.bukkit.event.weather.WeatherChangeEvent;
+import org.bukkit.inventory.InventoryHolder;
 import org.bukkit.inventory.ItemStack;
 
 /**
@@ -714,10 +715,16 @@ final class BedwarsHost implements MatchHost, Listener {
             return;
         }
         Player player = (Player) event.getWhoClicked();
-        if (event.getView().getTopInventory().getHolder() instanceof ShopMenu.Holder) {
+        InventoryHolder menu = event.getView().getTopInventory().getHolder();
+        if (menu instanceof ShopMenu.Holder || menu instanceof UpgradeMenu.Holder) {
             event.setCancelled(true);
-            if (event.getRawSlot() >= 0 && event.getRawSlot() < event.getView().getTopInventory().getSize()) {
-                ShopMenu.click(player, (ShopMenu.Holder) event.getView().getTopInventory().getHolder(), event.getRawSlot());
+            if (event.getRawSlot() < 0 || event.getRawSlot() >= event.getView().getTopInventory().getSize()) {
+                return;
+            }
+            if (menu instanceof ShopMenu.Holder) {
+                ShopMenu.click(player, (ShopMenu.Holder) menu, event.getRawSlot());
+            } else {
+                UpgradeMenu.click(player, (UpgradeMenu.Holder) menu, event.getRawSlot());
             }
             return;
         }
@@ -729,7 +736,8 @@ final class BedwarsHost implements MatchHost, Listener {
 
     @EventHandler(priority = EventPriority.HIGH)
     public void onDrag(InventoryDragEvent event) {
-        if (event.getView().getTopInventory().getHolder() instanceof ShopMenu.Holder) {
+        InventoryHolder menu = event.getView().getTopInventory().getHolder();
+        if (menu instanceof ShopMenu.Holder || menu instanceof UpgradeMenu.Holder) {
             event.setCancelled(true);
         }
     }
