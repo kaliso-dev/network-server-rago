@@ -134,10 +134,15 @@ dans les files d'attente des modes de jeu.
   16 couleurs de la 1.8, d'une lettre à l'autre : Pink, Fire, Ocean, Forest, Sunset, Ice,
   Galaxy, Rainbow, Shadow, et Aqua, Gold, Legend pour les niveaux) et un badge après le pseudo
   (`✦`, RAGO, BETTER, PVP, YT, `✫100`). Le dégradé se voit dans le chat, le Tab et les messages ;
-  au-dessus de la tête un pseudo n'a qu'une couleur, celle du milieu du dégradé. Chaque style dit
-  comment l'avoir : avec PREMIUM, sur la boutique en ligne (`/style give <joueur> couleur-feu`
-  depuis la console), ou comme récompense de niveau. Le menu (`/style`, le profil, la boutique)
-  montre le rendu, ce qu'on a et comment avoir le reste. Tout se règle dans `styles:`.
+  au-dessus de la tête un pseudo n'a qu'une couleur. Les dégradés sont animés : leurs couleurs
+  défilent le long du pseudo dans le Tab (deux fois par seconde), au-dessus de la tête le pseudo
+  passe d'une couleur du dégradé à l'autre, et chaque message du chat le montre là où il en est.
+  Des couleurs fixes s'achètent en Rago Points dans `/style` (Red, Green, Blue, Yellow, Purple,
+  White à 3 000, les dégradés fixes Cherry et Mint à 6 000 ; `obtention: points, prix:`, et
+  `anime: false` pour un dégradé fixe). Chaque style dit comment l'avoir : avec PREMIUM, sur la
+  boutique en ligne (`/style give <joueur> couleur-feu` depuis la console), en Rago Points, ou
+  comme récompense de niveau. Le menu (`/style`, le profil, la boutique) montre le rendu, ce
+  qu'on a et comment avoir le reste. Tout se règle dans `styles:`.
 - **Les Rago Points et la boutique (`/shop`).** Les points se gagnent en partie (20 par victoire,
   5 par défaite, 2 par kill), à chaque niveau (le niveau fois 10) et avec la récompense du jour
   (`/daily` : 100, plus 25 par jour d'affilée, jusqu'à 7 jours). La boutique vend 18 cosmétiques

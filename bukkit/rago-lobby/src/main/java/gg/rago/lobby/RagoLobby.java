@@ -226,6 +226,11 @@ public final class RagoLobby extends JavaPlugin implements LobbyService {
             npcs.update();
         }, 20L, 20L);
         getServer().getScheduler().runTaskTimer(this, fakes::tick, 10L, 10L);
+        // The animated colours of name run along the names, twice a second.
+        getServer().getScheduler().runTaskTimer(this, () -> {
+            names.advance();
+            scoreboard.updateNames();
+        }, 15L, 10L);
         daily = new DailyChest(profiles);
         int placed = placeDecor();
         List<String> missing = npcs.missingPoints();

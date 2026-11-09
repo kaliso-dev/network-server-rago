@@ -11,9 +11,11 @@ import org.bukkit.ChatColor;
 /**
  * A style of a player's name: a colour of the name, one colour or a gradient along its letters
  * (made of the 16 colours of 1.8), or a badge, a short word after the name ("§c§lRAGO"). A player
- * has a style in one of three ways: with the PREMIUM rank, bought on the store (the store, or the
- * staff, gives it with /style give), or as the reward of a Network level. They wear one colour and
- * one badge at a time. The styles come from config.yml (styles:), else the plugin's own. Immutable.
+ * has a style in one of four ways: with the PREMIUM rank, bought on the store (the store, or the
+ * staff, gives it with /style give), bought with Rago Points in /style, or as the reward of a
+ * Network level. They wear one colour and one badge at a time. A gradient is animated (its colours
+ * run along the name, in the tab list, above the head and from one message to the next) unless
+ * it is a fixed one. The styles come from config.yml (styles:), else the plugin's own. Immutable.
  */
 final class NameStyle {
 
@@ -62,7 +64,9 @@ final class NameStyle {
         /** Bought on the store: given with /style give. */
         STORE("achat"),
         /** A reward of a Network level (niveau.recompenses). */
-        LEVEL("niveau");
+        LEVEL("niveau"),
+        /** Bought with Rago Points in /style (prix). */
+        POINTS("points");
 
         private final String word;
 
@@ -90,8 +94,16 @@ final class NameStyle {
     private final String text;
     private final boolean bold;
     private final Obtain obtain;
+    private final boolean animated;
+    private final int price;
 
     NameStyle(Kind kind, String id, String name, String text, boolean bold, Obtain obtain) {
+        this(kind, id, name, text, bold, obtain, kind == Kind.COLOUR && text.length() > 1, 0);
+    }
+
+    NameStyle(Kind kind, String id, String name, String text, boolean bold, Obtain obtain, boolean animated, int price) {
+        this.animated = animated && kind == Kind.COLOUR && text.length() > 1;
+        this.price = price;
         this.kind = kind;
         this.id = id;
         this.name = name;
@@ -125,6 +137,16 @@ final class NameStyle {
         return obtain;
     }
 
+    /** True for a gradient whose colours run along the name. */
+    boolean animated() {
+        return animated;
+    }
+
+    /** The price in Rago Points of a style bought in /style (POINTS), else 0. */
+    int price() {
+        return price;
+    }
+
     /** The colour characters of a colour, or the coloured text of a badge. */
     String text() {
         return text;
@@ -132,7 +154,12 @@ final class NameStyle {
 
     /** A name in this colour (a colour), or the badge itself (a badge). */
     String apply(String plain) {
-        return kind == Kind.BADGE ? text : gradient(plain, text, bold);
+        return apply(plain, 0);
+    }
+
+    /** A name in this colour at this step of its animation (a fixed colour: always the same). */
+    String apply(String plain, int phase) {
+        return kind == Kind.BADGE ? text : animated ? gradient(plain, text, bold, phase) : gradient(plain, text, bold);
     }
 
     /** The badge, or how the name "Rago" looks in this colour: for the menus. */
@@ -142,10 +169,59 @@ final class NameStyle {
 
     /** The colour code in the middle of a colour: what shows above the head, where one colour fits. */
     String mainColour() {
+        return mainColour(0);
+    }
+
+    /** The colour above the head at this step of the animation: it runs through the gradient. */
+    String mainColour(int phase) {
         if (kind == Kind.BADGE || text.isEmpty()) {
             return ChatColor.GRAY.toString();
         }
-        return "§" + text.charAt(text.length() / 2) + (bold ? "§l" : "");
+        if (!animated) {
+            return "§" + text.charAt(text.length() / 2) + (bold ? "§l" : "");
+        }
+        String cycle = cycle(text);
+        return "§" + cycle.charAt(Math.floorMod(text.length() / 2 + phase, cycle.length())) + (bold ? "§l" : "");
+    }
+
+    /** The colours an animated gradient runs through: there and back ("4c6e" gives "4c6e6c"). */
+    static String cycle(String stops) {
+        StringBuilder cycle = new StringBuilder(stops);
+        for (int i = stops.length() - 2; i >= 1; i--) {
+            cycle.append(stops.charAt(i));
+        }
+        return cycle.toString();
+    }
+
+    /**
+     * The gradient moved on by {@code phase} steps: each letter takes the colour of its place along
+     * the stops, so many colours further in the cycle there and back. Phase 0 is the gradient itself.
+     */
+    static String gradient(String text, String stops, boolean bold, int phase) {
+        if (text.isEmpty() || stops.length() < 2) {
+            return gradient(text, stops, bold);
+        }
+        String cycle = cycle(stops);
+        StringBuilder colours = new StringBuilder();
+        int letters = text.length();
+        for (int i = 0; i < letters; i++) {
+            int stop = letters == 1 ? 0 : (int) Math.round(i * (stops.length() - 1) / (double) (letters - 1));
+            colours.append(cycle.charAt(Math.floorMod(stop + phase, cycle.length())));
+        }
+        StringBuilder out = new StringBuilder();
+        char current = 0;
+        for (int i = 0; i < letters; i++) {
+            char colour = colours.charAt(i);
+            if (colour != current) {
+                out.append('§').append(colour);
+                if (bold) {
+                    out.append("§l");
+                }
+                current = colour;
+            }
+            out.append(text.charAt(i));
+        }
+        return out.toString();
     }
 
     /**
@@ -196,6 +272,15 @@ final class NameStyle {
         all.add(new NameStyle(Kind.COLOUR, "aqua", "Aqua", "b", false, Obtain.LEVEL));
         all.add(new NameStyle(Kind.COLOUR, "or", "Gold", "6", false, Obtain.LEVEL));
         all.add(new NameStyle(Kind.COLOUR, "legende", "Legend", "6eef6", true, Obtain.LEVEL));
+        // The fixed colours, bought with Rago Points in /style.
+        all.add(new NameStyle(Kind.COLOUR, "rouge", "Red", "c", false, Obtain.POINTS, false, 3000));
+        all.add(new NameStyle(Kind.COLOUR, "vert", "Green", "a", false, Obtain.POINTS, false, 3000));
+        all.add(new NameStyle(Kind.COLOUR, "bleu", "Blue", "9", false, Obtain.POINTS, false, 3000));
+        all.add(new NameStyle(Kind.COLOUR, "jaune", "Yellow", "e", false, Obtain.POINTS, false, 3000));
+        all.add(new NameStyle(Kind.COLOUR, "violet", "Purple", "5", false, Obtain.POINTS, false, 3000));
+        all.add(new NameStyle(Kind.COLOUR, "blanc", "White", "f", false, Obtain.POINTS, false, 3000));
+        all.add(new NameStyle(Kind.COLOUR, "cerise", "Cherry", "c4", false, Obtain.POINTS, false, 6000));
+        all.add(new NameStyle(Kind.COLOUR, "menthe", "Mint", "ab", false, Obtain.POINTS, false, 6000));
         all.add(new NameStyle(Kind.BADGE, "premium", "Premium", "§d§l✦", false, Obtain.PREMIUM));
         all.add(new NameStyle(Kind.BADGE, "rago", "RAGO", "§c§lRAGO", false, Obtain.STORE));
         all.add(new NameStyle(Kind.BADGE, "better", "BETTER", "§6§lBETTER", false, Obtain.STORE));

@@ -339,7 +339,11 @@ final class ServerSettings {
                 }
                 NameStyle.Obtain obtain = NameStyle.Obtain.of(one.getString("obtention", "achat"));
                 if (obtain == null) {
-                    throw new IllegalArgumentException(where + ".obtention: premium, achat or niveau");
+                    throw new IllegalArgumentException(where + ".obtention: premium, achat, niveau or points");
+                }
+                int price = one.getInt("prix", 0);
+                if (obtain == NameStyle.Obtain.POINTS && (price < 1 || price > 1_000_000)) {
+                    throw new IllegalArgumentException(where + ".prix: the price in Rago Points (obtention: points), 1 to 1000000");
                 }
                 String text;
                 if (kind == NameStyle.Kind.COLOUR) {
@@ -355,7 +359,8 @@ final class ServerSettings {
                                 + " characters at most, colour codes included");
                     }
                 }
-                NameStyle style = new NameStyle(kind, id, name, text, one.getBoolean("gras", false), obtain);
+                NameStyle style = new NameStyle(kind, id, name, text, one.getBoolean("gras", false), obtain,
+                        one.getBoolean("anime", true), obtain == NameStyle.Obtain.POINTS ? price : 0);
                 styles.put(style.key(), style);
             }
         }

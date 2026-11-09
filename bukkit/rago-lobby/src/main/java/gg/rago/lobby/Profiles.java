@@ -253,6 +253,26 @@ final class Profiles {
         changed(profile);
     }
 
+    /** A colour or a badge bought with Rago Points in /style: worn at once. */
+    void buyStyle(Player player, NameStyle style) {
+        PlayerStats profile = of(player);
+        if (style.obtain() != NameStyle.Obtain.POINTS || profile.cosmetics().contains(style.key())) {
+            return;
+        }
+        String why = cannotBuy(player, style.price(), 0);
+        if (why != null) {
+            player.sendMessage(ChatColor.RED + why);
+            return;
+        }
+        profile.addPoints(-style.price());
+        profile.cosmetics().add(style.key());
+        profile.choose(style.kind(), style.id());
+        changed(profile);
+        player.sendMessage(ChatColor.GREEN + "You bought the " + (style.kind() == NameStyle.Kind.COLOUR ? "colour of name "
+                + style.apply(player.getName()) : "badge " + style.text()) + ChatColor.GREEN + ". You wear it now.");
+        player.playSound(player.getLocation(), Sound.LEVEL_UP, 1f, 1.5f);
+    }
+
     /** /style give: the store sold it, or the staff gives it. Returns false if they had it. */
     boolean giveStyle(PlayerStats profile, NameStyle style) {
         if (!profile.cosmetics().add(style.key())) {

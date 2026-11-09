@@ -312,6 +312,17 @@ final class LobbyScoreboard {
         }
     }
 
+    /** The names only (tab list and above the heads): for the animated colours, twice a second. */
+    void updateNames() {
+        Map<UUID, Tag> tags = tags();
+        for (Player player : Bukkit.getOnlinePlayers()) {
+            Scoreboard board = boards.get(player.getUniqueId());
+            if (board != null && player.getScoreboard() == board) {
+                syncTags(player.getUniqueId(), board, tags);
+            }
+        }
+    }
+
     void updateAll() {
         Map<UUID, Tag> tags = tags();
         for (Player player : Bukkit.getOnlinePlayers()) {

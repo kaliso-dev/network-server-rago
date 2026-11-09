@@ -34,6 +34,28 @@ class NameStyleTest {
     }
 
     @Test
+    void theGradientsRunAlongTheNameAndTheFixedOnesStay() {
+        assertEquals("4c6e6c", NameStyle.cycle("4c6e"), "there and back");
+        assertEquals("c", NameStyle.cycle("c"));
+        assertEquals(NameStyle.gradient("Fire", "4c6e", false), NameStyle.gradient("Fire", "4c6e", false, 0), "step 0: itself");
+        assertEquals("§cF§6i§er§6e", NameStyle.gradient("Fire", "4c6e", false, 1), "one step on: each letter one colour further");
+        assertEquals(NameStyle.gradient("Fire", "4c6e", false, 0), NameStyle.gradient("Fire", "4c6e", false, 6),
+                "a whole cycle later: the same again");
+        Map<String, NameStyle> all = NameStyle.catalogue();
+        NameStyle fire = all.get("couleur-feu");
+        assertTrue(fire.animated());
+        assertTrue(!fire.apply("Fire", 0).equals(fire.apply("Fire", 1)), "an animated colour moves");
+        assertTrue(!fire.mainColour(0).equals(fire.mainColour(1)), "above the head too");
+        NameStyle cherry = all.get("couleur-cerise");
+        assertTrue(!cherry.animated(), "a fixed gradient");
+        assertEquals(cherry.apply("Rago", 0), cherry.apply("Rago", 3));
+        assertEquals(NameStyle.Obtain.POINTS, cherry.obtain());
+        assertEquals(6000, cherry.price());
+        assertEquals(3000, all.get("couleur-rouge").price());
+        assertTrue(!all.get("couleur-rouge").animated(), "one colour: nothing to animate");
+    }
+
+    @Test
     void theCatalogueFitsTheNameTagsOfOnePointEight() {
         Map<String, NameStyle> all = NameStyle.catalogue();
         Set<String> badges = new HashSet<>();

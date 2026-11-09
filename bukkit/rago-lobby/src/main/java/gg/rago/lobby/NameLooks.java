@@ -122,10 +122,18 @@ final class NameLooks {
         return null;
     }
 
-    /** The name in the player's colour: a gradient, or the colour of their rank. */
+    /** The step of the animated gradients: one more twice a second. */
+    private volatile int phase;
+
+    /** The animated gradients move on one step. */
+    void advance() {
+        phase++;
+    }
+
+    /** The name in the player's colour: a gradient (at the step of its animation), or the colour of their rank. */
     String name(UUID player, String plain) {
         NameStyle colour = colour(player);
-        return colour != null ? colour.apply(plain) : rank(player).nameColour() + plain;
+        return colour != null ? colour.apply(plain, phase) : rank(player).nameColour() + plain;
     }
 
     /** "§d[PREMIUM] §5So§dfi§fene": the rank and the name, as the messages show a player. */
@@ -142,7 +150,7 @@ final class NameLooks {
     /** The colour codes of the name above the head, where the name takes one colour. */
     String headColour(UUID player) {
         NameStyle colour = colour(player);
-        return colour != null ? colour.mainColour() : rank(player).nameColour();
+        return colour != null ? colour.mainColour(phase) : rank(player).nameColour();
     }
 
     /** What the player's Network XP is multiplied by: 1.5 with PREMIUM. */

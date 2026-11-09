@@ -335,7 +335,9 @@ rangs:
 # short word after the name (texte, 15 characters at most with its colour codes). obtention says
 # how a player gets it: premium (with a rank whose style or badge it is), achat (the web store
 # gives it: /style give <player> couleur-feu, from the console), niveau (a reward of the Network
-# levels, niveau.recompenses). A player wears one colour and one badge at a time.
+# levels, niveau.recompenses), points (bought in /style for prix Rago Points). A gradient is
+# animated: its colours run along the name in the tab list, and above the head it goes through
+# them (anime: false for a fixed gradient). A player wears one colour and one badge at a time.
 styles:
   couleurs:
     rose: {nom: "Pink", degrade: "5ddfd", obtention: premium}
@@ -350,6 +352,14 @@ styles:
     aqua: {nom: "Aqua", degrade: "b", obtention: niveau}
     or: {nom: "Gold", degrade: "6", obtention: niveau}
     legende: {nom: "Legend", degrade: "6eef6", gras: true, obtention: niveau}
+    rouge: {nom: "Red", degrade: "c", obtention: points, prix: 3000}
+    vert: {nom: "Green", degrade: "a", obtention: points, prix: 3000}
+    bleu: {nom: "Blue", degrade: "9", obtention: points, prix: 3000}
+    jaune: {nom: "Yellow", degrade: "e", obtention: points, prix: 3000}
+    violet: {nom: "Purple", degrade: "5", obtention: points, prix: 3000}
+    blanc: {nom: "White", degrade: "f", obtention: points, prix: 3000}
+    cerise: {nom: "Cherry", degrade: "c4", anime: false, obtention: points, prix: 6000}
+    menthe: {nom: "Mint", degrade: "ab", anime: false, obtention: points, prix: 6000}
   badges:
     premium: {nom: "Premium", texte: "&d&l✦", obtention: premium}
     rago: {nom: "RAGO", texte: "&c&lRAGO", obtention: achat}

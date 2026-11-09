@@ -18,7 +18,9 @@ final class StyleMenu {
     /** The wool of each colour character, 0 to f: the colour of a name on an item. */
     private static final int[] WOOL = {15, 11, 13, 9, 14, 10, 1, 8, 7, 11, 5, 3, 14, 2, 4, 0};
     /** Badges start on the fourth row. */
-    private static final int BADGES_FROM = 14;
+    private static final int BADGES_FROM = 21;
+    /** The four rows of seven. */
+    private static final int LAST = 28;
 
     private final Profiles profiles;
     private final StatsBook book;
@@ -81,11 +83,14 @@ final class StyleMenu {
                 break;
             }
             boolean owned = names.owns(profile, style);
-            List<String> lore = listOf("Colour of name", "", "Your name: " + style.apply(player.getName()), "");
+            List<String> lore = listOf("Colour of name" + (style.animated() ? ChatColor.LIGHT_PURPLE + " (animated)"
+                    : style.text().length() > 1 ? ChatColor.DARK_GRAY + " (fixed)" : ""), "", "Your name: "
+                    + style.apply(player.getName()), "");
             lore.add(how(style));
             lore.add("");
             lore.add(style == colour ? ChatColor.GREEN + "Worn " + ChatColor.GRAY + "(click to take off)"
-                    : owned ? ChatColor.YELLOW + "Click to wear" : ChatColor.RED + "Locked");
+                    : owned ? ChatColor.YELLOW + "Click to wear" : style.obtain() == NameStyle.Obtain.POINTS
+                    ? ChatColor.YELLOW + "Click to buy" : ChatColor.RED + "Locked");
             char main = style.mainColour().charAt(1);
             menu.set(ShopMenu.slotOf(i++), ClickMenu.item(owned ? Material.WOOL : Material.STAINED_GLASS_PANE, wool(main),
                     style.sample(), lore), (p, right) -> pick(p, style, owned));
@@ -100,7 +105,7 @@ final class StyleMenu {
                 });
         i = BADGES_FROM + 1;
         for (NameStyle style : server.styles(NameStyle.Kind.BADGE)) {
-            if (i >= 28) {
+            if (i >= LAST) {
                 break;
             }
             boolean owned = names.owns(profile, style);
@@ -148,6 +153,23 @@ final class StyleMenu {
                 player.sendMessage(ChatColor.GRAY + "A reward of the Network levels" + (level > 0 ? ": reach "
                         + book.levels().tag(level) + ChatColor.GRAY + " to get it." : "."));
                 break;
+            case POINTS:
+                String why = profiles.cannotBuy(player, style.price(), 0);
+                if (why != null) {
+                    player.sendMessage(ChatColor.RED + why);
+                    return;
+                }
+                ClickMenu confirm = new ClickMenu(3, "Buy " + style.name() + "?");
+                confirm.set(11, ClickMenu.item(Material.STAINED_CLAY, 5, ChatColor.GREEN + "Buy " + style.sample(), listOf(
+                        "Price: " + ChatColor.GOLD + String.format("%,d", style.price()) + " Rago Points", "",
+                        ChatColor.YELLOW + "Click to confirm")), (p, right) -> {
+                            profiles.buyStyle(p, style);
+                            open(p);
+                        });
+                confirm.set(15, ClickMenu.item(Material.STAINED_CLAY, 14, ChatColor.RED + "Cancel", listOf("Back")),
+                        (p, right) -> open(p));
+                confirm.open(player);
+                break;
             default:
                 player.sendMessage(ChatColor.GRAY + "This one is sold on the web store.");
                 tellStore(player, profiles.server().link("boutique"));
@@ -173,6 +195,8 @@ final class StyleMenu {
             case LEVEL:
                 int level = rewardLevel.applyAsInt(style.key());
                 return ChatColor.AQUA + "Reward of Network level" + (level > 0 ? " " + level : "s");
+            case POINTS:
+                return ChatColor.GOLD + "Price: " + String.format("%,d", style.price()) + " Rago Points";
             default:
                 return ChatColor.GOLD + "On the store";
         }
