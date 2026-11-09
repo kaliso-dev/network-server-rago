@@ -475,11 +475,23 @@ modes:
     joueurs-par-equipe: 1
     classe: false
     description:
-      - "Solo: single clutch, double"
-      - "clutch, extend... You take"
-      - "a hit, place your blocks to"
-      - "save yourself. Or random kb"
-      - "above the void."
+      - "Solo, on a small island next"
+      - "to the islands of the others:"
+      - "a hit throws you off, place"
+      - "your wool to save yourself."
+      - "Set the knockback, the hits,"
+      - "a KB stick in the hotbar."
+  clutch-top-fight:
+    nom: "&bBlock clutch: top fight"
+    categorie: entrainement
+    icone: WOOL
+    equipes: 1
+    joueurs-par-equipe: 1
+    classe: false
+    description:
+      - "The block clutch on a top"
+      - "fight platform, at the build"
+      - "limit: no block above it."
   block-in:
     nom: "&bBlock in practice"
     categorie: entrainement

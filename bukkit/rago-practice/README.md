@@ -39,8 +39,14 @@ Un joueur seul. Chaque entraînement a ses variantes (dans la hotbar, le coloran
 et chaque variante son record : le meilleur score du joueur et celui du serveur, gardés dans
 `plugins/RagoPractice/records.yml` et affichés dans le scoreboard avec le rang du joueur.
 
-- **Block clutch** : un coup de côté sur un pont d'un bloc ; poser sa laine pour se rattraper.
-  Simple, double (un deuxième coup en l'air), knockback au hasard, long knockback. Série de clutchs.
+- **Block clutch** : le joueur est au bord d'une petite île de Bed Wars, son lit et sa défense
+  (end stone, laine) à côté ; un coup le jette dans le vide, il pose sa laine pour se rattraper.
+  Les îles des joueurs sont côte à côte (28 blocs) : chacun voit les autres clutcher. La hotbar
+  règle le knockback (1 à 5), le nombre de coups à la suite (1 à 3), le KB stick (bien plus loin)
+  et un côté au hasard. Chaque réglage a son propre record. Série de clutchs.
+- **Block clutch : top fight** : le même clutch sur une plateforme de top fight en laine bleue et
+  rouge, à la limite de construction : aucun bloc au-dessus de la plateforme, il faut se
+  rattraper à son niveau ou plus bas.
 - **Block in** : s'enfermer le plus vite possible (les quatre côtés aux pieds et à la tête, et
   au-dessus), sur le sol, sur une défense de lit ou sur un bloc au-dessus du vide. Chrono.
 - **Fast defense** : couvrir son lit le plus vite possible, avec les défenses du propriétaire.

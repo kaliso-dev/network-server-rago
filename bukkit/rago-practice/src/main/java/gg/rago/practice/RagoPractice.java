@@ -150,7 +150,8 @@ public final class RagoPractice extends JavaPlugin {
         register("attack-defense-1v1", (h, m, a, t) -> new AttackDefense(h, m, a, t, build, attack, rounds), slots, spacing, false);
         register("attack-defense-2v2", (h, m, a, t) -> new AttackDefense(h, m, a, t, build, attack, rounds), slots, spacing, false);
         register("fireball", FireballFight::new, slots, spacing, false);
-        register("clutch", ClutchTraining::new, slots, spacing, false);
+        // the islands side by side, close enough to see the players of the next ones
+        register("clutch", (h, m, a, t) -> new ClutchTraining(h, m, a, t, false), slots, ClutchTraining.SPACING, false);
         register("block-in", (h, m, a, t) -> new BlockInTraining(h, m, a, t, island), slots, spacing, false);
         register("fast-defense", FastDefenseTraining::new, slots, spacing, false);
         register("extend-practice", ExtendTraining::new, slots, spacing, false);
@@ -162,6 +163,7 @@ public final class RagoPractice extends JavaPlugin {
         register("kb-displace-bot", KbDisplaceBot::new, slots, spacing, false);
         register("block-fight-arena", BlockArena::new, slots, spacing, true);
         register("scenarios-ranked", RankedScenarios::new, slots, spacing, false);
+        register("clutch-top-fight", (h, m, a, t) -> new ClutchTraining(h, m, a, t, true), slots, ClutchTraining.SPACING, false);
     }
 
     /**

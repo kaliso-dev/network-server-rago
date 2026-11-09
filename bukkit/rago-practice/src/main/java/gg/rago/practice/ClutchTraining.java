@@ -16,16 +16,32 @@ import org.bukkit.inventory.ItemStack;
 import org.bukkit.util.Vector;
 
 /**
- * Block clutch: the player stands on a one-block bridge over the void and takes a hit from the
- * side, as in a fight on a bridge; they place their wool to save themselves. Single clutch (one
- * hit), double clutch (a second hit in the air), random knockback (any way, any strength) or a
- * long knockback to extend out of. Each clutch saved adds one to the streak; a fall ends it.
+ * Block clutch: the player stands at the edge of a small Bed Wars island, its bed and defense
+ * beside them, and takes a hit that throws them off over the void; they place their wool to save
+ * themselves. The islands of the players stand side by side, so that each one sees the others
+ * clutch. The hotbar sets the knockback (1 to 5), the number of hits in a row (1 to 3), a
+ * knockback stick, and a random side. Each clutch saved adds one to the streak; a fall ends it.
+ *
+ * <p>The top fight version plays on the wool platform of a top fight, at the build limit: no block
+ * goes above the platform, so the player catches themselves at its level or lower.
  */
 final class ClutchTraining extends Training {
 
+    /** The zones of the players are this far apart: each one sees the next ones. */
+    static final int SPACING = 28;
     /** Ticks on the ground after the last hit that make a clutch saved. */
     private static final int SAVED_TICKS = 16;
+    /** Where the player may place blocks: this far from the centre along the row, and across it. */
+    static final int PLACE_ALONG = 12;
+    static final int PLACE_ACROSS = 20;
+    /** The random side turns the hit this far at most from straight off the edge. */
+    private static final double RANDOM_TURN = Math.toRadians(75);
 
+    private final boolean topFight;
+    private final Setting knockback;
+    private final Setting hitCount;
+    private final Setting stick;
+    private final Setting randomSide;
     private final Random random = new Random();
     /** Ticks before the next hit; -1 once the hits of the attempt are given. */
     private int nextHit;
@@ -34,50 +50,84 @@ final class ClutchTraining extends Training {
     private int groundTicks;
     private int placedSinceHit;
     private int streak;
+    private long limitTold;
     private Vector way;
 
-    ClutchTraining(PracticeHost host, GameMode mode, Arena arena, List<List<Player>> teams) {
-        super(host, mode, arena, teams,
-                new Variant("single", "Single clutch", false, "clutches"),
-                new Variant("double", "Double clutch", false, "clutches"),
-                new Variant("random", "Random knockback", false, "clutches"),
-                new Variant("extend", "Long knockback", false, "clutches"));
+    ClutchTraining(PracticeHost host, GameMode mode, Arena arena, List<List<Player>> teams, boolean topFight) {
+        super(host, mode, arena, teams, topFight ? new Variant("top", "Top fight clutch", false, "clutches")
+                : new Variant("island", "Island clutch", false, "clutches"));
+        this.topFight = topFight;
+        knockback = setting("Knockback", 1, 5, 3);
+        hitCount = setting("Hits", 1, 3, 1);
+        stick = toggle("KB stick", false);
+        randomSide = toggle("Random side", false);
+    }
+
+    /**
+     * How a hit throws the player, {horizontal, vertical} in blocks a tick: 3 is a hit of a fight,
+     * 5 a sprint hit; a knockback stick throws much farther, as Knockback I does.
+     */
+    static double[] throwOf(int knockback, boolean stick) {
+        double horizontal = 0.24 + 0.06 * knockback;
+        double vertical = 0.33 + 0.01 * knockback;
+        if (stick) {
+            horizontal += 0.5;
+            vertical += 0.08;
+        }
+        return new double[] {horizontal, vertical};
+    }
+
+    /** The board of the records: each setting has its own, a harder clutch being another score. */
+    @Override
+    String board() {
+        return mode.id() + "." + current().id + ".kb" + knockback.value + ".hits" + hitCount.value
+                + (stick.on() ? ".stick" : "") + (randomSide.on() ? ".random" : "");
     }
 
     @Override
     String describe() {
-        switch (current().id) {
-            case "double":
-                return "two hits in a row, clutch twice.";
-            case "random":
-                return "a hit from any side, of any strength.";
-            case "extend":
-                return "a long knockback: extend your blocks to catch yourself.";
-            default:
-                return "a hit from the side: place a block under you.";
-        }
+        String what = topFight ? "you stand on the top fight platform, at the build limit: no block above it."
+                : "you stand at the edge of your island, next to your bed.";
+        return what + " A hit throws you off: place your wool to save yourself.";
+    }
+
+    /** The places of the top fight platform, along x: blue on one half, red on the other. */
+    static int halfWidth(int x) {
+        int along = Math.abs(x);
+        return along <= 5 ? 3 : along <= 7 ? 2 : along <= 9 ? 1 : along == 10 ? 0 : -1;
     }
 
     @Override
     void build() {
-        Shapes.floor(arena, -3, 0, 3, 0, 0, Material.SANDSTONE, 0);
-        arena.build(-4, 0, 0, Material.STAINED_CLAY, Shapes.GREEN);
-        arena.build(4, 0, 0, Material.STAINED_CLAY, Shapes.GREEN);
+        if (topFight) {
+            for (int x = -10; x <= 10; x++) {
+                for (int z = -halfWidth(x); z <= halfWidth(x); z++) {
+                    boolean blue = x < 0 || (x == 0 && z < 0);
+                    arena.build(x, 0, z, Material.WOOL, blue ? Shapes.BLUE : Shapes.RED);
+                }
+            }
+            return;
+        }
+        Shapes.island(arena, -5, -6, 5, 1, Material.GRASS, 0, Material.DIRT, 0);
+        Shapes.bed(arena, -1, 1, -2, 1, 0);
+        Shapes.buildDefense(arena, Shapes.defense(-1, 1, -2, 1, 0, 2), new Material[] {Material.ENDER_STONE, Material.WOOL},
+                new int[] {0, Shapes.RED});
     }
 
     @Override
     Location spawnOf(UUID player) {
-        return arena.at(0.5, 1, 0.5, -90f);
+        // at the edge, facing the hitter, the void behind
+        return topFight ? arena.at(2.5, 1, 3.5, 180f) : arena.at(3.5, 1, 1.5, 180f);
     }
 
     @Override
     double fallY() {
-        return arena.floorY() - 7;
+        return arena.floorY() - 8;
     }
 
     @Override
     ItemStack[] kit() {
-        return new ItemStack[] {stack(Material.WOOL), stack(Material.WOOL)};
+        return new ItemStack[] {stack(Material.WOOL)};
     }
 
     @Override
@@ -88,17 +138,13 @@ final class ClutchTraining extends Training {
     @Override
     void onFight() {
         nextHit = 25 + random.nextInt(35);
-        hitsLeft = current().id.equals("double") ? 2 : 1;
+        hitsLeft = hitCount.value;
         groundTicks = 0;
         placedSinceHit = 0;
         lastHitTick = 0;
-        double side = random.nextBoolean() ? 1 : -1;
-        if (current().id.equals("random")) {
-            double angle = random.nextDouble() * Math.PI * 2;
-            way = new Vector(Math.cos(angle), 0, Math.sin(angle));
-        } else {
-            way = new Vector(0, 0, side);
-        }
+        double angle = randomSide.on() ? (random.nextDouble() * 2 - 1) * RANDOM_TURN : 0;
+        // straight off the edge is south (+z)
+        way = new Vector(Math.sin(angle), 0, Math.cos(angle));
     }
 
     @Override
@@ -140,24 +186,10 @@ final class ClutchTraining extends Training {
         }
     }
 
-    /** A hit as a player would give it, away from the bridge. */
+    /** A hit as a player would give it, off the edge. */
     private void hit(Player player) {
-        double horizontal;
-        double vertical;
-        switch (current().id) {
-            case "random":
-                horizontal = 0.32 + random.nextDouble() * 0.3;
-                vertical = 0.3 + random.nextDouble() * 0.15;
-                break;
-            case "extend":
-                horizontal = 0.95;
-                vertical = 0.42;
-                break;
-            default:
-                horizontal = 0.42;
-                vertical = 0.36;
-        }
-        player.setVelocity(way.clone().multiply(horizontal).setY(vertical));
+        double[] thrown = throwOf(knockback.value, stick.on());
+        player.setVelocity(way.clone().multiply(thrown[0]).setY(thrown[1]));
         player.playEffect(EntityEffect.HURT);
         sound(player, Sound.HURT_FLESH, 1f);
         placedSinceHit = 0;
@@ -165,7 +197,20 @@ final class ClutchTraining extends Training {
 
     @Override
     boolean canPlace(Player player, Block block, BlockPlaceEvent event) {
-        return arena.contains(block, 24, 10, 6);
+        int along = block.getX() - arena.centreX();
+        int across = block.getZ() - arena.centreZ();
+        int height = block.getY() - arena.floorY();
+        if (Math.abs(along) > PLACE_ALONG || Math.abs(across) > PLACE_ACROSS || height < -20) {
+            return false;
+        }
+        if (height > (topFight ? 0 : 8)) {
+            if (topFight && now() - limitTold > 1000) {
+                limitTold = now();
+                player.sendMessage(ChatColor.RED + "Build height limit reached!");
+            }
+            return false;
+        }
+        return true;
     }
 
     @Override
@@ -184,6 +229,9 @@ final class ClutchTraining extends Training {
     @Override
     void trainingLines(List<String> lines) {
         lines.add(ChatColor.WHITE + "Streak: " + ChatColor.GREEN + streak);
+        lines.add(Duel.cut(ChatColor.GRAY + "KB " + ChatColor.WHITE + knockback.value + ChatColor.GRAY + ", "
+                + ChatColor.WHITE + hitCount.value + ChatColor.GRAY + (hitCount.value == 1 ? " hit" : " hits")
+                + (stick.on() ? ", stick" : "") + (randomSide.on() ? ", random" : "")));
         lines.add(ChatColor.GRAY + (hitsLeft > 0 ? "Get ready..." : "Clutch!"));
     }
 }
