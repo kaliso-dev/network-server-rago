@@ -1,31 +1,98 @@
 # RagoPractice : les modes d'entraînement
 
-Un plugin Bukkit 1.8.8 qui joue des modes du lobby (`bukkit/rago-lobby`). Pour l'instant : le
-**duel sumo**, le premier mode jouable de bout en bout (lobby, file, partie, retour au lobby).
+Un plugin Bukkit 1.8.8 qui joue les modes d'entraînement du lobby (`bukkit/rago-lobby`) : les
+duels, les entraînements en solo, l'arène ouverte de block placement et les scénarios classés.
+Chaque mode prend son kit dans l'éditeur de kit du lobby, rangé comme le joueur l'a laissé.
 
-## Le duel sumo
+## Les duels
 
-- Deux joueurs sur une plateforme ronde de quartz (rayon 7 par défaut). Le premier qui tombe
-  donne un point à l'autre ; le premier à 3 points gagne.
-- Pas de dégâts : les coups ne font que du knockback, celui de RagoCombatEngine.
-- Chaque manche commence par un compte à rebours de 3 secondes, joueurs immobiles, face à face à
-  6 blocs l'un de l'autre. Le décompte s'affiche en grand au milieu de l'écran (3, 2, 1,
-  « Fight! ») et dans le chat.
-- Quitter le serveur ou taper `/spawn` pendant le duel, c'est perdre par abandon.
-- À la fin, les deux joueurs reviennent au lobby tout de suite.
+Deux joueurs (ou deux équipes de deux), par la file ou par `/duel`. Le résultat compte dans les
+stats du lobby. Quitter le serveur ou taper `/spawn` pendant le duel, c'est perdre par abandon.
+
+- **Sumo** : une plateforme ronde, des coups sans dégâts, le premier qui tombe donne un point ;
+  premier à 3. Chaque manche commence par 3 secondes immobiles, face à face.
+- **Boxing**, comme sur Minemen : un ring fermé, Speed II, une épée sans dégâts ; le premier à
+  100 coups gagne. Le scoreboard compte les coups et le combo.
+- **KB displace** : un pont d'un bloc au-dessus du vide, que du knockback ; faire tomber l'autre,
+  se rattraper avec sa laine. Premier à 3.
+- **Bridge fight** : deux îles de Bed Wars à 27 blocs, en stuff de Ranked Bedwars (armure de fer,
+  épée en pierre, laine, cisailles, pommes d'or) ; on bridge et on se bat sur le pont, vrais
+  dégâts. Premier à 3.
+- **Block placement 1v1 et 2v2**, comme le BlockFight de Minemen : deux petites plateformes au-dessus
+  du vide, une épée en bois et des blocs sans fin ; construire, clutch, se bloquer, faire tomber.
+  Premier à 5.
+- **Top fight 1v1 et 2v2** : une île dont le lit a une défense de trois couches (end stone, bois,
+  laine) ; on grimpe et on se bat dessus, en stuff de Ranked Bedwars. Premier à 3.
+- **Attack and defense 1v1 et 2v2**, comme en Ranked Bedwars : 30 secondes aux défenseurs pour
+  construire leur défense, puis 2 minutes aux attaquants pour casser le lit ; on change de côté à
+  chaque manche ; le plus de lits cassés gagne, et à égalité le plus rapide.
+- **Fireball fight** : chaque camp a son île et son lit sous une défense de bois et de laine, des
+  boules de feu, de la TNT, de la laine et une épée. Tant que le lit tient, on revient au bout de
+  3 secondes ; ensuite, une mort est définitive. Le dernier camp debout gagne.
+
+## Les entraînements
+
+Un joueur seul. Chaque entraînement a ses variantes (l'étoile les change, la blaze rod recommence),
+et chaque variante son record : le meilleur score du joueur et celui du serveur, gardés dans
+`plugins/RagoPractice/records.yml` et affichés dans le scoreboard avec le rang du joueur.
+
+- **Block clutch** : un coup de côté sur un pont d'un bloc ; poser sa laine pour se rattraper.
+  Simple, double (un deuxième coup en l'air), knockback au hasard, long knockback. Série de clutchs.
+- **Block in** : s'enfermer le plus vite possible (les quatre côtés aux pieds et à la tête, et
+  au-dessus), sur le sol, sur une défense de lit ou sur un bloc au-dessus du vide. Chrono.
+- **Fast defense** : couvrir son lit couche par couche, en laine (8 blocs), end stone puis laine
+  (26) ou end stone, bois et laine comme en Ranked Bedwars (58). Chrono.
+- **Bridge** : 31 blocs de vide par technique (god bridge, breezily, ninja, telly, speed bridge),
+  dont les règles sont vérifiées. Chrono.
+- **Ladder practice** : un mur d'end stone de 12 blocs à monter avec des échelles, ou la tour de
+  laine sous les pieds. Chrono.
+- **Pearl practice** : une perle par essai, vers une île qui change de place, vers une île
+  lointaine, ou pour revenir sur son île après un coup qui envoie dans le vide. Série.
+- **Fireball practice** : le saut à la boule de feu sur une falaise de 4 blocs, au-dessus de 10
+  blocs de vide, ou renvoyer les boules d'un canon. Série.
+- **Aim trainer** : une cible de la taille d'un joueur qui strafe, saute ou tourne autour ; 30
+  secondes, les coups qui touchent et la précision.
+- **Combo bot** : un bot qui fonce et rend les coups, sans dégâts ; le plus long combo. Facile,
+  normal (Speed I), difficile (Speed II).
+- **KB displace contre un bot** : le pont du KB displace, faire tomber le bot sans tomber. Série.
+
+## L'arène de block placement
+
+Ouverte à tous : on entre et on sort quand on veut, une grande plateforme et quatre îles au-dessus
+du vide, du grès sans fin, le kit du block fight. On revient tout de suite après une chute ou une
+mort, les blocs posés partent au bout de 15 secondes, les kills comptent dans les stats du mode.
+
+## Les scénarios classés
+
+`scenarios-ranked` : les moments qui décident une partie de Ranked Bedwars, rejoués encore et
+encore, chacun avec son record.
+
+- **Bed defense 1v2** : seul sur son île, avec une épée en fer, de la laine et l'armure de Ranked
+  Bedwars, contre deux rushers qui traversent le pont pour casser le lit (end stone sous de la
+  laine). Près du joueur, ils se battent ; sinon, ils creusent la défense depuis l'endroit où ils
+  sont, couche par couche (la laine vite, l'end stone plus lentement, puis le lit : environ deux
+  secondes), et un coup arrête leur creusage. On peut reboucher le trou avec sa laine. Les tuer ou
+  les faire tomber dans le vide avant que le lit tombe : le temps est le score. Lit cassé, mort,
+  chute ou 90 secondes sans en finir : l'essai est perdu.
+- **Final clutch, 2 hearts** : le dernier combat, à 2 cœurs, sans lit et sans régénération,
+  contre un adversaire en pleine vie (aussi rapide qu'un joueur qui marche) sur une île au-dessus
+  du vide ; deux coups et c'est fini. Chaque combat gagné, à l'épée ou par le vide, ajoute un à la
+  série.
 
 ## Les arènes
 
-Les parties se jouent dans un monde vide (`arenes`, créé s'il n'existe pas). Chaque partie a sa
-zone, à 200 blocs de la suivante sur l'axe X : deux parties ne se voient jamais. Une plateforme
-est construite la première fois que sa zone sert, puis réutilisée : rien n'est chargé ni généré
-pendant le jeu. Au-delà de `arenes-max` parties à la fois, les joueurs gardent leur place dans la
-file.
+Les parties se jouent dans un monde vide (`arenes`, créé s'il n'existe pas). Chaque mode a sa
+rangée, chaque partie sa zone, à `espacement` blocs (200) de la suivante : deux parties ne se
+voient jamais. Une zone est construite la première fois qu'elle sert, puis réutilisée ; chaque
+manche la remet comme elle était construite. Au-delà de `arenes-max` parties à la fois, les
+joueurs gardent leur place dans la file. Un nouveau mode prend la rangée après les autres, pour
+que les zones déjà construites ne bougent pas.
 
 ## Configuration
 
 `plugins/RagoPractice/config.yml` : le monde des arènes, l'espacement, le nombre maximal de
-parties, et pour le sumo les points pour gagner et le rayon de la plateforme.
+parties, les points pour gagner de chaque duel, le rayon du sumo, et les temps de l'attack and
+defense.
 
 ## Construire et tester
 
@@ -33,6 +100,8 @@ parties, et pour le sumo les points pour gagner et le rayon de la plateforme.
 ./gradlew :rago-practice:build
 ```
 
-Le score des duels et la vérification de la configuration ont des tests unitaires. Le duel
-complet est joué par deux bots sur un vrai serveur : voir
+Le score des duels, les records, les formes des arènes (les couches d'une défense, le souffle des
+boules de feu), les entraînements, les scénarios classés (où et dans quel ordre les rushers
+creusent) et la vérification de la configuration ont des tests unitaires. Un duel sumo complet
+est joué par deux bots sur un vrai serveur : voir
 [tools/lobby-check](../../tools/lobby-check/README.md).

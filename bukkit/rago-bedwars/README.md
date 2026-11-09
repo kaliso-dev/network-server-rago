@@ -2,8 +2,10 @@
 
 Un plugin Bukkit 1.8.8 qui joue les modes Bed Wars du lobby (`bukkit/rago-lobby`) : **Ranked
 Bedwars 1v1, 2v2, 3v3 et 4v4**, **RBW Sky Rise** en solo et en duo, avec les règles d'une partie
-classique d'Hypixel, et **First Rush** en solo et en duo (la même partie, sur deux îles voisines).
-Chaque mode a ses maps. Les autres modes (Private Game, FFA) viendront sur le même moteur.
+classique d'Hypixel, **First Rush** en solo et en duo (la même partie, sur deux îles voisines), les
+**parties privées** d'une party (le lobby choisit le 1v1, 2v2, 3v3 ou 4v4 selon sa taille), et
+quatre jeux à part sur des maps de Bed Wars : **FFA**, **Free FFA** (l'arène), **Invis practice** et
+**Fast Shop**. Chaque mode a ses maps.
 
 ## La partie
 
@@ -57,10 +59,76 @@ deux équipes jouent sur des **îles voisines** au lieu d'îles opposées (`iles
 config.yml) : le premier rush décide souvent de la partie. Le joueur choisit sa map parmi les dix
 maps duo.
 
-Pas encore dans cette version : les améliorations d'équipe (le villageois « TEAM UPGRADES »
-répond qu'elles arrivent), les pièges, le Bedbug, le Dream Defender, le Bridge Egg, le Magic
-Milk et la Pop-up Tower (affichés « Coming soon » dans le shop), les coffres d'équipe et
-l'ender chest (fermés), le chat d'équipe et les pseudos à la couleur de l'équipe.
+## Améliorations et pièges
+
+Le villageois « TEAM UPGRADES » de chaque île ouvre « Upgrades & Traps », comme sur Hypixel. Tout
+se paie en diamants, pour toute l'équipe, aux prix d'Hypixel (ceux du 3v3 et du 4v4 dès trois
+joueurs par équipe) :
+
+- **Sharpened Swords** (4, ou 8) : Tranchant I sur les épées et les haches de l'équipe, celles
+  qu'elle a et celles qu'elle achètera.
+- **Reinforced Armor I à IV** (2, 4, 8, 16, ou 5, 10, 20, 30) : Protection sur toutes les armures.
+- **Maniac Miner I et II** (2, 4, ou 4, 6) : Haste pour toujours.
+- **Forge** (2, 4, 6, 8, ou 4, 8, 12, 16) : Iron Forge +50 %, Golden Forge +100 %, Emerald Forge
+  (une émeraude par minute à la forge de l'île), Molten Forge +200 %.
+- **Heal Pool** (1, ou 3) : Régénération I dans la base.
+
+**Les pièges** se mettent en file, trois au plus, pour 1, 2 puis 4 diamants. Le premier ennemi qui
+entre dans la base déclenche le premier : **It's a Trap!** (Cécité et Lenteur 8 secondes),
+**Counter-Offensive** (Speed II et Jump Boost II 15 secondes pour l'équipe dans sa base),
+**Alarm** (l'intrus perd son invisibilité) ou **Miner Fatigue** (10 secondes). L'équipe le voit en
+grand et l'entend ; un autre piège ne part pas avant 15 secondes. La base est le cercle autour du
+spawn qui va jusqu'au lit, au générateur et aux villageois, plus 6 blocs (de 12 à 22 blocs).
+
+## Objets spéciaux
+
+Les objets de la catégorie Utility du shop, comme sur Hypixel :
+
+- **Bedbug** : la boule de neige libère un poisson d'argent de l'équipe, 15 secondes, qui va sur
+  l'ennemi le plus proche.
+- **Dream Defender** : un golem de fer de l'équipe, 4 minutes, qui attaque les ennemis à 16 blocs
+  (3 cœurs par coup). Les deux portent le nom de leur équipe et leur temps restant, ne touchent
+  jamais leur équipe, et un kill de leur part revient au joueur qui les a sortis.
+- **Bridge Egg** : l'œuf pose la laine de l'équipe sous lui tant qu'il vole (27 blocs au plus).
+- **Magic Milk** : 30 secondes sans déclencher de piège.
+- **Compact Pop-up Tower** : posée, elle monte en un instant autour du joueur, tournée vers où il
+  regarde : quatre murs de 5 blocs, une échelle à l'intérieur, un toit plus large avec ses créneaux.
+  Elle ne remplace aucun bloc et ne se pose jamais dans un joueur.
+
+## Coffres, chat et invisibilité
+
+- **Coffres** : le coffre d'une île est le même pour tous ceux qui l'ouvrent (on peut piller celui
+  d'un ennemi), l'ender chest est à chacun.
+- **Chat** : chaque partie a son chat, à part du lobby. Dans un mode à équipes, on parle à son
+  équipe ; un message qui commence par `!` va à toute la partie, en « [SHOUT] » ; les éliminés
+  parlent entre eux.
+- **Invisibilité** : un joueur sous potion d'invisibilité l'est tout entier, comme sur Hypixel :
+  les autres ne voient plus son armure (elle le protège toujours) ni les particules de la potion.
+  C'est le paquet d'équipement du serveur, trouvé par réflexion ; s'il manque, l'armure se voit et
+  la console le dit une fois.
+
+## Les jeux à part
+
+Dans `jeux:` du config.yml, un mode peut jouer autre chose qu'une partie classique :
+
+- **FFA** (`ffa`) : chacun pour soi, ouvert, on entre et on sort quand on veut. Le kit du mode (à
+  ranger dans l'éditeur de kit du lobby) et une armure de fer à chaque vie ; on revient 3 secondes
+  après une mort sur l'île la plus éloignée des autres ; un kill soigne ; les blocs posés partent au
+  bout de 45 secondes ; les kills comptent dans les stats.
+- **Free FFA** (`arene`) : la même chose avec les forges, les diamants et les émeraudes, un shop
+  à lui (les diamants achètent aussi), l'armure et les outils gardés comme en Bed Wars, et sur
+  chaque lit une défense de trois couches prête pour les top fights, remise quand personne n'est à
+  côté.
+- **Invis practice** (`invis`) : de 2 à 6 joueurs, des manches de 2 minutes. À chaque manche, un
+  joueur est l'invisible (le kit du mode, pas d'armure, Résistance II à la place) ; les autres,
+  quatre au plus, défendent le lit de l'île voisine sous de l'end stone et de la laine, en armure
+  de fer. L'invisible gagne la manche en cassant le lit, les défenseurs en le tuant ou en tenant
+  2 minutes. Chacun est l'invisible à son tour ; le plus de points gagne. La partie part 20
+  secondes après l'arrivée du deuxième joueur, 5 secondes quand ils sont six.
+- **Fast Shop** (`fast-shop`) : acheter le plus vite possible avec son propre quick buy (copié
+  d'Hypixel dans le lobby). Sept listes, chacune avec ses records : le premier achat, l'armure de
+  fer, les outils, un fireball fight, une défense de lit, un rush, et une liste au hasard. Un clic
+  sur un objet qui n'est pas sur la liste compte comme une erreur.
 
 ## Les maps
 
@@ -140,6 +208,8 @@ simple liste) se lit encore : chaque mode sur toutes les maps.
 
 Les maps (lecture et écriture de `bedwars.yml`, les maps de chaque mode, les îles d'un duel et
 de First Rush), la forge de chaque map, le recul des boules de feu, le catalogue du shop et la
-lecture des ids Hypixel, la configuration et la map de démo ont des tests unitaires. Une partie de Ranked Bedwars 1v1 et un
+lecture des ids Hypixel, les améliorations et les pièges (prix, noms, vitesse de la forge, la
+base, le menu), les objets spéciaux (la Pop-up Tower et son échelle, le Bridge Egg), la
+configuration et la map de démo ont des tests unitaires. Une partie de Ranked Bedwars 1v1 et un
 First Rush sur la map de démo sont joués par deux bots sur un vrai serveur : voir
 [tools/lobby-check](../../tools/lobby-check/README.md).

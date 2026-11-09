@@ -19,10 +19,10 @@ dans les files d'attente des modes de jeu.
   Cancel. Le joueur déplace et échange les objets comme il veut ; il ne peut pas couper une pile,
   en fusionner deux, jeter un objet ni en mettre un dans le coffre. Fermer le coffre enregistre
   aussi. Le rangement est gardé par joueur et par mode dans `plugins/RagoLobby/kits/<uuid>.yml` :
-  ses prochaines parties de ce mode lui donnent le kit comme ça. Les exemples de kits de
-  config.yml (boxing, fireball, bridge fight...) sont à ajuster : ces modes n'ont pas encore de
-  jeu. Le sumo n'a pas de kit par défaut (mains nues) ; donne-lui-en un, par exemple
-  `kit: [STICK]`, pour essayer l'éditeur en duel.
+  ses prochaines parties de ce mode lui donnent le kit comme ça (RagoPractice et RagoBedwars le
+  lisent : duels, FFA, invis practice...). Un mode sans `kit:` garde le kit de son jeu. Le sumo n'a
+  pas de kit par défaut (mains nues) ; donne-lui-en un, par exemple `kit: [STICK]`, pour essayer
+  l'éditeur en duel.
 - **Les parties, comme sur Hypixel.** `/p <joueur>` (ou `/party invite`) invite ; l'invitation
   dure une minute, avec un « Click here to join! » cliquable, et la party naît avec la première
   invitation (8 joueurs au plus). `/party accept`, `leave`, `list`, `kick`, `transfer`, `warp`
