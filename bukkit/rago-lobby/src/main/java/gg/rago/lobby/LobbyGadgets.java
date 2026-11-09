@@ -33,7 +33,8 @@ import org.bukkit.util.Vector;
  * blast pushes the players around it as on Hypixel (a fireball under one's own feet is a fireball
  * jump); it hurts no one and breaks nothing. The teleport stick takes the player onto the block they
  * look at, {@link #REACH} blocks away at most, never through a wall: the first block in the way is
- * the one they land on (or next to, when there is no room on it). Main thread only.
+ * the one they land on (or next to, when there is no room on it); looking at the air, {@link #REACH}
+ * blocks ahead, in the air. Once every two seconds. Main thread only.
  */
 final class LobbyGadgets implements Listener {
 
@@ -41,7 +42,9 @@ final class LobbyGadgets implements Listener {
     static final int REACH = 20;
     /** Half a second between two fireballs, as on Hypixel. */
     static final long FIREBALL_COOLDOWN_MS = 500L;
-    static final long TELEPORT_COOLDOWN_MS = 750L;
+    static final long TELEPORT_COOLDOWN_MS = 2000L;
+    /** From the eyes to the feet of a standing player. */
+    static final double EYE_HEIGHT = 1.62;
     /** The blast of Hypixel's fireball (BedWars1058's values): who it reaches, how far it pushes. */
     static final double RADIUS = 3.0;
     static final double HORIZONTAL = 1.0;
@@ -130,11 +133,14 @@ final class LobbyGadgets implements Listener {
         fireballs.clear();
     }
 
-    /** The teleport stick: onto the block the player looks at, if it is near enough. */
+    /** The teleport stick: onto the block the player looks at if it is near enough, else ahead in the air. */
     void teleport(Player player) {
         long now = System.currentTimeMillis();
         Long last = lastTeleport.get(player.getUniqueId());
         if (last != null && now - last < TELEPORT_COOLDOWN_MS) {
+            long left = TELEPORT_COOLDOWN_MS - (now - last);
+            player.sendMessage(ChatColor.RED + "Wait " + String.format(java.util.Locale.ROOT, "%.1f", left / 1000.0)
+                    + "s before teleporting again.");
             return;
         }
         List<int[]> ray = new ArrayList<>();
@@ -144,15 +150,28 @@ final class LobbyGadgets implements Listener {
             ray.add(new int[] {block.getX(), block.getY(), block.getZ()});
         }
         World world = player.getWorld();
-        int[] feet = destination(ray, place -> place[1] < 0 || place[1] > 255
-                || !world.getBlockAt(place[0], place[1], place[2]).getType().isSolid());
-        if (feet == null) {
-            player.sendMessage(ChatColor.GRAY + "No block to land on within " + REACH + " blocks.");
+        Predicate<int[]> passable = place -> place[1] < 0 || place[1] > 255
+                || !world.getBlockAt(place[0], place[1], place[2]).getType().isSolid();
+        int[] feet = destination(ray, passable);
+        Location from = player.getLocation();
+        Location to;
+        if (feet != null) {
+            to = new Location(world, feet[0] + 0.5, feet[1], feet[2] + 0.5, from.getYaw(), from.getPitch());
+        } else if (allPassable(ray, passable)) {
+            Location eye = player.getEyeLocation();
+            Vector way = eye.getDirection();
+            double[] air = airDestination(new double[] {eye.getX(), eye.getY(), eye.getZ()},
+                    new double[] {way.getX(), way.getY(), way.getZ()}, REACH, passable);
+            if (air == null) {
+                player.sendMessage(ChatColor.GRAY + "No room to teleport to.");
+                return;
+            }
+            to = new Location(world, air[0], air[1], air[2], from.getYaw(), from.getPitch());
+        } else {
+            player.sendMessage(ChatColor.GRAY + "No room to teleport to.");
             return;
         }
         lastTeleport.put(player.getUniqueId(), now);
-        Location from = player.getLocation();
-        Location to = new Location(world, feet[0] + 0.5, feet[1], feet[2] + 0.5, from.getYaw(), from.getPitch());
         world.playEffect(from, Effect.ENDER_SIGNAL, 0);
         player.setFallDistance(0f);
         player.teleport(to);
@@ -190,6 +209,35 @@ final class LobbyGadgets implements Listener {
                 return under;
             }
             return null;
+        }
+        return null;
+    }
+
+    private static boolean allPassable(List<int[]> ray, Predicate<int[]> passable) {
+        for (int[] block : ray) {
+            if (!passable.test(block)) {
+                return false;
+            }
+        }
+        return true;
+    }
+
+    /**
+     * Where the stick takes a player who looks at the air: the eyes {@code reach} blocks ahead along
+     * the look (eye, unit way), or nearer when the body would be in a block there; null when there
+     * is no room on the whole way. The feet: x, y, z.
+     */
+    static double[] airDestination(double[] eye, double[] way, int reach, Predicate<int[]> passable) {
+        for (double distance = reach; distance >= 1; distance -= 0.5) {
+            double x = eye[0] + way[0] * distance;
+            double y = eye[1] + way[1] * distance - EYE_HEIGHT;
+            double z = eye[2] + way[2] * distance;
+            int[] feet = {(int) Math.floor(x), (int) Math.floor(y), (int) Math.floor(z)};
+            int[] head = {feet[0], (int) Math.floor(y + 1.8), feet[2]};
+            if (passable.test(feet) && passable.test(head)
+                    && passable.test(new int[] {feet[0], feet[1] + 1, feet[2]})) {
+                return new double[] {x, y, z};
+            }
         }
         return null;
     }

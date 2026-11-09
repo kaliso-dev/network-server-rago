@@ -18,7 +18,8 @@ dans les files d'attente des modes de jeu.
   demi-secondes, elle ne blesse personne et ne casse rien). Le bâton de blaze (teleport stick)
   emmène sur le bloc qu'on regarde, à 20 blocs au plus, jamais à travers un mur : le premier bloc
   sur le chemin est celui où on arrive, sur lui s'il y a la place, sinon juste devant (ou dessous,
-  quand on vise un plafond).
+  quand on vise un plafond). En visant le vide, il emmène 20 blocs devant, en l'air. Une fois toutes
+  les 2 secondes.
 - **L'éditeur de kit.** Le livre (deuxième case) liste les modes qui ont un kit (`kit:` sous le
   mode dans config.yml). Un clic sur un mode met son kit dans l'inventaire du joueur, rangé comme
   il l'a laissé la dernière fois, sous un petit coffre : Save, Reset (le rangement du kit) et

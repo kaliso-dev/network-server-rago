@@ -71,6 +71,18 @@ class LobbyGadgetsTest {
     }
 
     @Test
+    void lookingAtTheAirTheStickGoesTwentyBlocksAhead() {
+        double[] feet = LobbyGadgets.airDestination(new double[] {0.5, 65.62, 0.5}, new double[] {1, 0, 0},
+                LobbyGadgets.REACH, airBut());
+        assertArrayEquals(new double[] {20.5, 64, 0.5}, feet, 1e-9, "the eyes twenty blocks ahead, in the air");
+        // a ceiling at the end of the way: a little nearer, where the body fits
+        double[] nearer = LobbyGadgets.airDestination(new double[] {0.5, 65.62, 0.5}, new double[] {1, 0, 0},
+                LobbyGadgets.REACH, airBut(new int[] {20, 65, 0}, new int[] {19, 65, 0}));
+        assertEquals(18.5, nearer[0], 1e-9);
+        assertEquals(2000L, LobbyGadgets.TELEPORT_COOLDOWN_MS, "once every two seconds");
+    }
+
+    @Test
     void aFireballUnderTheFeetThrowsUp() {
         double[] jump = LobbyGadgets.push(0, 0, 0, 0, 0.5, 0);
         assertEquals(0, jump[0], 1e-9);
