@@ -5,67 +5,53 @@ import java.util.List;
 import java.util.UUID;
 import org.bukkit.ChatColor;
 import org.bukkit.Color;
-import org.bukkit.EntityEffect;
 import org.bukkit.Location;
 import org.bukkit.Material;
 import org.bukkit.Sound;
-import org.bukkit.block.Block;
 import org.bukkit.entity.Entity;
 import org.bukkit.entity.Player;
 import org.bukkit.entity.Zombie;
-import org.bukkit.event.block.BlockPlaceEvent;
 import org.bukkit.event.entity.EntityDamageEvent;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.util.Vector;
 
 /**
- * KB displace against a bot: the top fight of the KB displace duel, the bot boxed on top of the
- * defense, open on the sides. Climb and knock it off the top with the knockback of your hits, as
- * fast as you can: the score is the time. The bot stands still, or hits back when you are in its
- * reach.
+ * KB displace against a bot, the drill of the {@link KbDisplace} duel: the bot stands on the top
+ * of the defense, one block below the bridge, a block in front of it and one behind. Run along
+ * the bridge, turn your head to the side and hit it in the same tick: the knockback of the sprint
+ * sends it off sideways. Only a hit from the front counts. After each hit you are back at the
+ * start at once, for the momentum of a new run, until the bot falls: the score is the time, and
+ * the sidebar counts the tries.
  */
 final class KbDisplaceBot extends Training {
 
-    /** After a hit, the bot flies this long before it stands back in its box. */
-    private static final int KNOCKED_TICKS = 14;
-    /** The bot that hits back: from this far, every this many ticks. */
-    private static final double BOT_REACH = 3.0;
-    private static final int BOT_HIT_TICKS = 12;
-
     private Zombie bot;
     private long startedAt;
-    private int knockedUntil;
-    private int lastBotHit;
+    /** The tick until which the hit bot flies, or -1 when it stands in its notch. */
+    private int knockedUntil = -1;
+    private int tries;
     private boolean scored;
+    private long warnedAt;
 
     KbDisplaceBot(PracticeHost host, GameMode mode, Arena arena, List<List<Player>> teams) {
-        super(host, mode, arena, teams,
-                new Variant("still", "Still bot", true, ""),
-                new Variant("fights", "Bot hits back", true, ""));
-    }
-
-    private boolean fights() {
-        return current().id.equals("fights");
+        super(host, mode, arena, teams, new Variant("still", "Bot in the notch", true, ""));
     }
 
     @Override
     String describe() {
-        return "the bot is boxed on top of the defense, open on the sides: climb and knock it off the top"
-                + (fights() ? ", it hits back." : ".");
+        return "the bot stands one block below the bridge, a block in front and behind: run, turn your head to the side"
+                + " and hit it in the same tick to knock it off sideways. Only a hit from the front counts; after each"
+                + " hit you start again from the start.";
     }
 
     @Override
     void build() {
-        KbDisplace.topFight(arena);
+        KbDisplace.bridge(arena);
     }
 
     @Override
     Location spawnOf(UUID player) {
         return KbDisplace.attackerStart(arena);
-    }
-
-    private Location botSpot() {
-        return arena.at(KbDisplace.TOP_X, KbDisplace.TOP, KbDisplace.TOP_Z, 0f);
     }
 
     @Override
@@ -75,7 +61,7 @@ final class KbDisplaceBot extends Training {
 
     @Override
     ItemStack[] kit() {
-        return new ItemStack[] {new ItemStack(Material.STONE_SWORD), stack(Material.WOOL)};
+        return new ItemStack[] {new ItemStack(Material.STONE_SWORD)};
     }
 
     @Override
@@ -84,23 +70,17 @@ final class KbDisplaceBot extends Training {
     }
 
     @Override
-    boolean canPlace(Player player, Block block, BlockPlaceEvent event) {
-        return arena.contains(block, 12, 6, KbDisplace.TOP + 4);
-    }
-
-    @Override
     void roundReset() {
         scored = false;
-        knockedUntil = 0;
-        lastBotHit = 0;
+        knockedUntil = -1;
+        tries = 0;
         Bots.remove(this, bot);
         bot = null;
-        KbDisplace.box(arena, Shapes.BLUE);
     }
 
     @Override
     void onFight() {
-        bot = Bots.spawn(this, botSpot(), "Boxed bot", Color.BLUE, 0);
+        bot = Bots.spawn(this, KbDisplace.defenderSpot(arena), "Bot", Color.BLUE, 0);
         startedAt = now();
     }
 
@@ -112,7 +92,7 @@ final class KbDisplaceBot extends Training {
 
     @Override
     boolean mayTarget(Entity entity, Entity target) {
-        // the bot stays in its box, it does not hunt
+        // the bot holds its place, it does not hunt
         return false;
     }
 
@@ -127,42 +107,57 @@ final class KbDisplaceBot extends Training {
         if (!bot.isValid() || KbDisplace.offTheTop(at.getY() - arena.floorY())) {
             scored = true;
             long took = now() - startedAt;
-            player.sendMessage(ChatColor.GREEN + "Off the top! " + ChatColor.WHITE + time(took) + " s");
+            player.sendMessage(ChatColor.GREEN + "Displaced! " + ChatColor.WHITE + time(took) + " s" + ChatColor.GRAY
+                    + " (" + tries + (tries == 1 ? " try)" : " tries)"));
             score(took);
             Bots.remove(this, bot);
             bot = null;
             again(30L);
             return;
         }
-        Location look = player.getLocation();
-        if (tickCount >= knockedUntil) {
-            // back in its box, facing the player
-            Location spot = botSpot();
-            Vector way = look.toVector().subtract(spot.toVector());
-            spot.setYaw((float) Math.toDegrees(Math.atan2(-way.getX(), way.getZ())));
-            bot.teleport(spot);
+        if (knockedUntil >= 0 && tickCount < knockedUntil) {
+            return;
         }
-        if (fights() && tickCount - lastBotHit >= BOT_HIT_TICKS && tickCount >= knockedUntil
-                && look.distanceSquared(at) <= BOT_REACH * BOT_REACH) {
-            lastBotHit = tickCount;
-            Vector push = look.toVector().subtract(at.toVector()).setY(0);
-            if (push.lengthSquared() > 0) {
-                push.normalize().multiply(0.4);
-            }
-            player.setVelocity(push.setY(0.36));
-            player.playEffect(EntityEffect.HURT);
-            sound(player, Sound.HURT_FLESH, 1f);
-        }
+        knockedUntil = -1;
+        // in its notch, facing the player
+        Location spot = KbDisplace.defenderSpot(arena);
+        Vector way = player.getLocation().toVector().subtract(spot.toVector());
+        spot.setYaw((float) Math.toDegrees(Math.atan2(-way.getX(), way.getZ())));
+        bot.teleport(spot);
+        bot.setVelocity(new Vector());
     }
 
     @Override
     void hitEntity(Player attacker, Entity target, EntityDamageEvent event) {
-        if (target != bot) {
+        if (target != bot || knockedUntil >= 0 || scored) {
             event.setCancelled(true);
             return;
         }
+        double[] by = arena.offset(attacker.getLocation());
+        double[] at = arena.offset(bot.getLocation());
+        if (!KbDisplace.fromTheFront(by[0] - at[0], by[2] - at[2])) {
+            event.setCancelled(true);
+            long now = System.currentTimeMillis();
+            if (now - warnedAt > 1500L) {
+                warnedAt = now;
+                attacker.sendMessage(ChatColor.RED + "Only a hit from the front counts: from the bridge, in front of it.");
+            }
+            return;
+        }
         event.setDamage(0.0);
-        knockedUntil = tickCount + KNOCKED_TICKS;
+        knockedUntil = tickCount + KbDisplace.KNOCK_TICKS;
+        tries++;
+        // back at the start at once, for the momentum of the next run
+        final int roundNow = round;
+        later(1L, () -> {
+            Player player = player();
+            if (player != null && round == roundNow && !scored) {
+                player.teleport(KbDisplace.attackerStart(arena));
+                player.setVelocity(new Vector());
+                player.setFallDistance(0f);
+                sound(player, Sound.ORB_PICKUP, 1.6f);
+            }
+        });
     }
 
     @Override
@@ -171,13 +166,17 @@ final class KbDisplaceBot extends Training {
         event.setCancelled(true);
     }
 
+    /** A fall off the bridge: back at the start, the clock still running. */
     @Override
     void fell(Player player) {
-        failed("You fell.");
+        player.sendMessage(ChatColor.RED + "You fell: back at the start.");
+        player.teleport(KbDisplace.attackerStart(arena));
+        player.setFallDistance(0f);
     }
 
     @Override
     void trainingLines(List<String> lines) {
         lines.add(ChatColor.WHITE + "Time: " + ChatColor.GREEN + (scored || bot == null ? "-" : time(now() - startedAt) + " s"));
+        lines.add(ChatColor.WHITE + "Tries: " + ChatColor.YELLOW + tries);
     }
 }

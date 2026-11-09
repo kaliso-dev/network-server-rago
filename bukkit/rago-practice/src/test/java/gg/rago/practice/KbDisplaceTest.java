@@ -4,57 +4,44 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
-import java.util.HashSet;
-import java.util.List;
-import java.util.Set;
 import org.junit.jupiter.api.Test;
 
-/** The KB displace of a Bed Fight top fight: the top of the defense, the roles, knocked off the top. */
+/** The KB displace of a Bed Fight top fight: the run, the front, the notch, the roles. */
 class KbDisplaceTest {
 
-    private static Set<String> defense() {
-        Set<String> places = new HashSet<>();
-        for (List<int[]> layer : Shapes.defense(0, 1, 0, 1, 0, 3)) {
-            for (int[] place : layer) {
-                places.add(place[0] + "," + place[1] + "," + place[2]);
-            }
-        }
-        return places;
+    @Test
+    void theAttackerHasARunForTheMomentum() {
+        assertTrue(KbDisplace.RUN >= 8, "a sprint needs a few blocks");
+        assertTrue(KbDisplace.KNOCK_TICKS >= 20, "a hit defender goes up before they fall");
     }
 
     @Test
-    void theBoxedPlayerStandsOnTheTopOfTheDefense() {
-        Set<String> defense = defense();
-        // the two blocks under their feet are the top of the defense, nothing above them
-        assertTrue(defense.contains("0," + (KbDisplace.TOP - 1) + ",0"));
-        assertTrue(defense.contains("1," + (KbDisplace.TOP - 1) + ",0"));
-        for (int y = KbDisplace.TOP; y <= KbDisplace.TOP + 2; y++) {
-            for (int x = -1; x <= 2; x++) {
-                assertFalse(defense.contains(x + "," + y + ",0"), "the box is free at " + x + "," + y);
-            }
-        }
-        // open on the sides: one step down, as on a real defense
-        assertFalse(defense.contains("0," + (KbDisplace.TOP - 1) + ",1"));
-        assertTrue(defense.contains("0," + (KbDisplace.TOP - 2) + ",1"));
+    void onlyAHitFromTheFrontCounts() {
+        assertTrue(KbDisplace.fromTheFront(-1.2, 0.0), "from the bridge, in front");
+        assertTrue(KbDisplace.fromTheFront(-2.8, 0.4), "at the end of the reach");
+        assertFalse(KbDisplace.fromTheFront(1.2, 0.0), "from behind");
+        assertFalse(KbDisplace.fromTheFront(-0.2, 1.0), "from a side");
+        assertFalse(KbDisplace.fromTheFront(-1.0, 1.5), "from beside the bridge");
     }
 
     @Test
-    void theAttackerStartsAtTheFootOfTheDefense() {
-        Set<String> defense = defense();
-        for (int x = 0; x <= 1; x++) {
-            assertFalse(defense.contains(x + ",1,4"), "free where the attacker stands");
-        }
+    void theDefenderHoldsTheirNotchUntilHit() {
+        assertFalse(KbDisplace.outOfTheNotch(0.5, 0.0, 0.5));
+        assertFalse(KbDisplace.outOfTheNotch(0.8, 0.3, 0.3), "a small move");
+        assertTrue(KbDisplace.outOfTheNotch(0.5, 1.0, 0.5), "a jump onto the bridge");
+        assertTrue(KbDisplace.outOfTheNotch(1.2, 0.0, 0.5), "a step onto the block behind");
+        assertTrue(KbDisplace.outOfTheNotch(0.5, 0.0, 1.1), "a step to the side");
     }
 
     @Test
-    void oneStepDownIsOffTheTop() {
-        assertFalse(KbDisplace.offTheTop(KbDisplace.TOP));
-        assertFalse(KbDisplace.offTheTop(KbDisplace.TOP - 0.5), "a jump that lands back");
-        assertTrue(KbDisplace.offTheTop(KbDisplace.TOP - 1));
+    void oneBlockDownIsOffTheTop() {
+        assertFalse(KbDisplace.offTheTop(0.0));
+        assertFalse(KbDisplace.offTheTop(-0.5), "knocked up, then back");
+        assertTrue(KbDisplace.offTheTop(-1.0));
     }
 
     @Test
-    void theRolesSwapEachRound() {
+    void theRolesSwapEachAttempt() {
         assertEquals(0, KbDisplace.attackerOf(1));
         assertEquals(1, KbDisplace.attackerOf(2));
         assertEquals(0, KbDisplace.attackerOf(3));

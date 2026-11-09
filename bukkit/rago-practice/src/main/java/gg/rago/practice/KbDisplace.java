@@ -7,32 +7,35 @@ import org.bukkit.ChatColor;
 import org.bukkit.Location;
 import org.bukkit.Material;
 import org.bukkit.Sound;
-import org.bukkit.block.Block;
 import org.bukkit.entity.Player;
-import org.bukkit.event.block.BlockPlaceEvent;
 import org.bukkit.event.entity.EntityDamageEvent;
 import org.bukkit.inventory.ItemStack;
-import org.bukkit.inventory.PlayerInventory;
 
 /**
- * KB displace, as in the top fight of a Minemen Bed Fight duel: a Bed Wars island whose bed has a
- * three layer defense. One player is boxed on top of it, a box of wool in front, behind and above
- * them, open on the sides; the other one starts at the foot of the defense, climbs it and must
- * knock them off the top with the knockback of their hits, in 20 seconds. Knocked off the top: a
- * point for the attacker; held: a point for the boxed player. The roles swap each round. No
- * damage, only knockback. First to the target.
+ * KB displace as in a real Bed Fight top fight: a bridge one block wide, and the defender on the
+ * top of the defense, one block below the bridge, the bridge in front of them and a block behind
+ * them, nothing on the sides. The attacker runs along the bridge and, in the tick of the hit,
+ * turns their head to one side: the knockback of the sprint sends the defender sideways, off the
+ * top. Only a hit from the front of the defender counts (from the bridge, never from a side or
+ * from behind). Each hit is one attempt: a displaced defender is a point for the attacker, and
+ * the roles swap at each hit (or after {@link #ATTEMPT_SECONDS} seconds without one). The
+ * defender stays in their notch, no damage, no blocks. First to the target. The practice against
+ * a bot is {@link KbDisplaceBot}.
  */
 final class KbDisplace extends Duel {
 
-    /** The feet of the boxed player, on top of the defense: this high above the floor. */
-    static final int TOP = 5;
-    /** The top of the defense runs along x, over the bed, from x = 0 to 1, at z = 0. */
-    static final double TOP_X = 1.0;
-    static final double TOP_Z = 0.5;
-    /** The seconds of the attacker to knock the boxed player off. */
-    static final int ROUND_SECONDS = 20;
+    /** The attacker starts this far along the bridge from the defender: a run to get the momentum. */
+    static final int RUN = 10;
+    /** The bridge goes on this far behind the defender. */
+    static final int BEHIND = 4;
+    /** After a hit, the defender has this long to fall; past it, they held. */
+    static final int KNOCK_TICKS = 30;
+    /** An attempt without a hit ends after this long. */
+    static final int ATTEMPT_SECONDS = 15;
 
-    private boolean decided;
+    /** The tick until which the hit defender flies, or -1 before the hit of this attempt. */
+    private int knockedUntil = -1;
+    private long warnedAt;
 
     KbDisplace(PracticeHost host, GameMode mode, Arena arena, List<List<Player>> teams, int target) {
         super(host, mode, arena, teams, target);
@@ -46,39 +49,60 @@ final class KbDisplace extends Duel {
     @Override
     void intro(Player player) {
         super.intro(player);
-        player.sendMessage(ChatColor.GRAY + "One of you is boxed on top of the defense, open on the sides; the other one"
-                + " climbs and knocks them off in " + ROUND_SECONDS + " seconds. The roles swap each round.");
+        player.sendMessage(ChatColor.GRAY + "The defender stands one block below the bridge, a block in front and behind."
+                + " Run, turn your head to the side and hit them in the same tick: they go off sideways."
+                + " Only a hit from the front counts. The roles swap at each hit.");
     }
 
-    /** The island, its bed and the defense of three layers. */
-    static void topFight(Arena arena) {
-        Shapes.island(arena, -6, -5, 7, 5, Material.WOOD, 0, Material.LOG, 0);
-        Shapes.bed(arena, 0, 1, 0, 1, 0);
-        Shapes.buildDefense(arena, Shapes.defense(0, 1, 0, 1, 0, 3),
-                new Material[] {Material.ENDER_STONE, Material.WOOD, Material.WOOL}, new int[] {0, 0, Shapes.WHITE});
-    }
+    // --- The place, shared with the bot -----------------------------------------------------------
 
-    /** The box on top of the defense, of this round only: in front, behind and above, open on the sides. */
-    static void box(Arena arena, int colour) {
-        for (int y = TOP; y <= TOP + 1; y++) {
-            arena.put(-1, y, 0, Material.WOOL, colour);
-            arena.put(2, y, 0, Material.WOOL, colour);
+    /**
+     * The bridge along x at z = 0, its blocks at the height of the floor; the defender's notch at
+     * x = 0, one block lower; a pad at the attacker's start; under the notch and behind it, the
+     * end stone of a defense.
+     */
+    static void bridge(Arena arena) {
+        for (int x = -RUN - 1; x <= BEHIND; x++) {
+            if (x != 0) {
+                arena.build(x, 0, 0, Material.WOOL, Shapes.WHITE);
+            }
         }
-        arena.put(0, TOP + 2, 0, Material.WOOL, colour);
-        arena.put(1, TOP + 2, 0, Material.WOOL, colour);
+        Shapes.floor(arena, -RUN - 4, -1, -RUN - 2, 1, 0, Material.WOOL, Shapes.WHITE);
+        arena.build(0, -1, 0, Material.ENDER_STONE);
+        for (int x = 1; x <= BEHIND; x++) {
+            arena.build(x, -1, 0, Material.ENDER_STONE);
+        }
     }
 
-    /** True if the boxed player, standing at this height above the floor, has been knocked off the top. */
-    static boolean offTheTop(double feet) {
-        return feet < TOP - 0.9;
-    }
-
-    /** Where the attacker starts: at the foot of the defense, on one side of it. */
+    /** Where the attacker starts: on the bridge, the run in front of them, facing the defender. */
     static Location attackerStart(Arena arena) {
-        return arena.at(TOP_X, 1, 4.5, 180f);
+        return arena.at(-RUN + 0.5, 1, 0.5, -90f);
     }
 
-    /** The side that attacks in this round: the first side in the first round, then each in turn. */
+    /** The defender's notch, facing the bridge the attacker comes from. */
+    static Location defenderSpot(Arena arena) {
+        return arena.at(0.5, 0, 0.5, 90f);
+    }
+
+    /** True if the defender, standing at this height above the floor, fell off the top. */
+    static boolean offTheTop(double feet) {
+        return feet < -0.9;
+    }
+
+    /**
+     * True if a hit from this offset of the attacker to the defender comes from the front: from the
+     * bridge the attacker runs along (smaller x), in its line, not from a side or from behind.
+     */
+    static boolean fromTheFront(double dx, double dz) {
+        return dx <= -0.4 && Math.abs(dz) <= 0.9;
+    }
+
+    /** True if a defender who was not hit left their notch (a step, a jump): they are put back. */
+    static boolean outOfTheNotch(double x, double y, double z) {
+        return Math.abs(x - 0.5) > 0.45 || Math.abs(z - 0.5) > 0.45 || y > 0.6;
+    }
+
+    /** The side that attacks in this attempt: the first side first, then each in turn. */
     static int attackerOf(int round) {
         return (round + 1) % 2;
     }
@@ -87,21 +111,37 @@ final class KbDisplace extends Duel {
         return attackerOf(round);
     }
 
+    // --- The duel ---------------------------------------------------------------------------------
+
     @Override
     void build() {
-        topFight(arena);
+        bridge(arena);
+    }
+
+    /** A countdown before the first attempt only: the next ones start at once, the roles swapped. */
+    @Override
+    int countdownSeconds() {
+        return round <= 1 ? 3 : 0;
     }
 
     @Override
     void roundReset() {
         super.roundReset();
-        decided = false;
-        box(arena, WOOL[1 - attacker()]);
+        knockedUntil = -1;
+    }
+
+    @Override
+    void onFight() {
+        for (Player player : online()) {
+            boolean attacking = sideOf(player.getUniqueId()) == attacker();
+            player.sendMessage(attacking ? ChatColor.YELLOW + "Attack: run and knock them off sideways!"
+                    : ChatColor.AQUA + "Defend: hold your place.");
+        }
     }
 
     @Override
     Location spawnOf(UUID player) {
-        return sideOf(player) == attacker() ? attackerStart(arena) : arena.at(TOP_X, TOP, TOP_Z, 0f);
+        return sideOf(player) == attacker() ? attackerStart(arena) : defenderSpot(arena);
     }
 
     @Override
@@ -116,67 +156,111 @@ final class KbDisplace extends Duel {
 
     @Override
     ItemStack[] defaultKit(Player player) {
-        return new ItemStack[] {new ItemStack(Material.STONE_SWORD), new ItemStack(Material.WOOL, 64)};
+        return new ItemStack[] {new ItemStack(Material.STONE_SWORD)};
     }
 
-    /** The boxed player has their sword only: no block to close the sides of their box. */
     @Override
-    void afterKit(Player player) {
-        if (sideOf(player.getUniqueId()) == attacker()) {
-            return;
-        }
-        PlayerInventory inventory = player.getInventory();
-        ItemStack[] contents = inventory.getContents();
-        for (int slot = 0; slot < contents.length; slot++) {
-            if (contents[slot] != null && contents[slot].getType().isBlock()) {
-                inventory.setItem(slot, null);
-            }
-        }
+    boolean colouredBlocks() {
+        return false;
     }
 
+    /** Only the attacker's hit, from the front, once per attempt; no damage, only the knockback. */
     @Override
     boolean damage(Player victim, Player attacker, EntityDamageEvent event) {
-        if (attacker == null) {
+        if (attacker == null || phase != Phase.PLAYING || sideOf(attacker.getUniqueId()) != attacker()
+                || knockedUntil >= 0) {
+            return false;
+        }
+        double[] by = arena.offset(attacker.getLocation());
+        double[] at = arena.offset(victim.getLocation());
+        if (!fromTheFront(by[0] - at[0], by[2] - at[2])) {
+            long now = System.currentTimeMillis();
+            if (now - warnedAt > 1500L) {
+                warnedAt = now;
+                attacker.sendMessage(ChatColor.RED + "Only a hit from the front counts: from the bridge, in front of them.");
+            }
             return false;
         }
         event.setDamage(0.0);
+        knockedUntil = tickCount + KNOCK_TICKS;
         return true;
     }
 
     @Override
-    boolean canPlace(Player player, Block block, BlockPlaceEvent event) {
-        return sideOf(player.getUniqueId()) == attacker() && arena.contains(block, 12, 6, TOP + 4);
+    void tick() {
+        if (phase != Phase.PLAYING) {
+            return;
+        }
+        List<Player> defenders = online(1 - attacker());
+        if (defenders.isEmpty()) {
+            return;
+        }
+        Player defender = defenders.get(0);
+        double[] at = arena.offset(defender.getLocation());
+        if (offTheTop(at[1])) {
+            displaced(defender);
+            return;
+        }
+        if (knockedUntil >= 0) {
+            if (tickCount >= knockedUntil) {
+                broadcast(CHAT[1 - attacker()] + defender.getName() + ChatColor.GRAY + " held: the roles swap.", null);
+                startRound();
+            }
+            return;
+        }
+        if (outOfTheNotch(at[0], at[1], at[2])) {
+            Location back = defenderSpot(arena);
+            back.setYaw(defender.getLocation().getYaw());
+            back.setPitch(defender.getLocation().getPitch());
+            defender.teleport(back);
+            defender.setFallDistance(0f);
+        }
+    }
+
+    /** The defender fell off the top: a point for the attacker, a kill in the stats. */
+    private void displaced(Player defender) {
+        int side = attacker();
+        List<Player> attackers = online(side);
+        if (!attackers.isEmpty() && counts()) {
+            plugin.lobby().recordKill(mode.id(), attackers.get(0).getUniqueId(), defender.getUniqueId());
+        }
+        broadcast(CHAT[side] + namesOf(side) + ChatColor.GRAY + " displaced " + CHAT[1 - side] + defender.getName()
+                + ChatColor.GRAY + "!", Sound.NOTE_PLING);
+        point(side);
+    }
+
+    /** A fall of the defender is a displace; a fall of the attacker ends their attempt. */
+    @Override
+    void fell(Player player) {
+        if (phase != Phase.PLAYING) {
+            player.teleport(spawnOf(player.getUniqueId()));
+            return;
+        }
+        if (sideOf(player.getUniqueId()) == attacker()) {
+            broadcast(CHAT[attacker()] + player.getName() + ChatColor.GRAY + " fell: the roles swap.", null);
+            startRound();
+        } else {
+            displaced(player);
+        }
     }
 
     @Override
-    void tick() {
-        if (decided) {
-            return;
-        }
-        for (Player player : online(1 - attacker())) {
-            if (offTheTop(player.getLocation().getY() - arena.floorY())) {
-                decided = true;
-                broadcast(CHAT[attacker()] + namesOf(attacker()) + ChatColor.GRAY + " knocked " + CHAT[1 - attacker()]
-                        + player.getName() + ChatColor.GRAY + " off the top.", Sound.NOTE_PLING);
-                point(attacker());
-                return;
-            }
-        }
+    void lethal(Player victim, Player killer) {
+        fell(victim);
     }
 
     @Override
     void onSecond() {
-        if (!decided && seconds >= ROUND_SECONDS) {
-            decided = true;
-            broadcast(CHAT[1 - attacker()] + namesOf(1 - attacker()) + ChatColor.GRAY + " held the top.", null);
-            point(1 - attacker());
+        if (knockedUntil < 0 && seconds >= ATTEMPT_SECONDS) {
+            broadcast(ChatColor.GRAY + "No hit in " + ATTEMPT_SECONDS + " seconds: the roles swap.", null);
+            startRound();
         }
     }
 
     @Override
     void extraLines(UUID viewer, List<String> lines) {
         boolean attacking = sideOf(viewer) == attacker();
-        lines.add(attacking ? ChatColor.YELLOW + "Knock them off the top!" : ChatColor.AQUA + "Hold the top!");
-        lines.add(ChatColor.WHITE + "Left: " + ChatColor.GREEN + Math.max(0, ROUND_SECONDS - seconds) + " s");
+        lines.add(attacking ? ChatColor.YELLOW + "Attack: off sideways!" : ChatColor.AQUA + "Defend: hold your place");
+        lines.add(ChatColor.WHITE + "Left: " + ChatColor.GREEN + Math.max(0, ATTEMPT_SECONDS - seconds) + " s");
     }
 }

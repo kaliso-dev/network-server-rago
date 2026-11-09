@@ -754,11 +754,11 @@ modes:
     equipes: 2
     joueurs-par-equipe: 1
     classe: false
-    kit: [STONE_SWORD, "WOOL 64"]
+    kit: [STONE_SWORD]
     description:
-      - "A Bed Fight top fight: one boxed"
-      - "on top of the defense, the other"
-      - "knocks them off. Roles swap."
+      - "A real top fight: run along the"
+      - "bridge and knock the defender"
+      - "off sideways. Roles swap each hit."
   kb-displace-bot:
     nom: "&bKB displace against a bot"
     categorie: duels
@@ -767,9 +767,9 @@ modes:
     joueurs-par-equipe: 1
     classe: false
     description:
-      - "The bot is boxed on top of the"
-      - "defense, open on the sides:"
-      - "knock it off, fast."
+      - "Run, turn your head, hit: knock"
+      - "the bot off sideways. Back at"
+      - "the start after each hit."
   ladder-practice:
     nom: "&6Ladder practice"
     categorie: entrainement
