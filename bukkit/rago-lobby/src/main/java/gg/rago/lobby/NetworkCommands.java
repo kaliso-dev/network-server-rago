@@ -22,7 +22,7 @@ final class NetworkCommands implements CommandExecutor, TabCompleter {
 
     static final String[] NAMES = {"shop", "gift", "profile", "daily", "friend", "msg", "reply", "rank", "points", "top", "stats",
         "fly", "staffchat", "vanish", "freeze", "report", "clearchat", "mutechat", "ban", "unban", "mute", "unmute", "kick",
-        "warn", "history", "discord", "rules", "site", "store", "style"};
+        "warn", "history", "discord", "rules", "site", "store", "style", "level", "quests"};
 
     private static final String[] TOPS = {"elo", "level", "wins", "kills", "streak", "games", "points"};
 
@@ -220,6 +220,16 @@ final class NetworkCommands implements CommandExecutor, TabCompleter {
                 return true;
             case "style":
                 style(sender, args);
+                return true;
+            case "level":
+                if ((player = player(sender)) != null) {
+                    lobby.levelMenu().open(player);
+                }
+                return true;
+            case "quests":
+                if ((player = player(sender)) != null) {
+                    lobby.levelMenu().openQuests(player);
+                }
                 return true;
             default:
                 return false;

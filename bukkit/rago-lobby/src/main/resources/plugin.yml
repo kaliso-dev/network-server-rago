@@ -81,6 +81,14 @@ commands:
   fly:
     description: Fly in the lobby (PREMIUM and the staff).
     usage: /fly
+  level:
+    description: Your Network level, its tier and the rewards of every 5 levels.
+    usage: /level
+    aliases: [niveau, levels]
+  quests:
+    description: The daily and weekly quests.
+    usage: /quests
+    aliases: [quetes, quest]
   style:
     description: Your colour of name and badge; the admins and the web store give and take them.
     usage: /style, or (admin, console) /style <give|take> <player> <couleur-feu|badge-rago>, /style list

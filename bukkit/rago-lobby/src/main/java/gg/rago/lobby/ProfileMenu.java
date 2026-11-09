@@ -21,6 +21,7 @@ final class ProfileMenu {
     private final StatsMenu statsMenu;
     private final ShopMenu shop;
     private StyleMenu styles;
+    private LevelMenu levels;
 
     ProfileMenu(RagoLobby lobby, Profiles profiles, Social social, StatsService stats, StatsMenu statsMenu, ShopMenu shop) {
         this.lobby = lobby;
@@ -65,6 +66,10 @@ final class ProfileMenu {
         this.styles = styles;
     }
 
+    void setLevels(LevelMenu levels) {
+        this.levels = levels;
+    }
+
     /** "▮▮▮▮▮▯▯▯▯▯". */
     static String bar(float progress) {
         int full = Math.max(0, Math.min(10, Math.round(progress * 10)));
@@ -100,6 +105,11 @@ final class ProfileMenu {
                     "Your badge: " + (badge == null ? ChatColor.DARK_GRAY + "none" : badge.text()),
                     "", "Gradients and badges such as", "§c§lRAGO§7, §6§lBETTER§7, §4§lPVP§7 or §c§lYT§7.",
                     "", ChatColor.YELLOW + "Click to change")), (p, right) -> styles.open(p));
+        }
+        if (levels != null) {
+            menu.set(32, ClickMenu.item(Material.BREWING_STAND_ITEM, 0, ChatColor.AQUA + "Network Level & quests", listOf(
+                    "Your level, the rewards of every", "5 levels, the daily and weekly", "quests.", "",
+                    ChatColor.YELLOW + "Click to open")), (p, right) -> levels.open(p));
         }
         boolean ready = profiles.dailyReady(player.getUniqueId());
         menu.set(40, ClickMenu.item(ready ? Material.CHEST : Material.ENDER_CHEST, ChatColor.AQUA + "Daily reward",

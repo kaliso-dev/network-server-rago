@@ -14,8 +14,8 @@ import java.util.TreeMap;
  */
 final class NetworkLevel {
 
-    /** Above this, the level stops counting (it would take millions of games). */
-    static final int MAX_LEVEL = 10_000;
+    /** The last level: 100, as the rewards (one every 5 levels). */
+    static final int MAX_LEVEL = 100;
     /** After the level, as Hypixel shows the Bed Wars stars. */
     static final String STAR = "\u272B";
 

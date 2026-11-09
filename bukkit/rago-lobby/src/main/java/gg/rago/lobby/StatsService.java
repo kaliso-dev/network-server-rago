@@ -148,6 +148,14 @@ final class StatsService {
             if (player != null && oldElo != null) {
                 tellElo(player, oldElo, book.elo(stats.id(), mode.id()), mvps.contains(stats.id()));
             }
+            List<Quests.Quest> done = new ArrayList<>(quest(stats, Quests.Goal.GAMES, mode.id()));
+            if (won) {
+                done.addAll(quest(stats, Quests.Goal.WINS, mode.id()));
+                if (mode.ranked()) {
+                    done.addAll(quest(stats, Quests.Goal.RANKED_WINS, mode.id()));
+                }
+            }
+            questsDone(stats, done);
             gained(stats, old);
             save(stats);
         }
@@ -196,6 +204,7 @@ final class StatsService {
             }
             if (stats.id().equals(killer)) {
                 points(stats, server.points().kill, "kill");
+                questsDone(stats, quest(stats, Quests.Goal.KILLS, modeId));
             }
             gained(stats, old);
             save(stats);
@@ -217,6 +226,84 @@ final class StatsService {
         }
         gained(stats, old);
         save(stats);
+    }
+
+    // --- Quests and level rewards ----------------------------------------------------------------
+
+    /** One more of what the quests count, today and this week: the quests it completed. */
+    private List<Quests.Quest> quest(PlayerStats stats, Quests.Goal goal, String modeId) {
+        long now = System.currentTimeMillis();
+        return server.quests().advance(stats, goal, modeId, 1, StatsPeriod.dayKey(now), StatsPeriod.weekKey(now));
+    }
+
+    /** The quests done give their XP (boosted), told to the player. The caller then calls gained. */
+    private void questsDone(PlayerStats stats, List<Quests.Quest> done) {
+        Player player = Bukkit.getPlayer(stats.id());
+        for (Quests.Quest quest : done) {
+            int before = stats.xp();
+            book.giveXp(stats.id(), quest.xp(), StatsService::nameOf);
+            if (player != null) {
+                player.sendMessage(ChatColor.GOLD + "" + ChatColor.BOLD + "QUEST COMPLETE! " + ChatColor.WHITE + quest.name()
+                        + ChatColor.GRAY + " (" + quest.period().title().toLowerCase(java.util.Locale.ROOT).replace(" quests",
+                                "") + ")");
+                player.sendMessage(ChatColor.AQUA + "+" + (stats.xp() - before) + " Network XP" + ChatColor.GRAY + " (quest)"
+                        + boostNote(stats.id()));
+                player.playSound(player.getLocation(), Sound.LEVEL_UP, 1f, 2f);
+            }
+        }
+    }
+
+    /**
+     * Gives the rewards of the levels the player reached and did not get yet (all of them for a
+     * player of before the rewards): Rago Points, cosmetics, colours of name, badges. A cosmetic
+     * already bought gives its price back in points. Returns true if anything was given.
+     */
+    boolean claimRewards(PlayerStats stats) {
+        int level = book.level(stats.id());
+        if (level <= stats.rewardsLevel()) {
+            return false;
+        }
+        List<LevelRewards.Reward> due = server.levelRewards().between(stats.rewardsLevel(), level);
+        stats.setRewardsLevel(level);
+        Player player = Bukkit.getPlayer(stats.id());
+        for (LevelRewards.Reward reward : due) {
+            List<String> got = new ArrayList<>();
+            int points = reward.points();
+            for (String item : reward.items()) {
+                Cosmetic cosmetic = server.cosmetics().get(item);
+                String name = rewardName(server, item);
+                if (stats.cosmetics().add(item)) {
+                    got.add(name);
+                } else if (cosmetic != null) {
+                    points += cosmetic.price();
+                    got.add(name + ChatColor.GRAY + " (yours already: its price in points)");
+                }
+            }
+            if (player != null) {
+                player.sendMessage(ChatColor.AQUA + "" + ChatColor.BOLD + "LEVEL " + reward.level() + " REWARD! "
+                        + ChatColor.GRAY + (got.isEmpty() ? "Rago Points" : String.join(ChatColor.GRAY + ", ", got)));
+                if (!got.isEmpty()) {
+                    player.sendMessage(ChatColor.GRAY + "Equip it in your profile, the shop or with /style.");
+                }
+            }
+            points(stats, points, "level " + reward.level() + " reward");
+        }
+        return !due.isEmpty();
+    }
+
+    /** "§eClouds §7(trail)", "name colour §bAqua", "badge §e§l✫100": a cosmetic or a style, for the chat. */
+    static String rewardName(ServerSettings server, String item) {
+        Cosmetic cosmetic = server.cosmetics().get(item);
+        if (cosmetic != null) {
+            String type = cosmetic.type().title().toLowerCase(java.util.Locale.ROOT);
+            return ChatColor.YELLOW + cosmetic.name() + ChatColor.GRAY + " (" + type.substring(0, type.length() - 1) + ")";
+        }
+        NameStyle style = server.styles().get(item);
+        if (style == null) {
+            return item;
+        }
+        return style.kind() == NameStyle.Kind.COLOUR ? ChatColor.GRAY + "name colour " + style.sample()
+                : ChatColor.GRAY + "badge " + style.text();
     }
 
     /** " x1.5 boost" after the XP of a player with a boost, else "". */
@@ -274,6 +361,7 @@ final class StatsService {
             }
             points(stats, reward, "level " + level);
         }
+        claimRewards(stats);
         xpListener.xpChanged(stats.id());
     }
 
@@ -294,11 +382,12 @@ final class StatsService {
         return unlocked;
     }
 
-    /** The player joined: keeps their name up to date. */
+    /** The player joined: keeps their name up to date, gives the rewards of levels passed before. */
     void seen(Player player) {
         PlayerStats renamed = book.seen(player.getUniqueId(), player.getName());
-        if (renamed != null) {
-            save(renamed);
+        PlayerStats stats = book.get(player.getUniqueId());
+        if (renamed != null | (stats != null && claimRewards(stats))) {
+            save(stats);
         }
     }
 

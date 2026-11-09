@@ -23,6 +23,8 @@ enum HotbarItem {
             "Takes you onto the block you", "look at, 20 blocks away at most.", "Not through the walls!"),
     LEAVE_QUEUE(4, Material.INK_SACK, 1, ChatColor.RED + "Leave the queue " + ChatColor.GRAY + "(right click)",
             "You leave the queue."),
+    LEVEL(5, Material.BREWING_STAND_ITEM, 0, ChatColor.AQUA + "Network Level " + ChatColor.GRAY + "(right click)",
+            "Your level, its tier, the rewards", "of every 5 levels, and the daily", "and weekly quests."),
     SHOP(6, Material.EMERALD, 0, ChatColor.GREEN + "Rago Shop " + ChatColor.GRAY + "(right click)",
             "Ranks and cosmetics, bought", "with the Rago Points of", "your games."),
     PROFILE(7, Material.SKULL_ITEM, 3, ChatColor.GREEN + "My profile " + ChatColor.GRAY + "(right click)",

@@ -38,6 +38,12 @@ final class PlayerStats {
     /** The colour of name and the badge chosen (/style): null for the rank's, "" for none. */
     private String colourChoice;
     private String badgeChoice;
+    /** The highest Network level whose rewards the player got. */
+    private int rewardsLevel;
+    /** The day and the week of the quests' progress, and the progress of each quest by its key. */
+    private String questDay = "";
+    private String questWeek = "";
+    private final Map<String, Integer> quests = new LinkedHashMap<>();
 
     /** Who may send this player private messages. */
     enum MessageSetting {
@@ -208,6 +214,57 @@ final class PlayerStats {
         } else {
             badgeChoice = id;
         }
+    }
+
+    int rewardsLevel() {
+        return rewardsLevel;
+    }
+
+    void setRewardsLevel(int level) {
+        rewardsLevel = Math.max(0, level);
+    }
+
+    String questDay() {
+        return questDay;
+    }
+
+    String questWeek() {
+        return questWeek;
+    }
+
+    /** A new day forgets the progress of the daily quests, a new week that of the weekly ones. */
+    void newQuestPeriod(String day, String week) {
+        if (!day.equals(questDay)) {
+            quests.keySet().removeIf(key -> key.startsWith("d:"));
+            questDay = day;
+        }
+        if (!week.equals(questWeek)) {
+            quests.keySet().removeIf(key -> key.startsWith("w:"));
+            questWeek = week;
+        }
+    }
+
+    /** As read from a file: the day and the week the progress is of. */
+    void setQuestPeriod(String day, String week) {
+        questDay = day == null ? "" : day;
+        questWeek = week == null ? "" : week;
+    }
+
+    int questProgress(String key) {
+        Integer progress = quests.get(key);
+        return progress == null ? 0 : progress;
+    }
+
+    void setQuestProgress(String key, int progress) {
+        if (progress <= 0) {
+            quests.remove(key);
+        } else {
+            quests.put(key, progress);
+        }
+    }
+
+    Map<String, Integer> quests() {
+        return Collections.unmodifiableMap(quests);
     }
 
     /** The stats of this mode, or null if the player never played it. */

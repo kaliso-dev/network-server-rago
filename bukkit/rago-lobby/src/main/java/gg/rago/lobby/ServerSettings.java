@@ -13,7 +13,8 @@ import org.bukkit.configuration.ConfigurationSection;
  * What makes the lobby a network, from config.yml: the ranks (rangs), the colours of name and the
  * badges (styles), the ELO divisions (elo), the
  * Rago Points (rago-points), the prices of the shop (boutique), the chat rules (chat), the tab
- * list (tab), the server list message (motd), the announcements (annonces) and the links (liens).
+ * list (tab), the server list message (motd), the announcements (annonces), the links (liens), the
+ * rewards of the Network levels (niveau.recompenses) and the quests (quetes).
  * Every section is optional: a config.yml of an earlier version gets the defaults. Immutable.
  */
 final class ServerSettings {
@@ -61,10 +62,12 @@ final class ServerSettings {
     private final int announceMinutes;
     private final List<String> announcements;
     private final Map<String, List<String>> links;
+    private final LevelRewards levelRewards;
+    private final Quests quests;
 
     private ServerSettings(Ranks ranks, Map<String, NameStyle> styles, EloLadder elo, Points points, Map<String, Cosmetic> cosmetics, long chatCooldownMillis,
             boolean blockRepeats, List<String> tabHeader, List<String> tabFooter, List<String> motd, int announceMinutes,
-            List<String> announcements, Map<String, List<String>> links) {
+            List<String> announcements, Map<String, List<String>> links, LevelRewards levelRewards, Quests quests) {
         this.ranks = ranks;
         this.styles = Collections.unmodifiableMap(styles);
         this.elo = elo;
@@ -78,6 +81,8 @@ final class ServerSettings {
         this.announceMinutes = announceMinutes;
         this.announcements = Collections.unmodifiableList(announcements);
         this.links = Collections.unmodifiableMap(links);
+        this.levelRewards = levelRewards;
+        this.quests = quests;
     }
 
     static ServerSettings load(ConfigurationSection config) {
@@ -135,8 +140,91 @@ final class ServerSettings {
                 links.put(key, lines(l, key, Collections.<String>emptyList(), 15));
             }
         }
-        return new ServerSettings(ranks, styles, elo, points, cosmetics, cooldown * 1000L, repeats, header, footer, motd, minutes,
-                announcements, links);
+        LevelRewards rewards = readRewards(config.getConfigurationSection("niveau.recompenses"), cosmetics, styles);
+        Quests quests = readQuests(config.getConfigurationSection("quetes"));
+        return new ServerSettings(ranks, styles, elo, points, cosmetics, cooldown * 1000L, repeats, header, footer, motd,
+                minutes, announcements, links, rewards, quests);
+    }
+
+    // --- Level rewards and quests ---------------------------------------------------------------
+
+    /**
+     * niveau.recompenses: by level, the Rago Points (points) and the cosmetics and styles
+     * (objets: "trail-clouds", "couleur-or") it gives. Left out: the plugin's own.
+     */
+    private static LevelRewards readRewards(ConfigurationSection section, Map<String, Cosmetic> cosmetics,
+            Map<String, NameStyle> styles) {
+        LevelRewards rewards = section == null ? LevelRewards.defaults() : null;
+        if (rewards == null) {
+            List<LevelRewards.Reward> list = new ArrayList<>();
+            for (String key : section.getKeys(false)) {
+                String where = "niveau.recompenses." + key;
+                int level;
+                try {
+                    level = Integer.parseInt(key.trim());
+                } catch (NumberFormatException e) {
+                    level = 0;
+                }
+                if (level < 2 || level > NetworkLevel.MAX_LEVEL) {
+                    throw new IllegalArgumentException(where + ": the key is a level, from 2 to " + NetworkLevel.MAX_LEVEL);
+                }
+                ConfigurationSection one = section.getConfigurationSection(key);
+                if (one == null) {
+                    throw new IllegalArgumentException(where + ": a section with points and objets");
+                }
+                list.add(new LevelRewards.Reward(level, count(one, where, "points", 0), one.getStringList("objets")));
+            }
+            rewards = new LevelRewards(list);
+        }
+        for (LevelRewards.Reward reward : rewards.all()) {
+            for (String item : reward.items()) {
+                if (!cosmetics.containsKey(item) && !styles.containsKey(item)) {
+                    throw new IllegalArgumentException("niveau.recompenses." + reward.level() + ".objets: no cosmetic or style "
+                            + item + " (a cosmetic of the shop, such as trail-clouds, or couleur-<id>, badge-<id>)");
+                }
+            }
+        }
+        return rewards;
+    }
+
+    /**
+     * quetes: the daily (quotidiennes) and weekly (hebdomadaires) quests: nom, type (parties,
+     * victoires, kills, victoires-classees), objectif, xp, and mode to count one mode only.
+     */
+    private static Quests readQuests(ConfigurationSection section) {
+        if (section == null) {
+            return Quests.defaults();
+        }
+        List<Quests.Quest> list = new ArrayList<>();
+        for (Quests.Period period : Quests.Period.values()) {
+            ConfigurationSection quests = section.getConfigurationSection(period.section());
+            if (quests == null) {
+                list.addAll(Quests.defaults().of(period));
+                continue;
+            }
+            for (String id : quests.getKeys(false)) {
+                String where = "quetes." + period.section() + "." + id;
+                ConfigurationSection one = quests.getConfigurationSection(id);
+                if (one == null || !id.matches("[a-z0-9-]{1,16}")) {
+                    throw new IllegalArgumentException(where + ": a section, its name 1 to 16 lowercase letters, digits or -");
+                }
+                Quests.Goal goal = Quests.Goal.of(one.getString("type", ""));
+                if (goal == null) {
+                    throw new IllegalArgumentException(where + ".type: parties, victoires, kills or victoires-classees");
+                }
+                int target = count(one, where, "objectif", 0);
+                if (target < 1) {
+                    throw new IllegalArgumentException(where + ".objectif: 1 at least");
+                }
+                String name = LobbySettings.colour(one.getString("nom", ""));
+                if (name.isEmpty() || name.length() > 32) {
+                    throw new IllegalArgumentException(where + ".nom: 1 to 32 characters");
+                }
+                list.add(new Quests.Quest(period, id, name, goal, target, count(one, where, "xp", 0),
+                        one.getString("mode", null)));
+            }
+        }
+        return new Quests(list);
     }
 
     // --- Ranks ----------------------------------------------------------------------------------
@@ -391,6 +479,14 @@ final class ServerSettings {
 
     Ranks ranks() {
         return ranks;
+    }
+
+    LevelRewards levelRewards() {
+        return levelRewards;
+    }
+
+    Quests quests() {
+        return quests;
     }
 
     /** Every colour of name and badge, by key ("couleur-rose", "badge-rago"), the colours first. */

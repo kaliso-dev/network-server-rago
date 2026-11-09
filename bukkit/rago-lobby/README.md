@@ -11,8 +11,9 @@ dans les files d'attente des modes de jeu.
   jeter ou ramasser, pas de coffres ni de portes, pas de pluie, pas de nuit, pas de monstres. Les
   autres mondes (arènes, monde du test de knockback, mondes de build) ne sont pas touchés.
 - **La barre d'objets.** La boussole ouvre le sélecteur des modes ; le livre ouvre l'éditeur de
-  kit ; le colorant rouge quitte la file ; le colorant vert ou gris cache ou montre les autres
-  joueurs du lobby. La fireball part là où on regarde, comme en Bed Wars, et son souffle pousse
+  kit ; le colorant rouge quitte la file ; l'alambique ouvre le niveau Network, ses récompenses et
+  les quêtes ; l'émeraude la boutique, la tête le profil ; le colorant vert ou gris cache ou montre
+  les autres joueurs du lobby. La fireball part là où on regarde, comme en Bed Wars, et son souffle pousse
   les joueurs autour comme sur Hypixel : sous ses pieds, c'est un fireball jump (une toutes les
   demi-secondes, elle ne blesse personne et ne casse rien). Le bâton de blaze (teleport stick)
   emmène sur le bloc qu'on regarde, à 20 blocs au plus, jamais à travers un mur : le premier bloc
@@ -82,6 +83,19 @@ dans les files d'attente des modes de jeu.
   aqua, vert, cyan, rouge, rose, bleu, violet, puis jaune au 100). La barre d'XP du lobby montre le
   niveau et l'avancée vers le suivant. Un message et un son à chaque niveau, un message à chaque
   nouvelle couleur, avec ce que le niveau débloque dans la boutique. Tout se règle dans `niveau:`.
+  Le niveau va de 1 à 100 (environ 250 000 XP pour le 100).
+- **Les récompenses de niveau (l'alambique du hotbar, `/level`).** Une récompense tous les 5
+  niveaux : des Rago Points, des cosmétiques de la boutique (offerts ; déjà achetés, leur prix
+  revient en points), les couleurs de pseudo Aqua (25), Gold (50), Legend (100) et le badge
+  `✫100`. Un joueur reçoit les récompenses de tous les niveaux atteints, même ceux d'avant leur
+  arrivée (à la connexion). Le menu montre le niveau, l'avancée vers le suivant, le palier de
+  couleur et le suivant, chaque récompense (reçue, la prochaine, à venir) et les quêtes. Tout se
+  règle dans `niveau.recompenses`. Tout est dans le fichier du joueur (`profil.*`), qui passera
+  tel quel dans la base de données du réseau.
+- **Les quêtes (`/quests`).** Quatre quêtes du jour (jouer 5 parties, en gagner 3, faire 15 kills,
+  gagner une classée : 500 à 750 XP) et quatre de la semaine (40 parties, 25 victoires, 100 kills,
+  10 classées : 3 000 à 5 000 XP), qui recommencent chaque jour et chaque lundi. Elles avancent
+  seules et donnent leur XP une fois (avec le boost de PREMIUM). Tout se règle dans `quetes:`.
 - **Les rangs.** Huit rangs dans `rangs:` (OWNER, ADMIN, DEV, MOD, HELPER, BUILDER, MEDIA et
   PREMIUM), chacun avec son préfixe, la couleur du pseudo, la couleur du chat, ses permissions et
   le rang dont il hérite. Un joueur montre le plus haut de ses rangs, dans le chat
@@ -170,6 +184,7 @@ commentaires de `config.yml`. Les mots français de la première version (`quitt
 | `/report <joueur> <raison>`, `/discord`, `/rules`, `/site`, `/store` | signaler un joueur, les liens | tout le monde |
 | `/fly` | voler dans le lobby | `rago.perk.fly` (PREMIUM) |
 | `/style` (ou `/couleur`, `/badge`) | choisir sa couleur de pseudo et son badge | tout le monde |
+| `/level` (ou `/niveau`), `/quests` (ou `/quetes`) | son niveau et ses récompenses, les quêtes | tout le monde |
 | `/style give\|take <joueur> <couleur-feu\|badge-rago>`, `/style list` | donner ou retirer un style (la boutique en ligne, depuis la console) | `rago.admin` |
 | `/staffchat [message]` (ou `/sc`), `/vanish` (ou `/v`), `/freeze <joueur>`, `/clearchat` | chat du staff, invisible, figer un joueur, vider le chat | `rago.staff` |
 | `/mute <joueur> [durée] <raison>`, `/unmute`, `/kick`, `/warn`, `/history <joueur>` | sanctions (durée : `30m`, `2h`, `7d`, `2w` ou `perm`) | `rago.staff` |

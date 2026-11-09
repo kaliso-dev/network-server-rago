@@ -68,6 +68,7 @@ public final class RagoLobby extends JavaPlugin implements LobbyService {
     private Profiles profiles;
     private ShopMenu shop;
     private StyleMenu styleMenu;
+    private LevelMenu levelMenu;
     private ProfileMenu profileMenu;
     private Social social;
     private CosmeticEffects cosmetics;
@@ -159,7 +160,10 @@ public final class RagoLobby extends JavaPlugin implements LobbyService {
         statsDisplays = new StatsDisplays(settings, stats.book(), statsMenu, fakes);
         shop = new ShopMenu(profiles, stats.book());
         profileMenu = new ProfileMenu(this, profiles, social, stats, statsMenu, shop);
+        levelMenu = new LevelMenu(stats.book(), server);
+        profileMenu.setLevels(levelMenu);
         styleMenu = new StyleMenu(profiles, stats.book());
+        styleMenu.setRewardLevel(server.levelRewards()::levelOf);
         styleMenu.setBack((p, right) -> profileMenu.open(p));
         shop.setStyles(styleMenu);
         profileMenu.setStyles(styleMenu);
@@ -469,6 +473,9 @@ public final class RagoLobby extends JavaPlugin implements LobbyService {
             case TELEPORT:
                 gadgets.teleport(player);
                 break;
+            case LEVEL:
+                levelMenu.open(player);
+                break;
             case SHOP:
                 shop.open(player);
                 break;
@@ -503,6 +510,7 @@ public final class RagoLobby extends JavaPlugin implements LobbyService {
         inventory.setItem(HotbarItem.KIT_EDITOR.slot(), HotbarItem.KIT_EDITOR.create());
         inventory.setItem(HotbarItem.FIREBALL.slot(), HotbarItem.FIREBALL.create());
         inventory.setItem(HotbarItem.TELEPORT.slot(), HotbarItem.TELEPORT.create());
+        inventory.setItem(HotbarItem.LEVEL.slot(), HotbarItem.LEVEL.create());
         if (queues.queueOf(player) != null) {
             inventory.setItem(HotbarItem.LEAVE_QUEUE.slot(), HotbarItem.LEAVE_QUEUE.create());
         }
@@ -879,6 +887,10 @@ public final class RagoLobby extends JavaPlugin implements LobbyService {
 
     Profiles profiles() {
         return profiles;
+    }
+
+    LevelMenu levelMenu() {
+        return levelMenu;
     }
 
     StyleMenu styleMenu() {

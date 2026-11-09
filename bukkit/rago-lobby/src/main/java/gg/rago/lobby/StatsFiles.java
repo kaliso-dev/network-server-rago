@@ -67,6 +67,13 @@ final class StatsFiles {
         if (stats.badgeChoice() != null) {
             yaml.set("profil.style.badge", stats.badgeChoice());
         }
+        yaml.set("profil.recompenses-niveau", stats.rewardsLevel());
+        yaml.set("profil.quetes.jour", stats.questDay());
+        yaml.set("profil.quetes.semaine", stats.questWeek());
+        for (Map.Entry<String, Integer> quest : stats.quests().entrySet()) {
+            // "d:gagner" is "d-gagner" in the file: a ":" would read as a key and a value
+            yaml.set("profil.quetes.progres." + quest.getKey().replace(':', '-'), quest.getValue());
+        }
         for (Map.Entry<String, ModeStats> entry : stats.modes().entrySet()) {
             ModeStats m = entry.getValue();
             ConfigurationSection section = yaml.createSection("modes." + entry.getKey());
@@ -183,6 +190,16 @@ final class StatsFiles {
         stats.setDaily(yaml.getString("profil.quotidien.date", ""), yaml.getInt("profil.quotidien.serie"));
         stats.choose(NameStyle.Kind.COLOUR, yaml.getString("profil.style.couleur", null));
         stats.choose(NameStyle.Kind.BADGE, yaml.getString("profil.style.badge", null));
+        stats.setRewardsLevel(yaml.getInt("profil.recompenses-niveau"));
+        stats.setQuestPeriod(yaml.getString("profil.quetes.jour", ""), yaml.getString("profil.quetes.semaine", ""));
+        ConfigurationSection quests = yaml.getConfigurationSection("profil.quetes.progres");
+        if (quests != null) {
+            for (String key : quests.getKeys(false)) {
+                if (key.matches("[dw]-.+")) {
+                    stats.setQuestProgress(key.charAt(0) + ":" + key.substring(2), Math.max(0, quests.getInt(key)));
+                }
+            }
+        }
         ConfigurationSection modes = yaml.getConfigurationSection("modes");
         if (modes != null) {
             for (String modeId : modes.getKeys(false)) {
