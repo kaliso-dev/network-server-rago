@@ -326,13 +326,16 @@ modes:
     equipes: 1
     joueurs-par-equipe: 1
     classe: false
-    # the kit of the invisible player; the defenders have iron armour, a sword, wool and shears
-    kit: [IRON_SWORD, "WOOL 64", SHEARS, IRON_PICKAXE, "GOLDEN_APPLE 2", "FIREBALL 2"]
+    # the kit of the attacker (the potions: invisibility 30 s and Jump V 45 s, as in the shop);
+    # the attacker wears iron armour, Protection I. The defenders have shears, wooden tools and
+    # Haste, an iron sword with Sharpness, 2 stacks of wool and iron armour, Protection IV.
+    kit: [STONE_SWORD, "WOOL 64", "WOOL 64", "WOOD 16", GOLD_PICKAXE, IRON_AXE, SHEARS, FIREBALL, "EGG 2", "POTION:8206", "POTION:8203"]
     description:
-      - "Invasion or Archway, 2 to 6"
-      - "players, 2-minute rounds: 1"
-      - "invisible against 1 to 4"
-      - "defenders, each one in turn."
+      - "Invasion, Lectus or Archway,"
+      - "3-minute rounds: an attacker"
+      - "with an invis potion against"
+      - "the defenders of the bed,"
+      - "each player in turn."
   bridge-fight:
     nom: "&bBridge fight"
     categorie: ranked

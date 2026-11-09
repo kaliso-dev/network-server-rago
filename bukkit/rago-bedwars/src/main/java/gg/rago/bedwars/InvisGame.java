@@ -1,10 +1,12 @@
 package gg.rago.bedwars;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Locale;
 import java.util.Map;
 import java.util.Set;
 import java.util.UUID;
@@ -17,20 +19,21 @@ import org.bukkit.block.Block;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.PlayerInventory;
-import org.bukkit.potion.PotionEffect;
 import org.bukkit.potion.PotionEffectType;
 import org.bukkit.scheduler.BukkitTask;
 
 /**
- * Invis practice: 2 to 6 players on a Bed Wars map, in rounds of two minutes. Each round, one
- * player is the invisible: on their island, invisible the whole round, with the mode's kit (the
- * lobby's kit editor) and no armour, which would show (Resistance II in its place, as the hidden
- * armour of Hypixel). The others defend the bed of the next island, under a defense of end stone
- * and wool, with iron armour; four at most: a sixth player watches that round. The invisible wins
- * the round by breaking the bed, the defenders by killing the invisible (one life) or by holding
- * two minutes; a defender comes back three seconds after a death. Each player is the invisible in
- * turn, twice each with two or three players. Breaking the bed, or killing the invisible, gives a
- * point; the most points win.
+ * Invis practice: 2 to 6 players on a Bed Wars map (Invasion, Lectus or Archway), in rounds of
+ * three minutes. Each round, one player is the attacker, on their island with the owner's kit
+ * arranged in the lobby's kit editor: an invisibility potion and a Jump V potion, 16 planks, a
+ * golden pickaxe, a fireball, an iron axe, shears, a stone sword, 2 Bridge Eggs, 2 stacks of wool,
+ * and Protection I armour (hidden while invisible, as on Hypixel). The others defend the bed of the
+ * next island, under a defense of end stone and wool: shears, wooden tools and Haste, an iron sword
+ * with Sharpness, Protection IV armour and 2 stacks of wool; four at most, a sixth player watches
+ * that round. The attacker wins the round by breaking the bed; the defenders by killing the
+ * attacker (one life) or by holding three minutes; a defender comes back three seconds after a
+ * death. Each player attacks in turn, twice each with two or three players. Breaking the bed, or
+ * killing the attacker, gives a point; the most points win.
  *
  * <p>The game waits for its players on its map: it starts 20 seconds after the second one joins,
  * 5 seconds once six are in. Main thread only.
@@ -40,7 +43,7 @@ final class InvisGame extends BedwarsGame {
     static final int MIN_PLAYERS = 2;
     static final int MAX_PLAYERS = 6;
     static final int MAX_DEFENDERS = 4;
-    static final int ROUND_SECONDS = 120;
+    static final int ROUND_SECONDS = 180;
     private static final int WAIT_SECONDS = 20;
     private static final int FULL_WAIT_SECONDS = 5;
     private static final int ROUND_COUNTDOWN = 5;
@@ -48,6 +51,14 @@ final class InvisGame extends BedwarsGame {
     /** Between the end of a round and the next one. */
     private static final long BETWEEN_TICKS = 80L;
     private static final Material[] DEFENSE = {Material.ENDER_STONE, Material.WOOL};
+    /** The attacker's kit when the lobby has none for the mode: the owner's, as in config.yml. */
+    static final String[] ATTACKER_KIT = {"stone_sword", "wool 64", "wool 64", "plank 16", "golden_pickaxe", "iron_axe",
+        "shears", "fireball 1", "bridge_egg 2", "invisibility", "jump"};
+    /** Iron armour for everyone; Protection I for the attacker, IV for the defenders; Haste I. */
+    static final int ARMOUR_TIER = 2;
+    static final int ATTACKER_PROTECTION = 1;
+    static final int DEFENDER_PROTECTION = 4;
+    static final int DEFENDER_HASTE = 1;
 
     private final Team defenders;
     private final Team attackers;
@@ -77,6 +88,10 @@ final class InvisGame extends BedwarsGame {
         attackers = new Team(two.get(1), map.teams().get(two.get(1)));
         teams.add(defenders);
         teams.add(attackers);
+        defenders.upgrades.setTier(Upgrades.Kind.REINFORCED_ARMOR, DEFENDER_PROTECTION);
+        defenders.upgrades.setTier(Upgrades.Kind.MANIAC_MINER, DEFENDER_HASTE);
+        defenders.upgrades.setTier(Upgrades.Kind.SHARPENED_SWORDS, 1);
+        attackers.upgrades.setTier(Upgrades.Kind.REINFORCED_ARMOR, ATTACKER_PROTECTION);
         for (Gamer gamer : gamers.values()) {
             gamer.team = defenders;
             defenders.members.add(gamer.id);
@@ -129,9 +144,9 @@ final class InvisGame extends BedwarsGame {
         player.teleport(instance.map().spectatorPoint().in(instance.world()));
         player.sendMessage(ChatColor.DARK_PURPLE + "" + ChatColor.BOLD + "Invis practice" + ChatColor.LIGHT_PURPLE + " on "
                 + ChatColor.WHITE + instance.map().world() + ChatColor.LIGHT_PURPLE + ": " + MIN_PLAYERS + " to " + MAX_PLAYERS
-                + " players, rounds of 2 minutes, one invisible against the others, each player in turn.");
+                + " players, rounds of 3 minutes, one attacker against the defenders, each player in turn.");
         player.sendMessage(ChatColor.GRAY + "It starts " + WAIT_SECONDS + " seconds after the second player joins. Your "
-                + "invisible kit is the mode's kit of the lobby's kit editor. /spawn takes you back to the lobby.");
+                + "attacker kit is the mode's kit of the lobby's kit editor. /spawn takes you back to the lobby.");
     }
 
     private void waitingSecond() {
@@ -269,7 +284,7 @@ final class InvisGame extends BedwarsGame {
         Gamer gamer = gamers.get(invisible);
         broadcast(ChatColor.LIGHT_PURPLE + "Round " + (round + 1) + "/" + order.size() + ": "
                 + (gamer == null ? "the invisible" : gamer.coloured()) + ChatColor.LIGHT_PURPLE
-                + " is invisible. Two minutes!", Sound.NOTE_PLING);
+                + " attacks. Three minutes!", Sound.NOTE_PLING);
     }
 
     @Override
@@ -281,45 +296,94 @@ final class InvisGame extends BedwarsGame {
             return;
         }
         super.place(player, gamer);
-        if (gamer.id.equals(invisible)) {
-            invisible(player);
-        }
-    }
-
-    /** Invisible the whole round, without particles; Resistance II for the armour that would show. */
-    private static void invisible(Player player) {
-        int ticks = (ROUND_SECONDS + ROUND_COUNTDOWN + 10) * 20;
-        player.addPotionEffect(new PotionEffect(PotionEffectType.INVISIBILITY, ticks, 0, false, false), true);
-        player.addPotionEffect(new PotionEffect(PotionEffectType.DAMAGE_RESISTANCE, ticks, 1, false, false), true);
     }
 
     @Override
     void giveKit(Player player, Gamer gamer) {
         PlayerInventory inventory = player.getInventory();
         inventory.clear();
+        gamer.armor = ARMOUR_TIER;
+        wearArmor(player, gamer);
         if (gamer.id.equals(invisible)) {
-            ItemStack[] kit = lobbyKit(player, gamer);
+            ItemStack[] kit = plugin.lobby().kit(player, modeId);
             if (kit != null) {
-                inventory.setContents(kit);
+                for (int i = 0; i < kit.length; i++) {
+                    inventory.setItem(i, kit[i] == null ? null : shopStack(kit[i], gamer));
+                }
             } else {
-                for (ItemStack item : new ItemStack[] {new ItemStack(Material.IRON_SWORD), new ItemStack(Material.WOOL, 64),
-                    new ItemStack(Material.SHEARS), new ItemStack(Material.IRON_PICKAXE),
-                    new ItemStack(Material.GOLDEN_APPLE, 2), new ItemStack(Material.FIREBALL, 2)}) {
-                    inventory.addItem(kitItem(item, gamer));
+                for (String entry : ATTACKER_KIT) {
+                    String[] parts = entry.split(" ");
+                    ShopItem item = catalogItem(parts[0]);
+                    if (item != null) {
+                        ItemStack stack = stack(item, gamer);
+                        stack.setAmount(parts.length > 1 ? Integer.parseInt(parts[1]) : 1);
+                        inventory.addItem(stack);
+                    }
                 }
             }
-            // no armour: it would show the invisible
-            inventory.setArmorContents(null);
         } else {
-            gamer.armor = 2;
-            wearArmor(player, gamer);
-            give(player, gamer, kitItem(new ItemStack(Material.IRON_SWORD), gamer), ShopItem.Category.MELEE);
-            give(player, gamer, kitItem(new ItemStack(Material.WOOL, 64), gamer), ShopItem.Category.BLOCKS);
-            give(player, gamer, kitItem(new ItemStack(Material.SHEARS), gamer), ShopItem.Category.TOOLS);
-            give(player, gamer, new ItemStack(Material.GOLDEN_APPLE, 2), ShopItem.Category.UTILITY);
-            give(player, gamer, new ItemStack(Material.FIREBALL, 1), ShopItem.Category.UTILITY);
+            give(player, gamer, stack(catalogItem("iron_sword"), gamer), ShopItem.Category.MELEE);
+            ItemStack wool = stack(catalogItem("wool"), gamer);
+            wool.setAmount(64);
+            give(player, gamer, wool, ShopItem.Category.BLOCKS);
+            give(player, gamer, wool.clone(), ShopItem.Category.BLOCKS);
+            give(player, gamer, stack(catalogItem("shears"), gamer), ShopItem.Category.TOOLS);
+            give(player, gamer, stack(catalog().pickaxes().get(0), gamer), ShopItem.Category.TOOLS);
+            give(player, gamer, stack(catalog().axes().get(0), gamer), ShopItem.Category.TOOLS);
         }
         player.updateInventory();
+    }
+
+    private ShopItem catalogItem(String id) {
+        return catalogItem(catalog(), id);
+    }
+
+    /** The shop's item of this id, the pickaxes and axes by their tier name ("golden_pickaxe"); null if none. */
+    static ShopItem catalogItem(ShopCatalog catalog, String id) {
+        for (List<ShopItem> tools : Arrays.asList(catalog.pickaxes(), catalog.axes())) {
+            for (ShopItem tool : tools) {
+                if (shopId(tool).equals(id)) {
+                    return tool;
+                }
+            }
+        }
+        return catalog.byId(id);
+    }
+
+    /** "Golden Pickaxe": golden_pickaxe. */
+    static String shopId(ShopItem item) {
+        return item.name().toLowerCase(Locale.ROOT).replace(' ', '_');
+    }
+
+    /**
+     * A stack of the kit as the shop sells it: the potions with their effect, the Bridge Egg with
+     * its name, the tools with their Efficiency, in the team's colour. Anything else stays as it is.
+     */
+    @SuppressWarnings("deprecation") // ItemStack#getDurability is the 1.8 data value
+    private ItemStack shopStack(ItemStack kit, Gamer gamer) {
+        ShopItem match = null;
+        for (List<ShopItem> tools : Arrays.asList(catalog().pickaxes(), catalog().axes())) {
+            for (ShopItem tool : tools) {
+                if (tool.material() == kit.getType()) {
+                    match = tool;
+                }
+            }
+        }
+        if (match == null) {
+            for (ShopItem item : catalog().all()) {
+                boolean sameData = item.kind() == ShopItem.Kind.TEAM_BLOCK || item.data() == kit.getDurability();
+                if (item.material() == kit.getType() && sameData) {
+                    match = item;
+                    break;
+                }
+            }
+        }
+        if (match == null) {
+            return kitItem(kit.clone(), gamer);
+        }
+        ItemStack stack = stack(match, gamer);
+        stack.setAmount(kit.getAmount());
+        return stack;
     }
 
     @Override
@@ -329,20 +393,20 @@ final class InvisGame extends BedwarsGame {
         Gamer invisibleGamer = gamers.get(invisible);
         String who = invisibleGamer == null ? "the invisible" : invisibleGamer.coloured();
         if (gamer.id.equals(invisible)) {
-            player.sendMessage(head + "you are the " + ChatColor.WHITE + "invisible" + ChatColor.LIGHT_PURPLE
-                    + ". Break the bed of the " + defenders.color.coloured() + ChatColor.LIGHT_PURPLE
-                    + " island next to yours in two minutes. One life; no armour, it would show: Resistance II instead.");
-            player.sendTitle(ChatColor.LIGHT_PURPLE + "" + ChatColor.BOLD + "INVISIBLE",
-                    ChatColor.WHITE + "Break the " + defenders.color.coloured() + ChatColor.WHITE + " bed in 2 minutes");
+            player.sendMessage(head + "you " + ChatColor.WHITE + "attack" + ChatColor.LIGHT_PURPLE
+                    + ". Drink your invisibility potion and break the bed of the " + defenders.color.coloured()
+                    + ChatColor.LIGHT_PURPLE + " island next to yours in three minutes. One life.");
+            player.sendTitle(ChatColor.LIGHT_PURPLE + "" + ChatColor.BOLD + "ATTACK",
+                    ChatColor.WHITE + "Break the " + defenders.color.coloured() + ChatColor.WHITE + " bed in 3 minutes");
         } else if (watching.contains(gamer.id)) {
             player.sendMessage(head + "four defenders at most: you watch this round, where " + who + ChatColor.LIGHT_PURPLE
-                    + " is invisible.");
+                    + " attacks.");
             player.sendTitle(ChatColor.GRAY + "" + ChatColor.BOLD + "WATCHING", ChatColor.WHITE + "Your turn comes next");
         } else {
             player.sendMessage(head + "defend your bed against " + who + ChatColor.LIGHT_PURPLE
-                    + ", invisible: kill them, or hold two minutes. You come back " + DEFENDER_RESPAWN
+                    + ", who will go invisible: kill them, or hold three minutes. You come back " + DEFENDER_RESPAWN
                     + " seconds after a death.");
-            player.sendTitle(ChatColor.GREEN + "" + ChatColor.BOLD + "DEFEND", who + ChatColor.WHITE + " is invisible");
+            player.sendTitle(ChatColor.GREEN + "" + ChatColor.BOLD + "DEFEND", who + ChatColor.WHITE + " attacks");
         }
     }
 
@@ -392,7 +456,7 @@ final class InvisGame extends BedwarsGame {
         }
         if (author != null) {
             points.merge(author.id, 1, Integer::sum);
-            roundEnd(false, author.coloured() + ChatColor.GREEN + " killed the invisible!");
+            roundEnd(false, author.coloured() + ChatColor.GREEN + " killed the attacker!");
         } else {
             roundEnd(false, victim.coloured() + ChatColor.GREEN + " fell: the defenders win the round.");
         }
@@ -410,7 +474,7 @@ final class InvisGame extends BedwarsGame {
         roundSeconds++;
         int left = ROUND_SECONDS - roundSeconds;
         if (left <= 0) {
-            roundEnd(false, ChatColor.GREEN + "The bed held for two minutes: the defenders win the round.");
+            roundEnd(false, ChatColor.GREEN + "The bed held for three minutes: the defenders win the round.");
         } else if (left == 60 || left == 30 || left == 10) {
             broadcast(ChatColor.YELLOW + "" + left + " seconds left in the round.", Sound.NOTE_STICKS);
         }
@@ -435,10 +499,8 @@ final class InvisGame extends BedwarsGame {
                 player.sendTitle(won ? ChatColor.GOLD + "" + ChatColor.BOLD + "ROUND WON" : ChatColor.RED + "" + ChatColor.BOLD
                         + "ROUND LOST", "");
             }
-            if (gamer.id.equals(invisible)) {
-                player.removePotionEffect(PotionEffectType.INVISIBILITY);
-                player.removePotionEffect(PotionEffectType.DAMAGE_RESISTANCE);
-            }
+            player.removePotionEffect(PotionEffectType.INVISIBILITY);
+            player.removePotionEffect(PotionEffectType.JUMP);
         }
         later(BETWEEN_TICKS, this::nextRound);
         sidebars();
@@ -504,7 +566,7 @@ final class InvisGame extends BedwarsGame {
             return;
         }
         if (gamer.id.equals(invisible)) {
-            roundEnd(false, ChatColor.YELLOW + "The invisible left: next round.");
+            roundEnd(false, ChatColor.YELLOW + "The attacker left: next round.");
             return;
         }
         boolean defended = false;
@@ -615,9 +677,9 @@ final class InvisGame extends BedwarsGame {
         lines.add(ChatColor.WHITE + "Time left: " + ChatColor.GREEN + clock(Math.max(0, ROUND_SECONDS - roundSeconds)));
         Gamer invisibleGamer = gamers.get(invisible);
         if (invisibleGamer != null) {
-            lines.add(ChatColor.WHITE + "Invisible: " + invisibleGamer.coloured());
+            lines.add(ChatColor.WHITE + "Attacker: " + invisibleGamer.coloured());
         }
-        String role = viewer.id.equals(invisible) ? ChatColor.LIGHT_PURPLE + "Invisible"
+        String role = viewer.id.equals(invisible) ? ChatColor.LIGHT_PURPLE + "Attacker"
                 : watching.contains(viewer.id) ? ChatColor.GRAY + "Watching" : ChatColor.GREEN + "Defender";
         lines.add(ChatColor.WHITE + "You: " + role);
         lines.add("");

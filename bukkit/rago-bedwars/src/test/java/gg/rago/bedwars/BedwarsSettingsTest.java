@@ -35,7 +35,7 @@ class BedwarsSettingsTest {
         assertEquals(BedwarsSettings.Kind.FAST_SHOP, settings.kind("shop-practice"));
         assertEquals(Collections.singletonList("Invasion"), settings.mapsOf("ffa"));
         assertEquals(Collections.singletonList("Archway"), settings.mapsOf("free-ffa"));
-        assertEquals(Arrays.asList("Invasion", "Archway"), settings.mapsOf("invis-practice"));
+        assertEquals(Arrays.asList("Invasion", "Lectus", "Archway"), settings.mapsOf("invis-practice"));
         assertEquals(Arrays.asList("Archway", "Invasion", "Lectus", "Extinction", "Paladin", "Rise"),
                 settings.mapsOf("ranked-2v2"));
         assertEquals(Collections.singletonList("SkyRise"), settings.mapsOf("skyrise-1v1"));

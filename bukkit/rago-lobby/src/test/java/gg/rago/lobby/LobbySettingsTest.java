@@ -162,8 +162,10 @@ class LobbySettingsTest {
         assertEquals(Material.DIAMOND_SWORD, settings.display("boxing").kit().item(0).material());
         assertEquals(KitItem.parse("FIREBALL 16"), settings.display("fireball").kit().item(1));
         assertEquals(Material.IRON_SWORD, settings.display("ffa").kit().item(0).material());
-        assertEquals(Material.IRON_PICKAXE, settings.display("invis-practice").kit().item(3).material(),
-                "the pickaxe of the invisible player, for the end stone of the defense");
+        assertEquals(Material.GOLD_PICKAXE, settings.display("invis-practice").kit().item(4).material(),
+                "the attacker's pickaxe, for the end stone of the defense");
+        assertEquals(KitItem.parse("POTION:8206"), settings.display("invis-practice").kit().item(9), "the invisibility");
+        assertEquals(KitItem.parse("EGG 2"), settings.display("invis-practice").kit().item(8), "two Bridge Eggs");
 
         Kit bySlot = LobbySettings.load(yaml("modes:\n  sumo:\n    kit:\n      3: STICK\n      9: 'WOOL:14 64'\n"))
                 .display("sumo").kit();

@@ -153,4 +153,24 @@ class BedwarsModesTest {
         assertEquals(Long.valueOf(6543), again.best("rush", alice));
         assertEquals("Alice", again.top("rush").name);
     }
+
+    @Test
+    void theInvisAttackerHasTheOwnersKit() {
+        ShopCatalog shop = ShopCatalog.standard();
+        List<String> materials = new ArrayList<>();
+        for (String entry : InvisGame.ATTACKER_KIT) {
+            String[] parts = entry.split(" ");
+            ShopItem item = InvisGame.catalogItem(shop, parts[0]);
+            assertNotNull(item, entry);
+            int amount = parts.length > 1 ? Integer.parseInt(parts[1]) : 1;
+            assertTrue(amount >= 1 && amount <= item.material().getMaxStackSize(), entry);
+            materials.add(item.material().name() + (item.kind() == ShopItem.Kind.POTION ? ":" + item.data() : ""));
+        }
+        assertEquals(Arrays.asList("STONE_SWORD", "WOOL", "WOOL", "WOOD", "GOLD_PICKAXE", "IRON_AXE", "SHEARS",
+                "FIREBALL", "EGG", "POTION:8206", "POTION:8203"), materials, "as the lobby's kit, slot by slot");
+        assertEquals(180, InvisGame.ROUND_SECONDS, "three minutes");
+        assertEquals(1, InvisGame.ATTACKER_PROTECTION);
+        assertEquals(4, InvisGame.DEFENDER_PROTECTION);
+        assertNull(InvisGame.catalogItem(shop, "nothing"));
+    }
 }

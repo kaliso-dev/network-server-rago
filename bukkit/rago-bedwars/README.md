@@ -121,11 +121,15 @@ Dans `jeux:` du config.yml, un mode peut jouer autre chose qu'une partie classiq
   à lui (les diamants achètent aussi), l'armure et les outils gardés comme en Bed Wars, et sur
   chaque lit une défense de trois couches prête pour les top fights, remise quand personne n'est à
   côté.
-- **Invis practice** (`invis`) : de 2 à 6 joueurs, des manches de 2 minutes. À chaque manche, un
-  joueur est l'invisible (le kit du mode, pas d'armure, Résistance II à la place) ; les autres,
-  quatre au plus, défendent le lit de l'île voisine sous de l'end stone et de la laine, en armure
-  de fer. L'invisible gagne la manche en cassant le lit, les défenseurs en le tuant ou en tenant
-  2 minutes. Chacun est l'invisible à son tour ; le plus de points gagne. La partie part 20
+- **Invis practice** (`invis`) : sur Invasion, Lectus ou Archway, de 2 à 6 joueurs, des manches
+  de 3 minutes. À chaque manche, un joueur attaque avec le kit du mode (rangé dans l'éditeur de
+  kit du lobby) : une potion d'invisibilité (30 s) et une de Jump V (45 s), 16 planches, une pioche
+  en or, une fireball, une hache en fer, des cisailles, une épée en pierre, 2 Bridge Eggs, 2 stacks
+  de laine, en armure de fer Protection I (cachée tant qu'il est invisible). Les autres, quatre au
+  plus, défendent le lit de l'île voisine sous de l'end stone et de la laine : cisailles, outils en
+  bois et Haste, épée en fer Sharpness, 2 stacks de laine, armure de fer Protection IV.
+  L'attaquant gagne la manche en cassant le lit, les défenseurs en le tuant (une vie) ou en tenant
+  3 minutes. Chacun attaque à son tour ; le plus de points gagne. La partie part 20
   secondes après l'arrivée du deuxième joueur, 5 secondes quand ils sont six.
 - **Fast Shop** (`fast-shop`) : acheter le plus vite possible avec son propre quick buy (copié
   d'Hypixel dans le lobby). Sept listes, chacune avec ses records : le premier achat, l'armure de
