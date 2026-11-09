@@ -39,7 +39,7 @@ class LobbySettingsTest {
         LobbySettings settings = LobbySettings.load(bundledConfig());
         assertEquals("lobby", settings.world());
         assertEquals(0, settings.voidHeight());
-        assertEquals(1000, settings.defaultRating());
+        assertEquals(0, settings.defaultRating(), "a ranked ELO starts at 0, in Coal");
         assertEquals(40, settings.modes().size());
 
         GameMode ranked = settings.catalog().get("ranked-1v1");

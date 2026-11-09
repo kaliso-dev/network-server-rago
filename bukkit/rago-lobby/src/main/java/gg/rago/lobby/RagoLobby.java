@@ -163,6 +163,7 @@ public final class RagoLobby extends JavaPlugin implements LobbyService {
         getServer().getPluginManager().registerEvents(parties, this);
         getServer().getPluginManager().registerEvents(cosmetics, this);
         getServer().getPluginManager().registerEvents(info, this);
+        getServer().getPluginManager().registerEvents(new PearlGuard(), this);
         cosmetics.start();
         getServer().getPluginManager().registerEvents(kitEditor, this);
         LobbyCommands commands = new LobbyCommands(this);
@@ -360,6 +361,7 @@ public final class RagoLobby extends JavaPlugin implements LobbyService {
     void enterGame(Player player, String modeId) {
         state.enterGame(player.getUniqueId(), modeId);
         gameKills.remove(player.getUniqueId());
+        staff.unvanishForGame(player);
         player.closeInventory();
         player.setAllowFlight(false);
         player.setFlying(false);

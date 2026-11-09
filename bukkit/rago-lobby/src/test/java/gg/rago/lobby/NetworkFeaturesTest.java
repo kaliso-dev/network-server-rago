@@ -20,6 +20,7 @@ import java.util.concurrent.TimeUnit;
 import org.bukkit.Material;
 import org.bukkit.configuration.InvalidConfigurationException;
 import org.bukkit.configuration.file.YamlConfiguration;
+import org.bukkit.event.player.PlayerTeleportEvent.TeleportCause;
 import org.junit.jupiter.api.Test;
 
 /** The ranks, the ELO divisions, the shop, the sanctions and the server settings of config.yml. */
@@ -230,5 +231,13 @@ class NetworkFeaturesTest {
         assertInvalid("chat:\n  delai-secondes: 61\n", "chat.delai-secondes");
         assertInvalid("annonces:\n  minutes: 0\n", "annonces.minutes");
         assertInvalid("liens:\n  twitter: 'x'\n", "liens.twitter");
+    }
+
+    @Test
+    void aPearlInTheAirGoesWhenItsThrowerIsMoved() {
+        assertTrue(PearlGuard.moves(TeleportCause.PLUGIN), "a spawn, a respawn, the spectators' point");
+        assertTrue(PearlGuard.moves(TeleportCause.COMMAND));
+        assertFalse(PearlGuard.moves(TeleportCause.ENDER_PEARL), "the pearl itself");
+        assertFalse(PearlGuard.moves(TeleportCause.UNKNOWN), "a move the server corrects");
     }
 }

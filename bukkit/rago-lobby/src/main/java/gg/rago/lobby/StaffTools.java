@@ -149,6 +149,10 @@ final class StaffTools implements Listener {
     }
 
     void toggleVanish(Player player) {
+        if (!vanished.contains(player.getUniqueId()) && lobby.isInGame(player)) {
+            player.sendMessage(ChatColor.RED + "Not during a game: the others must see who they fight.");
+            return;
+        }
         if (vanished.remove(player.getUniqueId())) {
             player.sendMessage(ChatColor.GREEN + "You are visible again.");
         } else {
@@ -156,6 +160,13 @@ final class StaffTools implements Listener {
             player.sendMessage(ChatColor.AQUA + "You are vanished: only the staff sees you. /vanish again to come back.");
         }
         lobby.applyVanish(player);
+    }
+
+    /** A vanished member of the staff who joins a game: seen by everyone in it, as a player. */
+    void unvanishForGame(Player player) {
+        if (vanished.remove(player.getUniqueId())) {
+            player.sendMessage(ChatColor.GREEN + "You are visible again: you joined a game.");
+        }
     }
 
     // --- Freeze ---------------------------------------------------------------------------------
