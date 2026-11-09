@@ -444,12 +444,12 @@ modes:
     equipes: 2
     joueurs-par-equipe: 1
     classe: false
-    kit: [IRON_SWORD, "WOOL 64", "ENDER_STONE 32", SHEARS, WOOD_PICKAXE]
+    kit: [STONE_SWORD, "WOOL 48", SHEARS, WOOD_PICKAXE]
     description:
-      - "One player attacks the bed,"
-      - "the other defends it: 30 s to"
-      - "build, 2 min to break it, then"
-      - "the roles swap."
+      - "A solo rush, as on Hypixel:"
+      - "the attacker is already on the"
+      - "bridge, the defender covers the"
+      - "bed fast. Then the roles swap."
   attack-defense-2v2:
     nom: "&cAttack and defense 2v2"
     categorie: duels
@@ -457,10 +457,11 @@ modes:
     equipes: 2
     joueurs-par-equipe: 2
     classe: false
-    kit: [IRON_SWORD, "WOOL 64", "ENDER_STONE 32", SHEARS, WOOD_PICKAXE]
+    kit: [STONE_SWORD, "WOOL 48", SHEARS, WOOD_PICKAXE]
     description:
-      - "One team attacks the bed,"
-      - "the other defends it."
+      - "A rush, as on Hypixel: one"
+      - "team is already on the bridge,"
+      - "the other covers its bed fast."
   top-fight-1v1:
     nom: "&eTop fight 1v1"
     categorie: ranked

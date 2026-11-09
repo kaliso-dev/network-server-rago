@@ -31,9 +31,15 @@ stats du lobby. Quitter le serveur ou taper `/spawn` pendant le duel, c'est perd
   Premier à 5.
 - **Top fight 1v1 et 2v2** : une île dont le lit a une défense de trois couches (end stone, bois,
   laine) ; on grimpe et on se bat dessus, en stuff de Ranked Bedwars. Premier à 3.
-- **Attack and defense 1v1 et 2v2**, comme en Ranked Bedwars : 30 secondes aux défenseurs pour
-  construire leur défense, puis 2 minutes aux attaquants pour casser le lit ; on change de côté à
-  chaque manche ; le plus de lits cassés gagne, et à égalité le plus rapide.
+- **Attack and defense 1v1 et 2v2**, comme un rush en solo sur Hypixel : le défenseur est chez
+  lui, à côté de son lit sans défense, l'attaquant déjà sur un pont, à trois blocs de vide de
+  l'île. Le défenseur doit couvrir son lit tout de suite et tenir 60 secondes (il revient au bout
+  de 3 secondes s'il meurt) ; l'attaquant doit le casser, et s'il meurt, son rush est raté.
+  L'attaquant a le stuff des premières minutes (épée en pierre, 48 laine, cisailles, pioche en
+  bois), le défenseur une épée en bois et 32 laine. On change de côté à chaque manche ; le plus
+  de lits cassés gagne, et à égalité le plus rapide. L'île est l'île rouge de Lotus
+  (`attaque-defense` dans la config : le monde, la zone, le lit, le départ du défenseur et le
+  pont) ; sans ce monde, une île simple.
 - **Fireball fight** : chaque camp a son île et son lit sous une défense de bois et de laine, des
   boules de feu, de la TNT, de la laine et une épée. Tant que le lit tient, on revient au bout de
   3 secondes ; ensuite, une mort est définitive. Le dernier camp debout gagne.
@@ -143,7 +149,7 @@ que les zones déjà construites ne bougent pas.
 
 `plugins/RagoPractice/config.yml` : le monde des arènes, l'espacement, le nombre maximal de
 parties, les points pour gagner de chaque duel, le rayon du sumo et ses maps (`sumo.cartes` :
-le monde, le centre de la plateforme, la boîte copiée), la map du block in, et les temps de
+le monde, le centre de la plateforme, la boîte copiée), la map du block in, et l'île et le temps de
 l'attack and defense.
 
 ## Construire et tester

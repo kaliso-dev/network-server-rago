@@ -84,13 +84,23 @@ points-pour-gagner:
   top-fight: 3
   block-edit: 5
 
-# Attack and defense: the defenders build for construction-secondes while the attackers wait,
-# then the attackers have attaque-secondes to break the bed. The sides swap each round; manches
-# is even, so that each side attacks as often.
+# Attack and defense, as a rush of a solo Bed Wars game on Hypixel: the defender is at home next
+# to a bed with no defense, the attacker already on a bridge with three blocks of void left. The
+# defender covers the bed and holds attaque-secondes (back 3 s after a death); the attacker breaks
+# it (an attacker who dies has failed the rush). The sides swap each round; manches is even, so
+# that each side attacks as often.
+# The island is a solo island of a Bed Wars map of the server (monde), copied once: the box of the
+# zone, the bed (lit), the defender's start (defenseur: x, y, z, yaw) and the attacker's bridge
+# from its far end to its near end (pont), in the coordinates of the map. Here the red island of
+# Lotus. Without that world, a plain island.
 attaque-defense:
-  construction-secondes: 30
-  attaque-secondes: 120
+  attaque-secondes: 60
   manches: 2
+  monde: Lotus
+  zone: [-55, 58, -102, -16, 84, -70]
+  lit: [-34, 66, -76]
+  defenseur: [-34, 65, -82, 0]
+  pont: [-34, 65, -58, -34, 65, -68]
 
 # Aim trainer: each second with the crosshair on the target (or a hit) gives xp-par-seconde
 # Network XP, and the end of the attempt one more for each touches-par-xp hits (100 hits: 10).

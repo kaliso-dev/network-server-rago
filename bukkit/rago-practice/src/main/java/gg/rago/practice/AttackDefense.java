@@ -14,36 +14,74 @@ import org.bukkit.entity.Player;
 import org.bukkit.event.block.BlockPlaceEvent;
 import org.bukkit.event.entity.EntityDamageEvent;
 import org.bukkit.inventory.ItemStack;
+import org.bukkit.inventory.PlayerInventory;
 
 /**
- * Attack and defense, as in Ranked Bedwars: one side defends a bed, the other attacks it. The
- * defenders first have 30 seconds to build their defense while the attackers wait on their island;
- * then the attackers have 2 minutes to break the bed. A death respawns in 3 seconds. The sides
- * swap each round: after the two rounds, the side that broke more beds wins, and with one bed each,
- * the one that broke it faster.
+ * Attack and defense, as a rush of a solo Bed Wars game on Hypixel: the defender is on their
+ * island, next to their bed with no defense, and the attacker is already on a bridge a few blocks
+ * away, three blocks of void left to bridge. The defender must cover the bed and hold; the
+ * attacker must break it. The island is a solo island of one of the server's Bed Wars maps (see
+ * {@link Base}), or a plain one. The defender comes back 3 seconds after a death, as with a bed;
+ * the attacker who dies has failed the rush. Each round has its time; the sides swap each round:
+ * after the rounds, the side that broke more beds wins, and with as many, the one that broke them
+ * faster.
  */
 final class AttackDefense extends Duel {
 
-    enum Part { BUILD, ATTACK }
+    /**
+     * The defender's island: the copy of a solo island (or null for a plain one) whose foot of the
+     * bed lands on the centre of the zone, and from it, the head of the bed, where the defender
+     * starts, and the attacker's bridge, from its far end to its near end (the attacker starts on
+     * the far end).
+     */
+    static final class Base {
+        final MapCopy copy;
+        final int[] head;
+        final double[] defender;
+        final int[] bridge;
 
-    /** Where the bed is: its foot, its head one block south. */
-    private static final int BED_X = 10;
-    private static final int RESPAWN_SECONDS = 3;
+        Base(MapCopy copy, int[] head, double[] defender, int[] bridge) {
+            this.copy = copy;
+            this.head = head;
+            this.defender = defender;
+            this.bridge = bridge;
+        }
 
-    private final int buildSeconds;
+        /**
+         * The plain island, its top at the height of the floor: the bed at its front, the defender
+         * behind the bed, the bridge to the west with three blocks of void left.
+         */
+        static Base plain() {
+            return new Base(null, new int[] {0, 0, 1}, new double[] {3.5, 1, 0.5, 90}, new int[] {-16, 0, 0, -6, 0, 0});
+        }
+
+        /**
+         * Where an attacker starts: on the far end of the bridge, facing along it; the next one
+         * of the side this many blocks further back.
+         */
+        double[] attackerStart(int back) {
+            int dx = Integer.signum(bridge[3] - bridge[0]);
+            int dz = Integer.signum(bridge[5] - bridge[2]);
+            float yaw = (float) Math.toDegrees(Math.atan2(-dx, dz));
+            return new double[] {bridge[0] + 0.5 - dx * back, bridge[1] + 1, bridge[2] + 0.5 - dz * back, yaw};
+        }
+    }
+
+    static final int RESPAWN_SECONDS = 3;
+
+    private final Base base;
     private final int attackSeconds;
     private final int rounds;
     /** How long each side took to break the bed, in milliseconds; -1 if it did not. */
     private final long[] breakTime = {-1L, -1L};
     private final Set<UUID> respawning = new HashSet<>();
-    private Part part = Part.BUILD;
-    private int partSeconds;
     private long attackStart;
+    private boolean decided;
 
-    AttackDefense(PracticeHost host, GameMode mode, Arena arena, List<List<Player>> teams, int buildSeconds,
-            int attackSeconds, int rounds) {
+    AttackDefense(PracticeHost host, GameMode mode, Arena arena, List<List<Player>> teams, Base base, int attackSeconds,
+            int rounds) {
         super(host, mode, arena, teams, rounds);
-        this.buildSeconds = buildSeconds;
+        this.base = base;
         this.attackSeconds = attackSeconds;
         this.rounds = rounds;
     }
@@ -56,9 +94,9 @@ final class AttackDefense extends Duel {
     @Override
     void intro(Player player) {
         player.sendMessage(ChatColor.GREEN + "Attack and defense against " + ChatColor.WHITE + namesOf(1 - sideOf(player.getUniqueId()))
-                + ChatColor.GREEN + ": " + rounds + " rounds, each side attacks in turn.");
-        player.sendMessage(ChatColor.GRAY + "Defenders: " + buildSeconds + " s to build, then hold " + clock(attackSeconds)
-                + ". Attackers: break the bed. Most beds, then the fastest, wins.");
+                + ChatColor.GREEN + ": " + rounds + " rounds, each side rushes in turn.");
+        player.sendMessage(ChatColor.GRAY + "The attacker is already on a bridge next to the island: defender, cover your bed"
+                + " and hold " + clock(attackSeconds) + "; attacker, break it. Most beds, then the fastest, wins.");
     }
 
     /** The side that attacks this round: blue first, then red. */
@@ -72,51 +110,51 @@ final class AttackDefense extends Duel {
 
     @Override
     void build() {
-        // the defenders' island and its bed, the attackers' island, 14 blocks of void between
-        Shapes.island(arena, 5, -5, 15, 5, Material.WOOD, 0, Material.LOG, 0);
-        Shapes.island(arena, -14, -2, -10, 2, Material.STAINED_CLAY, Shapes.WHITE, Material.HARD_CLAY, 0);
+        if (base.copy != null) {
+            base.copy.build(arena);
+            return;
+        }
+        // the defender's island, the bed at its front
+        Shapes.island(arena, -2, -5, 8, 5, Material.WOOD, 0, Material.LOG, 0);
     }
 
     @Override
     void roundReset() {
         super.roundReset();
         respawning.clear();
-        part = Part.BUILD;
-        partSeconds = 0;
-        Shapes.putBed(arena, BED_X, 1, 0, 0, 1);
+        decided = false;
+        if (base.copy == null) {
+            Shapes.putBed(arena, 0, 1, 0, base.head[0], base.head[2]);
+        }
+        // the attacker's bridge, of this round
+        int[] b = base.bridge;
+        for (int x = Math.min(b[0], b[3]); x <= Math.max(b[0], b[3]); x++) {
+            for (int z = Math.min(b[2], b[5]); z <= Math.max(b[2], b[5]); z++) {
+                if (arena.block(x, b[1], z).getType() == Material.AIR) {
+                    arena.put(x, b[1], z, Material.WOOL, WOOL[attackers()]);
+                }
+            }
+        }
     }
 
     @Override
     void onFight() {
+        attackStart = System.currentTimeMillis();
         for (Player player : online()) {
             if (attacking(player.getUniqueId())) {
-                title(player, ChatColor.RED + "You attack", ChatColor.GRAY + "The defense is being built: wait " + buildSeconds + " s");
+                title(player, ChatColor.RED + "Rush!", ChatColor.GRAY + "Bridge the last blocks and break the bed");
             } else {
-                title(player, ChatColor.GREEN + "You defend", ChatColor.GRAY + "Build your defense: " + buildSeconds + " s");
+                title(player, ChatColor.GREEN + "Defend!", ChatColor.GRAY + "Cover your bed, now");
             }
         }
     }
 
     @Override
     void onSecond() {
-        partSeconds++;
-        if (part == Part.BUILD) {
-            int left = buildSeconds - partSeconds;
-            if (left <= 0) {
-                part = Part.ATTACK;
-                partSeconds = 0;
-                attackStart = System.currentTimeMillis();
-                broadcast(ChatColor.RED + "" + ChatColor.BOLD + "Attack!" + ChatColor.GRAY + " The attackers have "
-                        + clock(attackSeconds) + " to break the bed.", Sound.ENDERDRAGON_GROWL);
-                for (Player player : online()) {
-                    title(player, attacking(player.getUniqueId()) ? ChatColor.RED + "Break the bed!" : ChatColor.GREEN + "Defend!", "");
-                }
-            } else if (left <= 3) {
-                broadcast(ChatColor.YELLOW + "The attack starts in " + left + "...", Sound.NOTE_STICKS);
-            }
+        if (decided) {
             return;
         }
-        int left = attackSeconds - partSeconds;
+        int left = attackSeconds - seconds;
         if (left <= 0) {
             broadcast(ChatColor.GREEN + "The bed held!" + ChatColor.GRAY + " " + TEAMS[1 - attackers()] + " defended it.", Sound.NOTE_BASS);
             endRound();
@@ -125,59 +163,73 @@ final class AttackDefense extends Duel {
         }
     }
 
-    /** The attackers wait on their island while the defense is built. */
-    @Override
-    void moved(Player player, Location from, Location to) {
-        if (phase == Phase.PLAYING && part == Part.BUILD && attacking(player.getUniqueId()) && !onAttackIsland(to)) {
-            Location back = onAttackIsland(from) ? from.clone() : spawnOf(player.getUniqueId());
-            back.setYaw(to.getYaw());
-            back.setPitch(to.getPitch());
-            player.teleport(back);
-        }
-    }
-
-    /** True if this point is on the attackers' island (x -14 to -10, z -2 to 2), not at its very edge. */
-    private boolean onAttackIsland(Location at) {
-        double x = at.getX() - arena.centreX();
-        double z = at.getZ() - arena.centreZ();
-        return x >= -13.75 && x <= -9.25 && z >= -1.75 && z <= 2.75;
-    }
-
     @Override
     Location spawnOf(UUID player) {
-        double z = across(player) * 1.5 + 0.5;
-        return attacking(player) ? arena.at(-11.5, 1, z, -90f) : arena.at(13.5, 1, z, 90f);
+        if (attacking(player)) {
+            // one behind the other: the bridge is one block wide
+            double[] start = base.attackerStart(Math.max(0, indexOf(player)));
+            return arena.at(start[0], start[1], start[2], (float) start[3]);
+        }
+        // side by side, across the way they look
+        double[] start = base.defender;
+        double across = across(player);
+        double yaw = Math.toRadians(start[3]);
+        return arena.at(start[0] + across * Math.cos(yaw), start[1], start[2] + across * Math.sin(yaw), (float) start[3]);
     }
 
     @Override
     double fallY() {
-        return arena.floorY() - 10;
+        return arena.floorY() - 12;
     }
 
     @Override
     ItemStack[] defaultKit(Player player) {
-        return new ItemStack[] {new ItemStack(Material.IRON_SWORD), new ItemStack(Material.WOOL, 64),
-            new ItemStack(Material.ENDER_STONE, 32), new ItemStack(Material.SHEARS), new ItemStack(Material.WOOD_PICKAXE)};
+        return new ItemStack[] {new ItemStack(Material.STONE_SWORD), new ItemStack(Material.WOOL, 48), new ItemStack(Material.SHEARS),
+            new ItemStack(Material.WOOD_PICKAXE)};
+    }
+
+    /**
+     * The kit is the attacker's, as after the first minutes of a solo game. The defender has what
+     * a player at home has then: a wooden sword and 32 wool.
+     */
+    @Override
+    void afterKit(Player player) {
+        if (attacking(player.getUniqueId())) {
+            return;
+        }
+        PlayerInventory inventory = player.getInventory();
+        ItemStack[] contents = inventory.getContents();
+        boolean wool = false;
+        for (int slot = 0; slot < contents.length; slot++) {
+            ItemStack item = contents[slot];
+            if (item == null) {
+                continue;
+            }
+            if (item.getType().name().endsWith("_SWORD")) {
+                inventory.setItem(slot, new ItemStack(Material.WOOD_SWORD));
+            } else if (item.getType() == Material.WOOL && !wool) {
+                wool = true;
+                item.setAmount(32);
+                inventory.setItem(slot, item);
+            } else {
+                inventory.setItem(slot, null);
+            }
+        }
     }
 
     @Override
     void armour(Player player) {
-        ironArmour(player, COLOURS[Math.max(0, sideOf(player.getUniqueId()))]);
+        leather(player, COLOURS[Math.max(0, sideOf(player.getUniqueId()))]);
     }
 
     @Override
     boolean damage(Player victim, Player attacker, EntityDamageEvent event) {
-        return part == Part.ATTACK && !respawning.contains(victim.getUniqueId());
+        return !respawning.contains(victim.getUniqueId());
     }
 
     @Override
     boolean canPlace(Player player, Block block, BlockPlaceEvent event) {
-        if (part == Part.BUILD) {
-            // the defenders build around their bed only
-            return !attacking(player.getUniqueId()) && Math.abs(block.getX() - arena.centreX() - BED_X) <= 6
-                    && Math.abs(block.getZ() - arena.centreZ()) <= 6 && block.getY() <= arena.floorY() + 8;
-        }
-        return arena.contains(block, 30, 12, 16);
+        return arena.contains(block, 40, 12, 16);
     }
 
     @Override
@@ -187,19 +239,19 @@ final class AttackDefense extends Duel {
                 player.sendMessage(ChatColor.RED + "You can't break your own bed!");
                 return false;
             }
-            return part == Part.ATTACK;
+            return true;
         }
-        return part == Part.ATTACK || !attacking(player.getUniqueId()) ? arena.isPlaced(block) : false;
+        return arena.isPlaced(block);
     }
 
     @Override
     void broke(Player player, Block block) {
-        if (block.getType() != Material.BED_BLOCK || phase != Phase.PLAYING) {
+        if (block.getType() != Material.BED_BLOCK || phase != Phase.PLAYING || decided) {
             return;
         }
         int side = attackers();
         long took = System.currentTimeMillis() - attackStart;
-        breakTime[side] = took;
+        breakTime[side] = breakTime[side] < 0 ? took : breakTime[side] + took;
         points[side]++;
         broadcast(ChatColor.BOLD + "BED DESTRUCTION > " + ChatColor.RESET + CHAT[side] + player.getName() + ChatColor.GRAY
                 + " broke the bed in " + ChatColor.WHITE + time(took) + " s" + ChatColor.GRAY + "!", Sound.ENDERDRAGON_GROWL);
@@ -208,6 +260,7 @@ final class AttackDefense extends Duel {
 
     /** The round is over: the next one with the sides swapped, or the end. */
     private void endRound() {
+        decided = true;
         if (round >= rounds) {
             int winner;
             String why;
@@ -216,7 +269,7 @@ final class AttackDefense extends Duel {
                 why = null;
             } else if (breakTime[0] >= 0 && breakTime[1] >= 0 && breakTime[0] != breakTime[1]) {
                 winner = breakTime[0] < breakTime[1] ? 0 : 1;
-                why = ChatColor.GRAY + "Faster bed: " + time(breakTime[winner]) + " s against " + time(breakTime[1 - winner]) + " s.";
+                why = ChatColor.GRAY + "Faster beds: " + time(breakTime[winner]) + " s against " + time(breakTime[1 - winner]) + " s.";
             } else {
                 winner = -1;
                 why = null;
@@ -237,9 +290,10 @@ final class AttackDefense extends Duel {
         knockedOut(victim, false);
     }
 
+    /** The defender comes back, the bed still standing; an attacker out has failed the rush. */
     private void knockedOut(Player player, boolean fell) {
         UUID id = player.getUniqueId();
-        if (respawning.contains(id) || phase != Phase.PLAYING) {
+        if (respawning.contains(id) || phase != Phase.PLAYING || decided) {
             player.teleport(spawnOf(id));
             return;
         }
@@ -249,6 +303,16 @@ final class AttackDefense extends Duel {
             plugin.lobby().recordKill(mode.id(), by, id);
         }
         forgetHits(id);
+        if (attacking(id)) {
+            respawning.add(id);
+            spectate(player);
+            if (allOut(attackers())) {
+                broadcast(ChatColor.GREEN + "The rush failed!" + ChatColor.GRAY + " " + TEAMS[1 - attackers()] + " kept the bed.",
+                        Sound.NOTE_BASS);
+                endRound();
+            }
+            return;
+        }
         respawning.add(id);
         spectate(player);
         for (int s = 0; s < RESPAWN_SECONDS; s++) {
@@ -267,6 +331,16 @@ final class AttackDefense extends Duel {
         });
     }
 
+    /** True when every player of the side is out of this round. */
+    private boolean allOut(int side) {
+        for (Player player : online(side)) {
+            if (!respawning.contains(player.getUniqueId())) {
+                return false;
+            }
+        }
+        return true;
+    }
+
     /** A player who left: their side plays on, or the other side wins (done by leave). */
     @Override
     void left(Player player) {
@@ -276,12 +350,8 @@ final class AttackDefense extends Duel {
     @Override
     void extraLines(UUID viewer, List<String> lines) {
         boolean attack = attacking(viewer);
-        lines.add(ChatColor.WHITE + "Round " + round + "/" + rounds + ": " + (attack ? ChatColor.RED + "you attack" : ChatColor.GREEN + "you defend"));
-        if (part == Part.BUILD) {
-            lines.add(ChatColor.WHITE + "Building: " + ChatColor.YELLOW + clock(buildSeconds - partSeconds));
-        } else {
-            lines.add(ChatColor.WHITE + "Bed: " + ChatColor.YELLOW + clock(attackSeconds - partSeconds) + ChatColor.GRAY + " left");
-        }
+        lines.add(ChatColor.WHITE + "Round " + round + "/" + rounds + ": " + (attack ? ChatColor.RED + "you rush" : ChatColor.GREEN + "you defend"));
+        lines.add(ChatColor.WHITE + "Bed: " + ChatColor.YELLOW + clock(Math.max(0, attackSeconds - seconds)) + ChatColor.GRAY + " left");
     }
 
     @Override
