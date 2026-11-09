@@ -374,9 +374,9 @@ modes:
     classe: true
     description:
       - "Ranked Bedwars in 1v1,"
-      - "on Invasion or Lectus:"
-      - "your ELO goes up or down"
-      - "after every game."
+      - "on the 20 maps of the RBW"
+      - "queue: your ELO goes up or"
+      - "down after every game."
   ranked-2v2:
     nom: "&6Ranked Bedwars 2v2"
     categorie: ranked
@@ -386,7 +386,7 @@ modes:
     classe: true
     description:
       - "Ranked Bedwars, two against"
-      - "two, on Invasion or Lectus."
+      - "two, on the RBW maps."
   ranked-3v3:
     nom: "&6Ranked Bedwars 3v3"
     categorie: ranked
@@ -396,7 +396,7 @@ modes:
     classe: true
     description:
       - "Ranked Bedwars, three against"
-      - "three, on Invasion or Lectus."
+      - "three, on the RBW maps."
   ranked-4v4:
     nom: "&6Ranked Bedwars 4v4"
     categorie: ranked
@@ -406,7 +406,7 @@ modes:
     classe: true
     description:
       - "Ranked Bedwars, four against"
-      - "four, on Invasion or Lectus."
+      - "four, on the RBW maps."
   partie-privee:
     nom: "&6Private game"
     categorie: ranked

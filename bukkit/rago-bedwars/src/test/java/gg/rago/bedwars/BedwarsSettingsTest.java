@@ -36,8 +36,10 @@ class BedwarsSettingsTest {
         assertEquals(Arrays.asList("Archway", "Paladin"), settings.mapsOf("ffa"));
         assertEquals(Collections.singletonList("Archway"), settings.mapsOf("free-ffa"));
         assertEquals(Arrays.asList("Invasion", "Lectus", "Archway"), settings.mapsOf("invis-practice"));
-        assertEquals(Arrays.asList("Archway", "Invasion", "Lectus", "Extinction", "Paladin", "Rise"),
-                settings.mapsOf("ranked-2v2"));
+        assertEquals(Arrays.asList("Antenna", "Aquarium", "Archway", "Artemis", "Boletum", "Carapace", "Catalyst",
+                "Chained", "Eastwood", "Extinction", "Invasion", "Katsu", "Lectus", "Obelisk", "Paladin", "Planet98", "Rise",
+                "Stonekeep", "Swashbuckle", "Treenan"), settings.mapsOf("ranked-2v2"), "the maps of the RBW queue");
+        assertEquals(settings.mapsOf("ranked-2v2"), settings.mapsOf("ranked-4v4"));
         assertEquals(Collections.singletonList("SkyRise"), settings.mapsOf("skyrise-1v1"));
         assertEquals(10, settings.mapsOf("first-rush").size());
         assertEquals(settings.mapsOf("first-rush"), settings.mapsOf("first-rush-duo"));

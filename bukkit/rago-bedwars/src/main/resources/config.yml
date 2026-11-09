@@ -6,12 +6,13 @@
 # names of their world folders, or toutes for every map. A map needs at least as many complete
 # teams as the mode has teams. A map that is not on the server is skipped; a mode none of whose maps is ready plays on the demo map.
 # With two maps or more, the players choose theirs when they join the queue, or take any map (the
-# ranked modes always draw the map at random).
+# ranked modes always draw the map at random). The ranked modes play on the 20 maps of the RBW
+# queue, each with the build limit of the queue (hauteur-max in its bedwars.yml).
 modes:
-  ranked-1v1: [Archway, Invasion, Lectus, Extinction, Paladin, Rise]
-  ranked-2v2: [Archway, Invasion, Lectus, Extinction, Paladin, Rise]
-  ranked-3v3: [Archway, Invasion, Lectus, Extinction, Paladin, Rise]
-  ranked-4v4: [Archway, Invasion, Lectus, Extinction, Paladin, Rise]
+  ranked-1v1: [Antenna, Aquarium, Archway, Artemis, Boletum, Carapace, Catalyst, Chained, Eastwood, Extinction, Invasion, Katsu, Lectus, Obelisk, Paladin, Planet98, Rise, Stonekeep, Swashbuckle, Treenan]
+  ranked-2v2: [Antenna, Aquarium, Archway, Artemis, Boletum, Carapace, Catalyst, Chained, Eastwood, Extinction, Invasion, Katsu, Lectus, Obelisk, Paladin, Planet98, Rise, Stonekeep, Swashbuckle, Treenan]
+  ranked-3v3: [Antenna, Aquarium, Archway, Artemis, Boletum, Carapace, Catalyst, Chained, Eastwood, Extinction, Invasion, Katsu, Lectus, Obelisk, Paladin, Planet98, Rise, Stonekeep, Swashbuckle, Treenan]
+  ranked-4v4: [Antenna, Aquarium, Archway, Artemis, Boletum, Carapace, Catalyst, Chained, Eastwood, Extinction, Invasion, Katsu, Lectus, Obelisk, Paladin, Planet98, Rise, Stonekeep, Swashbuckle, Treenan]
   skyrise-1v1: [SkyRise]
   skyrise-2v2: [SkyRise]
   first-rush: [Acropolis, Ambush, Aqil, Cascade, Crogorm, Frosted, Gelato, Lighthouse, Lotus, Nebuc]

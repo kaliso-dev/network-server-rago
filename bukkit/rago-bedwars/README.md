@@ -165,8 +165,10 @@ un générateur (le plus proche, à 5 blocs), `/bw disable` ferme la map. Chaque
 enregistré tout de suite ; les parties en cours gardent la map comme elle était.
 
 **Les maps de chaque mode** : dans `modes:` du config.yml, chaque mode a sa liste de maps (les noms
-de leurs dossiers), ou `toutes`. Par défaut : les Ranked sur Archway, Invasion, Lectus, Extinction,
-Paladin et Rise ; RBW Sky Rise sur SkyRise ; First Rush sur Acropolis, Ambush, Aqil, Cascade,
+de leurs dossiers), ou `toutes`. Par défaut : les Ranked sur les 20 maps de la file RBW (Antenna,
+Aquarium, Archway, Artemis, Boletum, Carapace, Catalyst, Chained, Eastwood, Extinction, Invasion,
+Katsu, Lectus, Obelisk, Paladin, Planet98, Rise, Stonekeep, Swashbuckle, Treenan), chacune avec la
+hauteur limite de la file (`hauteur-max` dans son `bedwars.yml`) ; RBW Sky Rise sur SkyRise ; First Rush sur Acropolis, Ambush, Aqil, Cascade,
 Crogorm, Frosted, Gelato, Lighthouse, Lotus et Nebuc. Une map absente du serveur est sautée (la
 console le dit au démarrage). Quand un mode a deux maps prêtes ou plus, le joueur **choisit sa
 map** en cliquant le mode dans le sélecteur (ou `/queue first-rush Gelato`), ou prend « Random
