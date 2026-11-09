@@ -3,19 +3,23 @@ package gg.rago.game;
 import java.util.BitSet;
 
 /**
- * The arena slots of a game server: zones on a line in an empty world, far enough apart that
- * players of two games never see each other (the 1.8 tracking range of a player is 48 blocks).
+ * The arena slots of a game server: zones on a line in an empty world, usually far enough apart
+ * that players of two games never see each other (the 1.8 tracking range of a player is 48
+ * blocks); closer for a mode whose players should see their neighbours (the block clutch islands).
  * A match takes the lowest free slot and gives it back at the end. Not thread-safe (main thread).
  */
 public final class ArenaGrid {
+
+    /** The zones are this far apart at least: a small island each. */
+    public static final int MIN_SPACING = 16;
 
     private final int slots;
     private final int spacing;
     private final BitSet used = new BitSet();
 
     public ArenaGrid(int slots, int spacing) {
-        if (slots < 1 || spacing < 100) {
-            throw new IllegalArgumentException("at least one slot, 100 blocks apart or more");
+        if (slots < 1 || spacing < MIN_SPACING) {
+            throw new IllegalArgumentException("at least one slot, " + MIN_SPACING + " blocks apart or more");
         }
         this.slots = slots;
         this.spacing = spacing;

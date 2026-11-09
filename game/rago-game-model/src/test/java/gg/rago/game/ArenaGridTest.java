@@ -42,6 +42,7 @@ class ArenaGridTest {
         assertThrows(IllegalArgumentException.class, () -> grid.release(0));
         assertThrows(IllegalArgumentException.class, () -> grid.release(5));
         assertThrows(IllegalArgumentException.class, () -> new ArenaGrid(0, 200));
-        assertThrows(IllegalArgumentException.class, () -> new ArenaGrid(2, 50));
+        assertThrows(IllegalArgumentException.class, () -> new ArenaGrid(2, 10));
+        assertEquals(28, new ArenaGrid(2, 28).centreX(1), "islands side by side, as the block clutch's");
     }
 }

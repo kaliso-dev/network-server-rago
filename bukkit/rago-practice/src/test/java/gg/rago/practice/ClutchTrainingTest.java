@@ -39,5 +39,6 @@ class ClutchTrainingTest {
         assertTrue(ClutchTraining.PLACE_ALONG >= 10, "the whole platform");
         assertTrue(2 * ClutchTraining.PLACE_ALONG < ClutchTraining.SPACING, "never on the next zone");
         assertTrue(ClutchTraining.SPACING <= 32, "close enough to see the others");
+        assertTrue(ClutchTraining.SPACING >= gg.rago.game.ArenaGrid.MIN_SPACING, "a grid of zones takes it");
     }
 }
