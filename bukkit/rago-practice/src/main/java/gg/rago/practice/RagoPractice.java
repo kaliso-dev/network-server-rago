@@ -81,6 +81,7 @@ public final class RagoPractice extends JavaPlugin {
         getServer().getPluginManager().registerEvents(games, this);
         registerModes(config, world, slots, spacing);
         getCommand("aimtop").setExecutor(new AimTop(this));
+        getCommand("speed").setExecutor(new SpeedCommand(this));
         getLogger().info("Arenas in the world " + world.getName() + ": " + slots + " games of each mode at once at most. Modes: "
                 + String.join(", ", hosted));
     }
@@ -542,5 +543,10 @@ public final class RagoPractice extends JavaPlugin {
 
     Records records() {
         return records;
+    }
+
+    /** The running practice games, or null while the plugin is off. */
+    PracticeGames games() {
+        return games;
     }
 }

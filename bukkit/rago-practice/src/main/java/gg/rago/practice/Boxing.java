@@ -1,7 +1,9 @@
 package gg.rago.practice;
 
 import gg.rago.game.GameMode;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 import java.util.UUID;
 import org.bukkit.ChatColor;
 import org.bukkit.Location;
@@ -17,9 +19,12 @@ import org.bukkit.potion.PotionEffectType;
  * Boxing, as on Minemen: on one of the Minemen arenas of the server (see {@link MapZones}), or a
  * closed ring without them, with Speed II and a sword that does no damage, the first to land 100
  * hits wins. Every hit gives the knockback of a real one; the sidebar counts the hits
- * and the combo.
+ * and the combo. /speed takes the Speed off, or gives it back, for each player.
  */
 final class Boxing extends Duel {
+
+    /** Who took the Speed off with /speed: it holds for their next boxing games, until a restart. */
+    private static final Set<UUID> WITHOUT_SPEED = new HashSet<>();
 
     private final int[] hits = new int[2];
     private final int[] combo = new int[2];
@@ -80,7 +85,35 @@ final class Boxing extends Duel {
 
     @Override
     void effects(Player player) {
-        player.addPotionEffect(new PotionEffect(PotionEffectType.SPEED, Integer.MAX_VALUE, 1, false), true);
+        if (hasSpeed(player.getUniqueId())) {
+            player.addPotionEffect(new PotionEffect(PotionEffectType.SPEED, Integer.MAX_VALUE, 1, false), true);
+        }
+    }
+
+    static boolean hasSpeed(UUID player) {
+        return !WITHOUT_SPEED.contains(player);
+    }
+
+    /** /speed: the Speed of the player off when they had it, back on otherwise. True when they have it now. */
+    static boolean toggleSpeed(UUID player) {
+        if (WITHOUT_SPEED.remove(player)) {
+            return true;
+        }
+        WITHOUT_SPEED.add(player);
+        return false;
+    }
+
+    /** /speed from a player of this game: the change counts at once. */
+    void speed(Player player) {
+        boolean on = toggleSpeed(player.getUniqueId());
+        if (phase != Phase.ENDED && sideOf(player.getUniqueId()) >= 0) {
+            if (on) {
+                effects(player);
+            } else {
+                player.removePotionEffect(PotionEffectType.SPEED);
+            }
+        }
+        player.sendMessage(SpeedCommand.line(on));
     }
 
     @Override

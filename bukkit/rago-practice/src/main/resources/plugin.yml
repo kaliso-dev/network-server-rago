@@ -9,3 +9,6 @@ commands:
     description: The best scores of the aim trainer.
     usage: /aimtop [strafe|jump|circle]
     aliases: [topaim]
+  speed:
+    description: Take the Speed II of the boxing off, or get it back.
+    usage: /speed

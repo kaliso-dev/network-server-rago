@@ -605,6 +605,7 @@ modes:
     description:
       - "First to 100 hits,"
       - "to work on your combos."
+      - "/speed: Speed II off or on."
   block-edit-duel:
     nom: "&bBlock edit 1v1"
     categorie: duels
