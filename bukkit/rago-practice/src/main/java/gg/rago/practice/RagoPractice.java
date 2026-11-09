@@ -17,10 +17,10 @@ import org.bukkit.configuration.file.FileConfiguration;
 import org.bukkit.plugin.java.JavaPlugin;
 
 /**
- * RagoPractice: the practice modes played from the lobby. Duels (sumo, boxing, KB displace, bridge
- * fight, block fight, top fight, attack and defense, fireball fight), the trainings (clutch, block
- * in, fast defense, extends, ladder clutch, pearls, fireballs, aim), the bots, and the open block
- * placement arena, each in zones of an empty world. See the module README.
+ * RagoPractice: the practice modes played from the lobby. Duels (sumo, boxing, KB displace, block
+ * fight, top fight, attack and defense, fireball fight), the trainings (clutch, block in, fast
+ * defense, extends, ladder clutch, pearls, fireballs, aim), the bots, and the open arenas (block
+ * placement, bridge fight), each in zones of an empty world. See the module README.
  */
 public final class RagoPractice extends JavaPlugin {
 
@@ -130,7 +130,6 @@ public final class RagoPractice extends JavaPlugin {
     private void registerModes(FileConfiguration config, World world, int slots, int spacing) {
         int boxing = config.getInt("points-pour-gagner.boxing", 100);
         int kb = config.getInt("points-pour-gagner.kb-displace", 3);
-        int bridge = config.getInt("points-pour-gagner.bridge-fight", 3);
         int blocks = config.getInt("points-pour-gagner.block-fight", 5);
         int top = config.getInt("points-pour-gagner.top-fight", 3);
         int build = config.getInt("attaque-defense.construction-secondes", 30);
@@ -142,7 +141,6 @@ public final class RagoPractice extends JavaPlugin {
 
         register("boxing", (h, m, a, t) -> new Boxing(h, m, a, t, boxing), slots, spacing, false);
         register("kb-displace", (h, m, a, t) -> new KbDisplace(h, m, a, t, kb), slots, spacing, false);
-        register("bridge-fight", (h, m, a, t) -> new BridgeFight(h, m, a, t, bridge), slots, spacing, false);
         register("block-fight-1v1", (h, m, a, t) -> new BlockFight(h, m, a, t, blocks), slots, spacing, false);
         register("block-fight-2v2", (h, m, a, t) -> new BlockFight(h, m, a, t, blocks), slots, spacing, false);
         register("top-fight-1v1", (h, m, a, t) -> new TopFight(h, m, a, t, top), slots, spacing, false);
@@ -163,6 +161,7 @@ public final class RagoPractice extends JavaPlugin {
         register("combo-bot", ComboBot::new, slots, spacing, false);
         register("kb-displace-bot", KbDisplaceBot::new, slots, spacing, false);
         register("block-fight-arena", BlockArena::new, slots, spacing, true);
+        register("bridge-fight", BridgeArena::new, slots, spacing, true);
         register("scenarios-ranked", RankedScenarios::new, slots, spacing, false);
         register("clutch-top-fight", (h, m, a, t) -> new ClutchTraining(h, m, a, t, true), slots, ClutchTraining.SPACING, false);
     }
@@ -380,7 +379,6 @@ public final class RagoPractice extends JavaPlugin {
         String[][] ranges = {
             {"points-pour-gagner.boxing", "100", "10", "500"},
             {"points-pour-gagner.kb-displace", "3", "1", "10"},
-            {"points-pour-gagner.bridge-fight", "3", "1", "10"},
             {"points-pour-gagner.block-fight", "5", "1", "20"},
             {"points-pour-gagner.top-fight", "3", "1", "10"},
             {"attaque-defense.construction-secondes", "30", "5", "120"},

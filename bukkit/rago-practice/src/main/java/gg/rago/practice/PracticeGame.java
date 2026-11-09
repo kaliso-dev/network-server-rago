@@ -206,6 +206,10 @@ abstract class PracticeGame {
     void interact(Player player, PlayerInteractEvent event) {
     }
 
+    /** The player clicked this slot of a {@link GameMenu} the game opened for them. */
+    void menuClick(Player player, int slot) {
+    }
+
     /** A player hit an entity of the game (a target, a bot...). Default: nothing happens. */
     void hitEntity(Player attacker, Entity target, EntityDamageEvent event) {
         event.setCancelled(true);

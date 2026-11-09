@@ -340,13 +340,14 @@ modes:
     nom: "&bBridge fight"
     categorie: ranked
     icone: WOOL
-    equipes: 2
+    equipes: 1
     joueurs-par-equipe: 1
     classe: false
     kit: [STONE_SWORD, "WOOL 64", "WOOL 64", SHEARS, "GOLDEN_APPLE 2"]
     description:
-      - "A fight on a bridge between two"
-      - "islands, a realistic Bedwars platform."
+      - "Open to everyone: four wool"
+      - "platforms, pick yours with the"
+      - "compass, come back next to it."
   block-fight-1v1:
     nom: "&bBlock placement 1v1"
     categorie: ranked

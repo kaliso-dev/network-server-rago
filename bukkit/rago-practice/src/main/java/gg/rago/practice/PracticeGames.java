@@ -35,6 +35,8 @@ import org.bukkit.event.entity.ItemSpawnEvent;
 import org.bukkit.event.entity.PlayerDeathEvent;
 import org.bukkit.event.entity.ProjectileHitEvent;
 import org.bukkit.event.entity.ProjectileLaunchEvent;
+import org.bukkit.event.inventory.InventoryClickEvent;
+import org.bukkit.event.inventory.InventoryDragEvent;
 import org.bukkit.event.player.PlayerAnimationEvent;
 import org.bukkit.event.player.PlayerArmorStandManipulateEvent;
 import org.bukkit.event.player.PlayerBucketEmptyEvent;
@@ -603,6 +605,37 @@ final class PracticeGames implements Listener {
             event.getDrops().clear();
             event.setDroppedExp(0);
             game.entityDied(event.getEntity());
+        }
+    }
+
+    /** The menus of the games: nothing in them moves, a click goes to the game. */
+    @EventHandler(priority = EventPriority.LOW)
+    public void onMenuClick(InventoryClickEvent event) {
+        if (!(event.getView().getTopInventory().getHolder() instanceof GameMenu)) {
+            return;
+        }
+        event.setCancelled(true);
+        GameMenu menu = (GameMenu) event.getView().getTopInventory().getHolder();
+        if (!(event.getWhoClicked() instanceof Player)) {
+            return;
+        }
+        Player player = (Player) event.getWhoClicked();
+        int slot = event.getRawSlot();
+        if (byPlayer.get(player.getUniqueId()) == menu.game && menu.game.phase != PracticeGame.Phase.ENDED
+                && slot >= 0 && slot < event.getView().getTopInventory().getSize()) {
+            // the menu closes and the player moves after the click is over, not inside it
+            Bukkit.getScheduler().runTask(plugin, () -> {
+                if (byPlayer.get(player.getUniqueId()) == menu.game && menu.game.phase != PracticeGame.Phase.ENDED) {
+                    menu.game.menuClick(player, slot);
+                }
+            });
+        }
+    }
+
+    @EventHandler(priority = EventPriority.LOW)
+    public void onMenuDrag(InventoryDragEvent event) {
+        if (event.getView().getTopInventory().getHolder() instanceof GameMenu) {
+            event.setCancelled(true);
         }
     }
 

@@ -41,7 +41,6 @@ sumo:
 points-pour-gagner:
   boxing: 100
   kb-displace: 3
-  bridge-fight: 3
   block-fight: 5
   top-fight: 3
 

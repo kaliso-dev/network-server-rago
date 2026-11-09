@@ -1,7 +1,8 @@
 # RagoPractice : les modes d'entraînement
 
 Un plugin Bukkit 1.8.8 qui joue les modes d'entraînement du lobby (`bukkit/rago-lobby`) : les
-duels, les entraînements en solo, l'arène ouverte de block placement et les scénarios classés.
+duels, les entraînements en solo, les arènes ouvertes (block placement, bridge fight) et les
+scénarios classés.
 Chaque mode prend son kit dans l'éditeur de kit du lobby, rangé comme le joueur l'a laissé.
 
 ## Les duels
@@ -18,9 +19,6 @@ stats du lobby. Quitter le serveur ou taper `/spawn` pendant le duel, c'est perd
   100 coups gagne. Le scoreboard compte les coups et le combo.
 - **KB displace** : un pont d'un bloc au-dessus du vide, que du knockback ; faire tomber l'autre,
   se rattraper avec sa laine. Premier à 3.
-- **Bridge fight** : deux îles de Bed Wars à 27 blocs, en stuff de Ranked Bedwars (armure de fer,
-  épée en pierre, laine, cisailles, pommes d'or) ; on bridge et on se bat sur le pont, vrais
-  dégâts. Premier à 3.
 - **Block placement 1v1 et 2v2**, comme le BlockFight de Minemen : deux petites plateformes au-dessus
   du vide, une épée en bois et des blocs sans fin ; construire, clutch, se bloquer, faire tomber.
   Premier à 5.
@@ -82,6 +80,18 @@ et chaque variante son record : le meilleur score du joueur et celui du serveur,
 Ouverte à tous : on entre et on sort quand on veut, une grande plateforme et quatre îles au-dessus
 du vide, du grès sans fin, le kit du block fight. On revient tout de suite après une chute ou une
 mort, les blocs posés partent au bout de 15 secondes, les kills comptent dans les stats du mode.
+
+## Le bridge fight
+
+Ouvert à tous, comme l'arène de block placement : quatre plateformes de laine côte à côte au-dessus
+du vide, chacune de deux couleurs comme une plateforme de top fight (bleu et jaune, rouge et blanc,
+orange et noir, vert et vert clair), en stuff de Ranked Bedwars (armure de fer, épée en pierre,
+laine, cisailles, pommes d'or), vrais dégâts. On arrive sur la plateforme où il y a le moins de
+monde ; la boussole ouvre un menu pour en changer (pas pendant un combat). Après une mort ou une
+chute, on revient à côté de sa plateforme, sur un petit carré à l'un de ses bouts, à trois blocs :
+on bridge dessus et on se bat. La laine et l'armure en cuir prennent la couleur de ce bout. Trois
+secondes sans dégâts au retour, sauf si on frappe le premier. Les blocs posés partent au bout de
+30 secondes, les kills comptent dans les stats du mode.
 
 ## Les scénarios classés
 
