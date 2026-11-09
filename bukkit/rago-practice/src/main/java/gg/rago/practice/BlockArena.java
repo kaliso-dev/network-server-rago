@@ -20,19 +20,31 @@ import org.bukkit.entity.Player;
 import org.bukkit.event.block.BlockPlaceEvent;
 import org.bukkit.event.entity.EntityDamageEvent;
 import org.bukkit.inventory.ItemStack;
+import org.bukkit.util.Vector;
 
 /**
  * The block placement arena, open to everyone: one arena where the players join and leave when
- * they like, a big platform and four islands over the void, endless sandstone, the block fight
- * kit. Knock the others off or kill them; you come back at once somewhere on the platform. The
- * blocks placed go away after fifteen seconds, so that the arena never fills up. The kills count
- * in the stats of the mode.
+ * they like, endless sandstone, the block fight kit. On the owner's arena (block-fight-arena.cartes
+ * in config.yml: the green arena in its walls) the players come in anywhere on the grass, and its
+ * slime blocks throw whoever stands on them three blocks up and two forward, the way they look:
+ * the way out of the black pit in the corner. Without it, a big platform and four islands over
+ * the void. Knock the others off or kill them; you come back at once. The blocks placed go away
+ * after fifteen seconds, so that the arena never fills up. The kills count in the stats of the mode.
  */
 final class BlockArena extends PracticeGame {
 
     private static final int DECAY_TICKS = 300;
     private static final int HALF = 10;
     private static final int ISLAND = 19;
+    /** On the map: the players come in this far at most from the centre, on the floor. */
+    private static final int SPREAD = 30;
+    /** The throw of a slime block: three blocks up, two forward. */
+    static final double LAUNCH_UP = 0.7;
+    static final double LAUNCH_FORWARD = 0.25;
+    /** Ticks before the same player is thrown again. */
+    private static final int LAUNCH_PAUSE = 10;
+    /** The id of the slime block. */
+    static final int SLIME_ID = 165;
     private static final Color[] COLOURS = {Color.RED, Color.BLUE, Color.LIME, Color.YELLOW, Color.AQUA, Color.WHITE,
         Color.FUCHSIA, Color.ORANGE, Color.GRAY, Color.PURPLE};
 
@@ -41,13 +53,20 @@ final class BlockArena extends PracticeGame {
     private final Deque<Object[]> decaying = new ArrayDeque<>();
     private final Map<UUID, Integer> kills = new HashMap<>();
     private final Map<UUID, Integer> streaks = new HashMap<>();
+    /** The slime blocks of the map (x, y, z from the centre): they throw the players. */
+    private final List<int[]> pads;
+    private final Map<UUID, Integer> launched = new HashMap<>();
 
     BlockArena(PracticeHost host, GameMode mode, Arena arena, List<List<Player>> teams) {
         super(host, mode, arena, teams);
+        this.pads = arena.map() != null ? arena.map().copy.find(SLIME_ID) : new ArrayList<>();
     }
 
     @Override
     void build() {
+        if (arena.map() != null) {
+            return;
+        }
         Shapes.island(arena, -HALF, -HALF, HALF, HALF, Material.SANDSTONE, 2, Material.SANDSTONE, 0);
         for (int sx = -1; sx <= 1; sx += 2) {
             for (int sz = -1; sz <= 1; sz += 2) {
@@ -60,9 +79,40 @@ final class BlockArena extends PracticeGame {
 
     @Override
     Location spawnOf(UUID player) {
+        if (arena.map() != null) {
+            return mapSpawn();
+        }
         double x = random.nextInt(2 * HALF - 3) - HALF + 2 + 0.5;
         double z = random.nextInt(2 * HALF - 3) - HALF + 2 + 0.5;
         return arena.at(x, 1, z, random.nextInt(360) - 180f);
+    }
+
+    /** Somewhere on the floor of the map, with room to stand; the centre if no try finds one. */
+    private Location mapSpawn() {
+        for (int i = 0; i < 30; i++) {
+            int x = random.nextInt(2 * SPREAD + 1) - SPREAD;
+            int z = random.nextInt(2 * SPREAD + 1) - SPREAD;
+            if (arena.block(x, 0, z).getType().isSolid() && arena.block(x, 1, z).isEmpty() && arena.block(x, 2, z).isEmpty()) {
+                return arena.at(x + 0.5, 1, z + 0.5, random.nextInt(360) - 180f);
+            }
+        }
+        return arena.at(0.5, 1, 0.5, random.nextInt(360) - 180f);
+    }
+
+    /**
+     * True if feet at (x, y, z) from the centre stand on this slime block (x, y, z from the
+     * centre): the player, 0.6 wide, over its top, or just above it.
+     */
+    static boolean onPad(double x, double y, double z, int[] pad) {
+        double top = pad[1] + 1;
+        return y >= top - 0.01 && y <= top + 0.5 && x + 0.3 > pad[0] && x - 0.3 < pad[0] + 1
+                && z + 0.3 > pad[2] && z - 0.3 < pad[2] + 1;
+    }
+
+    /** The throw of a slime block for a player looking along this yaw: x, y, z. */
+    static double[] launch(float yaw) {
+        double r = Math.toRadians(yaw);
+        return new double[] {-Math.sin(r) * LAUNCH_FORWARD, LAUNCH_UP, Math.cos(r) * LAUNCH_FORWARD};
     }
 
     @Override
@@ -114,6 +164,9 @@ final class BlockArena extends PracticeGame {
 
     @Override
     boolean canPlace(Player player, Block block, BlockPlaceEvent event) {
+        if (arena.map() != null) {
+            return arena.contains(block, 50, 4, 18);
+        }
         return arena.contains(block, ISLAND + 8, 12, 14);
     }
 
@@ -124,10 +177,34 @@ final class BlockArena extends PracticeGame {
 
     @Override
     void tick() {
+        if (!pads.isEmpty()) {
+            launchPads();
+        }
         while (!decaying.isEmpty() && tickCount - (Integer) decaying.peekFirst()[1] >= DECAY_TICKS) {
             Block block = (Block) decaying.pollFirst()[0];
             if (arena.isPlaced(block)) {
                 arena.restore(block);
+            }
+        }
+    }
+
+    /** Whoever stands on a slime block of the map goes three blocks up and two forward. */
+    private void launchPads() {
+        for (Player player : online()) {
+            Integer last = launched.get(player.getUniqueId());
+            if (last != null && tickCount - last < LAUNCH_PAUSE) {
+                continue;
+            }
+            double[] feet = arena.offset(player.getLocation());
+            for (int[] pad : pads) {
+                if (onPad(feet[0], feet[1], feet[2], pad)) {
+                    double[] throw_ = launch(player.getLocation().getYaw());
+                    player.setVelocity(new Vector(throw_[0], throw_[1], throw_[2]));
+                    player.setFallDistance(0f);
+                    sound(player, Sound.SLIME_WALK, 1f);
+                    launched.put(player.getUniqueId(), tickCount);
+                    break;
+                }
             }
         }
     }
@@ -183,6 +260,7 @@ final class BlockArena extends PracticeGame {
         UUID id = player.getUniqueId();
         host.release(id);
         streaks.remove(id);
+        launched.remove(id);
         if (phase != Phase.ENDED) {
             if (online().isEmpty()) {
                 finish(-1, null);

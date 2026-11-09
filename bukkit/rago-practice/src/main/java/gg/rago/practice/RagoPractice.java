@@ -32,6 +32,8 @@ public final class RagoPractice extends JavaPlugin {
     static final int FIRST_ROW_Z = 1000;
     /** The rows of two modes are this far apart. */
     static final int ROW_SPACING = 400;
+    /** The id of the gold block: a marker on the owner's maps. */
+    static final int GOLD_ID = 41;
     /** The file that says the arena world is the plugin's own: it is made again at each start. */
     static final String MARKER = "rago-arenas.txt";
 
@@ -169,7 +171,9 @@ public final class RagoPractice extends JavaPlugin {
         register("aim-trainer", (h, m, a, t) -> new AimTrainer(h, m, a, t, aimXp, aimHits), slots, spacing, false);
         onMaps(register("combo-bot", ComboBot::new, slots, spacing, false), arenas);
         register("kb-displace-bot", KbDisplaceBot::new, slots, spacing, false);
-        register("block-fight-arena", BlockArena::new, slots, spacing, true);
+        List<MapZones.ZoneMap> arenaMaps = withoutBlocks(zoneMaps(config, "block-fight-arena.cartes", spacing,
+                "the block placement arena"), GOLD_ID);
+        onMaps(register("block-fight-arena", BlockArena::new, slots, spacing, true), arenaMaps);
         register("bridge-fight", BridgeArena::new, slots, spacing, true);
         register("scenarios-ranked", RankedScenarios::new, slots, spacing, false);
         register("clutch-top-fight", (h, m, a, t) -> new ClutchTraining(h, m, a, t, true), slots, ClutchTraining.SPACING, false);
@@ -557,6 +561,15 @@ public final class RagoPractice extends JavaPlugin {
         hosted.add("(" + modeId + ")");
         getLogger().warning("The lobby has no mode \"" + modeId + "\" in its config.yml: it stays closed.");
         return null;
+    }
+
+    /** The maps without their blocks of this id (the gold that only marks the middle). */
+    static List<MapZones.ZoneMap> withoutBlocks(List<MapZones.ZoneMap> maps, int id) {
+        List<MapZones.ZoneMap> kept = new ArrayList<>();
+        for (MapZones.ZoneMap map : maps) {
+            kept.add(new MapZones.ZoneMap(map.name, map.copy.without(map.copy.find(id)), map.starts));
+        }
+        return kept;
     }
 
     /** The mode plays on these maps, if it is open and there are some. */

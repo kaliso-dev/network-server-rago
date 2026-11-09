@@ -139,4 +139,65 @@ class BlockMapsTest {
         assertEquals(41 << 4, copy.blockAt(0, 0, 0), "the copy itself is left as it was");
         assertEquals(0, played.blockAt(7, 7, 7));
     }
+
+    @Test
+    void theBundledArenaIsTheGreenOneInItsWalls() {
+        YamlConfiguration config = bundled();
+        List<Map<?, ?>> maps = config.getMapList("block-fight-arena.cartes");
+        assertEquals(1, maps.size());
+        assertNull(RagoPractice.checkZoneMap(maps.get(0), config.getInt("espacement")));
+        assertEquals("Arena", maps.get(0).get("monde"));
+    }
+
+    @Test
+    void theSlimeThrowsWhoeverStandsOnIt() {
+        int[] pad = {36, -2, -37};
+        // on its top, in the middle, at an edge, a bit above it
+        assertTrue(BlockArena.onPad(36.5, -1, -36.5, pad));
+        assertTrue(BlockArena.onPad(35.8, -1, -36.5, pad));
+        assertTrue(BlockArena.onPad(36.5, -0.6, -36.5, pad));
+        // beside it on the floor of the pit, off it, high above it, on the grass
+        assertTrue(!BlockArena.onPad(35.6, -2, -36.5, pad));
+        assertTrue(!BlockArena.onPad(38.0, -1, -36.5, pad));
+        assertTrue(!BlockArena.onPad(36.5, 0.2, -36.5, pad));
+        assertTrue(!BlockArena.onPad(36.5, 1, -36.5, pad));
+    }
+
+    @Test
+    void theSlimeThrowsUpAndTheWayThePlayerLooks() {
+        // yaw 0: south, +z; 90: west, -x
+        double[] south = BlockArena.launch(0f);
+        assertEquals(0, south[0], 1e-9);
+        assertEquals(BlockArena.LAUNCH_FORWARD, south[2], 1e-9);
+        double[] west = BlockArena.launch(90f);
+        assertEquals(-BlockArena.LAUNCH_FORWARD, west[0], 1e-9);
+        assertEquals(0, west[2], 1e-9);
+        assertEquals(BlockArena.LAUNCH_UP, west[1], 1e-9);
+        // the client's own physics: three blocks up, about two forward when back on a floor two above
+        double y = 0;
+        double x = 0;
+        double vy = BlockArena.LAUNCH_UP;
+        double vx = BlockArena.LAUNCH_FORWARD;
+        double top = 0;
+        do {
+            y += vy;
+            x += vx;
+            vy = (vy - 0.08) * 0.98;
+            vx *= 0.91;
+            top = Math.max(top, y);
+        } while (vy > 0 || y > 2);
+        assertTrue(top > 3 && top < 3.3, "up " + top);
+        assertTrue(x > 1.8 && x < 2.4, "forward " + x);
+    }
+
+    @Test
+    void theGoldMarkerOfTheArenaGoes() {
+        MapCopy copy = MapCopy.of(0, 0, 0, 2, 0, 0, 1, 0, 41, 0, 36, -2, -37, 165, 0);
+        List<MapZones.ZoneMap> maps = RagoPractice.withoutBlocks(
+                java.util.Collections.singletonList(new MapZones.ZoneMap("Arena", copy)), RagoPractice.GOLD_ID);
+        MapCopy kept = maps.get(0).copy;
+        assertEquals(2, kept.size());
+        assertEquals(0, kept.blockAt(0, 1, 0));
+        assertEquals(1, kept.find(BlockArena.SLIME_ID).size());
+    }
 }

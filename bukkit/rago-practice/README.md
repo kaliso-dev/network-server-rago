@@ -123,9 +123,14 @@ et chaque variante son record : le meilleur score du joueur et celui du serveur,
 
 ## L'arène de block placement
 
-Ouverte à tous : on entre et on sort quand on veut, une grande plateforme et quatre îles au-dessus
-du vide, du grès sans fin, le kit du block fight. On revient tout de suite après une chute ou une
-mort, les blocs posés partent au bout de 15 secondes, les kills comptent dans les stats du mode.
+Ouverte à tous : on entre et on sort quand on veut, du grès sans fin, le kit du block fight. Elle
+se joue sur l'arène du propriétaire (`block-fight-arena.cartes` dans `config.yml`, le monde
+`Arena`) : l'arène verte dans ses murs de barrières, copiée une fois. On arrive n'importe où sur
+l'herbe ; le bloc de slime du cube noir, dans le coin, projette celui qui monte dessus 3 blocs en
+haut et 2 devant lui (là où il regarde), pour sortir du trou. Le bloc d'or du milieu ne sert que de
+repère : il n'est pas copié. Sans ce monde, une grande plateforme et quatre îles au-dessus du vide.
+On revient tout de suite après une chute ou une mort, les blocs posés partent au bout de
+15 secondes, les kills comptent dans les stats du mode.
 
 ## Le bridge fight
 

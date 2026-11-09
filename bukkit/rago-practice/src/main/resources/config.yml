@@ -105,6 +105,17 @@ block-fight:
       zone: [937103, 87, 937103, 937151, 108, 937153]
       departs: [[937127, 91, 937114, 0], [937127, 91, 937142, 180]]
 
+# The block placement arena (open to everyone) plays on this map of the owner: its green arena in
+# its walls of barriers. The players come in anywhere on the grass; its slime blocks (the one in the
+# black pit of the corner) throw whoever stands on them three blocks up and two forward. Its gold
+# blocks (the one in the middle) only mark it and go. Without that world: a platform and four
+# islands over the void.
+block-fight-arena:
+  cartes:
+    - monde: "Arena"
+      centre: [-85, 102, 93]
+      zone: [-126, 99, 52, -45, 120, 137]
+
 # The fireball fight plays on these maps of the owner, as the boxing on its arenas: "departs",
 # where each side starts (x, y of the feet, z, yaw). The beds are the map's own: each bed belongs
 # to the side whose start is nearer. Without maps: two islands of the plugin's own.
