@@ -155,6 +155,7 @@ public final class RagoPractice extends JavaPlugin {
         register("combo-bot", ComboBot::new, slots, spacing, false);
         register("kb-displace-bot", KbDisplaceBot::new, slots, spacing, false);
         register("block-fight-arena", BlockArena::new, slots, spacing, true);
+        register("scenarios-ranked", RankedScenarios::new, slots, spacing, false);
     }
 
     private void register(String modeId, PracticeHost.Factory factory, int slots, int spacing, boolean open) {
