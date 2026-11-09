@@ -16,6 +16,10 @@ import java.util.Map;
 import java.util.Set;
 import java.util.UUID;
 import java.util.WeakHashMap;
+import java.util.concurrent.CancellationException;
+import java.util.concurrent.ExecutionException;
+import java.util.concurrent.TimeUnit;
+import java.util.concurrent.TimeoutException;
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
 import org.bukkit.Location;
@@ -60,6 +64,7 @@ import org.bukkit.event.inventory.CraftItemEvent;
 import org.bukkit.event.inventory.InventoryClickEvent;
 import org.bukkit.event.inventory.InventoryDragEvent;
 import org.bukkit.event.inventory.InventoryType;
+import org.bukkit.event.player.AsyncPlayerChatEvent;
 import org.bukkit.event.player.PlayerArmorStandManipulateEvent;
 import org.bukkit.event.player.PlayerBucketEmptyEvent;
 import org.bukkit.event.player.PlayerBucketFillEvent;
@@ -940,6 +945,64 @@ final class BedwarsHost implements MatchHost, Listener {
         Player player = event.getPlayer();
         if (games.containsKey(player.getUniqueId()) && playing(player) == null) {
             event.setCancelled(true);
+        }
+    }
+
+    // --- Chat -----------------------------------------------------------------------------------
+
+    /**
+     * Each game has its own chat, as on Hypixel: the lobby does not hear it, nor it the lobby. In a
+     * team game, a player talks to their team, or to everyone with "!" first; the eliminated talk
+     * among the spectators. The chat runs on its own threads: who hears is worked out on the main one.
+     */
+    @EventHandler(priority = EventPriority.HIGHEST, ignoreCancelled = true)
+    public void onChat(final AsyncPlayerChatEvent event) {
+        if (!event.isAsynchronous()) {
+            route(event);
+            return;
+        }
+        try {
+            Bukkit.getScheduler().callSyncMethod(plugin, () -> {
+                route(event);
+                return null;
+            }).get(2, TimeUnit.SECONDS);
+        } catch (InterruptedException e) {
+            Thread.currentThread().interrupt();
+        } catch (ExecutionException | TimeoutException | CancellationException e) {
+            // the server is stopping or too busy: the message goes as it is
+        }
+    }
+
+    /** Main thread: who hears this message, and how it reads. */
+    private void route(AsyncPlayerChatEvent event) {
+        Player sender = event.getPlayer();
+        final BedwarsGame game = games.get(sender.getUniqueId());
+        if (game == null) {
+            event.getRecipients().removeIf(player -> games.containsKey(player.getUniqueId()));
+            return;
+        }
+        event.getRecipients().removeIf(player -> games.get(player.getUniqueId()) != game);
+        final Gamer gamer = game.gamer(sender.getUniqueId());
+        if (gamer == null || !game.chatTeams()) {
+            return;
+        }
+        String format = event.getFormat();
+        if (gamer.eliminated) {
+            event.getRecipients().removeIf(player -> {
+                Gamer other = game.gamer(player.getUniqueId());
+                return other != null && !other.eliminated;
+            });
+            event.setFormat(ChatColor.GRAY + "[SPECTATOR] " + format);
+        } else if (event.getMessage().startsWith("!") && event.getMessage().length() > 1) {
+            event.setMessage(event.getMessage().substring(1).trim());
+            event.setFormat(ChatColor.GOLD + "[SHOUT] " + gamer.team.color.chat() + "[" + gamer.team.color.displayName()
+                    .toUpperCase(java.util.Locale.ROOT) + "] " + format);
+        } else {
+            event.getRecipients().removeIf(player -> {
+                Gamer other = game.gamer(player.getUniqueId());
+                return other == null || other.team != gamer.team;
+            });
+            event.setFormat(ChatColor.GREEN + "[TEAM] " + format);
         }
     }
 

@@ -235,6 +235,12 @@ final class InvisGame extends BedwarsGame {
         return false;
     }
 
+    /** Everyone in the game hears everyone. */
+    @Override
+    boolean chatTeams() {
+        return false;
+    }
+
     @Override
     int countdownSeconds() {
         return ROUND_COUNTDOWN;

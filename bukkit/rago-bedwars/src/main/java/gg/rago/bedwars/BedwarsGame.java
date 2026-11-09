@@ -5,9 +5,11 @@ import gg.rago.bedwars.ShopItem.Currency;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.UUID;
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
@@ -153,6 +155,8 @@ class BedwarsGame {
     final Utilities utilities = new Utilities(this);
     /** The chests of the map as the players fill them in this game: the map's own stay empty. */
     private final Map<Block, Inventory> chests = new HashMap<>();
+    /** The invisible players, whose armour the others do not see. */
+    private final Set<UUID> hidden = new HashSet<>();
 
     BedwarsGame(RagoBedwars plugin, BedwarsHost host, Instance instance, String modeId, String modeName,
             List<List<Player>> sides) {
@@ -245,6 +249,7 @@ class BedwarsGame {
             welcome(player, gamer);
         }
         clock = Bukkit.getScheduler().runTaskTimer(plugin, this::second, 20L, 20L);
+        repeat(2L, 2L, this::hideArmour);
         final int total = countdownSeconds();
         countdown = Bukkit.getScheduler().runTaskTimer(plugin, new Runnable() {
             private int left = total;
@@ -431,6 +436,14 @@ class BedwarsGame {
     /** True if the players of different teams can hurt each other. */
     boolean pvp() {
         return true;
+    }
+
+    /**
+     * True if the chat goes by team, as in a Bed Wars game of teams: a player talks to their team
+     * (to everyone with "!" first), the eliminated to the spectators. False: everyone in the game hears.
+     */
+    boolean chatTeams() {
+        return teamSize() > 1;
     }
 
     /** True if the players can use their items (eat, drink, throw, shoot); false: the shop practice. */
@@ -1428,6 +1441,38 @@ class BedwarsGame {
             } else {
                 player.setHealth(player.getHealth() - damage);
                 player.playEffect(EntityEffect.HURT);
+            }
+        }
+    }
+
+    // --- Invisibility ---------------------------------------------------------------------------
+
+    /**
+     * Every other tick: an invisible player is wholly invisible, as on Hypixel. The others are told
+     * again that they wear no armour (a player who comes in sight, or armour that changes, would
+     * show it); the potion's swirls go. Their armour shows again when they can be seen.
+     */
+    private void hideArmour() {
+        for (Gamer gamer : gamers.values()) {
+            Player player = Bukkit.getPlayer(gamer.id);
+            PotionEffect invisibility = player == null || !present(gamer) || gamer.eliminated || gamer.respawning ? null
+                    : effect(player, PotionEffectType.INVISIBILITY);
+            boolean invisible = invisibility != null;
+            if (!invisible && !hidden.remove(gamer.id) || player == null) {
+                continue;
+            }
+            if (invisible) {
+                hidden.add(gamer.id);
+                if (invisibility.hasParticles()) {
+                    player.addPotionEffect(new PotionEffect(PotionEffectType.INVISIBILITY, invisibility.getDuration(),
+                            invisibility.getAmplifier(), true, false), true);
+                }
+            }
+            for (Gamer other : gamers.values()) {
+                Player viewer = other == gamer ? null : Bukkit.getPlayer(other.id);
+                if (viewer != null && present(other) && viewer.getWorld().equals(player.getWorld())) {
+                    ArmourHider.show(viewer, player, invisible, plugin.getLogger());
+                }
             }
         }
     }

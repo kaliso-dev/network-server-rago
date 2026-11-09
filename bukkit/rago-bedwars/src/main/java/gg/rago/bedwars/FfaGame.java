@@ -108,6 +108,12 @@ final class FfaGame extends BedwarsGame {
         return arena;
     }
 
+    /** Everyone in the game hears everyone. */
+    @Override
+    boolean chatTeams() {
+        return false;
+    }
+
     @Override
     boolean upgrades() {
         return false;

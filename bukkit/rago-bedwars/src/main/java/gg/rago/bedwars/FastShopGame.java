@@ -165,6 +165,12 @@ final class FastShopGame extends BedwarsGame {
         return false;
     }
 
+    /** Everyone in the game hears everyone. */
+    @Override
+    boolean chatTeams() {
+        return false;
+    }
+
     /** The map stays as it is: the beds too. */
     @Override
     void removeUnusedBeds() {
