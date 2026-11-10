@@ -7,6 +7,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.UUID;
+import java.util.function.BiFunction;
 import java.util.function.Function;
 import org.bukkit.ChatColor;
 import org.bukkit.Location;
@@ -92,6 +93,8 @@ final class StatsDisplays {
     private final List<Spot> spots = new ArrayList<>();
     /** The skins of the podiums: none until {@link #setSkins}. */
     private Function<UUID, Skin> skins = player -> null;
+    /** How a podium writes a player: in white, without rank, until {@link #setNames}. */
+    private BiFunction<UUID, String, String> names = (player, name) -> ChatColor.WHITE + name;
 
     StatsDisplays(LobbySettings settings, StatsBook book, StatsMenu menu, FakeEntities fakes) {
         this.settings = settings;
@@ -103,6 +106,11 @@ final class StatsDisplays {
 
     void setSkins(Function<UUID, Skin> skins) {
         this.skins = skins;
+    }
+
+    /** How a podium writes a player: their rank and their name in its colour ({@link NameLooks#stillDisplay}). */
+    void setNames(BiFunction<UUID, String, String> names) {
+        this.names = names;
     }
 
     // --- Stats NPC ------------------------------------------------------------------------------
@@ -292,9 +300,8 @@ final class StatsDisplays {
             };
             Location step = steps.get(i);
             fakes.add(new PodiumPlace(step, LobbyNpcs.podiumName(i), holder, player -> skins.apply(player), open));
-            fakes.add(new FakeHologram(step.clone().add(0, LobbyNpcs.ABOVE_HEAD, 0), 1,
-                    viewer -> Collections.singletonList(podiumLine(stats, key, viewer.getUniqueId(), place,
-                            System.currentTimeMillis())), open));
+            fakes.add(new FakeHologram(step.clone().add(0, LobbyNpcs.ABOVE_HEAD, 0), 2,
+                    viewer -> podiumLines(stats, key, viewer.getUniqueId(), place, System.currentTimeMillis()), open));
         }
     }
 
@@ -304,12 +311,16 @@ final class StatsDisplays {
         return view.ranking == null || place >= view.ranking.rows().size() ? null : view.ranking.rows().get(place);
     }
 
-    /** "#1 Sofiene - Gold 245": the line above a step of the podium, for this viewer. */
-    String podiumLine(List<BoardStat> stats, String key, UUID viewer, int place, long now) {
+    /**
+     * "#1 [PREMIUM+] Sofiene" then "Gold 245": the lines above a step of the podium, for this viewer
+     * (the place, the rank and the name of the player, then their score). Two lines, since the
+     * name of a 1.8 entity holds 64 characters at most.
+     */
+    List<String> podiumLines(List<BoardStat> stats, String key, UUID viewer, int place, long now) {
         View view = view(stats, key, viewer, now);
         String rank = "#" + (place + 1);
         if (view.ranking == null || place >= view.ranking.rows().size()) {
-            return ChatColor.DARK_GRAY + rank + " " + ChatColor.GRAY + "Nobody yet";
+            return Collections.singletonList(ChatColor.DARK_GRAY + rank + " " + ChatColor.GRAY + "Nobody yet");
         }
         StatsBook.Row row = view.ranking.rows().get(place);
         String score;
@@ -322,8 +333,8 @@ final class StatsDisplays {
             score = ChatColor.YELLOW + String.valueOf(row.value()) + ChatColor.GRAY + " "
                     + view.stat.title().toLowerCase(java.util.Locale.ROOT);
         }
-        return PODIUM_COLOURS[Math.min(place, PODIUM_COLOURS.length - 1)].toString() + ChatColor.BOLD + rank + " " + ChatColor.WHITE
-                + row.name() + ChatColor.DARK_GRAY + " - " + score;
+        return java.util.Arrays.asList(PODIUM_COLOURS[Math.min(place, PODIUM_COLOURS.length - 1)].toString() + ChatColor.BOLD + rank
+                + " " + names.apply(row.id(), row.name()), score);
     }
 
     /**

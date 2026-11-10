@@ -143,7 +143,7 @@ final class NameLooks {
         return null;
     }
 
-    /** The step of the animated gradients: one more twice a second. */
+    /** The step of the animated gradients in the tab list: one more ten times a second. */
     private volatile int phase;
 
     /** The animated gradients move on one step. */
@@ -151,7 +151,7 @@ final class NameLooks {
         phase++;
     }
 
-    /** The name in the player's colour: a gradient (at the step of its animation), or the colour of their rank. */
+    /** The name in the player's colour: a gradient (at the step of its animation in the tab list), or the colour of their rank. */
     String name(UUID player, String plain) {
         NameStyle colour = colour(player);
         return colour != null ? colour.apply(plain, phase) : rank(player).nameColour() + plain;
@@ -162,16 +162,25 @@ final class NameLooks {
         return prefix(player) + name(player, plain);
     }
 
+    /**
+     * "§d[PREMIUM§f+§d] §5So§dfi§fene": the rank and the name, still (an animated colour at its first
+     * step), as a podium shows a player under their real name.
+     */
+    String stillDisplay(UUID player, String plain) {
+        NameStyle colour = colour(player);
+        return prefix(player) + (colour != null ? colour.apply(plain, 0) : rank(player).nameColour() + plain);
+    }
+
     /** " §d§l✦": the badge after the name, or "" without one. */
     String badgeAfter(UUID player) {
         NameStyle badge = badge(player);
         return badge == null ? "" : " " + badge.text();
     }
 
-    /** The colour codes of the name above the head, where the name takes one colour. */
+    /** The colour codes of the name above the head, where the name takes one colour: fixed, even for an animated colour. */
     String headColour(UUID player) {
         NameStyle colour = colour(player);
-        return colour != null ? colour.mainColour(phase) : rank(player).nameColour();
+        return colour != null ? colour.mainColour() : rank(player).nameColour();
     }
 
     /** What the player's Network XP is multiplied by: 1.5 with PREMIUM. */

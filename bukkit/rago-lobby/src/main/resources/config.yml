@@ -365,8 +365,9 @@ rangs:
 # how a player gets it: premium (with a rank whose style or badge it is), achat (the web store
 # gives it: /style give <player> couleur-feu, from the console), niveau (a reward of the Network
 # levels, niveau.recompenses), points (bought in /style for prix Rago Points). A gradient is
-# animated: its colours run along the name in the tab list, and above the head it goes through
-# them (anime: false for a fixed gradient). A player wears one colour and one badge at a time.
+# animated: its colours run along the name in the tab list only (ten times a second); above the
+# head the name keeps one fixed colour, the middle of the gradient (anime: false for a fixed
+# gradient). A player wears one colour and one badge at a time.
 styles:
   couleurs:
     rose: {nom: "Pink", degrade: "5ddfd", obtention: premium}

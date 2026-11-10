@@ -252,8 +252,7 @@ final class LobbyScoreboard {
             String level = " " + levels.tag(names.shownLevel(id), MAX_TEAM - 1 - (game != null ? 0 : badge.length()));
             boolean hidden = other.hasPotionEffect(PotionEffectType.INVISIBILITY);
             String suffix = game != null ? fit(level) : suffix(badge, level);
-            listName(other, game != null ? null : levels.tag(names.shownLevel(id)) + " " + names.shown(id, other.getName())
-                    + names.shownBadge(id));
+            listName(other, game != null ? null : listNameOf(other));
             if (game != null) {
                 Integer order = prefixTeams.get(game);
                 if (order == null) {
@@ -275,6 +274,12 @@ final class LobbyScoreboard {
             return badge + level;
         }
         return badge.isEmpty() ? fit(level) : fit(badge);
+    }
+
+    /** "§7[12✫] §d[PREMIUM§f+§d] §5So§dfi§fene §d§l✦": the level, the rank, the name and the badge, in the tab list. */
+    private String listNameOf(Player player) {
+        UUID id = player.getUniqueId();
+        return book.levels().tag(names.shownLevel(id)) + " " + names.shown(id, player.getName()) + names.shownBadge(id);
     }
 
     /** The name of the player in the tab list (null: their plain name, which the game's team colours). */
@@ -388,7 +393,19 @@ final class LobbyScoreboard {
         }
     }
 
-    /** The names only (tab list and above the heads): for the animated colours, twice a second. */
+    /**
+     * The names in the tab list only, for the animated colours, which move there and nowhere else:
+     * a name is sent only when it changed, so only the animated ones are.
+     */
+    void updateListNames() {
+        for (Player player : Bukkit.getOnlinePlayers()) {
+            if (!gamePrefixes.containsKey(player.getUniqueId())) {
+                listName(player, listNameOf(player));
+            }
+        }
+    }
+
+    /** The names above the heads and in the tab list (an invisible player's name hides), twice a second. */
     void updateNames() {
         Map<UUID, Tag> tags = tags();
         for (Player player : Bukkit.getOnlinePlayers()) {

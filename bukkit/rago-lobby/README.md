@@ -156,8 +156,9 @@ dans les files d'attente des modes de jeu.
   Galaxy, Rainbow, Shadow, et Aqua, Gold, Legend pour les niveaux) et un badge après le pseudo
   (`✦`, RAGO, BETTER, PVP, YT, `✫100`). Le dégradé se voit dans le chat, le Tab et les messages ;
   au-dessus de la tête un pseudo n'a qu'une couleur. Les dégradés sont animés : leurs couleurs
-  défilent le long du pseudo dans le Tab (deux fois par seconde), au-dessus de la tête le pseudo
-  passe d'une couleur du dégradé à l'autre, et chaque message du chat le montre là où il en est.
+  défilent le long du pseudo dans le Tab seulement (dix fois par seconde) ; au-dessus de la tête
+  le pseudo garde une couleur fixe, celle du milieu du dégradé, et chaque message du chat le
+  montre là où il en est.
   Des couleurs fixes s'achètent en Rago Points dans `/style` (Red, Green, Blue, Yellow, Purple,
   White à 3 000, les dégradés fixes Cherry et Mint à 6 000 ; `obtention: points, prix:`, et
   `anime: false` pour un dégradé fixe). Chaque style dit comment l'avoir : avec PREMIUM, sur la
@@ -313,8 +314,9 @@ générateur vide ; un monde de build peut donc servir de lobby.
   classé par XP et montre le niveau. leaderboardplayer montre les kills du jour, de la semaine et
   à vie, entre les meilleures séries de victoires (à gauche) et le niveau Network (à droite).
 - `podium:` (dans un mur de `classements:`) : jusqu'à 5 marches, la 1re place d'abord. Sur chacune
-  se tient le joueur à cette place du premier tableau du mur, avec son skin, et une ligne au-dessus
-  (« #1 Pseudo - Gold 245 »). Chaque joueur voit le top de ce qu'il lit sur le tableau : ELO, kills
+  se tient le joueur à cette place du premier tableau du mur, avec son skin, et deux lignes
+  au-dessus : la place, son rang et son pseudo dans sa couleur (« #1 [PREMIUM+] Pseudo »), puis son
+  score (« Gold 245 »). Chaque joueur voit le top de ce qu'il lit sur le tableau : ELO, kills
   ou niveau, la période, le mode classé. Une marche est un point `/lobby point`, ou `"x y z"` (là où
   vont les pieds). Un clic sur une marche ouvre les stats de ce joueur. Celui de leaderboardprincipal
   est le podium derrière le tableau : émeraude (1er), diamant (2e), bloc d'or (3e). Le skin d'un

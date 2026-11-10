@@ -79,19 +79,27 @@ class PodiumTest {
         String key = "leaderboardprincipal#0";
 
         assertNull(displays.holder(stats, key, ALICE, 0, SUNDAY), "nobody plays a ranked mode yet");
-        assertEquals("#1 Nobody yet", ChatColor.stripColor(displays.podiumLine(stats, key, ALICE, 0, SUNDAY)));
+        assertEquals(Arrays.asList("#1 Nobody yet"), plain(displays.podiumLines(stats, key, ALICE, 0, SUNDAY)));
 
         displays.next(ALICE, stats, key, false);
         assertEquals(ALICE, displays.holder(stats, key, ALICE, 0, SUNDAY).id(), "Alice reads the kills");
-        assertEquals("#1 Alice - 2 kills", ChatColor.stripColor(displays.podiumLine(stats, key, ALICE, 0, SUNDAY)));
-        assertTrue(displays.podiumLine(stats, key, ALICE, 0, SUNDAY).startsWith("§6§l#1"), "the first place in gold");
+        assertEquals(Arrays.asList("#1 Alice", "2 kills"), plain(displays.podiumLines(stats, key, ALICE, 0, SUNDAY)),
+                "the name above, the score under it");
+        assertTrue(displays.podiumLines(stats, key, ALICE, 0, SUNDAY).get(0).startsWith("§6§l#1"), "the first place in gold");
+        NameLooks names = new NameLooks(book, ServerSettings.load(new YamlConfiguration()));
+        displays.setNames(names::stillDisplay);
+        book.get(ALICE).boughtRanks().add("premium");
+        assertEquals(Arrays.asList("#1 [PREMIUM+] Alice", "2 kills"), plain(displays.podiumLines(stats, key, ALICE, 0, SUNDAY)),
+                "her rank next to her name");
+        assertEquals("§6§l#1 §d[PREMIUM§f+§d] " + NameStyle.gradient("Alice", "5ddfd", false),
+                displays.podiumLines(stats, key, ALICE, 0, SUNDAY).get(0), "her name in its colour");
         assertNull(displays.holder(stats, key, ALICE, 1, SUNDAY), "Bob has no kill");
-        assertEquals("#2 Nobody yet", ChatColor.stripColor(displays.podiumLine(stats, key, ALICE, 1, SUNDAY)));
+        assertEquals(Arrays.asList("#2 Nobody yet"), plain(displays.podiumLines(stats, key, ALICE, 1, SUNDAY)));
         assertNull(displays.holder(stats, key, BOB, 0, SUNDAY), "Bob still reads the ELO");
 
         displays.next(ALICE, stats, key, false);
         assertEquals(BOB, displays.holder(stats, key, ALICE, 1, SUNDAY).id(), "the level: Bob second");
-        assertEquals("#2 Bob - Level 1", ChatColor.stripColor(displays.podiumLine(stats, key, ALICE, 1, SUNDAY)));
+        assertEquals(Arrays.asList("#2 Bob", "Level 1"), plain(displays.podiumLines(stats, key, ALICE, 1, SUNDAY)));
         assertNull(displays.holder(stats, key, ALICE, 2, SUNDAY), "nobody third");
     }
 
@@ -121,5 +129,13 @@ class PodiumTest {
         assertEquals("§8pnjp0", LobbyNpcs.podiumName(0));
         assertNotEquals(LobbyNpcs.bodyName(0), LobbyNpcs.podiumName(0));
         assertTrue(LobbyNpcs.podiumName(LobbySettings.MAX_PODIUM - 1).length() <= 16, "a profile name");
+    }
+
+    private static List<String> plain(List<String> lines) {
+        List<String> plain = new java.util.ArrayList<>();
+        for (String line : lines) {
+            plain.add(ChatColor.stripColor(line));
+        }
+        return plain;
     }
 }

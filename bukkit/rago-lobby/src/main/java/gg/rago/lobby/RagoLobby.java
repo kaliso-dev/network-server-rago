@@ -170,6 +170,7 @@ public final class RagoLobby extends JavaPlugin implements LobbyService {
         statsDisplays = new StatsDisplays(settings, stats.book(), statsMenu, fakes);
         skins = new Skins(this, stats);
         statsDisplays.setSkins(skins::of);
+        statsDisplays.setNames(names::stillDisplay);
         shop = new ShopMenu(profiles, stats.book());
         profileMenu = new ProfileMenu(this, profiles, social, stats, statsMenu, shop);
         levelMenu = new LevelMenu(stats.book(), server);
@@ -239,11 +240,13 @@ public final class RagoLobby extends JavaPlugin implements LobbyService {
         getServer().getScheduler().runTaskTimer(this, fakes::tick, 10L, 10L);
         // In a game, the health under the names: a hit shows at once.
         getServer().getScheduler().runTaskTimer(this, scoreboard::updateHealth, 20L, 1L);
-        // The animated colours of name run along the names, twice a second.
+        // The names above the heads, twice a second (their colour stays fixed there).
+        getServer().getScheduler().runTaskTimer(this, scoreboard::updateNames, 15L, 10L);
+        // The animated colours of name run along the names in the tab list only, ten times a second.
         getServer().getScheduler().runTaskTimer(this, () -> {
             names.advance();
-            scoreboard.updateNames();
-        }, 15L, 10L);
+            scoreboard.updateListNames();
+        }, 16L, 2L);
         daily = new DailyChest(profiles);
         int placed = placeDecor();
         List<String> missing = npcs.missingPoints();

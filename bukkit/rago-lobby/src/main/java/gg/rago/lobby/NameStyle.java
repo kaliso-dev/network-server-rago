@@ -190,24 +190,18 @@ final class NameStyle {
         }
     }
 
-    /** The colour code in the middle of a colour: what shows above the head, where one colour fits. */
+    /**
+     * The colour code in the middle of a colour: what shows above the head, where one colour fits.
+     * It stays fixed there, even for an animated colour (which moves in the tab list only).
+     */
     String mainColour() {
-        return mainColour(0);
-    }
-
-    /** The colour above the head at this step of the animation: it runs through the gradient. */
-    String mainColour(int phase) {
         if (kind == Kind.PLUS) {
             return plusColour();
         }
         if (kind == Kind.BADGE || text.isEmpty()) {
             return ChatColor.GRAY.toString();
         }
-        if (!animated) {
-            return "§" + text.charAt(text.length() / 2) + (bold ? "§l" : "");
-        }
-        String cycle = cycle(text);
-        return "§" + cycle.charAt(Math.floorMod(text.length() / 2 + phase, cycle.length())) + (bold ? "§l" : "");
+        return "§" + text.charAt(text.length() / 2) + (bold ? "§l" : "");
     }
 
     /** The colours an animated gradient runs through: there and back ("4c6e" gives "4c6e6c"). */

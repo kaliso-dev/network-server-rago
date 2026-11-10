@@ -45,7 +45,6 @@ class NameStyleTest {
         NameStyle fire = all.get("couleur-feu");
         assertTrue(fire.animated());
         assertTrue(!fire.apply("Fire", 0).equals(fire.apply("Fire", 1)), "an animated colour moves");
-        assertTrue(!fire.mainColour(0).equals(fire.mainColour(1)), "above the head too");
         NameStyle cherry = all.get("couleur-cerise");
         assertTrue(!cherry.animated(), "a fixed gradient");
         assertEquals(cherry.apply("Rago", 0), cherry.apply("Rago", 3));
@@ -134,6 +133,13 @@ class NameStyleTest {
         assertEquals("§c[ADMIN] §cAlice", names.display(ALICE, "Alice"), "a staff rank keeps its colour by default");
         alice.choose(NameStyle.Kind.COLOUR, "rose");
         assertTrue(names.display(ALICE, "Alice").startsWith("§c[ADMIN] §5"), "and may wear the pink of PREMIUM");
+        alice.cosmetics().add("couleur-feu");
+        alice.choose(NameStyle.Kind.COLOUR, "feu");
+        String head = names.headColour(ALICE);
+        String tab = names.name(ALICE, "Alice");
+        names.advance();
+        assertEquals(head, names.headColour(ALICE), "an animated colour stays fixed above the head...");
+        assertTrue(!tab.equals(names.name(ALICE, "Alice")), "...and moves in the tab list");
 
         GameMode sumo = new GameMode("sumo", "Sumo", 2, 1, false);
         book.record(sumo, Collections.singletonList(ALICE), Collections.singletonList(BOB), id -> "?", 0L);
