@@ -101,7 +101,27 @@ class BlockMapsTest {
         }
         BlockExtendTraining.Level gold = BlockExtendTraining.plainLevels()[0];
         BlockExtendTraining.Level diamond = BlockExtendTraining.plainLevels()[1];
-        assertTrue(gold.horizontal > diamond.horizontal, "the gold hit is the big one");
+        BlockExtendTraining.Level emerald = BlockExtendTraining.plainLevels()[2];
+        assertTrue(diamond.horizontal >= 0.8, "the diamond hit is a sprint hit, not a weak one");
+        assertTrue(emerald.horizontal > gold.horizontal && emerald.vertical < gold.vertical - 0.25,
+                "the emerald hit throws further and about a block lower than the gold one");
+    }
+
+    @Test
+    void aHitFromTheFrontComesFromWhereThePlayerLooksWhenItLands() {
+        BlockExtendTraining.Level gold = BlockExtendTraining.plainLevels()[0];
+        assertEquals(BlockExtendTraining.From.FRONT, gold.from);
+        // looking north at the hit: thrown south; turned to the east (-90): thrown west
+        assertArrayEquals(new double[] {0, 1}, BlockExtendTraining.wayAtHit(gold, 180f), 1e-9);
+        assertArrayEquals(new double[] {-1, 0}, BlockExtendTraining.wayAtHit(gold, -90f), 1e-9);
+        // a hit from the right stays where it was at the start, wherever the player turns
+        BlockExtendTraining.Level diamond = BlockExtendTraining.plainLevels()[1];
+        assertArrayEquals(diamond.way, BlockExtendTraining.wayAtHit(diamond, 0f), 1e-9);
+        // the bundled levels: the gold hit is from the front, no more towards a point
+        ConfigurationSection or = bundled().getConfigurationSection("block-extend.niveaux.or");
+        assertEquals("devant", or.getString("coup"));
+        assertTrue(!or.contains("vers"));
+        assertTrue(bundled().getDoubleList("block-extend.niveaux.diamant.force").get(0) >= 0.8);
     }
 
     @Test

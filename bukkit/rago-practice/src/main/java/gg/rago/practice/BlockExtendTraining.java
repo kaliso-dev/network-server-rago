@@ -19,12 +19,13 @@ import org.bukkit.util.Vector;
 /**
  * Block extend, as in a real bed fight, on the owner's map (BlockClutchExtend): the player stands
  * at an exact place of a bridge, takes a hit, and saves themselves with their wool. Three levels:
- * gold, a big hit from the front that throws them about onto the gold blocks of the lower bridge,
- * where they clutch; diamond, a normal hit from the right, they turn to the bridge and extend to
- * its diamond blocks; emerald, a big hit from the front off the top, they land and clutch on the
- * emerald blocks below. The gold, diamond and emerald markers of the map are wool in the game.
- * Each save adds one to the streak of the level; a fall ends it. A setting adds ladders to the
- * wool, for the ladder clutches.
+ * gold, a big hit from where the player looks at the hit, straight back, and they clutch; diamond,
+ * a sprint hit from the right, they turn to the bridge and extend to its diamond blocks; emerald,
+ * a long and low hit from the front off the top, they clutch on the emerald blocks below. A hit
+ * "from the front" always comes from where the player looks when it lands, as an opponent facing
+ * them. The gold, diamond and emerald markers of the map are wool in the game. Each save adds one
+ * to the streak of the level; a fall ends it. The kit has ladders too, for the ladder clutches (a
+ * setting takes them out).
  */
 final class BlockExtendTraining extends Training {
 
@@ -62,17 +63,21 @@ final class BlockExtendTraining extends Training {
         final double[] start;
         /** The block to save oneself on (its top is the landing). */
         final int[] target;
-        /** The way the hit throws, on x and z, length 1. */
+        /** The way the hit throws, on x and z, length 1, as the player looks at the start. */
         final double[] way;
+        /** Where the hit comes from, or null when it throws towards a point. */
+        final From from;
         final double horizontal;
         final double vertical;
 
-        Level(String id, String label, double[] start, int[] target, double[] way, double horizontal, double vertical) {
+        Level(String id, String label, double[] start, int[] target, double[] way, From from, double horizontal,
+                double vertical) {
             this.id = id;
             this.label = label;
             this.start = start;
             this.target = target;
             this.way = way;
+            this.from = from;
             this.horizontal = horizontal;
             this.vertical = vertical;
         }
@@ -91,8 +96,8 @@ final class BlockExtendTraining extends Training {
 
     /** The ids of the levels, as config.yml names them, and their names in the game. */
     static final String[] IDS = {"or", "diamant", "emeraude"};
-    static final String[] LABELS = {"Gold: big hit, clutch", "Diamond: hit from the right, extend",
-        "Emerald: big hit, clutch below"};
+    static final String[] LABELS = {"Gold: big hit, clutch", "Diamond: sprint hit from the right, extend",
+        "Emerald: long low hit, clutch below"};
     /** The block ids of the markers: gold, diamond and emerald blocks. */
     static final int[] MARKERS = {41, 57, 133};
     /** Ticks on the ground after the hit that make a save. */
@@ -119,7 +124,7 @@ final class BlockExtendTraining extends Training {
     BlockExtendTraining(PracticeHost host, GameMode mode, Arena arena, List<List<Player>> teams, Course course) {
         super(host, mode, arena, teams, variants(course));
         this.course = course;
-        this.ladders = toggle("Ladders", false);
+        this.ladders = toggle("Ladders", true);
     }
 
     /**
@@ -131,9 +136,11 @@ final class BlockExtendTraining extends Training {
         double[] diamond = {10.518, 10, -8.661, 179.7f, 2.6};
         double[] emerald = {-4.576, 7, -15.773, 179.4f, 1.4};
         return new Level[] {
-            new Level(IDS[0], LABELS[0], gold, new int[] {-3, 5, 6}, towards(gold, -2.5, 6.5), 0.68, 0.40),
-            new Level(IDS[1], LABELS[1], diamond, new int[] {2, 4, -10}, thrown((float) diamond[3], From.RIGHT), 0.42, 0.36),
-            new Level(IDS[2], LABELS[2], emerald, new int[] {-5, 0, -16}, thrown((float) emerald[3], From.FRONT), 0.68, 0.40),
+            new Level(IDS[0], LABELS[0], gold, new int[] {-3, 5, 6}, thrown((float) gold[3], From.FRONT), From.FRONT, 0.68, 0.40),
+            new Level(IDS[1], LABELS[1], diamond, new int[] {2, 4, -10}, thrown((float) diamond[3], From.RIGHT), From.RIGHT,
+                0.80, 0.43),
+            new Level(IDS[2], LABELS[2], emerald, new int[] {-5, 0, -16}, thrown((float) emerald[3], From.FRONT), From.FRONT,
+                0.85, 0.12),
         };
     }
 
@@ -170,6 +177,14 @@ final class BlockExtendTraining extends Training {
             default:
                 return new double[] {rx, rz};
         }
+    }
+
+    /**
+     * The way the hit of the level throws a player who looks along this yaw when it lands: straight
+     * back from their look for a hit from the front, else the way of the level (from the start).
+     */
+    static double[] wayAtHit(Level level, float yaw) {
+        return level.from == From.FRONT ? thrown(yaw, From.FRONT) : level.way;
     }
 
     /** The way from the start towards a point (x, z), length 1; straight back if it is right under the start. */
@@ -306,7 +321,8 @@ final class BlockExtendTraining extends Training {
     /** The hit of the level, as a player would give it. */
     private void hit(Player player) {
         Level level = level();
-        player.setVelocity(new Vector(level.way[0] * level.horizontal, level.vertical, level.way[1] * level.horizontal));
+        double[] way = wayAtHit(level, player.getLocation().getYaw());
+        player.setVelocity(new Vector(way[0] * level.horizontal, level.vertical, way[1] * level.horizontal));
         player.playEffect(EntityEffect.HURT);
         sound(player, Sound.HURT_FLESH, 1f);
         hit = true;

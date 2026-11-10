@@ -92,13 +92,15 @@ et chaque variante son record : le meilleur score du joueur et celui du serveur,
   dont les règles sont vérifiées. Chrono.
 - **Block extend**, comme dans un vrai bed fight, sur la map BlockClutchExtend du propriétaire
   (`block-extend` dans `config.yml`) : le joueur part d'une place exacte d'un pont, prend un coup
-  et se sauve avec sa laine bleue. Trois niveaux, le coup de plus en plus fort : Or, un gros coup
-  de face qui l'envoie vers les blocs d'or du pont plus bas, où il clutch ; Diamant, un coup
-  normal par la droite, il se retourne et extend jusqu'aux blocs de diamant ; Émeraude, un gros
-  coup de face depuis le haut, il atterrit et clutch sur les blocs d'émeraude plus bas. Les blocs
-  d'or, de diamant et d'émeraude de la map sont de la laine dans le jeu. Chaque niveau donne sa
-  place de départ (F3), le bloc où se sauver, la force du coup et d'où il vient (`coup` : devant,
-  droite, gauche, derriere, ou `vers` un point). Un réglage ajoute des échelles. Série.
+  et se sauve avec sa laine bleue. Trois niveaux : Or, un gros coup qui vient de là où le joueur
+  regarde au moment du coup et l'envoie droit en arrière, il clutch ; Diamant, un coup en sprint
+  (0.80, 0.43) par la droite, il se retourne et extend jusqu'aux blocs de diamant ; Émeraude, un
+  coup de face plus long d'un bloc et plus bas d'un bloc que celui de l'or (0.85, 0.12), il
+  clutch sur les blocs d'émeraude plus bas. Un coup « devant » vient toujours de là où le joueur
+  regarde quand il le prend, comme un adversaire en face. Les blocs d'or, de diamant et
+  d'émeraude de la map sont de la laine dans le jeu. Chaque niveau donne sa place de départ (F3),
+  le bloc où se sauver, la force du coup et d'où il vient (`coup` : devant, droite, gauche,
+  derriere, ou `vers` un point). Le kit a des échelles avec la laine (un réglage les retire). Série.
 - **Ladder practice** : un mur d'end stone de 12 blocs à monter avec des échelles, ou la tour de
   laine sous les pieds. Chrono.
 - **Pearl practice** : sur un morceau de Sky Rise (l'île rouge, l'île aux diamants en face, l'île

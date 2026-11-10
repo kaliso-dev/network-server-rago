@@ -213,14 +213,16 @@ public final class RagoPractice extends JavaPlugin {
             }
             List<?> force = level.getList("force");
             double[] way;
+            BlockExtendTraining.From from = null;
             if (level.isList("vers")) {
                 List<?> towards = level.getList("vers");
                 way = BlockExtendTraining.towards(at, number(towards.get(0)) - origin[0], number(towards.get(1)) - origin[2]);
             } else {
-                way = BlockExtendTraining.thrown((float) at[3], BlockExtendTraining.From.of(level.getString("coup", "devant")));
+                from = BlockExtendTraining.From.of(level.getString("coup", "devant"));
+                way = BlockExtendTraining.thrown((float) at[3], from);
             }
             levels[i] = new BlockExtendTraining.Level(BlockExtendTraining.IDS[i], BlockExtendTraining.LABELS[i], at, target, way,
-                    number(force.get(0)), number(force.get(1)));
+                    from, number(force.get(0)), number(force.get(1)));
         }
         MapCopy copy = MapCopy.read(section.getString("monde", ""), numbers(section.getList("zone"), 6), origin, getLogger(),
                 "the block extend");
@@ -254,7 +256,7 @@ public final class RagoPractice extends JavaPlugin {
                 return where + ".cible: x, y, z of the block to land on, whole numbers";
             }
             if (!numbersOf(level.getList("force"), 2)) {
-                return where + ".force: horizontal, vertical (a hit of a fight: 0.42, 0.36)";
+                return where + ".force: horizontal, vertical (a hit of a fight: 0.42, 0.36; a sprint hit: 0.80, 0.43)";
             }
             if (level.contains("vers")) {
                 if (!numbersOf(level.getList("vers"), 2)) {
