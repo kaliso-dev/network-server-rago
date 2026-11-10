@@ -161,7 +161,8 @@ public final class RagoPractice extends JavaPlugin {
         register("attack-defense-2v2", (h, m, a, t) -> new AttackDefense(h, m, a, t, base, attack, rounds), slots, spacing, false);
         register("fireball", FireballFight::new, slots, spacing, false);
         // the islands side by side, close enough to see the players of the next ones
-        register("clutch", (h, m, a, t) -> new ClutchTraining(h, m, a, t, false), slots, ClutchTraining.SPACING, false);
+        ClutchTraining.Island clutchIsland = clutchIsland(config);
+        register("clutch", (h, m, a, t) -> new ClutchTraining(h, m, a, t, false, clutchIsland), slots, ClutchTraining.SPACING, false);
         register("block-in", (h, m, a, t) -> new BlockInTraining(h, m, a, t, island), slots, spacing, false);
         register("fast-defense", FastDefenseTraining::new, slots, spacing, false);
         register("extend-practice", ExtendTraining::new, slots, spacing, false);
@@ -179,7 +180,7 @@ public final class RagoPractice extends JavaPlugin {
         onMaps(register("free-ffa", (h, m, a, t) -> new BlockArena(h, m, a, t, true), slots, spacing, true), arenaMaps);
         onMaps(register("bridge-fight", BridgeArena::new, slots, spacing, true), bridgeMaps(config, spacing));
         register("scenarios-ranked", RankedScenarios::new, slots, spacing, false);
-        register("clutch-top-fight", (h, m, a, t) -> new ClutchTraining(h, m, a, t, true), slots, ClutchTraining.SPACING, false);
+        register("clutch-top-fight", (h, m, a, t) -> new ClutchTraining(h, m, a, t, true, null), slots, ClutchTraining.SPACING, false);
         register("block-edit", BlockEditTraining::new, slots, spacing, false);
         register("block-edit-duel", (h, m, a, t) -> new BlockEditDuel(h, m, a, t, edit), slots, spacing, false);
         register("bridge-fight-1v1", (h, m, a, t) -> new BridgeDuel(h, m, a, t, bridge, bridgeProtection), slots, spacing, false);
@@ -219,6 +220,57 @@ public final class RagoPractice extends JavaPlugin {
         MapCopy copy = MapCopy.read(section.getString("monde", ""), numbers(section.getList("zone"), 6), origin, getLogger(),
                 "the bow training");
         return copy == null ? plain : new BowTraining.Course(copy, player, plain.bridgeY, lines);
+    }
+
+    /**
+     * The island of the block clutch (clutch in config.yml): the owner's island copied once, and
+     * where the player stands. With a mistake in the section, or without the world, the plugin's
+     * own island.
+     */
+    private ClutchTraining.Island clutchIsland(FileConfiguration config) {
+        ConfigurationSection section = config.getConfigurationSection("clutch");
+        String problem = section == null ? "the section is missing" : checkClutch(section);
+        if (problem != null) {
+            getLogger().warning("clutch in config.yml: " + problem + ". The block clutch plays on the plugin's own island.");
+            return ClutchTraining.plainIsland();
+        }
+        int[] origin = numbers(section.getList("centre"), 3);
+        List<?> start = section.getList("joueur");
+        double[] player = new double[4];
+        for (int k = 0; k < 4; k++) {
+            player[k] = number(start.get(k)) - (k < 3 ? origin[k] : 0);
+        }
+        MapCopy copy = MapCopy.read(section.getString("monde", ""), numbers(section.getList("zone"), 6), origin, getLogger(),
+                "the block clutch");
+        return copy == null ? ClutchTraining.plainIsland() : new ClutchTraining.Island(copy, player);
+    }
+
+    /**
+     * What is wrong with the clutch section, or null. The islands stand ClutchTraining.SPACING
+     * apart, so the zone fits in that.
+     */
+    static String checkClutch(ConfigurationSection section) {
+        String world = section.getString("monde", "");
+        Map<String, Object> zoneMap = new HashMap<>();
+        zoneMap.put("monde", world.trim().isEmpty() ? "-" : world);
+        zoneMap.put("centre", section.getList("centre"));
+        zoneMap.put("zone", section.getList("zone"));
+        String zoneProblem = checkZoneMap(zoneMap, ClutchTraining.SPACING);
+        if (zoneProblem != null) {
+            return zoneProblem;
+        }
+        if (!numbersOf(section.getList("joueur"), 4)) {
+            return "joueur: x, y, z, yaw of where the player stands";
+        }
+        int[] zone = numbers(section.getList("zone"), 6);
+        List<?> start = section.getList("joueur");
+        for (int i = 0; i < 3; i++) {
+            double at = number(start.get(i));
+            if (at < Math.min(zone[i], zone[i + 3]) || at > Math.max(zone[i], zone[i + 3]) + 1) {
+                return "joueur: in the zone";
+            }
+        }
+        return null;
     }
 
     /** What is wrong with the bow-training section, or null. */

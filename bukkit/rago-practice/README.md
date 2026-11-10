@@ -80,8 +80,12 @@ et chaque variante son record : le meilleur score du joueur et celui du serveur,
 `plugins/RagoPractice/records.yml` et affichés dans le scoreboard avec le rang du joueur.
 
 - **Block clutch** : le joueur est au bord d'une petite île de Bed Wars, son lit et sa défense
-  (end stone, laine) à côté ; un coup le jette dans le vide, il pose sa laine pour se rattraper.
-  Les îles des joueurs sont côte à côte (28 blocs) : chacun voit les autres clutcher. La hotbar
+  à côté ; un coup le jette dans le vide, il pose sa laine pour se rattraper. L'île est celle du
+  propriétaire : l'île en herbe de BlockClutchExtend, avec son lit et sa défense en end stone
+  (section `clutch` de `config.yml`), copiée une fois au démarrage. Le joueur est au bord nord,
+  face au lit : le coup vient de devant lui et le jette en arrière. Sans le monde, l'île du plugin
+  (herbe, lit, défense end stone et laine). Les îles des joueurs sont côte à côte (28 blocs) :
+  chacun voit les autres clutcher. La hotbar
   règle le knockback (1 à 5), le nombre de coups à la suite (1 à 3), le KB stick (bien plus loin)
   et un côté au hasard. Chaque réglage a son propre record. Série de clutchs.
 - **Block clutch : top fight** : le même clutch sur une plateforme de top fight en laine bleue et

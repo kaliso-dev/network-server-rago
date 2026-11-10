@@ -18,7 +18,9 @@ import org.bukkit.util.Vector;
 /**
  * Block clutch: the player stands at the edge of a small Bed Wars island, its bed and defense
  * beside them, and takes a hit that throws them off over the void; they place their wool to save
- * themselves. The islands of the players stand side by side, so that each one sees the others
+ * themselves. The island is the owner's (the clutch island of BlockClutchExtend, copied once), or
+ * the plugin's own without the world. The hit comes from where the player looks and throws them
+ * backwards. The islands of the players stand side by side, so that each one sees the others
  * clutch. The hotbar sets the knockback (1 to 5), the number of hits in a row (1 to 3), a
  * knockback stick, and a random side. Each clutch saved adds one to the streak; a fall ends it.
  *
@@ -37,7 +39,25 @@ final class ClutchTraining extends Training {
     /** The random side turns the hit this far at most from straight off the edge. */
     private static final double RANDOM_TURN = Math.toRadians(75);
 
+    /** The island: the owner's map copied (or null for the plugin's own), and where the player stands. */
+    static final class Island {
+        final MapCopy copy;
+        /** x, y, z, yaw from the centre. */
+        final double[] player;
+
+        Island(MapCopy copy, double[] player) {
+            this.copy = copy;
+            this.player = player;
+        }
+    }
+
+    /** The plugin's own island: at its south edge, facing north, the void behind. */
+    static Island plainIsland() {
+        return new Island(null, new double[] {3.5, 1, 1.5, 180});
+    }
+
     private final boolean topFight;
+    private final Island island;
     private final Setting knockback;
     private final Setting hitCount;
     private final Setting stick;
@@ -53,10 +73,11 @@ final class ClutchTraining extends Training {
     private long limitTold;
     private Vector way;
 
-    ClutchTraining(PracticeHost host, GameMode mode, Arena arena, List<List<Player>> teams, boolean topFight) {
+    ClutchTraining(PracticeHost host, GameMode mode, Arena arena, List<List<Player>> teams, boolean topFight, Island island) {
         super(host, mode, arena, teams, topFight ? new Variant("top", "Top fight clutch", false, "clutches")
                 : new Variant("island", "Island clutch", false, "clutches"));
         this.topFight = topFight;
+        this.island = island == null ? plainIsland() : island;
         knockback = setting("Knockback", 1, 5, 3);
         hitCount = setting("Hits", 1, 3, 1);
         stick = toggle("KB stick", false);
@@ -108,6 +129,10 @@ final class ClutchTraining extends Training {
             }
             return;
         }
+        if (island.copy != null) {
+            island.copy.build(arena);
+            return;
+        }
         Shapes.island(arena, -5, -6, 5, 1, Material.GRASS, 0, Material.DIRT, 0);
         Shapes.bed(arena, -1, 1, -2, 1, 0);
         Shapes.buildDefense(arena, Shapes.defense(-1, 1, -2, 1, 0, 2), new Material[] {Material.ENDER_STONE, Material.WOOL},
@@ -117,7 +142,22 @@ final class ClutchTraining extends Training {
     @Override
     Location spawnOf(UUID player) {
         // at the edge, facing the hitter, the void behind
-        return topFight ? arena.at(2.5, 1, 3.5, 180f) : arena.at(3.5, 1, 1.5, 180f);
+        double[] at = start();
+        return arena.at(at[0], at[1], at[2], (float) at[3]);
+    }
+
+    /** Where the player stands: x, y, z, yaw from the centre. */
+    private double[] start() {
+        return topFight ? new double[] {2.5, 1, 3.5, 180} : island.player;
+    }
+
+    /**
+     * The way a hit throws the player who looks along this yaw, turned by this angle: backwards,
+     * the hitter in front of them. Returns x, z.
+     */
+    static double[] thrownWay(double yaw, double turn) {
+        double a = Math.toRadians(yaw) + turn;
+        return new double[] {Math.sin(a), -Math.cos(a)};
     }
 
     @Override
@@ -143,8 +183,9 @@ final class ClutchTraining extends Training {
         placedSinceHit = 0;
         lastHitTick = 0;
         double angle = randomSide.on() ? (random.nextDouble() * 2 - 1) * RANDOM_TURN : 0;
-        // straight off the edge is south (+z)
-        way = new Vector(Math.sin(angle), 0, Math.cos(angle));
+        // straight off the edge: backwards from where the player looks at the start
+        double[] thrown = thrownWay(start()[3], angle);
+        way = new Vector(thrown[0], 0, thrown[1]);
     }
 
     @Override
