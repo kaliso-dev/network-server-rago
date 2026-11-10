@@ -137,7 +137,7 @@ public final class RagoPractice extends JavaPlugin {
     private void registerModes(FileConfiguration config, World world, int slots, int spacing) {
         int boxing = config.getInt("points-pour-gagner.boxing", 100);
         int kb = config.getInt("points-pour-gagner.kb-displace", 3);
-        int blocks = config.getInt("points-pour-gagner.block-fight", 5);
+        int blocks = config.getInt("points-pour-gagner.block-fight", 100);
         int top = config.getInt("points-pour-gagner.top-fight", 3);
         int edit = config.getInt("points-pour-gagner.block-edit", 5);
         int bridge = config.getInt("points-pour-gagner.bridge-fight", 5);
@@ -652,7 +652,7 @@ public final class RagoPractice extends JavaPlugin {
         String[][] ranges = {
             {"points-pour-gagner.boxing", "100", "10", "500"},
             {"points-pour-gagner.kb-displace", "3", "1", "10"},
-            {"points-pour-gagner.block-fight", "5", "1", "20"},
+            {"points-pour-gagner.block-fight", "100", "10", "500"},
             {"points-pour-gagner.top-fight", "3", "1", "10"},
             {"points-pour-gagner.block-edit", "5", "1", "20"},
             {"attaque-defense.attaque-secondes", "60", "15", "600"},

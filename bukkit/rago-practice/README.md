@@ -37,8 +37,12 @@ le Tab, avec sa vie en dessous et son niveau Network à côté.
   (`block-fight.cartes` dans `config.yml` : chaque camp part de son bloc d'or, en 2v2 côte à
   côte), copiées comme celles du sumo : épée en bois Sharpness I, pioche et hache Efficiency I,
   cisailles, deux stacks de laine, 12 end stone, 16 échelles, armure en fer Protection IV.
-  Construire, clutch, casser leurs blocs, faire tomber. Premier à 5. Sans ces mondes, deux
-  petites plateformes au-dessus du vide.
+  Construire, clutch, casser leurs blocs, faire tomber. Comme sur Minemen, les points sont les
+  coups : chaque coup donné à l'autre camp vaut un point (le coup ne fait pas de dégâts, seulement
+  son recul), et une chute dans le vide coûte 10 points au camp de celui qui tombe (jamais sous 0)
+  et relance la manche, chacun sur son bloc d'or, la map comme au départ. Premier à
+  `points-pour-gagner.block-fight` (100). Sans ces mondes, deux petites plateformes au-dessus du
+  vide.
 - **Top fight 2v2** (et 1v1 en partie privée) : une île dont le lit a une défense de trois couches
   (end stone, bois, laine). On commence directement en haut, face à face (en 2v2 le second de
   chaque équipe une marche plus bas derrière), en armure complète en diamant Protection IV, avec
@@ -128,14 +132,16 @@ et chaque variante son record : le meilleur score du joueur et celui du serveur,
 
 ## L'arène de block placement
 
-Ouverte à tous : on entre et on sort quand on veut, du grès sans fin, le kit du block fight. Elle
+Ouverte à tous : on entre et on sort quand on veut, avec une épée en bois, deux stacks de laine
+à sa couleur (qui ne s'épuisent jamais) et des cisailles. Elle
 se joue sur l'arène du propriétaire (`block-fight-arena.cartes` dans `config.yml`, le monde
 `Arena`) : l'arène verte dans ses murs de barrières, copiée une fois. On arrive n'importe où sur
 l'herbe ; le bloc de slime du cube noir, dans le coin, projette celui qui monte dessus 3 blocs en
 haut et 2 devant lui (là où il regarde), pour sortir du trou. Le bloc d'or du milieu ne sert que de
 repère : il n'est pas copié. Sans ce monde, une grande plateforme et quatre îles au-dessus du vide.
-On revient tout de suite après une chute ou une mort, les blocs posés partent au bout de
-15 secondes, les kills comptent dans les stats du mode.
+On revient tout de suite après une chute ou une mort. Les blocs posés se fissurent de plus en plus
+(les fissures d'un bloc qu'on casse) et se cassent au bout de 15 secondes, avec le bruit et les
+éclats d'un bloc cassé. Les kills comptent dans les stats du mode.
 
 ## Le bridge fight
 

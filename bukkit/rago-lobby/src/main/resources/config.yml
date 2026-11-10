@@ -766,11 +766,11 @@ modes:
     classe: false
     kit: [WOOD_SWORD, WOOD_PICKAXE, WOOD_AXE, SHEARS, "WOOL 64", "ENDER_STONE 12", "WOOL 64", "LADDER 16"]
     description:
-      - "On the block placement maps:"
-      - "wool, end stone and ladders,"
-      - "iron armour, Protection IV."
-      - "Build, clutch, break their"
-      - "blocks, knock them off."
+      - "On the block placement maps,"
+      - "as on Minemen: each hit is a"
+      - "point, the void costs 10."
+      - "Build, clutch, knock them off:"
+      - "first to 100."
       - "First to 5."
   block-fight-2v2:
     nom: "&bBlock placement 2v2"
@@ -782,9 +782,9 @@ modes:
     classe: false
     kit: [WOOD_SWORD, WOOD_PICKAXE, WOOD_AXE, SHEARS, "WOOL 64", "ENDER_STONE 12", "WOOL 64", "LADDER 16"]
     description:
-      - "Block placement, two"
-      - "against two, with the kit"
-      - "of the maps. First to 5."
+      - "Block placement, two against"
+      - "two: each hit is a point,"
+      - "the void costs 10. First to 100."
   block-fight-arena:
     nom: "&bBlock placement arena"
     categorie: ranked
@@ -795,7 +795,9 @@ modes:
     classe: false
     description:
       - "Block placement in an arena,"
-      - "with everyone."
+      - "with everyone: wool and shears,"
+      - "the blocks crack and break"
+      - "after 15 seconds."
   scenarios-ranked:
     nom: "&4Ranked scenarios"
     categorie: ranked

@@ -12,6 +12,7 @@ import java.util.UUID;
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
 import org.bukkit.Color;
+import org.bukkit.Effect;
 import org.bukkit.Location;
 import org.bukkit.Material;
 import org.bukkit.Sound;
@@ -28,12 +29,17 @@ import org.bukkit.util.Vector;
  * in config.yml: the green arena in its walls) the players come in anywhere on the grass, and its
  * slime blocks throw whoever stands on them three blocks up and two forward, the way they look:
  * the way out of the black pit in the corner. Without it, a big platform and four islands over
- * the void. Knock the others off or kill them; you come back at once. The blocks placed go away
- * after fifteen seconds, so that the arena never fills up. The kills count in the stats of the mode.
+ * the void. The kit: a wooden sword, two stacks of wool of the player's colour (they never run out)
+ * and shears. Knock the others off or kill them; you come back at once. The blocks placed crack
+ * more and more, and break after fifteen seconds, so that the arena never fills up. The kills
+ * count in the stats of the mode.
  */
 final class BlockArena extends PracticeGame {
 
-    private static final int DECAY_TICKS = 300;
+    /** The life of a block placed: fifteen seconds. */
+    static final int DECAY_TICKS = 300;
+    /** How often the cracks of the blocks are brought up to date. */
+    private static final int CRACK_TICKS = 5;
     private static final int HALF = 10;
     private static final int ISLAND = 19;
     /** On the map: the players come in this far at most from the centre, on the floor. */
@@ -47,10 +53,27 @@ final class BlockArena extends PracticeGame {
     static final int SLIME_ID = 165;
     private static final Color[] COLOURS = {Color.RED, Color.BLUE, Color.LIME, Color.YELLOW, Color.AQUA, Color.WHITE,
         Color.FUCHSIA, Color.ORANGE, Color.GRAY, Color.PURPLE};
+    /** The wool of each of those colours. */
+    static final int[] WOOLS = {Shapes.RED, Shapes.BLUE, Shapes.LIME, Shapes.YELLOW, 3, Shapes.WHITE, 2, Shapes.ORANGE, 7, 10};
+
+    /** A block placed: where, when, and the number of its cracks with their stage now. */
+    private static final class Placed {
+        final Block block;
+        final int tick;
+        final int id = BlockCracks.newId();
+        int stage = -1;
+
+        Placed(Block block, int tick) {
+            this.block = block;
+            this.tick = tick;
+        }
+    }
 
     private final Random random = new Random();
-    /** The blocks placed, oldest first, with the tick they were placed at. */
-    private final Deque<Object[]> decaying = new ArrayDeque<>();
+    /** The blocks placed, oldest first. */
+    private final Deque<Placed> decaying = new ArrayDeque<>();
+    /** The last placing of each block: an older one there no longer counts. */
+    private final Map<Block, Placed> latest = new HashMap<>();
     private final Map<UUID, Integer> kills = new HashMap<>();
     private final Map<UUID, Integer> streaks = new HashMap<>();
     /** The slime blocks of the map (x, y, z from the centre): they throw the players. */
@@ -142,8 +165,21 @@ final class BlockArena extends PracticeGame {
 
     @Override
     ItemStack[] defaultKit(Player player) {
-        return new ItemStack[] {new ItemStack(Material.WOOD_SWORD), new ItemStack(Material.SANDSTONE, 64),
-            new ItemStack(Material.SANDSTONE, 64)};
+        return new ItemStack[] {new ItemStack(Material.WOOD_SWORD), new ItemStack(Material.WOOL, 64),
+            new ItemStack(Material.WOOL, 64), new ItemStack(Material.SHEARS)};
+    }
+
+    /** The wool of the kit in the player's colour, wherever they put it. */
+    @Override
+    void afterKit(Player player) {
+        int colour = WOOLS[Math.max(0, sideOf(player.getUniqueId())) % WOOLS.length];
+        ItemStack[] items = player.getInventory().getContents();
+        for (ItemStack item : items) {
+            if (item != null && item.getType() == Material.WOOL) {
+                item.setDurability((short) colour);
+            }
+        }
+        player.getInventory().setContents(items);
     }
 
     @Override
@@ -172,7 +208,13 @@ final class BlockArena extends PracticeGame {
 
     @Override
     void placed(Player player, Block block) {
-        decaying.addLast(new Object[] {block, tickCount});
+        Placed placed = new Placed(block, tickCount);
+        Placed before = latest.put(block, placed);
+        if (before != null) {
+            // its cracks go with it
+            BlockCracks.show(online(), before.id, block, -1, plugin.getLogger());
+        }
+        decaying.addLast(placed);
     }
 
     @Override
@@ -180,10 +222,49 @@ final class BlockArena extends PracticeGame {
         if (!pads.isEmpty()) {
             launchPads();
         }
-        while (!decaying.isEmpty() && tickCount - (Integer) decaying.peekFirst()[1] >= DECAY_TICKS) {
-            Block block = (Block) decaying.pollFirst()[0];
-            if (arena.isPlaced(block)) {
+        while (!decaying.isEmpty() && tickCount - decaying.peekFirst().tick >= DECAY_TICKS) {
+            Placed placed = decaying.pollFirst();
+            if (latest.get(placed.block) != placed) {
+                continue;
+            }
+            latest.remove(placed.block);
+            BlockCracks.show(online(), placed.id, placed.block, -1, plugin.getLogger());
+            if (arena.isPlaced(placed.block)) {
+                Block block = placed.block;
+                breakEffect(block);
                 arena.restore(block);
+            }
+        }
+        if (tickCount % CRACK_TICKS == 0) {
+            cracks();
+        }
+    }
+
+    /** The sound and the bits of a broken block, in its colour: the effect of the server (id + data * 4096). */
+    @SuppressWarnings("deprecation") // Block#getTypeId and getData: the 1.8 block id and data of the effect
+    private static void breakEffect(Block block) {
+        block.getWorld().playEffect(block.getLocation(), Effect.STEP_SOUND, block.getTypeId() | (block.getData() & 15) << 12);
+    }
+
+    /** The cracks of the blocks placed, deeper as they get old; a block broken before its time loses them. */
+    private void cracks() {
+        List<Player> viewers = online();
+        java.util.Iterator<Placed> all = decaying.iterator();
+        while (all.hasNext()) {
+            Placed placed = all.next();
+            if (latest.get(placed.block) != placed) {
+                continue;
+            }
+            if (!arena.isPlaced(placed.block) || placed.block.getType() == Material.AIR) {
+                BlockCracks.show(viewers, placed.id, placed.block, -1, plugin.getLogger());
+                latest.remove(placed.block);
+                all.remove();
+                continue;
+            }
+            int stage = BlockCracks.stage(tickCount - placed.tick, DECAY_TICKS);
+            if (stage != placed.stage) {
+                placed.stage = stage;
+                BlockCracks.show(viewers, placed.id, placed.block, stage, plugin.getLogger());
             }
         }
     }

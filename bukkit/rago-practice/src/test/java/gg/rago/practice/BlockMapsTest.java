@@ -35,8 +35,8 @@ class BlockMapsTest {
             assertTrue(names.add(String.valueOf(map.get("monde"))));
             assertEquals(2, ((List<?>) map.get("departs")).size(), String.valueOf(map.get("monde")));
         }
-        // the points of the duel stay where they were
-        assertEquals(5, config.getInt("points-pour-gagner.block-fight"));
+        // as on Minemen: the hits are the points, first to 100
+        assertEquals(100, config.getInt("points-pour-gagner.block-fight"));
     }
 
     @Test

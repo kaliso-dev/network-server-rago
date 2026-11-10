@@ -76,11 +76,13 @@ boxing:
       departs: [[12902, 73, 12962, -90], [12990, 73, 12962, 90]]
 
 # The other duels: how many points win (in boxing, how many hits). A point is a death or a fall
-# into the void of the other side; in 2v2, when both players of a side are out of the round.
+# into the void of the other side; in 2v2, when both players of a side are out of the round. In
+# block placement (block-fight), as on Minemen, a point is a hit, and a fall into the void costs
+# the side of the player who fell 10 points (from 10 to 500).
 points-pour-gagner:
   boxing: 100
   kb-displace: 3
-  block-fight: 5
+  block-fight: 100
   top-fight: 3
   block-edit: 5
   bridge-fight: 5

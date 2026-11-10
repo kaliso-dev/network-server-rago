@@ -3,7 +3,9 @@ package gg.rago.practice;
 import gg.rago.game.GameMode;
 import java.util.List;
 import java.util.UUID;
+import org.bukkit.ChatColor;
 import org.bukkit.Location;
+import org.bukkit.Sound;
 import org.bukkit.Material;
 import org.bukkit.block.Block;
 import org.bukkit.enchantments.Enchantment;
@@ -17,13 +19,24 @@ import org.bukkit.inventory.ItemStack;
  * config.yml: each side starts on its gold block) or, without them, two small platforms over the
  * void. The kit of the maps: a wooden sword (Sharpness I), a pickaxe and an axe (Efficiency I),
  * shears, two stacks of wool, end stone and ladders; iron boots and leggings, the helmet and
- * chestplate of the side, all Protection IV. Build, clutch, break their blocks, knock them off: a
- * fall or a death is a point for the other side. First to 5.
+ * chestplate of the side, all Protection IV. As on Minemen, the points are the hits: each hit
+ * landed on the other side is a point (a hit does no damage, only its knockback), and a fall into
+ * the void costs the side of the player who fell {@value #VOID_PENALTY} points and starts the
+ * round again, everyone back on their gold block with the map as it was. First to 100 by default
+ * (points-pour-gagner.block-fight).
  */
 final class BlockFight extends Duel {
 
+    /** The points a fall into the void costs. */
+    static final int VOID_PENALTY = 10;
+
     BlockFight(PracticeHost host, GameMode mode, Arena arena, List<List<Player>> teams, int target) {
         super(host, mode, arena, teams, target);
+    }
+
+    /** The score of a side after a fall of one of its players: never under 0. */
+    static int afterFall(int points) {
+        return Math.max(0, points - VOID_PENALTY);
     }
 
     @Override
@@ -107,9 +120,61 @@ final class BlockFight extends Duel {
         player.getInventory().setArmorContents(pieces);
     }
 
+    /** A hit of the other side: its knockback, no damage; nothing else hurts. */
     @Override
     boolean damage(Player victim, Player attacker, EntityDamageEvent event) {
-        return event.getCause() != EntityDamageEvent.DamageCause.FALL;
+        if (attacker == null) {
+            return false;
+        }
+        event.setDamage(0.0);
+        return true;
+    }
+
+    /** A hit landed: a point for the side of the one who landed it. */
+    @Override
+    void landed(Player victim, Player attacker, EntityDamageEvent event) {
+        if (attacker == null || phase != Phase.PLAYING || sameSide(victim.getUniqueId(), attacker.getUniqueId())) {
+            return;
+        }
+        int side = sideOf(attacker.getUniqueId());
+        if (side < 0) {
+            return;
+        }
+        points[side]++;
+        if (points[side] >= target) {
+            finish(side, null);
+        }
+    }
+
+    /** A fall into the void: -10 for the side of the one who fell, and the round starts again. */
+    @Override
+    void fell(Player player) {
+        UUID id = player.getUniqueId();
+        int side = sideOf(id);
+        if (side < 0 || phase != Phase.PLAYING) {
+            player.teleport(spawnOf(id));
+            player.setFallDistance(0f);
+            return;
+        }
+        UUID by = killerOf(id);
+        deathMessage(player, by, true);
+        if (by != null && counts()) {
+            plugin.lobby().recordKill(mode.id(), by, id);
+        }
+        points[side] = afterFall(points[side]);
+        for (Player each : online()) {
+            int mine = sideOf(each.getUniqueId());
+            each.sendMessage((mine == side ? ChatColor.RED + "-" + VOID_PENALTY + " for your team" : ChatColor.GREEN + "-"
+                    + VOID_PENALTY + " for " + TEAMS[side]) + ChatColor.GRAY + " (" + points[Math.max(0, mine)] + " - "
+                    + points[1 - Math.max(0, mine)] + ")");
+            each.playSound(each.getLocation(), mine == side ? Sound.NOTE_BASS : Sound.ORB_PICKUP, 1f, 1f);
+        }
+        startRound();
+    }
+
+    @Override
+    void extraLines(UUID viewer, List<String> lines) {
+        lines.add(ChatColor.GRAY + "A hit: +1, the void: -" + VOID_PENALTY);
     }
 
     @Override
