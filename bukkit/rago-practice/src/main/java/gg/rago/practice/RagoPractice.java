@@ -152,7 +152,6 @@ public final class RagoPractice extends JavaPlugin {
         int boxing = config.getInt("points-pour-gagner.boxing", 100);
         int kb = config.getInt("points-pour-gagner.kb-displace", 3);
         int blocks = config.getInt("points-pour-gagner.block-fight", 100);
-        int top = config.getInt("points-pour-gagner.top-fight", 3);
         int edit = config.getInt("points-pour-gagner.block-edit", 5);
         int bridge = config.getInt("points-pour-gagner.bridge-fight", 5);
         int bridgeProtection = config.getInt("bridge-fight.protection-1v1", 2);
@@ -169,8 +168,10 @@ public final class RagoPractice extends JavaPlugin {
         List<MapZones.ZoneMap> blockMaps = zoneMaps(config, "block-fight.cartes", spacing, "the block placement");
         onMaps(register("block-fight-1v1", (h, m, a, t) -> new BlockFight(h, m, a, t, blocks), slots, spacing, false), blockMaps);
         onMaps(register("block-fight-2v2", (h, m, a, t) -> new BlockFight(h, m, a, t, blocks), slots, spacing, false), blockMaps);
-        register("top-fight-1v1", (h, m, a, t) -> new TopFight(h, m, a, t, top), slots, spacing, false);
-        register("top-fight-2v2", (h, m, a, t) -> new TopFight(h, m, a, t, top), slots, spacing, false);
+        // Top Fight plays on the RBW maps, in the Bed Wars plugin: its two rows stay reserved, so that
+        // the other modes keep their zones
+        hosted.add("(top-fight-1v1)");
+        hosted.add("(top-fight-2v2)");
         AttackDefense.Base base = attackDefenseBase(config, spacing);
         register("attack-defense-1v1", (h, m, a, t) -> new AttackDefense(h, m, a, t, base, attack, rounds), slots, spacing, false);
         register("attack-defense-2v2", (h, m, a, t) -> new AttackDefense(h, m, a, t, base, attack, rounds), slots, spacing, false);
@@ -937,7 +938,6 @@ public final class RagoPractice extends JavaPlugin {
             {"points-pour-gagner.boxing", "100", "10", "500"},
             {"points-pour-gagner.kb-displace", "3", "1", "10"},
             {"points-pour-gagner.block-fight", "100", "10", "500"},
-            {"points-pour-gagner.top-fight", "3", "1", "10"},
             {"points-pour-gagner.block-edit", "5", "1", "20"},
             {"attaque-defense.attaque-secondes", "60", "15", "600"},
             {"attaque-defense.manches", "2", "2", "10"},

@@ -354,14 +354,14 @@ class BedwarsGame {
     }
 
     /**
-     * On the top bridge, the players under its fall line are dead: also those who stand still down
-     * there (a move under it kills too, see the host).
+     * On the top bridge (or a top fight's defense), the players under its fall line are dead: also
+     * those who stand still down there (a move under it kills too, see the host).
      */
     private void fallenOff() {
-        if (!onTheBridge() || topBridge == null) {
+        double line = fallLine();
+        if (line <= instance.map().voidY()) {
             return;
         }
-        double line = fallLine();
         for (Gamer gamer : new ArrayList<>(gamers.values())) {
             Player player = Bukkit.getPlayer(gamer.id);
             if (phase != Phase.PLAYING) {
@@ -1460,6 +1460,29 @@ class BedwarsGame {
             give(player, gamer, stack(catalog.byId("shears"), gamer), Category.TOOLS);
         }
         player.updateInventory();
+    }
+
+    /** The Absorption of the fight kit, at each life: II, eight hearts more (a golden apple's is I). */
+    static final int FIGHT_ABSORPTION = 1;
+
+    /**
+     * The armour of the fight kit (Top Bridge, the FFA), as in the top fights of the practice: full
+     * diamond, Protection IV, unbreakable; and Absorption II.
+     */
+    static void fightArmour(Player player) {
+        Material[] pieces = {Material.DIAMOND_BOOTS, Material.DIAMOND_LEGGINGS, Material.DIAMOND_CHESTPLATE,
+            Material.DIAMOND_HELMET};
+        ItemStack[] armour = new ItemStack[pieces.length];
+        for (int i = 0; i < pieces.length; i++) {
+            ItemStack piece = new ItemStack(pieces[i]);
+            ItemMeta meta = piece.getItemMeta();
+            meta.addEnchant(Enchantment.PROTECTION_ENVIRONMENTAL, 4, true);
+            meta.spigot().setUnbreakable(true);
+            piece.setItemMeta(meta);
+            armour[i] = piece;
+        }
+        player.getInventory().setArmorContents(armour);
+        player.addPotionEffect(new PotionEffect(PotionEffectType.ABSORPTION, Integer.MAX_VALUE, FIGHT_ABSORPTION), true);
     }
 
     private static final Material[][] ARMOR = {

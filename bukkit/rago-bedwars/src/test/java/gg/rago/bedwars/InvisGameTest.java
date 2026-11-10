@@ -27,8 +27,8 @@ class InvisGameTest {
 
     @Test
     void theBedHasTheDefenseOfARankedGame() {
-        assertArrayEquals(new Material[] {Material.ENDER_STONE, Material.STAINED_GLASS, Material.WOOD, Material.WOOL},
-                InvisGame.DEFENSE, "end stone on the bed, then glass, wood and wool");
+        assertArrayEquals(new Material[] {Material.ENDER_STONE, Material.STAINED_GLASS, Material.WOOD},
+                InvisGame.DEFENSE, "end stone on the bed, then glass and wood: no wool outside");
         assertEquals(180f, Math.abs(InvisGame.yawTowards(0, -1)), 1e-3, "north");
         assertEquals(0f, InvisGame.yawTowards(0, 1), 1e-3, "south");
     }

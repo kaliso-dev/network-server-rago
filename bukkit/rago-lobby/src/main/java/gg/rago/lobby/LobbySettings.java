@@ -21,8 +21,8 @@ final class LobbySettings {
     private final String world;
     private final int voidHeight;
     /** The throw of the slime blocks of the lobby: forward and up, in blocks per tick. */
-    private double slimeForward = 2.0;
-    private double slimeUp = 0.9;
+    private double slimeForward = 3.5;
+    private double slimeUp = 1.3;
     private final String title;
     private final String address;
     private final int defaultRating;
@@ -140,8 +140,8 @@ final class LobbySettings {
                     + " with dashes, from developer.hypixel.net), or \"\" for no import");
         }
         Map<String, List<GameMode>> privateRoutes = readPrivateRoutes(config.getConfigurationSection("parties-privees"), modes);
-        double slimeForward = config.getDouble("slime.avant", 2.0);
-        double slimeUp = config.getDouble("slime.haut", 0.9);
+        double slimeForward = config.getDouble("slime.avant", 3.5);
+        double slimeUp = config.getDouble("slime.haut", 1.3);
         if (slimeForward < 0 || slimeForward > 4 || slimeUp < 0 || slimeUp > 4) {
             throw new IllegalArgumentException("slime: avant and haut from 0 to 4");
         }

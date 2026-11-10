@@ -84,7 +84,6 @@ points-pour-gagner:
   boxing: 100
   kb-displace: 3
   block-fight: 100
-  top-fight: 3
   block-edit: 5
   bridge-fight: 5
   # the bow 1v1: each arrow that hits is a point (from 1 to 50)

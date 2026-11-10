@@ -29,7 +29,7 @@ class BedwarsSettingsTest {
     void readsTheBundledConfig() throws Exception {
         BedwarsSettings settings = BedwarsSettings.read(bundled());
         assertEquals(Arrays.asList("ranked-1v1", "ranked-2v2", "ranked-3v3", "ranked-4v4", "top-bridge-1v1",
-                "top-bridge-2v2", "skyrise-1v1", "skyrise-2v2",
+                "top-bridge-2v2", "top-fight-1v1", "top-fight-2v2", "skyrise-1v1", "skyrise-2v2",
                 "first-rush", "first-rush-duo", "top-bridge-ffa", "ffa", "invis-practice", "shop-practice"),
                 settings.modes());
         assertEquals(BedwarsSettings.Kind.CLASSIC, settings.kind("ranked-1v1"));
@@ -45,6 +45,11 @@ class BedwarsSettingsTest {
         assertEquals(settings.mapsOf("ranked-1v1"), settings.mapsOf("invis-practice"), "the invis practice too");
         assertEquals(BedwarsSettings.Kind.TOP_BRIDGE, settings.kind("top-bridge-1v1"));
         assertEquals(BedwarsSettings.Kind.TOP_BRIDGE, settings.kind("top-bridge-2v2"));
+        assertEquals(BedwarsSettings.Kind.TOP_FIGHT, settings.kind("top-fight-1v1"));
+        assertEquals(BedwarsSettings.Kind.TOP_FIGHT, settings.kind("top-fight-2v2"));
+        assertEquals(settings.mapsOf("ranked-1v1"), settings.mapsOf("top-fight-1v1"), "Top Fight on the 20 maps, Antenna first");
+        assertEquals(settings.mapsOf("ranked-1v1"), settings.mapsOf("top-fight-2v2"));
+        assertTrue(!settings.topBridge("top-fight-1v1"), "no top bridge: the fight is on the defense");
         assertEquals(Arrays.asList("Antenna", "Aquarium", "Archway", "Artemis", "Boletum", "Carapace", "Catalyst",
                 "Chained", "Eastwood", "Extinction", "Invasion", "Katsu", "Lectus", "Obelisk", "Paladin", "Planet98", "Rise",
                 "Stonekeep", "Swashbuckle", "Treenan"), settings.mapsOf("ranked-2v2"), "the maps of the RBW queue");

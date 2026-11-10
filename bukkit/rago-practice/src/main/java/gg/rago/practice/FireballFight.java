@@ -25,8 +25,8 @@ import org.bukkit.inventory.ItemStack;
  * the owner's maps: a stone sword, a pickaxe and an axe (Efficiency I), 6 fireballs, wool, end
  * stone, 2 TNT, shears and ladders. While its bed stands, a dead player comes back in 3 seconds;
  * once it is broken, a death is final. The last side standing wins. Fireballs and TNT as in Bed
- * Wars: they push, they hurt a little, and they only blow up wool, wood and the blocks the players
- * placed. On a map of fireball.cartes (config.yml), each side starts on its start and the beds are
+ * Wars: they push, and they only blow up wool, wood and the blocks the players placed; the
+ * fireballs do no damage, and nobody takes fall damage. On a map of fireball.cartes (config.yml), each side starts on its start and the beds are
  * the map's own: a bed is the side's whose start is nearer.
  */
 final class FireballFight extends Duel {
@@ -139,9 +139,15 @@ final class FireballFight extends Duel {
         leather(player, COLOURS[Math.max(0, sideOf(player.getUniqueId()))]);
     }
 
+    /** No fall damage: the fights are about the push of the fireballs. */
     @Override
     boolean damage(Player victim, Player attacker, EntityDamageEvent event) {
-        return !respawning.contains(victim.getUniqueId());
+        return !respawning.contains(victim.getUniqueId()) && event.getCause() != EntityDamageEvent.DamageCause.FALL;
+    }
+
+    /** The fireballs only push (their hit still counts for the kill): no damage. */
+    @Override
+    void blasted(Player player, Player thrower, double damage) {
     }
 
     @Override

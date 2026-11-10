@@ -258,6 +258,8 @@ final class BedwarsHost implements MatchHost, Listener {
                 return new FastShopGame(plugin, this, instance, mode.id(), name, sides);
             case TOP_BRIDGE:
                 return new TopBridgeGame(plugin, this, instance, mode.id(), name, sides, privateGame(sides));
+            case TOP_FIGHT:
+                return new TopFightGame(plugin, this, instance, mode.id(), name, sides, privateGame(sides));
             default:
                 return new BedwarsGame(plugin, this, instance, mode.id(), name, sides);
         }

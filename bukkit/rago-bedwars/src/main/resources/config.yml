@@ -15,6 +15,8 @@ modes:
   ranked-4v4: [Antenna, Aquarium, Archway, Artemis, Boletum, Carapace, Catalyst, Chained, Eastwood, Extinction, Invasion, Katsu, Lectus, Obelisk, Paladin, Planet98, Rise, Stonekeep, Swashbuckle, Treenan]
   top-bridge-1v1: [Antenna, Aquarium, Archway, Artemis, Boletum, Carapace, Catalyst, Chained, Eastwood, Extinction, Invasion, Katsu, Lectus, Obelisk, Paladin, Planet98, Rise, Stonekeep, Swashbuckle, Treenan]
   top-bridge-2v2: [Antenna, Aquarium, Archway, Artemis, Boletum, Carapace, Catalyst, Chained, Eastwood, Extinction, Invasion, Katsu, Lectus, Obelisk, Paladin, Planet98, Rise, Stonekeep, Swashbuckle, Treenan]
+  top-fight-1v1: [Antenna, Aquarium, Archway, Artemis, Boletum, Carapace, Catalyst, Chained, Eastwood, Extinction, Invasion, Katsu, Lectus, Obelisk, Paladin, Planet98, Rise, Stonekeep, Swashbuckle, Treenan]
+  top-fight-2v2: [Antenna, Aquarium, Archway, Artemis, Boletum, Carapace, Catalyst, Chained, Eastwood, Extinction, Invasion, Katsu, Lectus, Obelisk, Paladin, Planet98, Rise, Stonekeep, Swashbuckle, Treenan]
   skyrise-1v1: [SkyRise]
   skyrise-2v2: [SkyRise]
   first-rush: [Acropolis, Ambush, Aqil, Cascade, Crogorm, Frosted, Gelato, Lighthouse, Lotus, Nebuc]
@@ -35,18 +37,25 @@ modes:
 #              it now: Arena Free, free-ffa, is on the owner's Arena, in the practice plugin)
 #   invis      invis practice: 2 to 6 players on the map chosen, rounds of 3 minutes, one invisible
 #              (the mode's kit), at mid in front of the base to attack, against the others (a
-#              ranked defense on their bed: end stone, glass, wood, wool); a hit makes the
+#              ranked defense on their bed without its wool: end stone, glass, wood); a hit makes the
 #              invisible visible; each player in turn; it starts 20 seconds after the second joins
 #   top-bridge Top Bridge: no bed, no forge, the fight on the top bridge alone (see top-bridge:
 #              below), everyone starting on top with the mode's kit and iron armour, dead when
 #              they fall off it; rounds of one life, the first team to 5 points wins; in a
 #              party's private game, a practice: back on top 2 seconds after a death, 30 minutes
+#   top-fight  Top Fight: the bed of the first team keeps a ranked defense (end stone, glass, wood,
+#              wool), the other beds and the forges go; everyone starts on top of it, face to
+#              face, with the mode's kit and diamond armour; knocked off it down to the island is
+#              dead; rounds of one life to 3 points; in a party's private game, the same practice
+#              as Top Bridge, the defense made whole again when a player comes back
 #   fast-shop  Fast Shop: each player on an island with its shop, lists of items to buy as fast as
 #              possible with their own quick buy (copied from Hypixel in the lobby), and records
 # A mode not listed is a classic game.
 jeux:
   top-bridge-1v1: top-bridge
   top-bridge-2v2: top-bridge
+  top-fight-1v1: top-fight
+  top-fight-2v2: top-fight
   top-bridge-ffa: ffa
   ffa: ffa
   invis-practice: invis

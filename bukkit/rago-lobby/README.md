@@ -26,8 +26,8 @@ dans les files d'attente des modes de jeu.
   lanceur de feux d'artifice, le party popper (cookies et bonbons que personne ne ramasse, et de la
   musique) et la plume de saut.
 - **Les slimes du lobby.** Un bloc de slime est un tremplin, comme les launch pads de Hypixel : il
-  lance celui qui marche dessus là où il regarde (`slime: {avant: 2.0, haut: 0.9}` ; 0 et 0 pour
-  des slimes ordinaires).
+  lance celui qui marche dessus là où il regarde, à environ 30 blocs et 9 de haut
+  (`slime: {avant: 3.5, haut: 1.3}` ; 0 et 0 pour des slimes ordinaires).
 - **La vitesse du lobby (PREMIUM).** Dans les réglages du profil, « Lobby speed » : Speed I, II ou
   III dans le lobby, ou rien (clic gauche plus vite, clic droit moins vite). La permission est
   `rago.perk.speed`.

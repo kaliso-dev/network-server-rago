@@ -46,11 +46,6 @@ le Tab, avec sa vie en dessous et son niveau Network à côté.
   et relance la manche, chacun sur son bloc d'or, la map comme au départ. Premier à
   `points-pour-gagner.block-fight` (100). Sans ces mondes, deux petites plateformes au-dessus du
   vide.
-- **Top fight 2v2** (et 1v1 en partie privée) : une île dont le lit a une défense de trois couches
-  (end stone, bois, laine). On commence directement en haut, face à face (en 2v2 le second de
-  chaque équipe une marche plus bas derrière), en armure complète en diamant Protection IV, avec
-  Absorption II (huit cœurs de plus) à chaque départ, une épée en fer, 64 laines, 5 pommes d'or et
-  une perle. Les noms prennent la couleur de l'équipe. Premier à 3.
 - **Attack and defense 1v1 et 2v2**, comme un rush en solo sur Hypixel : le défenseur est chez
   lui, à côté de son lit sans défense, l'attaquant déjà sur un pont, à trois blocs de vide de
   l'île. Le défenseur doit couvrir son lit tout de suite et tenir 60 secondes (il revient au bout
@@ -64,7 +59,7 @@ le Tab, avec sa vie en dessous et son niveau Network à côté.
   stuff des maps du propriétaire : épée en pierre, pioche et hache Efficiency I, 6 boules de feu,
   un stack de laine, 8 end stone, 2 TNT, cisailles, 8 échelles, armure en cuir. Tant que le lit
   tient, on revient au bout de 3 secondes ; ensuite, une mort est définitive. Le dernier camp
-  debout gagne. Sur une map de `fireball.cartes` (`config.yml`), chaque camp part de son départ et
+  debout gagne. Les boules de feu poussent sans faire de dégâts, et pas de dégâts de chute. Sur une map de `fireball.cartes` (`config.yml`), chaque camp part de son départ et
   les lits sont ceux de la map (un lit est au camp dont le départ est le plus proche) ; `lits`
   remet ceux qu'une map a perdus. Fournie : la map Fireball Fight du propriétaire (son lit de
   l'île ouest, perdu, revient dans sa défense d'end stone).

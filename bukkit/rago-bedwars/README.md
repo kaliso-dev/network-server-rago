@@ -4,8 +4,8 @@ Un plugin Bukkit 1.8.8 qui joue les modes Bed Wars du lobby (`bukkit/rago-lobby`
 Bedwars 1v1, 2v2, 3v3 et 4v4**, **RBW Sky Rise** en solo et en duo, avec les règles d'une partie
 classique d'Hypixel, **First Rush** en solo et en duo (la même partie, sur deux îles voisines), les
 **parties privées** d'une party (le lobby choisit le 1v1, 2v2, 3v3 ou 4v4 selon sa taille), et
-quatre jeux à part sur des maps de Bed Wars : **Top Bridge**, **FFA** (dont le Top Bridge FFA),
-**Invis practice** et **Fast Shop**. Chaque mode a ses maps.
+cinq jeux à part sur des maps de Bed Wars : **Top Bridge**, **Top Fight**, **FFA** (dont le Top
+Bridge FFA), **Invis practice** et **Fast Shop**. Chaque mode a ses maps.
 
 ## La partie
 
@@ -88,8 +88,8 @@ Les modes qui l'ont sont listés dans `top-bridge:` du config.yml.
 
 Ni lit ni forge ni shop : seul le combat sur le pont compte. Chaque équipe démarre en haut, sur sa
 moitié, à 12 blocs de la ligne blanche du milieu, côte à côte en 2v2, face à l'autre moitié, avec
-le kit du mode (épée en fer, 2 stacks de laine, cisailles, pioche en fer, 3 pommes d'or, 4 boules
-de feu, une perle ; arrangeable dans l'éditeur de kit) et l'armure en fer. Celui qui tombe à 10
+le stuff de combat du propriétaire : une épée en pierre et un stack de pommes d'or (arrangeables
+dans l'éditeur de kit), une armure complète en diamant Protection IV et Absorption II. Celui qui tombe à 10
 blocs sous la plateforme est mort, comme dans le vide (on a le temps d'un clutch). Ceux qui
 attendent regardent depuis le dessus du milieu.
 
@@ -104,10 +104,26 @@ attendent regardent depuis le dessus du milieu.
   minutes au plus. Rien ne compte dans les stats.
 
 `top-bridge-ffa` est le FFA libre sur le pont, sur les 20 maps : on entre et on sort quand on veut,
-chacun pour soi, une épée en fer seule (et l'armure en fer) à chaque vie. Le top bridge relie les
+chacun pour soi, avec le même stuff de combat à chaque vie. Le top bridge relie les
 deux îles les plus éloignées ; on apparaît et on revient 3 secondes après une mort sur la
 plateforme, à l'endroit le plus loin des autres joueurs, et celui qui tombe en dessous est mort.
 Un kill soigne.
+
+## Top Fight
+
+`top-fight-1v1` et `top-fight-2v2` (le genre `top-fight`), sur les 20 maps de la file (Antenna en
+premier, au choix dans la file), et le **Private top fight** du PNJ des parties privées. Le lit de
+la première équipe garde une défense de ranked (end stone sur le lit, puis verre, bois et laine),
+les autres lits et les forges partent. Tout le monde commence en haut de la défense, face à face :
+le premier de chaque équipe tout en haut (l'un au-dessus du pied du lit, l'autre de sa tête), le
+second une marche plus bas derrière lui. Le même stuff qu'en Top Bridge : le kit du mode (épée en
+pierre, un stack de pommes d'or), armure complète en diamant Protection IV et Absorption II. Celui
+qui tombe de la défense jusqu'au sol de l'île est mort, comme dans le vide.
+
+- **Dans la file** : des manches d'une vie, la première équipe à 3 points gagne. Entre deux
+  manches, la map redevient comme au départ et la défense est reposée.
+- **En partie privée** : le même practice qu'en Top Bridge (on revient en haut 2 secondes après une
+  mort, 30 minutes au plus), et la défense redevient entière quand un joueur revient.
 
 ## Améliorations et pièges
 
@@ -164,13 +180,15 @@ Les objets de la catégorie Utility du shop, comme sur Hypixel :
 Dans `jeux:` du config.yml, un mode peut jouer autre chose qu'une partie classique :
 
 - **FFA** (`ffa`, sur Archway FFA et Paladin, au choix dans la file) : chacun pour soi, ouvert,
-  on entre et on sort quand on veut. Archway FFA (le dossier `ArchwayFFA`) est l'Archway du
-  propriétaire : des ponts de laine entre les îles, une défense d'end stone et de verre sur les lits
-  rouge et vert pour les top fights, et depuis ces deux îles un escalier jusqu'au top bridge au-dessus
-  du milieu (sa plateforme à y 85) ; on construit jusqu'à y 95. Le kit du mode (à
-  ranger dans l'éditeur de kit du lobby) et une armure de fer à chaque vie ; on revient 3 secondes
-  après une mort sur l'île la plus éloignée des autres ; un kill soigne ; les blocs posés partent au
-  bout de 45 secondes ; les kills comptent dans les stats.
+  on entre et on sort quand on veut. Le kit du mode (rangé dans l'éditeur de kit du lobby) est le
+  stuff de combat du propriétaire, une épée en pierre et un stack de pommes d'or, avec 3 boules de
+  feu et une perle, et à chaque vie une armure complète en diamant Protection IV et Absorption II ;
+  on revient 3 secondes après une mort sur l'île la plus éloignée des autres ; un kill soigne ; les
+  blocs posés partent au bout de 45 secondes ; les kills comptent dans les stats. Archway FFA (le
+  dossier `ArchwayFFA`) est l'Archway du propriétaire : des ponts de laine entre les îles, une
+  défense d'end stone et de verre sur les lits rouge et vert pour les top fights, et depuis ces deux
+  îles un escalier jusqu'au top bridge au-dessus du milieu (sa plateforme à y 85) ; on construit
+  jusqu'à y 95.
 - **Free FFA** (`arene`) : la même chose avec les forges, les diamants et les émeraudes, un shop
   à lui (les diamants achètent aussi), l'armure et les outils gardés comme en Bed Wars, et sur
   chaque lit une défense de trois couches prête pour les top fights, remise quand personne n'est à
@@ -187,8 +205,8 @@ Dans `jeux:` du config.yml, un mode peut jouer autre chose qu'une partie classiq
   secondes) et les tourbillons gris de la potion autour de lui : les défenseurs peuvent le
   repérer, et un coup d'un défenseur lui fait perdre son invisibilité pour le reste de la manche.
   Les autres modes gardent l'invisibilité complète d'Hypixel. Les autres, quatre au plus,
-  défendent le lit de l'île voisine sous une défense de ranked : end stone sur le lit, puis verre,
-  bois et laine (les couches que l'île a la place de porter) ; cisailles, outils en bois et Haste,
+  défendent le lit de l'île voisine sous une défense de ranked sans sa couche de laine : end stone
+  sur le lit, puis verre et bois (les couches que l'île a la place de porter) ; cisailles, outils en bois et Haste,
   épée en fer Sharpness, 2 stacks de laine, armure de fer Protection IV.
   L'attaquant gagne la manche en cassant le lit, les défenseurs en le tuant (une vie) ou en tenant
   3 minutes. Chacun attaque à son tour ; le plus de points gagne. La partie part 20

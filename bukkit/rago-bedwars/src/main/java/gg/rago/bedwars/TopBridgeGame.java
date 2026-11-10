@@ -18,8 +18,9 @@ import org.bukkit.scheduler.BukkitTask;
 /**
  * Top Bridge, as the owner plays it: no bed, no forge, no shop, only the fight on the platform of
  * the top bridge (the one he built on Antenna, on any map). The players start on top, each team on
- * its half, with the mode's kit (the lobby's kit editor) and iron armour; one who falls off the
- * platform is dead, as in the void.
+ * its half, with the mode's kit (the lobby's kit editor: a stone sword and a stack of golden apples),
+ * full diamond armour with Protection IV and Absorption II; one who falls off the platform is
+ * dead, as in the void.
  *
  * <ul>
  *   <li>A game of the queue (1v1, 2v2): rounds, one life each. A round is won when every player of
@@ -30,9 +31,9 @@ import org.bukkit.scheduler.BukkitTask;
  *       {@value #DECAY_SECONDS} seconds, and it lasts {@value #PRACTICE_MINUTES} minutes at most.
  * </ul>
  *
- * Main thread only.
+ * {@link TopFightGame} plays the same rounds and practice on top of a bed defense. Main thread only.
  */
-final class TopBridgeGame extends BedwarsGame {
+class TopBridgeGame extends BedwarsGame {
 
     static final int POINTS_TO_WIN = 5;
     static final int PRACTICE_MINUTES = 30;
@@ -43,13 +44,11 @@ final class TopBridgeGame extends BedwarsGame {
     private static final int COUNTDOWN = 3;
     /** Between the end of a round and the next one. */
     private static final long BETWEEN_TICKS = 60L;
-    /** The kit when the lobby has none for the mode: the RBW kit of Top Bridge FFA before. */
-    private static final ItemStack[] DEFAULT_KIT = {new ItemStack(Material.IRON_SWORD), new ItemStack(Material.WOOL, 64),
-        new ItemStack(Material.WOOL, 64), new ItemStack(Material.SHEARS), new ItemStack(Material.IRON_PICKAXE),
-        new ItemStack(Material.GOLDEN_APPLE, 3), new ItemStack(Material.FIREBALL, 4), new ItemStack(Material.ENDER_PEARL)};
+    /** The kit when the lobby has none for the mode: the owner's fight kit. */
+    private static final ItemStack[] DEFAULT_KIT = {new ItemStack(Material.STONE_SWORD), new ItemStack(Material.GOLDEN_APPLE, 64)};
 
     /** A party's private game: the practice without rounds. */
-    private final boolean practice;
+    final boolean practice;
     private final BlockDecay decay = new BlockDecay(DECAY_SECONDS);
     private final int[] points;
     private int round = 1;
@@ -64,6 +63,28 @@ final class TopBridgeGame extends BedwarsGame {
     }
 
     // --- What Top Bridge changes ----------------------------------------------------------------
+
+    /** The points a team needs to win a game of rounds. */
+    int pointsToWin() {
+        return POINTS_TO_WIN;
+    }
+
+    /** What the fight is on, made again for each round in the copy of the map: the top bridge. */
+    void buildFight() {
+        buildTopBridge();
+    }
+
+    /** The rule of the practice, after "you are in the X team." */
+    String practiceRule() {
+        return "A practice of your party: fight on the top bridge, fall off and you come back on it. No bed, no forge, "
+                + PRACTICE_MINUTES + " minutes at most.";
+    }
+
+    /** The rule of a game of rounds, after "you are in the X team." */
+    String roundsRule() {
+        return "Rounds of one life: kill every player of the other team, or knock them off the bridge. The first team to "
+                + pointsToWin() + " points wins.";
+    }
 
     @Override
     boolean hasTopBridge() {
@@ -148,18 +169,12 @@ final class TopBridgeGame extends BedwarsGame {
         String head = ChatColor.YELLOW + "" + ChatColor.BOLD + modeName + ChatColor.YELLOW + " on " + ChatColor.WHITE
                 + instance.map().world() + ChatColor.YELLOW + ": you are in the " + gamer.team.color.coloured()
                 + ChatColor.YELLOW + " team. ";
-        if (practice) {
-            player.sendMessage(head + "A practice of your party: fight on the top bridge, fall off and you come back on "
-                    + "it. No bed, no forge, " + PRACTICE_MINUTES + " minutes at most.");
-        } else {
-            player.sendMessage(head + "Rounds of one life: kill every player of the other team, or knock them off the "
-                    + "bridge. The first team to " + POINTS_TO_WIN + " points wins.");
-        }
+        player.sendMessage(head + (practice ? practiceRule() : roundsRule()));
         player.sendMessage(ChatColor.GRAY + "Your kit is the mode's kit of the lobby's kit editor. /spawn takes you back to "
                 + "the lobby.");
     }
 
-    /** The mode's kit as the player arranged it, and iron armour, at each life. */
+    /** The mode's kit as the player arranged it, full diamond armour and Absorption, at each life. */
     @Override
     void giveKit(Player player, Gamer gamer) {
         PlayerInventory inventory = player.getInventory();
@@ -172,8 +187,7 @@ final class TopBridgeGame extends BedwarsGame {
                 inventory.addItem(kitItem(item.clone(), gamer));
             }
         }
-        gamer.armor = 2;
-        wearArmor(player, gamer);
+        fightArmour(player);
         player.updateInventory();
     }
 
@@ -283,7 +297,7 @@ final class TopBridgeGame extends BedwarsGame {
         broadcast(winner == null ? ChatColor.YELLOW + "Round " + round + ": nobody is left, no point. " + score
                 : winner.color.coloured() + ChatColor.YELLOW + " wins round " + round + "! " + score,
                 winner == null ? Sound.NOTE_BASS : Sound.LEVEL_UP);
-        if (winner != null && points[teams.indexOf(winner)] >= POINTS_TO_WIN) {
+        if (winner != null && points[teams.indexOf(winner)] >= pointsToWin()) {
             later(40L, () -> {
                 if (phase != Phase.ENDED) {
                     end(winner);
@@ -315,7 +329,7 @@ final class TopBridgeGame extends BedwarsGame {
                 : String.join(ChatColor.GRAY + " - ", parts);
     }
 
-    /** The map as it was, the bridge again, everyone on top, a countdown, and the fight. */
+    /** The map as it was, the bridge (or the defense) again, everyone on top, a countdown, and the fight. */
     private void nextRound() {
         if (phase == Phase.ENDED) {
             return;
@@ -324,7 +338,7 @@ final class TopBridgeGame extends BedwarsGame {
         roundOver = false;
         instance.rollback();
         removeUnusedBeds();
-        buildTopBridge();
+        buildFight();
         phase = Phase.STARTING;
         for (Gamer gamer : gamers.values()) {
             cancel(gamer.respawn);
@@ -388,7 +402,7 @@ final class TopBridgeGame extends BedwarsGame {
             lines.add(phase == Phase.STARTING ? ChatColor.WHITE + "Starting..."
                     : ChatColor.WHITE + "Practice: " + ChatColor.GREEN + clock(left));
         } else {
-            lines.add(ChatColor.WHITE + "Round " + ChatColor.GREEN + round + ChatColor.GRAY + " - first to " + POINTS_TO_WIN);
+            lines.add(ChatColor.WHITE + "Round " + ChatColor.GREEN + round + ChatColor.GRAY + " - first to " + pointsToWin());
         }
         lines.add("");
         int[] kills = kills();

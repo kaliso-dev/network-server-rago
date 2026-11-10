@@ -183,7 +183,12 @@ final class BedwarsSettings {
          * Top Bridge: the fight on the top bridge alone, no bed, no forge; rounds of one life to 5
          * points, or a practice without end in a party's private game.
          */
-        TOP_BRIDGE("top-bridge");
+        TOP_BRIDGE("top-bridge"),
+        /**
+         * Top Fight: the fight on top of a ranked defense on a bed of the map, no forge; the same
+         * rounds (to 3 points) and private practice as Top Bridge.
+         */
+        TOP_FIGHT("top-fight");
 
         final String word;
 

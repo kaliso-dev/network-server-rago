@@ -34,8 +34,8 @@ import org.bukkit.scheduler.BukkitTask;
  * and Protection I armour (hidden while invisible, as on Hypixel). The invisible leaves footprints
  * on the ground and the swirls of the potion around them, for the defenders to spot, and a hit
  * makes them visible for the rest of the round. The others defend the bed of the next island,
- * under the defense of a ranked game (end stone, glass, wood and wool, the layers the island has
- * room for): shears, wooden tools and Haste, an iron sword
+ * under the defense of a ranked game without its wool (end stone, glass and wood, the layers the
+ * island has room for): shears, wooden tools and Haste, an iron sword
  * with Sharpness, Protection IV armour and 2 stacks of wool; four at most, a sixth player watches
  * that round. The attacker wins the round by breaking the bed; the defenders by killing the
  * attacker (one life) or by holding three minutes; a defender comes back three seconds after a
@@ -57,8 +57,8 @@ final class InvisGame extends BedwarsGame {
     private static final int DEFENDER_RESPAWN = 3;
     /** Between the end of a round and the next one. */
     private static final long BETWEEN_TICKS = 80L;
-    /** The defense of a ranked game, from the bed out: end stone, glass, wood, wool. */
-    static final Material[] DEFENSE = {Material.ENDER_STONE, Material.STAINED_GLASS, Material.WOOD, Material.WOOL};
+    /** The defense of a ranked game without its last layer of wool, from the bed out: end stone, glass, wood. */
+    static final Material[] DEFENSE = {Material.ENDER_STONE, Material.STAINED_GLASS, Material.WOOD};
     /** The attacker's kit when the lobby has none for the mode: the owner's, as in config.yml. */
     static final String[] ATTACKER_KIT = {"stone_sword", "wool 64", "wool 64", "plank 16", "golden_pickaxe", "iron_axe",
         "shears", "fireball 1", "bridge_egg 2", "invisibility", "jump"};

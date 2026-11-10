@@ -24,14 +24,16 @@ import org.bukkit.inventory.PlayerInventory;
  * others. The beds stay as the map has them, unbreakable; the blocks placed go after a while, so
  * that the map never fills up. The kills count in the stats of the mode.
  *
- * <p>FFA: the mode's kit as each player arranged it (the lobby's kit editor), with iron armour,
+ * <p>FFA: the mode's kit as each player arranged it (the lobby's kit editor), with its armour,
  * given back at each life; a kill heals the killer. Arena (Free FFA): the island forges, the
  * diamonds and emeralds and a shop of its own (the diamonds buy too), the armour and tools kept
  * as in Bed Wars, and on each bed a defense of three layers ready for top fights, put back when
  * nobody is near it. Top Bridge FFA (a mode of top-bridge: in config.yml): the FFA on the top
- * bridge of Antenna, built between the two islands farthest apart: an iron sword only (and the
- * iron armour), the players start and come back on the platform, away from the others, and one
- * who falls off it is dead. Main thread only.
+ * bridge of Antenna, built between the two islands farthest apart: the players start and come
+ * back on the platform, away from the others, and one who falls off it is dead. The FFA and Top
+ * Bridge FFA play the owner's fight kit: a stone sword and a stack of golden apples (and in the FFA,
+ * 3 fireballs and a pearl), full diamond armour with Protection IV and Absorption II. Main thread
+ * only.
  */
 final class FfaGame extends BedwarsGame {
 
@@ -257,8 +259,8 @@ final class FfaGame extends BedwarsGame {
                     + "shop of its own: the diamonds buy Sharpness, Power II, Strength... Your armour stays; the beds have "
                     + "a defense ready for top fights.");
         } else if (onTheBridge()) {
-            player.sendMessage(ChatColor.GRAY + "Everyone fights on the platform of the top bridge, a sword only: fall off "
-                    + "and you die, and come back on it. A kill heals you. /spawn takes you back to the lobby.");
+            player.sendMessage(ChatColor.GRAY + "Everyone fights on the platform of the top bridge, in diamond armour: fall "
+                    + "off and you die, and come back on it. A kill heals you. /spawn takes you back to the lobby.");
             return;
         } else {
             player.sendMessage(ChatColor.GRAY + "Your kit (arranged in the lobby's kit editor) comes back at each life, "
@@ -268,7 +270,7 @@ final class FfaGame extends BedwarsGame {
                 + "to the lobby.");
     }
 
-    /** FFA: the mode's kit and iron armour at each life. Arena: the start of a Bed Wars life. */
+    /** FFA: the mode's kit, diamond armour and Absorption at each life. Arena: the start of a Bed Wars life. */
     @Override
     void giveKit(Player player, Gamer gamer) {
         if (arena) {
@@ -277,20 +279,22 @@ final class FfaGame extends BedwarsGame {
         }
         PlayerInventory inventory = player.getInventory();
         inventory.clear();
-        ItemStack[] kit = onTheBridge() ? null : lobbyKit(player, gamer);
-        if (onTheBridge()) {
-            // the owner's Top Bridge FFA: a sword, nothing else
-            inventory.setItem(0, kitItem(new ItemStack(Material.IRON_SWORD), gamer));
-        } else if (kit != null) {
+        ItemStack[] kit = lobbyKit(player, gamer);
+        if (kit != null) {
             inventory.setContents(kit);
         } else {
-            for (ItemStack item : new ItemStack[] {new ItemStack(Material.IRON_SWORD), new ItemStack(Material.WOOL, 64),
-                new ItemStack(Material.SHEARS), new ItemStack(Material.GOLDEN_APPLE, 2)}) {
+            // the owner's fight kit; the FFA adds 3 fireballs and a pearl
+            List<ItemStack> items = new ArrayList<>(java.util.Arrays.asList(new ItemStack(Material.STONE_SWORD),
+                    new ItemStack(Material.GOLDEN_APPLE, 64)));
+            if (!onTheBridge()) {
+                items.add(new ItemStack(Material.FIREBALL, 3));
+                items.add(new ItemStack(Material.ENDER_PEARL));
+            }
+            for (ItemStack item : items) {
                 inventory.addItem(kitItem(item, gamer));
             }
         }
-        gamer.armor = 2;
-        wearArmor(player, gamer);
+        fightArmour(player);
         player.updateInventory();
     }
 

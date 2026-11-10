@@ -100,7 +100,7 @@ class LobbySettingsTest {
                 "the practice of the top bridge, with the party");
         assertTrue(settings.npc("privategame").modeIds().contains("top-bridge-prive"));
         assertTrue(settings.display("top-bridge-1v1").kit() != null, "the kit of the rounds, arranged in the kit editor");
-        assertTrue(settings.display("top-bridge-ffa").kit() == null, "a sword only");
+        assertEquals(Material.STONE_SWORD, settings.display("top-bridge-ffa").kit().item(0).material(), "the fight kit");
         int shown = 0;
         for (ModeCategory category : settings.categories()) {
             for (LobbySettings.Entry entry : settings.entriesIn(category.id())) {
@@ -221,7 +221,7 @@ class LobbySettingsTest {
         assertEquals(Material.DIAMOND_SWORD, settings.display("boxing").kit().item(0).material());
         assertEquals(KitItem.parse("FIREBALL 6"), settings.display("fireball").kit().item(3), "the kit of the fireball maps");
         assertEquals(KitItem.parse("LADDER 16"), settings.display("block-fight-1v1").kit().item(7), "the kit of the block placement maps");
-        assertEquals(Material.IRON_SWORD, settings.display("ffa").kit().item(0).material());
+        assertEquals(Material.STONE_SWORD, settings.display("ffa").kit().item(0).material(), "the fight kit, fireballs and a pearl");
         assertEquals(Material.GOLD_PICKAXE, settings.display("invis-practice").kit().item(4).material(),
                 "the attacker's pickaxe, for the end stone of the defense");
         assertEquals(KitItem.parse("POTION:8206"), settings.display("invis-practice").kit().item(9), "the invisibility");

@@ -11,10 +11,10 @@ hauteur-vide: 0
 
 # The slime blocks of the lobby are launch pads, as on Hypixel: they throw whoever steps on them
 # where they look, avant forward and haut up (blocks per tick, 0 to 4; avant: 0 and haut: 0 for
-# plain slime blocks).
+# plain slime blocks). 3.5 and 1.3 throw about 30 blocks away and 9 high (2.0 and 0.9: 16 and 5).
 slime:
-  avant: 2.0
-  haut: 0.9
+  avant: 3.5
+  haut: 1.3
 
 # The lobby scoreboard: its title (32 characters at most) and its last line.
 titre: "&e&lRAGO PRACTICE"
@@ -115,9 +115,10 @@ groupes:
     nom: "&eTop fight"
     icone: GOLD_SWORD
     description:
-      - "From the top of a ready-made"
-      - "bed defense, in diamond"
-      - "Protection IV: 1v1 or 2v2."
+      - "On the 20 RBW maps, from the"
+      - "top of a ranked bed defense,"
+      - "in diamond Protection IV:"
+      - "1v1 or 2v2."
   prive:
     nom: "&6Private games"
     icone: NAME_TAG
@@ -690,7 +691,8 @@ modes:
     equipes: 2
     joueurs-par-equipe: 1
     classe: false
-    kit: [IRON_SWORD, "WOOL 64", "WOOL 64", SHEARS, IRON_PICKAXE, "GOLDEN_APPLE 3", "FIREBALL 4", ENDER_PEARL]
+    # the fight kit: with full diamond armour, Protection IV, and Absorption II
+    kit: [STONE_SWORD, "GOLDEN_APPLE 64"]
     description:
       - "On top of the top bridge of"
       - "Antenna, on the 20 RBW maps:"
@@ -704,7 +706,8 @@ modes:
     equipes: 2
     joueurs-par-equipe: 2
     classe: false
-    kit: [IRON_SWORD, "WOOL 64", "WOOL 64", SHEARS, IRON_PICKAXE, "GOLDEN_APPLE 3", "FIREBALL 4", ENDER_PEARL]
+    # the fight kit: with full diamond armour, Protection IV, and Absorption II
+    kit: [STONE_SWORD, "GOLDEN_APPLE 64"]
     description:
       - "Top Bridge, two against two:"
       - "the first team to 5 points."
@@ -716,10 +719,11 @@ modes:
     equipes: 1
     joueurs-par-equipe: 1
     classe: false
+    kit: [STONE_SWORD, "GOLDEN_APPLE 64"]
     description:
       - "The top bridge, free for all on"
       - "the 20 RBW maps: come and go"
-      - "when you like, a sword only,"
+      - "when you like, diamond armour,"
       - "and back on top at each death."
   ffa:
     nom: "&cFFA Ranked Bedwars"
@@ -729,11 +733,12 @@ modes:
     equipes: 1
     joueurs-par-equipe: 1
     classe: false
-    kit: [IRON_SWORD, "WOOL 64", "WOOL 64", SHEARS, IRON_PICKAXE, "GOLDEN_APPLE 3", "FIREBALL 4", ENDER_PEARL, "TNT 2"]
+    # the fight kit, with 3 fireballs and a pearl: with full diamond armour, Protection IV, and Absorption II
+    kit: [STONE_SWORD, "GOLDEN_APPLE 64", "FIREBALL 3", ENDER_PEARL]
     description:
       - "Free for all on Archway FFA"
       - "(bridges, top bridge) or on"
-      - "Paladin, the Ranked Bedwars kit:"
+      - "Paladin, in diamond armour:"
       - "come and go when you like,"
       - "a kill heals you."
   free-ffa:
@@ -776,11 +781,12 @@ modes:
     equipes: 2
     joueurs-par-equipe: 1
     classe: false
-    kit: [IRON_SWORD, "WOOL 64", "GOLDEN_APPLE 5", ENDER_PEARL]
+    kit: [STONE_SWORD, "GOLDEN_APPLE 64"]
     description:
-      - "Start on top of a ready-made"
-      - "bed defense, in diamond"
-      - "Protection IV with Absorption."
+      - "On the RBW maps, start on top"
+      - "of a ranked bed defense, in"
+      - "diamond Protection IV with"
+      - "Absorption. First to 3."
   top-fight-2v2:
     nom: "&eTop fight 2v2"
     categorie: ranked
@@ -789,10 +795,11 @@ modes:
     equipes: 2
     joueurs-par-equipe: 2
     classe: false
-    kit: [IRON_SWORD, "WOOL 64", "GOLDEN_APPLE 5", ENDER_PEARL]
+    kit: [STONE_SWORD, "GOLDEN_APPLE 64"]
     description:
-      - "Two against two, from the top"
-      - "of a bed defense, in diamond"
+      - "Two against two on the RBW"
+      - "maps, from the top of a ranked"
+      - "bed defense, in diamond"
       - "Protection IV with Absorption."
   bridge-fight:
     nom: "&bBridge fight"
@@ -893,9 +900,11 @@ modes:
     joueurs-par-equipe: 1
     classe: false
     description:
-      - "Top fight with your party, on a"
-      - "ready-made platform: 1v1 or 2v2,"
-      - "the size follows the party."
+      - "A practice with your party on"
+      - "top of a ranked bed defense, on"
+      - "the RBW maps: back on top at"
+      - "each death, 30 minutes. 1v1 or"
+      - "2v2, as the party."
   top-bridge-prive:
     nom: "&ePrivate top bridge"
     categorie: ranked
@@ -967,7 +976,8 @@ modes:
     description:
       - "Fireballs and TNT: break"
       - "their bed, the last one"
-      - "standing wins."
+      - "standing wins. No fireball"
+      - "or fall damage."
   attack-defense-1v1:
     nom: "&cAttack and defense 1v1"
     categorie: duels
