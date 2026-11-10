@@ -48,6 +48,41 @@ class MapTrainingsTest {
     }
 
     @Test
+    void theChainLinesUpEveryJumpOnItsOwnPads() {
+        int[] z = ExtendTraining.chainZ();
+        int[] top = ExtendTraining.chainTop();
+        assertEquals(ExtendTraining.CHAIN.length + 1, z.length);
+        Set<Integer> kinds = new HashSet<>();
+        for (int i = 0; i < ExtendTraining.CHAIN.length; i++) {
+            ExtendTraining.Jump jump = ExtendTraining.JUMPS[ExtendTraining.CHAIN[i]];
+            kinds.add(ExtendTraining.CHAIN[i]);
+            assertEquals(ExtendTraining.PAD + jump.gap, z[i + 1] - z[i], "the gap of " + jump.label);
+            assertEquals(jump.rise, top[i + 1] - top[i], jump.label);
+        }
+        assertEquals(ExtendTraining.JUMPS.length, kinds.size(), "every kind of jump");
+        // in the zone of a game (espacement 200), clear of the six jumps
+        assertTrue(z[0] > -99 && z[z.length - 1] + ExtendTraining.PAD < 99);
+        assertTrue(ExtendTraining.chainX() - 3 > ExtendTraining.jumpX(ExtendTraining.JUMPS.length - 1) + 3);
+        assertTrue(ExtendTraining.chainX() + 3 < 99);
+        // the pads are found under the feet, the gaps are not pads
+        assertEquals(0, ExtendTraining.chainPadAt(0, top[0], z[0] + 2));
+        assertEquals(3, ExtendTraining.chainPadAt(-2, top[3], z[3] + 4));
+        assertEquals(-1, ExtendTraining.chainPadAt(0, top[3], z[3] + ExtendTraining.PAD));
+        assertEquals(-1, ExtendTraining.chainPadAt(3, top[3], z[3]));
+        assertEquals(-1, ExtendTraining.chainPadAt(0, top[3] - 1, z[3] + 1), "under the top is not on the pad");
+    }
+
+    @Test
+    void theBlocksOfAnExtendGoInItsGapOnly() {
+        ExtendTraining.Jump jump = ExtendTraining.JUMPS[2];
+        assertTrue(ExtendTraining.inGap(jump, 0, 0, ExtendTraining.PAD));
+        assertTrue(ExtendTraining.inGap(jump, 0, -3, ExtendTraining.farZ(jump) - 1), "a ladder on the side of the far pad");
+        assertFalse(ExtendTraining.inGap(jump, 0, 0, ExtendTraining.farZ(jump)), "not on the far pad");
+        assertFalse(ExtendTraining.inGap(jump, 0, 0, ExtendTraining.PAD - 1), "not on the start pad");
+        assertFalse(ExtendTraining.inGap(jump, 4, 0, ExtendTraining.PAD + 1));
+    }
+
+    @Test
     void theCopyOfAMapLosesItsCommandBlocksAndRedstone() {
         int stone = 1 << 4;
         int command = 137 << 4;

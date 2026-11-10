@@ -101,6 +101,13 @@ et chaque variante son record : le meilleur score du joueur et celui du serveur,
   d'émeraude de la map sont de la laine dans le jeu. Chaque niveau donne sa place de départ (F3),
   le bloc où se sauver, la force du coup et d'où il vient (`coup` : devant, droite, gauche,
   derriere, ou `vers` un point). Le kit a des échelles avec la laine (un réglage les retire). Série.
+- **Extend practice** : les sauts du Clutch Training de Flarefin, un vide trop long pour sauter
+  entre deux pads de quartz : on court, on saute et on extend sa laine en l'air (double extend
+  5+1 et 6+0 avec 2 blocs au plus, triple extend 6+1 et 7+0, sauts en descente 7-1 et 7-2 avec
+  3). Mode **Chain** : dix pads à la suite avec tous les sauts entre eux, sans arrêt ni
+  téléportation d'un saut à l'autre, au chrono. Des échelles viennent avec la laine (un réglage
+  les retire) ; elles ne comptent pas dans les blocs du saut, une échelle sur le côté du pad
+  rattrape un saut trop court.
 - **Ladder practice** : un mur d'end stone de 12 blocs à monter avec des échelles, ou la tour de
   laine sous les pieds. Chrono.
 - **Pearl practice** : sur un morceau de Sky Rise (l'île rouge, l'île aux diamants en face, l'île

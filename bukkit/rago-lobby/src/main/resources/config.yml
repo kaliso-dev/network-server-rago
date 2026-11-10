@@ -992,6 +992,8 @@ modes:
       - "jump a gap too long, extend"
       - "your wool in the air (5+1,"
       - "6+0, 6+1, 7+0, 7-1, 7-2)."
+      - "Chain: 10 pads in a row,"
+      - "no stop. Ladders included."
   block-extend:
     nom: "&bBlock extend"
     categorie: entrainement
