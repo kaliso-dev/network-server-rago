@@ -64,6 +64,24 @@ class StarterPackTest {
     }
 
     @Test
+    void thePluginDeclaresEveryCommand() throws Exception {
+        // the server refuses a plugin.yml that does not parse: the lobby would not load at all
+        YamlConfiguration plugin;
+        try (Reader reader = new InputStreamReader(StarterPackTest.class.getResourceAsStream("/plugin.yml"), StandardCharsets.UTF_8)) {
+            plugin = new YamlConfiguration();
+            StringBuilder text = new StringBuilder();
+            char[] buffer = new char[4096];
+            for (int n; (n = reader.read(buffer)) > 0; ) {
+                text.append(buffer, 0, n);
+            }
+            plugin.loadFromString(text.toString());
+        }
+        for (String command : NetworkCommands.NAMES) {
+            assertTrue(plugin.isConfigurationSection("commands." + command), command);
+        }
+    }
+
+    @Test
     void withoutTheSectionThePackHasItsDefaults() {
         ServerSettings server = ServerSettings.load(new YamlConfiguration());
         assertEquals(StarterPack.defaults().points, server.starterPack().points);

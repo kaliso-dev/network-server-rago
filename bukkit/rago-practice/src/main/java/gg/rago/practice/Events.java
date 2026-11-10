@@ -211,7 +211,8 @@ final class Events implements CommandExecutor, Listener {
             String name = player != null ? player.getName() : "?";
             for (Player each : Bukkit.getOnlinePlayers()) {
                 each.sendMessage(ChatColor.GOLD + "" + ChatColor.BOLD + "[Event] " + ChatColor.YELLOW + "★ " + name + ChatColor.GRAY
-                        + " won the " + ChatColor.GOLD + game.kind().label + ChatColor.GRAY + " event of " + game.hostName() + "!");
+                        + " won the " + ChatColor.GOLD + game.kind().label + ChatColor.GRAY + " event"
+                        + (name.equals(game.hostName()) ? " they hosted!" : " of " + game.hostName() + "!"));
             }
             plugin.lobby().giveXp(game.kind().modeId(), winner, settings.winXp, "event won");
         }

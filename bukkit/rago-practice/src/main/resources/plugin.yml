@@ -13,7 +13,7 @@ commands:
     description: Take the Speed II of the boxing off, or get it back.
     usage: /speed
   host:
-    description: Host an event for the whole server (PREMIUM): Sumo, Brackets or Last Man Standing.
+    description: "Host an event for the whole server (PREMIUM): Sumo, Brackets or Last Man Standing."
     usage: /host [sumo|brackets|lms]
     aliases: [hostevent]
   event:

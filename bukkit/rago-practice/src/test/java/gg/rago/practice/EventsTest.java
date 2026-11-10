@@ -77,6 +77,18 @@ class EventsTest {
     }
 
     @Test
+    void thePluginDeclaresTheCommandsOfTheEvents() throws Exception {
+        // the server refuses a plugin.yml that does not parse: the plugin would not load at all
+        YamlConfiguration plugin = new YamlConfiguration();
+        plugin.loadFromString(new String(java.nio.file.Files.readAllBytes(java.nio.file.Paths.get("src/main/resources/plugin.yml")),
+                java.nio.charset.StandardCharsets.UTF_8));
+        for (String command : new String[] {"host", "event", "join", "aimtop", "speed"}) {
+            assertTrue(plugin.isConfigurationSection("commands." + command), command);
+        }
+        assertEquals("op", plugin.getString("permissions." + Events.PERMISSION + ".default"));
+    }
+
+    @Test
     void aHostWaitsTheCooldown() {
         assertEquals(0, Events.cooldownLeft(null, 30, 1_000_000L), "never hosted");
         assertEquals(30 * 60_000L - 1_000L, Events.cooldownLeft(1_000L, 30, 2_000L));
