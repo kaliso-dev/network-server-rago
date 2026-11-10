@@ -304,12 +304,13 @@ class BedwarsGame {
      * up to a little above the platform.
      */
     void buildTopBridge() {
-        if (teams.size() < 2 || teams.get(0).points.bed == null || teams.get(1).points.bed == null) {
+        Team[] ends = topBridgeEnds();
+        if (ends == null || ends[0].points.bed == null || ends[1].points.bed == null) {
             return;
         }
         final World world = instance.world();
-        TopBridge bridge = TopBridge.plan(teams.get(0).color, teams.get(0).points.bed, teams.get(1).color,
-                teams.get(1).points.bed, (x, y, z) -> world.getBlockAt(x, y, z).getType() != Material.AIR);
+        TopBridge bridge = TopBridge.plan(ends[0].color, ends[0].points.bed, ends[1].color,
+                ends[1].points.bed, (x, y, z) -> world.getBlockAt(x, y, z).getType() != Material.AIR);
         if (bridge == null) {
             plugin.getLogger().warning("No room for a top bridge on " + instance.map().world() + ": the islands are too near");
             return;
@@ -318,6 +319,11 @@ class BedwarsGame {
             instance.build(world.getBlockAt(piece.x, piece.y, piece.z), Material.WOOL, (byte) piece.woolData());
         }
         buildLimit = Math.max(instance.map().buildLimit(), Math.min(255, bridge.height() + TopBridge.BUILD_ABOVE));
+    }
+
+    /** The two islands a top bridge links: those of the first two teams; null if there are not two. */
+    Team[] topBridgeEnds() {
+        return teams.size() < 2 ? null : new Team[] {teams.get(0), teams.get(1)};
     }
 
     /** The islands nobody plays on have no bed, as on Hypixel; the copy puts them back after the game. */

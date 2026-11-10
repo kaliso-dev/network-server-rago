@@ -29,7 +29,9 @@ import org.bukkit.inventory.PlayerInventory;
  * given back at each life; a kill heals the killer. Arena (Free FFA): the island forges, the
  * diamonds and emeralds and a shop of its own (the diamonds buy too), the armour and tools kept
  * as in Bed Wars, and on each bed a defense of three layers ready for top fights, put back when
- * nobody is near it. Main thread only.
+ * nobody is near it. Top Bridge FFA (a mode of top-bridge: in config.yml): the FFA with the top
+ * bridge of Antenna between the two islands farthest apart, and the players come back on those two
+ * only, at the foot of a stairway. Main thread only.
  */
 final class FfaGame extends BedwarsGame {
 
@@ -53,6 +55,8 @@ final class FfaGame extends BedwarsGame {
     private final List<Defense> defenses = new ArrayList<>();
     private final Map<UUID, Integer> streaks = new HashMap<>();
     private final Map<UUID, Integer> deaths = new HashMap<>();
+    /** The two islands of the top bridge, once it is planned; null without one. */
+    private Team[] bridged;
     private int colours;
 
     FfaGame(RagoBedwars plugin, BedwarsHost host, Instance instance, String modeId, String modeName,
@@ -179,12 +183,38 @@ final class FfaGame extends BedwarsGame {
     void events() {
     }
 
-    /** The island farthest from the other players, so that nobody comes back in the middle of a fight. */
+    /** The top bridge links the two islands with a bed farthest apart. */
+    @Override
+    Team[] topBridgeEnds() {
+        Team[] best = null;
+        double farthest = -1;
+        for (int i = 0; i < islands.size(); i++) {
+            for (int j = i + 1; j < islands.size(); j++) {
+                MapPoint a = islands.get(i).points.bed;
+                MapPoint b = islands.get(j).points.bed;
+                if (a == null || b == null) {
+                    continue;
+                }
+                double distance = Math.hypot(a.x() - b.x(), a.z() - b.z());
+                if (distance > farthest) {
+                    farthest = distance;
+                    best = new Team[] {islands.get(i), islands.get(j)};
+                }
+            }
+        }
+        bridged = best;
+        return best;
+    }
+
+    /**
+     * The island farthest from the other players, so that nobody comes back in the middle of a
+     * fight; with a top bridge, one of its two islands.
+     */
     @Override
     Location spawnOf(Gamer gamer) {
         World world = instance.world();
         List<Location> spawns = new ArrayList<>();
-        for (Team island : islands) {
+        for (Team island : bridged != null ? java.util.Arrays.asList(bridged) : islands) {
             spawns.add(island.points.spawn.in(world));
         }
         Collections.shuffle(spawns);
@@ -219,6 +249,10 @@ final class FfaGame extends BedwarsGame {
         } else {
             player.sendMessage(ChatColor.GRAY + "Your kit (arranged in the lobby's kit editor) comes back at each life, "
                     + "and a kill heals you.");
+        }
+        if (bridged != null) {
+            player.sendMessage(ChatColor.GRAY + "Climb the stairway of wool in front of your island: everyone fights on the "
+                    + "platform over the middle.");
         }
         player.sendMessage(ChatColor.GRAY + "Your blocks go after " + DECAY_SECONDS + " seconds. /spawn takes you back "
                 + "to the lobby.");
@@ -327,7 +361,8 @@ final class FfaGame extends BedwarsGame {
     @Override
     List<String> lines(Gamer viewer) {
         List<String> lines = new ArrayList<>();
-        lines.add(ChatColor.WHITE + (arena ? "Arena on " : "FFA on ") + ChatColor.GREEN + instance.map().world());
+        lines.add(ChatColor.WHITE + (arena ? "Arena on " : bridged != null ? "Top Bridge on " : "FFA on ") + ChatColor.GREEN
+                + instance.map().world());
         lines.add("");
         List<Gamer> here = present();
         lines.add(ChatColor.WHITE + "Players: " + ChatColor.GREEN + here.size());

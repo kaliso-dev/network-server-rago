@@ -28,13 +28,17 @@ class BedwarsSettingsTest {
         BedwarsSettings settings = BedwarsSettings.read(bundled());
         assertEquals(Arrays.asList("ranked-1v1", "ranked-2v2", "ranked-3v3", "ranked-4v4", "top-bridge-1v1",
                 "top-bridge-2v2", "skyrise-1v1", "skyrise-2v2",
-                "first-rush", "first-rush-duo", "ffa", "free-ffa", "invis-practice", "shop-practice"), settings.modes());
+                "first-rush", "first-rush-duo", "top-bridge-ffa", "ffa", "free-ffa", "invis-practice", "shop-practice"),
+                settings.modes());
         assertEquals(BedwarsSettings.Kind.CLASSIC, settings.kind("ranked-1v1"));
         assertEquals(BedwarsSettings.Kind.FFA, settings.kind("ffa"));
         assertEquals(BedwarsSettings.Kind.ARENA, settings.kind("free-ffa"));
         assertEquals(BedwarsSettings.Kind.INVIS, settings.kind("invis-practice"));
         assertEquals(BedwarsSettings.Kind.FAST_SHOP, settings.kind("shop-practice"));
         assertEquals(Arrays.asList("Archway", "Paladin"), settings.mapsOf("ffa"));
+        assertEquals(BedwarsSettings.Kind.FFA, settings.kind("top-bridge-ffa"), "a free for all...");
+        assertTrue(settings.topBridge("top-bridge-ffa"), "...with the top bridge");
+        assertEquals(Collections.singletonList("Antenna"), settings.mapsOf("top-bridge-ffa"), "on Antenna, where it was built");
         assertEquals(Collections.singletonList("Archway"), settings.mapsOf("free-ffa"));
         assertEquals(Arrays.asList("Invasion", "Lectus", "Archway"), settings.mapsOf("invis-practice"));
         assertEquals(Arrays.asList("Antenna", "Aquarium", "Archway", "Artemis", "Boletum", "Carapace", "Catalyst",

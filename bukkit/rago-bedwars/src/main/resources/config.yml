@@ -19,6 +19,7 @@ modes:
   skyrise-2v2: [SkyRise]
   first-rush: [Acropolis, Ambush, Aqil, Cascade, Crogorm, Frosted, Gelato, Lighthouse, Lotus, Nebuc]
   first-rush-duo: [Acropolis, Ambush, Aqil, Cascade, Crogorm, Frosted, Gelato, Lighthouse, Lotus, Nebuc]
+  top-bridge-ffa: [Antenna]
   ffa: [Archway, Paladin]
   free-ffa: [Archway]
   invis-practice: [Invasion, Lectus, Archway]
@@ -39,6 +40,7 @@ modes:
 #              possible with their own quick buy (copied from Hypixel in the lobby), and records
 # A mode not listed is a classic game.
 jeux:
+  top-bridge-ffa: ffa
   ffa: ffa
   free-ffa: arene
   invis-practice: invis
@@ -59,8 +61,9 @@ reapparition-secondes: 5
 # teams, and from the front of each island a stairway of wool up to it (one block up every two).
 # It is 16 blocks above the beds, as on Antenna, or a little higher or lower where the map is in
 # the way or the islands are near. Players build up to 10 blocks above it, and cannot break it; it
-# goes with the game.
-top-bridge: [top-bridge-1v1, top-bridge-2v2]
+# goes with the game. In a free for all (top-bridge-ffa), it links the two islands farthest apart,
+# and the players come back on those two only.
+top-bridge: [top-bridge-1v1, top-bridge-2v2, top-bridge-ffa]
 
 # The modes whose teams play on neighbouring islands (First Rush: the first island and the one
 # next to it), instead of opposite islands as in the other modes.

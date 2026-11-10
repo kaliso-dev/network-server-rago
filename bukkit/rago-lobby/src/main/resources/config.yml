@@ -653,6 +653,7 @@ modes:
     equipes: 1
     joueurs-par-equipe: 1
     classe: false
+    kit: [IRON_SWORD, "WOOL 64", "WOOL 64", SHEARS, IRON_PICKAXE, "GOLDEN_APPLE 3", "FIREBALL 4", ENDER_PEARL]
     description:
       - "The top bridge of Antenna, free"
       - "for all: come and go when you"

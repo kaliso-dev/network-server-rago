@@ -74,6 +74,13 @@ sont pas alignés (Invasion, Lectus), tout suit la ligne d'un lit à l'autre. On
 10 blocs au-dessus de la plateforme ; elle ne se casse pas, et la copie l'enlève après la partie.
 Les modes qui l'ont sont listés dans `top-bridge:` du config.yml.
 
+`top-bridge-ffa` est la même chose en FFA libre, sur Antenna : on entre et on sort quand on veut,
+chacun pour soi, avec le kit du mode (épée en fer, laine, cisailles, pioche, pommes d'or, boules de
+feu, perle ; arrangeable dans l'éditeur de kit) et l'armure en fer à chaque vie. Le top bridge relie
+les deux îles les plus éloignées, et on réapparaît 3 secondes après une mort sur celle des deux qui
+est la plus loin des autres joueurs, au pied de son escalier. Les blocs posés partent au bout de
+45 secondes, un kill soigne.
+
 ## Améliorations et pièges
 
 Le villageois « TEAM UPGRADES » de chaque île ouvre « Upgrades & Traps », comme sur Hypixel. Tout
