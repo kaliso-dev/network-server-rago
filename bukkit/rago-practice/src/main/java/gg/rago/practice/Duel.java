@@ -54,6 +54,8 @@ abstract class Duel extends PracticeGame {
     @Override
     void intro(Player player) {
         int side = sideOf(player.getUniqueId());
+        // the name of each player in the colour of their side, above their head and in the tab list
+        plugin.lobby().setGameNameTag(player, CHAT[Math.max(0, side)].toString());
         player.sendMessage(ChatColor.GREEN + title() + " against " + ChatColor.WHITE + namesOf(1 - side) + ChatColor.GREEN
                 + ": first to " + goal() + " wins.");
         if (sides.get(side).size() > 1) {

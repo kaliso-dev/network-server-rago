@@ -709,9 +709,11 @@ modes:
     equipes: 2
     joueurs-par-equipe: 2
     classe: false
-    kit: [IRON_SWORD, "WOOL 64", "GOLDEN_APPLE 3", ENDER_PEARL]
+    kit: [IRON_SWORD, "WOOL 64", "GOLDEN_APPLE 5", ENDER_PEARL]
     description:
-      - "Top fight, two against two."
+      - "Two against two, from the top"
+      - "of a bed defense, in diamond"
+      - "Protection IV with Absorption."
   top-fight-1v1:
     nom: "&eTop fight 1v1"
     categorie: ranked
@@ -722,11 +724,11 @@ modes:
     equipes: 2
     joueurs-par-equipe: 1
     classe: false
-    kit: [IRON_SWORD, "WOOL 64", "GOLDEN_APPLE 3", ENDER_PEARL]
+    kit: [IRON_SWORD, "WOOL 64", "GOLDEN_APPLE 5", ENDER_PEARL]
     description:
-      - "Fight on top of a ready-made"
-      - "bed defense (end stone, wood,"
-      - "wool), RBW gear. First to 3."
+      - "Start on top of a ready-made"
+      - "bed defense, in diamond"
+      - "Protection IV with Absorption."
   bridge-fight:
     nom: "&bBridge fight"
     categorie: ranked

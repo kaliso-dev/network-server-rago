@@ -9,6 +9,8 @@ Chaque mode prend son kit dans l'éditeur de kit du lobby, rangé comme le joueu
 
 Deux joueurs (ou deux équipes de deux), par la file ou par `/duel`. Le résultat compte dans les
 stats du lobby. Quitter le serveur ou taper `/spawn` pendant le duel, c'est perdre par abandon.
+Le nom de chaque joueur prend la couleur de son équipe (rouge ou bleu) au-dessus de sa tête et dans
+le Tab, avec sa vie en dessous et son niveau Network à côté.
 
 - **Sumo** : sur les maps sumo du serveur (Ponsen, Fort Royale, White Crystal, Space Mine, Sumo,
   dans le dossier des mondes), tirées au hasard à chaque duel ; sans elles, une plateforme ronde.
@@ -37,8 +39,11 @@ stats du lobby. Quitter le serveur ou taper `/spawn` pendant le duel, c'est perd
   cisailles, deux stacks de laine, 12 end stone, 16 échelles, armure en fer Protection IV.
   Construire, clutch, casser leurs blocs, faire tomber. Premier à 5. Sans ces mondes, deux
   petites plateformes au-dessus du vide.
-- **Top fight 1v1 et 2v2** : une île dont le lit a une défense de trois couches (end stone, bois,
-  laine) ; on grimpe et on se bat dessus, en stuff de Ranked Bedwars. Premier à 3.
+- **Top fight 2v2** (et 1v1 en partie privée) : une île dont le lit a une défense de trois couches
+  (end stone, bois, laine). On commence directement en haut, face à face (en 2v2 le second de
+  chaque équipe une marche plus bas derrière), en armure complète en diamant Protection IV, avec
+  Absorption II (huit cœurs de plus) à chaque départ, une épée en fer, 64 laines, 5 pommes d'or et
+  une perle. Les noms prennent la couleur de l'équipe. Premier à 3.
 - **Attack and defense 1v1 et 2v2**, comme un rush en solo sur Hypixel : le défenseur est chez
   lui, à côté de son lit sans défense, l'attaquant déjà sur un pont, à trois blocs de vide de
   l'île. Le défenseur doit couvrir son lit tout de suite et tenir 60 secondes (il revient au bout
