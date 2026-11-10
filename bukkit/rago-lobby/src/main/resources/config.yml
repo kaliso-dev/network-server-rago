@@ -338,7 +338,7 @@ rangs:
     avantages: ["A pink gradient name and the &d&l✦&7 badge", "Your &f+&7 in the colour you choose (/style)", "+50% Network XP in every game", "/fly in the lobby",
       "Speed I, II or III in the lobby (settings)", "/nick: play under another name", "Your own message above your head", "Your arrival announced, with a firework",
       "White messages, no chat cooldown", "Gadgets of your own: bat blaster, explosive sheep, disco ball",
-      "A free XP booster every day (x2 XP for 30 minutes)",
+      "A free XP booster every day (x2 XP for 30 minutes; bought ones: x3)",
       "Host events for the server: /host (Sumo, Brackets, LMS)",
       "The rarest kill effects and victory dances"]
 
@@ -413,7 +413,9 @@ elo:
 
 # The Rago Points, spent in the shop: for a win, a game played (lost), a kill, each new level
 # (the level times par-niveau: 100 for level 10), and the daily reward (/daily): quotidien, plus
-# quotidien-serie for each day in a row, up to 7 days.
+# quotidien-serie for each day in a row, up to 7 days. The trainings, the practice, the aim
+# trainer and the events give one point for each xp-par-point Network XP they give (at least one;
+# 0: none). A coin booster (x3) multiplies the points of the games, kills and trainings.
 rago-points:
   victoire: 20
   defaite: 5
@@ -421,6 +423,7 @@ rago-points:
   par-niveau: 10
   quotidien: 100
   quotidien-serie: 25
+  xp-par-point: 3
 
 # The cosmetics of the shop: projectile trails, kill effects and victory effects. Each one has a
 # price in Rago Points and a Network level needed, which can be changed here by its name:
@@ -435,8 +438,9 @@ boutique: {}
 # console with /pack give <player> after the payment. The Shop NPC and /pack show it, its price
 # (prix, in devise) and its usual price crossed out (prix-normal), which makes the -50%: put the
 # real prices of the web store here (a price shown crossed out must be one the pack was really
-# sold at before). It gives rago-points, boosters (x2 XP for 30 minutes each) and the cosmetics
-# of cosmetiques (names of the boutique: list above), without their level.
+# sold at before). It gives rago-points, boosters (x3 XP for 30 minutes each), boosters-pieces
+# (x3 Rago Points for 30 minutes each) and the cosmetics of cosmetiques (names of the boutique:
+# list above), without their level.
 pack-depart:
   nom: "&6&lStarter Pack"
   prix: 4.99
@@ -444,6 +448,7 @@ pack-depart:
   devise: "€"
   rago-points: 20000
   boosters: 3
+  boosters-pieces: 2
   cosmetiques: [trail-magic, kill-firework, win-fireworks]
   lien: "https://rago-optimizer.com"
 
@@ -484,7 +489,7 @@ annonces:
     - "&b&lRAGO OPTIMIZER &8» &fGet Rago Optimizer on &brago-optimizer.com"
     - "&a&lSHOP &8» &fEvery game gives Rago Points: spend them in the &a/shop&f."
     - "&b&lRAGO OPTIMIZER &8» &fNews and downloads: &brago-optimizer.com"
-    - "&6&lSTARTER PACK &c&l-50% &8» &f20,000 Rago Points, 3 XP boosters and 3 cosmetics: &e/pack"
+    - "&6&lSTARTER PACK &c&l-50% &8» &f20,000 Rago Points, 5 boosters and 3 cosmetics: &e/pack"
     - "&6&lEVENTS &8» &d[PREMIUM+] &fhost Sumo, Brackets and LMS for the whole server: &e/host"
 
 # What /discord, /site, /rules and /store show (one line or a list).

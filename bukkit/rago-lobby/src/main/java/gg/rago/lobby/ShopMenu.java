@@ -109,13 +109,15 @@ final class ShopMenu {
                 });
         if (boosters != null) {
             long left = profile.boosterLeftMs();
-            menu.set(33, ClickMenu.item(Material.EXP_BOTTLE, ChatColor.AQUA + "XP boosters",
-                    "x2 Network XP for 30 minutes", "of play, for " + ChatColor.GOLD + String.format("%,d", XpBoosters.PRICE)
-                            + " Rago Points" + ChatColor.GRAY + ".",
-                    ChatColor.LIGHT_PURPLE + "[PREMIUM+]" + ChatColor.GRAY + ": one free every day.",
+            menu.set(33, ClickMenu.item(Material.EXP_BOTTLE, ChatColor.AQUA + "Boosters",
+                    ChatColor.AQUA + "x3 Network XP" + ChatColor.GRAY + " for 30 minutes", "of play, for " + ChatColor.GOLD
+                            + String.format("%,d", XpBoosters.PRICE) + " Rago Points" + ChatColor.GRAY + ".",
+                    ChatColor.GOLD + "x3 Rago Points" + ChatColor.GRAY + ": the coin boosters.",
+                    ChatColor.LIGHT_PURPLE + "[PREMIUM+]" + ChatColor.GRAY + ": a free x2 XP one every day.",
                     "",
-                    "Yours: " + ChatColor.GREEN + profile.boosters() + (left > 0 ? ChatColor.GRAY + ", one running ("
-                            + ChatColor.AQUA + XpBoosters.clock(left) + ChatColor.GRAY + ")" : ""),
+                    "Yours: " + ChatColor.GREEN + (profile.boosters() + profile.dailyBoosters()) + " XP, " + profile.coinBoosters()
+                            + " coins" + (left > 0 ? ChatColor.GRAY + ", one running (" + ChatColor.AQUA + XpBoosters.clock(left)
+                            + ChatColor.GRAY + ")" : ""),
                     "",
                     ChatColor.YELLOW + "Click to see them"), (p, right) -> boosters.open(p));
         }

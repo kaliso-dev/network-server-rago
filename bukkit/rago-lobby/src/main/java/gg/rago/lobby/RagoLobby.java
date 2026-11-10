@@ -142,6 +142,7 @@ public final class RagoLobby extends JavaPlugin implements LobbyService {
         boosters = new XpBoosters(this, profiles, stats.book(), state);
         // The rank's boost (PREMIUM: x1.5), times 2 while an XP booster runs.
         stats.book().setBoost(id -> names.xpBoost(id) * boosters.multiplier(id));
+        stats.setCoinBoost(boosters::coinMultiplier);
         social = new Social(this, stats, profiles);
         punishments = new Punishments(this, stats.book(), writer, this::write);
         punishments.load();
@@ -552,6 +553,11 @@ public final class RagoLobby extends JavaPlugin implements LobbyService {
     }
 
     void use(Player player, HotbarItem item) {
+        if (item.gadget()) {
+            // every gadget of the fourth slot, those of PREMIUM included
+            gadgets.use(player, item);
+            return;
+        }
         switch (item) {
             case SELECTOR:
                 menu.open(player);
@@ -564,14 +570,6 @@ public final class RagoLobby extends JavaPlugin implements LobbyService {
                 break;
             case FIREBALL:
                 gadgets.throwFireball(player);
-                break;
-            case TELEPORT:
-            case GRAPPLE:
-            case PAINTBALL:
-            case FIREWORKS:
-            case POPPER:
-            case LEAP:
-                gadgets.use(player, item);
                 break;
             case LEVEL:
                 levelMenu.open(player);

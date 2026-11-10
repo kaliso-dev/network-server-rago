@@ -43,10 +43,18 @@ final class PlayerStats {
     private String colourChoice;
     private String badgeChoice;
     private String plusChoice;
-    /** The XP boosters waiting, the time left of the one running, the day of the last free one. */
+    /**
+     * The XP boosters waiting (bought, x3), the free ones of PREMIUM waiting (x2), the time left of
+     * the one running and what it multiplies by, the day of the last free one; the coin boosters
+     * waiting and the time left of the one running.
+     */
     private int boosters;
+    private int dailyBoosters;
     private long boosterLeftMs;
+    private double boosterRate;
     private String boosterDay;
+    private int coinBoosters;
+    private long coinBoosterLeftMs;
     /** What shows above the name (an id of {@link HeadLines.Shown}, null for the ELO), and the custom message. */
     private String headLine;
     private String headMessage;
@@ -246,6 +254,42 @@ final class PlayerStats {
 
     void setBoosters(int boosters) {
         this.boosters = Math.max(0, boosters);
+    }
+
+    /** The free XP boosters of PREMIUM waiting (x2). */
+    int dailyBoosters() {
+        return dailyBoosters;
+    }
+
+    void setDailyBoosters(int dailyBoosters) {
+        this.dailyBoosters = Math.max(0, dailyBoosters);
+    }
+
+    /** What the XP booster running multiplies the XP by (0 when unknown: an old one, x2). */
+    double boosterRate() {
+        return boosterRate;
+    }
+
+    void setBoosterRate(double boosterRate) {
+        this.boosterRate = Math.max(0, boosterRate);
+    }
+
+    /** The coin boosters waiting. */
+    int coinBoosters() {
+        return coinBoosters;
+    }
+
+    void setCoinBoosters(int coinBoosters) {
+        this.coinBoosters = Math.max(0, coinBoosters);
+    }
+
+    /** The play time left of the coin booster running, 0 without one. */
+    long coinBoosterLeftMs() {
+        return coinBoosterLeftMs;
+    }
+
+    void setCoinBoosterLeftMs(long coinBoosterLeftMs) {
+        this.coinBoosterLeftMs = Math.max(0, coinBoosterLeftMs);
     }
 
     /** The play time left of the XP booster running, 0 without one. */

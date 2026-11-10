@@ -105,7 +105,8 @@ dans les files d'attente des modes de jeu.
   revient en points), les couleurs de pseudo Aqua (25), Gold (50), Legend (100) et le badge
   `✫100`. Un joueur reçoit les récompenses de tous les niveaux atteints, même ceux d'avant leur
   arrivée (à la connexion). Le menu montre le niveau, l'avancée vers le suivant, le palier de
-  couleur et le suivant, chaque récompense (reçue, la prochaine, à venir) et les quêtes. Tout se
+  couleur et le suivant, chaque récompense (un bloc d'or quand elle est débloquée, un bloc de
+  charbon sinon, la prochaine qui brille) et les quêtes. Tout se
   règle dans `niveau.recompenses`. Tout est dans le fichier du joueur (`profil.*`), qui passera
   tel quel dans la base de données du réseau.
 - **Les quêtes (`/quests`).** Quatre quêtes du jour (jouer 5 parties, en gagner 3, faire 15 kills,
@@ -131,10 +132,14 @@ dans les files d'attente des modes de jeu.
   récompense de niveau (`plus-jaune` au niveau 5... `plus-bleu` au 85), et le noir, le plus rare, à
   50 000 Rago Points (`styles.plus`). Au-dessus de la tête, où une équipe 1.8 n'a que 16
   caractères, le préfixe perd ses crochets : `PREMIUM+ Pseudo`.
-- **Les boosters d'XP (`/booster`).** Un booster double l'XP Network pendant 30 minutes de jeu (le
-  temps ne passe qu'en partie), en plus du boost du rang. Il s'achète 2 500 Rago Points dans la
-  boutique, les [PREMIUM+] en ont un gratuit par jour, et la boutique en ligne en donne avec
-  `/booster give <joueur> [nombre]`. Un seul à la fois.
+- **Les boosters (`/booster`).** Chacun dure 30 minutes de jeu (le temps ne passe qu'en partie),
+  en plus du boost du rang (+50 % pour PREMIUM). Ceux qu'on achète sont plus forts que celui
+  offert aux [PREMIUM+] : le **booster d'XP** (x3 XP Network) s'achète 2 500 Rago Points dans la
+  boutique ou sur la boutique en ligne ; le **booster d'XP du jour** des [PREMIUM+] (gratuit, un
+  par jour) fait x2 ; le **booster de pièces** (x3 Rago Points des parties, kills et
+  entraînements) vient de la boutique en ligne et du pack de départ. Un booster d'XP et un booster
+  de pièces peuvent tourner en même temps. La boutique en ligne en donne avec
+  `/booster give <joueur> [nombre] [xp|coins|daily]` (xp par défaut).
 - **La ligne au-dessus du pseudo (`/display`).** Au lobby, chaque joueur a une ligne au-dessus
   de son pseudo, qu'il choisit : son ELO classé (par défaut, « Unranked » sans partie classée),
   son niveau, ses victoires, ses kills, sa meilleure série, un message à lui (PREMIUM :
@@ -160,7 +165,9 @@ dans les files d'attente des modes de jeu.
   comme récompense de niveau. Le menu (`/style`, le profil, la boutique) montre le rendu, ce
   qu'on a et comment avoir le reste. Tout se règle dans `styles:`.
 - **Les Rago Points et la boutique (`/shop`).** Les points se gagnent en partie (20 par victoire,
-  5 par défaite, 2 par kill), à chaque niveau (le niveau fois 10) et avec la récompense du jour
+  5 par défaite, 2 par kill), dans le practice, les entraînements, l'aim trainer et les events
+  (un point pour 3 XP Network qu'ils donnent, au moins un : `rago-points.xp-par-point`), à chaque
+  niveau (le niveau fois 10) et avec la récompense du jour
   (`/daily` : 100, plus 25 par jour d'affilée, jusqu'à 7 jours). La boutique vend 18 cosmétiques
   (traînées de projectiles, effets de kill, effets de victoire), chacun débloqué à un niveau
   Network, et montre le rang PREMIUM et les styles de pseudo. Un rang peut aussi se vendre en
@@ -168,7 +175,7 @@ dans les files d'attente des modes de jeu.
 - **Le PNJ Shop et le pack de départ (`/pack`).** Au centre du lobby (le point `aimtrainer`,
   `type: shop`), un PNJ Shop ouvre la vitrine de tout ce qui se vend : d'abord le **pack de
   départ** (son prix, son prix normal barré, -50 %, ce qu'il contient : 20 000 Rago Points,
-  3 boosters d'XP et 3 cosmétiques sans leur niveau, une fois par joueur), puis PREMIUM+ et tous
+  3 boosters d'XP, 2 boosters de pièces et 3 cosmétiques sans leur niveau, une fois par joueur), puis PREMIUM+ et tous
   ses avantages, les couleurs de pseudo et le +, les boosters, les cosmétiques, les gadgets, les
   events `/host`, comment gagner des Rago Points et Rago Optimizer. Ce qui se vend sur la
   boutique en ligne donne son lien cliquable ; le reste ouvre sa page de `/shop`. La boutique en
@@ -238,8 +245,8 @@ commentaires de `config.yml`. Les mots français de la première version (`quitt
 | `/report <joueur> <raison>`, `/discord`, `/rules`, `/site`, `/store` | signaler un joueur, les liens | tout le monde |
 | `/fly` | voler dans le lobby | `rago.perk.fly` (PREMIUM) |
 | `/style` (ou `/couleur`, `/badge`) | choisir sa couleur de pseudo, son badge et la couleur de son + | tout le monde |
-| `/booster`, `/booster on` | ses boosters d'XP, en lancer un | tout le monde |
-| `/booster give <joueur> [nombre]` | donner des boosters (la boutique en ligne, depuis la console) | `rago.admin` |
+| `/booster`, `/booster on`, `/booster coins` | ses boosters, lancer un booster d'XP ou de pièces | tout le monde |
+| `/booster give <joueur> [nombre] [xp\|coins\|daily]` | donner des boosters (la boutique en ligne, depuis la console) | `rago.admin` |
 | `/pack`, `/pack info` | la vitrine du PNJ Shop, le pack de départ dans le chat | tout le monde |
 | `/pack give <joueur>` | donner le pack de départ, une fois (la boutique en ligne, depuis la console) | `rago.admin` |
 | `/level` (ou `/niveau`), `/quests` (ou `/quetes`) | son niveau et ses récompenses, les quêtes | tout le monde |

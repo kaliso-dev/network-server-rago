@@ -470,7 +470,8 @@ final class Profiles {
             return false;
         }
         profile.addPoints(pack.points);
-        profile.setBoosters(Math.min(XpBoosters.MAX_STOCK, profile.boosters() + pack.boosters));
+        XpBoosters.setCount(profile, XpBoosters.Kind.XP, profile.boosters() + pack.boosters);
+        XpBoosters.setCount(profile, XpBoosters.Kind.COINS, profile.coinBoosters() + pack.coinBoosters);
         for (String id : pack.cosmetics) {
             profile.cosmetics().add(id);
         }

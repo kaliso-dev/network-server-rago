@@ -206,7 +206,7 @@ final class Ranks {
                         "/fly in the lobby", "Speed I, II or III in the lobby (settings)", "/nick: play under another name", "Your own message above your head",
                         "Your arrival announced, with a firework", "White messages, no chat cooldown",
                         "Gadgets of your own: bat blaster, explosive sheep, disco ball",
-                        "A free XP booster every day (x2 XP for 30 minutes)",
+                        "A free XP booster every day (x2 XP for 30 minutes; bought ones: x3)",
                         "Host events for the server: /host (Sumo, Brackets, LMS)",
                         "The rarest kill effects and victory dances"),
                 1.5, "rose", PREMIUM, true);

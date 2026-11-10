@@ -72,10 +72,16 @@ final class StatsFiles {
         if (stats.plusChoice() != null) {
             yaml.set("profil.style.plus", stats.plusChoice());
         }
-        if (stats.boosters() > 0 || stats.boosterLeftMs() > 0 || stats.boosterDay() != null) {
+        if (stats.boosters() > 0 || stats.dailyBoosters() > 0 || stats.boosterLeftMs() > 0 || stats.boosterDay() != null) {
             yaml.set("profil.boosters.nombre", stats.boosters());
+            yaml.set("profil.boosters.gratuits", stats.dailyBoosters());
             yaml.set("profil.boosters.reste-ms", stats.boosterLeftMs());
+            yaml.set("profil.boosters.multiplicateur", stats.boosterRate());
             yaml.set("profil.boosters.jour-gratuit", stats.boosterDay());
+        }
+        if (stats.coinBoosters() > 0 || stats.coinBoosterLeftMs() > 0) {
+            yaml.set("profil.boosters-pieces.nombre", stats.coinBoosters());
+            yaml.set("profil.boosters-pieces.reste-ms", stats.coinBoosterLeftMs());
         }
         if (stats.headLine() != null) {
             yaml.set("profil.tete.affichage", stats.headLine());
@@ -217,7 +223,11 @@ final class StatsFiles {
         stats.choose(NameStyle.Kind.BADGE, yaml.getString("profil.style.badge", null));
         stats.choose(NameStyle.Kind.PLUS, yaml.getString("profil.style.plus", null));
         stats.setBoosters(yaml.getInt("profil.boosters.nombre", 0));
+        stats.setDailyBoosters(yaml.getInt("profil.boosters.gratuits", 0));
         stats.setBoosterLeftMs(yaml.getLong("profil.boosters.reste-ms", 0L));
+        stats.setBoosterRate(yaml.getDouble("profil.boosters.multiplicateur", 0));
+        stats.setCoinBoosters(yaml.getInt("profil.boosters-pieces.nombre", 0));
+        stats.setCoinBoosterLeftMs(yaml.getLong("profil.boosters-pieces.reste-ms", 0L));
         stats.setBoosterDay(yaml.getString("profil.boosters.jour-gratuit", null));
         stats.setHeadLine(yaml.getString("profil.tete.affichage", null));
         stats.setHeadMessage(yaml.getString("profil.tete.message", null));

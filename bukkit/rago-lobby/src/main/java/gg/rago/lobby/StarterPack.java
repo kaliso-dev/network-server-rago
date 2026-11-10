@@ -25,26 +25,29 @@ final class StarterPack {
     final String currency;
     final int points;
     final int boosters;
+    /** Coin boosters (x3 Rago Points). */
+    final int coinBoosters;
     /** The cosmetics it unlocks, without their level. */
     final List<String> cosmetics;
     /** Shown on a click, to open the web store. */
     final String url;
 
-    StarterPack(String name, double price, double usualPrice, String currency, int points, int boosters, List<String> cosmetics,
-            String url) {
+    StarterPack(String name, double price, double usualPrice, String currency, int points, int boosters, int coinBoosters,
+            List<String> cosmetics, String url) {
         this.name = name;
         this.price = price;
         this.usualPrice = usualPrice;
         this.currency = currency;
         this.points = points;
         this.boosters = boosters;
+        this.coinBoosters = coinBoosters;
         this.cosmetics = Collections.unmodifiableList(new ArrayList<>(cosmetics));
         this.url = url;
     }
 
     /** The pack of a config.yml without the section. */
     static StarterPack defaults() {
-        return new StarterPack(ChatColor.GOLD + "" + ChatColor.BOLD + "Starter Pack", 4.99, 9.99, "€", 20_000, 3,
+        return new StarterPack(ChatColor.GOLD + "" + ChatColor.BOLD + "Starter Pack", 4.99, 9.99, "€", 20_000, 3, 2,
                 java.util.Arrays.asList("trail-magic", "kill-firework", "win-fireworks"), "https://rago-optimizer.com");
     }
 
@@ -67,6 +70,10 @@ final class StarterPack {
         if (boosters < 0 || boosters > XpBoosters.MAX_STOCK) {
             throw new IllegalArgumentException(where + "boosters: from 0 to " + XpBoosters.MAX_STOCK);
         }
+        int coinBoosters = section.getInt("boosters-pieces", d.coinBoosters);
+        if (coinBoosters < 0 || coinBoosters > XpBoosters.MAX_STOCK) {
+            throw new IllegalArgumentException(where + "boosters-pieces: from 0 to " + XpBoosters.MAX_STOCK);
+        }
         List<String> cosmetics = section.contains("cosmetiques") ? section.getStringList("cosmetiques") : d.cosmetics;
         for (String id : cosmetics) {
             Cosmetic cosmetic = catalogue.get(id);
@@ -80,7 +87,7 @@ final class StarterPack {
             throw new IllegalArgumentException(where + "lien: an address that starts with https://");
         }
         String name = ChatColor.translateAlternateColorCodes('&', section.getString("nom", "&6&lStarter Pack"));
-        return new StarterPack(name, price, usual, currency == null ? "" : currency, points, boosters, cosmetics, url);
+        return new StarterPack(name, price, usual, currency == null ? "" : currency, points, boosters, coinBoosters, cosmetics, url);
     }
 
     /** The saving, in percent, rounded (50 for 4.99 instead of 9.99); 0 without a usual price above. */
@@ -110,7 +117,11 @@ final class StarterPack {
         }
         if (boosters > 0) {
             lines.add(ChatColor.WHITE + "• " + ChatColor.AQUA + boosters + " XP booster" + (boosters > 1 ? "s" : "") + ChatColor.GRAY
-                    + " (x2 XP, 30 min)");
+                    + " (x3 XP, 30 min)");
+        }
+        if (coinBoosters > 0) {
+            lines.add(ChatColor.WHITE + "• " + ChatColor.GOLD + coinBoosters + " coin booster" + (coinBoosters > 1 ? "s" : "")
+                    + ChatColor.GRAY + " (x3 Rago Points, 30 min)");
         }
         for (String id : cosmetics) {
             Cosmetic cosmetic = catalogue.get(id);

@@ -29,16 +29,34 @@ final class ServerSettings {
         /** The daily reward, and what each day of a streak adds to it (up to {@link #MAX_STREAK} days). */
         final int daily;
         final int dailyStreak;
+        /**
+         * The trainings, the practice, the aim trainer and the events: one point for each xpPerPoint
+         * Network XP they give (before the boosts), at least one; 0 gives none.
+         */
+        final int xpPerPoint;
 
         static final int MAX_STREAK = 7;
 
         Points(int win, int loss, int kill, int perLevel, int daily, int dailyStreak) {
+            this(win, loss, kill, perLevel, daily, dailyStreak, 3);
+        }
+
+        Points(int win, int loss, int kill, int perLevel, int daily, int dailyStreak, int xpPerPoint) {
             this.win = win;
             this.loss = loss;
             this.kill = kill;
             this.perLevel = perLevel;
             this.daily = daily;
             this.dailyStreak = dailyStreak;
+            this.xpPerPoint = xpPerPoint;
+        }
+
+        /** The points of a training that gave this Network XP: 10 XP give 3 (one for 3 XP), 1 XP gives 1. */
+        int forXp(int xp) {
+            if (xpPerPoint <= 0 || xp <= 0) {
+                return 0;
+            }
+            return Math.max(1, xp / xpPerPoint);
         }
 
         /** The reward of the n-th day in a row (1 for the first). */
@@ -95,7 +113,8 @@ final class ServerSettings {
         ConfigurationSection p = config.getConfigurationSection("rago-points");
         Points points = new Points(count(p, "rago-points", "victoire", 20), count(p, "rago-points", "defaite", 5),
                 count(p, "rago-points", "kill", 2), count(p, "rago-points", "par-niveau", 10),
-                count(p, "rago-points", "quotidien", 100), count(p, "rago-points", "quotidien-serie", 25));
+                count(p, "rago-points", "quotidien", 100), count(p, "rago-points", "quotidien-serie", 25),
+                count(p, "rago-points", "xp-par-point", 3));
         Map<String, Cosmetic> cosmetics = new LinkedHashMap<>();
         ConfigurationSection shop = config.getConfigurationSection("boutique");
         for (Cosmetic cosmetic : Cosmetic.catalogue().values()) {

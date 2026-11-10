@@ -46,6 +46,8 @@ final class StatsService {
     private final Executor io;
     private final Writer writer;
     private final XpListener xpListener;
+    /** The Rago Points multiplier of a player's coin booster (1 without one). */
+    private java.util.function.ToDoubleFunction<UUID> coinBoost = id -> 1.0;
 
     StatsService(Plugin plugin, int defaultRating, NetworkLevel levels, ServerSettings server, Executor io, Writer writer,
             XpListener xpListener) {
@@ -60,6 +62,11 @@ final class StatsService {
 
     StatsBook book() {
         return book;
+    }
+
+    /** Where the coin boosters are: the points of the games and trainings are multiplied by it. */
+    void setCoinBoost(java.util.function.ToDoubleFunction<UUID> coinBoost) {
+        this.coinBoost = coinBoost;
     }
 
     /** Reads every player's file on the writer thread, then fills the book on the main thread. */
@@ -143,7 +150,7 @@ final class StatsService {
                 player.sendMessage(ChatColor.AQUA + "+" + (stats.xp() - old) + " Network XP"
                         + ChatColor.GRAY + " (" + (won ? "win" : "game played") + ")" + boostNote(stats.id()));
             }
-            points(stats, won ? server.points().win : server.points().loss, won ? "win" : "game played");
+            played(stats, won ? server.points().win : server.points().loss, won ? "win" : "game played");
             Integer oldElo = eloBefore.get(stats.id());
             if (player != null && oldElo != null) {
                 tellElo(player, oldElo, book.elo(stats.id(), mode.id()), mvps.contains(stats.id()));
@@ -181,14 +188,29 @@ final class StatsService {
 
     /** Rago Points earned: added and told (the file is written by the caller). */
     private void points(PlayerStats stats, int amount, String reason) {
+        points(stats, amount, reason, "");
+    }
+
+    private void points(PlayerStats stats, int amount, String reason, String note) {
         if (amount <= 0) {
             return;
         }
         stats.addPoints(amount);
         Player player = Bukkit.getPlayer(stats.id());
         if (player != null) {
-            player.sendMessage(ChatColor.GOLD + "+" + amount + " Rago Points" + ChatColor.GRAY + " (" + reason + ")");
+            player.sendMessage(ChatColor.GOLD + "+" + amount + " Rago Points" + ChatColor.GRAY + " (" + reason + ")" + note);
         }
+    }
+
+    /** Rago Points earned by playing (a game, a kill, a training): the coin booster multiplies them. */
+    private void played(PlayerStats stats, int amount, String reason) {
+        double boost = coinBoost.applyAsDouble(stats.id());
+        points(stats, boosted(amount, boost), reason, boost > 1.0 ? ChatColor.GOLD + " x" + XpBoosters.rate(boost)
+                + " coin booster" : "");
+    }
+
+    static int boosted(int amount, double boost) {
+        return amount <= 0 ? 0 : (int) Math.min(ServerSettings.MAX_POINTS, Math.round(amount * Math.max(1.0, boost)));
     }
 
     /** A kill in a game: counts it, gives the killer some XP, and writes both files. */
@@ -203,7 +225,7 @@ final class StatsService {
                         + boostNote(stats.id()));
             }
             if (stats.id().equals(killer)) {
-                points(stats, server.points().kill, "kill");
+                played(stats, server.points().kill, "kill");
                 questsDone(stats, quest(stats, Quests.Goal.KILLS, modeId));
             }
             gained(stats, old);
@@ -224,6 +246,7 @@ final class StatsService {
             player.sendMessage(ChatColor.AQUA + "+" + (stats.xp() - old) + " Network XP" + ChatColor.GRAY + " (" + reason + ")"
                     + boostNote(id));
         }
+        played(stats, server.points().forXp(xp), reason);
         gained(stats, old);
         save(stats);
     }

@@ -81,9 +81,8 @@ final class LevelMenu {
     }
 
     /**
-     * A reward of the list: a block of iron once unlocked; locked, a block of gold for Rago Points
-     * alone and a block of diamond for a cosmetic or a style. Its name: green when got, yellow for
-     * the next one, grey for those to come.
+     * A reward of the list: a block of gold once unlocked, a block of coal while locked (the next
+     * one shines). Its name: green when got, yellow for the next one, grey for those to come.
      */
     private org.bukkit.inventory.ItemStack rewardItem(LevelRewards.Reward reward, int level, boolean next) {
         boolean got = level >= reward.level();
@@ -100,12 +99,13 @@ final class LevelMenu {
                 : ChatColor.RED + "Locked");
         String name = (got ? ChatColor.GREEN : next ? ChatColor.YELLOW : ChatColor.GRAY) + "Level " + reward.level() + " "
                 + book.levels().tag(reward.level());
-        return ClickMenu.item(rewardBlock(got, !reward.items().isEmpty()), 0, name, lore);
+        org.bukkit.inventory.ItemStack item = ClickMenu.item(rewardBlock(got), 0, name, lore);
+        return next ? ClickMenu.glow(item) : item;
     }
 
-    /** Iron once unlocked; locked, diamond for a cosmetic or a style, gold for Rago Points alone. */
-    static Material rewardBlock(boolean unlocked, boolean hasItems) {
-        return unlocked ? Material.IRON_BLOCK : hasItems ? Material.DIAMOND_BLOCK : Material.GOLD_BLOCK;
+    /** Gold once unlocked, coal while locked. */
+    static Material rewardBlock(boolean unlocked) {
+        return unlocked ? Material.GOLD_BLOCK : Material.COAL_BLOCK;
     }
 
     /** Every tier of colour, the one of the player marked. */

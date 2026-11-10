@@ -371,16 +371,17 @@ final class NetworkCommands implements CommandExecutor, TabCompleter {
                     count = 0;
                 }
             }
-            if (count < 1 || count > XpBoosters.MAX_STOCK) {
-                sender.sendMessage(ChatColor.RED + "Usage: /booster give <player> [1-" + XpBoosters.MAX_STOCK + "]");
+            XpBoosters.Kind kind = args.length >= 4 ? boosterKind(args[3]) : XpBoosters.Kind.XP;
+            if (count < 1 || count > XpBoosters.MAX_STOCK || kind == null) {
+                sender.sendMessage(ChatColor.RED + "Usage: /booster give <player> [1-" + XpBoosters.MAX_STOCK + "] [xp|coins|daily]");
                 return;
             }
             PlayerStats target = profileOf(sender, args[1]);
             if (target == null) {
                 return;
             }
-            lobby.boosters().give(target, count);
-            sender.sendMessage(ChatColor.GREEN + target.name() + " got " + count + " XP booster" + (count > 1 ? "s" : "") + ".");
+            lobby.boosters().give(target, count, kind);
+            sender.sendMessage(ChatColor.GREEN + target.name() + " got " + count + " " + kind.label + (count > 1 ? "s" : "") + ".");
             lobby.getLogger().info(sender.getName() + ": /booster " + String.join(" ", args));
             return;
         }
@@ -390,9 +391,26 @@ final class NetworkCommands implements CommandExecutor, TabCompleter {
         }
         if (args.length >= 1 && args[0].matches("(?i)on|start|activer")) {
             lobby.boosters().activate(player);
+        } else if (args.length >= 1 && boosterKind(args[0]) == XpBoosters.Kind.COINS) {
+            lobby.boosters().activate(player, XpBoosters.Kind.COINS);
         } else {
             lobby.boosters().open(player);
         }
+    }
+
+    /** The kind of booster of a word of /booster: xp, coins (pieces), daily; null for another word. */
+    static XpBoosters.Kind boosterKind(String word) {
+        String w = word.toLowerCase(Locale.ROOT);
+        if (w.matches("xp|exp")) {
+            return XpBoosters.Kind.XP;
+        }
+        if (w.matches("coins?|pieces?|points?")) {
+            return XpBoosters.Kind.COINS;
+        }
+        if (w.matches("daily|gratuit|jour")) {
+            return XpBoosters.Kind.DAILY;
+        }
+        return null;
     }
 
     /** "couleur-feu", "badge-rago", "plus-noir", or the id alone when no other style shares it. */

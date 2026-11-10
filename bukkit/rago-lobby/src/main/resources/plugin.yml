@@ -101,8 +101,8 @@ commands:
     usage: /quests
     aliases: [quetes, quest]
   booster:
-    description: Your XP boosters (x2 Network XP for 30 minutes of play); the admins and the web store give them.
-    usage: /booster, /booster on, or (admin, console) /booster give <player> [count]
+    description: "Your boosters, 30 minutes of play each: XP (x3, bought), daily XP of PREMIUM (x2), coins (x3 Rago Points)."
+    usage: /booster, /booster on, /booster coins, or (admin, console) /booster give <player> [count] [xp|coins|daily]
     aliases: [boosters, xpbooster]
   pack:
     description: The store of the network (the Shop NPC), the starter pack first; the web store gives the pack.

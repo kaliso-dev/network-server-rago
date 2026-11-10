@@ -30,9 +30,12 @@ class StarterPackTest {
         assertEquals(3, pack.boosters);
         assertEquals(Arrays.asList("trail-magic", "kill-firework", "win-fireworks"), pack.cosmetics);
         List<String> contents = pack.contents(server.cosmetics());
-        assertEquals(5, contents.size(), "the points, the boosters and three cosmetics");
+        assertEquals(2, pack.coinBoosters);
+        assertEquals(6, contents.size(), "the points, the XP boosters, the coin boosters and three cosmetics");
         assertTrue(contents.get(0).contains("20,000 Rago Points"));
-        assertTrue(contents.get(2).contains("Magic") && contents.get(2).contains("projectile trail"), contents.get(2));
+        assertTrue(contents.get(1).contains("3 XP boosters") && contents.get(1).contains("x3 XP"), contents.get(1));
+        assertTrue(contents.get(2).contains("2 coin boosters") && contents.get(2).contains("x3 Rago Points"), contents.get(2));
+        assertTrue(contents.get(3).contains("Magic") && contents.get(3).contains("projectile trail"), contents.get(3));
         // 20,000 points, 3 boosters of 2,500, and the cosmetics at their price
         int cosmetics = server.cosmetics().get("trail-magic").price() + server.cosmetics().get("kill-firework").price()
                 + server.cosmetics().get("win-fireworks").price();
@@ -59,6 +62,9 @@ class StarterPackTest {
         assertThrows(IllegalArgumentException.class, () -> ServerSettings.load(config), "the usual price is not below the price");
         config.set("pack-depart.prix-normal", 4.99);
         assertEquals(0, ServerSettings.load(config).starterPack().discount(), "no saving: no crossed out price");
+        config.set("pack-depart.boosters-pieces", XpBoosters.MAX_STOCK + 1);
+        assertThrows(IllegalArgumentException.class, () -> ServerSettings.load(config), "too many coin boosters");
+        config.set("pack-depart.boosters-pieces", 2);
         config.set("pack-depart.lien", "javascript:alert(1)\"}");
         assertThrows(IllegalArgumentException.class, () -> ServerSettings.load(config));
     }

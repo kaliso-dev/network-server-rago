@@ -88,13 +88,13 @@ final class StoreMenu {
                 "With Rago Points, levels or PREMIUM+.",
                 "",
                 ChatColor.YELLOW + "Click to browse")), (p, right) -> styles.open(p));
-        menu.set(ROW[i++], ClickMenu.item(Material.EXP_BOTTLE, 0, ChatColor.AQUA + "XP boosters", list(
-                ChatColor.WHITE + "x2 Network XP" + ChatColor.GRAY + " for 30 minutes",
-                "of play: level up twice as fast.",
-                "",
-                ChatColor.GOLD + String.format("%,d", XpBoosters.PRICE) + " Rago Points" + ChatColor.GRAY + " each,",
-                ChatColor.LIGHT_PURPLE + "[PREMIUM+]" + ChatColor.GRAY + ": one free every day.",
-                "Yours: " + ChatColor.GREEN + profile.boosters(),
+        menu.set(ROW[i++], ClickMenu.item(Material.EXP_BOTTLE, 0, ChatColor.AQUA + "Boosters", list(
+                ChatColor.AQUA + "x3 Network XP" + ChatColor.GRAY + " for 30 minutes",
+                "of play: " + ChatColor.GOLD + String.format("%,d", XpBoosters.PRICE) + " Rago Points" + ChatColor.GRAY + " each.",
+                ChatColor.GOLD + "x3 Rago Points" + ChatColor.GRAY + ": the coin boosters,",
+                "on the store and in the pack.",
+                ChatColor.LIGHT_PURPLE + "[PREMIUM+]" + ChatColor.GRAY + ": a free x2 XP one a day.",
+                "Yours: " + ChatColor.GREEN + (profile.boosters() + profile.dailyBoosters()) + " XP, " + profile.coinBoosters() + " coins",
                 "",
                 ChatColor.YELLOW + "Click to see them")), (p, right) -> boosters.open(p));
         menu.set(ROW[i++], ClickMenu.item(Material.FIREWORK, 0, ChatColor.GREEN + "Cosmetics", list(
