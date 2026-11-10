@@ -223,15 +223,16 @@ block-in:
 
 # KB displace (the duel and the drill against a bot) on the owner's map KbDisplace: its bridge and
 # islands copied once ("centre" and "zone" as the sumo maps); "defenseur", the defender's place
-# (the gold block of the bridge), and "attaquant", the start of the attacker's run, x, y, z, yaw
-# each as F3 gives them. Only a hit from the attacker's side, in the line of the bridge, counts.
-# Without the world (or without this section): the plugin's own bridge.
+# (the notch of the bridge, between its two raised blocks; the bot stands there), and "attaquant",
+# where the attacker starts (the gold block), x, y, z, yaw each as F3 gives them. Only a hit from
+# the attacker's side, in the line of the bridge, counts. Without the world (or without this
+# section): the plugin's own bridge.
 kb-displace:
   monde: "KbDisplace"
   centre: [896056, 97, 896085]
   zone: [896043, 82, 896056, 896069, 113, 896113]
-  defenseur: [896056.5, 98, 896090.5, 180]
-  attaquant: [896056.5, 98, 896083.5, 0]
+  defenseur: [896056.5, 98, 896081.5, 0]
+  attaquant: [896056.5, 98, 896090.5, 180]
 
 # Block extend on the owner's map BlockClutchExtend: the player starts at an exact place of a
 # bridge, frozen until the hit (no move, no turn), takes it and saves themselves with their wool. The gold, diamond and emerald blocks

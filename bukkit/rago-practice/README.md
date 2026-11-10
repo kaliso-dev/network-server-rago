@@ -27,7 +27,8 @@ le Tab, avec sa vie en dessous et son niveau Network à côté.
   comme les maps du sumo et ne sont pas dans le dépôt.
 - **KB displace**, comme un vrai top fight de Bed Fight, sur la map KbDisplace du propriétaire
   (section `kb-displace` de `config.yml`, copiée une fois au démarrage) : son pont d'un bloc de
-  large, le défenseur sur le bloc d'or, rien sur les côtés, l'attaquant 7 blocs avant sur le pont.
+  large, rien sur les côtés : l'attaquant part du bloc d'or, le défenseur se tient dans le creux du
+  pont, entre ses deux blocs surélevés, 9 blocs devant lui.
   Sans le monde, le pont du plugin : le défenseur en haut de la défense, un bloc plus bas que le
   pont, le pont devant lui et un bloc derrière. L'attaquant court sur le pont et, dans le tick du coup, tourne la
   tête d'un côté : le knockback du sprint envoie le défenseur sur le côté, dans le vide. Seul un
@@ -171,7 +172,7 @@ donnent la leur à la fin ; l'aim trainer garde la sienne.
   et le plus long combo du bot. Sur les arènes du boxing : le joueur sur le premier bloc de
   diamant, le bot 8 blocs devant lui.
 - **KB displace contre un bot** : le même pont (celui de la map KbDisplace quand le serveur l'a),
-  le bot à la place du défenseur. Après chaque coup
+  le joueur sur le bloc d'or, le bot à la place du défenseur, dans le creux. Après chaque coup
   on revient tout de suite au départ, pour reprendre de l'élan, jusqu'à ce que le bot tombe ; seul
   un coup de face compte. Le score est le temps, et le scoreboard compte les essais.
 - **Block edit**, comme sur la map Block Edit Practice du propriétaire : une cage de verre, un mur

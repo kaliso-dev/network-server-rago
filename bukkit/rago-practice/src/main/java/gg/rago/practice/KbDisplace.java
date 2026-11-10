@@ -22,7 +22,8 @@ import org.bukkit.inventory.ItemStack;
  * the roles swap at each hit (or after {@link #ATTEMPT_SECONDS} seconds without one). The
  * defender stays in their notch, no damage, no blocks. First to the target. The practice against
  * a bot is {@link KbDisplaceBot}. Both play on the owner's map when the server has it (the
- * defender on its gold block, see {@link Place}), else on the plugin's own bridge.
+ * attacker on its gold block, the defender in the notch between its two raised blocks, see
+ * {@link Place}), else on the plugin's own bridge.
  */
 final class KbDisplace extends Duel {
 

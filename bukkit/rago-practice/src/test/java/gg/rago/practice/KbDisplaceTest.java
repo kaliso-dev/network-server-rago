@@ -87,7 +87,10 @@ class KbDisplaceTest {
         assertTrue(place.outOfTheNotch(0.5, 2.0, 5.5), "a jump");
         assertFalse(place.offTheTop(0.5), "knocked up, then back");
         assertTrue(place.offTheTop(0.0), "a block down, off the bridge");
-        section.set("attaquant", java.util.Arrays.asList(896056.5, 98, 896089.5, 0));
+        // the owner's map: the attacker on the gold block, the defender in the notch 9 blocks before it
+        assertEquals(896090.5, ((Number) section.getList("attaquant").get(2)).doubleValue(), 1e-9);
+        assertEquals(896081.5, ((Number) section.getList("defenseur").get(2)).doubleValue(), 1e-9);
+        section.set("attaquant", java.util.Arrays.asList(896056.5, 98, 896083.5, 0));
         assertTrue(RagoPractice.checkKbDisplace(section, 200).startsWith("attaquant: from 3"));
         section.set("defenseur", java.util.Arrays.asList(896056.5, 98));
         assertTrue(RagoPractice.checkKbDisplace(section, 200).startsWith("defenseur"));
