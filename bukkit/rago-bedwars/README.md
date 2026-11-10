@@ -163,8 +163,11 @@ Les objets de la catégorie Utility du shop, comme sur Hypixel :
 
 Dans `jeux:` du config.yml, un mode peut jouer autre chose qu'une partie classique :
 
-- **FFA** (`ffa`, sur Archway et Paladin, au choix dans la file) : chacun pour soi, ouvert, on
-  entre et on sort quand on veut. Le kit du mode (à
+- **FFA** (`ffa`, sur Archway FFA et Paladin, au choix dans la file) : chacun pour soi, ouvert,
+  on entre et on sort quand on veut. Archway FFA (le dossier `ArchwayFFA`) est l'Archway du
+  propriétaire : des ponts de laine entre les îles, une défense d'end stone et de verre sur les lits
+  rouge et vert pour les top fights, et depuis ces deux îles un escalier jusqu'au top bridge au-dessus
+  du milieu (sa plateforme à y 85) ; on construit jusqu'à y 95. Le kit du mode (à
   ranger dans l'éditeur de kit du lobby) et une armure de fer à chaque vie ; on revient 3 secondes
   après une mort sur l'île la plus éloignée des autres ; un kill soigne ; les blocs posés partent au
   bout de 45 secondes ; les kills comptent dans les stats.

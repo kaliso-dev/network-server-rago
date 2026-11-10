@@ -38,7 +38,7 @@ class BedwarsSettingsTest {
         assertFalse(settings.modes().contains("free-ffa"), "Arena Free is on the owner's Arena, in the practice plugin");
         assertEquals(BedwarsSettings.Kind.INVIS, settings.kind("invis-practice"));
         assertEquals(BedwarsSettings.Kind.FAST_SHOP, settings.kind("shop-practice"));
-        assertEquals(Arrays.asList("Archway", "Paladin"), settings.mapsOf("ffa"));
+        assertEquals(Arrays.asList("ArchwayFFA", "Paladin"), settings.mapsOf("ffa"), "the owner's Archway FFA");
         assertEquals(BedwarsSettings.Kind.FFA, settings.kind("top-bridge-ffa"), "a free for all...");
         assertTrue(settings.topBridge("top-bridge-ffa"), "...with the top bridge");
         assertEquals(settings.mapsOf("ranked-1v1"), settings.mapsOf("top-bridge-ffa"), "the top bridge on the 20 maps");
