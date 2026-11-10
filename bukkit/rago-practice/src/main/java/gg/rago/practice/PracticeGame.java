@@ -636,6 +636,20 @@ abstract class PracticeGame {
         player.getInventory().setArmorContents(armour);
     }
 
+    /** Protection of this level on each piece of armour the player wears (0: none). */
+    static void protect(Player player, int level) {
+        if (level <= 0) {
+            return;
+        }
+        ItemStack[] armour = player.getInventory().getArmorContents();
+        for (ItemStack piece : armour) {
+            if (piece != null && piece.getType() != Material.AIR) {
+                piece.addUnsafeEnchantment(org.bukkit.enchantments.Enchantment.PROTECTION_ENVIRONMENTAL, level);
+            }
+        }
+        player.getInventory().setArmorContents(armour);
+    }
+
     static ItemStack leatherPiece(Material type, Color color) {
         ItemStack piece = new ItemStack(type);
         LeatherArmorMeta meta = (LeatherArmorMeta) piece.getItemMeta();

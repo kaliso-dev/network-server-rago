@@ -141,6 +141,7 @@ public final class RagoPractice extends JavaPlugin {
         int top = config.getInt("points-pour-gagner.top-fight", 3);
         int edit = config.getInt("points-pour-gagner.block-edit", 5);
         int bridge = config.getInt("points-pour-gagner.bridge-fight", 5);
+        int bridgeProtection = config.getInt("bridge-fight.protection-1v1", 2);
         int attack = config.getInt("attaque-defense.attaque-secondes", 60);
         int rounds = config.getInt("attaque-defense.manches", 2);
         int aimXp = config.getInt("aim-trainer.xp-par-seconde", 1);
@@ -179,7 +180,7 @@ public final class RagoPractice extends JavaPlugin {
         register("clutch-top-fight", (h, m, a, t) -> new ClutchTraining(h, m, a, t, true), slots, ClutchTraining.SPACING, false);
         register("block-edit", BlockEditTraining::new, slots, spacing, false);
         register("block-edit-duel", (h, m, a, t) -> new BlockEditDuel(h, m, a, t, edit), slots, spacing, false);
-        register("bridge-fight-1v1", (h, m, a, t) -> new BridgeDuel(h, m, a, t, bridge), slots, spacing, false);
+        register("bridge-fight-1v1", (h, m, a, t) -> new BridgeDuel(h, m, a, t, bridge, bridgeProtection), slots, spacing, false);
         BlockExtendTraining.Course course = blockExtendCourse(config, spacing);
         register("block-extend", (h, m, a, t) -> new BlockExtendTraining(h, m, a, t, course), slots, spacing, false);
     }
@@ -659,6 +660,7 @@ public final class RagoPractice extends JavaPlugin {
             {"aim-trainer.xp-par-seconde", "1", "0", "10"},
             {"aim-trainer.touches-par-xp", "10", "1", "100"},
             {"pearl.limite-basse", "55", "0", "70"},
+            {"bridge-fight.protection-1v1", "2", "0", "4"},
         };
         for (String[] range : ranges) {
             int value = config.getInt(range[0], Integer.parseInt(range[1]));

@@ -10,6 +10,7 @@ import java.io.InputStreamReader;
 import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
@@ -258,6 +259,25 @@ class BridgeArenaTest {
         // in at the end next to the portal
         assertEquals(0, BridgeArena.nearestEnd(platforms.get(1), west), "the north end of the south one");
         assertEquals(1, BridgeArena.nearestEnd(platforms.get(0), west));
+    }
+
+    @Test
+    void thePlayersComeInOnTheSeaLanternOfTheBoothNextToTheirPlatform() {
+        MapCopy map = ownersFloor();
+        List<BridgeArena.Platform> platforms = BridgeArena.platformsOf(map);
+        List<int[]> portals = BridgeArena.portalsOf(map);
+        assertEquals(0, BridgeArena.boothOf(platforms.get(0), portals), "the north one: the west booth, south of it");
+        assertEquals(0, BridgeArena.boothOf(platforms.get(1), portals), "the south one: the same booth, north of it");
+        assertEquals(1, BridgeArena.boothOf(platforms.get(2), portals), "the red and black one: the middle booth");
+        assertEquals(-1, BridgeArena.boothOf(platforms.get(0), Collections.<int[]>emptyList()), "no booth: at its ends");
+        assertEquals(-1, BridgeArena.boothOf(platforms.get(0), Collections.singletonList(new int[] {80, 1, 80})), "too far");
+        // yaw 0: south, 180: north, 90: west, -90: east
+        assertEquals(180f, Math.abs(BridgeArena.yawTo(0.5, 0.5, 0.5, -10)), 1e-3, "the north one, from the booth");
+        assertEquals(0f, BridgeArena.yawTo(0.5, 0.5, 0.5, 10), 1e-3);
+        assertEquals(90f, BridgeArena.yawTo(0.5, 0.5, -10, 0.5), 1e-3);
+        assertEquals(-90f, BridgeArena.yawTo(0.5, 0.5, 10, 0.5), 1e-3);
+        assertTrue(BridgeArena.inBooth(portals, -17.5, 2, 0.5), "on the lantern of the west booth");
+        assertTrue(!BridgeArena.inBooth(portals, -17.5, 2, -6.5), "on the platform");
     }
 
     @Test

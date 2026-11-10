@@ -36,11 +36,13 @@ import org.bukkit.inventory.PlayerInventory;
  * Plateform") its platforms of wool or stained clay, each of two colours as a top fight platform,
  * over the void: a click on a portal (a booth between two platforms, its sea lantern on the floor)
  * takes the player to the platform on the other side of it, the one they look at through it; a
- * portal with no platform in line opens the menu of the platforms. Without it, four platforms side
- * by side: a bridge leads from a pad at each end to the tip of its platform, and a walkway along
- * each end links the pads, so a player walks from one platform to another. Out of a fight, the
- * compass takes them to any platform. After a death or a fall they come back at an end of the
- * platform they were on. The kills count in the stats of the mode. The 1v1 with points is
+ * portal with no platform in line opens the menu of the platforms. A player comes in, and comes
+ * back after a death or a fall, in the booth nearest to their platform (the little white island of
+ * quartz), on its sea lantern in the middle of the diamond of quartz, facing the platform; through
+ * a portal they come in at the tip of the platform. Without it, four platforms side by side: a
+ * bridge leads from a pad at each end to the tip of its platform, and a walkway along each end
+ * links the pads, so a player walks from one platform to another, and comes back at an end of the
+ * platform they were on. Out of a fight, the compass takes them to any platform. The kills count in the stats of the mode. The 1v1 with points is
  * {@link BridgeDuel}.
  */
 final class BridgeArena extends PracticeGame {
@@ -135,6 +137,8 @@ final class BridgeArena extends PracticeGame {
     static final double PORTAL_REACH = 5;
     /** A platform is through a portal when its middle is less than this far from the line of sight. */
     static final int IN_LINE = 7;
+    /** A booth farther than this from the tips of a platform is not where its players come in. */
+    static final double BOOTH_REACH = 16;
     /** One portal click a second at most. */
     private static final long PORTAL_PAUSE_MS = 1000L;
 
@@ -413,6 +417,36 @@ final class BridgeArena extends PracticeGame {
         return best;
     }
 
+    /** The booth where the players of a platform come in: the one nearest to a tip of it, within {@value #BOOTH_REACH} blocks; -1 if none. */
+    static int boothOf(Platform platform, List<int[]> portals) {
+        int best = -1;
+        double nearest = BOOTH_REACH;
+        for (int i = 0; i < portals.size(); i++) {
+            double distance = endDistance(platform.ends[nearestEnd(platform, portals.get(i))], portals.get(i));
+            if (distance <= nearest) {
+                nearest = distance;
+                best = i;
+            }
+        }
+        return best;
+    }
+
+    /** The yaw of a player at (x, z) looking at (toX, toZ): 0 to the south (+z), 90 to the west. */
+    static float yawTo(double x, double z, double toX, double toZ) {
+        return (float) Math.toDegrees(Math.atan2(-(toX - x), toZ - z));
+    }
+
+    /** True if this point (x, y, z from the centre) is in the booth of a portal. */
+    static boolean inBooth(List<int[]> portals, double x, double y, double z) {
+        for (int[] portal : portals) {
+            double[][] box = booth(portal);
+            if (x >= box[0][0] && x < box[1][0] && y >= box[0][1] && y < box[1][1] && z >= box[0][2] && z < box[1][2]) {
+                return true;
+            }
+        }
+        return false;
+    }
+
     /** The end of the platform nearest to the portal. */
     static int nearestEnd(Platform platform, int[] portal) {
         int best = 0;
@@ -534,6 +568,16 @@ final class BridgeArena extends PracticeGame {
     Location spawnOf(UUID player) {
         Platform platform = platformOf(player);
         Integer chosen = nextEnd.remove(player);
+        int booth = chosen == null ? boothOf(platform, portals) : -1;
+        if (booth >= 0) {
+            // in the booth, on the sea lantern, facing the platform
+            int[] portal = portals.get(booth);
+            int end = nearestEnd(platform, portal);
+            endOf.put(player, end);
+            protectedUntil.put(player, System.currentTimeMillis() + PROTECTION_MS);
+            double[] tip = platform.ends[end];
+            return arena.at(portal[0] + 0.5, portal[1] + 1, portal[2] + 0.5, yawTo(portal[0] + 0.5, portal[2] + 0.5, tip[0], tip[2]));
+        }
         int end = chosen != null ? chosen : random.nextInt(platform.ends.length);
         endOf.put(player, end);
         protectedUntil.put(player, System.currentTimeMillis() + PROTECTION_MS);
@@ -754,6 +798,10 @@ final class BridgeArena extends PracticeGame {
             if (at[1] < -1 || distance(platforms.get(platform), at[0], at[2]) > FOLLOW_REACH) {
                 continue;
             }
+            if (inBooth(portals, at[0], at[1], at[2])) {
+                // a booth is between two platforms: the player's stays the one they came for
+                continue;
+            }
             UUID id = player.getUniqueId();
             Integer was = platformOf.put(id, platform);
             if (was == null || was != platform) {
@@ -779,7 +827,7 @@ final class BridgeArena extends PracticeGame {
         } else {
             player.sendMessage(ChatColor.AQUA + "" + ChatColor.BOLD + "Bridge fight" + ChatColor.GRAY + " - " + platforms.size()
                     + " platforms, everyone in one arena, real damage, no blocks. Click a portal to cross to the platform"
-                    + " you look at through it: you come back on the one you were on.");
+                    + " you look at through it: you come back in the quartz booth next to the one you were on.");
         }
         player.sendMessage(ChatColor.GRAY + "The compass takes you to a platform (not in a fight). /spawn takes you back to the lobby.");
         for (Player other : online()) {

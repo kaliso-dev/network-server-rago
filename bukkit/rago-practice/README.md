@@ -149,13 +149,16 @@ côte à côte au-dessus du vide (bleu et jaune, rouge et blanc, orange et noir,
 un pont relie chaque bout de plateforme à un petit carré, et une passerelle le long de chaque bout
 relie les carrés, donc on passe d'une plateforme à l'autre à pied.
 
-La plateforme d'un joueur suit l'endroit où il est ; la boussole emmène sur n'importe laquelle (pas
-pendant un combat). Après une mort ou une chute, on revient à un bout de la dernière plateforme où
-on était, et l'armure prend la couleur de ce bout. Trois secondes sans dégâts au retour, sauf si on
+La plateforme d'un joueur suit l'endroit où il est (sauf dans une cabine, entre deux plateformes) ;
+la boussole emmène sur n'importe laquelle (pas pendant un combat). En arrivant, et après une mort ou
+une chute, on apparaît dans la cabine la plus proche de sa plateforme (la petite île blanche en
+quartz), sur sa lanterne au milieu du losange de quartz, face à la plateforme ; l'armure prend la
+couleur du bout de la plateforme côté cabine. Sans la map, on revient à un bout de la plateforme. Trois secondes sans dégâts au retour, sauf si on
 frappe le premier. Les kills comptent dans les stats du mode.
 
 `bridge-fight-1v1` est le vrai 1v1, à part : une seule plateforme (rouge à l'ouest, bleu à l'est)
-avec ses carrés et ses ponts, le même stuff, aucun bloc. Une mort ou une chute donne le point à
+avec ses carrés et ses ponts, le même stuff avec Protection II sur l'armure
+(`bridge-fight.protection-1v1`, 0 pour aucune), aucun bloc. Une mort ou une chute donne le point à
 l'autre ; le premier à `points-pour-gagner.bridge-fight` (5) gagne.
 
 ## Les scénarios classés

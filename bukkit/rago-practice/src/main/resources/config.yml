@@ -122,6 +122,8 @@ block-fight-arena:
 # the height of the centre; a portal is a booth around a sea lantern on its floor (7 by 7, 9 high).
 # A click on a portal takes the player to the platform on the other side of it, the one they look
 # at through it; the portal with none in line (the middle one) opens the menu of the platforms.
+# A player comes in, and back after a death, in the booth nearest to their platform (the little
+# white island of quartz), on its sea lantern in the middle of the diamond, facing the platform.
 # Its barriers are not copied: a player knocked off falls into the void. Without that world: four
 # platforms of the plugin's own, linked by bridges.
 bridge-fight:
@@ -129,6 +131,8 @@ bridge-fight:
     - monde: "Bridge Fight Plateform"
       centre: [85, 107, 83]
       zone: [58, 105, 50, 112, 116, 112]
+  # The armour of the 1v1 (bridge-fight-1v1): Protection of this level (0 for none, 4 at most).
+  protection-1v1: 2
 
 # The fireball fight plays on these maps of the owner, as the boxing on its arenas: "departs",
 # where each side starts (x, y of the feet, z, yaw). The beds are the map's own: each bed belongs

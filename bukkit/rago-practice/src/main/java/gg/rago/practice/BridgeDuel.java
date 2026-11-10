@@ -14,9 +14,10 @@ import org.bukkit.inventory.ItemStack;
 /**
  * The bridge fight 1v1, apart from the open arena: one platform of the bridge fight, red on the
  * west half and blue on the east one, with its pads and the bridges from the pads to its tips. Each
- * side starts on its pad, in the same gear as the open arena (iron armour, stone sword, golden
- * apples) and nobody places blocks: a death or a fall into the void is a point for the other side.
- * First to 5 by default (points-pour-gagner.bridge-fight).
+ * side starts on its pad, in the gear of the open arena (iron armour, stone sword, golden apples),
+ * the armour with Protection II by default (bridge-fight.protection-1v1, 0 for none), and nobody
+ * places blocks: a death or a fall into the void is a point for the other side. First to 5 by
+ * default (points-pour-gagner.bridge-fight).
  */
 final class BridgeDuel extends Duel {
 
@@ -24,8 +25,12 @@ final class BridgeDuel extends Duel {
     static final BridgeArena.Platform PLATFORM = new BridgeArena.Platform("Red & Blue", ChatColor.RED, Shapes.RED, Color.RED,
             Shapes.BLUE, Color.BLUE, 0);
 
-    BridgeDuel(PracticeHost host, GameMode mode, Arena arena, List<List<Player>> teams, int target) {
+    /** The level of Protection of the armour, 0 for none. */
+    private final int protection;
+
+    BridgeDuel(PracticeHost host, GameMode mode, Arena arena, List<List<Player>> teams, int target, int protection) {
         super(host, mode, arena, teams, target);
+        this.protection = protection;
     }
 
     @Override
@@ -64,6 +69,7 @@ final class BridgeDuel extends Duel {
     @Override
     void armour(Player player) {
         ironArmour(player, COLOURS[Math.max(0, sideOf(player.getUniqueId()))]);
+        protect(player, protection);
     }
 
     @Override
