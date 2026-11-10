@@ -23,24 +23,24 @@ class ClutchTrainingTest {
                 RagoPractice.class.getResourceAsStream("/config.yml"), StandardCharsets.UTF_8));
         ConfigurationSection section = config.getConfigurationSection("clutch");
         assertNotNull(section);
-        assertEquals("BlockClutchExtend", section.getString("monde"));
+        assertEquals("BlockClutchNew", section.getString("monde"));
         assertNull(RagoPractice.checkClutch(section));
-        // the player stands on the island, one block above its centre, facing south (towards its bed)
+        // the player stands on the island, one block above its centre, facing north (towards its bed)
         List<Integer> centre = section.getIntegerList("centre");
         List<Double> player = section.getDoubleList("joueur");
         assertEquals(1, player.get(1) - centre.get(1), 1e-9);
-        assertEquals(0, player.get(3), 1e-9);
-        section.set("joueur", Arrays.asList(870607.5, 92, 870600.5, 0));
+        assertEquals(180, player.get(3), 1e-9);
+        section.set("joueur", Arrays.asList(870607.5, 92, 870620.5, 180));
         assertTrue(RagoPractice.checkClutch(section).startsWith("joueur"));
-        section.set("zone", Arrays.asList(870560, 80, 870643, 870616, 102, 870657));
+        section.set("zone", Arrays.asList(870560, 80, 870601, 870616, 102, 870614));
         assertTrue(RagoPractice.checkClutch(section).startsWith("zone"), "wider than the room between two islands");
     }
 
     @Test
     void theHitThrowsBackwardsFromWhereThePlayerLooks() {
-        // facing north (yaw 180): thrown south, as on the plugin's own island
+        // facing north (yaw 180): thrown south, as on the plugin's own island and the owner's
         assertArrayEquals(new double[] {0, 1}, ClutchTraining.thrownWay(180, 0), 1e-9);
-        // facing south (yaw 0), as on the owner's island: thrown north
+        // facing south (yaw 0): thrown north
         assertArrayEquals(new double[] {0, -1}, ClutchTraining.thrownWay(0, 0), 1e-9);
         // facing west (yaw 90): thrown east
         assertArrayEquals(new double[] {1, 0}, ClutchTraining.thrownWay(90, 0), 1e-9);

@@ -89,8 +89,8 @@ donnent la leur à la fin ; l'aim trainer garde la sienne.
 
 - **Block clutch** : le joueur est au bord d'une petite île de Bed Wars, son lit et sa défense
   à côté ; un coup le jette dans le vide, il pose sa laine pour se rattraper. L'île est celle du
-  propriétaire : l'île en herbe de BlockClutchExtend, avec son lit et sa défense en end stone
-  (section `clutch` de `config.yml`), copiée une fois au démarrage. Le joueur est au bord nord,
+  propriétaire : l'île seule de sa map BlockClutchNew, avec son lit et sa défense en end stone
+  (section `clutch` de `config.yml`), copiée une fois au démarrage. Le joueur est au bord sud,
   face au lit : le coup vient de devant lui et le jette en arrière. Sans le monde, l'île du plugin
   (herbe, lit, défense end stone et laine). Les îles des joueurs sont côte à côte (28 blocs) :
   chacun voit les autres clutcher. La hotbar

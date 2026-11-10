@@ -273,16 +273,17 @@ block-extend:
       coup: devant
       force: [0.85, 0.12]
 
-# Block clutch on the owner's map: the clutch island of BlockClutchExtend, its bed and its end stone
+# Block clutch on the owner's map BlockClutchNew: its island alone, its bed and its end stone
 # defense, copied once ("centre" and "zone" as the sumo maps; the islands of the players stand 28
 # blocks apart, so the zone is at most 13 blocks from the centre on x and z). "joueur": where the
-# player stands (x, y, z, yaw): the hit comes from where they look and throws them backwards, off
-# the island. Without the world: the plugin's own island.
+# player stands (x, y, z, yaw), on the south edge of the island facing the bed: the hit comes from
+# where they look and throws them backwards, off the island. Without the world: the plugin's own
+# island.
 clutch:
-  monde: "BlockClutchExtend"
-  centre: [870604, 91, 870648]
-  zone: [870591, 80, 870643, 870616, 102, 870657]
-  joueur: [870607.5, 92, 870644.5, 0]
+  monde: "BlockClutchNew"
+  centre: [870604, 91, 870608]
+  zone: [870591, 80, 870601, 870616, 102, 870614]
+  joueur: [870600.5, 92, 870614.5, 180]
 
 # Bow training and the bow 1v1 on a real Bed Wars map: the red base of Archway and the north of its
 # middle, copied once ("centre" and "zone" as the sumo maps). "joueur": where the player starts on
