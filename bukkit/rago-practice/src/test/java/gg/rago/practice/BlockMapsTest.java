@@ -108,20 +108,25 @@ class BlockMapsTest {
     }
 
     @Test
-    void aHitFromTheFrontComesFromWhereThePlayerLooksWhenItLands() {
+    void theHitAlwaysComesAlongTheLineOfTheStartAndThePlayerIsFrozenUntilIt() {
         BlockExtendTraining.Level gold = BlockExtendTraining.plainLevels()[0];
         assertEquals(BlockExtendTraining.From.FRONT, gold.from);
-        // looking north at the hit: thrown south; turned to the east (-90): thrown west
-        assertArrayEquals(new double[] {0, 1}, BlockExtendTraining.wayAtHit(gold, 180f), 1e-9);
-        assertArrayEquals(new double[] {-1, 0}, BlockExtendTraining.wayAtHit(gold, -90f), 1e-9);
-        // a hit from the right stays where it was at the start, wherever the player turns
-        BlockExtendTraining.Level diamond = BlockExtendTraining.plainLevels()[1];
-        assertArrayEquals(diamond.way, BlockExtendTraining.wayAtHit(diamond, 0f), 1e-9);
-        // the bundled levels: the gold hit is from the front, no more towards a point
+        // looking north at the start: always thrown south (the player cannot turn before the hit)
+        assertArrayEquals(new double[] {0, 1}, gold.way, 1e-2);
+        // the bundled levels: the gold hit is from the front, higher and stronger than a big hit
         ConfigurationSection or = bundled().getConfigurationSection("block-extend.niveaux.or");
         assertEquals("devant", or.getString("coup"));
         assertTrue(!or.contains("vers"));
+        assertTrue(or.getDoubleList("force").get(0) > 0.68 && or.getDoubleList("force").get(1) > 0.40);
         assertTrue(bundled().getDoubleList("block-extend.niveaux.diamant.force").get(0) >= 0.8);
+        // the emerald start: on the emerald block at the end of the bridge, a block nearer the island
+        assertEquals(870612.227, bundled().getDoubleList("block-extend.niveaux.emeraude.depart").get(2), 1e-9);
+        // frozen: a step or a turn is not still; the same place and look, a full turn apart, is
+        org.bukkit.Location start = new org.bukkit.Location(null, 10.5, 64, 10.5, 179.4f, 1.4f);
+        assertTrue(BlockExtendTraining.still(new org.bukkit.Location(null, 10.5, 64, 10.5, -180.6f, 1.4f), start));
+        assertTrue(!BlockExtendTraining.still(new org.bukkit.Location(null, 10.5, 64, 10.6, 179.4f, 1.4f), start));
+        assertTrue(!BlockExtendTraining.still(new org.bukkit.Location(null, 10.5, 64, 10.5, 90f, 1.4f), start));
+        assertTrue(!BlockExtendTraining.still(new org.bukkit.Location(null, 10.5, 64, 10.5, 179.4f, 30f), start));
     }
 
     @Test

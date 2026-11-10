@@ -148,9 +148,10 @@ final class PracticeHost implements MatchHost {
         return games.gameOf(player);
     }
 
-    /** The player no longer belongs to their game. */
+    /** The player no longer belongs to their game: the XP they earned there goes to the lobby. */
     void release(UUID player) {
         games.release(player);
+        plugin.payXp(player);
     }
 
     /** The player joined this running game. */

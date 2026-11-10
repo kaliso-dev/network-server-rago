@@ -303,6 +303,12 @@ final class AimTrainer extends Training {
         }
     }
 
+    /** The aim trainer gives its own XP (each second on the target), not that of the trainings. */
+    @Override
+    boolean earnsXp() {
+        return false;
+    }
+
     /** The thirty seconds are over: the score, the XP, the top. */
     private void end(Player player) {
         done = true;

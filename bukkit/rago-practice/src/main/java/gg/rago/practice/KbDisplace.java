@@ -21,7 +21,8 @@ import org.bukkit.inventory.ItemStack;
  * them (which only a cheat lands) does not count. Each hit is one attempt: a displaced defender is a point for the attacker, and
  * the roles swap at each hit (or after {@link #ATTEMPT_SECONDS} seconds without one). The
  * defender stays in their notch, no damage, no blocks. First to the target. The practice against
- * a bot is {@link KbDisplaceBot}.
+ * a bot is {@link KbDisplaceBot}. Both play on the owner's map when the server has it (the
+ * defender on its gold block, see {@link Place}), else on the plugin's own bridge.
  */
 final class KbDisplace extends Duel {
 
@@ -34,12 +35,83 @@ final class KbDisplace extends Duel {
     /** An attempt without a hit ends after this long. */
     static final int ATTEMPT_SECONDS = 15;
 
+    /**
+     * Where the duel and the drill play: the plugin's own bridge, or a copy of the owner's map with
+     * the defender's notch and the attacker's start on it. Offsets from the centre of the zone.
+     */
+    static final class Place {
+        /** The plugin's own bridge: along x, the defender at x = 0, one block below it. */
+        static final Place PLAIN = new Place(null, new double[] {-RUN + 0.5, 1, 0.5, -90}, new double[] {0.5, 0, 0.5, 90});
+
+        /** The copy of the map, or null: the plugin's own bridge. */
+        final MapCopy copy;
+        /** x, y, z of the feet and yaw: where the attacker starts their run. */
+        final double[] attacker;
+        /** x, y, z of the feet and yaw: the defender's notch. */
+        final double[] defender;
+        /** The front of the defender, from them towards the attacker's start, on x and z, length 1. */
+        final double[] front;
+
+        Place(MapCopy copy, double[] attacker, double[] defender) {
+            this.copy = copy;
+            this.attacker = attacker;
+            this.defender = defender;
+            double dx = attacker[0] - defender[0];
+            double dz = attacker[2] - defender[2];
+            double length = Math.sqrt(dx * dx + dz * dz);
+            this.front = length < 0.01 ? new double[] {-1, 0} : new double[] {dx / length, dz / length};
+        }
+
+        void build(Arena arena) {
+            if (copy != null) {
+                copy.build(arena);
+            } else {
+                bridge(arena);
+            }
+        }
+
+        Location attackerStart(Arena arena) {
+            return arena.at(attacker[0], attacker[1], attacker[2], (float) attacker[3]);
+        }
+
+        Location defenderSpot(Arena arena) {
+            return arena.at(defender[0], defender[1], defender[2], (float) defender[3]);
+        }
+
+        /** True if the defender, their feet at this height from the centre, fell off the top. */
+        boolean offTheTop(double feet) {
+            return feet < defender[1] - 0.9;
+        }
+
+        /**
+         * True if a hit from this offset of the attacker to the defender comes from the front: from
+         * the bridge the attacker runs along, in its line, not from a side or from behind.
+         */
+        boolean fromTheFront(double dx, double dz) {
+            double along = dx * front[0] + dz * front[1];
+            double across = -dx * front[1] + dz * front[0];
+            return along >= 0.4 && Math.abs(across) <= 0.9;
+        }
+
+        /** True if a defender who was not hit left their notch (a step, a jump): they are put back. */
+        boolean outOfTheNotch(double x, double y, double z) {
+            return Math.abs(x - defender[0]) > 0.45 || Math.abs(z - defender[2]) > 0.45 || y > defender[1] + 0.6;
+        }
+
+        /** Under this height a player fell into the void. */
+        double fallY(Arena arena) {
+            return arena.floorY() + defender[1] - 6;
+        }
+    }
+
+    private final Place place;
     /** The tick until which the hit defender flies, or -1 before the hit of this attempt. */
     private int knockedUntil = -1;
     private long warnedAt;
 
-    KbDisplace(PracticeHost host, GameMode mode, Arena arena, List<List<Player>> teams, int target) {
+    KbDisplace(PracticeHost host, GameMode mode, Arena arena, List<List<Player>> teams, int target, Place place) {
         super(host, mode, arena, teams, target);
+        this.place = place;
     }
 
     @Override
@@ -50,7 +122,7 @@ final class KbDisplace extends Duel {
     @Override
     void intro(Player player) {
         super.intro(player);
-        player.sendMessage(ChatColor.GRAY + "The defender stands one block below the bridge, a block in front and behind."
+        player.sendMessage(ChatColor.GRAY + "The defender holds their place on the bridge, nothing on their sides."
                 + " Run, turn your head to the side and hit them in the same tick: they go off sideways."
                 + " Only a hit from the front, sprinting, with your look on them counts. The roles swap at each hit.");
     }
@@ -75,27 +147,14 @@ final class KbDisplace extends Duel {
         }
     }
 
-    /** Where the attacker starts: on the bridge, the run in front of them, facing the defender. */
-    static Location attackerStart(Arena arena) {
-        return arena.at(-RUN + 0.5, 1, 0.5, -90f);
-    }
-
-    /** The defender's notch, facing the bridge the attacker comes from. */
-    static Location defenderSpot(Arena arena) {
-        return arena.at(0.5, 0, 0.5, 90f);
-    }
-
-    /** True if the defender, standing at this height above the floor, fell off the top. */
+    /** True if the defender of the plugin's own bridge, at this height above the floor, fell off the top. */
     static boolean offTheTop(double feet) {
-        return feet < -0.9;
+        return Place.PLAIN.offTheTop(feet);
     }
 
-    /**
-     * True if a hit from this offset of the attacker to the defender comes from the front: from the
-     * bridge the attacker runs along (smaller x), in its line, not from a side or from behind.
-     */
+    /** {@link Place#fromTheFront} on the plugin's own bridge (the attacker at smaller x). */
     static boolean fromTheFront(double dx, double dz) {
-        return dx <= -0.4 && Math.abs(dz) <= 0.9;
+        return Place.PLAIN.fromTheFront(dx, dz);
     }
 
     /** How far a hit reaches, a little more than the game's 3 blocks for the lag. */
@@ -137,8 +196,8 @@ final class KbDisplace extends Duel {
     }
 
     /** Why a hit of the attacker does not count (null when it does): from where, how, where they look. */
-    static String refused(Player attacker, double[] by, double[] at, Location victim) {
-        if (!fromTheFront(by[0] - at[0], by[2] - at[2])) {
+    static String refused(Place place, Player attacker, double[] by, double[] at, Location victim) {
+        if (!place.fromTheFront(by[0] - at[0], by[2] - at[2])) {
             return "Only a hit from the front counts: from the bridge, in front of them.";
         }
         if (!attacker.isSprinting()) {
@@ -153,9 +212,9 @@ final class KbDisplace extends Duel {
         return null;
     }
 
-    /** True if a defender who was not hit left their notch (a step, a jump): they are put back. */
+    /** {@link Place#outOfTheNotch} on the plugin's own bridge. */
     static boolean outOfTheNotch(double x, double y, double z) {
-        return Math.abs(x - 0.5) > 0.45 || Math.abs(z - 0.5) > 0.45 || y > 0.6;
+        return Place.PLAIN.outOfTheNotch(x, y, z);
     }
 
     /** The side that attacks in this attempt: the first side first, then each in turn. */
@@ -171,7 +230,7 @@ final class KbDisplace extends Duel {
 
     @Override
     void build() {
-        bridge(arena);
+        place.build(arena);
     }
 
     /** A countdown before the first attempt only: the next ones start at once, the roles swapped. */
@@ -197,12 +256,12 @@ final class KbDisplace extends Duel {
 
     @Override
     Location spawnOf(UUID player) {
-        return sideOf(player) == attacker() ? attackerStart(arena) : defenderSpot(arena);
+        return sideOf(player) == attacker() ? place.attackerStart(arena) : place.defenderSpot(arena);
     }
 
     @Override
     double fallY() {
-        return arena.floorY() - 6;
+        return place.fallY(arena);
     }
 
     @Override
@@ -229,7 +288,7 @@ final class KbDisplace extends Duel {
         }
         double[] by = arena.offset(attacker.getLocation());
         double[] at = arena.offset(victim.getLocation());
-        String refused = refused(attacker, by, at, victim.getLocation());
+        String refused = refused(place, attacker, by, at, victim.getLocation());
         if (refused != null) {
             long now = System.currentTimeMillis();
             if (now - warnedAt > 1500L) {
@@ -254,7 +313,7 @@ final class KbDisplace extends Duel {
         }
         Player defender = defenders.get(0);
         double[] at = arena.offset(defender.getLocation());
-        if (offTheTop(at[1])) {
+        if (place.offTheTop(at[1])) {
             displaced(defender);
             return;
         }
@@ -265,8 +324,8 @@ final class KbDisplace extends Duel {
             }
             return;
         }
-        if (outOfTheNotch(at[0], at[1], at[2])) {
-            Location back = defenderSpot(arena);
+        if (place.outOfTheNotch(at[0], at[1], at[2])) {
+            Location back = place.defenderSpot(arena);
             back.setYaw(defender.getLocation().getYaw());
             back.setPitch(defender.getLocation().getPitch());
             defender.teleport(back);

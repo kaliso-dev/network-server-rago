@@ -190,6 +190,13 @@ final class PracticeGames implements Listener {
             event.setTo(still);
             return;
         }
+        Location held = game.heldAt(player);
+        if (held != null) {
+            if (!BlockExtendTraining.still(to, held)) {
+                event.setTo(held);
+            }
+            return;
+        }
         if (to.getY() < game.fallY()) {
             game.fellIntoVoid(player);
             return;

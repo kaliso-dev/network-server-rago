@@ -348,6 +348,7 @@ abstract class Training extends PracticeGame {
     /** A new score; quiet: a message only for a new best (a streak that goes on). */
     void score(long value, boolean quiet) {
         Player player = player();
+        succeeded(me);
         RecordBook.Result result = host.records().submit(board(), me, myName, value);
         last = format(value);
         if (player == null) {
@@ -371,6 +372,14 @@ abstract class Training extends PracticeGame {
         }
     }
 
+    /** The colours of the top 3 of the sidebar: gold, silver, bronze. */
+    private static final ChatColor[] PODIUM = {ChatColor.GOLD, ChatColor.WHITE, ChatColor.RED};
+
+    /**
+     * The sidebar: the mode, the lines of the attempt, the top 3 of the server, the player's best
+     * and place, the last score and the ping (in one line, so that the lobby adds none: a game
+     * gives 12 lines).
+     */
     @Override
     List<String> sidebar(UUID viewer) {
         List<String> lines = new ArrayList<>();
@@ -379,20 +388,47 @@ abstract class Training extends PracticeGame {
         lines.add("");
         trainingLines(lines);
         lines.add("");
+        List<RecordBook.Entry> ranked = host.records().book().ranked(board());
+        for (int i = 0; i < 3 && i < ranked.size(); i++) {
+            RecordBook.Entry entry = ranked.get(i);
+            lines.add(Duel.cut(PODIUM[i] + "#" + (i + 1) + " " + (entry.player.equals(me) ? ChatColor.GREEN : ChatColor.WHITE)
+                    + entry.name + " " + ChatColor.GRAY + format(entry.value)));
+        }
+        if (ranked.isEmpty()) {
+            lines.add(ChatColor.GRAY + "No record yet: be the first!");
+        }
         Long best = host.records().book().best(board(), me);
-        lines.add(ChatColor.WHITE + "Your best: " + ChatColor.GREEN + (best == null ? ChatColor.GRAY + "none" : format(best)));
-        if (!last.isEmpty()) {
-            lines.add(ChatColor.WHITE + "Last: " + ChatColor.YELLOW + last);
+        int rank = host.records().book().rank(board(), me);
+        lines.add(Duel.cut(ChatColor.WHITE + "You: " + (best == null ? ChatColor.GRAY + "no score" : ChatColor.GREEN + format(best)
+                + (rank > 0 ? ChatColor.GRAY + " (#" + rank + ")" : ""))));
+        Player player = Bukkit.getPlayer(viewer);
+        lines.add(Duel.cut((last.isEmpty() ? "" : ChatColor.WHITE + "Last: " + ChatColor.YELLOW + last + ChatColor.DARK_GRAY + " | ")
+                + ChatColor.WHITE + "Ping: " + (player == null ? ChatColor.GRAY + "-" : Ping.text(player))));
+        return fit(lines, ranked.size());
+    }
+
+    /** The most lines a game gives the sidebar of the lobby. */
+    static final int MAX_LINES = 12;
+
+    /**
+     * Sidebar lines cut to {@link #MAX_LINES} when the attempt takes many: first the blank line
+     * under the mode goes, then the "Mode:" line, then the third and the second of the top, so
+     * that the player's best and the ping always show.
+     */
+    static List<String> fit(List<String> lines, int topShown) {
+        List<String> fitted = new ArrayList<>(lines);
+        if (fitted.size() > MAX_LINES) {
+            fitted.remove(2);
         }
-        RecordBook.Entry top = host.records().book().top(board());
-        if (top != null) {
-            lines.add(Duel.cut(ChatColor.WHITE + "Top: " + ChatColor.GOLD + top.name + ChatColor.GRAY + " " + format(top.value)));
-            int rank = host.records().book().rank(board(), me);
-            if (rank > 0) {
-                lines.add(ChatColor.WHITE + "Your rank: " + ChatColor.AQUA + "#" + rank);
-            }
+        if (fitted.size() > MAX_LINES) {
+            fitted.remove(1);
         }
-        return lines;
+        int top = Math.min(3, topShown);
+        while (fitted.size() > MAX_LINES && top > 1) {
+            fitted.remove(fitted.size() - 3);
+            top--;
+        }
+        return fitted;
     }
 
     /** The lines of the attempt in the sidebar (the time so far, the streak...). */
@@ -416,6 +452,7 @@ abstract class Training extends PracticeGame {
     /** The attempt failed: the player starts again at once. */
     void failed(String why) {
         Player player = player();
+        tried(me);
         if (player != null) {
             player.sendMessage(ChatColor.RED + why);
             sound(player, Sound.VILLAGER_NO, 1f);

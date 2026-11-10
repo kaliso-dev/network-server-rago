@@ -10,6 +10,7 @@ import java.nio.file.Files;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
+import java.util.UUID;
 import java.util.Map;
 import java.util.logging.Level;
 import org.bukkit.World;
@@ -44,6 +45,10 @@ public final class RagoPractice extends JavaPlugin {
     private PracticeGames games;
     private Records records;
     private final List<String> hosted = new ArrayList<>();
+    /** The Network XP of the trainings and the free arenas, given every two minutes. */
+    private PracticeXp xp;
+    /** How often the XP of the trainings goes to the lobby: two minutes. */
+    static final long XP_PAY_TICKS = 2400L;
 
     @Override
     public void onEnable() {
@@ -71,6 +76,8 @@ public final class RagoPractice extends JavaPlugin {
         }
 
         World world = arenaWorld(worldName);
+        xp = new PracticeXp(xpRules(config));
+        getServer().getScheduler().runTaskTimer(this, this::payXp, XP_PAY_TICKS, XP_PAY_TICKS);
         records = new Records(this, new File(getDataFolder(), "records.yml"));
         records.load();
 
@@ -150,7 +157,8 @@ public final class RagoPractice extends JavaPlugin {
 
         List<MapZones.ZoneMap> arenas = zoneMaps(config, "boxing.cartes", spacing, "the boxing and the combo bot");
         onMaps(register("boxing", (h, m, a, t) -> new Boxing(h, m, a, t, boxing), slots, spacing, false), arenas);
-        register("kb-displace", (h, m, a, t) -> new KbDisplace(h, m, a, t, kb), slots, spacing, false);
+        KbDisplace.Place kbPlace = kbDisplacePlace(config, spacing);
+        register("kb-displace", (h, m, a, t) -> new KbDisplace(h, m, a, t, kb, kbPlace), slots, spacing, false);
         List<MapZones.ZoneMap> blockMaps = zoneMaps(config, "block-fight.cartes", spacing, "the block placement");
         onMaps(register("block-fight-1v1", (h, m, a, t) -> new BlockFight(h, m, a, t, blocks), slots, spacing, false), blockMaps);
         onMaps(register("block-fight-2v2", (h, m, a, t) -> new BlockFight(h, m, a, t, blocks), slots, spacing, false), blockMaps);
@@ -172,7 +180,7 @@ public final class RagoPractice extends JavaPlugin {
         register("fireball-practice", FireballTraining::new, slots, spacing, false);
         register("aim-trainer", (h, m, a, t) -> new AimTrainer(h, m, a, t, aimXp, aimHits), slots, spacing, false);
         onMaps(register("combo-bot", ComboBot::new, slots, spacing, false), arenas);
-        register("kb-displace-bot", KbDisplaceBot::new, slots, spacing, false);
+        register("kb-displace-bot", (h, m, a, t) -> new KbDisplaceBot(h, m, a, t, kbPlace), slots, spacing, false);
         List<MapZones.ZoneMap> arenaMaps = withoutBlocks(zoneMaps(config, "block-fight-arena.cartes", spacing,
                 "the block placement arena"), GOLD_ID);
         onMaps(register("block-fight-arena", (h, m, a, t) -> new BlockArena(h, m, a, t, false), slots, spacing, true), arenaMaps);
@@ -309,6 +317,68 @@ public final class RagoPractice extends JavaPlugin {
      * mistake in the section, the plugin's own levels on plain blocks; without the world, the
      * levels of the section on plain blocks.
      */
+    /** The place of the KB displace: the owner's map of the section kb-displace, or the plugin's own bridge. */
+    private KbDisplace.Place kbDisplacePlace(FileConfiguration config, int spacing) {
+        ConfigurationSection section = config.getConfigurationSection("kb-displace");
+        if (section == null) {
+            return KbDisplace.Place.PLAIN;
+        }
+        String problem = checkKbDisplace(section, spacing);
+        if (problem != null) {
+            getLogger().warning("kb-displace in config.yml: " + problem + ". The KB displace plays on the plugin's own bridge.");
+            return KbDisplace.Place.PLAIN;
+        }
+        int[] origin = numbers(section.getList("centre"), 3);
+        MapCopy copy = MapCopy.read(section.getString("monde", ""), numbers(section.getList("zone"), 6), origin, getLogger(),
+                "the KB displace");
+        if (copy == null) {
+            return KbDisplace.Place.PLAIN;
+        }
+        return new KbDisplace.Place(copy, offsets(section.getList("attaquant"), origin), offsets(section.getList("defenseur"), origin));
+    }
+
+    /** x, y, z, yaw of the config, x, y, z made offsets from the origin. */
+    private static double[] offsets(List<?> place, int[] origin) {
+        double[] at = new double[4];
+        for (int k = 0; k < 4; k++) {
+            at[k] = number(place.get(k)) - (k < 3 ? origin[k] : 0);
+        }
+        return at;
+    }
+
+    /** What is wrong with the kb-displace section, or null. */
+    static String checkKbDisplace(ConfigurationSection section, int spacing) {
+        Map<String, Object> zoneMap = new HashMap<>();
+        String world = section.getString("monde", "");
+        zoneMap.put("monde", world.trim().isEmpty() ? "-" : world);
+        zoneMap.put("centre", section.getList("centre"));
+        zoneMap.put("zone", section.getList("zone"));
+        String zoneProblem = checkZoneMap(zoneMap, spacing);
+        if (zoneProblem != null) {
+            return zoneProblem;
+        }
+        int[] zone = numbers(section.getList("zone"), 6);
+        for (String key : new String[] {"attaquant", "defenseur"}) {
+            if (!numbersOf(section.getList(key), 4)) {
+                return key + ": x, y, z, yaw, as F3 gives them";
+            }
+            List<?> place = section.getList(key);
+            for (int i = 0; i < 3; i++) {
+                double v = number(place.get(i));
+                if (v < Math.min(zone[i], zone[i + 3]) || v > Math.max(zone[i], zone[i + 3]) + 1) {
+                    return key + ": in the zone";
+                }
+            }
+        }
+        List<?> a = section.getList("attaquant");
+        List<?> d = section.getList("defenseur");
+        double run = Math.hypot(number(a.get(0)) - number(d.get(0)), number(a.get(2)) - number(d.get(2)));
+        if (run < 3 || run > 30) {
+            return "attaquant: from 3 to 30 blocks from the defender, for the run";
+        }
+        return null;
+    }
+
     private BlockExtendTraining.Course blockExtendCourse(FileConfiguration config, int spacing) {
         ConfigurationSection section = config.getConfigurationSection("block-extend");
         String problem = section == null ? "the section is missing" : checkBlockExtend(section, spacing);
@@ -725,8 +795,42 @@ public final class RagoPractice extends JavaPlugin {
         }
     }
 
+    /** The XP of the trainings, as the settings give it. */
+    static PracticeXp.Rules xpRules(FileConfiguration config) {
+        return new PracticeXp.Rules(config.getInt("xp-entrainement.par-minute", 1), config.getInt("xp-entrainement.essai", 1),
+                config.getInt("xp-entrainement.reussite", 3), config.getInt("xp-entrainement.max-par-minute", 8));
+    }
+
+    PracticeXp xp() {
+        return xp;
+    }
+
+    /** Gives the lobby the XP waiting for every player. */
+    void payXp() {
+        if (xp == null) {
+            return;
+        }
+        for (UUID player : xp.waiting()) {
+            payXp(player);
+        }
+        xp.prune(System.currentTimeMillis());
+    }
+
+    /** Gives the lobby the XP waiting for this player (when they leave a training, an arena). */
+    void payXp(UUID player) {
+        if (xp == null || lobby == null) {
+            return;
+        }
+        String modeId = xp.modeOf(player);
+        int earned = xp.take(player);
+        if (earned > 0 && modeId != null) {
+            lobby.giveXp(modeId, player, earned, "practice");
+        }
+    }
+
     @Override
     public void onDisable() {
+        payXp();
         for (MapZones zones : mapZones) {
             zones.stop();
         }
@@ -781,6 +885,10 @@ public final class RagoPractice extends JavaPlugin {
             {"aim-trainer.touches-par-xp", "10", "1", "100"},
             {"pearl.limite-basse", "55", "0", "70"},
             {"bridge-fight.protection-1v1", "2", "0", "4"},
+            {"xp-entrainement.par-minute", "1", "0", "20"},
+            {"xp-entrainement.essai", "1", "0", "20"},
+            {"xp-entrainement.reussite", "3", "0", "50"},
+            {"xp-entrainement.max-par-minute", "8", "0", "100"},
             {"points-pour-gagner.bow", "10", "1", "50"},
         };
         for (String[] range : ranges) {

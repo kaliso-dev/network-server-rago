@@ -2,6 +2,7 @@ package gg.rago.practice;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import org.junit.jupiter.api.Test;
@@ -68,5 +69,27 @@ class KbDisplaceTest {
         assertFalse(KbDisplace.aimedAt(eyeX, eyeY, eyeZ, 0, 0, 1, 0.5, 0, 0.5), "looking along the side");
         assertFalse(KbDisplace.aimedAt(eyeX, eyeY, eyeZ, -1, 0, 0, 0.5, 0, 0.5), "looking back");
         assertFalse(KbDisplace.aimedAt(-4.5, eyeY, eyeZ, 1, -0.2, 0, 0.5, 0, 0.5), "out of reach");
+    }
+
+    @Test
+    void theOwnersMapIsCheckedAndItsFrontIsTheBridgeTowardsTheAttacker() throws Exception {
+        org.bukkit.configuration.file.YamlConfiguration config = new org.bukkit.configuration.file.YamlConfiguration();
+        config.load(new java.io.File("src/main/resources/config.yml"));
+        org.bukkit.configuration.ConfigurationSection section = config.getConfigurationSection("kb-displace");
+        assertNull(RagoPractice.checkKbDisplace(section, config.getInt("espacement")));
+        // on the map the bridge runs along z: the defender on the gold block looks north, the attacker comes from there
+        KbDisplace.Place place = new KbDisplace.Place(null, new double[] {0.5, 1, -1.5, 0}, new double[] {0.5, 1, 5.5, 180});
+        assertTrue(place.fromTheFront(0.0, -1.2), "from the bridge, in front");
+        assertFalse(place.fromTheFront(0.0, 1.2), "from behind");
+        assertFalse(place.fromTheFront(1.0, -0.2), "from a side");
+        assertFalse(place.outOfTheNotch(0.5, 1.0, 5.5));
+        assertTrue(place.outOfTheNotch(0.5, 1.0, 6.2), "a step back");
+        assertTrue(place.outOfTheNotch(0.5, 2.0, 5.5), "a jump");
+        assertFalse(place.offTheTop(0.5), "knocked up, then back");
+        assertTrue(place.offTheTop(0.0), "a block down, off the bridge");
+        section.set("attaquant", java.util.Arrays.asList(896056.5, 98, 896089.5, 0));
+        assertTrue(RagoPractice.checkKbDisplace(section, 200).startsWith("attaquant: from 3"));
+        section.set("defenseur", java.util.Arrays.asList(896056.5, 98));
+        assertTrue(RagoPractice.checkKbDisplace(section, 200).startsWith("defenseur"));
     }
 }

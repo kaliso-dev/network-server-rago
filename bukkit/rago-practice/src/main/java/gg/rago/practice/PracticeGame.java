@@ -65,6 +65,8 @@ abstract class PracticeGame {
     int tickCount;
     /** Rounds started, from 1. */
     int round;
+    /** Seconds played in this game, all rounds together (the XP of each minute). */
+    private int playedSeconds;
     private BukkitTask clock;
     private BukkitTask countdown;
     private BukkitTask ticker;
@@ -148,6 +150,14 @@ abstract class PracticeGame {
     void fell(Player player) {
         player.teleport(spawnOf(player.getUniqueId()));
         player.setFallDistance(0f);
+    }
+
+    /**
+     * Where this player is held, look included, while they may neither move nor turn (block
+     * extend, before the hit); null when they are free.
+     */
+    Location heldAt(Player player) {
+        return null;
     }
 
     /** The player moved (in the fight or not, not in the void). */
@@ -364,6 +374,28 @@ abstract class PracticeGame {
         effects(player);
     }
 
+    /**
+     * True if the players earn the XP of the trainings here (a minute played, an attempt, a
+     * success): where no game is won, so not in a duel, which gives its own at the end.
+     */
+    boolean earnsXp() {
+        return !counts();
+    }
+
+    /** An attempt of this player that worked: a little Network XP (given every two minutes). */
+    void succeeded(UUID player) {
+        if (earnsXp()) {
+            plugin.xp().success(player, mode.id(), System.currentTimeMillis());
+        }
+    }
+
+    /** An attempt of this player that failed: a little less XP. */
+    void tried(UUID player) {
+        if (earnsXp()) {
+            plugin.xp().attempt(player, mode.id(), System.currentTimeMillis());
+        }
+    }
+
     /** The potion effects of the mode, given at each start (Speed in boxing...). */
     void effects(Player player) {
     }
@@ -374,6 +406,13 @@ abstract class PracticeGame {
         }
         if (phase == Phase.PLAYING) {
             seconds++;
+            playedSeconds++;
+            if (playedSeconds % 60 == 0 && earnsXp()) {
+                long now = System.currentTimeMillis();
+                for (Player player : online()) {
+                    plugin.xp().minute(player.getUniqueId(), mode.id(), now);
+                }
+            }
             onSecond();
         }
         if (phase != Phase.ENDED) {

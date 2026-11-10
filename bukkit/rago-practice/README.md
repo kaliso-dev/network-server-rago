@@ -25,9 +25,11 @@ le Tab, avec sa vie en dessous et son niveau Network à côté.
   suite en partie, sinon pour ses prochains boxings, jusqu'au redémarrage). Avec un nombre, c'est
   toujours la vitesse de vol des builders (`/vitesse` de RagoBuildTools). Les arènes sont copiées
   comme les maps du sumo et ne sont pas dans le dépôt.
-- **KB displace**, comme un vrai top fight de Bed Fight : un pont d'un bloc de large, et le
-  défenseur en haut de la défense, un bloc plus bas que le pont, le pont devant lui et un bloc
-  derrière, rien sur les côtés. L'attaquant court sur le pont et, dans le tick du coup, tourne la
+- **KB displace**, comme un vrai top fight de Bed Fight, sur la map KbDisplace du propriétaire
+  (section `kb-displace` de `config.yml`, copiée une fois au démarrage) : son pont d'un bloc de
+  large, le défenseur sur le bloc d'or, rien sur les côtés, l'attaquant 7 blocs avant sur le pont.
+  Sans le monde, le pont du plugin : le défenseur en haut de la défense, un bloc plus bas que le
+  pont, le pont devant lui et un bloc derrière. L'attaquant court sur le pont et, dans le tick du coup, tourne la
   tête d'un côté : le knockback du sprint envoie le défenseur sur le côté, dans le vide. Seul un
   coup donné de face compte (depuis le pont, jamais d'un côté ni de derrière). Chaque coup est un
   essai : défenseur tombé, un point pour l'attaquant ; les rôles changent à chaque coup (ou après
@@ -77,7 +79,15 @@ le Tab, avec sa vie en dessous et son niveau Network à côté.
 
 Un joueur seul. Chaque entraînement a ses variantes (dans la hotbar, le colorant rouge baisse et le vert monte, le mode puis les réglages, le nombre sur le colorant dit où on en est ; la blaze rod recommence),
 et chaque variante son record : le meilleur score du joueur et celui du serveur, gardés dans
-`plugins/RagoPractice/records.yml` et affichés dans le scoreboard avec le rang du joueur.
+`plugins/RagoPractice/records.yml`. Le scoreboard montre le top 3 du serveur, le meilleur score
+du joueur et son rang, et le dernier score à côté du ping (12 lignes au plus : quand l'essai en
+prend beaucoup, la ligne du mode puis la 3e et la 2e place s'effacent avant le reste).
+
+Les entraînements et les arènes libres (block clutch, bridge fight) donnent de l'XP Network :
+un peu par minute de jeu, un peu par essai raté, plus par réussite (un temps, une série qui
+continue), avec un plafond par minute (`xp-entrainement` dans `config.yml` : 1, 1, 3, 8 au plus).
+Elle part au lobby toutes les deux minutes et quand le joueur sort, en un message. Les duels
+donnent la leur à la fin ; l'aim trainer garde la sienne.
 
 - **Block clutch** : le joueur est au bord d'une petite île de Bed Wars, son lit et sa défense
   à côté ; un coup le jette dans le vide, il pose sa laine pour se rattraper. L'île est celle du
@@ -95,18 +105,19 @@ et chaque variante son record : le meilleur score du joueur et celui du serveur,
   au-dessus), sur le sol, sur une défense de lit ou sur un bloc au-dessus du vide. Chrono.
 - **Fast defense** : couvrir son lit le plus vite possible, avec les défenses du propriétaire.
   Ranked : end stone (le dessus du lit, deux rangées de chaque côté, un bloc à chaque bout) puis
-  du verre par-dessus, les rangées du bord restant nues (26 blocs). Solo : end stone sur le lit et
-  deux de plus devant, puis de la laine sur le tout (32 blocs). Chrono.
+  du verre par-dessus, les rangées du bord restant nues (26 blocs). Solo : le lit pointé vers le
+  joueur, end stone dessus, à chaque bout et sur chaque côté, les côtés d'un bloc plus longs du
+  côté du joueur, puis de la laine sur le tout (32 blocs). Chrono.
 - **Bridge** : 31 blocs de vide par technique (god bridge, breezily, ninja, telly, speed bridge),
   dont les règles sont vérifiées. Chrono.
 - **Block extend**, comme dans un vrai bed fight, sur la map BlockClutchExtend du propriétaire
-  (`block-extend` dans `config.yml`) : le joueur part d'une place exacte d'un pont, prend un coup
-  et se sauve avec sa laine bleue. Trois niveaux : Or, un gros coup qui vient de là où le joueur
-  regarde au moment du coup et l'envoie droit en arrière, il clutch ; Diamant, un coup en sprint
-  (0.80, 0.43) par la droite, il se retourne et extend jusqu'aux blocs de diamant ; Émeraude, un
-  coup de face plus long d'un bloc et plus bas d'un bloc que celui de l'or (0.85, 0.12), il
-  clutch sur les blocs d'émeraude plus bas. Un coup « devant » vient toujours de là où le joueur
-  regarde quand il le prend, comme un adversaire en face. Les blocs d'or, de diamant et
+  (`block-extend` dans `config.yml`) : le joueur part d'une place exacte d'un pont, figé jusqu'au
+  coup (il ne peut ni bouger ni tourner : il doit se retourner, comme en vrai, et le coup vient
+  toujours du même axe), puis se sauve avec sa laine bleue. Trois niveaux : Or, un gros coup de
+  face, plus haut et plus fort (0.80, 0.55), droit en arrière, il clutch ; Diamant, un coup en
+  sprint (0.80, 0.43) par la droite, il se retourne et extend jusqu'aux blocs de diamant ;
+  Émeraude, depuis le bloc d'émeraude au bout du pont, un coup de face long et bas (0.85, 0.12),
+  il clutch sur les blocs d'émeraude plus bas. Les blocs d'or, de diamant et
   d'émeraude de la map sont de la laine dans le jeu. Chaque niveau donne sa place de départ (F3),
   le bloc où se sauver, la force du coup et d'où il vient (`coup` : devant, droite, gauche,
   derriere, ou `vers` un point). Le kit a des échelles avec la laine (un réglage les retire). Série.
@@ -159,7 +170,8 @@ et chaque variante son record : le meilleur score du joueur et celui du serveur,
   déplace chaque tick avec la physique d'un joueur. Le scoreboard compte aussi les coups de chacun
   et le plus long combo du bot. Sur les arènes du boxing : le joueur sur le premier bloc de
   diamant, le bot 8 blocs devant lui.
-- **KB displace contre un bot** : le même pont, le bot à la place du défenseur. Après chaque coup
+- **KB displace contre un bot** : le même pont (celui de la map KbDisplace quand le serveur l'a),
+  le bot à la place du défenseur. Après chaque coup
   on revient tout de suite au départ, pour reprendre de l'élan, jusqu'à ce que le bot tombe ; seul
   un coup de face compte. Le score est le temps, et le scoreboard compte les essais.
 - **Block edit**, comme sur la map Block Edit Practice du propriétaire : une cage de verre, un mur

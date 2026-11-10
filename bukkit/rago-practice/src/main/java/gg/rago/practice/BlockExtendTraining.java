@@ -18,12 +18,13 @@ import org.bukkit.util.Vector;
 
 /**
  * Block extend, as in a real bed fight, on the owner's map (BlockClutchExtend): the player stands
- * at an exact place of a bridge, takes a hit, and saves themselves with their wool. Three levels:
- * gold, a big hit from where the player looks at the hit, straight back, and they clutch; diamond,
- * a sprint hit from the right, they turn to the bridge and extend to its diamond blocks; emerald,
- * a long and low hit from the front off the top, they clutch on the emerald blocks below. A hit
- * "from the front" always comes from where the player looks when it lands, as an opponent facing
- * them. The gold, diamond and emerald markers of the map are wool in the game. Each save adds one
+ * at an exact place of a bridge, frozen (they can neither move nor turn) until a hit, and saves
+ * themselves with their wool: they must turn first, as in a real fight, and the hit always comes
+ * along the same line. Three levels: gold, a big high hit from the front, straight back, and they
+ * clutch; diamond, a sprint hit from the right, they turn to the bridge and extend to its diamond
+ * blocks; emerald, from the emerald block at the end of the bridge, a long and low hit from the
+ * front, they clutch on the emerald blocks below. The gold, diamond and emerald markers of the map
+ * are wool in the game. Each save adds one
  * to the streak of the level; a fall ends it. The kit has ladders too, for the ladder clutches (a
  * setting takes them out).
  */
@@ -134,9 +135,9 @@ final class BlockExtendTraining extends Training {
     static Level[] plainLevels() {
         double[] gold = {1.589, 10, 1.939, -179.9f, 1.3};
         double[] diamond = {10.518, 10, -8.661, 179.7f, 2.6};
-        double[] emerald = {-4.576, 7, -15.773, 179.4f, 1.4};
+        double[] emerald = {-4.576, 7, -16.773, 179.4f, 1.4};
         return new Level[] {
-            new Level(IDS[0], LABELS[0], gold, new int[] {-3, 5, 6}, thrown((float) gold[3], From.FRONT), From.FRONT, 0.68, 0.40),
+            new Level(IDS[0], LABELS[0], gold, new int[] {-3, 5, 6}, thrown((float) gold[3], From.FRONT), From.FRONT, 0.80, 0.55),
             new Level(IDS[1], LABELS[1], diamond, new int[] {2, 4, -10}, thrown((float) diamond[3], From.RIGHT), From.RIGHT,
                 0.80, 0.43),
             new Level(IDS[2], LABELS[2], emerald, new int[] {-5, 0, -16}, thrown((float) emerald[3], From.FRONT), From.FRONT,
@@ -179,14 +180,6 @@ final class BlockExtendTraining extends Training {
         }
     }
 
-    /**
-     * The way the hit of the level throws a player who looks along this yaw when it lands: straight
-     * back from their look for a hit from the front, else the way of the level (from the start).
-     */
-    static double[] wayAtHit(Level level, float yaw) {
-        return level.from == From.FRONT ? thrown(yaw, From.FRONT) : level.way;
-    }
-
     /** The way from the start towards a point (x, z), length 1; straight back if it is right under the start. */
     static double[] towards(double[] start, double x, double z) {
         double dx = x - start[0];
@@ -201,9 +194,9 @@ final class BlockExtendTraining extends Training {
     @Override
     String describe() {
         From from = level().from;
-        String hit = from == null ? "a hit throws you off" : "the hit comes " + (from == From.FRONT ? "from where you look"
-                : from == From.BACK ? "from behind" : from == From.RIGHT ? "from your right" : "from your left");
-        return hit + ": wait for it, then save yourself with your wool or a ladder.";
+        String hit = from == null ? "a hit" : from == From.FRONT ? "a hit from the front" : from == From.BACK
+                ? "a hit from behind" : from == From.RIGHT ? "a hit from your right" : "a hit from your left";
+        return "you are frozen until " + hit + ": then turn and save yourself with your wool or a ladder.";
     }
 
     @Override
@@ -307,24 +300,44 @@ final class BlockExtendTraining extends Training {
         again(15L);
     }
 
-    /** Until the hit, the player stays at the start; they may look around. */
+    /**
+     * Until the hit, the player is frozen at the start, look included: each move or turn takes them
+     * back (and this, in case a move got through).
+     */
     private void hold(Player player) {
         Location at = player.getLocation();
         Location start = spawnOf(me);
-        double dx = at.getX() - start.getX();
-        double dz = at.getZ() - start.getZ();
-        if (dx * dx + dz * dz > 0.09 || Math.abs(at.getY() - start.getY()) > 0.6) {
-            start.setYaw(at.getYaw());
-            start.setPitch(at.getPitch());
+        if (!still(at, start)) {
             player.teleport(start);
             player.setFallDistance(0f);
         }
     }
 
-    /** The hit of the level, as a player would give it. */
+    /** True if this place and look are the start's (to a hair). */
+    static boolean still(Location at, Location start) {
+        double dx = at.getX() - start.getX();
+        double dy = at.getY() - start.getY();
+        double dz = at.getZ() - start.getZ();
+        return dx * dx + dy * dy + dz * dz < 0.0025 && Math.abs(angle(at.getYaw() - start.getYaw())) < 0.5
+                && Math.abs(at.getPitch() - start.getPitch()) < 0.5;
+    }
+
+    /** An angle between -180 and 180 degrees. */
+    private static float angle(float degrees) {
+        float a = degrees % 360f;
+        return a > 180f ? a - 360f : a < -180f ? a + 360f : a;
+    }
+
+    /** Frozen at the start until the hit: the moves and turns of the player are undone at once. */
+    @Override
+    Location heldAt(Player player) {
+        return hit || over ? null : spawnOf(me);
+    }
+
+    /** The hit of the level, as a player would give it, always along the line of the start. */
     private void hit(Player player) {
         Level level = level();
-        double[] way = wayAtHit(level, player.getLocation().getYaw());
+        double[] way = level.way;
         player.setVelocity(new Vector(way[0] * level.horizontal, level.vertical, way[1] * level.horizontal));
         player.playEffect(EntityEffect.HURT);
         sound(player, Sound.HURT_FLESH, 1f);
