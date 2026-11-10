@@ -73,7 +73,10 @@ final class ShopCatalog {
         List<ShopItem> pickaxes = Arrays.asList(
                 tool("pickaxe", "Wooden Pickaxe", Kind.PICKAXE, Material.WOOD_PICKAXE, 10, Currency.IRON, 1, 0),
                 tool("pickaxe", "Iron Pickaxe", Kind.PICKAXE, Material.IRON_PICKAXE, 10, Currency.IRON, 2, 1),
-                tool("pickaxe", "Golden Pickaxe", Kind.PICKAXE, Material.GOLD_PICKAXE, 3, Currency.GOLD, 3, 2),
+                // as on Hypixel, the Golden Pickaxe is also a weapon: Sharpness II
+                ShopItem.of("pickaxe", "Golden Pickaxe", Category.TOOLS, Kind.PICKAXE, Material.GOLD_PICKAXE, 1)
+                        .costs(3, Currency.GOLD).tier(2).enchant(Enchantment.DIG_SPEED, 3)
+                        .enchant(Enchantment.DAMAGE_ALL, 2).build(),
                 tool("pickaxe", "Diamond Pickaxe", Kind.PICKAXE, Material.DIAMOND_PICKAXE, 6, Currency.GOLD, 3, 3));
         List<ShopItem> axes = Arrays.asList(
                 tool("axe", "Wooden Axe", Kind.AXE, Material.WOOD_AXE, 10, Currency.IRON, 1, 0),

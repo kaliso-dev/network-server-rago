@@ -13,9 +13,11 @@ import org.bukkit.inventory.PlayerInventory;
  * opposite islands, where one team, drawn at random, has lost its bed already and has to clutch:
  * each of its players has one life. The other keeps its bed, under a ranked defense already built
  * (end stone, glass, wood, wool). Everyone starts on their island in iron armour with a stone
- * sword, no enchantment, no emerald, nothing else, the forges full of iron and gold. Then it is a
- * game as any other: the shop, the upgrades, the diamonds and emeralds, until one team is left.
- * Main thread only.
+ * sword, no enchantment, no emerald, nothing else, the forges full of iron and gold. The game is
+ * half played already, as a real one at 18 minutes: the diamond generators at Tier III, the
+ * emerald ones at Tier II, Emerald III next, then the end of the beds. Then it is a game as any
+ * other: the shop, the upgrades, the diamonds and emeralds, until one team is left. Main thread
+ * only.
  */
 final class ClutchScenarioGame extends BedwarsGame {
 
@@ -23,6 +25,9 @@ final class ClutchScenarioGame extends BedwarsGame {
     static final Material[] DEFENSE = {Material.ENDER_STONE, Material.STAINED_GLASS, Material.WOOD, Material.WOOL};
     /** Iron armour from the start (the tier of {@link Gamer#armor}). */
     static final int ARMOUR_TIER = 2;
+    /** The tiers of the diamond and emerald generators at the start: a game half played. */
+    static final int DIAMOND_TIER = 3;
+    static final int EMERALD_TIER = 2;
 
     /** The team without its bed. */
     private final Team bedless;
@@ -41,9 +46,19 @@ final class ClutchScenarioGame extends BedwarsGame {
         return gamer;
     }
 
-    /** The bed of one team gone, a ranked defense on the others', the forges full. */
+    /**
+     * The bed of one team gone, a ranked defense on the others', the forges full; the clock where
+     * the diamonds reach Tier III, with the emeralds at Tier II.
+     */
     @Override
     void setUp() {
+        seconds = settings.diamondIII();
+        for (Generator generator : diamonds) {
+            generator.upgrade(DIAMOND_TIER, settings.diamond().get(DIAMOND_TIER - 1));
+        }
+        for (Generator generator : emeralds) {
+            generator.upgrade(EMERALD_TIER, settings.emerald().get(EMERALD_TIER - 1));
+        }
         destroyBed(bedless);
         for (Team team : teams) {
             if (team != bedless && team.points.bed != null) {
@@ -87,8 +102,8 @@ final class ClutchScenarioGame extends BedwarsGame {
                     + ChatColor.RED + " team has lost theirs: one final kill each.");
             player.sendTitle(ChatColor.GREEN + "" + ChatColor.BOLD + "BED ALIVE", ChatColor.WHITE + "They have one life each");
         }
-        player.sendMessage(ChatColor.GRAY + "Iron armour and a stone sword, your forge full of iron and gold: then it is a "
-                + "real game. /spawn takes you back to the lobby.");
+        player.sendMessage(ChatColor.GRAY + "Iron armour and a stone sword, your forge full of iron and gold, the game "
+                + "half played (Diamond III, Emerald II): then it is a real game. /spawn takes you back to the lobby.");
     }
 
     /** The first other team than this one. */

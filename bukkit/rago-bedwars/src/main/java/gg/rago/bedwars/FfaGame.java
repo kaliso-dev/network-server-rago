@@ -32,7 +32,7 @@ import org.bukkit.inventory.PlayerInventory;
  * bridge of Antenna, built between the two islands farthest apart: the players start and come
  * back on the platform, away from the others, and one who falls off it is dead. The FFA and Top
  * Bridge FFA play the owner's fight kit: a stone sword and a stack of golden apples (and in the FFA,
- * 3 fireballs and a pearl), full diamond armour with Protection IV and Absorption II. Main thread
+ * 3 fireballs and a pearl), full diamond armour with Protection IV. Main thread
  * only.
  */
 final class FfaGame extends BedwarsGame {
@@ -270,7 +270,7 @@ final class FfaGame extends BedwarsGame {
                 + "to the lobby.");
     }
 
-    /** FFA: the mode's kit, diamond armour and Absorption at each life. Arena: the start of a Bed Wars life. */
+    /** FFA: the mode's kit and diamond armour at each life. Arena: the start of a Bed Wars life. */
     @Override
     void giveKit(Player player, Gamer gamer) {
         if (arena) {

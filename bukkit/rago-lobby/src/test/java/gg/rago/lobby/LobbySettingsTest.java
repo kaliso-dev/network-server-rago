@@ -74,9 +74,16 @@ class LobbySettingsTest {
         int total = 0;
         for (ModeCategory category : settings.categories()) {
             int count = settings.modesIn(category.id()).size();
-            assertTrue(count > 0 && count <= LobbySettings.MAX_MODES_PER_CATEGORY, category.id() + ": " + count);
+            int items = settings.entriesIn(category.id()).size();
+            assertTrue(count > 0 && items <= LobbySettings.MAX_MODES_PER_CATEGORY, category.id() + ": " + items);
             total += count;
         }
+        assertEquals("ranked", settings.display("attack-defense-1v1").category(), "Attack and Defense: in the RBW modes");
+        assertEquals("ranked", settings.display("clutch-scenario-2v2").category());
+        List<LobbySettings.Entry> centre = settings.entriesOf(settings.npc("clutchscenarioattackdefense").modeIds());
+        assertEquals("clutch-scenario", centre.get(0).group.id(), "the NPC of the centre: one ladder each");
+        assertEquals("attack-defense", centre.get(1).group.id());
+        assertEquals(2, centre.size());
         assertEquals(settings.modes().size(), total, "every mode is in a category");
     }
 
@@ -114,6 +121,21 @@ class LobbySettingsTest {
         assertInvalid("groupes:\n  g: {}\nmodes:\n  sumo:\n    groupe: autre\n", "modes.sumo.groupe");
     }
 
+    @Test
+    void anNpcShowsTheModesOfOneGroupAsOneItem() throws Exception {
+        LobbySettings settings = LobbySettings.load(bundledConfig());
+        List<LobbySettings.Entry> ffa = settings.entriesOf(settings.npc("rbwffa").modeIds());
+        assertEquals(2, ffa.size(), "the FFA, and the Top Bridge as one item");
+        assertEquals("ffa", ffa.get(0).mode.mode().id());
+        assertEquals("top-bridge", ffa.get(1).group.id());
+        assertEquals(Material.LADDER, ffa.get(1).group.icon(), "a ladder, which opens 1v1, 2v2 and FFA");
+        List<LobbySettings.Entry> ranked = settings.entriesOf(settings.npc("rankedbedwars1v1ou2v2elo").modeIds());
+        assertEquals(4, ranked.size(), "one group only: its modes, one by one, as before");
+        assertEquals("ranked-1v1", ranked.get(0).mode.mode().id());
+        assertEquals(2, settings.entriesOf(settings.npc("privategame").modeIds()).size(),
+                "the private game and the private top bridge: no group of two");
+    }
+
     private static List<String> displayIds(List<ModeDisplay> displays) {
         List<String> ids = new java.util.ArrayList<>();
         for (ModeDisplay display : displays) {
@@ -125,7 +147,7 @@ class LobbySettingsTest {
     @Test
     void readsTheBundledNpcs() throws Exception {
         LobbySettings settings = LobbySettings.load(bundledConfig());
-        assertEquals(17, settings.npcs().size());
+        assertEquals(18, settings.npcs().size(), "with the one of the clutch scenario and the attack and defense");
         LobbyNpc duels = settings.npc("attackdefenseversionrbw");
         assertEquals("duels", duels.category());
         assertEquals(settings.modesIn("duels").size(), duels.modeIds().size(), "a category NPC holds its modes");

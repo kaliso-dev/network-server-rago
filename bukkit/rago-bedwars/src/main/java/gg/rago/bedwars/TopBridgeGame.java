@@ -19,7 +19,7 @@ import org.bukkit.scheduler.BukkitTask;
  * Top Bridge, as the owner plays it: no bed, no forge, no shop, only the fight on the platform of
  * the top bridge (the one he built on Antenna, on any map). The players start on top, each team on
  * its half, with the mode's kit (the lobby's kit editor: a stone sword and a stack of golden apples),
- * full diamond armour with Protection IV and Absorption II; one who falls off the platform is
+ * full diamond armour with Protection IV; one who falls off the platform is
  * dead, as in the void.
  *
  * <ul>
@@ -174,7 +174,7 @@ final class TopBridgeGame extends BedwarsGame {
                 + "the lobby.");
     }
 
-    /** The mode's kit as the player arranged it, full diamond armour and Absorption, at each life. */
+    /** The mode's kit as the player arranged it, full diamond armour, at each life. */
     @Override
     void giveKit(Player player, Gamer gamer) {
         PlayerInventory inventory = player.getInventory();

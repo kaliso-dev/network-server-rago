@@ -279,15 +279,20 @@ générateur vide ; un monde de build peut donc servir de lobby.
 
 - `categories:` range les modes par zone du lobby : la boussole montre les catégories (Practice à
   gauche, Ranked Bedwars au milieu, Duels à droite), puis les jeux de celle qu'on choisit
-  (7 catégories, 28 modes par catégorie au plus). Chaque mode dit sa `categorie:`.
+  (7 catégories, 28 objets par catégorie au plus, un groupe comptant pour un). Chaque mode dit sa
+  `categorie:`.
 - `groupes:` réunit les tailles d'un même jeu en un seul objet de sa catégorie, comme les jeux de
   Hypixel : Ranked Bedwars ouvre 1v1, 2v2, 3v3 et 4v4 côte à côte, Top Bridge ouvre 1v1, 2v2 et
   FFA, etc. Un mode y entre avec `groupe:` ; l'objet du groupe montre chaque taille avec sa file.
   Un mode `cache: true` ne paraît pas dans la boussole et ne se joue qu'en partie privée.
 - `pnj:` place un PNJ sur un point de `/lobby point` (la clé) : un joueur au skin de Steve, tourné
   vers le spawn, qui tient l'icône du mode, avec son nom et le nombre de joueurs en file au-dessus
-  de la tête. Un clic rejoint la file du mode, ou ouvre un menu quand le PNJ a plusieurs modes. Les
-  PNJ réapparaissent quand un point bouge.
+  de la tête. Un clic rejoint la file du mode, ou ouvre un menu quand le PNJ a plusieurs modes ;
+  dans ce menu, les tailles d'un même groupe ne font qu'un objet (Top Bridge, une échelle qui ouvre
+  1v1, 2v2 et FFA), sauf si le PNJ n'a que ce groupe. Le PNJ `clutchscenarioattackdefense` (Clutch
+  Scenario et Attack and Defense) n'apparaît qu'une fois son point posé avec `/lobby point
+  clutchscenarioattackdefense`, au centre avec les autres PNJ de jeux. Les PNJ réapparaissent quand
+  un point bouge.
 - `pnj:` avec `type: stats` place un PNJ de stats : un Steve qui tient un livre, avec au-dessus
   le profil de celui qui le regarde (niveau Network et rang, victoires, défaites, kills, meilleure
   série, victoires du jour, ELO de chaque mode classé). Chaque joueur lit le sien. Un clic ouvre

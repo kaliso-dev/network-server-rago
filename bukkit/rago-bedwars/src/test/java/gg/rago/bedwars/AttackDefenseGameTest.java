@@ -25,6 +25,17 @@ class AttackDefenseGameTest {
     }
 
     @Test
+    void theAttackersHaveTheGoldenPickaxeOfHypixelAndIronArmour() {
+        ShopItem pickaxe = ShopCatalog.standard().pickaxes().get(AttackDefenseGame.ATTACKER_PICKAXE);
+        assertEquals(org.bukkit.Material.GOLD_PICKAXE, pickaxe.material());
+        assertEquals(org.bukkit.enchantments.Enchantment.DIG_SPEED, pickaxe.enchantment());
+        assertEquals(3, pickaxe.enchantmentLevel());
+        assertEquals(org.bukkit.enchantments.Enchantment.DAMAGE_ALL, pickaxe.second(), "Sharpness II, as on Hypixel");
+        assertEquals(2, pickaxe.secondLevel());
+        assertEquals(2, AttackDefenseGame.ATTACKER_ARMOUR, "iron: leggings and boots");
+    }
+
+    @Test
     void theAttackersKitIsInTheShop() {
         ShopCatalog catalog = ShopCatalog.standard();
         for (String entry : AttackDefenseGame.ATTACKER_KIT) {

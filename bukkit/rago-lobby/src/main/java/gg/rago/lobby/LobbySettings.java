@@ -29,7 +29,10 @@ final class LobbySettings {
     private final RatingWindow window;
     /** What the selector shows without categories: five rows of seven, in a six-row chest. */
     static final int MAX_MODES = 35;
-    /** What a category's menu shows: four rows of seven, the last row keeping the back button. */
+    /**
+     * What a category's menu shows: four rows of seven, the last row keeping the back button. The
+     * modes of a group are one item there.
+     */
     static final int MAX_MODES_PER_CATEGORY = 28;
     /** One row of the category menu. */
     static final int MAX_CATEGORIES = 7;
@@ -109,6 +112,7 @@ final class LobbySettings {
         List<ModeCategory> groups = readGroups(config.getConfigurationSection("groupes"));
         Map<String, Integer> perCategory = new HashMap<>();
         Map<String, String> groupCategory = new HashMap<>();
+        java.util.Set<String> groupsSeen = new java.util.HashSet<>();
         List<ModeDisplay> modes = new ArrayList<>();
         for (String id : section.getKeys(false)) {
             ConfigurationSection mode = section.getConfigurationSection(id);
@@ -123,11 +127,12 @@ final class LobbySettings {
                             + "\" are all of one category");
                 }
             }
-            if (display.category() != null) {
+            // one item in the category's menu: the mode, or its group the first time
+            if (display.category() != null && (display.group() == null || groupsSeen.add(display.group()))) {
                 int count = perCategory.merge(display.category(), 1, Integer::sum);
                 if (count > MAX_MODES_PER_CATEGORY) {
                     throw new IllegalArgumentException("modes." + id + ".categorie: " + MAX_MODES_PER_CATEGORY
-                            + " modes at most in a category");
+                            + " items at most in a category (the modes of a group are one)");
                 }
             }
             modes.add(display);
@@ -669,6 +674,44 @@ final class LobbySettings {
                 entries.add(new Entry(display, null));
             } else if (seen.add(display.group())) {
                 entries.add(new Entry(null, group(display.group())));
+            }
+        }
+        return entries;
+    }
+
+    /**
+     * The items of a lobby NPC's menu: its modes, but two or more of one group as one item, where
+     * the first of them is (Top Bridge 1v1, 2v2 and FFA: one ladder), unless that would leave a
+     * single item (the Ranked Bedwars NPC shows its four sizes at once).
+     */
+    List<Entry> entriesOf(List<String> modeIds) {
+        Map<String, Integer> perGroup = new HashMap<>();
+        for (String id : modeIds) {
+            ModeDisplay display = display(id);
+            if (display != null && display.group() != null) {
+                perGroup.merge(display.group(), 1, Integer::sum);
+            }
+        }
+        List<Entry> entries = new ArrayList<>();
+        java.util.Set<String> seen = new java.util.HashSet<>();
+        for (String id : modeIds) {
+            ModeDisplay display = display(id);
+            if (display == null) {
+                continue;
+            }
+            String group = display.group();
+            if (group == null || perGroup.get(group) < 2 || group(group) == null) {
+                entries.add(new Entry(display, null));
+            } else if (seen.add(group)) {
+                entries.add(new Entry(null, group(group)));
+            }
+        }
+        if (entries.size() == 1 && entries.get(0).group != null) {
+            entries.clear();
+            for (String id : modeIds) {
+                if (display(id) != null) {
+                    entries.add(new Entry(display(id), null));
+                }
             }
         }
         return entries;

@@ -40,6 +40,8 @@ final class ModeMenu {
         static final String DUEL = "duel:";
         static final String MAPS = "maps:";
         static final String GROUP = "groupe:";
+        /** After a group's id: the NPC its menu was opened from, to go back to. */
+        static final String FROM_NPC = "|";
         private Inventory inventory;
         private final String view;
 
@@ -101,15 +103,33 @@ final class ModeMenu {
 
     /** The modes of a group, side by side, with the back button to their category. */
     void openGroup(Player player, ModeCategory group) {
+        openGroup(player, group, null);
+    }
+
+    /** The same, from a lobby NPC's menu (its point; null: from the compass), which the back button reopens. */
+    void openGroup(Player player, ModeCategory group, String npcPoint) {
         String title = ChatColor.stripColor(group.name());
         int modes = settings.modesOfGroup(group.id()).size();
-        show(player, Holder.GROUP + group.id(), modes <= 4 ? 4 : 3 + rowsFor(modes),
-                title.length() > 32 ? title.substring(0, 32) : title);
+        show(player, Holder.GROUP + group.id() + (npcPoint == null ? "" : Holder.FROM_NPC + npcPoint),
+                modes <= 4 ? 4 : 3 + rowsFor(modes), title.length() > 32 ? title.substring(0, 32) : title);
     }
 
     /** The group of a group view, or null for another view. */
     private ModeCategory groupOf(String view) {
-        return view != null && view.startsWith(Holder.GROUP) ? settings.group(view.substring(Holder.GROUP.length())) : null;
+        return view != null && view.startsWith(Holder.GROUP) ? settings.group(groupId(view)) : null;
+    }
+
+    /** The id of the group of a group view. */
+    private static String groupId(String view) {
+        String id = view.substring(Holder.GROUP.length());
+        int from = id.indexOf(Holder.FROM_NPC);
+        return from < 0 ? id : id.substring(0, from);
+    }
+
+    /** The NPC a group view was opened from, or null. */
+    private LobbyNpc npcOf(String view) {
+        int from = view == null || !view.startsWith(Holder.GROUP) ? -1 : view.indexOf(Holder.FROM_NPC);
+        return from < 0 ? null : settings.npc(view.substring(from + Holder.FROM_NPC.length()));
     }
 
     /** The slot of the n-th of {@code count} modes of a view: a group's few modes are centred. */
@@ -120,7 +140,7 @@ final class ModeMenu {
     /** The modes of a lobby NPC that has several. */
     void openNpc(Player player, LobbyNpc npc) {
         String title = ChatColor.stripColor(npc.name());
-        show(player, Holder.NPC + npc.point(), 2 + rowsFor(npc.modeIds().size()),
+        show(player, Holder.NPC + npc.point(), 2 + rowsFor(settings.entriesOf(npc.modeIds()).size()),
                 title.length() > 32 ? title.substring(0, 32) : title);
     }
 
@@ -152,7 +172,7 @@ final class ModeMenu {
             return result;
         }
         if (view != null && view.startsWith(Holder.GROUP)) {
-            return settings.modesOfGroup(view.substring(Holder.GROUP.length()));
+            return settings.modesOfGroup(groupId(view));
         }
         return settings.modesIn(view);
     }
@@ -210,6 +230,11 @@ final class ModeMenu {
             return;
         }
         if (hasBack(view) && slot == backSlot(holder.getInventory().getSize())) {
+            LobbyNpc from = npcOf(view);
+            if (from != null) {
+                openNpc(player, from);
+                return;
+            }
             List<ModeDisplay> grouped = groupOf(view) == null ? null : modesFor(view);
             if (grouped != null && !grouped.isEmpty() && grouped.get(0).category() != null) {
                 openCategory(player, grouped.get(0).category());
@@ -229,6 +254,21 @@ final class ModeMenu {
                 if (slotOf(i) == slot) {
                     if (entries.get(i).group != null) {
                         openGroup(player, entries.get(i).group);
+                    } else {
+                        toggle(player, entries.get(i).mode.mode());
+                    }
+                    return;
+                }
+            }
+            return;
+        }
+        LobbyNpc npc = view != null && view.startsWith(Holder.NPC) ? settings.npc(view.substring(Holder.NPC.length())) : null;
+        if (npc != null) {
+            List<LobbySettings.Entry> entries = settings.entriesOf(npc.modeIds());
+            for (int i = 0; i < entries.size(); i++) {
+                if (slotOf(i) == slot) {
+                    if (entries.get(i).group != null) {
+                        openGroup(player, entries.get(i).group, npc.point());
                     } else {
                         toggle(player, entries.get(i).mode.mode());
                     }
@@ -327,8 +367,9 @@ final class ModeMenu {
             return;
         }
         int last = hasBack(view) ? backSlot(inventory.getSize()) - 4 : inventory.getSize();
-        if (settings.category(view) != null) {
-            List<LobbySettings.Entry> entries = settings.entriesIn(view);
+        LobbyNpc npc = view != null && view.startsWith(Holder.NPC) ? settings.npc(view.substring(Holder.NPC.length())) : null;
+        if (settings.category(view) != null || npc != null) {
+            List<LobbySettings.Entry> entries = npc != null ? settings.entriesOf(npc.modeIds()) : settings.entriesIn(view);
             for (int i = 0; i < entries.size() && slotOf(i) < last; i++) {
                 LobbySettings.Entry entry = entries.get(i);
                 inventory.setItem(slotOf(i), entry.group != null ? icon(entry.group, current, viewer)

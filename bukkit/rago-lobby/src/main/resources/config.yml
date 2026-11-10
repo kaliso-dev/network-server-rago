@@ -49,14 +49,15 @@ categories:
     description:
       - "Ranked and the Bedwars modes:"
       - "Sky Rise, first rush, Top Bridge,"
-      - "FFA, attack and defense..."
+      - "FFA, clutch scenario, attack"
+      - "and defense..."
   duels:
     nom: "&a&lDuels"
     icone: IRON_SWORD
     description:
       - "Sumo, boxing, KB displace,"
-      - "fireball fight, bow, attack"
-      - "and defense: against a player."
+      - "fireball fight, bow: against"
+      - "a player."
 
 # The groups: the sizes of one game (1v1, 2v2...), one item in their category which opens them
 # side by side, as the games of Hypixel. A mode is in a group with groupe: (the modes of a group
@@ -163,6 +164,12 @@ pnj:
   invispracticearwhayinvasion:
     nom: "&5Invis practice"
     modes: [invis-practice]
+  # Clutch Scenario and Attack and Defense, one ladder each: its point is placed with
+  # /lobby point clutchscenarioattackdefense, in the centre with the other game NPCs.
+  clutchscenarioattackdefense:
+    nom: "&cClutch and Attack Defense"
+    modes: [clutch-scenario-1v1, clutch-scenario-2v2, clutch-scenario-3v3, clutch-scenario-4v4, attack-defense-1v1,
+      attack-defense-2v2]
   realisticplat:
     nom: "&bBridge fight"
     modes: [bridge-fight, bridge-fight-1v1]
@@ -689,7 +696,7 @@ modes:
     equipes: 2
     joueurs-par-equipe: 1
     classe: false
-    # the fight kit: with full diamond armour, Protection IV, and Absorption II
+    # the fight kit: with full diamond armour, and Protection IV
     kit: [STONE_SWORD, "GOLDEN_APPLE 64"]
     description:
       - "On top of the top bridge of"
@@ -704,7 +711,7 @@ modes:
     equipes: 2
     joueurs-par-equipe: 2
     classe: false
-    # the fight kit: with full diamond armour, Protection IV, and Absorption II
+    # the fight kit: with full diamond armour, and Protection IV
     kit: [STONE_SWORD, "GOLDEN_APPLE 64"]
     description:
       - "Top Bridge, two against two:"
@@ -719,10 +726,10 @@ modes:
     classe: false
     kit: [STONE_SWORD, "GOLDEN_APPLE 64"]
     description:
-      - "The top bridge, free for all on"
-      - "the 20 RBW maps: come and go"
-      - "when you like, diamond armour,"
-      - "and back on top at each death."
+      - "The top bridge of Invasion, free"
+      - "for all: come and go when you"
+      - "like, diamond armour, and back"
+      - "on top at each death."
   ffa:
     nom: "&cFFA Ranked Bedwars"
     categorie: ranked
@@ -731,7 +738,7 @@ modes:
     equipes: 1
     joueurs-par-equipe: 1
     classe: false
-    # the fight kit, with 3 fireballs and a pearl: with full diamond armour, Protection IV, and Absorption II
+    # the fight kit, with 3 fireballs and a pearl: with full diamond armour, and Protection IV
     kit: [STONE_SWORD, "GOLDEN_APPLE 64", "FIREBALL 3", ENDER_PEARL]
     description:
       - "Free for all on Archway FFA"
@@ -897,6 +904,34 @@ modes:
       - "A real RBW game, 4v4: one"
       - "team has no bed and clutches,"
       - "the other's bed is defended."
+  attack-defense-1v1:
+    nom: "&cAttack and defense 1v1"
+    categorie: ranked
+    groupe: attack-defense
+    icone: IRON_SWORD
+    equipes: 2
+    joueurs-par-equipe: 1
+    classe: false
+    kit: [STONE_SWORD, "WOOL 64", "FIREBALL 2", GOLD_PICKAXE, SHEARS]
+    description:
+      - "Bio Hazard: the attacker on the"
+      - "pink bridge, one life; the"
+      - "defender with forge and shop."
+      - "Two rounds, the roles swap."
+  attack-defense-2v2:
+    nom: "&cAttack and defense 2v2"
+    categorie: ranked
+    groupe: attack-defense
+    icone: IRON_SWORD
+    equipes: 2
+    joueurs-par-equipe: 2
+    classe: false
+    kit: [STONE_SWORD, "WOOL 64", "FIREBALL 2", GOLD_PICKAXE, SHEARS]
+    description:
+      - "Bio Hazard: one team attacks"
+      - "from the pink bridge, the other"
+      - "defends with forge and shop."
+      - "Two rounds, the roles swap."
   partie-privee:
     nom: "&6Private game"
     categorie: ranked
@@ -982,34 +1017,6 @@ modes:
       - "their bed, the last one"
       - "standing wins. No fireball"
       - "or fall damage."
-  attack-defense-1v1:
-    nom: "&cAttack and defense 1v1"
-    categorie: duels
-    groupe: attack-defense
-    icone: IRON_SWORD
-    equipes: 2
-    joueurs-par-equipe: 1
-    classe: false
-    kit: [STONE_SWORD, "WOOL 64", "FIREBALL 2", WOOD_PICKAXE, SHEARS]
-    description:
-      - "Bio Hazard: the attacker on the"
-      - "pink bridge, one life; the"
-      - "defender with forge and shop."
-      - "Two rounds, the roles swap."
-  attack-defense-2v2:
-    nom: "&cAttack and defense 2v2"
-    categorie: duels
-    groupe: attack-defense
-    icone: IRON_SWORD
-    equipes: 2
-    joueurs-par-equipe: 2
-    classe: false
-    kit: [STONE_SWORD, "WOOL 64", "FIREBALL 2", WOOD_PICKAXE, SHEARS]
-    description:
-      - "Bio Hazard: one team attacks"
-      - "from the pink bridge, the other"
-      - "defends with forge and shop."
-      - "Two rounds, the roles swap."
   clutch:
     nom: "&bBlock clutch"
     categorie: entrainement

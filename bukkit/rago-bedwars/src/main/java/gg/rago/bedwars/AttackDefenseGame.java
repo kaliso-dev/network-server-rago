@@ -29,9 +29,10 @@ import org.bukkit.scheduler.BukkitTask;
  *
  * <ul>
  *   <li>The attackers start at the end of their bridge (attaquants: in the map's bedwars.yml),
- *       with one life, leather armour and the mode's kit of the lobby (a stone sword, a stack of
- *       wool, 2 fireballs, a wooden pickaxe and shears; three kits to choose from will come). They
- *       place blocks and throw fireballs as in a game.
+ *       with one life, iron armour and the mode's kit of the lobby (a stone sword, a stack of
+ *       wool, 2 fireballs, the Golden Pickaxe of the shop, Efficiency III and Sharpness II, and
+ *       shears; three kits to choose from will come). They place blocks and throw fireballs as in a
+ *       game.
  *   <li>The defenders start in their base with the kit of a game's start (a wooden sword and
  *       leather armour), its forge and its item shop, without upgrades; they come back while their
  *       bed stands, and a death after it is a final kill, as in a game.
@@ -52,7 +53,11 @@ final class AttackDefenseGame extends BedwarsGame {
     /** Between the end of a round and the next one, and before the end of the game. */
     private static final long BETWEEN_TICKS = 80L;
     /** The attackers' kit when the lobby has none for the mode: shop items, with their amount. */
-    static final String[] ATTACKER_KIT = {"stone_sword", "wool 64", "fireball 2", "wooden_pickaxe", "shears"};
+    static final String[] ATTACKER_KIT = {"stone_sword", "wool 64", "fireball 2", "golden_pickaxe", "shears"};
+    /** The attackers' armour: iron (the tier of Gamer#armor), as bought in a game. */
+    static final int ATTACKER_ARMOUR = 2;
+    /** The attackers' pickaxe, whatever the kit holds: the Golden Pickaxe of the shop (its tier). */
+    static final int ATTACKER_PICKAXE = 2;
     /** What a defense of the map on the bed is made of: the blocks of a game, which players may break. */
     private static final Set<Material> DEFENSE_BLOCKS = EnumSet.of(Material.WOOL, Material.ENDER_STONE, Material.WOOD,
             Material.STAINED_GLASS, Material.GLASS, Material.STAINED_CLAY, Material.HARD_CLAY, Material.OBSIDIAN,
@@ -226,7 +231,7 @@ final class AttackDefenseGame extends BedwarsGame {
         return super.spawnOf(gamer);
     }
 
-    /** The defenders: a game's start (and what they bought); the attackers: the mode's kit and leather armour. */
+    /** The defenders: a game's start (and what they bought); the attackers: the mode's kit and iron armour. */
     @Override
     void giveKit(Player player, Gamer gamer) {
         if (gamer.team != attackers) {
@@ -235,6 +240,7 @@ final class AttackDefenseGame extends BedwarsGame {
         }
         PlayerInventory inventory = player.getInventory();
         inventory.clear();
+        gamer.armor = ATTACKER_ARMOUR;
         wearArmor(player, gamer);
         ItemStack[] kit = lobbyKit(player, gamer);
         if (kit != null) {
@@ -248,6 +254,13 @@ final class AttackDefenseGame extends BedwarsGame {
                     stack.setAmount(parts.length > 1 ? Integer.parseInt(parts[1]) : 1);
                     inventory.addItem(stack);
                 }
+            }
+        }
+        ItemStack pickaxe = stack(catalog().pickaxes().get(ATTACKER_PICKAXE), gamer);
+        for (int slot = 0; slot < inventory.getSize(); slot++) {
+            ItemStack item = inventory.getItem(slot);
+            if (item != null && item.getType().name().endsWith("_PICKAXE")) {
+                inventory.setItem(slot, pickaxe.clone());
             }
         }
         player.updateInventory();

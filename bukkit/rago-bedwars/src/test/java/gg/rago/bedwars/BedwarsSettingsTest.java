@@ -43,7 +43,9 @@ class BedwarsSettingsTest {
         assertEquals(Arrays.asList("ArchwayFFA", "Paladin"), settings.mapsOf("ffa"), "the owner's Archway FFA");
         assertEquals(BedwarsSettings.Kind.FFA, settings.kind("top-bridge-ffa"), "a free for all...");
         assertTrue(settings.topBridge("top-bridge-ffa"), "...with the top bridge");
-        assertEquals(settings.mapsOf("ranked-1v1"), settings.mapsOf("top-bridge-ffa"), "the top bridge on the 20 maps");
+        assertEquals(java.util.Collections.singletonList("Invasion"), settings.mapsOf("top-bridge-ffa"),
+                "the free for all on the top bridge of Invasion only");
+        assertEquals(settings.mapsOf("ranked-1v1"), settings.mapsOf("top-bridge-1v1"), "the top bridge on the 20 maps");
         assertEquals(settings.mapsOf("ranked-1v1"), settings.mapsOf("invis-practice"), "the invis practice too");
         assertEquals(BedwarsSettings.Kind.TOP_BRIDGE, settings.kind("top-bridge-1v1"));
         assertEquals(BedwarsSettings.Kind.TOP_BRIDGE, settings.kind("top-bridge-2v2"));

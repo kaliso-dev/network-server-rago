@@ -55,6 +55,7 @@ import org.bukkit.event.entity.EntityDamageByEntityEvent;
 import org.bukkit.event.entity.EntityDamageEvent;
 import org.bukkit.event.entity.EntityDeathEvent;
 import org.bukkit.event.entity.EntityExplodeEvent;
+import org.bukkit.event.entity.ExplosionPrimeEvent;
 import org.bukkit.event.entity.EntityTargetEvent;
 import org.bukkit.event.entity.FoodLevelChangeEvent;
 import org.bukkit.event.entity.PlayerDeathEvent;
@@ -817,7 +818,24 @@ final class BedwarsHost implements MatchHost, Listener {
         }
     }
 
-    /** Explosions only break placed blocks, never the blast-proof glass, obsidian or beds. */
+    /**
+     * A fireball of a game explodes: the server's blast would break no block (mobGriefing is off in
+     * the game worlds), so it is made again, with its blocks (FireballBlast); onExplode keeps those
+     * a game lets go.
+     */
+    @EventHandler(priority = EventPriority.HIGH, ignoreCancelled = true)
+    public void onPrime(ExplosionPrimeEvent event) {
+        Entity entity = event.getEntity();
+        if (entity instanceof Fireball && isGameWorld(entity.getWorld())
+                && FireballBlast.explode(entity, event.getRadius(), event.getFire(), plugin.getLogger())) {
+            event.setCancelled(true);
+        }
+    }
+
+    /**
+     * Explosions only break placed blocks, never the blast-proof glass, obsidian or beds; nor end
+     * stone for a fireball, as on Hypixel (TNT breaks it).
+     */
     @EventHandler(priority = EventPriority.HIGH, ignoreCancelled = true)
     public void onExplode(EntityExplodeEvent event) {
         World world = event.getLocation().getWorld();
@@ -826,9 +844,11 @@ final class BedwarsHost implements MatchHost, Listener {
         }
         event.setYield(0f);
         BedwarsGame game = gameIn(world);
+        boolean fireball = event.getEntity() instanceof Fireball;
         for (Iterator<Block> it = event.blockList().iterator(); it.hasNext();) {
             Block block = it.next();
-            if (game == null || !game.instance().isPlaced(block) || BLAST_PROOF.contains(block.getType())) {
+            if (game == null || !game.instance().isPlaced(block) || BLAST_PROOF.contains(block.getType())
+                    || (fireball && block.getType() == Material.ENDER_STONE)) {
                 it.remove();
             } else {
                 game.instance().unmark(block);

@@ -1499,12 +1499,9 @@ class BedwarsGame {
         player.updateInventory();
     }
 
-    /** The Absorption of the fight kit, at each life: II, eight hearts more (a golden apple's is I). */
-    static final int FIGHT_ABSORPTION = 1;
-
     /**
      * The armour of the fight kit (Top Bridge, the FFA), as in the top fights of the practice: full
-     * diamond, Protection IV, unbreakable; and Absorption II.
+     * diamond, Protection IV, unbreakable. No effect: the absorption is the golden apples'.
      */
     static void fightArmour(Player player) {
         Material[] pieces = {Material.DIAMOND_BOOTS, Material.DIAMOND_LEGGINGS, Material.DIAMOND_CHESTPLATE,
@@ -1519,7 +1516,6 @@ class BedwarsGame {
             armour[i] = piece;
         }
         player.getInventory().setArmorContents(armour);
-        player.addPotionEffect(new PotionEffect(PotionEffectType.ABSORPTION, Integer.MAX_VALUE, FIGHT_ABSORPTION), true);
     }
 
     private static final Material[][] ARMOR = {

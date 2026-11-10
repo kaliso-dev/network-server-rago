@@ -59,8 +59,9 @@ Scenario**,
   avant la partie : une forge commence vide.
 - **Blocs** : on ne casse que les blocs posés pendant la partie (et les lits). Pas de bloc posé à
   moins de 3 blocs d'un spawn, à moins de 2 d'un générateur, ni au-dessus de la hauteur maximale.
-  Les explosions ne cassent que les blocs posés, jamais le verre « blast-proof », l'obsidienne ni
-  les lits. Pas de tir ami.
+  Les explosions (TNT et boules de feu) ne cassent que les blocs posés, jamais le verre
+  « blast-proof », l'obsidienne ni les lits ; l'end stone résiste aux boules de feu, pas à la TNT,
+  comme sur Hypixel. Pas de tir ami.
 - **Fin** : la dernière équipe en vie gagne. Le résultat va dans les stats du lobby (victoires,
   défaites, ELO du mode classé, kills), puis tout le monde revient au lobby. Quitter le serveur ou
   taper `/spawn` pendant la partie, c'est l'abandonner (une défaite).
@@ -90,7 +91,7 @@ Les modes qui l'ont sont listés dans `top-bridge:` du config.yml.
 Ni lit ni forge ni shop : seul le combat sur le pont compte. Chaque équipe démarre en haut, sur sa
 moitié, à 12 blocs de la ligne blanche du milieu, côte à côte en 2v2, face à l'autre moitié, avec
 le stuff de combat du propriétaire : une épée en pierre et un stack de pommes d'or (arrangeables
-dans l'éditeur de kit), une armure complète en diamant Protection IV et Absorption II. Celui qui tombe à 10
+dans l'éditeur de kit), une armure complète en diamant Protection IV, sans effet d'absorption. Celui qui tombe à 10
 blocs sous la plateforme est mort, comme dans le vide (on a le temps d'un clutch). Ceux qui
 attendent regardent depuis le dessus du milieu.
 
@@ -104,7 +105,7 @@ attendent regardent depuis le dessus du milieu.
   secondes après une mort, les blocs posés partent au bout de 45 secondes, et la partie dure 30
   minutes au plus. Rien ne compte dans les stats.
 
-`top-bridge-ffa` est le FFA libre sur le pont, sur les 20 maps : on entre et on sort quand on veut,
+`top-bridge-ffa` est le FFA libre sur le pont, sur Invasion seulement : on entre et on sort quand on veut,
 chacun pour soi, avec le même stuff de combat à chaque vie. Le top bridge relie les
 deux îles les plus éloignées ; on apparaît et on revient 3 secondes après une mort sur la
 plateforme, à l'endroit le plus loin des autres joueurs, et celui qui tombe en dessous est mort.
@@ -118,9 +119,10 @@ grise et le pont rose qui y mène). Deux manches : chaque camp attaque une fois,
 s'échangent à la deuxième, la map redevient comme au départ.
 
 - **Les attaquants** partent du bout du pont (les `attaquants:` du `bedwars.yml` de la map), avec
-  une seule vie, une armure en cuir et le kit du mode du lobby (épée en pierre, un stack de laine,
-  2 boules de feu, pioche en bois, cisailles ; trois kits au choix viendront ensuite). Ils posent
-  des blocs et lancent des boules de feu comme dans une vraie partie.
+  une seule vie, une armure en fer et le kit du mode du lobby (épée en pierre, un stack de laine,
+  2 boules de feu, la pioche en or du shop, Efficacité III et Tranchant II comme sur Hypixel,
+  cisailles ; trois kits au choix viendront ensuite). Ils posent des blocs et lancent des boules
+  de feu comme dans une vraie partie.
 - **Les défenseurs** partent de leur base avec le stuff d'un début de partie (épée en bois, armure
   en cuir), leur forge et leur shop, sans améliorations. Ils reviennent tant que leur lit tient ;
   après, une mort est un final kill, comme dans une vraie partie.
@@ -141,7 +143,9 @@ Ranked Bedwars sur n'importe quelle map (les 20 maps de la file, Sky Rise, les m
 les deux équipes sur des îles opposées. L'une, tirée au sort, a déjà perdu son lit : une seule vie
 chacun, elle doit clutch. L'autre garde le sien, sous une défense de ranked déjà posée (end stone,
 verre, bois, laine). Tout le monde part de sa base en armure de fer avec une épée en pierre, sans
-enchantement ni émeraude, les forges déjà pleines de fer et d'or. Ensuite, c'est une partie comme
+enchantement ni émeraude, les forges déjà pleines de fer et d'or. La partie est déjà à moitié
+jouée, comme une vraie à 18 minutes : générateurs de diamant au Tier III, d'émeraude au Tier II,
+puis Emerald III dans 6 minutes et la fin des lits dans 12. Ensuite, c'est une partie comme
 les autres : shop, améliorations, diamants et émeraudes, jusqu'à ce qu'il ne reste qu'une équipe.
 
 ## Améliorations et pièges
@@ -201,7 +205,7 @@ Dans `jeux:` du config.yml, un mode peut jouer autre chose qu'une partie classiq
 - **FFA** (`ffa`, sur Archway FFA et Paladin, au choix dans la file) : chacun pour soi, ouvert,
   on entre et on sort quand on veut. Le kit du mode (rangé dans l'éditeur de kit du lobby) est le
   stuff de combat du propriétaire, une épée en pierre et un stack de pommes d'or, avec 3 boules de
-  feu et une perle, et à chaque vie une armure complète en diamant Protection IV et Absorption II ;
+  feu et une perle, et à chaque vie une armure complète en diamant Protection IV (sans effet d'absorption) ;
   on revient 3 secondes après une mort sur l'île la plus éloignée des autres ; un kill soigne ; les
   blocs posés partent au bout de 45 secondes ; les kills comptent dans les stats. Archway FFA (le
   dossier `ArchwayFFA`) est l'Archway du propriétaire : des ponts de laine entre les îles, une
