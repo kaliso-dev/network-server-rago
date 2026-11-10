@@ -1083,8 +1083,8 @@ modes:
     description:
       - "Build a bed defense"
       - "as fast as you can: Ranked"
-      - "(end stone, glass), solo or"
-      - "duo (end stone, wool)."
+      - "(end stone, glass) or duo"
+      - "(end stone, wool)."
   block-edit:
     nom: "&bBlock edit"
     categorie: entrainement

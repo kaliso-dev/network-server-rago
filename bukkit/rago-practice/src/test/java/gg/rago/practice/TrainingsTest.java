@@ -40,7 +40,7 @@ class TrainingsTest {
 
     @Test
     void theRankedDefenseIsEndStoneUnderGlass() {
-        Map<String, Material> ranked = FastDefenseTraining.defense(true);
+        Map<String, Material> ranked = FastDefenseTraining.rankedDefense();
         // "26 blocks": 12 end stone, 14 glass, as on the owner's pictures
         assertEquals(12, count(ranked, Material.ENDER_STONE));
         assertEquals(14, count(ranked, Material.STAINED_GLASS));
@@ -53,30 +53,6 @@ class TrainingsTest {
         assertNull(ranked.get("1,2,2"));
         assertNull(ranked.get("1,1,3"));
         assertEquals(Material.STAINED_GLASS, ranked.get("3,1,0"), "beyond the head");
-    }
-
-    @Test
-    void theSoloDefenseIsEndStoneAndTheFrontThenWool() {
-        Map<String, Material> solo = FastDefenseTraining.defense(false);
-        // "32 blocks": 10 end stone, 22 wool; the bed from (0,1,0) to (0,1,1) points at the player (z below 0)
-        assertEquals(10, count(solo, Material.ENDER_STONE));
-        assertEquals(22, count(solo, Material.WOOL));
-        assertEquals(Material.ENDER_STONE, solo.get("0,2,0"), "on the bed");
-        assertEquals(Material.ENDER_STONE, solo.get("0,1,-1"), "the end on the player's side");
-        assertEquals(Material.ENDER_STONE, solo.get("0,1,2"), "the far end");
-        // each side one block longer on the player's side only
-        for (int z = -1; z <= 1; z++) {
-            assertEquals(Material.ENDER_STONE, solo.get("1," + "1," + z));
-            assertEquals(Material.ENDER_STONE, solo.get("-1,1," + z));
-        }
-        assertEquals(Material.WOOL, solo.get("1,1,2"), "no surplus at the far end");
-        assertEquals(Material.WOOL, solo.get("1,1,-2"), "the wool covers the surplus");
-        assertEquals(Material.WOOL, solo.get("0,1,-2"));
-        assertEquals(Material.WOOL, solo.get("0,1,3"));
-        assertEquals(Material.WOOL, solo.get("0,3,1"));
-        assertEquals(Material.WOOL, solo.get("2,1,0"));
-        assertNull(solo.get("0,0,0"), "nothing under the ground");
-        assertNull(solo.get("1,1,3"));
     }
 
     @Test

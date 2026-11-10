@@ -3,11 +3,9 @@ package gg.rago.practice;
 import gg.rago.game.BedDefense;
 import gg.rago.game.GameMode;
 import java.util.ArrayList;
-import java.util.HashSet;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.Set;
 import java.util.UUID;
 import org.bukkit.ChatColor;
 import org.bukkit.Location;
@@ -22,10 +20,9 @@ import org.bukkit.inventory.ItemStack;
  * Fast defense: a bed on an island, and the player covers it as fast as they can, as in a game.
  * Two defenses, as the owner builds them: the Ranked Bedwars one, end stone (the top of the bed,
  * two rows on each side, one block at each end) under a layer of glass, its side rows left bare;
- * and the solo one, the bed pointing at the player: end stone over it, at each end and along each
- * side one block further on the player's side, then wool over all of it. And the duo one of the
- * owner's map "Defense Claude" ({@link BedDefense#DUO}), the bed pointing at the player too: end
- * stone around it and on it, one more past its head, then wool over all of it. Each place takes its block; the time runs from the first block to the last place filled. Before each
+ * and the duo one of the owner's map "Defense Claude" ({@link BedDefense#DUO}), the bed pointing
+ * at the player: end stone around it and on it, one more past its head, then wool over all of it.
+ * Each place takes its block; the time runs from the first block to the last place filled. Before each
  * attempt, the defense to build shows for three seconds, with a countdown, then goes.
  */
 final class FastDefenseTraining extends Training {
@@ -33,14 +30,14 @@ final class FastDefenseTraining extends Training {
     private static final int BED_Y = 1;
     /**
      * The side of the player, in front of the bed: z below 0. The foot of the bed is at (0, 1, 0);
-     * in Ranked it lies along x (the player sees its side), in solo along z (it points at them).
+     * in Ranked it lies along x (the player sees its side), in duo along z (it points at them).
      */
     private static final int FRONT = -1;
-    /** Where the head of the bed is from its foot, {x, z}: Ranked, solo, duo. */
-    private static final int[][] HEADS = {{1, 0}, {0, 1}, {0, 1}};
+    /** Where the head of the bed is from its foot, {x, z}: Ranked, duo. */
+    private static final int[][] HEADS = {{1, 0}, {0, 1}};
     /** The variants, in their order. */
     private static final int RANKED = 0;
-    private static final int DUO = 2;
+    private static final int DUO = 1;
 
     /** Each place of the defense ("x,y,z" offsets) and its block, for each variant. */
     private final List<Map<String, Material>> places = new ArrayList<>();
@@ -56,10 +53,8 @@ final class FastDefenseTraining extends Training {
     FastDefenseTraining(PracticeHost host, GameMode mode, Arena arena, List<List<Player>> teams) {
         super(host, mode, arena, teams,
                 new Variant("ranked", "Ranked (end stone, glass)", true, ""),
-                new Variant("solo", "Solo (end stone, wool)", true, ""),
                 new Variant("duo", "Duo (end stone, wool)", true, ""));
-        places.add(defense(true));
-        places.add(defense(false));
+        places.add(rankedDefense());
         places.add(duoDefense());
     }
 
@@ -67,47 +62,21 @@ final class FastDefenseTraining extends Training {
         return x + "," + y + "," + z;
     }
 
-    /**
-     * The places of a defense and their blocks: the Ranked one (end stone and glass, the bed from
-     * (0, 1, 0) to (1, 1, 0)) or the solo one (end stone and wool, the bed from (0, 1, 0) to
-     * (0, 1, 1), its foot towards the player).
-     */
-    static Map<String, Material> defense(boolean ranked) {
-        int[] head = HEADS[ranked ? 0 : 1];
+    /** The places of the Ranked defense and their blocks: end stone and glass, the bed from (0, 1, 0) to (1, 1, 0). */
+    static Map<String, Material> rankedDefense() {
+        int[] head = HEADS[RANKED];
         List<List<int[]>> layers = Shapes.defense(0, BED_Y, 0, head[0], head[1], 2);
         Map<String, Material> defense = new LinkedHashMap<>();
         for (int[] place : layers.get(0)) {
             defense.put(key(place[0], place[1], place[2]), Material.ENDER_STONE);
         }
-        if (ranked) {
-            // the second row of end stone on each side
-            for (int x = 0; x <= 1; x++) {
-                defense.put(key(x, BED_Y, 2 * FRONT), Material.ENDER_STONE);
-                defense.put(key(x, BED_Y, -2 * FRONT), Material.ENDER_STONE);
-            }
-            for (int[] place : layers.get(1)) {
-                defense.putIfAbsent(key(place[0], place[1], place[2]), Material.STAINED_GLASS);
-            }
-            return defense;
+        // the second row of end stone on each side
+        for (int x = 0; x <= 1; x++) {
+            defense.put(key(x, BED_Y, 2 * FRONT), Material.ENDER_STONE);
+            defense.put(key(x, BED_Y, -2 * FRONT), Material.ENDER_STONE);
         }
-        // solo: each side row one block longer on the player's side, level with the foot's end
-        defense.put(key(-1, BED_Y, FRONT), Material.ENDER_STONE);
-        defense.put(key(1, BED_Y, FRONT), Material.ENDER_STONE);
-        // the wool: every free place next to the bed or the end stone, over the ground
-        Set<String> solid = new HashSet<>(defense.keySet());
-        solid.add(key(0, BED_Y, 0));
-        solid.add(key(head[0], BED_Y, head[1]));
-        int[][] sides = {{1, 0, 0}, {-1, 0, 0}, {0, 1, 0}, {0, -1, 0}, {0, 0, 1}, {0, 0, -1}};
-        for (String each : solid) {
-            String[] xyz = each.split(",");
-            for (int[] side : sides) {
-                int x = Integer.parseInt(xyz[0]) + side[0];
-                int y = Integer.parseInt(xyz[1]) + side[1];
-                int z = Integer.parseInt(xyz[2]) + side[2];
-                if (y >= BED_Y && !solid.contains(key(x, y, z))) {
-                    defense.put(key(x, y, z), Material.WOOL);
-                }
-            }
+        for (int[] place : layers.get(1)) {
+            defense.putIfAbsent(key(place[0], place[1], place[2]), Material.STAINED_GLASS);
         }
         return defense;
     }
@@ -136,9 +105,7 @@ final class FastDefenseTraining extends Training {
             return "the bed points at you: end stone around it and on it, one more past its head, then wool over"
                     + " all of it (35 blocks).";
         }
-        return ranked() ? "end stone around the bed (two rows on each side), then glass over it (26 blocks)."
-                : "the bed points at you: end stone around it, its sides one block longer on your side, then wool"
-                        + " over all of it (32 blocks).";
+        return "end stone around the bed (two rows on each side), then glass over it (26 blocks).";
     }
 
     @Override
@@ -149,7 +116,7 @@ final class FastDefenseTraining extends Training {
     /** In front of the bed, facing it, as the owner stands to build the defense. */
     @Override
     Location spawnOf(UUID player) {
-        // the middle of the bed: across it in Ranked, in line with it in solo
+        // the middle of the bed: across it in Ranked, in line with it in duo
         return arena.at(ranked() ? 1.0 : 0.5, 1, 5.5 * FRONT, 0f);
     }
 
