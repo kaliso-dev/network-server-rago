@@ -144,9 +144,17 @@ et chaque variante son record : le meilleur score du joueur et celui du serveur,
   barre d'XP montre l'XP de l'essai, la barre le temps qui reste. À la fin, le joueur reçoit
   cette XP en XP Network, plus 1 pour 10 coups (`aim-trainer` dans `config.yml`), et voit le top 5
   de la variante. `/aimtop [strafe|jump|circle]` montre le top de partout.
-- **Combo bot** : un bot qui fonce et rend les coups, sans dégâts ; le plus long combo. Facile,
-  normal (Speed I), difficile (Speed II). Sur les arènes du boxing : le joueur sur le premier
-  bloc de diamant, le bot 8 blocs devant lui.
+- **Combo bot** : une IA qui se bat comme un joueur 1.8 (`ComboAi`), sans dégâts ; le plus long
+  combo. Elle sprinte vers le joueur, strafe une fois proche, clique à son CPS avec sa précision et
+  sa reach (mesurée jusqu'à la hitbox), et ses coups poussent comme ceux d'un joueur (un coup en
+  sprint pousse plus loin). Après un coup elle peut w-tap, touchée au sol elle peut jump reset, et
+  elle vise là où le joueur était il y a quelques ticks (son temps de réaction). Quatre niveaux :
+  Easy (5 CPS, 2,7 de reach, pas de sprint), Normal (8 CPS, 2,9), Hard (11 CPS, 3,0), Expert
+  (14 CPS, 3,0, w-tap et jump reset presque à chaque fois). Le réglage « Bot hits back » le rend
+  passif, pour travailler un combo seul. Le zombie ne marche pas lui-même (lenteur) : le jeu le
+  déplace chaque tick avec la physique d'un joueur. Le scoreboard compte aussi les coups de chacun
+  et le plus long combo du bot. Sur les arènes du boxing : le joueur sur le premier bloc de
+  diamant, le bot 8 blocs devant lui.
 - **KB displace contre un bot** : le même pont, le bot à la place du défenseur. Après chaque coup
   on revient tout de suite au départ, pour reprendre de l'élan, jusqu'à ce que le bot tombe ; seul
   un coup de face compte. Le score est le temps, et le scoreboard compte les essais.

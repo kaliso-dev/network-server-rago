@@ -1063,9 +1063,10 @@ modes:
     joueurs-par-equipe: 1
     classe: false
     description:
-      - "A bot that moves and hits"
-      - "back, to work on your"
-      - "combos (sparring)."
+      - "An AI that fights as a player:"
+      - "sprint hits, strafes, w-taps,"
+      - "jump resets. Easy to Expert:"
+      - "combo it without being hit."
   kb-displace-bot:
     nom: "&bKB displace against a bot"
     categorie: entrainement
