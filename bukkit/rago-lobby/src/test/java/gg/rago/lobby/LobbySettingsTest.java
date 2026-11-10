@@ -41,7 +41,7 @@ class LobbySettingsTest {
         assertEquals("lobby", settings.world());
         assertEquals(0, settings.voidHeight());
         assertEquals(0, settings.defaultRating(), "a ranked ELO starts at 0, in Coal");
-        assertEquals(47, settings.modes().size());
+        assertEquals(50, settings.modes().size());
         assertFalse(settings.catalog().get("top-bridge-1v1").ranked(), "Top Bridge: no ELO");
         assertEquals("2v2", settings.catalog().get("top-bridge-2v2").format());
         assertTrue(settings.npc("rbwffa").modeIds().contains("top-bridge-1v1"));
@@ -103,7 +103,10 @@ class LobbySettingsTest {
                 shown += entry.group != null ? settings.modesOfGroup(entry.group.id()).size() : 1;
             }
         }
-        assertEquals(settings.modes().size() - 1, shown, "every mode but the hidden one is in the selector, once");
+        for (String event : Arrays.asList("event-sumo", "event-brackets", "event-lms")) {
+            assertTrue(settings.display(event).hidden(), "the events of /host are not in the selector: " + event);
+        }
+        assertEquals(settings.modes().size() - 4, shown, "every mode but the hidden ones (top fight 1v1, the 3 events) is in the selector, once");
         assertInvalid("groupes:\n  g: {}\nmodes:\n  sumo:\n    groupe: autre\n", "modes.sumo.groupe");
     }
 

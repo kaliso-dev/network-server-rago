@@ -12,3 +12,19 @@ commands:
   speed:
     description: Take the Speed II of the boxing off, or get it back.
     usage: /speed
+  host:
+    description: Host an event for the whole server (PREMIUM): Sumo, Brackets or Last Man Standing.
+    usage: /host [sumo|brackets|lms]
+    aliases: [hostevent]
+  event:
+    description: The event running now; join, leave, or call it off (its host, the staff).
+    usage: /event [join|leave|cancel]
+    aliases: [events]
+  join:
+    description: Join the event that waits for its players.
+    usage: /join
+    aliases: [joinevent]
+permissions:
+  rago.perk.host:
+    description: Host events with /host (the PREMIUM rank of the lobby gives it).
+    default: op

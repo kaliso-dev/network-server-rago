@@ -173,6 +173,23 @@ xp-entrainement:
   reussite: 3
   max-par-minute: 8
 
+# The events PREMIUM players host with /host (the permission rago.perk.host, given by the PREMIUM
+# rank of the lobby), as on Minemen: Sumo, Brackets (1v1 tournament with a sword and armour) and
+# Last Man Standing. They play on the sumo maps above (one at a time), in the hidden modes
+# event-sumo, event-brackets and event-lms of the lobby's config.yml. The whole server is told with
+# a [Click to join] for attente-secondes, then the event starts with joueurs-min players at least
+# (otherwise it is called off), joueurs-max at most. A host waits cooldown-minutes before hosting
+# again (the staff, rago.staff, never waits), and the server pause-secondes between two events.
+# The winner gets xp-gagnant Network XP, every other player xp-participation.
+evenements:
+  attente-secondes: 60
+  joueurs-min: 2
+  joueurs-max: 40
+  cooldown-minutes: 30
+  pause-secondes: 120
+  xp-gagnant: 250
+  xp-participation: 25
+
 # Aim trainer: each second with the crosshair on the target (or a hit) gives xp-par-seconde
 # Network XP, and the end of the attempt one more for each touches-par-xp hits (100 hits: 10).
 aim-trainer:

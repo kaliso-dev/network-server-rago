@@ -43,6 +43,8 @@ public final class RagoPractice extends JavaPlugin {
     /** The maps being copied into the zones of the modes that play on maps. */
     private final List<MapZones> mapZones = new ArrayList<>();
     private PracticeGames games;
+    /** The events PREMIUM players host (/host). */
+    private Events events;
     private Records records;
     private final List<String> hosted = new ArrayList<>();
     /** The Network XP of the trainings and the free arenas, given every two minutes. */
@@ -90,7 +92,12 @@ public final class RagoPractice extends JavaPlugin {
 
         games = new PracticeGames(this, world);
         getServer().getPluginManager().registerEvents(games, this);
+        events = new Events(this, eventSettings(config));
+        getServer().getPluginManager().registerEvents(events, this);
         registerModes(config, world, slots, spacing);
+        getCommand("host").setExecutor(events);
+        getCommand("event").setExecutor(events);
+        getCommand("join").setExecutor(events);
         getCommand("aimtop").setExecutor(new AimTop(this));
         getCommand("speed").setExecutor(new SpeedCommand(this));
         getLogger().info("Arenas in the world " + world.getName() + ": " + slots + " games of each mode at once at most. Modes: "
@@ -198,6 +205,12 @@ public final class RagoPractice extends JavaPlugin {
         int bowHits = config.getInt("points-pour-gagner.bow", 10);
         register("bow-training", (h, m, a, t) -> new BowTraining(h, m, a, t, bow), slots, spacing, false);
         register("bow-duel", (h, m, a, t) -> new BowDuel(h, m, a, t, bowHits, bow), slots, spacing, false);
+        // the events of /host: one game at a time each, on the sumo maps
+        List<MapZones.ZoneMap> eventMaps = zoneMaps(config, "sumo.cartes", spacing, "the events");
+        for (EventGame.Kind kind : EventGame.Kind.values()) {
+            onMaps(register(kind.modeId(), (h, m, a, t) -> events.created(new EventGame(h, m, a, t, events)), slots, spacing, true),
+                    eventMaps);
+        }
     }
 
     /**
@@ -805,6 +818,22 @@ public final class RagoPractice extends JavaPlugin {
         return xp;
     }
 
+    /** The settings of the events (section evenements); the defaults when they are wrong. */
+    private Events.Settings eventSettings(FileConfiguration config) {
+        ConfigurationSection section = config.getConfigurationSection("evenements");
+        String problem = Events.Settings.check(section);
+        if (problem != null) {
+            getLogger().warning("config.yml: " + problem + ". The events use their default settings.");
+            return Events.Settings.of(null);
+        }
+        return Events.Settings.of(section);
+    }
+
+    /** The events of /host, or null while the plugin is off. */
+    Events events() {
+        return events;
+    }
+
     /** Gives the lobby the XP waiting for every player. */
     void payXp() {
         if (xp == null) {
@@ -843,6 +872,7 @@ public final class RagoPractice extends JavaPlugin {
             games.abortAll();
             games = null;
         }
+        events = null;
         if (lobby != null) {
             lobby.unregisterHosts(this);
         }

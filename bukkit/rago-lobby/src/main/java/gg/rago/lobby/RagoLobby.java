@@ -768,6 +768,12 @@ public final class RagoLobby extends JavaPlugin implements LobbyService {
     }
 
     @Override
+    public boolean queue(Player player, String modeId) {
+        GameMode mode = settings.catalog().get(modeId);
+        return mode != null && queues.enter(player, mode);
+    }
+
+    @Override
     public void recordMatch(String modeId, List<UUID> winners, List<UUID> losers) {
         GameMode mode = settings.catalog().get(modeId);
         if (mode == null) {

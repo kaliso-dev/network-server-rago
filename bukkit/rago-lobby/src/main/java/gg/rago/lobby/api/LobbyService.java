@@ -36,6 +36,16 @@ public interface LobbyService {
     boolean isInGame(Player player);
 
     /**
+     * Puts the player alone in the queue of this mode, as the selector does but without a word: a
+     * game plugin's own way into a mode (an event hosted with /host, in a mode hidden from the
+     * selector). The match starts at the next tick of the queues, within a second. False when the
+     * player is in a game, frozen by the staff, or nothing hosts the mode.
+     */
+    default boolean queue(Player player, String modeId) {
+        return false;
+    }
+
+    /**
      * A game of this mode is over: one side won, the other lost (a forfeit is a loss). The lobby
      * counts it in the stats, the leaderboards and, for a ranked mode, the ELO. Players may have
      * left the server already.

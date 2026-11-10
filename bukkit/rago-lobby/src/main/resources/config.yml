@@ -269,7 +269,8 @@ quetes:
 #                rago.perk.message (a message of one's own above the head), rago.perk.speed
 #                (Speed I, II or III in the lobby, chosen in the settings), rago.perk.gadgets (the
 #                gadgets and the rarest cosmetics of PREMIUM), rago.perk.booster (a free XP booster
-#                a day, /booster), or a permission of
+#                a day, /booster), rago.perk.host (/host: events for the whole server, in
+#                RagoPractice), or a permission of
 #                another plugin; "-permission" takes one away
 #   herite       the rank whose permissions (and colours, badges, boost) this one also has
 #   boost-xp     the Network XP of its players is multiplied by this (1.5: half more)
@@ -324,7 +325,7 @@ rangs:
     prefixe: "&d[PREMIUM{+}] "
     couleur: "&d"
     permissions: [rago.perk.chat, rago.perk.fly, rago.perk.join, rago.perk.nick, rago.perk.message, rago.perk.speed,
-      rago.perk.gadgets, rago.perk.booster]
+      rago.perk.gadgets, rago.perk.booster, rago.perk.host]
     boost-xp: 1.5
     style: rose
     badge: premium
@@ -334,6 +335,7 @@ rangs:
       "Speed I, II or III in the lobby (settings)", "/nick: play under another name", "Your own message above your head", "Your arrival announced, with a firework",
       "White messages, no chat cooldown", "Gadgets of your own: bat blaster, explosive sheep, disco ball",
       "A free XP booster every day (x2 XP for 30 minutes)",
+      "Host events for the server: /host (Sumo, Brackets, LMS)",
       "The rarest kill effects and victory dances"]
 
 # The colours of name and the badges (/style). A colour is a gradient along the letters of the
@@ -1136,3 +1138,38 @@ modes:
       - "moving targets. XP for"
       - "each second on the target,"
       - "and a top of the best."
+  # The events a PREMIUM player hosts with /host (RagoPractice): hidden from the selector, the
+  # players come in with /join while the server is told about it.
+  event-sumo:
+    nom: "&6Sumo event"
+    categorie: duels
+    cache: true
+    icone: SLIME_BALL
+    equipes: 1
+    joueurs-par-equipe: 1
+    classe: false
+    description:
+      - "Hosted with /host: one 1v1 at"
+      - "a time, the last one in wins."
+  event-brackets:
+    nom: "&6Brackets event"
+    categorie: duels
+    cache: true
+    icone: IRON_SWORD
+    equipes: 1
+    joueurs-par-equipe: 1
+    classe: false
+    description:
+      - "Hosted with /host: a 1v1"
+      - "tournament with a Bed Wars kit."
+  event-lms:
+    nom: "&6Last Man Standing event"
+    categorie: duels
+    cache: true
+    icone: GOLD_SWORD
+    equipes: 1
+    joueurs-par-equipe: 1
+    classe: false
+    description:
+      - "Hosted with /host: everyone at"
+      - "once, the last one standing wins."

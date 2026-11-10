@@ -246,6 +246,22 @@ encore, chacun avec son record.
   du vide ; deux coups et c'est fini. Chaque combat gagné, à l'épée ou par le vide, ajoute un à la
   série.
 
+## Les events (/host)
+
+Comme sur Minemen, un joueur PREMIUM (`rago.perk.host`) lance un event pour tout le serveur avec
+`/host` : un menu avec Sumo, Brackets (un tournoi en 1v1 avec épée et armure) et Last Man
+Standing (tout le monde en même temps, le dernier debout gagne), ou directement
+`/host sumo|brackets|lms`. Tout le serveur hors partie est prévenu avec un **[Click to join]**
+(ou `/join`), puis encore à 45, 30, 15 et 5 secondes. Pendant l'attente, les joueurs sont sur la
+plateforme sans kit et sans coups ; ensuite, au Sumo et aux Brackets, un 1v1 à la fois pendant
+que les autres regardent, par manches (un joueur sans adversaire passe), 90 secondes au plus par
+combat (celui qui a touché le plus passe). Le gagnant est annoncé à tout le serveur et gagne
+`xp-gagnant` XP Network, chaque autre joueur `xp-participation`. Un event à la fois, une pause
+entre deux, et un délai pour chaque hôte (le staff n'attend pas). `/event` dit où en est l'event,
+`/event leave` le quitte (comme `/spawn`), `/event cancel` l'annule (son hôte ou le staff).
+Les events se jouent sur les maps du sumo, dans les modes cachés `event-sumo`, `event-brackets` et
+`event-lms` du lobby. Tout se règle dans `evenements:`.
+
 ## Les arènes
 
 Les parties se jouent dans un monde vide (`arenes`, créé s'il n'existe pas). Chaque mode a sa

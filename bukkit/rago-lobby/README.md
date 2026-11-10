@@ -124,7 +124,8 @@ dans les files d'attente des modes de jeu.
   au-dessus de la tête, l'arrivée annoncée avec un feu d'artifice, des messages blancs sans délai,
   trois gadgets à lui (bat blaster, mouton explosif, boule disco : `rago.perk.gadgets`), les effets
   de kill et de victoire les plus rares (squid rocket, météore, dieu du tonnerre, pluie de météores)
-  et un booster d'XP gratuit par jour (`rago.perk.booster`). Le staff et MEDIA en héritent.
+  un booster d'XP gratuit par jour (`rago.perk.booster`) et les events pour tout le serveur avec
+  `/host` (`rago.perk.host`, voir RagoPractice). Le staff et MEDIA en héritent.
 - **Le + de [PREMIUM+].** Le `{+}` d'un préfixe (`prefixe: "&d[PREMIUM{+}] "`) est un + que chaque
   joueur colore dans `/style` (« Colour of your + ») : blanc par défaut, six couleurs vives en
   récompense de niveau (`plus-jaune` au niveau 5... `plus-bleu` au 85), et le noir, le plus rare, à

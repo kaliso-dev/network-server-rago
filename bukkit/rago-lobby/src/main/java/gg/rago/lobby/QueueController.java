@@ -176,6 +176,25 @@ final class QueueController {
     }
 
     /**
+     * Puts the player alone in the queue of this mode without a word (a game plugin's own way in:
+     * an event hosted with /host, a mode hidden from the selector). False when the player is in a
+     * game, frozen, or the mode is not played.
+     */
+    boolean enter(Player player, GameMode mode) {
+        if (state.isInGame(player) || lobby.isFrozen(player.getUniqueId()) || !isPlayable(mode.id())) {
+            return false;
+        }
+        Matchmaker.JoinResult result = matchmaker.join(player.getUniqueId(), mode.id(), rating(player.getUniqueId(), mode),
+                System.currentTimeMillis(), null);
+        if (result == Matchmaker.JoinResult.JOINED || result == Matchmaker.JoinResult.SWITCHED) {
+            toldNoArena.remove(player.getUniqueId());
+            onChange.run();
+            return true;
+        }
+        return result == Matchmaker.JoinResult.ALREADY_WAITING;
+    }
+
+    /**
      * A private game whose size follows the party: the party plays the mode of the list made for
      * its size (two players: a 1v1, four: a 2v2...), against itself, in no stats.
      */
