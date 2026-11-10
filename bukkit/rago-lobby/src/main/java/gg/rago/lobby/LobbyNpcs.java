@@ -11,6 +11,7 @@ import java.util.UUID;
 import org.bukkit.ChatColor;
 import org.bukkit.Chunk;
 import org.bukkit.Location;
+import org.bukkit.Material;
 import org.bukkit.World;
 import org.bukkit.entity.ArmorStand;
 import org.bukkit.entity.Entity;
@@ -105,6 +106,10 @@ final class LobbyNpcs implements Listener {
             chunk.load();
             keptChunks.add(key(chunk.getX(), chunk.getZ()));
             removeOldStands(base);
+            if (npc.kind() != LobbyNpc.Kind.LEADERBOARDS) {
+                base = onPedestal(base);
+                removeOldStands(base);
+            }
             if (npc.kind() == LobbyNpc.Kind.LEADERBOARDS) {
                 displays.addWall(npc, base);
                 List<Location> steps = steps(npc, world, spawn);
@@ -122,6 +127,27 @@ final class LobbyNpcs implements Listener {
             placed++;
         }
         return placed;
+    }
+
+    /**
+     * As on Hypixel, a figure stands one block higher than its point, on a block of polished andesite
+     * put where its feet were. The same block each start: nothing piles up.
+     */
+    @SuppressWarnings("deprecation") // Block#setTypeIdAndData: the 1.8 way to set the data of a block
+    static Location onPedestal(Location point) {
+        org.bukkit.block.Block feet = point.getBlock();
+        feet.setTypeIdAndData(Material.STONE.getId(), POLISHED_ANDESITE, false);
+        return pedestalTop(point);
+    }
+
+    /** The data of polished andesite, a stone in 1.8. */
+    static final byte POLISHED_ANDESITE = 6;
+
+    /** Where a figure stands on the pedestal put at its point: on top of that block. */
+    static Location pedestalTop(Location point) {
+        Location top = point.clone();
+        top.setY(Math.floor(point.getY()) + 1.0);
+        return top;
     }
 
     /**

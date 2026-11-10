@@ -10,10 +10,11 @@ import org.bukkit.ChatColor;
 
 /**
  * A style of a player's name: a colour of the name, one colour or a gradient along its letters
- * (made of the 16 colours of 1.8), or a badge, a short word after the name ("§c§lRAGO"). A player
+ * (made of the 16 colours of 1.8), a badge, a short word after the name ("§c§lRAGO"), or the colour
+ * of the + of [PREMIUM+] (white by default, black the rarest). A player
  * has a style in one of four ways: with the PREMIUM rank, bought on the store (the store, or the
  * staff, gives it with /style give), bought with Rago Points in /style, or as the reward of a
- * Network level. They wear one colour and one badge at a time. A gradient is animated (its colours
+ * Network level. They wear one colour, one badge and one colour of + at a time. A gradient is animated (its colours
  * run along the name, in the tab list, above the head and from one message to the next) unless
  * it is a fixed one. The styles come from config.yml (styles:), else the plugin's own. Immutable.
  */
@@ -21,7 +22,9 @@ final class NameStyle {
 
     enum Kind {
         COLOUR("couleur", "couleurs", "Name colours"),
-        BADGE("badge", "badges", "Badges");
+        BADGE("badge", "badges", "Badges"),
+        /** The colour of the + of a rank such as [PREMIUM+] (its prefix has {@link RankDef#PLUS}). */
+        PLUS("plus", "plus", "Colours of the +");
 
         private final String id;
         private final String section;
@@ -83,6 +86,9 @@ final class NameStyle {
             return null;
         }
     }
+
+    /** The price of the black +, the rarest colour of +. */
+    static final int BLACK_PLUS_PRICE = 50_000;
 
     /** A badge after a name shows in a team suffix of 16 characters, after a space. */
     static final int MAX_BADGE = 15;
@@ -162,9 +168,26 @@ final class NameStyle {
         return kind == Kind.BADGE ? text : animated ? gradient(plain, text, bold, phase) : gradient(plain, text, bold);
     }
 
-    /** The badge, or how the name "Rago" looks in this colour: for the menus. */
+    /** The badge, how the name "Rago" looks in this colour, or the + in its colour: for the menus. */
     String sample() {
-        return kind == Kind.BADGE ? text : gradient(name, text, bold);
+        return kind == Kind.BADGE ? text : kind == Kind.PLUS ? plusColour() + "+ " + name : gradient(name, text, bold);
+    }
+
+    /** The colour codes of a + ("§0"). */
+    String plusColour() {
+        return "\u00a7" + (text.isEmpty() ? 'f' : text.charAt(0)) + (bold ? "\u00a7l" : "");
+    }
+
+    /** "colour of name §cRed", "badge §c§lRAGO", "colour of + §0+ Black": for the messages. */
+    String describe() {
+        switch (kind) {
+            case BADGE:
+                return "badge " + text;
+            case PLUS:
+                return "colour of + " + sample();
+            default:
+                return "colour of name " + sample();
+        }
     }
 
     /** The colour code in the middle of a colour: what shows above the head, where one colour fits. */
@@ -174,6 +197,9 @@ final class NameStyle {
 
     /** The colour above the head at this step of the animation: it runs through the gradient. */
     String mainColour(int phase) {
+        if (kind == Kind.PLUS) {
+            return plusColour();
+        }
         if (kind == Kind.BADGE || text.isEmpty()) {
             return ChatColor.GRAY.toString();
         }
@@ -287,6 +313,15 @@ final class NameStyle {
         all.add(new NameStyle(Kind.BADGE, "pvp", "PVP", "§4§lPVP", false, Obtain.STORE));
         all.add(new NameStyle(Kind.BADGE, "yt", "YT", "§c§lYT", false, Obtain.STORE));
         all.add(new NameStyle(Kind.BADGE, "centurion", "Centurion", "§e§l✫100", false, Obtain.LEVEL));
+        // The colours of the + of [PREMIUM+]: white without one, bright ones as level rewards, and
+        // black, the rarest, bought with Rago Points.
+        all.add(new NameStyle(Kind.PLUS, "noir", "Black", "0", false, Obtain.POINTS, false, BLACK_PLUS_PRICE));
+        all.add(new NameStyle(Kind.PLUS, "jaune", "Yellow", "e", false, Obtain.LEVEL));
+        all.add(new NameStyle(Kind.PLUS, "vert", "Green", "a", false, Obtain.LEVEL));
+        all.add(new NameStyle(Kind.PLUS, "aqua", "Aqua", "b", false, Obtain.LEVEL));
+        all.add(new NameStyle(Kind.PLUS, "rouge", "Red", "c", false, Obtain.LEVEL));
+        all.add(new NameStyle(Kind.PLUS, "or", "Gold", "6", false, Obtain.LEVEL));
+        all.add(new NameStyle(Kind.PLUS, "bleu", "Blue", "9", false, Obtain.LEVEL));
         Map<String, NameStyle> byKey = new LinkedHashMap<>();
         for (NameStyle style : all) {
             byKey.put(style.key(), style);

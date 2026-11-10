@@ -24,13 +24,13 @@ import org.bukkit.util.Vector;
  * mode); a click opens {@link StatsMenu};
  * <li>a leaderboard wall: boards side by side, each with its top 10, the player's own place and
  * when it starts again. A click on a board changes its period (day, week, ever) for that player,
- * or its mode for an ELO board. A board with several stats goes to the next one on a right
- * click, and changes the period or the mode on a left click; a click (either) on its line "Click
- * here: next leaderboard" or "Click here: change the period" does what the line says. A left
- * click goes to a board from as far as {@link #AIM_REACH} blocks, anywhere on its text: the
- * player's look is followed to it (the armor stands of its lines are too thin to aim at, and an
- * entity is only clicked from 3 blocks). A right click goes to it from up close only: further, the
- * item in the hand (the compass, the book...) keeps it.
+ * or its mode for an ELO board. A board with several stats goes to the next one on a click
+ * (either button) anywhere but its line "Click here: change the period", which changes the period
+ * or the mode. A click goes to a board from as far as {@link #AIM_REACH} blocks, anywhere on its
+ * text: the player's look is followed to it (the armor stands of its lines are too thin to aim at,
+ * and an entity is only clicked from 3 blocks). A right click with an item of the lobby in the
+ * hand goes to the board aimed at instead of the item; with an empty hand, the game sends nothing
+ * further than 3 blocks.
  * </ul>
  * Main thread only.
  */
@@ -46,8 +46,8 @@ final class StatsDisplays {
     private static final double BOARD_BOTTOM = 1.2;
     private static final int PROFILE_LINES = 10;
     private static final long CLICK_COOLDOWN_MS = 300;
-    /** How far a board is clicked from, in blocks. */
-    static final double AIM_REACH = 16;
+    /** How far a board is clicked from, in blocks: as far as its text is easily read. */
+    static final double AIM_REACH = 24;
     /** Half the width of a board's text, in blocks (its lines are about 4 blocks wide). */
     static final double AIM_HALF_WIDTH = 2.3;
     /** The lines "Click here": the first two after the reset line. */
@@ -170,7 +170,7 @@ final class StatsDisplays {
             fakes.add(new FakeHologram(bottom, BOARD_LINES, viewer -> board(stats, key, viewer, System.currentTimeMillis()),
                     (player, left) -> {
                         if (!clickAimed(player, left) && cooled(player)) {
-                            next(player, stats, key, left);
+                            next(player, stats, key, stats.size() == 1);
                         }
                     }));
         }
@@ -317,7 +317,7 @@ final class StatsDisplays {
             score = book.ladder().format(row.value());
         } else if (view.stat == BoardStat.LEVEL) {
             int level = book.levels().level(row.value());
-            score = ChatColor.GRAY + "Level " + book.levels().colour(level) + level;
+            score = ChatColor.GRAY + "Level " + book.levels().paint(String.valueOf(level), level);
         } else {
             score = ChatColor.YELLOW + String.valueOf(row.value()) + ChatColor.GRAY + " "
                     + view.stat.title().toLowerCase(java.util.Locale.ROOT);
@@ -332,7 +332,7 @@ final class StatsDisplays {
      */
     private String shown(BoardStat stat, int value) {
         if (stat == BoardStat.LEVEL) {
-            return book.levels().colour(book.levels().level(value)) + book.levels().level(value);
+            return book.levels().paint(String.valueOf(book.levels().level(value)), book.levels().level(value));
         }
         if (stat == BoardStat.ELO) {
             return book.ladder().format(value);
@@ -355,18 +355,18 @@ final class StatsDisplays {
     }
 
     /**
-     * A click on a board. With one stat, any click changes its period or mode. With several, a
-     * right click goes to the next stat (back to its first period or mode), a left click changes
-     * the period or the mode.
+     * A click on a board. With one stat, any click changes its period or mode. With several,
+     * {@code change} false goes to the next stat (back to its first period or mode), true changes
+     * the period or the mode (or goes to the next stat when it has none).
      */
-    void next(Player player, List<BoardStat> stats, String key, boolean left) {
-        next(player.getUniqueId(), stats, key, left);
+    void next(Player player, List<BoardStat> stats, String key, boolean change) {
+        next(player.getUniqueId(), stats, key, change);
     }
 
-    void next(UUID player, List<BoardStat> stats, String key, boolean left) {
+    void next(UUID player, List<BoardStat> stats, String key, boolean change) {
         Choice choice = choice(player, key);
         boolean nothingToChange = stats.get(choice.stat % stats.size()).choice() == BoardStat.Choice.NONE;
-        if (stats.size() > 1 && (!left || nothingToChange)) {
+        if (stats.size() > 1 && (!change || nothingToChange)) {
             choice.stat = (choice.stat + 1) % stats.size();
             choice.option = 0;
             return;
@@ -388,20 +388,13 @@ final class StatsDisplays {
     }
 
     /**
-     * A click on line {@code line} (0 for the title) of a board: its line "next leaderboard" goes to
-     * the next stat, its line "change the period" (or mode) changes it, and elsewhere the button
-     * decides as in {@link #next}.
+     * A click on line {@code line} (0 for the title) of a board, whichever the button: its line
+     * "change the period" (or mode) changes it; anywhere else, a board of several leaderboards goes
+     * to the next one, and a board of one changes its period or mode.
      */
     void clickLine(UUID player, List<BoardStat> stats, String key, int line, boolean left) {
-        int next = stats.size() > 1 ? FIRST_CLICK_LINE : -1;
         int change = stats.size() > 1 ? FIRST_CLICK_LINE + 1 : FIRST_CLICK_LINE;
-        if (line == next) {
-            next(player, stats, key, false);
-        } else if (line == change || stats.size() == 1) {
-            next(player, stats, key, true);
-        } else {
-            next(player, stats, key, left);
-        }
+        next(player, stats, key, line == change || stats.size() == 1);
     }
 
     /**

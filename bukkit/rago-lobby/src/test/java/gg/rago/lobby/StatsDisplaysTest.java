@@ -141,13 +141,14 @@ class StatsDisplaysTest {
         assertEquals("Kills", plain(displays.board(stats, key, alice, SUNDAY)).get(0),
                 "a left click on the line of the next leaderboard goes to it");
         displays.clickLine(ALICE, stats, key, 5, true);
-        assertEquals("All modes · Weekly", plain(displays.board(stats, key, alice, SUNDAY)).get(1),
-                "elsewhere, a left click changes the period");
+        assertEquals("Network level", plain(displays.board(stats, key, alice, SUNDAY)).get(0),
+                "elsewhere, a left click goes to the next leaderboard");
         displays.clickLine(ALICE, stats, key, 5, false);
-        assertEquals("Network level", plain(displays.board(stats, key, alice, SUNDAY)).get(0));
-        displays.clickLine(ALICE, stats, key, 5, true);
         assertEquals("Ranked Elo", plain(displays.board(stats, key, alice, SUNDAY)).get(0),
-                "nothing to change on the level: a left click goes on to the next leaderboard");
+                "and so does a right click");
+        displays.clickLine(ALICE, stats, key, StatsDisplays.FIRST_CLICK_LINE + 1, true);
+        assertEquals("Ranked Bedwars 2v2", plain(displays.board(stats, key, alice, SUNDAY)).get(1),
+                "a left click on the line of the mode changes the mode");
     }
 
     @Test
@@ -163,7 +164,7 @@ class StatsDisplaysTest {
         assertTrue(StatsDisplays.aim(2, bottom, 10, 0, 0, -1, 0, 0, low, high, half, reach) > 0, "two blocks aside: on its text");
         assertEquals(-1, StatsDisplays.aim(3, bottom, 10, 0, 0, -1, 0, 0, low, high, half, reach), "three: beside it");
         assertEquals(-1, StatsDisplays.aim(0, bottom, 10, 0, 0, 1, 0, 0, low, high, half, reach), "turned away");
-        assertEquals(-1, StatsDisplays.aim(0, bottom, 20, 0, 0, -1, 0, 0, low, high, half, reach), "too far");
+        assertEquals(-1, StatsDisplays.aim(0, bottom, 30, 0, 0, -1, 0, 0, low, high, half, reach), "too far");
         assertEquals(-1, StatsDisplays.aim(0, high + 0.5, 10, 0, 0, -1, 0, 0, low, high, half, reach), "over it");
         // From the east, looking west and a little up: on its fifth line from the bottom.
         double up = 4 * line / 6;

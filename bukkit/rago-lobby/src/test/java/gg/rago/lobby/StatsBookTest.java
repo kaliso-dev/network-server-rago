@@ -293,6 +293,10 @@ class StatsBookTest {
         alice.cosmetics().add("couleur-feu");
         alice.choose(NameStyle.Kind.COLOUR, "feu");
         alice.choose(NameStyle.Kind.BADGE, "");
+        alice.choose(NameStyle.Kind.PLUS, "noir");
+        alice.setBoosters(2);
+        alice.setBoosterLeftMs(754_000L);
+        alice.setBoosterDay("2026-11-10");
         alice.equip(Cosmetic.Type.TRAIL, "trail-flames");
         alice.friends().add(BOB);
         alice.setMessages(PlayerStats.MessageSetting.FRIENDS);
@@ -308,6 +312,12 @@ class StatsBookTest {
         assertTrue(read.boughtRanks().contains("premium"));
         assertEquals("feu", read.colourChoice());
         assertEquals("", read.badgeChoice(), "no badge, by choice");
+        assertEquals("noir", read.plusChoice());
+        assertEquals(2, read.boosters());
+        assertEquals(754_000L, read.boosterLeftMs());
+        assertEquals("2026-11-10", read.boosterDay());
+        assertEquals("12:34", XpBoosters.clock(754_000L));
+        assertEquals("30:00", XpBoosters.clock(XpBoosters.DURATION_MS));
         assertEquals("trail-flames", read.equipped(Cosmetic.Type.TRAIL));
         assertTrue(read.friends().contains(BOB));
         assertEquals(PlayerStats.MessageSetting.FRIENDS, read.messages());

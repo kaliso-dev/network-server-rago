@@ -80,24 +80,19 @@ final class LevelMenu {
         menu.open(player);
     }
 
-    /** A reward of the list: got (green), the next one (yellow), still to come (grey). */
+    /**
+     * A reward of the list: a block of iron once unlocked; locked, a block of gold for Rago Points
+     * alone and a block of diamond for a cosmetic or a style. Its name: green when got, yellow for
+     * the next one, grey for those to come.
+     */
     private org.bukkit.inventory.ItemStack rewardItem(LevelRewards.Reward reward, int level, boolean next) {
         boolean got = level >= reward.level();
         List<String> lore = new ArrayList<>();
         if (reward.points() > 0) {
             lore.add(ChatColor.GOLD + "+" + String.format("%,d", reward.points()) + " Rago Points");
         }
-        Material icon = reward.items().isEmpty() ? Material.GOLD_NUGGET : Material.CHEST;
         for (String item : reward.items()) {
             lore.add(StatsService.rewardName(server, item));
-            Cosmetic cosmetic = server.cosmetics().get(item);
-            if (cosmetic != null) {
-                icon = cosmetic.icon();
-            } else if (item.startsWith("couleur-")) {
-                icon = Material.WOOL;
-            } else {
-                icon = Material.NAME_TAG;
-            }
         }
         lore.add("");
         lore.add(got ? ChatColor.GREEN + "Unlocked" : next ? ChatColor.YELLOW + "Your next reward: "
@@ -105,10 +100,12 @@ final class LevelMenu {
                 : ChatColor.RED + "Locked");
         String name = (got ? ChatColor.GREEN : next ? ChatColor.YELLOW : ChatColor.GRAY) + "Level " + reward.level() + " "
                 + book.levels().tag(reward.level());
-        if (got) {
-            return ClickMenu.item(Material.STAINED_GLASS_PANE, 5, name, lore);
-        }
-        return ClickMenu.item(next ? icon : Material.STAINED_GLASS_PANE, next ? 0 : 15, name, lore);
+        return ClickMenu.item(rewardBlock(got, !reward.items().isEmpty()), 0, name, lore);
+    }
+
+    /** Iron once unlocked; locked, diamond for a cosmetic or a style, gold for Rago Points alone. */
+    static Material rewardBlock(boolean unlocked, boolean hasItems) {
+        return unlocked ? Material.IRON_BLOCK : hasItems ? Material.DIAMOND_BLOCK : Material.GOLD_BLOCK;
     }
 
     /** Every tier of colour, the one of the player marked. */

@@ -10,6 +10,7 @@ import org.bukkit.Location;
 import org.bukkit.Material;
 import org.bukkit.Sound;
 import org.bukkit.World;
+import org.bukkit.entity.Entity;
 import org.bukkit.entity.EntityType;
 import org.bukkit.entity.Firework;
 import org.bukkit.entity.Player;
@@ -175,10 +176,65 @@ final class CosmeticEffects implements Listener {
                 world.spigot().playEffect(at, Effect.EXPLOSION_LARGE, 0, 0, 0.5f, 0.5f, 0.5f, 0f, 3, 64);
                 world.playSound(at, Sound.EXPLODE, 1f, 1.2f);
                 break;
+            case "kill-squid":
+                squidRocket(at);
+                break;
+            case "kill-meteor":
+                meteor(at, 7);
+                break;
             default:
                 world.spigot().playEffect(at, effect.particle(), 0, 0, 0.4f, 0.6f, 0.4f, 0.05f, 25, 64);
                 break;
         }
+    }
+
+    /**
+     * The squid rocket: a squid flies up from where the victim died, trailing flames, and bursts
+     * into a firework. Without a squid (a world that refuses creatures), the flames alone.
+     */
+    private void squidRocket(Location at) {
+        World world = at.getWorld();
+        final Entity squid = world.spawnEntity(at, EntityType.SQUID);
+        world.playSound(at, Sound.FIREWORK_LAUNCH, 1f, 0.8f);
+        final Location[] last = {at.clone()};
+        final int[] ticks = {0};
+        final BukkitTask[] self = new BukkitTask[1];
+        self[0] = plugin.getServer().getScheduler().runTaskTimer(plugin, () -> {
+            Location now = squid.isValid() ? squid.getLocation() : last[0].clone().add(0, 0.5, 0);
+            last[0] = now;
+            if (squid.isValid()) {
+                squid.setVelocity(new org.bukkit.util.Vector(0, 0.55, 0));
+            }
+            now.getWorld().spigot().playEffect(now, Effect.FLAME, 0, 0, 0.15f, 0.1f, 0.15f, 0.02f, 6, 64);
+            now.getWorld().spigot().playEffect(now, Effect.SMOKE, 0, 0, 0.1f, 0.1f, 0.1f, 0.01f, 3, 64);
+            if (++ticks[0] >= 24) {
+                squid.remove();
+                firework(now, FireworkEffect.builder().withColor(org.bukkit.Color.BLACK, org.bukkit.Color.PURPLE)
+                        .with(FireworkEffect.Type.BALL_LARGE).build());
+                self[0].cancel();
+            }
+        }, 1L, 1L);
+    }
+
+    /** A meteor falls from {@code height} blocks up onto this spot in half a second, and blows up there. */
+    private void meteor(final Location at, final int height) {
+        final World world = at.getWorld();
+        final int[] step = {0};
+        final BukkitTask[] self = new BukkitTask[1];
+        world.playSound(at, Sound.GHAST_FIREBALL, 0.8f, 0.6f);
+        self[0] = plugin.getServer().getScheduler().runTaskTimer(plugin, () -> {
+            double y = height * (1 - step[0] / 10.0);
+            Location rock = at.clone().add(-y * 0.4, y, 0);
+            world.spigot().playEffect(rock, Effect.FLAME, 0, 0, 0.2f, 0.2f, 0.2f, 0.02f, 12, 64);
+            world.spigot().playEffect(rock, Effect.LAVA_POP, 0, 0, 0.2f, 0.2f, 0.2f, 0f, 3, 64);
+            world.spigot().playEffect(rock, Effect.LARGE_SMOKE, 0, 0, 0.1f, 0.1f, 0.1f, 0.01f, 3, 64);
+            if (++step[0] > 10) {
+                world.spigot().playEffect(at, Effect.EXPLOSION_HUGE, 0, 0, 0f, 0f, 0f, 0f, 1, 64);
+                world.spigot().playEffect(at, Effect.LAVA_POP, 0, 0, 0.8f, 0.3f, 0.8f, 0f, 20, 64);
+                world.playSound(at, Sound.EXPLODE, 1f, 0.7f);
+                self[0].cancel();
+            }
+        }, 1L, 1L);
     }
 
     /** A firework that bursts at once and hurts nobody (1.8 fireworks do no damage). */
@@ -234,6 +290,21 @@ final class CosmeticEffects implements Listener {
                     double angle = 2 * Math.PI * i / 16 + step * 0.2;
                     Location at = base.clone().add(Math.cos(angle) * 1.2, 0.2, Math.sin(angle) * 1.2);
                     world.spigot().playEffect(at, Effect.FLAME, 0, 0, 0f, 0.1f, 0f, 0.01f, 1, 64);
+                }
+                break;
+            case "win-storm":
+                // Lightning (that hurts nobody) around the winner, once a second.
+                if (step % 4 == 1) {
+                    double angle = step * 1.3;
+                    world.strikeLightningEffect(base.clone().add(Math.cos(angle) * 3, 0, Math.sin(angle) * 3));
+                }
+                world.spigot().playEffect(base.clone().add(0, 2.3, 0), Effect.FIREWORKS_SPARK, 0, 0, 0.6f, 0.2f, 0.6f, 0.05f, 6, 64);
+                break;
+            case "win-meteors":
+                if (step % 2 == 0) {
+                    double angle = step * 2.1;
+                    double away = 2 + (step % 3);
+                    meteor(base.clone().add(Math.cos(angle) * away, 0.2, Math.sin(angle) * away), 9);
                 }
                 break;
             case "win-party":

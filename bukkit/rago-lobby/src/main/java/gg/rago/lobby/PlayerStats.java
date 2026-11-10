@@ -42,6 +42,11 @@ final class PlayerStats {
     /** The colour of name and the badge chosen (/style): null for the rank's, "" for none. */
     private String colourChoice;
     private String badgeChoice;
+    private String plusChoice;
+    /** The XP boosters waiting, the time left of the one running, the day of the last free one. */
+    private int boosters;
+    private long boosterLeftMs;
+    private String boosterDay;
     /** What shows above the name (an id of {@link HeadLines.Shown}, null for the ELO), and the custom message. */
     private String headLine;
     private String headMessage;
@@ -235,11 +240,49 @@ final class PlayerStats {
         return badgeChoice;
     }
 
+    int boosters() {
+        return boosters;
+    }
+
+    void setBoosters(int boosters) {
+        this.boosters = Math.max(0, boosters);
+    }
+
+    /** The play time left of the XP booster running, 0 without one. */
+    long boosterLeftMs() {
+        return boosterLeftMs;
+    }
+
+    void setBoosterLeftMs(long boosterLeftMs) {
+        this.boosterLeftMs = Math.max(0, boosterLeftMs);
+    }
+
+    /** The day ("2026-11-10") of the last free booster of PREMIUM, or null. */
+    String boosterDay() {
+        return boosterDay;
+    }
+
+    void setBoosterDay(String boosterDay) {
+        this.boosterDay = boosterDay;
+    }
+
+    /** The id of the colour of + chosen: null or "" for the white +. */
+    String plusChoice() {
+        return plusChoice;
+    }
+
+    /** The id chosen of this kind of style (see the getters). */
+    String choice(NameStyle.Kind kind) {
+        return kind == NameStyle.Kind.COLOUR ? colourChoice : kind == NameStyle.Kind.BADGE ? badgeChoice : plusChoice;
+    }
+
     void choose(NameStyle.Kind kind, String id) {
         if (kind == NameStyle.Kind.COLOUR) {
             colourChoice = id;
-        } else {
+        } else if (kind == NameStyle.Kind.BADGE) {
             badgeChoice = id;
+        } else {
+            plusChoice = id;
         }
     }
 

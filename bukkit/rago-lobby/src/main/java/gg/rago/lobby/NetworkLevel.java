@@ -1,6 +1,8 @@
 package gg.rago.lobby;
 
+import java.util.ArrayList;
 import java.util.Collections;
+import java.util.List;
 import java.util.Map;
 import java.util.SortedMap;
 import java.util.TreeMap;
@@ -10,7 +12,8 @@ import java.util.TreeMap;
  * every kill a little more. Everyone starts at level 1; going from level n to n + 1 takes
  * {@code firstLevelXp + extraPerLevel * (n - 1)} XP. The level shows as "[12✫]" in the chat,
  * after the name above the head and in the tab list, in the colour of its tier (every 10 levels by
- * default: grey, white, gold, aqua...). Immutable.
+ * default: grey, white, gold, aqua...). A tier of several colours paints the tag in a rainbow, one
+ * colour per character (level 100 by default). Immutable.
  */
 final class NetworkLevel {
 
@@ -18,6 +21,9 @@ final class NetworkLevel {
     static final int MAX_LEVEL = 100;
     /** After the level, as Hypixel shows the Bed Wars stars. */
     static final String STAR = "\u272B";
+
+    /** The colours of level 100: red, gold, yellow, green, aqua, pink, one per character. */
+    static final String RAINBOW = "\u00a7c\u00a76\u00a7e\u00a7a\u00a7b\u00a7d";
 
     static final NetworkLevel DEFAULT = new NetworkLevel(50, 15, 5, 100, 50, defaultColours());
 
@@ -53,7 +59,7 @@ final class NetworkLevel {
         colours.put(70, "\u00a7d");
         colours.put(80, "\u00a79");
         colours.put(90, "\u00a75");
-        colours.put(100, "\u00a7e");
+        colours.put(100, RAINBOW);
         return colours;
     }
 
@@ -107,15 +113,94 @@ final class NetworkLevel {
         return Math.max(0f, Math.min(0.999f, progress));
     }
 
-    /** The colour codes of this level's tier ("§6"), grey below the first tier. */
+    /**
+     * The colour codes of this level's tier ("§6"), grey below the first tier. For a tier of several
+     * colours, its first one (with its formats).
+     */
     String colour(int level) {
-        Map.Entry<Integer, String> entry = colours.floorEntry(level);
-        return entry == null ? "\u00a77" : entry.getValue();
+        String codes = codes(level);
+        List<Character> colours = colourCodes(codes);
+        return colours.size() < 2 ? codes : "\u00a7" + colours.get(0) + formats(codes);
     }
 
     /** "§6[12✫]": the level as the chat and the name tags show it. */
     String tag(int level) {
+        return paint("[" + level + STAR + "]", level);
+    }
+
+    /**
+     * The tag of this level in at most {@code max} characters if it can, for a name tag: a rainbow
+     * too long keeps its brackets in the colours of their neighbours ("§c[1§60§e0§a✫]"), else
+     * becomes the tag in its first colour.
+     */
+    String tag(int level, int max) {
+        String tag = tag(level);
+        if (tag.length() <= max) {
+            return tag;
+        }
+        String codes = codes(level);
+        List<Character> colours = colourCodes(codes);
+        if (colours.size() >= 2) {
+            String inner = level + STAR;
+            String formats = formats(codes);
+            StringBuilder compact = new StringBuilder();
+            for (int i = 0; i < inner.length(); i++) {
+                compact.append('\u00a7').append(colours.get(i % colours.size())).append(formats);
+                if (i == 0) {
+                    compact.append('[');
+                }
+                compact.append(inner.charAt(i));
+            }
+            compact.append(']');
+            if (compact.length() <= max) {
+                return compact.toString();
+            }
+        }
         return colour(level) + "[" + level + STAR + "]";
+    }
+
+    /** This text in the colour of this level's tier: one colour per character for a rainbow. */
+    String paint(String text, int level) {
+        String codes = codes(level);
+        List<Character> colours = colourCodes(codes);
+        if (colours.size() < 2) {
+            return codes + text;
+        }
+        String formats = formats(codes);
+        StringBuilder painted = new StringBuilder();
+        for (int i = 0; i < text.length(); i++) {
+            painted.append('\u00a7').append(colours.get(i % colours.size())).append(formats).append(text.charAt(i));
+        }
+        return painted.toString();
+    }
+
+    private String codes(int level) {
+        Map.Entry<Integer, String> entry = colours.floorEntry(level);
+        return entry == null ? "\u00a77" : entry.getValue();
+    }
+
+    /** The colours (0-9, a-f) of these codes, in order. */
+    static List<Character> colourCodes(String codes) {
+        List<Character> colours = new ArrayList<>();
+        for (int i = 0; i + 1 < codes.length(); i++) {
+            char code = Character.toLowerCase(codes.charAt(i + 1));
+            if (codes.charAt(i) == '\u00a7' && (Character.isDigit(code) || (code >= 'a' && code <= 'f'))) {
+                colours.add(code);
+            }
+        }
+        return colours;
+    }
+
+    /** The formats (bold, italic...) of these codes, as codes. */
+    static String formats(String codes) {
+        StringBuilder formats = new StringBuilder();
+        for (int i = 0; i + 1 < codes.length(); i++) {
+            char code = Character.toLowerCase(codes.charAt(i + 1));
+            if (codes.charAt(i) == '\u00a7' && code >= 'k' && code <= 'o') {
+                formats.append('\u00a7').append(code);
+            }
+        }
+        return formats.toString();
     }
 
     /** The first level of the next tier, or 0 in the last one. */

@@ -11,7 +11,8 @@ import org.bukkit.entity.Player;
 /**
  * The colours of name and the badges (/style, the profile, the shop): how the player looks in the
  * chat, then every colour and every badge, those they own to wear (a click), the others with how
- * to get them: the PREMIUM rank, the store, or a Network level. Main thread only.
+ * to get them: the PREMIUM rank, the store, or a Network level. The colours of the + of
+ * [PREMIUM+] have their own page. Main thread only.
  */
 final class StyleMenu {
 
@@ -61,7 +62,7 @@ final class StyleMenu {
                 look + rank.chatColour() + ": Hello!",
                 "",
                 "Above your head:",
-                rank.prefix() + names.headColour(id) + player.getName() + LobbyScoreboard.suffix(names.badgeAfter(id),
+                names.headPrefix(id) + player.getName() + LobbyScoreboard.suffix(names.badgeAfter(id),
                         " " + book.levels().tag(book.level(id))),
                 "",
                 "Colours of name below, badges",
@@ -109,7 +110,7 @@ final class StyleMenu {
                 break;
             }
             boolean owned = names.owns(profile, style);
-            List<String> lore = listOf("Badge, after your name", "", rank.prefix() + names.name(id, player.getName()) + " "
+            List<String> lore = listOf("Badge, after your name", "", names.prefix(id) + names.name(id, player.getName()) + " "
                     + style.text(), "");
             lore.add(how(style));
             lore.add("");
@@ -119,6 +120,13 @@ final class StyleMenu {
                     (p, right) -> pick(p, style, owned));
         }
 
+        NameStyle plus = names.plus(id);
+        menu.set(46, ClickMenu.item(Material.NETHER_STAR, 0, ChatColor.LIGHT_PURPLE + "Colour of your " + names.plusColour(id) + "+",
+                listOf("The + of " + Ranks.premium().prefix(names.plusColour(id)).trim() + ChatColor.GRAY + ", in the chat,",
+                        "the tab list and above your head.", "",
+                        "Yours: " + (plus == null ? ChatColor.WHITE + "White" : plus.sample()),
+                        rank.hasPlus() ? "" : ChatColor.LIGHT_PURPLE + "It shows with [PREMIUM+].", "",
+                        ChatColor.YELLOW + "Click to choose")), (p, right) -> openPlus(p));
         List<String> store = server.link("boutique");
         menu.set(50, ClickMenu.item(Material.GOLD_INGOT, 0, ChatColor.GOLD + "More colours and badges", listOf(
                 "The gradients and badges marked",
@@ -134,18 +142,65 @@ final class StyleMenu {
         menu.open(player);
     }
 
+    /**
+     * The colours of the + of [PREMIUM+]: white (the default), the bright ones won with the Network
+     * levels, and black, the rarest, bought with Rago Points.
+     */
+    void openPlus(Player player) {
+        NameLooks names = profiles.names();
+        UUID id = player.getUniqueId();
+        PlayerStats profile = profiles.of(player);
+        NameStyle worn = names.plus(id);
+        String name = names.name(id, player.getName());
+        ClickMenu menu = new ClickMenu(4, "Colour of your +");
+        menu.set(4, ClickMenu.item(Material.NETHER_STAR, 0, ChatColor.LIGHT_PURPLE + "Your +", listOf(
+                Ranks.premium().prefix(names.plusColour(id)) + name, "",
+                "White by default, bright colours",
+                "won with the Network levels, and",
+                ChatColor.BLACK + "" + ChatColor.BOLD + "+" + ChatColor.GRAY + " black, the rarest of all.",
+                names.rank(id).hasPlus() ? "" : ChatColor.LIGHT_PURPLE + "It shows with [PREMIUM+].")), null);
+        menu.set(ShopMenu.slotOf(0), ClickMenu.item(Material.WOOL, 0, ChatColor.WHITE + "+ White", listOf("Colour of +", "",
+                Ranks.premium().prefix(RankDef.DEFAULT_PLUS) + name, "", "The colour of every [PREMIUM+]", "",
+                worn == null ? ChatColor.GREEN + "Worn" : ChatColor.YELLOW + "Click to wear")), (p, right) -> {
+                    profiles.wear(p, NameStyle.Kind.PLUS, null);
+                    openPlus(p);
+                });
+        int i = 1;
+        for (NameStyle style : profiles.server().styles(NameStyle.Kind.PLUS)) {
+            if (i >= 14) {
+                break;
+            }
+            boolean owned = names.owns(profile, style);
+            List<String> lore = listOf("Colour of +", "", Ranks.premium().prefix(style.plusColour()) + name, "", how(style), "");
+            lore.add(style == worn ? ChatColor.GREEN + "Worn " + ChatColor.GRAY + "(click to take off)"
+                    : owned ? ChatColor.YELLOW + "Click to wear" : style.obtain() == NameStyle.Obtain.POINTS
+                    ? ChatColor.YELLOW + "Click to buy" : ChatColor.RED + "Locked");
+            menu.set(ShopMenu.slotOf(i++), ClickMenu.item(owned ? Material.WOOL : Material.STAINED_GLASS_PANE,
+                    wool(style.text().charAt(0)), style.sample(), lore), (p, right) -> {
+                        if (owned) {
+                            profiles.wear(p, NameStyle.Kind.PLUS, style);
+                            openPlus(p);
+                        } else {
+                            pick(p, style, false);
+                        }
+                    });
+        }
+        menu.set(31, ClickMenu.back("your colours and badges"), (p, right) -> open(p));
+        menu.open(player);
+    }
+
     /** Wears the style if the player owns it, else tells them how to get it. */
     private void pick(Player player, NameStyle style, boolean owned) {
         if (owned) {
             profiles.wear(player, style.kind(), style);
-            open(player);
+            reopen(player, style);
             return;
         }
         player.closeInventory();
         switch (style.obtain()) {
             case PREMIUM:
                 player.sendMessage(ChatColor.LIGHT_PURPLE + "✦ " + ChatColor.GRAY + "This comes with the "
-                        + ChatColor.LIGHT_PURPLE + "[PREMIUM]" + ChatColor.GRAY + " rank.");
+                        + ChatColor.LIGHT_PURPLE + "[PREMIUM+]" + ChatColor.GRAY + " rank.");
                 tellStore(player, profiles.server().link("boutique"));
                 break;
             case LEVEL:
@@ -164,16 +219,25 @@ final class StyleMenu {
                         "Price: " + ChatColor.GOLD + String.format("%,d", style.price()) + " Rago Points", "",
                         ChatColor.YELLOW + "Click to confirm")), (p, right) -> {
                             profiles.buyStyle(p, style);
-                            open(p);
+                            reopen(p, style);
                         });
                 confirm.set(15, ClickMenu.item(Material.STAINED_CLAY, 14, ChatColor.RED + "Cancel", listOf("Back")),
-                        (p, right) -> open(p));
+                        (p, right) -> reopen(p, style));
                 confirm.open(player);
                 break;
             default:
                 player.sendMessage(ChatColor.GRAY + "This one is sold on the web store.");
                 tellStore(player, profiles.server().link("boutique"));
                 break;
+        }
+    }
+
+    /** Back to the page of this style: the + have their own. */
+    private void reopen(Player player, NameStyle style) {
+        if (style.kind() == NameStyle.Kind.PLUS) {
+            openPlus(player);
+        } else {
+            open(player);
         }
     }
 
@@ -191,7 +255,7 @@ final class StyleMenu {
     private String how(NameStyle style) {
         switch (style.obtain()) {
             case PREMIUM:
-                return ChatColor.LIGHT_PURPLE + "With the [PREMIUM] rank";
+                return ChatColor.LIGHT_PURPLE + "With the [PREMIUM+] rank";
             case LEVEL:
                 int level = rewardLevel.applyAsInt(style.key());
                 return ChatColor.AQUA + "Reward of Network level" + (level > 0 ? " " + level : "s");

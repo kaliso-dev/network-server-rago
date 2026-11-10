@@ -45,9 +45,18 @@ import org.bukkit.event.weather.WeatherChangeEvent;
  */
 final class LobbyListener implements Listener {
 
+    /**
+     * A right click with some items (the fishing rod of the grappling hook) also swings the arm,
+     * which the server reads as a left click in the air: a left click this soon after a right click
+     * is that swing, not a click of the player.
+     */
+    static final long SWING_AFTER_USE_MS = 200L;
+
     private final RagoLobby lobby;
     private final LobbyState state;
     private final Visibility visibility;
+    /** When each player last right clicked with a lobby item. */
+    private final java.util.Map<java.util.UUID, Long> lastUse = new java.util.HashMap<>();
 
     LobbyListener(RagoLobby lobby, LobbyState state, Visibility visibility) {
         this.lobby = lobby;
@@ -68,6 +77,7 @@ final class LobbyListener implements Listener {
     @EventHandler(priority = EventPriority.MONITOR)
     public void onQuit(PlayerQuitEvent event) {
         event.setQuitMessage(null);
+        lastUse.remove(event.getPlayer().getUniqueId());
         lobby.forget(event.getPlayer());
     }
 
@@ -138,10 +148,15 @@ final class LobbyListener implements Listener {
         }
         event.setUseItemInHand(Event.Result.DENY);
         event.setCancelled(true);
+        long now = System.currentTimeMillis();
         if (event.getAction() == Action.RIGHT_CLICK_AIR || event.getAction() == Action.RIGHT_CLICK_BLOCK) {
-            lobby.use(player, item);
+            lastUse.put(player.getUniqueId(), now);
+            if (!lobby.clickBoard(player, false)) {
+                // A right click on a leaderboard goes to the board, not to the item in the hand.
+                lobby.use(player, item);
+            }
         } else if (item.gadget() && (event.getAction() == Action.LEFT_CLICK_AIR || event.getAction() == Action.LEFT_CLICK_BLOCK)
-                && !lobby.aimsAtBoard(player)) {
+                && !swingOfUse(lastUse.get(player.getUniqueId()), now) && !lobby.aimsAtBoard(player)) {
             // A left click on a leaderboard goes to the board (onSwing), not to the gadgets.
             lobby.openGadgets(player);
         }
@@ -150,9 +165,15 @@ final class LobbyListener implements Listener {
     /** Every left click swings the arm, on a block, an entity or the air: a leaderboard aimed at takes it. */
     @EventHandler(priority = EventPriority.LOW)
     public void onSwing(PlayerAnimationEvent event) {
-        if (event.getAnimationType() == PlayerAnimationType.ARM_SWING && state.isProtected(event.getPlayer())) {
+        if (event.getAnimationType() == PlayerAnimationType.ARM_SWING && state.isProtected(event.getPlayer())
+                && !swingOfUse(lastUse.get(event.getPlayer().getUniqueId()), System.currentTimeMillis())) {
             lobby.clickBoard(event.getPlayer(), true);
         }
+    }
+
+    /** True if a swing at {@code now} comes from the right click at {@code used} (null: none). */
+    static boolean swingOfUse(Long used, long now) {
+        return used != null && now - used >= 0 && now - used < SWING_AFTER_USE_MS;
     }
 
     @EventHandler(priority = EventPriority.LOW)

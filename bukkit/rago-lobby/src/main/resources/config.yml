@@ -189,7 +189,8 @@ pnj:
 # 200... by default: about 250,000 XP for the level 100). The level shows as [12*] (a star) before
 # the name in the chat, after it above the head and in the tab list, in the XP bar of the lobby,
 # the scoreboard and the brewing stand of the hotbar (/level). It unlocks the cosmetics of the shop.
-#   couleurs     the colour of the [12*] from each level on, by tier (one or two colour codes)
+#   couleurs     the colour of the [12*] from each level on, by tier (one or two colour codes, or
+#                up to 8 colours for a rainbow, one per character: "&c&6&e&a&b&d")
 #   recompenses  what a level gives (one every 5 levels by default): points (Rago Points) and
 #                objets (cosmetics of the shop by id, colours of name and badges of styles: by key,
 #                couleur-or, badge-centurion). A cosmetic already bought gives its price back.
@@ -210,25 +211,25 @@ niveau:
     70: "&d"
     80: "&9"
     90: "&5"
-    100: "&e"
+    100: "&c&6&e&a&b&d"
   recompenses:
-    5: {points: 500}
+    5: {points: 500, objets: [plus-jaune]}
     10: {objets: [trail-clouds]}
-    15: {points: 1000}
+    15: {points: 1000, objets: [plus-vert]}
     20: {objets: [kill-hearts]}
     25: {objets: [couleur-aqua]}
-    30: {points: 2000}
+    30: {points: 2000, objets: [plus-aqua]}
     35: {objets: [win-fireworks]}
     40: {objets: [trail-notes]}
-    45: {points: 3000}
+    45: {points: 3000, objets: [plus-rouge]}
     50: {points: 5000, objets: [couleur-or]}
     55: {objets: [kill-lightning]}
     60: {objets: [trail-magic]}
-    65: {points: 4000}
+    65: {points: 4000, objets: [plus-or]}
     70: {objets: [win-flames]}
     75: {objets: [kill-firework]}
     80: {points: 5000, objets: [trail-ender]}
-    85: {objets: [win-party]}
+    85: {objets: [win-party, plus-bleu]}
     90: {objets: [kill-explosion]}
     95: {objets: [trail-redstone]}
     100: {points: 10000, objets: [couleur-legende, badge-centurion]}
@@ -256,6 +257,8 @@ quetes:
 # /rank give <player> premium. A player has the permissions of all their ranks, and of the ranks
 # these inherit (herite).
 #   prefixe      before the name ("&c[ADMIN] "): with the colour of the name, 16 characters at most
+#                (above the head, a longer one loses its brackets: [PREMIUM+] shows PREMIUM+). {+}
+#                is a + each player colours in /style (styles.plus), white by default
 #   couleur      the colour of the name
 #   chat         the colour of the messages (a player without a rank writes in grey)
 #   staff        true for a staff rank: never sold
@@ -264,7 +267,9 @@ quetes:
 #                rago.perk.chat (no chat cooldown), rago.perk.fly (/fly in the lobby),
 #                rago.perk.join (the lobby hears the arrival), rago.perk.nick (/nick),
 #                rago.perk.message (a message of one's own above the head), rago.perk.speed
-#                (Speed I, II or III in the lobby, chosen in the settings), or a permission of
+#                (Speed I, II or III in the lobby, chosen in the settings), rago.perk.gadgets (the
+#                gadgets and the rarest cosmetics of PREMIUM), rago.perk.booster (a free XP booster
+#                a day, /booster), or a permission of
 #                another plugin; "-permission" takes one away
 #   herite       the rank whose permissions (and colours, badges, boost) this one also has
 #   boost-xp     the Network XP of its players is multiplied by this (1.5: half more)
@@ -316,17 +321,20 @@ rangs:
     herite: premium
     avantages: ["For content creators", "Everything of PREMIUM"]
   premium:
-    prefixe: "&d[PREMIUM] "
+    prefixe: "&d[PREMIUM{+}] "
     couleur: "&d"
-    permissions: [rago.perk.chat, rago.perk.fly, rago.perk.join, rago.perk.nick, rago.perk.message, rago.perk.speed]
+    permissions: [rago.perk.chat, rago.perk.fly, rago.perk.join, rago.perk.nick, rago.perk.message, rago.perk.speed,
+      rago.perk.gadgets, rago.perk.booster]
     boost-xp: 1.5
     style: rose
     badge: premium
     boutique-en-ligne: true
     icone: NETHER_STAR
-    avantages: ["A pink gradient name and the &d&l✦&7 badge", "+50% Network XP in every game", "/fly in the lobby",
+    avantages: ["A pink gradient name and the &d&l✦&7 badge", "Your &f+&7 in the colour you choose (/style)", "+50% Network XP in every game", "/fly in the lobby",
       "Speed I, II or III in the lobby (settings)", "/nick: play under another name", "Your own message above your head", "Your arrival announced, with a firework",
-      "White messages, no chat cooldown"]
+      "White messages, no chat cooldown", "Gadgets of your own: bat blaster, explosive sheep, disco ball",
+      "A free XP booster every day (x2 XP for 30 minutes)",
+      "The rarest kill effects and victory dances"]
 
 # The colours of name and the badges (/style). A colour is a gradient along the letters of the
 # name, made of the 16 colours of 1.8 (degrade: the colour characters from the first letter to the
@@ -367,6 +375,15 @@ styles:
     pvp: {nom: "PVP", texte: "&4&lPVP", obtention: achat}
     yt: {nom: "YT", texte: "&c&lYT", obtention: achat}
     centurion: {nom: "Centurion", texte: "&e&l✫100", obtention: niveau}
+  # The colours of the + of [PREMIUM+] (white without one): couleur, one colour character.
+  plus:
+    noir: {nom: "Black", couleur: "0", obtention: points, prix: 50000}
+    jaune: {nom: "Yellow", couleur: "e", obtention: niveau}
+    vert: {nom: "Green", couleur: "a", obtention: niveau}
+    aqua: {nom: "Aqua", couleur: "b", obtention: niveau}
+    rouge: {nom: "Red", couleur: "c", obtention: niveau}
+    or: {nom: "Gold", couleur: "6", obtention: niveau}
+    bleu: {nom: "Blue", couleur: "9", obtention: niveau}
 
 # The ELO of the ranked modes, by division as on the Ranked Bedwars servers: everyone starts at 0,
 # a division from its elo up to the next one's. A win gives "victoire" ELO and a loss takes
@@ -440,6 +457,11 @@ annonces:
     - "&bAdd your friends with /friend add <name>, and play with them in a /party."
     - "&bClimb the ranked divisions, from Coal to Obsidian: /top elo."
     - "&bNews, store and more on &frago-optimizer.com&b."
+    - "&a&lSHOP &8» &fRanks, cosmetics and the colour of your &d+&f: &a/shop"
+    - "&d&lPREMIUM &8» &f+50% XP, /fly, the &d+&f and gadgets of its own: &drago-optimizer.com"
+    - "&b&lRAGO OPTIMIZER &8» &fGet Rago Optimizer on &brago-optimizer.com"
+    - "&a&lSHOP &8» &fEvery game gives Rago Points: spend them in the &a/shop&f."
+    - "&b&lRAGO OPTIMIZER &8» &fNews and downloads: &brago-optimizer.com"
 
 # What /discord, /site, /rules and /store show (one line or a list).
 liens:
@@ -465,8 +487,8 @@ liens:
 #     elo        the ELO of a ranked mode
 # A click on a board changes its period (daily, weekly, lifetime) for the one who clicks; on an elo
 # board, it changes the ranked mode (1v1, 2v2, 3v3, 4v4).
-# A board can group several leaderboards in brackets, for example [elo, kills, niveau]: a right
-# click goes to the next one, a left click changes the period or the ranked mode.
+# A board can group several leaderboards in brackets, for example [elo, kills, niveau]: a click on
+# it goes to the next one, a click on its last line changes the period or the ranked mode.
 #   podium    the steps of a podium (optional, up to 5, the first place first): on each one stands
 #             the player at that place of the first board, in their skin, with their name and score
 #             above. Each player sees the top of what they read on the board (ELO, kills or level,

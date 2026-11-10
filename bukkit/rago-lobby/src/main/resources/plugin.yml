@@ -100,6 +100,10 @@ commands:
     description: The daily and weekly quests.
     usage: /quests
     aliases: [quetes, quest]
+  booster:
+    description: Your XP boosters (x2 Network XP for 30 minutes of play); the admins and the web store give them.
+    usage: /booster, /booster on, or (admin, console) /booster give <player> [count]
+    aliases: [boosters, xpbooster]
   style:
     description: Your colour of name and badge; the admins and the web store give and take them.
     usage: /style, or (admin, console) /style <give|take> <player> <couleur-feu|badge-rago>, /style list

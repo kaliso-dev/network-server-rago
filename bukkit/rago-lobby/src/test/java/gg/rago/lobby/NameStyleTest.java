@@ -65,8 +65,14 @@ class NameStyleTest {
                 assertTrue(style.text().length() <= NameStyle.MAX_BADGE, style.key());
             } else {
                 assertTrue(NameStyle.isStops(style.text()), style.key());
-                // the rank prefix and the colour above the head fit in a team prefix
-                assertTrue((Ranks.premium().prefix() + style.mainColour()).length() <= RankDef.MAX_PREFIX, style.key());
+                // the rank prefix (its + coloured) and the colour above the head fit in a team prefix
+                String plus = style.kind() == NameStyle.Kind.PLUS ? style.plusColour() : RankDef.DEFAULT_PLUS;
+                String colour = style.kind() == NameStyle.Kind.PLUS ? "§d" : style.mainColour();
+                String head = Ranks.premium().headPrefix(plus, colour);
+                // (a bold colour of name loses its bold there: "§dPREMIUM§f+ §6" leaves no room for it)
+                assertTrue(head.length() <= RankDef.MAX_PREFIX && head.endsWith(colour.substring(0, 2))
+                        || head.endsWith(colour), style.key() + ": " + head);
+                assertEquals("PREMIUM+ ", ChatColor.stripColor(head), style.key());
             }
         }
         assertTrue(badges.containsAll(java.util.Arrays.asList("RAGO", "BETTER", "PVP", "YT")), badges.toString());
@@ -99,7 +105,17 @@ class NameStyleTest {
         PlayerStats alice = book.profile(ALICE, "Alice");
         PlayerStats bob = book.profile(BOB, "Bob");
         alice.boughtRanks().add("premium");
-        assertEquals("§d[PREMIUM] " + NameStyle.gradient("Alice", "5ddfd", false), names.display(ALICE, "Alice"));
+        assertEquals("§d[PREMIUM§f+§d] " + NameStyle.gradient("Alice", "5ddfd", false), names.display(ALICE, "Alice"));
+        assertEquals("§dPREMIUM§f+ §d", names.headPrefix(ALICE), "above the head, without the brackets");
+        NameStyle black = server.style(NameStyle.Kind.PLUS, "noir");
+        assertEquals(NameStyle.Obtain.POINTS, black.obtain());
+        assertTrue(!names.owns(alice, black), "the black + is bought");
+        alice.cosmetics().add(black.key());
+        alice.choose(NameStyle.Kind.PLUS, "noir");
+        assertEquals("§d[PREMIUM§0+§d] " + NameStyle.gradient("Alice", "5ddfd", false), names.display(ALICE, "Alice"));
+        assertEquals("§dPREMIUM§0+ §d", names.headPrefix(ALICE));
+        alice.choose(NameStyle.Kind.PLUS, "");
+        assertEquals("§f", names.plusColour(ALICE), "white again");
         assertEquals(" §d§l✦", names.badgeAfter(ALICE));
         assertEquals("§d", names.headColour(ALICE));
         assertEquals("§7Bob", names.display(BOB, "Bob"));

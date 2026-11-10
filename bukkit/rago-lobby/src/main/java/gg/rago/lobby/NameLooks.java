@@ -60,12 +60,33 @@ final class NameLooks {
         return nick(player) != null ? Ranks.DEFAULT : rank(player);
     }
 
-    /** The prefix of the name above the head: the rank and the colour of the name. */
+    /** The prefix of the name above the head: the rank (its + coloured) and the colour of the name. */
     String headPrefix(UUID player) {
         if (nick(player) != null) {
             return Ranks.DEFAULT.tagPrefix();
         }
-        return rank(player).prefix() + headColour(player);
+        return rank(player).headPrefix(plusColour(player), headColour(player));
+    }
+
+    /** The rank's prefix with the player's colour of + ("§d[PREMIUM§0+§d] "), "" without a rank. */
+    String prefix(UUID player) {
+        return rank(player).prefix(plusColour(player));
+    }
+
+    /** {@link #prefix}, the plain one of the default rank for a nicked player. */
+    String shownPrefix(UUID player) {
+        return nick(player) != null ? Ranks.DEFAULT.prefix() : prefix(player);
+    }
+
+    /** The colour codes of the player's + (white if they wear no colour of +). */
+    String plusColour(UUID player) {
+        NameStyle plus = worn(player, NameStyle.Kind.PLUS);
+        return plus == null ? RankDef.DEFAULT_PLUS : plus.plusColour();
+    }
+
+    /** The colour of + the player wears, or null for the white one. */
+    NameStyle plus(UUID player) {
+        return worn(player, NameStyle.Kind.PLUS);
     }
 
     /** The Network level the others see: 1 for a nicked player. */
@@ -100,8 +121,8 @@ final class NameLooks {
             return null;
         }
         RankDef rank = rank(player);
-        String chosen = kind == NameStyle.Kind.COLOUR ? profile.colourChoice() : profile.badgeChoice();
-        String given = kind == NameStyle.Kind.COLOUR ? rank.style() : rank.badge();
+        String chosen = profile.choice(kind);
+        String given = kind == NameStyle.Kind.COLOUR ? rank.style() : kind == NameStyle.Kind.BADGE ? rank.badge() : null;
         return wear(chosen, given, id -> server.style(kind, id), style -> owns(profile, style));
     }
 
@@ -136,9 +157,9 @@ final class NameLooks {
         return colour != null ? colour.apply(plain, phase) : rank(player).nameColour() + plain;
     }
 
-    /** "§d[PREMIUM] §5So§dfi§fene": the rank and the name, as the messages show a player. */
+    /** "§d[PREMIUM§f+§d] §5So§dfi§fene": the rank and the name, as the messages show a player. */
     String display(UUID player, String plain) {
-        return rank(player).prefix() + name(player, plain);
+        return prefix(player) + name(player, plain);
     }
 
     /** " §d§l✦": the badge after the name, or "" without one. */

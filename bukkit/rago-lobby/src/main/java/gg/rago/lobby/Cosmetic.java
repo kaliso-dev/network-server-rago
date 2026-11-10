@@ -11,8 +11,9 @@ import org.bukkit.Material;
 /**
  * A cosmetic of the shop, bought with Rago Points once a player reaches its Network level: a trail
  * behind their projectiles, an effect where their victims die, or an effect around them when they
- * win. A player equips one of each type. The catalogue is the plugin's own; config.yml (boutique:)
- * may change the price and the level of each. Immutable.
+ * win. A player equips one of each type. The rarest are PREMIUM's: its players own them, nobody
+ * buys them. The catalogue is the plugin's own; config.yml (boutique:) may change the price and the
+ * level of each. Immutable.
  */
 final class Cosmetic {
 
@@ -67,8 +68,14 @@ final class Cosmetic {
     private final Effect particle;
     private final int price;
     private final int level;
+    private final boolean premium;
 
     Cosmetic(String id, Type type, String name, Material icon, Effect particle, int price, int level) {
+        this(id, type, name, icon, particle, price, level, false);
+    }
+
+    Cosmetic(String id, Type type, String name, Material icon, Effect particle, int price, int level, boolean premium) {
+        this.premium = premium;
         this.id = id;
         this.type = type;
         this.name = name;
@@ -107,9 +114,14 @@ final class Cosmetic {
         return level;
     }
 
+    /** True for a cosmetic of PREMIUM: owned with the rank (rago.perk.gadgets), never sold. */
+    boolean premium() {
+        return premium;
+    }
+
     /** The same cosmetic at another price and level. */
     Cosmetic priced(int newPrice, int newLevel) {
-        return new Cosmetic(id, type, name, icon, particle, newPrice, newLevel);
+        return new Cosmetic(id, type, name, icon, particle, newPrice, newLevel, premium);
     }
 
     /** The plugin's catalogue, by id, in the order of the shop. */
@@ -133,6 +145,11 @@ final class Cosmetic {
         all.add(new Cosmetic("win-fireworks", Type.WIN, "Fireworks", Material.FIREWORK, Effect.FIREWORKS_SPARK, 5_000, 10));
         all.add(new Cosmetic("win-flames", Type.WIN, "Ring of fire", Material.BLAZE_POWDER, Effect.FLAME, 6_000, 20));
         all.add(new Cosmetic("win-party", Type.WIN, "Party", Material.JUKEBOX, Effect.NOTE, 8_000, 30));
+        // The rarest, PREMIUM's.
+        all.add(new Cosmetic("kill-squid", Type.KILL, "Squid rocket", Material.INK_SACK, Effect.FLAME, 0, 1, true));
+        all.add(new Cosmetic("kill-meteor", Type.KILL, "Meteor strike", Material.FIREBALL, Effect.LAVA_POP, 0, 1, true));
+        all.add(new Cosmetic("win-storm", Type.WIN, "Thunder god", Material.GOLD_AXE, Effect.FIREWORKS_SPARK, 0, 1, true));
+        all.add(new Cosmetic("win-meteors", Type.WIN, "Meteor shower", Material.MAGMA_CREAM, Effect.FLAME, 0, 1, true));
         Map<String, Cosmetic> byId = new LinkedHashMap<>();
         for (Cosmetic cosmetic : all) {
             byId.put(cosmetic.id(), cosmetic);

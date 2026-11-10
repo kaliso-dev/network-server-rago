@@ -115,14 +115,25 @@ dans les files d'attente des modes de jeu.
 - **Les rangs.** Huit rangs dans `rangs:` (OWNER, ADMIN, DEV, MOD, HELPER, BUILDER, MEDIA et
   PREMIUM), chacun avec son préfixe, la couleur du pseudo, la couleur du chat, ses permissions et
   le rang dont il hérite. Un joueur montre le plus haut de ses rangs, dans le chat
-  (`[12✫] [PREMIUM] Pseudo ✦: message`), au-dessus de la tête et dans le Tab (les plus hauts rangs
+  (`[12✫] [PREMIUM+] Pseudo ✦: message`), au-dessus de la tête et dans le Tab (les plus hauts rangs
   en premier). Les rangs du staff se donnent avec `/rank set`.
 - **Le rang PREMIUM.** Le seul rang à acheter, sur la boutique en ligne (rago-optimizer.com) :
   la boutique du jeu montre ce qu'il donne et le lien, la boutique en ligne le donne depuis la
   console avec `/rank give <joueur> premium`. Il donne un pseudo en dégradé rose et le badge
   `✦`, +50 % d'XP Network (`boost-xp: 1.5`), `/fly` au lobby, `/nick`, un message à soi
-  au-dessus de la tête, l'arrivée annoncée avec un feu d'artifice, des messages blancs sans délai.
-  Le staff et MEDIA en héritent.
+  au-dessus de la tête, l'arrivée annoncée avec un feu d'artifice, des messages blancs sans délai,
+  trois gadgets à lui (bat blaster, mouton explosif, boule disco : `rago.perk.gadgets`), les effets
+  de kill et de victoire les plus rares (squid rocket, météore, dieu du tonnerre, pluie de météores)
+  et un booster d'XP gratuit par jour (`rago.perk.booster`). Le staff et MEDIA en héritent.
+- **Le + de [PREMIUM+].** Le `{+}` d'un préfixe (`prefixe: "&d[PREMIUM{+}] "`) est un + que chaque
+  joueur colore dans `/style` (« Colour of your + ») : blanc par défaut, six couleurs vives en
+  récompense de niveau (`plus-jaune` au niveau 5... `plus-bleu` au 85), et le noir, le plus rare, à
+  50 000 Rago Points (`styles.plus`). Au-dessus de la tête, où une équipe 1.8 n'a que 16
+  caractères, le préfixe perd ses crochets : `PREMIUM+ Pseudo`.
+- **Les boosters d'XP (`/booster`).** Un booster double l'XP Network pendant 30 minutes de jeu (le
+  temps ne passe qu'en partie), en plus du boost du rang. Il s'achète 2 500 Rago Points dans la
+  boutique, les [PREMIUM+] en ont un gratuit par jour, et la boutique en ligne en donne avec
+  `/booster give <joueur> [nombre]`. Un seul à la fois.
 - **La ligne au-dessus du pseudo (`/display`).** Au lobby, chaque joueur a une ligne au-dessus
   de son pseudo, qu'il choisit : son ELO classé (par défaut, « Unranked » sans partie classée),
   son niveau, ses victoires, ses kills, sa meilleure série, un message à lui (PREMIUM :
@@ -215,7 +226,9 @@ commentaires de `config.yml`. Les mots français de la première version (`quitt
 | `/stats [joueur]`, `/top elo\|level\|wins\|kills\|streak\|games\|points [mode]` | les stats, les meilleurs | tout le monde |
 | `/report <joueur> <raison>`, `/discord`, `/rules`, `/site`, `/store` | signaler un joueur, les liens | tout le monde |
 | `/fly` | voler dans le lobby | `rago.perk.fly` (PREMIUM) |
-| `/style` (ou `/couleur`, `/badge`) | choisir sa couleur de pseudo et son badge | tout le monde |
+| `/style` (ou `/couleur`, `/badge`) | choisir sa couleur de pseudo, son badge et la couleur de son + | tout le monde |
+| `/booster`, `/booster on` | ses boosters d'XP, en lancer un | tout le monde |
+| `/booster give <joueur> [nombre]` | donner des boosters (la boutique en ligne, depuis la console) | `rago.admin` |
 | `/level` (ou `/niveau`), `/quests` (ou `/quetes`) | son niveau et ses récompenses, les quêtes | tout le monde |
 | `/display <elo\|level\|wins\|kills\|streak\|none>` | la ligne au-dessus de son pseudo | tout le monde |
 | `/display message <texte>` | son propre message au-dessus du pseudo | `rago.perk.message` (PREMIUM) |

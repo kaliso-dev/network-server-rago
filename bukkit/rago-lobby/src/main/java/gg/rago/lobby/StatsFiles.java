@@ -69,6 +69,14 @@ final class StatsFiles {
         if (stats.badgeChoice() != null) {
             yaml.set("profil.style.badge", stats.badgeChoice());
         }
+        if (stats.plusChoice() != null) {
+            yaml.set("profil.style.plus", stats.plusChoice());
+        }
+        if (stats.boosters() > 0 || stats.boosterLeftMs() > 0 || stats.boosterDay() != null) {
+            yaml.set("profil.boosters.nombre", stats.boosters());
+            yaml.set("profil.boosters.reste-ms", stats.boosterLeftMs());
+            yaml.set("profil.boosters.jour-gratuit", stats.boosterDay());
+        }
         if (stats.headLine() != null) {
             yaml.set("profil.tete.affichage", stats.headLine());
         }
@@ -207,6 +215,10 @@ final class StatsFiles {
         stats.setDaily(yaml.getString("profil.quotidien.date", ""), yaml.getInt("profil.quotidien.serie"));
         stats.choose(NameStyle.Kind.COLOUR, yaml.getString("profil.style.couleur", null));
         stats.choose(NameStyle.Kind.BADGE, yaml.getString("profil.style.badge", null));
+        stats.choose(NameStyle.Kind.PLUS, yaml.getString("profil.style.plus", null));
+        stats.setBoosters(yaml.getInt("profil.boosters.nombre", 0));
+        stats.setBoosterLeftMs(yaml.getLong("profil.boosters.reste-ms", 0L));
+        stats.setBoosterDay(yaml.getString("profil.boosters.jour-gratuit", null));
         stats.setHeadLine(yaml.getString("profil.tete.affichage", null));
         stats.setHeadMessage(yaml.getString("profil.tete.message", null));
         stats.setNick(yaml.getString("profil.nick", null));

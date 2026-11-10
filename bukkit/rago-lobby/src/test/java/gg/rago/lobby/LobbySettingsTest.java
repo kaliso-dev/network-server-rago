@@ -196,6 +196,9 @@ class LobbySettingsTest {
         assertInvalid("niveau:\n  couleurs:\n    un: '&a'\nmodes:\n  sumo: {}\n", "niveau.couleurs.un");
         assertInvalid("niveau:\n  couleurs:\n    0: '&a'\nmodes:\n  sumo: {}\n", "niveau.couleurs.0");
         assertInvalid("niveau:\n  couleurs:\n    5: '&a[VIP]'\nmodes:\n  sumo: {}\n", "niveau.couleurs.5");
+        assertInvalid("niveau:\n  couleurs:\n    5: '&l&o&n'\nmodes:\n  sumo: {}\n", "niveau.couleurs.5");
+        assertEquals("§c§6§e", LobbySettings.load(yaml("niveau:\n  couleurs:\n    100: '&c&6&e'\nmodes:\n  sumo: {}\n"))
+                .levels().colours().get(100), "a rainbow of three colours");
     }
 
     @Test

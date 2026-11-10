@@ -26,6 +26,12 @@ final class ShopMenu {
         this.styles = styles;
     }
 
+    private XpBoosters boosters;
+
+    void setBoosters(XpBoosters boosters) {
+        this.boosters = boosters;
+    }
+
     /** The main page: the player's points, then the ranks and each type of cosmetic. */
     void open(Player player) {
         PlayerStats profile = profiles.of(player);
@@ -60,7 +66,7 @@ final class ShopMenu {
             int owned = 0;
             List<Cosmetic> all = profiles.server().cosmetics(type);
             for (Cosmetic cosmetic : all) {
-                if (profile.cosmetics().contains(cosmetic.id())) {
+                if (profiles.owns(player, cosmetic)) {
                     owned++;
                 }
             }
@@ -94,6 +100,18 @@ final class ShopMenu {
                     profiles.claimDaily(p);
                     open(p);
                 });
+        if (boosters != null) {
+            long left = profile.boosterLeftMs();
+            menu.set(33, ClickMenu.item(Material.EXP_BOTTLE, ChatColor.AQUA + "XP boosters",
+                    "x2 Network XP for 30 minutes", "of play, for " + ChatColor.GOLD + String.format("%,d", XpBoosters.PRICE)
+                            + " Rago Points" + ChatColor.GRAY + ".",
+                    ChatColor.LIGHT_PURPLE + "[PREMIUM+]" + ChatColor.GRAY + ": one free every day.",
+                    "",
+                    "Yours: " + ChatColor.GREEN + profile.boosters() + (left > 0 ? ChatColor.GRAY + ", one running ("
+                            + ChatColor.AQUA + XpBoosters.clock(left) + ChatColor.GRAY + ")" : ""),
+                    "",
+                    ChatColor.YELLOW + "Click to see them"), (p, right) -> boosters.open(p));
+        }
         menu.open(player);
     }
 
@@ -202,12 +220,15 @@ final class ShopMenu {
         String worn = profile.equipped(type);
         for (int i = 0; i < all.size(); i++) {
             final Cosmetic cosmetic = all.get(i);
-            final boolean owned = profile.cosmetics().contains(cosmetic.id());
+            final boolean owned = profiles.owns(player, cosmetic);
             boolean equipped = owned && cosmetic.id().equals(worn);
             List<String> lore = new ArrayList<>();
             lore.add(type.title().substring(0, type.title().length() - 1));
             lore.add("");
-            if (!owned) {
+            if (cosmetic.premium()) {
+                lore.add(ChatColor.LIGHT_PURPLE + "✦ One of the rarest: [PREMIUM+] only");
+                lore.add("");
+            } else if (!owned) {
                 lore.add("Price: " + ChatColor.GOLD + String.format("%,d", cosmetic.price()) + " Rago Points");
                 lore.add("Level needed: " + book.levels().tag(cosmetic.level()));
                 lore.add("");
@@ -216,6 +237,8 @@ final class ShopMenu {
                 lore.add(ChatColor.GREEN + "Equipped " + ChatColor.GRAY + "(click to take off)");
             } else if (owned) {
                 lore.add(ChatColor.YELLOW + "Click to equip");
+            } else if (cosmetic.premium()) {
+                lore.add(ChatColor.RED + "Locked " + ChatColor.GRAY + "(click for the store)");
             } else if (level < cosmetic.level()) {
                 lore.add(ChatColor.RED + "Unlocks at level " + cosmetic.level());
             } else if (profile.points() < cosmetic.price()) {
@@ -223,11 +246,15 @@ final class ShopMenu {
             } else {
                 lore.add(ChatColor.YELLOW + "Click to buy");
             }
-            String name = (equipped ? ChatColor.GREEN : owned ? ChatColor.YELLOW : ChatColor.WHITE) + cosmetic.name();
+            String name = (equipped ? ChatColor.GREEN : owned ? ChatColor.YELLOW : ChatColor.WHITE) + cosmetic.name()
+                    + (cosmetic.premium() ? " " + ChatColor.LIGHT_PURPLE + "✦" : "");
             menu.set(slotOf(i), ClickMenu.item(cosmetic.icon(), 0, name, lore), (p, right) -> {
                 if (owned) {
                     profiles.equip(p, cosmetic);
                     openType(p, type);
+                } else if (cosmetic.premium()) {
+                    p.closeInventory();
+                    profiles.buyCosmetic(p, cosmetic);
                 } else {
                     confirm(p, cosmetic.name(), cosmetic.price(), () -> profiles.buyCosmetic(p, cosmetic),
                             () -> openType(p, type));

@@ -88,31 +88,27 @@ final class LevelRewards {
     /** One reward every 5 levels, up to the level 100. */
     static LevelRewards defaults() {
         List<Reward> all = new ArrayList<>();
-        all.add(points(5, 500));
+        all.add(items(5, 500, "plus-jaune"));
         all.add(items(10, 0, "trail-clouds"));
-        all.add(points(15, 1_000));
+        all.add(items(15, 1_000, "plus-vert"));
         all.add(items(20, 0, "kill-hearts"));
         all.add(items(25, 0, "couleur-aqua"));
-        all.add(points(30, 2_000));
+        all.add(items(30, 2_000, "plus-aqua"));
         all.add(items(35, 0, "win-fireworks"));
         all.add(items(40, 0, "trail-notes"));
-        all.add(points(45, 3_000));
+        all.add(items(45, 3_000, "plus-rouge"));
         all.add(items(50, 5_000, "couleur-or"));
         all.add(items(55, 0, "kill-lightning"));
         all.add(items(60, 0, "trail-magic"));
-        all.add(points(65, 4_000));
+        all.add(items(65, 4_000, "plus-or"));
         all.add(items(70, 0, "win-flames"));
         all.add(items(75, 0, "kill-firework"));
         all.add(items(80, 5_000, "trail-ender"));
-        all.add(items(85, 0, "win-party"));
+        all.add(items(85, 0, "win-party", "plus-bleu"));
         all.add(items(90, 0, "kill-explosion"));
         all.add(items(95, 0, "trail-redstone"));
         all.add(items(100, 10_000, "couleur-legende", "badge-centurion"));
         return new LevelRewards(all);
-    }
-
-    private static Reward points(int level, int points) {
-        return new Reward(level, points, Collections.<String>emptyList());
     }
 
     private static Reward items(int level, int points, String... items) {

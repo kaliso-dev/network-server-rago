@@ -73,7 +73,7 @@ class NetworkFeaturesTest {
         assertEquals(Collections.singletonList("premium"), shown, "one rank to buy");
         assertTrue(ranks.position(ranks.get("owner")) < ranks.position(ranks.get("premium")));
         assertEquals(ranks.all().size(), ranks.position(Ranks.DEFAULT), "no rank comes last");
-        assertEquals("PREMIUM", ranks.get("premium").displayName());
+        assertEquals("PREMIUM+", ranks.get("premium").displayName());
         assertEquals(1.5, ranks.xpBoost(null, Collections.singletonList("premium")), 1e-9);
         assertEquals(1.5, ranks.xpBoost("mod", Collections.<String>emptyList()), 1e-9, "inherited");
         assertEquals(1.0, ranks.xpBoost(null, Collections.<String>emptyList()), 1e-9);
@@ -216,7 +216,7 @@ class NetworkFeaturesTest {
         assertEquals(35, settings.elo().after(0, true, false));
         assertEquals(5, settings.elo().mvpBonus());
         assertEquals(20, settings.points().win);
-        assertEquals(18, settings.cosmetics().size());
+        assertEquals(22, settings.cosmetics().size());
         assertEquals(8, settings.cosmetics(Cosmetic.Type.TRAIL).size());
         assertEquals(2000L, settings.chatCooldownMillis());
         assertTrue(settings.blockRepeats());

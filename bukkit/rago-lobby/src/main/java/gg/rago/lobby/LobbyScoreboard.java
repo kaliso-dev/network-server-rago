@@ -26,7 +26,7 @@ import org.bukkit.scoreboard.Team;
  * player in a team of their own, whose prefix shows their rank (in a game: their team, as the game
  * says) and whose suffix shows their badge and Network level, above their head: "§c[ADMIN] §cSofiene
  * §6[12✫]" (a name takes one colour there: the middle one of a gradient). In the lobby the tab list
- * shows the whole look, the gradient too: "§6[12✫] §d[PREMIUM] §5So§dfi§fene §d§l✦". The tab list
+ * shows the whole look, the gradient too: "§6[12✫] §d[PREMIUM§f+§d] §5So§dfi§fene §d§l✦". The tab list
  * sorts the teams by name: the players of a game first, then the highest ranks. In a game, the
  * sidebar shows the mode and the player's ping, and in a 1v1 the opponent and their ping; a game
  * that gives its own lines and shows no ping gets them after its lines. And in a game, the health
@@ -246,10 +246,12 @@ final class LobbyScoreboard {
                 number = numbers.size();
                 numbers.put(id, number);
             }
-            String level = " " + levels.tag(names.shownLevel(id));
-            boolean hidden = other.hasPotionEffect(PotionEffectType.INVISIBILITY);
+            String badge = names.shownBadge(id);
             String game = gamePrefixes.get(id);
-            String suffix = game != null ? fit(level) : suffix(names.shownBadge(id), level);
+            // A rainbow level (100) in its first colour when it does not fit after the badge.
+            String level = " " + levels.tag(names.shownLevel(id), MAX_TEAM - 1 - (game != null ? 0 : badge.length()));
+            boolean hidden = other.hasPotionEffect(PotionEffectType.INVISIBILITY);
+            String suffix = game != null ? fit(level) : suffix(badge, level);
             listName(other, game != null ? null : levels.tag(names.shownLevel(id)) + " " + names.shown(id, other.getName())
                     + names.shownBadge(id));
             if (game != null) {
@@ -437,7 +439,8 @@ final class LobbyScoreboard {
         int xp = stats == null ? 0 : stats.xp();
         int level = levels.level(xp);
         RankDef rank = NetworkRanks.rankOf(book, ranks, player.getUniqueId());
-        lines.add(cut(ChatColor.WHITE + "Rank: " + (rank == Ranks.DEFAULT ? ChatColor.GRAY + "Default" : rank.prefix().trim())));
+        lines.add(cut(ChatColor.WHITE + "Rank: " + (rank == Ranks.DEFAULT ? ChatColor.GRAY + "Default"
+                : rank.prefix(names.plusColour(player.getUniqueId())).trim())));
         lines.add(ChatColor.WHITE + "Rago Level: " + levels.tag(level));
         lines.add(ChatColor.WHITE + "Progress: " + ChatColor.AQUA
                 + (level >= NetworkLevel.MAX_LEVEL ? "max" : percent(levels.progress(xp))));

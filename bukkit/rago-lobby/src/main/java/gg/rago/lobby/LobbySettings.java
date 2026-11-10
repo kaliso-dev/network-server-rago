@@ -348,13 +348,20 @@ final class LobbySettings {
                             + " from 1 to " + NetworkLevel.MAX_LEVEL);
                 }
                 String colour = colour(list.getString(key, ""));
-                if (!isColourCodes(colour)) {
-                    throw new IllegalArgumentException("niveau.couleurs." + key + ": one or two colour codes, such as &6 or &6&l");
+                if (!isColourCodes(colour) && !isRainbow(colour)) {
+                    throw new IllegalArgumentException("niveau.couleurs." + key + ": one or two colour codes, such as &6 or &6&l,"
+                            + " or up to 8 colours for a rainbow, such as &c&6&e&a&b&d");
                 }
                 colours.put(level, colour);
             }
         }
         return new NetworkLevel(win, loss, kill, first, extra, colours);
+    }
+
+    /** True for 2 to 8 colours, with a format or two: a rainbow ("§c§6§e§a§b§d"). */
+    static boolean isRainbow(String text) {
+        return text.matches("(\u00a7[0-9a-fk-or]){2,10}") && NetworkLevel.colourCodes(text).size() >= 2
+                && NetworkLevel.colourCodes(text).size() <= 8;
     }
 
     /** True for one or two colour or format codes, and nothing else ("§6", "§6§l"). */

@@ -252,9 +252,10 @@ final class ServerSettings {
             if (!LobbySettings.isColourCodes(colour)) {
                 throw new IllegalArgumentException(where + ".couleur: one or two colour codes, such as &c or &c&l");
             }
-            if ((prefix + colour).length() > RankDef.MAX_PREFIX) {
+            if (!RankDef.fitsHead(prefix, colour)) {
                 throw new IllegalArgumentException(where + ".prefixe: the prefix and the colour of the name are "
-                        + RankDef.MAX_PREFIX + " characters at most, colour codes included");
+                        + RankDef.MAX_PREFIX + " characters at most, colour codes included (without the brackets if"
+                        + " needed: above the head, [PREMIUM+] shows as PREMIUM+)");
             }
             String chat = LobbySettings.colour(rank.getString("chat", "&f"));
             if (!LobbySettings.isColourCodes(chat)) {
@@ -311,8 +312,9 @@ final class ServerSettings {
     // --- Styles ---------------------------------------------------------------------------------
 
     /**
-     * styles: the colours of name (couleurs: nom, degrade, gras, obtention) and the badges (badges:
-     * nom, texte, obtention). A list left out is the plugin's own.
+     * styles: the colours of name (couleurs: nom, degrade, gras, obtention), the badges (badges:
+     * nom, texte, obtention) and the colours of the + of [PREMIUM+] (plus: nom, couleur, obtention).
+     * A list left out is the plugin's own.
      */
     private static Map<String, NameStyle> readStyles(ConfigurationSection section) {
         Map<String, NameStyle> catalogue = NameStyle.catalogue();
@@ -346,7 +348,13 @@ final class ServerSettings {
                     throw new IllegalArgumentException(where + ".prix: the price in Rago Points (obtention: points), 1 to 1000000");
                 }
                 String text;
-                if (kind == NameStyle.Kind.COLOUR) {
+                if (kind == NameStyle.Kind.PLUS) {
+                    text = one.getString("couleur", "").toLowerCase(java.util.Locale.ROOT).replace("&", "");
+                    if (!text.matches("[0-9a-f]")) {
+                        throw new IllegalArgumentException(where + ".couleur: the colour of the +, one colour character"
+                                + " (0 to 9, a to f), such as 0 for black");
+                    }
+                } else if (kind == NameStyle.Kind.COLOUR) {
                     text = one.getString("degrade", "").toLowerCase(java.util.Locale.ROOT).replace("&", "");
                     if (!NameStyle.isStops(text)) {
                         throw new IllegalArgumentException(where + ".degrade: the colours from the first letter to the last,"

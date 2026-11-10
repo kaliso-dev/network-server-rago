@@ -47,7 +47,7 @@ final class NetworkRanks implements Listener {
         UUID id = player.getUniqueId();
         RankDef rank = names.shownRank(id);
         String name = names.nick(id) != null ? names.shown(id, player.getName()) : names.name(id, player.getName());
-        looks.put(id, new Look(book.levels().tag(names.shownLevel(id)) + " " + rank.prefix(), name + names.shownBadge(id),
+        looks.put(id, new Look(book.levels().tag(names.shownLevel(id)) + " " + names.shownPrefix(id), name + names.shownBadge(id),
                 rank.chatColour()));
     }
 
@@ -55,7 +55,7 @@ final class NetworkRanks implements Listener {
         looks.remove(player);
     }
 
-    /** The player as the chat shows them: "§6[12✫] §d[PREMIUM] §5So§dfi§fene §d§l✦". */
+    /** The player as the chat shows them: "§6[12✫] §d[PREMIUM§f+§d] §5So§dfi§fene §d§l✦". */
     String chatName(UUID player, String name) {
         Look look = looks.get(player);
         return look == null ? NEW_PREFIX + name : look.prefix + look.name;

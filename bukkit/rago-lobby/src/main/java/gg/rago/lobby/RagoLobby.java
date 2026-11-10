@@ -54,6 +54,7 @@ public final class RagoLobby extends JavaPlugin implements LobbyService {
     private LobbyPoints points;
     private LobbyNpcs npcs;
     private DailyChest daily;
+    private XpBoosters boosters;
     private LobbyGadgets gadgets;
     private FakeEntities fakes;
     private DuelRequests duels;
@@ -134,9 +135,11 @@ public final class RagoLobby extends JavaPlugin implements LobbyService {
         stats = new StatsService(this, settings.defaultRating(), settings.levels(), server, writer, this::write, this::xpChanged);
         queues.setBook(stats.book());
         NameLooks names = new NameLooks(stats.book(), server);
-        stats.book().setBoost(names::xpBoost);
         ranks = new NetworkRanks(stats.book(), names);
         profiles = new Profiles(this, server, stats, ranks, names);
+        boosters = new XpBoosters(this, profiles, stats.book(), state);
+        // The rank's boost (PREMIUM: x1.5), times 2 while an XP booster runs.
+        stats.book().setBoost(id -> names.xpBoost(id) * boosters.multiplier(id));
         social = new Social(this, stats, profiles);
         punishments = new Punishments(this, stats.book(), writer, this::write);
         punishments.load();
@@ -172,6 +175,7 @@ public final class RagoLobby extends JavaPlugin implements LobbyService {
         styleMenu.setRewardLevel(server.levelRewards()::levelOf);
         styleMenu.setBack((p, right) -> profileMenu.open(p));
         shop.setStyles(styleMenu);
+        shop.setBoosters(boosters);
         profileMenu.setStyles(styleMenu);
         npcs = new LobbyNpcs(settings, state, points, queues, menu, fakes, statsDisplays);
         getServer().getPluginManager().registerEvents(npcs, this);
@@ -216,6 +220,7 @@ public final class RagoLobby extends JavaPlugin implements LobbyService {
             social.expire();
             staff.tick(seconds);
             info.tick(seconds);
+            boosters.tick();
             for (Player player : getServer().getOnlinePlayers()) {
                 // The stats are read after the start: the ranks follow once they are there.
                 ranks.refresh(player);
@@ -504,7 +509,10 @@ public final class RagoLobby extends JavaPlugin implements LobbyService {
     /** The gadget of the hotbar's fourth slot this player chose: the teleport stick at first. */
     HotbarItem gadgetOf(Player player) {
         PlayerStats mine = stats.book().get(player.getUniqueId());
-        return LobbyGadgets.gadget(mine == null ? null : mine.gadget());
+        HotbarItem gadget = LobbyGadgets.gadget(mine == null ? null : mine.gadget());
+        // A gadget of PREMIUM goes back to the teleport stick when the rank is gone.
+        return LobbyGadgets.premiumOnly(gadget) && !player.hasPermission(LobbyGadgets.PREMIUM_PERMISSION)
+                ? HotbarItem.TELEPORT : gadget;
     }
 
     /** The gadget menu: the gadget chosen goes in the hotbar, and stays from one visit to the next. */
@@ -515,6 +523,15 @@ public final class RagoLobby extends JavaPlugin implements LobbyService {
             stats.save(mine);
             if (state.isProtected(p)) {
                 giveHotbar(p);
+            }
+        }, p -> {
+            p.sendMessage(ChatColor.LIGHT_PURPLE + "✦ " + ChatColor.GRAY + "The bat blaster, the explosive sheep and the disco"
+                    + " ball come with the " + ChatColor.LIGHT_PURPLE + "[PREMIUM+]" + ChatColor.GRAY + " rank.");
+            List<String> store = server.link("boutique");
+            if (store != null) {
+                for (String line : store) {
+                    p.sendMessage(line);
+                }
             }
         });
     }
@@ -706,6 +723,10 @@ public final class RagoLobby extends JavaPlugin implements LobbyService {
 
     DailyChest daily() {
         return daily;
+    }
+
+    XpBoosters boosters() {
+        return boosters;
     }
 
     LobbyPoints points() {

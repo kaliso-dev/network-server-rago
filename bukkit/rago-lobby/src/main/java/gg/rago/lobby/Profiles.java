@@ -2,6 +2,7 @@ package gg.rago.lobby;
 
 import java.util.Collections;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.UUID;
@@ -50,7 +51,7 @@ final class Profiles {
         return names.rank(player);
     }
 
-    /** "§c[ADMIN] §cSofiene", "§d[PREMIUM] §5So§dfi§fene", or "§7Sofiene" for a player without a rank. */
+    /** "§c[ADMIN] §cSofiene", "§d[PREMIUM§f+§d] §5So§dfi§fene", or "§7Sofiene" for a player without a rank. */
     String displayName(UUID player, String name) {
         return names.display(player, name);
     }
@@ -183,10 +184,27 @@ final class Profiles {
                 + ChatColor.GOLD + "!");
     }
 
+    /** True if the player owns this cosmetic: bought, or PREMIUM's with the rank. */
+    boolean owns(Player player, Cosmetic cosmetic) {
+        return of(player).cosmetics().contains(cosmetic.id())
+                || cosmetic.premium() && player.hasPermission(LobbyGadgets.PREMIUM_PERMISSION);
+    }
+
     void buyCosmetic(Player player, Cosmetic cosmetic) {
         PlayerStats profile = of(player);
-        if (profile.cosmetics().contains(cosmetic.id())) {
+        if (owns(player, cosmetic)) {
             equip(player, cosmetic);
+            return;
+        }
+        if (cosmetic.premium()) {
+            player.sendMessage(ChatColor.LIGHT_PURPLE + "✦ " + ChatColor.YELLOW + cosmetic.name() + ChatColor.GRAY
+                    + " comes with the " + ChatColor.LIGHT_PURPLE + "[PREMIUM+]" + ChatColor.GRAY + " rank.");
+            List<String> store = server.link("boutique");
+            if (store != null) {
+                for (String line : store) {
+                    player.sendMessage(line);
+                }
+            }
             return;
         }
         String why = cannotBuy(player, cosmetic.price(), cosmetic.level());
@@ -206,7 +224,7 @@ final class Profiles {
     /** Equips a cosmetic the player owns, or takes it off if it is the one they wear. */
     void equip(Player player, Cosmetic cosmetic) {
         PlayerStats profile = of(player);
-        if (!profile.cosmetics().contains(cosmetic.id())) {
+        if (!owns(player, cosmetic)) {
             return;
         }
         if (cosmetic.id().equals(profile.equipped(cosmetic.type()))) {
@@ -225,6 +243,10 @@ final class Profiles {
         PlayerStats profile = stats.book().get(player);
         String id = profile == null ? null : profile.equipped(type);
         Cosmetic cosmetic = id == null ? null : server.cosmetics().get(id);
+        if (cosmetic != null && cosmetic.premium()) {
+            Player online = lobby.getServer().getPlayer(player);
+            return online != null && online.hasPermission(LobbyGadgets.PREMIUM_PERMISSION) ? cosmetic : null;
+        }
         return cosmetic != null && profile.cosmetics().contains(id) ? cosmetic : null;
     }
 
@@ -239,15 +261,19 @@ final class Profiles {
         if (style != null && !names.owns(profile, style)) {
             return;
         }
-        NameStyle worn = kind == NameStyle.Kind.COLOUR ? names.colour(player.getUniqueId()) : names.badge(player.getUniqueId());
+        UUID id = player.getUniqueId();
+        NameStyle worn = kind == NameStyle.Kind.COLOUR ? names.colour(id) : kind == NameStyle.Kind.BADGE ? names.badge(id)
+                : names.plus(id);
         if (style == null || style == worn) {
             profile.choose(kind, "");
             player.sendMessage(ChatColor.GRAY + (kind == NameStyle.Kind.COLOUR ? "Your name takes the colour of your rank again."
-                    : "Badge taken off."));
+                    : kind == NameStyle.Kind.BADGE ? "Badge taken off." : "Your + is white again."));
         } else {
             profile.choose(kind, style.id());
             player.sendMessage(ChatColor.GREEN + (kind == NameStyle.Kind.COLOUR ? "Your name now looks like this: "
-                    + style.apply(player.getName()) : "Your badge: " + style.text()));
+                    + style.apply(player.getName()) : kind == NameStyle.Kind.BADGE ? "Your badge: " + style.text()
+                    : "Your + is now " + style.plusColour() + "+" + ChatColor.GREEN + " (" + style.name() + ")"
+                    + (names.rank(id).hasPlus() ? "." : ": it shows with [PREMIUM+].")));
         }
         player.playSound(player.getLocation(), Sound.CLICK, 1f, 1f);
         changed(profile);
@@ -269,7 +295,7 @@ final class Profiles {
         profile.choose(style.kind(), style.id());
         changed(profile);
         player.sendMessage(ChatColor.GREEN + "You bought the " + (style.kind() == NameStyle.Kind.COLOUR ? "colour of name "
-                + style.apply(player.getName()) : "badge " + style.text()) + ChatColor.GREEN + ". You wear it now.");
+                + style.apply(player.getName()) : style.describe()) + ChatColor.GREEN + ". You wear it now.");
         player.playSound(player.getLocation(), Sound.LEVEL_UP, 1f, 1.5f);
     }
 
@@ -282,9 +308,8 @@ final class Profiles {
         changed(profile);
         Player got = lobby.getServer().getPlayer(profile.id());
         if (got != null) {
-            got.sendMessage(ChatColor.LIGHT_PURPLE + "✦ " + ChatColor.GREEN + "You got the "
-                    + (style.kind() == NameStyle.Kind.COLOUR ? "colour of name " + style.apply(style.name())
-                    : "badge " + style.text()) + ChatColor.GREEN + ". You wear it now (/style to change).");
+            got.sendMessage(ChatColor.LIGHT_PURPLE + "✦ " + ChatColor.GREEN + "You got the " + style.describe()
+                    + ChatColor.GREEN + ". You wear it now (/style to change).");
             got.playSound(got.getLocation(), Sound.LEVEL_UP, 1f, 1.5f);
         }
         return true;
@@ -307,7 +332,7 @@ final class Profiles {
         if (shown == HeadLines.Shown.MESSAGE) {
             if (!player.hasPermission("rago.perk.message")) {
                 player.sendMessage(ChatColor.RED + "Your own message above your name comes with " + ChatColor.LIGHT_PURPLE
-                        + "[PREMIUM]" + ChatColor.RED + ".");
+                        + "[PREMIUM+]" + ChatColor.RED + ".");
                 return;
             }
             if (profile.headMessage() == null) {
@@ -326,7 +351,7 @@ final class Profiles {
     void setHeadMessage(Player player, String typed) {
         if (!player.hasPermission("rago.perk.message")) {
             player.sendMessage(ChatColor.RED + "Your own message above your name comes with " + ChatColor.LIGHT_PURPLE
-                    + "[PREMIUM]" + ChatColor.RED + ".");
+                    + "[PREMIUM+]" + ChatColor.RED + ".");
             return;
         }
         String message = HeadLines.cleanMessage(typed);

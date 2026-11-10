@@ -66,6 +66,10 @@ final class LobbyGadgets implements Listener {
     static final double RADIUS = 3.0;
     static final double HORIZONTAL = 1.0;
     static final double VERTICAL = 0.65;
+    /** Between two paintballs: the gun never runs out. */
+    static final long PAINTBALL_COOLDOWN_MS = 300L;
+    static final long FIREWORK_COOLDOWN_MS = 500L;
+    static final long LEAP_COOLDOWN_MS = 800L;
     /** How far the grappling hook reaches. */
     static final int HOOK_REACH = 32;
     /** How long the paint stays, in ticks. */
@@ -106,9 +110,21 @@ final class LobbyGadgets implements Listener {
         lastGadget.keySet().removeIf(key -> key.startsWith(player + ":"));
     }
 
-    /** The gadgets of the hotbar's fourth slot, in the order of their menu. */
+    /** The gadgets of the hotbar's fourth slot, in the order of their menu: those of PREMIUM last. */
     static final HotbarItem[] GADGETS = {HotbarItem.TELEPORT, HotbarItem.GRAPPLE, HotbarItem.PAINTBALL, HotbarItem.FIREWORKS,
-        HotbarItem.POPPER, HotbarItem.LEAP};
+        HotbarItem.POPPER, HotbarItem.LEAP, HotbarItem.BAT_BLASTER, HotbarItem.EXPLOSIVE_SHEEP, HotbarItem.DISCO_BALL};
+    /** The permission of the PREMIUM gadgets. */
+    static final String PREMIUM_PERMISSION = "rago.perk.gadgets";
+    static final long BATS_COOLDOWN_MS = 5_000L;
+    static final long SHEEP_COOLDOWN_MS = 8_000L;
+    static final long DISCO_COOLDOWN_MS = 30_000L;
+    /** How long a disco lasts, in ticks. */
+    static final int DISCO_TICKS = 200;
+
+    /** True for a gadget of PREMIUM only. */
+    static boolean premiumOnly(HotbarItem gadget) {
+        return gadget == HotbarItem.BAT_BLASTER || gadget == HotbarItem.EXPLOSIVE_SHEEP || gadget == HotbarItem.DISCO_BALL;
+    }
 
     /** The gadget of this name, the teleport stick when there is none. */
     static HotbarItem gadget(String name) {
@@ -132,12 +148,12 @@ final class LobbyGadgets implements Listener {
                 }
                 break;
             case PAINTBALL:
-                if (ready(player, gadget, 250L)) {
+                if (ready(player, gadget, PAINTBALL_COOLDOWN_MS)) {
                     paintball(player);
                 }
                 break;
             case FIREWORKS:
-                if (ready(player, gadget, 3000L)) {
+                if (ready(player, gadget, FIREWORK_COOLDOWN_MS)) {
                     firework(player);
                 }
                 break;
@@ -147,12 +163,240 @@ final class LobbyGadgets implements Listener {
                 }
                 break;
             case LEAP:
-                if (ready(player, gadget, 2500L)) {
+                if (ready(player, gadget, LEAP_COOLDOWN_MS)) {
                     leap(player);
+                }
+                break;
+            case BAT_BLASTER:
+                if (premium(player) && ready(player, gadget, BATS_COOLDOWN_MS)) {
+                    bats(player);
+                }
+                break;
+            case EXPLOSIVE_SHEEP:
+                if (premium(player) && ready(player, gadget, SHEEP_COOLDOWN_MS)) {
+                    sheep(player);
+                }
+                break;
+            case DISCO_BALL:
+                if (premium(player) && ready(player, gadget, DISCO_COOLDOWN_MS)) {
+                    disco(player);
                 }
                 break;
             default:
                 break;
+        }
+    }
+
+    private static boolean premium(Player player) {
+        if (player.hasPermission(PREMIUM_PERMISSION)) {
+            return true;
+        }
+        player.sendMessage(ChatColor.LIGHT_PURPLE + "This gadget comes with the [PREMIUM+] rank.");
+        return false;
+    }
+
+    // --- The gadgets of PREMIUM -----------------------------------------------------------------
+
+    /** The bats, sheep and disco balls of the gadgets: nobody hurts them, and they go when the plugin stops. */
+    private final Set<Entity> creatures = new HashSet<>();
+
+    /** Ten bats fly out where the player looks, then vanish in smoke. */
+    private void bats(Player player) {
+        Location eye = player.getEyeLocation();
+        World world = eye.getWorld();
+        final Vector way = eye.getDirection().normalize();
+        final List<Entity> swarm = new ArrayList<>();
+        for (int i = 0; i < 10; i++) {
+            Entity bat = world.spawn(eye.clone().add(way.clone().multiply(1.5)), org.bukkit.entity.Bat.class);
+            swarm.add(bat);
+        }
+        creatures.addAll(swarm);
+        world.playSound(eye, Sound.BAT_TAKEOFF, 1f, 0.8f);
+        new org.bukkit.scheduler.BukkitRunnable() {
+            private int ticks;
+
+            @Override
+            public void run() {
+                if (++ticks > 40) {
+                    for (Entity bat : swarm) {
+                        if (bat.isValid()) {
+                            world.spigot().playEffect(bat.getLocation(), Effect.LARGE_SMOKE, 0, 0, 0.2f, 0.2f, 0.2f, 0.02f, 4, 48);
+                            bat.remove();
+                        }
+                    }
+                    creatures.removeAll(swarm);
+                    cancel();
+                    return;
+                }
+                for (Entity bat : swarm) {
+                    if (bat.isValid()) {
+                        bat.setVelocity(way.clone().multiply(0.7).add(new Vector(random.nextGaussian() * 0.15,
+                                random.nextGaussian() * 0.12, random.nextGaussian() * 0.15)));
+                    }
+                }
+                if (ticks % 8 == 0) {
+                    world.playSound(swarm.get(0).getLocation(), Sound.BAT_LOOP, 0.6f, 1.2f);
+                }
+            }
+        }.runTaskTimer(plugin, 1L, 1L);
+    }
+
+    /** A sheep of every colour ticks three seconds, then bursts into wool nobody picks up. */
+    @SuppressWarnings("deprecation") // DyeColor#getWoolData: the 1.8 data of the wool thrown
+    private void sheep(Player player) {
+        Location eye = player.getEyeLocation();
+        Vector way = eye.getDirection().setY(0);
+        if (way.lengthSquared() < 1e-6) {
+            way = new Vector(0, 0, 1);
+        }
+        Location at = player.getLocation().add(way.normalize().multiply(2));
+        World world = at.getWorld();
+        final org.bukkit.entity.Sheep sheep = world.spawn(at, org.bukkit.entity.Sheep.class);
+        sheep.setVelocity(way.clone().multiply(0.4).setY(0.3));
+        creatures.add(sheep);
+        final org.bukkit.DyeColor[] dyes = org.bukkit.DyeColor.values();
+        new org.bukkit.scheduler.BukkitRunnable() {
+            private int ticks;
+
+            @Override
+            public void run() {
+                if (!sheep.isValid()) {
+                    creatures.remove(sheep);
+                    cancel();
+                    return;
+                }
+                ticks += 2;
+                sheep.setColor(dyes[(ticks / 2) % dyes.length]);
+                if (ticks % 6 == 0) {
+                    world.playSound(sheep.getLocation(), Sound.NOTE_STICKS, 1f, 0.5f + ticks / 60f);
+                }
+                if (ticks < 60) {
+                    return;
+                }
+                Location blast = sheep.getLocation().add(0, 0.6, 0);
+                sheep.remove();
+                creatures.remove(sheep);
+                world.playEffect(blast, Effect.EXPLOSION_LARGE, 0);
+                world.playSound(blast, Sound.EXPLODE, 0.8f, 1.3f);
+                world.playSound(blast, Sound.SHEEP_IDLE, 1f, 1.5f);
+                final List<Item> wool = new ArrayList<>();
+                for (int i = 0; i < 16; i++) {
+                    ItemStack stack = new ItemStack(Material.WOOL, 1, dyes[random.nextInt(dyes.length)].getWoolData());
+                    ItemMeta meta = stack.getItemMeta();
+                    meta.setDisplayName("wool " + i + " " + random.nextInt());
+                    stack.setItemMeta(meta);
+                    Item item = world.dropItem(blast, stack);
+                    item.setPickupDelay(Integer.MAX_VALUE);
+                    item.setVelocity(new Vector(random.nextGaussian() * 0.25, 0.4 + random.nextDouble() * 0.3,
+                            random.nextGaussian() * 0.25));
+                    wool.add(item);
+                }
+                sweets.addAll(wool);
+                plugin.getServer().getScheduler().runTaskLater(plugin, () -> {
+                    for (Item item : wool) {
+                        item.remove();
+                    }
+                    sweets.removeAll(wool);
+                }, 60L);
+                cancel();
+            }
+        }.runTaskTimer(plugin, 2L, 2L);
+    }
+
+    /** The players with a disco on: one at a time each. */
+    private final Set<UUID> discos = new HashSet<>();
+
+    /**
+     * Ten seconds of party around the player: a disco ball (a glass block on an invisible stand)
+     * turns above them, the floor around flashes in every colour for everyone's eyes, notes play.
+     */
+    @SuppressWarnings("deprecation") // Block#getData: the 1.8 data of the floor put back
+    private void disco(Player player) {
+        if (!discos.add(player.getUniqueId())) {
+            return;
+        }
+        final World world = player.getWorld();
+        final Location centre = player.getLocation();
+        final org.bukkit.entity.ArmorStand ball = world.spawn(centre.clone().add(0, 2.2, 0), org.bukkit.entity.ArmorStand.class);
+        ball.setVisible(false);
+        ball.setGravity(false);
+        ball.setSmall(false);
+        ball.setHelmet(new ItemStack(Material.STAINED_GLASS, 1, (short) 0));
+        creatures.add(ball);
+        final List<Block> floor = new ArrayList<>();
+        for (int dx = -4; dx <= 4; dx++) {
+            for (int dz = -4; dz <= 4; dz++) {
+                if (dx * dx + dz * dz > 18) {
+                    continue;
+                }
+                Block block = centre.getBlock().getRelative(dx, -1, dz);
+                for (int dy = 0; dy < 3 && !block.getType().isSolid(); dy++) {
+                    block = block.getRelative(0, -1, 0);
+                }
+                if (block.getType().isSolid() && block.getType().isOccluding()) {
+                    floor.add(block);
+                }
+            }
+        }
+        final UUID owner = player.getUniqueId();
+        world.playSound(centre, Sound.LEVEL_UP, 1f, 0.8f);
+        new org.bukkit.scheduler.BukkitRunnable() {
+            private int ticks;
+
+            @Override
+            public void run() {
+                ticks += 2;
+                if (ticks > DISCO_TICKS || !ball.isValid()) {
+                    for (Player viewer : world.getPlayers()) {
+                        for (Block block : floor) {
+                            sendBlock(viewer, block.getLocation(), block.getType(), block.getData());
+                        }
+                    }
+                    ball.remove();
+                    creatures.remove(ball);
+                    discos.remove(owner);
+                    cancel();
+                    return;
+                }
+                ball.setHeadPose(new org.bukkit.util.EulerAngle(0, ticks * 0.15, 0));
+                if (ticks % 10 == 0) {
+                    ball.setHelmet(new ItemStack(Material.STAINED_GLASS, 1, PAINT[random.nextInt(PAINT.length)]));
+                    for (Player viewer : world.getPlayers()) {
+                        for (Block block : floor) {
+                            sendBlock(viewer, block.getLocation(), Material.WOOL, PAINT[random.nextInt(PAINT.length)]);
+                        }
+                    }
+                }
+                Location head = ball.getLocation().add(0, 1.6, 0);
+                world.spigot().playEffect(head, Effect.COLOURED_DUST, 0, 0, 2.5f, 1.2f, 2.5f, 1f, 12, 48);
+                if (ticks % 4 == 0) {
+                    float pitch = 0.5f + random.nextInt(13) / 8f;
+                    world.playSound(head, ticks % 8 == 0 ? Sound.NOTE_PIANO : Sound.NOTE_BASS_DRUM, 1f, pitch);
+                    world.spigot().playEffect(head, Effect.NOTE, 0, 0, 1.5f, 0.5f, 1.5f, 1f, 2, 48);
+                }
+            }
+        }.runTaskTimer(plugin, 2L, 2L);
+    }
+
+    /** Nobody hurts, shears or rides the creatures of the gadgets. */
+    @EventHandler(priority = EventPriority.LOW)
+    public void onCreatureDamage(org.bukkit.event.entity.EntityDamageEvent event) {
+        if (creatures.contains(event.getEntity())) {
+            event.setCancelled(true);
+        }
+    }
+
+    @EventHandler(priority = EventPriority.LOW)
+    public void onCreatureTouched(org.bukkit.event.player.PlayerInteractEntityEvent event) {
+        if (creatures.contains(event.getRightClicked())) {
+            event.setCancelled(true);
+        }
+    }
+
+    @EventHandler(priority = EventPriority.LOW)
+    public void onStandTouched(org.bukkit.event.player.PlayerArmorStandManipulateEvent event) {
+        if (creatures.contains(event.getRightClicked())) {
+            event.setCancelled(true);
         }
     }
 
@@ -342,11 +586,19 @@ final class LobbyGadgets implements Listener {
         player.getWorld().spigot().playEffect(player.getLocation(), Effect.CLOUD, 0, 0, 0.3f, 0.1f, 0.3f, 0.05f, 15, 48);
     }
 
-    /** The gadget menu: a click puts the gadget in the hotbar's fourth slot. */
-    void openMenu(Player player, HotbarItem current, java.util.function.BiConsumer<Player, HotbarItem> choose) {
+    /**
+     * The gadget menu: a click puts the gadget in the hotbar's fourth slot. The gadgets of PREMIUM,
+     * on the row below, are locked for the others: a click tells them where the rank is sold.
+     */
+    void openMenu(Player player, HotbarItem current, java.util.function.BiConsumer<Player, HotbarItem> choose,
+            java.util.function.Consumer<Player> locked) {
         ClickMenu menu = new ClickMenu(4, "Gadgets");
+        boolean premium = player.hasPermission(PREMIUM_PERMISSION);
+        int free = 0;
+        int paid = 0;
         for (int i = 0; i < GADGETS.length; i++) {
             final HotbarItem gadget = GADGETS[i];
+            boolean open = !premiumOnly(gadget) || premium;
             ItemStack item = gadget.create();
             ItemMeta meta = item.getItemMeta();
             List<String> lore = new ArrayList<>(meta.getLore());
@@ -355,12 +607,19 @@ final class LobbyGadgets implements Listener {
                 lore.remove(lore.size() - 1);
             }
             lore.add("");
-            lore.add(gadget == current ? ChatColor.GREEN + "In your hotbar" : ChatColor.YELLOW + "Click to take it");
+            lore.add(!open ? ChatColor.RED + "Locked: " + ChatColor.LIGHT_PURPLE + "[PREMIUM+] only"
+                    : gadget == current ? ChatColor.GREEN + "In your hotbar" : ChatColor.YELLOW + "Click to take it");
             meta.setLore(lore);
             String name = meta.getDisplayName();
             meta.setDisplayName(name.contains(" " + ChatColor.GRAY) ? name.substring(0, name.indexOf(" " + ChatColor.GRAY)) : name);
             item.setItemMeta(meta);
-            menu.set(10 + i + (i >= 3 ? 1 : 0), item, (p, right) -> {
+            int slot = premiumOnly(gadget) ? 20 + 2 * paid++ : 10 + free + (free++ >= 3 ? 1 : 0);
+            menu.set(slot, item, (p, right) -> {
+                if (!open) {
+                    p.closeInventory();
+                    locked.accept(p);
+                    return;
+                }
                 choose.accept(p, gadget);
                 p.closeInventory();
                 p.playSound(p.getLocation(), Sound.CLICK, 1f, 1f);
@@ -456,6 +715,10 @@ final class LobbyGadgets implements Listener {
             item.remove();
         }
         sweets.clear();
+        for (Entity creature : creatures) {
+            creature.remove();
+        }
+        creatures.clear();
         paintballs.clear();
         for (World world : plugin.getServer().getWorlds()) {
             for (Entity entity : world.getEntitiesByClass(Fireball.class)) {

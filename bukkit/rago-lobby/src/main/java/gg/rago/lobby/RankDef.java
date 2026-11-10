@@ -16,6 +16,13 @@ final class RankDef {
 
     /** A 1.8 team prefix is 16 characters: the rank's prefix and the colour of the name fit in it. */
     static final int MAX_PREFIX = 16;
+    /**
+     * In a prefix, the "+" a player colours (/style): "§d[PREMIUM{+}] " shows "§d[PREMIUM§f+§d] ",
+     * white until they wear a colour of +. The colour before it comes back after it.
+     */
+    static final String PLUS = "{+}";
+    /** The colour of the + of a player who wears none. */
+    static final String DEFAULT_PLUS = "\u00a7f";
 
     private final String id;
     private final String prefix;
@@ -64,7 +71,59 @@ final class RankDef {
 
     /** "§c[ADMIN] ": before the name, in the chat, above the head and in the tab list; "" for none. */
     String prefix() {
-        return prefix;
+        return prefix(DEFAULT_PLUS);
+    }
+
+    /** The prefix with its + (if it has one) in these colour codes. */
+    String prefix(String plusColour) {
+        return render(prefix, plusColour);
+    }
+
+    /** True if the prefix has a + the player colours. */
+    boolean hasPlus() {
+        return prefix.contains(PLUS);
+    }
+
+    /** The prefix with its + in this colour, the colour before the + again after it. */
+    static String render(String prefix, String plusColour) {
+        int at = prefix.indexOf(PLUS);
+        if (at < 0) {
+            return prefix;
+        }
+        String before = prefix.substring(0, at);
+        String after = prefix.substring(at + PLUS.length());
+        return before + plusColour + "+" + org.bukkit.ChatColor.getLastColors(before) + render(after, plusColour);
+    }
+
+    /**
+     * The prefix above the head, with the colour of the name after it, in a team prefix of
+     * {@link #MAX_PREFIX} characters: as in the chat if it fits, else without its brackets
+     * ("§dPREMIUM§f+ §d"), else cut.
+     */
+    String headPrefix(String plusColour, String nameColour) {
+        return head(prefix(plusColour), nameColour);
+    }
+
+    static String head(String prefix, String nameColour) {
+        String full = prefix + nameColour;
+        if (full.length() <= MAX_PREFIX) {
+            return full;
+        }
+        // Without its brackets, and without the colours that only come before the space.
+        String compact = prefix.replace("[", "").replace("]", "").replaceAll("(\u00a7.)+(\\s*)$", "$2") + nameColour;
+        if (compact.length() <= MAX_PREFIX) {
+            return compact;
+        }
+        String cut = compact.substring(0, MAX_PREFIX);
+        return cut.endsWith("\u00a7") ? cut.substring(0, MAX_PREFIX - 1) : cut;
+    }
+
+    /** True if this prefix and colour of name fit above the head ({@link #head}) without being cut. */
+    static boolean fitsHead(String prefix, String nameColour) {
+        String head = head(render(prefix, DEFAULT_PLUS), nameColour);
+        return head.endsWith(nameColour) && head.length() <= MAX_PREFIX
+                && org.bukkit.ChatColor.stripColor(head).replace("[", "").replace("]", "").equals(
+                org.bukkit.ChatColor.stripColor(render(prefix, DEFAULT_PLUS)).replace("[", "").replace("]", ""));
     }
 
     /** The colour codes of the name. */
@@ -136,12 +195,12 @@ final class RankDef {
 
     /** The prefix and the colour of the name, as a team prefix shows them. */
     String tagPrefix() {
-        return prefix + nameColour;
+        return headPrefix(DEFAULT_PLUS, nameColour);
     }
 
     /** The name of the rank without its brackets and colours: "ADMIN", or the id when it has no prefix. */
     String displayName() {
-        String plain = org.bukkit.ChatColor.stripColor(prefix).trim();
+        String plain = org.bukkit.ChatColor.stripColor(prefix()).trim();
         if (plain.startsWith("[") && plain.endsWith("]") && plain.length() > 2) {
             plain = plain.substring(1, plain.length() - 1);
         }

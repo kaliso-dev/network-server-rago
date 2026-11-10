@@ -22,7 +22,7 @@ final class NetworkCommands implements CommandExecutor, TabCompleter {
 
     static final String[] NAMES = {"shop", "gift", "profile", "daily", "friend", "msg", "reply", "rank", "points", "top", "stats",
         "fly", "staffchat", "vanish", "freeze", "report", "clearchat", "mutechat", "ban", "unban", "mute", "unmute", "kick",
-        "warn", "history", "staff", "discord", "rules", "site", "store", "style", "level", "quests", "display", "nick", "realname"};
+        "warn", "history", "staff", "discord", "rules", "site", "store", "style", "level", "quests", "display", "nick", "realname", "booster"};
 
     private static final String[] TOPS = {"elo", "level", "wins", "kills", "streak", "games", "points"};
 
@@ -230,6 +230,9 @@ final class NetworkCommands implements CommandExecutor, TabCompleter {
             case "style":
                 style(sender, args);
                 return true;
+            case "booster":
+                booster(sender, args);
+                return true;
             case "display":
                 if ((player = player(sender)) != null) {
                     if (args.length == 0) {
@@ -308,7 +311,7 @@ final class NetworkCommands implements CommandExecutor, TabCompleter {
             return;
         }
         if (args.length != 3 || !sub.matches("give|take")) {
-            sender.sendMessage(ChatColor.RED + "Usage: /style <give|take> <player> <couleur-feu|badge-rago>, /style list");
+            sender.sendMessage(ChatColor.RED + "Usage: /style <give|take> <player> <couleur-feu|badge-rago|plus-noir>, /style list");
             return;
         }
         NameStyle style = styleNamed(server, args[2]);
@@ -327,16 +330,62 @@ final class NetworkCommands implements CommandExecutor, TabCompleter {
         lobby.getLogger().info(sender.getName() + ": /style " + String.join(" ", args));
     }
 
-    /** "couleur-feu", "badge-rago", or the id alone when no colour and badge share it. */
+    /**
+     * /booster: the menu of the XP boosters; /booster on starts one. The admins and the console
+     * (the web store) give them: /booster give &lt;player&gt; [count].
+     */
+    private void booster(CommandSender sender, String[] args) {
+        if (args.length >= 2 && args[0].equalsIgnoreCase("give") && sender.hasPermission("rago.admin")) {
+            int count = 1;
+            if (args.length >= 3) {
+                try {
+                    count = Integer.parseInt(args[2]);
+                } catch (NumberFormatException e) {
+                    count = 0;
+                }
+            }
+            if (count < 1 || count > XpBoosters.MAX_STOCK) {
+                sender.sendMessage(ChatColor.RED + "Usage: /booster give <player> [1-" + XpBoosters.MAX_STOCK + "]");
+                return;
+            }
+            PlayerStats target = profileOf(sender, args[1]);
+            if (target == null) {
+                return;
+            }
+            lobby.boosters().give(target, count);
+            sender.sendMessage(ChatColor.GREEN + target.name() + " got " + count + " XP booster" + (count > 1 ? "s" : "") + ".");
+            lobby.getLogger().info(sender.getName() + ": /booster " + String.join(" ", args));
+            return;
+        }
+        Player player = player(sender);
+        if (player == null) {
+            return;
+        }
+        if (args.length >= 1 && args[0].matches("(?i)on|start|activer")) {
+            lobby.boosters().activate(player);
+        } else {
+            lobby.boosters().open(player);
+        }
+    }
+
+    /** "couleur-feu", "badge-rago", "plus-noir", or the id alone when no other style shares it. */
     static NameStyle styleNamed(ServerSettings server, String typed) {
         String key = typed.toLowerCase(Locale.ROOT);
         NameStyle exact = server.styles().get(key);
         if (exact != null) {
             return exact;
         }
-        NameStyle colour = server.style(NameStyle.Kind.COLOUR, key);
-        NameStyle badge = server.style(NameStyle.Kind.BADGE, key);
-        return colour != null && badge != null ? null : colour != null ? colour : badge;
+        NameStyle found = null;
+        for (NameStyle.Kind kind : NameStyle.Kind.values()) {
+            NameStyle style = server.style(kind, key);
+            if (style != null) {
+                if (found != null) {
+                    return null;
+                }
+                found = style;
+            }
+        }
+        return found;
     }
 
     private void link(CommandSender sender, String key) {

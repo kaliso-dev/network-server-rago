@@ -104,9 +104,24 @@ class LobbyGadgetsTest {
         assertEquals(HotbarItem.TELEPORT, LobbyGadgets.gadget(null), "the teleport stick at first");
         assertEquals(HotbarItem.LEAP, LobbyGadgets.gadget("LEAP"));
         assertEquals(HotbarItem.TELEPORT, LobbyGadgets.gadget("SHOP"), "only a gadget");
+        int premium = 0;
         for (HotbarItem gadget : LobbyGadgets.GADGETS) {
             assertTrue(gadget.gadget(), gadget + " in the fourth slot");
+            if (LobbyGadgets.premiumOnly(gadget)) {
+                premium++;
+            }
         }
+        assertEquals(3, premium, "the bat blaster, the explosive sheep and the disco ball");
+        assertTrue(!LobbyGadgets.premiumOnly(HotbarItem.TELEPORT));
+        assertTrue(Ranks.premium().permissions().contains(LobbyGadgets.PREMIUM_PERMISSION), "PREMIUM has them");
+        int rare = 0;
+        for (Cosmetic cosmetic : Cosmetic.catalogue().values()) {
+            if (cosmetic.premium()) {
+                rare++;
+                assertEquals(0, cosmetic.price(), cosmetic.id() + " is never sold");
+            }
+        }
+        assertEquals(4, rare, "two kill effects and two victory effects of PREMIUM");
     }
 
     @Test

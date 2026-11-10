@@ -303,6 +303,7 @@ final class StatsService {
             return item;
         }
         return style.kind() == NameStyle.Kind.COLOUR ? ChatColor.GRAY + "name colour " + style.sample()
+                : style.kind() == NameStyle.Kind.PLUS ? ChatColor.GRAY + "colour of + " + style.sample()
                 : ChatColor.GRAY + "badge " + style.text();
     }
 

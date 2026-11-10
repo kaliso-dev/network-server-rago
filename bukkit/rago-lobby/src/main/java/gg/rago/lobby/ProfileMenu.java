@@ -40,7 +40,8 @@ final class ProfileMenu {
         int level = levels.level(xp);
         RankDef rank = profiles.rank(id);
         List<String> lore = new ArrayList<>();
-        lore.add("Rank: " + (rank == Ranks.DEFAULT ? ChatColor.GRAY + "Default" : rank.prefix().trim()));
+        lore.add("Rank: " + (rank == Ranks.DEFAULT ? ChatColor.GRAY + "Default"
+                : rank.prefix(profiles.names().plusColour(id)).trim()));
         lore.add("Network level: " + levels.tag(level));
         if (level < NetworkLevel.MAX_LEVEL) {
             lore.add("Progress: " + ChatColor.AQUA + levels.xpIntoLevel(xp) + ChatColor.GRAY + "/" + levels.xpToNext(level)
@@ -87,7 +88,7 @@ final class ProfileMenu {
                         + profile.headMessage());
                 lore.add("");
                 if (!player.hasPermission("rago.perk.message")) {
-                    lore.add(ChatColor.LIGHT_PURPLE + "With the [PREMIUM] rank");
+                    lore.add(ChatColor.LIGHT_PURPLE + "With the [PREMIUM+] rank");
                 }
             }
             lore.add(shown == now ? ChatColor.GREEN + "Shown" : ChatColor.YELLOW + "Click to show it");
@@ -229,11 +230,11 @@ final class ProfileMenu {
                 "Left click: faster, right", "click: slower.");
         if (!speedPerk) {
             speedItem = ClickMenu.item(Material.FEATHER, 0, ChatColor.RED + "Lobby speed", listOf("Walk faster in the lobby:",
-                    "Speed I, II or III.", "", ChatColor.LIGHT_PURPLE + "With the [PREMIUM] rank"));
+                    "Speed I, II or III.", "", ChatColor.LIGHT_PURPLE + "With the [PREMIUM+] rank"));
         }
         menu.set(22, speedItem, (p, right) -> {
             if (!p.hasPermission("rago.perk.speed")) {
-                p.sendMessage(ChatColor.LIGHT_PURPLE + "The lobby speed comes with the [PREMIUM] rank: /store");
+                p.sendMessage(ChatColor.LIGHT_PURPLE + "The lobby speed comes with the [PREMIUM+] rank: /store");
                 return;
             }
             int now = profile.lobbySpeed();
