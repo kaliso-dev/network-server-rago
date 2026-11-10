@@ -18,8 +18,10 @@ import org.bukkit.Material;
 import org.bukkit.Sound;
 import org.bukkit.block.Block;
 import org.bukkit.entity.Player;
+import org.bukkit.event.block.Action;
 import org.bukkit.event.block.BlockPlaceEvent;
 import org.bukkit.event.entity.EntityDamageEvent;
+import org.bukkit.event.player.PlayerInteractEvent;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.util.Vector;
 
@@ -33,6 +35,10 @@ import org.bukkit.util.Vector;
  * and shears. Knock the others off or kill them; you come back at once. The blocks placed crack
  * more and more, and break after fifteen seconds, so that the arena never fills up. The kills
  * count in the stats of the mode.
+ *
+ * <p>Arena Free (free-ffa) is the same arena for a free for all fight: the Ranked Bedwars kit
+ * (iron sword, wool, shears, golden apples, fireballs, a pearl) and iron armour, back at each life,
+ * and a kill heals the killer.
  */
 final class BlockArena extends PracticeGame {
 
@@ -79,10 +85,26 @@ final class BlockArena extends PracticeGame {
     /** The slime blocks of the map (x, y, z from the centre): they throw the players. */
     private final List<int[]> pads;
     private final Map<UUID, Integer> launched = new HashMap<>();
+    /** True for Arena Free: the fight kit, iron armour, a kill heals. */
+    private final boolean free;
+    private final Map<UUID, Long> lastFireball = new HashMap<>();
 
-    BlockArena(PracticeHost host, GameMode mode, Arena arena, List<List<Player>> teams) {
+    BlockArena(PracticeHost host, GameMode mode, Arena arena, List<List<Player>> teams, boolean free) {
         super(host, mode, arena, teams);
+        this.free = free;
         this.pads = arena.map() != null ? arena.map().copy.find(SLIME_ID) : new ArrayList<>();
+    }
+
+    /** The name of the arena in its messages and sidebar. */
+    private String title() {
+        return free ? "Arena Free" : "Block placement arena";
+    }
+
+    /** The kit of Arena Free when the player has not arranged their own: the Ranked Bedwars one. */
+    static ItemStack[] freeKit() {
+        return new ItemStack[] {new ItemStack(Material.IRON_SWORD), new ItemStack(Material.WOOL, 64),
+            new ItemStack(Material.WOOL, 64), new ItemStack(Material.SHEARS), new ItemStack(Material.GOLDEN_APPLE, 3),
+            new ItemStack(Material.FIREBALL, 4), new ItemStack(Material.ENDER_PEARL)};
     }
 
     @Override
@@ -165,6 +187,9 @@ final class BlockArena extends PracticeGame {
 
     @Override
     ItemStack[] defaultKit(Player player) {
+        if (free) {
+            return freeKit();
+        }
         return new ItemStack[] {new ItemStack(Material.WOOD_SWORD), new ItemStack(Material.WOOL, 64),
             new ItemStack(Material.WOOL, 64), new ItemStack(Material.SHEARS)};
     }
@@ -185,7 +210,29 @@ final class BlockArena extends PracticeGame {
     @Override
     void armour(Player player) {
         int index = Math.max(0, sideOf(player.getUniqueId()));
-        leather(player, COLOURS[index % COLOURS.length]);
+        if (free) {
+            ironArmour(player, COLOURS[index % COLOURS.length]);
+        } else {
+            leather(player, COLOURS[index % COLOURS.length]);
+        }
+    }
+
+    /** In Arena Free, a fireball is thrown from the hand, one every half second. */
+    @Override
+    void interact(Player player, PlayerInteractEvent event) {
+        ItemStack item = event.getItem();
+        if (!free || item == null || item.getType() != Material.FIREBALL
+                || (event.getAction() != Action.RIGHT_CLICK_AIR && event.getAction() != Action.RIGHT_CLICK_BLOCK)) {
+            return;
+        }
+        event.setCancelled(true);
+        long now = System.currentTimeMillis();
+        Long last = lastFireball.get(player.getUniqueId());
+        if (phase != Phase.PLAYING || (last != null && now - last < Fireballs.COOLDOWN_MS)) {
+            return;
+        }
+        lastFireball.put(player.getUniqueId(), now);
+        Fireballs.launch(player);
     }
 
     @Override
@@ -292,8 +339,14 @@ final class BlockArena extends PracticeGame {
 
     @Override
     void intro(Player player) {
-        player.sendMessage(ChatColor.AQUA + "" + ChatColor.BOLD + "Block placement arena" + ChatColor.GRAY
-                + " - everyone in one arena: knock them off, build, clutch. Your blocks go away after 15 seconds.");
+        if (free) {
+            player.sendMessage(ChatColor.GREEN + "" + ChatColor.BOLD + "Arena Free" + ChatColor.GRAY
+                    + " - everyone in one arena, the Ranked Bedwars kit: a kill heals you. The slime in the black pit throws"
+                    + " you out of it; your blocks go away after 15 seconds.");
+        } else {
+            player.sendMessage(ChatColor.AQUA + "" + ChatColor.BOLD + "Block placement arena" + ChatColor.GRAY
+                    + " - everyone in one arena: knock them off, build, clutch. Your blocks go away after 15 seconds.");
+        }
         player.sendMessage(ChatColor.GRAY + "/spawn takes you back to the lobby.");
         broadcastJoin(player);
     }
@@ -324,9 +377,13 @@ final class BlockArena extends PracticeGame {
             plugin.lobby().recordKill(mode.id(), killer.getUniqueId(), victim.getUniqueId());
             kills.merge(by, 1, Integer::sum);
             int streak = streaks.merge(by, 1, Integer::sum);
-            broadcast(ChatColor.RED + victim.getDisplayName() + ChatColor.GRAY + " was knocked off by " + ChatColor.GREEN
-                    + killer.getDisplayName() + (streak >= 3 ? ChatColor.GOLD + " (" + streak + " in a row)" : ""), null);
+            broadcast(ChatColor.RED + victim.getDisplayName() + ChatColor.GRAY + (free ? " was killed by " : " was knocked off by ")
+                    + ChatColor.GREEN + killer.getDisplayName() + (streak >= 3 ? ChatColor.GOLD + " (" + streak + " in a row)" : ""),
+                    null);
             sound(killer, Sound.ORB_PICKUP, 1.2f);
+            if (free) {
+                killer.setHealth(killer.getMaxHealth());
+            }
         } else {
             victim.sendMessage(ChatColor.GRAY + "You fell.");
         }
@@ -342,6 +399,7 @@ final class BlockArena extends PracticeGame {
         host.release(id);
         streaks.remove(id);
         launched.remove(id);
+        lastFireball.remove(id);
         if (phase != Phase.ENDED) {
             if (online().isEmpty()) {
                 finish(-1, null);
@@ -358,7 +416,7 @@ final class BlockArena extends PracticeGame {
     @Override
     List<String> sidebar(UUID viewer) {
         List<String> lines = new ArrayList<>();
-        lines.add(ChatColor.AQUA + "Block placement arena");
+        lines.add((free ? ChatColor.GREEN : ChatColor.AQUA) + title());
         lines.add("");
         lines.add(ChatColor.WHITE + "Players: " + ChatColor.GREEN + online().size());
         lines.add(ChatColor.WHITE + "Your kills: " + ChatColor.GREEN + kills.getOrDefault(viewer, 0));

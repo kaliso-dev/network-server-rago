@@ -174,7 +174,9 @@ public final class RagoPractice extends JavaPlugin {
         register("kb-displace-bot", KbDisplaceBot::new, slots, spacing, false);
         List<MapZones.ZoneMap> arenaMaps = withoutBlocks(zoneMaps(config, "block-fight-arena.cartes", spacing,
                 "the block placement arena"), GOLD_ID);
-        onMaps(register("block-fight-arena", BlockArena::new, slots, spacing, true), arenaMaps);
+        onMaps(register("block-fight-arena", (h, m, a, t) -> new BlockArena(h, m, a, t, false), slots, spacing, true), arenaMaps);
+        // Arena Free: the same arena of the owner, with its slime, for a free for all fight
+        onMaps(register("free-ffa", (h, m, a, t) -> new BlockArena(h, m, a, t, true), slots, spacing, true), arenaMaps);
         onMaps(register("bridge-fight", BridgeArena::new, slots, spacing, true), bridgeMaps(config, spacing));
         register("scenarios-ranked", RankedScenarios::new, slots, spacing, false);
         register("clutch-top-fight", (h, m, a, t) -> new ClutchTraining(h, m, a, t, true), slots, ClutchTraining.SPACING, false);

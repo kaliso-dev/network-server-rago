@@ -155,6 +155,12 @@ On revient tout de suite après une chute ou une mort. Les blocs posés se fissu
 (les fissures d'un bloc qu'on casse) et se cassent au bout de 15 secondes, avec le bruit et les
 éclats d'un bloc cassé. Les kills comptent dans les stats du mode.
 
+**Arena Free** (`free-ffa`) se joue dans la même arène du propriétaire, avec son slime, pour un
+FFA de combat : le kit Ranked Bedwars (épée en fer, deux stacks de laine, cisailles, 3 pommes en
+or, 4 fireballs, une ender pearl, rangeable dans l'éditeur de kit du lobby) et une armure de fer,
+rendus à chaque vie ; un kill soigne le tueur. Les blocs se fissurent et partent aussi au bout de
+15 secondes.
+
 ## Le bridge fight
 
 Un FFA ouvert à tous, comme l'arène de block placement, en stuff de Ranked Bedwars (armure de fer,

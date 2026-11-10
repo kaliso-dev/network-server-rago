@@ -21,7 +21,6 @@ modes:
   first-rush-duo: [Acropolis, Ambush, Aqil, Cascade, Crogorm, Frosted, Gelato, Lighthouse, Lotus, Nebuc]
   top-bridge-ffa: [Antenna]
   ffa: [Archway, Paladin]
-  free-ffa: [Archway]
   invis-practice: [Invasion, Lectus, Archway]
   shop-practice: [Archway]
 
@@ -32,7 +31,8 @@ modes:
 #              killer; the blocks placed go after 45 seconds
 #   arene      the same with the forges, the diamonds and emeralds and a shop of its own (the
 #              diamonds buy Sharpness, Power II, Strength...), the armour and tools kept as in Bed
-#              Wars, and on each bed a defense of three layers ready for top fights
+#              Wars, and on each bed a defense of three layers ready for top fights (no mode plays
+#              it now: Arena Free, free-ffa, is on the owner's Arena, in the practice plugin)
 #   invis      invis practice: 2 to 6 players on the map chosen, rounds of 2 minutes, one invisible
 #              (the mode's kit, no armour) against the others (iron armour, a defense on their
 #              bed), each player in turn; it starts 20 seconds after the second player joins
@@ -42,7 +42,6 @@ modes:
 jeux:
   top-bridge-ffa: ffa
   ffa: ffa
-  free-ffa: arene
   invis-practice: invis
   shop-practice: fast-shop
 

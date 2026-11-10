@@ -681,11 +681,12 @@ modes:
     equipes: 1
     joueurs-par-equipe: 1
     classe: false
+    kit: [IRON_SWORD, "WOOL 64", "WOOL 64", SHEARS, "GOLDEN_APPLE 3", "FIREBALL 4", ENDER_PEARL]
     description:
-      - "Archway, free for all: the"
-      - "forges, a shop of its own,"
-      - "and defenses ready on the"
-      - "beds for top fights."
+      - "Free for all in the arena,"
+      - "the Ranked Bedwars kit: a kill"
+      - "heals you. The slime of the"
+      - "black pit throws you out."
   invis-practice:
     nom: "&5Invis practice"
     categorie: ranked

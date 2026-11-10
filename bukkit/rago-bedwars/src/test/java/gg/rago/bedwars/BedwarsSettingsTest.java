@@ -1,6 +1,7 @@
 package gg.rago.bedwars;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
@@ -28,18 +29,18 @@ class BedwarsSettingsTest {
         BedwarsSettings settings = BedwarsSettings.read(bundled());
         assertEquals(Arrays.asList("ranked-1v1", "ranked-2v2", "ranked-3v3", "ranked-4v4", "top-bridge-1v1",
                 "top-bridge-2v2", "skyrise-1v1", "skyrise-2v2",
-                "first-rush", "first-rush-duo", "top-bridge-ffa", "ffa", "free-ffa", "invis-practice", "shop-practice"),
+                "first-rush", "first-rush-duo", "top-bridge-ffa", "ffa", "invis-practice", "shop-practice"),
                 settings.modes());
         assertEquals(BedwarsSettings.Kind.CLASSIC, settings.kind("ranked-1v1"));
         assertEquals(BedwarsSettings.Kind.FFA, settings.kind("ffa"));
-        assertEquals(BedwarsSettings.Kind.ARENA, settings.kind("free-ffa"));
+        assertEquals(BedwarsSettings.Kind.ARENA, BedwarsSettings.Kind.of(" Arene "), "the kind stays for a mode that wants it");
+        assertFalse(settings.modes().contains("free-ffa"), "Arena Free is on the owner's Arena, in the practice plugin");
         assertEquals(BedwarsSettings.Kind.INVIS, settings.kind("invis-practice"));
         assertEquals(BedwarsSettings.Kind.FAST_SHOP, settings.kind("shop-practice"));
         assertEquals(Arrays.asList("Archway", "Paladin"), settings.mapsOf("ffa"));
         assertEquals(BedwarsSettings.Kind.FFA, settings.kind("top-bridge-ffa"), "a free for all...");
         assertTrue(settings.topBridge("top-bridge-ffa"), "...with the top bridge");
         assertEquals(Collections.singletonList("Antenna"), settings.mapsOf("top-bridge-ffa"), "on Antenna, where it was built");
-        assertEquals(Collections.singletonList("Archway"), settings.mapsOf("free-ffa"));
         assertEquals(Arrays.asList("Invasion", "Lectus", "Archway"), settings.mapsOf("invis-practice"));
         assertEquals(Arrays.asList("Antenna", "Aquarium", "Archway", "Artemis", "Boletum", "Carapace", "Catalyst",
                 "Chained", "Eastwood", "Extinction", "Invasion", "Katsu", "Lectus", "Obelisk", "Paladin", "Planet98", "Rise",

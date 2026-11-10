@@ -4,7 +4,7 @@ Un plugin Bukkit 1.8.8 qui joue les modes Bed Wars du lobby (`bukkit/rago-lobby`
 Bedwars 1v1, 2v2, 3v3 et 4v4**, **RBW Sky Rise** en solo et en duo, avec les règles d'une partie
 classique d'Hypixel, **First Rush** en solo et en duo (la même partie, sur deux îles voisines), les
 **parties privées** d'une party (le lobby choisit le 1v1, 2v2, 3v3 ou 4v4 selon sa taille), et
-quatre jeux à part sur des maps de Bed Wars : **FFA**, **Free FFA** (l'arène), **Invis practice** et
+trois jeux à part sur des maps de Bed Wars : **FFA** (dont le Top Bridge FFA), **Invis practice** et
 **Fast Shop**. Chaque mode a ses maps.
 
 ## La partie
@@ -143,7 +143,9 @@ Dans `jeux:` du config.yml, un mode peut jouer autre chose qu'une partie classiq
 - **Free FFA** (`arene`) : la même chose avec les forges, les diamants et les émeraudes, un shop
   à lui (les diamants achètent aussi), l'armure et les outils gardés comme en Bed Wars, et sur
   chaque lit une défense de trois couches prête pour les top fights, remise quand personne n'est à
-  côté.
+  côté. Aucun mode ne le joue pour l'instant : Arena Free (`free-ffa`) se joue sur l'Arena du
+  propriétaire, dans le plugin practice ; il suffit d'un mode sous `jeux:` en `arene` pour le
+  rouvrir.
 - **Invis practice** (`invis`) : sur Invasion, Lectus ou Archway, de 2 à 6 joueurs, des manches
   de 3 minutes. À chaque manche, un joueur attaque avec le kit du mode (rangé dans l'éditeur de
   kit du lobby) : une potion d'invisibilité (30 s) et une de Jump V (45 s), 16 planches, une pioche
