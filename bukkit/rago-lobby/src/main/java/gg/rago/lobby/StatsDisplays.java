@@ -115,14 +115,14 @@ final class StatsDisplays {
 
     // --- Stats NPC ------------------------------------------------------------------------------
 
-    /** A Steve holding a book on the point, the player's profile above it. */
-    void addStatsNpc(final LobbyNpc npc, String bodyName, Location base) {
+    /** A body holding a book on the point (in its skin, Steve without one), the player's profile above it. */
+    void addStatsNpc(final LobbyNpc npc, String bodyName, Skin skin, Location base) {
         FakeEntities.Clicker open = (player, left) -> {
             if (cooled(player)) {
                 menu.open(player);
             }
         };
-        fakes.add(new FakePlayer(base, bodyName, new ItemStack(Material.BOOK), open));
+        fakes.add(new FakePlayer(base, bodyName, skin, new ItemStack(Material.BOOK), open));
         Location bottom = base.clone().add(0, LobbyNpcs.ABOVE_HEAD, 0);
         fakes.add(new FakeHologram(bottom, PROFILE_LINES, viewer -> profile(npc, viewer), open));
     }

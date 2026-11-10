@@ -145,47 +145,67 @@ groupes:
 # The NPCs of the lobby. Each one stands on a point placed with /lobby point <name> (the key) and
 # opens its modes: a click joins the queue if it has only one, else opens a menu of its modes.
 # An NPC whose point is not placed yet does not show.
+#   skin   the skin it wears: skins/<skin>.png in the folder of the plugin (64x64, yours), else
+#          the one of that name in the jar (attaque, clutch, ranked, prive, ffa, skyrise, rush,
+#          invis, bridge, arena, blocs, duels, practice, shop, stats). Without it: Steve.
+#          A 1.8 client shows a skin on an NPC only once Mojang signed it: at the start the server
+#          sends each new PNG once to MineSkin (api.mineskin.org) and keeps the answer in skins.yml.
 pnj:
   rankedbedwars1v1ou2v2elo:
     nom: "&6&lRanked Bedwars"
+    skin: ranked
     modes: [ranked-1v1, ranked-2v2, ranked-3v3, ranked-4v4]
   privategame:
     nom: "&6Private game"
+    skin: prive
     modes: [partie-privee, top-bridge-prive]
   rbwffa:
     nom: "&cFFA and Top bridge"
+    skin: ffa
     modes: [ffa, top-bridge-1v1, top-bridge-2v2, top-bridge-ffa]
   rbwsolo1v1ou2v2skyrise:
     nom: "&6RBW Sky Rise"
+    skin: skyrise
     modes: [skyrise-1v1, skyrise-2v2]
   firstrushnebucgelatosoloduo:
     nom: "&eFirst rush"
+    skin: rush
     modes: [first-rush, first-rush-duo]
   invispracticearwhayinvasion:
     nom: "&5Invis practice"
+    skin: invis
     modes: [invis-practice]
-  # Clutch Scenario and Attack and Defense, one ladder each: its point is placed with
-  # /lobby point clutchscenarioattackdefense, in the centre with the other game NPCs.
-  clutchscenarioattackdefense:
-    nom: "&cClutch and Attack Defense"
-    modes: [clutch-scenario-1v1, clutch-scenario-2v2, clutch-scenario-3v3, clutch-scenario-4v4, attack-defense-1v1,
-      attack-defense-2v2]
+  # Clutch Scenario and Attack and Defense, one NPC each (/lobby point clutchscenario and
+  # /lobby point attackanddefense), in the centre with the other game NPCs.
+  clutchscenario:
+    nom: "&bClutch Scenario"
+    modes: [clutch-scenario-1v1, clutch-scenario-2v2, clutch-scenario-3v3, clutch-scenario-4v4]
+    skin: clutch
+  attackanddefense:
+    nom: "&cAttack and Defense"
+    modes: [attack-defense-1v1, attack-defense-2v2]
+    skin: attaque
   realisticplat:
     nom: "&bBridge fight"
+    skin: bridge
     modes: [bridge-fight, bridge-fight-1v1]
   freearenacombo:
     nom: "&aArena Free"
+    skin: arena
     modes: [free-ffa]
   blockplacementarena:
     nom: "&bBlock placement"
+    skin: blocs
     modes: [block-fight-1v1, block-fight-2v2, block-fight-arena]
   # One NPC per side zone, on the front sign: it opens the whole category.
   attackdefenseversionrbw:
     nom: "&a&lDuels"
     categorie: duels
+    skin: duels
   blockinpractice:
     nom: "&b&lPractice"
     categorie: entrainement
+    skin: practice
   # The Shop NPC (type: shop), at the centre: a click opens the store, everything the network
   # sells on one page, the starter pack (pack-depart) first. sous-titre: the line under its name.
   # (Its point is still called aimtrainer: the aim trainer is in the Practice NPC.)
@@ -193,14 +213,21 @@ pnj:
     nom: "&a&lSHOP"
     sous-titre: "&eStarter Pack &c&l-50%"
     type: shop
+    skin: shop
   # The stats NPCs (type: stats): everyone sees their own profile above it, and a click opens
   # their stats mode by mode. nom: the first line of the profile.
   statsjoueur1:
     nom: "&6&lYour Rago profile"
     type: stats
+    skin: stats
   statsjoueur2:
     nom: "&6&lYour Rago profile"
     type: stats
+    skin: stats
+
+# A MineSkin API key (free, https://account.mineskin.org/keys), only if MineSkin refuses to sign
+# the skins of the NPCs without one (the log says so). "" asks without a key.
+cle-mineskin: ""
 
 # The Network level, from 1 to 100: every game gives XP to everyone who played it (more for a win),
 # every kill a little more, and the quests (quetes:) much more. Everyone starts at level 1; going
@@ -1056,8 +1083,8 @@ modes:
     description:
       - "Build a bed defense"
       - "as fast as you can: Ranked"
-      - "(end stone, glass) or solo"
-      - "(end stone, wool)."
+      - "(end stone, glass), solo or"
+      - "duo (end stone, wool)."
   block-edit:
     nom: "&bBlock edit"
     categorie: entrainement

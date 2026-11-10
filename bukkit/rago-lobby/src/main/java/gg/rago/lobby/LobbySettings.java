@@ -23,6 +23,7 @@ final class LobbySettings {
     /** The throw of the slime blocks of the lobby: forward and up, in blocks per tick. */
     private double slimeForward = 3.5;
     private double slimeUp = 1.3;
+    private String mineskinKey = "";
     private final String title;
     private final String address;
     private final int defaultRating;
@@ -145,6 +146,11 @@ final class LobbySettings {
                     + " with dashes, from developer.hypixel.net), or \"\" for no import");
         }
         Map<String, List<GameMode>> privateRoutes = readPrivateRoutes(config.getConfigurationSection("parties-privees"), modes);
+        String mineskinKey = config.getString("cle-mineskin", "").trim();
+        if (!mineskinKey.isEmpty() && !mineskinKey.matches("[A-Za-z0-9_.-]{8,200}")) {
+            throw new IllegalArgumentException("cle-mineskin: not a MineSkin API key (account.mineskin.org/keys),"
+                    + " or \"\" to sign the skins of the NPCs without one");
+        }
         double slimeForward = config.getDouble("slime.avant", 3.5);
         double slimeUp = config.getDouble("slime.haut", 1.3);
         if (slimeForward < 0 || slimeForward > 4 || slimeUp < 0 || slimeUp > 4) {
@@ -155,6 +161,7 @@ final class LobbySettings {
                     groups, modes, npcs, levels, hypixelKey, privateRoutes);
             settings.slimeForward = slimeForward;
             settings.slimeUp = slimeUp;
+            settings.mineskinKey = mineskinKey;
             return settings;
         } catch (IllegalArgumentException e) {
             throw new IllegalArgumentException("modes: " + e.getMessage(), e);
@@ -207,6 +214,19 @@ final class LobbySettings {
         return privateRoutes;
     }
 
+    /** The skin of an NPC (skin: id), or null for Steve. */
+    private static String skin(ConfigurationSection npc, String where) {
+        String id = npc.getString("skin", "").trim();
+        if (id.isEmpty()) {
+            return null;
+        }
+        if (!NpcSkins.validId(id)) {
+            throw new IllegalArgumentException(where + ".skin: \"" + id + "\" is not a skin name (lowercase letters,"
+                    + " digits and dashes: skins/<name>.png)");
+        }
+        return id;
+    }
+
     private static List<LobbyNpc> readNpcs(ConfigurationSection config, List<ModeDisplay> modes,
             List<ModeCategory> categories) {
         List<LobbyNpc> npcs = new ArrayList<>();
@@ -228,7 +248,7 @@ final class LobbySettings {
                     if (npc.contains("modes") || npc.contains("categorie")) {
                         throw new IllegalArgumentException(where + ": a stats NPC has neither modes nor categorie");
                     }
-                    npcs.add(LobbyNpc.stats(point, colour(npc.getString("nom", "&6&lYour profile"))));
+                    npcs.add(LobbyNpc.stats(point, colour(npc.getString("nom", "&6&lYour profile"))).withSkin(skin(npc, where)));
                     continue;
                 }
                 if ("shop".equals(type)) {
@@ -236,7 +256,7 @@ final class LobbySettings {
                         throw new IllegalArgumentException(where + ": the Shop NPC has neither modes nor categorie");
                     }
                     npcs.add(LobbyNpc.shop(point, colour(npc.getString("nom", "&a&lSHOP")),
-                            colour(npc.getString("sous-titre", "&eStarter Pack &c&l-50%"))));
+                            colour(npc.getString("sous-titre", "&eStarter Pack &c&l-50%"))).withSkin(skin(npc, where)));
                     continue;
                 }
                 if (!"modes".equals(type)) {
@@ -270,7 +290,7 @@ final class LobbySettings {
                         throw new IllegalArgumentException(where + ".modes: \"" + id + "\" is not one of the modes");
                     }
                 }
-                npcs.add(LobbyNpc.modes(point, colour(npc.getString("nom", point)), ids, category));
+                npcs.add(LobbyNpc.modes(point, colour(npc.getString("nom", point)), ids, category).withSkin(skin(npc, where)));
             }
         }
         ConfigurationSection boards = config.getConfigurationSection("classements");
@@ -587,6 +607,11 @@ final class LobbySettings {
     /** The server's Hypixel API key, for players to import their Bed Wars settings; "" for none. */
     String hypixelKey() {
         return hypixelKey;
+    }
+
+    /** The MineSkin API key that signs the skins of the NPCs, or "" to ask without one. */
+    String mineskinKey() {
+        return mineskinKey;
     }
 
     /** The XP, the levels and the ranks of the Network level. */

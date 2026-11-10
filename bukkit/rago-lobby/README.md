@@ -286,15 +286,27 @@ générateur vide ; un monde de build peut donc servir de lobby.
   Hypixel : Ranked Bedwars ouvre 1v1, 2v2, 3v3 et 4v4 côte à côte, Top Bridge ouvre 1v1, 2v2 et
   FFA, etc. Un mode y entre avec `groupe:` ; l'objet du groupe montre chaque taille avec sa file.
   Un mode `cache: true` ne paraît pas dans la boussole et ne se joue qu'en partie privée.
-- `pnj:` place un PNJ sur un point de `/lobby point` (la clé) : un joueur au skin de Steve, tourné
+- `pnj:` place un PNJ sur un point de `/lobby point` (la clé) : un joueur dans son skin, tourné
   vers le spawn, qui tient l'icône du mode, avec son nom et le nombre de joueurs en file au-dessus
   de la tête. Un clic rejoint la file du mode, ou ouvre un menu quand le PNJ a plusieurs modes ;
   dans ce menu, les tailles d'un même groupe ne font qu'un objet (Top Bridge, une échelle qui ouvre
-  1v1, 2v2 et FFA), sauf si le PNJ n'a que ce groupe. Le PNJ `clutchscenarioattackdefense` (Clutch
-  Scenario et Attack and Defense) n'apparaît qu'une fois son point posé avec `/lobby point
-  clutchscenarioattackdefense`, au centre avec les autres PNJ de jeux. Les PNJ réapparaissent quand
-  un point bouge.
-- `pnj:` avec `type: stats` place un PNJ de stats : un Steve qui tient un livre, avec au-dessus
+  1v1, 2v2 et FFA), sauf si le PNJ n'a que ce groupe. Clutch Scenario et Attack and Defense ont
+  chacun leur PNJ (`/lobby point clutchscenario` et `/lobby point attackanddefense`), au centre
+  avec les autres PNJ de jeux. Les PNJ réapparaissent quand un point bouge.
+- `skin:` sous un PNJ lui donne un skin : `skins/<nom>.png` dans le dossier du plugin (64x64, le
+  vôtre), sinon celui de ce nom dans le jar. Le jar en a un par mode, originaux : `ranked` (armure
+  de diamant et trophée), `prive` (costume et lunettes noires), `ffa` (bandeau rouge, épées
+  croisées), `skyrise` (lunettes d'aviateur, nuage), `rush` (casquette, éclair), `invis` (capuche
+  violette, potion), `clutch` (end stone, laine, lit), `attaque` (chevalier de fer au tabard
+  rouge), `bridge` (bleu et blanc), `arena` (gladiateur vert), `blocs` (casque de chantier, laine
+  de toutes les couleurs), `duels` (moitié rouge moitié bleu, casque de diamant), `practice`
+  (survêtement de coach), `shop` (marchand au tablier vert, émeraude) et `stats` (robe de savant,
+  lunettes, livre). Sans `skin:`, Steve. Un client 1.8 ne montre le skin d'un PNJ que signé par
+  Mojang : au démarrage, le serveur envoie une fois chaque nouveau PNG à MineSkin
+  (api.mineskin.org), garde la réponse dans `skins.yml` (avec l'empreinte du PNG : un PNG changé
+  est signé à nouveau) et replace les PNJ ; en attendant, Steve. Si MineSkin refuse sans clé, le
+  log le dit : une clé gratuite (account.mineskin.org/keys) va dans `cle-mineskin:`.
+- `pnj:` avec `type: stats` place un PNJ de stats : un joueur (skin `stats`) qui tient un livre, avec au-dessus
   le profil de celui qui le regarde (niveau Network et rang, victoires, défaites, kills, meilleure
   série, victoires du jour, ELO de chaque mode classé). Chaque joueur lit le sien. Un clic ouvre
   « Your stats » : la tête du joueur avec son niveau, son XP, son rang, le prochain rang et ses
@@ -378,7 +390,7 @@ leurs parties de lui ; le côté `MatchHost` d'un plugin de jeu ne changera pas.
 ## Ce qui n'est pas encore là
 
 - Les stats partagées entre serveurs : elles viendront avec la base de données (`rago-data`).
-- Des skins choisis pour les PNJ, et des cosmétiques pour le lobby (chapeaux, familiers).
+- Des cosmétiques pour le lobby (chapeaux, familiers).
 
 ## Construire et tester
 

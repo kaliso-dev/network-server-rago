@@ -28,7 +28,7 @@ import org.bukkit.inventory.ItemStack;
 
 /**
  * The NPCs and leaderboards of the lobby, standing on the /lobby points named in config.yml. A
- * mode NPC is a player with the Steve skin ({@link FakePlayer}, sent through PacketEvents)
+ * mode NPC is a player in its skin ({@link NpcSkins}; Steve without one) ({@link FakePlayer}, sent through PacketEvents)
  * holding the icon of its mode or category, facing the spawn, with its name and its queue count
  * floating above its head (two invisible armor stands). A click on it or its lines (left or
  * right) joins its mode's queue, or opens a menu of its modes when it has several or when its
@@ -56,6 +56,8 @@ final class LobbyNpcs implements Listener {
 
     /** Opens the store menu (the Shop NPC). */
     private java.util.function.Consumer<Player> store;
+    /** The signed skin of a name of skin.yml, or null for Steve. */
+    private java.util.function.Function<String, Skin> skins = id -> null;
 
     /** Every stand we spawned, to the point it belongs to. */
     private final Map<UUID, String> stands = new HashMap<>();
@@ -77,6 +79,10 @@ final class LobbyNpcs implements Listener {
 
     void setStore(java.util.function.Consumer<Player> store) {
         this.store = store;
+    }
+
+    void setSkins(java.util.function.Function<String, Skin> skins) {
+        this.skins = skins;
     }
 
     /**
@@ -124,9 +130,10 @@ final class LobbyNpcs implements Listener {
                     displays.addPodium(npc, steps);
                 }
             } else if (npc.kind() == LobbyNpc.Kind.STATS) {
-                displays.addStatsNpc(npc, bodyName(index), base);
+                displays.addStatsNpc(npc, bodyName(index), skins.apply(npc.skin()), base);
             } else if (npc.kind() == LobbyNpc.Kind.SHOP) {
-                fakes.add(new FakePlayer(base, bodyName(index), new ItemStack(Material.EMERALD), (player, left) -> click(player, npc.point())));
+                fakes.add(new FakePlayer(base, bodyName(index), skins.apply(npc.skin()), new ItemStack(Material.EMERALD),
+                        (player, left) -> click(player, npc.point())));
                 Location lowest = base.clone().add(0, ABOVE_HEAD - FakeHologram.NAME_HEIGHT, 0);
                 label(npc, lowest.clone().add(0, LINE, 0), npc.name());
                 label(npc, lowest, npc.subtitle());
@@ -232,7 +239,7 @@ final class LobbyNpcs implements Listener {
     private void body(final LobbyNpc npc, int index, Location at) {
         ModeCategory category = npc.category() == null ? null : settings.category(npc.category());
         ItemStack icon = new ItemStack(category != null ? category.icon() : settings.display(npc.modeIds().get(0)).icon());
-        fakes.add(new FakePlayer(at, bodyName(index), icon, (player, left) -> click(player, npc.point())));
+        fakes.add(new FakePlayer(at, bodyName(index), skins.apply(npc.skin()), icon, (player, left) -> click(player, npc.point())));
     }
 
     private ArmorStand label(LobbyNpc npc, Location at, String text) {

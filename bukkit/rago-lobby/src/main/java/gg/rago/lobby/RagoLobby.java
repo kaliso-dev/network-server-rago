@@ -66,6 +66,7 @@ public final class RagoLobby extends JavaPlugin implements LobbyService {
     private KitEditor kitEditor;
     private HypixelProfiles hypixel;
     private Skins skins;
+    private NpcSkins npcSkins;
     private Parties parties;
     private ServerSettings server;
     private Profiles profiles;
@@ -186,6 +187,16 @@ public final class RagoLobby extends JavaPlugin implements LobbyService {
         shop.setStore(store::open);
         npcs = new LobbyNpcs(settings, state, points, queues, menu, fakes, statsDisplays);
         npcs.setStore(store::open);
+        // -Drago.mineskin.api=... points the signing elsewhere (a test server); MineSkin else.
+        npcSkins = new NpcSkins(this, System.getProperty("rago.mineskin.api", MineSkin.API), settings.mineskinKey(), this::write);
+        List<String> skinIds = new ArrayList<>();
+        for (LobbyNpc npc : settings.npcs()) {
+            if (npc.skin() != null) {
+                skinIds.add(npc.skin());
+            }
+        }
+        npcSkins.load(skinIds);
+        npcs.setSkins(npcSkins::get);
         getServer().getPluginManager().registerEvents(npcs, this);
 
         getServer().getPluginManager().registerEvents(new LobbyListener(this, state, visibility), this);
@@ -253,6 +264,8 @@ public final class RagoLobby extends JavaPlugin implements LobbyService {
         List<String> missing = npcs.missingPoints();
         getLogger().info(placed + " NPCs and leaderboards placed" + (missing.isEmpty() ? ""
                 : ", no point for: " + String.join(", ", missing) + " (/lobby point <name>)"));
+        // The skins never signed: the NPCs wear Steve until MineSkin answers, then are placed again.
+        npcSkins.sign(this::placeDecor);
 
         // After a /reload: everyone online is brought back to the lobby.
         for (Player player : getServer().getOnlinePlayers()) {
@@ -302,6 +315,9 @@ public final class RagoLobby extends JavaPlugin implements LobbyService {
         }
         if (skins != null) {
             skins.stop();
+        }
+        if (npcSkins != null) {
+            npcSkins.stop();
         }
         if (writer != null) {
             writer.shutdown();

@@ -29,15 +29,17 @@ final class LobbyNpc {
     private final List<List<BoardStat>> boards;
     private final List<String> podium;
     private final String subtitle;
+    private final String skin;
 
     private LobbyNpc(String point, String name, Kind kind, List<String> modeIds, String category,
             List<List<BoardStat>> boards, List<String> podium) {
-        this(point, name, kind, modeIds, category, boards, podium, null);
+        this(point, name, kind, modeIds, category, boards, podium, null, null);
     }
 
     private LobbyNpc(String point, String name, Kind kind, List<String> modeIds, String category,
-            List<List<BoardStat>> boards, List<String> podium, String subtitle) {
+            List<List<BoardStat>> boards, List<String> podium, String subtitle, String skin) {
         this.subtitle = subtitle;
+        this.skin = skin;
         this.point = point;
         this.name = name;
         this.kind = kind;
@@ -56,7 +58,17 @@ final class LobbyNpc {
     /** The Shop NPC: its name, and the line under it. */
     static LobbyNpc shop(String point, String name, String subtitle) {
         return new LobbyNpc(point, name, Kind.SHOP, Collections.<String>emptyList(), null,
-                Collections.<List<BoardStat>>emptyList(), Collections.<String>emptyList(), subtitle);
+                Collections.<List<BoardStat>>emptyList(), Collections.<String>emptyList(), subtitle, null);
+    }
+
+    /** The same NPC in the skin of this id ({@link NpcSkins}), or in Steve's for null. */
+    LobbyNpc withSkin(String skin) {
+        return new LobbyNpc(point, name, kind, modeIds, category, boards, podium, subtitle, skin);
+    }
+
+    /** The id of its skin (skins/id.png, signed by {@link NpcSkins}), or null for Steve. */
+    String skin() {
+        return skin;
     }
 
     /** The line under the name of the Shop NPC, or null for another NPC. */

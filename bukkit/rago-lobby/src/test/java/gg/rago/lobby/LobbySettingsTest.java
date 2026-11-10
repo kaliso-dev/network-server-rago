@@ -20,7 +20,7 @@ import org.junit.jupiter.api.Test;
 
 class LobbySettingsTest {
 
-    private static YamlConfiguration bundledConfig() throws Exception {
+    static YamlConfiguration bundledConfig() throws Exception {
         YamlConfiguration yaml = new YamlConfiguration();
         try (Reader reader = new InputStreamReader(LobbySettingsTest.class.getResourceAsStream("/config.yml"),
                 StandardCharsets.UTF_8)) {
@@ -81,10 +81,14 @@ class LobbySettingsTest {
         }
         assertEquals("ranked", settings.display("attack-defense-1v1").category(), "Attack and Defense: in the RBW modes");
         assertEquals("ranked", settings.display("clutch-scenario-2v2").category());
-        List<LobbySettings.Entry> centre = settings.entriesOf(settings.npc("clutchscenarioattackdefense").modeIds());
-        assertEquals("clutch-scenario", centre.get(0).group.id(), "the NPC of the centre: one ladder each");
-        assertEquals("attack-defense", centre.get(1).group.id());
-        assertEquals(2, centre.size());
+        assertEquals(Arrays.asList("clutch-scenario-1v1", "clutch-scenario-2v2", "clutch-scenario-3v3",
+                "clutch-scenario-4v4"), settings.npc("clutchscenario").modeIds(), "one NPC for Clutch Scenario");
+        assertEquals(4, settings.entriesOf(settings.npc("clutchscenario").modeIds()).size(),
+                "its only group: each size is an item of its menu");
+        assertEquals(Arrays.asList("attack-defense-1v1", "attack-defense-2v2"), settings.npc("attackanddefense").modeIds(),
+                "and one for Attack and Defense");
+        assertEquals("clutch", settings.npc("clutchscenario").skin());
+        assertEquals("attaque", settings.npc("attackanddefense").skin());
         assertEquals(settings.modes().size(), total, "every mode is in a category");
     }
 
@@ -148,7 +152,7 @@ class LobbySettingsTest {
     @Test
     void readsTheBundledNpcs() throws Exception {
         LobbySettings settings = LobbySettings.load(bundledConfig());
-        assertEquals(18, settings.npcs().size(), "with the one of the clutch scenario and the attack and defense");
+        assertEquals(19, settings.npcs().size(), "with one for the clutch scenario and one for the attack and defense");
         LobbyNpc duels = settings.npc("attackdefenseversionrbw");
         assertEquals("duels", duels.category());
         assertEquals(settings.modesIn("duels").size(), duels.modeIds().size(), "a category NPC holds its modes");
