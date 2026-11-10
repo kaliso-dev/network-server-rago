@@ -1006,8 +1006,8 @@ modes:
       - "a hit on the bridge, save"
       - "yourself with your wool."
       - "Gold, Diamond, Emerald: the"
-      - "hit gets bigger. Ladders:"
-      - "an option."
+      - "hit comes from your look."
+      - "Wool and ladders."
   ladder-practice:
     nom: "&6Ladder practice"
     categorie: entrainement

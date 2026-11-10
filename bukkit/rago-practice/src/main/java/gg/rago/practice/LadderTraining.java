@@ -20,7 +20,9 @@ import org.bukkit.inventory.ItemStack;
  * a block and a ladder. The player jumps from a platform 4 to 24 blocks above a small pad of stone
  * and, while falling, puts a block of wool on the pad and a ladder on its side, then falls into
  * the ladder: no fall damage. Each clutch adds one to the streak; touching the stone, a fall that
- * hurts or the void end it.
+ * hurts or the void end it. From high up the fall is fast: the ladder put in the last tick before
+ * the landing reaches the server just after it, so the landing is judged a few ticks later, with
+ * the ladder there.
  */
 final class LadderTraining extends Training {
 
@@ -34,6 +36,11 @@ final class LadderTraining extends Training {
     static final int WALL_Z = -2;
     /** The first row of the pad of the lowest platform: the next pads are one block further each. */
     static final int PAD_Z = 7;
+    /**
+     * Ticks between the landing and its judgement: a block or a ladder put just before the landing
+     * may reach the server after it (one or two ticks of ping), and a ladder still counts then.
+     */
+    static final int GRACE_TICKS = 5;
 
     private final Random random = new Random();
     /** The platform of this attempt (the random mode draws one each time). */
@@ -42,6 +49,8 @@ final class LadderTraining extends Training {
     private boolean done;
     private int streak;
     private int blocks;
+    /** The tick of the landing out of a ladder, waiting for its judgement; -1 before. */
+    private int landedTick = -1;
 
     LadderTraining(PracticeHost host, GameMode mode, Arena arena, List<List<Player>> teams) {
         super(host, mode, arena, teams, variants());
@@ -113,6 +122,7 @@ final class LadderTraining extends Training {
         jumped = false;
         done = false;
         blocks = 0;
+        landedTick = -1;
     }
 
     /** True if this block is the stone of the pad under the platform of this attempt. */
@@ -144,7 +154,7 @@ final class LadderTraining extends Training {
     @Override
     boolean damage(Player victim, Player attacker, EntityDamageEvent event) {
         if (event.getCause() == EntityDamageEvent.DamageCause.FALL && jumped && !done) {
-            landed(victim);
+            touchedDown(victim);
         }
         return false;
     }
@@ -162,13 +172,39 @@ final class LadderTraining extends Training {
             }
             return;
         }
-        Block feet = at.getBlock();
-        if (feet.getType() == Material.LADDER && arena.isPlaced(feet)) {
+        if (inLadder(player)) {
             clutched(player);
-        } else if (onGround(player)) {
-            landed(player);
+        } else if (landedTick >= 0 ? tickCount - landedTick >= GRACE_TICKS : onGround(player)) {
+            touchedDown(player);
         }
         refresh();
+    }
+
+    /** True if the player's feet are in a ladder they put. */
+    private boolean inLadder(Player player) {
+        Block feet = player.getLocation().getBlock();
+        return feet.getType() == Material.LADDER && arena.isPlaced(feet);
+    }
+
+    /**
+     * The player is on the ground (or hurt by a fall): in their ladder, a clutch; else the landing
+     * is judged after the grace ticks, when a late ladder had the time to come.
+     */
+    private void touchedDown(Player player) {
+        if (done) {
+            return;
+        }
+        if (inLadder(player)) {
+            clutched(player);
+            return;
+        }
+        if (landedTick < 0) {
+            landedTick = tickCount;
+            return;
+        }
+        if (tickCount - landedTick >= GRACE_TICKS) {
+            landed(player);
+        }
     }
 
     private void clutched(Player player) {

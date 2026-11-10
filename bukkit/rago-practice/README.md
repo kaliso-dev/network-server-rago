@@ -108,8 +108,11 @@ et chaque variante son record : le meilleur score du joueur et celui du serveur,
   téléportation d'un saut à l'autre, au chrono. Des échelles viennent avec la laine (un réglage
   les retire) ; elles ne comptent pas dans les blocs du saut, une échelle sur le côté du pad
   rattrape un saut trop court.
-- **Ladder practice** : un mur d'end stone de 12 blocs à monter avec des échelles, ou la tour de
-  laine sous les pieds. Chrono.
+- **Ladder practice** : le block-ladder clutch de la map de lavy. Le joueur saute d'une
+  plateforme de 4 à 24 blocs et, en tombant, pose une laine sur le pad de pierre et une échelle
+  sur son côté, puis tombe dans l'échelle. De haut la chute va vite : l'échelle posée au dernier
+  moment arrive au serveur juste après l'atterrissage, alors l'atterrissage est jugé 5 ticks plus
+  tard, échelle comprise, au lieu de renvoyer le joueur tout de suite. Série.
 - **Pearl practice** : sur un morceau de Sky Rise (l'île rouge, l'île aux diamants en face, l'île
   aux émeraudes du milieu), copié du monde `SkyRise` du dossier des mondes (`pearl` dans
   `config.yml`), sinon des îles simples aux mêmes places. Une perle et un stack de laine par
