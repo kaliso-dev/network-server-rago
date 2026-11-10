@@ -210,7 +210,11 @@ la boussole emmène sur n'importe laquelle (pas pendant un combat). En arrivant,
 une chute, on apparaît dans la cabine la plus proche de sa plateforme (la petite île blanche en
 quartz), sur sa lanterne au milieu du losange de quartz, face à la plateforme ; l'armure prend la
 couleur du bout de la plateforme côté cabine. Sans la map, on revient à un bout de la plateforme. Trois secondes sans dégâts au retour, sauf si on
-frappe le premier. Les kills comptent dans les stats du mode.
+frappe le premier. Les kills comptent dans les stats du mode. La sidebar montre le **top 3 des
+kills** de la partie en cours (les joueurs présents), et un **classement des kills** flotte
+au-dessus de l'îlot du milieu, 12,5 blocs au-dessus de son sol, au-dessus du toit de sa cabine, vu
+de toutes les plateformes : « TOP KILLS », puis les 10 joueurs qui ont le plus de kills à vie dans
+le mode (les stats du lobby, relues toutes les 5 secondes).
 
 `bridge-fight-1v1` est le vrai 1v1, à part : une seule plateforme (rouge à l'ouest, bleu à l'est)
 avec ses carrés et ses ponts, le même stuff avec Protection II sur l'armure

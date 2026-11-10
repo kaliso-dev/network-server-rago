@@ -766,8 +766,9 @@ modes:
     equipes: 1
     joueurs-par-equipe: 1
     classe: false
-    # the fight kit, with 3 fireballs and a pearl: with full diamond armour, and Protection IV
-    kit: [STONE_SWORD, "GOLDEN_APPLE 64", "FIREBALL 3", ENDER_PEARL]
+    # the fight kit, with 3 fireballs, a pearl and 2 stacks of wool (the blocks go after 10 s, and
+    # only on the islands): with full diamond armour, and Protection IV
+    kit: [STONE_SWORD, "GOLDEN_APPLE 64", "FIREBALL 3", ENDER_PEARL, "WOOL 64", "WOOL 64"]
     description:
       - "Free for all on Archway FFA,"
       - "in diamond armour: spawn on"

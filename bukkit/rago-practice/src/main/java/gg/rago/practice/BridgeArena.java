@@ -44,7 +44,9 @@ import org.bukkit.inventory.PlayerInventory;
  * bridge leads from a pad at each end to the tip of its platform, and a walkway along each end
  * links the pads, so a player walks from one platform to another, and comes back at an end of the
  * platform they were on. Out of a fight, the compass takes them to any platform. The kills count in the stats of the mode. The 1v1 with points is
- * {@link BridgeDuel}.
+ * {@link BridgeDuel}. The sidebar shows the 3 players with the most kills in the game, and the
+ * board of the most kills ever in the mode floats above the middle of the arena (on the map, above
+ * the middle booth), where every platform sees it.
  */
 final class BridgeArena extends PracticeGame {
 
@@ -164,6 +166,14 @@ final class BridgeArena extends PracticeGame {
     private final Map<UUID, Long> portalPause = new HashMap<>();
     private final Map<UUID, Integer> kills = new HashMap<>();
     private final Map<UUID, Integer> streaks = new HashMap<>();
+    /** The board of the most kills ever in the mode; null until the first second. */
+    private KillBoard board;
+    /** How often the board is read again from the lobby's stats, in seconds. */
+    static final int BOARD_SECONDS = 5;
+    /** The board's top line this high above the floor of the middle: over the roof of the middle booth. */
+    static final double BOARD_ABOVE = 12.5;
+    /** The players with the most kills in the game, in the sidebar. */
+    static final int SIDEBAR_TOP = 3;
 
     BridgeArena(PracticeHost host, GameMode mode, Arena arena, List<List<Player>> teams) {
         super(host, mode, arena, teams);
@@ -834,6 +844,25 @@ final class BridgeArena extends PracticeGame {
     }
 
     @Override
+    void onSecond() {
+        if (seconds % BOARD_SECONDS != 1) {
+            return;
+        }
+        if (board == null) {
+            board = new KillBoard(arena.at(0.5, BOARD_ABOVE, 0.5));
+        }
+        board.show(KillBoard.lines(plugin.lobby().topKills(mode.id(), KillBoard.ROWS)));
+    }
+
+    @Override
+    void ended() {
+        if (board != null) {
+            board.remove();
+            board = null;
+        }
+    }
+
+    @Override
     void intro(Player player) {
         if (portals.isEmpty()) {
             player.sendMessage(ChatColor.AQUA + "" + ChatColor.BOLD + "Bridge fight" + ChatColor.GRAY
@@ -916,20 +945,14 @@ final class BridgeArena extends PracticeGame {
                 + ChatColor.GRAY + " / " + online().size());
         lines.add(ChatColor.WHITE + "Your kills: " + ChatColor.GREEN + kills.getOrDefault(viewer, 0));
         lines.add(ChatColor.WHITE + "Streak: " + ChatColor.GREEN + streaks.getOrDefault(viewer, 0));
-        UUID top = null;
-        int most = 0;
-        for (Player player : online()) {
-            int count = kills.getOrDefault(player.getUniqueId(), 0);
-            if (count > most) {
-                most = count;
-                top = player.getUniqueId();
-            }
-        }
-        if (top != null) {
-            lines.add("");
-            lines.add(Duel.cut(ChatColor.WHITE + "Top: " + ChatColor.GOLD + nameOf(top) + ChatColor.GRAY + " " + most + " kills"));
-        }
         lines.add("");
+        List<Map.Entry<String, Integer>> here = new ArrayList<>();
+        for (Player player : online()) {
+            here.add(new java.util.AbstractMap.SimpleEntry<>(nameOf(player.getUniqueId()),
+                    kills.getOrDefault(player.getUniqueId(), 0)));
+        }
+        // a game shows 12 lines at most: the top 3 takes the blank before the ping
+        lines.addAll(KillBoard.topLines(here, SIDEBAR_TOP));
         lines.add(ChatColor.WHITE + "Ping: " + Ping.text(Bukkit.getPlayer(viewer)));
         return lines;
     }

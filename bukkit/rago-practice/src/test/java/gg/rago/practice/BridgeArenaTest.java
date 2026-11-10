@@ -321,4 +321,37 @@ class BridgeArenaTest {
         assertEquals(1, BridgeArena.nextIsland(islands, 2, 0f), "looking south, at no island: the nearest one");
         assertEquals(-1, BridgeArena.nextIsland(islands, 3, 0f), "alone on its floor");
     }
+
+    @Test
+    void theSidebarShowsTheThreeWithTheMostKills() {
+        List<java.util.Map.Entry<String, Integer>> players = new ArrayList<>();
+        assertEquals(Arrays.asList("Top kills", "Nobody yet"), plain(KillBoard.topLines(players, 3)));
+        players.add(new java.util.AbstractMap.SimpleEntry<>("Ali", 3));
+        players.add(new java.util.AbstractMap.SimpleEntry<>("Zero", 0));
+        players.add(new java.util.AbstractMap.SimpleEntry<>("Sofiene", 12));
+        players.add(new java.util.AbstractMap.SimpleEntry<>("Bob", 8));
+        players.add(new java.util.AbstractMap.SimpleEntry<>("Eve", 1));
+        assertEquals(Arrays.asList("Top kills", "1. Sofiene 12", "2. Bob 8", "3. Ali 3"), plain(KillBoard.topLines(players, 3)),
+                "three at most, with a kill");
+    }
+
+    @Test
+    void theBoardShowsTheTenFirstEver() {
+        List<java.util.Map.Entry<String, Integer>> top = new ArrayList<>();
+        assertEquals(Arrays.asList("TOP KILLS", "Lifetime", "Nobody yet"), plain(KillBoard.lines(top)));
+        for (int i = 0; i < 12; i++) {
+            top.add(new java.util.AbstractMap.SimpleImmutableEntry<>("Player" + i, 100 - i));
+        }
+        List<String> lines = plain(KillBoard.lines(top));
+        assertEquals(2 + KillBoard.ROWS, lines.size(), "the title, then the ten first");
+        assertEquals("1. Player0 - 100", lines.get(2));
+    }
+
+    private static List<String> plain(List<String> lines) {
+        List<String> plain = new ArrayList<>();
+        for (String line : lines) {
+            plain.add(org.bukkit.ChatColor.stripColor(line));
+        }
+        return plain;
+    }
 }

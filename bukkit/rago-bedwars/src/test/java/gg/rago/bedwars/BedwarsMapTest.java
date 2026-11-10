@@ -234,9 +234,64 @@ class BedwarsMapTest {
     @Test
     void anFfaMapPutsItsBoardOfKillsInTheAir() throws Exception {
         BedwarsMap map = read("actif: true\nclassement: {x: 32.5, y: 92, z: 0.5}\n");
-        assertEquals(new MapPoint(32.5, 92, 0.5, 0f, 0f), map.killBoard());
-        assertEquals(map.killBoard(), map.copy().killBoard(), "written back as read");
-        assertNull(demo().killBoard(), "none: above the middle");
+        assertEquals(java.util.Arrays.asList(new MapPoint(32.5, 92, 0.5, 0f, 0f)), map.killBoards());
+        assertEquals(map.killBoards(), map.copy().killBoards(), "written back as read");
+        assertTrue(demo().killBoards().isEmpty(), "none: above the middle");
+    }
+
+    @Test
+    void anFfaMapMayHaveSeveralBoards() throws Exception {
+        BedwarsMap map = read("actif: true\nclassement:\n- {x: 13.5, y: 90, z: 0.5}\n- {x: 0.5, y: 73.5, z: -9.5}\n");
+        assertEquals(java.util.Arrays.asList(new MapPoint(13.5, 90, 0.5, 0f, 0f), new MapPoint(0.5, 73.5, -9.5, 0f, 0f)),
+                map.killBoards(), "beside the top bridge, over the low");
+        assertEquals(map.killBoards(), map.copy().killBoards(), "written back as read");
+    }
+
+    @Test
+    void theIslandsKeepTheBlocksOffTheBridges() throws Exception {
+        BedwarsMap map = read("actif: true\niles:\n"
+                + "- {centre: {x: 0.5, z: -0.5}, rayon: 27.5, bas: 55, haut: 80}\n"
+                + "- {de: {x: -83, y: 55, z: 4}, a: {x: -62, y: 95, z: 22}}\n");
+        assertEquals(2, map.islands().size());
+        assertNull(map.outsideIslands(0, 66, 0), "the low of the middle");
+        assertNull(map.outsideIslands(5, 80, 5), "up to the top of the middle");
+        assertEquals("Build height limit reached!", map.outsideIslands(0, 81, 0), "not up to the top bridge");
+        assertEquals("Build height limit reached!", map.outsideIslands(0, 85, -5), "nor on it");
+        assertNull(map.outsideIslands(26, 65, 0), "the edge of the middle");
+        assertEquals("You can only place blocks on the islands!", map.outsideIslands(-24, 66, -15), "a bridge past it");
+        assertEquals("You can only place blocks on the islands!", map.outsideIslands(20, 65, 20), "the corner of its square");
+        assertNull(map.outsideIslands(-83, 70, 22), "a corner of a base, both kept");
+        assertNull(map.outsideIslands(-70, 95, 10), "up to its top");
+        assertEquals("You can only place blocks on the islands!", map.outsideIslands(-61, 66, 10), "the bridge out of it");
+        assertEquals("You can only place blocks on the islands!", map.outsideIslands(-70, 54, 10), "under it");
+        BedwarsMap copy = map.copy();
+        assertEquals(2, copy.islands().size(), "written back as read");
+        for (int x = -90; x <= 30; x += 3) {
+            for (int z = -30; z <= 30; z += 3) {
+                for (int y = 50; y <= 100; y += 5) {
+                    assertEquals(map.outsideIslands(x, y, z), copy.outsideIslands(x, y, z), x + " " + y + " " + z);
+                }
+            }
+        }
+        assertNull(demo().outsideIslands(1000, 70, 1000), "no islands: everywhere");
+        assertThrows(IllegalArgumentException.class, () -> BedwarsMap.fromYaml("m", "iles:\n- {centre: {x: 1}, rayon: 3}\n"));
+        assertThrows(IllegalArgumentException.class, () -> BedwarsMap.fromYaml("m", "iles:\n- {centre: {x: 1, z: 1}}\n"));
+        assertThrows(IllegalArgumentException.class, () -> BedwarsMap.fromYaml("m", "iles:\n- {de: {x: 1, y: 2}}\n"));
+    }
+
+    @Test
+    void theSidebarOfTheFfaShowsTheThreeFirst() {
+        List<Map.Entry<String, Integer>> players = new java.util.ArrayList<>();
+        assertEquals(java.util.Arrays.asList("Top kills", "Nobody yet"), plain(FfaGame.topLines(players, 3)));
+        players.add(new java.util.AbstractMap.SimpleEntry<>("Ali", 3));
+        players.add(new java.util.AbstractMap.SimpleEntry<>("Zero", 0));
+        players.add(new java.util.AbstractMap.SimpleEntry<>("Sofiene", 12));
+        assertEquals(java.util.Arrays.asList("Top kills", "1. Sofiene 12", "2. Ali 3"), plain(FfaGame.topLines(players, 3)),
+                "only the players with a kill");
+        players.add(new java.util.AbstractMap.SimpleEntry<>("Bob", 8));
+        players.add(new java.util.AbstractMap.SimpleEntry<>("AVeryLongNameOfAPlayer", 5));
+        assertEquals(java.util.Arrays.asList("Top kills", "1. Sofiene 12", "2. Bob 8", "3. AVeryLongNameOfA 5"),
+                plain(FfaGame.topLines(players, 3)), "three at most");
     }
 
     @Test

@@ -878,12 +878,17 @@ class BedwarsGame {
 
     /**
      * Why no block can be placed there (null when one can, "" to say nothing): above the build
-     * limit, or too close to a spawn or a generator.
+     * limit, off the islands of a map that lists them (iles:), or too close to a spawn or a
+     * generator.
      */
     String cannotBuildAt(Block block) {
         BedwarsMap map = instance.map();
         if (block.getY() > (buildLimit > 0 ? buildLimit : map.buildLimit())) {
             return "Build height limit reached!";
+        }
+        String outside = map.outsideIslands(block.getX(), block.getY(), block.getZ());
+        if (outside != null) {
+            return outside;
         }
         for (BedwarsMap.Team team : map.teams().values()) {
             if (near(team.spawn, block, SPAWN_PROTECTION, 3) || near(team.generator, block, GENERATOR_PROTECTION, 2)) {

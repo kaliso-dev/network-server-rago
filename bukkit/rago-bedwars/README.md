@@ -206,9 +206,9 @@ Dans `jeux:` du config.yml, un mode peut jouer autre chose qu'une partie classiq
 - **FFA** (`ffa`, sur Archway FFA seulement, pas de choix de map) : chacun pour soi, ouvert,
   on entre et on sort quand on veut. Le kit du mode (rangé dans l'éditeur de kit du lobby) est le
   stuff de combat du propriétaire, une épée en pierre et un stack de pommes d'or, avec 3 boules de
-  feu et une perle, et à chaque vie une armure complète en diamant Protection IV (sans effet d'absorption) ;
-  on revient 3 secondes après une mort ; un kill soigne ; les
-  blocs posés partent au bout de 45 secondes ; les kills comptent dans les stats. Archway FFA (le
+  feu, une perle et 2 stacks de laine, et à chaque vie une armure complète en diamant Protection IV
+  (sans effet d'absorption) ; on revient 3 secondes après une mort ; un kill soigne ; les
+  blocs posés partent au bout de 10 secondes ; les kills comptent dans les stats. Archway FFA (le
   dossier `ArchwayFFA`) est l'Archway du propriétaire : des ponts de laine entre les îles, une
   défense d'end stone et de verre sur les lits rouge et vert pour les top fights, et depuis ces deux
   îles un escalier jusqu'au top bridge au-dessus du milieu (sa plateforme à y 85) ; on construit
@@ -220,13 +220,25 @@ Dans `jeux:` du config.yml, un mode peut jouer autre chose qu'une partie classiq
   joueur à moins de 12 blocs, sinon le plus éloigné des autres. Ces points sont les `apparitions:`
   du `bedwars.yml` de la map (un nom, puis sa liste de points ; 8 au plus). Une map sans
   `apparitions:` fait revenir sur l'île la plus éloignée des autres.
+  **Où poser des blocs** : sur Archway FFA, seulement sur les îles, jamais sur les ponts. Les îles
+  sont les `iles:` du `bedwars.yml` de la map, chacune une boîte (`de:` et `a:`, deux coins, comme
+  `retirer:`) ou un disque (`centre: {x, z}`, `rayon`, de y `bas` à y `haut`) : le milieu est un
+  disque de rayon 27,5 qui s'arrête à y 80, 5 blocs sous le top bridge (rien sur le top bridge,
+  ni pour y monter), puis les 4 bases et les 4 îles à diamants. Une map sans `iles:` laisse poser
+  partout sous sa hauteur max. Aucun bloc non plus près d'un endroit où l'on apparaît : les spawns
+  des bases (comme en Bed Wars), les points des `apparitions:` et les diamants (Random y fait
+  apparaître), 3 blocs autour et 3 au-dessus.
   Dans le FFA et le Top Bridge FFA, un **classement des kills** flotte en l'air à côté du
   combat : « TOP KILLS », puis les 10 joueurs qui ont le plus de kills à vie dans le mode, avec
   leur rang et leurs kills (les stats du lobby, relues toutes les 5 secondes). Sur Archway FFA, il
-  est au-dessus du vide à l'est du milieu, sa ligne du haut à y 92 (`classement: {x, y, z}` dans
-  le `bedwars.yml` de la map) ; une map sans `classement:` le met haut au-dessus du milieu des
-  îles. En Top Bridge FFA, il est à côté du milieu de la plateforme, 8 blocs après son bord et
-  7 blocs au-dessus.
+  y en a deux : un à côté du top bridge, 5 blocs après son bord est, sa ligne du haut à y 90 (à
+  hauteur des yeux sur la plateforme), et un au low, devant l'entrée nord de l'arche, sa ligne du
+  haut à y 73,5, au-dessus des têtes (`classement:` dans le
+  `bedwars.yml` de la map, un point `{x, y, z}` ou une liste de points) ; une map sans
+  `classement:` en met un haut au-dessus du milieu des îles. En Top Bridge FFA, il est à côté du
+  milieu de la plateforme, 8 blocs après son bord et 7 blocs au-dessus. La sidebar montre le
+  **top 3 des kills** de la partie en cours (les joueurs présents), sous ses kills, morts et
+  série.
 - **Free FFA** (`arene`) : la même chose avec les forges, les diamants et les émeraudes, un shop
   à lui (les diamants achètent aussi), l'armure et les outils gardés comme en Bed Wars, et sur
   chaque lit une défense de trois couches prête pour les top fights, remise quand personne n'est à

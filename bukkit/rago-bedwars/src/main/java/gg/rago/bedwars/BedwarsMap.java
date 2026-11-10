@@ -76,8 +76,126 @@ final class BedwarsMap {
     private final Map<String, List<MapPoint>> spawnChoices = new java.util.LinkedHashMap<>();
     /** The most spawns to choose from: one row of the menu, Random kept. */
     static final int MAX_SPAWN_CHOICES = 8;
-    /** Where the board of the most kills floats in the FFA (classement:, its top line); null: above the middle. */
-    private MapPoint killBoard;
+    /**
+     * Where the boards of the most kills float in the FFA (classement:, a point or a list of points,
+     * the top line of each); none: one above the middle.
+     */
+    private final List<MapPoint> killBoards = new ArrayList<>();
+    /** Where blocks may be placed (iles:); none: everywhere under the build limit. */
+    private final List<Island> islands = new ArrayList<>();
+
+    /**
+     * An island where the players may place blocks (iles:), when the map lists them: blocks go on
+     * the islands only, never on the bridges between them. A box (de and a, two corners, as in
+     * retirer:) or a disc (centre: x and z, rayon, from y bas to y haut, both kept). Archway FFA
+     * has them: its middle (a disc that stops under the top bridge), its bases and its diamond
+     * islands. Immutable.
+     */
+    static final class Island {
+        /** A disc: its centre and radius (a column is in it when its middle is); a box: NaN. */
+        final double centreX;
+        final double centreZ;
+        final double radius;
+        final int minX;
+        final int minZ;
+        final int maxX;
+        final int maxZ;
+        final int minY;
+        final int maxY;
+
+        private Island(double centreX, double centreZ, double radius, int minX, int minZ, int maxX, int maxZ,
+                int minY, int maxY) {
+            this.centreX = centreX;
+            this.centreZ = centreZ;
+            this.radius = radius;
+            this.minX = minX;
+            this.minZ = minZ;
+            this.maxX = maxX;
+            this.maxZ = maxZ;
+            this.minY = Math.max(0, Math.min(minY, maxY));
+            this.maxY = Math.min(255, Math.max(minY, maxY));
+        }
+
+        static Island box(int x1, int y1, int z1, int x2, int y2, int z2) {
+            return new Island(Double.NaN, Double.NaN, Double.NaN, Math.min(x1, x2), Math.min(z1, z2), Math.max(x1, x2),
+                    Math.max(z1, z2), y1, y2);
+        }
+
+        static Island disc(double centreX, double centreZ, double radius, int bottom, int top) {
+            return new Island(centreX, centreZ, radius, (int) Math.floor(centreX - radius),
+                    (int) Math.floor(centreZ - radius), (int) Math.floor(centreX + radius),
+                    (int) Math.floor(centreZ + radius), bottom, top);
+        }
+
+        boolean disc() {
+            return !Double.isNaN(radius);
+        }
+
+        /** True if the column of this block is on the island, whatever its height. */
+        boolean covers(int x, int z) {
+            if (x < minX || x > maxX || z < minZ || z > maxZ) {
+                return false;
+            }
+            if (!disc()) {
+                return true;
+            }
+            double dx = x + 0.5 - centreX;
+            double dz = z + 0.5 - centreZ;
+            return dx * dx + dz * dz <= radius * radius;
+        }
+
+        boolean holds(int y) {
+            return y >= minY && y <= maxY;
+        }
+
+        Map<String, Object> toMap() {
+            Map<String, Object> map = new java.util.LinkedHashMap<>();
+            if (disc()) {
+                Map<String, Object> centre = new java.util.LinkedHashMap<>();
+                centre.put("x", centreX);
+                centre.put("z", centreZ);
+                map.put("centre", centre);
+                map.put("rayon", radius);
+                map.put("bas", minY);
+                map.put("haut", maxY);
+            } else {
+                map.put("de", Removal.corner(minX, minY, minZ));
+                map.put("a", Removal.corner(maxX, maxY, maxZ));
+            }
+            return map;
+        }
+
+        static Island fromMap(Map<?, ?> map, String where) {
+            if (!map.containsKey("centre")) {
+                int[] from = Removal.corner(map.get("de"), where + ".de");
+                int[] to = Removal.corner(map.get("a"), where + ".a");
+                return box(from[0], from[1], from[2], to[0], to[1], to[2]);
+            }
+            Object centre = map.get("centre");
+            if (!(centre instanceof Map) || !(((Map<?, ?>) centre).get("x") instanceof Number)
+                    || !(((Map<?, ?>) centre).get("z") instanceof Number)) {
+                throw new IllegalArgumentException(where + ".centre: x and z");
+            }
+            Object radius = map.get("rayon");
+            if (!(radius instanceof Number) || ((Number) radius).doubleValue() <= 0
+                    || ((Number) radius).doubleValue() > 512) {
+                throw new IllegalArgumentException(where + ".rayon: a number of blocks, more than 0");
+            }
+            int[] heights = new int[2];
+            String[] keys = {"bas", "haut"};
+            int[] defaults = {0, 255};
+            for (int i = 0; i < 2; i++) {
+                Object value = map.get(keys[i]);
+                if (value != null && !(value instanceof Number)) {
+                    throw new IllegalArgumentException(where + "." + keys[i] + ": a height, from 0 to 255");
+                }
+                heights[i] = value == null ? defaults[i] : ((Number) value).intValue();
+            }
+            return disc(((Number) ((Map<?, ?>) centre).get("x")).doubleValue(),
+                    ((Number) ((Map<?, ?>) centre).get("z")).doubleValue(), ((Number) radius).doubleValue(), heights[0],
+                    heights[1]);
+        }
+    }
 
     /**
      * A box of the map taken out of each game's copy when it is made (retirer:): all its blocks, or
@@ -139,7 +257,7 @@ final class BedwarsMap {
             return map;
         }
 
-        private static Map<String, Object> corner(int x, int y, int z) {
+        static Map<String, Object> corner(int x, int y, int z) {
             Map<String, Object> map = new java.util.LinkedHashMap<>();
             map.put("x", x);
             map.put("y", y);
@@ -167,7 +285,7 @@ final class BedwarsMap {
             return new Removal(from[0], from[1], from[2], to[0], to[1], to[2], materials);
         }
 
-        private static int[] corner(Object value, String where) {
+        static int[] corner(Object value, String where) {
             if (!(value instanceof Map)) {
                 throw new IllegalArgumentException(where + ": x, y and z");
             }
@@ -365,9 +483,34 @@ final class BedwarsMap {
         return spectators;
     }
 
-    /** Where the board of the most kills floats in the FFA (its top line), or null for above the middle. */
-    MapPoint killBoard() {
-        return killBoard;
+    /** Where the boards of the most kills float in the FFA (the top line of each); empty: one above the middle. */
+    List<MapPoint> killBoards() {
+        return Collections.unmodifiableList(killBoards);
+    }
+
+    /** The islands where blocks may be placed (iles:); empty: everywhere. */
+    List<Island> islands() {
+        return Collections.unmodifiableList(islands);
+    }
+
+    /**
+     * Why the islands of the map (iles:) keep a block from going there, null when they let it: off
+     * every island (on a bridge, over the void), or above the top of the island under it.
+     */
+    String outsideIslands(int x, int y, int z) {
+        if (islands.isEmpty()) {
+            return null;
+        }
+        boolean under = false;
+        for (Island island : islands) {
+            if (island.covers(x, z)) {
+                if (island.holds(y)) {
+                    return null;
+                }
+                under |= y > island.maxY;
+            }
+        }
+        return under ? "Build height limit reached!" : "You can only place blocks on the islands!";
     }
 
     /** The spawns of the FFA to choose from, by name, in their order; empty if none. */
@@ -489,7 +632,18 @@ final class BedwarsMap {
         for (Map.Entry<String, List<MapPoint>> choice : spawnChoices.entrySet()) {
             yaml.set("apparitions." + choice.getKey(), maps(choice.getValue()));
         }
-        write(yaml, "classement", killBoard);
+        if (killBoards.size() == 1) {
+            write(yaml, "classement", killBoards.get(0));
+        } else if (!killBoards.isEmpty()) {
+            yaml.set("classement", maps(killBoards));
+        }
+        if (!islands.isEmpty()) {
+            List<Map<String, Object>> list = new ArrayList<>();
+            for (Island island : islands) {
+                list.add(island.toMap());
+            }
+            yaml.set("iles", list);
+        }
         if (!removals.isEmpty()) {
             List<Map<String, Object>> boxes = new ArrayList<>();
             for (Removal removal : removals) {
@@ -579,7 +733,18 @@ final class BedwarsMap {
                 map.spawnChoices.put(name, points);
             }
         }
-        map.killBoard = point(yaml, "classement", null);
+        if (yaml.isList("classement")) {
+            map.killBoards.addAll(points(yaml.getMapList("classement"), "classement"));
+        } else {
+            MapPoint board = point(yaml, "classement", null);
+            if (board != null) {
+                map.killBoards.add(board);
+            }
+        }
+        List<Map<?, ?>> islands = yaml.getMapList("iles");
+        for (int i = 0; i < islands.size(); i++) {
+            map.islands.add(Island.fromMap(islands.get(i), "iles[" + i + "]"));
+        }
         List<Map<?, ?>> boxes = yaml.getMapList("retirer");
         for (int i = 0; i < boxes.size(); i++) {
             map.removals.add(Removal.fromMap(boxes.get(i), "retirer[" + i + "]"));

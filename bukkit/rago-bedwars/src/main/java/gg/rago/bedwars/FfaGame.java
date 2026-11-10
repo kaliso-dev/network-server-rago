@@ -21,8 +21,10 @@ import org.bukkit.inventory.PlayerInventory;
 /**
  * A free for all on a Bed Wars map, open to everyone: players join and leave when they like, each
  * for themselves, and come back three seconds after a death, on the island farthest from the
- * others. The beds stay as the map has them, unbreakable; the blocks placed go after a while, so
- * that the map never fills up. The kills count in the stats of the mode.
+ * others. The beds stay as the map has them, unbreakable; the blocks placed go after a while (10
+ * seconds in the FFA, 45 in the arena), so that the map never fills up, and only on the islands of
+ * a map that lists them (iles:, Archway FFA): none on the bridges, nor up to the top bridge. No
+ * block either near a place where the players spawn. The kills count in the stats of the mode.
  *
  * <p>FFA: the mode's kit as each player arranged it (the lobby's kit editor), with its armour,
  * given back at each life; a kill heals the killer. Arena (Free FFA): the island forges, the
@@ -32,8 +34,9 @@ import org.bukkit.inventory.PlayerInventory;
  * bridge of Antenna, built between the two islands farthest apart: the players start and come
  * back on the platform, away from the others, and one who falls off it is dead. The FFA and Top
  * Bridge FFA play the owner's fight kit: a stone sword and a stack of golden apples (and in the FFA,
- * 3 fireballs and a pearl), full diamond armour with Protection IV. In both, the board of the
- * most kills ever in the mode floats in the air beside the fight (see {@link #boardPlace}). Main
+ * 3 fireballs, a pearl and 2 stacks of wool), full diamond armour with Protection IV. In both, the
+ * boards of the most kills ever in the mode float in the air beside the fight (see
+ * {@link #boardPlaces}), and the sidebar shows the 3 players with the most kills in the game. Main
  * thread only.
  */
 final class FfaGame extends BedwarsGame {
@@ -41,8 +44,12 @@ final class FfaGame extends BedwarsGame {
     /** At most this many players in one copy of the map: the next ones get another copy. */
     static final int MAX_PLAYERS = 16;
     private static final int RESPAWN_SECONDS = 3;
-    /** The blocks placed go after this long. */
-    private static final int DECAY_SECONDS = 45;
+    /** The blocks placed in the FFA go after this long... */
+    static final int DECAY_SECONDS = 10;
+    /** ...and in the arena, where they make the defenses of the top fights. */
+    static final int ARENA_DECAY_SECONDS = 45;
+    /** The players with the most kills in the game, in the sidebar. */
+    static final int SIDEBAR_TOP = 3;
     /** How often the broken defenses come back, when nobody stands near them. */
     private static final int REPAIR_SECONDS = 20;
     private static final double REPAIR_DISTANCE = 8;
@@ -51,7 +58,7 @@ final class FfaGame extends BedwarsGame {
     private final boolean arena;
     /** Every island of the map: where the players come back, where the forges and shops stand. */
     private final List<Team> islands = new ArrayList<>();
-    private final BlockDecay decay = new BlockDecay(DECAY_SECONDS);
+    private final BlockDecay decay;
     private final Random random = new Random();
     private final List<Defense> defenses = new ArrayList<>();
     private final Map<UUID, Integer> streaks = new HashMap<>();
@@ -72,8 +79,8 @@ final class FfaGame extends BedwarsGame {
     static final int BOARD_ABOVE_BRIDGE = 7;
     /** Without a place in the map (classement:), the top line this high above the highest a player can build. */
     static final int BOARD_ABOVE_LIMIT = 4;
-    /** The board of the most kills (FFA and Top Bridge FFA); null until the first second, and in the arena. */
-    private KillBoard board;
+    /** The boards of the most kills (FFA and Top Bridge FFA); none until the first second, nor in the arena. */
+    private final List<KillBoard> boards = new ArrayList<>();
     /** The two islands of the top bridge, once it is planned; null without one. */
     private Team[] bridged;
     private int colours;
@@ -82,6 +89,7 @@ final class FfaGame extends BedwarsGame {
             List<List<Player>> sides, boolean arena) {
         super(plugin, host, instance, modeId, modeName, sides, arena ? plugin.arenaCatalog() : plugin.catalog());
         this.arena = arena;
+        this.decay = new BlockDecay(arena ? ARENA_DECAY_SECONDS : DECAY_SECONDS);
         for (TeamColor color : instance.map().completeTeams()) {
             islands.add(new Team(color, instance.map().teams().get(color)));
         }
@@ -403,8 +411,9 @@ final class FfaGame extends BedwarsGame {
                 });
             }
         }
-        player.sendMessage(ChatColor.GRAY + "Your blocks go after " + DECAY_SECONDS + " seconds. /spawn takes you back "
-                + "to the lobby.");
+        player.sendMessage(ChatColor.GRAY + "Your blocks go after " + decay.seconds() + " seconds"
+                + (instance.map().islands().isEmpty() ? "" : ", and only on the islands, not on the bridges")
+                + ". /spawn takes you back to the lobby.");
     }
 
     /** FFA: the mode's kit and diamond armour at each life. Arena: the start of a Bed Wars life. */
@@ -420,12 +429,14 @@ final class FfaGame extends BedwarsGame {
         if (kit != null) {
             inventory.setContents(kit);
         } else {
-            // the owner's fight kit; the FFA adds 3 fireballs and a pearl
+            // the owner's fight kit; the FFA adds 3 fireballs, a pearl and 2 stacks of wool
             List<ItemStack> items = new ArrayList<>(java.util.Arrays.asList(new ItemStack(Material.STONE_SWORD),
                     new ItemStack(Material.GOLDEN_APPLE, 64)));
             if (!onTheBridge()) {
                 items.add(new ItemStack(Material.FIREBALL, 3));
                 items.add(new ItemStack(Material.ENDER_PEARL));
+                items.add(new ItemStack(Material.WOOL, 64));
+                items.add(new ItemStack(Material.WOOL, 64));
             }
             for (ItemStack item : items) {
                 inventory.addItem(kitItem(item, gamer));
@@ -456,6 +467,31 @@ final class FfaGame extends BedwarsGame {
         }
     }
 
+    /**
+     * The FFA keeps the places where the players spawn free of blocks too, as the bases: the
+     * spawns to choose (apparitions:) and, when Random draws among them, the diamonds.
+     */
+    @Override
+    String cannotBuildAt(Block block) {
+        String refused = super.cannotBuildAt(block);
+        if (refused != null || !choosesSpawn()) {
+            return refused;
+        }
+        for (List<MapPoint> points : instance.map().spawnChoices().values()) {
+            for (MapPoint point : points) {
+                if (near(point, block, SPAWN_PROTECTION, 3)) {
+                    return "You can't place blocks here!";
+                }
+            }
+        }
+        for (MapPoint point : instance.map().diamonds()) {
+            if (near(point, block, SPAWN_PROTECTION, 3)) {
+                return "You can't place blocks here!";
+            }
+        }
+        return null;
+    }
+
     @Override
     void placed(Player player, Block block) {
         decay.placed(block, seconds);
@@ -476,36 +512,44 @@ final class FfaGame extends BedwarsGame {
         }
     }
 
-    /** The board of the most kills, put up the first time: the ten first of the mode, from the lobby's stats. */
+    /** The boards of the most kills, put up the first time: the ten first of the mode, from the lobby's stats. */
     private void updateBoard() {
-        if (board == null) {
-            Location where = boardPlace();
-            if (where == null) {
+        if (boards.isEmpty()) {
+            for (Location where : boardPlaces()) {
+                boards.add(new KillBoard(where));
+            }
+            if (boards.isEmpty()) {
                 return;
             }
-            board = new KillBoard(where);
         }
-        board.show(KillBoard.lines(plugin.lobby().topKills(modeId, KillBoard.ROWS)));
+        List<String> lines = KillBoard.lines(plugin.lobby().topKills(modeId, KillBoard.ROWS));
+        for (KillBoard board : boards) {
+            board.show(lines);
+        }
     }
 
     /**
-     * Where the board of the most kills floats (its top line), in the air and away from the fight:
-     * in Top Bridge FFA beside the middle of the platform, past its edge and above it; in the FFA
-     * where the map puts it (classement: in its bedwars.yml), else high above the middle of the
-     * islands. Null while the top bridge is not built.
+     * Where the boards of the most kills float (the top line of each), in the air and away from
+     * the fight: in Top Bridge FFA beside the middle of the platform, past its edge and above it; in
+     * the FFA where the map puts them (classement: in its bedwars.yml, Archway FFA: beside the top
+     * bridge, and over the low of the middle), else one high above the middle of the islands. None
+     * while the top bridge is not built.
      */
-    Location boardPlace() {
+    List<Location> boardPlaces() {
         World world = instance.world();
+        List<Location> places = new ArrayList<>();
         if (onTheBridge()) {
-            if (topBridge == null) {
-                return null;
+            if (topBridge != null) {
+                double[] spot = topBridge.beside(BOARD_BESIDE_BRIDGE, BOARD_ABOVE_BRIDGE);
+                places.add(new Location(world, spot[0], spot[1], spot[2]));
             }
-            double[] spot = topBridge.beside(BOARD_BESIDE_BRIDGE, BOARD_ABOVE_BRIDGE);
-            return new Location(world, spot[0], spot[1], spot[2]);
+            return places;
         }
-        MapPoint place = instance.map().killBoard();
-        if (place != null) {
-            return place.in(world);
+        for (MapPoint place : instance.map().killBoards()) {
+            places.add(place.in(world));
+        }
+        if (!places.isEmpty()) {
+            return places;
         }
         double x = 0;
         double z = 0;
@@ -513,17 +557,18 @@ final class FfaGame extends BedwarsGame {
             x += island.points.spawn.x();
             z += island.points.spawn.z();
         }
-        return new Location(world, x / islands.size(), Math.min(world.getMaxHeight() - 2,
-                instance.map().buildLimit() + BOARD_ABOVE_LIMIT), z / islands.size());
+        places.add(new Location(world, x / islands.size(), Math.min(world.getMaxHeight() - 2,
+                instance.map().buildLimit() + BOARD_ABOVE_LIMIT), z / islands.size()));
+        return places;
     }
 
     @Override
     void cleanUp() {
         super.cleanUp();
-        if (board != null) {
+        for (KillBoard board : boards) {
             board.remove();
-            board = null;
         }
+        boards.clear();
     }
 
     private boolean anyoneNear(Location where) {
@@ -559,23 +604,42 @@ final class FfaGame extends BedwarsGame {
         lines.add("");
         List<Gamer> here = present();
         lines.add(ChatColor.WHITE + "Players: " + ChatColor.GREEN + here.size());
-        lines.add(ChatColor.WHITE + "Kills: " + ChatColor.GREEN + viewer.kills);
-        lines.add(ChatColor.WHITE + "Deaths: " + ChatColor.GREEN + deaths.getOrDefault(viewer.id, 0));
+        lines.add(ChatColor.WHITE + "Kills: " + ChatColor.GREEN + viewer.kills + ChatColor.WHITE + "  Deaths: "
+                + ChatColor.GREEN + deaths.getOrDefault(viewer.id, 0));
         lines.add(ChatColor.WHITE + "Streak: " + ChatColor.GREEN + streaks.getOrDefault(viewer.id, 0));
-        Gamer top = null;
+        lines.add("");
+        List<Map.Entry<String, Integer>> top = new ArrayList<>();
         for (Gamer gamer : here) {
-            if (gamer.kills > 0 && (top == null || gamer.kills > top.kills)) {
-                top = gamer;
+            top.add(new java.util.AbstractMap.SimpleEntry<>(gamer.name, gamer.kills));
+        }
+        lines.addAll(topLines(top, SIDEBAR_TOP));
+        return lines;
+    }
+
+    /**
+     * The lines of the players with the most kills in the game, for the sidebar (ten lines of a
+     * game at most there, with the lobby's ping): "Top kills", then "1. Sofiene 12" for each of
+     * the first with a kill, or "Nobody yet". Ties keep the order given.
+     */
+    static List<String> topLines(List<Map.Entry<String, Integer>> players, int rows) {
+        List<Map.Entry<String, Integer>> top = new ArrayList<>();
+        for (Map.Entry<String, Integer> player : players) {
+            if (player.getValue() > 0) {
+                top.add(player);
             }
         }
-        if (top != null) {
-            lines.add("");
-            String name = top.name.length() > 16 ? top.name.substring(0, 16) : top.name;
-            lines.add(ChatColor.WHITE + "Top: " + ChatColor.GOLD + name + ChatColor.GRAY + " " + top.kills);
+        Collections.sort(top, (a, b) -> Integer.compare(b.getValue(), a.getValue()));
+        List<String> lines = new ArrayList<>();
+        lines.add(ChatColor.GOLD + "" + ChatColor.BOLD + "Top kills");
+        if (top.isEmpty()) {
+            lines.add(ChatColor.GRAY + "Nobody yet");
         }
-        lines.add("");
-        lines.add(ChatColor.GRAY + (arena ? "Top fights on the beds" : onTheBridge() ? "A sword only"
-                : "Blocks go after " + DECAY_SECONDS + " s"));
+        ChatColor[] places = {ChatColor.GOLD, ChatColor.WHITE, ChatColor.RED};
+        for (int i = 0; i < Math.min(rows, top.size()); i++) {
+            String name = top.get(i).getKey();
+            lines.add(places[Math.min(i, places.length - 1)] + "" + (i + 1) + ". " + ChatColor.WHITE
+                    + (name.length() > 16 ? name.substring(0, 16) : name) + ChatColor.GRAY + " " + top.get(i).getValue());
+        }
         return lines;
     }
 }
