@@ -46,15 +46,6 @@ le Tab, avec sa vie en dessous et son niveau Network à côté.
   et relance la manche, chacun sur son bloc d'or, la map comme au départ. Premier à
   `points-pour-gagner.block-fight` (100). Sans ces mondes, deux petites plateformes au-dessus du
   vide.
-- **Attack and defense 1v1 et 2v2**, comme un rush en solo sur Hypixel : le défenseur est chez
-  lui, à côté de son lit sans défense, l'attaquant déjà sur un pont, à trois blocs de vide de
-  l'île. Le défenseur doit couvrir son lit tout de suite et tenir 60 secondes (il revient au bout
-  de 3 secondes s'il meurt) ; l'attaquant doit le casser, et s'il meurt, son rush est raté.
-  L'attaquant a le stuff des premières minutes (épée en pierre, 48 laine, cisailles, pioche en
-  bois), le défenseur une épée en bois et 32 laine. On change de côté à chaque manche ; le plus
-  de lits cassés gagne, et à égalité le plus rapide. L'île est l'île rouge de Lotus
-  (`attaque-defense` dans la config : le monde, la zone, le lit, le départ du défenseur et le
-  pont) ; sans ce monde, une île simple.
 - **Fireball fight** : chaque camp a son île et son lit sous une défense de bois et de laine. Le
   stuff des maps du propriétaire : épée en pierre, pioche et hache Efficiency I, 6 boules de feu,
   un stack de laine, 8 end stone, 2 TNT, cisailles, 8 échelles, armure en cuir. Tant que le lit
@@ -272,8 +263,8 @@ que les zones déjà construites ne bougent pas.
 
 `plugins/RagoPractice/config.yml` : le monde des arènes, l'espacement, le nombre maximal de
 parties, les points pour gagner de chaque duel, le rayon du sumo et ses maps (`sumo.cartes` :
-le monde, le centre de la plateforme, la boîte copiée), la map du block in, et l'île et le temps de
-l'attack and defense.
+le monde, le centre de la plateforme, la boîte copiée) et la map du block in. L'attack and defense
+est dans le plugin bedwars, sur les maps du propriétaire (Bio Hazard).
 
 ## Construire et tester
 

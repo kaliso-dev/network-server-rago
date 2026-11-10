@@ -41,7 +41,7 @@ class LobbySettingsTest {
         assertEquals("lobby", settings.world());
         assertEquals(0, settings.voidHeight());
         assertEquals(0, settings.defaultRating(), "a ranked ELO starts at 0, in Coal");
-        assertEquals(51, settings.modes().size(), "with the private top bridge");
+        assertEquals(48, settings.modes().size(), "with the private top bridge, without the top fight");
         assertFalse(settings.catalog().get("top-bridge-1v1").ranked(), "Top Bridge: no ELO");
         assertEquals("2v2", settings.catalog().get("top-bridge-2v2").format());
         assertTrue(settings.npc("rbwffa").modeIds().contains("top-bridge-1v1"));
@@ -92,10 +92,10 @@ class LobbySettingsTest {
         assertEquals(Arrays.asList("block-fight-1v1", "block-fight-2v2", "block-fight-arena"),
                 displayIds(settings.modesOfGroup("block-placement")));
         assertTrue(ranked.size() <= 14, "two rows at most: " + ranked.size());
-        assertEquals(Arrays.asList("top-fight-1v1", "top-fight-2v2"), displayIds(settings.modesOfGroup("top-fight")),
-                "the top fight 1v1 is back in the selector, next to the 2v2");
-        assertTrue(!settings.display("top-fight-1v1").hidden());
-        assertEquals(Arrays.asList("top-fight-1v1", "top-fight-2v2"), ids(settings.privateRoutes().get("top-fight-prive")));
+        assertNull(settings.display("top-fight-1v1"), "no top fight: there are bridge fight and top bridge");
+        assertNull(settings.privateRoutes().get("top-fight-prive"));
+        assertEquals(Arrays.asList("attack-defense-1v1", "attack-defense-2v2"),
+                displayIds(settings.modesOfGroup("attack-defense")));
         assertEquals(Arrays.asList("top-bridge-1v1", "top-bridge-2v2"), ids(settings.privateRoutes().get("top-bridge-prive")),
                 "the practice of the top bridge, with the party");
         assertTrue(settings.npc("privategame").modeIds().contains("top-bridge-prive"));
@@ -268,7 +268,7 @@ class LobbySettingsTest {
         LobbySettings settings = LobbySettings.load(bundledConfig());
         java.util.List<GameMode> rbw = settings.privateRoutes().get("partie-privee");
         assertEquals(Arrays.asList("ranked-1v1", "ranked-2v2", "ranked-3v3", "ranked-4v4"), ids(rbw));
-        assertEquals(Arrays.asList("top-fight-1v1", "top-fight-2v2"), ids(settings.privateRoutes().get("top-fight-prive")));
+        assertEquals(Arrays.asList("top-bridge-1v1", "top-bridge-2v2"), ids(settings.privateRoutes().get("top-bridge-prive")));
         assertNull(settings.privateRoutes().get("ranked-1v1"));
 
         LobbySettings unordered = LobbySettings.load(yaml("parties-privees:\n  prive: [duo, solo]\nmodes:\n  prive: {}\n"

@@ -172,6 +172,43 @@ class BedwarsMapTest {
         assertFalse(empty.enabled());
     }
 
+    @Test
+    void anAttackAndDefenseMapHasOneBaseAndTheAttackers() throws Exception {
+        String text = "actif: true\n"
+                + "equipes:\n"
+                + "  gray:\n"
+                + "    spawn: {x: 96.5, y: 65, z: 31.5, yaw: 90}\n"
+                + "    lit: {x: 86, y: 65, z: 31}\n"
+                + "    generateur: {x: 105.5, y: 64.5, z: 31.5}\n"
+                + "    shop: {x: 98.5, y: 65, z: 37.5, yaw: 180}\n"
+                + "attaquants:\n"
+                + "  equipe: pink\n"
+                + "  departs:\n"
+                + "    - {x: 94.5, y: 77, z: 20.5, yaw: 27}\n"
+                + "    - {x: 94.5, y: 77, z: 18.5, yaw: 27}\n";
+        BedwarsMap map = read(text);
+        assertEquals(Collections.singletonList(TeamColor.GRAY), map.completeTeams());
+        assertTrue(map.hasAttackers());
+        assertEquals(TeamColor.PINK, map.attackerColor());
+        assertEquals(2, map.attackerStarts().size());
+        assertEquals(new MapPoint(94.5, 77, 20.5, 27f, 0f), map.attackerStarts().get(0));
+        assertEquals(2, map.sides(), "the base and the attackers: a game of two sides");
+        assertTrue(map.missing().isEmpty(), map.missing().toString());
+        assertTrue(map.playable());
+        BedwarsMap copy = map.copy();
+        assertEquals(TeamColor.PINK, copy.attackerColor());
+        assertEquals(map.attackerStarts(), copy.attackerStarts());
+        BedwarsMap noStart = read(text.substring(0, text.indexOf("  departs:")));
+        assertFalse(noStart.hasAttackers(), "no start, no attackers");
+        assertFalse(noStart.playable());
+        IllegalArgumentException taken = assertThrows(IllegalArgumentException.class,
+                () -> BedwarsMap.fromYaml("m", text.replace("equipe: pink", "equipe: gray")));
+        assertTrue(taken.getMessage().startsWith("attaquants.equipe"), taken.getMessage());
+        assertThrows(IllegalArgumentException.class, () -> BedwarsMap.fromYaml("m", text.replace("equipe: pink",
+                "equipe: violet")));
+        assertEquals(demo().completeTeams().size(), demo().sides(), "a map of islands: its complete teams");
+    }
+
     private static BedwarsMap read(String text) {
         try {
             return BedwarsMap.fromYaml("m", text);

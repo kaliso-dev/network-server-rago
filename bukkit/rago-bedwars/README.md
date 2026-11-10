@@ -4,8 +4,8 @@ Un plugin Bukkit 1.8.8 qui joue les modes Bed Wars du lobby (`bukkit/rago-lobby`
 Bedwars 1v1, 2v2, 3v3 et 4v4**, **RBW Sky Rise** en solo et en duo, avec les règles d'une partie
 classique d'Hypixel, **First Rush** en solo et en duo (la même partie, sur deux îles voisines), les
 **parties privées** d'une party (le lobby choisit le 1v1, 2v2, 3v3 ou 4v4 selon sa taille), et
-cinq jeux à part sur des maps de Bed Wars : **Top Bridge**, **Top Fight**, **FFA** (dont le Top
-Bridge FFA), **Invis practice** et **Fast Shop**. Chaque mode a ses maps.
+cinq jeux à part sur des maps de Bed Wars : **Top Bridge**, **Attack and Defense**,
+**FFA** (dont le Top Bridge FFA), **Invis practice** et **Fast Shop**. Chaque mode a ses maps.
 
 ## La partie
 
@@ -109,21 +109,29 @@ deux îles les plus éloignées ; on apparaît et on revient 3 secondes après u
 plateforme, à l'endroit le plus loin des autres joueurs, et celui qui tombe en dessous est mort.
 Un kill soigne.
 
-## Top Fight
+## Attack and Defense
 
-`top-fight-1v1` et `top-fight-2v2` (le genre `top-fight`), sur les 20 maps de la file (Antenna en
-premier, au choix dans la file), et le **Private top fight** du PNJ des parties privées. Le lit de
-la première équipe garde une défense de ranked (end stone sur le lit, puis verre, bois et laine),
-les autres lits et les forges partent. Tout le monde commence en haut de la défense, face à face :
-le premier de chaque équipe tout en haut (l'un au-dessus du pied du lit, l'autre de sa tête), le
-second une marche plus bas derrière lui. Le même stuff qu'en Top Bridge : le kit du mode (épée en
-pierre, un stack de pommes d'or), armure complète en diamant Protection IV et Absorption II. Celui
-qui tombe de la défense jusqu'au sol de l'île est mort, comme dans le vide.
+`attack-defense-1v1` et `attack-defense-2v2` (le genre `attaque-defense`), sur les maps d'attack
+and defense du propriétaire : d'abord **BioHazard** (Bio Hazard, dont il ne reste que la base
+grise et le pont rose qui y mène). Deux manches : chaque camp attaque une fois, les rôles
+s'échangent à la deuxième, la map redevient comme au départ.
 
-- **Dans la file** : des manches d'une vie, la première équipe à 3 points gagne. Entre deux
-  manches, la map redevient comme au départ et la défense est reposée.
-- **En partie privée** : le même practice qu'en Top Bridge (on revient en haut 2 secondes après une
-  mort, 30 minutes au plus), et la défense redevient entière quand un joueur revient.
+- **Les attaquants** partent du bout du pont (les `attaquants:` du `bedwars.yml` de la map), avec
+  une seule vie, une armure en cuir et le kit du mode du lobby (épée en pierre, un stack de laine,
+  2 boules de feu, pioche en bois, cisailles ; trois kits au choix viendront ensuite). Ils posent
+  des blocs et lancent des boules de feu comme dans une vraie partie.
+- **Les défenseurs** partent de leur base avec le stuff d'un début de partie (épée en bois, armure
+  en cuir), leur forge et leur shop, sans améliorations. Ils reviennent tant que leur lit tient ;
+  après, une mort est un final kill, comme dans une vraie partie.
+
+La défense que la map a sur le lit (sur Bio Hazard, l'end stone et la laine capturées avec la map)
+est celle des défenseurs, comme dans une vraie partie : on peut la casser, et elle revient entière
+à chaque manche.
+
+Les attaquants gagnent la manche en cassant le lit et en tuant tous les défenseurs ; les
+défenseurs en tuant tous les attaquants, ou en tenant 5 minutes. Le camp qui gagne le plus de
+manches gagne ; à une manche partout, la plus rapide des deux attaques réussies gagne, sinon c'est
+une égalité.
 
 ## Améliorations et pièges
 
@@ -247,6 +255,16 @@ red et blue :
      a: {x: 8, y: 120, z: 73}
      blocs: [WOOL]
    ```
+9. Pour une map d'attack and defense, à écrire aussi dans le `bedwars.yml` : une seule équipe
+   complète (la base défendue) et `attaquants:`, la couleur des attaquants (une couleur que la map
+   n'a pas) et leurs départs, le premier attaquant au premier :
+   ```yaml
+   attaquants:
+     equipe: pink
+     departs:
+     - {x: 94.5, y: 77, z: 20.5, yaw: 27}
+     - {x: 94.5, y: 77, z: 18.5, yaw: 27}
+   ```
 
 `/bw maps` liste les maps, `/bw remove red|diamond|emerald|diamonds|emeralds` enlève une équipe ou
 un générateur (le plus proche, à 5 blocs), `/bw disable` ferme la map. Chaque changement est
@@ -267,7 +285,8 @@ ne pas attendre).
 
 Une map sert à un mode si elle a au moins autant d'équipes complètes que le mode a d'équipes,
 qu'elle en ait exactement autant ou plus (les équipes prennent alors des îles éloignées, ou
-voisines en First Rush) : Antenna, à deux équipes, est une des 20 maps des Ranked, pas la seule. Une équipe est complète avec son spawn, son lit, son générateur et son shop.
+voisines en First Rush) : Antenna, à deux équipes, est une des 20 maps des Ranked, pas la seule. Une équipe est complète avec son spawn, son lit, son générateur et son shop. Une map
+d'attack and defense compte deux camps : sa base et ses attaquants.
 
 Pour une map d'Hypixel, [tools/bedwars-maps](../../tools/bedwars-maps/README.md) trouve tous ces
 points à partir des lits, des coffres et des îles, et écrit le `bedwars.yml` : il ne reste qu'à

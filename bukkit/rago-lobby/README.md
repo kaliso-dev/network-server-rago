@@ -283,8 +283,7 @@ générateur vide ; un monde de build peut donc servir de lobby.
 - `groupes:` réunit les tailles d'un même jeu en un seul objet de sa catégorie, comme les jeux de
   Hypixel : Ranked Bedwars ouvre 1v1, 2v2, 3v3 et 4v4 côte à côte, Top Bridge ouvre 1v1, 2v2 et
   FFA, etc. Un mode y entre avec `groupe:` ; l'objet du groupe montre chaque taille avec sa file.
-  Un mode `cache: true` ne paraît pas dans la boussole et ne se joue qu'en partie privée (le Top
-  fight 1v1, pour la partie privée Top fight d'une party de deux).
+  Un mode `cache: true` ne paraît pas dans la boussole et ne se joue qu'en partie privée.
 - `pnj:` place un PNJ sur un point de `/lobby point` (la clé) : un joueur au skin de Steve, tourné
   vers le spawn, qui tient l'icône du mode, avec son nom et le nombre de joueurs en file au-dessus
   de la tête. Un clic rejoint la file du mode, ou ouvre un menu quand le PNJ a plusieurs modes. Les

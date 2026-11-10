@@ -182,9 +182,7 @@ class BedwarsGame {
         this.modeName = modeName;
         this.settings = plugin.settings();
         this.catalog = catalog;
-        // First Rush: neighbouring islands; the other modes: opposite ones, as on Hypixel
-        List<TeamColor> colors = settings.neighbours(modeId) ? instance.map().neighbourTeams(sides.size())
-                : instance.map().playingTeams(sides.size());
+        List<TeamColor> colors = teamColors(sides.size());
         for (int i = 0; i < sides.size(); i++) {
             TeamColor color = colors.get(i);
             Team team = new Team(color, instance.map().teams().get(color));
@@ -194,6 +192,15 @@ class BedwarsGame {
                 gamers.put(player.getUniqueId(), newGamer(player, team));
             }
         }
+    }
+
+    /**
+     * The colours of the teams of a game of this many sides, the first side's first: First Rush,
+     * neighbouring islands; the other modes, opposite ones, as on Hypixel. Called by the
+     * constructor: only the fields set before it may be used.
+     */
+    List<TeamColor> teamColors(int count) {
+        return settings.neighbours(modeId) ? instance.map().neighbourTeams(count) : instance.map().playingTeams(count);
     }
 
     /** A player of this game, in this team, with their Hypixel hotbar and quick buy. */
@@ -354,7 +361,7 @@ class BedwarsGame {
     }
 
     /**
-     * On the top bridge (or a top fight's defense), the players under its fall line are dead: also
+     * On the top bridge, the players under its fall line are dead: also
      * those who stand still down there (a move under it kills too, see the host).
      */
     private void fallenOff() {
@@ -447,13 +454,8 @@ class BedwarsGame {
             upgrades.gold = new Generator(spot, Material.GOLD_INGOT, upgrades.goldRate, null);
             forges.add(upgrades.iron);
             forges.add(upgrades.gold);
-            Location spawn = team.points.spawn.in(world);
-            spawnNpc(team.points.shop.in(world), spawn, ChatColor.AQUA + "ITEM SHOP", null);
-            if (team.points.upgrades != null && upgrades()) {
-                spawnNpc(team.points.upgrades.in(world), spawn, ChatColor.AQUA + (teamSize <= 1 ? "SOLO UPGRADES"
-                        : "TEAM UPGRADES"), team);
-            }
         }
+        npcsUp(islands);
         for (MapPoint point : map.diamonds()) {
             Generator generator = new Generator(point.in(world), Material.DIAMOND, settings.diamond().get(0), "Diamond");
             diamonds.add(generator);
@@ -468,6 +470,37 @@ class BedwarsGame {
         for (Generator generator : generators) {
             generator.showText();
         }
+    }
+
+    /** The shop and upgrades NPCs of these teams' islands. */
+    void npcsUp(List<Team> islands) {
+        World world = instance.world();
+        int teamSize = 0;
+        for (Team team : islands) {
+            teamSize = Math.max(teamSize, team.members.size());
+        }
+        for (Team team : islands) {
+            Location spawn = team.points.spawn.in(world);
+            spawnNpc(team.points.shop.in(world), spawn, ChatColor.AQUA + "ITEM SHOP", null);
+            if (team.points.upgrades != null && upgrades()) {
+                spawnNpc(team.points.upgrades.in(world), spawn, ChatColor.AQUA + (teamSize <= 1 ? "SOLO UPGRADES"
+                        : "TEAM UPGRADES"), team);
+            }
+        }
+    }
+
+    /**
+     * After a rollback, which takes every entity of the map away: the NPCs of these islands and
+     * the texts of the generators again, the chests empty again.
+     */
+    void entitiesAgain(List<Team> islands) {
+        removeNpcs();
+        npcsUp(islands);
+        for (Generator generator : generators) {
+            generator.remove();
+            generator.showText();
+        }
+        chests.clear();
     }
 
     // --- What a kind of game changes (a FFA, a practice) ----------------------------------------
@@ -1270,6 +1303,10 @@ class BedwarsGame {
         for (Generator generator : generators) {
             generator.remove();
         }
+        removeNpcs();
+    }
+
+    private void removeNpcs() {
         for (Entity npc : npcs.keySet()) {
             npc.remove();
         }

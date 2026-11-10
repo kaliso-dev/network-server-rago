@@ -15,8 +15,6 @@ modes:
   ranked-4v4: [Antenna, Aquarium, Archway, Artemis, Boletum, Carapace, Catalyst, Chained, Eastwood, Extinction, Invasion, Katsu, Lectus, Obelisk, Paladin, Planet98, Rise, Stonekeep, Swashbuckle, Treenan]
   top-bridge-1v1: [Antenna, Aquarium, Archway, Artemis, Boletum, Carapace, Catalyst, Chained, Eastwood, Extinction, Invasion, Katsu, Lectus, Obelisk, Paladin, Planet98, Rise, Stonekeep, Swashbuckle, Treenan]
   top-bridge-2v2: [Antenna, Aquarium, Archway, Artemis, Boletum, Carapace, Catalyst, Chained, Eastwood, Extinction, Invasion, Katsu, Lectus, Obelisk, Paladin, Planet98, Rise, Stonekeep, Swashbuckle, Treenan]
-  top-fight-1v1: [Antenna, Aquarium, Archway, Artemis, Boletum, Carapace, Catalyst, Chained, Eastwood, Extinction, Invasion, Katsu, Lectus, Obelisk, Paladin, Planet98, Rise, Stonekeep, Swashbuckle, Treenan]
-  top-fight-2v2: [Antenna, Aquarium, Archway, Artemis, Boletum, Carapace, Catalyst, Chained, Eastwood, Extinction, Invasion, Katsu, Lectus, Obelisk, Paladin, Planet98, Rise, Stonekeep, Swashbuckle, Treenan]
   skyrise-1v1: [SkyRise]
   skyrise-2v2: [SkyRise]
   first-rush: [Acropolis, Ambush, Aqil, Cascade, Crogorm, Frosted, Gelato, Lighthouse, Lotus, Nebuc]
@@ -25,6 +23,8 @@ modes:
   ffa: [ArchwayFFA, Paladin]
   invis-practice: [Antenna, Aquarium, Archway, Artemis, Boletum, Carapace, Catalyst, Chained, Eastwood, Extinction, Invasion, Katsu, Lectus, Obelisk, Paladin, Planet98, Rise, Stonekeep, Swashbuckle, Treenan]
   shop-practice: [Archway]
+  attack-defense-1v1: [BioHazard]
+  attack-defense-2v2: [BioHazard]
 
 # The modes that are not a classic Bed Wars game, each with its kind of game:
 #   ffa        free for all, open: players join and leave when they like, each for themselves, and
@@ -43,23 +43,25 @@ modes:
 #              below), everyone starting on top with the mode's kit and iron armour, dead when
 #              they fall off it; rounds of one life, the first team to 5 points wins; in a
 #              party's private game, a practice: back on top 2 seconds after a death, 30 minutes
-#   top-fight  Top Fight: the bed of the first team keeps a ranked defense (end stone, glass, wood,
-#              wool), the other beds and the forges go; everyone starts on top of it, face to
-#              face, with the mode's kit and diamond armour; knocked off it down to the island is
-#              dead; rounds of one life to 3 points; in a party's private game, the same practice
-#              as Top Bridge, the defense made whole again when a player comes back
+#   attaque-defense  Attack and Defense, on a map of one base and the bridge of the attackers
+#              (attaquants: in its bedwars.yml): two rounds, each side attacks once. The attackers
+#              start at the end of their bridge, one life, the mode's kit and leather armour; the
+#              defenders have a game's start kit, their forge and their shop, and come back while
+#              their bed stands; a defense the map has on the bed can be broken, as in a game,
+#              and is whole again each round. The attackers win the round by breaking the bed and killing the
+#              defenders, the defenders by killing the attackers or holding 5 minutes
 #   fast-shop  Fast Shop: each player on an island with its shop, lists of items to buy as fast as
 #              possible with their own quick buy (copied from Hypixel in the lobby), and records
 # A mode not listed is a classic game.
 jeux:
   top-bridge-1v1: top-bridge
   top-bridge-2v2: top-bridge
-  top-fight-1v1: top-fight
-  top-fight-2v2: top-fight
   top-bridge-ffa: ffa
   ffa: ffa
   invis-practice: invis
   shop-practice: fast-shop
+  attack-defense-1v1: attaque-defense
+  attack-defense-2v2: attaque-defense
 
 # How many game worlds the server keeps at most, so how many games at once (from 1 to 50).
 parties-max: 8

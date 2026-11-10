@@ -21,7 +21,7 @@ import org.bukkit.plugin.java.JavaPlugin;
 
 /**
  * RagoPractice: the practice modes played from the lobby. Duels (sumo, boxing, KB displace, block
- * fight, top fight, attack and defense, fireball fight, block edit), the trainings (clutch, block
+ * fight, fireball fight, block edit, bow duel), the trainings (clutch, block
  * in, fast defense, extends, ladder clutch, pearls, fireballs, aim, block edit), the bots, and the
  * open arenas (block placement, bridge fight), each in zones of an empty world. See the README.
  */
@@ -155,8 +155,6 @@ public final class RagoPractice extends JavaPlugin {
         int edit = config.getInt("points-pour-gagner.block-edit", 5);
         int bridge = config.getInt("points-pour-gagner.bridge-fight", 5);
         int bridgeProtection = config.getInt("bridge-fight.protection-1v1", 2);
-        int attack = config.getInt("attaque-defense.attaque-secondes", 60);
-        int rounds = config.getInt("attaque-defense.manches", 2);
         int aimXp = config.getInt("aim-trainer.xp-par-seconde", 1);
         int aimHits = config.getInt("aim-trainer.touches-par-xp", 10);
         BlockInTraining.Island island = blockInIsland(config);
@@ -168,13 +166,12 @@ public final class RagoPractice extends JavaPlugin {
         List<MapZones.ZoneMap> blockMaps = zoneMaps(config, "block-fight.cartes", spacing, "the block placement");
         onMaps(register("block-fight-1v1", (h, m, a, t) -> new BlockFight(h, m, a, t, blocks), slots, spacing, false), blockMaps);
         onMaps(register("block-fight-2v2", (h, m, a, t) -> new BlockFight(h, m, a, t, blocks), slots, spacing, false), blockMaps);
-        // Top Fight plays on the RBW maps, in the Bed Wars plugin: its two rows stay reserved, so that
-        // the other modes keep their zones
+        // the rows of the old Top Fight, and of Attack and Defense (on the owner's maps, in the Bed
+        // Wars plugin), stay reserved, so that the other modes keep their zones
         hosted.add("(top-fight-1v1)");
         hosted.add("(top-fight-2v2)");
-        AttackDefense.Base base = attackDefenseBase(config, spacing);
-        register("attack-defense-1v1", (h, m, a, t) -> new AttackDefense(h, m, a, t, base, attack, rounds), slots, spacing, false);
-        register("attack-defense-2v2", (h, m, a, t) -> new AttackDefense(h, m, a, t, base, attack, rounds), slots, spacing, false);
+        hosted.add("(attack-defense-1v1)");
+        hosted.add("(attack-defense-2v2)");
         onMaps(register("fireball", FireballFight::new, slots, spacing, false),
                 zoneMaps(config, "fireball.cartes", spacing, "the fireball fight"));
         // the islands side by side, close enough to see the players of the next ones
@@ -533,94 +530,6 @@ public final class RagoPractice extends JavaPlugin {
     }
 
     /**
-     * The defender's island of the attack and defense: a solo island of a Bed Wars map
-     * (attaque-defense.monde) copied once, the foot of its bed one block above the centre of the
-     * zones; the defender's start and the attacker's bridge from it. Without that world, or with a
-     * mistake in the section, the plugin's plain island.
-     */
-    private AttackDefense.Base attackDefenseBase(FileConfiguration config, int spacing) {
-        String world = config.getString("attaque-defense.monde", "");
-        if (world.trim().isEmpty()) {
-            return AttackDefense.Base.plain();
-        }
-        Object zone = config.getList("attaque-defense.zone");
-        Object bed = config.getList("attaque-defense.lit");
-        Object defender = config.getList("attaque-defense.defenseur");
-        Object bridge = config.getList("attaque-defense.pont");
-        String problem = checkAttackDefense(zone, bed, defender, bridge, spacing);
-        if (problem != null) {
-            getLogger().warning("attaque-defense in config.yml: " + problem + ". The attack and defense plays on the plugin's own island.");
-            return AttackDefense.Base.plain();
-        }
-        int[] foot = numbers(bed, 3);
-        int[] origin = {foot[0], foot[1] - 1, foot[2]};
-        int[] box = numbers(zone, 6);
-        int[] start = numbers(defender, 4);
-        int[] ends = numbers(bridge, 6);
-        MapCopy copy = MapCopy.read(world, box, origin, getLogger(), "the attack and defense");
-        if (copy == null) {
-            return AttackDefense.Base.plain();
-        }
-        double[] spot = {start[0] - origin[0] + 0.5, start[1] - origin[1], start[2] - origin[2] + 0.5, start[3]};
-        int[] way = new int[6];
-        for (int i = 0; i < 6; i++) {
-            way[i] = ends[i] - origin[i % 3];
-        }
-        return new AttackDefense.Base(copy, null, spot, way);
-    }
-
-    /**
-     * What is wrong with the attaque-defense section (zone, lit, defenseur, pont), or null. The
-     * zone holds the bed and the defender's start, the bridge is a straight line at one height,
-     * and all of it stays in its zone of the arena world: less than half the spacing from the bed.
-     */
-    static String checkAttackDefense(Object zone, Object bed, Object defender, Object bridge, int spacing) {
-        int[] box = numbers(zone, 6);
-        if (box == null) {
-            return "zone: the two corners of the box copied, x, y, z each";
-        }
-        int[] foot = numbers(bed, 3);
-        if (foot == null) {
-            return "lit: x, y, z of the foot of the bed";
-        }
-        if (!inBox(foot, box)) {
-            return "zone: the box holds the bed";
-        }
-        int[] start = numbers(defender, 4);
-        if (start == null) {
-            return "defenseur: x, y, z, yaw of the defender's start";
-        }
-        if (!inBox(start, box)) {
-            return "defenseur: in the zone";
-        }
-        int[] ends = numbers(bridge, 6);
-        if (ends == null) {
-            return "pont: x, y, z of its far end, then of its near end";
-        }
-        if (ends[1] != ends[4] || (ends[0] != ends[3]) == (ends[2] != ends[5])) {
-            return "pont: a straight line of blocks along x or z, at one height";
-        }
-        int half = spacing / 2 - 1;
-        for (int i : new int[] {0, 2}) {
-            for (int value : new int[] {box[i], box[i + 3], ends[i], ends[i + 3]}) {
-                if (Math.abs(value - foot[i]) > half) {
-                    return "zone and pont: at most " + half + " blocks from the bed on x and z (espacement / 2)";
-                }
-            }
-        }
-        return null;
-    }
-
-    private static boolean inBox(int[] place, int[] box) {
-        for (int i = 0; i < 3; i++) {
-            if (place[i] < Math.min(box[i], box[i + 3]) || place[i] > Math.max(box[i], box[i + 3])) {
-                return false;
-            }
-        }
-        return true;
-    }
-
-    /**
      * The maps of a list of config.yml (monde, centre, zone each) the server has, each read once:
      * the middle of the top of its platform lands on the centre of the zones.
      */
@@ -939,8 +848,6 @@ public final class RagoPractice extends JavaPlugin {
             {"points-pour-gagner.kb-displace", "3", "1", "10"},
             {"points-pour-gagner.block-fight", "100", "10", "500"},
             {"points-pour-gagner.block-edit", "5", "1", "20"},
-            {"attaque-defense.attaque-secondes", "60", "15", "600"},
-            {"attaque-defense.manches", "2", "2", "10"},
             {"aim-trainer.xp-par-seconde", "1", "0", "10"},
             {"aim-trainer.touches-par-xp", "10", "1", "100"},
             {"pearl.limite-basse", "55", "0", "70"},
@@ -956,9 +863,6 @@ public final class RagoPractice extends JavaPlugin {
             if (value < Integer.parseInt(range[2]) || value > Integer.parseInt(range[3])) {
                 return range[0] + ": from " + range[2] + " to " + range[3];
             }
-        }
-        if (config.getInt("attaque-defense.manches", 2) % 2 != 0) {
-            return "attaque-defense.manches: an even number, so that each side attacks as often";
         }
         return null;
     }

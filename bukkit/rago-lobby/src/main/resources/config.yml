@@ -49,7 +49,7 @@ categories:
     description:
       - "Ranked and the Bedwars modes:"
       - "Sky Rise, first rush, Top Bridge,"
-      - "FFA, top fight, bridge fight..."
+      - "FFA, attack and defense..."
   duels:
     nom: "&a&lDuels"
     icone: IRON_SWORD
@@ -111,29 +111,20 @@ groupes:
       - "Build, clutch and fight on the"
       - "block placement maps: 1v1, 2v2,"
       - "or the arena with everyone."
-  top-fight:
-    nom: "&eTop fight"
-    icone: GOLD_SWORD
-    description:
-      - "On the 20 RBW maps, from the"
-      - "top of a ranked bed defense,"
-      - "in diamond Protection IV:"
-      - "1v1 or 2v2."
   prive:
     nom: "&6Private games"
     icone: NAME_TAG
     description:
       - "With your party: a real RBW"
-      - "game, a top fight or a top"
-      - "bridge, the size follows the"
-      - "party."
+      - "game or a top bridge, the size"
+      - "follows the party."
   attack-defense:
     nom: "&cAttack and defense"
     icone: IRON_SWORD
     description:
-      - "A rush, as on Hypixel: the"
-      - "attacker on the bridge, the"
-      - "defender covers the bed fast."
+      - "Bio Hazard: attack from the"
+      - "bridge with one life, defend"
+      - "with your forge and shop."
   clutch:
     nom: "&bBlock clutch"
     icone: LADDER
@@ -151,10 +142,10 @@ pnj:
     modes: [ranked-1v1, ranked-2v2, ranked-3v3, ranked-4v4]
   privategame:
     nom: "&6Private game"
-    modes: [partie-privee, top-fight-prive, top-bridge-prive]
+    modes: [partie-privee, top-bridge-prive]
   rbwffa:
-    nom: "&cFFA and Top fight"
-    modes: [ffa, top-fight-1v1, top-fight-2v2, top-bridge-1v1, top-bridge-2v2, top-bridge-ffa]
+    nom: "&cFFA and Top bridge"
+    modes: [ffa, top-bridge-1v1, top-bridge-2v2, top-bridge-ffa]
   rbwsolo1v1ou2v2skyrise:
     nom: "&6RBW Sky Rise"
     modes: [skyrise-1v1, skyrise-2v2]
@@ -561,7 +552,6 @@ hypixel:
 # a party is asked to make one (/party invite <name>).
 parties-privees:
   partie-privee: [ranked-1v1, ranked-2v2, ranked-3v3, ranked-4v4]
-  top-fight-prive: [top-fight-1v1, top-fight-2v2]
   top-bridge-prive: [top-bridge-1v1, top-bridge-2v2]
 
 # The modes, in the order of the selector. The id (the key) holds only lowercase letters without
@@ -773,34 +763,6 @@ modes:
       - "invis potion, from mid, against"
       - "the defenders of the bed, each"
       - "player in turn: a hit shows them."
-  top-fight-1v1:
-    nom: "&eTop fight 1v1"
-    categorie: ranked
-    groupe: top-fight
-    icone: GOLD_SWORD
-    equipes: 2
-    joueurs-par-equipe: 1
-    classe: false
-    kit: [STONE_SWORD, "GOLDEN_APPLE 64"]
-    description:
-      - "On the RBW maps, start on top"
-      - "of a ranked bed defense, in"
-      - "diamond Protection IV with"
-      - "Absorption. First to 3."
-  top-fight-2v2:
-    nom: "&eTop fight 2v2"
-    categorie: ranked
-    groupe: top-fight
-    icone: GOLD_SWORD
-    equipes: 2
-    joueurs-par-equipe: 2
-    classe: false
-    kit: [STONE_SWORD, "GOLDEN_APPLE 64"]
-    description:
-      - "Two against two on the RBW"
-      - "maps, from the top of a ranked"
-      - "bed defense, in diamond"
-      - "Protection IV with Absorption."
   bridge-fight:
     nom: "&bBridge fight"
     categorie: ranked
@@ -891,20 +853,6 @@ modes:
       - "A real private RBW game with your"
       - "party: 1v1, 2v2, 3v3 or 4v4, the"
       - "size follows the party."
-  top-fight-prive:
-    nom: "&ePrivate top fight"
-    categorie: ranked
-    groupe: prive
-    icone: GOLD_SWORD
-    equipes: 2
-    joueurs-par-equipe: 1
-    classe: false
-    description:
-      - "A practice with your party on"
-      - "top of a ranked bed defense, on"
-      - "the RBW maps: back on top at"
-      - "each death, 30 minutes. 1v1 or"
-      - "2v2, as the party."
   top-bridge-prive:
     nom: "&ePrivate top bridge"
     categorie: ranked
@@ -986,12 +934,12 @@ modes:
     equipes: 2
     joueurs-par-equipe: 1
     classe: false
-    kit: [STONE_SWORD, "WOOL 48", SHEARS, WOOD_PICKAXE]
+    kit: [STONE_SWORD, "WOOL 64", "FIREBALL 2", WOOD_PICKAXE, SHEARS]
     description:
-      - "A solo rush, as on Hypixel:"
-      - "the attacker is already on the"
-      - "bridge, the defender covers the"
-      - "bed fast. Then the roles swap."
+      - "Bio Hazard: the attacker on the"
+      - "pink bridge, one life; the"
+      - "defender with forge and shop."
+      - "Two rounds, the roles swap."
   attack-defense-2v2:
     nom: "&cAttack and defense 2v2"
     categorie: duels
@@ -1000,11 +948,12 @@ modes:
     equipes: 2
     joueurs-par-equipe: 2
     classe: false
-    kit: [STONE_SWORD, "WOOL 48", SHEARS, WOOD_PICKAXE]
+    kit: [STONE_SWORD, "WOOL 64", "FIREBALL 2", WOOD_PICKAXE, SHEARS]
     description:
-      - "A rush, as on Hypixel: one"
-      - "team is already on the bridge,"
-      - "the other covers its bed fast."
+      - "Bio Hazard: one team attacks"
+      - "from the pink bridge, the other"
+      - "defends with forge and shop."
+      - "Two rounds, the roles swap."
   clutch:
     nom: "&bBlock clutch"
     categorie: entrainement

@@ -159,7 +159,7 @@ final class MapCommands implements CommandExecutor, TabCompleter {
                     return null;
                 }
                 map.setEnabled(true);
-                return map.world() + " is enabled: games of " + map.completeTeams().size()
+                return map.world() + " is enabled: games of " + map.sides()
                         + " teams or fewer can be played on it.";
             case "disable":
                 map.setEnabled(false);

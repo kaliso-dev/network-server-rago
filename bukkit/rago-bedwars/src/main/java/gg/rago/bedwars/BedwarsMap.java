@@ -14,8 +14,10 @@ import org.bukkit.configuration.file.YamlConfiguration;
  * A Bed Wars map: a world of the server's world folder, with the points of the game kept in
  * {@value #FILE_NAME} inside the world's own folder, placed in game with /bw. Each team has a
  * spawn, a bed, a generator (iron and gold) and a shop, and may have a team upgrades NPC; the map
- * has diamond and emerald generators, and a spectator point. A map is played once it has two
- * complete teams or more and is enabled. Main thread only.
+ * has diamond and emerald generators, and a spectator point. A map of attack and defense
+ * (attaquants:) has one complete team, the defenders, and the starts of the attackers, a team with
+ * no island. A map is played once it has two sides or more (complete teams, and the attackers) and
+ * is enabled. Main thread only.
  */
 final class BedwarsMap {
 
@@ -64,6 +66,9 @@ final class BedwarsMap {
     private final List<MapPoint> emeralds = new ArrayList<>();
     private MapPoint spectators;
     private final List<Removal> removals = new ArrayList<>();
+    /** The attackers of an attack and defense map: their colour (null: none) and their starts. */
+    private TeamColor attackerColor;
+    private final List<MapPoint> attackerStarts = new ArrayList<>();
 
     /**
      * A box of the map taken out of each game's copy when it is made (retirer:): all its blocks, or
@@ -307,15 +312,36 @@ final class BedwarsMap {
                 missing.add(entry.getKey().id() + ": " + String.join(", ", team));
             }
         }
-        if (completeTeams().size() < MIN_TEAMS) {
-            missing.add("at least " + MIN_TEAMS + " complete teams (spawn, bed, generator and shop each)");
+        if (sides() < MIN_TEAMS) {
+            missing.add("at least " + MIN_TEAMS + " complete teams (spawn, bed, generator and shop each), or one and"
+                    + " the attackers (attaquants:)");
         }
         return missing;
     }
 
     /** True when it is enabled and has two complete teams or more. */
     boolean playable() {
-        return enabled && completeTeams().size() >= MIN_TEAMS;
+        return enabled && sides() >= MIN_TEAMS;
+    }
+
+    /** How many sides a game can have on this map: its complete teams, and the attackers if it has them. */
+    int sides() {
+        return completeTeams().size() + (hasAttackers() ? 1 : 0);
+    }
+
+    /** True for a map of attack and defense: the attackers have their colour and a start at least. */
+    boolean hasAttackers() {
+        return attackerColor != null && !attackerStarts.isEmpty();
+    }
+
+    /** The colour of the attackers (null if the map has none). */
+    TeamColor attackerColor() {
+        return attackerColor;
+    }
+
+    /** Where the attackers start, the first one first. */
+    List<MapPoint> attackerStarts() {
+        return attackerStarts;
     }
 
     List<MapPoint> diamonds() {
@@ -437,6 +463,10 @@ final class BedwarsMap {
         yaml.set("diamants", maps(diamonds));
         yaml.set("emeraudes", maps(emeralds));
         write(yaml, "spectateurs", spectators);
+        if (attackerColor != null) {
+            yaml.set("attaquants.equipe", attackerColor.id());
+            yaml.set("attaquants.departs", maps(attackerStarts));
+        }
         if (!removals.isEmpty()) {
             List<Map<String, Object>> boxes = new ArrayList<>();
             for (Removal removal : removals) {
@@ -500,6 +530,19 @@ final class BedwarsMap {
         map.diamonds.addAll(points(yaml.getMapList("diamants"), "diamants"));
         map.emeralds.addAll(points(yaml.getMapList("emeraudes"), "emeraudes"));
         map.spectators = point(yaml, "spectateurs", null);
+        ConfigurationSection attackers = yaml.getConfigurationSection("attaquants");
+        if (attackers != null) {
+            String id = attackers.getString("equipe", "");
+            TeamColor color = TeamColor.byId(id);
+            if (color == null) {
+                throw new IllegalArgumentException("attaquants.equipe: not a team (" + TeamColor.ids() + ")");
+            }
+            if (map.teams.containsKey(color)) {
+                throw new IllegalArgumentException("attaquants.equipe: " + id + " is a team of the map already");
+            }
+            map.attackerColor = color;
+            map.attackerStarts.addAll(points(attackers.getMapList("departs"), "attaquants.departs"));
+        }
         List<Map<?, ?>> boxes = yaml.getMapList("retirer");
         for (int i = 0; i < boxes.size(); i++) {
             map.removals.add(Removal.fromMap(boxes.get(i), "retirer[" + i + "]"));

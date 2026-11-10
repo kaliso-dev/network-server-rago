@@ -185,10 +185,10 @@ final class BedwarsSettings {
          */
         TOP_BRIDGE("top-bridge"),
         /**
-         * Top Fight: the fight on top of a ranked defense on a bed of the map, no forge; the same
-         * rounds (to 3 points) and private practice as Top Bridge.
+         * Attack and Defense: a map of one base and the attackers' bridge (attaquants: in its
+         * bedwars.yml); two rounds, each side attacks once, as in a game.
          */
-        TOP_FIGHT("top-fight");
+        ATTACK_DEFENSE("attaque-defense");
 
         final String word;
 

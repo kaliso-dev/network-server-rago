@@ -140,7 +140,7 @@ final class MapStore {
     private static List<BedwarsMap> fitting(Collection<BedwarsMap> maps, int teams) {
         List<BedwarsMap> fitting = new ArrayList<>();
         for (BedwarsMap map : maps) {
-            if (map.playable() && map.completeTeams().size() >= teams) {
+            if (map.playable() && map.sides() >= teams) {
                 fitting.add(map);
             }
         }

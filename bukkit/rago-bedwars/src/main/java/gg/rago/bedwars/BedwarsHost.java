@@ -217,7 +217,7 @@ final class BedwarsHost implements MatchHost, Listener {
             plugin.instances().prepare(drawn, true);
             return false;
         }
-        if (instance.map().completeTeams().size() < islands(mode)) {
+        if (instance.map().sides() < islands(mode)) {
             plugin.instances().release(instance);
             return false;
         }
@@ -258,8 +258,8 @@ final class BedwarsHost implements MatchHost, Listener {
                 return new FastShopGame(plugin, this, instance, mode.id(), name, sides);
             case TOP_BRIDGE:
                 return new TopBridgeGame(plugin, this, instance, mode.id(), name, sides, privateGame(sides));
-            case TOP_FIGHT:
-                return new TopFightGame(plugin, this, instance, mode.id(), name, sides, privateGame(sides));
+            case ATTACK_DEFENSE:
+                return new AttackDefenseGame(plugin, this, instance, mode.id(), name, sides);
             default:
                 return new BedwarsGame(plugin, this, instance, mode.id(), name, sides);
         }
