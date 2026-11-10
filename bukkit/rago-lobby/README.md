@@ -165,6 +165,16 @@ dans les files d'attente des modes de jeu.
   (traînées de projectiles, effets de kill, effets de victoire), chacun débloqué à un niveau
   Network, et montre le rang PREMIUM et les styles de pseudo. Un rang peut aussi se vendre en
   points (`prix:` et `niveau:` dans `rangs:`). Les cosmétiques ne jouent qu'en partie.
+- **Le PNJ Shop et le pack de départ (`/pack`).** Au centre du lobby (le point `aimtrainer`,
+  `type: shop`), un PNJ Shop ouvre la vitrine de tout ce qui se vend : d'abord le **pack de
+  départ** (son prix, son prix normal barré, -50 %, ce qu'il contient : 20 000 Rago Points,
+  3 boosters d'XP et 3 cosmétiques sans leur niveau, une fois par joueur), puis PREMIUM+ et tous
+  ses avantages, les couleurs de pseudo et le +, les boosters, les cosmétiques, les gadgets, les
+  events `/host`, comment gagner des Rago Points et Rago Optimizer. Ce qui se vend sur la
+  boutique en ligne donne son lien cliquable ; le reste ouvre sa page de `/shop`. La boutique en
+  ligne donne le pack depuis la console avec `/pack give <joueur>` (une seule fois : un deuxième
+  appel ne donne rien), et tout le serveur le voit. Prix, contenu et lien dans `pack-depart:` ; le
+  prix barré doit être un vrai prix pratiqué avant.
 - **L'ELO classé.** Chaque mode classé a son ELO, qui commence à 0, et onze divisions de Coal
   (0) à Obsidian (1000). Une victoire rapporte plus et une défaite coûte moins dans les basses
   divisions ; le MVP de la partie (le plus de kills) gagne 5 de plus. La file classée apparie
@@ -230,6 +240,8 @@ commentaires de `config.yml`. Les mots français de la première version (`quitt
 | `/style` (ou `/couleur`, `/badge`) | choisir sa couleur de pseudo, son badge et la couleur de son + | tout le monde |
 | `/booster`, `/booster on` | ses boosters d'XP, en lancer un | tout le monde |
 | `/booster give <joueur> [nombre]` | donner des boosters (la boutique en ligne, depuis la console) | `rago.admin` |
+| `/pack`, `/pack info` | la vitrine du PNJ Shop, le pack de départ dans le chat | tout le monde |
+| `/pack give <joueur>` | donner le pack de départ, une fois (la boutique en ligne, depuis la console) | `rago.admin` |
 | `/level` (ou `/niveau`), `/quests` (ou `/quetes`) | son niveau et ses récompenses, les quêtes | tout le monde |
 | `/display <elo\|level\|wins\|kills\|streak\|none>` | la ligne au-dessus de son pseudo | tout le monde |
 | `/display message <texte>` | son propre message au-dessus du pseudo | `rago.perk.message` (PREMIUM) |

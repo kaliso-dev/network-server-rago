@@ -104,6 +104,17 @@ final class ClickMenu implements InventoryHolder {
         return head;
     }
 
+    /** The item shines, as an enchanted one, without the enchantment written. */
+    static ItemStack glow(ItemStack item) {
+        item.addUnsafeEnchantment(org.bukkit.enchantments.Enchantment.DURABILITY, 1);
+        ItemMeta meta = item.getItemMeta();
+        if (meta != null) {
+            meta.addItemFlags(org.bukkit.inventory.ItemFlag.HIDE_ENCHANTS);
+            item.setItemMeta(meta);
+        }
+        return item;
+    }
+
     /** The "Go back" arrow. */
     static ItemStack back(String to) {
         return item(Material.ARROW, ChatColor.GREEN + "Go back", "To " + to);

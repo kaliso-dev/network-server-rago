@@ -22,7 +22,7 @@ final class NetworkCommands implements CommandExecutor, TabCompleter {
 
     static final String[] NAMES = {"shop", "gift", "profile", "daily", "friend", "msg", "reply", "rank", "points", "top", "stats",
         "fly", "staffchat", "vanish", "freeze", "report", "clearchat", "mutechat", "ban", "unban", "mute", "unmute", "kick",
-        "warn", "history", "staff", "discord", "rules", "site", "store", "style", "level", "quests", "display", "nick", "realname", "booster"};
+        "warn", "history", "staff", "discord", "rules", "site", "store", "style", "level", "quests", "display", "nick", "realname", "booster", "pack"};
 
     private static final String[] TOPS = {"elo", "level", "wins", "kills", "streak", "games", "points"};
 
@@ -233,6 +233,9 @@ final class NetworkCommands implements CommandExecutor, TabCompleter {
             case "booster":
                 booster(sender, args);
                 return true;
+            case "pack":
+                pack(sender, args);
+                return true;
             case "display":
                 if ((player = player(sender)) != null) {
                     if (args.length == 0) {
@@ -334,6 +337,30 @@ final class NetworkCommands implements CommandExecutor, TabCompleter {
      * /booster: the menu of the XP boosters; /booster on starts one. The admins and the console
      * (the web store) give them: /booster give &lt;player&gt; [count].
      */
+    /** /pack: the store menu; /pack give <player>: the web store gives the starter pack (once). */
+    private void pack(CommandSender sender, String[] args) {
+        if (args.length >= 2 && args[0].equalsIgnoreCase("give") && sender.hasPermission("rago.admin")) {
+            PlayerStats target = profileOf(sender, args[1]);
+            if (target == null) {
+                return;
+            }
+            boolean given = lobby.profiles().givePack(target);
+            sender.sendMessage(given ? ChatColor.GREEN + target.name() + " got the starter pack."
+                    : ChatColor.YELLOW + target.name() + " has the starter pack already: nothing given again.");
+            lobby.getLogger().info(sender.getName() + ": /pack " + String.join(" ", args) + (given ? "" : " (had it already)"));
+            return;
+        }
+        Player player = player(sender);
+        if (player == null) {
+            return;
+        }
+        if (args.length >= 1 && args[0].equalsIgnoreCase("info")) {
+            lobby.store().tellPack(player);
+        } else {
+            lobby.store().open(player);
+        }
+    }
+
     private void booster(CommandSender sender, String[] args) {
         if (args.length >= 2 && args[0].equalsIgnoreCase("give") && sender.hasPermission("rago.admin")) {
             int count = 1;

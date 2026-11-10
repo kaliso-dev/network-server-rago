@@ -54,6 +54,9 @@ final class LobbyNpcs implements Listener {
     private final FakeEntities fakes;
     private final StatsDisplays displays;
 
+    /** Opens the store menu (the Shop NPC). */
+    private java.util.function.Consumer<Player> store;
+
     /** Every stand we spawned, to the point it belongs to. */
     private final Map<UUID, String> stands = new HashMap<>();
     /** The line under each NPC's name, kept up to date with the queue count. */
@@ -70,6 +73,10 @@ final class LobbyNpcs implements Listener {
         this.menu = menu;
         this.fakes = fakes;
         this.displays = displays;
+    }
+
+    void setStore(java.util.function.Consumer<Player> store) {
+        this.store = store;
     }
 
     /**
@@ -118,6 +125,11 @@ final class LobbyNpcs implements Listener {
                 }
             } else if (npc.kind() == LobbyNpc.Kind.STATS) {
                 displays.addStatsNpc(npc, bodyName(index), base);
+            } else if (npc.kind() == LobbyNpc.Kind.SHOP) {
+                fakes.add(new FakePlayer(base, bodyName(index), new ItemStack(Material.EMERALD), (player, left) -> click(player, npc.point())));
+                Location lowest = base.clone().add(0, ABOVE_HEAD - FakeHologram.NAME_HEIGHT, 0);
+                label(npc, lowest.clone().add(0, LINE, 0), npc.name());
+                label(npc, lowest, npc.subtitle());
             } else {
                 body(npc, index, base);
                 Location lowest = base.clone().add(0, ABOVE_HEAD - FakeHologram.NAME_HEIGHT, 0);
@@ -269,12 +281,18 @@ final class LobbyNpcs implements Listener {
 
     private void click(Player player, String point) {
         LobbyNpc npc = point == null ? null : settings.npc(point);
-        if (npc == null || npc.kind() != LobbyNpc.Kind.MODES || !state.isProtected(player)) {
+        if (npc == null || (npc.kind() != LobbyNpc.Kind.MODES && npc.kind() != LobbyNpc.Kind.SHOP) || !state.isProtected(player)) {
             return;
         }
         long now = System.currentTimeMillis();
         Long last = lastClick.put(player.getUniqueId(), now);
         if (last != null && now - last < CLICK_COOLDOWN_MS) {
+            return;
+        }
+        if (npc.kind() == LobbyNpc.Kind.SHOP) {
+            if (store != null) {
+                store.accept(player);
+            }
             return;
         }
         if (npc.category() != null) {

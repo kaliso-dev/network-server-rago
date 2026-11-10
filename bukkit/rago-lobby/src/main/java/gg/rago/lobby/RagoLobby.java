@@ -69,6 +69,8 @@ public final class RagoLobby extends JavaPlugin implements LobbyService {
     private ServerSettings server;
     private Profiles profiles;
     private ShopMenu shop;
+    /** The Shop NPC's menu: everything sold, the starter pack first (/pack). */
+    private StoreMenu store;
     private StyleMenu styleMenu;
     private LevelMenu levelMenu;
     private Nicks nicks;
@@ -177,7 +179,10 @@ public final class RagoLobby extends JavaPlugin implements LobbyService {
         shop.setStyles(styleMenu);
         shop.setBoosters(boosters);
         profileMenu.setStyles(styleMenu);
+        store = new StoreMenu(profiles, stats.book(), shop, styleMenu, boosters);
+        shop.setStore(store::open);
         npcs = new LobbyNpcs(settings, state, points, queues, menu, fakes, statsDisplays);
+        npcs.setStore(store::open);
         getServer().getPluginManager().registerEvents(npcs, this);
 
         getServer().getPluginManager().registerEvents(new LobbyListener(this, state, visibility), this);
@@ -1051,6 +1056,10 @@ public final class RagoLobby extends JavaPlugin implements LobbyService {
 
     ShopMenu shop() {
         return shop;
+    }
+
+    StoreMenu store() {
+        return store;
     }
 
     ProfileMenu profileMenu() {

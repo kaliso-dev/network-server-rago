@@ -226,8 +226,16 @@ final class LobbySettings {
                     npcs.add(LobbyNpc.stats(point, colour(npc.getString("nom", "&6&lYour profile"))));
                     continue;
                 }
+                if ("shop".equals(type)) {
+                    if (npc.contains("modes") || npc.contains("categorie")) {
+                        throw new IllegalArgumentException(where + ": the Shop NPC has neither modes nor categorie");
+                    }
+                    npcs.add(LobbyNpc.shop(point, colour(npc.getString("nom", "&a&lSHOP")),
+                            colour(npc.getString("sous-titre", "&eStarter Pack &c&l-50%"))));
+                    continue;
+                }
                 if (!"modes".equals(type)) {
-                    throw new IllegalArgumentException(where + ".type: \"" + type + "\" is not modes or stats");
+                    throw new IllegalArgumentException(where + ".type: \"" + type + "\" is not modes, stats or shop");
                 }
                 String category = npc.getString("categorie");
                 List<String> ids = new ArrayList<>(npc.getStringList("modes"));

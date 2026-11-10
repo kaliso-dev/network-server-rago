@@ -32,6 +32,13 @@ final class ShopMenu {
         this.boosters = boosters;
     }
 
+    /** Opens the store menu (everything sold, the starter pack first). */
+    private java.util.function.Consumer<Player> store;
+
+    void setStore(java.util.function.Consumer<Player> store) {
+        this.store = store;
+    }
+
     /** The main page: the player's points, then the ranks and each type of cosmetic. */
     void open(Player player) {
         PlayerStats profile = profiles.of(player);
@@ -111,6 +118,17 @@ final class ShopMenu {
                             + ChatColor.AQUA + XpBoosters.clock(left) + ChatColor.GRAY + ")" : ""),
                     "",
                     ChatColor.YELLOW + "Click to see them"), (p, right) -> boosters.open(p));
+        }
+        if (store != null) {
+            StarterPack pack = profiles.server().starterPack();
+            menu.set(35, ClickMenu.glow(ClickMenu.item(Material.CHEST, 0, pack.name + (pack.discount() > 0 ? " " + ChatColor.RED
+                    + ChatColor.BOLD + "-" + pack.discount() + "%" : ""), listOf(
+                    "Rago Points, XP boosters and",
+                    "cosmetics, once per player.",
+                    "Price: " + pack.priceLine(),
+                    "",
+                    ChatColor.YELLOW + "Click to see it, with PREMIUM+",
+                    ChatColor.YELLOW + "and everything else sold"))), (p, right) -> store.accept(p));
         }
         menu.open(player);
     }

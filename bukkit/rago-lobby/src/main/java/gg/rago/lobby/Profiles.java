@@ -455,6 +455,41 @@ final class Profiles {
         changed(profile);
     }
 
+    /** True once the player got the starter pack (it is given once). */
+    boolean ownsPack(PlayerStats profile) {
+        return profile.cosmetics().contains(StarterPack.OWNED_KEY);
+    }
+
+    /**
+     * /pack give, from the web store: the Rago Points, the XP boosters and the cosmetics of the
+     * starter pack, once. Returns false if they had it already (nothing given again).
+     */
+    boolean givePack(PlayerStats profile) {
+        StarterPack pack = server.starterPack();
+        if (!profile.cosmetics().add(StarterPack.OWNED_KEY)) {
+            return false;
+        }
+        profile.addPoints(pack.points);
+        profile.setBoosters(Math.min(XpBoosters.MAX_STOCK, profile.boosters() + pack.boosters));
+        for (String id : pack.cosmetics) {
+            profile.cosmetics().add(id);
+        }
+        changed(profile);
+        Player got = lobby.getServer().getPlayer(profile.id());
+        if (got != null) {
+            got.sendMessage(ChatColor.GOLD + "✪ " + ChatColor.GREEN + "Thank you! Your " + pack.name + ChatColor.GREEN + " is here:");
+            for (String line : pack.contents(server.cosmetics())) {
+                got.sendMessage("  " + line);
+            }
+            got.sendMessage(ChatColor.GRAY + "Wear your cosmetics in the " + ChatColor.GREEN + "/shop" + ChatColor.GRAY
+                    + ", start a booster with " + ChatColor.AQUA + "/booster" + ChatColor.GRAY + ".");
+            got.playSound(got.getLocation(), Sound.LEVEL_UP, 1f, 1.2f);
+        }
+        lobby.announce(ChatColor.GOLD + "✪ " + displayName(profile.id(), profile.name()) + ChatColor.GOLD + " got the "
+                + pack.name + ChatColor.GOLD + "! " + ChatColor.YELLOW + "/pack");
+        return true;
+    }
+
     /** /points give or take. */
     void addPoints(PlayerStats profile, int amount) {
         profile.addPoints(amount);

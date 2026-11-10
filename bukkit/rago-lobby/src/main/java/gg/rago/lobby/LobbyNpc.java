@@ -16,7 +16,9 @@ final class LobbyNpc {
         /** Shows each player their stats above it; a click opens them mode by mode. */
         STATS,
         /** A wall of leaderboards. */
-        LEADERBOARDS
+        LEADERBOARDS,
+        /** The Shop: opens the store menu; the line under its name is its own (the starter pack). */
+        SHOP
     }
 
     private final String point;
@@ -26,9 +28,16 @@ final class LobbyNpc {
     private final String category;
     private final List<List<BoardStat>> boards;
     private final List<String> podium;
+    private final String subtitle;
 
     private LobbyNpc(String point, String name, Kind kind, List<String> modeIds, String category,
             List<List<BoardStat>> boards, List<String> podium) {
+        this(point, name, kind, modeIds, category, boards, podium, null);
+    }
+
+    private LobbyNpc(String point, String name, Kind kind, List<String> modeIds, String category,
+            List<List<BoardStat>> boards, List<String> podium, String subtitle) {
+        this.subtitle = subtitle;
         this.point = point;
         this.name = name;
         this.kind = kind;
@@ -42,6 +51,17 @@ final class LobbyNpc {
     static LobbyNpc modes(String point, String name, List<String> modeIds, String category) {
         return new LobbyNpc(point, name, Kind.MODES, modeIds, category, Collections.<List<BoardStat>>emptyList(),
                 Collections.<String>emptyList());
+    }
+
+    /** The Shop NPC: its name, and the line under it. */
+    static LobbyNpc shop(String point, String name, String subtitle) {
+        return new LobbyNpc(point, name, Kind.SHOP, Collections.<String>emptyList(), null,
+                Collections.<List<BoardStat>>emptyList(), Collections.<String>emptyList(), subtitle);
+    }
+
+    /** The line under the name of the Shop NPC, or null for another NPC. */
+    String subtitle() {
+        return subtitle;
     }
 
     static LobbyNpc stats(String point, String name) {

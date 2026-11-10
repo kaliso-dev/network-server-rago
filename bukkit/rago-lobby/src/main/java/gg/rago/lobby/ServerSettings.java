@@ -64,10 +64,12 @@ final class ServerSettings {
     private final Map<String, List<String>> links;
     private final LevelRewards levelRewards;
     private final Quests quests;
+    private final StarterPack starterPack;
 
     private ServerSettings(Ranks ranks, Map<String, NameStyle> styles, EloLadder elo, Points points, Map<String, Cosmetic> cosmetics, long chatCooldownMillis,
             boolean blockRepeats, List<String> tabHeader, List<String> tabFooter, List<String> motd, int announceMinutes,
-            List<String> announcements, Map<String, List<String>> links, LevelRewards levelRewards, Quests quests) {
+            List<String> announcements, Map<String, List<String>> links, LevelRewards levelRewards, Quests quests,
+            StarterPack starterPack) {
         this.ranks = ranks;
         this.styles = Collections.unmodifiableMap(styles);
         this.elo = elo;
@@ -83,6 +85,7 @@ final class ServerSettings {
         this.links = Collections.unmodifiableMap(links);
         this.levelRewards = levelRewards;
         this.quests = quests;
+        this.starterPack = starterPack;
     }
 
     static ServerSettings load(ConfigurationSection config) {
@@ -142,8 +145,9 @@ final class ServerSettings {
         }
         LevelRewards rewards = readRewards(config.getConfigurationSection("niveau.recompenses"), cosmetics, styles);
         Quests quests = readQuests(config.getConfigurationSection("quetes"));
+        StarterPack pack = StarterPack.read(config.getConfigurationSection("pack-depart"), cosmetics);
         return new ServerSettings(ranks, styles, elo, points, cosmetics, cooldown * 1000L, repeats, header, footer, motd,
-                minutes, announcements, links, rewards, quests);
+                minutes, announcements, links, rewards, quests, pack);
     }
 
     // --- Level rewards and quests ---------------------------------------------------------------
@@ -571,6 +575,11 @@ final class ServerSettings {
 
     List<String> announcements() {
         return announcements;
+    }
+
+    /** The starter pack of the web store (pack-depart). */
+    StarterPack starterPack() {
+        return starterPack;
     }
 
     /** The lines of /discord, /site, /rules or /store, or null when config.yml has none. */

@@ -141,6 +141,12 @@ class LobbySettingsTest {
         assertEquals(LobbyNpc.Kind.STATS, settings.npc("statsjoueur2").kind());
         assertTrue(settings.npc("statsjoueur1").hasBody());
         assertEquals(LobbyNpc.Kind.MODES, ranked.kind());
+        LobbyNpc shop = settings.npc("aimtrainer");
+        assertEquals(LobbyNpc.Kind.SHOP, shop.kind(), "the centre NPC is the Shop");
+        assertEquals("§a§lSHOP", shop.name());
+        assertTrue(shop.subtitle().contains("-50%"));
+        assertTrue(shop.modeIds().isEmpty());
+        assertInvalid("pnj:\n  boutique:\n    type: shop\n    modes: [sumo]\nmodes:\n  sumo: {}\n", "pnj.boutique");
     }
 
     @Test
