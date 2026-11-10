@@ -86,10 +86,10 @@ groupes:
     nom: "&eTop Bridge"
     icone: LADDER
     description:
-      - "A real RBW game with the top"
-      - "bridge of Antenna: stairs of"
-      - "wool up to a platform over the"
-      - "middle. Or free for all on it."
+      - "The fight on the top bridge of"
+      - "Antenna, on the 20 RBW maps:"
+      - "rounds to 5 points in 1v1 or"
+      - "2v2, or free for all on it."
   ffa:
     nom: "&cFree for all"
     icone: STONE_SWORD
@@ -123,8 +123,9 @@ groupes:
     icone: NAME_TAG
     description:
       - "With your party: a real RBW"
-      - "game or a top fight, the size"
-      - "follows the party."
+      - "game, a top fight or a top"
+      - "bridge, the size follows the"
+      - "party."
   attack-defense:
     nom: "&cAttack and defense"
     icone: IRON_SWORD
@@ -149,7 +150,7 @@ pnj:
     modes: [ranked-1v1, ranked-2v2, ranked-3v3, ranked-4v4]
   privategame:
     nom: "&6Private game"
-    modes: [partie-privee, top-fight-prive]
+    modes: [partie-privee, top-fight-prive, top-bridge-prive]
   rbwffa:
     nom: "&cFFA and Top fight"
     modes: [ffa, top-fight-1v1, top-fight-2v2, top-bridge-1v1, top-bridge-2v2, top-bridge-ffa]
@@ -560,6 +561,7 @@ hypixel:
 parties-privees:
   partie-privee: [ranked-1v1, ranked-2v2, ranked-3v3, ranked-4v4]
   top-fight-prive: [top-fight-1v1, top-fight-2v2]
+  top-bridge-prive: [top-bridge-1v1, top-bridge-2v2]
 
 # The modes, in the order of the selector. The id (the key) holds only lowercase letters without
 # accents, digits and dashes. A mode stays "Coming soon" in the selector until a game plugin
@@ -688,11 +690,12 @@ modes:
     equipes: 2
     joueurs-par-equipe: 1
     classe: false
+    kit: [IRON_SWORD, "WOOL 64", "WOOL 64", SHEARS, IRON_PICKAXE, "GOLDEN_APPLE 3", "FIREBALL 4", ENDER_PEARL]
     description:
-      - "A real RBW game on the 20 maps,"
-      - "with the top bridge of Antenna:"
-      - "stairs of wool from each island"
-      - "up to a platform over the middle."
+      - "On top of the top bridge of"
+      - "Antenna, on the 20 RBW maps:"
+      - "no bed, rounds of one life,"
+      - "the first to 5 points wins."
   top-bridge-2v2:
     nom: "&eTop Bridge 2v2"
     categorie: ranked
@@ -701,8 +704,10 @@ modes:
     equipes: 2
     joueurs-par-equipe: 2
     classe: false
+    kit: [IRON_SWORD, "WOOL 64", "WOOL 64", SHEARS, IRON_PICKAXE, "GOLDEN_APPLE 3", "FIREBALL 4", ENDER_PEARL]
     description:
-      - "Top Bridge, two against two."
+      - "Top Bridge, two against two:"
+      - "the first team to 5 points."
   top-bridge-ffa:
     nom: "&eTop Bridge FFA"
     categorie: ranked
@@ -711,12 +716,11 @@ modes:
     equipes: 1
     joueurs-par-equipe: 1
     classe: false
-    kit: [IRON_SWORD, "WOOL 64", "WOOL 64", SHEARS, IRON_PICKAXE, "GOLDEN_APPLE 3", "FIREBALL 4", ENDER_PEARL]
     description:
-      - "The top bridge of Antenna, free"
-      - "for all: come and go when you"
-      - "like and fight everyone on the"
-      - "platform, the RBW kit."
+      - "The top bridge, free for all on"
+      - "the 20 RBW maps: come and go"
+      - "when you like, a sword only,"
+      - "and back on top at each death."
   ffa:
     nom: "&cFFA Ranked Bedwars"
     categorie: ranked
@@ -758,11 +762,11 @@ modes:
     # Haste, an iron sword with Sharpness, 2 stacks of wool and iron armour, Protection IV.
     kit: [STONE_SWORD, "WOOL 64", "WOOL 64", "WOOD 16", GOLD_PICKAXE, IRON_AXE, SHEARS, FIREBALL, "EGG 2", "POTION:8206", "POTION:8203"]
     description:
-      - "Invasion, Lectus or Archway,"
-      - "3-minute rounds: an attacker"
-      - "with an invis potion against"
-      - "the defenders of the bed,"
-      - "each player in turn."
+      - "The 20 RBW maps, 3-minute"
+      - "rounds: an attacker with an"
+      - "invis potion, from mid, against"
+      - "the defenders of the bed, each"
+      - "player in turn: a hit shows them."
   top-fight-1v1:
     nom: "&eTop fight 1v1"
     categorie: ranked
@@ -891,6 +895,19 @@ modes:
       - "Top fight with your party, on a"
       - "ready-made platform: 1v1 or 2v2,"
       - "the size follows the party."
+  top-bridge-prive:
+    nom: "&ePrivate top bridge"
+    categorie: ranked
+    groupe: prive
+    icone: LADDER
+    equipes: 2
+    joueurs-par-equipe: 1
+    classe: false
+    description:
+      - "A practice with your party on"
+      - "the top bridge: no bed, back on"
+      - "top at each death, 30 minutes."
+      - "1v1 or 2v2, as the party."
   sumo:
     nom: "&aSumo duel"
     categorie: duels

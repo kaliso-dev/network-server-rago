@@ -29,6 +29,15 @@ final class TopBridge {
     static final int MAX_RAISE = 14;
     /** Players may build up to this many blocks above the platform. */
     static final int BUILD_ABOVE = 10;
+    /**
+     * In the games played on the bridge alone (Top Bridge rounds and practice, Top Bridge FFA), a
+     * player this many blocks under the platform has fallen off: dead, as in the void.
+     */
+    static final int FALL_BELOW = 10;
+    /** At the start of a round, each team this many blocks from the middle line, on its half. */
+    static final int START_FROM_MIDDLE = 12;
+    /** Between two players of a team at the start, across the platform. */
+    static final int START_SPACING = 3;
     /** Two beds nearer than this have no room for a bridge. */
     private static final double MIN_DISTANCE = 16;
     private static final double EPSILON = 1e-6;
@@ -60,10 +69,27 @@ final class TopBridge {
 
     private final int height;
     private final List<Piece> pieces;
+    /** The centre of bed A, and the way from it to bed B (a unit vector). */
+    private final double ax;
+    private final double az;
+    private final double ux;
+    private final double uz;
+    /** Where the platform begins and ends, and where its middle line is, along the line from bed A. */
+    private final double from;
+    private final double to;
+    private final double middle;
 
-    private TopBridge(int height, List<Piece> pieces) {
+    private TopBridge(int height, List<Piece> pieces, double ax, double az, double ux, double uz, double from, double to,
+            double middle) {
         this.height = height;
         this.pieces = Collections.unmodifiableList(pieces);
+        this.ax = ax;
+        this.az = az;
+        this.ux = ux;
+        this.uz = uz;
+        this.from = from;
+        this.to = to;
+        this.middle = Math.max(from, Math.min(to, middle));
     }
 
     /** The y of the platform. */
@@ -74,6 +100,52 @@ final class TopBridge {
     /** Its blocks, where the map has none. */
     List<Piece> pieces() {
         return pieces;
+    }
+
+    /** The length of the platform, from the middle of its first row to that of its last. */
+    double length() {
+        return to - from;
+    }
+
+    /** Under this height (the feet), a player has fallen off the platform. */
+    int fallLine() {
+        return height + 1 - FALL_BELOW;
+    }
+
+    /**
+     * Where a player of a team stands at the start of a round, {x, y, z, yaw} (y: the feet, on the
+     * platform): on the half of their end (the first: bed A's), {@value #START_FROM_MIDDLE} blocks
+     * from the middle line or less on a short platform, the players of the team side by side
+     * across it ({@code index} of {@code count}), facing the other half.
+     */
+    double[] start(boolean first, int index, int count) {
+        double back = Math.min(START_FROM_MIDDLE, Math.max(1, (first ? middle - from : to - middle) - 2));
+        double along = first ? middle - back : middle + back;
+        double across = (index - (count - 1) / 2.0) * START_SPACING;
+        across = Math.max(-(HALF_WIDTH - 1), Math.min(HALF_WIDTH - 1, across));
+        return spot(along, across, first ? 1 : -1);
+    }
+
+    /** A place anywhere on the platform, away from its edges, facing its middle line: {x, y, z, yaw}. */
+    double[] anywhere(java.util.Random random) {
+        double along = from + 1 + random.nextDouble() * Math.max(0, to - from - 2);
+        double across = (random.nextDouble() * 2 - 1) * (HALF_WIDTH - 1);
+        return spot(along, across, along < middle ? 1 : -1);
+    }
+
+    /** Above the middle of the platform, {x, y, z, yaw}: where those who watch a round are. */
+    double[] above() {
+        double[] spot = spot(middle, 0, 1);
+        spot[1] += 6;
+        return spot;
+    }
+
+    /** The middle of the block this far along the line from bed A and this far across, facing B (way 1) or A (-1). */
+    private double[] spot(double along, double across, int way) {
+        double x = ax + ux * along - uz * across;
+        double z = az + uz * along + ux * across;
+        float yaw = (float) Math.toDegrees(Math.atan2(-ux * way, uz * way));
+        return new double[] {Math.floor(x) + 0.5, height + 1, Math.floor(z) + 0.5, yaw};
     }
 
     /**
@@ -153,7 +225,7 @@ final class TopBridge {
                 }
             }
         }
-        return new TopBridge(height, new ArrayList<>(pieces.values()));
+        return new TopBridge(height, new ArrayList<>(pieces.values()), ax, az, ux, uz, from, to, distance / 2);
     }
 
     /** How many cells of the platform at this height have a block of the map in it or in the 3 blocks above. */

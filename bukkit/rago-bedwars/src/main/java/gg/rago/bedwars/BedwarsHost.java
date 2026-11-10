@@ -256,9 +256,23 @@ final class BedwarsHost implements MatchHost, Listener {
                 return new InvisGame(plugin, this, instance, mode.id(), name, sides);
             case FAST_SHOP:
                 return new FastShopGame(plugin, this, instance, mode.id(), name, sides);
+            case TOP_BRIDGE:
+                return new TopBridgeGame(plugin, this, instance, mode.id(), name, sides, privateGame(sides));
             default:
                 return new BedwarsGame(plugin, this, instance, mode.id(), name, sides);
         }
+    }
+
+    /** True if these players play a party's private game (the lobby marked them before the start). */
+    private boolean privateGame(List<List<Player>> sides) {
+        for (List<Player> side : sides) {
+            for (Player player : side) {
+                if (plugin.lobby().inPrivateGame(player.getUniqueId())) {
+                    return true;
+                }
+            }
+        }
+        return false;
     }
 
     /** A game of this mode a player can join now, on one of these maps; null if none. */
@@ -409,7 +423,9 @@ final class BedwarsHost implements MatchHost, Listener {
             event.setTo(still);
             return;
         }
-        if (to.getY() < game.instance().map().voidY()) {
+        // the void; in a game played on the top bridge, a fall off its platform (not for a spectator)
+        if (to.getY() < game.instance().map().voidY() || (to.getY() < game.fallLine()
+                && event.getPlayer().getGameMode() != org.bukkit.GameMode.SPECTATOR)) {
             game.kill(event.getPlayer(), null, true);
         }
     }
@@ -654,7 +670,7 @@ final class BedwarsHost implements MatchHost, Listener {
     public void onRespawn(PlayerRespawnEvent event) {
         BedwarsGame game = games.get(event.getPlayer().getUniqueId());
         if (game != null) {
-            event.setRespawnLocation(game.instance().map().spectatorPoint().in(game.instance().world()));
+            event.setRespawnLocation(game.watchPoint());
         }
     }
 

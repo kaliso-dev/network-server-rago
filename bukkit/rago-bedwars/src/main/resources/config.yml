@@ -19,9 +19,9 @@ modes:
   skyrise-2v2: [SkyRise]
   first-rush: [Acropolis, Ambush, Aqil, Cascade, Crogorm, Frosted, Gelato, Lighthouse, Lotus, Nebuc]
   first-rush-duo: [Acropolis, Ambush, Aqil, Cascade, Crogorm, Frosted, Gelato, Lighthouse, Lotus, Nebuc]
-  top-bridge-ffa: [Antenna]
+  top-bridge-ffa: [Antenna, Aquarium, Archway, Artemis, Boletum, Carapace, Catalyst, Chained, Eastwood, Extinction, Invasion, Katsu, Lectus, Obelisk, Paladin, Planet98, Rise, Stonekeep, Swashbuckle, Treenan]
   ffa: [Archway, Paladin]
-  invis-practice: [Invasion, Lectus, Archway]
+  invis-practice: [Antenna, Aquarium, Archway, Artemis, Boletum, Carapace, Catalyst, Chained, Eastwood, Extinction, Invasion, Katsu, Lectus, Obelisk, Paladin, Planet98, Rise, Stonekeep, Swashbuckle, Treenan]
   shop-practice: [Archway]
 
 # The modes that are not a classic Bed Wars game, each with its kind of game:
@@ -33,13 +33,20 @@ modes:
 #              diamonds buy Sharpness, Power II, Strength...), the armour and tools kept as in Bed
 #              Wars, and on each bed a defense of three layers ready for top fights (no mode plays
 #              it now: Arena Free, free-ffa, is on the owner's Arena, in the practice plugin)
-#   invis      invis practice: 2 to 6 players on the map chosen, rounds of 2 minutes, one invisible
-#              (the mode's kit, no armour) against the others (iron armour, a defense on their
-#              bed), each player in turn; it starts 20 seconds after the second player joins
+#   invis      invis practice: 2 to 6 players on the map chosen, rounds of 3 minutes, one invisible
+#              (the mode's kit), at mid in front of the base to attack, against the others (a
+#              ranked defense on their bed: end stone, glass, wood, wool); a hit makes the
+#              invisible visible; each player in turn; it starts 20 seconds after the second joins
+#   top-bridge Top Bridge: no bed, no forge, the fight on the top bridge alone (see top-bridge:
+#              below), everyone starting on top with the mode's kit and iron armour, dead when
+#              they fall off it; rounds of one life, the first team to 5 points wins; in a
+#              party's private game, a practice: back on top 2 seconds after a death, 30 minutes
 #   fast-shop  Fast Shop: each player on an island with its shop, lists of items to buy as fast as
 #              possible with their own quick buy (copied from Hypixel in the lobby), and records
 # A mode not listed is a classic game.
 jeux:
+  top-bridge-1v1: top-bridge
+  top-bridge-2v2: top-bridge
   top-bridge-ffa: ffa
   ffa: ffa
   invis-practice: invis
@@ -61,7 +68,8 @@ reapparition-secondes: 5
 # It is 16 blocks above the beds, as on Antenna, or a little higher or lower where the map is in
 # the way or the islands are near. Players build up to 10 blocks above it, and cannot break it; it
 # goes with the game. In a free for all (top-bridge-ffa), it links the two islands farthest apart,
-# and the players come back on those two only.
+# and everyone starts and comes back on the platform, with a sword only; a player 10 blocks under
+# it has fallen, dead as in the void (in the top-bridge games too).
 top-bridge: [top-bridge-1v1, top-bridge-2v2, top-bridge-ffa]
 
 # The modes whose teams play on neighbouring islands (First Rush: the first island and the one

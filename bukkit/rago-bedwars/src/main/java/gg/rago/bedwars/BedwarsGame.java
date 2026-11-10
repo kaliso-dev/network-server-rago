@@ -164,6 +164,8 @@ class BedwarsGame {
     private int traceTicks;
     /** The build limit of this game when it is not the map's (above a top bridge), else 0. */
     private int buildLimit;
+    /** The top bridge of this game, once built; null without one. */
+    TopBridge topBridge;
 
     BedwarsGame(RagoBedwars plugin, BedwarsHost host, Instance instance, String modeId, String modeName,
             List<List<Player>> sides) {
@@ -243,7 +245,7 @@ class BedwarsGame {
     void begin() {
         phase = Phase.STARTING;
         removeUnusedBeds();
-        if (settings.topBridge(modeId)) {
+        if (hasTopBridge()) {
             buildTopBridge();
         }
         if (economy()) {
@@ -293,6 +295,9 @@ class BedwarsGame {
                         checkTraps();
                     }
                     if (phase == Phase.PLAYING) {
+                        fallenOff();
+                    }
+                    if (phase == Phase.PLAYING) {
                         quarter();
                     }
                 }, 5L, 5L);
@@ -323,6 +328,74 @@ class BedwarsGame {
             instance.build(world.getBlockAt(piece.x, piece.y, piece.z), Material.WOOL, (byte) piece.woolData());
         }
         buildLimit = Math.max(instance.map().buildLimit(), Math.min(255, bridge.height() + TopBridge.BUILD_ABOVE));
+        topBridge = bridge;
+    }
+
+    /** True if this game has a top bridge (top-bridge: in config.yml). */
+    boolean hasTopBridge() {
+        return settings.topBridge(modeId);
+    }
+
+    /**
+     * True if the game is played on its top bridge alone (Top Bridge rounds and practice, Top
+     * Bridge FFA): the players start and come back on it, and one who falls off it is dead.
+     */
+    boolean onTheBridge() {
+        return false;
+    }
+
+    /**
+     * Under this height a player (not a spectator) has fallen, dead as in the void: the map's void,
+     * or a little under the platform in a game played on the top bridge.
+     */
+    double fallLine() {
+        return onTheBridge() && topBridge != null ? Math.max(instance.map().voidY(), topBridge.fallLine())
+                : instance.map().voidY();
+    }
+
+    /**
+     * On the top bridge, the players under its fall line are dead: also those who stand still down
+     * there (a move under it kills too, see the host).
+     */
+    private void fallenOff() {
+        if (!onTheBridge() || topBridge == null) {
+            return;
+        }
+        double line = fallLine();
+        for (Gamer gamer : new ArrayList<>(gamers.values())) {
+            Player player = Bukkit.getPlayer(gamer.id);
+            if (phase != Phase.PLAYING) {
+                return;
+            }
+            if (player != null && !gamer.eliminated && !gamer.respawning && present(gamer)
+                    && player.getGameMode() != GameMode.SPECTATOR && player.getLocation().getY() < line) {
+                kill(player, null, true);
+            }
+        }
+    }
+
+    /** Where the dead and those who wait watch the game: the map's spectator point, or above the top bridge. */
+    Location watchPoint() {
+        return onTheBridge() && topBridge != null ? at(topBridge.above()) : instance.map().spectatorPoint().in(instance.world());
+    }
+
+    /**
+     * A place of the top bridge ({x, y, z, yaw}) where a player stands: on the platform, or just
+     * above the block of the map that takes its place there.
+     */
+    Location at(double[] spot) {
+        World world = instance.world();
+        int x = (int) Math.floor(spot[0]);
+        int z = (int) Math.floor(spot[2]);
+        int y = (int) spot[1];
+        for (int up = 0; up <= 6; up++) {
+            if (world.getBlockAt(x, y + up - 1, z).getType().isSolid() && !world.getBlockAt(x, y + up, z).getType().isSolid()
+                    && !world.getBlockAt(x, y + up + 1, z).getType().isSolid()) {
+                y += up;
+                break;
+            }
+        }
+        return new Location(world, spot[0], y, spot[2], (float) spot[3], 0f);
     }
 
     /** The two islands a top bridge links: those of the first two teams; null if there are not two. */
@@ -437,6 +510,14 @@ class BedwarsGame {
     /** True if this death is the last of the player (their bed is gone). */
     boolean finalDeath(Gamer gamer) {
         return !gamer.team.bed;
+    }
+
+    /**
+     * True if a last death is a final kill, counted in the final kills; false in a game of rounds,
+     * where the player is only out until the next round.
+     */
+    boolean finalKillsCounted() {
+        return true;
     }
 
     /** The seconds before a dead player comes back. */
@@ -872,8 +953,7 @@ class BedwarsGame {
                 // before the game or between two rounds, back on the spawn; a spectator, back to the spectators
                 victim.setFallDistance(0f);
                 boolean spectating = gamer.eliminated || gamer.respawning || victim.getGameMode() == GameMode.SPECTATOR;
-                victim.teleport(spectating || phase == Phase.ENDED ? instance.map().spectatorPoint().in(instance.world())
-                        : spawnOf(gamer));
+                victim.teleport(spectating || phase == Phase.ENDED ? watchPoint() : spawnOf(gamer));
             }
             return;
         }
@@ -886,7 +966,9 @@ class BedwarsGame {
             author = null;
         }
         gamer.lastDamager = null;
-        boolean finalKill = finalDeath(gamer);
+        boolean out = finalDeath(gamer);
+        // the last death of a round is not a final kill: the player plays the next round
+        boolean finalKill = out && finalKillsCounted();
         String how = voidDeath ? (author == null ? " fell into the void." : " was knocked into the void by ")
                 : (author == null ? " died." : " was killed by ");
         // a final kill shows the killer's own count, as on Hypixel: "X was Y's final #41,000. FINAL KILL!"
@@ -921,8 +1003,8 @@ class BedwarsGame {
         victim.getInventory().setArmorContents(null);
         heal(victim);
         victim.setGameMode(GameMode.SPECTATOR);
-        victim.teleport(instance.map().spectatorPoint().in(instance.world()));
-        if (finalKill) {
+        victim.teleport(watchPoint());
+        if (out) {
             gamer.eliminated = true;
             outOfGame(victim, gamer);
             died(gamer, author, true);

@@ -138,4 +138,69 @@ class TopBridgeTest {
         assertEquals(Material.WOOL, again.removals().get(0).materials.get(0));
         assertTrue(map.copy().removals().size() == 1);
     }
+
+    @Test
+    void eachTeamStartsOnItsHalfFacingTheOther() {
+        MapPoint red = new MapPoint(0, 83, 79, 0f, 0f);
+        MapPoint blue = new MapPoint(0, 83, -79, 0f, 0f);
+        TopBridge bridge = TopBridge.plan(TeamColor.RED, red, TeamColor.BLUE, blue, islands(74));
+        assertNotNull(bridge);
+        assertEquals(78, bridge.length(), 1e-9, "from its first row to its last: 79 rows");
+        // red, bed A, is on the side of the positive z: 12 blocks from the white middle, looking north
+        double[] redStart = bridge.start(true, 0, 1);
+        assertEquals(0.5, redStart[0], 1e-9);
+        assertEquals(100, redStart[1], 1e-9, "on the platform");
+        assertEquals(12.5, redStart[2], 1e-9);
+        assertEquals(180, Math.abs(redStart[3]), 1e-3, "facing the blue half");
+        double[] blueStart = bridge.start(false, 0, 1);
+        assertEquals(-11.5, blueStart[2], 1e-9);
+        assertEquals(0, blueStart[3], 1e-3, "facing the red half");
+        // two of a team side by side, across the platform
+        double[] first = bridge.start(true, 0, 2);
+        double[] second = bridge.start(true, 1, 2);
+        assertEquals(first[2], second[2], 1e-9);
+        assertEquals(TopBridge.START_SPACING, Math.abs(second[0] - first[0]), 1.01);
+        assertTrue(Math.abs(first[0]) <= TopBridge.HALF_WIDTH && Math.abs(second[0]) <= TopBridge.HALF_WIDTH);
+        assertEquals(100 - TopBridge.FALL_BELOW, bridge.fallLine(), "ten blocks under the platform: fallen");
+        assertEquals(106, bridge.above()[1], 1e-9, "the dead watch from above the middle");
+        assertEquals(0.5, bridge.above()[2], 1e-9);
+    }
+
+    @Test
+    void anywhereIsOnThePlatform() {
+        MapPoint red = new MapPoint(0, 83, 79, 0f, 0f);
+        MapPoint blue = new MapPoint(0, 83, -79, 0f, 0f);
+        TopBridge bridge = TopBridge.plan(TeamColor.RED, red, TeamColor.BLUE, blue, islands(74));
+        Set<String> platform = new HashSet<>();
+        for (TopBridge.Piece piece : bridge.pieces()) {
+            if (piece.y == bridge.height()) {
+                platform.add(piece.x + " " + piece.z);
+            }
+        }
+        java.util.Random random = new java.util.Random(7);
+        for (int i = 0; i < 500; i++) {
+            double[] spot = bridge.anywhere(random);
+            String cell = (int) Math.floor(spot[0]) + " " + (int) Math.floor(spot[2]);
+            assertTrue(platform.contains(cell), "off the platform: " + cell);
+            assertEquals(bridge.height() + 1, spot[1], 1e-9);
+            if (spot[2] != 0.5) {
+                assertEquals(spot[2] > 0.5 ? 180 : 0, Math.abs(spot[3]), 1e-3, "facing the middle");
+            }
+        }
+    }
+
+    @Test
+    void onASlantTheStartsFollowTheLine() {
+        MapPoint red = new MapPoint(60, 83, 60, 0f, 0f);
+        MapPoint blue = new MapPoint(-60, 83, -60, 0f, 0f);
+        TopBridge.Solid solid = (x, y, z) -> Math.hypot(Math.abs(x) - 60, Math.abs(z) - 60) <= 6 && y >= 76 && y <= 82
+                && Math.signum(x) == Math.signum(z);
+        TopBridge bridge = TopBridge.plan(TeamColor.RED, red, TeamColor.BLUE, blue, solid);
+        assertNotNull(bridge);
+        double[] redStart = bridge.start(true, 0, 1);
+        double[] blueStart = bridge.start(false, 0, 1);
+        assertTrue(redStart[0] > 0 && redStart[2] > 0 && blueStart[0] < 0 && blueStart[2] < 0, "each on its side");
+        assertEquals(24, Math.hypot(redStart[0] - blueStart[0], redStart[2] - blueStart[2]), 1.5);
+        assertEquals(135, Math.abs(redStart[3]), 1e-3, "red looks to the north-west, towards blue");
+    }
 }

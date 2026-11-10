@@ -1,12 +1,11 @@
 package gg.rago.bedwars;
 
-import java.util.ArrayDeque;
 import java.util.ArrayList;
 import java.util.Collections;
-import java.util.Deque;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Random;
 import java.util.UUID;
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
@@ -29,9 +28,10 @@ import org.bukkit.inventory.PlayerInventory;
  * given back at each life; a kill heals the killer. Arena (Free FFA): the island forges, the
  * diamonds and emeralds and a shop of its own (the diamonds buy too), the armour and tools kept
  * as in Bed Wars, and on each bed a defense of three layers ready for top fights, put back when
- * nobody is near it. Top Bridge FFA (a mode of top-bridge: in config.yml): the FFA with the top
- * bridge of Antenna between the two islands farthest apart, and the players come back on those two
- * only, at the foot of a stairway. Main thread only.
+ * nobody is near it. Top Bridge FFA (a mode of top-bridge: in config.yml): the FFA on the top
+ * bridge of Antenna, built between the two islands farthest apart: an iron sword only (and the
+ * iron armour), the players start and come back on the platform, away from the others, and one
+ * who falls off it is dead. Main thread only.
  */
 final class FfaGame extends BedwarsGame {
 
@@ -48,10 +48,8 @@ final class FfaGame extends BedwarsGame {
     private final boolean arena;
     /** Every island of the map: where the players come back, where the forges and shops stand. */
     private final List<Team> islands = new ArrayList<>();
-    /** The blocks placed, oldest first: their key and the second of the game they were placed at. */
-    private final Deque<long[]> decaying = new ArrayDeque<>();
-    /** The second each placed block was last placed at, to forget the older entries of a block placed again. */
-    private final Map<Long, Long> placedAt = new HashMap<>();
+    private final BlockDecay decay = new BlockDecay(DECAY_SECONDS);
+    private final Random random = new Random();
     private final List<Defense> defenses = new ArrayList<>();
     private final Map<UUID, Integer> streaks = new HashMap<>();
     private final Map<UUID, Integer> deaths = new HashMap<>();
@@ -206,16 +204,28 @@ final class FfaGame extends BedwarsGame {
         return best;
     }
 
+    /** Top Bridge FFA: everyone on the platform, and dead when they fall off it. */
+    @Override
+    boolean onTheBridge() {
+        return !arena && hasTopBridge();
+    }
+
     /**
      * The island farthest from the other players, so that nobody comes back in the middle of a
-     * fight; with a top bridge, one of its two islands.
+     * fight; on the top bridge, the place of the platform farthest from them, among a few drawn.
      */
     @Override
     Location spawnOf(Gamer gamer) {
         World world = instance.world();
         List<Location> spawns = new ArrayList<>();
-        for (Team island : bridged != null ? java.util.Arrays.asList(bridged) : islands) {
-            spawns.add(island.points.spawn.in(world));
+        if (onTheBridge() && topBridge != null) {
+            for (int i = 0; i < 8; i++) {
+                spawns.add(at(topBridge.anywhere(random)));
+            }
+        } else {
+            for (Team island : bridged != null ? java.util.Arrays.asList(bridged) : islands) {
+                spawns.add(island.points.spawn.in(world));
+            }
         }
         Collections.shuffle(spawns);
         Location best = spawns.get(0);
@@ -246,13 +256,13 @@ final class FfaGame extends BedwarsGame {
             player.sendMessage(ChatColor.GRAY + "Iron and gold at the forges, diamonds and emeralds in the middle, and a "
                     + "shop of its own: the diamonds buy Sharpness, Power II, Strength... Your armour stays; the beds have "
                     + "a defense ready for top fights.");
+        } else if (onTheBridge()) {
+            player.sendMessage(ChatColor.GRAY + "Everyone fights on the platform of the top bridge, a sword only: fall off "
+                    + "and you die, and come back on it. A kill heals you. /spawn takes you back to the lobby.");
+            return;
         } else {
             player.sendMessage(ChatColor.GRAY + "Your kit (arranged in the lobby's kit editor) comes back at each life, "
                     + "and a kill heals you.");
-        }
-        if (bridged != null) {
-            player.sendMessage(ChatColor.GRAY + "Climb the stairway of wool in front of your island: everyone fights on the "
-                    + "platform over the middle.");
         }
         player.sendMessage(ChatColor.GRAY + "Your blocks go after " + DECAY_SECONDS + " seconds. /spawn takes you back "
                 + "to the lobby.");
@@ -267,8 +277,11 @@ final class FfaGame extends BedwarsGame {
         }
         PlayerInventory inventory = player.getInventory();
         inventory.clear();
-        ItemStack[] kit = lobbyKit(player, gamer);
-        if (kit != null) {
+        ItemStack[] kit = onTheBridge() ? null : lobbyKit(player, gamer);
+        if (onTheBridge()) {
+            // the owner's Top Bridge FFA: a sword, nothing else
+            inventory.setItem(0, kitItem(new ItemStack(Material.IRON_SWORD), gamer));
+        } else if (kit != null) {
             inventory.setContents(kit);
         } else {
             for (ItemStack item : new ItemStack[] {new ItemStack(Material.IRON_SWORD), new ItemStack(Material.WOOL, 64),
@@ -304,26 +317,12 @@ final class FfaGame extends BedwarsGame {
 
     @Override
     void placed(Player player, Block block) {
-        long key = Instance.key(block.getX(), block.getY(), block.getZ());
-        decaying.addLast(new long[] {key, seconds});
-        placedAt.put(key, (long) seconds);
+        decay.placed(block, seconds);
     }
 
     @Override
     void everySecond() {
-        World world = instance.world();
-        while (!decaying.isEmpty() && seconds - decaying.peekFirst()[1] >= DECAY_SECONDS) {
-            long[] entry = decaying.pollFirst();
-            Long last = placedAt.get(entry[0]);
-            if (last == null || last != entry[1]) {
-                continue;
-            }
-            placedAt.remove(entry[0]);
-            Block block = world.getBlockAt(Instance.xOf(entry[0]), Instance.yOf(entry[0]), Instance.zOf(entry[0]));
-            if (instance.isPlaced(block)) {
-                instance.restore(block);
-            }
-        }
+        decay.tick(instance, instance.world(), seconds);
         if (arena && seconds % REPAIR_SECONDS == 0) {
             for (Defense defense : defenses) {
                 if (!anyoneNear(defense.bed().get(0).getLocation().add(0.5, 0, 0.5))) {
@@ -381,7 +380,8 @@ final class FfaGame extends BedwarsGame {
             lines.add(ChatColor.WHITE + "Top: " + ChatColor.GOLD + name + ChatColor.GRAY + " " + top.kills);
         }
         lines.add("");
-        lines.add(ChatColor.GRAY + (arena ? "Top fights on the beds" : "Blocks go after " + DECAY_SECONDS + " s"));
+        lines.add(ChatColor.GRAY + (arena ? "Top fights on the beds" : onTheBridge() ? "A sword only"
+                : "Blocks go after " + DECAY_SECONDS + " s"));
         return lines;
     }
 }

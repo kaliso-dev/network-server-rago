@@ -239,7 +239,7 @@ class BridgeArenaTest {
     }
 
     @Test
-    void aPortalLeadsToThePlatformLookedAtThroughIt() {
+    void aPortalLeadsToTheNextIslandOfTheArena() {
         MapCopy map = ownersFloor();
         List<BridgeArena.Platform> platforms = BridgeArena.platformsOf(map);
         List<int[]> portals = BridgeArena.portalsOf(map);
@@ -248,14 +248,10 @@ class BridgeArenaTest {
         int[] middle = portals.get(1);
         assertArrayEquals(new int[] {-18, 1, 0}, west, "at its lowest lantern");
         assertArrayEquals(new int[] {0, 1, 0}, middle);
-        // yaw 0: south, 180: north, 90: west
-        assertEquals(1, BridgeArena.through(platforms, west, 0f), "from the north one, to the south one");
-        assertEquals(0, BridgeArena.through(platforms, west, 180f), "and back");
-        assertEquals(1, BridgeArena.through(platforms, west, 20f), "looking a bit aside");
-        assertEquals(-1, BridgeArena.through(platforms, west, 90f), "nothing that way");
-        assertEquals(-1, BridgeArena.through(platforms, west, -90f), "the red and black one is not in line, east of it");
-        assertEquals(2, BridgeArena.through(platforms, middle, 0f), "the red and black one");
-        assertEquals(-1, BridgeArena.through(platforms, middle, 180f), "from it, nothing in line: the menu");
+        // yaw 0: south, 180: north, 90: west, -90: east
+        assertEquals(1, BridgeArena.nextIsland(portals, 0, -90f), "from the west island to the middle one");
+        assertEquals(0, BridgeArena.nextIsland(portals, 1, 90f), "and back");
+        assertEquals(1, BridgeArena.nextIsland(portals, 0, 90f), "nothing further west: the nearest one");
         // in at the end next to the portal
         assertEquals(0, BridgeArena.nearestEnd(platforms.get(1), west), "the north end of the south one");
         assertEquals(1, BridgeArena.nearestEnd(platforms.get(0), west));
@@ -308,5 +304,21 @@ class BridgeArenaTest {
         assertEquals("Bridge Fight Plateform", maps.get(0).get("monde"));
         assertEquals(null, RagoPractice.checkZoneMap(maps.get(0), config.getInt("espacement")));
         assertEquals(Arrays.asList(85, 107, 83), maps.get(0).get("centre"), "the middle portal, at the height of the platforms");
+    }
+
+    @Test
+    void theThreeIslandsOfTheOwnersFloor() {
+        // as on the owner's first floor: three islands in a row, the middle one between the two others
+        List<int[]> islands = Arrays.asList(new int[] {67, 100, 83}, new int[] {85, 100, 83}, new int[] {103, 100, 83},
+                new int[] {85, 140, 83});
+        // yaw 90: west (-x), -90: east (+x)
+        assertEquals(0, BridgeArena.nextIsland(islands, 1, 90f), "from the middle, looking west: the west island");
+        assertEquals(2, BridgeArena.nextIsland(islands, 1, -90f), "looking east: the east island");
+        assertEquals(2, BridgeArena.nextIsland(islands, 1, -60f), "looking a bit aside");
+        assertEquals(1, BridgeArena.nextIsland(islands, 0, -90f), "from the west island: the middle one");
+        assertEquals(1, BridgeArena.nextIsland(islands, 0, 90f), "the way back too, nothing further west");
+        assertEquals(1, BridgeArena.nextIsland(islands, 2, 90f), "from the east island: the middle one");
+        assertEquals(1, BridgeArena.nextIsland(islands, 2, 0f), "looking south, at no island: the nearest one");
+        assertEquals(-1, BridgeArena.nextIsland(islands, 3, 0f), "alone on its floor");
     }
 }

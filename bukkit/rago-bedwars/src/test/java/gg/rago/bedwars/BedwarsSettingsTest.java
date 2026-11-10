@@ -41,8 +41,10 @@ class BedwarsSettingsTest {
         assertEquals(Arrays.asList("Archway", "Paladin"), settings.mapsOf("ffa"));
         assertEquals(BedwarsSettings.Kind.FFA, settings.kind("top-bridge-ffa"), "a free for all...");
         assertTrue(settings.topBridge("top-bridge-ffa"), "...with the top bridge");
-        assertEquals(Collections.singletonList("Antenna"), settings.mapsOf("top-bridge-ffa"), "on Antenna, where it was built");
-        assertEquals(Arrays.asList("Invasion", "Lectus", "Archway"), settings.mapsOf("invis-practice"));
+        assertEquals(settings.mapsOf("ranked-1v1"), settings.mapsOf("top-bridge-ffa"), "the top bridge on the 20 maps");
+        assertEquals(settings.mapsOf("ranked-1v1"), settings.mapsOf("invis-practice"), "the invis practice too");
+        assertEquals(BedwarsSettings.Kind.TOP_BRIDGE, settings.kind("top-bridge-1v1"));
+        assertEquals(BedwarsSettings.Kind.TOP_BRIDGE, settings.kind("top-bridge-2v2"));
         assertEquals(Arrays.asList("Antenna", "Aquarium", "Archway", "Artemis", "Boletum", "Carapace", "Catalyst",
                 "Chained", "Eastwood", "Extinction", "Invasion", "Katsu", "Lectus", "Obelisk", "Paladin", "Planet98", "Rise",
                 "Stonekeep", "Swashbuckle", "Treenan"), settings.mapsOf("ranked-2v2"), "the maps of the RBW queue");

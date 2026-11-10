@@ -85,6 +85,14 @@ public interface LobbyService {
     }
 
     /**
+     * True if this player plays a party's private game: the party against itself, counted in no
+     * stats. The lobby knows it before the game starts.
+     */
+    default boolean inPrivateGame(UUID player) {
+        return false;
+    }
+
+    /**
      * Network XP earned in a training of this mode (the aim trainer gives it for the seconds on the
      * target and the score): the lobby adds it to the player's stats, tells them ("+12 Network XP
      * (aim trainer)") and shows a new level or rank. Nothing in a party's private game, nor for 0

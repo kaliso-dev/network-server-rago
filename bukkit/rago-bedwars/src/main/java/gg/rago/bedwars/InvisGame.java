@@ -26,14 +26,16 @@ import org.bukkit.potion.PotionEffectType;
 import org.bukkit.scheduler.BukkitTask;
 
 /**
- * Invis practice: 2 to 6 players on a Bed Wars map (Invasion, Lectus or Archway), in rounds of
- * three minutes. Each round, one player is the attacker, at mid (the emerald generator nearest the
- * middle, facing the bed), with the owner's kit arranged in the lobby's kit editor: an invisibility
+ * Invis practice: 2 to 6 players on a Bed Wars map (the 20 maps of the RBW queue), in rounds of
+ * three minutes. Each round, one player is the attacker, at mid (the emerald generator in front of
+ * the base to attack, facing its bed), with the owner's kit arranged in the lobby's kit editor: an invisibility
  * potion that lasts the whole round, without a name above the head, and a Jump V potion, 16 planks, a
  * golden pickaxe, a fireball, an iron axe, shears, a stone sword, 2 Bridge Eggs, 2 stacks of wool,
  * and Protection I armour (hidden while invisible, as on Hypixel). The invisible leaves footprints
- * on the ground and the swirls of the potion around them, for the defenders to spot. The others defend the bed of the
- * next island, under a defense of end stone and wool: shears, wooden tools and Haste, an iron sword
+ * on the ground and the swirls of the potion around them, for the defenders to spot, and a hit
+ * makes them visible for the rest of the round. The others defend the bed of the next island,
+ * under the defense of a ranked game (end stone, glass, wood and wool, the layers the island has
+ * room for): shears, wooden tools and Haste, an iron sword
  * with Sharpness, Protection IV armour and 2 stacks of wool; four at most, a sixth player watches
  * that round. The attacker wins the round by breaking the bed; the defenders by killing the
  * attacker (one life) or by holding three minutes; a defender comes back three seconds after a
@@ -55,7 +57,8 @@ final class InvisGame extends BedwarsGame {
     private static final int DEFENDER_RESPAWN = 3;
     /** Between the end of a round and the next one. */
     private static final long BETWEEN_TICKS = 80L;
-    private static final Material[] DEFENSE = {Material.ENDER_STONE, Material.WOOL};
+    /** The defense of a ranked game, from the bed out: end stone, glass, wood, wool. */
+    static final Material[] DEFENSE = {Material.ENDER_STONE, Material.STAINED_GLASS, Material.WOOD, Material.WOOL};
     /** The attacker's kit when the lobby has none for the mode: the owner's, as in config.yml. */
     static final String[] ATTACKER_KIT = {"stone_sword", "wool 64", "wool 64", "plank 16", "golden_pickaxe", "iron_axe",
         "shears", "fireball 1", "bridge_egg 2", "invisibility", "jump"};
@@ -244,7 +247,7 @@ final class InvisGame extends BedwarsGame {
         }
     }
 
-    /** The defense of end stone and wool on the bed, made again for each round. */
+    /** The defense of a ranked game on the bed, made again for each round. */
     @Override
     void setUp() {
         Defense.build(instance, defenders.points.bed.blockIn(instance.world()), DEFENSE, defenders.color.woolData());
@@ -372,35 +375,52 @@ final class InvisGame extends BedwarsGame {
         return mid != null ? mid : super.spawnOf(gamer);
     }
 
-    /** The emerald generator nearest the middle of the map, facing the defended bed; null without emeralds. */
+    /** The emerald generator in front of the defended base (the nearest to its bed), facing the bed; null without emeralds. */
     private Location mid() {
-        List<MapPoint> emeralds = instance.map().emeralds();
-        if (emeralds.isEmpty()) {
+        MapPoint bed = defenders.points.bed;
+        MapPoint nearest = inFrontOf(instance.map().emeralds(), bed);
+        if (nearest == null) {
             return null;
         }
-        double cx = 0;
-        double cz = 0;
-        for (MapPoint point : emeralds) {
-            cx += point.x();
-            cz += point.z();
-        }
-        cx /= emeralds.size();
-        cz /= emeralds.size();
-        MapPoint nearest = emeralds.get(0);
-        for (MapPoint point : emeralds) {
-            if (square(point.x() - cx) + square(point.z() - cz) < square(nearest.x() - cx) + square(nearest.z() - cz)) {
-                nearest = point;
-            }
-        }
         Location at = nearest.in(instance.world());
-        MapPoint bed = defenders.points.bed;
         at.setYaw(yawTowards(bed.x() + 0.5 - at.getX(), bed.z() + 0.5 - at.getZ()));
         at.setPitch(0f);
         return at;
     }
 
+    /** Of the mid's generators, the one in front of this bed: the nearest to it. Null if there is none. */
+    static MapPoint inFrontOf(List<MapPoint> mid, MapPoint bed) {
+        MapPoint nearest = null;
+        double best = Double.MAX_VALUE;
+        for (MapPoint point : mid) {
+            double distance = square(point.x() - bed.x()) + square(point.z() - bed.z());
+            if (distance < best - 1e-6) {
+                best = distance;
+                nearest = point;
+            }
+        }
+        return nearest;
+    }
+
     private static double square(double value) {
         return value * value;
+    }
+
+    /** Hit by a defender, the attacker loses their invisibility: seen, armour and all, for the rest of the round. */
+    @Override
+    void hit(Gamer victim, Gamer attacker) {
+        super.hit(victim, attacker);
+        if (roundOver || phase != Phase.PLAYING || !victim.id.equals(invisible)) {
+            return;
+        }
+        Player player = Bukkit.getPlayer(victim.id);
+        if (player == null || !player.hasPotionEffect(PotionEffectType.INVISIBILITY)) {
+            return;
+        }
+        player.removePotionEffect(PotionEffectType.INVISIBILITY);
+        player.sendMessage(ChatColor.RED + "You were hit: you are visible again!");
+        broadcast(victim.coloured() + ChatColor.YELLOW + " was hit by " + attacker.coloured() + ChatColor.YELLOW
+                + " and is visible again!", Sound.ORB_PICKUP);
     }
 
     /** The yaw that looks along (dx, dz): 0 to the south (+z), 90 to the west (-x), as Minecraft counts. */
@@ -468,8 +488,8 @@ final class InvisGame extends BedwarsGame {
         String who = invisibleGamer == null ? "the invisible" : invisibleGamer.coloured();
         if (gamer.id.equals(invisible)) {
             player.sendMessage(head + "you " + ChatColor.WHITE + "attack" + ChatColor.LIGHT_PURPLE
-                    + ". Drink your invisibility potion (it lasts the round) and break the bed of the "
-                    + defenders.color.coloured() + ChatColor.LIGHT_PURPLE + " island in three minutes. One life.");
+                    + ". Drink your invisibility potion (it lasts the round, until a defender hits you) and break the bed "
+                    + "of the " + defenders.color.coloured() + ChatColor.LIGHT_PURPLE + " island in three minutes. One life.");
             player.sendTitle(ChatColor.LIGHT_PURPLE + "" + ChatColor.BOLD + "ATTACK",
                     ChatColor.WHITE + "Break the " + defenders.color.coloured() + ChatColor.WHITE + " bed in 3 minutes");
         } else if (watching.contains(gamer.id)) {
@@ -478,7 +498,8 @@ final class InvisGame extends BedwarsGame {
             player.sendTitle(ChatColor.GRAY + "" + ChatColor.BOLD + "WATCHING", ChatColor.WHITE + "Your turn comes next");
         } else {
             player.sendMessage(head + "defend your bed against " + who + ChatColor.LIGHT_PURPLE
-                    + ", who will go invisible: kill them, or hold three minutes. You come back " + DEFENDER_RESPAWN
+                    + ", who will go invisible: a hit makes them visible. Kill them, or hold three minutes. You come back "
+                    + DEFENDER_RESPAWN
                     + " seconds after a death.");
             player.sendTitle(ChatColor.GREEN + "" + ChatColor.BOLD + "DEFEND", who + ChatColor.WHITE + " attacks");
         }

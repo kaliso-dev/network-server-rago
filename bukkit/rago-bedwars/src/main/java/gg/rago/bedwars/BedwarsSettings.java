@@ -178,7 +178,12 @@ final class BedwarsSettings {
         /** Invis practice: 2 to 6 players, rounds of 2 minutes, one invisible against the others. */
         INVIS("invis"),
         /** Fast Shop: lists of items to buy as fast as possible, with the player's own quick buy. */
-        FAST_SHOP("fast-shop");
+        FAST_SHOP("fast-shop"),
+        /**
+         * Top Bridge: the fight on the top bridge alone, no bed, no forge; rounds of one life to 5
+         * points, or a practice without end in a party's private game.
+         */
+        TOP_BRIDGE("top-bridge");
 
         final String word;
 

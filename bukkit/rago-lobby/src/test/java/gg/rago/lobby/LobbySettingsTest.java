@@ -41,7 +41,7 @@ class LobbySettingsTest {
         assertEquals("lobby", settings.world());
         assertEquals(0, settings.voidHeight());
         assertEquals(0, settings.defaultRating(), "a ranked ELO starts at 0, in Coal");
-        assertEquals(50, settings.modes().size());
+        assertEquals(51, settings.modes().size(), "with the private top bridge");
         assertFalse(settings.catalog().get("top-bridge-1v1").ranked(), "Top Bridge: no ELO");
         assertEquals("2v2", settings.catalog().get("top-bridge-2v2").format());
         assertTrue(settings.npc("rbwffa").modeIds().contains("top-bridge-1v1"));
@@ -96,6 +96,11 @@ class LobbySettingsTest {
                 "the top fight 1v1 is back in the selector, next to the 2v2");
         assertTrue(!settings.display("top-fight-1v1").hidden());
         assertEquals(Arrays.asList("top-fight-1v1", "top-fight-2v2"), ids(settings.privateRoutes().get("top-fight-prive")));
+        assertEquals(Arrays.asList("top-bridge-1v1", "top-bridge-2v2"), ids(settings.privateRoutes().get("top-bridge-prive")),
+                "the practice of the top bridge, with the party");
+        assertTrue(settings.npc("privategame").modeIds().contains("top-bridge-prive"));
+        assertTrue(settings.display("top-bridge-1v1").kit() != null, "the kit of the rounds, arranged in the kit editor");
+        assertTrue(settings.display("top-bridge-ffa").kit() == null, "a sword only");
         int shown = 0;
         for (ModeCategory category : settings.categories()) {
             for (LobbySettings.Entry entry : settings.entriesIn(category.id())) {

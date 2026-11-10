@@ -209,10 +209,11 @@ propriétaire (`bridge-fight.cartes` dans `config.yml`, le monde `Bridge Fight P
 étage du bas, copié une fois, avec ses cinq plateformes (deux bleu et jaune, deux noir et vert, le
 H rouge et jaune) et les trois portails entre elles. Les plateformes sont ses sols de laine ou
 d'argile à la hauteur du `centre` ; un portail, c'est la cabine autour d'une lanterne aquatique
-posée au sol (7 sur 7, 9 de haut). Un clic sur un portail (clic droit en le visant, ou clic
-gauche sur un de ses blocs) emmène sur la plateforme de l'autre côté, celle qu'on regarde à
-travers lui, au bout le plus proche du portail ; le portail du milieu, qui n'a rien en face côté
-nord, ouvre le menu des plateformes. Pas de portail pendant un combat. Les barrières de la map ne
+posée au sol (7 sur 7, 9 de haut) : ce sont les trois îlots de l'arène, en ligne au centre. Un
+clic sur un portail (clic droit en le visant, ou clic gauche sur un de ses blocs) fait juste
+passer d'un îlot à l'autre, du côté où l'on regarde, sur la lanterne de l'îlot suivant : de celui
+du milieu à celui de gauche ou de droite, et de ceux-ci au milieu. Pas de portail pendant un
+combat. Les barrières de la map ne
 sont pas copiées : celui qui tombe tombe dans le vide. Sans ce monde, quatre plateformes de laine
 côte à côte au-dessus du vide (bleu et jaune, rouge et blanc, orange et noir, vert et vert clair) :
 un pont relie chaque bout de plateforme à un petit carré, et une passerelle le long de chaque bout

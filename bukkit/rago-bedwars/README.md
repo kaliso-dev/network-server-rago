@@ -4,8 +4,8 @@ Un plugin Bukkit 1.8.8 qui joue les modes Bed Wars du lobby (`bukkit/rago-lobby`
 Bedwars 1v1, 2v2, 3v3 et 4v4**, **RBW Sky Rise** en solo et en duo, avec les règles d'une partie
 classique d'Hypixel, **First Rush** en solo et en duo (la même partie, sur deux îles voisines), les
 **parties privées** d'une party (le lobby choisit le 1v1, 2v2, 3v3 ou 4v4 selon sa taille), et
-trois jeux à part sur des maps de Bed Wars : **FFA** (dont le Top Bridge FFA), **Invis practice** et
-**Fast Shop**. Chaque mode a ses maps.
+quatre jeux à part sur des maps de Bed Wars : **Top Bridge**, **FFA** (dont le Top Bridge FFA),
+**Invis practice** et **Fast Shop**. Chaque mode a ses maps.
 
 ## La partie
 
@@ -73,8 +73,8 @@ maps duo.
 
 ## Top Bridge
 
-`top-bridge-1v1` et `top-bridge-2v2` sont de vraies parties de RBW sur les 20 maps de la file,
-avec le **top bridge** construit sur Antenna : au début de la partie, le plugin pose sur la copie
+`top-bridge-1v1` et `top-bridge-2v2` (le jeu `top-bridge`) se jouent sur les 20 maps de la file,
+sur le **top bridge** construit sur Antenna : au début de la partie, le plugin pose sur la copie
 une plateforme de laine de 17 blocs de large au-dessus du milieu, chaque moitié à la couleur de
 l'équipe de son côté (un bloc blanc au centre), et depuis le bord de chaque île un escalier de laine
 d'un bloc de large qui monte d'un bloc tous les deux blocs. Sur Antenna, c'est exactement la
@@ -86,12 +86,28 @@ sont pas alignés (Invasion, Lectus), tout suit la ligne d'un lit à l'autre. On
 10 blocs au-dessus de la plateforme ; elle ne se casse pas, et la copie l'enlève après la partie.
 Les modes qui l'ont sont listés dans `top-bridge:` du config.yml.
 
-`top-bridge-ffa` est la même chose en FFA libre, sur Antenna : on entre et on sort quand on veut,
-chacun pour soi, avec le kit du mode (épée en fer, laine, cisailles, pioche, pommes d'or, boules de
-feu, perle ; arrangeable dans l'éditeur de kit) et l'armure en fer à chaque vie. Le top bridge relie
-les deux îles les plus éloignées, et on réapparaît 3 secondes après une mort sur celle des deux qui
-est la plus loin des autres joueurs, au pied de son escalier. Les blocs posés partent au bout de
-45 secondes, un kill soigne.
+Ni lit ni forge ni shop : seul le combat sur le pont compte. Chaque équipe démarre en haut, sur sa
+moitié, à 12 blocs de la ligne blanche du milieu, côte à côte en 2v2, face à l'autre moitié, avec
+le kit du mode (épée en fer, 2 stacks de laine, cisailles, pioche en fer, 3 pommes d'or, 4 boules
+de feu, une perle ; arrangeable dans l'éditeur de kit) et l'armure en fer. Celui qui tombe à 10
+blocs sous la plateforme est mort, comme dans le vide (on a le temps d'un clutch). Ceux qui
+attendent regardent depuis le dessus du milieu.
+
+- **Dans la file** : des manches d'une vie. Une manche est gagnée quand tous les joueurs de l'autre
+  équipe sont morts ; la première équipe à 5 points gagne. Entre deux manches, la copie redevient
+  la map (les blocs posés partent), le pont est reposé et tout le monde repart d'en haut après un
+  compte à rebours de 3 secondes. Une party qui fait la file joue dans la même équipe. Au bout de
+  30 minutes, l'équipe en tête gagne.
+- **En partie privée** (une party qui remplit le match, ou le mode **Private top bridge** du PNJ
+  des parties privées) : un practice sans fin. Personne n'est éliminé : on revient en haut 2
+  secondes après une mort, les blocs posés partent au bout de 45 secondes, et la partie dure 30
+  minutes au plus. Rien ne compte dans les stats.
+
+`top-bridge-ffa` est le FFA libre sur le pont, sur les 20 maps : on entre et on sort quand on veut,
+chacun pour soi, une épée en fer seule (et l'armure en fer) à chaque vie. Le top bridge relie les
+deux îles les plus éloignées ; on apparaît et on revient 3 secondes après une mort sur la
+plateforme, à l'endroit le plus loin des autres joueurs, et celui qui tombe en dessous est mort.
+Un kill soigne.
 
 ## Améliorations et pièges
 
@@ -158,16 +174,19 @@ Dans `jeux:` du config.yml, un mode peut jouer autre chose qu'une partie classiq
   côté. Aucun mode ne le joue pour l'instant : Arena Free (`free-ffa`) se joue sur l'Arena du
   propriétaire, dans le plugin practice ; il suffit d'un mode sous `jeux:` en `arene` pour le
   rouvrir.
-- **Invis practice** (`invis`) : sur Invasion, Lectus ou Archway, de 2 à 6 joueurs, des manches
-  de 3 minutes. À chaque manche, un joueur attaque avec le kit du mode (rangé dans l'éditeur de
+- **Invis practice** (`invis`) : sur les 20 maps de la file, de 2 à 6 joueurs, des manches
+  de 3 minutes. À chaque manche, un joueur attaque, au mid (le générateur d'émeraudes en face de
+  la base à attaquer), tourné vers le lit, avec le kit du mode (rangé dans l'éditeur de
   kit du lobby) : une potion d'invisibilité (30 s) et une de Jump V (45 s), 16 planches, une pioche
   en or, une fireball, une hache en fer, des cisailles, une épée en pierre, 2 Bridge Eggs, 2 stacks
   de laine, en armure de fer Protection I (cachée tant qu'il est invisible). Il laisse des traces
   de pas au sol (une tous les 0,8 bloc, pied gauche puis pied droit, qui restent quelques
   secondes) et les tourbillons gris de la potion autour de lui : les défenseurs peuvent le
-  repérer. Les autres modes gardent l'invisibilité complète d'Hypixel. Les autres, quatre au
-  plus, défendent le lit de l'île voisine sous de l'end stone et de la laine : cisailles, outils en
-  bois et Haste, épée en fer Sharpness, 2 stacks de laine, armure de fer Protection IV.
+  repérer, et un coup d'un défenseur lui fait perdre son invisibilité pour le reste de la manche.
+  Les autres modes gardent l'invisibilité complète d'Hypixel. Les autres, quatre au plus,
+  défendent le lit de l'île voisine sous une défense de ranked : end stone sur le lit, puis verre,
+  bois et laine (les couches que l'île a la place de porter) ; cisailles, outils en bois et Haste,
+  épée en fer Sharpness, 2 stacks de laine, armure de fer Protection IV.
   L'attaquant gagne la manche en cassant le lit, les défenseurs en le tuant (une vie) ou en tenant
   3 minutes. Chacun attaque à son tour ; le plus de points gagne. La partie part 20
   secondes après l'arrivée du deuxième joueur, 5 secondes quand ils sont six.

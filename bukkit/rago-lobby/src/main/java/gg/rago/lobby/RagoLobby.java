@@ -874,6 +874,11 @@ public final class RagoLobby extends JavaPlugin implements LobbyService {
         stats.giveXp(player, xp, reason);
     }
 
+    @Override
+    public boolean inPrivateGame(UUID player) {
+        return state.isInPrivateGame(player);
+    }
+
     /** True if one of these players plays a party's private game. */
     private boolean isPrivate(List<UUID> players) {
         for (UUID player : players) {
