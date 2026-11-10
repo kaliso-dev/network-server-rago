@@ -56,8 +56,8 @@ modes:
 #              defenders, the defenders by killing the attackers or holding 5 minutes
 #   clutch-scenario  Clutch Scenario: a real game on any map (the 20 RBW maps, Sky Rise, the solo
 #              and doubles maps), the two teams on opposite islands; one, drawn at random, has
-#              lost its bed already (one life each: clutch), the other keeps it under a ranked
-#              defense (end stone, glass, wood, wool); everyone in iron armour with a stone sword,
+#              lost its bed already (one life each: clutch), the other keeps it under the owner's
+#              duo defense (end stone, then wool); everyone in iron armour with a stone sword,
 #              no enchantment, no emerald, the forges full of iron and gold
 #   fast-shop  Fast Shop: each player on an island with its shop, lists of items to buy as fast as
 #              possible with their own quick buy (copied from Hypixel in the lobby), and records

@@ -95,7 +95,10 @@ donnent la leur à la fin ; l'aim trainer garde la sienne.
   Ranked : end stone (le dessus du lit, deux rangées de chaque côté, un bloc à chaque bout) puis
   du verre par-dessus, les rangées du bord restant nues (26 blocs). Solo : le lit pointé vers le
   joueur, end stone dessus, à chaque bout et sur chaque côté, les côtés d'un bloc plus longs du
-  côté du joueur, puis de la laine sur le tout (32 blocs). Chrono.
+  côté du joueur, puis de la laine sur le tout (32 blocs). Duo : celle de la map « Defense
+  Claude » du propriétaire, le lit pointé vers le joueur, end stone autour du lit et dessus, avec
+  un bloc de plus derrière la tête, puis de la laine sur le tout (35 blocs ; c'est aussi la défense
+  du Clutch Scenario). Chrono.
 - **Bridge** : 31 blocs de vide par technique (god bridge, breezily, ninja, telly, speed bridge),
   dont les règles sont vérifiées. Chrono.
 - **Block extend**, comme dans un vrai bed fight, sur la map BlockClutchExtend du propriétaire

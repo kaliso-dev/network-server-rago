@@ -1,5 +1,6 @@
 package gg.rago.bedwars;
 
+import gg.rago.game.BedDefense;
 import java.util.ArrayList;
 import java.util.EnumSet;
 import java.util.List;
@@ -77,7 +78,6 @@ final class Defense {
      * out (the colour given for wool, clay and glass), on the island only: no block over the void,
      * none in place of a block of the map. Null if the block is not a bed.
      */
-    @SuppressWarnings("deprecation") // Block#getTypeId, getData, setTypeIdAndData: the 1.8 block id and data
     static Defense build(Instance instance, Block bedBlock, Material[] types, short colour) {
         List<Block> halves = Instance.bedOf(bedBlock);
         if (halves.isEmpty()) {
@@ -87,27 +87,57 @@ final class Defense {
         Block foot = halves.get(0);
         int hx = halves.size() > 1 ? halves.get(1).getX() - foot.getX() : 0;
         int hz = halves.size() > 1 ? halves.get(1).getZ() - foot.getZ() : 0;
-        World world = foot.getWorld();
         List<List<int[]>> layers = layers(foot.getX(), foot.getY(), foot.getZ(), hx, hz, types.length);
         for (int i = 0; i < layers.size(); i++) {
             Material type = types[i];
             short data = type == Material.WOOL || type == Material.STAINED_CLAY || type == Material.STAINED_GLASS ? colour : 0;
             for (int[] place : layers.get(i)) {
-                if (place[1] < 1 || place[1] > 255) {
-                    continue;
-                }
-                Block block = world.getBlockAt(place[0], place[1], place[2]);
-                // on the island: the floor under the place, at the bed's height
-                if (!REPLACEABLE.contains(block.getType()) || instance.isPlaced(block)
-                        || !world.getBlockAt(place[0], foot.getY() - 1, place[2]).getType().isSolid()) {
-                    continue;
-                }
-                Piece piece = new Piece(block, type, data, block.getTypeId(), block.getData());
-                defense.pieces.add(piece);
-                defense.put(piece);
+                defense.add(foot, place[0], place[1], place[2], type, data);
             }
         }
         return defense;
+    }
+
+    /**
+     * Builds a defense of the owner's around the bed this block is part of, from a template of
+     * {@link BedDefense} (end stone, and wool of this colour), on the island only. Null if the
+     * block is not a bed.
+     */
+    static Defense build(Instance instance, Block bedBlock, List<String[]> template, short colour) {
+        List<Block> halves = Instance.bedOf(bedBlock);
+        if (halves.isEmpty()) {
+            return null;
+        }
+        Defense defense = new Defense(instance, halves);
+        Block foot = halves.get(0);
+        int hx = halves.size() > 1 ? halves.get(1).getX() - foot.getX() : 0;
+        int hz = halves.size() > 1 ? halves.get(1).getZ() - foot.getZ() : 1;
+        for (int[] place : BedDefense.places(template, hx, hz)) {
+            boolean wool = place[3] == BedDefense.WOOL;
+            defense.add(foot, foot.getX() + place[0], foot.getY() + place[1], foot.getZ() + place[2],
+                    wool ? Material.WOOL : Material.ENDER_STONE, wool ? colour : 0);
+        }
+        return defense;
+    }
+
+    /**
+     * One block of the defense, where the map has nothing (or grass) and the island a floor under
+     * it at the bed's height.
+     */
+    @SuppressWarnings("deprecation") // Block#getTypeId, getData: the 1.8 block id and data
+    private void add(Block foot, int x, int y, int z, Material type, short data) {
+        if (y < 1 || y > 255) {
+            return;
+        }
+        World world = foot.getWorld();
+        Block block = world.getBlockAt(x, y, z);
+        if (!REPLACEABLE.contains(block.getType()) || instance.isPlaced(block)
+                || !world.getBlockAt(x, foot.getY() - 1, z).getType().isSolid()) {
+            return;
+        }
+        Piece piece = new Piece(block, type, data, block.getTypeId(), block.getData());
+        pieces.add(piece);
+        put(piece);
     }
 
     @SuppressWarnings("deprecation") // Block#setTypeIdAndData: the 1.8 way to set a block with its data

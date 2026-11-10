@@ -141,8 +141,9 @@ une égalité.
 `clutch-scenario-1v1`, `-2v2`, `-3v3` et `-4v4` (le genre `clutch-scenario`) : une vraie partie de
 Ranked Bedwars sur n'importe quelle map (les 20 maps de la file, Sky Rise, les maps solo et duo),
 les deux équipes sur des îles opposées. L'une, tirée au sort, a déjà perdu son lit : une seule vie
-chacun, elle doit clutch. L'autre garde le sien, sous une défense de ranked déjà posée (end stone,
-verre, bois, laine). Tout le monde part de sa base en armure de fer avec une épée en pierre, sans
+chacun, elle doit clutch. L'autre garde le sien, sous une défense duo déjà posée, celle de la map
+« Defense Claude » du propriétaire : de l'end stone autour du lit et dessus (avec un bloc de plus
+derrière la tête), puis de la laine de l'équipe par-dessus (12 end stone, 23 laines). Tout le monde part de sa base en armure de fer avec une épée en pierre, sans
 enchantement ni émeraude, les forges déjà pleines de fer et d'or. La partie est déjà à moitié
 jouée, comme une vraie à 18 minutes : générateurs de diamant au Tier III, d'émeraude au Tier II,
 puis Emerald III dans 6 minutes et la fin des lits dans 12. Ensuite, c'est une partie comme

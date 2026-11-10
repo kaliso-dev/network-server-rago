@@ -79,6 +79,22 @@ class TrainingsTest {
         assertNull(solo.get("1,1,3"));
     }
 
+    @Test
+    void theDuoDefenseIsTheOwners() {
+        Map<String, Material> duo = FastDefenseTraining.duoDefense();
+        // "35 blocks": 12 end stone, 23 wool, as on the owner's map "Defense Claude"
+        assertEquals(12, count(duo, Material.ENDER_STONE));
+        assertEquals(23, count(duo, Material.WOOL));
+        assertEquals(Material.ENDER_STONE, duo.get("0,2,0"), "on the bed");
+        assertEquals(Material.ENDER_STONE, duo.get("0,1,-1"), "the end on the player's side");
+        assertEquals(Material.ENDER_STONE, duo.get("0,1,2"), "past the head...");
+        assertEquals(Material.ENDER_STONE, duo.get("0,1,3"), "...two of them");
+        assertEquals(Material.ENDER_STONE, duo.get("1,1,2"));
+        assertEquals(Material.WOOL, duo.get("0,1,4"));
+        assertEquals(Material.WOOL, duo.get("0,3,2"), "the top");
+        assertNull(duo.get("0,1,0"), "not on the bed");
+    }
+
     private static int count(Map<String, Material> defense, Material type) {
         int count = 0;
         for (Material each : defense.values()) {

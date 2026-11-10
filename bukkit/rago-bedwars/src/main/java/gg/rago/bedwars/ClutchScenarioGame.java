@@ -1,5 +1,6 @@
 package gg.rago.bedwars;
 
+import gg.rago.game.BedDefense;
 import java.util.List;
 import java.util.concurrent.ThreadLocalRandom;
 import org.bukkit.ChatColor;
@@ -11,8 +12,8 @@ import org.bukkit.inventory.PlayerInventory;
 /**
  * Clutch Scenario: a real Ranked Bedwars game (any map: solo, doubles, 3s, 4s), the two teams on
  * opposite islands, where one team, drawn at random, has lost its bed already and has to clutch:
- * each of its players has one life. The other keeps its bed, under a ranked defense already built
- * (end stone, glass, wood, wool). Everyone starts on their island in iron armour with a stone
+ * each of its players has one life. The other keeps its bed, under the owner's duo defense already
+ * built (end stone, then wool: {@link BedDefense#DUO}). Everyone starts on their island in iron armour with a stone
  * sword, no enchantment, no emerald, nothing else, the forges full of iron and gold. The game is
  * half played already, as a real one at 18 minutes: the diamond generators at Tier III, the
  * emerald ones at Tier II, Emerald III next, then the end of the beds. Then it is a game as any
@@ -21,8 +22,8 @@ import org.bukkit.inventory.PlayerInventory;
  */
 final class ClutchScenarioGame extends BedwarsGame {
 
-    /** The defense on the bed of the team that keeps it, from the bed out: a ranked one. */
-    static final Material[] DEFENSE = {Material.ENDER_STONE, Material.STAINED_GLASS, Material.WOOD, Material.WOOL};
+    /** The defense on the bed of the team that keeps it: the owner's duo one, end stone then wool. */
+    static final List<String[]> DEFENSE = BedDefense.DUO;
     /** Iron armour from the start (the tier of {@link Gamer#armor}). */
     static final int ARMOUR_TIER = 2;
     /** The tiers of the diamond and emerald generators at the start: a game half played. */
@@ -47,7 +48,7 @@ final class ClutchScenarioGame extends BedwarsGame {
     }
 
     /**
-     * The bed of one team gone, a ranked defense on the others', the forges full; the clock where
+     * The bed of one team gone, the duo defense on the others', the forges full; the clock where
      * the diamonds reach Tier III, with the emeralds at Tier II.
      */
     @Override
@@ -95,10 +96,10 @@ final class ClutchScenarioGame extends BedwarsGame {
                 + " team. ";
         if (gamer.team == bedless) {
             player.sendMessage(head + "Your bed is gone already: one life, clutch! The " + other(gamer.team).color.coloured()
-                    + ChatColor.RED + " bed is under a ranked defense.");
+                    + ChatColor.RED + " bed is under a defense of end stone and wool.");
             player.sendTitle(ChatColor.RED + "" + ChatColor.BOLD + "NO BED", ChatColor.WHITE + "One life: clutch!");
         } else {
-            player.sendMessage(head + "You keep your bed, under a ranked defense; the " + bedless.color.coloured()
+            player.sendMessage(head + "You keep your bed, under a defense of end stone and wool; the " + bedless.color.coloured()
                     + ChatColor.RED + " team has lost theirs: one final kill each.");
             player.sendTitle(ChatColor.GREEN + "" + ChatColor.BOLD + "BED ALIVE", ChatColor.WHITE + "They have one life each");
         }
