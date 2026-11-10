@@ -200,7 +200,10 @@ final class BlockExtendTraining extends Training {
 
     @Override
     String describe() {
-        return level().label + ": wait for the hit, then save yourself with your wool.";
+        From from = level().from;
+        String hit = from == null ? "a hit throws you off" : "the hit comes " + (from == From.FRONT ? "from where you look"
+                : from == From.BACK ? "from behind" : from == From.RIGHT ? "from your right" : "from your left");
+        return hit + ": wait for it, then save yourself with your wool or a ladder.";
     }
 
     @Override
