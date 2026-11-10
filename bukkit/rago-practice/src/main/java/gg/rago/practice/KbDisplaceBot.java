@@ -135,12 +135,13 @@ final class KbDisplaceBot extends Training {
         }
         double[] by = arena.offset(attacker.getLocation());
         double[] at = arena.offset(bot.getLocation());
-        if (!KbDisplace.fromTheFront(by[0] - at[0], by[2] - at[2])) {
+        String refused = KbDisplace.refused(attacker, by, at, bot.getLocation());
+        if (refused != null) {
             event.setCancelled(true);
             long now = System.currentTimeMillis();
             if (now - warnedAt > 1500L) {
                 warnedAt = now;
-                attacker.sendMessage(ChatColor.RED + "Only a hit from the front counts: from the bridge, in front of it.");
+                attacker.sendMessage(ChatColor.RED + refused);
             }
             return;
         }

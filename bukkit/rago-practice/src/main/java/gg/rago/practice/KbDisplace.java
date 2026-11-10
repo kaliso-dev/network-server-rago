@@ -17,7 +17,8 @@ import org.bukkit.inventory.ItemStack;
  * them, nothing on the sides. The attacker runs along the bridge and, in the tick of the hit,
  * turns their head to one side: the knockback of the sprint sends the defender sideways, off the
  * top. Only a hit from the front of the defender counts (from the bridge, never from a side or
- * from behind). Each hit is one attempt: a displaced defender is a point for the attacker, and
+ * from behind), sprinting, with the look on the defender: a hit with the head turned away from
+ * them (which only a cheat lands) does not count. Each hit is one attempt: a displaced defender is a point for the attacker, and
  * the roles swap at each hit (or after {@link #ATTEMPT_SECONDS} seconds without one). The
  * defender stays in their notch, no damage, no blocks. First to the target. The practice against
  * a bot is {@link KbDisplaceBot}.
@@ -51,7 +52,7 @@ final class KbDisplace extends Duel {
         super.intro(player);
         player.sendMessage(ChatColor.GRAY + "The defender stands one block below the bridge, a block in front and behind."
                 + " Run, turn your head to the side and hit them in the same tick: they go off sideways."
-                + " Only a hit from the front counts. The roles swap at each hit.");
+                + " Only a hit from the front, sprinting, with your look on them counts. The roles swap at each hit.");
     }
 
     // --- The place, shared with the bot -----------------------------------------------------------
@@ -95,6 +96,61 @@ final class KbDisplace extends Duel {
      */
     static boolean fromTheFront(double dx, double dz) {
         return dx <= -0.4 && Math.abs(dz) <= 0.9;
+    }
+
+    /** How far a hit reaches, a little more than the game's 3 blocks for the lag. */
+    static final double REACH = 3.6;
+    /** The body of a player: half its width, its height; and the margin the game adds to aim at it. */
+    static final double HALF_WIDTH = 0.3;
+    static final double HEIGHT = 1.8;
+    static final double AIM_MARGIN = 0.15;
+
+    /**
+     * True if the look of the attacker (eyes, and the unit way they look) meets the body of the
+     * defender standing at (x, y, z), within {@value #REACH} blocks: the defender is where they aim.
+     */
+    static boolean aimedAt(double eyeX, double eyeY, double eyeZ, double wayX, double wayY, double wayZ,
+            double x, double y, double z) {
+        double grow = HALF_WIDTH + AIM_MARGIN;
+        double[] low = {x - grow, y - AIM_MARGIN, z - grow};
+        double[] high = {x + grow, y + HEIGHT + AIM_MARGIN, z + grow};
+        double[] eye = {eyeX, eyeY, eyeZ};
+        double[] way = {wayX, wayY, wayZ};
+        double near = 0;
+        double far = REACH;
+        for (int axis = 0; axis < 3; axis++) {
+            if (Math.abs(way[axis]) < 1e-9) {
+                if (eye[axis] < low[axis] || eye[axis] > high[axis]) {
+                    return false;
+                }
+                continue;
+            }
+            double one = (low[axis] - eye[axis]) / way[axis];
+            double two = (high[axis] - eye[axis]) / way[axis];
+            near = Math.max(near, Math.min(one, two));
+            far = Math.min(far, Math.max(one, two));
+            if (near > far) {
+                return false;
+            }
+        }
+        return true;
+    }
+
+    /** Why a hit of the attacker does not count (null when it does): from where, how, where they look. */
+    static String refused(Player attacker, double[] by, double[] at, Location victim) {
+        if (!fromTheFront(by[0] - at[0], by[2] - at[2])) {
+            return "Only a hit from the front counts: from the bridge, in front of them.";
+        }
+        if (!attacker.isSprinting()) {
+            return "Only a hit with a run counts: sprint along the bridge.";
+        }
+        Location eye = attacker.getEyeLocation();
+        org.bukkit.util.Vector way = eye.getDirection();
+        if (!aimedAt(eye.getX(), eye.getY(), eye.getZ(), way.getX(), way.getY(), way.getZ(), victim.getX(), victim.getY(),
+                victim.getZ())) {
+            return "Only a hit with your look on them counts: no hit from the side.";
+        }
+        return null;
     }
 
     /** True if a defender who was not hit left their notch (a step, a jump): they are put back. */
@@ -173,11 +229,12 @@ final class KbDisplace extends Duel {
         }
         double[] by = arena.offset(attacker.getLocation());
         double[] at = arena.offset(victim.getLocation());
-        if (!fromTheFront(by[0] - at[0], by[2] - at[2])) {
+        String refused = refused(attacker, by, at, victim.getLocation());
+        if (refused != null) {
             long now = System.currentTimeMillis();
             if (now - warnedAt > 1500L) {
                 warnedAt = now;
-                attacker.sendMessage(ChatColor.RED + "Only a hit from the front counts: from the bridge, in front of them.");
+                attacker.sendMessage(ChatColor.RED + refused);
             }
             return false;
         }

@@ -46,4 +46,27 @@ class KbDisplaceTest {
         assertEquals(1, KbDisplace.attackerOf(2));
         assertEquals(0, KbDisplace.attackerOf(3));
     }
+
+    @Test
+    void aHitCountsOnlyWithTheLookOnTheDefender() {
+        // the attacker on the bridge one block in front, eyes 1.62 above the bridge (y 1): the
+        // defender's feet at y 0 in the notch
+        double eyeX = -0.5;
+        double eyeY = 2.62;
+        double eyeZ = 0.5;
+        double down = Math.toRadians(30);
+        // looking at them, a little down
+        assertTrue(KbDisplace.aimedAt(eyeX, eyeY, eyeZ, Math.cos(down), -Math.sin(down), 0, 0.5, 0, 0.5));
+        // the head turned a little: the look still on the edge of their body
+        double edge = Math.toRadians(15);
+        assertTrue(KbDisplace.aimedAt(eyeX, eyeY, eyeZ, Math.cos(edge) * Math.cos(down), -Math.sin(down),
+                Math.sin(edge) * Math.cos(down), 0.5, 0, 0.5));
+        // the head turned to the side, as a cheat hits: not on them
+        double side = Math.toRadians(70);
+        assertFalse(KbDisplace.aimedAt(eyeX, eyeY, eyeZ, Math.cos(side) * Math.cos(down), -Math.sin(down),
+                Math.sin(side) * Math.cos(down), 0.5, 0, 0.5));
+        assertFalse(KbDisplace.aimedAt(eyeX, eyeY, eyeZ, 0, 0, 1, 0.5, 0, 0.5), "looking along the side");
+        assertFalse(KbDisplace.aimedAt(eyeX, eyeY, eyeZ, -1, 0, 0, 0.5, 0, 0.5), "looking back");
+        assertFalse(KbDisplace.aimedAt(-4.5, eyeY, eyeZ, 1, -0.2, 0, 0.5, 0, 0.5), "out of reach");
+    }
 }
