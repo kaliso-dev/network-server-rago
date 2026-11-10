@@ -741,11 +741,11 @@ modes:
     # the fight kit, with 3 fireballs and a pearl: with full diamond armour, and Protection IV
     kit: [STONE_SWORD, "GOLDEN_APPLE 64", "FIREBALL 3", ENDER_PEARL]
     description:
-      - "Free for all on Archway FFA"
-      - "(bridges, top bridge) or on"
-      - "Paladin, in diamond armour:"
-      - "come and go when you like,"
-      - "a kill heals you."
+      - "Free for all on Archway FFA,"
+      - "in diamond armour: spawn on"
+      - "the top bridge, low, mid or"
+      - "at random; come and go when"
+      - "you like, a kill heals you."
   free-ffa:
     nom: "&aArena Free"
     categorie: ranked
@@ -846,16 +846,6 @@ modes:
       - "with everyone: wool and shears,"
       - "the blocks crack and break"
       - "after 15 seconds."
-  scenarios-ranked:
-    nom: "&4Ranked scenarios"
-    categorie: ranked
-    icone: REDSTONE
-    equipes: 1
-    joueurs-par-equipe: 1
-    classe: false
-    description:
-      - "Defend your bed 1 against 2,"
-      - "final clutch on 2 hearts... scored."
   clutch-scenario-1v1:
     nom: "&cClutch scenario 1v1"
     categorie: ranked

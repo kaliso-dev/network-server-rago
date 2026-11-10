@@ -1,8 +1,7 @@
 # RagoPractice : les modes d'entraînement
 
 Un plugin Bukkit 1.8.8 qui joue les modes d'entraînement du lobby (`bukkit/rago-lobby`) : les
-duels, les entraînements en solo, les arènes ouvertes (block placement, bridge fight) et les
-scénarios classés.
+duels, les entraînements en solo et les arènes ouvertes (block placement, bridge fight).
 Chaque mode prend son kit dans l'éditeur de kit du lobby, rangé comme le joueur l'a laissé.
 
 ## Les duels
@@ -217,23 +216,6 @@ avec ses carrés et ses ponts, le même stuff avec Protection II sur l'armure
 (`bridge-fight.protection-1v1`, 0 pour aucune), aucun bloc. Une mort ou une chute donne le point à
 l'autre ; le premier à `points-pour-gagner.bridge-fight` (5) gagne.
 
-## Les scénarios classés
-
-`scenarios-ranked` : les moments qui décident une partie de Ranked Bedwars, rejoués encore et
-encore, chacun avec son record.
-
-- **Bed defense 1v2** : seul sur son île, avec une épée en fer, de la laine et l'armure de Ranked
-  Bedwars, contre deux rushers qui traversent le pont pour casser le lit (end stone sous de la
-  laine). Près du joueur, ils se battent ; sinon, ils creusent la défense depuis l'endroit où ils
-  sont, couche par couche (la laine vite, l'end stone plus lentement, puis le lit : environ deux
-  secondes), et un coup arrête leur creusage. On peut reboucher le trou avec sa laine. Les tuer ou
-  les faire tomber dans le vide avant que le lit tombe : le temps est le score. Lit cassé, mort,
-  chute ou 90 secondes sans en finir : l'essai est perdu.
-- **Final clutch, 2 hearts** : le dernier combat, à 2 cœurs, sans lit et sans régénération,
-  contre un adversaire en pleine vie (aussi rapide qu'un joueur qui marche) sur une île au-dessus
-  du vide ; deux coups et c'est fini. Chaque combat gagné, à l'épée ou par le vide, ajoute un à la
-  série.
-
 ## Les events (/host)
 
 Comme sur Minemen, un joueur PREMIUM (`rago.perk.host`) lance un event pour tout le serveur avec
@@ -273,7 +255,7 @@ est dans le plugin bedwars, sur les maps du propriétaire (Bio Hazard).
 ```
 
 Le score des duels, les records, les formes des arènes (les couches d'une défense, le souffle des
-boules de feu), les entraînements, les scénarios classés (où et dans quel ordre les rushers
-creusent) et la vérification de la configuration ont des tests unitaires. Un duel sumo complet
+boules de feu), les entraînements et la vérification de la configuration ont des tests
+unitaires. Un duel sumo complet
 est joué par deux bots sur un vrai serveur : voir
 [tools/lobby-check](../../tools/lobby-check/README.md).

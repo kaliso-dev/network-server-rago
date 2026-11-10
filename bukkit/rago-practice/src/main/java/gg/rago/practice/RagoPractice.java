@@ -193,7 +193,8 @@ public final class RagoPractice extends JavaPlugin {
         // Arena Free: the same arena of the owner, with its slime, for a free for all fight
         onMaps(register("free-ffa", (h, m, a, t) -> new BlockArena(h, m, a, t, true), slots, spacing, true), arenaMaps);
         onMaps(register("bridge-fight", BridgeArena::new, slots, spacing, true), bridgeMaps(config, spacing));
-        register("scenarios-ranked", RankedScenarios::new, slots, spacing, false);
+        // the row of the old Ranked scenarios stays reserved, so that the other modes keep their zones
+        hosted.add("(scenarios-ranked)");
         register("clutch-top-fight", (h, m, a, t) -> new ClutchTraining(h, m, a, t, true, null), slots, ClutchTraining.SPACING, false);
         register("block-edit", BlockEditTraining::new, slots, spacing, false);
         register("block-edit-duel", (h, m, a, t) -> new BlockEditDuel(h, m, a, t, edit), slots, spacing, false);

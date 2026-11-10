@@ -209,6 +209,33 @@ class BedwarsMapTest {
         assertEquals(demo().completeTeams().size(), demo().sides(), "a map of islands: its complete teams");
     }
 
+    @Test
+    void anFfaMapHasItsSpawnsToChooseFrom() throws Exception {
+        String text = "actif: true\n"
+                + "apparitions:\n"
+                + "  Top bridge:\n"
+                + "    - {x: 1.5, y: 86, z: -6.5, yaw: 0}\n"
+                + "    - {x: -1.5, y: 86, z: 7.5, yaw: 180}\n"
+                + "  Low:\n"
+                + "    - {x: 0.5, y: 66, z: -3.5}\n"
+                + "  Mid:\n"
+                + "    - {x: -4.5, y: 76, z: 0.5, yaw: 270}\n";
+        BedwarsMap map = read(text);
+        assertEquals(java.util.Arrays.asList("Top bridge", "Low", "Mid"), new java.util.ArrayList<>(map.spawnChoices().keySet()),
+                "in their order");
+        assertEquals(new MapPoint(-1.5, 86, 7.5, 180f, 0f), map.spawnChoices().get("Top bridge").get(1));
+        assertEquals(map.spawnChoices(), map.copy().spawnChoices(), "written back as read");
+        assertTrue(demo().spawnChoices().isEmpty(), "none: the islands");
+        assertThrows(IllegalArgumentException.class, () -> BedwarsMap.fromYaml("m", "apparitions:\n  Low: []\n"));
+    }
+
+    @Test
+    void theSpawnsOfTheMenuAreCentred() {
+        assertEquals(2, FfaSpawnMenu.slotOf(0, 4), "Top bridge, Low, Mid and Random: slots 2 to 5");
+        assertEquals(5, FfaSpawnMenu.slotOf(3, 4));
+        assertEquals(4, FfaSpawnMenu.slotOf(0, 1));
+    }
+
     private static BedwarsMap read(String text) {
         try {
             return BedwarsMap.fromYaml("m", text);

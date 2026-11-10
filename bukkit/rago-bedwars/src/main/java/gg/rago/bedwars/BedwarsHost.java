@@ -988,12 +988,14 @@ final class BedwarsHost implements MatchHost, Listener {
         }
         Player player = (Player) event.getWhoClicked();
         InventoryHolder menu = event.getView().getTopInventory().getHolder();
-        if (menu instanceof ShopMenu.Holder || menu instanceof UpgradeMenu.Holder) {
+        if (menu instanceof ShopMenu.Holder || menu instanceof UpgradeMenu.Holder || menu instanceof FfaSpawnMenu.Holder) {
             event.setCancelled(true);
             if (event.getRawSlot() < 0 || event.getRawSlot() >= event.getView().getTopInventory().getSize()) {
                 return;
             }
-            if (menu instanceof ShopMenu.Holder) {
+            if (menu instanceof FfaSpawnMenu.Holder) {
+                FfaSpawnMenu.click(player, (FfaSpawnMenu.Holder) menu, event.getRawSlot());
+            } else if (menu instanceof ShopMenu.Holder) {
                 ShopMenu.click(player, (ShopMenu.Holder) menu, event.getRawSlot());
             } else {
                 UpgradeMenu.click(player, (UpgradeMenu.Holder) menu, event.getRawSlot());
@@ -1009,7 +1011,7 @@ final class BedwarsHost implements MatchHost, Listener {
     @EventHandler(priority = EventPriority.HIGH)
     public void onDrag(InventoryDragEvent event) {
         InventoryHolder menu = event.getView().getTopInventory().getHolder();
-        if (menu instanceof ShopMenu.Holder || menu instanceof UpgradeMenu.Holder) {
+        if (menu instanceof ShopMenu.Holder || menu instanceof UpgradeMenu.Holder || menu instanceof FfaSpawnMenu.Holder) {
             event.setCancelled(true);
         }
     }

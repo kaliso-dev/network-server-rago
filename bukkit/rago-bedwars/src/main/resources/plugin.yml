@@ -10,6 +10,10 @@ commands:
     description: Sets up the Bed Wars maps (spawns, beds, generators, shops).
     aliases: [bedwars]
     usage: /bw help
+  ffaspawn:
+    description: In the FFA, chooses where you spawn (Archway FFA - Top bridge, Low, Mid or Random).
+    aliases: [spawnffa]
+    usage: /ffaspawn
 permissions:
   rago.bedwars.admin:
     description: Sets up the Bed Wars maps with /bw.

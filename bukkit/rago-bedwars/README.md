@@ -202,16 +202,23 @@ Les objets de la catégorie Utility du shop, comme sur Hypixel :
 
 Dans `jeux:` du config.yml, un mode peut jouer autre chose qu'une partie classique :
 
-- **FFA** (`ffa`, sur Archway FFA et Paladin, au choix dans la file) : chacun pour soi, ouvert,
+- **FFA** (`ffa`, sur Archway FFA seulement, pas de choix de map) : chacun pour soi, ouvert,
   on entre et on sort quand on veut. Le kit du mode (rangé dans l'éditeur de kit du lobby) est le
   stuff de combat du propriétaire, une épée en pierre et un stack de pommes d'or, avec 3 boules de
   feu et une perle, et à chaque vie une armure complète en diamant Protection IV (sans effet d'absorption) ;
-  on revient 3 secondes après une mort sur l'île la plus éloignée des autres ; un kill soigne ; les
+  on revient 3 secondes après une mort ; un kill soigne ; les
   blocs posés partent au bout de 45 secondes ; les kills comptent dans les stats. Archway FFA (le
   dossier `ArchwayFFA`) est l'Archway du propriétaire : des ponts de laine entre les îles, une
   défense d'end stone et de verre sur les lits rouge et vert pour les top fights, et depuis ces deux
   îles un escalier jusqu'au top bridge au-dessus du milieu (sa plateforme à y 85) ; on construit
-  jusqu'à y 95.
+  jusqu'à y 95. En arrivant, un menu demande où apparaître : **Top bridge** (la plateforme du
+  top bridge), **Low** (sous l'arche du milieu, près de l'émeraude du bas), **Mid** (sur l'arche)
+  ou **Random** (n'importe lequel de ces endroits, les bases et les diamants). Le choix vaut pour
+  chaque vie ; `/ffaspawn` (ou [CHOOSE] dans le chat) le change, tout de suite si on vient
+  d'apparaître sans être touché. Parmi les points du choix, on prend au hasard un endroit sans
+  joueur à moins de 12 blocs, sinon le plus éloigné des autres. Ces points sont les `apparitions:`
+  du `bedwars.yml` de la map (un nom, puis sa liste de points ; 8 au plus). Une map sans
+  `apparitions:` fait revenir sur l'île la plus éloignée des autres.
 - **Free FFA** (`arene`) : la même chose avec les forges, les diamants et les émeraudes, un shop
   à lui (les diamants achètent aussi), l'armure et les outils gardés comme en Bed Wars, et sur
   chaque lit une défense de trois couches prête pour les top fights, remise quand personne n'est à

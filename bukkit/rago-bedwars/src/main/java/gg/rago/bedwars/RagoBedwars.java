@@ -73,6 +73,18 @@ public final class RagoBedwars extends JavaPlugin {
         PluginCommand bw = getCommand("bw");
         bw.setExecutor(commands);
         bw.setTabCompleter(commands);
+        // the FFA: where one spawns (Archway FFA: Top bridge, Low, Mid or Random)
+        getCommand("ffaspawn").setExecutor((sender, command, label, args) -> {
+            if (!(sender instanceof org.bukkit.entity.Player)) {
+                return true;
+            }
+            org.bukkit.entity.Player player = (org.bukkit.entity.Player) sender;
+            BedwarsGame game = host.gameOf(player.getUniqueId());
+            if (!(game instanceof FfaGame) || !((FfaGame) game).openSpawnMenu(player)) {
+                player.sendMessage(org.bukkit.ChatColor.RED + "Only in the FFA, on a map with spawns to choose (Archway FFA).");
+            }
+            return true;
+        });
 
         List<String> hosted = new ArrayList<>();
         for (String mode : settings.modes()) {

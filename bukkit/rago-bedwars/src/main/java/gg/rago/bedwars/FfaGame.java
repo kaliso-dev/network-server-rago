@@ -55,6 +55,14 @@ final class FfaGame extends BedwarsGame {
     private final List<Defense> defenses = new ArrayList<>();
     private final Map<UUID, Integer> streaks = new HashMap<>();
     private final Map<UUID, Integer> deaths = new HashMap<>();
+    /** The spawn each player chose (FFA with apparitions: in its map); none: Random. */
+    private final Map<UUID, String> spawnChoice = new HashMap<>();
+    /** When each player last spawned: a choice made just after it moves them at once. */
+    private final Map<UUID, Long> spawnedAt = new HashMap<>();
+    /** A choice made this soon after spawning, at full health, moves the player at once. */
+    static final long MOVE_AFTER_SPAWN_MS = 10_000L;
+    /** A spawn with nobody this close is taken first, at random; else the one farthest from them. */
+    static final double SAFE_DISTANCE = 12;
     /** The two islands of the top bridge, once it is planned; null without one. */
     private Team[] bridged;
     private int colours;
@@ -103,6 +111,8 @@ final class FfaGame extends BedwarsGame {
             cancel(old.respawn);
         }
         streaks.remove(id);
+        spawnChoice.remove(id);
+        spawnedAt.remove(id);
     }
 
     // --- What the free for all changes ----------------------------------------------------------
@@ -218,6 +228,10 @@ final class FfaGame extends BedwarsGame {
      */
     @Override
     Location spawnOf(Gamer gamer) {
+        if (choosesSpawn()) {
+            spawnedAt.put(gamer.id, System.currentTimeMillis());
+            return pick(gamer, spawnPool(spawnChoice.get(gamer.id)));
+        }
         World world = instance.world();
         List<Location> spawns = new ArrayList<>();
         if (onTheBridge() && topBridge != null) {
@@ -250,6 +264,104 @@ final class FfaGame extends BedwarsGame {
         return best;
     }
 
+    // --- The spawn to choose (Archway FFA: Top bridge, Low, Mid or Random) ----------------------
+
+    /** The FFA (not the arena, nor the top bridge) on a map with spawns to choose from. */
+    boolean choosesSpawn() {
+        return !arena && !onTheBridge() && !instance.map().spawnChoices().isEmpty();
+    }
+
+    /**
+     * Where a choice spawns: its points; Random (null, or a name the map no longer has): every
+     * one of them, the bases and the diamonds.
+     */
+    List<Location> spawnPool(String choice) {
+        World world = instance.world();
+        List<Location> pool = new ArrayList<>();
+        Map<String, List<MapPoint>> choices = instance.map().spawnChoices();
+        if (choice != null && choices.containsKey(choice)) {
+            for (MapPoint point : choices.get(choice)) {
+                pool.add(point.in(world));
+            }
+            return pool;
+        }
+        for (Team island : islands) {
+            pool.add(island.points.spawn.in(world));
+        }
+        for (MapPoint diamond : instance.map().diamonds()) {
+            pool.add(diamond.in(world));
+        }
+        for (List<MapPoint> points : choices.values()) {
+            for (MapPoint point : points) {
+                pool.add(point.in(world));
+            }
+        }
+        return pool;
+    }
+
+    /** A spawn of the pool with nobody near it, at random; else the one farthest from the others. */
+    private Location pick(Gamer gamer, List<Location> pool) {
+        World world = instance.world();
+        Collections.shuffle(pool, random);
+        Location best = pool.get(0);
+        double farthest = -1;
+        for (Location spawn : pool) {
+            double nearest = Double.MAX_VALUE;
+            for (Gamer other : gamers.values()) {
+                Player player = Bukkit.getPlayer(other.id);
+                if (other == gamer || other.respawning || player == null || !present(other)
+                        || !player.getWorld().equals(world)) {
+                    continue;
+                }
+                nearest = Math.min(nearest, player.getLocation().distanceSquared(spawn));
+            }
+            if (nearest >= SAFE_DISTANCE * SAFE_DISTANCE) {
+                return spawn;
+            }
+            if (nearest > farthest) {
+                farthest = nearest;
+                best = spawn;
+            }
+        }
+        return best;
+    }
+
+    /** Opens the menu of the spawns; false if this game has none to choose. */
+    boolean openSpawnMenu(Player player) {
+        if (!choosesSpawn() || gamers.get(player.getUniqueId()) == null) {
+            return false;
+        }
+        FfaSpawnMenu.open(player, this, new ArrayList<>(instance.map().spawnChoices().keySet()),
+                spawnChoice.get(player.getUniqueId()));
+        return true;
+    }
+
+    /**
+     * The player chose a spawn (null: Random): from their next life on, and at once if they have
+     * just spawned and are not hurt.
+     */
+    void choose(Player player, String choice) {
+        Gamer gamer = gamers.get(player.getUniqueId());
+        if (gamer == null || host.gameOf(gamer.id) != this || !choosesSpawn()) {
+            return;
+        }
+        if (choice == null) {
+            spawnChoice.remove(gamer.id);
+        } else {
+            spawnChoice.put(gamer.id, choice);
+        }
+        String name = choice == null ? "Random" : choice;
+        Long at = spawnedAt.get(gamer.id);
+        if (at != null && System.currentTimeMillis() - at < MOVE_AFTER_SPAWN_MS && !gamer.respawning
+                && player.getHealth() >= player.getMaxHealth()) {
+            player.teleport(spawnOf(gamer));
+            player.sendMessage(ChatColor.GREEN + "Your spawn: " + ChatColor.WHITE + name + ChatColor.GREEN + ".");
+        } else {
+            player.sendMessage(ChatColor.GREEN + "Your spawn: " + ChatColor.WHITE + name + ChatColor.GREEN
+                    + ", from your next life.");
+        }
+    }
+
     @Override
     void welcome(Player player, Gamer gamer) {
         player.sendMessage(ChatColor.GREEN + "" + ChatColor.BOLD + modeName + ChatColor.GREEN + " on " + ChatColor.WHITE
@@ -265,6 +377,20 @@ final class FfaGame extends BedwarsGame {
         } else {
             player.sendMessage(ChatColor.GRAY + "Your kit (arranged in the lobby's kit editor) comes back at each life, "
                     + "and a kill heals you.");
+            if (choosesSpawn()) {
+                net.md_5.bungee.api.chat.TextComponent text = new net.md_5.bungee.api.chat.TextComponent(ChatColor.GRAY
+                        + "Where you spawn: " + String.join(", ", instance.map().spawnChoices().keySet()) + " or Random. ");
+                net.md_5.bungee.api.chat.TextComponent link = new net.md_5.bungee.api.chat.TextComponent(ChatColor.GREEN
+                        + "" + ChatColor.BOLD + "[CHOOSE]");
+                link.setClickEvent(new net.md_5.bungee.api.chat.ClickEvent(
+                        net.md_5.bungee.api.chat.ClickEvent.Action.RUN_COMMAND, "/ffaspawn"));
+                player.spigot().sendMessage(text, link);
+                Bukkit.getScheduler().runTask(plugin, () -> {
+                    if (player.isOnline() && host.gameOf(player.getUniqueId()) == this) {
+                        openSpawnMenu(player);
+                    }
+                });
+            }
         }
         player.sendMessage(ChatColor.GRAY + "Your blocks go after " + DECAY_SECONDS + " seconds. /spawn takes you back "
                 + "to the lobby.");

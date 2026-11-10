@@ -69,6 +69,13 @@ final class BedwarsMap {
     /** The attackers of an attack and defense map: their colour (null: none) and their starts. */
     private TeamColor attackerColor;
     private final List<MapPoint> attackerStarts = new ArrayList<>();
+    /**
+     * The spawns a player of the FFA may choose from (apparitions:), in their order: a name ("Top
+     * bridge", "Low", "Mid"...) and its points. Empty: no choice, the islands.
+     */
+    private final Map<String, List<MapPoint>> spawnChoices = new java.util.LinkedHashMap<>();
+    /** The most spawns to choose from: one row of the menu, Random kept. */
+    static final int MAX_SPAWN_CHOICES = 8;
 
     /**
      * A box of the map taken out of each game's copy when it is made (retirer:): all its blocks, or
@@ -356,6 +363,11 @@ final class BedwarsMap {
         return spectators;
     }
 
+    /** The spawns of the FFA to choose from, by name, in their order; empty if none. */
+    Map<String, List<MapPoint>> spawnChoices() {
+        return Collections.unmodifiableMap(spawnChoices);
+    }
+
     void setSpectators(MapPoint spectators) {
         this.spectators = spectators;
     }
@@ -467,6 +479,9 @@ final class BedwarsMap {
             yaml.set("attaquants.equipe", attackerColor.id());
             yaml.set("attaquants.departs", maps(attackerStarts));
         }
+        for (Map.Entry<String, List<MapPoint>> choice : spawnChoices.entrySet()) {
+            yaml.set("apparitions." + choice.getKey(), maps(choice.getValue()));
+        }
         if (!removals.isEmpty()) {
             List<Map<String, Object>> boxes = new ArrayList<>();
             for (Removal removal : removals) {
@@ -542,6 +557,19 @@ final class BedwarsMap {
             }
             map.attackerColor = color;
             map.attackerStarts.addAll(points(attackers.getMapList("departs"), "attaquants.departs"));
+        }
+        ConfigurationSection choices = yaml.getConfigurationSection("apparitions");
+        if (choices != null) {
+            for (String name : choices.getKeys(false)) {
+                List<MapPoint> points = points(choices.getMapList(name), "apparitions." + name);
+                if (name.trim().isEmpty() || points.isEmpty()) {
+                    throw new IllegalArgumentException("apparitions." + name + ": a name and a list of points (x, y, z, yaw)");
+                }
+                if (map.spawnChoices.size() == MAX_SPAWN_CHOICES) {
+                    throw new IllegalArgumentException("apparitions: " + MAX_SPAWN_CHOICES + " spawns at most to choose from");
+                }
+                map.spawnChoices.put(name, points);
+            }
         }
         List<Map<?, ?>> boxes = yaml.getMapList("retirer");
         for (int i = 0; i < boxes.size(); i++) {
