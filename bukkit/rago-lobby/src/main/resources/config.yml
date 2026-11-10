@@ -85,7 +85,7 @@ groupes:
       - "two islands side by side: the"
       - "first rush decides it."
   # the duels (category duels): each in 1v1 or 2v2; queued alone in a 2v2, a teammate is found
-  # in the queue, and the lobby is told (see annonce-2v2:)
+  # in the queue, and the lobby is told: "Name's team is queuing Bed fight 2v2 [JOIN NOW]"
   bed-fight:
     nom: "&cBed fight"
     icone: BED
