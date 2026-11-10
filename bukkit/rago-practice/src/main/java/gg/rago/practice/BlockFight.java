@@ -21,22 +21,22 @@ import org.bukkit.inventory.ItemStack;
  * shears, two stacks of wool, end stone and ladders; iron boots and leggings, the helmet and
  * chestplate of the side, all Protection IV. As on Minemen, the points are the hits: each hit
  * landed on the other side is a point (a hit does no damage, only its knockback), and a fall into
- * the void costs the side of the player who fell {@value #VOID_PENALTY} points and starts the
- * round again, everyone back on their gold block with the map as it was. First to 100 by default
+ * the void gives the other side {@value #VOID_BONUS} points and starts the round again, everyone
+ * back on their gold block with the map as it was. First to 100 by default
  * (points-pour-gagner.block-fight).
  */
 final class BlockFight extends Duel {
 
-    /** The points a fall into the void costs. */
-    static final int VOID_PENALTY = 10;
+    /** The points the other side gets for a fall into the void. */
+    static final int VOID_BONUS = 20;
 
     BlockFight(PracticeHost host, GameMode mode, Arena arena, List<List<Player>> teams, int target) {
         super(host, mode, arena, teams, target);
     }
 
-    /** The score of a side after a fall of one of its players: never under 0. */
+    /** The score of the other side after a fall of a player: the bonus of the void. */
     static int afterFall(int points) {
-        return Math.max(0, points - VOID_PENALTY);
+        return points + VOID_BONUS;
     }
 
     @Override
@@ -146,7 +146,7 @@ final class BlockFight extends Duel {
         }
     }
 
-    /** A fall into the void: -10 for the side of the one who fell, and the round starts again. */
+    /** A fall into the void: +20 for the other side (the one who knocked them off), and the round starts again. */
     @Override
     void fell(Player player) {
         UUID id = player.getUniqueId();
@@ -161,20 +161,25 @@ final class BlockFight extends Duel {
         if (by != null && counts()) {
             plugin.lobby().recordKill(mode.id(), by, id);
         }
-        points[side] = afterFall(points[side]);
+        int other = 1 - side;
+        points[other] = afterFall(points[other]);
         for (Player each : online()) {
             int mine = sideOf(each.getUniqueId());
-            each.sendMessage((mine == side ? ChatColor.RED + "-" + VOID_PENALTY + " for your team" : ChatColor.GREEN + "-"
-                    + VOID_PENALTY + " for " + TEAMS[side]) + ChatColor.GRAY + " (" + points[Math.max(0, mine)] + " - "
+            each.sendMessage((mine == other ? ChatColor.GREEN + "+" + VOID_BONUS + " for your team" : ChatColor.RED + "+"
+                    + VOID_BONUS + " for " + TEAMS[other]) + ChatColor.GRAY + " (" + points[Math.max(0, mine)] + " - "
                     + points[1 - Math.max(0, mine)] + ")");
-            each.playSound(each.getLocation(), mine == side ? Sound.NOTE_BASS : Sound.ORB_PICKUP, 1f, 1f);
+            each.playSound(each.getLocation(), mine == other ? Sound.ORB_PICKUP : Sound.NOTE_BASS, 1f, 1f);
+        }
+        if (points[other] >= target) {
+            finish(other, null);
+            return;
         }
         startRound();
     }
 
     @Override
     void extraLines(UUID viewer, List<String> lines) {
-        lines.add(ChatColor.GRAY + "A hit: +1, the void: -" + VOID_PENALTY);
+        lines.add(ChatColor.GRAY + "A hit: +1, a knock into the void: +" + VOID_BONUS);
     }
 
     @Override

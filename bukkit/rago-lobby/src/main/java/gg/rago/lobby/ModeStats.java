@@ -15,6 +15,9 @@ final class ModeStats {
     int elo;
     int kills;
     int deaths;
+    /** Bed Wars: the final kills and the beds broken, ever. */
+    int finalKills;
+    int beds;
 
     String day = "";
     int dayWins;

@@ -56,13 +56,14 @@ class MapStoreTest {
     }
 
     @Test
-    void mapsWithExactlyTheTeamsComeFirst() {
-        BedwarsMap two = withTeams("Duel", 2);
+    void everyMapWithEnoughTeamsIsPlayedNotOnlyThoseWithExactlyTheTeams() {
+        // Antenna has two teams, the other maps of the ranked duels four: all of them are played
+        BedwarsMap two = withTeams("Antenna", 2);
         BedwarsMap four = withTeams("Archway", 4);
         BedwarsMap eight = withTeams("Lighthouse", 8);
         List<BedwarsMap> all = Arrays.asList(demo(), two, four, eight);
-        assertEquals(Collections.singletonList(two), MapStore.choose(all, 2));
-        assertEquals(Collections.singletonList(four), MapStore.choose(all, 4));
+        assertEquals(Arrays.asList(two, four, eight), MapStore.choose(all, 2));
+        assertEquals(Arrays.asList(four, eight), MapStore.choose(all, 4));
         assertEquals(Collections.singletonList(eight), MapStore.choose(all, 8));
         assertEquals(Arrays.asList(four, eight), MapStore.choose(Arrays.asList(four, eight), 2));
     }
@@ -77,7 +78,7 @@ class MapStoreTest {
         assertEquals(Arrays.asList(nebuc, gelato), MapStore.named(all, 2, Arrays.asList("nebuc", "Gelato", "Missing")),
                 "the maps named, in their order, whatever the case");
         assertEquals(Arrays.asList(archway, gelato, nebuc), MapStore.named(all, 2, Collections.<String>emptyList()),
-                "every map: none has exactly two teams, so those with more, and never the demo map");
+                "every map with two teams or more, and never the demo map");
         assertEquals(Collections.singletonList(demo), MapStore.named(all, 2, Collections.singletonList("Missing")),
                 "none of its maps is on the server: the demo map");
         assertTrue(MapStore.named(Arrays.asList(archway, gelato), 2, Collections.singletonList("Missing")).isEmpty());

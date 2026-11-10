@@ -92,10 +92,9 @@ class LobbySettingsTest {
         assertEquals(Arrays.asList("block-fight-1v1", "block-fight-2v2", "block-fight-arena"),
                 displayIds(settings.modesOfGroup("block-placement")));
         assertTrue(ranked.size() <= 14, "two rows at most: " + ranked.size());
-        for (LobbySettings.Entry entry : ranked) {
-            assertTrue(entry.group != null || !entry.mode.mode().id().equals("top-fight-1v1"), "the top fight 1v1 is gone");
-        }
-        assertTrue(settings.display("top-fight-1v1").hidden(), "but the private top fight of two still plays it");
+        assertEquals(Arrays.asList("top-fight-1v1", "top-fight-2v2"), displayIds(settings.modesOfGroup("top-fight")),
+                "the top fight 1v1 is back in the selector, next to the 2v2");
+        assertTrue(!settings.display("top-fight-1v1").hidden());
         assertEquals(Arrays.asList("top-fight-1v1", "top-fight-2v2"), ids(settings.privateRoutes().get("top-fight-prive")));
         int shown = 0;
         for (ModeCategory category : settings.categories()) {
@@ -106,7 +105,7 @@ class LobbySettingsTest {
         for (String event : Arrays.asList("event-sumo", "event-brackets", "event-lms")) {
             assertTrue(settings.display(event).hidden(), "the events of /host are not in the selector: " + event);
         }
-        assertEquals(settings.modes().size() - 4, shown, "every mode but the hidden ones (top fight 1v1, the 3 events) is in the selector, once");
+        assertEquals(settings.modes().size() - 3, shown, "every mode but the hidden ones (the 3 events) is in the selector, once");
         assertInvalid("groupes:\n  g: {}\nmodes:\n  sumo:\n    groupe: autre\n", "modes.sumo.groupe");
     }
 

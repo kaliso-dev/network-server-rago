@@ -1,5 +1,6 @@
 package gg.rago.bedwars;
 
+import static org.junit.jupiter.api.Assertions.assertArrayEquals;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertThrows;
@@ -61,16 +62,21 @@ class BedwarsSettingsTest {
         assertTrue(settings.demo());
         assertEquals(5, settings.respawnSeconds());
         BedwarsSettings.Forge forge = settings.forge();
-        // Sky Rise, 8 islands, fast: 3 nodes of an ingot every 3 s
-        assertEquals(20, forge.iron("SkyRise", 1, 8).ticks);
+        // as counted on Hypixel: Sky Rise, 8 islands, fast: 3 nodes of an ingot every 2 s, 90 a minute
+        assertEquals(1200 / 90, forge.iron("SkyRise", 1, 8).ticks);
         assertEquals(48, forge.iron("SkyRise", 1, 8).max);
-        // Lotus: slow in solo, medium in doubles
-        assertEquals(60, forge.iron("Lotus", 1, 8).ticks);
-        assertEquals(30, forge.iron("lotus", 2, 8).ticks);
-        // a ranked map of 4 islands, not listed: fast, and a node more
-        assertEquals(15, forge.iron("Archway", 2, 4).ticks);
-        assertEquals(240, forge.gold().ticks);
-        assertEquals(16, forge.gold().max);
+        // Lotus: slow in solo (30 a minute), medium in doubles (60)
+        assertEquals(40, forge.iron("Lotus", 1, 8).ticks);
+        assertEquals(20, forge.iron("lotus", 2, 8).ticks);
+        // a ranked map of 4 islands, not listed: fast, and a node more: 120 a minute
+        assertEquals(10, forge.iron("Archway", 2, 4).ticks);
+        assertArrayEquals(new int[] {2, 4}, forge.iron("Archway", 2, 4).batches, "2 or 4 ingots at once");
+        // gold: 8 a minute, 12 on the maps of four teams or fewer
+        assertEquals(150, forge.gold(8).ticks);
+        assertEquals(100, forge.gold(4).ticks);
+        assertEquals(100, forge.gold(2).ticks);
+        assertEquals(16, forge.gold(8).max);
+        assertArrayEquals(new int[] {1}, forge.gold(4).batches);
         assertEquals(30, forge.fastStartSeconds);
         assertEquals(600, settings.diamond().get(0).ticks);
         assertEquals(240, settings.diamond().get(2).ticks);
@@ -128,8 +134,9 @@ class BedwarsSettingsTest {
     void anEmptyConfigGivesTheDefaults() {
         BedwarsSettings settings = BedwarsSettings.read(new YamlConfiguration());
         assertTrue(settings.modes().isEmpty());
-        assertEquals(20, settings.forge().iron("Gelato", 1, 8).ticks);
-        assertEquals(60, settings.forge().iron("Lighthouse", 1, 8).ticks);
+        assertEquals(13, settings.forge().iron("Gelato", 1, 8).ticks, "90 a minute");
+        assertEquals(40, settings.forge().iron("Lighthouse", 1, 8).ticks, "30 a minute");
+        assertArrayEquals(new int[] {2, 4}, settings.forge().iron("Gelato", 1, 8).batches);
         assertEquals(3, settings.emerald().size());
         assertEquals(24 * 60, settings.emeraldIII());
         assertEquals(2.0, settings.fireball().self);
@@ -172,6 +179,8 @@ class BedwarsSettingsTest {
         assertProblem("forge:\n  vitesses:\n    Lotus: {solo: lente}", "forge.vitesses.Lotus.equipes");
         assertProblem("forge:\n  vitesses: [Lotus]", "forge.vitesses");
         assertProblem("forge:\n  vitesse-par-defaut: vite", "forge.vitesse-par-defaut");
+        assertProblem("forge:\n  fer-par-lot: [2, 0]", "forge.fer-par-lot");
+        assertProblem("forge:\n  fer-par-lot: []", "forge.fer-par-lot");
         assertProblem("generateurs:\n  diamant:\n    secondes: [30, 20]", "generateurs.diamant.secondes");
         assertProblem("evenements:\n  diamant-2: 20", "evenements.emeraude-2");
         assertProblem("boule-de-feu:\n  degats-sur-soi: -1", "boule-de-feu.degats-sur-soi");

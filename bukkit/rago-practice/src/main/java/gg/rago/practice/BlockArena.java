@@ -23,6 +23,8 @@ import org.bukkit.event.block.BlockPlaceEvent;
 import org.bukkit.event.entity.EntityDamageEvent;
 import org.bukkit.event.player.PlayerInteractEvent;
 import org.bukkit.inventory.ItemStack;
+import org.bukkit.potion.PotionEffect;
+import org.bukkit.potion.PotionEffectType;
 import org.bukkit.util.Vector;
 
 /**
@@ -36,9 +38,9 @@ import org.bukkit.util.Vector;
  * more and more, and break after fifteen seconds, so that the arena never fills up. The kills
  * count in the stats of the mode.
  *
- * <p>Arena Free (free-ffa) is the same arena for a free for all fight: the Ranked Bedwars kit
- * (iron sword, wool, shears, golden apples, fireballs, a pearl) and iron armour, back at each life,
- * and a kill heals the killer.
+ * <p>Arena Free (free-ffa) is the same arena for a free for all fight, as a practice: an iron sword
+ * only, no armour, and Resistance V, so that nobody dies of the hits (only the void sends a player
+ * back to the start).
  */
 final class BlockArena extends PracticeGame {
 
@@ -57,6 +59,8 @@ final class BlockArena extends PracticeGame {
     private static final int LAUNCH_PAUSE = 10;
     /** The id of the slime block. */
     static final int SLIME_ID = 165;
+    /** The level of Resistance in Arena Free: V takes all the damage of the hits. */
+    static final int FREE_RESISTANCE = 5;
     private static final Color[] COLOURS = {Color.RED, Color.BLUE, Color.LIME, Color.YELLOW, Color.AQUA, Color.WHITE,
         Color.FUCHSIA, Color.ORANGE, Color.GRAY, Color.PURPLE};
     /** The wool of each of those colours. */
@@ -85,7 +89,7 @@ final class BlockArena extends PracticeGame {
     /** The slime blocks of the map (x, y, z from the centre): they throw the players. */
     private final List<int[]> pads;
     private final Map<UUID, Integer> launched = new HashMap<>();
-    /** True for Arena Free: the fight kit, iron armour, a kill heals. */
+    /** True for Arena Free: a sword only, no armour, Resistance V: nobody dies of the hits. */
     private final boolean free;
     private final Map<UUID, Long> lastFireball = new HashMap<>();
 
@@ -100,11 +104,9 @@ final class BlockArena extends PracticeGame {
         return free ? "Arena Free" : "Block placement arena";
     }
 
-    /** The kit of Arena Free when the player has not arranged their own: the Ranked Bedwars one. */
+    /** The kit of Arena Free: a sword, nothing else. */
     static ItemStack[] freeKit() {
-        return new ItemStack[] {new ItemStack(Material.IRON_SWORD), new ItemStack(Material.WOOL, 64),
-            new ItemStack(Material.WOOL, 64), new ItemStack(Material.SHEARS), new ItemStack(Material.GOLDEN_APPLE, 3),
-            new ItemStack(Material.FIREBALL, 4), new ItemStack(Material.ENDER_PEARL)};
+        return new ItemStack[] {new ItemStack(Material.IRON_SWORD)};
     }
 
     @Override
@@ -209,11 +211,20 @@ final class BlockArena extends PracticeGame {
 
     @Override
     void armour(Player player) {
-        int index = Math.max(0, sideOf(player.getUniqueId()));
         if (free) {
-            ironArmour(player, COLOURS[index % COLOURS.length]);
-        } else {
-            leather(player, COLOURS[index % COLOURS.length]);
+            // a sword only: no armour
+            return;
+        }
+        int index = Math.max(0, sideOf(player.getUniqueId()));
+        leather(player, COLOURS[index % COLOURS.length]);
+    }
+
+    /** In Arena Free, Resistance V at each life: the hits push, but take no health (a practice). */
+    @Override
+    void effects(Player player) {
+        if (free) {
+            player.addPotionEffect(new PotionEffect(PotionEffectType.DAMAGE_RESISTANCE, Integer.MAX_VALUE,
+                    FREE_RESISTANCE - 1, false, false), true);
         }
     }
 
@@ -341,8 +352,8 @@ final class BlockArena extends PracticeGame {
     void intro(Player player) {
         if (free) {
             player.sendMessage(ChatColor.GREEN + "" + ChatColor.BOLD + "Arena Free" + ChatColor.GRAY
-                    + " - everyone in one arena, the Ranked Bedwars kit: a kill heals you. The slime in the black pit throws"
-                    + " you out of it; your blocks go away after 15 seconds.");
+                    + " - everyone in one arena, a sword only and Resistance: nobody dies, it is a practice. The"
+                    + " slime in the black pit throws you out of it.");
         } else {
             player.sendMessage(ChatColor.AQUA + "" + ChatColor.BOLD + "Block placement arena" + ChatColor.GRAY
                     + " - everyone in one arena: knock them off, build, clutch. Your blocks go away after 15 seconds.");
@@ -381,9 +392,6 @@ final class BlockArena extends PracticeGame {
                     + ChatColor.GREEN + killer.getDisplayName() + (streak >= 3 ? ChatColor.GOLD + " (" + streak + " in a row)" : ""),
                     null);
             sound(killer, Sound.ORB_PICKUP, 1.2f);
-            if (free) {
-                killer.setHealth(killer.getMaxHealth());
-            }
         } else {
             victim.sendMessage(ChatColor.GRAY + "You fell.");
         }

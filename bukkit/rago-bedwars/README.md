@@ -13,11 +13,13 @@ trois jeux à part sur des maps de Bed Wars : **FFA** (dont le Top Bridge FFA), 
   Compte à rebours de 3 secondes, immobile, puis « Fight! ». Sur une map qui a plus d'îles que la
   partie n'a d'équipes, les équipes prennent des îles éloignées (un duel sur une map à 4 se joue sur
   deux îles opposées, rouge contre vert), et les lits des îles vides sont enlevés.
-- **Forges** : chaque île a sa forge de fer et d'or, à la vitesse de sa map comme sur Hypixel. Un
-  « nœud » de fer donne un lingot toutes les 3 secondes ; une forge a 1 nœud sur les maps lentes,
-  2 sur les moyennes, 3 sur les rapides, et un de plus sur les maps à 4 équipes ; l'or tombe toutes
-  les 12 secondes ; au plus 48 fers et 16 ors par terre ; deux fois plus vite pendant les 30
-  premières secondes. Toutes les maps sont rapides, sauf Lighthouse et Lotus (lentes en solo,
+- **Forges** : chaque île a sa forge de fer et d'or, à la vitesse de sa map comme sur Hypixel
+  (débits mesurés sur Hypixel). Un « nœud » de fer donne 30 lingots par minute ; une forge a 1 nœud
+  sur les maps lentes, 2 sur les moyennes, 3 sur les rapides, et un de plus sur les maps à 4
+  équipes ; le fer tombe par paquets de 2 ou 4, comme sur Hypixel. Ça fait environ 90 fers par
+  minute sur une map rapide à 8 îles et 120 sur les maps à 4 îles des Ranked. L'or donne 8 lingots
+  par minute, 12 sur les maps de 4 îles ou moins ; au plus 48 fers et 16 ors par terre ; deux fois
+  plus vite pendant les 30 premières secondes. Toutes les maps sont rapides, sauf Lighthouse et Lotus (lentes en solo,
   moyennes en duo), comme sur Hypixel (réglable dans `forge:`). Les générateurs de diamant et
   d'émeraude affichent leur tier et le temps avant le prochain objet. Ils passent tier II puis III
   pendant la partie.
@@ -38,12 +40,22 @@ trois jeux à part sur des maps de Bed Wars : **FFA** (dont le Top Bridge FFA), 
   à l'horizontale (1,0) et vers le haut (0,65 × 1,5), ce qui fait le saut à la boule de feu ; il
   fait 1 cœur, armure ou pas, à celui qui la lance et aux autres équipes, rien à ses coéquipiers.
   Réglable dans `boule-de-feu:`.
+- **Elo** : dans un mode classé (Ranked), la barre d'expérience affiche l'elo du joueur dans ce
+  mode pendant toute la partie, comme sur les serveurs RBW.
 - **Morts** : un coup qui tuerait, une chute dans le vide ou une chute mortelle. Le kill revient au
   dernier joueur qui a frappé dans les 10 secondes, avec le fer, l'or, les diamants et les
   émeraudes du mort. Tant que son lit tient, le joueur revient au bout de 5 secondes (il regarde la
-  partie en spectateur en attendant) ; sans lit, c'est un **final kill** et il est éliminé.
-- **Lits** : on ne casse pas le sien. Casser celui d'une autre équipe l'annonce à tous, et ses
-  joueurs ne reviendront plus.
+  partie en spectateur en attendant) ; sans lit, c'est un **final kill** et il est éliminé. Le
+  message donne le total de final kills du tueur, toutes parties confondues, comme sur Hypixel :
+  « vaggww78 was qAbel's final #41,000. FINAL KILL! » (sans total dans une partie privée, qui ne
+  compte pas dans les stats).
+- **Lits** : on ne casse pas le sien. Casser celui d'une autre équipe l'annonce à tous, avec le
+  total de lits cassés du joueur (« Red Bed was destroyed by qAbel's bed #1,250! »), et ses joueurs
+  ne reviendront plus.
+- **Ce que la map a gardé d'une partie** : une map capturée sur un serveur garde parfois ce qui
+  traînait au moment de la capture (les lingots et émeraudes posés sur les forges, les hologrammes
+  « ITEM SHOP » ou « Tier I Diamond », des mobs). Tout ça est retiré de chaque copie de la map
+  avant la partie : une forge commence vide.
 - **Blocs** : on ne casse que les blocs posés pendant la partie (et les lits). Pas de bloc posé à
   moins de 3 blocs d'un spawn, à moins de 2 d'un générateur, ni au-dessus de la hauteur maximale.
   Les explosions ne cassent que les blocs posés, jamais le verre « blast-proof », l'obsidienne ni
@@ -209,11 +221,13 @@ Crogorm, Frosted, Gelato, Lighthouse, Lotus et Nebuc. Une map absente du serveur
 console le dit au démarrage). Quand un mode a deux maps prêtes ou plus, le joueur **choisit sa
 map** en cliquant le mode dans le sélecteur (ou `/queue first-rush Gelato`), ou prend « Random
 map » pour attendre moins ; il ne joue qu'avec ceux qui ont choisi la même map ou n'importe
-laquelle. Les modes classés (Ranked) tirent toujours la map au hasard.
+laquelle. C'est pareil pour les modes classés (Ranked). Avec « Random map », la map est tirée au
+hasard à chaque partie, une autre que la dernière du mode (sa copie est préparée à l'avance, pour
+ne pas attendre).
 
-Une map sert à un mode si elle a au moins autant d'équipes complètes que le mode a d'équipes ;
-celles qui en ont exactement autant passent d'abord (les équipes prennent des îles éloignées, ou
-voisines en First Rush). Une équipe est complète avec son spawn, son lit, son générateur et son shop.
+Une map sert à un mode si elle a au moins autant d'équipes complètes que le mode a d'équipes,
+qu'elle en ait exactement autant ou plus (les équipes prennent alors des îles éloignées, ou
+voisines en First Rush) : Antenna, à deux équipes, est une des 20 maps des Ranked, pas la seule. Une équipe est complète avec son spawn, son lit, son générateur et son shop.
 
 Pour une map d'Hypixel, [tools/bedwars-maps](../../tools/bedwars-maps/README.md) trouve tous ces
 points à partir des lits, des coffres et des îles, et écrit le `bedwars.yml` : il ne reste qu'à

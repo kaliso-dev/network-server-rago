@@ -49,6 +49,50 @@ class SumoMapsTest {
     }
 
     @Test
+    void theSumoMapStartsOnItsPlatformNotOnItsDome() throws Exception {
+        YamlConfiguration config = YamlConfiguration.loadConfiguration(new InputStreamReader(
+                RagoPractice.class.getResourceAsStream("/config.yml"), StandardCharsets.UTF_8));
+        for (Map<?, ?> map : config.getMapList("sumo.cartes")) {
+            if ("Sumo".equals(map.get("monde"))) {
+                // the platform's lapis is at y 64; the glass of the dome's roof at y 95
+                assertEquals(Arrays.asList(0, 64, 0), map.get("centre"));
+            }
+        }
+    }
+
+    @Test
+    void theFireballMapHasTwoStartsAndPutsBackItsLostBed() throws Exception {
+        YamlConfiguration config = YamlConfiguration.loadConfiguration(new InputStreamReader(
+                RagoPractice.class.getResourceAsStream("/config.yml"), StandardCharsets.UTF_8));
+        List<Map<?, ?>> maps = config.getMapList("fireball.cartes");
+        assertEquals(1, maps.size());
+        Map<?, ?> map = maps.get(0);
+        assertEquals("Fireball Fight", map.get("monde"));
+        assertNull(RagoPractice.checkZoneMap(map, config.getInt("espacement")));
+        assertEquals(2, ((List<?>) map.get("departs")).size());
+        assertEquals(1, ((List<?>) map.get("lits")).size());
+    }
+
+    @Test
+    void aBedPutBackFacesItsHead() {
+        MapCopy copy = MapCopy.of(0, 0, 0, 1, 0, 1, 0, 0, 121, 0).withBeds(Arrays.asList(new int[] {1, 0, 0, 2, 0}));
+        assertEquals(3, copy.size(), "the end stone under the foot gives way");
+        assertEquals(26 << 4 | 3, copy.blockAt(1, 0, 0), "the foot, its head to the east");
+        assertEquals(26 << 4 | 11, copy.blockAt(2, 0, 0), "the head");
+        assertEquals(1 << 4, copy.blockAt(0, 0, 0), "the rest stays");
+        assertEquals(0, MapCopy.bedDirection(0, 1));
+        assertEquals(1, MapCopy.bedDirection(-1, 0));
+        assertEquals(2, MapCopy.bedDirection(0, -1));
+        Map<String, Object> map = map("A", Arrays.asList(0, 64, 0), Arrays.asList(-40, 60, -40, 40, 100, 40));
+        map.put("lits", Arrays.asList(Arrays.asList(5, 65, 0, 6, 0)));
+        assertNull(RagoPractice.checkZoneMap(map, 200));
+        map.put("lits", Arrays.asList(Arrays.asList(5, 65, 0, 7, 0)));
+        assertTrue(RagoPractice.checkZoneMap(map, 200).startsWith("lits"), "the head next to the foot");
+        map.put("lits", Arrays.asList(Arrays.asList(40, 65, 0, 41, 0)));
+        assertTrue(RagoPractice.checkZoneMap(map, 200).contains("in the zone"));
+    }
+
+    @Test
     void aWrongStartIsToldWhy() {
         Map<String, Object> map = map("A", Arrays.asList(0, 64, 0), Arrays.asList(-40, 60, -40, 40, 100, 40));
         map.put("departs", Arrays.asList(Arrays.asList(-30, 65, 0, -90), Arrays.asList(30, 65, 0, 90)));

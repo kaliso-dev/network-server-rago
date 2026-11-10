@@ -420,6 +420,24 @@ final class PlayerStats {
         return modes.get(modeId);
     }
 
+    /** The final kills of the player, every mode together. */
+    int finalKills() {
+        int total = 0;
+        for (ModeStats mode : modes.values()) {
+            total += mode.finalKills;
+        }
+        return total;
+    }
+
+    /** The beds the player broke, every mode together. */
+    int beds() {
+        int total = 0;
+        for (ModeStats mode : modes.values()) {
+            total += mode.beds;
+        }
+        return total;
+    }
+
     ModeStats modeOrNew(String modeId) {
         ModeStats stats = modes.get(modeId);
         if (stats == null) {

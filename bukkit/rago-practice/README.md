@@ -42,7 +42,7 @@ le Tab, avec sa vie en dessous et son niveau Network à côté.
   cisailles, deux stacks de laine, 12 end stone, 16 échelles, armure en fer Protection IV.
   Construire, clutch, casser leurs blocs, faire tomber. Comme sur Minemen, les points sont les
   coups : chaque coup donné à l'autre camp vaut un point (le coup ne fait pas de dégâts, seulement
-  son recul), et une chute dans le vide coûte 10 points au camp de celui qui tombe (jamais sous 0)
+  son recul), et faire tomber un adversaire dans le vide donne 20 points à son camp
   et relance la manche, chacun sur son bloc d'or, la map comme au départ. Premier à
   `points-pour-gagner.block-fight` (100). Sans ces mondes, deux petites plateformes au-dessus du
   vide.
@@ -65,7 +65,9 @@ le Tab, avec sa vie en dessous et son niveau Network à côté.
   un stack de laine, 8 end stone, 2 TNT, cisailles, 8 échelles, armure en cuir. Tant que le lit
   tient, on revient au bout de 3 secondes ; ensuite, une mort est définitive. Le dernier camp
   debout gagne. Sur une map de `fireball.cartes` (`config.yml`), chaque camp part de son départ et
-  les lits sont ceux de la map (un lit est au camp dont le départ est le plus proche).
+  les lits sont ceux de la map (un lit est au camp dont le départ est le plus proche) ; `lits`
+  remet ceux qu'une map a perdus. Fournie : la map Fireball Fight du propriétaire (son lit de
+  l'île ouest, perdu, revient dans sa défense d'end stone).
 - **Bow duel** (`bow-duel`) : un 1v1 à l'arc sur la place du bow training (la base rouge et le
   nord du milieu d'Archway) : rouge sur le devant de la base, bleu au bord du milieu, face à face.
   Un arc (Infinity) et de la laine ; chaque flèche qui touche l'autre est un point (son
@@ -196,10 +198,8 @@ On revient tout de suite après une chute ou une mort. Les blocs posés se fissu
 éclats d'un bloc cassé. Les kills comptent dans les stats du mode.
 
 **Arena Free** (`free-ffa`) se joue dans la même arène du propriétaire, avec son slime, pour un
-FFA de combat : le kit Ranked Bedwars (épée en fer, deux stacks de laine, cisailles, 3 pommes en
-or, 4 fireballs, une ender pearl, rangeable dans l'éditeur de kit du lobby) et une armure de fer,
-rendus à chaque vie ; un kill soigne le tueur. Les blocs se fissurent et partent aussi au bout de
-15 secondes.
+FFA de combat pour s'entraîner : une épée en fer, rien d'autre, sans armure, et Résistance V à
+chaque vie, si bien que personne ne meurt des coups (seul le vide renvoie au départ).
 
 ## Le bridge fight
 

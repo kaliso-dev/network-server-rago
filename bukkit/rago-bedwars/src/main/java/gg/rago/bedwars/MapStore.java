@@ -107,9 +107,11 @@ final class MapStore {
     }
 
     /**
-     * The maps among these that a game of this many teams can be played on: enabled, with exactly
-     * that many complete teams; if none has exactly that many, those that have more (the game uses
-     * the first teams). The demo map is only played when no other map can be.
+     * The maps among these that a game of this many teams can be played on: enabled, with at least
+     * that many complete teams (a duel on a map of four islands plays on two opposite islands). A
+     * map with exactly that many teams does not shut out the others: Antenna, of two teams, is one
+     * of the 20 maps of the ranked duels, not the only one. The demo map is only played when no
+     * other map can be.
      */
     static List<BedwarsMap> choose(Collection<BedwarsMap> maps, int teams) {
         List<BedwarsMap> real = new ArrayList<>();
@@ -136,20 +138,13 @@ final class MapStore {
     }
 
     private static List<BedwarsMap> fitting(Collection<BedwarsMap> maps, int teams) {
-        List<BedwarsMap> exact = new ArrayList<>();
-        List<BedwarsMap> bigger = new ArrayList<>();
+        List<BedwarsMap> fitting = new ArrayList<>();
         for (BedwarsMap map : maps) {
-            if (!map.playable()) {
-                continue;
-            }
-            int complete = map.completeTeams().size();
-            if (complete == teams) {
-                exact.add(map);
-            } else if (complete > teams) {
-                bigger.add(map);
+            if (map.playable() && map.completeTeams().size() >= teams) {
+                fitting.add(map);
             }
         }
-        return exact.isEmpty() ? bigger : exact;
+        return fitting;
     }
 
     /** Writes the map's file in its world folder, away from the main thread. */

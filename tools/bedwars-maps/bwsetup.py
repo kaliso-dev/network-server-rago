@@ -641,8 +641,14 @@ class Setup:
         bed_y = int(np.median([b['foot'][1] for b in self.kept_beds]))
         marked_d = self.markers(57, lab, team_islands, bed_y, 8)
         marked_e = self.markers(133, lab, team_islands, bed_y, 8)
+        pads_d = self.pads(57, lab, team_islands, 4 if nteams >= 4 else 2)
+        pads_e = self.pads(133, lab, team_islands, 4 if nteams >= 8 else 2)
         diamonds, emeralds = self.resources_by_shape(lab, n, team_islands, nteams)
         how_d = how_e = 'by shape'
+        if pads_d:
+            marked_d = pads_d
+        if pads_e:
+            marked_e = pads_e
         if marked_d:
             diamonds, how_d = marked_d, 'marked'
         else:
@@ -657,6 +663,49 @@ class Setup:
                 emeralds, how_e = decor, 'by decoration'
         self.how_resources = 'diamonds: %s, emeralds: %s' % (how_d, how_e)
         return diamonds, emeralds
+
+    RING = [(-1, -1), (0, -1), (1, -1), (-1, 0), (1, 0), (-1, 1), (0, 1), (1, 1)]
+
+    def pads(self, block, lab, team_islands, count):
+        """Generators on their pad, as Hypixel builds them: a diamond or emerald block open to the
+        sky, in a ring of eight blocks, six of them at least the same (stairs, slabs...), at its level or one above. The
+        place to stand is on the block. A pad in the very middle goes when there are more than
+        expected (a decoration under the middle), and so do the pads with a mixed ring when some
+        have a ring all the same. None if no pad is found."""
+        w = self.w
+        cx, cz = self.centre
+        found = []
+        for p in np.argwhere(w.ids == block):
+            i, y, k = int(p[0]), int(p[1]), int(p[2])
+            if y + 2 >= w.ids.shape[1] or w.ids[i, y + 1, k] != 0 or w.ids[i, y + 2, k] != 0:
+                continue
+            if int(lab[i, k]) in team_islands:
+                continue
+            ringed = strict = False
+            for level in (y, y + 1):
+                ids = []
+                for di, dk in self.RING:
+                    a, b = i + di, k + dk
+                    inside = 0 <= a < w.ids.shape[0] and 0 <= b < w.ids.shape[2]
+                    ids.append(int(w.ids[a, level, b]) if inside else 0)
+                common, times = collections.Counter(ids).most_common(1)[0]
+                if all(ids) and times >= 6 and common != block:
+                    ringed, strict = True, times == 8
+                    break
+            if ringed:
+                x, z = w.world_xz(i, k)
+                found.append({'x': x + 0.5, 'y': float(y + 1), 'z': z + 0.5, 'strict': strict,
+                              'r': math.hypot(i + 0.5 - cx, k + 0.5 - cz)})
+        if len(found) > count and any(f['strict'] for f in found):
+            found = [f for f in found if f['strict']]
+        if len(found) > count:
+            found = [f for f in found if f['r'] > 2]
+        if not 1 <= len(found) <= 8:
+            return None
+        for f in found:
+            del f['r']
+            del f['strict']
+        return found
 
     def decorated(self, block, lab, team_islands, bed_y, count, centre_only=False):
         """Generators by the gem blocks that decorate their islands: the biggest groups of them,

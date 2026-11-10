@@ -821,6 +821,31 @@ public final class RagoLobby extends JavaPlugin implements LobbyService {
     }
 
     @Override
+    public int elo(UUID player, String modeId) {
+        GameMode mode = settings.catalog().get(modeId);
+        if (player == null || mode == null || !mode.ranked() || stats == null) {
+            return 0;
+        }
+        return stats.book().elo(player, modeId);
+    }
+
+    @Override
+    public int recordFinalKill(String modeId, UUID killer) {
+        if (killer == null || settings.catalog().get(modeId) == null || state.isInPrivateGame(killer)) {
+            return 0;
+        }
+        return stats.finalKill(modeId, killer);
+    }
+
+    @Override
+    public int recordBedBroken(String modeId, UUID player) {
+        if (player == null || settings.catalog().get(modeId) == null || state.isInPrivateGame(player)) {
+            return 0;
+        }
+        return stats.bedBroken(modeId, player);
+    }
+
+    @Override
     public void recordKill(String modeId, UUID killer, UUID victim) {
         if (settings.catalog().get(modeId) == null) {
             getLogger().warning("Kill in an unknown mode ignored: " + modeId);

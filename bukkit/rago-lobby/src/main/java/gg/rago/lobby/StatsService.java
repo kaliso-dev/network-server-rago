@@ -233,6 +233,20 @@ final class StatsService {
         }
     }
 
+    /** A Bed Wars final kill: counted and written; the player's final kills now, every mode together. */
+    int finalKill(String modeId, UUID killer) {
+        PlayerStats stats = book.finalKill(modeId, killer, StatsService::nameOf);
+        save(stats);
+        return stats.finalKills();
+    }
+
+    /** A bed broken: counted and written; the beds the player broke now, every mode together. */
+    int bedBroken(String modeId, UUID player) {
+        PlayerStats stats = book.bedBroken(modeId, player, StatsService::nameOf);
+        save(stats);
+        return stats.beds();
+    }
+
     /** Network XP earned in a training: adds it, tells the player, and writes their file. */
     void giveXp(UUID id, int xp, String reason) {
         PlayerStats before = book.get(id);

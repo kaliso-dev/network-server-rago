@@ -322,6 +322,20 @@ final class StatsBook {
         return changed;
     }
 
+    /** A Bed Wars final kill of this player in this mode: counted; their stats, changed. */
+    PlayerStats finalKill(String modeId, UUID killer, Names names) {
+        PlayerStats stats = statsOf(killer, names);
+        stats.modeOrNew(modeId).finalKills++;
+        return stats;
+    }
+
+    /** A bed this player broke in this mode: counted; their stats, changed. */
+    PlayerStats bedBroken(String modeId, UUID player, Names names) {
+        PlayerStats stats = statsOf(player, names);
+        stats.modeOrNew(modeId).beds++;
+        return stats;
+    }
+
     /** Network XP earned in a training (boosted): added to the player's stats, returned (null for 0 or less). */
     PlayerStats giveXp(UUID player, int xp, Names names) {
         if (player == null || xp <= 0) {

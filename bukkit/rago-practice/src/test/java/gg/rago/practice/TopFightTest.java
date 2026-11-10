@@ -40,10 +40,9 @@ class TopFightTest {
     }
 
     @Test
-    void inBlockPlacementTheVoidCostsTenPointsAndNeverGoesUnderNothing() {
-        assertEquals(35, BlockFight.afterFall(45));
-        assertEquals(0, BlockFight.afterFall(4));
-        assertEquals(0, BlockFight.afterFall(0));
+    void inBlockPlacementAKnockIntoTheVoidGivesTwentyPoints() {
+        assertEquals(65, BlockFight.afterFall(45), "the other side gets 20");
+        assertEquals(20, BlockFight.afterFall(0));
     }
 
     @Test

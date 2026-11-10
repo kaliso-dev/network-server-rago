@@ -369,7 +369,7 @@ class BedwarsGame {
             Upgrades upgrades = team.upgrades;
             upgrades.forge = spot;
             upgrades.ironRate = forge.iron(map.world(), teamSize, count);
-            upgrades.goldRate = forge.gold();
+            upgrades.goldRate = forge.gold(count);
             upgrades.iron = new Generator(spot, Material.IRON_INGOT, upgrades.ironRate, null);
             upgrades.gold = new Generator(spot, Material.GOLD_INGOT, upgrades.goldRate, null);
             forges.add(upgrades.iron);
@@ -624,7 +624,8 @@ class BedwarsGame {
         player.setAllowFlight(false);
         player.setFlying(false);
         heal(player);
-        player.setLevel(0);
+        // a ranked mode shows the player's ELO in the experience bar, as the RBW servers do
+        player.setLevel(Math.max(0, plugin.lobby().elo(player.getUniqueId(), modeId)));
         player.setExp(0f);
     }
 
@@ -826,8 +827,11 @@ class BedwarsGame {
         }
         gamer.beds++;
         destroyBed(team);
-        broadcast(ChatColor.WHITE + "" + ChatColor.BOLD + "BED DESTRUCTION > " + team.color.coloured() + " Bed"
-                + ChatColor.GRAY + " was destroyed by " + gamer.coloured() + ChatColor.GRAY + "!", null);
+        // with the player's own count of beds: "Red Bed was destroyed by qAbel's bed #1,250!"
+        String line = KillLines.bed(team.color.coloured() + " Bed", gamer.coloured(),
+                plugin.lobby().recordBedBroken(modeId, gamer.id));
+        broadcast(line != null ? line : ChatColor.WHITE + "" + ChatColor.BOLD + "BED DESTRUCTION > " + team.color.coloured()
+                + " Bed" + ChatColor.GRAY + " was destroyed by " + gamer.coloured() + ChatColor.GRAY + "!", null);
         for (Gamer other : gamers.values()) {
             Player player = Bukkit.getPlayer(other.id);
             if (player == null || host.gameOf(other.id) != this) {
@@ -885,7 +889,12 @@ class BedwarsGame {
         boolean finalKill = finalDeath(gamer);
         String how = voidDeath ? (author == null ? " fell into the void." : " was knocked into the void by ")
                 : (author == null ? " died." : " was killed by ");
-        broadcast(gamer.coloured() + ChatColor.GRAY + how + (author == null ? "" : author.coloured() + ChatColor.GRAY + ".")
+        // a final kill shows the killer's own count, as on Hypixel: "X was Y's final #41,000. FINAL KILL!"
+        String line = finalKill && author != null
+                ? KillLines.finalKill(gamer.coloured(), author.coloured(), plugin.lobby().recordFinalKill(modeId, author.id))
+                : null;
+        broadcast(line != null ? line : gamer.coloured() + ChatColor.GRAY + how
+                + (author == null ? "" : author.coloured() + ChatColor.GRAY + ".")
                 + (finalKill ? ChatColor.AQUA + "" + ChatColor.BOLD + " FINAL KILL!" : ""), null);
         if (author != null) {
             if (finalKill) {

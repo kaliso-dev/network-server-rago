@@ -60,6 +60,31 @@ public interface LobbyService {
     void recordKill(String modeId, UUID killer, UUID victim);
 
     /**
+     * The player's ELO in this ranked mode (the starting ELO before their first game), shown in
+     * the experience bar while they play it, as the RBW servers do; 0 for a mode that is not ranked.
+     */
+    default int elo(UUID player, String modeId) {
+        return 0;
+    }
+
+    /**
+     * A Bed Wars final kill of this player in a game of this mode: counted in their stats. Returns
+     * their final kills now, every mode together (the number Hypixel shows: "X was Y's final
+     * #41,000"), or 0 when it is not counted (a party's private game, a lobby without stats).
+     */
+    default int recordFinalKill(String modeId, UUID killer) {
+        return 0;
+    }
+
+    /**
+     * A bed this player broke in a game of this mode: counted in their stats. Returns the beds they
+     * broke now, every mode together, or 0 when it is not counted.
+     */
+    default int recordBedBroken(String modeId, UUID player) {
+        return 0;
+    }
+
+    /**
      * Network XP earned in a training of this mode (the aim trainer gives it for the seconds on the
      * target and the score): the lobby adds it to the player's stats, tells them ("+12 Network XP
      * (aim trainer)") and shows a new level or rank. Nothing in a party's private game, nor for 0

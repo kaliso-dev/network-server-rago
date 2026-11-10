@@ -115,6 +115,12 @@ final class StatsFiles {
             }
             section.set("kills", m.kills);
             section.set("morts", m.deaths);
+            if (m.finalKills > 0) {
+                section.set("final-kills", m.finalKills);
+            }
+            if (m.beds > 0) {
+                section.set("lits", m.beds);
+            }
             section.set("jour.date", m.day);
             section.set("jour.victoires", m.dayWins);
             section.set("jour.parties", m.dayGames);
@@ -258,6 +264,8 @@ final class StatsFiles {
                 m.elo = thisSeason ? Math.max(0, section.getInt("elo")) : 0;
                 m.kills = Math.max(0, section.getInt("kills"));
                 m.deaths = Math.max(0, section.getInt("morts"));
+                m.finalKills = Math.max(0, section.getInt("final-kills"));
+                m.beds = Math.max(0, section.getInt("lits"));
                 m.day = section.getString("jour.date", "");
                 m.dayWins = Math.max(0, section.getInt("jour.victoires"));
                 m.dayGames = Math.max(0, section.getInt("jour.parties"));

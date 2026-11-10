@@ -69,14 +69,17 @@ final class Generator {
         return tier;
     }
 
-    /** Time passes: drops an item when its time has come. */
+    /** Time passes: drops an item (a batch of them) when its time has come. */
     void tick(int ticks) {
         left -= ticks;
         while (left <= 0) {
-            left += rate.ticks;
-            drop();
+            int batch = rate.batches[rate.batches.length == 1 ? 0 : RANDOM.nextInt(rate.batches.length)];
+            left += rate.ticks * batch;
+            drop(batch);
         }
     }
+
+    private static final java.util.Random RANDOM = new java.util.Random();
 
     /** Once a second: the countdown above it. */
     void refreshText() {
@@ -88,7 +91,7 @@ final class Generator {
                 + ChatColor.YELLOW + " seconds");
     }
 
-    private void drop() {
+    private void drop(int batch) {
         int lying = 0;
         for (Iterator<Item> it = dropped.iterator(); it.hasNext();) {
             Item item = it.next();
@@ -101,7 +104,7 @@ final class Generator {
         if (lying >= rate.max) {
             return;
         }
-        Item item = spot.getWorld().dropItem(spot, new ItemStack(material, 1));
+        Item item = spot.getWorld().dropItem(spot, new ItemStack(material, Math.min(batch, rate.max - lying)));
         item.setVelocity(new Vector(0, 0, 0));
         dropped.add(item);
     }

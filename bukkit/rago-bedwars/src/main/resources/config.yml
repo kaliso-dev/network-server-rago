@@ -5,8 +5,8 @@
 # The lobby modes this plugin plays (their ids in the lobby's config.yml), each with its maps: the
 # names of their world folders, or toutes for every map. A map needs at least as many complete
 # teams as the mode has teams. A map that is not on the server is skipped; a mode none of whose maps is ready plays on the demo map.
-# With two maps or more, the players choose theirs when they join the queue, or take any map (the
-# ranked modes always draw the map at random). The ranked modes play on the 20 maps of the RBW
+# With two maps or more, the players choose theirs when they join the queue (the ranked modes too),
+# or take any map: drawn at random for each game, another map than the last one. The ranked modes play on the 20 maps of the RBW
 # queue, each with the build limit of the queue (hauteur-max in its bedwars.yml).
 modes:
   ranked-1v1: [Antenna, Aquarium, Archway, Artemis, Boletum, Carapace, Catalyst, Chained, Eastwood, Extinction, Invasion, Katsu, Lectus, Obelisk, Paladin, Planet98, Rise, Stonekeep, Swashbuckle, Treenan]
@@ -68,18 +68,23 @@ top-bridge: [top-bridge-1v1, top-bridge-2v2, top-bridge-ffa]
 # next to it), instead of opposite islands as in the other modes.
 iles-voisines: [first-rush, first-rush-duo]
 
-# The forge of each island, as on Hypixel: an iron node drops an ingot every
-# fer-secondes-par-noeud seconds (20 a minute), and a forge has 1 node on the slow maps (lente),
-# 2 on the medium ones (moyenne), 3 on the fast ones (rapide), and one more on the maps of four
-# teams; gold: an ingot every or-secondes. At most max-fer iron and max-or gold lie on it. During
-# the first debut-rapide-secondes of a game, it goes twice as fast.
+# The forge of each island, as on Hypixel (its iron and gold counted a minute long on each map): an
+# iron node drops an ingot every fer-secondes-par-noeud seconds (30 a minute), and a forge has 1
+# node on the slow maps (lente), 2 on the medium ones (moyenne), 3 on the fast ones (rapide), and
+# one more on the maps of four teams or fewer: 90 iron a minute on a fast map of 8 teams, 120 on
+# the 20 maps of the RBW queue. The iron drops in batches of fer-par-lot ingots (2 or 4 at once,
+# drawn at random). Gold: an ingot every or-secondes (8 a minute), every or-secondes-4-equipes on
+# the maps of four teams or fewer (12 a minute). At most max-fer iron and max-or gold lie on it.
+# During the first debut-rapide-secondes of a game, it goes twice as fast.
 #   vitesses   each map's speed, by the name of its world folder: one speed, or one for solo and
 #              one for teams of two or more ({solo: lente, equipes: moyenne}, as Lighthouse and
 #              Lotus on Hypixel). A map not listed: vitesse-par-defaut (rapide, as every Hypixel map
 #              since 2019).
 forge:
-  fer-secondes-par-noeud: 3
-  or-secondes: 12
+  fer-secondes-par-noeud: 2
+  fer-par-lot: [2, 4]
+  or-secondes: 7.5
+  or-secondes-4-equipes: 5
   max-fer: 48
   max-or: 16
   debut-rapide-secondes: 30

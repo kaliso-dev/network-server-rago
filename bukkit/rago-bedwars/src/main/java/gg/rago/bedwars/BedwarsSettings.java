@@ -11,14 +11,24 @@ import org.bukkit.configuration.ConfigurationSection;
 /** The settings of config.yml, checked. Immutable. */
 final class BedwarsSettings {
 
-    /** A generator: one item every so many ticks, at most so many lying on it. */
+    /**
+     * A generator: one item every so many ticks on average, at most so many lying on it. They drop
+     * in batches of one of these sizes, drawn at random (the iron of a forge: 2 or 4 at once, as on
+     * Hypixel), the next batch waiting as many times the ticks.
+     */
     static final class Rate {
         final int ticks;
         final int max;
+        final int[] batches;
 
         Rate(int ticks, int max) {
+            this(ticks, max, new int[] {1});
+        }
+
+        Rate(int ticks, int max, int[] batches) {
             this.ticks = ticks;
             this.max = max;
+            this.batches = batches.clone();
         }
     }
 
@@ -48,26 +58,36 @@ final class BedwarsSettings {
 
     /**
      * The island forges, as on Hypixel: each iron node drops an ingot every so many seconds; a forge
-     * has the nodes of its map's speed, one more on a map of four teams or fewer; gold at its own
-     * pace; twice as fast at the start of the game.
+     * has the nodes of its map's speed, one more on a map of four teams or fewer; the iron comes in
+     * batches (2 or 4 ingots at once); gold at its own pace, faster on a map of four teams or fewer;
+     * twice as fast at the start of the game.
      */
     static final class Forge {
         final double nodeSeconds;
         final double goldSeconds;
+        final double fewTeamsGoldSeconds;
         final int maxIron;
         final int maxGold;
         final int fastStartSeconds;
+        final int[] ironBatches;
         final Speed fallback;
         /** By map name in lower case: the speed in solo, then with teams of two or more. */
         final Map<String, Speed[]> maps;
 
         Forge(double nodeSeconds, double goldSeconds, int maxIron, int maxGold, int fastStartSeconds, Speed fallback,
                 Map<String, Speed[]> maps) {
+            this(nodeSeconds, goldSeconds, goldSeconds, maxIron, maxGold, fastStartSeconds, new int[] {1}, fallback, maps);
+        }
+
+        Forge(double nodeSeconds, double goldSeconds, double fewTeamsGoldSeconds, int maxIron, int maxGold,
+                int fastStartSeconds, int[] ironBatches, Speed fallback, Map<String, Speed[]> maps) {
             this.nodeSeconds = nodeSeconds;
             this.goldSeconds = goldSeconds;
+            this.fewTeamsGoldSeconds = fewTeamsGoldSeconds;
             this.maxIron = maxIron;
             this.maxGold = maxGold;
             this.fastStartSeconds = fastStartSeconds;
+            this.ironBatches = ironBatches.clone();
             this.fallback = fallback;
             this.maps = Collections.unmodifiableMap(maps);
         }
@@ -81,11 +101,13 @@ final class BedwarsSettings {
         /** The iron of an island of this map, for a game of teams of this many players. */
         Rate iron(String map, int teamSize, int islands) {
             int nodes = speed(map, teamSize).nodes + (islands <= 4 ? 1 : 0);
-            return new Rate(Math.max(1, (int) Math.round(nodeSeconds * 20 / nodes)), maxIron);
+            return new Rate(Math.max(1, (int) Math.round(nodeSeconds * 20 / nodes)), maxIron, ironBatches);
         }
 
-        Rate gold() {
-            return new Rate(Math.max(1, (int) Math.round(goldSeconds * 20)), maxGold);
+        /** The gold of an island of a map of this many islands. */
+        Rate gold(int islands) {
+            double seconds = islands <= 4 ? fewTeamsGoldSeconds : goldSeconds;
+            return new Rate(Math.max(1, (int) Math.round(seconds * 20)), maxGold);
         }
     }
 
@@ -345,8 +367,9 @@ final class BedwarsSettings {
 
     /** forge: the island forges; their speed on each map (lente, moyenne, rapide, or one for solo and one for teams). */
     private static Forge forge(ConfigurationSection config) {
-        double nodeSeconds = number(config, "forge.fer-secondes-par-noeud", 3.0, 0.25, 600);
-        double goldSeconds = number(config, "forge.or-secondes", 12.0, 0.25, 600);
+        double nodeSeconds = number(config, "forge.fer-secondes-par-noeud", 2.0, 0.25, 600);
+        double goldSeconds = number(config, "forge.or-secondes", 7.5, 0.25, 600);
+        double fewTeamsGold = number(config, "forge.or-secondes-4-equipes", 5.0, 0.25, 600);
         int maxIron = (int) number(config, "forge.max-fer", 48, 1, 256);
         int maxGold = (int) number(config, "forge.max-or", 16, 1, 256);
         int fastStart = (int) number(config, "forge.debut-rapide-secondes", 30, 0, 600);
@@ -372,7 +395,28 @@ final class BedwarsSettings {
         } else {
             throw new IllegalArgumentException("forge.vitesses: each map with its speed, such as Lotus: lente");
         }
-        return new Forge(nodeSeconds, goldSeconds, maxIron, maxGold, fastStart, fallback, maps);
+        int[] batches = batches(config, "forge.fer-par-lot");
+        return new Forge(nodeSeconds, goldSeconds, fewTeamsGold, maxIron, maxGold, fastStart, batches, fallback, maps);
+    }
+
+    /** The sizes of the batches of iron (2 and 4 by default), each from 1 to 16. */
+    private static int[] batches(ConfigurationSection config, String path) {
+        if (!config.contains(path)) {
+            return new int[] {2, 4};
+        }
+        List<?> list = config.getList(path);
+        if (list == null || list.isEmpty()) {
+            throw new IllegalArgumentException(path + ": a list of how many ingots drop at once, such as [2, 4]");
+        }
+        int[] sizes = new int[list.size()];
+        for (int i = 0; i < sizes.length; i++) {
+            Object each = list.get(i);
+            if (!(each instanceof Number) || ((Number) each).intValue() < 1 || ((Number) each).intValue() > 16) {
+                throw new IllegalArgumentException(path + ": each from 1 to 16 ingots");
+            }
+            sizes[i] = ((Number) each).intValue();
+        }
+        return sizes;
     }
 
     private static Speed speed(String word, String path) {

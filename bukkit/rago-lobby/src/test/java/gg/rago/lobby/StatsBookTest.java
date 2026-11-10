@@ -339,4 +339,18 @@ class StatsBookTest {
         }
         return names;
     }
+
+    @Test
+    void theFinalKillsAndTheBedsAreCountedEveryModeTogetherAndKeptInTheFile() throws Exception {
+        StatsBook book = new StatsBook(1000, NetworkLevel.DEFAULT);
+        book.finalKill("ranked-1v1", ALICE, NAMES);
+        book.finalKill("ranked-1v1", ALICE, NAMES);
+        PlayerStats alice = book.finalKill("ranked-2v2", ALICE, NAMES);
+        assertEquals(3, alice.finalKills());
+        assertEquals(1, book.bedBroken("ranked-2v2", ALICE, NAMES).beds());
+        PlayerStats read = StatsFiles.fromYaml(ALICE, StatsFiles.toYaml(book.get(ALICE)));
+        assertEquals(3, read.finalKills());
+        assertEquals(1, read.beds());
+        assertEquals(2, read.modes().get("ranked-1v1").finalKills);
+    }
 }

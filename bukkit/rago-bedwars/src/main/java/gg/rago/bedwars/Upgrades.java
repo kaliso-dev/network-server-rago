@@ -127,7 +127,7 @@ final class Upgrades {
 
     /** This rate, so many times faster: as many items at most on the ground. */
     static BedwarsSettings.Rate faster(BedwarsSettings.Rate rate, double speed) {
-        return new BedwarsSettings.Rate(Math.max(1, (int) Math.round(rate.ticks / speed)), rate.max);
+        return new BedwarsSettings.Rate(Math.max(1, (int) Math.round(rate.ticks / speed)), rate.max, rate.batches);
     }
 
     /** How far the base of an island goes around its spawn. */

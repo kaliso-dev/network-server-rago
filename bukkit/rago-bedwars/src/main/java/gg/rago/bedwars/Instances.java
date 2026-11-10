@@ -243,6 +243,13 @@ final class Instances {
         world.setGameRuleValue("mobGriefing", "false");
         world.setGameRuleValue("keepInventory", "true");
         world.setTime(6000L);
+        // what the map kept of a game played on it, in the chunks loaded with the world (the others
+        // are cleaned as they load: BedwarsHost.onChunkLoad)
+        for (org.bukkit.entity.Entity entity : world.getEntities()) {
+            if (MapLeftovers.leftover(entity)) {
+                entity.remove();
+            }
+        }
         for (BedwarsMap.Removal removal : map.removals()) {
             plugin.getLogger().info("Game world " + name + ": " + removal.apply(world) + " blocks left out (retirer in "
                     + BedwarsMap.FILE_NAME + ")");

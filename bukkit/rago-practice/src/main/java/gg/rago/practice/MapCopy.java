@@ -303,6 +303,37 @@ final class MapCopy {
         return ((long) (x & 0x1FFFFF) << 42) | ((long) (y & 0x1FFFFF) << 21) | (z & 0x1FFFFF);
     }
 
+    /**
+     * The copy with these beds put in it (a map that lost one): each bed is x, y, z of its foot and
+     * x, z of its head, from the origin. Whatever stood there gives way.
+     */
+    MapCopy withBeds(List<int[]> beds) {
+        List<int[]> places = new ArrayList<>();
+        for (int[] bed : beds) {
+            places.add(new int[] {bed[0], bed[1], bed[2]});
+            places.add(new int[] {bed[3], bed[1], bed[4]});
+        }
+        MapCopy cleared = without(places);
+        int[] more = Arrays.copyOf(cleared.blocks, cleared.blocks.length + beds.size() * 10);
+        int n = cleared.blocks.length;
+        for (int[] bed : beds) {
+            int direction = bedDirection(bed[3] - bed[0], bed[4] - bed[2]);
+            int[] foot = {bed[0], bed[1], bed[2], BED_ID, direction};
+            int[] head = {bed[3], bed[1], bed[4], BED_ID, direction | 8};
+            System.arraycopy(foot, 0, more, n, 5);
+            System.arraycopy(head, 0, more, n + 5, 5);
+            n += 10;
+        }
+        return new MapCopy(more);
+    }
+
+    private static final int BED_ID = 26;
+
+    /** The data of a bed whose head is (dx, dz) from its foot: 0 south, 1 west, 2 north, 3 east. */
+    static int bedDirection(int dx, int dz) {
+        return dz > 0 ? 0 : dx < 0 ? 1 : dz < 0 ? 2 : 3;
+    }
+
     /** A copy of these blocks, for the tests: x, y, z, id, data each. */
     static MapCopy of(int... blocks) {
         return new MapCopy(blocks.clone());

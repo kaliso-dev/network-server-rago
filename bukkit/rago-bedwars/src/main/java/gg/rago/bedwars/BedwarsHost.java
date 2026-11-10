@@ -79,6 +79,7 @@ import org.bukkit.event.player.PlayerPickupItemEvent;
 import org.bukkit.event.player.PlayerQuitEvent;
 import org.bukkit.event.player.PlayerRespawnEvent;
 import org.bukkit.event.weather.WeatherChangeEvent;
+import org.bukkit.event.world.ChunkLoadEvent;
 import org.bukkit.inventory.InventoryHolder;
 import org.bukkit.inventory.ItemStack;
 
@@ -110,6 +111,7 @@ final class BedwarsHost implements MatchHost, Listener {
     private final Map<Entity, UUID> tntOwners = new WeakHashMap<>();
     /** Players already told that no map is ready, so that they are not told every second. */
     private final Set<UUID> toldNoMap = new HashSet<>();
+    private final MapDraw draw = new MapDraw(new java.util.Random());
     private boolean warnedNoMap;
 
     BedwarsHost(RagoBedwars plugin) {
@@ -129,11 +131,39 @@ final class BedwarsHost implements MatchHost, Listener {
                 && joinable(match.mode().id(), maps) != null) {
             return true;
         }
-        if (plugin.instances().hasFree(maps)) {
+        List<BedwarsMap> drawn = drawn(match.mode(), maps);
+        if (plugin.instances().hasFree(drawn)) {
             return true;
         }
-        plugin.instances().prepare(maps, true);
+        plugin.instances().prepare(drawn, true);
         return false;
+    }
+
+    /**
+     * The map a new game of this match is played on, among its maps: the one the players chose, or
+     * the mode's next map, drawn at random (see {@link MapDraw}).
+     */
+    private List<BedwarsMap> drawn(GameMode mode, List<BedwarsMap> maps) {
+        if (maps.size() <= 1) {
+            return maps;
+        }
+        String world = draw.next(mode.id(), worlds(maps));
+        for (BedwarsMap map : maps) {
+            if (map.world().equals(world)) {
+                List<BedwarsMap> one = new ArrayList<>();
+                one.add(map);
+                return one;
+            }
+        }
+        return maps;
+    }
+
+    private static List<String> worlds(List<BedwarsMap> maps) {
+        List<String> worlds = new ArrayList<>();
+        for (BedwarsMap map : maps) {
+            worlds.add(map.world());
+        }
+        return worlds;
     }
 
     /** The maps of the match's mode; only the one the players chose, while it can still be played. */
@@ -180,10 +210,11 @@ final class BedwarsHost implements MatchHost, Listener {
             }
             return true;
         }
-        Instance instance = plugin.instances().acquire(maps);
+        List<BedwarsMap> drawn = drawn(mode, maps);
+        Instance instance = plugin.instances().acquire(drawn);
         if (instance == null) {
-            // a match waits: a copy of one of its maps is made, room made for it if need be
-            plugin.instances().prepare(maps, true);
+            // a match waits: a copy of its map is made, room made for it if need be
+            plugin.instances().prepare(drawn, true);
             return false;
         }
         if (instance.map().completeTeams().size() < islands(mode)) {
@@ -199,8 +230,15 @@ final class BedwarsHost implements MatchHost, Listener {
         }
         running.add(game);
         game.begin();
-        // The next match should not wait for a copy: one is made now if none is left and there is room.
-        if (!plugin.instances().hasFree(maps)) {
+        // The next game of the mode is on another map, drawn now; the next match should not wait for
+        // its copy: one is made now if none is free and there is room.
+        if (maps.size() > 1) {
+            draw.played(mode.id(), instance.map().world(), worlds(maps));
+            List<BedwarsMap> nextMaps = drawn(mode, maps);
+            if (!plugin.instances().hasFree(nextMaps)) {
+                plugin.instances().prepare(nextMaps, false);
+            }
+        } else if (!plugin.instances().hasFree(maps)) {
             plugin.instances().prepare(maps, false);
         }
         return true;
@@ -249,15 +287,12 @@ final class BedwarsHost implements MatchHost, Listener {
     }
 
     /**
-     * The maps a player may choose for this mode in the lobby: its maps that can be played now. The
-     * ranked modes draw the map at random: no choice.
+     * The maps a player may choose for this mode in the lobby, ranked modes included: its maps that
+     * can be played now. Without a choice, the map is drawn at random.
      */
     @Override
     public List<String> maps(GameMode mode) {
         List<String> names = new ArrayList<>();
-        if (mode.ranked()) {
-            return names;
-        }
         for (BedwarsMap map : mapsFor(mode)) {
             names.add(map.world());
         }
@@ -1044,6 +1079,19 @@ final class BedwarsHost implements MatchHost, Listener {
     public void onWeather(WeatherChangeEvent event) {
         if (event.toWeatherState() && isGameWorld(event.getWorld())) {
             event.setCancelled(true);
+        }
+    }
+
+    /** A chunk of a game world loads (once: its chunks stay loaded): what the map kept of a game played on it goes. */
+    @EventHandler
+    public void onChunkLoad(ChunkLoadEvent event) {
+        if (!isGameWorld(event.getWorld())) {
+            return;
+        }
+        for (Entity entity : event.getChunk().getEntities()) {
+            if (MapLeftovers.leftover(entity)) {
+                entity.remove();
+            }
         }
     }
 

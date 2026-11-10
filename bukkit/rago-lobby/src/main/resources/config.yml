@@ -111,6 +111,13 @@ groupes:
       - "Build, clutch and fight on the"
       - "block placement maps: 1v1, 2v2,"
       - "or the arena with everyone."
+  top-fight:
+    nom: "&eTop fight"
+    icone: GOLD_SWORD
+    description:
+      - "From the top of a ready-made"
+      - "bed defense, in diamond"
+      - "Protection IV: 1v1 or 2v2."
   prive:
     nom: "&6Private games"
     icone: NAME_TAG
@@ -145,7 +152,7 @@ pnj:
     modes: [partie-privee, top-fight-prive]
   rbwffa:
     nom: "&cFFA and Top fight"
-    modes: [ffa, top-fight-2v2, top-bridge-1v1, top-bridge-2v2, top-bridge-ffa]
+    modes: [ffa, top-fight-1v1, top-fight-2v2, top-bridge-1v1, top-bridge-2v2, top-bridge-ffa]
   rbwsolo1v1ou2v2skyrise:
     nom: "&6RBW Sky Rise"
     modes: [skyrise-1v1, skyrise-2v2]
@@ -732,12 +739,13 @@ modes:
     equipes: 1
     joueurs-par-equipe: 1
     classe: false
-    kit: [IRON_SWORD, "WOOL 64", "WOOL 64", SHEARS, "GOLDEN_APPLE 3", "FIREBALL 4", ENDER_PEARL]
+    kit: [IRON_SWORD]
     description:
       - "Free for all in the arena,"
-      - "the Ranked Bedwars kit: a kill"
-      - "heals you. The slime of the"
-      - "black pit throws you out."
+      - "a sword only and Resistance:"
+      - "nobody dies, it is a practice."
+      - "The slime of the black pit"
+      - "throws you out."
   invis-practice:
     nom: "&5Invis practice"
     categorie: ranked
@@ -755,24 +763,10 @@ modes:
       - "with an invis potion against"
       - "the defenders of the bed,"
       - "each player in turn."
-  top-fight-2v2:
-    nom: "&eTop fight 2v2"
-    categorie: ranked
-    icone: GOLD_SWORD
-    equipes: 2
-    joueurs-par-equipe: 2
-    classe: false
-    kit: [IRON_SWORD, "WOOL 64", "GOLDEN_APPLE 5", ENDER_PEARL]
-    description:
-      - "Two against two, from the top"
-      - "of a bed defense, in diamond"
-      - "Protection IV with Absorption."
   top-fight-1v1:
     nom: "&eTop fight 1v1"
     categorie: ranked
-    # only through the private top fight of a party of two (Top Bridge 1v1 and Bridge fight 1v1
-    # are the 1v1 fights of the selector)
-    cache: true
+    groupe: top-fight
     icone: GOLD_SWORD
     equipes: 2
     joueurs-par-equipe: 1
@@ -781,6 +775,19 @@ modes:
     description:
       - "Start on top of a ready-made"
       - "bed defense, in diamond"
+      - "Protection IV with Absorption."
+  top-fight-2v2:
+    nom: "&eTop fight 2v2"
+    categorie: ranked
+    groupe: top-fight
+    icone: GOLD_SWORD
+    equipes: 2
+    joueurs-par-equipe: 2
+    classe: false
+    kit: [IRON_SWORD, "WOOL 64", "GOLDEN_APPLE 5", ENDER_PEARL]
+    description:
+      - "Two against two, from the top"
+      - "of a bed defense, in diamond"
       - "Protection IV with Absorption."
   bridge-fight:
     nom: "&bBridge fight"

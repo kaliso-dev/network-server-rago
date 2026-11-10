@@ -33,7 +33,8 @@ sumo:
       centre: [0, 64, 0]
       zone: [-89, 0, -91, 60, 126, 98]
     - monde: "Sumo"
-      centre: [0, 95, 0]
+      # the platform under the dome (its glass at y 95 is the roof)
+      centre: [0, 64, 0]
       zone: [-22, 57, -24, 22, 96, 44]
 
 # The boxing and the combo bot play on these arenas, as the sumo on its maps: the Minemen arenas
@@ -77,8 +78,8 @@ boxing:
 
 # The other duels: how many points win (in boxing, how many hits). A point is a death or a fall
 # into the void of the other side; in 2v2, when both players of a side are out of the round. In
-# block placement (block-fight), as on Minemen, a point is a hit, and a fall into the void costs
-# the side of the player who fell 10 points (from 10 to 500).
+# block placement (block-fight), as on Minemen, a point is a hit, and a fall into the void gives
+# the other side 20 points (from 10 to 500).
 points-pour-gagner:
   boxing: 100
   kb-displace: 3
@@ -140,9 +141,17 @@ bridge-fight:
 
 # The fireball fight plays on these maps of the owner, as the boxing on its arenas: "departs",
 # where each side starts (x, y of the feet, z, yaw). The beds are the map's own: each bed belongs
-# to the side whose start is nearer. Without maps: two islands of the plugin's own.
+# to the side whose start is nearer. "lits" puts in the beds a map lost (x, y, z of the foot, x, z
+# of the head each). Without maps: two islands of the plugin's own.
+# Fireball Fight: the owner's second fireball map (Firefight map pas finit 2), whose west island
+# lost its bed: it comes back in its defense of end stone, as on the east island.
 fireball:
-  cartes: []
+  cartes:
+    - monde: "Fireball Fight"
+      centre: [394255, 91, 394192]
+      zone: [394163, 77, 394163, 394335, 119, 394221]
+      departs: [[394178, 92, 394192, -90], [394332, 92, 394192, 90]]
+      lits: [[394184, 91, 394195, 394185, 394195]]
 
 # Attack and defense, as a rush of a solo Bed Wars game on Hypixel: the defender is at home next
 # to a bed with no defense, the attacker already on a bridge with three blocks of void left. The

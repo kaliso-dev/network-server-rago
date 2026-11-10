@@ -174,7 +174,8 @@ public final class RagoPractice extends JavaPlugin {
         AttackDefense.Base base = attackDefenseBase(config, spacing);
         register("attack-defense-1v1", (h, m, a, t) -> new AttackDefense(h, m, a, t, base, attack, rounds), slots, spacing, false);
         register("attack-defense-2v2", (h, m, a, t) -> new AttackDefense(h, m, a, t, base, attack, rounds), slots, spacing, false);
-        register("fireball", FireballFight::new, slots, spacing, false);
+        onMaps(register("fireball", FireballFight::new, slots, spacing, false),
+                zoneMaps(config, "fireball.cartes", spacing, "the fireball fight"));
         // the islands side by side, close enough to see the players of the next ones
         ClutchTraining.Island clutchIsland = clutchIsland(config);
         register("clutch", (h, m, a, t) -> new ClutchTraining(h, m, a, t, false, clutchIsland), slots, ClutchTraining.SPACING, false);
@@ -649,6 +650,15 @@ public final class RagoPractice extends JavaPlugin {
                     number(start.get(2)) - origin[2] + 0.5, number(start.get(3))};
             }
             MapCopy copy = MapCopy.read(name, box, origin, getLogger(), what);
+            List<?> addedBeds = entry.get("lits") instanceof List ? (List<?>) entry.get("lits") : new ArrayList<>();
+            if (copy != null && !addedBeds.isEmpty()) {
+                List<int[]> beds = new ArrayList<>();
+                for (Object bed : addedBeds) {
+                    int[] at = numbers(bed, 5);
+                    beds.add(new int[] {at[0] - origin[0], at[1] - origin[1], at[2] - origin[2], at[3] - origin[0], at[4] - origin[2]});
+                }
+                copy = copy.withBeds(beds);
+            }
             if (copy != null) {
                 maps.add(new MapZones.ZoneMap(name, copy, starts));
             }
@@ -697,6 +707,26 @@ public final class RagoPractice extends JavaPlugin {
                 for (int i = 0; i < 3; i++) {
                     if (place[i] < Math.min(zone[i], zone[i + 3]) || place[i] > Math.max(zone[i], zone[i + 3])) {
                         return "departs: each start in the zone";
+                    }
+                }
+            }
+        }
+        Object beds = entry.get("lits");
+        if (beds != null) {
+            if (!(beds instanceof List)) {
+                return "lits: a list of beds, x, y, z of the foot and x, z of the head each";
+            }
+            for (Object bed : (List<?>) beds) {
+                int[] at = numbers(bed, 5);
+                if (at == null || Math.abs(at[3] - at[0]) + Math.abs(at[4] - at[2]) != 1) {
+                    return "lits: x, y, z of the foot and x, z of the head (next to it) for each bed";
+                }
+                int[][] cells = {{at[0], at[1], at[2]}, {at[3], at[1], at[4]}};
+                for (int[] cell : cells) {
+                    for (int i = 0; i < 3; i++) {
+                        if (cell[i] < Math.min(zone[i], zone[i + 3]) || cell[i] > Math.max(zone[i], zone[i + 3])) {
+                            return "lits: each bed in the zone";
+                        }
                     }
                 }
             }

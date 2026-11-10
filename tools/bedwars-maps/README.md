@@ -41,8 +41,10 @@ Les maps ne sont pas dans ce dépôt.
   Sky Rise, Extinction ou Gelato), elles gardent le devant de la niche : le PNJ va dans la niche
   juste derrière. Tournés d'un quart de tour vers la sortie de leur niche, ou vers le spawn.
   RagoBedwars fait la même correction en jeu, pour les `bedwars.yml` déjà écrits.
-- **Diamant et émeraude** : les blocs de diamant et d'émeraude seuls que les maps d'Hypixel posent
-  sous leurs générateurs ; sinon les groupes de blocs de diamant (ou d'émeraude) qui décorent leurs
+- **Diamant et émeraude** : d'abord le socle du générateur tel qu'Hypixel le construit, un bloc de
+  diamant (ou d'émeraude) à ciel ouvert entouré d'un anneau de huit blocs pareils (escaliers,
+  dalles...) ; le générateur est posé dessus. Sinon les blocs de diamant et d'émeraude seuls que les
+  maps d'Hypixel posent sous leurs générateurs ; sinon les groupes de blocs de diamant (ou d'émeraude) qui décorent leurs
   îles ; sinon la forme de la map (les îles les plus éloignées pour le diamant, le milieu pour
   l'émeraude). Quatre générateurs de diamant ; quatre d'émeraude sur une map à 8 équipes, deux sinon.
 
