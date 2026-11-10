@@ -31,7 +31,8 @@ class BedwarsSettingsTest {
         assertEquals(Arrays.asList("ranked-1v1", "ranked-2v2", "ranked-3v3", "ranked-4v4", "top-bridge-1v1",
                 "top-bridge-2v2", "skyrise-1v1", "skyrise-2v2",
                 "first-rush", "first-rush-duo", "top-bridge-ffa", "ffa", "invis-practice", "shop-practice",
-                "attack-defense-1v1", "attack-defense-2v2"),
+                "attack-defense-1v1", "attack-defense-2v2", "clutch-scenario-1v1", "clutch-scenario-2v2",
+                "clutch-scenario-3v3", "clutch-scenario-4v4"),
                 settings.modes());
         assertEquals(BedwarsSettings.Kind.CLASSIC, settings.kind("ranked-1v1"));
         assertEquals(BedwarsSettings.Kind.FFA, settings.kind("ffa"));
@@ -50,6 +51,11 @@ class BedwarsSettingsTest {
         assertEquals(BedwarsSettings.Kind.ATTACK_DEFENSE, settings.kind("attack-defense-1v1"));
         assertEquals(BedwarsSettings.Kind.ATTACK_DEFENSE, settings.kind("attack-defense-2v2"));
         assertEquals(Collections.singletonList("BioHazard"), settings.mapsOf("attack-defense-2v2"), "the owner's Bio Hazard");
+        assertEquals(BedwarsSettings.Kind.CLUTCH_SCENARIO, settings.kind("clutch-scenario-3v3"));
+        assertEquals(31, settings.mapsOf("clutch-scenario-1v1").size(), "the RBW maps, Sky Rise, the solo and doubles maps");
+        assertTrue(settings.mapsOf("clutch-scenario-4v4").containsAll(settings.mapsOf("ranked-1v1")));
+        assertTrue(settings.mapsOf("clutch-scenario-1v1").containsAll(settings.mapsOf("first-rush")));
+        assertFalse(settings.mapsOf("clutch-scenario-2v2").contains("BioHazard"), "not on a map of attack and defense");
         assertEquals(Arrays.asList("Antenna", "Aquarium", "Archway", "Artemis", "Boletum", "Carapace", "Catalyst",
                 "Chained", "Eastwood", "Extinction", "Invasion", "Katsu", "Lectus", "Obelisk", "Paladin", "Planet98", "Rise",
                 "Stonekeep", "Swashbuckle", "Treenan"), settings.mapsOf("ranked-2v2"), "the maps of the RBW queue");

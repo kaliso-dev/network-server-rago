@@ -97,6 +97,14 @@ groupes:
       - "Come and go when you like:"
       - "the FFA with the Ranked Bedwars"
       - "kit, or Arena Free in the arena."
+  clutch-scenario:
+    nom: "&cClutch scenario"
+    icone: IRON_CHESTPLATE
+    description:
+      - "A real RBW game on any map:"
+      - "one team has lost its bed,"
+      - "iron armour, stone sword,"
+      - "full forges. Clutch or defend."
   bridge-fight:
     nom: "&bBridge fight"
     icone: WOOL
@@ -841,6 +849,54 @@ modes:
     description:
       - "Defend your bed 1 against 2,"
       - "final clutch on 2 hearts... scored."
+  clutch-scenario-1v1:
+    nom: "&cClutch scenario 1v1"
+    categorie: ranked
+    groupe: clutch-scenario
+    icone: IRON_CHESTPLATE
+    equipes: 2
+    joueurs-par-equipe: 1
+    classe: false
+    description:
+      - "A real RBW game: one of you"
+      - "has no bed and must clutch,"
+      - "the other's bed is defended."
+  clutch-scenario-2v2:
+    nom: "&cClutch scenario 2v2"
+    categorie: ranked
+    groupe: clutch-scenario
+    icone: IRON_CHESTPLATE
+    equipes: 2
+    joueurs-par-equipe: 2
+    classe: false
+    description:
+      - "A real RBW game, 2v2: one"
+      - "team has no bed and clutches,"
+      - "the other's bed is defended."
+  clutch-scenario-3v3:
+    nom: "&cClutch scenario 3v3"
+    categorie: ranked
+    groupe: clutch-scenario
+    icone: IRON_CHESTPLATE
+    equipes: 2
+    joueurs-par-equipe: 3
+    classe: false
+    description:
+      - "A real RBW game, 3v3: one"
+      - "team has no bed and clutches,"
+      - "the other's bed is defended."
+  clutch-scenario-4v4:
+    nom: "&cClutch scenario 4v4"
+    categorie: ranked
+    groupe: clutch-scenario
+    icone: IRON_CHESTPLATE
+    equipes: 2
+    joueurs-par-equipe: 4
+    classe: false
+    description:
+      - "A real RBW game, 4v4: one"
+      - "team has no bed and clutches,"
+      - "the other's bed is defended."
   partie-privee:
     nom: "&6Private game"
     categorie: ranked

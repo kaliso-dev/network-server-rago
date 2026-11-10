@@ -109,6 +109,11 @@ final class Generator {
         dropped.add(item);
     }
 
+    /** As many items lie on its spot as it lets pile up: a forge full from the start. */
+    void fill() {
+        drop(rate.max);
+    }
+
     /** The game is over: the texts go (the items go with the world's rollback). */
     void remove() {
         if (title != null) {

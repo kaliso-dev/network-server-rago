@@ -188,7 +188,12 @@ final class BedwarsSettings {
          * Attack and Defense: a map of one base and the attackers' bridge (attaquants: in its
          * bedwars.yml); two rounds, each side attacks once, as in a game.
          */
-        ATTACK_DEFENSE("attaque-defense");
+        ATTACK_DEFENSE("attaque-defense"),
+        /**
+         * Clutch Scenario: a real game where one team has lost its bed already, the other keeps it
+         * under a ranked defense; iron armour, a stone sword and full forges from the start.
+         */
+        CLUTCH_SCENARIO("clutch-scenario");
 
         final String word;
 

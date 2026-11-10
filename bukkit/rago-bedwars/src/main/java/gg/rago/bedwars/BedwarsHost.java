@@ -260,6 +260,8 @@ final class BedwarsHost implements MatchHost, Listener {
                 return new TopBridgeGame(plugin, this, instance, mode.id(), name, sides, privateGame(sides));
             case ATTACK_DEFENSE:
                 return new AttackDefenseGame(plugin, this, instance, mode.id(), name, sides);
+            case CLUTCH_SCENARIO:
+                return new ClutchScenarioGame(plugin, this, instance, mode.id(), name, sides);
             default:
                 return new BedwarsGame(plugin, this, instance, mode.id(), name, sides);
         }

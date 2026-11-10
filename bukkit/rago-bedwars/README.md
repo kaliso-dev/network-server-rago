@@ -4,7 +4,8 @@ Un plugin Bukkit 1.8.8 qui joue les modes Bed Wars du lobby (`bukkit/rago-lobby`
 Bedwars 1v1, 2v2, 3v3 et 4v4**, **RBW Sky Rise** en solo et en duo, avec les règles d'une partie
 classique d'Hypixel, **First Rush** en solo et en duo (la même partie, sur deux îles voisines), les
 **parties privées** d'une party (le lobby choisit le 1v1, 2v2, 3v3 ou 4v4 selon sa taille), et
-cinq jeux à part sur des maps de Bed Wars : **Top Bridge**, **Attack and Defense**,
+six jeux à part sur des maps de Bed Wars : **Top Bridge**, **Attack and Defense**, **Clutch
+Scenario**,
 **FFA** (dont le Top Bridge FFA), **Invis practice** et **Fast Shop**. Chaque mode a ses maps.
 
 ## La partie
@@ -132,6 +133,16 @@ Les attaquants gagnent la manche en cassant le lit et en tuant tous les défense
 défenseurs en tuant tous les attaquants, ou en tenant 5 minutes. Le camp qui gagne le plus de
 manches gagne ; à une manche partout, la plus rapide des deux attaques réussies gagne, sinon c'est
 une égalité.
+
+## Clutch Scenario
+
+`clutch-scenario-1v1`, `-2v2`, `-3v3` et `-4v4` (le genre `clutch-scenario`) : une vraie partie de
+Ranked Bedwars sur n'importe quelle map (les 20 maps de la file, Sky Rise, les maps solo et duo),
+les deux équipes sur des îles opposées. L'une, tirée au sort, a déjà perdu son lit : une seule vie
+chacun, elle doit clutch. L'autre garde le sien, sous une défense de ranked déjà posée (end stone,
+verre, bois, laine). Tout le monde part de sa base en armure de fer avec une épée en pierre, sans
+enchantement ni émeraude, les forges déjà pleines de fer et d'or. Ensuite, c'est une partie comme
+les autres : shop, améliorations, diamants et émeraudes, jusqu'à ce qu'il ne reste qu'une équipe.
 
 ## Améliorations et pièges
 
