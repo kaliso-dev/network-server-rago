@@ -63,6 +63,11 @@ le Tab, avec sa vie en dessous et son niveau Network à côté.
   tient, on revient au bout de 3 secondes ; ensuite, une mort est définitive. Le dernier camp
   debout gagne. Sur une map de `fireball.cartes` (`config.yml`), chaque camp part de son départ et
   les lits sont ceux de la map (un lit est au camp dont le départ est le plus proche).
+- **Bow duel** (`bow-duel`) : un 1v1 à l'arc sur la place du bow training (la base rouge et le
+  nord du milieu d'Archway) : rouge sur le devant de la base, bleu au bord du milieu, face à face.
+  Un arc (Infinity) et de la laine ; chaque flèche qui touche l'autre est un point (son
+  knockback, pas de dégâts), une chute dans le vide donne un point à l'autre et relance la manche.
+  Épées et poings ne font rien. Premier à 10 (`points-pour-gagner.bow`).
 - **Block edit 1v1** : la station du block edit avec une pièce de chaque côté du mur de laine.
   Casser un bloc du mur, frapper l'autre par le trou, et remettre un bloc dans le mur avant qu'il
   ne frappe : un point. S'il frappe en retour d'abord, le point passe de son côté. Coups sans
@@ -122,6 +127,16 @@ et chaque variante son record : le meilleur score du joueur et celui du serveur,
   compte quand le joueur tient debout sur l'île visée. Série.
 - **Fireball practice** : le saut à la boule de feu sur une falaise de 4 blocs, au-dessus de 10
   blocs de vide, ou renvoyer les boules d'un canon. Série.
+- **Bow training** (`bow-training`) : sur une vraie map de Bed Wars, la base rouge et le nord du
+  milieu d'Archway copiés une fois (`bow-training` dans `config.yml` : le monde, la zone, le départ
+  du joueur et les ponts des bots). Le joueur est sur le devant de sa base avec un arc (Infinity,
+  Power I en réglage) ; des bots bridgent du milieu vers sa base, une laine à chaque pas, comme un
+  rusher. Une flèche pousse le bot à l'opposé du tireur : il faut le prendre de côté pour le faire
+  tomber de son pont, c'est un kill, et un nouveau bot repart sur ce pont reconstruit à neuf. Un bot
+  qui arrive à la base termine l'essai ; le score est le nombre de kills. La barre de côté montre
+  les touches, la précision et le tir le plus long. Réglages : la vitesse des bots (2,6 à 5 blocs
+  par seconde) et combien viennent à la fois (1 à 3). Sans le monde, des plateformes aux mêmes
+  endroits.
 - **Aim trainer** : une cible de la taille d'un joueur qui strafe, saute ou tourne autour ; 30
   secondes, les coups qui touchent et la précision. Chaque seconde où le viseur reste sur la
   cible (12 ticks sur 20) ou la touche donne de l'XP, avec un son qui monte avec la série (et un

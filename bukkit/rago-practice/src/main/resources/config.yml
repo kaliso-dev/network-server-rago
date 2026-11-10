@@ -86,6 +86,8 @@ points-pour-gagner:
   top-fight: 3
   block-edit: 5
   bridge-fight: 5
+  # the bow 1v1: each arrow that hits is a point (from 1 to 50)
+  bow: 10
 
 # The block placement duels (1v1 and 2v2) play on these maps of the owner, as the boxing on its
 # arenas: "departs" are the gold blocks where each side starts (x, y of the feet, z, yaw); in 2v2,
@@ -221,3 +223,20 @@ block-extend:
       cible: [870598, 91, 870613]
       coup: devant
       force: [0.85, 0.12]
+
+# Bow training and the bow 1v1 on a real Bed Wars map: the red base of Archway and the north of its
+# middle, copied once ("centre" and "zone" as the sumo maps). "joueur": where the player starts on
+# the base (x, y, z, yaw); "pont-y": the height of the blocks of the bridges; "ponts": the bridges
+# the bots build, one to three, each the x, z of its first block (on the middle) then of its last
+# one (by the base). In the 1v1 the second player starts at the start of the first bridge. Without
+# the world: plain platforms at the same places.
+bow-training:
+  monde: Archway
+  centre: [-13, 64, -42]
+  zone: [-32, 55, -90, 26, 120, -14]
+  joueur: [-12.5, 66, -64.5, 0]
+  pont-y: 64
+  ponts:
+    - [-13, -22, -13, -61]
+    - [-9, -24, -9, -61]
+    - [-16, -20, -16, -61]

@@ -185,6 +185,70 @@ public final class RagoPractice extends JavaPlugin {
         register("bridge-fight-1v1", (h, m, a, t) -> new BridgeDuel(h, m, a, t, bridge, bridgeProtection), slots, spacing, false);
         BlockExtendTraining.Course course = blockExtendCourse(config, spacing);
         register("block-extend", (h, m, a, t) -> new BlockExtendTraining(h, m, a, t, course), slots, spacing, false);
+        BowTraining.Course bow = bowCourse(config, spacing);
+        int bowHits = config.getInt("points-pour-gagner.bow", 10);
+        register("bow-training", (h, m, a, t) -> new BowTraining(h, m, a, t, bow), slots, spacing, false);
+        register("bow-duel", (h, m, a, t) -> new BowDuel(h, m, a, t, bowHits, bow), slots, spacing, false);
+    }
+
+    /**
+     * The place of the bow training and the bow duel (bow-training in config.yml): a part of a Bed
+     * Wars map, the player's start and the bridges of the bots. With a mistake in the section, or
+     * without the world, the plugin's own platforms at the same places.
+     */
+    private BowTraining.Course bowCourse(FileConfiguration config, int spacing) {
+        ConfigurationSection section = config.getConfigurationSection("bow-training");
+        String problem = section == null ? "the section is missing" : checkBow(section, spacing);
+        if (problem != null) {
+            getLogger().warning("bow-training in config.yml: " + problem + ". The bow training plays on the plugin's own platforms.");
+            return BowTraining.plainCourse();
+        }
+        int[] origin = numbers(section.getList("centre"), 3);
+        List<?> start = section.getList("joueur");
+        double[] player = new double[4];
+        for (int k = 0; k < 4; k++) {
+            player[k] = number(start.get(k)) - (k < 3 ? origin[k] : 0);
+        }
+        List<?> bridges = section.getList("ponts");
+        int[][] lines = new int[bridges.size()][];
+        for (int i = 0; i < lines.length; i++) {
+            int[] line = numbers(bridges.get(i), 4);
+            lines[i] = new int[] {line[0] - origin[0], line[1] - origin[2], line[2] - origin[0], line[3] - origin[2]};
+        }
+        BowTraining.Course plain = new BowTraining.Course(null, player, section.getInt("pont-y") - origin[1], lines);
+        MapCopy copy = MapCopy.read(section.getString("monde", ""), numbers(section.getList("zone"), 6), origin, getLogger(),
+                "the bow training");
+        return copy == null ? plain : new BowTraining.Course(copy, player, plain.bridgeY, lines);
+    }
+
+    /** What is wrong with the bow-training section, or null. */
+    static String checkBow(ConfigurationSection section, int spacing) {
+        String world = section.getString("monde", "");
+        Map<String, Object> zoneMap = new HashMap<>();
+        zoneMap.put("monde", world.trim().isEmpty() ? "-" : world);
+        zoneMap.put("centre", section.getList("centre"));
+        zoneMap.put("zone", section.getList("zone"));
+        String zoneProblem = checkZoneMap(zoneMap, spacing);
+        if (zoneProblem != null) {
+            return zoneProblem;
+        }
+        if (!numbersOf(section.getList("joueur"), 4)) {
+            return "joueur: x, y, z, yaw of the player's start";
+        }
+        if (!section.isInt("pont-y")) {
+            return "pont-y: the height of the blocks of the bridges";
+        }
+        List<?> bridges = section.getList("ponts");
+        if (bridges == null || bridges.isEmpty() || bridges.size() > 3) {
+            return "ponts: one to three bridges";
+        }
+        for (Object bridge : bridges) {
+            int[] line = numbers(bridge, 4);
+            if (line == null || line[0] == line[2] && line[1] == line[3]) {
+                return "ponts: x, z of the first block of a bridge then of its last one, whole numbers";
+            }
+        }
+        return null;
     }
 
     /**
@@ -665,6 +729,7 @@ public final class RagoPractice extends JavaPlugin {
             {"aim-trainer.touches-par-xp", "10", "1", "100"},
             {"pearl.limite-basse", "55", "0", "70"},
             {"bridge-fight.protection-1v1", "2", "0", "4"},
+            {"points-pour-gagner.bow", "10", "1", "50"},
         };
         for (String[] range : ranges) {
             int value = config.getInt(range[0], Integer.parseInt(range[1]));

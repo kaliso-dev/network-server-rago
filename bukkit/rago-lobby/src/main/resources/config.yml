@@ -55,8 +55,8 @@ categories:
     icone: IRON_SWORD
     description:
       - "Sumo, boxing, KB displace,"
-      - "fireball fight, attack and"
-      - "defense: against a player."
+      - "fireball fight, bow, attack"
+      - "and defense: against a player."
 
 # The groups: the sizes of one game (1v1, 2v2...), one item in their category which opens them
 # side by side, as the games of Hypixel. A mode is in a group with groupe: (the modes of a group
@@ -96,7 +96,7 @@ groupes:
     description:
       - "Come and go when you like:"
       - "the FFA with the Ranked Bedwars"
-      - "kit, or Arena Free on Archway."
+      - "kit, or Arena Free in the arena."
   bridge-fight:
     nom: "&bBridge fight"
     icone: WOOL
@@ -1085,11 +1085,22 @@ modes:
     joueurs-par-equipe: 1
     classe: false
     description:
-      - "On a real Bed Wars map: shoot"
-      - "the bots bridging to your"
-      - "island, or a friend in 1v1"
-      - "(/duel). Hits, accuracy and"
-      - "the longest shot."
+      - "On Archway: bots bridge from"
+      - "the middle to your base, knock"
+      - "them off with your bow. Hits,"
+      - "accuracy, the longest shot."
+  bow-duel:
+    nom: "&aBow duel"
+    categorie: duels
+    icone: ARROW
+    equipes: 2
+    joueurs-par-equipe: 1
+    classe: false
+    description:
+      - "Bow 1v1 on Archway, the base"
+      - "against the middle: each arrow"
+      - "that hits is a point. First"
+      - "to 10."
   aim-trainer:
     nom: "&eAim trainer"
     categorie: entrainement
