@@ -8,6 +8,8 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.util.Arrays;
 import java.util.Collections;
+import java.util.List;
+import java.util.Map;
 import org.junit.jupiter.api.Test;
 
 class BedwarsMapTest {
@@ -227,6 +229,36 @@ class BedwarsMapTest {
         assertEquals(map.spawnChoices(), map.copy().spawnChoices(), "written back as read");
         assertTrue(demo().spawnChoices().isEmpty(), "none: the islands");
         assertThrows(IllegalArgumentException.class, () -> BedwarsMap.fromYaml("m", "apparitions:\n  Low: []\n"));
+    }
+
+    @Test
+    void anFfaMapPutsItsBoardOfKillsInTheAir() throws Exception {
+        BedwarsMap map = read("actif: true\nclassement: {x: 32.5, y: 92, z: 0.5}\n");
+        assertEquals(new MapPoint(32.5, 92, 0.5, 0f, 0f), map.killBoard());
+        assertEquals(map.killBoard(), map.copy().killBoard(), "written back as read");
+        assertNull(demo().killBoard(), "none: above the middle");
+    }
+
+    @Test
+    void theBoardOfKillsShowsTheTenFirst() {
+        List<Map.Entry<String, Integer>> top = new java.util.ArrayList<>();
+        assertEquals(java.util.Arrays.asList("TOP KILLS", "Lifetime", "Nobody yet"), plain(KillBoard.lines(top)));
+        for (int i = 0; i < 12; i++) {
+            top.add(new java.util.AbstractMap.SimpleImmutableEntry<>("§d[PREMIUM§f+§d] §dPlayer" + i, 100 - i));
+        }
+        List<String> lines = KillBoard.lines(top);
+        assertEquals(2 + KillBoard.ROWS, lines.size(), "the title, then the ten first");
+        assertEquals("1. [PREMIUM+] Player0 - 100", org.bukkit.ChatColor.stripColor(lines.get(2)), "with their rank");
+        assertTrue(lines.get(2).startsWith("§6§l1."), "the first in gold");
+        assertEquals("10. [PREMIUM+] Player9 - 91", org.bukkit.ChatColor.stripColor(lines.get(11)));
+    }
+
+    private static List<String> plain(List<String> lines) {
+        List<String> plain = new java.util.ArrayList<>();
+        for (String line : lines) {
+            plain.add(org.bukkit.ChatColor.stripColor(line));
+        }
+        return plain;
     }
 
     @Test

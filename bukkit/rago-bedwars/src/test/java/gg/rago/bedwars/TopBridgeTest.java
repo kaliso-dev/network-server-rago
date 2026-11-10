@@ -164,6 +164,10 @@ class TopBridgeTest {
         assertEquals(100 - TopBridge.FALL_BELOW, bridge.fallLine(), "ten blocks under the platform: fallen");
         assertEquals(106, bridge.above()[1], 1e-9, "the dead watch from above the middle");
         assertEquals(0.5, bridge.above()[2], 1e-9);
+        double[] board = bridge.beside(FfaGame.BOARD_BESIDE_BRIDGE, FfaGame.BOARD_ABOVE_BRIDGE);
+        assertEquals(16, Math.abs(board[0] - 0.5), 1e-9, "the board of the kills: 8 blocks past the edge of the platform...");
+        assertEquals(107, board[1], 1e-9, "...and above it");
+        assertEquals(0.5, board[2], 1e-9, "beside its middle");
     }
 
     @Test

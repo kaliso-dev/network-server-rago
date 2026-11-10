@@ -33,9 +33,9 @@ import org.bukkit.scheduler.BukkitTask;
  *       wool, 2 fireballs, the Golden Pickaxe of the shop, Efficiency III and Sharpness II, and
  *       shears; three kits to choose from will come). They place blocks and throw fireballs as in a
  *       game.
- *   <li>The defenders start in their base with the kit of a game's start (a wooden sword and
- *       leather armour), its forge and its item shop, without upgrades; they come back while their
- *       bed stands, and a death after it is a final kill, as in a game.
+ *   <li>The defenders start in their base with the kit of a game's start (a wooden sword) in iron
+ *       armour, its forge and its item shop, without upgrades; they come back while their bed
+ *       stands, and a death after it is a final kill, as in a game.
  * </ul>
  *
  * A defense the map has on the bed (Bio Hazard's end stone and wool, captured with the map) is
@@ -54,8 +54,8 @@ final class AttackDefenseGame extends BedwarsGame {
     private static final long BETWEEN_TICKS = 80L;
     /** The attackers' kit when the lobby has none for the mode: shop items, with their amount. */
     static final String[] ATTACKER_KIT = {"stone_sword", "wool 64", "fireball 2", "golden_pickaxe", "shears"};
-    /** The attackers' armour: iron (the tier of Gamer#armor), as bought in a game. */
-    static final int ATTACKER_ARMOUR = 2;
+    /** The armour of both sides at the start: iron (the tier of Gamer#armor), as bought in a game. */
+    static final int ARMOUR = 2;
     /** The attackers' pickaxe, whatever the kit holds: the Golden Pickaxe of the shop (its tier). */
     static final int ATTACKER_PICKAXE = 2;
     /** What a defense of the map on the bed is made of: the blocks of a game, which players may break. */
@@ -231,16 +231,19 @@ final class AttackDefenseGame extends BedwarsGame {
         return super.spawnOf(gamer);
     }
 
-    /** The defenders: a game's start (and what they bought); the attackers: the mode's kit and iron armour. */
+    /**
+     * The defenders: a game's start in iron armour (and what they bought: diamond armour stays); the
+     * attackers: the mode's kit and iron armour.
+     */
     @Override
     void giveKit(Player player, Gamer gamer) {
+        gamer.armor = Math.max(gamer.armor, ARMOUR);
         if (gamer.team != attackers) {
             super.giveKit(player, gamer);
             return;
         }
         PlayerInventory inventory = player.getInventory();
         inventory.clear();
-        gamer.armor = ATTACKER_ARMOUR;
         wearArmor(player, gamer);
         ItemStack[] kit = lobbyKit(player, gamer);
         if (kit != null) {

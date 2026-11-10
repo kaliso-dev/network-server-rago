@@ -1,6 +1,8 @@
 package gg.rago.lobby.api;
 
+import java.util.Collections;
 import java.util.List;
+import java.util.Map;
 import java.util.UUID;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
@@ -65,6 +67,15 @@ public interface LobbyService {
      */
     default int elo(UUID player, String modeId) {
         return 0;
+    }
+
+    /**
+     * The players with the most kills ever in this mode, best first, {@code count} at most: their
+     * name as above the heads in the lobby, with their rank ("§d[PREMIUM§f+§d] §dSofiene"), and their
+     * kills. For the boards of the free for all. Empty for a lobby without stats.
+     */
+    default List<Map.Entry<String, Integer>> topKills(String modeId, int count) {
+        return Collections.emptyList();
     }
 
     /**

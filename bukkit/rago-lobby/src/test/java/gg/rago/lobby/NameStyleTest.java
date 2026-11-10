@@ -117,6 +117,7 @@ class NameStyleTest {
         assertEquals("§f", names.plusColour(ALICE), "white again");
         assertEquals(" §d§l✦", names.badgeAfter(ALICE));
         assertEquals("§d", names.headColour(ALICE));
+        assertEquals("§d[PREMIUM§f+§d] §dAlice", names.tagName(ALICE, "Alice"), "on the boards of the games: one colour");
         assertEquals("§7Bob", names.display(BOB, "Bob"));
         assertEquals("", names.badgeAfter(BOB));
 

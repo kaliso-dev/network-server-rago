@@ -81,6 +81,9 @@ class PodiumTest {
         assertNull(displays.holder(stats, key, ALICE, 0, SUNDAY), "nobody plays a ranked mode yet");
         assertEquals(Arrays.asList("#1 Nobody yet"), plain(displays.podiumLines(stats, key, ALICE, 0, SUNDAY)));
 
+        assertEquals(1, book.top(BoardStat.KILLS, StatsPeriod.ALL, "sumo", 10, SUNDAY).size(), "Alice alone has kills");
+        assertEquals(ALICE, book.top(BoardStat.KILLS, StatsPeriod.ALL, "sumo", 10, SUNDAY).get(0).id());
+        assertTrue(book.top(BoardStat.KILLS, StatsPeriod.ALL, "sumo", 0, SUNDAY).isEmpty());
         displays.next(ALICE, stats, key, false);
         assertEquals(ALICE, displays.holder(stats, key, ALICE, 0, SUNDAY).id(), "Alice reads the kills");
         assertEquals(Arrays.asList("#1 Alice", "2 kills"), plain(displays.podiumLines(stats, key, ALICE, 0, SUNDAY)),

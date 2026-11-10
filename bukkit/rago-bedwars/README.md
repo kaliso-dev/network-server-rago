@@ -123,8 +123,8 @@ s'échangent à la deuxième, la map redevient comme au départ.
   2 boules de feu, la pioche en or du shop, Efficacité III et Tranchant II comme sur Hypixel,
   cisailles ; trois kits au choix viendront ensuite). Ils posent des blocs et lancent des boules
   de feu comme dans une vraie partie.
-- **Les défenseurs** partent de leur base avec le stuff d'un début de partie (épée en bois, armure
-  en cuir), leur forge et leur shop, sans améliorations. Ils reviennent tant que leur lit tient ;
+- **Les défenseurs** partent de leur base avec le stuff d'un début de partie (épée en bois), en
+  armure de fer comme les attaquants, avec leur forge et leur shop, sans améliorations. Ils reviennent tant que leur lit tient ;
   après, une mort est un final kill, comme dans une vraie partie.
 
 La défense que la map a sur le lit (sur Bio Hazard, l'end stone et la laine capturées avec la map)
@@ -219,6 +219,13 @@ Dans `jeux:` du config.yml, un mode peut jouer autre chose qu'une partie classiq
   joueur à moins de 12 blocs, sinon le plus éloigné des autres. Ces points sont les `apparitions:`
   du `bedwars.yml` de la map (un nom, puis sa liste de points ; 8 au plus). Une map sans
   `apparitions:` fait revenir sur l'île la plus éloignée des autres.
+  Dans le FFA et le Top Bridge FFA, un **classement des kills** flotte en l'air à côté du
+  combat : « TOP KILLS », puis les 10 joueurs qui ont le plus de kills à vie dans le mode, avec
+  leur rang et leurs kills (les stats du lobby, relues toutes les 5 secondes). Sur Archway FFA, il
+  est au-dessus du vide à l'est du milieu, sa ligne du haut à y 92 (`classement: {x, y, z}` dans
+  le `bedwars.yml` de la map) ; une map sans `classement:` le met haut au-dessus du milieu des
+  îles. En Top Bridge FFA, il est à côté du milieu de la plateforme, 8 blocs après son bord et
+  7 blocs au-dessus.
 - **Free FFA** (`arene`) : la même chose avec les forges, les diamants et les émeraudes, un shop
   à lui (les diamants achètent aussi), l'armure et les outils gardés comme en Bed Wars, et sur
   chaque lit une défense de trois couches prête pour les top fights, remise quand personne n'est à

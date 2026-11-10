@@ -422,6 +422,12 @@ final class StatsBook {
         return ranking;
     }
 
+    /** The first {@code count} rows of a leaderboard ({@link #ranking}), or fewer. */
+    List<Row> top(BoardStat stat, StatsPeriod period, String modeId, int count, long millis) {
+        List<Row> rows = ranking(stat, period, modeId, millis).rows();
+        return count <= 0 ? Collections.<Row>emptyList() : rows.subList(0, Math.min(count, rows.size()));
+    }
+
     /**
      * The teams with the longest win streaks of a mode over a period, best first: their names and
      * their streak. Teams at zero are left out; ties keep the alphabetical order of the names.

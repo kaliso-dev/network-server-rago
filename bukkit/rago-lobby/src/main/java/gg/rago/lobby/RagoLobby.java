@@ -61,6 +61,7 @@ public final class RagoLobby extends JavaPlugin implements LobbyService {
     private StatsService stats;
     private StatsDisplays statsDisplays;
     private NetworkRanks ranks;
+    private NameLooks names;
     private KitLayouts kits;
     private KitEditor kitEditor;
     private HypixelProfiles hypixel;
@@ -136,7 +137,7 @@ public final class RagoLobby extends JavaPlugin implements LobbyService {
         queues = new QueueController(this, settings, state, partyBook, this::queuesChanged);
         stats = new StatsService(this, settings.defaultRating(), settings.levels(), server, writer, this::write, this::xpChanged);
         queues.setBook(stats.book());
-        NameLooks names = new NameLooks(stats.book(), server);
+        names = new NameLooks(stats.book(), server);
         ranks = new NetworkRanks(stats.book(), names);
         profiles = new Profiles(this, server, stats, ranks, names);
         boosters = new XpBoosters(this, profiles, stats.book(), state);
@@ -830,6 +831,18 @@ public final class RagoLobby extends JavaPlugin implements LobbyService {
             return 0;
         }
         return stats.book().elo(player, modeId);
+    }
+
+    @Override
+    public List<Map.Entry<String, Integer>> topKills(String modeId, int count) {
+        List<Map.Entry<String, Integer>> top = new ArrayList<>();
+        if (stats == null || names == null || settings.catalog().get(modeId) == null) {
+            return top;
+        }
+        for (StatsBook.Row row : stats.book().top(BoardStat.KILLS, StatsPeriod.ALL, modeId, count, System.currentTimeMillis())) {
+            top.add(new java.util.AbstractMap.SimpleImmutableEntry<>(names.tagName(row.id(), row.name()), row.value()));
+        }
+        return top;
     }
 
     @Override

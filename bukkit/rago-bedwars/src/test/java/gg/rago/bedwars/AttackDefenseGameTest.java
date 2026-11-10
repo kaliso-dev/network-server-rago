@@ -32,7 +32,7 @@ class AttackDefenseGameTest {
         assertEquals(3, pickaxe.enchantmentLevel());
         assertEquals(org.bukkit.enchantments.Enchantment.DAMAGE_ALL, pickaxe.second(), "Sharpness II, as on Hypixel");
         assertEquals(2, pickaxe.secondLevel());
-        assertEquals(2, AttackDefenseGame.ATTACKER_ARMOUR, "iron: leggings and boots");
+        assertEquals(2, AttackDefenseGame.ARMOUR, "iron: leggings and boots, for the defenders too");
     }
 
     @Test

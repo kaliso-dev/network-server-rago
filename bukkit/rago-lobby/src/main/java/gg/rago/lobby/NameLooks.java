@@ -171,6 +171,14 @@ final class NameLooks {
         return prefix(player) + (colour != null ? colour.apply(plain, 0) : rank(player).nameColour() + plain);
     }
 
+    /**
+     * "§d[PREMIUM§f+§d] §dSofiene": the rank and the name in one colour, as above the head; short
+     * enough for a line of a board in the games.
+     */
+    String tagName(UUID player, String plain) {
+        return prefix(player) + headColour(player) + plain;
+    }
+
     /** " §d§l✦": the badge after the name, or "" without one. */
     String badgeAfter(UUID player) {
         NameStyle badge = badge(player);

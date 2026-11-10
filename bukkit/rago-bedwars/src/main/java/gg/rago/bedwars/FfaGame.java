@@ -32,8 +32,9 @@ import org.bukkit.inventory.PlayerInventory;
  * bridge of Antenna, built between the two islands farthest apart: the players start and come
  * back on the platform, away from the others, and one who falls off it is dead. The FFA and Top
  * Bridge FFA play the owner's fight kit: a stone sword and a stack of golden apples (and in the FFA,
- * 3 fireballs and a pearl), full diamond armour with Protection IV. Main thread
- * only.
+ * 3 fireballs and a pearl), full diamond armour with Protection IV. In both, the board of the
+ * most kills ever in the mode floats in the air beside the fight (see {@link #boardPlace}). Main
+ * thread only.
  */
 final class FfaGame extends BedwarsGame {
 
@@ -63,6 +64,16 @@ final class FfaGame extends BedwarsGame {
     static final long MOVE_AFTER_SPAWN_MS = 10_000L;
     /** A spawn with nobody this close is taken first, at random; else the one farthest from them. */
     static final double SAFE_DISTANCE = 12;
+    /** How often the board of the most kills is read again from the lobby's stats. */
+    static final int BOARD_SECONDS = 5;
+    /** Top Bridge FFA: the board this far across the middle line of the platform (8 blocks past its edge)... */
+    static final int BOARD_BESIDE_BRIDGE = TopBridge.HALF_WIDTH + 8;
+    /** ...its top line this high above the platform. */
+    static final int BOARD_ABOVE_BRIDGE = 7;
+    /** Without a place in the map (classement:), the top line this high above the highest a player can build. */
+    static final int BOARD_ABOVE_LIMIT = 4;
+    /** The board of the most kills (FFA and Top Bridge FFA); null until the first second, and in the arena. */
+    private KillBoard board;
     /** The two islands of the top bridge, once it is planned; null without one. */
     private Team[] bridged;
     private int colours;
@@ -453,12 +464,65 @@ final class FfaGame extends BedwarsGame {
     @Override
     void everySecond() {
         decay.tick(instance, instance.world(), seconds);
+        if (!arena && seconds % BOARD_SECONDS == 1) {
+            updateBoard();
+        }
         if (arena && seconds % REPAIR_SECONDS == 0) {
             for (Defense defense : defenses) {
                 if (!anyoneNear(defense.bed().get(0).getLocation().add(0.5, 0, 0.5))) {
                     defense.repair();
                 }
             }
+        }
+    }
+
+    /** The board of the most kills, put up the first time: the ten first of the mode, from the lobby's stats. */
+    private void updateBoard() {
+        if (board == null) {
+            Location where = boardPlace();
+            if (where == null) {
+                return;
+            }
+            board = new KillBoard(where);
+        }
+        board.show(KillBoard.lines(plugin.lobby().topKills(modeId, KillBoard.ROWS)));
+    }
+
+    /**
+     * Where the board of the most kills floats (its top line), in the air and away from the fight:
+     * in Top Bridge FFA beside the middle of the platform, past its edge and above it; in the FFA
+     * where the map puts it (classement: in its bedwars.yml), else high above the middle of the
+     * islands. Null while the top bridge is not built.
+     */
+    Location boardPlace() {
+        World world = instance.world();
+        if (onTheBridge()) {
+            if (topBridge == null) {
+                return null;
+            }
+            double[] spot = topBridge.beside(BOARD_BESIDE_BRIDGE, BOARD_ABOVE_BRIDGE);
+            return new Location(world, spot[0], spot[1], spot[2]);
+        }
+        MapPoint place = instance.map().killBoard();
+        if (place != null) {
+            return place.in(world);
+        }
+        double x = 0;
+        double z = 0;
+        for (Team island : islands) {
+            x += island.points.spawn.x();
+            z += island.points.spawn.z();
+        }
+        return new Location(world, x / islands.size(), Math.min(world.getMaxHeight() - 2,
+                instance.map().buildLimit() + BOARD_ABOVE_LIMIT), z / islands.size());
+    }
+
+    @Override
+    void cleanUp() {
+        super.cleanUp();
+        if (board != null) {
+            board.remove();
+            board = null;
         }
     }
 

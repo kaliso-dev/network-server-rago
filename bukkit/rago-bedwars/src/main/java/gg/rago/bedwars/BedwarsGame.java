@@ -703,7 +703,7 @@ class BedwarsGame {
     }
 
     /** A line of text floating here: an invisible armour stand that nothing can touch or click. */
-    private static ArmorStand label(Location where, String text) {
+    static ArmorStand label(Location where, String text) {
         ArmorStand stand = where.getWorld().spawn(where, ArmorStand.class);
         stand.setVisible(false);
         stand.setGravity(false);

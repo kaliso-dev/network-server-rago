@@ -76,6 +76,8 @@ final class BedwarsMap {
     private final Map<String, List<MapPoint>> spawnChoices = new java.util.LinkedHashMap<>();
     /** The most spawns to choose from: one row of the menu, Random kept. */
     static final int MAX_SPAWN_CHOICES = 8;
+    /** Where the board of the most kills floats in the FFA (classement:, its top line); null: above the middle. */
+    private MapPoint killBoard;
 
     /**
      * A box of the map taken out of each game's copy when it is made (retirer:): all its blocks, or
@@ -363,6 +365,11 @@ final class BedwarsMap {
         return spectators;
     }
 
+    /** Where the board of the most kills floats in the FFA (its top line), or null for above the middle. */
+    MapPoint killBoard() {
+        return killBoard;
+    }
+
     /** The spawns of the FFA to choose from, by name, in their order; empty if none. */
     Map<String, List<MapPoint>> spawnChoices() {
         return Collections.unmodifiableMap(spawnChoices);
@@ -482,6 +489,7 @@ final class BedwarsMap {
         for (Map.Entry<String, List<MapPoint>> choice : spawnChoices.entrySet()) {
             yaml.set("apparitions." + choice.getKey(), maps(choice.getValue()));
         }
+        write(yaml, "classement", killBoard);
         if (!removals.isEmpty()) {
             List<Map<String, Object>> boxes = new ArrayList<>();
             for (Removal removal : removals) {
@@ -571,6 +579,7 @@ final class BedwarsMap {
                 map.spawnChoices.put(name, points);
             }
         }
+        map.killBoard = point(yaml, "classement", null);
         List<Map<?, ?>> boxes = yaml.getMapList("retirer");
         for (int i = 0; i < boxes.size(); i++) {
             map.removals.add(Removal.fromMap(boxes.get(i), "retirer[" + i + "]"));

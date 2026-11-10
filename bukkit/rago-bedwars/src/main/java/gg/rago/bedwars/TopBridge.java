@@ -140,6 +140,13 @@ final class TopBridge {
         return spot;
     }
 
+    /** Beside the middle of the platform, this far across its middle line and this high above it: {x, y, z, yaw}. */
+    double[] beside(int across, int up) {
+        double[] spot = spot(middle, across, 1);
+        spot[1] += up;
+        return spot;
+    }
+
     /** The middle of the block this far along the line from bed A and this far across, facing B (way 1) or A (-1). */
     private double[] spot(double along, double across, int way) {
         double x = ax + ux * along - uz * across;
