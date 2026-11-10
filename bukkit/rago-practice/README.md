@@ -220,6 +220,8 @@ le mode (les stats du lobby, relues toutes les 5 secondes).
 avec ses carrés et ses ponts, le même stuff avec Protection II sur l'armure
 (`bridge-fight.protection-1v1`, 0 pour aucune), aucun bloc. Une mort ou une chute donne le point à
 l'autre ; le premier à `points-pour-gagner.bridge-fight` (5) gagne.
+`bridge-fight-2v2` est le même en 2v2 : chaque équipe côte à côte sur son carré, le point quand
+toute l'équipe d'en face est tombée ou morte.
 
 ## Les events (/host)
 

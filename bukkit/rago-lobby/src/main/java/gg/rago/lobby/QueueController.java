@@ -52,6 +52,10 @@ final class QueueController {
     private final PartyBook parties;
     /** The ELO of the players, for the ranked queues; null until the stats exist. */
     private StatsBook book;
+    /** A player's 2v2 queue is told to the lobby once in this long at most. */
+    static final long ANNOUNCE_PAUSE_MS = 60_000L;
+    /** When each player's 2v2 queue was last told to the lobby. */
+    private final Map<UUID, Long> announcedAt = new HashMap<>();
 
     QueueController(RagoLobby lobby, LobbySettings settings, LobbyState state, PartyBook parties, Runnable onChange) {
         this.lobby = lobby;
@@ -164,6 +168,7 @@ final class QueueController {
                 player.sendMessage(ChatColor.GREEN + "You joined the queue for " + mode.name() + ChatColor.GREEN
                         + (map == null ? "" : " on " + ChatColor.WHITE + map + ChatColor.GREEN) + " ("
                         + mode.format() + ", " + matchmaker.waiting(mode.id()) + " waiting).");
+                announceTeam(player, Collections.singletonList(player.getUniqueId()), mode);
                 onChange.run();
                 break;
             case ALREADY_WAITING:
@@ -292,6 +297,7 @@ final class QueueController {
                             + (map == null ? "" : " on " + ChatColor.WHITE + map + ChatColor.GREEN) + " ("
                             + mode.format() + ", " + matchmaker.waiting(mode.id()) + " waiting). You will play in the same team.");
                 }
+                announceTeam(leader, party.members(), mode);
                 onChange.run();
                 break;
             case ALREADY_WAITING:
@@ -304,6 +310,43 @@ final class QueueController {
                 leader.sendMessage(ChatColor.RED + "This mode does not exist.");
                 break;
         }
+    }
+
+    /**
+     * A team of a 2v2 joined its queue (a player alone, or a party): the rest of the lobby (not in a
+     * queue nor a game) is told,
+     * "Sofiene's team is queuing Bed fight 2v2 [JOIN NOW]", and the button joins the same queue,
+     * so that the match is found sooner (a player alone gets a teammate there). Once a minute at
+     * most for each player.
+     */
+    private void announceTeam(Player leader, Collection<UUID> team, GameMode mode) {
+        if (mode.teams() != 2 || mode.playersPerTeam() != 2) {
+            return;
+        }
+        long now = System.currentTimeMillis();
+        Long last = announcedAt.get(leader.getUniqueId());
+        if (last != null && now - last < ANNOUNCE_PAUSE_MS) {
+            return;
+        }
+        announcedAt.put(leader.getUniqueId(), now);
+        String json = teamQueueLine(leader.getName(), ChatColor.stripColor(mode.name()), mode.id());
+        for (Player other : Bukkit.getOnlinePlayers()) {
+            if (!team.contains(other.getUniqueId()) && state.isInLobby(other) && !state.isInGame(other)
+                    && queueOf(other) == null) {
+                // clickable through the vanilla /tellraw, as the duel buttons: names are letters, digits and _
+                Bukkit.dispatchCommand(Bukkit.getConsoleSender(), "tellraw " + other.getName() + " " + json);
+            }
+        }
+    }
+
+    /** The JSON of "Sofiene's team is queuing Bed fight 2v2 [JOIN NOW]", the button running /queue of the mode. */
+    static String teamQueueLine(String leader, String modeName, String modeId) {
+        String mode = modeName.replace("\\", "").replace("\"", "");
+        return "[\"\",{\"text\":\"" + leader + "'s team\",\"color\":\"green\"},"
+                + "{\"text\":\" is queuing \",\"color\":\"gray\"},{\"text\":\"" + mode + "\",\"color\":\"white\"},"
+                + "{\"text\":\" \"},{\"text\":\"[JOIN NOW]\",\"color\":\"green\",\"bold\":true,"
+                + "\"clickEvent\":{\"action\":\"run_command\",\"value\":\"/queue " + modeId + "\"},"
+                + "\"hoverEvent\":{\"action\":\"show_text\",\"value\":\"Join the queue of " + mode + "\"}}]";
     }
 
     /** The party fills the match: a private game between its players, teams dealt in turn, counted nowhere. */

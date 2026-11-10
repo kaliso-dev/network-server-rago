@@ -41,8 +41,8 @@ class LobbySettingsTest {
         assertEquals("lobby", settings.world());
         assertEquals(0, settings.voidHeight());
         assertEquals(0, settings.defaultRating(), "a ranked ELO starts at 0, in Coal");
-        assertEquals(51, settings.modes().size(), "with the private top bridge and the clutch scenario, without the top fight"
-                + " or the ranked scenarios");
+        assertEquals(54, settings.modes().size(), "with the private top bridge, the clutch scenario, the bed fight and the"
+                + " bridge fight 2v2, without the top fight or the ranked scenarios");
         assertFalse(settings.catalog().get("top-bridge-1v1").ranked(), "Top Bridge: no ELO");
         assertEquals("2v2", settings.catalog().get("top-bridge-2v2").format());
         assertTrue(settings.npc("rbwffa").modeIds().contains("top-bridge-1v1"));
@@ -70,7 +70,14 @@ class LobbySettingsTest {
         assertEquals("ranked", settings.categories().get(1).id());
         assertEquals("duels", settings.categories().get(2).id(), "the duels on the right");
         assertEquals(Material.IRON_SWORD, settings.categories().get(2).icon());
-        assertEquals("sumo", settings.modesIn("duels").get(0).mode().id());
+        assertEquals("bed-fight-1v1", settings.modesIn("duels").get(0).mode().id(), "the bed fight first");
+        for (String duel : Arrays.asList("bed-fight-1v1", "bed-fight-2v2", "top-bridge-1v1", "top-bridge-2v2", "bridge-fight-1v1",
+                "bridge-fight-2v2", "block-fight-1v1", "block-fight-2v2", "sumo")) {
+            assertEquals("duels", settings.display(duel).category(), duel + ": in the Duels NPC and compass");
+        }
+        assertEquals("ranked", settings.display("top-bridge-ffa").category(), "the free for all stay in the RBW modes");
+        assertEquals("ranked", settings.display("bridge-fight").category());
+        assertEquals("ranked", settings.display("block-fight-arena").category());
         assertEquals("entrainement", settings.display("kb-displace-bot").category(), "against a bot: practice");
         int total = 0;
         for (ModeCategory category : settings.categories()) {
@@ -99,10 +106,15 @@ class LobbySettingsTest {
         assertEquals("ranked", ranked.get(0).group.id(), "Ranked Bedwars first");
         assertEquals(Arrays.asList("ranked-1v1", "ranked-2v2", "ranked-3v3", "ranked-4v4"),
                 displayIds(settings.modesOfGroup("ranked")));
-        assertEquals(Arrays.asList("top-bridge-1v1", "top-bridge-2v2", "top-bridge-ffa"),
-                displayIds(settings.modesOfGroup("top-bridge")));
-        assertEquals(Arrays.asList("block-fight-1v1", "block-fight-2v2", "block-fight-arena"),
-                displayIds(settings.modesOfGroup("block-placement")));
+        assertEquals(Arrays.asList("top-bridge-1v1", "top-bridge-2v2"), displayIds(settings.modesOfGroup("top-bridge")));
+        assertEquals(Arrays.asList("block-fight-1v1", "block-fight-2v2"), displayIds(settings.modesOfGroup("block-placement")));
+        assertEquals(Arrays.asList("bridge-fight-1v1", "bridge-fight-2v2"), displayIds(settings.modesOfGroup("bridge-fight")));
+        assertEquals(Arrays.asList("bed-fight-1v1", "bed-fight-2v2"), displayIds(settings.modesOfGroup("bed-fight")));
+        List<LobbySettings.Entry> duels = settings.entriesIn("duels");
+        assertEquals("bed-fight", duels.get(0).group.id(), "the duels: 1v1 or 2v2 in one item each");
+        assertEquals("top-bridge", duels.get(1).group.id());
+        assertEquals("bridge-fight", duels.get(2).group.id());
+        assertEquals("block-placement", duels.get(3).group.id());
         assertTrue(ranked.size() <= 14, "two rows at most: " + ranked.size());
         assertNull(settings.display("top-fight-1v1"), "no top fight: there are bridge fight and top bridge");
         assertNull(settings.privateRoutes().get("top-fight-prive"));
@@ -130,10 +142,11 @@ class LobbySettingsTest {
     void anNpcShowsTheModesOfOneGroupAsOneItem() throws Exception {
         LobbySettings settings = LobbySettings.load(bundledConfig());
         List<LobbySettings.Entry> ffa = settings.entriesOf(settings.npc("rbwffa").modeIds());
-        assertEquals(2, ffa.size(), "the FFA, and the Top Bridge as one item");
+        assertEquals(3, ffa.size(), "the FFA, the Top Bridge 1v1 and 2v2 as one item, the Top Bridge FFA");
         assertEquals("ffa", ffa.get(0).mode.mode().id());
         assertEquals("top-bridge", ffa.get(1).group.id());
-        assertEquals(Material.LADDER, ffa.get(1).group.icon(), "a ladder, which opens 1v1, 2v2 and FFA");
+        assertEquals(Material.LADDER, ffa.get(1).group.icon(), "a ladder, which opens 1v1 and 2v2");
+        assertEquals("top-bridge-ffa", ffa.get(2).mode.mode().id());
         List<LobbySettings.Entry> ranked = settings.entriesOf(settings.npc("rankedbedwars1v1ou2v2elo").modeIds());
         assertEquals(4, ranked.size(), "one group only: its modes, one by one, as before");
         assertEquals("ranked-1v1", ranked.get(0).mode.mode().id());

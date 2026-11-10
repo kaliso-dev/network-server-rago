@@ -211,6 +211,9 @@ public final class RagoPractice extends JavaPlugin {
             onMaps(register(kind.modeId(), (h, m, a, t) -> events.created(new EventGame(h, m, a, t, events)), slots, spacing, true),
                     eventMaps);
         }
+        // the bridge fight in 2v2, as the 1v1 (each team side by side on its pad); last, so that
+        // the other modes keep their zones
+        register("bridge-fight-2v2", (h, m, a, t) -> new BridgeDuel(h, m, a, t, bridge, bridgeProtection), slots, spacing, false);
     }
 
     /**

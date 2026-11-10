@@ -32,7 +32,7 @@ class BedwarsSettingsTest {
                 "top-bridge-2v2", "skyrise-1v1", "skyrise-2v2",
                 "first-rush", "first-rush-duo", "top-bridge-ffa", "ffa", "invis-practice", "shop-practice",
                 "attack-defense-1v1", "attack-defense-2v2", "clutch-scenario-1v1", "clutch-scenario-2v2",
-                "clutch-scenario-3v3", "clutch-scenario-4v4"),
+                "clutch-scenario-3v3", "clutch-scenario-4v4", "bed-fight-1v1", "bed-fight-2v2"),
                 settings.modes());
         assertEquals(BedwarsSettings.Kind.CLASSIC, settings.kind("ranked-1v1"));
         assertEquals(BedwarsSettings.Kind.FFA, settings.kind("ffa"));
@@ -54,6 +54,9 @@ class BedwarsSettingsTest {
         assertEquals(BedwarsSettings.Kind.ATTACK_DEFENSE, settings.kind("attack-defense-2v2"));
         assertEquals(Collections.singletonList("BioHazard"), settings.mapsOf("attack-defense-2v2"), "the owner's Bio Hazard");
         assertEquals(BedwarsSettings.Kind.CLUTCH_SCENARIO, settings.kind("clutch-scenario-3v3"));
+        assertEquals(BedwarsSettings.Kind.BED_FIGHT, settings.kind("bed-fight-1v1"));
+        assertEquals(BedwarsSettings.Kind.BED_FIGHT, settings.kind("bed-fight-2v2"));
+        assertEquals(Collections.singletonList("BedFight"), settings.mapsOf("bed-fight-2v2"), "the owner's Bed Fight map");
         assertEquals(31, settings.mapsOf("clutch-scenario-1v1").size(), "the RBW maps, Sky Rise, the solo and doubles maps");
         assertTrue(settings.mapsOf("clutch-scenario-4v4").containsAll(settings.mapsOf("ranked-1v1")));
         assertTrue(settings.mapsOf("clutch-scenario-1v1").containsAll(settings.mapsOf("first-rush")));

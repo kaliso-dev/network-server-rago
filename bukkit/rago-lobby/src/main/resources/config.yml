@@ -48,16 +48,17 @@ categories:
     icone: BED
     description:
       - "Ranked and the Bedwars modes:"
-      - "Sky Rise, first rush, Top Bridge,"
-      - "FFA, clutch scenario, attack"
-      - "and defense..."
+      - "Sky Rise, first rush, the FFA,"
+      - "clutch scenario, attack and"
+      - "defense..."
   duels:
     nom: "&a&lDuels"
     icone: IRON_SWORD
     description:
-      - "Sumo, boxing, KB displace,"
-      - "fireball fight, bow: against"
-      - "a player."
+      - "Bed fight, top bridge, bridge"
+      - "fight, block placement in 1v1"
+      - "or 2v2; sumo, boxing, KB"
+      - "displace, fireball fight, bow."
 
 # The groups: the sizes of one game (1v1, 2v2...), one item in their category which opens them
 # side by side, as the games of Hypixel. A mode is in a group with groupe: (the modes of a group
@@ -83,6 +84,15 @@ groupes:
       - "A real Bedwars, RBW style, on"
       - "two islands side by side: the"
       - "first rush decides it."
+  # the duels (category duels): each in 1v1 or 2v2; queued alone in a 2v2, a teammate is found
+  # in the queue, and the lobby is told (see annonce-2v2:)
+  bed-fight:
+    nom: "&cBed fight"
+    icone: BED
+    description:
+      - "Two islands, a bed each: break"
+      - "theirs and kill them. You come"
+      - "back while your bed stands."
   top-bridge:
     nom: "&eTop Bridge"
     icone: LADDER
@@ -90,7 +100,7 @@ groupes:
       - "The fight on the top bridge of"
       - "Antenna, on the 20 RBW maps:"
       - "rounds to 5 points in 1v1 or"
-      - "2v2, or free for all on it."
+      - "2v2."
   ffa:
     nom: "&cFree for all"
     icone: STONE_SWORD
@@ -110,16 +120,15 @@ groupes:
     nom: "&bBridge fight"
     icone: WOOL
     description:
-      - "Fights on wool platforms,"
-      - "no blocks: free for all,"
-      - "or a 1v1, first to 5."
+      - "On a wool platform, no blocks:"
+      - "a 1v1 or a 2v2, first to 5."
   block-placement:
     nom: "&bBlock placement"
     icone: SANDSTONE
     description:
       - "Build, clutch and fight on the"
-      - "block placement maps: 1v1, 2v2,"
-      - "or the arena with everyone."
+      - "block placement maps: 1v1"
+      - "or 2v2."
   prive:
     nom: "&6Private games"
     icone: NAME_TAG
@@ -188,7 +197,7 @@ pnj:
   realisticplat:
     nom: "&bBridge fight"
     skin: bridge
-    modes: [bridge-fight, bridge-fight-1v1]
+    modes: [bridge-fight, bridge-fight-1v1, bridge-fight-2v2]
   freearenacombo:
     nom: "&aArena Free"
     skin: arena
@@ -716,9 +725,38 @@ modes:
       - "on two islands side by side:"
       - "the first rush decides it."
       - "Choose the map."
+  bed-fight-1v1:
+    nom: "&cBed fight 1v1"
+    categorie: duels
+    groupe: bed-fight
+    icone: BED
+    equipes: 2
+    joueurs-par-equipe: 1
+    classe: false
+    # with full leather armour in the colour of the team
+    kit: [STONE_SWORD, WOOD_PICKAXE, WOOD_AXE, SHEARS, "WOOL 64", "WOOL 64"]
+    description:
+      - "Two islands face to face, a bed"
+      - "on each: bridge over, break"
+      - "their bed and kill them. You"
+      - "come back while yours stands."
+  bed-fight-2v2:
+    nom: "&cBed fight 2v2"
+    categorie: duels
+    groupe: bed-fight
+    icone: BED
+    equipes: 2
+    joueurs-par-equipe: 2
+    classe: false
+    # with full leather armour in the colour of the team
+    kit: [STONE_SWORD, WOOD_PICKAXE, WOOD_AXE, SHEARS, "WOOL 64", "WOOL 64"]
+    description:
+      - "Bed fight, two against two:"
+      - "break their bed, then the last"
+      - "team standing wins."
   top-bridge-1v1:
     nom: "&eTop Bridge 1v1"
-    categorie: ranked
+    categorie: duels
     groupe: top-bridge
     icone: LADDER
     equipes: 2
@@ -733,7 +771,7 @@ modes:
       - "the first to 5 points wins."
   top-bridge-2v2:
     nom: "&eTop Bridge 2v2"
-    categorie: ranked
+    categorie: duels
     groupe: top-bridge
     icone: LADDER
     equipes: 2
@@ -747,7 +785,6 @@ modes:
   top-bridge-ffa:
     nom: "&eTop Bridge FFA"
     categorie: ranked
-    groupe: top-bridge
     icone: LADDER
     equipes: 1
     joueurs-par-equipe: 1
@@ -810,7 +847,6 @@ modes:
   bridge-fight:
     nom: "&bBridge fight"
     categorie: ranked
-    groupe: bridge-fight
     icone: WOOL
     equipes: 1
     joueurs-par-equipe: 1
@@ -822,7 +858,7 @@ modes:
       - "walk from one to another."
   bridge-fight-1v1:
     nom: "&bBridge fight 1v1"
-    categorie: ranked
+    categorie: duels
     groupe: bridge-fight
     icone: WOOL
     equipes: 2
@@ -833,9 +869,23 @@ modes:
       - "A real 1v1 on a platform of its"
       - "own, no blocks: a kill or a fall"
       - "is a point. First to 5."
+  bridge-fight-2v2:
+    nom: "&bBridge fight 2v2"
+    categorie: duels
+    groupe: bridge-fight
+    icone: WOOL
+    equipes: 2
+    joueurs-par-equipe: 2
+    classe: false
+    kit: [STONE_SWORD, "GOLDEN_APPLE 2"]
+    description:
+      - "The bridge fight, two against"
+      - "two on one platform: when a"
+      - "whole team is out, the other"
+      - "scores. First to 5."
   block-fight-1v1:
     nom: "&bBlock placement 1v1"
-    categorie: ranked
+    categorie: duels
     groupe: block-placement
     icone: SANDSTONE
     equipes: 2
@@ -848,10 +898,9 @@ modes:
       - "point, the void costs 10."
       - "Build, clutch, knock them off:"
       - "first to 100."
-      - "First to 5."
   block-fight-2v2:
     nom: "&bBlock placement 2v2"
-    categorie: ranked
+    categorie: duels
     groupe: block-placement
     icone: SANDSTONE
     equipes: 2
@@ -865,7 +914,6 @@ modes:
   block-fight-arena:
     nom: "&bBlock placement arena"
     categorie: ranked
-    groupe: block-placement
     icone: SANDSTONE
     equipes: 1
     joueurs-par-equipe: 1

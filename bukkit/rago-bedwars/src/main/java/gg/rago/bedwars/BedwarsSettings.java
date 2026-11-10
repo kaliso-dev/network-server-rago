@@ -193,7 +193,12 @@ final class BedwarsSettings {
          * Clutch Scenario: a real game where one team has lost its bed already, the other keeps it
          * under a ranked defense; iron armour, a stone sword and full forges from the start.
          */
-        CLUTCH_SCENARIO("clutch-scenario");
+        CLUTCH_SCENARIO("clutch-scenario"),
+        /**
+         * Bed Fight, as on Minemen: two islands, each bed under the defense of the map, no forge
+         * nor shop, the mode's kit at each life; back while the bed stands, the last team wins.
+         */
+        BED_FIGHT("bed-fight");
 
         final String word;
 

@@ -183,7 +183,7 @@ class StatsDisplaysTest {
         StatsBook book = new StatsBook(1000, settings.levels());
         ModeMenu menu = new ModeMenu(settings, null, book);
         long now = System.currentTimeMillis();
-        assertEquals(Collections.singletonList("§eDaily Streak: 0"),
+        assertEquals(Arrays.asList("§eDaily Streak: 0", "§eYour position: §7-"),
                 menu.streakLines(settings.catalog().get("block-fight-2v2"), player(ALICE)), "nobody yet: no top");
         UUID carl = new UUID(0, 3);
         UUID dave = new UUID(0, 4);
@@ -192,10 +192,14 @@ class StatsDisplaysTest {
             book.record(settings.catalog().get("block-fight-2v2"), Arrays.asList(BOB, ALICE), Arrays.asList(carl, dave), names, now);
         }
         book.record(settings.catalog().get("block-fight-2v2"), Arrays.asList(carl, dave), Arrays.asList(ALICE, BOB), names, now);
-        assertEquals(Arrays.asList("§eDaily Streak: 0", "§e 1. §fAlice, bob§e - 2", "§e 2. §fCarl, Dave§e - 1"),
-                menu.streakLines(settings.catalog().get("block-fight-2v2"), player(ALICE)));
-        assertEquals("§eDaily Streak: 1", menu.streakLines(settings.catalog().get("block-fight-2v2"), player(carl)).get(0),
-                "the viewer's wins in a row");
+        assertEquals(Arrays.asList("§eDaily Streak: 0", "§e 1. §fAlice, bob§e - 2", "§e 2. §fCarl, Dave§e - 1",
+                "§eYour position: §f#1§7 (2)"), menu.streakLines(settings.catalog().get("block-fight-2v2"), player(ALICE)),
+                "the best of the day of the viewer's team, then their place");
+        List<String> carls = menu.streakLines(settings.catalog().get("block-fight-2v2"), player(carl));
+        assertEquals("§eDaily Streak: 1", carls.get(0), "the viewer's wins in a row");
+        assertEquals("§eYour position: §f#2§7 (1)", carls.get(carls.size() - 1));
+        assertEquals("§eYour position: §7-", ModeMenu.positionLine(book.topStreaks("block-fight-2v2", StatsPeriod.DAY, now),
+                new UUID(0, 9)), "not on the board today");
     }
 
     @Test

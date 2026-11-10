@@ -21,8 +21,8 @@ import org.bukkit.inventory.meta.ItemMeta;
  * row, framed by an empty row above and below. Clicking a playable mode joins its queue; clicking
  * the mode one waits for leaves it. A mode whose game offers several maps first asks which one:
  * a map, or any map (the queue is shorter). Hovering a mode shows the player's win streak of the
- * day in it, and the three teams with the longest streaks of the day (every name of a team of two
- * or more), as on Minemen. Open menus are refreshed every second, for the queue counts.
+ * day in it, the three teams with the longest streaks of the day (every name of a team of two
+ * or more), as on Minemen, and the player's position among all of them. Open menus are refreshed every second, for the queue counts.
  */
 final class ModeMenu {
 
@@ -522,7 +522,8 @@ final class ModeMenu {
 
     /**
      * As on Minemen: "Daily Streak: 2", the viewer's wins in a row in this mode (0 if they have not
-     * won today), then the three longest streaks of the day, "1. Alice, Bob - 24".
+     * won today), then the three longest streaks of the day, "1. Alice, Bob - 24", and the viewer's
+     * place among them: "Your position: #7 (3)", their best team of the day.
      */
     List<String> streakLines(GameMode mode, HumanEntity viewer) {
         long now = System.currentTimeMillis();
@@ -536,6 +537,20 @@ final class ModeMenu {
             lines.add(ChatColor.YELLOW + " " + (i + 1) + ". " + ChatColor.WHITE + top.get(i).names() + ChatColor.YELLOW
                     + " - " + top.get(i).value());
         }
+        if (viewer != null) {
+            lines.add(positionLine(top, viewer.getUniqueId()));
+        }
         return lines;
+    }
+
+    /** "Your position: #7 (3)": the first row of the day with this player in its team; "-" if none. */
+    static String positionLine(List<StatsBook.TeamRow> rows, java.util.UUID player) {
+        for (int i = 0; i < rows.size(); i++) {
+            if (rows.get(i).players().contains(player)) {
+                return ChatColor.YELLOW + "Your position: " + ChatColor.WHITE + "#" + (i + 1) + ChatColor.GRAY + " ("
+                        + rows.get(i).value() + ")";
+            }
+        }
+        return ChatColor.YELLOW + "Your position: " + ChatColor.GRAY + "-";
     }
 }

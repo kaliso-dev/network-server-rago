@@ -29,6 +29,8 @@ modes:
   clutch-scenario-2v2: [Antenna, Aquarium, Archway, Artemis, Boletum, Carapace, Catalyst, Chained, Eastwood, Extinction, Invasion, Katsu, Lectus, Obelisk, Paladin, Planet98, Rise, Stonekeep, Swashbuckle, Treenan, SkyRise, Acropolis, Ambush, Aqil, Cascade, Crogorm, Frosted, Gelato, Lighthouse, Lotus, Nebuc]
   clutch-scenario-3v3: [Antenna, Aquarium, Archway, Artemis, Boletum, Carapace, Catalyst, Chained, Eastwood, Extinction, Invasion, Katsu, Lectus, Obelisk, Paladin, Planet98, Rise, Stonekeep, Swashbuckle, Treenan, SkyRise, Acropolis, Ambush, Aqil, Cascade, Crogorm, Frosted, Gelato, Lighthouse, Lotus, Nebuc]
   clutch-scenario-4v4: [Antenna, Aquarium, Archway, Artemis, Boletum, Carapace, Catalyst, Chained, Eastwood, Extinction, Invasion, Katsu, Lectus, Obelisk, Paladin, Planet98, Rise, Stonekeep, Swashbuckle, Treenan, SkyRise, Acropolis, Ambush, Aqil, Cascade, Crogorm, Frosted, Gelato, Lighthouse, Lotus, Nebuc]
+  bed-fight-1v1: [BedFight]
+  bed-fight-2v2: [BedFight]
 
 # The modes that are not a classic Bed Wars game, each with its kind of game:
 #   ffa        free for all, open: players join and leave when they like, each for themselves, and
@@ -60,6 +62,11 @@ modes:
 #              lost its bed already (one life each: clutch), the other keeps it under the owner's
 #              duo defense (end stone, then wool); everyone in iron armour with a stone sword,
 #              no enchantment, no emerald, the forges full of iron and gold
+#   bed-fight  Bed Fight, as on Minemen: two islands face to face, each bed under the defense the
+#              map has on it (wood and end stone, breakable as in a game), no forge, no shop, no
+#              upgrade; the mode's kit (the lobby's kit editor) in leather armour of the team's
+#              colour at each life; back while the bed stands, the last team wins; the beds go at
+#              10 minutes, a draw at 15
 #   fast-shop  Fast Shop: each player on an island with its shop, lists of items to buy as fast as
 #              possible with their own quick buy (copied from Hypixel in the lobby), and records
 # A mode not listed is a classic game.
@@ -76,6 +83,8 @@ jeux:
   clutch-scenario-2v2: clutch-scenario
   clutch-scenario-3v3: clutch-scenario
   clutch-scenario-4v4: clutch-scenario
+  bed-fight-1v1: bed-fight
+  bed-fight-2v2: bed-fight
 
 # How many game worlds the server keeps at most, so how many games at once (from 1 to 50).
 parties-max: 8

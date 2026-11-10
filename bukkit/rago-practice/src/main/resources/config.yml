@@ -135,7 +135,8 @@ bridge-fight:
     - monde: "Bridge Fight Plateform"
       centre: [85, 107, 83]
       zone: [58, 105, 50, 112, 116, 112]
-  # The armour of the 1v1 (bridge-fight-1v1): Protection of this level (0 for none, 4 at most).
+  # The armour of the 1v1 and the 2v2 (bridge-fight-1v1, bridge-fight-2v2): Protection of this
+  # level (0 for none, 4 at most).
   protection-1v1: 2
 
 # The fireball fight plays on these maps of the owner, as the boxing on its arenas: "departs",

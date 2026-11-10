@@ -1,21 +1,14 @@
 package gg.rago.bedwars;
 
-import java.util.ArrayDeque;
 import java.util.ArrayList;
 import java.util.Collections;
-import java.util.Deque;
-import java.util.EnumSet;
-import java.util.HashSet;
 import java.util.List;
-import java.util.Set;
 import java.util.UUID;
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
 import org.bukkit.Location;
-import org.bukkit.Material;
 import org.bukkit.Sound;
 import org.bukkit.block.Block;
-import org.bukkit.block.BlockFace;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.PlayerInventory;
@@ -58,14 +51,6 @@ final class AttackDefenseGame extends BedwarsGame {
     static final int ARMOUR = 2;
     /** The attackers' pickaxe, whatever the kit holds: the Golden Pickaxe of the shop (its tier). */
     static final int ATTACKER_PICKAXE = 2;
-    /** What a defense of the map on the bed is made of: the blocks of a game, which players may break. */
-    private static final Set<Material> DEFENSE_BLOCKS = EnumSet.of(Material.WOOL, Material.ENDER_STONE, Material.WOOD,
-            Material.STAINED_GLASS, Material.GLASS, Material.STAINED_CLAY, Material.HARD_CLAY, Material.OBSIDIAN,
-            Material.LADDER);
-    /** How far from the bed, on each axis, a defense of the map goes at most. */
-    static final int DEFENSE_REACH = 4;
-    private static final BlockFace[] FACES = {BlockFace.NORTH, BlockFace.SOUTH, BlockFace.EAST, BlockFace.WEST,
-        BlockFace.UP, BlockFace.DOWN};
     private static final String CHECK = "✔";
     private static final String CROSS = "✘";
 
@@ -161,49 +146,12 @@ final class AttackDefenseGame extends BedwarsGame {
         freeDefense();
     }
 
-    /**
-     * The blocks of a game (wool, end stone, wood, glass, clay, obsidian, ladders) joined to the
-     * bed, from its height up and within {@value #DEFENSE_REACH} blocks of it, become as if placed
-     * by a player: breakable, and the rollback puts them back. How many.
-     */
+    /** The defense of the map on the defenders' bed becomes breakable (see {@link Defense#free}). How many blocks. */
     int freeDefense() {
         if (defenders.points == null || defenders.points.bed == null) {
             return 0;
         }
-        List<Block> bed = Instance.bedOf(defenders.points.bed.blockIn(instance.world()));
-        if (bed.isEmpty()) {
-            return 0;
-        }
-        Deque<Block> todo = new ArrayDeque<>(bed);
-        Set<Block> seen = new HashSet<>(bed);
-        int freed = 0;
-        while (!todo.isEmpty()) {
-            Block block = todo.poll();
-            for (BlockFace face : FACES) {
-                Block next = block.getRelative(face);
-                if (!DEFENSE_BLOCKS.contains(next.getType()) || !nearBed(next, bed) || !seen.add(next)) {
-                    continue;
-                }
-                if (!instance.isPlaced(next)) {
-                    instance.markPlaced(next);
-                    freed++;
-                }
-                todo.add(next);
-            }
-        }
-        return freed;
-    }
-
-    /** From the bed's height up, within {@value #DEFENSE_REACH} blocks of one of its halves on each axis. */
-    private static boolean nearBed(Block block, List<Block> bed) {
-        for (Block half : bed) {
-            if (block.getY() >= half.getY() && block.getY() - half.getY() <= DEFENSE_REACH
-                    && Math.abs(block.getX() - half.getX()) <= DEFENSE_REACH
-                    && Math.abs(block.getZ() - half.getZ()) <= DEFENSE_REACH) {
-                return true;
-            }
-        }
-        return false;
+        return Defense.free(instance, defenders.points.bed.blockIn(instance.world()));
     }
 
     /** Only the defended bed counts. */
