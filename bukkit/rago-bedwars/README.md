@@ -148,7 +148,10 @@ Dans `jeux:` du config.yml, un mode peut jouer autre chose qu'une partie classiq
   de 3 minutes. À chaque manche, un joueur attaque avec le kit du mode (rangé dans l'éditeur de
   kit du lobby) : une potion d'invisibilité (30 s) et une de Jump V (45 s), 16 planches, une pioche
   en or, une fireball, une hache en fer, des cisailles, une épée en pierre, 2 Bridge Eggs, 2 stacks
-  de laine, en armure de fer Protection I (cachée tant qu'il est invisible). Les autres, quatre au
+  de laine, en armure de fer Protection I (cachée tant qu'il est invisible). Il laisse des traces
+  de pas au sol (une tous les 0,8 bloc, pied gauche puis pied droit, qui restent quelques
+  secondes) et les tourbillons gris de la potion autour de lui : les défenseurs peuvent le
+  repérer. Les autres modes gardent l'invisibilité complète d'Hypixel. Les autres, quatre au
   plus, défendent le lit de l'île voisine sous de l'end stone et de la laine : cisailles, outils en
   bois et Haste, épée en fer Sharpness, 2 stacks de laine, armure de fer Protection IV.
   L'attaquant gagne la manche en cassant le lit, les défenseurs en le tuant (une vie) ou en tenant

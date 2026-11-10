@@ -31,7 +31,8 @@ import org.bukkit.scheduler.BukkitTask;
  * middle, facing the bed), with the owner's kit arranged in the lobby's kit editor: an invisibility
  * potion that lasts the whole round, without a name above the head, and a Jump V potion, 16 planks, a
  * golden pickaxe, a fireball, an iron axe, shears, a stone sword, 2 Bridge Eggs, 2 stacks of wool,
- * and Protection I armour (hidden while invisible, as on Hypixel). The others defend the bed of the
+ * and Protection I armour (hidden while invisible, as on Hypixel). The invisible leaves footprints
+ * on the ground and the swirls of the potion around them, for the defenders to spot. The others defend the bed of the
  * next island, under a defense of end stone and wool: shears, wooden tools and Haste, an iron sword
  * with Sharpness, Protection IV armour and 2 stacks of wool; four at most, a sixth player watches
  * that round. The attacker wins the round by breaking the bed; the defenders by killing the
@@ -264,6 +265,12 @@ final class InvisGame extends BedwarsGame {
     @Override
     boolean teamNameTags() {
         return false;
+    }
+
+    /** The invisible leaves footprints and the swirls of the potion: the defenders can spot them. */
+    @Override
+    boolean invisibleTraces() {
+        return true;
     }
 
     @Override

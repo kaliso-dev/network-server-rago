@@ -21,6 +21,21 @@ import org.junit.jupiter.api.Test;
 class BedwarsModesTest {
 
     @Test
+    void anInvisibleLeavesFootprintsOnOneFootThenTheOther() {
+        // looking south (yaw 0): the right foot is on the west, the left one on the east
+        double[] right = BedwarsGame.footprint(10, 20, 0f, 1);
+        double[] left = BedwarsGame.footprint(10, 20, 0f, -1);
+        assertEquals(10 - BedwarsGame.FOOT, right[0], 1e-9);
+        assertEquals(10 + BedwarsGame.FOOT, left[0], 1e-9);
+        assertEquals(20, right[1], 1e-9);
+        // looking west (yaw 90): the right foot is on the north
+        assertEquals(20 - BedwarsGame.FOOT, BedwarsGame.footprint(10, 20, 90f, 1)[1], 1e-9);
+        for (float colour : BedwarsGame.SWIRL) {
+            assertTrue(colour > 0 && colour <= 1, "a colour of the swirl is a fraction");
+        }
+    }
+
+    @Test
     void aDefenseTakesTheBlocksPlayersPutAroundABed() {
         // a bed along x: 8 blocks for one layer, 26 for two, 58 for three
         assertEquals(Arrays.asList(8, 18, 32), sizes(Defense.layers(0, 64, 0, 1, 0, 3)));

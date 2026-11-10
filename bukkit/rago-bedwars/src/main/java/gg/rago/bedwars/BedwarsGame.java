@@ -14,6 +14,7 @@ import java.util.Set;
 import java.util.UUID;
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
+import org.bukkit.Effect;
 import org.bukkit.EntityEffect;
 import org.bukkit.GameMode;
 import org.bukkit.Location;
@@ -158,6 +159,9 @@ class BedwarsGame {
     private final Map<Block, Inventory> chests = new HashMap<>();
     /** The invisible players, whose armour the others do not see. */
     private final Set<UUID> hidden = new HashSet<>();
+    /** Where each invisible player left their last footprint (x, z), and on which foot (1 or -1). */
+    private final Map<UUID, double[]> lastStep = new HashMap<>();
+    private int traceTicks;
     /** The build limit of this game when it is not the map's (above a top bridge), else 0. */
     private int buildLimit;
 
@@ -486,6 +490,14 @@ class BedwarsGame {
     /** True if the names of the players show their team, as on Hypixel ("R Steve" in red): a classic game. */
     boolean teamNameTags() {
         return true;
+    }
+
+    /**
+     * True if an invisible player leaves footprints and the swirls of the potion, to be spotted;
+     * false (a classic game, as on Hypixel): wholly invisible.
+     */
+    boolean invisibleTraces() {
+        return false;
     }
 
     /** True if the players can use their items (eat, drink, throw, shoot); false: the shop practice. */
@@ -1496,6 +1508,7 @@ class BedwarsGame {
      * show it); the potion's swirls go. Their armour shows again when they can be seen.
      */
     private void hideArmour() {
+        traceTicks += 2;
         for (Gamer gamer : gamers.values()) {
             Player player = Bukkit.getPlayer(gamer.id);
             PotionEffect invisibility = player == null || !present(gamer) || gamer.eliminated || gamer.respawning ? null
@@ -1506,10 +1519,14 @@ class BedwarsGame {
             }
             if (invisible) {
                 hidden.add(gamer.id);
-                if (invisibility.hasParticles()) {
+                if (invisibleTraces()) {
+                    traces(player);
+                } else if (invisibility.hasParticles()) {
                     player.addPotionEffect(new PotionEffect(PotionEffectType.INVISIBILITY, invisibility.getDuration(),
                             invisibility.getAmplifier(), true, false), true);
                 }
+            } else {
+                lastStep.remove(gamer.id);
             }
             for (Gamer other : gamers.values()) {
                 Player viewer = other == gamer ? null : Bukkit.getPlayer(other.id);
@@ -1518,6 +1535,48 @@ class BedwarsGame {
                 }
             }
         }
+    }
+
+    /** A footprint every this many blocks walked. */
+    static final double STEP = 0.8;
+    /** A footprint is this far to the side of the middle of the player, left foot then right foot. */
+    static final double FOOT = 0.15;
+    /** The colour of the swirls of an invisibility potion (0x7F8392), as red, green, blue. */
+    static final float[] SWIRL = {0x7F / 255f, 0x83 / 255f, 0x92 / 255f};
+
+    /**
+     * The traces of an invisible player, every other tick: a footprint on the ground each STEP
+     * blocks, on one foot then the other, and a swirl of the potion now and then around them.
+     */
+    private void traces(Player player) {
+        Location at = player.getLocation();
+        World world = at.getWorld();
+        double[] last = lastStep.get(player.getUniqueId());
+        if (last == null) {
+            lastStep.put(player.getUniqueId(), new double[] {at.getX(), at.getZ(), 1});
+        } else if (player.isOnGround() && Math.hypot(at.getX() - last[0], at.getZ() - last[1]) >= STEP) {
+            double[] foot = footprint(at.getX(), at.getZ(), at.getYaw(), last[2]);
+            Location step = new Location(world, foot[0], Math.floor(at.getY() + 0.01) + 0.01, foot[1]);
+            world.spigot().playEffect(step, Effect.FOOTSTEP, 0, 0, 0f, 0f, 0f, 0f, 1, 48);
+            last[0] = at.getX();
+            last[1] = at.getZ();
+            last[2] = -last[2];
+        }
+        if (traceTicks % 6 == 0) {
+            java.util.concurrent.ThreadLocalRandom random = java.util.concurrent.ThreadLocalRandom.current();
+            Location swirl = at.clone().add(random.nextDouble(-0.3, 0.3), random.nextDouble(0.2, 1.7), random.nextDouble(-0.3, 0.3));
+            // no count: the offsets are the colour of the particle
+            world.spigot().playEffect(swirl, Effect.POTION_SWIRL, 0, 0, SWIRL[0], SWIRL[1], SWIRL[2], 1f, 0, 48);
+        }
+    }
+
+    /** Where a footprint goes (x, z): beside the middle of the player, on the side of this foot (1: right). */
+    static double[] footprint(double x, double z, float yaw, double side) {
+        double r = Math.toRadians(yaw);
+        // the right hand of a player who looks along this yaw
+        double rightX = -Math.cos(r);
+        double rightZ = -Math.sin(r);
+        return new double[] {x + rightX * FOOT * side, z + rightZ * FOOT * side};
     }
 
     // --- Team upgrades and traps ----------------------------------------------------------------
