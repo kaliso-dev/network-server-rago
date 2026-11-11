@@ -150,6 +150,15 @@ final class Arena {
         placed.add(block);
     }
 
+    /**
+     * A block of the map, as it is, now this round's as if a player had placed it: it can be
+     * broken and blown up, and comes back at the next restore (the defense of a map's bed).
+     */
+    void free(Block block) {
+        touch(block);
+        placed.add(block);
+    }
+
     /** Remembers the block as it is, before a player or the game changes it in a round. */
     @SuppressWarnings("deprecation") // Block#getTypeId and getData: the 1.8 block id and data
     void touch(Block block) {

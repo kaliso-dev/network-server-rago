@@ -265,6 +265,11 @@ final class PracticeGames implements Listener {
             event.setCancelled(true);
             return;
         }
+        if (damager instanceof TNTPrimed && !game.tntHurts()) {
+            // its push comes with the blast (onExplode), without damage
+            event.setCancelled(true);
+            return;
+        }
         if (attacker != null && attacker.equals(victim)) {
             attacker = null;
         }
@@ -430,7 +435,7 @@ final class PracticeGames implements Listener {
         game.broke(player, event.getBlock());
     }
 
-    /** Blasts only take the blocks placed in the round, never the blast-proof ones. */
+    /** Blasts only take the blocks placed in the round (and the defense of a map's beds, freed as if placed), never the blast-proof ones; a TNT pushes as its mode says. */
     @EventHandler(priority = EventPriority.HIGH, ignoreCancelled = true)
     public void onExplode(EntityExplodeEvent event) {
         if (!event.getLocation().getWorld().equals(world)) {
@@ -439,6 +444,10 @@ final class PracticeGames implements Listener {
         event.setYield(0f);
         PracticeGame game = gameAt(event.getLocation());
         boolean fireball = event.getEntity() instanceof Fireball;
+        if (game != null && event.getEntity() instanceof TNTPrimed) {
+            Player owner = playerBehind(event.getEntity());
+            game.tntBlast(event.getLocation(), owner != null && byPlayer.get(owner.getUniqueId()) == game ? owner : null);
+        }
         for (Iterator<Block> it = event.blockList().iterator(); it.hasNext();) {
             Block block = it.next();
             if (game == null || !game.arena.isPlaced(block) || blastProof(block.getType())

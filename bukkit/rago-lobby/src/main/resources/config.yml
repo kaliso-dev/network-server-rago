@@ -1151,8 +1151,8 @@ modes:
     description:
       - "Fireballs and TNT: break"
       - "their bed, the last one"
-      - "standing wins. No fireball"
-      - "or fall damage."
+      - "standing wins. Blasts and"
+      - "falls do no damage."
   clutch:
     nom: "&bBlock clutch"
     categorie: entrainement

@@ -25,9 +25,11 @@ import org.bukkit.inventory.ItemStack;
  * the owner's maps: a stone sword, a pickaxe and an axe (Efficiency I), 6 fireballs, wool, end
  * stone, 2 TNT, shears and ladders. While its bed stands, a dead player comes back in 3 seconds;
  * once it is broken, a death is final. The last side standing wins. Fireballs and TNT as in Bed
- * Wars: they push, and they only blow up wool, wood and the blocks the players placed; the
- * fireballs do no damage, and nobody takes fall damage. On a map of fireball.cartes (config.yml), each side starts on its start and the beds are
- * the map's own: a bed is the side's whose start is nearer.
+ * Wars: they push, and they only blow up the blocks the players placed and the defense of the
+ * beds (never end stone for a fireball); neither does damage, and nobody takes fall damage. On a
+ * map of fireball.cartes (config.yml), each side starts on its start and the beds are the map's
+ * own: a bed is the side's whose start is nearer, and its defense on the map (wood, end stone) is
+ * broken and blown up as if placed.
  */
 final class FireballFight extends Duel {
 
@@ -86,8 +88,13 @@ final class FireballFight extends Duel {
             // the map's own beds, put back with the rest of the map at each restore
             beds[0] = false;
             beds[1] = false;
-            for (int[] bed : arena.map().copy.find(Material.BED_BLOCK.getId())) {
+            List<int[]> mapBeds = arena.map().copy.find(Material.BED_BLOCK.getId());
+            for (int[] bed : mapBeds) {
                 beds[sideAt(bed[0], bed[2])] = true;
+            }
+            // the map's defense on the beds (wood, end stone): broken and blown up as if placed
+            for (int[] at : MapDefense.of(mapBeds, (x, y, z) -> arena.block(x, y, z).getType())) {
+                arena.free(arena.block(at[0], at[1], at[2]));
             }
             return;
         }
@@ -148,6 +155,17 @@ final class FireballFight extends Duel {
     /** The fireballs only push (their hit still counts for the kill): no damage. */
     @Override
     void blasted(Player player, Player thrower, double damage) {
+    }
+
+    /** The TNT only pushes too, as a TNT would (its hit counts for the kill): no damage. */
+    @Override
+    boolean tntHurts() {
+        return false;
+    }
+
+    @Override
+    void tntBlast(Location centre, Player owner) {
+        tntPush(centre, owner);
     }
 
     @Override

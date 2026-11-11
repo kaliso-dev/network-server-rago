@@ -801,6 +801,43 @@ abstract class PracticeGame {
         }
     }
 
+    /** True if the TNT of this mode hurts as the server's own does; false: it only pushes ({@link #tntBlast}). */
+    boolean tntHurts() {
+        return true;
+    }
+
+    /**
+     * A TNT blew up in this game's zone, lit by owner (null if nobody of the game). Default:
+     * nothing more than the server's own blast.
+     */
+    void tntBlast(Location centre, Player owner) {
+    }
+
+    /**
+     * The push of a TNT's blast, as the server's own (power 4) but without its damage: the players
+     * around it go away from it and up, the closer the stronger. A push on an enemy counts for the
+     * kill.
+     */
+    void tntPush(Location centre, Player owner) {
+        if (phase != Phase.PLAYING) {
+            return;
+        }
+        for (Player player : online()) {
+            if (player.getGameMode() == org.bukkit.GameMode.SPECTATOR || !player.getWorld().equals(centre.getWorld())) {
+                continue;
+            }
+            Location at = player.getLocation();
+            double[] push = Fireballs.tntPush(centre.getX(), centre.getY(), centre.getZ(), at.getX(), at.getY(), at.getZ());
+            if (push == null) {
+                continue;
+            }
+            player.setVelocity(player.getVelocity().add(new Vector(push[0], push[1], push[2])));
+            if (owner != null && !owner.equals(player) && !sameSide(owner.getUniqueId(), player.getUniqueId())) {
+                hit(player, owner);
+            }
+        }
+    }
+
     /** The fireball's damage on this player. Default: as on Hypixel, through death. */
     void blasted(Player player, Player thrower, double damage) {
         if (damage <= 0 || phase != Phase.PLAYING) {

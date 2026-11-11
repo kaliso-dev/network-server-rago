@@ -91,6 +91,33 @@ final class Fireballs {
         return new double[] {-nx * HORIZONTAL, y, -nz * HORIZONTAL};
     }
 
+    /** The power of a TNT's blast: it reaches twice as many blocks. */
+    static final double TNT_POWER = 4.0;
+    /** The height of a player's eyes over their feet. */
+    private static final double EYES = 1.62;
+
+    /**
+     * The velocity a TNT's blast at (bx, by, bz) adds to a player whose feet are at (px, py, pz),
+     * as the server computes it for nothing in between: from the blast to their eyes, 1 at the
+     * blast down to 0 at {@link #TNT_POWER} x 2 blocks. Null when it does not reach them.
+     */
+    static double[] tntPush(double bx, double by, double bz, double px, double py, double pz) {
+        double reach = TNT_POWER * 2;
+        double feet = Math.sqrt((px - bx) * (px - bx) + (py - by) * (py - by) + (pz - bz) * (pz - bz)) / reach;
+        if (feet > 1) {
+            return null;
+        }
+        double dx = px - bx;
+        double dy = py + EYES - by;
+        double dz = pz - bz;
+        double length = Math.sqrt(dx * dx + dy * dy + dz * dz);
+        if (length < 1e-6) {
+            return null;
+        }
+        double strength = 1 - feet;
+        return new double[] {dx / length * strength, dy / length * strength, dz / length * strength};
+    }
+
     /** True if a player at this offset from the blast is pushed by it. */
     static boolean reaches(double dx, double dy, double dz) {
         return Math.abs(dx) <= RADIUS && Math.abs(dy) <= RADIUS && Math.abs(dz) <= RADIUS;
