@@ -66,7 +66,7 @@ final class ShopMenu {
         }
         rankLore.add("");
         rankLore.add(ChatColor.YELLOW + "Click to browse");
-        menu.set(10, ClickMenu.item(Material.NAME_TAG, 0, ChatColor.GOLD + "Ranks", rankLore), (p, right) -> openRanks(p));
+        menu.set(10, ClickMenu.item(Material.GOLD_INGOT, 0, ChatColor.GOLD + "Ranks", rankLore), (p, right) -> openRanks(p));
         int slot = 12;
         for (final Cosmetic.Type type : Cosmetic.Type.values()) {
             List<String> lore = new ArrayList<>();

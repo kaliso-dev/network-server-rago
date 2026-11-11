@@ -206,8 +206,8 @@ dans les files d'attente des modes de jeu.
   `type: shop`), un PNJ Shop ouvre la vitrine de tout ce qui se vend : d'abord le **pack de
   départ** (son prix, son prix normal barré, -25 %, ce qu'il contient : le rang VIP pour toujours
   (`rang:`), 20 000 Rago Points, 3 boosters d'XP, 2 boosters de pièces et 3 cosmétiques sans leur
-  niveau, une fois par joueur), puis VIP, PREMIUM+ et
-  leurs avantages, les couleurs de pseudo et le +, les boosters, les cosmétiques, les gadgets, les
+  niveau, une fois par joueur), puis VIP et ses avantages (PREMIUM+ est dans `/shop`, sous l'icône
+  du lingot d'or des rangs), les couleurs de pseudo et le +, les boosters, les cosmétiques, les gadgets, les
   events `/host`, comment gagner des Rago Points et Rago Optimizer. Ce qui se vend sur la
   boutique en ligne donne son lien cliquable ; le reste ouvre sa page de `/shop`. La boutique en
   ligne donne le pack depuis la console avec `/pack give <joueur>` (une seule fois : un deuxième

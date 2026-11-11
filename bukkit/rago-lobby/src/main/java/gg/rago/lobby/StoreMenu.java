@@ -65,9 +65,9 @@ final class StoreMenu {
 
         int i = 0;
         List<RankDef> web = webRanks(server);
-        // Two at most, the highest two, the lowest on the left (VIP, then PREMIUM+): the rest of the
-        // row is the other things sold.
-        for (final RankDef rank : web.subList(Math.max(0, web.size() - 2), web.size())) {
+        // The lowest rank only (VIP, the one of the starter pack too): PREMIUM+ is in the /shop. The
+        // rest of the row is the other things sold.
+        for (final RankDef rank : web.subList(0, Math.min(1, web.size()))) {
             boolean owned = profiles.owns(profile, rank);
             boolean top = rank.hasPlus();
             List<String> lore = new ArrayList<>();
