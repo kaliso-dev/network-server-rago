@@ -108,8 +108,8 @@ final class BlockExtendTraining extends Training {
     /** A landing this many blocks under the target is not a save. */
     private static final double TOO_LOW = 3.0;
     /** Before the hit: at least this many ticks, and up to this many more at random. */
-    private static final int WAIT_TICKS = 25;
-    private static final int WAIT_RANDOM = 20;
+    static final int WAIT_TICKS = 10;
+    static final int WAIT_RANDOM = 10;
     /** The blue wool of the map's kit. */
     private static final int WOOL_COLOUR = Shapes.BLUE;
 
@@ -371,6 +371,12 @@ final class BlockExtendTraining extends Training {
     @Override
     void fell(Player player) {
         lost(player, "You fell.");
+    }
+
+    /** The sidebar keeps to the jump: no ranking. */
+    @Override
+    boolean showsRanking() {
+        return false;
     }
 
     @Override

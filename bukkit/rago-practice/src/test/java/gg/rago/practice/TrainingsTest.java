@@ -12,16 +12,26 @@ class TrainingsTest {
 
     @Test
     void theSidebarKeepsTheTopTheBestAndThePingWithinTwelveLines() {
-        // mode, "Mode:", blank, 2 lines of the attempt, blank, top 3, you, ping: 11 lines, all kept
+        // mode, "Mode:", blank, 2 lines of the attempt, blank, top 3, blank, you, ping: 12 lines, all kept
         List<String> fits = sidebar(2, 3);
+        assertEquals(12, fits.size());
         assertEquals(fits, Training.fit(fits, 3));
-        // 5 lines of the attempt: the blank and the "Mode:" line go, the top 3 stays
-        List<String> fitted = Training.fit(sidebar(5, 3), 3);
-        assertEquals(12, fitted.size());
-        assertEquals(java.util.Arrays.asList("mode", "a0", "a1", "a2", "a3", "a4", "", "#1", "#2", "#3", "you", "ping"), fitted);
-        // even more: the third, then the second of the top go, never the best nor the ping
+        assertEquals(java.util.Arrays.asList("#3", "", "you"), fits.subList(8, 11), "room between the third and the best");
+        // 4 lines of the attempt: the blank and the "Mode:" line go, the top 3 and the room under it stay
+        List<String> fitted = Training.fit(sidebar(4, 3), 3);
+        assertEquals(java.util.Arrays.asList("mode", "a0", "a1", "a2", "a3", "", "#1", "#2", "#3", "", "you", "ping"), fitted);
+        // more: the third, then the second of the top go, never the best nor the ping
+        fitted = Training.fit(sidebar(6, 3), 3);
+        assertEquals(java.util.Arrays.asList("mode", "a0", "a1", "a2", "a3", "a4", "a5", "", "#1", "", "you", "ping"), fitted);
+        // even more: the room under the top goes too
         fitted = Training.fit(sidebar(7, 3), 3);
         assertEquals(java.util.Arrays.asList("mode", "a0", "a1", "a2", "a3", "a4", "a5", "a6", "", "#1", "you", "ping"), fitted);
+    }
+
+    @Test
+    void aSidebarWithoutRankingKeepsTheAttemptAndThePing() {
+        List<String> lines = new java.util.ArrayList<>(java.util.Arrays.asList("mode", "Mode:", "", "a0", "a1", "a2", "", "ping"));
+        assertEquals(lines, Training.fitHead(lines));
     }
 
     private static List<String> sidebar(int attempt, int top) {
@@ -33,6 +43,7 @@ class TrainingsTest {
         for (int i = 1; i <= top; i++) {
             lines.add("#" + i);
         }
+        lines.add("");
         lines.add("you");
         lines.add("ping");
         return lines;

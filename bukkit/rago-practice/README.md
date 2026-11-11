@@ -80,9 +80,13 @@ prendre un (« Ann: 34 hits, best combo 7 »). Au sumo aussi ; pas dans les even
 
 Un joueur seul. Chaque entraînement a ses variantes (dans la hotbar, le colorant rouge baisse et le vert monte, le mode puis les réglages, le nombre sur le colorant dit où on en est ; la blaze rod recommence),
 et chaque variante son record : le meilleur score du joueur et celui du serveur, gardés dans
-`plugins/RagoPractice/records.yml`. Le scoreboard montre le top 3 du serveur, le meilleur score
-du joueur et son rang, et le dernier score à côté du ping (12 lignes au plus : quand l'essai en
-prend beaucoup, la ligne du mode puis la 3e et la 2e place s'effacent avant le reste).
+`plugins/RagoPractice/records.yml`. Le scoreboard montre le top 3 du serveur, une ligne vide, le
+meilleur score du joueur et son rang, et le dernier score à côté du ping (12 lignes au plus :
+quand l'essai en prend beaucoup, la ligne du mode, puis la 3e et la 2e place, puis la ligne vide
+sous le top s'effacent avant le reste). L'extend practice et le block extend n'ont pas de
+classement dans le scoreboard, seulement l'essai et le ping. Après une réussite, on repart en
+moins d'une seconde, et au block clutch comme au block extend le coup arrive moins d'une seconde
+après le retour au départ.
 
 Les entraînements et les arènes libres (block clutch, bridge fight) donnent de l'XP Network :
 un peu par minute de jeu, un peu par essai raté, plus par réussite (un temps, une série qui

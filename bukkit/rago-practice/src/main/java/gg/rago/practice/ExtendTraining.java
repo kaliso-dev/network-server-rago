@@ -376,6 +376,12 @@ final class ExtendTraining extends Training {
         failed(why);
     }
 
+    /** The sidebar keeps to the jump: no ranking. */
+    @Override
+    boolean showsRanking() {
+        return false;
+    }
+
     @Override
     void trainingLines(List<String> lines) {
         Jump jump = jump();

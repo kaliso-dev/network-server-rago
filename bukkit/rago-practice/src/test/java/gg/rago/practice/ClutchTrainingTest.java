@@ -130,5 +130,8 @@ class ClutchTrainingTest {
         assertTrue(BlockExtendTraining.SAVED_TICKS + BlockExtendTraining.AFTER_SAVE < 20, "block extend");
         assertTrue(ExtendTraining.AFTER_SUCCESS < 20, "extend: from the far pad");
         assertTrue(ClutchTraining.SAVED_TICKS >= 10, "but long enough on the ground to be a real save");
+        assertTrue(ClutchTraining.FIRST_HIT_TICKS + ClutchTraining.FIRST_HIT_RANDOM <= 20, "then hit again within a second");
+        assertTrue(ClutchTraining.FIRST_HIT_TICKS >= 5, "once standing at the start");
+        assertTrue(BlockExtendTraining.WAIT_TICKS + BlockExtendTraining.WAIT_RANDOM <= 20, "block extend: the hit within a second");
     }
 }

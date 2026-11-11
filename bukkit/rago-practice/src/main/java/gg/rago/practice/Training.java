@@ -439,10 +439,15 @@ abstract class Training extends PracticeGame {
     /** The colours of the top 3 of the sidebar: gold, silver, bronze. */
     private static final ChatColor[] PODIUM = {ChatColor.GOLD, ChatColor.WHITE, ChatColor.RED};
 
+    /** False for a training whose sidebar shows no ranking: no top 3, no best nor place of the player. */
+    boolean showsRanking() {
+        return true;
+    }
+
     /**
-     * The sidebar: the mode, the lines of the attempt, the top 3 of the server, the player's best
-     * and place, the last score and the ping (in one line, so that the lobby adds none: a game
-     * gives 12 lines).
+     * The sidebar: the mode, the lines of the attempt, the top 3 of the server, a blank line, the
+     * player's best and place, the last score and the ping (in one line, so that the lobby adds
+     * none: a game gives 12 lines). Without the ranking: the mode, the attempt and the ping.
      */
     @Override
     List<String> sidebar(UUID viewer) {
@@ -453,6 +458,12 @@ abstract class Training extends PracticeGame {
         lines.add("");
         trainingLines(lines);
         lines.add("");
+        Player player = Bukkit.getPlayer(viewer);
+        String ping = ChatColor.WHITE + "Ping: " + (player == null ? ChatColor.GRAY + "-" : Ping.text(player));
+        if (!showsRanking()) {
+            lines.add(Duel.cut(ping));
+            return fitHead(lines);
+        }
         String shown = shownBoard();
         List<RecordBook.Entry> ranked = host.records().book().ranked(shown);
         for (int i = 0; i < 3 && i < ranked.size(); i++) {
@@ -463,13 +474,14 @@ abstract class Training extends PracticeGame {
         if (ranked.isEmpty()) {
             lines.add(ChatColor.GRAY + "No record yet: be the first!");
         }
+        // room between the third and the player's best
+        lines.add("");
         Long best = host.records().book().best(shown, me);
         int rank = host.records().book().rank(shown, me);
         lines.add(Duel.cut(ChatColor.WHITE + "You: " + (best == null ? ChatColor.GRAY + "no score" : ChatColor.GREEN + shownText(best)
                 + (rank > 0 ? ChatColor.GRAY + " (#" + rank + ")" : ""))));
-        Player player = Bukkit.getPlayer(viewer);
         lines.add(Duel.cut((last.isEmpty() ? "" : ChatColor.WHITE + "Last: " + ChatColor.YELLOW + last + ChatColor.DARK_GRAY + " | ")
-                + ChatColor.WHITE + "Ping: " + (player == null ? ChatColor.GRAY + "-" : Ping.text(player))));
+                + ping));
         return fit(lines, ranked.size());
     }
 
@@ -478,21 +490,31 @@ abstract class Training extends PracticeGame {
 
     /**
      * Sidebar lines cut to {@link #MAX_LINES} when the attempt takes many: first the blank line
-     * under the mode goes, then the "Mode:" line, then the third and the second of the top, so
-     * that the player's best and the ping always show.
+     * under the mode goes, then the "Mode:" line, then the third and the second of the top, then
+     * the blank line under the top, so that the player's best and the ping always show.
      */
     static List<String> fit(List<String> lines, int topShown) {
+        List<String> fitted = fitHead(lines);
+        int top = Math.min(3, topShown);
+        // the end: the top, a blank line, the best, the ping
+        while (fitted.size() > MAX_LINES && top > 1) {
+            fitted.remove(fitted.size() - 4);
+            top--;
+        }
+        if (fitted.size() > MAX_LINES) {
+            fitted.remove(fitted.size() - 3);
+        }
+        return fitted;
+    }
+
+    /** Sidebar lines without the blank line under the mode, then without the "Mode:" line, while too many. */
+    static List<String> fitHead(List<String> lines) {
         List<String> fitted = new ArrayList<>(lines);
         if (fitted.size() > MAX_LINES) {
             fitted.remove(2);
         }
         if (fitted.size() > MAX_LINES) {
             fitted.remove(1);
-        }
-        int top = Math.min(3, topShown);
-        while (fitted.size() > MAX_LINES && top > 1) {
-            fitted.remove(fitted.size() - 3);
-            top--;
         }
         return fitted;
     }

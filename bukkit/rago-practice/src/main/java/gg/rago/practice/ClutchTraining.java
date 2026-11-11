@@ -41,6 +41,9 @@ final class ClutchTraining extends Training {
     static final int SAVED_TICKS = 10;
     /** Ticks from a saved clutch back to the start. */
     static final long AFTER_SAVE = 4L;
+    /** Back at the start, the first hit: after at least this many ticks, and up to this many more at random. */
+    static final int FIRST_HIT_TICKS = 8;
+    static final int FIRST_HIT_RANDOM = 12;
     /** Where the player may place blocks: this far from the centre along the row, and across it. */
     static final int PLACE_ALONG = 12;
     static final int PLACE_ACROSS = 20;
@@ -227,7 +230,7 @@ final class ClutchTraining extends Training {
 
     @Override
     void onFight() {
-        nextHit = 25 + random.nextInt(35);
+        nextHit = FIRST_HIT_TICKS + random.nextInt(FIRST_HIT_RANDOM);
         hitsLeft = hitCount.value;
         groundTicks = 0;
         placedSinceHit = 0;
