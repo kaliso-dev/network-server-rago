@@ -64,6 +64,26 @@ class ControlCheckTest {
                 VelocityPacket.encode(velocity), applied);
     }
 
+    /** A hit of /kb sparring, with the packet a correct engine sends: exactly one. */
+    private RecordedHit sparring(long time, MeleeHit hit) {
+        Vec3 velocity = model.compute(KnockbackProfile.vanilla(), hit);
+        RecordedHit recorded = new RecordedHit(time, RecordedHit.SPARRING_ATTACKER, "override", KnockbackProfile.vanilla(),
+                VICTIM, hit.knockbackLevel() == 1, true, hit, velocity, VelocityPacket.encode(velocity), true);
+        hits.add(recorded);
+        received.add(new ReceivedVelocity(time + 60L, VICTIM, recorded.packet));
+        return recorded;
+    }
+
+    private List<BotAttack> attacksForRealHits() {
+        List<BotAttack> attacks = new ArrayList<>();
+        for (RecordedHit hit : hits) {
+            if (!hit.sparring()) {
+                attacks.add(new BotAttack(hit.time - 20L, "test #" + attacks.size()));
+            }
+        }
+        return attacks;
+    }
+
     private ControlCheck.Result check() {
         return pandaSpigot.check(hits, received, hits.size());
     }
@@ -306,5 +326,40 @@ class ControlCheckTest {
         assertEquals(vanilla.verticalLimit(), panda.verticalLimit());
         assertEquals(vanilla.extraHorizontal(), panda.extraHorizontal());
         assertEquals(vanilla.extraVertical(), panda.extraVertical());
+    }
+
+    @Test
+    void sparringHitsNeedNoAttackButExactlyOnePacket() {
+        sparring(9_000L, new MeleeHit(0.5D, 3.5D, -180.0F, 1, 0.5D, 0.5D, STANDING));
+        sparring(9_500L, new MeleeHit(0.5D, 1.2D, -180.0F, 0, 0.5D, -1.8D, STANDING));
+        ControlCheck.Result result = pandaSpigot.check(hits, received, attacksForRealHits(), hits.size(), true);
+        assertTrue(result.passed(), result::toMarkdown);
+        assertTrue(result.toMarkdown().contains("sparring / vanilla / sprint"), result::toMarkdown);
+
+        // A second packet for the same hit: the motion put back after the hit reached the client.
+        received.add(new ReceivedVelocity(9_110L, VICTIM, VelocityPacket.encode(STANDING)));
+        ControlCheck.Result twice = pandaSpigot.check(hits, received, attacksForRealHits(), hits.size(), true);
+        assertEquals(1, twice.failures().size(), twice::toMarkdown);
+        assertTrue(twice.failures().get(0).startsWith("velocity packet"), twice::toMarkdown);
+    }
+
+    @Test
+    void aSparringHitMustNotStartFromThePreviousKnockback() {
+        RecordedHit first = sparring(9_000L, new MeleeHit(0.5D, 3.5D, -180.0F, 1, 0.5D, 0.5D, STANDING));
+        sparring(9_500L, new MeleeHit(0.5D, 1.2D, -180.0F, 0, 0.5D, -1.8D, first.velocity));
+        ControlCheck.Result result = pandaSpigot.check(hits, received, attacksForRealHits(), hits.size(), true);
+        assertEquals(1, result.failures().size(), result::toMarkdown);
+        assertTrue(result.failures().get(0).contains("the motion was not put back"), result::toMarkdown);
+    }
+
+    @Test
+    void anExpectedSparringPhaseMustHaveSprintAndNonSprintHits() {
+        List<String> none = pandaSpigot.check(hits, received, attacksForRealHits(), hits.size(), true).coverageProblems();
+        assertEquals(1, none.size());
+        assertTrue(none.get(0).contains("/kb sparring"), none::toString);
+        assertTrue(pandaSpigot.check(hits, received, attacksForRealHits(), hits.size(), false).passed());
+
+        sparring(9_000L, new MeleeHit(0.5D, 3.5D, -180.0F, 1, 0.5D, 0.5D, STANDING));
+        assertFalse(pandaSpigot.check(hits, received, attacksForRealHits(), hits.size(), true).passed());
     }
 }

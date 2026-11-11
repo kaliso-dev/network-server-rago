@@ -1,0 +1,263 @@
+# RagoBedwars: the Bed Wars modes of the lobby, with the rules of a classic Hypixel game.
+# Each game is played in a copy of its map (bw_<map>_<n>), made ready again after the game; the
+# maps themselves are set up with /bw (see the README of the plugin).
+
+# The lobby modes this plugin plays (their ids in the lobby's config.yml), each with its maps: the
+# names of their world folders, or toutes for every map. A map needs at least as many complete
+# teams as the mode has teams. A map that is not on the server is skipped; a mode none of whose maps is ready plays on the demo map.
+# With two maps or more, the players choose theirs when they join the queue (the ranked modes too),
+# or take any map: drawn at random for each game, another map than the last one. The ranked modes play on the 20 maps of the RBW
+# queue, each with the build limit of the queue (hauteur-max in its bedwars.yml).
+modes:
+  ranked-1v1: [Antenna, Aquarium, Archway, Artemis, Boletum, Carapace, Catalyst, Chained, Eastwood, Extinction, Invasion, Katsu, Lectus, Obelisk, Paladin, Planet98, Rise, Stonekeep, Swashbuckle, Treenan]
+  ranked-2v2: [Antenna, Aquarium, Archway, Artemis, Boletum, Carapace, Catalyst, Chained, Eastwood, Extinction, Invasion, Katsu, Lectus, Obelisk, Paladin, Planet98, Rise, Stonekeep, Swashbuckle, Treenan]
+  ranked-3v3: [Antenna, Aquarium, Archway, Artemis, Boletum, Carapace, Catalyst, Chained, Eastwood, Extinction, Invasion, Katsu, Lectus, Obelisk, Paladin, Planet98, Rise, Stonekeep, Swashbuckle, Treenan]
+  ranked-4v4: [Antenna, Aquarium, Archway, Artemis, Boletum, Carapace, Catalyst, Chained, Eastwood, Extinction, Invasion, Katsu, Lectus, Obelisk, Paladin, Planet98, Rise, Stonekeep, Swashbuckle, Treenan]
+  top-bridge-1v1: [Antenna, Aquarium, Archway, Artemis, Boletum, Carapace, Catalyst, Chained, Eastwood, Extinction, Invasion, Katsu, Lectus, Obelisk, Paladin, Planet98, Rise, Stonekeep, Swashbuckle, Treenan]
+  top-bridge-2v2: [Antenna, Aquarium, Archway, Artemis, Boletum, Carapace, Catalyst, Chained, Eastwood, Extinction, Invasion, Katsu, Lectus, Obelisk, Paladin, Planet98, Rise, Stonekeep, Swashbuckle, Treenan]
+  skyrise-1v1: [SkyRise]
+  skyrise-2v2: [SkyRise]
+  skyrise-resources-1v1: [SkyRise]
+  skyrise-resources-2v2: [SkyRise]
+  first-rush: [Acropolis, Ambush, Aqil, Cascade, Crogorm, Frosted, Gelato, Lighthouse, Lotus, Nebuc]
+  first-rush-duo: [Acropolis, Ambush, Aqil, Cascade, Crogorm, Frosted, Gelato, Lighthouse, Lotus, Nebuc]
+  first-rush-full: [Acropolis, Ambush, Aqil, Cascade, Crogorm, Frosted, Gelato, Lighthouse, Lotus, Nebuc]
+  first-rush-full-duo: [Acropolis, Ambush, Aqil, Cascade, Crogorm, Frosted, Gelato, Lighthouse, Lotus, Nebuc]
+  top-bridge-ffa: [Invasion]
+  ffa: [ArchwayFFA]
+  invis-practice: [Antenna, Aquarium, Archway, Artemis, Boletum, Carapace, Catalyst, Chained, Eastwood, Extinction, Invasion, Katsu, Lectus, Obelisk, Paladin, Planet98, Rise, Stonekeep, Swashbuckle, Treenan]
+  shop-practice: [Archway]
+  attack-defense-1v1: [BioHazard]
+  attack-defense-2v2: [BioHazard]
+  clutch-scenario-1v1: [Antenna, Aquarium, Archway, Artemis, Boletum, Carapace, Catalyst, Chained, Eastwood, Extinction, Invasion, Katsu, Lectus, Obelisk, Paladin, Planet98, Rise, Stonekeep, Swashbuckle, Treenan, SkyRise, Acropolis, Ambush, Aqil, Cascade, Crogorm, Frosted, Gelato, Lighthouse, Lotus, Nebuc]
+  clutch-scenario-2v2: [Antenna, Aquarium, Archway, Artemis, Boletum, Carapace, Catalyst, Chained, Eastwood, Extinction, Invasion, Katsu, Lectus, Obelisk, Paladin, Planet98, Rise, Stonekeep, Swashbuckle, Treenan, SkyRise, Acropolis, Ambush, Aqil, Cascade, Crogorm, Frosted, Gelato, Lighthouse, Lotus, Nebuc]
+  clutch-scenario-3v3: [Antenna, Aquarium, Archway, Artemis, Boletum, Carapace, Catalyst, Chained, Eastwood, Extinction, Invasion, Katsu, Lectus, Obelisk, Paladin, Planet98, Rise, Stonekeep, Swashbuckle, Treenan, SkyRise, Acropolis, Ambush, Aqil, Cascade, Crogorm, Frosted, Gelato, Lighthouse, Lotus, Nebuc]
+  clutch-scenario-4v4: [Antenna, Aquarium, Archway, Artemis, Boletum, Carapace, Catalyst, Chained, Eastwood, Extinction, Invasion, Katsu, Lectus, Obelisk, Paladin, Planet98, Rise, Stonekeep, Swashbuckle, Treenan, SkyRise, Acropolis, Ambush, Aqil, Cascade, Crogorm, Frosted, Gelato, Lighthouse, Lotus, Nebuc]
+  bed-fight-1v1: [BedFight]
+  bed-fight-2v2: [BedFight]
+  top-bed-fight-1v1: [TopBedFight]
+
+# The modes that are not a classic Bed Wars game, each with its kind of game:
+#   ffa        free for all, open: players join and leave when they like, each for themselves, and
+#              come back at once after a death on the island farthest from the others; the
+#              mode's kit (the lobby's kit editor) and iron armour at each life, a kill heals the
+#              killer; the blocks placed go after 10 seconds, only on the islands of a map that
+#              lists them (iles: in its bedwars.yml, Archway FFA), and never near a spawn
+#   arene      the same with the forges, the diamonds and emeralds and a shop of its own (the
+#              diamonds buy Sharpness, Power II, Strength...), the armour and tools kept as in Bed
+#              Wars, on each bed a defense of three layers ready for top fights, and 3 seconds
+#              before a new life (no mode plays it now: Arena Free, free-ffa, is on the owner's
+#              Arena, in the practice plugin)
+#   invis      invis practice: 2 to 6 players on the map chosen, rounds of 3 minutes, one invisible
+#              (the mode's kit), at mid in front of the base to attack, against the others (a
+#              ranked defense on their bed without its wool: end stone, glass, wood); a hit makes the
+#              invisible visible; each player in turn; it starts 10 seconds after the second joins
+#   top-bridge Top Bridge: no bed, no forge, the fight on the top bridge alone (see top-bridge:
+#              below), everyone starting on top with the mode's kit and iron armour, dead when
+#              they fall off it; rounds of one life, the first team to 5 points wins (a party
+#              that fills it from the Duels too); in the Private top bridge (the Private games), a
+#              practice: back on top 2 seconds after a death, 30 minutes
+#   attaque-defense  Attack and Defense, on a map of one base and the bridge of the attackers
+#              (attaquants: in its bedwars.yml): the first side to 3 rounds wins, the roles swap at
+#              each round. The attackers
+#              start at the end of their bridge, one life, their kit and iron armour; the
+#              defenders have a game's start kit with their own kit, their forge and their shop,
+#              and come back while their bed stands (each side chooses one of its 3 kits: see
+#              attaque-defense: below); a defense the map has on the bed can be broken, as in a
+#              game, and is whole again each round. The attackers win the round by breaking the bed
+#              and killing the defenders, the defenders by killing the attackers or holding 5 minutes
+#   clutch-scenario  Clutch Scenario: a real game on any map (the 20 RBW maps, Sky Rise, the solo
+#              and doubles maps), the two teams on opposite islands; one, drawn at random, has
+#              lost its bed already (one life each: clutch), the other keeps it under the owner's
+#              duo defense (end stone, then wool); everyone in iron armour with a stone sword,
+#              no enchantment, no emerald, every forge of the map full of iron and gold (the
+#              empty islands' too), the diamonds at Tier III and the emeralds at Tier II
+#   bed-fight  Bed Fight, as on Minemen: two islands face to face, each bed under the defense the
+#              map has on it (wood and end stone, breakable as in a game), no forge, no shop, no
+#              upgrade; the mode's kit (the lobby's kit editor) in leather armour of the team's
+#              colour at each life; back while the bed stands, the last team wins; the beds go at
+#              10 minutes, a draw at 15
+#   top-bed-fight  Top Bed Fight, on a map with its own bridge on top (the owner's TopBedFight, at
+#              the build limit): the two players start on the spawns of the map, at its ends, each
+#              with a block at their back they cannot break nor go behind; the bridge breaks (to
+#              make the other fall), nobody builds more than 10 blocks beside it; the mode's kit (the
+#              lobby's kit editor) in leather armour of the team's colour; rounds of one life, a
+#              kill or a fall off the bridge (under hauteur-vide) gives a point, the first to 5 wins
+#   fast-shop  Fast Shop: each player on an island with its shop, lists of items to buy as fast as
+#              possible with their own quick buy (copied from Hypixel in the lobby), and records
+# A mode not listed is a classic game.
+jeux:
+  top-bridge-1v1: top-bridge
+  top-bridge-2v2: top-bridge
+  top-bridge-ffa: ffa
+  ffa: ffa
+  invis-practice: invis
+  shop-practice: fast-shop
+  attack-defense-1v1: attaque-defense
+  attack-defense-2v2: attaque-defense
+  clutch-scenario-1v1: clutch-scenario
+  clutch-scenario-2v2: clutch-scenario
+  clutch-scenario-3v3: clutch-scenario
+  clutch-scenario-4v4: clutch-scenario
+  bed-fight-1v1: bed-fight
+  bed-fight-2v2: bed-fight
+  top-bed-fight-1v1: top-bed-fight
+
+# Attack and Defense: the kits each player chooses from before each round, in a menu that opens by
+# itself (/kit opens it again); the countdown is 10 seconds, 3 once everyone has chosen. The
+# attackers get their kit for their one life, in iron armour; the defenders a game's start in
+# iron armour (forge and shop) with their kit at their first life of the round, its sword in place
+# of the wooden one, its pickaxe, axe or shears kept as if bought. Each kit: nom, icone (an item),
+# description (4 lines at most), objets: the items of the item shop by their id, with their
+# amount (stone_sword, "wool 64", "fireball 3", golden_pickaxe, diamond_pickaxe, shears, bow,
+# "arrow 24", tnt, ender_pearl, invisibility, stick, golden_apple, "end_stone 24", water...).
+# From 1 to 7 kits a side; without this part, these three and three. protection: the Protection
+# level on the armour of both sides, from 0 to 4 (2: the fights last). An invisible player hit by the
+# other side is visible again.
+attaque-defense:
+  protection: 2
+  kits-attaque:
+    - nom: Rusher
+      icone: FIREBALL
+      description: ["Fireballs to clear the bridge", "and throw the defenders off;", "the Golden Pickaxe digs fast."]
+      objets: [stone_sword, "wool 64", "fireball 3", golden_pickaxe, shears]
+    - nom: Breaker
+      icone: TNT
+      description: ["TNT blows up the wool and the", "end stone of the defense; the", "Diamond Pickaxe does the rest."]
+      objets: [stone_sword, "wool 32", "tnt 2", diamond_pickaxe, shears]
+    - nom: Ninja
+      icone: ENDER_PEARL
+      description: ["Invisible for 30 seconds, then", "a pearl to land on the bed."]
+      objets: [stone_sword, "wool 32", invisibility, ender_pearl, iron_pickaxe, shears]
+  kits-defense:
+    - nom: Guardian
+      icone: STICK
+      description: ["A stone sword, and the stick", "to knock them off at the door."]
+      objets: [stone_sword, stick, "wool 16", golden_apple]
+    - nom: Archer
+      icone: BOW
+      description: ["Shoot them off the bridge", "before they land."]
+      objets: [bow, "arrow 24", "wool 16"]
+    - nom: Builder
+      icone: ENDER_STONE
+      description: ["End stone and wool to build", "the defense up again as they", "break it; shears for good."]
+      objets: ["end_stone 24", "wool 32", shears]
+
+# How many game worlds the server keeps at most, so how many games at once (from 1 to 50).
+parties-max: 8
+
+# true: the plugin creates its own demo map, bw-demo, the first time (two islands, a middle with an
+# emerald generator, two diamond islands), so that a game can be played before any real map.
+carte-demo: true
+
+# Seconds before a dead player comes back, while their team's bed stands (from 0 to 30).
+reapparition-secondes: 5
+
+# The modes whose games have a top bridge, the one the owner built on Antenna, on every map: when
+# the game starts, a platform of wool 17 blocks wide high over the middle, in the colours of the two
+# teams, and from the front of each island a stairway of wool up to it (one block up every two).
+# It is 16 blocks above the beds, as on Antenna, or a little higher or lower where the map is in
+# the way or the islands are near. Players build up to 10 blocks above it, and cannot break it; it
+# goes with the game. In a free for all (top-bridge-ffa), it links the two islands farthest apart,
+# and everyone starts and comes back on the platform, with a sword only; a player 10 blocks under
+# it has fallen, dead as in the void (in the top-bridge games too).
+top-bridge: [top-bridge-1v1, top-bridge-2v2, top-bridge-ffa]
+
+# The modes whose teams play on neighbouring islands (First Rush: the first island and the one
+# next to it), instead of opposite islands as in the other modes.
+iles-voisines: [first-rush, first-rush-duo, first-rush-full, first-rush-full-duo]
+
+# The modes whose games keep every forge of the map going, the empty islands' too (the Ranked
+# Bedwars queue on the side islands of its maps of four, First Rush full map, Sky Rise Resources,
+# Clutch Scenario: their iron and gold for whoever goes to take it, with the diamonds and emeralds).
+forges-partout: [ranked-1v1, ranked-2v2, ranked-3v3, ranked-4v4, first-rush-full, first-rush-full-duo,
+  skyrise-resources-1v1, skyrise-resources-2v2, clutch-scenario-1v1, clutch-scenario-2v2, clutch-scenario-3v3,
+  clutch-scenario-4v4]
+
+# The modes whose games have an item shop on every island of the map, the empty islands' too (the
+# Ranked Bedwars queue, First Rush full map, Sky Rise Resources, Clutch Scenario: whoever goes to
+# take the iron of another island buys there), and its upgrades NPC: it opens the upgrades of
+# whoever clicks it. The same modes as forges-partout.
+shops-partout: [ranked-1v1, ranked-2v2, ranked-3v3, ranked-4v4, first-rush-full, first-rush-full-duo,
+  skyrise-resources-1v1, skyrise-resources-2v2, clutch-scenario-1v1, clutch-scenario-2v2, clutch-scenario-3v3,
+  clutch-scenario-4v4]
+
+# The forge of each island, as on Hypixel (its iron and gold counted a minute long on each map): an
+# iron node drops an ingot every fer-secondes-par-noeud seconds (30 a minute), and a forge has 1
+# node on the slow maps (lente), 2 on the medium ones (moyenne), 3 on the fast ones (rapide), and
+# one more on the maps of four teams or fewer: 90 iron a minute on a fast map of 8 teams, 120 on
+# a map of 4 teams. The iron drops in batches of fer-par-lot ingots (2 at once; a list of several,
+# such as [2, 4], draws one at random). Gold: an ingot every or-secondes (8 a minute), every or-secondes-4-equipes on
+# the maps of four teams or fewer (12 a minute). At most max-fer iron and max-or gold lie on it.
+# During the first debut-rapide-secondes of a game, it goes twice as fast.
+#   vitesses   each map's speed, by the name of its world folder: one speed, or one for solo and
+#              one for teams of two or more ({solo: lente, equipes: moyenne}, as Lighthouse and
+#              Lotus on Hypixel). A map not listed: vitesse-par-defaut (rapide, as every Hypixel map
+#              since 2019).
+#   modes      by mode id, its forges on every map instead: vitesse (lente, moyenne, rapide),
+#              fer-secondes-par-noeud and or-secondes. The RBW queue has slower forges than a
+#              Hypixel 4v4: 60 iron and 8 gold a minute in 1v1 (lente, one node more on its maps),
+#              90 iron and 12 gold in 2v2, 3v3 and 4v4 (moyenne), not 120. Sky Rise Resources, where
+#              every island's forge goes, has slow ones: 40 iron and 5 gold a minute each.
+forge:
+  fer-secondes-par-noeud: 2
+  fer-par-lot: [2]
+  or-secondes: 7.5
+  or-secondes-4-equipes: 5
+  max-fer: 48
+  max-or: 16
+  debut-rapide-secondes: 30
+  vitesse-par-defaut: rapide
+  vitesses:
+    Acropolis: rapide
+    Cascade: rapide
+    Crogorm: rapide
+    SkyRise: rapide
+    Lighthouse: {solo: lente, equipes: moyenne}
+    Lotus: {solo: lente, equipes: moyenne}
+  modes:
+    ranked-1v1: {vitesse: lente, or-secondes: 7.5}
+    ranked-2v2: {vitesse: moyenne}
+    ranked-3v3: {vitesse: moyenne}
+    ranked-4v4: {vitesse: moyenne}
+    skyrise-resources-1v1: {vitesse: lente, fer-secondes-par-noeud: 1.5, or-secondes: 12}
+    skyrise-resources-2v2: {vitesse: lente, fer-secondes-par-noeud: 1.5, or-secondes: 12}
+
+# The diamond and emerald generators: one item every so many seconds, at most so many lying on
+# it; three tiers (I, II, III), faster and faster.
+generateurs:
+  diamant:
+    secondes: [30, 23, 12]
+    max: 4
+  emeraude:
+    secondes: [65, 50, 35]
+    max: 2
+
+# When things happen, in minutes of game, each after the one above it: the diamond and emerald
+# generators go up a tier, the beds left are destroyed (nobody respawns any more), and the game
+# ends in a draw.
+evenements:
+  diamant-2: 6
+  emeraude-2: 12
+  diamant-3: 18
+  emeraude-3: 24
+  fin-des-lits: 30
+  fin-de-partie: 45
+
+# The fireball, as on Hypixel (the values of BedWars1058, the open copy of Hypixel's Bed Wars):
+#   vitesse            its speed when thrown, in blocks a tick; it then speeds up a little
+#   rayon              its blast pushes the players up to this many blocks away, on each axis
+#   recul-horizontal   the push away from the blast, horizontally (more when the blast is level
+#                      with the player, as when it lands just in front of their feet)
+#   recul-vertical     the push upwards (x 1.5): a fireball jump
+#   degats-...         its fixed damage, armour or not, in half hearts (0 to 20): on the player who
+#                      threw it, on the other teams, on their own team
+# The blast itself only breaks placed blocks, never the blast-proof glass or the obsidian.
+boule-de-feu:
+  vitesse: 1.0
+  rayon: 3
+  recul-horizontal: 1.0
+  recul-vertical: 0.65
+  degats-sur-soi: 2.0
+  degats-sur-les-autres: 2.0
+  degats-sur-les-coequipiers: 0.0

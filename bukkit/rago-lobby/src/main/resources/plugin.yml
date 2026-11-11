@@ -1,0 +1,238 @@
+name: RagoLobby
+version: ${version}
+main: gg.rago.lobby.RagoLobby
+author: Rago
+description: The main lobby of Rago Practice (spawn, protection, mode selector, queues).
+# PacketEvents (a separate, maintained plugin) sends the player-shaped NPCs and the texts of each
+# player. RagoBuildTools loads the build worlds (with their empty generator): it goes first, so
+# that the lobby finds its map already loaded.
+depend: [packetevents]
+softdepend: [RagoBuildTools]
+commands:
+  spawn:
+    description: Back to the lobby spawn.
+    usage: /spawn
+    aliases: [hub, l]
+  queue:
+    description: Join the queue of a mode, or leave it.
+    usage: /queue <mode> [map] | /queue leave
+    aliases: [file, q]
+  play:
+    description: The ways to play, or the modes of one (practice, duels...).
+    usage: /play [category]
+    aliases: [modes, games, jouer]
+  duel:
+    description: Challenge a lobby player to a 1v1.
+    usage: /duel <player> [mode], /duel accept <player>, /duel deny <player>
+  party:
+    description: Parties as on Hypixel. Only the leader joins a queue, for the whole party.
+    usage: /party <invite|accept|leave|list|kick|transfer|warp|disband|chat> [player], or /p <player>
+    aliases: [p]
+  pc:
+    description: Send a message to your party.
+    usage: /pc <message>
+  chat:
+    description: Send your chat to your party, or to everyone.
+    usage: /chat <party|all>
+  hypixel:
+    description: Copy your Bed Wars shop and hotbar manager from Hypixel, or see it.
+    usage: /hypixel import [name], /hypixel shop
+  lobby:
+    description: Back to the lobby spawn. The staff also manage the lobby with it.
+    usage: /lobby, or (staff) /lobby <setspawn|build|modes|points|point <name>|point remove <name>|point tp <name>>
+  shop:
+    description: The Rago Shop, ranks and cosmetics bought with Rago Points.
+    usage: /shop
+    aliases: [boutique]
+  gift:
+    description: Offer a rank to another player (PREMIUM and above), paid with your Rago Points if they accept it.
+    usage: /gift <player>
+    aliases: [cadeau]
+  profile:
+    description: Your profile, stats, friends and settings.
+    usage: /profile
+    aliases: [profil, me]
+  season:
+    description: The ranked season - its end, its rewards, your divisions and past seasons.
+    usage: /season
+    aliases: [saison]
+  settings:
+    description: Your settings - messages, invites, time of day, play again.
+    usage: /settings
+    aliases: [options, reglages, parametres]
+  daily:
+    description: Claim your daily Rago Points.
+    usage: /daily
+    aliases: [reward, quotidien]
+  friend:
+    description: Friends as on Hypixel.
+    usage: /friend <add|accept|deny|remove|list|requests|toggle> [player], or /f <player>
+    aliases: [f, friends, ami, amis]
+  msg:
+    description: A private message.
+    usage: /msg <player> <message>
+    aliases: [tell, w, whisper, m, message]
+  reply:
+    description: Reply to your last private message.
+    usage: /r <message>
+    aliases: [r]
+  rank:
+    description: Your rank; the staff give and take ranks with it.
+    usage: /rank, or (admin) /rank <list|set|give|take> <player> <rank>
+    aliases: [rang]
+  points:
+    description: Your Rago Points; the admins give and take some with it.
+    usage: /points, or (admin) /points <give|take|set> <player> <amount>
+  top:
+    description: The leaderboards in the chat.
+    usage: /top <elo|level|wins|kills|fkdr|streak|games|points> [ranked mode]
+    aliases: [leaderboard, lb]
+  stats:
+    description: A player's profile in the chat.
+    usage: /stats [player]
+  fly:
+    description: Fly in the lobby (PREMIUM and the staff).
+    usage: /fly
+  display:
+    description: What the others read above your name.
+    usage: /display <elo|level|wins|kills|streak|message|none>, /display message <text> (PREMIUM)
+    aliases: [affichage, headline]
+  nick:
+    description: Play under another name (PREMIUM).
+    usage: /nick <name>, /nick reset
+    aliases: [unnick]
+  realname:
+    description: Who plays under a nick (staff).
+    usage: /realname <nick>
+  level:
+    description: Your Network level, its tier and the rewards of every 5 levels.
+    usage: /level
+    aliases: [niveau, levels]
+  quests:
+    description: The daily and weekly quests.
+    usage: /quests
+    aliases: [quetes, quest]
+  booster:
+    description: "Your boosters, 30 minutes of play each: XP (x3, bought), daily XP of PREMIUM (x2), coins (x3 Rago Points)."
+    usage: /booster, /booster on, /booster coins, or (admin, console) /booster give <player> [count] [xp|coins|daily]
+    aliases: [boosters, xpbooster]
+  pack:
+    description: The store of the network (the Shop NPC), the starter pack first; the web store gives the pack.
+    usage: /pack, /pack info, or (admin, console) /pack give <player>
+    aliases: [starterpack]
+  style:
+    description: Your colour of name and badge; the admins and the web store give and take them.
+    usage: /style, or (admin, console) /style <give|take> <player> <couleur-feu|badge-rago>, /style list
+    aliases: [styles, couleur, badge]
+  staffchat:
+    description: The staff chat.
+    usage: /sc [message]
+    aliases: [sc]
+  vanish:
+    description: Hide from everyone but the staff.
+    usage: /vanish
+    aliases: [v]
+  staff:
+    description: The staff panel - the players online, and for each one teleport, freeze, mute, kick, warn or ban.
+    usage: /staff [player]
+    aliases: [panel, sp]
+  freeze:
+    description: Freeze a player for a check.
+    usage: /freeze <player>
+    aliases: [ss]
+  report:
+    description: Report a player to the staff.
+    usage: /report <player> <reason>
+    aliases: [wdr]
+  reports:
+    description: The last reports (staff).
+    usage: /reports
+  clearchat:
+    description: Clear the chat.
+    usage: /clearchat
+    aliases: [cc]
+  mutechat:
+    description: Mute the chat for everyone but the staff.
+    usage: /mutechat
+  ban:
+    description: Ban a player, for a time or for good.
+    usage: /ban <player> [30m|2h|7d|perm] [reason]
+    aliases: [tempban]
+  unban:
+    description: Lift a ban.
+    usage: /unban <player>
+    aliases: [pardon]
+  mute:
+    description: Mute a player, for a time or for good.
+    usage: /mute <player> [30m|2h|7d|perm] [reason]
+    aliases: [tempmute]
+  unmute:
+    description: Lift a mute.
+    usage: /unmute <player>
+  kick:
+    description: Kick a player.
+    usage: /kick <player> [reason]
+  warn:
+    description: Warn a player.
+    usage: /warn <player> <reason>
+  history:
+    description: The sanctions of a player.
+    usage: /history <player>
+    aliases: [hist, sanctions]
+  discord:
+    description: The Discord of the server.
+    usage: /discord
+  rules:
+    description: The rules of the server.
+    usage: /rules
+    aliases: [regles]
+  site:
+    description: The website of the server.
+    usage: /site
+    aliases: [website]
+  store:
+    description: The web store of the server.
+    usage: /store
+permissions:
+  rago.lobby.admin:
+    description: Place the lobby spawn and points, and edit the lobby in build mode.
+    default: op
+  # The staff, each level with the one below (the ranks of config.yml give them: rangs.<rank>.permissions).
+  rago.admin:
+    description: Ranks, Rago Points, and everything of the moderators.
+    default: op
+    children:
+      rago.mod: true
+      rago.lobby.admin: true
+  rago.mod:
+    description: Bans, unbans and muting the whole chat, and everything of the helpers.
+    default: op
+    children:
+      rago.staff: true
+  rago.staff:
+    description: The staff chat, vanish, freeze, mutes, kicks, warnings and histories; no chat cooldown.
+    default: op
+    children:
+      rago.perk.chat: true
+      rago.perk.fly: true
+      rago.perk.nick: true
+      rago.perk.speed: true
+  # The perks of the ranks of the shop.
+  rago.perk.chat:
+    description: No chat cooldown, the same message twice allowed.
+    default: false
+  rago.perk.fly:
+    description: /fly in the lobby.
+    default: false
+  rago.perk.join:
+    description: The lobby hears your arrival.
+    default: false
+  rago.perk.nick:
+    description: /nick, play under another name.
+    default: false
+  rago.perk.message:
+    description: Your own message above your head.
+    default: false
+  rago.perk.speed:
+    description: Speed I, II or III in the lobby, chosen in the settings.
+    default: false

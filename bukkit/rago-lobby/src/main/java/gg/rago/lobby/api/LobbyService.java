@@ -1,0 +1,182 @@
+package gg.rago.lobby.api;
+
+import java.util.Collections;
+import java.util.List;
+import java.util.Map;
+import java.util.UUID;
+import org.bukkit.entity.Player;
+import org.bukkit.inventory.ItemStack;
+import org.bukkit.plugin.Plugin;
+
+/**
+ * The lobby as the game plugins see it, from Bukkit's services manager:
+ * {@code getServer().getServicesManager().load(LobbyService.class)}. Main thread only.
+ *
+ * <p>On the local test server the lobby and the games run on one server and talk through this
+ * interface. On the network the queues move to the proxy (rago-proxy) and the games receive their
+ * matches from it; the {@link MatchHost} side of a game plugin stays the same.
+ */
+public interface LobbyService {
+
+    /**
+     * Makes a mode of the lobby's catalogue playable: its queue opens in the selector. Returns
+     * false if the catalogue has no such mode (see the lobby's config.yml). A mode has one host:
+     * a second registration replaces the first.
+     */
+    boolean registerHost(Plugin plugin, String modeId, MatchHost host);
+
+    /** Closes the queues of every mode this plugin hosts, when it is disabled. */
+    void unregisterHosts(Plugin plugin);
+
+    /**
+     * Brings the player back to the lobby spawn, as on joining the server: lobby items, adventure
+     * mode, full health, the lobby scoreboard. The player no longer belongs to a game.
+     */
+    void sendToLobby(Player player);
+
+    /** True while the player belongs to a game started by a {@link MatchHost}. */
+    boolean isInGame(Player player);
+
+    /**
+     * Puts the player alone in the queue of this mode, as the selector does but without a word: a
+     * game plugin's own way into a mode (an event hosted with /host, in a mode hidden from the
+     * selector). The match starts at the next tick of the queues, within a second. False when the
+     * player is in a game, frozen by the staff, or nothing hosts the mode.
+     */
+    default boolean queue(Player player, String modeId) {
+        return false;
+    }
+
+    /**
+     * A game of this mode is over: one side won, the other lost (a forfeit is a loss). The lobby
+     * counts it in the stats, the leaderboards and, for a ranked mode, the ELO. Players may have
+     * left the server already.
+     */
+    void recordMatch(String modeId, List<UUID> winners, List<UUID> losers);
+
+    /**
+     * A kill in a game of this mode (in a sumo: the victim fell off and the killer got the point).
+     * The killer gets a kill and some Network XP, the victim a death (null when nobody died).
+     * Counted in the stats and the kill leaderboards, of the day, the week and ever.
+     */
+    void recordKill(String modeId, UUID killer, UUID victim);
+
+    /**
+     * The player's ELO in this ranked mode (the starting ELO before their first game), shown in
+     * the experience bar while they play it, as the RBW servers do; 0 for a mode that is not ranked.
+     */
+    default int elo(UUID player, String modeId) {
+        return 0;
+    }
+
+    /**
+     * The players with the most kills ever in this mode, best first, {@code count} at most: their
+     * name as above the heads in the lobby, with their rank ("§d[PREMIUM§f+§d] §dSofiene"), and their
+     * kills. For the boards of the free for all. Empty for a lobby without stats.
+     */
+    default List<Map.Entry<String, Integer>> topKills(String modeId, int count) {
+        return Collections.emptyList();
+    }
+
+    /**
+     * A Bed Wars final kill of this player in a game of this mode: counted in their stats. Returns
+     * their final kills now, every mode together (the number Hypixel shows: "X was Y's final
+     * #41,000"), or 0 when it is not counted (a party's private game, a lobby without stats).
+     */
+    default int recordFinalKill(String modeId, UUID killer) {
+        return 0;
+    }
+
+    /**
+     * A Bed Wars final death of this player in a game of this mode (out of the game, their bed
+     * gone, killed or not): counted in their stats, for their FKDR. Not counted in a party's
+     * private game or a lobby without stats.
+     */
+    default void recordFinalDeath(String modeId, UUID player) {
+    }
+
+    /**
+     * A bed this player broke in a game of this mode: counted in their stats. Returns the beds they
+     * broke now, every mode together, or 0 when it is not counted.
+     */
+    default int recordBedBroken(String modeId, UUID player) {
+        return 0;
+    }
+
+    /**
+     * True if this player plays a party's private game: the party against itself, counted in no
+     * stats. The lobby knows it before the game starts.
+     */
+    default boolean inPrivateGame(UUID player) {
+        return false;
+    }
+
+    /**
+     * True if this player's private game came from the Private games (parties-privees, such as the
+     * private top bridge): the practice of its mode, without rounds. A party that fills a mode of
+     * the Duels plays it as everyone does, in no stats.
+     */
+    default boolean inPartyPractice(UUID player) {
+        return false;
+    }
+
+    /**
+     * Network XP earned in a training of this mode (the aim trainer gives it for the seconds on the
+     * target and the score): the lobby adds it to the player's stats, tells them ("+12 Network XP
+     * (aim trainer)") and shows a new level or rank. Nothing in a party's private game, nor for 0
+     * or less. A lobby without Network XP ignores it.
+     */
+    default void giveXp(String modeId, UUID player, int xp, String reason) {
+    }
+
+    /**
+     * The kit of this mode (kit: in the lobby's config.yml) as the player arranged it in the kit
+     * editor, the book of the lobby hotbar: 36 stacks, the hotbar (0 to 8) then the inventory (9 to
+     * 35), null for an empty slot. A game gives it with {@code player.getInventory().setContents(kit)}
+     * when it starts. Null when the mode has no kit.
+     */
+    ItemStack[] kit(Player player, String modeId);
+
+    /**
+     * A kit that the game makes itself (a mode without kit: in config.yml), in the order the player
+     * arranged it in an earlier game of this mode; as it is the first time. The lobby keeps the kit:
+     * when the player arranges their inventory in a game, it remembers where each item went. A
+     * second kit of a mode (another role: the defenders of the invis practice) is "mode/role".
+     */
+    default ItemStack[] arrange(Player player, String modeId, ItemStack[] kit) {
+        return kit;
+    }
+
+    /**
+     * The quick buy of the Bed Wars shop the player copied from Hypixel (the emerald of the kit
+     * editor, or /hypixel import [name]): 21 Hypixel item ids, three rows of seven as in the
+     * Hypixel shop, such as "wool", "stone_sword" or "speed_ii_potion_(45_seconds)"; null for an
+     * empty slot. For the Bed Wars modes and Fast Shop, which lay out their shop with it. Null when
+     * the player imported nothing.
+     */
+    List<String> hypixelQuickBuy(Player player);
+
+    /**
+     * The hotbar manager the player copied from Hypixel: for each of the 9 hotbar slots, the kind of
+     * item that goes there ("Melee", "Blocks", "Tools", "Ranged", "Potions", "Utility", "Compass"),
+     * null for a free slot. Null when the player imported nothing, or had no hotbar manager.
+     */
+    List<String> hypixelHotbar(Player player);
+
+    /**
+     * The lines a game shows in the player's sidebar while they play, top to bottom, between the
+     * lobby's title and its address: 12 lines at most, 40 characters each, colour codes with §, ""
+     * for a blank line. Null gives back the lobby's own game lines (the mode and the ping). The
+     * lobby forgets them when the player comes back to it.
+     */
+    void setGameSidebar(Player player, List<String> lines);
+
+    /**
+     * What shows before the player's name, above their head and in the tab list, while they play:
+     * their team as Hypixel shows it in Bed Wars ("§c§lR §c": the team's letter, then the name in
+     * its colour). 16 characters at most, colour codes with §. Null gives back the player's rank.
+     * The lobby forgets it when the player comes back to it. A lobby without name tags ignores it.
+     */
+    default void setGameNameTag(Player player, String prefix) {
+    }
+}

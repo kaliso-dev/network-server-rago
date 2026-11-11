@@ -54,8 +54,25 @@ jobs:
             echo "::error::lancer-mac-linux.sh and lancer.ps1 do not pin the same SHA-256 sums"; exit 1; }
           echo "$sums"
 
+      # PacketEvents comes from its GitHub release: the launchers and the lobby test must pin the
+      # SHA-256 that GitHub computed for that file when it was published.
+      - name: Check the PacketEvents pin against its GitHub release
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          release=$(gh api repos/retrooper/packetevents/releases/tags/v2.14.0)
+          printf '%s' "$release" | jq -r '.assets[] | [.name, .digest, .browser_download_url] | @tsv'
+          digest=$(printf '%s' "$release" | jq -r '.assets[] | select(.name == "packetevents-spigot-2.14.0.jar") | .digest')
+          echo "packetevents-spigot-2.14.0.jar: $digest"
+          [[ "$digest" == sha256:* ]] || { echo "::error::no SHA-256 for packetevents-spigot-2.14.0.jar on its release"; exit 1; }
+          for file in tools/local-server/lancer-mac-linux.sh tools/local-server/lancer.ps1 tools/lobby-check/run-lobby-test.sh; do
+            grep -qF "${digest#sha256:}" "$file" || {
+              echo "::error::$file does not pin the SHA-256 of the PacketEvents release ($digest)"; exit 1; }
+          done
+
       # The local test server for players (tools/local-server): the launchers, the settings, the
-      # guide as LISEZ-MOI.txt and the plugins. The zip of this artifact is what a player downloads.
+      # server icon (the Rago Practice logo), the guide as LISEZ-MOI.txt and the plugins. The zip of
+      # this artifact is what a player downloads.
       # WorldEdit is not in it: the launchers download it from its publisher and check its sum.
       - name: Assemble the local test server
         run: |
@@ -63,9 +80,12 @@ jobs:
           rm -rf "$kit"
           mkdir -p "$kit/plugins"
           cp tools/local-server/lancer-windows.bat tools/local-server/lancer.ps1 \
-            tools/local-server/lancer-mac-linux.sh tools/local-server/server.properties "$kit/"
+            tools/local-server/lancer-mac-linux.sh tools/local-server/server.properties \
+            tools/local-server/server-icon.png "$kit/"
           cp tools/local-server/README.md "$kit/LISEZ-MOI.txt"
-          cp combat/rago-combat-engine/build/libs/*.jar tools/build-tools/build/libs/*.jar "$kit/plugins/"
+          cp combat/rago-combat-engine/build/libs/*.jar tools/build-tools/build/libs/*.jar \
+            bukkit/rago-lobby/build/libs/*.jar bukkit/rago-practice/build/libs/*.jar \
+            bukkit/rago-bedwars/build/libs/*.jar "$kit/plugins/"
           ls -lR "$kit"
 
       - uses: actions/upload-artifact@v7
@@ -73,6 +93,120 @@ jobs:
           name: rago-serveur-de-test
           path: build/rago-serveur-de-test/
           if-no-files-found: error
+
+  # The client mod that records knockback (tools/kb-recorder). It is a separate Gradle build: the
+  # Forge 1.8.9 toolchain needs Gradle 8 and compiles with a Java 8 toolchain.
+  kb-recorder:
+    name: KB recorder mod (Forge 1.8.9)
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    defaults:
+      run:
+        working-directory: tools/kb-recorder
+    steps:
+      - uses: actions/checkout@v7
+
+      # Java 8 compiles the mod; Java 17 runs Gradle.
+      - uses: actions/setup-java@v6
+        with:
+          distribution: temurin
+          java-version: |
+            8
+            17
+
+      - uses: gradle/actions/setup-gradle@v6
+
+      - name: Build and test the mod
+        run: ./gradlew build --stacktrace -Porg.gradle.java.installations.fromEnv=JAVA_HOME_8_X64
+
+      - uses: actions/upload-artifact@v7
+        if: always()
+        with:
+          name: kb-recorder-test-reports
+          path: tools/kb-recorder/build/reports/tests/
+          if-no-files-found: ignore
+
+      - uses: actions/upload-artifact@v7
+        with:
+          name: rago-kb-recorder
+          path: tools/kb-recorder/build/libs/*.jar
+          if-no-files-found: error
+
+  # A real Minecraft 1.8.9 client with the mod is hit on the test server; its recording must match
+  # the combat engine's hit log (tools/kb-recorder/run-e2e-test.sh).
+  kb-recorder-e2e:
+    name: KB recorder end-to-end test (Minecraft 1.8.9 client)
+    runs-on: ubuntu-latest
+    timeout-minutes: 40
+    steps:
+      - uses: actions/checkout@v7
+
+      # Java 8 runs the server and the client, 17 the mod's Gradle, 21 the main Gradle build.
+      - uses: actions/setup-java@v6
+        with:
+          distribution: temurin
+          java-version: |
+            8
+            17
+            21
+
+      - uses: gradle/actions/setup-gradle@v6
+
+      - uses: actions/setup-node@v7
+        with:
+          node-version: 22
+          cache: npm
+          cache-dependency-path: tools/kb-control/bots/package-lock.json
+
+      # A virtual screen and software OpenGL for the client. LWJGL 2 reads the screen modes with
+      # the xrandr command.
+      - name: Install the display packages
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y --no-install-recommends xvfb x11-xserver-utils libgl1 libgl1-mesa-dri \
+            libxrandr2 libxxf86vm1 libxcursor1 libxi6 libxtst6
+
+      - run: ./gradlew :rago-combat-engine:assemble :kb-control:installDist
+
+      - run: npm ci
+        working-directory: tools/kb-control/bots
+
+      - name: Run the end-to-end test
+        env:
+          # The test starts a Minecraft server, which requires accepting the Minecraft EULA:
+          # https://aka.ms/MinecraftEULA
+          KB_ACCEPT_EULA: "true"
+        run: |
+          export KB_SERVER_JAVA="$JAVA_HOME_8_X64/bin/java"
+          export KB_CHECK_JAVA="$JAVA_HOME_21_X64/bin/java"
+          export KB_GRADLE_JAVA_HOME="$JAVA_HOME_17_X64"
+          export KB_GRADLE_ARGS="--stacktrace -Porg.gradle.java.installations.fromEnv=JAVA_HOME_8_X64"
+          xvfb-run -a -s "-screen 0 1280x720x24" tools/kb-recorder/run-e2e-test.sh
+
+      - name: Report
+        if: always()
+        run: |
+          if [ -f recorder-run/report.md ]; then
+            cat recorder-run/report.md >> "$GITHUB_STEP_SUMMARY"
+          else
+            echo "No report: the test stopped before the check. See the job log and the artifact." >> "$GITHUB_STEP_SUMMARY"
+          fi
+
+      - uses: actions/upload-artifact@v7
+        if: always()
+        with:
+          name: kb-recorder-e2e-run
+          path: |
+            recorder-run/report.md
+            recorder-run/recording.jsonl
+            recorder-run/attacks.jsonl
+            recorder-run/client.log
+            recorder-run/server.log
+            recorder-run/server/logs/
+            recorder-run/server/plugins/RagoCombatEngine/hits/
+            tools/kb-recorder/build/e2e-client/logs/
+            tools/kb-recorder/build/e2e-client/crash-reports/
+          if-no-files-found: warn
 
   control-test:
     name: KB control test (PandaSpigot 1.8.8, Java ${{ matrix.server-java }})
@@ -125,6 +259,9 @@ jobs:
           else
             echo "No report: the control test stopped before the check. See the job log and the artifact." >> "$GITHUB_STEP_SUMMARY"
           fi
+          if [ -f control-run/report-hit-delay.md ]; then
+            cat control-run/report-hit-delay.md >> "$GITHUB_STEP_SUMMARY"
+          fi
 
       - uses: actions/upload-artifact@v7
         if: always()
@@ -132,10 +269,63 @@ jobs:
           name: kb-control-run-java${{ matrix.server-java }}
           path: |
             control-run/report.md
+            control-run/report-hit-delay.md
             control-run/received.jsonl
+            control-run/bursts.jsonl
             control-run/server.log
             control-run/server/logs/
             control-run/server/plugins/RagoCombatEngine/hits/
+          if-no-files-found: warn
+
+  lobby-test:
+    name: Lobby and sumo test (PandaSpigot 1.8.8, Java ${{ matrix.server-java }})
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    strategy:
+      fail-fast: false
+      matrix:
+        server-java: [8, 21]
+    steps:
+      - uses: actions/checkout@v7
+
+      - uses: actions/setup-java@v6
+        with:
+          distribution: temurin
+          java-version: |
+            8
+            21
+
+      - uses: gradle/actions/setup-gradle@v6
+
+      - uses: actions/setup-node@v7
+        with:
+          node-version: 22
+          cache: npm
+          cache-dependency-path: tools/kb-control/bots/package-lock.json
+
+      - run: ./gradlew assemble
+
+      - run: npm ci
+        working-directory: tools/kb-control/bots
+
+      - name: Run the lobby and sumo test
+        env:
+          # The test starts a Minecraft server, which requires accepting the Minecraft EULA:
+          # https://aka.ms/MinecraftEULA
+          KB_ACCEPT_EULA: "true"
+          SERVER_JAVA_HOME: JAVA_HOME_${{ matrix.server-java }}_X64
+        run: |
+          KB_SERVER_JAVA="${!SERVER_JAVA_HOME}/bin/java"
+          export KB_SERVER_JAVA
+          tools/lobby-check/run-lobby-test.sh
+
+      - uses: actions/upload-artifact@v7
+        if: always()
+        with:
+          name: lobby-test-java${{ matrix.server-java }}
+          path: |
+            lobby-run/server.log
+            lobby-run/server/logs/
           if-no-files-found: warn
 
   # Starts the local test server the way a player does (tools/local-server), on Linux (the same
@@ -230,9 +420,12 @@ jobs:
           expect 'git-PandaSpigot-226' logs/latest.log
           expect '[RagoCombatEngine] Mode override, default profile vanilla' logs/latest.log
           expect '[WorldEdit] Enabling WorldEdit v6.1' logs/latest.log
-          expect "[RagoBuildTools] Mondes de $data/mondes" logs/latest.log
+          expect "[RagoBuildTools] Worlds of $data/mondes" logs/latest.log
+          expect '[RagoLobby] Lobby in the world lobby' logs/latest.log
+          expect '[RagoPractice] Arenas in the world arenes' logs/latest.log
+          expect '[RagoBedwars] Bed Wars maps ready: bw-demo;' logs/latest.log
           echo 'monde creer ci vide' >&3
-          wait_for 'Monde ci cr' 30 || fail "/monde creer did not create the world"
+          wait_for 'World ci created' 30 || fail "/monde creer did not create the world"
           echo 'schematic list' >&3
           wait_for 'ci-test' 15 || fail "WorldEdit does not list the schematics of $data/schematics"
           expect "dir: '$data/schematics'" plugins/WorldEdit/config.yml
@@ -241,7 +434,11 @@ jobs:
           expect 'generateur: vide' "$data/mondes/ci/rago-monde.yml"
 
           start_server 2
-          expect '[RagoBuildTools] Monde ci charg' logs/latest.log
+          expect '[RagoBuildTools] World ci loaded' logs/latest.log
+          # The demo map of RagoBedwars, made at the first launch, is read back from its folder.
+          [ -f "$data/mondes/bw-demo/bedwars.yml" ] || fail "the Bed Wars demo map was not saved in $data/mondes"
+          expect '[RagoBedwars] Bed Wars maps ready: bw-demo;' logs/latest.log
+          [ -f "$data/mondes/lobby/level.dat" ] || fail "the lobby world was not saved in $data/mondes"
           archive=$(ls "$data"/sauvegardes/mondes-*.tar.gz | sort | tail -n 1)
           echo "Backup: $archive"
           tar -tzf "$archive" > backup.txt
@@ -291,7 +488,9 @@ jobs:
 
           Invoke-Launch 1
           foreach ($expected in 'git-PandaSpigot-226', '[RagoCombatEngine] Mode override, default profile vanilla',
-              '[WorldEdit] Enabling WorldEdit v6.1', "[RagoBuildTools] Mondes de $data\mondes") {
+              '[WorldEdit] Enabling WorldEdit v6.1', "[RagoBuildTools] Worlds of $data\mondes",
+              '[RagoLobby] Lobby in the world lobby', '[RagoPractice] Arenas in the world arenes',
+              '[RagoBedwars] Bed Wars maps ready: bw-demo;') {
             Assert-Log $expected
           }
           $config = Get-Content plugins/WorldEdit/config.yml -Raw

@@ -4,12 +4,15 @@
 // knockback observed by the engine, the engine's override with the vanilla profile, and the
 // override with the control-alt test profile. Each phase mixes sprint and non-sprint hits, bare
 // hand and Knockback I/II sticks, and a victim standing, walking or in the middle of a jump.
+// A last phase runs /kb sparring on the victim: the engine hits it itself, sprint and non-sprint
+// in turn, with no attacker.
 //
 // Both bots write to a JSON-lines file every velocity packet the server sends them for their own
 // entity, plus one "attack" line per attack. ControlCheck (tools/kb-control) pairs those lines
 // with the engine's hit log and checks them against rago-combat-model.
 //
-// RagoAttacker must be an operator: it runs the /kb, /tp, /effect and /replaceitem commands.
+// Both bots must be operators: RagoAttacker runs the /kb, /tp, /effect and /replaceitem commands,
+// RagoVictim runs /kb sparring on itself.
 //
 // Environment: KB_HOST (127.0.0.1), KB_PORT (25565), KB_RECEIVED (received.jsonl),
 // KB_HITS_PER_PHASE (36), KB_SEED (188).
@@ -37,6 +40,9 @@ const MIN_ATTACK_GAP_MS = 1000
 const SPAWN_INVULNERABILITY_TICKS = 60
 const TIME_UPDATE_TICKS = 20
 const TEST_TIMEOUT_MS = 15 * 60 * 1000
+// /kb sparring alterne: one hit every 10 ticks (the fastest a real fight allows), about 8 hits.
+const SPARRING_INTERVAL_TICKS = 10
+const SPARRING_HITS = 8
 
 const PHASES = [
   { name: 'observe-vanilla', commands: ['/kb mode observe', '/kb profile vanilla'] },
@@ -265,6 +271,16 @@ async function hit (attacker, victim, phase, index) {
   victim.clearControlStates()
 }
 
+async function sparring (attacker, victim) {
+  await teleport(attacker, victim, 0.5, 0.5, 0, 0)
+  await sleep(150)
+  record({ type: 'phase', time: Date.now(), name: 'sparring' })
+  console.log(`phase sparring: about ${SPARRING_HITS} hits from /kb sparring`)
+  await command(victim, `/kb sparring alterne ${SPARRING_INTERVAL_TICKS}`, /^Sparring : /)
+  await sleep(SPARRING_HITS * SPARRING_INTERVAL_TICKS * 50 + 250)
+  await command(victim, '/kb sparring stop', /^Sparring arrêté/)
+}
+
 let abortHandler = null
 
 function abort (error) {
@@ -291,7 +307,7 @@ async function main () {
     recording = true
     for (const phase of PHASES) {
       for (const text of phase.commands) {
-        await command(attacker, text, /^OK : /)
+        await command(attacker, text, /^OK: /)
       }
       record({ type: 'phase', time: Date.now(), name: phase.name })
       console.log(`phase ${phase.name}: ${HITS_PER_PHASE} hits`)
@@ -299,6 +315,7 @@ async function main () {
         await hit(attacker, victim, phase, index)
       }
     }
+    await sparring(attacker, victim)
     // Leave time for the last velocity packet to arrive.
     await sleep(1000)
     recording = false

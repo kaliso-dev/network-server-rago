@@ -24,6 +24,13 @@ dependencyResolutionManagement {
                 includeGroup("org.bukkit")
             }
         }
+        // PacketEvents is only published on CodeMC's repository.
+        maven("https://repo.codemc.io/repository/maven-releases/") {
+            name = "CodeMC"
+            content {
+                includeGroup("com.github.retrooper")
+            }
+        }
     }
 }
 
@@ -36,5 +43,10 @@ fun module(name: String, dir: String) {
 
 module("rago-combat-model", "combat/rago-combat-model")
 module("rago-combat-engine", "combat/rago-combat-engine")
+module("rago-game-model", "game/rago-game-model")
+module("rago-lobby", "bukkit/rago-lobby")
+module("rago-practice", "bukkit/rago-practice")
+module("rago-bedwars", "bukkit/rago-bedwars")
 module("kb-control", "tools/kb-control")
 module("rago-build-tools", "tools/build-tools")
+module("kb-analyzer", "tools/kb-analyzer")

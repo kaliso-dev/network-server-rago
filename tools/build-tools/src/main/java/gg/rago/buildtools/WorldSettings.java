@@ -97,27 +97,27 @@ final class WorldSettings {
      *
      * @throws IOException if the file cannot be read
      * @throws IllegalArgumentException if a value is missing or not one of the allowed ones; the
-     *     message is in French, for the server console
+     *     message is for the server console
      */
     static WorldSettings read(File worldFolder) throws IOException {
         YamlConfiguration yaml = new YamlConfiguration();
         try {
             yaml.load(fileIn(worldFolder));
         } catch (InvalidConfigurationException e) {
-            throw new IllegalArgumentException(FILE_NAME + " n'est pas un YAML valide : " + e.getMessage(), e);
+            throw new IllegalArgumentException(FILE_NAME + " is not valid YAML: " + e.getMessage(), e);
         }
         String generatorValue = yaml.getString("generateur", "");
         Generator generator = Generator.parse(generatorValue);
         if (generator == null) {
-            throw new IllegalArgumentException("generateur doit valoir vide ou plat, pas « " + generatorValue + " »");
+            throw new IllegalArgumentException("generateur must be vide (empty) or plat (flat), not \"" + generatorValue + "\"");
         }
         String modeValue = yaml.getString("mode", "");
         Mode mode = Mode.parse(modeValue);
         if (mode == null) {
-            throw new IllegalArgumentException("mode doit valoir creatif ou survie, pas « " + modeValue + " »");
+            throw new IllegalArgumentException("mode must be creatif (creative) or survie (survival), not \"" + modeValue + "\"");
         }
         if (!yaml.isBoolean("protege")) {
-            throw new IllegalArgumentException("protege doit valoir true ou false");
+            throw new IllegalArgumentException("protege must be true or false");
         }
         return new WorldSettings(generator, mode, yaml.getBoolean("protege"));
     }
@@ -125,10 +125,10 @@ final class WorldSettings {
     /** Writes the settings into the world folder, which must exist. */
     void write(File worldFolder) throws IOException {
         YamlConfiguration yaml = new YamlConfiguration();
-        yaml.options().header("Réglages de ce monde pour RagoBuildTools (serveur de test Rago).\n"
-                + "generateur : ce que le serveur crée là où rien n'est construit (vide ou plat).\n"
-                + "mode : le mode de jeu des joueurs qui entrent dans le monde (creatif ou survie).\n"
-                + "protege : si true, seuls les constructeurs (les opérateurs) peuvent poser ou casser des blocs.");
+        yaml.options().header("Settings of this world for RagoBuildTools (Rago test server).\n"
+                + "generateur: what the server makes where nothing is built (vide: empty, plat: flat).\n"
+                + "mode: the game mode of the players who enter the world (creatif: creative, survie: survival).\n"
+                + "protege: if true, only the builders (the operators) can place or break blocks.");
         yaml.set("generateur", generator.configName());
         yaml.set("mode", mode.configName());
         yaml.set("protege", protectedWorld);

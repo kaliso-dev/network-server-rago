@@ -1,0 +1,1464 @@
+# RagoLobby: the main lobby of Rago Practice. How to use it: the README of the module.
+# The keys stay in French (monde, titre, modes...): only the comments and the texts are English.
+
+# The lobby world. If it does not exist, the plugin creates it: an empty world with a small
+# platform. To use your map, put the name of its world here (for example the one given to
+# /monde import), then /lobby setspawn where you want the spawn.
+monde: lobby
+
+# Below this height, a player who falls off the lobby goes back to the spawn.
+hauteur-vide: 0
+
+# The slime blocks of the lobby are launch pads, as on Hypixel: they throw whoever steps on them
+# where they look, avant forward and haut up (blocks per tick, 0 to 4; avant: 0 and haut: 0 for
+# plain slime blocks). 3.5 and 1.3 throw about 30 blocks away and 9 high (2.0 and 0.9: 16 and 5).
+slime:
+  avant: 3.5
+  haut: 1.3
+
+# The lobby scoreboard: its title (32 characters at most) and its last line.
+titre: "&e&lRAGO PRACTICE"
+adresse: "&erago.gg"
+
+# The queues. A ranked queue matches players by their ELO (see elo: below), from
+# elo-par-defaut before a player's first ranked game: the ELO gap accepted starts at
+# ecart-elo-initial and grows by ecart-elo-pas every ecart-elo-secondes of waiting, up to
+# ecart-elo-max.
+file:
+  elo-par-defaut: 0
+  ecart-elo-initial: 100
+  ecart-elo-pas: 50
+  ecart-elo-secondes: 10
+  ecart-elo-max: 500
+
+# The categories of the selector, one per zone of the lobby, in the order of the menu (7 at most):
+# left to right, as in the lobby. The compass first shows the categories, then the games of the
+# one picked (28 modes at most per category). Without a categories section, the compass shows
+# every mode at once (35 at most). slogan: what a player does there, in a few words (40 characters
+# at most, colours not counted): under its name in the compass, under its NPC, and in the welcome
+# of the lobby; its key words in the colour of the category, the rest in grey (&7).
+categories:
+  entrainement:
+    nom: "&b&lPractice"
+    icone: SANDSTONE
+    slogan: "&bTrain alone&7, at your &bown pace"
+    description:
+      - "Clutch, block in, fast defense,"
+      - "extend, pearls, fireballs, bow,"
+      - "aim, bots: one skill at a time."
+  ranked:
+    nom: "&6&lRBW Modes"
+    icone: BED
+    slogan: "&6Ranked &7and &6RBW situations"
+    description:
+      - "Ranked 1v1 to 4v4, and modes"
+      - "close to Ranked Bedwars: Sky"
+      - "Rise, first rush, the FFA, clutch"
+      - "scenarios, attack and defense,"
+      - "private games. With the server"
+      - "or your friends."
+  duels:
+    nom: "&a&lDuels"
+    icone: IRON_SWORD
+    slogan: "&aDuel your friends &7or &aanyone"
+    description:
+      - "Bed fight, Top BedFight, top"
+      - "bridge, bridge fight, block"
+      - "placement in 1v1 or 2v2; sumo,"
+      - "boxing, KB displace, fireball"
+      - "fight, bow."
+      - "/duel a player to challenge them."
+
+# At each arrival in the lobby, the ways to play in the chat: a line per category (its name and
+# slogan), a click opens its modes (/play category); at the first arrival, a title too. false: none.
+accueil: true
+
+# The groups: the sizes of one game (1v1, 2v2...), one item in their category which opens them
+# side by side, as the games of Hypixel. A mode is in a group with groupe: (the modes of a group
+# are of one category); the item shows where its first mode is in the list of the modes.
+groupes:
+  ranked:
+    nom: "&6&lRanked Bedwars"
+    icone: BED
+    description:
+      - "Ranked Bedwars on the 20 maps"
+      - "of the RBW queue: your ELO goes"
+      - "up or down after every game."
+  skyrise:
+    nom: "&6RBW Sky Rise"
+    icone: DIAMOND_CHESTPLATE
+    description:
+      - "A Bedwars, RBW style,"
+      - "on Sky Rise."
+  first-rush:
+    nom: "&eFirst rush"
+    icone: IRON_PICKAXE
+    description:
+      - "A real Bedwars, RBW style, on"
+      - "two islands side by side: the"
+      - "first rush decides it."
+  # the duels (category duels): each in 1v1 or 2v2; queued alone in a 2v2, a teammate is found
+  # in the queue, and the lobby is told: "Name's team is queuing Bed fight 2v2 [JOIN NOW]"
+  bed-fight:
+    nom: "&cBed fight"
+    icone: BED
+    description:
+      - "Two islands, a bed each: break"
+      - "theirs and kill them. You come"
+      - "back while your bed stands."
+  top-bridge:
+    nom: "&eTop Bridge"
+    icone: LADDER
+    description:
+      - "The fight on the top bridge of"
+      - "Antenna, on the 20 RBW maps:"
+      - "rounds to 5 points in 1v1 or"
+      - "2v2."
+  ffa:
+    nom: "&cFree for all"
+    icone: STONE_SWORD
+    description:
+      - "Come and go when you like:"
+      - "the FFA with the Ranked Bedwars"
+      - "kit, or Arena Free in the arena."
+  clutch-scenario:
+    nom: "&cClutch scenario"
+    icone: IRON_CHESTPLATE
+    description:
+      - "A real RBW game on any map:"
+      - "one team has lost its bed,"
+      - "iron armour, stone sword,"
+      - "full forges. Clutch or defend."
+  bridge-fight:
+    nom: "&bBridge fight"
+    icone: WOOL
+    description:
+      - "On a wool platform, no blocks:"
+      - "a 1v1 or a 2v2, first to 5."
+  block-placement:
+    nom: "&bBlock placement"
+    icone: SANDSTONE
+    description:
+      - "Build, clutch and fight on the"
+      - "block placement maps: 1v1"
+      - "or 2v2."
+  prive:
+    nom: "&6Private games"
+    icone: NAME_TAG
+    description:
+      - "With your party: a real RBW"
+      - "game or a top bridge, the size"
+      - "follows the party."
+  attack-defense:
+    nom: "&cAttack and defense"
+    icone: IRON_SWORD
+    description:
+      - "Bio Hazard: attack from the"
+      - "bridge with one life, defend"
+      - "with your forge and shop."
+  clutch:
+    nom: "&bBlock clutch"
+    icone: LADDER
+    description:
+      - "A hit throws you off: place"
+      - "your wool to save yourself."
+      - "On an island, or a top fight."
+
+# The NPCs of the lobby. Each one stands on a point placed with /lobby point <name> (the key) and
+# opens its modes: a click joins the queue if it has only one, else opens a menu of its modes.
+# An NPC whose point is not placed yet does not show.
+#   skin   the skin it wears: skins/<skin>.png in the folder of the plugin (64x64, yours), else
+#          the one of that name in the jar (attaque, clutch, ranked, prive, ffa, skyrise, rush,
+#          invis, bridge, arena, blocs, duels, practice, shop, stats, quetes). Without it: Steve.
+#          A 1.8 client shows a skin on an NPC only once Mojang signed it: at the start the server
+#          sends each new PNG once to MineSkin (api.mineskin.org) and keeps the answer in skins.yml.
+pnj:
+  # The three ways to play, side by side in the centre: each NPC opens its whole category (the
+  # menu of the compass), with the slogan of the category under its name (sous-titre: another
+  # line). Practice on the side of the Practice zone, Duels on the side of the Duels zone, RBW
+  # Modes in front. Their points were the ones of Ranked Bedwars, the private games and the FFA.
+  privategame:
+    nom: "&b&lPractice"
+    categorie: entrainement
+    skin: practice
+  rankedbedwars1v1ou2v2elo:
+    nom: "&6&lRBW Modes"
+    categorie: ranked
+    skin: ranked
+  rbwffa:
+    nom: "&a&lDuels"
+    categorie: duels
+    skin: duels
+  # Only three NPCs so that a new player is not lost: every mode stays in its category, in the
+  # compass and in the menus of the three. Remove the # before the lines of one to show it again,
+  # on its point (/lobby point <name>; for the ones without a point now, place a new one).
+  # ranked:
+  #   nom: "&6&lRanked Bedwars"
+  #   skin: ranked
+  #   modes: [ranked-1v1, ranked-2v2, ranked-3v3, ranked-4v4]
+  # prive:
+  #   nom: "&6Private game"
+  #   skin: prive
+  #   modes: [partie-privee, top-bridge-prive]
+  # ffa:
+  #   nom: "&cFFA and Top bridge"
+  #   skin: ffa
+  #   modes: [ffa, top-bridge-1v1, top-bridge-2v2, top-bridge-ffa]
+  # clutchscenario:
+  #   nom: "&bClutch Scenario"
+  #   skin: clutch
+  #   modes: [clutch-scenario-1v1, clutch-scenario-2v2, clutch-scenario-3v3, clutch-scenario-4v4]
+  # attackanddefense:
+  #   nom: "&cAttack and Defense"
+  #   skin: attaque
+  #   modes: [attack-defense-1v1, attack-defense-2v2]
+  # rbwsolo1v1ou2v2skyrise:
+  #   nom: "&6RBW Sky Rise"
+  #   skin: skyrise
+  #   modes: [skyrise-1v1, skyrise-2v2]
+  # firstrushnebucgelatosoloduo:
+  #   nom: "&eFirst rush"
+  #   skin: rush
+  #   modes: [first-rush, first-rush-duo]
+  # invispracticearwhayinvasion:
+  #   nom: "&5Invis practice"
+  #   skin: invis
+  #   modes: [invis-practice]
+  # realisticplat:
+  #   nom: "&bBridge fight"
+  #   skin: bridge
+  #   modes: [bridge-fight, bridge-fight-1v1, bridge-fight-2v2]
+  # freearenacombo:
+  #   nom: "&aArena Free"
+  #   skin: arena
+  #   modes: [free-ffa]
+  # blockplacementarena:
+  #   nom: "&bBlock placement"
+  #   skin: blocs
+  #   modes: [block-fight-1v1, block-fight-2v2, block-fight-arena]
+  # The NPCs of the side zones, on their front sign, if you want them there too:
+  # attackdefenseversionrbw:
+  #   nom: "&a&lDuels"
+  #   categorie: duels
+  #   skin: duels
+  # blockinpractice:
+  #   nom: "&b&lPractice"
+  #   categorie: entrainement
+  #   skin: practice
+  # The Shop NPC (type: shop), at the centre: a click opens the store, the starter pack
+  # (pack-depart) and VIP, then what Rago Points buy. sous-titre: the line under its name.
+  # (Its point is still called aimtrainer: the aim trainer is in the Practice NPC.)
+  aimtrainer:
+    nom: "&a&lSHOP"
+    sous-titre: "&eStarter Pack &7· &bVIP"
+    type: shop
+    skin: shop
+  # The stats NPCs (type: stats): everyone sees their own profile above it, and a click opens
+  # their stats mode by mode. nom: the first line of the profile.
+  statsjoueur1:
+    nom: "&6&lYour Rago profile"
+    type: stats
+    skin: stats
+  statsjoueur2:
+    nom: "&6&lYour Rago profile"
+    type: stats
+    skin: stats
+
+# A MineSkin API key (free, https://account.mineskin.org/keys), only if MineSkin refuses to sign
+# the skins of the NPCs without one (the log says so). "" asks without a key.
+cle-mineskin: ""
+
+# The Network level, from 1 to 100: every game gives XP to everyone who played it (more for a win),
+# every kill a little more, and the quests (quetes:) much more. Everyone starts at level 1; going
+# from level n to level n + 1 takes xp-niveau-2 + xp-en-plus-par-niveau x (n - 1) XP (100, 150,
+# 200... by default: about 250,000 XP for the level 100). The level shows as [12*] (a star) before
+# the name in the chat, after it above the head and in the tab list, in the XP bar of the lobby,
+# the scoreboard and the brewing stand of the hotbar (/level). It unlocks the cosmetics of the shop.
+#   couleurs     the colour of the [12*] from each level on, by tier (one or two colour codes, or
+#                up to 8 colours for a rainbow, one per character: "&c&6&e&a&b&d")
+#   recompenses  what a level gives (one every 5 levels by default): points (Rago Points) and
+#                objets (cosmetics of the shop by id, colours of name and badges of styles: by key,
+#                couleur-or, badge-centurion). A cosmetic already bought gives its price back.
+niveau:
+  xp-victoire: 50
+  xp-defaite: 15
+  xp-kill: 5
+  xp-niveau-2: 100
+  xp-en-plus-par-niveau: 50
+  couleurs:
+    1: "&7"
+    10: "&f"
+    20: "&6"
+    30: "&b"
+    40: "&2"
+    50: "&3"
+    60: "&4"
+    70: "&d"
+    80: "&9"
+    90: "&5"
+    100: "&c&6&e&a&b&d"
+  recompenses:
+    5: {points: 500, objets: [plus-jaune]}
+    10: {objets: [trail-clouds]}
+    15: {points: 1000, objets: [plus-vert]}
+    20: {objets: [kill-hearts]}
+    25: {objets: [couleur-aqua]}
+    30: {points: 2000, objets: [plus-aqua]}
+    35: {objets: [win-fireworks]}
+    40: {objets: [trail-notes]}
+    45: {points: 3000, objets: [plus-rouge]}
+    50: {points: 5000, objets: [couleur-or]}
+    55: {objets: [kill-lightning]}
+    60: {objets: [trail-magic]}
+    65: {points: 4000, objets: [plus-or]}
+    70: {objets: [win-flames]}
+    75: {objets: [kill-firework]}
+    80: {points: 5000, objets: [trail-ender]}
+    85: {objets: [win-party, plus-bleu]}
+    90: {objets: [kill-explosion]}
+    95: {objets: [trail-redstone]}
+    100: {points: 10000, objets: [couleur-legende, badge-centurion]}
+
+# The quests: daily ones (quotidiennes, again every day) and weekly ones (hebdomadaires, again
+# every Monday), worth more. They run by themselves; a quest done gives its XP (boosted by
+# PREMIUM) once. /quests, or the brewing stand of the hotbar, shows them.
+#   nom       what the player reads
+#   type      what counts: parties (games played), victoires (wins), kills, victoires-classees
+#   objectif  how many; xp: the Network XP it gives; mode: count one mode only (its id)
+quetes:
+  quotidiennes:
+    jouer: {nom: "Play 5 games", type: parties, objectif: 5, xp: 500}
+    gagner: {nom: "Win 3 games", type: victoires, objectif: 3, xp: 750}
+    kills: {nom: "Get 15 kills", type: kills, objectif: 15, xp: 500}
+    classe: {nom: "Win a ranked game", type: victoires-classees, objectif: 1, xp: 750}
+  hebdomadaires:
+    jouer: {nom: "Play 40 games", type: parties, objectif: 40, xp: 3000}
+    gagner: {nom: "Win 25 games", type: victoires, objectif: 25, xp: 5000}
+    kills: {nom: "Get 100 kills", type: kills, objectif: 100, xp: 3000}
+    classe: {nom: "Win 10 ranked games", type: victoires-classees, objectif: 10, xp: 5000}
+
+# The ranks, the highest first: the order of the tab list, and a player shows the highest of
+# theirs. The staff give a rank with /rank set <player> <rank>, the web store (or an admin) with
+# /rank give <player> premium (or vip). A player has the permissions of all their ranks, and of the ranks
+# these inherit (herite).
+#   prefixe      before the name ("&c[ADMIN] "): with the colour of the name, 16 characters at most
+#                (above the head, a longer one loses its brackets: [PREMIUM+] shows PREMIUM+). {+}
+#                is a + each player colours in /style (styles.plus), white by default
+#   couleur      the colour of the name
+#   chat         the colour of the messages (a player without a rank writes in grey)
+#   staff        true for a staff rank: never sold
+#   permissions  what the rank gives: rago.admin (ranks, points, and all below), rago.mod (bans,
+#                mutechat), rago.staff (staff chat, vanish, freeze, mutes, kicks, warnings),
+#                rago.perk.chat (no chat cooldown), rago.perk.fly (/fly in the lobby),
+#                rago.perk.join (the lobby hears the arrival), rago.perk.nick (/nick),
+#                rago.perk.message (a message of one's own above the head), rago.perk.speed
+#                (Speed I, II or III in the lobby, chosen in the settings), rago.perk.gadgets (the
+#                gadgets and the rarest cosmetics of PREMIUM), rago.perk.booster (a free XP booster
+#                a day, /booster), rago.perk.host (/host: events for the whole server, in
+#                RagoPractice), rago.cosmetic.<id> (owns that cosmetic of the boutique while
+#                having the rank: VIP's three), or a permission of
+#                another plugin; "-permission" takes one away
+#   herite       the rank whose permissions (and colours, badges, boost) this one also has
+#   boost-xp     the Network XP of its players is multiplied by this (1.5: half more)
+#   style, badge the colour of name and the badge (of styles:) its players wear until they choose
+#                another with /style; they own them as long as they have the rank
+#   boutique-en-ligne  true: sold on the web store, the shop shows the link (liens.boutique)
+#   prix-en-ligne      its price on the web store, shown in the shop and the store ("4.99€")
+#   priorite-file      its place in the queues, 0 to 9: the higher are matched first (PREMIUM+ 2,
+#                VIP 1); after a minute of waiting everyone is first in line, and it never changes
+#                who plays whom in a ranked queue (the ELO first)
+#   prix, niveau the price in Rago Points and the Network level needed in the shop (prix: 0 = not sold)
+#   prix-cadeau  what gifting it to another player costs in Rago Points (/gift, the shop, or the
+#                menu of a player clicked in the lobby), a rank of the web store too; 0 or none:
+#                its prix (a rank of the web store without one cannot be gifted). Only a rank with
+#                rago.perk.gift (PREMIUM) gifts; the other player says YES or NO in a book, within a
+#                minute, and the giver pays at YES. The lobby hears it in a big message, with
+#                fireworks around the one who got it
+#   icone        the item in the shop; avantages: its lines
+rangs:
+  owner:
+    prefixe: "&4[OWNER] "
+    couleur: "&4"
+    staff: true
+    permissions: [rago.admin]
+    herite: admin
+  admin:
+    prefixe: "&c[ADMIN] "
+    couleur: "&c"
+    staff: true
+    permissions: [rago.admin]
+    herite: mod
+  dev:
+    prefixe: "&b[DEV] "
+    couleur: "&b"
+    staff: true
+    permissions: [rago.admin]
+    herite: mod
+  mod:
+    prefixe: "&2[MOD] "
+    couleur: "&2"
+    staff: true
+    permissions: [rago.mod]
+    herite: helper
+  helper:
+    prefixe: "&9[HELPER] "
+    couleur: "&9"
+    staff: true
+    permissions: [rago.staff]
+    herite: premium
+  builder:
+    prefixe: "&3[BUILDER] "
+    couleur: "&3"
+    staff: true
+    permissions: [rago.staff, rago.lobby.admin]
+    herite: premium
+  media:
+    prefixe: "&c[&fMEDIA&c] "
+    couleur: "&c"
+    herite: premium
+    avantages: ["For content creators", "Everything of PREMIUM"]
+  premium:
+    prefixe: "&d[PREMIUM{+}] "
+    couleur: "&d"
+    permissions: [rago.perk.chat, rago.perk.fly, rago.perk.join, rago.perk.nick, rago.perk.message, rago.perk.speed,
+      rago.perk.gadgets, rago.perk.booster, rago.perk.host, rago.perk.gift]
+    boost-xp: 1.5
+    style: rose
+    badge: premium
+    herite: vip
+    boutique-en-ligne: true
+    prix-en-ligne: "9.99€"
+    prix-cadeau: 50000
+    priorite-file: 2
+    icone: NETHER_STAR
+    avantages: ["A pink gradient name and the &d&l✦&7 badge", "Your &f+&7 in the colour you choose (/style)", "+50% Network XP in every game", "/fly in the lobby",
+      "Speed I, II or III in the lobby (settings)", "/nick: play under another name", "Your own message above your head", "Your arrival announced, with a firework",
+      "White messages, no chat cooldown", "Gadgets of your own: bat blaster, explosive sheep, disco ball",
+      "A free XP booster every day (x2 XP for 30 minutes; bought ones: x3)",
+      "Host events for the server: /host (Sumo, Brackets, LMS)",
+      "Gift ranks to your friends: /gift <player>",
+      "The rarest kill effects and victory dances", "The first place in the queues", "Everything of VIP, its 3 cosmetics too"]
+  vip:
+    prefixe: "&b[VIP] "
+    couleur: "&b"
+    permissions: [rago.perk.chat, rago.perk.fly, rago.perk.join, rago.perk.speed, rago.cosmetic.trail-clouds,
+      rago.cosmetic.kill-hearts, rago.cosmetic.win-hearts]
+    boost-xp: 1.25
+    style: aqua
+    boutique-en-ligne: true
+    prix-en-ligne: "4.99€"
+    prix-cadeau: 25000
+    priorite-file: 1
+    icone: DIAMOND
+    avantages: ["A light blue name and the &b[VIP]&7 tag", "+25% Network XP in every game", "/fly in the lobby",
+      "Speed I, II or III in the lobby (settings)", "Your arrival announced, with a firework", "White messages, no chat cooldown",
+      "Priority in the queues (after PREMIUM+)", "3 cosmetics: the Clouds trail,", "the Heart burst kill, the Love win"]
+# The colours of name and the badges (/style). A colour is a gradient along the letters of the
+# name, made of the 16 colours of 1.8 (degrade: the colour characters from the first letter to the
+# last, 0 to 9 and a to f: "5ddfd" goes from purple to pink to white; one character for one colour);
+# gras: true for a bold name. Above the head a name takes one colour: the middle one. A badge is a
+# short word after the name (texte, 15 characters at most with its colour codes). obtention says
+# how a player gets it: premium (with a rank whose style or badge it is), achat (the web store
+# gives it: /style give <player> couleur-feu, from the console), niveau (a reward of the Network
+# levels, niveau.recompenses), points (bought in /style for prix Rago Points). A gradient is
+# animated: its colours run along the name in the tab list only (about three times a second);
+# above the head the name keeps one fixed colour, the middle of the gradient (anime: false for a
+# fixed gradient). A player wears one colour and one badge at a time.
+styles:
+  couleurs:
+    rose: {nom: "Pink", degrade: "5ddfd", obtention: premium}
+    feu: {nom: "Fire", degrade: "4c6e", obtention: achat}
+    ocean: {nom: "Ocean", degrade: "19b3", obtention: achat}
+    foret: {nom: "Forest", degrade: "2ae", obtention: achat}
+    coucher: {nom: "Sunset", degrade: "5dc6e", obtention: achat}
+    glace: {nom: "Ice", degrade: "fb3b", obtention: achat}
+    galaxie: {nom: "Galaxy", degrade: "159d", obtention: achat}
+    arc-en-ciel: {nom: "Rainbow", degrade: "c6eab9d", obtention: achat}
+    ombre: {nom: "Shadow", degrade: "0878", obtention: achat}
+    aqua: {nom: "Aqua", degrade: "b", obtention: niveau}
+    or: {nom: "Gold", degrade: "6", obtention: niveau}
+    legende: {nom: "Legend", degrade: "6eef6", gras: true, obtention: niveau}
+    rouge: {nom: "Red", degrade: "c", obtention: points, prix: 3000}
+    vert: {nom: "Green", degrade: "a", obtention: points, prix: 3000}
+    bleu: {nom: "Blue", degrade: "9", obtention: points, prix: 3000}
+    jaune: {nom: "Yellow", degrade: "e", obtention: points, prix: 3000}
+    violet: {nom: "Purple", degrade: "5", obtention: points, prix: 3000}
+    blanc: {nom: "White", degrade: "f", obtention: points, prix: 3000}
+    cerise: {nom: "Cherry", degrade: "c4", anime: false, obtention: points, prix: 6000}
+    menthe: {nom: "Mint", degrade: "ab", anime: false, obtention: points, prix: 6000}
+  badges:
+    premium: {nom: "Premium", texte: "&d&l✦", obtention: premium}
+    rago: {nom: "RAGO", texte: "&c&lRAGO", obtention: achat}
+    better: {nom: "BETTER", texte: "&6&lBETTER", obtention: achat}
+    pvp: {nom: "PVP", texte: "&4&lPVP", obtention: achat}
+    yt: {nom: "YT", texte: "&c&lYT", obtention: achat}
+    centurion: {nom: "Centurion", texte: "&e&l✫100", obtention: niveau}
+  # The colours of the + of [PREMIUM+] (white without one): couleur, one colour character.
+  plus:
+    noir: {nom: "Black", couleur: "0", obtention: points, prix: 50000}
+    jaune: {nom: "Yellow", couleur: "e", obtention: niveau}
+    vert: {nom: "Green", couleur: "a", obtention: niveau}
+    aqua: {nom: "Aqua", couleur: "b", obtention: niveau}
+    rouge: {nom: "Red", couleur: "c", obtention: niveau}
+    or: {nom: "Gold", couleur: "6", obtention: niveau}
+    bleu: {nom: "Blue", couleur: "9", obtention: niveau}
+
+# The ELO of the ranked modes, by division as on the Ranked Bedwars servers: everyone starts at 0,
+# a division from its elo up to the next one's. A win gives "victoire" ELO and a loss takes
+# "defaite", set by the player's division: much to win and little to lose at the bottom, the
+# other way round at the top. The MVP of a game (the most kills) gets bonus-mvp more, won or lost.
+# The ELO never goes below 0.
+elo:
+  bonus-mvp: 5
+  divisions:
+    Coal: {couleur: "&8", elo: 0, victoire: 35, defaite: 5}
+    Iron: {couleur: "&f", elo: 100, victoire: 30, defaite: 10}
+    Gold: {couleur: "&6", elo: 200, victoire: 30, defaite: 15}
+    Diamond: {couleur: "&b", elo: 300, victoire: 25, defaite: 15}
+    Emerald: {couleur: "&2", elo: 400, victoire: 25, defaite: 20}
+    Sapphire: {couleur: "&3", elo: 500, victoire: 20, defaite: 20}
+    Ruby: {couleur: "&4", elo: 600, victoire: 20, defaite: 25}
+    Crystal: {couleur: "&d", elo: 700, victoire: 15, defaite: 25}
+    Opal: {couleur: "&9", elo: 800, victoire: 15, defaite: 30}
+    Amethyst: {couleur: "&5", elo: 900, victoire: 10, defaite: 30}
+    Obsidian: {couleur: "&0", elo: 1000, victoire: 10, defaite: 35}
+
+# The ranked season (/season), as on the Ranked Bedwars servers: a new numero starts every ranked
+# ELO again from 0 (change it, then restart the server). The best ELO each player reached in the
+# season that ended stays in their profile, and its division gives the Rago Points of recompenses
+# at their next arrival (once). nom: shown to the players (default "Season <numero>"); fin: the
+# last day of the season (2027-01-31), shown with the days left (it changes nothing by itself).
+saison:
+  numero: 2
+  nom: "Season 2"
+  fin: ""
+  recompenses: {Coal: 0, Iron: 250, Gold: 500, Diamond: 1000, Emerald: 1500, Sapphire: 2000, Ruby: 3000, Crystal: 4000,
+    Opal: 5000, Amethyst: 7500, Obsidian: 10000}
+
+# The Rago Points, spent in the shop: for a win, a game played (lost), a kill, each new level
+# (the level times par-niveau: 100 for level 10), and the daily reward (/daily): quotidien, plus
+# quotidien-serie for each day in a row, up to 7 days. The trainings, the practice, the aim
+# trainer and the events give one point for each xp-par-point Network XP they give (at least one;
+# 0: none). A coin booster (x3) multiplies the points of the games, kills and trainings.
+rago-points:
+  victoire: 20
+  defaite: 5
+  kill: 2
+  par-niveau: 10
+  quotidien: 100
+  quotidien-serie: 25
+  xp-par-point: 3
+
+# The cosmetics of the shop: projectile trails, kill effects and victory effects. Each one has a
+# price in Rago Points and a Network level needed, which can be changed here by its name:
+#   trail-clouds, trail-flames, trail-hearts, trail-emeralds, trail-notes, trail-magic,
+#   trail-ender, trail-redstone, kill-blood, kill-hearts, kill-flames, kill-lightning,
+#   kill-firework, kill-explosion, win-hearts, win-fireworks, win-flames, win-party
+# for example:
+#   trail-flames: {prix: 1000, niveau: 1}
+boutique: {}
+
+# The starter pack, the cheapest thing sold on the web store (lien), once per player: the store
+# gives it from the console with /pack give <player> after the payment. The Shop NPC and /pack
+# show it and its price (prix, in devise). prix-normal: a price it was really sold at before,
+# shown crossed out with the saving (-25%...), or the same as prix for none (a price shown crossed
+# out must be one the pack was really sold at). It gives rago-points, boosters (x3 XP for 30
+# minutes each), boosters-pieces (x3 Rago Points for 30 minutes each) and the cosmetics of
+# cosmetiques (names of the boutique: list above), without their level. No rank: VIP and
+# PREMIUM+ are sold on their own (rang: vip would add one, for good).
+pack-depart:
+  nom: "&6&lStarter Pack"
+  prix: 3.99
+  prix-normal: 3.99
+  devise: "€"
+  rago-points: 20000
+  boosters: 3
+  boosters-pieces: 2
+  cosmetiques: [trail-magic, kill-firework, win-fireworks]
+  lien: "https://rago-optimizer.com"
+
+# The chat: players without a rank wait delai-secondes between two messages, and cannot send the
+# same message twice in a row (bloquer-repetition). The ranks with rago.perk.chat and the staff
+# have neither.
+chat:
+  delai-secondes: 2
+  bloquer-repetition: true
+
+# The header and footer of the tab list (4 lines each at most): {joueurs} the players online,
+# {ping} the player's ping.
+tab:
+  haut:
+    - "&bYou are playing on &e&lRAGO.GG"
+    - ""
+  bas:
+    - ""
+    - "&a{joueurs} players online &8- &7Ping: &f{ping} ms"
+    - "&aRanks, Rago Points & MORE! &c&l/SHOP"
+
+# The message under the server's name in the server list (2 lines).
+motd:
+  - "&b&lRAGO PRACTICE &7- &f1.8 PvP & Ranked Bedwars"
+  - "&eRanks, shop and ranked ELO divisions!"
+
+# The tips told to the lobby, one every "minutes", in turn.
+annonces:
+  minutes: 5
+  messages:
+    - "&bEarn Rago Points in every game and spend them in the shop (/shop)."
+    - "&bClaim your daily reward with /daily: a few days in a row give more."
+    - "&bAdd your friends with /friend add <name>, and play with them in a /party."
+    - "&bClimb the ranked divisions, from Coal to Obsidian: /top elo."
+    - "&bNews, store and more on &frago-optimizer.com&b."
+    - "&a&lSHOP &8» &fRanks, cosmetics and the colour of your &d+&f: &a/shop"
+    - "&d&lPREMIUM &8» &f+50% XP, /fly, the &d+&f and gadgets of its own: &drago-optimizer.com"
+    - "&b&lRAGO OPTIMIZER &8» &fGet Rago Optimizer on &brago-optimizer.com"
+    - "&a&lSHOP &8» &fEvery game gives Rago Points: spend them in the &a/shop&f."
+    - "&b&lRAGO OPTIMIZER &8» &fNews and downloads: &brago-optimizer.com"
+    - "&6&lSTARTER PACK &8» &f20,000 Rago Points, 5 boosters and 3 cosmetics for 3.99€: &e/pack"
+    - "&6&lEVENTS &8» &d[PREMIUM+] &fhost Sumo, Brackets and LMS for the whole server: &e/host"
+
+# What /discord, /site, /rules and /store show (one line or a list).
+liens:
+  discord: "&9Our Discord: &fdiscord.gg/ragooptimizer"
+  site: "&bOur website: &frago-optimizer.com"
+  boutique: "&aThe store: &frago-optimizer.com"
+  regles:
+    - "&6&lRules"
+    - "&71. No cheats, macros or unfair mods."
+    - "&72. No insults, spam or advertising."
+    - "&73. No teaming in solo modes, no boosting."
+    - "&74. Respect the staff: their word is final."
+
+# The leaderboard walls, on their point: boards side by side, facing the spawn, the first on the
+# left. Each one shows the top 10, the player's place and when it resets.
+#   nom       the title above the wall (optional)
+#   tableaux  from 1 to 5 of:
+#     victoires  the wins, all modes together
+#     parties    the games played
+#     series     the best win streak
+#     kills      the kills (in a sumo: knocking the other one off)
+#     fkdr       the final kills / final deaths of Bed Wars, ever (the final kills alone without a
+#                final death)
+#     niveau     the Network level
+#     elo        the ELO of a ranked mode
+# A click on a board changes its period (daily, weekly, lifetime) for the one who clicks; on an elo
+# board, it changes the ranked mode (1v1, 2v2, 3v3, 4v4); niveau and fkdr have one board.
+# A board can group several leaderboards in brackets, for example [elo, kills, niveau]: a click on
+# it goes to the next one, a click on its last line changes the period or the ranked mode.
+#   podium    the steps of a podium (optional, up to 5, the first place first): on each one stands
+#             the player at that place of the first board, in their skin, with their name and score
+#             above. Each player sees the top of what they read on the board (ELO, kills or level,
+#             the period, the ranked mode). A step is a /lobby point, or "x y z": where the feet of
+#             who stands on it go. A click on a step opens that player's stats.
+classements:
+  leaderboardprincipal:
+    nom: "&e&lTop players"
+    # The Network level first (and on the podium); a click goes to the ELO, the FKDR, the kills,
+    # then the games played.
+    tableaux: [[niveau, elo, fkdr, kills, parties]]
+    # The podium behind the board: the emerald (1st), the diamond (2nd), the gold block (3rd).
+    podium: ["0.5 67 57.5", "-1.5 66 57.5", "2.5 65 57.5"]
+  leaderboardstats:
+    nom: "&e&lLeaderboards"
+    tableaux: [victoires, series, parties]
+  # The kills in the middle (on the point), the win streaks on the left, the Network level on the right.
+  leaderboardplayer:
+    nom: "&e&lPlayer leaderboards"
+    tableaux: [series, kills, niveau]
+
+# The Hypixel import: players copy the quick buy of their Bed Wars shop and their hotbar manager
+# from Hypixel, in one click (the emerald in the kit editor book) or with /hypixel import <name>,
+# for the Bed Wars modes and Fast Shop. It asks the Hypixel API with the server's own key:
+#   cle-api  the API key of your application on https://developer.hypixel.net ("" turns the
+#            import off). Never share it, and never put it in a public repository: anyone with it
+#            can use your limits. Each player can import once a minute.
+hypixel:
+  cle-api: ""
+
+# The private games whose size follows the party: a party leader who clicks one of these modes
+# starts a private game of the party against itself (in no stats), in the one of its modes made
+# for the party's size: 2 players play the 1v1, 4 the 2v2, 6 the 3v3, 8 the 4v4. A player without
+# a party is asked to make one (/party invite <name>).
+parties-privees:
+  partie-privee: [ranked-1v1, ranked-2v2, ranked-3v3, ranked-4v4]
+  top-bridge-prive: [top-bridge-1v1, top-bridge-2v2]
+
+# The modes, in the order of the selector. The id (the key) holds only lowercase letters without
+# accents, digits and dashes. A mode stays "Coming soon" in the selector until a game plugin
+# hosts it.
+#   nom                the name shown (colour codes with &)
+#   icone              the item shown in the selector (a Minecraft 1.8 item name)
+#   equipes            the number of teams in a game
+#   joueurs-par-equipe the number of players in each team
+#   categorie          the category of the mode (one of categories: above)
+#   groupe             the group of the mode in its category (one of groupes: above), if any
+#   cache              true: not in the selector, played only through a private game
+#   classe             true for a ranked mode (ELO)
+#   description        the lines under the name
+#   kit                the items the mode gives, which players arrange as they like with the kit
+#                      editor (the book of the lobby hotbar). A list: the first item goes in the
+#                      first hotbar slot, and so on ("" for an empty slot); slots 0 to 8 are the
+#                      hotbar, 9 to 35 the inventory, from the top row. An item is ITEM, ITEM amount
+#                      or ITEM:data amount, for example IRON_SWORD, "WOOL 64", "WOOL:14 64" (red).
+#                      Or slot: item lines:
+#                        kit:
+#                          0: IRON_SWORD
+#                          8: "ENDER_PEARL 2"
+#                      The kits below are examples, to adjust: their modes have no game yet. The
+#                      sumo has none (bare hands); give it one, a stick for example, to try the
+#                      editor in a duel.
+modes:
+  ranked-1v1:
+    nom: "&6Ranked Bedwars 1v1"
+    categorie: ranked
+    groupe: ranked
+    icone: BED
+    equipes: 2
+    joueurs-par-equipe: 1
+    classe: true
+    description:
+      - "Ranked Bedwars in 1v1,"
+      - "on the 20 maps of the RBW"
+      - "queue: your ELO goes up or"
+      - "down after every game."
+  ranked-2v2:
+    nom: "&6Ranked Bedwars 2v2"
+    categorie: ranked
+    groupe: ranked
+    icone: DIAMOND_SWORD
+    equipes: 2
+    joueurs-par-equipe: 2
+    classe: true
+    description:
+      - "Ranked Bedwars, two against"
+      - "two, on the RBW maps."
+  ranked-3v3:
+    nom: "&6Ranked Bedwars 3v3"
+    categorie: ranked
+    groupe: ranked
+    icone: DIAMOND_CHESTPLATE
+    equipes: 2
+    joueurs-par-equipe: 3
+    classe: true
+    description:
+      - "Ranked Bedwars, three against"
+      - "three, on the RBW maps."
+  ranked-4v4:
+    nom: "&6Ranked Bedwars 4v4"
+    categorie: ranked
+    groupe: ranked
+    icone: DIAMOND_BLOCK
+    equipes: 2
+    joueurs-par-equipe: 4
+    classe: true
+    description:
+      - "Ranked Bedwars, four against"
+      - "four, on the RBW maps."
+  skyrise-1v1:
+    nom: "&6RBW Sky Rise 1v1"
+    categorie: ranked
+    groupe: skyrise
+    icone: DIAMOND_CHESTPLATE
+    equipes: 2
+    joueurs-par-equipe: 1
+    classe: false
+    description:
+      - "A solo Bedwars, RBW style,"
+      - "on Sky Rise."
+  skyrise-2v2:
+    nom: "&6RBW Sky Rise 2v2"
+    categorie: ranked
+    groupe: skyrise
+    icone: DIAMOND_CHESTPLATE
+    equipes: 2
+    joueurs-par-equipe: 2
+    classe: false
+    description:
+      - "A duo Bedwars, RBW style,"
+      - "on Sky Rise."
+  skyrise-resources-1v1:
+    nom: "&6RBW Sky Rise Resources 1v1"
+    categorie: ranked
+    groupe: skyrise
+    icone: GOLD_INGOT
+    equipes: 2
+    joueurs-par-equipe: 1
+    classe: false
+    description:
+      - "Sky Rise 1v1 with the forge"
+      - "and the item shop of every"
+      - "island: go and take their"
+      - "iron and gold. Slow forges."
+  skyrise-resources-2v2:
+    nom: "&6RBW Sky Rise Resources 2v2"
+    categorie: ranked
+    groupe: skyrise
+    icone: GOLD_INGOT
+    equipes: 2
+    joueurs-par-equipe: 2
+    classe: false
+    description:
+      - "Sky Rise 2v2 with the forge"
+      - "and the item shop of every"
+      - "island: go and take their"
+      - "iron and gold. Slow forges."
+  first-rush:
+    nom: "&eFirst rush solo"
+    categorie: ranked
+    groupe: first-rush
+    icone: IRON_PICKAXE
+    equipes: 2
+    joueurs-par-equipe: 1
+    classe: false
+    description:
+      - "A real Bedwars 1v1, RBW style,"
+      - "on two islands side by side:"
+      - "the first rush decides it."
+      - "Choose the map."
+  first-rush-duo:
+    nom: "&eFirst rush duo"
+    categorie: ranked
+    groupe: first-rush
+    icone: IRON_PICKAXE
+    equipes: 2
+    joueurs-par-equipe: 2
+    classe: false
+    description:
+      - "A real Bedwars 2v2, RBW style,"
+      - "on two islands side by side:"
+      - "the first rush decides it."
+      - "Choose the map."
+  first-rush-full:
+    nom: "&eFirst rush full map solo"
+    categorie: ranked
+    groupe: first-rush
+    icone: DIAMOND_PICKAXE
+    equipes: 2
+    joueurs-par-equipe: 1
+    classe: false
+    description:
+      - "First rush 1v1 with the whole"
+      - "map: diamonds, emeralds and the"
+      - "forges of the empty islands."
+      - "Choose the map."
+  first-rush-full-duo:
+    nom: "&eFirst rush full map duo"
+    categorie: ranked
+    groupe: first-rush
+    icone: DIAMOND_PICKAXE
+    equipes: 2
+    joueurs-par-equipe: 2
+    classe: false
+    description:
+      - "First rush 2v2 with the whole"
+      - "map: diamonds, emeralds and the"
+      - "forges of the empty islands."
+      - "Choose the map."
+  bed-fight-1v1:
+    nom: "&cBed fight 1v1"
+    categorie: duels
+    groupe: bed-fight
+    icone: BED
+    equipes: 2
+    joueurs-par-equipe: 1
+    classe: false
+    # with full leather armour in the colour of the team
+    kit: [WOOD_SWORD, WOOD_PICKAXE, WOOD_AXE, SHEARS, "WOOL 64"]
+    description:
+      - "Two islands face to face, a bed"
+      - "on each: bridge over, break"
+      - "their bed and kill them. You"
+      - "come back while yours stands."
+  bed-fight-2v2:
+    nom: "&cBed fight 2v2"
+    categorie: duels
+    groupe: bed-fight
+    icone: BED
+    equipes: 2
+    joueurs-par-equipe: 2
+    classe: false
+    # with full leather armour in the colour of the team
+    kit: [WOOD_SWORD, WOOD_PICKAXE, WOOD_AXE, SHEARS, "WOOL 64"]
+    description:
+      - "Bed fight, two against two:"
+      - "break their bed, then the last"
+      - "team standing wins."
+  top-bed-fight-1v1:
+    nom: "&cTop BedFight 1v1"
+    categorie: duels
+    icone: SHEARS
+    equipes: 2
+    joueurs-par-equipe: 1
+    classe: false
+    # with full leather armour in the colour of the team
+    kit: [WOOD_SWORD, "WOOL 64", SHEARS]
+    description:
+      - "On the bridge at the top of"
+      - "Bed fight: kill them or knock"
+      - "them off, rounds of one life,"
+      - "the first to 5 points wins."
+  top-bridge-1v1:
+    nom: "&eTop Bridge 1v1"
+    categorie: duels
+    groupe: top-bridge
+    icone: LADDER
+    equipes: 2
+    joueurs-par-equipe: 1
+    classe: false
+    # the fight kit: with full diamond armour, and Protection IV
+    kit: [STONE_SWORD, "GOLDEN_APPLE 64"]
+    description:
+      - "On top of the top bridge of"
+      - "Antenna, on the 20 RBW maps:"
+      - "no bed, rounds of one life,"
+      - "the first to 5 points wins."
+  top-bridge-2v2:
+    nom: "&eTop Bridge 2v2"
+    categorie: duels
+    groupe: top-bridge
+    icone: LADDER
+    equipes: 2
+    joueurs-par-equipe: 2
+    classe: false
+    # the fight kit: with full diamond armour, and Protection IV
+    kit: [STONE_SWORD, "GOLDEN_APPLE 64"]
+    description:
+      - "Top Bridge, two against two:"
+      - "the first team to 5 points."
+  top-bridge-ffa:
+    nom: "&eTop Bridge FFA"
+    categorie: ranked
+    icone: LADDER
+    equipes: 1
+    joueurs-par-equipe: 1
+    classe: false
+    kit: [STONE_SWORD, "GOLDEN_APPLE 64"]
+    description:
+      - "The top bridge of Invasion, free"
+      - "for all: come and go when you"
+      - "like, diamond armour, and back"
+      - "on top at each death."
+  ffa:
+    nom: "&cFFA Ranked Bedwars"
+    categorie: ranked
+    groupe: ffa
+    icone: STONE_SWORD
+    equipes: 1
+    joueurs-par-equipe: 1
+    classe: false
+    # the fight kit, with 3 fireballs, a pearl, 2 stacks of wool (the blocks go after 10 s, and
+    # only on the islands) and shears: with full diamond armour, and Protection IV
+    kit: [STONE_SWORD, "GOLDEN_APPLE 64", "FIREBALL 3", ENDER_PEARL, "WOOL 64", "WOOL 64", SHEARS]
+    description:
+      - "Free for all on Archway FFA,"
+      - "in diamond armour: spawn on"
+      - "the top bridge, low, mid or"
+      - "at random; come and go when"
+      - "you like, a kill heals you."
+  free-ffa:
+    nom: "&aArena Free"
+    categorie: ranked
+    groupe: ffa
+    icone: EMERALD
+    equipes: 1
+    joueurs-par-equipe: 1
+    classe: false
+    kit: [IRON_SWORD]
+    description:
+      - "Free for all in the arena,"
+      - "a sword only and Resistance:"
+      - "nobody dies, it is a practice."
+      - "The slime of the black pit"
+      - "throws you out."
+  invis-practice:
+    nom: "&5Invis practice"
+    categorie: ranked
+    icone: POTION
+    equipes: 1
+    joueurs-par-equipe: 1
+    classe: false
+    # the kit of the attacker (the potions: invisibility 30 s and Jump V 45 s, as in the shop);
+    # the attacker wears iron armour, Protection I. The defenders have shears, wooden tools and
+    # Haste, an iron sword with Sharpness, 2 stacks of wool and iron armour, Protection IV.
+    kit: [STONE_SWORD, "WOOL 64", "WOOL 64", "WOOD 16", GOLD_PICKAXE, IRON_AXE, SHEARS, FIREBALL, "EGG 2", "POTION:8206", "POTION:8203"]
+    description:
+      - "The 20 RBW maps, 3-minute"
+      - "rounds: an attacker with an"
+      - "invis potion, from mid, against"
+      - "the defenders of the bed, each"
+      - "player in turn: a hit shows them."
+  bridge-fight:
+    nom: "&bBridge fight"
+    categorie: ranked
+    icone: WOOL
+    equipes: 1
+    joueurs-par-equipe: 1
+    classe: false
+    kit: [WOOD_SWORD, "GOLDEN_APPLE 2"]
+    description:
+      - "Free for all, no blocks: the"
+      - "hits only push, knock them into"
+      - "the void. Real damage on the"
+      - "middle platform only."
+  bridge-fight-1v1:
+    nom: "&bBridge fight 1v1"
+    categorie: duels
+    groupe: bridge-fight
+    icone: WOOL
+    equipes: 2
+    joueurs-par-equipe: 1
+    classe: false
+    kit: [WOOD_SWORD, "GOLDEN_APPLE 2"]
+    description:
+      - "A real 1v1 on a platform of its"
+      - "own, no blocks: a kill or a fall"
+      - "is a point. First to 5."
+  bridge-fight-2v2:
+    nom: "&bBridge fight 2v2"
+    categorie: duels
+    groupe: bridge-fight
+    icone: WOOL
+    equipes: 2
+    joueurs-par-equipe: 2
+    classe: false
+    kit: [STONE_SWORD, "GOLDEN_APPLE 2"]
+    description:
+      - "The bridge fight, two against"
+      - "two on one platform: when a"
+      - "whole team is out, the other"
+      - "scores. First to 5."
+  block-fight-1v1:
+    nom: "&bBlock placement 1v1"
+    categorie: duels
+    groupe: block-placement
+    icone: SANDSTONE
+    equipes: 2
+    joueurs-par-equipe: 1
+    classe: false
+    kit: [WOOD_SWORD, WOOD_PICKAXE, WOOD_AXE, SHEARS, "WOOL 64", "ENDER_STONE 12", "WOOL 64", "LADDER 16"]
+    description:
+      - "On the block placement maps,"
+      - "as on Minemen: each hit is a"
+      - "point, the void costs 10."
+      - "Build, clutch, knock them off:"
+      - "first to 100."
+  block-fight-2v2:
+    nom: "&bBlock placement 2v2"
+    categorie: duels
+    groupe: block-placement
+    icone: SANDSTONE
+    equipes: 2
+    joueurs-par-equipe: 2
+    classe: false
+    kit: [WOOD_SWORD, WOOD_PICKAXE, WOOD_AXE, SHEARS, "WOOL 64", "ENDER_STONE 12", "WOOL 64", "LADDER 16"]
+    description:
+      - "Block placement, two against"
+      - "two: each hit is a point,"
+      - "the void costs 10. First to 100."
+  block-fight-arena:
+    nom: "&bBlock placement arena"
+    categorie: ranked
+    icone: SANDSTONE
+    equipes: 1
+    joueurs-par-equipe: 1
+    classe: false
+    description:
+      - "Block placement in an arena,"
+      - "with everyone: wool and shears,"
+      - "no damage, knock them off. The"
+      - "blocks break after 15 seconds."
+  clutch-scenario-1v1:
+    nom: "&cClutch scenario 1v1"
+    categorie: ranked
+    groupe: clutch-scenario
+    icone: IRON_CHESTPLATE
+    equipes: 2
+    joueurs-par-equipe: 1
+    classe: false
+    description:
+      - "A real RBW game: one of you"
+      - "has no bed and must clutch,"
+      - "the other's bed is defended."
+  clutch-scenario-2v2:
+    nom: "&cClutch scenario 2v2"
+    categorie: ranked
+    groupe: clutch-scenario
+    icone: IRON_CHESTPLATE
+    equipes: 2
+    joueurs-par-equipe: 2
+    classe: false
+    description:
+      - "A real RBW game, 2v2: one"
+      - "team has no bed and clutches,"
+      - "the other's bed is defended."
+  clutch-scenario-3v3:
+    nom: "&cClutch scenario 3v3"
+    categorie: ranked
+    groupe: clutch-scenario
+    icone: IRON_CHESTPLATE
+    equipes: 2
+    joueurs-par-equipe: 3
+    classe: false
+    description:
+      - "A real RBW game, 3v3: one"
+      - "team has no bed and clutches,"
+      - "the other's bed is defended."
+  clutch-scenario-4v4:
+    nom: "&cClutch scenario 4v4"
+    categorie: ranked
+    groupe: clutch-scenario
+    icone: IRON_CHESTPLATE
+    equipes: 2
+    joueurs-par-equipe: 4
+    classe: false
+    description:
+      - "A real RBW game, 4v4: one"
+      - "team has no bed and clutches,"
+      - "the other's bed is defended."
+  attack-defense-1v1:
+    nom: "&cAttack and defense 1v1"
+    categorie: ranked
+    groupe: attack-defense
+    icone: IRON_SWORD
+    equipes: 2
+    joueurs-par-equipe: 1
+    classe: false
+    kit: [STONE_SWORD, "WOOL 64", "FIREBALL 2", GOLD_PICKAXE, SHEARS]
+    description:
+      - "Bio Hazard: the attacker on the"
+      - "pink bridge, one life; the"
+      - "defender with forge and shop."
+      - "First to 3 rounds, the roles"
+      - "swap at each round;"
+      - "3 kits to attack, 3 to defend."
+  attack-defense-2v2:
+    nom: "&cAttack and defense 2v2"
+    categorie: ranked
+    groupe: attack-defense
+    icone: IRON_SWORD
+    equipes: 2
+    joueurs-par-equipe: 2
+    classe: false
+    kit: [STONE_SWORD, "WOOL 64", "FIREBALL 2", GOLD_PICKAXE, SHEARS]
+    description:
+      - "Bio Hazard: one team attacks"
+      - "from the pink bridge, the other"
+      - "defends with forge and shop."
+      - "First to 3 rounds, the roles"
+      - "swap at each round;"
+      - "3 kits to attack, 3 to defend."
+  partie-privee:
+    nom: "&6Private game"
+    categorie: ranked
+    groupe: prive
+    icone: NAME_TAG
+    equipes: 2
+    joueurs-par-equipe: 1
+    classe: false
+    description:
+      - "A real private RBW game with your"
+      - "party: 1v1, 2v2, 3v3 or 4v4, the"
+      - "size follows the party."
+  top-bridge-prive:
+    nom: "&ePrivate top bridge"
+    categorie: ranked
+    groupe: prive
+    icone: LADDER
+    equipes: 2
+    joueurs-par-equipe: 1
+    classe: false
+    description:
+      - "A practice with your party on"
+      - "the top bridge: no bed, back on"
+      - "top at each death, 30 minutes."
+      - "1v1 or 2v2, as the party."
+  sumo:
+    nom: "&aSumo duel"
+    categorie: duels
+    icone: SLIME_BALL
+    equipes: 2
+    joueurs-par-equipe: 1
+    classe: false
+    description:
+      - "Knock the other player off"
+      - "the platform: great for"
+      - "working on knockback."
+  boxing:
+    nom: "&fBoxing"
+    categorie: duels
+    icone: DIAMOND_SWORD
+    equipes: 2
+    joueurs-par-equipe: 1
+    classe: false
+    kit: [DIAMOND_SWORD]
+    description:
+      - "First to 100 hits,"
+      - "to work on your combos."
+      - "/speed: Speed II off or on."
+  kb-displace:
+    nom: "&bKB displace 1v1"
+    categorie: duels
+    icone: STICK
+    equipes: 2
+    joueurs-par-equipe: 1
+    classe: false
+    kit: [STONE_SWORD]
+    description:
+      - "A real top fight: run along the"
+      - "bridge and knock the defender"
+      - "off sideways. Roles swap each hit."
+  block-edit-duel:
+    nom: "&bBlock edit 1v1"
+    categorie: duels
+    icone: SHEARS
+    equipes: 2
+    joueurs-par-equipe: 1
+    classe: false
+    kit: [WOOD_SWORD, SHEARS, "WOOL 64"]
+    description:
+      - "A wall of wool between you:"
+      - "open, hit, close before they hit"
+      - "you back. First to 5."
+  fireball:
+    nom: "&cFireball fight"
+    categorie: duels
+    icone: FIREBALL
+    equipes: 2
+    joueurs-par-equipe: 1
+    classe: false
+    kit: [STONE_SWORD, WOOD_PICKAXE, WOOD_AXE, "FIREBALL 6", "WOOL 64", "ENDER_STONE 8", "TNT 2", SHEARS, "LADDER 8"]
+    description:
+      - "Fireballs and TNT: break"
+      - "their bed, the last one"
+      - "standing wins. Blasts and"
+      - "falls do no damage."
+  clutch:
+    nom: "&bBlock clutch"
+    categorie: entrainement
+    groupe: clutch
+    icone: LADDER
+    equipes: 1
+    joueurs-par-equipe: 1
+    classe: false
+    description:
+      - "Solo, on a small island next"
+      - "to the islands of the others:"
+      - "a hit throws you off, place"
+      - "your wool to save yourself."
+      - "Set the knockback, the hits,"
+      - "a KB stick in the hotbar."
+  clutch-top-fight:
+    nom: "&bBlock clutch: top fight"
+    categorie: entrainement
+    groupe: clutch
+    icone: WOOL
+    equipes: 1
+    joueurs-par-equipe: 1
+    classe: false
+    description:
+      - "The block clutch on a top"
+      - "fight platform, at the build"
+      - "limit: no block above it."
+  block-in:
+    nom: "&bBlock in practice"
+    categorie: entrainement
+    icone: ENDER_STONE
+    equipes: 1
+    joueurs-par-equipe: 1
+    classe: false
+    description:
+      - "Drop on a bed defense, block"
+      - "yourself in and dig to the bed:"
+      - "the time of each layer."
+  fast-defense:
+    nom: "&bFast defense"
+    categorie: entrainement
+    icone: OBSIDIAN
+    equipes: 1
+    joueurs-par-equipe: 1
+    classe: false
+    description:
+      - "Build a bed defense"
+      - "as fast as you can: Ranked"
+      - "(end stone, glass) or duo"
+      - "(end stone, wool)."
+  block-edit:
+    nom: "&bBlock edit"
+    categorie: entrainement
+    icone: SHEARS
+    equipes: 1
+    joueurs-par-equipe: 1
+    classe: false
+    kit: [WOOD_SWORD, SHEARS, "WOOL 64"]
+    description:
+      - "Break a block of the wall, hit"
+      - "the bot behind it, put the block"
+      - "back before it hits you."
+  extend-practice:
+    nom: "&bExtend practice"
+    categorie: entrainement
+    icone: QUARTZ_BLOCK
+    equipes: 1
+    joueurs-par-equipe: 1
+    classe: false
+    description:
+      - "Double and triple extends:"
+      - "jump a gap too long, extend"
+      - "your wool in the air (5+1,"
+      - "6+0, 6+1, 7+0, 7-1, 7-2)."
+      - "Chain: 10 pads in a row,"
+      - "no stop. Ladders included."
+  block-extend:
+    nom: "&bBlock extend"
+    categorie: entrainement
+    icone: WOOL
+    equipes: 1
+    joueurs-par-equipe: 1
+    classe: false
+    description:
+      - "As in a real bed fight: take"
+      - "a hit on the bridge, save"
+      - "yourself with your wool."
+      - "Gold, Diamond, Emerald: the"
+      - "hit comes from your look."
+      - "Wool and ladders."
+  ladder-practice:
+    nom: "&6Ladder practice"
+    categorie: entrainement
+    icone: LADDER
+    equipes: 1
+    joueurs-par-equipe: 1
+    classe: false
+    description:
+      - "Block-ladder clutch: jump from"
+      - "4 to 24 blocks, wool and a"
+      - "ladder before the ground."
+  pearl-practice:
+    nom: "&5Pearl practice"
+    categorie: entrainement
+    icone: ENDER_PEARL
+    equipes: 1
+    joueurs-par-equipe: 1
+    classe: false
+    description:
+      - "On a part of Sky Rise: pearl"
+      - "to the diamond island, to the"
+      - "middle, or back after a hit."
+      - "Save a short pearl with wool,"
+      - "not under the lower limit."
+  fireball-practice:
+    nom: "&6Fireball practice"
+    categorie: entrainement
+    icone: FIREBALL
+    equipes: 1
+    joueurs-par-equipe: 1
+    classe: false
+    description:
+      - "Fireball jumps and"
+      - "sending fireballs back."
+  shop-practice:
+    nom: "&aFast Shop"
+    categorie: entrainement
+    icone: GOLD_INGOT
+    equipes: 1
+    joueurs-par-equipe: 1
+    classe: false
+    description:
+      - "Buy lists of items as fast"
+      - "as you can, with your own"
+      - "Hypixel quick buy (copy it"
+      - "in one click: the book)."
+  combo-bot:
+    nom: "&dCombo bot"
+    categorie: entrainement
+    icone: SKULL_ITEM
+    equipes: 1
+    joueurs-par-equipe: 1
+    classe: false
+    description:
+      - "An AI that fights as a player:"
+      - "sprint hits, strafes, w-taps,"
+      - "jump resets. Easy to Expert:"
+      - "combo it without being hit."
+  kb-displace-bot:
+    nom: "&bKB displace against a bot"
+    categorie: entrainement
+    icone: STICK
+    equipes: 1
+    joueurs-par-equipe: 1
+    classe: false
+    description:
+      - "Run, turn your head, hit: knock"
+      - "the bot off sideways. Back at"
+      - "the start after each hit."
+  bow-training:
+    nom: "&aBow training"
+    categorie: entrainement
+    icone: BOW
+    equipes: 1
+    joueurs-par-equipe: 1
+    classe: false
+    description:
+      - "On Archway: bots bridge from"
+      - "the middle to your base, knock"
+      - "them off with your bow. Hits,"
+      - "accuracy, the longest shot."
+  bow-duel:
+    nom: "&aBow duel"
+    categorie: duels
+    icone: ARROW
+    equipes: 2
+    joueurs-par-equipe: 1
+    classe: false
+    description:
+      - "Bow 1v1 on Archway, the base"
+      - "against the middle: each arrow"
+      - "that hits is a point. First"
+      - "to 10."
+  aim-trainer:
+    nom: "&eAim trainer"
+    categorie: entrainement
+    icone: BOW
+    equipes: 1
+    joueurs-par-equipe: 1
+    classe: false
+    description:
+      - "Aim training, solo,"
+      - "moving targets. XP for"
+      - "each second on the target,"
+      - "and a top of the best."
+  # The events a PREMIUM player hosts with /host (RagoPractice): hidden from the selector, the
+  # players come in with /join while the server is told about it.
+  event-sumo:
+    nom: "&6Sumo event"
+    categorie: duels
+    cache: true
+    icone: SLIME_BALL
+    equipes: 1
+    joueurs-par-equipe: 1
+    classe: false
+    description:
+      - "Hosted with /host: one 1v1 at"
+      - "a time, the last one in wins."
+  event-brackets:
+    nom: "&6Brackets event"
+    categorie: duels
+    cache: true
+    icone: IRON_SWORD
+    equipes: 1
+    joueurs-par-equipe: 1
+    classe: false
+    description:
+      - "Hosted with /host: a 1v1"
+      - "tournament with a Bed Wars kit."
+  event-lms:
+    nom: "&6Last Man Standing event"
+    categorie: duels
+    cache: true
+    icone: GOLD_SWORD
+    equipes: 1
+    joueurs-par-equipe: 1
+    classe: false
+    description:
+      - "Hosted with /host: everyone at"
+      - "once, the last one standing wins."

@@ -6,6 +6,7 @@ import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import gg.rago.combat.model.KnockbackProfile;
+import gg.rago.combat.model.MeasuredProfiles;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.io.Reader;
@@ -22,10 +23,54 @@ class EngineSettingsTest {
 
         assertEquals(EngineMode.OVERRIDE, settings.mode());
         assertEquals("vanilla", settings.defaultProfile());
-        assertEquals(1, settings.profiles().size());
+        assertEquals(2, settings.profiles().size());
         assertTrue(settings.worldProfiles().isEmpty());
         assertFalse(settings.recordHits());
         assertEquals(KnockbackProfile.vanilla(), settings.profileFor("world"));
+        assertEquals(10, settings.hitDelayTicks());
+        assertEquals(20, settings.maximumNoDamageTicks());
+    }
+
+    @Test
+    void measuredProfilesAreBuiltIn() throws Exception {
+        EngineSettings settings = EngineSettings.load(yaml("active-profile: hypixel-approx-v1\n"));
+
+        assertEquals(MeasuredProfiles.hypixelApproxV1(), settings.profileFor("world"));
+        assertEquals(0.07D, settings.profileFor("world").extraVertical());
+        IllegalArgumentException error = assertThrows(IllegalArgumentException.class, () -> EngineSettings.load(yaml(
+                "profiles:\n"
+                        + "  hypixel-approx-v1:\n"
+                        + "    friction: 2\n"
+                        + "    horizontal: 0.4\n"
+                        + "    vertical: 0.4\n"
+                        + "    vertical-limit: 0.4\n"
+                        + "    extra-horizontal: 0.5\n"
+                        + "    extra-vertical: 0.1\n")));
+        assertTrue(error.getMessage().contains("built in"), error.getMessage());
+    }
+
+    @Test
+    void hitDelaySetsHalfTheDamageCooldown() throws Exception {
+        EngineSettings settings = EngineSettings.load(yaml("hit-delay-ticks: 9\n"));
+
+        assertEquals(9, settings.hitDelayTicks());
+        assertEquals(18, settings.maximumNoDamageTicks());
+        assertEquals(10, settings.withHitDelayTicks(10).hitDelayTicks());
+        assertEquals(9, settings.withMode(EngineMode.OBSERVE).hitDelayTicks());
+        assertEquals(9, settings.withDefaultProfile("vanilla").withWorldProfile("arena", "vanilla").hitDelayTicks());
+    }
+
+    @Test
+    void hitDelayOutOfRangeOrNotWholeIsRejected() throws Exception {
+        for (String value : new String[] {"0", "21", "-1", "9.5", "neuf"}) {
+            assertThrows(IllegalArgumentException.class, () -> EngineSettings.load(yaml("hit-delay-ticks: " + value + "\n")),
+                    value);
+        }
+        EngineSettings settings = EngineSettings.load(shippedConfig());
+        assertThrows(IllegalArgumentException.class, () -> settings.withHitDelayTicks(0));
+        assertThrows(IllegalArgumentException.class, () -> settings.withHitDelayTicks(21));
+        assertEquals(1, settings.withHitDelayTicks(1).hitDelayTicks());
+        assertEquals(20, settings.withHitDelayTicks(20).hitDelayTicks());
     }
 
     @Test

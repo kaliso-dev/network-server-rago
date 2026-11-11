@@ -13,6 +13,7 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.Comparator;
+import java.util.HashMap;
 import java.util.IdentityHashMap;
 import java.util.List;
 import java.util.Locale;
@@ -78,6 +79,8 @@ public final class ControlCheck {
         Path report = null;
         KnockbackProfile server = PANDASPIGOT_DEFAULT;
         int minHits = 1;
+        boolean expectSparring = false;
+        long until = Long.MAX_VALUE;
         for (int i = 0; i < args.length; i++) {
             String value = i + 1 < args.length ? args[i + 1] : null;
             switch (args[i]) {
@@ -97,6 +100,13 @@ public final class ControlCheck {
                     minHits = Integer.parseInt(require(value, args[i]));
                     i++;
                     break;
+                case "--expect-sparring":
+                    expectSparring = true;
+                    break;
+                case "--until":
+                    until = Long.parseLong(require(value, args[i]));
+                    i++;
+                    break;
                 case "--server-knockback":
                     server = serverKnockback(require(value, args[i]));
                     i++;
@@ -111,8 +121,12 @@ public final class ControlCheck {
             return;
         }
 
-        Result result = new ControlCheck(server).check(readHits(hits), readReceived(received), readAttacks(received),
-                minHits);
+        // Hits logged after the control bots finished belong to the next test on the same server.
+        long last = until;
+        List<RecordedHit> controlHits = readHits(hits);
+        controlHits.removeIf(hit -> hit.time > last);
+        Result result = new ControlCheck(server).check(controlHits, readReceived(received), readAttacks(received),
+                minHits, expectSparring);
         String markdown = result.toMarkdown();
         System.out.println(markdown);
         if (report != null) {
@@ -124,7 +138,7 @@ public final class ControlCheck {
     private static void usage(String problem) {
         System.err.println(problem);
         System.err.println("usage: ControlCheck --hits <file or directory> --received <file>"
-                + " [--server-knockback pandaspigot|vanilla] [--min-hits N] [--report <file>]");
+                + " [--server-knockback pandaspigot|vanilla] [--min-hits N] [--until <epoch ms>] [--expect-sparring] [--report <file>]");
         System.exit(2);
     }
 
@@ -147,6 +161,15 @@ public final class ControlCheck {
     }
 
     static List<RecordedHit> readHits(Path path) throws IOException {
+        List<RecordedHit> hits = new ArrayList<>();
+        for (JsonObject json : readHitLines(path)) {
+            hits.add(RecordedHit.fromJson(json));
+        }
+        return hits;
+    }
+
+    /** The melee lines of a hit log file, or of every .jsonl file of a directory, in name order. */
+    static List<JsonObject> readHitLines(Path path) throws IOException {
         List<Path> files = new ArrayList<>();
         if (Files.isDirectory(path)) {
             try (Stream<Path> stream = Files.list(path)) {
@@ -156,15 +179,15 @@ public final class ControlCheck {
         } else {
             files.add(path);
         }
-        List<RecordedHit> hits = new ArrayList<>();
+        List<JsonObject> lines = new ArrayList<>();
         for (Path file : files) {
             for (JsonObject json : readJsonLines(file)) {
                 if ("melee".equals(json.get("type").getAsString())) {
-                    hits.add(RecordedHit.fromJson(json));
+                    lines.add(json);
                 }
             }
         }
-        return hits;
+        return lines;
     }
 
     static List<ReceivedVelocity> readReceived(Path path) throws IOException {
@@ -188,7 +211,7 @@ public final class ControlCheck {
         return attacks;
     }
 
-    private static List<JsonObject> readJsonLines(Path file) throws IOException {
+    static List<JsonObject> readJsonLines(Path file) throws IOException {
         List<JsonObject> objects = new ArrayList<>();
         for (String line : Files.readAllLines(file, StandardCharsets.UTF_8)) {
             if (!line.trim().isEmpty()) {
@@ -208,12 +231,23 @@ public final class ControlCheck {
      *                one logged hit
      */
     Result check(List<RecordedHit> hits, List<ReceivedVelocity> received, List<BotAttack> attacks, int minHits) {
+        return check(hits, received, attacks, minHits, false);
+    }
+
+    /**
+     * Same as {@link #check(List, List, List, int)}; with {@code expectSparring}, the run must also
+     * contain {@code /kb sparring} hits, sprint and non-sprint. Sparring hits answer no bot attack,
+     * and each must give exactly one velocity packet: a second packet would mean the motion the
+     * engine puts back after the hit reached the client.
+     */
+    Result check(List<RecordedHit> hits, List<ReceivedVelocity> received, List<BotAttack> attacks, int minHits,
+            boolean expectSparring) {
         List<RecordedHit> sortedHits = new ArrayList<>(hits);
         sortedHits.sort(Comparator.comparingLong(hit -> hit.time));
         List<ReceivedVelocity> sortedPackets = new ArrayList<>(received);
         sortedPackets.sort(Comparator.comparingLong(packet -> packet.time));
 
-        Result result = new Result(minHits, serverKnockback);
+        Result result = new Result(minHits, serverKnockback, expectSparring);
         Map<RecordedHit, ReceivedVelocity> pairs = new IdentityHashMap<>();
         List<ReceivedVelocity> unexpected = new ArrayList<>();
         for (ReceivedVelocity packet : sortedPackets) {
@@ -243,12 +277,14 @@ public final class ControlCheck {
         for (ReceivedVelocity packet : unexpected) {
             result.unexpected(packet);
         }
+        checkSparringRestores(sortedHits, result);
         if (attacks != null) {
-            if (attacks.size() != hits.size()) {
+            List<RecordedHit> attackHits = sortedHits.stream().filter(hit -> !hit.sparring()).collect(Collectors.toList());
+            if (attacks.size() != attackHits.size()) {
                 result.failures.add("the bots attacked " + attacks.size() + " times but the engine logged "
-                        + hits.size() + " hits");
+                        + attackHits.size() + " hits");
             }
-            List<BotAttack> missed = attacksWithoutHit(attacks, sortedHits);
+            List<BotAttack> missed = attacksWithoutHit(attacks, attackHits);
             if (!missed.isEmpty()) {
                 List<BotAttack> listed = missed.subList(0, Math.min(missed.size(), LISTED_ATTACKS));
                 result.failures.add("no hit logged for " + listed.stream().map(BotAttack::toString)
@@ -257,6 +293,25 @@ public final class ControlCheck {
             }
         }
         return result;
+    }
+
+    /**
+     * After a real hit, the server puts the victim's previous motion back; {@code /kb sparring} must
+     * do the same, or the next hit would add half of this knockback again. A sparring hit whose
+     * input motion is the previous sparring knockback on the same victim means it did not.
+     */
+    private static void checkSparringRestores(List<RecordedHit> sortedHits, Result result) {
+        Map<Integer, RecordedHit> previous = new HashMap<>();
+        for (RecordedHit hit : sortedHits) {
+            if (!hit.sparring()) {
+                continue;
+            }
+            RecordedHit before = previous.put(hit.victimEntityId, hit);
+            if (before != null && hit.hit.victimMotion().equals(before.velocity)) {
+                result.fail(hit, "its input motion is the previous sparring knockback " + before.velocity
+                        + ": the motion was not put back after that hit");
+            }
+        }
     }
 
     Result check(List<RecordedHit> hits, List<ReceivedVelocity> received, int minHits) {
@@ -334,10 +389,18 @@ public final class ControlCheck {
         private int overriddenNoSprint;
         private int enchanted;
         private int airborne;
+        private final boolean expectSparring;
+        private int sparringSprint;
+        private int sparringNoSprint;
 
         Result(int minHits, KnockbackProfile serverKnockback) {
+            this(minHits, serverKnockback, false);
+        }
+
+        Result(int minHits, KnockbackProfile serverKnockback, boolean expectSparring) {
             this.minHits = minHits;
             this.serverKnockback = serverKnockback;
+            this.expectSparring = expectSparring;
         }
 
         void pass(RecordedHit hit, int vanillaDifference) {
@@ -345,6 +408,15 @@ public final class ControlCheck {
             int[] stats = categories.computeIfAbsent(hit.category(), key -> new int[3]);
             stats[0]++;
             stats[2] = Math.max(stats[2], vanillaDifference);
+            if (hit.sparring()) {
+                // Counted apart: the coverage of real attacks must come from real attacks.
+                if (hit.sprinting) {
+                    sparringSprint++;
+                } else {
+                    sparringNoSprint++;
+                }
+                return;
+            }
             if (hit.hit.knockbackLevel() >= 2) {
                 enchanted++;
             }
@@ -403,6 +475,9 @@ public final class ControlCheck {
             }
             if (airborne == 0) {
                 problems.add("no hit on a victim in the air");
+            }
+            if (expectSparring && (sparringSprint == 0 || sparringNoSprint == 0)) {
+                problems.add("/kb sparring hits must include sprint and non-sprint hits");
             }
             return problems;
         }

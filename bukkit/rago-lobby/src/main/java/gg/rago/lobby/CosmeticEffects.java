@@ -1,0 +1,362 @@
+package gg.rago.lobby;
+
+import java.util.HashMap;
+import java.util.Iterator;
+import java.util.Map;
+import java.util.UUID;
+import org.bukkit.Effect;
+import org.bukkit.FireworkEffect;
+import org.bukkit.Location;
+import org.bukkit.Material;
+import org.bukkit.Sound;
+import org.bukkit.World;
+import org.bukkit.entity.Entity;
+import org.bukkit.entity.EntityType;
+import org.bukkit.entity.Firework;
+import org.bukkit.entity.Player;
+import org.bukkit.entity.Projectile;
+import org.bukkit.event.EventHandler;
+import org.bukkit.event.EventPriority;
+import org.bukkit.event.Listener;
+import org.bukkit.event.entity.PlayerDeathEvent;
+import org.bukkit.event.entity.ProjectileLaunchEvent;
+import org.bukkit.inventory.meta.FireworkMeta;
+import org.bukkit.plugin.Plugin;
+import org.bukkit.potion.PotionEffectType;
+import org.bukkit.projectiles.ProjectileSource;
+import org.bukkit.scheduler.BukkitTask;
+
+/**
+ * The cosmetics at work in the games: the trail behind a player's projectiles, the effect where
+ * their victim dies, the effect around them when they win. Nothing shows for an invisible player
+ * (it would give them away), nor in the lobby, where nobody fights. Main thread only.
+ */
+final class CosmeticEffects implements Listener {
+
+    /** A trail stops after this long, or once its projectile stops. */
+    private static final int TRAIL_TICKS = 100;
+    /** Where a victim died, kept this long for its kill effect. */
+    private static final long DEATH_MEMORY_MS = 3_000L;
+    private static final int WIN_SECONDS = 3;
+
+    private static final class Trail {
+        final Effect particle;
+        int ticks;
+
+        Trail(Effect particle) {
+            this.particle = particle;
+        }
+    }
+
+    private static final class Death {
+        final Location where;
+        final long when;
+
+        Death(Location where, long when) {
+            this.where = where;
+            this.when = when;
+        }
+    }
+
+    private final Plugin plugin;
+    private final Profiles profiles;
+    private final LobbyState state;
+    private final Map<Projectile, Trail> trails = new HashMap<>();
+    private final Map<UUID, Death> deaths = new HashMap<>();
+    private BukkitTask task;
+
+    CosmeticEffects(Plugin plugin, Profiles profiles, LobbyState state) {
+        this.plugin = plugin;
+        this.profiles = profiles;
+        this.state = state;
+    }
+
+    void start() {
+        task = plugin.getServer().getScheduler().runTaskTimer(plugin, this::tick, 1L, 1L);
+    }
+
+    void stop() {
+        if (task != null) {
+            task.cancel();
+            task = null;
+        }
+        trails.clear();
+    }
+
+    void forget(UUID player) {
+        deaths.remove(player);
+    }
+
+    private static boolean hidden(Player player) {
+        return player.hasPotionEffect(PotionEffectType.INVISIBILITY);
+    }
+
+    // --- Trails ---------------------------------------------------------------------------------
+
+    @EventHandler(priority = EventPriority.MONITOR, ignoreCancelled = true)
+    public void onLaunch(ProjectileLaunchEvent event) {
+        Projectile projectile = event.getEntity();
+        ProjectileSource source = projectile.getShooter();
+        if (!(source instanceof Player)) {
+            return;
+        }
+        Player shooter = (Player) source;
+        if (!state.isInGame(shooter) || hidden(shooter)) {
+            return;
+        }
+        Cosmetic trail = profiles.equipped(shooter.getUniqueId(), Cosmetic.Type.TRAIL);
+        if (trail != null) {
+            trails.put(projectile, new Trail(trail.particle()));
+        }
+    }
+
+    private void tick() {
+        Iterator<Map.Entry<Projectile, Trail>> it = trails.entrySet().iterator();
+        while (it.hasNext()) {
+            Map.Entry<Projectile, Trail> entry = it.next();
+            Projectile projectile = entry.getKey();
+            Trail trail = entry.getValue();
+            if (!projectile.isValid() || ++trail.ticks > TRAIL_TICKS
+                    || (trail.ticks > 2 && projectile.getVelocity().lengthSquared() < 0.01)) {
+                it.remove();
+                continue;
+            }
+            Location at = projectile.getLocation();
+            at.getWorld().spigot().playEffect(at, trail.particle, 0, 0, 0.05f, 0.05f, 0.05f, 0f, 2, 64);
+        }
+    }
+
+    // --- Kills ----------------------------------------------------------------------------------
+
+    @EventHandler(priority = EventPriority.MONITOR)
+    public void onDeath(PlayerDeathEvent event) {
+        Player dead = event.getEntity();
+        deaths.put(dead.getUniqueId(), new Death(dead.getLocation(), System.currentTimeMillis()));
+    }
+
+    /** A kill counted in a game: the killer's kill effect where the victim died. */
+    void kill(UUID killer, UUID victim) {
+        Player by = killer == null ? null : plugin.getServer().getPlayer(killer);
+        if (by == null || hidden(by)) {
+            return;
+        }
+        Cosmetic effect = profiles.equipped(killer, Cosmetic.Type.KILL);
+        if (effect == null) {
+            return;
+        }
+        Location where = null;
+        Death death = victim == null ? null : deaths.remove(victim);
+        if (death != null && System.currentTimeMillis() - death.when < DEATH_MEMORY_MS) {
+            where = death.where;
+        } else if (victim != null && plugin.getServer().getPlayer(victim) != null) {
+            where = plugin.getServer().getPlayer(victim).getLocation();
+        }
+        if (where == null || !where.getWorld().equals(by.getWorld())) {
+            return;
+        }
+        playKill(effect, where.clone().add(0, 1, 0));
+    }
+
+    @SuppressWarnings("deprecation") // Material#getId: the block of the particle, as 1.8.8 takes it
+    private void playKill(Cosmetic effect, Location at) {
+        World world = at.getWorld();
+        switch (effect.id()) {
+            case "kill-blood":
+                world.spigot().playEffect(at, Effect.TILE_BREAK, Material.REDSTONE_BLOCK.getId(), 0, 0.3f, 0.5f, 0.3f, 0f, 60, 64);
+                world.playSound(at, Sound.HURT_FLESH, 1f, 0.8f);
+                break;
+            case "kill-lightning":
+                world.strikeLightningEffect(at);
+                break;
+            case "kill-firework":
+                firework(at, FireworkEffect.builder().withColor(org.bukkit.Color.RED, org.bukkit.Color.ORANGE)
+                        .with(FireworkEffect.Type.BALL_LARGE).build());
+                break;
+            case "kill-explosion":
+                world.spigot().playEffect(at, Effect.EXPLOSION_LARGE, 0, 0, 0.5f, 0.5f, 0.5f, 0f, 3, 64);
+                world.playSound(at, Sound.EXPLODE, 1f, 1.2f);
+                break;
+            case "kill-squid":
+                squidRocket(at);
+                break;
+            case "kill-meteor":
+                meteor(at, 7);
+                break;
+            default:
+                world.spigot().playEffect(at, effect.particle(), 0, 0, 0.4f, 0.6f, 0.4f, 0.05f, 25, 64);
+                break;
+        }
+    }
+
+    /**
+     * The squid rocket: a squid flies up from where the victim died, trailing flames, and bursts
+     * into a firework. Without a squid (a world that refuses creatures), the flames alone.
+     */
+    private void squidRocket(Location at) {
+        World world = at.getWorld();
+        final Entity squid = world.spawnEntity(at, EntityType.SQUID);
+        world.playSound(at, Sound.FIREWORK_LAUNCH, 1f, 0.8f);
+        final Location[] last = {at.clone()};
+        final int[] ticks = {0};
+        final BukkitTask[] self = new BukkitTask[1];
+        self[0] = plugin.getServer().getScheduler().runTaskTimer(plugin, () -> {
+            Location now = squid.isValid() ? squid.getLocation() : last[0].clone().add(0, 0.5, 0);
+            last[0] = now;
+            if (squid.isValid()) {
+                squid.setVelocity(new org.bukkit.util.Vector(0, 0.55, 0));
+            }
+            now.getWorld().spigot().playEffect(now, Effect.FLAME, 0, 0, 0.15f, 0.1f, 0.15f, 0.02f, 6, 64);
+            now.getWorld().spigot().playEffect(now, Effect.SMOKE, 0, 0, 0.1f, 0.1f, 0.1f, 0.01f, 3, 64);
+            if (++ticks[0] >= 24) {
+                squid.remove();
+                firework(now, FireworkEffect.builder().withColor(org.bukkit.Color.BLACK, org.bukkit.Color.PURPLE)
+                        .with(FireworkEffect.Type.BALL_LARGE).build());
+                self[0].cancel();
+            }
+        }, 1L, 1L);
+    }
+
+    /** A meteor falls from {@code height} blocks up onto this spot in half a second, and blows up there. */
+    private void meteor(final Location at, final int height) {
+        final World world = at.getWorld();
+        final int[] step = {0};
+        final BukkitTask[] self = new BukkitTask[1];
+        world.playSound(at, Sound.GHAST_FIREBALL, 0.8f, 0.6f);
+        self[0] = plugin.getServer().getScheduler().runTaskTimer(plugin, () -> {
+            double y = height * (1 - step[0] / 10.0);
+            Location rock = at.clone().add(-y * 0.4, y, 0);
+            world.spigot().playEffect(rock, Effect.FLAME, 0, 0, 0.2f, 0.2f, 0.2f, 0.02f, 12, 64);
+            world.spigot().playEffect(rock, Effect.LAVA_POP, 0, 0, 0.2f, 0.2f, 0.2f, 0f, 3, 64);
+            world.spigot().playEffect(rock, Effect.LARGE_SMOKE, 0, 0, 0.1f, 0.1f, 0.1f, 0.01f, 3, 64);
+            if (++step[0] > 10) {
+                world.spigot().playEffect(at, Effect.EXPLOSION_HUGE, 0, 0, 0f, 0f, 0f, 0f, 1, 64);
+                world.spigot().playEffect(at, Effect.LAVA_POP, 0, 0, 0.8f, 0.3f, 0.8f, 0f, 20, 64);
+                world.playSound(at, Sound.EXPLODE, 1f, 0.7f);
+                self[0].cancel();
+            }
+        }, 1L, 1L);
+    }
+
+    /** The waves of fireworks of a gifted rank, and how many each. */
+    static final int GIFT_WAVES = 6;
+    static final int GIFT_PER_WAVE = 5;
+    private static final org.bukkit.Color[] GIFT_COLOURS = {org.bukkit.Color.RED, org.bukkit.Color.ORANGE,
+        org.bukkit.Color.YELLOW, org.bukkit.Color.LIME, org.bukkit.Color.AQUA, org.bukkit.Color.BLUE, org.bukkit.Color.PURPLE,
+        org.bukkit.Color.FUCHSIA, org.bukkit.Color.WHITE};
+    private static final FireworkEffect.Type[] GIFT_TYPES = {FireworkEffect.Type.BALL_LARGE, FireworkEffect.Type.STAR,
+        FireworkEffect.Type.BURST, FireworkEffect.Type.BALL};
+
+    /**
+     * A rank gifted: {@value #GIFT_WAVES} waves of {@value #GIFT_PER_WAVE} fireworks of every colour
+     * around the player, over three seconds, wherever they walk.
+     */
+    void giftFireworks(Player player) {
+        final UUID id = player.getUniqueId();
+        for (int wave = 0; wave < GIFT_WAVES; wave++) {
+            final int w = wave;
+            plugin.getServer().getScheduler().runTaskLater(plugin, () -> {
+                Player now = plugin.getServer().getPlayer(id);
+                if (now == null) {
+                    return;
+                }
+                Location centre = now.getLocation();
+                for (int i = 0; i < GIFT_PER_WAVE; i++) {
+                    double angle = Math.PI * 2 * (i + w * 0.5) / GIFT_PER_WAVE;
+                    firework(centre.clone().add(Math.cos(angle) * 3, 2 + (i + w) % 3, Math.sin(angle) * 3),
+                            giftEffect(w * GIFT_PER_WAVE + i));
+                }
+                centre.getWorld().playSound(centre, Sound.FIREWORK_TWINKLE, 1f, 1f);
+            }, 1L + 12L * wave);
+        }
+    }
+
+    /** The n-th firework of a gift: the colours and the shapes in turn. */
+    static FireworkEffect giftEffect(int n) {
+        return FireworkEffect.builder().with(GIFT_TYPES[n % GIFT_TYPES.length])
+                .withColor(GIFT_COLOURS[n % GIFT_COLOURS.length], GIFT_COLOURS[(n + 4) % GIFT_COLOURS.length])
+                .withFade(org.bukkit.Color.WHITE).flicker(n % 2 == 0).trail(true).build();
+    }
+
+    /** A firework that bursts at once and hurts nobody (1.8 fireworks do no damage). */
+    void firework(Location at, FireworkEffect effect) {
+        Firework firework = (Firework) at.getWorld().spawnEntity(at, EntityType.FIREWORK);
+        FireworkMeta meta = firework.getFireworkMeta();
+        meta.clearEffects();
+        meta.addEffect(effect);
+        meta.setPower(0);
+        firework.setFireworkMeta(meta);
+        plugin.getServer().getScheduler().runTaskLater(plugin, () -> {
+            if (firework.isValid()) {
+                firework.detonate();
+            }
+        }, 2L);
+    }
+
+    // --- Wins -----------------------------------------------------------------------------------
+
+    /** A player won a game: their victory effect around them for a few seconds. */
+    void win(UUID winner) {
+        final Player player = plugin.getServer().getPlayer(winner);
+        if (player == null || hidden(player)) {
+            return;
+        }
+        final Cosmetic effect = profiles.equipped(winner, Cosmetic.Type.WIN);
+        if (effect == null) {
+            return;
+        }
+        final int[] step = {0};
+        final BukkitTask[] self = new BukkitTask[1];
+        self[0] = plugin.getServer().getScheduler().runTaskTimer(plugin, () -> {
+            if (!player.isOnline() || step[0]++ >= WIN_SECONDS * 4 || state.isInLobby(player)) {
+                self[0].cancel();
+                return;
+            }
+            playWin(effect, player.getLocation(), step[0]);
+        }, 0L, 5L);
+    }
+
+    private void playWin(Cosmetic effect, Location base, int step) {
+        World world = base.getWorld();
+        switch (effect.id()) {
+            case "win-fireworks":
+                if (step % 4 == 1) {
+                    firework(base.clone().add(0, 2, 0), FireworkEffect.builder()
+                            .withColor(org.bukkit.Color.AQUA, org.bukkit.Color.WHITE, org.bukkit.Color.YELLOW)
+                            .with(FireworkEffect.Type.STAR).withFlicker().build());
+                }
+                break;
+            case "win-flames":
+                for (int i = 0; i < 16; i++) {
+                    double angle = 2 * Math.PI * i / 16 + step * 0.2;
+                    Location at = base.clone().add(Math.cos(angle) * 1.2, 0.2, Math.sin(angle) * 1.2);
+                    world.spigot().playEffect(at, Effect.FLAME, 0, 0, 0f, 0.1f, 0f, 0.01f, 1, 64);
+                }
+                break;
+            case "win-storm":
+                // Lightning (that hurts nobody) around the winner, once a second.
+                if (step % 4 == 1) {
+                    double angle = step * 1.3;
+                    world.strikeLightningEffect(base.clone().add(Math.cos(angle) * 3, 0, Math.sin(angle) * 3));
+                }
+                world.spigot().playEffect(base.clone().add(0, 2.3, 0), Effect.FIREWORKS_SPARK, 0, 0, 0.6f, 0.2f, 0.6f, 0.05f, 6, 64);
+                break;
+            case "win-meteors":
+                if (step % 2 == 0) {
+                    double angle = step * 2.1;
+                    double away = 2 + (step % 3);
+                    meteor(base.clone().add(Math.cos(angle) * away, 0.2, Math.sin(angle) * away), 9);
+                }
+                break;
+            case "win-party":
+                world.spigot().playEffect(base.clone().add(0, 2.2, 0), Effect.NOTE, 0, 0, 0.8f, 0.4f, 0.8f, 1f, 6, 64);
+                world.spigot().playEffect(base.clone().add(0, 1, 0), Effect.COLOURED_DUST, 0, 0, 0.8f, 0.8f, 0.8f, 1f, 20, 64);
+                if (step % 2 == 0) {
+                    world.playSound(base, Sound.NOTE_PLING, 1f, 0.5f + (step % 8) * 0.2f);
+                }
+                break;
+            default:
+                world.spigot().playEffect(base.clone().add(0, 2.3, 0), effect.particle(), 0, 0, 0.6f, 0.3f, 0.6f, 0f, 5, 64);
+                break;
+        }
+    }
+}

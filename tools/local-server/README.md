@@ -2,13 +2,18 @@
 
 Ce dossier lance sur ton ordinateur un serveur Minecraft 1.8.8 (PandaSpigot) avec le moteur de
 combat RagoCombatEngine, pour essayer le knockback en jeu avec ton client 1.8.9 (Rago Client ou
-le client normal). Il sert aussi à construire les maps et les lobbys : WorldEdit et les outils de
+le client normal). On y arrive dans le lobby de Rago Practice, d'où on lance un duel sumo contre
+un autre joueur. Il sert aussi à construire les maps et les lobbys : WorldEdit et les outils de
 build Rago sont installés, et tes mondes sont sauvegardés à chaque lancement.
 
 Le moteur applique pour l'instant le profil vanilla : le knockback exact de Minecraft 1.8.8. Il
 n'y a pas encore de profil Hypixel, il viendra des mesures.
 
 C'est un serveur de test, pour toi et quelques amis : il n'est pas fait pour être ouvert au public.
+
+En jeu, tout est en anglais (menus, messages, PNJ, commandes). Les anciennes commandes en français
+(/file, /duel accepter, /monde creer...) marchent toujours. La fenêtre du serveur, elle, reste en
+français.
 
 
 ## Ce qu'il faut
@@ -28,7 +33,7 @@ Windows :
    Si Windows affiche « Windows a protégé votre ordinateur », clique sur « Informations
    complémentaires » puis « Exécuter quand même ». S'il demande si tu veux exécuter un fichier
    dont l'éditeur n'est pas vérifié, clique sur « Exécuter ».
-3. Lis le CLUF de Minecraft (le lien s'affiche) et réponds oui pour l'accepter.
+3. Lis le CLUF de Minecraft (le lien s'affiche) et réponds yes (ou oui) pour l'accepter.
 4. Si le pare-feu Windows demande l'accès réseau pour Java : coche seulement « Réseaux privés »
    si des amis sur le même Wi-Fi doivent se connecter, sinon clique sur Annuler (localhost
    marche quand même).
@@ -38,9 +43,10 @@ Mac :
 1. Décompresse le dossier (double-clic sur le fichier .zip).
 2. Ouvre Terminal, tape « bash » suivi d'un espace, fais glisser le fichier lancer-mac-linux.sh
    dans la fenêtre du Terminal, puis appuie sur Entrée.
-3. Lis le CLUF de Minecraft (le lien s'affiche) et réponds oui pour l'accepter.
+3. Lis le CLUF de Minecraft (le lien s'affiche) et réponds yes (ou oui) pour l'accepter.
 
-Le premier lancement télécharge PandaSpigot, WorldEdit puis le serveur Minecraft 1.8.8 de Mojang :
+Le premier lancement télécharge PandaSpigot, WorldEdit, PacketEvents (pour les PNJ du lobby) puis
+le serveur Minecraft 1.8.8 de Mojang :
 il prend une minute ou deux. Le serveur est prêt quand la fenêtre affiche une ligne qui commence par
 « Done ». Les lancements suivants sont plus rapides.
 
@@ -51,6 +57,75 @@ Dans Minecraft 1.8.9 : Multijoueur, Connexion directe, adresse localhost.
 
 Pour utiliser les commandes du moteur, deviens opérateur : dans la fenêtre du serveur, tape
 « op TonPseudo » puis Entrée.
+
+
+## Le lobby et le duel sumo
+
+En te connectant, tu arrives dans le lobby (le monde lobby, une plateforme tant que ta map n'est
+pas installée). Dans ta barre d'objets :
+
+- la boussole (clic droit) : le sélecteur des modes de jeu. Clique sur un mode pour entrer dans sa
+  file d'attente, clique dessus à nouveau pour la quitter. Pour l'instant le duel sumo et les
+  Ranked Bedwars sont ouverts ; les autres modes affichent « Bientôt disponible » ;
+- le colorant rouge, quand tu es dans une file : quitter la file ;
+- le colorant vert ou gris : cacher ou revoir les autres joueurs du lobby.
+
+À droite, le scoreboard montre les joueurs connectés, ta file et ton temps d'attente.
+
+Le duel sumo : dès que deux joueurs sont dans la file, ils partent sur une plateforme ronde. Le
+premier qui tombe donne un point à l'autre, le premier à 3 points gagne. Il n'y a pas de dégâts,
+seulement le knockback du moteur : c'est le mode pour tester le knockback à deux. Chaque manche
+commence par un compte à rebours de 3 secondes, immobile, affiché en grand à l'écran (3, 2, 1,
+« Fight! »). À la fin, les deux joueurs reviennent
+au lobby tout de suite.
+
+Commandes :
+
+- /spawn : retour au spawn du lobby. Pendant un duel, c'est un abandon.
+- /queue sumo pour entrer dans la file du duel, /queue leave pour en sortir (/file marche aussi).
+- /duel Pseudo : défier un ami dans un mode 1v1 (un menu s'ouvre) ; il répond avec
+  /duel accept TonPseudo ou /duel deny TonPseudo (ou en cliquant sur [Accept] ou [Deny]).
+- /lobby modes : les modes du lobby et leur file.
+- /lobby setspawn (opérateurs) : place le spawn du lobby là où tu es.
+- /lobby build (opérateurs) : mode construction dans le lobby (créatif, tu peux modifier la map) ;
+  retape-le pour en sortir.
+- /lobby point nom (opérateurs) : marque un endroit du lobby, où se mettent les PNJ et les
+  classements de plugins/RagoLobby/config.yml (le nom du point est leur clé). Retape-le ailleurs
+  pour le déplacer ; /lobby points pour la liste, /lobby point tp nom pour y aller,
+  /lobby point remove nom pour l'enlever. Les PNJ de stats sont sur statsjoueur1 et
+  statsjoueur2, le mur de classements du jour, de la semaine et à vie sur leaderboardstats, le
+  classement principal sur leaderboardprincipal (clic droit : Elo, puis Kills, puis niveau
+  Network ; clic gauche : la période ou le mode classé), les kills du jour, de la semaine et à vie
+  sur leaderboardplayer, avec les séries de victoires à gauche et le niveau Network à droite.
+- /monde tp world (opérateurs) : aller au monde plat du test de knockback, comme avant.
+
+Le plus simple pour construire le lobby : construis directement dans le monde lobby. Tape
+/lobby build pour passer en créatif (WorldEdit marche aussi), construis, puis place le spawn avec
+/lobby setspawn et les emplacements avec /lobby point. Le spawn et les points sont gardés dans le
+dossier du monde lobby (dans mondes) : ils restent quand tu mets à jour le serveur de test, et
+partent avec la map quand tu me l'envoies.
+
+Si ta map est déjà faite ailleurs : importe-la avec /monde import (voir « Construire »), puis dans
+plugins/RagoLobby/config.yml remplace « monde: lobby » par le nom de ton monde, relance le
+serveur, va dans ton lobby et tape /lobby setspawn là où les joueurs doivent apparaître. La liste
+des modes, leurs noms, leurs icônes et le texte du scoreboard se règlent dans le même fichier.
+
+
+## Bed Wars
+
+Les modes Ranked Bedwars (1v1 à 4v4) sont ouverts dans le sélecteur, ou avec /queue ranked-1v1.
+La partie suit les règles d'Hypixel : lits, générateurs, shop (le villageois de ton île), final
+kills. Si tu as copié ton shop d'Hypixel (/hypixel import), ton Quick Buy et ton hotbar manager
+sont ceux de la partie.
+
+Au premier lancement, le plugin crée sa propre petite map, bw-demo, pour jouer tout de suite ; elle
+ne sert plus dès qu'une vraie map peut accueillir le mode. Une map dont le dossier contient déjà son
+bedwars.yml (fait par tools/bedwars-maps) se joue dès qu'elle est dans mondes, au lancement suivant.
+Pour installer une autre map : mets le dossier du monde dans mondes, /monde import NomDeLaMap,
+/bw edit NomDeLaMap, puis place ses points avec /bw spawn red, /bw bed red, /bw generator red,
+/bw shop red (la même chose pour chaque équipe), /bw diamond et /bw emerald sur chaque générateur,
+/bw spectators, et /bw enable. /bw info dit ce qui manque, /bw help donne toutes les commandes. Le
+détail est dans le README de bukkit/rago-bedwars.
 
 
 ## Trouver un adversaire
@@ -71,6 +146,11 @@ un compte Minecraft.
 - /kb : mode, profil et réglages actuels.
 - /kb profiles : les profils et leurs valeurs.
 - /kb debug : affiche dans ton chat chaque coup et la vitesse envoyée.
+- /kb sparring : un attaquant invisible te frappe toutes les secondes, sans te faire de dégâts,
+  pour sentir le knockback seul. Regarde dans une direction : il est devant toi et te pousse en
+  arrière. /kb sparring normal pour des coups sans sprint, /kb sparring alterne pour un coup
+  sprint puis un coup normal, /kb sparring sprint 10 pour un coup toutes les 10 ticks (le plus
+  rapide d'un vrai combat). /kb sparring stop pour arrêter.
 - /kb mode observe : le serveur garde son propre knockback, le moteur ne fait qu'observer.
 - /kb mode override : le moteur applique son profil (réglage par défaut).
 
@@ -83,14 +163,16 @@ Les réglages sont expliqués dans la documentation du moteur
 
 Deviens opérateur (« op TonPseudo » dans la fenêtre du serveur), puis dans le jeu :
 
-- /monde creer lobby : crée un monde vide nommé lobby et t'y emmène, en créatif, sur un bloc de
-  bedrock. /monde creer lobby plat crée un monde plat à la place.
-- /monde tp lobby : y retourner. /monde tp world : revenir au monde du test de knockback (en
-  survie).
+- /monde create mon-lobby : crée un monde vide nommé mon-lobby et t'y emmène, en créatif, sur un
+  bloc de bedrock. /monde create mon-lobby flat crée un monde plat à la place. (Le nom lobby est
+  déjà pris par le lobby de Rago.)
+- /monde tp mon-lobby : y retourner. /monde tp world : revenir au monde du test de knockback (en
+  survie). /spawn : revenir au lobby.
 - /monde : la liste des mondes.
 - /monde spawn : place le point d'apparition du monde là où tu es.
-- /vitesse 3 : vole plus vite (de 1, la vitesse normale, à 10). /nv : vision nocturne.
-- WorldEdit : la hache en bois (//wand) pour sélectionner, puis //set, //replace, //copy,
+- /speed 3 : vole plus vite (de 1, la vitesse normale, à 10). /nv : vision nocturne.
+- WorldEdit : l'os (//wand le donne ; pas la hache en bois, qui est dans les kits des modes) pour
+  sélectionner, puis //set, //replace, //copy,
   //paste, //undo... Le guide de WorldEdit est sur https://worldedit.enginehub.org/en/latest/ ;
   il est écrit pour WorldEdit 7, mais les commandes de base sont les mêmes en 6.1.
 
@@ -103,7 +185,7 @@ Les noms de monde ne prennent que des minuscules sans accent, des chiffres, - et
 Pour importer une map téléchargée :
 
 - si c'est un dossier de monde (il contient level.dat et un dossier region) : copie-le dans le
-  dossier mondes (voir plus bas), puis tape /monde importer nom-du-dossier. La map doit venir de
+  dossier mondes (voir plus bas), puis tape /monde import nom-du-dossier. La map doit venir de
   Minecraft 1.8 à 1.12 : une map enregistrée en 1.13 ou plus récent est refusée, parce que le
   serveur 1.8 l'abîmerait ;
 - si c'est un schematic (.schematic) : copie-le dans le dossier schematics, crée un monde vide,
@@ -123,14 +205,17 @@ Tes mondes ne sont pas dans ce dossier, mais dans le dossier Rago de ton dossier
 
 Il contient :
 
-- mondes : un dossier par monde (world est le monde du test de knockback) ;
+- mondes : un dossier par monde (world est le monde du test de knockback, lobby le lobby,
+  arenes les plateformes des duels et bw-demo la map de démo de Bed Wars ; les dossiers bw_...
+  sont les copies où se jouent les parties de Bed Wars, supprimées à l'arrêt du serveur ou au
+  lancement suivant) ;
 - schematics : les schematics de WorldEdit ;
 - sauvegardes : une copie des mondes et des schematics faite à chaque lancement du serveur, avant
   qu'il démarre. Les 10 plus récentes sont gardées. Sur Windows ce sont des fichiers .zip, sur Mac
   des .tar.gz.
 
 Pendant que le serveur tourne, tous les mondes sont aussi écrits sur le disque toutes les
-2 minutes, et /monde sauver le fait tout de suite. Si quelque chose casse un build, //undo de
+2 minutes, et /monde save le fait tout de suite. Si quelque chose casse un build, //undo de
 WorldEdit annule les dernières modifications.
 
 Pour revenir à une sauvegarde : arrête le serveur, renomme le dossier mondes (par exemple en
@@ -167,15 +252,19 @@ tes schematics et tes sauvegardes dans le dossier Rago. Il faut seulement redeve
 ## Pour les développeurs
 
 La CI assemble ce dossier à chaque push (artefact « rago-serveur-de-test ») : les fichiers de
-tools/local-server, ce mode d'emploi renommé LISEZ-MOI.txt, et les jars de RagoCombatEngine et de
-RagoBuildTools (tools/build-tools) dans plugins/. Elle démarre le serveur deux fois, sur Linux et
-Windows, avec Java 8 et Java 21 : elle vérifie que les plugins s'activent, qu'un monde créé au
-premier lancement est retrouvé au second, et que le second lancement le sauvegarde.
+tools/local-server, ce mode d'emploi renommé LISEZ-MOI.txt, et les jars de RagoCombatEngine, de
+RagoBuildTools (tools/build-tools), de RagoLobby (bukkit/rago-lobby), de RagoPractice
+(bukkit/rago-practice) et de RagoBedwars (bukkit/rago-bedwars) dans plugins/. Elle démarre le serveur deux fois, sur Linux et Windows,
+avec Java 8 et Java 21 : elle vérifie que les plugins s'activent, qu'un monde créé au premier
+lancement est retrouvé au second, et que le second lancement le sauvegarde. Le lobby et le duel
+sumo sont joués par deux bots dans un autre test (tools/lobby-check).
 
 Les deux scripts téléchargent le build 226 de PandaSpigot (celui sur lequel passe le test de
-contrôle) et WorldEdit 6.1, et vérifient leur somme SHA-256. La CI vérifie que les deux scripts
-fixent les mêmes sommes, et que celle de WorldEdit correspond au MD5 affiché par dev.bukkit.org.
-WorldEdit n'est pas dans le dossier assemblé : il est téléchargé chez son éditeur au lancement.
+contrôle), WorldEdit 6.1 et PacketEvents 2.14.0, et vérifient leur somme SHA-256. La CI vérifie
+que les deux scripts fixent les mêmes sommes, que celle de WorldEdit correspond au MD5 affiché par
+dev.bukkit.org, et que celle de PacketEvents est celle que GitHub donne pour le fichier de sa
+release. WorldEdit et PacketEvents ne sont pas dans le dossier assemblé : ils sont téléchargés
+chez leur éditeur au lancement.
 
 Le serveur range ses mondes dans RAGO_DONNEES/mondes (option --world-container), les schematics de
 WorldEdit dans RAGO_DONNEES/schematics (le script écrit plugins/WorldEdit/config.yml s'il n'existe

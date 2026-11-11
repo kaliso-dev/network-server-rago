@@ -22,23 +22,23 @@ final class WorldName {
     private WorldName() {
     }
 
-    /** Why the name cannot be used, in French for the player, or null when it is fine. */
+    /** Why the name cannot be used, for the player, or null when it is fine. */
     static String problem(String name) {
         if (name == null || name.isEmpty()) {
-            return "le nom est vide.";
+            return "the name is empty.";
         }
         if (name.length() > MAX_LENGTH) {
-            return "le nom fait plus de " + MAX_LENGTH + " caractères.";
+            return "the name is longer than " + MAX_LENGTH + " characters.";
         }
         for (int i = 0; i < name.length(); i++) {
             char c = name.charAt(i);
             boolean allowed = c >= 'a' && c <= 'z' || c >= '0' && c <= '9' || c == '-' || c == '_';
             if (!allowed) {
-                return "le nom ne doit contenir que des minuscules sans accent, des chiffres, - et _ (pas « " + c + " »).";
+                return "the name may only hold lowercase letters without accents, digits, - and _ (not \"" + c + "\").";
             }
         }
         if (RESERVED.contains(name)) {
-            return "« " + name + " » est un nom réservé par le serveur.";
+            return "\"" + name + "\" is a name reserved by the server.";
         }
         return null;
     }

@@ -5,7 +5,8 @@ ce que fait ensuite le client 1.8.9 de la victime. C'est la base du RagoCombatEn
 reproduit ce calcul au bit près, puis remplace ses constantes par celles d'un profil.
 
 Rien ici ne vient d'une supposition sur Hypixel. Les valeurs d'Hypixel ne sont pas publiques ; elles
-seront mesurées (voir « Mesurer un autre serveur » plus bas).
+se mesurent (voir « Mesurer un autre serveur » plus bas). Les mesures faites sont dans
+[mesures-hypixel.md](mesures-hypixel.md).
 
 ## Sources
 
@@ -120,16 +121,19 @@ ni la glace, l'eau, les échelles ou les effets de potion.
 
 ## Mesurer un autre serveur (Hypixel)
 
-Pour s'approcher d'Hypixel, il faut des mesures, pas des valeurs trouvées sur un forum. Le plan
-(prochain jalon) :
+Pour s'approcher d'Hypixel, il faut des mesures, pas des valeurs trouvées sur un forum :
 
-1. un module d'enregistrement dans Rago Client note chaque paquet de vitesse reçu pour son propre
-   joueur, avec la position, l'état au sol et la vitesse du client à cet instant ;
-2. des sessions de test avec deux comptes, dans des situations contrôlées : victime immobile au
-   sol, coups avec et sans sprint, distances et angles connus, victime en l'air ;
-3. on cherche le profil (les six constantes) qui reproduit les paquets mesurés, avec l'écart
-   restant affiché, et on documente ce qui ne colle pas ;
+1. le mod kb-recorder (tools/kb-recorder) note chaque paquet de vitesse reçu par son joueur, avec
+   la position, l'état au sol et la vitesse du client, et les attaques envoyées ;
+2. deux joueurs se battent, chacun avec le mod : chaque coup est vu des deux côtés, et le sprint
+   de l'attaquant se lit dans son propre enregistrement ;
+3. on cherche le profil (les six constantes) qui reproduit les paquets mesurés, en refaisant la
+   même analyse sur notre serveur en vanilla pour vérifier la méthode, et on documente ce qui ne
+   colle pas ;
 4. le test de contrôle vérifie ensuite que notre serveur envoie exactement ce que dit ce profil.
+
+La première mesure (Housing, 7 novembre 2026) a donné le profil `hypixel-approx-v1` et un délai de
+9 ticks entre deux coups : voir [mesures-hypixel.md](mesures-hypixel.md).
 
 Limite connue : un paquet mesuré donne la vitesse que le serveur a envoyée, mais pas la vitesse
 « côté serveur » qu'il avait pour la victime juste avant (terme de friction). Les mesures sur

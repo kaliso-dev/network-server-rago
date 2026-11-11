@@ -1,31 +1,35 @@
-﻿# Serveur de test local Rago Practice (Windows) : PandaSpigot 1.8.8 avec RagoCombatEngine, WorldEdit
-# et RagoBuildTools. Mode d'emploi : LISEZ-MOI.txt. Lancement : double-clic sur lancer-windows.bat.
+﻿# Local test server of Rago Practice (Windows): PandaSpigot 1.8.8 with RagoCombatEngine, WorldEdit,
+# PacketEvents and the Rago plugins. How to use it: LISEZ-MOI.txt. Start: double-click lancer-windows.bat.
 #
-# Réglages facultatifs (variables d'environnement) :
-#   RAGO_JAVA          programme java à utiliser (par défaut : %JAVA_HOME%\bin\java.exe, sinon java)
-#   RAGO_ACCEPTE_CLUF  "oui" pour accepter le CLUF de Minecraft sans question (lancement automatique)
-#   RAGO_MEMOIRE       mémoire maximale du serveur (par défaut 2G)
-#   RAGO_DONNEES       dossier des mondes, des schematics et des sauvegardes (par défaut : %USERPROFILE%\Rago)
-#   RAGO_SAUVEGARDES   nombre de sauvegardes des mondes gardées (par défaut 10 ; 0 : pas de sauvegarde)
-# Compatible avec Windows PowerShell 5.1 (Windows 10 et 11) et PowerShell 7.
-# Ce fichier est en UTF-8 avec BOM : sans BOM, PowerShell 5.1 lirait mal les accents.
+# Optional settings (environment variables):
+#   RAGO_JAVA          the java program to use (default: %JAVA_HOME%\bin\java.exe, else java)
+#   RAGO_ACCEPTE_CLUF  "yes" (or "oui") to accept the Minecraft EULA without a question (automatic start)
+#   RAGO_MEMOIRE       the server's maximum memory (default 2G)
+#   RAGO_DONNEES       the folder of the worlds, the schematics and the backups (default: %USERPROFILE%\Rago)
+#   RAGO_SAUVEGARDES   how many backups of the worlds are kept (default 10; 0: no backup)
+# Works with Windows PowerShell 5.1 (Windows 10 and 11) and PowerShell 7.
+# This file is UTF-8 with a BOM: without it, PowerShell 5.1 would misread any non-ASCII character.
 
 $ErrorActionPreference = 'Stop'
 
-# Le build de PandaSpigot sur lequel le test de contrôle du moteur passe.
+# The PandaSpigot build the engine control test passes on.
 $PandaSpigotUrl = 'https://downloads.hpfxd.com/v2/projects/pandaspigot/versions/1.8.8/builds/226/downloads/paperclip'
 $PandaSpigotSha256 = 'ac73146b275230cbd0612ef0f3d6b40333abd3182beae457cad5321efff6359b'
 $ServerJar = 'pandaspigot-226.jar'
-# WorldEdit 6.1, la dernière version pour Bukkit 1.8 (https://dev.bukkit.org/projects/worldedit/files/880435).
+# WorldEdit 6.1, the last version for Bukkit 1.8 (https://dev.bukkit.org/projects/worldedit/files/880435).
 $WorldEditUrl = 'https://mediafilez.forgecdn.net/files/880/435/worldedit-bukkit-6.1.jar'
 $WorldEditSha256 = 'b9d3f0648e47424d66d94081b21a26504de0fbe6843f3d977c023aec066d4496'
 $WorldEditJar = 'plugins\worldedit-bukkit-6.1.jar'
+# PacketEvents 2.14.0, which RagoLobby needs for its NPCs (https://github.com/retrooper/packetevents).
+$PacketEventsUrl = 'https://github.com/retrooper/packetevents/releases/download/v2.14.0/packetevents-spigot-2.14.0.jar'
+$PacketEventsSha256 = '060087c58ec268eae7dd0eb1f17ac3bea1eaadda1693414141ff64e506091bd7'
+$PacketEventsJar = 'plugins\packetevents-spigot-2.14.0.jar'
 
 Set-Location -LiteralPath $PSScriptRoot
 
 function Say([string]$Text) { Write-Host "[Rago] $Text" }
 function Stop-With([string]$Text) {
-    Write-Host "[Rago] ERREUR : $Text" -ForegroundColor Red
+    Write-Host "[Rago] ERROR: $Text" -ForegroundColor Red
     exit 1
 }
 
@@ -38,56 +42,56 @@ if ($env:RAGO_JAVA) {
     $Java = 'java'
 }
 if (-not (Get-Command $Java -ErrorAction SilentlyContinue)) {
-    Stop-With ('Java est introuvable. Installe Java 21 (https://adoptium.net/fr/temurin/releases/?version=21) ' +
-        'ou Java 8, puis relance lancer-windows.bat.')
+    Stop-With ('Java was not found. Install Java 21 (https://adoptium.net/temurin/releases/?version=21) ' +
+        'or Java 8, then run lancer-windows.bat again.')
 }
-# "java -version" écrit sur la sortie d'erreur : PowerShell 5.1 en ferait une erreur fatale avec 'Stop'.
+# "java -version" writes to the error output: PowerShell 5.1 would make it a fatal error with 'Stop'.
 $ErrorActionPreference = 'Continue'
 $JavaVersion = (& $Java -version 2>&1 | ForEach-Object { "$_" } | Where-Object { $_ -match 'version' } |
     Select-Object -First 1)
 $ErrorActionPreference = 'Stop'
-if (-not $JavaVersion) { $JavaVersion = 'version inconnue' }
-Say "Java : $JavaVersion"
+if (-not $JavaVersion) { $JavaVersion = 'unknown version' }
+Say "Java: $JavaVersion"
 if ($JavaVersion -match 'version "(\d+)(\.(\d+))?') {
     $Major = [int]$Matches[1]
     if ($Major -eq 1 -and $Matches[3]) { $Major = [int]$Matches[3] }
-    if ($Major -lt 8) { Stop-With 'il faut Java 8 ou plus récent.' }
+    if ($Major -lt 8) { Stop-With 'Java 8 or newer is needed.' }
 }
 
-# --- CLUF de Minecraft ---------------------------------------------------------------------------
+# --- Minecraft EULA ------------------------------------------------------------------------------
 $EulaAccepted = (Test-Path -LiteralPath 'eula.txt') -and
     (Select-String -LiteralPath 'eula.txt' -Pattern '^eula=true' -Quiet)
 if (-not $EulaAccepted) {
-    Say 'Pour lancer un serveur Minecraft, il faut accepter le CLUF de Minecraft :'
+    Say 'To run a Minecraft server, you must accept the Minecraft EULA:'
     Say 'https://aka.ms/MinecraftEULA'
     $Answer = $env:RAGO_ACCEPTE_CLUF
-    if (-not $Answer) { $Answer = Read-Host '[Rago] Tu acceptes le CLUF de Minecraft ? (oui/non)' }
-    if ($Answer -notmatch '^\s*(oui|o)\s*$') { Stop-With 'CLUF non accepté : le serveur ne démarre pas.' }
+    if (-not $Answer) { $Answer = Read-Host '[Rago] Do you accept the Minecraft EULA? (yes/no)' }
+    if ($Answer -notmatch '^\s*(yes|y|oui|o)\s*$') { Stop-With 'EULA not accepted: the server does not start.' }
     Set-Content -LiteralPath 'eula.txt' -Value 'eula=true' -Encoding Ascii
 }
 
-# --- Téléchargements ------------------------------------------------------------------------------
-# PowerShell 5.1 n'active pas TLS 1.2 par défaut, et sa barre de progression ralentit beaucoup les
-# téléchargements.
+# --- Downloads -----------------------------------------------------------------------------------
+# PowerShell 5.1 does not turn TLS 1.2 on by default, and its progress bar slows the downloads
+# down a lot.
 [Net.ServicePointManager]::SecurityProtocol = [Net.ServicePointManager]::SecurityProtocol -bor
     [Net.SecurityProtocolType]::Tls12
 $ProgressPreference = 'SilentlyContinue'
 
-# Télécharge le fichier s'il manque, puis vérifie sa somme. Un fichier qui n'a pas la bonne somme
-# est supprimé.
+# Downloads the file if it is missing, then checks its sum. A file without the right sum is
+# deleted.
 function Get-Verified([string]$Name, [string]$Url, [string]$Sha256, [string]$File) {
     $Path = Join-Path $PSScriptRoot $File
     if (-not (Test-Path -LiteralPath $Path) -or (Get-Item -LiteralPath $Path).Length -eq 0) {
-        Say "Téléchargement de $Name..."
+        Say "Downloading $Name..."
         try {
             Invoke-WebRequest -Uri $Url -OutFile "$Path.part" -UseBasicParsing
         } catch {
-            Stop-With "le téléchargement de $Name a échoué ($($_.Exception.Message)). Vérifie ta connexion et relance."
+            Stop-With "the download of $Name failed ($($_.Exception.Message)). Check your connection and run again."
         }
         Move-Item -LiteralPath "$Path.part" -Destination $Path -Force
     }
-    # La somme est calculée avec .NET et non avec Get-FileHash : lancé depuis PowerShell 7, Windows
-    # PowerShell 5.1 hérite de ses chemins de modules et ne trouve plus Get-FileHash.
+    # The sum is computed with .NET and not with Get-FileHash: started from PowerShell 7, Windows
+    # PowerShell 5.1 inherits its module paths and no longer finds Get-FileHash.
     $Stream = [IO.File]::OpenRead($Path)
     try {
         $HashBytes = [Security.Cryptography.SHA256]::Create().ComputeHash($Stream)
@@ -97,16 +101,17 @@ function Get-Verified([string]$Name, [string]$Url, [string]$Sha256, [string]$Fil
     $ActualSha256 = ([BitConverter]::ToString($HashBytes) -replace '-', '').ToLowerInvariant()
     if ($ActualSha256 -ne $Sha256) {
         Remove-Item -LiteralPath $Path -Force
-        Stop-With ("le fichier $Name téléchargé n'est pas le bon (somme $ActualSha256). Il a été supprimé : " +
-            'relance lancer-windows.bat pour le télécharger à nouveau.')
+        Stop-With ("the downloaded file $Name is not the right one (sum $ActualSha256). It was deleted: " +
+            'run lancer-windows.bat again to download it again.')
     }
 }
 [void][IO.Directory]::CreateDirectory((Join-Path $PSScriptRoot 'plugins'))
 Get-Verified 'PandaSpigot 1.8.8 (build 226)' $PandaSpigotUrl $PandaSpigotSha256 $ServerJar
 Get-Verified 'WorldEdit 6.1' $WorldEditUrl $WorldEditSha256 $WorldEditJar
+Get-Verified 'PacketEvents 2.14.0' $PacketEventsUrl $PacketEventsSha256 $PacketEventsJar
 
-# --- Mondes, schematics et sauvegardes -------------------------------------------------------------
-# Ils sont rangés hors de ce dossier : une nouvelle version du serveur de test les retrouve.
+# --- Worlds, schematics and backups --------------------------------------------------------------
+# They are kept outside this folder: a new version of the test server finds them again.
 $DataDir = if ($env:RAGO_DONNEES) { $env:RAGO_DONNEES } else { Join-Path $env:USERPROFILE 'Rago' }
 $DataDir = [IO.Path]::GetFullPath($DataDir)
 $Worlds = Join-Path $DataDir 'mondes'
@@ -115,13 +120,13 @@ $Backups = Join-Path $DataDir 'sauvegardes'
 try {
     foreach ($Dir in $Worlds, $Schematics, $Backups) { [void][IO.Directory]::CreateDirectory($Dir) }
 } catch {
-    Stop-With "impossible de créer le dossier $DataDir ($($_.Exception.Message))."
+    Stop-With "cannot create the folder $DataDir ($($_.Exception.Message))."
 }
-Say "Mondes et schematics : $DataDir"
+Say "Worlds and schematics: $DataDir"
 
 $KeepText = if ($null -ne $env:RAGO_SAUVEGARDES -and $env:RAGO_SAUVEGARDES -ne '') { $env:RAGO_SAUVEGARDES } else { '10' }
 if ($KeepText -notmatch '^\d+$') {
-    Stop-With "RAGO_SAUVEGARDES doit être un nombre (par exemple 10), pas « $KeepText »."
+    Stop-With "RAGO_SAUVEGARDES must be a number (for example 10), not `"$KeepText`"."
 }
 $Keep = [int]$KeepText
 $ToSave = @()
@@ -130,8 +135,8 @@ foreach ($Root in $Worlds, $Schematics) {
 }
 if ($Keep -gt 0 -and $ToSave.Count -gt 0) {
     $Archive = Join-Path $Backups ('mondes-' + [DateTime]::Now.ToString('yyyy-MM-dd_HH-mm-ss') + '.zip')
-    Say "Sauvegarde des mondes et des schematics : $Archive"
-    # Une archive .zip faite avec .NET, et non Compress-Archive : même raison que pour Get-FileHash.
+    Say "Backup of the worlds and the schematics: $Archive"
+    # A .zip archive made with .NET, and not Compress-Archive: the same reason as for Get-FileHash.
     Add-Type -AssemblyName System.IO.Compression
     Add-Type -AssemblyName System.IO.Compression.FileSystem
     try {
@@ -148,32 +153,45 @@ if ($Keep -gt 0 -and $ToSave.Count -gt 0) {
         Move-Item -LiteralPath "$Archive.part" -Destination $Archive -Force
     } catch {
         Remove-Item -LiteralPath "$Archive.part" -Force -ErrorAction SilentlyContinue
-        Stop-With ("la sauvegarde des mondes a échoué ($($_.Exception.Message)). Le serveur ne démarre pas, " +
-            'pour ne rien abîmer. Libère de la place, ou lance avec RAGO_SAUVEGARDES=0 pour démarrer sans sauvegarde.')
+        Stop-With ("the backup of the worlds failed ($($_.Exception.Message)). The server does not start, " +
+            'so as not to damage anything. Free some space, or run with RAGO_SAUVEGARDES=0 to start without a backup.')
     }
-    # Garde les $Keep plus récentes : les noms sont datés, l'ordre alphabétique est l'ordre des dates.
+    # Keeps the $Keep most recent: the names are dated, the alphabetical order is the order of the dates.
     $Old = @([IO.Directory]::GetFiles($Backups, 'mondes-*.zip') | Sort-Object -Descending | Select-Object -Skip $Keep)
     foreach ($File in $Old) { Remove-Item -LiteralPath $File -Force }
 }
 
-# WorldEdit range ses schematics avec les mondes. Ce fichier n'est écrit que s'il n'existe pas : les
-# autres réglages de WorldEdit gardent leur valeur par défaut.
+# WorldEdit keeps its schematics with the worlds. This file is only written if it does not exist:
+# the other settings of WorldEdit keep their default value.
 $WorldEditConfig = Join-Path $PSScriptRoot 'plugins\WorldEdit\config.yml'
 if (-not (Test-Path -LiteralPath $WorldEditConfig)) {
     [void][IO.Directory]::CreateDirectory((Split-Path -Parent $WorldEditConfig))
     $YamlPath = $Schematics.Replace('\', '/').Replace("'", "''")
     $Lines = @(
-        "# Écrit par le lanceur Rago : les schematics sont rangés avec les mondes ($DataDir).",
+        "# Written by the Rago launcher: the schematics are kept with the worlds ($DataDir).",
         'saving:',
         "  dir: '$YamlPath'"
     )
-    # UTF-8 sans BOM : Set-Content -Encoding UTF8 de PowerShell 5.1 ajouterait un BOM.
+    # UTF-8 without a BOM: Set-Content -Encoding UTF8 of PowerShell 5.1 would add one.
     [IO.File]::WriteAllLines($WorldEditConfig, [string[]]$Lines, (New-Object Text.UTF8Encoding $false))
 }
+# The wands of WorldEdit away from the items of the games, in a config of before too: its selection
+# wand (the wooden axe by default, held in several kits: it took their clicks) is a bone (//wand
+# gives it), its navigation wand (the compass by default, the lobby's game selector) a prismarine
+# shard.
+$Utf8 = New-Object Text.UTF8Encoding $false
+if (-not (Select-String -LiteralPath $WorldEditConfig -Pattern '^wand-item:' -Quiet)) {
+    [IO.File]::AppendAllLines($WorldEditConfig, [string[]]@(
+        '# Written by the Rago launcher: the wands of WorldEdit are not items of the games (//wand gives the bone).',
+        'wand-item: 352'), $Utf8)
+}
+if (-not (Select-String -LiteralPath $WorldEditConfig -Pattern '^navigation-wand:' -Quiet)) {
+    [IO.File]::AppendAllLines($WorldEditConfig, [string[]]@('navigation-wand:', '  item: 409'), $Utf8)
+}
 
-# --- Démarrage -----------------------------------------------------------------------------------
+# --- Start ---------------------------------------------------------------------------------------
 $Memory = if ($env:RAGO_MEMOIRE) { $env:RAGO_MEMOIRE } else { '2G' }
-Say 'Démarrage du serveur. Dans Minecraft 1.8.9 : Multijoueur, Connexion directe, adresse localhost.'
-Say "Pour l'arrêter, tape stop ici puis Entrée."
+Say 'Starting the server. In Minecraft 1.8.9: Multiplayer, Direct Connection, address localhost.'
+Say "To stop it, type stop here, then Enter."
 & $Java "-Xmx$Memory" '-DIReallyKnowWhatIAmDoingISwear=true' -jar $ServerJar --world-container $Worlds nogui
 exit $LASTEXITCODE

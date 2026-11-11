@@ -20,7 +20,12 @@ node_modules
 # Local test servers and their output
 run/
 control-run/
+lobby-run/
+recorder-run/
 
 # OS
 .DS_Store
 Thumbs.db
+
+# Python
+__pycache__/

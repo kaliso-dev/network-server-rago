@@ -21,7 +21,9 @@ import org.bukkit.entity.Player;
 final class KbCommand implements TabExecutor {
 
     private static final List<String> SUBCOMMANDS = Collections.unmodifiableList(Arrays.asList(
-            "status", "profiles", "profile", "world", "mode", "debug", "reload"));
+            "status", "profiles", "profile", "world", "mode", "hitdelay", "debug", "sparring", "reload"));
+    private static final List<String> SPARRING_OPTIONS = Collections.unmodifiableList(Arrays.asList(
+            "sprint", "normal", "alterne", "stop"));
     private static final String DEFAULT_WORLD_PROFILE = "default";
 
     private final RagoCombatEngine plugin;
@@ -42,16 +44,16 @@ final class KbCommand implements TabExecutor {
                 return true;
             case "profile":
                 if (args.length != 2) {
-                    return usage(sender, "/" + label + " profile <nom>");
+                    return usage(sender, "/" + label + " profile <name>");
                 }
-                return change(sender, "profil par défaut -> " + args[1],
+                return change(sender, "default profile -> " + args[1],
                         () -> plugin.settings().withDefaultProfile(args[1]));
             case "world":
                 if (args.length != 3) {
-                    return usage(sender, "/" + label + " world <monde> <profil|default>");
+                    return usage(sender, "/" + label + " world <world> <profile|default>");
                 }
                 String profile = DEFAULT_WORLD_PROFILE.equalsIgnoreCase(args[2]) ? null : args[2];
-                return change(sender, "monde " + args[1] + " -> " + (profile == null ? "profil par défaut" : profile),
+                return change(sender, "world " + args[1] + " -> " + (profile == null ? "default profile" : profile),
                         () -> plugin.settings().withWorldProfile(args[1], profile));
             case "mode":
                 if (args.length != 2) {
@@ -59,8 +61,18 @@ final class KbCommand implements TabExecutor {
                 }
                 return change(sender, "mode -> " + args[1].toLowerCase(Locale.ROOT),
                         () -> plugin.settings().withMode(EngineMode.parse(args[1])));
+            case "hitdelay":
+                if (args.length != 2) {
+                    return usage(sender, "/" + label + " hitdelay <ticks> (vanilla " + EngineSettings.VANILLA_HIT_DELAY_TICKS
+                            + ")");
+                }
+                return change(sender, "hit delay -> " + args[1] + " ticks",
+                        () -> plugin.settings().withHitDelayTicks(parseTicks(args[1])));
             case "debug":
                 debug(sender);
+                return true;
+            case "sparring":
+                sparring(sender, label, args);
                 return true;
             case "reload":
                 reload(sender);
@@ -73,13 +85,15 @@ final class KbCommand implements TabExecutor {
     private void status(CommandSender sender) {
         EngineSettings settings = plugin.settings();
         sender.sendMessage(ChatColor.RED + "RagoCombatEngine " + ChatColor.GRAY + plugin.getDescription().getVersion());
-        sender.sendMessage(ChatColor.GRAY + "Mode : " + ChatColor.WHITE + settings.mode().configName());
-        sender.sendMessage(ChatColor.GRAY + "Profil par défaut : " + ChatColor.WHITE + settings.defaultProfile());
+        sender.sendMessage(ChatColor.GRAY + "Mode: " + ChatColor.WHITE + settings.mode().configName());
+        sender.sendMessage(ChatColor.GRAY + "Default profile: " + ChatColor.WHITE + settings.defaultProfile());
         for (Map.Entry<String, String> entry : settings.worldProfiles().entrySet()) {
-            sender.sendMessage(ChatColor.GRAY + "  monde " + entry.getKey() + " : " + ChatColor.WHITE + entry.getValue());
+            sender.sendMessage(ChatColor.GRAY + "  world " + entry.getKey() + ": " + ChatColor.WHITE + entry.getValue());
         }
-        sender.sendMessage(ChatColor.GRAY + "Journal des hits : " + ChatColor.WHITE
-                + (settings.recordHits() ? "actif (" + plugin.droppedRecords() + " perdus)" : "inactif"));
+        sender.sendMessage(ChatColor.GRAY + "Hit delay: " + ChatColor.WHITE + settings.hitDelayTicks()
+                + " ticks" + ChatColor.GRAY + " (vanilla " + EngineSettings.VANILLA_HIT_DELAY_TICKS + ")");
+        sender.sendMessage(ChatColor.GRAY + "Hit log: " + ChatColor.WHITE
+                + (settings.recordHits() ? "on (" + plugin.droppedRecords() + " lost)" : "off"));
     }
 
     private void profiles(CommandSender sender) {
@@ -104,33 +118,76 @@ final class KbCommand implements TabExecutor {
             return true;
         }
         plugin.audit(sender.getName(), description);
-        sender.sendMessage(ChatColor.GRAY + "OK : " + ChatColor.WHITE + description
-                + ChatColor.GRAY + " (jusqu'au prochain redémarrage ou /kb reload)");
+        sender.sendMessage(ChatColor.GRAY + "OK: " + ChatColor.WHITE + description
+                + ChatColor.GRAY + " (until the next restart or /kb reload)");
         return true;
     }
 
     private void debug(CommandSender sender) {
         if (!(sender instanceof Player)) {
-            sender.sendMessage(ChatColor.RED + "Le debug s'affiche en jeu : lance la commande depuis un joueur.");
+            sender.sendMessage(ChatColor.RED + "The debug shows in game: run the command as a player.");
             return;
         }
         boolean enabled = plugin.toggleDebug(((Player) sender).getUniqueId());
-        sender.sendMessage(ChatColor.GRAY + "Debug KB : " + ChatColor.WHITE + (enabled ? "activé" : "désactivé"));
+        sender.sendMessage(ChatColor.GRAY + "KB debug: " + ChatColor.WHITE + (enabled ? "on" : "off"));
+    }
+
+    /** {@code /kb sparring [sprint|normal|alterne] [ticks]} or {@code /kb sparring stop}. */
+    private void sparring(CommandSender sender, String label, String[] args) {
+        if (!(sender instanceof Player)) {
+            sender.sendMessage(ChatColor.RED + "Le sparring frappe le joueur qui tape la commande : lance-la en jeu.");
+            return;
+        }
+        Player player = (Player) sender;
+        String usage = "/" + label + " sparring [sprint|normal|alterne] [" + Sparring.MIN_INTERVAL_TICKS + "-"
+                + Sparring.MAX_INTERVAL_TICKS + " ticks] ou /" + label + " sparring stop";
+        if (args.length >= 2 && args[1].equalsIgnoreCase("stop")) {
+            boolean stopped = plugin.sparring().stop(player.getUniqueId());
+            sender.sendMessage(ChatColor.GRAY + (stopped ? "Sparring arrêté." : "Pas de sparring en cours."));
+            return;
+        }
+        if (args.length > 3) {
+            usage(sender, usage);
+            return;
+        }
+        Sparring.Pattern pattern = args.length >= 2 ? Sparring.Pattern.parse(args[1]) : Sparring.Pattern.SPRINT;
+        Integer interval = args.length == 3 ? Sparring.parseInterval(args[2]) : Integer.valueOf(Sparring.DEFAULT_INTERVAL_TICKS);
+        if (pattern == null || interval == null) {
+            usage(sender, usage);
+            return;
+        }
+        plugin.sparring().start(player, pattern, interval);
+        String profile = plugin.settings().profileFor(player.getWorld().getName()).name();
+        String hits = pattern == Sparring.Pattern.ALTERNE ? "un coup sprint puis un coup normal"
+                : pattern == Sparring.Pattern.SPRINT ? "un coup sprint" : "un coup sans sprint";
+        sender.sendMessage(ChatColor.GRAY + "Sparring : " + ChatColor.WHITE + hits + ChatColor.GRAY + " toutes les "
+                + interval + " ticks (" + String.format(Locale.ROOT, "%.2f", interval / 20.0) + " s), profil "
+                + ChatColor.WHITE + profile + ChatColor.GRAY + ". L'attaquant invisible est devant toi : regarde "
+                + "dans une direction et laisse-toi pousser. /" + label + " sparring stop pour arrêter.");
+        plugin.audit(sender.getName(), "sparring " + pattern.configName() + " " + interval + " ticks, profil " + profile);
     }
 
     private void reload(CommandSender sender) {
         try {
             plugin.reloadSettings();
         } catch (IllegalArgumentException e) {
-            sender.sendMessage(ChatColor.RED + "config.yml invalide, réglages actuels conservés : " + e.getMessage());
+            sender.sendMessage(ChatColor.RED + "Invalid config.yml, the current settings are kept: " + e.getMessage());
             return;
         }
-        plugin.audit(sender.getName(), "config.yml rechargé");
-        sender.sendMessage(ChatColor.GRAY + "config.yml rechargé.");
+        plugin.audit(sender.getName(), "config.yml reloaded");
+        sender.sendMessage(ChatColor.GRAY + "config.yml reloaded.");
+    }
+
+    private static int parseTicks(String text) {
+        try {
+            return Integer.parseInt(text);
+        } catch (NumberFormatException e) {
+            throw new IllegalArgumentException("nombre de ticks invalide : " + text);
+        }
     }
 
     private static boolean usage(CommandSender sender, String usage) {
-        sender.sendMessage(ChatColor.RED + "Usage : " + usage);
+        sender.sendMessage(ChatColor.RED + "Usage: " + usage);
         return true;
     }
 
@@ -143,12 +200,18 @@ final class KbCommand implements TabExecutor {
         if (args.length == 2 && sub.equals("profile")) {
             return matching(new ArrayList<>(plugin.settings().profiles().keySet()), args[1]);
         }
+        if (args.length == 2 && sub.equals("sparring")) {
+            return matching(SPARRING_OPTIONS, args[1]);
+        }
         if (args.length == 2 && sub.equals("mode")) {
             List<String> modes = new ArrayList<>();
             for (EngineMode mode : EngineMode.values()) {
                 modes.add(mode.configName());
             }
             return matching(modes, args[1]);
+        }
+        if (args.length == 2 && sub.equals("hitdelay")) {
+            return matching(Arrays.asList("9", String.valueOf(EngineSettings.VANILLA_HIT_DELAY_TICKS)), args[1]);
         }
         if (args.length == 2 && sub.equals("world")) {
             List<String> worlds = new ArrayList<>();

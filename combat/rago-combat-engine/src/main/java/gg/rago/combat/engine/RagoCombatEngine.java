@@ -17,14 +17,17 @@ public final class RagoCombatEngine extends JavaPlugin {
 
     private volatile EngineSettings settings;
     private HitRecorder recorder;
+    private SparringSessions sparring;
     private final Set<UUID> debugViewers = new HashSet<>();
     private long tick;
 
     @Override
     public void onEnable() {
         saveDefaultConfig();
+        int trackerTicks;
         try {
             settings = EngineSettings.load(getConfig());
+            trackerTicks = TrackerTuner.read(getConfig());
         } catch (IllegalArgumentException e) {
             // Never run a competitive server on half-read settings: stop here, loudly.
             getLogger().log(Level.SEVERE, "config.yml is invalid, RagoCombatEngine is disabled: " + e.getMessage());
@@ -35,21 +38,41 @@ public final class RagoCombatEngine extends JavaPlugin {
 
         getServer().getScheduler().runTaskTimer(this, () -> tick++, 0L, 1L);
         getServer().getPluginManager().registerEvents(new KnockbackListener(this), this);
+        TrackerTuner tuner = new TrackerTuner(this, trackerTicks);
+        if (tuner.active()) {
+            getServer().getPluginManager().registerEvents(tuner, this);
+            for (Player player : getServer().getOnlinePlayers()) {
+                tuner.apply(player);
+            }
+        }
+        sparring = new SparringSessions(this);
+        getServer().getPluginManager().registerEvents(sparring, this);
+        getServer().getPluginManager().registerEvents(new HitDelayListener(this), this);
+        applyHitDelay();
         PluginCommand command = getCommand("kb");
         KbCommand executor = new KbCommand(this);
         command.setExecutor(executor);
         command.setTabCompleter(executor);
         getLogger().info("Mode " + settings.mode().configName() + ", default profile " + settings.defaultProfile()
-                + ", profiles " + settings.profiles().keySet());
+                + ", profiles " + settings.profiles().keySet() + ", player positions every " + trackerTicks
+                + (trackerTicks == 1 ? " tick" : " ticks") + ", hit delay " + settings.hitDelayTicks() + " ticks");
     }
 
     @Override
     public void onDisable() {
+        if (sparring != null) {
+            sparring.stopAll();
+            sparring = null;
+        }
         if (recorder != null) {
             recorder.close();
             recorder = null;
         }
         debugViewers.clear();
+    }
+
+    SparringSessions sparring() {
+        return sparring;
     }
 
     /** Server ticks since the plugin was enabled. Main thread only. */
@@ -63,6 +86,7 @@ public final class RagoCombatEngine extends JavaPlugin {
 
     void updateSettings(EngineSettings newSettings) {
         settings = newSettings;
+        applyHitDelay();
     }
 
     /**
@@ -74,6 +98,21 @@ public final class RagoCombatEngine extends JavaPlugin {
         reloadConfig();
         settings = EngineSettings.load(getConfig());
         applyRecorderSetting();
+        applyHitDelay();
+    }
+
+    /** Gives every online player the damage cooldown of the current hit delay. Main thread only. */
+    void applyHitDelay() {
+        for (Player player : getServer().getOnlinePlayers()) {
+            applyHitDelay(player);
+        }
+    }
+
+    void applyHitDelay(Player player) {
+        int ticks = settings.maximumNoDamageTicks();
+        if (player.getMaximumNoDamageTicks() != ticks) {
+            player.setMaximumNoDamageTicks(ticks);
+        }
     }
 
     private void applyRecorderSetting() {
@@ -111,9 +150,9 @@ public final class RagoCombatEngine extends JavaPlugin {
         }
         String message = ChatColor.DARK_GRAY + "[KB] " + ChatColor.WHITE + record.attacker + ChatColor.GRAY + " -> "
                 + ChatColor.WHITE + record.victim + ChatColor.GRAY
-                + " | niv. " + record.hit.knockbackLevel() + (record.sprinting ? " (sprint)" : "")
+                + " | lvl " + record.hit.knockbackLevel() + (record.sprinting ? " (sprint)" : "")
                 + " | " + record.profile.name() + (record.applied ? "" : " (observe)")
-                + " | paquet " + ChatColor.WHITE + record.packet;
+                + " | packet " + ChatColor.WHITE + record.packet;
         for (UUID viewer : debugViewers) {
             Player player = getServer().getPlayer(viewer);
             if (player != null) {

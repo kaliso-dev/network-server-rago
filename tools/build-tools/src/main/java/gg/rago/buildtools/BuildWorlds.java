@@ -60,9 +60,9 @@ final class BuildWorlds {
                 } else {
                     settings.put(name, world);
                 }
-                logger.info("Monde " + name + " chargé (" + describe(world) + ")");
+                logger.info("World " + name + " loaded (" + describe(world) + ")");
             } catch (IOException | RuntimeException e) {
-                logger.log(Level.SEVERE, "Le monde " + name + " n'a pas été chargé : " + e.getMessage(), e);
+                logger.log(Level.SEVERE, "The world " + name + " was not loaded: " + e.getMessage(), e);
             }
         }
     }
@@ -70,18 +70,18 @@ final class BuildWorlds {
     /**
      * Creates a new build world.
      *
-     * @throws IllegalArgumentException with a French message when the name cannot be used
+     * @throws IllegalArgumentException with a message for the player when the name cannot be used
      * @throws IOException if the settings file cannot be written
      */
     World create(String name, WorldSettings.Generator generator) throws IOException {
         checkNewName(name);
         File folder = new File(container, name);
         if (folder.exists()) {
-            throw new IllegalArgumentException("un dossier " + name + " existe déjà dans les mondes : "
-                    + "utilise /monde importer " + name + " si c'est une map.");
+            throw new IllegalArgumentException("a folder " + name + " already exists among the worlds: "
+                    + "use /monde import " + name + " if it is a map.");
         }
         if (!folder.mkdirs()) {
-            throw new IOException("impossible de créer le dossier " + folder);
+            throw new IOException("cannot create the folder " + folder);
         }
         WorldSettings world = WorldSettings.forNewWorld(generator);
         World created;
@@ -91,7 +91,7 @@ final class BuildWorlds {
         } catch (IOException | RuntimeException e) {
             // Leave no half-made folder behind, or the name could never be used again.
             if (!WorldSettings.fileIn(folder).delete() || !folder.delete()) {
-                logger.warning("Le dossier " + folder + " est resté après l'échec : supprime-le à la main.");
+                logger.warning("The folder " + folder + " is left after the failure: delete it by hand.");
             }
             throw e;
         }
@@ -101,7 +101,7 @@ final class BuildWorlds {
             created.setSpawnLocation(0, VoidGenerator.PLATFORM_Y + 1, 0);
         }
         created.save();
-        logger.info("Monde " + name + " créé (" + describe(world) + ")");
+        logger.info("World " + name + " created (" + describe(world) + ")");
         return created;
     }
 
@@ -109,35 +109,35 @@ final class BuildWorlds {
      * Adopts a map copied into the world container: checks its version, writes its settings (empty
      * around the map, creative, protected) and loads it.
      *
-     * @throws IllegalArgumentException with a French message when the folder cannot be imported
+     * @throws IllegalArgumentException with a message for the player when the folder cannot be imported
      * @throws IOException if level.dat cannot be read or the settings cannot be written
      */
     World importWorld(String name) throws IOException {
         checkNewName(name);
         File folder = new File(container, name);
         if (!new File(folder, "level.dat").isFile()) {
-            throw new IllegalArgumentException("il n'y a pas de dossier " + name + " avec un level.dat dans "
-                    + container.getAbsolutePath() + ". Copie le dossier de la map à cet endroit (le dossier qui "
-                    + "contient level.dat et region), puis recommence.");
+            throw new IllegalArgumentException("there is no folder " + name + " with a level.dat in "
+                    + container.getAbsolutePath() + ". Copy the map folder there (the folder that "
+                    + "holds level.dat and region), then try again.");
         }
         if (WorldSettings.fileIn(folder).exists()) {
-            throw new IllegalArgumentException("le monde " + name + " est déjà importé.");
+            throw new IllegalArgumentException("the world " + name + " is already imported.");
         }
         int version = LevelVersion.read(folder);
         if (version > LevelVersion.LAST_OPENABLE) {
-            throw new IllegalArgumentException("cette map a été enregistrée avec Minecraft 1.13 ou plus récent "
-                    + "(DataVersion " + version + ") : un serveur 1.8 viderait ses chunks. Prends une version de la "
-                    + "map faite pour 1.8 à 1.12, ou un schematic à coller avec WorldEdit.");
+            throw new IllegalArgumentException("this map was saved with Minecraft 1.13 or newer "
+                    + "(DataVersion " + version + "): a 1.8 server would empty its chunks. Use a version of the "
+                    + "map made for 1.8 to 1.12, or a schematic to paste with WorldEdit.");
         }
         WorldSettings world = WorldSettings.forNewWorld(WorldSettings.Generator.VIDE);
         world.write(folder);
         World imported = load(name, world);
         imported.setTime(NOON);
         imported.save();
-        logger.info("Monde " + name + " importé (" + describe(world) + ")");
+        logger.info("World " + name + " imported (" + describe(world) + ")");
         if (version != LevelVersion.BEFORE_1_9) {
-            logger.warning("La map " + name + " vient de Minecraft 1.9 à 1.12 (DataVersion " + version
-                    + ") : les blocs ajoutés après 1.8 ont disparu.");
+            logger.warning("The map " + name + " comes from Minecraft 1.9 to 1.12 (DataVersion " + version
+                    + "): the blocks added after 1.8 are gone.");
         }
         return imported;
     }
@@ -166,9 +166,11 @@ final class BuildWorlds {
         Bukkit.savePlayers();
     }
 
+    /** "void, creative, protected": for /monde and the console. */
     static String describe(WorldSettings world) {
-        return world.generator().configName() + ", " + (world.mode() == WorldSettings.Mode.CREATIF ? "créatif" : "survie")
-                + (world.isProtected() ? ", protégé" : ", ouvert à tous");
+        return (world.generator() == WorldSettings.Generator.VIDE ? "void" : "flat") + ", "
+                + (world.mode() == WorldSettings.Mode.CREATIF ? "creative" : "survival")
+                + (world.isProtected() ? ", protected" : ", open to everyone");
     }
 
     private void checkNewName(String name) {
@@ -177,7 +179,7 @@ final class BuildWorlds {
             throw new IllegalArgumentException(problem);
         }
         if (Bukkit.getWorld(name) != null) {
-            throw new IllegalArgumentException("le monde " + name + " existe déjà.");
+            throw new IllegalArgumentException("the world " + name + " already exists.");
         }
     }
 
@@ -190,7 +192,7 @@ final class BuildWorlds {
         }
         World loaded = creator.createWorld();
         if (loaded == null) {
-            throw new IllegalStateException("le serveur n'a pas pu ouvrir le monde " + name);
+            throw new IllegalStateException("the server could not open the world " + name);
         }
         // Nothing should change a build but the builders.
         loaded.setGameRuleValue("doDaylightCycle", "false");

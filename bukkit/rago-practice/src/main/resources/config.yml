@@ -1,0 +1,320 @@
+# RagoPractice: the practice modes played from the lobby. How to use it: the README of the module.
+# The keys stay in French: only the comments are English.
+
+# The world of the arenas: an empty world the plugin creates if it does not exist. Every game has
+# its own zone, "espacement" blocks from the previous one, and the server plays "arenes-max" games
+# at once at most. Beyond that, players keep their place in the queue.
+monde-arenes: arenes
+espacement: 200
+arenes-max: 16
+
+# Sumo duel (the "sumo" mode of the lobby): knock the other player off the platform. No damage,
+# only the knockback of RagoCombatEngine. One round: the first off loses (points-pour-gagner, from
+# 1 to 10, for more rounds).
+sumo:
+  points-pour-gagner: 1
+  # Radius of the round platform, in blocks (4 to 15), when none of the maps below is on the server.
+  rayon: 7
+  # The sumo maps: worlds of the folder of the worlds (mondes). Each zone of the sumo gets one of
+  # them, copied from the start of the server (a few thousand blocks each tick), and each duel
+  # draws one at random. "centre": the block in the middle of the top of the platform (standing on
+  # it, F3 gives x, y + 1, z); "zone": the two corners of the box copied around it, at most
+  # espacement / 2 - 1 blocks from the centre on x and z. A map the server does not have is left out.
+  cartes:
+    - monde: "Ponsen"
+      centre: [0, 64, 0]
+      zone: [-47, 53, -47, 47, 116, 47]
+    - monde: "Fort Royale"
+      centre: [0, 71, 0]
+      zone: [-34, 58, -35, 34, 108, 35]
+    - monde: "White Crystal"
+      centre: [0, 64, 0]
+      zone: [-55, 47, -79, 53, 158, 55]
+    - monde: "Space Mine"
+      centre: [0, 64, 0]
+      zone: [-89, 0, -91, 60, 126, 98]
+    - monde: "Sumo"
+      # the platform under the dome (its glass at y 95 is the roof)
+      centre: [0, 64, 0]
+      zone: [-22, 57, -24, 22, 96, 44]
+
+# The boxing and the combo bot play on these arenas, as the sumo on its maps: the Minemen arenas
+# of 2022 the owner gave (worlds of the folder of the worlds). "departs": where the two players
+# start, x, y of the feet, z, yaw (the diamond blocks of the map). The combo bot starts the player
+# on the first one and the bot 8 blocks in front of them. Without these worlds: a ring.
+boxing:
+  cartes:
+    - monde: "Minemen Cobble"
+      centre: [2529, 66, 2449]
+      zone: [2503, 65, 2403, 2555, 106, 2496]
+      departs: [[2529, 67, 2408, 0], [2529, 67, 2491, 180]]
+    - monde: "Minemen Shy Guy"
+      centre: [6943, 65, 7025]
+      zone: [6893, 64, 6994, 6993, 103, 7056]
+      departs: [[6905, 66, 7025, -90], [6981, 66, 7025, 90]]
+    - monde: "Minemen Redstone"
+      centre: [11060, 89, 11073]
+      zone: [11009, 81, 11022, 11111, 130, 11124]
+      departs: [[11024, 90, 11073, -90], [11096, 90, 11073, 90]]
+    - monde: "Minemen Cave"
+      centre: [8037, 192, 8000]
+      zone: [7995, 186, 7962, 8079, 255, 8038]
+      departs: [[8000, 193, 8000, -90], [8075, 193, 8000, 90]]
+    - monde: "Minemen Fishtank"
+      centre: [11500, 187, 11457]
+      zone: [11451, 184, 11408, 11549, 242, 11506]
+      departs: [[11500, 188, 11414, 0], [11500, 188, 11500, 180]]
+    - monde: "Minemen Goku"
+      centre: [6561, 79, 6541]
+      zone: [6513, 78, 6508, 6609, 139, 6574]
+      departs: [[6517, 80, 6541, -90], [6605, 80, 6541, 90]]
+    - monde: "Minemen Lollipop"
+      centre: [5856, 68, 6187]
+      zone: [5814, 68, 6142, 5904, 158, 6233]
+      departs: [[5856, 69, 6146, 0], [5856, 69, 6229, 180]]
+    - monde: "Minemen Pokemon"
+      centre: [12946, 72, 12962]
+      zone: [12897, 71, 12928, 12995, 132, 12996]
+      departs: [[12902, 73, 12962, -90], [12990, 73, 12962, 90]]
+
+# The other duels: how many points win (in boxing, how many hits). A point is a death or a fall
+# into the void of the other side; in 2v2, when both players of a side are out of the round. In
+# block placement (block-fight), as on Minemen, a point is a hit, and a fall into the void gives
+# the other side 20 points (from 10 to 500).
+points-pour-gagner:
+  boxing: 100
+  kb-displace: 3
+  block-fight: 100
+  block-edit: 5
+  bridge-fight: 5
+  # the bow 1v1: each arrow that hits is a point (from 1 to 50)
+  bow: 10
+
+# The block placement duels (1v1 and 2v2) play on these maps of the owner, as the boxing on its
+# arenas: "departs" are the gold blocks where each side starts (x, y of the feet, z, yaw); in 2v2,
+# teammates stand side by side there. The kit of the maps (wooden sword, pickaxe, axe, shears,
+# wool, end stone, ladders) is the kit of the mode in the lobby's config.yml. Without these
+# worlds: two small platforms over the void.
+block-fight:
+  cartes:
+    - monde: "BlockPlacement map 1"
+      centre: [944699, 86, 944699]
+      zone: [944671, 82, 944671, 944727, 129, 944727]
+      departs: [[944699, 87, 944684, 0], [944699, 87, 944714, 180]]
+    - monde: "BlockPlacement map 2"
+      centre: [938786, 88, 938775]
+      zone: [938751, 81, 938751, 938821, 113, 938799]
+      departs: [[938786, 89, 938758, 0], [938786, 89, 938792, 180]]
+    - monde: "BlockPlacement map 4"
+      centre: [937127, 90, 937128]
+      zone: [937103, 87, 937103, 937151, 108, 937153]
+      departs: [[937127, 91, 937114, 0], [937127, 91, 937142, 180]]
+
+# The block placement arena (open to everyone) plays on this map of the owner: its green arena in
+# its walls of barriers. The players come in anywhere on the grass; its slime blocks (the one in the
+# black pit of the corner) throw whoever stands on them three blocks up and two forward. Its gold
+# blocks (the one in the middle) only mark it and go. Without that world: a platform and four
+# islands over the void.
+block-fight-arena:
+  cartes:
+    - monde: "Arena"
+      centre: [-85, 102, 93]
+      zone: [-126, 99, 52, -45, 120, 137]
+
+# The bridge fight (open to everyone) plays on this map of the owner: the lowest floor of "Bridge
+# Fight Plateform", its five platforms (two blue and yellow, two black and lime, the red H in
+# yellow) and the three portals between them. The platforms are its floors of wool or stained
+# clay at the height of the centre; a portal is a booth around a sea lantern on its floor (7 by 7,
+# 9 high). A click on a portal takes the player to the next island, the way they look (from the
+# middle one to the left or the right one, and back). The hits only push (Resistance V), except
+# on the middle platform, the one nearest to the centre (the red H), where they hurt.
+# A player comes in in the booth nearest to their platform (the little white island of quartz), on
+# its sea lantern in the middle of the diamond, facing the platform; after a death or a fall, at
+# once in the booth of the platform they were on. The booths are the spawns: no hits in them nor
+# from them. The kit: a wooden sword and golden apples (the lobby's), iron armour Protection II.
+# Its barriers are not copied: a player knocked off falls into the void. Without that world: four
+# platforms of the plugin's own, linked by bridges (Resistance on all four).
+bridge-fight:
+  cartes:
+    - monde: "Bridge Fight Plateform"
+      centre: [85, 107, 83]
+      zone: [58, 105, 50, 112, 116, 112]
+  # The armour of the 1v1 and the 2v2 (bridge-fight-1v1, bridge-fight-2v2): Protection of this
+  # level (0 for none, 4 at most).
+  protection-1v1: 2
+
+# The fireball fight plays on these maps of the owner, as the boxing on its arenas: "departs",
+# where each side starts (x, y of the feet, z, yaw). The beds are the map's own: each bed belongs
+# to the side whose start is nearer. "lits" puts in the beds a map lost (x, y, z of the foot, x, z
+# of the head each). Without maps: two islands of the plugin's own.
+# Fireball Fight: the owner's second fireball map (Firefight map pas finit 2), whose west island
+# lost its bed: it comes back in its defense of end stone, as on the east island.
+fireball:
+  cartes:
+    - monde: "Fireball Fight"
+      centre: [394255, 91, 394192]
+      zone: [394163, 77, 394163, 394335, 119, 394221]
+      departs: [[394178, 92, 394192, -90], [394332, 92, 394192, 90]]
+      lits: [[394184, 91, 394195, 394185, 394195]]
+
+# Network XP of the trainings and the free arenas (block clutch, bridge fight), where no game is won:
+# par-minute for each minute played, essai for an attempt that failed, reussite for one that worked
+# (a time, a streak that goes on), never more than max-par-minute in a minute. It goes to the
+# lobby every two minutes and when the player leaves. The duels give theirs at the end (xp-victoire,
+# xp-defaite of the lobby); the aim trainer gives its own (below).
+xp-entrainement:
+  par-minute: 1
+  essai: 1
+  reussite: 3
+  max-par-minute: 8
+
+# The events PREMIUM players host with /host (the permission rago.perk.host, given by the PREMIUM
+# rank of the lobby), as on Minemen: Sumo, Brackets (1v1 tournament with a sword and armour) and
+# Last Man Standing. They play on the sumo maps above (one at a time), in the hidden modes
+# event-sumo, event-brackets and event-lms of the lobby's config.yml. The whole server is told with
+# a [Click to join] for attente-secondes, then the event starts with joueurs-min players at least
+# (otherwise it is called off), joueurs-max at most. A host waits cooldown-minutes before hosting
+# again (the staff, rago.staff, never waits), and the server pause-secondes between two events.
+# The winner gets xp-gagnant Network XP, every other player xp-participation.
+# automatiques: the server hosts events on its own, under the name "Rago", when nobody does: once
+# the lobby has joueurs-lobby players out of a game (2 to 200) and no event ran for minutes minutes
+# (5 to 1440), it announces the next of types (sumo, brackets, lms, in turn) with a [Click to join];
+# the first player in starts it, and it plays as a hosted one. actif: false turns them off; without
+# the section, they run with these settings.
+evenements:
+  attente-secondes: 60
+  joueurs-min: 2
+  joueurs-max: 40
+  cooldown-minutes: 30
+  pause-secondes: 120
+  xp-gagnant: 250
+  xp-participation: 25
+  automatiques:
+    actif: true
+    minutes: 20
+    joueurs-lobby: 6
+    types: [sumo, brackets, lms]
+
+# The challenge of the day (/challenge): each day (Paris time) one training for everyone, the
+# next of epreuves in turn (the same all day, restart or not). Each player's best of the day makes
+# the day's top; at midnight the first, the second and the third get xp-podium Network XP. A
+# player's first score of the day gives xp-participation, plus xp-par-jour-de-suite for each day
+# in a row they played it (jours-de-suite-max days at most). The trainings: block-in.wood,
+# block-in.wool, block-in.two, clutch.island, clutch-top-fight.top, aim-trainer.strafe,
+# aim-trainer.jump, aim-trainer.circle, fast-defense.ranked, fast-defense.duo, ladder-practice.h4
+# (h8 ... h24), ladder-practice.random, combo-bot.easy (normal, hard, expert),
+# extend-practice.chain (and its jumps: double-5-1...), kb-displace-bot.still, block-edit.bot.
+# actif: false turns it off; without the section, it runs with these settings.
+defi-du-jour:
+  actif: true
+  epreuves: [block-in.wood, clutch.island, aim-trainer.strafe, fast-defense.ranked, ladder-practice.random,
+    combo-bot.hard, extend-practice.chain, clutch-top-fight.top, block-edit.bot, block-in.two, aim-trainer.circle,
+    kb-displace-bot.still]
+  xp-participation: 100
+  xp-par-jour-de-suite: 25
+  jours-de-suite-max: 7
+  xp-podium: [750, 500, 300]
+
+# Aim trainer: each second with the crosshair on the target (or a hit) gives xp-par-seconde
+# Network XP, and the end of the attempt one more for each touches-par-xp hits (100 hits: 10).
+aim-trainer:
+  xp-par-seconde: 1
+  touches-par-xp: 10
+
+# Pearl practice on a part of Sky Rise (the red island, the diamond island in front of it and the
+# emerald island of the middle): put the folder of the world in the folder of the worlds (mondes).
+# Without it, plain islands at the same places. No block goes under limite-basse (the height on
+# the map), as under the islands on Hypixel.
+pearl:
+  monde: SkyRise
+  limite-basse: 55
+
+# Block in practice on your own map, Ultimate Block-In Practice: put the folder of the world in the
+# folder of the worlds (mondes) of the server. Its island is copied into each zone, without the
+# command blocks and the redstone; the bed and its defense come back at each attempt. Without
+# that world, the training plays on a plain island of the plugin's own.
+block-in:
+  monde: "Ultimate Block-In Practice"
+  # the foot and the head of the bed, on the map
+  lit: [-72, 66, -26]
+  tete: [-73, 66, -26]
+  # the two corners of the box copied: the whole island, under the bed and over it
+  zone: [-92, 50, -42, -60, 80, -12]
+  # where the player starts, as /tp on the map: x, y, z, yaw, pitch. The first one on the side
+  # of the wood, the second one on the side of the wool (the corners of the ring of glass).
+  departs:
+    - [-68, 76, -22, 135, 60]
+    - [-68, 76, -30, 45, 60]
+
+# KB displace (the duel and the drill against a bot) on the owner's map KbDisplace: its bridge and
+# islands copied once ("centre" and "zone" as the sumo maps); "defenseur", the defender's place
+# (the notch of the bridge, between its two raised blocks; the bot stands there), and "attaquant",
+# where the attacker starts (the gold block), x, y, z, yaw each as F3 gives them. Only a hit from
+# the attacker's side, in the line of the bridge, counts. Without the world (or without this
+# section): the plugin's own bridge.
+kb-displace:
+  monde: "KbDisplace"
+  centre: [896056, 97, 896085]
+  zone: [896043, 82, 896056, 896069, 113, 896113]
+  defenseur: [896056.5, 98, 896081.5, 0]
+  attaquant: [896056.5, 98, 896090.5, 180]
+
+# Block extend on the owner's map BlockClutchExtend: the player starts at an exact place of a
+# bridge, frozen until the hit (no move, no turn), takes it and saves themselves with their wool. The gold, diamond and emerald blocks
+# of the map are wool in the game. "centre" and "zone": as the sumo maps. For each level (or,
+# diamant, emeraude): "depart", x, y, z, yaw, pitch as F3 gives them (decimals welcome); "cible",
+# the block to save oneself on; "force", the hit, horizontal then vertical (a hit of a fight:
+# 0.42, 0.36; a sprint hit: 0.80, 0.43; a big hit: 0.68, 0.40; 0.10 more horizontal is about one
+# block further, 0.30 less vertical about one block lower); and where it throws: "coup", where the
+# hit comes from as the player looks at the start (devant: straight back; droite, gauche, derriere:
+# a hit from the right throws to the left), or "vers", the x, z of a point. Without the world:
+# plain blocks at the places.
+block-extend:
+  monde: "BlockClutchExtend"
+  centre: [870603, 91, 870629]
+  zone: [870583, 78, 870583, 870623, 136, 870675]
+  niveaux:
+    or:
+      depart: [870604.589, 101, 870630.939, -179.9, 1.3]
+      cible: [870600, 96, 870635]
+      coup: devant
+      force: [0.80, 0.55]
+    diamant:
+      depart: [870613.518, 101, 870620.339, 179.7, 2.6]
+      cible: [870605, 95, 870619]
+      coup: droite
+      force: [0.80, 0.43]
+    emeraude:
+      depart: [870598.424, 98, 870612.227, 179.4, 1.4]
+      cible: [870598, 91, 870613]
+      coup: devant
+      force: [0.85, 0.12]
+
+# Block clutch on the owner's map BlockClutchNew: its island alone, its bed and its end stone
+# defense, copied once ("centre" and "zone" as the sumo maps; the islands of the players stand 28
+# blocks apart, so the zone is at most 13 blocks from the centre on x and z). "joueur": where the
+# player stands (x, y, z, yaw), on the south edge of the island facing the bed: the hit comes from
+# where they look and throws them backwards, off the island. Without the world: the plugin's own
+# island.
+clutch:
+  monde: "BlockClutchNew"
+  centre: [870604, 91, 870608]
+  zone: [870591, 80, 870601, 870616, 102, 870614]
+  joueur: [870600.5, 92, 870614.5, 180]
+
+# Bow training and the bow 1v1 on a real Bed Wars map: the red base of Archway and the north of its
+# middle, copied once ("centre" and "zone" as the sumo maps). "joueur": where the player starts on
+# the base (x, y, z, yaw); "pont-y": the height of the blocks of the bridges; "ponts": the bridges
+# the bots build, one to three, each the x, z of its first block (on the middle) then of its last
+# one (by the base). In the 1v1 the second player starts at the start of the first bridge. Without
+# the world: plain platforms at the same places.
+bow-training:
+  monde: Archway
+  centre: [-13, 64, -42]
+  zone: [-32, 55, -90, 26, 120, -14]
+  joueur: [-12.5, 66, -64.5, 0]
+  pont-y: 64
+  ponts:
+    - [-13, -22, -13, -61]
+    - [-9, -24, -9, -61]
+    - [-16, -20, -16, -61]
