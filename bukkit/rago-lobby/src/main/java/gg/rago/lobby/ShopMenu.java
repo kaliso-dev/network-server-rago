@@ -98,9 +98,12 @@ final class ShopMenu {
                         + " Rago Points");
             }
             lore.add("");
+            lore.add("They accept it in a book (YES or");
+            lore.add("NO); you pay if they say YES.");
             lore.add("The whole lobby hears it,");
             lore.add("with fireworks!");
             lore.add("");
+            lore.add(ChatColor.LIGHT_PURPLE + "For PREMIUM and above");
             lore.add(ChatColor.YELLOW + "Click to choose a player");
             menu.set(27, ClickMenu.item(Material.FIREWORK_CHARGE, 0, ChatColor.GOLD + "Gift a rank", lore),
                     (p, right) -> openGiftTargets(p));
@@ -174,7 +177,7 @@ final class ShopMenu {
                         + rank.webPrice() : ""));
                 if (rank.giftable()) {
                     lore.add("Gift it to a player: " + ChatColor.GOLD + String.format(java.util.Locale.US, "%,d", rank.giftPrice()) + " Rago Points");
-                    lore.add(ChatColor.GRAY + "(/gift <player>, or the shop)");
+                    lore.add(ChatColor.GRAY + "(PREMIUM and above: /gift <player>)");
                 }
                 lore.add("");
                 lore.add(owned ? ChatColor.GREEN + "You have it" : ChatColor.YELLOW + "Click for the link");
@@ -244,6 +247,17 @@ final class ShopMenu {
     /** The heads of a page of players to gift: 5 rows, the last one for the buttons. */
     static final int GIFT_HEADS = 45;
 
+    /** True if the player's rank lets them gift ranks (PREMIUM and above); else they are told so. */
+    private static boolean mayGift(Player player) {
+        if (player.hasPermission(GiftRequests.PERMISSION)) {
+            return true;
+        }
+        player.closeInventory();
+        player.sendMessage(ChatColor.RED + "Gifting a rank is for " + ChatColor.LIGHT_PURPLE + "PREMIUM" + ChatColor.RED
+                + " and above.");
+        return false;
+    }
+
     /** True (and the player told where to go) when no rank can be gifted with Rago Points. */
     private boolean noGift(Player player) {
         if (!profiles.server().ranks().giftable().isEmpty()) {
@@ -259,7 +273,7 @@ final class ShopMenu {
 
     /** The ranks to gift another player (/gift, the shop, or the menu of a player clicked in the lobby). */
     void openGift(Player player, PlayerStats target) {
-        if (noGift(player)) {
+        if (noGift(player) || !mayGift(player)) {
             return;
         }
         List<RankDef> sold = profiles.server().ranks().giftable();
@@ -278,6 +292,8 @@ final class ShopMenu {
                 lore.add("Your level needed: " + book.levels().tag(rank.level()));
             }
             lore.add("");
+            lore.add(target.name() + " accepts it in a book:");
+            lore.add("you pay if they say YES.");
             lore.add("The whole lobby hears it,");
             lore.add("with fireworks!");
             lore.add("");
@@ -289,12 +305,12 @@ final class ShopMenu {
             } else if (profile.points() < rank.giftPrice()) {
                 lore.add(ChatColor.RED + "Not enough Rago Points");
             } else {
-                lore.add(ChatColor.YELLOW + "Click to gift it to " + target.name());
+                lore.add(ChatColor.YELLOW + "Click to offer it to " + target.name());
             }
             menu.set(slotOf(i), ClickMenu.item(rank.icon(), 0, rank.prefix().trim(), lore), (p, right) -> {
                 if (!owned) {
                     confirm(p, rank.prefix().trim() + ChatColor.GREEN + " for " + target.name(), rank.giftPrice(),
-                            () -> profiles.giftRank(p, target, rank), () -> openGift(p, target));
+                            () -> profiles.offerGift(p, target, rank), () -> openGift(p, target));
                 }
             });
         }

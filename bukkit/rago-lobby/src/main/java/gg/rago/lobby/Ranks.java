@@ -258,7 +258,7 @@ final class Ranks {
     static RankDef premium() {
         return new RankDef(PREMIUM, "§d[PREMIUM" + RankDef.PLUS + "] ", "§d", "§f", false, Arrays.asList("rago.perk.chat", "rago.perk.fly",
                 "rago.perk.join", "rago.perk.nick", "rago.perk.message", "rago.perk.speed", "rago.perk.gadgets", "rago.perk.booster",
-                "rago.perk.host"), VIP, 0, 0,
+                "rago.perk.host", "rago.perk.gift"), VIP, 0, 0,
                 Material.NETHER_STAR,
                 Arrays.asList("A pink gradient name and the §d§l✦§7 badge", "Your §f+§7 in the colour you choose (/style)", "+50% Network XP in every game",
                         "/fly in the lobby", "Speed I, II or III in the lobby (settings)", "/nick: play under another name", "Your own message above your head",
@@ -266,6 +266,7 @@ final class Ranks {
                         "Gadgets of your own: bat blaster, explosive sheep, disco ball",
                         "A free XP booster every day (x2 XP for 30 minutes; bought ones: x3)",
                         "Host events for the server: /host (Sumo, Brackets, LMS)",
+                        "Gift ranks to your friends: /gift <player>",
                         "The rarest kill effects and victory dances", "The first place in the queues",
                         "Everything of VIP, its 3 cosmetics too"),
                 1.5, "rose", PREMIUM, true, "$9.99", 2, PREMIUM_GIFT);

@@ -120,7 +120,10 @@ final class NetworkCommands implements CommandExecutor, TabCompleter {
                 return true;
             case "gift":
                 if ((player = player(sender)) != null) {
-                    if (args.length != 1) {
+                    if (args.length == 2 && (args[0].equalsIgnoreCase("accept") || args[0].equalsIgnoreCase("deny"))) {
+                        // the YES and NO of the book of a rank offered
+                        lobby.profiles().answerGift(player, args[1], args[0].equalsIgnoreCase("accept"));
+                    } else if (args.length != 1) {
                         player.sendMessage(ChatColor.RED + "Usage: /gift <player>");
                     } else {
                         PlayerStats target = profileOf(player, args[0]);

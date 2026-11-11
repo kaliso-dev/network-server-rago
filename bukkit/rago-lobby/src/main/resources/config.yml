@@ -370,8 +370,10 @@ quetes:
 #   prix, niveau the price in Rago Points and the Network level needed in the shop (prix: 0 = not sold)
 #   prix-cadeau  what gifting it to another player costs in Rago Points (/gift, the shop, or the
 #                menu of a player clicked in the lobby), a rank of the web store too; 0 or none:
-#                its prix (a rank of the web store without one cannot be gifted). The lobby hears it
-#                in a big message, with fireworks around the one who got it
+#                its prix (a rank of the web store without one cannot be gifted). Only a rank with
+#                rago.perk.gift (PREMIUM) gifts; the other player says YES or NO in a book, within a
+#                minute, and the giver pays at YES. The lobby hears it in a big message, with
+#                fireworks around the one who got it
 #   icone        the item in the shop; avantages: its lines
 rangs:
   owner:
@@ -419,7 +421,7 @@ rangs:
     prefixe: "&d[PREMIUM{+}] "
     couleur: "&d"
     permissions: [rago.perk.chat, rago.perk.fly, rago.perk.join, rago.perk.nick, rago.perk.message, rago.perk.speed,
-      rago.perk.gadgets, rago.perk.booster, rago.perk.host]
+      rago.perk.gadgets, rago.perk.booster, rago.perk.host, rago.perk.gift]
     boost-xp: 1.5
     style: rose
     badge: premium
@@ -434,6 +436,7 @@ rangs:
       "White messages, no chat cooldown", "Gadgets of your own: bat blaster, explosive sheep, disco ball",
       "A free XP booster every day (x2 XP for 30 minutes; bought ones: x3)",
       "Host events for the server: /host (Sumo, Brackets, LMS)",
+      "Gift ranks to your friends: /gift <player>",
       "The rarest kill effects and victory dances", "The first place in the queues", "Everything of VIP, its 3 cosmetics too"]
   vip:
     prefixe: "&b[VIP] "

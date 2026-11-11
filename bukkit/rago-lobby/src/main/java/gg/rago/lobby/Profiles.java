@@ -7,6 +7,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.UUID;
+import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
 import org.bukkit.Sound;
 import org.bukkit.entity.Player;
@@ -25,6 +26,7 @@ final class Profiles {
     private final NetworkRanks chat;
     private final NameLooks names;
     private final Map<UUID, PermissionAttachment> attachments = new HashMap<>();
+    private final GiftRequests gifts = new GiftRequests();
 
     Profiles(RagoLobby lobby, ServerSettings server, StatsService stats, NetworkRanks chat, NameLooks names) {
         this.lobby = lobby;
@@ -149,25 +151,11 @@ final class Profiles {
      * lobby hears it in a big message, with fireworks.
      */
     @SuppressWarnings("deprecation") // Player#sendTitle is marked "API subject to change" in 1.8.8
-    void giftRank(Player giver, PlayerStats target, RankDef rank) {
-        if (!rank.giftable()) {
-            giver.sendMessage(ChatColor.RED + "This rank cannot be gifted with Rago Points.");
-            return;
-        }
-        if (target.id().equals(giver.getUniqueId())) {
-            giver.sendMessage(ChatColor.RED + "For yourself, buy it in the shop: /shop");
-            return;
-        }
-        if (owns(target, rank)) {
-            giver.sendMessage(ChatColor.RED + target.name() + " already has " + rank.prefix().trim() + ChatColor.RED + ".");
-            return;
+    boolean giftRank(Player giver, PlayerStats target, RankDef rank) {
+        if (!canGift(giver, target, rank)) {
+            return false;
         }
         int price = rank.giftPrice();
-        String why = cannotBuy(giver, price, rank.level());
-        if (why != null) {
-            giver.sendMessage(ChatColor.RED + why);
-            return;
-        }
         PlayerStats mine = of(giver);
         mine.addPoints(-price);
         changed(mine);
@@ -189,6 +177,92 @@ final class Profiles {
         }
         lobby.celebrateGift(giver, got, giftLines(from, to, rank.prefix().trim()), ChatColor.GOLD + "✦ " + from + ChatColor.GOLD
                 + " gifted the rank " + rank.prefix().trim() + ChatColor.GOLD + " to " + to + ChatColor.GOLD + "!");
+        return true;
+    }
+
+    /** True if the giver may gift this rank to this player now; else the giver is told why not. */
+    private boolean canGift(Player giver, PlayerStats target, RankDef rank) {
+        if (!giver.hasPermission(GiftRequests.PERMISSION)) {
+            giver.sendMessage(ChatColor.RED + "Gifting a rank is for " + ChatColor.LIGHT_PURPLE + "PREMIUM" + ChatColor.RED
+                    + " and above.");
+            return false;
+        }
+        if (!rank.giftable()) {
+            giver.sendMessage(ChatColor.RED + "This rank cannot be gifted with Rago Points.");
+            return false;
+        }
+        if (target.id().equals(giver.getUniqueId())) {
+            giver.sendMessage(ChatColor.RED + "For yourself, buy it in the shop: /shop");
+            return false;
+        }
+        if (owns(target, rank)) {
+            giver.sendMessage(ChatColor.RED + target.name() + " already has " + rank.prefix().trim() + ChatColor.RED + ".");
+            return false;
+        }
+        String why = cannotBuy(giver, rank.giftPrice(), rank.level());
+        if (why != null) {
+            giver.sendMessage(ChatColor.RED + why);
+            return false;
+        }
+        return true;
+    }
+
+    /**
+     * Offers a rank to a player online: a book opens on their screen ("[PREMIUM] Sofiene wants to
+     * give you [VIP]!", YES or NO), the same buttons in their chat; a minute to answer. The giver
+     * pays at YES (the rank's gift price), nothing otherwise.
+     */
+    void offerGift(Player giver, PlayerStats target, RankDef rank) {
+        if (!canGift(giver, target, rank)) {
+            return;
+        }
+        Player got = lobby.getServer().getPlayer(target.id());
+        if (got == null) {
+            giver.sendMessage(ChatColor.RED + target.name() + " must be online to accept your gift.");
+            return;
+        }
+        gifts.offer(got.getUniqueId(), giver.getUniqueId(), rank.id(), System.currentTimeMillis());
+        RankDef giverRank = rank(giver.getUniqueId());
+        String plus = names.plusColour(giver.getUniqueId());
+        String prefix = giverRank == null ? "" : giverRank.prefix(plus);
+        String from = prefix + org.bukkit.ChatColor.getLastColors(prefix.isEmpty() ? ChatColor.GRAY.toString() : prefix)
+                + giver.getName();
+        String gift = rank.prefix().trim();
+        giver.closeInventory();
+        giver.sendMessage(ChatColor.GREEN + "You offered " + gift + ChatColor.GREEN + " to " + got.getName()
+                + ": they have one minute to accept it. You pay " + ChatColor.GOLD
+                + String.format(java.util.Locale.US, "%,d", rank.giftPrice()) + " Rago Points" + ChatColor.GREEN + " if they do.");
+        got.sendMessage(ChatColor.GOLD + "✪ " + from + ChatColor.GOLD + " wants to give you " + gift + ChatColor.GOLD + "! Accept it?");
+        // Clickable through the vanilla /tellraw, as the duel buttons: names are letters, digits and _.
+        Bukkit.dispatchCommand(Bukkit.getConsoleSender(), "tellraw " + got.getName() + " " + GiftRequests.buttons(giver.getName()));
+        got.playSound(got.getLocation(), Sound.NOTE_PLING, 1f, 1.5f);
+        got.closeInventory();
+        Books.open(lobby, got, "Rank gift", Collections.singletonList(GiftRequests.page(from, giver.getName(), gift)));
+    }
+
+    /** The answer of the player offered a rank: YES gives it (the giver pays), NO tells the giver. */
+    void answerGift(Player target, String giverName, boolean yes) {
+        Player giver = Bukkit.getPlayerExact(giverName);
+        String rankId = giver == null ? null : gifts.take(target.getUniqueId(), giver.getUniqueId(), System.currentTimeMillis());
+        RankDef rank = rankId == null ? null : server.ranks().get(rankId);
+        target.closeInventory();
+        if (rank == null) {
+            target.sendMessage(ChatColor.RED + "No gift waiting from " + giverName + ".");
+            return;
+        }
+        if (!yes) {
+            target.sendMessage(ChatColor.GRAY + "You refused the gift of " + giver.getName() + ".");
+            giver.sendMessage(ChatColor.RED + target.getName() + " refused your gift of " + rank.prefix().trim() + ChatColor.RED + ".");
+            return;
+        }
+        if (!giftRank(giver, of(target), rank)) {
+            target.sendMessage(ChatColor.RED + "The gift of " + giver.getName() + " could not be made.");
+        }
+    }
+
+    /** A player left: the gifts offered to them and theirs go. */
+    void forgetGifts(UUID player) {
+        gifts.forget(player);
     }
 
     /** The big message of a gifted rank, in the middle of the chat. */

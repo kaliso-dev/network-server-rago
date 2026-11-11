@@ -615,6 +615,7 @@ public final class RagoLobby extends JavaPlugin implements LobbyService {
             () -> queues.forget(id),
             () -> parties.forget(id),
             () -> duels.forget(id),
+            () -> profiles.forgetGifts(id),
             () -> visibility.forget(id),
             () -> gadgets.forget(id),
             () -> nicks.forget(id),

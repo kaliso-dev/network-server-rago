@@ -45,7 +45,7 @@ commands:
     usage: /shop
     aliases: [boutique]
   gift:
-    description: Gift a rank of the shop to another player, with your Rago Points.
+    description: Offer a rank to another player (PREMIUM and above), paid with your Rago Points if they accept it.
     usage: /gift <player>
     aliases: [cadeau]
   profile:
