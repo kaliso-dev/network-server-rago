@@ -24,6 +24,11 @@ import org.bukkit.inventory.ItemStack;
  */
 final class ExtendTraining extends Training {
 
+    /** Ticks from the far pad back to the start: just the time to see the title, then again. */
+    static final long AFTER_SUCCESS = 8L;
+    /** Ticks from the end of the chain back to the start. */
+    static final long AFTER_CHAIN = 15L;
+
     /** One jump of the map: the gap between the pads, how much higher the far one is, the blocks allowed. */
     static final class Jump {
         final String id;
@@ -334,7 +339,7 @@ final class ExtendTraining extends Training {
         title(player, ChatColor.GREEN + "" + ChatColor.BOLD + "CHAIN!", ChatColor.GRAY + time(time) + " s");
         sound(player, Sound.FIREWORK_LAUNCH, 1f);
         score(time);
-        again(30L);
+        again(AFTER_CHAIN);
     }
 
     /** True if the player stands on the top of the far pad. */
@@ -356,7 +361,7 @@ final class ExtendTraining extends Training {
         title(player, ChatColor.GREEN + "" + ChatColor.BOLD + "EXTEND!", ChatColor.GRAY + "" + placedCount + " blocks, " + time(time) + " s");
         sound(player, Sound.FIREWORK_LAUNCH, 1f);
         score(streak, true);
-        again(25L);
+        again(AFTER_SUCCESS);
     }
 
     @Override

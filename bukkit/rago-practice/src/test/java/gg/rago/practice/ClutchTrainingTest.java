@@ -123,4 +123,12 @@ class ClutchTrainingTest {
         assertTrue(ClutchTraining.SPACING <= 32, "close enough to see the others");
         assertTrue(ClutchTraining.SPACING >= gg.rago.game.ArenaGrid.MIN_SPACING, "a grid of zones takes it");
     }
+
+    @Test
+    void aSuccessSendsBackToTheStartWithinASecond() {
+        assertTrue(ClutchTraining.SAVED_TICKS + ClutchTraining.AFTER_SAVE < 20, "block clutch: saved, then again");
+        assertTrue(BlockExtendTraining.SAVED_TICKS + BlockExtendTraining.AFTER_SAVE < 20, "block extend");
+        assertTrue(ExtendTraining.AFTER_SUCCESS < 20, "extend: from the far pad");
+        assertTrue(ClutchTraining.SAVED_TICKS >= 10, "but long enough on the ground to be a real save");
+    }
 }

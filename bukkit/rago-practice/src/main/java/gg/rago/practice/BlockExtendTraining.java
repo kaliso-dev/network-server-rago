@@ -101,8 +101,10 @@ final class BlockExtendTraining extends Training {
         "Emerald: long low hit, clutch below"};
     /** The block ids of the markers: gold, diamond and emerald blocks. */
     static final int[] MARKERS = {41, 57, 133};
-    /** Ticks on the ground after the hit that make a save. */
-    private static final int SAVED_TICKS = 14;
+    /** Ticks on the ground after the hit that make a save: half a second. */
+    static final int SAVED_TICKS = 10;
+    /** Ticks from a save back to the start. */
+    static final long AFTER_SAVE = 4L;
     /** A landing this many blocks under the target is not a save. */
     private static final double TOO_LOW = 3.0;
     /** Before the hit: at least this many ticks, and up to this many more at random. */
@@ -297,7 +299,7 @@ final class BlockExtendTraining extends Training {
         title(player, ChatColor.GREEN + "" + ChatColor.BOLD + "SAVED!", ChatColor.GRAY + "Streak " + streak);
         sound(player, Sound.ORB_PICKUP, 1.2f);
         score(streak, true);
-        again(15L);
+        again(AFTER_SAVE);
     }
 
     /**

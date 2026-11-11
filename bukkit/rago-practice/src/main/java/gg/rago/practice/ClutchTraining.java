@@ -37,8 +37,10 @@ final class ClutchTraining extends Training {
 
     /** The zones of the players are this far apart: each one sees the next ones. */
     static final int SPACING = 28;
-    /** Ticks on the ground after the last hit that make a clutch saved. */
-    private static final int SAVED_TICKS = 16;
+    /** Ticks on the ground after the last hit that make a clutch saved: half a second. */
+    static final int SAVED_TICKS = 10;
+    /** Ticks from a saved clutch back to the start. */
+    static final long AFTER_SAVE = 4L;
     /** Where the player may place blocks: this far from the centre along the row, and across it. */
     static final int PLACE_ALONG = 12;
     static final int PLACE_ACROSS = 20;
@@ -284,7 +286,7 @@ final class ClutchTraining extends Training {
             last = blocks(size);
             hitsLeft = -1;
             groundTicks = Integer.MIN_VALUE;
-            again(12L);
+            again(AFTER_SAVE);
         }
     }
 
