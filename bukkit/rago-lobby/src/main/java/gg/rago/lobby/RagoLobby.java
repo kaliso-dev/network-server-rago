@@ -268,11 +268,12 @@ public final class RagoLobby extends JavaPlugin implements LobbyService {
         getServer().getScheduler().runTaskTimer(this, scoreboard::updateHealth, 20L, 1L);
         // The names above the heads, twice a second (their colour stays fixed there).
         getServer().getScheduler().runTaskTimer(this, scoreboard::updateNames, 15L, 10L);
-        // The animated colours of name run along the names in the tab list only, ten times a second.
+        // The animated colours of name run along the names in the tab list only, about three times a
+        // second (every 6 ticks): slow enough to read the name.
         getServer().getScheduler().runTaskTimer(this, () -> {
             names.advance();
             scoreboard.updateListNames();
-        }, 16L, 2L);
+        }, 16L, 6L);
         daily = new DailyChest(profiles);
         questsNpc = new QuestsNpc(stats.book(), server, levelMenu::openQuests);
         questsNpc.setSkins(npcSkins::get);

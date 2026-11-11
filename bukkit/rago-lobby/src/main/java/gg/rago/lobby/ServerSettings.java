@@ -323,7 +323,7 @@ final class ServerSettings {
             String webPrice = rank.getString("prix-en-ligne", null);
             if (webPrice != null && (!webStore || webPrice.trim().isEmpty() || webPrice.length() > 16)) {
                 throw new IllegalArgumentException(where + ".prix-en-ligne: the price shown for a rank of the web store"
-                        + " (boutique-en-ligne: true), 16 characters at most, such as \"$3.99\"");
+                        + " (boutique-en-ligne: true), 16 characters at most, such as \"$4.99\"");
             }
             int priority = rank.getInt("priorite-file", 0);
             if (priority < 0 || priority > 9) {

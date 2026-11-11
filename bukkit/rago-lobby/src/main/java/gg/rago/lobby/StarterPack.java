@@ -9,10 +9,10 @@ import org.bukkit.ChatColor;
 import org.bukkit.configuration.ConfigurationSection;
 
 /**
- * The starter pack of the web store (section pack-depart of config.yml): a rank (VIP), a lot of
- * Rago Points, XP boosters and cosmetics without their level, once per player, for less than its
- * contents. The web store gives it from the console with /pack give; the Shop NPC and /pack show
- * it. Immutable.
+ * The starter pack of the web store (section pack-depart of config.yml): a lot of Rago Points, XP
+ * and coin boosters and cosmetics without their level, once per player, the cheapest thing sold.
+ * No rank by default (VIP and PREMIUM+ are sold on their own); rang: can add one. The web store
+ * gives it from the console with /pack give; the Shop NPC and /pack show it. Immutable.
  */
 final class StarterPack {
 
@@ -49,20 +49,19 @@ final class StarterPack {
         this.url = url;
     }
 
-    /** The pack of a config.yml without the section, with the VIP of the plugin's own ranks. */
+    /** The pack of a config.yml without the section: no rank, no price crossed out. */
     static StarterPack defaults() {
-        return new StarterPack(ChatColor.GOLD + "" + ChatColor.BOLD + "Starter Pack", Ranks.defaults().get(Ranks.VIP), 4.99, 6.65,
+        return new StarterPack(ChatColor.GOLD + "" + ChatColor.BOLD + "Starter Pack", null, 3.99, 3.99,
                 "€", 20_000, 3, 2,
                 java.util.Arrays.asList("trail-magic", "kill-firework", "win-fireworks"), "https://rago-optimizer.com");
     }
 
     static StarterPack read(ConfigurationSection section, Map<String, Cosmetic> catalogue, Ranks ranks) {
         StarterPack d = defaults();
-        // rang: the rank it gives, VIP when not said ("" for none)
-        boolean said = section != null && section.contains("rang");
-        String rankId = said ? String.valueOf(section.getString("rang", "")).trim() : Ranks.VIP;
+        // rang: a rank it gives too, none when not said or ""
+        String rankId = section == null ? "" : String.valueOf(section.getString("rang", "")).trim();
         RankDef rank = rankId.isEmpty() ? null : ranks.get(rankId);
-        if (rank == Ranks.DEFAULT || rank != null && rank.staff() || rank == null && said && !rankId.isEmpty()) {
+        if (rank == Ranks.DEFAULT || rank != null && rank.staff() || rank == null && !rankId.isEmpty()) {
             throw new IllegalArgumentException("pack-depart.rang: \"" + rankId + "\" is not a rank of the shop (rangs:)");
         }
         if (section == null) {
@@ -104,7 +103,7 @@ final class StarterPack {
                 cosmetics, url);
     }
 
-    /** The saving, in percent, rounded (25 for 4.99 instead of 6.65); 0 without a usual price above. */
+    /** The saving, in percent, rounded (25 for 3.99 instead of 5.32); 0 without a usual price above. */
     int discount() {
         if (usualPrice <= price) {
             return 0;
@@ -112,7 +111,7 @@ final class StarterPack {
         return (int) Math.round((1 - price / usualPrice) * 100);
     }
 
-    /** "4.99€". */
+    /** "3.99€". */
     String money(double amount) {
         return String.format(Locale.ROOT, "%.2f", amount) + currency;
     }

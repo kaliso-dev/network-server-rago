@@ -39,7 +39,7 @@ final class RankDef {
     private final String style;
     private final String badge;
     private final boolean webStore;
-    /** What it costs on the web store, as shown in the game ("$3.99"), or null. */
+    /** What it costs on the web store, as shown in the game ("$4.99"), or null. */
     private final String webPrice;
     /** Its place in the queues: the higher first (PREMIUM+ 2, VIP 1), 0 for none. */
     private final int queuePriority;
@@ -90,7 +90,7 @@ final class RankDef {
         return queuePriority;
     }
 
-    /** Its price on the web store, as shown ("$3.99"), or null when the game does not show one. */
+    /** Its price on the web store, as shown ("$4.99"), or null when the game does not show one. */
     String webPrice() {
         return webPrice;
     }

@@ -24,7 +24,7 @@ final class NetworkCommands implements CommandExecutor, TabCompleter {
         "fly", "staffchat", "vanish", "freeze", "report", "clearchat", "mutechat", "ban", "unban", "mute", "unmute", "kick",
         "warn", "history", "staff", "discord", "rules", "site", "store", "style", "level", "quests", "display", "nick", "realname", "booster", "pack", "settings", "season"};
 
-    private static final String[] TOPS = {"elo", "level", "wins", "kills", "streak", "games", "points"};
+    private static final String[] TOPS = {"elo", "level", "wins", "kills", "fkdr", "streak", "games", "points"};
 
     private final RagoLobby lobby;
 
@@ -632,6 +632,9 @@ final class NetworkCommands implements CommandExecutor, TabCompleter {
                 case "kills":
                     stat = BoardStat.KILLS;
                     break;
+                case "fkdr":
+                    stat = BoardStat.FKDR;
+                    break;
                 case "streak":
                     stat = BoardStat.STREAK;
                     break;
@@ -667,6 +670,7 @@ final class NetworkCommands implements CommandExecutor, TabCompleter {
             StatsBook.Row row = rows.get(i);
             String value = stat == BoardStat.ELO ? book.ladder().format(row.value())
                     : stat == BoardStat.LEVEL ? book.levels().tag(book.levels().level(row.value()))
+                    : stat == BoardStat.FKDR ? ChatColor.YELLOW + BoardStat.hundredths(row.value())
                     : ChatColor.YELLOW + String.format("%,d", row.value());
             sender.sendMessage(ChatColor.YELLOW + "" + (i + 1) + ". " + ChatColor.RESET
                     + lobby.profiles().displayName(row.id(), row.name()) + ChatColor.GRAY + " - " + value);

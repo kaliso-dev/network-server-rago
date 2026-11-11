@@ -60,13 +60,23 @@ class StatsDisplaysTest {
     }
 
     @Test
-    void theMainBoardGoesFromTheLevelToTheEloAndTheKills() throws Exception {
+    void theMainBoardGoesFromTheLevelToTheEloTheFkdrAndTheKills() throws Exception {
         LobbySettings settings = bundledSettings();
         StatsBook book = new StatsBook(1000, settings.levels());
         book.record(settings.catalog().get("sumo"), Collections.singletonList(ALICE), Collections.singletonList(BOB),
                 NAMES, SUNDAY);
         book.kill("sumo", ALICE, BOB, NAMES, SUNDAY);
         book.kill("sumo", ALICE, BOB, NAMES, SUNDAY);
+        for (int i = 0; i < 5; i++) {
+            book.finalKill("bed-fight-1v1", ALICE, NAMES);
+        }
+        book.finalDeath("bed-fight-1v1", ALICE, NAMES);
+        book.finalDeath("bed-fight-1v1", ALICE, NAMES);
+        book.finalKill("bed-fight-1v1", BOB, NAMES);
+        book.finalKill("bed-fight-1v1", BOB, NAMES);
+        book.finalDeath("bed-fight-1v1", BOB, NAMES);
+        book.finalDeath("bed-fight-1v1", BOB, NAMES);
+        book.finalDeath("bed-fight-1v1", BOB, NAMES);
         StatsDisplays displays = new StatsDisplays(settings, book, new StatsMenu(settings, book), new FakeEntities(null, null));
         Player alice = player(ALICE);
         List<BoardStat> stats = settings.npc("leaderboardprincipal").boards().get(0);
@@ -87,6 +97,16 @@ class StatsDisplaysTest {
         assertEquals("» Click here: change the mode", elo.get(StatsDisplays.FIRST_CLICK_LINE + 1));
         displays.next(alice, stats, key, true);
         assertEquals("Ranked Bedwars 2v2", plain(displays.board(stats, key, alice, SUNDAY)).get(1), "a left click changes the mode");
+
+        displays.next(alice, stats, key, false);
+        List<String> fkdr = plain(displays.board(stats, key, alice, SUNDAY));
+        assertEquals("FKDR", fkdr.get(0), "then the FKDR");
+        assertEquals("All modes · Lifetime", fkdr.get(1));
+        assertEquals("1. Alice - 2.5", fkdr.get(3), "5 final kills, 2 final deaths");
+        assertEquals("2. Bob - 0.67", fkdr.get(4), "2 final kills, 3 final deaths");
+        assertEquals("You: #1 - 2.5", fkdr.get(3 + StatsDisplays.TOP + 1));
+        assertEquals(StatsDisplays.BOARD_LINES - 1, fkdr.size(), "one click line: nothing to change on it");
+        assertEquals(java.util.Arrays.asList("#1 Alice", "2.5 FKDR"), plain(displays.podiumLines(stats, key, ALICE, 0, SUNDAY)));
 
         displays.next(alice, stats, key, false);
         List<String> kills = plain(displays.board(stats, key, alice, SUNDAY));

@@ -10,18 +10,18 @@ import org.bukkit.Sound;
 import org.bukkit.entity.Player;
 
 /**
- * The Shop NPC of the centre of the lobby (and /pack): everything the network sells, on one page,
- * so that a player sees at once what each thing gives. The starter pack first (its price crossed
- * out, what is inside), then the ranks of the web store and their perks (PREMIUM+, VIP), the name colours and the +, the XP boosters,
- * the cosmetics, the gadgets, the events, the ranks of Rago Points, and how to earn Rago Points.
+ * The Shop NPC of the centre of the lobby (and /pack): the store of a player who starts, on one
+ * page. The starter pack first (what is inside, its price), then the lowest rank of the web store
+ * (VIP) and its perks, the name colours, the XP boosters and the cosmetics that Rago Points buy,
+ * the ranks of Rago Points, and how to earn Rago Points. PREMIUM+ is in the /shop, with the ranks.
  * What is sold on the web store gives its link; the rest opens its page of the shop. Main thread.
  */
 final class StoreMenu {
 
     static final int ROWS = 6;
     static final int PACK_SLOT = 13;
-    /** The row of the things sold, left to right: two ranks of the web store at most, then the rest. */
-    static final int[] ROW = {19, 20, 21, 22, 23, 24, 25};
+    /** The row of the things sold, left to right: VIP, then what Rago Points buy. */
+    static final int[] ROW = {19, 21, 23, 25};
     /** The ranks for Rago Points, if any, between how to earn them and the website. */
     static final int RANKS_FOR_POINTS_SLOT = 40;
 
@@ -54,7 +54,7 @@ final class StoreMenu {
                 "Network level: " + book.levels().tag(book.level(player.getUniqueId())),
                 "",
                 "Spend them in the " + ChatColor.GREEN + "/shop" + ChatColor.GRAY + ": cosmetics,",
-                "name colours, the colour of your +,", "XP boosters."), null);
+                "name colours and XP boosters."), null);
 
         menu.set(PACK_SLOT, ClickMenu.glow(ClickMenu.item(Material.CHEST, 0, pack.name + (pack.discount() > 0 ? " "
                 + ChatColor.RED + ChatColor.BOLD + "-" + pack.discount() + "%" : ""), packLore(pack, profiles.ownsPack(profile)))),
@@ -65,89 +65,61 @@ final class StoreMenu {
 
         int i = 0;
         List<RankDef> web = webRanks(server);
-        // The lowest rank only (VIP, the one of the starter pack too): PREMIUM+ is in the /shop. The
-        // rest of the row is the other things sold.
-        for (final RankDef rank : web.subList(0, Math.min(1, web.size()))) {
-            boolean owned = profiles.owns(profile, rank);
-            boolean top = rank.hasPlus();
+        // The lowest rank only (VIP): PREMIUM+ is in the /shop, with the ranks. The rest of the row
+        // is what Rago Points buy.
+        final RankDef vip = web.isEmpty() ? null : web.get(0);
+        if (vip != null) {
+            boolean owned = profiles.owns(profile, vip);
             List<String> lore = new ArrayList<>();
-            lore.add(top ? ChatColor.LIGHT_PURPLE + "The rank of the network:" : ChatColor.GREEN + "To start supporting the network:");
-            for (String perk : rank.perks()) {
+            lore.add(ChatColor.GREEN + "To start supporting the network:");
+            for (String perk : vip.perks()) {
                 lore.add(ChatColor.WHITE + "• " + ChatColor.GRAY + perk);
             }
             lore.add("");
-            if (rank.webPrice() != null) {
-                lore.add(ChatColor.GRAY + "Price: " + ChatColor.GREEN + ChatColor.BOLD + rank.webPrice());
+            if (vip.webPrice() != null) {
+                lore.add(ChatColor.GRAY + "Price: " + ChatColor.GREEN + ChatColor.BOLD + vip.webPrice());
             }
             lore.add(owned ? ChatColor.GREEN + "You have it: thank you!" : ChatColor.GOLD + "On the web store " + ChatColor.YELLOW
                     + "(click for the link)");
-            org.bukkit.inventory.ItemStack item = ClickMenu.item(rank.icon(), 0, rank.prefix().trim(), lore);
-            menu.set(ROW[i++], top ? ClickMenu.glow(item) : item, (p, right) -> {
+            menu.set(ROW[i++], ClickMenu.item(vip.icon(), 0, vip.prefix().trim(), lore), (p, right) -> {
                 if (!owned) {
                     p.closeInventory();
-                    tellStore(p, rank.nameColour() + "✦ " + rank.prefix().trim() + ChatColor.GRAY + ": all its perks for good.");
+                    tellStore(p, vip.nameColour() + "✦ " + vip.prefix().trim() + ChatColor.GRAY + ": all its perks for good.");
                 }
             });
         }
-        menu.set(ROW[i++], ClickMenu.item(Material.NAME_TAG, 0, ChatColor.LIGHT_PURPLE + "Name colours & your +", list(
-                "Gradient and animated names,",
-                "badges after your name, and the",
-                "colour of the " + ChatColor.WHITE + "+" + ChatColor.GRAY + " of [PREMIUM+].",
+        List<String> colours = list(
+                "Gradient and animated names",
+                "and badges after your name.",
                 "",
-                "With Rago Points, levels or PREMIUM+.",
-                "",
-                ChatColor.YELLOW + "Click to browse")), (p, right) -> styles.open(p));
+                "With Rago Points or your level.");
+        if (vip != null && vip.style() != null) {
+            colours.add(vip.prefix().trim() + ChatColor.GRAY + ": a colour of its own.");
+        }
+        colours.add("");
+        colours.add(ChatColor.YELLOW + "Click to browse");
+        menu.set(ROW[i++], ClickMenu.item(Material.NAME_TAG, 0, ChatColor.LIGHT_PURPLE + "Name colours", colours),
+                (p, right) -> styles.open(p));
         menu.set(ROW[i++], ClickMenu.item(Material.EXP_BOTTLE, 0, ChatColor.AQUA + "Boosters", list(
                 ChatColor.AQUA + "x3 Network XP" + ChatColor.GRAY + " for 30 minutes",
                 "of play: " + ChatColor.GOLD + String.format("%,d", XpBoosters.PRICE) + " Rago Points" + ChatColor.GRAY + " each.",
                 ChatColor.GOLD + "x3 Rago Points" + ChatColor.GRAY + ": the coin boosters,",
-                "on the store and in the pack.",
-                ChatColor.LIGHT_PURPLE + "[PREMIUM+]" + ChatColor.GRAY + ": a free x2 XP one a day.",
+                "in the starter pack.",
                 "Yours: " + ChatColor.GREEN + (profile.boosters() + profile.dailyBoosters()) + " XP, " + profile.coinBoosters() + " coins",
                 "",
                 ChatColor.YELLOW + "Click to see them")), (p, right) -> boosters.open(p));
-        menu.set(ROW[i++], ClickMenu.item(Material.FIREWORK, 0, ChatColor.GREEN + "Cosmetics", list(
+        List<String> cosmetics = list(
                 "Projectile trails, kill effects",
                 "and victory effects: everyone",
                 "sees them in your games.",
                 "",
-                "With Rago Points, from your level.",
-                ChatColor.LIGHT_PURPLE + "✦ The rarest: [PREMIUM+] only.",
-                "",
-                ChatColor.YELLOW + "Click to browse")), (p, right) -> shop.open(p));
-        menu.set(ROW[i++], ClickMenu.item(Material.BLAZE_ROD, 0, ChatColor.LIGHT_PURPLE + "Lobby gadgets", list(
-                "Bat blaster, explosive sheep",
-                "and disco ball, in your hotbar",
-                "in the lobby.",
-                "",
-                ChatColor.LIGHT_PURPLE + "With [PREMIUM+].",
-                "",
-                player.hasPermission(LobbyGadgets.PREMIUM_PERMISSION) ? ChatColor.GREEN + "You have them"
-                        : ChatColor.YELLOW + "Click for the store")), (p, right) -> {
-                            if (!p.hasPermission(LobbyGadgets.PREMIUM_PERMISSION)) {
-                                p.closeInventory();
-                                tellStore(p, ChatColor.LIGHT_PURPLE + "✦ " + ChatColor.GRAY + "The gadgets come with " + ChatColor.LIGHT_PURPLE
-                                        + "[PREMIUM+]" + ChatColor.GRAY + ".");
-                            }
-                        });
-        final boolean hosts = player.hasPermission("rago.perk.host");
-        menu.set(ROW[i++], ClickMenu.item(Material.GOLD_SWORD, 0, ChatColor.GOLD + "Host events", list(
-                "Sumo, Brackets or Last Man",
-                "Standing for the whole server:",
-                "everyone is told, the winner",
-                "is announced and gets XP.",
-                "",
-                ChatColor.LIGHT_PURPLE + "With [PREMIUM+]: " + ChatColor.WHITE + "/host",
-                "",
-                hosts ? ChatColor.YELLOW + "Click to host one" : ChatColor.YELLOW + "Click for the store")), (p, right) -> {
-                    p.closeInventory();
-                    if (hosts) {
-                        p.performCommand("host");
-                    } else {
-                        tellStore(p, ChatColor.GOLD + "Events " + ChatColor.GRAY + "are hosted by " + ChatColor.LIGHT_PURPLE + "[PREMIUM+]"
-                                + ChatColor.GRAY + ": /host.");
-                    }
-                });
+                "With Rago Points, from your level.");
+        if (!pack.cosmetics.isEmpty()) {
+            cosmetics.add(ChatColor.GOLD + "The starter pack: " + pack.cosmetics.size() + " of them.");
+        }
+        cosmetics.add("");
+        cosmetics.add(ChatColor.YELLOW + "Click to browse");
+        menu.set(ROW[i++], ClickMenu.item(Material.FIREWORK, 0, ChatColor.GREEN + "Cosmetics", cosmetics), (p, right) -> shop.open(p));
         if (!server.ranks().sold().isEmpty()) {
             menu.set(RANKS_FOR_POINTS_SLOT, ClickMenu.item(Material.DIAMOND, 0, ChatColor.GOLD + "Ranks for Rago Points", list(
                     "Ranks you unlock with your level",

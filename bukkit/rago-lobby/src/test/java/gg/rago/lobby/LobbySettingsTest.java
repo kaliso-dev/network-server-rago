@@ -228,7 +228,7 @@ class LobbySettingsTest {
                 "clutch-scenario-1v1", "attack-defense-1v1")), "every RBW mode, Ranked Bedwars first");
         assertEquals(settings.modesIn("ranked").size(), ranked.modeIds().size());
         assertTrue(settings.npc("leaderboardprincipal").leaderboard());
-        assertEquals(Collections.singletonList(Arrays.asList(BoardStat.LEVEL, BoardStat.ELO, BoardStat.KILLS, BoardStat.GAMES)),
+        assertEquals(Collections.singletonList(Arrays.asList(BoardStat.LEVEL, BoardStat.ELO, BoardStat.FKDR, BoardStat.KILLS, BoardStat.GAMES)),
                 settings.npc("leaderboardprincipal").boards(), "one board, the Network level first (the podium too), a right"
                 + " click goes to the next stat");
         assertEquals(Arrays.asList(Collections.singletonList(BoardStat.WINS), Collections.singletonList(BoardStat.STREAK),
@@ -245,7 +245,7 @@ class LobbySettingsTest {
         LobbyNpc shop = settings.npc("aimtrainer");
         assertEquals(LobbyNpc.Kind.SHOP, shop.kind(), "the centre NPC is the Shop");
         assertEquals("§a§lSHOP", shop.name());
-        assertTrue(shop.subtitle().contains("-25%"));
+        assertEquals("Starter Pack · VIP", org.bukkit.ChatColor.stripColor(shop.subtitle()), "the pack and VIP: no PREMIUM+ there");
         assertTrue(shop.modeIds().isEmpty());
         assertInvalid("pnj:\n  boutique:\n    type: shop\n    modes: [sumo]\nmodes:\n  sumo: {}\n", "pnj.boutique");
     }

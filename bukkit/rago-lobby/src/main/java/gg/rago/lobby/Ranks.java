@@ -228,7 +228,7 @@ final class Ranks {
                         "Speed I, II or III in the lobby (settings)", "Your arrival announced, with a firework",
                         "White messages, no chat cooldown", "Priority in the queues (after PREMIUM+)", "3 cosmetics: the Clouds trail,",
                         "the Heart burst kill, the Love win"),
-                1.25, "aqua", null, true, "$3.99", 1);
+                1.25, "aqua", null, true, "$4.99", 1);
     }
 
     /** The cosmetics of VIP: three of the cheapest, far from the rarest of PREMIUM+. */

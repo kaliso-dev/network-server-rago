@@ -143,7 +143,7 @@ final class NameLooks {
         return null;
     }
 
-    /** The step of the animated gradients in the tab list: one more ten times a second. */
+    /** The step of the animated gradients in the tab list: one more about three times a second. */
     private volatile int phase;
 
     /** The animated gradients move on one step. */

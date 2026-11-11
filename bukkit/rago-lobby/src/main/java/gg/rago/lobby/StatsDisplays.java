@@ -336,6 +336,8 @@ final class StatsDisplays {
         } else if (view.stat == BoardStat.LEVEL) {
             int level = book.levels().level(row.value());
             score = ChatColor.GRAY + "Level " + book.levels().paint(String.valueOf(level), level);
+        } else if (view.stat == BoardStat.FKDR) {
+            score = ChatColor.YELLOW + BoardStat.hundredths(row.value()) + ChatColor.GRAY + " FKDR";
         } else {
             score = ChatColor.YELLOW + String.valueOf(row.value()) + ChatColor.GRAY + " "
                     + view.stat.title().toLowerCase(java.util.Locale.ROOT);
@@ -346,7 +348,7 @@ final class StatsDisplays {
 
     /**
      * The value a board shows: the level for the Network level (ranked by XP), the division with
-     * the ELO ("Gold 245"), the number otherwise.
+     * the ELO ("Gold 245"), the ratio for the FKDR ("2.5"), the number otherwise.
      */
     private String shown(BoardStat stat, int value) {
         if (stat == BoardStat.LEVEL) {
@@ -354,6 +356,9 @@ final class StatsDisplays {
         }
         if (stat == BoardStat.ELO) {
             return book.ladder().format(value);
+        }
+        if (stat == BoardStat.FKDR) {
+            return ChatColor.YELLOW + BoardStat.hundredths(value);
         }
         return ChatColor.YELLOW + String.valueOf(value);
     }

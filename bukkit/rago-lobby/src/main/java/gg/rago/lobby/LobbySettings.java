@@ -261,7 +261,7 @@ final class LobbySettings {
                         throw new IllegalArgumentException(where + ": the Shop NPC has neither modes nor categorie");
                     }
                     npcs.add(LobbyNpc.shop(point, colour(npc.getString("nom", "&a&lSHOP")),
-                            colour(npc.getString("sous-titre", "&eStarter Pack &c&l-25%"))).withSkin(skin(npc, where)));
+                            colour(npc.getString("sous-titre", "&eStarter Pack &7· &bVIP"))).withSkin(skin(npc, where)));
                     continue;
                 }
                 if (!"modes".equals(type)) {

@@ -138,8 +138,8 @@ dans les files d'attente des modes de jeu.
 - **Les rangs PREMIUM et VIP.** Les deux rangs à acheter, sur la boutique en ligne
   (rago-optimizer.com) : la boutique du jeu montre ce qu'ils donnent, leur prix (`prix-en-ligne`)
   et le lien, VIP à gauche et PREMIUM+ à sa droite (le plus bas d'abord), comme partout ; la
-  boutique en ligne les donne depuis la console avec `/rank give <joueur> vip` ou `premium` (le pack
-  de départ donne VIP). **VIP** (3,99 $), le petit rang :
+  boutique en ligne les donne depuis la console avec `/rank give <joueur> vip` ou `premium`.
+  **VIP** (4,99 $), le petit rang :
   un pseudo bleu clair (le style `aqua`) et le préfixe `[VIP]`, +25 % d'XP Network
   (`boost-xp: 1.25`), `/fly` et la vitesse au lobby, l'arrivée annoncée avec un feu d'artifice, des
   messages blancs sans délai, la priorité dans les files après PREMIUM+, et trois cosmétiques à lui,
@@ -185,7 +185,7 @@ dans les files d'attente des modes de jeu.
   Galaxy, Rainbow, Shadow, et Aqua, Gold, Legend pour les niveaux) et un badge après le pseudo
   (`✦`, RAGO, BETTER, PVP, YT, `✫100`). Le dégradé se voit dans le chat, le Tab et les messages ;
   au-dessus de la tête un pseudo n'a qu'une couleur. Les dégradés sont animés : leurs couleurs
-  défilent le long du pseudo dans le Tab seulement (dix fois par seconde) ; au-dessus de la tête
+  défilent le long du pseudo dans le Tab seulement (environ trois fois par seconde) ; au-dessus de la tête
   le pseudo garde une couleur fixe, celle du milieu du dégradé, et chaque message du chat le
   montre là où il en est.
   Des couleurs fixes s'achètent en Rago Points dans `/style` (Red, Green, Blue, Yellow, Purple,
@@ -203,16 +203,17 @@ dans les files d'attente des modes de jeu.
   Network, et montre le rang PREMIUM et les styles de pseudo. Un rang peut aussi se vendre en
   points (`prix:` et `niveau:` dans `rangs:`). Les cosmétiques ne jouent qu'en partie.
 - **Le PNJ Shop et le pack de départ (`/pack`).** Au centre du lobby (le point `aimtrainer`,
-  `type: shop`), un PNJ Shop ouvre la vitrine de tout ce qui se vend : d'abord le **pack de
-  départ** (son prix, son prix normal barré, -25 %, ce qu'il contient : le rang VIP pour toujours
-  (`rang:`), 20 000 Rago Points, 3 boosters d'XP, 2 boosters de pièces et 3 cosmétiques sans leur
-  niveau, une fois par joueur), puis VIP et ses avantages (PREMIUM+ est dans `/shop`, sous l'icône
-  du lingot d'or des rangs), les couleurs de pseudo et le +, les boosters, les cosmétiques, les gadgets, les
-  events `/host`, comment gagner des Rago Points et Rago Optimizer. Ce qui se vend sur la
-  boutique en ligne donne son lien cliquable ; le reste ouvre sa page de `/shop`. La boutique en
-  ligne donne le pack depuis la console avec `/pack give <joueur>` (une seule fois : un deuxième
-  appel ne donne rien), et tout le serveur le voit. Prix, contenu et lien dans `pack-depart:` ; le
-  prix barré doit être un vrai prix pratiqué avant.
+  `type: shop`), un PNJ Shop ouvre la vitrine de celui qui débute : d'abord le **pack de départ**,
+  ce qu'il y a de moins cher (3,99 €, une fois par joueur : 20 000 Rago Points, 3 boosters d'XP,
+  2 boosters de pièces et 3 cosmétiques sans leur niveau, sans rang), puis VIP (4,99 $) et ses
+  avantages, puis ce que les Rago Points achètent : les couleurs de pseudo, les boosters et les
+  cosmétiques ; enfin comment gagner des Rago Points et Rago Optimizer. PREMIUM+ est dans `/shop`,
+  sous l'icône du lingot d'or des rangs. Ce qui se vend sur la boutique en ligne donne son lien
+  cliquable ; le reste ouvre sa page de `/shop`. La boutique en ligne donne le pack depuis la
+  console avec `/pack give <joueur>` (une seule fois : un deuxième appel ne donne rien), et tout le
+  serveur le voit. Prix, contenu et lien dans `pack-depart:` ; `prix-normal:` montre un prix barré
+  et la remise, seulement si le pack s'est vraiment vendu à ce prix avant (le même que `prix:` pour
+  aucun) ; `rang: vip` ajouterait un rang au pack.
 - **L'ELO classé.** Chaque mode classé a son ELO, qui commence à 0, et onze divisions de Coal
   (0) à Obsidian (1000). Une victoire rapporte plus et une défaite coûte moins dans les basses
   divisions ; le MVP de la partie (le plus de kills) gagne 5 de plus. La file classée apparie
@@ -293,7 +294,7 @@ commentaires de `config.yml`. Les mots français de la première version (`quitt
 | `/gift <joueur>` (ou `/cadeau`) | offrir un rang vendu en Rago Points (PREMIUM s'offre sur la boutique en ligne) | tout le monde |
 | `/friend add\|accept\|deny\|remove\|list\|requests\|toggle <joueur>` (ou `/f`) | les amis | tout le monde |
 | `/msg <joueur> <message>` (ou `/tell`, `/w`), `/r <message>` | message privé, réponse | tout le monde |
-| `/stats [joueur]`, `/top elo\|level\|wins\|kills\|streak\|games\|points [mode]` | les stats, les meilleurs | tout le monde |
+| `/stats [joueur]`, `/top elo\|level\|wins\|kills\|fkdr\|streak\|games\|points [mode]` | les stats, les meilleurs | tout le monde |
 | `/report <joueur> <raison>`, `/discord`, `/rules`, `/site`, `/store` | signaler un joueur, les liens | tout le monde |
 | `/fly` | voler dans le lobby | `rago.perk.fly` (PREMIUM) |
 | `/style` (ou `/couleur`, `/badge`) | choisir sa couleur de pseudo, son badge et la couleur de son + | tout le monde |
@@ -375,8 +376,9 @@ générateur vide ; un monde de build peut donc servir de lobby.
   top 10, la place de celui qui regarde et quand il repart de zéro. Un clic sur un tableau change
   sa période pour ce joueur (du jour, de la semaine, à vie) ; sur un tableau `elo`, il change de
   mode classé. Un tableau peut regrouper plusieurs classements entre crochets
-  (`tableaux: [[niveau, elo, kills, parties]]`, celui de leaderboardprincipal, qui montre d'abord
-  le niveau Network, sur le tableau et sur le podium, puis l'ELO, les kills et les parties jouées) :
+  (`tableaux: [[niveau, elo, fkdr, kills, parties]]`, celui de leaderboardprincipal, qui montre
+  d'abord le niveau Network, sur le tableau et sur le podium, puis l'ELO, le FKDR, les kills et les
+  parties jouées) :
   un clic droit passe au classement suivant, un clic gauche change la période ou le mode classé, et un clic sur la ligne
   « Click here: next leaderboard » ou « Click here: change the period » fait ce qu'elle dit. Un
   clic gauche atteint un tableau de 16 blocs, n'importe où sur son texte : le plugin suit le

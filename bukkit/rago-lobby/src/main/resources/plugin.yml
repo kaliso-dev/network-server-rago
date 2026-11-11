@@ -85,7 +85,7 @@ commands:
     usage: /points, or (admin) /points <give|take|set> <player> <amount>
   top:
     description: The leaderboards in the chat.
-    usage: /top <elo|level|wins|kills|streak|games|points> [ranked mode]
+    usage: /top <elo|level|wins|kills|fkdr|streak|games|points> [ranked mode]
     aliases: [leaderboard, lb]
   stats:
     description: A player's profile in the chat.

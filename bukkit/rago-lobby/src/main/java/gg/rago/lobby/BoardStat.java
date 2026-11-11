@@ -11,6 +11,11 @@ enum BoardStat {
     STREAK("series", "Best win streak", Choice.PERIOD),
     /** Kills (in a sumo, knocking the other player off), of the day, of the week or ever. */
     KILLS("kills", "Kills", Choice.PERIOD),
+    /**
+     * The final kills over the final deaths of every Bed Wars mode, ever (the final kills alone
+     * without a final death), ranked by hundredths: 2.5 is 250.
+     */
+    FKDR("fkdr", "FKDR", Choice.NONE),
     /** The Network level, ranked by XP. */
     LEVEL("niveau", "Network level", Choice.NONE),
     /** The ELO of a ranked mode: a click changes the mode. */
@@ -50,6 +55,16 @@ enum BoardStat {
         return choice;
     }
 
+    /** "2.5", "3", "0.33": a value of the FKDR board, ranked by hundredths. */
+    static String hundredths(int value) {
+        return value % 100 == 0 ? String.valueOf(value / 100) : String.valueOf(value / 100.0);
+    }
+
+    /** The FKDR in hundredths (the final kills alone without a final death). */
+    static int fkdr(int finalKills, int finalDeaths) {
+        return finalDeaths == 0 ? 100 * finalKills : (int) Math.round(100.0 * finalKills / finalDeaths);
+    }
+
     /** True if a click changes its period. */
     boolean periodic() {
         return choice == Choice.PERIOD;
@@ -65,7 +80,7 @@ enum BoardStat {
         return null;
     }
 
-    /** "victoires, parties, series, kills, niveau or elo", for the errors of config.yml. */
+    /** "victoires, parties, series, kills, fkdr, niveau or elo", for the errors of config.yml. */
     static String keys() {
         StringBuilder text = new StringBuilder();
         BoardStat[] all = values();

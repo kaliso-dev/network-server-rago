@@ -79,7 +79,7 @@ class NetworkFeaturesTest {
         assertTrue(ranks.permissions(null, Collections.singletonList("premium")).contains("rago.cosmetic.kill-hearts"));
         assertTrue(ranks.permissions(null, Collections.singletonList("vip")).contains("rago.perk.fly"), "VIP flies");
         assertEquals("§b[VIP] ", ranks.get("vip").prefix(), "light blue");
-        assertEquals("$3.99", ranks.get("vip").webPrice());
+        assertEquals("$4.99", ranks.get("vip").webPrice());
         assertEquals("$9.99", ranks.get("premium").webPrice());
         assertEquals("premium", ranks.best(null, Arrays.asList("vip", "premium")).id(), "PREMIUM+ is above VIP");
         assertEquals("VIP", ranks.get("vip").displayName());
@@ -229,7 +229,7 @@ class NetworkFeaturesTest {
         assertNull(vip.badge());
         assertTrue(vip.webStore());
         assertEquals(Material.DIAMOND, vip.icon());
-        assertEquals("$3.99", vip.webPrice());
+        assertEquals("$4.99", vip.webPrice());
         assertEquals(1, vip.queuePriority());
         assertEquals(2, premium.queuePriority());
         assertEquals("vip", premium.parent());

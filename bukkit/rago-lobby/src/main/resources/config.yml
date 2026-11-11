@@ -244,12 +244,12 @@ pnj:
   #   nom: "&b&lPractice"
   #   categorie: entrainement
   #   skin: practice
-  # The Shop NPC (type: shop), at the centre: a click opens the store, everything the network
-  # sells on one page, the starter pack (pack-depart) first. sous-titre: the line under its name.
+  # The Shop NPC (type: shop), at the centre: a click opens the store, the starter pack
+  # (pack-depart) and VIP, then what Rago Points buy. sous-titre: the line under its name.
   # (Its point is still called aimtrainer: the aim trainer is in the Practice NPC.)
   aimtrainer:
     nom: "&a&lSHOP"
-    sous-titre: "&eStarter Pack &c&l-25%"
+    sous-titre: "&eStarter Pack &7· &bVIP"
     type: shop
     skin: shop
   # The stats NPCs (type: stats): everyone sees their own profile above it, and a click opens
@@ -362,7 +362,7 @@ quetes:
 #   style, badge the colour of name and the badge (of styles:) its players wear until they choose
 #                another with /style; they own them as long as they have the rank
 #   boutique-en-ligne  true: sold on the web store, the shop shows the link (liens.boutique)
-#   prix-en-ligne      its price on the web store, shown in the shop and the store ("$3.99")
+#   prix-en-ligne      its price on the web store, shown in the shop and the store ("$4.99")
 #   priorite-file      its place in the queues, 0 to 9: the higher are matched first (PREMIUM+ 2,
 #                VIP 1); after a minute of waiting everyone is first in line, and it never changes
 #                who plays whom in a ranked queue (the ELO first)
@@ -437,7 +437,7 @@ rangs:
     boost-xp: 1.25
     style: aqua
     boutique-en-ligne: true
-    prix-en-ligne: "$3.99"
+    prix-en-ligne: "$4.99"
     priorite-file: 1
     icone: DIAMOND
     avantages: ["A light blue name and the &b[VIP]&7 tag", "+25% Network XP in every game", "/fly in the lobby",
@@ -451,9 +451,9 @@ rangs:
 # how a player gets it: premium (with a rank whose style or badge it is), achat (the web store
 # gives it: /style give <player> couleur-feu, from the console), niveau (a reward of the Network
 # levels, niveau.recompenses), points (bought in /style for prix Rago Points). A gradient is
-# animated: its colours run along the name in the tab list only (ten times a second); above the
-# head the name keeps one fixed colour, the middle of the gradient (anime: false for a fixed
-# gradient). A player wears one colour and one badge at a time.
+# animated: its colours run along the name in the tab list only (about three times a second);
+# above the head the name keeps one fixed colour, the middle of the gradient (anime: false for a
+# fixed gradient). A player wears one colour and one badge at a time.
 styles:
   couleurs:
     rose: {nom: "Pink", degrade: "5ddfd", obtention: premium}
@@ -548,18 +548,18 @@ rago-points:
 #   trail-flames: {prix: 1000, niveau: 1}
 boutique: {}
 
-# The starter pack, sold on the web store (lien) once per player: the store gives it from the
-# console with /pack give <player> after the payment. The Shop NPC and /pack show it, its price
-# (prix, in devise) and its usual price crossed out (prix-normal), which makes the -25%: put the
-# real prices of the web store here (a price shown crossed out must be one the pack was really
-# sold at before). It gives the rank of rang for good (a rank of rangs:, "" for none), rago-points,
-# boosters (x3 XP for 30 minutes each), boosters-pieces (x3 Rago Points for 30 minutes each) and
-# the cosmetics of cosmetiques (names of the boutique: list above), without their level.
+# The starter pack, the cheapest thing sold on the web store (lien), once per player: the store
+# gives it from the console with /pack give <player> after the payment. The Shop NPC and /pack
+# show it and its price (prix, in devise). prix-normal: a price it was really sold at before,
+# shown crossed out with the saving (-25%...), or the same as prix for none (a price shown crossed
+# out must be one the pack was really sold at). It gives rago-points, boosters (x3 XP for 30
+# minutes each), boosters-pieces (x3 Rago Points for 30 minutes each) and the cosmetics of
+# cosmetiques (names of the boutique: list above), without their level. No rank: VIP and
+# PREMIUM+ are sold on their own (rang: vip would add one, for good).
 pack-depart:
   nom: "&6&lStarter Pack"
-  rang: vip
-  prix: 4.99
-  prix-normal: 6.65
+  prix: 3.99
+  prix-normal: 3.99
   devise: "€"
   rago-points: 20000
   boosters: 3
@@ -604,7 +604,7 @@ annonces:
     - "&b&lRAGO OPTIMIZER &8» &fGet Rago Optimizer on &brago-optimizer.com"
     - "&a&lSHOP &8» &fEvery game gives Rago Points: spend them in the &a/shop&f."
     - "&b&lRAGO OPTIMIZER &8» &fNews and downloads: &brago-optimizer.com"
-    - "&6&lSTARTER PACK &c&l-25% &8» &f20,000 Rago Points, 5 boosters and 3 cosmetics: &e/pack"
+    - "&6&lSTARTER PACK &8» &f20,000 Rago Points, 5 boosters and 3 cosmetics for 3.99€: &e/pack"
     - "&6&lEVENTS &8» &d[PREMIUM+] &fhost Sumo, Brackets and LMS for the whole server: &e/host"
 
 # What /discord, /site, /rules and /store show (one line or a list).
@@ -627,10 +627,12 @@ liens:
 #     parties    the games played
 #     series     the best win streak
 #     kills      the kills (in a sumo: knocking the other one off)
+#     fkdr       the final kills / final deaths of Bed Wars, ever (the final kills alone without a
+#                final death)
 #     niveau     the Network level
 #     elo        the ELO of a ranked mode
 # A click on a board changes its period (daily, weekly, lifetime) for the one who clicks; on an elo
-# board, it changes the ranked mode (1v1, 2v2, 3v3, 4v4).
+# board, it changes the ranked mode (1v1, 2v2, 3v3, 4v4); niveau and fkdr have one board.
 # A board can group several leaderboards in brackets, for example [elo, kills, niveau]: a click on
 # it goes to the next one, a click on its last line changes the period or the ranked mode.
 #   podium    the steps of a podium (optional, up to 5, the first place first): on each one stands
@@ -641,9 +643,9 @@ liens:
 classements:
   leaderboardprincipal:
     nom: "&e&lTop players"
-    # The Network level first (and on the podium); a click goes to the ELO, the kills, then the
-    # games played.
-    tableaux: [[niveau, elo, kills, parties]]
+    # The Network level first (and on the podium); a click goes to the ELO, the FKDR, the kills,
+    # then the games played.
+    tableaux: [[niveau, elo, fkdr, kills, parties]]
     # The podium behind the board: the emerald (1st), the diamond (2nd), the gold block (3rd).
     podium: ["0.5 67 57.5", "-1.5 66 57.5", "2.5 65 57.5"]
   leaderboardstats:

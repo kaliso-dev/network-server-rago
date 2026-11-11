@@ -133,8 +133,7 @@ final class ShopMenu {
                     "cosmetics, once per player.",
                     "Price: " + pack.priceLine(),
                     "",
-                    ChatColor.YELLOW + "Click to see it, with PREMIUM+",
-                    ChatColor.YELLOW + "and everything else sold"))), (p, right) -> store.accept(p));
+                    ChatColor.YELLOW + "Click to see it, with VIP"))), (p, right) -> store.accept(p));
         }
         menu.open(player);
     }

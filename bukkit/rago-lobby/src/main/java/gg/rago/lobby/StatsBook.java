@@ -394,15 +394,15 @@ final class StatsBook {
 
     /**
      * A leaderboard: wins, games, best streak or kills over a period, of one mode or of all (modeId
-     * null), the ELO of one ranked mode, or the Network XP (the period is then ignored; the board
-     * shows the level). Players at zero are left out, but for the ELO: a player of the mode at 0 is
+     * null), the ELO of one ranked mode, the FKDR (in hundredths) or the Network XP (the period is
+     * then ignored; the board shows the level). Players at zero are left out, but for the ELO: a player of the mode at 0 is
      * in the first division. Ties keep the alphabetical order of the names.
      */
     Ranking ranking(BoardStat stat, StatsPeriod period, String modeId, long millis) {
         String day = StatsPeriod.dayKey(millis);
         String week = StatsPeriod.weekKey(millis);
         newDay(day);
-        String key = stat + "/" + (stat.periodic() ? period : "") + "/" + (stat == BoardStat.LEVEL ? "" : modeId);
+        String key = stat + "/" + (stat.periodic() ? period : "") + "/" + (stat == BoardStat.LEVEL || stat == BoardStat.FKDR ? "" : modeId);
         Ranking ranking = rankings.get(key);
         if (ranking != null) {
             return ranking;
@@ -422,6 +422,9 @@ final class StatsBook {
                     break;
                 case KILLS:
                     value = stats.kills(period, modeId, day, week);
+                    break;
+                case FKDR:
+                    value = BoardStat.fkdr(stats.finalKills(), stats.finalDeaths());
                     break;
                 case LEVEL:
                     value = stats.xp();
