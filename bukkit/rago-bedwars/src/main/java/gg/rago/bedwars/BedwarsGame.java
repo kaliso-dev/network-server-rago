@@ -1058,6 +1058,11 @@ class BedwarsGame {
         return true;
     }
 
+    /** True if a fall hurts, as in Bed Wars. */
+    boolean fallDamage() {
+        return true;
+    }
+
     /** True if the block is within this horizontal radius of the point, from just under it to this height above. */
     static boolean near(MapPoint point, Block block, double radius, int height) {
         return point != null && point.flatDistanceSquared(block.getX(), block.getZ()) < radius * radius

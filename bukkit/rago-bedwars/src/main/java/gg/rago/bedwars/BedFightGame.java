@@ -23,7 +23,7 @@ import org.bukkit.inventory.PlayerInventory;
 final class BedFightGame extends BedwarsGame {
 
     /** The kit when the lobby has none for the mode: the materials, with their amount. */
-    static final String[] KIT = {"STONE_SWORD", "WOOD_PICKAXE", "WOOD_AXE", "SHEARS", "WOOL 64", "WOOL 64"};
+    static final String[] KIT = {"WOOD_SWORD", "WOOD_PICKAXE", "WOOD_AXE", "SHEARS", "WOOL 64"};
     static final int BEDS_GONE_SECONDS = 600;
     static final int GAME_END_SECONDS = 900;
     /** The longest wait before a new life (reapparition-secondes when shorter). */
@@ -42,6 +42,12 @@ final class BedFightGame extends BedwarsGame {
     /** Blocks go everywhere, the spawns too: a respawn clears its place ({@link #respawn}). */
     @Override
     boolean protectsSpawns() {
+        return false;
+    }
+
+    /** No fall damage: a fall off the islands is the void, a jump down never hurts. */
+    @Override
+    boolean fallDamage() {
         return false;
     }
 

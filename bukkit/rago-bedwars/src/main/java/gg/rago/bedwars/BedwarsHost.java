@@ -515,6 +515,10 @@ final class BedwarsHost implements MatchHost, Listener {
             event.setCancelled(true);
             return;
         }
+        if (event.getCause() == EntityDamageEvent.DamageCause.FALL && !game.fallDamage()) {
+            event.setCancelled(true);
+            return;
+        }
         if (event instanceof EntityDamageByEntityEvent
                 && ((EntityDamageByEntityEvent) event).getDamager() instanceof EnderPearl) {
             // an ender pearl lands without hurting its thrower

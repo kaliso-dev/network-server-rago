@@ -12,14 +12,13 @@ class BedFightGameTest {
     @Test
     void theKitOfMinemen() {
         ItemStack[] kit = BedFightGame.defaultKit();
-        assertEquals(6, kit.length);
-        assertEquals(Material.STONE_SWORD, kit[0].getType());
+        assertEquals(5, kit.length);
+        assertEquals(Material.WOOD_SWORD, kit[0].getType());
         assertEquals(Material.WOOD_PICKAXE, kit[1].getType());
         assertEquals(Material.WOOD_AXE, kit[2].getType());
         assertEquals(Material.SHEARS, kit[3].getType());
         assertEquals(Material.WOOL, kit[4].getType());
-        assertEquals(64, kit[4].getAmount(), "two stacks of wool");
-        assertEquals(64, kit[5].getAmount());
+        assertEquals(64, kit[4].getAmount(), "one stack of wool");
     }
 
     @Test

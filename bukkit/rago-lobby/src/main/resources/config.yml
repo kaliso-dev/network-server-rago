@@ -860,7 +860,7 @@ modes:
     joueurs-par-equipe: 1
     classe: false
     # with full leather armour in the colour of the team
-    kit: [STONE_SWORD, WOOD_PICKAXE, WOOD_AXE, SHEARS, "WOOL 64", "WOOL 64"]
+    kit: [WOOD_SWORD, WOOD_PICKAXE, WOOD_AXE, SHEARS, "WOOL 64"]
     description:
       - "Two islands face to face, a bed"
       - "on each: bridge over, break"
@@ -875,7 +875,7 @@ modes:
     joueurs-par-equipe: 2
     classe: false
     # with full leather armour in the colour of the team
-    kit: [STONE_SWORD, WOOD_PICKAXE, WOOD_AXE, SHEARS, "WOOL 64", "WOOL 64"]
+    kit: [WOOD_SWORD, WOOD_PICKAXE, WOOD_AXE, SHEARS, "WOOL 64"]
     description:
       - "Bed fight, two against two:"
       - "break their bed, then the last"
