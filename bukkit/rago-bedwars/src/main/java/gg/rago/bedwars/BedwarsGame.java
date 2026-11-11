@@ -147,7 +147,8 @@ class BedwarsGame {
     final List<Generator> emeralds = new ArrayList<>();
     /** The shop and upgrades NPCs, and where they stand. */
     private final Map<Entity, Location> npcs = new HashMap<>();
-    private final Map<Entity, Team> upgradeNpcs = new HashMap<>();
+    /** The upgrades NPCs (each opens the upgrades of the team of whoever clicks it). */
+    private final Set<Entity> upgradeNpcs = new HashSet<>();
     /** The names floating above them. */
     private final List<ArmorStand> labels = new ArrayList<>();
     Phase phase = Phase.STARTING;
@@ -574,7 +575,7 @@ class BedwarsGame {
 
     /**
      * The shop and upgrades NPCs of these teams' islands; in a mode with shops everywhere
-     * (shops-partout:, First Rush full map), an item shop on each island nobody plays too.
+     * (shops-partout:, First Rush full map), an item shop and upgrades on each island nobody plays too.
      */
     void npcsUp(List<Team> islands) {
         World world = instance.world();
@@ -586,20 +587,27 @@ class BedwarsGame {
         for (Team team : islands) {
             played.add(team.color);
             Location spawn = team.points.spawn.in(world);
-            spawnNpc(team.points.shop.in(world), spawn, ChatColor.AQUA + "ITEM SHOP", null);
-            if (team.points.upgrades != null && upgrades()) {
-                spawnNpc(team.points.upgrades.in(world), spawn, ChatColor.AQUA + (teamSize <= 1 ? "SOLO UPGRADES"
-                        : "TEAM UPGRADES"), team);
-            }
+            spawnNpc(team.points.shop.in(world), spawn, ChatColor.AQUA + "ITEM SHOP", false);
+            upgradesNpc(team.points, world, teamSize);
         }
         if (settings.allShops(modeId)) {
             BedwarsMap map = instance.map();
             for (TeamColor color : map.completeTeams()) {
                 if (!played.contains(color)) {
                     BedwarsMap.Team points = map.teams().get(color);
-                    spawnNpc(points.shop.in(world), points.spawn.in(world), ChatColor.AQUA + "ITEM SHOP", null);
+                    spawnNpc(points.shop.in(world), points.spawn.in(world), ChatColor.AQUA + "ITEM SHOP", false);
+                    // the upgrades too: they are the team's of whoever clicks, as on their own island
+                    upgradesNpc(points, world, teamSize);
                 }
             }
+        }
+    }
+
+    /** The upgrades NPC of an island, if the map has its point and the game its upgrades. */
+    private void upgradesNpc(BedwarsMap.Team points, World world, int teamSize) {
+        if (points.upgrades != null && upgrades()) {
+            spawnNpc(points.upgrades.in(world), points.spawn.in(world), ChatColor.AQUA + (teamSize <= 1 ? "SOLO UPGRADES"
+                    : "TEAM UPGRADES"), true);
         }
     }
 
@@ -778,7 +786,7 @@ class BedwarsGame {
      * A villager on its point, its name floating above it on two lines as on Hypixel ("ITEM SHOP",
      * "RIGHT CLICK"): the lines are invisible armour stands, which every client shows.
      */
-    void spawnNpc(Location point, Location spawn, String name, Team upgradesOf) {
+    void spawnNpc(Location point, Location spawn, String name, boolean upgrades) {
         point.getChunk().load();
         // in its niche, straight out of it, as on Hypixel: not on the guard in front of it (NpcSpot)
         NpcSpot fitted = NpcSpot.fit(blocks(point.getWorld()), point.getX(), point.getY(), point.getZ(), point.getYaw(),
@@ -793,8 +801,8 @@ class BedwarsGame {
         villager.setCanPickupItems(false);
         villager.addPotionEffect(new PotionEffect(PotionEffectType.SLOW, Integer.MAX_VALUE, 255, false, false), true);
         npcs.put(villager, spot);
-        if (upgradesOf != null) {
-            upgradeNpcs.put(villager, upgradesOf);
+        if (upgrades) {
+            upgradeNpcs.add(villager);
         }
     }
 
@@ -844,7 +852,7 @@ class BedwarsGame {
 
     /** True for the shop NPCs of this game. */
     boolean isShop(Entity entity) {
-        return npcs.containsKey(entity) && !upgradeNpcs.containsKey(entity);
+        return npcs.containsKey(entity) && !upgradeNpcs.contains(entity);
     }
 
     boolean isNpc(Entity entity) {
@@ -1007,13 +1015,17 @@ class BedwarsGame {
 
     /**
      * Why no block can be placed there (null when one can, "" to say nothing): above the build
-     * limit, off the islands of a map that lists them (iles:), or too close to a spawn or a
-     * generator.
+     * limit or under the map's lowest (hauteur-min), off the islands of a map that lists them
+     * (iles:), or too close to a spawn or a generator.
      */
     String cannotBuildAt(Block block) {
         BedwarsMap map = instance.map();
         if (block.getY() > (buildLimit > 0 ? buildLimit : map.buildLimit())) {
             return "Build height limit reached!";
+        }
+        if (map.hasFloorY() && block.getY() < map.floorY()) {
+            // hauteur-min: no clutch far under the islands
+            return "You can't place blocks this low!";
         }
         String outside = map.outsideIslands(block.getX(), block.getY(), block.getZ());
         if (outside != null) {
@@ -1103,10 +1115,30 @@ class BedwarsGame {
 
     // --- Deaths ---------------------------------------------------------------------------------
 
-    /** A hit by another player of the game: the kill goes to them if this player dies soon. */
+    /**
+     * A hit by another player of the game: the kill goes to them if this player dies soon. An
+     * invisible player (a potion of the shop, a kit's) hit loses their invisibility: seen, armour
+     * and all, until they drink another.
+     */
     void hit(Gamer victim, Gamer attacker) {
         victim.lastDamager = attacker.id;
         victim.lastDamageAt = System.currentTimeMillis();
+        if (!revealedByHits(victim)) {
+            return;
+        }
+        Player player = Bukkit.getPlayer(victim.id);
+        if (player == null || !player.hasPotionEffect(PotionEffectType.INVISIBILITY)) {
+            return;
+        }
+        player.removePotionEffect(PotionEffectType.INVISIBILITY);
+        player.sendMessage(ChatColor.RED + "You were hit: you are visible again!");
+        broadcast(victim.coloured() + ChatColor.YELLOW + " was hit by " + attacker.coloured() + ChatColor.YELLOW
+                + " and is visible again!", Sound.ORB_PICKUP);
+    }
+
+    /** True if a hit takes this player's invisibility away: while the game is played. */
+    boolean revealedByHits(Gamer victim) {
+        return phase == Phase.PLAYING;
     }
 
     /**
@@ -1516,28 +1548,37 @@ class BedwarsGame {
         player.getInventory().removeItem(new ItemStack(bought.currency().material(), bought.price()));
         PlayerInventory inventory = player.getInventory();
         switch (bought.kind()) {
-            case SWORD:
+            case SWORD: {
+                // the new sword where the wooden one was, as on Hypixel
+                int was = inventory.first(Material.WOOD_SWORD);
                 inventory.remove(Material.WOOD_SWORD);
-                give(player, gamer, stack(bought, gamer), bought.category());
+                give(player, gamer, stack(bought, gamer), bought.category(), was);
                 break;
+            }
             case ARMOR:
                 gamer.armor = bought.tier();
                 wearArmor(player, gamer);
                 break;
-            case PICKAXE:
+            case PICKAXE: {
                 gamer.pickaxe = bought.tier();
+                int was = firstOf(inventory, "_PICKAXE");
                 removeAll(inventory, "_PICKAXE");
-                give(player, gamer, stack(bought, gamer), bought.category());
+                give(player, gamer, stack(bought, gamer), bought.category(), was);
                 break;
-            case AXE:
+            }
+            case AXE: {
                 gamer.axe = bought.tier();
-                for (ItemStack stack : inventory.getContents()) {
+                int was = -1;
+                for (int slot = 0; slot < inventory.getSize(); slot++) {
+                    ItemStack stack = inventory.getItem(slot);
                     if (stack != null && stack.getType().name().endsWith("_AXE") && !stack.getType().name().endsWith("PICKAXE")) {
-                        inventory.remove(stack);
+                        was = was < 0 ? slot : was;
+                        inventory.setItem(slot, null);
                     }
                 }
-                give(player, gamer, stack(bought, gamer), bought.category());
+                give(player, gamer, stack(bought, gamer), bought.category(), was);
                 break;
+            }
             case SHEARS:
                 gamer.shears = true;
                 give(player, gamer, stack(bought, gamer), bought.category());
@@ -1549,6 +1590,17 @@ class BedwarsGame {
         player.sendMessage(ChatColor.GREEN + "You purchased " + ChatColor.GOLD + bought.name());
         player.playSound(player.getLocation(), Sound.NOTE_PLING, 1f, 2f);
         return true;
+    }
+
+    /** The first slot holding an item whose type ends so (_PICKAXE), or -1. */
+    private static int firstOf(PlayerInventory inventory, String suffix) {
+        for (int slot = 0; slot < inventory.getSize(); slot++) {
+            ItemStack stack = inventory.getItem(slot);
+            if (stack != null && stack.getType().name().endsWith(suffix)) {
+                return slot;
+            }
+        }
+        return -1;
     }
 
     private static void removeAll(PlayerInventory inventory, String suffix) {
@@ -1696,6 +1748,14 @@ class BedwarsGame {
      * (or holding the same item, with room); else wherever there is room; else at their feet.
      */
     static void give(Player player, Gamer gamer, ItemStack item, Category category) {
+        give(player, gamer, item, category, -1);
+    }
+
+    /**
+     * The same, the slot of the item this one replaces (a better sword, pickaxe or axe; -1: none)
+     * before any free slot: the player's hotbar manager first, else where the old one was.
+     */
+    static void give(Player player, Gamer gamer, ItemStack item, Category category, int replaced) {
         PlayerInventory inventory = player.getInventory();
         if (gamer.hotbar != null && category != null && category.hotbar() != null) {
             for (int slot = 0; slot < 9 && slot < gamer.hotbar.size(); slot++) {
@@ -1711,6 +1771,13 @@ class BedwarsGame {
                     there.setAmount(there.getAmount() + item.getAmount());
                     return;
                 }
+            }
+        }
+        if (replaced >= 0) {
+            ItemStack there = inventory.getItem(replaced);
+            if (there == null || there.getType() == Material.AIR) {
+                inventory.setItem(replaced, item);
+                return;
             }
         }
         for (ItemStack left : inventory.addItem(item).values()) {
@@ -1884,7 +1951,7 @@ class BedwarsGame {
 
     /** True if the NPC is the upgrades NPC of a team. */
     boolean isUpgrades(Entity entity) {
-        return upgradeNpcs.containsKey(entity);
+        return upgradeNpcs.contains(entity);
     }
 
     /**

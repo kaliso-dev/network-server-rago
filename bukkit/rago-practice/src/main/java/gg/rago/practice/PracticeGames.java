@@ -10,6 +10,7 @@ import java.util.WeakHashMap;
 import org.bukkit.Bukkit;
 import org.bukkit.Location;
 import org.bukkit.Material;
+import org.bukkit.Sound;
 import org.bukkit.World;
 import org.bukkit.block.Block;
 import org.bukkit.entity.Entity;
@@ -226,6 +227,10 @@ final class PracticeGames implements Listener {
             return;
         }
         game.pearled(player, event);
+        if (!event.isCancelled()) {
+            // where the pearl lands, the teleport is heard all around, as on Hypixel
+            event.getTo().getWorld().playSound(event.getTo(), Sound.ENDERMAN_TELEPORT, 1f, 1f);
+        }
     }
 
     // --- Damage ---------------------------------------------------------------------------------
@@ -546,8 +551,9 @@ final class PracticeGames implements Listener {
             event.setUseInteractedBlock(Event.Result.DENY);
             ItemStack item = event.getItem();
             if (item != null && item.getType().isBlock()) {
-                // denying the bed alone also stops the block in hand from being placed against it
-                event.setUseItemInHand(Event.Result.ALLOW);
+                // denying the bed alone also stops the block in hand from being placed against it; and only
+                // with shift held, as on Hypixel: a click alone on the bed places nothing
+                event.setUseItemInHand(player.isSneaking() ? Event.Result.ALLOW : Event.Result.DENY);
             }
         }
         if (spectating(player)) {

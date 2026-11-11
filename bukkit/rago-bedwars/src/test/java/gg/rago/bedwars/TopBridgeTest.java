@@ -228,4 +228,11 @@ class TopBridgeTest {
         assertFalse(Unbreakable.wears(Material.WOOL.getMaxDurability()));
         assertFalse(Unbreakable.wears(Material.FIREBALL.getMaxDurability()));
     }
+
+    @Test
+    void aBlockGoesOnABedOnlyWithShiftHeld() {
+        assertFalse(BedwarsHost.placesOn(Material.BED_BLOCK, false), "a click alone on the bed");
+        assertTrue(BedwarsHost.placesOn(Material.BED_BLOCK, true));
+        assertTrue(BedwarsHost.placesOn(Material.FURNACE, false), "a furnace of the map: as before");
+    }
 }

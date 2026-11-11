@@ -15,7 +15,6 @@ import org.bukkit.block.Block;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.PlayerInventory;
-import org.bukkit.potion.PotionEffectType;
 import org.bukkit.scheduler.BukkitTask;
 
 /**
@@ -155,22 +154,11 @@ final class AttackDefenseGame extends BedwarsGame {
 
     /**
      * An invisible player (the Ninja's potion, or one bought at the shop) hit by the other side
-     * loses their invisibility: seen, armour and all, until they drink another.
+     * loses their invisibility (BedwarsGame#hit), during a round only.
      */
     @Override
-    void hit(Gamer victim, Gamer attacker) {
-        super.hit(victim, attacker);
-        if (roundOver || phase != Phase.PLAYING) {
-            return;
-        }
-        Player player = Bukkit.getPlayer(victim.id);
-        if (player == null || !player.hasPotionEffect(PotionEffectType.INVISIBILITY)) {
-            return;
-        }
-        player.removePotionEffect(PotionEffectType.INVISIBILITY);
-        player.sendMessage(ChatColor.RED + "You were hit: you are visible again!");
-        broadcast(victim.coloured() + ChatColor.YELLOW + " was hit by " + attacker.coloured() + ChatColor.YELLOW
-                + " and is visible again!", Sound.ORB_PICKUP);
+    boolean revealedByHits(Gamer victim) {
+        return !roundOver && super.revealedByHits(victim);
     }
 
     /** No timed event (no diamond, no end of the beds): the round's own clock, see {@link #everySecond}. */

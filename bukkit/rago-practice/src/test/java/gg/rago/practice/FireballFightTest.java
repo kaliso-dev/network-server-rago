@@ -27,6 +27,23 @@ class FireballFightTest {
         assertNull(FireballFight.kept(Material.BED_BLOCK, (byte) 0));
     }
 
+    @Test
+    void theBlocksGivenBackGoIntoTheHotbarWhereItHasRoom() {
+        ItemStack[] kit = {new ItemStack(Material.STONE_SWORD), new ItemStack(Material.WOOD_PICKAXE), new ItemStack(Material.WOOD_AXE),
+            new ItemStack(Material.FIREBALL, 6), new ItemStack(Material.WOOL, 64), new ItemStack(Material.ENDER_STONE, 8),
+            new ItemStack(Material.TNT, 2), new ItemStack(Material.SHEARS), new ItemStack(Material.LADDER, 8)};
+        assertEquals(5, FireballFight.hotbarSlot(kit, new ItemStack(Material.ENDER_STONE)), "on the end stone of the kit");
+        assertEquals(-1, FireballFight.hotbarSlot(kit, new ItemStack(Material.WOOD)), "the kit's nine slots: the inventory");
+        kit[5] = null;
+        assertEquals(5, FireballFight.hotbarSlot(kit, new ItemStack(Material.WOOD)), "the end stone all placed: its slot");
+        kit[5] = new ItemStack(Material.WOOD, 3, (short) 1);
+        assertEquals(5, FireballFight.hotbarSlot(kit, new ItemStack(Material.WOOD, 1, (short) 1)), "on the spruce");
+        assertEquals(-1, FireballFight.hotbarSlot(kit, new ItemStack(Material.WOOD)), "not oak on spruce");
+        kit[5] = new ItemStack(Material.ENDER_STONE, 64);
+        kit[7] = null;
+        assertEquals(7, FireballFight.hotbarSlot(kit, new ItemStack(Material.ENDER_STONE)), "a full stack: the empty slot");
+    }
+
     private static String key(int x, int y, int z) {
         return x + "," + y + "," + z;
     }

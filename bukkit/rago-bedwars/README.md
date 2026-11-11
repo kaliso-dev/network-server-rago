@@ -24,8 +24,8 @@ Scenario**,
   moyennes en duo), comme sur Hypixel (réglable dans `forge:`). La file RBW a des forges plus lentes
   sur toutes ses maps (`forge.modes`, réglable par mode) : 60 fers et 8 ors par minute en 1v1, 90
   fers et 12 ors en 2v2, 3v3 et 4v4, au lieu des 120 d'un 4v4. Sur ses maps à 4 îles, les îles
-  des côtés, où personne ne joue, ont aussi leur forge et un item shop pour qui va les prendre
-  (`forges-partout:` et `shops-partout:`). Les générateurs de diamant et
+  des côtés, où personne ne joue, ont aussi leur forge, un item shop et les upgrades pour qui va
+  les prendre (`forges-partout:` et `shops-partout:`). Les générateurs de diamant et
   d'émeraude affichent leur tier et le temps avant le prochain objet. Ils passent tier II puis III
   pendant la partie.
 - **Événements** (réglables) : Diamond II à 6 min, Emerald II à 12, Diamond III à 18, Emerald III
@@ -80,8 +80,8 @@ maps duo.
 `first-rush-full` (1v1) et `first-rush-full-duo` (2v2), « First rush full map », sont la même
 partie avec toute la map : les diamants et les émeraudes, et les forges des îles où personne ne
 joue tournent aussi, leur fer et leur or pour qui va les prendre (`forges-partout:` du config.yml),
-et chacune de ces îles a son item shop pour acheter sur place (`shops-partout:`) ; les upgrades
-restent sur l'île de chaque équipe.
+et chacune de ces îles a son item shop et ses upgrades pour acheter sur place (`shops-partout:`) :
+le PNJ d'upgrades d'une île vide ouvre celles de l'équipe de qui clique.
 
 `skyrise-resources-1v1` et `skyrise-resources-2v2`, « RBW Sky Rise Resources », font de même sur
 Sky Rise, les équipes sur des îles opposées comme en RBW Sky Rise : les forges et les item shops
@@ -374,8 +374,10 @@ red et blue :
    d'émeraude.
 5. `/bw spectators` là d'où les morts regardent la partie (sinon au-dessus du milieu des spawns).
 6. Si besoin, `/bw height 100` (hauteur maximale de construction ; sinon 25 blocs au-dessus du
-   spawn le plus haut) et `/bw void 40` (la hauteur où l'on meurt ; sinon 30 blocs sous le spawn le
-   plus bas).
+   spawn le plus haut), `/bw void 40` (la hauteur où l'on meurt ; sinon 30 blocs sous le spawn le
+   plus bas) et `/bw floor 55` (`hauteur-min:`, le bloc le plus bas qu'on pose, pour ne pas clutcher
+   loin sous les îles ; sinon jusqu'au vide). Sur SkyRise, dont les tours descendent jusqu'en
+   y 25, le `bedwars.yml` de la map a `hauteur-min: 55`.
 7. `/bw info` dit ce qui manque ; `/bw enable` ouvre la map aux parties.
 8. Facultatif, à écrire dans le `bedwars.yml` : `retirer:`, des boîtes de blocs que chaque copie
    enlève en étant faite, toutes ou seulement certains blocs. Antenna s'en sert pour laisser de

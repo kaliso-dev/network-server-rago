@@ -37,7 +37,7 @@ final class MapCommands implements CommandExecutor, TabCompleter {
 
     static final String PERMISSION = "rago.bedwars.admin";
     private static final List<String> SUBCOMMANDS = Arrays.asList("maps", "info", "edit", "spawn", "bed", "generator",
-            "shop", "upgrades", "diamond", "emerald", "spectators", "remove", "height", "void", "enable", "disable");
+            "shop", "upgrades", "diamond", "emerald", "spectators", "remove", "height", "floor", "void", "enable", "disable");
     private static final List<String> TEAM_COMMANDS = Arrays.asList("spawn", "bed", "generator", "shop", "upgrades");
     /** How far from the player /bw remove diamond and /bw remove emerald look for the generator. */
     private static final double REMOVE_RADIUS = 5.0;
@@ -153,6 +153,8 @@ final class MapCommands implements CommandExecutor, TabCompleter {
             case "height":
             case "void":
                 return height(player, map, sub, args, label);
+            case "floor":
+                return floor(player, map, args, label);
             case "enable":
                 if (!map.missing().isEmpty()) {
                     player.sendMessage(ChatColor.RED + "Not yet: " + String.join("; ", map.missing()));
@@ -243,6 +245,31 @@ final class MapCommands implements CommandExecutor, TabCompleter {
         return build ? "Players build up to y " + map.buildLimit() + "." : "Players die below y " + map.voidY() + ".";
     }
 
+    /** /bw floor: the lowest block players may place (hauteur-min), or none. */
+    private String floor(Player player, BedwarsMap map, String[] args, String label) {
+        if (args.length < 2) {
+            player.sendMessage(ChatColor.RED + "/" + label + " floor <y>|none (now " + (map.hasFloorY() ? "y " + map.floorY()
+                    : "none") + ")");
+            return null;
+        }
+        if (args[1].equalsIgnoreCase("none") || args[1].equalsIgnoreCase("auto")) {
+            map.setFloorY(Integer.MIN_VALUE);
+            return "Players place blocks down to the void.";
+        }
+        int y;
+        try {
+            y = Integer.parseInt(args[1]);
+        } catch (NumberFormatException e) {
+            y = -1;
+        }
+        if (y < 0 || y > 255) {
+            player.sendMessage(ChatColor.RED + "A height from 0 to 255, or none.");
+            return null;
+        }
+        map.setFloorY(y);
+        return "Players place blocks down to y " + y + ".";
+    }
+
     /** The bed the player looks at, or stands on or in. */
     private static Block bedNear(Player player) {
         Block target = player.getTargetBlock((Set<Material>) null, 6);
@@ -309,7 +336,8 @@ final class MapCommands implements CommandExecutor, TabCompleter {
             return;
         }
         sender.sendMessage(ChatColor.GOLD + map.world() + ChatColor.GRAY + " (" + (map.enabled() ? "enabled" : "disabled")
-                + ", build limit y " + map.buildLimit() + ", void below y " + map.voidY() + ")");
+                + ", build limit y " + map.buildLimit() + (map.hasFloorY() ? ", blocks down to y " + map.floorY() : "")
+                + ", void below y " + map.voidY() + ")");
         for (Map.Entry<TeamColor, BedwarsMap.Team> entry : map.teams().entrySet()) {
             BedwarsMap.Team team = entry.getValue();
             sender.sendMessage(" " + entry.getKey().coloured() + ChatColor.GRAY + ": spawn " + point(team.spawn) + ", bed "
@@ -342,6 +370,7 @@ final class MapCommands implements CommandExecutor, TabCompleter {
         sender.sendMessage(ChatColor.YELLOW + l + " remove <team>|diamond|emerald|diamonds|emeralds");
         sender.sendMessage(ChatColor.YELLOW + l + " height <y>|auto" + ChatColor.GRAY + ", " + ChatColor.YELLOW
                 + l + " void <y>|auto" + ChatColor.GRAY + ": the build limit, the void");
+        sender.sendMessage(ChatColor.YELLOW + l + " floor <y>|none" + ChatColor.GRAY + ": the lowest block players place");
         sender.sendMessage(ChatColor.YELLOW + l + " enable|disable" + ChatColor.GRAY + ": play it, or not");
     }
 
@@ -382,6 +411,8 @@ final class MapCommands implements CommandExecutor, TabCompleter {
                 options.addAll(mapFolders());
             } else if (sub.equals("height") || sub.equals("void")) {
                 options.add("auto");
+            } else if (sub.equals("floor")) {
+                options.add("none");
             }
         }
         String prefix = args.length == 0 ? "" : args[args.length - 1].toLowerCase(Locale.ROOT);

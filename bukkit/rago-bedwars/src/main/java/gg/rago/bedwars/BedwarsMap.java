@@ -61,6 +61,8 @@ final class BedwarsMap {
     private int buildLimit;
     /** Integer.MIN_VALUE: automatic. */
     private int voidY = Integer.MIN_VALUE;
+    /** The lowest block players may place (hauteur-min); Integer.MIN_VALUE: down to the void. */
+    private int floorY = Integer.MIN_VALUE;
     private final Map<TeamColor, Team> teams = new EnumMap<>(TeamColor.class);
     private final List<MapPoint> diamonds = new ArrayList<>();
     private final List<MapPoint> emeralds = new ArrayList<>();
@@ -587,6 +589,22 @@ final class BedwarsMap {
         this.voidY = voidY;
     }
 
+    /**
+     * The lowest block players may place: hauteur-min, else none (they clutch down to the void).
+     * Integer.MIN_VALUE when there is none.
+     */
+    int floorY() {
+        return floorY;
+    }
+
+    void setFloorY(int floorY) {
+        this.floorY = floorY;
+    }
+
+    boolean hasFloorY() {
+        return floorY != Integer.MIN_VALUE;
+    }
+
     boolean hasBuildLimit() {
         return buildLimit > 0;
     }
@@ -619,6 +637,9 @@ final class BedwarsMap {
         }
         if (voidY != Integer.MIN_VALUE) {
             yaml.set("hauteur-vide", voidY);
+        }
+        if (floorY != Integer.MIN_VALUE) {
+            yaml.set("hauteur-min", floorY);
         }
         for (Map.Entry<TeamColor, Team> entry : teams.entrySet()) {
             String path = "equipes." + entry.getKey().id();
@@ -694,6 +715,13 @@ final class BedwarsMap {
         }
         if (yaml.contains("hauteur-vide")) {
             map.voidY = yaml.getInt("hauteur-vide");
+        }
+        if (yaml.contains("hauteur-min")) {
+            int floor = yaml.getInt("hauteur-min");
+            if (floor < 0 || floor > 255) {
+                throw new IllegalArgumentException("hauteur-min: from 0 to 255");
+            }
+            map.floorY = floor;
         }
         ConfigurationSection teams = yaml.getConfigurationSection("equipes");
         if (teams != null) {

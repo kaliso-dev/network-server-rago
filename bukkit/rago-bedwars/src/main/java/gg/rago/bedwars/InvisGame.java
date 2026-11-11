@@ -419,21 +419,13 @@ final class InvisGame extends BedwarsGame {
         return value * value;
     }
 
-    /** Hit by a defender, the attacker loses their invisibility: seen, armour and all, for the rest of the round. */
+    /**
+     * Hit by a defender, the attacker loses their invisibility (BedwarsGame#hit): seen, armour and
+     * all, for the rest of the round.
+     */
     @Override
-    void hit(Gamer victim, Gamer attacker) {
-        super.hit(victim, attacker);
-        if (roundOver || phase != Phase.PLAYING || !victim.id.equals(invisible)) {
-            return;
-        }
-        Player player = Bukkit.getPlayer(victim.id);
-        if (player == null || !player.hasPotionEffect(PotionEffectType.INVISIBILITY)) {
-            return;
-        }
-        player.removePotionEffect(PotionEffectType.INVISIBILITY);
-        player.sendMessage(ChatColor.RED + "You were hit: you are visible again!");
-        broadcast(victim.coloured() + ChatColor.YELLOW + " was hit by " + attacker.coloured() + ChatColor.YELLOW
-                + " and is visible again!", Sound.ORB_PICKUP);
+    boolean revealedByHits(Gamer victim) {
+        return !roundOver && victim.id.equals(invisible) && super.revealedByHits(victim);
     }
 
     /** The yaw that looks along (dx, dz): 0 to the south (+z), 90 to the west (-x), as Minecraft counts. */

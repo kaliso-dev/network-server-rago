@@ -180,7 +180,7 @@ final class FastShopGame extends BedwarsGame {
     void setUp() {
         World world = instance.world();
         for (Team island : islands) {
-            spawnNpc(island.points.shop.in(world), island.points.spawn.in(world), ChatColor.AQUA + "ITEM SHOP", null);
+            spawnNpc(island.points.shop.in(world), island.points.spawn.in(world), ChatColor.AQUA + "ITEM SHOP", false);
         }
     }
 

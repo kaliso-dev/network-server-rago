@@ -148,6 +148,19 @@ class BedwarsMapTest {
     }
 
     @Test
+    void theLowestBlockIsTheVoidUntilSet() throws Exception {
+        BedwarsMap map = demo();
+        assertFalse(map.hasFloorY(), "down to the void");
+        assertFalse(map.toYaml().contains("hauteur-min"));
+        map.setFloorY(55);
+        BedwarsMap read = BedwarsMap.fromYaml(map.world(), map.toYaml());
+        assertTrue(read.hasFloorY());
+        assertEquals(55, read.floorY());
+        assertEquals(60, read("hauteur-min: 60\n").floorY());
+        assertThrows(IllegalArgumentException.class, () -> BedwarsMap.fromYaml("m", "hauteur-min: 300\n"));
+    }
+
+    @Test
     void withoutSpectatorPointTheDeadLookFromAboveTheMiddle() {
         BedwarsMap map = demo();
         map.setSpectators(null);

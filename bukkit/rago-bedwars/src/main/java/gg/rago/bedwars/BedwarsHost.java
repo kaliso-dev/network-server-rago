@@ -24,6 +24,7 @@ import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
 import org.bukkit.Location;
 import org.bukkit.Material;
+import org.bukkit.Sound;
 import org.bukkit.World;
 import org.bukkit.block.Block;
 import org.bukkit.entity.Egg;
@@ -80,6 +81,7 @@ import org.bukkit.event.player.PlayerMoveEvent;
 import org.bukkit.event.player.PlayerPickupItemEvent;
 import org.bukkit.event.player.PlayerQuitEvent;
 import org.bukkit.event.player.PlayerRespawnEvent;
+import org.bukkit.event.player.PlayerTeleportEvent;
 import org.bukkit.event.weather.WeatherChangeEvent;
 import org.bukkit.event.world.ChunkLoadEvent;
 import org.bukkit.inventory.InventoryHolder;
@@ -596,6 +598,21 @@ final class BedwarsHost implements MatchHost, Listener {
         }
     }
 
+    /**
+     * An ender pearl lands: everyone around hears the teleport where it takes the player, as on
+     * Hypixel (the 1.8 server plays no sound there; the throw has its own).
+     */
+    @EventHandler(priority = EventPriority.MONITOR, ignoreCancelled = true)
+    public void onPearl(PlayerTeleportEvent event) {
+        if (event.getCause() != PlayerTeleportEvent.TeleportCause.ENDER_PEARL || event.getTo() == null) {
+            return;
+        }
+        Player player = event.getPlayer();
+        if (games.containsKey(player.getUniqueId()) || isGameWorld(event.getTo().getWorld())) {
+            event.getTo().getWorld().playSound(event.getTo(), Sound.ENDERMAN_TELEPORT, 1f, 1f);
+        }
+    }
+
     @EventHandler
     public void onEggThrow(PlayerEggThrowEvent event) {
         if (games.containsKey(event.getPlayer().getUniqueId()) || isGameWorld(event.getPlayer().getWorld())) {
@@ -970,8 +987,10 @@ final class BedwarsHost implements MatchHost, Listener {
         if (event.getAction() == Action.RIGHT_CLICK_BLOCK && NOT_USED.contains(event.getClickedBlock().getType())) {
             event.setUseInteractedBlock(Event.Result.DENY);
             if (item != null && item.getType().isBlock()) {
-                // Denying the block alone also stops the block in hand from being placed against it: wool on a bed.
-                event.setUseItemInHand(Event.Result.ALLOW);
+                // Denying the block alone also stops the block in hand from being placed against it: wool on a
+                // bed. On a bed, only with shift held, as on Hypixel: a click alone places nothing.
+                event.setUseItemInHand(placesOn(event.getClickedBlock().getType(), player.isSneaking())
+                        ? Event.Result.ALLOW : Event.Result.DENY);
             }
         }
         if (item != null && item.getType() == Material.FIREBALL
@@ -1253,5 +1272,13 @@ final class BedwarsHost implements MatchHost, Listener {
         if (isGameWorld(event.getBlock().getWorld())) {
             event.setCancelled(true);
         }
+    }
+
+    /**
+     * True if a block in hand goes against this block of the map that nobody uses (a chest, a
+     * furnace, a bed): always, but against a bed only with shift held, as on Hypixel.
+     */
+    static boolean placesOn(Material clicked, boolean sneaking) {
+        return clicked != Material.BED_BLOCK || sneaking;
     }
 }

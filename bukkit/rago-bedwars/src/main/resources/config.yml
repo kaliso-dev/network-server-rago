@@ -176,7 +176,7 @@ forges-partout: [ranked-1v1, ranked-2v2, ranked-3v3, ranked-4v4, first-rush-full
 
 # The modes whose games have an item shop on every island of the map, the empty islands' too (the
 # Ranked Bedwars queue, First Rush full map, Sky Rise Resources: whoever goes to take the iron of
-# another island buys there). Only the item shop: the upgrades stay on each team's own island.
+# another island buys there), and its upgrades NPC: it opens the upgrades of whoever clicks it.
 shops-partout: [ranked-1v1, ranked-2v2, ranked-3v3, ranked-4v4, first-rush-full, first-rush-full-duo,
   skyrise-resources-1v1, skyrise-resources-2v2]
 
