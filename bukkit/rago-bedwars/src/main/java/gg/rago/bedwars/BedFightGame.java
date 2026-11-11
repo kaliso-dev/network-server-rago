@@ -4,6 +4,9 @@ import java.util.List;
 import org.bukkit.ChatColor;
 import org.bukkit.Material;
 import org.bukkit.Sound;
+import org.bukkit.block.Block;
+import org.bukkit.block.BlockFace;
+import org.bukkit.enchantments.Enchantment;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.PlayerInventory;
@@ -36,6 +39,24 @@ final class BedFightGame extends BedwarsGame {
         return respawnOf(super.respawnSeconds());
     }
 
+    /** Blocks go everywhere, the spawns too: a respawn clears its place ({@link #respawn}). */
+    @Override
+    boolean protectsSpawns() {
+        return false;
+    }
+
+    /** The two blocks where the player comes back (feet and head) go first: nobody is walled in. */
+    @Override
+    void respawn(Player player, Gamer gamer) {
+        Block feet = spawnOf(gamer).getBlock();
+        for (Block block : new Block[] {feet, feet.getRelative(BlockFace.UP)}) {
+            if (block.getType() != Material.AIR && block.getType() != Material.BED_BLOCK) {
+                block.setType(Material.AIR);
+            }
+        }
+        super.respawn(player, gamer);
+    }
+
     /** The wait before a new life: the server's, {@value #RESPAWN_SECONDS} seconds at most. */
     static int respawnOf(int server) {
         return Math.min(server, RESPAWN_SECONDS);
@@ -62,7 +83,7 @@ final class BedFightGame extends BedwarsGame {
         }
     }
 
-    /** Leather armour of the team's colour and the mode's kit, at each life. */
+    /** Leather armour of the team's colour and the mode's kit, at each life; the pickaxe and the axe with Efficiency I. */
     @Override
     void giveKit(Player player, Gamer gamer) {
         PlayerInventory inventory = player.getInventory();
@@ -77,7 +98,25 @@ final class BedFightGame extends BedwarsGame {
                 inventory.addItem(kitItem(item, gamer));
             }
         }
+        ItemStack[] contents = inventory.getContents();
+        efficient(contents);
+        inventory.setContents(contents);
         player.updateInventory();
+    }
+
+    /** Efficiency I on every pickaxe and axe of these items (the rest as they are). */
+    static void efficient(ItemStack[] items) {
+        for (ItemStack item : items) {
+            if (item != null && digs(item.getType()) && item.getEnchantmentLevel(Enchantment.DIG_SPEED) < 1) {
+                item.addUnsafeEnchantment(Enchantment.DIG_SPEED, 1);
+            }
+        }
+    }
+
+    /** True for a pickaxe or an axe. */
+    static boolean digs(Material type) {
+        String name = type.name();
+        return name.endsWith("_PICKAXE") || name.endsWith("_AXE");
     }
 
     /** The items of {@link #KIT}, not yet in the team's colour. */

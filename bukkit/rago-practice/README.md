@@ -56,7 +56,8 @@ prendre un (« Ann: 34 hits, best combo 7 »). Au sumo aussi ; pas dans les even
   stuff des maps du propriétaire : épée en pierre, pioche et hache Efficiency I, 6 boules de feu,
   un stack de laine, 8 end stone, 2 TNT, cisailles, 8 échelles, armure en cuir. Tant que le lit
   tient, on revient au bout de 3 secondes ; ensuite, une mort est définitive. Le dernier camp
-  debout gagne. Le bois et l'end stone qu'on casse vont dans l'inventaire, ceux que prend l'explosion de sa TNT ou de sa boule de feu aussi. Les boules de feu et la
+  debout gagne. Le bois et l'end stone qu'on casse tombent par terre, comme un vrai bloc. Une
+  boule de feu qui explose près d'une TNT allumée l'écarte de deux blocs environ. Les boules de feu et la
   TNT poussent (la TNT comme celle du jeu, sans ses dégâts) et
   cassent les blocs posés et la défense des lits (l'end stone seulement à la TNT), sans faire de
   dégâts ; pas de dégâts de chute non plus. Sur une map de `fireball.cartes` (`config.yml`), chaque
@@ -111,13 +112,12 @@ réglages. Un entraînement de la liste que le serveur ne joue pas est laissé d
   (herbe, lit, défense end stone et laine). Les îles des joueurs sont côte à côte (28 blocs) :
   chacun voit les autres clutcher. La hotbar
   règle le knockback (1 à 5), le nombre de coups à la suite (1 à 3), le KB stick (bien plus loin)
-  et un côté au hasard. Série de clutchs : un seul classement pour tous les réglages, le même top 3
-  pour tout le monde dans le scoreboard, mis à jour chez tous dès qu'un joueur bat son record.
-  Chaque clutch réussi a aussi une taille : la distance en blocs à laquelle le coup a envoyé le
-  joueur de sa place avant qu'il se rattrape (« Clutch! Streak: 3 | 4.3 blocks »). Au-dessus de
-  chaque île, devant le joueur, un tableau « BIGGEST CLUTCHES » montre les dix plus gros clutchs
-  du serveur (le meilleur de chaque joueur), le même sur toutes les îles. Les anciens records par
-  réglage sont regroupés au démarrage (chaque joueur garde son meilleur).
+  et un côté au hasard. Série de clutchs (un seul record pour tous les réglages). Chaque clutch
+  réussi a une taille : la distance en blocs à laquelle le coup a envoyé le joueur de sa place
+  avant qu'il se rattrape (« Clutch! Streak: 3 | 4.3 blocks »). Le top 3 du scoreboard et, au-dessus
+  de chaque île devant le joueur, le tableau « BIGGEST CLUTCHES » (les dix premiers) montrent les
+  plus gros clutchs de la semaine, le meilleur de chaque joueur, les mêmes pour tout le monde et mis
+  à jour chez tous dès qu'un joueur bat son record. Ils repartent à zéro chaque lundi à minuit.
 - **Block clutch : top fight** : le même clutch sur une plateforme de top fight en laine bleue et
   rouge, à la limite de construction : aucun bloc au-dessus de la plateforme, il faut se
   rattraper à son niveau ou plus bas.

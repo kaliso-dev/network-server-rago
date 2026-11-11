@@ -1032,6 +1032,9 @@ class BedwarsGame {
         if (outside != null) {
             return outside;
         }
+        if (!protectsSpawns()) {
+            return null;
+        }
         for (BedwarsMap.Team team : map.teams().values()) {
             if (near(team.spawn, block, SPAWN_PROTECTION, 3) || near(team.generator, block, GENERATOR_PROTECTION, 2)) {
                 return "You can't place blocks here!";
@@ -1048,6 +1051,11 @@ class BedwarsGame {
             }
         }
         return null;
+    }
+
+    /** True if no block goes near a spawn or a generator; false: blocks go everywhere under the build limit. */
+    boolean protectsSpawns() {
+        return true;
     }
 
     /** True if the block is within this horizontal radius of the point, from just under it to this height above. */

@@ -103,6 +103,33 @@ final class RecordBook {
         return folded.size();
     }
 
+    /** The board from goes into the board into (each player keeping their best), and is gone. */
+    void merge(String from, String into) {
+        Map<UUID, Entry> entries = boards.remove(from);
+        if (entries == null) {
+            return;
+        }
+        lowerIsBetter.remove(from);
+        for (Entry entry : entries.values()) {
+            submit(into, entry.player, entry.name, entry.value);
+        }
+    }
+
+    /** Every board whose id starts with this, but keep, is gone (the weeks before...). Returns how many. */
+    int dropAllBut(String prefix, String keep) {
+        List<String> gone = new ArrayList<>();
+        for (String board : boards.keySet()) {
+            if (board.startsWith(prefix) && !board.equals(keep)) {
+                gone.add(board);
+            }
+        }
+        for (String board : gone) {
+            boards.remove(board);
+            lowerIsBetter.remove(board);
+        }
+        return gone.size();
+    }
+
     /** The player's best on the board, or null. */
     Long best(String board, UUID player) {
         Map<UUID, Entry> entries = boards.get(board);

@@ -900,11 +900,11 @@ abstract class PracticeGame {
             }
             blasted(player, thrower, damage);
         }
-        // the lit TNT around it flies off too, as on Hypixel: a fireball sends a TNT away
+        // the lit TNT around it moves away a little: a few blocks, not as far as a player flies
         for (Entity entity : centre.getWorld().getNearbyEntities(centre, Fireballs.RADIUS, Fireballs.RADIUS, Fireballs.RADIUS)) {
             if (entity instanceof TNTPrimed) {
                 Location at = entity.getLocation();
-                double[] push = Fireballs.push(centre.getX(), centre.getY(), centre.getZ(), at.getX(), at.getY(), at.getZ());
+                double[] push = Fireballs.tntNudge(centre.getX(), centre.getY(), centre.getZ(), at.getX(), at.getY(), at.getZ());
                 entity.setVelocity(new Vector(push[0], push[1], push[2]));
             }
         }

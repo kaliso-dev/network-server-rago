@@ -34,6 +34,15 @@ class TopBridgeTest {
     }
 
     @Test
+    void theBedFightPickaxeAndAxeGetEfficiency() {
+        assertTrue(BedFightGame.digs(org.bukkit.Material.WOOD_PICKAXE));
+        assertTrue(BedFightGame.digs(org.bukkit.Material.WOOD_AXE));
+        assertTrue(BedFightGame.digs(org.bukkit.Material.DIAMOND_PICKAXE));
+        assertFalse(BedFightGame.digs(org.bukkit.Material.STONE_SWORD));
+        assertFalse(BedFightGame.digs(org.bukkit.Material.SHEARS));
+    }
+
+    @Test
     void onAntennaItIsTheOwnersPlatform() {
         MapPoint red = new MapPoint(0, 83, 79, 0f, 0f);
         MapPoint blue = new MapPoint(0, 83, -79, 0f, 0f);

@@ -91,6 +91,24 @@ final class Fireballs {
         return new double[] {-nx * HORIZONTAL, y, -nz * HORIZONTAL};
     }
 
+    /** How fast a fireball's blast sends a lit TNT away, sideways and up: a few blocks in all. */
+    static final double TNT_NUDGE_HORIZONTAL = 0.22;
+    static final double TNT_NUDGE_VERTICAL = 0.22;
+
+    /**
+     * The velocity a fireball's blast at (bx, by, bz) gives a lit TNT at (tx, ty, tz): away from
+     * the blast on the ground, a little up, so that it lands a few blocks away.
+     */
+    static double[] tntNudge(double bx, double by, double bz, double tx, double ty, double tz) {
+        double dx = tx - bx;
+        double dz = tz - bz;
+        double length = Math.sqrt(dx * dx + dz * dz);
+        if (length < 1e-6) {
+            return new double[] {0, TNT_NUDGE_VERTICAL, 0};
+        }
+        return new double[] {dx / length * TNT_NUDGE_HORIZONTAL, TNT_NUDGE_VERTICAL, dz / length * TNT_NUDGE_HORIZONTAL};
+    }
+
     /** The power of a TNT's blast: it reaches twice as many blocks. */
     static final double TNT_POWER = 4.0;
     /** The height of a player's eyes over their feet. */

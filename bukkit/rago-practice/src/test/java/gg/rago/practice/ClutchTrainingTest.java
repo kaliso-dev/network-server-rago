@@ -59,6 +59,16 @@ class ClutchTrainingTest {
     }
 
     @Test
+    void theBiggestClutchesStartAgainEveryMonday() {
+        // Wednesday 11 November 2026 and the Sunday after: one week; the Monday after: the next one
+        assertEquals("2026w46", ClutchTraining.week(java.time.LocalDate.of(2026, 11, 11)));
+        assertEquals("2026w46", ClutchTraining.week(java.time.LocalDate.of(2026, 11, 15)));
+        assertEquals("2026w47", ClutchTraining.week(java.time.LocalDate.of(2026, 11, 16)));
+        assertEquals("2026w46", ClutchTraining.week(java.time.LocalDate.of(2026, 11, 9)), "from Monday");
+        assertEquals("2026w53", ClutchTraining.week(java.time.LocalDate.of(2027, 1, 1)), "the year of the week");
+    }
+
+    @Test
     void theBoardOfTheBiggestClutchesShowsTheFirstTenTheViewerInGreen() {
         java.util.UUID me = java.util.UUID.randomUUID();
         List<String> empty = ClutchTraining.sizeLines(java.util.Collections.emptyList(), me, false);
@@ -72,7 +82,7 @@ class ClutchTrainingTest {
         }
         List<String> lines = ClutchTraining.sizeLines(book.ranked("clutch.island-blocks"), me, true);
         assertEquals(2 + KillBoard.ROWS, lines.size());
-        assertTrue(lines.get(1).contains("Top fight"));
+        assertTrue(lines.get(1).contains("Top fight") && lines.get(1).contains("this week"));
         assertTrue(lines.get(2).contains("P11") && lines.get(2).contains("2.1 blocks"), lines.get(2));
         String mine = lines.get(2 + 7);
         assertTrue(mine.contains(org.bukkit.ChatColor.GREEN + "P4"), mine);

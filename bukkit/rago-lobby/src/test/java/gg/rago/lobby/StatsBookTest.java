@@ -331,6 +331,7 @@ class StatsBookTest {
         alice.setPartyInvites(false);
         alice.setDaily("2026-11-08", 3);
         alice.setAutoRequeue(true);
+        alice.setLobbyFly(true);
         alice.setTimeOfDay(PlayerStats.TimeOfDay.NIGHT);
         PlayerStats read = StatsFiles.fromYaml(ALICE, StatsFiles.toYaml(alice));
         assertEquals("Alice", read.name());
@@ -354,6 +355,7 @@ class StatsBookTest {
         assertTrue(!read.partyInvites());
         assertEquals(3, read.dailyStreak());
         assertTrue(read.autoRequeue());
+        assertTrue(read.lobbyFly(), "/fly is kept for the next time");
         assertEquals(PlayerStats.TimeOfDay.NIGHT, read.timeOfDay());
         assertEquals(PlayerStats.TimeOfDay.DAY, StatsFiles.fromYaml(BOB, StatsFiles.toYaml(book.get(BOB))).timeOfDay(),
                 "the server's own sky by default");

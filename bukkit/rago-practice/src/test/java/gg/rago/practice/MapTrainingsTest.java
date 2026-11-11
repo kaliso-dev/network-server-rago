@@ -95,6 +95,13 @@ class MapTrainingsTest {
         assertEquals(0, MapCopy.cleaned(sign, walls));
         assertEquals(stone | 2, MapCopy.cleaned(stone | 2, walls), "the build stays as it is");
         assertEquals(35 << 4 | 14, MapCopy.cleaned(35 << 4 | 14, walls));
+        // the Block-In map: sand on a redstone wire would fall into its place and leave a hole
+        int sand = 12 << 4;
+        int sandstone = 24 << 4;
+        assertEquals(sandstone, MapCopy.cleaned(wire, new int[] {sandstone, sand, command, sand, sandstone, 0}),
+                "the wire under sand becomes the ground around it");
+        assertEquals(stone, MapCopy.cleaned(wire, new int[] {sand, 0, 0, sand, wire, 0}), "stone when only sand is around");
+        assertEquals(13 << 4, MapCopy.cleaned(13 << 4, walls), "the sand itself stays");
     }
 
     @Test

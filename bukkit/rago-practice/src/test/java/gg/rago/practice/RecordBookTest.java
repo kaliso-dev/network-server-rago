@@ -67,6 +67,22 @@ class RecordBookTest {
     }
 
     @Test
+    void aBoardGoesIntoAnotherAndTheWeeksBeforeAreGone() {
+        RecordBook book = new RecordBook();
+        book.load("clutch.island-blocks", ONE, "One", 63);
+        book.load("clutch.island-blocks.2026w45", TWO, "Two", 80);
+        book.submit("clutch.island-blocks.2026w46", ONE, "One", 40);
+        book.merge("clutch.island-blocks", "clutch.island-blocks.2026w46");
+        assertEquals(63L, book.best("clutch.island-blocks.2026w46", ONE));
+        assertFalse(book.boards().containsKey("clutch.island-blocks"));
+        book.load("clutch.island", ONE, "One", 5);
+        assertEquals(1, book.dropAllBut("clutch.island-blocks.", "clutch.island-blocks.2026w46"));
+        assertNull(book.best("clutch.island-blocks.2026w45", TWO));
+        assertEquals(63L, book.best("clutch.island-blocks.2026w46", ONE));
+        assertEquals(5L, book.best("clutch.island", ONE), "another board stays");
+    }
+
+    @Test
     void boardsAreApart() {
         RecordBook book = new RecordBook();
         book.define("clutch.single", false);

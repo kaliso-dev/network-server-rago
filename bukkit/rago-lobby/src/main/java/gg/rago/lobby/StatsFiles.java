@@ -74,6 +74,7 @@ final class StatsFiles {
         yaml.set("profil.reglages.vitesse", stats.lobbySpeed());
         yaml.set("profil.reglages.rejouer", stats.autoRequeue());
         yaml.set("profil.reglages.heure", stats.timeOfDay().id());
+        yaml.set("profil.reglages.vol", stats.lobbyFly());
         yaml.set("profil.gadget", stats.gadget());
         yaml.set("profil.quotidien.date", stats.dailyDay());
         yaml.set("profil.quotidien.serie", stats.dailyStreak());
@@ -270,6 +271,7 @@ final class StatsFiles {
         stats.setLobbySpeed(yaml.getInt("profil.reglages.vitesse", 0));
         stats.setAutoRequeue(yaml.getBoolean("profil.reglages.rejouer", false));
         stats.setTimeOfDay(PlayerStats.TimeOfDay.of(yaml.getString("profil.reglages.heure", "jour")));
+        stats.setLobbyFly(yaml.getBoolean("profil.reglages.vol", false));
         stats.setGadget(yaml.getString("profil.gadget", null));
         stats.setDaily(yaml.getString("profil.quotidien.date", ""), yaml.getInt("profil.quotidien.serie"));
         stats.choose(NameStyle.Kind.COLOUR, yaml.getString("profil.style.couleur", null));

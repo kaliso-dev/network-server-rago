@@ -91,7 +91,6 @@ public final class RagoLobby extends JavaPlugin implements LobbyService {
     /** The kills of each player in their current game, for the MVP of a ranked game. */
     private final Map<UUID, Integer> gameKills = new HashMap<>();
     /** The players who turned /fly on in the lobby. */
-    private final Set<UUID> flying = new HashSet<>();
     /** The players whose arrival the lobby was already told since they joined. */
     private final Set<UUID> arrivedOnce = new HashSet<>();
     /** The players leaving their game themselves (/spawn): not put back in a queue on their own. */
@@ -449,9 +448,10 @@ public final class RagoLobby extends JavaPlugin implements LobbyService {
     /** Puts the player in the lobby state where they stand. */
     void resetForLobby(Player player) {
         player.setGameMode(org.bukkit.GameMode.ADVENTURE);
-        boolean fly = flying.contains(player.getUniqueId()) && player.hasPermission("rago.perk.fly");
+        // /fly is kept: back from a game, or on coming back to the server, the player flies at once
+        boolean fly = flies(player);
         player.setAllowFlight(fly);
-        player.setFlying(false);
+        player.setFlying(fly);
         player.setHealth(player.getMaxHealth());
         player.setFoodLevel(20);
         player.setSaturation(5f);
@@ -492,21 +492,36 @@ public final class RagoLobby extends JavaPlugin implements LobbyService {
         }
     }
 
-    /** /fly: flying in the lobby, for the ranks that have it. */
+    /** True if the player has /fly on and a rank that has it. */
+    boolean flies(Player player) {
+        PlayerStats profile = profiles.of(player);
+        return profile != null && profile.lobbyFly() && player.hasPermission("rago.perk.fly");
+    }
+
+    /**
+     * /fly: flying in the lobby, for the ranks that have it. Kept in the profile: back from a game,
+     * or on coming back to the server, the player flies until /fly again.
+     */
     void toggleFly(Player player) {
         if (!state.isInLobby(player) || state.isInGame(player)) {
             player.sendMessage(ChatColor.RED + "You can only fly in the lobby.");
             return;
         }
-        if (flying.remove(player.getUniqueId())) {
+        PlayerStats profile = profiles.of(player);
+        if (profile == null) {
+            return;
+        }
+        if (profile.lobbyFly()) {
+            profile.setLobbyFly(false);
             player.setAllowFlight(false);
             player.setFlying(false);
             player.sendMessage(ChatColor.RED + "Flight off.");
         } else {
-            flying.add(player.getUniqueId());
+            profile.setLobbyFly(true);
             player.setAllowFlight(true);
-            player.sendMessage(ChatColor.GREEN + "Flight on. /fly again to land.");
+            player.sendMessage(ChatColor.GREEN + "Flight on, kept when you come back. /fly again to land.");
         }
+        stats.save(profile);
     }
 
     /** A player's Network XP changed: their rank in the chat, their XP bar in the lobby, the sidebars. */
@@ -589,7 +604,6 @@ public final class RagoLobby extends JavaPlugin implements LobbyService {
             () -> profiles.forget(id),
             () -> cosmetics.forget(id),
             () -> gameKills.remove(id),
-            () -> flying.remove(id),
             () -> playAgain.remove(id),
             () -> kitEditor.forget(id),
             () -> kits.forget(id),

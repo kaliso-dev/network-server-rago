@@ -38,6 +38,8 @@ final class PlayerStats {
     private boolean autoRequeue;
     /** The time of day the player sees, in the lobby and in games (/settings). */
     private TimeOfDay timeOfDay = TimeOfDay.DAY;
+    /** /fly on: the player flies in the lobby, back from a game or the next time they come. */
+    private boolean lobbyFly;
     /** The gadget of the hotbar (the name of its HotbarItem), null for the teleport stick. */
     private String gadget;
     /** The day the daily reward was last claimed ("" never), and the days in a row. */
@@ -286,6 +288,14 @@ final class PlayerStats {
 
     TimeOfDay timeOfDay() {
         return timeOfDay;
+    }
+
+    boolean lobbyFly() {
+        return lobbyFly;
+    }
+
+    void setLobbyFly(boolean lobbyFly) {
+        this.lobbyFly = lobbyFly;
     }
 
     void setTimeOfDay(TimeOfDay timeOfDay) {

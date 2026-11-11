@@ -200,9 +200,11 @@ map BedFight du propriétaire : deux îles face à face, chaque lit sous la déf
 (bois et end stone), que les joueurs cassent comme dans une partie. Ni forge, ni shop, ni
 amélioration, ni diamant : chacun a le kit du mode (l'éditeur de kit du lobby ; sinon une épée en
 pierre, une pioche et une hache en bois, des cisailles et deux stacks de laine) en armure de cuir
-de la couleur de son équipe, à chaque vie. On revient tant que son lit tient, 3 secondes après une
-mort (au plus : `reapparition-secondes` si c'est moins) ; la dernière équipe en vie gagne. Les lits
-partent à 10 minutes, égalité à 15.
+de la couleur de son équipe, à chaque vie ; la pioche et la hache ont Efficiency I. On revient tant
+que son lit tient, 3 secondes après une mort (au plus : `reapparition-secondes` si c'est moins) ;
+la dernière équipe en vie gagne. Les lits partent à 10 minutes, égalité à 15. Les blocs se posent
+partout sous la limite de construction, spawns compris : à chaque respawn, les deux blocs où le
+joueur revient (pieds et tête) partent.
 
 La map n'est pas dans le dépôt : son `bedwars.yml` donne à chaque équipe son spawn (sur la map du
 propriétaire, le petit bloc de laine rouge ou bleue de sa base) et son lit ; le générateur et le

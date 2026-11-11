@@ -1,6 +1,8 @@
 package gg.rago.practice;
 
 import gg.rago.game.GameMode;
+import java.time.LocalDate;
+import java.time.temporal.WeekFields;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Random;
@@ -24,9 +26,9 @@ import org.bukkit.util.Vector;
  * backwards. The islands of the players stand side by side, so that each one sees the others
  * clutch. The hotbar sets the knockback (1 to 5), the number of hits in a row (1 to 3), a
  * knockback stick, and a random side. Each clutch saved adds one to the streak; a fall ends it.
- * One board of records for every setting, so that the top 3 of the sidebar is the same for
- * everyone. The size of a clutch saved is how far the hit threw the player from where they stood,
- * in blocks: a board on each island shows the biggest of the server.
+ * One board of streaks for every setting. The size of a clutch saved is how far the hit threw the
+ * player from where they stood, in blocks: the top 3 of the sidebar and a board on each island show
+ * the biggest of the week, the same for everyone; they start again every Monday at midnight.
  *
  * <p>The top fight version plays on the wool platform of a top fight, at the build limit: no block
  * goes above the platform, so the player catches themselves at its level or lower.
@@ -96,8 +98,13 @@ final class ClutchTraining extends Training {
         stick = toggle("KB stick", false);
         randomSide = toggle("Random side", false);
         // the boards of each setting of before: one for all now
-        host.records().book().fold(board());
-        host.records().book().define(sizeBoard(), false);
+        RecordBook book = host.records().book();
+        book.fold(board());
+        String week = sizeBoard();
+        book.define(week, false);
+        // the board of before the weeks goes into this week's; the weeks before are gone
+        book.merge(board() + "-blocks", week);
+        book.dropAllBut(board() + "-blocks.", week);
     }
 
     /**
@@ -114,9 +121,24 @@ final class ClutchTraining extends Training {
         return new double[] {horizontal, vertical};
     }
 
-    /** The board of the biggest clutches, in tenths of a block: "clutch.island-blocks". */
+    /** The board of the biggest clutches of this week, in tenths of a block: "clutch.island-blocks.2026w46". */
     String sizeBoard() {
-        return board() + "-blocks";
+        return board() + "-blocks." + week(LocalDate.now());
+    }
+
+    /** The week of this day, from Monday: "2026w46". */
+    static String week(LocalDate day) {
+        return day.get(WeekFields.ISO.weekBasedYear()) + "w" + day.get(WeekFields.ISO.weekOfWeekBasedYear());
+    }
+
+    @Override
+    String shownBoard() {
+        return sizeBoard();
+    }
+
+    @Override
+    String shownText(long value) {
+        return blocks(value);
     }
 
     /** "4.3 blocks", from tenths of a block. */
@@ -259,6 +281,7 @@ final class ClutchTraining extends Training {
             sound(player, Sound.ORB_PICKUP, 1.2f);
             score(streak, true);
             sized(player, size);
+            last = blocks(size);
             hitsLeft = -1;
             groundTicks = Integer.MIN_VALUE;
             again(12L);
@@ -269,10 +292,10 @@ final class ClutchTraining extends Training {
     private void sized(Player player, long size) {
         RecordBook.Result result = submitTo(sizeBoard(), size);
         if (result.boardBest && result.previous != null) {
-            player.sendMessage(ChatColor.GOLD + "" + ChatColor.BOLD + "Biggest clutch of the server! " + ChatColor.WHITE + blocks(size));
+            player.sendMessage(ChatColor.GOLD + "" + ChatColor.BOLD + "Biggest clutch of the week! " + ChatColor.WHITE + blocks(size));
             sound(player, Sound.LEVEL_UP, 1.2f);
         } else if (result.personalBest) {
-            player.sendMessage(ChatColor.GREEN + "Your biggest clutch: " + ChatColor.WHITE + blocks(size)
+            player.sendMessage(ChatColor.GREEN + "Your biggest clutch this week: " + ChatColor.WHITE + blocks(size)
                     + (result.previous == null ? "" : ChatColor.GRAY + " (before: " + blocks(result.previous) + ")"));
         }
         if (result.personalBest) {
@@ -317,7 +340,7 @@ final class ClutchTraining extends Training {
     static List<String> sizeLines(List<RecordBook.Entry> ranked, UUID me, boolean topFight) {
         List<String> lines = new ArrayList<>();
         lines.add(ChatColor.GOLD + "" + ChatColor.BOLD + "BIGGEST CLUTCHES");
-        lines.add(ChatColor.GRAY + (topFight ? "Top fight, " : "") + "thrown the farthest");
+        lines.add(ChatColor.GRAY + (topFight ? "Top fight, " : "") + "this week (new on Monday)");
         if (ranked.isEmpty()) {
             lines.add(ChatColor.GRAY + "Nobody yet: be the first!");
         }

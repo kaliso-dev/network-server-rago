@@ -305,7 +305,7 @@ commentaires de `config.yml`. Les mots français de la première version (`quitt
 | `/msg <joueur> <message>` (ou `/tell`, `/w`), `/r <message>` | message privé, réponse | tout le monde |
 | `/stats [joueur]`, `/top elo\|level\|wins\|kills\|fkdr\|streak\|games\|points [mode]` | les stats, les meilleurs | tout le monde |
 | `/report <joueur> <raison>`, `/discord`, `/rules`, `/site`, `/store` | signaler un joueur, les liens | tout le monde |
-| `/fly` | voler dans le lobby | `rago.perk.fly` (PREMIUM) |
+| `/fly` | voler dans le lobby, gardé d'une partie et d'une connexion à l'autre (`/fly` encore pour atterrir) | `rago.perk.fly` (VIP, PREMIUM) |
 | `/style` (ou `/couleur`, `/badge`) | choisir sa couleur de pseudo, son badge et la couleur de son + | tout le monde |
 | `/booster`, `/booster on`, `/booster coins` | ses boosters, lancer un booster d'XP ou de pièces | tout le monde |
 | `/booster give <joueur> [nombre] [xp\|coins\|daily]` | donner des boosters (la boutique en ligne, depuis la console) | `rago.admin` |

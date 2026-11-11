@@ -418,7 +418,17 @@ abstract class Training extends PracticeGame {
 
     /** True if this training shows this board: by default, its own. */
     boolean shows(String board) {
-        return board().equals(board);
+        return board().equals(board) || shownBoard().equals(board);
+    }
+
+    /** The board of the top 3 of the sidebar and of the player's line: by default, the training's own. */
+    String shownBoard() {
+        return board();
+    }
+
+    /** A score of the shown board as the sidebar writes it. */
+    String shownText(long value) {
+        return format(value);
     }
 
     /** Someone else has a new best on a board this training shows. */
@@ -443,18 +453,19 @@ abstract class Training extends PracticeGame {
         lines.add("");
         trainingLines(lines);
         lines.add("");
-        List<RecordBook.Entry> ranked = host.records().book().ranked(board());
+        String shown = shownBoard();
+        List<RecordBook.Entry> ranked = host.records().book().ranked(shown);
         for (int i = 0; i < 3 && i < ranked.size(); i++) {
             RecordBook.Entry entry = ranked.get(i);
             lines.add(Duel.cut(PODIUM[i] + "#" + (i + 1) + " " + (entry.player.equals(me) ? ChatColor.GREEN : ChatColor.WHITE)
-                    + entry.name + " " + ChatColor.GRAY + format(entry.value)));
+                    + entry.name + " " + ChatColor.GRAY + shownText(entry.value)));
         }
         if (ranked.isEmpty()) {
             lines.add(ChatColor.GRAY + "No record yet: be the first!");
         }
-        Long best = host.records().book().best(board(), me);
-        int rank = host.records().book().rank(board(), me);
-        lines.add(Duel.cut(ChatColor.WHITE + "You: " + (best == null ? ChatColor.GRAY + "no score" : ChatColor.GREEN + format(best)
+        Long best = host.records().book().best(shown, me);
+        int rank = host.records().book().rank(shown, me);
+        lines.add(Duel.cut(ChatColor.WHITE + "You: " + (best == null ? ChatColor.GRAY + "no score" : ChatColor.GREEN + shownText(best)
                 + (rank > 0 ? ChatColor.GRAY + " (#" + rank + ")" : ""))));
         Player player = Bukkit.getPlayer(viewer);
         lines.add(Duel.cut((last.isEmpty() ? "" : ChatColor.WHITE + "Last: " + ChatColor.YELLOW + last + ChatColor.DARK_GRAY + " | ")

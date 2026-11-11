@@ -92,25 +92,43 @@ final class MapCopy {
         return false;
     }
 
+    /** Sand and gravel: they fall when nothing holds them. */
+    static boolean falls(int id) {
+        return id == 12 || id == 13;
+    }
+
     /**
      * What a block of the map becomes: itself, air for a loose mechanism, and for a solid one the
-     * block most of its neighbours are (air when they are all air or mechanisms). Ids and data are
-     * packed as id * 16 + data.
+     * block most of its neighbours are (air when they are all air or mechanisms). A loose mechanism
+     * that holds sand or gravel up (neighbours[3], the block above) becomes a solid block too, of
+     * its neighbours (stone when none does), so that the sand does not fall into its place and
+     * leave a hole. Ids and data are packed as id * 16 + data; neighbours are -x, +x, -y, +y, -z, +z.
      */
     static int cleaned(int block, int[] neighbours) {
         int id = block >> 4;
         if (looseMechanism(id)) {
-            return 0;
+            if (!falls(neighbours[3] >> 4)) {
+                return 0;
+            }
+            int under = solidOf(neighbours, true);
+            return under == 0 ? STONE : under;
         }
         if (!solidMechanism(id)) {
             return block;
         }
+        return solidOf(neighbours, false);
+    }
+
+    private static final int STONE = 1 << 4;
+
+    /** The block most of these neighbours are, leaving out air and mechanisms (and sand, gravel: steady); 0 for none. */
+    private static int solidOf(int[] neighbours, boolean steady) {
         Map<Integer, Integer> counts = new HashMap<>();
         int best = 0;
         int bestCount = 0;
         for (int neighbour : neighbours) {
             int nid = neighbour >> 4;
-            if (nid == 0 || solidMechanism(nid) || looseMechanism(nid)) {
+            if (nid == 0 || solidMechanism(nid) || looseMechanism(nid) || steady && falls(nid)) {
                 continue;
             }
             int count = counts.merge(neighbour, 1, Integer::sum);
