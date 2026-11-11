@@ -28,6 +28,7 @@ import org.bukkit.Sound;
 import org.bukkit.World;
 import org.bukkit.block.Block;
 import org.bukkit.entity.Egg;
+import org.bukkit.entity.EnderPearl;
 import org.bukkit.entity.Entity;
 import org.bukkit.entity.Fireball;
 import org.bukkit.entity.IronGolem;
@@ -511,6 +512,12 @@ final class BedwarsHost implements MatchHost, Listener {
             return;
         }
         if (playing(victim) != game) {
+            event.setCancelled(true);
+            return;
+        }
+        if (event instanceof EntityDamageByEntityEvent
+                && ((EntityDamageByEntityEvent) event).getDamager() instanceof EnderPearl) {
+            // an ender pearl lands without hurting its thrower
             event.setCancelled(true);
             return;
         }

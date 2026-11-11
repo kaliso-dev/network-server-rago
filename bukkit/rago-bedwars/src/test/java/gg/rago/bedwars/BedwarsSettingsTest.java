@@ -86,7 +86,9 @@ class BedwarsSettingsTest {
         assertTrue(!settings.allForges("first-rush"));
         assertTrue(settings.allShops("first-rush-full") && settings.allShops("first-rush-full-duo"),
                 "the full map First Rush: an item shop on every island");
-        assertTrue(!settings.allShops("first-rush") && !settings.allShops("clutch-scenario-1v1"));
+        assertTrue(!settings.allShops("first-rush"));
+        assertTrue(settings.allShops("clutch-scenario-1v1") && settings.allShops("clutch-scenario-4v4"),
+                "Clutch Scenario: the shop and upgrades of the islands whose forge runs");
         for (String size : new String[] {"1v1", "2v2", "3v3", "4v4"}) {
             assertTrue(settings.allForges("ranked-" + size) && settings.allShops("ranked-" + size),
                     "Ranked Bedwars: the forges and the item shops of the side islands too");

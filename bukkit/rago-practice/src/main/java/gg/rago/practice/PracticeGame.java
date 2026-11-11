@@ -4,9 +4,11 @@ import gg.rago.game.GameMode;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.UUID;
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
@@ -18,8 +20,10 @@ import org.bukkit.Sound;
 import org.bukkit.block.Block;
 import org.bukkit.entity.Entity;
 import org.bukkit.entity.Fireball;
+import org.bukkit.entity.Item;
 import org.bukkit.entity.Player;
 import org.bukkit.entity.Projectile;
+import org.bukkit.entity.TNTPrimed;
 import org.bukkit.event.block.BlockPlaceEvent;
 import org.bukkit.event.entity.EntityDamageByEntityEvent;
 import org.bukkit.event.entity.EntityDamageEvent;
@@ -217,8 +221,30 @@ abstract class PracticeGame {
     void broke(Player player, Block block) {
     }
 
-    /** A block the blast of this player's TNT or fireball takes, just before it goes. */
-    void blasted(Player owner, Block block) {
+    /** The item a block a player broke leaves on the ground (Fireball Fight's wood and end stone); null: nothing. */
+    ItemStack dropOf(Block block) {
+        return null;
+    }
+
+    /** The items the game's broken blocks left on the ground: its players pick them up; gone with the arena's restore. */
+    private final Set<Item> drops = new HashSet<>();
+
+    void dropped(Item item) {
+        drops.removeIf(lying -> !lying.isValid());
+        drops.add(item);
+    }
+
+    boolean ownsDrop(Item item) {
+        return drops.contains(item);
+    }
+
+    /** The items left on the ground go, then the arena is as it was. */
+    private void restoreArena() {
+        for (Item item : drops) {
+            item.remove();
+        }
+        drops.clear();
+        arena.restore();
     }
 
     /** True if the blocks a player places come back in the hand: the kit never runs out of blocks. */
@@ -336,7 +362,7 @@ abstract class PracticeGame {
         seconds = 0;
         tickCount = 0;
         round++;
-        arena.restore();
+        restoreArena();
         lastHitBy.clear();
         lastHitAt.clear();
         roundReset();
@@ -566,7 +592,7 @@ abstract class PracticeGame {
                 plugin.lobby().sendToLobby(player);
             }
         }
-        arena.restore();
+        restoreArena();
         host.finished(this);
     }
 
@@ -583,7 +609,7 @@ abstract class PracticeGame {
                 plugin.lobby().sendToLobby(player);
             }
         }
-        arena.restore();
+        restoreArena();
     }
 
     /** The game could not start: everything it started stops; the lobby takes its players back. */
@@ -591,7 +617,7 @@ abstract class PracticeGame {
         phase = Phase.ENDED;
         stopTasks();
         ended();
-        arena.restore();
+        restoreArena();
     }
 
     private void stopTasks() {
@@ -846,7 +872,7 @@ abstract class PracticeGame {
     /**
      * A fireball thrown by a player of this game (or by the game itself, thrower null) exploded:
      * the players around it are pushed away and up as on Hypixel, and take its fixed damage (none
-     * on a teammate). A hit on an enemy counts for the kill.
+     * on a teammate); a lit TNT is pushed as they are. A hit on an enemy counts for the kill.
      */
     void blast(Fireball fireball, Player thrower) {
         if (phase != Phase.PLAYING) {
@@ -873,6 +899,14 @@ abstract class PracticeGame {
                 hit(player, thrower);
             }
             blasted(player, thrower, damage);
+        }
+        // the lit TNT around it flies off too, as on Hypixel: a fireball sends a TNT away
+        for (Entity entity : centre.getWorld().getNearbyEntities(centre, Fireballs.RADIUS, Fireballs.RADIUS, Fireballs.RADIUS)) {
+            if (entity instanceof TNTPrimed) {
+                Location at = entity.getLocation();
+                double[] push = Fireballs.push(centre.getX(), centre.getY(), centre.getZ(), at.getX(), at.getY(), at.getZ());
+                entity.setVelocity(new Vector(push[0], push[1], push[2]));
+            }
         }
     }
 

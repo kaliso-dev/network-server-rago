@@ -175,10 +175,12 @@ forges-partout: [ranked-1v1, ranked-2v2, ranked-3v3, ranked-4v4, first-rush-full
   clutch-scenario-4v4]
 
 # The modes whose games have an item shop on every island of the map, the empty islands' too (the
-# Ranked Bedwars queue, First Rush full map, Sky Rise Resources: whoever goes to take the iron of
-# another island buys there), and its upgrades NPC: it opens the upgrades of whoever clicks it.
+# Ranked Bedwars queue, First Rush full map, Sky Rise Resources, Clutch Scenario: whoever goes to
+# take the iron of another island buys there), and its upgrades NPC: it opens the upgrades of
+# whoever clicks it. The same modes as forges-partout.
 shops-partout: [ranked-1v1, ranked-2v2, ranked-3v3, ranked-4v4, first-rush-full, first-rush-full-duo,
-  skyrise-resources-1v1, skyrise-resources-2v2]
+  skyrise-resources-1v1, skyrise-resources-2v2, clutch-scenario-1v1, clutch-scenario-2v2, clutch-scenario-3v3,
+  clutch-scenario-4v4]
 
 # The forge of each island, as on Hypixel (its iron and gold counted a minute long on each map): an
 # iron node drops an ingot every fer-secondes-par-noeud seconds (30 a minute), and a forge has 1

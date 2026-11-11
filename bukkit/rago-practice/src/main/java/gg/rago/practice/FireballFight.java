@@ -19,7 +19,6 @@ import org.bukkit.event.block.BlockPlaceEvent;
 import org.bukkit.event.entity.EntityDamageEvent;
 import org.bukkit.event.player.PlayerInteractEvent;
 import org.bukkit.inventory.ItemStack;
-import org.bukkit.inventory.PlayerInventory;
 
 /**
  * Fireball fight: each side has an island and a bed under a defense of wood and wool. The kit of
@@ -30,7 +29,7 @@ import org.bukkit.inventory.PlayerInventory;
  * beds (never end stone for a fireball); neither does damage, and nobody takes fall damage. On a
  * map of fireball.cartes (config.yml), each side starts on its start and the beds are the map's
  * own: a bed is the side's whose start is nearer, and its defense on the map (wood, end stone) is
- * broken and blown up as if placed. The wood and end stone a player breaks go into their inventory.
+ * broken and blown up as if placed. The wood and end stone a player breaks drop on the ground.
  */
 final class FireballFight extends Duel {
 
@@ -42,8 +41,6 @@ final class FireballFight extends Duel {
     private final boolean[] beds = {true, true};
     private final Set<UUID> respawning = new HashSet<>();
     private final Map<UUID, Long> lastFireball = new HashMap<>();
-    /** The players told once that, their hotbar full, the blocks given back go into their inventory. */
-    private final Set<UUID> toldFull = new HashSet<>();
 
     FireballFight(PracticeHost host, GameMode mode, Arena arena, List<List<Player>> teams) {
         super(host, mode, arena, teams, 1);
@@ -247,7 +244,6 @@ final class FireballFight extends Duel {
     @Override
     void broke(Player player, Block block) {
         if (block.getType() != Material.BED_BLOCK) {
-            given(player, giveBack(player, block));
             return;
         }
         int side = bedSide(block);
@@ -263,74 +259,14 @@ final class FireballFight extends Duel {
         sidebars();
     }
 
-    /** The wood and the end stone the blast of a player's TNT or fireball takes go to them too. */
-    @Override
-    void blasted(Player owner, Block block) {
-        if (block.getType() != Material.BED_BLOCK) {
-            given(owner, giveBack(owner, block));
-        }
-    }
-
-    /** Once a game, a player whose block given back went into the inventory (their hotbar full) is told where. */
-    private void given(Player player, boolean inHotbar) {
-        if (!inHotbar && toldFull.add(player.getUniqueId())) {
-            player.sendMessage(ChatColor.YELLOW + "Your hotbar is full: the wood and end stone you break go into your inventory (E).");
-        }
-    }
-
     /**
      * The wood and the end stone a player breaks (theirs, the other side's, the defense of a bed)
-     * go to them, in their hotbar where it has room (on a stack of the same block, or an empty
-     * slot): nothing lies on the ground in the arenas. The hotbar full (the kit takes its nine
-     * slots), the block goes into the inventory; that full too, it is lost. False when the block
-     * did not go into the hotbar.
+     * drop on the ground, as a block broken anywhere: theirs, or anyone's, to pick up.
      */
+    @Override
     @SuppressWarnings("deprecation") // Block#getData: the kind of the wood
-    static boolean giveBack(Player player, Block block) {
-        ItemStack item = kept(block.getType(), block.getData());
-        if (item == null) {
-            return true;
-        }
-        PlayerInventory inventory = player.getInventory();
-        ItemStack[] hotbar = new ItemStack[HOTBAR];
-        for (int slot = 0; slot < HOTBAR; slot++) {
-            hotbar[slot] = inventory.getItem(slot);
-        }
-        int slot = hotbarSlot(hotbar, item);
-        ItemStack there = slot < 0 ? null : hotbar[slot];
-        if (slot >= 0 && (there == null || there.getType() == Material.AIR)) {
-            inventory.setItem(slot, item);
-            return true;
-        }
-        if (there != null && there.isSimilar(item)) {
-            there.setAmount(there.getAmount() + 1);
-            inventory.setItem(slot, there);
-            return true;
-        }
-        inventory.addItem(item);
-        return false;
-    }
-
-    private static final int HOTBAR = 9;
-
-    /**
-     * The hotbar slot a block given back goes to: the first stack of the same block (and kind of
-     * wood) with room, else the first empty slot; -1 when there is neither.
-     */
-    static int hotbarSlot(ItemStack[] hotbar, ItemStack item) {
-        int empty = -1;
-        for (int slot = 0; slot < hotbar.length; slot++) {
-            ItemStack there = hotbar[slot];
-            if (there == null || there.getType() == Material.AIR) {
-                if (empty < 0) {
-                    empty = slot;
-                }
-            } else if (there.getType() == item.getType() && there.getDurability() == item.getDurability()
-                    && there.getAmount() < there.getType().getMaxStackSize()) {
-                return slot;
-            }
-        }
-        return empty;
+    ItemStack dropOf(Block block) {
+        return kept(block.getType(), block.getData());
     }
 
     /** The item a broken block of this type gives back: wood (of its kind) and end stone; null for another. */

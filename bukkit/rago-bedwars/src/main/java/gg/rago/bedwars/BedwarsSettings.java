@@ -385,7 +385,8 @@ final class BedwarsSettings {
         List<String> allShops = new ArrayList<>();
         List<String> shopsListed = config.contains("shops-partout") ? config.getStringList("shops-partout")
                 : Arrays.asList("ranked-1v1", "ranked-2v2", "ranked-3v3", "ranked-4v4", "first-rush-full", "first-rush-full-duo",
-                        "skyrise-resources-1v1", "skyrise-resources-2v2");
+                        "skyrise-resources-1v1", "skyrise-resources-2v2", "clutch-scenario-1v1", "clutch-scenario-2v2",
+                        "clutch-scenario-3v3", "clutch-scenario-4v4");
         for (String mode : shopsListed) {
             allShops.add(modeId(mode, "shops-partout"));
         }

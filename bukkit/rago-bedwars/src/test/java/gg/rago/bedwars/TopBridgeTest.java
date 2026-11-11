@@ -244,4 +244,16 @@ class TopBridgeTest {
         assertEquals(BedwarsHost.HEARD_WITHIN, Math.hypot(far.getX(), far.getZ()), 1e-9);
         assertEquals(0.6, far.getX() / BedwarsHost.HEARD_WITHIN, 1e-9, "towards it");
     }
+
+    @Test
+    void aSwordBoughtTakesTheSwordSlot() {
+        org.bukkit.inventory.ItemStack[] inventory = new org.bukkit.inventory.ItemStack[36];
+        inventory[3] = new org.bukkit.inventory.ItemStack(Material.STONE_SWORD);
+        inventory[5] = new org.bukkit.inventory.ItemStack(Material.WOOL, 64);
+        assertEquals(3, BedwarsGame.swordSlot(inventory, Material.IRON_SWORD), "the stone sword's slot");
+        inventory[3] = new org.bukkit.inventory.ItemStack(Material.IRON_SWORD);
+        assertEquals(3, BedwarsGame.swordSlot(inventory, Material.DIAMOND_SWORD));
+        assertEquals(-1, BedwarsGame.swordSlot(inventory, Material.STONE_SWORD), "never instead of a better one");
+        assertEquals(-1, BedwarsGame.swordSlot(new org.bukkit.inventory.ItemStack[36], Material.IRON_SWORD));
+    }
 }

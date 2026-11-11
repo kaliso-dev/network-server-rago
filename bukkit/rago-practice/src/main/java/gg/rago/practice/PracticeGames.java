@@ -13,6 +13,7 @@ import org.bukkit.Material;
 import org.bukkit.Sound;
 import org.bukkit.World;
 import org.bukkit.block.Block;
+import org.bukkit.entity.EnderPearl;
 import org.bukkit.entity.Entity;
 import org.bukkit.entity.Fireball;
 import org.bukkit.entity.Player;
@@ -282,6 +283,11 @@ final class PracticeGames implements Listener {
         if (game == null) {
             return;
         }
+        if (damager instanceof EnderPearl) {
+            // an ender pearl lands without hurting its thrower
+            event.setCancelled(true);
+            return;
+        }
         if (game.phase != PracticeGame.Phase.PLAYING || spectating(victim)) {
             event.setCancelled(true);
             return;
@@ -462,9 +468,22 @@ final class PracticeGames implements Listener {
         if (game == null) {
             return;
         }
+        ItemStack drop = game.dropOf(event.getBlock());
         game.arena.removed(event.getBlock());
         game.broke(player, event.getBlock());
+        if (drop != null) {
+            // on the ground, as a block broken anywhere: the only items the arenas let lie there
+            dropping = true;
+            try {
+                game.dropped(world.dropItemNaturally(event.getBlock().getLocation().add(0.5, 0.5, 0.5), drop));
+            } finally {
+                dropping = false;
+            }
+        }
     }
+
+    /** True while a game drops what a broken block leaves (PracticeGame#dropOf): that item may lie there. */
+    private boolean dropping;
 
     /** Blasts only take the blocks placed in the round (and the defense of a map's beds, freed as if placed), never the blast-proof ones; a TNT pushes as its mode says. */
     @EventHandler(priority = EventPriority.HIGH, ignoreCancelled = true)
@@ -475,12 +494,9 @@ final class PracticeGames implements Listener {
         event.setYield(0f);
         PracticeGame game = gameAt(event.getLocation());
         boolean fireball = event.getEntity() instanceof Fireball;
-        Player owner = game == null ? null : playerBehind(event.getEntity());
-        if (owner != null && byPlayer.get(owner.getUniqueId()) != game) {
-            owner = null;
-        }
         if (game != null && event.getEntity() instanceof TNTPrimed) {
-            game.tntBlast(event.getLocation(), owner);
+            Player owner = playerBehind(event.getEntity());
+            game.tntBlast(event.getLocation(), owner != null && byPlayer.get(owner.getUniqueId()) == game ? owner : null);
         }
         for (Iterator<Block> it = event.blockList().iterator(); it.hasNext();) {
             Block block = it.next();
@@ -488,9 +504,6 @@ final class PracticeGames implements Listener {
                     || (fireball && block.getType() == Material.ENDER_STONE)) {
                 it.remove();
             } else {
-                if (owner != null) {
-                    game.blasted(owner, block);
-                }
                 game.arena.removed(block);
             }
         }
@@ -523,7 +536,12 @@ final class PracticeGames implements Listener {
 
     @EventHandler(priority = EventPriority.LOW, ignoreCancelled = true)
     public void onPickup(PlayerPickupItemEvent event) {
-        if (byPlayer.containsKey(event.getPlayer().getUniqueId())) {
+        PracticeGame game = byPlayer.get(event.getPlayer().getUniqueId());
+        if (game == null) {
+            return;
+        }
+        // only what the game's broken blocks left, by its players in the fight
+        if (!game.ownsDrop(event.getItem()) || game.phase != PracticeGame.Phase.PLAYING || spectating(event.getPlayer())) {
             event.setCancelled(true);
         }
     }
@@ -549,10 +567,10 @@ final class PracticeGames implements Listener {
         }
     }
 
-    /** Nothing ever lies on the ground in the arenas (broken blocks, beds...). */
+    /** Nothing lies on the ground in the arenas (broken blocks, beds...) but what a game drops (Fireball Fight). */
     @EventHandler(ignoreCancelled = true)
     public void onItemSpawn(ItemSpawnEvent event) {
-        if (event.getEntity().getWorld().equals(world)) {
+        if (event.getEntity().getWorld().equals(world) && !dropping) {
             event.setCancelled(true);
         }
     }

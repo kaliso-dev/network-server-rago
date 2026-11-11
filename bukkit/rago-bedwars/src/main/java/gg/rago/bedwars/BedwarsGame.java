@@ -4,6 +4,7 @@ import gg.rago.bedwars.ShopItem.Category;
 import gg.rago.bedwars.ShopItem.Currency;
 import gg.rago.lobby.api.FireballAim;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.EnumSet;
 import java.util.HashMap;
@@ -1551,8 +1552,11 @@ class BedwarsGame {
         PlayerInventory inventory = player.getInventory();
         switch (bought.kind()) {
             case SWORD: {
-                // the new sword where the wooden one was, as on Hypixel
-                int was = inventory.first(Material.WOOD_SWORD);
+                // the new sword in the sword slot, instead of the sword there (the wooden one goes anyway)
+                int was = swordSlot(inventory, bought.material());
+                if (was >= 0) {
+                    inventory.setItem(was, null);
+                }
                 inventory.remove(Material.WOOD_SWORD);
                 give(player, gamer, stack(bought, gamer), bought.category(), was);
                 break;
@@ -1592,6 +1596,34 @@ class BedwarsGame {
         player.sendMessage(ChatColor.GREEN + "You purchased " + ChatColor.GOLD + bought.name());
         player.playSound(player.getLocation(), Sound.NOTE_PLING, 1f, 2f);
         return true;
+    }
+
+    /** The swords from the worst to the best. */
+    private static final List<Material> SWORDS = Arrays.asList(Material.WOOD_SWORD, Material.GOLD_SWORD, Material.STONE_SWORD,
+            Material.IRON_SWORD, Material.DIAMOND_SWORD);
+
+    /**
+     * The sword slot a new sword takes: the first slot (the hotbar first) holding a sword no better
+     * than it, which it replaces; -1 when there is none.
+     */
+    static int swordSlot(PlayerInventory inventory, Material bought) {
+        ItemStack[] contents = new ItemStack[inventory.getSize()];
+        for (int slot = 0; slot < contents.length; slot++) {
+            contents[slot] = inventory.getItem(slot);
+        }
+        return swordSlot(contents, bought);
+    }
+
+    static int swordSlot(ItemStack[] contents, Material bought) {
+        int rank = SWORDS.indexOf(bought);
+        for (int slot = 0; slot < contents.length; slot++) {
+            ItemStack there = contents[slot];
+            int was = there == null ? -1 : SWORDS.indexOf(there.getType());
+            if (was >= 0 && was <= rank) {
+                return slot;
+            }
+        }
+        return -1;
     }
 
     /** The first slot holding an item whose type ends so (_PICKAXE), or -1. */
