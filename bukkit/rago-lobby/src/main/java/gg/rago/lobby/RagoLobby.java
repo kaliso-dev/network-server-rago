@@ -10,6 +10,7 @@ import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.StandardCopyOption;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
@@ -29,6 +30,7 @@ import org.bukkit.WorldCreator;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.PlayerInventory;
+import org.bukkit.inventory.meta.ItemMeta;
 import org.bukkit.inventory.meta.SkullMeta;
 import org.bukkit.plugin.Plugin;
 import org.bukkit.plugin.ServicePriority;
@@ -94,6 +96,8 @@ public final class RagoLobby extends JavaPlugin implements LobbyService {
     private final Set<UUID> arrivedOnce = new HashSet<>();
     /** The players leaving their game themselves (/spawn): not put back in a queue on their own. */
     private final Set<UUID> leaving = new HashSet<>();
+    /** The mode the Play again paper queues, for each player back from a game (see NextGame). */
+    private final Map<UUID, String> playAgain = new HashMap<>();
     private final NextGame nextGame = new NextGame(this);
     private int seconds;
 
@@ -409,6 +413,10 @@ public final class RagoLobby extends JavaPlugin implements LobbyService {
         final List<UUID> lastOpponents = new ArrayList<>(state.opponentsOf(id));
         final boolean left = leaving.contains(id);
         boolean fromGame = lastMode != null;
+        if (fromGame) {
+            // the paper of the game before goes: NextGame gives the one of this game
+            playAgain.remove(id);
+        }
         state.leaveGame(player.getUniqueId());
         scoreboard.setGameLines(player.getUniqueId(), null);
         scoreboard.setGamePrefix(player.getUniqueId(), null);
@@ -582,6 +590,7 @@ public final class RagoLobby extends JavaPlugin implements LobbyService {
             () -> cosmetics.forget(id),
             () -> gameKills.remove(id),
             () -> flying.remove(id),
+            () -> playAgain.remove(id),
             () -> kitEditor.forget(id),
             () -> kits.forget(id),
             () -> hypixel.forget(id),
@@ -658,6 +667,9 @@ public final class RagoLobby extends JavaPlugin implements LobbyService {
             case LEAVE_QUEUE:
                 queues.leave(player, true);
                 break;
+            case PLAY_AGAIN:
+                playAgain(player);
+                break;
             case KIT_EDITOR:
                 kitEditor.openModes(player);
                 break;
@@ -705,12 +717,60 @@ public final class RagoLobby extends JavaPlugin implements LobbyService {
         inventory.setItem(HotbarItem.LEVEL.slot(), HotbarItem.LEVEL.create());
         if (queues.queueOf(player) != null) {
             inventory.setItem(HotbarItem.LEAVE_QUEUE.slot(), HotbarItem.LEAVE_QUEUE.create());
+        } else {
+            ItemStack paper = playAgainPaper(player);
+            if (paper != null) {
+                inventory.setItem(HotbarItem.PLAY_AGAIN.slot(), paper);
+            }
         }
         inventory.setItem(HotbarItem.SHOP.slot(), HotbarItem.SHOP.create());
         inventory.setItem(HotbarItem.PROFILE.slot(), ownHead(player));
         HotbarItem eye = visibility.hides(player) ? HotbarItem.SHOW_PLAYERS : HotbarItem.HIDE_PLAYERS;
         inventory.setItem(eye.slot(), eye.create());
         player.updateInventory();
+    }
+
+    /**
+     * Back from a game of this mode, which they may queue again (NextGame): the Play again paper in
+     * their hotbar, where the leave item goes, until they come back from another game.
+     */
+    void offerPlayAgain(Player player, String modeId) {
+        playAgain.put(player.getUniqueId(), modeId);
+        ItemStack paper = playAgainPaper(player);
+        if (paper != null && !kitEditor.isEditing(player) && state.isProtected(player) && queues.queueOf(player) == null) {
+            player.getInventory().setItem(HotbarItem.PLAY_AGAIN.slot(), paper);
+            player.updateInventory();
+        }
+    }
+
+    /** The Play again paper of this player, naming the mode it queues; null without one, or if the mode closed. */
+    private ItemStack playAgainPaper(Player player) {
+        String modeId = playAgain.get(player.getUniqueId());
+        ModeDisplay display = modeId == null ? null : settings.display(modeId);
+        if (display == null || display.hidden() || !queues.isPlayable(modeId)) {
+            return null;
+        }
+        ItemStack paper = HotbarItem.PLAY_AGAIN.create();
+        ItemMeta meta = paper.getItemMeta();
+        meta.setLore(Collections.singletonList(ChatColor.GRAY + "Queue " + ChatColor.WHITE
+                + ChatColor.stripColor(display.mode().name()) + ChatColor.GRAY + " again."));
+        paper.setItemMeta(meta);
+        return paper;
+    }
+
+    /** A click on the Play again paper: the queue of the mode of the last game. */
+    private void playAgain(Player player) {
+        String modeId = playAgain.get(player.getUniqueId());
+        ModeDisplay display = modeId == null ? null : settings.display(modeId);
+        if (display == null || display.hidden() || !queues.isPlayable(modeId)) {
+            playAgain.remove(player.getUniqueId());
+            player.getInventory().setItem(HotbarItem.PLAY_AGAIN.slot(), null);
+            player.sendMessage(ChatColor.RED + "This mode is closed for now.");
+            return;
+        }
+        if (queues.queueOf(player) == null) {
+            queues.join(player, display.mode());
+        }
     }
 
     /** The profile item with the player's own head. */

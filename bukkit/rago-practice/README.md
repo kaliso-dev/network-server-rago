@@ -18,8 +18,9 @@ prendre un (« Ann: 34 hits, best combo 7 »). Au sumo aussi ; pas dans les even
 
 - **Sumo** : sur les maps sumo du serveur (Ponsen, Fort Royale, White Crystal, Space Mine, Sumo,
   dans le dossier des mondes), tirées au hasard à chaque duel ; sans elles, une plateforme ronde.
-  Des coups sans dégâts, le premier qui tombe (ou touche l'eau) donne un point ; premier à 3.
-  La première manche commence par 3 secondes immobiles, face à face, les suivantes par une seule.
+  Des coups sans dégâts, en une seule manche : le premier qui tombe (ou touche l'eau) perd
+  (`sumo.points-pour-gagner` pour en jouer plus). La manche commence par 3 secondes immobiles, face
+  à face.
   Les maps sont copiées dans les zones du sumo au démarrage, quelques milliers de blocs par tick ;
   elles ne sont pas dans le dépôt.
 - **Boxing**, comme sur Minemen : sur les arènes Minemen de 2022 du propriétaire (Cobble, Shy Guy,
@@ -47,8 +48,8 @@ prendre un (« Ann: 34 hits, best combo 7 »). Au sumo aussi ; pas dans les even
   cisailles, deux stacks de laine, 12 end stone, 16 échelles, armure en fer Protection IV.
   Construire, clutch, casser leurs blocs, faire tomber. Comme sur Minemen, les points sont les
   coups : chaque coup donné à l'autre camp vaut un point (le coup ne fait pas de dégâts, seulement
-  son recul), et faire tomber un adversaire dans le vide donne 20 points à son camp
-  et relance la manche, chacun sur son bloc d'or, la map comme au départ. Premier à
+  son recul), et faire tomber un adversaire dans le vide donne 20 points à son camp ; seul celui
+  qui est tombé revient tout de suite sur son bloc d'or, les autres continuent et les blocs restent. Premier à
   `points-pour-gagner.block-fight` (100). Sans ces mondes, deux petites plateformes au-dessus du
   vide.
 - **Fireball fight** : chaque camp a son île et son lit sous une défense de bois et de laine. Le
@@ -215,8 +216,9 @@ chaque vie, si bien que personne ne meurt des coups (seul le vide renvoie au dé
 
 ## Le bridge fight
 
-Un FFA ouvert à tous, comme l'arène de block placement, en stuff de Ranked Bedwars (armure de fer,
-épée en pierre, pommes d'or), sans poser de bloc. Les coups ne font que repousser (Résistance V,
+Un FFA ouvert à tous, comme l'arène de block placement, en stuff de Ranked Bedwars (armure de fer
+Protection II, épée en bois, pommes d'or : les coups de la plateforme du milieu font moins mal),
+sans poser de bloc. Les coups ne font que repousser (Résistance V,
 aucun dégât : on fait tomber les autres dans le vide), sauf sur la **plateforme du milieu**, celle
 dont le milieu est le plus près du `centre` de l'arène (sur la map, le H rouge et jaune au sud de la
 cabine du milieu), où les coups font de vrais dégâts. En changeant de plateforme, un message dit
@@ -239,9 +241,10 @@ La plateforme d'un joueur suit l'endroit où il est (sauf dans une cabine, entre
 la boussole emmène sur n'importe laquelle (pas pendant un combat). En arrivant, on apparaît dans la
 cabine la plus proche de sa plateforme (la petite île blanche en quartz), sur sa lanterne au milieu
 du losange de quartz, face à la plateforme ; l'armure prend la couleur du bout de la plateforme côté
-cabine. Après une mort ou une chute, on revient directement sur la plateforme où l'on était, au bout
-le plus éloigné des autres joueurs de cette plateforme, face à son milieu (l'armure prend la couleur
-de ce bout). Trois secondes sans dégâts ni recul au retour, sauf si on frappe le premier. Les kills comptent dans les stats du mode. La sidebar montre le **top 3 des
+cabine. Après une mort ou une chute, on revient tout de suite dans la cabine de la plateforme où
+l'on était, sur sa lanterne (sans la map : sur la plateforme, au bout le plus éloigné des autres
+joueurs). Les cabines sont les spawns : on n'y frappe personne, et on ne frappe pas depuis une
+cabine. Trois secondes sans dégâts ni recul au retour, sauf si on frappe le premier. Les kills comptent dans les stats du mode. La sidebar montre le **top 3 des
 kills** de la partie en cours (les joueurs présents), et un **classement des kills** flotte
 au-dessus de l'îlot du milieu, 12,5 blocs au-dessus de son sol, au-dessus du toit de sa cabine, vu
 de toutes les plateformes : « TOP KILLS », puis les 10 joueurs qui ont le plus de kills à vie dans

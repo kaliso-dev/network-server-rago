@@ -68,7 +68,7 @@ public final class RagoPractice extends JavaPlugin {
         int spacing = config.getInt("espacement", 200);
         int slots = config.getInt("arenes-max", 16);
         int radius = config.getInt("sumo.rayon", 7);
-        int points = config.getInt("sumo.points-pour-gagner", 3);
+        int points = config.getInt("sumo.points-pour-gagner", 1);
         String problem = check(worldName, spacing, slots, radius, points);
         if (problem == null) {
             problem = checkModes(config);

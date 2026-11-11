@@ -957,6 +957,14 @@ class BedwarsGame {
     // --- Blocks ---------------------------------------------------------------------------------
 
     /**
+     * True if this block of the map, not placed by a player, may be broken (the rollback puts it
+     * back): never, but on the bridge of Top Bed Fight.
+     */
+    boolean breaksMap(Block block) {
+        return false;
+    }
+
+    /**
      * Why no block can be placed there (null when one can, "" to say nothing): above the build
      * limit, off the islands of a map that lists them (iles:), or too close to a spawn or a
      * generator.
@@ -1906,7 +1914,16 @@ class BedwarsGame {
                 + ChatColor.GRAY + " into the " + ChatColor.AQUA + where + ChatColor.GRAY + "!");
     }
 
-    /** How many players a team has, for the prices of the upgrades (those of 3v3v3v3 and 4v4v4v4 from 3). */
+    /**
+     * True if the upgrades cost as in solo and doubles: on a map of solo and doubles (eight
+     * islands), whoever plays it; false on one of 3v3v3v3 and 4v4v4v4 or a ranked map (see
+     * {@link Upgrades#doublesMap}).
+     */
+    boolean doublesPrices() {
+        return Upgrades.doublesMap(instance.map().teams().size());
+    }
+
+    /** How many players the biggest team has. */
     int teamSize() {
         int size = 1;
         for (Team team : teams) {
@@ -1927,7 +1944,7 @@ class BedwarsGame {
             refuse(player, "You already unlocked this upgrade!");
             return false;
         }
-        if (!pay(player, kind.price(tier, teamSize()))) {
+        if (!pay(player, kind.price(tier, doublesPrices()))) {
             return false;
         }
         team.upgrades.setTier(kind, tier);

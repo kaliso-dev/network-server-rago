@@ -15,20 +15,27 @@ class UpgradesTest {
 
     @Test
     void theUpgradesCostWhatTheyCostOnHypixel() {
-        // solo and doubles
-        assertEquals(4, Kind.SHARPENED_SWORDS.price(1, 1));
-        assertEquals(8, Kind.REINFORCED_ARMOR.price(3, 2));
-        assertEquals(16, Kind.REINFORCED_ARMOR.price(4, 2));
-        assertEquals(4, Kind.MANIAC_MINER.price(2, 2));
-        assertEquals(6, Kind.FORGE.price(3, 1));
-        assertEquals(1, Kind.HEAL_POOL.price(1, 2));
-        // 3v3v3v3 and 4v4v4v4
-        assertEquals(8, Kind.SHARPENED_SWORDS.price(1, 3));
-        assertEquals(20, Kind.REINFORCED_ARMOR.price(3, 4));
-        assertEquals(30, Kind.REINFORCED_ARMOR.price(4, 4));
-        assertEquals(6, Kind.MANIAC_MINER.price(2, 4));
-        assertEquals(16, Kind.FORGE.price(4, 3));
-        assertEquals(3, Kind.HEAL_POOL.price(1, 4));
+        // on a map of solo and doubles
+        assertEquals(4, Kind.SHARPENED_SWORDS.price(1, true));
+        assertEquals(2, Kind.REINFORCED_ARMOR.price(1, true));
+        assertEquals(8, Kind.REINFORCED_ARMOR.price(3, true));
+        assertEquals(16, Kind.REINFORCED_ARMOR.price(4, true));
+        assertEquals(4, Kind.MANIAC_MINER.price(2, true));
+        assertEquals(6, Kind.FORGE.price(3, true));
+        assertEquals(1, Kind.HEAL_POOL.price(1, true));
+        // on a map of 3v3v3v3 and 4v4v4v4
+        assertEquals(8, Kind.SHARPENED_SWORDS.price(1, false));
+        assertEquals(5, Kind.REINFORCED_ARMOR.price(1, false));
+        assertEquals(20, Kind.REINFORCED_ARMOR.price(3, false));
+        assertEquals(30, Kind.REINFORCED_ARMOR.price(4, false));
+        assertEquals(6, Kind.MANIAC_MINER.price(2, false));
+        assertEquals(16, Kind.FORGE.price(4, false));
+        assertEquals(3, Kind.HEAL_POOL.price(1, false));
+        // the map chooses, not the teams: eight islands (solo and doubles, Sky Rise, the First
+        // Rush maps), four (3v3v3v3 and 4v4v4v4), two (the ranked maps, 4v4)
+        assertTrue(Upgrades.doublesMap(8));
+        assertFalse(Upgrades.doublesMap(4));
+        assertFalse(Upgrades.doublesMap(2));
         assertEquals(4, Kind.REINFORCED_ARMOR.tiers());
         assertEquals(1, Kind.HEAL_POOL.tiers());
         // the traps: 1, 2, then 4 diamonds, three at most

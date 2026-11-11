@@ -33,7 +33,8 @@ import org.bukkit.potion.PotionEffectType;
 
 /**
  * The bridge fight, a free for all open to everyone like the block placement arena, in Ranked
- * Bedwars gear (iron armour, stone sword, golden apples), and nobody places blocks. The hits only
+ * Bedwars gear (iron armour with Protection II, a wooden sword, golden apples), and nobody places
+ * blocks. The hits only
  * push (Resistance V, no damage: knock the others into the void), except on the middle platform,
  * the one nearest to the centre of the arena (on the map, the red H south of the middle booth),
  * where they hurt as in a real fight. On the owner's map (bridge-fight.cartes in config.yml: the lowest floor of "Bridge Fight
@@ -43,8 +44,8 @@ import org.bukkit.potion.PotionEffectType;
  * the way they look (from the middle one to the left or the right one, and back), on its sea
  * lantern. A player comes in in the booth nearest to their platform (the little white island of
  * quartz), on its sea lantern in the middle of the diamond of quartz, facing the platform, and comes
- * back after a death or a fall on the platform they were on, at the end farthest from the others,
- * facing its middle. Without
+ * back there after a death or a fall, in the booth of the platform they were on. The booths are the
+ * spawns: nobody hits in them, nor from them. Without
  * it, four platforms side by side: a
  * bridge leads from a pad at each end to the tip of its platform, and a walkway along each end
  * links the pads, so a player walks from one platform to another, and comes back at an end of the
@@ -151,6 +152,8 @@ final class BridgeArena extends PracticeGame {
     private static final long PORTAL_PAUSE_MS = 1000L;
     /** The level of Resistance off the middle platform: V takes all the damage of the hits. */
     static final int RESISTANCE = 5;
+    /** The Protection of the armour: on the middle platform, the hits of the wooden swords hurt less. */
+    static final int PROTECTION = 2;
 
     /** The names and chat colours of the wool colours, by data. */
     static final String[] COLOUR_NAMES = {"White", "Orange", "Magenta", "Light Blue", "Yellow", "Lime", "Pink", "Gray",
@@ -646,12 +649,14 @@ final class BridgeArena extends PracticeGame {
     Location spawnOf(UUID player) {
         Platform platform = platformOf(player);
         Integer chosen = nextEnd.remove(player);
-        if (back.remove(player) && chosen == null) {
-            // out: back on the platform they were on, away from the others on it
+        boolean out = back.remove(player);
+        // in the booth of their platform (its white island): at the start, and after a death or a fall
+        int booth = chosen == null ? boothOf(platform, portals) : -1;
+        if (booth < 0 && out && chosen == null) {
+            // no booth (the plugin's own platforms): on the platform, away from the others on it
             int farthest = farthestEnd(platform, othersOn(platformOf.get(player), player));
             chosen = farthest >= 0 ? farthest : random.nextInt(platform.ends.length);
         }
-        int booth = chosen == null ? boothOf(platform, portals) : -1;
         if (booth >= 0) {
             // in the booth, on the sea lantern, facing the platform
             int[] portal = portals.get(booth);
@@ -734,13 +739,15 @@ final class BridgeArena extends PracticeGame {
 
     @Override
     ItemStack[] defaultKit(Player player) {
-        return new ItemStack[] {new ItemStack(Material.STONE_SWORD), new ItemStack(Material.GOLDEN_APPLE, 2)};
+        return new ItemStack[] {new ItemStack(Material.WOOD_SWORD), new ItemStack(Material.GOLDEN_APPLE, 2)};
     }
 
+    /** Iron armour in the colours of the platform, with Protection {@value #PROTECTION}: the middle platform's hits hurt less. */
     @Override
     void armour(Player player) {
         Platform platform = platformOf(player.getUniqueId());
         ironArmour(player, endOf.getOrDefault(player.getUniqueId(), 0) == 0 ? platform.firstArmour : platform.secondArmour);
+        protect(player, PROTECTION);
     }
 
     @Override
@@ -901,11 +908,21 @@ final class BridgeArena extends PracticeGame {
         if (protectedUntil.getOrDefault(victim.getUniqueId(), 0L) > now) {
             return false;
         }
+        if (inSpawn(victim) || (attacker != null && inSpawn(attacker))) {
+            // the white islands of the booths are the spawns: nobody hits there, nor from there
+            return false;
+        }
         if (!hurts(victim.getUniqueId())) {
             // off the middle platform the hits only push (no damage, the knockback stays)
             event.setDamage(0);
         }
         return true;
+    }
+
+    /** True if the player stands in the booth of a portal: a spawn, the white island of quartz. */
+    private boolean inSpawn(Player player) {
+        double[] at = arena.offset(player.getLocation());
+        return inBooth(portals, at[0], at[1], at[2]);
     }
 
     @Override

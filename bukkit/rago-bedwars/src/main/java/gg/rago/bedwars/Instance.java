@@ -44,7 +44,10 @@ final class Instance {
     private final Set<Long> placed = new HashSet<>();
     /** What the placed blocks and the flowing water replaced, when it was not air: id << 4 | data. */
     private final Map<Long, Integer> replaced = new HashMap<>();
-    /** What the game built as part of the map (a top bridge) replaced: id << 4 | data. */
+    /**
+     * What the game built as part of the map (a top bridge) replaced, and the blocks of the map
+     * broken where the game lets them (markBroken): id << 4 | data.
+     */
     private final Map<Long, Integer> built = new HashMap<>();
     private boolean busy;
     private boolean discarded;
@@ -156,6 +159,18 @@ final class Instance {
             built.put(key, block.getTypeId() << 4 | (dataOf(block) & 0xF));
         }
         block.setTypeIdAndData(type.getId(), data, false);
+    }
+
+    /**
+     * A block of the map a player breaks, where the game lets them (the bridge of Top Bed Fight):
+     * the rollback puts it back.
+     */
+    @SuppressWarnings("deprecation") // Block#getTypeId: the 1.8 block id
+    void markBroken(Block block) {
+        long key = key(block.getX(), block.getY(), block.getZ());
+        if (!placed.contains(key) && !built.containsKey(key)) {
+            built.put(key, block.getTypeId() << 4 | (dataOf(block) & 0xF));
+        }
     }
 
     /** The map as it was: no placed block, the beds back, no item or entity left. */

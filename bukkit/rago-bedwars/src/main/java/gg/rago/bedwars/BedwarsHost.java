@@ -789,6 +789,10 @@ final class BedwarsHost implements MatchHost, Listener {
             return;
         }
         if (!game.instance().isPlaced(block)) {
+            if (game.breaksMap(block)) {
+                game.instance().markBroken(block);
+                return;
+            }
             event.setCancelled(true);
             player.sendMessage(ChatColor.RED + "You can only break blocks placed by a player!");
             return;

@@ -47,6 +47,9 @@ enum HotbarItem {
             ChatColor.LIGHT_PURPLE + "PREMIUM gadget", "", "Left click: another gadget"),
     LEAVE_QUEUE(4, Material.INK_SACK, 1, ChatColor.RED + "Leave the queue " + ChatColor.GRAY + "(right click)",
             "You leave the queue."),
+    // After a game, in the slot of the leave item while out of a queue: the same mode again.
+    PLAY_AGAIN(4, Material.PAPER, 0, ChatColor.GREEN + "Play again " + ChatColor.GRAY + "(right click)",
+            "Queue the mode of your", "last game again."),
     LEVEL(5, Material.BREWING_STAND_ITEM, 0, ChatColor.AQUA + "Network Level " + ChatColor.GRAY + "(right click)",
             "Your level, its tier, the rewards", "of every 5 levels, and the daily", "and weekly quests."),
     SHOP(6, Material.EMERALD, 0, ChatColor.GREEN + "Rago Shop " + ChatColor.GRAY + "(right click)",

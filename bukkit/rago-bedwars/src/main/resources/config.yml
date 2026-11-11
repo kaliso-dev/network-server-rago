@@ -79,7 +79,8 @@ modes:
 #              10 minutes, a draw at 15
 #   top-bed-fight  Top Bed Fight, on a map with its own bridge on top (the owner's TopBedFight, at
 #              the build limit): the two players start on the spawns of the map, at its ends, each
-#              with a block at their back they cannot break nor go behind; the mode's kit (the
+#              with a block at their back they cannot break nor go behind; the bridge breaks (to
+#              make the other fall), nobody builds more than 10 blocks beside it; the mode's kit (the
 #              lobby's kit editor) in leather armour of the team's colour; rounds of one life, a
 #              kill or a fall off the bridge (under hauteur-vide) gives a point, the first to 5 wins
 #   fast-shop  Fast Shop: each player on an island with its shop, lists of items to buy as fast as

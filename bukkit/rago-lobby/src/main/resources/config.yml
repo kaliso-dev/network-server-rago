@@ -991,7 +991,7 @@ modes:
     equipes: 1
     joueurs-par-equipe: 1
     classe: false
-    kit: [STONE_SWORD, "GOLDEN_APPLE 2"]
+    kit: [WOOD_SWORD, "GOLDEN_APPLE 2"]
     description:
       - "Free for all, no blocks: the"
       - "hits only push, knock them into"

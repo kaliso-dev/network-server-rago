@@ -59,6 +59,8 @@ abstract class PracticeGame {
     private final Map<UUID, Integer> sideOf = new HashMap<>();
     private final Map<UUID, UUID> lastHitBy = new HashMap<>();
     private final Map<UUID, Long> lastHitAt = new HashMap<>();
+    /** Where each player was last put at their start (placeAtStart), for {@link #unstick}. */
+    private final Map<UUID, Location> startOf = new HashMap<>();
     /** The hits and combos of each player, told at the end of a duel. */
     final MatchRecap recap = new MatchRecap();
     private final List<BukkitTask> later = new ArrayList<>();
@@ -338,6 +340,12 @@ abstract class PracticeGame {
             placeAtStart(player);
         }
         int count = countdownOf(round, countdownSeconds());
+        if (round == 1) {
+            // just come from the lobby's world: a client sinks into the map while its chunks have
+            // not come yet (down through the block under its start); during the countdown and a
+            // little after it, one who sinks under their start goes back on it
+            unstickUntil = System.currentTimeMillis() + Math.max(0, count) * 1000L + UNSTICK_AFTER_MS;
+        }
         if (count <= 0) {
             fight();
             return;
@@ -364,7 +372,58 @@ abstract class PracticeGame {
         }, 0L, 20L);
     }
 
+    /** How long after the countdown of the first round a player who sinks under their start still goes back on it. */
+    static final long UNSTICK_AFTER_MS = 5000L;
+    /** Until when (System.currentTimeMillis) a player who sinks under their start goes back on it. */
+    private long unstickUntil;
+
+    /**
+     * Where a player who moves there goes back (their start), if they are sinking under it at the
+     * start of the game: just come from the lobby's world, a client whose chunks have not come yet
+     * goes down through the block under its start. Null otherwise.
+     */
+    Location unstuck(Player player, Location to) {
+        if (phase == Phase.ENDED || System.currentTimeMillis() > unstickUntil) {
+            return null;
+        }
+        Location start = startOf.get(player.getUniqueId());
+        if (start == null || !sunk(to, start)) {
+            return null;
+        }
+        Location back = start.clone();
+        back.setYaw(to.getYaw());
+        back.setPitch(to.getPitch());
+        return back;
+    }
+
+    /** The same for everyone, on the spot (when the fight starts). */
+    private void unstick() {
+        for (Player player : online()) {
+            Location back = unstuck(player, player.getLocation());
+            if (back != null) {
+                player.teleport(back);
+                player.setFallDistance(0f);
+            }
+        }
+    }
+
+    /**
+     * True if this place is straight under the start (less than half a block from it across: only
+     * through the block under the start, as walking off it takes more), more than a block lower.
+     */
+    static boolean sunk(Location at, Location start) {
+        if (at.getWorld() != null && start.getWorld() != null && !at.getWorld().equals(start.getWorld())) {
+            return false;
+        }
+        return Math.abs(at.getX() - start.getX()) < SUNK_ACROSS && Math.abs(at.getZ() - start.getZ()) < SUNK_ACROSS
+                && at.getY() < start.getY() - 1;
+    }
+
+    /** How far across from the start a place may be to be straight under it (see sunk). */
+    static final double SUNK_ACROSS = 0.5;
+
     private void fight() {
+        unstick();
         phase = Phase.PLAYING;
         if (countdownSeconds() > 0) {
             broadcast(ChatColor.GREEN + "Fight!", Sound.NOTE_PLING);
@@ -380,7 +439,9 @@ abstract class PracticeGame {
         player.setAllowFlight(false);
         player.setFlying(false);
         heal(player);
-        player.teleport(spawnOf(player.getUniqueId()));
+        Location start = spawnOf(player.getUniqueId());
+        startOf.put(player.getUniqueId(), start.clone());
+        player.teleport(start);
         player.setFallDistance(0f);
         giveKit(player);
         effects(player);

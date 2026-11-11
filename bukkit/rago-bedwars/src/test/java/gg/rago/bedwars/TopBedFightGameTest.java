@@ -51,4 +51,13 @@ class TopBedFightGameTest {
         assertFalse(TopBedFightGame.behind(ENDS, 3.5, 31.5, margin));
         assertTrue(TopBedFightGame.behind(ENDS, 3.5, 32.5, margin));
     }
+
+    @Test
+    void noBlockGoesMoreThanTenBlocksBesideTheBridge() {
+        assertEquals(10, TopBedFightGame.SIDE);
+        assertEquals(0.0, TopBedFightGame.across(ENDS, 3.5, 27.5), 1e-9, "on the bridge");
+        assertEquals(10.0, TopBedFightGame.across(ENDS, 13.5, 27.5), 1e-9, "the tenth block beside it");
+        assertEquals(10.0, TopBedFightGame.across(ENDS, -6.5, 24.5), 1e-9, "on the other side");
+        assertTrue(TopBedFightGame.across(ENDS, 14.5, 27.5) > TopBedFightGame.SIDE, "the eleventh: no");
+    }
 }

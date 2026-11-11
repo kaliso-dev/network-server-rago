@@ -9,9 +9,10 @@ espacement: 200
 arenes-max: 16
 
 # Sumo duel (the "sumo" mode of the lobby): knock the other player off the platform. No damage,
-# only the knockback of RagoCombatEngine.
+# only the knockback of RagoCombatEngine. One round: the first off loses (points-pour-gagner, from
+# 1 to 10, for more rounds).
 sumo:
-  points-pour-gagner: 3
+  points-pour-gagner: 1
   # Radius of the round platform, in blocks (4 to 15), when none of the maps below is on the server.
   rayon: 7
   # The sumo maps: worlds of the folder of the worlds (mondes). Each zone of the sumo gets one of
@@ -128,8 +129,9 @@ block-fight-arena:
 # middle one to the left or the right one, and back). The hits only push (Resistance V), except
 # on the middle platform, the one nearest to the centre (the red H), where they hurt.
 # A player comes in in the booth nearest to their platform (the little white island of quartz), on
-# its sea lantern in the middle of the diamond, facing the platform; after a death or a fall, on
-# the platform they were on, at the end farthest from the others.
+# its sea lantern in the middle of the diamond, facing the platform; after a death or a fall, at
+# once in the booth of the platform they were on. The booths are the spawns: no hits in them nor
+# from them. The kit: a wooden sword and golden apples (the lobby's), iron armour Protection II.
 # Its barriers are not copied: a player knocked off falls into the void. Without that world: four
 # platforms of the plugin's own, linked by bridges (Resistance on all four).
 bridge-fight:

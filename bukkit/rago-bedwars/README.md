@@ -216,11 +216,12 @@ une chute du pont (sous `hauteur-vide`, 4 blocs sous le pont) donne un point à 
 de kit du lobby ; sinon une épée en bois, un stack de laine et des cisailles) en armure de cuir de
 la couleur de son équipe, à chaque manche.
 
-Le pont est celui de la map : aucune plateforme n'est construite, ses blocs ne se cassent pas (seuls
-les blocs posés se cassent) et chaque manche le remet entier. Personne ne passe derrière le bloc
-qu'il a dans le dos, ni n'y construit : un joueur qui recule s'arrête contre lui, et un joueur qui
-s'y retrouve quand même (un téléport) revient sur son spawn. On pose des blocs partout sur le pont,
-devant le spawn de l'autre aussi. Les lits restent en bas, sur les îles, hors du jeu.
+Le pont est celui de la map : aucune plateforme n'est construite, ses blocs se cassent comme les
+blocs posés (casser le pont sous l'autre pour le faire tomber) et chaque manche le remet entier.
+Personne ne passe derrière le bloc qu'il a dans le dos, ni n'y construit, ni ne le casse : un joueur
+qui recule s'arrête contre lui, et un joueur qui s'y retrouve quand même (un téléport) revient sur
+son spawn. On pose des blocs partout sur le pont, devant le spawn de l'autre aussi, mais pas à plus
+de 10 blocs sur les côtés du pont. Les lits restent en bas, sur les îles, hors du jeu.
 
 La map n'est pas dans le dépôt : son `bedwars.yml` donne les deux spawns (juste devant le bloc du
 bout, face à face), les lits des îles, et le générateur et le shop, inutilisés, sur les spawns.
@@ -228,8 +229,10 @@ bout, face à face), les lits des îles, et le générateur et le shop, inutilis
 ## Améliorations et pièges
 
 Le villageois « TEAM UPGRADES » de chaque île ouvre « Upgrades & Traps », comme sur Hypixel. Tout
-se paie en diamants, pour toute l'équipe, aux prix d'Hypixel (ceux du 3v3 et du 4v4 dès trois
-joueurs par équipe) :
+se paie en diamants, pour toute l'équipe, aux prix d'Hypixel. C'est la map qui choisit, pas le
+nombre de joueurs : sur une map de solo et doubles (huit îles : Sky Rise, les maps First Rush), les
+prix du solo et du doubles, même en 3v3 ; sur une map de 3v3v3v3 et 4v4v4v4 (quatre îles) ou une
+map ranked (deux îles, une map 4v4), ceux du 4v4v4v4, même en 1v1 (le second prix ci-dessous) :
 
 - **Sharpened Swords** (4, ou 8) : Tranchant I sur les épées et les haches de l'équipe, celles
   qu'elle a et celles qu'elle achètera.

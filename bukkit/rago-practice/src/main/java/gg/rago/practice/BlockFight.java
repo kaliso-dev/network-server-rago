@@ -21,8 +21,8 @@ import org.bukkit.inventory.ItemStack;
  * shears, two stacks of wool, end stone and ladders; iron boots and leggings, the helmet and
  * chestplate of the side, all Protection IV. As on Minemen, the points are the hits: each hit
  * landed on the other side is a point (a hit does no damage, only its knockback), and a fall into
- * the void gives the other side {@value #VOID_BONUS} points and starts the round again, everyone
- * back on their gold block with the map as it was. First to 100 by default
+ * the void gives the other side {@value #VOID_BONUS} points and sends the one who fell back on their
+ * gold block at once (the others fight on, the blocks stay). First to 100 by default
  * (points-pour-gagner.block-fight).
  */
 final class BlockFight extends Duel {
@@ -146,7 +146,7 @@ final class BlockFight extends Duel {
         }
     }
 
-    /** A fall into the void: +20 for the other side (the one who knocked them off), and the round starts again. */
+    /** A fall into the void: +20 for the other side (the one who knocked them off), and the one who fell back on their start at once. */
     @Override
     void fell(Player player) {
         UUID id = player.getUniqueId();
@@ -174,7 +174,10 @@ final class BlockFight extends Duel {
             finish(other, null);
             return;
         }
-        startRound();
+        // only the one who fell goes back, at once, to their start: the others fight on, the blocks stay
+        forgetHits(id);
+        player.setFallDistance(0f);
+        player.teleport(spawnOf(id));
     }
 
     @Override

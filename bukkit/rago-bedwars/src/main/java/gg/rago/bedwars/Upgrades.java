@@ -10,8 +10,9 @@ import org.bukkit.Material;
  * Sharpened Swords (Sharpness I on the swords and axes), Reinforced Armor (Protection I to IV),
  * Maniac Miner (Haste I and II), the Forge (iron and gold 50% faster, twice as fast, emeralds,
  * three times as fast), the Heal Pool (Regeneration around the base), and up to three traps
- * waiting their turn, each set off by the next enemy in the base. Prices as on Hypixel: those of
- * solo and doubles for teams of one or two players, those of 3v3v3v3 and 4v4v4v4 above. The base
+ * waiting their turn, each set off by the next enemy in the base. Prices as on Hypixel, by the
+ * map, whoever plays it: those of solo and doubles on a map of solo and doubles (eight islands),
+ * those of 3v3v3v3 and 4v4v4v4 on the others (four islands, or the two of a ranked map). The base
  * is the island around the spawn, out to the bed, the forge and the NPCs. Main thread only.
  */
 final class Upgrades {
@@ -48,9 +49,12 @@ final class Upgrades {
             return small.length;
         }
 
-        /** The price in diamonds of this tier (from 1), for teams of this many players. */
-        int price(int tier, int teamSize) {
-            int[] prices = teamSize >= 3 ? big : small;
+        /**
+         * The price in diamonds of this tier (from 1): that of solo and doubles, or that of
+         * 3v3v3v3 and 4v4v4v4 (see {@link #doublesMap}).
+         */
+        int price(int tier, boolean doubles) {
+            int[] prices = doubles ? small : big;
             return prices[Math.max(0, Math.min(tier, prices.length) - 1)];
         }
 
@@ -75,6 +79,18 @@ final class Upgrades {
                     return displayName;
             }
         }
+    }
+
+    /** The most islands a map of 3v3v3v3 and 4v4v4v4 has: four; those of solo and doubles have eight. */
+    static final int FOURS_ISLANDS = 4;
+
+    /**
+     * True if a map of this many islands is one of solo and doubles (more than four: eight), where
+     * the upgrades cost as in solo and doubles, whatever the size of the teams; false on a map of
+     * 3v3v3v3 and 4v4v4v4, or a ranked map of two islands (a 4v4 map), where they cost as in 4v4v4v4.
+     */
+    static boolean doublesMap(int islands) {
+        return islands > FOURS_ISLANDS;
     }
 
     private static final String[] FORGES = {"Iron Forge", "Golden Forge", "Emerald Forge", "Molten Forge"};

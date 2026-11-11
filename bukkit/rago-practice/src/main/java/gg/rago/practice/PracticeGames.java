@@ -183,6 +183,12 @@ final class PracticeGames implements Listener {
             }
             return;
         }
+        Location unstuck = game.unstuck(player, to);
+        if (unstuck != null) {
+            player.setFallDistance(0f);
+            event.setTo(unstuck);
+            return;
+        }
         if (game.phase == PracticeGame.Phase.COUNTDOWN && game.freezes()
                 && (from.getX() != to.getX() || from.getZ() != to.getZ() || to.getY() > from.getY())) {
             Location still = from.clone();

@@ -101,9 +101,9 @@ final class UpgradeMenu {
         inventory.clear();
         Upgrades upgrades = gamer.team.upgrades;
         int diamonds = BedwarsGame.count(player, Currency.DIAMOND);
-        int teamSize = holder.game.teamSize();
+        boolean doubles = holder.game.doublesPrices();
         for (Upgrades.Kind kind : Upgrades.Kind.values()) {
-            inventory.setItem(UPGRADE_SLOTS[kind.ordinal()], upgrade(kind, upgrades.tier(kind), teamSize, diamonds));
+            inventory.setItem(UPGRADE_SLOTS[kind.ordinal()], upgrade(kind, upgrades.tier(kind), doubles, diamonds));
         }
         for (Upgrades.Trap trap : Upgrades.Trap.values()) {
             inventory.setItem(TRAP_SLOTS[trap.ordinal()], trap(trap, upgrades.traps.size(), diamonds));
@@ -118,10 +118,10 @@ final class UpgradeMenu {
     }
 
     /** An upgrade as the menu shows it: its next tier, every tier and its price, what a click does. */
-    static ItemStack upgrade(Upgrades.Kind kind, int tier, int teamSize, int diamonds) {
+    static ItemStack upgrade(Upgrades.Kind kind, int tier, boolean doubles, int diamonds) {
         boolean unlocked = tier >= kind.tiers();
         int next = Math.min(tier + 1, kind.tiers());
-        int price = kind.price(next, teamSize);
+        int price = kind.price(next, doubles);
         List<String> lore = lines(kind.description);
         lore.add("");
         if (kind.tiers() == 1) {
@@ -129,7 +129,7 @@ final class UpgradeMenu {
         } else {
             for (int t = 1; t <= kind.tiers(); t++) {
                 lore.add((t <= tier ? ChatColor.GREEN : ChatColor.GRAY) + "Tier " + t + ": " + kind.tierEffect(t) + ", "
-                        + Currency.DIAMOND.amount(kind.price(t, teamSize)));
+                        + Currency.DIAMOND.amount(kind.price(t, doubles)));
             }
         }
         lore.add("");

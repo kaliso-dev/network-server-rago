@@ -104,6 +104,12 @@ mkdir -p "$SERVER_DIR/plugins/RagoLobby"
 sed '/^  sumo:$/a\    kit: [STICK]' "$ROOT/bukkit/rago-lobby/src/main/resources/config.yml" \
   >"$SERVER_DIR/plugins/RagoLobby/config.yml"
 grep -q '^    kit: \[STICK\]$' "$SERVER_DIR/plugins/RagoLobby/config.yml" || fail "could not give the sumo a kit"
+# The bundled config.yml of RagoPractice, with a sumo of three rounds (one by default), so that the
+# bots play its rounds: RagoDeux falls three times and RagoUn wins 3 - 0.
+mkdir -p "$SERVER_DIR/plugins/RagoPractice"
+sed 's/^  points-pour-gagner: 1$/  points-pour-gagner: 3/' "$ROOT/bukkit/rago-practice/src/main/resources/config.yml" \
+  >"$SERVER_DIR/plugins/RagoPractice/config.yml"
+grep -q '^  points-pour-gagner: 3$' "$SERVER_DIR/plugins/RagoPractice/config.yml" || fail "could not give the sumo three rounds"
 # Every bundled skin of the NPCs counts as signed already (skins.yml: the hash of its PNG and empty
 # textures, so the NPCs look like Steve): the server sends nothing to MineSkin, and does not place
 # the NPCs again after each skin signed (they vanish for a moment) while the bots look at them.

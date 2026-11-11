@@ -16,11 +16,11 @@ import org.bukkit.inventory.PlayerInventory;
  * wins. The mode's kit (the lobby's kit editor; else a wooden sword, a stack of wool and shears)
  * in leather armour of the team's colour, at each round.
  *
- * <p>The bridge is the map's: no platform is built, its blocks cannot be broken (only the blocks
- * placed can), and the rollback of each round makes it whole again. The players start on the
- * spawns of the map, in front of the block at each end, and nobody goes behind that block nor
- * builds there: they stay on the bridge. The beds stay where they are, below, out of the game.
- * Main thread only.
+ * <p>The bridge is the map's: no platform is built, its blocks break (to make the other fall) as
+ * the blocks placed do, and the rollback of each round makes it whole again. The players start on
+ * the spawns of the map, in front of the block at each end, and nobody goes behind that block,
+ * builds there nor breaks it: they stay on the bridge. Nobody builds more than {@value #SIDE}
+ * blocks beside it either. The beds stay where they are, below, out of the game. Main thread only.
  */
 final class TopBedFightGame extends TopBridgeGame {
 
@@ -32,6 +32,8 @@ final class TopBedFightGame extends TopBridgeGame {
      * stand on it.
      */
     static final double BEHIND = 0.25;
+    /** How far beside the bridge, on either side, a block may be placed or broken: 10 blocks. */
+    static final int SIDE = 10;
 
     TopBedFightGame(RagoBedwars plugin, BedwarsHost host, Instance instance, String modeId, String modeName,
             List<List<Player>> sides) {
@@ -52,7 +54,8 @@ final class TopBedFightGame extends TopBridgeGame {
     @Override
     String roundsRule() {
         return "Rounds of one life on the top bridge: kill the other player or knock them off it. The first to "
-                + pointsToWin() + " points wins. Nobody goes behind the block at their back.";
+                + pointsToWin() + " points wins. Break the bridge under them too! Nobody goes behind the block at"
+                + " their back, nor builds more than " + SIDE + " blocks beside the bridge.";
     }
 
     /** The beds stay on the map, below the bridge, and nobody comes back with them. */
@@ -83,7 +86,8 @@ final class TopBedFightGame extends TopBridgeGame {
 
     /**
      * Up to the build limit, anywhere on the bridge and around it, the spawns too (a block in the
-     * other's way is the game), but not behind the block at either end.
+     * other's way is the game), but not behind the block at either end, nor more than
+     * {@value #SIDE} blocks beside the bridge.
      */
     @Override
     String cannotBuildAt(Block block) {
@@ -94,7 +98,19 @@ final class TopBedFightGame extends TopBridgeGame {
         if (ends != null && behind(ends, block.getX() + 0.5, block.getZ() + 0.5, BEHIND)) {
             return "You can't place blocks behind the bridge!";
         }
+        if (ends != null && across(ends, block.getX() + 0.5, block.getZ() + 0.5) > SIDE) {
+            return "You can't build more than " + SIDE + " blocks beside the bridge!";
+        }
         return null;
+    }
+
+    /**
+     * The map's bridge breaks, to make the other player fall: its blocks on top (from hauteur-vide
+     * up) where a block may be placed, so neither the block at either end nor what is behind it.
+     */
+    @Override
+    boolean breaksMap(Block block) {
+        return ends() != null && block.getY() >= instance.map().voidY() && cannotBuildAt(block) == null;
     }
 
     /**
@@ -125,6 +141,17 @@ final class TopBedFightGame extends TopBridgeGame {
         MapPoint a = teams.get(0).points.spawn;
         MapPoint b = teams.get(1).points.spawn;
         return a == null || b == null ? null : new double[] {a.x(), a.z(), b.x(), b.z()};
+    }
+
+    /** How far (x, z) is from the line of the bridge (between the two ends), across it. */
+    static double across(double[] ends, double x, double z) {
+        double dx = ends[2] - ends[0];
+        double dz = ends[3] - ends[1];
+        double length = Math.sqrt(dx * dx + dz * dz);
+        if (length == 0) {
+            return 0;
+        }
+        return Math.abs((x - ends[0]) * dz - (z - ends[1]) * dx) / length;
     }
 
     /** True if (x, z) is more than margin behind either end, along the line between the two. */

@@ -14,7 +14,7 @@ import org.bukkit.scheduler.BukkitTask;
 
 /**
  * One sumo duel in one arena slot: two players on a round platform, the first one off it gives a
- * point to the other, first to N points wins. Each round starts with a three-second countdown,
+ * point to the other, first to N points wins (one round by default). Each round starts with a three-second countdown,
  * in the chat and as a big title (3, 2, 1, Combat !), during which both players stand still. Main
  * thread only.
  */
@@ -102,7 +102,8 @@ final class SumoMatch {
                 prepare(player);
                 player.sendMessage(ChatColor.GREEN + "Sumo duel against " + ChatColor.WHITE + names[1 - side]
                         + (map == null ? "" : ChatColor.GREEN + " on " + ChatColor.WHITE + map)
-                        + ChatColor.GREEN + ": first to " + score.target() + " points wins.");
+                        + ChatColor.GREEN + (score.target() <= 1 ? ": one round, the first off the platform loses."
+                                : ": first to " + score.target() + " points wins."));
             }
         }
         startRound();

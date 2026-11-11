@@ -8,8 +8,9 @@ import org.bukkit.ChatColor;
 import org.bukkit.entity.Player;
 
 /**
- * What comes after a game, as on Hypixel and Minemen: back in the lobby, [PLAY AGAIN] queues the
- * same mode again, and after a 1v1 that is not ranked, [REMATCH] challenges the same opponent to a
+ * What comes after a game, as on Hypixel and Minemen: back in the lobby, [PLAY AGAIN] and the
+ * Play again paper of the hotbar queue the same mode again, and after a 1v1 that is not ranked,
+ * [REMATCH] challenges the same opponent to a
  * duel. A player with "Play again" on in /settings is put back in the queue at once (not after
  * leaving with /spawn). Nothing for a mode hidden from the selector (the events) or closed; in a
  * party, only its leader queues. Main thread only.
@@ -41,6 +42,10 @@ final class NextGame {
             if (opponent != null && opponent.isOnline()) {
                 rematch = opponent.getName();
             }
+        }
+        if (queues) {
+            // the Play again paper in the hotbar, as the [PLAY AGAIN] line
+            lobby.offerPlayAgain(player, mode.id());
         }
         PlayerStats profile = lobby.profiles().of(player);
         if (queues && !left && profile != null && profile.autoRequeue()) {
