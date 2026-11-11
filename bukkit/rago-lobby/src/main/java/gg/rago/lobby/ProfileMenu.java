@@ -51,7 +51,7 @@ final class ProfileMenu {
                 lore.add("Next colour: " + levels.tag(tier));
             }
         }
-        lore.add("Rago Points: " + ChatColor.GOLD + String.format("%,d", profile == null ? 0 : profile.points()));
+        lore.add("Rago Points: " + ChatColor.GOLD + String.format(java.util.Locale.US, "%,d", profile == null ? 0 : profile.points()));
         List<GameMode> ranked = StatsMenu.rankedModes(lobby.settings());
         if (!ranked.isEmpty()) {
             lore.add("");

@@ -50,7 +50,7 @@ final class StoreMenu {
             }
         }
         menu.set(4, ClickMenu.item(Material.EMERALD, ChatColor.GREEN + "Your Rago Points",
-                ChatColor.GOLD + String.format("%,d", profile.points()) + " Rago Points",
+                ChatColor.GOLD + String.format(java.util.Locale.US, "%,d", profile.points()) + " Rago Points",
                 "Network level: " + book.levels().tag(book.level(player.getUniqueId())),
                 "",
                 "Spend them in the " + ChatColor.GREEN + "/shop" + ChatColor.GRAY + ": cosmetics,",
@@ -102,7 +102,7 @@ final class StoreMenu {
                 (p, right) -> styles.open(p));
         menu.set(ROW[i++], ClickMenu.item(Material.EXP_BOTTLE, 0, ChatColor.AQUA + "Boosters", list(
                 ChatColor.AQUA + "x3 Network XP" + ChatColor.GRAY + " for 30 minutes",
-                "of play: " + ChatColor.GOLD + String.format("%,d", XpBoosters.PRICE) + " Rago Points" + ChatColor.GRAY + " each.",
+                "of play: " + ChatColor.GOLD + String.format(java.util.Locale.US, "%,d", XpBoosters.PRICE) + " Rago Points" + ChatColor.GRAY + " each.",
                 ChatColor.GOLD + "x3 Rago Points" + ChatColor.GRAY + ": the coin boosters,",
                 "in the starter pack.",
                 "Yours: " + ChatColor.GREEN + (profile.boosters() + profile.dailyBoosters()) + " XP, " + profile.coinBoosters() + " coins",
@@ -159,7 +159,7 @@ final class StoreMenu {
             lore.add(ChatColor.GRAY + "  (the cosmetics without their level)");
         }
         lore.add("");
-        lore.add(ChatColor.GRAY + "Worth " + ChatColor.GOLD + String.format("%,d", pack.pointsWorth(profiles.server().cosmetics()))
+        lore.add(ChatColor.GRAY + "Worth " + ChatColor.GOLD + String.format(java.util.Locale.US, "%,d", pack.pointsWorth(profiles.server().cosmetics()))
                 + " Rago Points" + ChatColor.GRAY + " in the shop.");
         lore.add(ChatColor.GRAY + "Price: " + pack.priceLine());
         lore.add("");

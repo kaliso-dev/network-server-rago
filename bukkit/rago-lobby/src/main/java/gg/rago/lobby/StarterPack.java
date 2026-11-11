@@ -129,7 +129,7 @@ final class StarterPack {
             lines.add(ChatColor.WHITE + "• " + ChatColor.GRAY + "The " + rank.prefix().trim() + ChatColor.GRAY + " rank, for good");
         }
         if (points > 0) {
-            lines.add(ChatColor.WHITE + "• " + ChatColor.GOLD + String.format("%,d", points) + " Rago Points");
+            lines.add(ChatColor.WHITE + "• " + ChatColor.GOLD + String.format(java.util.Locale.US, "%,d", points) + " Rago Points");
         }
         if (boosters > 0) {
             lines.add(ChatColor.WHITE + "• " + ChatColor.AQUA + boosters + " XP booster" + (boosters > 1 ? "s" : "") + ChatColor.GRAY

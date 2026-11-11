@@ -39,12 +39,12 @@ final class LevelMenu {
             lore.add("Progress to " + levels.tag(level + 1) + ChatColor.GRAY + ":");
             lore.add(ProfileMenu.bar(levels.progress(stats.xp())) + " " + ChatColor.AQUA + LobbyScoreboard.percent(
                     levels.progress(stats.xp())));
-            lore.add(ChatColor.AQUA + String.format("%,d", into) + ChatColor.GRAY + "/" + ChatColor.AQUA + String.format("%,d",
-                    need) + ChatColor.GRAY + " XP, " + ChatColor.WHITE + String.format("%,d", need - into) + ChatColor.GRAY
+            lore.add(ChatColor.AQUA + String.format(java.util.Locale.US, "%,d", into) + ChatColor.GRAY + "/" + ChatColor.AQUA + String.format(java.util.Locale.US, "%,d",
+                    need) + ChatColor.GRAY + " XP, " + ChatColor.WHITE + String.format(java.util.Locale.US, "%,d", need - into) + ChatColor.GRAY
                     + " to go");
         }
         lore.add("");
-        lore.add("Total: " + ChatColor.AQUA + String.format("%,d", stats.xp()) + " Network XP");
+        lore.add("Total: " + ChatColor.AQUA + String.format(java.util.Locale.US, "%,d", stats.xp()) + " Network XP");
         double boost = book.boost(id);
         if (boost > 1.0) {
             lore.add("Your boost:" + StatsService.boostText(boost));
@@ -107,7 +107,7 @@ final class LevelMenu {
         boolean got = level >= reward.level();
         List<String> lore = new ArrayList<>();
         if (reward.points() > 0) {
-            lore.add(ChatColor.GOLD + "+" + String.format("%,d", reward.points()) + " Rago Points");
+            lore.add(ChatColor.GOLD + "+" + String.format(java.util.Locale.US, "%,d", reward.points()) + " Rago Points");
         }
         for (String item : reward.items()) {
             lore.add(StatsService.rewardName(server, item));
@@ -186,7 +186,7 @@ final class LevelMenu {
                 lore.add(ProfileMenu.bar(progress / (float) quest.target()) + " " + ChatColor.WHITE + progress + ChatColor.GRAY
                         + "/" + quest.target());
                 lore.add("");
-                lore.add("Reward: " + ChatColor.AQUA + "+" + String.format("%,d", book.boosted(player.getUniqueId(), quest.xp()))
+                lore.add("Reward: " + ChatColor.AQUA + "+" + String.format(java.util.Locale.US, "%,d", book.boosted(player.getUniqueId(), quest.xp()))
                         + " Network XP");
                 lore.add("");
                 lore.add(done ? ChatColor.GREEN + "Done! " + ChatColor.GRAY + period.resetText(now).replace("Resets in", "Again in")

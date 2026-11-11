@@ -85,7 +85,7 @@ final class StatsMenu {
             lore.add(ChatColor.GRAY + "Next colour: " + levels.tag(tier));
         }
         lore.add(ChatColor.GRAY + "Total XP: " + ChatColor.AQUA + xp);
-        lore.add(ChatColor.GRAY + "Rago Points: " + ChatColor.GOLD + String.format("%,d", stats == null ? 0 : stats.points()));
+        lore.add(ChatColor.GRAY + "Rago Points: " + ChatColor.GOLD + String.format(java.util.Locale.US, "%,d", stats == null ? 0 : stats.points()));
         lore.add("");
         lore.add(ChatColor.GRAY + "All modes");
         lore.add("");

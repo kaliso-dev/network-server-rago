@@ -45,7 +45,7 @@ final class ShopMenu {
         ClickMenu menu = new ClickMenu(4, "Rago Shop");
         int level = book.level(player.getUniqueId());
         menu.set(4, ClickMenu.item(Material.EMERALD, ChatColor.GREEN + "Your Rago Points",
-                ChatColor.GOLD + String.format("%,d", profile.points()) + " Rago Points",
+                ChatColor.GOLD + String.format(java.util.Locale.US, "%,d", profile.points()) + " Rago Points",
                 "",
                 "Network level: " + book.levels().tag(level),
                 "",
@@ -94,7 +94,7 @@ final class ShopMenu {
             List<String> lore = new ArrayList<>();
             lore.add("Pick a player, then the rank:");
             for (RankDef rank : giftable) {
-                lore.add(rank.prefix().trim() + ChatColor.GRAY + " - " + ChatColor.GOLD + String.format("%,d", rank.giftPrice())
+                lore.add(rank.prefix().trim() + ChatColor.GRAY + " - " + ChatColor.GOLD + String.format(java.util.Locale.US, "%,d", rank.giftPrice())
                         + " Rago Points");
             }
             lore.add("");
@@ -131,7 +131,7 @@ final class ShopMenu {
             long left = profile.boosterLeftMs();
             menu.set(33, ClickMenu.item(Material.EXP_BOTTLE, ChatColor.AQUA + "Boosters",
                     ChatColor.AQUA + "x3 Network XP" + ChatColor.GRAY + " for 30 minutes", "of play, for " + ChatColor.GOLD
-                            + String.format("%,d", XpBoosters.PRICE) + " Rago Points" + ChatColor.GRAY + ".",
+                            + String.format(java.util.Locale.US, "%,d", XpBoosters.PRICE) + " Rago Points" + ChatColor.GRAY + ".",
                     ChatColor.GOLD + "x3 Rago Points" + ChatColor.GRAY + ": the coin boosters.",
                     ChatColor.LIGHT_PURPLE + "[PREMIUM+]" + ChatColor.GRAY + ": a free x2 XP one every day.",
                     "",
@@ -173,7 +173,7 @@ final class ShopMenu {
                 lore.add(ChatColor.GOLD + "On the web store" + (rank.webPrice() != null ? ": " + ChatColor.GREEN + ChatColor.BOLD
                         + rank.webPrice() : ""));
                 if (rank.giftable()) {
-                    lore.add("Gift it to a player: " + ChatColor.GOLD + String.format("%,d", rank.giftPrice()) + " Rago Points");
+                    lore.add("Gift it to a player: " + ChatColor.GOLD + String.format(java.util.Locale.US, "%,d", rank.giftPrice()) + " Rago Points");
                     lore.add(ChatColor.GRAY + "(/gift <player>, or the shop)");
                 }
                 lore.add("");
@@ -187,7 +187,7 @@ final class ShopMenu {
                 });
                 continue;
             }
-            lore.add("Price: " + ChatColor.GOLD + String.format("%,d", rank.price()) + " Rago Points");
+            lore.add("Price: " + ChatColor.GOLD + String.format(java.util.Locale.US, "%,d", rank.price()) + " Rago Points");
             lore.add("Level needed: " + book.levels().tag(rank.level()));
             lore.add("");
             if (owned) {
@@ -273,7 +273,7 @@ final class ShopMenu {
                 lore.add(ChatColor.WHITE + "• " + ChatColor.GRAY + perk);
             }
             lore.add("");
-            lore.add("Price: " + ChatColor.GOLD + String.format("%,d", rank.giftPrice()) + " Rago Points");
+            lore.add("Price: " + ChatColor.GOLD + String.format(java.util.Locale.US, "%,d", rank.giftPrice()) + " Rago Points");
             if (rank.level() > 0) {
                 lore.add("Your level needed: " + book.levels().tag(rank.level()));
             }
@@ -321,7 +321,7 @@ final class ShopMenu {
                 lore.add(ChatColor.LIGHT_PURPLE + "✦ One of the rarest: [PREMIUM+] only");
                 lore.add("");
             } else if (!owned) {
-                lore.add("Price: " + ChatColor.GOLD + String.format("%,d", cosmetic.price()) + " Rago Points");
+                lore.add("Price: " + ChatColor.GOLD + String.format(java.util.Locale.US, "%,d", cosmetic.price()) + " Rago Points");
                 lore.add("Level needed: " + book.levels().tag(cosmetic.level()));
                 lore.add("");
             }
@@ -366,7 +366,7 @@ final class ShopMenu {
         }
         ClickMenu menu = new ClickMenu(3, "Confirm the purchase");
         menu.set(11, ClickMenu.item(Material.STAINED_CLAY, 5, ChatColor.GREEN + "Buy " + what, listOf(
-                "Price: " + ChatColor.GOLD + String.format("%,d", price) + " Rago Points",
+                "Price: " + ChatColor.GOLD + String.format(java.util.Locale.US, "%,d", price) + " Rago Points",
                 "", ChatColor.YELLOW + "Click to confirm")), (p, right) -> {
                     buy.run();
                     back.run();

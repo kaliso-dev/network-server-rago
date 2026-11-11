@@ -167,11 +167,11 @@ final class HeadLines implements Listener {
             case LEVEL:
                 return ChatColor.GRAY + "Level " + levelTag;
             case WINS:
-                return ChatColor.GREEN + String.format("%,d", wins) + ChatColor.GRAY + (wins == 1 ? " win" : " wins");
+                return ChatColor.GREEN + String.format(java.util.Locale.US, "%,d", wins) + ChatColor.GRAY + (wins == 1 ? " win" : " wins");
             case KILLS:
-                return ChatColor.RED + String.format("%,d", kills) + ChatColor.GRAY + (kills == 1 ? " kill" : " kills");
+                return ChatColor.RED + String.format(java.util.Locale.US, "%,d", kills) + ChatColor.GRAY + (kills == 1 ? " kill" : " kills");
             case STREAK:
-                return ChatColor.GOLD + String.format("%,d", streak) + ChatColor.GRAY + " best win streak";
+                return ChatColor.GOLD + String.format(java.util.Locale.US, "%,d", streak) + ChatColor.GRAY + " best win streak";
             case MESSAGE:
                 return message == null ? "" : message;
             default:

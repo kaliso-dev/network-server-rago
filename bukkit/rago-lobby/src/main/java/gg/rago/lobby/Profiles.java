@@ -113,7 +113,7 @@ final class Profiles {
             return "Reach Network level " + level + " first (you are level " + own + ").";
         }
         if (profile.points() < price) {
-            return "You need " + String.format("%,d", price - profile.points()) + " more Rago Points.";
+            return "You need " + String.format(java.util.Locale.US, "%,d", price - profile.points()) + " more Rago Points.";
         }
         return null;
     }
@@ -137,7 +137,7 @@ final class Profiles {
         profile.boughtRanks().add(rank.id());
         changed(profile);
         player.sendMessage(ChatColor.GREEN + "You bought the rank " + rank.prefix().trim() + ChatColor.GREEN + " for "
-                + ChatColor.GOLD + String.format("%,d", rank.price()) + " Rago Points" + ChatColor.GREEN + "!");
+                + ChatColor.GOLD + String.format(java.util.Locale.US, "%,d", rank.price()) + " Rago Points" + ChatColor.GREEN + "!");
         player.playSound(player.getLocation(), Sound.LEVEL_UP, 1f, 1.2f);
         lobby.announce(ChatColor.GOLD + "✪ " + displayName(player.getUniqueId(), player.getName()) + ChatColor.GOLD
                 + " bought the rank " + rank.prefix().trim() + ChatColor.GOLD + " in the shop!");
@@ -177,7 +177,7 @@ final class Profiles {
         String from = displayName(giver.getUniqueId(), giver.getName());
         String to = displayName(target.id(), target.name());
         giver.sendMessage(ChatColor.GREEN + "You gifted the rank " + rank.prefix().trim() + ChatColor.GREEN + " to "
-                + to + ChatColor.GREEN + " for " + ChatColor.GOLD + String.format("%,d", price) + " Rago Points" + ChatColor.GREEN + "!");
+                + to + ChatColor.GREEN + " for " + ChatColor.GOLD + String.format(java.util.Locale.US, "%,d", price) + " Rago Points" + ChatColor.GREEN + "!");
         giver.playSound(giver.getLocation(), Sound.LEVEL_UP, 1f, 1.2f);
         Player got = lobby.getServer().getPlayer(target.id());
         if (got != null) {

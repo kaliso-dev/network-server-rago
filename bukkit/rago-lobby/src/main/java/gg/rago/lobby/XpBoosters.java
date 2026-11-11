@@ -227,7 +227,7 @@ final class XpBoosters {
         profile.addPoints(-PRICE);
         setCount(profile, Kind.XP, profile.boosters() + 1);
         profiles.changed(profile);
-        player.sendMessage(ChatColor.GREEN + "You bought an XP booster (x3 XP) for " + ChatColor.GOLD + String.format("%,d", PRICE)
+        player.sendMessage(ChatColor.GREEN + "You bought an XP booster (x3 XP) for " + ChatColor.GOLD + String.format(java.util.Locale.US, "%,d", PRICE)
                 + " Rago Points" + ChatColor.GREEN + ". " + ChatColor.YELLOW + "/booster" + ChatColor.GREEN + " to start it.");
         player.playSound(player.getLocation(), Sound.ORB_PICKUP, 1f, 1.2f);
     }
@@ -260,7 +260,7 @@ final class XpBoosters {
         menu.set(11, ClickMenu.glow(ClickMenu.item(Material.EXP_BOTTLE, 0, ChatColor.AQUA + "" + ChatColor.BOLD + "XP booster x3",
                 listOf("Triples your Network XP for", "30 minutes of play.", "",
                         "Yours: " + ChatColor.GREEN + profile.boosters(),
-                        "Price: " + ChatColor.GOLD + String.format("%,d", PRICE) + " Rago Points",
+                        "Price: " + ChatColor.GOLD + String.format(java.util.Locale.US, "%,d", PRICE) + " Rago Points",
                         "",
                         profile.boosters() > 0 ? ChatColor.YELLOW + "Left click to start one" : ChatColor.GRAY + "None to start",
                         ChatColor.YELLOW + "Right click to buy one"))), (p, right) -> {

@@ -62,7 +62,7 @@ final class NetworkCommands implements CommandExecutor, TabCompleter {
             int points = season.reward(division.name());
             if (points > 0) {
                 rewards.append(rewards.length() == 0 ? "" : ChatColor.DARK_GRAY + ", ").append(division.coloured()).append(' ')
-                        .append(ChatColor.GOLD).append(String.format("%,d", points));
+                        .append(ChatColor.GOLD).append(String.format(java.util.Locale.US, "%,d", points));
             }
         }
         if (rewards.length() > 0) {
@@ -524,7 +524,7 @@ final class NetworkCommands implements CommandExecutor, TabCompleter {
         if (sub.equals("list")) {
             for (RankDef rank : ranks.all()) {
                 sender.sendMessage(rank.prefix().trim() + ChatColor.GRAY + " " + rank.id() + (rank.staff() ? " (staff)" : "")
-                        + (rank.sold() ? " - " + String.format("%,d", rank.price()) + " points, level " + rank.level() : "")
+                        + (rank.sold() ? " - " + String.format(java.util.Locale.US, "%,d", rank.price()) + " points, level " + rank.level() : "")
                         + (rank.parent() == null ? "" : ", inherits " + rank.parent()));
             }
             return;
@@ -591,7 +591,7 @@ final class NetworkCommands implements CommandExecutor, TabCompleter {
             }
             int change = sub.equals("give") ? amount : sub.equals("take") ? -amount : amount - target.points();
             lobby.profiles().addPoints(target, change);
-            sender.sendMessage(ChatColor.GREEN + target.name() + " now has " + String.format("%,d", target.points())
+            sender.sendMessage(ChatColor.GREEN + target.name() + " now has " + String.format(java.util.Locale.US, "%,d", target.points())
                     + " Rago Points.");
             lobby.getLogger().info(sender.getName() + ": /points " + String.join(" ", args));
             return;
@@ -603,7 +603,7 @@ final class NetworkCommands implements CommandExecutor, TabCompleter {
             return;
         }
         sender.sendMessage(ChatColor.GRAY + (args.length == 1 ? profile.name() + " has " : "You have ") + ChatColor.GOLD
-                + String.format("%,d", profile.points()) + " Rago Points" + ChatColor.GRAY + ". Spend them in the /shop.");
+                + String.format(java.util.Locale.US, "%,d", profile.points()) + " Rago Points" + ChatColor.GRAY + ". Spend them in the /shop.");
     }
 
     // --- Leaderboards in the chat ---------------------------------------------------------------
@@ -676,7 +676,7 @@ final class NetworkCommands implements CommandExecutor, TabCompleter {
             String value = stat == BoardStat.ELO ? book.ladder().format(row.value())
                     : stat == BoardStat.LEVEL ? book.levels().tag(book.levels().level(row.value()))
                     : stat == BoardStat.FKDR ? ChatColor.YELLOW + BoardStat.hundredths(row.value())
-                    : ChatColor.YELLOW + String.format("%,d", row.value());
+                    : ChatColor.YELLOW + String.format(java.util.Locale.US, "%,d", row.value());
             sender.sendMessage(ChatColor.YELLOW + "" + (i + 1) + ". " + ChatColor.RESET
                     + lobby.profiles().displayName(row.id(), row.name()) + ChatColor.GRAY + " - " + value);
         }

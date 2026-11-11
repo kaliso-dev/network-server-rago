@@ -216,7 +216,7 @@ final class StyleMenu {
                 }
                 ClickMenu confirm = new ClickMenu(3, "Buy " + style.name() + "?");
                 confirm.set(11, ClickMenu.item(Material.STAINED_CLAY, 5, ChatColor.GREEN + "Buy " + style.sample(), listOf(
-                        "Price: " + ChatColor.GOLD + String.format("%,d", style.price()) + " Rago Points", "",
+                        "Price: " + ChatColor.GOLD + String.format(java.util.Locale.US, "%,d", style.price()) + " Rago Points", "",
                         ChatColor.YELLOW + "Click to confirm")), (p, right) -> {
                             profiles.buyStyle(p, style);
                             reopen(p, style);
@@ -260,7 +260,7 @@ final class StyleMenu {
                 int level = rewardLevel.applyAsInt(style.key());
                 return ChatColor.AQUA + "Reward of Network level" + (level > 0 ? " " + level : "s");
             case POINTS:
-                return ChatColor.GOLD + "Price: " + String.format("%,d", style.price()) + " Rago Points";
+                return ChatColor.GOLD + "Price: " + String.format(java.util.Locale.US, "%,d", style.price()) + " Rago Points";
             default:
                 return ChatColor.GOLD + "On the store";
         }
