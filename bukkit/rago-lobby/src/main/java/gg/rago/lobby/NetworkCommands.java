@@ -307,7 +307,7 @@ final class NetworkCommands implements CommandExecutor, TabCompleter {
                 return true;
             case "nick":
                 if ((player = player(sender)) != null && allowed(player, "rago.perk.nick")) {
-                    if (label.equalsIgnoreCase("unnick") || args.length == 1 && args[0].matches("(?i)reset|off|remove")) {
+                    if (label.equalsIgnoreCase("unnick") || args.length == 1 && args[0].matches("(?i)reset|off|remove|stop|clear")) {
                         lobby.profiles().nick(player, lobby.nicks(), null);
                     } else if (args.length != 1) {
                         String nick = lobby.nicks().nick(player.getUniqueId());

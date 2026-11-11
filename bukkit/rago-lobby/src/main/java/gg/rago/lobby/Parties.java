@@ -1,5 +1,6 @@
 package gg.rago.lobby;
 
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.HashSet;
@@ -314,7 +315,7 @@ final class Parties implements Listener {
             boxed(player, ChatColor.RED + "That player is not in your party.");
             return;
         }
-        List<UUID> before = party.members();
+        List<UUID> before = new ArrayList<>(party.members());
         changed(before);
         book.kick(player.getUniqueId(), target);
         partyChannel.remove(target);
@@ -459,7 +460,7 @@ final class Parties implements Listener {
         if (party == null) {
             return;
         }
-        List<UUID> before = party.members();
+        List<UUID> before = new ArrayList<>(party.members());
         changed(before);
         String name = nameOf(player);
         book.leave(player);

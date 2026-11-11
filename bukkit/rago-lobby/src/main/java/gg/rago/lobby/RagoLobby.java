@@ -549,29 +549,44 @@ public final class RagoLobby extends JavaPlugin implements LobbyService {
         }
     }
 
+    /**
+     * The player left: every part forgets them. Each part on its own, so that an error in one (it
+     * is logged) does not leave the others with the player of before: a player who comes back
+     * would find their scoreboard without the name tags, or their old state.
+     */
     void forget(Player player) {
-        arrivedOnce.remove(player.getUniqueId());
-        info.forget(player.getUniqueId());
-        social.announce(player, false);
-        staff.quit(player);
-        social.forget(player.getUniqueId());
-        profiles.forget(player.getUniqueId());
-        cosmetics.forget(player.getUniqueId());
-        gameKills.remove(player.getUniqueId());
-        flying.remove(player.getUniqueId());
-        kitEditor.forget(player.getUniqueId());
-        kits.forget(player.getUniqueId());
-        hypixel.forget(player.getUniqueId());
-        statsDisplays.forget(player.getUniqueId());
-        ranks.forget(player.getUniqueId());
-        queues.forget(player.getUniqueId());
-        parties.forget(player.getUniqueId());
-        duels.forget(player.getUniqueId());
-        visibility.forget(player.getUniqueId());
-        gadgets.forget(player.getUniqueId());
-        nicks.forget(player.getUniqueId());
-        scoreboard.forget(player.getUniqueId());
-        state.forget(player.getUniqueId());
+        final UUID id = player.getUniqueId();
+        Runnable[] steps = {
+            () -> arrivedOnce.remove(id),
+            () -> info.forget(id),
+            () -> social.announce(player, false),
+            () -> staff.quit(player),
+            () -> social.forget(id),
+            () -> profiles.forget(id),
+            () -> cosmetics.forget(id),
+            () -> gameKills.remove(id),
+            () -> flying.remove(id),
+            () -> kitEditor.forget(id),
+            () -> kits.forget(id),
+            () -> hypixel.forget(id),
+            () -> statsDisplays.forget(id),
+            () -> ranks.forget(id),
+            () -> queues.forget(id),
+            () -> parties.forget(id),
+            () -> duels.forget(id),
+            () -> visibility.forget(id),
+            () -> gadgets.forget(id),
+            () -> nicks.forget(id),
+            () -> scoreboard.forget(id),
+            () -> state.forget(id),
+        };
+        for (Runnable step : steps) {
+            try {
+                step.run();
+            } catch (RuntimeException e) {
+                getLogger().log(java.util.logging.Level.SEVERE, "Forgetting " + player.getName() + " after the quit", e);
+            }
+        }
     }
 
     /** The gadget of the hotbar's fourth slot this player chose: the teleport stick at first. */

@@ -34,7 +34,9 @@
 //   9. a party: RagoUn invites RagoDeux with /p, RagoDeux accepts, /party list and /pc; RagoDeux
 //      cannot queue (only the leader does); RagoUn queues the sumo: a private game between them,
 //      without stats or XP; RagoUn queues Ranked Bedwars 2v2: the party waits in one team, and
-//      leaves the queue with RagoDeux; RagoUn disbands the party.
+//      leaves the queue with RagoDeux; RagoUn disbands the party;
+//  10. a member leaves the server in a party: RagoUn is told, and RagoDeux, back on the server,
+//      sees RagoUn's name tag (its team) again.
 //
 // Environment: KB_HOST (127.0.0.1), KB_PORT (25565).
 
@@ -133,7 +135,7 @@ function join (username) {
       bot.on('error', (error) => abort(new Error(`${username}: ${error.message}`)))
       bot.on('kicked', (reason) => abort(new Error(`${username} was kicked: ${JSON.stringify(reason)}`)))
       bot.on('end', (reason) => {
-        if (!finishing) abort(new Error(`${username} disconnected: ${reason}`))
+        if (!finishing && !bot.leaving) abort(new Error(`${username} disconnected: ${reason}`))
       })
       resolve(bot)
     })
@@ -691,6 +693,30 @@ async function playParty (one, two) {
   log('party: in a 2v2 mode the party queues together, leaves together, then is disbanded')
 }
 
+/**
+ * RagoDeux leaves the server while in RagoUn's party, then comes back: RagoUn is told, and the
+ * lobby forgot RagoDeux whole (an error there left its old scoreboard: no name tags at all).
+ * Returns the RagoDeux of now.
+ */
+async function quitInParty (one, two) {
+  let fromOne = mark(one)
+  const fromTwo = mark(two)
+  one.chat('/p RagoDeux')
+  await chatLine(two, /RagoUn has invited you to join their party!/, 5000, fromTwo)
+  two.chat('/party accept RagoUn')
+  await chatLine(one, /RagoDeux joined the party\./, 5000, fromOne)
+  fromOne = mark(one)
+  two.leaving = true
+  two.quit()
+  await chatLine(one, /RagoDeux left the server and the party\./, 5000, fromOne)
+  const back = await join('RagoDeux')
+  await expectInLobby(back, 'back on the server')
+  await waitFor(() => back.teamMap?.RagoUn != null, 5000,
+    `RagoDeux, back, to see the name tag of RagoUn: teams ${JSON.stringify(Object.keys(back.teamMap ?? {}))}`)
+  log('party: RagoDeux left the server in the party, RagoUn was told, and back it sees the name tags')
+  return back
+}
+
 async function fallOff (bot) {
   bot.setControlState('back', true)
   bot.setControlState('jump', true)
@@ -820,9 +846,12 @@ async function main () {
   // 9. A party: a private game in a 1v1 mode, the queue in one team in a 2v2 mode.
   await playParty(one, two)
 
+  // 10. A member leaves the server in a party, then comes back.
+  const back = await quitInParty(one, two)
+
   finishing = true
   one.quit()
-  two.quit()
+  back.quit()
   await sleep(500)
   log('PASSED')
   process.exit(0)
