@@ -792,6 +792,32 @@ modes:
       - "on two islands side by side:"
       - "the first rush decides it."
       - "Choose the map."
+  first-rush-full:
+    nom: "&eFirst rush full map solo"
+    categorie: ranked
+    groupe: first-rush
+    icone: DIAMOND_PICKAXE
+    equipes: 2
+    joueurs-par-equipe: 1
+    classe: false
+    description:
+      - "First rush 1v1 with the whole"
+      - "map: diamonds, emeralds and the"
+      - "forges of the empty islands."
+      - "Choose the map."
+  first-rush-full-duo:
+    nom: "&eFirst rush full map duo"
+    categorie: ranked
+    groupe: first-rush
+    icone: DIAMOND_PICKAXE
+    equipes: 2
+    joueurs-par-equipe: 2
+    classe: false
+    description:
+      - "First rush 2v2 with the whole"
+      - "map: diamonds, emeralds and the"
+      - "forges of the empty islands."
+      - "Choose the map."
   bed-fight-1v1:
     nom: "&cBed fight 1v1"
     categorie: duels

@@ -279,13 +279,16 @@ final class BedwarsSettings {
     private final List<String> neighbourModes;
     /** The modes whose games have a top bridge (Top Bridge). */
     private final List<String> topBridgeModes;
+    /** The modes whose games keep every forge of the map going, the empty islands' too. */
+    private final List<String> allForgeModes;
     /** The kits of Attack and Defense to choose from, each side its own (attaque-defense:). */
     private final List<RoundKit> attackKits;
     private final List<RoundKit> defenseKits;
 
     private BedwarsSettings(Map<String, List<String>> modes, Map<String, Kind> kinds, int maxGames, boolean demo,
             int respawnSeconds, Forge forge, List<Rate> diamond, List<Rate> emerald, int[] events, Fireball fireball,
-            List<String> neighbourModes, List<String> topBridgeModes, List<RoundKit> attackKits, List<RoundKit> defenseKits) {
+            List<String> neighbourModes, List<String> topBridgeModes, List<String> allForgeModes, List<RoundKit> attackKits,
+            List<RoundKit> defenseKits) {
         this.modes = Collections.unmodifiableMap(modes);
         this.kinds = Collections.unmodifiableMap(kinds);
         this.maxGames = maxGames;
@@ -303,6 +306,7 @@ final class BedwarsSettings {
         this.fireball = fireball;
         this.neighbourModes = Collections.unmodifiableList(neighbourModes);
         this.topBridgeModes = Collections.unmodifiableList(topBridgeModes);
+        this.allForgeModes = Collections.unmodifiableList(allForgeModes);
         this.attackKits = attackKits;
         this.defenseKits = defenseKits;
     }
@@ -354,12 +358,16 @@ final class BedwarsSettings {
         for (String mode : config.getStringList("top-bridge")) {
             topBridge.add(modeId(mode, "top-bridge"));
         }
+        List<String> allForges = new ArrayList<>();
+        for (String mode : config.getStringList("forges-partout")) {
+            allForges.add(modeId(mode, "forges-partout"));
+        }
         List<RoundKit> attackKits = RoundKit.read(config.getList("attaque-defense.kits-attaque"),
                 "attaque-defense.kits-attaque", RoundKit.ATTACK);
         List<RoundKit> defenseKits = RoundKit.read(config.getList("attaque-defense.kits-defense"),
                 "attaque-defense.kits-defense", RoundKit.DEFENSE);
         return new BedwarsSettings(modes, kinds(config), maxGames, config.getBoolean("carte-demo", true), respawn, forge,
-                diamond, emerald, events, fireball, neighbours, topBridge, attackKits, defenseKits);
+                diamond, emerald, events, fireball, neighbours, topBridge, allForges, attackKits, defenseKits);
     }
 
     /** jeux: the modes that are not a classic game, each with its kind. */
@@ -620,6 +628,11 @@ final class BedwarsSettings {
     /** True if the teams of this mode play on neighbouring islands (First Rush), not opposite ones. */
     boolean neighbours(String modeId) {
         return neighbourModes.contains(modeId);
+    }
+
+    /** True if the games of this mode keep every forge of the map going, the empty islands' too. */
+    boolean allForges(String modeId) {
+        return allForgeModes.contains(modeId);
     }
 
     /** True if the games of this mode have a top bridge over the middle (see {@link TopBridge}). */

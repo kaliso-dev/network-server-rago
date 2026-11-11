@@ -31,7 +31,7 @@ class BedwarsSettingsTest {
         BedwarsSettings settings = BedwarsSettings.read(bundled());
         assertEquals(Arrays.asList("ranked-1v1", "ranked-2v2", "ranked-3v3", "ranked-4v4", "top-bridge-1v1",
                 "top-bridge-2v2", "skyrise-1v1", "skyrise-2v2",
-                "first-rush", "first-rush-duo", "top-bridge-ffa", "ffa", "invis-practice", "shop-practice",
+                "first-rush", "first-rush-duo", "first-rush-full", "first-rush-full-duo", "top-bridge-ffa", "ffa", "invis-practice", "shop-practice",
                 "attack-defense-1v1", "attack-defense-2v2", "clutch-scenario-1v1", "clutch-scenario-2v2",
                 "clutch-scenario-3v3", "clutch-scenario-4v4", "bed-fight-1v1", "bed-fight-2v2"),
                 settings.modes());
@@ -76,6 +76,11 @@ class BedwarsSettingsTest {
         assertTrue(settings.mapsOf("sumo").isEmpty());
         assertTrue(settings.neighbours("first-rush"));
         assertTrue(settings.neighbours("first-rush-duo"));
+        assertTrue(settings.neighbours("first-rush-full") && settings.neighbours("first-rush-full-duo"));
+        assertEquals(settings.mapsOf("first-rush"), settings.mapsOf("first-rush-full-duo"));
+        assertTrue(settings.allForges("first-rush-full") && settings.allForges("first-rush-full-duo"),
+                "the full map First Rush: every forge of the map");
+        assertTrue(!settings.allForges("first-rush") && !settings.allForges("ranked-1v1"));
         assertTrue(!settings.neighbours("skyrise-1v1"));
         assertEquals(settings.mapsOf("ranked-1v1"), settings.mapsOf("top-bridge-1v1"), "Top Bridge on the 20 maps");
         assertEquals(settings.mapsOf("ranked-1v1"), settings.mapsOf("top-bridge-2v2"));

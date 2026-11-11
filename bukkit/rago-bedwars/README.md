@@ -75,6 +75,10 @@ deux équipes jouent sur des **îles voisines** au lieu d'îles opposées (`iles
 config.yml) : le premier rush décide souvent de la partie. Le joueur choisit sa map parmi les dix
 maps duo.
 
+`first-rush-full` (1v1) et `first-rush-full-duo` (2v2), « First rush full map », sont la même
+partie avec toute la map : les diamants et les émeraudes, et les forges des îles où personne ne
+joue tournent aussi, leur fer et leur or pour qui va les prendre (`forges-partout:` du config.yml).
+
 ## Top Bridge
 
 `top-bridge-1v1` et `top-bridge-2v2` (le jeu `top-bridge`) se jouent sur les 20 maps de la file,

@@ -19,6 +19,8 @@ modes:
   skyrise-2v2: [SkyRise]
   first-rush: [Acropolis, Ambush, Aqil, Cascade, Crogorm, Frosted, Gelato, Lighthouse, Lotus, Nebuc]
   first-rush-duo: [Acropolis, Ambush, Aqil, Cascade, Crogorm, Frosted, Gelato, Lighthouse, Lotus, Nebuc]
+  first-rush-full: [Acropolis, Ambush, Aqil, Cascade, Crogorm, Frosted, Gelato, Lighthouse, Lotus, Nebuc]
+  first-rush-full-duo: [Acropolis, Ambush, Aqil, Cascade, Crogorm, Frosted, Gelato, Lighthouse, Lotus, Nebuc]
   top-bridge-ffa: [Invasion]
   ffa: [ArchwayFFA]
   invis-practice: [Antenna, Aquarium, Archway, Artemis, Boletum, Carapace, Catalyst, Chained, Eastwood, Extinction, Invasion, Katsu, Lectus, Obelisk, Paladin, Planet98, Rise, Stonekeep, Swashbuckle, Treenan]
@@ -146,7 +148,11 @@ top-bridge: [top-bridge-1v1, top-bridge-2v2, top-bridge-ffa]
 
 # The modes whose teams play on neighbouring islands (First Rush: the first island and the one
 # next to it), instead of opposite islands as in the other modes.
-iles-voisines: [first-rush, first-rush-duo]
+iles-voisines: [first-rush, first-rush-duo, first-rush-full, first-rush-full-duo]
+
+# The modes whose games keep every forge of the map going, the empty islands' too (First Rush full
+# map: their iron and gold for whoever goes to take it, with the diamonds and emeralds).
+forges-partout: [first-rush-full, first-rush-full-duo]
 
 # The forge of each island, as on Hypixel (its iron and gold counted a minute long on each map): an
 # iron node drops an ingot every fer-secondes-par-noeud seconds (30 a minute), and a forge has 1

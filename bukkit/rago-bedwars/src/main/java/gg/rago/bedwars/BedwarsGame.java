@@ -5,6 +5,7 @@ import gg.rago.bedwars.ShopItem.Currency;
 import gg.rago.lobby.api.FireballAim;
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.EnumSet;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.LinkedHashMap;
@@ -458,6 +459,21 @@ class BedwarsGame {
             upgrades.gold = new Generator(spot, Material.GOLD_INGOT, upgrades.goldRate, null);
             forges.add(upgrades.iron);
             forges.add(upgrades.gold);
+        }
+        if (settings.allForges(modeId)) {
+            // the forges of the islands nobody plays: their iron and gold for whoever comes to take it
+            Set<TeamColor> played = EnumSet.noneOf(TeamColor.class);
+            for (Team team : islands) {
+                played.add(team.color);
+            }
+            for (TeamColor color : map.completeTeams()) {
+                if (played.contains(color)) {
+                    continue;
+                }
+                Location spot = map.teams().get(color).generator.in(world);
+                forges.add(new Generator(spot, Material.IRON_INGOT, forge.iron(map.world(), teamSize, count), null));
+                forges.add(new Generator(spot, Material.GOLD_INGOT, forge.gold(count), null));
+            }
         }
         npcsUp(islands);
         for (MapPoint point : map.diamonds()) {
