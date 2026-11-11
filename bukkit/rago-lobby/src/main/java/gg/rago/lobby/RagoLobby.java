@@ -1007,6 +1007,7 @@ public final class RagoLobby extends JavaPlugin implements LobbyService {
             return null;
         }
         KitItem[] arranged = display.kit().arrange(kits.get(player.getUniqueId(), modeId));
+        kitEditor.gave(player.getUniqueId(), modeId);
         ItemStack[] items = new ItemStack[Kit.SLOTS];
         for (int slot = 0; slot < Kit.SLOTS; slot++) {
             items[slot] = arranged[slot] == null ? null : arranged[slot].toItem();
@@ -1023,7 +1024,7 @@ public final class RagoLobby extends JavaPlugin implements LobbyService {
         if (known.isEmpty()) {
             return kit;
         }
-        kitEditor.learn(modeId, known);
+        kitEditor.learn(player.getUniqueId(), modeId, known);
         int[] to = known.placement(kits.get(player.getUniqueId(), modeId));
         ItemStack[] arranged = new ItemStack[Math.max(kit.length, Kit.SLOTS)];
         for (int slot = Kit.SLOTS; slot < kit.length; slot++) {

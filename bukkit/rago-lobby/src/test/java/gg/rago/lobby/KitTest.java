@@ -186,6 +186,42 @@ class KitTest {
     }
 
     @Test
+    void anArrangementInAGameIsKeptWithAPotionDrunk() {
+        // the invis practice kit: 11 stacks, the two potions in the inventory
+        Kit kit = new Kit(Arrays.asList(KitItem.parse("STONE_SWORD"), WOOL, WOOL, KitItem.parse("WOOD 16"),
+                KitItem.parse("GOLD_PICKAXE"), KitItem.parse("IRON_AXE"), KitItem.parse("SHEARS"), KitItem.parse("FIREBALL"),
+                KitItem.parse("EGG 2"), KitItem.parse("POTION:8206"), KitItem.parse("POTION:8203")));
+        KitItem[] played = new KitItem[Kit.SLOTS];
+        for (int slot = 0; slot < 11; slot++) {
+            played[slot] = kit.item(slot);
+        }
+        assertTrue(Kit.isDefault(KitEditor.arrangedInGame(kit, played, null)), "nothing moved");
+        // the invisibility drunk first, then the sword and the planks swapped
+        played[9] = null;
+        played[0] = kit.item(3);
+        played[3] = kit.item(0);
+        int[] layout = KitEditor.arrangedInGame(kit, played, null);
+        assertEquals(3, layout[0]);
+        assertEquals(0, layout[3]);
+        assertEquals(9, layout[9], "the potion drunk keeps its slot");
+        int[] before = Kit.defaultLayout();
+        before[9] = 20;
+        assertEquals(20, KitEditor.arrangedInGame(kit, played, before)[9], "or where it went before");
+        // the defenders' items: the wool and the shears of the kit, not the kit
+        KitItem[] defender = new KitItem[Kit.SLOTS];
+        defender[0] = KitItem.parse("IRON_SWORD");
+        defender[1] = WOOL;
+        defender[2] = WOOL;
+        defender[3] = KitItem.parse("SHEARS");
+        assertNull(KitEditor.arrangedInGame(kit, defender, null));
+        // the kit of the role the game gave last, in a game of its mode
+        assertEquals("invis-practice/defense", KitEditor.kitKey("invis-practice", "invis-practice/defense"));
+        assertEquals("invis-practice", KitEditor.kitKey("invis-practice", "invis-practice"));
+        assertEquals("invis-practice", KitEditor.kitKey("invis-practice", "ffa"), "the kit of another game");
+        assertEquals("ffa", KitEditor.kitKey("ffa", null));
+    }
+
+    @Test
     void theKitOfAGameIsPlacedSlotBySlot() {
         Kit kit = Kit.of(new ItemStack[] {new ItemStack(Material.IRON_SWORD), new ItemStack(Material.WOOL, 64), null,
             new ItemStack(Material.ENDER_PEARL)});

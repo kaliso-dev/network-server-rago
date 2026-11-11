@@ -131,7 +131,8 @@ public interface LobbyService {
     /**
      * A kit that the game makes itself (a mode without kit: in config.yml), in the order the player
      * arranged it in an earlier game of this mode; as it is the first time. The lobby keeps the kit:
-     * when the player arranges their inventory in a game, it remembers where each item went.
+     * when the player arranges their inventory in a game, it remembers where each item went. A
+     * second kit of a mode (another role: the defenders of the invis practice) is "mode/role".
      */
     default ItemStack[] arrange(Player player, String modeId, ItemStack[] kit) {
         return kit;

@@ -79,8 +79,12 @@ final class KitEditor implements Listener {
     private final HypixelProfiles hypixel;
     /** The players arranging a kit, and its mode. */
     private final Map<UUID, String> editing = new HashMap<>();
-    /** The kits that games make themselves, by mode: learnt when a game gives one. */
-    private final Map<String, Kit> codeKits = new HashMap<>();
+    /** The kits that games make themselves, by player then mode (or mode/role): learnt when a game gives one. */
+    private final Map<UUID, Map<String, Kit>> codeKits = new HashMap<>();
+    /** The kit a game gave each player last: its mode, or mode/role (the defenders of the invis practice). */
+    private final Map<UUID, String> given = new HashMap<>();
+    /** An arrangement made in a game counts with this share of the kit's stacks found, at least (a potion drunk...). */
+    static final double FOUND_SHARE = 0.75;
 
     KitEditor(Plugin plugin, LobbySettings settings, KitLayouts layouts, LobbyState state, Consumer<Player> lobbyHotbar,
             HypixelProfiles hypixel) {
@@ -284,24 +288,76 @@ final class KitEditor implements Listener {
         }
     }
 
-    /** A game gave this kit, that it makes itself: the player's arrangement of it can be kept. */
-    void learn(String modeId, Kit kit) {
-        codeKits.put(modeId, kit);
+    /** A game gave this player this kit, that it makes itself: their arrangement of it can be kept. */
+    void learn(UUID player, String modeId, Kit kit) {
+        codeKits.computeIfAbsent(player, id -> new HashMap<>()).put(modeId, kit);
+        gave(player, modeId);
     }
 
-    /** The mode's kit: the one of config.yml, else the one its game gave last; null if none. */
-    private Kit kitOf(String modeId) {
+    /** A game gave this player the kit of this mode (or mode/role). */
+    void gave(UUID player, String modeId) {
+        given.put(player, modeId);
+    }
+
+    /** The mode's kit: the one of config.yml, else the one its game gave this player last; null if none. */
+    private Kit kitOf(UUID player, String modeId) {
         ModeDisplay display = settings.display(modeId);
         if (display != null && display.kit() != null) {
             return display.kit();
         }
-        return codeKits.get(modeId);
+        Map<String, Kit> learnt = codeKits.get(player);
+        return learnt == null ? null : learnt.get(modeId);
+    }
+
+    /** The kit a player in a game of this mode holds: the last one it gave them (a role's), else the mode's. */
+    static String kitKey(String gameMode, String lastGiven) {
+        return lastGiven != null && (lastGiven.equals(gameMode) || lastGiven.startsWith(gameMode + "/")) ? lastGiven : gameMode;
     }
 
     /**
-     * A player in a game closed their inventory: where they put the kit's items is kept for the
-     * mode the first time (even with a few blocks used), then again whenever they change it with the
-     * whole kit still there. Nothing for an inventory that is not the kit (another role's items).
+     * Where the player put the kit's items in a game, if it is their kit: {@value #FOUND_SHARE} of
+     * its stacks or more found (a stack may hold fewer items: blocks placed); an item no longer there
+     * (a potion drunk) keeps where it went before. Null for an inventory that is not this kit.
+     */
+    static int[] arrangedInGame(Kit kit, KitItem[] found, int[] saved) {
+        int[] layout = kit.layoutOf(found, true);
+        int stacks = 0;
+        int there = 0;
+        for (int slot = 0; slot < Kit.SLOTS; slot++) {
+            if (kit.item(slot) != null) {
+                stacks++;
+                if (layout[slot] >= 0) {
+                    there++;
+                }
+            }
+        }
+        if (stacks == 0 || there < Math.max(1, Math.ceil(FOUND_SHARE * stacks))) {
+            return null;
+        }
+        boolean[] taken = new boolean[Kit.SLOTS];
+        for (int target : layout) {
+            if (target >= 0) {
+                taken[target] = true;
+            }
+        }
+        for (int slot = 0; slot < Kit.SLOTS; slot++) {
+            if (kit.item(slot) != null && layout[slot] < 0) {
+                int before = saved != null && slot < saved.length ? saved[slot] : -1;
+                int keep = before >= 0 ? before : slot;
+                if (!taken[keep]) {
+                    layout[slot] = keep;
+                    taken[keep] = true;
+                }
+            }
+        }
+        return layout;
+    }
+
+    /**
+     * A player in a game closed their inventory: where they put the items of the kit the game gave
+     * them (the mode's, or a role's: the defenders of the invis practice) is kept, even with a few
+     * blocks placed or a potion drunk, whenever it changed. Nothing for an inventory that is not
+     * that kit (another role's items).
      */
     @EventHandler(priority = EventPriority.MONITOR)
     public void onArranged(InventoryCloseEvent event) {
@@ -310,8 +366,12 @@ final class KitEditor implements Listener {
         }
         Player player = (Player) event.getPlayer();
         UUID id = player.getUniqueId();
-        String modeId = state.gameOf(id);
-        Kit kit = modeId == null || editing.containsKey(id) ? null : kitOf(modeId);
+        String gameMode = state.gameOf(id);
+        if (gameMode == null || editing.containsKey(id)) {
+            return;
+        }
+        String modeId = kitKey(gameMode, given.get(id));
+        Kit kit = kitOf(id, modeId);
         if (kit == null) {
             return;
         }
@@ -321,14 +381,15 @@ final class KitEditor implements Listener {
             found[slot] = KitItem.of(inventory.getItem(slot));
         }
         int[] saved = layouts.get(id, modeId);
-        int[] layout = kit.layoutOf(found, saved == null);
-        if (!kit.complete(layout) || Arrays.equals(moves(layout), saved == null ? moves(Kit.defaultLayout()) : moves(saved))) {
+        int[] layout = arrangedInGame(kit, found, saved);
+        if (layout == null || Arrays.equals(moves(layout), saved == null ? moves(Kit.defaultLayout()) : moves(saved))) {
             return;
         }
         layouts.set(id, modeId, layout);
-        ModeDisplay display = settings.display(modeId);
-        String name = display == null ? modeId : ChatColor.stripColor(display.mode().name());
-        player.sendMessage(ChatColor.GREEN + "Kit layout saved for " + name + ": your next games give it this way.");
+        ModeDisplay display = settings.display(gameMode);
+        String name = display == null ? gameMode : ChatColor.stripColor(display.mode().name());
+        String role = modeId.equals(gameMode) ? "" : " (" + modeId.substring(gameMode.length() + 1) + ")";
+        player.sendMessage(ChatColor.GREEN + "Kit layout saved for " + name + role + ": your next games give it this way.");
     }
 
     /** The layout's moves only: an item in its own slot counts as not moved. */
@@ -376,6 +437,8 @@ final class KitEditor implements Listener {
 
     void forget(UUID player) {
         editing.remove(player);
+        given.remove(player);
+        codeKits.remove(player);
     }
 
     /** Where the player put each item of the kit, kept for their next games. */

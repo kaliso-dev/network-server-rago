@@ -36,8 +36,9 @@ import org.bukkit.scheduler.BukkitTask;
  * makes them visible for the rest of the round. The others defend the bed of the next island,
  * under the defense of a ranked game without its wool (end stone, glass and wood, the layers the
  * island has room for): shears, wooden tools and Haste, an iron sword
- * with Sharpness, Protection IV armour and 2 stacks of wool; four at most, a sixth player watches
- * that round. The attacker wins the round by breaking the bed; the defenders by killing the
+ * with Sharpness, Protection IV armour and 2 stacks of wool, where the hotbar manager puts them,
+ * then where the player arranged them in an earlier round (the lobby keeps it, as
+ * "invis-practice/defense"); four at most, a sixth player watches that round. The attacker wins the round by breaking the bed; the defenders by killing the
  * attacker (one life) or by holding three minutes; a defender comes back three seconds after a
  * death. Each player attacks in turn, twice each with two or three players. Breaking the bed, or
  * killing the attacker, gives a point; the most points win.
@@ -59,6 +60,8 @@ final class InvisGame extends BedwarsGame {
     private static final long BETWEEN_TICKS = 80L;
     /** The defense of a ranked game without its last layer of wool, from the bed out: end stone, glass, wood. */
     static final Material[] DEFENSE = {Material.ENDER_STONE, Material.STAINED_GLASS, Material.WOOD};
+    /** The defenders' kit, as the lobby keeps how each player arranges it in a game: "invis-practice/defense". */
+    static final String DEFENSE_KIT = "/defense";
     /** The attacker's kit when the lobby has none for the mode: the owner's, as in config.yml. */
     static final String[] ATTACKER_KIT = {"stone_sword", "wool 64", "wool 64", "plank 16", "golden_pickaxe", "iron_axe",
         "shears", "fireball 1", "bridge_egg 2", "invisibility", "jump"};
@@ -344,6 +347,14 @@ final class InvisGame extends BedwarsGame {
             give(player, gamer, stack(catalogItem("shears"), gamer), ShopItem.Category.TOOLS);
             give(player, gamer, stack(catalog().pickaxes().get(0), gamer), ShopItem.Category.TOOLS);
             give(player, gamer, stack(catalog().axes().get(0), gamer), ShopItem.Category.TOOLS);
+            // where the hotbar manager puts them, then where the player arranged them in an earlier round
+            ItemStack[] arranged = plugin.lobby().arrange(player, modeId + DEFENSE_KIT,
+                    Arrays.copyOf(inventory.getContents(), 36));
+            if (arranged != null) {
+                for (int i = 0; i < 36; i++) {
+                    inventory.setItem(i, i < arranged.length ? arranged[i] : null);
+                }
+            }
         }
         if (gamer.id.equals(invisible)) {
             longInvisibility(inventory);
