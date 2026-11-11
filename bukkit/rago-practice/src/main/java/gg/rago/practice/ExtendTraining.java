@@ -75,7 +75,7 @@ final class ExtendTraining extends Training {
         this.ladders = toggle("Ladders", true);
     }
 
-    private static Variant[] variants() {
+    static Variant[] variants() {
         Variant[] variants = new Variant[JUMPS.length + 1];
         for (int i = 0; i < JUMPS.length; i++) {
             variants[i] = new Variant(JUMPS[i].id, JUMPS[i].label, false, "jumps");

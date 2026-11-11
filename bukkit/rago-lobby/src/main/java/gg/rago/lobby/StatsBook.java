@@ -266,6 +266,16 @@ final class StatsBook {
 
     List<PlayerStats> record(GameMode mode, Collection<UUID> winners, Collection<UUID> losers, Names names, long millis,
             Collection<UUID> mvps) {
+        return record(mode, winners, losers, names, millis, mvps, true);
+    }
+
+    /**
+     * A game is over. Not rated (a /duel, started without the queue), it counts as a game, a win
+     * or a loss with its XP, but moves neither the ELO nor any win streak (the player's, the
+     * team's): two friends could farm them against each other.
+     */
+    List<PlayerStats> record(GameMode mode, Collection<UUID> winners, Collection<UUID> losers, Names names, long millis,
+            Collection<UUID> mvps, boolean rated) {
         List<PlayerStats> changed = new ArrayList<>();
         if (winners.isEmpty() || losers.isEmpty()) {
             return changed;
@@ -273,7 +283,7 @@ final class StatsBook {
         String day = StatsPeriod.dayKey(millis);
         String week = StatsPeriod.weekKey(millis);
         Map<UUID, Integer> newElo = new HashMap<>();
-        if (mode.ranked()) {
+        if (mode.ranked() && rated) {
             for (UUID id : winners) {
                 newElo.put(id, ladder.after(elo(id, mode.id()), true, mvps.contains(id)));
             }
@@ -284,18 +294,20 @@ final class StatsBook {
             }
         }
         for (UUID id : new LinkedHashSet<>(winners)) {
-            PlayerStats stats = play(id, names, mode.id(), true, day, week, newElo.get(id));
+            PlayerStats stats = play(id, names, mode.id(), true, day, week, newElo.get(id), rated);
             stats.addXp(boosted(id, levels.winXp()));
             changed.add(stats);
         }
         for (UUID id : new LinkedHashSet<>(losers)) {
             if (!winners.contains(id)) {
-                PlayerStats stats = play(id, names, mode.id(), false, day, week, newElo.get(id));
+                PlayerStats stats = play(id, names, mode.id(), false, day, week, newElo.get(id), rated);
                 stats.addXp(boosted(id, levels.lossXp()));
                 changed.add(stats);
             }
         }
-        recordTeams(mode.id(), winners, losers, day, week);
+        if (rated) {
+            recordTeams(mode.id(), winners, losers, day, week);
+        }
         forgetRankings();
         return changed;
     }
@@ -361,12 +373,14 @@ final class StatsBook {
         return stats;
     }
 
-    private PlayerStats play(UUID id, Names names, String modeId, boolean won, String day, String week, Integer elo) {
+    private PlayerStats play(UUID id, Names names, String modeId, boolean won, String day, String week, Integer elo,
+            boolean streaks) {
         PlayerStats stats = statsOf(id, names);
         ModeStats mode = stats.modeOrNew(modeId);
-        mode.record(won, day, week);
+        mode.record(won, day, week, streaks);
         if (elo != null) {
             mode.elo = elo;
+            mode.peakElo = Math.max(mode.peakElo, elo);
         }
         return stats;
     }

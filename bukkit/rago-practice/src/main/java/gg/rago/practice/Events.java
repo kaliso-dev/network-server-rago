@@ -48,8 +48,11 @@ final class Events implements CommandExecutor, Listener {
         final int pauseSeconds;
         final int winXp;
         final int playXp;
+        /** The events the server hosts on its own. */
+        final Auto auto;
 
-        Settings(int waitSeconds, int minPlayers, int maxPlayers, int cooldownMinutes, int pauseSeconds, int winXp, int playXp) {
+        Settings(int waitSeconds, int minPlayers, int maxPlayers, int cooldownMinutes, int pauseSeconds, int winXp, int playXp,
+                Auto auto) {
             this.waitSeconds = waitSeconds;
             this.minPlayers = minPlayers;
             this.maxPlayers = maxPlayers;
@@ -57,6 +60,7 @@ final class Events implements CommandExecutor, Listener {
             this.pauseSeconds = pauseSeconds;
             this.winXp = winXp;
             this.playXp = playXp;
+            this.auto = auto;
         }
 
         /** The ranges of the settings: key, default, lowest, highest. */
@@ -75,7 +79,8 @@ final class Events implements CommandExecutor, Listener {
             for (int i = 0; i < RANGES.length; i++) {
                 v[i] = section == null ? Integer.parseInt(RANGES[i][1]) : section.getInt(RANGES[i][0], Integer.parseInt(RANGES[i][1]));
             }
-            return new Settings(v[0], v[1], v[2], v[3], v[4], v[5], v[6]);
+            return new Settings(v[0], v[1], v[2], v[3], v[4], v[5], v[6],
+                    Auto.of(section == null ? null : section.getConfigurationSection("automatiques")));
         }
 
         /** What is wrong with the section, or null. */
@@ -92,9 +97,81 @@ final class Events implements CommandExecutor, Listener {
             if (section.getInt("joueurs-min", 2) > section.getInt("joueurs-max", 40)) {
                 return "evenements.joueurs-min: not more than joueurs-max";
             }
-            return null;
+            return Auto.check(section.getConfigurationSection("automatiques"));
         }
     }
+
+    /**
+     * The events the server hosts on its own (section evenements.automatiques): when the lobby has
+     * joueurs-lobby players out of a game and no event ran for minutes minutes, the next of types,
+     * in turn. Off without the section.
+     */
+    static final class Auto {
+        static final Auto OFF = new Auto(false, 20, 6, java.util.Arrays.asList(EventGame.Kind.values()));
+
+        final boolean on;
+        final int minutes;
+        final int lobbyPlayers;
+        final List<EventGame.Kind> kinds;
+
+        Auto(boolean on, int minutes, int lobbyPlayers, List<EventGame.Kind> kinds) {
+            this.on = on;
+            this.minutes = minutes;
+            this.lobbyPlayers = lobbyPlayers;
+            this.kinds = java.util.Collections.unmodifiableList(new ArrayList<>(kinds));
+        }
+
+        static Auto of(ConfigurationSection section) {
+            if (section == null) {
+                return OFF;
+            }
+            List<EventGame.Kind> kinds = new ArrayList<>();
+            for (String word : section.getStringList("types")) {
+                EventGame.Kind kind = EventGame.Kind.of(word);
+                if (kind != null && !kinds.contains(kind)) {
+                    kinds.add(kind);
+                }
+            }
+            if (kinds.isEmpty()) {
+                kinds.addAll(java.util.Arrays.asList(EventGame.Kind.values()));
+            }
+            return new Auto(section.getBoolean("actif", true), section.getInt("minutes", 20), section.getInt("joueurs-lobby", 6),
+                    kinds);
+        }
+
+        /** What is wrong with the section evenements.automatiques, or null. */
+        static String check(ConfigurationSection section) {
+            if (section == null) {
+                return null;
+            }
+            int minutes = section.getInt("minutes", 20);
+            if (minutes < 5 || minutes > 1440) {
+                return "evenements.automatiques.minutes: from 5 to 1440";
+            }
+            int players = section.getInt("joueurs-lobby", 6);
+            if (players < 2 || players > 200) {
+                return "evenements.automatiques.joueurs-lobby: from 2 to 200";
+            }
+            for (String word : section.getStringList("types")) {
+                if (EventGame.Kind.of(word) == null) {
+                    return "evenements.automatiques.types: sumo, brackets or lms, not \"" + word + "\"";
+                }
+            }
+            return null;
+        }
+
+        /**
+         * Whether the server hosts an event now: on, nothing running or announced, enough players
+         * in the lobby, and no event for {@link #minutes} (since the last one ended or was
+         * announced by the server).
+         */
+        boolean due(long now, long quietSince, boolean busy, int inLobby) {
+            return on && !busy && inLobby >= lobbyPlayers && now - quietSince >= minutes * 60_000L;
+        }
+    }
+
+    /** The name the server hosts its own events under. */
+    static final String SERVER_HOST = "Rago";
 
     /** The event being set up or played: its kind and its host. */
     static final class Hosting {
@@ -127,10 +204,23 @@ final class Events implements CommandExecutor, Listener {
     private long lastEnded;
     private Hosting hosting;
     private EventGame current;
+    /** The server's own event, announced and waiting for its first player, or null. */
+    private Hosting autoWaiting;
+    /** When the server last announced an event of its own, and the next kind it hosts. */
+    private long lastAuto;
+    private int nextKind;
 
     Events(RagoPractice plugin, Settings settings) {
         this.plugin = plugin;
         this.settings = settings;
+        this.lastAuto = System.currentTimeMillis();
+    }
+
+    /** The server's own events: a look every 20 seconds. */
+    void start() {
+        if (settings.auto.on) {
+            Bukkit.getScheduler().runTaskTimer(plugin, this::autoTick, 400L, 400L);
+        }
     }
 
     Settings settings() {
@@ -152,6 +242,7 @@ final class Events implements CommandExecutor, Listener {
     EventGame created(EventGame game) {
         if (hosting != null && hosting.kind == game.kind() && current() == null) {
             current = game;
+            autoWaiting = null;
         }
         return game;
     }
@@ -189,7 +280,7 @@ final class Events implements CommandExecutor, Listener {
     /** The event starts: its host's cooldown runs from now. */
     void started(EventGame game) {
         Hosting h = hosting;
-        if (h != null) {
+        if (h != null && h.host != null) {
             lastHosted.put(h.host, System.currentTimeMillis());
         }
     }
@@ -236,6 +327,52 @@ final class Events implements CommandExecutor, Listener {
         }
     }
 
+    // --- The server's own events -----------------------------------------------------------------
+
+    /**
+     * Every 20 seconds: when the lobby has enough players and no event ran for a while, the server
+     * announces the next event of its list; the first player to /join starts it, as a host would.
+     * Nobody within the wait: it is dropped without a word.
+     */
+    void autoTick() {
+        long now = System.currentTimeMillis();
+        if (autoWaiting != null) {
+            if (current() == null && now - autoWaiting.since > settings.waitSeconds * 1000L) {
+                if (hosting == autoWaiting) {
+                    hosting = null;
+                }
+                autoWaiting = null;
+            }
+            return;
+        }
+        int inLobby = 0;
+        for (Player player : Bukkit.getOnlinePlayers()) {
+            if (!plugin.lobby().isInGame(player)) {
+                inLobby++;
+            }
+        }
+        boolean busy = hosting != null || current() != null;
+        if (!settings.auto.due(now, Math.max(lastAuto, lastEnded), busy, inLobby)) {
+            return;
+        }
+        EventGame.Kind kind = settings.auto.kinds.get(nextKind % settings.auto.kinds.size());
+        nextKind++;
+        lastAuto = now;
+        hosting = new Hosting(kind, null, SERVER_HOST, now);
+        autoWaiting = hosting;
+        String line = ChatColor.GOLD + "" + ChatColor.BOLD + "[Event] " + ChatColor.YELLOW + SERVER_HOST + ChatColor.GRAY
+                + " is hosting " + ChatColor.GOLD + kind.label + ChatColor.GRAY + "! " + String.join(" ", kind.description);
+        String json = button(kind);
+        for (Player player : Bukkit.getOnlinePlayers()) {
+            if (plugin.lobby().isInGame(player)) {
+                continue;
+            }
+            player.sendMessage(line);
+            Bukkit.dispatchCommand(Bukkit.getConsoleSender(), "tellraw " + player.getName() + " " + json);
+            player.playSound(player.getLocation(), Sound.NOTE_PLING, 1f, 1.4f);
+        }
+    }
+
     // --- Hosting --------------------------------------------------------------------------------
 
     /** Why this player cannot host now (null: they can), at this time. */
@@ -247,7 +384,8 @@ final class Events implements CommandExecutor, Listener {
             return "Leave your game first (/spawn).";
         }
         EventGame running = current();
-        if (running != null || (hosting != null && now - hosting.since < 10_000L)) {
+        boolean announced = hosting != null && hosting != autoWaiting && now - hosting.since < 10_000L;
+        if (running != null || announced) {
             return "An event is already running" + (running != null && running.stage() == EventGame.Stage.WAITING
                     ? ": /join it." : ": wait for its end.");
         }
@@ -279,6 +417,8 @@ final class Events implements CommandExecutor, Listener {
             player.sendMessage(ChatColor.RED + why);
             return;
         }
+        // a player's event takes the place of the server's, announced but not started
+        autoWaiting = null;
         final Hosting h = new Hosting(kind, player.getUniqueId(), player.getName(), now);
         hosting = h;
         if (!plugin.lobby().queue(player, kind.modeId())) {
@@ -302,6 +442,14 @@ final class Events implements CommandExecutor, Listener {
     /** /join: into the event waiting for its players. */
     void join(Player player) {
         EventGame game = current();
+        if (game == null && autoWaiting != null && hosting == autoWaiting) {
+            if (plugin.lobby().isInGame(player)) {
+                player.sendMessage(ChatColor.RED + "Leave your game first (/spawn).");
+            } else if (!plugin.lobby().queue(player, autoWaiting.kind.modeId())) {
+                player.sendMessage(ChatColor.RED + "You cannot join the event now.");
+            }
+            return;
+        }
         if (game == null) {
             player.sendMessage(ChatColor.GRAY + "No event to join right now. PREMIUM players host them with /host.");
             return;
@@ -376,7 +524,8 @@ final class Events implements CommandExecutor, Listener {
             sender.sendMessage(ChatColor.GRAY + "No event is running.");
             return;
         }
-        boolean own = sender instanceof Player && hosting != null && hosting.host.equals(((Player) sender).getUniqueId());
+        boolean own = sender instanceof Player && hosting != null && hosting.host != null
+                && hosting.host.equals(((Player) sender).getUniqueId());
         if (!own && !sender.hasPermission(STAFF)) {
             sender.sendMessage(ChatColor.RED + "Only its host or the staff can call the event off.");
             return;
@@ -386,6 +535,11 @@ final class Events implements CommandExecutor, Listener {
 
     private void info(Player player) {
         EventGame game = current();
+        if (game == null && autoWaiting != null) {
+            player.sendMessage(ChatColor.GOLD + "[Event] " + ChatColor.YELLOW + autoWaiting.kind.label + ChatColor.GRAY
+                    + " hosted by the server: /join to be the first in.");
+            return;
+        }
         if (game == null) {
             player.sendMessage(ChatColor.GOLD + "[Event] " + ChatColor.GRAY + "No event right now. "
                     + (player.hasPermission(PERMISSION) ? "Host one with /host." : "PREMIUM players host them with /host."));

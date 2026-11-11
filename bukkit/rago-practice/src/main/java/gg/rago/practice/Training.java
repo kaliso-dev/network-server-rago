@@ -117,6 +117,13 @@ abstract class Training extends PracticeGame {
         }
         this.me = teams.get(0).get(0).getUniqueId();
         this.myName = teams.get(0).get(0).getName();
+        // [PLAY] of the challenge of the day: its variant first
+        String wanted = host.challenges() == null ? null : host.challenges().takeVariant(me, mode.id());
+        for (int i = 0; wanted != null && i < this.variants.size(); i++) {
+            if (this.variants.get(i).id.equals(wanted)) {
+                this.variant = i;
+            }
+        }
     }
 
     Variant current() {
@@ -345,8 +352,18 @@ abstract class Training extends PracticeGame {
         score(value, false);
     }
 
-    /** A new score; quiet: a message only for a new best (a streak that goes on). */
+    /**
+     * A new score; quiet: a message only for a new best (a streak that goes on). It also counts for
+     * the challenge of the day when this is its training.
+     */
     void score(long value, boolean quiet) {
+        record(value, quiet);
+        if (host.challenges() != null) {
+            host.challenges().scored(me, myName, board(), value);
+        }
+    }
+
+    private void record(long value, boolean quiet) {
         Player player = player();
         succeeded(me);
         RecordBook.Result result = host.records().submit(board(), me, myName, value);
@@ -384,7 +401,8 @@ abstract class Training extends PracticeGame {
     List<String> sidebar(UUID viewer) {
         List<String> lines = new ArrayList<>();
         lines.add(Duel.cut(mode.name()));
-        lines.add(Duel.cut(ChatColor.WHITE + "Mode: " + ChatColor.GREEN + current().label));
+        lines.add(Duel.cut(ChatColor.WHITE + "Mode: " + ChatColor.GREEN + current().label
+                + (host.challenges() != null && host.challenges().isToday(board()) ? ChatColor.GOLD + " \u2726 Daily" : "")));
         lines.add("");
         trainingLines(lines);
         lines.add("");

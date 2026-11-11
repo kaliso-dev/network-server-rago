@@ -49,8 +49,10 @@ final class BlockEditTraining extends Training {
     private int exposedSince = -1;
     private long bestTime;
 
+    static final Variant BOT = new Variant("bot", "Against the bot", false, "edits");
+
     BlockEditTraining(PracticeHost host, GameMode mode, Arena arena, List<List<Player>> teams) {
-        super(host, mode, arena, teams, new Variant("bot", "Against the bot", false, "edits"));
+        super(host, mode, arena, teams, BOT);
         speed = setting("Bot speed", 1, 3, 2);
     }
 

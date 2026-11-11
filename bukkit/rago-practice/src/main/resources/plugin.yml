@@ -5,6 +5,10 @@ author: Rago
 description: "The practice modes of Rago Practice, played from the lobby (duels, trainings, bots and an open arena)."
 depend: [RagoLobby]
 commands:
+  challenge:
+    description: "The challenge of the day: one training for everyone, the top 3 win XP."
+    usage: /challenge [play]
+    aliases: [defi, dailychallenge, dc]
   aimtop:
     description: The best scores of the aim trainer.
     usage: /aimtop [strafe|jump|circle]

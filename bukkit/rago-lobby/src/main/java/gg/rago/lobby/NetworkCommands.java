@@ -22,7 +22,7 @@ final class NetworkCommands implements CommandExecutor, TabCompleter {
 
     static final String[] NAMES = {"shop", "gift", "profile", "daily", "friend", "msg", "reply", "rank", "points", "top", "stats",
         "fly", "staffchat", "vanish", "freeze", "report", "clearchat", "mutechat", "ban", "unban", "mute", "unmute", "kick",
-        "warn", "history", "staff", "discord", "rules", "site", "store", "style", "level", "quests", "display", "nick", "realname", "booster", "pack"};
+        "warn", "history", "staff", "discord", "rules", "site", "store", "style", "level", "quests", "display", "nick", "realname", "booster", "pack", "settings", "season"};
 
     private static final String[] TOPS = {"elo", "level", "wins", "kills", "streak", "games", "points"};
 
@@ -48,6 +48,50 @@ final class NetworkCommands implements CommandExecutor, TabCompleter {
         return false;
     }
 
+    /** /season: the season now, its end, its rewards, the player's divisions and their past seasons. */
+    private void season(CommandSender sender) {
+        Season season = lobby.server().season();
+        StatsBook book = lobby.stats().book();
+        EloLadder ladder = book.ladder();
+        String end = season.endText(System.currentTimeMillis());
+        sender.sendMessage(ChatColor.GOLD + "" + ChatColor.BOLD + season.name() + (end.isEmpty() ? "" : ChatColor.GRAY + " - " + end));
+        sender.sendMessage(ChatColor.GRAY + "Every ranked ELO starts again from 0 at each season. At its end, the best division you"
+                + " reached in a ranked mode gives Rago Points:");
+        StringBuilder rewards = new StringBuilder();
+        for (EloLadder.Division division : ladder.divisions()) {
+            int points = season.reward(division.name());
+            if (points > 0) {
+                rewards.append(rewards.length() == 0 ? "" : ChatColor.DARK_GRAY + ", ").append(division.coloured()).append(' ')
+                        .append(ChatColor.GOLD).append(String.format("%,d", points));
+            }
+        }
+        if (rewards.length() > 0) {
+            sender.sendMessage(rewards.toString());
+        }
+        if (!(sender instanceof Player)) {
+            return;
+        }
+        java.util.UUID id = ((Player) sender).getUniqueId();
+        PlayerStats profile = book.get(id);
+        List<String> mine = new ArrayList<>();
+        for (GameMode mode : StatsMenu.rankedModes(lobby.settings())) {
+            ModeStats stats = profile == null ? null : profile.modes().get(mode.id());
+            if (stats != null && stats.games() > 0) {
+                mine.add(ChatColor.GRAY + StatsMenu.shortName(mode) + " " + ladder.format(stats.elo)
+                        + (stats.peakElo > stats.elo ? ChatColor.DARK_GRAY + " (best " + stats.peakElo + ")" : ""));
+            }
+        }
+        sender.sendMessage(ChatColor.WHITE + "You: " + (mine.isEmpty() ? ChatColor.GRAY + "no ranked game this season yet"
+                : String.join(ChatColor.DARK_GRAY + ", ", mine)));
+        if (profile != null && !profile.seasons().isEmpty()) {
+            List<String> past = new ArrayList<>();
+            for (java.util.Map.Entry<Integer, PlayerStats.SeasonResult> entry : profile.seasons().entrySet()) {
+                past.add(ChatColor.GRAY + "Season " + entry.getKey() + " " + ladder.format(entry.getValue().elo));
+            }
+            sender.sendMessage(ChatColor.WHITE + "Your seasons: " + String.join(ChatColor.DARK_GRAY + ", ", past));
+        }
+    }
+
     private static String rest(String[] args, int from) {
         return String.join(" ", Arrays.copyOfRange(args, Math.min(from, args.length), args.length)).trim();
     }
@@ -64,6 +108,14 @@ final class NetworkCommands implements CommandExecutor, TabCompleter {
             case "profile":
                 if ((player = player(sender)) != null) {
                     lobby.profileMenu().open(player);
+                }
+                return true;
+            case "season":
+                season(sender);
+                return true;
+            case "settings":
+                if ((player = player(sender)) != null) {
+                    lobby.profileMenu().openSettings(player);
                 }
                 return true;
             case "gift":

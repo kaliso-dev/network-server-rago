@@ -129,6 +129,34 @@ class StatsBookTest {
     }
 
     @Test
+    void aDuelCountsButMovesNeitherTheEloNorTheStreaks() {
+        StatsBook book = new StatsBook(0, NetworkLevel.DEFAULT);
+        win(book, RANKED, ALICE, BOB, SUNDAY);
+        assertEquals(35, book.elo(ALICE, "ranked-1v1"));
+        assertEquals(1, book.get(ALICE).mode("ranked-1v1").streak);
+        // two friends farming a ranked 1v1 with /duel: the games count, nothing else moves
+        for (int i = 0; i < 5; i++) {
+            book.record(RANKED, Collections.singletonList(ALICE), Collections.singletonList(BOB), NAMES, SUNDAY,
+                    Collections.<UUID>emptyList(), false);
+        }
+        ModeStats alice = book.get(ALICE).mode("ranked-1v1");
+        assertEquals(35, book.elo(ALICE, "ranked-1v1"), "no ELO from a duel");
+        assertEquals(0, book.elo(BOB, "ranked-1v1"));
+        assertEquals(6, alice.wins, "the wins count");
+        assertEquals(1, alice.streak, "the streak stays where the queue left it");
+        assertEquals(1, alice.bestStreak);
+        assertEquals(6, book.get(BOB).mode("ranked-1v1").losses, "one in the queue, five in duels");
+        for (TeamStreak team : book.teams("ranked-1v1")) {
+            assertTrue(team.streak <= 1, "no team streak either");
+        }
+        // a duel loss does not end a streak won in the queue
+        book.record(RANKED, Collections.singletonList(BOB), Collections.singletonList(ALICE), NAMES, SUNDAY,
+                Collections.<UUID>emptyList(), false);
+        assertEquals(1, book.get(ALICE).mode("ranked-1v1").streak);
+        assertTrue(book.get(ALICE).xp() > 0, "the XP of the games is still given");
+    }
+
+    @Test
     void gamesAndKillsGiveNetworkXp() {
         StatsBook book = new StatsBook(1000, NetworkLevel.DEFAULT);
         assertEquals(1, book.level(ALICE), "everyone starts at level 1");
@@ -302,6 +330,8 @@ class StatsBookTest {
         alice.setMessages(PlayerStats.MessageSetting.FRIENDS);
         alice.setPartyInvites(false);
         alice.setDaily("2026-11-08", 3);
+        alice.setAutoRequeue(true);
+        alice.setTimeOfDay(PlayerStats.TimeOfDay.NIGHT);
         PlayerStats read = StatsFiles.fromYaml(ALICE, StatsFiles.toYaml(alice));
         assertEquals("Alice", read.name());
         assertEquals(StatsFiles.toYaml(alice), StatsFiles.toYaml(read));
@@ -323,6 +353,10 @@ class StatsBookTest {
         assertEquals(PlayerStats.MessageSetting.FRIENDS, read.messages());
         assertTrue(!read.partyInvites());
         assertEquals(3, read.dailyStreak());
+        assertTrue(read.autoRequeue());
+        assertEquals(PlayerStats.TimeOfDay.NIGHT, read.timeOfDay());
+        assertEquals(PlayerStats.TimeOfDay.DAY, StatsFiles.fromYaml(BOB, StatsFiles.toYaml(book.get(BOB))).timeOfDay(),
+                "the server's own sky by default");
         StatsBook loaded = new StatsBook(0, NetworkLevel.DEFAULT);
         assertTrue(loaded.load(read));
         assertEquals(35, loaded.elo(ALICE, "ranked-1v1"));

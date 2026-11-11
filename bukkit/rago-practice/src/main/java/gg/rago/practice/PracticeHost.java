@@ -183,6 +183,11 @@ final class PracticeHost implements MatchHost {
         games.litBy(tnt, player);
     }
 
+    /** The challenge of the day, or null while the plugin starts. */
+    Challenges challenges() {
+        return plugin.challenges();
+    }
+
     /** The records of the trainings. */
     Records records() {
         return plugin.records();

@@ -50,10 +50,13 @@ final class FastDefenseTraining extends Training {
     private int previewLeft;
     private long refusedAt;
 
+    /** The defenses to build, timed. */
+    static final Variant[] DEFENSES = {
+        new Variant("ranked", "Ranked (end stone, glass)", true, ""),
+        new Variant("duo", "Duo (end stone, wool)", true, "")};
+
     FastDefenseTraining(PracticeHost host, GameMode mode, Arena arena, List<List<Player>> teams) {
-        super(host, mode, arena, teams,
-                new Variant("ranked", "Ranked (end stone, glass)", true, ""),
-                new Variant("duo", "Duo (end stone, wool)", true, ""));
+        super(host, mode, arena, teams, DEFENSES);
         places.add(rankedDefense());
         places.add(duoDefense());
     }

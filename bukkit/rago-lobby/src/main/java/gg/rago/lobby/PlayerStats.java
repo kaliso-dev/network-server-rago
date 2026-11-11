@@ -34,6 +34,10 @@ final class PlayerStats {
     private boolean duelRequests = true;
     /** The Speed of the lobby (PREMIUM): 0 for none, else the level of the effect, 1 to 3. */
     private int lobbySpeed;
+    /** Back in the queue of the same mode after each game, without a click (/settings). */
+    private boolean autoRequeue;
+    /** The time of day the player sees, in the lobby and in games (/settings). */
+    private TimeOfDay timeOfDay = TimeOfDay.DAY;
     /** The gadget of the hotbar (the name of its HotbarItem), null for the teleport stick. */
     private String gadget;
     /** The day the daily reward was last claimed ("" never), and the days in a row. */
@@ -68,8 +72,67 @@ final class PlayerStats {
     private String questDay = "";
     private String questWeek = "";
     private final Map<String, Integer> quests = new LinkedHashMap<>();
+    /** The ranked seasons that ended, by number: the best ELO reached, its division, rewarded or not. */
+    private final Map<Integer, SeasonResult> seasons = new java.util.TreeMap<>();
+
+    /** A ranked season that ended: the best ELO of the player in any ranked mode, and its division. */
+    static final class SeasonResult {
+        final int elo;
+        final String division;
+        /** True once its Rago Points were given (at the next arrival). */
+        boolean rewarded;
+
+        SeasonResult(int elo, String division, boolean rewarded) {
+            this.elo = elo;
+            this.division = division;
+            this.rewarded = rewarded;
+        }
+    }
 
     /** Who may send this player private messages. */
+    /** The time of day a player sees: the server's noon, a sunset or the night (their own sky only). */
+    enum TimeOfDay {
+        DAY("jour", "Day", -1L),
+        SUNSET("coucher", "Sunset", 12500L),
+        NIGHT("nuit", "Night", 18000L);
+
+        private final String id;
+        private final String label;
+        private final long ticks;
+
+        TimeOfDay(String id, String label, long ticks) {
+            this.id = id;
+            this.label = label;
+            this.ticks = ticks;
+        }
+
+        String id() {
+            return id;
+        }
+
+        String label() {
+            return label;
+        }
+
+        /** The time of the player's sky in ticks, or -1 for the server's own. */
+        long ticks() {
+            return ticks;
+        }
+
+        TimeOfDay next() {
+            return values()[(ordinal() + 1) % values().length];
+        }
+
+        static TimeOfDay of(String id) {
+            for (TimeOfDay time : values()) {
+                if (time.id.equals(id)) {
+                    return time;
+                }
+            }
+            return DAY;
+        }
+    }
+
     enum MessageSetting {
         ALL("all", "Everyone"), FRIENDS("friends", "Friends only"), NONE("none", "Nobody");
 
@@ -211,6 +274,22 @@ final class PlayerStats {
 
     int lobbySpeed() {
         return lobbySpeed;
+    }
+
+    boolean autoRequeue() {
+        return autoRequeue;
+    }
+
+    void setAutoRequeue(boolean autoRequeue) {
+        this.autoRequeue = autoRequeue;
+    }
+
+    TimeOfDay timeOfDay() {
+        return timeOfDay;
+    }
+
+    void setTimeOfDay(TimeOfDay timeOfDay) {
+        this.timeOfDay = timeOfDay == null ? TimeOfDay.DAY : timeOfDay;
     }
 
     String gadget() {
@@ -449,6 +528,11 @@ final class PlayerStats {
 
     Map<String, ModeStats> modes() {
         return Collections.unmodifiableMap(modes);
+    }
+
+    /** The seasons that ended, the oldest first. */
+    Map<Integer, SeasonResult> seasons() {
+        return seasons;
     }
 
     /** Wins of one mode, or of every mode when modeId is null. */

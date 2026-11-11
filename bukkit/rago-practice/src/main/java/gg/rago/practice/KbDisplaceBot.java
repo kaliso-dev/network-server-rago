@@ -34,8 +34,10 @@ final class KbDisplaceBot extends Training {
     private boolean scored;
     private long warnedAt;
 
+    static final Variant STILL = new Variant("still", "Bot in the notch", true, "");
+
     KbDisplaceBot(PracticeHost host, GameMode mode, Arena arena, List<List<Player>> teams, KbDisplace.Place place) {
-        super(host, mode, arena, teams, new Variant("still", "Bot in the notch", true, ""));
+        super(host, mode, arena, teams, STILL);
         this.place = place;
     }
 

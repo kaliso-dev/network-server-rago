@@ -83,11 +83,12 @@ final class ServerSettings {
     private final LevelRewards levelRewards;
     private final Quests quests;
     private final StarterPack starterPack;
+    private final Season season;
 
     private ServerSettings(Ranks ranks, Map<String, NameStyle> styles, EloLadder elo, Points points, Map<String, Cosmetic> cosmetics, long chatCooldownMillis,
             boolean blockRepeats, List<String> tabHeader, List<String> tabFooter, List<String> motd, int announceMinutes,
             List<String> announcements, Map<String, List<String>> links, LevelRewards levelRewards, Quests quests,
-            StarterPack starterPack) {
+            StarterPack starterPack, Season season) {
         this.ranks = ranks;
         this.styles = Collections.unmodifiableMap(styles);
         this.elo = elo;
@@ -104,6 +105,7 @@ final class ServerSettings {
         this.levelRewards = levelRewards;
         this.quests = quests;
         this.starterPack = starterPack;
+        this.season = season;
     }
 
     static ServerSettings load(ConfigurationSection config) {
@@ -165,8 +167,9 @@ final class ServerSettings {
         LevelRewards rewards = readRewards(config.getConfigurationSection("niveau.recompenses"), cosmetics, styles);
         Quests quests = readQuests(config.getConfigurationSection("quetes"));
         StarterPack pack = StarterPack.read(config.getConfigurationSection("pack-depart"), cosmetics);
+        Season season = Season.read(config.getConfigurationSection("saison"), elo);
         return new ServerSettings(ranks, styles, elo, points, cosmetics, cooldown * 1000L, repeats, header, footer, motd,
-                minutes, announcements, links, rewards, quests, pack);
+                minutes, announcements, links, rewards, quests, pack, season);
     }
 
     // --- Level rewards and quests ---------------------------------------------------------------
@@ -543,6 +546,11 @@ final class ServerSettings {
             }
         }
         return list;
+    }
+
+    /** The ranked season now (saison: in config.yml). */
+    Season season() {
+        return season;
     }
 
     EloLadder elo() {

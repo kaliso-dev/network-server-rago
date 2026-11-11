@@ -172,6 +172,11 @@ xp-entrainement:
 # (otherwise it is called off), joueurs-max at most. A host waits cooldown-minutes before hosting
 # again (the staff, rago.staff, never waits), and the server pause-secondes between two events.
 # The winner gets xp-gagnant Network XP, every other player xp-participation.
+# automatiques: the server hosts events on its own, under the name "Rago", when nobody does: once
+# the lobby has joueurs-lobby players out of a game (2 to 200) and no event ran for minutes minutes
+# (5 to 1440), it announces the next of types (sumo, brackets, lms, in turn) with a [Click to join];
+# the first player in starts it, and it plays as a hosted one. actif: false turns them off; without
+# the section, there are none.
 evenements:
   attente-secondes: 60
   joueurs-min: 2
@@ -180,6 +185,31 @@ evenements:
   pause-secondes: 120
   xp-gagnant: 250
   xp-participation: 25
+  automatiques:
+    actif: true
+    minutes: 20
+    joueurs-lobby: 6
+    types: [sumo, brackets, lms]
+
+# The challenge of the day (/challenge): each day (Paris time) one training for everyone, the
+# next of epreuves in turn (the same all day, restart or not). Each player's best of the day makes
+# the day's top; at midnight the first, the second and the third get xp-podium Network XP. A
+# player's first score of the day gives xp-participation, plus xp-par-jour-de-suite for each day
+# in a row they played it (jours-de-suite-max days at most). The trainings: block-in.wood,
+# block-in.wool, block-in.two, clutch.island, clutch-top-fight.top, aim-trainer.strafe,
+# aim-trainer.jump, aim-trainer.circle, fast-defense.ranked, fast-defense.duo, ladder-practice.h4
+# (h8 ... h24), ladder-practice.random, combo-bot.easy (normal, hard, expert),
+# extend-practice.chain (and its jumps: double-5-1...), kb-displace-bot.still, block-edit.bot.
+# actif: false turns it off; without the section, there is none.
+defi-du-jour:
+  actif: true
+  epreuves: [block-in.wood, clutch.island, aim-trainer.strafe, fast-defense.ranked, ladder-practice.random,
+    combo-bot.hard, extend-practice.chain, clutch-top-fight.top, block-edit.bot, block-in.two, aim-trainer.circle,
+    kb-displace-bot.still]
+  xp-participation: 100
+  xp-par-jour-de-suite: 25
+  jours-de-suite-max: 7
+  xp-podium: [750, 500, 300]
 
 # Aim trainer: each second with the crosshair on the target (or a hit) gives xp-par-seconde
 # Network XP, and the end of the attempt one more for each touches-par-xp hits (100 hits: 10).

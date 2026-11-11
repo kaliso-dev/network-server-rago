@@ -21,10 +21,11 @@ final class StatsFiles {
     /** The team streaks, in the stats folder: one file per mode. */
     static final String TEAMS_FOLDER = "equipes";
     /**
-     * The ELO of a file of another season is not read: the season of the divisions (from 0, as on
-     * the Ranked Bedwars servers) started everyone again from 0.
+     * The season of the ELO when none is set (saison: in config.yml): the season of the divisions
+     * (from 0, as on the Ranked Bedwars servers) started everyone again from 0. The ELO of a file of
+     * another season is not read: a new season starts everyone again from 0.
      */
-    static final int ELO_SEASON = 2;
+    static final int ELO_SEASON = Season.FIRST_WITH_DIVISIONS;
 
     private StatsFiles() {
     }
@@ -34,11 +35,22 @@ final class StatsFiles {
     }
 
     static String toYaml(PlayerStats stats) {
+        return toYaml(stats, ELO_SEASON);
+    }
+
+    /** The file of the player's stats, their ELO of this season. */
+    static String toYaml(PlayerStats stats, int season) {
         YamlConfiguration yaml = new YamlConfiguration();
         yaml.options().header("Stats of " + stats.name() + ", written by RagoLobby.");
         yaml.set("nom", stats.name());
         yaml.set("xp", stats.xp());
-        yaml.set("elo-saison", ELO_SEASON);
+        yaml.set("elo-saison", season);
+        for (Map.Entry<Integer, PlayerStats.SeasonResult> ended : stats.seasons().entrySet()) {
+            String path = "profil.saisons." + ended.getKey();
+            yaml.set(path + ".elo", ended.getValue().elo);
+            yaml.set(path + ".division", ended.getValue().division);
+            yaml.set(path + ".recompense", ended.getValue().rewarded);
+        }
         yaml.set("profil.points", stats.points());
         if (stats.rank() != null) {
             yaml.set("profil.rang", stats.rank());
@@ -60,6 +72,8 @@ final class StatsFiles {
         yaml.set("profil.reglages.amis", stats.friendRequests());
         yaml.set("profil.reglages.duels", stats.duelRequests());
         yaml.set("profil.reglages.vitesse", stats.lobbySpeed());
+        yaml.set("profil.reglages.rejouer", stats.autoRequeue());
+        yaml.set("profil.reglages.heure", stats.timeOfDay().id());
         yaml.set("profil.gadget", stats.gadget());
         yaml.set("profil.quotidien.date", stats.dailyDay());
         yaml.set("profil.quotidien.serie", stats.dailyStreak());
@@ -112,6 +126,9 @@ final class StatsFiles {
             section.set("meilleure-serie", m.bestStreak);
             if (m.rated()) {
                 section.set("elo", m.elo);
+            }
+            if (m.peakElo > m.elo) {
+                section.set("elo-max", m.peakElo);
             }
             section.set("kills", m.kills);
             section.set("morts", m.deaths);
@@ -195,11 +212,36 @@ final class StatsFiles {
 
     /** The stats of this file's text. */
     static PlayerStats fromYaml(UUID player, String text) throws InvalidConfigurationException {
+        return fromYaml(player, text, ELO_SEASON, EloLadder.DEFAULT);
+    }
+
+    /**
+     * The stats of this file's text, in this season: the ELO of a file of another season is not
+     * read, and when that season ended (an older one, with divisions) the best ELO the player
+     * reached in it becomes their result of that season, its reward still to give.
+     */
+    static PlayerStats fromYaml(UUID player, String text, int season, EloLadder ladder) throws InvalidConfigurationException {
         YamlConfiguration yaml = new YamlConfiguration();
         yaml.loadFromString(text);
         PlayerStats stats = new PlayerStats(player, yaml.getString("nom", "?"));
         stats.addXp(Math.max(0, yaml.getInt("xp")));
-        boolean thisSeason = yaml.getInt("elo-saison", 1) == ELO_SEASON;
+        int fileSeason = yaml.getInt("elo-saison", 1);
+        boolean thisSeason = fileSeason == season;
+        ConfigurationSection ended = yaml.getConfigurationSection("profil.saisons");
+        if (ended != null) {
+            for (String key : ended.getKeys(false)) {
+                try {
+                    int number = Integer.parseInt(key);
+                    String division = ended.getString(key + ".division", "");
+                    stats.seasons().put(number, new PlayerStats.SeasonResult(Math.max(0, ended.getInt(key + ".elo")),
+                            division.isEmpty() ? ladder.division(Math.max(0, ended.getInt(key + ".elo"))).name() : division,
+                            ended.getBoolean(key + ".recompense", true)));
+                } catch (NumberFormatException e) {
+                    // not a season: left out
+                }
+            }
+        }
+        int seasonBest = 0;
         stats.addPoints(Math.max(0, yaml.getInt("profil.points")));
         String rank = yaml.getString("profil.rang", null);
         stats.setRank(rank == null || rank.trim().isEmpty() ? null : rank.trim());
@@ -223,6 +265,8 @@ final class StatsFiles {
         stats.setFriendRequests(yaml.getBoolean("profil.reglages.amis", true));
         stats.setDuelRequests(yaml.getBoolean("profil.reglages.duels", true));
         stats.setLobbySpeed(yaml.getInt("profil.reglages.vitesse", 0));
+        stats.setAutoRequeue(yaml.getBoolean("profil.reglages.rejouer", false));
+        stats.setTimeOfDay(PlayerStats.TimeOfDay.of(yaml.getString("profil.reglages.heure", "jour")));
         stats.setGadget(yaml.getString("profil.gadget", null));
         stats.setDaily(yaml.getString("profil.quotidien.date", ""), yaml.getInt("profil.quotidien.serie"));
         stats.choose(NameStyle.Kind.COLOUR, yaml.getString("profil.style.couleur", null));
@@ -261,7 +305,11 @@ final class StatsFiles {
                 m.losses = Math.max(0, section.getInt("defaites"));
                 m.streak = Math.max(0, section.getInt("serie"));
                 m.bestStreak = Math.max(m.streak, section.getInt("meilleure-serie"));
-                m.elo = thisSeason ? Math.max(0, section.getInt("elo")) : 0;
+                int elo = Math.max(0, section.getInt("elo"));
+                int peak = Math.max(elo, section.getInt("elo-max"));
+                seasonBest = Math.max(seasonBest, peak);
+                m.elo = thisSeason ? elo : 0;
+                m.peakElo = thisSeason ? peak : 0;
                 m.kills = Math.max(0, section.getInt("kills"));
                 m.deaths = Math.max(0, section.getInt("morts"));
                 m.finalKills = Math.max(0, section.getInt("final-kills"));
@@ -277,6 +325,10 @@ final class StatsFiles {
                 m.weekBest = Math.max(0, section.getInt("semaine.meilleure-serie"));
                 m.weekKills = Math.max(0, section.getInt("semaine.kills"));
             }
+        }
+        if (!thisSeason && fileSeason >= Season.FIRST_WITH_DIVISIONS && fileSeason < season && seasonBest > 0
+                && !stats.seasons().containsKey(fileSeason)) {
+            stats.seasons().put(fileSeason, new PlayerStats.SeasonResult(seasonBest, ladder.division(seasonBest).name(), false));
         }
         return stats;
     }

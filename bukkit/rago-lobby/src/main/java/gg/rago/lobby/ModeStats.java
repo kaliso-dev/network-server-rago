@@ -13,6 +13,8 @@ final class ModeStats {
     int bestStreak;
     /** The ELO of a ranked mode; 0 before the first ranked game. */
     int elo;
+    /** The highest ELO of the season in this mode. */
+    int peakElo;
     int kills;
     int deaths;
     /** Bed Wars: the final kills and the beds broken, ever. */
@@ -33,6 +35,11 @@ final class ModeStats {
 
     /** One game, won or lost, played on this day of this week. */
     void record(boolean won, String dayKey, String weekKey) {
+        record(won, dayKey, weekKey, true);
+    }
+
+    /** A game: without streaks (a /duel), the win or loss counts but the streaks stay as they are. */
+    void record(boolean won, String dayKey, String weekKey, boolean streaks) {
         roll(dayKey, weekKey);
         dayGames++;
         weekGames++;
@@ -40,13 +47,17 @@ final class ModeStats {
             wins++;
             dayWins++;
             weekWins++;
-            streak++;
-            bestStreak = Math.max(bestStreak, streak);
-            dayBest = Math.max(dayBest, streak);
-            weekBest = Math.max(weekBest, streak);
+            if (streaks) {
+                streak++;
+                bestStreak = Math.max(bestStreak, streak);
+                dayBest = Math.max(dayBest, streak);
+                weekBest = Math.max(weekBest, streak);
+            }
         } else {
             losses++;
-            streak = 0;
+            if (streaks) {
+                streak = 0;
+            }
         }
     }
 

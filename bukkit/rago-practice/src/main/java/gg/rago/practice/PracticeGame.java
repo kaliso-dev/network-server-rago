@@ -57,6 +57,8 @@ abstract class PracticeGame {
     private final Map<UUID, Integer> sideOf = new HashMap<>();
     private final Map<UUID, UUID> lastHitBy = new HashMap<>();
     private final Map<UUID, Long> lastHitAt = new HashMap<>();
+    /** The hits and combos of each player, told at the end of a duel. */
+    final MatchRecap recap = new MatchRecap();
     private final List<BukkitTask> later = new ArrayList<>();
     Phase phase = Phase.COUNTDOWN;
     /** Seconds since the fight started, in this round. */
@@ -460,6 +462,14 @@ abstract class PracticeGame {
                 player.sendMessage(ChatColor.RED + "" + ChatColor.BOLD + "Defeat." + ChatColor.GRAY + " " + result(winner));
             }
         }
+        if (showsRecap()) {
+            List<String> lines = recap.lines(sides, this::nameOf, Duel.CHAT);
+            for (Player player : online()) {
+                for (String line : lines) {
+                    player.sendMessage(line);
+                }
+            }
+        }
         ended();
         Bukkit.getScheduler().runTaskLater(plugin, this::backToLobby, 1L);
     }
@@ -613,10 +623,21 @@ abstract class PracticeGame {
         sidebars();
     }
 
-    /** Remembers who hit whom last, for the kill of a fall. */
+    /** Remembers who hit whom last, for the kill of a fall, and counts the hit for the recap. */
     void hit(Player victim, Player attacker) {
         lastHitBy.put(victim.getUniqueId(), attacker.getUniqueId());
         lastHitAt.put(victim.getUniqueId(), System.currentTimeMillis());
+        if (phase == Phase.PLAYING) {
+            recap.hit(attacker.getUniqueId(), victim.getUniqueId());
+        }
+    }
+
+    /**
+     * Whether the end of the game tells the recap of the hits: a duel of two sides, four players
+     * at most, where someone hit someone. An event or a training does not.
+     */
+    boolean showsRecap() {
+        return sides.size() == 2 && names.size() <= 4 && !recap.isEmpty();
     }
 
     /** Who gets the kill if this player dies now: the last one to hit them lately, or null. */

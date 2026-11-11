@@ -24,6 +24,11 @@ final class LobbyState {
     private final Set<UUID> building = new HashSet<>();
     /** The players of a party's private game: it counts in no stats. */
     private final Set<UUID> privateGame = new HashSet<>();
+    /**
+     * The players of a game started without the queue (a /duel): it counts, but never moves the
+     * ranked ELO nor the win streaks, which two friends could farm against each other.
+     */
+    private final Set<UUID> unrated = new HashSet<>();
 
     LobbyState(World world, SpawnPoint spawn) {
         this.world = world;
@@ -70,6 +75,7 @@ final class LobbyState {
         inGame.remove(player);
         opponents.remove(player);
         privateGame.remove(player);
+        unrated.remove(player);
     }
 
     /** The player's game is a party's private game: it counts in no stats. */
@@ -81,6 +87,17 @@ final class LobbyState {
 
     boolean isInPrivateGame(UUID player) {
         return privateGame.contains(player);
+    }
+
+    /** The player's game started without the queue (a /duel): no ELO, no win streak. */
+    void markUnrated(UUID player) {
+        if (inGame.containsKey(player)) {
+            unrated.add(player);
+        }
+    }
+
+    boolean isUnrated(UUID player) {
+        return unrated.contains(player);
     }
 
     /** The players of the other teams of the player's game, for the sidebar. */
@@ -112,5 +129,6 @@ final class LobbyState {
         opponents.remove(player);
         building.remove(player);
         privateGame.remove(player);
+        unrated.remove(player);
     }
 }

@@ -463,6 +463,18 @@ elo:
     Amethyst: {couleur: "&5", elo: 900, victoire: 10, defaite: 30}
     Obsidian: {couleur: "&0", elo: 1000, victoire: 10, defaite: 35}
 
+# The ranked season (/season), as on the Ranked Bedwars servers: a new numero starts every ranked
+# ELO again from 0 (change it, then restart the server). The best ELO each player reached in the
+# season that ended stays in their profile, and its division gives the Rago Points of recompenses
+# at their next arrival (once). nom: shown to the players (default "Season <numero>"); fin: the
+# last day of the season (2027-01-31), shown with the days left (it changes nothing by itself).
+saison:
+  numero: 2
+  nom: "Season 2"
+  fin: ""
+  recompenses: {Coal: 0, Iron: 250, Gold: 500, Diamond: 1000, Emerald: 1500, Sapphire: 2000, Ruby: 3000, Crystal: 4000,
+    Opal: 5000, Amethyst: 7500, Obsidian: 10000}
+
 # The Rago Points, spent in the shop: for a win, a game played (lost), a kill, each new level
 # (the level times par-niveau: 100 for level 10), and the daily reward (/daily): quotidien, plus
 # quotidien-serie for each day in a row, up to 7 days. The trainings, the practice, the aim

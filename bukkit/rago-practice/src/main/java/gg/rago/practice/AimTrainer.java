@@ -73,11 +73,14 @@ final class AimTrainer extends Training {
     private int streak;
     private int xp;
 
+    /** The three targets, as the hotbar names them. */
+    static final Variant[] TARGETS = {
+        new Variant(VARIANTS[0], "Strafing target", false, "hits"),
+        new Variant(VARIANTS[1], "Strafing and jumping", false, "hits"),
+        new Variant(VARIANTS[2], "Circling target", false, "hits")};
+
     AimTrainer(PracticeHost host, GameMode mode, Arena arena, List<List<Player>> teams, int xpPerSecond, int hitsPerXp) {
-        super(host, mode, arena, teams,
-                new Variant(VARIANTS[0], "Strafing target", false, "hits"),
-                new Variant(VARIANTS[1], "Strafing and jumping", false, "hits"),
-                new Variant(VARIANTS[2], "Circling target", false, "hits"));
+        super(host, mode, arena, teams, TARGETS);
         this.xpPerSecond = xpPerSecond;
         this.hitsPerXp = hitsPerXp;
     }
@@ -198,7 +201,10 @@ final class AimTrainer extends Training {
     @Override
     void onFight() {
         if (target == null || !target.isValid()) {
-            target = arena.world().spawn(place(), ArmorStand.class);
+            // a zone used before may have its chunk unloaded: no entity goes into one
+            Location at = place();
+            at.getChunk().load();
+            target = arena.world().spawn(at, ArmorStand.class);
             target.setGravity(false);
             target.setBasePlate(false);
             target.setArms(true);
@@ -250,6 +256,9 @@ final class AimTrainer extends Training {
     @Override
     void tick() {
         if (target == null || !target.isValid()) {
+            if (phase == Phase.PLAYING && !done && tickCount % 10 == 0) {
+                onFight();
+            }
             return;
         }
         move();

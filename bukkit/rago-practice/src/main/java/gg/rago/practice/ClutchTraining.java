@@ -73,9 +73,11 @@ final class ClutchTraining extends Training {
     private long limitTold;
     private Vector way;
 
+    static final Variant ISLAND = new Variant("island", "Island clutch", false, "clutches");
+    static final Variant TOP = new Variant("top", "Top fight clutch", false, "clutches");
+
     ClutchTraining(PracticeHost host, GameMode mode, Arena arena, List<List<Player>> teams, boolean topFight, Island island) {
-        super(host, mode, arena, teams, topFight ? new Variant("top", "Top fight clutch", false, "clutches")
-                : new Variant("island", "Island clutch", false, "clutches"));
+        super(host, mode, arena, teams, topFight ? TOP : ISLAND);
         this.topFight = topFight;
         this.island = island == null ? plainIsland() : island;
         knockback = setting("Knockback", 1, 5, 3);

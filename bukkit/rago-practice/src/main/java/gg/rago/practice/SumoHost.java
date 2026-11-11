@@ -191,6 +191,20 @@ final class SumoHost implements MatchHost, Listener {
         event.setCancelled(true);
     }
 
+    /** A hit that went through between the two duellists: counted for the recap of the duel. */
+    @EventHandler(priority = EventPriority.MONITOR, ignoreCancelled = true)
+    public void onHit(EntityDamageByEntityEvent event) {
+        Entity victim = event.getEntity();
+        Entity damager = event.getDamager();
+        if (!(victim instanceof Player) || !(damager instanceof Player)) {
+            return;
+        }
+        SumoMatch duel = matches.get(victim.getUniqueId());
+        if (duel != null && matches.get(damager.getUniqueId()) == duel && !damager.equals(victim)) {
+            duel.hit(damager.getUniqueId(), victim.getUniqueId());
+        }
+    }
+
     @EventHandler(ignoreCancelled = true)
     public void onHunger(FoodLevelChangeEvent event) {
         if (matches.containsKey(event.getEntity().getUniqueId())) {

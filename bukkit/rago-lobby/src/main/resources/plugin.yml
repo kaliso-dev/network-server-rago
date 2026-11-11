@@ -48,6 +48,14 @@ commands:
     description: Your profile, stats, friends and settings.
     usage: /profile
     aliases: [profil, me]
+  season:
+    description: The ranked season - its end, its rewards, your divisions and past seasons.
+    usage: /season
+    aliases: [saison]
+  settings:
+    description: Your settings - messages, invites, time of day, play again.
+    usage: /settings
+    aliases: [options, reglages, parametres]
   daily:
     description: Claim your daily Rago Points.
     usage: /daily

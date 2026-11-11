@@ -82,6 +82,17 @@ dans les files d'attente des modes de jeu.
   `plugins/RagoLobby/stats/equipes/`, un fichier par mode.
 - **Les files d'attente.** Le matchmaking de `rago-game-model`, une fois par seconde. Un joueur
   n'attend que dans une file à la fois.
+- **Après une partie : rejouer ou revanche.** De retour au lobby, une ligne cliquable :
+  **[PLAY AGAIN]** remet dans la file du même mode, et après un 1v1 qui n'est pas classé,
+  **[REMATCH]** défie le même adversaire dans le même mode (s'il est encore là). Avec « Play again »
+  sur « Automatic » dans `/settings`, le joueur est remis dans la file tout seul, sans clic (pas
+  après un `/spawn` : il est parti de lui-même). En party, seul le chef relance la file. Rien pour
+  un mode fermé ou caché (les events).
+- **Les duels ne sont pas classés.** Une partie lancée sans la file (un `/duel`, une partie privée)
+  ne fait bouger ni l'ELO ni les séries de victoires (du joueur et de l'équipe), même dans un mode
+  classé : deux amis ne peuvent pas se donner des victoires pour monter. Les victoires, l'XP et les
+  Rago Points comptent quand même. Le défi en mode classé le dit (« A duel never changes the
+  ranked ELO. »).
 - **Le scoreboard.** Comme le lobby principal d'Hypixel, titre en jaune : la date, le rang, le
   niveau et l'avancée vers le suivant en %, les Rago Points, la meilleure division classée, le
   lobby et les joueurs connectés, la file et le temps d'attente quand on attend, l'adresse en
@@ -188,6 +199,15 @@ dans les files d'attente des modes de jeu.
   divisions ; le MVP de la partie (le plus de kills) gagne 5 de plus. La file classée apparie
   les joueurs par ELO. Ces valeurs sont les nôtres (les chiffres de RBW ne sont pas publics), et
   se règlent dans `elo:`.
+- **Les saisons classées (`/season`).** Comme sur les serveurs Ranked Bedwars, l'ELO repart de 0
+  à chaque saison. La saison en cours est `saison.numero` (2 : celle des divisions) ; pour en
+  commencer une nouvelle, on passe au numéro suivant et on redémarre le serveur. Le meilleur ELO
+  que chaque joueur a atteint dans la saison finie (tous modes classés confondus) reste dans son
+  profil (« Season 2: Diamond 310 »), et sa division lui rapporte des Rago Points à sa prochaine
+  arrivée, une seule fois (`saison.recompenses` : de 250 pour Iron à 10 000 pour Obsidian), avec
+  un message. `saison.nom` est le nom montré, `saison.fin` le dernier jour, affiché avec les jours
+  qui restent (il ne change rien tout seul). `/season` montre la saison, sa fin, les récompenses,
+  ses divisions (et son meilleur ELO de la saison) et ses saisons passées ; le profil aussi.
 - **L'arrivée au lobby.** Chaque arrivée (connexion ou retour d'une partie) s'annonce au lobby,
   une fois par minute au plus : en gris pour un joueur sans rang, comme sur Hypixel
   (`>>> [VIP] Pseudo joined the lobby! <<<`) avec des particules et un son pour un rang, et un
@@ -202,7 +222,10 @@ dans les files d'attente des modes de jeu.
   Points : il faut le niveau et le prix du rang, comme pour l'acheter pour soi. Celui qui le reçoit
   est prévenu, et le lobby aussi.
 - **Le profil (`/profile`)** : rang, niveau, points, divisions, stats, amis, boutique et
-  réglages (messages privés, invitations de party, demandes d'ami et défis, chacun activable).
+  réglages (`/settings` les ouvre aussi) : messages privés, invitations de party, demandes d'ami
+  et défis (chacun activable), l'heure du ciel (« Time of day » : jour, coucher de soleil ou nuit,
+  pour soi seul, au lobby et en partie) et « Play again » (remis dans la file tout seul après une
+  partie, ou avec le bouton).
 - **Les amis et les messages privés.** `/friend` (100 amis au plus, demandes cliquables qui
   expirent après 5 minutes, « Friend > X joined. »), `/msg` et `/r`.
 - **Le staff.** Le chat du staff, le vanish, le freeze (pour une vérification), les reports, le
@@ -239,6 +262,8 @@ commentaires de `config.yml`. Les mots français de la première version (`quitt
 | `/lobby point remove <nom>`, `/lobby point tp <nom>`, `/lobby points` | retirer un point, y aller, la liste | `rago.lobby.admin` |
 | `/lobby build` | mode construction dans le lobby (créatif, protection levée) | `rago.lobby.admin` |
 | `/shop` (ou `/boutique`), `/profile` (ou `/me`), `/daily` | la boutique, son profil, la récompense du jour | tout le monde |
+| `/settings` (ou `/options`, `/reglages`) | ses réglages : messages, invitations, heure du ciel, rejouer tout seul | tout le monde |
+| `/season` (ou `/saison`) | la saison classée : sa fin, ses récompenses, ses divisions et ses saisons passées | tout le monde |
 | `/gift <joueur>` (ou `/cadeau`) | offrir un rang vendu en Rago Points (PREMIUM s'offre sur la boutique en ligne) | tout le monde |
 | `/friend add\|accept\|deny\|remove\|list\|requests\|toggle <joueur>` (ou `/f`) | les amis | tout le monde |
 | `/msg <joueur> <message>` (ou `/tell`, `/w`), `/r <message>` | message privé, réponse | tout le monde |
@@ -347,9 +372,8 @@ victoires, défaites, série de victoires en cours et meilleure série, par mode
 de la semaine (heure de Paris : le jour repart à minuit, la semaine le lundi à minuit). Un abandon
 compte comme une défaite. Les kills et les morts aussi (`recordKill`) : au sumo, chaque point est
 un kill pour celui qui le marque et une mort pour celui qui tombe. Chaque joueur garde aussi son
-XP Network. Une partie d'un mode classé fait aussi bouger l'ELO des deux camps
-(formule classique, 32 points au plus par partie, 1000 au départ). Le duel sumo est le premier
-mode qui compte.
+XP Network. Une partie d'un mode classé trouvée par la file fait aussi bouger l'ELO des deux
+camps (voir « L'ELO classé ») ; un duel ou une partie privée ne touche ni l'ELO ni les séries.
 
 Sur le serveur de test, les stats sont gardées dans `plugins/RagoLobby/stats/` (un fichier par
 joueur), lues au démarrage et écrites à chaque partie, jamais sur le thread principal. Sur le

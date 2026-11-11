@@ -47,6 +47,8 @@ final class SumoMatch {
     private final UUID[] players;
     private final String[] names;
     private final DuelScore score;
+    /** The hits and combos of both players, told at the end. */
+    private final MatchRecap recap = new MatchRecap();
     private Phase phase = Phase.COUNTDOWN;
     private BukkitTask countdown;
 
@@ -68,6 +70,13 @@ final class SumoMatch {
 
     Phase phase() {
         return phase;
+    }
+
+    /** A hit that went through, in the fight: counted for the recap. */
+    void hit(UUID attacker, UUID victim) {
+        if (phase == Phase.FIGHT) {
+            recap.hit(attacker, victim);
+        }
     }
 
     /** 0 or 1, or -1 if the player is not in this duel. */
@@ -198,6 +207,18 @@ final class SumoMatch {
                 player.playSound(player.getLocation(), Sound.LEVEL_UP, 1f, 1f);
             } else {
                 player.sendMessage(ChatColor.RED + "Defeat." + ChatColor.GRAY + " (" + score.text(side) + ")");
+            }
+        }
+        if (!recap.isEmpty()) {
+            java.util.List<String> lines = recap.lines(java.util.Arrays.asList(Collections.singletonList(players[0]),
+                    Collections.singletonList(players[1])), id -> names[sideOf(id)], Duel.CHAT);
+            for (UUID id : players) {
+                Player player = Bukkit.getPlayer(id);
+                if (player != null) {
+                    for (String line : lines) {
+                        player.sendMessage(line);
+                    }
+                }
             }
         }
         Bukkit.getScheduler().runTaskLater(plugin, this::backToLobby, END_DELAY_TICKS);

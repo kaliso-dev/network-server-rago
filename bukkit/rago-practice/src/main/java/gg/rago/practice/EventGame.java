@@ -132,6 +132,12 @@ final class EventGame extends PracticeGame {
         return stage;
     }
 
+    /** An event tells its own winner: no recap of the hits. */
+    @Override
+    boolean showsRecap() {
+        return false;
+    }
+
     String hostName() {
         return hostName;
     }

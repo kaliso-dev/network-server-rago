@@ -639,6 +639,10 @@ final class QueueController {
             if (privateGame) {
                 state.markPrivate(player.getUniqueId());
             }
+            if (!requeue) {
+                // not from the queue (a /duel): no ELO, no win streak
+                state.markUnrated(player.getUniqueId());
+            }
         }
         for (List<QueueEntry> team : match.teams()) {
             List<UUID> others = new ArrayList<>(match.players());

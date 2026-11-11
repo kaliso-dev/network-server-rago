@@ -73,11 +73,14 @@ final class BlockInTraining extends Training {
     /** The four sides around the player, at their feet and head. */
     private static final int[][] SIDES = {{1, 0}, {-1, 0}, {0, 1}, {0, -1}};
 
+    /** The defenses to break into, timed. */
+    static final Variant[] DEFENSES = {
+        new Variant("wood", "3 layers, wood side", true, ""),
+        new Variant("wool", "3 layers, wool side", true, ""),
+        new Variant("two", "2 layers", true, "")};
+
     BlockInTraining(PracticeHost host, GameMode mode, Arena arena, List<List<Player>> teams, Island island) {
-        super(host, mode, arena, teams,
-                new Variant("wood", "3 layers, wood side", true, ""),
-                new Variant("wool", "3 layers, wool side", true, ""),
-                new Variant("two", "2 layers", true, ""));
+        super(host, mode, arena, teams, DEFENSES);
         this.island = island;
         this.layers = Shapes.defense(0, BED_Y, 0, island.hx, island.hz, 3);
         this.enemy = toggle("Enemy (hits, breaks)", true);

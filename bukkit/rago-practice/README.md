@@ -9,7 +9,10 @@ Chaque mode prend son kit dans l'éditeur de kit du lobby, rangé comme le joueu
 Deux joueurs (ou deux équipes de deux), par la file ou par `/duel`. Le résultat compte dans les
 stats du lobby. Quitter le serveur ou taper `/spawn` pendant le duel, c'est perdre par abandon.
 Le nom de chaque joueur prend la couleur de son équipe (rouge ou bleu) au-dessus de sa tête et dans
-le Tab, avec sa vie en dessous et son niveau Network à côté.
+le Tab, avec sa vie en dessous et son niveau Network à côté. À la fin, comme les « match details »
+des serveurs practice, chacun reçoit le **récap du duel** : pour chaque joueur, ses coups qui sont
+passés (pas ceux du délai entre deux coups) et son meilleur combo, les coups d'affilée sans en
+prendre un (« Ann: 34 hits, best combo 7 »). Au sumo aussi ; pas dans les events.
 
 - **Sumo** : sur les maps sumo du serveur (Ponsen, Fort Royale, White Crystal, Space Mine, Sumo,
   dans le dossier des mondes), tirées au hasard à chaque duel ; sans elles, une plateforme ronde.
@@ -76,6 +79,19 @@ un peu par minute de jeu, un peu par essai raté, plus par réussite (un temps, 
 continue), avec un plafond par minute (`xp-entrainement` dans `config.yml` : 1, 1, 3, 8 au plus).
 Elle part au lobby toutes les deux minutes et quand le joueur sort, en un message. Les duels
 donnent la leur à la fin ; l'aim trainer garde la sienne.
+
+**Le défi du jour (`/challenge`).** Chaque jour (heure de Paris), un entraînement pour tout le
+serveur, le suivant de `defi-du-jour.epreuves` à tour de rôle (le même toute la journée, même après
+un redémarrage) : Block-In côté bois, island clutch, aim trainer, fast defense, ladder, combo bot
+difficile, extend en chaîne... Le meilleur score de chaque joueur du jour fait le classement du
+jour ; à minuit, le 1er, le 2e et le 3e gagnent 750, 500 et 300 XP Network (`xp-podium`), annoncés à
+tout le serveur (même si le serveur était éteint à minuit). Le premier score du jour d'un joueur
+lui donne 100 XP, plus 25 par jour d'affilée où il a joué le défi (7 jours au plus : 250). À
+l'arrivée, un joueur qui ne l'a pas encore joué aujourd'hui reçoit le défi du jour avec un
+**[PLAY]** ; `/challenge` montre l'entraînement, le top 5 du jour, sa place, sa série de jours et
+ce qui se gagne ; `/challenge play` (ou le bouton) lance l'entraînement directement sur la bonne
+variante. Pendant le défi, le scoreboard de l'entraînement porte « ✦ Daily ». Gardé dans
+`plugins/RagoPractice/defi.yml`.
 
 - **Block clutch** : le joueur est au bord d'une petite île de Bed Wars, son lit et sa défense
   à côté ; un coup le jette dans le vide, il pose sa laine pour se rattraper. L'île est celle du
@@ -238,6 +254,14 @@ entre deux, et un délai pour chaque hôte (le staff n'attend pas). `/event` dit
 `/event leave` le quitte (comme `/spawn`), `/event cancel` l'annule (son hôte ou le staff).
 Les events se jouent sur les maps du sumo, dans les modes cachés `event-sumo`, `event-brackets` et
 `event-lms` du lobby. Tout se règle dans `evenements:`.
+
+**Les events automatiques.** Quand personne n'en lance, le serveur en lance lui-même, au nom de
+« Rago » : dès qu'il y a `joueurs-lobby` joueurs hors partie (6 par défaut) et qu'aucun event n'a
+eu lieu depuis `minutes` minutes (20), il annonce le suivant de `types` (sumo, brackets, lms, à
+tour de rôle) avec son **[Click to join]**. Le premier qui le rejoint le lance, et il se joue
+comme un event lancé par un joueur ; sans personne pendant l'attente, l'annonce tombe. Un joueur
+PREMIUM peut toujours lancer le sien. Dans `evenements.automatiques` (`actif: false` les coupe ;
+sans la section, il n'y en a pas).
 
 ## Les arènes
 

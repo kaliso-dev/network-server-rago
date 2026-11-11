@@ -122,7 +122,8 @@ final class DuelRequests {
         }
         forTarget.put(challenger.getUniqueId(), new Request(mode.id(), System.currentTimeMillis() + EXPIRY_MS));
         challenger.sendMessage(ChatColor.GREEN + "Duel request sent to " + target.getName() + " in " + mode.name()
-                + ChatColor.GREEN + ". They have one minute to accept.");
+                + ChatColor.GREEN + ". They have one minute to accept." + (mode.ranked()
+                ? ChatColor.GRAY + " A duel never changes the ranked ELO." : ""));
         target.sendMessage(ChatColor.YELLOW + challenger.getName() + " challenges you to " + mode.name() + ChatColor.YELLOW
                 + "! Click to answer (or /duel accept " + challenger.getName() + "):");
         // Clickable buttons through the vanilla /tellraw: the chat component API (bungeecord-chat)

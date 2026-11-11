@@ -56,7 +56,7 @@ final class LadderTraining extends Training {
         super(host, mode, arena, teams, variants());
     }
 
-    private static Variant[] variants() {
+    static Variant[] variants() {
         Variant[] variants = new Variant[HEIGHTS.length + 1];
         for (int i = 0; i < HEIGHTS.length; i++) {
             variants[i] = new Variant("h" + HEIGHTS[i], HEIGHTS[i] + " blocks", false, "clutches");

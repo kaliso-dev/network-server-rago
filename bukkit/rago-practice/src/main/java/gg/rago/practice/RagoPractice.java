@@ -46,6 +46,8 @@ public final class RagoPractice extends JavaPlugin {
     /** The events PREMIUM players host (/host). */
     private Events events;
     private Records records;
+    /** The challenge of the day (/challenge). */
+    private Challenges challenges;
     private final List<String> hosted = new ArrayList<>();
     /** The Network XP of the trainings and the free arenas, given every two minutes. */
     private PracticeXp xp;
@@ -82,6 +84,7 @@ public final class RagoPractice extends JavaPlugin {
         getServer().getScheduler().runTaskTimer(this, this::payXp, XP_PAY_TICKS, XP_PAY_TICKS);
         records = new Records(this, new File(getDataFolder(), "records.yml"));
         records.load();
+        challenges = new Challenges(this, challengeSettings(config), new File(getDataFolder(), "defi.yml"));
 
         sumo = new SumoHost(this, world, new ArenaGrid(slots, spacing), radius, points, zoneMaps(config, "sumo.cartes", spacing,
                 "the sumo"));
@@ -94,10 +97,14 @@ public final class RagoPractice extends JavaPlugin {
         getServer().getPluginManager().registerEvents(games, this);
         events = new Events(this, eventSettings(config));
         getServer().getPluginManager().registerEvents(events, this);
+        events.start();
         registerModes(config, world, slots, spacing);
         getCommand("host").setExecutor(events);
         getCommand("event").setExecutor(events);
         getCommand("join").setExecutor(events);
+        getServer().getPluginManager().registerEvents(challenges, this);
+        challenges.start(hosted);
+        getCommand("challenge").setExecutor(challenges);
         getCommand("aimtop").setExecutor(new AimTop(this));
         getCommand("speed").setExecutor(new SpeedCommand(this));
         getLogger().info("Arenas in the world " + world.getName() + ": " + slots + " games of each mode at once at most. Modes: "
@@ -771,6 +778,21 @@ public final class RagoPractice extends JavaPlugin {
             return Events.Settings.of(null);
         }
         return Events.Settings.of(section);
+    }
+
+    private DailyChallenge.Settings challengeSettings(FileConfiguration config) {
+        ConfigurationSection section = config.getConfigurationSection("defi-du-jour");
+        String problem = DailyChallenge.Settings.check(section);
+        if (problem != null) {
+            getLogger().warning("config.yml: " + problem + ". There is no challenge of the day.");
+            return DailyChallenge.Settings.OFF;
+        }
+        return DailyChallenge.Settings.of(section);
+    }
+
+    /** The challenge of the day, or null while the plugin is off. */
+    Challenges challenges() {
+        return challenges;
     }
 
     /** The events of /host, or null while the plugin is off. */

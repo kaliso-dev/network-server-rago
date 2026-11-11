@@ -54,7 +54,7 @@ final class ComboBot extends Training {
         super(host, mode, arena, teams, variants());
     }
 
-    private static Variant[] variants() {
+    static Variant[] variants() {
         Variant[] variants = new Variant[ComboAi.LEVELS.length];
         for (int i = 0; i < variants.length; i++) {
             variants[i] = new Variant(ComboAi.LEVELS[i].id, ComboAi.LEVELS[i].label, false, "hits");

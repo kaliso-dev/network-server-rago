@@ -55,9 +55,15 @@ final class ProfileMenu {
         List<GameMode> ranked = StatsMenu.rankedModes(lobby.settings());
         if (!ranked.isEmpty()) {
             lore.add("");
-            lore.add(ChatColor.WHITE + "Ranked divisions");
+            lore.add(ChatColor.WHITE + "Ranked divisions " + ChatColor.GRAY + "(" + ChatColor.stripColor(lobby.server().season().name())
+                    + ")");
             for (GameMode mode : ranked) {
                 lore.add(ChatColor.GRAY + StatsMenu.shortName(mode) + ": " + book.ladder().format(book.elo(id, mode.id())));
+            }
+            if (profile != null) {
+                for (java.util.Map.Entry<Integer, PlayerStats.SeasonResult> past : profile.seasons().entrySet()) {
+                    lore.add(ChatColor.DARK_GRAY + "Season " + past.getKey() + ": " + book.ladder().format(past.getValue().elo));
+                }
             }
         }
         return lore;
@@ -127,8 +133,8 @@ final class ProfileMenu {
                 "", "Add one: /friend add <name>", "", ChatColor.YELLOW + "Click to see them")), (p, right) -> openFriends(p));
         menu.set(23, ClickMenu.item(Material.EMERALD, ChatColor.GREEN + "Rago Shop", "Ranks and cosmetics.", "",
                 ChatColor.YELLOW + "Click to open"), (p, right) -> shop.open(p));
-        menu.set(25, ClickMenu.item(Material.REDSTONE_COMPARATOR, ChatColor.GREEN + "Settings", "Private messages,",
-                "party invites, friend and", "duel requests.", "", ChatColor.YELLOW + "Click to change"),
+        menu.set(25, ClickMenu.item(Material.REDSTONE_COMPARATOR, ChatColor.GREEN + "Settings", "Messages, invites,",
+                "requests, time of day,", "play again. Also /settings.", "", ChatColor.YELLOW + "Click to change"),
                 (p, right) -> openSettings(p));
         if (styles != null) {
             NameStyle badge = profiles.names().badge(player.getUniqueId());
@@ -243,6 +249,19 @@ final class ProfileMenu {
             lobby.applyLobbySpeed(p);
             saved(p, profile);
         });
+        PlayerStats.TimeOfDay time = profile.timeOfDay();
+        menu.set(20, toggle(time == PlayerStats.TimeOfDay.NIGHT ? Material.COAL_BLOCK : Material.DOUBLE_PLANT, "Time of day",
+                time.label(), true, "Your own sky, in the lobby", "and in your games: day,", "sunset or night."), (p, right) -> {
+                    profile.setTimeOfDay(profile.timeOfDay().next());
+                    lobby.applyTime(p);
+                    saved(p, profile);
+                });
+        menu.set(24, toggle(Material.PAPER, "Play again", profile.autoRequeue() ? "Automatic" : "With a click",
+                profile.autoRequeue(), "After a game, back in the", "same queue on your own, or", "with the [PLAY AGAIN] button."),
+                (p, right) -> {
+                    profile.setAutoRequeue(!profile.autoRequeue());
+                    saved(p, profile);
+                });
         menu.set(31, ClickMenu.back("My profile"), (p, right) -> open(p));
         menu.open(player);
     }

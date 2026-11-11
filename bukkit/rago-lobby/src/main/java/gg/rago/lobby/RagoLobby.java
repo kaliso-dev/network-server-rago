@@ -90,6 +90,9 @@ public final class RagoLobby extends JavaPlugin implements LobbyService {
     private final Set<UUID> flying = new HashSet<>();
     /** The players whose arrival the lobby was already told since they joined. */
     private final Set<UUID> arrivedOnce = new HashSet<>();
+    /** The players leaving their game themselves (/spawn): not put back in a queue on their own. */
+    private final Set<UUID> leaving = new HashSet<>();
+    private final NextGame nextGame = new NextGame(this);
     private int seconds;
 
     @Override
@@ -371,7 +374,11 @@ public final class RagoLobby extends JavaPlugin implements LobbyService {
 
     @Override
     public void sendToLobby(Player player) {
-        boolean fromGame = state.gameOf(player.getUniqueId()) != null;
+        UUID id = player.getUniqueId();
+        final String lastMode = state.gameOf(id);
+        final List<UUID> lastOpponents = new ArrayList<>(state.opponentsOf(id));
+        final boolean left = leaving.contains(id);
+        boolean fromGame = lastMode != null;
         state.leaveGame(player.getUniqueId());
         scoreboard.setGameLines(player.getUniqueId(), null);
         scoreboard.setGamePrefix(player.getUniqueId(), null);
@@ -383,6 +390,21 @@ public final class RagoLobby extends JavaPlugin implements LobbyService {
         if (fromGame || !arrivedOnce.contains(player.getUniqueId())) {
             arrivedOnce.add(player.getUniqueId());
             info.arrived(player);
+        }
+        if (fromGame) {
+            // after the game's last words (XP, points, ELO): [PLAY AGAIN], [REMATCH]
+            getServer().getScheduler().runTaskLater(this, () -> nextGame.offer(player, lastMode, lastOpponents, left), 20L);
+        }
+    }
+
+    /** The player's own sky (/settings): the server's noon, a sunset or the night. */
+    void applyTime(Player player) {
+        PlayerStats profile = profiles.of(player);
+        long ticks = profile == null ? -1L : profile.timeOfDay().ticks();
+        if (ticks < 0) {
+            player.resetPlayerTime();
+        } else {
+            player.setPlayerTime(ticks, false);
         }
     }
 
@@ -403,6 +425,7 @@ public final class RagoLobby extends JavaPlugin implements LobbyService {
             player.removePotionEffect(effect.getType());
         }
         applyLobbySpeed(player);
+        applyTime(player);
         giveHotbar(player);
         scoreboard.show(player);
         visibility.applyInLobby(player, state);
@@ -497,10 +520,15 @@ public final class RagoLobby extends JavaPlugin implements LobbyService {
         String modeId = state.gameOf(player.getUniqueId());
         MatchHost host = modeId == null ? null : queues.hostOf(modeId);
         if (host != null) {
-            host.abandon(player);
-            if (state.isInGame(player)) {
-                // The host did not give the player back: do it, the lobby must stay reachable.
-                sendToLobby(player);
+            leaving.add(player.getUniqueId());
+            try {
+                host.abandon(player);
+                if (state.isInGame(player)) {
+                    // The host did not give the player back: do it, the lobby must stay reachable.
+                    sendToLobby(player);
+                }
+            } finally {
+                leaving.remove(player.getUniqueId());
             }
         } else {
             sendToLobby(player);
@@ -807,7 +835,8 @@ public final class RagoLobby extends JavaPlugin implements LobbyService {
             getLogger().info("Private game of a party in " + modeId + ": not counted in the stats");
             return;
         }
-        stats.record(mode, winners, losers, mvps(winners, losers));
+        boolean rated = !isUnrated(winners) && !isUnrated(losers);
+        stats.record(mode, winners, losers, mvps(winners, losers), rated);
         for (UUID winner : winners) {
             cosmetics.win(winner);
         }
@@ -909,6 +938,16 @@ public final class RagoLobby extends JavaPlugin implements LobbyService {
     @Override
     public boolean inPrivateGame(UUID player) {
         return state.isInPrivateGame(player);
+    }
+
+    /** True if one of these players plays a game started without the queue (a /duel). */
+    private boolean isUnrated(List<UUID> players) {
+        for (UUID player : players) {
+            if (state.isUnrated(player)) {
+                return true;
+            }
+        }
+        return false;
     }
 
     /** True if one of these players plays a party's private game. */

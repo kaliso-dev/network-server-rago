@@ -69,11 +69,48 @@ class EventsTest {
     }
 
     @Test
+    void theServerHostsItsOwnEventsWhenTheLobbyIsFullAndNothingRan() {
+        assertTrue(!Events.Settings.of(null).auto.on, "none without the section");
+        YamlConfiguration config = new YamlConfiguration();
+        ConfigurationSection section = config.createSection("evenements");
+        ConfigurationSection auto = section.createSection("automatiques");
+        assertNull(Events.Settings.check(section));
+        Events.Auto read = Events.Settings.of(section).auto;
+        assertTrue(read.on, "on as soon as the section is there");
+        assertEquals(20, read.minutes);
+        assertEquals(6, read.lobbyPlayers);
+        assertEquals(java.util.Arrays.asList(EventGame.Kind.values()), read.kinds, "every event by default");
+        auto.set("types", java.util.Arrays.asList("lms", "sumo", "lms"));
+        assertEquals(java.util.Arrays.asList(EventGame.Kind.LMS, EventGame.Kind.SUMO), Events.Settings.of(section).auto.kinds);
+        auto.set("types", java.util.Arrays.asList("sumo", "spleef"));
+        assertEquals("evenements.automatiques.types: sumo, brackets or lms, not \"spleef\"", Events.Settings.check(section));
+        auto.set("types", java.util.Arrays.asList("sumo"));
+        auto.set("minutes", 2);
+        assertEquals("evenements.automatiques.minutes: from 5 to 1440", Events.Settings.check(section));
+        auto.set("minutes", 10);
+        auto.set("joueurs-lobby", 1);
+        assertEquals("evenements.automatiques.joueurs-lobby: from 2 to 200", Events.Settings.check(section));
+        auto.set("joueurs-lobby", 6);
+        assertNull(Events.Settings.check(section));
+
+        Events.Auto ten = Events.Settings.of(section).auto;
+        long quiet = 1_000_000L;
+        long later = quiet + 10 * 60_000L;
+        assertTrue(ten.due(later, quiet, false, 6), "ten quiet minutes, six in the lobby");
+        assertTrue(!ten.due(later - 1, quiet, false, 6), "not before the ten minutes");
+        assertTrue(!ten.due(later, quiet, false, 5), "not with five in the lobby");
+        assertTrue(!ten.due(later, quiet, true, 30), "not while an event runs or is announced");
+        auto.set("actif", false);
+        assertTrue(!Events.Settings.of(section).auto.due(later, quiet, false, 30), "off");
+    }
+
+    @Test
     void theShippedConfigIsValid() {
         YamlConfiguration config = YamlConfiguration.loadConfiguration(new java.io.File("src/main/resources/config.yml"));
         ConfigurationSection section = config.getConfigurationSection("evenements");
         assertTrue(section != null, "the config.yml has its section evenements");
         assertNull(Events.Settings.check(section));
+        assertTrue(Events.Settings.of(section).auto.on, "the server hosts its own events");
     }
 
     @Test

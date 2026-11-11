@@ -93,7 +93,7 @@ final class StatsService {
                     try {
                         UUID id = UUID.fromString(name.substring(0, name.length() - ".yml".length()));
                         String text = new String(Files.readAllBytes(file.toPath()), StandardCharsets.UTF_8);
-                        loaded.add(StatsFiles.fromYaml(id, text));
+                        loaded.add(StatsFiles.fromYaml(id, text, server.season().number(), server.elo()));
                     } catch (IllegalArgumentException | IOException | org.bukkit.configuration.InvalidConfigurationException e) {
                         plugin.getLogger().log(Level.WARNING, "Unreadable stats, ignored: " + file, e);
                     }
@@ -125,20 +125,22 @@ final class StatsService {
     /**
      * A game is over: records it, tells everyone the XP, the Rago Points and in ranked the ELO they
      * got (and a new level or division), and writes the files of the players whose stats changed.
-     * The MVPs (the most kills of the game) get the ELO bonus of the ladder.
+     * The MVPs (the most kills of the game) get the ELO bonus of the ladder. A game that is not
+     * rated (a /duel, started without the queue) moves neither the ELO nor the win streaks.
      */
-    void record(GameMode mode, Collection<UUID> winners, Collection<UUID> losers, Collection<UUID> mvps) {
+    void record(GameMode mode, Collection<UUID> winners, Collection<UUID> losers, Collection<UUID> mvps, boolean rated) {
         Map<UUID, Integer> before = xpOf(winners, losers);
         Map<UUID, Integer> eloBefore = new HashMap<>();
-        if (mode.ranked()) {
+        if (mode.ranked() && rated) {
             List<UUID> all = new ArrayList<>(winners);
             all.addAll(losers);
             for (UUID id : all) {
                 eloBefore.put(id, book.elo(id, mode.id()));
             }
         }
-        List<PlayerStats> changed = book.record(mode, winners, losers, StatsService::nameOf, System.currentTimeMillis(), mvps);
-        if (!changed.isEmpty()) {
+        List<PlayerStats> changed = book.record(mode, winners, losers, StatsService::nameOf, System.currentTimeMillis(), mvps,
+                rated);
+        if (!changed.isEmpty() && rated) {
             writer.write(new File(new File(folder, StatsFiles.TEAMS_FOLDER), mode.id() + ".yml"),
                     StatsFiles.teamsToYaml(mode.id(), book.teams(mode.id())));
         }
@@ -158,7 +160,7 @@ final class StatsService {
             List<Quests.Quest> done = new ArrayList<>(quest(stats, Quests.Goal.GAMES, mode.id()));
             if (won) {
                 done.addAll(quest(stats, Quests.Goal.WINS, mode.id()));
-                if (mode.ranked()) {
+                if (mode.ranked() && rated) {
                     done.addAll(quest(stats, Quests.Goal.RANKED_WINS, mode.id()));
                 }
             }
@@ -295,6 +297,31 @@ final class StatsService {
      * player of before the rewards): Rago Points, cosmetics, colours of name, badges. A cosmetic
      * already bought gives its price back in points. Returns true if anything was given.
      */
+    /**
+     * The ranked seasons that ended give their reward once, at the player's arrival: the Rago
+     * Points of the best division they reached in it (saison.recompenses). True if one was given.
+     */
+    boolean claimSeasons(PlayerStats stats) {
+        boolean changed = false;
+        Player player = Bukkit.getPlayer(stats.id());
+        Season season = server.season();
+        for (Map.Entry<Integer, PlayerStats.SeasonResult> entry : stats.seasons().entrySet()) {
+            PlayerStats.SeasonResult result = entry.getValue();
+            if (result.rewarded) {
+                continue;
+            }
+            result.rewarded = true;
+            changed = true;
+            if (player != null) {
+                player.sendMessage(ChatColor.GOLD + "" + ChatColor.BOLD + "Season " + entry.getKey() + " is over! " + ChatColor.GRAY
+                        + "Your best: " + book.ladder().format(result.elo) + ChatColor.GRAY + ". " + ChatColor.YELLOW
+                        + season.name() + ChatColor.GRAY + " has begun: every ranked ELO starts again from 0. /season");
+            }
+            points(stats, season.reward(result.division), "season " + entry.getKey() + ": " + result.division);
+        }
+        return changed;
+    }
+
     boolean claimRewards(PlayerStats stats) {
         int level = book.level(stats.id());
         if (level <= stats.rewardsLevel()) {
@@ -435,6 +462,7 @@ final class StatsService {
                 changed = true;
             }
             changed |= claimRewards(stats);
+            changed |= claimSeasons(stats);
         }
         if (changed && stats != null) {
             save(stats);
@@ -443,7 +471,7 @@ final class StatsService {
 
     /** Writes the player's file, away from the main thread. */
     void save(PlayerStats stats) {
-        writer.write(new File(folder, StatsFiles.fileName(stats.id())), StatsFiles.toYaml(stats));
+        writer.write(new File(folder, StatsFiles.fileName(stats.id())), StatsFiles.toYaml(stats, server.season().number()));
     }
 
     private static String nameOf(UUID id) {
