@@ -20,8 +20,8 @@ import org.bukkit.scheduler.BukkitTask;
 /**
  * Attack and Defense, on the owner's maps of it (Bio Hazard first): one base and its bed, the
  * defenders' (gray on Bio Hazard), and the bridge the attackers come by (pink), nothing else. 1v1
- * or 2v2, in {@value #ROUNDS} rounds: each side attacks once, the roles swap at the second round,
- * the map made as it was.
+ * or 2v2, the first side to {@value #WINS} rounds wins: the roles swap at each round (5 rounds
+ * at most), the map made as it was.
  *
  * <ul>
  *   <li>The attackers start at the end of their bridge (attaquants: in the map's bedwars.yml),
@@ -34,24 +34,30 @@ import org.bukkit.scheduler.BukkitTask;
  * </ul>
  *
  * Before each round, a menu shows each player the kits of their side; the countdown is
- * {@value #COUNTDOWN} seconds, 3 once everyone has chosen. /kit opens the menu again.
+ * {@value #COUNTDOWN} seconds before the first round, {@value #NEXT_COUNTDOWN} before the next ones
+ * (the kit of the last round is kept), and the round starts at once when everyone has chosen. One
+ * second between two rounds. /kit opens the menu again.
  *
  * A defense the map has on the bed (Bio Hazard's end stone and wool, captured with the map) is
  * the defenders' own, as in a game: the players can break it, and it is whole again each round.
  *
  * <p>The attackers win the round by breaking the bed and killing every defender; the defenders by
- * killing every attacker, or by holding {@value #ROUND_SECONDS} seconds. The side with more rounds
- * wins; one each, the quicker of two successful attacks wins, else it is a draw. Main thread only.
+ * killing every attacker, or by holding {@value #ROUND_SECONDS} seconds. The first side to
+ * {@value #WINS} rounds wins. Main thread only.
  */
 final class AttackDefenseGame extends BedwarsGame {
 
-    static final int ROUNDS = 2;
+    /** The rounds a side wins the game with. */
+    static final int WINS = 3;
     static final int ROUND_SECONDS = 300;
-    static final int COUNTDOWN = 10;
-    /** The countdown once every player has chosen their kit. */
-    static final int READY_COUNTDOWN = 3;
+    /** The countdown before the first round: the time to choose a kit. */
+    static final int COUNTDOWN = 5;
+    /** Before the next rounds: the kit of the last round is kept. */
+    static final int NEXT_COUNTDOWN = 3;
+    /** The countdown once every player has chosen their kit: none, the round starts. */
+    static final int READY_COUNTDOWN = 0;
     /** Between the end of a round and the next one, and before the end of the game. */
-    private static final long BETWEEN_TICKS = 80L;
+    static final long BETWEEN_TICKS = 20L;
     /** The armour of both sides at the start: iron (the tier of Gamer#armor), as bought in a game. */
     static final int ARMOUR = 2;
     private static final String CHECK = "✔";
@@ -378,7 +384,7 @@ final class AttackDefenseGame extends BedwarsGame {
 
     @Override
     void welcome(Player player, Gamer gamer) {
-        String head = ChatColor.RED + "" + ChatColor.BOLD + "Round " + round + "/" + ROUNDS + ChatColor.RED + ": ";
+        String head = ChatColor.RED + "" + ChatColor.BOLD + "Round " + round + ChatColor.RED + ": ";
         String minutes = ROUND_SECONDS / 60 + " minutes";
         if (gamer.team == attackers) {
             player.sendMessage(head + ChatColor.WHITE + "you attack" + ChatColor.RED + ". Break the "
@@ -392,7 +398,8 @@ final class AttackDefenseGame extends BedwarsGame {
             player.sendTitle(ChatColor.GREEN + "" + ChatColor.BOLD + "DEFEND", ChatColor.WHITE + "Hold " + minutes);
         }
         if (round == 1) {
-            player.sendMessage(ChatColor.GRAY + "Two rounds: the roles swap at the second. /spawn takes you back to the lobby.");
+            player.sendMessage(ChatColor.GRAY + "The first side to " + WINS + " rounds wins; the roles swap at each round."
+                    + " /spawn takes you back to the lobby.");
         }
         offerKits(player);
     }
@@ -411,7 +418,7 @@ final class AttackDefenseGame extends BedwarsGame {
 
     private void roundStarted() {
         closeKitMenus();
-        broadcast(ChatColor.RED + "Round " + round + "/" + ROUNDS + ": " + sideName(attackingSide()) + ChatColor.RED
+        broadcast(ChatColor.RED + "Round " + round + ": " + sideName(attackingSide()) + ChatColor.RED
                 + " attacks!", Sound.NOTE_PLING);
         sidebars();
     }
@@ -494,7 +501,7 @@ final class AttackDefenseGame extends BedwarsGame {
                         : ChatColor.RED + "" + ChatColor.BOLD + "ROUND LOST", score());
             }
         }
-        later(BETWEEN_TICKS, round >= ROUNDS ? () -> finish(-2) : this::nextRound);
+        later(BETWEEN_TICKS, wins[winner] >= WINS ? () -> finish(-2) : this::nextRound);
         sidebars();
     }
 
@@ -525,7 +532,7 @@ final class AttackDefenseGame extends BedwarsGame {
                 }
             }
         }
-        countdownLeft = COUNTDOWN;
+        countdownLeft = NEXT_COUNTDOWN;
         roundCountdown = repeat(0L, 20L, new Runnable() {
             @Override
             public void run() {
@@ -536,7 +543,7 @@ final class AttackDefenseGame extends BedwarsGame {
                 int left = countdownLeft;
                 if (left > 0) {
                     title(ChatColor.RED + "" + ChatColor.BOLD + left, "");
-                    if (left <= 5 || left == COUNTDOWN) {
+                    if (left <= 5) {
                         broadcast(ChatColor.YELLOW + "The round starts in " + ChatColor.RED + left + ChatColor.YELLOW + "...",
                                 Sound.NOTE_STICKS);
                     }
@@ -695,7 +702,8 @@ final class AttackDefenseGame extends BedwarsGame {
     @Override
     List<String> lines(Gamer viewer) {
         List<String> lines = new ArrayList<>();
-        lines.add(ChatColor.WHITE + "Round " + ChatColor.GREEN + round + ChatColor.GRAY + "/" + ROUNDS + ChatColor.WHITE + " - "
+        lines.add(ChatColor.WHITE + "Round " + ChatColor.GREEN + round + ChatColor.GRAY + " (first to " + WINS + ")"
+                + ChatColor.WHITE + " - "
                 + (phase == Phase.STARTING ? "Starting..." : ChatColor.GREEN + clock(Math.max(0, ROUND_SECONDS - seconds))));
         lines.add("");
         lines.add(defenders.color.letter() + " " + ChatColor.WHITE + "Bed: " + (defenders.bed ? ChatColor.GREEN + CHECK

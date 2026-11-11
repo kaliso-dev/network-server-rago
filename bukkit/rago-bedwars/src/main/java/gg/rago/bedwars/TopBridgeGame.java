@@ -42,8 +42,8 @@ final class TopBridgeGame extends BedwarsGame {
     /** A game of rounds lasts this long at most: then the team ahead wins, or it is a draw. */
     static final int ROUNDS_MINUTES = 30;
     private static final int COUNTDOWN = 3;
-    /** Between the end of a round and the next one. */
-    private static final long BETWEEN_TICKS = 60L;
+    /** Between the end of a round and the next one, and before the end of the game. */
+    private static final long BETWEEN_TICKS = 20L;
     /** The kit when the lobby has none for the mode: the owner's fight kit. */
     private static final ItemStack[] DEFAULT_KIT = {new ItemStack(Material.STONE_SWORD), new ItemStack(Material.GOLDEN_APPLE, 64)};
 
@@ -298,7 +298,7 @@ final class TopBridgeGame extends BedwarsGame {
                 : winner.color.coloured() + ChatColor.YELLOW + " wins round " + round + "! " + score,
                 winner == null ? Sound.NOTE_BASS : Sound.LEVEL_UP);
         if (winner != null && points[teams.indexOf(winner)] >= pointsToWin()) {
-            later(40L, () -> {
+            later(BETWEEN_TICKS, () -> {
                 if (phase != Phase.ENDED) {
                     end(winner);
                 }

@@ -47,6 +47,8 @@ abstract class PracticeGame {
     /** A hit gives the kill to its author if the player falls or dies within this time. */
     static final long CREDIT_MS = 10_000L;
     private static final ChatColor[] COUNTDOWN_COLOURS = {ChatColor.RED, ChatColor.GOLD, ChatColor.YELLOW};
+    /** After the first round, the countdown before a round is this short at most: the next point at once. */
+    static final int NEXT_ROUND_COUNTDOWN = 1;
 
     final RagoPractice plugin;
     final PracticeHost host;
@@ -108,9 +110,17 @@ abstract class PracticeGame {
         return null;
     }
 
-    /** Seconds of countdown before each round, during which the players stand still; 0 for none. */
+    /**
+     * Seconds of countdown before the first round, during which the players stand still; 0 for
+     * none. The next rounds: {@value #NEXT_ROUND_COUNTDOWN} at most.
+     */
     int countdownSeconds() {
         return 3;
+    }
+
+    /** The countdown before this round (1 for the first). */
+    static int countdownOf(int round, int first) {
+        return round > 1 ? Math.min(first, NEXT_ROUND_COUNTDOWN) : first;
     }
 
     /** True if the players stand still during the countdown. */
@@ -327,7 +337,7 @@ abstract class PracticeGame {
         for (Player player : online()) {
             placeAtStart(player);
         }
-        int count = countdownSeconds();
+        int count = countdownOf(round, countdownSeconds());
         if (count <= 0) {
             fight();
             return;

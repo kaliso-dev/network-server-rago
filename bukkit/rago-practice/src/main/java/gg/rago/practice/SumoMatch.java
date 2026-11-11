@@ -51,6 +51,8 @@ final class SumoMatch {
     private final MatchRecap recap = new MatchRecap();
     private Phase phase = Phase.COUNTDOWN;
     private BukkitTask countdown;
+    /** The rounds started: the first one waits 3 seconds, the next ones a second. */
+    private int round;
 
     SumoMatch(RagoPractice plugin, SumoHost host, int slot, Location centre, String map, Player first, Player second,
             int target) {
@@ -108,6 +110,8 @@ final class SumoMatch {
 
     private void startRound() {
         phase = Phase.COUNTDOWN;
+        round++;
+        final int count = PracticeGame.countdownOf(round, 3);
         for (int side = 0; side < 2; side++) {
             Player player = Bukkit.getPlayer(players[side]);
             if (player != null) {
@@ -118,7 +122,7 @@ final class SumoMatch {
         }
         cancelCountdown();
         countdown = Bukkit.getScheduler().runTaskTimer(plugin, new Runnable() {
-            private int left = 3;
+            private int left = count;
 
             @Override
             public void run() {

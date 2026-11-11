@@ -15,10 +15,13 @@ import org.junit.jupiter.api.Test;
 class AttackDefenseGameTest {
 
     @Test
-    void eachSideAttacksOnce() {
-        assertEquals(2, AttackDefenseGame.ROUNDS);
+    void theFirstSideToThreeRoundsWins() {
+        assertEquals(3, AttackDefenseGame.WINS);
         assertEquals(1, AttackDefenseGame.attackingSide(1), "the second side attacks first");
-        assertEquals(0, AttackDefenseGame.attackingSide(2), "the roles swap at the second round");
+        assertEquals(0, AttackDefenseGame.attackingSide(2), "the roles swap at each round");
+        assertEquals(1, AttackDefenseGame.attackingSide(3));
+        assertEquals(0, AttackDefenseGame.winner(new int[] {3, 2}, new int[] {40, 60}));
+        assertEquals(20L, AttackDefenseGame.BETWEEN_TICKS, "a second between two rounds");
     }
 
     @Test
@@ -48,8 +51,9 @@ class AttackDefenseGameTest {
         assertEquals("Fireball x3", RoundKit.label(RoundKit.ATTACK.get(0).entries(catalog).get(2)));
         assertEquals("Diamond Pickaxe", RoundKit.label(RoundKit.ATTACK.get(1).entries(catalog).get(3)));
         assertEquals(2, AttackDefenseGame.ARMOUR, "iron: leggings and boots, for the defenders too");
-        assertEquals(10, AttackDefenseGame.COUNTDOWN, "time to choose...");
-        assertEquals(3, AttackDefenseGame.READY_COUNTDOWN, "...shorter once everyone has");
+        assertEquals(5, AttackDefenseGame.COUNTDOWN, "time to choose...");
+        assertEquals(3, AttackDefenseGame.NEXT_COUNTDOWN, "...the last kit kept at the next rounds...");
+        assertEquals(0, AttackDefenseGame.READY_COUNTDOWN, "...and at once when everyone has chosen");
     }
 
     @Test

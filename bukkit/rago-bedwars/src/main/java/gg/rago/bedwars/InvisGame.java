@@ -38,13 +38,15 @@ import org.bukkit.scheduler.BukkitTask;
  * island has room for): shears, wooden tools and Haste, an iron sword
  * with Sharpness, Protection IV armour and 2 stacks of wool, where the hotbar manager puts them,
  * then where the player arranged them in an earlier round (the lobby keeps it, as
- * "invis-practice/defense"); four at most, a sixth player watches that round. The attacker wins the round by breaking the bed; the defenders by killing the
- * attacker (one life) or by holding three minutes; a defender comes back three seconds after a
+ * "invis-practice/defense"); four at most, a sixth player watches that round. The attacker wins
+ * the round by breaking the bed; the defenders by killing the attacker (one life) or by holding
+ * three minutes; a defender comes back three seconds after a
  * death. Each player attacks in turn, twice each with two or three players. Breaking the bed, or
  * killing the attacker, gives a point; the most points win.
  *
- * <p>The game waits for its players on its map: it starts 20 seconds after the second one joins,
- * 5 seconds once six are in. Main thread only.
+ * <p>The game waits for its players on its map: it starts 10 seconds after the second one joins,
+ * 3 seconds once six are in; a round starts 3 seconds after it is set, a second after the last
+ * one. Main thread only.
  */
 final class InvisGame extends BedwarsGame {
 
@@ -52,12 +54,12 @@ final class InvisGame extends BedwarsGame {
     static final int MAX_PLAYERS = 6;
     static final int MAX_DEFENDERS = 4;
     static final int ROUND_SECONDS = 180;
-    private static final int WAIT_SECONDS = 20;
-    private static final int FULL_WAIT_SECONDS = 5;
-    private static final int ROUND_COUNTDOWN = 5;
+    private static final int WAIT_SECONDS = 10;
+    private static final int FULL_WAIT_SECONDS = 3;
+    private static final int ROUND_COUNTDOWN = 3;
     private static final int DEFENDER_RESPAWN = 3;
     /** Between the end of a round and the next one. */
-    private static final long BETWEEN_TICKS = 80L;
+    private static final long BETWEEN_TICKS = 20L;
     /** The defense of a ranked game without its last layer of wool, from the bed out: end stone, glass, wood. */
     static final Material[] DEFENSE = {Material.ENDER_STONE, Material.STAINED_GLASS, Material.WOOD};
     /** The defenders' kit, as the lobby keeps how each player arranges it in a game: "invis-practice/defense". */

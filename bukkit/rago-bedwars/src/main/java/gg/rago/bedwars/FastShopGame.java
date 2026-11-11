@@ -35,7 +35,7 @@ final class FastShopGame extends BedwarsGame {
     /** At most this many players on one island. */
     static final int PER_ISLAND = 2;
     /** After a list, the next one comes this long after. */
-    private static final long NEXT_TICKS = 50L;
+    private static final long NEXT_TICKS = 20L;
 
     /** A list to buy: its id (for the records), its name, the shop ids in the order to buy, one per click. */
     static final class Order {

@@ -121,8 +121,9 @@ Un kill soigne.
 
 `attack-defense-1v1` et `attack-defense-2v2` (le genre `attaque-defense`), sur les maps d'attack
 and defense du propriétaire : d'abord **BioHazard** (Bio Hazard, dont il ne reste que la base
-grise et le pont rose qui y mène). Deux manches : chaque camp attaque une fois, les rôles
-s'échangent à la deuxième, la map redevient comme au départ.
+grise et le pont rose qui y mène). Le premier camp à 3 manches gagne : les rôles s'échangent à
+chaque manche (5 manches au plus), la map redevient comme au départ, une seconde après la fin de
+la manche.
 
 - **Les attaquants** partent du bout du pont (les `attaquants:` du `bedwars.yml` de la map), avec
   une seule vie, une armure en fer et le kit d'attaque qu'ils ont choisi. Ils posent des blocs et
@@ -134,7 +135,8 @@ s'échangent à la deuxième, la map redevient comme au départ.
   après, une mort est un final kill, comme dans une vraie partie.
 
 **Les kits.** Avant chaque manche, un menu s'ouvre tout seul avec les kits du rôle du joueur ; le
-décompte dure 10 secondes, 3 dès que tout le monde a choisi. `/kit` (ou le bouton [CHANGE KIT] du
+décompte dure 5 secondes avant la première manche, 3 avant les suivantes (le kit de la manche
+d'avant est gardé), et la manche part tout de suite dès que tout le monde a choisi. `/kit` (ou le bouton [CHANGE KIT] du
 chat) le rouvre ; un choix pendant la manche vaut pour la prochaine manche dans ce rôle. Le
 dernier kit choisi est retenu. Les objets suivent la place que le joueur leur a donnée dans
 l'éditeur de kit du lobby, sinon sa hotbar Hypixel.
@@ -159,9 +161,8 @@ est celle des défenseurs, comme dans une vraie partie : on peut la casser, et e
 à chaque manche.
 
 Les attaquants gagnent la manche en cassant le lit et en tuant tous les défenseurs ; les
-défenseurs en tuant tous les attaquants, ou en tenant 5 minutes. Le camp qui gagne le plus de
-manches gagne ; à une manche partout, la plus rapide des deux attaques réussies gagne, sinon c'est
-une égalité.
+défenseurs en tuant tous les attaquants, ou en tenant 5 minutes. Le premier camp à 3 manches
+gagne la partie.
 
 ## Clutch Scenario
 
@@ -260,7 +261,8 @@ Dans `jeux:` du config.yml, un mode peut jouer autre chose qu'une partie classiq
   ou **Random** (n'importe lequel de ces endroits, les bases et les diamants). Le menu revient à
   chaque réapparition : on garde son choix (Échap) ou on en prend un autre, qui fait changer de
   place tout de suite. `/ffaspawn` (ou [CHOOSE] dans le chat) le rouvre ; un choix fait plus de
-  10 secondes après l'apparition, ou après avoir été touché, vaut pour la vie suivante. Parmi les points du choix, on prend au hasard un endroit sans
+  10 secondes après l'apparition, ou après avoir été touché, vaut pour la vie suivante. Parmi les
+  points du choix, on prend au hasard un endroit sans
   joueur à moins de 12 blocs, sinon le plus éloigné des autres. Ces points sont les `apparitions:`
   du `bedwars.yml` de la map (un nom, puis sa liste de points ; 8 au plus). Une map sans
   `apparitions:` fait revenir sur l'île la plus éloignée des autres.
@@ -301,10 +303,13 @@ Dans `jeux:` du config.yml, un mode peut jouer autre chose qu'une partie classiq
   Les autres modes gardent l'invisibilité complète d'Hypixel. Les autres, quatre au plus,
   défendent le lit de l'île voisine sous une défense de ranked sans sa couche de laine : end stone
   sur le lit, puis verre et bois (les couches que l'île a la place de porter) ; cisailles, outils en bois et Haste,
-  épée en fer Sharpness, 2 stacks de laine, armure de fer Protection IV.
+  épée en fer Sharpness, 2 stacks de laine, armure de fer Protection IV, là où la hotbar Hypixel
+  les met, puis là où le joueur les a rangés pendant une manche d'avant (le lobby garde ce
+  rangement sous `invis-practice/defense`, comme le kit de l'attaquant sous `invis-practice`).
   L'attaquant gagne la manche en cassant le lit, les défenseurs en le tuant (une vie) ou en tenant
-  3 minutes. Chacun attaque à son tour ; le plus de points gagne. La partie part 20
-  secondes après l'arrivée du deuxième joueur, 5 secondes quand ils sont six.
+  3 minutes. Chacun attaque à son tour ; le plus de points gagne. La partie part 10
+  secondes après l'arrivée du deuxième joueur, 3 secondes quand ils sont six ; une manche part 3
+  secondes après sa mise en place, une seconde après la fin de la précédente.
 - **Fast Shop** (`fast-shop`) : acheter le plus vite possible avec son propre quick buy (copié
   d'Hypixel dans le lobby). Sept listes, chacune avec ses records : le premier achat, l'armure de
   fer, les outils, un fireball fight, une défense de lit, un rush, et une liste au hasard. Un clic

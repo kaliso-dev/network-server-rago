@@ -24,6 +24,15 @@ class DuelScoreTest {
     }
 
     @Test
+    void theNextRoundsStartAfterASecond() {
+        assertEquals(3, PracticeGame.countdownOf(1, 3));
+        assertEquals(1, PracticeGame.countdownOf(2, 3));
+        assertEquals(1, PracticeGame.countdownOf(5, 3));
+        assertEquals(0, PracticeGame.countdownOf(1, 0));
+        assertEquals(0, PracticeGame.countdownOf(3, 0));
+    }
+
+    @Test
     void refusesAZeroTarget() {
         assertThrows(IllegalArgumentException.class, () -> new DuelScore(0));
     }

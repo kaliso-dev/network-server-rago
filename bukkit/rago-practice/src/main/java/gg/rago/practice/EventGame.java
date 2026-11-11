@@ -562,7 +562,7 @@ final class EventGame extends PracticeGame {
             }
         }
         stage = Stage.BETWEEN;
-        later(40L, this::nextMatch);
+        later(20L, this::nextMatch);
     }
 
     /** True (and the event over) when one player is left. */

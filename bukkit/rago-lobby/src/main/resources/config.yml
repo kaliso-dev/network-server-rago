@@ -1078,7 +1078,8 @@ modes:
       - "Bio Hazard: the attacker on the"
       - "pink bridge, one life; the"
       - "defender with forge and shop."
-      - "Two rounds, the roles swap;"
+      - "First to 3 rounds, the roles"
+      - "swap at each round;"
       - "3 kits to attack, 3 to defend."
   attack-defense-2v2:
     nom: "&cAttack and defense 2v2"
@@ -1093,7 +1094,8 @@ modes:
       - "Bio Hazard: one team attacks"
       - "from the pink bridge, the other"
       - "defends with forge and shop."
-      - "Two rounds, the roles swap;"
+      - "First to 3 rounds, the roles"
+      - "swap at each round;"
       - "3 kits to attack, 3 to defend."
   partie-privee:
     nom: "&6Private game"

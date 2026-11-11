@@ -17,8 +17,9 @@ prendre un (« Ann: 34 hits, best combo 7 »). Au sumo aussi ; pas dans les even
 - **Sumo** : sur les maps sumo du serveur (Ponsen, Fort Royale, White Crystal, Space Mine, Sumo,
   dans le dossier des mondes), tirées au hasard à chaque duel ; sans elles, une plateforme ronde.
   Des coups sans dégâts, le premier qui tombe (ou touche l'eau) donne un point ; premier à 3.
-  Chaque manche commence par 3 secondes immobiles, face à face. Les maps sont copiées dans les
-  zones du sumo au démarrage, quelques milliers de blocs par tick ; elles ne sont pas dans le dépôt.
+  La première manche commence par 3 secondes immobiles, face à face, les suivantes par une seule.
+  Les maps sont copiées dans les zones du sumo au démarrage, quelques milliers de blocs par tick ;
+  elles ne sont pas dans le dépôt.
 - **Boxing**, comme sur Minemen : sur les arènes Minemen de 2022 du propriétaire (Cobble, Shy Guy,
   Redstone, Cave, Fishtank, Goku, Lollipop, Pokemon : les mondes `Minemen …` du dossier des
   mondes, `boxing.cartes`), tirées au hasard, chacun sur son bloc de diamant ; sans elles, un ring
