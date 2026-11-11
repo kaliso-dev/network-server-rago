@@ -38,7 +38,11 @@ prendre un (« Ann: 34 hits, best combo 7 »). Au sumo aussi ; pas dans les even
   Sans le monde, le pont du plugin : le défenseur en haut de la défense, un bloc plus bas que le
   pont, le pont devant lui et un bloc derrière. L'attaquant court sur le pont et, dans le tick du coup, tourne la
   tête d'un côté : le knockback du sprint envoie le défenseur sur le côté, dans le vide. Seul un
-  coup donné de face compte (depuis le pont, jamais d'un côté ni de derrière). Chaque coup est un
+  coup donné de face compte (depuis le pont, jamais d'un côté ni de derrière), sprint ou pas. Des
+  murs invisibles (barrières) bordent le pont devant le défenseur : l'attaquant reste au milieu du
+  pont et ne peut pas aller frapper sur le côté. Contre le bot, le réglage « Bot KB » de la hotbar
+  dit quelle part du knockback il prend (60 à 100 %, 80 % par défaut) : un zombie part plus loin
+  qu'un joueur qui tient sa place. Chaque coup est un
   essai : défenseur tombé, un point pour l'attaquant ; les rôles changent à chaque coup (ou après
   15 secondes sans coup). Le défenseur reste à sa place, coups sans dégâts, pas de blocs. Premier
   à 3.

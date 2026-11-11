@@ -95,4 +95,38 @@ class KbDisplaceTest {
         section.set("defenseur", java.util.Arrays.asList(896056.5, 98));
         assertTrue(RagoPractice.checkKbDisplace(section, 200).startsWith("defenseur"));
     }
+
+    @Test
+    void theBotTakesItsShareOfTheKnockbackOfTheGame() {
+        // a sprint hit from the bridge (attacker at smaller x, looking along +x... turned to +z: yaw 0)
+        double[] full = KbDisplaceBot.knockback(-2.0, 0.5, 0f, true, 0.5, 0.5, 0, -0.0784, 0, 1.0);
+        assertEquals(0.4, full[0], 1e-9, "away from the attacker");
+        assertEquals(0.4 - 0.0392 + 0.1, full[1], 1e-9, "up, then the sprint");
+        assertEquals(0.5, full[2], 1e-9, "the sprint, the way the attacker looks");
+        double[] less = KbDisplaceBot.knockback(-2.0, 0.5, 0f, true, 0.5, 0.5, 0, -0.0784, 0, KbDisplaceBot.kbShare(1));
+        assertEquals(0.6 * full[2], less[2], 1e-9);
+        assertEquals(1.0, KbDisplaceBot.kbShare(5), 1e-9, "the whole knockback at the top");
+        assertTrue(KbDisplaceBot.kbShare(KbDisplaceBot.DEFAULT_BOT_KB) < 1.0, "less than the game's by default");
+        double[] walk = KbDisplaceBot.knockback(-2.0, 0.5, 0f, false, 0.5, 0.5, 0, -0.0784, 0, 1.0);
+        assertEquals(0.0, walk[2], 1e-9, "no sprint: straight away from the attacker");
+    }
+
+    @Test
+    void invisibleWallsLineTheBridgeInFrontOfTheDefender() {
+        java.util.List<int[]> walls = KbDisplace.Place.PLAIN.walls();
+        java.util.Set<String> at = new java.util.HashSet<>();
+        for (int[] wall : walls) {
+            at.add(wall[0] + "," + wall[1] + "," + wall[2]);
+            assertTrue(wall[2] == 1 || wall[2] == -1, "beside the bridge, never on it: z " + wall[2]);
+            assertTrue(wall[0] <= -1, "in front of the defender, never at their sides: x " + wall[0]);
+        }
+        assertTrue(at.contains("-1,1,1") && at.contains("-1,1,-1"), "from the block in front of the defender");
+        assertTrue(at.contains("-10,3,1"), "past the attacker's start, three blocks high");
+        // the owner's map: along z, the defender at z -3.5, the attacker at z 5.5
+        KbDisplace.Place map = new KbDisplace.Place(null, new double[] {0.5, 1, 5.5, 180}, new double[] {0.5, 1, -3.5, 0});
+        for (int[] wall : map.walls()) {
+            assertTrue(wall[0] == 1 || wall[0] == -1, "beside the bridge: x " + wall[0]);
+            assertTrue(wall[2] >= -3, "never beside the defender: z " + wall[2]);
+        }
+    }
 }

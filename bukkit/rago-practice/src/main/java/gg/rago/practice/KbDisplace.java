@@ -1,6 +1,7 @@
 package gg.rago.practice;
 
 import gg.rago.game.GameMode;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
 import org.bukkit.ChatColor;
@@ -17,8 +18,9 @@ import org.bukkit.inventory.ItemStack;
  * them, nothing on the sides. The attacker runs along the bridge and, in the tick of the hit,
  * turns their head to one side: the knockback of the sprint sends the defender sideways, off the
  * top. Only a hit from the front of the defender counts (from the bridge, never from a side or
- * from behind), sprinting, with the look on the defender: a hit with the head turned away from
- * them (which only a cheat lands) does not count. Each hit is one attempt: a displaced defender is a point for the attacker, and
+ * from behind), with the look on the defender: a hit with the head turned away from them (which
+ * only a cheat lands) does not count. Invisible walls (barriers) line both sides of the bridge in
+ * front of the defender: the attacker stays on it, in its middle, and cannot hit from a side. Each hit is one attempt: a displaced defender is a point for the attacker, and
  * the roles swap at each hit (or after {@link #ATTEMPT_SECONDS} seconds without one). The
  * defender stays in their notch, no damage, no blocks. First to the target. The practice against
  * a bot is {@link KbDisplaceBot}. Both play on the owner's map when the server has it (the
@@ -35,6 +37,8 @@ final class KbDisplace extends Duel {
     static final int KNOCK_TICKS = 30;
     /** An attempt without a hit ends after this long. */
     static final int ATTEMPT_SECONDS = 15;
+    /** The invisible walls along the bridge are this high: a jump does not clear them. */
+    static final int WALL_HEIGHT = 3;
 
     /**
      * Where the duel and the drill play: the plugin's own bridge, or a copy of the owner's map with
@@ -69,6 +73,37 @@ final class KbDisplace extends Duel {
             } else {
                 bridge(arena);
             }
+            for (int[] wall : walls()) {
+                if (arena.block(wall[0], wall[1], wall[2]).getType() == Material.AIR) {
+                    arena.build(wall[0], wall[1], wall[2], Material.BARRIER);
+                }
+            }
+        }
+
+        /**
+         * The blocks of the invisible walls, offsets from the centre: on both sides of the bridge,
+         * from the block in front of the defender to just behind the attacker's start,
+         * {@value #WALL_HEIGHT} high from the attacker's feet, so that the attacker runs in the
+         * middle of the bridge and never reaches a side of the defender.
+         */
+        List<int[]> walls() {
+            List<int[]> walls = new ArrayList<>();
+            double dx = attacker[0] - defender[0];
+            double dz = attacker[2] - defender[2];
+            int length = (int) Math.round(Math.sqrt(dx * dx + dz * dz)) + 2;
+            int feet = (int) Math.floor(attacker[1] + 0.01);
+            for (int t = 1; t <= length; t++) {
+                double x = defender[0] + front[0] * t;
+                double z = defender[2] + front[1] * t;
+                for (int side = -1; side <= 1; side += 2) {
+                    int bx = (int) Math.floor(x - front[1] * side);
+                    int bz = (int) Math.floor(z + front[0] * side);
+                    for (int y = 0; y < WALL_HEIGHT; y++) {
+                        walls.add(new int[] {bx, feet + y, bz});
+                    }
+                }
+            }
+            return walls;
         }
 
         Location attackerStart(Arena arena) {
@@ -125,7 +160,8 @@ final class KbDisplace extends Duel {
         super.intro(player);
         player.sendMessage(ChatColor.GRAY + "The defender holds their place on the bridge, nothing on their sides."
                 + " Run, turn your head to the side and hit them in the same tick: they go off sideways."
-                + " Only a hit from the front, sprinting, with your look on them counts. The roles swap at each hit.");
+                + " Only a hit from the front, with your look on them, counts: invisible walls keep you on the bridge."
+                + " The roles swap at each hit.");
     }
 
     // --- The place, shared with the bot -----------------------------------------------------------
@@ -200,9 +236,6 @@ final class KbDisplace extends Duel {
     static String refused(Place place, Player attacker, double[] by, double[] at, Location victim) {
         if (!place.fromTheFront(by[0] - at[0], by[2] - at[2])) {
             return "Only a hit from the front counts: from the bridge, in front of them.";
-        }
-        if (!attacker.isSprinting()) {
-            return "Only a hit with a run counts: sprint along the bridge.";
         }
         Location eye = attacker.getEyeLocation();
         org.bukkit.util.Vector way = eye.getDirection();
