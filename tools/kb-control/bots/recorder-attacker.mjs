@@ -147,6 +147,20 @@ function tp (bot, name, x, z, yaw, pitch) {
   bot.chat(`/tp ${name} ${coordinate(x)} ${coordinate(GROUND_Y)} ${coordinate(z)} ${yaw.toFixed(3)} ${pitch.toFixed(3)}`)
 }
 
+// The client stands where the world spawned it, which a random seed can put hundreds of blocks
+// from the attacker's start. The server only shows a player to another within tracking range,
+// and checks again once one of them has moved 4 blocks: bring the victim next to the start, a
+// little further each time, until the attacker sees it.
+async function seeVictim (bot) {
+  const deadline = Date.now() + 10000
+  for (let step = 0; victimEntity(bot) == null; step++) {
+    if (Date.now() > deadline) throw new Error(`timed out waiting for the attacker to see ${VICTIM}`)
+    tp(bot, VICTIM, 0.5, 0.5 + (step % 2) * 6, 0, 0)
+    const next = Date.now() + 1000
+    while (victimEntity(bot) == null && Date.now() < next) await sleep(20)
+  }
+}
+
 let lastAttack = 0
 
 async function hit (bot, phase, index) {
@@ -216,7 +230,7 @@ async function main () {
     // not change knockback, and a hit still needs the usual cooldown.
     await command(bot, `/effect ${VICTIM} 11 1000000 4 true`, /Given|Resistance|commands\.effect/)
     tp(bot, ATTACKER, 3.5, 0.5, 90, 0)
-    await waitFor(() => victimEntity(bot) != null, 10000, `the attacker to see ${VICTIM}`)
+    await seeVictim(bot)
     await waitFor(() => bot.time.age >= joinAge + WAIT_BEFORE_FIRST_HIT_TICKS, 15000,
       'the end of the victim spawn invulnerability')
 
