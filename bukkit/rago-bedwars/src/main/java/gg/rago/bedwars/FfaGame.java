@@ -406,13 +406,9 @@ final class FfaGame extends BedwarsGame {
             player.sendMessage(ChatColor.GRAY + "Your kit (arranged in the lobby's kit editor) comes back at each life, "
                     + "and a kill heals you.");
             if (choosesSpawn()) {
-                net.md_5.bungee.api.chat.TextComponent text = new net.md_5.bungee.api.chat.TextComponent(ChatColor.GRAY
-                        + "Where you spawn: " + String.join(", ", instance.map().spawnChoices().keySet()) + " or Random. ");
-                net.md_5.bungee.api.chat.TextComponent link = new net.md_5.bungee.api.chat.TextComponent(ChatColor.GREEN
-                        + "" + ChatColor.BOLD + "[CHOOSE]");
-                link.setClickEvent(new net.md_5.bungee.api.chat.ClickEvent(
-                        net.md_5.bungee.api.chat.ClickEvent.Action.RUN_COMMAND, "/ffaspawn"));
-                player.spigot().sendMessage(text, link);
+                sendButton(player, ChatColor.GRAY + "Where you spawn: "
+                        + String.join(", ", instance.map().spawnChoices().keySet()) + " or Random. ",
+                        ChatColor.GREEN + "" + ChatColor.BOLD + "[CHOOSE]", "/ffaspawn");
                 Bukkit.getScheduler().runTask(plugin, () -> {
                     if (player.isOnline() && host.gameOf(player.getUniqueId()) == this) {
                         openSpawnMenu(player);

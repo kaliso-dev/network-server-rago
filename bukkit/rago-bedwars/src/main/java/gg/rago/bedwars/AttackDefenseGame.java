@@ -356,14 +356,9 @@ final class AttackDefenseGame extends BedwarsGame {
 
     /** The menu of the kits opens by itself before the round, and a line of the chat opens it again. */
     private void offerKits(final Player player) {
-        net.md_5.bungee.api.chat.TextComponent text = new net.md_5.bungee.api.chat.TextComponent(ChatColor.GRAY
-                + "Your kit: " + ChatColor.WHITE + ChatColor.stripColor(kitOf(gamers.get(player.getUniqueId())).name)
-                + ChatColor.GRAY + ". ");
-        net.md_5.bungee.api.chat.TextComponent link = new net.md_5.bungee.api.chat.TextComponent(ChatColor.GREEN + ""
-                + ChatColor.BOLD + "[CHANGE KIT]");
-        link.setClickEvent(new net.md_5.bungee.api.chat.ClickEvent(net.md_5.bungee.api.chat.ClickEvent.Action.RUN_COMMAND,
-                "/kit"));
-        player.spigot().sendMessage(text, link);
+        sendButton(player, ChatColor.GRAY + "Your kit: " + ChatColor.WHITE
+                + ChatColor.stripColor(kitOf(gamers.get(player.getUniqueId())).name) + ChatColor.GRAY + ". ",
+                ChatColor.GREEN + "" + ChatColor.BOLD + "[CHANGE KIT]", "/kit");
         later(1L, () -> {
             if (player.isOnline() && host.gameOf(player.getUniqueId()) == this && phase == Phase.STARTING) {
                 openKitMenu(player);

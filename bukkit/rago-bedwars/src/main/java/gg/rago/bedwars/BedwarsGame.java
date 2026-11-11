@@ -226,6 +226,37 @@ class BedwarsGame {
         return scheduled;
     }
 
+    /**
+     * A line of the chat ending with a button that runs a command, through the vanilla /tellraw, as
+     * the lobby's buttons: the chat component API (bungeecord-chat) is not in the build (see
+     * docs/compatibility.md). Player names are letters, digits and _.
+     */
+    static void sendButton(Player player, String text, String button, String command) {
+        Bukkit.dispatchCommand(Bukkit.getConsoleSender(), "tellraw " + player.getName() + " " + buttonJson(text, button, command));
+    }
+
+    /** The JSON of a line and its button, the colour codes kept in the texts. */
+    static String buttonJson(String text, String button, String command) {
+        return "[\"\",{\"text\":\"" + jsonText(text) + "\"},{\"text\":\"" + jsonText(button)
+                + "\",\"clickEvent\":{\"action\":\"run_command\",\"value\":\"" + jsonText(command) + "\"}}]";
+    }
+
+    /** The text inside the quotes of a JSON string. */
+    static String jsonText(String text) {
+        StringBuilder out = new StringBuilder(text.length() + 8);
+        for (int i = 0; i < text.length(); i++) {
+            char c = text.charAt(i);
+            if (c == '"' || c == '\\') {
+                out.append('\\').append(c);
+            } else if (c < 0x20) {
+                out.append(String.format("\\u%04x", (int) c));
+            } else {
+                out.append(c);
+            }
+        }
+        return out.toString();
+    }
+
     Instance instance() {
         return instance;
     }

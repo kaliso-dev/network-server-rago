@@ -106,4 +106,18 @@ class AttackDefenseGameTest {
         }
         return names;
     }
+
+    @Test
+    void theKitButtonIsAJsonLineForTellraw() {
+        String json = BedwarsGame.buttonJson("§7Your kit: §fRusher \"A\"\\. ", "§a§l[CHANGE KIT]", "/kit");
+        com.google.gson.JsonArray parts = new com.google.gson.JsonParser().parse(json).getAsJsonArray();
+        assertEquals(3, parts.size());
+        assertEquals("§7Your kit: §fRusher \"A\"\\. ", parts.get(1).getAsJsonObject().get("text").getAsString(),
+                "quotes and backslashes kept");
+        com.google.gson.JsonObject button = parts.get(2).getAsJsonObject();
+        assertEquals("§a§l[CHANGE KIT]", button.get("text").getAsString());
+        assertEquals("run_command", button.getAsJsonObject("clickEvent").get("action").getAsString());
+        assertEquals("/kit", button.getAsJsonObject("clickEvent").get("value").getAsString());
+        assertEquals("a\\u000ab", BedwarsGame.jsonText("a\nb"));
+    }
 }
