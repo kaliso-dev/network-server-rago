@@ -1,5 +1,9 @@
 package gg.rago.lobby;
 
+import java.text.SimpleDateFormat;
+import java.util.ArrayDeque;
+import java.util.Date;
+import java.util.Deque;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Locale;
@@ -40,6 +44,8 @@ final class StaffTools implements Listener {
     private final Set<UUID> staffChannel = ConcurrentHashMap.newKeySet();
     private final Set<UUID> frozen = ConcurrentHashMap.newKeySet();
     private final Map<UUID, Long> lastReport = new HashMap<>();
+    /** The last reports, the newest first: /reports shows them to the staff (and the console has each). */
+    private final Deque<String> reports = new ArrayDeque<>();
     private final Set<UUID> vanished = new HashSet<>();
     private volatile boolean chatMuted;
 
@@ -258,16 +264,28 @@ final class StaffTools implements Listener {
         String line = ChatColor.RED + "[REPORT] " + ChatColor.YELLOW + from.getName() + ChatColor.GRAY + " reported "
                 + ChatColor.YELLOW + target.getName() + ChatColor.GRAY + (mode == null ? " (lobby)" : " (" + mode + ")") + ": "
                 + ChatColor.WHITE + reason;
-        int told = 0;
-        for (Player player : Bukkit.getOnlinePlayers()) {
-            if (staff(player)) {
-                player.sendMessage(line);
-                told++;
-            }
+        // nobody else's chat shows it (the staff in a game would see it there): /reports, and the console
+        reports.addFirst(ChatColor.DARK_GRAY + new SimpleDateFormat("HH:mm").format(new Date(now)) + " " + line);
+        while (reports.size() > REPORTS_KEPT) {
+            reports.removeLast();
         }
         lobby.getLogger().info(ChatColor.stripColor(line));
-        from.sendMessage(ChatColor.GREEN + "Thanks for your report! " + (told > 0 ? "The staff online has it."
-                : "The staff will read it soon."));
+        from.sendMessage(ChatColor.GREEN + "Thanks for your report! The staff will look into it.");
+    }
+
+    /** How many reports /reports keeps, the newest. */
+    static final int REPORTS_KEPT = 20;
+
+    /** /reports: the last reports, the newest first. */
+    void reports(Player staff) {
+        if (reports.isEmpty()) {
+            staff.sendMessage(ChatColor.GRAY + "No report since the server started.");
+            return;
+        }
+        staff.sendMessage(ChatColor.GOLD + "The last " + reports.size() + " reports, the newest first:");
+        for (String line : reports) {
+            staff.sendMessage(line);
+        }
     }
 
     /** The player left: a frozen player who logs out is reported to the staff. */

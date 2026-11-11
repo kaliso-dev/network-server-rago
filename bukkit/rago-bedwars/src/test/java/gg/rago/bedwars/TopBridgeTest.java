@@ -235,4 +235,13 @@ class TopBridgeTest {
         assertTrue(BedwarsHost.placesOn(Material.BED_BLOCK, true));
         assertTrue(BedwarsHost.placesOn(Material.FURNACE, false), "a furnace of the map: as before");
     }
+
+    @Test
+    void aPearlFarAwayIsHeardFromItsSideAtFullVolume() {
+        Location near = BedwarsHost.heardAt(new Location(null, 0, 64, 0), new Location(null, 3, 64, 4));
+        assertEquals(3, near.getX(), 1e-9, "near: where it lands");
+        Location far = BedwarsHost.heardAt(new Location(null, 0, 64, 0), new Location(null, 60, 64, 80));
+        assertEquals(BedwarsHost.HEARD_WITHIN, Math.hypot(far.getX(), far.getZ()), 1e-9);
+        assertEquals(0.6, far.getX() / BedwarsHost.HEARD_WITHIN, 1e-9, "towards it");
+    }
 }

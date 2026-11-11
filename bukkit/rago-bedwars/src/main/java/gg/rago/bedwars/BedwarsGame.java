@@ -1118,7 +1118,7 @@ class BedwarsGame {
     /**
      * A hit by another player of the game: the kill goes to them if this player dies soon. An
      * invisible player (a potion of the shop, a kit's) hit loses their invisibility: seen, armour
-     * and all, until they drink another.
+     * and all, until they drink another; both hear it, nothing in the chat.
      */
     void hit(Gamer victim, Gamer attacker) {
         victim.lastDamager = attacker.id;
@@ -1131,9 +1131,11 @@ class BedwarsGame {
             return;
         }
         player.removePotionEffect(PotionEffectType.INVISIBILITY);
-        player.sendMessage(ChatColor.RED + "You were hit: you are visible again!");
-        broadcast(victim.coloured() + ChatColor.YELLOW + " was hit by " + attacker.coloured() + ChatColor.YELLOW
-                + " and is visible again!", Sound.ORB_PICKUP);
+        player.playSound(player.getLocation(), Sound.ORB_PICKUP, 1f, 1f);
+        Player by = Bukkit.getPlayer(attacker.id);
+        if (by != null && host.gameOf(attacker.id) == this) {
+            by.playSound(by.getLocation(), Sound.ORB_PICKUP, 1f, 1f);
+        }
     }
 
     /** True if a hit takes this player's invisibility away: while the game is played. */

@@ -599,18 +599,37 @@ final class BedwarsHost implements MatchHost, Listener {
     }
 
     /**
-     * An ender pearl lands: everyone around hears the teleport where it takes the player, as on
-     * Hypixel (the 1.8 server plays no sound there; the throw has its own).
+     * An ender pearl lands: every player of the game (its world), the thrower too, hears the
+     * teleport wherever they are (the 1.8 server plays no sound there).
      */
     @EventHandler(priority = EventPriority.MONITOR, ignoreCancelled = true)
     public void onPearl(PlayerTeleportEvent event) {
-        if (event.getCause() != PlayerTeleportEvent.TeleportCause.ENDER_PEARL || event.getTo() == null) {
+        Location to = event.getTo();
+        if (event.getCause() != PlayerTeleportEvent.TeleportCause.ENDER_PEARL || to == null || !isGameWorld(to.getWorld())) {
             return;
         }
-        Player player = event.getPlayer();
-        if (games.containsKey(player.getUniqueId()) || isGameWorld(event.getTo().getWorld())) {
-            event.getTo().getWorld().playSound(event.getTo(), Sound.ENDERMAN_TELEPORT, 1f, 1f);
+        for (Player listener : to.getWorld().getPlayers()) {
+            listener.playSound(heardAt(listener.getLocation(), to), Sound.ENDERMAN_TELEPORT, 1f, 1f);
         }
+    }
+
+    /** How far from a listener a sound from afar is played: within hearing, at full volume. */
+    static final double HEARD_WITHIN = 8;
+
+    /**
+     * Where a listener hears a sound from this source: there if it is near, else on the way to it,
+     * {@value #HEARD_WITHIN} blocks off, so that it comes from its side and at full volume.
+     */
+    static Location heardAt(Location listener, Location source) {
+        double dx = source.getX() - listener.getX();
+        double dy = source.getY() - listener.getY();
+        double dz = source.getZ() - listener.getZ();
+        double distance = Math.sqrt(dx * dx + dy * dy + dz * dz);
+        if (distance <= HEARD_WITHIN) {
+            return source;
+        }
+        double k = HEARD_WITHIN / distance;
+        return new Location(listener.getWorld(), listener.getX() + dx * k, listener.getY() + dy * k, listener.getZ() + dz * k);
     }
 
     @EventHandler

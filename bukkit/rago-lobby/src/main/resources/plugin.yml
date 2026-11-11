@@ -144,6 +144,9 @@ commands:
     description: Report a player to the staff.
     usage: /report <player> <reason>
     aliases: [wdr]
+  reports:
+    description: The last reports (staff).
+    usage: /reports
   clearchat:
     description: Clear the chat.
     usage: /clearchat

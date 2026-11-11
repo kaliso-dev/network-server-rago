@@ -228,9 +228,28 @@ final class PracticeGames implements Listener {
         }
         game.pearled(player, event);
         if (!event.isCancelled()) {
-            // where the pearl lands, the teleport is heard all around, as on Hypixel
-            event.getTo().getWorld().playSound(event.getTo(), Sound.ENDERMAN_TELEPORT, 1f, 1f);
+            // the teleport where the pearl lands: every player of the game hears it, wherever they are
+            Location to = event.getTo();
+            for (Player listener : game.online()) {
+                listener.playSound(heardAt(listener.getLocation(), to), Sound.ENDERMAN_TELEPORT, 1f, 1f);
+            }
         }
+    }
+
+    /** How far from a listener a sound from afar is played: within hearing, at full volume. */
+    static final double HEARD_WITHIN = 8;
+
+    /** Where a listener hears a sound from this source: there if near, else {@value #HEARD_WITHIN} blocks off towards it. */
+    static Location heardAt(Location listener, Location source) {
+        double dx = source.getX() - listener.getX();
+        double dy = source.getY() - listener.getY();
+        double dz = source.getZ() - listener.getZ();
+        double distance = Math.sqrt(dx * dx + dy * dy + dz * dz);
+        if (distance <= HEARD_WITHIN) {
+            return source;
+        }
+        double k = HEARD_WITHIN / distance;
+        return new Location(listener.getWorld(), listener.getX() + dx * k, listener.getY() + dy * k, listener.getZ() + dz * k);
     }
 
     // --- Damage ---------------------------------------------------------------------------------

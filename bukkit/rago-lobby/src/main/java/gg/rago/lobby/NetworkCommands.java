@@ -21,7 +21,7 @@ import org.bukkit.entity.Player;
 final class NetworkCommands implements CommandExecutor, TabCompleter {
 
     static final String[] NAMES = {"shop", "gift", "profile", "daily", "friend", "msg", "reply", "rank", "points", "top", "stats",
-        "fly", "staffchat", "vanish", "freeze", "report", "clearchat", "mutechat", "ban", "unban", "mute", "unmute", "kick",
+        "fly", "staffchat", "vanish", "freeze", "report", "reports", "clearchat", "mutechat", "ban", "unban", "mute", "unmute", "kick",
         "warn", "history", "staff", "discord", "rules", "site", "store", "style", "level", "quests", "display", "nick", "realname", "booster", "pack", "settings", "season"};
 
     private static final String[] TOPS = {"elo", "level", "wins", "kills", "fkdr", "streak", "games", "points"};
@@ -211,6 +211,11 @@ final class NetworkCommands implements CommandExecutor, TabCompleter {
                     } else {
                         lobby.staff().report(player, target, rest(args, 1));
                     }
+                }
+                return true;
+            case "reports":
+                if ((player = player(sender)) != null && allowed(player, "rago.staff")) {
+                    lobby.staff().reports(player);
                 }
                 return true;
             case "clearchat":

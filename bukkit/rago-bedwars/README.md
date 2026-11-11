@@ -375,9 +375,9 @@ red et blue :
 5. `/bw spectators` là d'où les morts regardent la partie (sinon au-dessus du milieu des spawns).
 6. Si besoin, `/bw height 100` (hauteur maximale de construction ; sinon 25 blocs au-dessus du
    spawn le plus haut), `/bw void 40` (la hauteur où l'on meurt ; sinon 30 blocs sous le spawn le
-   plus bas) et `/bw floor 55` (`hauteur-min:`, le bloc le plus bas qu'on pose, pour ne pas clutcher
+   plus bas) et `/bw floor 63` (`hauteur-min:`, le bloc le plus bas qu'on pose, pour ne pas clutcher
    loin sous les îles ; sinon jusqu'au vide). Sur SkyRise, dont les tours descendent jusqu'en
-   y 25, le `bedwars.yml` de la map a `hauteur-min: 55`.
+   y 25, le `bedwars.yml` de la map a `hauteur-min: 63`.
 7. `/bw info` dit ce qui manque ; `/bw enable` ouvre la map aux parties.
 8. Facultatif, à écrire dans le `bedwars.yml` : `retirer:`, des boîtes de blocs que chaque copie
    enlève en étant faite, toutes ou seulement certains blocs. Antenna s'en sert pour laisser de
