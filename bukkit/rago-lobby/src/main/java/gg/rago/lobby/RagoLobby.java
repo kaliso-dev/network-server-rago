@@ -111,6 +111,8 @@ public final class RagoLobby extends JavaPlugin implements LobbyService {
             getServer().getPluginManager().disablePlugin(this);
             return;
         }
+        // before any player: an NPC's first packet and a Netty listener must not load them together
+        PacketWarmup.preload(getFile(), getClassLoader(), getLogger());
         // rago.cosmetic.(id): a cosmetic a rank gives (VIP's), never an operator's by default
         for (Cosmetic cosmetic : server.cosmetics().values()) {
             String name = Cosmetic.PERMISSION + cosmetic.id();
