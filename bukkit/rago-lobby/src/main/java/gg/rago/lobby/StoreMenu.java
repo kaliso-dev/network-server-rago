@@ -103,9 +103,9 @@ final class StoreMenu {
         menu.set(ROW[i++], ClickMenu.item(Material.EXP_BOTTLE, 0, ChatColor.AQUA + "Boosters", list(
                 ChatColor.AQUA + "x3 Network XP" + ChatColor.GRAY + " for 30 minutes",
                 "of play: " + ChatColor.GOLD + String.format(java.util.Locale.US, "%,d", XpBoosters.PRICE) + " Rago Points" + ChatColor.GRAY + " each.",
-                ChatColor.GOLD + "x3 Rago Points" + ChatColor.GRAY + ": the coin boosters,",
+                ChatColor.GOLD + "x3 Rago Points" + ChatColor.GRAY + ": the points boosters,",
                 "in the starter pack.",
-                "Yours: " + ChatColor.GREEN + (profile.boosters() + profile.dailyBoosters()) + " XP, " + profile.coinBoosters() + " coins",
+                "Yours: " + ChatColor.GREEN + (profile.boosters() + profile.dailyBoosters()) + " XP, " + profile.coinBoosters() + " points",
                 "",
                 ChatColor.YELLOW + "Click to see them")), (p, right) -> boosters.open(p));
         List<String> cosmetics = list(

@@ -197,4 +197,9 @@ final class PracticeHost implements MatchHost {
     Records records() {
         return plugin.records();
     }
+
+    /** What each player last chose in each training (variant, settings), or null while the plugin starts. */
+    TrainingPrefs prefs() {
+        return plugin.prefs();
+    }
 }

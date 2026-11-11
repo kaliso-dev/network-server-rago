@@ -2,6 +2,7 @@ package gg.rago.practice;
 
 import gg.rago.game.ArenaGrid;
 import gg.rago.game.MatchProposal;
+import gg.rago.lobby.api.EndOfGame;
 import gg.rago.lobby.api.MatchHost;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -20,12 +21,14 @@ import org.bukkit.event.Cancellable;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.EventPriority;
 import org.bukkit.event.Listener;
+import org.bukkit.event.block.Action;
 import org.bukkit.event.block.BlockBreakEvent;
 import org.bukkit.event.block.BlockPlaceEvent;
 import org.bukkit.event.entity.EntityDamageByEntityEvent;
 import org.bukkit.event.entity.EntityDamageEvent;
 import org.bukkit.event.entity.FoodLevelChangeEvent;
 import org.bukkit.event.player.PlayerDropItemEvent;
+import org.bukkit.event.player.PlayerInteractEvent;
 import org.bukkit.event.player.PlayerMoveEvent;
 import org.bukkit.event.player.PlayerPickupItemEvent;
 import org.bukkit.event.player.PlayerQuitEvent;
@@ -148,6 +151,16 @@ final class SumoHost implements MatchHost, Listener {
     }
 
     // --- Rules ----------------------------------------------------------------------------------
+
+    /** The Play again paper and the Leave bed, at the end of a duel. */
+    @EventHandler(priority = EventPriority.HIGH)
+    public void onInteract(PlayerInteractEvent event) {
+        if (matches.containsKey(event.getPlayer().getUniqueId())
+                && (event.getAction() == Action.RIGHT_CLICK_AIR || event.getAction() == Action.RIGHT_CLICK_BLOCK)
+                && EndOfGame.clicked(plugin, event.getPlayer(), event.getItem())) {
+            event.setCancelled(true);
+        }
+    }
 
     @EventHandler(ignoreCancelled = true)
     public void onMove(PlayerMoveEvent event) {

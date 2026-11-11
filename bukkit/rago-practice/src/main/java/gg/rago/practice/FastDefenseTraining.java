@@ -41,8 +41,10 @@ final class FastDefenseTraining extends Training {
 
     /** Each place of the defense ("x,y,z" offsets) and its block, for each variant. */
     private final List<Map<String, Material>> places = new ArrayList<>();
-    /** How long the defense to build shows before each attempt. */
+    /** How long the defense to build shows before the first attempt of each variant. */
     static final int PREVIEW_SECONDS = 3;
+    /** The variant whose defense the player has seen: the next attempts of the same one start at once. */
+    private int previewed = -1;
     private long started;
     private int filled;
     private boolean done;
@@ -143,6 +145,14 @@ final class FastDefenseTraining extends Training {
         started = 0;
         filled = 0;
         done = false;
+        if (previewed == variant) {
+            // the same defense as the attempt before: no preview again, the timer starts at the first block
+            previewLeft = 0;
+            showDefense(false);
+            sidebars();
+            return;
+        }
+        previewed = variant;
         previewLeft = PREVIEW_SECONDS;
         showDefense(true);
         final int roundNow = round;

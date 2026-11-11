@@ -1,7 +1,9 @@
 package gg.rago.practice;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNull;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.util.List;
 import java.util.Map;
@@ -9,6 +11,18 @@ import org.bukkit.Material;
 import org.junit.jupiter.api.Test;
 
 class TrainingsTest {
+
+    @Test
+    void aSettingKeepsItsDefaultForTheReset() {
+        Training.Setting knockback = new Training.Setting("Knockback", 1, 5, 3, false);
+        assertTrue(knockback.step(1));
+        assertTrue(knockback.step(1));
+        assertFalse(knockback.step(1), "already at its highest");
+        assertEquals(5, knockback.value);
+        assertEquals(3, knockback.initial, "shift and a right click on the blaze rod give it back");
+        assertEquals("KB stick", TrainingPrefs.key("KB stick"));
+        assertEquals("Power I_5", TrainingPrefs.key("Power I.5"), "no dot: in YAML a dot is a path");
+    }
 
     @Test
     void theSidebarKeepsTheTopTheBestAndThePingWithinTwelveLines() {

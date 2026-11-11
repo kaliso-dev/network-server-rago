@@ -30,6 +30,11 @@ final class Generator {
     private int tier = 1;
     private int left;
     private final List<Item> dropped = new ArrayList<>();
+    /**
+     * How many of the items it dropped nobody picked up yet: what a pickup of its items can count
+     * as its own at most (a player's iron thrown on it and merged with its own is not).
+     */
+    private int unclaimed;
     private ArmorStand title;
     private ArmorStand countdown;
 
@@ -112,12 +117,30 @@ final class Generator {
                 lying += item.getItemStack().getAmount();
             }
         }
+        unclaimed = Math.min(unclaimed, lying);
         if (lying >= rate.max) {
             return;
         }
-        Item item = spot.getWorld().dropItem(spot, new ItemStack(material, Math.min(batch, rate.max - lying)));
+        int amount = Math.min(batch, rate.max - lying);
+        Item item = spot.getWorld().dropItem(spot, new ItemStack(material, amount));
         item.setVelocity(new Vector(0, 0, 0));
         dropped.add(item);
+        unclaimed += amount;
+    }
+
+    /** True if this item lying on the ground is one it dropped (with what merged into it). */
+    boolean made(Item item) {
+        return dropped.contains(item);
+    }
+
+    /**
+     * Someone picks up this many of its items: how many of them it made itself, at most what it
+     * dropped and nobody picked up yet.
+     */
+    int taken(int amount) {
+        int own = Math.max(0, Math.min(amount, unclaimed));
+        unclaimed -= own;
+        return own;
     }
 
     /** As many items lie on its spot as it lets pile up: a forge full from the start. */
@@ -134,6 +157,7 @@ final class Generator {
             countdown.remove();
         }
         dropped.clear();
+        unclaimed = 0;
     }
 
     private static final String[] ROMAN = {"I", "II", "III", "IV", "V"};

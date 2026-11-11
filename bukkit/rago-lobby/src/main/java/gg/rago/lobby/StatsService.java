@@ -208,7 +208,7 @@ final class StatsService {
     private void played(PlayerStats stats, int amount, String reason) {
         double boost = coinBoost.applyAsDouble(stats.id());
         points(stats, boosted(amount, boost), reason, boost > 1.0 ? ChatColor.GOLD + " x" + XpBoosters.rate(boost)
-                + " coin booster" : "");
+                + " points booster" : "");
     }
 
     static int boosted(int amount, double boost) {

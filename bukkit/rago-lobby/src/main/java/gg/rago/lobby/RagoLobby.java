@@ -98,6 +98,8 @@ public final class RagoLobby extends JavaPlugin implements LobbyService {
     /** The mode the Play again paper queues, for each player back from a game (see NextGame). */
     private final Map<UUID, String> playAgain = new HashMap<>();
     private final NextGame nextGame = new NextGame(this);
+    /** The seconds a won game lasts after its end (fin-de-partie-secondes). */
+    private int endSeconds = 3;
     private int seconds;
 
     @Override
@@ -106,6 +108,7 @@ public final class RagoLobby extends JavaPlugin implements LobbyService {
         try {
             settings = LobbySettings.load(getConfig());
             server = ServerSettings.load(getConfig());
+            endSeconds = Math.max(0, Math.min(10, getConfig().getInt("fin-de-partie-secondes", 3)));
         } catch (IllegalArgumentException e) {
             getLogger().severe("config.yml is invalid, RagoLobby is disabled: " + e.getMessage());
             getServer().getPluginManager().disablePlugin(this);
@@ -245,7 +248,7 @@ public final class RagoLobby extends JavaPlugin implements LobbyService {
         cosmetics.start();
         getServer().getPluginManager().registerEvents(kitEditor, this);
         LobbyCommands commands = new LobbyCommands(this);
-        for (String name : new String[] {"lobby", "spawn", "queue", "play", "duel", "hypixel", "party", "pc", "chat"}) {
+        for (String name : new String[] {"lobby", "spawn", "playagain", "queue", "play", "duel", "hypixel", "party", "pc", "chat"}) {
             getCommand(name).setExecutor(commands);
             getCommand(name).setTabCompleter(commands);
         }
@@ -586,6 +589,43 @@ public final class RagoLobby extends JavaPlugin implements LobbyService {
         } else {
             sendToLobby(player);
         }
+    }
+
+    /**
+     * /playagain: the next game of the same mode, from the game (its end, or out of it) as from the
+     * lobby. In a game, the player leaves it as with /spawn (a forfeit while they still play), then
+     * goes back in the queue of its mode at once; in a party, only its leader queues, as with
+     * [PLAY AGAIN]. In the lobby, the mode of their Play again paper.
+     */
+    void playAgainNow(Player player) {
+        UUID id = player.getUniqueId();
+        String modeId = state.gameOf(id);
+        if (modeId == null) {
+            if (playAgain.containsKey(id)) {
+                playAgain(player);
+            } else {
+                player.sendMessage(ChatColor.RED + "Play a game first: /play");
+            }
+            return;
+        }
+        goToSpawn(player);
+        ModeDisplay display = settings.display(modeId);
+        if (display == null || display.hidden() || !queues.isPlayable(modeId) || !state.isInLobby(player)) {
+            return;
+        }
+        PartyBook.Party party = parties.book().together(id);
+        if (party != null && !party.isLeader(id)) {
+            player.sendMessage(ChatColor.YELLOW + "Only your party leader can queue.");
+            return;
+        }
+        if (queues.queueOf(player) == null) {
+            queues.join(player, display.mode());
+        }
+    }
+
+    @Override
+    public int endSeconds() {
+        return endSeconds;
     }
 
     /**

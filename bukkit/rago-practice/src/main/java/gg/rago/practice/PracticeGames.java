@@ -1,5 +1,6 @@
 package gg.rago.practice;
 
+import gg.rago.lobby.api.EndOfGame;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
@@ -586,6 +587,12 @@ final class PracticeGames implements Listener {
         Player player = event.getPlayer();
         PracticeGame game = byPlayer.get(player.getUniqueId());
         if (game == null || event.getAction() == Action.PHYSICAL) {
+            return;
+        }
+        if ((event.getAction() == Action.RIGHT_CLICK_AIR || event.getAction() == Action.RIGHT_CLICK_BLOCK)
+                && EndOfGame.clicked(plugin, player, event.getItem())) {
+            // the end of a duel: the Play again paper or the Leave bed
+            event.setCancelled(true);
             return;
         }
         if (event.getAction() == Action.RIGHT_CLICK_BLOCK && event.getClickedBlock() != null

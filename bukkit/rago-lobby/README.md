@@ -92,6 +92,12 @@ dans les files d'attente des modes de jeu.
   `plugins/RagoLobby/stats/equipes/`, un fichier par mode.
 - **Les files d'attente.** Le matchmaking de `rago-game-model`, une fois par seconde. Un joueur
   n'attend que dans une file à la fois.
+- **La fin d'une partie gagnée.** Les jeux (Bed Wars, duels) gardent tout le monde
+  `fin-de-partie-secondes` secondes dans l'arène (3 ; 0 pour repartir tout de suite), le temps de voir
+  les gagnants et leur effet de victoire, avec le papier **Play again** et le lit **Leave** dans la
+  barre, et **[PLAY AGAIN]** **[LEAVE]** dans le chat. `/playagain` (ou `/again`) quitte la partie
+  comme `/spawn` et remet tout de suite dans la file du même mode (en party, seul le chef) ; au
+  lobby, il fait comme le papier.
 - **Après une partie : rejouer ou revanche.** De retour au lobby, une ligne cliquable :
   **[PLAY AGAIN]** remet dans la file du même mode, et après un 1v1 qui n'est pas classé,
   **[REMATCH]** défie le même adversaire dans le même mode (s'il est encore là). Le papier
@@ -171,7 +177,7 @@ dans les files d'attente des modes de jeu.
   en plus du boost du rang (+50 % pour PREMIUM). Ceux qu'on achète sont plus forts que celui
   offert aux [PREMIUM+] : le **booster d'XP** (x3 XP Network) s'achète 2 500 Rago Points dans la
   boutique ou sur la boutique en ligne ; le **booster d'XP du jour** des [PREMIUM+] (gratuit, un
-  par jour) fait x2 ; le **booster de pièces** (x3 Rago Points des parties, kills et
+  par jour) fait x2 ; le **booster de points** (« Points booster », x3 Rago Points des parties, kills et
   entraînements) vient de la boutique en ligne et du pack de départ. Un booster d'XP et un booster
   de pièces peuvent tourner en même temps. La boutique en ligne en donne avec
   `/booster give <joueur> [nombre] [xp|coins|daily]` (xp par défaut).
@@ -210,7 +216,7 @@ dans les files d'attente des modes de jeu.
 - **Le PNJ Shop et le pack de départ (`/pack`).** Au centre du lobby (le point `aimtrainer`,
   `type: shop`), un PNJ Shop ouvre la vitrine de celui qui débute : d'abord le **pack de départ**,
   ce qu'il y a de moins cher (3,99 €, une fois par joueur : 20 000 Rago Points, 3 boosters d'XP,
-  2 boosters de pièces et 3 cosmétiques sans leur niveau, sans rang), puis VIP (4,99 €) et ses
+  2 boosters de points et 3 cosmétiques sans leur niveau, sans rang), puis VIP (4,99 €) et ses
   avantages, puis ce que les Rago Points achètent : les couleurs de pseudo, les boosters et les
   cosmétiques ; enfin comment gagner des Rago Points et Rago Optimizer. PREMIUM+ est dans `/shop`,
   sous l'icône du lingot d'or des rangs. Ce qui se vend sur la boutique en ligne donne son lien
@@ -286,6 +292,7 @@ commentaires de `config.yml`. Les mots français de la première version (`quitt
 | Commande | Effet | Permission |
 | --- | --- | --- |
 | `/spawn` (ou `/hub`) | retour au spawn ; pendant une partie, c'est un abandon | tout le monde |
+| `/playagain` (ou `/again`) | la partie suivante du même mode : quitte la partie (comme `/spawn`) et remet dans sa file tout de suite ; au lobby, comme le papier Play again | tout le monde |
 | `/queue <mode> [map]`, `/queue leave` (ou `/file`, `/q`) | entrer dans une file (sur une map, ou `random`), en sortir | tout le monde |
 | `/duel <joueur> [mode]` | défier un joueur du lobby dans un mode 1v1 (sans mode : un menu des modes 1v1) | tout le monde |
 | `/duel accept <joueur>`, `/duel deny <joueur>` | répondre à un défi (valable une minute) | tout le monde |

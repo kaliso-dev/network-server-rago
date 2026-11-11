@@ -48,6 +48,15 @@ public interface LobbyService {
     }
 
     /**
+     * The seconds a won game lasts after its end, before everyone goes back to the lobby: the
+     * winners' victory effect, with Play again and Leave usable at once ({@link EndOfGame}). 0: back
+     * to the lobby at once.
+     */
+    default int endSeconds() {
+        return 0;
+    }
+
+    /**
      * A game of this mode is over: one side won, the other lost (a forfeit is a loss). The lobby
      * counts it in the stats, the leaderboards and, for a ranked mode, the ELO. Players may have
      * left the server already.

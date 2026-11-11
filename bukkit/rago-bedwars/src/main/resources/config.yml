@@ -189,7 +189,9 @@ shops-partout: [ranked-1v1, ranked-2v2, ranked-3v3, ranked-4v4, first-rush-full,
 # a map of 4 teams. The iron drops in batches of fer-par-lot ingots (2 at once; a list of several,
 # such as [2, 4], draws one at random). Gold: an ingot every or-secondes (8 a minute), every or-secondes-4-equipes on
 # the maps of four teams or fewer (12 a minute). At most max-fer iron and max-or gold lie on it.
-# During the first debut-rapide-secondes of a game, it goes twice as fast.
+# During the first debut-rapide-secondes of a game, it goes twice as fast. What a player picks up
+# at their island's forge goes to each teammate standing within partage-rayon blocks of it too, as
+# many each, as on Hypixel (0: each keeps what they pick up).
 #   vitesses   each map's speed, by the name of its world folder: one speed, or one for solo and
 #              one for teams of two or more ({solo: lente, equipes: moyenne}, as Lighthouse and
 #              Lotus on Hypixel). A map not listed: vitesse-par-defaut (rapide, as every Hypixel map
@@ -207,6 +209,7 @@ forge:
   max-fer: 48
   max-or: 16
   debut-rapide-secondes: 30
+  partage-rayon: 2
   vitesse-par-defaut: rapide
   vitesses:
     Acropolis: rapide
