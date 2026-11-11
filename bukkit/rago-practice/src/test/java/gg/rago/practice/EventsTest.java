@@ -70,7 +70,8 @@ class EventsTest {
 
     @Test
     void theServerHostsItsOwnEventsWhenTheLobbyIsFullAndNothingRan() {
-        assertTrue(!Events.Settings.of(null).auto.on, "none without the section");
+        assertTrue(Events.Settings.of(null).auto.on, "on without the section, with its default settings");
+        assertEquals(20, Events.Settings.of(null).auto.minutes);
         YamlConfiguration config = new YamlConfiguration();
         ConfigurationSection section = config.createSection("evenements");
         ConfigurationSection auto = section.createSection("automatiques");

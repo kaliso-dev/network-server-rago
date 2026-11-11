@@ -176,7 +176,7 @@ xp-entrainement:
 # the lobby has joueurs-lobby players out of a game (2 to 200) and no event ran for minutes minutes
 # (5 to 1440), it announces the next of types (sumo, brackets, lms, in turn) with a [Click to join];
 # the first player in starts it, and it plays as a hosted one. actif: false turns them off; without
-# the section, there are none.
+# the section, they run with these settings.
 evenements:
   attente-secondes: 60
   joueurs-min: 2
@@ -200,7 +200,7 @@ evenements:
 # aim-trainer.jump, aim-trainer.circle, fast-defense.ranked, fast-defense.duo, ladder-practice.h4
 # (h8 ... h24), ladder-practice.random, combo-bot.easy (normal, hard, expert),
 # extend-practice.chain (and its jumps: double-5-1...), kb-displace-bot.still, block-edit.bot.
-# actif: false turns it off; without the section, there is none.
+# actif: false turns it off; without the section, it runs with these settings.
 defi-du-jour:
   actif: true
   epreuves: [block-in.wood, clutch.island, aim-trainer.strafe, fast-defense.ranked, ladder-practice.random,

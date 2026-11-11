@@ -107,7 +107,8 @@ final class Events implements CommandExecutor, Listener {
      * in turn. Off without the section.
      */
     static final class Auto {
-        static final Auto OFF = new Auto(false, 20, 6, java.util.Arrays.asList(EventGame.Kind.values()));
+        /** Without the section: on, every 20 minutes at most, from 6 players in the lobby, every event in turn. */
+        static final Auto DEFAULT = new Auto(true, 20, 6, java.util.Arrays.asList(EventGame.Kind.values()));
 
         final boolean on;
         final int minutes;
@@ -123,7 +124,7 @@ final class Events implements CommandExecutor, Listener {
 
         static Auto of(ConfigurationSection section) {
             if (section == null) {
-                return OFF;
+                return DEFAULT;
             }
             List<EventGame.Kind> kinds = new ArrayList<>();
             for (String word : section.getStringList("types")) {

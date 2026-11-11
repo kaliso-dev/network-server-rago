@@ -91,7 +91,8 @@ l'arrivée, un joueur qui ne l'a pas encore joué aujourd'hui reçoit le défi d
 **[PLAY]** ; `/challenge` montre l'entraînement, le top 5 du jour, sa place, sa série de jours et
 ce qui se gagne ; `/challenge play` (ou le bouton) lance l'entraînement directement sur la bonne
 variante. Pendant le défi, le scoreboard de l'entraînement porte « ✦ Daily ». Gardé dans
-`plugins/RagoPractice/defi.yml`.
+`plugins/RagoPractice/defi.yml`. `actif: false` le coupe ; sans la section, il tourne avec ces
+réglages. Un entraînement de la liste que le serveur ne joue pas est laissé de côté.
 
 - **Block clutch** : le joueur est au bord d'une petite île de Bed Wars, son lit et sa défense
   à côté ; un coup le jette dans le vide, il pose sa laine pour se rattraper. L'île est celle du
@@ -261,7 +262,7 @@ eu lieu depuis `minutes` minutes (20), il annonce le suivant de `types` (sumo, b
 tour de rôle) avec son **[Click to join]**. Le premier qui le rejoint le lance, et il se joue
 comme un event lancé par un joueur ; sans personne pendant l'attente, l'annonce tombe. Un joueur
 PREMIUM peut toujours lancer le sien. Dans `evenements.automatiques` (`actif: false` les coupe ;
-sans la section, il n'y en a pas).
+sans la section, ils tournent avec ces réglages).
 
 ## Les arènes
 

@@ -188,7 +188,9 @@ class DailyChallengeTest {
         wrong.set("defi-du-jour.epreuves", null);
         wrong.set("defi-du-jour.jours-de-suite-max", 0);
         assertNotNull(DailyChallenge.Settings.check(wrong.getConfigurationSection("defi-du-jour")));
-        assertFalse(DailyChallenge.Settings.of(null).on, "without the section, no challenge");
+        assertTrue(DailyChallenge.Settings.of(null).on, "without the section, the default challenge");
+        assertEquals(DailyChallenge.Settings.DEFAULT_BOARDS, DailyChallenge.Settings.of(null).boards);
+        assertFalse(DailyChallenge.Settings.OFF.on);
     }
 
     @Test

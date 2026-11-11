@@ -89,6 +89,9 @@ final class DailyChallenge {
                 "block-in.wood", "clutch.island", "aim-trainer.strafe", "fast-defense.ranked", "ladder-practice.random",
                 "combo-bot.hard", "extend-practice.chain", "clutch-top-fight.top", "block-edit.bot", "block-in.two",
                 "aim-trainer.circle", "kb-displace-bot.still"));
+        /** Without the section: on, every training of the list, 100 XP a day (+25 a day in a row), 750, 500 and 300 XP. */
+        static final Settings DEFAULT = new Settings(true, DEFAULT_BOARDS, 100, 25, 7, java.util.Arrays.asList(750, 500, 300));
+        /** No challenge (a wrong section). */
         static final Settings OFF = new Settings(false, DEFAULT_BOARDS, 100, 25, 7, java.util.Arrays.asList(750, 500, 300));
 
         final boolean on;
@@ -121,10 +124,10 @@ final class DailyChallenge {
             return place >= 1 && place <= podiumXp.size() ? podiumXp.get(place - 1) : 0;
         }
 
-        /** The section of config.yml (null: none, the challenge is off). Call check first. */
+        /** The section of config.yml (null: none, the default challenge). Call check first. */
         static Settings of(ConfigurationSection section) {
             if (section == null) {
-                return OFF;
+                return DEFAULT;
             }
             List<String> boards = section.isList("epreuves") ? section.getStringList("epreuves") : DEFAULT_BOARDS;
             List<Integer> podium = section.isList("xp-podium") ? section.getIntegerList("xp-podium")
