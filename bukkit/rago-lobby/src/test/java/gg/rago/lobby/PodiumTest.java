@@ -75,8 +75,14 @@ class PodiumTest {
         book.kill("sumo", ALICE, BOB, NAMES, SUNDAY);
         book.kill("sumo", ALICE, BOB, NAMES, SUNDAY);
         StatsDisplays displays = new StatsDisplays(settings, book, new StatsMenu(settings, book), new FakeEntities(null, null));
-        List<BoardStat> stats = settings.npc("leaderboardprincipal").boards().get(0);
-        String key = "leaderboardprincipal#0";
+        List<BoardStat> main = settings.npc("leaderboardprincipal").boards().get(0);
+        assertEquals(BoardStat.LEVEL, main.get(0), "the podium shows the Network level first");
+        assertEquals(ALICE, displays.holder(main, "leaderboardprincipal#0", BOB, 0, SUNDAY).id(), "Alice won: more XP");
+        assertEquals(Arrays.asList("#1 Alice", "Level 1"), plain(displays.podiumLines(main, "leaderboardprincipal#0", BOB, 0,
+                SUNDAY)));
+        // a board of three, the ELO first
+        List<BoardStat> stats = Arrays.asList(BoardStat.ELO, BoardStat.KILLS, BoardStat.LEVEL);
+        String key = "elo#0";
 
         assertNull(displays.holder(stats, key, ALICE, 0, SUNDAY), "nobody plays a ranked mode yet");
         assertEquals(Arrays.asList("#1 Nobody yet"), plain(displays.podiumLines(stats, key, ALICE, 0, SUNDAY)));

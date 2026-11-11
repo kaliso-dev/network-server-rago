@@ -87,7 +87,10 @@ final class LevelMenu {
     /** "PREMIUM+: +50% on everything", "VIP: +25% on everything": the ranks sold that boost the XP. */
     static List<String> boostLines(Ranks ranks) {
         List<String> lines = new ArrayList<>();
-        for (RankDef rank : ranks.forSale()) {
+        // one under the other: the highest on top (PREMIUM+, then VIP)
+        List<RankDef> sold = new ArrayList<>(ranks.forSale());
+        java.util.Collections.reverse(sold);
+        for (RankDef rank : sold) {
             if (rank.xpBoost() > 1.0) {
                 lines.add(rank.nameColour() + rank.displayName() + ": +" + Math.round((rank.xpBoost() - 1.0) * 100)
                         + "% on everything");

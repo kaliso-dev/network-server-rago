@@ -59,7 +59,7 @@ class StatsDisplaysTest {
     }
 
     @Test
-    void theMainBoardGoesFromTheEloToTheKillsAndTheLevel() throws Exception {
+    void theMainBoardGoesFromTheLevelToTheEloAndTheKills() throws Exception {
         LobbySettings settings = bundledSettings();
         StatsBook book = new StatsBook(1000, settings.levels());
         book.record(settings.catalog().get("sumo"), Collections.singletonList(ALICE), Collections.singletonList(BOB),
@@ -71,9 +71,16 @@ class StatsDisplaysTest {
         List<BoardStat> stats = settings.npc("leaderboardprincipal").boards().get(0);
         String key = "leaderboardprincipal#0";
 
+        List<String> level = plain(displays.board(stats, key, alice, SUNDAY));
+        assertEquals("Network level", level.get(0), "the Network level first");
+        assertEquals("1. Alice - 1", level.get(3), "60 XP: still level 1");
+        assertEquals("2. Bob - 1", level.get(4));
+        assertEquals(StatsDisplays.BOARD_LINES - 1, level.size(), "one click line: nothing to change on it");
+
+        displays.next(alice, stats, key, false);
         List<String> elo = plain(displays.board(stats, key, alice, SUNDAY));
         assertEquals(StatsDisplays.BOARD_LINES, elo.size());
-        assertEquals("Ranked Elo", elo.get(0));
+        assertEquals("Ranked Elo", elo.get(0), "a right click goes to the next leaderboard");
         assertEquals("Ranked Bedwars 1v1", elo.get(1));
         assertEquals("» Click here: next leaderboard", elo.get(StatsDisplays.FIRST_CLICK_LINE));
         assertEquals("» Click here: change the mode", elo.get(StatsDisplays.FIRST_CLICK_LINE + 1));
@@ -82,7 +89,7 @@ class StatsDisplaysTest {
 
         displays.next(alice, stats, key, false);
         List<String> kills = plain(displays.board(stats, key, alice, SUNDAY));
-        assertEquals("Kills", kills.get(0), "a right click goes to the next leaderboard");
+        assertEquals("Kills", kills.get(0));
         assertEquals("All modes · Daily", kills.get(1), "from its first period");
         assertEquals("1. Alice - 2", kills.get(3));
         assertEquals("You: #1 - 2", kills.get(3 + StatsDisplays.TOP + 1));
@@ -93,15 +100,10 @@ class StatsDisplaysTest {
         assertEquals("All modes · Lifetime", plain(displays.board(stats, key, alice, SUNDAY)).get(1));
 
         displays.next(alice, stats, key, false);
-        List<String> level = plain(displays.board(stats, key, alice, SUNDAY));
-        assertEquals("Network level", level.get(0));
-        assertEquals("1. Alice - 1", level.get(3), "60 XP: still level 1");
-        assertEquals("2. Bob - 1", level.get(4));
-        assertEquals(StatsDisplays.BOARD_LINES - 1, level.size(), "one click line: nothing to change on it");
-
+        assertEquals("Network level", plain(displays.board(stats, key, alice, SUNDAY)).get(0), "and back to the first");
         displays.next(alice, stats, key, false);
-        assertEquals("Ranked Elo", plain(displays.board(stats, key, alice, SUNDAY)).get(0), "and back to the first");
-        assertEquals("Ranked Elo", plain(displays.board(stats, key, player(BOB), SUNDAY)).get(0),
+        assertEquals("Ranked Elo", plain(displays.board(stats, key, alice, SUNDAY)).get(0));
+        assertEquals("Network level", plain(displays.board(stats, key, player(BOB), SUNDAY)).get(0),
                 "each player has their own choice");
     }
 
@@ -132,7 +134,8 @@ class StatsDisplaysTest {
         StatsBook book = new StatsBook(1000, settings.levels());
         StatsDisplays displays = new StatsDisplays(settings, book, new StatsMenu(settings, book), new FakeEntities(null, null));
         Player alice = player(ALICE);
-        List<BoardStat> stats = settings.npc("leaderboardprincipal").boards().get(0);
+        // a board of three, the ELO first: its line of the mode, then the kills and the level
+        List<BoardStat> stats = Arrays.asList(BoardStat.ELO, BoardStat.KILLS, BoardStat.LEVEL);
         String key = "main#0";
         displays.clickLine(ALICE, stats, key, StatsDisplays.FIRST_CLICK_LINE + 1, false);
         assertEquals("Ranked Bedwars 2v2", plain(displays.board(stats, key, alice, SUNDAY)).get(1),

@@ -137,13 +137,14 @@ dans les files d'attente des modes de jeu.
   en premier). Les rangs du staff se donnent avec `/rank set`.
 - **Les rangs PREMIUM et VIP.** Les deux rangs à acheter, sur la boutique en ligne
   (rago-optimizer.com) : la boutique du jeu montre ce qu'ils donnent, leur prix (`prix-en-ligne`)
-  et le lien, PREMIUM+ d'abord et VIP en dessous, comme partout ; la boutique en ligne les donne
-  depuis la console avec `/rank give <joueur> vip` ou `premium`. **VIP** (3,99 $), le petit rang :
+  et le lien, VIP à gauche et PREMIUM+ à sa droite (le plus bas d'abord), comme partout ; la
+  boutique en ligne les donne depuis la console avec `/rank give <joueur> vip` ou `premium` (le pack
+  de départ donne VIP). **VIP** (3,99 $), le petit rang :
   un pseudo bleu clair (le style `aqua`) et le préfixe `[VIP]`, +25 % d'XP Network
   (`boost-xp: 1.25`), `/fly` et la vitesse au lobby, l'arrivée annoncée avec un feu d'artifice, des
   messages blancs sans délai, la priorité dans les files après PREMIUM+, et trois cosmétiques à lui,
   parmi les moins chers (la traînée Clouds, le kill Heart burst, la victoire Love : les permissions
-  `rago.cosmetic.<id>`). **PREMIUM** hérite de VIP et garde tout le reste.
+  `rago.cosmetic.<id>`). **PREMIUM** (9,99 $) hérite de VIP et garde tout le reste.
 - **La priorité dans les files (`priorite-file`).** PREMIUM+ (2) passe avant VIP (1), qui passe
   avant les autres (0) : quand une file a plus de joueurs qu'une partie n'en prend, les plus hauts
   jouent d'abord, puis le temps d'attente décide. Après une minute d'attente, tout le monde passe en
@@ -203,8 +204,9 @@ dans les files d'attente des modes de jeu.
   points (`prix:` et `niveau:` dans `rangs:`). Les cosmétiques ne jouent qu'en partie.
 - **Le PNJ Shop et le pack de départ (`/pack`).** Au centre du lobby (le point `aimtrainer`,
   `type: shop`), un PNJ Shop ouvre la vitrine de tout ce qui se vend : d'abord le **pack de
-  départ** (son prix, son prix normal barré, -25 %, ce qu'il contient : 20 000 Rago Points,
-  3 boosters d'XP, 2 boosters de pièces et 3 cosmétiques sans leur niveau, une fois par joueur), puis VIP, PREMIUM+ et
+  départ** (son prix, son prix normal barré, -25 %, ce qu'il contient : le rang VIP pour toujours
+  (`rang:`), 20 000 Rago Points, 3 boosters d'XP, 2 boosters de pièces et 3 cosmétiques sans leur
+  niveau, une fois par joueur), puis VIP, PREMIUM+ et
   leurs avantages, les couleurs de pseudo et le +, les boosters, les cosmétiques, les gadgets, les
   events `/host`, comment gagner des Rago Points et Rago Optimizer. Ce qui se vend sur la
   boutique en ligne donne son lien cliquable ; le reste ouvre sa page de `/shop`. La boutique en
@@ -373,8 +375,8 @@ générateur vide ; un monde de build peut donc servir de lobby.
   top 10, la place de celui qui regarde et quand il repart de zéro. Un clic sur un tableau change
   sa période pour ce joueur (du jour, de la semaine, à vie) ; sur un tableau `elo`, il change de
   mode classé. Un tableau peut regrouper plusieurs classements entre crochets
-  (`tableaux: [[elo, kills, niveau]]`, celui de leaderboardprincipal) : un clic droit passe au
-  classement suivant, un clic gauche change la période ou le mode classé, et un clic sur la ligne
+  (`tableaux: [[niveau, elo, kills]]`, celui de leaderboardprincipal, qui montre d'abord le
+  niveau Network, sur le tableau et sur le podium) : un clic droit passe au classement suivant, un clic gauche change la période ou le mode classé, et un clic sur la ligne
   « Click here: next leaderboard » ou « Click here: change the period » fait ce qu'elle dit. Un
   clic gauche atteint un tableau de 16 blocs, n'importe où sur son texte : le plugin suit le
   regard du joueur. Un clic droit ne l'atteint que de près : plus loin, l'objet en main (boussole,

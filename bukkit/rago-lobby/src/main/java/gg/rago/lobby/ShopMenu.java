@@ -57,7 +57,10 @@ final class ShopMenu {
         rankLore.add("The ranks of the network and");
         rankLore.add("what they give.");
         rankLore.add("");
-        for (RankDef rank : profiles.server().ranks().forSale()) {
+        // one under the other: the highest on top, VIP under PREMIUM+
+        List<RankDef> listed = new ArrayList<>(profiles.server().ranks().forSale());
+        java.util.Collections.reverse(listed);
+        for (RankDef rank : listed) {
             rankLore.add(rank.prefix().trim() + ChatColor.GRAY + (rank.sold() ? " - level " + rank.level()
                     : rank.webPrice() != null ? " - " + rank.webPrice() + " on the web store" : " - web store"));
         }

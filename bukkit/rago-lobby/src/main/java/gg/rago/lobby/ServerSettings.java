@@ -166,7 +166,7 @@ final class ServerSettings {
         }
         LevelRewards rewards = readRewards(config.getConfigurationSection("niveau.recompenses"), cosmetics, styles);
         Quests quests = readQuests(config.getConfigurationSection("quetes"));
-        StarterPack pack = StarterPack.read(config.getConfigurationSection("pack-depart"), cosmetics);
+        StarterPack pack = StarterPack.read(config.getConfigurationSection("pack-depart"), cosmetics, ranks);
         Season season = Season.read(config.getConfigurationSection("saison"), elo);
         return new ServerSettings(ranks, styles, elo, points, cosmetics, cooldown * 1000L, repeats, header, footer, motd,
                 minutes, announcements, links, rewards, quests, pack, season);

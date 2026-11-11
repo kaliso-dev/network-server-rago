@@ -1,6 +1,8 @@
 package gg.rago.lobby;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNull;
+import static org.junit.jupiter.api.Assertions.assertSame;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
@@ -31,11 +33,13 @@ class StarterPackTest {
         assertEquals(Arrays.asList("trail-magic", "kill-firework", "win-fireworks"), pack.cosmetics);
         List<String> contents = pack.contents(server.cosmetics());
         assertEquals(2, pack.coinBoosters);
-        assertEquals(6, contents.size(), "the points, the XP boosters, the coin boosters and three cosmetics");
-        assertTrue(contents.get(0).contains("20,000 Rago Points"));
-        assertTrue(contents.get(1).contains("3 XP boosters") && contents.get(1).contains("x3 XP"), contents.get(1));
-        assertTrue(contents.get(2).contains("2 coin boosters") && contents.get(2).contains("x3 Rago Points"), contents.get(2));
-        assertTrue(contents.get(3).contains("Magic") && contents.get(3).contains("projectile trail"), contents.get(3));
+        assertEquals("vip", pack.rank.id(), "the VIP rank, not PREMIUM+");
+        assertEquals(7, contents.size(), "the rank, the points, the XP boosters, the coin boosters and three cosmetics");
+        assertEquals("• The [VIP] rank, for good", org.bukkit.ChatColor.stripColor(contents.get(0)));
+        assertTrue(contents.get(1).contains("20,000 Rago Points"));
+        assertTrue(contents.get(2).contains("3 XP boosters") && contents.get(2).contains("x3 XP"), contents.get(2));
+        assertTrue(contents.get(3).contains("2 coin boosters") && contents.get(3).contains("x3 Rago Points"), contents.get(3));
+        assertTrue(contents.get(4).contains("Magic") && contents.get(4).contains("projectile trail"), contents.get(4));
         // 20,000 points, 3 boosters of 2,500, and the cosmetics at their price
         int cosmetics = server.cosmetics().get("trail-magic").price() + server.cosmetics().get("kill-firework").price()
                 + server.cosmetics().get("win-fireworks").price();
@@ -70,6 +74,23 @@ class StarterPackTest {
     }
 
     @Test
+    void itsRankIsOneOfTheShop() throws Exception {
+        YamlConfiguration config = bundled();
+        config.set("pack-depart.rang", "premium");
+        assertEquals("premium", ServerSettings.load(config).starterPack().rank.id());
+        config.set("pack-depart.rang", "");
+        assertNull(ServerSettings.load(config).starterPack().rank, "\"\": no rank");
+        assertEquals(6, ServerSettings.load(config).starterPack().contents(ServerSettings.load(config).cosmetics()).size());
+        for (String wrong : Arrays.asList("mvp", "admin", "default")) {
+            config.set("pack-depart.rang", wrong);
+            IllegalArgumentException error = assertThrows(IllegalArgumentException.class, () -> ServerSettings.load(config), wrong);
+            assertTrue(error.getMessage().startsWith("pack-depart.rang"), error.getMessage());
+        }
+        config.set("pack-depart.rang", null);
+        assertEquals("vip", ServerSettings.load(config).starterPack().rank.id(), "VIP when not said");
+    }
+
+    @Test
     void thePluginDeclaresEveryCommand() throws Exception {
         // the server refuses a plugin.yml that does not parse: the lobby would not load at all
         YamlConfiguration plugin;
@@ -91,5 +112,6 @@ class StarterPackTest {
     void withoutTheSectionThePackHasItsDefaults() {
         ServerSettings server = ServerSettings.load(new YamlConfiguration());
         assertEquals(StarterPack.defaults().points, server.starterPack().points);
+        assertSame(server.ranks().get("vip"), server.starterPack().rank, "the VIP of the server's ranks");
     }
 }

@@ -77,10 +77,15 @@ final class Ranks {
         return sold;
     }
 
-    /** The ranks the shop shows: those of the web store, then those sold for Rago Points, the cheapest first. */
+    /**
+     * The ranks the shop shows, from left to right: those of the web store, the lowest first (VIP,
+     * then PREMIUM+), then those sold for Rago Points, the cheapest first.
+     */
     List<RankDef> forSale() {
         List<RankDef> shown = new ArrayList<>();
-        for (RankDef rank : ranks) {
+        // the lowest first, from left to right: VIP, then PREMIUM+
+        for (int i = ranks.size() - 1; i >= 0; i--) {
+            RankDef rank = ranks.get(i);
             if (rank.webStore() && !rank.staff()) {
                 shown.add(rank);
             }
@@ -246,7 +251,7 @@ final class Ranks {
                         "Host events for the server: /host (Sumo, Brackets, LMS)",
                         "The rarest kill effects and victory dances", "The first place in the queues",
                         "Everything of VIP, its 3 cosmetics too"),
-                1.5, "rose", PREMIUM, true, null, 2);
+                1.5, "rose", PREMIUM, true, "$9.99", 2);
     }
 
     private static RankDef staff(String id, String prefix, String colour, String parent, String... permissions) {

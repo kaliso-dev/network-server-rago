@@ -70,7 +70,7 @@ class NetworkFeaturesTest {
         for (RankDef rank : ranks.forSale()) {
             shown.add(rank.id());
         }
-        assertEquals(Arrays.asList("premium", "vip"), shown, "two ranks to buy, the highest first: VIP under PREMIUM+");
+        assertEquals(Arrays.asList("vip", "premium"), shown, "two ranks to buy, the lowest first: VIP on the left of PREMIUM+");
         assertEquals(2, ranks.queuePriority(null, Collections.singletonList("premium")), "PREMIUM+ first in the queues");
         assertEquals(1, ranks.queuePriority(null, Collections.singletonList("vip")), "then VIP");
         assertEquals(0, ranks.queuePriority(null, Collections.<String>emptyList()), "then the others");
@@ -80,6 +80,7 @@ class NetworkFeaturesTest {
         assertTrue(ranks.permissions(null, Collections.singletonList("vip")).contains("rago.perk.fly"), "VIP flies");
         assertEquals("§b[VIP] ", ranks.get("vip").prefix(), "light blue");
         assertEquals("$3.99", ranks.get("vip").webPrice());
+        assertEquals("$9.99", ranks.get("premium").webPrice());
         assertEquals("premium", ranks.best(null, Arrays.asList("vip", "premium")).id(), "PREMIUM+ is above VIP");
         assertEquals("VIP", ranks.get("vip").displayName());
         assertFalse(ranks.get("vip").hasPlus());
@@ -239,7 +240,8 @@ class NetworkFeaturesTest {
         for (RankDef rank : StoreMenu.webRanks(settings)) {
             web.add(rank.id());
         }
-        assertEquals(Arrays.asList("premium", "vip"), web, "in the store, PREMIUM+ first, VIP under it");
+        assertEquals(Arrays.asList("vip", "premium"), web, "in the store, VIP on the left, PREMIUM+ on its right");
+        assertEquals("$9.99", premium.webPrice());
         assertEquals(Ranks.defaults().permissions("admin", Collections.singletonList("premium")),
                 ranks.permissions("admin", Collections.singletonList("premium")), "the same as the plugin's own ranks");
         assertEquals(NameStyle.catalogue().keySet(), settings.styles().keySet(), "the plugin's own styles");

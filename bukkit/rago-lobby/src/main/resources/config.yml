@@ -419,6 +419,7 @@ rangs:
     badge: premium
     herite: vip
     boutique-en-ligne: true
+    prix-en-ligne: "$9.99"
     priorite-file: 2
     icone: NETHER_STAR
     avantages: ["A pink gradient name and the &d&l✦&7 badge", "Your &f+&7 in the colour you choose (/style)", "+50% Network XP in every game", "/fly in the lobby",
@@ -550,11 +551,12 @@ boutique: {}
 # console with /pack give <player> after the payment. The Shop NPC and /pack show it, its price
 # (prix, in devise) and its usual price crossed out (prix-normal), which makes the -25%: put the
 # real prices of the web store here (a price shown crossed out must be one the pack was really
-# sold at before). It gives rago-points, boosters (x3 XP for 30 minutes each), boosters-pieces
-# (x3 Rago Points for 30 minutes each) and the cosmetics of cosmetiques (names of the boutique:
-# list above), without their level.
+# sold at before). It gives the rank of rang for good (a rank of rangs:, "" for none), rago-points,
+# boosters (x3 XP for 30 minutes each), boosters-pieces (x3 Rago Points for 30 minutes each) and
+# the cosmetics of cosmetiques (names of the boutique: list above), without their level.
 pack-depart:
   nom: "&6&lStarter Pack"
+  rang: vip
   prix: 4.99
   prix-normal: 6.65
   devise: "€"
@@ -638,7 +640,8 @@ liens:
 classements:
   leaderboardprincipal:
     nom: "&e&lTop players"
-    tableaux: [[elo, kills, niveau]]
+    # The Network level first (and on the podium); a click goes to the ELO, then the kills.
+    tableaux: [[niveau, elo, kills]]
     # The podium behind the board: the emerald (1st), the diamond (2nd), the gold block (3rd).
     podium: ["0.5 67 57.5", "-1.5 66 57.5", "2.5 65 57.5"]
   leaderboardstats:

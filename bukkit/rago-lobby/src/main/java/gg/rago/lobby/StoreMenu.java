@@ -65,8 +65,9 @@ final class StoreMenu {
 
         int i = 0;
         List<RankDef> web = webRanks(server);
-        // Two at most, the highest two: the rest of the row is the other things sold.
-        for (final RankDef rank : web.subList(0, Math.min(2, web.size()))) {
+        // Two at most, the highest two, the lowest on the left (VIP, then PREMIUM+): the rest of the
+        // row is the other things sold.
+        for (final RankDef rank : web.subList(Math.max(0, web.size() - 2), web.size())) {
             boolean owned = profiles.owns(profile, rank);
             boolean top = rank.hasPlus();
             List<String> lore = new ArrayList<>();
@@ -227,7 +228,7 @@ final class StoreMenu {
         Bukkit.dispatchCommand(Bukkit.getConsoleSender(), "tellraw " + player.getName() + " " + pack.button());
     }
 
-    /** The ranks of the web store, the highest first, as they rank (PREMIUM+, then VIP). */
+    /** The ranks of the web store, the lowest first (VIP, then PREMIUM+), as the shop shows them. */
     static List<RankDef> webRanks(ServerSettings server) {
         List<RankDef> ranks = new ArrayList<>();
         for (RankDef rank : server.ranks().forSale()) {

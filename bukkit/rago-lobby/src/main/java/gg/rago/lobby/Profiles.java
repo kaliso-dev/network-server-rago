@@ -475,6 +475,9 @@ final class Profiles {
         if (!profile.cosmetics().add(StarterPack.OWNED_KEY)) {
             return false;
         }
+        if (pack.rank != null) {
+            profile.boughtRanks().add(pack.rank.id());
+        }
         profile.addPoints(pack.points);
         XpBoosters.setCount(profile, XpBoosters.Kind.XP, profile.boosters() + pack.boosters);
         XpBoosters.setCount(profile, XpBoosters.Kind.COINS, profile.coinBoosters() + pack.coinBoosters);
