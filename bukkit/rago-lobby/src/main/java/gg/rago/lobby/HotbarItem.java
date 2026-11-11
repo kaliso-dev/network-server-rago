@@ -7,8 +7,9 @@ import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.ItemMeta;
 
 /**
- * The items of the lobby hotbar (slots 5 and 8 stay free; the Network level and its quests are in
- * the profile). 1.8.8 has no persistent data on items, so an item is recognised by
+ * The items of the lobby hotbar: the selector, the kit editor, the leave or play again item, the
+ * gadget, the fireball, two free slots (5 and 6), the shop and the profile (which also opens the
+ * Network level and its quests). 1.8.8 has no persistent data on items, so an item is recognised by
  * its material and its exact name, which players cannot give to an item in the lobby (no anvil, no
  * creative mode outside the build mode).
  */
@@ -18,7 +19,7 @@ enum HotbarItem {
             "Pick a mode and join", "its queue."),
     KIT_EDITOR(1, Material.BOOK, 0, ChatColor.GOLD + "Kit editor " + ChatColor.GRAY + "(right click)",
             "Arrange the items of a mode's", "kit as you like: your next", "games give it this way."),
-    FIREBALL(2, Material.FIREBALL, 0, ChatColor.GOLD + "Fireball " + ChatColor.GRAY + "(right click)",
+    FIREBALL(4, Material.FIREBALL, 0, ChatColor.GOLD + "Fireball " + ChatColor.GRAY + "(right click)",
             "Throw it where you look: its blast", "pushes the players around it.", "Under your feet: a fireball jump."),
     TELEPORT(3, Material.BLAZE_ROD, 0, ChatColor.YELLOW + "Teleport stick " + ChatColor.GRAY + "(right click)",
             "Takes you onto the block you", "look at, 20 blocks away at most,", "or 20 blocks ahead in the air.",
@@ -46,14 +47,14 @@ enum HotbarItem {
     DISCO_BALL(3, Material.GOLD_RECORD, 0, ChatColor.LIGHT_PURPLE + "Disco ball " + ChatColor.GRAY + "(right click)",
             "Ten seconds of party: a disco", "ball above you, a dance floor", "of every colour and music.", "",
             ChatColor.LIGHT_PURPLE + "PREMIUM gadget", "", "Left click: another gadget"),
-    LEAVE_QUEUE(4, Material.INK_SACK, 1, ChatColor.RED + "Leave the queue " + ChatColor.GRAY + "(right click)",
+    LEAVE_QUEUE(2, Material.INK_SACK, 1, ChatColor.RED + "Leave the queue " + ChatColor.GRAY + "(right click)",
             "You leave the queue."),
     // After a game, in the slot of the leave item while out of a queue: the same mode again.
-    PLAY_AGAIN(4, Material.PAPER, 0, ChatColor.GREEN + "Play again " + ChatColor.GRAY + "(right click)",
+    PLAY_AGAIN(2, Material.PAPER, 0, ChatColor.GREEN + "Play again " + ChatColor.GRAY + "(right click)",
             "Queue the mode of your", "last game again."),
-    SHOP(6, Material.EMERALD, 0, ChatColor.GREEN + "Rago Shop " + ChatColor.GRAY + "(right click)",
+    SHOP(7, Material.EMERALD, 0, ChatColor.GREEN + "Rago Shop " + ChatColor.GRAY + "(right click)",
             "Ranks and cosmetics, bought", "with the Rago Points of", "your games."),
-    PROFILE(7, Material.SKULL_ITEM, 3, ChatColor.GREEN + "My profile " + ChatColor.GRAY + "(right click)",
+    PROFILE(8, Material.SKULL_ITEM, 3, ChatColor.GREEN + "My profile " + ChatColor.GRAY + "(right click)",
             "Your level, rank and divisions,", "your stats, friends, settings,", "daily reward, Network level", "and quests.");
 
     private final int slot;

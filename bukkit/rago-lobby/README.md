@@ -21,8 +21,9 @@ dans les files d'attente des modes de jeu.
   joueur garde l'heure du ciel de ses réglages (« Time of day »).
 - **La barre d'objets.** La boussole ouvre le sélecteur des modes ; le livre ouvre l'éditeur de
   kit ; le colorant rouge quitte la file ; l'émeraude ouvre la boutique, la tête le profil (où se
-  trouvent aussi le niveau Network, ses récompenses et les quêtes). Les cases 6 et 9 restent
-  libres. La fireball part là où on regarde, comme en Bed Wars, et son souffle pousse
+  trouvent aussi le niveau Network, ses récompenses et les quêtes). Dans l'ordre : boussole, livre,
+  colorant rouge (ou le papier Play again), gadget, fireball, deux cases libres (6 et 7), émeraude
+  et tête. La fireball part là où on regarde, comme en Bed Wars, et son souffle pousse
   les joueurs autour comme sur Hypixel : sous ses pieds, c'est un fireball jump (une toutes les
   demi-secondes, elle ne blesse personne et ne casse rien). Le bâton de blaze (teleport stick)
   emmène sur le bloc qu'on regarde, à 20 blocs au plus, jamais à travers un mur : le premier bloc
