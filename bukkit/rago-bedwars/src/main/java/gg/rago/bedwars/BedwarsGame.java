@@ -1058,6 +1058,11 @@ class BedwarsGame {
         return true;
     }
 
+    /** The sound every player of the game hears at each death, or null: only the killer's ding. */
+    Sound deathSound() {
+        return null;
+    }
+
     /** True if a fall hurts, as in Bed Wars. */
     boolean fallDamage() {
         return true;
@@ -1196,7 +1201,7 @@ class BedwarsGame {
         }
         broadcast(line != null ? line : gamer.coloured() + ChatColor.GRAY + how
                 + (author == null ? "" : author.coloured() + ChatColor.GRAY + ".")
-                + (finalKill ? ChatColor.AQUA + "" + ChatColor.BOLD + " FINAL KILL!" : ""), null);
+                + (finalKill ? ChatColor.AQUA + "" + ChatColor.BOLD + " FINAL KILL!" : ""), deathSound());
         if (author != null) {
             if (finalKill) {
                 author.finalKills++;
@@ -1207,7 +1212,9 @@ class BedwarsGame {
             Player authorPlayer = Bukkit.getPlayer(author.id);
             if (authorPlayer != null) {
                 loot(victim, authorPlayer);
-                authorPlayer.playSound(authorPlayer.getLocation(), Sound.ORB_PICKUP, 1f, 1f);
+                if (deathSound() == null) {
+                    authorPlayer.playSound(authorPlayer.getLocation(), Sound.ORB_PICKUP, 1f, 1f);
+                }
             }
         }
         // Tools lose a tier at each death; armour and shears stay.

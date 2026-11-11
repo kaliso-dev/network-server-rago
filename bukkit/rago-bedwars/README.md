@@ -204,7 +204,8 @@ de la couleur de son équipe, à chaque vie ; la pioche et la hache ont Efficien
 que son lit tient, 3 secondes après une mort (au plus : `reapparition-secondes` si c'est moins) ;
 la dernière équipe en vie gagne. Les lits partent à 10 minutes, égalité à 15. Les blocs se posent
 partout sous la limite de construction, spawns compris : à chaque respawn, les deux blocs où le
-joueur revient (pieds et tête) partent. Aucun dégât de chute.
+joueur revient (pieds et tête) partent. Aucun dégât de chute. Chaque mort fait sonner le ding de
+l'XP chez tous les joueurs de la partie.
 
 La map n'est pas dans le dépôt : son `bedwars.yml` donne à chaque équipe son spawn (sur la map du
 propriétaire, le petit bloc de laine rouge ou bleue de sa base) et son lit ; le générateur et le

@@ -45,6 +45,12 @@ final class BedFightGame extends BedwarsGame {
         return false;
     }
 
+    /** Each death, killed or fallen, rings the ding for everyone in the game. */
+    @Override
+    Sound deathSound() {
+        return Sound.ORB_PICKUP;
+    }
+
     /** No fall damage: a fall off the islands is the void, a jump down never hurts. */
     @Override
     boolean fallDamage() {
