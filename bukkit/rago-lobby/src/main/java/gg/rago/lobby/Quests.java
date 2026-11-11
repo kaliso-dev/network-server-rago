@@ -146,6 +146,19 @@ final class Quests {
         return list;
     }
 
+    /** How many quests of this period the player has done today (or this week): none without stats. */
+    int done(PlayerStats stats, Period period, String day, String week) {
+        int done = 0;
+        if (stats != null) {
+            for (Quest quest : of(period)) {
+                if (progress(stats, quest, day, week) >= quest.target()) {
+                    done++;
+                }
+            }
+        }
+        return done;
+    }
+
     /** Where the player is in this quest today (or this week), from 0 to its target. */
     static int progress(PlayerStats stats, Quest quest, String day, String week) {
         stats.newQuestPeriod(day, week);

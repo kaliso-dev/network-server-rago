@@ -93,6 +93,11 @@ final class LobbyNpcs implements Listener {
         return BODY_NAME + index;
     }
 
+    /** The name of the body of the quests NPC ({@link QuestsNpc}), hidden the same way. */
+    static String questsName() {
+        return BODY_NAME + "q";
+    }
+
     /** The name of the body on this step of a podium (0 for the first place), hidden the same way. */
     static String podiumName(int place) {
         return BODY_NAME + "p" + place;

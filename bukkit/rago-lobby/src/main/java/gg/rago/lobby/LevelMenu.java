@@ -132,15 +132,9 @@ final class LevelMenu {
         String week = StatsPeriod.weekKey(now);
         List<String> lore = new ArrayList<>();
         for (Quests.Period period : Quests.Period.values()) {
-            int done = 0;
-            List<Quests.Quest> quests = server.quests().of(period);
-            for (Quests.Quest quest : quests) {
-                if (Quests.progress(stats, quest, day, week) >= quest.target()) {
-                    done++;
-                }
-            }
-            lore.add(period.title() + ": " + (done == quests.size() ? ChatColor.GREEN : ChatColor.YELLOW) + done + "/"
-                    + quests.size());
+            int done = server.quests().done(stats, period, day, week);
+            int count = server.quests().of(period).size();
+            lore.add(period.title() + ": " + (done == count ? ChatColor.GREEN : ChatColor.YELLOW) + done + "/" + count);
         }
         lore.add("");
         lore.add("They give a lot of Network XP.");

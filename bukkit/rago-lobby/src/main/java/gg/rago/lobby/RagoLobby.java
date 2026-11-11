@@ -54,6 +54,7 @@ public final class RagoLobby extends JavaPlugin implements LobbyService {
     private LobbyPoints points;
     private LobbyNpcs npcs;
     private DailyChest daily;
+    private QuestsNpc questsNpc;
     private XpBoosters boosters;
     private LobbyGadgets gadgets;
     private FakeEntities fakes;
@@ -198,6 +199,7 @@ public final class RagoLobby extends JavaPlugin implements LobbyService {
                 skinIds.add(npc.skin());
             }
         }
+        skinIds.add(QuestsNpc.SKIN);
         npcSkins.load(skinIds);
         npcs.setSkins(npcSkins::get);
         getServer().getPluginManager().registerEvents(npcs, this);
@@ -263,6 +265,8 @@ public final class RagoLobby extends JavaPlugin implements LobbyService {
             scoreboard.updateListNames();
         }, 16L, 2L);
         daily = new DailyChest(profiles);
+        questsNpc = new QuestsNpc(stats.book(), server, levelMenu::openQuests);
+        questsNpc.setSkins(npcSkins::get);
         int placed = placeDecor();
         List<String> missing = npcs.missingPoints();
         getLogger().info(placed + " NPCs and leaderboards placed" + (missing.isEmpty() ? ""
@@ -765,10 +769,14 @@ public final class RagoLobby extends JavaPlugin implements LobbyService {
         player.teleport(point.in(state.world()));
     }
 
-    /** The NPCs, the leaderboards, then the daily chest, on their points. The number of NPCs placed. */
+    /**
+     * The NPCs, the leaderboards, then the daily chest and the quests NPC beside it, on their
+     * points. The number of NPCs placed.
+     */
     private int placeDecor() {
         int placed = npcs.spawnAll();
         daily.place(points, state.world(), fakes);
+        questsNpc.place(points, state.world(), state.spawn(), fakes);
         return placed;
     }
 

@@ -215,6 +215,12 @@ dans les files d'attente des modes de jeu.
 - **Le coffre de la récompense du jour.** `/lobby point daily` pose un coffre à cet endroit (au
   spawn), avec au-dessus « DAILY REWARD », si la récompense attend ou dans combien de temps vient
   la suivante, et la série de jours. Un clic dessus la donne, comme `/daily`.
+- **Le PNJ des quêtes.** À deux blocs du coffre de la récompense du jour (trois si la place est
+  prise), du côté le plus loin des autres PNJ, face au spawn : un PNJ dans son skin (`quetes`),
+  un livre à la main, avec au-dessus « QUESTS », où en est chacun (« Daily 2/4 · Weekly 0/4 ») et
+  « Click to see them ». Un clic dessus (ou sur ses lignes) ouvre les quêtes du jour et de la
+  semaine, comme `/quests`. `/lobby point quests` le place ailleurs ; sans coffre ni ce point, il
+  n'y en a pas.
 - **Le clic sur un joueur.** Un clic droit sur un joueur du lobby ouvre son menu : sa tête avec
   son rang, son niveau et ses divisions, un duel (le choix du mode), ses stats mode par mode, une
   invitation dans sa party, une demande d'ami et un rang à lui offrir.

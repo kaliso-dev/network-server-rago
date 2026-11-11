@@ -156,7 +156,7 @@ groupes:
 # An NPC whose point is not placed yet does not show.
 #   skin   the skin it wears: skins/<skin>.png in the folder of the plugin (64x64, yours), else
 #          the one of that name in the jar (attaque, clutch, ranked, prive, ffa, skyrise, rush,
-#          invis, bridge, arena, blocs, duels, practice, shop, stats). Without it: Steve.
+#          invis, bridge, arena, blocs, duels, practice, shop, stats, quetes). Without it: Steve.
 #          A 1.8 client shows a skin on an NPC only once Mojang signed it: at the start the server
 #          sends each new PNG once to MineSkin (api.mineskin.org) and keeps the answer in skins.yml.
 pnj:
