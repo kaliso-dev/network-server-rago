@@ -32,7 +32,9 @@ import org.bukkit.event.player.PlayerMoveEvent;
 import org.bukkit.event.player.PlayerPickupItemEvent;
 import org.bukkit.event.player.PlayerQuitEvent;
 import org.bukkit.event.player.PlayerRespawnEvent;
+import org.bukkit.event.weather.ThunderChangeEvent;
 import org.bukkit.event.weather.WeatherChangeEvent;
+import org.bukkit.event.world.WorldLoadEvent;
 
 /**
  * The lobby rules. In the lobby world, outside the build mode: nobody takes damage or gets
@@ -302,11 +304,25 @@ final class LobbyListener implements Listener {
 
     // --- The lobby world itself -----------------------------------------------------------------
 
+    /** Never rain on the server: in the lobby and in every other world (maps, arenas, games). */
     @EventHandler(ignoreCancelled = true)
     public void onWeather(WeatherChangeEvent event) {
-        if (event.toWeatherState() && event.getWorld().equals(state.world())) {
+        if (event.toWeatherState()) {
             event.setCancelled(true);
         }
+    }
+
+    @EventHandler(ignoreCancelled = true)
+    public void onThunder(ThunderChangeEvent event) {
+        if (event.toThunderState()) {
+            event.setCancelled(true);
+        }
+    }
+
+    /** A world loaded (a map, the copy of one for a game): a clear sky at noon, for good. */
+    @EventHandler
+    public void onWorldLoad(WorldLoadEvent event) {
+        RagoLobby.clearSky(event.getWorld());
     }
 
     @EventHandler(ignoreCancelled = true)

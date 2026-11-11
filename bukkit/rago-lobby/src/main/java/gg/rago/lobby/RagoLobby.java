@@ -215,6 +215,10 @@ public final class RagoLobby extends JavaPlugin implements LobbyService {
         getServer().getPluginManager().registerEvents(npcs, this);
 
         getServer().getPluginManager().registerEvents(new LobbyListener(this, state, visibility), this);
+        // every world of the server: the lobby's, the maps, the arenas (those loaded later too: the listener)
+        for (World loaded : getServer().getWorlds()) {
+            clearSky(loaded);
+        }
         getServer().getPluginManager().registerEvents(new PlayerMenu(this, statsMenu), this);
         getServer().getPluginManager().registerEvents(new HostWatcher(queues), this);
         getServer().getPluginManager().registerEvents(punishments, this);
@@ -375,15 +379,26 @@ public final class RagoLobby extends JavaPlugin implements LobbyService {
 
     /** No night, no rain, no mobs, no PvP in the lobby world. */
     private static void quietWorld(World world) {
-        world.setStorm(false);
-        world.setThundering(false);
-        world.setGameRuleValue("doDaylightCycle", "false");
+        clearSky(world);
         world.setGameRuleValue("doMobSpawning", "false");
         world.setGameRuleValue("doFireTick", "false");
         world.setGameRuleValue("mobGriefing", "false");
-        world.setTime(6000L);
         world.setPVP(false);
     }
+
+    /**
+     * No rain, no thunder, and noon for good, in any world of the server (each player keeps the time
+     * of day of their settings, their own sky).
+     */
+    static void clearSky(World world) {
+        world.setStorm(false);
+        world.setThundering(false);
+        world.setGameRuleValue("doDaylightCycle", "false");
+        world.setTime(NOON);
+    }
+
+    /** The time of every world: noon, the sun at its highest. */
+    static final long NOON = 6000L;
 
     // --- Players --------------------------------------------------------------------------------
 

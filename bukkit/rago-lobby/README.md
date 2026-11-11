@@ -14,8 +14,11 @@ dans les files d'attente des modes de jeu.
   la toute première venue sur le serveur, un titre aussi (le `titre:` et les trois noms).
   `accueil: false` le coupe.
 - **La protection.** Dans le monde du lobby : pas de dégâts, pas de faim, rien à poser, casser,
-  jeter ou ramasser, pas de coffres ni de portes, pas de pluie, pas de nuit, pas de monstres. Les
-  autres mondes (arènes, monde du test de knockback, mondes de build) ne sont pas touchés.
+  jeter ou ramasser, pas de coffres ni de portes, pas de monstres. Les autres mondes (arènes,
+  monde du test de knockback, mondes de build) ne sont pas touchés, sauf le ciel.
+- **Le ciel.** Dans tous les mondes du serveur (le lobby, les maps, les arènes, les copies des
+  parties) : jamais de pluie ni d'orage, et toujours midi (le cycle du jour est arrêté). Chaque
+  joueur garde l'heure du ciel de ses réglages (« Time of day »).
 - **La barre d'objets.** La boussole ouvre le sélecteur des modes ; le livre ouvre l'éditeur de
   kit ; le colorant rouge quitte la file ; l'alambique ouvre le niveau Network, ses récompenses et
   les quêtes ; l'émeraude la boutique, la tête le profil ; le colorant vert ou gris cache ou montre
