@@ -896,6 +896,15 @@ final class BedwarsHost implements MatchHost, Listener {
         // A right click only: denying the block on a left click would also stop it from being broken (the beds).
         ItemStack item = event.getItem();
         boolean right = event.getAction() == Action.RIGHT_CLICK_AIR || event.getAction() == Action.RIGHT_CLICK_BLOCK;
+        if (event.getAction() == Action.LEFT_CLICK_BLOCK && CHESTS.contains(event.getClickedBlock().getType())
+                && item != null && BedwarsGame.resourceName(item.getType()) != null) {
+            // a chest hit with iron, gold, diamonds or emeralds in hand: they go straight into it
+            event.setCancelled(true);
+            if (playing(player) == game) {
+                game.deposit(player, event.getClickedBlock());
+            }
+            return;
+        }
         if (event.getAction() == Action.RIGHT_CLICK_BLOCK && CHESTS.contains(event.getClickedBlock().getType())
                 && !(player.isSneaking() && item != null && item.getType().isBlock())) {
             // the chests of the islands and the ender chests, those of this game

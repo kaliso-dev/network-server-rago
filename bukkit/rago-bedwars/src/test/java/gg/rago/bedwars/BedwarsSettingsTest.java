@@ -100,6 +100,13 @@ class BedwarsSettingsTest {
         assertEquals(100, forge.gold(2).ticks);
         assertEquals(16, forge.gold(8).max);
         assertArrayEquals(new int[] {1}, forge.gold(4).batches);
+        // the RBW 1v1: a Hypixel solo's forge on its maps of 4 islands, 90 iron and 8 gold a minute
+        BedwarsSettings.Forge solo = forge.forMode("ranked-1v1");
+        assertEquals(1200 / 90, solo.iron("Archway", 1, 4).ticks);
+        assertEquals(1200 / 90, solo.iron("Lotus", 1, 4).ticks, "on every map");
+        assertEquals(150, solo.gold(4).ticks);
+        assertEquals(10, forge.forMode("ranked-2v2").iron("Archway", 2, 4).ticks, "the 2v2 keeps the 4v4 forge");
+        assertEquals(100, forge.forMode("ranked-2v2").gold(4).ticks);
         assertEquals(30, forge.fastStartSeconds);
         assertEquals(600, settings.diamond().get(0).ticks);
         assertEquals(240, settings.diamond().get(2).ticks);

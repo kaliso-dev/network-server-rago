@@ -21,7 +21,9 @@ Scenario**,
   minute sur une map rapide à 8 îles et 120 sur les maps à 4 îles des Ranked. L'or donne 8 lingots
   par minute, 12 sur les maps de 4 îles ou moins ; au plus 48 fers et 16 ors par terre ; deux fois
   plus vite pendant les 30 premières secondes. Toutes les maps sont rapides, sauf Lighthouse et Lotus (lentes en solo,
-  moyennes en duo), comme sur Hypixel (réglable dans `forge:`). Les générateurs de diamant et
+  moyennes en duo), comme sur Hypixel (réglable dans `forge:`). Le RBW 1v1 a la forge d'un solo
+  d'Hypixel sur toutes ses maps : 90 fers et 8 ors par minute (`forge.modes`, réglable par mode),
+  au lieu des 120 et 12 d'un 4v4 pour un seul joueur. Les générateurs de diamant et
   d'émeraude affichent leur tier et le temps avant le prochain objet. Ils passent tier II puis III
   pendant la partie.
 - **Événements** (réglables) : Diamond II à 6 min, Emerald II à 12, Diamond III à 18, Emerald III
@@ -224,7 +226,9 @@ Les objets de la catégorie Utility du shop, comme sur Hypixel :
 - **Noms** : dans une partie classique, au-dessus de la tête et dans la liste Tab, le pseudo montre
   l'équipe comme sur Hypixel (« **R** Steve » en rouge) ; le rang revient au retour au lobby.
 - **Coffres** : le coffre d'une île est le même pour tous ceux qui l'ouvrent (on peut piller celui
-  d'un ennemi), l'ender chest est à chacun.
+  d'un ennemi), l'ender chest est à chacun. Un clic gauche sur un coffre ou un ender chest avec du
+  fer, de l'or, des diamants ou des émeraudes en main les y met directement, tout le stack
+  (« You deposited x16 Iron into the Chest! ») ; le clic droit l'ouvre.
 - **Chat** : chaque partie a son chat, à part du lobby. Dans un mode à équipes, on parle à son
   équipe ; un message qui commence par `!` va à toute la partie, en « [SHOUT] » ; les éliminés
   parlent entre eux.

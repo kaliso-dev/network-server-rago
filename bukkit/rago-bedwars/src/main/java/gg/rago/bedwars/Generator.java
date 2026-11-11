@@ -36,8 +36,13 @@ final class Generator {
         this.left = rate.ticks;
     }
 
-    /** Shows the floating text, for the diamond and emerald generators. */
+    /**
+     * Shows the floating text, for the diamond and emerald generators. Its chunk loads first (and
+     * stays loaded, in a game world): in a chunk not loaded yet, neither the text nor the items
+     * would come.
+     */
     void showText() {
+        spot.getChunk().load();
         if (label == null) {
             return;
         }

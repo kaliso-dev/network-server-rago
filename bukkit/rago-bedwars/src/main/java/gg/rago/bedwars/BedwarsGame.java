@@ -442,7 +442,7 @@ class BedwarsGame {
     void economyUp(List<Team> islands) {
         World world = instance.world();
         BedwarsMap map = instance.map();
-        BedwarsSettings.Forge forge = settings.forge();
+        BedwarsSettings.Forge forge = settings.forge().forMode(modeId);
         int teamSize = 0;
         for (Team team : islands) {
             teamSize = Math.max(teamSize, team.members.size());
@@ -1780,6 +1780,55 @@ class BedwarsGame {
             chests.put(block, chest);
         }
         return chest;
+    }
+
+    /** The name of a resource of the forges and generators (Iron, Gold, Diamond, Emerald), null for anything else. */
+    static String resourceName(Material type) {
+        switch (type) {
+            case IRON_INGOT:
+                return "Iron";
+            case GOLD_INGOT:
+                return "Gold";
+            case DIAMOND:
+                return "Diamond";
+            case EMERALD:
+                return "Emerald";
+            default:
+                return null;
+        }
+    }
+
+    /**
+     * The player hit this chest (or ender chest) with resources in hand: the whole stack goes into
+     * it, as much as fits.
+     */
+    void deposit(Player player, Block block) {
+        Gamer gamer = gamers.get(player.getUniqueId());
+        ItemStack hand = player.getItemInHand();
+        String name = hand == null ? null : resourceName(hand.getType());
+        if (gamer == null || gamer.respawning || gamer.eliminated || name == null) {
+            return;
+        }
+        int amount = hand.getAmount();
+        int kept = 0;
+        for (ItemStack left : chest(block, gamer).addItem(hand.clone()).values()) {
+            kept += left.getAmount();
+        }
+        String where = block.getType() == Material.ENDER_CHEST ? "Ender Chest" : "Chest";
+        if (kept == amount) {
+            player.sendMessage(ChatColor.RED + "This " + where + " is full!");
+            return;
+        }
+        if (kept == 0) {
+            player.setItemInHand(null);
+        } else {
+            hand.setAmount(kept);
+            player.setItemInHand(hand);
+        }
+        player.updateInventory();
+        player.playSound(player.getLocation(), Sound.ITEM_PICKUP, 1f, 1.2f);
+        player.sendMessage(ChatColor.GRAY + "You deposited " + ChatColor.WHITE + "x" + (amount - kept) + " " + name
+                + ChatColor.GRAY + " into the " + ChatColor.AQUA + where + ChatColor.GRAY + "!");
     }
 
     /** How many players a team has, for the prices of the upgrades (those of 3v3v3v3 and 4v4v4v4 from 3). */

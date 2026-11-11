@@ -160,6 +160,9 @@ iles-voisines: [first-rush, first-rush-duo]
 #              one for teams of two or more ({solo: lente, equipes: moyenne}, as Lighthouse and
 #              Lotus on Hypixel). A map not listed: vitesse-par-defaut (rapide, as every Hypixel map
 #              since 2019).
+#   modes      by mode id, its forges on every map instead: vitesse (lente, moyenne, rapide) and
+#              or-secondes. The RBW 1v1 has those of a Hypixel solo: 90 iron and 8 gold a minute
+#              (moyenne, one node more on its maps of four teams), not the 120 and 12 of a 4v4.
 forge:
   fer-secondes-par-noeud: 2
   fer-par-lot: [2, 4]
@@ -176,6 +179,8 @@ forge:
     SkyRise: rapide
     Lighthouse: {solo: lente, equipes: moyenne}
     Lotus: {solo: lente, equipes: moyenne}
+  modes:
+    ranked-1v1: {vitesse: moyenne, or-secondes: 7.5}
 
 # The diamond and emerald generators: one item every so many seconds, at most so many lying on
 # it; three tiers (I, II, III), faster and faster.

@@ -73,14 +73,18 @@ final class BedwarsSettings {
         final Speed fallback;
         /** By map name in lower case: the speed in solo, then with teams of two or more. */
         final Map<String, Speed[]> maps;
+        /** By mode id: what its forges have instead, on every map. */
+        final Map<String, ModeForge> modes;
 
         Forge(double nodeSeconds, double goldSeconds, int maxIron, int maxGold, int fastStartSeconds, Speed fallback,
                 Map<String, Speed[]> maps) {
-            this(nodeSeconds, goldSeconds, goldSeconds, maxIron, maxGold, fastStartSeconds, new int[] {1}, fallback, maps);
+            this(nodeSeconds, goldSeconds, goldSeconds, maxIron, maxGold, fastStartSeconds, new int[] {1}, fallback, maps,
+                    Collections.<String, ModeForge>emptyMap());
         }
 
         Forge(double nodeSeconds, double goldSeconds, double fewTeamsGoldSeconds, int maxIron, int maxGold,
-                int fastStartSeconds, int[] ironBatches, Speed fallback, Map<String, Speed[]> maps) {
+                int fastStartSeconds, int[] ironBatches, Speed fallback, Map<String, Speed[]> maps,
+                Map<String, ModeForge> modes) {
             this.nodeSeconds = nodeSeconds;
             this.goldSeconds = goldSeconds;
             this.fewTeamsGoldSeconds = fewTeamsGoldSeconds;
@@ -90,6 +94,23 @@ final class BedwarsSettings {
             this.ironBatches = ironBatches.clone();
             this.fallback = fallback;
             this.maps = Collections.unmodifiableMap(maps);
+            this.modes = Collections.unmodifiableMap(modes);
+        }
+
+        /**
+         * The forges of a game of this mode: those of forge.modes for it (one speed on every map,
+         * their gold), else the maps' own.
+         */
+        Forge forMode(String modeId) {
+            ModeForge mode = modes.get(modeId);
+            if (mode == null) {
+                return this;
+            }
+            double gold = mode.goldSeconds > 0 ? mode.goldSeconds : goldSeconds;
+            double fewTeamsGold = mode.goldSeconds > 0 ? mode.goldSeconds : fewTeamsGoldSeconds;
+            return new Forge(nodeSeconds, gold, fewTeamsGold, maxIron, maxGold, fastStartSeconds, ironBatches,
+                    mode.speed != null ? mode.speed : fallback,
+                    mode.speed != null ? Collections.<String, Speed[]>emptyMap() : maps, Collections.<String, ModeForge>emptyMap());
         }
 
         /** The speed of this map's forge for teams of this many players. */
@@ -108,6 +129,17 @@ final class BedwarsSettings {
         Rate gold(int islands) {
             double seconds = islands <= 4 ? fewTeamsGoldSeconds : goldSeconds;
             return new Rate(Math.max(1, (int) Math.round(seconds * 20)), maxGold);
+        }
+    }
+
+    /** What the forges of a mode have on every map: a speed (null: each map's own), its gold (0: the usual). */
+    static final class ModeForge {
+        final Speed speed;
+        final double goldSeconds;
+
+        ModeForge(Speed speed, double goldSeconds) {
+            this.speed = speed;
+            this.goldSeconds = goldSeconds;
         }
     }
 
@@ -425,7 +457,23 @@ final class BedwarsSettings {
             throw new IllegalArgumentException("forge.vitesses: each map with its speed, such as Lotus: lente");
         }
         int[] batches = batches(config, "forge.fer-par-lot");
-        return new Forge(nodeSeconds, goldSeconds, fewTeamsGold, maxIron, maxGold, fastStart, batches, fallback, maps);
+        Map<String, ModeForge> modes = new LinkedHashMap<>();
+        if (config.isConfigurationSection("forge.modes")) {
+            ConfigurationSection section = config.getConfigurationSection("forge.modes");
+            for (String mode : section.getKeys(false)) {
+                String path = "forge.modes." + mode;
+                if (!section.isConfigurationSection(mode)) {
+                    throw new IllegalArgumentException(path + ": vitesse and or-secondes, such as {vitesse: moyenne, or-secondes: 7.5}");
+                }
+                String word = section.getString(mode + ".vitesse", "");
+                Speed speed = word.trim().isEmpty() ? null : speed(word, path + ".vitesse");
+                double gold = section.contains(mode + ".or-secondes") ? number(config, path + ".or-secondes", 0, 0.25, 600) : 0;
+                modes.put(modeId(mode, path), new ModeForge(speed, gold));
+            }
+        } else if (config.contains("forge.modes")) {
+            throw new IllegalArgumentException("forge.modes: each mode with its forge, such as ranked-1v1: {vitesse: moyenne}");
+        }
+        return new Forge(nodeSeconds, goldSeconds, fewTeamsGold, maxIron, maxGold, fastStart, batches, fallback, maps, modes);
     }
 
     /** The sizes of the batches of iron (2 and 4 by default), each from 1 to 16. */
