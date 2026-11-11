@@ -1,6 +1,7 @@
 package gg.rago.practice;
 
 import gg.rago.game.GameMode;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Random;
 import java.util.UUID;
@@ -23,6 +24,9 @@ import org.bukkit.util.Vector;
  * backwards. The islands of the players stand side by side, so that each one sees the others
  * clutch. The hotbar sets the knockback (1 to 5), the number of hits in a row (1 to 3), a
  * knockback stick, and a random side. Each clutch saved adds one to the streak; a fall ends it.
+ * One board of records for every setting, so that the top 3 of the sidebar is the same for
+ * everyone. The size of a clutch saved is how far the hit threw the player from where they stood,
+ * in blocks: a board on each island shows the biggest of the server.
  *
  * <p>The top fight version plays on the wool platform of a top fight, at the build limit: no block
  * goes above the platform, so the player catches themselves at its level or lower.
@@ -72,6 +76,13 @@ final class ClutchTraining extends Training {
     private int streak;
     private long limitTold;
     private Vector way;
+    /** Since the first hit of the attempt; until the player is on the ground after the last one. */
+    private boolean hitYet;
+    private boolean landed;
+    /** The farthest the hits threw the player from where they stood, in tenths of a block. */
+    private long farthest;
+    /** The board of the biggest clutches, on the island; null until the first second. */
+    private KillBoard sizes;
 
     static final Variant ISLAND = new Variant("island", "Island clutch", false, "clutches");
     static final Variant TOP = new Variant("top", "Top fight clutch", false, "clutches");
@@ -84,6 +95,9 @@ final class ClutchTraining extends Training {
         hitCount = setting("Hits", 1, 3, 1);
         stick = toggle("KB stick", false);
         randomSide = toggle("Random side", false);
+        // the boards of each setting of before: one for all now
+        host.records().book().fold(board());
+        host.records().book().define(sizeBoard(), false);
     }
 
     /**
@@ -100,11 +114,21 @@ final class ClutchTraining extends Training {
         return new double[] {horizontal, vertical};
     }
 
-    /** The board of the records: each setting has its own, a harder clutch being another score. */
-    @Override
-    String board() {
-        return mode.id() + "." + current().id + ".kb" + knockback.value + ".hits" + hitCount.value
-                + (stick.on() ? ".stick" : "") + (randomSide.on() ? ".random" : "");
+    /** The board of the biggest clutches, in tenths of a block: "clutch.island-blocks". */
+    String sizeBoard() {
+        return board() + "-blocks";
+    }
+
+    /** "4.3 blocks", from tenths of a block. */
+    static String blocks(long tenths) {
+        return (tenths / 10) + "." + (tenths % 10) + (tenths == 10 ? " block" : " blocks");
+    }
+
+    /** How far apart two points are on the ground (x, z), in tenths of a block, rounded down. */
+    static long tenths(double x1, double z1, double x2, double z2) {
+        double dx = x2 - x1;
+        double dz = z2 - z1;
+        return (long) Math.floor(Math.sqrt(dx * dx + dz * dz) * 10 + 1e-9);
     }
 
     @Override
@@ -184,6 +208,9 @@ final class ClutchTraining extends Training {
         groundTicks = 0;
         placedSinceHit = 0;
         lastHitTick = 0;
+        hitYet = false;
+        landed = false;
+        farthest = 0;
         double angle = randomSide.on() ? (random.nextDouble() * 2 - 1) * RANDOM_TURN : 0;
         // straight off the edge: backwards from where the player looks at the start
         double[] thrown = thrownWay(start()[3], angle);
@@ -195,6 +222,12 @@ final class ClutchTraining extends Training {
         Player player = player();
         if (player == null) {
             return;
+        }
+        if (hitYet && !landed) {
+            Location at = player.getLocation();
+            double[] start = start();
+            farthest = Math.max(farthest, tenths(arena.centreX() + start[0], arena.centreZ() + start[2], at.getX(), at.getZ()));
+            landed = hitsLeft <= 0 && tickCount - lastHitTick >= 8 && onGround(player);
         }
         if (hitsLeft > 0) {
             if (--nextHit <= 0) {
@@ -220,12 +253,88 @@ final class ClutchTraining extends Training {
                 return;
             }
             streak++;
-            player.sendMessage(ChatColor.GREEN + "Clutch! " + ChatColor.GRAY + "Streak: " + ChatColor.WHITE + streak);
+            long size = farthest;
+            player.sendMessage(ChatColor.GREEN + "Clutch! " + ChatColor.GRAY + "Streak: " + ChatColor.WHITE + streak
+                    + ChatColor.DARK_GRAY + " | " + ChatColor.YELLOW + blocks(size));
             sound(player, Sound.ORB_PICKUP, 1.2f);
             score(streak, true);
+            sized(player, size);
             hitsLeft = -1;
             groundTicks = Integer.MIN_VALUE;
             again(12L);
+        }
+    }
+
+    /** A clutch of this size saved: a best of the player, or of the server, is said and goes on the boards. */
+    private void sized(Player player, long size) {
+        RecordBook.Result result = submitTo(sizeBoard(), size);
+        if (result.boardBest && result.previous != null) {
+            player.sendMessage(ChatColor.GOLD + "" + ChatColor.BOLD + "Biggest clutch of the server! " + ChatColor.WHITE + blocks(size));
+            sound(player, Sound.LEVEL_UP, 1.2f);
+        } else if (result.personalBest) {
+            player.sendMessage(ChatColor.GREEN + "Your biggest clutch: " + ChatColor.WHITE + blocks(size)
+                    + (result.previous == null ? "" : ChatColor.GRAY + " (before: " + blocks(result.previous) + ")"));
+        }
+        if (result.personalBest) {
+            showSizes();
+        }
+    }
+
+    @Override
+    boolean shows(String board) {
+        return super.shows(board) || sizeBoard().equals(board);
+    }
+
+    @Override
+    void bestOn(String board) {
+        super.bestOn(board);
+        showSizes();
+    }
+
+    @Override
+    void onSecond() {
+        showSizes();
+    }
+
+    /**
+     * The board of the biggest clutches, floating over the island in front of the player: the
+     * first ten of the server, the same on every island.
+     */
+    private void showSizes() {
+        if (sizes == null) {
+            double[] start = start();
+            double[] ahead = thrownWay(start[3], Math.PI);
+            sizes = new KillBoard(arena.at(start[0] + ahead[0] * BOARD_AHEAD, start[1] + BOARD_ABOVE, start[2] + ahead[1] * BOARD_AHEAD));
+        }
+        sizes.show(sizeLines(host.records().book().ranked(sizeBoard()), me, topFight));
+    }
+
+    /** The board of the biggest clutches stands this far in front of the player, its top line this high above their feet. */
+    static final double BOARD_AHEAD = 8;
+    static final double BOARD_ABOVE = 5.5;
+
+    /** The lines of the board: a title, then "1. Sofiene - 4.3 blocks" for each of the first ten, the viewer in green. */
+    static List<String> sizeLines(List<RecordBook.Entry> ranked, UUID me, boolean topFight) {
+        List<String> lines = new ArrayList<>();
+        lines.add(ChatColor.GOLD + "" + ChatColor.BOLD + "BIGGEST CLUTCHES");
+        lines.add(ChatColor.GRAY + (topFight ? "Top fight, " : "") + "thrown the farthest");
+        if (ranked.isEmpty()) {
+            lines.add(ChatColor.GRAY + "Nobody yet: be the first!");
+        }
+        for (int i = 0; i < Math.min(KillBoard.ROWS, ranked.size()); i++) {
+            RecordBook.Entry entry = ranked.get(i);
+            lines.add(KillBoard.place(i) + "" + ChatColor.BOLD + (i + 1) + ". " + ChatColor.RESET
+                    + (entry.player.equals(me) ? ChatColor.GREEN : ChatColor.WHITE) + entry.name + ChatColor.DARK_GRAY + " - "
+                    + ChatColor.YELLOW + blocks(entry.value));
+        }
+        return lines;
+    }
+
+    @Override
+    void ended() {
+        if (sizes != null) {
+            sizes.remove();
+            sizes = null;
         }
     }
 
@@ -236,6 +345,7 @@ final class ClutchTraining extends Training {
         player.playEffect(EntityEffect.HURT);
         sound(player, Sound.HURT_FLESH, 1f);
         placedSinceHit = 0;
+        hitYet = true;
     }
 
     @Override

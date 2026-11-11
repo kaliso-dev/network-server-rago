@@ -368,6 +368,9 @@ abstract class Training extends PracticeGame {
         succeeded(me);
         RecordBook.Result result = host.records().submit(board(), me, myName, value);
         last = format(value);
+        if (result.personalBest) {
+            othersOn(board());
+        }
         if (player == null) {
             return;
         }
@@ -387,6 +390,40 @@ abstract class Training extends PracticeGame {
             player.sendMessage(ChatColor.GREEN + format(value) + ChatColor.GRAY + " (your best: " + format(result.previous) + ")");
             sound(player, Sound.ORB_PICKUP, 1f);
         }
+    }
+
+    /**
+     * A score of the player on another board than the training's own (the biggest clutch...),
+     * nothing said; the other trainings of the board see the new best at once.
+     */
+    RecordBook.Result submitTo(String board, long value) {
+        RecordBook.Result result = host.records().submit(board, me, myName, value);
+        if (result.personalBest) {
+            othersOn(board);
+        }
+        return result;
+    }
+
+    /**
+     * Someone has a new best on this board: every other training that shows it (its top 3 in the
+     * sidebar, a board on the island) shows it again at once, so that everyone sees the same top.
+     */
+    private void othersOn(String board) {
+        for (PracticeGame game : host.allGames()) {
+            if (game != this && game instanceof Training && ((Training) game).shows(board)) {
+                ((Training) game).bestOn(board);
+            }
+        }
+    }
+
+    /** True if this training shows this board: by default, its own. */
+    boolean shows(String board) {
+        return board().equals(board);
+    }
+
+    /** Someone else has a new best on a board this training shows. */
+    void bestOn(String board) {
+        sidebars();
     }
 
     /** The colours of the top 3 of the sidebar: gold, silver, bronze. */

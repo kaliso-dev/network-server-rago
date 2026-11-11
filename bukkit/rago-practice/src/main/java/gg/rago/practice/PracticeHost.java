@@ -61,6 +61,11 @@ final class PracticeHost implements MatchHost {
         return modeId;
     }
 
+    /** Every game running, of every mode. */
+    List<PracticeGame> allGames() {
+        return games.games();
+    }
+
     /**
      * The games of this mode play on these maps, copied into its zones from now on, a few blocks
      * each tick; nothing happens without maps. Returns the zones, to stop at the end.

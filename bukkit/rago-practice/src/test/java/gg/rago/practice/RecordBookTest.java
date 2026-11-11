@@ -47,6 +47,26 @@ class RecordBookTest {
     }
 
     @Test
+    void theBoardsOfEachSettingFoldIntoOneEachPlayerKeepingTheirBest() {
+        RecordBook book = new RecordBook();
+        book.define("clutch.island", false);
+        book.load("clutch.island.kb3.hits1", ONE, "One", 4);
+        book.load("clutch.island.kb5.hits2.stick", ONE, "One", 9);
+        book.load("clutch.island.kb1.hits1", TWO, "Two", 6);
+        book.load("clutch.island-blocks", TWO, "Two", 43);
+        book.load("clutch-top-fight.top.kb3.hits1", TWO, "Two", 20);
+        book.submit("clutch.island", TWO, "Two", 2);
+        assertEquals(3, book.fold("clutch.island"));
+        assertEquals(9L, book.best("clutch.island", ONE));
+        assertEquals(6L, book.best("clutch.island", TWO));
+        assertEquals("One", book.ranked("clutch.island").get(0).name);
+        assertFalse(book.boards().containsKey("clutch.island.kb3.hits1"), "the old boards are gone from the file");
+        assertEquals(43L, book.best("clutch.island-blocks", TWO), "another board stays");
+        assertEquals(20L, book.best("clutch-top-fight.top.kb3.hits1", TWO));
+        assertEquals(0, book.fold("clutch.island"), "once is enough");
+    }
+
+    @Test
     void boardsAreApart() {
         RecordBook book = new RecordBook();
         book.define("clutch.single", false);

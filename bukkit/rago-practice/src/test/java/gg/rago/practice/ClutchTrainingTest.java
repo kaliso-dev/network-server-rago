@@ -48,6 +48,39 @@ class ClutchTrainingTest {
     }
 
     @Test
+    void aClutchIsAsBigAsTheHitThrewThePlayerInTenthsOfABlock() {
+        assertEquals(43, ClutchTraining.tenths(3.5, 1.5, 3.5, 5.8));
+        assertEquals(50, ClutchTraining.tenths(0, 0, 3, -4));
+        assertEquals(0, ClutchTraining.tenths(1, 1, 1, 1));
+        assertEquals("4.3 blocks", ClutchTraining.blocks(43));
+        assertEquals("1.0 block", ClutchTraining.blocks(10));
+        assertEquals("0.7 blocks", ClutchTraining.blocks(7));
+        assertEquals("12.0 blocks", ClutchTraining.blocks(120));
+    }
+
+    @Test
+    void theBoardOfTheBiggestClutchesShowsTheFirstTenTheViewerInGreen() {
+        java.util.UUID me = java.util.UUID.randomUUID();
+        List<String> empty = ClutchTraining.sizeLines(java.util.Collections.emptyList(), me, false);
+        assertEquals(3, empty.size());
+        assertTrue(empty.get(0).contains("BIGGEST CLUTCHES"));
+        assertTrue(empty.get(2).contains("Nobody yet"));
+        RecordBook book = new RecordBook();
+        book.define("clutch.island-blocks", false);
+        for (int i = 0; i < 12; i++) {
+            book.submit("clutch.island-blocks", i == 4 ? me : java.util.UUID.randomUUID(), "P" + i, 10 + i);
+        }
+        List<String> lines = ClutchTraining.sizeLines(book.ranked("clutch.island-blocks"), me, true);
+        assertEquals(2 + KillBoard.ROWS, lines.size());
+        assertTrue(lines.get(1).contains("Top fight"));
+        assertTrue(lines.get(2).contains("P11") && lines.get(2).contains("2.1 blocks"), lines.get(2));
+        String mine = lines.get(2 + 7);
+        assertTrue(mine.contains(org.bukkit.ChatColor.GREEN + "P4"), mine);
+        // the islands' boards stand in front of the player, over the island, under the build limit
+        assertTrue(ClutchTraining.BOARD_AHEAD < ClutchTraining.SPACING / 2.0);
+    }
+
+    @Test
     void moreKnockbackThrowsFartherAndTheStickFarthest() {
         for (int kb = 1; kb < 5; kb++) {
             assertTrue(ClutchTraining.throwOf(kb + 1, false)[0] > ClutchTraining.throwOf(kb, false)[0]);

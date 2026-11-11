@@ -81,6 +81,28 @@ final class RecordBook {
         return new Result(mine == null ? null : mine.value, personal, overall);
     }
 
+    /**
+     * Every board under this one ("clutch.island.kb3.hits1" under "clutch.island") goes into it:
+     * each player keeps their best of all, and the boards under it are gone. Returns how many
+     * boards went in.
+     */
+    int fold(String board) {
+        String under = board + ".";
+        List<String> folded = new ArrayList<>();
+        for (String other : boards.keySet()) {
+            if (other.startsWith(under)) {
+                folded.add(other);
+            }
+        }
+        for (String other : folded) {
+            for (Entry entry : boards.remove(other).values()) {
+                submit(board, entry.player, entry.name, entry.value);
+            }
+            lowerIsBetter.remove(other);
+        }
+        return folded.size();
+    }
+
     /** The player's best on the board, or null. */
     Long best(String board, UUID player) {
         Map<UUID, Entry> entries = boards.get(board);

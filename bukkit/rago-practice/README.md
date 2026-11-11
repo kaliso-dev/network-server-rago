@@ -111,7 +111,13 @@ réglages. Un entraînement de la liste que le serveur ne joue pas est laissé d
   (herbe, lit, défense end stone et laine). Les îles des joueurs sont côte à côte (28 blocs) :
   chacun voit les autres clutcher. La hotbar
   règle le knockback (1 à 5), le nombre de coups à la suite (1 à 3), le KB stick (bien plus loin)
-  et un côté au hasard. Chaque réglage a son propre record. Série de clutchs.
+  et un côté au hasard. Série de clutchs : un seul classement pour tous les réglages, le même top 3
+  pour tout le monde dans le scoreboard, mis à jour chez tous dès qu'un joueur bat son record.
+  Chaque clutch réussi a aussi une taille : la distance en blocs à laquelle le coup a envoyé le
+  joueur de sa place avant qu'il se rattrape (« Clutch! Streak: 3 | 4.3 blocks »). Au-dessus de
+  chaque île, devant le joueur, un tableau « BIGGEST CLUTCHES » montre les dix plus gros clutchs
+  du serveur (le meilleur de chaque joueur), le même sur toutes les îles. Les anciens records par
+  réglage sont regroupés au démarrage (chaque joueur garde son meilleur).
 - **Block clutch : top fight** : le même clutch sur une plateforme de top fight en laine bleue et
   rouge, à la limite de construction : aucun bloc au-dessus de la plateforme, il faut se
   rattraper à son niveau ou plus bas.

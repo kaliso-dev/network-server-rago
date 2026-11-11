@@ -66,6 +66,11 @@ final class KillBoard {
         }
     }
 
+    /** The colour of this place (from 0): gold, white, red, then gray. */
+    static ChatColor place(int i) {
+        return PLACES[Math.min(i, PLACES.length - 1)];
+    }
+
     void remove() {
         for (ArmorStand stand : stands) {
             stand.remove();

@@ -1,6 +1,7 @@
 package gg.rago.practice;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
@@ -132,6 +133,11 @@ final class PracticeGames implements Listener {
 
     int running() {
         return running.size();
+    }
+
+    /** Every game running, of every mode. */
+    List<PracticeGame> games() {
+        return Collections.unmodifiableList(running);
     }
 
     /** The game whose zone holds this point, or null. */
