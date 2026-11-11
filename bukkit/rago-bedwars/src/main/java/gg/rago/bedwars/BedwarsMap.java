@@ -389,9 +389,17 @@ final class BedwarsMap {
     }
 
     /**
+     * Two islands this close in distance (5 % apart at most) are as near as each other for
+     * {@link #neighbourTeams}: the points found by the map tool are a block or two off, and on a map
+     * of eight red's neighbours are blue and gray, a few tenths of a block apart.
+     */
+    static final double NEIGHBOUR_TIE = 0.05;
+
+    /**
      * The complete teams a game of this many teams is played with on neighbouring islands (First
-     * Rush): the first one, then each time the one whose spawn is nearest to those already taken (a
-     * tie keeps the first colour). In the order of the colours.
+     * Rush): the first one, then each time the one whose spawn is nearest to those already taken; of
+     * islands about as near ({@link #NEIGHBOUR_TIE}), the first colour, so that red plays blue as on
+     * Hypixel. In the order of the colours.
      */
     List<TeamColor> neighbourTeams(int count) {
         List<TeamColor> complete = completeTeams();
@@ -418,7 +426,7 @@ final class BedwarsMap {
                     double dz = spawn.z() - other.z();
                     nearest = Math.min(nearest, dx * dx + dz * dz);
                 }
-                if (nearest < bestDistance - 1e-6) {
+                if (Math.sqrt(nearest) < Math.sqrt(bestDistance) * (1 - NEIGHBOUR_TIE)) {
                     best = color;
                     bestDistance = nearest;
                 }

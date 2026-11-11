@@ -20,8 +20,8 @@ import org.bukkit.inventory.PlayerInventory;
 
 /**
  * A free for all on a Bed Wars map, open to everyone: players join and leave when they like, each
- * for themselves, and come back three seconds after a death, on the island farthest from the
- * others. The beds stay as the map has them, unbreakable; the blocks placed go after a while (10
+ * for themselves, and come back at once after a death (in the arena, three seconds after it), on
+ * the island farthest from the others. The beds stay as the map has them, unbreakable; the blocks placed go after a while (10
  * seconds in the FFA, 45 in the arena), so that the map never fills up, and only on the islands of
  * a map that lists them (iles:, Archway FFA): none on the bridges, nor up to the top bridge. No
  * block either near a place where the players spawn. The kills count in the stats of the mode.
@@ -43,7 +43,8 @@ final class FfaGame extends BedwarsGame {
 
     /** At most this many players in one copy of the map: the next ones get another copy. */
     static final int MAX_PLAYERS = 16;
-    private static final int RESPAWN_SECONDS = 3;
+    /** The arena's wait before a new life; the FFA and Top Bridge FFA have none: the respawn is instant. */
+    static final int ARENA_RESPAWN_SECONDS = 3;
     /** The blocks placed in the FFA go after this long... */
     static final int DECAY_SECONDS = 10;
     /** ...and in the arena, where they make the defenses of the top fights. */
@@ -192,7 +193,7 @@ final class FfaGame extends BedwarsGame {
 
     @Override
     int respawnSeconds() {
-        return RESPAWN_SECONDS;
+        return arena ? ARENA_RESPAWN_SECONDS : 0;
     }
 
     /** Nobody is ever out: a death is followed by a new life. */

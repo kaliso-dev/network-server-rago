@@ -2,7 +2,9 @@
 
 Un plugin Bukkit 1.8.8 qui joue les modes d'entraînement du lobby (`bukkit/rago-lobby`) : les
 duels, les entraînements en solo et les arènes ouvertes (block placement, bridge fight).
-Chaque mode prend son kit dans l'éditeur de kit du lobby, rangé comme le joueur l'a laissé.
+Chaque mode prend son kit dans l'éditeur de kit du lobby, rangé comme le joueur l'a laissé. Rien ne
+s'use dans une partie : les épées, les armures, les cisailles et les arcs ne perdent jamais de
+durabilité.
 
 ## Les duels
 

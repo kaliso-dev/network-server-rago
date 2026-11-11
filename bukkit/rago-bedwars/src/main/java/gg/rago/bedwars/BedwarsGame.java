@@ -531,19 +531,33 @@ class BedwarsGame {
         }
     }
 
-    /** The shop and upgrades NPCs of these teams' islands. */
+    /**
+     * The shop and upgrades NPCs of these teams' islands; in a mode with shops everywhere
+     * (shops-partout:, First Rush full map), an item shop on each island nobody plays too.
+     */
     void npcsUp(List<Team> islands) {
         World world = instance.world();
         int teamSize = 0;
         for (Team team : islands) {
             teamSize = Math.max(teamSize, team.members.size());
         }
+        Set<TeamColor> played = EnumSet.noneOf(TeamColor.class);
         for (Team team : islands) {
+            played.add(team.color);
             Location spawn = team.points.spawn.in(world);
             spawnNpc(team.points.shop.in(world), spawn, ChatColor.AQUA + "ITEM SHOP", null);
             if (team.points.upgrades != null && upgrades()) {
                 spawnNpc(team.points.upgrades.in(world), spawn, ChatColor.AQUA + (teamSize <= 1 ? "SOLO UPGRADES"
                         : "TEAM UPGRADES"), team);
+            }
+        }
+        if (settings.allShops(modeId)) {
+            BedwarsMap map = instance.map();
+            for (TeamColor color : map.completeTeams()) {
+                if (!played.contains(color)) {
+                    BedwarsMap.Team points = map.teams().get(color);
+                    spawnNpc(points.shop.in(world), points.spawn.in(world), ChatColor.AQUA + "ITEM SHOP", null);
+                }
             }
         }
     }
@@ -1602,20 +1616,26 @@ class BedwarsGame {
 
     void wearArmor(Player player, Gamer gamer) {
         PlayerInventory inventory = player.getInventory();
-        inventory.setHelmet(armor(Material.LEATHER_HELMET, gamer));
-        inventory.setChestplate(armor(Material.LEATHER_CHESTPLATE, gamer));
-        inventory.setLeggings(armor(ARMOR[gamer.armor][0], gamer));
-        inventory.setBoots(armor(ARMOR[gamer.armor][1], gamer));
+        int protection = armourProtection(gamer);
+        inventory.setHelmet(armor(Material.LEATHER_HELMET, gamer, protection));
+        inventory.setChestplate(armor(Material.LEATHER_CHESTPLATE, gamer, protection));
+        inventory.setLeggings(armor(ARMOR[gamer.armor][0], gamer, protection));
+        inventory.setBoots(armor(ARMOR[gamer.armor][1], gamer, protection));
     }
 
-    private static ItemStack armor(Material material, Gamer gamer) {
+    /** The Protection level on this player's armour: their team's Reinforced Armor upgrade. */
+    int armourProtection(Gamer gamer) {
+        return gamer.team.upgrades.protection();
+    }
+
+    private static ItemStack armor(Material material, Gamer gamer, int protection) {
         ItemStack item = new ItemStack(material);
         ItemMeta meta = item.getItemMeta();
         if (meta instanceof LeatherArmorMeta) {
             ((LeatherArmorMeta) meta).setColor(gamer.team.color.leather());
         }
-        if (gamer.team.upgrades.protection() > 0) {
-            meta.addEnchant(Enchantment.PROTECTION_ENVIRONMENTAL, gamer.team.upgrades.protection(), true);
+        if (protection > 0) {
+            meta.addEnchant(Enchantment.PROTECTION_ENVIRONMENTAL, protection, true);
         }
         meta.spigot().setUnbreakable(true);
         item.setItemMeta(meta);

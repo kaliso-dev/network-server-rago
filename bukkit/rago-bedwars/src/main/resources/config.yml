@@ -37,14 +37,15 @@ modes:
 
 # The modes that are not a classic Bed Wars game, each with its kind of game:
 #   ffa        free for all, open: players join and leave when they like, each for themselves, and
-#              come back 3 seconds after a death on the island farthest from the others; the
+#              come back at once after a death on the island farthest from the others; the
 #              mode's kit (the lobby's kit editor) and iron armour at each life, a kill heals the
 #              killer; the blocks placed go after 10 seconds, only on the islands of a map that
 #              lists them (iles: in its bedwars.yml, Archway FFA), and never near a spawn
 #   arene      the same with the forges, the diamonds and emeralds and a shop of its own (the
 #              diamonds buy Sharpness, Power II, Strength...), the armour and tools kept as in Bed
-#              Wars, and on each bed a defense of three layers ready for top fights (no mode plays
-#              it now: Arena Free, free-ffa, is on the owner's Arena, in the practice plugin)
+#              Wars, on each bed a defense of three layers ready for top fights, and 3 seconds
+#              before a new life (no mode plays it now: Arena Free, free-ffa, is on the owner's
+#              Arena, in the practice plugin)
 #   invis      invis practice: 2 to 6 players on the map chosen, rounds of 3 minutes, one invisible
 #              (the mode's kit), at mid in front of the base to attack, against the others (a
 #              ranked defense on their bed without its wool: end stone, glass, wood); a hit makes the
@@ -107,8 +108,11 @@ jeux:
 # description (4 lines at most), objets: the items of the item shop by their id, with their
 # amount (stone_sword, "wool 64", "fireball 3", golden_pickaxe, diamond_pickaxe, shears, bow,
 # "arrow 24", tnt, ender_pearl, invisibility, stick, golden_apple, "end_stone 24", water...).
-# From 1 to 7 kits a side; without this part, these three and three.
+# From 1 to 7 kits a side; without this part, these three and three. protection: the Protection
+# level on the armour of both sides, from 0 to 4 (2: the fights last). An invisible player hit by the
+# other side is visible again.
 attaque-defense:
+  protection: 2
   kits-attaque:
     - nom: Rusher
       icone: FIREBALL
@@ -165,6 +169,11 @@ iles-voisines: [first-rush, first-rush-duo, first-rush-full, first-rush-full-duo
 # emeralds).
 forges-partout: [first-rush-full, first-rush-full-duo, clutch-scenario-1v1, clutch-scenario-2v2, clutch-scenario-3v3,
   clutch-scenario-4v4]
+
+# The modes whose games have an item shop on every island of the map, the empty islands' too (First
+# Rush full map: whoever goes to take the iron of another island buys there). Only the item shop:
+# the upgrades stay on each team's own island.
+shops-partout: [first-rush-full, first-rush-full-duo]
 
 # The forge of each island, as on Hypixel (its iron and gold counted a minute long on each map): an
 # iron node drops an ingot every fer-secondes-par-noeud seconds (30 a minute), and a forge has 1

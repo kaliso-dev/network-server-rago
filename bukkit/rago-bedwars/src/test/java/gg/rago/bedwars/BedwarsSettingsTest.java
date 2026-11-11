@@ -61,6 +61,7 @@ class BedwarsSettingsTest {
         assertEquals(Arrays.asList("Guardian", "Archer", "Builder"), kitNames(settings.roundKits(false)));
         assertEquals(RoundKit.ATTACK.get(1).items, settings.roundKits(true).get(1).items, "the config gives the defaults");
         assertEquals(RoundKit.DEFENSE.get(2).items, settings.roundKits(false).get(2).items);
+        assertEquals(2, settings.attackDefenseProtection(), "Protection II on both sides' armour");
         assertEquals(BedwarsSettings.Kind.BED_FIGHT, settings.kind("bed-fight-1v1"));
         assertEquals(BedwarsSettings.Kind.BED_FIGHT, settings.kind("bed-fight-2v2"));
         assertEquals(Collections.singletonList("BedFight"), settings.mapsOf("bed-fight-2v2"), "the owner's Bed Fight map");
@@ -83,6 +84,10 @@ class BedwarsSettingsTest {
         assertTrue(settings.allForges("first-rush-full") && settings.allForges("first-rush-full-duo"),
                 "the full map First Rush: every forge of the map");
         assertTrue(!settings.allForges("first-rush") && !settings.allForges("ranked-1v1"));
+        assertTrue(settings.allShops("first-rush-full") && settings.allShops("first-rush-full-duo"),
+                "the full map First Rush: an item shop on every island");
+        assertTrue(!settings.allShops("first-rush") && !settings.allShops("clutch-scenario-1v1")
+                && !settings.allShops("ranked-1v1"));
         for (String size : new String[] {"1v1", "2v2", "3v3", "4v4"}) {
             assertTrue(settings.allForges("clutch-scenario-" + size), "Clutch Scenario: every forge of the map too");
         }

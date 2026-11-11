@@ -43,6 +43,7 @@ import org.bukkit.event.player.PlayerBucketEmptyEvent;
 import org.bukkit.event.player.PlayerDropItemEvent;
 import org.bukkit.event.player.PlayerInteractEntityEvent;
 import org.bukkit.event.player.PlayerInteractEvent;
+import org.bukkit.event.player.PlayerItemDamageEvent;
 import org.bukkit.event.player.PlayerMoveEvent;
 import org.bukkit.event.player.PlayerPickupItemEvent;
 import org.bukkit.event.player.PlayerQuitEvent;
@@ -486,6 +487,17 @@ final class PracticeGames implements Listener {
 
     @EventHandler(priority = EventPriority.LOW, ignoreCancelled = true)
     public void onPickup(PlayerPickupItemEvent event) {
+        if (byPlayer.containsKey(event.getPlayer().getUniqueId())) {
+            event.setCancelled(true);
+        }
+    }
+
+    /**
+     * Nothing wears out in a practice game: the swords, the armour, the shears, the bows... of the
+     * kits and of the lobby's kit editor never lose durability, so they never break.
+     */
+    @EventHandler(ignoreCancelled = true)
+    public void onWear(PlayerItemDamageEvent event) {
         if (byPlayer.containsKey(event.getPlayer().getUniqueId())) {
             event.setCancelled(true);
         }

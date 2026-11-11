@@ -80,6 +80,13 @@ class BedwarsMapTest {
         island(map, TeamColor.GREEN, 0, 60);
         assertEquals(Arrays.asList(TeamColor.RED, TeamColor.GREEN), map.neighbourTeams(2));
         assertEquals(Arrays.asList(TeamColor.RED, TeamColor.BLUE), demo().neighbourTeams(2));
+        // Nebuc and Lotus: gray a few tenths of a block nearer to red than blue, which red plays
+        BedwarsMap nebuc = new BedwarsMap("Nebuc");
+        island(nebuc, TeamColor.RED, -31.5, -76.5);
+        island(nebuc, TeamColor.BLUE, 32.5, -76.5);
+        island(nebuc, TeamColor.GREEN, 76.5, -32.5);
+        island(nebuc, TeamColor.GRAY, -76.5, -32.0);
+        assertEquals(Arrays.asList(TeamColor.RED, TeamColor.BLUE), nebuc.neighbourTeams(2));
         BedwarsMap alone = new BedwarsMap("Alone");
         island(alone, TeamColor.RED, 0, 0);
         assertEquals(Collections.singletonList(TeamColor.RED), alone.neighbourTeams(2));

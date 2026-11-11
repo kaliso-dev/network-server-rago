@@ -77,7 +77,9 @@ maps duo.
 
 `first-rush-full` (1v1) et `first-rush-full-duo` (2v2), « First rush full map », sont la même
 partie avec toute la map : les diamants et les émeraudes, et les forges des îles où personne ne
-joue tournent aussi, leur fer et leur or pour qui va les prendre (`forges-partout:` du config.yml).
+joue tournent aussi, leur fer et leur or pour qui va les prendre (`forges-partout:` du config.yml),
+et chacune de ces îles a son item shop pour acheter sur place (`shops-partout:`) ; les upgrades
+restent sur l'île de chaque équipe.
 
 ## Top Bridge
 
@@ -134,6 +136,10 @@ la manche.
   kit de défense à leur première vie de la manche (son épée remplace celle en bois ; sa pioche,
   sa hache ou ses cisailles restent comme achetées). Ils reviennent tant que leur lit tient ;
   après, une mort est un final kill, comme dans une vraie partie.
+
+Les armures des deux camps ont Protection II (`attaque-defense.protection:` du config.yml, de 0 à
+4), pour que les combats durent. Un joueur invisible (la potion du Ninja, ou une achetée au shop)
+frappé par l'autre camp redevient visible, armure comprise, jusqu'à ce qu'il en boive une autre.
 
 **Les kits.** Avant chaque manche, un menu s'ouvre tout seul avec les kits du rôle du joueur ; le
 décompte dure 5 secondes avant la première manche, 3 avant les suivantes (le kit de la manche
@@ -274,7 +280,7 @@ Dans `jeux:` du config.yml, un mode peut jouer autre chose qu'une partie classiq
   on entre et on sort quand on veut. Le kit du mode (rangé dans l'éditeur de kit du lobby) est le
   stuff de combat du propriétaire, une épée en pierre et un stack de pommes d'or, avec 3 boules de
   feu, une perle, 2 stacks de laine et des cisailles, et à chaque vie une armure complète en diamant Protection IV
-  (sans effet d'absorption) ; on revient 3 secondes après une mort ; un kill soigne ; les
+  (sans effet d'absorption) ; on revient tout de suite après une mort ; un kill soigne ; les
   blocs posés partent au bout de 10 secondes ; les kills comptent dans les stats. Archway FFA (le
   dossier `ArchwayFFA`) est l'Archway du propriétaire : des ponts de laine entre les îles, une
   défense d'end stone et de verre sur les lits rouge et vert pour les top fights, et depuis ces deux
@@ -311,7 +317,7 @@ Dans `jeux:` du config.yml, un mode peut jouer autre chose qu'une partie classiq
 - **Free FFA** (`arene`) : la même chose avec les forges, les diamants et les émeraudes, un shop
   à lui (les diamants achètent aussi), l'armure et les outils gardés comme en Bed Wars, et sur
   chaque lit une défense de trois couches prête pour les top fights, remise quand personne n'est à
-  côté. Aucun mode ne le joue pour l'instant : Arena Free (`free-ffa`) se joue sur l'Arena du
+  côté ; on y revient 3 secondes après une mort. Aucun mode ne le joue pour l'instant : Arena Free (`free-ffa`) se joue sur l'Arena du
   propriétaire, dans le plugin practice ; il suffit d'un mode sous `jeux:` en `arene` pour le
   rouvrir.
 - **Invis practice** (`invis`) : sur les 20 maps de la file, de 2 à 6 joueurs, des manches

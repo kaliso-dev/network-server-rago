@@ -286,14 +286,18 @@ final class BedwarsSettings {
     private final List<String> topBridgeModes;
     /** The modes whose games keep every forge of the map going, the empty islands' too. */
     private final List<String> allForgeModes;
+    /** The modes whose games have an item shop on every island of the map, the empty ones' too. */
+    private final List<String> allShopModes;
     /** The kits of Attack and Defense to choose from, each side its own (attaque-defense:). */
     private final List<RoundKit> attackKits;
     private final List<RoundKit> defenseKits;
+    /** The Protection level on the armour of both sides of Attack and Defense (attaque-defense.protection). */
+    private final int attackDefenseProtection;
 
     private BedwarsSettings(Map<String, List<String>> modes, Map<String, Kind> kinds, int maxGames, boolean demo,
             int respawnSeconds, Forge forge, List<Rate> diamond, List<Rate> emerald, int[] events, Fireball fireball,
-            List<String> neighbourModes, List<String> topBridgeModes, List<String> allForgeModes, List<RoundKit> attackKits,
-            List<RoundKit> defenseKits) {
+            List<String> neighbourModes, List<String> topBridgeModes, List<String> allForgeModes, List<String> allShopModes,
+            List<RoundKit> attackKits, List<RoundKit> defenseKits, int attackDefenseProtection) {
         this.modes = Collections.unmodifiableMap(modes);
         this.kinds = Collections.unmodifiableMap(kinds);
         this.maxGames = maxGames;
@@ -312,8 +316,10 @@ final class BedwarsSettings {
         this.neighbourModes = Collections.unmodifiableList(neighbourModes);
         this.topBridgeModes = Collections.unmodifiableList(topBridgeModes);
         this.allForgeModes = Collections.unmodifiableList(allForgeModes);
+        this.allShopModes = Collections.unmodifiableList(allShopModes);
         this.attackKits = attackKits;
         this.defenseKits = defenseKits;
+        this.attackDefenseProtection = attackDefenseProtection;
     }
 
     /** The word for every map, in the maps of a mode. */
@@ -367,12 +373,23 @@ final class BedwarsSettings {
         for (String mode : config.getStringList("forges-partout")) {
             allForges.add(modeId(mode, "forges-partout"));
         }
+        List<String> allShops = new ArrayList<>();
+        List<String> shopsListed = config.contains("shops-partout") ? config.getStringList("shops-partout")
+                : Arrays.asList("first-rush-full", "first-rush-full-duo");
+        for (String mode : shopsListed) {
+            allShops.add(modeId(mode, "shops-partout"));
+        }
         List<RoundKit> attackKits = RoundKit.read(config.getList("attaque-defense.kits-attaque"),
                 "attaque-defense.kits-attaque", RoundKit.ATTACK);
         List<RoundKit> defenseKits = RoundKit.read(config.getList("attaque-defense.kits-defense"),
                 "attaque-defense.kits-defense", RoundKit.DEFENSE);
+        int attackDefenseProtection = config.getInt("attaque-defense.protection", 2);
+        if (attackDefenseProtection < 0 || attackDefenseProtection > 4) {
+            throw new IllegalArgumentException("attaque-defense.protection: from 0 to 4");
+        }
         return new BedwarsSettings(modes, kinds(config), maxGames, config.getBoolean("carte-demo", true), respawn, forge,
-                diamond, emerald, events, fireball, neighbours, topBridge, allForges, attackKits, defenseKits);
+                diamond, emerald, events, fireball, neighbours, topBridge, allForges, allShops, attackKits,
+                defenseKits, attackDefenseProtection);
     }
 
     /** jeux: the modes that are not a classic game, each with its kind. */
@@ -640,6 +657,11 @@ final class BedwarsSettings {
         return allForgeModes.contains(modeId);
     }
 
+    /** True if the games of this mode have an item shop on every island of the map, the empty ones' too. */
+    boolean allShops(String modeId) {
+        return allShopModes.contains(modeId);
+    }
+
     /** True if the games of this mode have a top bridge over the middle (see {@link TopBridge}). */
     boolean topBridge(String modeId) {
         return topBridgeModes.contains(modeId);
@@ -648,5 +670,10 @@ final class BedwarsSettings {
     /** The kits of the attackers (attack: true) or of the defenders of Attack and Defense. */
     List<RoundKit> roundKits(boolean attack) {
         return attack ? attackKits : defenseKits;
+    }
+
+    /** The Protection level on the armour of both sides of Attack and Defense, from 0 (none) to 4. */
+    int attackDefenseProtection() {
+        return attackDefenseProtection;
     }
 }

@@ -15,6 +15,7 @@ import org.bukkit.block.Block;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.PlayerInventory;
+import org.bukkit.potion.PotionEffectType;
 import org.bukkit.scheduler.BukkitTask;
 
 /**
@@ -40,6 +41,9 @@ import org.bukkit.scheduler.BukkitTask;
  *
  * A defense the map has on the bed (Bio Hazard's end stone and wool, captured with the map) is
  * the defenders' own, as in a game: the players can break it, and it is whole again each round.
+ *
+ * The armour of both sides has Protection (attaque-defense.protection: in config.yml, II by
+ * default), and an invisible player hit by the other side is visible again.
  *
  * <p>The attackers win the round by breaking the bed and killing every defender; the defenders by
  * killing every attacker, or by holding {@value #ROUND_SECONDS} seconds. The first side to
@@ -141,6 +145,32 @@ final class AttackDefenseGame extends BedwarsGame {
     @Override
     boolean upgrades() {
         return false;
+    }
+
+    /** Both sides' armour has the Protection of attaque-defense.protection (II by default): the fights last. */
+    @Override
+    int armourProtection(Gamer gamer) {
+        return settings.attackDefenseProtection();
+    }
+
+    /**
+     * An invisible player (the Ninja's potion, or one bought at the shop) hit by the other side
+     * loses their invisibility: seen, armour and all, until they drink another.
+     */
+    @Override
+    void hit(Gamer victim, Gamer attacker) {
+        super.hit(victim, attacker);
+        if (roundOver || phase != Phase.PLAYING) {
+            return;
+        }
+        Player player = Bukkit.getPlayer(victim.id);
+        if (player == null || !player.hasPotionEffect(PotionEffectType.INVISIBILITY)) {
+            return;
+        }
+        player.removePotionEffect(PotionEffectType.INVISIBILITY);
+        player.sendMessage(ChatColor.RED + "You were hit: you are visible again!");
+        broadcast(victim.coloured() + ChatColor.YELLOW + " was hit by " + attacker.coloured() + ChatColor.YELLOW
+                + " and is visible again!", Sound.ORB_PICKUP);
     }
 
     /** No timed event (no diamond, no end of the beds): the round's own clock, see {@link #everySecond}. */
