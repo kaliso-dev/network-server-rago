@@ -761,13 +761,17 @@ async function main () {
   // 1. The lobby.
   await expectInLobby(one, 'on joining')
   await expectInLobby(two, 'on joining')
-  if (hotbarItem(one, 8)?.name !== 'dye') throw new Error(`no visibility item in slot 8: ${hotbarItem(one, 8)?.name}`)
+  // the fireball in the fifth slot, two free slots, the shop and the profile at the end
+  const layout = [4, 5, 6, 7, 8].map((slot) => hotbarItem(one, slot)?.name ?? null)
+  if (JSON.stringify(layout) !== JSON.stringify(['fire_charge', null, null, 'emerald', 'skull'])) {
+    throw new Error(`the lobby hotbar, slots 4 to 8: ${JSON.stringify(layout)}`)
+  }
   if (hotbarItem(one, KIT_EDITOR_SLOT)?.name !== 'book') {
     throw new Error(`no kit editor in slot ${KIT_EDITOR_SLOT}: ${hotbarItem(one, KIT_EDITOR_SLOT)?.name}`)
   }
   await waitFor(() => (one.scoreboard?.sidebar?.title ?? '').includes('RAGO PRACTICE'), 5000,
     `the lobby sidebar; sidebar: ${JSON.stringify(one.scoreboard?.sidebar?.title)}`)
-  log('lobby: adventure mode, selector, visibility item and sidebar are there')
+  log('lobby: adventure mode, selector, fireball, shop, profile and sidebar are there')
   await checkDuelsNpc(one)
   await arrangeSumoKit(one)
   await checkHypixelImport(two)
