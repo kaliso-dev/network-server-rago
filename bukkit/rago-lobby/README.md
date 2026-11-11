@@ -340,13 +340,15 @@ générateur vide ; un monde de build peut donc servir de lobby.
   vers le spawn, qui tient l'icône du mode, avec son nom et le nombre de joueurs en file au-dessus
   de la tête. Un clic rejoint la file du mode, ou ouvre un menu quand le PNJ a plusieurs modes ;
   dans ce menu, les tailles d'un même groupe ne font qu'un objet (Top Bridge, une échelle qui ouvre
-  1v1, 2v2 et FFA), sauf si le PNJ n'a que ce groupe. Clutch Scenario et Attack and Defense ont
-  chacun leur PNJ (`/lobby point clutchscenario` et `/lobby point attackanddefense`), au centre
-  avec les autres PNJ de jeux. Au centre, cinq PNJ de modes seulement (Ranked, FFA, partie privée,
-  Clutch Scenario, Attack and Defense) pour qu'un nouveau joueur ne s'y perde pas : les autres
-  (Sky Rise, First rush, Invis, Bridge fight, Arena Free, Block placement) sont en commentaire dans
-  `pnj:` et restent dans la boussole. Un PNJ de catégorie montre le slogan de sa catégorie sous son
-  nom, un autre PNJ une ligne à lui avec `sous-titre:`. Les PNJ réapparaissent quand un point bouge.
+  1v1, 2v2 et FFA), sauf si le PNJ n'a que ce groupe. Un PNJ avec `categorie:` ouvre toute sa
+  catégorie, comme la boussole. Au centre, trois PNJ seulement, un par façon de jouer, pour qu'un
+  nouveau joueur ne s'y perde pas : Practice, RBW Modes et Duels (sur les points de Ranked
+  Bedwars, de la partie privée et du FFA). Les PNJ d'un mode (Ranked Bedwars, partie privée, FFA,
+  Clutch Scenario, Attack and Defense, Sky Rise, First rush, Invis, Bridge fight, Arena Free,
+  Block placement) et ceux des zones Practice et Duels sont en commentaire dans `pnj:` ; leurs
+  modes restent dans la boussole et dans les menus des trois. Un PNJ de catégorie montre le
+  slogan de sa catégorie sous son nom, un autre PNJ une ligne à lui avec `sous-titre:`. Les PNJ
+  réapparaissent quand un point bouge.
 - `skin:` sous un PNJ lui donne un skin : `skins/<nom>.png` dans le dossier du plugin (64x64, le
   vôtre), sinon celui de ce nom dans le jar. Le jar en a un par mode, originaux : `ranked` (armure
   de diamant et trophée), `prive` (costume et lunettes noires), `ffa` (bandeau rouge, épées

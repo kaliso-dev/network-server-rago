@@ -171,30 +171,45 @@ groupes:
 #          A 1.8 client shows a skin on an NPC only once Mojang signed it: at the start the server
 #          sends each new PNG once to MineSkin (api.mineskin.org) and keeps the answer in skins.yml.
 pnj:
-  rankedbedwars1v1ou2v2elo:
-    nom: "&6&lRanked Bedwars"
-    skin: ranked
-    modes: [ranked-1v1, ranked-2v2, ranked-3v3, ranked-4v4]
+  # The three ways to play, side by side in the centre: each NPC opens its whole category (the
+  # menu of the compass), with the slogan of the category under its name (sous-titre: another
+  # line). Practice on the side of the Practice zone, Duels on the side of the Duels zone, RBW
+  # Modes in front. Their points were the ones of Ranked Bedwars, the private games and the FFA.
   privategame:
-    nom: "&6Private game"
-    skin: prive
-    modes: [partie-privee, top-bridge-prive]
+    nom: "&b&lPractice"
+    categorie: entrainement
+    skin: practice
+  rankedbedwars1v1ou2v2elo:
+    nom: "&6&lRBW Modes"
+    categorie: ranked
+    skin: ranked
   rbwffa:
-    nom: "&cFFA and Top bridge"
-    skin: ffa
-    modes: [ffa, top-bridge-1v1, top-bridge-2v2, top-bridge-ffa]
-  # Clutch Scenario and Attack and Defense, one NPC each (/lobby point clutchscenario and
-  # /lobby point attackanddefense), in the centre with the other game NPCs.
-  clutchscenario:
-    nom: "&bClutch Scenario"
-    modes: [clutch-scenario-1v1, clutch-scenario-2v2, clutch-scenario-3v3, clutch-scenario-4v4]
-    skin: clutch
-  attackanddefense:
-    nom: "&cAttack and Defense"
-    modes: [attack-defense-1v1, attack-defense-2v2]
-    skin: attaque
-  # Fewer NPCs so that a new player is not lost: these modes stay in the compass (RBW Modes).
-  # Remove the # before the lines of one to show its NPC again, on its point.
+    nom: "&a&lDuels"
+    categorie: duels
+    skin: duels
+  # Only three NPCs so that a new player is not lost: every mode stays in its category, in the
+  # compass and in the menus of the three. Remove the # before the lines of one to show it again,
+  # on its point (/lobby point <name>; for the ones without a point now, place a new one).
+  # ranked:
+  #   nom: "&6&lRanked Bedwars"
+  #   skin: ranked
+  #   modes: [ranked-1v1, ranked-2v2, ranked-3v3, ranked-4v4]
+  # prive:
+  #   nom: "&6Private game"
+  #   skin: prive
+  #   modes: [partie-privee, top-bridge-prive]
+  # ffa:
+  #   nom: "&cFFA and Top bridge"
+  #   skin: ffa
+  #   modes: [ffa, top-bridge-1v1, top-bridge-2v2, top-bridge-ffa]
+  # clutchscenario:
+  #   nom: "&bClutch Scenario"
+  #   skin: clutch
+  #   modes: [clutch-scenario-1v1, clutch-scenario-2v2, clutch-scenario-3v3, clutch-scenario-4v4]
+  # attackanddefense:
+  #   nom: "&cAttack and Defense"
+  #   skin: attaque
+  #   modes: [attack-defense-1v1, attack-defense-2v2]
   # rbwsolo1v1ou2v2skyrise:
   #   nom: "&6RBW Sky Rise"
   #   skin: skyrise
@@ -219,16 +234,15 @@ pnj:
   #   nom: "&bBlock placement"
   #   skin: blocs
   #   modes: [block-fight-1v1, block-fight-2v2, block-fight-arena]
-  # One NPC per side zone, on the front sign: it opens the whole category. Under its name, the
-  # slogan of the category (sous-titre: another line).
-  attackdefenseversionrbw:
-    nom: "&a&lDuels"
-    categorie: duels
-    skin: duels
-  blockinpractice:
-    nom: "&b&lPractice"
-    categorie: entrainement
-    skin: practice
+  # The NPCs of the side zones, on their front sign, if you want them there too:
+  # attackdefenseversionrbw:
+  #   nom: "&a&lDuels"
+  #   categorie: duels
+  #   skin: duels
+  # blockinpractice:
+  #   nom: "&b&lPractice"
+  #   categorie: entrainement
+  #   skin: practice
   # The Shop NPC (type: shop), at the centre: a click opens the store, everything the network
   # sells on one page, the starter pack (pack-depart) first. sous-titre: the line under its name.
   # (Its point is still called aimtrainer: the aim trainer is in the Practice NPC.)

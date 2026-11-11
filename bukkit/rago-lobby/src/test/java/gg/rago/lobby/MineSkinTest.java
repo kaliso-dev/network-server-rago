@@ -134,7 +134,8 @@ class MineSkinTest {
 
     @Test
     void everyNpcOfTheConfigHasItsSkinInTheJar() throws Exception {
-        LobbySettings settings = LobbySettings.load(LobbySettingsTest.bundledConfig());
+        // the NPCs of the config, and the ones of modes it leaves in comments
+        LobbySettings settings = LobbySettings.load(LobbySettingsTest.withModeNpcs());
         int skinned = 0;
         for (LobbyNpc npc : settings.npcs()) {
             if (npc.leaderboard()) {

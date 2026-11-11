@@ -30,6 +30,27 @@ class LobbySettingsTest {
         return yaml;
     }
 
+    /**
+     * The bundled config with the NPCs of modes it leaves in comments (the centre shows only the
+     * three ways to play), on points of their own.
+     */
+    static YamlConfiguration withModeNpcs() throws Exception {
+        YamlConfiguration yaml = bundledConfig();
+        modeNpc(yaml, "ranked", "ranked", "ranked-1v1", "ranked-2v2", "ranked-3v3", "ranked-4v4");
+        modeNpc(yaml, "prive", "prive", "partie-privee", "top-bridge-prive");
+        modeNpc(yaml, "ffa", "ffa", "ffa", "top-bridge-1v1", "top-bridge-2v2", "top-bridge-ffa");
+        modeNpc(yaml, "clutchscenario", "clutch", "clutch-scenario-1v1", "clutch-scenario-2v2", "clutch-scenario-3v3",
+                "clutch-scenario-4v4");
+        modeNpc(yaml, "attackanddefense", "attaque", "attack-defense-1v1", "attack-defense-2v2");
+        return yaml;
+    }
+
+    private static void modeNpc(YamlConfiguration yaml, String point, String skin, String... modes) {
+        yaml.set("pnj." + point + ".nom", "&6" + point);
+        yaml.set("pnj." + point + ".skin", skin);
+        yaml.set("pnj." + point + ".modes", Arrays.asList(modes));
+    }
+
     private static YamlConfiguration yaml(String text) throws InvalidConfigurationException {
         YamlConfiguration yaml = new YamlConfiguration();
         yaml.loadFromString(text);
@@ -46,7 +67,7 @@ class LobbySettingsTest {
                 + " bridge fight 2v2, without the top fight or the ranked scenarios");
         assertFalse(settings.catalog().get("top-bridge-1v1").ranked(), "Top Bridge: no ELO");
         assertEquals("2v2", settings.catalog().get("top-bridge-2v2").format());
-        assertTrue(settings.npc("rbwffa").modeIds().contains("top-bridge-1v1"));
+        assertTrue(LobbySettings.load(withModeNpcs()).npc("ffa").modeIds().contains("top-bridge-1v1"));
 
         GameMode ranked = settings.catalog().get("ranked-1v1");
         assertTrue(ranked.ranked());
@@ -96,14 +117,15 @@ class LobbySettingsTest {
         }
         assertEquals("ranked", settings.display("attack-defense-1v1").category(), "Attack and Defense: in the RBW modes");
         assertEquals("ranked", settings.display("clutch-scenario-2v2").category());
+        LobbySettings modeNpcs = LobbySettings.load(withModeNpcs());
         assertEquals(Arrays.asList("clutch-scenario-1v1", "clutch-scenario-2v2", "clutch-scenario-3v3",
-                "clutch-scenario-4v4"), settings.npc("clutchscenario").modeIds(), "one NPC for Clutch Scenario");
-        assertEquals(4, settings.entriesOf(settings.npc("clutchscenario").modeIds()).size(),
+                "clutch-scenario-4v4"), modeNpcs.npc("clutchscenario").modeIds(), "one NPC for Clutch Scenario");
+        assertEquals(4, modeNpcs.entriesOf(modeNpcs.npc("clutchscenario").modeIds()).size(),
                 "its only group: each size is an item of its menu");
-        assertEquals(Arrays.asList("attack-defense-1v1", "attack-defense-2v2"), settings.npc("attackanddefense").modeIds(),
+        assertEquals(Arrays.asList("attack-defense-1v1", "attack-defense-2v2"), modeNpcs.npc("attackanddefense").modeIds(),
                 "and one for Attack and Defense");
-        assertEquals("clutch", settings.npc("clutchscenario").skin());
-        assertEquals("attaque", settings.npc("attackanddefense").skin());
+        assertEquals("clutch", modeNpcs.npc("clutchscenario").skin());
+        assertEquals("attaque", modeNpcs.npc("attackanddefense").skin());
         assertEquals(settings.modes().size(), total, "every mode is in a category");
     }
 
@@ -130,7 +152,7 @@ class LobbySettingsTest {
                 displayIds(settings.modesOfGroup("attack-defense")));
         assertEquals(Arrays.asList("top-bridge-1v1", "top-bridge-2v2"), ids(settings.privateRoutes().get("top-bridge-prive")),
                 "the practice of the top bridge, with the party");
-        assertTrue(settings.npc("privategame").modeIds().contains("top-bridge-prive"));
+        assertTrue(LobbySettings.load(withModeNpcs()).npc("prive").modeIds().contains("top-bridge-prive"));
         assertTrue(settings.display("top-bridge-1v1").kit() != null, "the kit of the rounds, arranged in the kit editor");
         assertEquals(Material.STONE_SWORD, settings.display("top-bridge-ffa").kit().item(0).material(), "the fight kit");
         int shown = 0;
@@ -148,17 +170,17 @@ class LobbySettingsTest {
 
     @Test
     void anNpcShowsTheModesOfOneGroupAsOneItem() throws Exception {
-        LobbySettings settings = LobbySettings.load(bundledConfig());
-        List<LobbySettings.Entry> ffa = settings.entriesOf(settings.npc("rbwffa").modeIds());
+        LobbySettings settings = LobbySettings.load(withModeNpcs());
+        List<LobbySettings.Entry> ffa = settings.entriesOf(settings.npc("ffa").modeIds());
         assertEquals(3, ffa.size(), "the FFA, the Top Bridge 1v1 and 2v2 as one item, the Top Bridge FFA");
         assertEquals("ffa", ffa.get(0).mode.mode().id());
         assertEquals("top-bridge", ffa.get(1).group.id());
         assertEquals(Material.LADDER, ffa.get(1).group.icon(), "a ladder, which opens 1v1 and 2v2");
         assertEquals("top-bridge-ffa", ffa.get(2).mode.mode().id());
-        List<LobbySettings.Entry> ranked = settings.entriesOf(settings.npc("rankedbedwars1v1ou2v2elo").modeIds());
+        List<LobbySettings.Entry> ranked = settings.entriesOf(settings.npc("ranked").modeIds());
         assertEquals(4, ranked.size(), "one group only: its modes, one by one, as before");
         assertEquals("ranked-1v1", ranked.get(0).mode.mode().id());
-        assertEquals(2, settings.entriesOf(settings.npc("privategame").modeIds()).size(),
+        assertEquals(2, settings.entriesOf(settings.npc("prive").modeIds()).size(),
                 "the private game and the private top bridge: no group of two");
     }
 
@@ -173,22 +195,35 @@ class LobbySettingsTest {
     @Test
     void readsTheBundledNpcs() throws Exception {
         LobbySettings settings = LobbySettings.load(bundledConfig());
-        assertEquals(13, settings.npcs().size(), "few NPCs of modes: Ranked, FFA, the private games, Clutch Scenario,"
-                + " Attack and Defense");
-        for (String gone : Arrays.asList("rbwsolo1v1ou2v2skyrise", "firstrushnebucgelatosoloduo", "invispracticearwhayinvasion",
-                "realisticplat", "freearenacombo", "blockplacementarena")) {
+        assertEquals(9, settings.npcs().size(), "three NPCs of modes, one per way to play; the shop, the stats, the boards");
+        for (String gone : Arrays.asList("ranked", "prive", "ffa", "clutchscenario", "attackanddefense", "rbwsolo1v1ou2v2skyrise",
+                "firstrushnebucgelatosoloduo", "invispracticearwhayinvasion", "realisticplat", "freearenacombo",
+                "blockplacementarena", "attackdefenseversionrbw", "blockinpractice")) {
             assertNull(settings.npc(gone), gone + ": its modes stay in the compass");
         }
-        assertNotNull(settings.npc("clutchscenario"));
-        assertNotNull(settings.npc("attackanddefense"));
-        LobbyNpc duels = settings.npc("attackdefenseversionrbw");
+        List<String> categories = new java.util.ArrayList<>();
+        for (LobbyNpc npc : settings.npcs()) {
+            if (npc.kind() == LobbyNpc.Kind.MODES) {
+                assertNotNull(npc.category(), npc.point() + ": only the NPCs of the three categories");
+                categories.add(npc.category());
+            }
+        }
+        assertEquals(Arrays.asList("entrainement", "ranked", "duels"), categories, "Practice, RBW Modes, Duels");
+        LobbyNpc duels = settings.npc("rbwffa");
         assertEquals("duels", duels.category());
+        assertEquals("§a§lDuels", duels.name());
         assertEquals("§fDuel your friends or anyone", duels.subtitle(), "under a category NPC, the slogan of its category");
-        assertEquals("§fTrain alone, at your own pace", settings.npc("blockinpractice").subtitle());
+        assertEquals("§fTrain alone, at your own pace", settings.npc("privategame").subtitle());
+        assertEquals("entrainement", settings.npc("privategame").category());
         assertEquals(settings.modesIn("duels").size(), duels.modeIds().size(), "a category NPC holds its modes");
         assertTrue(duels.modeIds().contains("kb-displace"));
         LobbyNpc ranked = settings.npc("rankedbedwars1v1ou2v2elo");
-        assertEquals(java.util.Arrays.asList("ranked-1v1", "ranked-2v2", "ranked-3v3", "ranked-4v4"), ranked.modeIds());
+        assertEquals("§6§lRBW Modes", ranked.name());
+        assertEquals("§fRanked and RBW situations", ranked.subtitle());
+        assertEquals("ranked", ranked.category());
+        assertTrue(ranked.modeIds().containsAll(Arrays.asList("ranked-1v1", "ranked-2v2", "ranked-3v3", "ranked-4v4",
+                "clutch-scenario-1v1", "attack-defense-1v1")), "every RBW mode, Ranked Bedwars first");
+        assertEquals(settings.modesIn("ranked").size(), ranked.modeIds().size());
         assertTrue(settings.npc("leaderboardprincipal").leaderboard());
         assertEquals(Collections.singletonList(Arrays.asList(BoardStat.ELO, BoardStat.KILLS, BoardStat.LEVEL)),
                 settings.npc("leaderboardprincipal").boards(), "one board, a right click goes to the next stat");
@@ -198,7 +233,7 @@ class LobbySettingsTest {
                 Collections.singletonList(BoardStat.LEVEL)), settings.npc("leaderboardplayer").boards(),
                 "the kills in the middle, on the point");
         assertFalse(ranked.leaderboard());
-        assertNull(ranked.subtitle(), "an NPC of modes: its name and its queue");
+        assertNull(LobbySettings.load(withModeNpcs()).npc("ranked").subtitle(), "an NPC of modes: its name and its queue");
         assertEquals(LobbyNpc.Kind.STATS, settings.npc("statsjoueur1").kind());
         assertEquals(LobbyNpc.Kind.STATS, settings.npc("statsjoueur2").kind());
         assertTrue(settings.npc("statsjoueur1").hasBody());
