@@ -1,6 +1,7 @@
 package gg.rago.combat.engine;
 
 import gg.rago.combat.model.KnockbackProfile;
+import gg.rago.combat.model.MeasuredProfiles;
 import java.util.Collections;
 import java.util.LinkedHashMap;
 import java.util.Map;
@@ -12,24 +13,32 @@ import org.bukkit.configuration.ConfigurationSection;
  */
 final class EngineSettings {
 
+    /** Vanilla 1.8.8: a new hit counts 10 ticks after the previous one (maxNoDamageTicks 20). */
+    static final int VANILLA_HIT_DELAY_TICKS = 10;
+    static final int MIN_HIT_DELAY_TICKS = 1;
+    static final int MAX_HIT_DELAY_TICKS = 20;
+    static final String KEY_HIT_DELAY_TICKS = "hit-delay-ticks";
+
     private final EngineMode mode;
     private final String defaultProfile;
     private final Map<String, KnockbackProfile> profiles;
     private final Map<String, String> worldProfiles;
     private final boolean recordHits;
+    private final int hitDelayTicks;
 
     private EngineSettings(EngineMode mode, String defaultProfile, Map<String, KnockbackProfile> profiles,
-            Map<String, String> worldProfiles, boolean recordHits) {
+            Map<String, String> worldProfiles, boolean recordHits, int hitDelayTicks) {
         this.mode = mode;
         this.defaultProfile = defaultProfile;
         this.profiles = Collections.unmodifiableMap(new LinkedHashMap<>(profiles));
         this.worldProfiles = Collections.unmodifiableMap(new LinkedHashMap<>(worldProfiles));
         this.recordHits = recordHits;
+        this.hitDelayTicks = requireHitDelay(hitDelayTicks);
     }
 
     /**
-     * Reads config.yml. The built-in {@code vanilla} profile is always available and cannot be
-     * redefined.
+     * Reads config.yml. The built-in profiles ({@code vanilla} and the measured profiles of
+     * {@link MeasuredProfiles}) are always available and cannot be redefined.
      *
      * @throws IllegalArgumentException with a message for the server owner if anything is invalid
      */
@@ -38,11 +47,14 @@ final class EngineSettings {
 
         Map<String, KnockbackProfile> profiles = new LinkedHashMap<>();
         profiles.put(KnockbackProfile.VANILLA_NAME, KnockbackProfile.vanilla());
+        for (KnockbackProfile measured : MeasuredProfiles.all()) {
+            profiles.put(measured.name(), measured);
+        }
         ConfigurationSection profilesSection = config.getConfigurationSection("profiles");
         if (profilesSection != null) {
             for (String name : profilesSection.getKeys(false)) {
-                if (KnockbackProfile.VANILLA_NAME.equals(name)) {
-                    throw new IllegalArgumentException("the 'vanilla' profile is built in and cannot be redefined");
+                if (profiles.containsKey(name)) {
+                    throw new IllegalArgumentException("the '" + name + "' profile is built in and cannot be redefined");
                 }
                 ConfigurationSection values = profilesSection.getConfigurationSection(name);
                 if (values == null) {
@@ -66,7 +78,24 @@ final class EngineSettings {
             }
         }
 
-        return new EngineSettings(mode, defaultProfile, profiles, worldProfiles, config.getBoolean("record-hits", false));
+        return new EngineSettings(mode, defaultProfile, profiles, worldProfiles, config.getBoolean("record-hits", false),
+                readHitDelay(config));
+    }
+
+    private static int readHitDelay(ConfigurationSection config) {
+        Object value = config.get(KEY_HIT_DELAY_TICKS, VANILLA_HIT_DELAY_TICKS);
+        if (!(value instanceof Integer)) {
+            throw new IllegalArgumentException(KEY_HIT_DELAY_TICKS + " must be a whole number of ticks, got " + value);
+        }
+        return requireHitDelay((Integer) value);
+    }
+
+    private static int requireHitDelay(int ticks) {
+        if (ticks < MIN_HIT_DELAY_TICKS || ticks > MAX_HIT_DELAY_TICKS) {
+            throw new IllegalArgumentException(KEY_HIT_DELAY_TICKS + " must be between " + MIN_HIT_DELAY_TICKS + " and "
+                    + MAX_HIT_DELAY_TICKS + ", got " + ticks);
+        }
+        return ticks;
     }
 
     private static void requireProfile(Map<String, KnockbackProfile> profiles, String name, String where) {
@@ -96,6 +125,20 @@ final class EngineSettings {
         return recordHits;
     }
 
+    /** Ticks after a hit before the next one counts in full. */
+    int hitDelayTicks() {
+        return hitDelayTicks;
+    }
+
+    /**
+     * The players' damage cooldown that gives this hit delay. A 1.8 hit counts in full once the
+     * victim's cooldown counter has fallen to half its maximum or less, and the counter falls by one
+     * per tick, so the delay is half the maximum.
+     */
+    int maximumNoDamageTicks() {
+        return hitDelayTicks * 2;
+    }
+
     /** The profile that applies to hits in this world. */
     KnockbackProfile profileFor(String world) {
         String name = worldProfiles.get(world);
@@ -103,12 +146,12 @@ final class EngineSettings {
     }
 
     EngineSettings withMode(EngineMode newMode) {
-        return new EngineSettings(newMode, defaultProfile, profiles, worldProfiles, recordHits);
+        return new EngineSettings(newMode, defaultProfile, profiles, worldProfiles, recordHits, hitDelayTicks);
     }
 
     EngineSettings withDefaultProfile(String name) {
         requireProfile(profiles, name, "profile");
-        return new EngineSettings(mode, name, profiles, worldProfiles, recordHits);
+        return new EngineSettings(mode, name, profiles, worldProfiles, recordHits, hitDelayTicks);
     }
 
     /** @param name a profile name, or {@code null} to make the world use the default profile */
@@ -120,6 +163,11 @@ final class EngineSettings {
             requireProfile(profiles, name, "world " + world);
             worlds.put(world, name);
         }
-        return new EngineSettings(mode, defaultProfile, profiles, worlds, recordHits);
+        return new EngineSettings(mode, defaultProfile, profiles, worlds, recordHits, hitDelayTicks);
+    }
+
+    /** @throws IllegalArgumentException if the delay is out of range */
+    EngineSettings withHitDelayTicks(int ticks) {
+        return new EngineSettings(mode, defaultProfile, profiles, worldProfiles, recordHits, ticks);
     }
 }

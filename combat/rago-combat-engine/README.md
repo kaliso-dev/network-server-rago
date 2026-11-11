@@ -44,6 +44,7 @@ moitié lus.
 mode: override            # override : applique le profil ; observe : calcule et journalise, sans rien changer
 active-profile: vanilla   # profil utilisé partout, sauf dans les mondes de world-profiles
 world-profiles: {}        # par monde, par exemple { arena_a: vanilla, arena_b: test-a }
+hit-delay-ticks: 10       # délai entre deux coups, en ticks (vanilla 10, Hypixel mesuré 9), de 1 à 20
 record-hits: false        # journal des hits (voir plus bas)
 player-tracker-ticks: 1   # positions des joueurs envoyées aux autres : 1 (chaque tick) ou 2 (vanilla)
 profiles: {}              # profils de test, en plus de vanilla
@@ -61,8 +62,15 @@ Un profil a exactement ces six clés (aucune autre n'est acceptée) :
 | `extra-vertical` | poussée verticale en plus quand le niveau vaut au moins 1 | 0.1 |
 
 Les composantes doivent rester entre −3.9 et 3.9, la limite du paquet. Le nom d'un profil :
-minuscules, chiffres, `-` et `_`, 32 caractères au plus. `vanilla` est intégré et ne peut pas être
-redéfini.
+minuscules, chiffres, `-` et `_`, 32 caractères au plus.
+
+Deux profils sont intégrés et ne peuvent pas être redéfinis :
+
+- `vanilla` : le knockback exact de Minecraft 1.8.8 ;
+- `hypixel-approx-v1` : mesuré sur Hypixel le 7 novembre 2026, en Housing
+  ([mesures](../../docs/combat/mesures-hypixel.md)). C'est le vanilla, sauf `extra-vertical` :
+  0.07 au lieu de 0.1. Les valeurs d'Hypixel ne sont pas publiques : un profil Hypixel ne vient
+  que de mesures, et une nouvelle mesure donnera un `hypixel-approx-v2`.
 
 ### Hitreg : `player-tracker-ticks`
 
@@ -74,8 +82,17 @@ du joueur dans le tracker du serveur, à son arrivée, à chaque changement de m
 respawn. Si le serveur n'a pas ce tracker, rien n'est changé et la console le dit une fois.
 Les deux valeurs se testent sans risque : le réglage se lit au démarrage.
 
-Aucun profil « Hypixel » n'est fourni : ses valeurs ne sont pas publiques et seront mesurées
-(voir la doc de la formule).
+## Délai entre deux coups
+
+Après un coup qui compte, un joueur est protégé pendant un cooldown ; un nouveau coup ne compte en
+entier (dégâts, knockback, paquet de vitesse) qu'une fois la moitié du cooldown passée. Le
+cooldown vanilla dure 20 ticks, d'où un coup toutes les 10 ticks (500 ms) au mieux. Hypixel en
+compte un toutes les 9 ticks (450 ms) d'après les mesures.
+
+`hit-delay-ticks` règle ce délai : le moteur donne à chaque joueur un cooldown de deux fois cette
+valeur (`setMaximumNoDamageTicks`), à la connexion, une tick après une réapparition ou un
+changement de monde (le Minecraft vanilla recrée alors le joueur avec 20 ticks ; CraftBukkit le
+garde, mais le moteur ne dépend pas de ce détail), et dès que le réglage change. Le cooldown vaut pour tous les dégâts (chute, feu, flèches), comme en vanilla.
 
 ## Commande `/kb`
 
@@ -83,11 +100,12 @@ Permission `rago.combat.admin` (opérateurs par défaut).
 
 | Commande | Effet |
 | --- | --- |
-| `/kb` ou `/kb status` | mode, profil par défaut, profils par monde, état du journal |
+| `/kb` ou `/kb status` | mode, profil par défaut, profils par monde, délai entre deux coups, état du journal |
 | `/kb profiles` | liste des profils et de leurs valeurs |
 | `/kb profile <nom>` | change le profil par défaut |
 | `/kb world <monde> <profil\|default>` | profil d'un monde, ou retour au profil par défaut |
 | `/kb mode <override\|observe>` | change le mode |
+| `/kb hitdelay <ticks>` | change le délai entre deux coups (vanilla 10, Hypixel mesuré 9) |
 | `/kb debug` | affiche dans le chat de celui qui tape la commande chaque coup et son paquet |
 | `/kb sparring [sprint\|normal\|alterne] [ticks]` | un attaquant invisible frappe celui qui tape la commande (voir plus bas) |
 | `/kb sparring stop` | arrête le sparring |
@@ -148,4 +166,5 @@ sont perdues et comptées (`/kb status`), le thread principal n'attend jamais. C
 
 - Tests unitaires : `./gradlew :rago-combat-engine:test` (réglages, format du journal).
 - Test de contrôle sur un vrai serveur PandaSpigot, avec des bots :
-  [tools/kb-control](../../tools/kb-control/README.md).
+  [tools/kb-control](../../tools/kb-control/README.md). Il vérifie le knockback envoyé, puis le
+  délai entre deux coups (10 ticks, 9 ticks, et 9 ticks encore après une réapparition).

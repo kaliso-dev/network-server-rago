@@ -5,7 +5,10 @@
 mode: override
 
 # The profile used everywhere, except in the worlds listed under world-profiles.
-# "vanilla" is built in: the exact knockback of Minecraft 1.8.8, it cannot be redefined.
+# Built-in profiles, which cannot be redefined:
+#   vanilla           : the exact knockback of Minecraft 1.8.8.
+#   hypixel-approx-v1 : measured on Hypixel on 7 November 2026 (docs/combat/mesures-hypixel.md):
+#                       vanilla, except the vertical push of a sprint hit, 0.07 instead of 0.1.
 active-profile: vanilla
 
 # A profile per world, to compare two profiles on two arenas. Example:
@@ -13,6 +16,11 @@ active-profile: vanilla
 #   arena_a: vanilla
 #   arena_b: test-a
 world-profiles: {}
+
+# The delay between two hits, in ticks: a hit only counts in full (damage, knockback) this many
+# ticks after the previous one. Vanilla: 10 (500 ms). Measured on Hypixel: 9.
+# It holds for all damage (falls, fire, arrows), not only melee. From 1 to 20.
+hit-delay-ticks: 10
 
 # Writes every hit to plugins/RagoCombatEngine/hits/hits-YYYY-MM-DD.jsonl for analysis.
 record-hits: false

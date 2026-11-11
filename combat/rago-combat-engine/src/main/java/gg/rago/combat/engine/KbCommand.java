@@ -21,7 +21,7 @@ import org.bukkit.entity.Player;
 final class KbCommand implements TabExecutor {
 
     private static final List<String> SUBCOMMANDS = Collections.unmodifiableList(Arrays.asList(
-            "status", "profiles", "profile", "world", "mode", "debug", "sparring", "reload"));
+            "status", "profiles", "profile", "world", "mode", "hitdelay", "debug", "sparring", "reload"));
     private static final List<String> SPARRING_OPTIONS = Collections.unmodifiableList(Arrays.asList(
             "sprint", "normal", "alterne", "stop"));
     private static final String DEFAULT_WORLD_PROFILE = "default";
@@ -61,6 +61,13 @@ final class KbCommand implements TabExecutor {
                 }
                 return change(sender, "mode -> " + args[1].toLowerCase(Locale.ROOT),
                         () -> plugin.settings().withMode(EngineMode.parse(args[1])));
+            case "hitdelay":
+                if (args.length != 2) {
+                    return usage(sender, "/" + label + " hitdelay <ticks> (vanilla " + EngineSettings.VANILLA_HIT_DELAY_TICKS
+                            + ")");
+                }
+                return change(sender, "hit delay -> " + args[1] + " ticks",
+                        () -> plugin.settings().withHitDelayTicks(parseTicks(args[1])));
             case "debug":
                 debug(sender);
                 return true;
@@ -83,6 +90,8 @@ final class KbCommand implements TabExecutor {
         for (Map.Entry<String, String> entry : settings.worldProfiles().entrySet()) {
             sender.sendMessage(ChatColor.GRAY + "  world " + entry.getKey() + ": " + ChatColor.WHITE + entry.getValue());
         }
+        sender.sendMessage(ChatColor.GRAY + "Hit delay: " + ChatColor.WHITE + settings.hitDelayTicks()
+                + " ticks" + ChatColor.GRAY + " (vanilla " + EngineSettings.VANILLA_HIT_DELAY_TICKS + ")");
         sender.sendMessage(ChatColor.GRAY + "Hit log: " + ChatColor.WHITE
                 + (settings.recordHits() ? "on (" + plugin.droppedRecords() + " lost)" : "off"));
     }
@@ -169,6 +178,14 @@ final class KbCommand implements TabExecutor {
         sender.sendMessage(ChatColor.GRAY + "config.yml reloaded.");
     }
 
+    private static int parseTicks(String text) {
+        try {
+            return Integer.parseInt(text);
+        } catch (NumberFormatException e) {
+            throw new IllegalArgumentException("nombre de ticks invalide : " + text);
+        }
+    }
+
     private static boolean usage(CommandSender sender, String usage) {
         sender.sendMessage(ChatColor.RED + "Usage: " + usage);
         return true;
@@ -192,6 +209,9 @@ final class KbCommand implements TabExecutor {
                 modes.add(mode.configName());
             }
             return matching(modes, args[1]);
+        }
+        if (args.length == 2 && sub.equals("hitdelay")) {
+            return matching(Arrays.asList("9", String.valueOf(EngineSettings.VANILLA_HIT_DELAY_TICKS)), args[1]);
         }
         if (args.length == 2 && sub.equals("world")) {
             List<String> worlds = new ArrayList<>();

@@ -103,7 +103,8 @@ EOF
   printf '[%s]\n' "$operators" >"$SERVER_DIR/ops.json"
 
   # Engine settings for the tests. control-alt is an arbitrary test profile, far enough from
-  # vanilla to change every packet; it is not a tuning proposal.
+  # vanilla to change every packet; it is not a tuning proposal. still pushes by nothing: the hit
+  # delay bots of the control test use it to keep the victim in reach.
   cat >"$SERVER_DIR/plugins/RagoCombatEngine/config.yml" <<'EOF'
 mode: observe
 active-profile: vanilla
@@ -117,6 +118,13 @@ profiles:
     vertical-limit: 0.39
     extra-horizontal: 0.45
     extra-vertical: 0.085
+  still:
+    friction: 1.0
+    horizontal: 0.0
+    vertical: 0.0
+    vertical-limit: 0.0
+    extra-horizontal: 0.0
+    extra-vertical: 0.0
 EOF
 }
 
