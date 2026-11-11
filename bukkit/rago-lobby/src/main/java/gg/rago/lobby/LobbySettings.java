@@ -24,6 +24,8 @@ final class LobbySettings {
     private double slimeForward = 3.5;
     private double slimeUp = 1.3;
     private String mineskinKey = "";
+    /** The welcome of the lobby at each arrival ({@link LobbyWelcome}). */
+    private boolean welcome = true;
     private final String title;
     private final String address;
     private final int defaultRating;
@@ -37,6 +39,8 @@ final class LobbySettings {
     static final int MAX_MODES_PER_CATEGORY = 28;
     /** One row of the category menu. */
     static final int MAX_CATEGORIES = 7;
+    /** The slogan of a category, without its colours: one line above an NPC. */
+    static final int MAX_SLOGAN = 40;
     /** Leaderboards side by side on one point. */
     static final int MAX_BOARDS = 5;
     /** Steps of the podium of a leaderboard wall. */
@@ -162,6 +166,7 @@ final class LobbySettings {
             settings.slimeForward = slimeForward;
             settings.slimeUp = slimeUp;
             settings.mineskinKey = mineskinKey;
+            settings.welcome = config.getBoolean("accueil", true);
             return settings;
         } catch (IllegalArgumentException e) {
             throw new IllegalArgumentException("modes: " + e.getMessage(), e);
@@ -264,10 +269,15 @@ final class LobbySettings {
                 }
                 String category = npc.getString("categorie");
                 List<String> ids = new ArrayList<>(npc.getStringList("modes"));
+                // The line under its name: its own sous-titre, else the slogan of its category.
+                String subtitle = npc.getString("sous-titre", null);
                 if (category != null) {
                     boolean known = false;
                     for (ModeCategory c : categories) {
                         known |= c.id().equals(category);
+                        if (c.id().equals(category) && subtitle == null) {
+                            subtitle = c.slogan();
+                        }
                     }
                     if (!known || !ids.isEmpty()) {
                         throw new IllegalArgumentException(where + ".categorie: \"" + category
@@ -290,7 +300,8 @@ final class LobbySettings {
                         throw new IllegalArgumentException(where + ".modes: \"" + id + "\" is not one of the modes");
                     }
                 }
-                npcs.add(LobbyNpc.modes(point, colour(npc.getString("nom", point)), ids, category).withSkin(skin(npc, where)));
+                npcs.add(LobbyNpc.modes(point, colour(npc.getString("nom", point)), ids, category)
+                        .withSubtitle(subtitle == null || subtitle.trim().isEmpty() ? null : colour(subtitle)).withSkin(skin(npc, where)));
             }
         }
         ConfigurationSection boards = config.getConfigurationSection("classements");
@@ -427,8 +438,14 @@ final class LobbySettings {
             if (!id.matches("[a-z0-9][a-z0-9-]{0,31}")) {
                 throw new IllegalArgumentException(where + ": lowercase letters without accents, digits and dashes only");
             }
+            String slogan = category.getString("slogan", null);
+            if (slogan != null && ChatColor.stripColor(colour(slogan)).length() > MAX_SLOGAN) {
+                throw new IllegalArgumentException(where + ".slogan: " + MAX_SLOGAN + " characters at most (it shows under"
+                        + " the NPC of the category)");
+            }
             categories.add(new ModeCategory(id, colour(category.getString("nom", id)),
-                    icon(where, category.getString("icone", "CHEST")), description(category)));
+                    icon(where, category.getString("icone", "CHEST")), description(category),
+                    slogan == null || slogan.trim().isEmpty() ? null : colour(slogan)));
         }
         return categories;
     }
@@ -576,6 +593,11 @@ final class LobbySettings {
     }
 
     /** How hard a slime block of the lobby throws forward (0: not at all). */
+    /** True to greet each arrival with the ways to play (accueil: in config.yml). */
+    boolean welcome() {
+        return welcome;
+    }
+
     double slimeForward() {
         return slimeForward;
     }

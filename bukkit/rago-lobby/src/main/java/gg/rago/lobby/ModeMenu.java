@@ -435,7 +435,12 @@ final class ModeMenu {
         ItemStack item = new ItemStack(category.icon());
         ItemMeta meta = item.getItemMeta();
         meta.setDisplayName(category.name());
-        List<String> lore = new ArrayList<>(category.description());
+        List<String> lore = new ArrayList<>();
+        if (category.slogan() != null) {
+            lore.add(category.slogan());
+            lore.add("");
+        }
+        lore.addAll(category.description());
         List<ModeDisplay> modes = settings.modesIn(category.id());
         int waiting = 0;
         boolean here = false;

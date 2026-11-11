@@ -65,12 +65,20 @@ class NetworkFeaturesTest {
         assertTrue(ranks.permissions(null, Collections.singletonList("premium")).contains("rago.perk.fly"));
         assertTrue(ranks.permissions(null, Collections.singletonList("premium")).contains("rago.perk.speed"),
                 "Speed in the lobby, chosen in the settings");
-        assertTrue(ranks.sold().isEmpty(), "nothing for Rago Points: PREMIUM is on the web store");
+        assertTrue(ranks.sold().isEmpty(), "nothing for Rago Points: PREMIUM+ and VIP are on the web store");
         List<String> shown = new ArrayList<>();
         for (RankDef rank : ranks.forSale()) {
             shown.add(rank.id());
         }
-        assertEquals(Collections.singletonList("premium"), shown, "one rank to buy");
+        assertEquals(Arrays.asList("premium", "vip"), shown, "two ranks to buy, the highest first");
+        assertEquals("premium", ranks.best(null, Arrays.asList("vip", "premium")).id(), "PREMIUM+ is above VIP");
+        assertEquals("VIP", ranks.get("vip").displayName());
+        assertFalse(ranks.get("vip").hasPlus());
+        assertEquals(1.25, ranks.xpBoost(null, Collections.singletonList("vip")), 1e-9);
+        assertTrue(ranks.permissions(null, Collections.singletonList("vip")).contains("rago.perk.speed"));
+        assertFalse(ranks.permissions(null, Collections.singletonList("vip")).contains("rago.perk.fly"), "/fly stays PREMIUM's");
+        assertFalse(ranks.permissions(null, Collections.singletonList("vip")).contains("rago.perk.gadgets"));
+        assertEquals(Arrays.asList("§dPREMIUM+: +50% on everything", "§aVIP: +25% on everything"), LevelMenu.boostLines(ranks));
         assertTrue(ranks.position(ranks.get("owner")) < ranks.position(ranks.get("premium")));
         assertEquals(ranks.all().size(), ranks.position(Ranks.DEFAULT), "no rank comes last");
         assertEquals("PREMIUM+", ranks.get("premium").displayName());
@@ -203,6 +211,22 @@ class NetworkFeaturesTest {
         assertEquals(0, premium.price());
         assertEquals(Material.NETHER_STAR, premium.icon());
         assertEquals(own.perks().size(), premium.perks().size());
+        RankDef vip = ranks.get("vip");
+        RankDef ownVip = Ranks.vip();
+        assertEquals(ownVip.prefix(), vip.prefix());
+        assertEquals(ownVip.xpBoost(), vip.xpBoost(), 1e-9);
+        assertEquals(ownVip.style(), vip.style());
+        assertNull(vip.badge());
+        assertTrue(vip.webStore());
+        assertEquals(Material.EMERALD, vip.icon());
+        assertEquals(ownVip.perks().size(), vip.perks().size());
+        assertEquals(Ranks.defaults().permissions(null, Collections.singletonList("vip")),
+                ranks.permissions(null, Collections.singletonList("vip")));
+        List<String> web = new ArrayList<>();
+        for (RankDef rank : StoreMenu.webRanks(settings)) {
+            web.add(rank.id());
+        }
+        assertEquals(Arrays.asList("vip", "premium"), web, "in the store, the smallest first");
         assertEquals(Ranks.defaults().permissions("admin", Collections.singletonList("premium")),
                 ranks.permissions("admin", Collections.singletonList("premium")), "the same as the plugin's own ranks");
         assertEquals(NameStyle.catalogue().keySet(), settings.styles().keySet(), "the plugin's own styles");

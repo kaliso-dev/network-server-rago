@@ -178,7 +178,7 @@ final class Ranks {
         return keys;
     }
 
-    /** The ranks of a config.yml without rangs: the staff, then the PREMIUM rank of the web store. */
+    /** The ranks of a config.yml without rangs: the staff, then the ranks of the web store (PREMIUM+, VIP). */
     static Ranks defaults() {
         List<RankDef> ranks = new ArrayList<>();
         ranks.add(staff("owner", "§4[OWNER] ", "§4", "admin", "rago.admin"));
@@ -190,11 +190,27 @@ final class Ranks {
         ranks.add(new RankDef("media", "§c[§fMEDIA§c] ", "§c", "§f", false, Collections.<String>emptyList(), PREMIUM,
                 0, 0, Material.NAME_TAG, Arrays.asList("For content creators", "Everything of PREMIUM")));
         ranks.add(premium());
+        ranks.add(vip());
         return new Ranks(ranks);
     }
 
-    /** The id of the one rank of the web store. */
+    /** The id of the high rank of the web store. */
     static final String PREMIUM = "premium";
+    /** The id of the small rank of the web store, below PREMIUM+. */
+    static final String VIP = "vip";
+
+    /**
+     * The VIP rank: sold on the web store, below PREMIUM+ (which keeps its fly, nick, gadgets,
+     * booster, events and rarest cosmetics): a green name, a little more XP, a few perks of the lobby.
+     */
+    static RankDef vip() {
+        return new RankDef(VIP, "§a[VIP] ", "§a", "§f", false, Arrays.asList("rago.perk.chat", "rago.perk.join", "rago.perk.speed"),
+                null, 0, 0, Material.EMERALD,
+                Arrays.asList("A green name and the §a[VIP]§7 tag", "+25% Network XP in every game",
+                        "Speed I, II or III in the lobby (settings)", "Your arrival announced, with a firework",
+                        "White messages, no chat cooldown"),
+                1.25, "vert", null, true);
+    }
 
     /** The PREMIUM rank: sold on the web store, with the perks of the network and a pink gradient name. */
     static RankDef premium() {

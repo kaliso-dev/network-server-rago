@@ -69,15 +69,31 @@ final class LevelMenu {
 
         menu.set(47, tiersItem(levels, level), null);
         menu.set(49, ClickMenu.item(Material.BOOK, 0, ChatColor.GOLD + "Quests", questSummary(stats)), (p, right) -> openQuests(p));
-        menu.set(51, ClickMenu.item(Material.GLASS_BOTTLE, 0, ChatColor.AQUA + "How to get XP", listOf(
+        List<String> xp = listOf(
                 "A win: " + ChatColor.AQUA + "+" + levels.winXp() + " XP",
                 "A game played: " + ChatColor.AQUA + "+" + levels.lossXp() + " XP",
                 "A kill: " + ChatColor.AQUA + "+" + levels.killXp() + " XP",
                 "The trainings, and the quests:",
-                "daily and weekly, worth a lot.",
-                "",
-                ChatColor.LIGHT_PURPLE + "PREMIUM: +50% on everything")), null);
+                "daily and weekly, worth a lot.");
+        List<String> boosts = boostLines(server.ranks());
+        if (!boosts.isEmpty()) {
+            xp.add("");
+            xp.addAll(boosts);
+        }
+        menu.set(51, ClickMenu.item(Material.GLASS_BOTTLE, 0, ChatColor.AQUA + "How to get XP", xp), null);
         menu.open(player);
+    }
+
+    /** "PREMIUM+: +50% on everything", "VIP: +25% on everything": the ranks sold that boost the XP. */
+    static List<String> boostLines(Ranks ranks) {
+        List<String> lines = new ArrayList<>();
+        for (RankDef rank : ranks.forSale()) {
+            if (rank.xpBoost() > 1.0) {
+                lines.add(rank.nameColour() + rank.displayName() + ": +" + Math.round((rank.xpBoost() - 1.0) * 100)
+                        + "% on everything");
+            }
+        }
+        return lines;
     }
 
     /**

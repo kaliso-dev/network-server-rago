@@ -12,7 +12,7 @@ import org.bukkit.entity.Player;
 /**
  * The Shop NPC of the centre of the lobby (and /pack): everything the network sells, on one page,
  * so that a player sees at once what each thing gives. The starter pack first (its price crossed
- * out, what is inside), then PREMIUM+ and its perks, the name colours and the +, the XP boosters,
+ * out, what is inside), then the ranks of the web store and their perks (VIP, PREMIUM+), the name colours and the +, the XP boosters,
  * the cosmetics, the gadgets, the events, the ranks of Rago Points, and how to earn Rago Points.
  * What is sold on the web store gives its link; the rest opens its page of the shop. Main thread.
  */
@@ -20,8 +20,10 @@ final class StoreMenu {
 
     static final int ROWS = 6;
     static final int PACK_SLOT = 13;
-    /** The row of the things sold, left to right. */
+    /** The row of the things sold, left to right: two ranks of the web store at most, then the rest. */
     static final int[] ROW = {19, 20, 21, 22, 23, 24, 25};
+    /** The ranks for Rago Points, if any, between how to earn them and the website. */
+    static final int RANKS_FOR_POINTS_SLOT = 40;
 
     private final Profiles profiles;
     private final StatsBook book;
@@ -61,22 +63,25 @@ final class StoreMenu {
                     tellPack(p);
                 });
 
-        RankDef premium = webRank(server);
         int i = 0;
-        if (premium != null) {
-            boolean owned = profiles.owns(profile, premium);
+        List<RankDef> web = webRanks(server);
+        // Two at most, the highest two: the rest of the row is the other things sold.
+        for (final RankDef rank : web.subList(Math.max(0, web.size() - 2), web.size())) {
+            boolean owned = profiles.owns(profile, rank);
+            boolean top = rank.hasPlus();
             List<String> lore = new ArrayList<>();
-            lore.add(ChatColor.LIGHT_PURPLE + "The rank of the network:");
-            for (String perk : premium.perks()) {
+            lore.add(top ? ChatColor.LIGHT_PURPLE + "The rank of the network:" : ChatColor.GREEN + "To start supporting the network:");
+            for (String perk : rank.perks()) {
                 lore.add(ChatColor.WHITE + "• " + ChatColor.GRAY + perk);
             }
             lore.add("");
             lore.add(owned ? ChatColor.GREEN + "You have it: thank you!" : ChatColor.GOLD + "On the web store " + ChatColor.YELLOW
                     + "(click for the link)");
-            menu.set(ROW[i++], ClickMenu.glow(ClickMenu.item(premium.icon(), 0, premium.prefix().trim(), lore)), (p, right) -> {
+            org.bukkit.inventory.ItemStack item = ClickMenu.item(rank.icon(), 0, rank.prefix().trim(), lore);
+            menu.set(ROW[i++], top ? ClickMenu.glow(item) : item, (p, right) -> {
                 if (!owned) {
                     p.closeInventory();
-                    tellStore(p, ChatColor.LIGHT_PURPLE + "✦ " + premium.prefix().trim() + ChatColor.GRAY + ": all its perks for good.");
+                    tellStore(p, rank.nameColour() + "✦ " + rank.prefix().trim() + ChatColor.GRAY + ": all its perks for good.");
                 }
             });
         }
@@ -139,8 +144,8 @@ final class StoreMenu {
                                 + ChatColor.GRAY + ": /host.");
                     }
                 });
-        if (!server.ranks().sold().isEmpty() && i < ROW.length) {
-            menu.set(ROW[i++], ClickMenu.item(Material.DIAMOND, 0, ChatColor.GOLD + "Ranks for Rago Points", list(
+        if (!server.ranks().sold().isEmpty()) {
+            menu.set(RANKS_FOR_POINTS_SLOT, ClickMenu.item(Material.DIAMOND, 0, ChatColor.GOLD + "Ranks for Rago Points", list(
                     "Ranks you unlock with your level",
                     "and buy with Rago Points.",
                     "",
@@ -219,14 +224,18 @@ final class StoreMenu {
         Bukkit.dispatchCommand(Bukkit.getConsoleSender(), "tellraw " + player.getName() + " " + pack.button());
     }
 
-    /** The rank of the web store (PREMIUM), or null. */
-    static RankDef webRank(ServerSettings server) {
+    /**
+     * The ranks of the web store, the smallest first (VIP, then PREMIUM+): the ranks are listed the
+     * highest first, as they rank.
+     */
+    static List<RankDef> webRanks(ServerSettings server) {
+        List<RankDef> ranks = new ArrayList<>();
         for (RankDef rank : server.ranks().forSale()) {
             if (!rank.sold()) {
-                return rank;
+                ranks.add(0, rank);
             }
         }
-        return null;
+        return ranks;
     }
 
     private static List<String> list(String... lines) {

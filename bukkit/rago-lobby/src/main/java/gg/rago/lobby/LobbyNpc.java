@@ -66,12 +66,17 @@ final class LobbyNpc {
         return new LobbyNpc(point, name, kind, modeIds, category, boards, podium, subtitle, skin);
     }
 
+    /** The same NPC with this line under its name (null: none). */
+    LobbyNpc withSubtitle(String line) {
+        return new LobbyNpc(point, name, kind, modeIds, category, boards, podium, line, skin);
+    }
+
     /** The id of its skin (skins/id.png, signed by {@link NpcSkins}), or null for Steve. */
     String skin() {
         return skin;
     }
 
-    /** The line under the name of the Shop NPC, or null for another NPC. */
+    /** The line under the name of the Shop NPC, or of an NPC of modes that has one; else null. */
     String subtitle() {
         return subtitle;
     }

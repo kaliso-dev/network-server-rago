@@ -17,6 +17,10 @@ commands:
     description: Join the queue of a mode, or leave it.
     usage: /queue <mode> [map] | /queue leave
     aliases: [file, q]
+  play:
+    description: The ways to play, or the modes of one (practice, duels...).
+    usage: /play [category]
+    aliases: [modes, games, jouer]
   duel:
     description: Challenge a lobby player to a 1v1.
     usage: /duel <player> [mode], /duel accept <player>, /duel deny <player>

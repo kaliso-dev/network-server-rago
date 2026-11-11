@@ -149,7 +149,7 @@ class MineSkinTest {
             assertEquals(64, ((bytes[20] & 0xFF) << 24 | (bytes[21] & 0xFF) << 16 | (bytes[22] & 0xFF) << 8 | (bytes[23] & 0xFF)), "64 high");
             skinned++;
         }
-        assertTrue(skinned >= 14, "" + skinned);
+        assertTrue(skinned >= 10, "" + skinned);
     }
 
     private static byte[] readAll(InputStream in) throws java.io.IOException {

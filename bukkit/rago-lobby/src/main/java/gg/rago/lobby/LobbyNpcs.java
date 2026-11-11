@@ -145,7 +145,13 @@ final class LobbyNpcs implements Listener {
             } else {
                 body(npc, index, base);
                 Location lowest = base.clone().add(0, ABOVE_HEAD - FakeHologram.NAME_HEIGHT, 0);
-                label(npc, lowest.clone().add(0, LINE, 0), npc.name());
+                // The name, the line under it if any (the slogan of a category), the queue.
+                int above = 1;
+                if (npc.subtitle() != null) {
+                    label(npc, lowest.clone().add(0, LINE, 0), npc.subtitle());
+                    above = 2;
+                }
+                label(npc, lowest.clone().add(0, LINE * above, 0), npc.name());
                 countLines.put(npc.point(), label(npc, lowest, countText(npc)));
             }
             placed++;

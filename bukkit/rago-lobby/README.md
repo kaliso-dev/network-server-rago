@@ -7,6 +7,12 @@ dans les files d'attente des modes de jeu.
 
 - **Le spawn.** Chaque joueur qui se connecte arrive au spawn du lobby, en aventure, avec sa vie
   et sa faim pleines. Tomber dans le vide (sous `hauteur-vide`) ramène au spawn.
+- **L'accueil : trois façons de jouer.** À chaque arrivée, le chat montre les catégories de la
+  boussole, une ligne chacune avec son nom et son slogan : « Practice : Train alone, at your own
+  pace », « RBW Modes : Ranked and RBW situations », « Duels : Duel your friends or anyone ». Un
+  clic sur une ligne ouvre ses modes (`/play <catégorie>`), le survol montre ce qu'elle contient. À
+  la toute première venue sur le serveur, un titre aussi (le `titre:` et les trois noms).
+  `accueil: false` le coupe.
 - **La protection.** Dans le monde du lobby : pas de dégâts, pas de faim, rien à poser, casser,
   jeter ou ramasser, pas de coffres ni de portes, pas de pluie, pas de nuit, pas de monstres. Les
   autres mondes (arènes, monde du test de knockback, mondes de build) ne sont pas touchés.
@@ -124,14 +130,17 @@ dans les files d'attente des modes de jeu.
   gagner une classée : 500 à 750 XP) et quatre de la semaine (40 parties, 25 victoires, 100 kills,
   10 classées : 3 000 à 5 000 XP), qui recommencent chaque jour et chaque lundi. Elles avancent
   seules et donnent leur XP une fois (avec le boost de PREMIUM). Tout se règle dans `quetes:`.
-- **Les rangs.** Huit rangs dans `rangs:` (OWNER, ADMIN, DEV, MOD, HELPER, BUILDER, MEDIA et
-  PREMIUM), chacun avec son préfixe, la couleur du pseudo, la couleur du chat, ses permissions et
+- **Les rangs.** Neuf rangs dans `rangs:` (OWNER, ADMIN, DEV, MOD, HELPER, BUILDER, MEDIA,
+  PREMIUM et VIP), chacun avec son préfixe, la couleur du pseudo, la couleur du chat, ses permissions et
   le rang dont il hérite. Un joueur montre le plus haut de ses rangs, dans le chat
   (`[12✫] [PREMIUM+] Pseudo ✦: message`), au-dessus de la tête et dans le Tab (les plus hauts rangs
   en premier). Les rangs du staff se donnent avec `/rank set`.
-- **Le rang PREMIUM.** Le seul rang à acheter, sur la boutique en ligne (rago-optimizer.com) :
-  la boutique du jeu montre ce qu'il donne et le lien, la boutique en ligne le donne depuis la
-  console avec `/rank give <joueur> premium`. Il donne un pseudo en dégradé rose et le badge
+- **Les rangs VIP et PREMIUM.** Les deux rangs à acheter, sur la boutique en ligne
+  (rago-optimizer.com) : la boutique du jeu montre ce qu'ils donnent et le lien, VIP d'abord, la
+  boutique en ligne les donne depuis la console avec `/rank give <joueur> vip` ou `premium`.
+  **VIP**, le petit rang : un pseudo vert (le style `vert`) et le préfixe `[VIP]`, +25 % d'XP
+  Network (`boost-xp: 1.25`), la vitesse au lobby, l'arrivée annoncée avec un feu d'artifice et des
+  messages blancs sans délai. **PREMIUM** garde tout le reste. Il donne un pseudo en dégradé rose et le badge
   `✦`, +50 % d'XP Network (`boost-xp: 1.5`), `/fly` au lobby, `/nick`, un message à soi
   au-dessus de la tête, l'arrivée annoncée avec un feu d'artifice, des messages blancs sans délai,
   trois gadgets à lui (bat blaster, mouton explosif, boule disco : `rago.perk.gadgets`), les effets
@@ -187,8 +196,8 @@ dans les files d'attente des modes de jeu.
 - **Le PNJ Shop et le pack de départ (`/pack`).** Au centre du lobby (le point `aimtrainer`,
   `type: shop`), un PNJ Shop ouvre la vitrine de tout ce qui se vend : d'abord le **pack de
   départ** (son prix, son prix normal barré, -50 %, ce qu'il contient : 20 000 Rago Points,
-  3 boosters d'XP, 2 boosters de pièces et 3 cosmétiques sans leur niveau, une fois par joueur), puis PREMIUM+ et tous
-  ses avantages, les couleurs de pseudo et le +, les boosters, les cosmétiques, les gadgets, les
+  3 boosters d'XP, 2 boosters de pièces et 3 cosmétiques sans leur niveau, une fois par joueur), puis VIP, PREMIUM+ et
+  leurs avantages, les couleurs de pseudo et le +, les boosters, les cosmétiques, les gadgets, les
   events `/host`, comment gagner des Rago Points et Rago Optimizer. Ce qui se vend sur la
   boutique en ligne donne son lien cliquable ; le reste ouvre sa page de `/shop`. La boutique en
   ligne donne le pack depuis la console avec `/pack give <joueur>` (une seule fois : un deuxième
@@ -262,6 +271,7 @@ commentaires de `config.yml`. Les mots français de la première version (`quitt
 | `/pc <message>`, `/chat party`, `/chat all` | écrire à sa party, y envoyer tout son chat, revenir au chat de tous | tout le monde |
 | `/hypixel import [pseudo]` | copier le shop Bed Wars (quick buy et hotbar manager) de son compte Hypixel, ou de celui de ce pseudo | tout le monde |
 | `/hypixel shop` | voir le shop Hypixel copié | tout le monde |
+| `/play [catégorie]` (ou `/modes`, `/games`, `/jouer`) | la boussole, ou les modes d'une catégorie (son id ou son nom : `/play duels`, `/play rbw modes`) | tout le monde |
 | `/lobby modes` | les modes et leur file (aussi depuis la console) | tout le monde |
 | `/lobby setspawn` | place le spawn du lobby là où tu es (écrit dans `spawn.yml`, dans le dossier du monde du lobby) | `rago.lobby.admin` |
 | `/lobby point <nom>` | place ou déplace un point nommé là où tu es : où iront les PNJ des modes, les classements, les décorations (écrit dans `points.yml`, dans le dossier du monde) | `rago.lobby.admin` |
@@ -310,9 +320,10 @@ générateur vide ; un monde de build peut donc servir de lobby.
 ## Catégories, PNJ et classements
 
 - `categories:` range les modes par zone du lobby : la boussole montre les catégories (Practice à
-  gauche, Ranked Bedwars au milieu, Duels à droite), puis les jeux de celle qu'on choisit
-  (7 catégories, 28 objets par catégorie au plus, un groupe comptant pour un). Chaque mode dit sa
-  `categorie:`.
+  gauche, RBW Modes au milieu avec une fire charge, car tout n'y est pas classé, Duels à droite),
+  puis les jeux de celle qu'on choisit (7 catégories, 28 objets par catégorie au plus, un groupe
+  comptant pour un). Chaque mode dit sa `categorie:`. Le `slogan:` d'une catégorie (40 caractères au
+  plus) dit ce qu'on y fait : sous son nom dans la boussole, sous son PNJ et dans l'accueil.
 - `groupes:` réunit les tailles d'un même jeu en un seul objet de sa catégorie, comme les jeux de
   Hypixel : Ranked Bedwars ouvre 1v1, 2v2, 3v3 et 4v4 côte à côte, Top Bridge ouvre 1v1, 2v2 et
   FFA, etc. Un mode y entre avec `groupe:` ; l'objet du groupe montre chaque taille avec sa file.
@@ -323,7 +334,11 @@ générateur vide ; un monde de build peut donc servir de lobby.
   dans ce menu, les tailles d'un même groupe ne font qu'un objet (Top Bridge, une échelle qui ouvre
   1v1, 2v2 et FFA), sauf si le PNJ n'a que ce groupe. Clutch Scenario et Attack and Defense ont
   chacun leur PNJ (`/lobby point clutchscenario` et `/lobby point attackanddefense`), au centre
-  avec les autres PNJ de jeux. Les PNJ réapparaissent quand un point bouge.
+  avec les autres PNJ de jeux. Au centre, cinq PNJ de modes seulement (Ranked, FFA, partie privée,
+  Clutch Scenario, Attack and Defense) pour qu'un nouveau joueur ne s'y perde pas : les autres
+  (Sky Rise, First rush, Invis, Bridge fight, Arena Free, Block placement) sont en commentaire dans
+  `pnj:` et restent dans la boussole. Un PNJ de catégorie montre le slogan de sa catégorie sous son
+  nom, un autre PNJ une ligne à lui avec `sous-titre:`. Les PNJ réapparaissent quand un point bouge.
 - `skin:` sous un PNJ lui donne un skin : `skins/<nom>.png` dans le dossier du plugin (64x64, le
   vôtre), sinon celui de ce nom dans le jar. Le jar en a un par mode, originaux : `ranked` (armure
   de diamant et trophée), `prive` (costume et lunettes noires), `ffa` (bandeau rouge, épées

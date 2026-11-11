@@ -69,6 +69,8 @@ final class LobbyCommands implements TabExecutor {
                 return true;
             case "queue":
                 return queue(player, args);
+            case "play":
+                return play(player, args);
             case "duel":
                 return duel(player, args);
             case "hypixel":
@@ -84,6 +86,26 @@ final class LobbyCommands implements TabExecutor {
             default:
                 return false;
         }
+    }
+
+    /** /play: the compass; /play category: its modes (the lines of the welcome run it). */
+    private boolean play(Player player, String[] args) {
+        if (!lobby.state().isInLobby(player)) {
+            player.sendMessage(ChatColor.RED + "Go back to the lobby (/spawn) to pick a mode.");
+            return true;
+        }
+        if (args.length == 0) {
+            lobby.menu().open(player);
+            return true;
+        }
+        List<ModeCategory> categories = lobby.settings().categories();
+        ModeCategory category = LobbyWelcome.find(categories, String.join(" ", args));
+        if (category == null) {
+            player.sendMessage(ChatColor.RED + "Unknown category. The categories: " + String.join(", ", LobbyWelcome.ids(categories)));
+            return true;
+        }
+        lobby.menu().openCategory(player, category.id());
+        return true;
     }
 
     /** The word for "any map" in /queue (and its French form). */
@@ -327,6 +349,8 @@ final class LobbyCommands implements TabExecutor {
         if (command.getName().equals("hypixel")) {
             options.add("import");
             options.add("shop");
+        } else if (command.getName().equals("play")) {
+            options.addAll(LobbyWelcome.ids(lobby.settings().categories()));
         } else if (command.getName().equals("queue")) {
             options.add("leave");
             for (GameMode mode : lobby.settings().catalog().all()) {

@@ -34,31 +34,42 @@ file:
 # The categories of the selector, one per zone of the lobby, in the order of the menu (7 at most):
 # left to right, as in the lobby. The compass first shows the categories, then the games of the
 # one picked (28 modes at most per category). Without a categories section, the compass shows
-# every mode at once (35 at most).
+# every mode at once (35 at most). slogan: what a player does there, in a few words (40 characters
+# at most): under its name in the compass, under its NPC, and in the welcome of the lobby.
 categories:
   entrainement:
     nom: "&b&lPractice"
     icone: SANDSTONE
+    slogan: "&fTrain alone, at your own pace"
     description:
-      - "Alone or against a bot: clutch,"
-      - "block in, fast defense, extend,"
-      - "pearls, fireballs, bow, aim..."
+      - "Clutch, block in, fast defense,"
+      - "extend, pearls, fireballs, bow,"
+      - "aim, bots: one skill at a time."
   ranked:
-    nom: "&6&lRanked Bedwars"
-    icone: BED
+    nom: "&6&lRBW Modes"
+    icone: FIREBALL
+    slogan: "&fRanked and RBW situations"
     description:
-      - "Ranked and the Bedwars modes:"
-      - "Sky Rise, first rush, the FFA,"
-      - "clutch scenario, attack and"
-      - "defense..."
+      - "Ranked 1v1 to 4v4, and modes"
+      - "close to Ranked Bedwars: Sky"
+      - "Rise, first rush, the FFA, clutch"
+      - "scenarios, attack and defense,"
+      - "private games. With the server"
+      - "or your friends."
   duels:
     nom: "&a&lDuels"
     icone: IRON_SWORD
+    slogan: "&fDuel your friends or anyone"
     description:
       - "Bed fight, top bridge, bridge"
       - "fight, block placement in 1v1"
       - "or 2v2; sumo, boxing, KB"
       - "displace, fireball fight, bow."
+      - "/duel a player to challenge them."
+
+# At each arrival in the lobby, the ways to play in the chat: a line per category (its name and
+# slogan), a click opens its modes (/play category); at the first arrival, a title too. false: none.
+accueil: true
 
 # The groups: the sizes of one game (1v1, 2v2...), one item in their category which opens them
 # side by side, as the games of Hypixel. A mode is in a group with groupe: (the modes of a group
@@ -172,18 +183,6 @@ pnj:
     nom: "&cFFA and Top bridge"
     skin: ffa
     modes: [ffa, top-bridge-1v1, top-bridge-2v2, top-bridge-ffa]
-  rbwsolo1v1ou2v2skyrise:
-    nom: "&6RBW Sky Rise"
-    skin: skyrise
-    modes: [skyrise-1v1, skyrise-2v2]
-  firstrushnebucgelatosoloduo:
-    nom: "&eFirst rush"
-    skin: rush
-    modes: [first-rush, first-rush-duo]
-  invispracticearwhayinvasion:
-    nom: "&5Invis practice"
-    skin: invis
-    modes: [invis-practice]
   # Clutch Scenario and Attack and Defense, one NPC each (/lobby point clutchscenario and
   # /lobby point attackanddefense), in the centre with the other game NPCs.
   clutchscenario:
@@ -194,19 +193,34 @@ pnj:
     nom: "&cAttack and Defense"
     modes: [attack-defense-1v1, attack-defense-2v2]
     skin: attaque
-  realisticplat:
-    nom: "&bBridge fight"
-    skin: bridge
-    modes: [bridge-fight, bridge-fight-1v1, bridge-fight-2v2]
-  freearenacombo:
-    nom: "&aArena Free"
-    skin: arena
-    modes: [free-ffa]
-  blockplacementarena:
-    nom: "&bBlock placement"
-    skin: blocs
-    modes: [block-fight-1v1, block-fight-2v2, block-fight-arena]
-  # One NPC per side zone, on the front sign: it opens the whole category.
+  # Fewer NPCs so that a new player is not lost: these modes stay in the compass (RBW Modes).
+  # Remove the # before the lines of one to show its NPC again, on its point.
+  # rbwsolo1v1ou2v2skyrise:
+  #   nom: "&6RBW Sky Rise"
+  #   skin: skyrise
+  #   modes: [skyrise-1v1, skyrise-2v2]
+  # firstrushnebucgelatosoloduo:
+  #   nom: "&eFirst rush"
+  #   skin: rush
+  #   modes: [first-rush, first-rush-duo]
+  # invispracticearwhayinvasion:
+  #   nom: "&5Invis practice"
+  #   skin: invis
+  #   modes: [invis-practice]
+  # realisticplat:
+  #   nom: "&bBridge fight"
+  #   skin: bridge
+  #   modes: [bridge-fight, bridge-fight-1v1, bridge-fight-2v2]
+  # freearenacombo:
+  #   nom: "&aArena Free"
+  #   skin: arena
+  #   modes: [free-ffa]
+  # blockplacementarena:
+  #   nom: "&bBlock placement"
+  #   skin: blocs
+  #   modes: [block-fight-1v1, block-fight-2v2, block-fight-arena]
+  # One NPC per side zone, on the front sign: it opens the whole category. Under its name, the
+  # slogan of the category (sous-titre: another line).
   attackdefenseversionrbw:
     nom: "&a&lDuels"
     categorie: duels
@@ -309,7 +323,7 @@ quetes:
 
 # The ranks, the highest first: the order of the tab list, and a player shows the highest of
 # theirs. The staff give a rank with /rank set <player> <rank>, the web store (or an admin) with
-# /rank give <player> premium. A player has the permissions of all their ranks, and of the ranks
+# /rank give <player> premium (or vip). A player has the permissions of all their ranks, and of the ranks
 # these inherit (herite).
 #   prefixe      before the name ("&c[ADMIN] "): with the colour of the name, 16 characters at most
 #                (above the head, a longer one loses its brackets: [PREMIUM+] shows PREMIUM+). {+}
@@ -392,6 +406,16 @@ rangs:
       "A free XP booster every day (x2 XP for 30 minutes; bought ones: x3)",
       "Host events for the server: /host (Sumo, Brackets, LMS)",
       "The rarest kill effects and victory dances"]
+  vip:
+    prefixe: "&a[VIP] "
+    couleur: "&a"
+    permissions: [rago.perk.chat, rago.perk.join, rago.perk.speed]
+    boost-xp: 1.25
+    style: vert
+    boutique-en-ligne: true
+    icone: EMERALD
+    avantages: ["A green name and the &a[VIP]&7 tag", "+25% Network XP in every game", "Speed I, II or III in the lobby (settings)",
+      "Your arrival announced, with a firework", "White messages, no chat cooldown"]
 
 # The colours of name and the badges (/style). A colour is a gradient along the letters of the
 # name, made of the 16 colours of 1.8 (degrade: the colour characters from the first letter to the

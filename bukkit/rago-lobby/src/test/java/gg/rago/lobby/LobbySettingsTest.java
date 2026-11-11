@@ -2,6 +2,7 @@ package gg.rago.lobby;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
@@ -70,6 +71,13 @@ class LobbySettingsTest {
         assertEquals("ranked", settings.categories().get(1).id());
         assertEquals("duels", settings.categories().get(2).id(), "the duels on the right");
         assertEquals(Material.IRON_SWORD, settings.categories().get(2).icon());
+        // Three ways to play: train alone, duel, the RBW modes (not all ranked: no bed on it).
+        assertEquals("§6§lRBW Modes", settings.categories().get(1).name());
+        assertEquals(Material.FIREBALL, settings.categories().get(1).icon());
+        for (ModeCategory category : settings.categories()) {
+            assertTrue(category.slogan() != null && category.slogan().startsWith("§f"), category.id() + " has its slogan");
+        }
+        assertTrue(settings.welcome(), "the welcome is on by default");
         assertEquals("bed-fight-1v1", settings.modesIn("duels").get(0).mode().id(), "the bed fight first");
         for (String duel : Arrays.asList("bed-fight-1v1", "bed-fight-2v2", "top-bridge-1v1", "top-bridge-2v2", "bridge-fight-1v1",
                 "bridge-fight-2v2", "block-fight-1v1", "block-fight-2v2", "sumo")) {
@@ -165,9 +173,18 @@ class LobbySettingsTest {
     @Test
     void readsTheBundledNpcs() throws Exception {
         LobbySettings settings = LobbySettings.load(bundledConfig());
-        assertEquals(19, settings.npcs().size(), "with one for the clutch scenario and one for the attack and defense");
+        assertEquals(13, settings.npcs().size(), "few NPCs of modes: Ranked, FFA, the private games, Clutch Scenario,"
+                + " Attack and Defense");
+        for (String gone : Arrays.asList("rbwsolo1v1ou2v2skyrise", "firstrushnebucgelatosoloduo", "invispracticearwhayinvasion",
+                "realisticplat", "freearenacombo", "blockplacementarena")) {
+            assertNull(settings.npc(gone), gone + ": its modes stay in the compass");
+        }
+        assertNotNull(settings.npc("clutchscenario"));
+        assertNotNull(settings.npc("attackanddefense"));
         LobbyNpc duels = settings.npc("attackdefenseversionrbw");
         assertEquals("duels", duels.category());
+        assertEquals("§fDuel your friends or anyone", duels.subtitle(), "under a category NPC, the slogan of its category");
+        assertEquals("§fTrain alone, at your own pace", settings.npc("blockinpractice").subtitle());
         assertEquals(settings.modesIn("duels").size(), duels.modeIds().size(), "a category NPC holds its modes");
         assertTrue(duels.modeIds().contains("kb-displace"));
         LobbyNpc ranked = settings.npc("rankedbedwars1v1ou2v2elo");
@@ -181,6 +198,7 @@ class LobbySettingsTest {
                 Collections.singletonList(BoardStat.LEVEL)), settings.npc("leaderboardplayer").boards(),
                 "the kills in the middle, on the point");
         assertFalse(ranked.leaderboard());
+        assertNull(ranked.subtitle(), "an NPC of modes: its name and its queue");
         assertEquals(LobbyNpc.Kind.STATS, settings.npc("statsjoueur1").kind());
         assertEquals(LobbyNpc.Kind.STATS, settings.npc("statsjoueur2").kind());
         assertTrue(settings.npc("statsjoueur1").hasBody());
@@ -301,6 +319,25 @@ class LobbySettingsTest {
         assertInvalid(categories + "modes:\n  sumo: {}\n", "modes.sumo.categorie");
         assertInvalid(categories + "modes:\n  sumo:\n    categorie: autre\n", "modes.sumo.categorie");
         assertInvalid("categories:\n  Duels: {}\nmodes:\n  sumo: {}\n", "categories.Duels");
+        assertInvalid("categories:\n  duels:\n    slogan: '&fA slogan far too long to fit above an NPC head'\nmodes:\n"
+                + "  sumo:\n    categorie: duels\n", "categories.duels.slogan");
+    }
+
+    @Test
+    void aCategoryNpcShowsItsSloganUnlessItHasItsOwnLine() throws Exception {
+        String config = "categories:\n  duels:\n    nom: '&a&lDuels'\n    slogan: '&fDuel anyone'\n  solo:\n    nom: Solo\n"
+                + "modes:\n  sumo:\n    categorie: duels\n  bot:\n    categorie: solo\n"
+                + "pnj:\n  a:\n    categorie: duels\n  b:\n    categorie: duels\n    sous-titre: '&eNew modes!'\n"
+                + "  c:\n    categorie: solo\n  d:\n    modes: [sumo]\n  e:\n    modes: [sumo]\n    sous-titre: '&7Classic'\n"
+                + "accueil: false\n";
+        LobbySettings settings = LobbySettings.load(yaml(config));
+        assertEquals("§fDuel anyone", settings.npc("a").subtitle());
+        assertEquals("§eNew modes!", settings.npc("b").subtitle(), "its own line first");
+        assertNull(settings.npc("c").subtitle(), "a category without slogan");
+        assertNull(settings.category("solo").slogan());
+        assertNull(settings.npc("d").subtitle());
+        assertEquals("§7Classic", settings.npc("e").subtitle());
+        assertFalse(settings.welcome());
     }
 
     @Test

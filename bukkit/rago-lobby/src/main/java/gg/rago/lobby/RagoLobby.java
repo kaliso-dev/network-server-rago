@@ -226,7 +226,7 @@ public final class RagoLobby extends JavaPlugin implements LobbyService {
         cosmetics.start();
         getServer().getPluginManager().registerEvents(kitEditor, this);
         LobbyCommands commands = new LobbyCommands(this);
-        for (String name : new String[] {"lobby", "spawn", "queue", "duel", "hypixel", "party", "pc", "chat"}) {
+        for (String name : new String[] {"lobby", "spawn", "queue", "play", "duel", "hypixel", "party", "pc", "chat"}) {
             getCommand(name).setExecutor(commands);
             getCommand(name).setTabCompleter(commands);
         }
@@ -1095,6 +1095,7 @@ public final class RagoLobby extends JavaPlugin implements LobbyService {
         }
         visibility.applyVanish(player, state);
         social.announce(player, true);
+        LobbyWelcome.greet(player, settings);
         if (profiles.dailyReady(player.getUniqueId())) {
             player.sendMessage(ChatColor.AQUA + "Your daily reward is waiting: " + ChatColor.YELLOW + "/daily");
         }
