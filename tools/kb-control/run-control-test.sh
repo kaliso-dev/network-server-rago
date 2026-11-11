@@ -38,6 +38,7 @@ PORT=${KB_PORT:-25565}
 HITS_PER_PHASE=${KB_HITS_PER_PHASE:-36}
 PHASES=3
 ATTACKER=RagoAttacker
+VICTIM=RagoVictim
 
 log() { printf '[control-test] %s\n' "$*"; }
 fail() { printf '[control-test] FAILED: %s\n' "$*" >&2; exit 1; }
@@ -117,11 +118,15 @@ settings:
   allow-end: false
 EOF
 
-# The attacker bot runs the test commands. On an offline-mode server its UUID is derived from
-# its name, the way the server does it (UUID.nameUUIDFromBytes("OfflinePlayer:" + name)).
-attacker_uuid=$(python3 -c 'import hashlib, sys, uuid; print(uuid.UUID(bytes=hashlib.md5(("OfflinePlayer:" + sys.argv[1]).encode("utf-8")).digest(), version=3))' "$ATTACKER")
+# The attacker bot runs the test commands, and the victim runs /kb sparring on itself. On an
+# offline-mode server a UUID is derived from the name, the way the server does it
+# (UUID.nameUUIDFromBytes("OfflinePlayer:" + name)).
+offline_uuid() {
+  python3 -c 'import hashlib, sys, uuid; print(uuid.UUID(bytes=hashlib.md5(("OfflinePlayer:" + sys.argv[1]).encode("utf-8")).digest(), version=3))' "$1"
+}
 cat >"$SERVER_DIR/ops.json" <<EOF
-[{"uuid": "$attacker_uuid", "name": "$ATTACKER", "level": 4, "bypassesPlayerLimit": false}]
+[{"uuid": "$(offline_uuid "$ATTACKER")", "name": "$ATTACKER", "level": 4, "bypassesPlayerLimit": false},
+ {"uuid": "$(offline_uuid "$VICTIM")", "name": "$VICTIM", "level": 4, "bypassesPlayerLimit": false}]
 EOF
 
 # Engine settings for the test. control-alt is an arbitrary test profile, far enough from vanilla
@@ -202,4 +207,4 @@ fi
 # --- Check -------------------------------------------------------------------------------------
 log "checking the hits"
 "$CHECKER" --hits "$SERVER_DIR/plugins/RagoCombatEngine/hits" --received "$RUN_DIR/received.jsonl" \
-  --server-knockback pandaspigot --min-hits $((PHASES * HITS_PER_PHASE)) --report "$RUN_DIR/report.md"
+  --server-knockback pandaspigot --min-hits $((PHASES * HITS_PER_PHASE)) --expect-sparring --report "$RUN_DIR/report.md"

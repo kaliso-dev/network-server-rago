@@ -17,6 +17,7 @@ public final class RagoCombatEngine extends JavaPlugin {
 
     private volatile EngineSettings settings;
     private HitRecorder recorder;
+    private SparringSessions sparring;
     private final Set<UUID> debugViewers = new HashSet<>();
     private long tick;
 
@@ -44,6 +45,8 @@ public final class RagoCombatEngine extends JavaPlugin {
                 tuner.apply(player);
             }
         }
+        sparring = new SparringSessions(this);
+        getServer().getPluginManager().registerEvents(sparring, this);
         PluginCommand command = getCommand("kb");
         KbCommand executor = new KbCommand(this);
         command.setExecutor(executor);
@@ -55,11 +58,19 @@ public final class RagoCombatEngine extends JavaPlugin {
 
     @Override
     public void onDisable() {
+        if (sparring != null) {
+            sparring.stopAll();
+            sparring = null;
+        }
         if (recorder != null) {
             recorder.close();
             recorder = null;
         }
         debugViewers.clear();
+    }
+
+    SparringSessions sparring() {
+        return sparring;
     }
 
     /** Server ticks since the plugin was enabled. Main thread only. */

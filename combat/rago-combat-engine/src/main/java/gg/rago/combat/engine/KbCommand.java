@@ -21,7 +21,9 @@ import org.bukkit.entity.Player;
 final class KbCommand implements TabExecutor {
 
     private static final List<String> SUBCOMMANDS = Collections.unmodifiableList(Arrays.asList(
-            "status", "profiles", "profile", "world", "mode", "debug", "reload"));
+            "status", "profiles", "profile", "world", "mode", "debug", "sparring", "reload"));
+    private static final List<String> SPARRING_OPTIONS = Collections.unmodifiableList(Arrays.asList(
+            "sprint", "normal", "alterne", "stop"));
     private static final String DEFAULT_WORLD_PROFILE = "default";
 
     private final RagoCombatEngine plugin;
@@ -61,6 +63,9 @@ final class KbCommand implements TabExecutor {
                         () -> plugin.settings().withMode(EngineMode.parse(args[1])));
             case "debug":
                 debug(sender);
+                return true;
+            case "sparring":
+                sparring(sender, label, args);
                 return true;
             case "reload":
                 reload(sender);
@@ -118,6 +123,41 @@ final class KbCommand implements TabExecutor {
         sender.sendMessage(ChatColor.GRAY + "KB debug: " + ChatColor.WHITE + (enabled ? "on" : "off"));
     }
 
+    /** {@code /kb sparring [sprint|normal|alterne] [ticks]} or {@code /kb sparring stop}. */
+    private void sparring(CommandSender sender, String label, String[] args) {
+        if (!(sender instanceof Player)) {
+            sender.sendMessage(ChatColor.RED + "Le sparring frappe le joueur qui tape la commande : lance-la en jeu.");
+            return;
+        }
+        Player player = (Player) sender;
+        String usage = "/" + label + " sparring [sprint|normal|alterne] [" + Sparring.MIN_INTERVAL_TICKS + "-"
+                + Sparring.MAX_INTERVAL_TICKS + " ticks] ou /" + label + " sparring stop";
+        if (args.length >= 2 && args[1].equalsIgnoreCase("stop")) {
+            boolean stopped = plugin.sparring().stop(player.getUniqueId());
+            sender.sendMessage(ChatColor.GRAY + (stopped ? "Sparring arrêté." : "Pas de sparring en cours."));
+            return;
+        }
+        if (args.length > 3) {
+            usage(sender, usage);
+            return;
+        }
+        Sparring.Pattern pattern = args.length >= 2 ? Sparring.Pattern.parse(args[1]) : Sparring.Pattern.SPRINT;
+        Integer interval = args.length == 3 ? Sparring.parseInterval(args[2]) : Integer.valueOf(Sparring.DEFAULT_INTERVAL_TICKS);
+        if (pattern == null || interval == null) {
+            usage(sender, usage);
+            return;
+        }
+        plugin.sparring().start(player, pattern, interval);
+        String profile = plugin.settings().profileFor(player.getWorld().getName()).name();
+        String hits = pattern == Sparring.Pattern.ALTERNE ? "un coup sprint puis un coup normal"
+                : pattern == Sparring.Pattern.SPRINT ? "un coup sprint" : "un coup sans sprint";
+        sender.sendMessage(ChatColor.GRAY + "Sparring : " + ChatColor.WHITE + hits + ChatColor.GRAY + " toutes les "
+                + interval + " ticks (" + String.format(Locale.ROOT, "%.2f", interval / 20.0) + " s), profil "
+                + ChatColor.WHITE + profile + ChatColor.GRAY + ". L'attaquant invisible est devant toi : regarde "
+                + "dans une direction et laisse-toi pousser. /" + label + " sparring stop pour arrêter.");
+        plugin.audit(sender.getName(), "sparring " + pattern.configName() + " " + interval + " ticks, profil " + profile);
+    }
+
     private void reload(CommandSender sender) {
         try {
             plugin.reloadSettings();
@@ -142,6 +182,9 @@ final class KbCommand implements TabExecutor {
         String sub = args[0].toLowerCase(Locale.ROOT);
         if (args.length == 2 && sub.equals("profile")) {
             return matching(new ArrayList<>(plugin.settings().profiles().keySet()), args[1]);
+        }
+        if (args.length == 2 && sub.equals("sparring")) {
+            return matching(SPARRING_OPTIONS, args[1]);
         }
         if (args.length == 2 && sub.equals("mode")) {
             List<String> modes = new ArrayList<>();

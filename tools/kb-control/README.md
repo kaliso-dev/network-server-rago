@@ -20,6 +20,8 @@ mesuré plus tard soit vraiment celui que les joueurs ressentent.
 
    Chaque phase mélange coups avec et sans sprint, à main nue et avec des bâtons Knockback I et
    II, sur une victime immobile, qui marche ou en plein saut, à des distances et angles variés.
+   Une dernière phase, `sparring`, lance `/kb sparring alterne 10` sur la victime pendant environ
+   8 coups : le moteur la frappe lui-même, sans attaquant (les deux bots sont opérateurs).
    Les bots écrivent chaque paquet de vitesse reçu et chaque attaque dans `received.jsonl`.
    Avant le premier coup, ils attendent la fin de l'invulnérabilité de la victime qui vient de se
    connecter (60 ticks en 1.8.8, pendant lesquels un coup ne fait rien).
@@ -33,7 +35,11 @@ mesuré plus tard soit vraiment celui que les joueurs ressentent.
    - chaque attaque des bots a donné un coup journalisé (le rapport liste celles qui n'en ont
      donné aucun), et chaque paquet reçu appartient à un coup (un paquet en double ferait échouer
      le test) ;
-   - la couverture : les trois phases, sprint et sans sprint, enchantement, victime en l'air.
+   - **coups du sparring** : chacun a donné exactement un paquet, celui du journal, sans
+     attaque des bots ; et aucun ne part du knockback du coup de sparring précédent (le moteur
+     doit remettre le mouvement d'avant, comme le serveur après un vrai coup) ;
+   - la couverture : les trois phases, sprint et sans sprint, enchantement, victime en l'air, et
+     des coups de sparring avec et sans sprint (`--expect-sparring`).
 
 Le test échoue au moindre écart. Le rapport (`report.md`) donne, par mode, profil et sprint, le
 nombre de coups vérifiés et l'écart maximal avec le vanilla exact.

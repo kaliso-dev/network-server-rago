@@ -6,7 +6,7 @@ description: The Rago combat engine, configurable and measurable knockback for 1
 commands:
   kb:
     description: Combat engine settings (staff).
-    usage: /kb <status|profiles|profile|world|mode|debug|reload>
+    usage: /kb <status|profiles|profile|world|mode|debug|sparring|reload>
     permission: rago.combat.admin
     permission-message: This command is for the staff.
 permissions:
