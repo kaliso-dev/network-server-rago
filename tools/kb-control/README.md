@@ -9,7 +9,7 @@ mesuré plus tard soit vraiment celui que les joueurs ressentent.
 
 1. `run-control-test.sh` télécharge PandaSpigot 1.8.8 (le build 226, dont il vérifie la somme
    SHA-256) et monte, avec `test-server.sh`, un serveur de test (monde plat, mode hors ligne, accessible seulement depuis
-   la machine ; en CI, une fois sous Java 8 et une fois sous Java 21) avec RagoCombatEngine et son
+   la machine ; en CI, sous Java 8, 21 et 25) avec RagoCombatEngine et son
    journal des hits.
 2. Deux bots (`bots/control-bots.mjs`, avec [mineflayer](https://github.com/PrismarineJS/mineflayer)) :
    `RagoAttacker` frappe `RagoVictim` en trois phases de 36 coups :

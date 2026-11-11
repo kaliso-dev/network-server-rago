@@ -18,7 +18,7 @@ français.
 
 ## Ce qu'il faut
 
-- Java 21 ou Java 8. Si tu n'as pas Java, installe Java 21 :
+- Java 8, 21 ou 25. Si tu n'as pas Java, installe Java 21 :
   https://adoptium.net/fr/temurin/releases/?version=21
   (sur Windows, prends le fichier .msi et garde les options par défaut).
 - Minecraft 1.8.9, et une connexion internet pour le premier lancement.
@@ -255,7 +255,7 @@ La CI assemble ce dossier à chaque push (artefact « rago-serveur-de-test ») :
 tools/local-server, ce mode d'emploi renommé LISEZ-MOI.txt, et les jars de RagoCombatEngine, de
 RagoBuildTools (tools/build-tools), de RagoLobby (bukkit/rago-lobby), de RagoPractice
 (bukkit/rago-practice) et de RagoBedwars (bukkit/rago-bedwars) dans plugins/. Elle démarre le serveur deux fois, sur Linux et Windows,
-avec Java 8 et Java 21 : elle vérifie que les plugins s'activent, qu'un monde créé au premier
+avec Java 8, 21 et 25 : elle vérifie que les plugins s'activent, qu'un monde créé au premier
 lancement est retrouvé au second, et que le second lancement le sauvegarde. Le lobby et le duel
 sumo sont joués par deux bots dans un autre test (tools/lobby-check).
 
