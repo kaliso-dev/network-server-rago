@@ -212,7 +212,8 @@ Bed Fight avec un pont de laine tout en haut, à la limite de construction (le p
 joueurs dessus en y 98, `hauteur-max: 98`). Les deux joueurs partent des spawns de la map, aux deux
 bouts du pont, chacun devant un bloc de sa couleur. Les manches de Top Bridge : une vie, un kill ou
 une chute du pont (sous `hauteur-vide`, 4 blocs sous le pont) donne un point à l'autre, le premier
-à 5 gagne ; la manche suivante part tout de suite, sans décompte. Le kit du mode (l'éditeur
+à 5 gagne ; avant chaque manche suivante, un décompte de 3 secondes, les deux joueurs immobiles sur
+leur spawn. Le kit du mode (l'éditeur
 de kit du lobby ; sinon une épée en bois, un stack de laine et des cisailles) en armure de cuir de
 la couleur de son équipe, à chaque manche.
 

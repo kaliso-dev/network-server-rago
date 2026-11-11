@@ -13,8 +13,9 @@ import org.bukkit.inventory.PlayerInventory;
  * bridge he built on top, at the build height limit, each with a block of their colour at their
  * back. The rounds of Top Bridge: one life, a kill or a fall off the bridge (under the map's
  * hauteur-vide) gives the other side a point, the first to {@value TopBridgeGame#POINTS_TO_WIN}
- * wins. The mode's kit (the lobby's kit editor; else a wooden sword, a stack of wool and shears)
- * in leather armour of the team's colour, at each round.
+ * wins, each round after a countdown of {@value #ROUND_COUNTDOWN} seconds on the spawns. The
+ * mode's kit (the lobby's kit editor; else a wooden sword, a stack of wool and shears) in leather
+ * armour of the team's colour, at each round.
  *
  * <p>The bridge is the map's: no platform is built, its blocks break (to make the other fall) as
  * the blocks placed do, and the rollback of each round makes it whole again. The players start on
@@ -32,6 +33,8 @@ final class TopBedFightGame extends TopBridgeGame {
      * stand on it.
      */
     static final double BEHIND = 0.25;
+    /** The countdown before each round after the first, both players frozen on their spawn. */
+    static final int ROUND_COUNTDOWN = 3;
     /** How far beside the bridge, on either side, a block may be placed or broken: 10 blocks. */
     static final int SIDE = 10;
 
@@ -44,6 +47,12 @@ final class TopBedFightGame extends TopBridgeGame {
     @Override
     boolean hasTopBridge() {
         return false;
+    }
+
+    /** A countdown of {@value #ROUND_COUNTDOWN} seconds before each round, frozen on the spawns. */
+    @Override
+    int roundCountdown() {
+        return ROUND_COUNTDOWN;
     }
 
     /** Nothing to build for a round: the rollback has made the map's bridge whole again. */

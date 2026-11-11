@@ -13,6 +13,7 @@ import org.bukkit.block.Block;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.PlayerInventory;
+import org.bukkit.scheduler.BukkitTask;
 
 /**
  * Top Bridge, as the owner plays it: no bed, no forge, no shop, only the fight on the platform of
@@ -57,6 +58,8 @@ class TopBridgeGame extends BedwarsGame {
     private final int[] points;
     private int round = 1;
     private boolean roundOver;
+    /** The countdown before the current round, while it runs. */
+    private BukkitTask roundCountdown;
 
     TopBridgeGame(RagoBedwars plugin, BedwarsHost host, Instance instance, String modeId, String modeName,
             List<List<Player>> sides, boolean practice) {
@@ -325,8 +328,16 @@ class TopBridgeGame extends BedwarsGame {
     }
 
     /**
-     * The map as it was, the bridge again, everyone on top, and the fight at once: the title says
-     * the round, and who won the last one.
+     * The seconds of the countdown before each round after the first, everyone frozen on top: none
+     * in Top Bridge, the fight at once.
+     */
+    int roundCountdown() {
+        return 0;
+    }
+
+    /**
+     * The map as it was, the bridge again, everyone on top, and the fight (after the countdown of
+     * roundCountdown, if any): the title says the round, and who won the last one.
      */
     private void nextRound(Team lastWinner) {
         if (phase == Phase.ENDED) {
@@ -338,6 +349,7 @@ class TopBridgeGame extends BedwarsGame {
         removeUnusedBeds();
         buildFight();
         phase = Phase.STARTING;
+        int countdown = roundCountdown();
         for (Gamer gamer : gamers.values()) {
             cancel(gamer.respawn);
             gamer.respawn = null;
@@ -352,12 +364,37 @@ class TopBridgeGame extends BedwarsGame {
                 place(player, gamer);
                 String last = lastWinner == null ? ChatColor.YELLOW + "No point"
                         : gamer.team == lastWinner ? ChatColor.GOLD + "Round won" : ChatColor.RED + "Round lost";
-                player.sendTitle(ChatColor.GREEN + "" + ChatColor.BOLD + "ROUND " + round + " - FIGHT!",
+                player.sendTitle(countdown > 0 ? ChatColor.YELLOW + "" + ChatColor.BOLD + "ROUND " + round
+                        : ChatColor.GREEN + "" + ChatColor.BOLD + "ROUND " + round + " - FIGHT!",
                         last + ChatColor.GRAY + " · " + score());
             }
         }
-        phase = Phase.PLAYING;
+        if (countdown <= 0) {
+            phase = Phase.PLAYING;
+            sidebars();
+            return;
+        }
         sidebars();
+        cancel(roundCountdown);
+        final int[] left = {countdown};
+        roundCountdown = repeat(20L, 20L, () -> {
+            if (phase == Phase.ENDED) {
+                cancel(roundCountdown);
+                return;
+            }
+            if (left[0] > 0) {
+                broadcast(ChatColor.YELLOW + "Round " + round + " starts in " + ChatColor.RED + left[0] + ChatColor.YELLOW
+                        + "...", Sound.NOTE_STICKS);
+                title(ChatColor.RED + "" + ChatColor.BOLD + left[0], "");
+                left[0]--;
+                return;
+            }
+            cancel(roundCountdown);
+            roundCountdown = null;
+            phase = Phase.PLAYING;
+            title(ChatColor.GREEN + "" + ChatColor.BOLD + "FIGHT!", "");
+            sidebars();
+        });
     }
 
     @Override

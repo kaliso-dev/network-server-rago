@@ -48,7 +48,7 @@ prendre un (« Ann: 34 hits, best combo 7 »). Au sumo aussi ; pas dans les even
   cisailles, deux stacks de laine, 12 end stone, 16 échelles, armure en fer Protection IV.
   Construire, clutch, casser leurs blocs, faire tomber. Comme sur Minemen, les points sont les
   coups : chaque coup donné à l'autre camp vaut un point (le coup ne fait pas de dégâts, seulement
-  son recul), et faire tomber un adversaire dans le vide donne 20 points à son camp ; seul celui
+  son recul), et faire tomber un adversaire dans le vide donne 10 points à son camp ; seul celui
   qui est tombé revient tout de suite sur son bloc d'or, les autres continuent et les blocs restent. Premier à
   `points-pour-gagner.block-fight` (100). Sans ces mondes, deux petites plateformes au-dessus du
   vide.

@@ -95,7 +95,7 @@ dans les files d'attente des modes de jeu.
   **[PLAY AGAIN]** remet dans la file du même mode, et après un 1v1 qui n'est pas classé,
   **[REMATCH]** défie le même adversaire dans le même mode (s'il est encore là). Le papier
   **Play again** de la barre (5e case, celle de « Leave the queue ») fait comme [PLAY AGAIN] d'un
-  clic droit ; il reste jusqu'à la partie suivante. Avec « Play again »
+  clic droit ; il arrive directement dans la main, et reste jusqu'à la partie suivante. Avec « Play again »
   sur « Automatic » dans `/settings`, le joueur est remis dans la file tout seul, sans clic (pas
   après un `/spawn` : il est parti de lui-même). En party, seul le chef relance la file. Rien pour
   un mode fermé ou caché (les events).

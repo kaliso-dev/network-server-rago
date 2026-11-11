@@ -24,8 +24,9 @@ class TopBedFightGameTest {
     }
 
     @Test
-    void noWaitAfterADeath() {
-        assertEquals(1L, TopBridgeGame.NEXT_ROUND_TICKS, "the next round on the next tick, no countdown");
+    void aCountdownOfThreeSecondsBeforeEachRound() {
+        assertEquals(1L, TopBridgeGame.NEXT_ROUND_TICKS, "back on the spawns on the next tick");
+        assertEquals(3, TopBedFightGame.ROUND_COUNTDOWN, "then 3, 2, 1 and the fight");
         assertEquals(0, TopBridgeGame.PRACTICE_RESPAWN, "the private top bridge: back on top at once");
     }
 

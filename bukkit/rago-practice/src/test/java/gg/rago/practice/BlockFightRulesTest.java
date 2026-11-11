@@ -11,9 +11,9 @@ import org.junit.jupiter.api.Test;
 class BlockFightRulesTest {
 
     @Test
-    void inBlockPlacementAKnockIntoTheVoidGivesTwentyPoints() {
-        assertEquals(65, BlockFight.afterFall(45), "the other side gets 20");
-        assertEquals(20, BlockFight.afterFall(0));
+    void inBlockPlacementAKnockIntoTheVoidGivesTenPoints() {
+        assertEquals(55, BlockFight.afterFall(45), "the other side gets 10");
+        assertEquals(10, BlockFight.afterFall(0));
     }
 
     @Test

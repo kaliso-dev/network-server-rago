@@ -732,13 +732,15 @@ public final class RagoLobby extends JavaPlugin implements LobbyService {
 
     /**
      * Back from a game of this mode, which they may queue again (NextGame): the Play again paper in
-     * their hotbar, where the leave item goes, until they come back from another game.
+     * their hotbar, where the leave item goes, in their hand, until they come back from another game.
      */
     void offerPlayAgain(Player player, String modeId) {
         playAgain.put(player.getUniqueId(), modeId);
         ItemStack paper = playAgainPaper(player);
         if (paper != null && !kitEditor.isEditing(player) && state.isProtected(player) && queues.queueOf(player) == null) {
             player.getInventory().setItem(HotbarItem.PLAY_AGAIN.slot(), paper);
+            // in the hand at once: a right click and the next game
+            player.getInventory().setHeldItemSlot(HotbarItem.PLAY_AGAIN.slot());
             player.updateInventory();
         }
     }

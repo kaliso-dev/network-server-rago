@@ -28,7 +28,7 @@ import org.bukkit.inventory.ItemStack;
 final class BlockFight extends Duel {
 
     /** The points the other side gets for a fall into the void. */
-    static final int VOID_BONUS = 20;
+    static final int VOID_BONUS = 10;
 
     BlockFight(PracticeHost host, GameMode mode, Arena arena, List<List<Player>> teams, int target) {
         super(host, mode, arena, teams, target);
@@ -146,7 +146,7 @@ final class BlockFight extends Duel {
         }
     }
 
-    /** A fall into the void: +20 for the other side (the one who knocked them off), and the one who fell back on their start at once. */
+    /** A fall into the void: +10 for the other side (the one who knocked them off), and the one who fell back on their start at once. */
     @Override
     void fell(Player player) {
         UUID id = player.getUniqueId();
