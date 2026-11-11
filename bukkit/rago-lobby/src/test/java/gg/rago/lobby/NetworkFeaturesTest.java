@@ -15,7 +15,6 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.time.ZonedDateTime;
 import java.util.UUID;
 import java.util.concurrent.TimeUnit;
 import org.bukkit.Color;
@@ -372,9 +371,7 @@ class NetworkFeaturesTest {
     }
 
     @Test
-    void theSidebarReadsLikeHypixels() {
-        long noon = ZonedDateTime.of(2026, 11, 9, 12, 0, 0, 0, StatsPeriod.ZONE).toInstant().toEpochMilli();
-        assertEquals("09/11/26", LobbyScoreboard.date(noon), "day first");
+    void theSidebarShowsTheProgressInPercent() {
         assertEquals("0%", LobbyScoreboard.percent(0f));
         assertEquals("45%", LobbyScoreboard.percent(0.456f));
         assertEquals("99%", LobbyScoreboard.percent(0.9999f), "never 100% before the level");

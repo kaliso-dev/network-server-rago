@@ -16,7 +16,7 @@ slime:
   avant: 3.5
   haut: 1.3
 
-# The lobby scoreboard: its title (32 characters at most) and its last line.
+# The scoreboard: its title (32 characters at most) and, in a game, its last line.
 titre: "&e&lRAGO PRACTICE"
 adresse: "&erago.gg"
 
