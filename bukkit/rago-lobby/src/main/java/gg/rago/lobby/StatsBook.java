@@ -341,6 +341,13 @@ final class StatsBook {
         return stats;
     }
 
+    /** A Bed Wars final death of this player in this mode (out of the game): counted; their stats, changed. */
+    PlayerStats finalDeath(String modeId, UUID player, Names names) {
+        PlayerStats stats = statsOf(player, names);
+        stats.modeOrNew(modeId).finalDeaths++;
+        return stats;
+    }
+
     /** A bed this player broke in this mode: counted; their stats, changed. */
     PlayerStats bedBroken(String modeId, UUID player, Names names) {
         PlayerStats stats = statsOf(player, names);

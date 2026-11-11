@@ -88,6 +88,14 @@ public interface LobbyService {
     }
 
     /**
+     * A Bed Wars final death of this player in a game of this mode (out of the game, their bed
+     * gone, killed or not): counted in their stats, for their FKDR. Not counted in a party's
+     * private game or a lobby without stats.
+     */
+    default void recordFinalDeath(String modeId, UUID player) {
+    }
+
+    /**
      * A bed this player broke in a game of this mode: counted in their stats. Returns the beds they
      * broke now, every mode together, or 0 when it is not counted.
      */

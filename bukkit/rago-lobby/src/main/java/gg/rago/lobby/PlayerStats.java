@@ -508,6 +508,24 @@ final class PlayerStats {
         return total;
     }
 
+    /** The final deaths of the player (out of a Bed Wars game, the bed gone), every mode together. */
+    int finalDeaths() {
+        int total = 0;
+        for (ModeStats mode : modes.values()) {
+            total += mode.finalDeaths;
+        }
+        return total;
+    }
+
+    /** The games played (won or lost), every mode together. */
+    int games() {
+        int total = 0;
+        for (ModeStats mode : modes.values()) {
+            total += mode.games();
+        }
+        return total;
+    }
+
     /** The beds the player broke, every mode together. */
     int beds() {
         int total = 0;

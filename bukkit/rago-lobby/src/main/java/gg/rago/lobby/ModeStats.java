@@ -17,8 +17,9 @@ final class ModeStats {
     int peakElo;
     int kills;
     int deaths;
-    /** Bed Wars: the final kills and the beds broken, ever. */
+    /** Bed Wars: the final kills, the final deaths (out of the game, the bed gone) and the beds broken, ever. */
     int finalKills;
+    int finalDeaths;
     int beds;
 
     String day = "";

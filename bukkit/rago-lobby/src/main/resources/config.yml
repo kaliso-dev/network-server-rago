@@ -641,8 +641,9 @@ liens:
 classements:
   leaderboardprincipal:
     nom: "&e&lTop players"
-    # The Network level first (and on the podium); a click goes to the ELO, then the kills.
-    tableaux: [[niveau, elo, kills]]
+    # The Network level first (and on the podium); a click goes to the ELO, the kills, then the
+    # games played.
+    tableaux: [[niveau, elo, kills, parties]]
     # The podium behind the board: the emerald (1st), the diamond (2nd), the gold block (3rd).
     podium: ["0.5 67 57.5", "-1.5 66 57.5", "2.5 65 57.5"]
   leaderboardstats:

@@ -242,6 +242,11 @@ final class StatsService {
         return stats.finalKills();
     }
 
+    /** A Bed Wars final death: counted and written. */
+    void finalDeath(String modeId, UUID player) {
+        save(book.finalDeath(modeId, player, StatsService::nameOf));
+    }
+
     /** A bed broken: counted and written; the beds the player broke now, every mode together. */
     int bedBroken(String modeId, UUID player) {
         PlayerStats stats = book.bedBroken(modeId, player, StatsService::nameOf);

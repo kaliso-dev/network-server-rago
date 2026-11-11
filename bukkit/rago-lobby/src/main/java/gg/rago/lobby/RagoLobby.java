@@ -916,6 +916,13 @@ public final class RagoLobby extends JavaPlugin implements LobbyService {
     }
 
     @Override
+    public void recordFinalDeath(String modeId, UUID player) {
+        if (player != null && settings.catalog().get(modeId) != null && !state.isInPrivateGame(player)) {
+            stats.finalDeath(modeId, player);
+        }
+    }
+
+    @Override
     public int recordBedBroken(String modeId, UUID player) {
         if (player == null || settings.catalog().get(modeId) == null || state.isInPrivateGame(player)) {
             return 0;

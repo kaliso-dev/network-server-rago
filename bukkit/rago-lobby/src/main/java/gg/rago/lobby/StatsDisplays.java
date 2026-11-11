@@ -45,7 +45,7 @@ final class StatsDisplays {
     static final double BOARD_GAP = 5.5;
     /** Height of a board's lowest line above its point. */
     private static final double BOARD_BOTTOM = 1.2;
-    private static final int PROFILE_LINES = 10;
+    private static final int PROFILE_LINES = 11;
     private static final long CLICK_COOLDOWN_MS = 300;
     /** How far a board is clicked from, in blocks: as far as its text is easily read. */
     static final double AIM_REACH = 24;
@@ -137,11 +137,18 @@ final class StatsDisplays {
         List<String> lines = new ArrayList<>();
         lines.add(npc.name());
         lines.add(ChatColor.GRAY + "Network level: " + book.levels().tag(level));
-        lines.add(ChatColor.GRAY + "Wins: " + ChatColor.GREEN + (stats == null ? 0 : stats.wins(StatsPeriod.ALL, null, day, week)));
-        lines.add(ChatColor.GRAY + "Losses: " + ChatColor.RED + (stats == null ? 0 : stats.losses()));
-        lines.add(ChatColor.GRAY + "Kills: " + ChatColor.GREEN + (stats == null ? 0 : stats.kills(StatsPeriod.ALL, null, day, week)));
-        lines.add(ChatColor.GRAY + "Best win streak: " + ChatColor.YELLOW + (stats == null ? 0 : stats.best(StatsPeriod.ALL, null, day, week)));
-        lines.add(ChatColor.GRAY + "Wins today: " + ChatColor.GREEN
+        int wins = stats == null ? 0 : stats.wins(StatsPeriod.ALL, null, day, week);
+        int losses = stats == null ? 0 : stats.losses();
+        int finals = stats == null ? 0 : stats.finalKills();
+        String dot = ChatColor.DARK_GRAY + " · ";
+        lines.add(ChatColor.GRAY + "Games played: " + ChatColor.WHITE + (wins + losses));
+        lines.add(ChatColor.GRAY + "Wins: " + ChatColor.GREEN + wins + dot + ChatColor.GRAY + "Losses: " + ChatColor.RED + losses);
+        lines.add(ChatColor.GRAY + "WLR: " + ChatColor.GOLD + StatsMenu.ratio(wins, losses));
+        lines.add(ChatColor.GRAY + "Kills: " + ChatColor.GREEN + (stats == null ? 0 : stats.kills(StatsPeriod.ALL, null, day, week))
+                + dot + ChatColor.GRAY + "Final kills: " + ChatColor.GREEN + finals);
+        lines.add(ChatColor.GRAY + "FKDR: " + ChatColor.GOLD + StatsMenu.ratio(finals, stats == null ? 0 : stats.finalDeaths()));
+        lines.add(ChatColor.GRAY + "Best win streak: " + ChatColor.YELLOW + (stats == null ? 0 : stats.best(StatsPeriod.ALL, null, day, week))
+                + dot + ChatColor.GRAY + "Wins today: " + ChatColor.GREEN
                 + (stats == null ? 0 : stats.wins(StatsPeriod.DAY, null, day, week)));
         // The ELO of the ranked modes, two per line.
         for (int i = 0; i < 4; i += 2) {

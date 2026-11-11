@@ -375,8 +375,9 @@ générateur vide ; un monde de build peut donc servir de lobby.
   top 10, la place de celui qui regarde et quand il repart de zéro. Un clic sur un tableau change
   sa période pour ce joueur (du jour, de la semaine, à vie) ; sur un tableau `elo`, il change de
   mode classé. Un tableau peut regrouper plusieurs classements entre crochets
-  (`tableaux: [[niveau, elo, kills]]`, celui de leaderboardprincipal, qui montre d'abord le
-  niveau Network, sur le tableau et sur le podium) : un clic droit passe au classement suivant, un clic gauche change la période ou le mode classé, et un clic sur la ligne
+  (`tableaux: [[niveau, elo, kills, parties]]`, celui de leaderboardprincipal, qui montre d'abord
+  le niveau Network, sur le tableau et sur le podium, puis l'ELO, les kills et les parties jouées) :
+  un clic droit passe au classement suivant, un clic gauche change la période ou le mode classé, et un clic sur la ligne
   « Click here: next leaderboard » ou « Click here: change the period » fait ce qu'elle dit. Un
   clic gauche atteint un tableau de 16 blocs, n'importe où sur son texte : le plugin suit le
   regard du joueur. Un clic droit ne l'atteint que de près : plus loin, l'objet en main (boussole,

@@ -3,6 +3,7 @@ package gg.rago.lobby;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
+import gg.rago.game.GameMode;
 import java.io.InputStreamReader;
 import java.io.Reader;
 import java.lang.reflect.Proxy;
@@ -98,6 +99,13 @@ class StatsDisplaysTest {
         assertEquals("All modes · Weekly", plain(displays.board(stats, key, alice, SUNDAY)).get(1));
         displays.next(alice, stats, key, true);
         assertEquals("All modes · Lifetime", plain(displays.board(stats, key, alice, SUNDAY)).get(1));
+
+        displays.next(alice, stats, key, false);
+        List<String> games = plain(displays.board(stats, key, alice, SUNDAY));
+        assertEquals("Games played", games.get(0), "then the games played");
+        assertEquals("All modes · Daily", games.get(1));
+        assertEquals("1. Alice - 1", games.get(3), "every game counts, won or lost");
+        assertEquals("2. Bob - 1", games.get(4));
 
         displays.next(alice, stats, key, false);
         assertEquals("Network level", plain(displays.board(stats, key, alice, SUNDAY)).get(0), "and back to the first");
@@ -225,7 +233,41 @@ class StatsDisplaysTest {
         StatsDisplays displays = new StatsDisplays(settings, book, new StatsMenu(settings, book), new FakeEntities(null, null));
         List<String> lines = plain(displays.profile(settings.npc("statsjoueur1"), player(ALICE)));
         assertTrue(lines.contains("Network level: [6" + NetworkLevel.STAR + "]"), lines.toString());
-        assertTrue(lines.contains("Kills: 1"), lines.toString());
+        assertTrue(lines.contains("Kills: 1 · Final kills: 0"), lines.toString());
+        assertTrue(lines.contains("Games played: 0"), lines.toString());
+        assertTrue(lines.contains("FKDR: 0"), lines.toString());
         assertEquals("CLICK FOR YOUR STATS", lines.get(lines.size() - 1));
+        assertEquals(11, lines.size(), "the lines of the hologram");
+    }
+
+    @Test
+    void theProfileShowsTheGamesTheWlrAndTheFkdr() throws Exception {
+        LobbySettings settings = bundledSettings();
+        StatsBook book = new StatsBook(1000, settings.levels());
+        GameMode ranked = settings.catalog().get("ranked-1v1");
+        GameMode sumo = settings.catalog().get("sumo");
+        for (int i = 0; i < 3; i++) {
+            book.record(ranked, Collections.singletonList(ALICE), Collections.singletonList(BOB), NAMES, SUNDAY);
+        }
+        book.record(sumo, Collections.singletonList(BOB), Collections.singletonList(ALICE), NAMES, SUNDAY);
+        book.record(sumo, Collections.singletonList(BOB), Collections.singletonList(ALICE), NAMES, SUNDAY);
+        for (int i = 0; i < 5; i++) {
+            book.finalKill("ranked-1v1", ALICE, NAMES);
+        }
+        book.finalDeath("ranked-1v1", ALICE, NAMES);
+        book.finalDeath("ranked-2v2", ALICE, NAMES);
+        PlayerStats alice = book.get(ALICE);
+        assertEquals(5, alice.games(), "every game, won or lost, every mode");
+        assertEquals(2, alice.finalDeaths());
+        StatsDisplays displays = new StatsDisplays(settings, book, new StatsMenu(settings, book), new FakeEntities(null, null));
+        List<String> lines = plain(displays.profile(settings.npc("statsjoueur1"), player(ALICE)));
+        assertTrue(lines.contains("Games played: 5"), lines.toString());
+        assertTrue(lines.contains("Wins: 3 · Losses: 2"), lines.toString());
+        assertTrue(lines.contains("WLR: 1.5"), lines.toString());
+        assertTrue(lines.contains("FKDR: 2.5"), "5 final kills, 2 final deaths: " + lines);
+        PlayerStats read = StatsFiles.fromYaml(ALICE, StatsFiles.toYaml(alice));
+        assertEquals(2, read.finalDeaths(), "kept in the file");
+        assertEquals(1, read.mode("ranked-2v2").finalDeaths);
+        assertEquals(5, read.games());
     }
 }

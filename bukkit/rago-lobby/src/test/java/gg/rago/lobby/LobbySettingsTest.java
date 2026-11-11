@@ -228,7 +228,7 @@ class LobbySettingsTest {
                 "clutch-scenario-1v1", "attack-defense-1v1")), "every RBW mode, Ranked Bedwars first");
         assertEquals(settings.modesIn("ranked").size(), ranked.modeIds().size());
         assertTrue(settings.npc("leaderboardprincipal").leaderboard());
-        assertEquals(Collections.singletonList(Arrays.asList(BoardStat.LEVEL, BoardStat.ELO, BoardStat.KILLS)),
+        assertEquals(Collections.singletonList(Arrays.asList(BoardStat.LEVEL, BoardStat.ELO, BoardStat.KILLS, BoardStat.GAMES)),
                 settings.npc("leaderboardprincipal").boards(), "one board, the Network level first (the podium too), a right"
                 + " click goes to the next stat");
         assertEquals(Arrays.asList(Collections.singletonList(BoardStat.WINS), Collections.singletonList(BoardStat.STREAK),

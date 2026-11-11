@@ -135,6 +135,9 @@ final class StatsFiles {
             if (m.finalKills > 0) {
                 section.set("final-kills", m.finalKills);
             }
+            if (m.finalDeaths > 0) {
+                section.set("morts-finales", m.finalDeaths);
+            }
             if (m.beds > 0) {
                 section.set("lits", m.beds);
             }
@@ -313,6 +316,7 @@ final class StatsFiles {
                 m.kills = Math.max(0, section.getInt("kills"));
                 m.deaths = Math.max(0, section.getInt("morts"));
                 m.finalKills = Math.max(0, section.getInt("final-kills"));
+                m.finalDeaths = Math.max(0, section.getInt("morts-finales"));
                 m.beds = Math.max(0, section.getInt("lits"));
                 m.day = section.getString("jour.date", "");
                 m.dayWins = Math.max(0, section.getInt("jour.victoires"));

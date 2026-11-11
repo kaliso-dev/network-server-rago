@@ -1024,6 +1024,10 @@ class BedwarsGame {
         String line = finalKill && author != null
                 ? KillLines.finalKill(gamer.coloured(), author.coloured(), plugin.lobby().recordFinalKill(modeId, author.id))
                 : null;
+        if (finalKill) {
+            // out of the game, killed or not: a final death, for the FKDR
+            plugin.lobby().recordFinalDeath(modeId, gamer.id);
+        }
         broadcast(line != null ? line : gamer.coloured() + ChatColor.GRAY + how
                 + (author == null ? "" : author.coloured() + ChatColor.GRAY + ".")
                 + (finalKill ? ChatColor.AQUA + "" + ChatColor.BOLD + " FINAL KILL!" : ""), null);

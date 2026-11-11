@@ -705,10 +705,14 @@ final class NetworkCommands implements CommandExecutor, TabCompleter {
                 sender.sendMessage(ChatColor.GRAY + line);
             }
         }
+        sender.sendMessage(ChatColor.GRAY + "Games played: " + ChatColor.WHITE + profile.games());
         sender.sendMessage(ChatColor.GRAY + "Wins: " + ChatColor.GREEN + wins + ChatColor.GRAY + "  Losses: " + ChatColor.RED
-                + profile.losses() + ChatColor.GRAY + "  W/L: " + ChatColor.YELLOW + StatsMenu.ratio(wins, profile.losses()));
+                + profile.losses() + ChatColor.GRAY + "  WLR: " + ChatColor.GOLD + StatsMenu.ratio(wins, profile.losses()));
         sender.sendMessage(ChatColor.GRAY + "Kills: " + ChatColor.GREEN + kills + ChatColor.GRAY + "  Deaths: " + ChatColor.RED
                 + profile.deaths() + ChatColor.GRAY + "  K/D: " + ChatColor.YELLOW + StatsMenu.ratio(kills, profile.deaths()));
+        sender.sendMessage(ChatColor.GRAY + "Final kills: " + ChatColor.GREEN + profile.finalKills() + ChatColor.GRAY
+                + "  Final deaths: " + ChatColor.RED + profile.finalDeaths() + ChatColor.GRAY + "  FKDR: " + ChatColor.GOLD
+                + StatsMenu.ratio(profile.finalKills(), profile.finalDeaths()));
     }
 
     // --- Completion -----------------------------------------------------------------------------
