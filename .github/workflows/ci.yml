@@ -46,8 +46,17 @@ jobs:
           path: combat/rago-combat-engine/build/libs/*.jar
           if-no-files-found: error
 
+      # The two launchers download the same files: they must pin the same SHA-256 sums.
+      - name: Check that both launchers pin the same downloads
+        run: |
+          sums=$(grep -oE '[0-9a-f]{64}' tools/local-server/lancer-mac-linux.sh | sort)
+          [ "$sums" = "$(grep -oE '[0-9a-f]{64}' tools/local-server/lancer.ps1 | sort)" ] || {
+            echo "::error::lancer-mac-linux.sh and lancer.ps1 do not pin the same SHA-256 sums"; exit 1; }
+          echo "$sums"
+
       # The local test server for players (tools/local-server): the launchers, the settings, the
-      # guide as LISEZ-MOI.txt and the plugin. The zip of this artifact is what a player downloads.
+      # guide as LISEZ-MOI.txt and the plugins. The zip of this artifact is what a player downloads.
+      # WorldEdit is not in it: the launchers download it from its publisher and check its sum.
       - name: Assemble the local test server
         run: |
           kit=build/rago-serveur-de-test
@@ -56,7 +65,7 @@ jobs:
           cp tools/local-server/lancer-windows.bat tools/local-server/lancer.ps1 \
             tools/local-server/lancer-mac-linux.sh tools/local-server/server.properties "$kit/"
           cp tools/local-server/README.md "$kit/LISEZ-MOI.txt"
-          cp combat/rago-combat-engine/build/libs/*.jar "$kit/plugins/"
+          cp combat/rago-combat-engine/build/libs/*.jar tools/build-tools/build/libs/*.jar "$kit/plugins/"
           ls -lR "$kit"
 
       - uses: actions/upload-artifact@v7
@@ -157,67 +166,147 @@ jobs:
           name: rago-serveur-de-test
           path: kit
 
-      - name: Start the server (Linux)
+      # The pinned SHA-256 of WorldEdit is checked against the MD5 its publisher shows on
+      # https://dev.bukkit.org/projects/worldedit/files/880435, so the pin is the publisher's file.
+      - name: Check that WorldEdit is the file dev.bukkit.org publishes
         if: runner.os == 'Linux'
         working-directory: kit
         run: |
-          # The server console reads a pipe that stays open, so that "stop" can be typed into it.
-          mkfifo console
-          bash lancer-mac-linux.sh < console > launch.log 2>&1 &
-          pid=$!
-          exec 3> console
-          started=false
-          for _ in $(seq 1 240); do
-            if grep -qsF 'Done (' logs/latest.log; then started=true; break; fi
-            if ! kill -0 "$pid" 2>/dev/null; then break; fi
-            sleep 2
-          done
-          if [ "$started" = true ]; then
+          mkdir -p plugins
+          curl -fsSL --retry 3 --retry-delay 5 -o plugins/worldedit-bukkit-6.1.jar \
+            https://mediafilez.forgecdn.net/files/880/435/worldedit-bukkit-6.1.jar
+          md5=$(md5sum plugins/worldedit-bukkit-6.1.jar | cut -d' ' -f1)
+          sha256=$(sha256sum plugins/worldedit-bukkit-6.1.jar | cut -d' ' -f1)
+          echo "WorldEdit 6.1: MD5 $md5, SHA-256 $sha256"
+          [ "$md5" = 13749e1701499d379765bb218191035a ] || {
+            echo "::error::WorldEdit 6.1 does not have the MD5 shown by dev.bukkit.org"; exit 1; }
+          grep -qF "WORLDEDIT_SHA256=$sha256" lancer-mac-linux.sh || {
+            echo "::error::the launchers do not pin the SHA-256 of WorldEdit 6.1 ($sha256)"; exit 1; }
+
+      # Two launches, as a builder does: the first creates a build world, the second must find it
+      # again and start with a backup of it.
+      - name: Start the server twice (Linux)
+        if: runner.os == 'Linux'
+        working-directory: kit
+        run: |
+          data=$HOME/Rago
+          mkdir -p "$data/schematics"
+          printf 'not a real schematic\n' > "$data/schematics/ci-test.schematic"
+
+          # $1: text expected in the server log, $2: how many tries, two seconds apart.
+          wait_for() {
+            for _ in $(seq 1 "$2"); do
+              if grep -qsF "$1" logs/latest.log; then return 0; fi
+              kill -0 "$pid" 2>/dev/null || return 1
+              sleep 2
+            done
+            return 1
+          }
+          fail() { echo "::error::$1"; [ -f logs/latest.log ] && cat logs/latest.log; exit 1; }
+          expect() { grep -F "$1" "$2" || fail "missing in $2: $1"; }
+          # The server console reads a pipe that stays open, so that commands can be typed into it.
+          start_server() {
+            rm -f console
+            mkfifo console
+            bash lancer-mac-linux.sh < console > "launch-$1.log" 2>&1 &
+            pid=$!
+            exec 3> console
+            wait_for 'Done (' 240 || { cat "launch-$1.log"; fail "the server did not start (launch $1)"; }
+          }
+          stop_server() {
             echo stop >&3
             for _ in $(seq 1 60); do kill -0 "$pid" 2>/dev/null || break; sleep 1; done
-          fi
-          cat launch.log
-          if kill -0 "$pid" 2>/dev/null; then
-            kill "$pid"
-            echo "::error::the server did not stop when stop was typed in its console"
-            exit 1
-          fi
-          [ "$started" = true ] || { echo "::error::the server did not start"; exit 1; }
-          grep -F 'git-PandaSpigot-226' logs/latest.log
-          grep -F '[RagoCombatEngine] Mode override, default profile vanilla' logs/latest.log
-          grep -F 'Stopping server' logs/latest.log
+            cat "launch-$1.log"
+            if kill -0 "$pid" 2>/dev/null; then
+              kill "$pid"
+              fail "the server did not stop when stop was typed in its console (launch $1)"
+            fi
+            exec 3>&-
+            expect 'Stopping server' logs/latest.log
+            mv logs/latest.log "logs/launch-$1.log"
+          }
 
-      - name: Start the server (Windows)
+          start_server 1
+          expect 'git-PandaSpigot-226' logs/latest.log
+          expect '[RagoCombatEngine] Mode override, default profile vanilla' logs/latest.log
+          expect '[WorldEdit] Enabling WorldEdit v6.1' logs/latest.log
+          expect "[RagoBuildTools] Mondes de $data/mondes" logs/latest.log
+          echo 'monde creer ci vide' >&3
+          wait_for 'Monde ci cr' 30 || fail "/monde creer did not create the world"
+          echo 'schematic list' >&3
+          wait_for 'ci-test' 15 || fail "WorldEdit does not list the schematics of $data/schematics"
+          expect "dir: '$data/schematics'" plugins/WorldEdit/config.yml
+          stop_server 1
+          [ -f "$data/mondes/ci/level.dat" ] || fail "the world ci was not saved in $data/mondes"
+          expect 'generateur: vide' "$data/mondes/ci/rago-monde.yml"
+
+          start_server 2
+          expect '[RagoBuildTools] Monde ci charg' logs/latest.log
+          archive=$(ls "$data"/sauvegardes/mondes-*.tar.gz | sort | tail -n 1)
+          echo "Backup: $archive"
+          tar -tzf "$archive" > backup.txt
+          expect 'mondes/ci/level.dat' backup.txt
+          expect 'mondes/ci/rago-monde.yml' backup.txt
+          expect 'schematics/ci-test.schematic' backup.txt
+          stop_server 2
+
+      - name: Start the server twice (Windows)
         if: runner.os == 'Windows'
         working-directory: kit
         shell: pwsh
         run: |
+          $data = Join-Path $env:USERPROFILE 'Rago'
+          function Fail([string]$Text) {
+            Write-Output "::error::$Text"
+            if (Test-Path logs/latest.log) { Get-Content logs/latest.log }
+            exit 1
+          }
+          function Assert-Log([string]$Text) {
+            if (-not (Select-String -Path logs/latest.log -Pattern $Text -SimpleMatch -Quiet)) { Fail "missing in the server log: $Text" }
+          }
           # The player's path: lancer-windows.bat, which runs lancer.ps1 with Windows PowerShell 5.1.
-          $launcher = Start-Process -FilePath cmd.exe -ArgumentList '/c', 'lancer-windows.bat' -PassThru `
-            -RedirectStandardOutput launch.log -RedirectStandardError launch.err -WorkingDirectory $PWD
-          $started = $false
-          $launchedAt = Get-Date
-          $deadline = $launchedAt.AddMinutes(8)
-          while ((Get-Date) -lt $deadline) {
-            if ((Test-Path logs/latest.log) -and (Select-String -Path logs/latest.log -Pattern 'Done (' -SimpleMatch -Quiet)) {
-              $started = $true
-              break
+          # There is no console to type stop into, so the server is killed once it has started.
+          function Invoke-Launch([string]$Name) {
+            $launcher = Start-Process -FilePath cmd.exe -ArgumentList '/c', 'lancer-windows.bat' -PassThru `
+              -RedirectStandardOutput "launch-$Name.log" -RedirectStandardError "launch-$Name.err" -WorkingDirectory $PWD
+            $started = $false
+            $launchedAt = Get-Date
+            $deadline = $launchedAt.AddMinutes(8)
+            while ((Get-Date) -lt $deadline) {
+              if ((Test-Path logs/latest.log) -and (Select-String -Path logs/latest.log -Pattern 'Done (' -SimpleMatch -Quiet)) {
+                $started = $true
+                break
+              }
+              if ($launcher.HasExited) { break }
+              # Once lancer.ps1 has ended, the batch file waits on "pause": stop waiting for the server.
+              $launcherScript = @(Get-CimInstance Win32_Process -Filter "ParentProcessId = $($launcher.Id) AND Name = 'powershell.exe'")
+              if ($launcherScript.Count -eq 0 -and ((Get-Date) - $launchedAt).TotalSeconds -gt 15) { break }
+              Start-Sleep -Seconds 2
             }
-            if ($launcher.HasExited) { break }
-            # Once lancer.ps1 has ended, the batch file waits on "pause": stop waiting for the server.
-            $launcherScript = @(Get-CimInstance Win32_Process -Filter "ParentProcessId = $($launcher.Id) AND Name = 'powershell.exe'")
-            if ($launcherScript.Count -eq 0 -and ((Get-Date) - $launchedAt).TotalSeconds -gt 15) { break }
-            Start-Sleep -Seconds 2
+            Get-Content "launch-$Name.log", "launch-$Name.err" -ErrorAction SilentlyContinue
+            taskkill /T /F /PID $launcher.Id 2>$null
+            Start-Sleep -Seconds 3
+            if (-not $started) { Fail "the server did not start (launch $Name)" }
           }
-          Get-Content launch.log, launch.err -ErrorAction SilentlyContinue
-          taskkill /T /F /PID $launcher.Id 2>$null
-          if (-not $started) { Write-Output '::error::the server did not start'; exit 1 }
-          foreach ($expected in 'git-PandaSpigot-226', '[RagoCombatEngine] Mode override, default profile vanilla') {
-            if (-not (Select-String -Path logs/latest.log -Pattern $expected -SimpleMatch -Quiet)) {
-              Write-Output "::error::missing in the server log: $expected"
-              exit 1
-            }
+
+          Invoke-Launch 1
+          foreach ($expected in 'git-PandaSpigot-226', '[RagoCombatEngine] Mode override, default profile vanilla',
+              '[WorldEdit] Enabling WorldEdit v6.1', "[RagoBuildTools] Mondes de $data\mondes") {
+            Assert-Log $expected
           }
+          $config = Get-Content plugins/WorldEdit/config.yml -Raw
+          if (-not $config.Contains("dir: '$($data.Replace('\', '/'))/schematics'")) { Fail "WorldEdit config.yml: $config" }
+          Move-Item logs/latest.log logs/launch-1.log
+
+          Invoke-Launch 2
+          $archive = Get-ChildItem -LiteralPath (Join-Path $data 'sauvegardes') -Filter 'mondes-*.zip' |
+            Sort-Object Name | Select-Object -Last 1
+          if (-not $archive) { Fail "no backup in $data\sauvegardes" }
+          Write-Output "Backup: $($archive.FullName)"
+          Add-Type -AssemblyName System.IO.Compression.FileSystem
+          $zip = [IO.Compression.ZipFile]::OpenRead($archive.FullName)
+          try { $entries = @($zip.Entries | ForEach-Object { $_.FullName }) } finally { $zip.Dispose() }
+          if (-not ($entries | Where-Object { $_ -like 'mondes/world/*' })) { Fail "the backup has no mondes/world: $entries" }
           exit 0
 
       - uses: actions/upload-artifact@v7
