@@ -22,8 +22,8 @@ dans les files d'attente des modes de jeu.
 - **La barre d'objets.** La boussole ouvre le sélecteur des modes ; le livre ouvre l'éditeur de
   kit ; le colorant rouge quitte la file ; l'émeraude ouvre la boutique, la tête le profil (où se
   trouvent aussi le niveau Network, ses récompenses et les quêtes). Dans l'ordre : boussole, livre,
-  colorant rouge (ou le papier Play again), gadget, fireball, deux cases libres (6 et 7), émeraude
-  et tête. La fireball part là où on regarde, comme en Bed Wars, et son souffle pousse
+  une case libre (3), gadget, fireball, une case libre (6), colorant rouge (ou le papier Play
+  again, en 7e case), émeraude et tête. La fireball part là où on regarde, comme en Bed Wars, et son souffle pousse
   les joueurs autour comme sur Hypixel : sous ses pieds, c'est un fireball jump (une toutes les
   demi-secondes, elle ne blesse personne et ne casse rien). Le bâton de blaze (teleport stick)
   emmène sur le bloc qu'on regarde, à 20 blocs au plus, jamais à travers un mur : le premier bloc
@@ -95,7 +95,7 @@ dans les files d'attente des modes de jeu.
 - **Après une partie : rejouer ou revanche.** De retour au lobby, une ligne cliquable :
   **[PLAY AGAIN]** remet dans la file du même mode, et après un 1v1 qui n'est pas classé,
   **[REMATCH]** défie le même adversaire dans le même mode (s'il est encore là). Le papier
-  **Play again** de la barre (5e case, celle de « Leave the queue ») fait comme [PLAY AGAIN] d'un
+  **Play again** de la barre (7e case, celle de « Leave the queue », juste avant l'émeraude) fait comme [PLAY AGAIN] d'un
   clic droit ; il arrive directement dans la main, et reste jusqu'à la partie suivante. Avec « Play again »
   sur « Automatic » dans `/settings`, le joueur est remis dans la file tout seul, sans clic (pas
   après un `/spawn` : il est parti de lui-même). En party, seul le chef relance la file. Rien pour
@@ -106,7 +106,7 @@ dans les files d'attente des modes de jeu.
   Rago Points comptent quand même. Le défi en mode classé le dit (« A duel never changes the
   ranked ELO. »).
 - **Le scoreboard.** Peu de mots et de l'espace, titre en jaune : le rang, le niveau et l'avancée
-  vers le suivant en % ; les Rago Points (« Coins ») et la meilleure division classée ; le ping et
+  vers le suivant en % ; les Rago Points (« Points ») et la meilleure division classée ; le ping et
   les joueurs connectés ; la file et le temps d'attente quand on attend ; l'adresse en jaune tout en
   bas. Le Tab aussi (« You are playing on RAGO.GG », les joueurs et le ping, la boutique). En partie : le mode et le ping du joueur, et en 1v1 l'adversaire et son
   ping (vert sous 80 ms, jaune sous 150, rouge au-delà). Un jeu qui donne ses propres lignes sans
@@ -145,12 +145,12 @@ dans les files d'attente des modes de jeu.
   (rago-optimizer.com) : la boutique du jeu montre ce qu'ils donnent, leur prix (`prix-en-ligne`)
   et le lien, VIP à gauche et PREMIUM+ à sa droite (le plus bas d'abord), comme partout ; la
   boutique en ligne les donne depuis la console avec `/rank give <joueur> vip` ou `premium`.
-  **VIP** (4,99 $), le petit rang :
+  **VIP** (4,99 €), le petit rang :
   un pseudo bleu clair (le style `aqua`) et le préfixe `[VIP]`, +25 % d'XP Network
   (`boost-xp: 1.25`), `/fly` et la vitesse au lobby, l'arrivée annoncée avec un feu d'artifice, des
   messages blancs sans délai, la priorité dans les files après PREMIUM+, et trois cosmétiques à lui,
   parmi les moins chers (la traînée Clouds, le kill Heart burst, la victoire Love : les permissions
-  `rago.cosmetic.<id>`). **PREMIUM** (9,99 $) hérite de VIP et garde tout le reste.
+  `rago.cosmetic.<id>`). **PREMIUM** (9,99 €) hérite de VIP et garde tout le reste.
 - **La priorité dans les files (`priorite-file`).** PREMIUM+ (2) passe avant VIP (1), qui passe
   avant les autres (0) : quand une file a plus de joueurs qu'une partie n'en prend, les plus hauts
   jouent d'abord, puis le temps d'attente décide. Après une minute d'attente, tout le monde passe en
@@ -210,7 +210,7 @@ dans les files d'attente des modes de jeu.
 - **Le PNJ Shop et le pack de départ (`/pack`).** Au centre du lobby (le point `aimtrainer`,
   `type: shop`), un PNJ Shop ouvre la vitrine de celui qui débute : d'abord le **pack de départ**,
   ce qu'il y a de moins cher (3,99 €, une fois par joueur : 20 000 Rago Points, 3 boosters d'XP,
-  2 boosters de pièces et 3 cosmétiques sans leur niveau, sans rang), puis VIP (4,99 $) et ses
+  2 boosters de pièces et 3 cosmétiques sans leur niveau, sans rang), puis VIP (4,99 €) et ses
   avantages, puis ce que les Rago Points achètent : les couleurs de pseudo, les boosters et les
   cosmétiques ; enfin comment gagner des Rago Points et Rago Optimizer. PREMIUM+ est dans `/shop`,
   sous l'icône du lingot d'or des rangs. Ce qui se vend sur la boutique en ligne donne son lien

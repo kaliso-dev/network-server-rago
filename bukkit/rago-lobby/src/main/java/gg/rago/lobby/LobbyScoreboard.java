@@ -462,7 +462,7 @@ final class LobbyScoreboard {
         lines.add(ChatColor.WHITE + "Progress: " + ChatColor.AQUA
                 + (level >= NetworkLevel.MAX_LEVEL ? "max" : percent(levels.progress(xp))));
         lines.add(blank(1));
-        lines.add(ChatColor.WHITE + "Coins: " + ChatColor.GOLD + String.format(java.util.Locale.US, "%,d", stats == null ? 0 : stats.points()));
+        lines.add(ChatColor.WHITE + "Points: " + ChatColor.GOLD + String.format(java.util.Locale.US, "%,d", stats == null ? 0 : stats.points()));
         int best = bestElo(player.getUniqueId());
         if (best >= 0) {
             lines.add(cut(ChatColor.WHITE + "Ranked: " + book.ladder().format(best)));

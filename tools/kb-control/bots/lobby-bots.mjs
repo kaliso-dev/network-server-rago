@@ -761,7 +761,8 @@ async function main () {
   // 1. The lobby.
   await expectInLobby(one, 'on joining')
   await expectInLobby(two, 'on joining')
-  // the fireball in the fifth slot, two free slots, the shop and the profile at the end
+  // the fireball in the fifth slot, a free slot, the slot of the leave or play again item (empty out
+  // of a queue before any game), the shop and the profile at the end
   const layout = [4, 5, 6, 7, 8].map((slot) => hotbarItem(one, slot)?.name ?? null)
   if (JSON.stringify(layout) !== JSON.stringify(['fire_charge', null, null, 'emerald', 'skull'])) {
     throw new Error(`the lobby hotbar, slots 4 to 8: ${JSON.stringify(layout)}`)

@@ -363,7 +363,7 @@ quetes:
 #   style, badge the colour of name and the badge (of styles:) its players wear until they choose
 #                another with /style; they own them as long as they have the rank
 #   boutique-en-ligne  true: sold on the web store, the shop shows the link (liens.boutique)
-#   prix-en-ligne      its price on the web store, shown in the shop and the store ("$4.99")
+#   prix-en-ligne      its price on the web store, shown in the shop and the store ("4.99€")
 #   priorite-file      its place in the queues, 0 to 9: the higher are matched first (PREMIUM+ 2,
 #                VIP 1); after a minute of waiting everyone is first in line, and it never changes
 #                who plays whom in a ranked queue (the ELO first)
@@ -427,7 +427,7 @@ rangs:
     badge: premium
     herite: vip
     boutique-en-ligne: true
-    prix-en-ligne: "$9.99"
+    prix-en-ligne: "9.99€"
     prix-cadeau: 50000
     priorite-file: 2
     icone: NETHER_STAR
@@ -446,7 +446,7 @@ rangs:
     boost-xp: 1.25
     style: aqua
     boutique-en-ligne: true
-    prix-en-ligne: "$4.99"
+    prix-en-ligne: "4.99€"
     prix-cadeau: 25000
     priorite-file: 1
     icone: DIAMOND

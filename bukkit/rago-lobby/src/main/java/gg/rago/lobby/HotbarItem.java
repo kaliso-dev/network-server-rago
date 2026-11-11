@@ -7,9 +7,9 @@ import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.ItemMeta;
 
 /**
- * The items of the lobby hotbar: the selector, the kit editor, the leave or play again item, the
- * gadget, the fireball, two free slots (5 and 6), the shop and the profile (which also opens the
- * Network level and its quests). 1.8.8 has no persistent data on items, so an item is recognised by
+ * The items of the lobby hotbar: the selector, the kit editor, a free slot (2), the gadget, the
+ * fireball, a free slot (5), the leave or play again item (6, just before the shop), the shop and
+ * the profile (which also opens the Network level and its quests). 1.8.8 has no persistent data on items, so an item is recognised by
  * its material and its exact name, which players cannot give to an item in the lobby (no anvil, no
  * creative mode outside the build mode).
  */
@@ -47,10 +47,10 @@ enum HotbarItem {
     DISCO_BALL(3, Material.GOLD_RECORD, 0, ChatColor.LIGHT_PURPLE + "Disco ball " + ChatColor.GRAY + "(right click)",
             "Ten seconds of party: a disco", "ball above you, a dance floor", "of every colour and music.", "",
             ChatColor.LIGHT_PURPLE + "PREMIUM gadget", "", "Left click: another gadget"),
-    LEAVE_QUEUE(2, Material.INK_SACK, 1, ChatColor.RED + "Leave the queue " + ChatColor.GRAY + "(right click)",
+    LEAVE_QUEUE(6, Material.INK_SACK, 1, ChatColor.RED + "Leave the queue " + ChatColor.GRAY + "(right click)",
             "You leave the queue."),
     // After a game, in the slot of the leave item while out of a queue: the same mode again.
-    PLAY_AGAIN(2, Material.PAPER, 0, ChatColor.GREEN + "Play again " + ChatColor.GRAY + "(right click)",
+    PLAY_AGAIN(6, Material.PAPER, 0, ChatColor.GREEN + "Play again " + ChatColor.GRAY + "(right click)",
             "Queue the mode of your", "last game again."),
     SHOP(7, Material.EMERALD, 0, ChatColor.GREEN + "Rago Shop " + ChatColor.GRAY + "(right click)",
             "Ranks and cosmetics, bought", "with the Rago Points of", "your games."),

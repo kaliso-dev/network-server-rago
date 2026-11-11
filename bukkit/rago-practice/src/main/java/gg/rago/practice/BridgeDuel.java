@@ -16,7 +16,7 @@ import org.bukkit.inventory.ItemStack;
  * The bridge fight 1v1 or 2v2, apart from the open arena: one platform of the bridge fight, red on
  * the west half and blue on the east one, with its pads and the bridges from the pads to its tips.
  * Each side starts on its pad (a team side by side), in iron armour with golden apples, a wooden
- * sword in 1v1 (as in the open arena), a stone one in 2v2, the armour with Protection II by default
+ * sword (as in the open arena), the armour with Protection II by default
  * (bridge-fight.protection-1v1, 0 for none), and nobody places blocks: in 1v1 a death or a fall
  * into the void is a point for the other side, in 2v2 the whole side out. First to 5 by default
  * (points-pour-gagner.bridge-fight).
@@ -60,7 +60,7 @@ final class BridgeDuel extends Duel {
 
     @Override
     ItemStack[] defaultKit(Player player) {
-        return new ItemStack[] {new ItemStack(mode.playersPerTeam() > 1 ? Material.STONE_SWORD : Material.WOOD_SWORD),
+        return new ItemStack[] {new ItemStack(Material.WOOD_SWORD),
             new ItemStack(Material.GOLDEN_APPLE, 2)};
     }
 

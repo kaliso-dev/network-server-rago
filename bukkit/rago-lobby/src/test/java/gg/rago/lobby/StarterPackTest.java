@@ -46,7 +46,7 @@ class StarterPackTest {
                 + server.cosmetics().get("win-fireworks").price();
         assertEquals(20_000 + 3 * XpBoosters.PRICE + cosmetics, pack.pointsWorth(server.cosmetics()));
         assertEquals("3.99€", org.bukkit.ChatColor.stripColor(pack.priceLine()), "the price alone");
-        assertTrue(server.ranks().get("vip").webPrice().equals("$4.99"), "VIP costs more than the pack");
+        assertTrue(server.ranks().get("vip").webPrice().equals("4.99€"), "VIP costs more than the pack");
     }
 
     @Test

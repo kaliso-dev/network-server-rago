@@ -241,7 +241,7 @@ final class Ranks {
                         "Speed I, II or III in the lobby (settings)", "Your arrival announced, with a firework",
                         "White messages, no chat cooldown", "Priority in the queues (after PREMIUM+)", "3 cosmetics: the Clouds trail,",
                         "the Heart burst kill, the Love win"),
-                1.25, "aqua", null, true, "$4.99", 1, VIP_GIFT);
+                1.25, "aqua", null, true, "4.99€", 1, VIP_GIFT);
     }
 
     /** What gifting VIP and PREMIUM+ to another player costs in Rago Points (prix-cadeau). */
@@ -269,7 +269,7 @@ final class Ranks {
                         "Gift ranks to your friends: /gift <player>",
                         "The rarest kill effects and victory dances", "The first place in the queues",
                         "Everything of VIP, its 3 cosmetics too"),
-                1.5, "rose", PREMIUM, true, "$9.99", 2, PREMIUM_GIFT);
+                1.5, "rose", PREMIUM, true, "9.99€", 2, PREMIUM_GIFT);
     }
 
     private static RankDef staff(String id, String prefix, String colour, String parent, String... permissions) {
