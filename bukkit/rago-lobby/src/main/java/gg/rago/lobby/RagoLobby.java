@@ -468,8 +468,7 @@ public final class RagoLobby extends JavaPlugin implements LobbyService {
         applyTime(player);
         giveHotbar(player);
         scoreboard.show(player);
-        visibility.applyInLobby(player, state);
-        visibility.hideFromHiders(player, state);
+        visibility.showAll(player);
     }
 
     /** The XP bar shows the Network level, and how far the player is towards the next one. */
@@ -563,8 +562,7 @@ public final class RagoLobby extends JavaPlugin implements LobbyService {
         scoreboard.setGamePrefix(player.getUniqueId(), null);
         if (player.getWorld().equals(state.world())) {
             giveHotbar(player);
-            visibility.applyInLobby(player, state);
-            visibility.hideFromHiders(player, state);
+            visibility.showAll(player);
         } else {
             sendToLobby(player);
         }
@@ -616,7 +614,6 @@ public final class RagoLobby extends JavaPlugin implements LobbyService {
             () -> parties.forget(id),
             () -> duels.forget(id),
             () -> profiles.forgetGifts(id),
-            () -> visibility.forget(id),
             () -> gadgets.forget(id),
             () -> nicks.forget(id),
             () -> scoreboard.forget(id),
@@ -693,25 +690,11 @@ public final class RagoLobby extends JavaPlugin implements LobbyService {
             case FIREBALL:
                 gadgets.throwFireball(player);
                 break;
-            case LEVEL:
-                levelMenu.open(player);
-                break;
             case SHOP:
                 shop.open(player);
                 break;
             case PROFILE:
                 profileMenu.open(player);
-                break;
-            case HIDE_PLAYERS:
-            case SHOW_PLAYERS:
-                if (!visibility.toggle(player, System.currentTimeMillis())) {
-                    player.sendMessage(ChatColor.GRAY + "Wait a moment before switching again.");
-                    return;
-                }
-                visibility.applyInLobby(player, state);
-                giveHotbar(player);
-                player.sendMessage(visibility.hides(player) ? ChatColor.GRAY + "The other players are hidden."
-                        : ChatColor.GREEN + "The other players are shown.");
                 break;
             default:
                 break;
@@ -731,7 +714,6 @@ public final class RagoLobby extends JavaPlugin implements LobbyService {
         inventory.setItem(HotbarItem.FIREBALL.slot(), HotbarItem.FIREBALL.create());
         HotbarItem gadget = gadgetOf(player);
         inventory.setItem(gadget.slot(), gadget.create());
-        inventory.setItem(HotbarItem.LEVEL.slot(), HotbarItem.LEVEL.create());
         if (queues.queueOf(player) != null) {
             inventory.setItem(HotbarItem.LEAVE_QUEUE.slot(), HotbarItem.LEAVE_QUEUE.create());
         } else {
@@ -742,8 +724,6 @@ public final class RagoLobby extends JavaPlugin implements LobbyService {
         }
         inventory.setItem(HotbarItem.SHOP.slot(), HotbarItem.SHOP.create());
         inventory.setItem(HotbarItem.PROFILE.slot(), ownHead(player));
-        HotbarItem eye = visibility.hides(player) ? HotbarItem.SHOW_PLAYERS : HotbarItem.HIDE_PLAYERS;
-        inventory.setItem(eye.slot(), eye.create());
         player.updateInventory();
     }
 
@@ -1226,7 +1206,7 @@ public final class RagoLobby extends JavaPlugin implements LobbyService {
                 stats.save(profile);
             }
         }
-        visibility.applyVanish(player, state);
+        visibility.applyVanish(player);
         social.announce(player, true);
         LobbyWelcome.greet(player, settings);
         if (profiles.dailyReady(player.getUniqueId())) {
@@ -1290,7 +1270,7 @@ public final class RagoLobby extends JavaPlugin implements LobbyService {
 
     /** The staff vanished or came back. */
     void applyVanish(Player player) {
-        visibility.applyVanish(player, state);
+        visibility.applyVanish(player);
     }
 
     /** What a muted player reads when they try to talk, or null. */

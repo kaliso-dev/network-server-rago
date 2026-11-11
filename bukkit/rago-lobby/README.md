@@ -20,9 +20,9 @@ dans les files d'attente des modes de jeu.
   parties) : jamais de pluie ni d'orage, et toujours midi (le cycle du jour est arrêté). Chaque
   joueur garde l'heure du ciel de ses réglages (« Time of day »).
 - **La barre d'objets.** La boussole ouvre le sélecteur des modes ; le livre ouvre l'éditeur de
-  kit ; le colorant rouge quitte la file ; l'alambique ouvre le niveau Network, ses récompenses et
-  les quêtes ; l'émeraude la boutique, la tête le profil ; le colorant vert ou gris cache ou montre
-  les autres joueurs du lobby. La fireball part là où on regarde, comme en Bed Wars, et son souffle pousse
+  kit ; le colorant rouge quitte la file ; l'émeraude ouvre la boutique, la tête le profil (où se
+  trouvent aussi le niveau Network, ses récompenses et les quêtes). Les cases 6 et 9 restent
+  libres. La fireball part là où on regarde, comme en Bed Wars, et son souffle pousse
   les joueurs autour comme sur Hypixel : sous ses pieds, c'est un fireball jump (une toutes les
   demi-secondes, elle ne blesse personne et ne casse rien). Le bâton de blaze (teleport stick)
   emmène sur le bloc qu'on regarde, à 20 blocs au plus, jamais à travers un mur : le premier bloc
@@ -122,7 +122,7 @@ dans les files d'attente des modes de jeu.
   niveau et l'avancée vers le suivant. Un message et un son à chaque niveau, un message à chaque
   nouvelle couleur, avec ce que le niveau débloque dans la boutique. Tout se règle dans `niveau:`.
   Le niveau va de 1 à 100 (environ 250 000 XP pour le 100).
-- **Les récompenses de niveau (l'alambique du hotbar, `/level`).** Une récompense tous les 5
+- **Les récompenses de niveau (le profil, `/level`).** Une récompense tous les 5
   niveaux : des Rago Points, des cosmétiques de la boutique (offerts ; déjà achetés, leur prix
   revient en points), les couleurs de pseudo Aqua (25), Gold (50), Legend (100) et le badge
   `✫100`. Un joueur reçoit les récompenses de tous les niveaux atteints, même ceux d'avant leur
@@ -188,11 +188,10 @@ dans les files d'attente des modes de jeu.
 - **Les couleurs de pseudo et les badges (`/style`).** Un pseudo peut prendre un dégradé (les
   16 couleurs de la 1.8, d'une lettre à l'autre : Pink, Fire, Ocean, Forest, Sunset, Ice,
   Galaxy, Rainbow, Shadow, et Aqua, Gold, Legend pour les niveaux) et un badge après le pseudo
-  (`✦`, RAGO, BETTER, PVP, YT, `✫100`). Le dégradé se voit dans le chat, le Tab et les messages ;
-  au-dessus de la tête un pseudo n'a qu'une couleur. Les dégradés sont animés : leurs couleurs
-  défilent le long du pseudo dans le Tab seulement (environ trois fois par seconde) ; au-dessus de la tête
-  le pseudo garde une couleur fixe, celle du milieu du dégradé, et chaque message du chat le
-  montre là où il en est.
+  (`✦`, RAGO, BETTER, PVP, YT, `✫100`). Le dégradé se voit dans le Tab et les menus, où il est
+  animé : ses couleurs défilent le long du pseudo (environ trois fois par seconde). Dans le chat,
+  les messages et au-dessus de la tête, le pseudo n'a qu'une couleur fixe, sa couleur principale
+  (celle du milieu du dégradé) : bleu clair pour VIP, rose pour PREMIUM.
   Des couleurs fixes s'achètent en Rago Points dans `/style` (Red, Green, Blue, Yellow, Purple,
   White à 3 000, les dégradés fixes Cherry et Mint à 6 000 ; `obtention: points, prix:`, et
   `anime: false` pour un dégradé fixe). Chaque style dit comment l'avoir : avec PREMIUM, sur la

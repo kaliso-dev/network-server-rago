@@ -15,8 +15,8 @@ import org.bukkit.ChatColor;
  * has a style in one of four ways: with the PREMIUM rank, bought on the store (the store, or the
  * staff, gives it with /style give), bought with Rago Points in /style, or as the reward of a
  * Network level. They wear one colour, one badge and one colour of + at a time. A gradient is animated (its colours
- * run along the name, in the tab list, above the head and from one message to the next) unless
- * it is a fixed one. The styles come from config.yml (styles:), else the plugin's own. Immutable.
+ * run along the name in the tab list) unless it is a fixed one; the chat and the name above the
+ * head show its main colour only. The styles come from config.yml (styles:), else the plugin's own. Immutable.
  */
 final class NameStyle {
 
@@ -191,8 +191,9 @@ final class NameStyle {
     }
 
     /**
-     * The colour code in the middle of a colour: what shows above the head, where one colour fits.
-     * It stays fixed there, even for an animated colour (which moves in the tab list only).
+     * The colour code in the middle of a colour: what shows above the head and in the chat, where
+     * the name takes one colour. It stays fixed there, even for an animated colour (which moves in
+     * the tab list only).
      */
     String mainColour() {
         if (kind == Kind.PLUS) {

@@ -56,7 +56,7 @@ final class PlayerMenu implements Listener {
         String name = target.getName();
         PlayerStats profile = lobby.profiles().of(target);
         ClickMenu menu = new ClickMenu(4, name);
-        menu.set(HEAD, ClickMenu.head(name, lobby.profiles().displayName(id, name), lobby.profileMenu().summary(profile, id)), null);
+        menu.set(HEAD, ClickMenu.head(name, lobby.profiles().styledName(id, name), lobby.profileMenu().summary(profile, id)), null);
         menu.set(DUEL, ClickMenu.item(Material.IRON_SWORD, ChatColor.GREEN + "Duel", "Challenge " + name + " to a duel:",
                 "pick the mode.", "", ChatColor.YELLOW + "Click to choose"), (p, right) -> command(p, "duel " + name));
         menu.set(STATS, ClickMenu.item(Material.PAPER, ChatColor.GREEN + "Stats", "Wins, kills, streaks and ELO",

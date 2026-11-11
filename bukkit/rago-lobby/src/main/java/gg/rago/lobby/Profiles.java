@@ -54,9 +54,14 @@ final class Profiles {
         return names.rank(player);
     }
 
-    /** "§c[ADMIN] §cSofiene", "§d[PREMIUM§f+§d] §5So§dfi§fene", or "§7Sofiene" for a player without a rank. */
+    /** "§c[ADMIN] §cSofiene", "§d[PREMIUM§f+§d] §dSofiene", or "§7Sofiene" for a player without a rank: as the chat shows them. */
     String displayName(UUID player, String name) {
         return names.display(player, name);
+    }
+
+    /** {@link #displayName} with the player's gradient ("§d[PREMIUM§f+§d] §5So§dfi§fene"): for the heads of the menus. */
+    String styledName(UUID player, String name) {
+        return names.styled(player, name);
     }
 
     /** True if the player owns this rank or a higher one that inherits it. */

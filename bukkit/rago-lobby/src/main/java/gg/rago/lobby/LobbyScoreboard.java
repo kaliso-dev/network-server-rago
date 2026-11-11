@@ -280,7 +280,7 @@ final class LobbyScoreboard {
     /** "§7[12✫] §d[PREMIUM§f+§d] §5So§dfi§fene §d§l✦": the level, the rank, the name and the badge, in the tab list. */
     private String listNameOf(Player player) {
         UUID id = player.getUniqueId();
-        return book.levels().tag(names.shownLevel(id)) + " " + names.shown(id, player.getName()) + names.shownBadge(id);
+        return book.levels().tag(names.shownLevel(id)) + " " + names.shownStyled(id, player.getName()) + names.shownBadge(id);
     }
 
     /** The name of the player in the tab list (null: their plain name, which the game's team colours). */

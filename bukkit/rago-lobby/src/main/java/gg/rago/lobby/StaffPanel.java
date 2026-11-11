@@ -42,7 +42,7 @@ final class StaffPanel {
         ClickMenu menu = new ClickMenu(6, "Staff panel" + (pages > 1 ? " (" + (shown + 1) + "/" + pages + ")" : ""));
         for (int i = 0; i < PER_PAGE && shown * PER_PAGE + i < players.size(); i++) {
             final Player target = players.get(shown * PER_PAGE + i);
-            menu.set(i, ClickMenu.head(target.getName(), lobby.profiles().displayName(target.getUniqueId(), target.getName()),
+            menu.set(i, ClickMenu.head(target.getName(), lobby.profiles().styledName(target.getUniqueId(), target.getName()),
                     info(target)), (p, right) -> openPlayer(p, target.getName()));
         }
         if (shown > 0) {
@@ -81,7 +81,7 @@ final class StaffPanel {
             return;
         }
         ClickMenu menu = new ClickMenu(5, "Staff: " + name);
-        menu.set(4, ClickMenu.head(name, lobby.profiles().displayName(target.getUniqueId(), name), info(target)), null);
+        menu.set(4, ClickMenu.head(name, lobby.profiles().styledName(target.getUniqueId(), name), info(target)), null);
         menu.set(19, ClickMenu.item(Material.ENDER_PEARL, ChatColor.GREEN + "Teleport to " + name,
                 "Go where they are (vanish first", "to stay unseen: /vanish).", "", ChatColor.YELLOW + "Click to go"),
                 (p, right) -> {

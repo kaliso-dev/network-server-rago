@@ -1,17 +1,12 @@
 package gg.rago.lobby;
 
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.Map;
-import java.util.Set;
 import java.util.UUID;
 import org.bukkit.Bukkit;
 import org.bukkit.entity.Player;
 
 /**
- * "Players: hidden": a player in the lobby may hide everyone else. Only in the lobby: a player
- * who leaves for a game sees everyone again, and the choice comes back on returning. A vanished
- * member of the staff stays hidden from everyone but the staff, in the lobby and in the games.
+ * Who sees whom: everyone sees everyone, but a vanished member of the staff stays hidden from
+ * everyone but the staff, in the lobby and in the games.
  */
 final class Visibility {
 
@@ -20,11 +15,6 @@ final class Visibility {
         boolean vanished(UUID player);
     }
 
-    /** Hiding and showing everyone is cheap, but not something to spam. */
-    private static final long COOLDOWN_MILLIS = 3_000L;
-
-    private final Set<UUID> hiding = new HashSet<>();
-    private final Map<UUID, Long> lastToggle = new HashMap<>();
     private Vanish vanish = player -> false;
 
     void setVanish(Vanish vanish) {
@@ -44,72 +34,24 @@ final class Visibility {
         }
     }
 
-    /**
-     * The player vanished, came back, or joined: the others see them or not (those hiding the lobby
-     * players still do not), and they see the vanished staff or not.
-     */
-    void applyVanish(Player player, LobbyState state) {
+    /** The player vanished, came back, or joined: the others see them or not, and they see the vanished staff or not. */
+    void applyVanish(Player player) {
         for (Player other : Bukkit.getOnlinePlayers()) {
             if (other == player) {
                 continue;
             }
-            if (!canSee(other, player)) {
-                other.hidePlayer(player);
-            } else if (!(hides(other) && state.isInLobby(other) && state.isInLobby(player))) {
-                other.showPlayer(player);
-            }
+            show(other, player);
             if (!canSee(player, other)) {
                 player.hidePlayer(other);
             }
         }
     }
 
-    boolean hides(Player player) {
-        return hiding.contains(player.getUniqueId());
-    }
-
-    /** Switches the choice. Returns false (nothing changed) during the cooldown. */
-    boolean toggle(Player player, long nowMillis) {
-        Long last = lastToggle.get(player.getUniqueId());
-        if (last != null && nowMillis - last < COOLDOWN_MILLIS) {
-            return false;
-        }
-        lastToggle.put(player.getUniqueId(), nowMillis);
-        if (!hiding.remove(player.getUniqueId())) {
-            hiding.add(player.getUniqueId());
-        }
-        return true;
-    }
-
-    /** Applies the player's choice to what the player sees: in the lobby. */
-    void applyInLobby(Player player, LobbyState state) {
-        boolean hide = hides(player);
-        for (Player other : Bukkit.getOnlinePlayers()) {
-            if (other == player) {
-                continue;
-            }
-            if (hide && state.isInLobby(other)) {
-                player.hidePlayer(other);
-            } else {
-                show(player, other);
-            }
-        }
-    }
-
-    /** The player leaves the lobby for a game: sees everyone. */
+    /** The player arrives in the lobby or leaves it for a game: sees everyone (but the vanished staff). */
     void showAll(Player player) {
         for (Player other : Bukkit.getOnlinePlayers()) {
             if (other != player) {
                 show(player, other);
-            }
-        }
-    }
-
-    /** Someone arrives in the lobby: hidden from those who hide players. */
-    void hideFromHiders(Player arriving, LobbyState state) {
-        for (Player other : Bukkit.getOnlinePlayers()) {
-            if (other != arriving && hides(other) && state.isInLobby(other)) {
-                other.hidePlayer(arriving);
             }
         }
     }
@@ -121,10 +63,5 @@ final class Visibility {
                 show(other, leaving);
             }
         }
-    }
-
-    void forget(UUID player) {
-        hiding.remove(player);
-        lastToggle.remove(player);
     }
 }

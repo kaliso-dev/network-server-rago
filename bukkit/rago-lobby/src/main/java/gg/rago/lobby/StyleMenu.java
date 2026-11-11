@@ -56,10 +56,13 @@ final class StyleMenu {
         PlayerStats profile = profiles.of(player);
         RankDef rank = names.rank(id);
         ClickMenu menu = new ClickMenu(6, "Name colour & badge");
-        String look = book.levels().tag(book.level(id)) + " " + names.display(id, player.getName()) + names.badgeAfter(id);
+        String level = book.levels().tag(book.level(id)) + " ";
         menu.set(4, ClickMenu.item(Material.NAME_TAG, 0, ChatColor.GREEN + "Your look", listOf(
                 "In the chat:",
-                look + rank.chatColour() + ": Hello!",
+                level + names.display(id, player.getName()) + names.badgeAfter(id) + rank.chatColour() + ": Hello!",
+                "",
+                "In the tab list:",
+                level + names.styled(id, player.getName()) + names.badgeAfter(id),
                 "",
                 "Above your head:",
                 names.headPrefix(id) + player.getName() + LobbyScoreboard.suffix(names.badgeAfter(id),

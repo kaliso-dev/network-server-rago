@@ -104,14 +104,16 @@ class NameStyleTest {
         PlayerStats alice = book.profile(ALICE, "Alice");
         PlayerStats bob = book.profile(BOB, "Bob");
         alice.boughtRanks().add("premium");
-        assertEquals("§d[PREMIUM§f+§d] " + NameStyle.gradient("Alice", "5ddfd", false), names.display(ALICE, "Alice"));
+        assertEquals("§d[PREMIUM§f+§d] " + NameStyle.gradient("Alice", "5ddfd", false), names.styled(ALICE, "Alice"), "in the tab list");
+        assertEquals("§d[PREMIUM§f+§d] §dAlice", names.display(ALICE, "Alice"), "in the chat: the pink of PREMIUM only");
         assertEquals("§dPREMIUM§f+ §d", names.headPrefix(ALICE), "above the head, without the brackets");
         NameStyle black = server.style(NameStyle.Kind.PLUS, "noir");
         assertEquals(NameStyle.Obtain.POINTS, black.obtain());
         assertTrue(!names.owns(alice, black), "the black + is bought");
         alice.cosmetics().add(black.key());
         alice.choose(NameStyle.Kind.PLUS, "noir");
-        assertEquals("§d[PREMIUM§0+§d] " + NameStyle.gradient("Alice", "5ddfd", false), names.display(ALICE, "Alice"));
+        assertEquals("§d[PREMIUM§0+§d] " + NameStyle.gradient("Alice", "5ddfd", false), names.styled(ALICE, "Alice"));
+        assertEquals("§d[PREMIUM§0+§d] §dAlice", names.display(ALICE, "Alice"));
         assertEquals("§dPREMIUM§0+ §d", names.headPrefix(ALICE));
         alice.choose(NameStyle.Kind.PLUS, "");
         assertEquals("§f", names.plusColour(ALICE), "white again");
@@ -129,17 +131,24 @@ class NameStyleTest {
         assertTrue(!names.owns(bob, server.style(NameStyle.Kind.COLOUR, "rose")), "the pink of PREMIUM is not his");
         bob.choose(NameStyle.Kind.COLOUR, "rose");
         assertEquals("§7Bob", names.display(BOB, "Bob"), "he cannot wear what he does not own");
+        bob.boughtRanks().add("vip");
+        assertEquals("§b[VIP] §bBob", names.display(BOB, "Bob"), "VIP in the chat: light blue");
+        bob.boughtRanks().remove("vip");
 
         alice.setRank("admin");
         assertEquals("§c[ADMIN] §cAlice", names.display(ALICE, "Alice"), "a staff rank keeps its colour by default");
         alice.choose(NameStyle.Kind.COLOUR, "rose");
-        assertTrue(names.display(ALICE, "Alice").startsWith("§c[ADMIN] §5"), "and may wear the pink of PREMIUM");
+        assertTrue(names.styled(ALICE, "Alice").startsWith("§c[ADMIN] §5"), "and may wear the pink of PREMIUM");
+        assertEquals("§c[ADMIN] §dAlice", names.display(ALICE, "Alice"), "its main colour in the chat");
         alice.cosmetics().add("couleur-feu");
         alice.choose(NameStyle.Kind.COLOUR, "feu");
         String head = names.headColour(ALICE);
         String tab = names.name(ALICE, "Alice");
+        String chat = names.display(ALICE, "Alice");
+        assertEquals("§c[ADMIN] §6Alice", chat, "Fire (4c6e) in the chat: its main colour, gold");
         names.advance();
         assertEquals(head, names.headColour(ALICE), "an animated colour stays fixed above the head...");
+        assertEquals(chat, names.display(ALICE, "Alice"), "...and in the chat...");
         assertTrue(!tab.equals(names.name(ALICE, "Alice")), "...and moves in the tab list");
 
         GameMode sumo = new GameMode("sumo", "Sumo", 2, 1, false);

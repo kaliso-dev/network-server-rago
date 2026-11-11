@@ -7,7 +7,8 @@ import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.ItemMeta;
 
 /**
- * The items of the lobby hotbar. 1.8.8 has no persistent data on items, so an item is recognised by
+ * The items of the lobby hotbar (slots 5 and 8 stay free; the Network level and its quests are in
+ * the profile). 1.8.8 has no persistent data on items, so an item is recognised by
  * its material and its exact name, which players cannot give to an item in the lobby (no anvil, no
  * creative mode outside the build mode).
  */
@@ -50,16 +51,10 @@ enum HotbarItem {
     // After a game, in the slot of the leave item while out of a queue: the same mode again.
     PLAY_AGAIN(4, Material.PAPER, 0, ChatColor.GREEN + "Play again " + ChatColor.GRAY + "(right click)",
             "Queue the mode of your", "last game again."),
-    LEVEL(5, Material.BREWING_STAND_ITEM, 0, ChatColor.AQUA + "Network Level " + ChatColor.GRAY + "(right click)",
-            "Your level, its tier, the rewards", "of every 5 levels, and the daily", "and weekly quests."),
     SHOP(6, Material.EMERALD, 0, ChatColor.GREEN + "Rago Shop " + ChatColor.GRAY + "(right click)",
             "Ranks and cosmetics, bought", "with the Rago Points of", "your games."),
     PROFILE(7, Material.SKULL_ITEM, 3, ChatColor.GREEN + "My profile " + ChatColor.GRAY + "(right click)",
-            "Your level, rank and divisions,", "your stats, friends, settings", "and daily reward."),
-    HIDE_PLAYERS(8, Material.INK_SACK, 10, ChatColor.GREEN + "Players: shown " + ChatColor.GRAY + "(right click)",
-            "Right click to hide", "the other players."),
-    SHOW_PLAYERS(8, Material.INK_SACK, 8, ChatColor.GRAY + "Players: hidden " + ChatColor.GRAY + "(right click)",
-            "Right click to show", "the other players again.");
+            "Your level, rank and divisions,", "your stats, friends, settings,", "daily reward, Network level", "and quests.");
 
     private final int slot;
     private final Material material;

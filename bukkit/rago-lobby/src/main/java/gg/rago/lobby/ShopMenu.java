@@ -230,7 +230,7 @@ final class ShopMenu {
             final String name = online.get(i).getName();
             List<String> lore = new ArrayList<>();
             lore.add(ChatColor.YELLOW + "Click to choose the rank");
-            menu.set(i, ClickMenu.head(name, profiles.displayName(online.get(i).getUniqueId(), name), lore),
+            menu.set(i, ClickMenu.head(name, profiles.styledName(online.get(i).getUniqueId(), name), lore),
                     (p, right) -> p.performCommand("gift " + name));
         }
         if (shown == 0) {

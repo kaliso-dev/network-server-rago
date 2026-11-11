@@ -12,7 +12,8 @@ import org.bukkit.event.player.AsyncPlayerChatEvent;
 
 /**
  * The Network level and the rank in the chat, as on Hypixel: "§6[12✫] §c[ADMIN] Sofiene§f: hello",
- * the name in the player's colour (a gradient with PREMIUM) and their badge after it, the messages
+ * the name in the main colour of the player (light blue for VIP, pink for PREMIUM, the middle of a
+ * gradient: a gradient runs along the name in the tab list only) and their badge after it, the messages
  * of a player without a rank in grey. The chat runs on its own threads, so the look of each player
  * is computed on the main thread ({@link #refresh}) and only read from the chat.
  */
@@ -46,7 +47,7 @@ final class NetworkRanks implements Listener {
     void refresh(Player player) {
         UUID id = player.getUniqueId();
         RankDef rank = names.shownRank(id);
-        String name = names.nick(id) != null ? names.shown(id, player.getName()) : names.name(id, player.getName());
+        String name = names.nick(id) != null ? names.shown(id, player.getName()) : names.headColour(id) + player.getName();
         looks.put(id, new Look(book.levels().tag(names.shownLevel(id)) + " " + names.shownPrefix(id), name + names.shownBadge(id),
                 rank.chatColour()));
     }
@@ -55,7 +56,7 @@ final class NetworkRanks implements Listener {
         looks.remove(player);
     }
 
-    /** The player as the chat shows them: "§6[12✫] §d[PREMIUM§f+§d] §5So§dfi§fene §d§l✦". */
+    /** The player as the chat shows them: "§6[12✫] §d[PREMIUM§f+§d] §dSofiene §d§l✦". */
     String chatName(UUID player, String name) {
         Look look = looks.get(player);
         return look == null ? NEW_PREFIX + name : look.prefix + look.name;

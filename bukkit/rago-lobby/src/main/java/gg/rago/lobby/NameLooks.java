@@ -44,10 +44,16 @@ final class NameLooks {
         return nick != null ? nick : real;
     }
 
-    /** {@link #display}, or for a nicked player a grey name without a rank. */
+    /** {@link #display}, or for a nicked player a grey name without a rank: as the chat shows them. */
     String shown(UUID player, String real) {
         String nick = nick(player);
         return nick != null ? Ranks.DEFAULT.nameColour() + nick : display(player, real);
+    }
+
+    /** {@link #styled}, or for a nicked player a grey name without a rank: as the tab list shows them. */
+    String shownStyled(UUID player, String real) {
+        String nick = nick(player);
+        return nick != null ? Ranks.DEFAULT.nameColour() + nick : styled(player, real);
     }
 
     /** {@link #badgeAfter}, nothing for a nicked player. */
@@ -157,8 +163,20 @@ final class NameLooks {
         return colour != null ? colour.apply(plain, phase) : rank(player).nameColour() + plain;
     }
 
-    /** "§d[PREMIUM§f+§d] §5So§dfi§fene": the rank and the name, as the messages show a player. */
+    /**
+     * "§d[PREMIUM§f+§d] §dSofiene": the rank and the name in its main colour, as the chat and the
+     * messages show a player (light blue for VIP, pink for PREMIUM, the middle of a gradient): a
+     * gradient runs along the name in the tab list only.
+     */
     String display(UUID player, String plain) {
+        return prefix(player) + headColour(player) + plain;
+    }
+
+    /**
+     * "§d[PREMIUM§f+§d] §5So§dfi§fene": the rank and the name in the player's colour (a gradient at
+     * the step of its animation), as the tab list and the menus show a player.
+     */
+    String styled(UUID player, String plain) {
         return prefix(player) + name(player, plain);
     }
 
@@ -176,7 +194,7 @@ final class NameLooks {
      * enough for a line of a board in the games.
      */
     String tagName(UUID player, String plain) {
-        return prefix(player) + headColour(player) + plain;
+        return display(player, plain);
     }
 
     /** " §d§l✦": the badge after the name, or "" without one. */
@@ -185,7 +203,7 @@ final class NameLooks {
         return badge == null ? "" : " " + badge.text();
     }
 
-    /** The colour codes of the name above the head, where the name takes one colour: fixed, even for an animated colour. */
+    /** The colour codes of the name above the head and in the chat, where the name takes one colour: fixed, even for an animated colour. */
     String headColour(UUID player) {
         NameStyle colour = colour(player);
         return colour != null ? colour.mainColour() : rank(player).nameColour();

@@ -124,7 +124,7 @@ final class ProfileMenu {
     void open(Player player) {
         PlayerStats profile = profiles.of(player);
         ClickMenu menu = new ClickMenu(5, "My profile");
-        menu.set(4, ClickMenu.head(player.getName(), profiles.displayName(player.getUniqueId(), player.getName()),
+        menu.set(4, ClickMenu.head(player.getName(), profiles.styledName(player.getUniqueId(), player.getName()),
                 summary(profile, player.getUniqueId())), null);
         menu.set(19, ClickMenu.item(Material.PAPER, ChatColor.GREEN + "Stats", "Wins, kills, streaks and ELO", "of every mode.",
                 "", ChatColor.YELLOW + "Click to open"), (p, right) -> statsMenu.open(p));
@@ -190,7 +190,7 @@ final class ProfileMenu {
             lore.add("Network level: " + stats.book().levels().tag(stats.book().levels().level(friend.xp())));
             lore.add("");
             lore.add(ChatColor.YELLOW + "Right click to remove");
-            menu.set(i, ClickMenu.head(friend.name(), profiles.displayName(friend.id(), friend.name()), lore), (p, right) -> {
+            menu.set(i, ClickMenu.head(friend.name(), profiles.styledName(friend.id(), friend.name()), lore), (p, right) -> {
                 if (right) {
                     social.command(p, new String[] {"remove", friend.name()});
                     openFriends(p);
