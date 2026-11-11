@@ -96,7 +96,9 @@ class LobbySettingsTest {
         assertEquals("§6§lRBW Modes", settings.categories().get(1).name());
         assertEquals(Material.BED, settings.categories().get(1).icon());
         for (ModeCategory category : settings.categories()) {
-            assertTrue(category.slogan() != null && category.slogan().startsWith("§f"), category.id() + " has its slogan");
+            assertTrue(category.slogan() != null && category.slogan().startsWith(category.name().substring(0, 2)),
+                    category.id() + " has its slogan, in the colour of its name");
+            assertTrue(category.slogan().contains("§7"), "the rest in grey");
         }
         assertTrue(settings.welcome(), "the welcome is on by default");
         assertEquals("bed-fight-1v1", settings.modesIn("duels").get(0).mode().id(), "the bed fight first");
@@ -212,14 +214,15 @@ class LobbySettingsTest {
         LobbyNpc duels = settings.npc("rbwffa");
         assertEquals("duels", duels.category());
         assertEquals("§a§lDuels", duels.name());
-        assertEquals("§fDuel your friends or anyone", duels.subtitle(), "under a category NPC, the slogan of its category");
-        assertEquals("§fTrain alone, at your own pace", settings.npc("privategame").subtitle());
+        assertEquals("§aDuel your friends §7or §aanyone", duels.subtitle(), "under a category NPC, the slogan of its category,"
+                + " in the colours of its category");
+        assertEquals("§bTrain alone§7, at your §bown pace", settings.npc("privategame").subtitle());
         assertEquals("entrainement", settings.npc("privategame").category());
         assertEquals(settings.modesIn("duels").size(), duels.modeIds().size(), "a category NPC holds its modes");
         assertTrue(duels.modeIds().contains("kb-displace"));
         LobbyNpc ranked = settings.npc("rankedbedwars1v1ou2v2elo");
         assertEquals("§6§lRBW Modes", ranked.name());
-        assertEquals("§fRanked and RBW situations", ranked.subtitle());
+        assertEquals("§6Ranked §7and §6RBW situations", ranked.subtitle());
         assertEquals("ranked", ranked.category());
         assertTrue(ranked.modeIds().containsAll(Arrays.asList("ranked-1v1", "ranked-2v2", "ranked-3v3", "ranked-4v4",
                 "clutch-scenario-1v1", "attack-defense-1v1")), "every RBW mode, Ranked Bedwars first");

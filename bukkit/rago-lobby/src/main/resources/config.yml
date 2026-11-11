@@ -35,12 +35,13 @@ file:
 # left to right, as in the lobby. The compass first shows the categories, then the games of the
 # one picked (28 modes at most per category). Without a categories section, the compass shows
 # every mode at once (35 at most). slogan: what a player does there, in a few words (40 characters
-# at most): under its name in the compass, under its NPC, and in the welcome of the lobby.
+# at most, colours not counted): under its name in the compass, under its NPC, and in the welcome
+# of the lobby; its key words in the colour of the category, the rest in grey (&7).
 categories:
   entrainement:
     nom: "&b&lPractice"
     icone: SANDSTONE
-    slogan: "&fTrain alone, at your own pace"
+    slogan: "&bTrain alone&7, at your &bown pace"
     description:
       - "Clutch, block in, fast defense,"
       - "extend, pearls, fireballs, bow,"
@@ -48,7 +49,7 @@ categories:
   ranked:
     nom: "&6&lRBW Modes"
     icone: BED
-    slogan: "&fRanked and RBW situations"
+    slogan: "&6Ranked &7and &6RBW situations"
     description:
       - "Ranked 1v1 to 4v4, and modes"
       - "close to Ranked Bedwars: Sky"
@@ -59,7 +60,7 @@ categories:
   duels:
     nom: "&a&lDuels"
     icone: IRON_SWORD
-    slogan: "&fDuel your friends or anyone"
+    slogan: "&aDuel your friends &7or &aanyone"
     description:
       - "Bed fight, top bridge, bridge"
       - "fight, block placement in 1v1"
