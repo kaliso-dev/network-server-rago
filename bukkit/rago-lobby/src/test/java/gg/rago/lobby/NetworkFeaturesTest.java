@@ -238,6 +238,27 @@ class NetworkFeaturesTest {
         assertTrue(!CosmeticEffects.giftEffect(0).getColors().equals(CosmeticEffects.giftEffect(1).getColors()), "every colour");
     }
 
+    @Test
+    void onlyThePrivateGamesPlayThePractice() {
+        LobbyState state = new LobbyState(null, null);
+        UUID duels = UUID.randomUUID();
+        UUID privateGames = UUID.randomUUID();
+        for (UUID player : Arrays.asList(duels, privateGames)) {
+            state.enterGame(player, "top-bridge-1v1");
+            state.markPrivate(player);
+        }
+        state.markPractice(privateGames);
+        assertTrue(state.isInPrivateGame(duels), "a party that fills Top Bridge 1v1 from the Duels: no stats");
+        assertFalse(state.isInPractice(duels), "but the rounds to 5 points");
+        assertTrue(state.isInPractice(privateGames), "the Private top bridge: the practice");
+        state.leaveGame(privateGames);
+        assertFalse(state.isInPractice(privateGames));
+        UUID queue = UUID.randomUUID();
+        state.enterGame(queue, "top-bridge-1v1");
+        state.markPractice(queue);
+        assertFalse(state.isInPractice(queue), "only a private game");
+    }
+
     // --- config.yml -----------------------------------------------------------------------------
 
     @Test

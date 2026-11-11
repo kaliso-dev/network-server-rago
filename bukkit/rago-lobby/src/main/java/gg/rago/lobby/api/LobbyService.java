@@ -112,6 +112,15 @@ public interface LobbyService {
     }
 
     /**
+     * True if this player's private game came from the Private games (parties-privees, such as the
+     * private top bridge): the practice of its mode, without rounds. A party that fills a mode of
+     * the Duels plays it as everyone does, in no stats.
+     */
+    default boolean inPartyPractice(UUID player) {
+        return false;
+    }
+
+    /**
      * Network XP earned in a training of this mode (the aim trainer gives it for the seconds on the
      * target and the score): the lobby adds it to the player's stats, tells them ("+12 Network XP
      * (aim trainer)") and shows a new level or rank. Nothing in a party's private game, nor for 0

@@ -245,7 +245,8 @@ final class QueueController {
                     + String.join(", ", sizes) + " players, two teams of the same size."));
             return;
         }
-        startPrivate(party, players, chosen, map);
+        // from the Private games: the practice of the mode (the top bridge without rounds)
+        startPrivate(party, players, chosen, map, true);
     }
 
     /** The leader queues the party: a private game if it fills the match, else the queue, in one team. */
@@ -269,7 +270,7 @@ final class QueueController {
             players.add(member);
         }
         if (mode.teams() >= 2 && players.size() == mode.playersPerMatch()) {
-            startPrivate(party, players, mode, map);
+            startPrivate(party, players, mode, map, false);
             return;
         }
         if (mode.teams() == 1 && mode.playersPerTeam() == 1 && players.size() > 1) {
@@ -353,8 +354,11 @@ final class QueueController {
                 + "\"hoverEvent\":{\"action\":\"show_text\",\"value\":\"Join the queue of " + mode + "\"}}]";
     }
 
-    /** The party fills the match: a private game between its players, teams dealt in turn, counted nowhere. */
-    private void startPrivate(PartyBook.Party party, List<Player> players, GameMode mode, String map) {
+    /**
+     * The party fills the match: a private game between its players, teams dealt in turn, counted
+     * nowhere; from the Private games (parties-privees), the practice of the mode.
+     */
+    private void startPrivate(PartyBook.Party party, List<Player> players, GameMode mode, String map, boolean practice) {
         long now = System.currentTimeMillis();
         List<List<QueueEntry>> teams = new ArrayList<>();
         List<List<String>> names = new ArrayList<>();
@@ -376,7 +380,7 @@ final class QueueController {
                     + ": " + ChatColor.WHITE + String.join(ChatColor.LIGHT_PURPLE + " vs " + ChatColor.WHITE, sides)
                     + ChatColor.LIGHT_PURPLE + ". It counts in no stats.");
         }
-        startDirect(new MatchProposal(mode, teams), true);
+        startDirect(new MatchProposal(mode, teams), true, practice);
     }
 
     /**
@@ -517,6 +521,11 @@ final class QueueController {
      * players told why, if the game could not start.
      */
     boolean startDirect(MatchProposal match, boolean privateGame) {
+        return startDirect(match, privateGame, false);
+    }
+
+    /** As {@link #startDirect(MatchProposal, boolean)}; practice: a private game played as a practice. */
+    private boolean startDirect(MatchProposal match, boolean privateGame, boolean practice) {
         for (UUID id : match.players()) {
             Player player = Bukkit.getPlayer(id);
             if (player != null) {
@@ -527,12 +536,12 @@ final class QueueController {
         MatchHost host = hosts.get(match.mode().id());
         if (host != null && !ready(host, match)) {
             // a copy of the map is being made: the game starts as soon as it is there
-            waitingDirect.add(new DirectWait(match, privateGame, System.currentTimeMillis() + DIRECT_WAIT_MILLIS));
+            waitingDirect.add(new DirectWait(match, privateGame, practice, System.currentTimeMillis() + DIRECT_WAIT_MILLIS));
             tell(match, ChatColor.YELLOW + "The map is being prepared: the game starts in a moment.");
             onChange.run();
             return true;
         }
-        boolean started = start(match, false, privateGame);
+        boolean started = start(match, false, privateGame, practice);
         onChange.run();
         return started;
     }
@@ -541,11 +550,13 @@ final class QueueController {
     private static final class DirectWait {
         final MatchProposal match;
         final boolean privateGame;
+        final boolean practice;
         final long until;
 
-        DirectWait(MatchProposal match, boolean privateGame, long until) {
+        DirectWait(MatchProposal match, boolean privateGame, boolean practice, long until) {
             this.match = match;
             this.privateGame = privateGame;
+            this.practice = practice;
             this.until = until;
         }
     }
@@ -562,7 +573,7 @@ final class QueueController {
                 tell(wait.match, ChatColor.GRAY + "The game was cancelled: a player is no longer in the lobby.");
             } else if (ready(host, wait.match)) {
                 waitingDirect.remove(wait);
-                start(wait.match, false, wait.privateGame);
+                start(wait.match, false, wait.privateGame, wait.practice);
                 onChange.run();
             } else if (now > wait.until) {
                 waitingDirect.remove(wait);
@@ -611,10 +622,10 @@ final class QueueController {
     }
 
     private boolean start(MatchProposal match, boolean requeue) {
-        return start(match, requeue, false);
+        return start(match, requeue, false, false);
     }
 
-    private boolean start(MatchProposal match, boolean requeue, boolean privateGame) {
+    private boolean start(MatchProposal match, boolean requeue, boolean privateGame, boolean practice) {
         String modeId = match.mode().id();
         MatchHost host = hosts.get(modeId);
         List<Player> players = new ArrayList<>();
@@ -647,6 +658,9 @@ final class QueueController {
             lobby.enterGame(player, modeId);
             if (privateGame) {
                 state.markPrivate(player.getUniqueId());
+                if (practice) {
+                    state.markPractice(player.getUniqueId());
+                }
             }
             if (!requeue) {
                 // not from the queue (a /duel): no ELO, no win streak

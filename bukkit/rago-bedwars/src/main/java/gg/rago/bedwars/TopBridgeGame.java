@@ -23,11 +23,12 @@ import org.bukkit.scheduler.BukkitTask;
  * dead, as in the void.
  *
  * <ul>
- *   <li>A game of the queue (1v1, 2v2): rounds, one life each. A round is won when every player of
- *       the other team is dead; the first team to {@value #POINTS_TO_WIN} points wins. Between two
- *       rounds the map is made as it was (the blocks placed go) and everyone starts on top again.
- *   <li>A party's private game: a practice. Nobody is ever out: a dead player comes back on top
- *       {@value #PRACTICE_RESPAWN} seconds later, the blocks placed go after
+ *   <li>A game of the queue (1v1, 2v2), or of a party that fills it from the Duels: rounds, one
+ *       life each. A round is won when every player of the other team is dead; the first team to
+ *       {@value #POINTS_TO_WIN} points wins. Between two rounds the map is made as it was (the
+ *       blocks placed go) and everyone starts on top again.
+ *   <li>The private top bridge of a party (the Private games): a practice. Nobody is ever out: a
+ *       dead player comes back on top {@value #PRACTICE_RESPAWN} seconds later, the blocks placed go after
  *       {@value #DECAY_SECONDS} seconds, and it lasts {@value #PRACTICE_MINUTES} minutes at most.
  * </ul>
  *
@@ -47,7 +48,7 @@ final class TopBridgeGame extends BedwarsGame {
     /** The kit when the lobby has none for the mode: the owner's fight kit. */
     private static final ItemStack[] DEFAULT_KIT = {new ItemStack(Material.STONE_SWORD), new ItemStack(Material.GOLDEN_APPLE, 64)};
 
-    /** A party's private game: the practice without rounds. */
+    /** The private top bridge of a party (the Private games): the practice without rounds. */
     final boolean practice;
     private final BlockDecay decay = new BlockDecay(DECAY_SECONDS);
     private final int[] points;

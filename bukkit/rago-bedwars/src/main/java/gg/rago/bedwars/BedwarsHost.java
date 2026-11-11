@@ -260,7 +260,7 @@ final class BedwarsHost implements MatchHost, Listener {
             case FAST_SHOP:
                 return new FastShopGame(plugin, this, instance, mode.id(), name, sides);
             case TOP_BRIDGE:
-                return new TopBridgeGame(plugin, this, instance, mode.id(), name, sides, privateGame(sides));
+                return new TopBridgeGame(plugin, this, instance, mode.id(), name, sides, partyPractice(sides));
             case ATTACK_DEFENSE:
                 return new AttackDefenseGame(plugin, this, instance, mode.id(), name, sides);
             case CLUTCH_SCENARIO:
@@ -272,11 +272,11 @@ final class BedwarsHost implements MatchHost, Listener {
         }
     }
 
-    /** True if these players play a party's private game (the lobby marked them before the start). */
-    private boolean privateGame(List<List<Player>> sides) {
+    /** True if these players play the practice of the Private games (the lobby marked them before the start). */
+    private boolean partyPractice(List<List<Player>> sides) {
         for (List<Player> side : sides) {
             for (Player player : side) {
-                if (plugin.lobby().inPrivateGame(player.getUniqueId())) {
+                if (plugin.lobby().inPartyPractice(player.getUniqueId())) {
                     return true;
                 }
             }

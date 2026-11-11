@@ -24,6 +24,8 @@ final class LobbyState {
     private final Set<UUID> building = new HashSet<>();
     /** The players of a party's private game: it counts in no stats. */
     private final Set<UUID> privateGame = new HashSet<>();
+    /** Those of them whose game came from the Private games (parties-privees): its practice. */
+    private final Set<UUID> practice = new HashSet<>();
     /**
      * The players of a game started without the queue (a /duel): it counts, but never moves the
      * ranked ELO nor the win streaks, which two friends could farm against each other.
@@ -75,6 +77,7 @@ final class LobbyState {
         inGame.remove(player);
         opponents.remove(player);
         privateGame.remove(player);
+        practice.remove(player);
         unrated.remove(player);
     }
 
@@ -87,6 +90,17 @@ final class LobbyState {
 
     boolean isInPrivateGame(UUID player) {
         return privateGame.contains(player);
+    }
+
+    /** The player's private game came from the Private games: the practice of its mode. */
+    void markPractice(UUID player) {
+        if (privateGame.contains(player)) {
+            practice.add(player);
+        }
+    }
+
+    boolean isInPractice(UUID player) {
+        return practice.contains(player);
     }
 
     /** The player's game started without the queue (a /duel): no ELO, no win streak. */
@@ -129,6 +143,7 @@ final class LobbyState {
         opponents.remove(player);
         building.remove(player);
         privateGame.remove(player);
+        practice.remove(player);
         unrated.remove(player);
     }
 }

@@ -50,8 +50,9 @@ modes:
 #              invisible visible; each player in turn; it starts 10 seconds after the second joins
 #   top-bridge Top Bridge: no bed, no forge, the fight on the top bridge alone (see top-bridge:
 #              below), everyone starting on top with the mode's kit and iron armour, dead when
-#              they fall off it; rounds of one life, the first team to 5 points wins; in a
-#              party's private game, a practice: back on top 2 seconds after a death, 30 minutes
+#              they fall off it; rounds of one life, the first team to 5 points wins (a party
+#              that fills it from the Duels too); in the Private top bridge (the Private games), a
+#              practice: back on top 2 seconds after a death, 30 minutes
 #   attaque-defense  Attack and Defense, on a map of one base and the bridge of the attackers
 #              (attaquants: in its bedwars.yml): the first side to 3 rounds wins, the roles swap at
 #              each round. The attackers

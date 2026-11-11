@@ -105,11 +105,12 @@ attendent regardent depuis le dessus du milieu.
   équipe sont morts ; la première équipe à 5 points gagne. Entre deux manches, la copie redevient
   la map (les blocs posés partent), le pont est reposé et tout le monde repart d'en haut après un
   compte à rebours de 3 secondes. Une party qui fait la file joue dans la même équipe. Au bout de
-  30 minutes, l'équipe en tête gagne.
-- **En partie privée** (une party qui remplit le match, ou le mode **Private top bridge** du PNJ
-  des parties privées) : un practice sans fin. Personne n'est éliminé : on revient en haut 2
-  secondes après une mort, les blocs posés partent au bout de 45 secondes, et la partie dure 30
-  minutes au plus. Rien ne compte dans les stats.
+  30 minutes, l'équipe en tête gagne. Une party qui remplit le match depuis les Duels (deux
+  joueurs en 1v1, quatre en 2v2) joue les mêmes manches jusqu'à 5 points, en partie privée : rien
+  ne compte dans les stats.
+- **Le mode Private top bridge** (le PNJ des parties privées) : un practice sans fin. Personne
+  n'est éliminé : on revient en haut 2 secondes après une mort, les blocs posés partent au bout de
+  45 secondes, et la partie dure 30 minutes au plus. Rien ne compte dans les stats.
 
 `top-bridge-ffa` est le FFA libre sur le pont, sur Invasion seulement : on entre et on sort quand on veut,
 chacun pour soi, avec le même stuff de combat à chaque vie. Le top bridge relie les
