@@ -223,7 +223,7 @@ async function main () {
     record({ type: 'start', time: Date.now(), victim: VICTIM, attacker: ATTACKER })
     for (const phase of PHASES) {
       for (const text of phase.commands) {
-        await command(bot, text, /^OK : /)
+        await command(bot, text, /^OK: /)
       }
       record({ type: 'phase', time: Date.now(), name: phase.name })
       console.log(`phase ${phase.name}: ${HITS_PER_PHASE} hits`)
