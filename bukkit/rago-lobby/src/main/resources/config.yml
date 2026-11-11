@@ -773,6 +773,32 @@ modes:
     description:
       - "A duo Bedwars, RBW style,"
       - "on Sky Rise."
+  skyrise-resources-1v1:
+    nom: "&6RBW Sky Rise Resources 1v1"
+    categorie: ranked
+    groupe: skyrise
+    icone: GOLD_INGOT
+    equipes: 2
+    joueurs-par-equipe: 1
+    classe: false
+    description:
+      - "Sky Rise 1v1 with the forge"
+      - "and the item shop of every"
+      - "island: go and take their"
+      - "iron and gold. Slow forges."
+  skyrise-resources-2v2:
+    nom: "&6RBW Sky Rise Resources 2v2"
+    categorie: ranked
+    groupe: skyrise
+    icone: GOLD_INGOT
+    equipes: 2
+    joueurs-par-equipe: 2
+    classe: false
+    description:
+      - "Sky Rise 2v2 with the forge"
+      - "and the item shop of every"
+      - "island: go and take their"
+      - "iron and gold. Slow forges."
   first-rush:
     nom: "&eFirst rush solo"
     categorie: ranked

@@ -11,9 +11,21 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import org.bukkit.Material;
+import org.bukkit.inventory.ItemStack;
 import org.junit.jupiter.api.Test;
 
 class FireballFightTest {
+
+    @Test
+    void theWoodAndTheEndStoneBrokenComeBack() {
+        ItemStack spruce = FireballFight.kept(Material.WOOD, (byte) 1);
+        assertEquals(Material.WOOD, spruce.getType());
+        assertEquals(1, spruce.getDurability(), "the kind of the wood");
+        assertEquals(1, spruce.getAmount());
+        assertEquals(Material.ENDER_STONE, FireballFight.kept(Material.ENDER_STONE, (byte) 0).getType());
+        assertNull(FireballFight.kept(Material.WOOL, (byte) 14), "only the wood and the end stone");
+        assertNull(FireballFight.kept(Material.BED_BLOCK, (byte) 0));
+    }
 
     private static String key(int x, int y, int z) {
         return x + "," + y + "," + z;

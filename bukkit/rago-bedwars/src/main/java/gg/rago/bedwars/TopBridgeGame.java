@@ -13,7 +13,6 @@ import org.bukkit.block.Block;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.PlayerInventory;
-import org.bukkit.scheduler.BukkitTask;
 
 /**
  * Top Bridge, as the owner plays it: no bed, no forge, no shop, only the fight on the platform of
@@ -25,10 +24,10 @@ import org.bukkit.scheduler.BukkitTask;
  * <ul>
  *   <li>A game of the queue (1v1, 2v2), or of a party that fills it from the Duels: rounds, one
  *       life each. A round is won when every player of the other team is dead; the first team to
- *       {@value #POINTS_TO_WIN} points wins. Between two rounds the map is made as it was (the
- *       blocks placed go) and everyone starts on top again.
+ *       {@value #POINTS_TO_WIN} points wins. The next round starts at once, with no wait nor
+ *       countdown: the map made as it was (the blocks placed go) and everyone on top again.
  *   <li>The private top bridge of a party (the Private games): a practice. Nobody is ever out: a
- *       dead player comes back on top {@value #PRACTICE_RESPAWN} seconds later, the blocks placed go after
+ *       dead player comes back on top at once, the blocks placed go after
  *       {@value #DECAY_SECONDS} seconds, and it lasts {@value #PRACTICE_MINUTES} minutes at most.
  * </ul>
  *
@@ -38,13 +37,17 @@ class TopBridgeGame extends BedwarsGame {
 
     static final int POINTS_TO_WIN = 5;
     static final int PRACTICE_MINUTES = 30;
-    static final int PRACTICE_RESPAWN = 2;
+    /** The practice's wait before a new life: none. */
+    static final int PRACTICE_RESPAWN = 0;
     static final int DECAY_SECONDS = 45;
     /** A game of rounds lasts this long at most: then the team ahead wins, or it is a draw. */
     static final int ROUNDS_MINUTES = 30;
+    /** The countdown at the start of the game, before the first round. */
     private static final int COUNTDOWN = 3;
-    /** Between the end of a round and the next one, and before the end of the game. */
+    /** Before the end of the game, once its last round is won. */
     private static final long BETWEEN_TICKS = 20L;
+    /** Between the end of a round and the next one: a tick, to be out of the event of the death. */
+    static final long NEXT_ROUND_TICKS = 1L;
     /** The kit when the lobby has none for the mode: the owner's fight kit. */
     private static final ItemStack[] DEFAULT_KIT = {new ItemStack(Material.STONE_SWORD), new ItemStack(Material.GOLDEN_APPLE, 64)};
 
@@ -54,7 +57,6 @@ class TopBridgeGame extends BedwarsGame {
     private final int[] points;
     private int round = 1;
     private boolean roundOver;
-    private RoundCountdown roundCountdown;
 
     TopBridgeGame(RagoBedwars plugin, BedwarsHost host, Instance instance, String modeId, String modeName,
             List<List<Player>> sides, boolean practice) {
@@ -286,7 +288,7 @@ class TopBridgeGame extends BedwarsGame {
         }
     }
 
-    /** A round is over: a point for the team still alive, then the next round, or the end. */
+    /** A round is over: a point for the team still alive, then at once the next round, or the end. */
     private void roundWon(Team winner) {
         roundOver = true;
         // nobody fights or builds any more, but everyone moves as they like
@@ -307,15 +309,7 @@ class TopBridgeGame extends BedwarsGame {
             sidebars();
             return;
         }
-        for (Gamer gamer : present()) {
-            Player player = Bukkit.getPlayer(gamer.id);
-            if (player != null) {
-                player.sendTitle(winner == null ? ChatColor.YELLOW + "" + ChatColor.BOLD + "NO POINT"
-                        : gamer.team == winner ? ChatColor.GOLD + "" + ChatColor.BOLD + "ROUND WON"
-                        : ChatColor.RED + "" + ChatColor.BOLD + "ROUND LOST", score);
-            }
-        }
-        later(BETWEEN_TICKS, this::nextRound);
+        later(NEXT_ROUND_TICKS, () -> nextRound(winner));
         sidebars();
     }
 
@@ -330,8 +324,11 @@ class TopBridgeGame extends BedwarsGame {
                 : String.join(ChatColor.GRAY + " - ", parts);
     }
 
-    /** The map as it was, the bridge (or the defense) again, everyone on top, a countdown, and the fight. */
-    private void nextRound() {
+    /**
+     * The map as it was, the bridge again, everyone on top, and the fight at once: the title says
+     * the round, and who won the last one.
+     */
+    private void nextRound(Team lastWinner) {
         if (phase == Phase.ENDED) {
             return;
         }
@@ -353,41 +350,14 @@ class TopBridgeGame extends BedwarsGame {
             Player player = Bukkit.getPlayer(gamer.id);
             if (player != null) {
                 place(player, gamer);
-                player.sendTitle(ChatColor.YELLOW + "" + ChatColor.BOLD + "ROUND " + round, score());
+                String last = lastWinner == null ? ChatColor.YELLOW + "No point"
+                        : gamer.team == lastWinner ? ChatColor.GOLD + "Round won" : ChatColor.RED + "Round lost";
+                player.sendTitle(ChatColor.GREEN + "" + ChatColor.BOLD + "ROUND " + round + " - FIGHT!",
+                        last + ChatColor.GRAY + " · " + score());
             }
         }
-        roundCountdown = new RoundCountdown(COUNTDOWN);
-        roundCountdown.task = repeat(0L, 20L, roundCountdown);
+        phase = Phase.PLAYING;
         sidebars();
-    }
-
-    /** The countdown of a round after the first: then the fight. */
-    private final class RoundCountdown implements Runnable {
-        private int left;
-        private BukkitTask task;
-
-        RoundCountdown(int left) {
-            this.left = left;
-        }
-
-        @Override
-        public void run() {
-            if (phase == Phase.ENDED) {
-                cancel(task);
-                return;
-            }
-            if (left > 0) {
-                broadcast(ChatColor.YELLOW + "Round " + round + " starts in " + ChatColor.RED + left + ChatColor.YELLOW + "...",
-                        Sound.NOTE_STICKS);
-                left--;
-                return;
-            }
-            cancel(task);
-            roundCountdown = null;
-            phase = Phase.PLAYING;
-            title(ChatColor.GREEN + "" + ChatColor.BOLD + "Fight!", "");
-            sidebars();
-        }
     }
 
     @Override

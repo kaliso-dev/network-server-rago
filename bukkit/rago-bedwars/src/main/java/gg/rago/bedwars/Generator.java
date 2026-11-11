@@ -17,6 +17,12 @@ import org.bukkit.util.Vector;
  */
 final class Generator {
 
+    /**
+     * How high above its spot the name and tier of a diamond or emerald generator float, the
+     * countdown just under them: above the head of a player standing on it.
+     */
+    static final double TITLE_HEIGHT = 3.6;
+
     private final Location spot;
     private final Material material;
     private final String label;
@@ -46,8 +52,8 @@ final class Generator {
         if (label == null) {
             return;
         }
-        title = text(spot.clone().add(0, 2.6, 0));
-        countdown = text(spot.clone().add(0, 2.3, 0));
+        title = text(spot.clone().add(0, TITLE_HEIGHT, 0));
+        countdown = text(spot.clone().add(0, TITLE_HEIGHT - 0.3, 0));
         refreshText();
     }
 

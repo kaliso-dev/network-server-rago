@@ -63,8 +63,10 @@ class LobbySettingsTest {
         assertEquals("lobby", settings.world());
         assertEquals(0, settings.voidHeight());
         assertEquals(0, settings.defaultRating(), "a ranked ELO starts at 0, in Coal");
-        assertEquals(57, settings.modes().size(), "with the private top bridge, the clutch scenario, the bed fight, Top"
-                + " BedFight, the bridge fight 2v2 and the full map first rush, without the top fight or the ranked scenarios");
+        assertEquals(59, settings.modes().size(), "with the private top bridge, the clutch scenario, the bed fight, Top"
+                + " BedFight, the bridge fight 2v2, the full map first rush and Sky Rise Resources, without the top fight or the"
+                + " ranked scenarios");
+        assertEquals("skyrise", settings.display("skyrise-resources-1v1").group(), "beside Sky Rise");
         assertFalse(settings.catalog().get("top-bridge-1v1").ranked(), "Top Bridge: no ELO");
         assertEquals("2v2", settings.catalog().get("top-bridge-2v2").format());
         assertTrue(LobbySettings.load(withModeNpcs()).npc("ffa").modeIds().contains("top-bridge-1v1"));

@@ -30,7 +30,7 @@ class BedwarsSettingsTest {
     void readsTheBundledConfig() throws Exception {
         BedwarsSettings settings = BedwarsSettings.read(bundled());
         assertEquals(Arrays.asList("ranked-1v1", "ranked-2v2", "ranked-3v3", "ranked-4v4", "top-bridge-1v1",
-                "top-bridge-2v2", "skyrise-1v1", "skyrise-2v2",
+                "top-bridge-2v2", "skyrise-1v1", "skyrise-2v2", "skyrise-resources-1v1", "skyrise-resources-2v2",
                 "first-rush", "first-rush-duo", "first-rush-full", "first-rush-full-duo", "top-bridge-ffa", "ffa", "invis-practice", "shop-practice",
                 "attack-defense-1v1", "attack-defense-2v2", "clutch-scenario-1v1", "clutch-scenario-2v2",
                 "clutch-scenario-3v3", "clutch-scenario-4v4", "bed-fight-1v1", "bed-fight-2v2", "top-bed-fight-1v1"),
@@ -92,6 +92,13 @@ class BedwarsSettingsTest {
             assertTrue(settings.allForges("clutch-scenario-" + size), "Clutch Scenario: every forge of the map too");
         }
         assertTrue(!settings.neighbours("skyrise-1v1"));
+        for (String size : new String[] {"1v1", "2v2"}) {
+            String mode = "skyrise-resources-" + size;
+            assertEquals(Collections.singletonList("SkyRise"), settings.mapsOf(mode));
+            assertTrue(settings.allForges(mode) && settings.allShops(mode), mode + ": every island's forge and shop");
+            assertFalse(settings.neighbours(mode), mode + ": the teams opposite, as in Sky Rise");
+        }
+        assertFalse(settings.allForges("skyrise-1v1") || settings.allShops("skyrise-1v1"), "Sky Rise keeps its own island");
         assertEquals(settings.mapsOf("ranked-1v1"), settings.mapsOf("top-bridge-1v1"), "Top Bridge on the 20 maps");
         assertEquals(settings.mapsOf("ranked-1v1"), settings.mapsOf("top-bridge-2v2"));
         assertTrue(settings.topBridge("top-bridge-1v1") && settings.topBridge("top-bridge-2v2"));
@@ -122,6 +129,11 @@ class BedwarsSettingsTest {
         assertEquals(150, solo.gold(4).ticks);
         assertEquals(10, forge.forMode("ranked-2v2").iron("Archway", 2, 4).ticks, "the 2v2 keeps the 4v4 forge");
         assertEquals(100, forge.forMode("ranked-2v2").gold(4).ticks);
+        // Sky Rise Resources: slow forges on every island, 30 iron and 4 gold a minute each
+        BedwarsSettings.Forge resources = forge.forMode("skyrise-resources-2v2");
+        assertEquals(1200 / 30, resources.iron("SkyRise", 2, 8).ticks);
+        assertEquals(300, resources.gold(8).ticks);
+        assertEquals(1200 / 90, forge.forMode("skyrise-2v2").iron("SkyRise", 2, 8).ticks, "Sky Rise keeps its fast forge");
         assertEquals(30, forge.fastStartSeconds);
         assertEquals(600, settings.diamond().get(0).ticks);
         assertEquals(240, settings.diamond().get(2).ticks);

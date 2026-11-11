@@ -24,6 +24,12 @@ class TopBedFightGameTest {
     }
 
     @Test
+    void noWaitAfterADeath() {
+        assertEquals(1L, TopBridgeGame.NEXT_ROUND_TICKS, "the next round on the next tick, no countdown");
+        assertEquals(0, TopBridgeGame.PRACTICE_RESPAWN, "the private top bridge: back on top at once");
+    }
+
+    @Test
     void thePlayersStayBetweenTheBlocksAtTheEnds() {
         double margin = TopBedFightGame.BEHIND;
         assertFalse(TopBedFightGame.behind(ENDS, 3.5, 22.5, margin), "on the red spawn");

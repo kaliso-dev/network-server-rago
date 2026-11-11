@@ -375,7 +375,7 @@ final class BedwarsSettings {
         }
         List<String> allShops = new ArrayList<>();
         List<String> shopsListed = config.contains("shops-partout") ? config.getStringList("shops-partout")
-                : Arrays.asList("first-rush-full", "first-rush-full-duo");
+                : Arrays.asList("first-rush-full", "first-rush-full-duo", "skyrise-resources-1v1", "skyrise-resources-2v2");
         for (String mode : shopsListed) {
             allShops.add(modeId(mode, "shops-partout"));
         }

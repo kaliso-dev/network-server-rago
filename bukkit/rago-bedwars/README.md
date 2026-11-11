@@ -1,8 +1,8 @@
 # RagoBedwars : les modes Bed Wars
 
 Un plugin Bukkit 1.8.8 qui joue les modes Bed Wars du lobby (`bukkit/rago-lobby`) : **Ranked
-Bedwars 1v1, 2v2, 3v3 et 4v4**, **RBW Sky Rise** en solo et en duo, avec les règles d'une partie
-classique d'Hypixel, **First Rush** en solo et en duo (la même partie, sur deux îles voisines), les
+Bedwars 1v1, 2v2, 3v3 et 4v4**, **RBW Sky Rise** en solo et en duo (et **Sky Rise Resources**), avec
+les règles d'une partie classique d'Hypixel, **First Rush** en solo et en duo (la même partie, sur deux îles voisines), les
 **parties privées** d'une party (le lobby choisit le 1v1, 2v2, 3v3 ou 4v4 selon sa taille), et
 six jeux à part sur des maps de Bed Wars : **Top Bridge**, **Attack and Defense**, **Clutch
 Scenario**,
@@ -81,6 +81,11 @@ joue tournent aussi, leur fer et leur or pour qui va les prendre (`forges-partou
 et chacune de ces îles a son item shop pour acheter sur place (`shops-partout:`) ; les upgrades
 restent sur l'île de chaque équipe.
 
+`skyrise-resources-1v1` et `skyrise-resources-2v2`, « RBW Sky Rise Resources », font de même sur
+Sky Rise, les équipes sur des îles opposées comme en RBW Sky Rise : les forges et les item shops
+des six îles vides sont à qui va les prendre. Leurs forges sont lentes (`forge.modes:`) : 30 fer
+et 4 or par minute chacune, au lieu de 90 et 8.
+
 ## Top Bridge
 
 `top-bridge-1v1` et `top-bridge-2v2` (le jeu `top-bridge`) se jouent sur les 20 maps de la file,
@@ -104,19 +109,19 @@ blocs sous la plateforme est mort, comme dans le vide (on a le temps d'un clutch
 attendent regardent depuis le dessus du milieu.
 
 - **Dans la file** : des manches d'une vie. Une manche est gagnée quand tous les joueurs de l'autre
-  équipe sont morts ; la première équipe à 5 points gagne. Entre deux manches, la copie redevient
-  la map (les blocs posés partent), le pont est reposé et tout le monde repart d'en haut après un
-  compte à rebours de 3 secondes. Une party qui fait la file joue dans la même équipe. Au bout de
+  équipe sont morts ; la première équipe à 5 points gagne. La manche suivante part tout de suite,
+  sans attente ni compte à rebours : la copie redevient la map (les blocs posés partent), le pont
+  est reposé et tout le monde repart d'en haut. Une party qui fait la file joue dans la même équipe. Au bout de
   30 minutes, l'équipe en tête gagne. Une party qui remplit le match depuis les Duels (deux
   joueurs en 1v1, quatre en 2v2) joue les mêmes manches jusqu'à 5 points, en partie privée : rien
   ne compte dans les stats.
 - **Le mode Private top bridge** (le PNJ des parties privées) : un practice sans fin. Personne
-  n'est éliminé : on revient en haut 2 secondes après une mort, les blocs posés partent au bout de
+  n'est éliminé : on revient en haut tout de suite après une mort, les blocs posés partent au bout de
   45 secondes, et la partie dure 30 minutes au plus. Rien ne compte dans les stats.
 
 `top-bridge-ffa` est le FFA libre sur le pont, sur Invasion seulement : on entre et on sort quand on veut,
 chacun pour soi, avec le même stuff de combat à chaque vie. Le top bridge relie les
-deux îles les plus éloignées ; on apparaît et on revient 3 secondes après une mort sur la
+deux îles les plus éloignées ; on apparaît et on revient tout de suite après une mort sur la
 plateforme, à l'endroit le plus loin des autres joueurs, et celui qui tombe en dessous est mort.
 Un kill soigne.
 
@@ -207,7 +212,7 @@ Bed Fight avec un pont de laine tout en haut, à la limite de construction (le p
 joueurs dessus en y 98, `hauteur-max: 98`). Les deux joueurs partent des spawns de la map, aux deux
 bouts du pont, chacun devant un bloc de sa couleur. Les manches de Top Bridge : une vie, un kill ou
 une chute du pont (sous `hauteur-vide`, 4 blocs sous le pont) donne un point à l'autre, le premier
-à 5 gagne ; une seconde entre deux manches, puis 3 secondes de décompte. Le kit du mode (l'éditeur
+à 5 gagne ; la manche suivante part tout de suite, sans décompte. Le kit du mode (l'éditeur
 de kit du lobby ; sinon une épée en bois, un stack de laine et des cisailles) en armure de cuir de
 la couleur de son équipe, à chaque manche.
 
@@ -394,7 +399,7 @@ enregistré tout de suite ; les parties en cours gardent la map comme elle étai
 de leurs dossiers), ou `toutes`. Par défaut : les Ranked sur les 20 maps de la file RBW (Antenna,
 Aquarium, Archway, Artemis, Boletum, Carapace, Catalyst, Chained, Eastwood, Extinction, Invasion,
 Katsu, Lectus, Obelisk, Paladin, Planet98, Rise, Stonekeep, Swashbuckle, Treenan), chacune avec la
-hauteur limite de la file (`hauteur-max` dans son `bedwars.yml`) ; RBW Sky Rise sur SkyRise ; First Rush sur Acropolis, Ambush, Aqil, Cascade,
+hauteur limite de la file (`hauteur-max` dans son `bedwars.yml`) ; RBW Sky Rise et Sky Rise Resources sur SkyRise ; First Rush sur Acropolis, Ambush, Aqil, Cascade,
 Crogorm, Frosted, Gelato, Lighthouse, Lotus et Nebuc. Une map absente du serveur est sautée (la
 console le dit au démarrage). Quand un mode a deux maps prêtes ou plus, le joueur **choisit sa
 map** en cliquant le mode dans le sélecteur (ou `/queue first-rush Gelato`), ou prend « Random

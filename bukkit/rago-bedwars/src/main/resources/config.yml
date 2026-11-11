@@ -17,6 +17,8 @@ modes:
   top-bridge-2v2: [Antenna, Aquarium, Archway, Artemis, Boletum, Carapace, Catalyst, Chained, Eastwood, Extinction, Invasion, Katsu, Lectus, Obelisk, Paladin, Planet98, Rise, Stonekeep, Swashbuckle, Treenan]
   skyrise-1v1: [SkyRise]
   skyrise-2v2: [SkyRise]
+  skyrise-resources-1v1: [SkyRise]
+  skyrise-resources-2v2: [SkyRise]
   first-rush: [Acropolis, Ambush, Aqil, Cascade, Crogorm, Frosted, Gelato, Lighthouse, Lotus, Nebuc]
   first-rush-duo: [Acropolis, Ambush, Aqil, Cascade, Crogorm, Frosted, Gelato, Lighthouse, Lotus, Nebuc]
   first-rush-full: [Acropolis, Ambush, Aqil, Cascade, Crogorm, Frosted, Gelato, Lighthouse, Lotus, Nebuc]
@@ -165,15 +167,15 @@ top-bridge: [top-bridge-1v1, top-bridge-2v2, top-bridge-ffa]
 iles-voisines: [first-rush, first-rush-duo, first-rush-full, first-rush-full-duo]
 
 # The modes whose games keep every forge of the map going, the empty islands' too (First Rush full
-# map, Clutch Scenario: their iron and gold for whoever goes to take it, with the diamonds and
-# emeralds).
-forges-partout: [first-rush-full, first-rush-full-duo, clutch-scenario-1v1, clutch-scenario-2v2, clutch-scenario-3v3,
-  clutch-scenario-4v4]
+# map, Sky Rise Resources, Clutch Scenario: their iron and gold for whoever goes to take it, with
+# the diamonds and emeralds).
+forges-partout: [first-rush-full, first-rush-full-duo, skyrise-resources-1v1, skyrise-resources-2v2, clutch-scenario-1v1,
+  clutch-scenario-2v2, clutch-scenario-3v3, clutch-scenario-4v4]
 
 # The modes whose games have an item shop on every island of the map, the empty islands' too (First
-# Rush full map: whoever goes to take the iron of another island buys there). Only the item shop:
-# the upgrades stay on each team's own island.
-shops-partout: [first-rush-full, first-rush-full-duo]
+# Rush full map, Sky Rise Resources: whoever goes to take the iron of another island buys there).
+# Only the item shop: the upgrades stay on each team's own island.
+shops-partout: [first-rush-full, first-rush-full-duo, skyrise-resources-1v1, skyrise-resources-2v2]
 
 # The forge of each island, as on Hypixel (its iron and gold counted a minute long on each map): an
 # iron node drops an ingot every fer-secondes-par-noeud seconds (30 a minute), and a forge has 1
@@ -189,7 +191,9 @@ shops-partout: [first-rush-full, first-rush-full-duo]
 #              since 2019).
 #   modes      by mode id, its forges on every map instead: vitesse (lente, moyenne, rapide) and
 #              or-secondes. The RBW 1v1 has those of a Hypixel solo: 90 iron and 8 gold a minute
-#              (moyenne, one node more on its maps of four teams), not the 120 and 12 of a 4v4.
+#              (moyenne, one node more on its maps of four teams), not the 120 and 12 of a 4v4. Sky
+#              Rise Resources, where every island's forge goes, has slow ones: 30 iron and 4 gold a
+#              minute each.
 forge:
   fer-secondes-par-noeud: 2
   fer-par-lot: [2, 4]
@@ -208,6 +212,8 @@ forge:
     Lotus: {solo: lente, equipes: moyenne}
   modes:
     ranked-1v1: {vitesse: moyenne, or-secondes: 7.5}
+    skyrise-resources-1v1: {vitesse: lente, or-secondes: 15}
+    skyrise-resources-2v2: {vitesse: lente, or-secondes: 15}
 
 # The diamond and emerald generators: one item every so many seconds, at most so many lying on
 # it; three tiers (I, II, III), faster and faster.

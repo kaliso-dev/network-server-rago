@@ -55,7 +55,8 @@ prendre un (« Ann: 34 hits, best combo 7 »). Au sumo aussi ; pas dans les even
   stuff des maps du propriétaire : épée en pierre, pioche et hache Efficiency I, 6 boules de feu,
   un stack de laine, 8 end stone, 2 TNT, cisailles, 8 échelles, armure en cuir. Tant que le lit
   tient, on revient au bout de 3 secondes ; ensuite, une mort est définitive. Le dernier camp
-  debout gagne. Les boules de feu et la TNT poussent (la TNT comme celle du jeu, sans ses dégâts) et
+  debout gagne. Le bois et l'end stone qu'on casse vont dans l'inventaire. Les boules de feu et la
+  TNT poussent (la TNT comme celle du jeu, sans ses dégâts) et
   cassent les blocs posés et la défense des lits (l'end stone seulement à la TNT), sans faire de
   dégâts ; pas de dégâts de chute non plus. Sur une map de `fireball.cartes` (`config.yml`), chaque
   camp part de son départ et les lits sont ceux de la map (un lit est au camp dont le départ est le

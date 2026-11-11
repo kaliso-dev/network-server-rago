@@ -29,7 +29,7 @@ import org.bukkit.inventory.ItemStack;
  * beds (never end stone for a fireball); neither does damage, and nobody takes fall damage. On a
  * map of fireball.cartes (config.yml), each side starts on its start and the beds are the map's
  * own: a bed is the side's whose start is nearer, and its defense on the map (wood, end stone) is
- * broken and blown up as if placed.
+ * broken and blown up as if placed. The wood and end stone a player breaks go into their inventory.
  */
 final class FireballFight extends Duel {
 
@@ -244,6 +244,7 @@ final class FireballFight extends Duel {
     @Override
     void broke(Player player, Block block) {
         if (block.getType() != Material.BED_BLOCK) {
+            giveBack(player, block);
             return;
         }
         int side = bedSide(block);
@@ -257,6 +258,27 @@ final class FireballFight extends Duel {
             title(victim, ChatColor.RED + "BED DESTROYED!", ChatColor.GRAY + "You will no longer respawn!");
         }
         sidebars();
+    }
+
+    /**
+     * The wood and the end stone a player breaks (theirs, the other side's, the defense of a bed)
+     * go into their inventory, as they would pick them up in Bed Wars: nothing lies on the ground
+     * in the arenas. Their inventory full, the block is lost.
+     */
+    @SuppressWarnings("deprecation") // Block#getData: the kind of the wood
+    static void giveBack(Player player, Block block) {
+        ItemStack item = kept(block.getType(), block.getData());
+        if (item != null) {
+            player.getInventory().addItem(item);
+        }
+    }
+
+    /** The item a broken block of this type gives back: wood (of its kind) and end stone; null for another. */
+    static ItemStack kept(Material type, byte data) {
+        if (type == Material.WOOD) {
+            return new ItemStack(Material.WOOD, 1, data);
+        }
+        return type == Material.ENDER_STONE ? new ItemStack(Material.ENDER_STONE) : null;
     }
 
     @Override
