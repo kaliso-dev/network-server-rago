@@ -267,6 +267,8 @@ final class BedwarsHost implements MatchHost, Listener {
                 return new ClutchScenarioGame(plugin, this, instance, mode.id(), name, sides);
             case BED_FIGHT:
                 return new BedFightGame(plugin, this, instance, mode.id(), name, sides);
+            case TOP_BED_FIGHT:
+                return new TopBedFightGame(plugin, this, instance, mode.id(), name, sides);
             default:
                 return new BedwarsGame(plugin, this, instance, mode.id(), name, sides);
         }
@@ -445,6 +447,11 @@ final class BedwarsHost implements MatchHost, Listener {
             still.setYaw(to.getYaw());
             still.setPitch(to.getPitch());
             event.setTo(still);
+            return;
+        }
+        Location kept = game.keepIn(event.getPlayer(), from, to);
+        if (kept != null) {
+            event.setTo(kept);
             return;
         }
         // the void; in a game played on the top bridge, a fall off its platform (not for a spectator)

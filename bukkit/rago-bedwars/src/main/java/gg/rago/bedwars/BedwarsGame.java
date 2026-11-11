@@ -417,6 +417,14 @@ class BedwarsGame {
         }
     }
 
+    /**
+     * Where a player who moves from there to there is put instead, or null when they may go there:
+     * a game with a play area keeps its players in it (Top Bed Fight: on its bridge).
+     */
+    Location keepIn(Player player, Location from, Location to) {
+        return null;
+    }
+
     /** Where the dead and those who wait watch the game: the map's spectator point, or above the top bridge. */
     Location watchPoint() {
         return onTheBridge() && topBridge != null ? at(topBridge.above()) : instance.map().spectatorPoint().in(instance.world());

@@ -194,6 +194,26 @@ La map n'est pas dans le dépôt : son `bedwars.yml` donne à chaque équipe son
 propriétaire, le petit bloc de laine rouge ou bleue de sa base) et son lit ; le générateur et le
 shop, que le mode n'utilise pas, sont posés sur le spawn.
 
+## Top BedFight
+
+`top-bed-fight-1v1` (le genre `top-bed-fight`), sur la map TopBedFight du propriétaire : sa map
+Bed Fight avec un pont de laine tout en haut, à la limite de construction (le pont en y 97, les
+joueurs dessus en y 98, `hauteur-max: 98`). Les deux joueurs partent des spawns de la map, aux deux
+bouts du pont, chacun devant un bloc de sa couleur. Les manches de Top Bridge : une vie, un kill ou
+une chute du pont (sous `hauteur-vide`, 4 blocs sous le pont) donne un point à l'autre, le premier
+à 5 gagne ; une seconde entre deux manches, puis 3 secondes de décompte. Le kit du mode (l'éditeur
+de kit du lobby ; sinon une épée en bois, un stack de laine et des cisailles) en armure de cuir de
+la couleur de son équipe, à chaque manche.
+
+Le pont est celui de la map : aucune plateforme n'est construite, ses blocs ne se cassent pas (seuls
+les blocs posés se cassent) et chaque manche le remet entier. Personne ne passe derrière le bloc
+qu'il a dans le dos, ni n'y construit : un joueur qui recule s'arrête contre lui, et un joueur qui
+s'y retrouve quand même (un téléport) revient sur son spawn. On pose des blocs partout sur le pont,
+devant le spawn de l'autre aussi. Les lits restent en bas, sur les îles, hors du jeu.
+
+La map n'est pas dans le dépôt : son `bedwars.yml` donne les deux spawns (juste devant le bloc du
+bout, face à face), les lits des îles, et le générateur et le shop, inutilisés, sur les spawns.
+
 ## Améliorations et pièges
 
 Le villageois « TEAM UPGRADES » de chaque île ouvre « Upgrades & Traps », comme sur Hypixel. Tout

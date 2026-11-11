@@ -33,9 +33,11 @@ class BedwarsSettingsTest {
                 "top-bridge-2v2", "skyrise-1v1", "skyrise-2v2",
                 "first-rush", "first-rush-duo", "first-rush-full", "first-rush-full-duo", "top-bridge-ffa", "ffa", "invis-practice", "shop-practice",
                 "attack-defense-1v1", "attack-defense-2v2", "clutch-scenario-1v1", "clutch-scenario-2v2",
-                "clutch-scenario-3v3", "clutch-scenario-4v4", "bed-fight-1v1", "bed-fight-2v2"),
+                "clutch-scenario-3v3", "clutch-scenario-4v4", "bed-fight-1v1", "bed-fight-2v2", "top-bed-fight-1v1"),
                 settings.modes());
         assertEquals(BedwarsSettings.Kind.CLASSIC, settings.kind("ranked-1v1"));
+        assertEquals(BedwarsSettings.Kind.TOP_BED_FIGHT, settings.kind("top-bed-fight-1v1"));
+        assertFalse(settings.topBridge("top-bed-fight-1v1"), "no platform: the map has its bridge");
         assertEquals(BedwarsSettings.Kind.FFA, settings.kind("ffa"));
         assertEquals(BedwarsSettings.Kind.ARENA, BedwarsSettings.Kind.of(" Arene "), "the kind stays for a mode that wants it");
         assertFalse(settings.modes().contains("free-ffa"), "Arena Free is on the owner's Arena, in the practice plugin");

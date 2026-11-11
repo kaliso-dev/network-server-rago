@@ -63,8 +63,8 @@ class LobbySettingsTest {
         assertEquals("lobby", settings.world());
         assertEquals(0, settings.voidHeight());
         assertEquals(0, settings.defaultRating(), "a ranked ELO starts at 0, in Coal");
-        assertEquals(56, settings.modes().size(), "with the private top bridge, the clutch scenario, the bed fight, the"
-                + " bridge fight 2v2 and the full map first rush, without the top fight or the ranked scenarios");
+        assertEquals(57, settings.modes().size(), "with the private top bridge, the clutch scenario, the bed fight, Top"
+                + " BedFight, the bridge fight 2v2 and the full map first rush, without the top fight or the ranked scenarios");
         assertFalse(settings.catalog().get("top-bridge-1v1").ranked(), "Top Bridge: no ELO");
         assertEquals("2v2", settings.catalog().get("top-bridge-2v2").format());
         assertTrue(LobbySettings.load(withModeNpcs()).npc("ffa").modeIds().contains("top-bridge-1v1"));
@@ -144,9 +144,10 @@ class LobbySettingsTest {
         assertEquals(Arrays.asList("bed-fight-1v1", "bed-fight-2v2"), displayIds(settings.modesOfGroup("bed-fight")));
         List<LobbySettings.Entry> duels = settings.entriesIn("duels");
         assertEquals("bed-fight", duels.get(0).group.id(), "the duels: 1v1 or 2v2 in one item each");
-        assertEquals("top-bridge", duels.get(1).group.id());
-        assertEquals("bridge-fight", duels.get(2).group.id());
-        assertEquals("block-placement", duels.get(3).group.id());
+        assertEquals("top-bed-fight-1v1", duels.get(1).mode.mode().id(), "Top BedFight next to the bed fight, in 1v1 only");
+        assertEquals("top-bridge", duels.get(2).group.id());
+        assertEquals("bridge-fight", duels.get(3).group.id());
+        assertEquals("block-placement", duels.get(4).group.id());
         assertTrue(ranked.size() <= 14, "two rows at most: " + ranked.size());
         assertNull(settings.display("top-fight-1v1"), "no top fight: there are bridge fight and top bridge");
         assertNull(settings.privateRoutes().get("top-fight-prive"));

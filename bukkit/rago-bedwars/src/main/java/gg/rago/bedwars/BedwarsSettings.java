@@ -230,7 +230,12 @@ final class BedwarsSettings {
          * Bed Fight, as on Minemen: two islands, each bed under the defense of the map, no forge
          * nor shop, the mode's kit at each life; back while the bed stands, the last team wins.
          */
-        BED_FIGHT("bed-fight");
+        BED_FIGHT("bed-fight"),
+        /**
+         * Top Bed Fight: Top Bridge's rounds of one life to 5 points on the bridge a map has on top,
+         * the spawns of the map at its ends, in leather armour with the mode's kit.
+         */
+        TOP_BED_FIGHT("top-bed-fight");
 
         final String word;
 

@@ -32,9 +32,9 @@ import org.bukkit.scheduler.BukkitTask;
  *       {@value #DECAY_SECONDS} seconds, and it lasts {@value #PRACTICE_MINUTES} minutes at most.
  * </ul>
  *
- * Main thread only.
+ * {@link TopBedFightGame} plays these rounds on the owner's own bridge. Main thread only.
  */
-final class TopBridgeGame extends BedwarsGame {
+class TopBridgeGame extends BedwarsGame {
 
     static final int POINTS_TO_WIN = 5;
     static final int PRACTICE_MINUTES = 30;

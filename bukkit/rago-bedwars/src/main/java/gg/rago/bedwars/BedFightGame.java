@@ -82,9 +82,14 @@ final class BedFightGame extends BedwarsGame {
 
     /** The items of {@link #KIT}, not yet in the team's colour. */
     static ItemStack[] defaultKit() {
-        ItemStack[] items = new ItemStack[KIT.length];
-        for (int i = 0; i < KIT.length; i++) {
-            String[] parts = KIT[i].split(" ");
+        return items(KIT);
+    }
+
+    /** The items of a kit written as materials, each with its amount ("WOOL 64"). */
+    static ItemStack[] items(String[] kit) {
+        ItemStack[] items = new ItemStack[kit.length];
+        for (int i = 0; i < kit.length; i++) {
+            String[] parts = kit[i].split(" ");
             items[i] = new ItemStack(Material.valueOf(parts[0]), parts.length > 1 ? Integer.parseInt(parts[1]) : 1);
         }
         return items;

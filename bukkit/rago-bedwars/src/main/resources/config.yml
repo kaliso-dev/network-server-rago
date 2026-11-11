@@ -33,6 +33,7 @@ modes:
   clutch-scenario-4v4: [Antenna, Aquarium, Archway, Artemis, Boletum, Carapace, Catalyst, Chained, Eastwood, Extinction, Invasion, Katsu, Lectus, Obelisk, Paladin, Planet98, Rise, Stonekeep, Swashbuckle, Treenan, SkyRise, Acropolis, Ambush, Aqil, Cascade, Crogorm, Frosted, Gelato, Lighthouse, Lotus, Nebuc]
   bed-fight-1v1: [BedFight]
   bed-fight-2v2: [BedFight]
+  top-bed-fight-1v1: [TopBedFight]
 
 # The modes that are not a classic Bed Wars game, each with its kind of game:
 #   ffa        free for all, open: players join and leave when they like, each for themselves, and
@@ -73,6 +74,11 @@ modes:
 #              upgrade; the mode's kit (the lobby's kit editor) in leather armour of the team's
 #              colour at each life; back while the bed stands, the last team wins; the beds go at
 #              10 minutes, a draw at 15
+#   top-bed-fight  Top Bed Fight, on a map with its own bridge on top (the owner's TopBedFight, at
+#              the build limit): the two players start on the spawns of the map, at its ends, each
+#              with a block at their back they cannot break nor go behind; the mode's kit (the
+#              lobby's kit editor) in leather armour of the team's colour; rounds of one life, a
+#              kill or a fall off the bridge (under hauteur-vide) gives a point, the first to 5 wins
 #   fast-shop  Fast Shop: each player on an island with its shop, lists of items to buy as fast as
 #              possible with their own quick buy (copied from Hypixel in the lobby), and records
 # A mode not listed is a classic game.
@@ -91,6 +97,7 @@ jeux:
   clutch-scenario-4v4: clutch-scenario
   bed-fight-1v1: bed-fight
   bed-fight-2v2: bed-fight
+  top-bed-fight-1v1: top-bed-fight
 
 # Attack and Defense: the kits each player chooses from before each round, in a menu that opens by
 # itself (/kit opens it again); the countdown is 10 seconds, 3 once everyone has chosen. The

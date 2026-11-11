@@ -62,10 +62,11 @@ categories:
     icone: IRON_SWORD
     slogan: "&aDuel your friends &7or &aanyone"
     description:
-      - "Bed fight, top bridge, bridge"
-      - "fight, block placement in 1v1"
-      - "or 2v2; sumo, boxing, KB"
-      - "displace, fireball fight, bow."
+      - "Bed fight, Top BedFight, top"
+      - "bridge, bridge fight, block"
+      - "placement in 1v1 or 2v2; sumo,"
+      - "boxing, KB displace, fireball"
+      - "fight, bow."
       - "/duel a player to challenge them."
 
 # At each arrival in the lobby, the ways to play in the chat: a line per category (its name and
@@ -853,6 +854,20 @@ modes:
       - "Bed fight, two against two:"
       - "break their bed, then the last"
       - "team standing wins."
+  top-bed-fight-1v1:
+    nom: "&cTop BedFight 1v1"
+    categorie: duels
+    icone: SHEARS
+    equipes: 2
+    joueurs-par-equipe: 1
+    classe: false
+    # with full leather armour in the colour of the team
+    kit: [WOOD_SWORD, "WOOL 64", SHEARS]
+    description:
+      - "On the bridge at the top of"
+      - "Bed fight: kill them or knock"
+      - "them off, rounds of one life,"
+      - "the first to 5 points wins."
   top-bridge-1v1:
     nom: "&eTop Bridge 1v1"
     categorie: duels
