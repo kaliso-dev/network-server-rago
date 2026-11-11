@@ -248,7 +248,7 @@ Dans `jeux:` du config.yml, un mode peut jouer autre chose qu'une partie classiq
 - **FFA** (`ffa`, sur Archway FFA seulement, pas de choix de map) : chacun pour soi, ouvert,
   on entre et on sort quand on veut. Le kit du mode (rangé dans l'éditeur de kit du lobby) est le
   stuff de combat du propriétaire, une épée en pierre et un stack de pommes d'or, avec 3 boules de
-  feu, une perle et 2 stacks de laine, et à chaque vie une armure complète en diamant Protection IV
+  feu, une perle, 2 stacks de laine et des cisailles, et à chaque vie une armure complète en diamant Protection IV
   (sans effet d'absorption) ; on revient 3 secondes après une mort ; un kill soigne ; les
   blocs posés partent au bout de 10 secondes ; les kills comptent dans les stats. Archway FFA (le
   dossier `ArchwayFFA`) est l'Archway du propriétaire : des ponts de laine entre les îles, une
@@ -256,9 +256,10 @@ Dans `jeux:` du config.yml, un mode peut jouer autre chose qu'une partie classiq
   îles un escalier jusqu'au top bridge au-dessus du milieu (sa plateforme à y 85) ; on construit
   jusqu'à y 95. En arrivant, un menu demande où apparaître : **Top bridge** (la plateforme du
   top bridge), **Low** (sous l'arche du milieu, près de l'émeraude du bas), **Mid** (sur l'arche)
-  ou **Random** (n'importe lequel de ces endroits, les bases et les diamants). Le choix vaut pour
-  chaque vie ; `/ffaspawn` (ou [CHOOSE] dans le chat) le change, tout de suite si on vient
-  d'apparaître sans être touché. Parmi les points du choix, on prend au hasard un endroit sans
+  ou **Random** (n'importe lequel de ces endroits, les bases et les diamants). Le menu revient à
+  chaque réapparition : on garde son choix (Échap) ou on en prend un autre, qui fait changer de
+  place tout de suite. `/ffaspawn` (ou [CHOOSE] dans le chat) le rouvre ; un choix fait plus de
+  10 secondes après l'apparition, ou après avoir été touché, vaut pour la vie suivante. Parmi les points du choix, on prend au hasard un endroit sans
   joueur à moins de 12 blocs, sinon le plus éloigné des autres. Ces points sont les `apparitions:`
   du `bedwars.yml` de la map (un nom, puis sa liste de points ; 8 au plus). Une map sans
   `apparitions:` fait revenir sur l'île la plus éloignée des autres.

@@ -896,9 +896,9 @@ modes:
     equipes: 1
     joueurs-par-equipe: 1
     classe: false
-    # the fight kit, with 3 fireballs, a pearl and 2 stacks of wool (the blocks go after 10 s, and
-    # only on the islands): with full diamond armour, and Protection IV
-    kit: [STONE_SWORD, "GOLDEN_APPLE 64", "FIREBALL 3", ENDER_PEARL, "WOOL 64", "WOOL 64"]
+    # the fight kit, with 3 fireballs, a pearl, 2 stacks of wool (the blocks go after 10 s, and
+    # only on the islands) and shears: with full diamond armour, and Protection IV
+    kit: [STONE_SWORD, "GOLDEN_APPLE 64", "FIREBALL 3", ENDER_PEARL, "WOOL 64", "WOOL 64", SHEARS]
     description:
       - "Free for all on Archway FFA,"
       - "in diamond armour: spawn on"
@@ -946,9 +946,10 @@ modes:
     classe: false
     kit: [STONE_SWORD, "GOLDEN_APPLE 2"]
     description:
-      - "Free for all, no blocks: four"
-      - "wool platforms linked by bridges,"
-      - "walk from one to another."
+      - "Free for all, no blocks: the"
+      - "hits only push, knock them into"
+      - "the void. Real damage on the"
+      - "middle platform only."
   bridge-fight-1v1:
     nom: "&bBridge fight 1v1"
     categorie: duels
@@ -1014,8 +1015,8 @@ modes:
     description:
       - "Block placement in an arena,"
       - "with everyone: wool and shears,"
-      - "the blocks crack and break"
-      - "after 15 seconds."
+      - "no damage, knock them off. The"
+      - "blocks break after 15 seconds."
   clutch-scenario-1v1:
     nom: "&cClutch scenario 1v1"
     categorie: ranked

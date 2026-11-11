@@ -28,18 +28,23 @@ import org.bukkit.event.entity.EntityDamageEvent;
 import org.bukkit.event.player.PlayerInteractEvent;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.PlayerInventory;
+import org.bukkit.potion.PotionEffect;
+import org.bukkit.potion.PotionEffectType;
 
 /**
  * The bridge fight, a free for all open to everyone like the block placement arena, in Ranked
- * Bedwars gear (iron armour, stone sword, golden apples) with real damage, and nobody places
- * blocks. On the owner's map (bridge-fight.cartes in config.yml: the lowest floor of "Bridge Fight
+ * Bedwars gear (iron armour, stone sword, golden apples), and nobody places blocks. The hits only
+ * push (Resistance V, no damage: knock the others into the void), except on the middle platform,
+ * the one nearest to the centre of the arena (on the map, the red H south of the middle booth),
+ * where they hurt as in a real fight. On the owner's map (bridge-fight.cartes in config.yml: the lowest floor of "Bridge Fight
  * Plateform") its platforms of wool or stained clay, each of two colours as a top fight platform,
  * over the void, and in the row between them the little islands of the arena, each a booth with its
  * sea lantern on the floor: a click on a portal takes the player from their island to the next one
  * the way they look (from the middle one to the left or the right one, and back), on its sea
- * lantern. A player comes in, and comes
- * back after a death or a fall, in the booth nearest to their platform (the little white island of
- * quartz), on its sea lantern in the middle of the diamond of quartz, facing the platform. Without
+ * lantern. A player comes in in the booth nearest to their platform (the little white island of
+ * quartz), on its sea lantern in the middle of the diamond of quartz, facing the platform, and comes
+ * back after a death or a fall on the platform they were on, at the end farthest from the others,
+ * facing its middle. Without
  * it, four platforms side by side: a
  * bridge leads from a pad at each end to the tip of its platform, and a walkway along each end
  * links the pads, so a player walks from one platform to another, and comes back at an end of the
@@ -144,6 +149,8 @@ final class BridgeArena extends PracticeGame {
     static final double BOOTH_REACH = 16;
     /** One portal click a second at most. */
     private static final long PORTAL_PAUSE_MS = 1000L;
+    /** The level of Resistance off the middle platform: V takes all the damage of the hits. */
+    static final int RESISTANCE = 5;
 
     /** The names and chat colours of the wool colours, by data. */
     static final String[] COLOUR_NAMES = {"White", "Orange", "Magenta", "Light Blue", "Yellow", "Lime", "Pink", "Gray",
@@ -157,12 +164,16 @@ final class BridgeArena extends PracticeGame {
     private final List<Platform> platforms;
     /** The portals of the map (x, y of the floor, z from the centre): none on the plugin's own platforms. */
     private final List<int[]> portals;
+    /** The number of the middle platform, where the hits hurt; -1 if none (the plugin's own four). */
+    private final int middle;
     private final Map<UUID, Integer> platformOf = new HashMap<>();
     /** The end of their platform each player came back at, by its number. */
     private final Map<UUID, Integer> endOf = new HashMap<>();
     /** The end a player comes in at next (through a portal), instead of one at random. */
     private final Map<UUID, Integer> nextEnd = new HashMap<>();
     private final Map<UUID, Long> protectedUntil = new HashMap<>();
+    /** The players out (a death, a fall), who come back on their platform rather than in its booth. */
+    private final java.util.Set<UUID> back = new java.util.HashSet<>();
     private final Map<UUID, Long> portalPause = new HashMap<>();
     private final Map<UUID, Integer> kills = new HashMap<>();
     private final Map<UUID, Integer> streaks = new HashMap<>();
@@ -180,6 +191,7 @@ final class BridgeArena extends PracticeGame {
         List<Platform> onMap = arena.map() != null ? platformsOf(arena.map().copy) : Collections.<Platform>emptyList();
         this.platforms = onMap.isEmpty() ? Arrays.asList(PLATFORMS) : onMap;
         this.portals = onMap.isEmpty() ? Collections.<int[]>emptyList() : portalsOf(arena.map().copy);
+        this.middle = middleOf(platforms);
     }
 
     /** Half the width of a platform at this place along it, as a top fight platform; -1 past its tips. */
@@ -204,6 +216,50 @@ final class BridgeArena extends PracticeGame {
         int best = 0;
         for (int i = 1; i < platforms.size(); i++) {
             if (distance(platforms.get(i), x, z) < distance(platforms.get(best), x, z)) {
+                best = i;
+            }
+        }
+        return best;
+    }
+
+    /**
+     * The middle platform, where the hits hurt: the one whose middle is nearest to the centre of
+     * the arena; -1 when two are as near (the plugin's own four, two on each side of the centre).
+     */
+    static int middleOf(List<Platform> platforms) {
+        int best = -1;
+        double nearest = Double.MAX_VALUE;
+        boolean tie = false;
+        for (int i = 0; i < platforms.size(); i++) {
+            double distance = distance(platforms.get(i), 0.5, 0.5);
+            if (Math.abs(distance - nearest) < 0.5) {
+                tie = true;
+            } else if (distance < nearest) {
+                nearest = distance;
+                best = i;
+                tie = false;
+            }
+        }
+        return tie ? -1 : best;
+    }
+
+    /**
+     * The end of the platform where a player comes back: the one whose nearest other player
+     * (others: x, z from the centre each) is the farthest; -1 with nobody else (one at random).
+     */
+    static int farthestEnd(Platform platform, List<double[]> others) {
+        if (others.isEmpty()) {
+            return -1;
+        }
+        int best = 0;
+        double farthest = -1;
+        for (int i = 0; i < platform.ends.length; i++) {
+            double nearest = Double.MAX_VALUE;
+            for (double[] other : others) {
+                nearest = Math.min(nearest, Math.hypot(other[0] - platform.ends[i][0], other[1] - platform.ends[i][2]));
+            }
+            if (nearest > farthest) {
+                farthest = nearest;
                 best = i;
             }
         }
@@ -590,6 +646,11 @@ final class BridgeArena extends PracticeGame {
     Location spawnOf(UUID player) {
         Platform platform = platformOf(player);
         Integer chosen = nextEnd.remove(player);
+        if (back.remove(player) && chosen == null) {
+            // out: back on the platform they were on, away from the others on it
+            int farthest = farthestEnd(platform, othersOn(platformOf.get(player), player));
+            chosen = farthest >= 0 ? farthest : random.nextInt(platform.ends.length);
+        }
         int booth = chosen == null ? boothOf(platform, portals) : -1;
         if (booth >= 0) {
             // in the booth, on the sea lantern, facing the platform
@@ -607,6 +668,43 @@ final class BridgeArena extends PracticeGame {
         double z = at[2] + (platform.spread > 0 ? random.nextInt(2 * platform.spread + 1) - platform.spread : 0);
         // facing the platform
         return arena.at(at[0], at[1], z, (float) at[3]);
+    }
+
+    /** Where the other players of this platform are (x, z from the centre each). */
+    private List<double[]> othersOn(int platform, UUID except) {
+        List<double[]> others = new ArrayList<>();
+        for (Player other : online()) {
+            Integer theirs = platformOf.get(other.getUniqueId());
+            if (!other.getUniqueId().equals(except) && theirs != null && theirs == platform) {
+                double[] at = arena.offset(other.getLocation());
+                others.add(new double[] {at[0], at[2]});
+            }
+        }
+        return others;
+    }
+
+    /** True if the hits hurt this player: they are on the middle platform. */
+    private boolean hurts(UUID player) {
+        Integer platform = platformOf.get(player);
+        return middle >= 0 && platform != null && platform == middle;
+    }
+
+    /** Resistance V off the middle platform, none on it. */
+    private void resistance(Player player) {
+        boolean has = player.hasPotionEffect(PotionEffectType.DAMAGE_RESISTANCE);
+        if (hurts(player.getUniqueId())) {
+            if (has) {
+                player.removePotionEffect(PotionEffectType.DAMAGE_RESISTANCE);
+            }
+        } else if (!has) {
+            player.addPotionEffect(new PotionEffect(PotionEffectType.DAMAGE_RESISTANCE, Integer.MAX_VALUE, RESISTANCE - 1,
+                    false, false), true);
+        }
+    }
+
+    @Override
+    void effects(Player player) {
+        resistance(player);
     }
 
     @Override
@@ -800,7 +898,14 @@ final class BridgeArena extends PracticeGame {
             // hitting first ends one's own protection
             protectedUntil.remove(attacker.getUniqueId());
         }
-        return protectedUntil.getOrDefault(victim.getUniqueId(), 0L) <= now;
+        if (protectedUntil.getOrDefault(victim.getUniqueId(), 0L) > now) {
+            return false;
+        }
+        if (!hurts(victim.getUniqueId())) {
+            // off the middle platform the hits only push (no damage, the knockback stays)
+            event.setDamage(0);
+        }
+        return true;
     }
 
     @Override
@@ -834,9 +939,11 @@ final class BridgeArena extends PracticeGame {
                 if (was != null) {
                     streaks.remove(id);
                     player.sendMessage(ChatColor.GRAY + "Now on the " + platforms.get(platform).chat + platforms.get(platform).name
-                            + ChatColor.GRAY + " platform.");
+                            + ChatColor.GRAY + " platform" + (middle < 0 ? "." : platform == middle
+                            ? ": " + ChatColor.RED + "the hits hurt here." : ": the hits only push here."));
                 }
             }
+            resistance(player);
         }
         if (moved) {
             sidebars();
@@ -866,12 +973,17 @@ final class BridgeArena extends PracticeGame {
     void intro(Player player) {
         if (portals.isEmpty()) {
             player.sendMessage(ChatColor.AQUA + "" + ChatColor.BOLD + "Bridge fight" + ChatColor.GRAY
-                    + " - four platforms, everyone in one arena, real damage, no blocks. Walk the bridges from"
-                    + " one platform to another: you come back on the pads of the one you were on.");
+                    + " - four platforms, everyone in one arena, no blocks, no damage (Resistance): knock the others"
+                    + " into the void. Walk the bridges from one platform to another: you come back on the pads of"
+                    + " the one you were on.");
         } else {
             player.sendMessage(ChatColor.AQUA + "" + ChatColor.BOLD + "Bridge fight" + ChatColor.GRAY + " - " + platforms.size()
-                    + " platforms, everyone in one arena, real damage, no blocks. Click a portal to go to the next island"
-                    + " of the arena, the way you look: you come back in the quartz booth next to your platform.");
+                    + " platforms, everyone in one arena, no blocks. "
+                    + (middle >= 0 ? "No damage (Resistance), knock them into the void, except on the middle platform, "
+                            + platforms.get(middle).chat + platforms.get(middle).name + ChatColor.GRAY + ", where the hits"
+                            + " hurt. " : "")
+                    + "Click a portal to go to the next island of the arena, the way you look; after a death or a fall,"
+                    + " you come back on your platform.");
         }
         player.sendMessage(ChatColor.GRAY + "The compass takes you to a platform (not in a fight). /spawn takes you back to the lobby.");
         for (Player other : online()) {
@@ -907,6 +1019,7 @@ final class BridgeArena extends PracticeGame {
         }
         streaks.remove(victim.getUniqueId());
         forgetHits(victim.getUniqueId());
+        back.add(victim.getUniqueId());
         placeAtStart(victim);
         sidebars();
     }
@@ -919,6 +1032,7 @@ final class BridgeArena extends PracticeGame {
         platformOf.remove(id);
         endOf.remove(id);
         nextEnd.remove(id);
+        back.remove(id);
         protectedUntil.remove(id);
         portalPause.remove(id);
         if (phase != Phase.ENDED) {

@@ -34,7 +34,8 @@ import org.bukkit.util.Vector;
  * slime blocks throw whoever stands on them three blocks up and two forward, the way they look:
  * the way out of the black pit in the corner. Without it, a big platform and four islands over
  * the void. The kit: a wooden sword, two stacks of wool of the player's colour (they never run out)
- * and shears. Knock the others off or kill them; you come back at once. The blocks placed crack
+ * and shears, and Resistance V: the hits push but take no health, so knock the others off into the
+ * void; you come back at once. The blocks placed crack
  * more and more, and break after fifteen seconds, so that the arena never fills up. The kills
  * count in the stats of the mode.
  *
@@ -59,8 +60,8 @@ final class BlockArena extends PracticeGame {
     private static final int LAUNCH_PAUSE = 10;
     /** The id of the slime block. */
     static final int SLIME_ID = 165;
-    /** The level of Resistance in Arena Free: V takes all the damage of the hits. */
-    static final int FREE_RESISTANCE = 5;
+    /** The level of Resistance (both arenas): V takes all the damage of the hits. */
+    static final int RESISTANCE = 5;
     private static final Color[] COLOURS = {Color.RED, Color.BLUE, Color.LIME, Color.YELLOW, Color.AQUA, Color.WHITE,
         Color.FUCHSIA, Color.ORANGE, Color.GRAY, Color.PURPLE};
     /** The wool of each of those colours. */
@@ -219,13 +220,11 @@ final class BlockArena extends PracticeGame {
         leather(player, COLOURS[index % COLOURS.length]);
     }
 
-    /** In Arena Free, Resistance V at each life: the hits push, but take no health (a practice). */
+    /** Resistance V at each life: the hits push, but take no health; only the void sends a player back. */
     @Override
     void effects(Player player) {
-        if (free) {
-            player.addPotionEffect(new PotionEffect(PotionEffectType.DAMAGE_RESISTANCE, Integer.MAX_VALUE,
-                    FREE_RESISTANCE - 1, false, false), true);
-        }
+        player.addPotionEffect(new PotionEffect(PotionEffectType.DAMAGE_RESISTANCE, Integer.MAX_VALUE,
+                RESISTANCE - 1, false, false), true);
     }
 
     /** In Arena Free, a fireball is thrown from the hand, one every half second. */
@@ -253,7 +252,12 @@ final class BlockArena extends PracticeGame {
 
     @Override
     boolean damage(Player victim, Player attacker, EntityDamageEvent event) {
-        return event.getCause() != EntityDamageEvent.DamageCause.FALL;
+        if (event.getCause() == EntityDamageEvent.DamageCause.FALL) {
+            return false;
+        }
+        // the knockback only, even if a potion (milk...) took the Resistance away
+        event.setDamage(0);
+        return true;
     }
 
     @Override
@@ -356,7 +360,8 @@ final class BlockArena extends PracticeGame {
                     + " slime in the black pit throws you out of it.");
         } else {
             player.sendMessage(ChatColor.AQUA + "" + ChatColor.BOLD + "Block placement arena" + ChatColor.GRAY
-                    + " - everyone in one arena: knock them off, build, clutch. Your blocks go away after 15 seconds.");
+                    + " - everyone in one arena, Resistance: the hits only push, knock them off into the void. Build,"
+                    + " clutch; your blocks go away after 15 seconds.");
         }
         player.sendMessage(ChatColor.GRAY + "/spawn takes you back to the lobby.");
         broadcastJoin(player);

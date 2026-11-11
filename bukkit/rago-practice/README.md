@@ -194,13 +194,14 @@ réglages. Un entraînement de la liste que le serveur ne joue pas est laissé d
 ## L'arène de block placement
 
 Ouverte à tous : on entre et on sort quand on veut, avec une épée en bois, deux stacks de laine
-à sa couleur (qui ne s'épuisent jamais) et des cisailles. Elle
+à sa couleur (qui ne s'épuisent jamais) et des cisailles, et Résistance V à chaque vie : les
+coups font reculer mais n'enlèvent pas de vie, on gagne en faisant tomber les autres dans le vide. Elle
 se joue sur l'arène du propriétaire (`block-fight-arena.cartes` dans `config.yml`, le monde
 `Arena`) : l'arène verte dans ses murs de barrières, copiée une fois. On arrive n'importe où sur
 l'herbe ; le bloc de slime du cube noir, dans le coin, projette celui qui monte dessus 3 blocs en
 haut et 2 devant lui (là où il regarde), pour sortir du trou. Le bloc d'or du milieu ne sert que de
 repère : il n'est pas copié. Sans ce monde, une grande plateforme et quatre îles au-dessus du vide.
-On revient tout de suite après une chute ou une mort. Les blocs posés se fissurent de plus en plus
+On revient tout de suite après une chute. Les blocs posés se fissurent de plus en plus
 (les fissures d'un bloc qu'on casse) et se cassent au bout de 15 secondes, avec le bruit et les
 éclats d'un bloc cassé. Les kills comptent dans les stats du mode.
 
@@ -211,7 +212,11 @@ chaque vie, si bien que personne ne meurt des coups (seul le vide renvoie au dé
 ## Le bridge fight
 
 Un FFA ouvert à tous, comme l'arène de block placement, en stuff de Ranked Bedwars (armure de fer,
-épée en pierre, pommes d'or), vrais dégâts, sans poser de bloc. Il se joue sur la map du
+épée en pierre, pommes d'or), sans poser de bloc. Les coups ne font que repousser (Résistance V,
+aucun dégât : on fait tomber les autres dans le vide), sauf sur la **plateforme du milieu**, celle
+dont le milieu est le plus près du `centre` de l'arène (sur la map, le H rouge et jaune au sud de la
+cabine du milieu), où les coups font de vrais dégâts. En changeant de plateforme, un message dit
+laquelle des deux règles s'applique. Sans la map, pas de plateforme du milieu : Résistance partout. Il se joue sur la map du
 propriétaire (`bridge-fight.cartes` dans `config.yml`, le monde `Bridge Fight Plateform`) : son
 étage du bas, copié une fois, avec ses cinq plateformes (deux bleu et jaune, deux noir et vert, le
 H rouge et jaune) et les trois portails entre elles. Les plateformes sont ses sols de laine ou
@@ -227,11 +232,12 @@ un pont relie chaque bout de plateforme à un petit carré, et une passerelle le
 relie les carrés, donc on passe d'une plateforme à l'autre à pied.
 
 La plateforme d'un joueur suit l'endroit où il est (sauf dans une cabine, entre deux plateformes) ;
-la boussole emmène sur n'importe laquelle (pas pendant un combat). En arrivant, et après une mort ou
-une chute, on apparaît dans la cabine la plus proche de sa plateforme (la petite île blanche en
-quartz), sur sa lanterne au milieu du losange de quartz, face à la plateforme ; l'armure prend la
-couleur du bout de la plateforme côté cabine. Sans la map, on revient à un bout de la plateforme. Trois secondes sans dégâts au retour, sauf si on
-frappe le premier. Les kills comptent dans les stats du mode. La sidebar montre le **top 3 des
+la boussole emmène sur n'importe laquelle (pas pendant un combat). En arrivant, on apparaît dans la
+cabine la plus proche de sa plateforme (la petite île blanche en quartz), sur sa lanterne au milieu
+du losange de quartz, face à la plateforme ; l'armure prend la couleur du bout de la plateforme côté
+cabine. Après une mort ou une chute, on revient directement sur la plateforme où l'on était, au bout
+le plus éloigné des autres joueurs de cette plateforme, face à son milieu (l'armure prend la couleur
+de ce bout). Trois secondes sans dégâts ni recul au retour, sauf si on frappe le premier. Les kills comptent dans les stats du mode. La sidebar montre le **top 3 des
 kills** de la partie en cours (les joueurs présents), et un **classement des kills** flotte
 au-dessus de l'îlot du milieu, 12,5 blocs au-dessus de son sol, au-dessus du toit de sa cabine, vu
 de toutes les plateformes : « TOP KILLS », puis les 10 joueurs qui ont le plus de kills à vie dans

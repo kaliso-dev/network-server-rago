@@ -381,6 +381,15 @@ final class FfaGame extends BedwarsGame {
         }
     }
 
+    /** With spawns to choose, the menu opens again at each life: a click moves the player at once. */
+    @Override
+    void respawn(Player player, Gamer gamer) {
+        super.respawn(player, gamer);
+        if (choosesSpawn()) {
+            openSpawnMenu(player);
+        }
+    }
+
     @Override
     void welcome(Player player, Gamer gamer) {
         player.sendMessage(ChatColor.GREEN + "" + ChatColor.BOLD + modeName + ChatColor.GREEN + " on " + ChatColor.WHITE
@@ -429,7 +438,7 @@ final class FfaGame extends BedwarsGame {
         if (kit != null) {
             inventory.setContents(kit);
         } else {
-            // the owner's fight kit; the FFA adds 3 fireballs, a pearl and 2 stacks of wool
+            // the owner's fight kit; the FFA adds 3 fireballs, a pearl, 2 stacks of wool and shears
             List<ItemStack> items = new ArrayList<>(java.util.Arrays.asList(new ItemStack(Material.STONE_SWORD),
                     new ItemStack(Material.GOLDEN_APPLE, 64)));
             if (!onTheBridge()) {
@@ -437,6 +446,7 @@ final class FfaGame extends BedwarsGame {
                 items.add(new ItemStack(Material.ENDER_PEARL));
                 items.add(new ItemStack(Material.WOOL, 64));
                 items.add(new ItemStack(Material.WOOL, 64));
+                items.add(new ItemStack(Material.SHEARS));
             }
             for (ItemStack item : items) {
                 inventory.addItem(kitItem(item, gamer));

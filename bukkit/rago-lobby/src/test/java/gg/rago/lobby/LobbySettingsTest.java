@@ -319,6 +319,7 @@ class LobbySettingsTest {
         assertEquals(KitItem.parse("FIREBALL 6"), settings.display("fireball").kit().item(3), "the kit of the fireball maps");
         assertEquals(KitItem.parse("LADDER 16"), settings.display("block-fight-1v1").kit().item(7), "the kit of the block placement maps");
         assertEquals(Material.STONE_SWORD, settings.display("ffa").kit().item(0).material(), "the fight kit, fireballs and a pearl");
+        assertEquals(Material.SHEARS, settings.display("ffa").kit().item(6).material(), "and shears for the wool");
         assertEquals(Material.GOLD_PICKAXE, settings.display("invis-practice").kit().item(4).material(),
                 "the attacker's pickaxe, for the end stone of the defense");
         assertEquals(KitItem.parse("POTION:8206"), settings.display("invis-practice").kit().item(9), "the invisibility");

@@ -277,6 +277,26 @@ class BridgeArenaTest {
     }
 
     @Test
+    void theHitsHurtOnlyOnTheMiddlePlatform() {
+        List<BridgeArena.Platform> platforms = BridgeArena.platformsOf(ownersFloor());
+        assertEquals(2, BridgeArena.middleOf(platforms), "the red H, south of the middle booth (the centre)");
+        assertEquals(-1, BridgeArena.middleOf(Arrays.asList(BridgeArena.PLATFORMS)),
+                "the plugin's own four: two as near, no middle, Resistance everywhere");
+        assertEquals(5, BridgeArena.RESISTANCE, "V takes all the damage of the hits");
+    }
+
+    @Test
+    void aPlayerOutComesBackOnTheirPlatformAwayFromTheOthers() {
+        BridgeArena.Platform north = BridgeArena.platformsOf(ownersFloor()).get(0);
+        // its ends: z -25.5 (north) and -7.5 (south)
+        assertEquals(-1, BridgeArena.farthestEnd(north, Collections.<double[]>emptyList()), "alone: either end");
+        assertEquals(1, BridgeArena.farthestEnd(north, Collections.singletonList(new double[] {-17.5, -24})),
+                "someone at the north end: the south one");
+        assertEquals(0, BridgeArena.farthestEnd(north, Arrays.asList(new double[] {-17.5, -9}, new double[] {-17, -14})),
+                "the fight in the south half: the north end");
+    }
+
+    @Test
     void aClickReachesTheBoothItsPlayerLooksAt() {
         double[][] booth = BridgeArena.booth(new int[] {-18, 1, 0});
         assertArrayEquals(new double[] {-21, 1, -3}, booth[0], 1e-9);

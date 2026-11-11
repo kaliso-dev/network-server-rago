@@ -122,14 +122,16 @@ block-fight-arena:
 
 # The bridge fight (open to everyone) plays on this map of the owner: the lowest floor of "Bridge
 # Fight Plateform", its five platforms (two blue and yellow, two black and lime, the red H in
-# yellow) and the three portals between them. The platforms are its floors of wool or stained clay at
-# the height of the centre; a portal is a booth around a sea lantern on its floor (7 by 7, 9 high).
-# A click on a portal takes the player to the platform on the other side of it, the one they look
-# at through it; the portal with none in line (the middle one) opens the menu of the platforms.
-# A player comes in, and back after a death, in the booth nearest to their platform (the little
-# white island of quartz), on its sea lantern in the middle of the diamond, facing the platform.
+# yellow) and the three portals between them. The platforms are its floors of wool or stained
+# clay at the height of the centre; a portal is a booth around a sea lantern on its floor (7 by 7,
+# 9 high). A click on a portal takes the player to the next island, the way they look (from the
+# middle one to the left or the right one, and back). The hits only push (Resistance V), except
+# on the middle platform, the one nearest to the centre (the red H), where they hurt.
+# A player comes in in the booth nearest to their platform (the little white island of quartz), on
+# its sea lantern in the middle of the diamond, facing the platform; after a death or a fall, on
+# the platform they were on, at the end farthest from the others.
 # Its barriers are not copied: a player knocked off falls into the void. Without that world: four
-# platforms of the plugin's own, linked by bridges.
+# platforms of the plugin's own, linked by bridges (Resistance on all four).
 bridge-fight:
   cartes:
     - monde: "Bridge Fight Plateform"
