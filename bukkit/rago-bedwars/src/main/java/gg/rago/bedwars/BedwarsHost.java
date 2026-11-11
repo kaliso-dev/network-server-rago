@@ -113,6 +113,8 @@ final class BedwarsHost implements MatchHost, Listener {
     /** Players already told that no map is ready, so that they are not told every second. */
     private final Set<UUID> toldNoMap = new HashSet<>();
     private final MapDraw draw = new MapDraw(new java.util.Random());
+    /** The kit each player last chose in Attack and Defense, for the attack and for the defense. */
+    private final Map<UUID, int[]> roundKits = new HashMap<>();
     private boolean warnedNoMap;
 
     BedwarsHost(RagoBedwars plugin) {
@@ -352,6 +354,21 @@ final class BedwarsHost implements MatchHost, Listener {
     /** The game of this player, or null. */
     BedwarsGame gameOf(UUID player) {
         return games.get(player);
+    }
+
+    /** The kit this player last chose for the attack (or the defense) of Attack and Defense: 0, the first, at first. */
+    int roundKit(UUID player, boolean attack) {
+        int[] chosen = roundKits.get(player);
+        return chosen == null ? 0 : chosen[attack ? 0 : 1];
+    }
+
+    void chooseRoundKit(UUID player, boolean attack, int index) {
+        int[] chosen = roundKits.get(player);
+        if (chosen == null) {
+            chosen = new int[2];
+            roundKits.put(player, chosen);
+        }
+        chosen[attack ? 0 : 1] = index;
     }
 
     /** The player no longer belongs to their game. */
@@ -990,12 +1007,15 @@ final class BedwarsHost implements MatchHost, Listener {
         }
         Player player = (Player) event.getWhoClicked();
         InventoryHolder menu = event.getView().getTopInventory().getHolder();
-        if (menu instanceof ShopMenu.Holder || menu instanceof UpgradeMenu.Holder || menu instanceof FfaSpawnMenu.Holder) {
+        if (menu instanceof ShopMenu.Holder || menu instanceof UpgradeMenu.Holder || menu instanceof FfaSpawnMenu.Holder
+                || menu instanceof KitMenu.Holder) {
             event.setCancelled(true);
             if (event.getRawSlot() < 0 || event.getRawSlot() >= event.getView().getTopInventory().getSize()) {
                 return;
             }
-            if (menu instanceof FfaSpawnMenu.Holder) {
+            if (menu instanceof KitMenu.Holder) {
+                KitMenu.click(player, (KitMenu.Holder) menu, event.getRawSlot());
+            } else if (menu instanceof FfaSpawnMenu.Holder) {
                 FfaSpawnMenu.click(player, (FfaSpawnMenu.Holder) menu, event.getRawSlot());
             } else if (menu instanceof ShopMenu.Holder) {
                 ShopMenu.click(player, (ShopMenu.Holder) menu, event.getRawSlot());
@@ -1013,7 +1033,8 @@ final class BedwarsHost implements MatchHost, Listener {
     @EventHandler(priority = EventPriority.HIGH)
     public void onDrag(InventoryDragEvent event) {
         InventoryHolder menu = event.getView().getTopInventory().getHolder();
-        if (menu instanceof ShopMenu.Holder || menu instanceof UpgradeMenu.Holder || menu instanceof FfaSpawnMenu.Holder) {
+        if (menu instanceof ShopMenu.Holder || menu instanceof UpgradeMenu.Holder || menu instanceof FfaSpawnMenu.Holder
+                || menu instanceof KitMenu.Holder) {
             event.setCancelled(true);
         }
     }

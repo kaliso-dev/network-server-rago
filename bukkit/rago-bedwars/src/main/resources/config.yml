@@ -52,11 +52,12 @@ modes:
 #              party's private game, a practice: back on top 2 seconds after a death, 30 minutes
 #   attaque-defense  Attack and Defense, on a map of one base and the bridge of the attackers
 #              (attaquants: in its bedwars.yml): two rounds, each side attacks once. The attackers
-#              start at the end of their bridge, one life, the mode's kit and leather armour; the
-#              defenders have a game's start kit, their forge and their shop, and come back while
-#              their bed stands; a defense the map has on the bed can be broken, as in a game,
-#              and is whole again each round. The attackers win the round by breaking the bed and killing the
-#              defenders, the defenders by killing the attackers or holding 5 minutes
+#              start at the end of their bridge, one life, their kit and iron armour; the
+#              defenders have a game's start kit with their own kit, their forge and their shop,
+#              and come back while their bed stands (each side chooses one of its 3 kits: see
+#              attaque-defense: below); a defense the map has on the bed can be broken, as in a
+#              game, and is whole again each round. The attackers win the round by breaking the bed
+#              and killing the defenders, the defenders by killing the attackers or holding 5 minutes
 #   clutch-scenario  Clutch Scenario: a real game on any map (the 20 RBW maps, Sky Rise, the solo
 #              and doubles maps), the two teams on opposite islands; one, drawn at random, has
 #              lost its bed already (one life each: clutch), the other keeps it under the owner's
@@ -85,6 +86,43 @@ jeux:
   clutch-scenario-4v4: clutch-scenario
   bed-fight-1v1: bed-fight
   bed-fight-2v2: bed-fight
+
+# Attack and Defense: the kits each player chooses from before each round, in a menu that opens by
+# itself (/kit opens it again); the countdown is 10 seconds, 3 once everyone has chosen. The
+# attackers get their kit for their one life, in iron armour; the defenders a game's start in
+# iron armour (forge and shop) with their kit at their first life of the round, its sword in place
+# of the wooden one, its pickaxe, axe or shears kept as if bought. Each kit: nom, icone (an item),
+# description (4 lines at most), objets: the items of the item shop by their id, with their
+# amount (stone_sword, "wool 64", "fireball 3", golden_pickaxe, diamond_pickaxe, shears, bow,
+# "arrow 24", tnt, ender_pearl, invisibility, stick, golden_apple, "end_stone 24", water...).
+# From 1 to 7 kits a side; without this part, these three and three.
+attaque-defense:
+  kits-attaque:
+    - nom: Rusher
+      icone: FIREBALL
+      description: ["Fireballs to clear the bridge", "and throw the defenders off;", "the Golden Pickaxe digs fast."]
+      objets: [stone_sword, "wool 64", "fireball 3", golden_pickaxe, shears]
+    - nom: Breaker
+      icone: TNT
+      description: ["TNT blows up the wool and the", "end stone of the defense; the", "Diamond Pickaxe does the rest."]
+      objets: [stone_sword, "wool 32", "tnt 2", diamond_pickaxe, shears]
+    - nom: Ninja
+      icone: ENDER_PEARL
+      description: ["Invisible for 30 seconds, then", "a pearl to land on the bed."]
+      objets: [stone_sword, "wool 32", invisibility, ender_pearl, iron_pickaxe, shears]
+  kits-defense:
+    - nom: Guardian
+      icone: STICK
+      description: ["A stone sword, and the stick", "to knock them off at the door."]
+      objets: [stone_sword, stick, "wool 16", golden_apple]
+    - nom: Archer
+      icone: BOW
+      description: ["Shoot them off the bridge", "before they land."]
+      objets: [bow, "arrow 24", "wool 16"]
+    - nom: Builder
+      icone: ENDER_STONE
+      description: ["End stone and wool to build", "the defense up again as they", "break it; shears for good."]
+      objets: ["end_stone 24", "wool 32", shears]
 
 # How many game worlds the server keeps at most, so how many games at once (from 1 to 50).
 parties-max: 8

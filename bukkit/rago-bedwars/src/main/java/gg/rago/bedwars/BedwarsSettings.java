@@ -247,10 +247,13 @@ final class BedwarsSettings {
     private final List<String> neighbourModes;
     /** The modes whose games have a top bridge (Top Bridge). */
     private final List<String> topBridgeModes;
+    /** The kits of Attack and Defense to choose from, each side its own (attaque-defense:). */
+    private final List<RoundKit> attackKits;
+    private final List<RoundKit> defenseKits;
 
     private BedwarsSettings(Map<String, List<String>> modes, Map<String, Kind> kinds, int maxGames, boolean demo,
             int respawnSeconds, Forge forge, List<Rate> diamond, List<Rate> emerald, int[] events, Fireball fireball,
-            List<String> neighbourModes, List<String> topBridgeModes) {
+            List<String> neighbourModes, List<String> topBridgeModes, List<RoundKit> attackKits, List<RoundKit> defenseKits) {
         this.modes = Collections.unmodifiableMap(modes);
         this.kinds = Collections.unmodifiableMap(kinds);
         this.maxGames = maxGames;
@@ -268,6 +271,8 @@ final class BedwarsSettings {
         this.fireball = fireball;
         this.neighbourModes = Collections.unmodifiableList(neighbourModes);
         this.topBridgeModes = Collections.unmodifiableList(topBridgeModes);
+        this.attackKits = attackKits;
+        this.defenseKits = defenseKits;
     }
 
     /** The word for every map, in the maps of a mode. */
@@ -317,8 +322,12 @@ final class BedwarsSettings {
         for (String mode : config.getStringList("top-bridge")) {
             topBridge.add(modeId(mode, "top-bridge"));
         }
+        List<RoundKit> attackKits = RoundKit.read(config.getList("attaque-defense.kits-attaque"),
+                "attaque-defense.kits-attaque", RoundKit.ATTACK);
+        List<RoundKit> defenseKits = RoundKit.read(config.getList("attaque-defense.kits-defense"),
+                "attaque-defense.kits-defense", RoundKit.DEFENSE);
         return new BedwarsSettings(modes, kinds(config), maxGames, config.getBoolean("carte-demo", true), respawn, forge,
-                diamond, emerald, events, fireball, neighbours, topBridge);
+                diamond, emerald, events, fireball, neighbours, topBridge, attackKits, defenseKits);
     }
 
     /** jeux: the modes that are not a classic game, each with its kind. */
@@ -568,5 +577,10 @@ final class BedwarsSettings {
     /** True if the games of this mode have a top bridge over the middle (see {@link TopBridge}). */
     boolean topBridge(String modeId) {
         return topBridgeModes.contains(modeId);
+    }
+
+    /** The kits of the attackers (attack: true) or of the defenders of Attack and Defense. */
+    List<RoundKit> roundKits(boolean attack) {
+        return attack ? attackKits : defenseKits;
     }
 }

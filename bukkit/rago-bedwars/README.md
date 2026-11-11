@@ -119,13 +119,34 @@ grise et le pont rose qui y mène). Deux manches : chaque camp attaque une fois,
 s'échangent à la deuxième, la map redevient comme au départ.
 
 - **Les attaquants** partent du bout du pont (les `attaquants:` du `bedwars.yml` de la map), avec
-  une seule vie, une armure en fer et le kit du mode du lobby (épée en pierre, un stack de laine,
-  2 boules de feu, la pioche en or du shop, Efficacité III et Tranchant II comme sur Hypixel,
-  cisailles ; trois kits au choix viendront ensuite). Ils posent des blocs et lancent des boules
-  de feu comme dans une vraie partie.
+  une seule vie, une armure en fer et le kit d'attaque qu'ils ont choisi. Ils posent des blocs et
+  lancent des boules de feu comme dans une vraie partie.
 - **Les défenseurs** partent de leur base avec le stuff d'un début de partie (épée en bois), en
-  armure de fer comme les attaquants, avec leur forge et leur shop, sans améliorations. Ils reviennent tant que leur lit tient ;
+  armure de fer comme les attaquants, avec leur forge et leur shop, sans améliorations, plus leur
+  kit de défense à leur première vie de la manche (son épée remplace celle en bois ; sa pioche,
+  sa hache ou ses cisailles restent comme achetées). Ils reviennent tant que leur lit tient ;
   après, une mort est un final kill, comme dans une vraie partie.
+
+**Les kits.** Avant chaque manche, un menu s'ouvre tout seul avec les kits du rôle du joueur ; le
+décompte dure 10 secondes, 3 dès que tout le monde a choisi. `/kit` (ou le bouton [CHANGE KIT] du
+chat) le rouvre ; un choix pendant la manche vaut pour la prochaine manche dans ce rôle. Le
+dernier kit choisi est retenu. Les objets suivent la place que le joueur leur a donnée dans
+l'éditeur de kit du lobby, sinon sa hotbar Hypixel.
+
+| Attaque | Objets |
+|---|---|
+| Rusher | épée en pierre, 64 laines, 3 boules de feu, pioche en or (Efficacité III, Tranchant II), cisailles |
+| Breaker | épée en pierre, 32 laines, 2 TNT, pioche en diamant (Efficacité III), cisailles |
+| Ninja | épée en pierre, 32 laines, potion d'invisibilité (30 s), ender pearl, pioche en fer, cisailles |
+
+| Défense | Objets |
+|---|---|
+| Guardian | épée en pierre, bâton Recul I, 16 laines, pomme d'or |
+| Archer | arc, 24 flèches, 16 laines |
+| Builder | 24 end stone, 32 laines, cisailles |
+
+Les kits se changent dans `attaque-defense:` du `config.yml` (de 1 à 7 par camp, les objets du
+shop par leur id, avec leur nombre).
 
 La défense que la map a sur le lit (sur Bio Hazard, l'end stone et la laine capturées avec la map)
 est celle des défenseurs, comme dans une vraie partie : on peut la casser, et elle revient entière

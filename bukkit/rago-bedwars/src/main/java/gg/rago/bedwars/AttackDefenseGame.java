@@ -2,11 +2,14 @@ package gg.rago.bedwars;
 
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 import java.util.UUID;
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
 import org.bukkit.Location;
+import org.bukkit.Material;
 import org.bukkit.Sound;
 import org.bukkit.block.Block;
 import org.bukkit.entity.Player;
@@ -22,14 +25,16 @@ import org.bukkit.scheduler.BukkitTask;
  *
  * <ul>
  *   <li>The attackers start at the end of their bridge (attaquants: in the map's bedwars.yml),
- *       with one life, iron armour and the mode's kit of the lobby (a stone sword, a stack of
- *       wool, 2 fireballs, the Golden Pickaxe of the shop, Efficiency III and Sharpness II, and
- *       shears; three kits to choose from will come). They place blocks and throw fireballs as in a
- *       game.
+ *       with one life, iron armour and the attack kit they chose (Rusher, Breaker or Ninja by
+ *       default, see {@link RoundKit}). They place blocks and throw fireballs as in a game.
  *   <li>The defenders start in their base with the kit of a game's start (a wooden sword) in iron
- *       armour, its forge and its item shop, without upgrades; they come back while their bed
- *       stands, and a death after it is a final kill, as in a game.
+ *       armour, its forge and its item shop, without upgrades, and the defense kit they chose
+ *       (Guardian, Archer or Builder) at their first life of the round; they come back while their
+ *       bed stands, as in a game (the tools of the kit stay), and a death after it is a final kill.
  * </ul>
+ *
+ * Before each round, a menu shows each player the kits of their side; the countdown is
+ * {@value #COUNTDOWN} seconds, 3 once everyone has chosen. /kit opens the menu again.
  *
  * A defense the map has on the bed (Bio Hazard's end stone and wool, captured with the map) is
  * the defenders' own, as in a game: the players can break it, and it is whole again each round.
@@ -42,15 +47,13 @@ final class AttackDefenseGame extends BedwarsGame {
 
     static final int ROUNDS = 2;
     static final int ROUND_SECONDS = 300;
-    private static final int COUNTDOWN = 5;
+    static final int COUNTDOWN = 10;
+    /** The countdown once every player has chosen their kit. */
+    static final int READY_COUNTDOWN = 3;
     /** Between the end of a round and the next one, and before the end of the game. */
     private static final long BETWEEN_TICKS = 80L;
-    /** The attackers' kit when the lobby has none for the mode: shop items, with their amount. */
-    static final String[] ATTACKER_KIT = {"stone_sword", "wool 64", "fireball 2", "golden_pickaxe", "shears"};
     /** The armour of both sides at the start: iron (the tier of Gamer#armor), as bought in a game. */
     static final int ARMOUR = 2;
-    /** The attackers' pickaxe, whatever the kit holds: the Golden Pickaxe of the shop (its tier). */
-    static final int ATTACKER_PICKAXE = 2;
     private static final String CHECK = "✔";
     private static final String CROSS = "✘";
 
@@ -66,6 +69,10 @@ final class AttackDefenseGame extends BedwarsGame {
     private int round = 1;
     private boolean roundOver;
     private BukkitTask roundCountdown;
+    /** The defenders who had the items of their kit this round (at their first life). */
+    private final Set<UUID> stocked = new HashSet<>();
+    /** The players who chose their kit in the menu this round. */
+    private final Set<UUID> chose = new HashSet<>();
 
     AttackDefenseGame(RagoBedwars plugin, BedwarsHost host, Instance instance, String modeId, String modeName,
             List<List<Player>> sides) {
@@ -179,42 +186,194 @@ final class AttackDefenseGame extends BedwarsGame {
         return super.spawnOf(gamer);
     }
 
+    /** The kit this player chose for their role this round. */
+    RoundKit kitOf(Gamer gamer) {
+        boolean attack = gamer.team == attackers;
+        List<RoundKit> kits = settings.roundKits(attack);
+        return kits.get(Math.max(0, Math.min(kits.size() - 1, host.roundKit(gamer.id, attack))));
+    }
+
     /**
-     * The defenders: a game's start in iron armour (and what they bought: diamond armour stays); the
-     * attackers: the mode's kit and iron armour.
+     * The attackers: their kit and iron armour (one life). The defenders: a game's start in iron
+     * armour, with the tools of their kit (kept, as bought), and the rest of their kit at their
+     * first life of the round; its sword takes the place of the wooden one.
      */
     @Override
     void giveKit(Player player, Gamer gamer) {
         gamer.armor = Math.max(gamer.armor, ARMOUR);
+        List<RoundKit.Entry> kit = kitOf(gamer).entries(catalog());
+        PlayerInventory inventory = player.getInventory();
         if (gamer.team != attackers) {
+            boolean first = stocked.add(gamer.id);
+            if (first) {
+                for (RoundKit.Entry entry : kit) {
+                    keepTool(gamer, entry.item);
+                }
+            }
             super.giveKit(player, gamer);
+            if (first) {
+                for (RoundKit.Entry entry : kit) {
+                    if (isTool(entry.item)) {
+                        continue;
+                    }
+                    if (entry.item.kind() == ShopItem.Kind.SWORD) {
+                        inventory.remove(Material.WOOD_SWORD);
+                    }
+                    give(player, gamer, amount(stack(entry.item, gamer), entry.amount), entry.item.category());
+                }
+            }
+            player.updateInventory();
             return;
         }
-        PlayerInventory inventory = player.getInventory();
         inventory.clear();
         wearArmor(player, gamer);
-        ItemStack[] kit = lobbyKit(player, gamer);
-        if (kit != null) {
-            inventory.setContents(kit);
-        } else {
-            for (String entry : ATTACKER_KIT) {
-                String[] parts = entry.split(" ");
-                ShopItem item = InvisGame.catalogItem(catalog(), parts[0]);
-                if (item != null) {
-                    ItemStack stack = stack(item, gamer);
-                    stack.setAmount(parts.length > 1 ? Integer.parseInt(parts[1]) : 1);
-                    inventory.addItem(stack);
+        ItemStack[] layout = lobbyKit(player, gamer);
+        for (RoundKit.Entry entry : kit) {
+            putKitItem(player, gamer, layout, amount(stack(entry.item, gamer), entry.amount), entry.item.category());
+        }
+        player.updateInventory();
+    }
+
+    private static ItemStack amount(ItemStack stack, int amount) {
+        stack.setAmount(amount);
+        return stack;
+    }
+
+    private static boolean isTool(ShopItem item) {
+        return item.kind() == ShopItem.Kind.PICKAXE || item.kind() == ShopItem.Kind.AXE || item.kind() == ShopItem.Kind.SHEARS;
+    }
+
+    /** A pickaxe, an axe or shears of the kit become the defender's, as if bought: back at each life. */
+    private void keepTool(Gamer gamer, ShopItem item) {
+        if (item.kind() == ShopItem.Kind.PICKAXE) {
+            gamer.pickaxe = Math.max(gamer.pickaxe, catalog().pickaxes().indexOf(item));
+        } else if (item.kind() == ShopItem.Kind.AXE) {
+            gamer.axe = Math.max(gamer.axe, catalog().axes().indexOf(item));
+        } else if (item.kind() == ShopItem.Kind.SHEARS) {
+            gamer.shears = true;
+        }
+    }
+
+    /**
+     * An item of the kit where the player put it in the lobby's kit editor (the first free slot
+     * holding the same item there, or a sword, a pickaxe, an axe of another tier), else where
+     * their Hypixel hotbar wants it.
+     */
+    private static void putKitItem(Player player, Gamer gamer, ItemStack[] layout, ItemStack item,
+            ShopItem.Category category) {
+        PlayerInventory inventory = player.getInventory();
+        if (layout != null) {
+            for (int slot = 0; slot < layout.length && slot < inventory.getSize(); slot++) {
+                ItemStack there = inventory.getItem(slot);
+                if (layout[slot] != null && sameKind(layout[slot].getType(), item.getType())
+                        && (there == null || there.getType() == Material.AIR)) {
+                    inventory.setItem(slot, item);
+                    return;
                 }
             }
         }
-        ItemStack pickaxe = stack(catalog().pickaxes().get(ATTACKER_PICKAXE), gamer);
-        for (int slot = 0; slot < inventory.getSize(); slot++) {
-            ItemStack item = inventory.getItem(slot);
-            if (item != null && item.getType().name().endsWith("_PICKAXE")) {
-                inventory.setItem(slot, pickaxe.clone());
+        give(player, gamer, item, category);
+    }
+
+    /** The same item, or two swords, two pickaxes, two axes: the slot of one in the kit editor fits the other. */
+    static boolean sameKind(Material a, Material b) {
+        if (a == b) {
+            return true;
+        }
+        for (String tool : new String[] {"_SWORD", "_PICKAXE", "_AXE"}) {
+            if (a.name().endsWith(tool) && b.name().endsWith(tool)) {
+                return !tool.equals("_AXE") || !a.name().endsWith("_PICKAXE") && !b.name().endsWith("_PICKAXE");
             }
         }
-        player.updateInventory();
+        return false;
+    }
+
+    // --- The kits menu --------------------------------------------------------------------------
+
+    /** Opens the menu of the kits of the player's role this round; false if they do not play. */
+    boolean openKitMenu(Player player) {
+        Gamer gamer = gamers.get(player.getUniqueId());
+        if (gamer == null || host.gameOf(gamer.id) != this || phase == Phase.ENDED) {
+            return false;
+        }
+        boolean attack = gamer.team == attackers;
+        KitMenu.open(player, this, attack, settings.roundKits(attack), host.roundKit(gamer.id, attack), catalog());
+        return true;
+    }
+
+    /**
+     * The player chose a kit (attack: in the menu of the attack): before the fight, they have it at
+     * once; during the round, from their next round of that role. Everyone ready: the countdown
+     * goes on from {@value #READY_COUNTDOWN} seconds.
+     */
+    void chooseKit(Player player, boolean attack, int index) {
+        Gamer gamer = gamers.get(player.getUniqueId());
+        if (gamer == null || host.gameOf(gamer.id) != this || phase == Phase.ENDED
+                || index < 0 || index >= settings.roundKits(attack).size()) {
+            return;
+        }
+        host.chooseRoundKit(gamer.id, attack, index);
+        String name = ChatColor.stripColor(settings.roundKits(attack).get(index).name);
+        if ((gamer.team == attackers) != attack) {
+            player.sendMessage(ChatColor.YELLOW + "Your " + (attack ? "attack" : "defense") + " kit: " + ChatColor.GREEN
+                    + name + ChatColor.YELLOW + ", for your next round " + (attack ? "in attack." : "in defense."));
+            return;
+        }
+        if (phase == Phase.STARTING) {
+            chose.add(gamer.id);
+            stocked.remove(gamer.id);
+            gamer.pickaxe = -1;
+            gamer.axe = -1;
+            gamer.shears = false;
+            giveKit(player, gamer);
+            player.sendMessage(ChatColor.YELLOW + "Your kit: " + ChatColor.GREEN + name + ChatColor.YELLOW + ".");
+            player.playSound(player.getLocation(), Sound.ORB_PICKUP, 1f, 1f);
+            if (everyoneChose()) {
+                shortenCountdown(READY_COUNTDOWN);
+            }
+        } else {
+            player.sendMessage(ChatColor.YELLOW + "Your kit: " + ChatColor.GREEN + name + ChatColor.YELLOW
+                    + ", from your next round " + (attack ? "in attack." : "in defense."));
+        }
+        sidebars();
+    }
+
+    /** True if every player still here chose their kit this round. */
+    private boolean everyoneChose() {
+        for (Gamer gamer : present()) {
+            if (!chose.contains(gamer.id)) {
+                return false;
+            }
+        }
+        return true;
+    }
+
+    /** The menu of the kits opens by itself before the round, and a line of the chat opens it again. */
+    private void offerKits(final Player player) {
+        net.md_5.bungee.api.chat.TextComponent text = new net.md_5.bungee.api.chat.TextComponent(ChatColor.GRAY
+                + "Your kit: " + ChatColor.WHITE + ChatColor.stripColor(kitOf(gamers.get(player.getUniqueId())).name)
+                + ChatColor.GRAY + ". ");
+        net.md_5.bungee.api.chat.TextComponent link = new net.md_5.bungee.api.chat.TextComponent(ChatColor.GREEN + ""
+                + ChatColor.BOLD + "[CHANGE KIT]");
+        link.setClickEvent(new net.md_5.bungee.api.chat.ClickEvent(net.md_5.bungee.api.chat.ClickEvent.Action.RUN_COMMAND,
+                "/kit"));
+        player.spigot().sendMessage(text, link);
+        later(1L, () -> {
+            if (player.isOnline() && host.gameOf(player.getUniqueId()) == this && phase == Phase.STARTING) {
+                openKitMenu(player);
+            }
+        });
+    }
+
+    /** The menus of the kits still open close when the fight starts. */
+    private void closeKitMenus() {
+        for (Gamer gamer : present()) {
+            Player player = Bukkit.getPlayer(gamer.id);
+            if (player != null && player.getOpenInventory() != null
+                    && player.getOpenInventory().getTopInventory().getHolder() instanceof KitMenu.Holder) {
+                player.closeInventory();
+            }
+        }
     }
 
     @Override
@@ -235,6 +394,7 @@ final class AttackDefenseGame extends BedwarsGame {
         if (round == 1) {
             player.sendMessage(ChatColor.GRAY + "Two rounds: the roles swap at the second. /spawn takes you back to the lobby.");
         }
+        offerKits(player);
     }
 
     @Override
@@ -250,6 +410,7 @@ final class AttackDefenseGame extends BedwarsGame {
     }
 
     private void roundStarted() {
+        closeKitMenus();
         broadcast(ChatColor.RED + "Round " + round + "/" + ROUNDS + ": " + sideName(attackingSide()) + ChatColor.RED
                 + " attacks!", Sound.NOTE_PLING);
         sidebars();
@@ -345,6 +506,8 @@ final class AttackDefenseGame extends BedwarsGame {
         round++;
         roundOver = false;
         seconds = 0;
+        stocked.clear();
+        chose.clear();
         instance.rollback();
         utilities.clear();
         removeUnusedBeds();
@@ -362,20 +525,22 @@ final class AttackDefenseGame extends BedwarsGame {
                 }
             }
         }
+        countdownLeft = COUNTDOWN;
         roundCountdown = repeat(0L, 20L, new Runnable() {
-            private int left = COUNTDOWN;
-
             @Override
             public void run() {
                 if (phase == Phase.ENDED) {
                     cancel(roundCountdown);
                     return;
                 }
+                int left = countdownLeft;
                 if (left > 0) {
                     title(ChatColor.RED + "" + ChatColor.BOLD + left, "");
-                    broadcast(ChatColor.YELLOW + "The round starts in " + ChatColor.RED + left + ChatColor.YELLOW + "...",
-                            Sound.NOTE_STICKS);
-                    left--;
+                    if (left <= 5 || left == COUNTDOWN) {
+                        broadcast(ChatColor.YELLOW + "The round starts in " + ChatColor.RED + left + ChatColor.YELLOW + "...",
+                                Sound.NOTE_STICKS);
+                    }
+                    countdownLeft--;
                     return;
                 }
                 cancel(roundCountdown);
@@ -546,10 +711,9 @@ final class AttackDefenseGame extends BedwarsGame {
             }
             lines.add(ChatColor.WHITE + name + ": " + ChatColor.GREEN + wins[side] + (side == mine ? ChatColor.GRAY + " YOU" : ""));
         }
-        lines.add("");
-        lines.add(ChatColor.WHITE + "You: " + (viewer.team == attackers ? ChatColor.RED + "Attacker" : ChatColor.GREEN + "Defender"));
-        lines.add(ChatColor.WHITE + "Kills: " + ChatColor.GREEN + viewer.kills);
-        lines.add(ChatColor.WHITE + "Final Kills: " + ChatColor.GREEN + viewer.finalKills);
+        // nine lines at most: the lobby adds the pings below
+        lines.add((viewer.team == attackers ? ChatColor.RED + "Attack" : ChatColor.GREEN + "Defense") + ChatColor.WHITE
+                + " kit: " + ChatColor.YELLOW + ChatColor.stripColor(kitOf(viewer).name));
         return lines;
     }
 }

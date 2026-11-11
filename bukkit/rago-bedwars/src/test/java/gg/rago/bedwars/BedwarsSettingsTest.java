@@ -12,6 +12,7 @@ import java.io.Reader;
 import java.nio.charset.StandardCharsets;
 import java.util.Arrays;
 import java.util.Collections;
+import java.util.List;
 import org.bukkit.configuration.file.YamlConfiguration;
 import org.junit.jupiter.api.Test;
 
@@ -54,6 +55,10 @@ class BedwarsSettingsTest {
         assertEquals(BedwarsSettings.Kind.ATTACK_DEFENSE, settings.kind("attack-defense-2v2"));
         assertEquals(Collections.singletonList("BioHazard"), settings.mapsOf("attack-defense-2v2"), "the owner's Bio Hazard");
         assertEquals(BedwarsSettings.Kind.CLUTCH_SCENARIO, settings.kind("clutch-scenario-3v3"));
+        assertEquals(Arrays.asList("Rusher", "Breaker", "Ninja"), kitNames(settings.roundKits(true)), "the config's kits");
+        assertEquals(Arrays.asList("Guardian", "Archer", "Builder"), kitNames(settings.roundKits(false)));
+        assertEquals(RoundKit.ATTACK.get(1).items, settings.roundKits(true).get(1).items, "the config gives the defaults");
+        assertEquals(RoundKit.DEFENSE.get(2).items, settings.roundKits(false).get(2).items);
         assertEquals(BedwarsSettings.Kind.BED_FIGHT, settings.kind("bed-fight-1v1"));
         assertEquals(BedwarsSettings.Kind.BED_FIGHT, settings.kind("bed-fight-2v2"));
         assertEquals(Collections.singletonList("BedFight"), settings.mapsOf("bed-fight-2v2"), "the owner's Bed Fight map");
@@ -219,5 +224,13 @@ class BedwarsSettingsTest {
         }
         IllegalArgumentException problem = assertThrows(IllegalArgumentException.class, () -> BedwarsSettings.read(config));
         assertTrue(problem.getMessage().startsWith(setting), problem.getMessage());
+    }
+
+    private static List<String> kitNames(List<RoundKit> kits) {
+        List<String> names = new java.util.ArrayList<>();
+        for (RoundKit kit : kits) {
+            names.add(kit.name);
+        }
+        return names;
     }
 }

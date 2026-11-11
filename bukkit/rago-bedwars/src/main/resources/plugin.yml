@@ -14,6 +14,10 @@ commands:
     description: In the FFA, chooses where you spawn (Archway FFA - Top bridge, Low, Mid or Random).
     aliases: [spawnffa]
     usage: /ffaspawn
+  kit:
+    description: In Attack and Defense, chooses your kit for the round (3 to attack, 3 to defend).
+    aliases: [kits]
+    usage: /kit
 permissions:
   rago.bedwars.admin:
     description: Sets up the Bed Wars maps with /bw.

@@ -86,6 +86,19 @@ public final class RagoBedwars extends JavaPlugin {
             return true;
         });
 
+        // Attack and Defense: the kit of the round (the menu opens by itself before each round)
+        getCommand("kit").setExecutor((sender, command, label, args) -> {
+            if (!(sender instanceof org.bukkit.entity.Player)) {
+                return true;
+            }
+            org.bukkit.entity.Player player = (org.bukkit.entity.Player) sender;
+            BedwarsGame game = host.gameOf(player.getUniqueId());
+            if (!(game instanceof AttackDefenseGame) || !((AttackDefenseGame) game).openKitMenu(player)) {
+                player.sendMessage(org.bukkit.ChatColor.RED + "Only in Attack and Defense: the kits of the round.");
+            }
+            return true;
+        });
+
         List<String> hosted = new ArrayList<>();
         for (String mode : settings.modes()) {
             if (lobby.registerHost(this, mode, host)) {

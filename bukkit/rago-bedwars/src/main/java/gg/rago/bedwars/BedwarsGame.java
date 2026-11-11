@@ -151,6 +151,8 @@ class BedwarsGame {
     private BukkitTask clock;
     private BukkitTask ticker;
     private BukkitTask countdown;
+    /** The seconds left in the countdown before the game (or a round): see {@link #shortenCountdown}. */
+    int countdownLeft;
     /** The tasks of a kind of game (its rounds, its waiting room): stopped with the game. */
     private final List<BukkitTask> tasks = new ArrayList<>();
     /** The Bedbugs, the Dream Defenders, the Bridge Eggs, the Pop-up Towers, the Magic Milk. */
@@ -273,16 +275,18 @@ class BedwarsGame {
         clock = Bukkit.getScheduler().runTaskTimer(plugin, this::second, 20L, 20L);
         repeat(2L, 2L, this::hideArmour);
         final int total = countdownSeconds();
+        countdownLeft = total;
         countdown = Bukkit.getScheduler().runTaskTimer(plugin, new Runnable() {
-            private int left = total;
-
             @Override
             public void run() {
+                int left = countdownLeft;
                 if (left > 0) {
-                    broadcast(ChatColor.YELLOW + "The game starts in " + ChatColor.RED + left + ChatColor.YELLOW + "...",
-                            Sound.NOTE_STICKS);
+                    if (left <= 5 || left == total) {
+                        broadcast(ChatColor.YELLOW + "The game starts in " + ChatColor.RED + left + ChatColor.YELLOW + "...",
+                                Sound.NOTE_STICKS);
+                    }
                     title(ChatColor.RED + "" + ChatColor.BOLD + left, "");
-                    left--;
+                    countdownLeft--;
                     return;
                 }
                 cancel(countdown);
@@ -522,6 +526,13 @@ class BedwarsGame {
     /** The seconds of the countdown before the game. */
     int countdownSeconds() {
         return 3;
+    }
+
+    /** The countdown goes on from this many seconds at most (everyone is ready): nothing if it is not on. */
+    void shortenCountdown(int seconds) {
+        if (phase == Phase.STARTING && countdownLeft > seconds) {
+            countdownLeft = seconds;
+        }
     }
 
     /** The countdown is over: the game is on. */
