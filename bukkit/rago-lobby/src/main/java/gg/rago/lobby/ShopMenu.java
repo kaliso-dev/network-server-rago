@@ -58,7 +58,8 @@ final class ShopMenu {
         rankLore.add("what they give.");
         rankLore.add("");
         for (RankDef rank : profiles.server().ranks().forSale()) {
-            rankLore.add(rank.prefix().trim() + ChatColor.GRAY + (rank.sold() ? " - level " + rank.level() : " - web store"));
+            rankLore.add(rank.prefix().trim() + ChatColor.GRAY + (rank.sold() ? " - level " + rank.level()
+                    : rank.webPrice() != null ? " - " + rank.webPrice() + " on the web store" : " - web store"));
         }
         rankLore.add("");
         rankLore.add(ChatColor.YELLOW + "Click to browse");
@@ -151,7 +152,8 @@ final class ShopMenu {
             lore.add("");
             final boolean owned = profiles.owns(profile, rank);
             if (!rank.sold()) {
-                lore.add(ChatColor.GOLD + "On the web store");
+                lore.add(ChatColor.GOLD + "On the web store" + (rank.webPrice() != null ? ": " + ChatColor.GREEN + ChatColor.BOLD
+                        + rank.webPrice() : ""));
                 lore.add("");
                 lore.add(owned ? ChatColor.GREEN + "You have it" : ChatColor.YELLOW + "Click for the link");
                 menu.set(slotOf(i), ClickMenu.item(rank.icon(), 0, rank.prefix().trim(), lore), (p, right) -> {

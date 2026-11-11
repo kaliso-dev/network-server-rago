@@ -88,7 +88,7 @@ jour ; à minuit, le 1er, le 2e et le 3e gagnent 750, 500 et 300 XP Network (`xp
 tout le serveur (même si le serveur était éteint à minuit). Le premier score du jour d'un joueur
 lui donne 100 XP, plus 25 par jour d'affilée où il a joué le défi (7 jours au plus : 250). À
 l'arrivée, un joueur qui ne l'a pas encore joué aujourd'hui reçoit le défi du jour avec un
-**[PLAY]** ; `/challenge` montre l'entraînement, le top 5 du jour, sa place, sa série de jours et
+**[PLAY]**, entre deux lignes dorées pour qu'on le voie (comme le nouveau défi à minuit et le podium) ; `/challenge` montre l'entraînement, le top 5 du jour, sa place, sa série de jours et
 ce qui se gagne ; `/challenge play` (ou le bouton) lance l'entraînement directement sur la bonne
 variante. Pendant le défi, le scoreboard de l'entraînement porte « ✦ Daily ». Gardé dans
 `plugins/RagoPractice/defi.yml`. `actif: false` le coupe ; sans la section, il tourne avec ces

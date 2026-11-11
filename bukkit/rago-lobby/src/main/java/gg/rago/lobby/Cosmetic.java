@@ -17,6 +17,12 @@ import org.bukkit.Material;
  */
 final class Cosmetic {
 
+    /**
+     * A rank owns a cosmetic with the permission rago.cosmetic.(id) (VIP's three), as long as its
+     * players have the rank.
+     */
+    static final String PERMISSION = "rago.cosmetic.";
+
     /** The kinds of cosmetics, one equipped of each. */
     enum Type {
         TRAIL("trail", "Projectile trails", Material.ARROW, "Behind your arrows, pearls, eggs", "and snowballs."),

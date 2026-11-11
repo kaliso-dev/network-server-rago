@@ -184,10 +184,11 @@ final class Profiles {
                 + ChatColor.GOLD + "!");
     }
 
-    /** True if the player owns this cosmetic: bought, or PREMIUM's with the rank. */
+    /** True if the player owns this cosmetic: bought, PREMIUM's with the rank, or one a rank of theirs gives (VIP's). */
     boolean owns(Player player, Cosmetic cosmetic) {
         return of(player).cosmetics().contains(cosmetic.id())
-                || cosmetic.premium() && player.hasPermission(LobbyGadgets.PREMIUM_PERMISSION);
+                || cosmetic.premium() && player.hasPermission(LobbyGadgets.PREMIUM_PERMISSION)
+                || player.hasPermission(Cosmetic.PERMISSION + cosmetic.id());
     }
 
     void buyCosmetic(Player player, Cosmetic cosmetic) {
@@ -247,7 +248,12 @@ final class Profiles {
             Player online = lobby.getServer().getPlayer(player);
             return online != null && online.hasPermission(LobbyGadgets.PREMIUM_PERMISSION) ? cosmetic : null;
         }
-        return cosmetic != null && profile.cosmetics().contains(id) ? cosmetic : null;
+        if (cosmetic != null && !profile.cosmetics().contains(id)) {
+            // one a rank gives (VIP's): worn while the player has the rank
+            Player online = lobby.getServer().getPlayer(player);
+            return online != null && online.hasPermission(Cosmetic.PERMISSION + id) ? cosmetic : null;
+        }
+        return cosmetic;
     }
 
     // --- Colours of name and badges -------------------------------------------------------------

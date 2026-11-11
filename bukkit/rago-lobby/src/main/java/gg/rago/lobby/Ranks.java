@@ -152,6 +152,15 @@ final class Ranks {
         return permissions;
     }
 
+    /** The place in the queues of these ranks and of the ranks they inherit: the highest, 0 for none. */
+    int queuePriority(String given, Collection<String> bought) {
+        int priority = 0;
+        for (RankDef rank : withInherited(given, bought)) {
+            priority = Math.max(priority, rank.queuePriority());
+        }
+        return priority;
+    }
+
     /** The highest XP boost of these ranks and of the ranks they inherit: 1 for none. */
     double xpBoost(String given, Collection<String> bought) {
         double boost = 1.0;
@@ -200,23 +209,34 @@ final class Ranks {
     static final String VIP = "vip";
 
     /**
-     * The VIP rank: sold on the web store, below PREMIUM+ (which keeps its fly, nick, gadgets,
-     * booster, events and rarest cosmetics): a green name, a little more XP, a few perks of the lobby.
+     * The VIP rank: sold on the web store, below PREMIUM+ (which has all of it, and keeps its nick,
+     * gadgets, booster, events, message, gradient name and rarest cosmetics): a light blue name, a
+     * little more XP, /fly and the speed of the lobby, three cosmetics of its own.
      */
     static RankDef vip() {
-        return new RankDef(VIP, "§a[VIP] ", "§a", "§f", false, Arrays.asList("rago.perk.chat", "rago.perk.join", "rago.perk.speed"),
-                null, 0, 0, Material.EMERALD,
-                Arrays.asList("A green name and the §a[VIP]§7 tag", "+25% Network XP in every game",
+        List<String> permissions = new ArrayList<>(Arrays.asList("rago.perk.chat", "rago.perk.fly", "rago.perk.join", "rago.perk.speed"));
+        for (String cosmetic : VIP_COSMETICS) {
+            permissions.add(Cosmetic.PERMISSION + cosmetic);
+        }
+        return new RankDef(VIP, "§b[VIP] ", "§b", "§f", false, permissions, null, 0, 0, Material.DIAMOND,
+                Arrays.asList("A light blue name and the §b[VIP]§7 tag", "+25% Network XP in every game", "/fly in the lobby",
                         "Speed I, II or III in the lobby (settings)", "Your arrival announced, with a firework",
-                        "White messages, no chat cooldown"),
-                1.25, "vert", null, true);
+                        "White messages, no chat cooldown", "Priority in the queues (after PREMIUM+)", "3 cosmetics: the Clouds trail,",
+                        "the Heart burst kill, the Love win"),
+                1.25, "aqua", null, true, "$3.99", 1);
     }
 
-    /** The PREMIUM rank: sold on the web store, with the perks of the network and a pink gradient name. */
+    /** The cosmetics of VIP: three of the cheapest, far from the rarest of PREMIUM+. */
+    static final List<String> VIP_COSMETICS = Arrays.asList("trail-clouds", "kill-hearts", "win-hearts");
+
+    /**
+     * The PREMIUM rank: sold on the web store, with the perks of the network and a pink gradient
+     * name; it inherits VIP (its cosmetics, its colour to choose).
+     */
     static RankDef premium() {
         return new RankDef(PREMIUM, "§d[PREMIUM" + RankDef.PLUS + "] ", "§d", "§f", false, Arrays.asList("rago.perk.chat", "rago.perk.fly",
                 "rago.perk.join", "rago.perk.nick", "rago.perk.message", "rago.perk.speed", "rago.perk.gadgets", "rago.perk.booster",
-                "rago.perk.host"), null, 0, 0,
+                "rago.perk.host"), VIP, 0, 0,
                 Material.NETHER_STAR,
                 Arrays.asList("A pink gradient name and the §d§l✦§7 badge", "Your §f+§7 in the colour you choose (/style)", "+50% Network XP in every game",
                         "/fly in the lobby", "Speed I, II or III in the lobby (settings)", "/nick: play under another name", "Your own message above your head",
@@ -224,8 +244,9 @@ final class Ranks {
                         "Gadgets of your own: bat blaster, explosive sheep, disco ball",
                         "A free XP booster every day (x2 XP for 30 minutes; bought ones: x3)",
                         "Host events for the server: /host (Sumo, Brackets, LMS)",
-                        "The rarest kill effects and victory dances"),
-                1.5, "rose", PREMIUM, true);
+                        "The rarest kill effects and victory dances", "The first place in the queues",
+                        "Everything of VIP, its 3 cosmetics too"),
+                1.5, "rose", PREMIUM, true, null, 2);
     }
 
     private static RankDef staff(String id, String prefix, String colour, String parent, String... permissions) {

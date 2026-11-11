@@ -73,7 +73,7 @@ class LobbySettingsTest {
         assertEquals(Material.IRON_SWORD, settings.categories().get(2).icon());
         // Three ways to play: train alone, duel, the RBW modes (not all ranked: no bed on it).
         assertEquals("§6§lRBW Modes", settings.categories().get(1).name());
-        assertEquals(Material.FIREBALL, settings.categories().get(1).icon());
+        assertEquals(Material.BED, settings.categories().get(1).icon());
         for (ModeCategory category : settings.categories()) {
             assertTrue(category.slogan() != null && category.slogan().startsWith("§f"), category.id() + " has its slogan");
         }
@@ -206,7 +206,7 @@ class LobbySettingsTest {
         LobbyNpc shop = settings.npc("aimtrainer");
         assertEquals(LobbyNpc.Kind.SHOP, shop.kind(), "the centre NPC is the Shop");
         assertEquals("§a§lSHOP", shop.name());
-        assertTrue(shop.subtitle().contains("-50%"));
+        assertTrue(shop.subtitle().contains("-25%"));
         assertTrue(shop.modeIds().isEmpty());
         assertInvalid("pnj:\n  boutique:\n    type: shop\n    modes: [sumo]\nmodes:\n  sumo: {}\n", "pnj.boutique");
     }

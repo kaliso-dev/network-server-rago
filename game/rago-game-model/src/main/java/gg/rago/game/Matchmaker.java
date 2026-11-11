@@ -7,6 +7,7 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.UUID;
+import java.util.function.ToIntFunction;
 
 /**
  * Every queue of the network, with one rule across them: a player waits in one queue at most.
@@ -32,6 +33,8 @@ public final class Matchmaker {
 
     private final Map<String, ModeQueue> queues = new LinkedHashMap<>();
     private final Map<UUID, String> queueOf = new HashMap<>();
+    /** The priority of each player in the queues (their rank): 0 for none ({@link ModeQueue#poll(long, ToIntFunction)}). */
+    private ToIntFunction<UUID> priorities = player -> 0;
 
     public Matchmaker(Collection<GameMode> modes, RatingWindow window) {
         for (GameMode mode : modes) {
@@ -233,11 +236,19 @@ public final class Matchmaker {
         }
     }
 
+    /**
+     * Where each player stands in the queues: the higher first (their rank), read at each poll so
+     * that a rank bought while waiting counts at once. 0 for everyone by default.
+     */
+    public void setPriorities(ToIntFunction<UUID> priorities) {
+        this.priorities = java.util.Objects.requireNonNull(priorities, "priorities");
+    }
+
     /** Takes out of every queue the matches that can start now. */
     public List<MatchProposal> poll(long nowMillis) {
         List<MatchProposal> matches = new ArrayList<>();
         for (ModeQueue queue : queues.values()) {
-            for (MatchProposal match : queue.poll(nowMillis)) {
+            for (MatchProposal match : queue.poll(nowMillis, priorities)) {
                 for (UUID player : match.players()) {
                     queueOf.remove(player);
                 }

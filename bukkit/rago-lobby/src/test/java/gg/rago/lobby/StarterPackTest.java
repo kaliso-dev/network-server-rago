@@ -24,7 +24,7 @@ class StarterPackTest {
     void theBundledPackIsHalfPrice() throws Exception {
         ServerSettings server = ServerSettings.load(bundled());
         StarterPack pack = server.starterPack();
-        assertEquals(50, pack.discount());
+        assertEquals(25, pack.discount());
         assertEquals("4.99€", pack.money(pack.price));
         assertEquals(20_000, pack.points);
         assertEquals(3, pack.boosters);
@@ -40,7 +40,7 @@ class StarterPackTest {
         int cosmetics = server.cosmetics().get("trail-magic").price() + server.cosmetics().get("kill-firework").price()
                 + server.cosmetics().get("win-fireworks").price();
         assertEquals(20_000 + 3 * XpBoosters.PRICE + cosmetics, pack.pointsWorth(server.cosmetics()));
-        assertTrue(pack.priceLine().contains("9.99€") && pack.priceLine().contains("4.99€"));
+        assertTrue(pack.priceLine().contains("6.65€") && pack.priceLine().contains("4.99€"));
     }
 
     @Test

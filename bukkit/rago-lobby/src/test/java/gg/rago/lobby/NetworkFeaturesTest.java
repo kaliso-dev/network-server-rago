@@ -70,23 +70,32 @@ class NetworkFeaturesTest {
         for (RankDef rank : ranks.forSale()) {
             shown.add(rank.id());
         }
-        assertEquals(Arrays.asList("premium", "vip"), shown, "two ranks to buy, the highest first");
+        assertEquals(Arrays.asList("premium", "vip"), shown, "two ranks to buy, the highest first: VIP under PREMIUM+");
+        assertEquals(2, ranks.queuePriority(null, Collections.singletonList("premium")), "PREMIUM+ first in the queues");
+        assertEquals(1, ranks.queuePriority(null, Collections.singletonList("vip")), "then VIP");
+        assertEquals(0, ranks.queuePriority(null, Collections.<String>emptyList()), "then the others");
+        assertEquals(2, ranks.queuePriority("mod", Collections.<String>emptyList()), "the staff inherits PREMIUM+");
+        assertTrue(ranks.has(null, Collections.singletonList("premium"), "vip"), "PREMIUM+ has everything of VIP");
+        assertTrue(ranks.permissions(null, Collections.singletonList("premium")).contains("rago.cosmetic.kill-hearts"));
+        assertTrue(ranks.permissions(null, Collections.singletonList("vip")).contains("rago.perk.fly"), "VIP flies");
+        assertEquals("§b[VIP] ", ranks.get("vip").prefix(), "light blue");
+        assertEquals("$3.99", ranks.get("vip").webPrice());
         assertEquals("premium", ranks.best(null, Arrays.asList("vip", "premium")).id(), "PREMIUM+ is above VIP");
         assertEquals("VIP", ranks.get("vip").displayName());
         assertFalse(ranks.get("vip").hasPlus());
         assertEquals(1.25, ranks.xpBoost(null, Collections.singletonList("vip")), 1e-9);
         assertTrue(ranks.permissions(null, Collections.singletonList("vip")).contains("rago.perk.speed"));
-        assertFalse(ranks.permissions(null, Collections.singletonList("vip")).contains("rago.perk.fly"), "/fly stays PREMIUM's");
         assertFalse(ranks.permissions(null, Collections.singletonList("vip")).contains("rago.perk.gadgets"));
-        assertEquals(Arrays.asList("§dPREMIUM+: +50% on everything", "§aVIP: +25% on everything"), LevelMenu.boostLines(ranks));
+        assertEquals(Arrays.asList("§dPREMIUM+: +50% on everything", "§bVIP: +25% on everything"), LevelMenu.boostLines(ranks));
         assertTrue(ranks.position(ranks.get("owner")) < ranks.position(ranks.get("premium")));
         assertEquals(ranks.all().size(), ranks.position(Ranks.DEFAULT), "no rank comes last");
         assertEquals("PREMIUM+", ranks.get("premium").displayName());
         assertEquals(1.5, ranks.xpBoost(null, Collections.singletonList("premium")), 1e-9);
         assertEquals(1.5, ranks.xpBoost("mod", Collections.<String>emptyList()), 1e-9, "inherited");
         assertEquals(1.0, ranks.xpBoost(null, Collections.<String>emptyList()), 1e-9);
-        assertEquals(new java.util.LinkedHashSet<>(Arrays.asList("couleur-rose", "badge-premium")),
-                ranks.styles(null, Collections.singletonList("premium")));
+        assertEquals(new java.util.LinkedHashSet<>(Arrays.asList("couleur-rose", "badge-premium", "couleur-aqua")),
+                ranks.styles(null, Collections.singletonList("premium")), "with the light blue of VIP");
+        assertEquals(java.util.Collections.singleton("couleur-aqua"), ranks.styles(null, Collections.singletonList("vip")));
     }
 
     @Test
@@ -218,7 +227,11 @@ class NetworkFeaturesTest {
         assertEquals(ownVip.style(), vip.style());
         assertNull(vip.badge());
         assertTrue(vip.webStore());
-        assertEquals(Material.EMERALD, vip.icon());
+        assertEquals(Material.DIAMOND, vip.icon());
+        assertEquals("$3.99", vip.webPrice());
+        assertEquals(1, vip.queuePriority());
+        assertEquals(2, premium.queuePriority());
+        assertEquals("vip", premium.parent());
         assertEquals(ownVip.perks().size(), vip.perks().size());
         assertEquals(Ranks.defaults().permissions(null, Collections.singletonList("vip")),
                 ranks.permissions(null, Collections.singletonList("vip")));
@@ -226,7 +239,7 @@ class NetworkFeaturesTest {
         for (RankDef rank : StoreMenu.webRanks(settings)) {
             web.add(rank.id());
         }
-        assertEquals(Arrays.asList("vip", "premium"), web, "in the store, the smallest first");
+        assertEquals(Arrays.asList("premium", "vip"), web, "in the store, PREMIUM+ first, VIP under it");
         assertEquals(Ranks.defaults().permissions("admin", Collections.singletonList("premium")),
                 ranks.permissions("admin", Collections.singletonList("premium")), "the same as the plugin's own ranks");
         assertEquals(NameStyle.catalogue().keySet(), settings.styles().keySet(), "the plugin's own styles");

@@ -191,6 +191,12 @@ final class NameLooks {
         return colour != null ? colour.mainColour() : rank(player).nameColour();
     }
 
+    /** The place of the player in the queues, from their ranks: the higher first, 0 for none. */
+    int queuePriority(UUID player) {
+        PlayerStats profile = book.get(player);
+        return profile == null ? 0 : server.ranks().queuePriority(profile.rank(), profile.boughtRanks());
+    }
+
     /** What the player's Network XP is multiplied by: 1.5 with PREMIUM. */
     double xpBoost(UUID player) {
         PlayerStats profile = book.get(player);

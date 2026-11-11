@@ -328,4 +328,56 @@ class ModeQueueTest {
         assertEquals(ids(3), players(queue.entries()));
         assertTrue(queue.removeWithParty(new UUID(0, 9)).isEmpty());
     }
+
+    @Test
+    void thePriorityOfTheRanksGoesFirstButNeverForLong() {
+        // A game of 4: five players wait, the oldest without a rank.
+        GameMode ffa = new GameMode("ffa", "FFA", 4, 1, false);
+        java.util.Map<UUID, Integer> ranks = new java.util.HashMap<>();
+        ranks.put(new UUID(0, 4), 2); // PREMIUM+
+        ranks.put(new UUID(0, 5), 1); // VIP
+        java.util.function.ToIntFunction<UUID> priority = id -> ranks.getOrDefault(id, 0);
+        ModeQueue queue = new ModeQueue(ffa, WINDOW);
+        for (int n = 1; n <= 5; n++) {
+            queue.add(entry(n, 1000, n * 1000L));
+        }
+        List<MatchProposal> matches = queue.poll(10_000L, priority);
+        assertEquals(1, matches.size());
+        List<UUID> played = matches.get(0).players();
+        assertTrue(played.contains(new UUID(0, 4)) && played.contains(new UUID(0, 5)), "the ranks play first");
+        assertFalse(played.contains(new UUID(0, 3)), "the last of the others waits for the next game");
+        assertEquals(Arrays.asList(new UUID(0, 3)), players(queue.entries()));
+
+        // After a minute of waiting, everyone is first in line: the oldest without a rank plays.
+        ModeQueue later = new ModeQueue(ffa, WINDOW);
+        for (int n = 1; n <= 5; n++) {
+            later.add(entry(n, 1000, n * 1000L));
+        }
+        List<UUID> then = later.poll(1000L + ModeQueue.PRIORITY_MILLIS, priority).get(0).players();
+        assertTrue(then.contains(new UUID(0, 1)), "waited a minute: plays, whatever the ranks");
+        assertTrue(then.contains(new UUID(0, 4)) && then.contains(new UUID(0, 5)));
+        assertFalse(then.contains(new UUID(0, 3)));
+
+        // Without priorities, the waiting time alone.
+        ModeQueue none = new ModeQueue(ffa, WINDOW);
+        for (int n = 1; n <= 5; n++) {
+            none.add(entry(n, 1000, n * 1000L));
+        }
+        none.poll(10_000L);
+        assertEquals(Arrays.asList(new UUID(0, 5)), players(none.entries()), "the last one waits");
+    }
+
+    @Test
+    void thePriorityNeverChangesWhoPlaysWhomInRanked() {
+        GameMode ranked = new GameMode("ranked-1v1", "Ranked 1v1", 2, 1, true);
+        ModeQueue queue = new ModeQueue(ranked, WINDOW);
+        queue.add(entry(1, 1000, 0));
+        queue.add(entry(2, 1020, 100));
+        queue.add(entry(3, 1900, 200)); // PREMIUM+, far in rating
+        List<MatchProposal> matches = queue.poll(1000L, id -> id.equals(new UUID(0, 3)) ? 2 : 0);
+        assertEquals(1, matches.size());
+        assertEquals(Arrays.asList(new UUID(0, 1), new UUID(0, 2)), sorted(matches.get(0).players()), "the close ratings play");
+        assertEquals(Arrays.asList(new UUID(0, 3)), players(queue.entries()));
+    }
+
 }

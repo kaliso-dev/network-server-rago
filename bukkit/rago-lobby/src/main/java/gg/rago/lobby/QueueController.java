@@ -55,6 +55,8 @@ final class QueueController {
     /** A player's 2v2 queue is told to the lobby once in this long at most. */
     static final long ANNOUNCE_PAUSE_MS = 60_000L;
     /** When each player's 2v2 queue was last told to the lobby. */
+    /** The place of each player in the queues, from their ranks (PREMIUM+ before VIP before the others). */
+    private java.util.function.ToIntFunction<UUID> priorities = id -> 0;
     private final Map<UUID, Long> announcedAt = new HashMap<>();
 
     QueueController(RagoLobby lobby, LobbySettings settings, LobbyState state, PartyBook parties, Runnable onChange) {
@@ -64,6 +66,7 @@ final class QueueController {
         this.parties = parties;
         this.logger = lobby.getLogger();
         this.matchmaker = new Matchmaker(settings.catalog().all(), settings.window());
+        this.matchmaker.setPriorities(id -> priorities.applyAsInt(id));
         this.onChange = onChange;
     }
 
@@ -167,7 +170,8 @@ final class QueueController {
                 toldNoArena.remove(player.getUniqueId());
                 player.sendMessage(ChatColor.GREEN + "You joined the queue for " + mode.name() + ChatColor.GREEN
                         + (map == null ? "" : " on " + ChatColor.WHITE + map + ChatColor.GREEN) + " ("
-                        + mode.format() + ", " + matchmaker.waiting(mode.id()) + " waiting).");
+                        + mode.format() + ", " + matchmaker.waiting(mode.id()) + " waiting)."
+                        + (priorities.applyAsInt(player.getUniqueId()) > 0 ? ChatColor.AQUA + " Priority queue." : ""));
                 announceTeam(player, Collections.singletonList(player.getUniqueId()), mode);
                 onChange.run();
                 break;
@@ -416,6 +420,11 @@ final class QueueController {
             logger.log(Level.WARNING, "The mode " + mode.id() + " could not list its maps", e);
             return new ArrayList<>();
         }
+    }
+
+    /** Where each player stands in the queues: the ranks of the web store first. */
+    void setPriorities(java.util.function.ToIntFunction<UUID> priorities) {
+        this.priorities = priorities;
     }
 
     /** The map the player waits for (null: any map, or not waiting). */

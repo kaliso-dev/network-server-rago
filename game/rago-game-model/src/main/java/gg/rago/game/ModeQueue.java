@@ -4,6 +4,7 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.Comparator;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.LinkedHashMap;
 import java.util.List;
@@ -11,6 +12,7 @@ import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
 import java.util.UUID;
+import java.util.function.ToIntFunction;
 
 /**
  * The queue of one game mode. Players wait in the order they joined; {@link #poll(long)} takes
@@ -29,6 +31,11 @@ import java.util.UUID;
  * as one: they play the same match, in the same team, with the party's average rating in a ranked
  * mode. A party never has more players than a team.
  *
+ * <p>A priority can go first ({@link #poll(long, ToIntFunction)}: the ranks of the web store): the
+ * higher priorities are matched first, then the waiting time decides. It never changes who plays
+ * whom in a ranked mode (the gap of ratings first), and after {@link #PRIORITY_MILLIS} of waiting
+ * everyone is first in line, so that nobody waits long behind them.
+ *
  * <p>Not thread-safe: on a Bukkit server it lives on the main thread, where it only does a few
  * comparisons per second.
  */
@@ -38,6 +45,8 @@ public final class ModeQueue {
             Comparator.comparingLong(QueueEntry::joinedAtMillis);
     /** The most combinations tried for one oldest player at each poll, so that a long queue stays cheap. */
     private static final int MAX_STEPS = 5_000;
+    /** After this long in the queue, a player goes first whatever their priority. */
+    public static final long PRIORITY_MILLIS = 60_000L;
 
     private final GameMode mode;
     private final RatingWindow window;
@@ -128,9 +137,28 @@ public final class ModeQueue {
 
     /** Takes out every match that can start now and returns them, the oldest players first. */
     public List<MatchProposal> poll(long nowMillis) {
+        return poll(nowMillis, player -> 0);
+    }
+
+    /**
+     * Takes out every match that can start now: the highest priority first (of a party: its
+     * highest), then the oldest; a player waiting for {@link #PRIORITY_MILLIS} or more goes first
+     * whatever their priority.
+     */
+    public List<MatchProposal> poll(long nowMillis, ToIntFunction<UUID> priority) {
         List<MatchProposal> matches = new ArrayList<>();
         Set<UUID> taken = new HashSet<>();
         List<Unit> units = units();
+        final Map<UUID, Integer> first = new HashMap<>();
+        for (Unit unit : units) {
+            int highest = 0;
+            for (QueueEntry entry : unit.entries) {
+                highest = Math.max(highest, priority.applyAsInt(entry.player()));
+            }
+            first.put(unit.id, unit.waitedMillis(nowMillis) >= PRIORITY_MILLIS ? Integer.MAX_VALUE : highest);
+        }
+        // Stable: the same priority keeps the order of the waiting time.
+        units.sort((one, other) -> Integer.compare(first.get(other.id), first.get(one.id)));
         for (Unit anchor : units) {
             if (taken.contains(anchor.id)) {
                 continue;

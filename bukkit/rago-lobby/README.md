@@ -131,16 +131,24 @@ dans les files d'attente des modes de jeu.
   10 classées : 3 000 à 5 000 XP), qui recommencent chaque jour et chaque lundi. Elles avancent
   seules et donnent leur XP une fois (avec le boost de PREMIUM). Tout se règle dans `quetes:`.
 - **Les rangs.** Neuf rangs dans `rangs:` (OWNER, ADMIN, DEV, MOD, HELPER, BUILDER, MEDIA,
-  PREMIUM et VIP), chacun avec son préfixe, la couleur du pseudo, la couleur du chat, ses permissions et
+  PREMIUM et VIP, du plus haut au plus bas), chacun avec son préfixe, la couleur du pseudo, la couleur du chat, ses permissions et
   le rang dont il hérite. Un joueur montre le plus haut de ses rangs, dans le chat
   (`[12✫] [PREMIUM+] Pseudo ✦: message`), au-dessus de la tête et dans le Tab (les plus hauts rangs
   en premier). Les rangs du staff se donnent avec `/rank set`.
-- **Les rangs VIP et PREMIUM.** Les deux rangs à acheter, sur la boutique en ligne
-  (rago-optimizer.com) : la boutique du jeu montre ce qu'ils donnent et le lien, VIP d'abord, la
-  boutique en ligne les donne depuis la console avec `/rank give <joueur> vip` ou `premium`.
-  **VIP**, le petit rang : un pseudo vert (le style `vert`) et le préfixe `[VIP]`, +25 % d'XP
-  Network (`boost-xp: 1.25`), la vitesse au lobby, l'arrivée annoncée avec un feu d'artifice et des
-  messages blancs sans délai. **PREMIUM** garde tout le reste. Il donne un pseudo en dégradé rose et le badge
+- **Les rangs PREMIUM et VIP.** Les deux rangs à acheter, sur la boutique en ligne
+  (rago-optimizer.com) : la boutique du jeu montre ce qu'ils donnent, leur prix (`prix-en-ligne`)
+  et le lien, PREMIUM+ d'abord et VIP en dessous, comme partout ; la boutique en ligne les donne
+  depuis la console avec `/rank give <joueur> vip` ou `premium`. **VIP** (3,99 $), le petit rang :
+  un pseudo bleu clair (le style `aqua`) et le préfixe `[VIP]`, +25 % d'XP Network
+  (`boost-xp: 1.25`), `/fly` et la vitesse au lobby, l'arrivée annoncée avec un feu d'artifice, des
+  messages blancs sans délai, la priorité dans les files après PREMIUM+, et trois cosmétiques à lui,
+  parmi les moins chers (la traînée Clouds, le kill Heart burst, la victoire Love : les permissions
+  `rago.cosmetic.<id>`). **PREMIUM** hérite de VIP et garde tout le reste.
+- **La priorité dans les files (`priorite-file`).** PREMIUM+ (2) passe avant VIP (1), qui passe
+  avant les autres (0) : quand une file a plus de joueurs qu'une partie n'en prend, les plus hauts
+  jouent d'abord, puis le temps d'attente décide. Après une minute d'attente, tout le monde passe en
+  premier, pour que personne n'attende longtemps derrière eux, et en classé la priorité ne change
+  jamais qui joue contre qui (l'écart d'ELO d'abord). Le message de la file dit « Priority queue ». Il donne un pseudo en dégradé rose et le badge
   `✦`, +50 % d'XP Network (`boost-xp: 1.5`), `/fly` au lobby, `/nick`, un message à soi
   au-dessus de la tête, l'arrivée annoncée avec un feu d'artifice, des messages blancs sans délai,
   trois gadgets à lui (bat blaster, mouton explosif, boule disco : `rago.perk.gadgets`), les effets
@@ -195,7 +203,7 @@ dans les files d'attente des modes de jeu.
   points (`prix:` et `niveau:` dans `rangs:`). Les cosmétiques ne jouent qu'en partie.
 - **Le PNJ Shop et le pack de départ (`/pack`).** Au centre du lobby (le point `aimtrainer`,
   `type: shop`), un PNJ Shop ouvre la vitrine de tout ce qui se vend : d'abord le **pack de
-  départ** (son prix, son prix normal barré, -50 %, ce qu'il contient : 20 000 Rago Points,
+  départ** (son prix, son prix normal barré, -25 %, ce qu'il contient : 20 000 Rago Points,
   3 boosters d'XP, 2 boosters de pièces et 3 cosmétiques sans leur niveau, une fois par joueur), puis VIP, PREMIUM+ et
   leurs avantages, les couleurs de pseudo et le +, les boosters, les cosmétiques, les gadgets, les
   events `/host`, comment gagner des Rago Points et Rago Optimizer. Ce qui se vend sur la
@@ -320,7 +328,7 @@ générateur vide ; un monde de build peut donc servir de lobby.
 ## Catégories, PNJ et classements
 
 - `categories:` range les modes par zone du lobby : la boussole montre les catégories (Practice à
-  gauche, RBW Modes au milieu avec une fire charge, car tout n'y est pas classé, Duels à droite),
+  gauche, RBW Modes au milieu avec un lit, Duels à droite),
   puis les jeux de celle qu'on choisit (7 catégories, 28 objets par catégorie au plus, un groupe
   comptant pour un). Chaque mode dit sa `categorie:`. Le `slogan:` d'une catégorie (40 caractères au
   plus) dit ce qu'on y fait : sous son nom dans la boussole, sous son PNJ et dans l'accueil.

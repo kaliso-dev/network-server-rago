@@ -39,6 +39,10 @@ final class RankDef {
     private final String style;
     private final String badge;
     private final boolean webStore;
+    /** What it costs on the web store, as shown in the game ("$3.99"), or null. */
+    private final String webPrice;
+    /** Its place in the queues: the higher first (PREMIUM+ 2, VIP 1), 0 for none. */
+    private final int queuePriority;
 
     RankDef(String id, String prefix, String nameColour, String chatColour, boolean staff, List<String> permissions,
             String parent, int price, int level, Material icon, List<String> perks) {
@@ -48,6 +52,20 @@ final class RankDef {
     RankDef(String id, String prefix, String nameColour, String chatColour, boolean staff, List<String> permissions,
             String parent, int price, int level, Material icon, List<String> perks, double xpBoost, String style,
             String badge, boolean webStore) {
+        this(id, prefix, nameColour, chatColour, staff, permissions, parent, price, level, icon, perks, xpBoost, style, badge,
+                webStore, null);
+    }
+
+    RankDef(String id, String prefix, String nameColour, String chatColour, boolean staff, List<String> permissions,
+            String parent, int price, int level, Material icon, List<String> perks, double xpBoost, String style,
+            String badge, boolean webStore, String webPrice) {
+        this(id, prefix, nameColour, chatColour, staff, permissions, parent, price, level, icon, perks, xpBoost, style, badge,
+                webStore, webPrice, 0);
+    }
+
+    RankDef(String id, String prefix, String nameColour, String chatColour, boolean staff, List<String> permissions,
+            String parent, int price, int level, Material icon, List<String> perks, double xpBoost, String style,
+            String badge, boolean webStore, String webPrice, int queuePriority) {
         this.id = id;
         this.prefix = prefix;
         this.nameColour = nameColour;
@@ -63,6 +81,18 @@ final class RankDef {
         this.style = style;
         this.badge = badge;
         this.webStore = webStore;
+        this.webPrice = webPrice;
+        this.queuePriority = queuePriority;
+    }
+
+    /** Its place in the queues: the higher first, 0 for none. */
+    int queuePriority() {
+        return queuePriority;
+    }
+
+    /** Its price on the web store, as shown ("$3.99"), or null when the game does not show one. */
+    String webPrice() {
+        return webPrice;
     }
 
     String id() {

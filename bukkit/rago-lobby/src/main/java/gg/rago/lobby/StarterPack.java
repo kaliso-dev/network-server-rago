@@ -47,7 +47,7 @@ final class StarterPack {
 
     /** The pack of a config.yml without the section. */
     static StarterPack defaults() {
-        return new StarterPack(ChatColor.GOLD + "" + ChatColor.BOLD + "Starter Pack", 4.99, 9.99, "€", 20_000, 3, 2,
+        return new StarterPack(ChatColor.GOLD + "" + ChatColor.BOLD + "Starter Pack", 4.99, 6.65, "€", 20_000, 3, 2,
                 java.util.Arrays.asList("trail-magic", "kill-firework", "win-fireworks"), "https://rago-optimizer.com");
     }
 
@@ -90,7 +90,7 @@ final class StarterPack {
         return new StarterPack(name, price, usual, currency == null ? "" : currency, points, boosters, coinBoosters, cosmetics, url);
     }
 
-    /** The saving, in percent, rounded (50 for 4.99 instead of 9.99); 0 without a usual price above. */
+    /** The saving, in percent, rounded (25 for 4.99 instead of 6.65); 0 without a usual price above. */
     int discount() {
         if (usualPrice <= price) {
             return 0;

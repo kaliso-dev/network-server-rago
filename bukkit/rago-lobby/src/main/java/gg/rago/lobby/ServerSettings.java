@@ -320,8 +320,17 @@ final class ServerSettings {
             if (staff && webStore) {
                 throw new IllegalArgumentException(where + ".boutique-en-ligne: a staff rank is not sold");
             }
+            String webPrice = rank.getString("prix-en-ligne", null);
+            if (webPrice != null && (!webStore || webPrice.trim().isEmpty() || webPrice.length() > 16)) {
+                throw new IllegalArgumentException(where + ".prix-en-ligne: the price shown for a rank of the web store"
+                        + " (boutique-en-ligne: true), 16 characters at most, such as \"$3.99\"");
+            }
+            int priority = rank.getInt("priorite-file", 0);
+            if (priority < 0 || priority > 9) {
+                throw new IllegalArgumentException(where + ".priorite-file: from 0 (none) to 9, the higher first in the queues");
+            }
             ranks.add(new RankDef(id, prefix, colour, chat, staff, permissions, parent, price, level, icon, perks, boost,
-                    style, badge, webStore));
+                    style, badge, webStore, webPrice == null ? null : webPrice.trim(), priority));
         }
         return new Ranks(ranks);
     }

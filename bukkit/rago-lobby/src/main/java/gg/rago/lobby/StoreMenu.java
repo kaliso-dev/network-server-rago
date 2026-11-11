@@ -12,7 +12,7 @@ import org.bukkit.entity.Player;
 /**
  * The Shop NPC of the centre of the lobby (and /pack): everything the network sells, on one page,
  * so that a player sees at once what each thing gives. The starter pack first (its price crossed
- * out, what is inside), then the ranks of the web store and their perks (VIP, PREMIUM+), the name colours and the +, the XP boosters,
+ * out, what is inside), then the ranks of the web store and their perks (PREMIUM+, VIP), the name colours and the +, the XP boosters,
  * the cosmetics, the gadgets, the events, the ranks of Rago Points, and how to earn Rago Points.
  * What is sold on the web store gives its link; the rest opens its page of the shop. Main thread.
  */
@@ -66,7 +66,7 @@ final class StoreMenu {
         int i = 0;
         List<RankDef> web = webRanks(server);
         // Two at most, the highest two: the rest of the row is the other things sold.
-        for (final RankDef rank : web.subList(Math.max(0, web.size() - 2), web.size())) {
+        for (final RankDef rank : web.subList(0, Math.min(2, web.size()))) {
             boolean owned = profiles.owns(profile, rank);
             boolean top = rank.hasPlus();
             List<String> lore = new ArrayList<>();
@@ -75,6 +75,9 @@ final class StoreMenu {
                 lore.add(ChatColor.WHITE + "• " + ChatColor.GRAY + perk);
             }
             lore.add("");
+            if (rank.webPrice() != null) {
+                lore.add(ChatColor.GRAY + "Price: " + ChatColor.GREEN + ChatColor.BOLD + rank.webPrice());
+            }
             lore.add(owned ? ChatColor.GREEN + "You have it: thank you!" : ChatColor.GOLD + "On the web store " + ChatColor.YELLOW
                     + "(click for the link)");
             org.bukkit.inventory.ItemStack item = ClickMenu.item(rank.icon(), 0, rank.prefix().trim(), lore);
@@ -224,15 +227,12 @@ final class StoreMenu {
         Bukkit.dispatchCommand(Bukkit.getConsoleSender(), "tellraw " + player.getName() + " " + pack.button());
     }
 
-    /**
-     * The ranks of the web store, the smallest first (VIP, then PREMIUM+): the ranks are listed the
-     * highest first, as they rank.
-     */
+    /** The ranks of the web store, the highest first, as they rank (PREMIUM+, then VIP). */
     static List<RankDef> webRanks(ServerSettings server) {
         List<RankDef> ranks = new ArrayList<>();
         for (RankDef rank : server.ranks().forSale()) {
             if (!rank.sold()) {
-                ranks.add(0, rank);
+                ranks.add(rank);
             }
         }
         return ranks;

@@ -37,6 +37,8 @@ final class Challenges implements CommandExecutor, Listener {
     /** How long a [PLAY] keeps its variant for the next training of the mode. */
     private static final long WANTED_MS = 60_000L;
     private static final String REASON = "daily challenge";
+    /** A line across the chat, before and after the messages of the challenge, so that they show. */
+    static final String RULE = ChatColor.GOLD + "" + ChatColor.STRIKETHROUGH + "-----------------------------------------------------";
     private static final ChatColor[] PODIUM = {ChatColor.GOLD, ChatColor.WHITE, ChatColor.RED};
 
     private final RagoPractice plugin;
@@ -123,8 +125,10 @@ final class Challenges implements CommandExecutor, Listener {
         }
         reward(ended);
         for (Player player : Bukkit.getOnlinePlayers()) {
-            player.sendMessage(ChatColor.GRAY + "Today's challenge: " + ChatColor.WHITE + challenge.board().label() + ChatColor.GRAY
-                    + ". " + ChatColor.YELLOW + "/challenge");
+            player.sendMessage(RULE);
+            player.sendMessage(ChatColor.GOLD + "" + ChatColor.BOLD + "Today's challenge: " + ChatColor.WHITE + challenge.board().label()
+                    + ChatColor.GRAY + ". " + ChatColor.YELLOW + "/challenge");
+            player.sendMessage(RULE);
         }
         save();
     }
@@ -148,7 +152,9 @@ final class Challenges implements CommandExecutor, Listener {
             }
         }
         for (Player player : Bukkit.getOnlinePlayers()) {
+            player.sendMessage(RULE);
             player.sendMessage(line.toString());
+            player.sendMessage(RULE);
         }
         plugin.getLogger().info(ChatColor.stripColor(line.toString()));
     }
@@ -239,10 +245,12 @@ final class Challenges implements CommandExecutor, Listener {
             return;
         }
         int days = challenge.days(id);
+        player.sendMessage(RULE);
         player.sendMessage(ChatColor.GOLD + "" + ChatColor.BOLD + "Daily challenge: " + ChatColor.WHITE + challenge.board().label()
                 + ChatColor.GRAY + ". The top 3 win " + podiumText() + (days > 0 ? ", and you are " + ChatColor.GOLD + days
                 + (days == 1 ? " day" : " days") + " in a row" + ChatColor.GRAY : "") + ".");
         Bukkit.dispatchCommand(Bukkit.getConsoleSender(), "tellraw " + player.getName() + " " + playButton());
+        player.sendMessage(RULE);
     }
 
     private String playButton() {

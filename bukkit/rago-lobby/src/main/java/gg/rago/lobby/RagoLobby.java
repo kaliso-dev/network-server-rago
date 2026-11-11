@@ -107,6 +107,14 @@ public final class RagoLobby extends JavaPlugin implements LobbyService {
             getServer().getPluginManager().disablePlugin(this);
             return;
         }
+        // rago.cosmetic.(id): a cosmetic a rank gives (VIP's), never an operator's by default
+        for (Cosmetic cosmetic : server.cosmetics().values()) {
+            String name = Cosmetic.PERMISSION + cosmetic.id();
+            if (getServer().getPluginManager().getPermission(name) == null) {
+                getServer().getPluginManager().addPermission(new org.bukkit.permissions.Permission(name,
+                        "Owns the cosmetic " + cosmetic.id() + " (a rank gives it)", org.bukkit.permissions.PermissionDefault.FALSE));
+            }
+        }
         World world = loadWorld(settings.world());
         SpawnPoint spawn;
         try {
@@ -148,6 +156,7 @@ public final class RagoLobby extends JavaPlugin implements LobbyService {
         boosters = new XpBoosters(this, profiles, stats.book(), state);
         // The rank's boost (PREMIUM: x1.5), times 2 while an XP booster runs.
         stats.book().setBoost(id -> names.xpBoost(id) * boosters.multiplier(id));
+        queues.setPriorities(names::queuePriority);
         stats.setCoinBoost(boosters::coinMultiplier);
         social = new Social(this, stats, profiles);
         punishments = new Punishments(this, stats.book(), writer, this::write);

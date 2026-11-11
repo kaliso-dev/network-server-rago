@@ -47,7 +47,7 @@ categories:
       - "aim, bots: one skill at a time."
   ranked:
     nom: "&6&lRBW Modes"
-    icone: FIREBALL
+    icone: BED
     slogan: "&fRanked and RBW situations"
     description:
       - "Ranked 1v1 to 4v4, and modes"
@@ -234,7 +234,7 @@ pnj:
   # (Its point is still called aimtrainer: the aim trainer is in the Practice NPC.)
   aimtrainer:
     nom: "&a&lSHOP"
-    sous-titre: "&eStarter Pack &c&l-50%"
+    sous-titre: "&eStarter Pack &c&l-25%"
     type: shop
     skin: shop
   # The stats NPCs (type: stats): everyone sees their own profile above it, and a click opens
@@ -339,13 +339,18 @@ quetes:
 #                (Speed I, II or III in the lobby, chosen in the settings), rago.perk.gadgets (the
 #                gadgets and the rarest cosmetics of PREMIUM), rago.perk.booster (a free XP booster
 #                a day, /booster), rago.perk.host (/host: events for the whole server, in
-#                RagoPractice), or a permission of
+#                RagoPractice), rago.cosmetic.<id> (owns that cosmetic of the boutique while
+#                having the rank: VIP's three), or a permission of
 #                another plugin; "-permission" takes one away
 #   herite       the rank whose permissions (and colours, badges, boost) this one also has
 #   boost-xp     the Network XP of its players is multiplied by this (1.5: half more)
 #   style, badge the colour of name and the badge (of styles:) its players wear until they choose
 #                another with /style; they own them as long as they have the rank
 #   boutique-en-ligne  true: sold on the web store, the shop shows the link (liens.boutique)
+#   prix-en-ligne      its price on the web store, shown in the shop and the store ("$3.99")
+#   priorite-file      its place in the queues, 0 to 9: the higher are matched first (PREMIUM+ 2,
+#                VIP 1); after a minute of waiting everyone is first in line, and it never changes
+#                who plays whom in a ranked queue (the ELO first)
 #   prix, niveau the price in Rago Points and the Network level needed in the shop (prix: 0 = not sold)
 #   icone        the item in the shop; avantages: its lines
 rangs:
@@ -398,25 +403,30 @@ rangs:
     boost-xp: 1.5
     style: rose
     badge: premium
+    herite: vip
     boutique-en-ligne: true
+    priorite-file: 2
     icone: NETHER_STAR
     avantages: ["A pink gradient name and the &d&l✦&7 badge", "Your &f+&7 in the colour you choose (/style)", "+50% Network XP in every game", "/fly in the lobby",
       "Speed I, II or III in the lobby (settings)", "/nick: play under another name", "Your own message above your head", "Your arrival announced, with a firework",
       "White messages, no chat cooldown", "Gadgets of your own: bat blaster, explosive sheep, disco ball",
       "A free XP booster every day (x2 XP for 30 minutes; bought ones: x3)",
       "Host events for the server: /host (Sumo, Brackets, LMS)",
-      "The rarest kill effects and victory dances"]
+      "The rarest kill effects and victory dances", "The first place in the queues", "Everything of VIP, its 3 cosmetics too"]
   vip:
-    prefixe: "&a[VIP] "
-    couleur: "&a"
-    permissions: [rago.perk.chat, rago.perk.join, rago.perk.speed]
+    prefixe: "&b[VIP] "
+    couleur: "&b"
+    permissions: [rago.perk.chat, rago.perk.fly, rago.perk.join, rago.perk.speed, rago.cosmetic.trail-clouds,
+      rago.cosmetic.kill-hearts, rago.cosmetic.win-hearts]
     boost-xp: 1.25
-    style: vert
+    style: aqua
     boutique-en-ligne: true
-    icone: EMERALD
-    avantages: ["A green name and the &a[VIP]&7 tag", "+25% Network XP in every game", "Speed I, II or III in the lobby (settings)",
-      "Your arrival announced, with a firework", "White messages, no chat cooldown"]
-
+    prix-en-ligne: "$3.99"
+    priorite-file: 1
+    icone: DIAMOND
+    avantages: ["A light blue name and the &b[VIP]&7 tag", "+25% Network XP in every game", "/fly in the lobby",
+      "Speed I, II or III in the lobby (settings)", "Your arrival announced, with a firework", "White messages, no chat cooldown",
+      "Priority in the queues (after PREMIUM+)", "3 cosmetics: the Clouds trail,", "the Heart burst kill, the Love win"]
 # The colours of name and the badges (/style). A colour is a gradient along the letters of the
 # name, made of the 16 colours of 1.8 (degrade: the colour characters from the first letter to the
 # last, 0 to 9 and a to f: "5ddfd" goes from purple to pink to white; one character for one colour);
@@ -524,7 +534,7 @@ boutique: {}
 
 # The starter pack, sold on the web store (lien) once per player: the store gives it from the
 # console with /pack give <player> after the payment. The Shop NPC and /pack show it, its price
-# (prix, in devise) and its usual price crossed out (prix-normal), which makes the -50%: put the
+# (prix, in devise) and its usual price crossed out (prix-normal), which makes the -25%: put the
 # real prices of the web store here (a price shown crossed out must be one the pack was really
 # sold at before). It gives rago-points, boosters (x3 XP for 30 minutes each), boosters-pieces
 # (x3 Rago Points for 30 minutes each) and the cosmetics of cosmetiques (names of the boutique:
@@ -532,7 +542,7 @@ boutique: {}
 pack-depart:
   nom: "&6&lStarter Pack"
   prix: 4.99
-  prix-normal: 9.99
+  prix-normal: 6.65
   devise: "€"
   rago-points: 20000
   boosters: 3
@@ -577,7 +587,7 @@ annonces:
     - "&b&lRAGO OPTIMIZER &8» &fGet Rago Optimizer on &brago-optimizer.com"
     - "&a&lSHOP &8» &fEvery game gives Rago Points: spend them in the &a/shop&f."
     - "&b&lRAGO OPTIMIZER &8» &fNews and downloads: &brago-optimizer.com"
-    - "&6&lSTARTER PACK &c&l-50% &8» &f20,000 Rago Points, 5 boosters and 3 cosmetics: &e/pack"
+    - "&6&lSTARTER PACK &c&l-25% &8» &f20,000 Rago Points, 5 boosters and 3 cosmetics: &e/pack"
     - "&6&lEVENTS &8» &d[PREMIUM+] &fhost Sumo, Brackets and LMS for the whole server: &e/host"
 
 # What /discord, /site, /rules and /store show (one line or a list).
