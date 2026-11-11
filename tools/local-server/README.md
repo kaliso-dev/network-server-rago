@@ -166,7 +166,8 @@ Deviens opérateur (« op TonPseudo » dans la fenêtre du serveur), puis dans l
 - /monde : la liste des mondes.
 - /monde spawn : place le point d'apparition du monde là où tu es.
 - /speed 3 : vole plus vite (de 1, la vitesse normale, à 10). /nv : vision nocturne.
-- WorldEdit : la hache en bois (//wand) pour sélectionner, puis //set, //replace, //copy,
+- WorldEdit : l'os (//wand le donne ; pas la hache en bois, qui est dans les kits des modes) pour
+  sélectionner, puis //set, //replace, //copy,
   //paste, //undo... Le guide de WorldEdit est sur https://worldedit.enginehub.org/en/latest/ ;
   il est écrit pour WorldEdit 7, mais les commandes de base sont les mêmes en 6.1.
 

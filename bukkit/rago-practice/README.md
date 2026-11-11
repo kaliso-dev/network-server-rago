@@ -56,7 +56,7 @@ prendre un (« Ann: 34 hits, best combo 7 »). Au sumo aussi ; pas dans les even
   stuff des maps du propriétaire : épée en pierre, pioche et hache Efficiency I, 6 boules de feu,
   un stack de laine, 8 end stone, 2 TNT, cisailles, 8 échelles, armure en cuir. Tant que le lit
   tient, on revient au bout de 3 secondes ; ensuite, une mort est définitive. Le dernier camp
-  debout gagne. Le bois et l'end stone qu'on casse vont dans l'inventaire. Les boules de feu et la
+  debout gagne. Le bois et l'end stone qu'on casse vont dans l'inventaire, ceux que prend l'explosion de sa TNT ou de sa boule de feu aussi. Les boules de feu et la
   TNT poussent (la TNT comme celle du jeu, sans ses dégâts) et
   cassent les blocs posés et la défense des lits (l'end stone seulement à la TNT), sans faire de
   dégâts ; pas de dégâts de chute non plus. Sur une map de `fireball.cartes` (`config.yml`), chaque
@@ -221,7 +221,8 @@ Protection II, épée en bois, pommes d'or : les coups de la plateforme du milie
 sans poser de bloc. Les coups ne font que repousser (Résistance V,
 aucun dégât : on fait tomber les autres dans le vide), sauf sur la **plateforme du milieu**, celle
 dont le milieu est le plus près du `centre` de l'arène (sur la map, le H rouge et jaune au sud de la
-cabine du milieu), où les coups font de vrais dégâts. En changeant de plateforme, un message dit
+cabine du milieu), où les coups font de vrais dégâts ; un kill sur cette plateforme remet le tueur
+à fond de vie. En changeant de plateforme, un message dit
 laquelle des deux règles s'applique. Sans la map, pas de plateforme du milieu : Résistance partout. Il se joue sur la map du
 propriétaire (`bridge-fight.cartes` dans `config.yml`, le monde `Bridge Fight Plateform`) : son
 étage du bas, copié une fois, avec ses cinq plateformes (deux bleu et jaune, deux noir et vert, le
@@ -251,10 +252,10 @@ de toutes les plateformes : « TOP KILLS », puis les 10 joueurs qui ont le plus
 le mode (les stats du lobby, relues toutes les 5 secondes).
 
 `bridge-fight-1v1` est le vrai 1v1, à part : une seule plateforme (rouge à l'ouest, bleu à l'est)
-avec ses carrés et ses ponts, le même stuff avec Protection II sur l'armure
-(`bridge-fight.protection-1v1`, 0 pour aucune), aucun bloc. Une mort ou une chute donne le point à
-l'autre ; le premier à `points-pour-gagner.bridge-fight` (5) gagne.
-`bridge-fight-2v2` est le même en 2v2 : chaque équipe côte à côte sur son carré, le point quand
+avec ses carrés et ses ponts, une épée en bois, des pommes d'or et l'armure en fer avec Protection
+II (`bridge-fight.protection-1v1`, 0 pour aucune), le tout incassable, aucun bloc. Une mort ou une chute donne le point à
+l'autre (un son de victoire pour qui gagne la manche, un autre pour qui la perd) ; le premier à `points-pour-gagner.bridge-fight` (5) gagne.
+`bridge-fight-2v2` est le même en 2v2 (avec une épée en pierre) : chaque équipe côte à côte sur son carré, le point quand
 toute l'équipe d'en face est tombée ou morte.
 
 ## Les events (/host)

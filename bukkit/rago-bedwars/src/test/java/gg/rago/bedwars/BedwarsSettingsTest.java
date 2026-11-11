@@ -83,11 +83,14 @@ class BedwarsSettingsTest {
         assertEquals(settings.mapsOf("first-rush"), settings.mapsOf("first-rush-full-duo"));
         assertTrue(settings.allForges("first-rush-full") && settings.allForges("first-rush-full-duo"),
                 "the full map First Rush: every forge of the map");
-        assertTrue(!settings.allForges("first-rush") && !settings.allForges("ranked-1v1"));
+        assertTrue(!settings.allForges("first-rush"));
         assertTrue(settings.allShops("first-rush-full") && settings.allShops("first-rush-full-duo"),
                 "the full map First Rush: an item shop on every island");
-        assertTrue(!settings.allShops("first-rush") && !settings.allShops("clutch-scenario-1v1")
-                && !settings.allShops("ranked-1v1"));
+        assertTrue(!settings.allShops("first-rush") && !settings.allShops("clutch-scenario-1v1"));
+        for (String size : new String[] {"1v1", "2v2", "3v3", "4v4"}) {
+            assertTrue(settings.allForges("ranked-" + size) && settings.allShops("ranked-" + size),
+                    "Ranked Bedwars: the forges and the item shops of the side islands too");
+        }
         for (String size : new String[] {"1v1", "2v2", "3v3", "4v4"}) {
             assertTrue(settings.allForges("clutch-scenario-" + size), "Clutch Scenario: every forge of the map too");
         }
@@ -115,24 +118,27 @@ class BedwarsSettingsTest {
         assertEquals(20, forge.iron("lotus", 2, 8).ticks);
         // a ranked map of 4 islands, not listed: fast, and a node more: 120 a minute
         assertEquals(10, forge.iron("Archway", 2, 4).ticks);
-        assertArrayEquals(new int[] {2, 4}, forge.iron("Archway", 2, 4).batches, "2 or 4 ingots at once");
+        assertArrayEquals(new int[] {2}, forge.iron("Archway", 2, 4).batches, "2 ingots at once");
         // gold: 8 a minute, 12 on the maps of four teams or fewer
         assertEquals(150, forge.gold(8).ticks);
         assertEquals(100, forge.gold(4).ticks);
         assertEquals(100, forge.gold(2).ticks);
         assertEquals(16, forge.gold(8).max);
         assertArrayEquals(new int[] {1}, forge.gold(4).batches);
-        // the RBW 1v1: a Hypixel solo's forge on its maps of 4 islands, 90 iron and 8 gold a minute
+        // the RBW queue, slower than a 4v4: 60 iron and 8 gold a minute in 1v1, 90 and 12 in teams
         BedwarsSettings.Forge solo = forge.forMode("ranked-1v1");
-        assertEquals(1200 / 90, solo.iron("Archway", 1, 4).ticks);
-        assertEquals(1200 / 90, solo.iron("Lotus", 1, 4).ticks, "on every map");
+        assertEquals(1200 / 60, solo.iron("Archway", 1, 4).ticks);
+        assertEquals(1200 / 60, solo.iron("Antenna", 1, 2).ticks, "on every map");
         assertEquals(150, solo.gold(4).ticks);
-        assertEquals(10, forge.forMode("ranked-2v2").iron("Archway", 2, 4).ticks, "the 2v2 keeps the 4v4 forge");
-        assertEquals(100, forge.forMode("ranked-2v2").gold(4).ticks);
-        // Sky Rise Resources: slow forges on every island, 30 iron and 4 gold a minute each
+        for (String teams : new String[] {"ranked-2v2", "ranked-3v3", "ranked-4v4"}) {
+            assertEquals(1200 / 90, forge.forMode(teams).iron("Archway", 2, 4).ticks, teams);
+            assertEquals(100, forge.forMode(teams).gold(4).ticks, teams);
+        }
+        // Sky Rise Resources: slow forges on every island, 40 iron and 5 gold a minute each
         BedwarsSettings.Forge resources = forge.forMode("skyrise-resources-2v2");
-        assertEquals(1200 / 30, resources.iron("SkyRise", 2, 8).ticks);
-        assertEquals(300, resources.gold(8).ticks);
+        assertEquals(1200 / 40, resources.iron("SkyRise", 2, 8).ticks);
+        assertArrayEquals(new int[] {2}, resources.iron("SkyRise", 2, 8).batches);
+        assertEquals(240, resources.gold(8).ticks);
         assertEquals(1200 / 90, forge.forMode("skyrise-2v2").iron("SkyRise", 2, 8).ticks, "Sky Rise keeps its fast forge");
         assertEquals(30, forge.fastStartSeconds);
         assertEquals(600, settings.diamond().get(0).ticks);
@@ -193,7 +199,7 @@ class BedwarsSettingsTest {
         assertTrue(settings.modes().isEmpty());
         assertEquals(13, settings.forge().iron("Gelato", 1, 8).ticks, "90 a minute");
         assertEquals(40, settings.forge().iron("Lighthouse", 1, 8).ticks, "30 a minute");
-        assertArrayEquals(new int[] {2, 4}, settings.forge().iron("Gelato", 1, 8).batches);
+        assertArrayEquals(new int[] {2}, settings.forge().iron("Gelato", 1, 8).batches);
         assertEquals(3, settings.emerald().size());
         assertEquals(24 * 60, settings.emeraldIII());
         assertEquals(2.0, settings.fireball().self);

@@ -13,8 +13,8 @@ final class BedwarsSettings {
 
     /**
      * A generator: one item every so many ticks on average, at most so many lying on it. They drop
-     * in batches of one of these sizes, drawn at random (the iron of a forge: 2 or 4 at once, as on
-     * Hypixel), the next batch waiting as many times the ticks.
+     * in batches of one of these sizes, drawn at random (the iron of a forge: 2 at once), the next
+     * batch waiting as many times the ticks.
      */
     static final class Rate {
         final int ticks;
@@ -59,7 +59,7 @@ final class BedwarsSettings {
     /**
      * The island forges, as on Hypixel: each iron node drops an ingot every so many seconds; a forge
      * has the nodes of its map's speed, one more on a map of four teams or fewer; the iron comes in
-     * batches (2 or 4 ingots at once); gold at its own pace, faster on a map of four teams or fewer;
+     * batches (2 ingots at once); gold at its own pace, faster on a map of four teams or fewer;
      * twice as fast at the start of the game.
      */
     static final class Forge {
@@ -108,7 +108,7 @@ final class BedwarsSettings {
             }
             double gold = mode.goldSeconds > 0 ? mode.goldSeconds : goldSeconds;
             double fewTeamsGold = mode.goldSeconds > 0 ? mode.goldSeconds : fewTeamsGoldSeconds;
-            return new Forge(nodeSeconds, gold, fewTeamsGold, maxIron, maxGold, fastStartSeconds, ironBatches,
+            return new Forge(mode.ironSeconds > 0 ? mode.ironSeconds : nodeSeconds, gold, fewTeamsGold, maxIron, maxGold, fastStartSeconds, ironBatches,
                     mode.speed != null ? mode.speed : fallback,
                     mode.speed != null ? Collections.<String, Speed[]>emptyMap() : maps, Collections.<String, ModeForge>emptyMap());
         }
@@ -132,13 +132,22 @@ final class BedwarsSettings {
         }
     }
 
-    /** What the forges of a mode have on every map: a speed (null: each map's own), its gold (0: the usual). */
+    /**
+     * What the forges of a mode have on every map: a speed (null: each map's own), the seconds of an
+     * iron node (0: the usual), its gold (0: the usual).
+     */
     static final class ModeForge {
         final Speed speed;
+        final double ironSeconds;
         final double goldSeconds;
 
         ModeForge(Speed speed, double goldSeconds) {
+            this(speed, 0, goldSeconds);
+        }
+
+        ModeForge(Speed speed, double ironSeconds, double goldSeconds) {
             this.speed = speed;
+            this.ironSeconds = ironSeconds;
             this.goldSeconds = goldSeconds;
         }
     }
@@ -375,7 +384,8 @@ final class BedwarsSettings {
         }
         List<String> allShops = new ArrayList<>();
         List<String> shopsListed = config.contains("shops-partout") ? config.getStringList("shops-partout")
-                : Arrays.asList("first-rush-full", "first-rush-full-duo", "skyrise-resources-1v1", "skyrise-resources-2v2");
+                : Arrays.asList("ranked-1v1", "ranked-2v2", "ranked-3v3", "ranked-4v4", "first-rush-full", "first-rush-full-duo",
+                        "skyrise-resources-1v1", "skyrise-resources-2v2");
         for (String mode : shopsListed) {
             allShops.add(modeId(mode, "shops-partout"));
         }
@@ -493,12 +503,15 @@ final class BedwarsSettings {
             for (String mode : section.getKeys(false)) {
                 String path = "forge.modes." + mode;
                 if (!section.isConfigurationSection(mode)) {
-                    throw new IllegalArgumentException(path + ": vitesse and or-secondes, such as {vitesse: moyenne, or-secondes: 7.5}");
+                    throw new IllegalArgumentException(path + ": vitesse, fer-secondes-par-noeud and or-secondes, such as"
+                            + " {vitesse: moyenne, or-secondes: 7.5}");
                 }
                 String word = section.getString(mode + ".vitesse", "");
                 Speed speed = word.trim().isEmpty() ? null : speed(word, path + ".vitesse");
+                double iron = section.contains(mode + ".fer-secondes-par-noeud")
+                        ? number(config, path + ".fer-secondes-par-noeud", 0, 0.25, 600) : 0;
                 double gold = section.contains(mode + ".or-secondes") ? number(config, path + ".or-secondes", 0, 0.25, 600) : 0;
-                modes.put(modeId(mode, path), new ModeForge(speed, gold));
+                modes.put(modeId(mode, path), new ModeForge(speed, iron, gold));
             }
         } else if (config.contains("forge.modes")) {
             throw new IllegalArgumentException("forge.modes: each mode with its forge, such as ranked-1v1: {vitesse: moyenne}");
@@ -509,7 +522,7 @@ final class BedwarsSettings {
     /** The sizes of the batches of iron (2 and 4 by default), each from 1 to 16. */
     private static int[] batches(ConfigurationSection config, String path) {
         if (!config.contains(path)) {
-            return new int[] {2, 4};
+            return new int[] {2};
         }
         List<?> list = config.getList(path);
         if (list == null || list.isEmpty()) {

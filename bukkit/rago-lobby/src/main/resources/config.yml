@@ -1005,7 +1005,7 @@ modes:
     equipes: 2
     joueurs-par-equipe: 1
     classe: false
-    kit: [STONE_SWORD, "GOLDEN_APPLE 2"]
+    kit: [WOOD_SWORD, "GOLDEN_APPLE 2"]
     description:
       - "A real 1v1 on a platform of its"
       - "own, no blocks: a kill or a fall"

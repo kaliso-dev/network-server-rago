@@ -217,6 +217,10 @@ abstract class PracticeGame {
     void broke(Player player, Block block) {
     }
 
+    /** A block the blast of this player's TNT or fireball takes, just before it goes. */
+    void blasted(Player owner, Block block) {
+    }
+
     /** True if the blocks a player places come back in the hand: the kit never runs out of blocks. */
     boolean refills() {
         return false;

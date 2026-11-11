@@ -134,13 +134,18 @@ abstract class Duel extends PracticeGame {
             int mine = sideOf(player.getUniqueId());
             player.sendMessage((mine == side ? ChatColor.GREEN + "Point for your team" : ChatColor.RED + "Point for " + TEAMS[side])
                     + ChatColor.GRAY + " (" + points[mine] + " - " + points[1 - mine] + ")");
-            player.playSound(player.getLocation(), mine == side ? Sound.ORB_PICKUP : Sound.NOTE_BASS, 1f, 1f);
+            pointSound(player, mine == side);
         }
         if (points[side] >= target) {
             finish(side, null);
         } else {
             startRound();
         }
+    }
+
+    /** The sound of a point for this player: their side's point, or the other side's. */
+    void pointSound(Player player, boolean ours) {
+        player.playSound(player.getLocation(), ours ? Sound.ORB_PICKUP : Sound.NOTE_BASS, 1f, 1f);
     }
 
     /** A player of a side that plays on left: if nobody of their side is left in the round, a point. */

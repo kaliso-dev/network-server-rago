@@ -7,6 +7,7 @@ import org.bukkit.ChatColor;
 import org.bukkit.Color;
 import org.bukkit.Location;
 import org.bukkit.Material;
+import org.bukkit.Sound;
 import org.bukkit.entity.Player;
 import org.bukkit.event.entity.EntityDamageEvent;
 import org.bukkit.inventory.ItemStack;
@@ -14,8 +15,8 @@ import org.bukkit.inventory.ItemStack;
 /**
  * The bridge fight 1v1 or 2v2, apart from the open arena: one platform of the bridge fight, red on
  * the west half and blue on the east one, with its pads and the bridges from the pads to its tips.
- * Each side starts on its pad (a team side by side), in the gear of the open arena (iron armour,
- * stone sword, golden apples), the armour with Protection II by default
+ * Each side starts on its pad (a team side by side), in iron armour with golden apples, a wooden
+ * sword in 1v1 (as in the open arena), a stone one in 2v2, the armour with Protection II by default
  * (bridge-fight.protection-1v1, 0 for none), and nobody places blocks: in 1v1 a death or a fall
  * into the void is a point for the other side, in 2v2 the whole side out. First to 5 by default
  * (points-pour-gagner.bridge-fight).
@@ -59,7 +60,8 @@ final class BridgeDuel extends Duel {
 
     @Override
     ItemStack[] defaultKit(Player player) {
-        return new ItemStack[] {new ItemStack(Material.STONE_SWORD), new ItemStack(Material.GOLDEN_APPLE, 2)};
+        return new ItemStack[] {new ItemStack(mode.playersPerTeam() > 1 ? Material.STONE_SWORD : Material.WOOD_SWORD),
+            new ItemStack(Material.GOLDEN_APPLE, 2)};
     }
 
     @Override
@@ -71,6 +73,20 @@ final class BridgeDuel extends Duel {
     void armour(Player player) {
         ironArmour(player, COLOURS[Math.max(0, sideOf(player.getUniqueId()))]);
         protect(player, protection);
+    }
+
+    /**
+     * A round won or lost, each with its sound, loud: a level up, or the thud of an anvil. A tick
+     * later, where the player stands then (on their pad for the next round, not in the void).
+     */
+    @Override
+    void pointSound(Player player, boolean ours) {
+        // the last point too, the game over: the scheduler's own task, not later's
+        org.bukkit.Bukkit.getScheduler().runTaskLater(plugin, () -> {
+            if (player.isOnline()) {
+                player.playSound(player.getLocation(), ours ? Sound.LEVEL_UP : Sound.ANVIL_LAND, 1f, ours ? 1f : 0.8f);
+            }
+        }, 1L);
     }
 
     @Override

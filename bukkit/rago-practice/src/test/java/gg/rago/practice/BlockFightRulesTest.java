@@ -5,6 +5,7 @@ import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import org.bukkit.Location;
+import org.bukkit.Material;
 import org.junit.jupiter.api.Test;
 
 /** The block placement: the points of a knock into the void, the cracks of the arena's blocks. */
@@ -35,5 +36,14 @@ class BlockFightRulesTest {
         assertFalse(PracticeGame.sunk(new Location(null, 10.5, 88.2, 20.5), start), "less than a block lower");
         assertFalse(PracticeGame.sunk(new Location(null, 11.4, 86, 20.5), start), "walked off the side, falling");
         assertFalse(PracticeGame.sunk(new Location(null, 10.5, 89, 20.5), start), "on the start");
+    }
+
+    @Test
+    void onlyWhatWearsIsMadeUnbreakable() {
+        assertTrue(Unbreakable.wears(Material.WOOD_SWORD.getMaxDurability()));
+        assertTrue(Unbreakable.wears(Material.SHEARS.getMaxDurability()));
+        assertTrue(Unbreakable.wears(Material.IRON_CHESTPLATE.getMaxDurability()));
+        assertFalse(Unbreakable.wears(Material.SANDSTONE.getMaxDurability()));
+        assertFalse(Unbreakable.wears(Material.ENDER_PEARL.getMaxDurability()));
     }
 }

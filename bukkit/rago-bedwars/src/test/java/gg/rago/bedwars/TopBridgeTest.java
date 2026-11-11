@@ -1,6 +1,7 @@
 package gg.rago.bedwars;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
@@ -9,6 +10,7 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
+import org.bukkit.Location;
 import org.bukkit.Material;
 import org.junit.jupiter.api.Test;
 
@@ -206,5 +208,24 @@ class TopBridgeTest {
         assertTrue(redStart[0] > 0 && redStart[2] > 0 && blueStart[0] < 0 && blueStart[2] < 0, "each on its side");
         assertEquals(24, Math.hypot(redStart[0] - blueStart[0], redStart[2] - blueStart[2]), 1.5);
         assertEquals(135, Math.abs(redStart[3]), 1e-3, "red looks to the north-west, towards blue");
+    }
+
+    @Test
+    void aPlayerSinkingStraightUnderTheirSpawnGoesBackOnIt() {
+        Location start = new Location(null, 10.5, 89, 20.5);
+        assertTrue(BedwarsGame.sunk(new Location(null, 10.5, 70, 20.5), start), "through the floor, under the map");
+        assertTrue(BedwarsGame.sunk(new Location(null, 10.8, 87.9, 20.2), start));
+        assertFalse(BedwarsGame.sunk(new Location(null, 10.5, 88.2, 20.5), start), "less than a block lower");
+        assertFalse(BedwarsGame.sunk(new Location(null, 11.2, 80, 20.5), start), "walked off the side, falling");
+        assertFalse(BedwarsGame.sunk(new Location(null, 10.5, 89, 20.5), start), "on the spawn");
+    }
+
+    @Test
+    void onlyWhatWearsIsMadeUnbreakable() {
+        assertTrue(Unbreakable.wears(Material.WOOD_SWORD.getMaxDurability()));
+        assertTrue(Unbreakable.wears(Material.SHEARS.getMaxDurability()));
+        assertTrue(Unbreakable.wears(Material.LEATHER_BOOTS.getMaxDurability()));
+        assertFalse(Unbreakable.wears(Material.WOOL.getMaxDurability()));
+        assertFalse(Unbreakable.wears(Material.FIREBALL.getMaxDurability()));
     }
 }

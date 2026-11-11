@@ -451,9 +451,12 @@ final class PracticeGames implements Listener {
         event.setYield(0f);
         PracticeGame game = gameAt(event.getLocation());
         boolean fireball = event.getEntity() instanceof Fireball;
+        Player owner = game == null ? null : playerBehind(event.getEntity());
+        if (owner != null && byPlayer.get(owner.getUniqueId()) != game) {
+            owner = null;
+        }
         if (game != null && event.getEntity() instanceof TNTPrimed) {
-            Player owner = playerBehind(event.getEntity());
-            game.tntBlast(event.getLocation(), owner != null && byPlayer.get(owner.getUniqueId()) == game ? owner : null);
+            game.tntBlast(event.getLocation(), owner);
         }
         for (Iterator<Block> it = event.blockList().iterator(); it.hasNext();) {
             Block block = it.next();
@@ -461,6 +464,9 @@ final class PracticeGames implements Listener {
                     || (fireball && block.getType() == Material.ENDER_STONE)) {
                 it.remove();
             } else {
+                if (owner != null) {
+                    game.blasted(owner, block);
+                }
                 game.arena.removed(block);
             }
         }
@@ -504,8 +510,18 @@ final class PracticeGames implements Listener {
      */
     @EventHandler(ignoreCancelled = true)
     public void onWear(PlayerItemDamageEvent event) {
-        if (byPlayer.containsKey(event.getPlayer().getUniqueId())) {
+        if (byPlayer.containsKey(event.getPlayer().getUniqueId()) || event.getPlayer().getWorld().equals(world)) {
             event.setCancelled(true);
+        }
+    }
+
+    /** Every few ticks: the items of the players in a game unbreakable (see Unbreakable). */
+    void keepUnbreakable() {
+        for (UUID id : byPlayer.keySet()) {
+            Player player = Bukkit.getPlayer(id);
+            if (player != null && player.isOnline()) {
+                Unbreakable.apply(player);
+            }
         }
     }
 

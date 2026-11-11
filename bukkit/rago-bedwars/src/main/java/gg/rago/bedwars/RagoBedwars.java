@@ -17,6 +17,9 @@ import org.bukkit.plugin.java.JavaPlugin;
  */
 public final class RagoBedwars extends JavaPlugin {
 
+    /** How often the items of the players in a game are made unbreakable, the new ones (see Unbreakable). */
+    static final long UNBREAKABLE_TICKS = 5L;
+
     /** After the start, the time before the first copy of a map is made, so that the first match does not wait. */
     private static final long PREWARM_TICKS = 100L;
 
@@ -69,6 +72,7 @@ public final class RagoBedwars extends JavaPlugin {
 
         host = new BedwarsHost(this);
         getServer().getPluginManager().registerEvents(host, this);
+        getServer().getScheduler().runTaskTimer(this, host::keepUnbreakable, UNBREAKABLE_TICKS, UNBREAKABLE_TICKS);
         MapCommands commands = new MapCommands(this);
         PluginCommand bw = getCommand("bw");
         bw.setExecutor(commands);

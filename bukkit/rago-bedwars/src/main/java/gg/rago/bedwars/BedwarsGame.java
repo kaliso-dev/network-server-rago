@@ -85,6 +85,9 @@ class BedwarsGame {
         final List<ShopItem> quickBuy;
         boolean eliminated;
         boolean respawning;
+        /** Where the player was put for the start (place), and until when one sinking under it goes back on it. */
+        Location placedAt;
+        long unstickUntil;
         /** 0 leather, 1 chainmail, 2 iron, 3 diamond. */
         int armor;
         /** -1 none, else the tier in {@link ShopCatalog#pickaxes()}. */
@@ -469,8 +472,46 @@ class BedwarsGame {
     /** A player takes their place for the start: ready, on their spawn, with their kit. */
     void place(Player player, Gamer gamer) {
         prepare(player);
-        player.teleport(spawnOf(gamer));
+        Location start = spawnOf(gamer);
+        gamer.placedAt = start.clone();
+        gamer.unstickUntil = System.currentTimeMillis() + UNSTICK_MS;
+        player.teleport(start);
         giveKit(player, gamer);
+    }
+
+    /**
+     * How long after a placement a player sinking under their spawn goes back on it: just come from
+     * the lobby's world (or between two rounds), a client whose chunks have not come yet goes down
+     * through the floor under it, under the map.
+     */
+    static final long UNSTICK_MS = 10_000L;
+
+    /**
+     * Where a player who moves there goes back (their spawn of the start), if they are sinking
+     * under it in the seconds after their placement; null otherwise.
+     */
+    Location unstuck(Player player, Location to) {
+        Gamer gamer = gamers.get(player.getUniqueId());
+        if (gamer == null || gamer.placedAt == null || phase == Phase.ENDED || System.currentTimeMillis() > gamer.unstickUntil
+                || player.getGameMode() == GameMode.SPECTATOR || !sunk(to, gamer.placedAt)) {
+            return null;
+        }
+        Location back = gamer.placedAt.clone();
+        back.setYaw(to.getYaw());
+        back.setPitch(to.getPitch());
+        return back;
+    }
+
+    /**
+     * True if this place is straight under the start (less than half a block from it across: only
+     * through the floor under it, as walking off it takes more), more than a block lower.
+     */
+    static boolean sunk(Location at, Location start) {
+        if (at.getWorld() != null && start.getWorld() != null && !at.getWorld().equals(start.getWorld())) {
+            return false;
+        }
+        return Math.abs(at.getX() - start.getX()) < 0.5 && Math.abs(at.getZ() - start.getZ()) < 0.5
+                && at.getY() < start.getY() - 1;
     }
 
     /** The islands that get a forge and shops (the teams' own, in a classic game). */

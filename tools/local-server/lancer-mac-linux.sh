@@ -131,6 +131,17 @@ if [ ! -f plugins/WorldEdit/config.yml ]; then
     printf "  dir: '%s'\n" "$(printf '%s' "$SCHEMATICS" | sed "s/'/''/g")"
   } > plugins/WorldEdit/config.yml
 fi
+# The wands of WorldEdit away from the items of the games, in a config of before too: its selection
+# wand (the wooden axe by default, held in several kits: it took their clicks) is a bone (//wand
+# gives it), its navigation wand (the compass by default, the lobby's game selector) a prismarine
+# shard.
+if ! grep -q '^wand-item:' plugins/WorldEdit/config.yml; then
+  printf '# Written by the Rago launcher: the wands of WorldEdit are not items of the games (//wand gives the bone).\nwand-item: 352\n' \
+    >> plugins/WorldEdit/config.yml
+fi
+if ! grep -q '^navigation-wand:' plugins/WorldEdit/config.yml; then
+  printf 'navigation-wand:\n  item: 409\n' >> plugins/WorldEdit/config.yml
+fi
 
 # --- Start --------------------------------------------------------------------------------------
 say "Starting the server. In Minecraft 1.8.9: Multiplayer, Direct Connection, address localhost."

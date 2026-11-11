@@ -260,6 +260,14 @@ final class FireballFight extends Duel {
         sidebars();
     }
 
+    /** The wood and the end stone the blast of a player's TNT or fireball takes go to them too. */
+    @Override
+    void blasted(Player owner, Block block) {
+        if (block.getType() != Material.BED_BLOCK) {
+            giveBack(owner, block);
+        }
+    }
+
     /**
      * The wood and the end stone a player breaks (theirs, the other side's, the defense of a bed)
      * go into their inventory, as they would pick them up in Bed Wars: nothing lies on the ground

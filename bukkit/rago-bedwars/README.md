@@ -17,13 +17,15 @@ Scenario**,
 - **Forges** : chaque île a sa forge de fer et d'or, à la vitesse de sa map comme sur Hypixel
   (débits mesurés sur Hypixel). Un « nœud » de fer donne 30 lingots par minute ; une forge a 1 nœud
   sur les maps lentes, 2 sur les moyennes, 3 sur les rapides, et un de plus sur les maps à 4
-  équipes ; le fer tombe par paquets de 2 ou 4, comme sur Hypixel. Ça fait environ 90 fers par
-  minute sur une map rapide à 8 îles et 120 sur les maps à 4 îles des Ranked. L'or donne 8 lingots
+  équipes ; le fer tombe 2 lingots à la fois. Ça fait environ 90 fers par minute sur une map
+  rapide à 8 îles et 120 sur une map à 4 îles. L'or donne 8 lingots
   par minute, 12 sur les maps de 4 îles ou moins ; au plus 48 fers et 16 ors par terre ; deux fois
   plus vite pendant les 30 premières secondes. Toutes les maps sont rapides, sauf Lighthouse et Lotus (lentes en solo,
-  moyennes en duo), comme sur Hypixel (réglable dans `forge:`). Le RBW 1v1 a la forge d'un solo
-  d'Hypixel sur toutes ses maps : 90 fers et 8 ors par minute (`forge.modes`, réglable par mode),
-  au lieu des 120 et 12 d'un 4v4 pour un seul joueur. Les générateurs de diamant et
+  moyennes en duo), comme sur Hypixel (réglable dans `forge:`). La file RBW a des forges plus lentes
+  sur toutes ses maps (`forge.modes`, réglable par mode) : 60 fers et 8 ors par minute en 1v1, 90
+  fers et 12 ors en 2v2, 3v3 et 4v4, au lieu des 120 d'un 4v4. Sur ses maps à 4 îles, les îles
+  des côtés, où personne ne joue, ont aussi leur forge et un item shop pour qui va les prendre
+  (`forges-partout:` et `shops-partout:`). Les générateurs de diamant et
   d'émeraude affichent leur tier et le temps avant le prochain objet. Ils passent tier II puis III
   pendant la partie.
 - **Événements** (réglables) : Diamond II à 6 min, Emerald II à 12, Diamond III à 18, Emerald III
@@ -83,8 +85,8 @@ restent sur l'île de chaque équipe.
 
 `skyrise-resources-1v1` et `skyrise-resources-2v2`, « RBW Sky Rise Resources », font de même sur
 Sky Rise, les équipes sur des îles opposées comme en RBW Sky Rise : les forges et les item shops
-des six îles vides sont à qui va les prendre. Leurs forges sont lentes (`forge.modes:`) : 30 fer
-et 4 or par minute chacune, au lieu de 90 et 8.
+des six îles vides sont à qui va les prendre. Leurs forges sont lentes (`forge.modes:`) : 40 fer
+et 5 or par minute chacune, au lieu de 90 et 8.
 
 ## Top Bridge
 

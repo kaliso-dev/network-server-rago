@@ -37,7 +37,7 @@ import org.bukkit.potion.PotionEffectType;
  * blocks. The hits only
  * push (Resistance V, no damage: knock the others into the void), except on the middle platform,
  * the one nearest to the centre of the arena (on the map, the red H south of the middle booth),
- * where they hurt as in a real fight. On the owner's map (bridge-fight.cartes in config.yml: the lowest floor of "Bridge Fight
+ * where they hurt as in a real fight, and a kill gives the killer back their full health. On the owner's map (bridge-fight.cartes in config.yml: the lowest floor of "Bridge Fight
  * Plateform") its platforms of wool or stained clay, each of two colours as a top fight platform,
  * over the void, and in the row between them the little islands of the arena, each a booth with its
  * sea lantern on the floor: a click on a portal takes the player from their island to the next one
@@ -1020,7 +1020,16 @@ final class BridgeArena extends PracticeGame {
         out(victim);
     }
 
-    /** The player is out (a fall, a death): the kill to whoever hit them last, and back on their platform. */
+    /** True if this player is on the middle platform, where the hits hurt. */
+    private boolean onMiddle(UUID player) {
+        Integer platform = platformOf.get(player);
+        return middle >= 0 && platform != null && platform == middle;
+    }
+
+    /**
+     * The player is out (a fall, a death): the kill to whoever hit them last, back to full health
+     * if one of them was on the middle platform, and the victim back on their platform.
+     */
     private void out(Player victim) {
         UUID by = killerOf(victim.getUniqueId());
         Player killer = by == null ? null : Bukkit.getPlayer(by);
@@ -1031,6 +1040,11 @@ final class BridgeArena extends PracticeGame {
             broadcast(ChatColor.RED + victim.getDisplayName() + ChatColor.GRAY + " was killed by " + ChatColor.GREEN
                     + killer.getDisplayName() + (streak >= 3 ? ChatColor.GOLD + " (" + streak + " in a row)" : ""), null);
             sound(killer, Sound.ORB_PICKUP, 1.2f);
+            if (onMiddle(by) || onMiddle(victim.getUniqueId())) {
+                // a kill on the middle platform, where the hits hurt: the killer back to full health
+                killer.setHealth(killer.getMaxHealth());
+                killer.sendMessage(ChatColor.GREEN + "A kill on the middle platform: full health!");
+            }
         } else {
             victim.sendMessage(ChatColor.GRAY + "You fell.");
         }

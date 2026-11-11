@@ -53,6 +53,8 @@ public final class RagoPractice extends JavaPlugin {
     private PracticeXp xp;
     /** How often the XP of the trainings goes to the lobby: two minutes. */
     static final long XP_PAY_TICKS = 2400L;
+    /** How often the items of the players in a game are made unbreakable, the new ones (see Unbreakable). */
+    static final long UNBREAKABLE_TICKS = 5L;
 
     @Override
     public void onEnable() {
@@ -95,6 +97,7 @@ public final class RagoPractice extends JavaPlugin {
 
         games = new PracticeGames(this, world);
         getServer().getPluginManager().registerEvents(games, this);
+        getServer().getScheduler().runTaskTimer(this, games::keepUnbreakable, UNBREAKABLE_TICKS, UNBREAKABLE_TICKS);
         events = new Events(this, eventSettings(config));
         getServer().getPluginManager().registerEvents(events, this);
         events.start();

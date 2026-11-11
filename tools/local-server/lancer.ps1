@@ -175,6 +175,19 @@ if (-not (Test-Path -LiteralPath $WorldEditConfig)) {
     # UTF-8 without a BOM: Set-Content -Encoding UTF8 of PowerShell 5.1 would add one.
     [IO.File]::WriteAllLines($WorldEditConfig, [string[]]$Lines, (New-Object Text.UTF8Encoding $false))
 }
+# The wands of WorldEdit away from the items of the games, in a config of before too: its selection
+# wand (the wooden axe by default, held in several kits: it took their clicks) is a bone (//wand
+# gives it), its navigation wand (the compass by default, the lobby's game selector) a prismarine
+# shard.
+$Utf8 = New-Object Text.UTF8Encoding $false
+if (-not (Select-String -LiteralPath $WorldEditConfig -Pattern '^wand-item:' -Quiet)) {
+    [IO.File]::AppendAllLines($WorldEditConfig, [string[]]@(
+        '# Written by the Rago launcher: the wands of WorldEdit are not items of the games (//wand gives the bone).',
+        'wand-item: 352'), $Utf8)
+}
+if (-not (Select-String -LiteralPath $WorldEditConfig -Pattern '^navigation-wand:' -Quiet)) {
+    [IO.File]::AppendAllLines($WorldEditConfig, [string[]]@('navigation-wand:', '  item: 409'), $Utf8)
+}
 
 # --- Start ---------------------------------------------------------------------------------------
 $Memory = if ($env:RAGO_MEMOIRE) { $env:RAGO_MEMOIRE } else { '2G' }

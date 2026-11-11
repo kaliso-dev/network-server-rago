@@ -68,6 +68,7 @@ import org.bukkit.event.inventory.InventoryType;
 import org.bukkit.event.player.AsyncPlayerChatEvent;
 import org.bukkit.event.player.PlayerArmorStandManipulateEvent;
 import org.bukkit.event.player.PlayerBucketEmptyEvent;
+import org.bukkit.event.player.PlayerItemDamageEvent;
 import org.bukkit.event.player.PlayerBucketFillEvent;
 import org.bukkit.event.player.PlayerChangedWorldEvent;
 import org.bukkit.event.player.PlayerDropItemEvent;
@@ -441,6 +442,12 @@ final class BedwarsHost implements MatchHost, Listener {
         }
         Location from = event.getFrom();
         Location to = event.getTo();
+        Location unstuck = game.unstuck(event.getPlayer(), to);
+        if (unstuck != null) {
+            event.getPlayer().setFallDistance(0f);
+            event.setTo(unstuck);
+            return;
+        }
         if (game.phase() == Phase.STARTING
                 && (from.getX() != to.getX() || from.getZ() != to.getZ() || to.getY() > from.getY())) {
             Location still = from.clone();
@@ -761,6 +768,24 @@ final class BedwarsHost implements MatchHost, Listener {
         game.instance().markPlaced(block, event.getBlockReplacedState().getTypeId(),
                 event.getBlockReplacedState().getRawData());
         game.placed(player, block);
+    }
+
+    /** Nothing wears out in a game: swords, tools, bows and armour stay whole (see Unbreakable). */
+    @EventHandler(ignoreCancelled = true)
+    public void onWear(PlayerItemDamageEvent event) {
+        if (games.containsKey(event.getPlayer().getUniqueId()) || isGameWorld(event.getPlayer().getWorld())) {
+            event.setCancelled(true);
+        }
+    }
+
+    /** Every few ticks: the items of the players in a game unbreakable, the new ones too (bought, given). */
+    void keepUnbreakable() {
+        for (UUID id : games.keySet()) {
+            Player player = Bukkit.getPlayer(id);
+            if (player != null && player.isOnline()) {
+                Unbreakable.apply(player);
+            }
+        }
     }
 
     @EventHandler(priority = EventPriority.HIGH, ignoreCancelled = true)
