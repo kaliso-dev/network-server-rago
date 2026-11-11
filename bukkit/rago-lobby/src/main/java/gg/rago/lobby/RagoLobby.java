@@ -23,6 +23,7 @@ import java.util.logging.Level;
 import org.bukkit.ChatColor;
 import org.bukkit.Location;
 import org.bukkit.Material;
+import org.bukkit.Sound;
 import org.bukkit.World;
 import org.bukkit.WorldCreator;
 import org.bukkit.entity.Player;
@@ -1143,6 +1144,31 @@ public final class RagoLobby extends JavaPlugin implements LobbyService {
                 player.sendMessage(line);
             }
         }
+    }
+
+    /**
+     * A rank gifted: the big message for every player in the lobby, one line for those in a game (not
+     * to stop a fight), and fireworks around the one who got it, or the giver, if in the lobby.
+     */
+    void celebrateGift(Player giver, Player got, List<String> lines, String line) {
+        for (Player player : getServer().getOnlinePlayers()) {
+            if (inLobbyNow(player)) {
+                for (String one : lines) {
+                    player.sendMessage(one);
+                }
+                player.playSound(player.getLocation(), Sound.FIREWORK_LARGE_BLAST, 1f, 1f);
+            } else {
+                player.sendMessage(line);
+            }
+        }
+        Player shown = got != null && inLobbyNow(got) ? got : inLobbyNow(giver) ? giver : null;
+        if (shown != null && cosmetics != null) {
+            cosmetics.giftFireworks(shown);
+        }
+    }
+
+    private boolean inLobbyNow(Player player) {
+        return player.isOnline() && state.isInLobby(player) && !state.isInGame(player);
     }
 
     CosmeticEffects cosmeticEffects() {

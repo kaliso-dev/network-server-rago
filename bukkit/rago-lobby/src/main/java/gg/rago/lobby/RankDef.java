@@ -43,6 +43,8 @@ final class RankDef {
     private final String webPrice;
     /** Its place in the queues: the higher first (PREMIUM+ 2, VIP 1), 0 for none. */
     private final int queuePriority;
+    /** What gifting it to another player costs in Rago Points, 0 for its shop price (or not giftable). */
+    private final int giftPrice;
 
     RankDef(String id, String prefix, String nameColour, String chatColour, boolean staff, List<String> permissions,
             String parent, int price, int level, Material icon, List<String> perks) {
@@ -66,6 +68,13 @@ final class RankDef {
     RankDef(String id, String prefix, String nameColour, String chatColour, boolean staff, List<String> permissions,
             String parent, int price, int level, Material icon, List<String> perks, double xpBoost, String style,
             String badge, boolean webStore, String webPrice, int queuePriority) {
+        this(id, prefix, nameColour, chatColour, staff, permissions, parent, price, level, icon, perks, xpBoost, style, badge,
+                webStore, webPrice, queuePriority, 0);
+    }
+
+    RankDef(String id, String prefix, String nameColour, String chatColour, boolean staff, List<String> permissions,
+            String parent, int price, int level, Material icon, List<String> perks, double xpBoost, String style,
+            String badge, boolean webStore, String webPrice, int queuePriority, int giftPrice) {
         this.id = id;
         this.prefix = prefix;
         this.nameColour = nameColour;
@@ -83,6 +92,29 @@ final class RankDef {
         this.webStore = webStore;
         this.webPrice = webPrice;
         this.queuePriority = queuePriority;
+        this.giftPrice = giftPrice;
+    }
+
+    /** The same rank, gifted to another player for this many Rago Points (0: its shop price). */
+    RankDef giftedFor(int points) {
+        return new RankDef(id, prefix, nameColour, chatColour, staff, permissions, parent, price, level, icon, perks, xpBoost,
+                style, badge, webStore, webPrice, queuePriority, points);
+    }
+
+    /**
+     * What gifting it to another player costs in Rago Points: its own gift price (prix-cadeau, a
+     * rank of the web store too), else its price in the shop; 0 for a rank nobody can gift.
+     */
+    int giftPrice() {
+        if (staff) {
+            return 0;
+        }
+        return giftPrice > 0 ? giftPrice : sold() ? price : 0;
+    }
+
+    /** True if a player can gift it to another one with their Rago Points (/gift). */
+    boolean giftable() {
+        return giftPrice() > 0;
     }
 
     /** Its place in the queues: the higher first, 0 for none. */

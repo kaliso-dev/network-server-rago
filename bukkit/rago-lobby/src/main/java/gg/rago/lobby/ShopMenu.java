@@ -89,6 +89,22 @@ final class ShopMenu {
             menu.set(slot, ClickMenu.item(type.icon(), 0, ChatColor.GREEN + type.title(), lore), (p, right) -> openType(p, type));
             slot += 2;
         }
+        List<RankDef> giftable = profiles.server().ranks().giftable();
+        if (!giftable.isEmpty()) {
+            List<String> lore = new ArrayList<>();
+            lore.add("Pick a player, then the rank:");
+            for (RankDef rank : giftable) {
+                lore.add(rank.prefix().trim() + ChatColor.GRAY + " - " + ChatColor.GOLD + String.format("%,d", rank.giftPrice())
+                        + " Rago Points");
+            }
+            lore.add("");
+            lore.add("The whole lobby hears it,");
+            lore.add("with fireworks!");
+            lore.add("");
+            lore.add(ChatColor.YELLOW + "Click to choose a player");
+            menu.set(27, ClickMenu.item(Material.FIREWORK_CHARGE, 0, ChatColor.GOLD + "Gift a rank", lore),
+                    (p, right) -> openGiftTargets(p));
+        }
         if (styles != null) {
             menu.set(29, ClickMenu.item(Material.NAME_TAG, 0, ChatColor.LIGHT_PURPLE + "Name colours & badges", listOf(
                     "Gradient names, and badges after",
@@ -156,6 +172,10 @@ final class ShopMenu {
             if (!rank.sold()) {
                 lore.add(ChatColor.GOLD + "On the web store" + (rank.webPrice() != null ? ": " + ChatColor.GREEN + ChatColor.BOLD
                         + rank.webPrice() : ""));
+                if (rank.giftable()) {
+                    lore.add("Gift it to a player: " + ChatColor.GOLD + String.format("%,d", rank.giftPrice()) + " Rago Points");
+                    lore.add(ChatColor.GRAY + "(/gift <player>, or the shop)");
+                }
                 lore.add("");
                 lore.add(owned ? ChatColor.GREEN + "You have it" : ChatColor.YELLOW + "Click for the link");
                 menu.set(slotOf(i), ClickMenu.item(rank.icon(), 0, rank.prefix().trim(), lore), (p, right) -> {
@@ -189,17 +209,60 @@ final class ShopMenu {
         menu.open(player);
     }
 
-    /** The ranks to gift another player (/gift, or the menu of a player clicked in the lobby). */
-    void openGift(Player player, PlayerStats target) {
-        List<RankDef> sold = profiles.server().ranks().sold();
-        if (sold.isEmpty()) {
-            player.sendMessage(ChatColor.GRAY + "No rank is sold for Rago Points. The ranks of the web store can be gifted there:");
-            List<String> store = profiles.server().link("boutique");
-            for (String line : store == null ? listOf(ChatColor.GRAY + "The store opens soon.") : store) {
-                player.sendMessage(line);
-            }
+    /** The players online to gift a rank to, a head each; /gift reaches the others. */
+    void openGiftTargets(Player player) {
+        if (noGift(player)) {
             return;
         }
+        List<Player> online = new ArrayList<>();
+        for (Player other : player.getServer().getOnlinePlayers()) {
+            if (!other.equals(player) && player.canSee(other)) {
+                online.add(other);
+            }
+        }
+        online.sort((a, b) -> a.getName().compareToIgnoreCase(b.getName()));
+        int shown = Math.min(online.size(), GIFT_HEADS);
+        ClickMenu menu = new ClickMenu(Math.max(2, Math.min(6, 1 + (shown + 8) / 9)), "Gift a rank to...");
+        for (int i = 0; i < shown; i++) {
+            final String name = online.get(i).getName();
+            List<String> lore = new ArrayList<>();
+            lore.add(ChatColor.YELLOW + "Click to choose the rank");
+            menu.set(i, ClickMenu.head(name, profiles.displayName(online.get(i).getUniqueId(), name), lore),
+                    (p, right) -> p.performCommand("gift " + name));
+        }
+        if (shown == 0) {
+            menu.set(4, ClickMenu.item(Material.PAPER, ChatColor.GRAY + "Nobody else is online", "/gift <player> gifts a rank",
+                    "to anyone who played here."), null);
+        } else if (online.size() > shown) {
+            menu.set(menu.size() - 9, ClickMenu.item(Material.PAPER, ChatColor.GRAY + "And " + (online.size() - shown) + " more",
+                    "/gift <player> for them."), null);
+        }
+        menu.set(menu.size() - 5, ClickMenu.back("the Rago Shop"), (p, right) -> open(p));
+        menu.open(player);
+    }
+
+    /** The heads of a page of players to gift: 5 rows, the last one for the buttons. */
+    static final int GIFT_HEADS = 45;
+
+    /** True (and the player told where to go) when no rank can be gifted with Rago Points. */
+    private boolean noGift(Player player) {
+        if (!profiles.server().ranks().giftable().isEmpty()) {
+            return false;
+        }
+        player.sendMessage(ChatColor.GRAY + "No rank can be gifted for Rago Points. The ranks of the web store can be gifted there:");
+        List<String> store = profiles.server().link("boutique");
+        for (String line : store == null ? listOf(ChatColor.GRAY + "The store opens soon.") : store) {
+            player.sendMessage(line);
+        }
+        return true;
+    }
+
+    /** The ranks to gift another player (/gift, the shop, or the menu of a player clicked in the lobby). */
+    void openGift(Player player, PlayerStats target) {
+        if (noGift(player)) {
+            return;
+        }
+        List<RankDef> sold = profiles.server().ranks().giftable();
         ClickMenu menu = new ClickMenu(Math.min(6, 2 + (sold.size() + 6) / 7), "Gift a rank: " + target.name());
         PlayerStats profile = profiles.of(player);
         int level = book.level(player.getUniqueId());
@@ -210,22 +273,27 @@ final class ShopMenu {
                 lore.add(ChatColor.WHITE + "• " + ChatColor.GRAY + perk);
             }
             lore.add("");
-            lore.add("Price: " + ChatColor.GOLD + String.format("%,d", rank.price()) + " Rago Points");
-            lore.add("Your level needed: " + book.levels().tag(rank.level()));
+            lore.add("Price: " + ChatColor.GOLD + String.format("%,d", rank.giftPrice()) + " Rago Points");
+            if (rank.level() > 0) {
+                lore.add("Your level needed: " + book.levels().tag(rank.level()));
+            }
+            lore.add("");
+            lore.add("The whole lobby hears it,");
+            lore.add("with fireworks!");
             lore.add("");
             final boolean owned = profiles.owns(target, rank);
             if (owned) {
                 lore.add(ChatColor.GREEN + target.name() + " has it");
             } else if (level < rank.level()) {
                 lore.add(ChatColor.RED + "Unlocks at level " + rank.level());
-            } else if (profile.points() < rank.price()) {
+            } else if (profile.points() < rank.giftPrice()) {
                 lore.add(ChatColor.RED + "Not enough Rago Points");
             } else {
                 lore.add(ChatColor.YELLOW + "Click to gift it to " + target.name());
             }
             menu.set(slotOf(i), ClickMenu.item(rank.icon(), 0, rank.prefix().trim(), lore), (p, right) -> {
                 if (!owned) {
-                    confirm(p, rank.prefix().trim() + ChatColor.GREEN + " for " + target.name(), rank.price(),
+                    confirm(p, rank.prefix().trim() + ChatColor.GREEN + " for " + target.name(), rank.giftPrice(),
                             () -> profiles.giftRank(p, target, rank), () -> openGift(p, target));
                 }
             });

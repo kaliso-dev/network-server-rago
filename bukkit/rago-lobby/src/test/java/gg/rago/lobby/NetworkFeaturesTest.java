@@ -202,6 +202,42 @@ class NetworkFeaturesTest {
         assertTrue(Social.buttons("Alice").contains("/friend accept Alice"));
     }
 
+    @Test
+    void theRanksOfTheWebStoreCanBeGiftedWithRagoPoints() throws Exception {
+        Ranks ranks = Ranks.defaults();
+        List<String> giftable = new ArrayList<>();
+        for (RankDef rank : ranks.giftable()) {
+            giftable.add(rank.id() + " " + rank.giftPrice());
+        }
+        assertEquals(Arrays.asList("vip 25000", "premium 50000"), giftable, "the cheapest first, no staff rank");
+        assertFalse(ranks.get("admin").giftable());
+        assertFalse(ranks.get("media").giftable(), "given by the staff only");
+        RankDef shop = new RankDef("gold", "§6[GOLD] ", "§6", "§f", false, Collections.<String>emptyList(), null, 3000, 5,
+                Material.GOLD_INGOT, Collections.<String>emptyList());
+        assertEquals(3000, shop.giftPrice(), "a rank of the shop: its price");
+        assertEquals(4000, shop.giftedFor(4000).giftPrice(), "unless it has its own");
+        assertEquals(3000, shop.giftedFor(4000).price(), "bought for oneself, the same price");
+        Ranks read = ServerSettings.load(bundledConfig()).ranks();
+        assertEquals(25000, read.get("vip").giftPrice());
+        assertEquals(50000, read.get("premium").giftPrice());
+        assertInvalid("rangs:\n  mod:\n    staff: true\n    prix-cadeau: 10\n", "rangs.mod.prix-cadeau");
+        assertInvalid("rangs:\n  vip:\n    prix-cadeau: -1\n", "rangs.vip.prix-cadeau");
+        List<String> lines = Profiles.giftLines("§fAnn", "§d[PREMIUM+] §dBob", "§d[PREMIUM+]");
+        assertTrue(lines.size() >= 5, "a big message");
+        assertTrue(lines.get(0).contains("§m"), "between two lines");
+        StringBuilder all = new StringBuilder();
+        for (String line : lines) {
+            all.append(org.bukkit.ChatColor.stripColor(line)).append('\n');
+        }
+        assertTrue(all.toString().contains("RANK GIFT"), all.toString());
+        assertTrue(all.toString().contains("Ann gifted [PREMIUM+] to"), all.toString());
+        assertTrue(all.toString().contains("[PREMIUM+] Bob!"), all.toString());
+        assertTrue(lines.get(2).startsWith(" "), "in the middle of the chat");
+        assertEquals(CosmeticEffects.GIFT_WAVES * CosmeticEffects.GIFT_PER_WAVE, 30, "thirty fireworks");
+        assertTrue(CosmeticEffects.giftEffect(0).hasTrail());
+        assertTrue(!CosmeticEffects.giftEffect(0).getColors().equals(CosmeticEffects.giftEffect(1).getColors()), "every colour");
+    }
+
     // --- config.yml -----------------------------------------------------------------------------
 
     @Test

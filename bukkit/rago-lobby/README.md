@@ -244,9 +244,13 @@ dans les files d'attente des modes de jeu.
 - **Le clic sur un joueur.** Un clic droit sur un joueur du lobby ouvre son menu : sa tête avec
   son rang, son niveau et ses divisions, un duel (le choix du mode), ses stats mode par mode, une
   invitation dans sa party, une demande d'ami et un rang à lui offrir.
-- **Offrir un rang (`/gift <joueur>`).** Les rangs de la boutique, payés avec ses propres Rago
-  Points : il faut le niveau et le prix du rang, comme pour l'acheter pour soi. Celui qui le reçoit
-  est prévenu, et le lobby aussi.
+- **Offrir un rang (`/gift <joueur>`, le bouton « Gift a rank » du shop, ou le clic sur un
+  joueur).** Payé avec ses propres Rago Points, même un rang de la boutique en ligne : VIP pour
+  25 000, PREMIUM+ pour 50 000 (`prix-cadeau` de chaque rang dans `rangs:` ; sans lui, son `prix`
+  du shop). Le bouton du shop montre les têtes des joueurs en ligne, puis les rangs. Celui qui le
+  reçoit a un titre à l'écran ; tout le lobby voit un grand message au milieu du chat, et des feux
+  d'artifice de toutes les couleurs éclatent autour de lui (ou du donneur s'il n'est pas au lobby)
+  pendant trois secondes. Les joueurs en partie n'ont qu'une ligne, pour ne pas gêner un combat.
 - **Le profil (`/profile`)** : rang, niveau, points, divisions, stats, amis, boutique et
   réglages (`/settings` les ouvre aussi) : messages privés, invitations de party, demandes d'ami
   et défis (chacun activable), l'heure du ciel (« Time of day » : jour, coucher de soleil ou nuit,
@@ -291,7 +295,7 @@ commentaires de `config.yml`. Les mots français de la première version (`quitt
 | `/shop` (ou `/boutique`), `/profile` (ou `/me`), `/daily` | la boutique, son profil, la récompense du jour | tout le monde |
 | `/settings` (ou `/options`, `/reglages`) | ses réglages : messages, invitations, heure du ciel, rejouer tout seul | tout le monde |
 | `/season` (ou `/saison`) | la saison classée : sa fin, ses récompenses, ses divisions et ses saisons passées | tout le monde |
-| `/gift <joueur>` (ou `/cadeau`) | offrir un rang vendu en Rago Points (PREMIUM s'offre sur la boutique en ligne) | tout le monde |
+| `/gift <joueur>` (ou `/cadeau`) | offrir un rang avec ses Rago Points (VIP 25 000, PREMIUM+ 50 000) | tout le monde |
 | `/friend add\|accept\|deny\|remove\|list\|requests\|toggle <joueur>` (ou `/f`) | les amis | tout le monde |
 | `/msg <joueur> <message>` (ou `/tell`, `/w`), `/r <message>` | message privé, réponse | tout le monde |
 | `/stats [joueur]`, `/top elo\|level\|wins\|kills\|fkdr\|streak\|games\|points [mode]` | les stats, les meilleurs | tout le monde |

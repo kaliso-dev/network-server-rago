@@ -77,6 +77,19 @@ final class Ranks {
         return sold;
     }
 
+    /** The ranks a player can gift another one with Rago Points, the cheapest first. */
+    List<RankDef> giftable() {
+        List<RankDef> giftable = new ArrayList<>();
+        for (RankDef rank : ranks) {
+            if (rank.giftable()) {
+                giftable.add(rank);
+            }
+        }
+        Collections.sort(giftable, (a, b) -> a.giftPrice() != b.giftPrice() ? Integer.compare(a.giftPrice(), b.giftPrice())
+                : Integer.compare(position(b), position(a)));
+        return giftable;
+    }
+
     /**
      * The ranks the shop shows, from left to right: those of the web store, the lowest first (VIP,
      * then PREMIUM+), then those sold for Rago Points, the cheapest first.
@@ -228,8 +241,12 @@ final class Ranks {
                         "Speed I, II or III in the lobby (settings)", "Your arrival announced, with a firework",
                         "White messages, no chat cooldown", "Priority in the queues (after PREMIUM+)", "3 cosmetics: the Clouds trail,",
                         "the Heart burst kill, the Love win"),
-                1.25, "aqua", null, true, "$4.99", 1);
+                1.25, "aqua", null, true, "$4.99", 1, VIP_GIFT);
     }
+
+    /** What gifting VIP and PREMIUM+ to another player costs in Rago Points (prix-cadeau). */
+    static final int VIP_GIFT = 25000;
+    static final int PREMIUM_GIFT = 50000;
 
     /** The cosmetics of VIP: three of the cheapest, far from the rarest of PREMIUM+. */
     static final List<String> VIP_COSMETICS = Arrays.asList("trail-clouds", "kill-hearts", "win-hearts");
@@ -251,7 +268,7 @@ final class Ranks {
                         "Host events for the server: /host (Sumo, Brackets, LMS)",
                         "The rarest kill effects and victory dances", "The first place in the queues",
                         "Everything of VIP, its 3 cosmetics too"),
-                1.5, "rose", PREMIUM, true, "$9.99", 2);
+                1.5, "rose", PREMIUM, true, "$9.99", 2, PREMIUM_GIFT);
     }
 
     private static RankDef staff(String id, String prefix, String colour, String parent, String... permissions) {

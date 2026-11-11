@@ -329,8 +329,12 @@ final class ServerSettings {
             if (priority < 0 || priority > 9) {
                 throw new IllegalArgumentException(where + ".priorite-file: from 0 (none) to 9, the higher first in the queues");
             }
+            int giftPrice = count(rank, where, "prix-cadeau", 0);
+            if (staff && giftPrice > 0) {
+                throw new IllegalArgumentException(where + ".prix-cadeau: a staff rank is not gifted");
+            }
             ranks.add(new RankDef(id, prefix, colour, chat, staff, permissions, parent, price, level, icon, perks, boost,
-                    style, badge, webStore, webPrice == null ? null : webPrice.trim(), priority));
+                    style, badge, webStore, webPrice == null ? null : webPrice.trim(), priority, giftPrice));
         }
         return new Ranks(ranks);
     }

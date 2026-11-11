@@ -1,5 +1,6 @@
 package gg.rago.lobby;
 
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
@@ -143,12 +144,14 @@ final class Profiles {
     }
 
     /**
-     * Gives a rank of the shop to another player, paid with the giver's Rago Points: the giver needs
-     * its level and its price, as to buy it for themselves; the one who gets it, nothing.
+     * Gives a rank to another player, paid with the giver's Rago Points: its gift price (the ranks of
+     * the web store too, prix-cadeau), and its level for the giver; the one who gets it, nothing. The
+     * lobby hears it in a big message, with fireworks.
      */
+    @SuppressWarnings("deprecation") // Player#sendTitle is marked "API subject to change" in 1.8.8
     void giftRank(Player giver, PlayerStats target, RankDef rank) {
-        if (!rank.sold()) {
-            giver.sendMessage(ChatColor.RED + "This rank is not sold in the shop.");
+        if (!rank.giftable()) {
+            giver.sendMessage(ChatColor.RED + "This rank cannot be gifted with Rago Points.");
             return;
         }
         if (target.id().equals(giver.getUniqueId())) {
@@ -159,29 +162,47 @@ final class Profiles {
             giver.sendMessage(ChatColor.RED + target.name() + " already has " + rank.prefix().trim() + ChatColor.RED + ".");
             return;
         }
-        String why = cannotBuy(giver, rank.price(), rank.level());
+        int price = rank.giftPrice();
+        String why = cannotBuy(giver, price, rank.level());
         if (why != null) {
             giver.sendMessage(ChatColor.RED + why);
             return;
         }
         PlayerStats mine = of(giver);
-        mine.addPoints(-rank.price());
+        mine.addPoints(-price);
         changed(mine);
         target.boughtRanks().add(rank.id());
         changed(target);
+        // the names as they are now: the one who got it already wears the rank
+        String from = displayName(giver.getUniqueId(), giver.getName());
+        String to = displayName(target.id(), target.name());
         giver.sendMessage(ChatColor.GREEN + "You gifted the rank " + rank.prefix().trim() + ChatColor.GREEN + " to "
-                + displayName(target.id(), target.name()) + ChatColor.GREEN + " for " + ChatColor.GOLD
-                + String.format("%,d", rank.price()) + " Rago Points" + ChatColor.GREEN + "!");
+                + to + ChatColor.GREEN + " for " + ChatColor.GOLD + String.format("%,d", price) + " Rago Points" + ChatColor.GREEN + "!");
         giver.playSound(giver.getLocation(), Sound.LEVEL_UP, 1f, 1.2f);
         Player got = lobby.getServer().getPlayer(target.id());
         if (got != null) {
-            got.sendMessage(ChatColor.GOLD + "✪ " + displayName(giver.getUniqueId(), giver.getName()) + ChatColor.GOLD
-                    + " gifted you the rank " + rank.prefix().trim() + ChatColor.GOLD + "!");
+            got.sendMessage(ChatColor.GOLD + "✪ " + from + ChatColor.GOLD + " gifted you the rank " + rank.prefix().trim()
+                    + ChatColor.GOLD + "!");
+            got.sendTitle(ChatColor.GOLD + "" + ChatColor.BOLD + "RANK GIFT!", rank.prefix().trim() + ChatColor.YELLOW + " from "
+                    + ChatColor.stripColor(from));
             got.playSound(got.getLocation(), Sound.LEVEL_UP, 1f, 1.2f);
         }
-        lobby.announce(ChatColor.GOLD + "✪ " + displayName(giver.getUniqueId(), giver.getName()) + ChatColor.GOLD
-                + " gifted the rank " + rank.prefix().trim() + ChatColor.GOLD + " to " + displayName(target.id(), target.name())
-                + ChatColor.GOLD + "!");
+        lobby.celebrateGift(giver, got, giftLines(from, to, rank.prefix().trim()), ChatColor.GOLD + "✦ " + from + ChatColor.GOLD
+                + " gifted the rank " + rank.prefix().trim() + ChatColor.GOLD + " to " + to + ChatColor.GOLD + "!");
+    }
+
+    /** The big message of a gifted rank, in the middle of the chat. */
+    static List<String> giftLines(String giver, String target, String rank) {
+        String bar = ChatColor.GOLD + "" + ChatColor.STRIKETHROUGH + "-----------------------------------------------------";
+        return Arrays.asList(bar, "",
+                LobbyWelcome.centred(ChatColor.GOLD + "" + ChatColor.BOLD + "✦ RANK GIFT ✦"),
+                "",
+                LobbyWelcome.centred(giver + ChatColor.YELLOW + " gifted " + rank + ChatColor.YELLOW + " to"),
+                LobbyWelcome.centred(target + ChatColor.YELLOW + "!"),
+                "",
+                LobbyWelcome.centred(ChatColor.GRAY + "Gift one too: " + ChatColor.YELLOW + "/shop" + ChatColor.GRAY + " or "
+                        + ChatColor.YELLOW + "/gift <player>"),
+                bar);
     }
 
     /** True if the player owns this cosmetic: bought, PREMIUM's with the rank, or one a rank of theirs gives (VIP's). */

@@ -237,6 +237,46 @@ final class CosmeticEffects implements Listener {
         }, 1L, 1L);
     }
 
+    /** The waves of fireworks of a gifted rank, and how many each. */
+    static final int GIFT_WAVES = 6;
+    static final int GIFT_PER_WAVE = 5;
+    private static final org.bukkit.Color[] GIFT_COLOURS = {org.bukkit.Color.RED, org.bukkit.Color.ORANGE,
+        org.bukkit.Color.YELLOW, org.bukkit.Color.LIME, org.bukkit.Color.AQUA, org.bukkit.Color.BLUE, org.bukkit.Color.PURPLE,
+        org.bukkit.Color.FUCHSIA, org.bukkit.Color.WHITE};
+    private static final FireworkEffect.Type[] GIFT_TYPES = {FireworkEffect.Type.BALL_LARGE, FireworkEffect.Type.STAR,
+        FireworkEffect.Type.BURST, FireworkEffect.Type.BALL};
+
+    /**
+     * A rank gifted: {@value #GIFT_WAVES} waves of {@value #GIFT_PER_WAVE} fireworks of every colour
+     * around the player, over three seconds, wherever they walk.
+     */
+    void giftFireworks(Player player) {
+        final UUID id = player.getUniqueId();
+        for (int wave = 0; wave < GIFT_WAVES; wave++) {
+            final int w = wave;
+            plugin.getServer().getScheduler().runTaskLater(plugin, () -> {
+                Player now = plugin.getServer().getPlayer(id);
+                if (now == null) {
+                    return;
+                }
+                Location centre = now.getLocation();
+                for (int i = 0; i < GIFT_PER_WAVE; i++) {
+                    double angle = Math.PI * 2 * (i + w * 0.5) / GIFT_PER_WAVE;
+                    firework(centre.clone().add(Math.cos(angle) * 3, 2 + (i + w) % 3, Math.sin(angle) * 3),
+                            giftEffect(w * GIFT_PER_WAVE + i));
+                }
+                centre.getWorld().playSound(centre, Sound.FIREWORK_TWINKLE, 1f, 1f);
+            }, 1L + 12L * wave);
+        }
+    }
+
+    /** The n-th firework of a gift: the colours and the shapes in turn. */
+    static FireworkEffect giftEffect(int n) {
+        return FireworkEffect.builder().with(GIFT_TYPES[n % GIFT_TYPES.length])
+                .withColor(GIFT_COLOURS[n % GIFT_COLOURS.length], GIFT_COLOURS[(n + 4) % GIFT_COLOURS.length])
+                .withFade(org.bukkit.Color.WHITE).flicker(n % 2 == 0).trail(true).build();
+    }
+
     /** A firework that bursts at once and hurts nobody (1.8 fireworks do no damage). */
     void firework(Location at, FireworkEffect effect) {
         Firework firework = (Firework) at.getWorld().spawnEntity(at, EntityType.FIREWORK);
