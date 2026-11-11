@@ -16,8 +16,9 @@
 //   4. both come back to the lobby, and read their own stats above the stats NPC and on the
 //      leaderboard wall (RagoUn first with one win, and three kills); a click on the stats NPC opens
 //      the stats menu; the XP bar shows the Network level; clicks on the main leaderboard go from the
-//      Elo to the kills (a left click: the kills of the week) and to the Network level; the sumo of
-//      the Duels NPC shows RagoUn first in the top win streaks of the day;
+//      Network level to the Elo, the FKDR, the kills (a click on their period line: the kills of the
+//      week) and the games played; the sumo of the Duels NPC shows RagoUn first in the top win
+//      streaks of the day;
 //   5. a second duel, which RagoUn leaves with /spawn: RagoDeux wins by forfeit;
 //   6. RagoUn challenges RagoDeux with /duel, RagoDeux accepts, then leaves with /spawn;
 //   7. a game of Ranked Bedwars 1v1 on the demo map of RagoBedwars: both type /queue ranked-1v1,
@@ -49,16 +50,17 @@ const TEST_TIMEOUT_MS = 7 * 60 * 1000
 // A new lobby world has a platform at y = 64: players stand at y = 65, at the centre.
 const LOBBY_SPAWN = { x: 0.5, y: 65, z: 0.5 }
 // The bundled config.yml has three categories, one slot apart in the middle row: Practice on the
-// left (slot 11), Ranked Bedwars in the middle, Duels on the right, in slot 15. Sumo is the first
-// mode of Duels: slot 10 of its menu.
+// left (slot 11), Ranked Bedwars in the middle, Duels on the right, in slot 15. The sumo is the
+// slime ball of the Duels menu (Bed Fight comes first).
 const DUELS_SLOT = 15
-const SUMO_SLOT = 10
 const POINTS_TO_WIN = 3
-// run-lobby-test.sh places the NPC of the Duels category (point attackdefenseversionrbw), a stats
-// NPC (statsjoueur1), a wall of leaderboards (leaderboardstats), the main leaderboard
-// (leaderboardprincipal) and the kills leaderboard (leaderboardplayer) around the spawn.
-const DUELS_NPC = { x: 3.5, y: 65, z: 0.5 }
-const STATS_NPC = { x: -3.5, y: 65, z: 0.5 }
+// run-lobby-test.sh places the NPC of the Duels category (point rbwffa), a stats NPC
+// (statsjoueur1), a wall of leaderboards (leaderboardstats), the main leaderboard
+// (leaderboardprincipal) and the kills leaderboard (leaderboardplayer) around the spawn. The points
+// are at y = 65; each NPC stands a block higher, on the block of polished andesite put at its point.
+const DUELS_NPC = { x: 3.5, y: 66, z: 0.5 }
+const STATS_NPC = { x: -3.5, y: 66, z: 0.5 }
+const MAIN_BOARD = { x: 0.5, z: 5.5 }
 // The kit editor: the book in the second hotbar slot, the Save button of its chest of 27 slots,
 // whose window shows the player's hotbar from slot 54 (27 of the chest, 27 of the inventory).
 const KIT_EDITOR_SLOT = 1
@@ -173,11 +175,20 @@ function playerEntity (bot, other) {
   return Object.values(bot.entities).find((e) => e.type === 'player' && e.username === other.username)
 }
 
-async function openSelectorAndJoinSumo (bot) {
-  bot.setQuickBarSlot(0)
-  const opened = new Promise((resolve) => bot.once('windowOpen', resolve))
+/**
+ * A right click with the item of this hotbar slot, looking at the ground: a right click aimed at a
+ * leaderboard goes to the board instead, and the spawn faces the main leaderboard.
+ */
+async function useHotbarItem (bot, slot) {
+  bot.setQuickBarSlot(slot)
+  await bot.look(bot.entity.yaw, -Math.PI / 2, true)
   await sleep(250)
   bot.activateItem()
+}
+
+async function openSelectorAndJoinSumo (bot) {
+  const opened = new Promise((resolve) => bot.once('windowOpen', resolve))
+  await useHotbarItem(bot, 0)
   const window = await Promise.race([opened, sleep(5000).then(() => null)])
   if (window == null) throw new Error(`${bot.username}: the selector did not open on a right click`)
   const title = typeof window.title === 'string' ? window.title : JSON.stringify(window.title)
@@ -191,17 +202,23 @@ async function openSelectorAndJoinSumo (bot) {
   if (duels == null) throw new Error(`${bot.username}: the Duels category did not open`)
   const duelsTitle = typeof duels.title === 'string' ? duels.title : JSON.stringify(duels.title)
   if (!duelsTitle.includes('Duels')) throw new Error(`${bot.username}: unexpected category title ${duelsTitle}`)
-  const icon = duels.slots[SUMO_SLOT]
-  if (icon?.name !== 'slime_ball') throw new Error(`${bot.username}: slot ${SUMO_SLOT} holds ${icon?.name}, not the sumo duel`)
+  const sumo = sumoSlot(duels)
+  if (sumo < 0) throw new Error(`${bot.username}: no sumo in Duels: ${JSON.stringify(duels.slots.slice(0, duels.inventoryStart).map((item) => item?.name))}`)
+  const icon = duels.slots[sumo]
   const lore = JSON.stringify(icon.nbt ?? null)
   if (!lore.includes('§eDaily Streak: 0') || lore.includes(' 1. ')) {
     throw new Error(`${bot.username}: the sumo should show Daily Streak: 0 and nobody in its top: ${lore}`)
   }
   const from = mark(bot)
   // The server cancels the click (the menu cannot be emptied): do not wait for its acceptance.
-  bot.clickWindow(SUMO_SLOT, 0, 0).catch(() => {})
+  bot.clickWindow(sumo, 0, 0).catch(() => {})
   await chatLine(bot, /You joined the queue for .*Sumo duel/, 5000, from)
   log(`${bot.username} joined the sumo queue from the selector`)
+}
+
+/** The slot of the sumo in the Duels menu: its slime ball, or -1. */
+function sumoSlot (window) {
+  return window.slots.findIndex((item, slot) => slot < window.inventoryStart && item?.name === 'slime_ball')
 }
 
 function windowTitle (window) {
@@ -210,10 +227,8 @@ function windowTitle (window) {
 
 /** The book of the hotbar, then the sumo in its list of modes: the editor of the sumo kit. */
 async function openSumoKit (bot) {
-  bot.setQuickBarSlot(KIT_EDITOR_SLOT)
-  await sleep(250)
   const listOpened = new Promise((resolve) => bot.once('windowOpen', resolve))
-  bot.activateItem()
+  await useHotbarItem(bot, KIT_EDITOR_SLOT)
   const list = await Promise.race([listOpened, sleep(5000).then(() => null)])
   if (list == null) throw new Error(`${bot.username}: the kit editor did not open on a right click on the book`)
   if (!windowTitle(list).includes('Kit editor')) throw new Error(`${bot.username}: the book opened ${windowTitle(list)}`)
@@ -260,10 +275,8 @@ async function arrangeSumoKit (bot) {
  * /hypixel import say so, and /hypixel shop that nothing was imported.
  */
 async function checkHypixelImport (bot) {
-  bot.setQuickBarSlot(KIT_EDITOR_SLOT)
-  await sleep(250)
   const listOpened = new Promise((resolve) => bot.once('windowOpen', resolve))
-  bot.activateItem()
+  await useHotbarItem(bot, KIT_EDITOR_SLOT)
   const list = await Promise.race([listOpened, sleep(5000).then(() => null)])
   if (list == null) throw new Error(`${bot.username}: the kit editor did not open on a right click on the book`)
   const lastRow = list.inventoryStart - 9
@@ -326,12 +339,6 @@ async function expectFloating (bot, text, what) {
     `${bot.username} to read "${text}" (${what}); floating texts: ${JSON.stringify(floatingTexts(bot))}`)
 }
 
-/** The armor stand showing this line of floating text, without colours. */
-function floatingEntity (bot, text) {
-  return Object.values(bot.entities).find((e) => typeof e.metadata?.[2] === 'string' &&
-    e.metadata[2].replace(/§./g, '') === text)
-}
-
 /** The XP bar: the Network level, and how far towards the next one. */
 async function expectLevel (bot, level, progress) {
   await waitFor(() => bot.experience?.level === level && Math.abs((bot.experience?.progress ?? -1) - progress) < 0.02,
@@ -339,23 +346,44 @@ async function expectLevel (bot, level, progress) {
 }
 
 /**
- * The main leaderboard (one board, three stats): a right click on it goes from the Elo to the
- * kills, a left click changes their period, a right click goes on to the Network level.
+ * The main leaderboard (one board, five stats): the Network level first; a click on it goes on to
+ * the Elo, the FKDR, the kills and the games played, and a click on its line "change the period"
+ * changes the period of the kills.
  */
 async function checkMainLeaderboard (bot) {
-  await expectFloating(bot, 'Ranked Elo', 'the main leaderboard')
-  const title = floatingEntity(bot, 'Ranked Elo')
+  await waitFor(() => mainBoardLine(bot, 'Network level') != null, 5000,
+    `${bot.username} to read "Network level" on the main leaderboard; floating texts: ${JSON.stringify(floatingTexts(bot))}`)
+  const title = mainBoardLine(bot, 'Network level')
   const text = () => (title.metadata?.[2] ?? '').replace(/§./g, '')
-  bot.activateEntity(title)
-  await waitFor(() => text() === 'Kills', 5000, `a right click to turn the main leaderboard to the kills: ${text()}`)
+  for (const next of ['Ranked Elo', 'FKDR', 'Kills']) {
+    await clickBoardLine(bot, title, false)
+    await waitFor(() => text() === next, 5000, `a right click to turn the main leaderboard to ${next}: ${text()}`)
+  }
   await expectFloating(bot, '1. RagoUn - 3', 'the kills of the day on the main leaderboard')
+  await clickBoardLine(bot, mainBoardLine(bot, '» Click here: change the period'), true)
+  await expectFloating(bot, 'All modes · Weekly', 'a left click on "change the period": the kills of the week')
+  await clickBoardLine(bot, title, false)
+  await waitFor(() => text() === 'Games played', 5000, `a right click to turn the main leaderboard to the games played: ${text()}`)
+  log('the main leaderboard goes from the Network level to the Elo, the FKDR, the kills (their period line: the week) and the games played')
+}
+
+/**
+ * A click on a line of a leaderboard: the server follows the look to the line aimed at, so the bot
+ * looks at its text (a block above the armor stand) first. Clicks are half a second apart at least.
+ */
+async function clickBoardLine (bot, line, left) {
   await sleep(500)
-  bot.attack(title)
-  await expectFloating(bot, 'All modes · Weekly', 'a left click: the kills of the week')
-  await sleep(500)
-  bot.activateEntity(title)
-  await waitFor(() => text() === 'Network level', 5000, `a right click to turn the main leaderboard to the level: ${text()}`)
-  log('the main leaderboard goes from the Elo to the kills (left click: the week) and to the Network level')
+  await bot.lookAt(line.position.offset(0, 1, 0), true)
+  await sleep(200)
+  if (left) bot.attack(line)
+  else bot.activateEntity(line)
+}
+
+/** The line of the main leaderboard (leaderboardprincipal) showing this text, or undefined. */
+function mainBoardLine (bot, text) {
+  return Object.values(bot.entities).find((e) => typeof e.metadata?.[2] === 'string' &&
+    e.metadata[2].replace(/§./g, '') === text &&
+    Math.hypot(e.position.x - MAIN_BOARD.x, e.position.z - MAIN_BOARD.z) < 1)
 }
 
 /** The lines of the sidebar, top to bottom, without colours. */
@@ -379,7 +407,7 @@ async function checkTopStreak (bot) {
   bot.activateEntity(npc)
   const window = await Promise.race([opened, sleep(5000).then(() => null)])
   if (window == null) throw new Error('a click on the Duels NPC did not open a menu')
-  const lore = JSON.stringify(window.slots[SUMO_SLOT]?.nbt ?? null)
+  const lore = JSON.stringify(window.slots[sumoSlot(window)]?.nbt ?? null)
   if (!lore.includes('§eDaily Streak: 0') || !lore.includes('§e 1. §fRagoUn§e - 1')) {
     throw new Error(`${bot.username}: the sumo of the Duels NPC does not show RagoUn's streak: ${lore}`)
   }
@@ -392,10 +420,9 @@ async function checkTopStreak (bot) {
  * and a click on the stats NPC opens the stats menu.
  */
 async function checkStats (one, two) {
-  await expectFloating(one, 'Wins: 1', 'the profile of the winner')
-  await expectFloating(one, 'Losses: 0', 'the profile of the winner')
-  await expectFloating(two, 'Wins: 0', 'the profile of the loser')
-  await expectFloating(two, 'Losses: 1', 'the profile of the loser')
+  // Two stats a line in the profile.
+  await expectFloating(one, 'Wins: 1 · Losses: 0', 'the profile of the winner')
+  await expectFloating(two, 'Wins: 0 · Losses: 1', 'the profile of the loser')
   await expectFloating(one, '1. RagoUn - 1', 'the wins of the day')
   await expectFloating(two, '1. RagoUn - 1', 'the wins of the day')
   await expectFloating(one, 'You: #1 - 1', 'the place of the winner')
@@ -415,8 +442,8 @@ async function checkStats (one, two) {
   one.closeWindow(window)
   log('stats: each bot reads its own profile, the leaderboard has RagoUn first, the menu opens')
   // Three points: three kills for RagoUn, three deaths for RagoDeux.
-  await expectFloating(one, 'Kills: 3', 'the kills of the winner')
-  await expectFloating(two, 'Kills: 0', 'the kills of the loser')
+  await expectFloating(one, 'Kills: 3 · Final kills: 0', 'the kills of the winner')
+  await expectFloating(two, 'Kills: 0 · Final kills: 0', 'the kills of the loser')
   await expectFloating(two, '1. RagoUn - 3', 'the kills of the day on leaderboardplayer')
   // leaderboardplayer: the best win streaks on the left of the kills, the Network level on the right.
   await waitFor(() => floatingTexts(two).filter((text) => text === 'Best win streak').length === 2 &&

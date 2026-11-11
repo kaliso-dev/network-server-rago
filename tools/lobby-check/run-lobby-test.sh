@@ -104,17 +104,26 @@ mkdir -p "$SERVER_DIR/plugins/RagoLobby"
 sed '/^  sumo:$/a\    kit: [STICK]' "$ROOT/bukkit/rago-lobby/src/main/resources/config.yml" \
   >"$SERVER_DIR/plugins/RagoLobby/config.yml"
 grep -q '^    kit: \[STICK\]$' "$SERVER_DIR/plugins/RagoLobby/config.yml" || fail "could not give the sumo a kit"
-# The bundled config.yml of RagoBedwars, with iron three times faster (the fireball, 40 iron, comes
-# in ten seconds).
+# Every bundled skin of the NPCs counts as signed already (skins.yml: the hash of its PNG and empty
+# textures, so the NPCs look like Steve): the server sends nothing to MineSkin, and does not place
+# the NPCs again after each skin signed (they vanish for a moment) while the bots look at them.
+sha1_of() { if command -v sha1sum >/dev/null 2>&1; then sha1sum "$1"; else shasum -a 1 "$1"; fi | cut -d ' ' -f 1; }
+for png in "$ROOT"/bukkit/rago-lobby/src/main/resources/skins/*.png; do
+  printf '%s:\n  png: %s\n  value: eyJ0ZXh0dXJlcyI6e319\n  signature: none\n' "$(basename "$png" .png)" "$(sha1_of "$png")"
+done >"$SERVER_DIR/plugins/RagoLobby/skins.yml"
+grep -q '^quetes:$' "$SERVER_DIR/plugins/RagoLobby/skins.yml" || fail "could not write skins.yml"
+# The bundled config.yml of RagoBedwars, with an ingot a second on each iron node, whatever the
+# bundled speed (the fireball, 40 iron, comes in a few seconds).
 mkdir -p "$SERVER_DIR/plugins/RagoBedwars"
-sed -e 's/^  fer-secondes-par-noeud: 3$/  fer-secondes-par-noeud: 1/' \
+sed -e 's/^  fer-secondes-par-noeud: [0-9.]*$/  fer-secondes-par-noeud: 1/' \
   "$ROOT/bukkit/rago-bedwars/src/main/resources/config.yml" >"$SERVER_DIR/plugins/RagoBedwars/config.yml"
 grep -q '^  fer-secondes-par-noeud: 1$' "$SERVER_DIR/plugins/RagoBedwars/config.yml" || fail "could not speed up the iron"
-# Around the spawn of the new lobby world: the NPC of the Duels category, a stats NPC, a wall of
-# leaderboards, the main leaderboard (within click range of the spawn) and the kills leaderboard.
+# Around the spawn of the new lobby world: the NPC of the Duels category (on its point of the
+# bundled config, rbwffa), a stats NPC, a wall of leaderboards, the main leaderboard (within click
+# range of the spawn) and the kills leaderboard.
 mkdir -p "$SERVER_DIR/lobby"
 cat >"$SERVER_DIR/lobby/points.yml" <<'YAML'
-attackdefenseversionrbw:
+rbwffa:
   x: 3.5
   y: 65.0
   z: 0.5
