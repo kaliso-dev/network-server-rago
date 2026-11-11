@@ -21,6 +21,7 @@ node_modules
 run/
 control-run/
 lobby-run/
+recorder-run/
 
 # OS
 .DS_Store

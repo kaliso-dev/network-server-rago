@@ -40,6 +40,8 @@ bukkit/rago-lobby/           plugin RagoLobby : le lobby principal et ses files 
 bukkit/rago-practice/        plugin RagoPractice : le duel sumo, et bientôt les entraînements
 bukkit/rago-bedwars/         plugin RagoBedwars : les modes Bed Wars, leurs maps et leurs parties
 tools/kb-control/            test de contrôle sur un vrai serveur PandaSpigot, avec deux bots
+tools/kb-analyzer/           compare le knockback de deux serveurs à partir des enregistrements
+tools/kb-recorder/           mod client Forge 1.8.9 qui enregistre les coups reçus, pour les mesures
 tools/local-server/          serveur de test à lancer sur son PC, avec le moteur et les outils de build
 tools/build-tools/           plugin RagoBuildTools : mondes de build, protection, enregistrement fréquent
 tools/lobby-check/           test du lobby, du duel sumo et de Bed Wars sur un vrai serveur, avec deux bots
@@ -49,6 +51,7 @@ docs/                        formule du knockback, compatibilité et dépendance
 
 Chaque module a son README : [combat-model](combat/rago-combat-model/README.md),
 [combat-engine](combat/rago-combat-engine/README.md), [kb-control](tools/kb-control/README.md),
+[kb-analyzer](tools/kb-analyzer/README.md), [kb-recorder](tools/kb-recorder/README.md),
 [local-server](tools/local-server/README.md), [build-tools](tools/build-tools/README.md),
 [game-model](game/rago-game-model/README.md), [lobby](bukkit/rago-lobby/README.md),
 [practice](bukkit/rago-practice/README.md), [bedwars](bukkit/rago-bedwars/README.md), [lobby-check](tools/lobby-check/README.md),
