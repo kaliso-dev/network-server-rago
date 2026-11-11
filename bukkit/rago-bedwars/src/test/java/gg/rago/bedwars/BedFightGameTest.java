@@ -29,4 +29,11 @@ class BedFightGameTest {
         assertEquals(ChatColor.WHITE + "Game End in " + ChatColor.GREEN + "5:00", BedFightGame.nextEvent(600));
         assertEquals(ChatColor.WHITE + "Game End", BedFightGame.nextEvent(900));
     }
+
+    @Test
+    void aLifeComesBackInThreeSecondsAtMost() {
+        assertEquals(3, BedFightGame.respawnOf(5), "not the 5 seconds of Bed Wars");
+        assertEquals(2, BedFightGame.respawnOf(2));
+        assertEquals(0, BedFightGame.respawnOf(0));
+    }
 }

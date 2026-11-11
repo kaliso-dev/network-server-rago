@@ -14,7 +14,7 @@ import org.bukkit.inventory.PlayerInventory;
  * break as in a game. No forge, no shop, no upgrade, no diamond: everyone has the mode's kit (the
  * lobby's kit editor; else a stone sword, a wooden pickaxe and axe, shears and two stacks of wool)
  * in leather armour of their colour, at each life. A player comes back while their bed stands,
- * as in Bed Wars; the last team standing wins. The beds go at {@value #BEDS_GONE_SECONDS} seconds,
+ * {@value #RESPAWN_SECONDS} seconds after a death at most; the last team standing wins. The beds go at {@value #BEDS_GONE_SECONDS} seconds,
  * and the game ends in a draw at {@value #GAME_END_SECONDS}. Main thread only.
  */
 final class BedFightGame extends BedwarsGame {
@@ -23,10 +23,22 @@ final class BedFightGame extends BedwarsGame {
     static final String[] KIT = {"STONE_SWORD", "WOOD_PICKAXE", "WOOD_AXE", "SHEARS", "WOOL 64", "WOOL 64"};
     static final int BEDS_GONE_SECONDS = 600;
     static final int GAME_END_SECONDS = 900;
+    /** The longest wait before a new life (reapparition-secondes when shorter). */
+    static final int RESPAWN_SECONDS = 3;
 
     BedFightGame(RagoBedwars plugin, BedwarsHost host, Instance instance, String modeId, String modeName,
             List<List<Player>> sides) {
         super(plugin, host, instance, modeId, modeName, sides);
+    }
+
+    @Override
+    int respawnSeconds() {
+        return respawnOf(super.respawnSeconds());
+    }
+
+    /** The wait before a new life: the server's, {@value #RESPAWN_SECONDS} seconds at most. */
+    static int respawnOf(int server) {
+        return Math.min(server, RESPAWN_SECONDS);
     }
 
     /** No forge, no shop, no diamond nor emerald. */
