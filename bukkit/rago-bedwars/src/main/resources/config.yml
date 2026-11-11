@@ -64,7 +64,8 @@ modes:
 #              and doubles maps), the two teams on opposite islands; one, drawn at random, has
 #              lost its bed already (one life each: clutch), the other keeps it under the owner's
 #              duo defense (end stone, then wool); everyone in iron armour with a stone sword,
-#              no enchantment, no emerald, the forges full of iron and gold
+#              no enchantment, no emerald, every forge of the map full of iron and gold (the
+#              empty islands' too), the diamonds at Tier III and the emeralds at Tier II
 #   bed-fight  Bed Fight, as on Minemen: two islands face to face, each bed under the defense the
 #              map has on it (wood and end stone, breakable as in a game), no forge, no shop, no
 #              upgrade; the mode's kit (the lobby's kit editor) in leather armour of the team's
@@ -151,8 +152,10 @@ top-bridge: [top-bridge-1v1, top-bridge-2v2, top-bridge-ffa]
 iles-voisines: [first-rush, first-rush-duo, first-rush-full, first-rush-full-duo]
 
 # The modes whose games keep every forge of the map going, the empty islands' too (First Rush full
-# map: their iron and gold for whoever goes to take it, with the diamonds and emeralds).
-forges-partout: [first-rush-full, first-rush-full-duo]
+# map, Clutch Scenario: their iron and gold for whoever goes to take it, with the diamonds and
+# emeralds).
+forges-partout: [first-rush-full, first-rush-full-duo, clutch-scenario-1v1, clutch-scenario-2v2, clutch-scenario-3v3,
+  clutch-scenario-4v4]
 
 # The forge of each island, as on Hypixel (its iron and gold counted a minute long on each map): an
 # iron node drops an ingot every fer-secondes-par-noeud seconds (30 a minute), and a forge has 1

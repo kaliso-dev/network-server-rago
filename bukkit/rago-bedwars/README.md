@@ -171,7 +171,8 @@ les deux équipes sur des îles opposées. L'une, tirée au sort, a déjà perdu
 chacun, elle doit clutch. L'autre garde le sien, sous une défense duo déjà posée, celle de la map
 « Defense Claude » du propriétaire : de l'end stone autour du lit et dessus (avec un bloc de plus
 derrière la tête), puis de la laine de l'équipe par-dessus (12 end stone, 23 laines). Tout le monde part de sa base en armure de fer avec une épée en pierre, sans
-enchantement ni émeraude, les forges déjà pleines de fer et d'or. La partie est déjà à moitié
+enchantement ni émeraude. Toutes les forges de la map marchent, celles des îles vides aussi
+(`forges-partout`), et partent pleines de fer et d'or : leurs ressources sont à qui va les prendre. La partie est déjà à moitié
 jouée, comme une vraie à 18 minutes : générateurs de diamant au Tier III, d'émeraude au Tier II,
 puis Emerald III dans 6 minutes et la fin des lits dans 12. Ensuite, c'est une partie comme
 les autres : shop, améliorations, diamants et émeraudes, jusqu'à ce qu'il ne reste qu'une équipe.

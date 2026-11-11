@@ -14,7 +14,8 @@ import org.bukkit.inventory.PlayerInventory;
  * opposite islands, where one team, drawn at random, has lost its bed already and has to clutch:
  * each of its players has one life. The other keeps its bed, under the owner's duo defense already
  * built (end stone, then wool: {@link BedDefense#DUO}). Everyone starts on their island in iron armour with a stone
- * sword, no enchantment, no emerald, nothing else, the forges full of iron and gold. The game is
+ * sword, no enchantment, no emerald, nothing else, the forges full of iron and gold (every forge
+ * of the map, the empty islands' too: forges-partout in config.yml). The game is
  * half played already, as a real one at 18 minutes: the diamond generators at Tier III, the
  * emerald ones at Tier II, Emerald III next, then the end of the beds. Then it is a game as any
  * other: the shop, the upgrades, the diamonds and emeralds, until one team is left. Main thread
@@ -65,12 +66,10 @@ final class ClutchScenarioGame extends BedwarsGame {
             if (team != bedless && team.points.bed != null) {
                 Defense.build(instance, team.points.bed.blockIn(instance.world()), DEFENSE, team.color.woolData());
             }
-            if (team.upgrades.iron != null) {
-                team.upgrades.iron.fill();
-            }
-            if (team.upgrades.gold != null) {
-                team.upgrades.gold.fill();
-            }
+        }
+        // every forge full: the teams' and, with forges-partout, those of the islands nobody plays
+        for (Generator forge : forges) {
+            forge.fill();
         }
     }
 

@@ -81,6 +81,9 @@ class BedwarsSettingsTest {
         assertTrue(settings.allForges("first-rush-full") && settings.allForges("first-rush-full-duo"),
                 "the full map First Rush: every forge of the map");
         assertTrue(!settings.allForges("first-rush") && !settings.allForges("ranked-1v1"));
+        for (String size : new String[] {"1v1", "2v2", "3v3", "4v4"}) {
+            assertTrue(settings.allForges("clutch-scenario-" + size), "Clutch Scenario: every forge of the map too");
+        }
         assertTrue(!settings.neighbours("skyrise-1v1"));
         assertEquals(settings.mapsOf("ranked-1v1"), settings.mapsOf("top-bridge-1v1"), "Top Bridge on the 20 maps");
         assertEquals(settings.mapsOf("ranked-1v1"), settings.mapsOf("top-bridge-2v2"));
