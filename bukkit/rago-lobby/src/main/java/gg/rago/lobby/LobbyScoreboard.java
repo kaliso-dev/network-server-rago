@@ -448,7 +448,7 @@ final class LobbyScoreboard {
         if (modeId != null) {
             return gameLines(player, modeId);
         }
-        // Few words, room between them: the player, their money and ranked, the server.
+        // Few words, room between them: the player, their money and ranked, the server, the address.
         List<String> lines = new ArrayList<>();
         lines.add(blank(0));
         NetworkLevel levels = book.levels();
@@ -477,6 +477,8 @@ final class LobbyScoreboard {
             lines.add(ChatColor.WHITE + "Waiting: " + ChatColor.YELLOW
                     + clock(queues.waited(player, System.currentTimeMillis())));
         }
+        lines.add(blank(4));
+        lines.add(cut(settings.address()));
         return lines;
     }
 

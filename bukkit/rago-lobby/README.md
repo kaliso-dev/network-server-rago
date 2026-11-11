@@ -106,7 +106,8 @@ dans les files d'attente des modes de jeu.
   ranked ELO. »).
 - **Le scoreboard.** Peu de mots et de l'espace, titre en jaune : le rang, le niveau et l'avancée
   vers le suivant en % ; les Rago Points (« Coins ») et la meilleure division classée ; le ping et
-  les joueurs connectés ; la file et le temps d'attente quand on attend. Le Tab aussi (« You are playing on RAGO.GG », les joueurs et le ping, la boutique). En partie : le mode et le ping du joueur, et en 1v1 l'adversaire et son
+  les joueurs connectés ; la file et le temps d'attente quand on attend ; l'adresse en jaune tout en
+  bas. Le Tab aussi (« You are playing on RAGO.GG », les joueurs et le ping, la boutique). En partie : le mode et le ping du joueur, et en 1v1 l'adversaire et son
   ping (vert sous 80 ms, jaune sous 150, rouge au-delà). Un jeu qui donne ses propres lignes sans
   ping (Bed Wars, entraînements) reçoit en dessous « Your ping » et « Their ping » (celui de
   l'adversaire en 1v1, de chacun jusqu'à trois, la moyenne au-delà). Une ligne n'est renvoyée que
@@ -326,7 +327,7 @@ commentaires de `config.yml`. Les mots français de la première version (`quitt
 ## Configuration
 
 `plugins/RagoLobby/config.yml` : le monde du lobby, la hauteur du vide, le titre et la dernière
-ligne du scoreboard en partie, les réglages de la file classée, et la liste des modes (nom, icône, équipes,
+ligne du scoreboard, les réglages de la file classée, et la liste des modes (nom, icône, équipes,
 joueurs par équipe, classé, description). Le fichier fourni explique chaque réglage. Un fichier
 invalide désactive le plugin avec un message qui dit quoi corriger.
 
