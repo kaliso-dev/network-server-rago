@@ -1,5 +1,6 @@
 package gg.rago.practice;
 
+import gg.rago.lobby.api.EndOfGame;
 import java.util.Collections;
 import java.util.UUID;
 import org.bukkit.Bukkit;
@@ -157,7 +158,8 @@ final class SumoMatch {
     void fell(Player player) {
         int side = sideOf(player.getUniqueId());
         if (side < 0 || phase != Phase.FIGHT) {
-            if (side >= 0 && phase == Phase.COUNTDOWN) {
+            if (side >= 0 && phase != Phase.FIGHT) {
+                // before the round, or at the end (the one who fell watches the winner)
                 player.teleport(startOf(side));
             }
             return;
@@ -226,7 +228,17 @@ final class SumoMatch {
                 }
             }
         }
-        Bukkit.getScheduler().runTaskLater(plugin, this::backToLobby, END_DELAY_TICKS);
+        // the winner and their victory effect for a few seconds, Play again and Leave usable at once
+        int seconds = plugin.lobby().endSeconds();
+        if (seconds > 0) {
+            for (UUID id : players) {
+                Player player = Bukkit.getPlayer(id);
+                if (player != null && host.matchOf(id) == this) {
+                    EndOfGame.give(player);
+                }
+            }
+        }
+        Bukkit.getScheduler().runTaskLater(plugin, this::backToLobby, seconds > 0 ? seconds * 20L : END_DELAY_TICKS);
     }
 
     private void backToLobby() {

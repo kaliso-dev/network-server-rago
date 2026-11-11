@@ -46,6 +46,7 @@ public final class RagoPractice extends JavaPlugin {
     /** The events PREMIUM players host (/host). */
     private Events events;
     private Records records;
+    private TrainingPrefs prefs;
     /** The challenge of the day (/challenge). */
     private Challenges challenges;
     private final List<String> hosted = new ArrayList<>();
@@ -86,6 +87,8 @@ public final class RagoPractice extends JavaPlugin {
         getServer().getScheduler().runTaskTimer(this, this::payXp, XP_PAY_TICKS, XP_PAY_TICKS);
         records = new Records(this, new File(getDataFolder(), "records.yml"));
         records.load();
+        prefs = new TrainingPrefs(this, new File(getDataFolder(), "reglages.yml"));
+        prefs.load();
         challenges = new Challenges(this, challengeSettings(config), new File(getDataFolder(), "defi.yml"));
 
         sumo = new SumoHost(this, world, new ArenaGrid(slots, spacing), radius, points, zoneMaps(config, "sumo.cartes", spacing,
@@ -902,6 +905,10 @@ public final class RagoPractice extends JavaPlugin {
 
     Records records() {
         return records;
+    }
+
+    TrainingPrefs prefs() {
+        return prefs;
     }
 
     /** The running practice games, or null while the plugin is off. */

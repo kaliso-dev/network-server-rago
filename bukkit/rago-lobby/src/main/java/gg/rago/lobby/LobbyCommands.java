@@ -67,6 +67,9 @@ final class LobbyCommands implements TabExecutor {
             case "spawn":
                 lobby.goToSpawn(player);
                 return true;
+            case "playagain":
+                lobby.playAgainNow(player);
+                return true;
             case "queue":
                 return queue(player, args);
             case "play":

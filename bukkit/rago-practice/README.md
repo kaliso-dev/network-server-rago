@@ -11,7 +11,10 @@ durabilité.
 Deux joueurs (ou deux équipes de deux), par la file ou par `/duel`. Le résultat compte dans les
 stats du lobby. Quitter le serveur ou taper `/spawn` pendant le duel, c'est perdre par abandon.
 Le nom de chaque joueur prend la couleur de son équipe (rouge ou bleu) au-dessus de sa tête et dans
-le Tab, avec sa vie en dessous et son niveau Network à côté. À la fin, comme les « match details »
+le Tab, avec sa vie en dessous et son niveau Network à côté. À la fin d'un duel gagné, tout le
+monde reste 3 secondes dans l'arène pour voir le gagnant et son effet de victoire, avec le papier
+**Play again** et le lit **Leave** qui marchent tout de suite (`fin-de-partie-secondes` du lobby).
+Comme les « match details »
 des serveurs practice, chacun reçoit le **récap du duel** : pour chaque joueur, ses coups qui sont
 passés (pas ceux du délai entre deux coups) et son meilleur combo, les coups d'affilée sans en
 prendre un (« Ann: 34 hits, best combo 7 »). Au sumo aussi ; pas dans les events.
@@ -44,7 +47,8 @@ prendre un (« Ann: 34 hits, best combo 7 »). Au sumo aussi ; pas dans les even
   dit quelle part du knockback il prend (60 à 100 %, 80 % par défaut) : un zombie part plus loin
   qu'un joueur qui tient sa place. Chaque coup est un
   essai : défenseur tombé, un point pour l'attaquant ; les rôles changent à chaque coup (ou après
-  15 secondes sans coup). Le défenseur reste à sa place, coups sans dégâts, pas de blocs. Premier
+  15 secondes sans coup). Le défenseur qui retombe sur le pont a tenu, dès que le recul est fini
+  (une demi-seconde après le coup). Le défenseur reste à sa place, coups sans dégâts, pas de blocs. Premier
   à 3.
 - **Block placement 1v1 et 2v2**, sur les maps de block placement du propriétaire
   (`block-fight.cartes` dans `config.yml` : chaque camp part de son bloc d'or, en 2v2 côte à
@@ -90,7 +94,10 @@ quand l'essai en prend beaucoup, la ligne du mode, puis la 3e et la 2e place, pu
 sous le top s'effacent avant le reste). L'extend practice et le block extend n'ont pas de
 classement dans le scoreboard, seulement l'essai et le ping. Après une réussite, on repart en
 moins d'une seconde, et au block clutch comme au block extend le coup arrive moins d'une seconde
-après le retour au départ.
+après le retour au départ. Chaque joueur retrouve, dans chaque entraînement, la variante et les
+réglages qu'il avait la dernière fois (gardés dans `plugins/RagoPractice/reglages.yml`, sauf la
+variante quand c'est le défi du jour qui la choisit) ; shift et un clic droit sur la blaze rod
+remettent les réglages par défaut.
 
 Les entraînements et les arènes libres (block clutch, bridge fight) donnent de l'XP Network :
 un peu par minute de jeu, un peu par essai raté, plus par réussite (un temps, une série qui
@@ -131,14 +138,14 @@ réglages. Un entraînement de la liste que le serveur ne joue pas est laissé d
   rattraper à son niveau ou plus bas.
 - **Block in** : s'enfermer le plus vite possible (les quatre côtés aux pieds et à la tête, et
   au-dessus), sur le sol, sur une défense de lit ou sur un bloc au-dessus du vide. Chrono.
-- **Fast defense** : couvrir son lit le plus vite possible, avec les défenses du propriétaire.
+- **Fast defense** : couvrir son lit le plus vite possible, avec les défenses du propriétaire. La
+  défense à construire se montre 3 secondes au premier essai de chaque défense ; les essais
+  suivants partent tout de suite, le chrono au premier bloc.
   Ranked : end stone (le dessus du lit, deux rangées de chaque côté, un bloc à chaque bout) puis
   du verre par-dessus, les rangées du bord restant nues (26 blocs). Duo : celle de la map « Defense
   Claude » du propriétaire, le lit pointé vers le joueur, end stone autour du lit et dessus, avec
   un bloc de plus derrière la tête, puis de la laine sur le tout (35 blocs ; c'est aussi la défense
   du Clutch Scenario). Chrono.
-- **Bridge** : 31 blocs de vide par technique (god bridge, breezily, ninja, telly, speed bridge),
-  dont les règles sont vérifiées. Chrono.
 - **Block extend**, comme dans un vrai bed fight, sur la map BlockClutchExtend du propriétaire
   (`block-extend` dans `config.yml`) : le joueur part d'une place exacte d'un pont, figé jusqu'au
   coup (il ne peut ni bouger ni tourner : il doit se retourner, comme en vrai, et le coup vient
@@ -168,7 +175,8 @@ réglages. Un entraînement de la liste que le serveur ne joue pas est laissé d
   essai : vers l'île aux diamants, vers le milieu, ou pour revenir sur son île après un coup qui
   envoie dans le vide. Une perle trop courte se rattrape avec des blocs (pearl block clutch), mais
   aucun bloc ne se pose sous la limite basse (`limite-basse`, y 55), comme sur Hypixel. L'essai
-  compte quand le joueur tient debout sur l'île visée. Série.
+  compte quand le joueur tient debout sur l'île visée. Une perle qui tombe à 3 blocs sous la
+  limite basse est ratée tout de suite, sans attendre. Série.
 - **Fireball practice** : le saut à la boule de feu sur une falaise de 4 blocs, au-dessus de 10
   blocs de vide, ou renvoyer les boules d'un canon. Série.
 - **Bow training** (`bow-training`) : sur une vraie map de Bed Wars, la base rouge et le nord du

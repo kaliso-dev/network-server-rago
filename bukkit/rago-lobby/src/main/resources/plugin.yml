@@ -13,6 +13,10 @@ commands:
     description: Back to the lobby spawn.
     usage: /spawn
     aliases: [hub, l]
+  playagain:
+    description: The next game of the same mode, from the end of a game or from the lobby.
+    usage: /playagain
+    aliases: [again]
   queue:
     description: Join the queue of a mode, or leave it.
     usage: /queue <mode> [map] | /queue leave
@@ -113,7 +117,7 @@ commands:
     usage: /quests
     aliases: [quetes, quest]
   booster:
-    description: "Your boosters, 30 minutes of play each: XP (x3, bought), daily XP of PREMIUM (x2), coins (x3 Rago Points)."
+    description: "Your boosters, 30 minutes of play each: XP (x3, bought), daily XP of PREMIUM (x2), points (x3 Rago Points)."
     usage: /booster, /booster on, /booster coins, or (admin, console) /booster give <player> [count] [xp|coins|daily]
     aliases: [boosters, xpbooster]
   pack:

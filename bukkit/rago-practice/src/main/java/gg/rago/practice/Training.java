@@ -51,6 +51,8 @@ abstract class Training extends PracticeGame {
         final int min;
         final int max;
         final boolean toggle;
+        /** Its value by default, that shift and a right click on the blaze rod give back. */
+        final int initial;
         int value;
 
         Setting(String label, int min, int max, int value, boolean toggle) {
@@ -58,6 +60,7 @@ abstract class Training extends PracticeGame {
             this.min = min;
             this.max = max;
             this.value = value;
+            this.initial = value;
             this.toggle = toggle;
         }
 
@@ -108,6 +111,10 @@ abstract class Training extends PracticeGame {
     private final String myName;
     /** The last score of the player, for the sidebar. */
     String last = "";
+    /** True when [PLAY] of the challenge of the day chose the variant: the player's last one does not replace it. */
+    private boolean challengeVariant;
+    /** True once the player's last variant and settings are given back. */
+    private boolean restored;
 
     Training(PracticeHost host, GameMode mode, Arena arena, List<List<Player>> teams, Variant... variants) {
         super(host, mode, arena, teams);
@@ -122,8 +129,56 @@ abstract class Training extends PracticeGame {
         for (int i = 0; wanted != null && i < this.variants.size(); i++) {
             if (this.variants.get(i).id.equals(wanted)) {
                 this.variant = i;
+                this.challengeVariant = true;
             }
         }
+    }
+
+    /**
+     * The player's last variant (unless the challenge of the day chose it) and settings in this
+     * training, given back once, before the first attempt: the subclasses have made their settings.
+     */
+    private void restore() {
+        if (restored) {
+            return;
+        }
+        restored = true;
+        TrainingPrefs prefs = host.prefs();
+        TrainingPrefs.Choice choice = prefs == null ? null : prefs.choice(me, mode.id());
+        if (choice == null) {
+            return;
+        }
+        for (int i = 0; !challengeVariant && choice.variant != null && i < variants.size(); i++) {
+            if (variants.get(i).id.equals(choice.variant)) {
+                variant = i;
+            }
+        }
+        for (Setting setting : settings) {
+            Integer value = choice.settings.get(TrainingPrefs.key(setting.label));
+            if (value != null) {
+                setting.value = Math.max(setting.min, Math.min(setting.max, value));
+            }
+        }
+    }
+
+    /** Keeps the player's variant and settings for the next time they play this training. */
+    private void remember() {
+        TrainingPrefs prefs = host.prefs();
+        if (prefs != null) {
+            prefs.remember(me, mode.id(), current().id, settings);
+        }
+    }
+
+    /** Every setting back to its value by default: true if one changed. */
+    boolean defaults() {
+        boolean changed = false;
+        for (Setting setting : settings) {
+            if (setting.value != setting.initial) {
+                setting.value = setting.initial;
+                changed = true;
+            }
+        }
+        return changed;
     }
 
     Variant current() {
@@ -216,7 +271,8 @@ abstract class Training extends PracticeGame {
             }
         }
         int slot = RESTART_SLOT;
-        inventory.setItem(slot--, named(Material.BLAZE_ROD, 1, 0, RESTART_ITEM));
+        inventory.setItem(slot--, settings.isEmpty() ? named(Material.BLAZE_ROD, 1, 0, RESTART_ITEM)
+                : named(Material.BLAZE_ROD, 1, 0, RESTART_ITEM, ChatColor.GRAY + "Shift + right click: default settings"));
         if (variants.size() > 1) {
             String now = ChatColor.GRAY + "Now: " + ChatColor.WHITE + current().label + ChatColor.GRAY + " (" + (variant + 1)
                     + "/" + variants.size() + ")";
@@ -275,6 +331,7 @@ abstract class Training extends PracticeGame {
         if (name.equals(PREVIOUS_MODE) || name.equals(NEXT_MODE)) {
             int by = name.equals(NEXT_MODE) ? 1 : -1;
             variant = (variant + by + variants.size()) % variants.size();
+            remember();
             player.sendMessage(ChatColor.GREEN + "Mode: " + ChatColor.WHITE + current().label + ChatColor.GRAY + " - " + describe());
             sound(player, Sound.CLICK, by > 0 ? 1.2f : 0.9f);
             startRound();
@@ -291,6 +348,7 @@ abstract class Training extends PracticeGame {
                 sound(player, Sound.VILLAGER_NO, 1f);
                 return true;
             }
+            remember();
             player.sendMessage(ChatColor.GREEN + setting.label + ": " + setting.text());
             sound(player, Sound.CLICK, by > 0 ? 1.2f : 0.9f);
             controls(player);
@@ -314,6 +372,14 @@ abstract class Training extends PracticeGame {
         }
         if (isNamed(item, Material.BLAZE_ROD, RESTART_ITEM)) {
             event.setCancelled(true);
+            if (player.isSneaking() && !settings.isEmpty()) {
+                // shift and a right click: every setting as it is by default
+                boolean changed = defaults();
+                remember();
+                player.sendMessage(changed ? ChatColor.GREEN + "Settings back to default." : ChatColor.GRAY + "The settings are already the default ones.");
+                controls(player);
+                player.updateInventory();
+            }
             sound(player, Sound.CLICK, 1.4f);
             startRound();
             return;
@@ -330,12 +396,14 @@ abstract class Training extends PracticeGame {
 
     @Override
     void intro(Player player) {
+        restore();
         player.sendMessage(ChatColor.AQUA + "" + ChatColor.BOLD + ChatColor.stripColor(mode.name()) + ChatColor.GRAY
                 + " - " + ChatColor.WHITE + current().label + ChatColor.GRAY + ": " + describe());
         if (variants.size() > 1 || !settings.isEmpty()) {
             player.sendMessage(ChatColor.GRAY + "Hotbar: " + ChatColor.RED + "red dye" + ChatColor.GRAY + " lowers, "
                     + ChatColor.GREEN + "green dye" + ChatColor.GRAY + " raises (the mode, the settings: the number on the dye is where"
-                    + " it is), " + ChatColor.YELLOW + "blaze rod" + ChatColor.GRAY + " restarts. /spawn: back to the lobby.");
+                    + " it is), " + ChatColor.YELLOW + "blaze rod" + ChatColor.GRAY + " restarts (with shift: default settings)."
+                    + " Your last mode and settings come back next time. /spawn: back to the lobby.");
         } else {
             player.sendMessage(ChatColor.GRAY + "The blaze rod restarts, /spawn takes you back to the lobby.");
         }

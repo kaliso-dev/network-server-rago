@@ -136,7 +136,7 @@ final class StarterPack {
                     + " (x3 XP, 30 min)");
         }
         if (coinBoosters > 0) {
-            lines.add(ChatColor.WHITE + "• " + ChatColor.GOLD + coinBoosters + " coin booster" + (coinBoosters > 1 ? "s" : "")
+            lines.add(ChatColor.WHITE + "• " + ChatColor.GOLD + coinBoosters + " points booster" + (coinBoosters > 1 ? "s" : "")
                     + ChatColor.GRAY + " (x3 Rago Points, 30 min)");
         }
         for (String id : cosmetics) {

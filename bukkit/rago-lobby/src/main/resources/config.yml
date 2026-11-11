@@ -31,6 +31,11 @@ file:
   ecart-elo-secondes: 10
   ecart-elo-max: 500
 
+# After a won game (Bed Wars, a duel), the seconds everyone stays in the arena to see the winners
+# and their victory effect, with the Play again paper and the Leave bed usable at once (and
+# [PLAY AGAIN] [LEAVE] in the chat), before going back to the lobby: 0 to 10, 0 for at once.
+fin-de-partie-secondes: 3
+
 # The categories of the selector, one per zone of the lobby, in the order of the menu (7 at most):
 # left to right, as in the lobby. The compass first shows the categories, then the games of the
 # one picked (28 modes at most per category). Without a categories section, the compass shows
@@ -539,7 +544,7 @@ saison:
 # (the level times par-niveau: 100 for level 10), and the daily reward (/daily): quotidien, plus
 # quotidien-serie for each day in a row, up to 7 days. The trainings, the practice, the aim
 # trainer and the events give one point for each xp-par-point Network XP they give (at least one;
-# 0: none). A coin booster (x3) multiplies the points of the games, kills and trainings.
+# 0: none). A points booster (x3) multiplies the points of the games, kills and trainings.
 rago-points:
   victoire: 20
   defaite: 5

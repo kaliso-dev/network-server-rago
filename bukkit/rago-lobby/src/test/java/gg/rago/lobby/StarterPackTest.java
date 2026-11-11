@@ -36,7 +36,7 @@ class StarterPackTest {
         assertEquals(6, contents.size(), "the points, the XP boosters, the coin boosters and three cosmetics");
         assertTrue(contents.get(0).contains("20,000 Rago Points"));
         assertTrue(contents.get(1).contains("3 XP boosters") && contents.get(1).contains("x3 XP"), contents.get(1));
-        assertTrue(contents.get(2).contains("2 coin boosters") && contents.get(2).contains("x3 Rago Points"), contents.get(2));
+        assertTrue(contents.get(2).contains("2 points boosters") && contents.get(2).contains("x3 Rago Points"), contents.get(2));
         assertTrue(contents.get(3).contains("Magic") && contents.get(3).contains("projectile trail"), contents.get(3));
         for (String cosmetic : pack.cosmetics) {
             assertTrue(!Ranks.VIP_COSMETICS.contains(cosmetic), cosmetic + ": VIP has its own");

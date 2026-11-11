@@ -28,6 +28,10 @@ Scenario**,
   les prendre (`forges-partout:` et `shops-partout:`). Les générateurs de diamant et
   d'émeraude affichent leur tier et le temps avant le prochain objet. Ils passent tier II puis III
   pendant la partie.
+- **Partage de la forge** : comme sur Hypixel, ce qu'un joueur ramasse à la forge de son île
+  (fer, or, émeraudes de l'Emerald Forge), chaque coéquipier qui se tient à 2 blocs de la forge le
+  reçoit aussi, autant chacun (`forge.partage-rayon`, 0 pour couper). Seul ce que la forge a fait
+  tomber compte : un lingot jeté dessus par un joueur ne se copie pas.
 - **Événements** (réglables) : Diamond II à 6 min, Emerald II à 12, Diamond III à 18, Emerald III
   à 24, tous les lits détruits à 30, fin de la partie (égalité) à 45. Le scoreboard montre le
   prochain, les équipes (✔ tant que le lit tient, sinon le nombre de joueurs encore en vie), et
@@ -66,9 +70,19 @@ Scenario**,
   Les explosions (TNT et boules de feu) ne cassent que les blocs posés, jamais le verre
   « blast-proof », l'obsidienne ni les lits ; l'end stone résiste aux boules de feu, pas à la TNT,
   comme sur Hypixel. Pas de tir ami.
+- **Équipe éliminée** : quand le dernier joueur d'une équipe sans lit est éliminé, toute la partie
+  le lit, comme sur Hypixel : « TEAM ELIMINATED > Red Team has been eliminated! ». Le joueur
+  éliminé reçoit **[PLAY AGAIN]** et **[LEAVE]** dans le chat : il repart tout de suite dans la
+  file du même mode (`/playagain`) sans attendre la fin, sa victoire ou sa défaite comptant quand
+  même à la fin de la partie.
 - **Fin** : la dernière équipe en vie gagne. Le résultat va dans les stats du lobby (victoires,
-  défaites, ELO du mode classé, kills), puis tout le monde revient au lobby. Quitter le serveur ou
-  taper `/spawn` pendant la partie, c'est l'abandonner (une défaite).
+  défaites, ELO du mode classé, kills). Le récap donne le gagnant, puis les trois meilleurs tueurs
+  (« 1st Killer », « 2nd Killer », « 3rd Killer », kills et final kills) et les stats du joueur.
+  Tout le monde reste 3 secondes dans l'arène (`fin-de-partie-secondes` du config.yml du lobby,
+  0 pour repartir tout de suite), le temps de voir les gagnants et leur effet de victoire, avec le
+  papier **Play again** et le lit **Leave** dans la barre (et les deux boutons dans le chat) qui
+  marchent tout de suite ; puis retour au lobby. Après une égalité, retour immédiat. Quitter le
+  serveur ou taper `/spawn` pendant la partie, c'est l'abandonner (une défaite).
 
 ## First Rush
 

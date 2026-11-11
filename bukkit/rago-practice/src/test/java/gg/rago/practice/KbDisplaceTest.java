@@ -17,6 +17,14 @@ class KbDisplaceTest {
     }
 
     @Test
+    void aDefenderBackOnTheBridgeHeldAtOnce() {
+        assertFalse(KbDisplace.held(2, true), "still on the ground in the tick of the hit: the knockback has not begun");
+        assertFalse(KbDisplace.held(KbDisplace.SETTLE_TICKS + 2, false), "in the air, maybe falling off");
+        assertTrue(KbDisplace.held(KbDisplace.SETTLE_TICKS, true), "back on the bridge once the knockback is over");
+        assertTrue(KbDisplace.SETTLE_TICKS < KbDisplace.KNOCK_TICKS, "sooner than the end of the knockback time");
+    }
+
+    @Test
     void onlyAHitFromTheFrontCounts() {
         assertTrue(KbDisplace.fromTheFront(-1.2, 0.0), "from the bridge, in front");
         assertTrue(KbDisplace.fromTheFront(-2.8, 0.4), "at the end of the reach");

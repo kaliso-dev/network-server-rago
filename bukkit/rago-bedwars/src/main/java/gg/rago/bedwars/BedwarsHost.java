@@ -5,6 +5,7 @@ import gg.rago.bedwars.BedwarsGame.Phase;
 import gg.rago.game.GameMode;
 import gg.rago.game.MatchProposal;
 import gg.rago.game.QueueEntry;
+import gg.rago.lobby.api.EndOfGame;
 import gg.rago.lobby.api.MatchHost;
 import java.util.ArrayList;
 import java.util.EnumSet;
@@ -57,8 +58,8 @@ import org.bukkit.event.entity.EntityDamageByEntityEvent;
 import org.bukkit.event.entity.EntityDamageEvent;
 import org.bukkit.event.entity.EntityDeathEvent;
 import org.bukkit.event.entity.EntityExplodeEvent;
-import org.bukkit.event.entity.ExplosionPrimeEvent;
 import org.bukkit.event.entity.EntityTargetEvent;
+import org.bukkit.event.entity.ExplosionPrimeEvent;
 import org.bukkit.event.entity.FoodLevelChangeEvent;
 import org.bukkit.event.entity.PlayerDeathEvent;
 import org.bukkit.event.entity.ProjectileHitEvent;
@@ -70,7 +71,6 @@ import org.bukkit.event.inventory.InventoryType;
 import org.bukkit.event.player.AsyncPlayerChatEvent;
 import org.bukkit.event.player.PlayerArmorStandManipulateEvent;
 import org.bukkit.event.player.PlayerBucketEmptyEvent;
-import org.bukkit.event.player.PlayerItemDamageEvent;
 import org.bukkit.event.player.PlayerBucketFillEvent;
 import org.bukkit.event.player.PlayerChangedWorldEvent;
 import org.bukkit.event.player.PlayerDropItemEvent;
@@ -78,6 +78,7 @@ import org.bukkit.event.player.PlayerEggThrowEvent;
 import org.bukkit.event.player.PlayerInteractEntityEvent;
 import org.bukkit.event.player.PlayerInteractEvent;
 import org.bukkit.event.player.PlayerItemConsumeEvent;
+import org.bukkit.event.player.PlayerItemDamageEvent;
 import org.bukkit.event.player.PlayerMoveEvent;
 import org.bukkit.event.player.PlayerPickupItemEvent;
 import org.bukkit.event.player.PlayerQuitEvent;
@@ -970,6 +971,12 @@ final class BedwarsHost implements MatchHost, Listener {
         if (event.getAction() == Action.PHYSICAL) {
             return;
         }
+        if ((event.getAction() == Action.RIGHT_CLICK_AIR || event.getAction() == Action.RIGHT_CLICK_BLOCK)
+                && EndOfGame.clicked(plugin, player, event.getItem())) {
+            // the end of the game: the Play again paper or the Leave bed
+            event.setCancelled(true);
+            return;
+        }
         if (!game.itemsUsable() && event.getItem() != null
                 && (event.getAction() == Action.RIGHT_CLICK_AIR || event.getAction() == Action.RIGHT_CLICK_BLOCK)) {
             // the shop practice: the items bought are only shown
@@ -1159,6 +1166,16 @@ final class BedwarsHost implements MatchHost, Listener {
         Player player = event.getPlayer();
         if (games.containsKey(player.getUniqueId()) && playing(player) == null) {
             event.setCancelled(true);
+        }
+    }
+
+    /** A pickup that happens: the forge's iron and gold for the teammates standing at it too. */
+    @EventHandler(priority = EventPriority.MONITOR, ignoreCancelled = true)
+    public void onPickedUp(PlayerPickupItemEvent event) {
+        BedwarsGame game = games.get(event.getPlayer().getUniqueId());
+        if (game != null) {
+            // the stack holds, during the event, what the player picks up of it
+            game.pickedUp(event.getPlayer(), event.getItem(), event.getItem().getItemStack().getAmount());
         }
     }
 

@@ -25,7 +25,7 @@ final class XpBoosters {
         /** The free one of PREMIUM: x2 Network XP. */
         DAILY(2.0, "Daily XP booster", "x2 Network XP"),
         /** x3 Rago Points. */
-        COINS(3.0, "Coin booster", "x3 Rago Points");
+        COINS(3.0, "Points booster", "x3 Rago Points");
 
         final double rate;
         final String label;
@@ -160,7 +160,7 @@ final class XpBoosters {
                 changed = true;
                 if (coins == 0) {
                     profiles.changed(profile);
-                    player.sendMessage(ChatColor.GOLD + "Your coin booster is over." + (profile.coinBoosters() > 0
+                    player.sendMessage(ChatColor.GOLD + "Your points booster is over." + (profile.coinBoosters() > 0
                             ? ChatColor.GRAY + " You have " + profile.coinBoosters() + " more: " + ChatColor.YELLOW + "/booster"
                             : ""));
                 }
@@ -254,7 +254,7 @@ final class XpBoosters {
                 left > 0 ? ChatColor.AQUA + "x" + rate(xpRate(profile)) + " Network XP" + ChatColor.GRAY + ": " + clock(left) + " left"
                         : ChatColor.GRAY + "No XP booster",
                 coinsLeft > 0 ? ChatColor.GOLD + "x" + rate(COIN_MULTIPLIER) + " Rago Points" + ChatColor.GRAY + ": " + clock(coinsLeft)
-                        + " left" : ChatColor.GRAY + "No coin booster",
+                        + " left" : ChatColor.GRAY + "No points booster",
                 "",
                 "The time only runs while you", "are in a game.")), null);
         menu.set(11, ClickMenu.glow(ClickMenu.item(Material.EXP_BOTTLE, 0, ChatColor.AQUA + "" + ChatColor.BOLD + "XP booster x3",
@@ -284,7 +284,7 @@ final class XpBoosters {
                     p.closeInventory();
                     activate(p, Kind.DAILY);
                 });
-        menu.set(15, ClickMenu.glow(ClickMenu.item(Material.GOLD_INGOT, 0, ChatColor.GOLD + "" + ChatColor.BOLD + "Coin booster x3",
+        menu.set(15, ClickMenu.glow(ClickMenu.item(Material.GOLD_INGOT, 0, ChatColor.GOLD + "" + ChatColor.BOLD + "Points booster x3",
                 listOf("Triples the Rago Points of your", "games for 30 minutes of play.", "",
                         "Yours: " + ChatColor.GREEN + profile.coinBoosters(),
                         "On the store, and in the Starter Pack.",

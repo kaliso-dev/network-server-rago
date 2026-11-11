@@ -279,6 +279,8 @@ final class BedwarsSettings {
     private final boolean demo;
     private final int respawnSeconds;
     private final Forge forge;
+    /** How far from its island forge a teammate gets what one picks up there (forge.partage-rayon); 0: nobody. */
+    private final double forgeShare;
     private final List<Rate> diamond;
     private final List<Rate> emerald;
     /** In seconds of game: tier II and III of the diamonds and the emeralds, the end of the beds, the end. */
@@ -304,7 +306,8 @@ final class BedwarsSettings {
     private final int attackDefenseProtection;
 
     private BedwarsSettings(Map<String, List<String>> modes, Map<String, Kind> kinds, int maxGames, boolean demo,
-            int respawnSeconds, Forge forge, List<Rate> diamond, List<Rate> emerald, int[] events, Fireball fireball,
+            int respawnSeconds, Forge forge, double forgeShare, List<Rate> diamond, List<Rate> emerald, int[] events,
+            Fireball fireball,
             List<String> neighbourModes, List<String> topBridgeModes, List<String> allForgeModes, List<String> allShopModes,
             List<RoundKit> attackKits, List<RoundKit> defenseKits, int attackDefenseProtection) {
         this.modes = Collections.unmodifiableMap(modes);
@@ -313,6 +316,7 @@ final class BedwarsSettings {
         this.demo = demo;
         this.respawnSeconds = respawnSeconds;
         this.forge = forge;
+        this.forgeShare = forgeShare;
         this.diamond = Collections.unmodifiableList(diamond);
         this.emerald = Collections.unmodifiableList(emerald);
         this.diamondII = events[0];
@@ -346,6 +350,7 @@ final class BedwarsSettings {
             throw new IllegalArgumentException("reapparition-secondes: from 0 to 30");
         }
         Forge forge = forge(config);
+        double forgeShare = number(config, "forge.partage-rayon", 2, 0, 8);
         List<Rate> diamond = tiers(config, "generateurs.diamant", new double[] {30, 23, 12}, 4);
         List<Rate> emerald = tiers(config, "generateurs.emeraude", new double[] {65, 50, 35}, 2);
         String[] keys = {"diamant-2", "emeraude-2", "diamant-3", "emeraude-3", "fin-des-lits", "fin-de-partie"};
@@ -399,7 +404,7 @@ final class BedwarsSettings {
             throw new IllegalArgumentException("attaque-defense.protection: from 0 to 4");
         }
         return new BedwarsSettings(modes, kinds(config), maxGames, config.getBoolean("carte-demo", true), respawn, forge,
-                diamond, emerald, events, fireball, neighbours, topBridge, allForges, allShops, attackKits,
+                forgeShare, diamond, emerald, events, fireball, neighbours, topBridge, allForges, allShops, attackKits,
                 defenseKits, attackDefenseProtection);
     }
 
@@ -622,6 +627,14 @@ final class BedwarsSettings {
     /** The island forges. */
     Forge forge() {
         return forge;
+    }
+
+    /**
+     * How far from its island forge (in blocks, across) a teammate stands to get as much as one
+     * picks up there, as on Hypixel; 0: each keeps what they pick up.
+     */
+    double forgeShare() {
+        return forgeShare;
     }
 
     /** Tier I, II and III. */

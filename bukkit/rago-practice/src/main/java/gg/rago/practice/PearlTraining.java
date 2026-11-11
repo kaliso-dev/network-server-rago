@@ -74,6 +74,8 @@ final class PearlTraining extends Training {
     private static final int STAND_TICKS = 10;
     /** A pearl in the air this long has fallen into the void. */
     private static final int LOST_TICKS = 140;
+    /** A pearl falling this far under the lowest height of the blocks has missed, without waiting longer. */
+    private static final int LOST_BELOW_LIMIT = 3;
 
     /** The island of the training: the copy of Sky Rise (or null) and its lower limit on the map. */
     static final class Island {
@@ -90,6 +92,8 @@ final class PearlTraining extends Training {
     private final Random random = new Random();
     private int streak;
     private int thrownTick = -1;
+    /** The pearl in the air, or null. */
+    private Projectile pearl;
     private boolean landed;
     private boolean placedAny;
     private int hitIn;
@@ -179,6 +183,7 @@ final class PearlTraining extends Training {
     @Override
     void roundReset() {
         thrownTick = -1;
+        pearl = null;
         landed = false;
         placedAny = false;
         standing = 0;
@@ -204,7 +209,7 @@ final class PearlTraining extends Training {
             player.playEffect(EntityEffect.HURT);
             sound(player, Sound.HURT_FLESH, 1f);
         }
-        if (thrownTick >= 0 && !landed && tickCount - thrownTick > LOST_TICKS) {
+        if (thrownTick >= 0 && !landed && (tickCount - thrownTick > LOST_TICKS || lost(pearl))) {
             missed("Your pearl fell into the void.");
             return;
         }
@@ -239,6 +244,21 @@ final class PearlTraining extends Training {
             return;
         }
         thrownTick = tickCount;
+        pearl = projectile;
+    }
+
+    /**
+     * True if this pearl can no longer land anywhere to stand on: gone without landing, or falling
+     * already a few blocks under the lowest height where blocks go (nothing to save the player there).
+     */
+    private boolean lost(Projectile thrown) {
+        if (thrown == null) {
+            return false;
+        }
+        if (thrown.isDead()) {
+            return true;
+        }
+        return thrown.getVelocity().getY() < 0 && onMap(thrown.getLocation())[1] < island.limitY - LOST_BELOW_LIMIT;
     }
 
     @Override
@@ -277,6 +297,7 @@ final class PearlTraining extends Training {
         sound(player, Sound.ORB_PICKUP, 1.2f);
         score(streak, true);
         thrownTick = -1;
+        pearl = null;
         landed = false;
         placedAny = false;
         standing = Integer.MIN_VALUE;

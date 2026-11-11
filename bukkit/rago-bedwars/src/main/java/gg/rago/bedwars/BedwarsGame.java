@@ -2,6 +2,7 @@ package gg.rago.bedwars;
 
 import gg.rago.bedwars.ShopItem.Category;
 import gg.rago.bedwars.ShopItem.Currency;
+import gg.rago.lobby.api.EndOfGame;
 import gg.rago.lobby.api.FireballAim;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -27,6 +28,7 @@ import org.bukkit.block.Block;
 import org.bukkit.enchantments.Enchantment;
 import org.bukkit.entity.ArmorStand;
 import org.bukkit.entity.Entity;
+import org.bukkit.entity.Item;
 import org.bukkit.entity.Player;
 import org.bukkit.entity.Villager;
 import org.bukkit.inventory.Inventory;
@@ -140,6 +142,8 @@ class BedwarsGame {
     final BedwarsSettings settings;
     final ShopCatalog catalog;
     final List<Team> teams = new ArrayList<>();
+    /** The teams already told out of the game (TEAM ELIMINATED), by colour id. */
+    private final Set<String> teamsOut = new HashSet<>();
     final Map<UUID, Gamer> gamers = new LinkedHashMap<>();
     final List<Generator> generators = new ArrayList<>();
     /** The island forges: iron and gold. */
@@ -572,6 +576,57 @@ class BedwarsGame {
         for (Generator generator : generators) {
             generator.showText();
         }
+    }
+
+    /**
+     * A player picked up this many of this item. If their own island forge dropped it, each
+     * teammate standing at the forge gets as many too, as on Hypixel (not a share of it: as many
+     * each). Only what the forge made counts, never what a player threw on it.
+     */
+    void pickedUp(Player player, Item item, int amount) {
+        Generator source = null;
+        for (Generator generator : generators) {
+            if (generator.made(item)) {
+                source = generator;
+                break;
+            }
+        }
+        if (source == null) {
+            return;
+        }
+        int own = source.taken(amount);
+        double radius = settings.forgeShare();
+        Gamer gamer = gamers.get(player.getUniqueId());
+        if (own <= 0 || radius <= 0 || phase != Phase.PLAYING || gamer == null || gamer.team == null) {
+            return;
+        }
+        Upgrades upgrades = gamer.team.upgrades;
+        if (upgrades == null || upgrades.forge == null
+                || (source != upgrades.iron && source != upgrades.gold && source != upgrades.emerald)) {
+            return;
+        }
+        Material material = item.getItemStack().getType();
+        for (UUID member : gamer.team.members) {
+            Gamer mate = gamers.get(member);
+            Player other = Bukkit.getPlayer(member);
+            if (member.equals(player.getUniqueId()) || mate == null || other == null || mate.eliminated || mate.respawning
+                    || host.gameOf(member) != this || !atForge(upgrades.forge, other.getLocation(), radius)) {
+                continue;
+            }
+            // a full inventory takes none, as it would not have picked it up
+            other.getInventory().addItem(new ItemStack(material, own));
+            other.playSound(other.getLocation(), Sound.ITEM_PICKUP, 0.2F, 1.6F);
+        }
+    }
+
+    /** True if a player standing here is at this forge: within radius of it across, and 2 blocks up or down. */
+    static boolean atForge(Location forge, Location player, double radius) {
+        if (forge.getWorld() != player.getWorld()) {
+            return false;
+        }
+        double dx = player.getX() - forge.getX();
+        double dz = player.getZ() - forge.getZ();
+        return dx * dx + dz * dz <= radius * radius && Math.abs(player.getY() - forge.getY()) <= 2;
     }
 
     /**
@@ -1234,6 +1289,7 @@ class BedwarsGame {
             gamer.eliminated = true;
             outOfGame(victim, gamer);
             died(gamer, author, true);
+            teamOut(gamer.team);
             sidebars();
             checkEnd();
             return;
@@ -1246,10 +1302,30 @@ class BedwarsGame {
         sidebars();
     }
 
-    /** A final death: what the player is told. */
+    /** A final death: what the player is told, with [PLAY AGAIN] and [LEAVE] to go on at once. */
     void outOfGame(Player victim, Gamer gamer) {
         victim.sendTitle(ChatColor.RED + "" + ChatColor.BOLD + "YOU DIED!", ChatColor.GRAY + "You are now a spectator.");
-        victim.sendMessage(ChatColor.GRAY + "You are out of the game. /spawn to go back to the lobby.");
+        victim.sendMessage(ChatColor.GRAY + "You are out of the game: play again now, or watch the end.");
+        EndOfGame.buttons(victim);
+    }
+
+    /**
+     * A player of this team is out for good: once none of it is left, everyone hears it, as on
+     * Hypixel ("TEAM ELIMINATED > Red Team has been eliminated!"). Only in a game of final kills,
+     * once per team.
+     */
+    void teamOut(Team team) {
+        if (!finalKillsCounted() || teams.size() < 2 || !teamsOut.add(team.color.id())) {
+            return;
+        }
+        for (UUID member : team.members) {
+            if (!gamers.get(member).eliminated) {
+                teamsOut.remove(team.color.id());
+                return;
+            }
+        }
+        broadcast(ChatColor.WHITE + "" + ChatColor.BOLD + "TEAM ELIMINATED > " + team.color.coloured() + " Team"
+                + ChatColor.RED + " has been eliminated!", null);
     }
 
     /** The victim's iron, gold, diamonds and emeralds go to the killer. */
@@ -1331,6 +1407,9 @@ class BedwarsGame {
                 broadcast(gamer.coloured() + ChatColor.GRAY + " left the game.", null);
             }
             left(gamer);
+            if (wasPlaying) {
+                teamOut(gamer.team);
+            }
             sidebars();
             checkEnd();
         }
@@ -1393,12 +1472,7 @@ class BedwarsGame {
             }
             plugin.lobby().recordMatch(modeId, winners, losers);
         }
-        Gamer best = null;
-        for (Gamer gamer : gamers.values()) {
-            if (best == null || gamer.kills + gamer.finalKills > best.kills + best.finalKills) {
-                best = gamer;
-            }
-        }
+        List<Gamer> killers = topKillers(new ArrayList<>(gamers.values()));
         for (Gamer gamer : gamers.values()) {
             Player player = Bukkit.getPlayer(gamer.id);
             if (player == null || host.gameOf(gamer.id) != this) {
@@ -1416,16 +1490,59 @@ class BedwarsGame {
             player.sendMessage(ChatColor.WHITE + "" + ChatColor.BOLD + "  " + modeName);
             player.sendMessage(winner == null ? ChatColor.YELLOW + "  Draw: no team won."
                     : ChatColor.YELLOW + "  Winner: " + winner.color.coloured() + ChatColor.YELLOW + " - " + names(winner));
-            if (best != null && best.kills + best.finalKills > 0) {
-                player.sendMessage(ChatColor.YELLOW + "  Most kills: " + best.coloured() + ChatColor.GRAY + " ("
-                        + (best.kills + best.finalKills) + ")");
+            if (!killers.isEmpty()) {
+                player.sendMessage("");
+            }
+            for (int i = 0; i < killers.size(); i++) {
+                Gamer killer = killers.get(i);
+                player.sendMessage(KILLER_PLACES[i] + ChatColor.GRAY + " - " + killer.coloured() + ChatColor.GRAY + " - "
+                        + ChatColor.WHITE + (killer.kills + killer.finalKills));
             }
             player.sendMessage(ChatColor.GRAY + "  You: " + gamer.kills + " kills, " + gamer.finalKills
                     + " final kills, " + gamer.beds + " beds broken");
             player.sendMessage(ChatColor.GREEN + "" + ChatColor.STRIKETHROUGH + "                                        ");
         }
-        // The next tick, out of the event that ended the game: everyone goes back to the lobby.
-        Bukkit.getScheduler().runTask(plugin, this::backToLobby);
+        afterTheEnd(winner != null);
+    }
+
+    /** The places of the end summary, as on Hypixel. */
+    static final String[] KILLER_PLACES = {
+        "  " + ChatColor.YELLOW + ChatColor.BOLD + "1st Killer",
+        "  " + ChatColor.GOLD + ChatColor.BOLD + "2nd Killer",
+        "  " + ChatColor.RED + ChatColor.BOLD + "3rd Killer",
+    };
+
+    /** The three players with the most kills (final kills included), the most first; none without a kill. */
+    static List<Gamer> topKillers(List<Gamer> all) {
+        List<Gamer> killers = new ArrayList<>();
+        for (Gamer gamer : all) {
+            if (gamer.kills + gamer.finalKills > 0) {
+                killers.add(gamer);
+            }
+        }
+        killers.sort((a, b) -> Integer.compare(b.kills + b.finalKills, a.kills + a.finalKills));
+        return killers.size() > KILLER_PLACES.length ? new ArrayList<>(killers.subList(0, KILLER_PLACES.length)) : killers;
+    }
+
+    /**
+     * Everyone goes back to the lobby: after the seconds of the end when a team won (the lobby's
+     * fin-de-partie-secondes), to see the winners and their victory effect, with Play again and
+     * Leave usable at once; at once after a draw. Out of the event that ended the game.
+     */
+    void afterTheEnd(boolean won) {
+        int seconds = won ? plugin.lobby().endSeconds() : 0;
+        if (seconds <= 0) {
+            Bukkit.getScheduler().runTask(plugin, this::backToLobby);
+            return;
+        }
+        for (Gamer gamer : gamers.values()) {
+            Player player = Bukkit.getPlayer(gamer.id);
+            if (player != null && host.gameOf(gamer.id) == this) {
+                player.closeInventory();
+                EndOfGame.give(player);
+            }
+        }
+        Bukkit.getScheduler().runTaskLater(plugin, this::backToLobby, seconds * 20L);
     }
 
     /** The game ends without a result (an open game left by its last player). */

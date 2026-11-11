@@ -1,6 +1,7 @@
 package gg.rago.practice;
 
 import gg.rago.game.GameMode;
+import gg.rago.lobby.api.EndOfGame;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
@@ -572,7 +573,25 @@ abstract class PracticeGame {
             }
         }
         ended();
-        Bukkit.getScheduler().runTaskLater(plugin, this::backToLobby, 1L);
+        afterTheEnd(winner >= 0 && sides.size() > 1);
+    }
+
+    /**
+     * Everyone goes back to the lobby: after the seconds of the end when a side won a duel (the
+     * lobby's fin-de-partie-secondes), to see the winners and their victory effect, with Play again
+     * and Leave usable at once; at once otherwise (a training, a draw).
+     */
+    private void afterTheEnd(boolean won) {
+        int seconds = won ? plugin.lobby().endSeconds() : 0;
+        if (seconds <= 0) {
+            Bukkit.getScheduler().runTaskLater(plugin, this::backToLobby, 1L);
+            return;
+        }
+        for (Player player : online()) {
+            player.closeInventory();
+            EndOfGame.give(player);
+        }
+        Bukkit.getScheduler().runTaskLater(plugin, this::backToLobby, seconds * 20L);
     }
 
     /** The score at the end, for the victory and defeat lines ("(3 - 1)"); "" for none. -1: a draw. */
@@ -646,7 +665,8 @@ abstract class PracticeGame {
     final void fellIntoVoid(Player player) {
         if (phase == Phase.PLAYING) {
             fell(player);
-        } else if (phase == Phase.COUNTDOWN) {
+        } else {
+            // before the round, or at the end of the duel (the one who fell watches the winners)
             player.teleport(spawnOf(player.getUniqueId()));
             player.setFallDistance(0f);
         }

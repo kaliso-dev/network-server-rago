@@ -35,6 +35,11 @@ final class KbDisplace extends Duel {
     static final int BEHIND = 4;
     /** After a hit, the defender has this long to fall; past it, they held. */
     static final int KNOCK_TICKS = 30;
+    /**
+     * Once back on the ground this long after a hit (the knockback is over), the defender held at
+     * once, without waiting for the end of {@link #KNOCK_TICKS}.
+     */
+    static final int SETTLE_TICKS = 10;
     /** An attempt without a hit ends after this long. */
     static final int ATTEMPT_SECONDS = 15;
     /** The invisible walls along the bridge are this high: a jump does not clear them. */
@@ -143,6 +148,8 @@ final class KbDisplace extends Duel {
     private final Place place;
     /** The tick until which the hit defender flies, or -1 before the hit of this attempt. */
     private int knockedUntil = -1;
+    /** The tick of the last hit. */
+    private int knockedAt;
     private long warnedAt;
 
     KbDisplace(PracticeHost host, GameMode mode, Arena arena, List<List<Player>> teams, int target, Place place) {
@@ -333,6 +340,7 @@ final class KbDisplace extends Duel {
         }
         event.setDamage(0.0);
         knockedUntil = tickCount + KNOCK_TICKS;
+        knockedAt = tickCount;
         return true;
     }
 
@@ -352,7 +360,7 @@ final class KbDisplace extends Duel {
             return;
         }
         if (knockedUntil >= 0) {
-            if (tickCount >= knockedUntil) {
+            if (tickCount >= knockedUntil || held(tickCount - knockedAt, onGround(defender))) {
                 broadcast(CHAT[1 - attacker()] + defender.getDisplayName() + ChatColor.GRAY + " held: the roles swap.", null);
                 startRound();
             }
@@ -365,6 +373,11 @@ final class KbDisplace extends Duel {
             defender.teleport(back);
             defender.setFallDistance(0f);
         }
+    }
+
+    /** True if the defender held a hit this many ticks ago: back on the ground once the knockback is over. */
+    static boolean held(int ticksSinceHit, boolean onGround) {
+        return onGround && ticksSinceHit >= SETTLE_TICKS;
     }
 
     /** The defender fell off the top: a point for the attacker, a kill in the stats. */

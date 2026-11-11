@@ -759,7 +759,7 @@ final class InvisGame extends BedwarsGame {
                         : ChatColor.RED + "" + ChatColor.BOLD + "GAME OVER!", "");
             }
         }
-        Bukkit.getScheduler().runTask(plugin, this::backToLobby);
+        afterTheEnd(!winners.isEmpty());
     }
 
     @Override
