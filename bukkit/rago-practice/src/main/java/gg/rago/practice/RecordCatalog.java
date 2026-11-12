@@ -8,8 +8,8 @@ import org.bukkit.Material;
 /**
  * Every training with records, in the order of /records and of the wall of the practice records:
  * its mode, its name (that of the lobby's menus), an icon close to the lobby's, and its boards, one
- * per variant (the block edit: one per speed of the bot). The boards of the weeks (the biggest
- * clutches) are not records and stay out. Immutable.
+ * per variant (the block edit: one per speed of the bot; the timed bridge: one per course). The
+ * boards of the weeks (the biggest clutches) are not records and stay out. Immutable.
  */
 final class RecordCatalog {
 
@@ -87,6 +87,18 @@ final class RecordCatalog {
                     speed == BlockEditTraining.DEFAULT_SPEED));
         }
         all.add(new Entry("block-edit", edit, Material.SHEARS, edits));
+        // the timed bridge: a board for each course, flat then uphill, straight then diagonal
+        String bridge = "Timed bridge";
+        List<Board> courses = new ArrayList<>();
+        for (boolean uphill : new boolean[] {false, true}) {
+            for (boolean diagonal : new boolean[] {false, true}) {
+                for (Training.Variant distance : BridgeTraining.VARIANTS) {
+                    courses.add(new Board("bridge-chrono", bridge, distance, BridgeTraining.suffix(diagonal, uphill),
+                            BridgeTraining.label(distance, diagonal, uphill), !diagonal && !uphill));
+                }
+            }
+        }
+        all.add(new Entry("bridge-chrono", bridge, Material.SANDSTONE, courses));
         ALL = Collections.unmodifiableList(all);
     }
 

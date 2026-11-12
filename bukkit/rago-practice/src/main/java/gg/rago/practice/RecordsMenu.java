@@ -212,11 +212,9 @@ final class RecordsMenu implements CommandExecutor, Listener {
         about.add(ChatColor.GRAY + "Click a board to play it.");
         page.inventory.setItem(TOP_SLOT, item(entry.icon, ChatColor.AQUA + "" + ChatColor.BOLD + entry.title, about));
         Set<UUID> friends = mine ? plugin.lobby().friends(player) : Collections.<UUID>emptySet();
-        int count = entry.boards.size();
-        for (int i = 0; i < count && i < PER_ROW * 2; i++) {
-            int row = i / PER_ROW;
-            int inRow = Math.min(PER_ROW, count - row * PER_ROW);
-            int slot = 9 * (2 + row) + (9 - inRow) / 2 + i % PER_ROW;
+        int count = Math.min(entry.boards.size(), PER_ROW * 2);
+        for (int i = 0; i < count; i++) {
+            int slot = boardSlot(i, count);
             RecordCatalog.Board board = entry.boards.get(i);
             page.boards.put(slot, board);
             ItemStack icon = item(entry.icon, ChatColor.YELLOW + board.label, boardLore(book, board, player, name, mine, friends, daily(board)));
@@ -227,6 +225,18 @@ final class RecordsMenu implements CommandExecutor, Listener {
         page.inventory.setItem(BACK_SLOT, item(Material.ARROW, ChatColor.GREEN + "Go back", back));
         page.inventory.setItem(CLOSE_SLOT, item(Material.BARRIER, ChatColor.RED + "Close", new ArrayList<String>()));
         viewer.openInventory(page.inventory);
+    }
+
+    /**
+     * The slot of the board i of count (14 at most) on a training's page: one row, or two of the
+     * same size (the timed bridge: its 6 flat courses over its 6 uphill ones), in the middle.
+     */
+    static int boardSlot(int i, int count) {
+        int rows = count > PER_ROW ? 2 : 1;
+        int perRow = (count + rows - 1) / rows;
+        int row = i / perRow;
+        int inRow = Math.min(perRow, count - row * perRow);
+        return 9 * (2 + row) + (9 - inRow) / 2 + i % perRow;
     }
 
     /** {boards with a score of the player, first places, places in a top 10}. */

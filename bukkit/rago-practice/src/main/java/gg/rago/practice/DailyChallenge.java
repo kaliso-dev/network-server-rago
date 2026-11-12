@@ -73,6 +73,8 @@ final class DailyChallenge {
         add(catalog, "extend-practice", "Extend practice", ExtendTraining.variants());
         add(catalog, "kb-displace-bot", "KB displace against a bot", KbDisplaceBot.STILL);
         add(catalog, "block-edit", "Block edit", BlockEditTraining.BOT);
+        // a distance of the timed bridge, straight and flat
+        add(catalog, "bridge-chrono", "Timed bridge", BridgeTraining.VARIANTS);
         CATALOG = Collections.unmodifiableMap(catalog);
     }
 

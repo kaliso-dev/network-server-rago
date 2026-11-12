@@ -63,8 +63,9 @@ categories:
     slogan: "&bTrain alone&7, at your &bown pace"
     description:
       - "Clutch, block in, fast defense,"
-      - "extend, pearls, fireballs, bow,"
-      - "aim, bots: one skill at a time."
+      - "bridging, extend, pearls, bow,"
+      - "fireballs, aim, bots: one skill"
+      - "at a time."
   ranked:
     nom: "&6&lRBW Modes"
     icone: BED
@@ -1491,6 +1492,19 @@ modes:
       - "Gold, Diamond, Emerald: the"
       - "hit comes from your look."
       - "Wool and ladders."
+  bridge-chrono:
+    nom: "&bTimed bridge"
+    categorie: entrainement
+    icone: SANDSTONE
+    equipes: 1
+    joueurs-par-equipe: 1
+    classe: false
+    description:
+      - "Bridge 16, 32 or 64 blocks"
+      - "against the clock, with any"
+      - "technique: straight or"
+      - "diagonal, flat or uphill."
+      - "A record for each course."
   ladder-practice:
     nom: "&6Ladder practice"
     categorie: entrainement
