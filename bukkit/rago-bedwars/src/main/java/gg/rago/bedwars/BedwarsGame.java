@@ -4,6 +4,9 @@ import gg.rago.bedwars.ShopItem.Category;
 import gg.rago.bedwars.ShopItem.Currency;
 import gg.rago.lobby.api.EndOfGame;
 import gg.rago.lobby.api.FireballAim;
+import gg.rago.lobby.api.ReplayRecording;
+import gg.rago.lobby.api.ReplaySetup;
+import gg.rago.lobby.api.Replays;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
@@ -178,6 +181,8 @@ class BedwarsGame {
     private int buildLimit;
     /** The top bridge of this game, once built; null without one. */
     TopBridge topBridge;
+    /** The recording of the game for /replay, or null. */
+    private ReplayRecording replay;
 
     BedwarsGame(RagoBedwars plugin, BedwarsHost host, Instance instance, String modeId, String modeName,
             List<List<Player>> sides) {
@@ -288,6 +293,51 @@ class BedwarsGame {
 
     ShopCatalog catalog() {
         return catalog;
+    }
+
+    // --- Replay ---------------------------------------------------------------------------------
+
+    /**
+     * The game is recorded for /replay from now on, if the lobby keeps replays and the game is one
+     * that is kept ({@link #recorded}). Before {@link #begin}: what the start changes in the copy of
+     * the map (the beds of the teams not playing...) is in the replay, played on a fresh copy.
+     */
+    void record() {
+        Replays replays = plugin.lobby().replays();
+        if (replays == null || !recorded()) {
+            return;
+        }
+        String map = instance.map().world();
+        replay = replays.record(ReplaySetup.ofStage(modeId, modeName, map, instance.world(), ReplayWorlds.KIND, map));
+        if (replay == null) {
+            return;
+        }
+        for (Gamer gamer : gamers.values()) {
+            Player player = Bukkit.getPlayer(gamer.id);
+            if (player != null) {
+                replay.actor(player, gamer.team.color.chat());
+            }
+        }
+    }
+
+    /** True for a game kept for /replay: a game of teams; not an open game nor a training. */
+    boolean recorded() {
+        return true;
+    }
+
+    /** A line of the chat for the replay only. */
+    void replayChat(String line) {
+        if (replay != null) {
+            replay.chat(line);
+        }
+    }
+
+    /** The replay ends without being kept. */
+    private void cancelReplay() {
+        if (replay != null) {
+            replay.cancel();
+            replay = null;
+        }
     }
 
     // --- Start ----------------------------------------------------------------------------------
@@ -1502,6 +1552,17 @@ class BedwarsGame {
                     + " final kills, " + gamer.beds + " beds broken");
             player.sendMessage(ChatColor.GREEN + "" + ChatColor.STRIKETHROUGH + "                                        ");
         }
+        if (replay != null) {
+            replayChat(winner == null ? ChatColor.YELLOW + "Draw: no team won."
+                    : ChatColor.YELLOW + "Winner: " + winner.color.coloured() + ChatColor.YELLOW + " - " + names(winner));
+            for (int i = 0; i < killers.size(); i++) {
+                Gamer killer = killers.get(i);
+                replayChat(KILLER_PLACES[i] + ChatColor.GRAY + " - " + killer.coloured() + ChatColor.GRAY + " - "
+                        + ChatColor.WHITE + (killer.kills + killer.finalKills));
+            }
+            replay.finish(winner == null ? "Draw" : winner.color.displayName() + " won (" + names(winner) + ")");
+            replay = null;
+        }
         afterTheEnd(winner != null);
     }
 
@@ -1552,6 +1613,7 @@ class BedwarsGame {
         }
         phase = Phase.ENDED;
         stopTasks();
+        cancelReplay();
         Bukkit.getScheduler().runTask(plugin, this::backToLobby);
     }
 
@@ -1579,6 +1641,7 @@ class BedwarsGame {
     void abort() {
         phase = Phase.ENDED;
         stopTasks();
+        cancelReplay();
         for (Gamer gamer : gamers.values()) {
             Player player = Bukkit.getPlayer(gamer.id);
             if (player != null && host.gameOf(gamer.id) == this) {
@@ -2465,6 +2528,7 @@ class BedwarsGame {
     // --- Messages -------------------------------------------------------------------------------
 
     void broadcast(String message, Sound sound) {
+        replayChat(message);
         for (Gamer gamer : gamers.values()) {
             Player player = Bukkit.getPlayer(gamer.id);
             if (player != null && host.gameOf(gamer.id) == this) {

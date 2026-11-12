@@ -18,6 +18,8 @@ Comme les « match details »
 des serveurs practice, chacun reçoit le **récap du duel** : pour chaque joueur, ses coups qui sont
 passés (pas ceux du délai entre deux coups) et son meilleur combo, les coups d'affilée sans en
 prendre un (« Ann: 34 hits, best combo 7 »). Au sumo aussi ; pas dans les events.
+Chaque duel, sumo compris, est enregistré : `/replay` le montre à nouveau depuis le lobby, avec
+**[REPLAY]** dans la ligne d'après-partie (voir le [README du lobby](../rago-lobby/README.md)).
 
 - **Sumo** : sur les maps sumo du serveur (Ponsen, Fort Royale, White Crystal, Space Mine, Sumo,
   dans le dossier des mondes), tirées au hasard à chaque duel ; sans elles, une plateforme ronde.

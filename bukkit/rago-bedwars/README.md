@@ -8,6 +8,10 @@ six jeux à part sur des maps de Bed Wars : **Top Bridge**, **Attack and Defense
 Scenario**,
 **FFA** (dont le Top Bridge FFA), **Invis practice** et **Fast Shop**. Chaque mode a ses maps.
 
+Les parties en équipes sont enregistrées pour `/replay` : le lobby les montre à nouveau dans une
+copie libre de leur map (voir le [README du lobby](../rago-lobby/README.md)). Pas les FFA, Fast
+Shop, Invis ni le Top Bridge d'entraînement d'une party.
+
 ## La partie
 
 - Chaque équipe apparaît sur son île, avec une épée en bois et une armure en cuir à sa couleur.

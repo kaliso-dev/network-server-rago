@@ -237,6 +237,8 @@ final class BedwarsHost implements MatchHost, Listener {
             }
         }
         running.add(game);
+        // recorded for /replay from before its start: the blocks the start changes are in the replay
+        game.record();
         game.begin();
         // The next game of the mode is on another map, drawn now; the next match should not wait for
         // its copy: one is made now if none is free and there is room.

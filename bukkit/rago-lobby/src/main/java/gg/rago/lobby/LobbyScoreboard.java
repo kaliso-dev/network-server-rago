@@ -91,6 +91,8 @@ final class LobbyScoreboard {
     private final Map<UUID, List<String>> shown = new HashMap<>();
     /** The lines a game gave for its players (LobbyService#setGameSidebar). */
     private final Map<UUID, List<String>> gameLines = new HashMap<>();
+    /** The lines of the replay each player watches (out of any game). */
+    private final Map<UUID, List<String>> replayLines = new HashMap<>();
     /** What a game puts before the names of its players, their team (LobbyService#setGameNameTag). */
     private final Map<UUID, String> gamePrefixes = new HashMap<>();
     /** The number of each of those prefixes, the same on every scoreboard: its teams sort together. */
@@ -429,8 +431,18 @@ final class LobbyScoreboard {
         placed.remove(player);
         shown.remove(player);
         gameLines.remove(player);
+        replayLines.remove(player);
         gamePrefixes.remove(player);
         listNames.remove(player);
+    }
+
+    /** The lines of the replay the player watches, or null when they watch none. */
+    void setReplayLines(UUID player, List<String> lines) {
+        if (lines == null) {
+            replayLines.remove(player);
+        } else {
+            replayLines.put(player, new ArrayList<>(lines));
+        }
     }
 
     /** The lines a game shows in the player's sidebar, or null for the lobby's own game lines. */
@@ -447,6 +459,10 @@ final class LobbyScoreboard {
         String modeId = state.gameOf(player.getUniqueId());
         if (modeId != null) {
             return gameLines(player, modeId);
+        }
+        List<String> replay = replayLines.get(player.getUniqueId());
+        if (replay != null) {
+            return givenLines(replay, settings.address());
         }
         // Few words, room between them: the player, their money and ranked, the server, the address.
         List<String> lines = new ArrayList<>();

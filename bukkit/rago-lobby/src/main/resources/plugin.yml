@@ -41,6 +41,10 @@ commands:
   hypixel:
     description: Copy your Bed Wars shop and hotbar manager from Hypixel, or see it.
     usage: /hypixel import [name], /hypixel shop
+  replay:
+    description: Watch your last games again, or any game by its code.
+    usage: /replay, /replay <code>, /replay leave
+    aliases: [replays]
   lobby:
     description: Back to the lobby spawn. The staff also manage the lobby with it.
     usage: /lobby, or (staff) /lobby <setspawn|build|modes|points|point <name>|point remove <name>|point tp <name>>

@@ -3,6 +3,7 @@ package gg.rago.lobby;
 import gg.rago.game.GameMode;
 import gg.rago.lobby.api.LobbyService;
 import gg.rago.lobby.api.MatchHost;
+import gg.rago.lobby.api.Replays;
 import gg.rago.lobby.api.VoidGenerator;
 import java.io.File;
 import java.io.IOException;
@@ -88,6 +89,8 @@ public final class RagoLobby extends JavaPlugin implements LobbyService {
     private StaffTools staff;
     private final StaffPanel staffPanel = new StaffPanel(this);
     private ServerInfo info;
+    /** The games recorded and /replay. */
+    private ReplayService replays;
     /** The kills of each player in their current game, for the MVP of a ranked game. */
     private final Map<UUID, Integer> gameKills = new HashMap<>();
     /** The players who turned /fly on in the lobby. */
@@ -247,8 +250,14 @@ public final class RagoLobby extends JavaPlugin implements LobbyService {
         getServer().getPluginManager().registerEvents(headLines, this);
         cosmetics.start();
         getServer().getPluginManager().registerEvents(kitEditor, this);
+        replays = new ReplayService(this, getConfig());
+        if (replays.enabled()) {
+            getServer().getPluginManager().registerEvents(replays, this);
+            replays.start();
+        }
         LobbyCommands commands = new LobbyCommands(this);
-        for (String name : new String[] {"lobby", "spawn", "playagain", "queue", "play", "duel", "hypixel", "party", "pc", "chat"}) {
+        for (String name : new String[] {"lobby", "spawn", "playagain", "queue", "play", "duel", "hypixel", "party", "pc", "chat",
+                "replay"}) {
             getCommand(name).setExecutor(commands);
             getCommand(name).setTabCompleter(commands);
         }
@@ -314,6 +323,9 @@ public final class RagoLobby extends JavaPlugin implements LobbyService {
     @Override
     public void onDisable() {
         getServer().getServicesManager().unregisterAll(this);
+        if (replays != null && replays.enabled()) {
+            replays.stop();
+        }
         if (npcs != null) {
             npcs.removeAll();
         }
@@ -436,6 +448,10 @@ public final class RagoLobby extends JavaPlugin implements LobbyService {
         if (fromGame) {
             // after the game's last words (XP, points, ELO): [PLAY AGAIN], [REMATCH]
             getServer().getScheduler().runTaskLater(this, () -> nextGame.offer(player, lastMode, lastOpponents, left), 20L);
+        }
+        if (replays != null && replays.enabled()) {
+            // the [REPLAY] clicked at the end of the game
+            replays.backInLobby(player);
         }
     }
 
@@ -573,6 +589,9 @@ public final class RagoLobby extends JavaPlugin implements LobbyService {
 
     /** /spawn: back to the lobby, through the game's host when in a game. */
     void goToSpawn(Player player) {
+        if (replays != null && replays.leave(player)) {
+            return;
+        }
         String modeId = state.gameOf(player.getUniqueId());
         MatchHost host = modeId == null ? null : queues.hostOf(modeId);
         if (host != null) {
@@ -1180,6 +1199,24 @@ public final class RagoLobby extends JavaPlugin implements LobbyService {
     public void setGameSidebar(Player player, List<String> lines) {
         scoreboard.setGameLines(player.getUniqueId(), lines);
         scoreboard.update(player);
+    }
+
+    /** The sidebar of the replay the player watches, out of any game; null gives back the lobby's. */
+    void setReplaySidebar(Player player, List<String> lines) {
+        scoreboard.setReplayLines(player.getUniqueId(), lines);
+        if (lines != null) {
+            scoreboard.update(player);
+        }
+    }
+
+    @Override
+    public Replays replays() {
+        return replays != null && replays.enabled() ? replays : null;
+    }
+
+    /** The replays, also when they are off (/replay says so). */
+    ReplayService replayService() {
+        return replays;
     }
 
     @Override

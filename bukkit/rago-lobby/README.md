@@ -98,14 +98,31 @@ dans les files d'attente des modes de jeu.
   barre, et **[PLAY AGAIN]** **[LEAVE]** dans le chat. `/playagain` (ou `/again`) quitte la partie
   comme `/spawn` et remet tout de suite dans la file du même mode (en party, seul le chef) ; au
   lobby, il fait comme le papier.
-- **Après une partie : rejouer ou revanche.** De retour au lobby, une ligne cliquable :
-  **[PLAY AGAIN]** remet dans la file du même mode, et après un 1v1 qui n'est pas classé,
-  **[REMATCH]** défie le même adversaire dans le même mode (s'il est encore là). Le papier
+- **Après une partie : rejouer, revanche ou replay.** De retour au lobby, une ligne cliquable :
+  **[PLAY AGAIN]** remet dans la file du même mode, après un 1v1 qui n'est pas classé,
+  **[REMATCH]** défie le même adversaire dans le même mode (s'il est encore là), et après une partie
+  enregistrée, **[REPLAY]** la montre à nouveau (voir « Les replays »). Le papier
   **Play again** de la barre (7e case, celle de « Leave the queue », juste avant l'émeraude) fait comme [PLAY AGAIN] d'un
   clic droit ; il arrive directement dans la main, et reste jusqu'à la partie suivante. Avec « Play again »
   sur « Automatic » dans `/settings`, le joueur est remis dans la file tout seul, sans clic (pas
   après un `/spawn` : il est parti de lui-même). En party, seul le chef relance la file. Rien pour
   un mode fermé ou caché (les events).
+- **Les replays.** Les duels de RagoPractice (le sumo compris ; pas les arènes ouvertes ni les
+  entraînements) et les parties de Bed Wars en équipes (pas les FFA, Fast Shop, Invis ni le Top
+  Bridge d'entraînement d'une party) sont enregistrés : les joueurs (leurs mouvements, leurs coups,
+  leur vie, ce qu'ils tiennent et portent), les blocs posés et cassés, les flèches, boules de feu,
+  perles et TNT, et les messages de la partie. `/replay` ouvre le menu de ses parties des derniers
+  jours, `/replay CODE` montre n'importe quelle partie par son code (à partager), et **[REPLAY]**
+  celle qu'on vient de jouer. On regarde depuis le lobby (demandé pendant une partie, le replay
+  attend le retour au lobby), en volant autour des joueurs. La barre met en pause, recule ou avance
+  de 10 secondes, change la vitesse (x0.25 à x4 : clic droit plus vite, clic gauche moins vite sur
+  l'horloge), va voir un joueur (la boussole), et le lit (ou `/replay leave`, ou `/spawn`) ramène
+  au lobby. Un duel est rejoué dans un monde à part (`rago_replays`, effacé à chaque démarrage),
+  une partie de Bed Wars dans une copie libre de sa map. Les fichiers sont dans
+  `plugins/RagoLobby/replays` : quelques dizaines de Ko pour un duel, quelques centaines pour une
+  partie de Bed Wars. Réglages dans `replays:` : `jours` (3), `taille-max-mo` (2000 ; au-delà, les
+  plus vieux partent d'abord), `spectateurs-max` (6 replays regardés en même temps), et
+  `actif: false` pour ne rien enregistrer.
 - **Les duels ne sont pas classés.** Une partie lancée sans la file (un `/duel`, une partie privée)
   ne fait bouger ni l'ELO ni les séries de victoires (du joueur et de l'équipe), même dans un mode
   classé : deux amis ne peuvent pas se donner des victoires pour monter. Les victoires, l'XP et les
@@ -293,6 +310,7 @@ commentaires de `config.yml`. Les mots français de la première version (`quitt
 | --- | --- | --- |
 | `/spawn` (ou `/hub`) | retour au spawn ; pendant une partie, c'est un abandon | tout le monde |
 | `/playagain` (ou `/again`) | la partie suivante du même mode : quitte la partie (comme `/spawn`) et remet dans sa file tout de suite ; au lobby, comme le papier Play again | tout le monde |
+| `/replay`, `/replay <code>`, `/replay leave` (ou `/replays`) | le menu de ses dernières parties, une partie par son code, quitter le replay | tout le monde |
 | `/queue <mode> [map]`, `/queue leave` (ou `/file`, `/q`) | entrer dans une file (sur une map, ou `random`), en sortir | tout le monde |
 | `/duel <joueur> [mode]` | défier un joueur du lobby dans un mode 1v1 (sans mode : un menu des modes 1v1) | tout le monde |
 | `/duel accept <joueur>`, `/duel deny <joueur>` | répondre à un défi (valable une minute) | tout le monde |
@@ -456,6 +474,15 @@ joueur tape `/spawn` en pleine partie. `lobby.recordKill("sumo", tueur, victime)
 (et l'XP qui va avec). Un entraînement donne de l'XP Network avec
 `lobby.giveXp("aim-trainer", joueur, xp, "aim trainer")` (rien dans une partie privée). À la fin, `lobby.recordMatch("sumo", gagnants, perdants)` compte la partie
 dans les stats, les classements et l'XP Network.
+
+Pour `/replay`, un jeu enregistre ses parties avec `lobby.replays()` (`null` quand les replays sont
+coupés) : `record(ReplaySetup.ofBlocks(...))` pour une arène dont les blocs tiennent dans le replay
+(un duel : la zone de la partie et ses blocs au départ), ou `ReplaySetup.ofStage(...)` pour une
+partie rejouée dans une copie de sa map, que le plugin fournit avec
+`replays.registerStages(plugin, "bedwars", stages)`. Le `ReplayRecording` rendu suit les joueurs
+tout seul ; le jeu lui donne ses joueurs (`actor(joueur, couleur)`), les lignes de son chat
+(`chat(ligne)`), puis `finish(résultat)` à la fin (qui rend le code du replay), ou `cancel()` si
+la partie n'a pas lieu.
 
 Les modes Bed Wars et Fast Shop rangent leur shop avec `lobby.hypixelQuickBuy(player)` : les 21
 cases du quick buy copié de Hypixel (les identifiants Hypixel, `wool`, `stone_sword`,

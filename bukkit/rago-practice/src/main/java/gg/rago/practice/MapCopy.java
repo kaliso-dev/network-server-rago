@@ -43,6 +43,11 @@ final class MapCopy {
         return blocks.length / 5;
     }
 
+    /** The blocks, five numbers each (x, y, z from the origin, id, data): not to be changed. */
+    int[] blocks() {
+        return blocks;
+    }
+
     /**
      * Places the blocks from number {@code from}, {@code max} at most, the origin on (ox, oy, oz) of
      * the world; returns the number of the next block to place ({@link #size()} once all are).

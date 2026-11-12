@@ -72,6 +72,10 @@ public final class RagoBedwars extends JavaPlugin {
 
         host = new BedwarsHost(this);
         getServer().getPluginManager().registerEvents(host, this);
+        if (lobby.replays() != null) {
+            // the replays of the games (/replay) are shown in a free copy of their map
+            lobby.replays().registerStages(this, ReplayWorlds.KIND, new ReplayWorlds(this));
+        }
         getServer().getScheduler().runTaskTimer(this, host::keepUnbreakable, UNBREAKABLE_TICKS, UNBREAKABLE_TICKS);
         MapCommands commands = new MapCommands(this);
         PluginCommand bw = getCommand("bw");
@@ -137,6 +141,10 @@ public final class RagoBedwars extends JavaPlugin {
 
     @Override
     public void onDisable() {
+        if (lobby != null && lobby.replays() != null) {
+            // the replays watched in the game worlds end first, before the worlds go
+            lobby.replays().unregisterStages(this);
+        }
         if (host != null) {
             host.abortAll();
             host = null;

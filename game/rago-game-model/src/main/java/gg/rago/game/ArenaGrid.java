@@ -63,6 +63,11 @@ public final class ArenaGrid {
         return slots;
     }
 
+    /** The blocks between the centres of two slots side by side. */
+    public int spacing() {
+        return spacing;
+    }
+
     /** X of the centre of a slot; every slot is centred on Z = 0. */
     public int centreX(int slot) {
         return slot * spacing;

@@ -188,4 +188,12 @@ public interface LobbyService {
      */
     default void setGameNameTag(Player player, String prefix) {
     }
+
+    /**
+     * The replays of the lobby: a game plugin records its games with them (/replay shows them to
+     * the players afterwards). Null when the lobby keeps no replays (replays.actif: false).
+     */
+    default Replays replays() {
+        return null;
+    }
 }

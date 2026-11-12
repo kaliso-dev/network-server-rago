@@ -103,6 +103,12 @@ final class FastShopGame extends BedwarsGame {
         }
     }
 
+    /** Not kept for /replay: a training of the shop. */
+    @Override
+    boolean recorded() {
+        return false;
+    }
+
     @Override
     boolean joinable() {
         return phase != Phase.ENDED && present().size() < islands.size() * PER_ISLAND;

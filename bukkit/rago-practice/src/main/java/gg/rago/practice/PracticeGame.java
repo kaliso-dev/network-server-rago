@@ -2,6 +2,7 @@ package gg.rago.practice;
 
 import gg.rago.game.GameMode;
 import gg.rago.lobby.api.EndOfGame;
+import gg.rago.lobby.api.ReplayRecording;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
@@ -81,6 +82,8 @@ abstract class PracticeGame {
     private BukkitTask clock;
     private BukkitTask countdown;
     private BukkitTask ticker;
+    /** The recording of the game for /replay, or null. */
+    private ReplayRecording replay;
 
     PracticeGame(PracticeHost host, GameMode mode, Arena arena, List<List<Player>> teams) {
         this.plugin = host.plugin();
@@ -334,6 +337,42 @@ abstract class PracticeGame {
 
     // --- The game -------------------------------------------------------------------------------
 
+    /** The game is recorded from now on (null: it is not), each player in the colour of their side. */
+    void record(ReplayRecording recording) {
+        replay = recording;
+        if (recording == null) {
+            return;
+        }
+        for (int side = 0; side < sides.size(); side++) {
+            for (UUID id : sides.get(side)) {
+                Player player = Bukkit.getPlayer(id);
+                if (player != null && host.gameOf(id) == this) {
+                    recording.actor(player, sideColour(side));
+                }
+            }
+        }
+    }
+
+    /** The colour of the names of a side (in the replays). */
+    ChatColor sideColour(int side) {
+        return ChatColor.WHITE;
+    }
+
+    /** A line of the game's chat for its replay only (the players read their own version of it). */
+    void replayChat(String line) {
+        if (replay != null) {
+            replay.chat(line);
+        }
+    }
+
+    /** The replay ends without being kept. */
+    private void cancelReplay() {
+        if (replay != null) {
+            replay.cancel();
+            replay = null;
+        }
+    }
+
     final void begin() {
         if (arena.fresh()) {
             build();
@@ -564,6 +603,10 @@ abstract class PracticeGame {
                 player.sendMessage(ChatColor.RED + "" + ChatColor.BOLD + "Defeat." + ChatColor.GRAY + " " + result(winner));
             }
         }
+        if (replay != null) {
+            replay.chat(winner >= 0 ? ChatColor.GOLD + "" + ChatColor.BOLD + namesOf(winner) + " won! " + ChatColor.GRAY + result(winner)
+                    : ChatColor.YELLOW + "" + ChatColor.BOLD + "Draw. " + ChatColor.GRAY + result(-1));
+        }
         if (showsRecap()) {
             List<String> lines = recap.lines(sides, this::nameOf, Duel.CHAT);
             for (Player player : online()) {
@@ -571,6 +614,15 @@ abstract class PracticeGame {
                     player.sendMessage(line);
                 }
             }
+            for (String line : lines) {
+                replayChat(line);
+            }
+        }
+        if (replay != null) {
+            String score = ChatColor.stripColor(result(winner));
+            replay.finish((winner >= 0 ? ChatColor.stripColor(namesOf(winner)) + " won " + score : "Draw " + score)
+                    + (why == null ? "" : ", " + ChatColor.stripColor(why)));
+            replay = null;
         }
         ended();
         afterTheEnd(winner >= 0 && sides.size() > 1);
@@ -619,6 +671,7 @@ abstract class PracticeGame {
     void abort() {
         phase = Phase.ENDED;
         stopTasks();
+        cancelReplay();
         ended();
         for (UUID id : players()) {
             Player player = Bukkit.getPlayer(id);
@@ -635,6 +688,7 @@ abstract class PracticeGame {
     void cancelStart() {
         phase = Phase.ENDED;
         stopTasks();
+        cancelReplay();
         ended();
         restoreArena();
     }
@@ -983,6 +1037,7 @@ abstract class PracticeGame {
     // --- Messages -------------------------------------------------------------------------------
 
     void broadcast(String message, Sound sound) {
+        replayChat(message);
         for (Player player : online()) {
             player.sendMessage(message);
             if (sound != null) {
