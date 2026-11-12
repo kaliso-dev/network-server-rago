@@ -97,15 +97,18 @@ Chaque duel, sumo compris, est enregistré : `/replay` le montre à nouveau depu
 
 ## Les entraînements
 
-Un joueur seul. La fin de la hotbar garde les commandes, le kit prend les cases d'avant : la poudre
-verte **Next level** passe au niveau suivant (seulement quand l'entraînement en a plusieurs ; shift
-et un clic droit : celui d'avant ; après le dernier, le premier), le lit **Leave** ramène au lobby,
-la boussole **Trainings** ouvre le menu Practice du lobby (un clic sur un autre entraînement y
+Un joueur seul. La fin de la hotbar garde les commandes, côte à côte, le kit prend les cases
+d'avant : la poudre verte **Next level** passe au niveau suivant et la poudre rouge **Previous
+level** à celui d'avant (seulement quand l'entraînement en a plusieurs ; après le dernier, le
+premier, et avant le premier, le dernier), le lit **Leave** ramène au lobby (seulement dans les
+entraînements où une chute ou un raté redonne l'essai tout seul : block extend, block clutch,
+block edit, combo bot, extend sauf la chaîne, fireball, ladder, pearl ; ailleurs, `/spawn`), la
+boussole **Trainings** ouvre le menu Practice du lobby (un clic sur un autre entraînement y
 emmène directement, sans repasser par le lobby), le comparateur **Settings** ouvre les réglages
 (seulement quand l'entraînement en a), et la blaze rod **Restart** recommence.
 
 Le joueur range son inventaire comme il veut, une fois : en le fermant, la place des objets du kit
-est gardée par le lobby pour cet entraînement, et celle des commandes (poudre, lit, boussole,
+est gardée par le lobby pour cet entraînement, et celle des commandes (poudres, lit, boussole,
 comparateur, blaze rod) dans `plugins/RagoPractice/reglages.yml` (`_barre`), pour tous les
 entraînements (« Hotbar saved »). Un objet du kit qui tombe sur la case d'une commande va dans la
 première case libre. L'entraînement attend tant qu'un menu est ouvert (les réglages, les

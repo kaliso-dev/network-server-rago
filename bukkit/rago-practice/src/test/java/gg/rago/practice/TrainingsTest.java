@@ -27,13 +27,25 @@ class TrainingsTest {
     @Test
     void theControlsGoWhereThePlayerPutThem() {
         java.util.Set<Training.Control> all = java.util.EnumSet.allOf(Training.Control.class);
+        java.util.Set<Training.Control> timed = java.util.EnumSet.of(Training.Control.PREVIOUS, Training.Control.NEXT,
+                Training.Control.TRAININGS, Training.Control.SETTINGS, Training.Control.RESTART);
         java.util.Set<Training.Control> noDye = java.util.EnumSet.of(Training.Control.LEAVE, Training.Control.TRAININGS,
                 Training.Control.SETTINGS, Training.Control.RESTART);
-        // by default: the green dye in 4, the bed 5, the compass 6, the comparator 7, the blaze rod 8
+        // by default, side by side at the end of the hotbar: the red dye in 3, the green one 4, the bed 5,
+        // the compass 6, the comparator 7, the blaze rod 8
         Map<Training.Control, Integer> at = Training.placement(null, all);
+        assertEquals(Integer.valueOf(3), at.get(Training.Control.PREVIOUS));
         assertEquals(Integer.valueOf(4), at.get(Training.Control.NEXT));
+        assertEquals(Integer.valueOf(5), at.get(Training.Control.LEAVE));
         assertEquals(Integer.valueOf(8), at.get(Training.Control.RESTART));
-        assertEquals(4, Training.placement(null, noDye).size(), "no dye: four controls");
+        // no bed (a timed training): the dyes move up, no empty slot between them and the compass
+        at = Training.placement(null, timed);
+        assertEquals(Integer.valueOf(4), at.get(Training.Control.PREVIOUS));
+        assertEquals(Integer.valueOf(5), at.get(Training.Control.NEXT));
+        assertEquals(Integer.valueOf(6), at.get(Training.Control.TRAININGS));
+        at = Training.placement(null, noDye);
+        assertEquals(4, at.size(), "no dye: four controls");
+        assertEquals(Integer.valueOf(5), at.get(Training.Control.LEAVE));
         // the blaze rod put in 0 and the bed in the inventory: they stay there
         Map<String, Integer> saved = new java.util.HashMap<>();
         saved.put("recommencer", 0);
@@ -42,12 +54,20 @@ class TrainingsTest {
         assertEquals(Integer.valueOf(0), at.get(Training.Control.RESTART));
         assertEquals(Integer.valueOf(20), at.get(Training.Control.LEAVE));
         assertEquals(Integer.valueOf(6), at.get(Training.Control.TRAININGS), "not moved: its own slot");
-        // the blaze rod put where the dye goes, in a training without levels: the dye takes a free slot
+        // the blaze rod put where the green dye goes: the dye takes the first free slot from the end
         saved.put("recommencer", 4);
         at = Training.placement(saved, all);
         assertEquals(Integer.valueOf(4), at.get(Training.Control.RESTART));
         assertEquals(Integer.valueOf(8), at.get(Training.Control.NEXT), "the first free slot from the end of the hotbar");
-        assertEquals(5, new java.util.HashSet<>(at.values()).size(), "never two controls in a slot");
+        assertEquals(6, new java.util.HashSet<>(at.values()).size(), "never two controls in a slot");
+        // a control without a place of its own never takes the one of another that has it
+        saved.clear();
+        saved.put("suivant", 4);
+        at = Training.placement(saved, timed);
+        assertEquals(Integer.valueOf(4), at.get(Training.Control.NEXT));
+        assertEquals(Integer.valueOf(5), at.get(Training.Control.PREVIOUS), "the slot left free by the green dye");
+        assertEquals(Integer.valueOf(8), at.get(Training.Control.RESTART));
+        assertEquals(5, new java.util.HashSet<>(at.values()).size());
         // a slot out of the inventory is not kept
         saved.put("recommencer", 40);
         assertEquals(Integer.valueOf(8), Training.placement(saved, all).get(Training.Control.RESTART));

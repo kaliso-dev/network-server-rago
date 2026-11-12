@@ -137,6 +137,12 @@ final class PearlTraining extends Training {
         return SITUATIONS[0];
     }
 
+    /** A fall or a miss gives the next attempt by itself: the bed in the hotbar. */
+    @Override
+    boolean restartUsed() {
+        return false;
+    }
+
     @Override
     String describe() {
         return situation().what;

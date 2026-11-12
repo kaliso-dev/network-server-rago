@@ -132,6 +132,12 @@ final class ExtendTraining extends Training {
         return PAD + jump.gap;
     }
 
+    /** A fall gives the next jump by itself (the bed in the hotbar); the chain runs against the clock. */
+    @Override
+    boolean restartUsed() {
+        return current().timed;
+    }
+
     @Override
     String describe() {
         if (chain()) {

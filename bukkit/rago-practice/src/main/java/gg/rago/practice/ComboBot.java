@@ -62,6 +62,12 @@ final class ComboBot extends Training {
         return variants;
     }
 
+    /** A fall or a miss gives the next attempt by itself: the bed in the hotbar. */
+    @Override
+    boolean restartUsed() {
+        return false;
+    }
+
     @Override
     String describe() {
         ComboAi.Level level = ComboAi.level(current().id);

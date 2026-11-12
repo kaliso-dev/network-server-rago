@@ -122,8 +122,8 @@ dans les files d'attente des modes de jeu.
   ses joueurs (un FFA, par exemple) fait quitter les files en y entrant.
 - **La fin d'une partie gagnée.** Les jeux (Bed Wars, duels) gardent tout le monde
   `fin-de-partie-secondes` secondes dans l'arène (3 ; 0 pour repartir tout de suite), le temps de voir
-  les gagnants et leur effet de victoire, avec le papier **Play again** et le lit **Leave** dans la
-  barre, et **[PLAY AGAIN]** **[LEAVE]** dans le chat. `/playagain` (ou `/again`) quitte la partie
+  les gagnants et leur effet de victoire, avec le papier **Play again** (dans la case que le joueur
+  a en main, sans la changer) et le lit **Leave** (dernière case) dans la barre, et **[PLAY AGAIN]** **[LEAVE]** dans le chat. `/playagain` (ou `/again`) quitte la partie
   comme `/spawn` et remet tout de suite dans la file du même mode (en party, seul le chef) ; au
   lobby, il fait comme le papier.
 - **Après une partie : rejouer, revanche ou replay.** De retour au lobby, une ligne cliquable :
@@ -131,7 +131,8 @@ dans les files d'attente des modes de jeu.
   **[REMATCH]** défie le même adversaire dans le même mode (s'il est encore là), et après une partie
   enregistrée, **[REPLAY]** la montre à nouveau (voir « Les replays »). Le papier
   **Play again** de la barre (7e case, celle de « Leave the queue », juste avant l'émeraude) fait comme [PLAY AGAIN] d'un
-  clic droit ; il arrive directement dans la main, et reste jusqu'à la partie suivante. Avec « Play again »
+  clic droit ; il reste 10 secondes, et la case en main ne change jamais (un clic rapide sur la
+  boussole ne relance pas le dernier mode par erreur) ; ensuite, [PLAY AGAIN] et `/playagain`. Avec « Play again »
   sur « Automatic » dans `/settings`, le joueur est remis dans la file tout seul, sans clic (pas
   après un `/spawn` : il est parti de lui-même). En party, seul le chef relance la file. Rien pour
   un mode fermé ou caché (les events).

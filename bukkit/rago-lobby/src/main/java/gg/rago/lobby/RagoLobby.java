@@ -107,6 +107,10 @@ public final class RagoLobby extends JavaPlugin implements LobbyService {
     private final Set<UUID> leaving = new HashSet<>();
     /** The mode the Play again paper queues, for each player back from a game (see NextGame). */
     private final Map<UUID, String> playAgain = new HashMap<>();
+    /** Until when the Play again paper stays in the hotbar (then [PLAY AGAIN] and /playagain only). */
+    private final Map<UUID, Long> paperUntil = new HashMap<>();
+    /** How long the Play again paper stays in the hotbar after a game. */
+    static final long PLAY_AGAIN_PAPER_MS = 10000L;
     private final NextGame nextGame = new NextGame(this);
     /** The seconds a won game lasts after its end (fin-de-partie-secondes). */
     private int endSeconds = 3;
@@ -759,6 +763,7 @@ public final class RagoLobby extends JavaPlugin implements LobbyService {
             () -> cosmetics.forget(id),
             () -> gameKills.remove(id),
             () -> playAgain.remove(id),
+            () -> paperUntil.remove(id),
             () -> kitEditor.forget(id),
             () -> kits.forget(id),
             () -> hypixel.forget(id),
@@ -883,22 +888,42 @@ public final class RagoLobby extends JavaPlugin implements LobbyService {
 
     /**
      * Back from a game of this mode, which they may queue again (NextGame): the Play again paper in
-     * their hotbar, where the leave item goes, in their hand, until they come back from another game.
+     * their hotbar, where the leave item goes, for ten seconds. The slot in their hand stays the
+     * same: a quick click on the compass never queues the last mode by mistake.
      */
     void offerPlayAgain(Player player, String modeId) {
-        playAgain.put(player.getUniqueId(), modeId);
+        UUID id = player.getUniqueId();
+        playAgain.put(id, modeId);
+        final long until = System.currentTimeMillis() + PLAY_AGAIN_PAPER_MS;
+        paperUntil.put(id, until);
         ItemStack paper = playAgainPaper(player);
         if (paper != null && !kitEditor.isEditing(player) && state.isProtected(player) && queues.queueOf(player) == null) {
             player.getInventory().setItem(HotbarItem.PLAY_AGAIN.slot(), paper);
-            // in the hand at once: a right click and the next game
-            player.getInventory().setHeldItemSlot(HotbarItem.PLAY_AGAIN.slot());
             player.updateInventory();
         }
+        getServer().getScheduler().runTaskLater(this, () -> {
+            Long now = paperUntil.get(id);
+            if (now == null || now != until) {
+                return;
+            }
+            paperUntil.remove(id);
+            if (player.isOnline() && HotbarItem.of(player.getInventory().getItem(HotbarItem.PLAY_AGAIN.slot())) == HotbarItem.PLAY_AGAIN) {
+                player.getInventory().setItem(HotbarItem.PLAY_AGAIN.slot(), null);
+                player.updateInventory();
+            }
+        }, PLAY_AGAIN_PAPER_MS / 50L);
     }
 
-    /** The Play again paper of this player, naming the mode it queues; null without one, or if the mode closed. */
+    /**
+     * The Play again paper of this player, naming the mode it queues; null without one, after its
+     * ten seconds, or if the mode closed.
+     */
     private ItemStack playAgainPaper(Player player) {
         String modeId = playAgain.get(player.getUniqueId());
+        Long until = paperUntil.get(player.getUniqueId());
+        if (until == null || System.currentTimeMillis() >= until) {
+            return null;
+        }
         ModeDisplay display = modeId == null ? null : settings.display(modeId);
         if (display == null || display.hidden() || !queues.isPlayable(modeId)) {
             return null;

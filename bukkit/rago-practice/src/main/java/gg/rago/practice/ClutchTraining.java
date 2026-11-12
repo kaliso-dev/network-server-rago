@@ -197,6 +197,12 @@ final class ClutchTraining extends Training {
         return (long) Math.floor(Math.sqrt(dx * dx + dz * dz) * 10 + 1e-9);
     }
 
+    /** A fall or a miss gives the next attempt by itself: the bed in the hotbar. */
+    @Override
+    boolean restartUsed() {
+        return false;
+    }
+
     @Override
     String describe() {
         String what = topFight ? "you stand on the top fight platform, at the build limit: no block above it."
