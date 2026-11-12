@@ -315,10 +315,17 @@ class NetworkFeaturesTest {
         assertEquals(8, settings.cosmetics(Cosmetic.Type.TRAIL).size());
         assertEquals(2000L, settings.chatCooldownMillis());
         assertTrue(settings.blockRepeats());
-        assertEquals(2, settings.tabHeader().size());
-        assertEquals(3, settings.tabFooter().size());
-        assertEquals(2, settings.motd().size());
+        // the colours of the server: its name in yellow, the slogan, rago.gg at the bottom of the tab list
+        assertEquals(Arrays.asList(Brand.NAME, Brand.SLOGAN, ""), settings.tabHeader());
+        assertEquals(4, settings.tabFooter().size());
+        assertEquals(Brand.ADDRESS, settings.tabFooter().get(3));
+        assertEquals(Arrays.asList("§eRAGO PRACTICE §8• §fBed Wars Practice, Ranked & Duels",
+                "§6§lNEW §8» §fTimed bridge, prestiges & season badges"), settings.motd(), "what it is, then what is new");
+        assertEquals(Collections.emptyList(), ServerInfo.tooWide(settings.motd()), "each line fits in the server list");
         assertEquals(5, settings.announceMinutes());
+        for (String line : settings.announcements()) {
+            assertTrue(line.startsWith(Brand.PREFIX), "one prefix for the server: " + line);
+        }
         assertTrue(settings.link("discord").get(0).contains("discord"));
         assertTrue(settings.link("site").get(0).contains("rago-optimizer.com"));
         assertTrue(settings.link("boutique").get(0).contains("rago-optimizer.com"));
@@ -328,6 +335,10 @@ class NetworkFeaturesTest {
     void anEmptyConfigGivesThePluginsOwnSettings() throws Exception {
         ServerSettings settings = ServerSettings.load(yaml("modes:\n  sumo: {}\n"));
         assertEquals(Ranks.defaults().all().size(), settings.ranks().all().size());
+        assertEquals(Brand.NAME, settings.tabHeader().get(0), "the colours of the server without config.yml too");
+        assertEquals(Brand.ADDRESS, settings.tabFooter().get(settings.tabFooter().size() - 1));
+        assertEquals(Collections.emptyList(), ServerInfo.tooWide(settings.motd()));
+        assertTrue(settings.announcements().get(0).startsWith(Brand.PREFIX));
         assertEquals(EloLadder.DEFAULT.format(450), settings.elo().format(450));
         assertEquals(Cosmetic.catalogue().size(), settings.cosmetics().size());
         ServerSettings priced = ServerSettings.load(yaml("boutique:\n  trail-flames: {prix: 10, niveau: 1}\n"));

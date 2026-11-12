@@ -170,7 +170,9 @@ dans les files d'attente des modes de jeu.
 - **Le scoreboard.** Peu de mots et de l'espace, titre en jaune : le rang, le niveau et l'avancée
   vers le suivant en % ; les Rago Points (« Points ») et la meilleure division classée ; le ping et
   les joueurs connectés ; la file et le temps d'attente quand on attend ; l'adresse en jaune tout en
-  bas. Le Tab aussi (« You are playing on RAGO.GG », les joueurs et le ping, la boutique). En partie : le mode et le ping du joueur, et en 1v1 l'adversaire et son
+  bas. Le Tab aussi (RAGO PRACTICE en jaune et le slogan en haut ; les joueurs, le ping, la boutique
+  et rago.gg en bas). En partie : le mode en tête, à la couleur de sa catégorie (Bed Wars compris),
+  le ping du joueur, et en 1v1 l'adversaire et son
   ping (vert sous 80 ms, jaune sous 150, rouge au-delà). Un jeu qui donne ses propres lignes sans
   ping (Bed Wars, entraînements) reçoit en dessous « Your ping » et « Their ping » (celui de
   l'adversaire en 1v1, de chacun jusqu'à trois, la moyenne au-delà). Une ligne n'est renvoyée que
@@ -397,9 +399,11 @@ dans les files d'attente des modes de jeu.
   pas sanctionner un autre membre du staff, sauf un admin. Chaque sanction est annoncée au staff.
 - **Le chat.** Sans rang, 2 secondes entre deux messages et pas deux fois le même message (le
   staff et les rangs avec `rago.perk.chat` n'ont ni l'un ni l'autre).
-- **Le serveur.** La liste des serveurs montre le MOTD de `motd:`, le Tab a un en-tête et un pied
-  (`tab:`, avec le nombre de joueurs et le ping), et le lobby entend une astuce toutes les 5
-  minutes (`annonces:`). `/discord`, `/rules`, `/site` et `/store` montrent `liens:`.
+- **Le serveur.** La liste des serveurs montre le MOTD de `motd:` (ce qu'est le serveur, puis ce qui
+  est nouveau), le Tab a un en-tête et un pied (`tab:`, avec le nombre de joueurs et le ping), et le
+  lobby entend une astuce toutes les 5 minutes (`annonces:`), avec le préfixe du serveur
+  (« RAGO » en jaune). `/discord`, `/rules`, `/site` et `/store` montrent `liens:`. Tout suit les
+  couleurs du serveur (plus bas).
 
 ## Commandes
 
@@ -469,6 +473,32 @@ monde dans `monde`, puis `/lobby setspawn`. Le spawn et les points sont rangés 
 monde : ils partent avec la map quand on l'envoie, et survivent à une mise à jour du plugin.
 Le plugin se charge après RagoBuildTools (`softdepend`), qui charge les mondes de build avec leur
 générateur vide ; un monde de build peut donc servir de lobby.
+
+## Les couleurs du serveur
+
+Le serveur se reconnaît partout aux mêmes couleurs, et le config.yml fourni les suit :
+
+- **La marque** : le jaune (`&e`) et l'or (`&6`). Le titre du sidebar, la liste des serveurs, le
+  Tab, l'adresse rago.gg, les annonces du serveur et les récompenses (l'XP Network en jaune, les
+  Rago Points en or).
+- **Le texte** : `&f` blanc pour les valeurs, `&7` gris pour les étiquettes, `&8` gris foncé pour
+  les séparateurs.
+- **Le sens** : `&a` vert pour jouer et réussir, `&c` rouge pour quitter et échouer.
+- **Les catégories** : Practice `&b`, RBW Modes `&6`, Duels `&a`, Arenas `&c`. Le nom de chaque mode
+  et de chaque groupe prend la couleur de sa catégorie : c'est aussi la ligne du mode en tête du
+  sidebar en partie.
+- **Les rangs** : VIP `&b`, PREMIUM+ `&d` ; le rose ne sert à rien d'autre.
+- **Un seul préfixe** pour les messages du serveur : `&e&lRAGO &8» `, puis le texte en blanc, court,
+  en anglais, qui commence par un verbe (les astuces, `/discord`, `/site`, `/store`, un rang acheté,
+  un pack reçu).
+- **Le slogan** : « Train. Clutch. Climb. » (s'entraîner, gagner ses duels, monter en Ranked), sous
+  le nom dans le Tab et dans l'accueil.
+- **La liste des serveurs** : la ligne 1 dit ce qu'est le serveur (« RAGO PRACTICE • Bed Wars
+  Practice, Ranked & Duels »), la ligne 2 ce qui est nouveau : « NEW » en or, puis la nouveauté, à
+  changer à chaque mise à jour. Une ligne fait 270 pixels au plus (une lettre 6, un espace 4, un i 2,
+  1 de plus en gras) : plus longue, elle passe à la ligne et cache la suivante, et le plugin le dit
+  au démarrage. L'icône est le `server-icon.png` (64x64) à la racine du serveur : celui du serveur de
+  test (tools/local-server) est le logo, un R jaune sur fond sombre.
 
 ## Catégories, PNJ et classements
 

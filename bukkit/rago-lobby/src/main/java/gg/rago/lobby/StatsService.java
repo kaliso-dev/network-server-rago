@@ -169,7 +169,7 @@ final class StatsService {
             Player player = Bukkit.getPlayer(stats.id());
             boolean won = winners.contains(stats.id());
             if (player != null && old != null && stats.xp() > old) {
-                player.sendMessage(ChatColor.AQUA + "+" + (stats.xp() - old) + " Network XP"
+                player.sendMessage(Brand.XP + "+" + (stats.xp() - old) + " Network XP"
                         + ChatColor.GRAY + " (" + (won ? "win" : "game played") + ")" + boostNote(stats.id()));
             }
             played(stats, won ? server.points().win : server.points().loss, won ? "win" : "game played");
@@ -267,7 +267,7 @@ final class StatsService {
             Integer old = before.get(stats.id());
             Player player = Bukkit.getPlayer(stats.id());
             if (player != null && old != null && stats.xp() > old) {
-                player.sendMessage(ChatColor.AQUA + "+" + (stats.xp() - old) + " Network XP" + ChatColor.GRAY + " (kill)"
+                player.sendMessage(Brand.XP + "+" + (stats.xp() - old) + " Network XP" + ChatColor.GRAY + " (kill)"
                         + boostNote(stats.id()));
             }
             if (stats.id().equals(killer)) {
@@ -308,7 +308,7 @@ final class StatsService {
         }
         Player player = Bukkit.getPlayer(id);
         if (player != null && stats.xp() > old) {
-            player.sendMessage(ChatColor.AQUA + "+" + (stats.xp() - old) + " Network XP" + ChatColor.GRAY + " (" + reason + ")"
+            player.sendMessage(Brand.XP + "+" + (stats.xp() - old) + " Network XP" + ChatColor.GRAY + " (" + reason + ")"
                     + boostNote(id));
         }
         played(stats, server.points().forXp(xp), reason);
@@ -352,7 +352,7 @@ final class StatsService {
                 player.sendMessage(ChatColor.GOLD + "" + ChatColor.BOLD + "QUEST COMPLETE! " + ChatColor.WHITE + quest.name()
                         + ChatColor.GRAY + " (" + quest.period().title().toLowerCase(java.util.Locale.ROOT).replace(" quests",
                                 "") + ")");
-                player.sendMessage(ChatColor.AQUA + "+" + (stats.xp() - before) + " Network XP" + ChatColor.GRAY + " (quest)"
+                player.sendMessage(Brand.XP + "+" + (stats.xp() - before) + " Network XP" + ChatColor.GRAY + " (quest)"
                         + boostNote(stats.id()));
                 player.playSound(player.getLocation(), Sound.LEVEL_UP, 1f, 2f);
             }
@@ -501,7 +501,7 @@ final class StatsService {
             return "";
         }
         String times = boost == Math.rint(boost) ? String.valueOf((long) boost) : String.valueOf(Math.round(boost * 100) / 100.0);
-        return ChatColor.LIGHT_PURPLE + " x" + times + " boost";
+        return ChatColor.GOLD + " x" + times + " boost";
     }
 
     private Map<UUID, Integer> xpOf(Collection<UUID> some, Collection<UUID> others) {
@@ -535,8 +535,8 @@ final class StatsService {
             int reward = levelPoints(oldLevel, level, server.points().perLevel);
             Player player = Bukkit.getPlayer(stats.id());
             if (player != null) {
-                player.sendMessage(ChatColor.AQUA + "" + ChatColor.BOLD + "LEVEL UP! " + ChatColor.GRAY + "You are now "
-                        + ChatColor.AQUA + "Network Level " + level + " " + levels.tag(level) + ChatColor.GRAY + ".");
+                player.sendMessage(ChatColor.GOLD + "" + ChatColor.BOLD + "LEVEL UP! " + ChatColor.GRAY + "You are now "
+                        + Brand.XP + "Network Level " + level + " " + levels.tag(level) + ChatColor.GRAY + ".");
                 player.playSound(player.getLocation(), Sound.LEVEL_UP, 1f, 1f);
                 if (!levels.codes(level).equals(levels.codes(oldLevel))) {
                     player.sendMessage(ChatColor.GRAY + "Your level tag has a new colour: " + levels.tag(level));

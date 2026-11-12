@@ -146,8 +146,8 @@ final class Profiles {
         player.sendMessage(ChatColor.GREEN + "You bought the rank " + rank.prefix().trim() + ChatColor.GREEN + " for "
                 + ChatColor.GOLD + String.format(java.util.Locale.US, "%,d", rank.price()) + " Rago Points" + ChatColor.GREEN + "!");
         player.playSound(player.getLocation(), Sound.LEVEL_UP, 1f, 1.2f);
-        lobby.announce(ChatColor.GOLD + "✪ " + displayName(player.getUniqueId(), player.getName()) + ChatColor.GOLD
-                + " bought the rank " + rank.prefix().trim() + ChatColor.GOLD + " in the shop!");
+        lobby.announce(Brand.PREFIX + displayName(player.getUniqueId(), player.getName()) + ChatColor.WHITE
+                + " bought the rank " + rank.prefix().trim() + ChatColor.WHITE + " in the shop!");
     }
 
     /**
@@ -174,7 +174,7 @@ final class Profiles {
         giver.playSound(giver.getLocation(), Sound.LEVEL_UP, 1f, 1.2f);
         Player got = lobby.getServer().getPlayer(target.id());
         if (got != null) {
-            got.sendMessage(ChatColor.GOLD + "✪ " + from + ChatColor.GOLD + " gifted you the rank " + rank.prefix().trim()
+            got.sendMessage(ChatColor.GOLD + "\u2726 " + from + ChatColor.GOLD + " gifted you the rank " + rank.prefix().trim()
                     + ChatColor.GOLD + "!");
             got.sendTitle(ChatColor.GOLD + "" + ChatColor.BOLD + "RANK GIFT!", rank.prefix().trim() + ChatColor.YELLOW + " from "
                     + ChatColor.stripColor(from));
@@ -237,7 +237,7 @@ final class Profiles {
         giver.sendMessage(ChatColor.GREEN + "You offered " + gift + ChatColor.GREEN + " to " + got.getName()
                 + ": they have one minute to accept it. You pay " + ChatColor.GOLD
                 + String.format(java.util.Locale.US, "%,d", rank.giftPrice()) + " Rago Points" + ChatColor.GREEN + " if they do.");
-        got.sendMessage(ChatColor.GOLD + "✪ " + from + ChatColor.GOLD + " wants to give you " + gift + ChatColor.GOLD + "! Accept it?");
+        got.sendMessage(ChatColor.GOLD + "\u2726 " + from + ChatColor.GOLD + " wants to give you " + gift + ChatColor.GOLD + "! Accept it?");
         // Clickable through the vanilla /tellraw, as the duel buttons: names are letters, digits and _.
         Bukkit.dispatchCommand(Bukkit.getConsoleSender(), "tellraw " + got.getName() + " " + GiftRequests.buttons(giver.getName()));
         got.playSound(got.getLocation(), Sound.NOTE_PLING, 1f, 1.5f);
@@ -636,16 +636,16 @@ final class Profiles {
         changed(profile);
         Player got = lobby.getServer().getPlayer(profile.id());
         if (got != null) {
-            got.sendMessage(ChatColor.GOLD + "✪ " + ChatColor.GREEN + "Thank you! Your " + pack.name + ChatColor.GREEN + " is here:");
+            got.sendMessage(ChatColor.GOLD + "\u2726 " + ChatColor.GREEN + "Thank you! Your " + pack.name + ChatColor.GREEN + " is here:");
             for (String line : pack.contents(server.cosmetics())) {
                 got.sendMessage("  " + line);
             }
             got.sendMessage(ChatColor.GRAY + "Wear your cosmetics in the " + ChatColor.GREEN + "/shop" + ChatColor.GRAY
-                    + ", start a booster with " + ChatColor.AQUA + "/booster" + ChatColor.GRAY + ".");
+                    + ", start a booster with " + ChatColor.YELLOW + "/booster" + ChatColor.GRAY + ".");
             got.playSound(got.getLocation(), Sound.LEVEL_UP, 1f, 1.2f);
         }
-        lobby.announce(ChatColor.GOLD + "✪ " + displayName(profile.id(), profile.name()) + ChatColor.GOLD + " got the "
-                + pack.name + ChatColor.GOLD + "! " + ChatColor.YELLOW + "/pack");
+        lobby.announce(Brand.PREFIX + displayName(profile.id(), profile.name()) + ChatColor.WHITE + " got the "
+                + pack.name + ChatColor.WHITE + "! " + ChatColor.YELLOW + "/pack");
         return true;
     }
 

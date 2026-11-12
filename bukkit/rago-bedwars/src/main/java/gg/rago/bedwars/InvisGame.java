@@ -771,7 +771,7 @@ final class InvisGame extends BedwarsGame {
     @Override
     List<String> lines(Gamer viewer) {
         List<String> lines = new ArrayList<>();
-        lines.add(ChatColor.LIGHT_PURPLE + "Invis practice " + ChatColor.GRAY + instance.map().world());
+        lines.add((modeLine != null ? modeLine : ChatColor.GOLD + "Invis practice") + " " + ChatColor.GRAY + instance.map().world());
         lines.add("");
         if (round < 0) {
             lines.add(ChatColor.WHITE + "Players: " + ChatColor.GREEN + present().size() + ChatColor.GRAY + "/" + MAX_PLAYERS);

@@ -462,7 +462,7 @@ final class FastShopGame extends BedwarsGame {
     @Override
     List<String> lines(Gamer viewer) {
         List<String> lines = new ArrayList<>();
-        lines.add(ChatColor.GREEN + "Fast Shop");
+        lines.add(modeLine != null ? modeLine : ChatColor.AQUA + "Fast Shop");
         lines.add("");
         Run run = runs.get(viewer.id);
         if (run == null) {

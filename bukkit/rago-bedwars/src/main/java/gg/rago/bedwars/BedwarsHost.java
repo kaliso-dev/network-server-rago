@@ -230,6 +230,7 @@ final class BedwarsHost implements MatchHost, Listener {
             return false;
         }
         BedwarsGame game = create(kind, instance, mode, sides);
+        game.modeLine = mode.name();
         for (List<Player> side : sides) {
             for (Player player : side) {
                 games.put(player.getUniqueId(), game);

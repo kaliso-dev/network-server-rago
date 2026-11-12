@@ -156,6 +156,10 @@ public final class RagoLobby extends JavaPlugin implements LobbyService {
             getServer().getPluginManager().disablePlugin(this);
             return;
         }
+        for (String line : ServerInfo.tooWide(server.motd())) {
+            getLogger().warning("motd: \"" + ChatColor.stripColor(line) + "\" is " + LobbyWelcome.width(line) + " pixels wide, the server list"
+                    + " shows " + ServerInfo.MOTD_WIDTH + ": it wraps and hides the line under it");
+        }
         // before any player: an NPC's first packet and a Netty listener must not load them together
         PacketWarmup.preload(getFile(), getClassLoader(), getLogger());
         // rago.cosmetic.(id): a cosmetic a rank gives (VIP's), never an operator's by default

@@ -132,8 +132,8 @@ final class ShopMenu {
                 });
         if (boosters != null) {
             long left = profile.boosterLeftMs();
-            menu.set(33, ClickMenu.item(Material.EXP_BOTTLE, ChatColor.AQUA + "Boosters",
-                    ChatColor.AQUA + "x3 Network XP" + ChatColor.GRAY + " for 30 minutes", "of play, for " + ChatColor.GOLD
+            menu.set(33, ClickMenu.item(Material.EXP_BOTTLE, Brand.XP + "Boosters",
+                    Brand.XP + "x3 Network XP" + ChatColor.GRAY + " for 30 minutes", "of play, for " + ChatColor.GOLD
                             + String.format(java.util.Locale.US, "%,d", XpBoosters.PRICE) + " Rago Points" + ChatColor.GRAY + ".",
                     ChatColor.GOLD + "x3 Rago Points" + ChatColor.GRAY + ": the points boosters.",
                     ChatColor.LIGHT_PURPLE + "[PREMIUM+]" + ChatColor.GRAY + ": a free x2 XP one every day.",

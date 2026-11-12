@@ -65,6 +65,7 @@ class LobbyWelcomeTest {
         assertEquals(6 * 3, LobbyWelcome.width("abc"));
         assertEquals(7 * 3 + 5, LobbyWelcome.width("§e§lab c"), "bold: one more a character, the space too");
         assertEquals(7 + 6, LobbyWelcome.width("§lA§cB"), "a colour ends the bold");
+        assertEquals(4 + 2 + 3 + 4 + 2, LobbyWelcome.width(" ilt,"), "the narrow characters of the 1.8 font");
         String centred = LobbyWelcome.centred("§e§lRAGO PRACTICE");
         int pad = centred.indexOf('§');
         assertTrue(pad > 20 && pad < 30, "" + pad);
