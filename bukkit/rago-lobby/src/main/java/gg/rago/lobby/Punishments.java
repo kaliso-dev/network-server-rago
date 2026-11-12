@@ -471,7 +471,7 @@ final class Punishments implements Listener {
                     : ChatColor.GRAY + " [over]";
             String length = sanction.kind == Kind.BAN || sanction.kind == Kind.MUTE
                     ? (sanction.permanent() ? " for good" : " " + formatDuration(sanction.end - sanction.start)) : "";
-            sender.sendMessage(ChatColor.GRAY + date.format(new Date(sanction.start)) + " " + ChatColor.YELLOW
+            sender.sendMessage(ChatColor.GRAY + date.format(new Date(sanction.start)) + " " + Brand.ACCENT
                     + sanction.kind.label() + length + ChatColor.GRAY + " by " + sanction.by + ": " + ChatColor.WHITE
                     + sanction.reason + state);
         }

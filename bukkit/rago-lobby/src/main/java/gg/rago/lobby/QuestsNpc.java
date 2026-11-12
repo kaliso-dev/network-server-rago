@@ -179,7 +179,7 @@ final class QuestsNpc {
         StringBuilder done = new StringBuilder();
         int started = GettingStarted.done(stats, start);
         if (started < start.size()) {
-            done.append(ChatColor.GRAY).append("Start ").append(ChatColor.YELLOW).append(started).append('/').append(start.size());
+            done.append(ChatColor.GRAY).append("Start ").append(Brand.ACCENT).append(started).append('/').append(start.size());
         }
         for (Quests.Period period : Quests.Period.values()) {
             int count = quests.active(period, day, week).size();
@@ -191,12 +191,12 @@ final class QuestsNpc {
                 done.append(ChatColor.DARK_GRAY).append(" · ");
             }
             done.append(ChatColor.GRAY).append(period == Quests.Period.DAILY ? "Daily " : "Weekly ")
-                    .append(finished == count ? ChatColor.GREEN : ChatColor.YELLOW).append(finished).append('/').append(count);
+                    .append(finished == count ? ChatColor.GREEN : Brand.ACCENT).append(finished).append('/').append(count);
         }
         List<String> lines = new ArrayList<>();
         lines.add(ChatColor.GOLD + "" + ChatColor.BOLD + "QUESTS");
         lines.add(done.length() == 0 ? ChatColor.GRAY + "No quests for now" : done.toString());
-        lines.add(ChatColor.YELLOW + "Click to see them");
+        lines.add(Brand.ACCENT + "Click to see them");
         return lines;
     }
 

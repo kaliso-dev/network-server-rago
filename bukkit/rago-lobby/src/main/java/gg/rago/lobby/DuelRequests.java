@@ -124,7 +124,7 @@ final class DuelRequests {
         challenger.sendMessage(ChatColor.GREEN + "Duel request sent to " + target.getName() + " in " + mode.name()
                 + ChatColor.GREEN + ". They have one minute to accept." + (mode.ranked()
                 ? ChatColor.GRAY + " A duel never changes the ranked ELO." : ""));
-        target.sendMessage(ChatColor.YELLOW + challenger.getName() + " challenges you to " + mode.name() + ChatColor.YELLOW
+        target.sendMessage(Brand.ACCENT + challenger.getName() + " challenges you to " + mode.name() + Brand.ACCENT
                 + "! Click to answer (or /duel accept " + challenger.getName() + "):");
         // Clickable buttons through the vanilla /tellraw: the chat component API (bungeecord-chat)
         // is not on our compile classpath. Player names are letters, digits and _ only.

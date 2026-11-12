@@ -617,7 +617,7 @@ public final class RagoLobby extends JavaPlugin implements LobbyService {
         if (player == null || names.nick(id) != null) {
             return;
         }
-        getServer().broadcastMessage(ChatColor.YELLOW + "" + ChatColor.BOLD + "PRESTIGE! " + names.display(id, player.getName())
+        getServer().broadcastMessage(Brand.ACCENT + "" + ChatColor.BOLD + "PRESTIGE! " + names.display(id, player.getName())
                 + ChatColor.GRAY + " reached the level " + stats.book().levels().tag(level) + ChatColor.GRAY + "!");
         for (Player other : getServer().getOnlinePlayers()) {
             other.playSound(other.getLocation(), Sound.FIREWORK_LARGE_BLAST, 1f, 1f);
@@ -729,7 +729,7 @@ public final class RagoLobby extends JavaPlugin implements LobbyService {
         }
         PartyBook.Party party = parties.book().together(id);
         if (party != null && !party.isLeader(id)) {
-            player.sendMessage(ChatColor.YELLOW + "Only your party leader can queue.");
+            player.sendMessage(ChatColor.GRAY + "Only your party leader can queue.");
             return;
         }
         if (!queues.isWaiting(player, display.mode())) {
@@ -1697,7 +1697,7 @@ public final class RagoLobby extends JavaPlugin implements LobbyService {
         social.announce(player, true);
         LobbyWelcome.greet(player, settings);
         if (profiles.dailyReady(player.getUniqueId())) {
-            player.sendMessage(ChatColor.AQUA + "Your daily reward is waiting: " + ChatColor.YELLOW + "/daily");
+            player.sendMessage(ChatColor.AQUA + "Your daily reward is waiting: " + Brand.ACCENT + "/daily");
         }
         weeklyNews(player);
         List<GettingStarted.Step> steps = gettingStartedSteps();
@@ -1705,7 +1705,7 @@ public final class RagoLobby extends JavaPlugin implements LobbyService {
         GettingStarted.Step next = GettingStarted.next(started, steps);
         if (next != null) {
             player.sendMessage(ChatColor.GOLD + "Getting started " + GettingStarted.done(started, steps) + "/" + steps.size()
-                    + ChatColor.GRAY + ": next, " + ChatColor.WHITE + next.title() + ChatColor.GRAY + ". " + ChatColor.YELLOW
+                    + ChatColor.GRAY + ": next, " + ChatColor.WHITE + next.title() + ChatColor.GRAY + ". " + Brand.ACCENT
                     + "/quests");
         }
         if (!player.hasPlayedBefore() && !settings.firstChoices().isEmpty()) {

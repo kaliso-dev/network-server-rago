@@ -160,7 +160,7 @@ final class StatsDisplays {
         lines.add(ChatColor.GRAY + "Kills: " + ChatColor.GREEN + (stats == null ? 0 : stats.kills(StatsPeriod.ALL, null, day, week))
                 + dot + ChatColor.GRAY + "Final kills: " + ChatColor.GREEN + finals);
         lines.add(ChatColor.GRAY + "FKDR: " + ChatColor.GOLD + StatsMenu.ratio(finals, stats == null ? 0 : stats.finalDeaths()));
-        lines.add(ChatColor.GRAY + "Best win streak: " + ChatColor.YELLOW + (stats == null ? 0 : stats.best(StatsPeriod.ALL, null, day, week))
+        lines.add(ChatColor.GRAY + "Best win streak: " + Brand.ACCENT + (stats == null ? 0 : stats.best(StatsPeriod.ALL, null, day, week))
                 + dot + ChatColor.GRAY + "Wins today: " + ChatColor.GREEN
                 + (stats == null ? 0 : stats.wins(StatsPeriod.DAY, null, day, week)));
         // The ELO of the ranked modes, two per line.
@@ -176,7 +176,7 @@ final class StatsDisplays {
             }
             lines.add(line.toString());
         }
-        lines.add(ChatColor.YELLOW + "" + ChatColor.BOLD + "CLICK FOR YOUR STATS");
+        lines.add(Brand.ACCENT + "" + ChatColor.BOLD + "CLICK FOR YOUR STATS");
         return lines;
     }
 
@@ -273,7 +273,7 @@ final class StatsDisplays {
         for (int i = 0; i < TOP; i++) {
             if (i < rows.size()) {
                 StatsBook.Row row = rows.get(i);
-                lines.add(ChatColor.YELLOW + "" + (i + 1) + ". " + ChatColor.WHITE + row.name() + ChatColor.GRAY + " - "
+                lines.add(Brand.ACCENT + "" + (i + 1) + ". " + ChatColor.WHITE + row.name() + ChatColor.GRAY + " - "
                         + shown(stat, row.value()));
             } else if (i == 0) {
                 lines.add(ChatColor.GRAY + "Nobody yet");
@@ -284,7 +284,7 @@ final class StatsDisplays {
         lines.add("");
         StatsBook.Row own = ranking == null ? null : ranking.rowOf(viewer.getUniqueId());
         lines.add(own == null ? ChatColor.GRAY + "You: " + ChatColor.DARK_GRAY + "not ranked yet"
-                : ChatColor.GRAY + "You: " + ChatColor.YELLOW + "#" + ranking.position(viewer.getUniqueId())
+                : ChatColor.GRAY + "You: " + Brand.ACCENT + "#" + ranking.position(viewer.getUniqueId())
                         + ChatColor.GRAY + " - " + shown(stat, own.value()));
         // the board of the week: what its top wins on Monday
         lines.add(stat.periodic() && period == StatsPeriod.WEEK && weekly.rewards(stat)
@@ -304,9 +304,9 @@ final class StatsDisplays {
             lines.add(ChatColor.GOLD + "" + ChatColor.BOLD + "\u00bb " + ChatColor.GOLD + "Click here: next leaderboard");
         }
         if (stat.choice() == BoardStat.Choice.PERIOD && !fixed.containsKey(key)) {
-            lines.add(ChatColor.YELLOW + "" + ChatColor.BOLD + "\u00bb " + ChatColor.YELLOW + "Click here: change the period");
+            lines.add(Brand.ACCENT + "" + ChatColor.BOLD + "\u00bb " + Brand.ACCENT + "Click here: change the period");
         } else if (stat.choice() == BoardStat.Choice.RANKED_MODE) {
-            lines.add(ChatColor.YELLOW + "" + ChatColor.BOLD + "\u00bb " + ChatColor.YELLOW + "Click here: change the mode");
+            lines.add(Brand.ACCENT + "" + ChatColor.BOLD + "\u00bb " + Brand.ACCENT + "Click here: change the mode");
         }
         return lines;
     }
@@ -362,9 +362,9 @@ final class StatsDisplays {
             int level = book.levels().level(row.value());
             score = ChatColor.GRAY + "Level " + book.levels().paint(String.valueOf(level), level);
         } else if (view.stat == BoardStat.FKDR) {
-            score = ChatColor.YELLOW + BoardStat.hundredths(row.value()) + ChatColor.GRAY + " FKDR";
+            score = Brand.ACCENT + BoardStat.hundredths(row.value()) + ChatColor.GRAY + " FKDR";
         } else {
-            score = ChatColor.YELLOW + String.valueOf(row.value()) + ChatColor.GRAY + " "
+            score = Brand.ACCENT + String.valueOf(row.value()) + ChatColor.GRAY + " "
                     + view.stat.title().toLowerCase(java.util.Locale.ROOT);
         }
         return java.util.Arrays.asList(PODIUM_COLOURS[Math.min(place, PODIUM_COLOURS.length - 1)].toString() + ChatColor.BOLD + rank
@@ -383,9 +383,9 @@ final class StatsDisplays {
             return book.ladder().format(value);
         }
         if (stat == BoardStat.FKDR) {
-            return ChatColor.YELLOW + BoardStat.hundredths(value);
+            return Brand.ACCENT + BoardStat.hundredths(value);
         }
-        return ChatColor.YELLOW + String.valueOf(value);
+        return Brand.ACCENT + String.valueOf(value);
     }
 
     private Choice choice(UUID player, String key) {

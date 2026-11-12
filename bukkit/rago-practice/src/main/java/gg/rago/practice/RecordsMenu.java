@@ -266,7 +266,7 @@ final class RecordsMenu implements CommandExecutor, Listener {
                     + board.format(best) + " " + place(book.rank(board.id, player))));
         }
         lore.add("");
-        lore.add(ChatColor.YELLOW + "Click: the top 10 of each");
+        lore.add(ChatColor.RED + "Click: the top 10 of each");
         return lore;
     }
 
@@ -313,7 +313,7 @@ final class RecordsMenu implements CommandExecutor, Listener {
             lore.add(topLine(board, ranked.get(rank - 1), rank, player));
         }
         lore.add("");
-        lore.add(ChatColor.YELLOW + "Click to play it");
+        lore.add(ChatColor.RED + "Click to play it");
         return lore;
     }
 
@@ -529,7 +529,7 @@ final class RecordsMenu implements CommandExecutor, Listener {
         lines.add(daily ? ChatColor.GOLD + "✦ The challenge of the day" : "");
         lines.add(ChatColor.DARK_GRAY + "Practice records " + (index + 1) + "/" + count);
         lines.add(ChatColor.GOLD + "" + ChatColor.BOLD + "» " + ChatColor.GOLD + "Left click: next board");
-        lines.add(ChatColor.YELLOW + "" + ChatColor.BOLD + "» " + ChatColor.YELLOW + "Right click: all your records");
+        lines.add(ChatColor.YELLOW + "" + ChatColor.BOLD + "» " + ChatColor.RED + "Right click: all your records");
         return lines;
     }
 

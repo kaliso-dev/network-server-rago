@@ -134,7 +134,7 @@ final class XpBoosters {
                 setCount(profile, Kind.DAILY, profile.dailyBoosters() + 1);
                 profiles.changed(profile);
                 player.sendMessage(ChatColor.LIGHT_PURPLE + "✦ " + ChatColor.GREEN + "Your free XP booster of the day is"
-                        + " here: " + ChatColor.YELLOW + "/booster" + ChatColor.GREEN + " (x2 XP for 30 minutes of play).");
+                        + " here: " + Brand.ACCENT + "/booster" + ChatColor.GREEN + " (x2 XP for 30 minutes of play).");
             }
             if (!state.isInGame(player)) {
                 continue;
@@ -150,7 +150,7 @@ final class XpBoosters {
                     profiles.changed(profile);
                     int more = profile.boosters() + profile.dailyBoosters();
                     player.sendMessage(ChatColor.LIGHT_PURPLE + "Your XP booster is over." + (more > 0
-                            ? ChatColor.GRAY + " You have " + more + " more: " + ChatColor.YELLOW + "/booster" : ""));
+                            ? ChatColor.GRAY + " You have " + more + " more: " + Brand.ACCENT + "/booster" : ""));
                 }
             }
             long coins = profile.coinBoosterLeftMs();
@@ -161,7 +161,7 @@ final class XpBoosters {
                 if (coins == 0) {
                     profiles.changed(profile);
                     player.sendMessage(ChatColor.GOLD + "Your points booster is over." + (profile.coinBoosters() > 0
-                            ? ChatColor.GRAY + " You have " + profile.coinBoosters() + " more: " + ChatColor.YELLOW + "/booster"
+                            ? ChatColor.GRAY + " You have " + profile.coinBoosters() + " more: " + Brand.ACCENT + "/booster"
                             : ""));
                 }
             }
@@ -195,8 +195,8 @@ final class XpBoosters {
         }
         if (count(profile, kind) <= 0) {
             player.sendMessage(ChatColor.RED + "You have no " + kind.label + "." + (kind == Kind.XP
-                    ? " Buy one in the shop: " + ChatColor.YELLOW + "/booster" : kind == Kind.COINS
-                    ? " Get some on the store: " + ChatColor.YELLOW + "/pack" : ""));
+                    ? " Buy one in the shop: " + ChatColor.WHITE + "/booster" : kind == Kind.COINS
+                    ? " Get some on the store: " + ChatColor.WHITE + "/pack" : ""));
             return;
         }
         setCount(profile, kind, count(profile, kind) - 1);
@@ -228,7 +228,7 @@ final class XpBoosters {
         setCount(profile, Kind.XP, profile.boosters() + 1);
         profiles.changed(profile);
         player.sendMessage(ChatColor.GREEN + "You bought an XP booster (x3 XP) for " + ChatColor.GOLD + String.format(java.util.Locale.US, "%,d", PRICE)
-                + " Rago Points" + ChatColor.GREEN + ". " + ChatColor.YELLOW + "/booster" + ChatColor.GREEN + " to start it.");
+                + " Rago Points" + ChatColor.GREEN + ". " + Brand.ACCENT + "/booster" + ChatColor.GREEN + " to start it.");
         player.playSound(player.getLocation(), Sound.ORB_PICKUP, 1f, 1.2f);
     }
 
@@ -239,7 +239,7 @@ final class XpBoosters {
         Player online = lobby.getServer().getPlayer(profile.id());
         if (online != null) {
             online.sendMessage(ChatColor.LIGHT_PURPLE + "✦ " + ChatColor.GREEN + "You got " + count + " " + kind.label
-                    + (count > 1 ? "s" : "") + " (" + kind.effect + "): " + ChatColor.YELLOW + "/booster");
+                    + (count > 1 ? "s" : "") + " (" + kind.effect + "): " + Brand.ACCENT + "/booster");
             online.playSound(online.getLocation(), Sound.LEVEL_UP, 1f, 1.5f);
         }
     }
@@ -250,7 +250,7 @@ final class XpBoosters {
         ClickMenu menu = new ClickMenu(4, "Boosters");
         long left = profile.boosterLeftMs();
         long coinsLeft = profile.coinBoosterLeftMs();
-        menu.set(4, ClickMenu.item(Material.WATCH, 0, ChatColor.YELLOW + "Running", listOf(
+        menu.set(4, ClickMenu.item(Material.WATCH, 0, Brand.ACCENT + "Running", listOf(
                 left > 0 ? Brand.XP + "x" + rate(xpRate(profile)) + " Network XP" + ChatColor.GRAY + ": " + clock(left) + " left"
                         : ChatColor.GRAY + "No XP booster",
                 coinsLeft > 0 ? ChatColor.GOLD + "x" + rate(COIN_MULTIPLIER) + " Rago Points" + ChatColor.GRAY + ": " + clock(coinsLeft)
@@ -262,8 +262,8 @@ final class XpBoosters {
                         "Yours: " + ChatColor.GREEN + profile.boosters(),
                         "Price: " + ChatColor.GOLD + String.format(java.util.Locale.US, "%,d", PRICE) + " Rago Points",
                         "",
-                        profile.boosters() > 0 ? ChatColor.YELLOW + "Left click to start one" : ChatColor.GRAY + "None to start",
-                        ChatColor.YELLOW + "Right click to buy one"))), (p, right) -> {
+                        profile.boosters() > 0 ? Brand.ACCENT + "Left click to start one" : ChatColor.GRAY + "None to start",
+                        Brand.ACCENT + "Right click to buy one"))), (p, right) -> {
                             if (right) {
                                 buy(p);
                                 open(p);
@@ -278,8 +278,8 @@ final class XpBoosters {
                 ChatColor.LIGHT_PURPLE + "[PREMIUM+]" + ChatColor.GRAY + ": one free every day,", "on top of +50% XP in every game.", "",
                 "Yours: " + ChatColor.GREEN + profile.dailyBoosters(),
                 "",
-                profile.dailyBoosters() > 0 ? ChatColor.YELLOW + "Click to start one" : premium
-                        ? ChatColor.GRAY + "The next one comes tomorrow" : ChatColor.YELLOW + "With [PREMIUM+]: /pack")),
+                profile.dailyBoosters() > 0 ? Brand.ACCENT + "Click to start one" : premium
+                        ? ChatColor.GRAY + "The next one comes tomorrow" : Brand.ACCENT + "With [PREMIUM+]: /pack")),
                 (p, right) -> {
                     p.closeInventory();
                     activate(p, Kind.DAILY);
@@ -289,7 +289,7 @@ final class XpBoosters {
                         "Yours: " + ChatColor.GREEN + profile.coinBoosters(),
                         "On the store, and in the Starter Pack.",
                         "",
-                        profile.coinBoosters() > 0 ? ChatColor.YELLOW + "Click to start one" : ChatColor.YELLOW + "Click for the store"))),
+                        profile.coinBoosters() > 0 ? Brand.ACCENT + "Click to start one" : Brand.ACCENT + "Click for the store"))),
                 (p, right) -> {
                     p.closeInventory();
                     if (profiles.of(p).coinBoosters() > 0) {

@@ -844,7 +844,7 @@ final class BridgeArena extends PracticeGame {
         for (int i = 0; i < platforms.size(); i++) {
             Platform platform = platforms.get(i);
             String count = ChatColor.GRAY + "Players: " + ChatColor.WHITE + crowd[i];
-            String what = mine != null && mine == i ? ChatColor.GREEN + "You fight here." : ChatColor.YELLOW + "Click to go there.";
+            String what = mine != null && mine == i ? ChatColor.GREEN + "You fight here." : ChatColor.RED + "Click to go there.";
             items[slots[i]] = named(platform.block, Math.max(1, crowd[i]), platform.first, platform.chat + platform.name,
                     count, what);
         }

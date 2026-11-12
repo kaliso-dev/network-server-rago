@@ -492,7 +492,7 @@ final class LobbyScoreboard {
             // the first queue joined, and how many others: "Queue: Sumo +1"
             lines.add(cut(ChatColor.WHITE + "Queue: " + waiting.get(0).name()
                     + (waiting.size() > 1 ? ChatColor.GRAY + " +" + (waiting.size() - 1) : "")));
-            lines.add(ChatColor.WHITE + "Waiting: " + ChatColor.YELLOW
+            lines.add(ChatColor.WHITE + "Waiting: " + Brand.ACCENT
                     + clock(queues.waited(player, System.currentTimeMillis())));
         }
         lines.add(blank(4));
@@ -569,7 +569,7 @@ final class LobbyScoreboard {
 
     /** "Queue: 0:42 (Sumo +1)": waited this long in the first of these queues, and how many others. */
     static String queueLine(List<GameMode> waiting, long waitedMillis) {
-        return cut(ChatColor.WHITE + "Queue: " + ChatColor.YELLOW + clock(waitedMillis) + ChatColor.GRAY + " ("
+        return cut(ChatColor.WHITE + "Queue: " + Brand.ACCENT + clock(waitedMillis) + ChatColor.GRAY + " ("
                 + ChatColor.stripColor(waiting.get(0).name()) + (waiting.size() > 1 ? " +" + (waiting.size() - 1) : "") + ")");
     }
 

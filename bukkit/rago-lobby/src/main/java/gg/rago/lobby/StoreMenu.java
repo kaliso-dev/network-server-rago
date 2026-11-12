@@ -79,7 +79,7 @@ final class StoreMenu {
             if (vip.webPrice() != null) {
                 lore.add(ChatColor.GRAY + "Price: " + ChatColor.GREEN + ChatColor.BOLD + vip.webPrice());
             }
-            lore.add(owned ? ChatColor.GREEN + "You have it: thank you!" : ChatColor.GOLD + "On the web store " + ChatColor.YELLOW
+            lore.add(owned ? ChatColor.GREEN + "You have it: thank you!" : ChatColor.GOLD + "On the web store " + Brand.ACCENT
                     + "(click for the link)");
             menu.set(ROW[i++], ClickMenu.item(vip.icon(), 0, vip.prefix().trim(), lore), (p, right) -> {
                 if (!owned) {
@@ -97,7 +97,7 @@ final class StoreMenu {
             colours.add(vip.prefix().trim() + ChatColor.GRAY + ": a colour of its own.");
         }
         colours.add("");
-        colours.add(ChatColor.YELLOW + "Click to browse");
+        colours.add(Brand.ACCENT + "Click to browse");
         menu.set(ROW[i++], ClickMenu.item(Material.NAME_TAG, 0, ChatColor.LIGHT_PURPLE + "Name colours", colours),
                 (p, right) -> styles.open(p));
         menu.set(ROW[i++], ClickMenu.item(Material.EXP_BOTTLE, 0, Brand.XP + "Boosters", list(
@@ -107,7 +107,7 @@ final class StoreMenu {
                 "in the starter pack.",
                 "Yours: " + ChatColor.GREEN + (profile.boosters() + profile.dailyBoosters()) + " XP, " + profile.coinBoosters() + " points",
                 "",
-                ChatColor.YELLOW + "Click to see them")), (p, right) -> boosters.open(p));
+                Brand.ACCENT + "Click to see them")), (p, right) -> boosters.open(p));
         List<String> cosmetics = list(
                 "Projectile trails, kill effects",
                 "and victory effects: everyone",
@@ -118,14 +118,14 @@ final class StoreMenu {
             cosmetics.add(ChatColor.GOLD + "The starter pack: " + pack.cosmetics.size() + " of them.");
         }
         cosmetics.add("");
-        cosmetics.add(ChatColor.YELLOW + "Click to browse");
+        cosmetics.add(Brand.ACCENT + "Click to browse");
         menu.set(ROW[i++], ClickMenu.item(Material.FIREWORK, 0, ChatColor.GREEN + "Cosmetics", cosmetics), (p, right) -> shop.open(p));
         if (!server.ranks().sold().isEmpty()) {
             menu.set(RANKS_FOR_POINTS_SLOT, ClickMenu.item(Material.DIAMOND, 0, ChatColor.GOLD + "Ranks for Rago Points", list(
                     "Ranks you unlock with your level",
                     "and buy with Rago Points.",
                     "",
-                    ChatColor.YELLOW + "Click to browse")), (p, right) -> shop.openRanks(p));
+                    Brand.ACCENT + "Click to browse")), (p, right) -> shop.openRanks(p));
         }
 
         menu.set(39, ClickMenu.item(Material.GOLD_INGOT, 0, ChatColor.GOLD + "Earn Rago Points", list(
@@ -135,12 +135,12 @@ final class StoreMenu {
                 "the daily reward (" + ChatColor.WHITE + "/daily" + ChatColor.GRAY + ") and",
                 "the quests (" + ChatColor.WHITE + "/quests" + ChatColor.GRAY + ").",
                 "",
-                ChatColor.YELLOW + "Click for the shop")), (p, right) -> shop.open(p));
+                Brand.ACCENT + "Click for the shop")), (p, right) -> shop.open(p));
         menu.set(41, ClickMenu.item(Material.EYE_OF_ENDER, 0, ChatColor.AQUA + "" + ChatColor.BOLD + "Rago Optimizer", list(
                 "News, downloads and the store",
                 "of the network on the website.",
                 "",
-                ChatColor.YELLOW + "Click for the link")), (p, right) -> {
+                Brand.ACCENT + "Click for the link")), (p, right) -> {
                     p.closeInventory();
                     tellStore(p, ChatColor.AQUA + "" + ChatColor.BOLD + "Rago Optimizer" + ChatColor.GRAY + ": news, downloads and the store.");
                 });
@@ -152,7 +152,7 @@ final class StoreMenu {
     /** The lore of the starter pack: the saving, what is inside, the price, once per player. */
     List<String> packLore(StarterPack pack, boolean owned) {
         List<String> lore = new ArrayList<>();
-        lore.add(ChatColor.YELLOW + "Everything to start, once per player:");
+        lore.add(Brand.ACCENT + "Everything to start, once per player:");
         lore.add("");
         lore.addAll(pack.contents(profiles.server().cosmetics()));
         if (!pack.cosmetics.isEmpty()) {
@@ -163,7 +163,7 @@ final class StoreMenu {
                 + " Rago Points" + ChatColor.GRAY + " in the shop.");
         lore.add(ChatColor.GRAY + "Price: " + pack.priceLine());
         lore.add("");
-        lore.add(owned ? ChatColor.GREEN + "You have it: thank you!" : ChatColor.YELLOW + "Click for the store");
+        lore.add(owned ? ChatColor.GREEN + "You have it: thank you!" : Brand.ACCENT + "Click for the store");
         return lore;
     }
 

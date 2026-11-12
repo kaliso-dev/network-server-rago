@@ -315,12 +315,18 @@ class NetworkFeaturesTest {
         assertEquals(8, settings.cosmetics(Cosmetic.Type.TRAIL).size());
         assertEquals(2000L, settings.chatCooldownMillis());
         assertTrue(settings.blockRepeats());
-        // the colours of the server: its name in yellow, the slogan, rago.gg at the bottom of the tab list
+        // the colours of the server, those of the logo: its name in red, the slogan, rago.gg at the bottom of the tab list
         assertEquals(Arrays.asList(Brand.NAME, Brand.SLOGAN, ""), settings.tabHeader());
         assertEquals(4, settings.tabFooter().size());
         assertEquals(Brand.ADDRESS, settings.tabFooter().get(3));
-        assertEquals(Arrays.asList("§eRAGO PRACTICE §8• §fBed Wars Practice, Ranked & Duels",
-                "§6§lNEW §8» §fTimed bridge, prestiges & season badges"), settings.motd(), "what it is, then what is new");
+        assertEquals(Arrays.asList("§cRAGO PRACTICE §8• §fBed Wars Practice, Ranked & Duels",
+                "§c§lNEW §8» §fHypixel knockback, prestiges & season badges"), settings.motd(), "what it is, then what is new");
+        assertEquals("§c§lRAGO PRACTICE", Brand.NAME, "red, white and grey: the colours of the logo");
+        assertEquals("§c§lRAGO §8» §f", Brand.PREFIX);
+        assertEquals("§crago.gg", Brand.ADDRESS);
+        for (String line : settings.announcements()) {
+            assertFalse(line.contains("§e"), "no yellow of the old colours: " + line);
+        }
         assertEquals(Collections.emptyList(), ServerInfo.tooWide(settings.motd()), "each line fits in the server list");
         assertEquals(5, settings.announceMinutes());
         for (String line : settings.announcements()) {

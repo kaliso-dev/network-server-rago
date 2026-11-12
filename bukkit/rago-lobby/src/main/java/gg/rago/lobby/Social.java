@@ -20,7 +20,7 @@ final class Social {
 
     static final int MAX_FRIENDS = 100;
     static final long REQUEST_MILLIS = 5 * 60_000L;
-    static final String LINE = ChatColor.BLUE + "" + ChatColor.STRIKETHROUGH + "-----------------------------------------------------";
+    static final String LINE = Brand.ACCENT + "" + ChatColor.STRIKETHROUGH + "-----------------------------------------------------";
 
     private final RagoLobby lobby;
     private final StatsService stats;
@@ -129,14 +129,14 @@ final class Social {
                 break;
             case "help":
                 boxed(player, ChatColor.GREEN + "Friend commands:",
-                        ChatColor.YELLOW + "/f add <player>" + ChatColor.GRAY + " - Sends a friend request",
-                        ChatColor.YELLOW + "/f accept <player>" + ChatColor.GRAY + " - Accepts a friend request",
-                        ChatColor.YELLOW + "/f deny <player>" + ChatColor.GRAY + " - Denies a friend request",
-                        ChatColor.YELLOW + "/f remove <player>" + ChatColor.GRAY + " - Removes a friend",
-                        ChatColor.YELLOW + "/f list [page]" + ChatColor.GRAY + " - Lists your friends",
-                        ChatColor.YELLOW + "/f requests" + ChatColor.GRAY + " - Your pending requests",
-                        ChatColor.YELLOW + "/f toggle" + ChatColor.GRAY + " - Turns friend requests on or off",
-                        ChatColor.YELLOW + "/msg <player> <message>" + ChatColor.GRAY + " - A private message");
+                        Brand.ACCENT + "/f add <player>" + ChatColor.GRAY + " - Sends a friend request",
+                        Brand.ACCENT + "/f accept <player>" + ChatColor.GRAY + " - Accepts a friend request",
+                        Brand.ACCENT + "/f deny <player>" + ChatColor.GRAY + " - Denies a friend request",
+                        Brand.ACCENT + "/f remove <player>" + ChatColor.GRAY + " - Removes a friend",
+                        Brand.ACCENT + "/f list [page]" + ChatColor.GRAY + " - Lists your friends",
+                        Brand.ACCENT + "/f requests" + ChatColor.GRAY + " - Your pending requests",
+                        Brand.ACCENT + "/f toggle" + ChatColor.GRAY + " - Turns friend requests on or off",
+                        Brand.ACCENT + "/msg <player> <message>" + ChatColor.GRAY + " - A private message");
                 break;
             default:
                 // "/f Name" is "/f add Name", as on Hypixel
@@ -193,10 +193,10 @@ final class Social {
             return;
         }
         asked.put(player.getUniqueId(), System.currentTimeMillis());
-        boxed(player, ChatColor.YELLOW + "You sent a friend request to " + name(target) + ChatColor.YELLOW
+        boxed(player, ChatColor.GRAY + "You sent a friend request to " + name(target) + ChatColor.GRAY
                 + "! They have 5 minutes to accept it!");
         target.sendMessage(LINE);
-        target.sendMessage(ChatColor.YELLOW + "Friend request from " + name(player));
+        target.sendMessage(ChatColor.GRAY + "Friend request from " + name(player));
         Bukkit.dispatchCommand(Bukkit.getConsoleSender(), "tellraw " + target.getName() + " " + buttons(player.getName()));
         target.sendMessage(LINE);
     }
@@ -219,7 +219,7 @@ final class Social {
         }
         Player online = Bukkit.getPlayer(from.id());
         if (!accept) {
-            boxed(player, ChatColor.YELLOW + "Declined " + name(from) + ChatColor.YELLOW + "'s friend request!");
+            boxed(player, ChatColor.GRAY + "Declined " + name(from) + ChatColor.GRAY + "'s friend request!");
             return;
         }
         PlayerStats mine = profiles.of(player);
@@ -247,14 +247,14 @@ final class Social {
         other.friends().remove(player.getUniqueId());
         stats.save(mine);
         stats.save(other);
-        boxed(player, ChatColor.YELLOW + "You removed " + name(other) + ChatColor.YELLOW + " from your friends list!");
+        boxed(player, ChatColor.GRAY + "You removed " + name(other) + ChatColor.GRAY + " from your friends list!");
     }
 
     private void requests(Player player) {
         expire();
         Map<UUID, Long> asked = requests.get(player.getUniqueId());
         if (asked == null || asked.isEmpty()) {
-            boxed(player, ChatColor.YELLOW + "You have no friend requests.");
+            boxed(player, ChatColor.GRAY + "You have no friend requests.");
             return;
         }
         List<String> lines = new ArrayList<>();
@@ -271,7 +271,7 @@ final class Social {
     void list(Player player, int page) {
         List<PlayerStats> friends = friendsOf(player);
         if (friends.isEmpty()) {
-            boxed(player, ChatColor.YELLOW + "You don't have any friends yet! Add some with /friend add <player>");
+            boxed(player, ChatColor.GRAY + "You don't have any friends yet! Add some with /friend add <player>");
             return;
         }
         int pages = (friends.size() + 9) / 10;
@@ -315,9 +315,9 @@ final class Social {
         }
         String mode = lobby.state().gameOf(friend);
         if (mode != null && lobby.mode(mode) != null) {
-            return ChatColor.YELLOW + "is playing " + lobby.mode(mode).name();
+            return ChatColor.GRAY + "is playing " + lobby.mode(mode).name();
         }
-        return ChatColor.YELLOW + "is in the lobby";
+        return ChatColor.GRAY + "is in the lobby";
     }
 
     void expire() {
@@ -343,7 +343,7 @@ final class Social {
             return;
         }
         String line = ChatColor.GREEN + "Friend > " + ChatColor.RESET + name(player)
-                + (joined ? ChatColor.YELLOW + " joined." : ChatColor.YELLOW + " left.");
+                + (joined ? ChatColor.GRAY + " joined." : ChatColor.GRAY + " left.");
         for (UUID id : profile.friends()) {
             Player friend = Bukkit.getPlayer(id);
             if (friend != null && friend != player) {

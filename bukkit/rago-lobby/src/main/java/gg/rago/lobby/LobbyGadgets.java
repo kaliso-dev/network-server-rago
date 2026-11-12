@@ -608,7 +608,7 @@ final class LobbyGadgets implements Listener {
             }
             lore.add("");
             lore.add(!open ? ChatColor.RED + "Locked: " + ChatColor.LIGHT_PURPLE + "[PREMIUM+] only"
-                    : gadget == current ? ChatColor.GREEN + "In your hotbar" : ChatColor.YELLOW + "Click to take it");
+                    : gadget == current ? ChatColor.GREEN + "In your hotbar" : Brand.ACCENT + "Click to take it");
             meta.setLore(lore);
             String name = meta.getDisplayName();
             meta.setDisplayName(name.contains(" " + ChatColor.GRAY) ? name.substring(0, name.indexOf(" " + ChatColor.GRAY)) : name);

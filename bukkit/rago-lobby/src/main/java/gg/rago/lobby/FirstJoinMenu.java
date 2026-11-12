@@ -102,7 +102,7 @@ final class FirstJoinMenu {
             lore.add(ChatColor.GRAY + "and " + StatsService.rewardName(server, quests.reward()));
         }
         lore.add("");
-        lore.add(ChatColor.YELLOW + "Click to see them");
+        lore.add(Brand.ACCENT + "Click to see them");
         return ClickMenu.glow(ClickMenu.item(Material.BOOK, 0, ChatColor.GOLD + "" + ChatColor.BOLD + "Getting started", lore));
     }
 }

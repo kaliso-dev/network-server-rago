@@ -114,10 +114,10 @@ final class ProfileMenu {
                     lore.add(ChatColor.LIGHT_PURPLE + "With the [PREMIUM+] rank");
                 }
             }
-            lore.add(shown == now ? ChatColor.GREEN + "Shown" : ChatColor.YELLOW + "Click to show it");
+            lore.add(shown == now ? ChatColor.GREEN + "Shown" : Brand.ACCENT + "Click to show it");
             // the choices in a row, "Nothing" alone under them
             menu.set(shown == HeadLines.Shown.NONE ? 22 : slot++, ClickMenu.item(shown.icon(), 0,
-                    (shown == now ? ChatColor.GREEN : ChatColor.YELLOW) + shown.title(),
+                    (shown == now ? ChatColor.GREEN : Brand.ACCENT) + shown.title(),
                     lore), (p, right) -> {
                         profiles.setHeadLine(p, shown);
                         openDisplay(p);
@@ -146,14 +146,14 @@ final class ProfileMenu {
         menu.set(4, ClickMenu.head(player.getName(), profiles.styledName(player.getUniqueId(), player.getName()),
                 summary(profile, player.getUniqueId())), null);
         menu.set(19, ClickMenu.item(Material.PAPER, ChatColor.GREEN + "Stats", "Wins, kills, streaks and ELO", "of every mode.",
-                "", ChatColor.YELLOW + "Click to open"), (p, right) -> statsMenu.open(p));
+                "", Brand.ACCENT + "Click to open"), (p, right) -> statsMenu.open(p));
         menu.set(21, ClickMenu.head(player.getName(), ChatColor.GREEN + "Friends", listOf(
                 "Friends: " + ChatColor.WHITE + profile.friends().size() + ChatColor.GRAY + "/" + Social.MAX_FRIENDS,
-                "", "Add one: /friend add <name>", "", ChatColor.YELLOW + "Click to see them")), (p, right) -> openFriends(p));
+                "", "Add one: /friend add <name>", "", Brand.ACCENT + "Click to see them")), (p, right) -> openFriends(p));
         menu.set(23, ClickMenu.item(Material.EMERALD, ChatColor.GREEN + "Rago Shop", "Ranks and cosmetics.", "",
-                ChatColor.YELLOW + "Click to open"), (p, right) -> shop.open(p));
+                Brand.ACCENT + "Click to open"), (p, right) -> shop.open(p));
         menu.set(25, ClickMenu.item(Material.REDSTONE_COMPARATOR, ChatColor.GREEN + "Settings", "Messages, invites,",
-                "requests, time of day,", "play again. Also /settings.", "", ChatColor.YELLOW + "Click to change"),
+                "requests, time of day,", "play again. Also /settings.", "", Brand.ACCENT + "Click to change"),
                 (p, right) -> openSettings(p));
         if (styles != null) {
             NameStyle badge = profiles.names().badge(player.getUniqueId());
@@ -161,35 +161,35 @@ final class ProfileMenu {
                     "Your name: " + profiles.names().name(player.getUniqueId(), player.getName()),
                     "Your badge: " + (badge == null ? ChatColor.DARK_GRAY + "none" : badge.text()),
                     "", "Gradients and badges such as", "§c§lRAGO§7, §6§lBETTER§7, §4§lPVP§7 or §c§lYT§7.",
-                    "", ChatColor.YELLOW + "Click to change")), (p, right) -> styles.open(p));
+                    "", Brand.ACCENT + "Click to change")), (p, right) -> styles.open(p));
         }
         PlayerStats mine = profiles.of(player);
         HeadLines.Shown above = HeadLines.Shown.of(mine.headLine() == null ? "elo" : mine.headLine());
         menu.set(28, ClickMenu.item(Material.SIGN, 0, ChatColor.GREEN + "Above your name", listOf(
                 "What the others read above", "your name: your ELO, level,", "wins, kills, best streak,",
-                "title, or a message of yours", "(PREMIUM).", "", "Now: " + ChatColor.YELLOW + (above == null ? "Ranked ELO" : above.title()), "",
-                ChatColor.YELLOW + "Click to change")), (p, right) -> openDisplay(p));
+                "title, or a message of yours", "(PREMIUM).", "", "Now: " + Brand.ACCENT + (above == null ? "Ranked ELO" : above.title()), "",
+                Brand.ACCENT + "Click to change")), (p, right) -> openDisplay(p));
         if (levels != null) {
             menu.set(32, ClickMenu.item(Material.BREWING_STAND_ITEM, 0, ChatColor.AQUA + "Network Level & quests", listOf(
                     "Your level, the rewards of every", "5 levels, the daily and weekly", "quests.", "",
-                    ChatColor.YELLOW + "Click to open")), (p, right) -> levels.open(p));
+                    Brand.ACCENT + "Click to open")), (p, right) -> levels.open(p));
         }
-        menu.set(34, ClickMenu.item(Material.FISHING_ROD, 0, ChatColor.YELLOW + "Gadgets", listOf(
+        menu.set(34, ClickMenu.item(Material.FISHING_ROD, 0, Brand.ACCENT + "Gadgets", listOf(
                 "The gadget of your hotbar: the", "teleport stick, the grappling", "hook, the paintball gun, the",
-                "firework launcher, the party", "popper or the leap feather.", "", "Now: " + ChatColor.YELLOW
+                "firework launcher, the party", "popper or the leap feather.", "", "Now: " + Brand.ACCENT
                         + ChatColor.stripColor(lobby.gadgetOf(player).create().getItemMeta().getDisplayName()).replace(" (right click)", ""),
-                "", ChatColor.YELLOW + "Click to change")), (p, right) -> lobby.openGadgets(p));
+                "", Brand.ACCENT + "Click to change")), (p, right) -> lobby.openGadgets(p));
         Titles all = profiles.server().titles();
         if (titles != null && all.on()) {
             Titles.Title worn = all.worn(mine);
             menu.set(39, ClickMenu.item(Material.GOLD_INGOT, 0, ChatColor.GOLD + "Titles", listOf(
                     "A title for each mode, earned", "with wins: Sumo Gold III...", "", "Yours: " + (worn == null
                             ? ChatColor.DARK_GRAY + "none yet" : worn.text()), "",
-                    ChatColor.YELLOW + "Click to see them")), (p, right) -> titles.open(p));
+                    Brand.ACCENT + "Click to see them")), (p, right) -> titles.open(p));
         }
         boolean ready = profiles.dailyReady(player.getUniqueId());
         menu.set(41, ClickMenu.item(ready ? Material.CHEST : Material.ENDER_CHEST, ChatColor.AQUA + "Daily reward",
-                ready ? ChatColor.YELLOW + "Click to claim" : ChatColor.GRAY + "Claimed today, come back tomorrow"),
+                ready ? Brand.ACCENT + "Click to claim" : ChatColor.GRAY + "Claimed today, come back tomorrow"),
                 (p, right) -> {
                     profiles.claimDaily(p);
                     open(p);
@@ -216,7 +216,7 @@ final class ProfileMenu {
             lore.add(social.where(player, friend.id()));
             lore.add("Network level: " + stats.book().levels().tag(stats.book().levels().level(friend.xp())));
             lore.add("");
-            lore.add(ChatColor.YELLOW + "Right click to remove");
+            lore.add(Brand.ACCENT + "Right click to remove");
             menu.set(i, ClickMenu.head(friend.name(), profiles.styledName(friend.id(), friend.name()), lore), (p, right) -> {
                 if (right) {
                     social.command(p, new String[] {"remove", friend.name()});
@@ -311,7 +311,7 @@ final class ProfileMenu {
         lore.add("");
         lore.add("Now: " + (on ? ChatColor.GREEN : ChatColor.RED) + value);
         lore.add("");
-        lore.add(ChatColor.YELLOW + "Click to change");
+        lore.add(Brand.ACCENT + "Click to change");
         return ClickMenu.item(icon, icon == Material.SKULL_ITEM ? 3 : 0, (on ? ChatColor.GREEN : ChatColor.RED) + name, lore);
     }
 }

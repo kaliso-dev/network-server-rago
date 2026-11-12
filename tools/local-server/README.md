@@ -253,8 +253,8 @@ tes schematics et tes sauvegardes dans le dossier Rago. Il faut seulement redeve
 ## Pour les développeurs
 
 La CI assemble ce dossier à chaque push (artefact « rago-serveur-de-test ») : les fichiers de
-tools/local-server (dont server-icon.png, le logo de la liste des serveurs : un R jaune sur fond
-sombre), ce mode d'emploi renommé LISEZ-MOI.txt, et les jars de RagoCombatEngine, de
+tools/local-server (dont server-icon.png, le logo de la liste des serveurs : un R blanc sur un
+hexagone rouge), ce mode d'emploi renommé LISEZ-MOI.txt, et les jars de RagoCombatEngine, de
 RagoBuildTools (tools/build-tools), de RagoLobby (bukkit/rago-lobby), de RagoPractice
 (bukkit/rago-practice) et de RagoBedwars (bukkit/rago-bedwars) dans plugins/. Elle démarre le serveur deux fois, sur Linux et Windows,
 avec Java 8 et Java 21 : elle vérifie que les plugins s'activent, qu'un monde créé au premier

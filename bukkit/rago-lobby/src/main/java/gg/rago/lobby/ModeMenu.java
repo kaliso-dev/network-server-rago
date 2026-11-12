@@ -525,7 +525,7 @@ final class ModeMenu {
         lore.add(ChatColor.WHITE + (challengeLabel == null ? "" : challengeLabel));
         lore.add("");
         lore.add(ChatColor.GRAY + "The best scores of the day");
-        lore.add(ChatColor.GRAY + "win XP: " + ChatColor.YELLOW + "/challenge");
+        lore.add(ChatColor.GRAY + "win XP: " + Brand.ACCENT + "/challenge");
         lore.add("");
         lore.add(ChatColor.GREEN + "Click to play it");
         meta.setLore(lore);
@@ -545,7 +545,7 @@ final class ModeMenu {
         lore.add(ChatColor.GRAY + "the shortest wait.");
         lore.add("");
         lore.add(ChatColor.GRAY + "In queue: " + ChatColor.WHITE + queues.waiting(mode.id()));
-        lore.add(waitingHere && waitingFor == null ? ChatColor.YELLOW + "You are in this queue: click to leave it"
+        lore.add(waitingHere && waitingFor == null ? Brand.ACCENT + "You are in this queue: click to leave it"
                 : ChatColor.GREEN + "Click to join the queue");
         meta.setLore(lore);
         any.setItemMeta(meta);
@@ -555,12 +555,12 @@ final class ModeMenu {
             boolean chosen = waitingHere && map.equalsIgnoreCase(waitingFor);
             ItemStack item = new ItemStack(Material.EMPTY_MAP);
             meta = item.getItemMeta();
-            meta.setDisplayName((chosen ? ChatColor.YELLOW : ChatColor.AQUA) + map);
+            meta.setDisplayName((chosen ? Brand.ACCENT : ChatColor.AQUA) + map);
             lore = new ArrayList<>();
             lore.add(ChatColor.DARK_GRAY + ChatColor.stripColor(mode.name()));
             lore.add("");
             lore.add(ChatColor.GRAY + "Waiting for this map: " + ChatColor.WHITE + queues.waitingFor(mode.id(), map));
-            lore.add(chosen ? ChatColor.YELLOW + "You are in this queue: click to leave it"
+            lore.add(chosen ? Brand.ACCENT + "You are in this queue: click to leave it"
                     : ChatColor.GREEN + "Click to play on " + map);
             meta.setLore(lore);
             item.setItemMeta(meta);
@@ -606,7 +606,7 @@ final class ModeMenu {
             }
         }
         if (here) {
-            lore.add(ChatColor.YELLOW + "You are in a queue of this category");
+            lore.add(Brand.ACCENT + "You are in a queue of this category");
         }
         lore.add(ChatColor.GREEN + "Click to see the modes");
         meta.setLore(lore);
@@ -636,14 +636,14 @@ final class ModeMenu {
             if (here) {
                 waitingIn.add(ChatColor.stripColor(mode.name()));
             }
-            lore.add((here ? ChatColor.YELLOW + "\u25b8 " : ChatColor.DARK_GRAY + "\u25b8 ") + ChatColor.WHITE
+            lore.add((here ? Brand.ACCENT + "\u25b8 " : ChatColor.DARK_GRAY + "\u25b8 ") + ChatColor.WHITE
                     + ChatColor.stripColor(mode.name()) + ChatColor.GRAY + ": "
                     + (queues.isPlayable(mode.id()) ? ChatColor.WHITE + "" + queues.waiting(mode.id()) + ChatColor.GRAY + " in queue"
                             : ChatColor.GRAY + "coming soon"));
         }
         lore.add("");
         if (!waitingIn.isEmpty()) {
-            lore.add(ChatColor.YELLOW + (waitingIn.size() > 1 ? "You are in the queues of " : "You are in the queue of ")
+            lore.add(Brand.ACCENT + (waitingIn.size() > 1 ? "You are in the queues of " : "You are in the queue of ")
                     + String.join(", ", waitingIn));
         }
         lore.add(ChatColor.GREEN + "Click to choose");
@@ -689,7 +689,7 @@ final class ModeMenu {
         // queue of another is waited in while training
         boolean training = viewer instanceof Player && queues.inGame((Player) viewer);
         boolean alone = Matchmaker.alone(mode);
-        lore.add(waitingHere ? ChatColor.YELLOW + "You are in this queue: click to leave it"
+        lore.add(waitingHere ? Brand.ACCENT + "You are in this queue: click to leave it"
                 : maps >= 2 ? ChatColor.GREEN + "Click to choose the map (" + maps + ")"
                 : alone ? ChatColor.GREEN + "Click to play"
                 : ChatColor.GREEN + "Click to join the queue");
@@ -712,10 +712,10 @@ final class ModeMenu {
         ModeStats mine = stats == null ? null : stats.mode(mode.id());
         int own = mine != null && StatsPeriod.dayKey(now).equals(mine.day) ? mine.streak : 0;
         List<String> lines = new ArrayList<>();
-        lines.add(ChatColor.YELLOW + "Daily Streak: " + own);
+        lines.add(Brand.ACCENT + "Daily Streak: " + own);
         List<StatsBook.TeamRow> top = book.topStreaks(mode.id(), StatsPeriod.DAY, now);
         for (int i = 0; i < top.size() && i < TOP_STREAKS; i++) {
-            lines.add(ChatColor.YELLOW + " " + (i + 1) + ". " + ChatColor.WHITE + top.get(i).names() + ChatColor.YELLOW
+            lines.add(Brand.ACCENT + " " + (i + 1) + ". " + ChatColor.WHITE + top.get(i).names() + Brand.ACCENT
                     + " - " + top.get(i).value());
         }
         if (viewer != null) {
@@ -728,10 +728,10 @@ final class ModeMenu {
     static String positionLine(List<StatsBook.TeamRow> rows, java.util.UUID player) {
         for (int i = 0; i < rows.size(); i++) {
             if (rows.get(i).players().contains(player)) {
-                return ChatColor.YELLOW + "Your position: " + ChatColor.WHITE + "#" + (i + 1) + ChatColor.GRAY + " ("
+                return Brand.ACCENT + "Your position: " + ChatColor.WHITE + "#" + (i + 1) + ChatColor.GRAY + " ("
                         + rows.get(i).value() + ")";
             }
         }
-        return ChatColor.YELLOW + "Your position: " + ChatColor.GRAY + "-";
+        return Brand.ACCENT + "Your position: " + ChatColor.GRAY + "-";
     }
 }

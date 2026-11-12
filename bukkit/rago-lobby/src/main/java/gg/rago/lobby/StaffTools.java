@@ -143,7 +143,7 @@ final class StaffTools implements Listener {
                     player.sendMessage(" ");
                 }
             }
-            player.sendMessage(ChatColor.YELLOW + "The chat was cleared by a staff member.");
+            player.sendMessage(ChatColor.GRAY + "The chat was cleared by a staff member.");
         }
         lobby.getLogger().info(by.getName() + " cleared the chat");
     }
@@ -261,8 +261,8 @@ final class StaffTools implements Listener {
         }
         lastReport.put(from.getUniqueId(), now);
         String mode = lobby.state().gameOf(target.getUniqueId());
-        String line = ChatColor.RED + "[REPORT] " + ChatColor.YELLOW + from.getName() + ChatColor.GRAY + " reported "
-                + ChatColor.YELLOW + target.getName() + ChatColor.GRAY + (mode == null ? " (lobby)" : " (" + mode + ")") + ": "
+        String line = ChatColor.RED + "[REPORT] " + ChatColor.WHITE + from.getName() + ChatColor.GRAY + " reported "
+                + Brand.ACCENT + target.getName() + ChatColor.GRAY + (mode == null ? " (lobby)" : " (" + mode + ")") + ": "
                 + ChatColor.WHITE + reason;
         // nobody else's chat shows it (the staff in a game would see it there): /reports, and the console
         reports.addFirst(ChatColor.DARK_GRAY + new SimpleDateFormat("HH:mm").format(new Date(now)) + " " + line);

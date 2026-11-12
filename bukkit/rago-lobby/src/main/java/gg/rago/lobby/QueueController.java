@@ -266,7 +266,7 @@ final class QueueController {
         MatchProposal match = new MatchProposal(mode, Collections.singletonList(Collections.singletonList(
                 new QueueEntry(id, settings.defaultRating(), System.currentTimeMillis()))));
         if (!ready(host, match)) {
-            player.sendMessage(ChatColor.YELLOW + "This mode is being prepared: try again in a moment.");
+            player.sendMessage(ChatColor.GRAY + "This mode is being prepared: try again in a moment.");
             return true;
         }
         if (!release(player)) {
@@ -289,7 +289,7 @@ final class QueueController {
         } else {
             // back to the lobby: the game the player left is over for them
             lobby.cancelGame(player);
-            player.sendMessage(ChatColor.YELLOW + "No free arena right now: try again in a moment.");
+            player.sendMessage(ChatColor.GRAY + "No free arena right now: try again in a moment.");
         }
         onChange.run();
         return true;
@@ -372,7 +372,7 @@ final class QueueController {
         }
         matchmaker.leave(id);
         toldNoArena.remove(id);
-        player.sendMessage(ChatColor.YELLOW + "You left the " + queuesFor(waiting, ChatColor.YELLOW)
+        player.sendMessage(ChatColor.GRAY + "You left the " + queuesFor(waiting, ChatColor.GRAY)
                 + ": you keep your place in a queue during a training only.");
         onChange.run();
     }
@@ -610,9 +610,9 @@ final class QueueController {
                 toldNoArena.remove(member);
                 Player online = Bukkit.getPlayer(member);
                 if (online != null) {
-                    online.sendMessage(ChatColor.YELLOW + "The party changed: "
+                    online.sendMessage(ChatColor.GRAY + "The party changed: "
                             + (together.size() > 1 ? "your party left" : "you left") + " the "
-                            + queuesFor(waiting, ChatColor.YELLOW) + ".");
+                            + queuesFor(waiting, ChatColor.GRAY) + ".");
                 }
             }
             onChange.run();
@@ -664,15 +664,15 @@ final class QueueController {
         toldNoArena.remove(player.getUniqueId());
         if (left != null) {
             if (tell && together.size() < 2) {
-                player.sendMessage(ChatColor.YELLOW + "You left the " + queuesFor(waiting, ChatColor.YELLOW) + ".");
+                player.sendMessage(ChatColor.GRAY + "You left the " + queuesFor(waiting, ChatColor.GRAY) + ".");
             }
             if (together.size() >= 2) {
                 for (UUID member : together) {
                     toldNoArena.remove(member);
                     Player online = Bukkit.getPlayer(member);
                     if (online != null && (tell || !online.equals(player))) {
-                        online.sendMessage(ChatColor.YELLOW + (online.equals(player) ? "You" : player.getName())
-                                + " left the queue: your party left the queue for " + left.name() + ChatColor.YELLOW + ".");
+                        online.sendMessage(ChatColor.GRAY + (online.equals(player) ? "You" : player.getName())
+                                + " left the queue: your party left the queue for " + left.name() + ChatColor.GRAY + ".");
                     }
                 }
             }
@@ -695,7 +695,7 @@ final class QueueController {
         }
         matchmaker.leave(id, mode.id());
         if (tell) {
-            player.sendMessage(ChatColor.YELLOW + "You left the queue for " + mode.name() + ChatColor.YELLOW + ".");
+            player.sendMessage(ChatColor.GRAY + "You left the queue for " + mode.name() + ChatColor.GRAY + ".");
         }
         onChange.run();
         return true;
@@ -709,8 +709,8 @@ final class QueueController {
             for (UUID member : together) {
                 Player online = Bukkit.getPlayer(member);
                 if (online != null && !member.equals(player)) {
-                    online.sendMessage(ChatColor.YELLOW + "A player of your party left the server: your party left the queue for "
-                            + left.name() + ChatColor.YELLOW + ".");
+                    online.sendMessage(ChatColor.GRAY + "A player of your party left the server: your party left the queue for "
+                            + left.name() + ChatColor.GRAY + ".");
                 }
             }
             onChange.run();
@@ -798,7 +798,7 @@ final class QueueController {
         if (host != null && !ready(host, match)) {
             // a copy of the map is being made: the game starts as soon as it is there
             waitingDirect.add(new DirectWait(match, privateGame, practice, System.currentTimeMillis() + DIRECT_WAIT_MILLIS));
-            tell(match, ChatColor.YELLOW + "The map is being prepared: the game starts in a moment.");
+            tell(match, ChatColor.GRAY + "The map is being prepared: the game starts in a moment.");
             onChange.run();
             return true;
         }
@@ -838,7 +838,7 @@ final class QueueController {
                 onChange.run();
             } else if (now > wait.until) {
                 waitingDirect.remove(wait);
-                tell(wait.match, ChatColor.YELLOW + "No free arena right now: try again in a moment.");
+                tell(wait.match, ChatColor.GRAY + "No free arena right now: try again in a moment.");
             }
         }
     }
@@ -910,7 +910,7 @@ final class QueueController {
             requeueOnline(match);
             for (Player player : players) {
                 if (toldNoArena.add(player.getUniqueId())) {
-                    player.sendMessage(ChatColor.YELLOW + "The map is being prepared: you keep your place in the queue.");
+                    player.sendMessage(ChatColor.GRAY + "The map is being prepared: you keep your place in the queue.");
                 }
             }
             return false;
@@ -963,14 +963,14 @@ final class QueueController {
         }
         if (!requeue) {
             for (Player player : players) {
-                player.sendMessage(ChatColor.YELLOW + "No free arena right now: try again in a moment.");
+                player.sendMessage(ChatColor.GRAY + "No free arena right now: try again in a moment.");
             }
             return false;
         }
         requeueOnline(match);
         for (Player player : players) {
             if (toldNoArena.add(player.getUniqueId())) {
-                player.sendMessage(ChatColor.YELLOW + "No free arena right now: you keep your place in the queue.");
+                player.sendMessage(ChatColor.GRAY + "No free arena right now: you keep your place in the queue.");
             }
         }
         return false;
@@ -1009,8 +1009,8 @@ final class QueueController {
             }
             requeueOnline(match, player.getUniqueId());
             matchmaker.leave(player.getUniqueId());
-            player.sendMessage(ChatColor.YELLOW + "Your game could not let you go: you left the queue for " + match.mode().name()
-                    + ChatColor.YELLOW + ".");
+            player.sendMessage(ChatColor.GRAY + "Your game could not let you go: you left the queue for " + match.mode().name()
+                    + ChatColor.GRAY + ".");
             return false;
         }
         for (Player player : freed) {
@@ -1045,7 +1045,7 @@ final class QueueController {
                     && !brokenParties.contains(entry.party())) {
                 back.add(entry);
             } else if (player != null && entry.party() != null && brokenParties.contains(entry.party())) {
-                player.sendMessage(ChatColor.YELLOW + "A player of your party is not in the lobby any more: your party left the queue.");
+                player.sendMessage(ChatColor.GRAY + "A player of your party is not in the lobby any more: your party left the queue.");
             }
         }
         matchmaker.requeue(match.mode().id(), back);

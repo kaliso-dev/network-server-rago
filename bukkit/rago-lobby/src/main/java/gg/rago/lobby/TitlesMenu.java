@@ -65,7 +65,7 @@ final class TitlesMenu {
             } else if (wearing) {
                 lore.add(ChatColor.GREEN + (choice == null ? "You wear it: your best" : "You wear it"));
             } else {
-                lore.add(ChatColor.YELLOW + "Click to wear it");
+                lore.add(Brand.ACCENT + "Click to wear it");
             }
             ItemStack item = ClickMenu.item(icon(family), 0, title == null ? ChatColor.GRAY + family.name : title.text(), lore);
             menu.set(slot(i), wearing ? ClickMenu.glow(item) : item, (p, right) -> {
@@ -75,7 +75,7 @@ final class TitlesMenu {
                 }
             });
         }
-        menu.set(BEST_SLOT, ClickMenu.item(Material.NETHER_STAR, 0, (choice == null ? ChatColor.GREEN : ChatColor.YELLOW)
+        menu.set(BEST_SLOT, ClickMenu.item(Material.NETHER_STAR, 0, (choice == null ? ChatColor.GREEN : Brand.ACCENT)
                 + "Your best title", choiceLore(choice == null, "Wear your best title, the", "next one as soon as you", "earn it.")),
                 (p, right) -> {
                     profiles.setTitle(p, null);
@@ -85,7 +85,7 @@ final class TitlesMenu {
             menu.set(BACK_SLOT, ClickMenu.back("My profile"), back);
         }
         boolean none = Titles.NONE.equals(choice);
-        menu.set(NONE_SLOT, ClickMenu.item(Material.BARRIER, 0, (none ? ChatColor.GREEN : ChatColor.YELLOW) + "No title",
+        menu.set(NONE_SLOT, ClickMenu.item(Material.BARRIER, 0, (none ? ChatColor.GREEN : Brand.ACCENT) + "No title",
                 choiceLore(none, "Wear no title, in the chat", "or above your name.")), (p, right) -> {
                     profiles.setTitle(p, Titles.NONE);
                     open(p);
@@ -176,7 +176,7 @@ final class TitlesMenu {
             lore.add(line);
         }
         lore.add("");
-        lore.add(chosen ? ChatColor.GREEN + "Chosen" : ChatColor.YELLOW + "Click to choose");
+        lore.add(chosen ? ChatColor.GREEN + "Chosen" : Brand.ACCENT + "Click to choose");
         return lore;
     }
 

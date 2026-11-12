@@ -485,16 +485,16 @@ abstract class Training extends PracticeGame {
                     : ChatColor.WHITE + "" + setting.initial);
             if (setting.toggle) {
                 items[row + VALUE_COLUMN] = named(Material.INK_SACK, 1, setting.on() ? GREEN_DYE : GRAY_DYE,
-                        ChatColor.WHITE + setting.label + ": " + setting.text(), byDefault, ChatColor.YELLOW + "Click: on or off");
+                        ChatColor.WHITE + setting.label + ": " + setting.text(), byDefault, ChatColor.RED + "Click: on or off");
                 continue;
             }
             int amount = Math.max(1, Math.min(64, setting.value));
             items[row + LOWER_COLUMN] = named(Material.STAINED_GLASS_PANE, 1, RED_PANE, ChatColor.RED + "- " + setting.label,
-                    ChatColor.YELLOW + "Click: lower");
+                    ChatColor.RED + "Click: lower");
             items[row + VALUE_COLUMN] = named(Material.PAPER, amount, 0, ChatColor.WHITE + setting.label + ": " + setting.text(),
                     byDefault);
             items[row + RAISE_COLUMN] = named(Material.STAINED_GLASS_PANE, 1, GREEN_PANE, ChatColor.GREEN + "+ " + setting.label,
-                    ChatColor.YELLOW + "Click: raise");
+                    ChatColor.RED + "Click: raise");
         }
         int bottom = bottomRow() * 9;
         if (!settings.isEmpty()) {
@@ -505,7 +505,7 @@ abstract class Training extends PracticeGame {
             Preset preset = presets.get(i);
             List<String> lore = new ArrayList<>();
             lore.add(ChatColor.GRAY + preset.description);
-            lore.add(matches(preset) ? ChatColor.GREEN + "Your settings now" : ChatColor.YELLOW + "Click: use it");
+            lore.add(matches(preset) ? ChatColor.GREEN + "Your settings now" : ChatColor.RED + "Click: use it");
             items[bottom + presetColumn(i)] = named(preset.icon, 1, 0, ChatColor.GOLD + "Preset: " + preset.name,
                     lore.toArray(new String[0]));
         }
@@ -522,7 +522,7 @@ abstract class Training extends PracticeGame {
         if (host.challenges() != null && host.challenges().isToday(mode.id() + "." + v.id)) {
             lore.add(ChatColor.GOLD + "\u2726 Challenge of the day");
         }
-        lore.add(index == variant ? ChatColor.GREEN + "Playing now" : ChatColor.YELLOW + "Click: play this mode");
+        lore.add(index == variant ? ChatColor.GREEN + "Playing now" : ChatColor.RED + "Click: play this mode");
         ItemStack item = named(index == variant ? Material.EMPTY_MAP : Material.PAPER, index + 1, 0,
                 (index == variant ? ChatColor.GREEN : ChatColor.WHITE) + v.label, lore.toArray(new String[0]));
         return item;

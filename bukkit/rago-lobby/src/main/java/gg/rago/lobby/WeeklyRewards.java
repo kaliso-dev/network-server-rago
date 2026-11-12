@@ -419,7 +419,7 @@ final class WeeklyRewards {
      * enough for a floating line ("Top 3 on Monday: 2,000 · 1,000 · 500 points + ♛").
      */
     static String boardLine(Settings settings, String badgeText) {
-        StringBuilder line = new StringBuilder(ChatColor.GOLD + "Top " + settings.places() + " on Monday: " + ChatColor.YELLOW);
+        StringBuilder line = new StringBuilder(ChatColor.GOLD + "Top " + settings.places() + " on Monday: " + Brand.ACCENT);
         if (settings.total() > 0 && settings.places() <= 3) {
             for (int i = 0; i < settings.places(); i++) {
                 line.append(i == 0 ? "" : " · ").append(number(settings.points.get(i)));
@@ -450,7 +450,7 @@ final class WeeklyRewards {
             lines.add(ChatColor.GRAY + "Nobody played this week.");
         }
         for (Podium podium : results.podiums) {
-            StringBuilder line = new StringBuilder(ChatColor.YELLOW + podium.board + ChatColor.DARK_GRAY + " » ");
+            StringBuilder line = new StringBuilder(Brand.ACCENT + podium.board + ChatColor.DARK_GRAY + " » ");
             for (int i = 0; i < podium.places.size(); i++) {
                 line.append(i == 0 ? "" : ChatColor.DARK_GRAY + " · ").append(place(podium.places.get(i)));
             }
@@ -474,7 +474,7 @@ final class WeeklyRewards {
                 int points = settings.points(place.place);
                 lines.add(ChatColor.GOLD + "" + ChatColor.BOLD + "TOP OF THE WEEK! " + ChatColor.GRAY + "You are "
                         + PLACES[Math.min(place.place, PLACES.length) - 1] + "#" + place.place + ChatColor.GRAY + " in "
-                        + ChatColor.YELLOW + podium.board + ChatColor.GRAY + " (" + weekName(results.week) + ")"
+                        + Brand.ACCENT + podium.board + ChatColor.GRAY + " (" + weekName(results.week) + ")"
                         + (points > 0 ? ": " + ChatColor.GOLD + "+" + number(points) + " Rago Points" : ""));
             }
         }

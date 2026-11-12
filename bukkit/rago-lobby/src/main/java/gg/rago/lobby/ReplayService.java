@@ -496,7 +496,7 @@ final class ReplayService implements Replays, Listener {
             }
         }
         if (mine.isEmpty()) {
-            player.sendMessage(ChatColor.YELLOW + "No replay yet: play a duel or a Bed Wars game, its replay comes here"
+            player.sendMessage(ChatColor.GRAY + "No replay yet: play a duel or a Bed Wars game, its replay comes here"
                     + " (kept " + keepDays + (keepDays == 1 ? " day)." : " days)."));
             return;
         }
@@ -515,7 +515,7 @@ final class ReplayService implements Replays, Listener {
             }
             lore.add("");
             lore.add(ChatColor.GRAY + "Code: " + ChatColor.WHITE + info.id);
-            lore.add(ChatColor.YELLOW + "Click to watch!");
+            lore.add(Brand.ACCENT + "Click to watch!");
             String name = ChatColor.GREEN + (info.modeName.isEmpty() ? info.modeId : info.modeName);
             menu.set(i, ClickMenu.item(Material.EMPTY_MAP, 0, name, lore), (clicker, right) -> {
                 clicker.closeInventory();
@@ -738,7 +738,7 @@ final class ReplayService implements Replays, Listener {
             final int actor = a;
             ReplayData.Actor each = info.actors.get(a);
             menu.set(a, ClickMenu.head(each.name, ChatColor.COLOR_CHAR + "" + each.colour + each.name,
-                    Arrays.asList(ChatColor.YELLOW + "Click to go to them!")), (clicker, right) -> {
+                    Arrays.asList(Brand.ACCENT + "Click to go to them!")), (clicker, right) -> {
                         clicker.closeInventory();
                         if (viewers.get(clicker.getUniqueId()) == viewer) {
                             viewer.goTo(actor);
