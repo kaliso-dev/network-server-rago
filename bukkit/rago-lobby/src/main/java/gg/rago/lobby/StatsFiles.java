@@ -293,7 +293,8 @@ final class StatsFiles {
         ConfigurationSection quests = yaml.getConfigurationSection("profil.quetes.progres");
         if (quests != null) {
             for (String key : quests.getKeys(false)) {
-                if (key.matches("[dw]-.+")) {
+                // d: the daily quests, w: the weekly ones, s: Getting started (never reset)
+                if (key.matches("[dws]-.+")) {
                     stats.setQuestProgress(key.charAt(0) + ":" + key.substring(2), Math.max(0, quests.getInt(key)));
                 }
             }

@@ -100,6 +100,43 @@ categories:
 # slogan), a click opens its modes (/play category); at the first arrival, a title too. false: none.
 accueil: true
 
+# At the first arrival on the server, a menu "What do you want to do?": each choice a click away
+# from playing, and Getting started (the quests of a new player) under them. Per choice: nom,
+# icone, description, and mode (joins its queue, a training starts at once; while the mode is not
+# played, its category opens) or categorie (opens that category). 7 at most. {}: no menu.
+premiere-venue:
+  entrainer:
+    nom: "&bTrain a skill"
+    icone: LADDER
+    mode: clutch
+    description:
+      - "Start with the block clutch:"
+      - "a hit throws you off, place"
+      - "your wool to save yourself."
+  ranked:
+    nom: "&6Play Ranked Bedwars"
+    icone: BED
+    mode: ranked-1v1
+    description:
+      - "1v1 on the RBW maps, your ELO"
+      - "from the first game. Train"
+      - "while you wait."
+  duel:
+    nom: "&aDuel a friend"
+    icone: IRON_SWORD
+    categorie: duels
+    description:
+      - "/duel <player> challenges a"
+      - "friend; or a duel with anyone:"
+      - "sumo, boxing, bridge..."
+  arenes:
+    nom: "&cFight now"
+    icone: DIAMOND_SWORD
+    mode: ffa
+    description:
+      - "The FFA: no queue, in at once"
+      - "with whoever is there."
+
 # The groups: the sizes of one game (1v1, 2v2...), one item in their category which opens them
 # side by side, as the games of Hypixel. A mode is in a group with groupe: (the modes of a group
 # are of one category); the item shows where its first mode is in the list of the modes.
@@ -347,7 +384,16 @@ niveau:
 #   nom       what the player reads
 #   type      what counts: parties (games played), victoires (wins), kills, victoires-classees
 #   objectif  how many; xp: the Network XP it gives; mode: count one mode only (its id)
+# debut: Getting started, the quests of a new player, once each: play a training (entrainement),
+# beat one of your records (record), play a duel (a 1v1 to the end), import your Hypixel quick
+# buy (quick-buy, only with hypixel.cle-api) and find our Discord (/discord, only with its link).
+# points: the Rago Points of each; recompense: what all of them give, a cosmetic of the shop or
+# a style (one already owned gives its price in points), "" for nothing. actif: false, none.
 quetes:
+  debut:
+    actif: true
+    points: {entrainement: 100, record: 150, duel: 150, quick-buy: 100, discord: 100}
+    recompense: trail-emeralds
   quotidiennes:
     jouer: {nom: "Play 5 games", type: parties, objectif: 5, xp: 500}
     gagner: {nom: "Win 3 games", type: victoires, objectif: 3, xp: 750}

@@ -93,6 +93,13 @@ final class HypixelProfiles {
         });
     }
 
+    /** Told of each import that worked (the player online, main thread): the quests of a new player. */
+    private java.util.function.Consumer<UUID> onImported = id -> { };
+
+    void setOnImported(java.util.function.Consumer<UUID> onImported) {
+        this.onImported = onImported;
+    }
+
     /** True when config.yml has an API key: without one, nothing can be imported. */
     boolean enabled() {
         return !apiKey.isEmpty();
@@ -208,6 +215,7 @@ final class HypixelProfiles {
                             + profile.items() + " items in the quick buy"
                             + (profile.hotbar() != null ? " and the hotbar manager." : ", no hotbar manager.")
                             + ChatColor.YELLOW + " /hypixel shop to see it.");
+                    onImported.accept(id);
                 }
             });
         });

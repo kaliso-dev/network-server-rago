@@ -5,7 +5,9 @@ RagoCombatEngine, RagoLobby, RagoPractice et RagoBedwars. Deux bots mineflayer (
 `tools/kb-control/bots/lobby-bots.mjs`, qui partage les dépendances des bots du test de contrôle)
 jouent comme des joueurs :
 
-1. ils arrivent dans le lobby : mode aventure, la boussole, le livre de l'éditeur de kit et le
+1. ils arrivent dans le lobby pour la première fois : « What do you want to do? » s'ouvre un
+   instant après l'accueil (quatre façons de jouer, le livre de Getting started), et ils le
+   ferment ; mode aventure, la boussole, le livre de l'éditeur de kit et le
    colorant dans la barre d'objets, le scoreboard. Le script donne au sumo un kit d'un bâton (le
    config.yml fourni n'en a pas) : RagoUn ouvre l'éditeur avec le livre, choisit le sumo, déplace
    le bâton de la première case à la quatrième, enregistre, et le retrouve là en rouvrant
