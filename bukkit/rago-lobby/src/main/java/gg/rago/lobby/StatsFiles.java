@@ -87,6 +87,9 @@ final class StatsFiles {
         if (stats.plusChoice() != null) {
             yaml.set("profil.style.plus", stats.plusChoice());
         }
+        if (stats.titleChoice() != null) {
+            yaml.set("profil.style.titre", stats.titleChoice());
+        }
         if (stats.boosters() > 0 || stats.dailyBoosters() > 0 || stats.boosterLeftMs() > 0 || stats.boosterDay() != null) {
             yaml.set("profil.boosters.nombre", stats.boosters());
             yaml.set("profil.boosters.gratuits", stats.dailyBoosters());
@@ -277,6 +280,7 @@ final class StatsFiles {
         stats.choose(NameStyle.Kind.COLOUR, yaml.getString("profil.style.couleur", null));
         stats.choose(NameStyle.Kind.BADGE, yaml.getString("profil.style.badge", null));
         stats.choose(NameStyle.Kind.PLUS, yaml.getString("profil.style.plus", null));
+        stats.setTitleChoice(yaml.getString("profil.style.titre", null));
         stats.setBoosters(yaml.getInt("profil.boosters.nombre", 0));
         stats.setDailyBoosters(yaml.getInt("profil.boosters.gratuits", 0));
         stats.setBoosterLeftMs(yaml.getLong("profil.boosters.reste-ms", 0L));

@@ -175,6 +175,9 @@ final class StatsService {
             if (player != null && oldElo != null) {
                 tellElo(player, oldElo, book.elo(stats.id(), mode.id()), mvps.contains(stats.id()));
             }
+            if (won && player != null) {
+                newTitles(player, stats, mode.id());
+            }
             List<Quests.Quest> done = new ArrayList<>(quest(stats, Quests.Goal.GAMES, mode.id()));
             if (won) {
                 done.addAll(quest(stats, Quests.Goal.WINS, mode.id()));
@@ -185,6 +188,26 @@ final class StatsService {
             questsDone(stats, done);
             gained(stats, old);
             save(stats);
+        }
+    }
+
+    /**
+     * After a win in this mode (one more win in each of its titles): a title the player did not
+     * have yet, or a new level of one, is told with a sound.
+     */
+    private void newTitles(Player player, PlayerStats stats, String modeId) {
+        Titles titles = server.titles();
+        for (Titles.Family family : titles.familiesOf(modeId)) {
+            int wins = Titles.wins(stats, family);
+            Titles.Title now = titles.of(family, wins);
+            Titles.Title before = titles.of(family, wins - 1);
+            if (now != null && (before == null || now.order > before.order)) {
+                Titles.Title worn = titles.worn(stats);
+                player.sendMessage(ChatColor.GOLD + "" + ChatColor.BOLD + "NEW TITLE! " + now.text() + ChatColor.GRAY + " ("
+                        + String.format(java.util.Locale.US, "%,d", wins) + " wins) " + (worn != null
+                                && worn.family.key.equals(family.key) ? "You wear it now." : "Wear it with /titles."));
+                player.playSound(player.getLocation(), Sound.LEVEL_UP, 1f, 1.2f);
+            }
         }
     }
 

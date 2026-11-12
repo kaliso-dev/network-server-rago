@@ -430,11 +430,57 @@ final class Profiles {
         return true;
     }
 
+    // --- The title, the line above the name, the nick -------------------------------------------
+
+    /**
+     * The title the player wears: the key of one of theirs, null for their best, {@link Titles#NONE}
+     * for none. A title they do not have yet is refused.
+     */
+    void setTitle(Player player, String choice) {
+        Titles titles = server.titles();
+        if (!titles.on()) {
+            player.sendMessage(ChatColor.RED + "There are no titles on this server.");
+            return;
+        }
+        PlayerStats profile = of(player);
+        Titles.Family family = choice == null || Titles.NONE.equals(choice) ? null : titles.family(choice);
+        if (choice != null && !Titles.NONE.equals(choice)) {
+            if (family == null) {
+                player.sendMessage(ChatColor.RED + "No such title: " + choice);
+                return;
+            }
+            Titles.Title title = titles.title(profile, family);
+            if (title == null) {
+                int first = titles.nextWins(Titles.wins(profile, family));
+                player.sendMessage(ChatColor.RED + "You do not have a title of " + family.name + " yet: win "
+                        + (first - Titles.wins(profile, family)) + " more games of it.");
+                return;
+            }
+        }
+        profile.setTitleChoice(choice);
+        stats.save(profile);
+        chat.refresh(player);
+        Titles.Title worn = titles.worn(profile);
+        if (Titles.NONE.equals(choice)) {
+            player.sendMessage(ChatColor.GREEN + "You wear no title.");
+        } else if (worn == null) {
+            player.sendMessage(ChatColor.GREEN + "You will wear your best title once you have one: win games to earn it.");
+        } else {
+            player.sendMessage(ChatColor.GREEN + "You wear " + (choice == null ? "your best title, " : "the title ") + worn.text()
+                    + ChatColor.GREEN + ".");
+        }
+        player.playSound(player.getLocation(), Sound.CLICK, 1f, 1f);
+    }
+
     // --- The line above the name, the nick ------------------------------------------------------
 
     /** What the player shows above their name. */
     void setHeadLine(Player player, HeadLines.Shown shown) {
         PlayerStats profile = of(player);
+        if (shown == HeadLines.Shown.TITLE && !server.titles().on()) {
+            player.sendMessage(ChatColor.RED + "There are no titles on this server.");
+            return;
+        }
         if (shown == HeadLines.Shown.MESSAGE) {
             if (!player.hasPermission("rago.perk.message")) {
                 player.sendMessage(ChatColor.RED + "Your own message above your name comes with " + ChatColor.LIGHT_PURPLE
@@ -450,6 +496,9 @@ final class Profiles {
         profile.setHeadLine(shown.id());
         stats.save(profile);
         player.sendMessage(ChatColor.GREEN + "Above your name: " + ChatColor.YELLOW + shown.title() + ChatColor.GREEN + ".");
+        if (shown == HeadLines.Shown.TITLE && server.titles().worn(profile) == null) {
+            player.sendMessage(ChatColor.GRAY + "You wear no title for now: win games to earn one, or choose one in /titles.");
+        }
         player.playSound(player.getLocation(), Sound.CLICK, 1f, 1f);
     }
 

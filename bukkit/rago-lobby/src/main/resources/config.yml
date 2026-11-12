@@ -773,6 +773,47 @@ semaine:
   points: [2000, 1000, 500]
   badge: semaine
 
+# The titles of the modes, earned with wins ("Sumo Gold III"), nothing to pay: each title counts
+# the wins of its modes together and climbs the steps one after the other, five levels each (I to
+# V). A player wears their best one in the chat (before their rank) and their profile, and above
+# their name if they choose it; /titles shows them all, and wears another one or none. A new title
+# or level is told after the win.
+#   paliers   the steps in order, by name (12 characters at most): couleur (of the title), depart
+#             (the wins of level I) and pas (the wins between two levels): Gold from 200 by 50 is
+#             Gold I at 200 wins, Gold II at 250... Gold V at 400. A step starts after the level V
+#             of the one before.
+#   familles  the titles (28 at most), by key: nom (what the players read, 20 characters at most)
+#             and modes (the ids of the modes whose wins count). The ranked modes have their ELO
+#             divisions instead.
+#   actif     false: no titles.
+titres:
+  paliers:
+    Bronze: {couleur: "&6", depart: 10, pas: 10}
+    Silver: {couleur: "&7", depart: 75, pas: 25}
+    Gold: {couleur: "&e", depart: 200, pas: 50}
+    Platinum: {couleur: "&3", depart: 500, pas: 100}
+    Diamond: {couleur: "&b", depart: 1000, pas: 200}
+    Master: {couleur: "&2", depart: 2000, pas: 500}
+    Legend: {couleur: "&5", depart: 5000, pas: 1000}
+    Mythic: {couleur: "&d", depart: 10000, pas: 2500}
+  familles:
+    sky-rise: {nom: "Sky Rise", modes: [skyrise-1v1, skyrise-2v2, skyrise-resources-1v1, skyrise-resources-2v2]}
+    first-rush: {nom: "First Rush", modes: [first-rush, first-rush-duo, first-rush-full, first-rush-full-duo]}
+    bed-fight: {nom: "Bed Fight", modes: [bed-fight-1v1, bed-fight-2v2, top-bed-fight-1v1]}
+    top-bridge: {nom: "Top Bridge", modes: [top-bridge-1v1, top-bridge-2v2, top-bridge-ffa]}
+    clutch-scenario: {nom: "Clutch Scenario", modes: [clutch-scenario-1v1, clutch-scenario-2v2, clutch-scenario-3v3,
+      clutch-scenario-4v4]}
+    attack-defense: {nom: "Attack Defense", modes: [attack-defense-1v1, attack-defense-2v2]}
+    invis: {nom: "Invis", modes: [invis-practice]}
+    sumo: {nom: "Sumo", modes: [sumo]}
+    boxing: {nom: "Boxing", modes: [boxing]}
+    kb-displace: {nom: "KB Displace", modes: [kb-displace]}
+    block-placement: {nom: "Block Placement", modes: [block-fight-1v1, block-fight-2v2]}
+    bridge-fight: {nom: "Bridge Fight", modes: [bridge-fight-1v1, bridge-fight-2v2]}
+    block-edit: {nom: "Block Edit", modes: [block-edit-duel]}
+    fireball: {nom: "Fireball Fight", modes: [fireball]}
+    bow: {nom: "Bow Duel", modes: [bow-duel]}
+
 # The Hypixel import: players copy the quick buy of their Bed Wars shop and their hotbar manager
 # from Hypixel, in one click (the emerald in the kit editor book) or with /hypixel import <name>,
 # for the Bed Wars modes and Fast Shop. It asks the Hypixel API with the server's own key:

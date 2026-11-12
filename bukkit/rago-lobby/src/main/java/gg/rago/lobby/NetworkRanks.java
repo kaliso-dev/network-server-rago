@@ -11,7 +11,8 @@ import org.bukkit.event.Listener;
 import org.bukkit.event.player.AsyncPlayerChatEvent;
 
 /**
- * The Network level and the rank in the chat, as on Hypixel: "§6[12✫] §c[ADMIN] Sofiene§f: hello",
+ * The Network level, the title of a mode and the rank in the chat:
+ * "§6[12✫] §8[§eSumo Gold III§8] §c[ADMIN] Sofiene§f: hello",
  * the name in the main colour of the player (light blue for VIP, pink for PREMIUM, the middle of a
  * gradient: a gradient runs along the name in the tab list only) and their badge after it, the messages
  * of a player without a rank in grey. The chat runs on its own threads, so the look of each player
@@ -37,19 +38,28 @@ final class NetworkRanks implements Listener {
     private final StatsBook book;
     private final NameLooks names;
     private final Map<UUID, Look> looks = new ConcurrentHashMap<>();
+    /** The tag of the title a player wears ("§8[§eSumo Gold III§8] "), "" for none. Main thread. */
+    private java.util.function.Function<UUID, String> title = id -> "";
 
     NetworkRanks(StatsBook book, NameLooks names) {
         this.book = book;
         this.names = names;
     }
 
-    /** Main thread: the player's level, rank or style may have changed. */
+    /** Where the titles worn are (none under a nick: it would tell who plays). */
+    void setTitles(java.util.function.Function<UUID, String> title) {
+        this.title = title;
+    }
+
+    /** Main thread: the player's level, rank, style or title may have changed. */
     void refresh(Player player) {
         UUID id = player.getUniqueId();
         RankDef rank = names.shownRank(id);
-        String name = names.nick(id) != null ? names.shown(id, player.getName()) : names.headColour(id) + player.getName();
-        looks.put(id, new Look(book.levels().tag(names.shownLevel(id)) + " " + names.shownPrefix(id), name + names.shownBadge(id),
-                rank.chatColour()));
+        boolean nicked = names.nick(id) != null;
+        String name = nicked ? names.shown(id, player.getName()) : names.headColour(id) + player.getName();
+        String worn = nicked ? "" : title.apply(id);
+        looks.put(id, new Look(book.levels().tag(names.shownLevel(id)) + " " + (worn == null ? "" : worn) + names.shownPrefix(id),
+                name + names.shownBadge(id), rank.chatColour()));
     }
 
     void forget(UUID player) {

@@ -36,10 +36,16 @@ final class StatsMenu {
 
     private final LobbySettings settings;
     private final StatsBook book;
+    private Titles titles = Titles.off();
 
     StatsMenu(LobbySettings settings, StatsBook book) {
         this.settings = settings;
         this.book = book;
+    }
+
+    /** The titles of the modes: each mode tells the title of its wins. */
+    void setTitles(Titles titles) {
+        this.titles = titles;
     }
 
     void open(Player player) {
@@ -155,6 +161,10 @@ final class StatsMenu {
         }
         if (mode.ranked()) {
             lore.add(ChatColor.GRAY + "Elo: " + book.ladder().format(book.elo(player, mode.id())));
+        }
+        for (Titles.Family family : titles.familiesOf(mode.id())) {
+            Titles.Title title = titles.title(stats, family);
+            lore.add(ChatColor.GRAY + "Title: " + (title == null ? ChatColor.DARK_GRAY + "none yet" : title.text()));
         }
         meta.setLore(lore);
         icon.setItemMeta(meta);

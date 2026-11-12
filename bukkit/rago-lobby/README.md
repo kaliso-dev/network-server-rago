@@ -245,7 +245,7 @@ dans les files d'attente des modes de jeu.
   `/booster give <joueur> [nombre] [xp|coins|daily]` (xp par défaut).
 - **La ligne au-dessus du pseudo (`/display`).** Au lobby, chaque joueur a une ligne au-dessus
   de son pseudo, qu'il choisit : son ELO classé (par défaut, « Unranked » sans partie classée),
-  son niveau, ses victoires, ses kills, sa meilleure série, un message à lui (PREMIUM :
+  son niveau, ses victoires, ses kills, sa meilleure série, le titre qu'il porte, un message à lui (PREMIUM :
   `/display message <texte>`, 32 caractères, couleurs avec `&`, sans texte brouillé) ou rien. Le
   menu est dans le profil. C'est un porte-armure invisible, sans hitbox, connu des seuls clients,
   qui suit le joueur (mêmes paquets de mouvement) ; la ligne change au plus une fois par seconde.
@@ -267,6 +267,18 @@ dans les files d'attente des modes de jeu.
   boutique en ligne (`/style give <joueur> couleur-feu` depuis la console), en Rago Points, ou
   comme récompense de niveau. Le menu (`/style`, le profil, la boutique) montre le rendu, ce
   qu'on a et comment avoir le reste. Tout se règle dans `styles:`.
+- **Les titres des modes (`/titles`).** Chaque mode a son titre, gagné avec les victoires
+  (« Sumo Gold III ») : rien à payer. Un titre compte les victoires de ses modes ensemble (Bed
+  Fight : le 1v1, le 2v2 et le Top BedFight) et monte les paliers Bronze, Silver, Gold,
+  Platinum, Diamond, Master, Legend et Mythic, chacun en cinq niveaux (I à V) : Bronze I à 10
+  victoires, Silver I à 75, Gold I à 200, Mythic I à 10 000. Le joueur porte son meilleur titre
+  dans le chat (`[12✫] [Sumo Gold III] [PREMIUM+] Pseudo`) et dans son profil, et au-dessus de
+  sa tête s'il le choisit (`/display title`). `/titles` (ou le lingot d'or du profil) montre
+  tous les titres, ses victoires dans chacun et le niveau suivant ; un clic porte un autre de
+  ses titres, son meilleur (par défaut) ou aucun. Un nouveau titre ou niveau est annoncé à la
+  victoire. Les stats de chaque mode disent son titre. Les modes classés n'en ont pas : leurs
+  divisions d'ELO jouent ce rôle. Sous un `/nick`, le titre ne se voit pas. `titres:` dans
+  config.yml règle les paliers, les titres et leurs modes.
 - **Les classements de la semaine et leurs récompenses.** Le lundi à minuit (heure de Paris), le
   top 3 de chaque classement de la semaine (victoires, meilleure série, kills et parties jouées, tous
   modes ensemble, et les plus gros clutchs de la semaine du practice) gagne des Rago Points (2 000,
@@ -395,7 +407,8 @@ commentaires de `config.yml`. Les mots français de la première version (`quitt
 | `/pack`, `/pack info` | la vitrine du PNJ Shop, le pack de départ dans le chat | tout le monde |
 | `/pack give <joueur>` | donner le pack de départ, une fois (la boutique en ligne, depuis la console) | `rago.admin` |
 | `/level` (ou `/niveau`), `/quests` (ou `/quetes`) | son niveau et ses récompenses, les quêtes | tout le monde |
-| `/display <elo\|level\|wins\|kills\|streak\|none>` | la ligne au-dessus de son pseudo | tout le monde |
+| `/titles` (ou `/titres`), `/titles <titre\|best\|none>` | les titres des modes, en porter un, son meilleur ou aucun | tout le monde |
+| `/display <elo\|level\|wins\|kills\|streak\|title\|none>` | la ligne au-dessus de son pseudo | tout le monde |
 | `/display message <texte>` | son propre message au-dessus du pseudo | `rago.perk.message` (PREMIUM) |
 | `/nick <pseudo>`, `/nick reset` (ou `/unnick`) | jouer sous un autre pseudo | `rago.perk.nick` (PREMIUM) |
 | `/realname <nick>` | qui joue sous ce nick | `rago.staff` |
