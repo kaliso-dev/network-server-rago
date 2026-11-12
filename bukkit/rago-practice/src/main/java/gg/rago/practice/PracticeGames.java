@@ -40,6 +40,7 @@ import org.bukkit.event.entity.PlayerDeathEvent;
 import org.bukkit.event.entity.ProjectileHitEvent;
 import org.bukkit.event.entity.ProjectileLaunchEvent;
 import org.bukkit.event.inventory.InventoryClickEvent;
+import org.bukkit.event.inventory.InventoryCloseEvent;
 import org.bukkit.event.inventory.InventoryDragEvent;
 import org.bukkit.event.player.PlayerAnimationEvent;
 import org.bukkit.event.player.PlayerArmorStandManipulateEvent;
@@ -736,6 +737,21 @@ final class PracticeGames implements Listener {
                 }
             });
         }
+    }
+
+    /** A menu of a game closed (by the player, or by a teleport): the game hears it at the next tick. */
+    @EventHandler
+    public void onMenuClose(InventoryCloseEvent event) {
+        if (!(event.getInventory().getHolder() instanceof GameMenu) || !(event.getPlayer() instanceof Player)) {
+            return;
+        }
+        GameMenu menu = (GameMenu) event.getInventory().getHolder();
+        Player player = (Player) event.getPlayer();
+        Bukkit.getScheduler().runTask(plugin, () -> {
+            if (player.isOnline() && byPlayer.get(player.getUniqueId()) == menu.game && menu.game.phase != PracticeGame.Phase.ENDED) {
+                menu.game.menuClosed(player);
+            }
+        });
     }
 
     @EventHandler(priority = EventPriority.LOW)

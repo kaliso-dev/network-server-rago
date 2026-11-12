@@ -102,6 +102,10 @@ final class ClutchTraining extends Training {
         hitCount = setting("Hits", 1, 3, 1);
         stick = toggle("KB stick", false);
         randomSide = toggle("Random side", false);
+        // knockback, hits, KB stick, random side
+        preset("Hypixel", Material.GOLD_INGOT, "A hit of a fight, from the front: KB 3, 1 hit.", 3, 1, 0, 0);
+        preset("RBW", Material.BED, "Sprint hits from any side: KB 5, 2 hits, random side.", 5, 2, 0, 1);
+        preset("Hard", Material.TNT, "KB 5, 3 hits, the KB stick, random side.", 5, 3, 1, 1);
         // the boards of each setting of before: one for all now
         RecordBook book = host.records().book();
         book.fold(board());

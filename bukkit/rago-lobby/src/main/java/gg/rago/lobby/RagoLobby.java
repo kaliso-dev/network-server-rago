@@ -992,6 +992,28 @@ public final class RagoLobby extends JavaPlugin implements LobbyService {
     }
 
     @Override
+    public boolean openModesOf(Player player, String modeId) {
+        ModeDisplay display = settings.display(modeId);
+        if (display != null && display.category() != null && menu.openCategory(player, display.category())) {
+            return true;
+        }
+        menu.open(player);
+        return true;
+    }
+
+    /**
+     * The player left their game for another one, without the lobby in between (a training to
+     * another): they belong to no game for a moment, where they stand, until the next one starts.
+     */
+    void betweenGames(Player player) {
+        UUID id = player.getUniqueId();
+        playAgain.remove(id);
+        state.leaveGame(id);
+        scoreboard.setGameLines(id, null);
+        scoreboard.setGamePrefix(id, null);
+    }
+
+    @Override
     public void recordMatch(String modeId, List<UUID> winners, List<UUID> losers) {
         GameMode mode = settings.catalog().get(modeId);
         if (mode == null) {

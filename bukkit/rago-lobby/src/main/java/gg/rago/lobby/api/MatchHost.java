@@ -36,6 +36,16 @@ public interface MatchHost {
     void abandon(Player player);
 
     /**
+     * The player goes from their game straight into a game of another mode (from a training to
+     * another, with the training's Trainings menu): the host lets them go at once, without a word
+     * and without sending them to the lobby, and returns true. False, the default, keeps them in the
+     * game.
+     */
+    default boolean letGo(Player player) {
+        return false;
+    }
+
+    /**
      * The maps a player may choose from when joining this mode's queue, in the order the menu shows
      * them. With two or more, the selector asks which one (or any); the match then carries the
      * choice ({@link MatchProposal#map()}). Empty, the default: no choice, the host picks the map.

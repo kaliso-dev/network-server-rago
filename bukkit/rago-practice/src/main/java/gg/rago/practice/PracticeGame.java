@@ -268,6 +268,10 @@ abstract class PracticeGame {
     void menuClick(Player player, int slot) {
     }
 
+    /** A {@link GameMenu} of the game closed for this player (by them, or by a teleport), a tick ago. */
+    void menuClosed(Player player) {
+    }
+
     /** A player hit an entity of the game (a target, a bot...). Default: nothing happens. */
     void hitEntity(Player attacker, Entity target, EntityDamageEvent event) {
         event.setCancelled(true);

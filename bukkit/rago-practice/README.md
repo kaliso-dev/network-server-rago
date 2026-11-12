@@ -88,8 +88,19 @@ Chaque duel, sumo compris, est enregistré : `/replay` le montre à nouveau depu
 
 ## Les entraînements
 
-Un joueur seul. Chaque entraînement a ses variantes (dans la hotbar, le colorant rouge baisse et le vert monte, le mode puis les réglages, le nombre sur le colorant dit où on en est ; la blaze rod recommence),
-et chaque variante son record : le meilleur score du joueur et celui du serveur, gardés dans
+Un joueur seul. La fin de la hotbar garde les commandes, le kit prend les cases d'avant : le lit
+**Leave** ramène au lobby, la boussole **Trainings** ouvre le menu Practice du lobby (un clic sur un
+autre entraînement y emmène directement, sans repasser par le lobby), le comparateur **Settings**
+ouvre les réglages (seulement quand l'entraînement en a), et la blaze rod **Restart** recommence.
+Le menu des réglages a une ligne pour le mode (chaque variante, avec le meilleur score du joueur et
+le défi du jour), puis une ligne par réglage : − et + autour de sa valeur (avec sa valeur par
+défaut), ou un clic pour un réglage oui/non. En bas, **Reset to default**, les préréglages de
+l'entraînement s'il en a, et **Close**. L'essai recommence avec les nouveaux réglages quand le menu
+se ferme. Le block clutch a trois préréglages : **Hypixel** (un coup d'un combat, de face : KB 3,
+1 coup), **RBW** (des coups en sprint, de n'importe quel côté : KB 5, 2 coups, côté aléatoire) et
+**Hard** (KB 5, 3 coups, KB stick, côté aléatoire).
+
+Chaque entraînement a ses variantes, et chaque variante son record : le meilleur score du joueur et celui du serveur, gardés dans
 `plugins/RagoPractice/records.yml`. Le scoreboard montre le top 3 du serveur, une ligne vide, le
 meilleur score du joueur et son rang, et le dernier score à côté du ping (12 lignes au plus :
 quand l'essai en prend beaucoup, la ligne du mode, puis la 3e et la 2e place, puis la ligne vide
@@ -98,8 +109,8 @@ classement dans le scoreboard, seulement l'essai et le ping. Après une réussit
 moins d'une seconde, et au block clutch comme au block extend le coup arrive moins d'une seconde
 après le retour au départ. Chaque joueur retrouve, dans chaque entraînement, la variante et les
 réglages qu'il avait la dernière fois (gardés dans `plugins/RagoPractice/reglages.yml`, sauf la
-variante quand c'est le défi du jour qui la choisit) ; shift et un clic droit sur la blaze rod
-remettent les réglages par défaut.
+variante quand c'est le défi du jour qui la choisit) ; **Reset to default**, ou shift et un clic
+droit sur la blaze rod, remettent les réglages par défaut.
 
 Les entraînements et les arènes libres (block clutch, bridge fight) donnent de l'XP Network :
 un peu par minute de jeu, un peu par essai raté, plus par réussite (un temps, une série qui

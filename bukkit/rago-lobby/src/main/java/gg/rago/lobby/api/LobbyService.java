@@ -48,6 +48,15 @@ public interface LobbyService {
     }
 
     /**
+     * Opens the lobby's menu of the modes of this mode's category, in a game too (a training's
+     * Trainings item): a click on a mode alone there takes the player straight into it when the host
+     * of their game lets them go ({@link MatchHost#letGo}). False when the lobby has no such menu.
+     */
+    default boolean openModesOf(Player player, String modeId) {
+        return false;
+    }
+
+    /**
      * The seconds a won game lasts after its end, before everyone goes back to the lobby: the
      * winners' victory effect, with Play again and Leave usable at once ({@link EndOfGame}). 0: back
      * to the lobby at once.
