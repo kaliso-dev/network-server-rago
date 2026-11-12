@@ -142,6 +142,7 @@ public final class RagoLobby extends JavaPlugin implements LobbyService {
     @Override
     public void onEnable() {
         saveDefaultConfig();
+        LobbySettings.asWritten(getConfig());
         try {
             settings = LobbySettings.load(getConfig());
             server = ServerSettings.load(getConfig());
