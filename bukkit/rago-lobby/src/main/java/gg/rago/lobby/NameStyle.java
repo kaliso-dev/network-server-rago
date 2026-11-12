@@ -14,7 +14,8 @@ import org.bukkit.ChatColor;
  * of the + of [PREMIUM+] (white by default, black the rarest). A player has a style in one of
  * five ways: with the PREMIUM rank, bought on the store (the store, or the staff, gives it with
  * /style give), bought with Rago Points in /style, as the reward of a Network level, or for a
- * week, with a place in the top of a leaderboard of the week. They wear one colour, one badge and
+ * week, with a place in the top of a leaderboard of the week; and the badge of each ranked season
+ * they ended ("§bS2 Diamond", {@link NameLooks#seasonBadge}). They wear one colour, one badge and
  * one colour of + at a time. A gradient is animated (its colours run along the name in the tab
  * list) unless it is a fixed one; the chat and the name above the head show its main colour only.
  * The styles come from config.yml (styles:), else the plugin's own. Immutable.
@@ -75,7 +76,9 @@ final class NameStyle {
          * Won with a place in the top of a leaderboard of the week (semaine:), and worn until the
          * next results: the lobby gives it and takes it back.
          */
-        WEEK("semaine");
+        WEEK("semaine"),
+        /** The badge of a ranked season the player ended, in the division they reached: not in config.yml. */
+        SEASON("saison");
 
         private final String word;
 

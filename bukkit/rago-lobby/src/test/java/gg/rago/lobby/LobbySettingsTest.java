@@ -337,7 +337,9 @@ class LobbySettingsTest {
         assertEquals(10, levels.winXp());
         assertEquals(15, levels.lossXp(), "the default when missing");
         assertEquals(20, levels.xpToNext(7));
-        assertEquals(Collections.singletonMap(3, "§a"), levels.colours());
+        assertEquals(Collections.singletonMap(3, "§a"), levels.colours().headMap(NetworkLevel.PRESTIGE + 1));
+        assertEquals(NetworkLevel.DEFAULT.colours().tailMap(NetworkLevel.PRESTIGE + 1), levels.colours().tailMap(
+                NetworkLevel.PRESTIGE + 1), "the prestiges of the plugin when left out");
         assertEquals("§a[5" + NetworkLevel.STAR + "]", levels.tag(5));
         assertEquals(NetworkLevel.DEFAULT.colours(), LobbySettings.load(yaml("modes:\n  sumo: {}\n")).levels().colours());
         assertEquals(NetworkLevel.DEFAULT.colours(), LobbySettings.load(yaml(
@@ -352,6 +354,17 @@ class LobbySettingsTest {
         assertInvalid("niveau:\n  couleurs:\n    5: '&l&o&n'\nmodes:\n  sumo: {}\n", "niveau.couleurs.5");
         assertEquals("§c§6§e", LobbySettings.load(yaml("niveau:\n  couleurs:\n    100: '&c&6&e'\nmodes:\n  sumo: {}\n"))
                 .levels().colours().get(100), "a rainbow of three colours");
+        NetworkLevel none = LobbySettings.load(yaml("niveau:\n  prestiges: {}\nmodes:\n  sumo: {}\n")).levels();
+        assertEquals(NetworkLevel.DEFAULT.colours().headMap(NetworkLevel.PRESTIGE + 1), none.colours(), "{}: no prestige");
+        NetworkLevel mine = LobbySettings.load(yaml("niveau:\n  prestiges:\n    300: {couleur: '&a&b', points: 5}\n"
+                + "    500: {points: 5}\nmodes:\n  sumo: {}\n")).levels();
+        assertEquals("§a§b", mine.colours().get(300));
+        assertNull(mine.colours().get(500), "a prestige without a couleur keeps the look");
+        assertEquals("§a[§b345§a" + NetworkLevel.STAR + "]", mine.tag(345));
+        assertInvalid("niveau:\n  couleurs:\n    200: '&a'\nmodes:\n  sumo: {}\n", "niveau.couleurs.200");
+        assertInvalid("niveau:\n  prestiges:\n    250: {couleur: '&a'}\nmodes:\n  sumo: {}\n", "niveau.prestiges.250");
+        assertInvalid("niveau:\n  prestiges:\n    200: {couleur: '&a[x]'}\nmodes:\n  sumo: {}\n", "niveau.prestiges.200.couleur");
+        assertInvalid("niveau:\n  prestiges: false\nmodes:\n  sumo: {}\n", "niveau.prestiges");
     }
 
     @Test

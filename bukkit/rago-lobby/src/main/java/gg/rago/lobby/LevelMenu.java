@@ -10,9 +10,9 @@ import org.bukkit.entity.Player;
 
 /**
  * The brewing stand of the lobby hotbar (/level): the player's Network level and how far the next
- * one is, the tier they are in and the next, the reward of every 5 levels (got, next, to come), and
- * the daily and weekly quests (/quests), with Getting started first until a new player has done
- * it all. Main thread only.
+ * one is, the tier they are in and the next, the rewards of the levels (got, next, to come: 21 of
+ * them around the next one), the tiers and the prestiges, and the daily and weekly quests
+ * (/quests), with Getting started first until a new player has done it all. Main thread only.
  */
 final class LevelMenu {
 
@@ -69,8 +69,9 @@ final class LevelMenu {
                 lore), null);
 
         List<LevelRewards.Reward> rewards = server.levelRewards().all();
-        for (int i = 0; i < rewards.size() && i < 21; i++) {
-            LevelRewards.Reward reward = rewards.get(i);
+        int from = firstShown(rewards, next, SHOWN_REWARDS);
+        for (int i = 0; i < SHOWN_REWARDS && from + i < rewards.size(); i++) {
+            LevelRewards.Reward reward = rewards.get(from + i);
             menu.set(ShopMenu.slotOf(i), rewardItem(reward, level, next == reward), null);
         }
 
@@ -89,6 +90,21 @@ final class LevelMenu {
         }
         menu.set(51, ClickMenu.item(Material.GLASS_BOTTLE, 0, ChatColor.AQUA + "How to get XP", xp), null);
         menu.open(player);
+    }
+
+    /** The rewards the menu shows at once: three rows of seven. */
+    static final int SHOWN_REWARDS = 21;
+
+    /**
+     * The first of the rewards shown, when there are more than the menu holds: the row of the last
+     * ones got, then the next one and those to come (the last ones once all are got).
+     */
+    static int firstShown(List<LevelRewards.Reward> rewards, LevelRewards.Reward next, int shown) {
+        if (rewards.size() <= shown) {
+            return 0;
+        }
+        int at = next == null ? rewards.size() : rewards.indexOf(next);
+        return Math.max(0, Math.min(rewards.size() - shown, at - 7));
     }
 
     /** "PREMIUM+: +50% on everything", "VIP: +25% on everything": the ranks sold that boost the XP. */
@@ -134,16 +150,26 @@ final class LevelMenu {
         return unlocked ? Material.GOLD_BLOCK : Material.COAL_BLOCK;
     }
 
-    /** Every tier of colour, the one of the player marked. */
-    private static org.bukkit.inventory.ItemStack tiersItem(NetworkLevel levels, int level) {
+    /** Every tier of colour, then the prestiges after the level 100, the one of the player marked. */
+    static org.bukkit.inventory.ItemStack tiersItem(NetworkLevel levels, int level) {
+        return ClickMenu.item(Material.NETHER_STAR, 0, ChatColor.YELLOW + "Tiers", tierLines(levels, level));
+    }
+
+    static List<String> tierLines(NetworkLevel levels, int level) {
         List<String> lore = new ArrayList<>();
         int mine = tierStart(levels, level);
+        boolean prestiges = false;
         for (Map.Entry<Integer, String> tier : levels.colours().entrySet()) {
             int first = tier.getKey();
+            if (first > NetworkLevel.PRESTIGE && !prestiges) {
+                prestiges = true;
+                lore.add("");
+                lore.add("Prestiges, every 100 levels:");
+            }
             lore.add(levels.tag(first) + (first == mine ? ChatColor.GREEN + " ◀ you" : first < level ? ChatColor.GREEN + " ✔"
                     : ""));
         }
-        return ClickMenu.item(Material.NETHER_STAR, 0, ChatColor.YELLOW + "Tiers", lore);
+        return lore;
     }
 
     /** The first level of the player's tier. */

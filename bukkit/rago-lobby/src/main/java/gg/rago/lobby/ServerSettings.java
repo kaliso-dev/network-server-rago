@@ -171,7 +171,8 @@ final class ServerSettings {
                 links.put(key, lines(l, key, Collections.<String>emptyList(), 15));
             }
         }
-        LevelRewards rewards = readRewards(config.getConfigurationSection("niveau.recompenses"), cosmetics, styles);
+        LevelRewards rewards = readRewards(config.getConfigurationSection("niveau.recompenses"),
+                config.getConfigurationSection("niveau.prestiges"), cosmetics, styles);
         Quests quests = readQuests(config.getConfigurationSection("quetes"));
         GettingStarted gettingStarted = readGettingStarted(config.getConfigurationSection("quetes.debut"), cosmetics, styles);
         StarterPack pack = StarterPack.read(config.getConfigurationSection("pack-depart"), cosmetics, ranks);
@@ -332,14 +333,19 @@ final class ServerSettings {
     // --- Level rewards and quests ---------------------------------------------------------------
 
     /**
-     * niveau.recompenses: by level, the Rago Points (points) and the cosmetics and styles
-     * (objets: "trail-clouds", "couleur-or") it gives. Left out: the plugin's own.
+     * niveau.recompenses: by level up to 100, the Rago Points (points) and the cosmetics and styles
+     * (objets: "trail-clouds", "couleur-or") it gives; niveau.prestiges: the same at each prestige
+     * (200, 300... up to 1000). Left out: the plugin's own.
      */
-    private static LevelRewards readRewards(ConfigurationSection section, Map<String, Cosmetic> cosmetics,
-            Map<String, NameStyle> styles) {
-        LevelRewards rewards = section == null ? LevelRewards.defaults() : null;
-        if (rewards == null) {
-            List<LevelRewards.Reward> list = new ArrayList<>();
+    private static LevelRewards readRewards(ConfigurationSection section, ConfigurationSection prestiges,
+            Map<String, Cosmetic> cosmetics, Map<String, NameStyle> styles) {
+        List<LevelRewards.Reward> list = new ArrayList<>();
+        for (LevelRewards.Reward reward : LevelRewards.defaults().all()) {
+            if (section == null && reward.level() <= NetworkLevel.PRESTIGE || prestiges == null && reward.level() > NetworkLevel.PRESTIGE) {
+                list.add(reward);
+            }
+        }
+        if (section != null) {
             for (String key : section.getKeys(false)) {
                 String where = "niveau.recompenses." + key;
                 int level;
@@ -348,26 +354,42 @@ final class ServerSettings {
                 } catch (NumberFormatException e) {
                     level = 0;
                 }
-                if (level < 2 || level > NetworkLevel.MAX_LEVEL) {
-                    throw new IllegalArgumentException(where + ": the key is a level, from 2 to " + NetworkLevel.MAX_LEVEL);
+                if (level < 2 || level > NetworkLevel.PRESTIGE) {
+                    throw new IllegalArgumentException(where + ": the key is a level, from 2 to " + NetworkLevel.PRESTIGE
+                            + " (after it: niveau.prestiges)");
                 }
-                ConfigurationSection one = section.getConfigurationSection(key);
-                if (one == null) {
-                    throw new IllegalArgumentException(where + ": a section with points and objets");
-                }
-                list.add(new LevelRewards.Reward(level, count(one, where, "points", 0), one.getStringList("objets")));
+                list.add(reward(section, key, level, where));
             }
-            rewards = new LevelRewards(list);
         }
+        if (prestiges != null) {
+            for (String key : prestiges.getKeys(false)) {
+                String where = "niveau.prestiges." + key;
+                LevelRewards.Reward reward = reward(prestiges, key, NetworkLevel.prestigeLevel(key, where), where);
+                if (reward.points() > 0 || !reward.items().isEmpty()) {
+                    list.add(reward);
+                }
+            }
+        }
+        LevelRewards rewards = new LevelRewards(list);
         for (LevelRewards.Reward reward : rewards.all()) {
             for (String item : reward.items()) {
                 if (!cosmetics.containsKey(item) && !styles.containsKey(item)) {
-                    throw new IllegalArgumentException("niveau.recompenses." + reward.level() + ".objets: no cosmetic or style "
-                            + item + " (a cosmetic of the shop, such as trail-clouds, or couleur-<id>, badge-<id>)");
+                    throw new IllegalArgumentException("niveau." + (reward.level() > NetworkLevel.PRESTIGE ? "prestiges." : "recompenses.")
+                            + reward.level() + ".objets: no cosmetic or style " + item
+                            + " (a cosmetic of the shop, such as trail-clouds, or couleur-<id>, badge-<id>)");
                 }
             }
         }
         return rewards;
+    }
+
+    /** What a level gives: its points and its objets. */
+    private static LevelRewards.Reward reward(ConfigurationSection section, String key, int level, String where) {
+        ConfigurationSection one = section.getConfigurationSection(key);
+        if (one == null) {
+            throw new IllegalArgumentException(where + ": a section with points and objets");
+        }
+        return new LevelRewards.Reward(level, count(one, where, "points", 0), one.getStringList("objets"));
     }
 
     /**
@@ -601,8 +623,12 @@ final class ServerSettings {
                 if (name.isEmpty() || name.length() > 24) {
                     throw new IllegalArgumentException(where + ".nom: 1 to 24 characters");
                 }
+                if (kind == NameStyle.Kind.BADGE && id.startsWith(NameLooks.SEASON_BADGE)) {
+                    throw new IllegalArgumentException(where + ": " + NameLooks.SEASON_BADGE + "... is the badge of a ranked season,"
+                            + " another name");
+                }
                 NameStyle.Obtain obtain = NameStyle.Obtain.of(one.getString("obtention", "achat"));
-                if (obtain == null) {
+                if (obtain == null || obtain == NameStyle.Obtain.SEASON) {
                     throw new IllegalArgumentException(where + ".obtention: premium, achat, niveau, points or semaine");
                 }
                 int price = one.getInt("prix", 0);

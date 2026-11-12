@@ -327,17 +327,23 @@ pnj:
 # the skins of the NPCs without one (the log says so). "" asks without a key.
 cle-mineskin: ""
 
-# The Network level, from 1 to 100: every game gives XP to everyone who played it (more for a win),
-# every kill a little more, and the quests (quetes:) much more. Everyone starts at level 1; going
-# from level n to level n + 1 takes xp-niveau-2 + xp-en-plus-par-niveau x (n - 1) XP (100, 150,
-# 200... by default: about 250,000 XP for the level 100). The level shows as [12*] (a star) before
-# the name in the chat, after it above the head and in the tab list, in the XP bar of the lobby,
-# the scoreboard and the brewing stand of the hotbar (/level). It unlocks the cosmetics of the shop.
-#   couleurs     the colour of the [12*] from each level on, by tier (one or two colour codes, or
-#                up to 8 colours for a rainbow, one per character: "&c&6&e&a&b&d")
-#   recompenses  what a level gives (one every 5 levels by default): points (Rago Points) and
-#                objets (cosmetics of the shop by id, colours of name and badges of styles: by key,
-#                couleur-or, badge-centurion). A cosmetic already bought gives its price back.
+# The Network level, from 1 to 1000: every game gives XP to everyone who played it (more for a
+# win), every kill a little more, and the quests (quetes:) much more. Everyone starts at level 1;
+# going from level n to level n + 1 takes xp-niveau-2 + xp-en-plus-par-niveau x (n - 1) XP up to
+# the level 100 (100, 150, 200... by default: about 250,000 XP for the level 100), then as much
+# for each level after it (5,050 XP by default). The level shows as [12*] (a star) before the name
+# in the chat, after it above the head and in the tab list, in the XP bar of the lobby, the
+# scoreboard and the brewing stand of the hotbar (/level). It unlocks the cosmetics of the shop.
+#   couleurs     the colour of the [12*] from each level on, up to 100, by tier: a colour code
+#                (&6, or &6&l in bold), two for the brackets and the star then the number ("&e&f"
+#                gives a yellow [ and star, a white number), or up to 8 colours for a rainbow, one
+#                per character ("&c&6&e&a&b&d")
+#   recompenses  what a level up to 100 gives (one every 5 levels by default): points (Rago Points)
+#                and objets (cosmetics of the shop by id, colours of name and badges of styles: by
+#                key, couleur-or, badge-centurion). A cosmetic already bought gives its price back.
+#   prestiges    after the level 100, every 100 levels (200, 300... up to 1000): the new couleur of
+#                the [200*] (as in couleurs) and what it gives (points, objets, as in recompenses).
+#                The whole server hears of it. Left out: these ones; {} for none.
 niveau:
   xp-victoire: 50
   xp-defaite: 15
@@ -377,6 +383,16 @@ niveau:
     90: {objets: [kill-explosion]}
     95: {objets: [trail-redstone]}
     100: {points: 10000, objets: [couleur-legende, badge-centurion]}
+  prestiges:
+    200: {couleur: "&e&f", points: 20000}
+    300: {couleur: "&c&e", points: 25000}
+    400: {couleur: "&b&a", points: 30000}
+    500: {couleur: "&d&b", points: 35000}
+    600: {couleur: "&4&6", points: 40000}
+    700: {couleur: "&9&d", points: 45000}
+    800: {couleur: "&a&f", points: 50000}
+    900: {couleur: "&5&e", points: 55000}
+    1000: {couleur: "&6&e&f&e", points: 100000}
 
 # The quests: daily ones (quotidiennes, again every day) and weekly ones (hebdomadaires, again
 # every Monday), worth more. They run by themselves; a quest done gives its XP (boosted by

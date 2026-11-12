@@ -10,15 +10,23 @@ import java.util.TreeMap;
 /**
  * The Network level (config.yml, niveau:): every game gives XP to everyone in it (more for a win),
  * every kill a little more. Everyone starts at level 1; going from level n to n + 1 takes
- * {@code firstLevelXp + extraPerLevel * (n - 1)} XP. The level shows as "[12✫]" in the chat,
- * after the name above the head and in the tab list, in the colour of its tier (every 10 levels by
- * default: grey, white, gold, aqua...). A tier of several colours paints the tag in a rainbow, one
- * colour per character (level 100 by default). Immutable.
+ * {@code firstLevelXp + extraPerLevel * (n - 1)} XP up to the level 100, then always as much as from
+ * 100 to 101: the prestiges, up to the level 1000, a new look of the tag every 100 levels (200,
+ * 300...). The level shows as "[12✫]" in the chat, after the name above the head and in the tab
+ * list, in the colour of its tier (every 10 levels by default: grey, white, gold, aqua...). A tier
+ * of two colours writes the brackets and the star in the first, the number in the second
+ * ("§e[§f234§e✫]"); of more, paints the tag in a rainbow, one colour per character (level 100 by
+ * default). Immutable.
  */
 final class NetworkLevel {
 
-    /** The last level: 100, as the rewards (one every 5 levels). */
-    static final int MAX_LEVEL = 100;
+    /** The last level. */
+    static final int MAX_LEVEL = 1000;
+    /**
+     * From this level on, every level takes the same XP, and every 100 levels is a prestige: a new
+     * look of the tag, a reward.
+     */
+    static final int PRESTIGE = 100;
     /** After the level, as Hypixel shows the Bed Wars stars. */
     static final String STAR = "\u272B";
 
@@ -60,7 +68,32 @@ final class NetworkLevel {
         colours.put(80, "\u00a79");
         colours.put(90, "\u00a75");
         colours.put(100, RAINBOW);
+        // The prestiges: the brackets and the star in the first colour, the number in the second.
+        colours.put(200, "\u00a7e\u00a7f");
+        colours.put(300, "\u00a7c\u00a7e");
+        colours.put(400, "\u00a7b\u00a7a");
+        colours.put(500, "\u00a7d\u00a7b");
+        colours.put(600, "\u00a74\u00a76");
+        colours.put(700, "\u00a79\u00a7d");
+        colours.put(800, "\u00a7a\u00a7f");
+        colours.put(900, "\u00a75\u00a7e");
+        // the last one shines: gold, yellow and white
+        colours.put(1000, "\u00a76\u00a7e\u00a7f\u00a7e");
         return colours;
+    }
+
+    /** The level of a key of niveau.prestiges: 200, 300... up to 1000. Throws IllegalArgumentException. */
+    static int prestigeLevel(String key, String where) {
+        int level;
+        try {
+            level = Integer.parseInt(key.trim());
+        } catch (NumberFormatException e) {
+            level = 0;
+        }
+        if (level <= PRESTIGE || level > MAX_LEVEL || level % PRESTIGE != 0) {
+            throw new IllegalArgumentException(where + ": the key is the level of a prestige, 200, 300... up to " + MAX_LEVEL);
+        }
+        return level;
     }
 
     int winXp() {
@@ -75,32 +108,37 @@ final class NetworkLevel {
         return killXp;
     }
 
-    /** The XP that takes a player from this level to the next one. */
+    /** The XP that takes a player from this level to the next one: the same for every level from 100 on. */
     int xpToNext(int level) {
-        long xp = firstLevelXp + (long) extraPerLevel * (Math.max(1, level) - 1);
+        long xp = firstLevelXp + (long) extraPerLevel * (Math.min(PRESTIGE, Math.max(1, level)) - 1);
         return (int) Math.min(Integer.MAX_VALUE, xp);
     }
 
     /** The level of a player with this much XP: 1 at 0 XP. */
     int level(long xp) {
-        int level = 1;
-        long left = xp;
-        while (level < MAX_LEVEL && left >= xpToNext(level)) {
-            left -= xpToNext(level);
-            level++;
-        }
-        return level;
+        return (int) reached(xp)[0];
     }
 
     /** The XP gained since the current level was reached. */
     long xpIntoLevel(long xp) {
+        return reached(xp)[1];
+    }
+
+    /** The level these XP reach, and the XP left over after it. */
+    private long[] reached(long xp) {
         int level = 1;
         long left = Math.max(0, xp);
-        while (level < MAX_LEVEL && left >= xpToNext(level)) {
+        while (level < PRESTIGE && left >= xpToNext(level)) {
             left -= xpToNext(level);
             level++;
         }
-        return left;
+        if (level == PRESTIGE) {
+            // every level from 100 on takes the same XP
+            long more = Math.min(MAX_LEVEL - PRESTIGE, left / xpToNext(PRESTIGE));
+            level += (int) more;
+            left -= more * xpToNext(PRESTIGE);
+        }
+        return new long[] {level, left};
     }
 
     /** From 0 to just under 1: how far the player is towards the next level, for the XP bar. */
@@ -123,15 +161,26 @@ final class NetworkLevel {
         return colours.size() < 2 ? codes : "\u00a7" + colours.get(0) + formats(codes);
     }
 
-    /** "§6[12✫]": the level as the chat and the name tags show it. */
+    /** "§6[12✫]", "§e[§f234§e✫]": the level as the chat and the name tags show it. */
     String tag(int level) {
+        String codes = codes(level);
+        List<Character> colours = colourCodes(codes);
+        if (colours.size() == 2) {
+            return twoTone(level, colours, formats(codes));
+        }
         return paint("[" + level + STAR + "]", level);
+    }
+
+    /** "§e[§f234§e✫]": the brackets and the star in the first colour, the number in the second. */
+    private static String twoTone(int level, List<Character> colours, String formats) {
+        String frame = "\u00a7" + colours.get(0) + formats;
+        return frame + "[" + "\u00a7" + colours.get(1) + formats + level + frame + STAR + "]";
     }
 
     /**
      * The tag of this level in at most {@code max} characters if it can, for a name tag: a rainbow
-     * too long keeps its brackets in the colours of their neighbours ("§c[1§60§e0§a✫]"), else
-     * becomes the tag in its first colour.
+     * too long keeps its brackets in the colours of their neighbours ("§c[1§60§e0§a✫]"), two colours
+     * lose their formats, else the tag takes its first colour.
      */
     String tag(int level, int max) {
         String tag = tag(level);
@@ -140,7 +189,12 @@ final class NetworkLevel {
         }
         String codes = codes(level);
         List<Character> colours = colourCodes(codes);
-        if (colours.size() >= 2) {
+        if (colours.size() == 2) {
+            String plain = twoTone(level, colours, "");
+            if (plain.length() <= max) {
+                return plain;
+            }
+        } else if (colours.size() > 2) {
             String inner = level + STAR;
             String formats = formats(codes);
             StringBuilder compact = new StringBuilder();
@@ -159,12 +213,12 @@ final class NetworkLevel {
         return colour(level) + "[" + level + STAR + "]";
     }
 
-    /** This text in the colour of this level's tier: one colour per character for a rainbow. */
+    /** This text in the colour of this level's tier (the first of two): one colour per character for a rainbow. */
     String paint(String text, int level) {
         String codes = codes(level);
         List<Character> colours = colourCodes(codes);
-        if (colours.size() < 2) {
-            return codes + text;
+        if (colours.size() < 3) {
+            return colour(level) + text;
         }
         String formats = formats(codes);
         StringBuilder painted = new StringBuilder();
@@ -174,7 +228,8 @@ final class NetworkLevel {
         return painted.toString();
     }
 
-    private String codes(int level) {
+    /** The colour codes of this level's tier, as config.yml gives them: grey below the first tier. */
+    String codes(int level) {
         Map.Entry<Integer, String> entry = colours.floorEntry(level);
         return entry == null ? "\u00a77" : entry.getValue();
     }

@@ -25,26 +25,32 @@ class LevelQuestTest {
     }
 
     @Test
-    void aRewardEveryFiveLevelsUpToAHundred() throws Exception {
+    void aRewardEveryFiveLevelsUpToAHundredThenAtEachPrestige() throws Exception {
         LevelRewards rewards = LevelRewards.defaults();
-        assertEquals(20, rewards.all().size());
+        assertEquals(29, rewards.all().size());
         for (LevelRewards.Reward reward : rewards.all()) {
-            assertEquals(0, reward.level() % 5, "level " + reward.level());
+            assertEquals(0, reward.level() % (reward.level() > NetworkLevel.PRESTIGE ? NetworkLevel.PRESTIGE : 5), "level " + reward.level());
             assertTrue(reward.points() > 0 || !reward.items().isEmpty(), "level " + reward.level());
         }
         assertEquals(100, rewards.all().get(19).level());
-        assertEquals(NetworkLevel.MAX_LEVEL, 100);
+        assertEquals(100, NetworkLevel.PRESTIGE);
+        assertEquals(1000, NetworkLevel.MAX_LEVEL);
+        assertEquals(20_000, rewards.at(200).points());
+        assertEquals(25_000, rewards.at(300).points());
+        assertEquals(55_000, rewards.at(900).points());
+        assertEquals(100_000, rewards.at(1000).points());
+        assertEquals(200, rewards.next(100).level());
         assertEquals(25, rewards.levelOf("couleur-aqua"));
         assertEquals(100, rewards.levelOf("badge-centurion"));
         assertEquals(0, rewards.levelOf("badge-rago"), "a badge of the store");
         assertEquals(5, rewards.next(1).level());
         assertEquals(10, rewards.next(5).level());
-        assertNull(rewards.next(100));
+        assertNull(rewards.next(NetworkLevel.MAX_LEVEL));
         assertEquals(2, rewards.between(4, 12).size(), "levels 5 and 10");
         assertTrue(rewards.between(12, 12).isEmpty());
 
         ServerSettings server = ServerSettings.load(bundled());
-        assertEquals(20, server.levelRewards().all().size(), "config.yml has the same rewards");
+        assertEquals(29, server.levelRewards().all().size(), "config.yml has the same rewards");
         for (LevelRewards.Reward reward : rewards.all()) {
             assertEquals(reward.items(), server.levelRewards().at(reward.level()).items());
             assertEquals(reward.points(), server.levelRewards().at(reward.level()).points());
@@ -60,6 +66,10 @@ class LevelQuestTest {
     void wrongRewardsAndQuestsAreRefused() {
         assertInvalid("niveau:\n  recompenses:\n    10: {objets: [nothing]}\n", "niveau.recompenses.10.objets");
         assertInvalid("niveau:\n  recompenses:\n    101: {points: 5}\n", "niveau.recompenses.101");
+        assertInvalid("niveau:\n  prestiges:\n    150: {points: 5}\n", "niveau.prestiges.150");
+        assertInvalid("niveau:\n  prestiges:\n    1100: {points: 5}\n", "niveau.prestiges.1100");
+        assertInvalid("niveau:\n  prestiges:\n    200: {objets: [nothing]}\n", "niveau.prestiges.200.objets");
+        assertInvalid("niveau:\n  prestiges:\n    200: 5\n", "niveau.prestiges.200");
         assertInvalid("quetes:\n  quotidiennes:\n    a: {nom: 'A', type: dance, objectif: 1, xp: 5}\n", "quetes.quotidiennes.a.type");
         assertInvalid("quetes:\n  quotidiennes:\n    a: {nom: 'A', type: kills, objectif: 0, xp: 5}\n", "quetes.quotidiennes.a.objectif");
     }
