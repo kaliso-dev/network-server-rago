@@ -65,7 +65,7 @@ final class FfaSpawnMenu {
                     ChatColor.GRAY + (name == null ? "Anywhere: a base, a diamond," : "You spawn here,"),
                     ChatColor.GRAY + (name == null ? "the middle or the top bridge." : "away from the others."),
                     "",
-                    lit ? ChatColor.GREEN + "Your spawn" : ChatColor.YELLOW + "Click to spawn here"));
+                    lit ? ChatColor.GREEN + "Your spawn" : ChatColor.RED + "Click to spawn here"));
             item.setItemMeta(meta);
             inventory.setItem(slotOf(i, all.size()), item);
         }

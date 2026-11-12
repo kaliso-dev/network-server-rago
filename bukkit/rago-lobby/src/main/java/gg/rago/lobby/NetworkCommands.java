@@ -342,8 +342,8 @@ final class NetworkCommands implements CommandExecutor, TabCompleter {
                     } else if (args.length != 1) {
                         String nick = lobby.nicks().nick(player.getUniqueId());
                         player.sendMessage(ChatColor.GRAY + (nick == null ? "You play under your own name." : "You play as "
-                                + ChatColor.WHITE + nick + ChatColor.GRAY + ".") + " " + ChatColor.YELLOW + "/nick <name>"
-                                + ChatColor.GRAY + ", " + ChatColor.YELLOW + "/nick reset");
+                                + ChatColor.WHITE + nick + ChatColor.GRAY + ".") + " " + Brand.ACCENT + "/nick <name>"
+                                + ChatColor.GRAY + ", " + Brand.ACCENT + "/nick reset");
                     } else {
                         lobby.profiles().nick(player, lobby.nicks(), args[0]);
                     }
@@ -397,7 +397,7 @@ final class NetworkCommands implements CommandExecutor, TabCompleter {
         String sub = args[0].toLowerCase(Locale.ROOT);
         if (sub.equals("list")) {
             for (NameStyle style : server.styles().values()) {
-                sender.sendMessage(ChatColor.YELLOW + style.key() + ChatColor.GRAY + " " + style.sample() + ChatColor.GRAY
+                sender.sendMessage(Brand.ACCENT + style.key() + ChatColor.GRAY + " " + style.sample() + ChatColor.GRAY
                         + " (" + style.obtain().name().toLowerCase(Locale.ROOT) + ")");
             }
             return;
@@ -435,7 +435,7 @@ final class NetworkCommands implements CommandExecutor, TabCompleter {
             }
             boolean given = lobby.profiles().givePack(target);
             sender.sendMessage(given ? ChatColor.GREEN + target.name() + " got the starter pack."
-                    : ChatColor.YELLOW + target.name() + " has the starter pack already: nothing given again.");
+                    : Brand.ACCENT + target.name() + " has the starter pack already: nothing given again.");
             lobby.getLogger().info(sender.getName() + ": /pack " + String.join(" ", args) + (given ? "" : " (had it already)"));
             return;
         }
@@ -545,9 +545,9 @@ final class NetworkCommands implements CommandExecutor, TabCompleter {
                         : rank.prefix().trim()) + ChatColor.GRAY + ". Buy one with Rago Points: /shop");
             }
             if (sender.hasPermission("rago.admin")) {
-                sender.sendMessage(ChatColor.YELLOW + "/rank list" + ChatColor.GRAY + ", " + ChatColor.YELLOW
-                        + "/rank set <player> <rank|default>" + ChatColor.GRAY + " (the staff rank), " + ChatColor.YELLOW
-                        + "/rank give <player> <rank>" + ChatColor.GRAY + ", " + ChatColor.YELLOW + "/rank take <player> <rank>"
+                sender.sendMessage(Brand.ACCENT + "/rank list" + ChatColor.GRAY + ", " + Brand.ACCENT
+                        + "/rank set <player> <rank|default>" + ChatColor.GRAY + " (the staff rank), " + Brand.ACCENT
+                        + "/rank give <player> <rank>" + ChatColor.GRAY + ", " + Brand.ACCENT + "/rank take <player> <rank>"
                         + ChatColor.GRAY + " (shop ranks)");
             }
             return;
@@ -707,9 +707,9 @@ final class NetworkCommands implements CommandExecutor, TabCompleter {
             StatsBook.Row row = rows.get(i);
             String value = stat == BoardStat.ELO ? book.ladder().format(row.value())
                     : stat == BoardStat.LEVEL ? book.levels().tag(book.levels().level(row.value()))
-                    : stat == BoardStat.FKDR ? ChatColor.YELLOW + BoardStat.hundredths(row.value())
-                    : ChatColor.YELLOW + String.format(java.util.Locale.US, "%,d", row.value());
-            sender.sendMessage(ChatColor.YELLOW + "" + (i + 1) + ". " + ChatColor.RESET
+                    : stat == BoardStat.FKDR ? Brand.ACCENT + BoardStat.hundredths(row.value())
+                    : Brand.ACCENT + String.format(java.util.Locale.US, "%,d", row.value());
+            sender.sendMessage(Brand.ACCENT + "" + (i + 1) + ". " + ChatColor.RESET
                     + lobby.profiles().displayName(row.id(), row.name()) + ChatColor.GRAY + " - " + value);
         }
     }
@@ -738,8 +738,8 @@ final class NetworkCommands implements CommandExecutor, TabCompleter {
         String week = StatsPeriod.weekKey(now);
         int wins = profile.wins(StatsPeriod.ALL, null, day, week);
         int kills = profile.kills(StatsPeriod.ALL, null, day, week);
-        sender.sendMessage(ChatColor.GOLD + "" + ChatColor.STRIKETHROUGH + "------" + ChatColor.RESET + " "
-                + lobby.profiles().displayName(profile.id(), profile.name()) + " " + ChatColor.GOLD + ChatColor.STRIKETHROUGH
+        sender.sendMessage(Brand.ACCENT + "" + ChatColor.STRIKETHROUGH + "------" + ChatColor.RESET + " "
+                + lobby.profiles().displayName(profile.id(), profile.name()) + " " + Brand.ACCENT + ChatColor.STRIKETHROUGH
                 + "------");
         for (String line : lobby.profileMenu().summary(profile, profile.id())) {
             if (!line.isEmpty()) {
@@ -750,7 +750,7 @@ final class NetworkCommands implements CommandExecutor, TabCompleter {
         sender.sendMessage(ChatColor.GRAY + "Wins: " + ChatColor.GREEN + wins + ChatColor.GRAY + "  Losses: " + ChatColor.RED
                 + profile.losses() + ChatColor.GRAY + "  WLR: " + ChatColor.GOLD + StatsMenu.ratio(wins, profile.losses()));
         sender.sendMessage(ChatColor.GRAY + "Kills: " + ChatColor.GREEN + kills + ChatColor.GRAY + "  Deaths: " + ChatColor.RED
-                + profile.deaths() + ChatColor.GRAY + "  K/D: " + ChatColor.YELLOW + StatsMenu.ratio(kills, profile.deaths()));
+                + profile.deaths() + ChatColor.GRAY + "  K/D: " + Brand.ACCENT + StatsMenu.ratio(kills, profile.deaths()));
         sender.sendMessage(ChatColor.GRAY + "Final kills: " + ChatColor.GREEN + profile.finalKills() + ChatColor.GRAY
                 + "  Final deaths: " + ChatColor.RED + profile.finalDeaths() + ChatColor.GRAY + "  FKDR: " + ChatColor.GOLD
                 + StatsMenu.ratio(profile.finalKills(), profile.finalDeaths()));

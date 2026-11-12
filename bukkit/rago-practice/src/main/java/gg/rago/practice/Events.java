@@ -581,7 +581,7 @@ final class Events implements CommandExecutor, Listener {
         lore.add(ChatColor.GRAY + "Players: " + ChatColor.WHITE + settings.minPlayers + " to " + settings.maxPlayers);
         lore.add(ChatColor.GRAY + "On a sumo map, the whole server told.");
         lore.add("");
-        lore.add(why == null ? ChatColor.YELLOW + "Click to host!" : ChatColor.RED + why);
+        lore.add(why == null ? ChatColor.RED + "Click to host!" : ChatColor.GRAY + why);
         return PracticeGame.named(kind.icon, 1, 0, ChatColor.GOLD + "" + ChatColor.BOLD + kind.label, lore.toArray(new String[0]));
     }
 

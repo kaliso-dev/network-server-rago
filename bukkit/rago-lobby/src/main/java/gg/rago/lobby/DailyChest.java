@@ -58,7 +58,7 @@ final class DailyChest {
         boolean ready = profiles.dailyReady(viewer.getUniqueId());
         List<String> lines = new ArrayList<>();
         lines.add(ChatColor.AQUA + "" + ChatColor.BOLD + "DAILY REWARD");
-        lines.add(ready ? ChatColor.YELLOW + "Click to claim!"
+        lines.add(ready ? Brand.ACCENT + "Click to claim!"
                 : ChatColor.GRAY + StatsPeriod.DAY.resetText(now).replace("Resets in", "Next one in"));
         int streak = profile.dailyStreak();
         lines.add(streak > 0 ? ChatColor.GRAY + "Streak: " + ChatColor.GREEN + streak + (streak == 1 ? " day" : " days") : "");

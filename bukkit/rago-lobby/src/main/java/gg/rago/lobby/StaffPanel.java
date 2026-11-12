@@ -68,7 +68,7 @@ final class StaffPanel {
             lines.add(ChatColor.RED + "Muted");
         }
         lines.add("");
-        lines.add(ChatColor.YELLOW + "Click for the actions");
+        lines.add(Brand.ACCENT + "Click for the actions");
         return lines;
     }
 
@@ -83,7 +83,7 @@ final class StaffPanel {
         ClickMenu menu = new ClickMenu(5, "Staff: " + name);
         menu.set(4, ClickMenu.head(name, lobby.profiles().styledName(target.getUniqueId(), name), info(target)), null);
         menu.set(19, ClickMenu.item(Material.ENDER_PEARL, ChatColor.GREEN + "Teleport to " + name,
-                "Go where they are (vanish first", "to stay unseen: /vanish).", "", ChatColor.YELLOW + "Click to go"),
+                "Go where they are (vanish first", "to stay unseen: /vanish).", "", Brand.ACCENT + "Click to go"),
                 (p, right) -> {
                     Player now = Bukkit.getPlayerExact(name);
                     if (now != null) {
@@ -93,7 +93,7 @@ final class StaffPanel {
                     }
                 });
         menu.set(20, ClickMenu.item(Material.EYE_OF_ENDER, ChatColor.GREEN + "Bring " + name + " here",
-                "Teleport them to you.", "", ChatColor.YELLOW + "Click to bring"), (p, right) -> {
+                "Teleport them to you.", "", Brand.ACCENT + "Click to bring"), (p, right) -> {
                     Player now = Bukkit.getPlayerExact(name);
                     if (now != null && lobby.state().isInGame(now)) {
                         p.sendMessage(ChatColor.RED + name + " is in a game: go to them instead.");
@@ -106,14 +106,14 @@ final class StaffPanel {
         boolean frozen = lobby.staff().frozen(target.getUniqueId());
         menu.set(21, ClickMenu.item(Material.PACKED_ICE, (frozen ? ChatColor.AQUA + "Unfreeze " : ChatColor.AQUA + "Freeze ") + name,
                 frozen ? "They can move again." : "They cannot move, hit or use", frozen ? "" : "commands until unfrozen.", "",
-                ChatColor.YELLOW + "Click to " + (frozen ? "unfreeze" : "freeze")), (p, right) -> {
+                Brand.ACCENT + "Click to " + (frozen ? "unfreeze" : "freeze")), (p, right) -> {
                     run(p, "freeze " + name);
                     openPlayer(p, name);
                 });
         boolean muted = lobby.punishments().mute(target.getUniqueId()) != null;
         menu.set(23, ClickMenu.item(Material.BOOK_AND_QUILL, ChatColor.GOLD + (muted ? "Unmute " : "Mute ") + name,
                 muted ? "Give them the chat back." : "Choose the reason and", muted ? "" : "the length.", "",
-                ChatColor.YELLOW + "Click to " + (muted ? "unmute" : "choose")), (p, right) -> {
+                Brand.ACCENT + "Click to " + (muted ? "unmute" : "choose")), (p, right) -> {
                     if (muted) {
                         run(p, "unmute " + name);
                         openPlayer(p, name);
@@ -122,14 +122,14 @@ final class StaffPanel {
                     }
                 });
         menu.set(24, ClickMenu.item(Material.FEATHER, ChatColor.GOLD + "Kick " + name, "Out of the server, with a reason:",
-                "they can come back.", "", ChatColor.YELLOW + "Click to choose"), (p, right) -> openKick(p, name));
+                "they can come back.", "", Brand.ACCENT + "Click to choose"), (p, right) -> openKick(p, name));
         menu.set(25, ClickMenu.item(Material.REDSTONE_BLOCK, ChatColor.RED + "Ban " + name, "Choose the reason and the",
-                "length (moderators and above).", "", ChatColor.YELLOW + "Click to choose"),
+                "length (moderators and above).", "", Brand.ACCENT + "Click to choose"),
                 (p, right) -> openSanction(p, name, "ban", 0));
-        menu.set(30, ClickMenu.item(Material.PAPER, ChatColor.YELLOW + "Warn " + name, "A warning in their chat,",
-                "kept in their history.", "", ChatColor.YELLOW + "Click to choose"), (p, right) -> openWarn(p, name));
-        menu.set(32, ClickMenu.item(Material.BOOK, ChatColor.YELLOW + "History of " + name, "Their bans, mutes, kicks",
-                "and warnings, in the chat.", "", ChatColor.YELLOW + "Click to read"), (p, right) -> {
+        menu.set(30, ClickMenu.item(Material.PAPER, Brand.ACCENT + "Warn " + name, "A warning in their chat,",
+                "kept in their history.", "", Brand.ACCENT + "Click to choose"), (p, right) -> openWarn(p, name));
+        menu.set(32, ClickMenu.item(Material.BOOK, Brand.ACCENT + "History of " + name, "Their bans, mutes, kicks",
+                "and warnings, in the chat.", "", Brand.ACCENT + "Click to read"), (p, right) -> {
                     p.closeInventory();
                     run(p, "history " + name);
                 });
@@ -152,7 +152,7 @@ final class StaffPanel {
             boolean lit = i == reason;
             menu.set(first + i, ClickMenu.item(lit ? Material.MAP : Material.EMPTY_MAP, 0,
                     (lit ? ChatColor.GREEN : ChatColor.GRAY) + reasons[i], Arrays.asList(lit ? ChatColor.GREEN + "The reason"
-                            : ChatColor.YELLOW + "Click for this reason")), (p, right) -> openSanction(p, name, kind, chosen));
+                            : Brand.ACCENT + "Click for this reason")), (p, right) -> openSanction(p, name, kind, chosen));
         }
         int firstLength = 27 + (9 - lengths.length) / 2;
         for (int i = 0; i < lengths.length; i++) {
@@ -186,7 +186,7 @@ final class StaffPanel {
         int first = 9 + (9 - reasons.length) / 2;
         for (int i = 0; i < reasons.length; i++) {
             final String reason = reasons[i];
-            menu.set(first + i, ClickMenu.item(Material.PAPER, ChatColor.GOLD + reason, "", ChatColor.YELLOW + "Click to " + kind
+            menu.set(first + i, ClickMenu.item(Material.PAPER, ChatColor.GOLD + reason, "", Brand.ACCENT + "Click to " + kind
                     + " " + name), (p, right) -> {
                         p.closeInventory();
                         run(p, kind + " " + name + " " + reason);

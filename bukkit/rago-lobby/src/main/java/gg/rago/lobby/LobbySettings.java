@@ -87,11 +87,11 @@ final class LobbySettings {
             throw new IllegalArgumentException("monde: \"" + world + "\" is not a valid world name");
         }
         int voidHeight = config.getInt("hauteur-vide", 0);
-        String title = colour(config.getString("titre", "&e&lRAGO PRACTICE"));
+        String title = colour(config.getString("titre", "&c&lRAGO PRACTICE"));
         if (ChatColor.stripColor(title).isEmpty() || title.length() > 32) {
             throw new IllegalArgumentException("titre: from 1 to 32 characters, colour codes included");
         }
-        String address = colour(config.getString("adresse", "&erago.gg"));
+        String address = colour(config.getString("adresse", "&crago.gg"));
         if (address.length() > 40) {
             throw new IllegalArgumentException("adresse: 40 characters at most, colour codes included");
         }
@@ -265,7 +265,7 @@ final class LobbySettings {
                         throw new IllegalArgumentException(where + ": the Shop NPC has neither modes nor categorie");
                     }
                     npcs.add(LobbyNpc.shop(point, colour(npc.getString("nom", "&a&lSHOP")),
-                            colour(npc.getString("sous-titre", "&eStarter Pack &7· &bVIP"))).withSkin(skin(npc, where)));
+                            colour(npc.getString("sous-titre", "&cStarter Pack &7· &bVIP"))).withSkin(skin(npc, where)));
                     continue;
                 }
                 if (!"modes".equals(type)) {

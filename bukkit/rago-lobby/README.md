@@ -167,10 +167,10 @@ dans les files d'attente des modes de jeu.
   classé : deux amis ne peuvent pas se donner des victoires pour monter. Les victoires, l'XP et les
   Rago Points comptent quand même. Le défi en mode classé le dit (« A duel never changes the
   ranked ELO. »).
-- **Le scoreboard.** Peu de mots et de l'espace, titre en jaune : le rang, le niveau et l'avancée
+- **Le scoreboard.** Peu de mots et de l'espace, titre en rouge : le rang, le niveau et l'avancée
   vers le suivant en % ; les Rago Points (« Points ») et la meilleure division classée ; le ping et
-  les joueurs connectés ; la file et le temps d'attente quand on attend ; l'adresse en jaune tout en
-  bas. Le Tab aussi (RAGO PRACTICE en jaune et le slogan en haut ; les joueurs, le ping, la boutique
+  les joueurs connectés ; la file et le temps d'attente quand on attend ; l'adresse en rouge tout en
+  bas. Le Tab aussi (RAGO PRACTICE en rouge et le slogan en haut ; les joueurs, le ping, la boutique
   et rago.gg en bas). En partie : le mode en tête, à la couleur de sa catégorie (Bed Wars compris),
   le ping du joueur, et en 1v1 l'adversaire et son
   ping (vert sous 80 ms, jaune sous 150, rouge au-delà). Un jeu qui donne ses propres lignes sans
@@ -403,7 +403,7 @@ dans les files d'attente des modes de jeu.
 - **Le serveur.** La liste des serveurs montre le MOTD de `motd:` (ce qu'est le serveur, puis ce qui
   est nouveau), le Tab a un en-tête et un pied (`tab:`, avec le nombre de joueurs et le ping), et le
   lobby entend une astuce toutes les 5 minutes (`annonces:`), avec le préfixe du serveur
-  (« RAGO » en jaune). `/discord`, `/rules`, `/site` et `/store` montrent `liens:`. Tout suit les
+  (« RAGO » en rouge). `/discord`, `/rules`, `/site` et `/store` montrent `liens:`. Tout suit les
   couleurs du serveur (plus bas).
 
 ## Commandes
@@ -477,29 +477,39 @@ générateur vide ; un monde de build peut donc servir de lobby.
 
 ## Les couleurs du serveur
 
-Le serveur se reconnaît partout aux mêmes couleurs, et le config.yml fourni les suit :
+Le serveur se reconnaît partout aux couleurs de son logo, le rouge, le blanc et le gris, et le
+config.yml fourni les suit :
 
-- **La marque** : le jaune (`&e`) et l'or (`&6`). Le titre du sidebar, la liste des serveurs, le
-  Tab, l'adresse rago.gg, les annonces du serveur et les récompenses (l'XP Network en jaune, les
-  Rago Points en or).
+- **La marque** : le rouge clair (`&c`). Le titre du sidebar, la liste des serveurs, le Tab,
+  l'adresse rago.gg, le préfixe des messages du serveur et ce qu'ils montrent (une commande, un
+  lien), les titres des murs de classement et du règlement.
 - **Le texte** : `&f` blanc pour les valeurs, `&7` gris pour les étiquettes, `&8` gris foncé pour
   les séparateurs.
-- **Le sens** : `&a` vert pour jouer et réussir, `&c` rouge pour quitter et échouer.
+- **Le sens** : `&a` vert pour jouer et réussir ; le rouge reste celui d'une erreur ou d'un départ.
+- **Les menus** : ce qu'on peut faire est en rouge (« Click to open », « Click to buy », la commande
+  à taper), ce qu'on ne peut pas encore faire en gris foncé (« Locked », « Not enough Rago Points »),
+  ce qui est déjà pris en vert (« Worn », « Unlocked »).
+- **Les messages** : une information est en gris, les noms et les nombres en blanc (la file, la
+  partie, les amis, le kit, les replays) ; les messages de party et d'amis sont entre deux traits
+  rouges, et le chat de la party commence par « Party » en rouge.
+- **Le jaune** ne sert plus qu'à l'XP Network, au ping moyen (vert, jaune, rouge) et au palier Gold
+  des titres ; le Bed Wars garde ses couleurs de jeu (les équipes, la boutique d'objets).
+- **Les récompenses** gardent leurs couleurs : l'XP Network en jaune, les Rago Points en or.
 - **Les catégories** : Practice `&b`, RBW Modes `&6`, Duels `&a`, Arenas `&c`. Le nom de chaque mode
   et de chaque groupe prend la couleur de sa catégorie : c'est aussi la ligne du mode en tête du
   sidebar en partie.
 - **Les rangs** : VIP `&b`, PREMIUM+ `&d` ; le rose ne sert à rien d'autre.
-- **Un seul préfixe** pour les messages du serveur : `&e&lRAGO &8» `, puis le texte en blanc, court,
+- **Un seul préfixe** pour les messages du serveur : `&c&lRAGO &8» `, puis le texte en blanc, court,
   en anglais, qui commence par un verbe (les astuces, `/discord`, `/site`, `/store`, un rang acheté,
   un pack reçu).
 - **Le slogan** : « Train. Clutch. Climb. » (s'entraîner, gagner ses duels, monter en Ranked), sous
   le nom dans le Tab et dans l'accueil.
 - **La liste des serveurs** : la ligne 1 dit ce qu'est le serveur (« RAGO PRACTICE • Bed Wars
-  Practice, Ranked & Duels »), la ligne 2 ce qui est nouveau : « NEW » en or, puis la nouveauté, à
-  changer à chaque mise à jour. Une ligne fait 270 pixels au plus (une lettre 6, un espace 4, un i 2,
-  1 de plus en gras) : plus longue, elle passe à la ligne et cache la suivante, et le plugin le dit
-  au démarrage. L'icône est le `server-icon.png` (64x64) à la racine du serveur : celui du serveur de
-  test (tools/local-server) est le logo, un R jaune sur fond sombre.
+  Practice, Ranked & Duels »), la ligne 2 ce qui est nouveau : « NEW » en rouge gras, puis la
+  nouveauté, à changer à chaque mise à jour. Une ligne fait 270 pixels au plus (une lettre 6, un
+  espace 4, un i 2, 1 de plus en gras) : plus longue, elle passe à la ligne et cache la suivante, et
+  le plugin le dit au démarrage. L'icône est le `server-icon.png` (64x64) à la racine du serveur :
+  celui du serveur de test (tools/local-server) est le logo, un R blanc sur un hexagone rouge.
 
 ## Catégories, PNJ et classements
 

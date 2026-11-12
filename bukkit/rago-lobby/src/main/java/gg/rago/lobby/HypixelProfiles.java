@@ -214,7 +214,7 @@ final class HypixelProfiles {
                     online.sendMessage(ChatColor.GREEN + "Imported the Hypixel shop of " + profile.name() + ": "
                             + profile.items() + " items in the quick buy"
                             + (profile.hotbar() != null ? " and the hotbar manager." : ", no hotbar manager.")
-                            + ChatColor.YELLOW + " /hypixel shop to see it.");
+                            + Brand.ACCENT + " /hypixel shop to see it.");
                     onImported.accept(id);
                 }
             });

@@ -101,12 +101,12 @@ final class StatsMenu {
         lore.add(line("Losses", ChatColor.RED, losses));
         lore.add(line("Games played", ChatColor.WHITE, wins + losses));
         lore.add(ChatColor.GRAY + "WLR (wins / losses): " + ChatColor.GOLD + ratio(wins, losses));
-        lore.add(line("Best win streak", ChatColor.YELLOW, stats == null ? 0 : stats.best(StatsPeriod.ALL, null, day, week)));
+        lore.add(line("Best win streak", Brand.ACCENT, stats == null ? 0 : stats.best(StatsPeriod.ALL, null, day, week)));
         int kills = stats == null ? 0 : stats.kills(StatsPeriod.ALL, null, day, week);
         int deaths = stats == null ? 0 : stats.deaths();
         lore.add(line("Kills", ChatColor.GREEN, kills));
         lore.add(line("Deaths", ChatColor.RED, deaths));
-        lore.add(ChatColor.GRAY + "K/D ratio: " + ChatColor.YELLOW + ratio(kills, deaths));
+        lore.add(ChatColor.GRAY + "K/D ratio: " + Brand.ACCENT + ratio(kills, deaths));
         int finals = stats == null ? 0 : stats.finalKills();
         int finalDeaths = stats == null ? 0 : stats.finalDeaths();
         lore.add(line("Final kills", ChatColor.GREEN, finals));
@@ -144,16 +144,16 @@ final class StatsMenu {
             lore.add(line("Wins", ChatColor.GREEN, m.wins));
             lore.add(line("Losses", ChatColor.RED, m.losses));
             lore.add(ChatColor.GRAY + "WLR: " + ChatColor.GOLD + ratio(m.wins, m.losses));
-            lore.add(line("Current win streak", ChatColor.YELLOW, m.streak));
-            lore.add(line("Best win streak", ChatColor.YELLOW, m.bestStreak));
+            lore.add(line("Current win streak", Brand.ACCENT, m.streak));
+            lore.add(line("Best win streak", Brand.ACCENT, m.bestStreak));
             lore.add(line("Kills", ChatColor.GREEN, m.kills));
             lore.add(line("Deaths", ChatColor.RED, m.deaths));
-            lore.add(ChatColor.GRAY + "K/D ratio: " + ChatColor.YELLOW + ratio(m.kills, m.deaths));
+            lore.add(ChatColor.GRAY + "K/D ratio: " + Brand.ACCENT + ratio(m.kills, m.deaths));
             if (m.finalKills > 0 || m.finalDeaths > 0 || m.beds > 0) {
                 lore.add(line("Final kills", ChatColor.GREEN, m.finalKills));
                 lore.add(line("Final deaths", ChatColor.RED, m.finalDeaths));
                 lore.add(ChatColor.GRAY + "FKDR: " + ChatColor.GOLD + ratio(m.finalKills, m.finalDeaths));
-                lore.add(line("Beds broken", ChatColor.YELLOW, m.beds));
+                lore.add(line("Beds broken", Brand.ACCENT, m.beds));
             }
             lore.add("");
             lore.add(line("Wins today", ChatColor.GREEN, m.wins(StatsPeriod.DAY, day, week)));

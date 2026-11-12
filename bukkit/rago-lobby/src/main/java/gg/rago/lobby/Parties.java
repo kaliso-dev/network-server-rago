@@ -25,7 +25,7 @@ import org.bukkit.event.player.AsyncPlayerChatEvent;
  */
 final class Parties implements Listener {
 
-    static final String LINE = ChatColor.BLUE.toString() + ChatColor.STRIKETHROUGH
+    static final String LINE = Brand.ACCENT.toString() + ChatColor.STRIKETHROUGH
             + "-----------------------------------------------------";
     private static final List<String> SUBCOMMANDS = Arrays.asList("invite", "accept", "leave", "list", "disband",
             "kick", "remove", "transfer", "promote", "warp", "chat");
@@ -166,7 +166,7 @@ final class Parties implements Listener {
     }
 
     private static void help(Player player, String command, String what) {
-        player.sendMessage(ChatColor.YELLOW + command + ChatColor.DARK_GRAY + " - " + ChatColor.AQUA + what);
+        player.sendMessage(Brand.ACCENT + command + ChatColor.DARK_GRAY + " - " + ChatColor.AQUA + what);
     }
 
     private void invite(Player player, String name) {
@@ -199,10 +199,10 @@ final class Parties implements Listener {
                 break;
         }
         PartyBook.Party party = book.of(player.getUniqueId());
-        tellParty(party, name(player) + ChatColor.YELLOW + " invited " + name(target) + ChatColor.YELLOW
-                + " to the party! They have " + ChatColor.RED + "60" + ChatColor.YELLOW + " seconds to accept.");
+        tellParty(party, name(player) + ChatColor.GRAY + " invited " + name(target) + ChatColor.GRAY
+                + " to the party! They have " + ChatColor.WHITE + "60" + ChatColor.GRAY + " seconds to accept.");
         target.sendMessage(LINE);
-        target.sendMessage(name(player) + ChatColor.YELLOW + " has invited you to join their party!");
+        target.sendMessage(name(player) + ChatColor.GRAY + " has invited you to join their party!");
         // Clickable through the vanilla /tellraw, as the duel buttons: names are letters, digits and _.
         Bukkit.dispatchCommand(Bukkit.getConsoleSender(), "tellraw " + target.getName() + " " + joinButton(player.getName()));
         target.sendMessage(LINE);
@@ -237,12 +237,12 @@ final class Parties implements Listener {
         PartyBook.Party party = book.of(player.getUniqueId());
         changed(party.members());
         Player leader = Bukkit.getPlayer(party.leader());
-        boxed(player, ChatColor.YELLOW + "You have joined " + (leader == null ? "the" : name(leader) + ChatColor.YELLOW + "'s")
+        boxed(player, ChatColor.GRAY + "You have joined " + (leader == null ? "the" : name(leader) + ChatColor.GRAY + "'s")
                 + " party!");
         for (UUID member : party.members()) {
             Player other = Bukkit.getPlayer(member);
             if (other != null && !other.equals(player)) {
-                boxed(other, name(player) + ChatColor.YELLOW + " joined the party.");
+                boxed(other, name(player) + ChatColor.GRAY + " joined the party.");
             }
         }
     }
@@ -257,8 +257,8 @@ final class Parties implements Listener {
         changed(before);
         book.leave(player.getUniqueId());
         partyChannel.remove(player.getUniqueId());
-        boxed(player, ChatColor.YELLOW + "You left the party.");
-        told(party, before, name(player) + ChatColor.YELLOW + " has left the party.");
+        boxed(player, ChatColor.GRAY + "You left the party.");
+        told(party, before, name(player) + ChatColor.GRAY + " has left the party.");
     }
 
     private void list(Player player) {
@@ -271,9 +271,9 @@ final class Parties implements Listener {
         player.sendMessage(LINE);
         player.sendMessage(ChatColor.GOLD + "Party Members (" + members.size() + ")");
         player.sendMessage("");
-        player.sendMessage(ChatColor.YELLOW + "Party Leader: " + nameOf(members.get(0)) + ChatColor.GREEN + " ●");
+        player.sendMessage(ChatColor.GRAY + "Party Leader: " + nameOf(members.get(0)) + ChatColor.GREEN + " ●");
         if (members.size() > 1) {
-            StringBuilder others = new StringBuilder(ChatColor.YELLOW + "Party Members: ");
+            StringBuilder others = new StringBuilder(ChatColor.GRAY + "Party Members: ");
             for (UUID member : members.subList(1, members.size())) {
                 others.append(nameOf(member)).append(ChatColor.GREEN).append(" ● ");
             }
@@ -299,7 +299,7 @@ final class Parties implements Listener {
             partyChannel.remove(member);
             Player other = Bukkit.getPlayer(member);
             if (other != null) {
-                boxed(other, name(player) + ChatColor.YELLOW + " has disbanded the party!");
+                boxed(other, name(player) + ChatColor.GRAY + " has disbanded the party!");
             }
         }
     }
@@ -321,10 +321,10 @@ final class Parties implements Listener {
         partyChannel.remove(target);
         Player kicked = Bukkit.getPlayer(target);
         if (kicked != null) {
-            boxed(kicked, ChatColor.YELLOW + "You have been kicked from the party by " + name(player));
+            boxed(kicked, ChatColor.GRAY + "You have been kicked from the party by " + name(player));
         }
         before.remove(target);
-        told(party, before, nameOf(target) + ChatColor.YELLOW + " has been removed from the party.");
+        told(party, before, nameOf(target) + ChatColor.GRAY + " has been removed from the party.");
     }
 
     private void transfer(Player player, String name) {
@@ -340,7 +340,7 @@ final class Parties implements Listener {
         }
         changed(party.members());
         book.transfer(player.getUniqueId(), target);
-        tellParty(party, ChatColor.YELLOW + "The party was transferred to " + nameOf(target) + ChatColor.YELLOW + " by "
+        tellParty(party, ChatColor.GRAY + "The party was transferred to " + nameOf(target) + ChatColor.GRAY + " by "
                 + name(player));
     }
 
@@ -374,10 +374,10 @@ final class Parties implements Listener {
                 continue;
             }
             other.teleport(player.getLocation());
-            boxed(other, name(player) + ChatColor.YELLOW + " summoned you to their lobby.");
+            boxed(other, name(player) + ChatColor.GRAY + " summoned you to their lobby.");
             warped++;
         }
-        boxed(player, ChatColor.YELLOW + "You summoned " + ChatColor.RED + warped + ChatColor.YELLOW
+        boxed(player, ChatColor.GRAY + "You summoned " + ChatColor.WHITE + warped + ChatColor.GRAY
                 + (warped == 1 ? " player" : " players") + " to your lobby.");
     }
 
@@ -398,7 +398,7 @@ final class Parties implements Listener {
             player.sendMessage(muted);
             return;
         }
-        String line = ChatColor.BLUE + "Party " + ChatColor.DARK_GRAY + "> " + name(player) + ChatColor.WHITE + ": " + message;
+        String line = Brand.ACCENT + "Party " + ChatColor.DARK_GRAY + "> " + name(player) + ChatColor.WHITE + ": " + message;
         for (UUID member : party.members()) {
             Player other = Bukkit.getPlayer(member);
             if (other != null) {
@@ -432,10 +432,10 @@ final class Parties implements Listener {
         for (PartyBook.Expired expired : book.expire(System.currentTimeMillis())) {
             Player invited = Bukkit.getPlayer(expired.invited);
             if (invited != null) {
-                boxed(invited, ChatColor.YELLOW + "The party invite from " + nameOf(expired.leader) + ChatColor.YELLOW
+                boxed(invited, ChatColor.GRAY + "The party invite from " + nameOf(expired.leader) + ChatColor.GRAY
                         + " has expired.");
             }
-            String message = ChatColor.YELLOW + "The party invite to " + nameOf(expired.invited) + ChatColor.YELLOW
+            String message = ChatColor.GRAY + "The party invite to " + nameOf(expired.invited) + ChatColor.GRAY
                     + " has expired.";
             if (!expired.party.isDisbanded()) {
                 tellParty(expired.party, message);
@@ -465,7 +465,7 @@ final class Parties implements Listener {
         String name = nameOf(player);
         book.leave(player);
         before.remove(player);
-        told(party, before, name + ChatColor.YELLOW + " left the server and the party.");
+        told(party, before, name + ChatColor.GRAY + " left the server and the party.");
     }
 
     // --- Helpers --------------------------------------------------------------------------------

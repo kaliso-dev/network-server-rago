@@ -38,7 +38,7 @@ final class LobbyWelcome {
         player.sendMessage(RULE);
         player.sendMessage(centred(settings.title()));
         player.sendMessage(centred(Brand.SLOGAN));
-        player.sendMessage(ChatColor.GRAY + "Pick how you play. " + ChatColor.YELLOW + "Click one:");
+        player.sendMessage(ChatColor.GRAY + "Pick how you play. " + Brand.ACCENT + "Click one:");
         for (ModeCategory category : categories) {
             // clickable through the vanilla /tellraw, as the duel buttons: names are letters, digits and _
             Bukkit.dispatchCommand(Bukkit.getConsoleSender(), "tellraw " + player.getName() + " " + json(category));

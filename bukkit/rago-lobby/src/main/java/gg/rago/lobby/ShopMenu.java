@@ -65,7 +65,7 @@ final class ShopMenu {
                     : rank.webPrice() != null ? " - " + rank.webPrice() + " on the web store" : " - web store"));
         }
         rankLore.add("");
-        rankLore.add(ChatColor.YELLOW + "Click to browse");
+        rankLore.add(Brand.ACCENT + "Click to browse");
         menu.set(10, ClickMenu.item(Material.GOLD_INGOT, 0, ChatColor.GOLD + "Ranks", rankLore), (p, right) -> openRanks(p));
         int slot = 12;
         for (final Cosmetic.Type type : Cosmetic.Type.values()) {
@@ -83,9 +83,9 @@ final class ShopMenu {
             }
             lore.add("Unlocked: " + ChatColor.GREEN + owned + ChatColor.GRAY + "/" + all.size());
             Cosmetic worn = profiles.equipped(player.getUniqueId(), type);
-            lore.add("Equipped: " + (worn == null ? ChatColor.DARK_GRAY + "nothing" : ChatColor.YELLOW + worn.name()));
+            lore.add("Equipped: " + (worn == null ? ChatColor.DARK_GRAY + "nothing" : Brand.ACCENT + worn.name()));
             lore.add("");
-            lore.add(ChatColor.YELLOW + "Click to browse");
+            lore.add(Brand.ACCENT + "Click to browse");
             menu.set(slot, ClickMenu.item(type.icon(), 0, ChatColor.GREEN + type.title(), lore), (p, right) -> openType(p, type));
             slot += 2;
         }
@@ -104,7 +104,7 @@ final class ShopMenu {
             lore.add("with fireworks!");
             lore.add("");
             lore.add(ChatColor.LIGHT_PURPLE + "For PREMIUM and above");
-            lore.add(ChatColor.YELLOW + "Click to choose a player");
+            lore.add(Brand.ACCENT + "Click to choose a player");
             menu.set(27, ClickMenu.item(Material.FIREWORK_CHARGE, 0, ChatColor.GOLD + "Gift a rank", lore),
                     (p, right) -> openGiftTargets(p));
         }
@@ -112,7 +112,7 @@ final class ShopMenu {
             menu.set(29, ClickMenu.item(Material.NAME_TAG, 0, ChatColor.LIGHT_PURPLE + "Name colours & badges", listOf(
                     "Gradient names, and badges after",
                     "your name: §c§lRAGO§7, §6§lBETTER§7, §4§lPVP§7...",
-                    "", ChatColor.YELLOW + "Click to browse")), (p, right) -> styles.open(p));
+                    "", Brand.ACCENT + "Click to browse")), (p, right) -> styles.open(p));
         }
         boolean ready = profiles.dailyReady(player.getUniqueId());
         int next = profiles.server().points().dailyReward(
@@ -124,7 +124,7 @@ final class ShopMenu {
                 "A few days in a row give more.",
                 "Streak: " + ChatColor.WHITE + profile.dailyStreak() + " days",
                 "",
-                ready ? ChatColor.YELLOW + "Click to claim" : ChatColor.GRAY
+                ready ? Brand.ACCENT + "Click to claim" : ChatColor.GRAY
                         + StatsPeriod.DAY.resetText(System.currentTimeMillis()).replace("Resets in", "Again in")),
                 (p, right) -> {
                     profiles.claimDaily(p);
@@ -142,7 +142,7 @@ final class ShopMenu {
                             + " points" + (left > 0 ? ChatColor.GRAY + ", one running (" + ChatColor.AQUA + XpBoosters.clock(left)
                             + ChatColor.GRAY + ")" : ""),
                     "",
-                    ChatColor.YELLOW + "Click to see them"), (p, right) -> boosters.open(p));
+                    Brand.ACCENT + "Click to see them"), (p, right) -> boosters.open(p));
         }
         if (store != null) {
             StarterPack pack = profiles.server().starterPack();
@@ -152,7 +152,7 @@ final class ShopMenu {
                     "cosmetics, once per player.",
                     "Price: " + pack.priceLine(),
                     "",
-                    ChatColor.YELLOW + "Click to see it, with VIP"))), (p, right) -> store.accept(p));
+                    Brand.ACCENT + "Click to see it, with VIP"))), (p, right) -> store.accept(p));
         }
         menu.open(player);
     }
@@ -180,7 +180,7 @@ final class ShopMenu {
                     lore.add(ChatColor.GRAY + "(PREMIUM and above: /gift <player>)");
                 }
                 lore.add("");
-                lore.add(owned ? ChatColor.GREEN + "You have it" : ChatColor.YELLOW + "Click for the link");
+                lore.add(owned ? ChatColor.GREEN + "You have it" : Brand.ACCENT + "Click for the link");
                 menu.set(slotOf(i), ClickMenu.item(rank.icon(), 0, rank.prefix().trim(), lore), (p, right) -> {
                     p.closeInventory();
                     List<String> store = profiles.server().link("boutique");
@@ -198,9 +198,9 @@ final class ShopMenu {
             } else if (level < rank.level()) {
                 lore.add(ChatColor.RED + "Unlocks at level " + rank.level());
             } else if (profile.points() < rank.price()) {
-                lore.add(ChatColor.RED + "Not enough Rago Points");
+                lore.add(ChatColor.DARK_GRAY + "Not enough Rago Points");
             } else {
-                lore.add(ChatColor.YELLOW + "Click to buy");
+                lore.add(Brand.ACCENT + "Click to buy");
             }
             menu.set(slotOf(i), ClickMenu.item(rank.icon(), 0, rank.prefix().trim(), lore), (p, right) -> {
                 if (!owned) {
@@ -229,7 +229,7 @@ final class ShopMenu {
         for (int i = 0; i < shown; i++) {
             final String name = online.get(i).getName();
             List<String> lore = new ArrayList<>();
-            lore.add(ChatColor.YELLOW + "Click to choose the rank");
+            lore.add(Brand.ACCENT + "Click to choose the rank");
             menu.set(i, ClickMenu.head(name, profiles.styledName(online.get(i).getUniqueId(), name), lore),
                     (p, right) -> p.performCommand("gift " + name));
         }
@@ -303,9 +303,9 @@ final class ShopMenu {
             } else if (level < rank.level()) {
                 lore.add(ChatColor.RED + "Unlocks at level " + rank.level());
             } else if (profile.points() < rank.giftPrice()) {
-                lore.add(ChatColor.RED + "Not enough Rago Points");
+                lore.add(ChatColor.DARK_GRAY + "Not enough Rago Points");
             } else {
-                lore.add(ChatColor.YELLOW + "Click to offer it to " + target.name());
+                lore.add(Brand.ACCENT + "Click to offer it to " + target.name());
             }
             menu.set(slotOf(i), ClickMenu.item(rank.icon(), 0, rank.prefix().trim(), lore), (p, right) -> {
                 if (!owned) {
@@ -344,17 +344,17 @@ final class ShopMenu {
             if (equipped) {
                 lore.add(ChatColor.GREEN + "Equipped " + ChatColor.GRAY + "(click to take off)");
             } else if (owned) {
-                lore.add(ChatColor.YELLOW + "Click to equip");
+                lore.add(Brand.ACCENT + "Click to equip");
             } else if (cosmetic.premium()) {
-                lore.add(ChatColor.RED + "Locked " + ChatColor.GRAY + "(click for the store)");
+                lore.add(ChatColor.DARK_GRAY + "Locked " + ChatColor.GRAY + "(click for the store)");
             } else if (level < cosmetic.level()) {
                 lore.add(ChatColor.RED + "Unlocks at level " + cosmetic.level());
             } else if (profile.points() < cosmetic.price()) {
-                lore.add(ChatColor.RED + "Not enough Rago Points");
+                lore.add(ChatColor.DARK_GRAY + "Not enough Rago Points");
             } else {
-                lore.add(ChatColor.YELLOW + "Click to buy");
+                lore.add(Brand.ACCENT + "Click to buy");
             }
-            String name = (equipped ? ChatColor.GREEN : owned ? ChatColor.YELLOW : ChatColor.WHITE) + cosmetic.name()
+            String name = (equipped ? ChatColor.GREEN : owned ? Brand.ACCENT : ChatColor.WHITE) + cosmetic.name()
                     + (cosmetic.premium() ? " " + ChatColor.LIGHT_PURPLE + "✦" : "");
             menu.set(slotOf(i), ClickMenu.item(cosmetic.icon(), 0, name, lore), (p, right) -> {
                 if (owned) {
@@ -383,7 +383,7 @@ final class ShopMenu {
         ClickMenu menu = new ClickMenu(3, "Confirm the purchase");
         menu.set(11, ClickMenu.item(Material.STAINED_CLAY, 5, ChatColor.GREEN + "Buy " + what, listOf(
                 "Price: " + ChatColor.GOLD + String.format(java.util.Locale.US, "%,d", price) + " Rago Points",
-                "", ChatColor.YELLOW + "Click to confirm")), (p, right) -> {
+                "", Brand.ACCENT + "Click to confirm")), (p, right) -> {
                     buy.run();
                     back.run();
                 });

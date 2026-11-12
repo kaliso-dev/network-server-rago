@@ -137,13 +137,13 @@ final class KitEditor implements Listener {
                 imported == null ? ChatColor.GRAY + "Nothing imported yet."
                         : ChatColor.GRAY + "The quick buy of " + ChatColor.WHITE + imported.name()
                                 + ChatColor.GRAY + ": " + imported.items() + " items.",
-                "", ChatColor.YELLOW + "Click to see it"));
+                "", Brand.ACCENT + "Click to see it"));
         for (int slot = 0; slot < modes.size(); slot++) {
             ModeDisplay display = modes.get(slot);
             boolean arranged = layouts.get(player.getUniqueId(), display.mode().id()) != null;
             inventory.setItem(slot, item(display.icon(), 0, ChatColor.RESET + display.mode().name(),
                     arranged ? ChatColor.GREEN + "Your layout is saved." : ChatColor.GRAY + "The default layout.",
-                    "", ChatColor.YELLOW + "Click to arrange this kit"));
+                    "", Brand.ACCENT + "Click to arrange this kit"));
         }
         player.openInventory(inventory);
     }
@@ -168,7 +168,7 @@ final class KitEditor implements Listener {
                 ChatColor.GRAY + "give them this way."));
         inventory.setItem(SAVE, item(Material.WOOL, 5, ChatColor.GREEN + "" + ChatColor.BOLD + "Save",
                 ChatColor.GRAY + "Closing this menu saves too."));
-        inventory.setItem(RESET, item(Material.WOOL, 4, ChatColor.YELLOW + "Reset",
+        inventory.setItem(RESET, item(Material.WOOL, 4, ChatColor.WHITE + "Reset",
                 ChatColor.GRAY + "Puts every item back", ChatColor.GRAY + "where the kit puts it."));
         inventory.setItem(CANCEL, item(Material.WOOL, 14, ChatColor.RED + "Cancel",
                 ChatColor.GRAY + "Keeps your last saved layout."));
@@ -228,7 +228,7 @@ final class KitEditor implements Listener {
                 ModeDisplay display = settings.display(holder.modeId);
                 player.setItemOnCursor(null);
                 fill(player, display.kit().arrange(Kit.defaultLayout()));
-                player.sendMessage(ChatColor.YELLOW + "The kit is back to its default layout: save to keep it.");
+                player.sendMessage(ChatColor.GRAY + "The kit is back to its default layout: save to keep it.");
             } else if (raw == CANCEL) {
                 editing.remove(player.getUniqueId());
                 player.sendMessage(ChatColor.GRAY + "Nothing changed: your kit stays as it was.");

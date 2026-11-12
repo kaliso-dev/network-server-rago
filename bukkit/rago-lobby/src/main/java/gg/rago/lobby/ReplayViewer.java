@@ -80,8 +80,8 @@ final class ReplayViewer {
     static final int SLOT_SPEED = 6;
     static final int SLOT_LEAVE = 8;
     static final String PLAYERS = ChatColor.GREEN + "Players" + ChatColor.GRAY + " (right click)";
-    static final String BACK = ChatColor.YELLOW + "« 10 seconds" + ChatColor.GRAY + " (right click)";
-    static final String FORWARD = ChatColor.YELLOW + "10 seconds »" + ChatColor.GRAY + " (right click)";
+    static final String BACK = Brand.ACCENT + "« 10 seconds" + ChatColor.GRAY + " (right click)";
+    static final String FORWARD = Brand.ACCENT + "10 seconds »" + ChatColor.GRAY + " (right click)";
     static final String PAUSE = ChatColor.GOLD + "Pause" + ChatColor.GRAY + " (right click)";
     static final String PLAY = ChatColor.GREEN + "Play" + ChatColor.GRAY + " (right click)";
     static final String SPEED = ChatColor.AQUA + "Speed";
@@ -272,7 +272,7 @@ final class ReplayViewer {
                 ended = true;
                 paused = true;
                 hotbar();
-                viewer.sendMessage(ChatColor.YELLOW + "End of the replay. " + ChatColor.GRAY
+                viewer.sendMessage(ChatColor.GRAY + "End of the replay. " + ChatColor.GRAY
                         + "Play watches it again from the start; the bed leaves.");
             }
         }

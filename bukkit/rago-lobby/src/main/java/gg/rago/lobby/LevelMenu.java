@@ -136,10 +136,10 @@ final class LevelMenu {
             lore.add(StatsService.rewardName(server, item));
         }
         lore.add("");
-        lore.add(got ? ChatColor.GREEN + "Unlocked" : next ? ChatColor.YELLOW + "Your next reward: "
+        lore.add(got ? ChatColor.GREEN + "Unlocked" : next ? Brand.ACCENT + "Your next reward: "
                 + (reward.level() - level) + " level" + (reward.level() - level > 1 ? "s" : "") + " to go"
-                : ChatColor.RED + "Locked");
-        String name = (got ? ChatColor.GREEN : next ? ChatColor.YELLOW : ChatColor.GRAY) + "Level " + reward.level() + " "
+                : ChatColor.DARK_GRAY + "Locked");
+        String name = (got ? ChatColor.GREEN : next ? Brand.ACCENT : ChatColor.GRAY) + "Level " + reward.level() + " "
                 + book.levels().tag(reward.level());
         org.bukkit.inventory.ItemStack item = ClickMenu.item(rewardBlock(got), 0, name, lore);
         return next ? ClickMenu.glow(item) : item;
@@ -152,7 +152,7 @@ final class LevelMenu {
 
     /** Every tier of colour, then the prestiges after the level 100, the one of the player marked. */
     static org.bukkit.inventory.ItemStack tiersItem(NetworkLevel levels, int level) {
-        return ClickMenu.item(Material.NETHER_STAR, 0, ChatColor.YELLOW + "Tiers", tierLines(levels, level));
+        return ClickMenu.item(Material.NETHER_STAR, 0, Brand.ACCENT + "Tiers", tierLines(levels, level));
     }
 
     static List<String> tierLines(NetworkLevel levels, int level) {
@@ -186,17 +186,17 @@ final class LevelMenu {
         List<GettingStarted.Step> steps = startSteps.get();
         int started = GettingStarted.done(stats, steps);
         if (started < steps.size()) {
-            lore.add("Getting started: " + ChatColor.YELLOW + started + "/" + steps.size());
+            lore.add("Getting started: " + Brand.ACCENT + started + "/" + steps.size());
         }
         for (Quests.Period period : Quests.Period.values()) {
             int done = server.quests().done(stats, period, day, week);
             int count = server.quests().active(period, day, week).size();
-            lore.add(period.title() + ": " + (done == count ? ChatColor.GREEN : ChatColor.YELLOW) + done + "/" + count);
+            lore.add(period.title() + ": " + (done == count ? ChatColor.GREEN : Brand.ACCENT) + done + "/" + count);
         }
         lore.add("");
         lore.add("They give a lot of Network XP.");
         lore.add("");
-        lore.add(ChatColor.YELLOW + "Click to see them");
+        lore.add(Brand.ACCENT + "Click to see them");
         return lore;
     }
 
@@ -244,9 +244,9 @@ final class LevelMenu {
                         + " Network XP");
                 lore.add("");
                 lore.add(done ? ChatColor.GREEN + "Done! " + ChatColor.GRAY + period.resetText(now).replace("Resets in", "Again in")
-                        : ChatColor.YELLOW + "In progress");
+                        : Brand.ACCENT + "In progress");
                 menu.set(slot++, ClickMenu.item(done ? Material.ENCHANTED_BOOK : Material.PAPER, 0,
-                        (done ? ChatColor.GREEN : ChatColor.YELLOW) + quest.name(), lore), null);
+                        (done ? ChatColor.GREEN : Brand.ACCENT) + quest.name(), lore), null);
             }
             row += starting ? 1 : 2;
         }
@@ -276,9 +276,9 @@ final class LevelMenu {
             lore.add("");
             lore.add("Reward: " + ChatColor.GOLD + "+" + quests.points(step) + " Rago Points");
             lore.add("");
-            lore.add(done ? ChatColor.GREEN + "Done!" : ChatColor.YELLOW + "To do");
+            lore.add(done ? ChatColor.GREEN + "Done!" : Brand.ACCENT + "To do");
             menu.set(slot++, ClickMenu.item(done ? Material.ENCHANTED_BOOK : Material.PAPER, 0,
-                    (done ? ChatColor.GREEN : ChatColor.YELLOW) + step.title(), lore), null);
+                    (done ? ChatColor.GREEN : Brand.ACCENT) + step.title(), lore), null);
         }
     }
 

@@ -78,7 +78,7 @@ final class StyleMenu {
         String plain = rank.nameColour();
         menu.set(ShopMenu.slotOf(0), ClickMenu.item(Material.WOOL, wool(plain.length() > 1 ? plain.charAt(1) : 'f'),
                 plain + "Colour of your rank", listOf("Colour of name", "", "Your name: " + plain + player.getName(), "",
-                        colour == null ? ChatColor.GREEN + "Worn" : ChatColor.YELLOW + "Click to wear")),
+                        colour == null ? ChatColor.GREEN + "Worn" : Brand.ACCENT + "Click to wear")),
                 (p, right) -> {
                     profiles.wear(p, NameStyle.Kind.COLOUR, null);
                     open(p);
@@ -95,22 +95,22 @@ final class StyleMenu {
             lore.add(how(style));
             lore.add("");
             lore.add(style == colour ? ChatColor.GREEN + "Worn " + ChatColor.GRAY + "(click to take off)"
-                    : owned ? ChatColor.YELLOW + "Click to wear" : style.obtain() == NameStyle.Obtain.POINTS
-                    ? ChatColor.YELLOW + "Click to buy" : ChatColor.RED + "Locked");
+                    : owned ? Brand.ACCENT + "Click to wear" : style.obtain() == NameStyle.Obtain.POINTS
+                    ? Brand.ACCENT + "Click to buy" : ChatColor.DARK_GRAY + "Locked");
             char main = style.mainColour().charAt(1);
             menu.set(ShopMenu.slotOf(i++), ClickMenu.item(owned ? Material.WOOL : Material.STAINED_GLASS_PANE, wool(main),
                     style.sample(), lore), (p, right) -> pick(p, style, owned));
         }
 
         NameStyle badge = names.badge(id);
-        menu.set(BADGES_SLOT, ClickMenu.item(Material.NAME_TAG, 0, ChatColor.YELLOW + "Badges", listOf(
+        menu.set(BADGES_SLOT, ClickMenu.item(Material.NAME_TAG, 0, Brand.ACCENT + "Badges", listOf(
                 "A short word after your name, in",
                 "the chat, the tab list and above",
                 "your head.",
                 "",
                 "Yours: " + (badge == null ? ChatColor.DARK_GRAY + "none" : badge.text()),
                 "",
-                ChatColor.YELLOW + "Click to choose")), (p, right) -> openBadges(p));
+                Brand.ACCENT + "Click to choose")), (p, right) -> openBadges(p));
 
         NameStyle plus = names.plus(id);
         menu.set(46, ClickMenu.item(Material.NETHER_STAR, 0, ChatColor.LIGHT_PURPLE + "Colour of your " + names.plusColour(id) + "+",
@@ -118,13 +118,13 @@ final class StyleMenu {
                         "the tab list and above your head.", "",
                         "Yours: " + (plus == null ? ChatColor.WHITE + "White" : plus.sample()),
                         rank.hasPlus() ? "" : ChatColor.LIGHT_PURPLE + "It shows with [PREMIUM+].", "",
-                        ChatColor.YELLOW + "Click to choose")), (p, right) -> openPlus(p));
+                        Brand.ACCENT + "Click to choose")), (p, right) -> openPlus(p));
         List<String> store = server.link("boutique");
         menu.set(50, ClickMenu.item(Material.GOLD_INGOT, 0, ChatColor.GOLD + "More colours and badges", listOf(
                 "The gradients and badges marked",
                 "\"store\" are on the web store.",
                 "",
-                ChatColor.YELLOW + "Click for the link")), (p, right) -> {
+                Brand.ACCENT + "Click for the link")), (p, right) -> {
                     p.closeInventory();
                     tellStore(p, store);
                 });
@@ -157,7 +157,7 @@ final class StyleMenu {
                 "End a ranked season in a division",
                 "to get its badge: " + example + ChatColor.GRAY + ".")), null);
         menu.set(ShopMenu.slotOf(0), ClickMenu.item(Material.BARRIER, 0, ChatColor.GRAY + "No badge",
-                listOf("Badge", "", badge == null ? ChatColor.GREEN + "Worn" : ChatColor.YELLOW + "Click to take your badge off")),
+                listOf("Badge", "", badge == null ? ChatColor.GREEN + "Worn" : Brand.ACCENT + "Click to take your badge off")),
                 (p, right) -> {
                     profiles.wear(p, NameStyle.Kind.BADGE, null);
                     openBadges(p);
@@ -175,7 +175,7 @@ final class StyleMenu {
             lore.add(how(style));
             lore.add("");
             lore.add(worn ? ChatColor.GREEN + "Worn " + ChatColor.GRAY + "(click to take off)"
-                    : owned ? ChatColor.YELLOW + "Click to wear" : ChatColor.RED + "Locked");
+                    : owned ? Brand.ACCENT + "Click to wear" : ChatColor.DARK_GRAY + "Locked");
             org.bukkit.inventory.ItemStack item = ClickMenu.item(owned ? Material.NAME_TAG : Material.PAPER, 0, style.text(), lore);
             menu.set(ShopMenu.slotOf(i++), worn ? ClickMenu.glow(item) : item, (p, right) -> pick(p, style, owned));
         }
@@ -202,7 +202,7 @@ final class StyleMenu {
                 names.rank(id).hasPlus() ? "" : ChatColor.LIGHT_PURPLE + "It shows with [PREMIUM+].")), null);
         menu.set(ShopMenu.slotOf(0), ClickMenu.item(Material.WOOL, 0, ChatColor.WHITE + "+ White", listOf("Colour of +", "",
                 Ranks.premium().prefix(RankDef.DEFAULT_PLUS) + name, "", "The colour of every [PREMIUM+]", "",
-                worn == null ? ChatColor.GREEN + "Worn" : ChatColor.YELLOW + "Click to wear")), (p, right) -> {
+                worn == null ? ChatColor.GREEN + "Worn" : Brand.ACCENT + "Click to wear")), (p, right) -> {
                     profiles.wear(p, NameStyle.Kind.PLUS, null);
                     openPlus(p);
                 });
@@ -214,8 +214,8 @@ final class StyleMenu {
             boolean owned = names.owns(profile, style);
             List<String> lore = listOf("Colour of +", "", Ranks.premium().prefix(style.plusColour()) + name, "", how(style), "");
             lore.add(style == worn ? ChatColor.GREEN + "Worn " + ChatColor.GRAY + "(click to take off)"
-                    : owned ? ChatColor.YELLOW + "Click to wear" : style.obtain() == NameStyle.Obtain.POINTS
-                    ? ChatColor.YELLOW + "Click to buy" : ChatColor.RED + "Locked");
+                    : owned ? Brand.ACCENT + "Click to wear" : style.obtain() == NameStyle.Obtain.POINTS
+                    ? Brand.ACCENT + "Click to buy" : ChatColor.DARK_GRAY + "Locked");
             menu.set(ShopMenu.slotOf(i++), ClickMenu.item(owned ? Material.WOOL : Material.STAINED_GLASS_PANE,
                     wool(style.text().charAt(0)), style.sample(), lore), (p, right) -> {
                         if (owned) {
@@ -265,7 +265,7 @@ final class StyleMenu {
                 ClickMenu confirm = new ClickMenu(3, "Buy " + style.name() + "?");
                 confirm.set(11, ClickMenu.item(Material.STAINED_CLAY, 5, ChatColor.GREEN + "Buy " + style.sample(), listOf(
                         "Price: " + ChatColor.GOLD + String.format(java.util.Locale.US, "%,d", style.price()) + " Rago Points", "",
-                        ChatColor.YELLOW + "Click to confirm")), (p, right) -> {
+                        Brand.ACCENT + "Click to confirm")), (p, right) -> {
                             profiles.buyStyle(p, style);
                             reopen(p, style);
                         });

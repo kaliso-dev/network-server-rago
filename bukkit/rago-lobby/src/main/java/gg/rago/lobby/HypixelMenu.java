@@ -55,7 +55,7 @@ final class HypixelMenu {
         if (profile.hotbar() == null) {
             inventory.setItem(40, item(Material.BARRIER, 0, ChatColor.GRAY + "No hotbar manager on Hypixel"));
         } else {
-            inventory.setItem(40, item(Material.BOOK, 0, ChatColor.YELLOW + "Hotbar manager (below)",
+            inventory.setItem(40, item(Material.BOOK, 0, Brand.ACCENT + "Hotbar manager (below)",
                     ChatColor.GRAY + "Where each kind of item goes", ChatColor.GRAY + "in your hotbar."));
             for (int i = 0; i < HypixelProfile.HOTBAR; i++) {
                 String category = profile.hotbar().get(i);
@@ -129,7 +129,7 @@ final class HypixelMenu {
                 : key.contains("tool") ? Material.STONE_PICKAXE : key.contains("ranged") ? Material.BOW
                 : key.contains("potion") ? Material.BREWING_STAND_ITEM : key.contains("utility") ? Material.TNT
                 : key.contains("compass") || key.contains("tracker") ? Material.COMPASS : Material.PAPER;
-        return item(material, 0, ChatColor.YELLOW + "Slot " + (slot + 1) + ": " + ChatColor.WHITE + pretty(category));
+        return item(material, 0, Brand.ACCENT + "Slot " + (slot + 1) + ": " + ChatColor.WHITE + pretty(category));
     }
 
     /** "speed_ii_potion_(45_seconds)" to "Speed II Potion (45 Seconds)". */

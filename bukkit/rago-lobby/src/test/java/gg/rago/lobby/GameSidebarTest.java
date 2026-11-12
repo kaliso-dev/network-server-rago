@@ -71,8 +71,8 @@ class GameSidebarTest {
     void aPlayerWhoWaitsInQueuesWhileTrainingSeesHowLong() {
         List<gg.rago.game.GameMode> waiting = Arrays.asList(new gg.rago.game.GameMode("sumo", "Sumo", 2, 1, false),
                 new gg.rago.game.GameMode("bridge", "Bridge", 2, 1, false));
-        assertEquals("\u00a7fQueue: \u00a7e0:42\u00a77 (Sumo +1)", LobbyScoreboard.queueLine(waiting, 42_000L));
-        assertEquals("\u00a7fQueue: \u00a7e1:05\u00a77 (Sumo)", LobbyScoreboard.queueLine(waiting.subList(0, 1), 65_000L));
+        assertEquals("\u00a7fQueue: \u00a7c0:42\u00a77 (Sumo +1)", LobbyScoreboard.queueLine(waiting, 42_000L));
+        assertEquals("\u00a7fQueue: \u00a7c1:05\u00a77 (Sumo)", LobbyScoreboard.queueLine(waiting.subList(0, 1), 65_000L));
         List<String> given = new ArrayList<>();
         for (int i = 0; i < 14; i++) {
             given.add("Line " + i);
@@ -80,7 +80,7 @@ class GameSidebarTest {
         List<String> lines = LobbyScoreboard.givenLines(given, LobbyScoreboard.pingLines(20, new ArrayList<Integer>(), false),
                 LobbyScoreboard.queueLine(waiting, 0L), "play.rago.gg");
         assertEquals(LobbyScoreboard.MAX_GAME_LINES + 3, lines.size(), "no more lines: " + lines);
-        assertEquals("\u00a7fQueue: \u00a7e0:00\u00a77 (Sumo +1)", lines.get(lines.size() - 2), "over the address, for the blank line");
+        assertEquals("\u00a7fQueue: \u00a7c0:00\u00a77 (Sumo +1)", lines.get(lines.size() - 2), "over the address, for the blank line");
         assertEquals("\u00a7fYour ping: \u00a7a20 ms", lines.get(lines.size() - 3), "the game and the ping keep their room");
         assertEquals("Line 9", lines.get(10));
         assertEquals(lines.size(), new HashSet<>(lines).size(), lines.toString());

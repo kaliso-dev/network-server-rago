@@ -61,7 +61,7 @@ final class KitMenu {
             lore.add(ChatColor.DARK_GRAY + "- " + ChatColor.WHITE + RoundKit.label(entry));
         }
         lore.add("");
-        lore.add(chosen ? ChatColor.GREEN + "Your kit" : ChatColor.YELLOW + "Click to choose");
+        lore.add(chosen ? ChatColor.GREEN + "Your kit" : ChatColor.RED + "Click to choose");
         return lore;
     }
 

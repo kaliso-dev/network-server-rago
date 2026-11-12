@@ -58,25 +58,25 @@ final class PlayerMenu implements Listener {
         ClickMenu menu = new ClickMenu(4, name);
         menu.set(HEAD, ClickMenu.head(name, lobby.profiles().styledName(id, name), lobby.profileMenu().summary(profile, id)), null);
         menu.set(DUEL, ClickMenu.item(Material.IRON_SWORD, ChatColor.GREEN + "Duel", "Challenge " + name + " to a duel:",
-                "pick the mode.", "", ChatColor.YELLOW + "Click to choose"), (p, right) -> command(p, "duel " + name));
+                "pick the mode.", "", Brand.ACCENT + "Click to choose"), (p, right) -> command(p, "duel " + name));
         menu.set(STATS, ClickMenu.item(Material.PAPER, ChatColor.GREEN + "Stats", "Wins, kills, streaks and ELO",
-                "of " + name + " in every mode.", "", ChatColor.YELLOW + "Click to open"), (p, right) -> stats.open(p, id, name));
+                "of " + name + " in every mode.", "", Brand.ACCENT + "Click to open"), (p, right) -> stats.open(p, id, name));
         menu.set(PARTY, ClickMenu.item(Material.CAKE, ChatColor.GREEN + "Invite to your party", "Play together:",
-                "the party joins the queues as one.", "", ChatColor.YELLOW + "Click to invite"),
+                "the party joins the queues as one.", "", Brand.ACCENT + "Click to invite"),
                 (p, right) -> command(p, "party invite " + name));
         boolean friends = lobby.profiles().of(player).friends().contains(id);
         menu.set(FRIEND, ClickMenu.head(name, ChatColor.GREEN + (friends ? "Friends" : "Add as a friend"), lines(friends
                 ? new String[] {"You are already friends."} : new String[] {"Send a friend request", "to " + name + ".", "",
-                    ChatColor.YELLOW + "Click to send"})), (p, right) -> {
+                    Brand.ACCENT + "Click to send"})), (p, right) -> {
                         if (!friends) {
                             command(p, "friend add " + name);
                         }
                     });
         menu.set(GIFT, ClickMenu.item(Material.GOLD_INGOT, ChatColor.GOLD + "Gift a rank", "Give " + name + " a rank",
-                "with your Rago Points.", "", ChatColor.YELLOW + "Click to choose"), (p, right) -> lobby.shop().openGift(p, profile));
+                "with your Rago Points.", "", Brand.ACCENT + "Click to choose"), (p, right) -> lobby.shop().openGift(p, profile));
         if (player.hasPermission("rago.staff")) {
             menu.set(STAFF, ClickMenu.item(Material.REDSTONE_COMPARATOR, ChatColor.RED + "Staff", "Teleport, freeze, mute,",
-                    "kick, warn or ban " + name + ".", "", ChatColor.YELLOW + "Click to open"),
+                    "kick, warn or ban " + name + ".", "", Brand.ACCENT + "Click to open"),
                     (p, right) -> lobby.staffPanel().openPlayer(p, name));
         }
         menu.open(player);

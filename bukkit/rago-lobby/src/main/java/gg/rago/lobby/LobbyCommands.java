@@ -275,7 +275,7 @@ final class LobbyCommands implements TabExecutor {
             }
         }
         if (!missing.isEmpty()) {
-            player.sendMessage(ChatColor.YELLOW + "NPCs without a point (/lobby point <name>): " + String.join(", ", missing));
+            player.sendMessage(ChatColor.GRAY + "NPCs without a point (/lobby point <name>): " + String.join(", ", missing));
         }
     }
 

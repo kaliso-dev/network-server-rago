@@ -176,7 +176,7 @@ final class Profiles {
         if (got != null) {
             got.sendMessage(ChatColor.GOLD + "\u2726 " + from + ChatColor.GOLD + " gifted you the rank " + rank.prefix().trim()
                     + ChatColor.GOLD + "!");
-            got.sendTitle(ChatColor.GOLD + "" + ChatColor.BOLD + "RANK GIFT!", rank.prefix().trim() + ChatColor.YELLOW + " from "
+            got.sendTitle(ChatColor.GOLD + "" + ChatColor.BOLD + "RANK GIFT!", rank.prefix().trim() + Brand.ACCENT + " from "
                     + ChatColor.stripColor(from));
             got.playSound(got.getLocation(), Sound.LEVEL_UP, 1f, 1.2f);
         }
@@ -276,11 +276,11 @@ final class Profiles {
         return Arrays.asList(bar, "",
                 LobbyWelcome.centred(ChatColor.GOLD + "" + ChatColor.BOLD + "✦ RANK GIFT ✦"),
                 "",
-                LobbyWelcome.centred(giver + ChatColor.YELLOW + " gifted " + rank + ChatColor.YELLOW + " to"),
-                LobbyWelcome.centred(target + ChatColor.YELLOW + "!"),
+                LobbyWelcome.centred(giver + Brand.ACCENT + " gifted " + rank + Brand.ACCENT + " to"),
+                LobbyWelcome.centred(target + Brand.ACCENT + "!"),
                 "",
-                LobbyWelcome.centred(ChatColor.GRAY + "Gift one too: " + ChatColor.YELLOW + "/shop" + ChatColor.GRAY + " or "
-                        + ChatColor.YELLOW + "/gift <player>"),
+                LobbyWelcome.centred(ChatColor.GRAY + "Gift one too: " + Brand.ACCENT + "/shop" + ChatColor.GRAY + " or "
+                        + Brand.ACCENT + "/gift <player>"),
                 bar);
     }
 
@@ -298,7 +298,7 @@ final class Profiles {
             return;
         }
         if (cosmetic.premium()) {
-            player.sendMessage(ChatColor.LIGHT_PURPLE + "✦ " + ChatColor.YELLOW + cosmetic.name() + ChatColor.GRAY
+            player.sendMessage(ChatColor.LIGHT_PURPLE + "✦ " + Brand.ACCENT + cosmetic.name() + ChatColor.GRAY
                     + " comes with the " + ChatColor.LIGHT_PURPLE + "[PREMIUM+]" + ChatColor.GRAY + " rank.");
             List<String> store = server.link("boutique");
             if (store != null) {
@@ -317,7 +317,7 @@ final class Profiles {
         profile.cosmetics().add(cosmetic.id());
         profile.equip(cosmetic.type(), cosmetic.id());
         changed(profile);
-        player.sendMessage(ChatColor.GREEN + "You bought " + ChatColor.YELLOW + cosmetic.name() + ChatColor.GREEN
+        player.sendMessage(ChatColor.GREEN + "You bought " + Brand.ACCENT + cosmetic.name() + ChatColor.GREEN
                 + " and equipped it.");
         player.playSound(player.getLocation(), Sound.LEVEL_UP, 1f, 1.5f);
     }
@@ -330,10 +330,10 @@ final class Profiles {
         }
         if (cosmetic.id().equals(profile.equipped(cosmetic.type()))) {
             profile.equip(cosmetic.type(), null);
-            player.sendMessage(ChatColor.YELLOW + cosmetic.name() + ChatColor.GRAY + " taken off.");
+            player.sendMessage(Brand.ACCENT + cosmetic.name() + ChatColor.GRAY + " taken off.");
         } else {
             profile.equip(cosmetic.type(), cosmetic.id());
-            player.sendMessage(ChatColor.GREEN + "Equipped: " + ChatColor.YELLOW + cosmetic.name());
+            player.sendMessage(ChatColor.GREEN + "Equipped: " + Brand.ACCENT + cosmetic.name());
         }
         player.playSound(player.getLocation(), Sound.CLICK, 1f, 1f);
         changed(profile);
@@ -488,14 +488,14 @@ final class Profiles {
                 return;
             }
             if (profile.headMessage() == null) {
-                player.sendMessage(ChatColor.YELLOW + "Write it first: /display message <text> (" + HeadLines.MAX_MESSAGE
+                player.sendMessage(ChatColor.GRAY + "Write it first: /display message <text> (" + HeadLines.MAX_MESSAGE
                         + " characters, & for the colours)");
                 return;
             }
         }
         profile.setHeadLine(shown.id());
         stats.save(profile);
-        player.sendMessage(ChatColor.GREEN + "Above your name: " + ChatColor.YELLOW + shown.title() + ChatColor.GREEN + ".");
+        player.sendMessage(ChatColor.GREEN + "Above your name: " + Brand.ACCENT + shown.title() + ChatColor.GREEN + ".");
         if (shown == HeadLines.Shown.TITLE && server.titles().worn(profile) == null) {
             player.sendMessage(ChatColor.GRAY + "You wear no title for now: win games to earn one, or choose one in /titles.");
         }
@@ -641,11 +641,11 @@ final class Profiles {
                 got.sendMessage("  " + line);
             }
             got.sendMessage(ChatColor.GRAY + "Wear your cosmetics in the " + ChatColor.GREEN + "/shop" + ChatColor.GRAY
-                    + ", start a booster with " + ChatColor.YELLOW + "/booster" + ChatColor.GRAY + ".");
+                    + ", start a booster with " + Brand.ACCENT + "/booster" + ChatColor.GRAY + ".");
             got.playSound(got.getLocation(), Sound.LEVEL_UP, 1f, 1.2f);
         }
         lobby.announce(Brand.PREFIX + displayName(profile.id(), profile.name()) + ChatColor.WHITE + " got the "
-                + pack.name + ChatColor.WHITE + "! " + ChatColor.YELLOW + "/pack");
+                + pack.name + ChatColor.WHITE + "! " + Brand.ACCENT + "/pack");
         return true;
     }
 

@@ -382,7 +382,7 @@ final class StatsService {
         points(stats, quests.points(step), "getting started");
         GettingStarted.Step next = GettingStarted.next(stats, steps);
         if (next != null && player != null) {
-            player.sendMessage(ChatColor.YELLOW + "Next: " + ChatColor.WHITE + next.title() + ChatColor.GRAY + " - "
+            player.sendMessage(Brand.ACCENT + "Next: " + ChatColor.WHITE + next.title() + ChatColor.GRAY + " - "
                     + String.join(" ", next.how()));
         }
         if (GettingStarted.finish(stats, steps)) {
@@ -432,7 +432,7 @@ final class StatsService {
             changed = true;
             if (player != null) {
                 player.sendMessage(ChatColor.GOLD + "" + ChatColor.BOLD + "Season " + entry.getKey() + " is over! " + ChatColor.GRAY
-                        + "Your best: " + book.ladder().format(result.elo) + ChatColor.GRAY + ". " + ChatColor.YELLOW
+                        + "Your best: " + book.ladder().format(result.elo) + ChatColor.GRAY + ". " + Brand.ACCENT
                         + season.name() + ChatColor.GRAY + " has begun: every ranked ELO starts again from 0. /season");
                 player.sendMessage(ChatColor.GRAY + "Your badge of the season: " + NameLooks.seasonBadge(entry.getKey(),
                         result.division, book.ladder()).text() + ChatColor.GRAY + ", to wear after your name: /style badges");
@@ -480,7 +480,7 @@ final class StatsService {
         Cosmetic cosmetic = server.cosmetics().get(item);
         if (cosmetic != null) {
             String type = cosmetic.type().title().toLowerCase(java.util.Locale.ROOT);
-            return ChatColor.YELLOW + cosmetic.name() + ChatColor.GRAY + " (" + type.substring(0, type.length() - 1) + ")";
+            return Brand.ACCENT + cosmetic.name() + ChatColor.GRAY + " (" + type.substring(0, type.length() - 1) + ")";
         }
         NameStyle style = server.styles().get(item);
         if (style == null) {
@@ -586,7 +586,7 @@ final class StatsService {
         }
         for (Cosmetic cosmetic : server.cosmetics().values()) {
             if (cosmetic.level() > oldLevel && cosmetic.level() <= level) {
-                unlocked.add(ChatColor.YELLOW + cosmetic.name() + ChatColor.GRAY + " (" + cosmetic.type().title().toLowerCase(
+                unlocked.add(Brand.ACCENT + cosmetic.name() + ChatColor.GRAY + " (" + cosmetic.type().title().toLowerCase(
                         java.util.Locale.ROOT) + ")");
             }
         }
