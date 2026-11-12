@@ -70,23 +70,26 @@ class QuestsNpcTest {
 
     @Test
     void itsLinesCountTheQuestsDoneOfEachPlayer() {
-        Quests quests = Quests.defaults();
         long now = ZonedDateTime.parse("2026-11-11T12:00:00Z").toInstant().toEpochMilli();
         String day = StatsPeriod.dayKey(now);
         String week = StatsPeriod.weekKey(now);
+        assertEquals("Daily 0/3 · Weekly 0/5", ChatColor.stripColor(QuestsNpc.lines(Quests.defaults(), null, now).get(1)),
+                "the three daily quests of the day");
+        // every daily quest at once, whatever the draw
+        Quests quests = new Quests(Quests.defaults().all(), 0);
         List<String> none = QuestsNpc.lines(quests, null, now);
         assertEquals(QuestsNpc.LINES, none.size());
         assertEquals("QUESTS", ChatColor.stripColor(none.get(0)));
-        assertEquals("Daily 0/4 · Weekly 0/4", ChatColor.stripColor(none.get(1)), "a player without stats yet");
+        assertEquals("Daily 0/8 · Weekly 0/5", ChatColor.stripColor(none.get(1)), "a player without stats yet");
         assertEquals("Click to see them", ChatColor.stripColor(none.get(2)));
 
         PlayerStats alice = new PlayerStats(ALICE, "Alice");
         quests.advance(alice, Quests.Goal.WINS, "sumo", 3, day, week);
         assertEquals(1, quests.done(alice, Quests.Period.DAILY, day, week), "three wins: the daily one");
         assertEquals(0, quests.done(alice, Quests.Period.WEEKLY, day, week));
-        assertEquals("Daily 1/4 · Weekly 0/4", ChatColor.stripColor(QuestsNpc.lines(quests, alice, now).get(1)));
+        assertEquals("Daily 1/8 · Weekly 0/5", ChatColor.stripColor(QuestsNpc.lines(quests, alice, now).get(1)));
         long tomorrow = now + 24 * 3600_000L;
-        assertEquals("Daily 0/4 · Weekly 0/4", ChatColor.stripColor(QuestsNpc.lines(quests, alice, tomorrow).get(1)),
+        assertEquals("Daily 0/8 · Weekly 0/5", ChatColor.stripColor(QuestsNpc.lines(quests, alice, tomorrow).get(1)),
                 "a new day");
 
         Quests daily = new Quests(Arrays.asList(new Quests.Quest(Quests.Period.DAILY, "jouer", "Play a game",

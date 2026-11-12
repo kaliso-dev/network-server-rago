@@ -200,6 +200,8 @@ final class Challenges implements CommandExecutor, Listener {
                     player.playSound(player.getLocation(), Sound.LEVEL_UP, 1f, 1.5f);
                 }
             }
+            // the quests of the daily challenge
+            plugin.lobby().dailyChallengePlayed(player, challenge.board().modeId);
         }
         save();
     }

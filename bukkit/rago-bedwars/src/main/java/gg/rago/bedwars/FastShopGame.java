@@ -93,6 +93,9 @@ final class FastShopGame extends BedwarsGame {
     private final Map<UUID, Run> runs = new HashMap<>();
     /** The list each player is on, in {@link #ORDERS}. */
     private final Map<UUID, Integer> next = new HashMap<>();
+    /** When each player last clicked in a shop: a minute without, idle, counts for no quest. */
+    private final Map<UUID, Long> lastClick = new HashMap<>();
+    private int seconds;
 
     FastShopGame(RagoBedwars plugin, BedwarsHost host, Instance instance, String modeId, String modeName,
             List<List<Player>> sides) {
@@ -155,6 +158,7 @@ final class FastShopGame extends BedwarsGame {
             teams.remove(old.team);
         }
         runs.remove(id);
+        lastClick.remove(id);
     }
 
     // --- The practice ---------------------------------------------------------------------------
@@ -358,6 +362,7 @@ final class FastShopGame extends BedwarsGame {
 
     @Override
     void shopOpened(Player player) {
+        lastClick.put(player.getUniqueId(), System.currentTimeMillis());
         Run run = runs.get(player.getUniqueId());
         if (run != null && run.started == 0 && !run.done()) {
             run.started = System.currentTimeMillis();
@@ -367,6 +372,7 @@ final class FastShopGame extends BedwarsGame {
     /** Only the next item of the list can be bought; the last one stops the time. */
     @Override
     boolean buy(Player player, ShopItem item) {
+        lastClick.put(player.getUniqueId(), System.currentTimeMillis());
         Gamer gamer = gamers.get(player.getUniqueId());
         Run run = runs.get(player.getUniqueId());
         if (gamer == null || run == null || run.done()) {
@@ -394,6 +400,21 @@ final class FastShopGame extends BedwarsGame {
             sidebars();
         }
         return true;
+    }
+
+    /** Each minute, the quests of the minutes of training, for the players who clicked in it. */
+    @Override
+    void everySecond() {
+        if (++seconds % 60 != 0) {
+            return;
+        }
+        long since = System.currentTimeMillis() - 60_000L;
+        for (Map.Entry<UUID, Long> click : lastClick.entrySet()) {
+            Player player = Bukkit.getPlayer(click.getKey());
+            if (player != null && click.getValue() >= since && runs.containsKey(click.getKey())) {
+                plugin.lobby().trainedMinute(player, modeId);
+            }
+        }
     }
 
     private void finished(final Player player, final Gamer gamer, Run run) {

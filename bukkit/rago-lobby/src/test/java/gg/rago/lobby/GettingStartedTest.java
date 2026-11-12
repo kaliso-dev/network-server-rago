@@ -124,12 +124,12 @@ class GettingStartedTest {
         Quests quests = Quests.defaults();
         long now = ZonedDateTime.parse("2026-11-11T12:00:00Z").toInstant().toEpochMilli();
         List<Step> steps = GettingStarted.defaults().steps(true, true);
-        assertEquals("Start 0/5 · Daily 0/4 · Weekly 0/4", ChatColor.stripColor(QuestsNpc.lines(quests, null, now, steps).get(1)));
+        assertEquals("Start 0/5 · Daily 0/3 · Weekly 0/5", ChatColor.stripColor(QuestsNpc.lines(quests, null, now, steps).get(1)));
         PlayerStats alice = new PlayerStats(ALICE, "Alice");
         for (Step step : steps) {
             GettingStarted.complete(alice, step);
         }
-        assertEquals("Daily 0/4 · Weekly 0/4", ChatColor.stripColor(QuestsNpc.lines(quests, alice, now, steps).get(1)),
+        assertEquals("Daily 0/3 · Weekly 0/5", ChatColor.stripColor(QuestsNpc.lines(quests, alice, now, steps).get(1)),
                 "all done: no more");
     }
 

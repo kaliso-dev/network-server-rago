@@ -107,7 +107,9 @@ l'entraînement directement.
 
 Chaque entraînement a ses variantes, et chaque variante son record : le meilleur score du joueur et celui du serveur, gardés dans
 `plugins/RagoPractice/records.yml`. Le premier score et chaque nouveau record font avancer
-« Getting started » dans le lobby (« Play a training », « Beat one of your records »). Le scoreboard montre le top 3 du serveur, une ligne vide, le
+« Getting started » dans le lobby (« Play a training », « Beat one of your records »), et les
+quêtes du lobby comptent les réussites, les records, les scores au défi du jour et les minutes
+d'entraînement (une minute où le joueur a cliqué ou posé un bloc). Le scoreboard montre le top 3 du serveur, une ligne vide, le
 meilleur score du joueur et son rang, et le dernier score à côté du ping (12 lignes au plus :
 quand l'essai en prend beaucoup, la ligne du mode, puis la 3e et la 2e place, puis la ligne vide
 sous le top s'effacent avant le reste). L'extend practice et le block extend n'ont pas de

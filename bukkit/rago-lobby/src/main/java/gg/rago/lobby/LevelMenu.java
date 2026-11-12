@@ -164,7 +164,7 @@ final class LevelMenu {
         }
         for (Quests.Period period : Quests.Period.values()) {
             int done = server.quests().done(stats, period, day, week);
-            int count = server.quests().of(period).size();
+            int count = server.quests().active(period, day, week).size();
             lore.add(period.title() + ": " + (done == count ? ChatColor.GREEN : ChatColor.YELLOW) + done + "/" + count);
         }
         lore.add("");
@@ -190,10 +190,16 @@ final class LevelMenu {
             row = 2;
         }
         for (Quests.Period period : Quests.Period.values()) {
+            List<String> about = listOf(period.resetText(now));
+            if (server.quests().active(period, day, week).size() < server.quests().of(period).size()) {
+                // the daily ones drawn from a longer list
+                about.add("");
+                about.add("New ones tomorrow.");
+            }
             menu.set(row * 9 + 1, ClickMenu.item(period == Quests.Period.DAILY ? Material.WATCH : Material.EMPTY_MAP, 0,
-                    ChatColor.GOLD + period.title(), listOf(period.resetText(now))), null);
+                    ChatColor.GOLD + period.title(), about), null);
             int slot = row * 9 + 3;
-            for (Quests.Quest quest : server.quests().of(period)) {
+            for (Quests.Quest quest : server.quests().active(period, day, week)) {
                 if (slot > row * 9 + 7) {
                     break;
                 }
@@ -201,6 +207,9 @@ final class LevelMenu {
                 boolean done = progress >= quest.target();
                 List<String> lore = new ArrayList<>();
                 lore.add(period.title().replace(" quests", " quest"));
+                if (quest.goal().hint() != null) {
+                    lore.add(quest.goal().hint());
+                }
                 lore.add("");
                 lore.add(ProfileMenu.bar(progress / (float) quest.target()) + " " + ChatColor.WHITE + progress + ChatColor.GRAY
                         + "/" + quest.target());

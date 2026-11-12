@@ -217,8 +217,23 @@ public interface LobbyService {
     /**
      * The player scored in a training of this mode (a clutch, a time, a run of the Fast Shop):
      * "Play a training" of the quests of a new player, and "Beat one of your records" when it is a
-     * new personal best (better than one they had). Nothing in a private game. Main thread.
+     * new personal best (better than one they had); the quests that count the successes and the
+     * records move on. Nothing in a private game. Main thread.
      */
     default void trainingScored(Player player, String modeId, boolean personalBest) {
+    }
+
+    /**
+     * The player scored on the challenge of the day of the trainings, in this mode: the quests of
+     * the daily challenge move on. Main thread.
+     */
+    default void dailyChallengePlayed(Player player, String modeId) {
+    }
+
+    /**
+     * A minute in a training of this mode, the player active in it (a click, a block): the quests
+     * that count the minutes of training move on. Main thread.
+     */
+    default void trainedMinute(Player player, String modeId) {
     }
 }

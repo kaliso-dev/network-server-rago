@@ -280,6 +280,24 @@ final class StatsService {
         return server.quests().advance(stats, goal, modeId, 1, StatsPeriod.dayKey(now), StatsPeriod.weekKey(now));
     }
 
+    /**
+     * The trainings moved a quest on (a success, a record, the daily challenge, a minute of
+     * training): the quests done give their XP. The file is written only when a quest moved.
+     */
+    void trainingQuest(UUID id, Quests.Goal goal, String modeId) {
+        long now = System.currentTimeMillis();
+        String day = StatsPeriod.dayKey(now);
+        String week = StatsPeriod.weekKey(now);
+        PlayerStats stats = book.profile(id, nameOf(id));
+        if (!server.quests().wants(stats, goal, modeId, day, week)) {
+            return;
+        }
+        int old = stats.xp();
+        questsDone(stats, server.quests().advance(stats, goal, modeId, 1, day, week));
+        gained(stats, old);
+        save(stats);
+    }
+
     /** The quests done give their XP (boosted), told to the player. The caller then calls gained. */
     private void questsDone(PlayerStats stats, List<Quests.Quest> done) {
         Player player = Bukkit.getPlayer(stats.id());

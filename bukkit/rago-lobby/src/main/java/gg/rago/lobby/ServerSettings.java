@@ -239,7 +239,7 @@ final class ServerSettings {
                 }
                 Quests.Goal goal = Quests.Goal.of(one.getString("type", ""));
                 if (goal == null) {
-                    throw new IllegalArgumentException(where + ".type: parties, victoires, kills or victoires-classees");
+                    throw new IllegalArgumentException(where + ".type: " + Quests.Goal.words());
                 }
                 int target = count(one, where, "objectif", 0);
                 if (target < 1) {
@@ -249,11 +249,41 @@ final class ServerSettings {
                 if (name.isEmpty() || name.length() > 32) {
                     throw new IllegalArgumentException(where + ".nom: 1 to 32 characters");
                 }
-                list.add(new Quests.Quest(period, id, name, goal, target, count(one, where, "xp", 0),
-                        one.getString("mode", null)));
+                list.add(new Quests.Quest(period, id, name, goal, target, count(one, where, "xp", 0), questModes(one, where)));
             }
         }
-        return new Quests(list);
+        int perDay = section.getInt("par-jour", Quests.PER_DAY);
+        if (perDay < 0 || perDay > Quests.MAX_RUNNING) {
+            throw new IllegalArgumentException("quetes.par-jour: from 0 (all the daily quests) to " + Quests.MAX_RUNNING);
+        }
+        Quests quests = new Quests(list, perDay);
+        for (Quests.Period period : Quests.Period.values()) {
+            int pool = quests.of(period).size();
+            int running = period == Quests.Period.DAILY && perDay > 0 ? Math.min(perDay, pool) : pool;
+            if (running > Quests.MAX_RUNNING) {
+                throw new IllegalArgumentException("quetes." + period.section() + ": " + Quests.MAX_RUNNING + " quests at most at once"
+                        + (period == Quests.Period.DAILY ? " (par-jour draws some of them each day)" : ""));
+            }
+        }
+        return quests;
+    }
+
+    /** mode: of a quest, one mode or a list of them (none: any mode). */
+    private static List<String> questModes(ConfigurationSection quest, String where) {
+        List<String> modes = new ArrayList<>();
+        if (quest.isList("mode")) {
+            modes.addAll(quest.getStringList("mode"));
+        } else if (quest.isString("mode")) {
+            modes.add(quest.getString("mode"));
+        } else if (quest.contains("mode")) {
+            throw new IllegalArgumentException(where + ".mode: a mode, or a list of modes");
+        }
+        for (String mode : modes) {
+            if (mode == null || !mode.matches("[a-z0-9-]{1,32}")) {
+                throw new IllegalArgumentException(where + ".mode: \"" + mode + "\" is not the id of a mode");
+            }
+        }
+        return modes;
     }
 
     /**

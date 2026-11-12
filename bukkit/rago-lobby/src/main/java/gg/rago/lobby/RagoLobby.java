@@ -1258,13 +1258,36 @@ public final class RagoLobby extends JavaPlugin implements LobbyService {
 
     @Override
     public void trainingScored(Player player, String modeId, boolean personalBest) {
-        if (player == null || settings.catalog().get(modeId) == null || state.isInPrivateGame(player.getUniqueId())) {
+        if (!countsForQuests(player, modeId)) {
             return;
         }
         gettingStarted(player.getUniqueId(), GettingStarted.Step.TRAINING);
         if (personalBest) {
             gettingStarted(player.getUniqueId(), GettingStarted.Step.RECORD);
         }
+        stats.trainingQuest(player.getUniqueId(), Quests.Goal.SUCCESSES, modeId);
+        if (personalBest) {
+            stats.trainingQuest(player.getUniqueId(), Quests.Goal.RECORDS, modeId);
+        }
+    }
+
+    @Override
+    public void dailyChallengePlayed(Player player, String modeId) {
+        if (countsForQuests(player, modeId)) {
+            stats.trainingQuest(player.getUniqueId(), Quests.Goal.CHALLENGE, modeId);
+        }
+    }
+
+    @Override
+    public void trainedMinute(Player player, String modeId) {
+        if (countsForQuests(player, modeId)) {
+            stats.trainingQuest(player.getUniqueId(), Quests.Goal.MINUTES, modeId);
+        }
+    }
+
+    /** A training of a mode of this lobby, not in a private game: the quests count it. */
+    private boolean countsForQuests(Player player, String modeId) {
+        return player != null && settings.catalog().get(modeId) != null && !state.isInPrivateGame(player.getUniqueId());
     }
 
     /** The steps of Getting started on this server: the Hypixel import needs its key, the Discord its link. */

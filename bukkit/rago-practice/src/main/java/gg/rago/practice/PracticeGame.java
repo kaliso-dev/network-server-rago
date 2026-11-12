@@ -79,6 +79,8 @@ abstract class PracticeGame {
     int round;
     /** Seconds played in this game, all rounds together (the XP of each minute). */
     private int playedSeconds;
+    /** When each player last clicked here (a hit, a block, an item): a minute without, idle, counts for no quest. */
+    private final Map<UUID, Long> lastInput = new HashMap<>();
     private BukkitTask clock;
     private BukkitTask countdown;
     private BukkitTask ticker;
@@ -310,6 +312,17 @@ abstract class PracticeGame {
 
     /** The player swung their arm (hit or missed). */
     void swung(Player player) {
+    }
+
+    /** The player clicked (a hit, a block, an item): they are at the keyboard. */
+    void inputFrom(Player player) {
+        lastInput.put(player.getUniqueId(), System.currentTimeMillis());
+    }
+
+    /** True if the player clicked here in the last minute. */
+    boolean activeSince(UUID player, long since) {
+        Long last = lastInput.get(player);
+        return last != null && last >= since;
     }
 
     /** The player gave up (/spawn) or left the server: in a duel, the other side wins. */
@@ -558,6 +571,15 @@ abstract class PracticeGame {
                 long now = System.currentTimeMillis();
                 for (Player player : online()) {
                     plugin.xp().minute(player.getUniqueId(), mode.id(), now);
+                }
+            }
+            if (playedSeconds % 60 == 0 && this instanceof Training) {
+                // the quests of the minutes of training: a minute counts when the player did something in it
+                long since = System.currentTimeMillis() - PracticeXp.MINUTE_MS;
+                for (Player player : online()) {
+                    if (activeSince(player.getUniqueId(), since)) {
+                        plugin.lobby().trainedMinute(player, mode.id());
+                    }
                 }
             }
             onSecond();

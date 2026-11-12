@@ -77,13 +77,16 @@ class LevelQuestTest {
 
     @Test
     void questsCountOnceAndStartAgainEachDayOrWeek() throws Exception {
-        Quests quests = ServerSettings.load(bundled()).quests();
-        assertEquals(4, quests.of(Quests.Period.DAILY).size());
-        assertEquals(4, quests.of(Quests.Period.WEEKLY).size());
+        Quests bundled = ServerSettings.load(bundled()).quests();
+        assertEquals(8, bundled.of(Quests.Period.DAILY).size(), "the list the daily quests are drawn from");
+        assertEquals(5, bundled.of(Quests.Period.WEEKLY).size());
+        assertEquals(3, bundled.perDay());
         for (int i = 0; i < 4; i++) {
-            assertTrue(quests.of(Quests.Period.WEEKLY).get(i).xp() > quests.of(Quests.Period.DAILY).get(i).xp(),
+            assertTrue(bundled.of(Quests.Period.WEEKLY).get(i).xp() > bundled.of(Quests.Period.DAILY).get(i).xp(),
                     "a week is worth more than a day");
         }
+        // every daily quest at once: how a quest counts, whatever the draw
+        Quests quests = new Quests(bundled.all(), 0);
         PlayerStats stats = new PlayerStats(ALICE, "Alice");
         String monday = "2026-11-09";
         String week = "2026-W46";
@@ -111,7 +114,7 @@ class LevelQuestTest {
         assertEquals("2026-W47", read.questWeek());
 
         Quests one = new Quests(java.util.Collections.singletonList(new Quests.Quest(Quests.Period.DAILY, "sumo", "Win 2 sumos",
-                Quests.Goal.WINS, 2, 100, "sumo")));
+                Quests.Goal.WINS, 2, 100, java.util.Collections.singletonList("sumo"))));
         one.advance(stats, Quests.Goal.WINS, "bridge", 1, monday, week);
         assertEquals(0, stats.questProgress("d:sumo"), "another mode does not count");
         assertEquals(1, one.advance(stats, Quests.Goal.WINS, "sumo", 5, monday, week).size());
