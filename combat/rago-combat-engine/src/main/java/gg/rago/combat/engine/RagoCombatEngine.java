@@ -55,7 +55,8 @@ public final class RagoCombatEngine extends JavaPlugin {
         command.setTabCompleter(executor);
         getLogger().info("Mode " + settings.mode().configName() + ", default profile " + settings.defaultProfile()
                 + ", profiles " + settings.profiles().keySet() + ", player positions every " + trackerTicks
-                + (trackerTicks == 1 ? " tick" : " ticks") + ", hit delay " + settings.hitDelayTicks() + " ticks");
+                + (trackerTicks == 1 ? " tick" : " ticks") + ", hit delay " + settings.hitDelayTicks() + " ticks"
+                + (settings.locked() ? ", locked" : ""));
     }
 
     @Override

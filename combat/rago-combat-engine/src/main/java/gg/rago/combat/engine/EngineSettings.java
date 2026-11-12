@@ -15,6 +15,10 @@ final class EngineSettings {
 
     /** Vanilla 1.8.8: a new hit counts 10 ticks after the previous one (maxNoDamageTicks 20). */
     static final int VANILLA_HIT_DELAY_TICKS = 10;
+    /** Measured on Hypixel (docs/combat/mesures-hypixel.md): 9 ticks, the delay of a config without one. */
+    static final int DEFAULT_HIT_DELAY_TICKS = 9;
+    /** The profile of a config without active-profile: the knockback of Hypixel. */
+    static final String DEFAULT_PROFILE = MeasuredProfiles.HYPIXEL_APPROX_V1_NAME;
     static final int MIN_HIT_DELAY_TICKS = 1;
     static final int MAX_HIT_DELAY_TICKS = 20;
     static final String KEY_HIT_DELAY_TICKS = "hit-delay-ticks";
@@ -25,15 +29,17 @@ final class EngineSettings {
     private final Map<String, String> worldProfiles;
     private final boolean recordHits;
     private final int hitDelayTicks;
+    private final boolean locked;
 
     private EngineSettings(EngineMode mode, String defaultProfile, Map<String, KnockbackProfile> profiles,
-            Map<String, String> worldProfiles, boolean recordHits, int hitDelayTicks) {
+            Map<String, String> worldProfiles, boolean recordHits, int hitDelayTicks, boolean locked) {
         this.mode = mode;
         this.defaultProfile = defaultProfile;
         this.profiles = Collections.unmodifiableMap(new LinkedHashMap<>(profiles));
         this.worldProfiles = Collections.unmodifiableMap(new LinkedHashMap<>(worldProfiles));
         this.recordHits = recordHits;
         this.hitDelayTicks = requireHitDelay(hitDelayTicks);
+        this.locked = locked;
     }
 
     /**
@@ -65,7 +71,7 @@ final class EngineSettings {
             }
         }
 
-        String defaultProfile = config.getString("active-profile", KnockbackProfile.VANILLA_NAME);
+        String defaultProfile = config.getString("active-profile", DEFAULT_PROFILE);
         requireProfile(profiles, defaultProfile, "active-profile");
 
         Map<String, String> worldProfiles = new LinkedHashMap<>();
@@ -79,11 +85,11 @@ final class EngineSettings {
         }
 
         return new EngineSettings(mode, defaultProfile, profiles, worldProfiles, config.getBoolean("record-hits", false),
-                readHitDelay(config));
+                readHitDelay(config), config.getBoolean("locked", true));
     }
 
     private static int readHitDelay(ConfigurationSection config) {
-        Object value = config.get(KEY_HIT_DELAY_TICKS, VANILLA_HIT_DELAY_TICKS);
+        Object value = config.get(KEY_HIT_DELAY_TICKS, DEFAULT_HIT_DELAY_TICKS);
         if (!(value instanceof Integer)) {
             throw new IllegalArgumentException(KEY_HIT_DELAY_TICKS + " must be a whole number of ticks, got " + value);
         }
@@ -130,6 +136,11 @@ final class EngineSettings {
         return hitDelayTicks;
     }
 
+    /** True when /kb may not change the mode, the profiles or the hit delay (config.yml only). */
+    boolean locked() {
+        return locked;
+    }
+
     /**
      * The players' damage cooldown that gives this hit delay. A 1.8 hit counts in full once the
      * victim's cooldown counter has fallen to half its maximum or less, and the counter falls by one
@@ -146,12 +157,12 @@ final class EngineSettings {
     }
 
     EngineSettings withMode(EngineMode newMode) {
-        return new EngineSettings(newMode, defaultProfile, profiles, worldProfiles, recordHits, hitDelayTicks);
+        return new EngineSettings(newMode, defaultProfile, profiles, worldProfiles, recordHits, hitDelayTicks, locked);
     }
 
     EngineSettings withDefaultProfile(String name) {
         requireProfile(profiles, name, "profile");
-        return new EngineSettings(mode, name, profiles, worldProfiles, recordHits, hitDelayTicks);
+        return new EngineSettings(mode, name, profiles, worldProfiles, recordHits, hitDelayTicks, locked);
     }
 
     /** @param name a profile name, or {@code null} to make the world use the default profile */
@@ -163,11 +174,11 @@ final class EngineSettings {
             requireProfile(profiles, name, "world " + world);
             worlds.put(world, name);
         }
-        return new EngineSettings(mode, defaultProfile, profiles, worlds, recordHits, hitDelayTicks);
+        return new EngineSettings(mode, defaultProfile, profiles, worlds, recordHits, hitDelayTicks, locked);
     }
 
     /** @throws IllegalArgumentException if the delay is out of range */
     EngineSettings withHitDelayTicks(int ticks) {
-        return new EngineSettings(mode, defaultProfile, profiles, worldProfiles, recordHits, ticks);
+        return new EngineSettings(mode, defaultProfile, profiles, worldProfiles, recordHits, ticks, locked);
     }
 }

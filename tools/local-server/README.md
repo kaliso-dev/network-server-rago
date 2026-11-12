@@ -6,8 +6,8 @@ le client normal). On y arrive dans le lobby de Rago Practice, d'où on lance un
 un autre joueur. Il sert aussi à construire les maps et les lobbys : WorldEdit et les outils de
 build Rago sont installés, et tes mondes sont sauvegardés à chaque lancement.
 
-Le moteur applique pour l'instant le profil vanilla : le knockback exact de Minecraft 1.8.8. Il
-n'y a pas encore de profil Hypixel, il viendra des mesures.
+Le moteur applique entre les joueurs le knockback d'Hypixel, mesuré sur Hypixel (profil
+hypixel-approx-v1, 9 ticks entre deux coups), et personne ne peut le changer en jeu.
 
 C'est un serveur de test, pour toi et quelques amis : il n'est pas fait pour être ouvert au public.
 
@@ -149,12 +149,13 @@ un compte Minecraft.
 - /kb sparring : un attaquant invisible te frappe toutes les secondes, sans te faire de dégâts,
   pour sentir le knockback seul. Regarde dans une direction : il est devant toi et te pousse en
   arrière. /kb sparring normal pour des coups sans sprint, /kb sparring alterne pour un coup
-  sprint puis un coup normal, /kb sparring sprint 10 pour un coup toutes les 10 ticks (le plus
-  rapide d'un vrai combat). /kb sparring stop pour arrêter.
-- /kb mode observe : le serveur garde son propre knockback, le moteur ne fait qu'observer.
-- /kb mode override : le moteur applique son profil (réglage par défaut).
+  sprint puis un coup normal, /kb sparring sprint 9 pour un coup toutes les 9 ticks (le plus
+  rapide d'un vrai combat sur Hypixel). /kb sparring stop pour arrêter.
 
-Pour ajouter un profil de test, modifie plugins/RagoCombatEngine/config.yml puis tape /kb reload.
+Le knockback est celui d'Hypixel (profil hypixel-approx-v1, 9 ticks entre deux coups) et il est
+verrouillé : /kb profile, /kb mode, /kb world et /kb hitdelay ne changent rien en jeu. Pour essayer
+autre chose (un profil de test, le vanilla), mets locked: false dans
+plugins/RagoCombatEngine/config.yml puis tape /kb reload.
 Les réglages sont expliqués dans la documentation du moteur
 (combat/rago-combat-engine/README.md dans le dépôt).
 

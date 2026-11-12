@@ -786,6 +786,9 @@ classements:
     nom: "&6&lThis week"
     periode: semaine
     tableaux: [victoires, series, [kills, parties]]
+    # The podium in front of it: the top 3 of the wins of the week, in their skin. Stand on each
+    # step and type /lobby point semaine1 (the first), semaine2, then semaine3.
+    podium: [semaine1, semaine2, semaine3]
 
 # The leaderboards of the week: on Monday at midnight (Paris time), the first of each one win
 # Rago Points and the badge of the week, worn until the next results, and the whole server hears

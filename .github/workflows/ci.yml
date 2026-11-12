@@ -418,7 +418,8 @@ jobs:
 
           start_server 1
           expect 'git-PandaSpigot-226' logs/latest.log
-          expect '[RagoCombatEngine] Mode override, default profile vanilla' logs/latest.log
+          expect '[RagoCombatEngine] Mode override, default profile hypixel-approx-v1' logs/latest.log
+          expect 'hit delay 9 ticks, locked' logs/latest.log
           expect '[WorldEdit] Enabling WorldEdit v6.1' logs/latest.log
           expect "[RagoBuildTools] Worlds of $data/mondes" logs/latest.log
           expect '[RagoLobby] Lobby in the world lobby' logs/latest.log
@@ -487,7 +488,8 @@ jobs:
           }
 
           Invoke-Launch 1
-          foreach ($expected in 'git-PandaSpigot-226', '[RagoCombatEngine] Mode override, default profile vanilla',
+          foreach ($expected in 'git-PandaSpigot-226', '[RagoCombatEngine] Mode override, default profile hypixel-approx-v1',
+              'hit delay 9 ticks, locked',
               '[WorldEdit] Enabling WorldEdit v6.1', "[RagoBuildTools] Worlds of $data\mondes",
               '[RagoLobby] Lobby in the world lobby', '[RagoPractice] Arenas in the world arenes',
               '[RagoBedwars] Bed Wars maps ready: bw-demo;') {

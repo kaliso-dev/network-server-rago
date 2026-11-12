@@ -66,9 +66,10 @@ class SparringTest {
 
     @Test
     void intervalsStayWhereARealFightCanBe() {
+        assertEquals(Integer.valueOf(9), Sparring.parseInterval("9"));
         assertEquals(Integer.valueOf(10), Sparring.parseInterval("10"));
         assertEquals(Integer.valueOf(200), Sparring.parseInterval("200"));
-        assertNull(Sparring.parseInterval("9"));
+        assertNull(Sparring.parseInterval("8"));
         assertNull(Sparring.parseInterval("201"));
         assertNull(Sparring.parseInterval("vite"));
     }

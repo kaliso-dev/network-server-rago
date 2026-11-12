@@ -311,7 +311,8 @@ dans les files d'attente des modes de jeu.
   choisi un autre badge dans `/style`). Tout le serveur l'entend ; un gagnant absent l'apprend à son
   retour, et chaque joueur qui arrive dans les 24 heures voit les résultats une fois. Le mur
   `semaine` (`/lobby point semaine`) montre ces classements, toujours sur la semaine en cours, avec
-  ce que leur top gagne. `semaine:` dans config.yml règle les classements récompensés, les points
+  ce que leur top gagne, et son podium le top 3 des victoires de la semaine dans son skin (les
+  marches `/lobby point semaine1`, `semaine2` et `semaine3`). `semaine:` dans config.yml règle les classements récompensés, les points
   (10 places au plus) et le badge ; `plugins/RagoLobby/semaine.yml` garde la semaine comptée et les
   derniers résultats. La première fois, le lobby note seulement la semaine en cours.
 - **Les Rago Points et la boutique (`/shop`).** Les points se gagnent en partie (20 par victoire,

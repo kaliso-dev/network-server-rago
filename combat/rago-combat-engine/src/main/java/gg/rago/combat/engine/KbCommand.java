@@ -16,7 +16,8 @@ import org.bukkit.entity.Player;
 
 /**
  * {@code /kb}: staff controls for the combat engine. Changes made with this command last until
- * the next restart or {@code /kb reload}; edit config.yml to keep them.
+ * the next restart or {@code /kb reload}; edit config.yml to keep them. With {@code locked: true}
+ * (the default) the command changes nothing: the knockback is the one of config.yml.
  */
 final class KbCommand implements TabExecutor {
 
@@ -63,8 +64,8 @@ final class KbCommand implements TabExecutor {
                         () -> plugin.settings().withMode(EngineMode.parse(args[1])));
             case "hitdelay":
                 if (args.length != 2) {
-                    return usage(sender, "/" + label + " hitdelay <ticks> (vanilla " + EngineSettings.VANILLA_HIT_DELAY_TICKS
-                            + ")");
+                    return usage(sender, "/" + label + " hitdelay <ticks> (Hypixel " + EngineSettings.DEFAULT_HIT_DELAY_TICKS
+                            + ", vanilla " + EngineSettings.VANILLA_HIT_DELAY_TICKS + ")");
                 }
                 return change(sender, "hit delay -> " + args[1] + " ticks",
                         () -> plugin.settings().withHitDelayTicks(parseTicks(args[1])));
@@ -91,7 +92,10 @@ final class KbCommand implements TabExecutor {
             sender.sendMessage(ChatColor.GRAY + "  world " + entry.getKey() + ": " + ChatColor.WHITE + entry.getValue());
         }
         sender.sendMessage(ChatColor.GRAY + "Hit delay: " + ChatColor.WHITE + settings.hitDelayTicks()
-                + " ticks" + ChatColor.GRAY + " (vanilla " + EngineSettings.VANILLA_HIT_DELAY_TICKS + ")");
+                + " ticks" + ChatColor.GRAY + " (Hypixel " + EngineSettings.DEFAULT_HIT_DELAY_TICKS + ", vanilla "
+                + EngineSettings.VANILLA_HIT_DELAY_TICKS + ")");
+        sender.sendMessage(ChatColor.GRAY + "Changes in game: " + ChatColor.WHITE
+                + (settings.locked() ? "locked (config.yml only)" : "allowed until the next restart"));
         sender.sendMessage(ChatColor.GRAY + "Hit log: " + ChatColor.WHITE
                 + (settings.recordHits() ? "on (" + plugin.droppedRecords() + " lost)" : "off"));
     }
@@ -111,6 +115,10 @@ final class KbCommand implements TabExecutor {
     }
 
     private boolean change(CommandSender sender, String description, SettingsChange change) {
+        if (plugin.settings().locked()) {
+            sender.sendMessage(ChatColor.RED + lockedMessage(plugin.settings()));
+            return true;
+        }
         try {
             plugin.updateSettings(change.apply());
         } catch (IllegalArgumentException e) {
@@ -121,6 +129,13 @@ final class KbCommand implements TabExecutor {
         sender.sendMessage(ChatColor.GRAY + "OK: " + ChatColor.WHITE + description
                 + ChatColor.GRAY + " (until the next restart or /kb reload)");
         return true;
+    }
+
+    /** Why /kb changed nothing: the knockback is locked to the one of config.yml. */
+    static String lockedMessage(EngineSettings settings) {
+        return "The knockback is locked: " + settings.defaultProfile() + ", " + settings.hitDelayTicks()
+                + " ticks between two hits. Only plugins/RagoCombatEngine/config.yml changes it (locked: false"
+                + " lets the staff try other settings), then /kb reload.";
     }
 
     private void debug(CommandSender sender) {

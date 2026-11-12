@@ -6,10 +6,11 @@ mode: override
 
 # The profile used everywhere, except in the worlds listed under world-profiles.
 # Built-in profiles, which cannot be redefined:
+#   hypixel-approx-v1 : the knockback of Hypixel, measured on 7 November 2026 in Housing and in
+#                       Bed Wars (docs/combat/mesures-hypixel.md): vanilla, except the vertical push
+#                       of a sprint hit, 0.07 instead of 0.1. The server's knockback.
 #   vanilla           : the exact knockback of Minecraft 1.8.8.
-#   hypixel-approx-v1 : measured on Hypixel on 7 November 2026 (docs/combat/mesures-hypixel.md):
-#                       vanilla, except the vertical push of a sprint hit, 0.07 instead of 0.1.
-active-profile: vanilla
+active-profile: hypixel-approx-v1
 
 # A profile per world, to compare two profiles on two arenas. Example:
 # world-profiles:
@@ -18,9 +19,14 @@ active-profile: vanilla
 world-profiles: {}
 
 # The delay between two hits, in ticks: a hit only counts in full (damage, knockback) this many
-# ticks after the previous one. Vanilla: 10 (500 ms). Measured on Hypixel: 9.
+# ticks after the previous one. Measured on Hypixel: 9 (450 ms). Vanilla: 10 (500 ms).
 # It holds for all damage (falls, fire, arrows), not only melee. From 1 to 20.
-hit-delay-ticks: 10
+hit-delay-ticks: 9
+
+# true: nobody changes the knockback in game. /kb profile, /kb world, /kb mode and /kb hitdelay are
+# refused, even for the staff; only this file changes it, then /kb reload or a restart.
+# false: the staff (rago.combat.admin, the operators) may try other settings until the next restart.
+locked: true
 
 # Writes every hit to plugins/RagoCombatEngine/hits/hits-YYYY-MM-DD.jsonl for analysis.
 record-hits: false
