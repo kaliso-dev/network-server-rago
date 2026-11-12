@@ -30,6 +30,11 @@ import org.bukkit.plugin.Plugin;
  * match (two in a 1v1, four in a 2v2) plays a private game against itself at once, which counts in
  * no stats; a party that fits in a team waits for the others, and plays in one team.
  *
+ * <p>A player alone may wait in several queues ({@link Matchmaker#MAX_QUEUES} at most): the first
+ * match found takes them out of all of them. They keep their place while they play a training
+ * (a game whose host lets them go, {@link MatchHost#canLetGo}), from the lobby or joined from the
+ * training itself: the match found takes them straight out of it.
+ *
  * <p>This is the queue of the local test server, where the lobby and the games share one server.
  * On the network the same {@link Matchmaker} runs in the proxy (rago-proxy, jalon Ranked).
  */
@@ -147,7 +152,7 @@ final class QueueController {
     /** Joins the mode's queue for this map (null: any map, the host chooses). */
     void join(Player player, GameMode mode, String map) {
         if (state.isInGame(player)) {
-            if (!switchGame(player, mode)) {
+            if (!switchGame(player, mode) && !joinFromGame(player, mode, map)) {
                 player.sendMessage(ChatColor.RED + "You are already in a game.");
             }
             return;
@@ -171,24 +176,66 @@ final class QueueController {
         }
         Matchmaker.JoinResult result = matchmaker.join(player.getUniqueId(), mode.id(), rating(player.getUniqueId(), mode),
                 System.currentTimeMillis(), map);
+        joined(player, mode, map, result, false);
+    }
+
+    /** Tells a player alone what joining this queue did; inGame: from their training. */
+    private void joined(Player player, GameMode mode, String map, Matchmaker.JoinResult result, boolean inGame) {
+        UUID id = player.getUniqueId();
         switch (result) {
             case JOINED:
             case SWITCHED:
-                toldNoArena.remove(player.getUniqueId());
-                player.sendMessage(ChatColor.GREEN + "You joined the queue for " + mode.name() + ChatColor.GREEN
-                        + (map == null ? "" : " on " + ChatColor.WHITE + map + ChatColor.GREEN) + " ("
+            case ALSO:
+                toldNoArena.remove(id);
+                boolean also = result == Matchmaker.JoinResult.ALSO && !Matchmaker.alone(mode);
+                player.sendMessage(ChatColor.GREEN + (also ? "You also joined" : "You joined") + " the queue for " + mode.name()
+                        + ChatColor.GREEN + (map == null ? "" : " on " + ChatColor.WHITE + map + ChatColor.GREEN) + " ("
                         + mode.format() + ", " + matchmaker.waiting(mode.id()) + " waiting)."
-                        + (priorities.applyAsInt(player.getUniqueId()) > 0 ? ChatColor.AQUA + " Priority queue." : ""));
-                announceTeam(player, Collections.singletonList(player.getUniqueId()), mode);
+                        + (priorities.applyAsInt(id) > 0 ? ChatColor.AQUA + " Priority queue." : ""));
+                int queues = matchmaker.queuesOf(id).size();
+                if (inGame) {
+                    player.sendMessage(ChatColor.GRAY + "Keep training: the game found takes you out of the training"
+                            + (queues > 1 ? ", the first of your " + queues + " queues." : "."));
+                } else if (also) {
+                    player.sendMessage(ChatColor.GRAY + "You wait in " + queues + " queues: the first game found takes you.");
+                }
+                announceTeam(player, Collections.singletonList(id), mode);
                 onChange.run();
                 break;
             case ALREADY_WAITING:
                 player.sendMessage(ChatColor.GRAY + "You are already in this queue.");
                 break;
+            case TOO_MANY_QUEUES:
+                player.sendMessage(ChatColor.RED + "You already wait in " + Matchmaker.MAX_QUEUES
+                        + " queues: leave one first (click it again in the menu).");
+                break;
             default:
                 player.sendMessage(ChatColor.RED + "This mode does not exist.");
                 break;
         }
+    }
+
+    /**
+     * A player in a training asks for a mode played against others: they wait in its queue while
+     * they train on, the match found takes them out of the training ({@link MatchHost#canLetGo}).
+     * False when this does not apply (a mode played alone, a game that keeps its players): the
+     * player stays in their game, and out of the queue.
+     */
+    private boolean joinFromGame(Player player, GameMode mode, String map) {
+        UUID id = player.getUniqueId();
+        if (Matchmaker.alone(mode) || settings.privateRoutes().containsKey(mode.id()) || !canLetGo(player)) {
+            return false;
+        }
+        if (lobby.isFrozen(id)) {
+            player.sendMessage(ChatColor.RED + "You are frozen by the staff: you cannot join a game.");
+        } else if (!isPlayable(mode.id())) {
+            player.sendMessage(ChatColor.GRAY + mode.name() + ChatColor.GRAY + " is coming soon.");
+        } else if (parties.together(id) != null) {
+            Parties.boxed(player, ChatColor.RED + "Your party joins a queue from the lobby: /spawn first.");
+        } else {
+            joined(player, mode, map, matchmaker.join(id, mode.id(), rating(id, mode), System.currentTimeMillis(), map), true);
+        }
+        return true;
     }
 
     /**
@@ -200,9 +247,8 @@ final class QueueController {
     private boolean switchGame(Player player, GameMode mode) {
         UUID id = player.getUniqueId();
         String from = state.gameOf(id);
-        MatchHost fromHost = from == null ? null : hosts.get(from);
         MatchHost host = hosts.get(mode.id());
-        if (fromHost == null || host == null || mode.teams() != 1 || mode.playersPerTeam() != 1
+        if (from == null || !hosts.containsKey(from) || host == null || !Matchmaker.alone(mode)
                 || settings.privateRoutes().containsKey(mode.id()) || lobby.isFrozen(id) || !isPlayable(mode.id())) {
             return false;
         }
@@ -217,18 +263,10 @@ final class QueueController {
             player.sendMessage(ChatColor.YELLOW + "This mode is being prepared: try again in a moment.");
             return true;
         }
-        boolean free;
-        try {
-            free = fromHost.letGo(player);
-        } catch (RuntimeException e) {
-            logger.log(Level.WARNING, "The mode " + from + " could not let a player go", e);
-            free = false;
-        }
-        if (!free) {
+        if (!release(player)) {
             return false;
         }
-        lobby.betweenGames(player);
-        matchmaker.leave(id);
+        // the queues the player waits in stay: they keep their place from a training to another
         forgetWaiting(Collections.singleton(id));
         lobby.enterGame(player, mode.id());
         state.markUnrated(id);
@@ -240,13 +278,87 @@ final class QueueController {
             logger.log(Level.SEVERE, "The mode " + mode.id() + " could not start a game", e);
             started = false;
         }
-        if (!started) {
+        if (started) {
+            queuesDuring(player, false);
+        } else {
             // back to the lobby: the game the player left is over for them
             lobby.cancelGame(player);
             player.sendMessage(ChatColor.YELLOW + "No free arena right now: try again in a moment.");
         }
         onChange.run();
         return true;
+    }
+
+    /** True if the player plays a game that would let them go at once for another one (a training). */
+    boolean canLetGo(Player player) {
+        String from = state.gameOf(player.getUniqueId());
+        MatchHost host = from == null ? null : hosts.get(from);
+        if (host == null) {
+            return false;
+        }
+        try {
+            return host.canLetGo(player);
+        } catch (RuntimeException e) {
+            logger.log(Level.WARNING, "The mode " + from + " could not tell if it lets a player go", e);
+            return false;
+        }
+    }
+
+    /**
+     * The player's game lets them go for another one (a training, {@link MatchHost#letGo}): they
+     * belong to no game, where they stand, until the next one starts. False if it keeps them.
+     */
+    private boolean release(Player player) {
+        String from = state.gameOf(player.getUniqueId());
+        MatchHost host = from == null ? null : hosts.get(from);
+        boolean free;
+        try {
+            free = host != null && host.letGo(player);
+        } catch (RuntimeException e) {
+            logger.log(Level.WARNING, "The mode " + from + " could not let a player go", e);
+            free = false;
+        }
+        if (free) {
+            lobby.betweenGames(player);
+        }
+        return free;
+    }
+
+    /**
+     * The player started a game of a mode played alone while waiting in other queues: they keep
+     * their place while the game lets them go for the match found (a training), else they leave
+     * the queues. tellKept: say so when they keep it.
+     */
+    private void queuesDuring(Player player, boolean tellKept) {
+        UUID id = player.getUniqueId();
+        List<GameMode> waiting = matchmaker.queuesOf(id);
+        if (waiting.isEmpty()) {
+            return;
+        }
+        if (canLetGo(player)) {
+            if (tellKept) {
+                player.sendMessage(ChatColor.GRAY + "You keep your place in the " + queuesFor(waiting, ChatColor.GRAY)
+                        + ": the game found takes you out of the training.");
+            }
+            return;
+        }
+        matchmaker.leave(id);
+        toldNoArena.remove(id);
+        player.sendMessage(ChatColor.YELLOW + "You left the " + queuesFor(waiting, ChatColor.YELLOW)
+                + ": you keep your place in a queue during a training only.");
+        onChange.run();
+    }
+
+    /** "queue for Sumo", "queues for Sumo and Bridge": each name followed by this colour. */
+    static String queuesFor(List<GameMode> modes, ChatColor colour) {
+        StringBuilder text = new StringBuilder(modes.size() == 1 ? "queue for " : "queues for ");
+        for (int i = 0; i < modes.size(); i++) {
+            if (i > 0) {
+                text.append(i == modes.size() - 1 ? " and " : ", ");
+            }
+            text.append(modes.get(i).name()).append(colour);
+        }
+        return text.toString();
     }
 
     /**
@@ -260,7 +372,8 @@ final class QueueController {
         }
         Matchmaker.JoinResult result = matchmaker.join(player.getUniqueId(), mode.id(), rating(player.getUniqueId(), mode),
                 System.currentTimeMillis(), null);
-        if (result == Matchmaker.JoinResult.JOINED || result == Matchmaker.JoinResult.SWITCHED) {
+        if (result == Matchmaker.JoinResult.JOINED || result == Matchmaker.JoinResult.SWITCHED
+                || result == Matchmaker.JoinResult.ALSO) {
             toldNoArena.remove(player.getUniqueId());
             onChange.run();
             return true;
@@ -454,8 +567,8 @@ final class QueueController {
      */
     void partyChanged(Collection<UUID> players) {
         for (UUID id : players) {
-            GameMode mode = matchmaker.queueOf(id);
-            if (mode == null) {
+            List<GameMode> waiting = matchmaker.queuesOf(id);
+            if (waiting.isEmpty()) {
                 continue;
             }
             List<UUID> together = matchmaker.partyOf(id);
@@ -465,8 +578,8 @@ final class QueueController {
                 Player online = Bukkit.getPlayer(member);
                 if (online != null) {
                     online.sendMessage(ChatColor.YELLOW + "The party changed: "
-                            + (together.size() > 1 ? "your party left" : "you left") + " the queue for " + mode.name()
-                            + ChatColor.YELLOW + ".");
+                            + (together.size() > 1 ? "your party left" : "you left") + " the "
+                            + queuesFor(waiting, ChatColor.YELLOW) + ".");
                 }
             }
             onChange.run();
@@ -496,9 +609,9 @@ final class QueueController {
         this.priorities = priorities;
     }
 
-    /** The map the player waits for (null: any map, or not waiting). */
-    String mapOf(Player player) {
-        QueueEntry entry = matchmaker.entryOf(player.getUniqueId());
+    /** The map the player waits for in this mode's queue (null: any map, or not waiting there). */
+    String mapOf(Player player, GameMode mode) {
+        QueueEntry entry = matchmaker.entryOf(player.getUniqueId(), mode.id());
         return entry == null ? null : entry.map();
     }
 
@@ -507,14 +620,18 @@ final class QueueController {
         return matchmaker.waitingFor(modeId, map);
     }
 
-    /** Returns the mode left, or null if the player was not waiting. With a party, the whole party leaves. */
+    /**
+     * Leaves every queue; returns the first mode left, or null if the player was not waiting. With a
+     * party, the whole party leaves.
+     */
     GameMode leave(Player player, boolean tell) {
         List<UUID> together = matchmaker.partyOf(player.getUniqueId());
+        List<GameMode> waiting = matchmaker.queuesOf(player.getUniqueId());
         GameMode left = matchmaker.leave(player.getUniqueId());
         toldNoArena.remove(player.getUniqueId());
         if (left != null) {
             if (tell && together.size() < 2) {
-                player.sendMessage(ChatColor.YELLOW + "You left the queue for " + left.name() + ChatColor.YELLOW + ".");
+                player.sendMessage(ChatColor.YELLOW + "You left the " + queuesFor(waiting, ChatColor.YELLOW) + ".");
             }
             if (together.size() >= 2) {
                 for (UUID member : together) {
@@ -529,6 +646,26 @@ final class QueueController {
             onChange.run();
         }
         return left;
+    }
+
+    /**
+     * Leaves this mode's queue only, the others kept; with a party (which waits in one queue), the
+     * whole party leaves. False if the player was not waiting there.
+     */
+    boolean leave(Player player, GameMode mode, boolean tell) {
+        UUID id = player.getUniqueId();
+        if (!matchmaker.isWaiting(id, mode.id())) {
+            return false;
+        }
+        if (matchmaker.queuesOf(id).size() == 1) {
+            return leave(player, tell) != null;
+        }
+        matchmaker.leave(id, mode.id());
+        if (tell) {
+            player.sendMessage(ChatColor.YELLOW + "You left the queue for " + mode.name() + ChatColor.YELLOW + ".");
+        }
+        onChange.run();
+        return true;
     }
 
     /** The player left the server: their party leaves the queue with them. */
@@ -548,11 +685,21 @@ final class QueueController {
         toldNoArena.remove(player);
     }
 
+    /** The first queue the player joined among those they wait in, or null. */
     GameMode queueOf(Player player) {
         return matchmaker.queueOf(player.getUniqueId());
     }
 
-    /** How long the player has waited, in milliseconds, or -1 if not waiting. */
+    /** Every queue the player waits in, in the order they joined them; empty if none. */
+    List<GameMode> queuesOf(Player player) {
+        return matchmaker.queuesOf(player.getUniqueId());
+    }
+
+    boolean isWaiting(Player player, GameMode mode) {
+        return matchmaker.isWaiting(player.getUniqueId(), mode.id());
+    }
+
+    /** How long the player has waited in their first queue, in milliseconds, or -1 if not waiting. */
     long waited(Player player, long nowMillis) {
         QueueEntry entry = matchmaker.entryOf(player.getUniqueId());
         return entry == null ? -1L : entry.waitedMillis(nowMillis);
@@ -697,8 +844,9 @@ final class QueueController {
         for (UUID id : match.players()) {
             Player player = Bukkit.getPlayer(id);
             // A player who left the lobby without leaving the queue (sent elsewhere by a command)
-            // is not started: the others go back to the queue.
-            if (player != null && state.isInLobby(player)) {
+            // is not started: the others go back to the queue. From the queue, a player in a
+            // training is: the training lets them go.
+            if (player != null && (requeue ? available(player) : state.isInLobby(player))) {
                 players.add(player);
             }
         }
@@ -716,6 +864,9 @@ final class QueueController {
                     player.sendMessage(ChatColor.YELLOW + "The map is being prepared: you keep your place in the queue.");
                 }
             }
+            return false;
+        }
+        if (requeue && !releaseAll(match, players)) {
             return false;
         }
         // The players belong to the game before it starts: the host teleports them during start().
@@ -751,6 +902,9 @@ final class QueueController {
         if (started) {
             for (Player player : players) {
                 toldNoArena.remove(player.getUniqueId());
+                if (requeue) {
+                    queuesDuring(player, true);
+                }
             }
             return true;
         }
@@ -774,10 +928,55 @@ final class QueueController {
     }
 
     /**
+     * True if a match found in a queue may start for this player: in the lobby, or in a training
+     * that lets them go.
+     */
+    private boolean available(Player player) {
+        return state.isInLobby(player) || state.isInGame(player) && canLetGo(player);
+    }
+
+    /**
+     * The players of this match still in a training leave it: the match found takes them out of it.
+     * False if a game did not let its player go after all: the match does not start, the others
+     * are back in the queue (from the lobby for those already out of their training), and that
+     * player out of the queues.
+     */
+    private boolean releaseAll(MatchProposal match, List<Player> players) {
+        List<Player> freed = new ArrayList<>();
+        for (Player player : players) {
+            if (!state.isInGame(player)) {
+                continue;
+            }
+            if (release(player)) {
+                freed.add(player);
+                continue;
+            }
+            for (Player other : freed) {
+                lobby.cancelGame(other);
+            }
+            requeueOnline(match, player.getUniqueId());
+            matchmaker.leave(player.getUniqueId());
+            player.sendMessage(ChatColor.YELLOW + "Your game could not let you go: you left the queue for " + match.mode().name()
+                    + ChatColor.YELLOW + ".");
+            return false;
+        }
+        for (Player player : freed) {
+            player.sendMessage(ChatColor.GREEN + "Game found in " + match.mode().name() + ChatColor.GREEN + ": you leave the training.");
+        }
+        return true;
+    }
+
+    /**
      * Puts back in the queue, at their original place, the players of this match who are still
-     * online, in the lobby and not waiting elsewhere; a party only when all of its players are.
+     * online and in the lobby (or a training that lets them go); a party only when all of its
+     * players are.
      */
     private void requeueOnline(MatchProposal match) {
+        requeueOnline(match, null);
+    }
+
+    /** As {@link #requeueOnline(MatchProposal)}, without this player (null: none). */
+    private void requeueOnline(MatchProposal match, UUID without) {
         Set<UUID> brokenParties = new HashSet<>();
         for (QueueEntry entry : match.entries()) {
             Player player = Bukkit.getPlayer(entry.player());
@@ -788,7 +987,8 @@ final class QueueController {
         List<QueueEntry> back = new ArrayList<>();
         for (QueueEntry entry : match.entries()) {
             Player player = Bukkit.getPlayer(entry.player());
-            if (player != null && state.isInLobby(player) && !brokenParties.contains(entry.party())) {
+            if (player != null && !entry.player().equals(without) && available(player)
+                    && !brokenParties.contains(entry.party())) {
                 back.add(entry);
             } else if (player != null && entry.party() != null && brokenParties.contains(entry.party())) {
                 player.sendMessage(ChatColor.YELLOW + "A player of your party is not in the lobby any more: your party left the queue.");
@@ -800,9 +1000,8 @@ final class QueueController {
     /** A mode closed (its plugin was disabled): its players leave the queue. */
     private void closeQueue(String modeId) {
         for (Player player : Bukkit.getOnlinePlayers()) {
-            GameMode mode = matchmaker.queueOf(player.getUniqueId());
-            if (mode != null && mode.id().equals(modeId)) {
-                matchmaker.leave(player.getUniqueId());
+            GameMode mode = matchmaker.leave(player.getUniqueId(), modeId);
+            if (mode != null) {
                 player.sendMessage(ChatColor.RED + "The queue for " + mode.name() + ChatColor.RED + " is closed.");
             }
         }

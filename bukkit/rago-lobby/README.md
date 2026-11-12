@@ -91,7 +91,15 @@ dans les files d'attente des modes de jeu.
   appartient à une équipe : les mêmes joueurs ensemble. Elles sont gardées dans
   `plugins/RagoLobby/stats/equipes/`, un fichier par mode.
 - **Les files d'attente.** Le matchmaking de `rago-game-model`, une fois par seconde. Un joueur
-  n'attend que dans une file à la fois.
+  seul peut attendre dans trois files à la fois : un clic sur un autre mode le met aussi dans sa
+  file, et la première partie trouvée l'emporte (il sort des autres). Un clic sur un mode où il
+  attend ne sort que de cette file ; l'objet **Leave the queue** du lobby, ou `/queue leave`, les
+  quitte toutes. Le scoreboard montre la première file et combien d'autres (« Queue: Sumo +1 »).
+  Pendant un entraînement, le joueur garde sa place : il peut lancer un entraînement en attendant,
+  ou rejoindre une file depuis l'entraînement (la boussole **Trainings**, puis la catégorie, ou
+  `/queue`). Le scoreboard de l'entraînement montre l'attente (« Queue: 0:42 (Sumo) ») et la partie
+  trouvée l'en sort directement, sans repasser par le lobby. Une partie qui ne laisse pas partir
+  ses joueurs (un FFA, par exemple) fait quitter les files en y entrant.
 - **La fin d'une partie gagnée.** Les jeux (Bed Wars, duels) gardent tout le monde
   `fin-de-partie-secondes` secondes dans l'arène (3 ; 0 pour repartir tout de suite), le temps de voir
   les gagnants et leur effet de victoire, avec le papier **Play again** et le lit **Leave** dans la
@@ -311,7 +319,7 @@ commentaires de `config.yml`. Les mots français de la première version (`quitt
 | `/spawn` (ou `/hub`) | retour au spawn ; pendant une partie, c'est un abandon | tout le monde |
 | `/playagain` (ou `/again`) | la partie suivante du même mode : quitte la partie (comme `/spawn`) et remet dans sa file tout de suite ; au lobby, comme le papier Play again | tout le monde |
 | `/replay`, `/replay <code>`, `/replay leave` (ou `/replays`) | le menu de ses dernières parties, une partie par son code, quitter le replay | tout le monde |
-| `/queue <mode> [map]`, `/queue leave` (ou `/file`, `/q`) | entrer dans une file (sur une map, ou `random`), en sortir | tout le monde |
+| `/queue <mode> [map]`, `/queue leave [mode]` (ou `/file`, `/q`) | entrer dans une file (sur une map, ou `random`), aussi depuis un entraînement ; sortir de toutes, ou d'une | tout le monde |
 | `/duel <joueur> [mode]` | défier un joueur du lobby dans un mode 1v1 (sans mode : un menu des modes 1v1) | tout le monde |
 | `/duel accept <joueur>`, `/duel deny <joueur>` | répondre à un défi (valable une minute) | tout le monde |
 | `/party invite <joueur>` (ou `/p <joueur>`), `/party accept <joueur>` | inviter dans sa party (valable une minute), rejoindre une party | tout le monde |
@@ -478,7 +486,10 @@ dans les stats, les classements et l'XP Network.
 Un entraînement peut envoyer son joueur directement dans un autre : `lobby.openModesOf(joueur,
 mode)` ouvre le menu de la catégorie du mode (en partie aussi), et un clic sur un mode joué seul y
 emmène le joueur sans repasser par le lobby, si l'hôte de sa partie le laisse partir
-(`MatchHost.letGo(joueur)`, faux par défaut).
+(`MatchHost.letGo(joueur)`, faux par défaut). Un hôte qui répond vrai à `MatchHost.canLetGo(joueur)`
+(faux par défaut) garde aussi la place de ses joueurs dans les files : ils peuvent en rejoindre
+depuis la partie, et la partie trouvée les en sort avec `letGo`. Sinon, entrer dans la partie fait
+quitter les files.
 
 Pour `/replay`, un jeu enregistre ses parties avec `lobby.replays()` (`null` quand les replays sont
 coupés) : `record(ReplaySetup.ofBlocks(...))` pour une arène dont les blocs tiennent dans le replay

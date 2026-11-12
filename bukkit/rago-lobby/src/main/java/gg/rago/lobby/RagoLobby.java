@@ -637,7 +637,7 @@ public final class RagoLobby extends JavaPlugin implements LobbyService {
             player.sendMessage(ChatColor.YELLOW + "Only your party leader can queue.");
             return;
         }
-        if (queues.queueOf(player) == null) {
+        if (!queues.isWaiting(player, display.mode())) {
             queues.join(player, display.mode());
         }
     }
@@ -826,7 +826,7 @@ public final class RagoLobby extends JavaPlugin implements LobbyService {
             player.sendMessage(ChatColor.RED + "This mode is closed for now.");
             return;
         }
-        if (queues.queueOf(player) == null) {
+        if (!queues.isWaiting(player, display.mode())) {
             queues.join(player, display.mode());
         }
     }

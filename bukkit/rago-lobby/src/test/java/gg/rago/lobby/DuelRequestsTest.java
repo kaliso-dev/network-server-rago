@@ -38,6 +38,18 @@ class DuelRequestsTest {
                 "a quote in a name is left out");
     }
 
+    @Test
+    void theQueuesAreNamedInOneLine() {
+        GameMode sumo = new GameMode("sumo", "Sumo", 2, 1, false);
+        GameMode bridge = new GameMode("bridge", "Bridge", 2, 1, false);
+        GameMode boxing = new GameMode("boxing", "Boxing", 2, 1, false);
+        assertEquals("queue for Sumo\u00a7e", QueueController.queuesFor(java.util.Arrays.asList(sumo), org.bukkit.ChatColor.YELLOW));
+        assertEquals("queues for Sumo\u00a77 and Bridge\u00a77",
+                QueueController.queuesFor(java.util.Arrays.asList(sumo, bridge), org.bukkit.ChatColor.GRAY));
+        assertEquals("queues for Sumo\u00a7e, Bridge\u00a7e and Boxing\u00a7e",
+                QueueController.queuesFor(java.util.Arrays.asList(sumo, bridge, boxing), org.bukkit.ChatColor.YELLOW));
+    }
+
     private static int count(String text, char c) {
         int n = 0;
         for (char x : text.toCharArray()) {

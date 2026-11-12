@@ -125,8 +125,11 @@ final class LobbyCommands implements TabExecutor {
             return false;
         }
         if (args[0].equalsIgnoreCase("leave") || args[0].equalsIgnoreCase("quitter")) {
-            if (lobby.queues().leave(player, true) == null) {
-                player.sendMessage(ChatColor.GRAY + "You are not in a queue.");
+            // /queue leave: every queue; /queue leave <mode>: that one
+            GameMode left = args.length == 2 ? lobby.mode(args[1].toLowerCase(java.util.Locale.ROOT)) : null;
+            if (args.length == 2 ? left == null || !lobby.queues().leave(player, left, true)
+                    : lobby.queues().leave(player, true) == null) {
+                player.sendMessage(ChatColor.GRAY + (args.length == 2 ? "You are not in this queue." : "You are not in a queue."));
             }
             return true;
         }
@@ -135,7 +138,8 @@ final class LobbyCommands implements TabExecutor {
             player.sendMessage(ChatColor.RED + "Unknown mode. The modes: " + modeIds());
             return true;
         }
-        if (!lobby.state().isInLobby(player)) {
+        if (!lobby.state().isInLobby(player) && !lobby.queues().canLetGo(player)) {
+            // in a training, the queue is joined from it: the match found takes the player out of it
             player.sendMessage(ChatColor.RED + "Go back to the lobby (/spawn) to join a queue.");
             return true;
         }
@@ -344,7 +348,12 @@ final class LobbyCommands implements TabExecutor {
             GameMode mode = lobby.mode(args[0].toLowerCase(java.util.Locale.ROOT));
             List<String> maps = mode == null ? Collections.<String>emptyList() : lobby.queues().mapsOf(mode);
             List<String> matching = new ArrayList<>();
-            if (maps.size() >= 2) {
+            if (args[0].equalsIgnoreCase("leave") && sender instanceof Player) {
+                // /queue leave <mode>: the queues the player waits in
+                for (GameMode waiting : lobby.queues().queuesOf((Player) sender)) {
+                    options.add(waiting.id());
+                }
+            } else if (maps.size() >= 2) {
                 options.add("random");
                 options.addAll(maps);
             }

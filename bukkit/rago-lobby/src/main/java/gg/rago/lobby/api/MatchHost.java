@@ -37,11 +37,20 @@ public interface MatchHost {
 
     /**
      * The player goes from their game straight into a game of another mode (from a training to
-     * another, with the training's Trainings menu): the host lets them go at once, without a word
-     * and without sending them to the lobby, and returns true. False, the default, keeps them in the
-     * game.
+     * another, with the training's Trainings menu, or into the match found in a queue they wait in
+     * while they train): the host lets them go at once, without a word and without sending them to
+     * the lobby, and returns true. False, the default, keeps them in the game.
      */
     default boolean letGo(Player player) {
+        return false;
+    }
+
+    /**
+     * True if {@link #letGo} would let this player go now (a training): they may then wait in the
+     * queues while they play, the match found takes them out of the game. False, the default: a
+     * player who starts a game of this mode leaves the queues they waited in.
+     */
+    default boolean canLetGo(Player player) {
         return false;
     }
 

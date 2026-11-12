@@ -1,6 +1,7 @@
 package gg.rago.lobby;
 
 import gg.rago.game.GameMode;
+import gg.rago.game.Matchmaker;
 import java.util.ArrayList;
 import java.util.List;
 import org.bukkit.Bukkit;
@@ -297,20 +298,19 @@ final class ModeMenu {
     }
 
     /**
-     * Joins the mode's queue, or leaves it if the player already waits for it. A mode with several
-     * maps first opens their menu.
+     * Joins the mode's queue, besides the others the player waits in, or leaves it (it alone) if
+     * they already wait for it. A mode with several maps first opens their menu.
      */
     void toggle(Player player, GameMode mode) {
-        GameMode current = queues.queueOf(player);
-        if (mode.equals(current)) {
-            queues.leave(player, true);
+        if (queues.isWaiting(player, mode)) {
+            queues.leave(player, mode, true);
         } else if (queues.isPlayable(mode.id()) && queues.mapsOf(mode).size() >= 2) {
             openMaps(player, mode);
             return;
         } else {
             queues.join(player, mode);
         }
-        if (queues.queueOf(player) != null) {
+        if (queues.isWaiting(player, mode)) {
             player.closeInventory();
         }
     }
@@ -329,14 +329,14 @@ final class ModeMenu {
         if (!found) {
             return;
         }
-        boolean waitingHere = mode.equals(queues.queueOf(player));
-        String waitingFor = waitingHere ? queues.mapOf(player) : null;
+        boolean waitingHere = queues.isWaiting(player, mode);
+        String waitingFor = waitingHere ? queues.mapOf(player, mode) : null;
         if (waitingHere && (map == null ? waitingFor == null : map.equalsIgnoreCase(waitingFor))) {
-            queues.leave(player, true);
+            queues.leave(player, mode, true);
         } else {
             queues.join(player, mode, map);
         }
-        if (queues.queueOf(player) != null) {
+        if (queues.isWaiting(player, mode)) {
             player.closeInventory();
         }
     }
@@ -353,10 +353,10 @@ final class ModeMenu {
 
     private void fill(Inventory inventory, HumanEntity viewer) {
         String view = ((Holder) inventory.getHolder()).view();
-        GameMode current = viewer instanceof Player ? queues.queueOf((Player) viewer) : null;
+        List<GameMode> current = viewer instanceof Player ? queues.queuesOf((Player) viewer) : new ArrayList<GameMode>();
         GameMode mapsOf = mapsMode(view);
         if (mapsOf != null) {
-            fillMaps(inventory, mapsOf, mapsOf.equals(current), viewer instanceof Player ? queues.mapOf((Player) viewer) : null);
+            fillMaps(inventory, mapsOf, current.contains(mapsOf), viewer instanceof Player ? queues.mapOf((Player) viewer, mapsOf) : null);
             return;
         }
         if (Holder.CATEGORIES.equals(view)) {
@@ -373,12 +373,12 @@ final class ModeMenu {
             for (int i = 0; i < entries.size() && slotOf(i) < last; i++) {
                 LobbySettings.Entry entry = entries.get(i);
                 inventory.setItem(slotOf(i), entry.group != null ? icon(entry.group, current, viewer)
-                        : icon(entry.mode, entry.mode.mode().equals(current), viewer));
+                        : icon(entry.mode, current.contains(entry.mode.mode()), viewer));
             }
         } else {
             List<ModeDisplay> modes = modesFor(view);
             for (int i = 0; i < modes.size() && slotIn(view, i, modes.size()) < last; i++) {
-                inventory.setItem(slotIn(view, i, modes.size()), icon(modes.get(i), modes.get(i).mode().equals(current), viewer));
+                inventory.setItem(slotIn(view, i, modes.size()), icon(modes.get(i), current.contains(modes.get(i).mode()), viewer));
             }
         }
         if (hasBack(view)) {
@@ -431,7 +431,7 @@ final class ModeMenu {
         inventory.setItem(backSlot(inventory.getSize()), back);
     }
 
-    private ItemStack icon(ModeCategory category, GameMode current) {
+    private ItemStack icon(ModeCategory category, List<GameMode> current) {
         ItemStack item = new ItemStack(category.icon());
         ItemMeta meta = item.getItemMeta();
         meta.setDisplayName(category.name());
@@ -448,7 +448,7 @@ final class ModeMenu {
             if (queues.isPlayable(display.mode().id())) {
                 waiting += queues.waiting(display.mode().id());
             }
-            here |= display.mode().equals(current);
+            here |= current.contains(display.mode());
         }
         int games = settings.entriesIn(category.id()).size();
         lore.add("");
@@ -464,18 +464,18 @@ final class ModeMenu {
     }
 
     /** A group in its category: its name, what it is, and each of its modes with its queue. */
-    private ItemStack icon(ModeCategory group, GameMode current, HumanEntity viewer) {
+    private ItemStack icon(ModeCategory group, List<GameMode> current, HumanEntity viewer) {
         ItemStack item = new ItemStack(group.icon());
         ItemMeta meta = item.getItemMeta();
         meta.setDisplayName(group.name());
         List<String> lore = new ArrayList<>(group.description());
         lore.add("");
-        String waitingIn = null;
+        List<String> waitingIn = new ArrayList<>();
         for (ModeDisplay display : settings.modesOfGroup(group.id())) {
             GameMode mode = display.mode();
-            boolean here = mode.equals(current);
+            boolean here = current.contains(mode);
             if (here) {
-                waitingIn = ChatColor.stripColor(mode.name());
+                waitingIn.add(ChatColor.stripColor(mode.name()));
             }
             lore.add((here ? ChatColor.YELLOW + "\u25b8 " : ChatColor.DARK_GRAY + "\u25b8 ") + ChatColor.WHITE
                     + ChatColor.stripColor(mode.name()) + ChatColor.GRAY + ": "
@@ -483,8 +483,9 @@ final class ModeMenu {
                             : ChatColor.GRAY + "coming soon"));
         }
         lore.add("");
-        if (waitingIn != null) {
-            lore.add(ChatColor.YELLOW + "You are in the queue of " + waitingIn);
+        if (!waitingIn.isEmpty()) {
+            lore.add(ChatColor.YELLOW + (waitingIn.size() > 1 ? "You are in the queues of " : "You are in the queue of ")
+                    + String.join(", ", waitingIn));
         }
         lore.add(ChatColor.GREEN + "Click to choose");
         meta.setLore(lore);
@@ -509,17 +510,21 @@ final class ModeMenu {
         } else {
             lore.add(ChatColor.GRAY + "In queue: " + ChatColor.WHITE + queues.waiting(mode.id()));
             int maps = queues.mapsOf(mode).size();
-            String waitingFor = waitingHere && viewer instanceof Player ? queues.mapOf((Player) viewer) : null;
+            String waitingFor = waitingHere && viewer instanceof Player ? queues.mapOf((Player) viewer, mode) : null;
             if (waitingFor != null) {
                 lore.add(ChatColor.GRAY + "Your map: " + ChatColor.WHITE + waitingFor);
             }
-            // in a training (its Trainings menu): a mode played alone starts at once
-            boolean alone = viewer instanceof Player && queues.inGame((Player) viewer) && mode.teams() == 1
-                    && mode.playersPerTeam() == 1;
+            // in a training (its Trainings menu): a mode played alone starts at once, the queue of
+            // another is waited in while training
+            boolean training = viewer instanceof Player && queues.inGame((Player) viewer);
+            boolean alone = training && Matchmaker.alone(mode);
             lore.add(waitingHere ? ChatColor.YELLOW + "You are in this queue: click to leave it"
                     : alone ? ChatColor.GREEN + "Click to play"
                     : maps >= 2 ? ChatColor.GREEN + "Click to choose the map (" + maps + ")"
                     : ChatColor.GREEN + "Click to join the queue");
+            if (training && !alone && !waitingHere) {
+                lore.add(ChatColor.GRAY + "You keep training while you wait.");
+            }
         }
         meta.setLore(lore);
         item.setItemMeta(meta);

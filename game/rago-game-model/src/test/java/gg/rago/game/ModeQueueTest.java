@@ -380,4 +380,19 @@ class ModeQueueTest {
         assertEquals(Arrays.asList(new UUID(0, 3)), players(queue.entries()));
     }
 
+    @Test
+    void aPlayerMatchedElsewhereKeepsTheirPlaceButPlaysNothingHere() {
+        ModeQueue queue = new ModeQueue(new GameMode("sumo", "Sumo", 2, 1, false), WINDOW);
+        QueueEntry a = entry(1, 1000, 0);
+        QueueEntry b = entry(2, 1000, 10);
+        QueueEntry c = entry(3, 1000, 20);
+        queue.add(a);
+        queue.add(b);
+        queue.add(c);
+        List<MatchProposal> matches = queue.poll(100, id -> 0, java.util.Collections.singleton(a.player()));
+        assertEquals(1, matches.size());
+        assertEquals(Arrays.asList(Arrays.asList(b), Arrays.asList(c)), matches.get(0).teams(), "the next two");
+        assertEquals(Arrays.asList(a), queue.entries(), "the busy player waits on, at their place");
+    }
+
 }

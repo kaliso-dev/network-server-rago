@@ -182,16 +182,24 @@ final class PracticeHost implements MatchHost {
         game.record(replays.record(setup));
     }
 
-    /** A training lets its player go at once, for another training (its Trainings menu). */
+    /**
+     * A training lets its player go at once: for another training (its Trainings menu), or for the
+     * match found in a queue they wait in while they train.
+     */
     @Override
     public boolean letGo(Player player) {
-        PracticeGame game = games.gameOf(player.getUniqueId());
-        if (!(game instanceof Training) || game.phase == PracticeGame.Phase.ENDED) {
+        if (!canLetGo(player)) {
             return false;
         }
         player.closeInventory();
-        game.leave(player, false);
+        games.gameOf(player.getUniqueId()).leave(player, false);
         return true;
+    }
+
+    @Override
+    public boolean canLetGo(Player player) {
+        PracticeGame game = games.gameOf(player.getUniqueId());
+        return game instanceof Training && game.phase != PracticeGame.Phase.ENDED;
     }
 
     @Override

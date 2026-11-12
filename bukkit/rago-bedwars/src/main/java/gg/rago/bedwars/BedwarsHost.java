@@ -348,6 +348,26 @@ final class BedwarsHost implements MatchHost, Listener {
         }
     }
 
+    /**
+     * The Fast Shop, a training, lets its player go at once: for the match found in a queue they wait
+     * in while they train, or for another training.
+     */
+    @Override
+    public boolean letGo(Player player) {
+        if (!canLetGo(player)) {
+            return false;
+        }
+        player.closeInventory();
+        games.get(player.getUniqueId()).leave(player, false);
+        return true;
+    }
+
+    @Override
+    public boolean canLetGo(Player player) {
+        BedwarsGame game = games.get(player.getUniqueId());
+        return game instanceof FastShopGame && game.phase != BedwarsGame.Phase.ENDED;
+    }
+
     @Override
     public void abandon(Player player) {
         BedwarsGame game = games.get(player.getUniqueId());

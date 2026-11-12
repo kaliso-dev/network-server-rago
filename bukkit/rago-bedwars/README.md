@@ -375,7 +375,8 @@ Dans `jeux:` du config.yml, un mode peut jouer autre chose qu'une partie classiq
 - **Fast Shop** (`fast-shop`) : acheter le plus vite possible avec son propre quick buy (copié
   d'Hypixel dans le lobby). Sept listes, chacune avec ses records : le premier achat, l'armure de
   fer, les outils, un fireball fight, une défense de lit, un rush, et une liste au hasard. Un clic
-  sur un objet qui n'est pas sur la liste compte comme une erreur.
+  sur un objet qui n'est pas sur la liste compte comme une erreur. Comme les entraînements du
+  practice, il garde la place du joueur dans les files : la partie trouvée l'en sort directement.
 
 ## Les maps
 
