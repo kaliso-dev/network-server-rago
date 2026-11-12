@@ -382,14 +382,22 @@ niveau:
 # every Monday), worth more. They run by themselves; a quest done gives its XP (boosted by
 # PREMIUM) once. /quests, or the brewing stand of the hotbar, shows them.
 #   nom       what the player reads
-#   type      what counts: parties (games played), victoires (wins), kills, victoires-classees
-#   objectif  how many; xp: the Network XP it gives; mode: count one mode only (its id)
+#   type      what counts, in the games: parties (games played), victoires (wins), kills,
+#             victoires-classees; in the trainings: reussites (successes: a clutch, a run...),
+#             records (a new personal best), defi (a score on the daily challenge), minutes (of
+#             training, not idle)
+#   objectif  how many; xp: the Network XP it gives; mode: count one mode only (its id), or a
+#             list of modes
+# par-jour: the daily quests drawn each day from quotidiennes, the same for everyone, one of the
+# games and one of the trainings at least (0: all of them). Every weekly quest runs all week. 5
+# quests at most run at once in a period (the menu shows them in one row).
 # debut: Getting started, the quests of a new player, once each: play a training (entrainement),
 # beat one of your records (record), play a duel (a 1v1 to the end), import your Hypixel quick
 # buy (quick-buy, only with hypixel.cle-api) and find our Discord (/discord, only with its link).
 # points: the Rago Points of each; recompense: what all of them give, a cosmetic of the shop or
 # a style (one already owned gives its price in points), "" for nothing. actif: false, none.
 quetes:
+  par-jour: 3
   debut:
     actif: true
     points: {entrainement: 100, record: 150, duel: 150, quick-buy: 100, discord: 100}
@@ -399,11 +407,16 @@ quetes:
     gagner: {nom: "Win 3 games", type: victoires, objectif: 3, xp: 750}
     kills: {nom: "Get 15 kills", type: kills, objectif: 15, xp: 500}
     classe: {nom: "Win a ranked game", type: victoires-classees, objectif: 1, xp: 750}
+    clutchs: {nom: "Land 25 clutches", type: reussites, objectif: 25, xp: 600, mode: [clutch, clutch-top-fight]}
+    record: {nom: "Beat a personal best", type: records, objectif: 1, xp: 750}
+    defi: {nom: "Play the daily challenge", type: defi, objectif: 1, xp: 500}
+    entrainement: {nom: "Train for 15 minutes", type: minutes, objectif: 15, xp: 600}
   hebdomadaires:
     jouer: {nom: "Play 40 games", type: parties, objectif: 40, xp: 3000}
     gagner: {nom: "Win 25 games", type: victoires, objectif: 25, xp: 5000}
     kills: {nom: "Get 100 kills", type: kills, objectif: 100, xp: 3000}
     classe: {nom: "Win 10 ranked games", type: victoires-classees, objectif: 10, xp: 5000}
+    entrainement: {nom: "Train for 2 hours", type: minutes, objectif: 120, xp: 4000}
 
 # The ranks, the highest first: the order of the tab list, and a player shows the highest of
 # theirs. The staff give a rank with /rank set <player> <rank>, the web store (or an admin) with

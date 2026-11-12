@@ -610,6 +610,7 @@ final class PracticeGames implements Listener {
         if (spectating(player)) {
             return;
         }
+        game.inputFrom(player);
         game.interact(player, event);
     }
 
@@ -640,6 +641,7 @@ final class PracticeGames implements Listener {
     public void onSwing(PlayerAnimationEvent event) {
         PracticeGame game = byPlayer.get(event.getPlayer().getUniqueId());
         if (game != null && game.phase == PracticeGame.Phase.PLAYING) {
+            game.inputFrom(event.getPlayer());
             game.swung(event.getPlayer());
         }
     }

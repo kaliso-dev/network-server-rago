@@ -183,10 +183,16 @@ dans les files d'attente des modes de jeu.
   charbon sinon, la prochaine qui brille) et les quêtes. Tout se
   règle dans `niveau.recompenses`. Tout est dans le fichier du joueur (`profil.*`), qui passera
   tel quel dans la base de données du réseau.
-- **Les quêtes (`/quests`).** Quatre quêtes du jour (jouer 5 parties, en gagner 3, faire 15 kills,
-  gagner une classée : 500 à 750 XP) et quatre de la semaine (40 parties, 25 victoires, 100 kills,
-  10 classées : 3 000 à 5 000 XP), qui recommencent chaque jour et chaque lundi. Elles avancent
-  seules et donnent leur XP une fois (avec le boost de PREMIUM). Tout se règle dans `quetes:`.
+- **Les quêtes (`/quests`).** Chaque jour, trois quêtes du jour tirées dans une liste de huit, les
+  mêmes pour tout le monde, dont au moins une des parties et une des entraînements : jouer 5
+  parties, en gagner 3, faire 15 kills, gagner une classée, réussir 25 clutchs (le block clutch,
+  île ou top fight), battre un record personnel, jouer le défi du jour, s'entraîner 15 minutes
+  (500 à 750 XP). Et cinq quêtes de la semaine (40 parties, 25 victoires, 100 kills, 10 classées,
+  2 heures d'entraînement : 3 000 à 5 000 XP). Elles recommencent chaque jour et chaque lundi,
+  avancent seules et donnent leur XP une fois (avec le boost de PREMIUM). Une minute
+  d'entraînement compte quand le joueur y a fait quelque chose (un clic, un bloc), pas quand il
+  attend sans rien faire. Tout se règle dans `quetes:` (`par-jour` : combien en tirer chaque jour,
+  0 pour toutes ; cinq au plus en même temps dans une période, la rangée du menu).
 - **Getting started : les quêtes d'un nouveau joueur.** Cinq étapes, une fois chacune et dans
   n'importe quel ordre : jouer un entraînement (un premier score), battre un de ses records, jouer
   un duel (un 1v1 jusqu'au bout, hors partie privée), importer son quick buy de Hypixel
@@ -530,7 +536,10 @@ que son mode est joué, et un clic lance `/challenge play` pour le joueur.
 
 Un entraînement dit chaque score avec `lobby.trainingScored(joueur, "clutch", record)` (`record`
 vrai pour un nouveau record personnel, pas pour le premier score) : c'est ce qui fait avancer les
-étapes « Play a training » et « Beat one of your records » de Getting started (rien dans une
+étapes « Play a training » et « Beat one of your records » de Getting started, et les quêtes des
+réussites et des records. Un score au défi du jour se dit avec `lobby.dailyChallengePlayed(joueur,
+mode)`, et chaque minute d'entraînement où le joueur a fait quelque chose avec
+`lobby.trainedMinute(joueur, mode)` : les quêtes du défi et des minutes avancent (rien dans une
 partie privée).
 
 Pour `/replay`, un jeu enregistre ses parties avec `lobby.replays()` (`null` quand les replays sont

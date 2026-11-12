@@ -377,7 +377,8 @@ Dans `jeux:` du config.yml, un mode peut jouer autre chose qu'une partie classiq
   fer, les outils, un fireball fight, une défense de lit, un rush, et une liste au hasard. Un clic
   sur un objet qui n'est pas sur la liste compte comme une erreur. Comme les entraînements du
   practice, il garde la place du joueur dans les files : la partie trouvée l'en sort directement,
-  et ses scores font avancer « Getting started » dans le lobby.
+  et ses scores et ses minutes font avancer les quêtes du lobby (Getting started, les réussites,
+  les records, les minutes d'entraînement).
 
 ## Les maps
 

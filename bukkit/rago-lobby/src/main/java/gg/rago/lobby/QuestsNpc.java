@@ -182,7 +182,7 @@ final class QuestsNpc {
             done.append(ChatColor.GRAY).append("Start ").append(ChatColor.YELLOW).append(started).append('/').append(start.size());
         }
         for (Quests.Period period : Quests.Period.values()) {
-            int count = quests.of(period).size();
+            int count = quests.active(period, day, week).size();
             if (count == 0) {
                 continue;
             }
