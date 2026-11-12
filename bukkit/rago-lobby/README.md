@@ -151,6 +151,17 @@ dans les files d'attente des modes de jeu.
   partie de Bed Wars. Réglages dans `replays:` : `jours` (3), `taille-max-mo` (2000 ; au-delà, les
   plus vieux partent d'abord), `spectateurs-max` (6 replays regardés en même temps), et
   `actif: false` pour ne rien enregistrer.
+- **Regarder une partie en direct.** `/spectate <joueur>` (ou `/spec`) depuis le lobby : la partie
+  d'un ami, et n'importe quelle partie pour le staff (un soupçon de triche) et pour un rang qui a
+  `rago.perk.spectate` (MEDIA, mais pas la partie d'un joueur sous un nick, qui reste caché sauf
+  pour le staff et ses amis). Le spectateur arrive là où est le joueur, en mode spectateur : les
+  joueurs ne le voient pas (même pas son corps, seulement son nom grisé dans le Tab), il vole à
+  travers tout et ne touche à rien. Un clic gauche sur un joueur montre la partie par ses yeux, et
+  les touches de la barre ne l'emmènent que vers les joueurs de la partie. Il lit les messages de
+  la partie et voit le sidebar du joueur qu'il est venu voir. `/spawn` le ramène au lobby, comme la
+  fin de la partie, sans papier Play again. Il garde sa place dans les files (et peut en rejoindre
+  depuis la partie) : la partie trouvée l'en sort. Tout ce que jouent RagoPractice et RagoBedwars
+  se regarde : les duels, le sumo, les entraînements, les events et les parties de Bed Wars.
 - **Les duels ne sont pas classés.** Une partie lancée sans la file (un `/duel`, une partie privée)
   ne fait bouger ni l'ELO ni les séries de victoires (du joueur et de l'équipe), même dans un mode
   classé : deux amis ne peuvent pas se donner des victoires pour monter. Les victoires, l'XP et les
@@ -239,7 +250,8 @@ dans les files d'attente des modes de jeu.
   trois gadgets à lui (bat blaster, mouton explosif, boule disco : `rago.perk.gadgets`), les effets
   de kill et de victoire les plus rares (squid rocket, météore, dieu du tonnerre, pluie de météores)
   un booster d'XP gratuit par jour (`rago.perk.booster`) et les events pour tout le serveur avec
-  `/host` (`rago.perk.host`, voir RagoPractice). Le staff et MEDIA en héritent.
+  `/host` (`rago.perk.host`, voir RagoPractice). Le staff et MEDIA en héritent. MEDIA a aussi
+  `/spectate` pour toutes les parties (`rago.perk.spectate`).
 - **Le + de [PREMIUM+].** Le `{+}` d'un préfixe (`prefixe: "&d[PREMIUM{+}] "`) est un + que chaque
   joueur colore dans `/style` (« Colour of your + ») : blanc par défaut, six couleurs vives en
   récompense de niveau (`plus-jaune` au niveau 5... `plus-bleu` au 85), et le noir, le plus rare, à
@@ -394,6 +406,7 @@ commentaires de `config.yml`. Les mots français de la première version (`quitt
 | `/spawn` (ou `/hub`) | retour au spawn ; pendant une partie, c'est un abandon | tout le monde |
 | `/playagain` (ou `/again`) | la partie suivante du même mode : quitte la partie (comme `/spawn`) et remet dans sa file tout de suite ; au lobby, comme le papier Play again | tout le monde |
 | `/replay`, `/replay <code>`, `/replay leave` (ou `/replays`) | le menu de ses dernières parties, une partie par son code, quitter le replay | tout le monde |
+| `/spectate <joueur>` (ou `/spec`) | regarder la partie d'un ami, invisible (`/spawn` pour revenir) | tout le monde ; toutes les parties : `rago.perk.spectate` (MEDIA, le staff) |
 | `/queue <mode> [map]`, `/queue leave [mode]` (ou `/file`, `/q`) | entrer dans une file (sur une map, ou `random`), aussi depuis un entraînement ; sortir de toutes, ou d'une | tout le monde |
 | `/duel <joueur> [mode]` | défier un joueur du lobby dans un mode 1v1 (sans mode : un menu des modes 1v1) | tout le monde |
 | `/duel accept <joueur>`, `/duel deny <joueur>` | répondre à un défi (valable une minute) | tout le monde |
@@ -571,6 +584,13 @@ emmène le joueur sans repasser par le lobby, si l'hôte de sa partie le laisse 
 (faux par défaut) garde aussi la place de ses joueurs dans les files : ils peuvent en rejoindre
 depuis la partie, et la partie trouvée les en sort avec `letGo`. Sinon, entrer dans la partie fait
 quitter les files.
+
+Pour `/spectate`, le lobby vérifie qui peut regarder qui, compte le spectateur dans la partie du
+joueur, puis appelle `MatchHost.spectate(spectateur, joueur)` (faux par défaut : la partie ne se
+regarde pas). L'hôte le met dans la partie du joueur, invisible, et le rend avec
+`lobby.sendToLobby(joueur)` à la fin ; `abandon` est appelé à son `/spawn`, et `letGo` quand une
+partie trouvée dans une file l'en sort (un hôte qui accepte des spectateurs répond vrai à
+`canLetGo` pour eux).
 
 Le plugin des entraînements donne son défi du jour avec `lobby.setDailyChallenge("clutch",
 "Block clutch: Island")` (`null` : aucun) : la boussole le montre au bout de « Popular now » tant

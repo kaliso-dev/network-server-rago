@@ -43,6 +43,10 @@ public final class RagoPractice extends JavaPlugin {
     /** The maps being copied into the zones of the modes that play on maps. */
     private final List<MapZones> mapZones = new ArrayList<>();
     private PracticeGames games;
+    /** Those who watch a game with the lobby's /spectate. */
+    private Spectators spectators;
+    /** What the players of the duels had at their end, for the [View] of the recap. */
+    private EndInventories endInventories;
     /** The events PREMIUM players host (/host). */
     private Events events;
     private Records records;
@@ -94,6 +98,11 @@ public final class RagoPractice extends JavaPlugin {
         prefs.load();
         challenges = new Challenges(this, challengeSettings(config), new File(getDataFolder(), "defi.yml"));
 
+        spectators = new Spectators(this);
+        getServer().getPluginManager().registerEvents(spectators, this);
+        endInventories = new EndInventories();
+        getServer().getPluginManager().registerEvents(endInventories, this);
+        getCommand("matchinv").setExecutor(endInventories);
         sumo = new SumoHost(this, world, new ArenaGrid(slots, spacing), radius, points, zoneMaps(config, "sumo.cartes", spacing,
                 "the sumo"));
         getServer().getPluginManager().registerEvents(sumo, this);
@@ -946,5 +955,15 @@ public final class RagoPractice extends JavaPlugin {
     /** The running practice games, or null while the plugin is off. */
     PracticeGames games() {
         return games;
+    }
+
+    /** Those who watch a game (/spectate). */
+    Spectators spectators() {
+        return spectators;
+    }
+
+    /** What the players of the duels had at their end, or null while the plugin starts. */
+    EndInventories endInventories() {
+        return endInventories;
     }
 }

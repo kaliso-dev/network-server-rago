@@ -452,9 +452,10 @@ quetes:
 #                (Speed I, II or III in the lobby, chosen in the settings), rago.perk.gadgets (the
 #                gadgets and the rarest cosmetics of PREMIUM), rago.perk.booster (a free XP booster
 #                a day, /booster), rago.perk.host (/host: events for the whole server, in
-#                RagoPractice), rago.cosmetic.<id> (owns that cosmetic of the boutique while
-#                having the rank: VIP's three), or a permission of
-#                another plugin; "-permission" takes one away
+#                RagoPractice), rago.perk.spectate (/spectate any game, not only a friend's: the
+#                content creators; the staff has it), rago.cosmetic.<id> (owns that cosmetic of
+#                the boutique while having the rank: VIP's three), or a permission of another
+#                plugin; "-permission" takes one away
 #   herite       the rank whose permissions (and colours, badges, boost) this one also has
 #   boost-xp     the Network XP of its players is multiplied by this (1.5: half more)
 #   style, badge the colour of name and the badge (of styles:) its players wear until they choose
@@ -512,8 +513,9 @@ rangs:
   media:
     prefixe: "&c[&fMEDIA&c] "
     couleur: "&c"
+    permissions: [rago.perk.spectate]
     herite: premium
-    avantages: ["For content creators", "Everything of PREMIUM"]
+    avantages: ["For content creators", "/spectate any game", "Everything of PREMIUM"]
   premium:
     prefixe: "&d[PREMIUM{+}] "
     couleur: "&d"

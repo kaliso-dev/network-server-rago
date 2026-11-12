@@ -251,6 +251,7 @@ final class FireballFight extends Duel {
             return;
         }
         beds[side] = false;
+        recap.bed(player.getUniqueId());
         broadcast(ChatColor.BOLD + "BED DESTRUCTION > " + ChatColor.RESET + CHAT[side] + TEAMS[side] + " bed"
                 + ChatColor.GRAY + " was destroyed by " + CHAT[1 - side] + player.getDisplayName() + ChatColor.GRAY + "!", Sound.ENDERDRAGON_GROWL);
         for (Player victim : online(side)) {

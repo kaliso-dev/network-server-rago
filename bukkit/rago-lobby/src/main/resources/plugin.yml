@@ -120,6 +120,10 @@ commands:
     description: The titles of the modes, earned with wins - wear one in the chat and above your name.
     usage: /titles, /titles <title|best|none>
     aliases: [titres]
+  spectate:
+    description: "Watch a friend's game, unseen, flying through it (the staff and the content creators: any game)."
+    usage: /spectate <player>
+    aliases: [spec]
   quests:
     description: The daily and weekly quests.
     usage: /quests
@@ -229,6 +233,7 @@ permissions:
       rago.perk.fly: true
       rago.perk.nick: true
       rago.perk.speed: true
+      rago.perk.spectate: true
   # The perks of the ranks of the shop.
   rago.perk.chat:
     description: No chat cooldown, the same message twice allowed.
@@ -247,4 +252,7 @@ permissions:
     default: false
   rago.perk.speed:
     description: Speed I, II or III in the lobby, chosen in the settings.
+    default: false
+  rago.perk.spectate:
+    description: /spectate any game, not only a friend's (the staff, the content creators).
     default: false

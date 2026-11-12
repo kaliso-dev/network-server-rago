@@ -517,34 +517,48 @@ final class LobbyScoreboard {
         return best;
     }
 
-    /** In a game: the mode, the player's ping, and in a 1v1 the opponent and their ping. */
+    /**
+     * In a game: the mode, the player's ping, and in a 1v1 the opponent and their ping. One who
+     * watches a game (/spectate) sees these lines as the player they came for does.
+     */
     private List<String> gameLines(Player player, String modeId) {
         List<String> given = gameLines.get(player.getUniqueId());
         // waiting in queues while training: the line over the address, where the blank one was
         String queue = queueLine(player);
+        Player eyes = eyesOf(player, modeId);
         if (given != null) {
-            return givenLines(given, showsPing(given) ? new ArrayList<String>() : pingLines(player), queue, settings.address());
+            return givenLines(given, showsPing(given) ? new ArrayList<String>() : pingLines(eyes), queue, settings.address());
         }
         List<String> lines = new ArrayList<>();
         lines.add(blank(0));
         GameMode mode = settings.catalog().get(modeId);
         lines.add(cut(ChatColor.WHITE + "Mode: " + (mode == null ? modeId : mode.name())));
         lines.add(blank(1));
-        List<UUID> opponents = state.opponentsOf(player.getUniqueId());
+        List<UUID> opponents = state.opponentsOf(eyes.getUniqueId());
         if (opponents.size() == 1) {
             Player opponent = Bukkit.getPlayer(opponents.get(0));
             PlayerStats stats = book.get(opponents.get(0));
             String name = opponent != null ? opponent.getName() : stats != null ? stats.name() : "?";
             lines.add(cut(ChatColor.WHITE + "Opponent: " + ChatColor.RED + name));
             lines.add(blank(3));
-            lines.add(ChatColor.WHITE + "Your ping: " + pingText(pingOf(player)));
+            lines.add(ChatColor.WHITE + "Your ping: " + pingText(pingOf(eyes)));
             lines.add(ChatColor.WHITE + "Their ping: " + (opponent == null ? ChatColor.GRAY + "left" : pingText(pingOf(opponent))));
         } else {
-            lines.add(ChatColor.WHITE + "Your ping: " + pingText(pingOf(player)));
+            lines.add(ChatColor.WHITE + "Your ping: " + pingText(pingOf(eyes)));
         }
         lines.add(queue != null ? queue : blank(2));
         lines.add(cut(settings.address()));
         return lines;
+    }
+
+    /**
+     * Through whose eyes the player sees the lines of their game: the player they came to watch
+     * (/spectate) while that one plays it, else their own.
+     */
+    private Player eyesOf(Player player, String modeId) {
+        UUID target = state.targetOf(player.getUniqueId());
+        Player seen = target == null ? null : Bukkit.getPlayer(target);
+        return seen != null && modeId.equals(state.gameOf(target)) && !state.isWatching(target) ? seen : player;
     }
 
     /** The queue line of a player who waits in queues while they train, or null if they wait in none. */

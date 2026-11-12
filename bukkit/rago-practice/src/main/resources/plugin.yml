@@ -32,6 +32,9 @@ commands:
     description: Join the event that waits for its players.
     usage: /join
     aliases: [joinevent]
+  matchinv:
+    description: "What a player had at the end of a duel: the [View] of its recap."
+    usage: /matchinv <code>
 permissions:
   rago.perk.host:
     description: Host events with /host (the PREMIUM rank of the lobby gives it).

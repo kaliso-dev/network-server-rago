@@ -23,7 +23,7 @@ final class NetworkCommands implements CommandExecutor, TabCompleter {
     static final String[] NAMES = {"shop", "gift", "profile", "daily", "friend", "msg", "reply", "rank", "points", "top", "stats",
         "fly", "staffchat", "vanish", "freeze", "report", "reports", "clearchat", "mutechat", "ban", "unban", "mute", "unmute", "kick",
         "warn", "history", "staff", "discord", "rules", "site", "store", "style", "level", "quests", "display", "nick", "realname", "booster", "pack", "settings", "season",
-        "titles"};
+        "titles", "spectate"};
 
     private static final String[] TOPS = {"elo", "level", "wins", "kills", "fkdr", "streak", "games", "points"};
 
@@ -175,6 +175,11 @@ final class NetworkCommands implements CommandExecutor, TabCompleter {
                 return true;
             case "stats":
                 stats(sender, args);
+                return true;
+            case "spectate":
+                if ((player = player(sender)) != null) {
+                    lobby.spectating().command(player, args);
+                }
                 return true;
             case "fly":
                 if ((player = player(sender)) != null && allowed(player, "rago.perk.fly")) {
@@ -802,6 +807,17 @@ final class NetworkCommands implements CommandExecutor, TabCompleter {
             case "nick":
                 if (args.length == 1) {
                     options.add("reset");
+                }
+                break;
+            case "spectate":
+                if (args.length == 1 && sender instanceof Player) {
+                    // the players in a game whom they may watch
+                    for (Player other : Bukkit.getOnlinePlayers()) {
+                        if (other != sender && lobby.state().isInGame(other) && !lobby.state().isWatching(other.getUniqueId())
+                                && lobby.canSee((Player) sender, other)) {
+                            options.add(other.getName());
+                        }
+                    }
                 }
                 break;
             case "style":

@@ -31,6 +31,11 @@ final class LobbyState {
      * ranked ELO nor the win streaks, which two friends could farm against each other.
      */
     private final Set<UUID> unrated = new HashSet<>();
+    /**
+     * Those in a game who only watch it (/spectate), with the player they came for: no Play again
+     * when they come back, and the sidebar of that player.
+     */
+    private final Map<UUID, UUID> watching = new HashMap<>();
 
     LobbyState(World world, SpawnPoint spawn) {
         this.world = world;
@@ -73,12 +78,32 @@ final class LobbyState {
         building.remove(player);
     }
 
+    /**
+     * The player watches a game of this mode (/spectate), for one of its players: in it, as its
+     * players, but only to watch.
+     */
+    void enterWatch(UUID player, String modeId, UUID target) {
+        enterGame(player, modeId);
+        watching.put(player, target);
+    }
+
+    /** True while the player watches a game (/spectate). */
+    boolean isWatching(UUID player) {
+        return watching.containsKey(player);
+    }
+
+    /** The player of the game this one watches came for, or null if they watch nothing. */
+    UUID targetOf(UUID watcher) {
+        return watching.get(watcher);
+    }
+
     void leaveGame(UUID player) {
         inGame.remove(player);
         opponents.remove(player);
         privateGame.remove(player);
         practice.remove(player);
         unrated.remove(player);
+        watching.remove(player);
     }
 
     /** The player's game is a party's private game: it counts in no stats. */
@@ -145,5 +170,6 @@ final class LobbyState {
         privateGame.remove(player);
         practice.remove(player);
         unrated.remove(player);
+        watching.remove(player);
     }
 }

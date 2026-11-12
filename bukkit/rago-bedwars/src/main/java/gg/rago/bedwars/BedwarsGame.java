@@ -326,10 +326,12 @@ class BedwarsGame {
     }
 
     /** A line of the chat for the replay only. */
+    /** A line of the game's chat for its replay and those who watch it (/spectate). */
     void replayChat(String line) {
         if (replay != null) {
             replay.chat(line);
         }
+        plugin.watchers().tell(this, line);
     }
 
     /** The replay ends without being kept. */
@@ -1085,6 +1087,16 @@ class BedwarsGame {
                 plugin.lobby().setGameSidebar(player, lines(gamer));
             }
         }
+        for (Player watcher : plugin.watchers().of(this)) {
+            Gamer watched = gamers.get(plugin.watchers().targetOf(watcher.getUniqueId()));
+            if (watched == null && !gamers.isEmpty()) {
+                watched = gamers.values().iterator().next();
+            }
+            if (watched != null) {
+                // the sidebar of the player they came for, as that player sees it
+                plugin.lobby().setGameSidebar(watcher, lines(watched));
+            }
+        }
     }
 
     List<String> lines(Gamer viewer) {
@@ -1446,6 +1458,7 @@ class BedwarsGame {
             }
             return;
         }
+        plugin.watchers().playerLeft(this, player);
         host.release(gamer.id);
         if (phase != Phase.ENDED) {
             boolean wasPlaying = !gamer.eliminated;
@@ -1552,14 +1565,15 @@ class BedwarsGame {
                     + " final kills, " + gamer.beds + " beds broken");
             player.sendMessage(ChatColor.GREEN + "" + ChatColor.STRIKETHROUGH + "                                        ");
         }
+        // the end for the replay and those who watch the game
+        replayChat(winner == null ? ChatColor.YELLOW + "Draw: no team won."
+                : ChatColor.YELLOW + "Winner: " + winner.color.coloured() + ChatColor.YELLOW + " - " + names(winner));
+        for (int i = 0; i < killers.size(); i++) {
+            Gamer killer = killers.get(i);
+            replayChat(KILLER_PLACES[i] + ChatColor.GRAY + " - " + killer.coloured() + ChatColor.GRAY + " - "
+                    + ChatColor.WHITE + (killer.kills + killer.finalKills));
+        }
         if (replay != null) {
-            replayChat(winner == null ? ChatColor.YELLOW + "Draw: no team won."
-                    : ChatColor.YELLOW + "Winner: " + winner.color.coloured() + ChatColor.YELLOW + " - " + names(winner));
-            for (int i = 0; i < killers.size(); i++) {
-                Gamer killer = killers.get(i);
-                replayChat(KILLER_PLACES[i] + ChatColor.GRAY + " - " + killer.coloured() + ChatColor.GRAY + " - "
-                        + ChatColor.WHITE + (killer.kills + killer.finalKills));
-            }
             replay.finish(winner == null ? "Draw" : winner.color.displayName() + " won (" + names(winner) + ")");
             replay = null;
         }
@@ -1626,6 +1640,8 @@ class BedwarsGame {
     }
 
     void backToLobby() {
+        // those who watch first: none of them still sees through the eyes of a player who left
+        plugin.watchers().ended(this);
         for (Gamer gamer : gamers.values()) {
             Player player = Bukkit.getPlayer(gamer.id);
             if (player != null && host.gameOf(gamer.id) == this) {
@@ -1642,6 +1658,7 @@ class BedwarsGame {
         phase = Phase.ENDED;
         stopTasks();
         cancelReplay();
+        plugin.watchers().ended(this);
         for (Gamer gamer : gamers.values()) {
             Player player = Bukkit.getPlayer(gamer.id);
             if (player != null && host.gameOf(gamer.id) == this) {

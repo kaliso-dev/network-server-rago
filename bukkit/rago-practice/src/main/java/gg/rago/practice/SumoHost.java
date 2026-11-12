@@ -128,8 +128,33 @@ final class SumoHost implements MatchHost, Listener {
                 cx - half, cx + half - 1, -halfRow, halfRow - 1, design));
     }
 
+    /** /spectate: the sumo duel of this player. */
+    @Override
+    public boolean spectate(Player watcher, Player target) {
+        SumoMatch duel = matches.get(target.getUniqueId());
+        if (duel == null || duel.phase() == SumoMatch.Phase.ENDED) {
+            return false;
+        }
+        plugin.spectators().watch(watcher, duel, target);
+        return true;
+    }
+
+    /** A watcher goes at once, for the match found in a queue they wait in. */
+    @Override
+    public boolean letGo(Player player) {
+        return plugin.spectators().letGo(player);
+    }
+
+    @Override
+    public boolean canLetGo(Player player) {
+        return plugin.spectators().isWatching(player.getUniqueId());
+    }
+
     @Override
     public void abandon(Player player) {
+        if (plugin.spectators().leave(player)) {
+            return;
+        }
         SumoMatch duel = matches.get(player.getUniqueId());
         if (duel == null) {
             plugin.lobby().sendToLobby(player);

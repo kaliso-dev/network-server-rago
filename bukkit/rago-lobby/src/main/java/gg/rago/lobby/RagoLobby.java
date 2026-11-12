@@ -72,6 +72,7 @@ public final class RagoLobby extends JavaPlugin implements LobbyService {
     private StatsDisplays statsDisplays;
     private NetworkRanks ranks;
     private NameLooks names;
+    private final Spectating spectating = new Spectating(this);
     private KitLayouts kits;
     private KitEditor kitEditor;
     private HypixelProfiles hypixel;
@@ -483,7 +484,8 @@ public final class RagoLobby extends JavaPlugin implements LobbyService {
         final String lastMode = state.gameOf(id);
         final List<UUID> lastOpponents = new ArrayList<>(state.opponentsOf(id));
         final boolean left = leaving.contains(id);
-        boolean fromGame = lastMode != null;
+        // back from watching a game (/spectate): no Play again of a mode they did not play
+        boolean fromGame = lastMode != null && !state.isWatching(id);
         if (fromGame) {
             // the paper of the game before goes: NextGame gives the one of this game
             playAgain.remove(id);
@@ -628,12 +630,12 @@ public final class RagoLobby extends JavaPlugin implements LobbyService {
         scoreboard.updateAll();
     }
 
-    /** The player belongs to a game from now on: sees and is seen by everyone. */
     /** Frozen by the staff (a check in progress): no game until they are let go. */
     boolean isFrozen(UUID player) {
         return staff != null && staff.frozen(player);
     }
 
+    /** The player belongs to a game from now on: sees and is seen by everyone. */
     void enterGame(Player player, String modeId) {
         state.enterGame(player.getUniqueId(), modeId);
         gameKills.remove(player.getUniqueId());
@@ -643,6 +645,17 @@ public final class RagoLobby extends JavaPlugin implements LobbyService {
         player.setFlying(false);
         visibility.showAll(player);
         visibility.revealToAll(player);
+    }
+
+    /**
+     * The player watches a game of this mode from now on (/spectate), for one of its players: they
+     * see everyone in it; the game makes them a spectator, whom its players do not see (a vanished
+     * member of the staff stays vanished).
+     */
+    void enterWatch(Player player, String modeId, Player target) {
+        state.enterWatch(player.getUniqueId(), modeId, target.getUniqueId());
+        player.closeInventory();
+        visibility.showAll(player);
     }
 
     /** The game did not start after all. */
@@ -689,6 +702,10 @@ public final class RagoLobby extends JavaPlugin implements LobbyService {
      */
     void playAgainNow(Player player) {
         UUID id = player.getUniqueId();
+        if (state.isWatching(id)) {
+            // watching a game (/spectate): back to the lobby, then the mode of their Play again paper
+            goToSpawn(player);
+        }
         String modeId = state.gameOf(id);
         if (modeId == null) {
             if (playAgain.containsKey(id)) {
@@ -1736,6 +1753,10 @@ public final class RagoLobby extends JavaPlugin implements LobbyService {
 
     ServerSettings server() {
         return server;
+    }
+
+    Spectating spectating() {
+        return spectating;
     }
 
     Profiles profiles() {

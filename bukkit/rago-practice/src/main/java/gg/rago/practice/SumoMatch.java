@@ -20,7 +20,7 @@ import org.bukkit.scheduler.BukkitTask;
  * in the chat and as a big title (3, 2, 1, Combat !), during which both players stand still. Main
  * thread only.
  */
-final class SumoMatch {
+final class SumoMatch implements Spectators.Watched {
 
     enum Phase { COUNTDOWN, FIGHT, ENDED }
 
@@ -99,6 +99,30 @@ final class SumoMatch {
         return centre.getY() - FALL_DEPTH;
     }
 
+    /** How far from the middle of the platform those who watch the duel may fly. */
+    static final double WATCH_RANGE = 40;
+
+    /** Those who watch the duel (/spectate) stay near the platform. */
+    @Override
+    public boolean holds(Location location) {
+        if (!centre.getWorld().equals(location.getWorld())) {
+            return false;
+        }
+        double dx = location.getX() - centre.getX();
+        double dz = location.getZ() - centre.getZ();
+        return dx * dx + dz * dz <= WATCH_RANGE * WATCH_RANGE && location.getY() >= fallY() - 20
+                && location.getY() <= centre.getY() + WATCH_RANGE;
+    }
+
+    /** Above the side of the platform, looking at its middle. */
+    @Override
+    public Location watchPoint() {
+        Location view = centre.clone().add(0, 5, -9);
+        view.setYaw(0f);
+        view.setPitch(25f);
+        return view;
+    }
+
     /** The duel is recorded from now on (null: it is not): red the first player, blue the second. */
     void record(ReplayRecording recording) {
         replay = recording;
@@ -113,10 +137,12 @@ final class SumoMatch {
         }
     }
 
+    /** A line of the duel's chat for its replay and those who watch it; the players read their own version. */
     private void replayChat(String line) {
         if (replay != null) {
             replay.chat(line);
         }
+        plugin.spectators().tell(this, line);
     }
 
     void begin() {
@@ -212,6 +238,7 @@ final class SumoMatch {
         if (side < 0) {
             return;
         }
+        plugin.spectators().playerLeft(this, player);
         if (phase != Phase.ENDED) {
             end(1 - side, true);
         }
@@ -275,6 +302,8 @@ final class SumoMatch {
     }
 
     private void backToLobby() {
+        // those who watch first: none of them still sees through the eyes of a player who left
+        plugin.spectators().ended(this);
         for (UUID id : players) {
             Player player = Bukkit.getPlayer(id);
             // A player who already left this duel (forfeit, /spawn) is no longer ours.
@@ -294,6 +323,7 @@ final class SumoMatch {
             replay.cancel();
             replay = null;
         }
+        plugin.spectators().ended(this);
         for (UUID id : players) {
             Player player = Bukkit.getPlayer(id);
             if (player != null && host.matchOf(id) == this) {
