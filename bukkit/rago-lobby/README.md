@@ -337,6 +337,13 @@ dans les files d'attente des modes de jeu.
   divisions ; le MVP de la partie (le plus de kills) gagne 5 de plus. La file classée apparie
   les joueurs par ELO. Ces valeurs sont les nôtres (les chiffres de RBW ne sont pas publics), et
   se règlent dans `elo:`.
+- **Pas de file classée après un abandon.** Quitter une partie classée qu'on joue encore (`/spawn`,
+  Play again, quitter le serveur, pas après avoir été éliminé) ferme les files classées au joueur
+  pendant 5 minutes, comme sur les serveurs ranked : il le lit tout de suite, et la file lui dit le
+  temps qui reste (« you can join a ranked queue again in 4:32 »). Une party où il est ne peut pas
+  non plus entrer dans une file classée. Rien après un `/duel` ni une partie privée, qui ne bougent
+  pas l'ELO, et les autres files restent ouvertes. `file.abandon-classe-minutes` (0 à 60, 0 pour
+  jamais) ; un redémarrage les rouvre.
 - **Les saisons classées (`/season`).** Comme sur les serveurs Ranked Bedwars, l'ELO repart de 0
   à chaque saison. La saison en cours est `saison.numero` (2 : celle des divisions) ; pour en
   commencer une nouvelle, on passe au numéro suivant et on redémarre le serveur. Le meilleur ELO
@@ -574,7 +581,9 @@ mode rangé comme le joueur l'a voulu (36 cases, `null` si le mode n'a pas de ki
 qui les rend avec `lobby.sendToLobby(player)`. `MatchHost.abandon(player)` est appelé quand un
 joueur tape `/spawn` en pleine partie. `lobby.recordKill("sumo", tueur, victime)` compte un kill
 (et l'XP qui va avec). Un entraînement donne de l'XP Network avec
-`lobby.giveXp("aim-trainer", joueur, xp, "aim trainer")` (rien dans une partie privée). À la fin, `lobby.recordMatch("sumo", gagnants, perdants)` compte la partie
+`lobby.giveXp("aim-trainer", joueur, xp, "aim trainer")` (rien dans une partie privée). Un joueur qui quitte une partie qu'il joue encore
+(un abandon) est signalé avec `lobby.forfeited("sumo", joueur)` avant d'être rendu au lobby : après
+une partie classée, les files classées lui sont fermées un moment. À la fin, `lobby.recordMatch("sumo", gagnants, perdants)` compte la partie
 dans les stats, les classements et l'XP Network.
 
 Un entraînement peut envoyer son joueur directement dans un autre : `lobby.openModesOf(joueur,

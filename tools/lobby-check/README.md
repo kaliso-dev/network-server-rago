@@ -40,15 +40,18 @@ jouent comme des joueurs :
    peut pas casser son propre lit, puis achète une boule de feu et saute dessus (le souffle le
    soulève et lui prend un cœur). RagoDeux recule hors de son île, meurt dans le vide et revient
    sur son île 5 secondes plus tard (son lit tient), puis tape `/spawn` : RagoUn gagne et les deux
-   reviennent au lobby.
+   reviennent au lobby. RagoDeux a quitté une partie classée qu'il jouait encore : les files
+   classées lui sont fermées pendant 5 minutes, et il le lit.
 8. un First Rush, un vrai 1v1 : RagoUn demande une map que le mode n'a pas (refusée), puis
    `bw-demo`, RagoDeux n'importe quelle map (`random`) ; ils se retrouvent sur `bw-demo`, l'un
    rouge, l'autre bleu, avec les événements d'une vraie partie dans le scoreboard. RagoDeux tape
    `/spawn` : RagoUn gagne et les deux reviennent au lobby.
 9. une party : RagoUn invite RagoDeux avec `/p RagoDeux`, RagoDeux accepte, `/party list` et
    `/pc` marchent ; RagoDeux ne peut pas lancer de file (seul le chef le fait). RagoUn lance le
-   sumo : partie privée entre eux, sans stats ni XP. RagoUn lance Ranked Bedwars 2v2 : la party
-   attend dans la même équipe, et quitte la file avec RagoDeux. RagoUn dissout la party.
+   sumo : partie privée entre eux, sans stats ni XP. RagoUn lance Ranked Bedwars 2v2 : refusé,
+   RagoDeux a quitté une partie classée il y a un instant. RagoUn lance First Rush duo (2v2, non
+   classé) : la party attend dans la même équipe, et quitte la file avec RagoDeux. RagoUn dissout
+   la party.
 
 Le test échoue si un bot n'obtient pas ce qu'il attend, ou si le journal du serveur contient une
 erreur ou une exception.
