@@ -135,7 +135,8 @@ quand l'essai en prend beaucoup, la ligne du mode, puis la 3e et la 2e place, pu
 sous le top s'effacent avant le reste). L'extend practice et le block extend n'ont pas de
 classement dans le scoreboard, seulement l'essai et le ping. Après une réussite, on repart en
 moins d'une seconde, et au block clutch comme au block extend le coup arrive moins d'une seconde
-après le retour au départ. Chaque joueur retrouve, dans chaque entraînement, la variante et les
+après le retour au départ (au block clutch, après une chute, un peu plus tard : 0,75 à 1,3 seconde,
+le temps de se replacer). Au block clutch, Random side est désactivé par défaut. Chaque joueur retrouve, dans chaque entraînement, la variante et les
 réglages qu'il avait la dernière fois (gardés dans `plugins/RagoPractice/reglages.yml`, sauf la
 variante quand c'est le défi du jour qui la choisit) ; **Reset to default**, ou shift et un clic
 droit sur la blaze rod, remettent les réglages par défaut.
