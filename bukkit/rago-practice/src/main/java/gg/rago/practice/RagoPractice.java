@@ -22,7 +22,7 @@ import org.bukkit.plugin.java.JavaPlugin;
 /**
  * RagoPractice: the practice modes played from the lobby. Duels (sumo, boxing, KB displace, block
  * fight, fireball fight, block edit, bow duel), the trainings (clutch, block
- * in, fast defense, extends, ladder clutch, pearls, fireballs, aim, block edit), the bots, and the
+ * in, fast defense, extends, timed bridge, ladder clutch, pearls, fireballs, aim, block edit), the bots, and the
  * open arenas (block placement, bridge fight), each in zones of an empty world. See the README.
  */
 public final class RagoPractice extends JavaPlugin {
@@ -262,6 +262,8 @@ public final class RagoPractice extends JavaPlugin {
         // the bridge fight in 2v2, as the 1v1 (each team side by side on its pad); last, so that
         // the other modes keep their zones
         register("bridge-fight-2v2", (h, m, a, t) -> new BridgeDuel(h, m, a, t, bridge, bridgeProtection), slots, spacing, false);
+        // the timed bridge, its twelve courses side by side; last too
+        register("bridge-chrono", BridgeTraining::new, slots, spacing, false);
     }
 
     /**

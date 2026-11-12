@@ -203,7 +203,8 @@ evenements:
 # block-in.wool, block-in.two, clutch.island, clutch-top-fight.top, aim-trainer.strafe,
 # aim-trainer.jump, aim-trainer.circle, fast-defense.ranked, fast-defense.duo, ladder-practice.h4
 # (h8 ... h24), ladder-practice.random, combo-bot.easy (normal, hard, expert),
-# extend-practice.chain (and its jumps: double-5-1...), kb-displace-bot.still, block-edit.bot.
+# extend-practice.chain (and its jumps: double-5-1...), kb-displace-bot.still, block-edit.bot,
+# bridge-chrono.16 (32, 64: the timed bridge, straight and flat).
 # actif: false turns it off; without the section, it runs with these settings.
 defi-du-jour:
   actif: true

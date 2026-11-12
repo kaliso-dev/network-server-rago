@@ -64,7 +64,7 @@ class RecordsMenuTest {
                 assertEquals(board.id, Records.fromKey(Records.toKey(board.id)), "the file gives it back");
             }
         }
-        assertEquals(14, RecordCatalog.ALL.size());
+        assertEquals(15, RecordCatalog.ALL.size(), "with the timed bridge");
         assertEquals("clutch", RecordCatalog.ALL.get(0).modeId, "the block clutch first");
         assertEquals(Arrays.asList("block-edit.bot.speed1", "block-edit.bot.speed2", "block-edit.bot.speed3"), idsOf(RecordCatalog.of("block-edit")));
         assertEquals("Against the bot, speed 2", board("block-edit.bot.speed2").label);

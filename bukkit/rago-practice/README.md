@@ -136,7 +136,8 @@ Elle part au lobby toutes les deux minutes et quand le joueur sort, en un messag
 donnent la leur à la fin ; l'aim trainer garde la sienne.
 
 **Les records (`/records`).** `/records` ouvre tous les entraînements du serveur, avec le meilleur
-score du joueur et sa place sur chaque record (une variante, ou une vitesse du bot du block edit),
+score du joueur et sa place sur chaque record (une variante, une vitesse du bot du block edit, ou
+un parcours du timed bridge),
 et le résumé : combien de records, de premières places et de places dans un top 10. Un
 entraînement ouvre ses records, chacun avec son top 10, la place du joueur (sous le top quand il
 est plus loin) et sa place parmi ses amis (`/friend`). Un clic sur un record le joue : dans cet
@@ -214,6 +215,17 @@ réglages. Un entraînement de la liste que le serveur ne joue pas est laissé d
   téléportation d'un saut à l'autre, au chrono. Des échelles viennent avec la laine (un réglage
   les retire) ; elles ne comptent pas dans les blocs du saut, une échelle sur le côté du pad
   rattrape un saut trop court.
+- **Timed bridge** (`bridge-chrono`) : bridger d'un pad blanc jusqu'au pad vert, au chrono, avec
+  n'importe quelle technique (speed bridge, ninja, breezily, god bridge, telly...) : 16, 32 ou 64
+  blocs de vide, en ligne droite ou en diagonale (de coin à coin, la même distance), à plat ou en
+  montée (le pad vert plus haut d'un quart de la distance : 4, 8 ou 16 blocs). Le chrono part au
+  premier bloc posé et s'arrête au premier pas sur le pad vert (sa ligne d'or) ; les blocs ne se
+  posent qu'entre les deux pads, et un essai a 3 secondes par bloc de distance au plus. La fin dit
+  le temps, les blocs posés et les blocs par seconde. Laine et sandstone, sans fin. La distance se
+  choisit dans la ligne du mode des réglages, la diagonale et la montée sont deux réglages oui/non.
+  Les douze parcours sont côte à côte dans l'arène, chacun avec son record (`/records` les montre
+  en deux rangées : à plat, puis en montée). Pour en faire un défi du jour : `bridge-chrono.16`,
+  `.32` ou `.64` (droit et à plat) dans `defi-du-jour.epreuves`.
 - **Ladder practice** : le block-ladder clutch de la map de lavy. Le joueur saute d'une
   plateforme de 4 à 24 blocs et, en tombant, pose une laine sur le pad de pierre et une échelle
   sur son côté, puis tombe dans l'échelle. De haut la chute va vite : l'échelle posée au dernier
