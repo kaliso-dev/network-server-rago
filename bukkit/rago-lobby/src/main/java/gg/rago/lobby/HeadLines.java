@@ -41,7 +41,8 @@ import org.bukkit.event.player.PlayerTeleportEvent;
 
 /**
  * A line of text above the name of each lobby player, which they choose: their ranked ELO (by
- * default), their level, wins, kills or best streak, a message of their own (PREMIUM), or nothing.
+ * default), their level, wins, kills or best streak, the title they wear, a message of their own
+ * (PREMIUM), or nothing.
  * Each line is an invisible marker armor stand (no hitbox: it never takes a click) known only to
  * the clients, which follows its player: it is sent with the player, moves when the player moves
  * (the same packets, for its id) and goes with them. Its text changes at most once a second.
@@ -55,6 +56,7 @@ final class HeadLines implements Listener {
         WINS("victoires", "Wins", Material.GOLD_INGOT, "Your wins, every mode."),
         KILLS("kills", "Kills", Material.IRON_SWORD, "Your kills, every mode."),
         STREAK("serie", "Best win streak", Material.BLAZE_POWDER, "Your best win streak."),
+        TITLE("titre", "Your title", Material.NAME_TAG, "The title you wear (/titles),", "earned with wins."),
         MESSAGE("message", "Your message", Material.SIGN, "A message of yours (PREMIUM):", "/display message <text>"),
         NONE("aucun", "Nothing", Material.BARRIER, "Nothing above your name.");
 
@@ -98,6 +100,8 @@ final class HeadLines implements Listener {
                     return LEVEL;
                 case "wins":
                     return WINS;
+                case "title":
+                    return TITLE;
                 case "none":
                     return NONE;
                 default:
@@ -161,6 +165,12 @@ final class HeadLines implements Listener {
 
     /** "§6Gold 245 §7ELO", "§a1,234 §7wins"...: the line of a choice. */
     static String line(Shown shown, int elo, String eloText, String levelTag, int wins, int kills, int streak, String message) {
+        return line(shown, elo, eloText, levelTag, wins, kills, streak, message, null);
+    }
+
+    /** The line of a choice; title: the text of the title worn ("§eSumo Gold III"), or null for none. */
+    static String line(Shown shown, int elo, String eloText, String levelTag, int wins, int kills, int streak, String message,
+            String title) {
         switch (shown) {
             case ELO:
                 return elo < 0 ? ChatColor.GRAY + "Unranked" : eloText + ChatColor.GRAY + " ELO";
@@ -172,6 +182,8 @@ final class HeadLines implements Listener {
                 return ChatColor.RED + String.format(java.util.Locale.US, "%,d", kills) + ChatColor.GRAY + (kills == 1 ? " kill" : " kills");
             case STREAK:
                 return ChatColor.GOLD + String.format(java.util.Locale.US, "%,d", streak) + ChatColor.GRAY + " best win streak";
+            case TITLE:
+                return title == null ? "" : title;
             case MESSAGE:
                 return message == null ? "" : message;
             default:

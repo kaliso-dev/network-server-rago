@@ -8,9 +8,9 @@ import org.bukkit.Material;
 import org.bukkit.entity.Player;
 
 /**
- * "My profile" (the head of the hotbar, /profile): the player's level, rank, points and ranked
- * divisions, and the way to their stats, friends, settings, the shop and the daily reward. Main
- * thread only.
+ * "My profile" (the head of the hotbar, /profile): the player's level, rank, title, points and
+ * ranked divisions, and the way to their stats, friends, settings, titles, the shop and the daily
+ * reward. Main thread only.
  */
 final class ProfileMenu {
 
@@ -22,6 +22,7 @@ final class ProfileMenu {
     private final ShopMenu shop;
     private StyleMenu styles;
     private LevelMenu levels;
+    private TitlesMenu titles;
 
     ProfileMenu(RagoLobby lobby, Profiles profiles, Social social, StatsService stats, StatsMenu statsMenu, ShopMenu shop) {
         this.lobby = lobby;
@@ -32,7 +33,7 @@ final class ProfileMenu {
         this.shop = shop;
     }
 
-    /** The lines of a player's profile: level, rank, XP, points, the division of each ranked mode. */
+    /** The lines of a player's profile: level, rank, title, XP, points, the division of each ranked mode. */
     List<String> summary(PlayerStats profile, java.util.UUID id) {
         StatsBook book = stats.book();
         NetworkLevel levels = book.levels();
@@ -42,6 +43,10 @@ final class ProfileMenu {
         List<String> lore = new ArrayList<>();
         lore.add("Rank: " + (rank == Ranks.DEFAULT ? ChatColor.GRAY + "Default"
                 : rank.prefix(profiles.names().plusColour(id)).trim()));
+        Titles.Title title = profiles.server().titles().worn(profile);
+        if (title != null) {
+            lore.add("Title: " + title.text());
+        }
         lore.add("Network level: " + levels.tag(level));
         if (level < NetworkLevel.MAX_LEVEL) {
             lore.add("Progress: " + ChatColor.AQUA + levels.xpIntoLevel(xp) + ChatColor.GRAY + "/" + levels.xpToNext(level)
@@ -77,6 +82,10 @@ final class ProfileMenu {
         this.levels = levels;
     }
 
+    void setTitles(TitlesMenu titles) {
+        this.titles = titles;
+    }
+
     /** What shows above the name: each choice, with the line it gives. */
     void openDisplay(Player player) {
         PlayerStats profile = profiles.of(player);
@@ -84,11 +93,19 @@ final class ProfileMenu {
         ClickMenu menu = new ClickMenu(4, "Above your name");
         int slot = 10;
         for (HeadLines.Shown shown : HeadLines.Shown.values()) {
+            if (shown == HeadLines.Shown.TITLE && !profiles.server().titles().on()) {
+                continue;
+            }
             List<String> lore = new ArrayList<>();
             for (String line : shown.description()) {
                 lore.add(line);
             }
             lore.add("");
+            if (shown == HeadLines.Shown.TITLE) {
+                Titles.Title worn = profiles.server().titles().worn(profile);
+                lore.add(worn == null ? ChatColor.DARK_GRAY + "No title worn yet" : "Yours: " + worn.text());
+                lore.add("");
+            }
             if (shown == HeadLines.Shown.MESSAGE) {
                 lore.add(profile.headMessage() == null ? ChatColor.DARK_GRAY + "No message yet" : "Yours: " + ChatColor.RESET
                         + profile.headMessage());
@@ -98,7 +115,9 @@ final class ProfileMenu {
                 }
             }
             lore.add(shown == now ? ChatColor.GREEN + "Shown" : ChatColor.YELLOW + "Click to show it");
-            menu.set(slot++, ClickMenu.item(shown.icon(), 0, (shown == now ? ChatColor.GREEN : ChatColor.YELLOW) + shown.title(),
+            // the choices in a row, "Nothing" alone under them
+            menu.set(shown == HeadLines.Shown.NONE ? 22 : slot++, ClickMenu.item(shown.icon(), 0,
+                    (shown == now ? ChatColor.GREEN : ChatColor.YELLOW) + shown.title(),
                     lore), (p, right) -> {
                         profiles.setHeadLine(p, shown);
                         openDisplay(p);
@@ -147,8 +166,8 @@ final class ProfileMenu {
         PlayerStats mine = profiles.of(player);
         HeadLines.Shown above = HeadLines.Shown.of(mine.headLine() == null ? "elo" : mine.headLine());
         menu.set(28, ClickMenu.item(Material.SIGN, 0, ChatColor.GREEN + "Above your name", listOf(
-                "What the others read above", "your name: your ELO, level,", "wins, kills, best streak, or",
-                "a message of yours (PREMIUM).", "", "Now: " + ChatColor.YELLOW + (above == null ? "Ranked ELO" : above.title()), "",
+                "What the others read above", "your name: your ELO, level,", "wins, kills, best streak,",
+                "title, or a message of yours", "(PREMIUM).", "", "Now: " + ChatColor.YELLOW + (above == null ? "Ranked ELO" : above.title()), "",
                 ChatColor.YELLOW + "Click to change")), (p, right) -> openDisplay(p));
         if (levels != null) {
             menu.set(32, ClickMenu.item(Material.BREWING_STAND_ITEM, 0, ChatColor.AQUA + "Network Level & quests", listOf(
@@ -160,8 +179,16 @@ final class ProfileMenu {
                 "firework launcher, the party", "popper or the leap feather.", "", "Now: " + ChatColor.YELLOW
                         + ChatColor.stripColor(lobby.gadgetOf(player).create().getItemMeta().getDisplayName()).replace(" (right click)", ""),
                 "", ChatColor.YELLOW + "Click to change")), (p, right) -> lobby.openGadgets(p));
+        Titles all = profiles.server().titles();
+        if (titles != null && all.on()) {
+            Titles.Title worn = all.worn(mine);
+            menu.set(39, ClickMenu.item(Material.GOLD_INGOT, 0, ChatColor.GOLD + "Titles", listOf(
+                    "A title for each mode, earned", "with wins: Sumo Gold III...", "", "Yours: " + (worn == null
+                            ? ChatColor.DARK_GRAY + "none yet" : worn.text()), "",
+                    ChatColor.YELLOW + "Click to see them")), (p, right) -> titles.open(p));
+        }
         boolean ready = profiles.dailyReady(player.getUniqueId());
-        menu.set(40, ClickMenu.item(ready ? Material.CHEST : Material.ENDER_CHEST, ChatColor.AQUA + "Daily reward",
+        menu.set(41, ClickMenu.item(ready ? Material.CHEST : Material.ENDER_CHEST, ChatColor.AQUA + "Daily reward",
                 ready ? ChatColor.YELLOW + "Click to claim" : ChatColor.GRAY + "Claimed today, come back tomorrow"),
                 (p, right) -> {
                     profiles.claimDaily(p);

@@ -49,6 +49,8 @@ final class PlayerStats {
     private String colourChoice;
     private String badgeChoice;
     private String plusChoice;
+    /** The title worn (/titles): null for the best, the key of a title, or {@link Titles#NONE}. */
+    private String titleChoice;
     /**
      * The XP boosters waiting (bought, x3), the free ones of PREMIUM waiting (x2), the time left of
      * the one running and what it multiplies by, the day of the last free one; the coin boosters
@@ -417,6 +419,15 @@ final class PlayerStats {
         } else {
             plusChoice = id;
         }
+    }
+
+    /** The title worn: null for the best, the key of a title, or {@link Titles#NONE}. */
+    String titleChoice() {
+        return titleChoice;
+    }
+
+    void setTitleChoice(String titleChoice) {
+        this.titleChoice = titleChoice == null || titleChoice.isEmpty() ? null : titleChoice;
     }
 
     String headLine() {

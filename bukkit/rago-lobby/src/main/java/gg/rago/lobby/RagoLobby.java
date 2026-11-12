@@ -88,6 +88,7 @@ public final class RagoLobby extends JavaPlugin implements LobbyService {
     private Nicks nicks;
     private HeadLines headLines;
     private ProfileMenu profileMenu;
+    private TitlesMenu titlesMenu;
     private Social social;
     private CosmeticEffects cosmetics;
     private Punishments punishments;
@@ -198,6 +199,11 @@ public final class RagoLobby extends JavaPlugin implements LobbyService {
         queues.setBook(stats.book());
         names = new NameLooks(stats.book(), server);
         ranks = new NetworkRanks(stats.book(), names);
+        ranks.setTitles(id -> {
+            Titles.Title worn = server.titles().worn(stats.book().get(id));
+            return worn == null ? "" : worn.tag();
+        });
+        warnUnknownTitleModes();
         profiles = new Profiles(this, server, stats, ranks, names);
         boosters = new XpBoosters(this, profiles, stats.book(), state);
         // The rank's boost (PREMIUM: x1.5), times 2 while an XP booster runs.
@@ -247,6 +253,10 @@ public final class RagoLobby extends JavaPlugin implements LobbyService {
         shop.setStyles(styleMenu);
         shop.setBoosters(boosters);
         profileMenu.setStyles(styleMenu);
+        titlesMenu = new TitlesMenu(settings, profiles);
+        titlesMenu.setBack((p, right) -> profileMenu.open(p));
+        profileMenu.setTitles(titlesMenu);
+        statsMenu.setTitles(server.titles());
         store = new StoreMenu(profiles, stats.book(), shop, styleMenu, boosters);
         shop.setStore(store::open);
         npcs = new LobbyNpcs(settings, state, points, queues, menu, fakes, statsDisplays);
@@ -1561,9 +1571,10 @@ public final class RagoLobby extends JavaPlugin implements LobbyService {
         HeadLines.Shown shown = profile == null || profile.headLine() == null ? HeadLines.Shown.ELO
                 : HeadLines.Shown.of(profile.headLine());
         if (shown == null || shown == HeadLines.Shown.MESSAGE && (profile.headMessage() == null
-                || !player.hasPermission("rago.perk.message"))) {
+                || !player.hasPermission("rago.perk.message")) || shown == HeadLines.Shown.TITLE && !server.titles().on()) {
             shown = HeadLines.Shown.ELO;
         }
+        Titles.Title title = shown == HeadLines.Shown.TITLE ? server.titles().worn(profile) : null;
         int elo = -1;
         for (GameMode mode : settings.catalog().all()) {
             ModeStats played = profile == null ? null : profile.mode(mode.id());
@@ -1579,7 +1590,18 @@ public final class RagoLobby extends JavaPlugin implements LobbyService {
                 profile == null ? 0 : profile.wins(StatsPeriod.ALL, null, day, week),
                 profile == null ? 0 : profile.kills(StatsPeriod.ALL, null, day, week),
                 profile == null ? 0 : profile.best(StatsPeriod.ALL, null, day, week),
-                profile == null ? null : profile.headMessage());
+                profile == null ? null : profile.headMessage(), title == null ? null : title.text());
+    }
+
+    /** A mode of a title (titres.familles) that this lobby does not know: its wins never count. */
+    private void warnUnknownTitleModes() {
+        for (Titles.Family family : server.titles().families()) {
+            for (String mode : family.modes) {
+                if (settings.catalog().get(mode) == null) {
+                    getLogger().warning("titres.familles." + family.key + ": no mode " + mode + " in modes:, its wins never count");
+                }
+            }
+        }
     }
 
     Nicks nicks() {
@@ -1720,6 +1742,10 @@ public final class RagoLobby extends JavaPlugin implements LobbyService {
 
     ProfileMenu profileMenu() {
         return profileMenu;
+    }
+
+    TitlesMenu titlesMenu() {
+        return titlesMenu;
     }
 
     Social social() {

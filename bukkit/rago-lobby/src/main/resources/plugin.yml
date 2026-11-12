@@ -103,7 +103,7 @@ commands:
     usage: /fly
   display:
     description: What the others read above your name.
-    usage: /display <elo|level|wins|kills|streak|message|none>, /display message <text> (PREMIUM)
+    usage: /display <elo|level|wins|kills|streak|title|message|none>, /display message <text> (PREMIUM)
     aliases: [affichage, headline]
   nick:
     description: Play under another name (PREMIUM).
@@ -116,6 +116,10 @@ commands:
     description: Your Network level, its tier and the rewards of every 5 levels.
     usage: /level
     aliases: [niveau, levels]
+  titles:
+    description: The titles of the modes, earned with wins - wear one in the chat and above your name.
+    usage: /titles, /titles <title|best|none>
+    aliases: [titres]
   quests:
     description: The daily and weekly quests.
     usage: /quests

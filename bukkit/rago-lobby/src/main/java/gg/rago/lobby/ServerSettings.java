@@ -14,7 +14,8 @@ import org.bukkit.configuration.ConfigurationSection;
  * badges (styles), the ELO divisions (elo), the
  * Rago Points (rago-points), the prices of the shop (boutique), the chat rules (chat), the tab
  * list (tab), the server list message (motd), the announcements (annonces), the links (liens), the
- * rewards of the Network levels (niveau.recompenses) and the quests (quetes).
+ * rewards of the Network levels (niveau.recompenses), the quests (quetes) and the titles of the
+ * modes (titres).
  * Every section is optional: a config.yml of an earlier version gets the defaults. Immutable.
  */
 final class ServerSettings {
@@ -86,11 +87,12 @@ final class ServerSettings {
     private final StarterPack starterPack;
     private final Season season;
     private final WeeklyRewards.Settings weekly;
+    private final Titles titles;
 
     private ServerSettings(Ranks ranks, Map<String, NameStyle> styles, EloLadder elo, Points points, Map<String, Cosmetic> cosmetics, long chatCooldownMillis,
             boolean blockRepeats, List<String> tabHeader, List<String> tabFooter, List<String> motd, int announceMinutes,
             List<String> announcements, Map<String, List<String>> links, LevelRewards levelRewards, Quests quests,
-            GettingStarted gettingStarted, StarterPack starterPack, Season season, WeeklyRewards.Settings weekly) {
+            GettingStarted gettingStarted, StarterPack starterPack, Season season, WeeklyRewards.Settings weekly, Titles titles) {
         this.ranks = ranks;
         this.styles = Collections.unmodifiableMap(styles);
         this.elo = elo;
@@ -110,6 +112,7 @@ final class ServerSettings {
         this.starterPack = starterPack;
         this.season = season;
         this.weekly = weekly;
+        this.titles = titles;
     }
 
     static ServerSettings load(ConfigurationSection config) {
@@ -174,8 +177,86 @@ final class ServerSettings {
         StarterPack pack = StarterPack.read(config.getConfigurationSection("pack-depart"), cosmetics, ranks);
         Season season = Season.read(config.getConfigurationSection("saison"), elo);
         WeeklyRewards.Settings weekly = readWeekly(config.getConfigurationSection("semaine"), styles);
+        if (config.isSet("titres") && !config.isConfigurationSection("titres")) {
+            throw new IllegalArgumentException("titres: a section (paliers, familles, actif)");
+        }
+        Titles titles = readTitles(config.getConfigurationSection("titres"));
         return new ServerSettings(ranks, styles, elo, points, cosmetics, cooldown * 1000L, repeats, header, footer, motd,
-                minutes, announcements, links, rewards, quests, gettingStarted, pack, season, weekly);
+                minutes, announcements, links, rewards, quests, gettingStarted, pack, season, weekly, titles);
+    }
+
+    /**
+     * titres: the titles of the modes, earned with wins. paliers: the steps in order, by name
+     * (couleur, depart: the wins of level I, pas: the wins between two levels); familles: the
+     * titles, by key (nom: what the players read, modes: the ids of the modes whose wins count);
+     * actif: false, none. Left out: the plugin's own ({@link Titles#defaults()}).
+     */
+    static Titles readTitles(ConfigurationSection section) {
+        Titles defaults = Titles.defaults();
+        if (section == null) {
+            return defaults;
+        }
+        List<Titles.Step> steps = new ArrayList<>();
+        ConfigurationSection list = section.getConfigurationSection("paliers");
+        if (list == null) {
+            if (section.isSet("paliers")) {
+                throw new IllegalArgumentException("titres.paliers: a section, one step by name: Gold: {couleur: \"&e\", depart: 200,"
+                        + " pas: 50}");
+            }
+            steps.addAll(defaults.steps());
+        } else {
+            for (String name : list.getKeys(false)) {
+                String where = "titres.paliers." + name;
+                ConfigurationSection step = list.getConfigurationSection(name);
+                if (step == null || name.trim().isEmpty() || name.length() > 12) {
+                    throw new IllegalArgumentException(where + ": a section {couleur, depart, pas}, the name 12 characters at most");
+                }
+                String colour = LobbySettings.colour(step.getString("couleur", "&7"));
+                if (!LobbySettings.isColourCodes(colour)) {
+                    throw new IllegalArgumentException(where + ".couleur: one or two colour codes");
+                }
+                steps.add(new Titles.Step(name, colour, count(step, where, "depart", 0), count(step, where, "pas", 0)));
+            }
+        }
+        List<Titles.Family> families = new ArrayList<>();
+        ConfigurationSection titles = section.getConfigurationSection("familles");
+        if (titles == null) {
+            if (section.isSet("familles")) {
+                throw new IllegalArgumentException("titres.familles: a section, one title by key: sumo: {nom: \"Sumo\", modes: [sumo]}");
+            }
+            families.addAll(defaults.families());
+        } else {
+            for (String key : titles.getKeys(false)) {
+                String where = "titres.familles." + key;
+                ConfigurationSection family = titles.getConfigurationSection(key);
+                if (family == null) {
+                    throw new IllegalArgumentException(where + ": a section {nom, modes}");
+                }
+                if (!key.matches("[a-z0-9-]{1,32}") || key.equals(Titles.NONE)) {
+                    throw new IllegalArgumentException(where + ": a key of lower case letters, digits and -, not \"" + Titles.NONE + "\"");
+                }
+                String name = ChatColor.stripColor(LobbySettings.colour(family.getString("nom", ""))).trim();
+                if (name.isEmpty() || name.length() > 20) {
+                    throw new IllegalArgumentException(where + ".nom: from 1 to 20 characters");
+                }
+                List<String> modes = new ArrayList<>();
+                if (family.isList("modes")) {
+                    modes.addAll(family.getStringList("modes"));
+                } else if (family.isString("modes")) {
+                    modes.add(family.getString("modes"));
+                }
+                modes.removeIf(mode -> mode == null || mode.trim().isEmpty());
+                if (modes.isEmpty()) {
+                    throw new IllegalArgumentException(where + ".modes: the ids of the modes whose wins count, such as [sumo]");
+                }
+                families.add(new Titles.Family(key, name, modes));
+            }
+        }
+        try {
+            return new Titles(section.getBoolean("actif", true), steps, families);
+        } catch (IllegalArgumentException e) {
+            throw new IllegalArgumentException("titres: " + e.getMessage(), e);
+        }
     }
 
     /**
@@ -719,6 +800,11 @@ final class ServerSettings {
     }
 
     /** The ranked season now (saison: in config.yml). */
+    /** The titles of the modes. */
+    Titles titles() {
+        return titles;
+    }
+
     Season season() {
         return season;
     }

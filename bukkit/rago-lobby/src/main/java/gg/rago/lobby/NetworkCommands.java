@@ -22,7 +22,8 @@ final class NetworkCommands implements CommandExecutor, TabCompleter {
 
     static final String[] NAMES = {"shop", "gift", "profile", "daily", "friend", "msg", "reply", "rank", "points", "top", "stats",
         "fly", "staffchat", "vanish", "freeze", "report", "reports", "clearchat", "mutechat", "ban", "unban", "mute", "unmute", "kick",
-        "warn", "history", "staff", "discord", "rules", "site", "store", "style", "level", "quests", "display", "nick", "realname", "booster", "pack", "settings", "season"};
+        "warn", "history", "staff", "discord", "rules", "site", "store", "style", "level", "quests", "display", "nick", "realname", "booster", "pack", "settings", "season",
+        "titles"};
 
     private static final String[] TOPS = {"elo", "level", "wins", "kills", "fkdr", "streak", "games", "points"};
 
@@ -299,6 +300,19 @@ final class NetworkCommands implements CommandExecutor, TabCompleter {
             case "pack":
                 pack(sender, args);
                 return true;
+            case "titles":
+                if ((player = player(sender)) != null) {
+                    if (args.length == 0) {
+                        lobby.titlesMenu().open(player);
+                    } else if (args[0].matches("(?i)best|meilleur|auto")) {
+                        lobby.profiles().setTitle(player, null);
+                    } else if (args[0].matches("(?i)none|off|" + Titles.NONE)) {
+                        lobby.profiles().setTitle(player, Titles.NONE);
+                    } else {
+                        lobby.profiles().setTitle(player, args[0].toLowerCase(Locale.ROOT));
+                    }
+                }
+                return true;
             case "display":
                 if ((player = player(sender)) != null) {
                     if (args.length == 0) {
@@ -308,7 +322,7 @@ final class NetworkCommands implements CommandExecutor, TabCompleter {
                     } else {
                         HeadLines.Shown shown = HeadLines.Shown.of(args[0]);
                         if (shown == null) {
-                            player.sendMessage(ChatColor.RED + "Usage: /display <elo|level|wins|kills|streak|message|none>,"
+                            player.sendMessage(ChatColor.RED + "Usage: /display <elo|level|wins|kills|streak|title|message|none>,"
                                     + " /display message <text>");
                         } else {
                             lobby.profiles().setHeadLine(player, shown);
@@ -767,7 +781,15 @@ final class NetworkCommands implements CommandExecutor, TabCompleter {
                 break;
             case "display":
                 if (args.length == 1) {
-                    options.addAll(Arrays.asList("elo", "level", "wins", "kills", "streak", "message", "none"));
+                    options.addAll(Arrays.asList("elo", "level", "wins", "kills", "streak", "title", "message", "none"));
+                }
+                break;
+            case "titles":
+                if (args.length == 1) {
+                    options.addAll(Arrays.asList("best", "none"));
+                    for (Titles.Family family : lobby.server().titles().families()) {
+                        options.add(family.key);
+                    }
                 }
                 break;
             case "nick":
