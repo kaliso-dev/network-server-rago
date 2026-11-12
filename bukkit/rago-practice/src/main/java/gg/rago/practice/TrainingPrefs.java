@@ -19,7 +19,8 @@ import org.bukkit.configuration.file.YamlConfiguration;
 
 /**
  * What each player last chose in each training, in plugins/RagoPractice/reglages.yml: the variant
- * and the value of each setting, given back the next time they play it. Read once when the plugin
+ * and the value of each setting, given back the next time they play it; and where they put the
+ * controls of the hotbar (_barre: the slot of each), the same in every training. Read once when the plugin
  * starts, written after each change off the main thread (the text is made on the main thread, the
  * disk is written by an async task, the last text written last).
  */
@@ -34,6 +35,9 @@ final class TrainingPrefs {
     private final RagoPractice plugin;
     private final File file;
     private final Map<UUID, Map<String, Choice>> choices = new HashMap<>();
+    /** The key of the controls under a player, out of the modes. */
+    static final String BAR = "_barre";
+    private final Map<UUID, Map<String, Integer>> controls = new HashMap<>();
     private final Object writing = new Object();
     private long version;
 
@@ -70,6 +74,16 @@ final class TrainingPrefs {
                 if (section == null) {
                     continue;
                 }
+                if (mode.equals(BAR)) {
+                    Map<String, Integer> slots = new LinkedHashMap<>();
+                    for (String control : section.getKeys(false)) {
+                        if (section.isInt(control)) {
+                            slots.put(control, section.getInt(control));
+                        }
+                    }
+                    controls.put(id, slots);
+                    continue;
+                }
                 Choice choice = new Choice();
                 choice.variant = section.getString("variante");
                 ConfigurationSection settings = section.getConfigurationSection("reglages");
@@ -102,6 +116,29 @@ final class TrainingPrefs {
         save();
     }
 
+    /** Where the player put each control (by its key), or null if they never moved one. */
+    Map<String, Integer> controls(UUID player) {
+        return controls.get(player);
+    }
+
+    /**
+     * Where the player put the controls of a training now, kept and written; a control this
+     * training has not (the green dye) keeps its slot, unless one of these took it.
+     */
+    void rememberControls(UUID player, Map<String, Integer> slots) {
+        Map<String, Integer> kept = new LinkedHashMap<>(slots);
+        Map<String, Integer> before = controls.get(player);
+        if (before != null) {
+            for (Map.Entry<String, Integer> control : before.entrySet()) {
+                if (!kept.containsKey(control.getKey()) && !kept.containsValue(control.getValue())) {
+                    kept.put(control.getKey(), control.getValue());
+                }
+            }
+        }
+        controls.put(player, kept);
+        save();
+    }
+
     /** Writes every choice, off the main thread. */
     private void save() {
         YamlConfiguration yaml = new YamlConfiguration();
@@ -114,7 +151,13 @@ final class TrainingPrefs {
                 }
             }
         }
-        final String text = "# The last variant and settings of each player in each training (written by RagoPractice).\n"
+        for (Map.Entry<UUID, Map<String, Integer>> player : controls.entrySet()) {
+            for (Map.Entry<String, Integer> control : player.getValue().entrySet()) {
+                yaml.set(player.getKey() + "." + BAR + "." + control.getKey(), control.getValue());
+            }
+        }
+        final String text = "# The last variant and settings of each player in each training, and where they put the controls"
+                + " of the hotbar (_barre) (written by RagoPractice).\n"
                 + yaml.saveToString();
         final long mine;
         synchronized (writing) {

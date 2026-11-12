@@ -39,9 +39,11 @@ import org.bukkit.event.entity.ItemSpawnEvent;
 import org.bukkit.event.entity.PlayerDeathEvent;
 import org.bukkit.event.entity.ProjectileHitEvent;
 import org.bukkit.event.entity.ProjectileLaunchEvent;
+import org.bukkit.event.inventory.InventoryAction;
 import org.bukkit.event.inventory.InventoryClickEvent;
 import org.bukkit.event.inventory.InventoryCloseEvent;
 import org.bukkit.event.inventory.InventoryDragEvent;
+import org.bukkit.event.inventory.InventoryType;
 import org.bukkit.event.player.PlayerAnimationEvent;
 import org.bukkit.event.player.PlayerArmorStandManipulateEvent;
 import org.bukkit.event.player.PlayerBucketEmptyEvent;
@@ -780,6 +782,42 @@ final class PracticeGames implements Listener {
     public void onMenuDrag(InventoryDragEvent event) {
         if (event.getView().getTopInventory().getHolder() instanceof GameMenu) {
             event.setCancelled(true);
+        }
+    }
+
+    /**
+     * A click in the player's own inventory during a training: the training waits (no hit, no new
+     * attempt that would give the kit back) until they close it.
+     */
+    @EventHandler(priority = EventPriority.MONITOR)
+    public void onArrange(InventoryClickEvent event) {
+        if (event.getAction() != InventoryAction.NOTHING) {
+            arranging(event.getView().getType(), event.getWhoClicked().getUniqueId());
+        }
+    }
+
+    @EventHandler(priority = EventPriority.MONITOR)
+    public void onArrangeDrag(InventoryDragEvent event) {
+        arranging(event.getView().getType(), event.getWhoClicked().getUniqueId());
+    }
+
+    private void arranging(InventoryType view, UUID player) {
+        PracticeGame game = byPlayer.get(player);
+        if (view == InventoryType.CRAFTING && game instanceof Training && game.phase != PracticeGame.Phase.ENDED) {
+            ((Training) game).arranging();
+        }
+    }
+
+    /** The player closed their own inventory in a training: where they put the controls is kept. */
+    @EventHandler(priority = EventPriority.MONITOR)
+    public void onArranged(InventoryCloseEvent event) {
+        if (event.getView().getType() != InventoryType.CRAFTING || !(event.getPlayer() instanceof Player)) {
+            return;
+        }
+        Player player = (Player) event.getPlayer();
+        PracticeGame game = byPlayer.get(player.getUniqueId());
+        if (game instanceof Training && game.phase != PracticeGame.Phase.ENDED) {
+            ((Training) game).inventoryClosed(player);
         }
     }
 

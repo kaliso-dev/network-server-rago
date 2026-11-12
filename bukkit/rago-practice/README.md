@@ -97,10 +97,21 @@ Chaque duel, sumo compris, est enregistré : `/replay` le montre à nouveau depu
 
 ## Les entraînements
 
-Un joueur seul. La fin de la hotbar garde les commandes, le kit prend les cases d'avant : le lit
-**Leave** ramène au lobby, la boussole **Trainings** ouvre le menu Practice du lobby (un clic sur un
-autre entraînement y emmène directement, sans repasser par le lobby), le comparateur **Settings**
-ouvre les réglages (seulement quand l'entraînement en a), et la blaze rod **Restart** recommence.
+Un joueur seul. La fin de la hotbar garde les commandes, le kit prend les cases d'avant : la poudre
+verte **Next level** passe au niveau suivant (seulement quand l'entraînement en a plusieurs ; shift
+et un clic droit : celui d'avant ; après le dernier, le premier), le lit **Leave** ramène au lobby,
+la boussole **Trainings** ouvre le menu Practice du lobby (un clic sur un autre entraînement y
+emmène directement, sans repasser par le lobby), le comparateur **Settings** ouvre les réglages
+(seulement quand l'entraînement en a), et la blaze rod **Restart** recommence.
+
+Le joueur range son inventaire comme il veut, une fois : en le fermant, la place des objets du kit
+est gardée par le lobby pour cet entraînement, et celle des commandes (poudre, lit, boussole,
+comparateur, blaze rod) dans `plugins/RagoPractice/reglages.yml` (`_barre`), pour tous les
+entraînements (« Hotbar saved »). Un objet du kit qui tombe sur la case d'une commande va dans la
+première case libre. L'entraînement attend tant qu'un menu est ouvert (les réglages, les
+entraînements de la boussole) ou que le joueur range son inventaire (un clic dedans, jusqu'à ce
+qu'il le ferme, 15 secondes au plus) : aucun coup, aucun nouvel essai qui redonnerait le kit. Si une
+chute commencée avant recommence l'essai, les réglages se rouvrent aussitôt.
 Le menu des réglages a une ligne pour le mode (chaque variante, avec le meilleur score du joueur et
 le défi du jour), puis une ligne par réglage : − et + autour de sa valeur (avec sa valeur par
 défaut), ou un clic pour un réglage oui/non. En bas, **Reset to default**, les préréglages de
@@ -187,8 +198,10 @@ réglages. Un entraînement de la liste que le serveur ne joue pas est laissé d
 - **Block clutch : top fight** : le même clutch sur une plateforme de top fight en laine bleue et
   rouge, à la limite de construction : aucun bloc au-dessus de la plateforme, il faut se
   rattraper à son niveau ou plus bas.
-- **Block in** : s'enfermer le plus vite possible (les quatre côtés aux pieds et à la tête, et
-  au-dessus), sur le sol, sur une défense de lit ou sur un bloc au-dessus du vide. Chrono.
+- **Block in** : tomber sur la défense d'un lit, s'enfermer, puis creuser jusqu'au lit. Chrono dès
+  le premier bloc. Le temps ne compte pour le classement que si le joueur s'est enfermé : une fois,
+  les quatre côtés à ses pieds et à sa tête fermés, dont au moins un bloc à lui (sinon casser le lit
+  au plus vite, sans bloc, serait premier). Sans ça, « Not counted ».
 - **Fast defense** : couvrir son lit le plus vite possible, avec les défenses du propriétaire. La
   défense à construire se montre 3 secondes au premier essai de chaque défense ; les essais
   suivants partent tout de suite, le chrono au premier bloc.
