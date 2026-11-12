@@ -354,6 +354,9 @@ final class BedwarsHost implements MatchHost, Listener {
      */
     @Override
     public boolean letGo(Player player) {
+        if (plugin.watchers().letGo(player)) {
+            return true;
+        }
         if (!canLetGo(player)) {
             return false;
         }
@@ -362,14 +365,33 @@ final class BedwarsHost implements MatchHost, Listener {
         return true;
     }
 
+    /** The Fast Shop, or a game they only watch. */
     @Override
     public boolean canLetGo(Player player) {
+        if (plugin.watchers().isWatching(player.getUniqueId())) {
+            return true;
+        }
         BedwarsGame game = games.get(player.getUniqueId());
         return game instanceof FastShopGame && game.phase != BedwarsGame.Phase.ENDED;
     }
 
+    /** /spectate: any game of the Bed Wars modes, the Fast Shop too. */
+    @Override
+    public boolean spectate(Player watcher, Player target) {
+        BedwarsGame game = games.get(target.getUniqueId());
+        if (game == null || game.phase() == Phase.ENDED) {
+            return false;
+        }
+        plugin.watchers().watch(watcher, game, target);
+        game.sidebars();
+        return true;
+    }
+
     @Override
     public void abandon(Player player) {
+        if (plugin.watchers().leave(player)) {
+            return;
+        }
         BedwarsGame game = games.get(player.getUniqueId());
         if (game == null) {
             plugin.lobby().sendToLobby(player);
@@ -644,6 +666,18 @@ final class BedwarsHost implements MatchHost, Listener {
         }
         for (Player listener : to.getWorld().getPlayers()) {
             listener.playSound(heardAt(listener.getLocation(), to), Sound.ENDERMAN_TELEPORT, 1f, 1f);
+        }
+    }
+
+    /** The spectator menu of a player out of their game takes them to any player: only to those of its world. */
+    @EventHandler(priority = EventPriority.HIGH, ignoreCancelled = true)
+    public void onSpectate(PlayerTeleportEvent event) {
+        if (event.getCause() != PlayerTeleportEvent.TeleportCause.SPECTATE) {
+            return;
+        }
+        BedwarsGame game = games.get(event.getPlayer().getUniqueId());
+        if (game != null && !game.instance().world().equals(event.getTo().getWorld())) {
+            event.setCancelled(true);
         }
     }
 
@@ -1226,15 +1260,33 @@ final class BedwarsHost implements MatchHost, Listener {
         }
     }
 
-    /** Main thread: who hears this message, and how it reads. */
+    /**
+     * Main thread: who hears this message, and how it reads. Those who watch a game (/spectate) hear
+     * what its spectators hear (all but the teams' own chat) and talk among them.
+     */
     private void route(AsyncPlayerChatEvent event) {
         Player sender = event.getPlayer();
-        final BedwarsGame game = games.get(sender.getUniqueId());
-        if (game == null) {
-            event.getRecipients().removeIf(player -> games.containsKey(player.getUniqueId()));
+        Watchers watchers = plugin.watchers();
+        final BedwarsGame watched = watchers.gameOf(sender.getUniqueId());
+        if (watched != null) {
+            event.getRecipients().removeIf(player -> {
+                if (watchers.gameOf(player.getUniqueId()) == watched) {
+                    return false;
+                }
+                Gamer other = games.get(player.getUniqueId()) == watched ? watched.gamer(player.getUniqueId()) : null;
+                return other == null || !other.eliminated;
+            });
+            event.setFormat(ChatColor.GRAY + "[SPECTATOR] " + event.getFormat());
             return;
         }
-        event.getRecipients().removeIf(player -> games.get(player.getUniqueId()) != game);
+        final BedwarsGame game = games.get(sender.getUniqueId());
+        if (game == null) {
+            event.getRecipients().removeIf(player -> games.containsKey(player.getUniqueId())
+                    || watchers.isWatching(player.getUniqueId()));
+            return;
+        }
+        event.getRecipients().removeIf(player -> games.get(player.getUniqueId()) != game
+                && watchers.gameOf(player.getUniqueId()) != game);
         final Gamer gamer = game.gamer(sender.getUniqueId());
         if (gamer == null || !game.chatTeams()) {
             return;

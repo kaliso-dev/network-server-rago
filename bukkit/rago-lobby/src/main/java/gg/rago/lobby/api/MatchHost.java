@@ -55,6 +55,19 @@ public interface MatchHost {
     }
 
     /**
+     * /spectate: the player watches the game of {@code target}, a player of one of this host's
+     * games. The lobby has checked who may watch whom and counts the watcher in that game from now
+     * on; the host puts them in it: invisible to its players (the spectator mode), flying, touching
+     * nothing, staying near the game. They leave it with /spawn ({@link #abandon}) or at its end,
+     * through {@link LobbyService#sendToLobby(Player)}; a match found in a queue they wait in takes
+     * them out of it ({@link #letGo}, which lets a watcher go at once). False, the default: this host
+     * has no such game, or takes no watcher.
+     */
+    default boolean spectate(Player watcher, Player target) {
+        return false;
+    }
+
+    /**
      * The maps a player may choose from when joining this mode's queue, in the order the menu shows
      * them. With two or more, the selector asks which one (or any); the match then carries the
      * choice ({@link MatchProposal#map()}). Empty, the default: no choice, the host picks the map.

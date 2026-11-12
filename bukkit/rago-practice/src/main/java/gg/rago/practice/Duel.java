@@ -119,6 +119,11 @@ abstract class Duel extends PracticeGame {
         broadcast(text, null);
     }
 
+    @Override
+    boolean isOut(UUID player) {
+        return out.contains(player);
+    }
+
     /** True while a player of this side is still in the round. */
     boolean alive(int side) {
         for (Player player : online(side)) {

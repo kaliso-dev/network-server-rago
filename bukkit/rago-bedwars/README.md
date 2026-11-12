@@ -12,6 +12,12 @@ Les parties en équipes sont enregistrées pour `/replay` : le lobby les montre 
 copie libre de leur map (voir le [README du lobby](../rago-lobby/README.md)). Pas les FFA, Fast
 Shop, Invis ni le Top Bridge d'entraînement d'une party.
 
+Toutes les parties se regardent avec `/spectate` (voir le README du lobby) : le spectateur vole
+dans le monde de la partie (pas loin sous son vide), sans rien toucher, pas même un coffre. Il
+entend ce que les spectateurs d'une partie entendent (pas le chat d'une équipe), parle avec les
+autres spectateurs et les joueurs éliminés (« [SPECTATOR] »), voit le sidebar du joueur qu'il est
+venu voir et revient au lobby à la fin, avant les joueurs.
+
 ## La partie
 
 - Chaque équipe apparaît sur son île, avec une épée en bois et une armure en cuir à sa couleur.

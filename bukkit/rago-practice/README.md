@@ -17,7 +17,16 @@ monde reste 3 secondes dans l'arène pour voir le gagnant et son effet de victoi
 Comme les « match details »
 des serveurs practice, chacun reçoit le **récap du duel** : pour chaque joueur, ses coups qui sont
 passés (pas ceux du délai entre deux coups) et son meilleur combo, les coups d'affilée sans en
-prendre un (« Ann: 34 hits, best combo 7 »). Au sumo aussi ; pas dans les events.
+prendre un (« Ann: 34 hits, best combo 7 »), puis une seconde ligne avec ce que le duel a eu : la
+vie qui lui restait (dès qu'un coup ou une chute a fait mal), les pommes d'or mangées, les blocs
+posés et les lits cassés, chacun quand quelqu'un l'a fait (« 7.5❤ left, 2 golden apples »).
+**[View]** au bout de la ligne d'un joueur montre ce qu'il avait à la fin (ou quand il est sorti de
+la manche) : son inventaire, la barre en bas comme dans le sien, son armure, sa vie, ses effets et
+ses chiffres du récap, dans un coffre où rien ne bouge (`/matchinv`, gardé 10 minutes). Au sumo
+aussi (sans [View]) ; pas dans les events.
+Ceux qui regardent un duel ou un entraînement (`/spectate`, voir le
+[README du lobby](../rago-lobby/README.md)) lisent ses messages et son récap, voient le sidebar du
+joueur qu'ils sont venus voir, ne s'éloignent pas de l'arène et reviennent au lobby à la fin.
 Chaque duel, sumo compris, est enregistré : `/replay` le montre à nouveau depuis le lobby, avec
 **[REPLAY]** dans la ligne d'après-partie (voir le [README du lobby](../rago-lobby/README.md)).
 

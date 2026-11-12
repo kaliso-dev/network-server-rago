@@ -48,6 +48,7 @@ import org.bukkit.event.player.PlayerBucketEmptyEvent;
 import org.bukkit.event.player.PlayerDropItemEvent;
 import org.bukkit.event.player.PlayerInteractEntityEvent;
 import org.bukkit.event.player.PlayerInteractEvent;
+import org.bukkit.event.player.PlayerItemConsumeEvent;
 import org.bukkit.event.player.PlayerItemDamageEvent;
 import org.bukkit.event.player.PlayerMoveEvent;
 import org.bukkit.event.player.PlayerPickupItemEvent;
@@ -65,7 +66,7 @@ import org.bukkit.inventory.ItemStack;
 final class PracticeGames implements Listener {
 
     /** Spectators of a game stay this close to it. */
-    private static final double SPECTATOR_RANGE = 70;
+    static final double SPECTATOR_RANGE = 70;
     /** Blocks the blasts never break, as in Bed Wars (and end stone resists the fireballs). */
     private static final Material[] BLAST_PROOF = {Material.GLASS, Material.STAINED_GLASS, Material.OBSIDIAN,
         Material.BED_BLOCK};
@@ -188,7 +189,7 @@ final class PracticeGames implements Listener {
         Location from = event.getFrom();
         Location to = event.getTo();
         if (spectating(player)) {
-            if (!game.arena.near(to, SPECTATOR_RANGE) || to.getY() < game.fallY() - 30 || to.getY() > game.arena.floorY() + 80) {
+            if (!game.holds(to)) {
                 event.setTo(game.viewPoint());
             }
             return;
@@ -223,12 +224,14 @@ final class PracticeGames implements Listener {
 
     @EventHandler(priority = EventPriority.HIGH, ignoreCancelled = true)
     public void onTeleport(PlayerTeleportEvent event) {
-        if (event.getCause() != PlayerTeleportEvent.TeleportCause.ENDER_PEARL) {
-            return;
-        }
         Player player = event.getPlayer();
         PracticeGame game = byPlayer.get(player.getUniqueId());
-        if (game == null) {
+        if (game != null && event.getCause() == PlayerTeleportEvent.TeleportCause.SPECTATE && !game.holds(event.getTo())) {
+            // the spectator menu of a player out of the round: only to the players near the game
+            event.setCancelled(true);
+            return;
+        }
+        if (game == null || event.getCause() != PlayerTeleportEvent.TeleportCause.ENDER_PEARL) {
             return;
         }
         if (game.phase != PracticeGame.Phase.PLAYING || !game.arena.near(event.getTo(), 100)) {
@@ -361,11 +364,25 @@ final class PracticeGames implements Listener {
         }
         Entity damager = PracticeGame.damager(event);
         Player attacker = damager == null ? null : playerBehind(damager);
+        if (event.getFinalDamage() > 0 && game.phase == PracticeGame.Phase.PLAYING) {
+            // the health left is worth telling in the recap
+            game.recap.hurt();
+        }
         if (attacker != null && !attacker.equals(victim) && byPlayer.get(attacker.getUniqueId()) == game) {
             game.hit(victim, attacker);
             game.landed(victim, attacker, event);
         } else {
             game.landed(victim, null, event);
+        }
+    }
+
+    /** A golden apple eaten in the fight: counted for the recap. */
+    @EventHandler(priority = EventPriority.MONITOR, ignoreCancelled = true)
+    public void onEat(PlayerItemConsumeEvent event) {
+        PracticeGame game = byPlayer.get(event.getPlayer().getUniqueId());
+        if (game != null && game.phase == PracticeGame.Phase.PLAYING && event.getItem() != null
+                && event.getItem().getType() == Material.GOLDEN_APPLE) {
+            game.recap.ate(event.getPlayer().getUniqueId());
         }
     }
 
@@ -431,6 +448,9 @@ final class PracticeGames implements Listener {
         }
         Block block = event.getBlockPlaced();
         game.arena.placed(block, event.getBlockReplacedState());
+        if (game.phase == PracticeGame.Phase.PLAYING && !spectating(player)) {
+            game.recap.placed(player.getUniqueId());
+        }
         if (game.refills()) {
             refill(player, event.getItemInHand());
         }

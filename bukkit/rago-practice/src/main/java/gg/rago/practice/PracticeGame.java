@@ -46,7 +46,7 @@ import org.bukkit.util.Vector;
  * players start and what its rules are, through the hooks below; {@link PracticeGames} hands it
  * the events of its players. Main thread only.
  */
-abstract class PracticeGame {
+abstract class PracticeGame implements Spectators.Watched {
 
     enum Phase { COUNTDOWN, PLAYING, ENDED }
 
@@ -69,6 +69,8 @@ abstract class PracticeGame {
     private final Map<UUID, Location> startOf = new HashMap<>();
     /** The hits and combos of each player, told at the end of a duel. */
     final MatchRecap recap = new MatchRecap();
+    /** The code of what each player had at the end (or when they went out), for the [View] of the recap. */
+    private final Map<UUID, String> shots = new HashMap<>();
     private final List<BukkitTask> later = new ArrayList<>();
     Phase phase = Phase.COUNTDOWN;
     /** Seconds since the fight started, in this round. */
@@ -168,6 +170,19 @@ abstract class PracticeGame {
         Location view = arena.at(0.5, 10, -14.5, 0f);
         view.setPitch(30f);
         return view;
+    }
+
+    /** Those who watch the game stay near it, neither too far under nor too far above it. */
+    @Override
+    public boolean holds(Location location) {
+        return arena.near(location, PracticeGames.SPECTATOR_RANGE) && location.getY() >= fallY() - 30
+                && location.getY() <= arena.floorY() + 80;
+    }
+
+    /** Where those who watch the game (/spectate) come back to: the view point of the players out. */
+    @Override
+    public Location watchPoint() {
+        return viewPoint();
     }
 
     /** The player fell into the void during the fight. */
@@ -328,6 +343,7 @@ abstract class PracticeGame {
     /** The player gave up (/spawn) or left the server: in a duel, the other side wins. */
     void leave(Player player, boolean toLobby) {
         UUID id = player.getUniqueId();
+        plugin.spectators().playerLeft(this, player);
         if (phase != Phase.ENDED) {
             host.release(id);
             if (sides.size() > 1) {
@@ -375,11 +391,15 @@ abstract class PracticeGame {
         return ChatColor.WHITE;
     }
 
-    /** A line of the game's chat for its replay only (the players read their own version of it). */
+    /**
+     * A line of the game's chat for its replay and those who watch it (/spectate); the players read
+     * their own version of it.
+     */
     void replayChat(String line) {
         if (replay != null) {
             replay.chat(line);
         }
+        plugin.spectators().tell(this, line);
     }
 
     /** The replay ends without being kept. */
@@ -593,6 +613,21 @@ abstract class PracticeGame {
         for (Player player : online()) {
             plugin.lobby().setGameSidebar(player, sidebar(player.getUniqueId()));
         }
+        for (Player watcher : plugin.spectators().of(this)) {
+            plugin.lobby().setGameSidebar(watcher, watcherSidebar(plugin.spectators().targetOf(watcher.getUniqueId())));
+        }
+    }
+
+    /**
+     * The sidebar of one who watches the game (/spectate): the one of the player they came for, as
+     * that player sees it, while they play; else the one of another player of the game.
+     */
+    List<String> watcherSidebar(UUID target) {
+        if (target != null && host.gameOf(target) == this) {
+            return sidebar(target);
+        }
+        List<Player> online = online();
+        return online.isEmpty() ? null : sidebar(online.get(0).getUniqueId());
     }
 
     /**
@@ -629,20 +664,22 @@ abstract class PracticeGame {
                 player.sendMessage(ChatColor.RED + "" + ChatColor.BOLD + "Defeat." + ChatColor.GRAY + " " + result(winner));
             }
         }
-        if (replay != null) {
-            replay.chat(winner >= 0 ? ChatColor.GOLD + "" + ChatColor.BOLD + namesOf(winner) + " won! " + ChatColor.GRAY + result(winner)
-                    : ChatColor.YELLOW + "" + ChatColor.BOLD + "Draw. " + ChatColor.GRAY + result(-1));
-        }
-        if (showsRecap()) {
-            List<String> lines = recap.lines(sides, this::nameOf, Duel.CHAT);
+        replayChat(winner >= 0 ? ChatColor.GOLD + "" + ChatColor.BOLD + namesOf(winner) + " won! " + ChatColor.GRAY + result(winner)
+                : ChatColor.YELLOW + "" + ChatColor.BOLD + "Draw. " + ChatColor.GRAY + result(-1));
+        if (keepsInventories()) {
             for (Player player : online()) {
-                for (String line : lines) {
-                    player.sendMessage(line);
+                UUID id = player.getUniqueId();
+                boolean watching = player.getGameMode() == org.bukkit.GameMode.SPECTATOR;
+                double health = watching || isOut(id) ? 0 : player.getHealth();
+                recap.health(id, health);
+                if (!watching) {
+                    // one out of the round (watching) keeps what they had when they went out
+                    keepInventory(player, health);
                 }
             }
-            for (String line : lines) {
-                replayChat(line);
-            }
+        }
+        if (showsRecap()) {
+            tellRecap();
         }
         if (replay != null) {
             String score = ChatColor.stripColor(result(winner));
@@ -682,6 +719,8 @@ abstract class PracticeGame {
     }
 
     private void backToLobby() {
+        // those who watch first: none of them still sees through the eyes of a player who left
+        plugin.spectators().ended(this);
         for (UUID id : players()) {
             Player player = Bukkit.getPlayer(id);
             if (player != null && host.gameOf(id) == this) {
@@ -699,6 +738,7 @@ abstract class PracticeGame {
         stopTasks();
         cancelReplay();
         ended();
+        plugin.spectators().ended(this);
         for (UUID id : players()) {
             Player player = Bukkit.getPlayer(id);
             if (player != null && host.gameOf(id) == this) {
@@ -716,6 +756,7 @@ abstract class PracticeGame {
         stopTasks();
         cancelReplay();
         ended();
+        plugin.spectators().ended(this);
         restoreArena();
     }
 
@@ -758,6 +799,7 @@ abstract class PracticeGame {
             heal(victim);
             return;
         }
+        recap.hurt();
         UUID by = killerOf(victim.getUniqueId());
         Player killer = by == null ? null : Bukkit.getPlayer(by);
         lethal(victim, killer != null && host.gameOf(by) == this ? killer : null);
@@ -838,7 +880,67 @@ abstract class PracticeGame {
      * at most, where someone hit someone. An event or a training does not.
      */
     boolean showsRecap() {
-        return sides.size() == 2 && names.size() <= 4 && !recap.isEmpty();
+        return keepsInventories() && !recap.isEmpty();
+    }
+
+    /** True if the game keeps what its players had at the end, for the recap: a duel of two sides, four players at most. */
+    boolean keepsInventories() {
+        return sides.size() == 2 && names.size() <= 4;
+    }
+
+    /** What the player has now (health in half hearts), kept for the [View] of the recap. */
+    void keepInventory(Player player, double health) {
+        EndInventories inventories = plugin.endInventories();
+        if (inventories != null && keepsInventories() && sideOf(player.getUniqueId()) >= 0) {
+            shots.put(player.getUniqueId(), inventories.keep(player, ChatColor.stripColor(nameOf(player.getUniqueId())), health));
+        }
+    }
+
+    /** True if the player is out of the fight now (dead or fallen in this round, or eliminated). */
+    boolean isOut(UUID player) {
+        return false;
+    }
+
+    /**
+     * The recap to the players and those who watch: each player's line with the [View] of what
+     * they had, then their second line (the health left, the golden apples...); plain in the replay.
+     */
+    private void tellRecap() {
+        List<Player> readers = online();
+        readers.addAll(plugin.spectators().of(this));
+        EndInventories inventories = plugin.endInventories();
+        recapLine(readers, MatchRecap.TITLE);
+        for (int side = 0; side < sides.size(); side++) {
+            for (UUID id : sides.get(side)) {
+                String head = recap.head(id, nameOf(id), Duel.CHAT[side % Duel.CHAT.length]);
+                String code = shots.get(id);
+                if (code != null && inventories != null) {
+                    inventories.numbers(code, recap.numbers(id));
+                    String name = ChatColor.stripColor(nameOf(id));
+                    for (Player reader : readers) {
+                        EndInventories.tell(reader, head, code, name);
+                    }
+                    if (replay != null) {
+                        replay.chat(head);
+                    }
+                } else {
+                    recapLine(readers, head);
+                }
+                String more = recap.details(id);
+                if (more != null) {
+                    recapLine(readers, more);
+                }
+            }
+        }
+    }
+
+    private void recapLine(List<Player> readers, String line) {
+        for (Player reader : readers) {
+            reader.sendMessage(line);
+        }
+        if (replay != null) {
+            replay.chat(line);
+        }
     }
 
     /** Who gets the kill if this player dies now: the last one to hit them lately, or null. */
@@ -962,6 +1064,10 @@ abstract class PracticeGame {
 
     /** Out of the round until the next one: watching from above. */
     void spectate(Player player) {
+        if (phase == Phase.PLAYING) {
+            // what they had when they went out, for the recap's [View] if the duel ends so
+            keepInventory(player, 0);
+        }
         player.getInventory().clear();
         player.getInventory().setArmorContents(null);
         heal(player);
@@ -1052,6 +1158,7 @@ abstract class PracticeGame {
         if (damage <= 0 || phase != Phase.PLAYING) {
             return;
         }
+        recap.hurt();
         if (player.getHealth() - damage <= 0) {
             died(player);
         } else {

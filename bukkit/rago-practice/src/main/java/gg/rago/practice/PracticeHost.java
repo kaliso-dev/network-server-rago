@@ -188,6 +188,9 @@ final class PracticeHost implements MatchHost {
      */
     @Override
     public boolean letGo(Player player) {
+        if (plugin.spectators().letGo(player)) {
+            return true;
+        }
         if (!canLetGo(player)) {
             return false;
         }
@@ -196,14 +199,33 @@ final class PracticeHost implements MatchHost {
         return true;
     }
 
+    /** A training, or a game they only watch. */
     @Override
     public boolean canLetGo(Player player) {
+        if (plugin.spectators().isWatching(player.getUniqueId())) {
+            return true;
+        }
         PracticeGame game = games.gameOf(player.getUniqueId());
         return game instanceof Training && game.phase != PracticeGame.Phase.ENDED;
     }
 
+    /** /spectate: any game of the mode, a training too. */
+    @Override
+    public boolean spectate(Player watcher, Player target) {
+        PracticeGame game = games.gameOf(target.getUniqueId());
+        if (game == null || game.host != this || game.phase == PracticeGame.Phase.ENDED) {
+            return false;
+        }
+        plugin.spectators().watch(watcher, game, target);
+        game.sidebars();
+        return true;
+    }
+
     @Override
     public void abandon(Player player) {
+        if (plugin.spectators().leave(player)) {
+            return;
+        }
         PracticeGame game = games.gameOf(player.getUniqueId());
         if (game == null) {
             plugin.lobby().sendToLobby(player);

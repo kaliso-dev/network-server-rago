@@ -179,7 +179,7 @@ final class QueueController {
         joined(player, mode, map, result, false);
     }
 
-    /** Tells a player alone what joining this queue did; inGame: from their training. */
+    /** Tells a player alone what joining this queue did; inGame: from their training, or from a game they watch. */
     private void joined(Player player, GameMode mode, String map, Matchmaker.JoinResult result, boolean inGame) {
         UUID id = player.getUniqueId();
         switch (result) {
@@ -193,7 +193,10 @@ final class QueueController {
                         + mode.format() + ", " + matchmaker.waiting(mode.id()) + " waiting)."
                         + (priorities.applyAsInt(id) > 0 ? ChatColor.AQUA + " Priority queue." : ""));
                 int queues = matchmaker.queuesOf(id).size();
-                if (inGame) {
+                if (inGame && state.isWatching(id)) {
+                    player.sendMessage(ChatColor.GRAY + "Keep spectating: the game found takes you out of the game you watch"
+                            + (queues > 1 ? ", the first of your " + queues + " queues." : "."));
+                } else if (inGame) {
                     player.sendMessage(ChatColor.GRAY + "Keep training: the game found takes you out of the training"
                             + (queues > 1 ? ", the first of your " + queues + " queues." : "."));
                 } else if (also) {
@@ -959,9 +962,13 @@ final class QueueController {
      */
     private boolean releaseAll(MatchProposal match, List<Player> players) {
         List<Player> freed = new ArrayList<>();
+        Set<UUID> watched = new HashSet<>();
         for (Player player : players) {
             if (!state.isInGame(player)) {
                 continue;
+            }
+            if (state.isWatching(player.getUniqueId())) {
+                watched.add(player.getUniqueId());
             }
             if (release(player)) {
                 freed.add(player);
@@ -977,7 +984,8 @@ final class QueueController {
             return false;
         }
         for (Player player : freed) {
-            player.sendMessage(ChatColor.GREEN + "Game found in " + match.mode().name() + ChatColor.GREEN + ": you leave the training.");
+            player.sendMessage(ChatColor.GREEN + "Game found in " + match.mode().name() + ChatColor.GREEN
+                    + (watched.contains(player.getUniqueId()) ? ": you stop spectating." : ": you leave the training."));
         }
         return true;
     }

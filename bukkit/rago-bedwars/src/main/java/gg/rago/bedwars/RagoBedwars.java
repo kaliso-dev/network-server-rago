@@ -32,6 +32,8 @@ public final class RagoBedwars extends JavaPlugin {
     private MapStore maps;
     private Instances instances;
     private BedwarsHost host;
+    /** Those who watch a game with the lobby's /spectate. */
+    private Watchers watchers;
 
     @Override
     public void onEnable() {
@@ -70,6 +72,8 @@ public final class RagoBedwars extends JavaPlugin {
             getLogger().info("Demo map " + DemoMap.WORLD + " created (carte-demo: false in config.yml turns it off)");
         }
 
+        watchers = new Watchers(this);
+        getServer().getPluginManager().registerEvents(watchers, this);
         host = new BedwarsHost(this);
         getServer().getPluginManager().registerEvents(host, this);
         if (lobby.replays() != null) {
@@ -212,5 +216,10 @@ public final class RagoBedwars extends JavaPlugin {
 
     BedwarsHost host() {
         return host;
+    }
+
+    /** Those who watch a game (/spectate). */
+    Watchers watchers() {
+        return watchers;
     }
 }
