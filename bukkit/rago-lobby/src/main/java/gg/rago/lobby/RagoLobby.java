@@ -211,6 +211,7 @@ public final class RagoLobby extends JavaPlugin implements LobbyService {
         stats.book().setBoost(id -> names.xpBoost(id) * boosters.multiplier(id));
         queues.setPriorities(names::queuePriority);
         stats.setCoinBoost(boosters::coinMultiplier);
+        stats.setPrestiges(this::prestige);
         social = new Social(this, stats, profiles);
         punishments = new Punishments(this, stats.book(), writer, this::write);
         punishments.load();
@@ -596,6 +597,22 @@ public final class RagoLobby extends JavaPlugin implements LobbyService {
             player.sendMessage(ChatColor.GREEN + "Flight on, kept when you come back. /fly again to land.");
         }
         stats.save(profile);
+    }
+
+    /**
+     * A player reached a prestige (100, 200... 1000): the whole server hears of it, unless they play
+     * under a nick (a nicked player shows the level 1).
+     */
+    private void prestige(UUID id, int level) {
+        Player player = getServer().getPlayer(id);
+        if (player == null || names.nick(id) != null) {
+            return;
+        }
+        getServer().broadcastMessage(ChatColor.YELLOW + "" + ChatColor.BOLD + "PRESTIGE! " + names.display(id, player.getName())
+                + ChatColor.GRAY + " reached the level " + stats.book().levels().tag(level) + ChatColor.GRAY + "!");
+        for (Player other : getServer().getOnlinePlayers()) {
+            other.playSound(other.getLocation(), Sound.FIREWORK_LARGE_BLAST, 1f, 1f);
+        }
     }
 
     /** A player's Network XP changed: their rank in the chat, their XP bar in the lobby, the sidebars. */

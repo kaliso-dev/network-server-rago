@@ -38,30 +38,34 @@ class NetworkLevelTest {
         assertEquals("§7[9" + NetworkLevel.STAR + "]", LEVELS.tag(9));
         assertEquals("§f[10" + NetworkLevel.STAR + "]", LEVELS.tag(10));
         assertEquals("§6[25" + NetworkLevel.STAR + "]", LEVELS.tag(25));
-        assertEquals("§c[§61§e0§a0§b" + NetworkLevel.STAR + "§d]", LEVELS.tag(NetworkLevel.MAX_LEVEL),
+        assertEquals("§c[§61§e0§a0§b" + NetworkLevel.STAR + "§d]", LEVELS.tag(NetworkLevel.PRESTIGE),
                 "level 100 in a rainbow, one colour per character");
-        assertEquals("§c", LEVELS.colour(NetworkLevel.MAX_LEVEL), "its first colour where one is enough");
-        assertEquals("§c[100" + NetworkLevel.STAR + "]", LEVELS.tag(NetworkLevel.MAX_LEVEL, 11),
+        assertEquals("§c", LEVELS.colour(NetworkLevel.PRESTIGE), "its first colour where one is enough");
+        assertEquals("§c[100" + NetworkLevel.STAR + "]", LEVELS.tag(NetworkLevel.PRESTIGE, 11),
                 "in its first colour where the rainbow does not fit");
-        assertEquals("§c[1§60§e0§a" + NetworkLevel.STAR + "]", LEVELS.tag(NetworkLevel.MAX_LEVEL, 15),
+        assertEquals("§c[1§60§e0§a" + NetworkLevel.STAR + "]", LEVELS.tag(NetworkLevel.PRESTIGE, 15),
                 "above the head, the brackets take the colours of their neighbours");
-        assertEquals(LEVELS.tag(NetworkLevel.MAX_LEVEL), LEVELS.tag(NetworkLevel.MAX_LEVEL, 18), "the whole rainbow where it fits");
+        assertEquals(LEVELS.tag(NetworkLevel.PRESTIGE), LEVELS.tag(NetworkLevel.PRESTIGE, 18), "the whole rainbow where it fits");
         assertEquals("§6[25" + NetworkLevel.STAR + "]", LEVELS.tag(25, 15));
-        assertEquals("§c1§60§e0", LEVELS.paint("100", NetworkLevel.MAX_LEVEL));
+        assertEquals("§c1§60§e0", LEVELS.paint("100", NetworkLevel.PRESTIGE));
         assertEquals("§625", LEVELS.paint("25", 25));
         assertEquals(10, LEVELS.nextTier(1));
         assertEquals(30, LEVELS.nextTier(25));
-        assertEquals(0, LEVELS.nextTier(100), "the last tier");
+        assertEquals(200, LEVELS.nextTier(100), "the first prestige");
+        assertEquals(0, LEVELS.nextTier(NetworkLevel.MAX_LEVEL), "the last tier");
         Map<Integer, String> one = new HashMap<>();
         one.put(5, "§a");
         NetworkLevel custom = new NetworkLevel(50, 15, 5, 100, 50, one);
         assertEquals("§7", custom.colour(4), "grey below the first tier");
         assertEquals("§a", custom.colour(50));
         Map<Integer, String> bold = new HashMap<>();
-        bold.put(1, "§a§b§l");
+        bold.put(1, "§a§b§c§l");
         NetworkLevel rainbow = new NetworkLevel(50, 15, 5, 100, 50, bold);
-        assertEquals("§a§lA§b§lB§a§lC", rainbow.paint("ABC", 3), "the format after each colour");
+        assertEquals("§a§lA§b§lB§c§lC§a§lD", rainbow.paint("ABCD", 3), "the format after each colour");
         assertEquals("§a§l", rainbow.colour(3));
+        Map<Integer, String> two = new HashMap<>();
+        two.put(1, "§a§b");
+        assertEquals("§aABC", new NetworkLevel(50, 15, 5, 100, 50, two).paint("ABC", 3), "two colours: a text in the first");
     }
 
     @Test
@@ -75,7 +79,9 @@ class NetworkLevelTest {
         for (RankDef rank : Ranks.defaults().all()) {
             assertTrue(rank.tagPrefix().length() <= 16, rank.id());
         }
-        assertTrue((" " + LEVELS.tag(NetworkLevel.MAX_LEVEL, 15)).length() <= 16, "the level after the name fits");
+        for (int level : LEVELS.colours().keySet()) {
+            assertTrue((" " + LEVELS.tag(level, 15)).length() <= 16, "the level " + level + " after the name fits");
+        }
     }
 
     @Test

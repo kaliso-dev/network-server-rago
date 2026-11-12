@@ -370,7 +370,7 @@ final class Profiles {
         UUID id = player.getUniqueId();
         NameStyle worn = kind == NameStyle.Kind.COLOUR ? names.colour(id) : kind == NameStyle.Kind.BADGE ? names.badge(id)
                 : names.plus(id);
-        if (style == null || style == worn) {
+        if (style == null || worn != null && style.key().equals(worn.key())) {
             profile.choose(kind, "");
             player.sendMessage(ChatColor.GRAY + (kind == NameStyle.Kind.COLOUR ? "Your name takes the colour of your rank again."
                     : kind == NameStyle.Kind.BADGE ? "Badge taken off." : "Your + is white again."));

@@ -389,8 +389,10 @@ final class LobbySettings {
 
     /**
      * niveau: the XP of a game and of a kill, the XP of each level, and the colour of each tier of
-     * levels (couleurs: the first level of the tier, then its colour codes). The ranks of the first
-     * version (rangs) gave way to the ranks of the shop: they are ignored.
+     * levels (couleurs: the first level of the tier, up to 100, then its colour codes), and of each
+     * prestige (prestiges: 200, 300... up to 1000, its couleur; left out: the plugin's own, {} for
+     * none). The ranks of the first version (rangs) gave way to the ranks of the shop: they are
+     * ignored.
      */
     private static NetworkLevel readLevels(ConfigurationSection section) {
         if (section == null) {
@@ -404,7 +406,7 @@ final class LobbySettings {
         Map<Integer, String> colours = new HashMap<>();
         ConfigurationSection list = section.getConfigurationSection("couleurs");
         if (list == null) {
-            colours.putAll(NetworkLevel.DEFAULT.colours());
+            colours.putAll(NetworkLevel.DEFAULT.colours().headMap(NetworkLevel.PRESTIGE + 1));
         } else {
             for (String key : list.getKeys(false)) {
                 int level;
@@ -413,22 +415,36 @@ final class LobbySettings {
                 } catch (NumberFormatException e) {
                     level = 0;
                 }
-                if (level < 1 || level > NetworkLevel.MAX_LEVEL) {
+                if (level < 1 || level > NetworkLevel.PRESTIGE) {
                     throw new IllegalArgumentException("niveau.couleurs." + key + ": the key is the first level of the tier,"
-                            + " from 1 to " + NetworkLevel.MAX_LEVEL);
+                            + " from 1 to " + NetworkLevel.PRESTIGE + " (after it: niveau.prestiges)");
                 }
-                String colour = colour(list.getString(key, ""));
-                if (!isColourCodes(colour) && !isRainbow(colour)) {
-                    throw new IllegalArgumentException("niveau.couleurs." + key + ": one or two colour codes, such as &6 or &6&l,"
-                            + " or up to 8 colours for a rainbow, such as &c&6&e&a&b&d");
+                colours.put(level, levelColour(list.getString(key, ""), "niveau.couleurs." + key));
+            }
+        }
+        if (section.isSet("prestiges") && !section.isConfigurationSection("prestiges")) {
+            throw new IllegalArgumentException("niveau.prestiges: a section, one prestige by level: 200: {couleur: \"&e&f\","
+                    + " points: 20000}");
+        }
+        ConfigurationSection prestiges = section.getConfigurationSection("prestiges");
+        if (prestiges == null) {
+            colours.putAll(NetworkLevel.DEFAULT.colours().tailMap(NetworkLevel.PRESTIGE + 1));
+        } else {
+            for (String key : prestiges.getKeys(false)) {
+                String where = "niveau.prestiges." + key;
+                int level = NetworkLevel.prestigeLevel(key, where);
+                ConfigurationSection one = prestiges.getConfigurationSection(key);
+                if (one == null) {
+                    throw new IllegalArgumentException(where + ": a section with couleur, points and objets");
                 }
-                colours.put(level, colour);
+                if (one.isSet("couleur")) {
+                    colours.put(level, levelColour(one.getString("couleur", ""), where + ".couleur"));
+                }
             }
         }
         return new NetworkLevel(win, loss, kill, first, extra, colours);
     }
 
-    /** True for 2 to 8 colours, with a format or two: a rainbow ("§c§6§e§a§b§d"). */
     /**
      * config.yml as it is written, without the bundled one behind it: a section left out is then the
      * plugin's own, as in the tests. With the bundled one as its defaults (what Bukkit's getConfig
@@ -439,6 +455,17 @@ final class LobbySettings {
         config.setDefaults(new org.bukkit.configuration.MemoryConfiguration());
     }
 
+    /** The colour codes of a tier of levels: one or two colours, or a rainbow. */
+    private static String levelColour(String text, String where) {
+        String colour = colour(text);
+        if (!isColourCodes(colour) && !isRainbow(colour)) {
+            throw new IllegalArgumentException(where + ": a colour code (&6, &6&l), two for the brackets and the number (&e&f),"
+                    + " or up to 8 colours for a rainbow, such as &c&6&e&a&b&d");
+        }
+        return colour;
+    }
+
+    /** True for 2 to 8 colours, with a format or two: a rainbow ("§c§6§e§a§b§d"). */
     static boolean isRainbow(String text) {
         return text.matches("(\u00a7[0-9a-fk-or]){2,10}") && NetworkLevel.colourCodes(text).size() >= 2
                 && NetworkLevel.colourCodes(text).size() <= 8;

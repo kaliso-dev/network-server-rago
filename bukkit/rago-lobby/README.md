@@ -170,17 +170,27 @@ dans les files d'attente des modes de jeu.
   chaque kill 5 de plus. On commence niveau 1, et chaque niveau demande 50 XP de plus que le
   précédent (100, 150, 200...). Le niveau s'affiche comme sur Hypixel, `[12✫]`, au-dessus de la
   tête, dans le Tab et dans le chat, avec une couleur par palier de 10 niveaux (gris, blanc, or,
-  aqua, vert, cyan, rouge, rose, bleu, violet, puis jaune au 100). La barre d'XP du lobby montre le
+  aqua, vert, cyan, rouge, rose, bleu, violet, puis arc-en-ciel au 100). La barre d'XP du lobby montre le
   niveau et l'avancée vers le suivant. Un message et un son à chaque niveau, un message à chaque
   nouvelle couleur, avec ce que le niveau débloque dans la boutique. Tout se règle dans `niveau:`.
-  Le niveau va de 1 à 100 (environ 250 000 XP pour le 100).
+  Le niveau va de 1 à 1000 : environ 250 000 XP pour le 100, puis 5 050 XP par niveau.
+- **Les prestiges (après le niveau 100).** Tous les 100 niveaux (200, 300... 1000), le `[200✫]`
+  prend un nouveau look : les crochets et l'étoile d'une couleur, le nombre d'une autre (jaune et
+  blanc au 200, rouge et jaune au 300, aqua et vert au 400, rose et aqua au 500, rouge foncé et
+  or au 600, bleu et rose au 700, vert et blanc au 800, violet et jaune au 900, or, jaune et blanc
+  qui brillent au 1000). Chaque prestige donne des Rago Points (20 000 au 200, 5 000 de plus à
+  chacun, 100 000 au 1000) et tout le serveur l'entend (« PRESTIGE! Pseudo reached the level
+  [200✫]! », sauf sous un `/nick`). Après le 100, chaque niveau rapporte autant de points que le
+  100. Un prestige demande environ 3 mois à un joueur actif. Tout se règle dans
+  `niveau.prestiges` (`couleur`, `points`, `objets`) ; une config.yml sans cette section prend
+  ceux du plugin.
 - **Les récompenses de niveau (le profil, `/level`).** Une récompense tous les 5
-  niveaux : des Rago Points, des cosmétiques de la boutique (offerts ; déjà achetés, leur prix
+  niveaux jusqu'au 100, puis à chaque prestige : des Rago Points, des cosmétiques de la boutique (offerts ; déjà achetés, leur prix
   revient en points), les couleurs de pseudo Aqua (25), Gold (50), Legend (100) et le badge
   `✫100`. Un joueur reçoit les récompenses de tous les niveaux atteints, même ceux d'avant leur
   arrivée (à la connexion). Le menu montre le niveau, l'avancée vers le suivant, le palier de
-  couleur et le suivant, chaque récompense (un bloc d'or quand elle est débloquée, un bloc de
-  charbon sinon, la prochaine qui brille) et les quêtes. Tout se
+  couleur et le suivant, 21 récompenses autour de la prochaine (un bloc d'or quand elle est débloquée, un bloc de
+  charbon sinon, la prochaine qui brille), les paliers et les prestiges, et les quêtes. Tout se
   règle dans `niveau.recompenses`. Tout est dans le fichier du joueur (`profil.*`), qui passera
   tel quel dans la base de données du réseau.
 - **Les quêtes (`/quests`).** Chaque jour, trois quêtes du jour tirées dans une liste de huit, les
@@ -257,7 +267,8 @@ dans les files d'attente des modes de jeu.
 - **Les couleurs de pseudo et les badges (`/style`).** Un pseudo peut prendre un dégradé (les
   16 couleurs de la 1.8, d'une lettre à l'autre : Pink, Fire, Ocean, Forest, Sunset, Ice,
   Galaxy, Rainbow, Shadow, et Aqua, Gold, Legend pour les niveaux) et un badge après le pseudo
-  (`✦`, RAGO, BETTER, PVP, YT, `✫100`, la couronne ♛ du top de la semaine). Le dégradé se voit dans le Tab et les menus, où il est
+  (`✦`, RAGO, BETTER, PVP, YT, `✫100`, la couronne ♛ du top de la semaine, et le badge de chaque
+  saison classée finie, voir plus bas). Les badges ont leur page (`/style badges` ou `/badge`). Le dégradé se voit dans le Tab et les menus, où il est
   animé : ses couleurs défilent le long du pseudo (environ trois fois par seconde). Dans le chat,
   les messages et au-dessus de la tête, le pseudo n'a qu'une couleur fixe, sa couleur principale
   (celle du milieu du dégradé) : bleu clair pour VIP, rose pour PREMIUM.
@@ -323,6 +334,11 @@ dans les files d'attente des modes de jeu.
   un message. `saison.nom` est le nom montré, `saison.fin` le dernier jour, affiché avec les jours
   qui restent (il ne change rien tout seul). `/season` montre la saison, sa fin, les récompenses,
   ses divisions (et son meilleur ELO de la saison) et ses saisons passées ; le profil aussi.
+  Chaque saison finie donne aussi son badge, dans la couleur de la division atteinte
+  (`S2 Diamond`) : il se porte après le pseudo, dans le chat, le Tab et au-dessus de la tête.
+  Sans autre badge (choisi, couronne de la semaine ou badge du rang), un joueur porte celui de sa
+  dernière saison, sauf dans la première division (Coal). La page des badges de `/style` les
+  montre tous ; un badge de config.yml ne peut pas s'appeler `saison-...`.
 - **L'arrivée au lobby.** Chaque arrivée (connexion ou retour d'une partie) s'annonce au lobby,
   une fois par minute au plus : en gris pour un joueur sans rang, comme sur Hypixel
   (`>>> [VIP] Pseudo joined the lobby! <<<`) avec des particules et un son pour un rang, et un
@@ -401,7 +417,7 @@ commentaires de `config.yml`. Les mots français de la première version (`quitt
 | `/stats [joueur]`, `/top elo\|level\|wins\|kills\|fkdr\|streak\|games\|points [mode]` | les stats, les meilleurs | tout le monde |
 | `/report <joueur> <raison>`, `/discord`, `/rules`, `/site`, `/store` | signaler un joueur, les liens | tout le monde |
 | `/fly` | voler dans le lobby, gardé d'une partie et d'une connexion à l'autre (`/fly` encore pour atterrir) | `rago.perk.fly` (VIP, PREMIUM) |
-| `/style` (ou `/couleur`, `/badge`) | choisir sa couleur de pseudo, son badge et la couleur de son + | tout le monde |
+| `/style` (ou `/couleur`), `/style badges` (ou `/badge`) | choisir sa couleur de pseudo, son badge (dont ceux des saisons) et la couleur de son + | tout le monde |
 | `/booster`, `/booster on`, `/booster coins` | ses boosters, lancer un booster d'XP ou de pièces | tout le monde |
 | `/booster give <joueur> [nombre] [xp\|coins\|daily]` | donner des boosters (la boutique en ligne, depuis la console) | `rago.admin` |
 | `/pack`, `/pack info` | la vitrine du PNJ Shop, le pack de départ dans le chat | tout le monde |

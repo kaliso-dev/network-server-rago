@@ -474,7 +474,7 @@ final class LobbyScoreboard {
         RankDef rank = NetworkRanks.rankOf(book, ranks, player.getUniqueId());
         lines.add(cut(ChatColor.WHITE + "Rank: " + (rank == Ranks.DEFAULT ? ChatColor.GRAY + "Default"
                 : rank.prefix(names.plusColour(player.getUniqueId())).trim())));
-        lines.add(ChatColor.WHITE + "Level: " + levels.tag(level));
+        lines.add(ChatColor.WHITE + "Level: " + levels.tag(level, MAX_LINE - 9));
         lines.add(ChatColor.WHITE + "Progress: " + ChatColor.AQUA
                 + (level >= NetworkLevel.MAX_LEVEL ? "max" : percent(levels.progress(xp))));
         lines.add(blank(1));

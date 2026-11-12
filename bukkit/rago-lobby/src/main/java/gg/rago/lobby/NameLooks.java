@@ -1,18 +1,26 @@
 package gg.rago.lobby;
 
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
 import java.util.UUID;
 import java.util.function.Function;
 import java.util.function.Predicate;
+import org.bukkit.ChatColor;
 
 /**
  * How a player's name looks: their rank, the colour of their name (a gradient of
  * {@link NameStyle}, or the colour of the rank) and their badge. A player wears what they chose
  * (/style) if they still own it, else the badge of the week if they won it, else what their rank
- * gives. They own a colour or a badge they bought on the store or won with a level (in their
- * cosmetics), the badge of the week until the next results, and those of their ranks (the pink
- * gradient and the ✦ of PREMIUM). Main thread only.
+ * gives, else the badge of their last ranked season (above its first division). They own a colour
+ * or a badge they bought on the store or won with a level (in their cosmetics), the badge of the
+ * week until the next results, those of their ranks (the pink gradient and the ✦ of PREMIUM), and
+ * the badge of each ranked season they ended ("§bS2 Diamond"). Main thread only.
  */
 final class NameLooks {
+
+    /** The id of the badge of a ranked season: this, then its number ("saison-2"). */
+    static final String SEASON_BADGE = "saison-";
 
     private final StatsBook book;
     private final ServerSettings server;
@@ -108,6 +116,9 @@ final class NameLooks {
 
     /** True if the player may wear this colour or badge. */
     boolean owns(PlayerStats profile, NameStyle style) {
+        if (style.obtain() == NameStyle.Obtain.SEASON) {
+            return profile != null && profile.seasons().containsKey(seasonOf(style.id()));
+        }
         return profile != null && (profile.cosmetics().contains(style.key())
                 || server.ranks().styles(profile.rank(), profile.boughtRanks()).contains(style.key()));
     }
@@ -129,6 +140,13 @@ final class NameLooks {
         }
         RankDef rank = rank(player);
         String chosen = profile.choice(kind);
+        if (kind == NameStyle.Kind.BADGE && seasonOf(chosen) > 0) {
+            NameStyle season = seasonBadge(profile, seasonOf(chosen));
+            if (season != null) {
+                return season;
+            }
+            chosen = null;
+        }
         if (kind == NameStyle.Kind.BADGE && chosen == null) {
             // the crown of the top of the week shows, unless the player chose a badge
             NameStyle weekly = server.weeklyBadge();
@@ -137,7 +155,70 @@ final class NameLooks {
             }
         }
         String given = kind == NameStyle.Kind.COLOUR ? rank.style() : kind == NameStyle.Kind.BADGE ? rank.badge() : null;
-        return wear(chosen, given, id -> server.style(kind, id), style -> owns(profile, style));
+        NameStyle worn = wear(chosen, given, id -> server.style(kind, id), style -> owns(profile, style));
+        if (worn == null && kind == NameStyle.Kind.BADGE && !"".equals(chosen)) {
+            return lastSeasonBadge(profile);
+        }
+        return worn;
+    }
+
+    // --- The badges of the ranked seasons -------------------------------------------------------
+
+    /** The badge of a ranked season the player ended ("§bS2 Diamond", in their division), or null. */
+    NameStyle seasonBadge(PlayerStats profile, int season) {
+        PlayerStats.SeasonResult result = profile == null ? null : profile.seasons().get(season);
+        return result == null ? null : seasonBadge(season, result.division, book.ladder());
+    }
+
+    /** "§bS2 Diamond": the badge of a season ended in this division, in its colour (grey for one gone). */
+    static NameStyle seasonBadge(int season, String division, EloLadder ladder) {
+        String colour = ChatColor.GRAY.toString();
+        for (EloLadder.Division one : ladder.divisions()) {
+            if (one.name().equals(division)) {
+                colour = one.colour();
+            }
+        }
+        String text = colour + "S" + season + " " + division;
+        if (text.length() > NameStyle.MAX_BADGE) {
+            text = text.substring(0, NameStyle.MAX_BADGE);
+        }
+        return new NameStyle(NameStyle.Kind.BADGE, SEASON_BADGE + season, "Season " + season + ": " + division, text, false,
+                NameStyle.Obtain.SEASON);
+    }
+
+    /** The badges of the ranked seasons the player ended, the latest first. */
+    List<NameStyle> seasonBadges(PlayerStats profile) {
+        List<NameStyle> badges = new ArrayList<>();
+        if (profile != null) {
+            List<Integer> seasons = new ArrayList<>(profile.seasons().keySet());
+            Collections.sort(seasons, Collections.reverseOrder());
+            for (int season : seasons) {
+                badges.add(seasonBadge(profile, season));
+            }
+        }
+        return badges;
+    }
+
+    /** The badge of the player's last season, worn when they wear no other: none in the first division. */
+    private NameStyle lastSeasonBadge(PlayerStats profile) {
+        List<NameStyle> badges = seasonBadges(profile);
+        if (badges.isEmpty()) {
+            return null;
+        }
+        PlayerStats.SeasonResult last = profile.seasons().get(seasonOf(badges.get(0).id()));
+        return book.ladder().divisions().get(0).name().equals(last.division) ? null : badges.get(0);
+    }
+
+    /** The season of the id of its badge ("saison-2": 2), or 0 for another id. */
+    static int seasonOf(String id) {
+        if (id == null || !id.startsWith(SEASON_BADGE)) {
+            return 0;
+        }
+        try {
+            return Math.max(0, Integer.parseInt(id.substring(SEASON_BADGE.length())));
+        } catch (NumberFormatException e) {
+            return 0;
+        }
     }
 
     /**

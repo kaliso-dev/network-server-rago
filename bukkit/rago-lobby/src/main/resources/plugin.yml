@@ -134,7 +134,7 @@ commands:
     aliases: [starterpack]
   style:
     description: Your colour of name and badge; the admins and the web store give and take them.
-    usage: /style, or (admin, console) /style <give|take> <player> <couleur-feu|badge-rago>, /style list
+    usage: /style, /style badges (or /badge), or (admin, console) /style <give|take> <player> <couleur-feu|badge-rago>, /style list
     aliases: [styles, couleur, badge]
   staffchat:
     description: The staff chat.

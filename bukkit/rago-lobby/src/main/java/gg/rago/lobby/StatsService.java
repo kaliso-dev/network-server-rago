@@ -46,6 +46,8 @@ final class StatsService {
     private final Executor io;
     private final Writer writer;
     private final XpListener xpListener;
+    /** Told of a player who reached a prestige (100, 200... 1000): the whole server hears of it. */
+    private java.util.function.BiConsumer<UUID, Integer> prestiges = (player, level) -> { };
     /** The Rago Points multiplier of a player's coin booster (1 without one). */
     private java.util.function.ToDoubleFunction<UUID> coinBoost = id -> 1.0;
 
@@ -241,7 +243,8 @@ final class StatsService {
         stats.addPoints(amount);
         Player player = Bukkit.getPlayer(stats.id());
         if (player != null) {
-            player.sendMessage(ChatColor.GOLD + "+" + amount + " Rago Points" + ChatColor.GRAY + " (" + reason + ")" + note);
+            player.sendMessage(ChatColor.GOLD + "+" + String.format(java.util.Locale.US, "%,d", amount) + " Rago Points" + ChatColor.GRAY
+                    + " (" + reason + ")" + note);
         }
     }
 
@@ -431,6 +434,8 @@ final class StatsService {
                 player.sendMessage(ChatColor.GOLD + "" + ChatColor.BOLD + "Season " + entry.getKey() + " is over! " + ChatColor.GRAY
                         + "Your best: " + book.ladder().format(result.elo) + ChatColor.GRAY + ". " + ChatColor.YELLOW
                         + season.name() + ChatColor.GRAY + " has begun: every ranked ELO starts again from 0. /season");
+                player.sendMessage(ChatColor.GRAY + "Your badge of the season: " + NameLooks.seasonBadge(entry.getKey(),
+                        result.division, book.ladder()).text() + ChatColor.GRAY + ", to wear after your name: /style badges");
             }
             points(stats, season.reward(result.division), "season " + entry.getKey() + ": " + result.division);
         }
@@ -510,10 +515,14 @@ final class StatsService {
         return xp;
     }
 
+    void setPrestiges(java.util.function.BiConsumer<UUID, Integer> prestiges) {
+        this.prestiges = prestiges;
+    }
+
     /**
-     * After an XP gain: a new level gives Rago Points (the level times the points of a level), maybe
-     * a new colour of the level tag, and unlocks what the shop sells at that level. Then the listener.
-     * The caller writes the file.
+     * After an XP gain: a new level gives Rago Points (the level times the points of a level, as at
+     * the level 100 after it), maybe a new colour of the level tag, and unlocks what the shop sells
+     * at that level; a prestige is told to everyone. Then the listener. The caller writes the file.
      */
     private void gained(PlayerStats stats, Integer oldXp) {
         if (oldXp == null || stats.xp() == oldXp) {
@@ -523,26 +532,48 @@ final class StatsService {
         int oldLevel = levels.level(oldXp);
         int level = levels.level(stats.xp());
         if (level > oldLevel) {
-            int reward = 0;
-            for (int reached = oldLevel + 1; reached <= level; reached++) {
-                reward += reached * server.points().perLevel;
-            }
+            int reward = levelPoints(oldLevel, level, server.points().perLevel);
             Player player = Bukkit.getPlayer(stats.id());
             if (player != null) {
                 player.sendMessage(ChatColor.AQUA + "" + ChatColor.BOLD + "LEVEL UP! " + ChatColor.GRAY + "You are now "
                         + ChatColor.AQUA + "Network Level " + level + " " + levels.tag(level) + ChatColor.GRAY + ".");
                 player.playSound(player.getLocation(), Sound.LEVEL_UP, 1f, 1f);
-                if (!levels.colour(level).equals(levels.colour(oldLevel))) {
+                if (!levels.codes(level).equals(levels.codes(oldLevel))) {
                     player.sendMessage(ChatColor.GRAY + "Your level tag has a new colour: " + levels.tag(level));
                 }
                 for (String unlocked : unlocked(oldLevel, level)) {
                     player.sendMessage(ChatColor.GRAY + "Unlocked in the shop (/shop): " + unlocked);
                 }
             }
+            for (int prestige : prestiges(oldLevel, level)) {
+                prestiges.accept(stats.id(), prestige);
+            }
             points(stats, reward, "level " + level);
         }
         claimRewards(stats);
         xpListener.xpChanged(stats.id());
+    }
+
+    /**
+     * The Rago Points of the levels after {@code from} up to {@code to}: each level's number times
+     * the points of a level, and after the level 100 as much as at 100.
+     */
+    static int levelPoints(int from, int to, int perLevel) {
+        long points = 0;
+        for (int reached = from + 1; reached <= to; reached++) {
+            points += (long) Math.min(reached, NetworkLevel.PRESTIGE) * perLevel;
+        }
+        return (int) Math.min(Integer.MAX_VALUE, points);
+    }
+
+    /** The prestiges (the levels 100, 200... 1000) after {@code from} up to {@code to}. */
+    static List<Integer> prestiges(int from, int to) {
+        List<Integer> prestiges = new ArrayList<>();
+        for (int level = (Math.max(0, from) / NetworkLevel.PRESTIGE + 1) * NetworkLevel.PRESTIGE; level <= to;
+                level += NetworkLevel.PRESTIGE) {
+            prestiges.add(level);
+        }
+        return prestiges;
     }
 
     /** What the shop sells from a level above the old one up to the new one. */

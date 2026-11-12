@@ -292,7 +292,7 @@ final class NetworkCommands implements CommandExecutor, TabCompleter {
                 link(sender, "boutique");
                 return true;
             case "style":
-                style(sender, args);
+                style(sender, label.equalsIgnoreCase("badge") && args.length == 0 ? new String[] {"badges"} : args);
                 return true;
             case "booster":
                 booster(sender, args);
@@ -375,6 +375,13 @@ final class NetworkCommands implements CommandExecutor, TabCompleter {
      */
     private void style(CommandSender sender, String[] args) {
         ServerSettings server = lobby.server();
+        if (args.length == 1 && args[0].matches("(?i)badges?")) {
+            Player player = player(sender);
+            if (player != null) {
+                lobby.styleMenu().openBadges(player);
+            }
+            return;
+        }
         if (args.length == 0 || !sender.hasPermission("rago.admin")) {
             Player player = player(sender);
             if (player != null) {

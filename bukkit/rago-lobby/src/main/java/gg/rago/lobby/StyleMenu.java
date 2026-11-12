@@ -10,18 +10,19 @@ import org.bukkit.entity.Player;
 
 /**
  * The colours of name and the badges (/style, the profile, the shop): how the player looks in the
- * chat, then every colour and every badge, those they own to wear (a click), the others with how
- * to get them: the PREMIUM rank, the store, or a Network level. The colours of the + of
- * [PREMIUM+] have their own page. Main thread only.
+ * chat, then every colour, those they own to wear (a click), the others with how to get them: the
+ * PREMIUM rank, the store, Rago Points or a Network level. The badges (with those of the ranked
+ * seasons the player ended) and the colours of the + of [PREMIUM+] have their own pages. Main
+ * thread only.
  */
 final class StyleMenu {
 
     /** The wool of each colour character, 0 to f: the colour of a name on an item. */
     private static final int[] WOOL = {15, 11, 13, 9, 14, 10, 1, 8, 7, 11, 5, 3, 14, 2, 4, 0};
-    /** Badges start on the fourth row. */
-    private static final int BADGES_FROM = 21;
     /** The four rows of seven. */
     private static final int LAST = 28;
+    /** The badges, at the bottom of the first page. */
+    static final int BADGES_SLOT = 52;
 
     private final Profiles profiles;
     private final StatsBook book;
@@ -68,9 +69,10 @@ final class StyleMenu {
                 names.headPrefix(id) + player.getName() + LobbyScoreboard.suffix(names.badgeAfter(id),
                         " " + book.levels().tag(book.level(id))),
                 "",
-                "Colours of name below, badges",
-                "under them. Click one you own",
-                "to wear it.")), null);
+                "Colours of name below: click one",
+                "you own to wear it. The badges",
+                "and the colour of your + are at",
+                "the bottom.")), null);
 
         NameStyle colour = names.colour(id);
         String plain = rank.nameColour();
@@ -83,7 +85,7 @@ final class StyleMenu {
                 });
         int i = 1;
         for (NameStyle style : server.styles(NameStyle.Kind.COLOUR)) {
-            if (i >= BADGES_FROM) {
+            if (i >= LAST) {
                 break;
             }
             boolean owned = names.owns(profile, style);
@@ -101,27 +103,14 @@ final class StyleMenu {
         }
 
         NameStyle badge = names.badge(id);
-        menu.set(ShopMenu.slotOf(BADGES_FROM), ClickMenu.item(Material.BARRIER, 0, ChatColor.GRAY + "No badge",
-                listOf("Badge", "", badge == null ? ChatColor.GREEN + "Worn" : ChatColor.YELLOW + "Click to take your badge off")),
-                (p, right) -> {
-                    profiles.wear(p, NameStyle.Kind.BADGE, null);
-                    open(p);
-                });
-        i = BADGES_FROM + 1;
-        for (NameStyle style : server.styles(NameStyle.Kind.BADGE)) {
-            if (i >= LAST) {
-                break;
-            }
-            boolean owned = names.owns(profile, style);
-            List<String> lore = listOf("Badge, after your name", "", names.prefix(id) + names.name(id, player.getName()) + " "
-                    + style.text(), "");
-            lore.add(how(style));
-            lore.add("");
-            lore.add(style == badge ? ChatColor.GREEN + "Worn " + ChatColor.GRAY + "(click to take off)"
-                    : owned ? ChatColor.YELLOW + "Click to wear" : ChatColor.RED + "Locked");
-            menu.set(ShopMenu.slotOf(i++), ClickMenu.item(owned ? Material.NAME_TAG : Material.PAPER, 0, style.text(), lore),
-                    (p, right) -> pick(p, style, owned));
-        }
+        menu.set(BADGES_SLOT, ClickMenu.item(Material.NAME_TAG, 0, ChatColor.YELLOW + "Badges", listOf(
+                "A short word after your name, in",
+                "the chat, the tab list and above",
+                "your head.",
+                "",
+                "Yours: " + (badge == null ? ChatColor.DARK_GRAY + "none" : badge.text()),
+                "",
+                ChatColor.YELLOW + "Click to choose")), (p, right) -> openBadges(p));
 
         NameStyle plus = names.plus(id);
         menu.set(46, ClickMenu.item(Material.NETHER_STAR, 0, ChatColor.LIGHT_PURPLE + "Colour of your " + names.plusColour(id) + "+",
@@ -142,6 +131,55 @@ final class StyleMenu {
         if (back != null) {
             menu.set(48, ClickMenu.back("your profile"), back);
         }
+        menu.open(player);
+    }
+
+    /**
+     * The badges: none, those of the ranked seasons the player ended (the latest first, "§bS2
+     * Diamond"), then those of config.yml, owned or not.
+     */
+    void openBadges(Player player) {
+        NameLooks names = profiles.names();
+        UUID id = player.getUniqueId();
+        PlayerStats profile = profiles.of(player);
+        NameStyle badge = names.badge(id);
+        String name = names.prefix(id) + names.name(id, player.getName());
+        ClickMenu menu = new ClickMenu(6, "Badges");
+        EloLadder ladder = book.ladder();
+        String example = NameLooks.seasonBadge(names.server().season().number(), ladder.divisions().get(
+                Math.min(3, ladder.divisions().size() - 1)).name(), ladder).text();
+        menu.set(4, ClickMenu.item(Material.NAME_TAG, 0, ChatColor.GREEN + "Your badge", listOf(
+                name + names.badgeAfter(id),
+                "",
+                "After your name, in the chat,",
+                "the tab list and above your head.",
+                "",
+                "End a ranked season in a division",
+                "to get its badge: " + example + ChatColor.GRAY + ".")), null);
+        menu.set(ShopMenu.slotOf(0), ClickMenu.item(Material.BARRIER, 0, ChatColor.GRAY + "No badge",
+                listOf("Badge", "", badge == null ? ChatColor.GREEN + "Worn" : ChatColor.YELLOW + "Click to take your badge off")),
+                (p, right) -> {
+                    profiles.wear(p, NameStyle.Kind.BADGE, null);
+                    openBadges(p);
+                });
+        List<NameStyle> badges = names.seasonBadges(profile);
+        badges.addAll(profiles.server().styles(NameStyle.Kind.BADGE));
+        int i = 1;
+        for (NameStyle style : badges) {
+            if (i >= LAST) {
+                break;
+            }
+            boolean owned = names.owns(profile, style);
+            boolean worn = badge != null && badge.key().equals(style.key());
+            List<String> lore = listOf("Badge, after your name", "", name + " " + style.text(), "");
+            lore.add(how(style));
+            lore.add("");
+            lore.add(worn ? ChatColor.GREEN + "Worn " + ChatColor.GRAY + "(click to take off)"
+                    : owned ? ChatColor.YELLOW + "Click to wear" : ChatColor.RED + "Locked");
+            org.bukkit.inventory.ItemStack item = ClickMenu.item(owned ? Material.NAME_TAG : Material.PAPER, 0, style.text(), lore);
+            menu.set(ShopMenu.slotOf(i++), worn ? ClickMenu.glow(item) : item, (p, right) -> pick(p, style, owned));
+        }
+        menu.set(49, ClickMenu.back("your colours and badges"), (p, right) -> open(p));
         menu.open(player);
     }
 
@@ -215,6 +253,9 @@ final class StyleMenu {
                 player.sendMessage(style.text() + ChatColor.GRAY + " The top of each leaderboard of the week wears it"
                         + " until the next results, on Monday: the walls of the lobby show this week's.");
                 break;
+            case SEASON:
+                player.sendMessage(ChatColor.GRAY + "End a ranked season in a division to get its badge (/season).");
+                break;
             case POINTS:
                 String why = profiles.cannotBuy(player, style.price(), 0);
                 if (why != null) {
@@ -239,10 +280,12 @@ final class StyleMenu {
         }
     }
 
-    /** Back to the page of this style: the + have their own. */
+    /** Back to the page of this style: the badges and the + have their own. */
     private void reopen(Player player, NameStyle style) {
         if (style.kind() == NameStyle.Kind.PLUS) {
             openPlus(player);
+        } else if (style.kind() == NameStyle.Kind.BADGE) {
+            openBadges(player);
         } else {
             open(player);
         }
@@ -270,6 +313,8 @@ final class StyleMenu {
                 return ChatColor.GOLD + "Price: " + String.format(java.util.Locale.US, "%,d", style.price()) + " Rago Points";
             case WEEK:
                 return ChatColor.GOLD + "Top of a leaderboard of the week";
+            case SEASON:
+                return ChatColor.AQUA + "Your division in season " + NameLooks.seasonOf(style.id());
             default:
                 return ChatColor.GOLD + "On the store";
         }

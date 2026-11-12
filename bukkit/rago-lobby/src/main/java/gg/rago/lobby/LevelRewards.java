@@ -8,10 +8,11 @@ import java.util.Map;
 import java.util.TreeMap;
 
 /**
- * The rewards of the Network levels (config.yml, niveau.recompenses): one every 5 levels up to 100
- * by default, Rago Points and things to keep: a cosmetic of the shop (by its id, "trail-clouds"),
- * a colour of name or a badge (by its key, "couleur-or", "badge-centurion"). A player gets the
- * rewards of every level they reach, those they passed before the rewards existed too. Immutable.
+ * The rewards of the Network levels (config.yml, niveau.recompenses, then niveau.prestiges): one
+ * every 5 levels up to 100 by default, then one at each prestige (200, 300... 1000), Rago Points
+ * and things to keep: a cosmetic of the shop (by its id, "trail-clouds"), a colour of name or a
+ * badge (by its key, "couleur-or", "badge-centurion"). A player gets the rewards of every level
+ * they reach, those they passed before the rewards existed too. Immutable.
  */
 final class LevelRewards {
 
@@ -85,7 +86,10 @@ final class LevelRewards {
         return 0;
     }
 
-    /** One reward every 5 levels, up to the level 100. */
+    /**
+     * One reward every 5 levels up to the level 100, then Rago Points at each prestige: 20,000 at
+     * 200, 5,000 more at each next one, 100,000 at 1000.
+     */
     static LevelRewards defaults() {
         List<Reward> all = new ArrayList<>();
         all.add(items(5, 500, "plus-jaune"));
@@ -108,6 +112,10 @@ final class LevelRewards {
         all.add(items(90, 0, "kill-explosion"));
         all.add(items(95, 0, "trail-redstone"));
         all.add(items(100, 10_000, "couleur-legende", "badge-centurion"));
+        for (int level = 2 * NetworkLevel.PRESTIGE; level < NetworkLevel.MAX_LEVEL; level += NetworkLevel.PRESTIGE) {
+            all.add(items(level, 20_000 + (level / NetworkLevel.PRESTIGE - 2) * 5_000));
+        }
+        all.add(items(NetworkLevel.MAX_LEVEL, 100_000));
         return new LevelRewards(all);
     }
 
