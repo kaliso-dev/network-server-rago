@@ -1,5 +1,7 @@
 package gg.rago.practice;
 
+import java.util.Arrays;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.LinkedHashMap;
 import java.util.Map;
@@ -38,6 +40,9 @@ final class Arena {
     private final Set<Block> placed = new HashSet<>();
     /** The map copied into the zone, or null when the mode builds its own arena. */
     private MapZones.ZoneMap map;
+    /** The blocks the mode builds while the zone is fresh, for the replays (five numbers each); null: not kept. */
+    private int[] design;
+    private int designLength;
 
     /**
      * @param fresh true the first time this zone is used by its mode: the mode builds it then
@@ -121,6 +126,65 @@ final class Arena {
     @SuppressWarnings("deprecation") // Block#setTypeIdAndData: the 1.8 way to set a block with its data
     void build(int dx, int dy, int dz, Material type, int data) {
         block(dx, dy, dz).setTypeIdAndData(type.getId(), (byte) data, false);
+        if (design != null) {
+            if (designLength + 5 > design.length) {
+                design = Arrays.copyOf(design, Math.max(1024, design.length * 2));
+            }
+            design[designLength++] = dx;
+            design[designLength++] = dy;
+            design[designLength++] = dz;
+            design[designLength++] = type.getId();
+            design[designLength++] = data;
+        }
+    }
+
+    /** The blocks the mode builds from now on are kept, for the replays of the zone (see {@link #design}). */
+    void keepDesign() {
+        design = new int[1024];
+        designLength = 0;
+    }
+
+    /** The blocks the mode built since {@link #keepDesign}: x, y, z from the centre, id, data each; null if not kept. */
+    int[] design() {
+        return design == null ? null : Arrays.copyOf(design, designLength);
+    }
+
+    /**
+     * The arena as it is now, from a design (its blocks as built, five numbers each, from the
+     * centre): the design, and over it the blocks changed since the last restore as they are now
+     * (a bed of this round...). The design itself when nothing changed.
+     */
+    @SuppressWarnings("deprecation") // Block#getTypeId and getData: the 1.8 block id and data
+    int[] now(int[] design) {
+        if (changed.isEmpty()) {
+            return design;
+        }
+        Map<Long, int[]> current = new HashMap<>();
+        for (Block block : changed.keySet()) {
+            int dx = block.getX() - x;
+            int dy = block.getY() - y;
+            int dz = block.getZ() - z;
+            current.put(key(dx, dy, dz), new int[] {dx, dy, dz, block.getTypeId(), block.getData()});
+        }
+        int[] stage = new int[design.length + current.size() * 5];
+        int length = 0;
+        for (int i = 0; i + 4 < design.length; i += 5) {
+            if (!current.containsKey(key(design[i], design[i + 1], design[i + 2]))) {
+                System.arraycopy(design, i, stage, length, 5);
+                length += 5;
+            }
+        }
+        for (int[] block : current.values()) {
+            if (block[3] != 0) {
+                System.arraycopy(block, 0, stage, length, 5);
+                length += 5;
+            }
+        }
+        return Arrays.copyOf(stage, length);
+    }
+
+    private static long key(int dx, int dy, int dz) {
+        return ((long) dx << 40) ^ (((long) dz & 0xFFFFFL) << 12) ^ (dy & 0xFFFL);
     }
 
     void build(int dx, int dy, int dz, Material type) {

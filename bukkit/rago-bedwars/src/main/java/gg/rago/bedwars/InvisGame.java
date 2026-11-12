@@ -127,6 +127,12 @@ final class InvisGame extends BedwarsGame {
         sidebars();
     }
 
+    /** Not kept for /replay: a practice in rounds whose players come and go. */
+    @Override
+    boolean recorded() {
+        return false;
+    }
+
     @Override
     boolean joinable() {
         return phase == Phase.WAITING && round < 0 && present().size() < MAX_PLAYERS;

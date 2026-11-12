@@ -98,6 +98,12 @@ final class FfaGame extends BedwarsGame {
     }
 
     /** True while one more player can join this game. */
+    /** Not kept for /replay: open to everyone, no teams. */
+    @Override
+    boolean recorded() {
+        return false;
+    }
+
     @Override
     boolean joinable() {
         return phase != Phase.ENDED && present().size() < MAX_PLAYERS;

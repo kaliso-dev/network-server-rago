@@ -78,6 +78,12 @@ final class LobbyCommands implements TabExecutor {
                 return duel(player, args);
             case "hypixel":
                 return hypixel(player, args);
+            case "replay":
+                if (lobby.replayService() == null) {
+                    player.sendMessage(ChatColor.RED + "Replays are off on this server.");
+                    return true;
+                }
+                return lobby.replayService().command(player, args);
             case "lobby":
                 // /lobby and /l take everyone back, as on Hypixel; the staff words stay for the staff
                 if (args.length == 0 || !player.hasPermission("rago.lobby.admin")
@@ -309,6 +315,9 @@ final class LobbyCommands implements TabExecutor {
         }
         if (command.getName().equals("chat") && args.length == 1) {
             return startingWith(Arrays.asList("party", "all"), args[0]);
+        }
+        if (command.getName().equals("replay") && args.length == 1) {
+            return startingWith(Collections.singletonList("leave"), args[0]);
         }
         if (command.getName().equals("duel")) {
             if (args.length == 1) {

@@ -36,6 +36,17 @@ file:
 # [PLAY AGAIN] [LEAVE] in the chat), before going back to the lobby: 0 to 10, 0 for at once.
 fin-de-partie-secondes: 3
 
+# Replays: the duels and the Bed Wars games are recorded, and /replay shows a player their last
+# games (or any game by its code, /replay CODE; [REPLAY] at the end of a game). Kept "jours" days,
+# within "taille-max-mo" MB (the oldest go first) in plugins/RagoLobby/replays: a few dozen KB
+# for a duel, a few hundred for a Bed Wars game. spectateurs-max: replays watched at the same time.
+# actif: false records nothing.
+replays:
+  actif: true
+  jours: 3
+  taille-max-mo: 2000
+  spectateurs-max: 6
+
 # The categories of the selector, one per zone of the lobby, in the order of the menu (7 at most):
 # left to right, as in the lobby. The compass first shows the categories, then the games of the
 # one picked (28 modes at most per category). Without a categories section, the compass shows

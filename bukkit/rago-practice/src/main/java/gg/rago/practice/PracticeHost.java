@@ -5,13 +5,19 @@ import gg.rago.game.GameMode;
 import gg.rago.game.MatchProposal;
 import gg.rago.game.QueueEntry;
 import gg.rago.lobby.api.MatchHost;
+import gg.rago.lobby.api.ReplaySetup;
+import gg.rago.lobby.api.Replays;
 import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 import java.util.UUID;
 import java.util.logging.Level;
 import org.bukkit.Bukkit;
+import org.bukkit.ChatColor;
 import org.bukkit.entity.Player;
 
 /**
@@ -37,6 +43,9 @@ final class PracticeHost implements MatchHost {
     private PracticeGame openGame;
     /** The maps copied into the zones of the mode, or null when the mode builds its own arena. */
     private MapZones zones;
+    /** The blocks of each zone as the mode built them, for the replays (zones built alike share one array). */
+    private final Map<Integer, int[]> designs = new HashMap<>();
+    private int[] lastDesign;
 
     /**
      * @param rowZ the z of the mode's row of zones in the arena world
@@ -120,6 +129,11 @@ final class PracticeHost implements MatchHost {
             built.remove(slot);
             throw e;
         }
+        // a duel is recorded for /replay: the blocks of its arena are kept when the mode builds it
+        Replays replays = !open && game instanceof Duel ? plugin.lobby().replays() : null;
+        if (replays != null && arena.fresh()) {
+            arena.keepDesign();
+        }
         games.add(game);
         try {
             game.begin();
@@ -129,12 +143,43 @@ final class PracticeHost implements MatchHost {
             finished(game);
             // built again next time, in case the build itself failed half way
             built.remove(slot);
+            designs.remove(slot);
             throw e;
         }
         if (open) {
             openGame = game;
         }
+        if (replays != null) {
+            record(replays, game, arena, slot);
+        }
         return true;
+    }
+
+    /** Starts the replay of this game, on its arena as it is now (its first round about to start). */
+    private void record(Replays replays, PracticeGame game, Arena arena, int slot) {
+        int[] design;
+        if (zones != null) {
+            design = zones.mapOf(slot).copy.blocks();
+        } else if (arena.fresh()) {
+            design = arena.design();
+            if (Arrays.equals(design, lastDesign)) {
+                design = lastDesign;
+            }
+            lastDesign = design;
+            designs.put(slot, design);
+        } else {
+            design = designs.get(slot);
+        }
+        if (design == null) {
+            return;
+        }
+        int half = grid.spacing() / 2;
+        int halfRow = RagoPractice.ROW_SPACING / 2;
+        ReplaySetup setup = ReplaySetup.ofBlocks(modeId, ChatColor.stripColor(game.mode.name()),
+                arena.map() == null ? "" : arena.map().name, arena.world(), arena.centreX(), arena.floorY(), arena.centreZ(),
+                arena.centreX() - half, arena.centreX() + half - 1, arena.centreZ() - halfRow, arena.centreZ() + halfRow - 1,
+                arena.now(design));
+        game.record(replays.record(setup));
     }
 
     @Override

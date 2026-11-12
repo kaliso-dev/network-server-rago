@@ -11,9 +11,10 @@ import org.bukkit.entity.Player;
  * What comes after a game, as on Hypixel and Minemen: back in the lobby, [PLAY AGAIN] and the
  * Play again paper of the hotbar queue the same mode again, and after a 1v1 that is not ranked,
  * [REMATCH] challenges the same opponent to a
- * duel. A player with "Play again" on in /settings is put back in the queue at once (not after
- * leaving with /spawn). Nothing for a mode hidden from the selector (the events) or closed; in a
- * party, only its leader queues. Main thread only.
+ * duel, and [REPLAY] shows the game again when it was recorded (/replay). A player with "Play
+ * again" on in /settings is put back in the queue at once (not after leaving with /spawn). Nothing
+ * for a mode hidden from the selector (the events) or closed; in a party, only its leader queues.
+ * Main thread only.
  */
 final class NextGame {
 
@@ -52,7 +53,9 @@ final class NextGame {
             lobby.queues().join(player, mode);
             queues = false;
         }
-        String json = json(mode.id(), queues, ChatColor.stripColor(mode.name()), rematch);
+        ReplayService replays = lobby.replayService();
+        String replay = replays == null ? null : replays.recentOf(player.getUniqueId(), mode.id());
+        String json = json(mode.id(), queues, ChatColor.stripColor(mode.name()), rematch, replay);
         if (json != null) {
             // clickable through the vanilla /tellraw, as the duel buttons: names are letters, digits and _
             Bukkit.dispatchCommand(Bukkit.getConsoleSender(), "tellraw " + player.getName() + " " + json);
@@ -64,19 +67,33 @@ final class NextGame {
      * [REMATCH] in the same mode when {@code rematch} (the opponent's name) is set; null with neither.
      */
     static String json(String modeId, boolean playAgain, String modeName, String rematch) {
-        if (!playAgain && rematch == null) {
+        return json(modeId, playAgain, modeName, rematch, null);
+    }
+
+    /** The same, with [REPLAY] last when the game was recorded ({@code replay}: its code). */
+    static String json(String modeId, boolean playAgain, String modeName, String rematch, String replay) {
+        if (!playAgain && rematch == null && replay == null) {
             return null;
         }
         StringBuilder json = new StringBuilder("[\"\"");
+        boolean first = true;
         if (playAgain) {
             json.append(',').append(button("[PLAY AGAIN]", "green", "/queue " + modeId, "Queue " + modeName + " again"));
+            first = false;
         }
         if (rematch != null) {
-            if (playAgain) {
+            if (!first) {
                 json.append(",{\"text\":\"   \"}");
             }
             json.append(',').append(button("[REMATCH]", "gold", "/duel " + rematch + " " + modeId,
                     "Challenge " + rematch + " to another " + modeName));
+            first = false;
+        }
+        if (replay != null) {
+            if (!first) {
+                json.append(",{\"text\":\"   \"}");
+            }
+            json.append(',').append(button("[REPLAY]", "aqua", "/replay " + replay, "Watch this game again"));
         }
         return json.append(']').toString();
     }

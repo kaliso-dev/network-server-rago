@@ -1,6 +1,7 @@
 package gg.rago.practice;
 
 import gg.rago.lobby.api.EndOfGame;
+import gg.rago.lobby.api.ReplayRecording;
 import java.util.Collections;
 import java.util.UUID;
 import org.bukkit.Bukkit;
@@ -54,6 +55,8 @@ final class SumoMatch {
     private BukkitTask countdown;
     /** The rounds started: the first one waits 3 seconds, the next ones a second. */
     private int round;
+    /** The recording of the duel for /replay, or null. */
+    private ReplayRecording replay;
 
     SumoMatch(RagoPractice plugin, SumoHost host, int slot, Location centre, String map, Player first, Player second,
             int target) {
@@ -94,6 +97,26 @@ final class SumoMatch {
     /** Height under which a player has fallen off. */
     double fallY() {
         return centre.getY() - FALL_DEPTH;
+    }
+
+    /** The duel is recorded from now on (null: it is not): red the first player, blue the second. */
+    void record(ReplayRecording recording) {
+        replay = recording;
+        if (recording == null) {
+            return;
+        }
+        for (int side = 0; side < 2; side++) {
+            Player player = Bukkit.getPlayer(players[side]);
+            if (player != null) {
+                recording.actor(player, Duel.CHAT[side]);
+            }
+        }
+    }
+
+    private void replayChat(String line) {
+        if (replay != null) {
+            replay.chat(line);
+        }
     }
 
     void begin() {
@@ -168,6 +191,7 @@ final class SumoMatch {
         // A point is a kill for the scorer and a death for the player who fell.
         plugin.lobby().recordKill(SumoHost.MODE_ID, players[scorer], players[side]);
         boolean won = score.point(scorer);
+        replayChat(Duel.CHAT[scorer] + "Point for " + names[scorer] + ChatColor.GRAY + " (" + score.text(0) + ")");
         for (int s = 0; s < 2; s++) {
             Player p = Bukkit.getPlayer(players[s]);
             if (p != null) {
@@ -216,6 +240,8 @@ final class SumoMatch {
                 player.sendMessage(ChatColor.RED + "Defeat." + ChatColor.GRAY + " (" + score.text(side) + ")");
             }
         }
+        replayChat(ChatColor.GOLD + "" + ChatColor.BOLD + names[winner] + " won! " + ChatColor.GRAY + "(" + score.text(winner) + ")"
+                + (forfeit ? " " + names[1 - winner] + " gave up." : ""));
         if (!recap.isEmpty()) {
             java.util.List<String> lines = recap.lines(java.util.Arrays.asList(Collections.singletonList(players[0]),
                     Collections.singletonList(players[1])), id -> names[sideOf(id)], Duel.CHAT);
@@ -227,6 +253,13 @@ final class SumoMatch {
                     }
                 }
             }
+            for (String line : lines) {
+                replayChat(line);
+            }
+        }
+        if (replay != null) {
+            replay.finish(ChatColor.stripColor(names[winner]) + " won (" + score.text(winner) + ")" + (forfeit ? ", forfeit" : ""));
+            replay = null;
         }
         // the winner and their victory effect for a few seconds, Play again and Leave usable at once
         int seconds = plugin.lobby().endSeconds();
@@ -257,6 +290,10 @@ final class SumoMatch {
     void abort() {
         phase = Phase.ENDED;
         cancelCountdown();
+        if (replay != null) {
+            replay.cancel();
+            replay = null;
+        }
         for (UUID id : players) {
             Player player = Bukkit.getPlayer(id);
             if (player != null && host.matchOf(id) == this) {
@@ -275,6 +312,7 @@ final class SumoMatch {
     }
 
     private void broadcast(String message, Sound sound) {
+        replayChat(message);
         for (UUID id : players) {
             Player player = Bukkit.getPlayer(id);
             if (player != null && host.matchOf(id) == this) {

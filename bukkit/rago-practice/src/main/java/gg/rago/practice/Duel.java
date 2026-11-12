@@ -69,6 +69,11 @@ abstract class Duel extends PracticeGame {
     }
 
     @Override
+    ChatColor sideColour(int side) {
+        return CHAT[Math.max(0, Math.min(CHAT.length - 1, side))];
+    }
+
+    @Override
     void fell(Player player) {
         out(player, true);
     }
@@ -130,6 +135,7 @@ abstract class Duel extends PracticeGame {
             return;
         }
         points[side]++;
+        replayChat(CHAT[side] + "Point for " + TEAMS[side] + ChatColor.GRAY + " (" + points[0] + " - " + points[1] + ")");
         for (Player player : online()) {
             int mine = sideOf(player.getUniqueId());
             player.sendMessage((mine == side ? ChatColor.GREEN + "Point for your team" : ChatColor.RED + "Point for " + TEAMS[side])

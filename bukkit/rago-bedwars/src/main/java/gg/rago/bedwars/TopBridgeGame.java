@@ -92,6 +92,12 @@ class TopBridgeGame extends BedwarsGame {
                 + pointsToWin() + " points wins.";
     }
 
+    /** The private top bridge of a party, a practice, is not kept for /replay; a game of rounds is. */
+    @Override
+    boolean recorded() {
+        return !practice;
+    }
+
     @Override
     boolean hasTopBridge() {
         return true;

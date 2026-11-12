@@ -4,6 +4,9 @@ import gg.rago.game.ArenaGrid;
 import gg.rago.game.MatchProposal;
 import gg.rago.lobby.api.EndOfGame;
 import gg.rago.lobby.api.MatchHost;
+import gg.rago.lobby.api.ReplayRecording;
+import gg.rago.lobby.api.ReplaySetup;
+import gg.rago.lobby.api.Replays;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -12,6 +15,7 @@ import java.util.Map;
 import java.util.Set;
 import java.util.UUID;
 import org.bukkit.Bukkit;
+import org.bukkit.ChatColor;
 import org.bukkit.Location;
 import org.bukkit.Material;
 import org.bukkit.World;
@@ -53,6 +57,8 @@ final class SumoHost implements MatchHost, Listener {
     private final Set<Integer> built = new HashSet<>();
     private final Map<UUID, SumoMatch> matches = new HashMap<>();
     private final List<SumoMatch> running = new ArrayList<>();
+    /** The plain platform's blocks from its centre, for the replays (made at the first one). */
+    private int[] plainDesign;
 
     SumoHost(RagoPractice plugin, World world, ArenaGrid grid, int radius, int target, List<MapZones.ZoneMap> maps) {
         this.plugin = plugin;
@@ -84,7 +90,42 @@ final class SumoHost implements MatchHost, Listener {
         matches.put(second.getUniqueId(), duel);
         running.add(duel);
         duel.begin();
+        duel.record(record(slot, map, ChatColor.stripColor(match.mode().name())));
         return true;
+    }
+
+    /** The recording of a duel in this slot for /replay, or null when the lobby keeps no replays. */
+    @SuppressWarnings("deprecation") // Material#getId: the 1.8 block id
+    private ReplayRecording record(int slot, String map, String modeName) {
+        Replays replays = plugin.lobby().replays();
+        if (replays == null) {
+            return null;
+        }
+        int[] design;
+        if (!zones.isEmpty()) {
+            design = zones.mapOf(slot).copy.blocks();
+        } else {
+            if (plainDesign == null) {
+                List<Integer> blocks = new ArrayList<>();
+                for (int x = -radius; x <= radius; x++) {
+                    for (int z = -radius; z <= radius; z++) {
+                        if (x * x + z * z <= radius * radius) {
+                            blocks.addAll(java.util.Arrays.asList(x, 0, z, Material.QUARTZ_BLOCK.getId(), 0));
+                        }
+                    }
+                }
+                plainDesign = new int[blocks.size()];
+                for (int i = 0; i < plainDesign.length; i++) {
+                    plainDesign[i] = blocks.get(i);
+                }
+            }
+            design = plainDesign;
+        }
+        int cx = grid.centreX(slot);
+        int half = grid.spacing() / 2;
+        int halfRow = RagoPractice.ROW_SPACING / 2;
+        return replays.record(ReplaySetup.ofBlocks(MODE_ID, modeName, map == null ? "" : map, world, cx, RagoPractice.ARENA_Y, 0,
+                cx - half, cx + half - 1, -halfRow, halfRow - 1, design));
     }
 
     @Override
