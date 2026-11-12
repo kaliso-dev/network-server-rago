@@ -298,6 +298,57 @@ final class StatsService {
     }
 
     /**
+     * A step of Getting started done (a training, a record, a duel...), if this server offers it:
+     * the first time, its Rago Points with a sound and the next step; the last one, the reward of
+     * all of them. The file is written.
+     */
+    void gettingStarted(UUID id, GettingStarted.Step step, List<GettingStarted.Step> steps) {
+        if (!steps.contains(step)) {
+            return;
+        }
+        PlayerStats stats = book.profile(id, nameOf(id));
+        if (!GettingStarted.complete(stats, step)) {
+            return;
+        }
+        GettingStarted quests = server.gettingStarted();
+        Player player = Bukkit.getPlayer(id);
+        if (player != null) {
+            player.sendMessage(ChatColor.GOLD + "" + ChatColor.BOLD + "QUEST COMPLETE! " + ChatColor.WHITE + step.title()
+                    + ChatColor.GRAY + " (getting started " + GettingStarted.done(stats, steps) + "/" + steps.size() + ")");
+            player.playSound(player.getLocation(), Sound.LEVEL_UP, 1f, 2f);
+        }
+        points(stats, quests.points(step), "getting started");
+        GettingStarted.Step next = GettingStarted.next(stats, steps);
+        if (next != null && player != null) {
+            player.sendMessage(ChatColor.YELLOW + "Next: " + ChatColor.WHITE + next.title() + ChatColor.GRAY + " - "
+                    + String.join(" ", next.how()));
+        }
+        if (GettingStarted.finish(stats, steps)) {
+            String reward = quests.reward();
+            int points = 0;
+            String got = null;
+            if (reward != null) {
+                Cosmetic cosmetic = server.cosmetics().get(reward);
+                got = rewardName(server, reward);
+                if (!stats.cosmetics().add(reward) && cosmetic != null) {
+                    points += cosmetic.price();
+                    got += ChatColor.GRAY + " (yours already: its price in points)";
+                }
+            }
+            if (player != null) {
+                player.sendMessage(ChatColor.AQUA + "" + ChatColor.BOLD + "GETTING STARTED COMPLETE! " + ChatColor.GRAY
+                        + (got == null ? "Well done." : got));
+                if (got != null) {
+                    player.sendMessage(ChatColor.GRAY + "Equip it in your profile, the shop or with /style.");
+                }
+                player.playSound(player.getLocation(), Sound.LEVEL_UP, 1f, 1f);
+            }
+            points(stats, points, "getting started");
+        }
+        save(stats);
+    }
+
+    /**
      * Gives the rewards of the levels the player reached and did not get yet (all of them for a
      * player of before the rewards): Rago Points, cosmetics, colours of name, badges. A cosmetic
      * already bought gives its price back in points. Returns true if anything was given.

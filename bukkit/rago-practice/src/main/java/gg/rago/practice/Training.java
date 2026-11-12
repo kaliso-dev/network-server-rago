@@ -688,7 +688,7 @@ abstract class Training extends PracticeGame {
                     + ChatColor.GRAY + " (before: " + format(result.previous) + ")");
             sound(player, Sound.LEVEL_UP, 1f);
         } else if (quiet) {
-            return;
+            // a streak that goes on: nothing to say
         } else if (result.previous == null) {
             player.sendMessage(ChatColor.GREEN + "First score: " + ChatColor.WHITE + format(value));
             sound(player, Sound.ORB_PICKUP, 1f);
@@ -696,6 +696,8 @@ abstract class Training extends PracticeGame {
             player.sendMessage(ChatColor.GREEN + format(value) + ChatColor.GRAY + " (your best: " + format(result.previous) + ")");
             sound(player, Sound.ORB_PICKUP, 1f);
         }
+        // the quests of a new player, after the score: a training played, a record beaten
+        host.plugin().lobby().trainingScored(player, mode.id(), result.personalBest && result.previous != null);
     }
 
     /**

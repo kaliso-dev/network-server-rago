@@ -82,13 +82,14 @@ final class ServerSettings {
     private final Map<String, List<String>> links;
     private final LevelRewards levelRewards;
     private final Quests quests;
+    private final GettingStarted gettingStarted;
     private final StarterPack starterPack;
     private final Season season;
 
     private ServerSettings(Ranks ranks, Map<String, NameStyle> styles, EloLadder elo, Points points, Map<String, Cosmetic> cosmetics, long chatCooldownMillis,
             boolean blockRepeats, List<String> tabHeader, List<String> tabFooter, List<String> motd, int announceMinutes,
             List<String> announcements, Map<String, List<String>> links, LevelRewards levelRewards, Quests quests,
-            StarterPack starterPack, Season season) {
+            GettingStarted gettingStarted, StarterPack starterPack, Season season) {
         this.ranks = ranks;
         this.styles = Collections.unmodifiableMap(styles);
         this.elo = elo;
@@ -104,6 +105,7 @@ final class ServerSettings {
         this.links = Collections.unmodifiableMap(links);
         this.levelRewards = levelRewards;
         this.quests = quests;
+        this.gettingStarted = gettingStarted;
         this.starterPack = starterPack;
         this.season = season;
     }
@@ -166,10 +168,11 @@ final class ServerSettings {
         }
         LevelRewards rewards = readRewards(config.getConfigurationSection("niveau.recompenses"), cosmetics, styles);
         Quests quests = readQuests(config.getConfigurationSection("quetes"));
+        GettingStarted gettingStarted = readGettingStarted(config.getConfigurationSection("quetes.debut"), cosmetics, styles);
         StarterPack pack = StarterPack.read(config.getConfigurationSection("pack-depart"), cosmetics, ranks);
         Season season = Season.read(config.getConfigurationSection("saison"), elo);
         return new ServerSettings(ranks, styles, elo, points, cosmetics, cooldown * 1000L, repeats, header, footer, motd,
-                minutes, announcements, links, rewards, quests, pack, season);
+                minutes, announcements, links, rewards, quests, gettingStarted, pack, season);
     }
 
     // --- Level rewards and quests ---------------------------------------------------------------
@@ -251,6 +254,42 @@ final class ServerSettings {
             }
         }
         return new Quests(list);
+    }
+
+    /**
+     * quetes.debut, Getting started: actif, the Rago Points of each step (points: entrainement,
+     * record, duel, quick-buy, discord) and what all of them give (recompense: a cosmetic of the
+     * shop or a style, "" for nothing). Left out: the plugin's own.
+     */
+    static GettingStarted readGettingStarted(ConfigurationSection section, Map<String, Cosmetic> cosmetics,
+            Map<String, NameStyle> styles) {
+        GettingStarted defaults = GettingStarted.defaults();
+        if (section == null) {
+            return defaults;
+        }
+        if (!section.getBoolean("actif", true)) {
+            return GettingStarted.OFF;
+        }
+        ConfigurationSection given = section.getConfigurationSection("points");
+        if (given != null) {
+            for (String key : given.getKeys(false)) {
+                if (GettingStarted.Step.of(key) == null) {
+                    throw new IllegalArgumentException("quetes.debut.points." + key + ": entrainement, record, duel, quick-buy"
+                            + " or discord");
+                }
+            }
+        }
+        Map<GettingStarted.Step, Integer> points = new java.util.EnumMap<>(GettingStarted.Step.class);
+        for (GettingStarted.Step step : GettingStarted.Step.values()) {
+            points.put(step, count(given, "quetes.debut.points", step.id(), defaults.points(step)));
+        }
+        String reward = section.getString("recompense", defaults.reward());
+        reward = reward == null ? "" : reward.trim();
+        if (!reward.isEmpty() && !cosmetics.containsKey(reward) && !styles.containsKey(reward)) {
+            throw new IllegalArgumentException("quetes.debut.recompense: no cosmetic or style " + reward
+                    + " (a cosmetic of the shop, such as trail-emeralds, or couleur-<id>, badge-<id>; \"\" for nothing)");
+        }
+        return new GettingStarted(true, points, reward);
     }
 
     // --- Ranks ----------------------------------------------------------------------------------
@@ -539,6 +578,11 @@ final class ServerSettings {
 
     Quests quests() {
         return quests;
+    }
+
+    /** Getting started, the quests of a new player (quetes.debut). */
+    GettingStarted gettingStarted() {
+        return gettingStarted;
     }
 
     /** Every colour of name and badge, by key ("couleur-rose", "badge-rago"), the colours first. */

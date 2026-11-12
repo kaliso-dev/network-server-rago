@@ -26,6 +26,8 @@ final class LobbySettings {
     private String mineskinKey = "";
     /** The welcome of the lobby at each arrival ({@link LobbyWelcome}). */
     private boolean welcome = true;
+    /** The menu of the first arrival ({@link FirstJoinMenu}): empty for none. */
+    private List<FirstChoice> firstChoices = Collections.emptyList();
     private final String title;
     private final String address;
     private final int defaultRating;
@@ -160,6 +162,7 @@ final class LobbySettings {
         if (slimeForward < 0 || slimeForward > 4 || slimeUp < 0 || slimeUp > 4) {
             throw new IllegalArgumentException("slime: avant and haut from 0 to 4");
         }
+        List<FirstChoice> firstChoices = readFirstChoices(config.getConfigurationSection("premiere-venue"), modes, categories);
         try {
             LobbySettings settings = new LobbySettings(world, voidHeight, title, address, defaultRating, window, categories,
                     groups, modes, npcs, levels, hypixelKey, privateRoutes);
@@ -167,6 +170,7 @@ final class LobbySettings {
             settings.slimeUp = slimeUp;
             settings.mineskinKey = mineskinKey;
             settings.welcome = config.getBoolean("accueil", true);
+            settings.firstChoices = Collections.unmodifiableList(firstChoices);
             return settings;
         } catch (IllegalArgumentException e) {
             throw new IllegalArgumentException("modes: " + e.getMessage(), e);
@@ -450,6 +454,76 @@ final class LobbySettings {
         return categories;
     }
 
+    /**
+     * premiere-venue: the menu of the first arrival, "What do you want to do?": per choice, nom,
+     * icone, description, and mode (its queue: a training starts at once) or categorie (its menu).
+     * Left out: the plugin's own, without those whose mode or category this server lacks; {}: none.
+     */
+    static List<FirstChoice> readFirstChoices(ConfigurationSection section, List<ModeDisplay> modes,
+            List<ModeCategory> categories) {
+        List<FirstChoice> choices = new ArrayList<>();
+        if (section == null) {
+            for (FirstChoice choice : FirstChoice.defaults()) {
+                ModeDisplay mode = choice.modeId() == null ? null : find(modes, choice.modeId());
+                if (choice.categoryId() != null ? hasCategory(categories, choice.categoryId()) : mode != null && !mode.hidden()) {
+                    choices.add(choice);
+                }
+            }
+            return choices;
+        }
+        if (section.getKeys(false).size() > FirstChoice.MAX) {
+            throw new IllegalArgumentException("premiere-venue: " + FirstChoice.MAX + " choices at most");
+        }
+        for (String id : section.getKeys(false)) {
+            String where = "premiere-venue." + id;
+            ConfigurationSection choice = section.getConfigurationSection(id);
+            if (choice == null) {
+                throw new IllegalArgumentException(where + ": not a section");
+            }
+            if (!id.matches("[a-z0-9][a-z0-9-]{0,31}")) {
+                throw new IllegalArgumentException(where + ": lowercase letters without accents, digits and dashes only");
+            }
+            String name = colour(choice.getString("nom", ""));
+            if (ChatColor.stripColor(name).trim().isEmpty() || ChatColor.stripColor(name).length() > 32) {
+                throw new IllegalArgumentException(where + ".nom: 1 to 32 characters");
+            }
+            String modeId = choice.getString("mode", null);
+            String categoryId = choice.getString("categorie", null);
+            if ((modeId == null) == (categoryId == null)) {
+                throw new IllegalArgumentException(where + ": mode (a mode to play) or categorie (a category to open), one of them");
+            }
+            if (modeId != null) {
+                ModeDisplay mode = find(modes, modeId);
+                if (mode == null || mode.hidden()) {
+                    throw new IllegalArgumentException(where + ".mode: \"" + modeId + "\" is not a mode of the compass");
+                }
+            } else if (!hasCategory(categories, categoryId)) {
+                throw new IllegalArgumentException(where + ".categorie: \"" + categoryId + "\" is not one of the categories");
+            }
+            choices.add(new FirstChoice(id, name, icon(where, choice.getString("icone", "CHEST")), description(choice), modeId,
+                    categoryId));
+        }
+        return choices;
+    }
+
+    private static ModeDisplay find(List<ModeDisplay> modes, String id) {
+        for (ModeDisplay display : modes) {
+            if (display.mode().id().equals(id)) {
+                return display;
+            }
+        }
+        return null;
+    }
+
+    private static boolean hasCategory(List<ModeCategory> categories, String id) {
+        for (ModeCategory category : categories) {
+            if (category.id().equals(id)) {
+                return true;
+            }
+        }
+        return false;
+    }
+
     /** groupes: the sizes of one game, one item in their category (nom, icone, description). */
     private static List<ModeCategory> readGroups(ConfigurationSection section) {
         List<ModeCategory> groups = new ArrayList<>();
@@ -596,6 +670,11 @@ final class LobbySettings {
     /** True to greet each arrival with the ways to play (accueil: in config.yml). */
     boolean welcome() {
         return welcome;
+    }
+
+    /** The choices of the menu of the first arrival (premiere-venue:); empty: no menu. */
+    List<FirstChoice> firstChoices() {
+        return firstChoices;
     }
 
     double slimeForward() {

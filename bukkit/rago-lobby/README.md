@@ -14,6 +14,15 @@ dans les files d'attente des modes de jeu.
   le survol montre ce qu'elle contient. À la toute première venue sur le serveur, un titre aussi
   (le `titre:` et les quatre noms).
   `accueil: false` le coupe.
+- **La première venue : « What do you want to do? ».** Deux secondes après l'accueil de sa toute
+  première venue, un joueur reçoit un menu de quatre choix, chacun à un clic de jouer : « Train a
+  skill » (le block clutch, où un nouveau commence), « Play Ranked Bedwars » (la file du 1v1
+  classé, en s'entraînant pendant l'attente), « Duel a friend » (les Duels) et « Fight now » (le
+  FFA, sans file). Un mode que le serveur ne joue pas encore ouvre sa catégorie. En bas, le livre
+  « Getting started » montre les quêtes d'un nouveau joueur et y mène. Le menu ne s'ouvre qu'une
+  fois, et pas si le joueur a déjà quitté le lobby ou ouvert un menu ; Échap le ferme. Les choix
+  se règlent dans `premiere-venue:` (sept au plus, chacun avec un `nom:`, un `mode:` ou une
+  `categorie:` de la boussole, une `icone:` et une `description:`) ; `premiere-venue: {}` le coupe.
 - **La protection.** Dans le monde du lobby : pas de dégâts, pas de faim, rien à poser, casser,
   jeter ou ramasser, pas de coffres ni de portes, pas de monstres. Les autres mondes (arènes,
   monde du test de knockback, mondes de build) ne sont pas touchés, sauf le ciel.
@@ -178,6 +187,17 @@ dans les files d'attente des modes de jeu.
   gagner une classée : 500 à 750 XP) et quatre de la semaine (40 parties, 25 victoires, 100 kills,
   10 classées : 3 000 à 5 000 XP), qui recommencent chaque jour et chaque lundi. Elles avancent
   seules et donnent leur XP une fois (avec le boost de PREMIUM). Tout se règle dans `quetes:`.
+- **Getting started : les quêtes d'un nouveau joueur.** Cinq étapes, une fois chacune et dans
+  n'importe quel ordre : jouer un entraînement (un premier score), battre un de ses records, jouer
+  un duel (un 1v1 jusqu'au bout, hors partie privée), importer son quick buy de Hypixel
+  (`/hypixel import`) et trouver le Discord (`/discord`). Chacune donne des Rago Points (100 à 150,
+  600 en tout), et toutes ensemble la traînée Emerald sparks (un joueur qui l'a déjà reçoit son
+  prix en points). Une étape que le serveur ne peut pas offrir (sans clé Hypixel, sans lien
+  Discord) n'apparaît pas. À chaque étape, « QUEST COMPLETE! » et la suivante. Tant qu'il en
+  reste, elles sont en tête de `/quests` (une rangée de plus), devant les lignes du PNJ des quêtes
+  (« Start 1/5 ») et dans le message d'arrivée. Elles sont dans le fichier du joueur et ne
+  recommencent jamais. Tout se règle dans `quetes.debut` (`actif`, `points` de chaque étape,
+  `recompense` : un cosmétique de la boutique ou un style, `''` pour rien).
 - **Les rangs.** Neuf rangs dans `rangs:` (OWNER, ADMIN, DEV, MOD, HELPER, BUILDER, MEDIA,
   PREMIUM et VIP, du plus haut au plus bas), chacun avec son préfixe, la couleur du pseudo, la couleur du chat, ses permissions et
   le rang dont il hérite. Un joueur montre le plus haut de ses rangs, dans le chat
@@ -284,8 +304,8 @@ dans les files d'attente des modes de jeu.
   la suivante, et la série de jours. Un clic dessus la donne, comme `/daily`.
 - **Le PNJ des quêtes.** À deux blocs du coffre de la récompense du jour (trois si la place est
   prise), du côté le plus loin des autres PNJ, face au spawn : un PNJ dans son skin (`quetes`),
-  un livre à la main, avec au-dessus « QUESTS », où en est chacun (« Daily 2/4 · Weekly 0/4 ») et
-  « Click to see them ». Un clic dessus (ou sur ses lignes) ouvre les quêtes du jour et de la
+  un livre à la main, avec au-dessus « QUESTS », où en est chacun (« Daily 2/4 · Weekly 0/4 »,
+  avec « Start 1/5 » devant tant que Getting started n'est pas fini) et « Click to see them ». Un clic dessus (ou sur ses lignes) ouvre les quêtes du jour et de la
   semaine, comme `/quests`. `/lobby point quests` le place ailleurs ; sans coffre ni ce point, il
   n'y en a pas.
 - **Le clic sur un joueur.** Un clic droit sur un joueur du lobby ouvre son menu : sa tête avec
@@ -507,6 +527,11 @@ quitter les files.
 Le plugin des entraînements donne son défi du jour avec `lobby.setDailyChallenge("clutch",
 "Block clutch: Island")` (`null` : aucun) : la boussole le montre au bout de « Popular now » tant
 que son mode est joué, et un clic lance `/challenge play` pour le joueur.
+
+Un entraînement dit chaque score avec `lobby.trainingScored(joueur, "clutch", record)` (`record`
+vrai pour un nouveau record personnel, pas pour le premier score) : c'est ce qui fait avancer les
+étapes « Play a training » et « Beat one of your records » de Getting started (rien dans une
+partie privée).
 
 Pour `/replay`, un jeu enregistre ses parties avec `lobby.replays()` (`null` quand les replays sont
 coupés) : `record(ReplaySetup.ofBlocks(...))` pour une arène dont les blocs tiennent dans le replay

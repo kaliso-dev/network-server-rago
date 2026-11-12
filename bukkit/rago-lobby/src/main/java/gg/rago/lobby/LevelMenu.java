@@ -11,16 +11,23 @@ import org.bukkit.entity.Player;
 /**
  * The brewing stand of the lobby hotbar (/level): the player's Network level and how far the next
  * one is, the tier they are in and the next, the reward of every 5 levels (got, next, to come), and
- * the daily and weekly quests (/quests). Main thread only.
+ * the daily and weekly quests (/quests), with Getting started first until a new player has done
+ * it all. Main thread only.
  */
 final class LevelMenu {
 
     private final StatsBook book;
     private final ServerSettings server;
+    /** The steps of Getting started on this server (some need the Hypixel key, the Discord link). */
+    private java.util.function.Supplier<List<GettingStarted.Step>> startSteps = java.util.Collections::emptyList;
 
     LevelMenu(StatsBook book, ServerSettings server) {
         this.book = book;
         this.server = server;
+    }
+
+    void setStartSteps(java.util.function.Supplier<List<GettingStarted.Step>> startSteps) {
+        this.startSteps = startSteps;
     }
 
     void open(Player player) {
@@ -150,6 +157,11 @@ final class LevelMenu {
         String day = StatsPeriod.dayKey(now);
         String week = StatsPeriod.weekKey(now);
         List<String> lore = new ArrayList<>();
+        List<GettingStarted.Step> steps = startSteps.get();
+        int started = GettingStarted.done(stats, steps);
+        if (started < steps.size()) {
+            lore.add("Getting started: " + ChatColor.YELLOW + started + "/" + steps.size());
+        }
         for (Quests.Period period : Quests.Period.values()) {
             int done = server.quests().done(stats, period, day, week);
             int count = server.quests().of(period).size();
@@ -168,8 +180,15 @@ final class LevelMenu {
         long now = System.currentTimeMillis();
         String day = StatsPeriod.dayKey(now);
         String week = StatsPeriod.weekKey(now);
-        ClickMenu menu = new ClickMenu(5, "Quests");
+        List<GettingStarted.Step> steps = startSteps.get();
+        boolean starting = GettingStarted.next(stats, steps) != null;
+        // Getting started on top, until it is all done: three rows of quests side by side
+        ClickMenu menu = new ClickMenu(starting ? 6 : 5, "Quests");
         int row = 1;
+        if (starting) {
+            startRow(menu, stats, steps);
+            row = 2;
+        }
         for (Quests.Period period : Quests.Period.values()) {
             menu.set(row * 9 + 1, ClickMenu.item(period == Quests.Period.DAILY ? Material.WATCH : Material.EMPTY_MAP, 0,
                     ChatColor.GOLD + period.title(), listOf(period.resetText(now))), null);
@@ -194,10 +213,38 @@ final class LevelMenu {
                 menu.set(slot++, ClickMenu.item(done ? Material.ENCHANTED_BOOK : Material.PAPER, 0,
                         (done ? ChatColor.GREEN : ChatColor.YELLOW) + quest.name(), lore), null);
             }
-            row += 2;
+            row += starting ? 1 : 2;
         }
-        menu.set(40, ClickMenu.back("your Network level"), (p, right) -> open(p));
+        menu.set(starting ? 49 : 40, ClickMenu.back("your Network level"), (p, right) -> open(p));
         menu.open(player);
+    }
+
+    /** Getting started, the top row: what all the steps give, then each step, done or to do. */
+    private void startRow(ClickMenu menu, PlayerStats stats, List<GettingStarted.Step> steps) {
+        GettingStarted quests = server.gettingStarted();
+        List<String> about = listOf("Once each, for a new player.", "");
+        about.add("All of them: " + ChatColor.GOLD + quests.totalPoints(steps) + " Rago Points");
+        if (quests.reward() != null) {
+            about.add("and " + StatsService.rewardName(server, quests.reward()));
+        }
+        menu.set(9 + 1, ClickMenu.glow(ClickMenu.item(Material.BOOK, 0, ChatColor.GOLD + "Getting started", about)), null);
+        int slot = 9 + 3;
+        for (GettingStarted.Step step : steps) {
+            if (slot > 9 + 7) {
+                break;
+            }
+            boolean done = GettingStarted.done(stats, step);
+            List<String> lore = new ArrayList<>();
+            lore.add("Getting started");
+            lore.add("");
+            lore.addAll(step.how());
+            lore.add("");
+            lore.add("Reward: " + ChatColor.GOLD + "+" + quests.points(step) + " Rago Points");
+            lore.add("");
+            lore.add(done ? ChatColor.GREEN + "Done!" : ChatColor.YELLOW + "To do");
+            menu.set(slot++, ClickMenu.item(done ? Material.ENCHANTED_BOOK : Material.PAPER, 0,
+                    (done ? ChatColor.GREEN : ChatColor.YELLOW) + step.title(), lore), null);
+        }
     }
 
     private static List<String> listOf(String... lines) {

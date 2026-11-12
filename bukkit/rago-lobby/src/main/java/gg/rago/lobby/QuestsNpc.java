@@ -156,15 +156,31 @@ final class QuestsNpc {
         return free && head == Material.AIR && ground.isSolid();
     }
 
+    /** The steps of Getting started on this server: "Start 1/5" before the others until all are done. */
+    private java.util.function.Supplier<List<GettingStarted.Step>> startSteps = java.util.Collections::emptyList;
+
+    void setStartSteps(java.util.function.Supplier<List<GettingStarted.Step>> startSteps) {
+        this.startSteps = startSteps;
+    }
+
     List<String> lines(Player viewer) {
-        return lines(server.quests(), book.get(viewer.getUniqueId()), System.currentTimeMillis());
+        return lines(server.quests(), book.get(viewer.getUniqueId()), System.currentTimeMillis(), startSteps.get());
     }
 
     /** "QUESTS", the quests done of each period ("Daily 2/4 · Weekly 0/4"), "Click to see them". */
     static List<String> lines(Quests quests, PlayerStats stats, long now) {
+        return lines(quests, stats, now, java.util.Collections.<GettingStarted.Step>emptyList());
+    }
+
+    /** The same, with "Start 1/5" first while the player has not done all these steps of Getting started. */
+    static List<String> lines(Quests quests, PlayerStats stats, long now, List<GettingStarted.Step> start) {
         String day = StatsPeriod.dayKey(now);
         String week = StatsPeriod.weekKey(now);
         StringBuilder done = new StringBuilder();
+        int started = GettingStarted.done(stats, start);
+        if (started < start.size()) {
+            done.append(ChatColor.GRAY).append("Start ").append(ChatColor.YELLOW).append(started).append('/').append(start.size());
+        }
         for (Quests.Period period : Quests.Period.values()) {
             int count = quests.of(period).size();
             if (count == 0) {

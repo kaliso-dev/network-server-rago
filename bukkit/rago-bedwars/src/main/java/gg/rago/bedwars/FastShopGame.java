@@ -416,6 +416,8 @@ final class FastShopGame extends BedwarsGame {
             player.sendTitle(ChatColor.GREEN + "" + ChatColor.BOLD + seconds(millis) + " s", "");
             player.playSound(player.getLocation(), Sound.NOTE_PLING, 1f, 1.5f);
         }
+        // the quests of a new player, after the time: a training played, a record beaten
+        plugin.lobby().trainingScored(player, modeId, best && before != null);
         FastShopRecords.Best top = records.top(run.order.id);
         if (top != null && top.player.equals(gamer.id) && best) {
             broadcast(ChatColor.GOLD + gamer.name + ChatColor.YELLOW + " holds the server record of " + run.order.name + ": "

@@ -52,6 +52,8 @@ public final class RagoLobby extends JavaPlugin implements LobbyService {
     private Visibility visibility;
     private QueueController queues;
     private ModeMenu menu;
+    /** "What do you want to do?", at the first arrival. */
+    private FirstJoinMenu firstJoin;
     private LobbyScoreboard scoreboard;
     /** Writes files (spawn.yml, points.yml) away from the main thread, one at a time. */
     private ExecutorService writer;
@@ -182,6 +184,7 @@ public final class RagoLobby extends JavaPlugin implements LobbyService {
         parties.setGate(social::acceptsParty);
         kits = new KitLayouts(this, writer, this::write);
         hypixel = new HypixelProfiles(this, settings.hypixelKey(), writer, this::write);
+        hypixel.setOnImported(id -> gettingStarted(id, GettingStarted.Step.QUICK_BUY));
         kitEditor = new KitEditor(this, settings, kits, state, this::giveHotbar, hypixel);
         menu = new ModeMenu(settings, queues, stats.book());
         scoreboard = new LobbyScoreboard(settings, queues, stats.book(), state, names);
@@ -189,6 +192,7 @@ public final class RagoLobby extends JavaPlugin implements LobbyService {
         duels.setGate(social::acceptsDuel);
         duels.setFrozen(this::isFrozen);
         menu.setDuels(duels);
+        firstJoin = new FirstJoinMenu(this, settings, queues, menu);
         stats.load();
         fakes = new FakeEntities(this, world);
         fakes.start();
@@ -201,6 +205,7 @@ public final class RagoLobby extends JavaPlugin implements LobbyService {
         shop = new ShopMenu(profiles, stats.book());
         profileMenu = new ProfileMenu(this, profiles, social, stats, statsMenu, shop);
         levelMenu = new LevelMenu(stats.book(), server);
+        levelMenu.setStartSteps(this::gettingStartedSteps);
         profileMenu.setLevels(levelMenu);
         styleMenu = new StyleMenu(profiles, stats.book());
         styleMenu.setRewardLevel(server.levelRewards()::levelOf);
@@ -298,6 +303,7 @@ public final class RagoLobby extends JavaPlugin implements LobbyService {
         }, 16L, 6L);
         daily = new DailyChest(profiles);
         questsNpc = new QuestsNpc(stats.book(), server, levelMenu::openQuests);
+        questsNpc.setStartSteps(this::gettingStartedSteps);
         questsNpc.setSkins(npcSkins::get);
         int placed = placeDecor();
         List<String> missing = npcs.missingPoints();
@@ -1026,6 +1032,15 @@ public final class RagoLobby extends JavaPlugin implements LobbyService {
         }
         boolean rated = !isUnrated(winners) && !isUnrated(losers);
         stats.record(mode, winners, losers, mvps(winners, losers), rated);
+        if (mode.teams() == 2 && mode.playersPerTeam() == 1) {
+            // a 1v1 to the end, from the queue or a /duel: "Play a duel" of Getting started
+            for (UUID player : winners) {
+                gettingStarted(player, GettingStarted.Step.DUEL);
+            }
+            for (UUID player : losers) {
+                gettingStarted(player, GettingStarted.Step.DUEL);
+            }
+        }
         for (UUID winner : winners) {
             cosmetics.win(winner);
         }
@@ -1242,6 +1257,28 @@ public final class RagoLobby extends JavaPlugin implements LobbyService {
     }
 
     @Override
+    public void trainingScored(Player player, String modeId, boolean personalBest) {
+        if (player == null || settings.catalog().get(modeId) == null || state.isInPrivateGame(player.getUniqueId())) {
+            return;
+        }
+        gettingStarted(player.getUniqueId(), GettingStarted.Step.TRAINING);
+        if (personalBest) {
+            gettingStarted(player.getUniqueId(), GettingStarted.Step.RECORD);
+        }
+    }
+
+    /** The steps of Getting started on this server: the Hypixel import needs its key, the Discord its link. */
+    List<GettingStarted.Step> gettingStartedSteps() {
+        List<String> discord = server.link("discord");
+        return server.gettingStarted().steps(hypixel.enabled(), discord != null && !discord.isEmpty());
+    }
+
+    /** The player did this step of Getting started: its points the first time, and the next one. */
+    void gettingStarted(UUID player, GettingStarted.Step step) {
+        stats.gettingStarted(player, step, gettingStartedSteps());
+    }
+
+    @Override
     public void setDailyChallenge(String modeId, String label) {
         if (menu != null) {
             menu.setChallenge(modeId, label);
@@ -1317,6 +1354,18 @@ public final class RagoLobby extends JavaPlugin implements LobbyService {
         LobbyWelcome.greet(player, settings);
         if (profiles.dailyReady(player.getUniqueId())) {
             player.sendMessage(ChatColor.AQUA + "Your daily reward is waiting: " + ChatColor.YELLOW + "/daily");
+        }
+        List<GettingStarted.Step> steps = gettingStartedSteps();
+        PlayerStats started = stats.book().get(player.getUniqueId());
+        GettingStarted.Step next = GettingStarted.next(started, steps);
+        if (next != null) {
+            player.sendMessage(ChatColor.GOLD + "Getting started " + GettingStarted.done(started, steps) + "/" + steps.size()
+                    + ChatColor.GRAY + ": next, " + ChatColor.WHITE + next.title() + ChatColor.GRAY + ". " + ChatColor.YELLOW
+                    + "/quests");
+        }
+        if (!player.hasPlayedBefore() && !settings.firstChoices().isEmpty()) {
+            // after the welcome, once the player sees the lobby
+            getServer().getScheduler().runTaskLater(this, () -> firstJoin.openIfFree(player), 40L);
         }
     }
 

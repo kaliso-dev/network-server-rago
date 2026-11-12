@@ -2,7 +2,9 @@
 //
 // Two bots join a local 1.8.8 test server that runs RagoLobby, RagoPractice and RagoCombatEngine
 // and play the way a player does:
-//   1. both arrive in the lobby: adventure mode, the selector in the first hotbar slot, the kit
+//   1. both arrive in the lobby for the first time: "What do you want to do?" opens a moment
+//      after the welcome (four ways to play, the book of Getting started), and they close it;
+//      adventure mode, the selector in the first hotbar slot, the kit
 //      editor book in the second, the sidebar; the Duels NPC is a Steve holding a sword, out of
 //      the tab list, and a click on it opens Duels; RagoUn opens the kit editor with the book and
 //      moves the stick of the sumo kit (run-lobby-test.sh gives the sumo one) from the first
@@ -120,6 +122,9 @@ function join (username) {
     bot.titleTimes = []
     bot.on('title', (text, type) => { if (type === 'title') bot.titles.push(plainText(text)) })
     bot.on('title_times', (fadeIn, stay, fadeOut) => bot.titleTimes.push([fadeIn, stay, fadeOut]))
+    // the menu of a first arrival, whenever it comes
+    bot.firstMenu = null
+    bot.on('windowOpen', (window) => { if (windowTitle(window).includes('What do you want to do?')) bot.firstMenu = window })
     const fail = (reason) => reject(new Error(`${username} could not join: ${reason?.message ?? JSON.stringify(reason)}`))
     bot.once('error', fail)
     bot.once('kicked', fail)
@@ -162,6 +167,21 @@ function mark (bot) {
 
 function hotbarItem (bot, slot) {
   return bot.inventory.slots[bot.inventory.hotbarStart + slot]
+}
+
+/**
+ * A first arrival: "What do you want to do?" opens a moment after the welcome, with four ways to
+ * play (the block clutch, Ranked Bedwars, the Duels, the FFA) and the book of Getting started.
+ * The bot closes it, as Esc does.
+ */
+async function closeFirstMenu (bot) {
+  await waitFor(() => bot.firstMenu != null, 8000, `${bot.username}: the menu of the first arrival`)
+  const icons = [10, 12, 14, 16, 31].map((slot) => bot.firstMenu.slots[slot]?.name ?? null)
+  if (JSON.stringify(icons) !== JSON.stringify(['ladder', 'bed', 'iron_sword', 'diamond_sword', 'book'])) {
+    throw new Error(`${bot.username}: the menu of the first arrival holds ${JSON.stringify(icons)}`)
+  }
+  bot.closeWindow(bot.firstMenu)
+  await sleep(200)
 }
 
 async function expectInLobby (bot, what) {
@@ -760,6 +780,9 @@ async function main () {
   log('both bots joined')
 
   // 1. The lobby.
+  await closeFirstMenu(one)
+  await closeFirstMenu(two)
+  log('the menu of the first arrival: four ways to play and Getting started, then closed')
   await expectInLobby(one, 'on joining')
   await expectInLobby(two, 'on joining')
   // the fireball in the fifth slot, a free slot, the slot of the leave or play again item (empty out

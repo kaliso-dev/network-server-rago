@@ -277,6 +277,9 @@ final class NetworkCommands implements CommandExecutor, TabCompleter {
                 return true;
             case "discord":
                 link(sender, "discord");
+                if (sender instanceof Player && lobby.server().link("discord") != null) {
+                    lobby.gettingStarted(((Player) sender).getUniqueId(), GettingStarted.Step.DISCORD);
+                }
                 return true;
             case "rules":
                 link(sender, "regles");

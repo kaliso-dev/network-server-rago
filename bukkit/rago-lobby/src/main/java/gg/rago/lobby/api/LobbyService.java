@@ -213,4 +213,12 @@ public interface LobbyService {
      */
     default void setDailyChallenge(String modeId, String label) {
     }
+
+    /**
+     * The player scored in a training of this mode (a clutch, a time, a run of the Fast Shop):
+     * "Play a training" of the quests of a new player, and "Beat one of your records" when it is a
+     * new personal best (better than one they had). Nothing in a private game. Main thread.
+     */
+    default void trainingScored(Player player, String modeId, boolean personalBest) {
+    }
 }
