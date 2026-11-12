@@ -107,6 +107,12 @@ final class BlockEditTraining extends Training {
         return dx * dx + dz * dz <= BOT_REACH * BOT_REACH;
     }
 
+    /** A fall or a miss gives the next attempt by itself: no blaze rod. */
+    @Override
+    boolean restartUsed() {
+        return false;
+    }
+
     @Override
     String describe() {
         return "break a block of the wall, hit the bot through the hole, and put the block back before it hits you.";

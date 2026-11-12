@@ -48,6 +48,8 @@ final class ClutchTraining extends Training {
     /** Back at the start, the first hit: after at least this many ticks, and up to this many more at random. */
     static final int FIRST_HIT_TICKS = 8;
     static final int FIRST_HIT_RANDOM = 12;
+    /** After a fall, a little longer before the first hit (0.75 to 1.3 s): the time to see where one is again. */
+    static final int FIRST_HIT_AFTER_FALL_TICKS = 15;
     /** Where the player may place blocks: this far from the centre along the row, and across it. */
     static final int PLACE_ALONG = 12;
     static final int PLACE_ACROSS = 20;
@@ -77,6 +79,8 @@ final class ClutchTraining extends Training {
     private final Setting hitCount;
     private final Setting stick;
     private final Setting randomSide;
+    /** True when the attempt starts again after a fall: its first hit waits a little longer. */
+    private boolean afterFall;
     private final Random random = new Random();
     /** Ticks before the next hit; -1 once the hits of the attempt are given. */
     private int nextHit;
@@ -193,6 +197,12 @@ final class ClutchTraining extends Training {
         return (long) Math.floor(Math.sqrt(dx * dx + dz * dz) * 10 + 1e-9);
     }
 
+    /** A fall or a miss gives the next attempt by itself: no blaze rod. */
+    @Override
+    boolean restartUsed() {
+        return false;
+    }
+
     @Override
     String describe() {
         String what = topFight ? "you stand on the top fight platform, at the build limit: no block above it."
@@ -265,7 +275,8 @@ final class ClutchTraining extends Training {
 
     @Override
     void onFight() {
-        nextHit = FIRST_HIT_TICKS + random.nextInt(FIRST_HIT_RANDOM);
+        nextHit = (afterFall ? FIRST_HIT_AFTER_FALL_TICKS : FIRST_HIT_TICKS) + random.nextInt(FIRST_HIT_RANDOM);
+        afterFall = false;
         hitsLeft = hitCount.value;
         groundTicks = 0;
         placedSinceHit = 0;
@@ -439,6 +450,7 @@ final class ClutchTraining extends Training {
         String why = streak > 0 ? "You fell after " + streak + (streak == 1 ? " clutch" : " clutches") + ": the streak starts again."
                 : "You fell.";
         streak = 0;
+        afterFall = true;
         failed(why);
     }
 

@@ -80,6 +80,12 @@ final class LadderTraining extends Training {
         return HEIGHTS[station] - 1;
     }
 
+    /** A fall or a miss gives the next attempt by itself: no blaze rod. */
+    @Override
+    boolean restartUsed() {
+        return false;
+    }
+
     @Override
     String describe() {
         return "jump, put a block of wool on the stone and a ladder on its side, and fall into the ladder.";

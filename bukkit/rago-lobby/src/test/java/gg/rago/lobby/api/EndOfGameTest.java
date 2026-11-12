@@ -20,6 +20,12 @@ class EndOfGameTest {
         assertEquals("/playagain", again.getAsJsonObject("clickEvent").get("value").getAsString());
         assertEquals("[LEAVE]", leave.get("text").getAsString());
         assertEquals("/spawn", leave.getAsJsonObject("clickEvent").get("value").getAsString());
-        assertTrue(EndOfGame.PLAY_AGAIN_SLOT != EndOfGame.LEAVE_SLOT);
+        // the paper in the slot held, the bed in the last one, never on the paper
+        for (int held = 0; held < 9; held++) {
+            int bed = EndOfGame.leaveSlot(held);
+            assertTrue(bed != held && bed >= 0 && bed < 9);
+        }
+        assertEquals(8, EndOfGame.leaveSlot(0));
+        assertEquals(7, EndOfGame.leaveSlot(8));
     }
 }

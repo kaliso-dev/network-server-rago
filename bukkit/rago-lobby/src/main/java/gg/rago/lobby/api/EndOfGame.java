@@ -19,9 +19,7 @@ import org.bukkit.plugin.Plugin;
  */
 public final class EndOfGame {
 
-    /** The Play again paper, in the eighth slot. */
-    public static final int PLAY_AGAIN_SLOT = 7;
-    /** The Leave bed, in the last slot. */
+    /** The Leave bed, in the last slot (the one before when the paper is there). */
     public static final int LEAVE_SLOT = 8;
     static final String PLAY_AGAIN = ChatColor.GREEN + "" + ChatColor.BOLD + "Play again" + ChatColor.GRAY + " (right click)";
     static final String LEAVE = ChatColor.RED + "" + ChatColor.BOLD + "Leave" + ChatColor.GRAY + " (right click)";
@@ -30,19 +28,26 @@ public final class EndOfGame {
     }
 
     /**
-     * The game is over for this player: the two items in an empty hotbar, the paper in their hand
-     * (not for a spectator, who has no hotbar of their own), and the two buttons in the chat.
+     * The game is over for this player: the two items in an empty hotbar, the paper in the slot they
+     * hold (their slot never changes: back in the lobby, the same slot is in their hand, the compass
+     * if it was the first), not for a spectator, who has no hotbar of their own; and the two buttons
+     * in the chat.
      */
     public static void give(Player player) {
         if (player.getGameMode() != GameMode.SPECTATOR) {
             PlayerInventory inventory = player.getInventory();
+            int held = inventory.getHeldItemSlot();
             inventory.clear();
-            inventory.setItem(PLAY_AGAIN_SLOT, item(Material.PAPER, 0, PLAY_AGAIN, "Queue the same mode again."));
-            inventory.setItem(LEAVE_SLOT, item(Material.BED, 0, LEAVE, "Back to the lobby."));
-            inventory.setHeldItemSlot(PLAY_AGAIN_SLOT);
+            inventory.setItem(held, item(Material.PAPER, 0, PLAY_AGAIN, "Queue the same mode again."));
+            inventory.setItem(leaveSlot(held), item(Material.BED, 0, LEAVE, "Back to the lobby."));
             player.updateInventory();
         }
         buttons(player);
+    }
+
+    /** The slot of the Leave bed when the paper is in this one: the last, else the one before. */
+    static int leaveSlot(int paper) {
+        return paper == LEAVE_SLOT ? LEAVE_SLOT - 1 : LEAVE_SLOT;
     }
 
     /** [PLAY AGAIN] and [LEAVE] in the chat: a click runs /playagain or /spawn. */

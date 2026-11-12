@@ -26,9 +26,10 @@ import org.bukkit.inventory.PlayerInventory;
 /**
  * A solo training: one player, attempts one after the other (each on the arena as built), a
  * personal best and the server's best for each of its variants, kept in records.yml. At the end
- * of the hotbar, the controls: the green dye goes to the next level (when there are several), the
- * bed back to the lobby, the compass to another training, the comparator opens the settings (the
- * mode, each setting with - and +, back to default, the presets), the blaze rod restarts. The
+ * of the hotbar, the controls: the green dye goes to the next level and the red one to the level
+ * before (when there are several), the compass to another training, the comparator opens the
+ * settings (the mode, each setting with - and +, back to default, the presets), the blaze rod
+ * restarts; /spawn goes back to the lobby. The
  * player puts the items and the controls where they like in their inventory: the lobby keeps the
  * kit's, reglages.yml the controls', for every training. The training waits (no hit, no new
  * attempt) while a menu is open or the player arranges their inventory. No damage, no stats.
@@ -117,28 +118,29 @@ abstract class Training extends PracticeGame {
         }
     }
 
-    /** The controls of the hotbar: their key in reglages.yml and their slot by default. */
+    /**
+     * The controls of the hotbar, in their order at its end by default (the last one in the last
+     * slot), with their key in reglages.yml.
+     */
     enum Control {
-        NEXT("suivant", 4),
-        LEAVE("quitter", 5),
-        TRAININGS("trainings", 6),
-        SETTINGS("reglages", 7),
-        RESTART("recommencer", 8);
+        PREVIOUS("precedent"),
+        NEXT("suivant"),
+        TRAININGS("trainings"),
+        SETTINGS("reglages"),
+        RESTART("recommencer");
 
         final String key;
-        final int slot;
 
-        Control(String key, int slot) {
+        Control(String key) {
             this.key = key;
-            this.slot = slot;
         }
     }
 
     static final String NEXT_ITEM = ChatColor.GREEN + "Next level" + ChatColor.GRAY + " (right click)";
+    static final String PREVIOUS_ITEM = ChatColor.RED + "Previous level" + ChatColor.GRAY + " (right click)";
     static final String RESTART_ITEM = ChatColor.YELLOW + "Restart" + ChatColor.GRAY + " (right click)";
     static final String SETTINGS_ITEM = ChatColor.AQUA + "Settings" + ChatColor.GRAY + " (right click)";
     static final String TRAININGS_ITEM = ChatColor.GREEN + "Trainings" + ChatColor.GRAY + " (right click)";
-    static final String LEAVE_ITEM = ChatColor.RED + "Leave" + ChatColor.GRAY + " (right click)";
     /** The slots of an inventory the kit and the controls go to: the hotbar (0 to 8), then the rest. */
     static final int SLOTS = 36;
     /**
@@ -148,6 +150,7 @@ abstract class Training extends PracticeGame {
     static final long ARRANGING_MS = 15000L;
     /** The settings menu: a dye for an on and off setting (green on, gray off), panes to lower (red) and raise (green). */
     static final int GREEN_DYE = 10;
+    static final int RED_DYE = 1;
     static final int GRAY_DYE = 8;
     static final int RED_PANE = 14;
     static final int GREEN_PANE = 5;
@@ -396,16 +399,32 @@ abstract class Training extends PracticeGame {
         controls(player);
     }
 
-    /** The controls this training has: the green dye with several levels, the comparator with settings. */
+    /**
+     * The controls this training has: the green and red dyes with several levels, the comparator
+     * with settings, the blaze rod where it is of use. No bed: /spawn takes the player back to the
+     * lobby.
+     */
     Set<Control> present() {
-        Set<Control> present = EnumSet.of(Control.LEAVE, Control.TRAININGS, Control.RESTART);
+        Set<Control> present = EnumSet.of(Control.TRAININGS);
         if (variants.size() > 1) {
+            present.add(Control.PREVIOUS);
             present.add(Control.NEXT);
         }
         if (hasSettings()) {
             present.add(Control.SETTINGS);
         }
+        if (restartUsed()) {
+            present.add(Control.RESTART);
+        }
         return present;
+    }
+
+    /**
+     * True when the blaze rod is what starts a new attempt (a time, a round of thirty seconds...);
+     * false when a fall or a miss gives one by itself (a streak): no blaze rod there.
+     */
+    boolean restartUsed() {
+        return true;
     }
 
     /** Where each control of this training goes for this player: where they put it, else its own slot. */
@@ -416,8 +435,9 @@ abstract class Training extends PracticeGame {
 
     /**
      * Where each control goes: the slot the player gave it (saved: by key, from 0 to 35), else its
-     * own; one taken by another control gives the first free one of the hotbar from the end, then of
-     * the inventory.
+     * own (the controls of the training side by side, in their order, at the end of the hotbar);
+     * one taken by another control gives the first free one of the hotbar from the end, then of the
+     * inventory.
      */
     static Map<Control, Integer> placement(Map<String, Integer> saved, Set<Control> present) {
         Map<Control, Integer> at = new EnumMap<>(Control.class);
@@ -429,11 +449,23 @@ abstract class Training extends PracticeGame {
                 taken[slot] = true;
             }
         }
+        Map<Control, Integer> own = new EnumMap<>(Control.class);
+        int next = 9 - present.size();
+        for (Control control : present) {
+            own.put(control, next++);
+        }
+        for (Control control : present) {
+            int slot = own.get(control);
+            if (!at.containsKey(control) && slot >= 0 && !taken[slot]) {
+                at.put(control, slot);
+                taken[slot] = true;
+            }
+        }
         for (Control control : present) {
             if (at.containsKey(control)) {
                 continue;
             }
-            int slot = control.slot;
+            int slot = Math.max(0, own.get(control));
             for (int i = 8; taken[slot] && i >= 0; i--) {
                 slot = i;
             }
@@ -447,8 +479,8 @@ abstract class Training extends PracticeGame {
     }
 
     /**
-     * The controls in the inventory, where the player put them: the green dye (the next level), the
-     * bed (back to the lobby), the compass (another training), the comparator (the settings, when
+     * The controls in the inventory, where the player put them: the red and green dyes (the level
+     * before, the next one), the compass (another training), the comparator (the settings, when
      * there are some) and the blaze rod (restart). An item of the kit where a control goes moves out
      * of its way.
      */
@@ -480,12 +512,13 @@ abstract class Training extends PracticeGame {
     /** The item of a control, as it is now (the level on the dye, the settings on the comparator). */
     ItemStack item(Control control) {
         switch (control) {
+            case PREVIOUS:
+                return named(Material.INK_SACK, 1, RED_DYE, PREVIOUS_ITEM, ChatColor.GRAY + "Now: " + ChatColor.WHITE
+                        + current().label, ChatColor.GRAY + "Before: " + ChatColor.WHITE
+                        + variants.get((variant + variants.size() - 1) % variants.size()).label);
             case NEXT:
                 return named(Material.INK_SACK, variant + 1, GREEN_DYE, NEXT_ITEM, ChatColor.GRAY + "Now: " + ChatColor.WHITE
-                        + current().label, ChatColor.GRAY + "Next: " + ChatColor.WHITE + variants.get((variant + 1) % variants.size()).label,
-                        ChatColor.GRAY + "Shift + right click: the one before");
-            case LEAVE:
-                return named(Material.BED, 1, 0, LEAVE_ITEM, ChatColor.GRAY + "Back to the lobby.");
+                        + current().label, ChatColor.GRAY + "Next: " + ChatColor.WHITE + variants.get((variant + 1) % variants.size()).label);
             case TRAININGS:
                 return named(Material.COMPASS, 1, 0, TRAININGS_ITEM, ChatColor.GRAY + "Another training, straight from here.");
             case SETTINGS:
@@ -508,8 +541,8 @@ abstract class Training extends PracticeGame {
         if (isNamed(item, Material.INK_SACK, NEXT_ITEM)) {
             return Control.NEXT;
         }
-        if (isNamed(item, Material.BED, LEAVE_ITEM)) {
-            return Control.LEAVE;
+        if (isNamed(item, Material.INK_SACK, PREVIOUS_ITEM)) {
+            return Control.PREVIOUS;
         }
         if (isNamed(item, Material.COMPASS, TRAININGS_ITEM)) {
             return Control.TRAININGS;
@@ -828,7 +861,12 @@ abstract class Training extends PracticeGame {
         ItemStack item = event.getItem();
         if (isNamed(item, Material.INK_SACK, NEXT_ITEM)) {
             event.setCancelled(true);
-            nextLevel(player, player.isSneaking() ? -1 : 1);
+            nextLevel(player, 1);
+            return;
+        }
+        if (isNamed(item, Material.INK_SACK, PREVIOUS_ITEM)) {
+            event.setCancelled(true);
+            nextLevel(player, -1);
             return;
         }
         if (isNamed(item, Material.REDSTONE_COMPARATOR, SETTINGS_ITEM)) {
@@ -841,16 +879,6 @@ abstract class Training extends PracticeGame {
             if (!plugin.lobby().openModesOf(player, mode.id())) {
                 player.sendMessage(ChatColor.GRAY + "Back to the lobby to choose another training: /spawn");
             }
-            return;
-        }
-        if (isNamed(item, Material.BED, LEAVE_ITEM)) {
-            event.setCancelled(true);
-            // as /spawn, at the next tick, out of the event
-            Bukkit.getScheduler().runTask(plugin, () -> {
-                if (player.isOnline() && host.gameOf(me) == this) {
-                    player.performCommand("spawn");
-                }
-            });
             return;
         }
         if (isNamed(item, Material.BLAZE_ROD, RESTART_ITEM)) {
@@ -871,8 +899,8 @@ abstract class Training extends PracticeGame {
     }
 
     /**
-     * The green dye: the next level (by: 1), or the one before (-1, shift and a right click), the
-     * first after the last; kept for the next time, and a new attempt with it.
+     * The green dye: the next level (by: 1), the first after the last; the red one: the level before
+     * (-1), the last before the first. Kept for the next time, and a new attempt with it.
      */
     void nextLevel(Player player, int by) {
         if (variants.size() < 2) {
@@ -900,18 +928,16 @@ abstract class Training extends PracticeGame {
         restore();
         player.sendMessage(ChatColor.AQUA + "" + ChatColor.BOLD + ChatColor.stripColor(mode.name()) + ChatColor.GRAY
                 + " - " + ChatColor.WHITE + current().label + ChatColor.GRAY + ": " + describe());
-        String next = variants.size() > 1 ? "the " + ChatColor.GREEN + "green dye" + ChatColor.GRAY + " goes to the next level, " : "";
-        if (hasSettings()) {
-            player.sendMessage(ChatColor.GRAY + "Hotbar: " + next + "the " + ChatColor.AQUA + "comparator" + ChatColor.GRAY
-                    + " opens the settings (the mode, the settings, the presets), the " + ChatColor.YELLOW + "blaze rod"
-                    + ChatColor.GRAY + " restarts, the " + ChatColor.GREEN + "compass" + ChatColor.GRAY + " takes you to another"
-                    + " training, the " + ChatColor.RED + "bed" + ChatColor.GRAY + " back to the lobby. Your last mode and"
-                    + " settings come back next time; arrange your inventory as you like, it is kept.");
-        } else {
-            player.sendMessage(ChatColor.GRAY + "Hotbar: " + next + "the " + ChatColor.YELLOW + "blaze rod" + ChatColor.GRAY + " restarts, the "
-                    + ChatColor.GREEN + "compass" + ChatColor.GRAY + " takes you to another training, the " + ChatColor.RED + "bed"
-                    + ChatColor.GRAY + " back to the lobby. Arrange your inventory as you like: it is kept.");
-        }
+        String levels = variants.size() > 1 ? "the " + ChatColor.GREEN + "green dye" + ChatColor.GRAY + " goes to the next level, the "
+                + ChatColor.RED + "red dye" + ChatColor.GRAY + " to the one before, " : "";
+        String menu = hasSettings() ? "the " + ChatColor.AQUA + "comparator" + ChatColor.GRAY
+                + " opens the settings (the mode, the settings, the presets), " : "";
+        String kept = hasSettings() ? " Your last mode and settings come back next time; arrange your inventory as you like, it is kept."
+                : " Arrange your inventory as you like: it is kept.";
+        String restart = restartUsed() ? "the " + ChatColor.YELLOW + "blaze rod" + ChatColor.GRAY + " restarts, " : "";
+        player.sendMessage(ChatColor.GRAY + "Hotbar: " + levels + menu + restart + "the " + ChatColor.GREEN + "compass"
+                + ChatColor.GRAY + " takes you to another training; " + ChatColor.WHITE + "/spawn" + ChatColor.GRAY
+                + " takes you back to the lobby." + kept);
     }
 
     /** The text of a score: "4.512 s" or "12 clutches". */
