@@ -105,7 +105,7 @@ final class PearlTraining extends Training {
         this.island = island;
     }
 
-    private static Variant[] variants() {
+    static Variant[] variants() {
         Variant[] variants = new Variant[SITUATIONS.length];
         for (int i = 0; i < variants.length; i++) {
             variants[i] = new Variant(SITUATIONS[i].id, SITUATIONS[i].label, false, SITUATIONS[i].hit ? "saves" : "pearls");

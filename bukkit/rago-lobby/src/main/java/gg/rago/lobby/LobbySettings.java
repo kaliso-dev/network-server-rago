@@ -359,10 +359,32 @@ final class LobbySettings {
                         throw new IllegalArgumentException(where + ".podium: at most " + MAX_PODIUM + " steps");
                     }
                 }
-                npcs.add(LobbyNpc.leaderboards(point, colour(name), stats, podium));
+                StatsPeriod period = null;
+                if (board != null && board.isSet("periode")) {
+                    period = period(board.getString("periode", ""));
+                    if (period == null) {
+                        throw new IllegalArgumentException(where + ".periode: jour, semaine or toujours (left out: each player"
+                                + " chooses it with a click)");
+                    }
+                }
+                npcs.add(LobbyNpc.leaderboards(point, colour(name), stats, podium).withPeriod(period));
             }
         }
         return npcs;
+    }
+
+    /** The period of a wall of config.yml: jour, semaine or toujours; null for another word. */
+    static StatsPeriod period(String word) {
+        switch (word.trim().toLowerCase(java.util.Locale.ROOT)) {
+            case "jour":
+                return StatsPeriod.DAY;
+            case "semaine":
+                return StatsPeriod.WEEK;
+            case "toujours":
+                return StatsPeriod.ALL;
+            default:
+                return null;
+        }
     }
 
     /**

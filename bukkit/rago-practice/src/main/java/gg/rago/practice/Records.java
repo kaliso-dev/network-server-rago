@@ -70,14 +70,18 @@ final class Records {
         return result;
     }
 
-    /** The boards are written with dots in YAML keys as sections: "clutch.single" is clutch_single. */
-    private static String toKey(String board) {
+    /**
+     * A board as a key of the file, whose dots would make sections: "block-edit.bot.speed2" is
+     * block-edit_bot_speed2. No board has a "_" of its own (the ids of the modes and of the
+     * variants have dashes), so that the key gives the board back.
+     */
+    static String toKey(String board) {
         return board.replace('.', '_');
     }
 
-    private static String fromKey(String key) {
-        int dash = key.indexOf('_');
-        return dash < 0 ? key : key.substring(0, dash) + "." + key.substring(dash + 1);
+    /** The board of a key of the file: every "_" is a dot ("clutch_island-blocks_2026w46"). */
+    static String fromKey(String key) {
+        return key.replace('_', '.');
     }
 
     /** Writes the whole book, off the main thread. */

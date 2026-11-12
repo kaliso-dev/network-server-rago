@@ -69,8 +69,24 @@ final class StatsService {
         this.coinBoost = coinBoost;
     }
 
+    /** True once every player's file is read and in the book. */
+    private boolean filesRead;
+
     /** Reads every player's file on the writer thread, then fills the book on the main thread. */
     void load() {
+        load(() -> { });
+    }
+
+    /** True once the files are read: the leaderboards hold every player. Main thread. */
+    boolean loaded() {
+        return filesRead;
+    }
+
+    /**
+     * Reads every player's file on the writer thread, then fills the book on the main thread, and
+     * then runs {@code whenLoaded} there.
+     */
+    void load(Runnable whenLoaded) {
         io.execute(() -> {
             final List<PlayerStats> loaded = new ArrayList<>();
             final Map<String, List<TeamStreak>> loadedTeams = new HashMap<>();
@@ -117,6 +133,8 @@ final class StatsService {
                         }
                     }
                     plugin.getLogger().info("Stats of " + added + " players loaded");
+                    filesRead = true;
+                    whenLoaded.run();
                 });
             }
         });

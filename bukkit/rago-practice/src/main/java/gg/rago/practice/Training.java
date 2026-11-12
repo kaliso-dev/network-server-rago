@@ -135,6 +135,8 @@ abstract class Training extends PracticeGame {
     String last = "";
     /** True when [PLAY] of the challenge of the day chose the variant: the player's last one does not replace it. */
     private boolean challengeVariant;
+    /** The board clicked in /records ("Click to play it"), played once the settings are given back; or null. */
+    private String wantedBoard;
     /** True once the player's last variant and settings are given back. */
     private boolean restored;
     /**
@@ -159,11 +161,15 @@ abstract class Training extends PracticeGame {
                 this.challengeVariant = true;
             }
         }
+        // a board clicked in /records: its variant and settings, once the subclass has made them
+        RecordsMenu records = host.plugin().recordsMenu();
+        this.wantedBoard = records == null ? null : records.takeBoard(me, mode.id());
     }
 
     /**
      * The player's last variant (unless the challenge of the day chose it) and settings in this
      * training, given back once, before the first attempt: the subclasses have made their settings.
+     * Then those of the challenge of the day, or of the board clicked in /records.
      */
     private void restore() {
         if (restored) {
@@ -172,20 +178,60 @@ abstract class Training extends PracticeGame {
         restored = true;
         TrainingPrefs prefs = host.prefs();
         TrainingPrefs.Choice choice = prefs == null ? null : prefs.choice(me, mode.id());
-        if (choice == null) {
+        if (choice != null) {
+            for (int i = 0; !challengeVariant && choice.variant != null && i < variants.size(); i++) {
+                if (variants.get(i).id.equals(choice.variant)) {
+                    variant = i;
+                }
+            }
+            for (Setting setting : settings) {
+                Integer value = choice.settings.get(TrainingPrefs.key(setting.label));
+                if (value != null) {
+                    setting.value = Math.max(setting.min, Math.min(setting.max, value));
+                }
+            }
+        }
+        if (challengeVariant) {
+            forChallenge();
+        } else if (wantedBoard != null && chooseBoard(wantedBoard)) {
+            // the player's own choice: it comes back next time
+            remember();
+        }
+        wantedBoard = null;
+    }
+
+    /** The challenge of the day chose the variant: the settings it is played with (the player's own, by default). */
+    void forChallenge() {
+    }
+
+    /**
+     * The variant (and the settings) of this board of the records ("clutch.island"): true if it
+     * is one of this training's, now the one played.
+     */
+    boolean chooseBoard(String board) {
+        for (int i = 0; i < variants.size(); i++) {
+            if (boardOf(variants.get(i)).equals(board)) {
+                variant = i;
+                return true;
+            }
+        }
+        return false;
+    }
+
+    /**
+     * A board of /records clicked in this training: its variant and settings, kept for the next
+     * time, and a new attempt with it.
+     */
+    void playBoard(Player player, RecordCatalog.Board board) {
+        if (!chooseBoard(board.id)) {
             return;
         }
-        for (int i = 0; !challengeVariant && choice.variant != null && i < variants.size(); i++) {
-            if (variants.get(i).id.equals(choice.variant)) {
-                variant = i;
-            }
-        }
-        for (Setting setting : settings) {
-            Integer value = choice.settings.get(TrainingPrefs.key(setting.label));
-            if (value != null) {
-                setting.value = Math.max(setting.min, Math.min(setting.max, value));
-            }
-        }
+        challengeVariant = false;
+        restartOnClose = false;
+        remember();
+        player.sendMessage(ChatColor.AQUA + "" + ChatColor.BOLD + ChatColor.stripColor(mode.name()) + ChatColor.GRAY + " - "
+                + ChatColor.WHITE + board.label + ChatColor.GRAY + ": " + describe());
+        settingsChanged();
     }
 
     /**
@@ -199,6 +245,7 @@ abstract class Training extends PracticeGame {
                 variant = i;
                 challengeVariant = true;
                 restartOnClose = false;
+                forChallenge();
                 player.sendMessage(ChatColor.GOLD + "" + ChatColor.BOLD + "Daily challenge" + ChatColor.GRAY + " - " + ChatColor.WHITE
                         + current().label + ChatColor.GRAY + ": " + describe());
                 settingsChanged();
@@ -232,7 +279,17 @@ abstract class Training extends PracticeGame {
     }
 
     String board() {
-        return mode.id() + "." + current().id;
+        return boardOf(current());
+    }
+
+    /** The board of the records of this variant, with the settings played now: "clutch.island". */
+    String boardOf(Variant v) {
+        return mode.id() + "." + v.id;
+    }
+
+    /** The board of the challenge of the day this attempt plays for: by default, the training's own. */
+    String challengeBoard() {
+        return board();
     }
 
     Player player() {
@@ -460,7 +517,7 @@ abstract class Training extends PracticeGame {
     private ItemStack modeItem(int index) {
         Variant v = variants.get(index);
         List<String> lore = new ArrayList<>();
-        Long best = host.records().book().best(mode.id() + "." + v.id, me);
+        Long best = host.records().book().best(boardOf(v), me);
         lore.add(ChatColor.GRAY + "Your best: " + (best == null ? "none yet" : ChatColor.WHITE + format(v, best)));
         if (host.challenges() != null && host.challenges().isToday(mode.id() + "." + v.id)) {
             lore.add(ChatColor.GOLD + "\u2726 Challenge of the day");
@@ -665,7 +722,7 @@ abstract class Training extends PracticeGame {
     void score(long value, boolean quiet) {
         record(value, quiet);
         if (host.challenges() != null) {
-            host.challenges().scored(me, myName, board(), value);
+            host.challenges().scored(me, myName, challengeBoard(), value);
         }
     }
 
@@ -762,7 +819,7 @@ abstract class Training extends PracticeGame {
         List<String> lines = new ArrayList<>();
         lines.add(Duel.cut(mode.name()));
         lines.add(Duel.cut(ChatColor.WHITE + "Mode: " + ChatColor.GREEN + current().label
-                + (host.challenges() != null && host.challenges().isToday(board()) ? ChatColor.GOLD + " \u2726 Daily" : "")));
+                + (host.challenges() != null && host.challenges().isToday(challengeBoard()) ? ChatColor.GOLD + " \u2726 Daily" : "")));
         lines.add("");
         trainingLines(lines);
         lines.add("");

@@ -50,16 +50,51 @@ final class BlockEditTraining extends Training {
     private long bestTime;
 
     static final Variant BOT = new Variant("bot", "Against the bot", false, "edits");
+    /** The speeds of the bot, from 1, each with its own board of records. */
+    static final int SPEEDS = 3;
+    /** The speed of the bot by default, that of the challenge of the day. */
+    static final int DEFAULT_SPEED = 2;
 
     BlockEditTraining(PracticeHost host, GameMode mode, Arena arena, List<List<Player>> teams) {
         super(host, mode, arena, teams, BOT);
-        speed = setting("Bot speed", 1, 3, 2);
+        speed = setting("Bot speed", 1, SPEEDS, DEFAULT_SPEED);
     }
 
-    /** The board of the records: each bot speed has its own. */
+    /** The board of the records: each bot speed has its own ("block-edit.bot.speed2"). */
     @Override
-    String board() {
-        return mode.id() + "." + current().id + ".speed" + speed.value;
+    String boardOf(Variant v) {
+        return mode.id() + "." + v.id + ".speed" + speed.value;
+    }
+
+    /** The challenge of the day ("block-edit.bot") is played against the bot at its speed by default. */
+    @Override
+    String challengeBoard() {
+        return speed.value == DEFAULT_SPEED ? mode.id() + "." + current().id : board();
+    }
+
+    @Override
+    void forChallenge() {
+        speed.value = DEFAULT_SPEED;
+    }
+
+    /** A board of the records: the bot at its speed. */
+    @Override
+    boolean chooseBoard(String board) {
+        String speeds = mode.id() + "." + BOT.id + ".speed";
+        if (!board.startsWith(speeds)) {
+            return false;
+        }
+        try {
+            int wanted = Integer.parseInt(board.substring(speeds.length()));
+            if (wanted < speed.min || wanted > speed.max) {
+                return false;
+            }
+            speed.value = wanted;
+            variant = 0;
+            return true;
+        } catch (NumberFormatException e) {
+            return false;
+        }
     }
 
     /** The reaction of the bot at this speed (1 to 3), in ticks. */

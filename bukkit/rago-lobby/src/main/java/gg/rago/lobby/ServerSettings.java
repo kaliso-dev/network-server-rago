@@ -85,11 +85,12 @@ final class ServerSettings {
     private final GettingStarted gettingStarted;
     private final StarterPack starterPack;
     private final Season season;
+    private final WeeklyRewards.Settings weekly;
 
     private ServerSettings(Ranks ranks, Map<String, NameStyle> styles, EloLadder elo, Points points, Map<String, Cosmetic> cosmetics, long chatCooldownMillis,
             boolean blockRepeats, List<String> tabHeader, List<String> tabFooter, List<String> motd, int announceMinutes,
             List<String> announcements, Map<String, List<String>> links, LevelRewards levelRewards, Quests quests,
-            GettingStarted gettingStarted, StarterPack starterPack, Season season) {
+            GettingStarted gettingStarted, StarterPack starterPack, Season season, WeeklyRewards.Settings weekly) {
         this.ranks = ranks;
         this.styles = Collections.unmodifiableMap(styles);
         this.elo = elo;
@@ -108,6 +109,7 @@ final class ServerSettings {
         this.gettingStarted = gettingStarted;
         this.starterPack = starterPack;
         this.season = season;
+        this.weekly = weekly;
     }
 
     static ServerSettings load(ConfigurationSection config) {
@@ -171,8 +173,79 @@ final class ServerSettings {
         GettingStarted gettingStarted = readGettingStarted(config.getConfigurationSection("quetes.debut"), cosmetics, styles);
         StarterPack pack = StarterPack.read(config.getConfigurationSection("pack-depart"), cosmetics, ranks);
         Season season = Season.read(config.getConfigurationSection("saison"), elo);
+        WeeklyRewards.Settings weekly = readWeekly(config.getConfigurationSection("semaine"), styles);
         return new ServerSettings(ranks, styles, elo, points, cosmetics, cooldown * 1000L, repeats, header, footer, motd,
-                minutes, announcements, links, rewards, quests, gettingStarted, pack, season);
+                minutes, announcements, links, rewards, quests, gettingStarted, pack, season, weekly);
+    }
+
+    /**
+     * semaine: what the top of the leaderboards of the week wins on Monday. classements: the lobby's
+     * leaderboards of the week rewarded (victoires, parties, series, kills); points: the Rago Points
+     * of the first, the second... (as many places as points, 10 at most); badge: the badge of
+     * styles.badges worn until the next results ("" for none). Left out: the wins, the streaks, the
+     * kills and the games, 2000, 1000 and 500 points, and the crown (badge semaine) if the styles
+     * have it.
+     */
+    static WeeklyRewards.Settings readWeekly(ConfigurationSection section, Map<String, NameStyle> styles) {
+        String defaultBadge = styles.containsKey(NameStyle.key(NameStyle.Kind.BADGE, WeeklyRewards.Settings.DEFAULT_BADGE))
+                ? WeeklyRewards.Settings.DEFAULT_BADGE : null;
+        if (section == null) {
+            return new WeeklyRewards.Settings(true, WeeklyRewards.Settings.DEFAULT_BOARDS, WeeklyRewards.Settings.DEFAULT_POINTS,
+                    defaultBadge);
+        }
+        List<BoardStat> boards = new ArrayList<>();
+        if (section.isSet("classements")) {
+            if (!section.isList("classements")) {
+                throw new IllegalArgumentException("semaine.classements: a list, such as [victoires, series, kills, parties]");
+            }
+            for (String key : section.getStringList("classements")) {
+                BoardStat stat = BoardStat.of(key);
+                if (stat == null || !stat.periodic()) {
+                    throw new IllegalArgumentException("semaine.classements: \"" + key + "\" is not victoires, parties, series"
+                            + " or kills");
+                }
+                if (!boards.contains(stat)) {
+                    boards.add(stat);
+                }
+            }
+        } else {
+            boards.addAll(WeeklyRewards.Settings.DEFAULT_BOARDS);
+        }
+        List<Integer> points = new ArrayList<>();
+        if (section.isSet("points")) {
+            if (!section.isList("points")) {
+                throw new IllegalArgumentException("semaine.points: a list, the points of the first, the second...: [2000, 1000, 500]");
+            }
+            for (Object value : section.getList("points")) {
+                int amount;
+                try {
+                    amount = Integer.parseInt(String.valueOf(value).trim());
+                } catch (NumberFormatException e) {
+                    amount = -1;
+                }
+                if (amount < 0 || amount > WeeklyRewards.Settings.MAX_POINTS) {
+                    throw new IllegalArgumentException("semaine.points: \"" + value + "\" is not a number of Rago Points, from 0 to "
+                            + WeeklyRewards.Settings.MAX_POINTS);
+                }
+                points.add(amount);
+            }
+            if (points.isEmpty() || points.size() > WeeklyRewards.Settings.MAX_PLACES) {
+                throw new IllegalArgumentException("semaine.points: from 1 to " + WeeklyRewards.Settings.MAX_PLACES
+                        + " places, the points of the first, the second...");
+            }
+        } else {
+            points.addAll(WeeklyRewards.Settings.DEFAULT_POINTS);
+        }
+        String badge = defaultBadge;
+        if (section.isSet("badge")) {
+            badge = section.getString("badge", "").trim();
+            if (badge.isEmpty()) {
+                badge = null;
+            } else if (!styles.containsKey(NameStyle.key(NameStyle.Kind.BADGE, badge))) {
+                throw new IllegalArgumentException("semaine.badge: \"" + badge + "\" is not a badge of styles.badges (\"\" for none)");
+            }
+        }
+        return new WeeklyRewards.Settings(section.getBoolean("actif", true), boards, points, badge);
     }
 
     // --- Level rewards and quests ---------------------------------------------------------------
@@ -449,7 +522,7 @@ final class ServerSettings {
                 }
                 NameStyle.Obtain obtain = NameStyle.Obtain.of(one.getString("obtention", "achat"));
                 if (obtain == null) {
-                    throw new IllegalArgumentException(where + ".obtention: premium, achat, niveau or points");
+                    throw new IllegalArgumentException(where + ".obtention: premium, achat, niveau, points or semaine");
                 }
                 int price = one.getInt("prix", 0);
                 if (obtain == NameStyle.Obtain.POINTS && (price < 1 || price > 1_000_000)) {
@@ -633,6 +706,16 @@ final class ServerSettings {
             }
         }
         return list;
+    }
+
+    /** What the top of the leaderboards of the week wins (semaine: in config.yml). */
+    WeeklyRewards.Settings weekly() {
+        return weekly;
+    }
+
+    /** The badge of the week, or null for none. */
+    NameStyle weeklyBadge() {
+        return style(NameStyle.Kind.BADGE, weekly.badge);
     }
 
     /** The ranked season now (saison: in config.yml). */

@@ -221,7 +221,8 @@ class LobbySettingsTest {
     @Test
     void readsTheBundledNpcs() throws Exception {
         LobbySettings settings = LobbySettings.load(bundledConfig());
-        assertEquals(10, settings.npcs().size(), "four NPCs of modes, one per way to play; the shop, the stats, the boards");
+        assertEquals(11, settings.npcs().size(), "four NPCs of modes, one per way to play; the shop, the stats, the boards and"
+                + " the wall of the week");
         for (String gone : Arrays.asList("ranked", "prive", "ffa", "clutchscenario", "attackanddefense", "rbwsolo1v1ou2v2skyrise",
                 "firstrushnebucgelatosoloduo", "invispracticearwhayinvasion", "realisticplat",
                 "blockplacementarena", "attackdefenseversionrbw", "blockinpractice")) {
@@ -264,6 +265,11 @@ class LobbySettingsTest {
         assertEquals(Arrays.asList(Collections.singletonList(BoardStat.STREAK), Collections.singletonList(BoardStat.KILLS),
                 Collections.singletonList(BoardStat.LEVEL)), settings.npc("leaderboardplayer").boards(),
                 "the kills in the middle, on the point");
+        assertNull(settings.npc("leaderboardplayer").period(), "each player chooses the period");
+        LobbyNpc week = settings.npc("semaine");
+        assertEquals(StatsPeriod.WEEK, week.period(), "the wall of the week stays on the week");
+        assertEquals(Arrays.asList(Collections.singletonList(BoardStat.WINS), Collections.singletonList(BoardStat.STREAK),
+                Arrays.asList(BoardStat.KILLS, BoardStat.GAMES)), week.boards());
         assertFalse(ranked.leaderboard());
         assertNull(LobbySettings.load(withModeNpcs()).npc("ranked").subtitle(), "an NPC of modes: its name and its queue");
         assertEquals(LobbyNpc.Kind.STATS, settings.npc("statsjoueur1").kind());
@@ -276,6 +282,15 @@ class LobbySettingsTest {
         assertEquals("Starter Pack · VIP", org.bukkit.ChatColor.stripColor(shop.subtitle()), "the pack and VIP: no PREMIUM+ there");
         assertTrue(shop.modeIds().isEmpty());
         assertInvalid("pnj:\n  boutique:\n    type: shop\n    modes: [sumo]\nmodes:\n  sumo: {}\n", "pnj.boutique");
+    }
+
+    @Test
+    void aWallFixesThePeriodOfItsBoards() throws Exception {
+        assertEquals(StatsPeriod.DAY, LobbySettings.load(yaml("classements:\n  mur: {tableaux: [kills], periode: jour}\n"
+                + "modes:\n  sumo: {}\n")).npc("mur").period());
+        assertEquals(StatsPeriod.ALL, LobbySettings.load(yaml("classements:\n  mur: {tableaux: [kills], periode: toujours}\n"
+                + "modes:\n  sumo: {}\n")).npc("mur").period());
+        assertInvalid("classements:\n  mur: {tableaux: [kills], periode: mois}\nmodes:\n  sumo: {}\n", "classements.mur.periode");
     }
 
     @Test

@@ -126,6 +126,20 @@ continue), avec un plafond par minute (`xp-entrainement` dans `config.yml` : 1, 
 Elle part au lobby toutes les deux minutes et quand le joueur sort, en un message. Les duels
 donnent la leur à la fin ; l'aim trainer garde la sienne.
 
+**Les records (`/records`).** `/records` ouvre tous les entraînements du serveur, avec le meilleur
+score du joueur et sa place sur chaque record (une variante, ou une vitesse du bot du block edit),
+et le résumé : combien de records, de premières places et de places dans un top 10. Un
+entraînement ouvre ses records, chacun avec son top 10, la place du joueur (sous le top quand il
+est plus loin) et sa place parmi ses amis (`/friend`). Un clic sur un record le joue : dans cet
+entraînement, il y passe et recommence ; depuis le lobby ou un autre entraînement, le lobby y
+emmène et l'entraînement commence dessus. `/records <joueur>` montre ceux d'un autre.
+
+**Le mur des records.** Au lobby, sur le point `records` (`/lobby point records`,
+`mur-des-records` dans `config.yml`, `""` pour aucun), un tableau comme ceux du lobby montre le
+top 10 d'un record après l'autre (ceux qui ont au moins un score), toutes les 8 secondes, avec la
+place de celui qui regarde et le défi du jour. Un clic gauche passe au record suivant (gardé
+20 secondes, le temps de le lire), un clic droit ouvre `/records`.
+
 **Le défi du jour (`/challenge`).** Chaque jour (heure de Paris), un entraînement pour tout le
 serveur, le suivant de `defi-du-jour.epreuves` à tour de rôle (le même toute la journée, même après
 un redémarrage) : Block-In côté bois, island clutch, aim trainer, fast defense, ladder, combo bot
@@ -156,7 +170,10 @@ réglages. Un entraînement de la liste que le serveur ne joue pas est laissé d
   avant qu'il se rattrape (« Clutch! Streak: 3 | 4.3 blocks »). Le top 3 du scoreboard et, au-dessus
   de chaque île devant le joueur, le tableau « BIGGEST CLUTCHES » (les dix premiers) montrent les
   plus gros clutchs de la semaine, le meilleur de chaque joueur, les mêmes pour tout le monde et mis
-  à jour chez tous dès qu'un joueur bat son record. Ils repartent à zéro chaque lundi à minuit.
+  à jour chez tous dès qu'un joueur bat son record. Ils repartent à zéro chaque lundi à minuit
+  (heure de Paris) : le top 3 de la semaine finie gagne alors les Rago Points et la couronne des
+  classements de la semaine du lobby (« Biggest clutches », et « Biggest top fight clutches » pour
+  le top fight), et la semaine d'avant reste gardée jusque-là.
 - **Block clutch : top fight** : le même clutch sur une plateforme de top fight en laine bleue et
   rouge, à la limite de construction : aucun bloc au-dessus de la plateforme, il faut se
   rattraper à son niveau ou plus bas.
@@ -240,7 +257,9 @@ réglages. Un entraînement de la liste que le serveur ne joue pas est laissé d
   mur, frapper le bot par le trou, remettre le bloc avant qu'il ne frappe. Le bot frappe comme un
   joueur, à 3 blocs, une fois qu'il a vu le trou pendant son temps de réaction ; la hotbar règle
   sa vitesse (500, 350 ou 200 ms). Chaque edit propre ajoute à la série, un coup du bot la finit ;
-  un record par vitesse. La station est construite par le plugin, la map n'est pas copiée.
+  un record par vitesse. Le défi du jour du block edit se joue à la vitesse par défaut (350 ms) :
+  [PLAY] la donne, et une autre vitesse ne compte pas pour le défi. La station est construite par
+  le plugin, la map n'est pas copiée.
 
 ## L'arène de block placement
 
@@ -341,7 +360,8 @@ que les zones déjà construites ne bougent pas.
 
 `plugins/RagoPractice/config.yml` : le monde des arènes, l'espacement, le nombre maximal de
 parties, les points pour gagner de chaque duel, le rayon du sumo et ses maps (`sumo.cartes` :
-le monde, le centre de la plateforme, la boîte copiée) et la map du block in. L'attack and defense
+le monde, le centre de la plateforme, la boîte copiée), la map du block in et le point du mur des
+records (`mur-des-records`). L'attack and defense
 est dans le plugin bedwars, sur les maps du propriétaire (Bio Hazard).
 
 ## Construire et tester

@@ -50,11 +50,14 @@ final class FireballTraining extends Training {
     private int nextShot;
     private boolean done;
 
+    /** Up, across, and the fireballs of the cannon sent back. */
+    static final Variant[] VARIANTS = {
+        new Variant("up", "Fireball jump up", false, "jumps"),
+        new Variant("across", "Fireball jump across", false, "jumps"),
+        new Variant("send", "Send them back", false, "fireballs")};
+
     FireballTraining(PracticeHost host, GameMode mode, Arena arena, List<List<Player>> teams) {
-        super(host, mode, arena, teams,
-                new Variant("up", "Fireball jump up", false, "jumps"),
-                new Variant("across", "Fireball jump across", false, "jumps"),
-                new Variant("send", "Send them back", false, "fireballs"));
+        super(host, mode, arena, teams, VARIANTS);
     }
 
     @Override

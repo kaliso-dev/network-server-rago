@@ -31,7 +31,9 @@ import org.bukkit.util.Vector;
  * text: the player's look is followed to it (the armor stands of its lines are too thin to aim at,
  * and an entity is only clicked from 3 blocks). A right click with an item of the lobby in the
  * hand goes to the board aimed at instead of the item; with an empty hand, the game sends nothing
- * further than 3 blocks.
+ * further than 3 blocks. A wall can fix the period of its boards (periode: semaine, the wall of
+ * the week): a click then only goes to the next stat. A board of the week whose top wins
+ * something on Monday ({@link WeeklyRewards}) says what, under the player's place.
  * </ul>
  * Main thread only.
  */
@@ -44,7 +46,7 @@ final class StatsDisplays {
     /** Space between the centres of two boards of a wall, in blocks. */
     static final double BOARD_GAP = 5.5;
     /** Height of a board's lowest line above its point. */
-    private static final double BOARD_BOTTOM = 1.2;
+    static final double BOARD_BOTTOM = 1.2;
     private static final int PROFILE_LINES = 11;
     private static final long CLICK_COOLDOWN_MS = 300;
     /** How far a board is clicked from, in blocks: as far as its text is easily read. */
@@ -91,6 +93,11 @@ final class StatsDisplays {
     private final Map<UUID, Long> lastClick = new HashMap<>();
     /** Where the boards are, for the clicks from a distance. */
     private final List<Spot> spots = new ArrayList<>();
+    /** The boards whose period is fixed by their wall, by key. */
+    private final Map<String, StatsPeriod> fixed = new HashMap<>();
+    /** What the top of the leaderboards of the week wins: nothing until {@link #setWeekly}. */
+    private WeeklyRewards.Settings weekly = WeeklyRewards.Settings.OFF;
+    private String weeklyBadge;
     /** The skins of the podiums: none until {@link #setSkins}. */
     private Function<UUID, Skin> skins = player -> null;
     /** How a podium writes a player: in white, without rank, until {@link #setNames}. */
@@ -106,6 +113,12 @@ final class StatsDisplays {
 
     void setSkins(Function<UUID, Skin> skins) {
         this.skins = skins;
+    }
+
+    /** What the top of the leaderboards of the week wins, and the badge of the week (its text, or null). */
+    void setWeekly(WeeklyRewards.Settings weekly, String badgeText) {
+        this.weekly = weekly;
+        this.weeklyBadge = badgeText;
     }
 
     /** How a podium writes a player: their rank and their name in its colour ({@link NameLooks#stillDisplay}). */
@@ -169,6 +182,12 @@ final class StatsDisplays {
 
     // --- Leaderboards ---------------------------------------------------------------------------
 
+    /** The walls are taken down (before they are placed again): their places are forgotten. */
+    void clearWalls() {
+        spots.clear();
+        fixed.clear();
+    }
+
     /** The boards of a wall side by side, facing the spawn, the first one on the left. */
     void addWall(final LobbyNpc wall, Location base) {
         List<List<BoardStat>> boards = wall.boards();
@@ -179,6 +198,9 @@ final class StatsDisplays {
         for (int i = 0; i < boards.size(); i++) {
             final List<BoardStat> stats = boards.get(i);
             final String key = wall.point() + "#" + i;
+            if (wall.period() != null) {
+                fixed.put(key, wall.period());
+            }
             double offset = (i - (boards.size() - 1) / 2.0) * BOARD_GAP;
             Location bottom = base.clone().add(rightX * offset, BOARD_BOTTOM, rightZ * offset);
             spots.add(new Spot(bottom, stats, key));
@@ -217,7 +239,8 @@ final class StatsDisplays {
     private View view(List<BoardStat> stats, String key, UUID viewer, long now) {
         Choice choice = choice(viewer, key);
         BoardStat stat = stats.get(choice.stat % stats.size());
-        StatsPeriod period = StatsPeriod.values()[choice.option % StatsPeriod.values().length];
+        StatsPeriod period = fixed.containsKey(key) ? fixed.get(key)
+                : StatsPeriod.values()[choice.option % StatsPeriod.values().length];
         GameMode mode = stat.choice() != BoardStat.Choice.RANKED_MODE || ranked.isEmpty() ? null
                 : ranked.get(choice.option % ranked.size());
         StatsBook.Ranking ranking = stat.choice() != BoardStat.Choice.RANKED_MODE || mode != null
@@ -263,7 +286,9 @@ final class StatsDisplays {
         lines.add(own == null ? ChatColor.GRAY + "You: " + ChatColor.DARK_GRAY + "not ranked yet"
                 : ChatColor.GRAY + "You: " + ChatColor.YELLOW + "#" + ranking.position(viewer.getUniqueId())
                         + ChatColor.GRAY + " - " + shown(stat, own.value()));
-        lines.add("");
+        // the board of the week: what its top wins on Monday
+        lines.add(stat.periodic() && period == StatsPeriod.WEEK && weekly.rewards(stat)
+                ? WeeklyRewards.boardLine(weekly, weeklyBadge) : "");
         switch (stat.choice()) {
             case PERIOD:
                 lines.add(ChatColor.GRAY + period.resetText(now));
@@ -278,7 +303,7 @@ final class StatsDisplays {
         if (stats.size() > 1) {
             lines.add(ChatColor.GOLD + "" + ChatColor.BOLD + "\u00bb " + ChatColor.GOLD + "Click here: next leaderboard");
         }
-        if (stat.choice() == BoardStat.Choice.PERIOD) {
+        if (stat.choice() == BoardStat.Choice.PERIOD && !fixed.containsKey(key)) {
             lines.add(ChatColor.YELLOW + "" + ChatColor.BOLD + "\u00bb " + ChatColor.YELLOW + "Click here: change the period");
         } else if (stat.choice() == BoardStat.Choice.RANKED_MODE) {
             lines.add(ChatColor.YELLOW + "" + ChatColor.BOLD + "\u00bb " + ChatColor.YELLOW + "Click here: change the mode");
@@ -388,7 +413,9 @@ final class StatsDisplays {
 
     void next(UUID player, List<BoardStat> stats, String key, boolean change) {
         Choice choice = choice(player, key);
-        boolean nothingToChange = stats.get(choice.stat % stats.size()).choice() == BoardStat.Choice.NONE;
+        BoardStat now = stats.get(choice.stat % stats.size());
+        boolean nothingToChange = now.choice() == BoardStat.Choice.NONE
+                || now.choice() == BoardStat.Choice.PERIOD && fixed.containsKey(key);
         if (stats.size() > 1 && (!change || nothingToChange)) {
             choice.stat = (choice.stat + 1) % stats.size();
             choice.option = 0;
@@ -398,7 +425,7 @@ final class StatsDisplays {
         int count;
         switch (stat.choice()) {
             case PERIOD:
-                count = StatsPeriod.values().length;
+                count = fixed.containsKey(key) ? 1 : StatsPeriod.values().length;
                 break;
             case RANKED_MODE:
                 count = Math.max(1, ranked.size());

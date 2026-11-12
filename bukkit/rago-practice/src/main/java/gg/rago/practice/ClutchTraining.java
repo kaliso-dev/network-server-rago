@@ -3,10 +3,14 @@ package gg.rago.practice;
 import gg.rago.game.GameMode;
 import java.time.LocalDate;
 import java.time.temporal.WeekFields;
+import java.util.AbstractMap;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 import java.util.Random;
 import java.util.UUID;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 import org.bukkit.ChatColor;
 import org.bukkit.EntityEffect;
 import org.bukkit.Location;
@@ -111,9 +115,10 @@ final class ClutchTraining extends Training {
         book.fold(board());
         String week = sizeBoard();
         book.define(week, false);
-        // the board of before the weeks goes into this week's; the weeks before are gone
+        // the board of before the weeks goes into this week's; the weeks before are gone, but the
+        // last one: the lobby gives its rewards once it is over
         book.merge(board() + "-blocks", week);
-        book.dropAllBut(board() + "-blocks.", week);
+        book.dropAllBut(board() + "-blocks.", week, board() + "-blocks." + week(today().minusWeeks(1)));
     }
 
     /**
@@ -132,7 +137,33 @@ final class ClutchTraining extends Training {
 
     /** The board of the biggest clutches of this week, in tenths of a block: "clutch.island-blocks.2026w46". */
     String sizeBoard() {
-        return board() + "-blocks." + week(LocalDate.now());
+        return board() + "-blocks." + week(today());
+    }
+
+    /** Today in Paris, where the weeks of the lobby turn. */
+    private static LocalDate today() {
+        return LocalDate.now(DailyChallenge.PARIS);
+    }
+
+    /** The week of the lobby ("2026-W05") as the boards write it ("2026w5"); null when it is none. */
+    static String week(String lobbyWeek) {
+        Matcher week = Pattern.compile("(\\d{4})-W(\\d{2})").matcher(lobbyWeek == null ? "" : lobbyWeek);
+        return week.matches() ? Integer.parseInt(week.group(1)) + "w" + Integer.parseInt(week.group(2)) : null;
+    }
+
+    /**
+     * The biggest clutches of a week of the lobby ("2026-W46") on this board ("clutch.island"),
+     * the biggest first, each with its size: the leaderboard of the week the lobby rewards.
+     */
+    static List<Map.Entry<UUID, String>> weekRanking(RecordBook book, String board, String lobbyWeek) {
+        List<Map.Entry<UUID, String>> ranking = new ArrayList<>();
+        String week = week(lobbyWeek);
+        if (week != null) {
+            for (RecordBook.Entry entry : book.ranked(board + "-blocks." + week)) {
+                ranking.add(new AbstractMap.SimpleImmutableEntry<>(entry.player, blocks(entry.value)));
+            }
+        }
+        return ranking;
     }
 
     /** The week of this day, from Monday: "2026w46". */

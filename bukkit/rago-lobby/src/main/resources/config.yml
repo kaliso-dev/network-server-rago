@@ -541,7 +541,8 @@ rangs:
 # short word after the name (texte, 15 characters at most with its colour codes). obtention says
 # how a player gets it: premium (with a rank whose style or badge it is), achat (the web store
 # gives it: /style give <player> couleur-feu, from the console), niveau (a reward of the Network
-# levels, niveau.recompenses), points (bought in /style for prix Rago Points). A gradient is
+# levels, niveau.recompenses), points (bought in /style for prix Rago Points), semaine (the top of
+# the leaderboards of the week wears it until the next results, semaine:). A gradient is
 # animated: its colours run along the name in the tab list only (about three times a second);
 # above the head the name keeps one fixed colour, the middle of the gradient (anime: false for a
 # fixed gradient). A player wears one colour and one badge at a time.
@@ -574,6 +575,8 @@ styles:
     pvp: {nom: "PVP", texte: "&4&lPVP", obtention: achat}
     yt: {nom: "YT", texte: "&c&lYT", obtention: achat}
     centurion: {nom: "Centurion", texte: "&e&l✫100", obtention: niveau}
+    # The crown of the top 3 of the leaderboards of the week (semaine:), until the next results.
+    semaine: {nom: "Top of the week", texte: "&6&l♛", obtention: semaine}
   # The colours of the + of [PREMIUM+] (white without one): couleur, one colour character.
   plus:
     noir: {nom: "Black", couleur: "0", obtention: points, prix: 50000}
@@ -731,6 +734,9 @@ liens:
 #             above. Each player sees the top of what they read on the board (ELO, kills or level,
 #             the period, the ranked mode). A step is a /lobby point, or "x y z": where the feet of
 #             who stands on it go. A click on a step opens that player's stats.
+#   periode   jour, semaine or toujours: the boards of the wall stay on that period (a click only
+#             goes to the next leaderboard of a board). Left out, each player chooses it.
+# A board of the week says, under the player's place, what its top wins on Monday (semaine:).
 classements:
   leaderboardprincipal:
     nom: "&e&lTop players"
@@ -746,6 +752,26 @@ classements:
   leaderboardplayer:
     nom: "&e&lPlayer leaderboards"
     tableaux: [series, kills, niveau]
+  # The wall of the week: its boards stay on this week and show what their top 3 wins on Monday
+  # (semaine: below). Place it with /lobby point semaine where it is seen from the spawn.
+  semaine:
+    nom: "&6&lThis week"
+    periode: semaine
+    tableaux: [victoires, series, [kills, parties]]
+
+# The leaderboards of the week: on Monday at midnight (Paris time), the first of each one win
+# Rago Points and the badge of the week, worn until the next results, and the whole server hears
+# it (the winners away hear it when they come back).
+#   classements  the leaderboards of the week rewarded, every mode together: victoires, series,
+#                kills, parties. The biggest clutches of the week of the practice come with them.
+#   points       the Rago Points of the first, the second, the third... (10 places at most)
+#   badge        the badge of styles.badges they wear for the week ("" for none). A player who
+#                chose a badge in /style keeps theirs.
+#   actif        false: no rewards.
+semaine:
+  classements: [victoires, series, kills, parties]
+  points: [2000, 1000, 500]
+  badge: semaine
 
 # The Hypixel import: players copy the quick buy of their Bed Wars shop and their hotbar manager
 # from Hypixel, in one click (the emerald in the kit editor book) or with /hypixel import <name>,

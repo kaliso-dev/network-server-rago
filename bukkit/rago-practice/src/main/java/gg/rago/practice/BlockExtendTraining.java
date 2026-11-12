@@ -147,6 +147,15 @@ final class BlockExtendTraining extends Training {
         };
     }
 
+    /** The levels of every course: gold, diamond, emerald, whatever the map. */
+    static Variant[] variants() {
+        Variant[] variants = new Variant[IDS.length];
+        for (int i = 0; i < variants.length; i++) {
+            variants[i] = new Variant(IDS[i], LABELS[i], false, "saves");
+        }
+        return variants;
+    }
+
     private static Variant[] variants(Course course) {
         Variant[] variants = new Variant[course.levels.length];
         for (int i = 0; i < variants.length; i++) {
