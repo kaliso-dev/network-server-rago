@@ -197,7 +197,7 @@ final class ClutchTraining extends Training {
         return (long) Math.floor(Math.sqrt(dx * dx + dz * dz) * 10 + 1e-9);
     }
 
-    /** A fall or a miss gives the next attempt by itself: the bed in the hotbar. */
+    /** A fall or a miss gives the next attempt by itself: no blaze rod. */
     @Override
     boolean restartUsed() {
         return false;

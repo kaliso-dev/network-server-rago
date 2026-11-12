@@ -202,7 +202,7 @@ final class BlockExtendTraining extends Training {
         return new double[] {dx / length, dz / length};
     }
 
-    /** A fall or a miss gives the next attempt by itself: the bed in the hotbar. */
+    /** A fall or a miss gives the next attempt by itself: no blaze rod. */
     @Override
     boolean restartUsed() {
         return false;

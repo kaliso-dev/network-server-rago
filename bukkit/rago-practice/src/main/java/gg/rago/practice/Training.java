@@ -27,9 +27,9 @@ import org.bukkit.inventory.PlayerInventory;
  * A solo training: one player, attempts one after the other (each on the arena as built), a
  * personal best and the server's best for each of its variants, kept in records.yml. At the end
  * of the hotbar, the controls: the green dye goes to the next level and the red one to the level
- * before (when there are several), the bed back to the lobby (when a fall gives the next attempt
- * by itself), the compass to another training, the comparator opens the settings (the
- * mode, each setting with - and +, back to default, the presets), the blaze rod restarts. The
+ * before (when there are several), the compass to another training, the comparator opens the
+ * settings (the mode, each setting with - and +, back to default, the presets), the blaze rod
+ * restarts; /spawn goes back to the lobby. The
  * player puts the items and the controls where they like in their inventory: the lobby keeps the
  * kit's, reglages.yml the controls', for every training. The training waits (no hit, no new
  * attempt) while a menu is open or the player arranges their inventory. No damage, no stats.
@@ -125,7 +125,6 @@ abstract class Training extends PracticeGame {
     enum Control {
         PREVIOUS("precedent"),
         NEXT("suivant"),
-        LEAVE("quitter"),
         TRAININGS("trainings"),
         SETTINGS("reglages"),
         RESTART("recommencer");
@@ -142,7 +141,6 @@ abstract class Training extends PracticeGame {
     static final String RESTART_ITEM = ChatColor.YELLOW + "Restart" + ChatColor.GRAY + " (right click)";
     static final String SETTINGS_ITEM = ChatColor.AQUA + "Settings" + ChatColor.GRAY + " (right click)";
     static final String TRAININGS_ITEM = ChatColor.GREEN + "Trainings" + ChatColor.GRAY + " (right click)";
-    static final String LEAVE_ITEM = ChatColor.RED + "Leave" + ChatColor.GRAY + " (right click)";
     /** The slots of an inventory the kit and the controls go to: the hotbar (0 to 8), then the rest. */
     static final int SLOTS = 36;
     /**
@@ -402,28 +400,28 @@ abstract class Training extends PracticeGame {
     }
 
     /**
-     * The controls this training has: the green and red dyes with several levels, the bed when a new
-     * attempt comes by itself, the comparator with settings.
+     * The controls this training has: the green and red dyes with several levels, the comparator
+     * with settings, the blaze rod where it is of use. No bed: /spawn takes the player back to the
+     * lobby.
      */
     Set<Control> present() {
-        Set<Control> present = EnumSet.of(Control.TRAININGS, Control.RESTART);
+        Set<Control> present = EnumSet.of(Control.TRAININGS);
         if (variants.size() > 1) {
             present.add(Control.PREVIOUS);
             present.add(Control.NEXT);
         }
-        if (!restartUsed()) {
-            present.add(Control.LEAVE);
-        }
         if (hasSettings()) {
             present.add(Control.SETTINGS);
+        }
+        if (restartUsed()) {
+            present.add(Control.RESTART);
         }
         return present;
     }
 
     /**
      * True when the blaze rod is what starts a new attempt (a time, a round of thirty seconds...);
-     * false when a fall or a miss gives one by itself (a streak): there, the bed takes the player
-     * back to the lobby, elsewhere /spawn does.
+     * false when a fall or a miss gives one by itself (a streak): no blaze rod there.
      */
     boolean restartUsed() {
         return true;
@@ -482,8 +480,8 @@ abstract class Training extends PracticeGame {
 
     /**
      * The controls in the inventory, where the player put them: the red and green dyes (the level
-     * before, the next one), the bed (back to the lobby), the compass (another training), the
-     * comparator (the settings, when there are some) and the blaze rod (restart). An item of the kit where a control goes moves out
+     * before, the next one), the compass (another training), the comparator (the settings, when
+     * there are some) and the blaze rod (restart). An item of the kit where a control goes moves out
      * of its way.
      */
     void controls(Player player) {
@@ -521,8 +519,6 @@ abstract class Training extends PracticeGame {
             case NEXT:
                 return named(Material.INK_SACK, variant + 1, GREEN_DYE, NEXT_ITEM, ChatColor.GRAY + "Now: " + ChatColor.WHITE
                         + current().label, ChatColor.GRAY + "Next: " + ChatColor.WHITE + variants.get((variant + 1) % variants.size()).label);
-            case LEAVE:
-                return named(Material.BED, 1, 0, LEAVE_ITEM, ChatColor.GRAY + "Back to the lobby.");
             case TRAININGS:
                 return named(Material.COMPASS, 1, 0, TRAININGS_ITEM, ChatColor.GRAY + "Another training, straight from here.");
             case SETTINGS:
@@ -547,9 +543,6 @@ abstract class Training extends PracticeGame {
         }
         if (isNamed(item, Material.INK_SACK, PREVIOUS_ITEM)) {
             return Control.PREVIOUS;
-        }
-        if (isNamed(item, Material.BED, LEAVE_ITEM)) {
-            return Control.LEAVE;
         }
         if (isNamed(item, Material.COMPASS, TRAININGS_ITEM)) {
             return Control.TRAININGS;
@@ -888,16 +881,6 @@ abstract class Training extends PracticeGame {
             }
             return;
         }
-        if (isNamed(item, Material.BED, LEAVE_ITEM)) {
-            event.setCancelled(true);
-            // as /spawn, at the next tick, out of the event
-            Bukkit.getScheduler().runTask(plugin, () -> {
-                if (player.isOnline() && host.gameOf(me) == this) {
-                    player.performCommand("spawn");
-                }
-            });
-            return;
-        }
         if (isNamed(item, Material.BLAZE_ROD, RESTART_ITEM)) {
             event.setCancelled(true);
             if (player.isSneaking() && !settings.isEmpty()) {
@@ -949,13 +932,12 @@ abstract class Training extends PracticeGame {
                 + ChatColor.RED + "red dye" + ChatColor.GRAY + " to the one before, " : "";
         String menu = hasSettings() ? "the " + ChatColor.AQUA + "comparator" + ChatColor.GRAY
                 + " opens the settings (the mode, the settings, the presets), " : "";
-        String back = restartUsed() ? ChatColor.WHITE + "/spawn" + ChatColor.GRAY + " takes you back to the lobby."
-                : "the " + ChatColor.RED + "bed" + ChatColor.GRAY + " back to the lobby.";
         String kept = hasSettings() ? " Your last mode and settings come back next time; arrange your inventory as you like, it is kept."
                 : " Arrange your inventory as you like: it is kept.";
-        player.sendMessage(ChatColor.GRAY + "Hotbar: " + levels + menu + "the " + ChatColor.YELLOW + "blaze rod" + ChatColor.GRAY
-                + " restarts, the " + ChatColor.GREEN + "compass" + ChatColor.GRAY + " takes you to another training"
-                + (restartUsed() ? "; " : ", ") + back + kept);
+        String restart = restartUsed() ? "the " + ChatColor.YELLOW + "blaze rod" + ChatColor.GRAY + " restarts, " : "";
+        player.sendMessage(ChatColor.GRAY + "Hotbar: " + levels + menu + restart + "the " + ChatColor.GREEN + "compass"
+                + ChatColor.GRAY + " takes you to another training; " + ChatColor.WHITE + "/spawn" + ChatColor.GRAY
+                + " takes you back to the lobby." + kept);
     }
 
     /** The text of a score: "4.512 s" or "12 clutches". */

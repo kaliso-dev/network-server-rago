@@ -100,15 +100,15 @@ Chaque duel, sumo compris, est enregistré : `/replay` le montre à nouveau depu
 Un joueur seul. La fin de la hotbar garde les commandes, côte à côte, le kit prend les cases
 d'avant : la poudre verte **Next level** passe au niveau suivant et la poudre rouge **Previous
 level** à celui d'avant (seulement quand l'entraînement en a plusieurs ; après le dernier, le
-premier, et avant le premier, le dernier), le lit **Leave** ramène au lobby (seulement dans les
-entraînements où une chute ou un raté redonne l'essai tout seul : block extend, block clutch,
-block edit, combo bot, extend sauf la chaîne, fireball, ladder, pearl ; ailleurs, `/spawn`), la
-boussole **Trainings** ouvre le menu Practice du lobby (un clic sur un autre entraînement y
+premier, et avant le premier, le dernier), la boussole **Trainings** ouvre le menu Practice du lobby (un clic sur un autre entraînement y
 emmène directement, sans repasser par le lobby), le comparateur **Settings** ouvre les réglages
-(seulement quand l'entraînement en a), et la blaze rod **Restart** recommence.
+(seulement quand l'entraînement en a), et la blaze rod **Restart** recommence (seulement là où
+elle sert : pas dans block extend, block clutch, block edit, combo bot, extend sauf la chaîne,
+fireball, ladder et pearl, où une chute ou un raté relance l'essai tout seul). Pas de lit :
+`/spawn` ramène au lobby.
 
 Le joueur range son inventaire comme il veut, une fois : en le fermant, la place des objets du kit
-est gardée par le lobby pour cet entraînement, et celle des commandes (poudres, lit, boussole,
+est gardée par le lobby pour cet entraînement, et celle des commandes (poudres, boussole,
 comparateur, blaze rod) dans `plugins/RagoPractice/reglages.yml` (`_barre`), pour tous les
 entraînements (« Hotbar saved »). Un objet du kit qui tombe sur la case d'une commande va dans la
 première case libre. L'entraînement attend tant qu'un menu est ouvert (les réglages, les
@@ -141,8 +141,8 @@ moins d'une seconde, et au block clutch comme au block extend le coup arrive moi
 après le retour au départ (au block clutch, après une chute, un peu plus tard : 0,75 à 1,3 seconde,
 le temps de se replacer). Au block clutch, Random side est désactivé par défaut. Chaque joueur retrouve, dans chaque entraînement, la variante et les
 réglages qu'il avait la dernière fois (gardés dans `plugins/RagoPractice/reglages.yml`, sauf la
-variante quand c'est le défi du jour qui la choisit) ; **Reset to default**, ou shift et un clic
-droit sur la blaze rod, remettent les réglages par défaut.
+variante quand c'est le défi du jour qui la choisit) ; **Reset to default** (ou shift et un clic
+droit sur la blaze rod, quand il y en a une) remet les réglages par défaut.
 
 Les entraînements et les arènes libres (block clutch, bridge fight) donnent de l'XP Network :
 un peu par minute de jeu, un peu par essai raté, plus par réussite (un temps, une série qui

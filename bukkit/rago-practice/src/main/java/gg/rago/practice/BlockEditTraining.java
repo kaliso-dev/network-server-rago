@@ -107,7 +107,7 @@ final class BlockEditTraining extends Training {
         return dx * dx + dz * dz <= BOT_REACH * BOT_REACH;
     }
 
-    /** A fall or a miss gives the next attempt by itself: the bed in the hotbar. */
+    /** A fall or a miss gives the next attempt by itself: no blaze rod. */
     @Override
     boolean restartUsed() {
         return false;

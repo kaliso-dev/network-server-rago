@@ -80,7 +80,7 @@ final class LadderTraining extends Training {
         return HEIGHTS[station] - 1;
     }
 
-    /** A fall or a miss gives the next attempt by itself: the bed in the hotbar. */
+    /** A fall or a miss gives the next attempt by itself: no blaze rod. */
     @Override
     boolean restartUsed() {
         return false;
