@@ -1462,6 +1462,10 @@ class BedwarsGame {
         host.release(gamer.id);
         if (phase != Phase.ENDED) {
             boolean wasPlaying = !gamer.eliminated;
+            if (wasPlaying) {
+                // a forfeit: after a ranked game, the ranked queues close for a while (the lobby says)
+                plugin.lobby().forfeited(modeId, gamer.id);
+            }
             gamer.eliminated = true;
             gamer.respawning = false;
             cancel(gamer.respawn);

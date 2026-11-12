@@ -80,6 +80,15 @@ public interface LobbyService {
     void recordMatch(String modeId, List<UUID> winners, List<UUID> losers);
 
     /**
+     * The player leaves a game of this mode they still play (a forfeit: /spawn, Play again, leaving
+     * the server), not one they are out of. Called before giving them back to the lobby. After a
+     * ranked game that moves the ELO, the ranked queues stay closed to them for a while
+     * (file.abandon-classe-minutes of the lobby's config.yml), as on the ranked servers.
+     */
+    default void forfeited(String modeId, UUID player) {
+    }
+
+    /**
      * A kill in a game of this mode (in a sumo: the victim fell off and the killer got the point).
      * The killer gets a kill and some Network XP, the victim a death (null when nobody died).
      * Counted in the stats and the kill leaderboards, of the day, the week and ever.

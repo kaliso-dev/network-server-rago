@@ -174,6 +174,9 @@ final class QueueController {
             joinTogether(player, party, mode, map);
             return;
         }
+        if (bannedFromRanked(player, mode, null)) {
+            return;
+        }
         Matchmaker.JoinResult result = matchmaker.join(player.getUniqueId(), mode.id(), rating(player.getUniqueId(), mode),
                 System.currentTimeMillis(), map);
         joined(player, mode, map, result, false);
@@ -235,7 +238,7 @@ final class QueueController {
             player.sendMessage(ChatColor.GRAY + mode.name() + ChatColor.GRAY + " is coming soon.");
         } else if (parties.together(id) != null) {
             Parties.boxed(player, ChatColor.RED + "Your party joins a queue from the lobby: /spawn first.");
-        } else {
+        } else if (!bannedFromRanked(player, mode, null)) {
             joined(player, mode, map, matchmaker.join(id, mode.id(), rating(id, mode), System.currentTimeMillis(), map), true);
         }
         return true;
@@ -289,6 +292,28 @@ final class QueueController {
             player.sendMessage(ChatColor.YELLOW + "No free arena right now: try again in a moment.");
         }
         onChange.run();
+        return true;
+    }
+
+    /**
+     * True if this player left a ranked game lately and this mode is ranked: its queue is closed to
+     * them for a while (told to them, or to the leader of their party who asked).
+     */
+    private boolean bannedFromRanked(Player player, GameMode mode, Player leader) {
+        if (!mode.ranked()) {
+            return false;
+        }
+        long left = lobby.rankedBans().left(player.getUniqueId(), System.currentTimeMillis());
+        if (left <= 0) {
+            return false;
+        }
+        if (leader == null) {
+            player.sendMessage(ChatColor.RED + "You left a ranked game: you can join a ranked queue again in "
+                    + RankedBans.clock(left) + ".");
+        } else {
+            Parties.boxed(leader, ChatColor.RED + player.getName() + " left a ranked game: your party can join a ranked queue"
+                    + " again in " + RankedBans.clock(left) + ".");
+        }
         return true;
     }
 
@@ -468,6 +493,11 @@ final class QueueController {
             Parties.boxed(leader, ChatColor.RED + "Your party has " + players.size() + " players: too many for "
                     + mode.name() + ChatColor.RED + " (" + mode.format() + ").");
             return;
+        }
+        for (Player member : players) {
+            if (bannedFromRanked(member, mode, leader)) {
+                return;
+            }
         }
         Map<UUID, Integer> ratings = new LinkedHashMap<>();
         for (Player member : players) {

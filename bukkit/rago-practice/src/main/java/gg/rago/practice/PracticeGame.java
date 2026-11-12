@@ -345,6 +345,10 @@ abstract class PracticeGame implements Spectators.Watched {
         UUID id = player.getUniqueId();
         plugin.spectators().playerLeft(this, player);
         if (phase != Phase.ENDED) {
+            if (sides.size() > 1 && sideOf(id) >= 0) {
+                // a forfeit: the queues of a ranked mode close for a while (the lobby says which)
+                plugin.lobby().forfeited(mode.id(), id);
+            }
             host.release(id);
             if (sides.size() > 1) {
                 int side = sideOf(id);

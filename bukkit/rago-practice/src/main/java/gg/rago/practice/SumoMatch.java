@@ -240,6 +240,8 @@ final class SumoMatch implements Spectators.Watched {
         }
         plugin.spectators().playerLeft(this, player);
         if (phase != Phase.ENDED) {
+            // a forfeit: the queues of a ranked mode close for a while (the lobby says which)
+            plugin.lobby().forfeited(SumoHost.MODE_ID, player.getUniqueId());
             end(1 - side, true);
         }
         host.release(player.getUniqueId());

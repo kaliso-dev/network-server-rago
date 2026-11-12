@@ -110,6 +110,8 @@ public final class RagoLobby extends JavaPlugin implements LobbyService {
     private final NextGame nextGame = new NextGame(this);
     /** The seconds a won game lasts after its end (fin-de-partie-secondes). */
     private int endSeconds = 3;
+    /** The ranked queues closed for a while after a forfeit (file.abandon-classe-minutes). */
+    private RankedBans rankedBans = new RankedBans(5);
     private int seconds;
     /** The leaderboards of the week: the week counted, the last results (semaine.yml). */
     private WeeklyRewards.State weekly;
@@ -148,6 +150,7 @@ public final class RagoLobby extends JavaPlugin implements LobbyService {
             settings = LobbySettings.load(getConfig());
             server = ServerSettings.load(getConfig());
             endSeconds = Math.max(0, Math.min(10, getConfig().getInt("fin-de-partie-secondes", 3)));
+            rankedBans = new RankedBans(getConfig().getInt("file.abandon-classe-minutes", 5));
         } catch (IllegalArgumentException e) {
             getLogger().severe("config.yml is invalid, RagoLobby is disabled: " + e.getMessage());
             getServer().getPluginManager().disablePlugin(this);
@@ -1290,6 +1293,32 @@ public final class RagoLobby extends JavaPlugin implements LobbyService {
         state.leaveGame(id);
         scoreboard.setGameLines(id, null);
         scoreboard.setGamePrefix(id, null);
+    }
+
+    /** The ranked queues closed for a while to those who left a ranked game they played. */
+    RankedBans rankedBans() {
+        return rankedBans;
+    }
+
+    /**
+     * A forfeit in a game that moves the ELO (a ranked mode, from the queue, not a party's private
+     * game nor a /duel): the ranked queues are closed to the player for a while.
+     */
+    @Override
+    public void forfeited(String modeId, UUID player) {
+        GameMode mode = settings.catalog().get(modeId);
+        if (mode == null || !mode.ranked() || !modeId.equals(state.gameOf(player)) || state.isWatching(player)
+                || state.isInPrivateGame(player) || state.isUnrated(player) || rankedBans.minutes() <= 0) {
+            return;
+        }
+        rankedBans.forfeited(player, System.currentTimeMillis());
+        Player online = getServer().getPlayer(player);
+        if (online != null) {
+            online.sendMessage(ChatColor.RED + "You left a ranked game: the ranked queues are closed to you for "
+                    + rankedBans.minutes() + (rankedBans.minutes() == 1 ? " minute." : " minutes."));
+        }
+        getLogger().info((online != null ? online.getName() : player.toString()) + " left a ranked game of " + modeId
+                + ": no ranked queue for " + rankedBans.minutes() + " min");
     }
 
     @Override

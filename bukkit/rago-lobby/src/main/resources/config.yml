@@ -23,13 +23,16 @@ adresse: "&erago.gg"
 # The queues. A ranked queue matches players by their ELO (see elo: below), from
 # elo-par-defaut before a player's first ranked game: the ELO gap accepted starts at
 # ecart-elo-initial and grows by ecart-elo-pas every ecart-elo-secondes of waiting, up to
-# ecart-elo-max.
+# ecart-elo-max. A player who leaves a ranked game they still play (/spawn, Play again, leaving
+# the server) cannot join a ranked queue for abandon-classe-minutes (0 to 60, 0 for never), as on
+# the ranked servers: not after a /duel nor a party's private game, which move no ELO.
 file:
   elo-par-defaut: 0
   ecart-elo-initial: 100
   ecart-elo-pas: 50
   ecart-elo-secondes: 10
   ecart-elo-max: 500
+  abandon-classe-minutes: 5
 
 # After a won game (Bed Wars, a duel), the seconds everyone stays in the arena to see the winners
 # and their victory effect, with the Play again paper and the Leave bed usable at once (and
