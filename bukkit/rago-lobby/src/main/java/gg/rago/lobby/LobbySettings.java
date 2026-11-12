@@ -429,6 +429,16 @@ final class LobbySettings {
     }
 
     /** True for 2 to 8 colours, with a format or two: a rainbow ("§c§6§e§a§b§d"). */
+    /**
+     * config.yml as it is written, without the bundled one behind it: a section left out is then the
+     * plugin's own, as in the tests. With the bundled one as its defaults (what Bukkit's getConfig
+     * gives), Bukkit makes a section left out an empty one: no step of the titles (the lobby would
+     * not start), no choice for the first arrival.
+     */
+    static void asWritten(org.bukkit.configuration.Configuration config) {
+        config.setDefaults(new org.bukkit.configuration.MemoryConfiguration());
+    }
+
     static boolean isRainbow(String text) {
         return text.matches("(\u00a7[0-9a-fk-or]){2,10}") && NetworkLevel.colourCodes(text).size() >= 2
                 && NetworkLevel.colourCodes(text).size() <= 8;
