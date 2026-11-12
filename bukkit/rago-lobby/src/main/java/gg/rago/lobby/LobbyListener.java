@@ -89,8 +89,9 @@ final class LobbyListener implements Listener {
         Player player = event.getPlayer();
         if (player.getWorld().equals(state.world()) && !state.isInGame(player) && !state.isBuilding(player)) {
             lobby.resetForLobby(player);
-        } else if (event.getFrom().equals(state.world())) {
+        } else if (event.getFrom().equals(state.world()) && !state.isInGame(player)) {
             // Left the lobby without a game (a /monde tp, for example): no longer waits in a queue.
+            // Into a game, the queue decides: a training keeps the player's place.
             lobby.queues().leave(player, true);
         }
     }

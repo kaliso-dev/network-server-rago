@@ -486,10 +486,12 @@ final class LobbyScoreboard {
         lines.add(blank(2));
         lines.add(ChatColor.WHITE + "Ping: " + pingText(pingOf(player)));
         lines.add(ChatColor.WHITE + "Players: " + ChatColor.GREEN + String.format(java.util.Locale.US, "%,d", Bukkit.getOnlinePlayers().size()));
-        GameMode mode = queues.queueOf(player);
-        if (mode != null) {
+        List<GameMode> waiting = queues.queuesOf(player);
+        if (!waiting.isEmpty()) {
             lines.add(blank(3));
-            lines.add(cut(ChatColor.WHITE + "Queue: " + mode.name()));
+            // the first queue joined, and how many others: "Queue: Sumo +1"
+            lines.add(cut(ChatColor.WHITE + "Queue: " + waiting.get(0).name()
+                    + (waiting.size() > 1 ? ChatColor.GRAY + " +" + (waiting.size() - 1) : "")));
             lines.add(ChatColor.WHITE + "Waiting: " + ChatColor.YELLOW
                     + clock(queues.waited(player, System.currentTimeMillis())));
         }
@@ -518,8 +520,10 @@ final class LobbyScoreboard {
     /** In a game: the mode, the player's ping, and in a 1v1 the opponent and their ping. */
     private List<String> gameLines(Player player, String modeId) {
         List<String> given = gameLines.get(player.getUniqueId());
+        // waiting in queues while training: the line over the address, where the blank one was
+        String queue = queueLine(player);
         if (given != null) {
-            return givenLines(given, showsPing(given) ? new ArrayList<String>() : pingLines(player), settings.address());
+            return givenLines(given, showsPing(given) ? new ArrayList<String>() : pingLines(player), queue, settings.address());
         }
         List<String> lines = new ArrayList<>();
         lines.add(blank(0));
@@ -538,9 +542,21 @@ final class LobbyScoreboard {
         } else {
             lines.add(ChatColor.WHITE + "Your ping: " + pingText(pingOf(player)));
         }
-        lines.add(blank(2));
+        lines.add(queue != null ? queue : blank(2));
         lines.add(cut(settings.address()));
         return lines;
+    }
+
+    /** The queue line of a player who waits in queues while they train, or null if they wait in none. */
+    private String queueLine(Player player) {
+        List<GameMode> waiting = queues.queuesOf(player);
+        return waiting.isEmpty() ? null : queueLine(waiting, queues.waited(player, System.currentTimeMillis()));
+    }
+
+    /** "Queue: 0:42 (Sumo +1)": waited this long in the first of these queues, and how many others. */
+    static String queueLine(List<GameMode> waiting, long waitedMillis) {
+        return cut(ChatColor.WHITE + "Queue: " + ChatColor.YELLOW + clock(waitedMillis) + ChatColor.GRAY + " ("
+                + ChatColor.stripColor(waiting.get(0).name()) + (waiting.size() > 1 ? " +" + (waiting.size() - 1) : "") + ")");
     }
 
     /** True if these lines of a game show a ping already. */
@@ -616,6 +632,11 @@ final class LobbyScoreboard {
      * there gets an invisible colour code of its own.
      */
     static List<String> givenLines(List<String> given, List<String> added, String address) {
+        return givenLines(given, added, null, address);
+    }
+
+    /** As {@link #givenLines(List, List, String)}, this line (null: a blank one) over the address. */
+    static List<String> givenLines(List<String> given, List<String> added, String last, String address) {
         List<String> all = new ArrayList<>(given.subList(0, Math.min(given.size(), MAX_GAME_LINES - added.size())));
         all.addAll(added);
         List<String> lines = new ArrayList<>();
@@ -628,7 +649,7 @@ final class LobbyScoreboard {
             }
             lines.add(cut(text));
         }
-        lines.add(blank(2));
+        lines.add(last == null || lines.contains(cut(last)) ? blank(2) : cut(last));
         lines.add(cut(address));
         return lines;
     }

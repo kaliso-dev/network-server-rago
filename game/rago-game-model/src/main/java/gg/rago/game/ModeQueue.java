@@ -146,9 +146,20 @@ public final class ModeQueue {
      * whatever their priority.
      */
     public List<MatchProposal> poll(long nowMillis, ToIntFunction<UUID> priority) {
+        return poll(nowMillis, priority, Collections.<UUID>emptySet());
+    }
+
+    /**
+     * As {@link #poll(long, ToIntFunction)}, without the players of {@code busy} (matched in another
+     * queue in the same pass): they, and their party, keep their place here but play nothing now.
+     */
+    public List<MatchProposal> poll(long nowMillis, ToIntFunction<UUID> priority, Set<UUID> busy) {
         List<MatchProposal> matches = new ArrayList<>();
         Set<UUID> taken = new HashSet<>();
         List<Unit> units = units();
+        if (!busy.isEmpty()) {
+            units.removeIf(unit -> unit.entries.stream().anyMatch(entry -> busy.contains(entry.player())));
+        }
         final Map<UUID, Integer> first = new HashMap<>();
         for (Unit unit : units) {
             int highest = 0;

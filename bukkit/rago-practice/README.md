@@ -100,6 +100,11 @@ se ferme. Le block clutch a trois préréglages : **Hypixel** (un coup d'un comb
 1 coup), **RBW** (des coups en sprint, de n'importe quel côté : KB 5, 2 coups, côté aléatoire) et
 **Hard** (KB 5, 3 coups, KB stick, côté aléatoire).
 
+Pendant un entraînement, le joueur garde sa place dans les files qu'il attendait au lobby, et peut
+en rejoindre depuis la boussole **Trainings** (la flèche ramène aux catégories) ou `/queue` : le
+scoreboard montre l'attente sur l'avant-dernière ligne, et la partie trouvée le sort de
+l'entraînement directement.
+
 Chaque entraînement a ses variantes, et chaque variante son record : le meilleur score du joueur et celui du serveur, gardés dans
 `plugins/RagoPractice/records.yml`. Le scoreboard montre le top 3 du serveur, une ligne vide, le
 meilleur score du joueur et son rang, et le dernier score à côté du ping (12 lignes au plus :

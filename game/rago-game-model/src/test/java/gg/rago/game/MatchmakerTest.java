@@ -1,7 +1,9 @@
 package gg.rago.game;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNull;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.util.Arrays;
 import java.util.LinkedHashMap;
@@ -22,26 +24,83 @@ class MatchmakerTest {
     }
 
     @Test
-    void aPlayerWaitsInOneQueueAtMost() {
-        Matchmaker matchmaker = matchmaker();
+    void aPlayerAloneWaitsInSeveralQueues() {
+        Matchmaker matchmaker = many();
         assertEquals(Matchmaker.JoinResult.JOINED, matchmaker.join(A, "sumo", 1000, 0));
         assertEquals(Matchmaker.JoinResult.ALREADY_WAITING, matchmaker.join(A, "sumo", 1000, 5));
         assertEquals(0, matchmaker.entryOf(A).joinedAtMillis(), "joining again keeps the place");
-        assertEquals(Matchmaker.JoinResult.SWITCHED, matchmaker.join(A, "pont", 1000, 10));
-        assertEquals(0, matchmaker.waiting("sumo"));
-        assertEquals(1, matchmaker.waiting("pont"));
-        assertEquals(PONT, matchmaker.queueOf(A));
-        assertEquals(Matchmaker.JoinResult.UNKNOWN_MODE, matchmaker.join(A, "nope", 1000, 10));
-        assertEquals(PONT, matchmaker.queueOf(A));
+        assertEquals(Matchmaker.JoinResult.ALSO, matchmaker.join(A, "bridge", 1000, 10));
+        assertEquals(Matchmaker.JoinResult.ALSO, matchmaker.join(A, "bw-2v2", 1000, 20));
+        assertEquals(1, matchmaker.waiting("sumo"), "the first queue keeps the player");
+        assertEquals(Matchmaker.JoinResult.TOO_MANY_QUEUES, matchmaker.join(A, "boxing", 1000, 30));
+        assertEquals(0, matchmaker.waiting("boxing"));
+        assertEquals(Matchmaker.JoinResult.ALSO, matchmaker.join(A, "pont", 1000, 40), "a mode played alone is not counted");
+        assertEquals(Arrays.asList(SUMO, BRIDGE, DOUBLES, PONT), matchmaker.queuesOf(A));
+        assertEquals(SUMO, matchmaker.queueOf(A), "the first queue joined");
+        assertEquals(1, matchmaker.waitingTotal(), "one player, however many queues");
+        assertTrue(matchmaker.isWaiting(A, "bridge"));
+        assertEquals(10, matchmaker.entryOf(A, "bridge").joinedAtMillis());
+        assertNull(matchmaker.entryOf(A, "boxing"));
+
+        assertEquals(BRIDGE, matchmaker.leave(A, "bridge"));
+        assertNull(matchmaker.leave(A, "bridge"));
+        assertFalse(matchmaker.isWaiting(A, "bridge"));
+        assertEquals(Matchmaker.JoinResult.ALSO, matchmaker.join(A, "boxing", 1000, 50), "a queue left makes room");
+        assertEquals(Matchmaker.JoinResult.UNKNOWN_MODE, matchmaker.join(A, "nope", 1000, 60));
+        assertEquals(Arrays.asList(SUMO, DOUBLES, PONT, BOXING), matchmaker.queuesOf(A));
+    }
+
+    private static final GameMode BRIDGE = new GameMode("bridge", "Bridge", 2, 1, false);
+    private static final GameMode BOXING = new GameMode("boxing", "Boxing", 2, 1, false);
+
+    /** A mode played alone first (as a training), then four modes against others. */
+    private static Matchmaker many() {
+        return new Matchmaker(Arrays.asList(PONT, SUMO, BRIDGE, DOUBLES, BOXING), RatingWindow.DEFAULT);
+    }
+
+    @Test
+    void theFirstMatchFoundTakesThePlayerOutOfEveryQueue() {
+        Matchmaker matchmaker = many();
+        matchmaker.join(A, "sumo", 1000, 0);
+        matchmaker.join(A, "bridge", 1000, 0);
+        matchmaker.join(B, "bridge", 1000, 1);
+        matchmaker.join(C, "sumo", 1000, 2);
+        List<MatchProposal> matches = matchmaker.poll(3);
+        assertEquals(1, matches.size(), "A plays one match");
+        assertEquals(Arrays.asList(A, C), matches.get(0).players(), "sumo, polled first");
+        assertTrue(matchmaker.queuesOf(A).isEmpty(), "out of the bridge queue too");
+        assertEquals(Arrays.asList(BRIDGE), matchmaker.queuesOf(B));
+        assertEquals(1, matchmaker.waitingTotal());
+    }
+
+    @Test
+    void aMatchPlayedAloneKeepsThePlaceInTheOtherQueues() {
+        Matchmaker matchmaker = many();
+        matchmaker.join(A, "sumo", 1000, 0);
+        matchmaker.join(B, "sumo", 1000, 1);
+        matchmaker.join(A, "pont", 1000, 2);
+        List<MatchProposal> matches = matchmaker.poll(3);
+        assertEquals(1, matches.size(), "one match for A in a pass, the first found");
+        assertEquals(PONT, matches.get(0).mode());
+        assertEquals(Arrays.asList(SUMO), matchmaker.queuesOf(A), "A plays alone and keeps their place");
+        assertEquals(0, matchmaker.entryOf(A).joinedAtMillis());
+        assertEquals(Arrays.asList(SUMO), matchmaker.queuesOf(B), "no match for B without A this time");
+
+        matches = matchmaker.poll(4);
+        assertEquals(1, matches.size());
+        assertEquals(Arrays.asList(A, B), matches.get(0).players(), "the next pass: the sumo");
+        assertEquals(0, matchmaker.waitingTotal());
     }
 
     @Test
     void leaving() {
         Matchmaker matchmaker = matchmaker();
         matchmaker.join(A, "sumo", 1000, 0);
-        assertEquals(SUMO, matchmaker.leave(A));
+        matchmaker.join(A, "pont", 1000, 1);
+        assertEquals(SUMO, matchmaker.leave(A), "every queue, the first named");
         assertNull(matchmaker.leave(A));
         assertNull(matchmaker.queueOf(A));
+        assertEquals(0, matchmaker.waiting("pont"));
         assertEquals(0, matchmaker.waitingTotal());
     }
 
@@ -62,15 +121,32 @@ class MatchmakerTest {
     }
 
     @Test
-    void requeueLeavesAPlayerWhoMovedOn() {
-        Matchmaker matchmaker = matchmaker();
+    void requeueGivesBackThePlaceOfAMatchThatCouldNotStart() {
+        Matchmaker matchmaker = many();
         matchmaker.join(A, "sumo", 1000, 0);
         matchmaker.join(B, "sumo", 1000, 1);
         MatchProposal match = matchmaker.poll(2).get(0);
-        matchmaker.join(B, "pont", 1000, 3);
+        matchmaker.join(A, "pont", 1000, 3);
+        matchmaker.join(B, "sumo", 1000, 4);
         matchmaker.requeue(match);
-        assertEquals(SUMO, matchmaker.queueOf(A));
-        assertEquals(PONT, matchmaker.queueOf(B));
+        assertEquals(Arrays.asList(PONT, SUMO), matchmaker.queuesOf(A), "back in the sumo, besides the queue joined since");
+        assertEquals(0, matchmaker.entryOf(A, "sumo").joinedAtMillis(), "at the original place");
+        assertEquals(4, matchmaker.entryOf(B, "sumo").joinedAtMillis(), "B waits there again already: as they are");
+        assertEquals(2, matchmaker.waiting("sumo"));
+    }
+
+    @Test
+    void requeueLeavesAPlayerWhoWaitsInAsManyQueuesAsTheyMay() {
+        Matchmaker matchmaker = many();
+        matchmaker.join(A, "sumo", 1000, 0);
+        matchmaker.join(B, "sumo", 1000, 1);
+        MatchProposal match = matchmaker.poll(2).get(0);
+        matchmaker.join(B, "bridge", 1000, 3);
+        matchmaker.join(B, "bw-2v2", 1000, 3);
+        matchmaker.join(B, "boxing", 1000, 3);
+        matchmaker.requeue(match);
+        assertEquals(Arrays.asList(SUMO), matchmaker.queuesOf(A));
+        assertEquals(Arrays.asList(BRIDGE, DOUBLES, BOXING), matchmaker.queuesOf(B), "three queues already");
         assertEquals(1, matchmaker.waiting("sumo"));
     }
 
@@ -103,12 +179,14 @@ class MatchmakerTest {
 
     @Test
     void aPartyJoinsAndLeavesAsOne() {
-        Matchmaker matchmaker = new Matchmaker(Arrays.asList(SUMO, DOUBLES), RatingWindow.DEFAULT);
+        Matchmaker matchmaker = new Matchmaker(Arrays.asList(SUMO, DOUBLES, PONT), RatingWindow.DEFAULT);
         assertEquals(Matchmaker.JoinResult.PARTY_TOO_BIG, matchmaker.joinParty(A, party(A, B), "sumo", 0, null));
         assertNull(matchmaker.queueOf(A));
         matchmaker.join(B, "sumo", 1000, 0);
+        matchmaker.join(B, "pont", 1000, 0);
         assertEquals(Matchmaker.JoinResult.SWITCHED, matchmaker.joinParty(A, party(A, B), "bw-2v2", 1, null));
         assertEquals(0, matchmaker.waiting("sumo"));
+        assertEquals(Arrays.asList(DOUBLES), matchmaker.queuesOf(B), "a party waits in one queue");
         assertEquals(Arrays.asList(A, B), matchmaker.partyOf(B));
         assertEquals(Matchmaker.JoinResult.ALREADY_WAITING, matchmaker.joinParty(A, party(A, B), "bw-2v2", 2, null));
         assertEquals(Matchmaker.JoinResult.SWITCHED, matchmaker.joinParty(A, party(A, B), "bw-2v2", 3, "Lotus"));
@@ -124,6 +202,10 @@ class MatchmakerTest {
         Matchmaker matchmaker = new Matchmaker(Arrays.asList(SUMO, DOUBLES), RatingWindow.DEFAULT);
         matchmaker.joinParty(A, party(A, B), "bw-2v2", 0, null);
         assertEquals(Matchmaker.JoinResult.SWITCHED, matchmaker.join(B, "bw-2v2", 1000, 5));
+        assertNull(matchmaker.queueOf(A));
+        matchmaker.joinParty(A, party(A, B), "bw-2v2", 6, null);
+        assertEquals(Matchmaker.JoinResult.SWITCHED, matchmaker.join(B, "sumo", 1000, 7), "not besides the party's queue");
+        assertEquals(Arrays.asList(SUMO), matchmaker.queuesOf(B));
         assertNull(matchmaker.queueOf(A));
         assertEquals(Arrays.asList(B), matchmaker.partyOf(B));
         assertNull(matchmaker.entryOf(B).party());
