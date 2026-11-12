@@ -21,8 +21,11 @@ import org.bukkit.inventory.ItemStack;
  * Block in practice, as on the Ultimate Block-In Practice map: the player stands on a ring of glass
  * ten blocks over a bed and its defense (end stone, glass, then wool on one side and wood on the
  * other), drops on it, blocks themselves in and digs down to the bed. The time runs from the first
- * block placed (or broken); the chat then gives how long each layer took, as the map did. The
- * island is the map's own when the server has it (see {@link MapCopy}), else a plain one.
+ * block placed (or broken); the chat then gives how long each layer took, as the map did. The time
+ * goes to the records only if the player blocked themselves in: once, the four sides at their feet
+ * and at their head closed, one of them a block of theirs (else breaking the bed as fast as
+ * possible, without a block, would top the board). The island is the map's own when the server has
+ * it (see {@link MapCopy}), else a plain one.
  *
  * <p>As in a game, an enemy comes two seconds after the start (a setting turns it off): about once a
  * second, a player with a side open at their feet or head is hit from it, and a player blocked in
@@ -63,6 +66,8 @@ final class BlockInTraining extends Training {
     /** When each layer was first broken (wood/wool, glass, end stone, bed), 0 until then. */
     private final long[] splits = new long[4];
     private boolean done;
+    /** True once the player blocked themselves in this round: only then does the time count. */
+    private boolean blockedIn;
     /** The enemy who hits the player and breaks their block-in. */
     private final Setting enemy;
     /** The enemy comes this long after the start, then acts every ACT_MS or so. */
@@ -118,7 +123,8 @@ final class BlockInTraining extends Training {
 
     @Override
     String describe() {
-        return "drop on the defense, block yourself in and dig to the bed. Timed from your first block.";
+        return "drop on the defense, block yourself in and dig to the bed. Timed from your first block; the time"
+                + " counts only once you have blocked yourself in.";
     }
 
     @Override
@@ -163,6 +169,7 @@ final class BlockInTraining extends Training {
         started = 0;
         nextAct = 0;
         done = false;
+        blockedIn = false;
         Arrays.fill(splits, 0L);
         defense.clear();
         Shapes.putBed(arena, 0, BED_Y, 0, island.hx, island.hz);
@@ -236,6 +243,16 @@ final class BlockInTraining extends Training {
 
     private void bedBroken(Player player) {
         done = true;
+        if (!blockedIn) {
+            // the bed broken without a block-in: no time for the records
+            player.sendMessage(ChatColor.RED + "Not counted: you never blocked yourself in. Close the four sides at your feet"
+                    + " and at your head with your blocks, then dig to the bed.");
+            title(player, ChatColor.RED + "" + ChatColor.BOLD + "NOT COUNTED", ChatColor.GRAY + "Block yourself in first");
+            sound(player, Sound.VILLAGER_NO, 1f);
+            tried(me);
+            again(60L);
+            return;
+        }
         long time = splits[3];
         player.sendMessage(ChatColor.GRAY + "---------------------");
         for (int i = twoLayers() ? 1 : 0; i < SPLITS.length; i++) {
@@ -267,11 +284,34 @@ final class BlockInTraining extends Training {
             failed("A minute and the bed still stands: start again.");
             return;
         }
+        if (!blockedIn && started != 0 && blockedIn(player.getLocation().getBlock())) {
+            blockedIn = true;
+            sound(player, Sound.ORB_PICKUP, 1.6f);
+        }
         if (enemy.on() && started != 0 && now() - started >= ENEMY_AFTER_MS && now() >= nextAct) {
             nextAct = now() + ACT_MS - 300 + random.nextInt(600);
             enemyActs(player);
         }
         refresh();
+    }
+
+    /**
+     * True if the player whose feet are in this block is blocked in: the four sides at their feet
+     * and at their head are solid, and one of them at least is a block they placed (not of the
+     * defense, that digging down would put around them).
+     */
+    private boolean blockedIn(Block feet) {
+        boolean theirs = false;
+        for (int[] side : SIDES) {
+            for (int up = 0; up <= 1; up++) {
+                Block next = feet.getRelative(side[0], up, side[1]);
+                if (!next.getType().isSolid()) {
+                    return false;
+                }
+                theirs |= arena.isPlaced(next) && !defense.contains(next);
+            }
+        }
+        return theirs;
     }
 
     /**

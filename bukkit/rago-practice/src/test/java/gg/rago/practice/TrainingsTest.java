@@ -25,6 +25,35 @@ class TrainingsTest {
     }
 
     @Test
+    void theControlsGoWhereThePlayerPutThem() {
+        java.util.Set<Training.Control> all = java.util.EnumSet.allOf(Training.Control.class);
+        java.util.Set<Training.Control> noDye = java.util.EnumSet.of(Training.Control.LEAVE, Training.Control.TRAININGS,
+                Training.Control.SETTINGS, Training.Control.RESTART);
+        // by default: the green dye in 4, the bed 5, the compass 6, the comparator 7, the blaze rod 8
+        Map<Training.Control, Integer> at = Training.placement(null, all);
+        assertEquals(Integer.valueOf(4), at.get(Training.Control.NEXT));
+        assertEquals(Integer.valueOf(8), at.get(Training.Control.RESTART));
+        assertEquals(4, Training.placement(null, noDye).size(), "no dye: four controls");
+        // the blaze rod put in 0 and the bed in the inventory: they stay there
+        Map<String, Integer> saved = new java.util.HashMap<>();
+        saved.put("recommencer", 0);
+        saved.put("quitter", 20);
+        at = Training.placement(saved, all);
+        assertEquals(Integer.valueOf(0), at.get(Training.Control.RESTART));
+        assertEquals(Integer.valueOf(20), at.get(Training.Control.LEAVE));
+        assertEquals(Integer.valueOf(6), at.get(Training.Control.TRAININGS), "not moved: its own slot");
+        // the blaze rod put where the dye goes, in a training without levels: the dye takes a free slot
+        saved.put("recommencer", 4);
+        at = Training.placement(saved, all);
+        assertEquals(Integer.valueOf(4), at.get(Training.Control.RESTART));
+        assertEquals(Integer.valueOf(8), at.get(Training.Control.NEXT), "the first free slot from the end of the hotbar");
+        assertEquals(5, new java.util.HashSet<>(at.values()).size(), "never two controls in a slot");
+        // a slot out of the inventory is not kept
+        saved.put("recommencer", 40);
+        assertEquals(Integer.valueOf(8), Training.placement(saved, all).get(Training.Control.RESTART));
+    }
+
+    @Test
     void theSidebarKeepsTheTopTheBestAndThePingWithinTwelveLines() {
         // mode, "Mode:", blank, 2 lines of the attempt, blank, top 3, blank, you, ping: 12 lines, all kept
         List<String> fits = sidebar(2, 3);

@@ -142,6 +142,11 @@ abstract class PracticeGame implements Spectators.Watched {
         return true;
     }
 
+    /** True while the game waits (a training with a menu open): no {@link #tick}, its clock stops. */
+    boolean paused() {
+        return false;
+    }
+
     /** True to be called every tick ({@link #tick}) while the fight is on. */
     boolean ticks() {
         return false;
@@ -425,7 +430,7 @@ abstract class PracticeGame implements Spectators.Watched {
         clock = Bukkit.getScheduler().runTaskTimer(plugin, this::everySecond, 20L, 20L);
         if (ticks()) {
             ticker = Bukkit.getScheduler().runTaskTimer(plugin, () -> {
-                if (phase == Phase.PLAYING) {
+                if (phase == Phase.PLAYING && !paused()) {
                     tickCount++;
                     tick();
                 }
