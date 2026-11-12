@@ -16,10 +16,10 @@ final class Sparring {
     static final double ATTACKER_DISTANCE = 3.0;
 
     /**
-     * Minecraft gives a player a fresh full hit at most every 10 ticks (half of the 20-tick hurt
-     * cooldown): no real fight hits faster.
+     * A fresh full hit comes at most every 9 ticks on Hypixel (the engine's hit-delay-ticks; 10 in
+     * vanilla, half of the 20-tick hurt cooldown): no real fight hits faster.
      */
-    static final int MIN_INTERVAL_TICKS = 10;
+    static final int MIN_INTERVAL_TICKS = 9;
     static final int MAX_INTERVAL_TICKS = 200;
     static final int DEFAULT_INTERVAL_TICKS = 20;
 

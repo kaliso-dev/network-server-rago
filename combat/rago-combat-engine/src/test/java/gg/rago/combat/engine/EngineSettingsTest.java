@@ -5,7 +5,6 @@ import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
-import gg.rago.combat.model.KnockbackProfile;
 import gg.rago.combat.model.MeasuredProfiles;
 import java.io.InputStream;
 import java.io.InputStreamReader;
@@ -18,17 +17,32 @@ import org.junit.jupiter.api.Test;
 class EngineSettingsTest {
 
     @Test
-    void shippedConfigLoadsAsVanillaOverride() throws Exception {
+    void shippedConfigIsTheKnockbackOfHypixelLocked() throws Exception {
         EngineSettings settings = EngineSettings.load(shippedConfig());
 
         assertEquals(EngineMode.OVERRIDE, settings.mode());
-        assertEquals("vanilla", settings.defaultProfile());
+        assertEquals("hypixel-approx-v1", settings.defaultProfile());
         assertEquals(2, settings.profiles().size());
         assertTrue(settings.worldProfiles().isEmpty());
         assertFalse(settings.recordHits());
-        assertEquals(KnockbackProfile.vanilla(), settings.profileFor("world"));
-        assertEquals(10, settings.hitDelayTicks());
-        assertEquals(20, settings.maximumNoDamageTicks());
+        assertEquals(MeasuredProfiles.hypixelApproxV1(), settings.profileFor("world"));
+        assertEquals(9, settings.hitDelayTicks());
+        assertEquals(18, settings.maximumNoDamageTicks());
+        assertTrue(settings.locked());
+    }
+
+    @Test
+    void aConfigWithoutTheKeysIsHypixelLockedToo() throws Exception {
+        EngineSettings settings = EngineSettings.load(yaml("mode: override\n"));
+
+        assertEquals(MeasuredProfiles.hypixelApproxV1(), settings.profileFor("world"));
+        assertEquals(9, settings.hitDelayTicks());
+        assertTrue(settings.locked());
+        assertTrue(settings.withMode(EngineMode.OBSERVE).withHitDelayTicks(10).withDefaultProfile("vanilla")
+                .withWorldProfile("arena", "vanilla").locked());
+        assertFalse(EngineSettings.load(yaml("locked: false\n")).locked());
+        assertTrue(KbCommand.lockedMessage(settings).contains("hypixel-approx-v1, 9 ticks"),
+                KbCommand.lockedMessage(settings));
     }
 
     @Test

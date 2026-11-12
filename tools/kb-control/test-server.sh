@@ -104,11 +104,15 @@ EOF
 
   # Engine settings for the tests. control-alt is an arbitrary test profile, far enough from
   # vanilla to change every packet; it is not a tuning proposal. still pushes by nothing: the hit
-  # delay bots of the control test use it to keep the victim in reach.
+  # delay bots of the control test use it to keep the victim in reach. The bots change the mode,
+  # the profile and the hit delay with /kb, so the settings are not locked, and the test starts
+  # from the vanilla 10 ticks.
   cat >"$SERVER_DIR/plugins/RagoCombatEngine/config.yml" <<'EOF'
 mode: observe
 active-profile: vanilla
 world-profiles: {}
+hit-delay-ticks: 10
+locked: false
 record-hits: true
 profiles:
   control-alt:

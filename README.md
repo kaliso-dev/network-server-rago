@@ -18,7 +18,7 @@ Jalon en cours : **M1, « Labo KB »**, le moteur de combat et de quoi le vérif
 | `tools/kb-control` : test de contrôle avec bots sur un vrai PandaSpigot | fait, lancé par la CI : 108 coups sur 108 exacts sur PandaSpigot 1.8.8 (build 226) |
 | `tools/local-server` : serveur de test à lancer sur son PC (Windows, Mac, Linux) pour essayer le knockback en jeu | fait, assemblé et démarré par la CI |
 | `tools/build-tools` : plugin RagoBuildTools pour construire sur le serveur de test (mondes vides, créatif, protection, sauvegardes) avec WorldEdit | fait, testé ; démarré deux fois par la CI avec le serveur de test |
-| Mesure du knockback d'Hypixel et profil `hypixel-approx-v1` | mesuré en Housing 1v1 ([mesures](docs/combat/mesures-hypixel.md)) ; à confirmer en Bedwars |
+| Mesure du knockback d'Hypixel et profil `hypixel-approx-v1` | mesuré en Housing et en Bedwars 1v1 ([mesures](docs/combat/mesures-hypixel.md)) ; le knockback du serveur entre joueurs, verrouillé |
 | `rago-game-model` : catalogue des modes, files d'attente, matchmaking (ELO en classé), grille d'arènes | fait, testé |
 | `bukkit/rago-lobby` : plugin RagoLobby, le lobby principal (spawn, protection, sélecteur de modes, files, scoreboard) | fait, testé ; joué par deux bots en CI |
 | `bukkit/rago-practice` : plugin RagoPractice, le duel sumo, premier mode jouable du lobby | fait, testé ; joué par deux bots en CI |
@@ -27,8 +27,9 @@ Jalon en cours : **M1, « Labo KB »**, le moteur de combat et de quoi le vérif
 | Améliorations d'équipe et objets spéciaux de Bed Wars, autres modes, proxy, base de données, Ranked, statistiques, cosmétiques | à venir, voir la feuille de route et le [plan du lobby et des modes](https://claude.ai/artifact/TCFxyP3KsZsRagZhBMNPeo) |
 
 Rien n'est encore en production. Le profil `hypixel-approx-v1` et le délai de 9 ticks entre deux
-coups viennent de combats enregistrés sur Hypixel, en Housing : ils restent à vérifier en Bedwars,
-et le knockback des enchantements, des cannes et des projectiles n'est pas encore mesuré.
+coups viennent de combats enregistrés sur Hypixel, en Housing et en Bedwars : c'est le knockback
+du serveur entre joueurs, réglé par défaut et verrouillé (`locked: true`, personne ne le change en
+jeu). Le knockback des enchantements, des cannes et des projectiles n'est pas encore mesuré.
 
 ## Structure
 

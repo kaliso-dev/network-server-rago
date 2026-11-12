@@ -3,12 +3,13 @@
 Plugin Bukkit pour les serveurs 1.8.8 (PandaSpigot), compatible Java 8. Il remplace le knockback
 des coups de mêlée entre joueurs par celui d'un **profil** : six constantes, calculées avec le
 modèle exact de `rago-combat-model`. Le profil intégré `vanilla` donne au bit près le knockback de
-Minecraft 1.8.8.
+Minecraft 1.8.8 ; le serveur utilise `hypixel-approx-v1`, le knockback mesuré sur Hypixel, avec
+9 ticks entre deux coups, verrouillés (voir la commande `/kb`).
 
 ## Ce que fait le plugin, et ce qu'il ne touche pas
 
 - Il ne change que les coups de mêlée **joueur contre joueur**, et seulement les coups complets :
-  un coup porté pendant le délai d'invulnérabilité (10 ticks) n'envoie pas de knockback en
+  un coup porté pendant le délai d'invulnérabilité (9 ticks, 10 en vanilla) n'envoie pas de knockback en
   vanilla, et le plugin n'en ajoute pas.
 - Explosions, flèches, cannes à pêche, mobs et vitesses posées par d'autres plugins ne sont
   jamais modifiés.
@@ -41,11 +42,12 @@ moitié lus.
 ## Configuration
 
 ```yaml
-mode: override            # override : applique le profil ; observe : calcule et journalise, sans rien changer
-active-profile: vanilla   # profil utilisé partout, sauf dans les mondes de world-profiles
-world-profiles: {}        # par monde, par exemple { arena_a: vanilla, arena_b: test-a }
-hit-delay-ticks: 10       # délai entre deux coups, en ticks (vanilla 10, Hypixel mesuré 9), de 1 à 20
-record-hits: false        # journal des hits (voir plus bas)
+mode: override                    # override : applique le profil ; observe : calcule et journalise, sans rien changer
+active-profile: hypixel-approx-v1 # profil utilisé partout, sauf dans les mondes de world-profiles
+world-profiles: {}                # par monde, par exemple { arena_a: vanilla, arena_b: test-a }
+hit-delay-ticks: 9                # délai entre deux coups, en ticks (Hypixel mesuré 9, vanilla 10), de 1 à 20
+locked: true                      # true : /kb ne change rien en jeu, seul ce fichier règle le knockback
+record-hits: false                # journal des hits (voir plus bas)
 player-tracker-ticks: 1   # positions des joueurs envoyées aux autres : 1 (chaque tick) ou 2 (vanilla)
 profiles: {}              # profils de test, en plus de vanilla
 ```
@@ -96,7 +98,13 @@ garde, mais le moteur ne dépend pas de ce détail), et dès que le réglage cha
 
 ## Commande `/kb`
 
-Permission `rago.combat.admin` (opérateurs par défaut).
+Permission `rago.combat.admin` (opérateurs par défaut). Les joueurs ne peuvent pas s'en servir.
+
+Le knockback du serveur est celui d'Hypixel (`hypixel-approx-v1`, 9 ticks entre deux coups), et
+il est verrouillé : avec `locked: true` (le réglage livré, et celui d'un config.yml sans la clé),
+`/kb profile`, `/kb world`, `/kb mode` et `/kb hitdelay` sont refusés, même pour un opérateur.
+Seul config.yml change le knockback, puis `/kb reload`. `locked: false` laisse le staff essayer
+d'autres réglages jusqu'au prochain redémarrage, comme le fait le test de contrôle.
 
 | Commande | Effet |
 | --- | --- |
@@ -124,8 +132,9 @@ une direction et de se laisser pousser, au sol, en marchant ou en sautant.
 
 - `sprint` (par défaut) : des coups sprint ; `normal` : sans sprint ; `alterne` : un coup sprint
   puis un coup normal, pour sentir la différence.
-- L'intervalle va de 10 ticks (le plus rapide qu'un vrai combat permette, puisqu'un joueur ne
-  reprend un coup plein que 10 ticks après le précédent) à 200 ticks ; 20 par défaut (une seconde).
+- L'intervalle va de 9 ticks (le plus rapide qu'un vrai combat permette, puisqu'un joueur ne
+  reprend un coup plein que 9 ticks après le précédent sur Hypixel) à 200 ticks ; 20 par défaut
+  (une seconde).
 - Le sparring s'arrête avec `/kb sparring stop` ou quand le joueur se déconnecte.
 
 Chaque coup est calculé exactement comme un vrai coup, avec le profil du monde du joueur, quel
