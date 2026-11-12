@@ -188,6 +188,25 @@ abstract class Training extends PracticeGame {
         }
     }
 
+    /**
+     * /challenge play in this training (the challenge of the day in its Trainings menu): the
+     * variant of the challenge, and a new attempt with it. The player's own choice stays for the
+     * next time, as with [PLAY] from the lobby.
+     */
+    void playVariant(Player player, String variantId) {
+        for (int i = 0; i < variants.size(); i++) {
+            if (variants.get(i).id.equals(variantId)) {
+                variant = i;
+                challengeVariant = true;
+                restartOnClose = false;
+                player.sendMessage(ChatColor.GOLD + "" + ChatColor.BOLD + "Daily challenge" + ChatColor.GRAY + " - " + ChatColor.WHITE
+                        + current().label + ChatColor.GRAY + ": " + describe());
+                settingsChanged();
+                return;
+            }
+        }
+    }
+
     /** Keeps the player's variant and settings for the next time they play this training. */
     private void remember() {
         TrainingPrefs prefs = host.prefs();

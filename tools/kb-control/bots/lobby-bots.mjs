@@ -49,10 +49,11 @@ const PORT = Number(process.env.KB_PORT ?? '25565')
 const TEST_TIMEOUT_MS = 7 * 60 * 1000
 // A new lobby world has a platform at y = 64: players stand at y = 65, at the centre.
 const LOBBY_SPAWN = { x: 0.5, y: 65, z: 0.5 }
-// The bundled config.yml has three categories, one slot apart in the middle row: Practice on the
-// left (slot 11), Ranked Bedwars in the middle, Duels on the right, in slot 15. The sumo is the
-// slime ball of the Duels menu (Bed Fight comes first).
-const DUELS_SLOT = 15
+// The bundled config.yml has four categories, one slot apart in the middle row: Practice on the
+// left (slot 10), RBW Modes, Duels in slot 14, the Arenas on the right. The top row of the menus is
+// "Popular now" (the modes with players right now). The sumo is the slime ball of the Duels menu,
+// under that row (Bed Fight comes first).
+const DUELS_SLOT = 14
 const POINTS_TO_WIN = 3
 // run-lobby-test.sh places the NPC of the Duels category (point rbwffa), a stats NPC
 // (statsjoueur1), a wall of leaderboards (leaderboardstats), the main leaderboard
@@ -216,9 +217,9 @@ async function openSelectorAndJoinSumo (bot) {
   log(`${bot.username} joined the sumo queue from the selector`)
 }
 
-/** The slot of the sumo in the Duels menu: its slime ball, or -1. */
+/** The slot of the sumo in the Duels menu: its slime ball under the top row ("Popular now"), or -1. */
 function sumoSlot (window) {
-  return window.slots.findIndex((item, slot) => slot < window.inventoryStart && item?.name === 'slime_ball')
+  return window.slots.findIndex((item, slot) => slot >= 9 && slot < window.inventoryStart && item?.name === 'slime_ball')
 }
 
 function windowTitle (window) {

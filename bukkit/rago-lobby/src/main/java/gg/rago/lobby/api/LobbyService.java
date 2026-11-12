@@ -205,4 +205,12 @@ public interface LobbyService {
     default Replays replays() {
         return null;
     }
+
+    /**
+     * The challenge of the day of the trainings: its mode and what it asks ("Block clutch: 20
+     * blocks"). The lobby shows it at the end of "Popular now", the top row of the compass, while
+     * that mode is played; a click runs /challenge play for the player. Null: no challenge.
+     */
+    default void setDailyChallenge(String modeId, String label) {
+    }
 }

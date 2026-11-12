@@ -1,6 +1,7 @@
 package gg.rago.lobby;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import org.junit.jupiter.api.Test;
 
@@ -22,6 +23,50 @@ class LayoutTest {
         assertEquals(16, ModeMenu.categorySlot(3, 4));
         assertEquals(10, ModeMenu.categorySlot(0, 7));
         assertEquals(49, ModeMenu.backSlot(54));
+    }
+
+    @Test
+    void popularNowIsTheTopRowAboveTheCategories() {
+        assertEquals(4, ModeMenu.popularSlot(0, 1), "one item: the middle of the top row");
+        assertEquals(2, ModeMenu.popularSlot(0, 3));
+        assertEquals(6, ModeMenu.popularSlot(2, 3));
+        assertEquals(1, ModeMenu.popularSlot(0, 4), "three modes and the challenge of the day");
+        assertEquals(7, ModeMenu.popularSlot(3, 4));
+        for (int count = 1; count <= ModeMenu.MAX_POPULAR + 1; count++) {
+            for (int i = 0; i < count; i++) {
+                int slot = ModeMenu.popularSlot(i, count);
+                assertTrue(slot >= 0 && slot < 9, count + " items: " + slot);
+            }
+        }
+    }
+
+    @Test
+    void popularNowShowsTheModesWithTheMostPlayers() {
+        java.util.Map<String, Integer> playing = new java.util.HashMap<>();
+        java.util.Map<String, Integer> waiting = new java.util.HashMap<>();
+        java.util.List<String> menu = java.util.Arrays.asList("sumo", "boxing", "clutch", "fireball", "bow-duel");
+        java.util.function.ToIntFunction<String> inGame = id -> playing.getOrDefault(id, 0);
+        java.util.function.ToIntFunction<String> inQueue = id -> waiting.getOrDefault(id, 0);
+        assertEquals(java.util.Collections.emptyList(), ModeMenu.popular(menu, inGame, inQueue, 3), "nobody: no mode");
+        playing.put("clutch", 1);
+        playing.put("bow-duel", 1);
+        assertEquals(java.util.Arrays.asList("clutch", "bow-duel"), ModeMenu.popular(menu, inGame, inQueue, 3),
+                "one player is enough; equals keep the order of the menu");
+        playing.remove("bow-duel");
+        waiting.put("bow-duel", 1);
+        assertEquals(java.util.Arrays.asList("bow-duel", "clutch"), ModeMenu.popular(menu, inGame, inQueue, 3),
+                "as many players, but one waits: a game soon");
+        playing.put("sumo", 5);
+        playing.put("boxing", 3);
+        waiting.put("boxing", 1);
+        playing.put("fireball", 2);
+        waiting.put("fireball", 2);
+        assertEquals(java.util.Arrays.asList("sumo", "fireball", "boxing"), ModeMenu.popular(menu, inGame, inQueue, 3),
+                "the most players first (playing and waiting), three at most; at 4 each, the most waiting first (a game soon)");
+        assertEquals(java.util.Arrays.asList("sumo"), ModeMenu.popular(menu, inGame, inQueue, 1));
+        assertEquals(java.util.Collections.emptyList(), ModeMenu.popular(menu, inGame, inQueue, 0));
+        assertEquals(java.util.Arrays.asList("clutch"), ModeMenu.popular(java.util.Arrays.asList("clutch", "clutch"), inGame,
+                inQueue, 3), "a mode once");
     }
 
     @Test

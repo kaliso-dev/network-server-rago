@@ -846,6 +846,7 @@ public final class RagoPractice extends JavaPlugin {
         }
         events = null;
         if (lobby != null) {
+            lobby.setDailyChallenge(null, null);
             lobby.unregisterHosts(this);
         }
     }

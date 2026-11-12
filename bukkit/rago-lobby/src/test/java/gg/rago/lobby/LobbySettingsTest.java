@@ -32,7 +32,7 @@ class LobbySettingsTest {
 
     /**
      * The bundled config with the NPCs of modes it leaves in comments (the centre shows only the
-     * three ways to play), on points of their own.
+     * four ways to play), on points of their own.
      */
     static YamlConfiguration withModeNpcs() throws Exception {
         YamlConfiguration yaml = bundledConfig();
@@ -89,12 +89,15 @@ class LobbySettingsTest {
     @Test
     void groupsTheBundledModesByCategory() throws Exception {
         LobbySettings settings = LobbySettings.load(bundledConfig());
-        assertEquals(3, settings.categories().size());
+        assertEquals(4, settings.categories().size());
         assertEquals("entrainement", settings.categories().get(0).id(), "left to right: the practice on the left");
         assertEquals("ranked", settings.categories().get(1).id());
-        assertEquals("duels", settings.categories().get(2).id(), "the duels on the right");
+        assertEquals("duels", settings.categories().get(2).id(), "the duels");
         assertEquals(Material.IRON_SWORD, settings.categories().get(2).icon());
-        // Three ways to play: train alone, duel, the RBW modes (not all ranked: no bed on it).
+        assertEquals("arenes", settings.categories().get(3).id(), "the arenas on the right");
+        assertEquals("§c§lArenas", settings.categories().get(3).name());
+        assertEquals(Material.DIAMOND_SWORD, settings.categories().get(3).icon());
+        // Four ways to play: train alone, the RBW modes (not all ranked: no bed on it), duel, the arenas.
         assertEquals("§6§lRBW Modes", settings.categories().get(1).name());
         assertEquals(Material.BED, settings.categories().get(1).icon());
         for (ModeCategory category : settings.categories()) {
@@ -108,9 +111,12 @@ class LobbySettingsTest {
                 "bridge-fight-2v2", "block-fight-1v1", "block-fight-2v2", "sumo")) {
             assertEquals("duels", settings.display(duel).category(), duel + ": in the Duels NPC and compass");
         }
-        assertEquals("ranked", settings.display("top-bridge-ffa").category(), "the free for all stay in the RBW modes");
-        assertEquals("ranked", settings.display("bridge-fight").category());
-        assertEquals("ranked", settings.display("block-fight-arena").category());
+        for (String arena : Arrays.asList("top-bridge-ffa", "ffa", "free-ffa", "bridge-fight", "block-fight-arena")) {
+            assertEquals("arenes", settings.display(arena).category(), arena + ": no queue, in the Arenas");
+            assertNull(settings.display(arena).group(), arena + ": one item each, side by side");
+        }
+        assertEquals(Arrays.asList("top-bridge-ffa", "ffa", "free-ffa", "bridge-fight", "block-fight-arena"),
+                displayIds(settings.modesIn("arenes")), "the five arenas, nothing else");
         assertEquals("entrainement", settings.display("kb-displace-bot").category(), "against a bot: practice");
         int total = 0;
         for (ModeCategory category : settings.categories()) {
@@ -189,6 +195,21 @@ class LobbySettingsTest {
                 "the private game and the private top bridge: no group of two");
     }
 
+    @Test
+    void aNewPlayerStartsWithTheBlockClutch() throws Exception {
+        LobbySettings settings = LobbySettings.load(bundledConfig());
+        List<String> start = new java.util.ArrayList<>();
+        for (ModeDisplay display : settings.modes()) {
+            if (display.startHere()) {
+                start.add(display.mode().id());
+            }
+        }
+        assertEquals(Collections.singletonList("clutch"), start, "\"Start here\" on the block clutch only");
+        assertEquals("clutch", settings.display("clutch").group(), "in its group: the group shines too");
+        assertFalse(LobbySettings.load(yaml("modes:\n  sumo: {}\n")).display("sumo").startHere(), "not by default");
+        assertTrue(LobbySettings.load(yaml("modes:\n  sumo:\n    commencer-ici: true\n")).display("sumo").startHere());
+    }
+
     private static List<String> displayIds(List<ModeDisplay> displays) {
         List<String> ids = new java.util.ArrayList<>();
         for (ModeDisplay display : displays) {
@@ -200,20 +221,24 @@ class LobbySettingsTest {
     @Test
     void readsTheBundledNpcs() throws Exception {
         LobbySettings settings = LobbySettings.load(bundledConfig());
-        assertEquals(9, settings.npcs().size(), "three NPCs of modes, one per way to play; the shop, the stats, the boards");
+        assertEquals(10, settings.npcs().size(), "four NPCs of modes, one per way to play; the shop, the stats, the boards");
         for (String gone : Arrays.asList("ranked", "prive", "ffa", "clutchscenario", "attackanddefense", "rbwsolo1v1ou2v2skyrise",
-                "firstrushnebucgelatosoloduo", "invispracticearwhayinvasion", "realisticplat", "freearenacombo",
+                "firstrushnebucgelatosoloduo", "invispracticearwhayinvasion", "realisticplat",
                 "blockplacementarena", "attackdefenseversionrbw", "blockinpractice")) {
             assertNull(settings.npc(gone), gone + ": its modes stay in the compass");
         }
         List<String> categories = new java.util.ArrayList<>();
         for (LobbyNpc npc : settings.npcs()) {
             if (npc.kind() == LobbyNpc.Kind.MODES) {
-                assertNotNull(npc.category(), npc.point() + ": only the NPCs of the three categories");
+                assertNotNull(npc.category(), npc.point() + ": only the NPCs of the four categories");
                 categories.add(npc.category());
             }
         }
-        assertEquals(Arrays.asList("entrainement", "ranked", "duels"), categories, "Practice, RBW Modes, Duels");
+        assertEquals(Arrays.asList("entrainement", "ranked", "duels", "arenes"), categories, "Practice, RBW Modes, Duels, Arenas");
+        LobbyNpc arenas = settings.npc("freearenacombo");
+        assertEquals("§c§lArenas", arenas.name());
+        assertEquals("arena", arenas.skin());
+        assertEquals(displayIds(settings.modesIn("arenes")), arenas.modeIds(), "the Arenas NPC holds the five arenas");
         LobbyNpc duels = settings.npc("rbwffa");
         assertEquals("duels", duels.category());
         assertEquals("§a§lDuels", duels.name());

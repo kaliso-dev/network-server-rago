@@ -3,7 +3,10 @@ package gg.rago.lobby;
 import gg.rago.game.GameMode;
 import gg.rago.game.Matchmaker;
 import java.util.ArrayList;
+import java.util.Comparator;
 import java.util.List;
+import java.util.Map;
+import java.util.function.ToIntFunction;
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
 import org.bukkit.Material;
@@ -24,6 +27,10 @@ import org.bukkit.inventory.meta.ItemMeta;
  * a map, or any map (the queue is shorter). Hovering a mode shows the player's win streak of the
  * day in it, the three teams with the longest streaks of the day (every name of a team of two
  * or more), as on Minemen, and the player's position among all of them. Open menus are refreshed every second, for the queue counts.
+ * The top row of the compass and of each category is "Popular now": the modes with players in a
+ * game or in the queue right now (the most first, three at most) and the challenge of the day of
+ * the trainings, each a click away. The mode marked commencer-ici: (the block clutch) shines with
+ * "Start here", in its category, its group and on the category's item.
  */
 final class ModeMenu {
 
@@ -43,8 +50,12 @@ final class ModeMenu {
         static final String GROUP = "groupe:";
         /** After a group's id: the NPC its menu was opened from, to go back to. */
         static final String FROM_NPC = "|";
+        /** In the top row of "Popular now": the challenge of the day, not a mode. */
+        static final String CHALLENGE = "*defi";
         private Inventory inventory;
         private final String view;
+        /** What each slot of the top row shows in "Popular now" (a mode id, CHALLENGE), else null. */
+        private final String[] popular = new String[9];
 
         Holder(String view) {
             this.view = view;
@@ -64,9 +75,24 @@ final class ModeMenu {
     private final QueueController queues;
     private final StatsBook book;
     private DuelRequests duels;
+    /** The mode of the challenge of the day (a training) and what it asks, or null: none. */
+    private String challengeMode;
+    private String challengeLabel;
+
+    /** Modes in "Popular now", at most. */
+    static final int MAX_POPULAR = 3;
 
     void setDuels(DuelRequests duels) {
         this.duels = duels;
+    }
+
+    /**
+     * The challenge of the day, from the plugin of the trainings: its mode and what it asks ("Block
+     * clutch: 20 blocks"), at the end of "Popular now" while its mode is played; null: none.
+     */
+    void setChallenge(String modeId, String label) {
+        this.challengeMode = modeId;
+        this.challengeLabel = label;
     }
 
     /** /duel <player>: the 1v1 modes, a click challenges that player. */
@@ -212,6 +238,11 @@ final class ModeMenu {
         return 9 + (9 - count) / 2 + index;
     }
 
+    /** The slot of the n-th of {@code count} items of "Popular now", centred in the top row. */
+    static int popularSlot(int index, int count) {
+        return categorySlot(index, count) - 9;
+    }
+
     /** The back button: middle of the bottom row. */
     static int backSlot(int size) {
         return size - 5;
@@ -220,6 +251,10 @@ final class ModeMenu {
     /** Clicked in our menu: open a category, go back, or join or leave a mode's queue. */
     void click(Player player, Holder holder, int slot) {
         String view = holder.view();
+        if (slot >= 0 && slot < holder.popular.length && holder.popular[slot] != null) {
+            clickPopular(player, holder.popular[slot]);
+            return;
+        }
         if (Holder.CATEGORIES.equals(view)) {
             List<ModeCategory> categories = settings.categories();
             for (int i = 0; i < categories.size(); i++) {
@@ -297,6 +332,19 @@ final class ModeMenu {
         toggle(player, mode);
     }
 
+    /** Clicked in "Popular now": the challenge of the day (its command, in the trainings plugin), or a mode. */
+    private void clickPopular(Player player, String id) {
+        if (Holder.CHALLENGE.equals(id)) {
+            player.closeInventory();
+            player.performCommand("challenge play");
+            return;
+        }
+        GameMode mode = settings.catalog().get(id);
+        if (mode != null) {
+            toggle(player, mode);
+        }
+    }
+
     /**
      * Joins the mode's queue, besides the others the player waits in, or leaves it (it alone) if
      * they already wait for it. A mode with several maps first opens their menu.
@@ -364,7 +412,11 @@ final class ModeMenu {
             for (int i = 0; i < categories.size(); i++) {
                 inventory.setItem(categorySlot(i, categories.size()), icon(categories.get(i), current));
             }
+            fillPopular(inventory, settings.modes(), current, viewer);
             return;
+        }
+        if (settings.category(view) != null) {
+            fillPopular(inventory, settings.modesIn(view), current, viewer);
         }
         int last = hasBack(view) ? backSlot(inventory.getSize()) - 4 : inventory.getSize();
         LobbyNpc npc = view != null && view.startsWith(Holder.NPC) ? settings.npc(view.substring(Holder.NPC.length())) : null;
@@ -389,6 +441,96 @@ final class ModeMenu {
             back.setItemMeta(meta);
             inventory.setItem(backSlot(inventory.getSize()), back);
         }
+    }
+
+    /**
+     * "Popular now", the top row: the modes of the view with players right now, the most first,
+     * then the challenge of the day. What each slot holds goes in the holder, for the click.
+     */
+    private void fillPopular(Inventory inventory, List<ModeDisplay> modes, List<GameMode> current, HumanEntity viewer) {
+        Holder holder = (Holder) inventory.getHolder();
+        Map<String, Integer> playing = queues.playing();
+        List<String> candidates = new ArrayList<>();
+        for (ModeDisplay display : modes) {
+            String id = display.mode().id();
+            if (!display.hidden() && queues.isPlayable(id) && !settings.privateRoutes().containsKey(id)) {
+                candidates.add(id);
+            }
+        }
+        List<String> shown = new ArrayList<>(popular(candidates, id -> playing.getOrDefault(id, 0), queues::waiting, MAX_POPULAR));
+        if (challengeMode != null && queues.isPlayable(challengeMode)) {
+            shown.add(Holder.CHALLENGE);
+        }
+        for (int slot = 0; slot < holder.popular.length; slot++) {
+            holder.popular[slot] = null;
+            inventory.setItem(slot, null);
+        }
+        for (int i = 0; i < shown.size(); i++) {
+            String id = shown.get(i);
+            int slot = popularSlot(i, shown.size());
+            holder.popular[slot] = id;
+            if (Holder.CHALLENGE.equals(id)) {
+                inventory.setItem(slot, challengeIcon());
+            } else {
+                ModeDisplay display = settings.display(id);
+                inventory.setItem(slot, popularIcon(display, playing.getOrDefault(id, 0), current.contains(display.mode()), viewer));
+            }
+        }
+    }
+
+    /**
+     * The modes of "Popular now" among these (in the order of the menu): those with at least one
+     * player in a game or in the queue, the most players first, then the most waiting (a game
+     * soon), then the order of the menu; {@code max} at most.
+     */
+    static List<String> popular(List<String> modeIds, ToIntFunction<String> playing, ToIntFunction<String> waiting, int max) {
+        List<String> busy = new ArrayList<>();
+        for (String id : modeIds) {
+            if (playing.applyAsInt(id) + waiting.applyAsInt(id) > 0 && !busy.contains(id)) {
+                busy.add(id);
+            }
+        }
+        // a stable sort: the order of the menu stays between equals
+        busy.sort(Comparator.comparingInt((String id) -> -(playing.applyAsInt(id) + waiting.applyAsInt(id)))
+                .thenComparingInt(id -> -waiting.applyAsInt(id)));
+        return busy.subList(0, Math.min(Math.max(0, max), busy.size()));
+    }
+
+    /** A mode of "Popular now": who plays it, who waits for it, and the click. */
+    private ItemStack popularIcon(ModeDisplay display, int playing, boolean waitingHere, HumanEntity viewer) {
+        GameMode mode = display.mode();
+        ItemStack item = new ItemStack(display.icon());
+        ItemMeta meta = item.getItemMeta();
+        meta.setDisplayName(mode.name());
+        List<String> lore = new ArrayList<>();
+        lore.add(ChatColor.GOLD + "\u2726 Popular now");
+        lore.add(ChatColor.DARK_GRAY + mode.format() + (mode.ranked() ? " · ranked" : ""));
+        lore.add("");
+        lore.add(ChatColor.GRAY + "Playing: " + ChatColor.WHITE + playing);
+        if (!Matchmaker.alone(mode)) {
+            lore.add(ChatColor.GRAY + "In queue: " + ChatColor.WHITE + queues.waiting(mode.id()));
+        }
+        clickLines(lore, mode, waitingHere, viewer);
+        meta.setLore(lore);
+        item.setItemMeta(meta);
+        return item;
+    }
+
+    /** The challenge of the day in "Popular now": what it asks, a click plays it. */
+    private ItemStack challengeIcon() {
+        ItemStack item = new ItemStack(Material.WATCH);
+        ItemMeta meta = item.getItemMeta();
+        meta.setDisplayName(ChatColor.GOLD + "" + ChatColor.BOLD + "Daily challenge");
+        List<String> lore = new ArrayList<>();
+        lore.add(ChatColor.WHITE + (challengeLabel == null ? "" : challengeLabel));
+        lore.add("");
+        lore.add(ChatColor.GRAY + "The best scores of the day");
+        lore.add(ChatColor.GRAY + "win XP: " + ChatColor.YELLOW + "/challenge");
+        lore.add("");
+        lore.add(ChatColor.GREEN + "Click to play it");
+        meta.setLore(lore);
+        item.setItemMeta(meta);
+        return ClickMenu.glow(item);
     }
 
     /** The map menu: any map first, then each map, and the back button. */
@@ -454,6 +596,15 @@ final class ModeMenu {
         lore.add("");
         lore.add(ChatColor.GRAY + "" + games + (games == 1 ? " game, " : " games, ") + ChatColor.WHITE + waiting
                 + ChatColor.GRAY + " in queue");
+        for (ModeDisplay display : modes) {
+            if (display.startHere() && !display.hidden()) {
+                String group = display.group() == null || settings.group(display.group()) == null ? null
+                        : settings.group(display.group()).name();
+                lore.add(ChatColor.GOLD + "\u2726 Start here: " + ChatColor.WHITE
+                        + ChatColor.stripColor(group != null ? group : display.mode().name()));
+                break;
+            }
+        }
         if (here) {
             lore.add(ChatColor.YELLOW + "You are in a queue of this category");
         }
@@ -468,7 +619,15 @@ final class ModeMenu {
         ItemStack item = new ItemStack(group.icon());
         ItemMeta meta = item.getItemMeta();
         meta.setDisplayName(group.name());
-        List<String> lore = new ArrayList<>(group.description());
+        boolean startHere = false;
+        for (ModeDisplay display : settings.modesOfGroup(group.id())) {
+            startHere |= display.startHere();
+        }
+        List<String> lore = new ArrayList<>();
+        if (startHere) {
+            lore.add(ChatColor.GOLD + "\u2726 Start here");
+        }
+        lore.addAll(group.description());
         lore.add("");
         List<String> waitingIn = new ArrayList<>();
         for (ModeDisplay display : settings.modesOfGroup(group.id())) {
@@ -490,7 +649,7 @@ final class ModeMenu {
         lore.add(ChatColor.GREEN + "Click to choose");
         meta.setLore(lore);
         item.setItemMeta(meta);
-        return item;
+        return startHere ? ClickMenu.glow(item) : item;
     }
 
     private ItemStack icon(ModeDisplay display, boolean waitingHere, HumanEntity viewer) {
@@ -500,6 +659,9 @@ final class ModeMenu {
         meta.setDisplayName(mode.name());
         List<String> lore = new ArrayList<>();
         lore.add(ChatColor.DARK_GRAY + mode.format() + (mode.ranked() ? " · ranked" : ""));
+        if (display.startHere()) {
+            lore.add(ChatColor.GOLD + "\u2726 Start here");
+        }
         lore.add("");
         lore.addAll(display.description());
         lore.add("");
@@ -509,26 +671,31 @@ final class ModeMenu {
             lore.add(ChatColor.GRAY + "Coming soon");
         } else {
             lore.add(ChatColor.GRAY + "In queue: " + ChatColor.WHITE + queues.waiting(mode.id()));
-            int maps = queues.mapsOf(mode).size();
-            String waitingFor = waitingHere && viewer instanceof Player ? queues.mapOf((Player) viewer, mode) : null;
-            if (waitingFor != null) {
-                lore.add(ChatColor.GRAY + "Your map: " + ChatColor.WHITE + waitingFor);
-            }
-            // in a training (its Trainings menu): a mode played alone starts at once, the queue of
-            // another is waited in while training
-            boolean training = viewer instanceof Player && queues.inGame((Player) viewer);
-            boolean alone = training && Matchmaker.alone(mode);
-            lore.add(waitingHere ? ChatColor.YELLOW + "You are in this queue: click to leave it"
-                    : alone ? ChatColor.GREEN + "Click to play"
-                    : maps >= 2 ? ChatColor.GREEN + "Click to choose the map (" + maps + ")"
-                    : ChatColor.GREEN + "Click to join the queue");
-            if (training && !alone && !waitingHere) {
-                lore.add(ChatColor.GRAY + "You keep training while you wait.");
-            }
+            clickLines(lore, mode, waitingHere, viewer);
         }
         meta.setLore(lore);
         item.setItemMeta(meta);
-        return item;
+        return display.startHere() ? ClickMenu.glow(item) : item;
+    }
+
+    /** What a click on a playable mode does, under its queue: the map one waits for first. */
+    private void clickLines(List<String> lore, GameMode mode, boolean waitingHere, HumanEntity viewer) {
+        int maps = queues.mapsOf(mode).size();
+        String waitingFor = waitingHere && viewer instanceof Player ? queues.mapOf((Player) viewer, mode) : null;
+        if (waitingFor != null) {
+            lore.add(ChatColor.GRAY + "Your map: " + ChatColor.WHITE + waitingFor);
+        }
+        // a mode played alone (a training) starts at once; in a training (its Trainings menu), the
+        // queue of another is waited in while training
+        boolean training = viewer instanceof Player && queues.inGame((Player) viewer);
+        boolean alone = Matchmaker.alone(mode);
+        lore.add(waitingHere ? ChatColor.YELLOW + "You are in this queue: click to leave it"
+                : maps >= 2 ? ChatColor.GREEN + "Click to choose the map (" + maps + ")"
+                : alone ? ChatColor.GREEN + "Click to play"
+                : ChatColor.GREEN + "Click to join the queue");
+        if (training && !alone && !waitingHere) {
+            lore.add(ChatColor.GRAY + "You keep training while you wait.");
+        }
     }
 
     /** Lines of the top of the day under "Daily Streak". */

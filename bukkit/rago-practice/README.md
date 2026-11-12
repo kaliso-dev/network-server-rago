@@ -133,7 +133,10 @@ lui donne 100 XP, plus 25 par jour d'affilée où il a joué le défi (7 jours a
 l'arrivée, un joueur qui ne l'a pas encore joué aujourd'hui reçoit le défi du jour avec un
 **[PLAY]**, entre deux lignes dorées pour qu'on le voie (comme le nouveau défi à minuit et le podium) ; `/challenge` montre l'entraînement, le top 5 du jour, sa place, sa série de jours et
 ce qui se gagne ; `/challenge play` (ou le bouton) lance l'entraînement directement sur la bonne
-variante. Pendant le défi, le scoreboard de l'entraînement porte « ✦ Daily ». Gardé dans
+variante. Le défi est aussi au bout de « Popular now », la ligne du haut de la boussole du lobby et
+du menu Trainings : un clic le lance. Depuis un autre entraînement, `/challenge play` y emmène tout
+droit ; dans l'entraînement du défi, il passe à sa variante et recommence. Pendant le défi, le
+scoreboard de l'entraînement porte « ✦ Daily ». Gardé dans
 `plugins/RagoPractice/defi.yml`. `actif: false` le coupe ; sans la section, il tourne avec ces
 réglages. Un entraînement de la liste que le serveur ne joue pas est laissé de côté.
 
