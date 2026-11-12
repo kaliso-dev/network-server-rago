@@ -612,8 +612,10 @@ final class FfaGame extends BedwarsGame {
     @Override
     List<String> lines(Gamer viewer) {
         List<String> lines = new ArrayList<>();
-        lines.add(ChatColor.WHITE + (arena ? "Arena on " : bridged != null ? "Top Bridge on " : "FFA on ") + ChatColor.GREEN
-                + instance.map().world());
+        // the mode in the colour of its category, then the map
+        lines.add(modeLine != null ? modeLine + " " + ChatColor.GRAY + instance.map().world()
+                : ChatColor.WHITE + (arena ? "Arena on " : bridged != null ? "Top Bridge on " : "FFA on ") + ChatColor.GREEN
+                        + instance.map().world());
         lines.add("");
         List<Gamer> here = present();
         lines.add(ChatColor.WHITE + "Players: " + ChatColor.GREEN + here.size());

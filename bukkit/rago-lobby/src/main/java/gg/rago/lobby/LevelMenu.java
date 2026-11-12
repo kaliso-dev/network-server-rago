@@ -51,7 +51,7 @@ final class LevelMenu {
                     + " to go");
         }
         lore.add("");
-        lore.add("Total: " + ChatColor.AQUA + String.format(java.util.Locale.US, "%,d", stats.xp()) + " Network XP");
+        lore.add("Total: " + Brand.XP + String.format(java.util.Locale.US, "%,d", stats.xp()) + " Network XP");
         double boost = book.boost(id);
         if (boost > 1.0) {
             lore.add("Your boost:" + StatsService.boostText(boost));
@@ -240,7 +240,7 @@ final class LevelMenu {
                 lore.add(ProfileMenu.bar(progress / (float) quest.target()) + " " + ChatColor.WHITE + progress + ChatColor.GRAY
                         + "/" + quest.target());
                 lore.add("");
-                lore.add("Reward: " + ChatColor.AQUA + "+" + String.format(java.util.Locale.US, "%,d", book.boosted(player.getUniqueId(), quest.xp()))
+                lore.add("Reward: " + Brand.XP + "+" + String.format(java.util.Locale.US, "%,d", book.boosted(player.getUniqueId(), quest.xp()))
                         + " Network XP");
                 lore.add("");
                 lore.add(done ? ChatColor.GREEN + "Done! " + ChatColor.GRAY + period.resetText(now).replace("Resets in", "Again in")

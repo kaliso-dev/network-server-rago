@@ -9,9 +9,10 @@ import org.bukkit.entity.Player;
 
 /**
  * The welcome of the lobby, so that a player sees at once what they can do here: at each arrival,
- * the ways to play in the chat, one line per category of the compass (its name and its slogan:
- * train alone, duel your friends, play the RBW modes), each clickable to open its modes (/play
- * category) with what it holds on hover; at the first arrival on the server, a title too.
+ * the name and the slogan of the server, then the ways to play in the chat, one line per category
+ * of the compass (its name and its slogan: train alone, duel your friends, play the RBW modes),
+ * each clickable to open its modes (/play category) with what it holds on hover; at the first
+ * arrival on the server, a title too.
  * accueil: false in config.yml turns it off. Main thread.
  */
 final class LobbyWelcome {
@@ -36,6 +37,7 @@ final class LobbyWelcome {
         }
         player.sendMessage(RULE);
         player.sendMessage(centred(settings.title()));
+        player.sendMessage(centred(Brand.SLOGAN));
         player.sendMessage(ChatColor.GRAY + "Pick how you play. " + ChatColor.YELLOW + "Click one:");
         for (ModeCategory category : categories) {
             // clickable through the vanilla /tellraw, as the duel buttons: names are letters, digits and _
@@ -124,7 +126,10 @@ final class LobbyWelcome {
         return line.append(text).toString();
     }
 
-    /** About how wide the text shows in the chat, in pixels: 6 a character, 4 a space, 1 more in bold. */
+    /**
+     * How wide the text shows in the chat or the server list, in pixels of the 1.8 font: most
+     * characters 6, the narrow ones less (a space 4, an i 2...), 1 more in bold.
+     */
     static int width(String text) {
         int width = 0;
         boolean bold = false;
@@ -139,9 +144,27 @@ final class LobbyWelcome {
                 }
                 continue;
             }
-            width += (c == ' ' ? 4 : 6) + (bold ? 1 : 0);
+            width += width(c) + (bold ? 1 : 0);
         }
         return width;
+    }
+
+    /** The width of a character of the 1.8 font, the pixel after it included. */
+    static int width(char c) {
+        switch (c) {
+            case '!': case ',': case '.': case ':': case ';': case 'i': case '|':
+                return 2;
+            case '\'': case '`': case 'l':
+                return 3;
+            case ' ': case 'I': case 't': case '[': case ']':
+                return 4;
+            case '"': case '(': case ')': case '*': case '<': case '>': case 'f': case 'k': case '{': case '}':
+                return 5;
+            case '@': case '~':
+                return 7;
+            default:
+                return 6;
+        }
     }
 
     /** The ids of the categories, for the completion of /play. */

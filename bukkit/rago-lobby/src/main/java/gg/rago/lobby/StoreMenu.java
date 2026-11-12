@@ -100,8 +100,8 @@ final class StoreMenu {
         colours.add(ChatColor.YELLOW + "Click to browse");
         menu.set(ROW[i++], ClickMenu.item(Material.NAME_TAG, 0, ChatColor.LIGHT_PURPLE + "Name colours", colours),
                 (p, right) -> styles.open(p));
-        menu.set(ROW[i++], ClickMenu.item(Material.EXP_BOTTLE, 0, ChatColor.AQUA + "Boosters", list(
-                ChatColor.AQUA + "x3 Network XP" + ChatColor.GRAY + " for 30 minutes",
+        menu.set(ROW[i++], ClickMenu.item(Material.EXP_BOTTLE, 0, Brand.XP + "Boosters", list(
+                Brand.XP + "x3 Network XP" + ChatColor.GRAY + " for 30 minutes",
                 "of play: " + ChatColor.GOLD + String.format(java.util.Locale.US, "%,d", XpBoosters.PRICE) + " Rago Points" + ChatColor.GRAY + " each.",
                 ChatColor.GOLD + "x3 Rago Points" + ChatColor.GRAY + ": the points boosters,",
                 "in the starter pack.",
@@ -174,7 +174,7 @@ final class StoreMenu {
             player.sendMessage(ChatColor.GREEN + "You have the " + pack.name + ChatColor.GREEN + " already: thank you!");
             return;
         }
-        player.sendMessage(ChatColor.GOLD + "✪ " + pack.name + (pack.discount() > 0 ? " " + ChatColor.RED + ChatColor.BOLD + "-"
+        player.sendMessage(ChatColor.GOLD + "\u2726 " + pack.name + (pack.discount() > 0 ? " " + ChatColor.RED + ChatColor.BOLD + "-"
                 + pack.discount() + "%" : "") + ChatColor.GRAY + ": " + pack.priceLine());
         for (String line : pack.contents(profiles.server().cosmetics())) {
             player.sendMessage("  " + line);

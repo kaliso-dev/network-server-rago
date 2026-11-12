@@ -161,7 +161,7 @@ final class ServerSettings {
         Map<String, List<String>> links = new LinkedHashMap<>();
         ConfigurationSection l = config.getConfigurationSection("liens");
         if (l == null) {
-            links.put("discord", Collections.singletonList(ChatColor.BLUE + "Our Discord: " + ChatColor.WHITE + "discord.gg/ragooptimizer"));
+            links.put("discord", Collections.singletonList(Brand.PREFIX + "Join our Discord: " + ChatColor.YELLOW + "discord.gg/ragooptimizer"));
             links.put("regles", defaultRules());
         } else {
             for (String key : l.getKeys(false)) {
@@ -737,32 +737,36 @@ final class ServerSettings {
 
     private static List<String> defaultHeader() {
         List<String> lines = new ArrayList<>();
-        lines.add(ChatColor.AQUA + "" + ChatColor.BOLD + "RAGO " + ChatColor.WHITE + ChatColor.BOLD + "PRACTICE");
-        lines.add(ChatColor.GRAY + "{joueurs} players online");
+        lines.add(Brand.NAME);
+        lines.add(Brand.SLOGAN);
+        lines.add("");
         return lines;
     }
 
     private static List<String> defaultFooter() {
         List<String> lines = new ArrayList<>();
-        lines.add(ChatColor.GRAY + "Your ping: {ping} ms");
-        lines.add(ChatColor.AQUA + "rago.gg");
+        lines.add("");
+        lines.add(ChatColor.WHITE + "{joueurs} " + ChatColor.GRAY + "players online " + ChatColor.DARK_GRAY + "\u2022 " + ChatColor.GRAY
+                + "Ping: " + ChatColor.WHITE + "{ping} ms");
+        lines.add(Brand.ADDRESS);
         return lines;
     }
 
+    /** The server list: what the server is, then the slogan (config.yml says what is new there). */
     private static List<String> defaultMotd() {
         List<String> lines = new ArrayList<>();
-        lines.add(ChatColor.AQUA + "" + ChatColor.BOLD + "RAGO PRACTICE " + ChatColor.GRAY + "- " + ChatColor.WHITE
-                + "1.8 PvP & Ranked Bedwars");
-        lines.add(ChatColor.YELLOW + "Ranks, shop and ranked ELO divisions!");
+        lines.add(ChatColor.YELLOW + "RAGO PRACTICE " + ChatColor.DARK_GRAY + "\u2022 " + ChatColor.WHITE + "Bed Wars Practice, Ranked & Duels");
+        lines.add(Brand.SLOGAN);
         return lines;
     }
 
     private static List<String> defaultAnnouncements() {
         List<String> lines = new ArrayList<>();
-        lines.add(ChatColor.AQUA + "Earn Rago Points in every game and spend them in the shop (/shop).");
-        lines.add(ChatColor.AQUA + "Claim your daily reward with /daily: a few days in a row give more.");
-        lines.add(ChatColor.AQUA + "Add your friends with /friend add <name>, and play with them in a /party.");
-        lines.add(ChatColor.AQUA + "Climb the ranked divisions, from Coal to Obsidian: /top elo.");
+        lines.add(Brand.PREFIX + "Earn Rago Points in every game, spend them in the " + ChatColor.YELLOW + "/shop" + ChatColor.WHITE + ".");
+        lines.add(Brand.PREFIX + "Claim your daily reward: " + ChatColor.YELLOW + "/daily" + ChatColor.WHITE + ". Days in a row give more.");
+        lines.add(Brand.PREFIX + "Add your friends with " + ChatColor.YELLOW + "/friend add" + ChatColor.WHITE + ", play together in a "
+                + ChatColor.YELLOW + "/party" + ChatColor.WHITE + ".");
+        lines.add(Brand.PREFIX + "Climb the ranked divisions, from Coal to Obsidian: " + ChatColor.YELLOW + "/top elo" + ChatColor.WHITE + ".");
         return lines;
     }
 

@@ -159,7 +159,7 @@ groupes:
       - "A Bedwars, RBW style,"
       - "on Sky Rise."
   first-rush:
-    nom: "&eFirst rush"
+    nom: "&6First rush"
     icone: IRON_PICKAXE
     description:
       - "A real Bedwars, RBW style, on"
@@ -168,14 +168,14 @@ groupes:
   # the duels (category duels): each in 1v1 or 2v2; queued alone in a 2v2, a teammate is found
   # in the queue, and the lobby is told: "Name's team is queuing Bed fight 2v2 [JOIN NOW]"
   bed-fight:
-    nom: "&cBed fight"
+    nom: "&aBed fight"
     icone: BED
     description:
       - "Two islands, a bed each: break"
       - "theirs and kill them. You come"
       - "back while your bed stands."
   top-bridge:
-    nom: "&eTop Bridge"
+    nom: "&aTop Bridge"
     icone: LADDER
     description:
       - "The fight on the top bridge of"
@@ -183,7 +183,7 @@ groupes:
       - "rounds to 5 points in 1v1 or"
       - "2v2."
   clutch-scenario:
-    nom: "&cClutch scenario"
+    nom: "&6Clutch scenario"
     icone: IRON_CHESTPLATE
     description:
       - "A real RBW game on any map:"
@@ -191,13 +191,13 @@ groupes:
       - "iron armour, stone sword,"
       - "full forges. Clutch or defend."
   bridge-fight:
-    nom: "&bBridge fight"
+    nom: "&aBridge fight"
     icone: WOOL
     description:
       - "On a wool platform, no blocks:"
       - "a 1v1 or a 2v2, first to 5."
   block-placement:
-    nom: "&bBlock placement"
+    nom: "&aBlock placement"
     icone: SANDSTONE
     description:
       - "Build, clutch and fight on the"
@@ -211,7 +211,7 @@ groupes:
       - "game or a top bridge, the size"
       - "follows the party."
   attack-defense:
-    nom: "&cAttack and defense"
+    nom: "&6Attack and defense"
     icone: IRON_SWORD
     description:
       - "Bio Hazard: attack from the"
@@ -272,11 +272,11 @@ pnj:
   #   skin: ffa
   #   modes: [ffa, top-bridge-1v1, top-bridge-2v2, top-bridge-ffa]
   # clutchscenario:
-  #   nom: "&bClutch Scenario"
+  #   nom: "&6Clutch Scenario"
   #   skin: clutch
   #   modes: [clutch-scenario-1v1, clutch-scenario-2v2, clutch-scenario-3v3, clutch-scenario-4v4]
   # attackanddefense:
-  #   nom: "&cAttack and Defense"
+  #   nom: "&6Attack and Defense"
   #   skin: attaque
   #   modes: [attack-defense-1v1, attack-defense-2v2]
   # rbwsolo1v1ou2v2skyrise:
@@ -284,19 +284,19 @@ pnj:
   #   skin: skyrise
   #   modes: [skyrise-1v1, skyrise-2v2]
   # firstrushnebucgelatosoloduo:
-  #   nom: "&eFirst rush"
+  #   nom: "&6First rush"
   #   skin: rush
   #   modes: [first-rush, first-rush-duo]
   # invispracticearwhayinvasion:
-  #   nom: "&5Invis practice"
+  #   nom: "&6Invis practice"
   #   skin: invis
   #   modes: [invis-practice]
   # realisticplat:
-  #   nom: "&bBridge fight"
+  #   nom: "&aBridge fight"
   #   skin: bridge
   #   modes: [bridge-fight, bridge-fight-1v1, bridge-fight-2v2]
   # blockplacementarena:
-  #   nom: "&bBlock placement"
+  #   nom: "&aBlock placement"
   #   skin: blocs
   #   modes: [block-fight-1v1, block-fight-2v2, block-fight-arena]
   # The NPCs of the side zones, on their front sign, if you want them there too:
@@ -691,43 +691,49 @@ chat:
   bloquer-repetition: true
 
 # The header and footer of the tab list (4 lines each at most): {joueurs} the players online,
-# {ping} the player's ping.
+# {ping} the player's ping. In the colours of the server (README: Les couleurs du serveur): its
+# name in yellow, the slogan, rago.gg in yellow at the bottom.
 tab:
   haut:
-    - "&bYou are playing on &e&lRAGO.GG"
+    - "&e&lRAGO PRACTICE"
+    - "&7Train. Clutch. Climb."
     - ""
   bas:
     - ""
-    - "&a{joueurs} players online &8- &7Ping: &f{ping} ms"
-    - "&aRanks, Rago Points & MORE! &c&l/SHOP"
+    - "&f{joueurs} &7players online &8• &7Ping: &f{ping} ms"
+    - "&7Ranks, Rago Points & more: &e/shop"
+    - "&erago.gg"
 
-# The message under the server's name in the server list (2 lines).
+# The message under the server's name in the server list: 2 lines of about 270 pixels each (a
+# letter is 6, a space 4, 1 more in bold; longer, the first line wraps and hides the second). The
+# first says what the server is; the second, NEW in gold then what is new: change it at each update.
 motd:
-  - "&b&lRAGO PRACTICE &7- &f1.8 PvP & Ranked Bedwars"
-  - "&eRanks, shop and ranked ELO divisions!"
+  - "&eRAGO PRACTICE &8• &fBed Wars Practice, Ranked & Duels"
+  - "&6&lNEW &8» &fTimed bridge, prestiges & season badges"
 
-# The tips told to the lobby, one every "minutes", in turn.
+# The tips told to the lobby, one every "minutes", in turn. One prefix for the server's messages:
+# RAGO in bold yellow, then » in dark grey; short lines in English, starting with a verb.
 annonces:
   minutes: 5
   messages:
-    - "&bEarn Rago Points in every game and spend them in the shop (/shop)."
-    - "&bClaim your daily reward with /daily: a few days in a row give more."
-    - "&bAdd your friends with /friend add <name>, and play with them in a /party."
-    - "&bClimb the ranked divisions, from Coal to Obsidian: /top elo."
-    - "&bNews, store and more on &frago-optimizer.com&b."
-    - "&a&lSHOP &8» &fRanks, cosmetics and the colour of your &d+&f: &a/shop"
-    - "&d&lPREMIUM &8» &f+50% XP, /fly, the &d+&f and gadgets of its own: &drago-optimizer.com"
-    - "&b&lRAGO OPTIMIZER &8» &fGet Rago Optimizer on &brago-optimizer.com"
-    - "&a&lSHOP &8» &fEvery game gives Rago Points: spend them in the &a/shop&f."
-    - "&b&lRAGO OPTIMIZER &8» &fNews and downloads: &brago-optimizer.com"
-    - "&6&lSTARTER PACK &8» &f20,000 Rago Points, 5 boosters and 3 cosmetics for 3.99€: &e/pack"
-    - "&6&lEVENTS &8» &d[PREMIUM+] &fhost Sumo, Brackets and LMS for the whole server: &e/host"
+    - "&e&lRAGO &8» &fEarn Rago Points in every game, spend them in the &e/shop&f."
+    - "&e&lRAGO &8» &fClaim your daily reward with &e/daily&f: days in a row give more."
+    - "&e&lRAGO &8» &fAdd your friends with &e/friend add&f, play together in a &e/party&f."
+    - "&e&lRAGO &8» &fClimb the ranked divisions, from Coal to Obsidian: &e/top elo&f."
+    - "&e&lRAGO &8» &fRead the news and the store on &erago-optimizer.com&f."
+    - "&e&lRAGO &8» &fPick ranks, cosmetics and the colour of your &d+&f in the &e/shop&f."
+    - "&e&lRAGO &8» &fGo &d[PREMIUM+]&f: +50% XP, /fly, the &d+&f and gadgets of its own on &erago-optimizer.com&f."
+    - "&e&lRAGO &8» &fGet Rago Optimizer on &erago-optimizer.com&f."
+    - "&e&lRAGO &8» &fPlay any game for Rago Points, spend them in the &e/shop&f."
+    - "&e&lRAGO &8» &fDownload Rago Optimizer and read its news: &erago-optimizer.com&f."
+    - "&e&lRAGO &8» &fGrab the &6Starter Pack&f: 20,000 Rago Points, 5 boosters and 3 cosmetics for 3.99€: &e/pack"
+    - "&e&lRAGO &8» &fHost Sumo, Brackets and LMS for the whole server with &d[PREMIUM+]&f: &e/host"
 
 # What /discord, /site, /rules and /store show (one line or a list).
 liens:
-  discord: "&9Our Discord: &fdiscord.gg/ragooptimizer"
-  site: "&bOur website: &frago-optimizer.com"
-  boutique: "&aThe store: &frago-optimizer.com"
+  discord: "&e&lRAGO &8» &fJoin our Discord: &ediscord.gg/ragooptimizer"
+  site: "&e&lRAGO &8» &fOur website: &erago-optimizer.com"
+  boutique: "&e&lRAGO &8» &fThe store: &erago-optimizer.com"
   regles:
     - "&6&lRules"
     - "&71. No cheats, macros or unfair mods."
@@ -973,7 +979,7 @@ modes:
       - "island: go and take their"
       - "iron and gold. Slow forges."
   first-rush:
-    nom: "&eFirst rush solo"
+    nom: "&6First rush solo"
     categorie: ranked
     groupe: first-rush
     icone: IRON_PICKAXE
@@ -986,7 +992,7 @@ modes:
       - "the first rush decides it."
       - "Choose the map."
   first-rush-duo:
-    nom: "&eFirst rush duo"
+    nom: "&6First rush duo"
     categorie: ranked
     groupe: first-rush
     icone: IRON_PICKAXE
@@ -999,7 +1005,7 @@ modes:
       - "the first rush decides it."
       - "Choose the map."
   first-rush-full:
-    nom: "&eFirst rush full map solo"
+    nom: "&6First rush full map solo"
     categorie: ranked
     groupe: first-rush
     icone: DIAMOND_PICKAXE
@@ -1012,7 +1018,7 @@ modes:
       - "forges of the empty islands."
       - "Choose the map."
   first-rush-full-duo:
-    nom: "&eFirst rush full map duo"
+    nom: "&6First rush full map duo"
     categorie: ranked
     groupe: first-rush
     icone: DIAMOND_PICKAXE
@@ -1025,7 +1031,7 @@ modes:
       - "forges of the empty islands."
       - "Choose the map."
   bed-fight-1v1:
-    nom: "&cBed fight 1v1"
+    nom: "&aBed fight 1v1"
     categorie: duels
     groupe: bed-fight
     icone: BED
@@ -1040,7 +1046,7 @@ modes:
       - "their bed and kill them. You"
       - "come back while yours stands."
   bed-fight-2v2:
-    nom: "&cBed fight 2v2"
+    nom: "&aBed fight 2v2"
     categorie: duels
     groupe: bed-fight
     icone: BED
@@ -1054,7 +1060,7 @@ modes:
       - "break their bed, then the last"
       - "team standing wins."
   top-bed-fight-1v1:
-    nom: "&cTop BedFight 1v1"
+    nom: "&aTop BedFight 1v1"
     categorie: duels
     icone: SHEARS
     equipes: 2
@@ -1068,7 +1074,7 @@ modes:
       - "them off, rounds of one life,"
       - "the first to 5 points wins."
   top-bridge-1v1:
-    nom: "&eTop Bridge 1v1"
+    nom: "&aTop Bridge 1v1"
     categorie: duels
     groupe: top-bridge
     icone: LADDER
@@ -1083,7 +1089,7 @@ modes:
       - "no bed, rounds of one life,"
       - "the first to 5 points wins."
   top-bridge-2v2:
-    nom: "&eTop Bridge 2v2"
+    nom: "&aTop Bridge 2v2"
     categorie: duels
     groupe: top-bridge
     icone: LADDER
@@ -1096,7 +1102,7 @@ modes:
       - "Top Bridge, two against two:"
       - "the first team to 5 points."
   top-bridge-ffa:
-    nom: "&eTop Bridge FFA"
+    nom: "&cTop Bridge FFA"
     categorie: arenes
     icone: LADDER
     equipes: 1
@@ -1125,7 +1131,7 @@ modes:
       - "at random; come and go when"
       - "you like, a kill heals you."
   free-ffa:
-    nom: "&aArena Free"
+    nom: "&cArena Free"
     categorie: arenes
     icone: EMERALD
     equipes: 1
@@ -1139,7 +1145,7 @@ modes:
       - "The slime of the black pit"
       - "throws you out."
   invis-practice:
-    nom: "&5Invis practice"
+    nom: "&6Invis practice"
     categorie: ranked
     icone: POTION
     equipes: 1
@@ -1156,7 +1162,7 @@ modes:
       - "the defenders of the bed, each"
       - "player in turn: a hit shows them."
   bridge-fight:
-    nom: "&bBridge fight"
+    nom: "&cBridge fight"
     categorie: arenes
     icone: WOOL
     equipes: 1
@@ -1169,7 +1175,7 @@ modes:
       - "the void. Real damage on the"
       - "middle platform only."
   bridge-fight-1v1:
-    nom: "&bBridge fight 1v1"
+    nom: "&aBridge fight 1v1"
     categorie: duels
     groupe: bridge-fight
     icone: WOOL
@@ -1182,7 +1188,7 @@ modes:
       - "own, no blocks: a kill or a fall"
       - "is a point. First to 5."
   bridge-fight-2v2:
-    nom: "&bBridge fight 2v2"
+    nom: "&aBridge fight 2v2"
     categorie: duels
     groupe: bridge-fight
     icone: WOOL
@@ -1196,7 +1202,7 @@ modes:
       - "whole team is out, the other"
       - "scores. First to 5."
   block-fight-1v1:
-    nom: "&bBlock placement 1v1"
+    nom: "&aBlock placement 1v1"
     categorie: duels
     groupe: block-placement
     icone: SANDSTONE
@@ -1211,7 +1217,7 @@ modes:
       - "Build, clutch, knock them off:"
       - "first to 100."
   block-fight-2v2:
-    nom: "&bBlock placement 2v2"
+    nom: "&aBlock placement 2v2"
     categorie: duels
     groupe: block-placement
     icone: SANDSTONE
@@ -1224,7 +1230,7 @@ modes:
       - "two: each hit is a point,"
       - "the void costs 10. First to 100."
   block-fight-arena:
-    nom: "&bBlock placement arena"
+    nom: "&cBlock placement arena"
     categorie: arenes
     icone: SANDSTONE
     equipes: 1
@@ -1236,7 +1242,7 @@ modes:
       - "no damage, knock them off. The"
       - "blocks break after 15 seconds."
   clutch-scenario-1v1:
-    nom: "&cClutch scenario 1v1"
+    nom: "&6Clutch scenario 1v1"
     categorie: ranked
     groupe: clutch-scenario
     icone: IRON_CHESTPLATE
@@ -1248,7 +1254,7 @@ modes:
       - "has no bed and must clutch,"
       - "the other's bed is defended."
   clutch-scenario-2v2:
-    nom: "&cClutch scenario 2v2"
+    nom: "&6Clutch scenario 2v2"
     categorie: ranked
     groupe: clutch-scenario
     icone: IRON_CHESTPLATE
@@ -1260,7 +1266,7 @@ modes:
       - "team has no bed and clutches,"
       - "the other's bed is defended."
   clutch-scenario-3v3:
-    nom: "&cClutch scenario 3v3"
+    nom: "&6Clutch scenario 3v3"
     categorie: ranked
     groupe: clutch-scenario
     icone: IRON_CHESTPLATE
@@ -1272,7 +1278,7 @@ modes:
       - "team has no bed and clutches,"
       - "the other's bed is defended."
   clutch-scenario-4v4:
-    nom: "&cClutch scenario 4v4"
+    nom: "&6Clutch scenario 4v4"
     categorie: ranked
     groupe: clutch-scenario
     icone: IRON_CHESTPLATE
@@ -1284,7 +1290,7 @@ modes:
       - "team has no bed and clutches,"
       - "the other's bed is defended."
   attack-defense-1v1:
-    nom: "&cAttack and defense 1v1"
+    nom: "&6Attack and defense 1v1"
     categorie: ranked
     groupe: attack-defense
     icone: IRON_SWORD
@@ -1300,7 +1306,7 @@ modes:
       - "swap at each round;"
       - "3 kits to attack, 3 to defend."
   attack-defense-2v2:
-    nom: "&cAttack and defense 2v2"
+    nom: "&6Attack and defense 2v2"
     categorie: ranked
     groupe: attack-defense
     icone: IRON_SWORD
@@ -1328,7 +1334,7 @@ modes:
       - "party: 1v1, 2v2, 3v3 or 4v4, the"
       - "size follows the party."
   top-bridge-prive:
-    nom: "&ePrivate top bridge"
+    nom: "&6Private top bridge"
     categorie: ranked
     groupe: prive
     icone: LADDER
@@ -1352,7 +1358,7 @@ modes:
       - "the platform: great for"
       - "working on knockback."
   boxing:
-    nom: "&fBoxing"
+    nom: "&aBoxing"
     categorie: duels
     icone: DIAMOND_SWORD
     equipes: 2
@@ -1364,7 +1370,7 @@ modes:
       - "to work on your combos."
       - "/speed: Speed II off or on."
   kb-displace:
-    nom: "&bKB displace 1v1"
+    nom: "&aKB displace 1v1"
     categorie: duels
     icone: STICK
     equipes: 2
@@ -1376,7 +1382,7 @@ modes:
       - "bridge and knock the defender"
       - "off sideways. Roles swap each hit."
   block-edit-duel:
-    nom: "&bBlock edit 1v1"
+    nom: "&aBlock edit 1v1"
     categorie: duels
     icone: SHEARS
     equipes: 2
@@ -1388,7 +1394,7 @@ modes:
       - "open, hit, close before they hit"
       - "you back. First to 5."
   fireball:
-    nom: "&cFireball fight"
+    nom: "&aFireball fight"
     categorie: duels
     icone: FIREBALL
     equipes: 2
@@ -1506,7 +1512,7 @@ modes:
       - "diagonal, flat or uphill."
       - "A record for each course."
   ladder-practice:
-    nom: "&6Ladder practice"
+    nom: "&bLadder practice"
     categorie: entrainement
     icone: LADDER
     equipes: 1
@@ -1517,7 +1523,7 @@ modes:
       - "4 to 24 blocks, wool and a"
       - "ladder before the ground."
   pearl-practice:
-    nom: "&5Pearl practice"
+    nom: "&bPearl practice"
     categorie: entrainement
     icone: ENDER_PEARL
     equipes: 1
@@ -1530,7 +1536,7 @@ modes:
       - "Save a short pearl with wool,"
       - "not under the lower limit."
   fireball-practice:
-    nom: "&6Fireball practice"
+    nom: "&bFireball practice"
     categorie: entrainement
     icone: FIREBALL
     equipes: 1
@@ -1540,7 +1546,7 @@ modes:
       - "Fireball jumps and"
       - "sending fireballs back."
   shop-practice:
-    nom: "&aFast Shop"
+    nom: "&bFast Shop"
     categorie: entrainement
     icone: GOLD_INGOT
     equipes: 1
@@ -1552,7 +1558,7 @@ modes:
       - "Hypixel quick buy (copy it"
       - "in one click: the book)."
   combo-bot:
-    nom: "&dCombo bot"
+    nom: "&bCombo bot"
     categorie: entrainement
     icone: SKULL_ITEM
     equipes: 1
@@ -1575,7 +1581,7 @@ modes:
       - "the bot off sideways. Back at"
       - "the start after each hit."
   bow-training:
-    nom: "&aBow training"
+    nom: "&bBow training"
     categorie: entrainement
     icone: BOW
     equipes: 1
@@ -1599,7 +1605,7 @@ modes:
       - "that hits is a point. First"
       - "to 10."
   aim-trainer:
-    nom: "&eAim trainer"
+    nom: "&bAim trainer"
     categorie: entrainement
     icone: BOW
     equipes: 1
@@ -1613,7 +1619,7 @@ modes:
   # The events a PREMIUM player hosts with /host (RagoPractice): hidden from the selector, the
   # players come in with /join while the server is told about it.
   event-sumo:
-    nom: "&6Sumo event"
+    nom: "&aSumo event"
     categorie: duels
     cache: true
     icone: SLIME_BALL
@@ -1624,7 +1630,7 @@ modes:
       - "Hosted with /host: one 1v1 at"
       - "a time, the last one in wins."
   event-brackets:
-    nom: "&6Brackets event"
+    nom: "&aBrackets event"
     categorie: duels
     cache: true
     icone: IRON_SWORD
@@ -1635,7 +1641,7 @@ modes:
       - "Hosted with /host: a 1v1"
       - "tournament with a Bed Wars kit."
   event-lms:
-    nom: "&6Last Man Standing event"
+    nom: "&aLast Man Standing event"
     categorie: duels
     cache: true
     icone: GOLD_SWORD

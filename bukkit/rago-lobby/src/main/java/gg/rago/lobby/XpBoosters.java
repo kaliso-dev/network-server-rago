@@ -251,7 +251,7 @@ final class XpBoosters {
         long left = profile.boosterLeftMs();
         long coinsLeft = profile.coinBoosterLeftMs();
         menu.set(4, ClickMenu.item(Material.WATCH, 0, ChatColor.YELLOW + "Running", listOf(
-                left > 0 ? ChatColor.AQUA + "x" + rate(xpRate(profile)) + " Network XP" + ChatColor.GRAY + ": " + clock(left) + " left"
+                left > 0 ? Brand.XP + "x" + rate(xpRate(profile)) + " Network XP" + ChatColor.GRAY + ": " + clock(left) + " left"
                         : ChatColor.GRAY + "No XP booster",
                 coinsLeft > 0 ? ChatColor.GOLD + "x" + rate(COIN_MULTIPLIER) + " Rago Points" + ChatColor.GRAY + ": " + clock(coinsLeft)
                         + " left" : ChatColor.GRAY + "No points booster",

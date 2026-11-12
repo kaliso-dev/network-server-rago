@@ -87,11 +87,11 @@ final class LobbySettings {
             throw new IllegalArgumentException("monde: \"" + world + "\" is not a valid world name");
         }
         int voidHeight = config.getInt("hauteur-vide", 0);
-        String title = colour(config.getString("titre", "&b&lRAGO PRACTICE"));
+        String title = colour(config.getString("titre", "&e&lRAGO PRACTICE"));
         if (ChatColor.stripColor(title).isEmpty() || title.length() > 32) {
             throw new IllegalArgumentException("titre: from 1 to 32 characters, colour codes included");
         }
-        String address = colour(config.getString("adresse", "&7rago.gg"));
+        String address = colour(config.getString("adresse", "&erago.gg"));
         if (address.length() > 40) {
             throw new IllegalArgumentException("adresse: 40 characters at most, colour codes included");
         }

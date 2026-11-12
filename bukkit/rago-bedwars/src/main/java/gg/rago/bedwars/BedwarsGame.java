@@ -134,6 +134,8 @@ class BedwarsGame {
     static final long FIREBALL_COOLDOWN_MS = 500L;
     static final int FIREBALL_YIELD = 3;
     static final int TNT_FUSE_TICKS = 52;
+    /** The lines a game gives its sidebar at most: the lobby adds a blank one and the pings under them (12). */
+    static final int SIDEBAR_ROOM = 9;
     private static final String CHECK = "✔";
     private static final String CROSS = "✘";
 
@@ -142,6 +144,11 @@ class BedwarsGame {
     final Instance instance;
     final String modeId;
     final String modeName;
+    /**
+     * The name of the mode in the colour of its category, as the lobby's config.yml writes it
+     * ("§6Ranked Bedwars 2v2"): the first line of the sidebar, as in every mode. Null: none.
+     */
+    String modeLine;
     final BedwarsSettings settings;
     final ShopCatalog catalog;
     final List<Team> teams = new ArrayList<>();
@@ -1084,7 +1091,7 @@ class BedwarsGame {
         for (Gamer gamer : gamers.values()) {
             Player player = Bukkit.getPlayer(gamer.id);
             if (player != null && host.gameOf(gamer.id) == this) {
-                plugin.lobby().setGameSidebar(player, lines(gamer));
+                plugin.lobby().setGameSidebar(player, withMode(modeLine, lines(gamer)));
             }
         }
         for (Player watcher : plugin.watchers().of(this)) {
@@ -1094,9 +1101,24 @@ class BedwarsGame {
             }
             if (watched != null) {
                 // the sidebar of the player they came for, as that player sees it
-                plugin.lobby().setGameSidebar(watcher, lines(watched));
+                plugin.lobby().setGameSidebar(watcher, withMode(modeLine, lines(watched)));
             }
         }
+    }
+
+    /**
+     * The sidebar as every mode of the server shows it: the mode first, in the colour of its
+     * category, over the game's own lines; not when they name it already, nor when they leave no
+     * room for it beside the lobby's ping lines (a game gives {@value #SIDEBAR_ROOM} lines then).
+     */
+    static List<String> withMode(String modeLine, List<String> lines) {
+        if (modeLine == null || lines.size() >= SIDEBAR_ROOM || (!lines.isEmpty() && lines.get(0).startsWith(modeLine))) {
+            return lines;
+        }
+        List<String> all = new ArrayList<>(lines.size() + 1);
+        all.add(modeLine);
+        all.addAll(lines);
+        return all;
     }
 
     List<String> lines(Gamer viewer) {

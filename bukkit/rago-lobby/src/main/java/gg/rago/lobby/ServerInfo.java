@@ -65,6 +65,23 @@ final class ServerInfo implements Listener {
 
     // --- Server list ----------------------------------------------------------------------------
 
+    /**
+     * How wide a line of the server list is in a 1.8 client, in pixels: a longer first line wraps
+     * and pushes the second one out of sight.
+     */
+    static final int MOTD_WIDTH = 271;
+
+    /** The lines of the message of the server list wider than it shows. */
+    static List<String> tooWide(List<String> motd) {
+        List<String> wide = new java.util.ArrayList<>();
+        for (String line : motd) {
+            if (LobbyWelcome.width(line) > MOTD_WIDTH) {
+                wide.add(line);
+            }
+        }
+        return wide;
+    }
+
     @EventHandler
     public void onPing(ServerListPingEvent event) {
         List<String> motd = server.motd();

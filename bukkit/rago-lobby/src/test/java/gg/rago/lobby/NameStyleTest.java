@@ -156,8 +156,8 @@ class NameStyleTest {
         assertEquals(75, alice.xp(), "a win with the boost of PREMIUM: 50 x 1.5");
         assertEquals(15, bob.xp(), "a loss without boost");
         assertEquals("", StatsService.boostText(1.0));
-        assertEquals("§d x1.5 boost", StatsService.boostText(1.5));
-        assertEquals("§d x2 boost", StatsService.boostText(2.0));
+        assertEquals("§6 x1.5 boost", StatsService.boostText(1.5), "a reward: gold, the pink is PREMIUM+'s");
+        assertEquals("§6 x2 boost", StatsService.boostText(2.0));
     }
 
     @Test
