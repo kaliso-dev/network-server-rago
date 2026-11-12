@@ -475,6 +475,11 @@ joueur tape `/spawn` en pleine partie. `lobby.recordKill("sumo", tueur, victime)
 `lobby.giveXp("aim-trainer", joueur, xp, "aim trainer")` (rien dans une partie privée). À la fin, `lobby.recordMatch("sumo", gagnants, perdants)` compte la partie
 dans les stats, les classements et l'XP Network.
 
+Un entraînement peut envoyer son joueur directement dans un autre : `lobby.openModesOf(joueur,
+mode)` ouvre le menu de la catégorie du mode (en partie aussi), et un clic sur un mode joué seul y
+emmène le joueur sans repasser par le lobby, si l'hôte de sa partie le laisse partir
+(`MatchHost.letGo(joueur)`, faux par défaut).
+
 Pour `/replay`, un jeu enregistre ses parties avec `lobby.replays()` (`null` quand les replays sont
 coupés) : `record(ReplaySetup.ofBlocks(...))` pour une arène dont les blocs tiennent dans le replay
 (un duel : la zone de la partie et ses blocs au départ), ou `ReplaySetup.ofStage(...)` pour une

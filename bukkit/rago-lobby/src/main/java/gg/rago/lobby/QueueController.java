@@ -134,6 +134,11 @@ final class QueueController {
 
     // --- Players --------------------------------------------------------------------------------
 
+    /** True while the player belongs to a game. */
+    boolean inGame(Player player) {
+        return state.isInGame(player);
+    }
+
     /** The player clicked a mode in the selector, or typed /queue: any map. */
     void join(Player player, GameMode mode) {
         join(player, mode, null);
@@ -142,7 +147,9 @@ final class QueueController {
     /** Joins the mode's queue for this map (null: any map, the host chooses). */
     void join(Player player, GameMode mode, String map) {
         if (state.isInGame(player)) {
-            player.sendMessage(ChatColor.RED + "You are already in a game.");
+            if (!switchGame(player, mode)) {
+                player.sendMessage(ChatColor.RED + "You are already in a game.");
+            }
             return;
         }
         if (lobby.isFrozen(player.getUniqueId())) {
@@ -182,6 +189,64 @@ final class QueueController {
                 player.sendMessage(ChatColor.RED + "This mode does not exist.");
                 break;
         }
+    }
+
+    /**
+     * A player in a game asks for a mode played alone (a training's Trainings menu): they go straight
+     * from their game into a game of that mode, without the lobby in between, when the host of their
+     * game lets them go ({@link MatchHost#letGo}). False when this does not apply (a mode of several
+     * players, a game that keeps its players): the player stays in their game.
+     */
+    private boolean switchGame(Player player, GameMode mode) {
+        UUID id = player.getUniqueId();
+        String from = state.gameOf(id);
+        MatchHost fromHost = from == null ? null : hosts.get(from);
+        MatchHost host = hosts.get(mode.id());
+        if (fromHost == null || host == null || mode.teams() != 1 || mode.playersPerTeam() != 1
+                || settings.privateRoutes().containsKey(mode.id()) || lobby.isFrozen(id) || !isPlayable(mode.id())) {
+            return false;
+        }
+        if (mode.id().equals(from)) {
+            player.closeInventory();
+            player.sendMessage(ChatColor.GRAY + "You are already playing " + mode.name() + ChatColor.GRAY + ".");
+            return true;
+        }
+        MatchProposal match = new MatchProposal(mode, Collections.singletonList(Collections.singletonList(
+                new QueueEntry(id, settings.defaultRating(), System.currentTimeMillis()))));
+        if (!ready(host, match)) {
+            player.sendMessage(ChatColor.YELLOW + "This mode is being prepared: try again in a moment.");
+            return true;
+        }
+        boolean free;
+        try {
+            free = fromHost.letGo(player);
+        } catch (RuntimeException e) {
+            logger.log(Level.WARNING, "The mode " + from + " could not let a player go", e);
+            free = false;
+        }
+        if (!free) {
+            return false;
+        }
+        lobby.betweenGames(player);
+        matchmaker.leave(id);
+        forgetWaiting(Collections.singleton(id));
+        lobby.enterGame(player, mode.id());
+        state.markUnrated(id);
+        state.setOpponents(id, Collections.<UUID>emptyList());
+        boolean started;
+        try {
+            started = host.start(match);
+        } catch (RuntimeException e) {
+            logger.log(Level.SEVERE, "The mode " + mode.id() + " could not start a game", e);
+            started = false;
+        }
+        if (!started) {
+            // back to the lobby: the game the player left is over for them
+            lobby.cancelGame(player);
+            player.sendMessage(ChatColor.YELLOW + "No free arena right now: try again in a moment.");
+        }
+        onChange.run();
+        return true;
     }
 
     /**

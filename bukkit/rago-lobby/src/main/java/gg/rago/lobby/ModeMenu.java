@@ -513,7 +513,11 @@ final class ModeMenu {
             if (waitingFor != null) {
                 lore.add(ChatColor.GRAY + "Your map: " + ChatColor.WHITE + waitingFor);
             }
+            // in a training (its Trainings menu): a mode played alone starts at once
+            boolean alone = viewer instanceof Player && queues.inGame((Player) viewer) && mode.teams() == 1
+                    && mode.playersPerTeam() == 1;
             lore.add(waitingHere ? ChatColor.YELLOW + "You are in this queue: click to leave it"
+                    : alone ? ChatColor.GREEN + "Click to play"
                     : maps >= 2 ? ChatColor.GREEN + "Click to choose the map (" + maps + ")"
                     : ChatColor.GREEN + "Click to join the queue");
         }

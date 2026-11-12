@@ -13,15 +13,16 @@ import org.bukkit.entity.Player;
 import org.bukkit.event.block.Action;
 import org.bukkit.event.entity.EntityDamageEvent;
 import org.bukkit.event.player.PlayerInteractEvent;
+import org.bukkit.inventory.Inventory;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.PlayerInventory;
 
 /**
  * A solo training: one player, attempts one after the other (each on the arena as built), a
  * personal best and the server's best for each of its variants, kept in records.yml. At the end
- * of the hotbar, a bar of controls: a red dye lowers and a green dye raises, the mode (when there
- * are several) and each setting of the training, the number on the dyes giving where it is now;
- * a blaze rod restarts. No damage, no stats: the player leaves with /spawn.
+ * of the hotbar, the controls: the bed goes back to the lobby, the compass to another training,
+ * the comparator opens the settings (the mode, each setting with - and +, back to default, the
+ * presets), the blaze rod restarts. No damage, no stats.
  */
 abstract class Training extends PracticeGame {
 
@@ -43,15 +44,15 @@ abstract class Training extends PracticeGame {
     }
 
     /**
-     * A setting of the training the player changes from the hotbar: a whole number from min to max,
-     * or on and off (one item flips it).
+     * A setting of the training the player changes in the settings menu: a whole number from min to
+     * max, or on and off (one item flips it).
      */
     static final class Setting {
         final String label;
         final int min;
         final int max;
         final boolean toggle;
-        /** Its value by default, that shift and a right click on the blaze rod give back. */
+        /** Its value by default, that "Reset to default" (or shift and a right click on the blaze rod) gives back. */
         final int initial;
         int value;
 
@@ -91,22 +92,43 @@ abstract class Training extends PracticeGame {
         }
     }
 
+    /** A choice of every setting at once, in the settings menu ("Hypixel", "Hard"...). */
+    static final class Preset {
+        final String name;
+        final Material icon;
+        final String description;
+        /** A value for each setting of the training, in their order. */
+        final int[] values;
+
+        Preset(String name, Material icon, String description, int[] values) {
+            this.name = name;
+            this.icon = icon;
+            this.description = description;
+            this.values = values;
+        }
+    }
+
     static final String RESTART_ITEM = ChatColor.YELLOW + "Restart" + ChatColor.GRAY + " (right click)";
-    static final String PREVIOUS_MODE = ChatColor.RED + "\u25C0 Previous mode";
-    static final String NEXT_MODE = ChatColor.GREEN + "Next mode \u25B6";
-    static final String LOWER = ChatColor.RED + "- ";
-    static final String RAISE = ChatColor.GREEN + "+ ";
-    static final String SWITCH = ChatColor.YELLOW + "";
+    static final String SETTINGS_ITEM = ChatColor.AQUA + "Settings" + ChatColor.GRAY + " (right click)";
+    static final String TRAININGS_ITEM = ChatColor.GREEN + "Trainings" + ChatColor.GRAY + " (right click)";
+    static final String LEAVE_ITEM = ChatColor.RED + "Leave" + ChatColor.GRAY + " (right click)";
+    /** The controls, at the end of the hotbar; the kit keeps the slots before them. */
+    static final int LEAVE_SLOT = 5;
+    static final int TRAININGS_SLOT = 6;
+    static final int SETTINGS_SLOT = 7;
     static final int RESTART_SLOT = 8;
-    /** The dyes: red lowers, green raises, gray is a setting that is off. */
-    static final int RED_DYE = 1;
+    /** The settings menu: a dye for an on and off setting (green on, gray off), panes to lower (red) and raise (green). */
     static final int GREEN_DYE = 10;
     static final int GRAY_DYE = 8;
+    static final int RED_PANE = 14;
+    static final int GREEN_PANE = 5;
 
     final List<Variant> variants = new ArrayList<>();
     int variant;
-    /** The settings of the training, in the hotbar after the mode. */
+    /** The settings of the training, in the settings menu under the mode. */
     final List<Setting> settings = new ArrayList<>();
+    /** The presets of the settings menu, if the training has some. */
+    final List<Preset> presets = new ArrayList<>();
     final UUID me;
     private final String myName;
     /** The last score of the player, for the sidebar. */
@@ -115,6 +137,11 @@ abstract class Training extends PracticeGame {
     private boolean challengeVariant;
     /** True once the player's last variant and settings are given back. */
     private boolean restored;
+    /**
+     * True when the mode or a setting changed in the settings menu: the attempt starts again when
+     * the menu closes (a new start teleports the player, which would close the menu at each click).
+     */
+    private boolean restartOnClose;
 
     Training(PracticeHost host, GameMode mode, Arena arena, List<List<Player>> teams, Variant... variants) {
         super(host, mode, arena, teams);
@@ -236,8 +263,24 @@ abstract class Training extends PracticeGame {
         return setting;
     }
 
-    /** A setting was changed from the hotbar: by default, the attempt starts again with it. */
-    void settingChanged(Setting setting) {
+    /**
+     * A preset of the settings menu: a value for each setting of the training, in the order they
+     * were made (0 and 1 for on and off).
+     */
+    void preset(String name, Material icon, String description, int... values) {
+        presets.add(new Preset(name, icon, description, values));
+    }
+
+    /** True when the training has something to set: several modes, or settings. */
+    boolean hasSettings() {
+        return variants.size() > 1 || !settings.isEmpty();
+    }
+
+    /**
+     * The mode or the settings changed in the settings menu, which is closed now: by default, the
+     * attempt starts again with them.
+     */
+    void settingsChanged() {
         startRound();
     }
 
@@ -247,71 +290,57 @@ abstract class Training extends PracticeGame {
     }
 
     /**
-     * The bar of controls, from the right of the hotbar: the restart, the mode (previous, next),
-     * then each setting (lower, raise; or one item for on and off). The number on a dye is where
-     * the mode or the setting is now.
+     * The controls at the end of the hotbar: the bed (back to the lobby), the compass (another
+     * training), the comparator (the settings, when there are some) and the blaze rod (restart).
      */
     void controls(Player player) {
         PlayerInventory inventory = player.getInventory();
         // an item of the kit the player keeps where the controls go moves out of their way
-        int needed = 1 + (variants.size() > 1 ? 2 : 0);
-        for (Setting setting : settings) {
-            needed += setting.toggle ? 1 : 2;
-        }
-        int lowest = Math.max(0, RESTART_SLOT - needed + 1);
-        for (int at = lowest; at <= RESTART_SLOT; at++) {
+        for (int at = LEAVE_SLOT; at <= RESTART_SLOT; at++) {
             ItemStack there = inventory.getItem(at);
-            if (there == null || there.getType() == Material.AIR || isControl(there)) {
+            if (there == null || there.getType() == Material.AIR || isControl(there) || !reserved(at)) {
                 continue;
             }
-            int free = freeSlotOutside(inventory, lowest);
+            int free = freeSlot(inventory);
             if (free >= 0) {
                 inventory.setItem(free, there);
                 inventory.setItem(at, null);
             }
         }
-        int slot = RESTART_SLOT;
-        inventory.setItem(slot--, settings.isEmpty() ? named(Material.BLAZE_ROD, 1, 0, RESTART_ITEM)
+        inventory.setItem(LEAVE_SLOT, named(Material.BED, 1, 0, LEAVE_ITEM, ChatColor.GRAY + "Back to the lobby."));
+        inventory.setItem(TRAININGS_SLOT, named(Material.COMPASS, 1, 0, TRAININGS_ITEM,
+                ChatColor.GRAY + "Another training, straight from here."));
+        if (hasSettings()) {
+            List<String> lore = new ArrayList<>();
+            if (variants.size() > 1) {
+                lore.add(ChatColor.GRAY + "Mode: " + ChatColor.WHITE + current().label);
+            }
+            for (Setting setting : settings) {
+                lore.add(ChatColor.GRAY + setting.label + ": " + setting.text());
+            }
+            inventory.setItem(SETTINGS_SLOT, named(Material.REDSTONE_COMPARATOR, 1, 0, SETTINGS_ITEM, lore.toArray(new String[0])));
+        } else if (isControl(inventory.getItem(SETTINGS_SLOT))) {
+            inventory.setItem(SETTINGS_SLOT, null);
+        }
+        inventory.setItem(RESTART_SLOT, settings.isEmpty() ? named(Material.BLAZE_ROD, 1, 0, RESTART_ITEM)
                 : named(Material.BLAZE_ROD, 1, 0, RESTART_ITEM, ChatColor.GRAY + "Shift + right click: default settings"));
-        if (variants.size() > 1) {
-            String now = ChatColor.GRAY + "Now: " + ChatColor.WHITE + current().label + ChatColor.GRAY + " (" + (variant + 1)
-                    + "/" + variants.size() + ")";
-            inventory.setItem(slot--, named(Material.INK_SACK, variant + 1, GREEN_DYE, NEXT_MODE, now, ChatColor.GRAY + "Right click"));
-            inventory.setItem(slot--, named(Material.INK_SACK, variant + 1, RED_DYE, PREVIOUS_MODE, now, ChatColor.GRAY + "Right click"));
-        }
-        for (Setting setting : settings) {
-            if (slot < 0) {
-                break;
-            }
-            String now = ChatColor.GRAY + "Now: " + setting.text();
-            if (setting.toggle) {
-                inventory.setItem(slot--, named(Material.INK_SACK, 1, setting.on() ? GREEN_DYE : GRAY_DYE,
-                        SWITCH + setting.label + ": " + setting.text(), ChatColor.GRAY + "Right click: on or off"));
-                continue;
-            }
-            int amount = Math.max(1, Math.min(64, setting.value));
-            inventory.setItem(slot--, named(Material.INK_SACK, amount, GREEN_DYE, RAISE + setting.label, now,
-                    ChatColor.GRAY + "Right click: raise"));
-            if (slot >= 0) {
-                inventory.setItem(slot--, named(Material.INK_SACK, amount, RED_DYE, LOWER + setting.label, now,
-                        ChatColor.GRAY + "Right click: lower"));
-            }
-        }
     }
 
-    /** The restart or a dye of the bar of controls. */
+    /** True for a slot of the controls: the settings' only when the training has some. */
+    private boolean reserved(int slot) {
+        return slot >= LEAVE_SLOT && slot <= RESTART_SLOT && (slot != SETTINGS_SLOT || hasSettings());
+    }
+
+    /** One of the controls of the hotbar. */
     static boolean isControl(ItemStack item) {
-        if (!item.hasItemMeta() || !item.getItemMeta().hasDisplayName()) {
-            return false;
-        }
-        return item.getType() == Material.INK_SACK
-                || item.getType() == Material.BLAZE_ROD && RESTART_ITEM.equals(item.getItemMeta().getDisplayName());
+        return isNamed(item, Material.BLAZE_ROD, RESTART_ITEM) || isNamed(item, Material.REDSTONE_COMPARATOR, SETTINGS_ITEM)
+                || isNamed(item, Material.COMPASS, TRAININGS_ITEM) || isNamed(item, Material.BED, LEAVE_ITEM);
     }
 
-    /** The first empty slot of the hotbar left of the controls, else of the inventory; -1 if none. */
-    private static int freeSlotOutside(PlayerInventory inventory, int lowest) {
+    /** The first empty slot of the hotbar out of the controls, else of the inventory; -1 if none. */
+    private int freeSlot(PlayerInventory inventory) {
         for (int slot = 0; slot < 36; slot++) {
-            if (slot >= lowest && slot <= RESTART_SLOT) {
+            if (reserved(slot)) {
                 continue;
             }
             ItemStack item = inventory.getItem(slot);
@@ -322,41 +351,206 @@ abstract class Training extends PracticeGame {
         return -1;
     }
 
-    /** If this item is a control (the mode, a setting), applies it and returns true. */
-    private boolean control(Player player, ItemStack item) {
-        if (item == null || item.getType() != Material.INK_SACK || !item.hasItemMeta() || !item.getItemMeta().hasDisplayName()) {
-            return false;
+    // --- The settings menu ----------------------------------------------------------------------
+
+    /** The settings menu: its title, cut to the 32 letters of a chest's. */
+    String settingsTitle() {
+        String title = "Settings: " + ChatColor.stripColor(mode.name());
+        return title.length() > 32 ? title.substring(0, 32) : title;
+    }
+
+    /** The row of the modes (-1 without one), of the first setting, of the buttons at the bottom. */
+    private int modeRow() {
+        return variants.size() > 1 ? 0 : -1;
+    }
+
+    private int firstSettingRow() {
+        return modeRow() + 1;
+    }
+
+    private int bottomRow() {
+        return firstSettingRow() + settings.size();
+    }
+
+    /** The column of the first mode of the row: the modes are in the middle. */
+    private int firstModeColumn() {
+        return Math.max(0, (9 - variants.size()) / 2);
+    }
+
+    /** The columns of the presets in the bottom row, in the middle. */
+    private int presetColumn(int index) {
+        int count = Math.min(presets.size(), 3);
+        return 4 - (count - 1) + index * 2;
+    }
+
+    static final int RESET_COLUMN = 0;
+    static final int CLOSE_COLUMN = 8;
+    static final int LOWER_COLUMN = 3;
+    static final int VALUE_COLUMN = 4;
+    static final int RAISE_COLUMN = 5;
+
+    /** Opens the settings menu: the mode, each setting with - and +, back to default, the presets. */
+    void openSettings(Player player) {
+        player.openInventory(new GameMenu(this, settingsTitle(), settingsItems()).getInventory());
+    }
+
+    /** The items of the settings menu, as they are now. */
+    ItemStack[] settingsItems() {
+        ItemStack[] items = new ItemStack[(bottomRow() + 1) * 9];
+        if (modeRow() >= 0) {
+            for (int i = 0; i < variants.size() && i < 9; i++) {
+                items[modeRow() * 9 + firstModeColumn() + i] = modeItem(i);
+            }
         }
-        String name = item.getItemMeta().getDisplayName();
-        if (name.equals(PREVIOUS_MODE) || name.equals(NEXT_MODE)) {
-            int by = name.equals(NEXT_MODE) ? 1 : -1;
-            variant = (variant + by + variants.size()) % variants.size();
-            remember();
-            player.sendMessage(ChatColor.GREEN + "Mode: " + ChatColor.WHITE + current().label + ChatColor.GRAY + " - " + describe());
-            sound(player, Sound.CLICK, by > 0 ? 1.2f : 0.9f);
-            startRound();
-            return true;
-        }
-        for (Setting setting : settings) {
-            int by = name.equals(RAISE + setting.label) ? 1 : name.equals(LOWER + setting.label) ? -1
-                    : name.startsWith(SWITCH + setting.label + ": ") && setting.toggle ? 1 : 0;
-            if (by == 0) {
+        for (int i = 0; i < settings.size(); i++) {
+            Setting setting = settings.get(i);
+            int row = (firstSettingRow() + i) * 9;
+            String byDefault = ChatColor.GRAY + "Default: " + (setting.toggle ? (setting.initial != 0 ? "On" : "Off")
+                    : ChatColor.WHITE + "" + setting.initial);
+            if (setting.toggle) {
+                items[row + VALUE_COLUMN] = named(Material.INK_SACK, 1, setting.on() ? GREEN_DYE : GRAY_DYE,
+                        ChatColor.WHITE + setting.label + ": " + setting.text(), byDefault, ChatColor.YELLOW + "Click: on or off");
                 continue;
             }
+            int amount = Math.max(1, Math.min(64, setting.value));
+            items[row + LOWER_COLUMN] = named(Material.STAINED_GLASS_PANE, 1, RED_PANE, ChatColor.RED + "- " + setting.label,
+                    ChatColor.YELLOW + "Click: lower");
+            items[row + VALUE_COLUMN] = named(Material.PAPER, amount, 0, ChatColor.WHITE + setting.label + ": " + setting.text(),
+                    byDefault);
+            items[row + RAISE_COLUMN] = named(Material.STAINED_GLASS_PANE, 1, GREEN_PANE, ChatColor.GREEN + "+ " + setting.label,
+                    ChatColor.YELLOW + "Click: raise");
+        }
+        int bottom = bottomRow() * 9;
+        if (!settings.isEmpty()) {
+            items[bottom + RESET_COLUMN] = named(Material.REDSTONE, 1, 0, ChatColor.YELLOW + "Reset to default",
+                    ChatColor.GRAY + "Every setting as it is by default.");
+        }
+        for (int i = 0; i < presets.size() && i < 3; i++) {
+            Preset preset = presets.get(i);
+            List<String> lore = new ArrayList<>();
+            lore.add(ChatColor.GRAY + preset.description);
+            lore.add(matches(preset) ? ChatColor.GREEN + "Your settings now" : ChatColor.YELLOW + "Click: use it");
+            items[bottom + presetColumn(i)] = named(preset.icon, 1, 0, ChatColor.GOLD + "Preset: " + preset.name,
+                    lore.toArray(new String[0]));
+        }
+        items[bottom + CLOSE_COLUMN] = named(Material.BARRIER, 1, 0, ChatColor.RED + "Close");
+        return items;
+    }
+
+    /** The item of a mode of the training in the menu: its best, the one played now. */
+    private ItemStack modeItem(int index) {
+        Variant v = variants.get(index);
+        List<String> lore = new ArrayList<>();
+        Long best = host.records().book().best(mode.id() + "." + v.id, me);
+        lore.add(ChatColor.GRAY + "Your best: " + (best == null ? "none yet" : ChatColor.WHITE + format(v, best)));
+        if (host.challenges() != null && host.challenges().isToday(mode.id() + "." + v.id)) {
+            lore.add(ChatColor.GOLD + "\u2726 Challenge of the day");
+        }
+        lore.add(index == variant ? ChatColor.GREEN + "Playing now" : ChatColor.YELLOW + "Click: play this mode");
+        ItemStack item = named(index == variant ? Material.EMPTY_MAP : Material.PAPER, index + 1, 0,
+                (index == variant ? ChatColor.GREEN : ChatColor.WHITE) + v.label, lore.toArray(new String[0]));
+        return item;
+    }
+
+    /** True if every setting has the value of this preset. */
+    private boolean matches(Preset preset) {
+        for (int i = 0; i < settings.size() && i < preset.values.length; i++) {
+            if (settings.get(i).value != preset.values[i]) {
+                return false;
+            }
+        }
+        return true;
+    }
+
+    @Override
+    void menuClosed(Player player) {
+        if (restartOnClose) {
+            restartOnClose = false;
+            settingsChanged();
+        }
+    }
+
+    @Override
+    void menuClick(Player player, int slot) {
+        int row = slot / 9;
+        int column = slot % 9;
+        if (row == modeRow()) {
+            int index = column - firstModeColumn();
+            if (index >= 0 && index < variants.size() && index != variant) {
+                variant = index;
+                remember();
+                changed(player, Sound.CLICK, 1.2f);
+            }
+            return;
+        }
+        int index = row - firstSettingRow();
+        if (index >= 0 && index < settings.size()) {
+            Setting setting = settings.get(index);
+            int by = setting.toggle ? (column == VALUE_COLUMN ? 1 : 0) : column == RAISE_COLUMN ? 1 : column == LOWER_COLUMN ? -1 : 0;
+            if (by == 0) {
+                return;
+            }
             if (!setting.step(by)) {
-                player.sendMessage(ChatColor.GRAY + setting.label + " is already at its " + (by > 0 ? "highest" : "lowest") + ".");
                 sound(player, Sound.VILLAGER_NO, 1f);
-                return true;
+                return;
             }
             remember();
-            player.sendMessage(ChatColor.GREEN + setting.label + ": " + setting.text());
-            sound(player, Sound.CLICK, by > 0 ? 1.2f : 0.9f);
-            controls(player);
-            player.updateInventory();
-            settingChanged(setting);
-            return true;
+            changed(player, Sound.CLICK, by > 0 ? 1.2f : 0.9f);
+            return;
         }
-        return false;
+        if (row != bottomRow()) {
+            return;
+        }
+        if (column == CLOSE_COLUMN) {
+            player.closeInventory();
+        } else if (column == RESET_COLUMN && !settings.isEmpty()) {
+            if (!defaults()) {
+                sound(player, Sound.VILLAGER_NO, 1f);
+                return;
+            }
+            remember();
+            player.sendMessage(ChatColor.GREEN + "Settings back to default.");
+            changed(player, Sound.CLICK, 1.4f);
+        } else {
+            for (int i = 0; i < presets.size() && i < 3; i++) {
+                if (column == presetColumn(i)) {
+                    use(player, presets.get(i));
+                }
+            }
+        }
+    }
+
+    /** The settings take the values of this preset. */
+    private void use(Player player, Preset preset) {
+        if (matches(preset)) {
+            sound(player, Sound.VILLAGER_NO, 1f);
+            return;
+        }
+        for (int i = 0; i < settings.size() && i < preset.values.length; i++) {
+            Setting setting = settings.get(i);
+            setting.value = Math.max(setting.min, Math.min(setting.max, preset.values[i]));
+        }
+        remember();
+        player.sendMessage(ChatColor.GREEN + "Preset: " + ChatColor.WHITE + preset.name + ChatColor.GRAY + " - " + preset.description);
+        changed(player, Sound.CLICK, 1.4f);
+    }
+
+    /**
+     * A change in the settings menu: the menu and the comparator show it, a click is heard, and the
+     * attempt starts again with it when the menu closes.
+     */
+    private void changed(Player player, Sound sound, float pitch) {
+        restartOnClose = true;
+        sound(player, sound, pitch);
+        controls(player);
+        player.updateInventory();
+        Inventory open = player.getOpenInventory().getTopInventory();
+        if (open != null && open.getHolder() instanceof GameMenu && ((GameMenu) open.getHolder()).game == this) {
+            ItemStack[] items = settingsItems();
+            if (items.length == open.getSize()) {
+                open.setContents(items);
+            }
+        }
     }
 
     @Override
@@ -366,8 +560,26 @@ abstract class Training extends PracticeGame {
             return;
         }
         ItemStack item = event.getItem();
-        if (control(player, item)) {
+        if (isNamed(item, Material.REDSTONE_COMPARATOR, SETTINGS_ITEM)) {
             event.setCancelled(true);
+            openSettings(player);
+            return;
+        }
+        if (isNamed(item, Material.COMPASS, TRAININGS_ITEM)) {
+            event.setCancelled(true);
+            if (!plugin.lobby().openModesOf(player, mode.id())) {
+                player.sendMessage(ChatColor.GRAY + "Back to the lobby to choose another training: /spawn");
+            }
+            return;
+        }
+        if (isNamed(item, Material.BED, LEAVE_ITEM)) {
+            event.setCancelled(true);
+            // as /spawn, at the next tick, out of the event
+            Bukkit.getScheduler().runTask(plugin, () -> {
+                if (player.isOnline() && host.gameOf(me) == this) {
+                    player.performCommand("spawn");
+                }
+            });
             return;
         }
         if (isNamed(item, Material.BLAZE_ROD, RESTART_ITEM)) {
@@ -387,7 +599,7 @@ abstract class Training extends PracticeGame {
         use(player, event);
     }
 
-    /** A click that is not one of the two items (a fireball, a pearl...). */
+    /** A click that is not one of the controls (a fireball, a pearl...). */
     void use(Player player, PlayerInteractEvent event) {
     }
 
@@ -399,19 +611,26 @@ abstract class Training extends PracticeGame {
         restore();
         player.sendMessage(ChatColor.AQUA + "" + ChatColor.BOLD + ChatColor.stripColor(mode.name()) + ChatColor.GRAY
                 + " - " + ChatColor.WHITE + current().label + ChatColor.GRAY + ": " + describe());
-        if (variants.size() > 1 || !settings.isEmpty()) {
-            player.sendMessage(ChatColor.GRAY + "Hotbar: " + ChatColor.RED + "red dye" + ChatColor.GRAY + " lowers, "
-                    + ChatColor.GREEN + "green dye" + ChatColor.GRAY + " raises (the mode, the settings: the number on the dye is where"
-                    + " it is), " + ChatColor.YELLOW + "blaze rod" + ChatColor.GRAY + " restarts (with shift: default settings)."
-                    + " Your last mode and settings come back next time. /spawn: back to the lobby.");
+        if (hasSettings()) {
+            player.sendMessage(ChatColor.GRAY + "Hotbar: the " + ChatColor.AQUA + "comparator" + ChatColor.GRAY
+                    + " opens the settings (the mode, the settings, the presets), the " + ChatColor.YELLOW + "blaze rod"
+                    + ChatColor.GRAY + " restarts, the " + ChatColor.GREEN + "compass" + ChatColor.GRAY + " takes you to another"
+                    + " training, the " + ChatColor.RED + "bed" + ChatColor.GRAY + " back to the lobby. Your last mode and"
+                    + " settings come back next time.");
         } else {
-            player.sendMessage(ChatColor.GRAY + "The blaze rod restarts, /spawn takes you back to the lobby.");
+            player.sendMessage(ChatColor.GRAY + "Hotbar: the " + ChatColor.YELLOW + "blaze rod" + ChatColor.GRAY + " restarts, the "
+                    + ChatColor.GREEN + "compass" + ChatColor.GRAY + " takes you to another training, the " + ChatColor.RED + "bed"
+                    + ChatColor.GRAY + " back to the lobby.");
         }
     }
 
     /** The text of a score: "4.512 s" or "12 clutches". */
     String format(long value) {
-        Variant v = current();
+        return format(current(), value);
+    }
+
+    /** The text of a score of this variant. */
+    static String format(Variant v, long value) {
         return v.timed ? time(value) + " s" : value + (v.unit.isEmpty() ? "" : " " + v.unit);
     }
 
