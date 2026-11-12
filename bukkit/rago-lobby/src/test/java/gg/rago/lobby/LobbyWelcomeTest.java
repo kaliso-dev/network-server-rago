@@ -13,14 +13,15 @@ import java.util.List;
 import org.bukkit.ChatColor;
 import org.junit.jupiter.api.Test;
 
-/** The welcome of the lobby: the three ways to play, clickable. */
+/** The welcome of the lobby: the four ways to play, clickable. */
 class LobbyWelcomeTest {
 
     @Test
-    void itShowsTheThreeWaysToPlayOfTheBundledConfig() throws Exception {
+    void itShowsTheFourWaysToPlayOfTheBundledConfig() throws Exception {
         LobbySettings settings = LobbySettings.load(LobbySettingsTest.bundledConfig());
         List<ModeCategory> categories = settings.categories();
-        assertEquals("Practice · RBW Modes · Duels", ChatColor.stripColor(LobbyWelcome.subtitle(categories)), "the title, the first time");
+        assertEquals("Practice · RBW Modes · Duels · Arenas", ChatColor.stripColor(LobbyWelcome.subtitle(categories)),
+                "the title, the first time");
         for (ModeCategory category : categories) {
             JsonObject line = new JsonParser().parse(LobbyWelcome.json(category)).getAsJsonObject();
             String text = ChatColor.stripColor(line.get("text").getAsString());
@@ -55,7 +56,8 @@ class LobbyWelcomeTest {
         assertSame(categories.get(2), LobbyWelcome.find(categories, "DUELS"));
         assertNull(LobbyWelcome.find(categories, "bedwars"));
         assertNull(LobbyWelcome.find(categories, " "));
-        assertEquals(Arrays.asList("entrainement", "ranked", "duels"), LobbyWelcome.ids(categories));
+        assertEquals("arenes", LobbyWelcome.find(categories, "arenas").id());
+        assertEquals(Arrays.asList("entrainement", "ranked", "duels", "arenes"), LobbyWelcome.ids(categories));
     }
 
     @Test

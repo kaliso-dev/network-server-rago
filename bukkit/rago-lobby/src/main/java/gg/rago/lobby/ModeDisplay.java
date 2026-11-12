@@ -15,6 +15,7 @@ final class ModeDisplay {
     private final Kit kit;
     private final String group;
     private final boolean hidden;
+    private final boolean startHere;
 
     ModeDisplay(GameMode mode, Material icon, List<String> description, String category) {
         this(mode, icon, description, category, null);
@@ -26,6 +27,12 @@ final class ModeDisplay {
 
     ModeDisplay(GameMode mode, Material icon, List<String> description, String category, Kit kit, String group,
             boolean hidden) {
+        this(mode, icon, description, category, kit, group, hidden, false);
+    }
+
+    ModeDisplay(GameMode mode, Material icon, List<String> description, String category, Kit kit, String group,
+            boolean hidden, boolean startHere) {
+        this.startHere = startHere;
         this.group = group;
         this.hidden = hidden;
         this.mode = mode;
@@ -43,6 +50,11 @@ final class ModeDisplay {
     /** True for a mode played only through a private game (cache: true): not in the selector. */
     boolean hidden() {
         return hidden;
+    }
+
+    /** True for the first mode of a new player (commencer-ici: true): "Start here" in the menus. */
+    boolean startHere() {
+        return startHere;
     }
 
     /** The id of the mode's group (the sizes of one game, one item of its category), or null. */

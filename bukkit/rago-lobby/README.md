@@ -7,11 +7,12 @@ dans les files d'attente des modes de jeu.
 
 - **Le spawn.** Chaque joueur qui se connecte arrive au spawn du lobby, en aventure, avec sa vie
   et sa faim pleines. Tomber dans le vide (sous `hauteur-vide`) ramène au spawn.
-- **L'accueil : trois façons de jouer.** À chaque arrivée, le chat montre les catégories de la
+- **L'accueil : quatre façons de jouer.** À chaque arrivée, le chat montre les catégories de la
   boussole, une ligne chacune avec son nom et son slogan : « Practice : Train alone, at your own
-  pace », « RBW Modes : Ranked and RBW situations », « Duels : Duel your friends or anyone ». Un
-  clic sur une ligne ouvre ses modes (`/play <catégorie>`), le survol montre ce qu'elle contient. À
-  la toute première venue sur le serveur, un titre aussi (le `titre:` et les trois noms).
+  pace », « RBW Modes : Ranked and RBW situations », « Duels : Duel your friends or anyone »,
+  « Arenas : Jump in and fight now ». Un clic sur une ligne ouvre ses modes (`/play <catégorie>`),
+  le survol montre ce qu'elle contient. À la toute première venue sur le serveur, un titre aussi
+  (le `titre:` et les quatre noms).
   `accueil: false` le coupe.
 - **La protection.** Dans le monde du lobby : pas de dégâts, pas de faim, rien à poser, casser,
   jeter ou ramasser, pas de coffres ni de portes, pas de monstres. Les autres mondes (arènes,
@@ -90,6 +91,16 @@ dans les files d'attente des modes de jeu.
   jour, avec les pseudos de toute l'équipe en 2v2, 3v3... (« 1. Alice, Bob - 24 »). Une série
   appartient à une équipe : les mêmes joueurs ensemble. Elles sont gardées dans
   `plugins/RagoLobby/stats/equipes/`, un fichier par mode.
+- **« Popular now ».** La ligne du haut de la boussole et de chaque catégorie montre les modes où
+  il y a du monde en ce moment : au moins un joueur en partie ou en file, les plus joués d'abord
+  (à égalité, celui où l'on attend : une partie bientôt), trois au plus, ceux de la catégorie dans
+  une catégorie. Chacun dit combien jouent et attendent, et un clic entre dans sa file comme
+  ailleurs. Au bout de la ligne, le **défi du jour** des entraînements (une montre qui brille, ce
+  qu'il demande) : un clic le lance (`/challenge play`), depuis le lobby ou depuis un entraînement.
+  Les parties privées ne comptent pas. La ligne se met à jour chaque seconde avec le menu.
+- **« Start here ».** Le mode marqué `commencer-ici: true` (le block clutch) brille et dit
+  « ✦ Start here » dans sa catégorie, sur l'objet de son groupe, et l'objet de sa catégorie dans la
+  boussole dit « ✦ Start here: Block clutch » : le premier entraînement d'un nouveau joueur.
 - **Les files d'attente.** Le matchmaking de `rago-game-model`, une fois par seconde. Un joueur
   seul peut attendre dans trois files à la fois : un clic sur un autre mode le met aussi dans sa
   file, et la première partie trouvée l'emporte (il sort des autres). Un clic sur un mode où il
@@ -377,7 +388,8 @@ générateur vide ; un monde de build peut donc servir de lobby.
 ## Catégories, PNJ et classements
 
 - `categories:` range les modes par zone du lobby : la boussole montre les catégories (Practice à
-  gauche, RBW Modes au milieu avec un lit, Duels à droite),
+  gauche, RBW Modes avec un lit, Duels, Arenas à droite : les modes sans file, FFA, Top Bridge FFA,
+  Bridge fight, Block placement arena et Arena Free, où l'on entre tout de suite),
   puis les jeux de celle qu'on choisit (7 catégories, 28 objets par catégorie au plus, un groupe
   comptant pour un). Chaque mode dit sa `categorie:`. Le `slogan:` d'une catégorie (40 caractères au
   plus) dit ce qu'on y fait : sous son nom dans la boussole, sous son PNJ et dans l'accueil.
@@ -390,12 +402,13 @@ générateur vide ; un monde de build peut donc servir de lobby.
   de la tête. Un clic rejoint la file du mode, ou ouvre un menu quand le PNJ a plusieurs modes ;
   dans ce menu, les tailles d'un même groupe ne font qu'un objet (Top Bridge, une échelle qui ouvre
   1v1, 2v2 et FFA), sauf si le PNJ n'a que ce groupe. Un PNJ avec `categorie:` ouvre toute sa
-  catégorie, comme la boussole. Au centre, trois PNJ seulement, un par façon de jouer, pour qu'un
+  catégorie, comme la boussole. Au centre, quatre PNJ seulement, un par façon de jouer, pour qu'un
   nouveau joueur ne s'y perde pas : Practice, RBW Modes et Duels (sur les points de Ranked
-  Bedwars, de la partie privée et du FFA). Les PNJ d'un mode (Ranked Bedwars, partie privée, FFA,
-  Clutch Scenario, Attack and Defense, Sky Rise, First rush, Invis, Bridge fight, Arena Free,
+  Bedwars, de la partie privée et du FFA), et Arenas sur le point `freearenacombo` (déplaçable avec
+  `/lobby point freearenacombo`). Les PNJ d'un mode (Ranked Bedwars, partie privée, FFA,
+  Clutch Scenario, Attack and Defense, Sky Rise, First rush, Invis, Bridge fight,
   Block placement) et ceux des zones Practice et Duels sont en commentaire dans `pnj:` ; leurs
-  modes restent dans la boussole et dans les menus des trois. Un PNJ de catégorie montre le
+  modes restent dans la boussole et dans les menus des quatre. Un PNJ de catégorie montre le
   slogan de sa catégorie sous son nom, un autre PNJ une ligne à lui avec `sous-titre:`. Les PNJ
   réapparaissent quand un point bouge.
 - `skin:` sous un PNJ lui donne un skin : `skins/<nom>.png` dans le dossier du plugin (64x64, le
@@ -490,6 +503,10 @@ emmène le joueur sans repasser par le lobby, si l'hôte de sa partie le laisse 
 (faux par défaut) garde aussi la place de ses joueurs dans les files : ils peuvent en rejoindre
 depuis la partie, et la partie trouvée les en sort avec `letGo`. Sinon, entrer dans la partie fait
 quitter les files.
+
+Le plugin des entraînements donne son défi du jour avec `lobby.setDailyChallenge("clutch",
+"Block clutch: Island")` (`null` : aucun) : la boussole le montre au bout de « Popular now » tant
+que son mode est joué, et un clic lance `/challenge play` pour le joueur.
 
 Pour `/replay`, un jeu enregistre ses parties avec `lobby.replays()` (`null` quand les replays sont
 coupés) : `record(ReplaySetup.ofBlocks(...))` pour une arène dont les blocs tiennent dans le replay

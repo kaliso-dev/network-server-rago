@@ -709,6 +709,22 @@ final class QueueController {
         return matchmaker.waiting(modeId);
     }
 
+    /**
+     * The players in a game of each mode, by mode id, for "Popular now": the private games of the
+     * parties left out, nobody can join them.
+     */
+    Map<String, Integer> playing() {
+        Map<String, Integer> counts = new HashMap<>();
+        for (Player player : Bukkit.getOnlinePlayers()) {
+            UUID id = player.getUniqueId();
+            String mode = state.gameOf(id);
+            if (mode != null && !state.isInPrivateGame(id)) {
+                counts.merge(mode, 1, Integer::sum);
+            }
+        }
+        return counts;
+    }
+
     // --- Matches --------------------------------------------------------------------------------
 
     /** Once a second: starts the matches that were found, and the direct ones whose map is ready. */

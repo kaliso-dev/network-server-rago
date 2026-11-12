@@ -112,6 +112,12 @@ final class Challenges implements CommandExecutor, Listener {
         }
         Bukkit.getScheduler().runTaskTimer(plugin, this::tick, 400L, 400L);
         plugin.getLogger().info("Challenge of the day: " + challenge.board().label() + " (" + challenge.board().id() + ")");
+        showInLobby();
+    }
+
+    /** The challenge at the end of "Popular now", the top row of the lobby's compass. */
+    private void showInLobby() {
+        plugin.lobby().setDailyChallenge(challenge.board().modeId, challenge.board().label());
     }
 
     /** The day turned: the podium gets its XP, everyone hears it and the new challenge. */
@@ -124,6 +130,7 @@ final class Challenges implements CommandExecutor, Listener {
             return;
         }
         reward(ended);
+        showInLobby();
         for (Player player : Bukkit.getOnlinePlayers()) {
             player.sendMessage(RULE);
             player.sendMessage(ChatColor.GOLD + "" + ChatColor.BOLD + "Today's challenge: " + ChatColor.WHITE + challenge.board().label()
@@ -288,12 +295,20 @@ final class Challenges implements CommandExecutor, Listener {
                 return true;
             }
             Player player = (Player) sender;
-            if (plugin.lobby().isInGame(player)) {
+            DailyChallenge.Board board = challenge.board();
+            PracticeGame game = plugin.games() == null ? null : plugin.games().gameOf(player.getUniqueId());
+            if (game instanceof Training && game.mode.id().equals(board.modeId)) {
+                // already in this training: its variant, a new attempt
+                ((Training) game).playVariant(player, board.variant.id);
+                return true;
+            }
+            if (game != null && !(game instanceof Training)) {
                 player.sendMessage(ChatColor.RED + "Leave your game first (/spawn).");
                 return true;
             }
-            wanted.put(player.getUniqueId(), new Wanted(challenge.board(), System.currentTimeMillis()));
-            player.performCommand("queue " + challenge.board().modeId);
+            // from the lobby, or from another training: the lobby takes the player straight there
+            wanted.put(player.getUniqueId(), new Wanted(board, System.currentTimeMillis()));
+            player.performCommand("queue " + board.modeId);
             return true;
         }
         DailyChallenge.Board board = challenge.board();

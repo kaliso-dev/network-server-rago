@@ -69,7 +69,7 @@ categories:
     description:
       - "Ranked 1v1 to 4v4, and modes"
       - "close to Ranked Bedwars: Sky"
-      - "Rise, first rush, the FFA, clutch"
+      - "Rise, first rush, invis, clutch"
       - "scenarios, attack and defense,"
       - "private games. With the server"
       - "or your friends."
@@ -84,6 +84,17 @@ categories:
       - "boxing, KB displace, fireball"
       - "fight, bow."
       - "/duel a player to challenge them."
+  # the modes without a queue: in at once, with whoever is there
+  arenes:
+    nom: "&c&lArenas"
+    icone: DIAMOND_SWORD
+    slogan: "&cJump in &7and &cfight now"
+    description:
+      - "No queue, come and go when you"
+      - "like: the FFA, Top Bridge FFA,"
+      - "bridge fight, block placement"
+      - "arena and Arena Free. Someone"
+      - "to fight at once."
 
 # At each arrival in the lobby, the ways to play in the chat: a line per category (its name and
 # slogan), a click opens its modes (/play category); at the first arrival, a title too. false: none.
@@ -130,13 +141,6 @@ groupes:
       - "Antenna, on the 20 RBW maps:"
       - "rounds to 5 points in 1v1 or"
       - "2v2."
-  ffa:
-    nom: "&cFree for all"
-    icone: STONE_SWORD
-    description:
-      - "Come and go when you like:"
-      - "the FFA with the Ranked Bedwars"
-      - "kit, or Arena Free in the arena."
   clutch-scenario:
     nom: "&cClutch scenario"
     icone: IRON_CHESTPLATE
@@ -189,10 +193,11 @@ groupes:
 #          A 1.8 client shows a skin on an NPC only once Mojang signed it: at the start the server
 #          sends each new PNG once to MineSkin (api.mineskin.org) and keeps the answer in skins.yml.
 pnj:
-  # The three ways to play, side by side in the centre: each NPC opens its whole category (the
-  # menu of the compass), with the slogan of the category under its name (sous-titre: another
-  # line). Practice on the side of the Practice zone, Duels on the side of the Duels zone, RBW
-  # Modes in front. Their points were the ones of Ranked Bedwars, the private games and the FFA.
+  # The ways to play: each NPC opens its whole category (the menu of the compass), with the slogan
+  # of the category under its name (sous-titre: another line). The three of the centre side by
+  # side: Practice on the side of the Practice zone, Duels on the side of the Duels zone, RBW Modes
+  # in front (their points were the ones of Ranked Bedwars, the private games and the FFA); the
+  # Arenas on the point of the Arena Free NPC of the map, among the arenas.
   privategame:
     nom: "&b&lPractice"
     categorie: entrainement
@@ -205,9 +210,14 @@ pnj:
     nom: "&a&lDuels"
     categorie: duels
     skin: duels
-  # Only three NPCs so that a new player is not lost: every mode stays in its category, in the
-  # compass and in the menus of the three. Remove the # before the lines of one to show it again,
-  # on its point (/lobby point <name>; for the ones without a point now, place a new one).
+  freearenacombo:
+    nom: "&c&lArenas"
+    categorie: arenes
+    skin: arena
+  # Only the NPCs of the ways to play, so that a new player is not lost: every mode stays in its
+  # category, in the compass and in the menus of the four. Remove the # before the lines of one to
+  # show it again, on its point (/lobby point <name>; for the ones without a point now, place a
+  # new one).
   # ranked:
   #   nom: "&6&lRanked Bedwars"
   #   skin: ranked
@@ -244,10 +254,6 @@ pnj:
   #   nom: "&bBridge fight"
   #   skin: bridge
   #   modes: [bridge-fight, bridge-fight-1v1, bridge-fight-2v2]
-  # freearenacombo:
-  #   nom: "&aArena Free"
-  #   skin: arena
-  #   modes: [free-ffa]
   # blockplacementarena:
   #   nom: "&bBlock placement"
   #   skin: blocs
@@ -943,7 +949,7 @@ modes:
       - "the first team to 5 points."
   top-bridge-ffa:
     nom: "&eTop Bridge FFA"
-    categorie: ranked
+    categorie: arenes
     icone: LADDER
     equipes: 1
     joueurs-par-equipe: 1
@@ -956,8 +962,7 @@ modes:
       - "on top at each death."
   ffa:
     nom: "&cFFA Ranked Bedwars"
-    categorie: ranked
-    groupe: ffa
+    categorie: arenes
     icone: STONE_SWORD
     equipes: 1
     joueurs-par-equipe: 1
@@ -973,8 +978,7 @@ modes:
       - "you like, a kill heals you."
   free-ffa:
     nom: "&aArena Free"
-    categorie: ranked
-    groupe: ffa
+    categorie: arenes
     icone: EMERALD
     equipes: 1
     joueurs-par-equipe: 1
@@ -1005,7 +1009,7 @@ modes:
       - "player in turn: a hit shows them."
   bridge-fight:
     nom: "&bBridge fight"
-    categorie: ranked
+    categorie: arenes
     icone: WOOL
     equipes: 1
     joueurs-par-equipe: 1
@@ -1073,7 +1077,7 @@ modes:
       - "the void costs 10. First to 100."
   block-fight-arena:
     nom: "&bBlock placement arena"
-    categorie: ranked
+    categorie: arenes
     icone: SANDSTONE
     equipes: 1
     joueurs-par-equipe: 1
@@ -1253,6 +1257,8 @@ modes:
     categorie: entrainement
     groupe: clutch
     icone: LADDER
+    # "Start here" in the menus: the first training of a new player (one mode or more)
+    commencer-ici: true
     equipes: 1
     joueurs-par-equipe: 1
     classe: false

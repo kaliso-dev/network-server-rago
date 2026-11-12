@@ -522,7 +522,7 @@ final class LobbySettings {
             }
         }
         return new ModeDisplay(mode, icon, description(section), category, readKit(where + ".kit", section), group,
-                section.getBoolean("cache", false));
+                section.getBoolean("cache", false), section.getBoolean("commencer-ici", false));
     }
 
     /**

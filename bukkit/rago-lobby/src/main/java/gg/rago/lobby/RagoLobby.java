@@ -1242,6 +1242,13 @@ public final class RagoLobby extends JavaPlugin implements LobbyService {
     }
 
     @Override
+    public void setDailyChallenge(String modeId, String label) {
+        if (menu != null) {
+            menu.setChallenge(modeId, label);
+        }
+    }
+
+    @Override
     public void setGameNameTag(Player player, String prefix) {
         // every scoreboard takes it at its next update, within a second
         scoreboard.setGamePrefix(player.getUniqueId(), prefix);
