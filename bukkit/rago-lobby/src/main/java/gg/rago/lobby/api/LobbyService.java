@@ -3,7 +3,10 @@ package gg.rago.lobby.api;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.UUID;
+import java.util.function.BiConsumer;
+import java.util.function.Function;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.plugin.Plugin;
@@ -25,7 +28,11 @@ public interface LobbyService {
      */
     boolean registerHost(Plugin plugin, String modeId, MatchHost host);
 
-    /** Closes the queues of every mode this plugin hosts, when it is disabled. */
+    /**
+     * Closes the queues of every mode this plugin hosts, when it is disabled, and takes back what
+     * else it gave the lobby: its boards ({@link #setLobbyBoard}) and its leaderboards of the week
+     * ({@link #addWeeklyBoard}).
+     */
     void unregisterHosts(Plugin plugin);
 
     /**
@@ -235,5 +242,31 @@ public interface LobbyService {
      * that count the minutes of training move on. Main thread.
      */
     default void trainedMinute(Player player, String modeId) {
+    }
+
+    /**
+     * A board of this plugin on a point of the lobby (/lobby point): {@code lines} lines of text
+     * floating above the point, each player reading their own ({@code text}, asked twice a second:
+     * as many lines or fewer, the first on top), and what a click on it does ({@code click}: the
+     * player, and true for a left click). A second board on the same point replaces the first.
+     * Nothing shows while the point is not placed. Main thread.
+     */
+    default void setLobbyBoard(Plugin plugin, String point, int lines, Function<Player, List<String>> text,
+            BiConsumer<Player, Boolean> click) {
+    }
+
+    /**
+     * A leaderboard of the week of this plugin, rewarded with the lobby's when the week turns
+     * (semaine: in the lobby's config.yml): its name ("Biggest clutches") and its players for a week
+     * ("2026-W46", the ISO week in the time of Paris), best first, each with the score it shows
+     * ("5.2 blocks"). The lobby asks for it once that week is over, on the main thread: the plugin
+     * keeps the week before until then.
+     */
+    default void addWeeklyBoard(Plugin plugin, String name, Function<String, List<Map.Entry<UUID, String>>> ranking) {
+    }
+
+    /** The friends of this player (/friend), for their place among their friends; none by default. */
+    default Set<UUID> friends(UUID player) {
+        return Collections.emptySet();
     }
 }

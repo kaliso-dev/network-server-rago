@@ -216,6 +216,7 @@ final class LobbyNpcs implements Listener {
         countLines.clear();
         keptChunks.clear();
         fakes.clear();
+        displays.clearWalls();
     }
 
     /** Once a second: the queue counts. */

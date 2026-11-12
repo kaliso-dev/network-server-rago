@@ -11,12 +11,13 @@ import org.bukkit.ChatColor;
 /**
  * A style of a player's name: a colour of the name, one colour or a gradient along its letters
  * (made of the 16 colours of 1.8), a badge, a short word after the name ("§c§lRAGO"), or the colour
- * of the + of [PREMIUM+] (white by default, black the rarest). A player
- * has a style in one of four ways: with the PREMIUM rank, bought on the store (the store, or the
- * staff, gives it with /style give), bought with Rago Points in /style, or as the reward of a
- * Network level. They wear one colour, one badge and one colour of + at a time. A gradient is animated (its colours
- * run along the name in the tab list) unless it is a fixed one; the chat and the name above the
- * head show its main colour only. The styles come from config.yml (styles:), else the plugin's own. Immutable.
+ * of the + of [PREMIUM+] (white by default, black the rarest). A player has a style in one of
+ * five ways: with the PREMIUM rank, bought on the store (the store, or the staff, gives it with
+ * /style give), bought with Rago Points in /style, as the reward of a Network level, or for a
+ * week, with a place in the top of a leaderboard of the week. They wear one colour, one badge and
+ * one colour of + at a time. A gradient is animated (its colours run along the name in the tab
+ * list) unless it is a fixed one; the chat and the name above the head show its main colour only.
+ * The styles come from config.yml (styles:), else the plugin's own. Immutable.
  */
 final class NameStyle {
 
@@ -69,7 +70,12 @@ final class NameStyle {
         /** A reward of a Network level (niveau.recompenses). */
         LEVEL("niveau"),
         /** Bought with Rago Points in /style (prix). */
-        POINTS("points");
+        POINTS("points"),
+        /**
+         * Won with a place in the top of a leaderboard of the week (semaine:), and worn until the
+         * next results: the lobby gives it and takes it back.
+         */
+        WEEK("semaine");
 
         private final String word;
 
@@ -308,6 +314,8 @@ final class NameStyle {
         all.add(new NameStyle(Kind.BADGE, "pvp", "PVP", "§4§lPVP", false, Obtain.STORE));
         all.add(new NameStyle(Kind.BADGE, "yt", "YT", "§c§lYT", false, Obtain.STORE));
         all.add(new NameStyle(Kind.BADGE, "centurion", "Centurion", "§e§l✫100", false, Obtain.LEVEL));
+        // the crown of the top of the leaderboards of the week, until the next results
+        all.add(new NameStyle(Kind.BADGE, "semaine", "Top of the week", "§6§l♛", false, Obtain.WEEK));
         // The colours of the + of [PREMIUM+]: white without one, bright ones as level rewards, and
         // black, the rarest, bought with Rago Points.
         all.add(new NameStyle(Kind.PLUS, "noir", "Black", "0", false, Obtain.POINTS, false, BLACK_PLUS_PRICE));

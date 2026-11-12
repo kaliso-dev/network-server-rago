@@ -94,8 +94,11 @@ final class BowTraining extends Training {
     private double longest;
     private boolean over;
 
+    /** The bots bridging to the player's base, shot down. */
+    static final Variant BOTS = new Variant("bots", "Bots bridging to your base", false, "kills");
+
     BowTraining(PracticeHost host, GameMode mode, Arena arena, List<List<Player>> teams, Course course) {
-        super(host, mode, arena, teams, new Variant("bots", "Bots bridging to your base", false, "kills"));
+        super(host, mode, arena, teams, BOTS);
         this.course = course;
         this.speed = setting("Bridging speed", 1, 5, 2);
         this.count = setting("Bots", 1, Math.min(3, course.lines.length), 1);

@@ -211,6 +211,10 @@ final class StyleMenu {
                 player.sendMessage(ChatColor.GRAY + "A reward of the Network levels" + (level > 0 ? ": reach "
                         + book.levels().tag(level) + ChatColor.GRAY + " to get it." : "."));
                 break;
+            case WEEK:
+                player.sendMessage(style.text() + ChatColor.GRAY + " The top of each leaderboard of the week wears it"
+                        + " until the next results, on Monday: the walls of the lobby show this week's.");
+                break;
             case POINTS:
                 String why = profiles.cannotBuy(player, style.price(), 0);
                 if (why != null) {
@@ -264,6 +268,8 @@ final class StyleMenu {
                 return ChatColor.AQUA + "Reward of Network level" + (level > 0 ? " " + level : "s");
             case POINTS:
                 return ChatColor.GOLD + "Price: " + String.format(java.util.Locale.US, "%,d", style.price()) + " Rago Points";
+            case WEEK:
+                return ChatColor.GOLD + "Top of a leaderboard of the week";
             default:
                 return ChatColor.GOLD + "On the store";
         }

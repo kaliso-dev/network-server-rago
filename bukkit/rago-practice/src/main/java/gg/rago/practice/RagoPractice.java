@@ -46,6 +46,8 @@ public final class RagoPractice extends JavaPlugin {
     /** The events PREMIUM players host (/host). */
     private Events events;
     private Records records;
+    /** /records and the wall of the records, once the modes are known; null before. */
+    private RecordsMenu recordsMenu;
     private TrainingPrefs prefs;
     /** The challenge of the day (/challenge). */
     private Challenges challenges;
@@ -87,6 +89,7 @@ public final class RagoPractice extends JavaPlugin {
         getServer().getScheduler().runTaskTimer(this, this::payXp, XP_PAY_TICKS, XP_PAY_TICKS);
         records = new Records(this, new File(getDataFolder(), "records.yml"));
         records.load();
+        RecordCatalog.define(records.book());
         prefs = new TrainingPrefs(this, new File(getDataFolder(), "reglages.yml"));
         prefs.load();
         challenges = new Challenges(this, challengeSettings(config), new File(getDataFolder(), "defi.yml"));
@@ -113,8 +116,31 @@ public final class RagoPractice extends JavaPlugin {
         getCommand("challenge").setExecutor(challenges);
         getCommand("aimtop").setExecutor(new AimTop(this));
         getCommand("speed").setExecutor(new SpeedCommand(this));
+        startRecords(config);
         getLogger().info("Arenas in the world " + world.getName() + ": " + slots + " games of each mode at once at most. Modes: "
                 + String.join(", ", hosted));
+    }
+
+    /**
+     * /records, the wall of the records on its point of the lobby (mur-des-records, "" for none)
+     * and the boards of the biggest clutches of the week, rewarded with the lobby's on Monday.
+     */
+    private void startRecords(FileConfiguration config) {
+        recordsMenu = new RecordsMenu(this, RecordCatalog.played(hosted));
+        getServer().getPluginManager().registerEvents(recordsMenu, this);
+        getCommand("records").setExecutor(recordsMenu);
+        String wall = config.getString("mur-des-records", "records");
+        if (wall != null && !wall.trim().isEmpty()) {
+            lobby.setLobbyBoard(this, wall.trim(), RecordsMenu.WALL_LINES, recordsMenu::wall, recordsMenu::wallClick);
+        }
+        if (hosted.contains("clutch")) {
+            String board = "clutch." + ClutchTraining.ISLAND.id;
+            lobby.addWeeklyBoard(this, "Biggest clutches", week -> ClutchTraining.weekRanking(records.book(), board, week));
+        }
+        if (hosted.contains("clutch-top-fight")) {
+            String board = "clutch-top-fight." + ClutchTraining.TOP.id;
+            lobby.addWeeklyBoard(this, "Biggest top fight clutches", week -> ClutchTraining.weekRanking(records.book(), board, week));
+        }
     }
 
     /** The empty world of the arenas, made again at each start when it is the plugin's own. */
@@ -906,6 +932,11 @@ public final class RagoPractice extends JavaPlugin {
 
     Records records() {
         return records;
+    }
+
+    /** /records and the wall of the records, or null while the plugin starts. */
+    RecordsMenu recordsMenu() {
+        return recordsMenu;
     }
 
     TrainingPrefs prefs() {

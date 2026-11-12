@@ -30,14 +30,17 @@ final class LobbyNpc {
     private final List<String> podium;
     private final String subtitle;
     private final String skin;
+    /** The period of every board of a wall, fixed (the wall of the week), or null: each player chooses it. */
+    private final StatsPeriod period;
 
     private LobbyNpc(String point, String name, Kind kind, List<String> modeIds, String category,
             List<List<BoardStat>> boards, List<String> podium) {
-        this(point, name, kind, modeIds, category, boards, podium, null, null);
+        this(point, name, kind, modeIds, category, boards, podium, null, null, null);
     }
 
     private LobbyNpc(String point, String name, Kind kind, List<String> modeIds, String category,
-            List<List<BoardStat>> boards, List<String> podium, String subtitle, String skin) {
+            List<List<BoardStat>> boards, List<String> podium, String subtitle, String skin, StatsPeriod period) {
+        this.period = period;
         this.subtitle = subtitle;
         this.skin = skin;
         this.point = point;
@@ -58,17 +61,27 @@ final class LobbyNpc {
     /** The Shop NPC: its name, and the line under it. */
     static LobbyNpc shop(String point, String name, String subtitle) {
         return new LobbyNpc(point, name, Kind.SHOP, Collections.<String>emptyList(), null,
-                Collections.<List<BoardStat>>emptyList(), Collections.<String>emptyList(), subtitle, null);
+                Collections.<List<BoardStat>>emptyList(), Collections.<String>emptyList(), subtitle, null, null);
     }
 
     /** The same NPC in the skin of this id ({@link NpcSkins}), or in Steve's for null. */
     LobbyNpc withSkin(String skin) {
-        return new LobbyNpc(point, name, kind, modeIds, category, boards, podium, subtitle, skin);
+        return new LobbyNpc(point, name, kind, modeIds, category, boards, podium, subtitle, skin, period);
     }
 
     /** The same NPC with this line under its name (null: none). */
     LobbyNpc withSubtitle(String line) {
-        return new LobbyNpc(point, name, kind, modeIds, category, boards, podium, line, skin);
+        return new LobbyNpc(point, name, kind, modeIds, category, boards, podium, line, skin, period);
+    }
+
+    /** The same wall with the period of its boards fixed (the wall of the week), or chosen by each player (null). */
+    LobbyNpc withPeriod(StatsPeriod fixed) {
+        return new LobbyNpc(point, name, kind, modeIds, category, boards, podium, subtitle, skin, fixed);
+    }
+
+    /** The period of the boards of a wall, fixed; null when each player chooses it with a click. */
+    StatsPeriod period() {
+        return period;
     }
 
     /** The id of its skin (skins/id.png, signed by {@link NpcSkins}), or null for Steve. */

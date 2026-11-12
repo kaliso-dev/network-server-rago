@@ -1,6 +1,7 @@
 package gg.rago.lobby;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import gg.rago.game.GameMode;
@@ -14,6 +15,7 @@ import java.util.Collections;
 import java.util.List;
 import java.util.UUID;
 import org.bukkit.ChatColor;
+import org.bukkit.Location;
 import org.bukkit.configuration.file.YamlConfiguration;
 import org.bukkit.entity.Player;
 import org.junit.jupiter.api.Test;
@@ -57,6 +59,44 @@ class StatsDisplaysTest {
             plain.add(ChatColor.stripColor(line));
         }
         return plain;
+    }
+
+    @Test
+    void theWallOfTheWeekStaysOnTheWeekAndSaysWhatItsTopWins() throws Exception {
+        LobbySettings settings = bundledSettings();
+        StatsBook book = new StatsBook(1000, settings.levels());
+        book.record(settings.catalog().get("sumo"), Collections.singletonList(ALICE), Collections.singletonList(BOB), NAMES, SUNDAY);
+        StatsDisplays displays = new StatsDisplays(settings, book, new StatsMenu(settings, book), new FakeEntities(null, null));
+        displays.setWeekly(ServerSettings.readWeekly(null, NameStyle.catalogue()), "§6§l♛");
+        LobbyNpc week = settings.npc("semaine");
+        displays.addWall(week, new Location(null, 0.5, 65, 0.5));
+        Player alice = player(ALICE);
+        List<BoardStat> wins = week.boards().get(0);
+        List<String> lines = plain(displays.board(wins, "semaine#0", alice, SUNDAY));
+        assertEquals(Arrays.asList("Wins", "All modes · Weekly", "", "1. Alice - 1"), lines.subList(0, 4));
+        assertEquals("You: #1 - 1", lines.get(14));
+        assertEquals("Top 3 on Monday: 2,000 · 1,000 · 500 points + ♛", lines.get(15), "what the top wins, under the place");
+        assertEquals("Resets in 14 h", lines.get(16));
+        assertFalse(lines.contains("» Click here: change the period"), "nothing to change: the wall stays on the week");
+        displays.next(alice, wins, "semaine#0", true);
+        assertEquals("All modes · Weekly", plain(displays.board(wins, "semaine#0", alice, SUNDAY)).get(1), "a click: still the week");
+        List<BoardStat> killsAndGames = week.boards().get(2);
+        assertEquals("» Click here: next leaderboard", plain(displays.board(killsAndGames, "semaine#2", alice, SUNDAY)).get(17));
+        displays.next(alice, killsAndGames, "semaine#2", true);
+        List<String> games = plain(displays.board(killsAndGames, "semaine#2", alice, SUNDAY));
+        assertEquals(Arrays.asList("Games played", "All modes · Weekly"), games.subList(0, 2), "a click: the next one, of the week");
+
+        // a wall where each player chooses the period: the prize shows on the week
+        List<BoardStat> streaks = settings.npc("leaderboardplayer").boards().get(0);
+        List<String> daily = plain(displays.board(streaks, "leaderboardplayer#0", alice, SUNDAY));
+        assertEquals("All modes · Daily", daily.get(1));
+        assertEquals("", daily.get(15));
+        displays.next(alice, streaks, "leaderboardplayer#0", true);
+        List<String> weekly = plain(displays.board(streaks, "leaderboardplayer#0", alice, SUNDAY));
+        assertEquals("All modes · Weekly", weekly.get(1));
+        assertEquals("Top 3 on Monday: 2,000 · 1,000 · 500 points + ♛", weekly.get(15));
+        List<BoardStat> levels = settings.npc("leaderboardplayer").boards().get(2);
+        assertEquals("", plain(displays.board(levels, "leaderboardplayer#2", alice, SUNDAY)).get(15), "the levels win nothing");
     }
 
     @Test

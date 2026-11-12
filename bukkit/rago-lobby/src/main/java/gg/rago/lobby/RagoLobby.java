@@ -14,6 +14,7 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -21,6 +22,8 @@ import java.util.UUID;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
+import java.util.function.BiConsumer;
+import java.util.function.Function;
 import java.util.logging.Level;
 import org.bukkit.ChatColor;
 import org.bukkit.Location;
@@ -106,6 +109,34 @@ public final class RagoLobby extends JavaPlugin implements LobbyService {
     /** The seconds a won game lasts after its end (fin-de-partie-secondes). */
     private int endSeconds = 3;
     private int seconds;
+    /** The leaderboards of the week: the week counted, the last results (semaine.yml). */
+    private WeeklyRewards.State weekly;
+    /** The leaderboards of the week of the other plugins, by name, and whose they are. */
+    private final Map<String, WeeklyRewards.Board> weeklyBoards = new LinkedHashMap<>();
+    private final Map<String, Plugin> weeklyOwners = new HashMap<>();
+    /** The players who read the last results of the week since the start. */
+    private final Set<UUID> weeklyShown = new HashSet<>();
+    /** The boards of the other plugins on the lobby points, by point. */
+    private final Map<String, PluginBoard> pluginBoards = new LinkedHashMap<>();
+
+    /** A board of another plugin on a point of the lobby ({@link #setLobbyBoard}). */
+    private static final class PluginBoard {
+        final Plugin plugin;
+        final String point;
+        final int lines;
+        final Function<Player, List<String>> text;
+        final BiConsumer<Player, Boolean> click;
+        /** True once its plugin is gone: it shows nothing until the boards are placed again. */
+        boolean gone;
+
+        PluginBoard(Plugin plugin, String point, int lines, Function<Player, List<String>> text, BiConsumer<Player, Boolean> click) {
+            this.plugin = plugin;
+            this.point = point;
+            this.lines = lines;
+            this.text = text;
+            this.click = click;
+        }
+    }
 
     @Override
     public void onEnable() {
@@ -163,6 +194,7 @@ public final class RagoLobby extends JavaPlugin implements LobbyService {
         PartyBook partyBook = new PartyBook();
         queues = new QueueController(this, settings, state, partyBook, this::queuesChanged);
         stats = new StatsService(this, settings.defaultRating(), settings.levels(), server, writer, this::write, this::xpChanged);
+        weekly = readWeekly();
         queues.setBook(stats.book());
         names = new NameLooks(stats.book(), server);
         ranks = new NetworkRanks(stats.book(), names);
@@ -193,12 +225,14 @@ public final class RagoLobby extends JavaPlugin implements LobbyService {
         duels.setFrozen(this::isFrozen);
         menu.setDuels(duels);
         firstJoin = new FirstJoinMenu(this, settings, queues, menu);
-        stats.load();
+        // once every file is read: the week may have turned while the server was off
+        stats.load(this::checkWeek);
         fakes = new FakeEntities(this, world);
         fakes.start();
         getServer().getPluginManager().registerEvents(fakes, this);
         StatsMenu statsMenu = new StatsMenu(settings, stats.book());
         statsDisplays = new StatsDisplays(settings, stats.book(), statsMenu, fakes);
+        statsDisplays.setWeekly(server.weekly(), weeklyBadgeText());
         skins = new Skins(this, stats);
         statsDisplays.setSkins(skins::of);
         statsDisplays.setNames(names::stillDisplay);
@@ -289,6 +323,9 @@ public final class RagoLobby extends JavaPlugin implements LobbyService {
             headLines.tick();
             menu.refreshOpen();
             npcs.update();
+            if (seconds % 20 == 0) {
+                checkWeek();
+            }
         }, 20L, 20L);
         getServer().getScheduler().runTaskTimer(this, fakes::tick, 10L, 10L);
         // In a game, the health under the names: a hit shows at once.
@@ -942,7 +979,34 @@ public final class RagoLobby extends JavaPlugin implements LobbyService {
         int placed = npcs.spawnAll();
         daily.place(points, state.world(), fakes);
         questsNpc.place(points, state.world(), state.spawn(), fakes);
+        for (PluginBoard board : pluginBoards.values()) {
+            SpawnPoint point = points.get(board.point);
+            if (point != null) {
+                Location bottom = point.in(state.world()).add(0, StatsDisplays.BOARD_BOTTOM, 0);
+                fakes.add(new FakeHologram(bottom, board.lines, viewer -> boardLines(board, viewer), (player, left) -> {
+                    if (!board.gone) {
+                        board.click.accept(player, left);
+                    }
+                }));
+                placed++;
+            }
+        }
         return placed;
+    }
+
+    /** The lines of another plugin's board for this player: none once it is gone, or if it fails. */
+    private List<String> boardLines(PluginBoard board, Player viewer) {
+        if (board.gone) {
+            return Collections.emptyList();
+        }
+        try {
+            List<String> lines = board.text.apply(viewer);
+            return lines == null ? Collections.<String>emptyList() : lines;
+        } catch (RuntimeException e) {
+            board.gone = true;
+            getLogger().log(Level.WARNING, "The board of " + board.plugin.getName() + " on " + board.point + " failed: hidden", e);
+            return Collections.emptyList();
+        }
     }
 
     DailyChest daily() {
@@ -984,6 +1048,170 @@ public final class RagoLobby extends JavaPlugin implements LobbyService {
     @Override
     public void unregisterHosts(Plugin plugin) {
         queues.unregister(plugin);
+        for (java.util.Iterator<PluginBoard> boards = pluginBoards.values().iterator(); boards.hasNext();) {
+            PluginBoard board = boards.next();
+            if (board.plugin.equals(plugin)) {
+                // it shows nothing now, and is not placed again
+                board.gone = true;
+                boards.remove();
+            }
+        }
+        for (java.util.Iterator<Map.Entry<String, Plugin>> owners = weeklyOwners.entrySet().iterator(); owners.hasNext();) {
+            Map.Entry<String, Plugin> owner = owners.next();
+            if (owner.getValue().equals(plugin)) {
+                weeklyBoards.remove(owner.getKey());
+                owners.remove();
+            }
+        }
+    }
+
+    @Override
+    public void setLobbyBoard(Plugin plugin, String point, int lines, Function<Player, List<String>> text,
+            BiConsumer<Player, Boolean> click) {
+        if (!LobbyPoints.validName(point) || lines < 1 || lines > 30 || text == null) {
+            getLogger().warning(plugin.getName() + ": no board on \"" + point + "\" (a point name, 1 to 30 lines)");
+            return;
+        }
+        PluginBoard before = pluginBoards.put(point, new PluginBoard(plugin, point, lines, text,
+                click == null ? (player, left) -> { } : click));
+        if (before != null) {
+            before.gone = true;
+        }
+        if (fakes != null) {
+            placeDecor();
+        }
+        if (points.get(point) == null) {
+            getLogger().info("The board of " + plugin.getName() + " waits for its point: /lobby point " + point);
+        }
+    }
+
+    @Override
+    public void addWeeklyBoard(Plugin plugin, String name, Function<String, List<Map.Entry<UUID, String>>> ranking) {
+        if (name == null || name.trim().isEmpty() || ranking == null) {
+            return;
+        }
+        weeklyBoards.put(name, ranking::apply);
+        weeklyOwners.put(name, plugin);
+    }
+
+    @Override
+    public Set<UUID> friends(UUID player) {
+        PlayerStats profile = stats.book().get(player);
+        return profile == null ? Collections.<UUID>emptySet() : Collections.unmodifiableSet(new HashSet<>(profile.friends()));
+    }
+
+    // --- The leaderboards of the week -----------------------------------------------------------
+
+    /** semaine.yml, if it can be read; else the week starts again from now. */
+    private WeeklyRewards.State readWeekly() {
+        File file = new File(getDataFolder(), WeeklyRewards.FILE_NAME);
+        if (file.isFile()) {
+            try {
+                return WeeklyRewards.State.fromYaml(new String(Files.readAllBytes(file.toPath()), StandardCharsets.UTF_8));
+            } catch (IOException | org.bukkit.configuration.InvalidConfigurationException e) {
+                getLogger().log(Level.WARNING, WeeklyRewards.FILE_NAME + " could not be read: the week is counted from now", e);
+            }
+        }
+        return new WeeklyRewards.State();
+    }
+
+    private void writeWeekly() {
+        write(new File(getDataFolder(), WeeklyRewards.FILE_NAME), weekly.toYaml());
+    }
+
+    /** The text of the badge of the week ("§6§l♛"), or null for none. */
+    private String weeklyBadgeText() {
+        NameStyle badge = server.weeklyBadge();
+        return badge == null ? null : badge.text();
+    }
+
+    /**
+     * The leaderboards of the week: when the week turned, the week before gets its results (the
+     * Rago Points and the badge of the week, taken from the winners before), told to everyone
+     * online, and to the winners away when they come back. Once the stats are read, every 20
+     * seconds, and before each game and kill is counted, since one of the new week starts the
+     * counters of the week again.
+     */
+    void checkWeek() {
+        if (weekly == null || stats == null || !stats.loaded()) {
+            return;
+        }
+        long now = System.currentTimeMillis();
+        boolean first = weekly.counting == null;
+        String ended = WeeklyRewards.turn(weekly, StatsPeriod.weekKey(now));
+        if (ended == null) {
+            if (first) {
+                writeWeekly();
+            }
+            return;
+        }
+        WeeklyRewards.Settings rewards = server.weekly();
+        if (!rewards.on) {
+            writeWeekly();
+            return;
+        }
+        final StatsBook book = stats.book();
+        Map<String, List<Map.Entry<UUID, String>>> others = WeeklyRewards.rankings(weeklyBoards, ended,
+                (name, e) -> getLogger().log(Level.WARNING, "The leaderboard of the week " + name + " could not be read", e));
+        WeeklyRewards.Results results = WeeklyRewards.results(ended, now, rewards, book.all(), others, id -> {
+            PlayerStats profile = book.get(id);
+            return profile == null ? null : profile.name();
+        });
+        for (PlayerStats changed : WeeklyRewards.give(results, rewards, book, weekly)) {
+            stats.save(changed);
+        }
+        weekly.last = results;
+        weekly.untold.clear();
+        weeklyShown.clear();
+        getLogger().info(WeeklyRewards.logLine(results));
+        if (!results.podiums.isEmpty()) {
+            String badge = weeklyBadgeText();
+            List<String> lines = WeeklyRewards.announcement(results, rewards, badge);
+            for (Player player : getServer().getOnlinePlayers()) {
+                for (String line : lines) {
+                    player.sendMessage(line);
+                }
+                weeklyShown.add(player.getUniqueId());
+            }
+            for (UUID winner : results.winners()) {
+                Player player = getServer().getPlayer(winner);
+                if (player == null) {
+                    weekly.untold.add(winner);
+                    continue;
+                }
+                for (String line : WeeklyRewards.won(results, rewards, winner, badge)) {
+                    player.sendMessage(line);
+                }
+                player.playSound(player.getLocation(), Sound.LEVEL_UP, 1f, 1f);
+            }
+        }
+        writeWeekly();
+    }
+
+    /**
+     * The results of the week for a player who arrives: everyone reads them on the day they came
+     * out, and a winner who was away reads them with what they won.
+     */
+    private void weeklyNews(Player player) {
+        WeeklyRewards.Results last = weekly == null ? null : weekly.last;
+        if (last == null || last.podiums.isEmpty()) {
+            return;
+        }
+        UUID id = player.getUniqueId();
+        boolean untold = weekly.untold.remove(id);
+        boolean recent = System.currentTimeMillis() - last.at < WeeklyRewards.NEWS_MS;
+        String badge = weeklyBadgeText();
+        if ((recent || untold) && weeklyShown.add(id)) {
+            for (String line : WeeklyRewards.announcement(last, server.weekly(), badge)) {
+                player.sendMessage(line);
+            }
+        }
+        if (untold) {
+            for (String line : WeeklyRewards.won(last, server.weekly(), id, badge)) {
+                player.sendMessage(line);
+            }
+            writeWeekly();
+        }
     }
 
     @Override
@@ -1031,6 +1259,8 @@ public final class RagoLobby extends JavaPlugin implements LobbyService {
             return;
         }
         boolean rated = !isUnrated(winners) && !isUnrated(losers);
+        // the week before gets its results before a game of the new week starts the counters again
+        checkWeek();
         stats.record(mode, winners, losers, mvps(winners, losers), rated);
         if (mode.teams() == 2 && mode.playersPerTeam() == 1) {
             // a 1v1 to the end, from the queue or a /duel: "Play a duel" of Getting started
@@ -1126,6 +1356,7 @@ public final class RagoLobby extends JavaPlugin implements LobbyService {
         if ((killer != null && state.isInPrivateGame(killer)) || (victim != null && state.isInPrivateGame(victim))) {
             return;
         }
+        checkWeek();
         stats.kill(modeId, killer, victim);
         if (killer != null && !killer.equals(victim)) {
             Integer kills = gameKills.get(killer);
@@ -1378,6 +1609,7 @@ public final class RagoLobby extends JavaPlugin implements LobbyService {
         if (profiles.dailyReady(player.getUniqueId())) {
             player.sendMessage(ChatColor.AQUA + "Your daily reward is waiting: " + ChatColor.YELLOW + "/daily");
         }
+        weeklyNews(player);
         List<GettingStarted.Step> steps = gettingStartedSteps();
         PlayerStats started = stats.book().get(player.getUniqueId());
         GettingStarted.Step next = GettingStarted.next(started, steps);

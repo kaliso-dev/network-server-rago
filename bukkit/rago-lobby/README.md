@@ -257,7 +257,7 @@ dans les files d'attente des modes de jeu.
 - **Les couleurs de pseudo et les badges (`/style`).** Un pseudo peut prendre un dégradé (les
   16 couleurs de la 1.8, d'une lettre à l'autre : Pink, Fire, Ocean, Forest, Sunset, Ice,
   Galaxy, Rainbow, Shadow, et Aqua, Gold, Legend pour les niveaux) et un badge après le pseudo
-  (`✦`, RAGO, BETTER, PVP, YT, `✫100`). Le dégradé se voit dans le Tab et les menus, où il est
+  (`✦`, RAGO, BETTER, PVP, YT, `✫100`, la couronne ♛ du top de la semaine). Le dégradé se voit dans le Tab et les menus, où il est
   animé : ses couleurs défilent le long du pseudo (environ trois fois par seconde). Dans le chat,
   les messages et au-dessus de la tête, le pseudo n'a qu'une couleur fixe, sa couleur principale
   (celle du milieu du dégradé) : bleu clair pour VIP, rose pour PREMIUM.
@@ -267,6 +267,16 @@ dans les files d'attente des modes de jeu.
   boutique en ligne (`/style give <joueur> couleur-feu` depuis la console), en Rago Points, ou
   comme récompense de niveau. Le menu (`/style`, le profil, la boutique) montre le rendu, ce
   qu'on a et comment avoir le reste. Tout se règle dans `styles:`.
+- **Les classements de la semaine et leurs récompenses.** Le lundi à minuit (heure de Paris), le
+  top 3 de chaque classement de la semaine (victoires, meilleure série, kills et parties jouées, tous
+  modes ensemble, et les plus gros clutchs de la semaine du practice) gagne des Rago Points (2 000,
+  1 000 et 500) et la couronne ♛, un badge porté jusqu'aux résultats suivants (sauf pour qui a
+  choisi un autre badge dans `/style`). Tout le serveur l'entend ; un gagnant absent l'apprend à son
+  retour, et chaque joueur qui arrive dans les 24 heures voit les résultats une fois. Le mur
+  `semaine` (`/lobby point semaine`) montre ces classements, toujours sur la semaine en cours, avec
+  ce que leur top gagne. `semaine:` dans config.yml règle les classements récompensés, les points
+  (10 places au plus) et le badge ; `plugins/RagoLobby/semaine.yml` garde la semaine comptée et les
+  derniers résultats. La première fois, le lobby note seulement la semaine en cours.
 - **Les Rago Points et la boutique (`/shop`).** Les points se gagnent en partie (20 par victoire,
   5 par défaite, 2 par kill), dans le practice, les entraînements, l'aim trainer et les events
   (un point pour 3 XP Network qu'ils donnent, au moins un : `rago-points.xp-par-point`), à chaque
@@ -471,6 +481,9 @@ générateur vide ; un monde de build peut donc servir de lobby.
   livre...) garde le clic droit. Le tableau `niveau` est
   classé par XP et montre le niveau. leaderboardplayer montre les kills du jour, de la semaine et
   à vie, entre les meilleures séries de victoires (à gauche) et le niveau Network (à droite).
+  `periode: semaine` (ou `jour`, `toujours`) fixe la période des tableaux d'un mur : un clic ne fait
+  plus que passer au classement suivant. C'est le mur `semaine`, dont chaque tableau dit sous la
+  place du joueur ce que son top gagne le lundi.
 - `podium:` (dans un mur de `classements:`) : jusqu'à 5 marches, la 1re place d'abord. Sur chacune
   se tient le joueur à cette place du premier tableau du mur, avec son skin, et deux lignes
   au-dessus : la place, son rang et son pseudo dans sa couleur (« #1 [PREMIUM+] Pseudo »), puis son
@@ -541,6 +554,14 @@ réussites et des records. Un score au défi du jour se dit avec `lobby.dailyCha
 mode)`, et chaque minute d'entraînement où le joueur a fait quelque chose avec
 `lobby.trainedMinute(joueur, mode)` : les quêtes du défi et des minutes avancent (rien dans une
 partie privée).
+
+Un plugin pose son propre tableau sur un point du lobby avec `lobby.setLobbyBoard(plugin, "records",
+lignes, texte, clic)` : chaque joueur lit ses lignes (demandées deux fois par seconde), et un clic
+gauche ou droit va au plugin (le mur des records du practice). Il ajoute un classement de la
+semaine, récompensé avec ceux du lobby, avec `lobby.addWeeklyBoard(plugin, "Biggest clutches",
+semaine -> classement)` (la semaine « 2026-W46 », le meilleur d'abord, chacun avec le score
+affiché), et lit les amis d'un joueur avec `lobby.friends(joueur)`. `unregisterHosts` reprend
+tout cela quand le plugin s'arrête.
 
 Pour `/replay`, un jeu enregistre ses parties avec `lobby.replays()` (`null` quand les replays sont
 coupés) : `record(ReplaySetup.ofBlocks(...))` pour une arène dont les blocs tiennent dans le replay

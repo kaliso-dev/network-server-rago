@@ -7,8 +7,9 @@ import java.util.function.Predicate;
 /**
  * How a player's name looks: their rank, the colour of their name (a gradient of
  * {@link NameStyle}, or the colour of the rank) and their badge. A player wears what they chose
- * (/style) if they still own it, else what their rank gives. They own a colour or a badge they
- * bought on the store or won with a level (in their cosmetics), and those of their ranks (the pink
+ * (/style) if they still own it, else the badge of the week if they won it, else what their rank
+ * gives. They own a colour or a badge they bought on the store or won with a level (in their
+ * cosmetics), the badge of the week until the next results, and those of their ranks (the pink
  * gradient and the ✦ of PREMIUM). Main thread only.
  */
 final class NameLooks {
@@ -128,6 +129,13 @@ final class NameLooks {
         }
         RankDef rank = rank(player);
         String chosen = profile.choice(kind);
+        if (kind == NameStyle.Kind.BADGE && chosen == null) {
+            // the crown of the top of the week shows, unless the player chose a badge
+            NameStyle weekly = server.weeklyBadge();
+            if (weekly != null && owns(profile, weekly)) {
+                return weekly;
+            }
+        }
         String given = kind == NameStyle.Kind.COLOUR ? rank.style() : kind == NameStyle.Kind.BADGE ? rank.badge() : null;
         return wear(chosen, given, id -> server.style(kind, id), style -> owns(profile, style));
     }

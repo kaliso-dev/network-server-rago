@@ -215,6 +215,11 @@ defi-du-jour:
   jours-de-suite-max: 7
   xp-podium: [750, 500, 300]
 
+# The wall of the practice records in the lobby: the top 10 of each board of the trainings, one
+# after the other (a left click: the next one, a right click: /records). It stands on the point of
+# the lobby of this name: /lobby point records where the wall goes. "" for no wall.
+mur-des-records: records
+
 # Aim trainer: each second with the crosshair on the target (or a hit) gives xp-par-seconde
 # Network XP, and the end of the attempt one more for each touches-par-xp hits (100 hits: 10).
 aim-trainer:

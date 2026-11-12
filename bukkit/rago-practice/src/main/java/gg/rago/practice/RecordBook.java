@@ -1,6 +1,7 @@
 package gg.rago.practice;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.LinkedHashMap;
@@ -115,11 +116,12 @@ final class RecordBook {
         }
     }
 
-    /** Every board whose id starts with this, but keep, is gone (the weeks before...). Returns how many. */
-    int dropAllBut(String prefix, String keep) {
+    /** Every board whose id starts with this, but those kept, is gone (the weeks before...). Returns how many. */
+    int dropAllBut(String prefix, String... keep) {
+        List<String> kept = Arrays.asList(keep);
         List<String> gone = new ArrayList<>();
         for (String board : boards.keySet()) {
-            if (board.startsWith(prefix) && !board.equals(keep)) {
+            if (board.startsWith(prefix) && !kept.contains(board)) {
                 gone.add(board);
             }
         }
@@ -128,6 +130,12 @@ final class RecordBook {
             lowerIsBetter.remove(board);
         }
         return gone.size();
+    }
+
+    /** How many players have a score on the board. */
+    int count(String board) {
+        Map<UUID, Entry> entries = boards.get(board);
+        return entries == null ? 0 : entries.size();
     }
 
     /** The player's best on the board, or null. */
