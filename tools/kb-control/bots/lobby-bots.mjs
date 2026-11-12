@@ -30,13 +30,15 @@
 //      places it by its bed and breaks it again, cannot break its own bed, buys a fireball and
 //      jumps on it at its feet (the blast lifts it and takes a heart, not its life); RagoDeux walks off its
 //      island, dies in the void and respawns (its bed stands), then leaves with /spawn: RagoUn
-//      wins, and both are back in the lobby;
+//      wins, and both are back in the lobby; RagoDeux left a ranked game it still played, so the
+//      ranked queues are closed to it for 5 minutes;
 //   8. a First Rush, a real 1v1: RagoUn asks for a map the mode does not have, then for bw-demo,
 //      RagoDeux for any map; they meet on bw-demo, one red and one blue, with the events of a real
 //      game in the sidebar; RagoDeux leaves with /spawn, RagoUn wins and both are back in the lobby;
 //   9. a party: RagoUn invites RagoDeux with /p, RagoDeux accepts, /party list and /pc; RagoDeux
 //      cannot queue (only the leader does); RagoUn queues the sumo: a private game between them,
-//      without stats or XP; RagoUn queues Ranked Bedwars 2v2: the party waits in one team, and
+//      without stats or XP; RagoUn queues Ranked Bedwars 2v2: refused, RagoDeux left a ranked game
+//      a moment ago; RagoUn queues First Rush duo (2v2, unranked): the party waits in one team, and
 //      leaves the queue with RagoDeux; RagoUn disbands the party;
 //  10. a member leaves the server in a party: RagoUn is told, and RagoDeux, back on the server,
 //      sees RagoUn's name tag (its team) again.
@@ -656,12 +658,15 @@ async function playBedwars (one, two) {
   await shopAndBuild(one)
   await voidAndRespawn(two, one)
   const fromEnd = mark(one)
+  const fromLeft = mark(two)
   two.chat('/spawn')
   await chatLine(one, /RagoDeux left the game\./, 5000, fromEnd)
   await chatLine(one, /Winner: (Red|Blue) - RagoUn/, 5000, fromEnd)
+  // RagoDeux left a ranked game it still played (its bed stands): no ranked queue for 5 minutes
+  await chatLine(two, /^You left a ranked game: the ranked queues are closed to you for 5 minutes\.$/, 5000, fromLeft)
   await expectInLobby(one, 'after the Bed Wars game')
   await expectInLobby(two, 'after /spawn in the Bed Wars game')
-  log('Bed Wars: RagoDeux left, RagoUn won, both are back in the lobby')
+  log('Bed Wars: RagoDeux left, RagoUn won, both are back in the lobby; no ranked queue for RagoDeux for 5 minutes')
 }
 
 /** First Rush: a real 1v1 on two neighbouring islands, on the map chosen in the queue. */
@@ -727,10 +732,14 @@ async function playParty (one, two) {
   if (xp != null) throw new Error(`the private game of the party was counted: ${xp}`)
   log('party: two in a 1v1 mode play a private game against each other, without stats')
 
-  // two in a 2v2 mode: the queue, in one team
+  // two in a 2v2 mode: no ranked queue, RagoDeux left a ranked game a moment ago (playBedwars);
+  // the queue of an unranked one, in one team
   fromOne = mark(one)
   fromTwo = mark(two)
   one.chat('/queue ranked-2v2')
+  await chatLine(one, /^RagoDeux left a ranked game: your party can join a ranked queue again in [0-5]:\d\d\.$/, 5000, fromOne)
+  fromOne = mark(one)
+  one.chat('/queue first-rush-duo')
   await chatLine(one, /Your party joined the queue for .*You will play in the same team\./, 5000, fromOne)
   await chatLine(two, /Your party joined the queue for .*You will play in the same team\./, 5000, fromTwo)
   two.chat('/queue leave')
@@ -738,7 +747,7 @@ async function playParty (one, two) {
   await chatLine(one, /RagoDeux left the queue: your party left the queue for/, 5000, fromOne)
   one.chat('/party disband')
   await chatLine(two, /RagoUn has disbanded the party!/, 5000, fromTwo)
-  log('party: in a 2v2 mode the party queues together, leaves together, then is disbanded')
+  log('party: no ranked queue after RagoDeux left a ranked game; in a 2v2 mode the party queues together, leaves together, then is disbanded')
 }
 
 /**
