@@ -221,62 +221,66 @@ class LobbySettingsTest {
     @Test
     void readsTheBundledNpcs() throws Exception {
         LobbySettings settings = LobbySettings.load(bundledConfig());
-        assertEquals(11, settings.npcs().size(), "four NPCs of modes, one per way to play; the shop, the stats, the boards and"
-                + " the wall of the week");
-        for (String gone : Arrays.asList("ranked", "prive", "ffa", "clutchscenario", "attackanddefense", "rbwsolo1v1ou2v2skyrise",
+        assertEquals(12, settings.npcs().size(), "four NPCs of modes, one per way to play, and the private games; the shop,"
+                + " the stats, the boards and the wall of the week");
+        LobbyNpc prive = settings.npc("prive");
+        assertEquals(Arrays.asList("partie-privee", "top-bridge-prive"), prive.modeIds(), "the private games, on their own NPC");
+        assertNull(prive.category());
+        assertEquals("prive", prive.skin());
+        for (String gone : Arrays.asList("ranked", "ffa", "clutchscenario", "attackanddefense", "rbwsolo1v1ou2v2skyrise",
                 "firstrushnebucgelatosoloduo", "invispracticearwhayinvasion", "realisticplat",
                 "blockplacementarena", "attackdefenseversionrbw", "blockinpractice")) {
             assertNull(settings.npc(gone), gone + ": its modes stay in the compass");
         }
         List<String> categories = new java.util.ArrayList<>();
         for (LobbyNpc npc : settings.npcs()) {
-            if (npc.kind() == LobbyNpc.Kind.MODES) {
+            if (npc.kind() == LobbyNpc.Kind.MODES && npc != prive) {
                 assertNotNull(npc.category(), npc.point() + ": only the NPCs of the four categories");
                 categories.add(npc.category());
             }
         }
         assertEquals(Arrays.asList("entrainement", "ranked", "duels", "arenes"), categories, "Practice, RBW Modes, Duels, Arenas");
-        LobbyNpc arenas = settings.npc("freearenacombo");
+        LobbyNpc arenas = settings.npc("arenas");
         assertEquals("§c§lArenas", arenas.name());
         assertEquals("arena", arenas.skin());
         assertEquals(displayIds(settings.modesIn("arenes")), arenas.modeIds(), "the Arenas NPC holds the five arenas");
-        LobbyNpc duels = settings.npc("rbwffa");
+        LobbyNpc duels = settings.npc("duels");
         assertEquals("duels", duels.category());
         assertEquals("§a§lDuels", duels.name());
         assertEquals("§aDuel your friends §7or §aanyone", duels.subtitle(), "under a category NPC, the slogan of its category,"
                 + " in the colours of its category");
-        assertEquals("§bTrain alone§7, at your §bown pace", settings.npc("privategame").subtitle());
-        assertEquals("entrainement", settings.npc("privategame").category());
+        assertEquals("§bTrain alone§7, at your §bown pace", settings.npc("practice").subtitle());
+        assertEquals("entrainement", settings.npc("practice").category());
         assertEquals(settings.modesIn("duels").size(), duels.modeIds().size(), "a category NPC holds its modes");
         assertTrue(duels.modeIds().contains("kb-displace"));
-        LobbyNpc ranked = settings.npc("rankedbedwars1v1ou2v2elo");
+        LobbyNpc ranked = settings.npc("rbw");
         assertEquals("§6§lRBW Modes", ranked.name());
         assertEquals("§6Ranked §7and §6RBW situations", ranked.subtitle());
         assertEquals("ranked", ranked.category());
         assertTrue(ranked.modeIds().containsAll(Arrays.asList("ranked-1v1", "ranked-2v2", "ranked-3v3", "ranked-4v4",
                 "clutch-scenario-1v1", "attack-defense-1v1")), "every RBW mode, Ranked Bedwars first");
         assertEquals(settings.modesIn("ranked").size(), ranked.modeIds().size());
-        assertTrue(settings.npc("leaderboardprincipal").leaderboard());
+        assertTrue(settings.npc("top").leaderboard());
         assertEquals(Collections.singletonList(Arrays.asList(BoardStat.LEVEL, BoardStat.ELO, BoardStat.FKDR, BoardStat.KILLS, BoardStat.GAMES)),
-                settings.npc("leaderboardprincipal").boards(), "one board, the Network level first (the podium too), a right"
+                settings.npc("top").boards(), "one board, the Network level first (the podium too), a right"
                 + " click goes to the next stat");
         assertEquals(Arrays.asList(Collections.singletonList(BoardStat.WINS), Collections.singletonList(BoardStat.STREAK),
-                Collections.singletonList(BoardStat.GAMES)), settings.npc("leaderboardstats").boards());
+                Collections.singletonList(BoardStat.GAMES)), settings.npc("leaderboards").boards());
         assertEquals(Arrays.asList(Collections.singletonList(BoardStat.STREAK), Collections.singletonList(BoardStat.KILLS),
-                Collections.singletonList(BoardStat.LEVEL)), settings.npc("leaderboardplayer").boards(),
+                Collections.singletonList(BoardStat.LEVEL)), settings.npc("joueurs").boards(),
                 "the kills in the middle, on the point");
-        assertNull(settings.npc("leaderboardplayer").period(), "each player chooses the period");
+        assertNull(settings.npc("joueurs").period(), "each player chooses the period");
         LobbyNpc week = settings.npc("semaine");
         assertEquals(StatsPeriod.WEEK, week.period(), "the wall of the week stays on the week");
         assertEquals(Arrays.asList(Collections.singletonList(BoardStat.WINS), Collections.singletonList(BoardStat.STREAK),
                 Arrays.asList(BoardStat.KILLS, BoardStat.GAMES)), week.boards());
         assertFalse(ranked.leaderboard());
         assertNull(LobbySettings.load(withModeNpcs()).npc("ranked").subtitle(), "an NPC of modes: its name and its queue");
-        assertEquals(LobbyNpc.Kind.STATS, settings.npc("statsjoueur1").kind());
-        assertEquals(LobbyNpc.Kind.STATS, settings.npc("statsjoueur2").kind());
-        assertTrue(settings.npc("statsjoueur1").hasBody());
+        assertEquals(LobbyNpc.Kind.STATS, settings.npc("profil").kind());
+        assertEquals(LobbyNpc.Kind.STATS, settings.npc("profil2").kind());
+        assertTrue(settings.npc("profil").hasBody());
         assertEquals(LobbyNpc.Kind.MODES, ranked.kind());
-        LobbyNpc shop = settings.npc("aimtrainer");
+        LobbyNpc shop = settings.npc("shop");
         assertEquals(LobbyNpc.Kind.SHOP, shop.kind(), "the centre NPC is the Shop");
         assertEquals("§a§lSHOP", shop.name());
         assertEquals("Starter Pack · VIP", org.bukkit.ChatColor.stripColor(shop.subtitle()), "the pack and VIP: no PREMIUM+ there");
