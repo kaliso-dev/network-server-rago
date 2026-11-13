@@ -1,0 +1,784 @@
+/*
+ * Rago Practice: base styles and the components of the website.
+ * Needs tokens.css first. Class names follow the components of design/README.md. The shapes
+ * come from the game: notched corners (--steps), the bevels of its buttons and menus, the
+ * one-pixel shadow of its text.
+ */
+
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+html {
+  -webkit-text-size-adjust: 100%;
+}
+
+body {
+  margin: 0;
+  background: var(--ink-900);
+  color: var(--white);
+  font-family: var(--font-body);
+  font-size: var(--text-body);
+  line-height: var(--leading-body);
+  -webkit-font-smoothing: antialiased;
+  /* Pixelify Sans draws its "fi" ligature as one glyph that reads as an A: "Bed Aght" */
+  font-variant-ligatures: no-common-ligatures;
+}
+
+img,
+svg {
+  display: block;
+  max-width: 100%;
+}
+
+a {
+  color: var(--red-400);
+  text-decoration: none;
+}
+
+a:hover {
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
+
+:focus-visible {
+  outline: 2px solid var(--red-400);
+  outline-offset: 2px;
+}
+
+h1,
+h2,
+h3,
+h4 {
+  margin: 0;
+  font-family: var(--font-display);
+  font-weight: 700;
+  line-height: var(--leading-heading);
+  letter-spacing: var(--tracking-display);
+}
+
+.display {
+  font-family: var(--font-display);
+  font-size: var(--text-display);
+  font-weight: 700;
+  line-height: var(--leading-tight);
+  letter-spacing: var(--tracking-display);
+  text-transform: uppercase;
+  text-shadow: var(--mc-shadow);
+}
+
+.lead {
+  font-size: var(--text-lead);
+  color: var(--grey-300);
+  max-width: 36em;
+}
+
+.muted {
+  color: var(--grey-400);
+}
+
+.container {
+  width: 100%;
+  max-width: calc(var(--container) + 2 * var(--gutter));
+  margin-inline: auto;
+  padding-inline: var(--gutter);
+}
+
+/* A label above a heading, in the letters of the game's labels */
+.eyebrow {
+  font-family: var(--font-pixel);
+  font-size: 0.9375rem;
+  font-weight: 400;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--red-400);
+}
+
+/* The 45 degree cut of the hexagon: top-left and bottom-right corners */
+.cut {
+  clip-path: polygon(var(--cut) 0, 100% 0, 100% calc(100% - var(--cut)), calc(100% - var(--cut)) 100%, 0 100%, 0 var(--cut));
+}
+
+/* Tags */
+.tag {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-2);
+  padding: 0.3rem 0.65rem 0.35rem;
+  border: 2px solid var(--ink-600);
+  background: var(--ink-750);
+  color: var(--grey-200);
+  font-family: var(--font-pixel);
+  font-size: 0.875rem;
+  font-weight: 400;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  white-space: nowrap;
+}
+
+.tag--red {
+  background: var(--red-tint);
+  border-color: var(--red-line);
+  color: var(--red-300);
+}
+
+.tag--practice,
+.tag--rbw,
+.tag--duels,
+.tag--arenas {
+  background: transparent;
+}
+
+.tag--practice { color: var(--cat-practice); border-color: color-mix(in srgb, var(--cat-practice) 40%, transparent); }
+.tag--rbw { color: var(--cat-rbw); border-color: color-mix(in srgb, var(--cat-rbw) 40%, transparent); }
+.tag--duels { color: var(--cat-duels); border-color: color-mix(in srgb, var(--cat-duels) 40%, transparent); }
+.tag--arenas { color: var(--cat-arenas); border-color: color-mix(in srgb, var(--cat-arenas) 40%, transparent); }
+
+.tag--start {
+  background: var(--ok-tint);
+  border-color: color-mix(in srgb, var(--ok) 45%, transparent);
+  color: var(--ok);
+}
+
+/* Buttons: the button of the game's menus, its bevel and its notched corners. The shape is drawn
+   by ::before, so that the focus ring of the button itself is never cut. */
+.btn {
+  --btn-bg: var(--ink-700);
+  --btn-light: rgba(255, 255, 255, 0.16);
+  --btn-dark: rgba(0, 0, 0, 0.38);
+  position: relative;
+  isolation: isolate;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--space-2);
+  min-height: 3.25rem;
+  padding: 0 1.75rem 0.15rem;
+  border: 0;
+  background: none;
+  color: var(--white);
+  font-family: var(--font-display);
+  font-size: 1.125rem;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  text-shadow: var(--mc-shadow);
+  white-space: nowrap;
+  text-decoration: none;
+  cursor: pointer;
+  transition: transform var(--dur-fast) var(--ease-out);
+}
+
+.btn::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  background: var(--btn-bg);
+  box-shadow: inset var(--px) var(--px) 0 var(--btn-light), inset calc(-1 * var(--px)) calc(-1 * var(--px)) 0 var(--btn-dark);
+  clip-path: var(--steps);
+  transition: background-color var(--dur-fast) var(--ease-out), filter var(--dur-fast) var(--ease-out);
+}
+
+.btn:hover {
+  text-decoration: none;
+  transform: translateY(-2px);
+}
+
+.btn:hover::before {
+  filter: brightness(1.12);
+}
+
+.btn:active {
+  transform: translateY(0);
+}
+
+.btn:active::before {
+  box-shadow: inset var(--px) var(--px) 0 var(--btn-dark);
+}
+
+.btn--primary {
+  --btn-bg: var(--red-500);
+  --btn-light: rgba(255, 170, 170, 0.45);
+  --btn-dark: rgba(60, 0, 0, 0.55);
+  filter: drop-shadow(0 10px 24px rgba(232, 25, 30, 0.28));
+}
+
+.btn--secondary {
+  --btn-bg: var(--ink-750);
+}
+
+.btn--ghost {
+  --btn-bg: transparent;
+  --btn-light: transparent;
+  --btn-dark: transparent;
+  color: var(--grey-200);
+  padding-inline: var(--space-3);
+}
+
+.btn--ghost:hover {
+  color: var(--white);
+}
+
+.btn--sm {
+  min-height: 2.5rem;
+  padding: 0 1.125rem 0.1rem;
+  font-size: 0.9375rem;
+}
+
+.btn[disabled],
+.btn.is-disabled {
+  --btn-bg: var(--ink-750);
+  color: var(--ink-500);
+  text-shadow: none;
+  cursor: not-allowed;
+  transform: none;
+}
+
+/* The server address with its copy button */
+.ip-chip {
+  display: inline-flex;
+  align-items: stretch;
+  max-width: 100%;
+  border: 2px solid #000;
+  background: #000;
+  box-shadow: inset 2px 2px 0 var(--gui-slot-dark);
+}
+
+/* the address is written as in the text field of the game's Add Server screen */
+.ip-chip__address {
+  min-width: 0;
+  padding: 0.75rem 1rem 0.85rem;
+  color: var(--mc-f);
+  font-family: var(--font-pixel);
+  font-size: 1.25rem;
+  letter-spacing: 0.03em;
+  text-shadow: var(--mc-shadow);
+  overflow-wrap: anywhere;
+}
+
+.ip-chip__copy {
+  min-width: 7.5rem;
+  border: 0;
+  border-left: 2px solid var(--ink-600);
+  background: var(--ink-750);
+  color: var(--white);
+  font: 600 1rem var(--font-display);
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  text-shadow: var(--mc-shadow);
+  cursor: pointer;
+  transition: background-color var(--dur-ui) var(--ease-out), color var(--dur-ui) var(--ease-out);
+}
+
+.ip-chip__copy:hover {
+  background: var(--ink-700);
+}
+
+.ip-chip__copy.is-copied {
+  background: #0d2a16;
+  color: var(--mc-a);
+}
+
+/* on a phone, the button goes under the address, whatever its length */
+@media (max-width: 480px) {
+  .ip-chip {
+    display: grid;
+    width: 100%;
+  }
+
+  .ip-chip__copy {
+    min-height: 2.75rem;
+    border-top: 2px solid var(--ink-600);
+    border-left: 0;
+  }
+}
+
+/* The state of the server: only a real count is ever shown */
+.status {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-2);
+  color: var(--grey-300);
+  font-size: var(--text-small);
+  font-weight: 500;
+}
+
+.status::before {
+  content: "";
+  width: 0.5rem;
+  height: 0.5rem;
+  border-radius: 50%;
+  background: var(--ink-500);
+}
+
+.status--online::before {
+  background: var(--ok);
+  box-shadow: 0 0 0 4px var(--ok-tint);
+}
+
+.status--soon::before {
+  background: var(--points);
+}
+
+.status strong {
+  color: var(--white);
+  font-variant-numeric: tabular-nums;
+}
+
+/* Cards: a panel of the game's menus, in the charcoal of the site */
+.card {
+  background: var(--ink-800);
+  box-shadow: inset var(--px) var(--px) 0 rgba(255, 255, 255, 0.05), inset calc(-1 * var(--px)) calc(-1 * var(--px)) 0 rgba(0, 0, 0, 0.35);
+  clip-path: var(--steps);
+}
+
+/* The ladder of the ranked divisions */
+.divisions {
+  display: grid;
+  grid-template-columns: repeat(11, minmax(0, 1fr));
+  gap: var(--space-3);
+}
+
+.division {
+  display: grid;
+  justify-items: center;
+  gap: var(--space-2);
+  text-align: center;
+}
+
+.division__icon {
+  width: 2.5rem;
+  height: 2.5rem;
+  image-rendering: pixelated;
+}
+
+.division__name {
+  font-family: var(--font-display);
+  font-size: var(--text-caption);
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.division__elo {
+  color: var(--grey-400);
+  font-size: 0.6875rem;
+  font-variant-numeric: tabular-nums;
+}
+
+@media (max-width: 760px) {
+  .divisions {
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    row-gap: var(--space-5);
+  }
+}
+
+/* Ranks: free, VIP, PREMIUM+ side by side */
+.ranks {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: var(--space-4);
+  align-items: stretch;
+}
+
+.rank {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-4);
+  padding: var(--space-6);
+}
+
+.rank--featured {
+  background: linear-gradient(180deg, rgba(255, 85, 255, 0.08), rgba(255, 85, 255, 0) 40%), var(--ink-800);
+  border-color: rgba(255, 85, 255, 0.28);
+}
+
+.rank__name {
+  font-size: var(--text-h3);
+}
+
+.rank__price {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: var(--space-2);
+}
+
+/* the price in Tiny5: the euro sign of Pixelify Sans reads as a 0 */
+.rank__amount {
+  font-family: var(--font-pixel);
+  white-space: nowrap;
+  font-size: 2.5rem;
+  font-weight: 400;
+  line-height: 1.1;
+  text-shadow: var(--mc-shadow);
+}
+
+.rank__perks {
+  display: grid;
+  gap: var(--space-2);
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  color: var(--grey-200);
+  font-size: var(--text-small);
+}
+
+.rank__perks li {
+  display: grid;
+  grid-template-columns: 1rem 1fr;
+  gap: var(--space-2);
+}
+
+.rank__perks li::before {
+  content: "";
+  width: 0.5rem;
+  height: 0.5rem;
+  margin-top: 0.45em;
+  background: currentColor;
+  opacity: 0.5;
+  transform: rotate(45deg);
+}
+
+.rank .btn {
+  margin-top: auto;
+}
+
+@media (max-width: 900px) {
+  .ranks {
+    grid-template-columns: 1fr;
+  }
+}
+
+/* A name as the game shows it (chat, tab, above the head) */
+.mc {
+  font-family: var(--font-pixel);
+  font-weight: 400;
+  letter-spacing: 0.02em;
+}
+
+.mc-name--free { color: #aaaaaa; }
+.mc-name--vip { color: var(--rank-vip); }
+.mc-name--premium {
+  background: linear-gradient(90deg, #aa00aa, #ff55ff 35%, #ffffff 65%, #ff55ff);
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+}
+
+.mc-white { color: var(--mc-f); }
+.mc-grey { color: var(--mc-7); }
+.mc-dark { color: var(--mc-8); }
+.mc-red { color: var(--mc-c); }
+.mc-pink { color: var(--mc-d); }
+.mc-aqua { color: var(--mc-b); }
+.mc-gold { color: var(--mc-6); }
+.mc-green { color: var(--mc-a); }
+.mc-yellow { color: var(--mc-e); }
+
+/* A line of the game's chat */
+.mc-chat {
+  display: grid;
+  gap: 2px;
+  padding: var(--space-3) var(--space-4);
+  background: rgba(0, 0, 0, 0.55);
+  font-family: var(--font-pixel);
+  font-size: 1rem;
+  line-height: 1.5;
+  text-shadow: var(--mc-shadow);
+}
+
+/* The tooltip of an item, as the game draws it: a very dark purple, a purple line, notched corners */
+.mc-tooltip {
+  display: grid;
+  gap: 0.15rem;
+  width: max-content;
+  max-width: min(22rem, calc(100vw - 2rem));
+  padding: 0.55rem 0.75rem 0.65rem;
+  background: var(--tooltip-bg);
+  box-shadow: inset 0 0 0 2px var(--tooltip-line);
+  clip-path: polygon(2px 0, calc(100% - 2px) 0, calc(100% - 2px) 2px, 100% 2px, 100% calc(100% - 2px), calc(100% - 2px) calc(100% - 2px), calc(100% - 2px) 100%, 2px 100%, 2px calc(100% - 2px), 0 calc(100% - 2px), 0 2px, 2px 2px);
+  color: var(--mc-7);
+  font-family: var(--font-pixel);
+  font-size: 1rem;
+  line-height: 1.35;
+  text-shadow: var(--mc-shadow);
+  text-align: left;
+}
+
+.mc-tooltip__name {
+  color: var(--mc-f);
+  font-size: 1.0625rem;
+}
+
+.mc-tooltip p {
+  margin: 0;
+}
+
+/* An inventory of the game: its light grey panel, its title, its slots */
+.gui {
+  --slot: 3.25rem;
+  display: inline-grid;
+  gap: var(--space-2);
+  padding: 0.6rem 0.85rem 0.85rem;
+  background: var(--gui-panel);
+  box-shadow: inset var(--px) var(--px) 0 var(--gui-light), inset calc(-1 * var(--px)) calc(-1 * var(--px)) 0 var(--gui-dark), 0 0 0 var(--px) #000;
+  color: var(--gui-title);
+  clip-path: polygon(0 var(--px), var(--px) 0, calc(100% - var(--px)) 0, 100% var(--px), 100% calc(100% - var(--px)), calc(100% - var(--px)) 100%, var(--px) 100%, 0 calc(100% - var(--px)));
+  max-width: 100%;
+}
+
+.gui__title {
+  margin: 0;
+  color: var(--gui-title);
+  font-family: var(--font-pixel);
+  font-size: 1.0625rem;
+  font-weight: 400;
+  letter-spacing: 0.02em;
+  text-transform: none;
+}
+
+.gui__slots {
+  display: grid;
+  grid-template-columns: repeat(var(--columns, 9), var(--slot));
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+/* one slot: dark at the top left, white at the bottom right; a hovered slot turns lighter */
+.slot {
+  position: relative;
+  display: grid;
+  place-items: center;
+  width: var(--slot);
+  height: var(--slot);
+  padding: 0;
+  border: 0;
+  background: var(--gui-slot);
+  box-shadow: inset 2px 2px 0 var(--gui-slot-dark), inset -2px -2px 0 var(--gui-light);
+  color: inherit;
+  cursor: pointer;
+}
+
+/* the picked slot keeps a white frame, as the hotbar frames the held item; the item stays clear */
+.slot[aria-pressed="true"]::after,
+.slot[aria-selected="true"]::after,
+.slot[aria-current]::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  box-shadow: inset 0 0 0 2px #fff, inset 0 0 0 4px rgba(0, 0, 0, 0.35);
+  pointer-events: none;
+}
+
+/* the slot under the pointer turns lighter, over its item, as in the game */
+.slot:hover::after,
+.slot:focus-visible::after {
+  content: "";
+  position: absolute;
+  inset: 2px;
+  background: rgba(255, 255, 255, 0.5);
+  pointer-events: none;
+}
+
+.slot:focus-visible {
+  outline: 2px solid var(--red-500);
+  outline-offset: 0;
+  z-index: 1;
+}
+
+/* An item: a flat sprite, or a block and a head drawn as the inventory draws them */
+.mc-item {
+  --size: 2rem;
+  display: inline-block;
+  width: var(--size);
+  height: var(--size);
+  flex: none;
+  image-rendering: pixelated;
+}
+
+.mc-item--cube {
+  position: relative;
+  perspective: none;
+}
+
+.mc-item__cube {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: calc(var(--size) * 0.62);
+  height: calc(var(--size) * 0.62);
+  transform: translate(-50%, -50%) rotateX(-30deg) rotateY(45deg);
+  transform-style: preserve-3d;
+}
+
+.mc-item__face {
+  position: absolute;
+  inset: 0;
+  background-size: 100% 100%;
+  background-repeat: no-repeat;
+  image-rendering: pixelated;
+  backface-visibility: hidden;
+}
+
+.mc-item__face--top {
+  transform: rotateX(90deg) translateZ(calc(var(--size) * 0.31));
+}
+
+/* turned 45 degrees, the front of the cube is on the right of the picture, its side on the left:
+   the left lit at 80 %, the right at 60 %, as the inventory of the game lights them */
+.mc-item__face--front {
+  transform: translateZ(calc(var(--size) * 0.31));
+  filter: brightness(0.6);
+}
+
+.mc-item__face--side {
+  transform: rotateY(-90deg) translateZ(calc(var(--size) * 0.31));
+  filter: brightness(0.8);
+}
+
+/* a head: the faces come from the 64 x 16 strip of the skin, 8 pixels each */
+.mc-item--head .mc-item__face {
+  background-size: 800% 200%;
+}
+
+/* The name of an NPC above its head: white letters on the dark band of the game */
+.nametag {
+  display: inline-grid;
+  justify-items: center;
+  gap: 1px;
+  font-family: var(--font-pixel);
+  font-size: 1.0625rem;
+  line-height: 1.2;
+  text-shadow: none;
+}
+
+.nametag > span {
+  padding: 0.1rem 0.4rem 0.2rem;
+  background: rgba(0, 0, 0, 0.25);
+}
+
+/* The sidebar of the game: a title and lines, on the dark band */
+.scoreboard {
+  display: grid;
+  min-width: 13rem;
+  background: rgba(0, 0, 0, 0.45);
+  font-family: var(--font-pixel);
+  font-size: 1rem;
+  line-height: 1.45;
+  text-shadow: var(--mc-shadow);
+}
+
+.scoreboard__title {
+  padding: 0.2rem 0.75rem 0.3rem;
+  background: rgba(0, 0, 0, 0.3);
+  text-align: center;
+}
+
+.scoreboard ol,
+.scoreboard ul {
+  margin: 0;
+  padding: 0.3rem 0.75rem 0.5rem;
+  list-style: none;
+}
+
+.scoreboard li {
+  white-space: nowrap;
+}
+
+/* A game mode */
+.mode {
+  display: grid;
+  overflow: hidden;
+}
+
+.mode__media {
+  position: relative;
+  aspect-ratio: 16 / 9;
+  background: var(--ink-750) center / cover no-repeat;
+}
+
+.mode__media::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(180deg, rgba(12, 13, 16, 0) 45%, rgba(24, 27, 32, 0.95));
+}
+
+.mode__badges .tag {
+  background: rgba(12, 13, 16, 0.82);
+  backdrop-filter: blur(6px);
+}
+
+.mode__badges {
+  position: absolute;
+  top: var(--space-3);
+  left: var(--space-3);
+  z-index: 1;
+  display: flex;
+  gap: var(--space-2);
+}
+
+.mode__body {
+  display: grid;
+  gap: var(--space-2);
+  padding: var(--space-5);
+}
+
+.mode__meta {
+  display: flex;
+  gap: var(--space-3);
+  color: var(--grey-400);
+  font-size: var(--text-small);
+}
+
+/* A product of the store (pack, booster, style) */
+.product {
+  display: grid;
+  grid-template-columns: auto 1fr auto;
+  align-items: center;
+  gap: var(--space-5);
+  padding: var(--space-5) var(--space-6);
+}
+
+.product__icon {
+  width: 3.5rem;
+  height: 3.5rem;
+  image-rendering: pixelated;
+}
+
+@media (max-width: 640px) {
+  .product {
+    grid-template-columns: auto 1fr;
+  }
+
+  .product > .btn {
+    grid-column: 1 / -1;
+  }
+}
+
+/* The small print that every page ends with */
+.notice {
+  color: var(--grey-400);
+  font-size: var(--text-caption);
+  line-height: 1.6;
+}
+
+/* an item in a slot takes 62 % of it, as 16 pixels of 18 do in the game's slots, minus the border */
+.slot > .mc-item,
+.slot > img.mc-item {
+  --size: calc(var(--slot) * 0.62) !important;
+  width: calc(var(--slot) * 0.62);
+  height: calc(var(--slot) * 0.62);
+}
+
+/* on a phone, nine slots fit the width of the screen */
+@media (max-width: 640px) {
+  .gui {
+    --slot: min(3.25rem, calc((100vw - 2 * var(--gutter) - 1.7rem) / var(--columns, 9)));
+  }
+}

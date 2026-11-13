@@ -1,0 +1,202 @@
+{
+  "_generated": "by scripts/import-mc-textures.mjs from the textures of Minecraft 1.8.8: do not edit, run npm run mc",
+  "items": {
+    "ARROW": {
+      "kind": "item",
+      "src": "/mc/items/arrow.png"
+    },
+    "BED": {
+      "kind": "item",
+      "src": "/mc/items/bed.png"
+    },
+    "BLAZE_POWDER": {
+      "kind": "item",
+      "src": "/mc/items/blaze_powder.png"
+    },
+    "BLAZE_ROD": {
+      "kind": "item",
+      "src": "/mc/items/blaze_rod.png"
+    },
+    "BOOK": {
+      "kind": "item",
+      "src": "/mc/items/book.png"
+    },
+    "BOW": {
+      "kind": "item",
+      "src": "/mc/items/bow.png"
+    },
+    "COMPASS": {
+      "kind": "item",
+      "src": "/mc/items/compass.png"
+    },
+    "DIAMOND_BLOCK": {
+      "kind": "block",
+      "top": "/mc/blocks/diamond_block.png",
+      "side": "/mc/blocks/diamond_block.png"
+    },
+    "DIAMOND_CHESTPLATE": {
+      "kind": "item",
+      "src": "/mc/items/diamond_chestplate.png"
+    },
+    "DIAMOND_PICKAXE": {
+      "kind": "item",
+      "src": "/mc/items/diamond_pickaxe.png"
+    },
+    "DIAMOND_SWORD": {
+      "kind": "item",
+      "src": "/mc/items/diamond_sword.png"
+    },
+    "EMERALD": {
+      "kind": "item",
+      "src": "/mc/items/emerald.png"
+    },
+    "ENDER_PEARL": {
+      "kind": "item",
+      "src": "/mc/items/ender_pearl.png"
+    },
+    "ENDER_STONE": {
+      "kind": "block",
+      "top": "/mc/blocks/end_stone.png",
+      "side": "/mc/blocks/end_stone.png"
+    },
+    "EYE_OF_ENDER": {
+      "kind": "item",
+      "src": "/mc/items/eye_of_ender.png"
+    },
+    "FIREBALL": {
+      "kind": "item",
+      "src": "/mc/items/fireball.png"
+    },
+    "FIREWORK": {
+      "kind": "item",
+      "src": "/mc/items/firework.png"
+    },
+    "GLOWSTONE_DUST": {
+      "kind": "item",
+      "src": "/mc/items/glowstone_dust.png"
+    },
+    "GOLD_AXE": {
+      "kind": "item",
+      "src": "/mc/items/gold_axe.png"
+    },
+    "GOLD_INGOT": {
+      "kind": "item",
+      "src": "/mc/items/gold_ingot.png"
+    },
+    "GOLD_SWORD": {
+      "kind": "item",
+      "src": "/mc/items/gold_sword.png"
+    },
+    "INK_SACK": {
+      "kind": "item",
+      "src": "/mc/items/ink_sack.png"
+    },
+    "IRON_CHESTPLATE": {
+      "kind": "item",
+      "src": "/mc/items/iron_chestplate.png"
+    },
+    "IRON_PICKAXE": {
+      "kind": "item",
+      "src": "/mc/items/iron_pickaxe.png"
+    },
+    "IRON_SWORD": {
+      "kind": "item",
+      "src": "/mc/items/iron_sword.png"
+    },
+    "JUKEBOX": {
+      "kind": "block",
+      "top": "/mc/blocks/jukebox_top.png",
+      "side": "/mc/blocks/jukebox_side.png"
+    },
+    "LADDER": {
+      "kind": "item",
+      "src": "/mc/items/ladder.png"
+    },
+    "MAGMA_CREAM": {
+      "kind": "item",
+      "src": "/mc/items/magma_cream.png"
+    },
+    "NAME_TAG": {
+      "kind": "item",
+      "src": "/mc/items/name_tag.png"
+    },
+    "NOTE_BLOCK": {
+      "kind": "block",
+      "top": "/mc/blocks/noteblock.png",
+      "side": "/mc/blocks/noteblock.png"
+    },
+    "OBSIDIAN": {
+      "kind": "block",
+      "top": "/mc/blocks/obsidian.png",
+      "side": "/mc/blocks/obsidian.png"
+    },
+    "POTION": {
+      "kind": "item",
+      "src": "/mc/items/potion.png"
+    },
+    "QUARTZ_BLOCK": {
+      "kind": "block",
+      "top": "/mc/blocks/quartz_block_top.png",
+      "side": "/mc/blocks/quartz_block_side.png"
+    },
+    "RED_ROSE": {
+      "kind": "item",
+      "src": "/mc/items/red_rose.png"
+    },
+    "REDSTONE": {
+      "kind": "item",
+      "src": "/mc/items/redstone.png"
+    },
+    "REDSTONE_BLOCK": {
+      "kind": "block",
+      "top": "/mc/blocks/redstone_block.png",
+      "side": "/mc/blocks/redstone_block.png"
+    },
+    "SANDSTONE": {
+      "kind": "block",
+      "top": "/mc/blocks/sandstone_top.png",
+      "side": "/mc/blocks/sandstone_normal.png"
+    },
+    "SHEARS": {
+      "kind": "item",
+      "src": "/mc/items/shears.png"
+    },
+    "SKULL_ITEM": {
+      "kind": "head",
+      "src": "/mc/items/skull_item.png"
+    },
+    "SLIME_BALL": {
+      "kind": "item",
+      "src": "/mc/items/slime_ball.png"
+    },
+    "STICK": {
+      "kind": "item",
+      "src": "/mc/items/stick.png"
+    },
+    "STONE_SWORD": {
+      "kind": "item",
+      "src": "/mc/items/stone_sword.png"
+    },
+    "TNT": {
+      "kind": "block",
+      "top": "/mc/blocks/tnt_top.png",
+      "side": "/mc/blocks/tnt_side.png"
+    },
+    "WOOL": {
+      "kind": "block",
+      "top": "/mc/blocks/wool_colored_white.png",
+      "side": "/mc/blocks/wool_colored_white.png"
+    },
+    "PLAYER_HEAD": {
+      "kind": "head",
+      "src": "/mc/items/player_head.png"
+    }
+  },
+  "decor": [
+    "/mc/blocks/wool_colored_red.png"
+  ],
+  "gui": {
+    "hotbar": "/mc/gui/hotbar.png",
+    "selection": "/mc/gui/selection.png"
+  }
+}

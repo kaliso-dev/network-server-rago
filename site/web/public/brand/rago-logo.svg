@@ -1,0 +1,12 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="-12 -12 1087 1251" role="img" aria-label="Rago Practice">
+  <defs>
+    <radialGradient id="rago-hex" cx="70%" cy="28%" r="85%">
+      <stop offset="0" stop-color="#F20808"/>
+      <stop offset="0.45" stop-color="#A80103"/>
+      <stop offset="1" stop-color="#5A0004"/>
+    </radialGradient>
+    <filter id="rago-r-shadow" x="-10%" y="-10%" width="130%" height="130%"><feDropShadow dx="6" dy="10" stdDeviation="10" flood-color="#2A0002" flood-opacity="0.55"/></filter>
+  </defs>
+  <polygon points="529,0 1063,310 1063,919 529,1227 0,919 0,310" fill="url(#rago-hex)" stroke="#F00404" stroke-width="10" stroke-linejoin="round"/>
+  <polygon filter="url(#rago-r-shadow)" points="287,329 287,675 404,571 404,444 629,444 287,746 287,906 480,724 636,899 802,899 591,651 777,470 777,329" fill="#FFFFFF"/>
+</svg>

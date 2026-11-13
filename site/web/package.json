@@ -1,0 +1,54 @@
+{
+  "name": "rago-site",
+  "version": "0.1.0",
+  "private": true,
+  "description": "The official website of Rago Practice: the pages of the server, then its store.",
+  "type": "module",
+  "engines": {
+    "node": ">=22"
+  },
+  "scripts": {
+    "dev": "next dev",
+    "build": "next build",
+    "start": "next start",
+    "data": "node scripts/import-game-data.mjs",
+    "data:check": "node scripts/import-game-data.mjs --check",
+    "skins": "node scripts/render-skins.mjs",
+    "lint": "eslint .",
+    "typecheck": "tsc --noEmit",
+    "test": "vitest run",
+    "build:e2e": "node scripts/build-e2e.mjs",
+    "e2e": "playwright test",
+    "lighthouse": "lhci autorun --config=lighthouserc.cjs",
+    "mc": "node scripts/import-mc-textures.mjs"
+  },
+  "dependencies": {
+    "@fontsource-variable/inter": "5.3.0",
+    "@fontsource-variable/pixelify-sans": "5.3.0",
+    "@fontsource/pixelify-sans": "5.3.0",
+    "@fontsource/tiny5": "5.3.0",
+    "next": "16.4.6",
+    "react": "19.3.1",
+    "react-dom": "19.3.1",
+    "skinview3d": "3.4.2",
+    "three": "0.156.1"
+  },
+  "devDependencies": {
+    "@axe-core/playwright": "4.14.0",
+    "@lhci/cli": "0.16.1",
+    "@playwright/test": "1.63.0",
+    "@types/node": "22.20.5",
+    "@types/react": "19.3.0",
+    "@types/react-dom": "19.3.0",
+    "@types/three": "0.156.0",
+    "eslint": "9.39.5",
+    "eslint-config-next": "16.4.6",
+    "pngjs": "7.0.0",
+    "typescript": "6.0.3",
+    "vitest": "5.1.0",
+    "yaml": "2.9.1"
+  },
+  "overrides": {
+    "playwright-core": "1.63.0"
+  }
+}

@@ -194,7 +194,7 @@ final class QueueController {
                 player.sendMessage(ChatColor.GREEN + (also ? "You also joined" : "You joined") + " the queue for " + mode.name()
                         + ChatColor.GREEN + (map == null ? "" : " on " + ChatColor.WHITE + map + ChatColor.GREEN) + " ("
                         + mode.format() + ", " + matchmaker.waiting(mode.id()) + " waiting)."
-                        + (priorities.applyAsInt(id) > 0 ? ChatColor.AQUA + " Priority queue." : ""));
+                        + (!mode.ranked() && priorities.applyAsInt(id) > 0 ? ChatColor.AQUA + " Priority queue." : ""));
                 int queues = matchmaker.queuesOf(id).size();
                 if (inGame && state.isWatching(id)) {
                     player.sendMessage(ChatColor.GRAY + "Keep spectating: the game found takes you out of the game you watch"

@@ -1,0 +1,268 @@
+/* The six modes: their items on the left, as a column of slots; the one picked on the right */
+.showcase {
+  display: grid;
+  grid-template-columns: minmax(15rem, 19rem) 1fr;
+  gap: var(--space-5);
+  align-items: start;
+}
+
+.tabs {
+  display: grid;
+  gap: var(--space-2);
+}
+
+.tab {
+  position: relative;
+  display: grid;
+  grid-template-columns: auto 1fr;
+  align-items: center;
+  gap: var(--space-3);
+  padding: var(--space-2);
+  border: 0;
+  background: transparent;
+  color: var(--grey-300);
+  font: inherit;
+  text-align: left;
+  cursor: pointer;
+  transition: background-color var(--dur-fast) var(--ease-out);
+}
+
+.tab :global(.slot) {
+  --slot: 3.25rem;
+  pointer-events: none;
+}
+
+.tab:hover {
+  background: rgba(255, 255, 255, 0.04);
+}
+
+.tab[aria-selected='true'] {
+  background: linear-gradient(90deg, color-mix(in srgb, var(--tab) 16%, transparent), transparent 85%);
+  color: var(--white);
+  box-shadow: inset var(--px) 0 0 var(--tab);
+}
+
+.tab:hover :global(.slot)::after {
+  content: '';
+  position: absolute;
+  inset: 2px;
+  background: rgba(255, 255, 255, 0.5);
+}
+
+/* the picked mode keeps a white frame; its item stays clear */
+.tab[aria-selected='true'] :global(.slot)::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: none;
+  box-shadow: inset 0 0 0 2px #fff, inset 0 0 0 4px rgba(0, 0, 0, 0.35);
+}
+
+.tab[aria-selected='true']:hover :global(.slot)::after {
+  background: rgba(255, 255, 255, 0.5);
+}
+
+.tabText {
+  display: grid;
+  gap: 0.1rem;
+}
+
+.tabName {
+  font-family: var(--font-display);
+  font-size: 1.1875rem;
+  font-weight: 600;
+  line-height: 1.15;
+}
+
+.tab[aria-selected='true'] .tabName {
+  color: var(--tab);
+  text-shadow: var(--mc-shadow);
+}
+
+.tabFormats {
+  color: var(--grey-400);
+  font-family: var(--font-pixel);
+  font-size: 0.875rem;
+  letter-spacing: 0.03em;
+}
+
+.panel {
+  position: relative;
+  display: grid;
+  grid-template-columns: minmax(12rem, 0.8fr) 1.4fr;
+  gap: var(--space-6);
+  padding: var(--space-6);
+  background:
+    radial-gradient(60% 55% at 22% 38%, color-mix(in srgb, var(--accent) 20%, transparent), transparent 70%),
+    var(--ink-850);
+  box-shadow: inset var(--px) var(--px) 0 rgba(255, 255, 255, 0.05), inset calc(-1 * var(--px)) calc(-1 * var(--px)) 0 rgba(0, 0, 0, 0.4);
+  clip-path: var(--steps);
+}
+
+.panel:focus-visible {
+  outline: none;
+  box-shadow: inset 0 0 0 2px var(--red-400);
+}
+
+.stage {
+  display: grid;
+  align-content: start;
+  gap: var(--space-3);
+}
+
+.item {
+  width: 100%;
+  aspect-ratio: 1;
+  min-height: 12rem;
+}
+
+.path {
+  margin: 0;
+  font-family: var(--font-pixel);
+  font-size: 0.9375rem;
+  text-align: center;
+  text-shadow: var(--mc-shadow);
+}
+
+.copy {
+  display: grid;
+  align-content: start;
+  justify-items: start;
+  gap: var(--space-3);
+}
+
+.kicker {
+  margin: 0;
+  color: var(--accent);
+  font-family: var(--font-pixel);
+  font-size: 0.9375rem;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+}
+
+.name {
+  color: var(--accent);
+  font-size: var(--text-h2);
+  text-shadow: var(--mc-shadow);
+}
+
+.hook {
+  margin: 0;
+  font-family: var(--font-display);
+  font-size: var(--text-h4);
+  font-weight: 500;
+  line-height: 1.3;
+}
+
+.summary {
+  margin: 0;
+  color: var(--grey-300);
+  max-width: 38em;
+}
+
+.steps {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: var(--space-4) var(--space-5);
+  margin: var(--space-3) 0 var(--space-4);
+  padding: 0;
+  list-style: none;
+}
+
+.steps li {
+  display: grid;
+  grid-template-columns: auto 1fr;
+  align-content: start;
+  gap: 0.15rem var(--space-3);
+}
+
+.stepNumber {
+  grid-row: span 2;
+  display: grid;
+  place-items: center;
+  width: 1.75rem;
+  height: 1.75rem;
+  background: color-mix(in srgb, var(--accent) 18%, var(--ink-800));
+  color: var(--accent);
+  font-family: var(--font-pixel);
+  font-size: 1rem;
+  clip-path: var(--steps);
+}
+
+.steps h4 {
+  font-size: 1rem;
+  font-weight: 600;
+}
+
+.steps p {
+  grid-column: 2;
+  margin: 0;
+  color: var(--grey-300);
+  font-size: var(--text-small);
+  line-height: 1.55;
+}
+
+@media (max-width: 1100px) {
+  .panel {
+    grid-template-columns: 1fr;
+  }
+
+  .item {
+    max-width: 16rem;
+    min-height: 0;
+    justify-self: center;
+  }
+}
+
+/* on a tablet or a phone, the six items in a row above the mode */
+@media (max-width: 860px) {
+  .showcase {
+    grid-template-columns: 1fr;
+  }
+
+  .tabs {
+    grid-template-columns: repeat(6, auto);
+    justify-content: center;
+    gap: 0;
+  }
+
+  .tab {
+    grid-template-columns: auto;
+    gap: 0;
+    padding: 0;
+  }
+
+  .tab[aria-selected='true'] {
+    background: none;
+    box-shadow: none;
+  }
+
+  /* the name is read out but not shown: the panel below shows it */
+  .tabText {
+    position: absolute;
+    display: block;
+    width: 1px;
+    height: 1px;
+    overflow: hidden;
+    clip-path: inset(50%);
+    white-space: nowrap;
+  }
+
+  .tabText > span {
+    display: contents;
+  }
+
+  .tab :global(.slot) {
+    --slot: min(3.25rem, calc((100vw - 2rem) / 6));
+  }
+
+  .panel {
+    padding: var(--space-5) var(--space-4);
+  }
+}
+
+@media (max-width: 560px) {
+  .steps {
+    grid-template-columns: 1fr;
+  }
+}

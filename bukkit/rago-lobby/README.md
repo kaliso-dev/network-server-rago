@@ -240,14 +240,16 @@ dans les files d'attente des modes de jeu.
   **VIP** (4,99 €), le petit rang :
   un pseudo bleu clair (le style `aqua`) et le préfixe `[VIP]`, +25 % d'XP Network
   (`boost-xp: 1.25`), `/fly` et la vitesse au lobby, l'arrivée annoncée avec un feu d'artifice, des
-  messages blancs sans délai, la priorité dans les files après PREMIUM+, et trois cosmétiques à lui,
+  messages blancs sans délai, la priorité dans les files (hors classé) après PREMIUM+, et trois cosmétiques à lui,
   parmi les moins chers (la traînée Clouds, le kill Heart burst, la victoire Love : les permissions
   `rago.cosmetic.<id>`). **PREMIUM** (9,99 €) hérite de VIP et garde tout le reste.
 - **La priorité dans les files (`priorite-file`).** PREMIUM+ (2) passe avant VIP (1), qui passe
   avant les autres (0) : quand une file a plus de joueurs qu'une partie n'en prend, les plus hauts
   jouent d'abord, puis le temps d'attente décide. Après une minute d'attente, tout le monde passe en
-  premier, pour que personne n'attende longtemps derrière eux, et en classé la priorité ne change
-  jamais qui joue contre qui (l'écart d'ELO d'abord). Le message de la file dit « Priority queue ». Il donne un pseudo en dégradé rose et le badge
+  premier, pour que personne n'attende longtemps derrière eux. **Jamais dans une file classée** : là,
+  le premier arrivé joue le premier, quel que soit son rang, pour qu'un rang acheté ne choisisse
+  jamais un adversaire ni ne fasse attendre un autre joueur. Le message des autres files dit
+  « Priority queue ». **PREMIUM+** donne un pseudo en dégradé rose et le badge
   `✦`, +50 % d'XP Network (`boost-xp: 1.5`), `/fly` au lobby, `/nick`, un message à soi
   au-dessus de la tête, l'arrivée annoncée avec un feu d'artifice, des messages blancs sans délai,
   trois gadgets à lui (bat blaster, mouton explosif, boule disco : `rago.perk.gadgets`), les effets

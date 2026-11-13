@@ -1,0 +1,21 @@
+.page {
+  min-height: 50vh;
+}
+
+.page :global(.container) {
+  display: grid;
+  gap: var(--space-4);
+  max-width: calc(46rem + 2 * var(--gutter));
+}
+
+.page p {
+  margin: 0;
+}
+
+.title {
+  font-size: var(--text-h1);
+}
+
+.status {
+  display: flex;
+}

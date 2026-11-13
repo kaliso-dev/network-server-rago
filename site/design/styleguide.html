@@ -1,0 +1,366 @@
+<!doctype html>
+<html lang="fr">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Rago Practice : système de design</title>
+  <link rel="icon" href="../web/public/brand/rago-logo-flat.svg" type="image/svg+xml">
+  <!-- Les polices du site lui-même (OFL), après un npm install dans web : aucun appel à un autre site. -->
+  <style>
+    @font-face { font-family: "Pixelify Sans"; font-weight: 400 700; font-display: swap; src: url("../web/node_modules/@fontsource-variable/pixelify-sans/files/pixelify-sans-latin-wght-normal.woff2") format("woff2"); }
+    @font-face { font-family: "Tiny5"; font-weight: 400; font-display: swap; src: url("../web/node_modules/@fontsource/tiny5/files/tiny5-latin-400-normal.woff2") format("woff2"); }
+    @font-face { font-family: "Inter"; font-weight: 100 900; font-display: swap; src: url("../web/node_modules/@fontsource-variable/inter/files/inter-latin-wght-normal.woff2") format("woff2"); }
+  </style>
+  <link rel="stylesheet" href="tokens.css">
+  <link rel="stylesheet" href="components.css">
+  <style>
+    /* Mise en page de la page de style seulement */
+    .sg-header { border-bottom: var(--line-soft); background: radial-gradient(60rem 24rem at 85% -20%, rgba(232,25,30,.22), transparent 70%), var(--ink-950); }
+    .sg-header .container { display: flex; align-items: center; gap: var(--space-5); padding-block: var(--space-7); flex-wrap: wrap; }
+    .lockup { display: flex; align-items: center; gap: var(--space-3); font-family: var(--font-display); font-weight: 700; font-size: 1.25rem; letter-spacing: .06em; }
+    .lockup img { width: 2.5rem; }
+    .sg-header h1 { font-size: var(--text-h2); margin-top: var(--space-2); }
+    .sg-header .meta { margin-left: auto; text-align: right; }
+    .sg-section { padding-block: var(--space-8); border-bottom: var(--line-soft); }
+    .sg-section > .container > h2 { font-size: var(--text-h3); margin: var(--space-2) 0 var(--space-6); }
+    .sg-note { color: var(--grey-400); font-size: var(--text-small); max-width: 46rem; margin: calc(-1 * var(--space-4)) 0 var(--space-6); }
+    .row { display: flex; flex-wrap: wrap; gap: var(--space-4); align-items: center; }
+    .stack { display: grid; gap: var(--space-5); }
+    .grid-2 { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: var(--space-5); }
+    @media (max-width: 760px) { .grid-2 { grid-template-columns: 1fr; } .sg-header .meta { margin-left: 0; text-align: left; } }
+    .logos { display: grid; grid-template-columns: 1.4fr 1fr 1fr; gap: var(--space-4); }
+    .logo-tile { padding: var(--space-6); display: grid; gap: var(--space-4); align-content: start; }
+    .logo-tile .art { height: 11rem; display: flex; align-items: center; justify-content: center; }
+    .logo-tile .art img { height: 11rem; width: auto; max-width: 100%; }
+    .logo-tile .sizes img { height: auto; }
+    .sizes { display: flex; align-items: end; gap: var(--space-4); }
+    @media (max-width: 760px) { .logos { grid-template-columns: 1fr; } }
+    .swatches { display: grid; grid-template-columns: repeat(auto-fill, minmax(9.5rem, 1fr)); gap: var(--space-3); margin-bottom: var(--space-6); }
+    .swatch { overflow: hidden; }
+    .swatch i { display: block; height: 4.5rem; }
+    .swatch div { padding: var(--space-3); display: grid; gap: 2px; }
+    .swatch b { font-size: var(--text-small); }
+    .swatch code { font: 500 var(--text-caption) var(--font-mono); color: var(--grey-300); }
+    .swatch span { font-size: 11px; color: var(--grey-400); line-height: 1.4; }
+    .group-title { font: 600 var(--text-caption) var(--font-display); letter-spacing: var(--tracking-caps); text-transform: uppercase; color: var(--grey-400); margin: 0 0 var(--space-3); }
+    .type-row { display: grid; grid-template-columns: 9rem 1fr; gap: var(--space-5); align-items: baseline; padding-block: var(--space-4); border-top: var(--line-soft); }
+    .type-row .spec { color: var(--grey-400); font-size: var(--text-caption); font-family: var(--font-mono); }
+    @media (max-width: 760px) { .type-row { grid-template-columns: 1fr; gap: var(--space-2); } }
+    .force-focus { box-shadow: var(--focus-ring), var(--glow-red); }
+  </style>
+</head>
+<body>
+  <header class="sg-header">
+    <div class="container">
+      <div>
+        <div class="lockup"><img src="../web/public/brand/rago-logo.svg" alt="">RAGO PRACTICE</div>
+        <h1>Système de design du site</h1>
+      </div>
+      <div class="meta">
+        <div class="eyebrow">Piste sombre</div>
+        <div class="muted">Choisie le 13 novembre 2026 · version 0.1</div>
+      </div>
+    </div>
+  </header>
+
+  <section class="sg-section">
+    <div class="container">
+      <div class="eyebrow">01</div>
+      <h2>Logo</h2>
+      <p class="sg-note">Redessiné en vecteur à partir du logo officiel (hexagone rouge, R anguleux blanc) : net à toutes les tailles. Le logo complet pour les grandes tailles, le logo plat sous 48 px (favicon, barre de navigation sur mobile), le R seul en une couleur.</p>
+      <div class="logos">
+        <div class="card logo-tile">
+          <div class="art"><img src="../web/public/brand/rago-logo.svg" alt="Logo Rago Practice"></div>
+          <div><b>Logo complet</b><div class="muted">rago-logo.svg · dégradé du logo, liseré rouge</div></div>
+        </div>
+        <div class="card logo-tile">
+          <div class="art"><img src="../web/public/brand/rago-logo-flat.svg" alt="Logo plat"></div>
+          <div class="sizes"><img src="../web/public/brand/rago-logo-flat.svg" alt="" style="width:48px"><img src="../web/public/brand/rago-logo-flat.svg" alt="" style="width:32px"><img src="../web/public/brand/rago-logo-flat.svg" alt="" style="width:16px"></div>
+          <div><b>Logo plat</b><div class="muted">rago-logo-flat.svg · 48, 32 et 16 px</div></div>
+        </div>
+        <div class="card logo-tile">
+          <div class="art" style="color:var(--white)"><svg viewBox="277 319 535 597" style="height:8rem" aria-label="R"><polygon points="287,329 287,675 404,571 404,444 629,444 287,746 287,906 480,724 636,899 802,899 591,651 777,470 777,329" fill="currentColor"/></svg></div>
+          <div><b>R seul</b><div class="muted">rago-mark.svg · prend la couleur du texte</div></div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section class="sg-section">
+    <div class="container">
+      <div class="eyebrow">02</div>
+      <h2>Couleurs</h2>
+      <p class="sg-note">Un seul rouge de marque, pris sur le logo. Le texte est blanc ou gris, jamais rouge en paragraphe. Les couleurs Minecraft du jeu (catégories, rangs, divisions) restent de petites touches : un tag, un nom, une icône.</p>
+      <p class="group-title">Rouge du logo</p>
+      <div class="swatches" id="sw-red"></div>
+      <p class="group-title">Anthracite et gris</p>
+      <div class="swatches" id="sw-ink"></div>
+      <p class="group-title">Couleurs du jeu, en touches</p>
+      <div class="swatches" id="sw-game"></div>
+    </div>
+  </section>
+
+  <section class="sg-section">
+    <div class="container">
+      <div class="eyebrow">03</div>
+      <h2>Typographie</h2>
+      <p class="sg-note">Pixelify Sans pour les titres et les boutons (une police pixel aux courbes douces), Tiny5 pour les petits textes du jeu (adresse, commandes, tags, info-bulles), Inter pour les paragraphes. Toutes trois sous licence OFL, hébergées par le site.</p>
+      <div class="type-row"><div class="spec">Display · 44–88 px</div><div class="display">Master your skills.</div></div>
+      <div class="type-row"><div class="spec">H1 · 36–64 px</div><h1 style="font-size:var(--text-h1)">Climb from Coal to Obsidian</h1></div>
+      <div class="type-row"><div class="spec">H2 · 28–44 px</div><h2 style="font-size:var(--text-h2)">Six moments of a real game, on repeat</h2></div>
+      <div class="type-row"><div class="spec">H3 · 20–24 px</div><h3 style="font-size:var(--text-h3)">Block clutch</h3></div>
+      <div class="type-row"><div class="spec">Lead · 17–20 px</div><p class="lead" style="margin:0">Train every situation, clutch under pressure and climb from Coal to Obsidian on a competitive 1.8.9 network.</p></div>
+      <div class="type-row"><div class="spec">Body · 16 px</div><p style="margin:0;max-width:40em">Every game mode is free, ranked included. Divisions and titles are earned in games and never sold: a duel never changes your ranked ELO.</p></div>
+      <div class="type-row"><div class="spec">Eyebrow · 12 px</div><div class="eyebrow">Season 2 · Ranked Bedwars</div></div>
+      <div class="type-row"><div class="spec">Tiny5 · 14–17 px</div><div class="mc" style="font-size:1.0625rem">/play duels &nbsp;·&nbsp; /duel Steve &nbsp;·&nbsp; /replay 7KQ2</div></div>
+    </div>
+  </section>
+
+  <section class="sg-section">
+    <div class="container">
+      <div class="eyebrow">04</div>
+      <h2>Actions et étiquettes</h2>
+      <p class="sg-note">Le bouton principal a le coin coupé de l'hexagone : un seul par écran. L'anneau de focus rouge clair est visible au clavier sur tout ce qui se clique.</p>
+      <div class="stack">
+        <div class="row">
+          <a class="btn btn--primary cut" href="#">Play now</a>
+          <a class="btn btn--primary" href="#">Buy PREMIUM+</a>
+          <a class="btn btn--secondary" href="#">Explore store</a>
+          <a class="btn btn--ghost" href="#">See all modes →</a>
+          <a class="btn btn--primary btn--sm" href="#">Play now</a>
+          <span class="btn is-disabled">Sold out</span>
+          <a class="btn btn--secondary force-focus" href="#">Focus clavier</a>
+        </div>
+        <div class="row">
+          <span class="tag tag--red">Ranked Bedwars</span>
+          <span class="tag">Minecraft 1.8.9</span>
+          <span class="tag tag--practice">Practice</span>
+          <span class="tag tag--rbw">RBW Modes</span>
+          <span class="tag tag--duels">Duels</span>
+          <span class="tag tag--arenas">Arenas</span>
+          <span class="tag tag--start">✦ Start here</span>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section class="sg-section">
+    <div class="container">
+      <div class="eyebrow">05</div>
+      <h2>Le serveur</h2>
+      <p class="sg-note">L'adresse se copie en un clic. Le nombre de joueurs ne s'affiche que s'il vient du serveur ; sinon, l'état le dit (ouverture prochaine, hors ligne). Le chiffre ci-dessous est un exemple.</p>
+      <div class="stack">
+        <div class="row">
+          <div class="ip-chip"><span class="ip-chip__address">rago.gg</span><button class="ip-chip__copy" type="button" data-copy="rago.gg">Copy IP</button></div>
+          <span class="tag">Java 1.8.9</span>
+        </div>
+        <div class="row">
+          <span class="status status--online"><strong>128</strong> players online <span class="muted">(exemple)</span></span>
+          <span class="status status--soon">Opening soon · join the Discord</span>
+          <span class="status">Server offline</span>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section class="sg-section">
+    <div class="container">
+      <div class="eyebrow">06</div>
+      <h2>Les divisions classées</h2>
+      <p class="sg-note">Les 11 divisions et leurs seuils d'ELO, tels que le jeu les définit, dans leurs couleurs du jeu. Icônes en pixels (8 × 8), dessinées pour le site.</p>
+      <div class="divisions" id="divisions"></div>
+    </div>
+  </section>
+
+  <section class="sg-section">
+    <div class="container">
+      <div class="eyebrow">07</div>
+      <h2>Rangs</h2>
+      <p class="sg-note">La colonne gratuite montre d'abord ce que tout le monde a : c'est la preuve que rien de ce qui fait gagner ne s'achète. Avantages et prix tirés de config.yml.</p>
+      <div class="ranks">
+        <article class="card rank">
+          <div class="eyebrow" style="color:var(--grey-400)">Every player</div>
+          <h3 class="rank__name">Free</h3>
+          <div class="mc"><span class="mc-white">[12✫]</span> <span class="mc-name--free">Steve</span></div>
+          <ul class="rank__perks">
+            <li>Every game mode, ranked included</li>
+            <li>Divisions, seasons and titles: earned, never sold</li>
+            <li>Rago Points in every game, 18 cosmetics to unlock</li>
+            <li>Daily reward, quests, replays and spectating friends</li>
+          </ul>
+          <a class="btn btn--secondary" href="#">Play for free</a>
+        </article>
+        <article class="card rank">
+          <div class="eyebrow" style="color:var(--rank-vip)">Rank</div>
+          <h3 class="rank__name">VIP</h3>
+          <div class="mc"><span class="mc-white">[12✫]</span> <span class="mc-name--vip">[VIP] Steve</span></div>
+          <div class="rank__price"><span class="rank__amount">€4.99</span><span class="muted">once · VAT incl.</span></div>
+          <ul class="rank__perks">
+            <li>A light blue name and the [VIP] tag</li>
+            <li>+25% Network XP in every game</li>
+            <li>/fly and speed in the lobby</li>
+            <li>Your arrival announced, with a firework</li>
+            <li>No chat cooldown</li>
+            <li>3 cosmetics: Clouds trail, Heart burst, Love win</li>
+          </ul>
+          <a class="btn btn--secondary" href="#">Buy VIP</a>
+        </article>
+        <article class="card rank rank--featured">
+          <div class="eyebrow" style="color:var(--rank-premium)">Rank</div>
+          <h3 class="rank__name">PREMIUM+</h3>
+          <div class="mc"><span class="mc-white">[12✫]</span> <span class="mc-pink">[PREMIUM+]</span> <span class="mc-name--premium">Steve</span> <span class="mc-pink">✦</span></div>
+          <div class="rank__price"><span class="rank__amount">€9.99</span><span class="muted">once · VAT incl.</span></div>
+          <ul class="rank__perks">
+            <li>A pink gradient name, the ✦ badge, your + in your colour</li>
+            <li>+50% Network XP and a free XP booster every day</li>
+            <li>/nick and your own message above your head</li>
+            <li>Host Sumo, Brackets and LMS events: /host</li>
+            <li>Gift ranks to your friends: /gift</li>
+            <li>3 gadgets and the rarest kill and victory effects</li>
+            <li>Everything of VIP</li>
+          </ul>
+          <a class="btn btn--primary cut" href="#">Buy PREMIUM+</a>
+        </article>
+      </div>
+    </div>
+  </section>
+
+  <section class="sg-section">
+    <div class="container">
+      <div class="eyebrow">08</div>
+      <h2>Modes, jeu et boutique</h2>
+      <p class="sg-note">Images provisoires, tirées des captures du serveur de test (HUD retiré). Le site utilisera des images propres de tes propres maps, jamais des maps Hypixel ni des arènes Minemen.</p>
+      <div class="grid-2" style="margin-bottom:var(--space-5)">
+        <article class="card mode">
+          <div class="mode__media" style="background-image:url(assets/block-clutch.jpg)"><div class="mode__badges"><span class="tag tag--practice">Practice</span><span class="tag tag--start">✦ Start here</span></div></div>
+          <div class="mode__body">
+            <h3 style="font-size:var(--text-h3)">Block clutch</h3>
+            <p class="muted" style="margin:0">A hit throws you off the edge of a Bed Wars island: save yourself with your wool. Every clutch is measured, the biggest of the week win.</p>
+            <div class="mode__meta"><span>Solo</span><span>·</span><span>Records</span><span>·</span><span>Weekly top 3</span></div>
+          </div>
+        </article>
+        <article class="card mode">
+          <div class="mode__media" style="background-image:url(assets/sumo-platform.jpg)"><div class="mode__badges"><span class="tag tag--duels">Duels</span></div></div>
+          <div class="mode__body">
+            <h3 style="font-size:var(--text-h3)">Sumo duel</h3>
+            <p class="muted" style="margin:0">No damage, one round: the first one to fall loses. Pure knockback, the way the server measured it.</p>
+            <div class="mode__meta"><span>1v1</span><span>·</span><span>Replays</span><span>·</span><span>Rematch</span></div>
+          </div>
+        </article>
+      </div>
+      <div class="grid-2">
+        <div class="stack">
+          <div class="mc-chat">
+            <div><span class="mc-red" style="font-weight:700">RAGO</span> <span class="mc-dark">»</span> <span class="mc-white">Claim your daily reward with </span><span class="mc-red">/daily</span><span class="mc-white">: days in a row give more.</span></div>
+            <div><span class="mc-white">[12✫]</span> <span class="mc-pink">[PREMIUM+]</span> <span class="mc-name--premium">qRago</span> <span class="mc-pink">✦</span><span class="mc-white">: gg, rematch?</span></div>
+            <div><span class="mc-gold">[24✫]</span> <span class="mc-aqua">[VIP] Steve</span><span class="mc-white">: let's go</span></div>
+          </div>
+          <p class="notice" style="margin:0">Le chat du jeu, reproduit avec ses couleurs : pour montrer un rang, une commande ou une annonce tels que le joueur les verra.</p>
+        </div>
+        <div class="stack">
+          <article class="card product">
+            <canvas class="product__icon" data-icon="chest" width="8" height="8"></canvas>
+            <div>
+              <b>Starter Pack</b> <span class="tag tag--red" style="margin-left:6px">Once per player</span>
+              <div class="muted" style="font-size:var(--text-small)">20,000 Rago Points · 3 XP boosters · 2 points boosters · 3 cosmetics</div>
+            </div>
+            <a class="btn btn--primary btn--sm" href="#">€3.99</a>
+          </article>
+          <article class="card product">
+            <canvas class="product__icon" data-icon="bottle" width="8" height="8"></canvas>
+            <div>
+              <b>XP booster</b>
+              <div class="muted" style="font-size:var(--text-small)">x3 Network XP for 30 minutes of play</div>
+            </div>
+            <span class="btn btn--secondary btn--sm is-disabled" title="Prix web à fixer">Price to set</span>
+          </article>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <footer class="sg-section" style="border:0;background:var(--ink-950)">
+    <div class="container">
+      <p class="notice">Rago Practice is not affiliated with Mojang Studios, Microsoft or Hypixel. Minecraft is a trademark of Mojang Studios. Payments are handled by Tebex. Prices include VAT.</p>
+    </div>
+  </footer>
+
+  <script>
+    // Swatches
+    const sw = (id, list) => {
+      const el = document.getElementById(id);
+      for (const [name, hex, use, border] of list) {
+        el.insertAdjacentHTML('beforeend', `<div class="card swatch"><i style="background:${hex};${border ? 'box-shadow:inset 0 0 0 1px var(--ink-600)' : ''}"></i><div><b>${name}</b><code>${hex}</code><span>${use}</span></div></div>`);
+      }
+    };
+    sw('sw-red', [
+      ['red-300', '#FF8080', 'petit texte rouge'],
+      ['red-400', '#FF5555', 'rouge clair du jeu : liens, accents'],
+      ['red-500', '#E8191E', 'boutons, marque (AA avec du blanc)'],
+      ['red-600', '#C40F14', 'bouton pressé'],
+      ['red-700', '#9C0002', 'milieu du logo'],
+      ['red-800', '#6C0003', 'ombre du logo, lueurs'],
+    ]);
+    sw('sw-ink', [
+      ['ink-950', '#08090B', 'pied de page', 1],
+      ['ink-900', '#0C0D10', 'fond des pages', 1],
+      ['ink-850', '#121418', 'surfaces', 1],
+      ['ink-800', '#181B20', 'cartes'],
+      ['ink-750', '#1E2128', 'champs, tags'],
+      ['ink-600', '#2F343D', 'traits'],
+      ['grey-400', '#80868F', 'texte discret'],
+      ['grey-300', '#A3A8B2', 'texte secondaire'],
+      ['white', '#FFFFFF', 'texte principal'],
+    ]);
+    sw('sw-game', [
+      ['Practice', '#55FFFF', 'catégorie (aqua)'],
+      ['RBW Modes', '#FFAA00', 'catégorie (or)'],
+      ['Duels', '#55FF55', 'catégorie (vert)'],
+      ['Arenas', '#FF5555', 'catégorie (rouge)'],
+      ['VIP', '#55FFFF', 'rang'],
+      ['PREMIUM+', '#FF55FF', 'rang'],
+      ['En ligne', '#3DDC6A', 'jouer, réussir'],
+      ['Rago Points', '#FFAA00', 'monnaie du jeu'],
+    ]);
+
+    // Pixel icons (8 x 8)
+    const mix = (hex, other, t) => {
+      const a = hex.match(/\w\w/g).map(h => parseInt(h, 16)), b = other.match(/\w\w/g).map(h => parseInt(h, 16));
+      return '#' + a.map((v, i) => Math.round(v + (b[i] - v) * t).toString(16).padStart(2, '0')).join('');
+    };
+    const gem = ['..XXXX..', '.XLLXXX.', 'XLLXXXXX', 'XLXXXXXD', 'XXXXXXXD', 'XXXXXDDD', '.XXXDDD.', '..DDDD..'];
+    const pixelSvg = (grid, pal) => {
+      let r = '';
+      grid.forEach((row, y) => [...row].forEach((c, x) => { if (pal[c]) r += `<rect x="${x}" y="${y}" width="1" height="1" fill="${pal[c]}"/>`; }));
+      return `<svg class="division__icon" viewBox="0 0 8 8" shape-rendering="crispEdges" aria-hidden="true">${r}</svg>`;
+    };
+    const divisions = [['Coal', '#555555', 0], ['Iron', '#E6E6E6', 100], ['Gold', '#FFAA00', 200], ['Diamond', '#55FFFF', 300], ['Emerald', '#00AA00', 400], ['Sapphire', '#00AAAA', 500], ['Ruby', '#AA0000', 600], ['Crystal', '#FF55FF', 700], ['Opal', '#5555FF', 800], ['Amethyst', '#AA00AA', 900], ['Obsidian', '#2A2140', 1000]];
+    const dEl = document.getElementById('divisions');
+    for (const [name, hex, elo] of divisions) {
+      const pal = name === 'Obsidian' ? { X: '#2A2140', L: '#7A68A0', D: '#120D1C' } : { X: hex, L: mix(hex, '#ffffff', 0.45), D: mix(hex, '#000000', 0.35) };
+      // The label keeps the division's colour, lightened until it reads on the dark ground (4.5:1)
+      const lum = h => { const c = h.match(/\w\w/g).map(v => { v = parseInt(v, 16) / 255; return v <= 0.03928 ? v / 12.92 : ((v + 0.055) / 1.055) ** 2.4; }); return 0.2126 * c[0] + 0.7152 * c[1] + 0.0722 * c[2]; };
+      let label = name === 'Obsidian' ? '#7A68A0' : hex, t = 0;
+      while ((lum(label) + 0.05) / (lum('#0C0D10') + 0.05) < 4.5 && t < 1) { t += 0.05; label = mix(name === 'Obsidian' ? '#7A68A0' : hex, '#ffffff', t); }
+      dEl.insertAdjacentHTML('beforeend', `<div class="division">${pixelSvg(gem, pal)}<span class="division__name" style="color:${label}">${name}</span><span class="division__elo">${elo}+</span></div>`);
+    }
+
+    // Product icons on canvas
+    const icons = {
+      chest: { grid: ['.DDDDDD.', 'DLLLLLLD', 'DLMMMMLD', 'DDDGGDDD', 'DMMGGMMD', 'DMMMMMMD', 'DMMMMMMD', '.DDDDDD.'], pal: { D: '#4A2F16', L: '#C08A4E', M: '#8B5A2B', G: '#FFD84D' } },
+      bottle: { grid: ['...GG...', '...DD...', '..DLLD..', '.DLLXXD.', '.DLXXXD.', '.DXXXXD.', '.DXXXXD.', '..DDDD..'], pal: { G: '#8B5A2B', D: '#2E5E2A', L: '#D9FFC2', X: '#7CFC3C' } },
+    };
+    document.querySelectorAll('canvas[data-icon]').forEach(c => {
+      const { grid, pal } = icons[c.dataset.icon], ctx = c.getContext('2d');
+      grid.forEach((row, y) => [...row].forEach((ch, x) => { if (pal[ch]) { ctx.fillStyle = pal[ch]; ctx.fillRect(x, y, 1, 1); } }));
+    });
+
+    // Copy IP
+    document.querySelectorAll('[data-copy]').forEach(b => b.addEventListener('click', async () => {
+      try { await navigator.clipboard.writeText(b.dataset.copy); } catch (e) { /* clipboard not allowed: the address stays visible */ }
+      b.textContent = 'Copied!'; b.classList.add('is-copied');
+      setTimeout(() => { b.textContent = 'Copy IP'; b.classList.remove('is-copied'); }, 1600);
+    }));
+  </script>
+</body>
+</html>

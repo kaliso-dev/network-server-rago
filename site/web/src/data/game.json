@@ -1,0 +1,1747 @@
+{
+  "_generated": "by scripts/import-game-data.mjs from the files of the plugins: do not edit, run npm run data",
+  "sources": [
+    "bukkit/rago-lobby/src/main/resources/config.yml",
+    "bukkit/rago-lobby/src/main/java/gg/rago/lobby/Cosmetic.java",
+    "bukkit/rago-bedwars/src/main/resources/config.yml",
+    "bukkit/rago-practice/src/main/java/gg/rago/practice/RagoPractice.java",
+    "bukkit/rago-practice/src/main/resources/config.yml",
+    "bukkit/rago-practice/src/main/java/gg/rago/practice/SumoHost.java",
+    "bukkit/rago-practice/src/main/java/gg/rago/practice/EventGame.java",
+    "bukkit/rago-lobby/src/main/java/gg/rago/lobby/LobbyGadgets.java",
+    "bukkit/rago-practice/src/main/java/gg/rago/practice/ComboAi.java"
+  ],
+  "server": {
+    "title": "RAGO PRACTICE",
+    "slogan": "Train. Clutch. Climb."
+  },
+  "categories": [
+    {
+      "id": "entrainement",
+      "name": "Practice",
+      "colour": "#55FFFF",
+      "icon": "SANDSTONE",
+      "slogan": [
+        {
+          "text": "Train alone",
+          "colour": "#55FFFF"
+        },
+        {
+          "text": ", at your ",
+          "colour": "#AAAAAA"
+        },
+        {
+          "text": "own pace",
+          "colour": "#55FFFF"
+        }
+      ],
+      "description": "Clutch, block in, fast defense, bridging, extend, pearls, bow, fireballs, aim, bots: one skill at a time.",
+      "skin": "practice",
+      "modes": 16
+    },
+    {
+      "id": "ranked",
+      "name": "RBW Modes",
+      "colour": "#FFAA00",
+      "icon": "BED",
+      "slogan": [
+        {
+          "text": "Ranked ",
+          "colour": "#FFAA00"
+        },
+        {
+          "text": "and ",
+          "colour": "#AAAAAA"
+        },
+        {
+          "text": "RBW situations",
+          "colour": "#FFAA00"
+        }
+      ],
+      "description": "Ranked 1v1 to 4v4, and modes close to Ranked Bedwars: Sky Rise, first rush, invis, clutch scenarios, attack and defense, private games. With the server or your friends.",
+      "skin": "ranked",
+      "modes": 21
+    },
+    {
+      "id": "duels",
+      "name": "Duels",
+      "colour": "#55FF55",
+      "icon": "IRON_SWORD",
+      "slogan": [
+        {
+          "text": "Duel your friends ",
+          "colour": "#55FF55"
+        },
+        {
+          "text": "or ",
+          "colour": "#AAAAAA"
+        },
+        {
+          "text": "anyone",
+          "colour": "#55FF55"
+        }
+      ],
+      "description": "Bed fight, Top BedFight, top bridge, bridge fight, block placement in 1v1 or 2v2; sumo, boxing, KB displace, fireball fight, bow. /duel a player to challenge them.",
+      "skin": "duels",
+      "modes": 15
+    },
+    {
+      "id": "arenes",
+      "name": "Arenas",
+      "colour": "#FF5555",
+      "icon": "DIAMOND_SWORD",
+      "slogan": [
+        {
+          "text": "Jump in ",
+          "colour": "#FF5555"
+        },
+        {
+          "text": "and ",
+          "colour": "#AAAAAA"
+        },
+        {
+          "text": "fight now",
+          "colour": "#FF5555"
+        }
+      ],
+      "description": "No queue, come and go when you like: the FFA, Top Bridge FFA, bridge fight, block placement arena and Arena Free. Someone to fight at once.",
+      "skin": "arena",
+      "modes": 5
+    }
+  ],
+  "groups": [
+    {
+      "id": "ranked",
+      "name": "Ranked Bedwars",
+      "description": "Ranked Bedwars on the 20 maps of the RBW queue: your ELO goes up or down after every game.",
+      "modes": [
+        "ranked-1v1",
+        "ranked-2v2",
+        "ranked-3v3",
+        "ranked-4v4"
+      ]
+    },
+    {
+      "id": "skyrise",
+      "name": "RBW Sky Rise",
+      "description": "A Bedwars, RBW style, on Sky Rise.",
+      "modes": [
+        "skyrise-1v1",
+        "skyrise-2v2",
+        "skyrise-resources-1v1",
+        "skyrise-resources-2v2"
+      ]
+    },
+    {
+      "id": "first-rush",
+      "name": "First rush",
+      "description": "A real Bedwars, RBW style, on two islands side by side: the first rush decides it.",
+      "modes": [
+        "first-rush",
+        "first-rush-duo",
+        "first-rush-full",
+        "first-rush-full-duo"
+      ]
+    },
+    {
+      "id": "bed-fight",
+      "name": "Bed fight",
+      "description": "Two islands, a bed each: break theirs and kill them. You come back while your bed stands.",
+      "modes": [
+        "bed-fight-1v1",
+        "bed-fight-2v2"
+      ]
+    },
+    {
+      "id": "top-bridge",
+      "name": "Top Bridge",
+      "description": "The fight on the top bridge of Antenna, on the 20 RBW maps: rounds to 5 points in 1v1 or 2v2.",
+      "modes": [
+        "top-bridge-1v1",
+        "top-bridge-2v2"
+      ]
+    },
+    {
+      "id": "clutch-scenario",
+      "name": "Clutch scenario",
+      "description": "A real RBW game on any map: one team has lost its bed, iron armour, stone sword, full forges. Clutch or defend.",
+      "modes": [
+        "clutch-scenario-1v1",
+        "clutch-scenario-2v2",
+        "clutch-scenario-3v3",
+        "clutch-scenario-4v4"
+      ]
+    },
+    {
+      "id": "bridge-fight",
+      "name": "Bridge fight",
+      "description": "On a wool platform, no blocks: a 1v1 or a 2v2, first to 5.",
+      "modes": [
+        "bridge-fight-1v1",
+        "bridge-fight-2v2"
+      ]
+    },
+    {
+      "id": "block-placement",
+      "name": "Block placement",
+      "description": "Build, clutch and fight on the block placement maps: 1v1 or 2v2.",
+      "modes": [
+        "block-fight-1v1",
+        "block-fight-2v2"
+      ]
+    },
+    {
+      "id": "prive",
+      "name": "Private games",
+      "description": "With your party: a real RBW game or a top bridge, the size follows the party.",
+      "modes": [
+        "partie-privee",
+        "top-bridge-prive"
+      ]
+    },
+    {
+      "id": "attack-defense",
+      "name": "Attack and defense",
+      "description": "Bio Hazard: attack from the bridge with one life, defend with your forge and shop.",
+      "modes": [
+        "attack-defense-1v1",
+        "attack-defense-2v2"
+      ]
+    },
+    {
+      "id": "clutch",
+      "name": "Block clutch",
+      "description": "A hit throws you off: place your wool to save yourself. On an island, or a top fight.",
+      "modes": [
+        "clutch",
+        "clutch-top-fight"
+      ]
+    }
+  ],
+  "modes": [
+    {
+      "id": "ranked-1v1",
+      "name": "Ranked Bedwars 1v1",
+      "colour": "#FFAA00",
+      "icon": "BED",
+      "category": "ranked",
+      "group": "ranked",
+      "format": "1v1",
+      "ranked": true,
+      "startHere": false,
+      "event": false,
+      "description": "Ranked Bedwars in 1v1, on the 20 maps of the RBW queue: your ELO goes up or down after every game.",
+      "plugins": [
+        "bedwars"
+      ]
+    },
+    {
+      "id": "ranked-2v2",
+      "name": "Ranked Bedwars 2v2",
+      "colour": "#FFAA00",
+      "icon": "DIAMOND_SWORD",
+      "category": "ranked",
+      "group": "ranked",
+      "format": "2v2",
+      "ranked": true,
+      "startHere": false,
+      "event": false,
+      "description": "Ranked Bedwars, two against two, on the RBW maps.",
+      "plugins": [
+        "bedwars"
+      ]
+    },
+    {
+      "id": "ranked-3v3",
+      "name": "Ranked Bedwars 3v3",
+      "colour": "#FFAA00",
+      "icon": "DIAMOND_CHESTPLATE",
+      "category": "ranked",
+      "group": "ranked",
+      "format": "3v3",
+      "ranked": true,
+      "startHere": false,
+      "event": false,
+      "description": "Ranked Bedwars, three against three, on the RBW maps.",
+      "plugins": [
+        "bedwars"
+      ]
+    },
+    {
+      "id": "ranked-4v4",
+      "name": "Ranked Bedwars 4v4",
+      "colour": "#FFAA00",
+      "icon": "DIAMOND_BLOCK",
+      "category": "ranked",
+      "group": "ranked",
+      "format": "4v4",
+      "ranked": true,
+      "startHere": false,
+      "event": false,
+      "description": "Ranked Bedwars, four against four, on the RBW maps.",
+      "plugins": [
+        "bedwars"
+      ]
+    },
+    {
+      "id": "skyrise-1v1",
+      "name": "RBW Sky Rise 1v1",
+      "colour": "#FFAA00",
+      "icon": "DIAMOND_CHESTPLATE",
+      "category": "ranked",
+      "group": "skyrise",
+      "format": "1v1",
+      "ranked": false,
+      "startHere": false,
+      "event": false,
+      "description": "A solo Bedwars, RBW style, on Sky Rise.",
+      "plugins": [
+        "bedwars"
+      ]
+    },
+    {
+      "id": "skyrise-2v2",
+      "name": "RBW Sky Rise 2v2",
+      "colour": "#FFAA00",
+      "icon": "DIAMOND_CHESTPLATE",
+      "category": "ranked",
+      "group": "skyrise",
+      "format": "2v2",
+      "ranked": false,
+      "startHere": false,
+      "event": false,
+      "description": "A duo Bedwars, RBW style, on Sky Rise.",
+      "plugins": [
+        "bedwars"
+      ]
+    },
+    {
+      "id": "skyrise-resources-1v1",
+      "name": "RBW Sky Rise Resources 1v1",
+      "colour": "#FFAA00",
+      "icon": "GOLD_INGOT",
+      "category": "ranked",
+      "group": "skyrise",
+      "format": "1v1",
+      "ranked": false,
+      "startHere": false,
+      "event": false,
+      "description": "Sky Rise 1v1 with the forge and the item shop of every island: go and take their iron and gold. Slow forges.",
+      "plugins": [
+        "bedwars"
+      ]
+    },
+    {
+      "id": "skyrise-resources-2v2",
+      "name": "RBW Sky Rise Resources 2v2",
+      "colour": "#FFAA00",
+      "icon": "GOLD_INGOT",
+      "category": "ranked",
+      "group": "skyrise",
+      "format": "2v2",
+      "ranked": false,
+      "startHere": false,
+      "event": false,
+      "description": "Sky Rise 2v2 with the forge and the item shop of every island: go and take their iron and gold. Slow forges.",
+      "plugins": [
+        "bedwars"
+      ]
+    },
+    {
+      "id": "first-rush",
+      "name": "First rush solo",
+      "colour": "#FFAA00",
+      "icon": "IRON_PICKAXE",
+      "category": "ranked",
+      "group": "first-rush",
+      "format": "1v1",
+      "ranked": false,
+      "startHere": false,
+      "event": false,
+      "description": "A real Bedwars 1v1, RBW style, on two islands side by side: the first rush decides it. Choose the map.",
+      "plugins": [
+        "bedwars"
+      ]
+    },
+    {
+      "id": "first-rush-duo",
+      "name": "First rush duo",
+      "colour": "#FFAA00",
+      "icon": "IRON_PICKAXE",
+      "category": "ranked",
+      "group": "first-rush",
+      "format": "2v2",
+      "ranked": false,
+      "startHere": false,
+      "event": false,
+      "description": "A real Bedwars 2v2, RBW style, on two islands side by side: the first rush decides it. Choose the map.",
+      "plugins": [
+        "bedwars"
+      ]
+    },
+    {
+      "id": "first-rush-full",
+      "name": "First rush full map solo",
+      "colour": "#FFAA00",
+      "icon": "DIAMOND_PICKAXE",
+      "category": "ranked",
+      "group": "first-rush",
+      "format": "1v1",
+      "ranked": false,
+      "startHere": false,
+      "event": false,
+      "description": "First rush 1v1 with the whole map: diamonds, emeralds and the forges of the empty islands. Choose the map.",
+      "plugins": [
+        "bedwars"
+      ]
+    },
+    {
+      "id": "first-rush-full-duo",
+      "name": "First rush full map duo",
+      "colour": "#FFAA00",
+      "icon": "DIAMOND_PICKAXE",
+      "category": "ranked",
+      "group": "first-rush",
+      "format": "2v2",
+      "ranked": false,
+      "startHere": false,
+      "event": false,
+      "description": "First rush 2v2 with the whole map: diamonds, emeralds and the forges of the empty islands. Choose the map.",
+      "plugins": [
+        "bedwars"
+      ]
+    },
+    {
+      "id": "bed-fight-1v1",
+      "name": "Bed fight 1v1",
+      "colour": "#55FF55",
+      "icon": "BED",
+      "category": "duels",
+      "group": "bed-fight",
+      "format": "1v1",
+      "ranked": false,
+      "startHere": false,
+      "event": false,
+      "description": "Two islands face to face, a bed on each: bridge over, break their bed and kill them. You come back while yours stands.",
+      "plugins": [
+        "bedwars"
+      ]
+    },
+    {
+      "id": "bed-fight-2v2",
+      "name": "Bed fight 2v2",
+      "colour": "#55FF55",
+      "icon": "BED",
+      "category": "duels",
+      "group": "bed-fight",
+      "format": "2v2",
+      "ranked": false,
+      "startHere": false,
+      "event": false,
+      "description": "Bed fight, two against two: break their bed, then the last team standing wins.",
+      "plugins": [
+        "bedwars"
+      ]
+    },
+    {
+      "id": "top-bed-fight-1v1",
+      "name": "Top BedFight 1v1",
+      "colour": "#55FF55",
+      "icon": "SHEARS",
+      "category": "duels",
+      "group": null,
+      "format": "1v1",
+      "ranked": false,
+      "startHere": false,
+      "event": false,
+      "description": "On the bridge at the top of Bed fight: kill them or knock them off, rounds of one life, the first to 5 points wins.",
+      "plugins": [
+        "bedwars"
+      ]
+    },
+    {
+      "id": "top-bridge-1v1",
+      "name": "Top Bridge 1v1",
+      "colour": "#55FF55",
+      "icon": "LADDER",
+      "category": "duels",
+      "group": "top-bridge",
+      "format": "1v1",
+      "ranked": false,
+      "startHere": false,
+      "event": false,
+      "description": "On top of the top bridge of Antenna, on the 20 RBW maps: no bed, rounds of one life, the first to 5 points wins.",
+      "plugins": [
+        "bedwars"
+      ]
+    },
+    {
+      "id": "top-bridge-2v2",
+      "name": "Top Bridge 2v2",
+      "colour": "#55FF55",
+      "icon": "LADDER",
+      "category": "duels",
+      "group": "top-bridge",
+      "format": "2v2",
+      "ranked": false,
+      "startHere": false,
+      "event": false,
+      "description": "Top Bridge, two against two: the first team to 5 points.",
+      "plugins": [
+        "bedwars"
+      ]
+    },
+    {
+      "id": "top-bridge-ffa",
+      "name": "Top Bridge FFA",
+      "colour": "#FF5555",
+      "icon": "LADDER",
+      "category": "arenes",
+      "group": null,
+      "format": "FFA",
+      "ranked": false,
+      "startHere": false,
+      "event": false,
+      "description": "The top bridge of Invasion, free for all: come and go when you like, diamond armour, and back on top at each death.",
+      "plugins": [
+        "bedwars"
+      ]
+    },
+    {
+      "id": "ffa",
+      "name": "FFA Ranked Bedwars",
+      "colour": "#FF5555",
+      "icon": "STONE_SWORD",
+      "category": "arenes",
+      "group": null,
+      "format": "FFA",
+      "ranked": false,
+      "startHere": false,
+      "event": false,
+      "description": "Free for all on Archway FFA, in diamond armour: spawn on the top bridge, low, mid or at random; come and go when you like, a kill heals you.",
+      "plugins": [
+        "bedwars"
+      ]
+    },
+    {
+      "id": "free-ffa",
+      "name": "Arena Free",
+      "colour": "#FF5555",
+      "icon": "EMERALD",
+      "category": "arenes",
+      "group": null,
+      "format": "FFA",
+      "ranked": false,
+      "startHere": false,
+      "event": false,
+      "description": "Free for all in the arena, a sword only and Resistance: nobody dies, it is a practice. The slime of the black pit throws you out.",
+      "plugins": [
+        "practice"
+      ]
+    },
+    {
+      "id": "invis-practice",
+      "name": "Invis practice",
+      "colour": "#FFAA00",
+      "icon": "POTION",
+      "category": "ranked",
+      "group": null,
+      "format": "Solo",
+      "ranked": false,
+      "startHere": false,
+      "event": false,
+      "description": "The 20 RBW maps, 3-minute rounds: an attacker with an invis potion, from mid, against the defenders of the bed, each player in turn: a hit shows them.",
+      "plugins": [
+        "bedwars"
+      ]
+    },
+    {
+      "id": "bridge-fight",
+      "name": "Bridge fight",
+      "colour": "#FF5555",
+      "icon": "WOOL",
+      "category": "arenes",
+      "group": null,
+      "format": "FFA",
+      "ranked": false,
+      "startHere": false,
+      "event": false,
+      "description": "Free for all, no blocks: the hits only push, knock them into the void. Real damage on the middle platform only.",
+      "plugins": [
+        "practice"
+      ]
+    },
+    {
+      "id": "bridge-fight-1v1",
+      "name": "Bridge fight 1v1",
+      "colour": "#55FF55",
+      "icon": "WOOL",
+      "category": "duels",
+      "group": "bridge-fight",
+      "format": "1v1",
+      "ranked": false,
+      "startHere": false,
+      "event": false,
+      "description": "A real 1v1 on a platform of its own, no blocks: a kill or a fall is a point. First to 5.",
+      "plugins": [
+        "practice"
+      ]
+    },
+    {
+      "id": "bridge-fight-2v2",
+      "name": "Bridge fight 2v2",
+      "colour": "#55FF55",
+      "icon": "WOOL",
+      "category": "duels",
+      "group": "bridge-fight",
+      "format": "2v2",
+      "ranked": false,
+      "startHere": false,
+      "event": false,
+      "description": "The bridge fight, two against two on one platform: when a whole team is out, the other scores. First to 5.",
+      "plugins": [
+        "practice"
+      ]
+    },
+    {
+      "id": "block-fight-1v1",
+      "name": "Block placement 1v1",
+      "colour": "#55FF55",
+      "icon": "SANDSTONE",
+      "category": "duels",
+      "group": "block-placement",
+      "format": "1v1",
+      "ranked": false,
+      "startHere": false,
+      "event": false,
+      "description": "On the block placement maps, as on Minemen: each hit is a point, the void costs 10. Build, clutch, knock them off: first to 100.",
+      "plugins": [
+        "practice"
+      ]
+    },
+    {
+      "id": "block-fight-2v2",
+      "name": "Block placement 2v2",
+      "colour": "#55FF55",
+      "icon": "SANDSTONE",
+      "category": "duels",
+      "group": "block-placement",
+      "format": "2v2",
+      "ranked": false,
+      "startHere": false,
+      "event": false,
+      "description": "Block placement, two against two: each hit is a point, the void costs 10. First to 100.",
+      "plugins": [
+        "practice"
+      ]
+    },
+    {
+      "id": "block-fight-arena",
+      "name": "Block placement arena",
+      "colour": "#FF5555",
+      "icon": "SANDSTONE",
+      "category": "arenes",
+      "group": null,
+      "format": "FFA",
+      "ranked": false,
+      "startHere": false,
+      "event": false,
+      "description": "Block placement in an arena, with everyone: wool and shears, no damage, knock them off. The blocks break after 15 seconds.",
+      "plugins": [
+        "practice"
+      ]
+    },
+    {
+      "id": "clutch-scenario-1v1",
+      "name": "Clutch scenario 1v1",
+      "colour": "#FFAA00",
+      "icon": "IRON_CHESTPLATE",
+      "category": "ranked",
+      "group": "clutch-scenario",
+      "format": "1v1",
+      "ranked": false,
+      "startHere": false,
+      "event": false,
+      "description": "A real RBW game: one of you has no bed and must clutch, the other's bed is defended.",
+      "plugins": [
+        "bedwars"
+      ]
+    },
+    {
+      "id": "clutch-scenario-2v2",
+      "name": "Clutch scenario 2v2",
+      "colour": "#FFAA00",
+      "icon": "IRON_CHESTPLATE",
+      "category": "ranked",
+      "group": "clutch-scenario",
+      "format": "2v2",
+      "ranked": false,
+      "startHere": false,
+      "event": false,
+      "description": "A real RBW game, 2v2: one team has no bed and clutches, the other's bed is defended.",
+      "plugins": [
+        "bedwars"
+      ]
+    },
+    {
+      "id": "clutch-scenario-3v3",
+      "name": "Clutch scenario 3v3",
+      "colour": "#FFAA00",
+      "icon": "IRON_CHESTPLATE",
+      "category": "ranked",
+      "group": "clutch-scenario",
+      "format": "3v3",
+      "ranked": false,
+      "startHere": false,
+      "event": false,
+      "description": "A real RBW game, 3v3: one team has no bed and clutches, the other's bed is defended.",
+      "plugins": [
+        "bedwars"
+      ]
+    },
+    {
+      "id": "clutch-scenario-4v4",
+      "name": "Clutch scenario 4v4",
+      "colour": "#FFAA00",
+      "icon": "IRON_CHESTPLATE",
+      "category": "ranked",
+      "group": "clutch-scenario",
+      "format": "4v4",
+      "ranked": false,
+      "startHere": false,
+      "event": false,
+      "description": "A real RBW game, 4v4: one team has no bed and clutches, the other's bed is defended.",
+      "plugins": [
+        "bedwars"
+      ]
+    },
+    {
+      "id": "attack-defense-1v1",
+      "name": "Attack and defense 1v1",
+      "colour": "#FFAA00",
+      "icon": "IRON_SWORD",
+      "category": "ranked",
+      "group": "attack-defense",
+      "format": "1v1",
+      "ranked": false,
+      "startHere": false,
+      "event": false,
+      "description": "Bio Hazard: the attacker on the pink bridge, one life; the defender with forge and shop. First to 3 rounds, the roles swap at each round; 3 kits to attack, 3 to defend.",
+      "plugins": [
+        "bedwars"
+      ]
+    },
+    {
+      "id": "attack-defense-2v2",
+      "name": "Attack and defense 2v2",
+      "colour": "#FFAA00",
+      "icon": "IRON_SWORD",
+      "category": "ranked",
+      "group": "attack-defense",
+      "format": "2v2",
+      "ranked": false,
+      "startHere": false,
+      "event": false,
+      "description": "Bio Hazard: one team attacks from the pink bridge, the other defends with forge and shop. First to 3 rounds, the roles swap at each round; 3 kits to attack, 3 to defend.",
+      "plugins": [
+        "bedwars"
+      ]
+    },
+    {
+      "id": "partie-privee",
+      "name": "Private game",
+      "colour": "#FFAA00",
+      "icon": "NAME_TAG",
+      "category": "ranked",
+      "group": "prive",
+      "format": "1v1",
+      "ranked": false,
+      "startHere": false,
+      "event": false,
+      "description": "A real private RBW game with your party: 1v1, 2v2, 3v3 or 4v4, the size follows the party.",
+      "plugins": [
+        "bedwars"
+      ]
+    },
+    {
+      "id": "top-bridge-prive",
+      "name": "Private top bridge",
+      "colour": "#FFAA00",
+      "icon": "LADDER",
+      "category": "ranked",
+      "group": "prive",
+      "format": "1v1",
+      "ranked": false,
+      "startHere": false,
+      "event": false,
+      "description": "A practice with your party on the top bridge: no bed, back on top at each death, 30 minutes. 1v1 or 2v2, as the party.",
+      "plugins": [
+        "bedwars"
+      ]
+    },
+    {
+      "id": "sumo",
+      "name": "Sumo duel",
+      "colour": "#55FF55",
+      "icon": "SLIME_BALL",
+      "category": "duels",
+      "group": null,
+      "format": "1v1",
+      "ranked": false,
+      "startHere": false,
+      "event": false,
+      "description": "Knock the other player off the platform: great for working on knockback.",
+      "plugins": [
+        "practice"
+      ]
+    },
+    {
+      "id": "boxing",
+      "name": "Boxing",
+      "colour": "#55FF55",
+      "icon": "DIAMOND_SWORD",
+      "category": "duels",
+      "group": null,
+      "format": "1v1",
+      "ranked": false,
+      "startHere": false,
+      "event": false,
+      "description": "First to 100 hits, to work on your combos. /speed: Speed II off or on.",
+      "plugins": [
+        "practice"
+      ]
+    },
+    {
+      "id": "kb-displace",
+      "name": "KB displace 1v1",
+      "colour": "#55FF55",
+      "icon": "STICK",
+      "category": "duels",
+      "group": null,
+      "format": "1v1",
+      "ranked": false,
+      "startHere": false,
+      "event": false,
+      "description": "A real top fight: run along the bridge and knock the defender off sideways. Roles swap each hit.",
+      "plugins": [
+        "practice"
+      ]
+    },
+    {
+      "id": "block-edit-duel",
+      "name": "Block edit 1v1",
+      "colour": "#55FF55",
+      "icon": "SHEARS",
+      "category": "duels",
+      "group": null,
+      "format": "1v1",
+      "ranked": false,
+      "startHere": false,
+      "event": false,
+      "description": "A wall of wool between you: open, hit, close before they hit you back. First to 5.",
+      "plugins": [
+        "practice"
+      ]
+    },
+    {
+      "id": "fireball",
+      "name": "Fireball fight",
+      "colour": "#55FF55",
+      "icon": "FIREBALL",
+      "category": "duels",
+      "group": null,
+      "format": "1v1",
+      "ranked": false,
+      "startHere": false,
+      "event": false,
+      "description": "Fireballs and TNT: break their bed, the last one standing wins. Blasts and falls do no damage.",
+      "plugins": [
+        "practice"
+      ]
+    },
+    {
+      "id": "clutch",
+      "name": "Block clutch",
+      "colour": "#55FFFF",
+      "icon": "LADDER",
+      "category": "entrainement",
+      "group": "clutch",
+      "format": "Solo",
+      "ranked": false,
+      "startHere": true,
+      "event": false,
+      "description": "Solo, on a small island next to the islands of the others: a hit throws you off, place your wool to save yourself. Set the knockback, the hits, a KB stick in the hotbar.",
+      "plugins": [
+        "practice"
+      ]
+    },
+    {
+      "id": "clutch-top-fight",
+      "name": "Block clutch: top fight",
+      "colour": "#55FFFF",
+      "icon": "WOOL",
+      "category": "entrainement",
+      "group": "clutch",
+      "format": "Solo",
+      "ranked": false,
+      "startHere": false,
+      "event": false,
+      "description": "The block clutch on a top fight platform, at the build limit: no block above it.",
+      "plugins": [
+        "practice"
+      ]
+    },
+    {
+      "id": "block-in",
+      "name": "Block in practice",
+      "colour": "#55FFFF",
+      "icon": "ENDER_STONE",
+      "category": "entrainement",
+      "group": null,
+      "format": "Solo",
+      "ranked": false,
+      "startHere": false,
+      "event": false,
+      "description": "Drop on a bed defense, block yourself in and dig to the bed: the time of each layer.",
+      "plugins": [
+        "practice"
+      ]
+    },
+    {
+      "id": "fast-defense",
+      "name": "Fast defense",
+      "colour": "#55FFFF",
+      "icon": "OBSIDIAN",
+      "category": "entrainement",
+      "group": null,
+      "format": "Solo",
+      "ranked": false,
+      "startHere": false,
+      "event": false,
+      "description": "Build a bed defense as fast as you can: Ranked (end stone, glass) or duo (end stone, wool).",
+      "plugins": [
+        "practice"
+      ]
+    },
+    {
+      "id": "block-edit",
+      "name": "Block edit",
+      "colour": "#55FFFF",
+      "icon": "SHEARS",
+      "category": "entrainement",
+      "group": null,
+      "format": "Solo",
+      "ranked": false,
+      "startHere": false,
+      "event": false,
+      "description": "Break a block of the wall, hit the bot behind it, put the block back before it hits you.",
+      "plugins": [
+        "practice"
+      ]
+    },
+    {
+      "id": "extend-practice",
+      "name": "Extend practice",
+      "colour": "#55FFFF",
+      "icon": "QUARTZ_BLOCK",
+      "category": "entrainement",
+      "group": null,
+      "format": "Solo",
+      "ranked": false,
+      "startHere": false,
+      "event": false,
+      "description": "Double and triple extends: jump a gap too long, extend your wool in the air (5+1, 6+0, 6+1, 7+0, 7-1, 7-2). Chain: 10 pads in a row, no stop. Ladders included.",
+      "plugins": [
+        "practice"
+      ]
+    },
+    {
+      "id": "block-extend",
+      "name": "Block extend",
+      "colour": "#55FFFF",
+      "icon": "WOOL",
+      "category": "entrainement",
+      "group": null,
+      "format": "Solo",
+      "ranked": false,
+      "startHere": false,
+      "event": false,
+      "description": "As in a real bed fight: take a hit on the bridge, save yourself with your wool. Gold, Diamond, Emerald: the hit comes from your look. Wool and ladders.",
+      "plugins": [
+        "practice"
+      ]
+    },
+    {
+      "id": "bridge-chrono",
+      "name": "Timed bridge",
+      "colour": "#55FFFF",
+      "icon": "SANDSTONE",
+      "category": "entrainement",
+      "group": null,
+      "format": "Solo",
+      "ranked": false,
+      "startHere": false,
+      "event": false,
+      "description": "Bridge 16, 32 or 64 blocks against the clock, with any technique: straight or diagonal, flat or uphill. A record for each course.",
+      "plugins": [
+        "practice"
+      ]
+    },
+    {
+      "id": "ladder-practice",
+      "name": "Ladder practice",
+      "colour": "#55FFFF",
+      "icon": "LADDER",
+      "category": "entrainement",
+      "group": null,
+      "format": "Solo",
+      "ranked": false,
+      "startHere": false,
+      "event": false,
+      "description": "Block-ladder clutch: jump from 4 to 24 blocks, wool and a ladder before the ground.",
+      "plugins": [
+        "practice"
+      ]
+    },
+    {
+      "id": "pearl-practice",
+      "name": "Pearl practice",
+      "colour": "#55FFFF",
+      "icon": "ENDER_PEARL",
+      "category": "entrainement",
+      "group": null,
+      "format": "Solo",
+      "ranked": false,
+      "startHere": false,
+      "event": false,
+      "description": "On a part of Sky Rise: pearl to the diamond island, to the middle, or back after a hit. Save a short pearl with wool, not under the lower limit.",
+      "plugins": [
+        "practice"
+      ]
+    },
+    {
+      "id": "fireball-practice",
+      "name": "Fireball practice",
+      "colour": "#55FFFF",
+      "icon": "FIREBALL",
+      "category": "entrainement",
+      "group": null,
+      "format": "Solo",
+      "ranked": false,
+      "startHere": false,
+      "event": false,
+      "description": "Fireball jumps and sending fireballs back.",
+      "plugins": [
+        "practice"
+      ]
+    },
+    {
+      "id": "shop-practice",
+      "name": "Fast Shop",
+      "colour": "#55FFFF",
+      "icon": "GOLD_INGOT",
+      "category": "entrainement",
+      "group": null,
+      "format": "Solo",
+      "ranked": false,
+      "startHere": false,
+      "event": false,
+      "description": "Buy lists of items as fast as you can, with your own Hypixel quick buy (copy it in one click: the book).",
+      "plugins": [
+        "bedwars"
+      ]
+    },
+    {
+      "id": "combo-bot",
+      "name": "Combo bot",
+      "colour": "#55FFFF",
+      "icon": "SKULL_ITEM",
+      "category": "entrainement",
+      "group": null,
+      "format": "Solo",
+      "ranked": false,
+      "startHere": false,
+      "event": false,
+      "description": "An AI that fights as a player: sprint hits, strafes, w-taps, jump resets. Easy to Expert: combo it without being hit.",
+      "plugins": [
+        "practice"
+      ]
+    },
+    {
+      "id": "kb-displace-bot",
+      "name": "KB displace against a bot",
+      "colour": "#55FFFF",
+      "icon": "STICK",
+      "category": "entrainement",
+      "group": null,
+      "format": "Solo",
+      "ranked": false,
+      "startHere": false,
+      "event": false,
+      "description": "Run, turn your head, hit: knock the bot off sideways. Back at the start after each hit.",
+      "plugins": [
+        "practice"
+      ]
+    },
+    {
+      "id": "bow-training",
+      "name": "Bow training",
+      "colour": "#55FFFF",
+      "icon": "BOW",
+      "category": "entrainement",
+      "group": null,
+      "format": "Solo",
+      "ranked": false,
+      "startHere": false,
+      "event": false,
+      "description": "On Archway: bots bridge from the middle to your base, knock them off with your bow. Hits, accuracy, the longest shot.",
+      "plugins": [
+        "practice"
+      ]
+    },
+    {
+      "id": "bow-duel",
+      "name": "Bow duel",
+      "colour": "#55FF55",
+      "icon": "ARROW",
+      "category": "duels",
+      "group": null,
+      "format": "1v1",
+      "ranked": false,
+      "startHere": false,
+      "event": false,
+      "description": "Bow 1v1 on Archway, the base against the middle: each arrow that hits is a point. First to 10.",
+      "plugins": [
+        "practice"
+      ]
+    },
+    {
+      "id": "aim-trainer",
+      "name": "Aim trainer",
+      "colour": "#55FFFF",
+      "icon": "BOW",
+      "category": "entrainement",
+      "group": null,
+      "format": "Solo",
+      "ranked": false,
+      "startHere": false,
+      "event": false,
+      "description": "Aim training, solo, moving targets. XP for each second on the target, and a top of the best.",
+      "plugins": [
+        "practice"
+      ]
+    },
+    {
+      "id": "event-sumo",
+      "name": "Sumo event",
+      "colour": "#55FF55",
+      "icon": "SLIME_BALL",
+      "category": "duels",
+      "group": null,
+      "format": "FFA",
+      "ranked": false,
+      "startHere": false,
+      "event": true,
+      "description": "Hosted with /host: one 1v1 at a time, the last one in wins.",
+      "plugins": [
+        "practice"
+      ]
+    },
+    {
+      "id": "event-brackets",
+      "name": "Brackets event",
+      "colour": "#55FF55",
+      "icon": "IRON_SWORD",
+      "category": "duels",
+      "group": null,
+      "format": "FFA",
+      "ranked": false,
+      "startHere": false,
+      "event": true,
+      "description": "Hosted with /host: a 1v1 tournament with a Bed Wars kit.",
+      "plugins": [
+        "practice"
+      ]
+    },
+    {
+      "id": "event-lms",
+      "name": "Last Man Standing event",
+      "colour": "#55FF55",
+      "icon": "GOLD_SWORD",
+      "category": "duels",
+      "group": null,
+      "format": "FFA",
+      "ranked": false,
+      "startHere": false,
+      "event": true,
+      "description": "Hosted with /host: everyone at once, the last one standing wins.",
+      "plugins": [
+        "practice"
+      ]
+    }
+  ],
+  "ranked": {
+    "queue": {
+      "startGap": 100,
+      "gapStep": 50,
+      "gapEverySeconds": 10,
+      "maxGap": 500,
+      "leavePenaltyMinutes": 5
+    },
+    "mvpBonus": 5,
+    "divisions": [
+      {
+        "name": "Coal",
+        "colour": "#555555",
+        "elo": 0,
+        "win": 35,
+        "loss": 5,
+        "seasonReward": 0
+      },
+      {
+        "name": "Iron",
+        "colour": "#FFFFFF",
+        "elo": 100,
+        "win": 30,
+        "loss": 10,
+        "seasonReward": 250
+      },
+      {
+        "name": "Gold",
+        "colour": "#FFAA00",
+        "elo": 200,
+        "win": 30,
+        "loss": 15,
+        "seasonReward": 500
+      },
+      {
+        "name": "Diamond",
+        "colour": "#55FFFF",
+        "elo": 300,
+        "win": 25,
+        "loss": 15,
+        "seasonReward": 1000
+      },
+      {
+        "name": "Emerald",
+        "colour": "#00AA00",
+        "elo": 400,
+        "win": 25,
+        "loss": 20,
+        "seasonReward": 1500
+      },
+      {
+        "name": "Sapphire",
+        "colour": "#00AAAA",
+        "elo": 500,
+        "win": 20,
+        "loss": 20,
+        "seasonReward": 2000
+      },
+      {
+        "name": "Ruby",
+        "colour": "#AA0000",
+        "elo": 600,
+        "win": 20,
+        "loss": 25,
+        "seasonReward": 3000
+      },
+      {
+        "name": "Crystal",
+        "colour": "#FF55FF",
+        "elo": 700,
+        "win": 15,
+        "loss": 25,
+        "seasonReward": 4000
+      },
+      {
+        "name": "Opal",
+        "colour": "#5555FF",
+        "elo": 800,
+        "win": 15,
+        "loss": 30,
+        "seasonReward": 5000
+      },
+      {
+        "name": "Amethyst",
+        "colour": "#AA00AA",
+        "elo": 900,
+        "win": 10,
+        "loss": 30,
+        "seasonReward": 7500
+      },
+      {
+        "name": "Obsidian",
+        "colour": "#000000",
+        "elo": 1000,
+        "win": 10,
+        "loss": 35,
+        "seasonReward": 10000
+      }
+    ]
+  },
+  "season": {
+    "number": 2,
+    "name": "Season 2",
+    "end": null
+  },
+  "ranks": [
+    {
+      "id": "vip",
+      "name": "VIP",
+      "prefix": [
+        {
+          "text": "[VIP]",
+          "colour": "#55FFFF"
+        }
+      ],
+      "colour": "#55FFFF",
+      "price": "4.99€",
+      "priceAmount": 4.99,
+      "inherits": null,
+      "xpBoost": 1.25,
+      "perks": [
+        "A light blue name and the [VIP] tag",
+        "+25% Network XP in every game",
+        "/fly in the lobby",
+        "Speed I, II or III in the lobby (settings)",
+        "Your arrival announced, with a firework",
+        "White messages, no chat cooldown",
+        "Priority in the queues, not in Ranked (after PREMIUM+)",
+        "3 cosmetics: the Clouds trail, the Heart burst kill, the Love win"
+      ],
+      "cosmetics": [
+        {
+          "id": "trail-clouds",
+          "type": "trail",
+          "name": "Clouds"
+        },
+        {
+          "id": "kill-hearts",
+          "type": "kill",
+          "name": "Heart burst"
+        },
+        {
+          "id": "win-hearts",
+          "type": "win",
+          "name": "Love"
+        }
+      ]
+    },
+    {
+      "id": "premium",
+      "name": "PREMIUM+",
+      "prefix": [
+        {
+          "text": "[PREMIUM+]",
+          "colour": "#FF55FF"
+        }
+      ],
+      "colour": "#FF55FF",
+      "price": "9.99€",
+      "priceAmount": 9.99,
+      "inherits": "vip",
+      "xpBoost": 1.5,
+      "perks": [
+        "A pink gradient name and the ✦ badge",
+        "Your + in the colour you choose (/style)",
+        "+50% Network XP in every game",
+        "/fly in the lobby",
+        "Speed I, II or III in the lobby (settings)",
+        "/nick: play under another name",
+        "Your own message above your head",
+        "Your arrival announced, with a firework",
+        "White messages, no chat cooldown",
+        "Gadgets of your own: bat blaster, explosive sheep, disco ball",
+        "A free XP booster every day (x2 XP for 30 minutes; bought ones: x3)",
+        "Host events for the server: /host (Sumo, Brackets, LMS)",
+        "Gift ranks to your friends: /gift <player>",
+        "The rarest kill effects and victory dances",
+        "The first place in the queues, not in Ranked",
+        "Everything of VIP, its 3 cosmetics too"
+      ],
+      "cosmetics": [
+        {
+          "id": "kill-squid",
+          "type": "kill",
+          "name": "Squid rocket"
+        },
+        {
+          "id": "kill-meteor",
+          "type": "kill",
+          "name": "Meteor strike"
+        },
+        {
+          "id": "win-storm",
+          "type": "win",
+          "name": "Thunder god"
+        },
+        {
+          "id": "win-meteors",
+          "type": "win",
+          "name": "Meteor shower"
+        },
+        {
+          "id": "trail-clouds",
+          "type": "trail",
+          "name": "Clouds"
+        },
+        {
+          "id": "kill-hearts",
+          "type": "kill",
+          "name": "Heart burst"
+        },
+        {
+          "id": "win-hearts",
+          "type": "win",
+          "name": "Love"
+        }
+      ]
+    }
+  ],
+  "starterPack": {
+    "name": "Starter Pack",
+    "price": 3.99,
+    "regularPrice": 3.99,
+    "currency": "€",
+    "ragoPoints": 20000,
+    "xpBoosters": 3,
+    "pointsBoosters": 2,
+    "cosmetics": [
+      {
+        "id": "trail-magic",
+        "type": "trail",
+        "name": "Magic"
+      },
+      {
+        "id": "kill-firework",
+        "type": "kill",
+        "name": "Firework"
+      },
+      {
+        "id": "win-fireworks",
+        "type": "win",
+        "name": "Fireworks"
+      }
+    ]
+  },
+  "cosmetics": [
+    {
+      "id": "trail-clouds",
+      "type": "trail",
+      "name": "Clouds",
+      "icon": "WOOL",
+      "price": 2000,
+      "level": 5,
+      "premium": false
+    },
+    {
+      "id": "trail-flames",
+      "type": "trail",
+      "name": "Flames",
+      "icon": "BLAZE_POWDER",
+      "price": 2500,
+      "level": 5,
+      "premium": false
+    },
+    {
+      "id": "trail-hearts",
+      "type": "trail",
+      "name": "Hearts",
+      "icon": "RED_ROSE",
+      "price": 3000,
+      "level": 10,
+      "premium": false
+    },
+    {
+      "id": "trail-emeralds",
+      "type": "trail",
+      "name": "Emerald sparks",
+      "icon": "EMERALD",
+      "price": 3000,
+      "level": 10,
+      "premium": false
+    },
+    {
+      "id": "trail-notes",
+      "type": "trail",
+      "name": "Notes",
+      "icon": "NOTE_BLOCK",
+      "price": 4000,
+      "level": 15,
+      "premium": false
+    },
+    {
+      "id": "trail-magic",
+      "type": "trail",
+      "name": "Magic",
+      "icon": "GLOWSTONE_DUST",
+      "price": 5000,
+      "level": 20,
+      "premium": false
+    },
+    {
+      "id": "trail-ender",
+      "type": "trail",
+      "name": "Ender",
+      "icon": "EYE_OF_ENDER",
+      "price": 6000,
+      "level": 25,
+      "premium": false
+    },
+    {
+      "id": "trail-redstone",
+      "type": "trail",
+      "name": "Redstone",
+      "icon": "REDSTONE",
+      "price": 8000,
+      "level": 35,
+      "premium": false
+    },
+    {
+      "id": "kill-blood",
+      "type": "kill",
+      "name": "Blood",
+      "icon": "REDSTONE_BLOCK",
+      "price": 3000,
+      "level": 10,
+      "premium": false
+    },
+    {
+      "id": "kill-hearts",
+      "type": "kill",
+      "name": "Heart burst",
+      "icon": "RED_ROSE",
+      "price": 3000,
+      "level": 10,
+      "premium": false
+    },
+    {
+      "id": "kill-flames",
+      "type": "kill",
+      "name": "Flame burst",
+      "icon": "BLAZE_POWDER",
+      "price": 4000,
+      "level": 15,
+      "premium": false
+    },
+    {
+      "id": "kill-lightning",
+      "type": "kill",
+      "name": "Lightning",
+      "icon": "BLAZE_ROD",
+      "price": 5000,
+      "level": 20,
+      "premium": false
+    },
+    {
+      "id": "kill-firework",
+      "type": "kill",
+      "name": "Firework",
+      "icon": "FIREWORK",
+      "price": 6000,
+      "level": 25,
+      "premium": false
+    },
+    {
+      "id": "kill-explosion",
+      "type": "kill",
+      "name": "Explosion",
+      "icon": "TNT",
+      "price": 8000,
+      "level": 35,
+      "premium": false
+    },
+    {
+      "id": "win-hearts",
+      "type": "win",
+      "name": "Love",
+      "icon": "RED_ROSE",
+      "price": 4000,
+      "level": 10,
+      "premium": false
+    },
+    {
+      "id": "win-fireworks",
+      "type": "win",
+      "name": "Fireworks",
+      "icon": "FIREWORK",
+      "price": 5000,
+      "level": 10,
+      "premium": false
+    },
+    {
+      "id": "win-flames",
+      "type": "win",
+      "name": "Ring of fire",
+      "icon": "BLAZE_POWDER",
+      "price": 6000,
+      "level": 20,
+      "premium": false
+    },
+    {
+      "id": "win-party",
+      "type": "win",
+      "name": "Party",
+      "icon": "JUKEBOX",
+      "price": 8000,
+      "level": 30,
+      "premium": false
+    },
+    {
+      "id": "kill-squid",
+      "type": "kill",
+      "name": "Squid rocket",
+      "icon": "INK_SACK",
+      "price": 0,
+      "level": 1,
+      "premium": true
+    },
+    {
+      "id": "kill-meteor",
+      "type": "kill",
+      "name": "Meteor strike",
+      "icon": "FIREBALL",
+      "price": 0,
+      "level": 1,
+      "premium": true
+    },
+    {
+      "id": "win-storm",
+      "type": "win",
+      "name": "Thunder god",
+      "icon": "GOLD_AXE",
+      "price": 0,
+      "level": 1,
+      "premium": true
+    },
+    {
+      "id": "win-meteors",
+      "type": "win",
+      "name": "Meteor shower",
+      "icon": "MAGMA_CREAM",
+      "price": 0,
+      "level": 1,
+      "premium": true
+    }
+  ],
+  "ragoPoints": {
+    "win": 20,
+    "loss": 5,
+    "kill": 2,
+    "daily": 100
+  },
+  "events": {
+    "automatic": true,
+    "everyMinutes": 20,
+    "lobbyPlayers": 6,
+    "maxPlayers": 40
+  },
+  "attackDefense": {
+    "protection": 2,
+    "attack": [
+      {
+        "name": "Rusher",
+        "icon": "FIREBALL",
+        "description": "Fireballs to clear the bridge and throw the defenders off; the Golden Pickaxe digs fast."
+      },
+      {
+        "name": "Breaker",
+        "icon": "TNT",
+        "description": "TNT blows up the wool and the end stone of the defense; the Diamond Pickaxe does the rest."
+      },
+      {
+        "name": "Ninja",
+        "icon": "ENDER_PEARL",
+        "description": "Invisible for 30 seconds, then a pearl to land on the bed."
+      }
+    ],
+    "defense": [
+      {
+        "name": "Guardian",
+        "icon": "STICK",
+        "description": "A stone sword, and the stick to knock them off at the door."
+      },
+      {
+        "name": "Archer",
+        "icon": "BOW",
+        "description": "Shoot them off the bridge before they land."
+      },
+      {
+        "name": "Builder",
+        "icon": "ENDER_STONE",
+        "description": "End stone and wool to build the defense up again as they break it; shears for good."
+      }
+    ]
+  },
+  "comboBot": {
+    "levels": [
+      {
+        "id": "easy",
+        "name": "Easy",
+        "cps": 5,
+        "accuracy": 0.55,
+        "reach": 2.7,
+        "sprints": false,
+        "strafe": 0,
+        "wTap": 0,
+        "jumpReset": 0,
+        "reactionTicks": 8
+      },
+      {
+        "id": "normal",
+        "name": "Normal",
+        "cps": 8,
+        "accuracy": 0.75,
+        "reach": 2.9,
+        "sprints": true,
+        "strafe": 0.45,
+        "wTap": 0.4,
+        "jumpReset": 0.15,
+        "reactionTicks": 5
+      },
+      {
+        "id": "hard",
+        "name": "Hard",
+        "cps": 11,
+        "accuracy": 0.88,
+        "reach": 3,
+        "sprints": true,
+        "strafe": 0.8,
+        "wTap": 0.75,
+        "jumpReset": 0.45,
+        "reactionTicks": 3
+      },
+      {
+        "id": "expert",
+        "name": "Expert",
+        "cps": 14,
+        "accuracy": 0.95,
+        "reach": 3,
+        "sprints": true,
+        "strafe": 1,
+        "wTap": 1,
+        "jumpReset": 0.8,
+        "reactionTicks": 1
+      }
+    ]
+  },
+  "pointsToWin": {
+    "boxing": 100,
+    "kb-displace": 3,
+    "block-fight": 100,
+    "block-edit": 5,
+    "bridge-fight": 5,
+    "bow": 10
+  },
+  "replays": {
+    "active": true,
+    "days": 3
+  },
+  "rules": [
+    "No cheats, macros or unfair mods.",
+    "No insults, spam or advertising.",
+    "No teaming in solo modes, no boosting.",
+    "Respect the staff: their word is final."
+  ]
+}
