@@ -65,4 +65,4 @@ KB_ACCEPT_EULA=true tools/lobby-check/run-lobby-test.sh
 Lancer un serveur Minecraft demande d'accepter le CLUF de Minecraft (https://aka.ms/MinecraftEULA) :
 le script refuse de démarrer sans `KB_ACCEPT_EULA=true`. Réglages : `KB_SERVER_JAVA` (le java du
 serveur), `KB_PORT` (25565) et `LOBBY_RUN_DIR` (`lobby-run` à la racine du dépôt, où restent le
-journal et le dossier du serveur). La CI le lance à chaque pull request, sous Java 8 et Java 21.
+journal et le dossier du serveur). La CI le lance à chaque pull request, sous Java 8, 21 et 25.
