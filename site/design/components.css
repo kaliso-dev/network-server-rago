@@ -23,8 +23,6 @@ body {
   font-size: var(--text-body);
   line-height: var(--leading-body);
   -webkit-font-smoothing: antialiased;
-  /* Pixelify Sans draws its "fi" ligature as one glyph that reads as an A: "Bed Aght" */
-  font-variant-ligatures: no-common-ligatures;
 }
 
 img,
@@ -89,9 +87,8 @@ h4 {
 /* A label above a heading, in the letters of the game's labels */
 .eyebrow {
   font-family: var(--font-pixel);
-  font-size: 0.9375rem;
+  font-size: 1rem;
   font-weight: 400;
-  letter-spacing: 0.06em;
   text-transform: uppercase;
   color: var(--red-400);
 }
@@ -111,9 +108,8 @@ h4 {
   background: var(--ink-750);
   color: var(--grey-200);
   font-family: var(--font-pixel);
-  font-size: 0.875rem;
+  font-size: 1rem;
   font-weight: 400;
-  letter-spacing: 0.04em;
   text-transform: uppercase;
   white-space: nowrap;
 }
@@ -160,9 +156,8 @@ h4 {
   background: none;
   color: var(--white);
   font-family: var(--font-display);
-  font-size: 1.125rem;
+  font-size: 1rem;
   font-weight: 600;
-  letter-spacing: 0.04em;
   text-transform: uppercase;
   text-shadow: var(--mc-shadow);
   white-space: nowrap;
@@ -253,8 +248,7 @@ h4 {
   padding: 0.75rem 1rem 0.85rem;
   color: var(--mc-f);
   font-family: var(--font-pixel);
-  font-size: 1.25rem;
-  letter-spacing: 0.03em;
+  font-size: 1rem;
   text-shadow: var(--mc-shadow);
   overflow-wrap: anywhere;
 }
@@ -266,7 +260,6 @@ h4 {
   background: var(--ink-750);
   color: var(--white);
   font: 600 1rem var(--font-display);
-  letter-spacing: 0.04em;
   text-transform: uppercase;
   text-shadow: var(--mc-shadow);
   cursor: pointer;
@@ -357,10 +350,8 @@ h4 {
 
 .division__name {
   font-family: var(--font-display);
-  font-size: var(--text-caption);
-  font-weight: 600;
-  letter-spacing: 0.08em;
-  text-transform: uppercase;
+  font-size: 1rem;
+  font-weight: 400;
 }
 
 .division__elo {
@@ -369,10 +360,23 @@ h4 {
   font-variant-numeric: tabular-nums;
 }
 
+/* the game's letters are wide: eleven in a row only on a wide screen */
+@media (max-width: 1180px) {
+  .divisions {
+    grid-template-columns: repeat(6, minmax(0, 1fr));
+    row-gap: var(--space-5);
+  }
+}
+
 @media (max-width: 760px) {
   .divisions {
     grid-template-columns: repeat(4, minmax(0, 1fr));
-    row-gap: var(--space-5);
+  }
+}
+
+@media (max-width: 480px) {
+  .divisions {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
   }
 }
 
@@ -407,7 +411,7 @@ h4 {
   gap: var(--space-2);
 }
 
-/* the price in Tiny5: the euro sign of Pixelify Sans reads as a 0 */
+/* the price in the font of the game; its font/ascii.png has no euro sign, which comes from Inter */
 .rank__amount {
   font-family: var(--font-pixel);
   white-space: nowrap;
@@ -457,7 +461,6 @@ h4 {
 .mc {
   font-family: var(--font-pixel);
   font-weight: 400;
-  letter-spacing: 0.02em;
 }
 
 .mc-name--free { color: #aaaaaa; }
@@ -535,9 +538,8 @@ h4 {
   margin: 0;
   color: var(--gui-title);
   font-family: var(--font-pixel);
-  font-size: 1.0625rem;
+  font-size: 1rem;
   font-weight: 400;
-  letter-spacing: 0.02em;
   text-transform: none;
 }
 
@@ -652,7 +654,7 @@ h4 {
   justify-items: center;
   gap: 1px;
   font-family: var(--font-pixel);
-  font-size: 1.0625rem;
+  font-size: 1rem;
   line-height: 1.2;
   text-shadow: none;
 }

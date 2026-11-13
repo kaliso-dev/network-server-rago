@@ -38,7 +38,7 @@ test.describe('the home page, before the opening', () => {
     await expect(panel.getByRole('heading', { level: 3 })).toHaveText('Clutch scenario');
     await tabs.getByRole('tab', { name: 'Combo bot' }).click();
     await expect(panel.getByRole('heading', { level: 3 })).toHaveText('Combo bot');
-    await expect(panel.getByRole('link', { name: 'All about Combo bot' })).toHaveAttribute('href', '/modes/combo-bot');
+    await expect(panel.getByRole('link', { name: 'Read more about Combo bot' })).toHaveAttribute('href', '/modes/combo-bot');
     await page.keyboard.press('ArrowDown');
     await expect(tabs.getByRole('tab', { selected: true })).toBeFocused();
     await expect(panel.getByRole('heading', { level: 3 })).toHaveText('KB displace');

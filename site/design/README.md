@@ -6,8 +6,8 @@ logo** (anthracite, le rouge du logo comme seule couleur de marque, le blanc et 
 texte), dans la suite des couleurs du jeu (« le rouge clair du logo, le blanc et le gris », voir
 le README de `bukkit/rago-lobby`).
 
-Refonte du même jour (« Master your skills ») : **le site parle Minecraft**. Une police pixel
-douce, les vraies textures du jeu, les menus du jeu (inventaire, info-bulle, barre d'objets) et
+Refonte du même jour (« Master your skills ») : **le site parle Minecraft**. La police du jeu,
+les vraies textures du jeu, les menus du jeu (inventaire, info-bulle, barre d'objets) et
 les PNJ du lobby en 3D. Le practice passe d'abord, le Ranked après.
 
 | Fichier | Rôle |
@@ -65,23 +65,27 @@ l'image de 1254 px, le dégradé et le liseré sont mesurés sur ses pixels.
 
 | Rôle | Police | Détail |
 | --- | --- | --- |
-| Titres, boutons, noms des modes | **Pixelify Sans** 400 à 700 (variable) | une police pixel aux courbes douces : elle rappelle le jeu sans la police bitmap du jeu ; le titre du hero en capitales |
-| Petits textes du jeu : adresse, commandes, tags, info-bulles, tableau de bord | **Tiny5** 400 | `/play duels`, `[12✫] [VIP] Steve`, « 1v1 · 2v2 » ; une police pixel nette aux petites tailles |
+| Tout ce que le jeu écrirait : titres, boutons, menus, noms des modes, adresse, commandes, tags, info-bulles, tableau de bord | **la police de Minecraft 1.8.8**, normale et grasse | tracée pixel par pixel depuis `font/ascii.png` du jeu, mesurée comme le jeu la mesure ; le gras est celui du jeu (la lettre deux fois, décalée d'un pixel) ; le titre du hero en capitales |
 | Texte | **Inter** 400 à 700 (variable) | les paragraphes restent dans une police de lecture ; chiffres tabulaires pour les prix et les stats |
 
-Tailles fluides (`clamp`), du téléphone au grand écran : display 44 à 88 px, H1 36 à 64, H2 28 à 44,
-H3 20 à 24, texte d'accroche 17 à 20, texte 16, petit 14, légende 12 en capitales espacées.
+Une lettre du jeu fait 8 pixels de haut : ses tailles sont des multiples de 8 px (8, 16, 24, 32…),
+pour que chaque pixel du jeu tombe sur des pixels entiers de l'écran. Les tailles fluides
+(`clamp`) sont arrondies au multiple de 8 le plus proche (`round()`, là où le navigateur le sait) :
+display 40 à 80 px, H1 32 à 56, H2 24 à 40, H3 16 à 24, les petits textes du jeu 16. L'ombre est
+celle du jeu : un pixel du jeu en bas à droite (`--mc-shadow`). Une ligne de titre fait 10 pixels
+du jeu pour 8 (`--leading-heading: 1.25`). Le texte d'accroche fait 17 à 20 px, le texte 16, le
+petit 14 (Inter).
 
-Les trois polices sont sous licence **SIL Open Font License 1.1** (vérifié dans les paquets
-`@fontsource-variable/pixelify-sans`, `@fontsource/tiny5` et `@fontsource-variable/inter`) : libres
-pour un site commercial, à condition de ne pas les vendre seules. **Le site les héberge lui-même**
-(`next/font/local`), sans appel à Google : l'adresse IP des visiteurs n'est envoyée à personne.
+**La police du jeu est à Mojang**, comme les textures : `npm run mc` la construit depuis le même
+paquet `minecraft-assets` (`scripts/mc-font.mjs`), dans `public/mc/font`. Elle est sous la même
+réserve, **à trancher avant l'ouverture** (voir `web/src/data/MINECRAFT-TEXTURES.md`). Inter est
+sous licence **SIL Open Font License 1.1** (vérifié dans `@fontsource-variable/inter`). **Le site
+héberge ses polices lui-même** (`next/font/local`), sans appel à Google : l'adresse IP des
+visiteurs n'est envoyée à personne.
 
-- Pas de police pixel pour les paragraphes : ils restent en Inter, pour se lire vite.
-- Les ligatures sont coupées (`font-variant-ligatures: no-common-ligatures`) : le « fi » de
-  Pixelify Sans se lit comme un A (« Bed Aght »).
-- Le signe € de Pixelify Sans ressemble à un 0 : les prix sont en Tiny5.
-- La police du jeu elle-même (celle de Mojang) n'est pas utilisée.
+- Pas de police du jeu pour les paragraphes : ils restent en Inter, pour se lire vite.
+- Pas d'espacement entre les lettres : le jeu met un pixel entre deux lettres, la police aussi.
+- Les signes que `ascii.png` n'a pas (€, ✦, ✫, →, —) viennent d'Inter.
 
 ## Espaces, formes, profondeur
 
@@ -151,8 +155,8 @@ skinview3d).
   la page de style.
 - Les 16 skins originaux des PNJ (`bukkit/rago-lobby/src/main/resources/skins`) incarnent les
   modes et les catégories, en 3D quand c'est utile.
-- **Les textures de Minecraft 1.8.8** (objets, blocs, barre d'objets) sont dans
-  `web/public/mc`, copiées par `npm run mc`. Elles sont à Mojang : **leur usage sur le site est à
+- **Les textures et la police de Minecraft 1.8.8** (objets, blocs, barre d'objets, `font/ascii.png`)
+  sont dans `web/public/mc`, copiées ou construites par `npm run mc`. Elles sont à Mojang : **leur usage sur le site est à
   vérifier avant l'ouverture** (`web/src/data/MINECRAFT-TEXTURES.md` dit comment les retirer).
 - Pas de fausse capture du jeu : là où une capture manque, la page le dit ou montre un menu
   reconstruit avec les vraies textures et les vrais textes du jeu.
@@ -166,7 +170,7 @@ Contraste AA pour tout le texte, focus visible au clavier sur tout ce qui se cli
 ## Voir la page de style
 
 Ouvrir `styleguide.html` dans un navigateur. Elle montre les couleurs, les tailles et les
-composants de base ; les polices viennent du site (`web/node_modules/@fontsource…`), après un
-`npm install` dans `web`. Elle est en français pour l'équipe ; les textes des composants sont en
+composants de base ; les polices viennent du site (`web/public/mc/font` pour celle du jeu,
+`web/node_modules/@fontsource-variable/inter` pour Inter, après un `npm install` dans `web`). Elle est en français pour l'équipe ; les textes des composants sont en
 anglais, comme le serveur. Les composants React (inventaire, barre d'objets, 3D) se voient sur le
 site lui-même (`npm run dev` dans `web`).

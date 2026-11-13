@@ -5,10 +5,10 @@
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>Rago Practice : système de design</title>
   <link rel="icon" href="../web/public/brand/rago-logo-flat.svg" type="image/svg+xml">
-  <!-- Les polices du site lui-même (OFL), après un npm install dans web : aucun appel à un autre site. -->
+  <!-- Les polices du site lui-même : celle du jeu (npm run mc dans web), Inter (après un npm install dans web). Aucun appel à un autre site. -->
   <style>
-    @font-face { font-family: "Pixelify Sans"; font-weight: 400 700; font-display: swap; src: url("../web/node_modules/@fontsource-variable/pixelify-sans/files/pixelify-sans-latin-wght-normal.woff2") format("woff2"); }
-    @font-face { font-family: "Tiny5"; font-weight: 400; font-display: swap; src: url("../web/node_modules/@fontsource/tiny5/files/tiny5-latin-400-normal.woff2") format("woff2"); }
+    @font-face { font-family: "Minecraft"; font-weight: 400; font-display: swap; src: url("../web/public/mc/font/minecraft.woff2") format("woff2"); }
+    @font-face { font-family: "Minecraft"; font-weight: 700; font-display: swap; src: url("../web/public/mc/font/minecraft-bold.woff2") format("woff2"); }
     @font-face { font-family: "Inter"; font-weight: 100 900; font-display: swap; src: url("../web/node_modules/@fontsource-variable/inter/files/inter-latin-wght-normal.woff2") format("woff2"); }
   </style>
   <link rel="stylesheet" href="tokens.css">
@@ -17,7 +17,7 @@
     /* Mise en page de la page de style seulement */
     .sg-header { border-bottom: var(--line-soft); background: radial-gradient(60rem 24rem at 85% -20%, rgba(232,25,30,.22), transparent 70%), var(--ink-950); }
     .sg-header .container { display: flex; align-items: center; gap: var(--space-5); padding-block: var(--space-7); flex-wrap: wrap; }
-    .lockup { display: flex; align-items: center; gap: var(--space-3); font-family: var(--font-display); font-weight: 700; font-size: 1.25rem; letter-spacing: .06em; }
+    .lockup { display: flex; align-items: center; gap: var(--space-3); font-family: var(--font-display); font-weight: 700; font-size: 1.5rem; }
     .lockup img { width: 2.5rem; }
     .sg-header h1 { font-size: var(--text-h2); margin-top: var(--space-2); }
     .sg-header .meta { margin-left: auto; text-align: right; }
@@ -104,15 +104,15 @@
     <div class="container">
       <div class="eyebrow">03</div>
       <h2>Typographie</h2>
-      <p class="sg-note">Pixelify Sans pour les titres et les boutons (une police pixel aux courbes douces), Tiny5 pour les petits textes du jeu (adresse, commandes, tags, info-bulles), Inter pour les paragraphes. Toutes trois sous licence OFL, hébergées par le site.</p>
-      <div class="type-row"><div class="spec">Display · 44–88 px</div><div class="display">Master your skills.</div></div>
-      <div class="type-row"><div class="spec">H1 · 36–64 px</div><h1 style="font-size:var(--text-h1)">Climb from Coal to Obsidian</h1></div>
-      <div class="type-row"><div class="spec">H2 · 28–44 px</div><h2 style="font-size:var(--text-h2)">Six moments of a real game, on repeat</h2></div>
-      <div class="type-row"><div class="spec">H3 · 20–24 px</div><h3 style="font-size:var(--text-h3)">Block clutch</h3></div>
+      <p class="sg-note">La police de Minecraft 1.8.8, tracée depuis le <code>font/ascii.png</code> du jeu, pour tout ce que le jeu écrirait (titres, boutons, adresse, commandes, tags, info-bulles), en multiples de 8 px ; Inter pour les paragraphes. Les deux sont hébergées par le site ; la police du jeu est à Mojang, son usage est à trancher avant l'ouverture.</p>
+      <div class="type-row"><div class="spec">Display · 40–80 px</div><div class="display">Master your skills.</div></div>
+      <div class="type-row"><div class="spec">H1 · 32–56 px</div><h1 style="font-size:var(--text-h1)">Climb from Coal to Obsidian</h1></div>
+      <div class="type-row"><div class="spec">H2 · 24–40 px</div><h2 style="font-size:var(--text-h2)">Six moments of a real game, on repeat</h2></div>
+      <div class="type-row"><div class="spec">H3 · 16–24 px</div><h3 style="font-size:var(--text-h3)">Block clutch</h3></div>
       <div class="type-row"><div class="spec">Lead · 17–20 px</div><p class="lead" style="margin:0">Train every situation, clutch under pressure and climb from Coal to Obsidian on a competitive 1.8.9 network.</p></div>
       <div class="type-row"><div class="spec">Body · 16 px</div><p style="margin:0;max-width:40em">Every game mode is free, ranked included. Divisions and titles are earned in games and never sold: a duel never changes your ranked ELO.</p></div>
-      <div class="type-row"><div class="spec">Eyebrow · 12 px</div><div class="eyebrow">Season 2 · Ranked Bedwars</div></div>
-      <div class="type-row"><div class="spec">Tiny5 · 14–17 px</div><div class="mc" style="font-size:1.0625rem">/play duels &nbsp;·&nbsp; /duel Steve &nbsp;·&nbsp; /replay 7KQ2</div></div>
+      <div class="type-row"><div class="spec">Eyebrow · 16 px</div><div class="eyebrow">Season 2 · Ranked Bedwars</div></div>
+      <div class="type-row"><div class="spec">Texte du jeu · 16 px</div><div class="mc" style="font-size:1rem">/play duels &nbsp;·&nbsp; /duel Steve &nbsp;·&nbsp; /replay 7KQ2</div></div>
     </div>
   </section>
 

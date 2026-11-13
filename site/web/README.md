@@ -48,12 +48,13 @@ RagoBedwars et le code de RagoPractice, et écrit `src/data/game.json` (versionn
 npm run data         # régénère game.json après un changement du jeu
 npm run data:check   # échoue si game.json n'est plus à jour (la CI le lance)
 npm run skins        # redessine les skins des PNJ (public/skins et public/skins/3d) depuis rago-lobby
-npm run mc           # recopie les textures de Minecraft 1.8.8 (public/mc, src/data/mc-items.json)
+npm run mc           # recopie les textures de Minecraft 1.8.8 et trace sa police (public/mc, src/data/mc-items.json)
 ```
 
 `npm run mc` lit le paquet `minecraft-assets`, trop gros pour être une dépendance (365 Mo) :
-l'installer d'abord avec `npm install --no-save minecraft-assets@1.19.0`. Les textures sont à
-Mojang ; leur usage est à vérifier avant l'ouverture
+l'installer d'abord avec `npm install --no-save minecraft-assets@1.19.0`. La police du site est
+celle du jeu, tracée pixel par pixel depuis son `font/ascii.png` (`scripts/mc-font.mjs`). Les
+textures et la police sont à Mojang ; leur usage est à vérifier avant l'ouverture
 ([src/data/MINECRAFT-TEXTURES.md](src/data/MINECRAFT-TEXTURES.md)).
 
 Les six modes phares (`src/lib/flagship.ts`) sont écrits à la main, mais chaque phrase a été lue
@@ -63,7 +64,8 @@ Les tests (`tests/unit/game-data.test.ts`) relisent ces fichiers de leur côté 
 est vendu sur la boutique en ligne au prix de la config, aucun rang du staff n'apparaît, les 11
 divisions ont leur seuil et leurs gains, chaque mode montré tourne dans un seul plugin qui l'a
 vraiment. `tests/unit/mc-art.test.ts` vérifie que chaque objet montré a sa texture et que les six
-modes phares sont de vrais modes du jeu, tirés de classes qui existent.
+modes phares sont de vrais modes du jeu, tirés de classes qui existent ; `tests/unit/mc-font.test.ts`,
+que la police a les lettres que le site écrit, aux largeurs du jeu.
 
 ## Les tests
 
