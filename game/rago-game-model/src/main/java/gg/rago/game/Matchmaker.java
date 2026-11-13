@@ -45,7 +45,7 @@ public final class Matchmaker {
     private final Map<String, ModeQueue> queues = new LinkedHashMap<>();
     /** The queues of each waiting player, in the order they joined them. */
     private final Map<UUID, List<String>> queuesOf = new HashMap<>();
-    /** The priority of each player in the queues (their rank): 0 for none ({@link ModeQueue#poll(long, ToIntFunction)}). */
+    /** The priority of each player in the queues not ranked (their rank): 0 for none ({@link ModeQueue#poll(long, ToIntFunction)}). */
     private ToIntFunction<UUID> priorities = player -> 0;
 
     public Matchmaker(Collection<GameMode> modes, RatingWindow window) {

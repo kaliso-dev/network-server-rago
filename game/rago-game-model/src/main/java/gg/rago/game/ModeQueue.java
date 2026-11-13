@@ -31,10 +31,11 @@ import java.util.function.ToIntFunction;
  * as one: they play the same match, in the same team, with the party's average rating in a ranked
  * mode. A party never has more players than a team.
  *
- * <p>A priority can go first ({@link #poll(long, ToIntFunction)}: the ranks of the web store): the
- * higher priorities are matched first, then the waiting time decides. It never changes who plays
- * whom in a ranked mode (the gap of ratings first), and after {@link #PRIORITY_MILLIS} of waiting
- * everyone is first in line, so that nobody waits long behind them.
+ * <p>In a mode that is not ranked, a priority can go first ({@link #poll(long, ToIntFunction)}: the
+ * ranks of the web store): the higher priorities are matched first, then the waiting time decides,
+ * and after {@link #PRIORITY_MILLIS} of waiting everyone is first in line, so that nobody waits long
+ * behind them. A ranked mode ignores it: whoever waited longest is matched first, so that a rank
+ * bought on the web store never chooses an opponent nor makes another player wait.
  *
  * <p>Not thread-safe: on a Bukkit server it lives on the main thread, where it only does a few
  * comparisons per second.
@@ -143,7 +144,7 @@ public final class ModeQueue {
     /**
      * Takes out every match that can start now: the highest priority first (of a party: its
      * highest), then the oldest; a player waiting for {@link #PRIORITY_MILLIS} or more goes first
-     * whatever their priority.
+     * whatever their priority. In a ranked mode the priority counts for nothing: the oldest first.
      */
     public List<MatchProposal> poll(long nowMillis, ToIntFunction<UUID> priority) {
         return poll(nowMillis, priority, Collections.<UUID>emptySet());
@@ -163,8 +164,10 @@ public final class ModeQueue {
         final Map<UUID, Integer> first = new HashMap<>();
         for (Unit unit : units) {
             int highest = 0;
-            for (QueueEntry entry : unit.entries) {
-                highest = Math.max(highest, priority.applyAsInt(entry.player()));
+            if (!mode.ranked()) {
+                for (QueueEntry entry : unit.entries) {
+                    highest = Math.max(highest, priority.applyAsInt(entry.player()));
+                }
             }
             first.put(unit.id, unit.waitedMillis(nowMillis) >= PRIORITY_MILLIS ? Integer.MAX_VALUE : highest);
         }

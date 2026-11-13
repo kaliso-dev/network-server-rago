@@ -381,6 +381,30 @@ class ModeQueueTest {
     }
 
     @Test
+    void aRankedQueueIgnoresThePriorityOfTheRanks() {
+        // Three players within the gap of ratings: the one who waited longest plays, whatever the ranks.
+        java.util.function.ToIntFunction<UUID> vip = id -> id.equals(new UUID(0, 1)) ? 1 : 0;
+        ModeQueue ranked = new ModeQueue(new GameMode("ranked-1v1", "Ranked 1v1", 2, 1, true), WINDOW);
+        ranked.add(entry(2, 560, 0)); // no rank, waited the longest
+        ranked.add(entry(3, 540, 1000));
+        ranked.add(entry(1, 500, 2000)); // VIP, came last
+        List<MatchProposal> matches = ranked.poll(5000L, vip);
+        assertEquals(1, matches.size());
+        assertEquals(Arrays.asList(new UUID(0, 2), new UUID(0, 3)), sorted(matches.get(0).players()),
+                "the oldest plays the closest rating, not the VIP");
+        assertEquals(Arrays.asList(new UUID(0, 1)), players(ranked.entries()), "the VIP waits like everyone");
+
+        // The same players in a duel that is not ranked: the rank still goes first.
+        ModeQueue duel = new ModeQueue(new GameMode("sumo", "Sumo", 2, 1, false), WINDOW);
+        duel.add(entry(2, 560, 0));
+        duel.add(entry(3, 540, 1000));
+        duel.add(entry(1, 500, 2000));
+        List<UUID> played = duel.poll(5000L, vip).get(0).players();
+        assertTrue(played.contains(new UUID(0, 1)), "outside Ranked, the VIP plays first");
+        assertEquals(Arrays.asList(new UUID(0, 3)), players(duel.entries()));
+    }
+
+    @Test
     void aPlayerMatchedElsewhereKeepsTheirPlaceButPlaysNothingHere() {
         ModeQueue queue = new ModeQueue(new GameMode("sumo", "Sumo", 2, 1, false), WINDOW);
         QueueEntry a = entry(1, 1000, 0);

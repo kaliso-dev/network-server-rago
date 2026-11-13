@@ -239,7 +239,7 @@ final class Ranks {
         return new RankDef(VIP, "§b[VIP] ", "§b", "§f", false, permissions, null, 0, 0, Material.DIAMOND,
                 Arrays.asList("A light blue name and the §b[VIP]§7 tag", "+25% Network XP in every game", "/fly in the lobby",
                         "Speed I, II or III in the lobby (settings)", "Your arrival announced, with a firework",
-                        "White messages, no chat cooldown", "Priority in the queues (after PREMIUM+)", "3 cosmetics: the Clouds trail,",
+                        "White messages, no chat cooldown", "Priority in the queues, not in Ranked (after PREMIUM+)", "3 cosmetics: the Clouds trail,",
                         "the Heart burst kill, the Love win"),
                 1.25, "aqua", null, true, "4.99€", 1, VIP_GIFT);
     }
@@ -267,7 +267,7 @@ final class Ranks {
                         "A free XP booster every day (x2 XP for 30 minutes; bought ones: x3)",
                         "Host events for the server: /host (Sumo, Brackets, LMS)",
                         "Gift ranks to your friends: /gift <player>",
-                        "The rarest kill effects and victory dances", "The first place in the queues",
+                        "The rarest kill effects and victory dances", "The first place in the queues, not in Ranked",
                         "Everything of VIP, its 3 cosmetics too"),
                 1.5, "rose", PREMIUM, true, "9.99€", 2, PREMIUM_GIFT);
     }

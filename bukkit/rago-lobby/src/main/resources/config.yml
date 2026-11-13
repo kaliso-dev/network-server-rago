@@ -467,8 +467,8 @@ quetes:
 #   boutique-en-ligne  true: sold on the web store, the shop shows the link (liens.boutique)
 #   prix-en-ligne      its price on the web store, shown in the shop and the store ("4.99€")
 #   priorite-file      its place in the queues, 0 to 9: the higher are matched first (PREMIUM+ 2,
-#                VIP 1); after a minute of waiting everyone is first in line, and it never changes
-#                who plays whom in a ranked queue (the ELO first)
+#                VIP 1), and after a minute of waiting everyone is first in line. Never in a ranked
+#                queue: there, whoever waited longest plays first, whatever their rank
 #   prix, niveau the price in Rago Points and the Network level needed in the shop (prix: 0 = not sold)
 #   prix-cadeau  what gifting it to another player costs in Rago Points (/gift, the shop, or the
 #                menu of a player clicked in the lobby), a rank of the web store too; 0 or none:
@@ -540,7 +540,7 @@ rangs:
       "A free XP booster every day (x2 XP for 30 minutes; bought ones: x3)",
       "Host events for the server: /host (Sumo, Brackets, LMS)",
       "Gift ranks to your friends: /gift <player>",
-      "The rarest kill effects and victory dances", "The first place in the queues", "Everything of VIP, its 3 cosmetics too"]
+      "The rarest kill effects and victory dances", "The first place in the queues, not in Ranked", "Everything of VIP, its 3 cosmetics too"]
   vip:
     prefixe: "&b[VIP] "
     couleur: "&b"
@@ -555,7 +555,7 @@ rangs:
     icone: DIAMOND
     avantages: ["A light blue name and the &b[VIP]&7 tag", "+25% Network XP in every game", "/fly in the lobby",
       "Speed I, II or III in the lobby (settings)", "Your arrival announced, with a firework", "White messages, no chat cooldown",
-      "Priority in the queues (after PREMIUM+)", "3 cosmetics: the Clouds trail,", "the Heart burst kill, the Love win"]
+      "Priority in the queues, not in Ranked (after PREMIUM+)", "3 cosmetics: the Clouds trail,", "the Heart burst kill, the Love win"]
 # The colours of name and the badges (/style). A colour is a gradient along the letters of the
 # name, made of the 16 colours of 1.8 (degrade: the colour characters from the first letter to the
 # last, 0 to 9 and a to f: "5ddfd" goes from purple to pink to white; one character for one colour);
