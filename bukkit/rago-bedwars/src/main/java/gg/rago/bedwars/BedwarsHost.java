@@ -277,6 +277,10 @@ final class BedwarsHost implements MatchHost, Listener {
                 return new BedFightGame(plugin, this, instance, mode.id(), name, sides);
             case TOP_BED_FIGHT:
                 return new TopBedFightGame(plugin, this, instance, mode.id(), name, sides);
+            case LOBBY_FIGHT:
+                return new LobbyFightGame(plugin, this, instance, mode.id(), name, sides);
+            case LOBBY_FIGHT_FFA:
+                return new FfaGame(plugin, this, instance, mode.id(), name, sides, false, true);
             default:
                 return new BedwarsGame(plugin, this, instance, mode.id(), name, sides);
         }
@@ -314,9 +318,17 @@ final class BedwarsHost implements MatchHost, Listener {
         return Math.max(2, mode.teams());
     }
 
-    /** The maps this mode can be played on now (config.yml: modes), the demo map when none can. */
+    /**
+     * The maps this mode can be played on now (config.yml: modes), the demo map when none can;
+     * for Lobby Fight, only those with their waiting lobby (salle-attente:).
+     */
     List<BedwarsMap> mapsFor(GameMode mode) {
-        return plugin.maps().playable(islands(mode), plugin.settings().mapsOf(mode.id()));
+        List<BedwarsMap> maps = plugin.maps().playable(islands(mode), plugin.settings().mapsOf(mode.id()));
+        if (plugin.settings().kind(mode.id()).inWaitingLobby()) {
+            maps = new ArrayList<>(maps);
+            maps.removeIf(map -> map.waitingLobby() == null);
+        }
+        return maps;
     }
 
     /**

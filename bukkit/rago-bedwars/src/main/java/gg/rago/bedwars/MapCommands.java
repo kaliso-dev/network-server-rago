@@ -31,16 +31,20 @@ import org.bukkit.entity.Player;
  * the bed), /bw generator red, /bw shop red, /bw upgrades red, then the same for the other teams,
  * /bw diamond and /bw emerald on each of those generators, /bw spectators, and /bw enable. Each
  * change is saved at once in the world's bedwars.yml; the games already running keep the map as it
- * was. For the staff (rago.bedwars.admin).
+ * was. /bw lobbyfight, on the floor of the map's waiting lobby, makes Lobby Fight play there. For
+ * the staff (rago.bedwars.admin).
  */
 final class MapCommands implements CommandExecutor, TabCompleter {
 
     static final String PERMISSION = "rago.bedwars.admin";
     private static final List<String> SUBCOMMANDS = Arrays.asList("maps", "info", "edit", "spawn", "bed", "generator",
-            "shop", "upgrades", "diamond", "emerald", "spectators", "remove", "height", "floor", "void", "enable", "disable");
+            "shop", "upgrades", "diamond", "emerald", "spectators", "remove", "height", "floor", "void", "lobbyfight", "enable",
+            "disable");
     private static final List<String> TEAM_COMMANDS = Arrays.asList("spawn", "bed", "generator", "shop", "upgrades");
     /** How far from the player /bw remove diamond and /bw remove emerald look for the generator. */
     private static final double REMOVE_RADIUS = 5.0;
+    /** The most blocks /bw lobbyfight takes for the floor of a waiting lobby. */
+    private static final int MAX_FLOOR_BLOCKS = 8000;
 
     private final RagoBedwars plugin;
 
@@ -155,6 +159,8 @@ final class MapCommands implements CommandExecutor, TabCompleter {
                 return height(player, map, sub, args, label);
             case "floor":
                 return floor(player, map, args, label);
+            case "lobbyfight":
+                return waitingLobby(player, map, args, label);
             case "enable":
                 if (!map.missing().isEmpty()) {
                     player.sendMessage(ChatColor.RED + "Not yet: " + String.join("; ", map.missing()));
@@ -270,6 +276,81 @@ final class MapCommands implements CommandExecutor, TabCompleter {
         return "Players place blocks down to y " + y + ".";
     }
 
+    /**
+     * /bw lobbyfight, standing on the floor of the map's waiting lobby: Lobby Fight is played there.
+     * The floor is the block under the player's feet and every block of that height joined to it;
+     * the lobby is the round around them (see {@link BedwarsMap.WaitingLobby#around}). /bw
+     * lobbyfight remove: no more.
+     */
+    private String waitingLobby(Player player, BedwarsMap map, String[] args, String label) {
+        if (args.length >= 2 && args[1].equalsIgnoreCase("remove")) {
+            if (map.waitingLobby() == null) {
+                player.sendMessage(ChatColor.RED + map.world() + " has no waiting lobby.");
+                return null;
+            }
+            map.setWaitingLobby(null);
+            return "No more waiting lobby: Lobby Fight is no longer played on " + map.world() + ".";
+        }
+        Location feet = player.getLocation();
+        Block under = feet.getWorld().getBlockAt(feet.getBlockX(), (int) Math.floor(feet.getY() - 0.01), feet.getBlockZ());
+        if (!under.getType().isSolid()) {
+            player.sendMessage(ChatColor.RED + "Stand on the floor of the waiting lobby (not flying), then type /" + label
+                    + " lobbyfight again.");
+            return null;
+        }
+        List<int[]> floor = floorAround(under);
+        if (floor == null) {
+            player.sendMessage(ChatColor.RED + "This floor goes on too far (more than " + MAX_FLOOR_BLOCKS + " blocks, or "
+                    + (int) BedwarsMap.WaitingLobby.MAX_RADIUS + " from you): stand on the floor of the waiting lobby.");
+            return null;
+        }
+        BedwarsMap.WaitingLobby lobby = BedwarsMap.WaitingLobby.around(floor, under.getY());
+        map.setWaitingLobby(lobby);
+        return "Waiting lobby of " + map.world() + ": " + lobby + " (" + floor.size() + " blocks of floor). Lobby Fight is "
+                + "played there, on the maps of its modes (config.yml).";
+    }
+
+    /**
+     * The blocks of the floor (x, z) joined to this one at its height, side by side; null when
+     * they go on too far for a waiting lobby.
+     */
+    private static List<int[]> floorAround(Block start) {
+        World world = start.getWorld();
+        int y = start.getY();
+        List<int[]> floor = new ArrayList<>();
+        java.util.Set<Long> seen = new java.util.HashSet<>();
+        java.util.ArrayDeque<int[]> next = new java.util.ArrayDeque<>();
+        next.add(new int[] {start.getX(), start.getZ()});
+        seen.add(key(start.getX(), start.getZ()));
+        int[][] sides = {{1, 0}, {-1, 0}, {0, 1}, {0, -1}};
+        while (!next.isEmpty()) {
+            int[] block = next.poll();
+            floor.add(block);
+            if (floor.size() > MAX_FLOOR_BLOCKS) {
+                return null;
+            }
+            for (int[] side : sides) {
+                int x = block[0] + side[0];
+                int z = block[1] + side[1];
+                if (Math.abs(x - start.getX()) > BedwarsMap.WaitingLobby.MAX_RADIUS
+                        || Math.abs(z - start.getZ()) > BedwarsMap.WaitingLobby.MAX_RADIUS) {
+                    if (world.getBlockAt(x, y, z).getType().isSolid()) {
+                        return null;
+                    }
+                    continue;
+                }
+                if (seen.add(key(x, z)) && world.getBlockAt(x, y, z).getType().isSolid()) {
+                    next.add(new int[] {x, z});
+                }
+            }
+        }
+        return floor;
+    }
+
+    private static long key(int x, int z) {
+        return ((long) x << 32) ^ (z & 0xFFFFFFFFL);
+    }
+
     /** The bed the player looks at, or stands on or in. */
     private static Block bedNear(Player player) {
         Block target = player.getTargetBlock((Set<Material>) null, 6);
@@ -346,6 +427,8 @@ final class MapCommands implements CommandExecutor, TabCompleter {
         }
         sender.sendMessage(ChatColor.GRAY + " Diamonds: " + map.diamonds() + "; emeralds: " + map.emeralds()
                 + "; spectators: " + (map.spectators() == null ? "automatic" : map.spectators().toString()));
+        sender.sendMessage(ChatColor.GRAY + " Waiting lobby (Lobby Fight): " + (map.waitingLobby() == null
+                ? "none (/bw lobbyfight on its floor)" : ChatColor.WHITE + map.waitingLobby().toString()));
         List<String> missing = map.missing();
         sender.sendMessage(missing.isEmpty() ? ChatColor.GREEN + " Nothing is missing."
                 : ChatColor.YELLOW + " Missing: " + String.join("; ", missing));
@@ -371,6 +454,8 @@ final class MapCommands implements CommandExecutor, TabCompleter {
         sender.sendMessage(ChatColor.YELLOW + l + " height <y>|auto" + ChatColor.GRAY + ", " + ChatColor.YELLOW
                 + l + " void <y>|auto" + ChatColor.GRAY + ": the build limit, the void");
         sender.sendMessage(ChatColor.YELLOW + l + " floor <y>|none" + ChatColor.GRAY + ": the lowest block players place");
+        sender.sendMessage(ChatColor.YELLOW + l + " lobbyfight [remove]" + ChatColor.GRAY
+                + ": on the floor of the waiting lobby, Lobby Fight is played there");
         sender.sendMessage(ChatColor.YELLOW + l + " enable|disable" + ChatColor.GRAY + ": play it, or not");
     }
 
@@ -413,6 +498,8 @@ final class MapCommands implements CommandExecutor, TabCompleter {
                 options.add("auto");
             } else if (sub.equals("floor")) {
                 options.add("none");
+            } else if (sub.equals("lobbyfight")) {
+                options.add("remove");
             }
         }
         String prefix = args.length == 0 ? "" : args[args.length - 1].toLowerCase(Locale.ROOT);

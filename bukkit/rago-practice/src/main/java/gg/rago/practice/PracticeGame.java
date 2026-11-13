@@ -589,6 +589,11 @@ abstract class PracticeGame implements Spectators.Watched {
     void effects(Player player) {
     }
 
+    /** True if the players' health comes back by itself, as in the game (false: the block placement, where it is the score). */
+    boolean regains() {
+        return true;
+    }
+
     private void everySecond() {
         if (phase == Phase.ENDED) {
             return;
@@ -962,6 +967,12 @@ abstract class PracticeGame implements Spectators.Watched {
         return null;
     }
 
+    /** How long ago this player was last hit, in milliseconds; Long.MAX_VALUE if not since their last life. */
+    long sinceHit(UUID victim) {
+        Long at = lastHitAt.get(victim);
+        return at == null ? Long.MAX_VALUE : System.currentTimeMillis() - at;
+    }
+
     /** Forgets the hits on this player (they came back to life). */
     void forgetHits(UUID victim) {
         lastHitBy.remove(victim);
@@ -1245,6 +1256,21 @@ abstract class PracticeGame implements Spectators.Watched {
     /** The entity behind this damage, or null. */
     static Entity damager(EntityDamageEvent event) {
         return event instanceof EntityDamageByEntityEvent ? ((EntityDamageByEntityEvent) event).getDamager() : null;
+    }
+
+    /**
+     * No damage at all from this blow, its knockback only: the damage and each of its reductions to
+     * 0. setDamage(0) alone can leave a reduction (the one of Protection is drawn at random each
+     * time it is worked out), and a hit then heals a little.
+     */
+    @SuppressWarnings("deprecation")
+    static void noDamage(EntityDamageEvent event) {
+        event.setDamage(0.0);
+        for (EntityDamageEvent.DamageModifier modifier : EntityDamageEvent.DamageModifier.values()) {
+            if (modifier != EntityDamageEvent.DamageModifier.BASE && event.isApplicable(modifier)) {
+                event.setDamage(modifier, 0.0);
+            }
+        }
     }
 
     /** True if the player stands on the top of a full block (or of a slab). */

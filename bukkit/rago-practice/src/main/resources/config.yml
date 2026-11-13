@@ -80,7 +80,8 @@ boxing:
 # The other duels: how many points win (in boxing, how many hits). A point is a death or a fall
 # into the void of the other side; in 2v2, when both players of a side are out of the round. In
 # block placement (block-fight), as on Minemen, a point is a hit, and a fall into the void gives
-# the other side 20 points (from 10 to 500).
+# the other side 10 points (from 10 to 500); the hearts of a player tell the points of the other
+# side: all of them at 0, none left at this number.
 points-pour-gagner:
   boxing: 100
   kb-displace: 3

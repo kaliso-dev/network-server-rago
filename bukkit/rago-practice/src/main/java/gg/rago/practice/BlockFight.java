@@ -22,13 +22,19 @@ import org.bukkit.inventory.ItemStack;
  * chestplate of the side, all Protection IV. As on Minemen, the points are the hits: each hit
  * landed on the other side is a point (a hit does no damage, only its knockback), and a fall into
  * the void gives the other side {@value #VOID_BONUS} points and sends the one who fell back on their
- * gold block at once (the others fight on, the blocks stay). First to 100 by default
- * (points-pour-gagner.block-fight).
+ * gold block at once, their kit given back whole (two stacks of wool again; the others fight on,
+ * the blocks stay). First to 100 by default (points-pour-gagner.block-fight). The hearts tell the
+ * score: a player has all their health while the other side has no point, none when it reaches
+ * the target (see {@link #healthFor}), and none comes back by itself.
  */
 final class BlockFight extends Duel {
 
     /** The points the other side gets for a fall into the void. */
     static final int VOID_BONUS = 10;
+    /** The health of a player whose other side has no point. */
+    static final double FULL_HEALTH = 20.0;
+    /** The least health shown, half a heart: the score never kills. */
+    static final double LEAST_HEALTH = 1.0;
 
     BlockFight(PracticeHost host, GameMode mode, Arena arena, List<List<Player>> teams, int target) {
         super(host, mode, arena, teams, target);
@@ -37,6 +43,42 @@ final class BlockFight extends Duel {
     /** The score of the other side after a fall of a player: the bonus of the void. */
     static int afterFall(int points) {
         return points + VOID_BONUS;
+    }
+
+    /**
+     * The health of a player whose other side has these points: full at 0, none left at the
+     * target (100 hits by default), so that the hearts fall as the other side nears its win; half
+     * a heart at least.
+     */
+    static double healthFor(int otherPoints, int target) {
+        if (target <= 0) {
+            return FULL_HEALTH;
+        }
+        double health = FULL_HEALTH * (target - otherPoints) / target;
+        return Math.max(LEAST_HEALTH, Math.min(FULL_HEALTH, health));
+    }
+
+    /** The hearts of every player brought to the score. */
+    private void showHealth() {
+        for (Player player : online()) {
+            int side = sideOf(player.getUniqueId());
+            if (side >= 0 && side < points.length && !player.isDead()) {
+                player.setHealth(Math.min(player.getMaxHealth(), healthFor(points[1 - side], target)));
+            }
+        }
+    }
+
+    /** At the start, the hearts the score leaves (all of them at 0 - 0). */
+    @Override
+    void placeAtStart(Player player) {
+        super.placeAtStart(player);
+        showHealth();
+    }
+
+    /** The hearts are the score: none comes back by itself. */
+    @Override
+    boolean regains() {
+        return false;
     }
 
     @Override
@@ -126,7 +168,8 @@ final class BlockFight extends Duel {
         if (attacker == null) {
             return false;
         }
-        event.setDamage(0.0);
+        // none at all: the hearts are the score
+        noDamage(event);
         return true;
     }
 
@@ -141,12 +184,16 @@ final class BlockFight extends Duel {
             return;
         }
         points[side]++;
+        showHealth();
         if (points[side] >= target) {
             finish(side, null);
         }
     }
 
-    /** A fall into the void: +10 for the other side (the one who knocked them off), and the one who fell back on their start at once. */
+    /**
+     * A fall into the void: +10 for the other side (the one who knocked them off), and the one who
+     * fell back on their start at once, with their whole kit again (two stacks of wool).
+     */
     @Override
     void fell(Player player) {
         UUID id = player.getUniqueId();
@@ -163,6 +210,7 @@ final class BlockFight extends Duel {
         }
         int other = 1 - side;
         points[other] = afterFall(points[other]);
+        showHealth();
         for (Player each : online()) {
             int mine = sideOf(each.getUniqueId());
             each.sendMessage((mine == other ? ChatColor.GREEN + "+" + VOID_BONUS + " for your team" : ChatColor.RED + "+"
@@ -174,10 +222,13 @@ final class BlockFight extends Duel {
             finish(other, null);
             return;
         }
-        // only the one who fell goes back, at once, to their start: the others fight on, the blocks stay
+        // only the one who fell goes back, at once, to their start, with their kit whole again: the
+        // others fight on, the blocks stay
         forgetHits(id);
         player.setFallDistance(0f);
         player.teleport(spawnOf(id));
+        player.setItemOnCursor(null);
+        giveKit(player);
     }
 
     @Override

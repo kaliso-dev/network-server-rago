@@ -36,6 +36,8 @@ modes:
   bed-fight-1v1: [BedFight]
   bed-fight-2v2: [BedFight]
   top-bed-fight-1v1: [TopBedFight]
+  lobby-fight-1v1: [ArchwayFFA]
+  lobby-fight-ffa: [ArchwayFFA]
 
 # The modes that are not a classic Bed Wars game, each with its kind of game:
 #   ffa        free for all, open: players join and leave when they like, each for themselves, and
@@ -85,6 +87,14 @@ modes:
 #              kill or a fall off the bridge (under hauteur-vide) gives a point, the first to 5 wins
 #   fast-shop  Fast Shop: each player on an island with its shop, lists of items to buy as fast as
 #              possible with their own quick buy (copied from Hypixel in the lobby), and records
+#   lobby-fight  Lobby Fight: the rounds of Top Bridge (one life, the first to 5 points) in the
+#              waiting lobby of the map, the platform over it where the players wait before a game
+#              (salle-attente: in its bedwars.yml, set with /bw lobbyfight on its floor; Archway FFA
+#              has one): the two players face to face across its middle, the kit of the FFA (ffa:
+#              in the lobby's config.yml, as each player arranged it) with diamond leggings and boots,
+#              dead a few blocks under its floor, the blocks in the lobby only
+#   lobby-fight-ffa  Lobby Fight FFA: the FFA in the waiting lobby (12 players at most), its kit,
+#              each life somewhere on its floor away from the others
 # A mode not listed is a classic game.
 jeux:
   top-bridge-1v1: top-bridge
@@ -102,6 +112,8 @@ jeux:
   bed-fight-1v1: bed-fight
   bed-fight-2v2: bed-fight
   top-bed-fight-1v1: top-bed-fight
+  lobby-fight-1v1: lobby-fight
+  lobby-fight-ffa: lobby-fight-ffa
 
 # Attack and Defense: the kits each player chooses from before each round, in a menu that opens by
 # itself (/kit opens it again); the countdown is 10 seconds, 3 once everyone has chosen. The

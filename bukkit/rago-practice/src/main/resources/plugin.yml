@@ -16,6 +16,10 @@ commands:
   speed:
     description: Take the Speed II of the boxing off, or get it back.
     usage: /speed
+  center:
+    description: "Back to the centre of Arena Free (not within 5 seconds of a hit)."
+    usage: /center
+    aliases: [centre, middle]
   records:
     description: "The records of the trainings: your best and your place on each board, the top 10, play one."
     usage: /records [player]

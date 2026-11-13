@@ -84,9 +84,9 @@ categories:
     description:
       - "Bed fight, Top BedFight, top"
       - "bridge, bridge fight, block"
-      - "placement in 1v1 or 2v2; sumo,"
-      - "boxing, KB displace, fireball"
-      - "fight, bow."
+      - "placement in 1v1 or 2v2; Lobby"
+      - "Fight, sumo, boxing, KB displace,"
+      - "fireball fight, bow."
       - "/duel a player to challenge them."
   # the modes without a queue: in at once, with whoever is there
   arenes:
@@ -96,9 +96,9 @@ categories:
     description:
       - "No queue, come and go when you"
       - "like: the FFA, Top Bridge FFA,"
-      - "bridge fight, block placement"
-      - "arena and Arena Free. Someone"
-      - "to fight at once."
+      - "Lobby Fight FFA, bridge fight,"
+      - "block placement arena and Arena"
+      - "Free. Someone to fight at once."
 
 # At each arrival in the lobby, the ways to play in the chat: a line per category (its name and
 # slogan), a click opens its modes (/play category); at the first arrival, a title too. false: none.
@@ -1087,7 +1087,8 @@ modes:
     equipes: 2
     joueurs-par-equipe: 1
     classe: false
-    # the fight kit: with full diamond armour, and Protection IV
+    # the fight kit: diamond leggings and boots, a leather helmet and chestplate in the team's
+    # colour, all with Protection IV
     kit: [STONE_SWORD, "GOLDEN_APPLE 64"]
     description:
       - "On top of the top bridge of"
@@ -1102,7 +1103,8 @@ modes:
     equipes: 2
     joueurs-par-equipe: 2
     classe: false
-    # the fight kit: with full diamond armour, and Protection IV
+    # the fight kit: diamond leggings and boots, a leather helmet and chestplate in the team's
+    # colour, all with Protection IV
     kit: [STONE_SWORD, "GOLDEN_APPLE 64"]
     description:
       - "Top Bridge, two against two:"
@@ -1114,6 +1116,7 @@ modes:
     equipes: 1
     joueurs-par-equipe: 1
     classe: false
+    # the fight kit: diamond leggings and boots, a red leather helmet and chestplate, Protection IV
     kit: [STONE_SWORD, "GOLDEN_APPLE 64"]
     description:
       - "The top bridge of Invasion, free"
@@ -1128,7 +1131,8 @@ modes:
     joueurs-par-equipe: 1
     classe: false
     # the fight kit, with 3 fireballs, a pearl, 2 stacks of wool (the blocks go after 10 s, and
-    # only on the islands) and shears: with full diamond armour, and Protection IV
+    # only on the islands) and shears: diamond leggings and boots, a red leather helmet and
+    # chestplate, all with Protection IV
     kit: [STONE_SWORD, "GOLDEN_APPLE 64", "FIREBALL 3", ENDER_PEARL, "WOOL 64", "WOOL 64", SHEARS]
     description:
       - "Free for all on Archway FFA,"
@@ -1136,6 +1140,20 @@ modes:
       - "the top bridge, low, mid or"
       - "at random; come and go when"
       - "you like, a kill heals you."
+  lobby-fight-ffa:
+    nom: "&cLobby Fight FFA"
+    categorie: arenes
+    icone: ENDER_PEARL
+    equipes: 1
+    joueurs-par-equipe: 1
+    classe: false
+    # no kit of its own: the kit of the FFA (ffa:), as each player arranged it, with the red
+    # leather of the FFA
+    description:
+      - "The FFA in the waiting lobby of"
+      - "Archway FFA, with its kit: come"
+      - "and go when you like, fall out"
+      - "of it and you die."
   free-ffa:
     nom: "&cArena Free"
     categorie: arenes
@@ -1235,6 +1253,20 @@ modes:
       - "Block placement, two against"
       - "two: each hit is a point,"
       - "the void costs 10. First to 100."
+  lobby-fight-1v1:
+    nom: "&aLobby Fight 1v1"
+    categorie: duels
+    icone: ENDER_PEARL
+    equipes: 2
+    joueurs-par-equipe: 1
+    classe: false
+    # no kit of its own: the kit of the FFA (ffa:), as each player arranged it, with diamond
+    # leggings and boots, a leather helmet and chestplate in the team's colour, Protection IV
+    description:
+      - "In the waiting lobby of Archway"
+      - "FFA, with the kit of the FFA:"
+      - "rounds of one life, knock them"
+      - "out; the first to 5 points wins."
   block-fight-arena:
     nom: "&cBlock placement arena"
     categorie: arenes

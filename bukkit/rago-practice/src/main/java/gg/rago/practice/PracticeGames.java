@@ -33,6 +33,7 @@ import org.bukkit.event.entity.EntityCombustEvent;
 import org.bukkit.event.entity.EntityDamageEvent;
 import org.bukkit.event.entity.EntityDeathEvent;
 import org.bukkit.event.entity.EntityExplodeEvent;
+import org.bukkit.event.entity.EntityRegainHealthEvent;
 import org.bukkit.event.entity.EntityTargetEvent;
 import org.bukkit.event.entity.FoodLevelChangeEvent;
 import org.bukkit.event.entity.ItemSpawnEvent;
@@ -422,6 +423,15 @@ final class PracticeGames implements Listener {
     @EventHandler(ignoreCancelled = true)
     public void onHunger(FoodLevelChangeEvent event) {
         if (byPlayer.containsKey(event.getEntity().getUniqueId())) {
+            event.setCancelled(true);
+        }
+    }
+
+    /** No health comes back by itself in a mode where it tells the score (the block placement). */
+    @EventHandler(ignoreCancelled = true)
+    public void onRegain(EntityRegainHealthEvent event) {
+        PracticeGame game = byPlayer.get(event.getEntity().getUniqueId());
+        if (game != null && !game.regains()) {
             event.setCancelled(true);
         }
     }

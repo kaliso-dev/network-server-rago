@@ -34,15 +34,20 @@ import org.bukkit.inventory.PlayerInventory;
  * bridge of Antenna, built between the two islands farthest apart: the players start and come
  * back on the platform, away from the others, and one who falls off it is dead. The FFA and Top
  * Bridge FFA play the owner's fight kit: a stone sword and a stack of golden apples (and in the FFA,
- * 3 fireballs, a pearl and 2 stacks of wool), full diamond armour with Protection IV. In both, the
+ * 3 fireballs, a pearl and 2 stacks of wool), diamond leggings and boots with a red leather helmet
+ * and chestplate, Protection IV. In both, the
  * boards of the most kills ever in the mode float in the air beside the fight (see
- * {@link #boardPlaces}), and the sidebar shows the 3 players with the most kills in the game. Main
- * thread only.
+ * {@link #boardPlaces}), and the sidebar shows the 3 players with the most kills in the game. Lobby
+ * Fight FFA (lobby-fight-ffa) is the FFA in the waiting lobby of the map (see {@link LobbyFight}):
+ * the same kit, at most {@value #LOBBY_MAX_PLAYERS} players, each life somewhere on its floor away
+ * from the others, dead a few blocks under it, the blocks in the lobby only. Main thread only.
  */
 final class FfaGame extends BedwarsGame {
 
     /** At most this many players in one copy of the map: the next ones get another copy. */
     static final int MAX_PLAYERS = 16;
+    /** In the waiting lobby (Lobby Fight FFA), smaller: at most this many. */
+    static final int LOBBY_MAX_PLAYERS = 12;
     /** The arena's wait before a new life; the FFA and Top Bridge FFA have none: the respawn is instant. */
     static final int ARENA_RESPAWN_SECONDS = 3;
     /** The blocks placed in the FFA go after this long... */
@@ -57,6 +62,8 @@ final class FfaGame extends BedwarsGame {
     private static final Material[] TOP_FIGHT = {Material.ENDER_STONE, Material.WOOD, Material.WOOL};
 
     private final boolean arena;
+    /** Lobby Fight FFA: the fight in the map's waiting lobby; null for the others. */
+    private final LobbyFight lobby;
     /** Every island of the map: where the players come back, where the forges and shops stand. */
     private final List<Team> islands = new ArrayList<>();
     private final BlockDecay decay;
@@ -78,6 +85,10 @@ final class FfaGame extends BedwarsGame {
     static final int BOARD_BESIDE_BRIDGE = TopBridge.HALF_WIDTH + 8;
     /** ...its top line this high above the platform. */
     static final int BOARD_ABOVE_BRIDGE = 7;
+    /** Lobby Fight FFA: the board this far past the edge of the lobby... */
+    static final int BOARD_BESIDE_LOBBY = 4;
+    /** ...its top line this high above the floor. */
+    static final int BOARD_ABOVE_LOBBY = 5;
     /** Without a place in the map (classement:), the top line this high above the highest a player can build. */
     static final int BOARD_ABOVE_LIMIT = 4;
     /** The boards of the most kills (FFA and Top Bridge FFA); none until the first second, nor in the arena. */
@@ -88,8 +99,16 @@ final class FfaGame extends BedwarsGame {
 
     FfaGame(RagoBedwars plugin, BedwarsHost host, Instance instance, String modeId, String modeName,
             List<List<Player>> sides, boolean arena) {
+        this(plugin, host, instance, modeId, modeName, sides, arena, false);
+    }
+
+    /** The FFA, the arena, or Lobby Fight FFA (inLobby: in the map's waiting lobby, which it must have). */
+    FfaGame(RagoBedwars plugin, BedwarsHost host, Instance instance, String modeId, String modeName,
+            List<List<Player>> sides, boolean arena, boolean inLobby) {
         super(plugin, host, instance, modeId, modeName, sides, arena ? plugin.arenaCatalog() : plugin.catalog());
         this.arena = arena;
+        this.lobby = inLobby && !arena && instance.map().waitingLobby() != null
+                ? new LobbyFight(instance.map().waitingLobby(), instance.world()) : null;
         this.decay = new BlockDecay(arena ? ARENA_DECAY_SECONDS : DECAY_SECONDS);
         for (TeamColor color : instance.map().completeTeams()) {
             islands.add(new Team(color, instance.map().teams().get(color)));
@@ -106,7 +125,13 @@ final class FfaGame extends BedwarsGame {
 
     @Override
     boolean joinable() {
-        return phase != Phase.ENDED && present().size() < MAX_PLAYERS;
+        return phase != Phase.ENDED && present().size() < (lobby != null ? LOBBY_MAX_PLAYERS : MAX_PLAYERS);
+    }
+
+    /** True for Lobby Fight FFA, in the map's waiting lobby. */
+    @Override
+    boolean playsInWaitingLobby() {
+        return lobby != null;
     }
 
     /** A player joins the game that is on: their own team, in the next colour. */
@@ -125,7 +150,8 @@ final class FfaGame extends BedwarsGame {
         host.joined(id, this);
         place(player, gamer);
         welcome(player, gamer);
-        broadcast(gamer.coloured() + ChatColor.GRAY + " joined the " + (arena ? "arena" : "FFA") + ".", null);
+        broadcast(gamer.coloured() + ChatColor.GRAY + " joined the " + (arena ? "arena" : lobby != null ? "lobby fight"
+                : "FFA") + ".", null);
         sidebars();
     }
 
@@ -245,7 +271,18 @@ final class FfaGame extends BedwarsGame {
     /** Top Bridge FFA: everyone on the platform, and dead when they fall off it. */
     @Override
     boolean onTheBridge() {
-        return !arena && hasTopBridge();
+        return !arena && lobby == null && hasTopBridge();
+    }
+
+    /** In the waiting lobby, a few blocks under its floor is the fall of a death. */
+    @Override
+    double fallLine() {
+        return lobby != null ? lobby.fallLine() : super.fallLine();
+    }
+
+    @Override
+    Location watchPoint() {
+        return lobby != null ? lobby.watchPoint() : super.watchPoint();
     }
 
     /**
@@ -260,7 +297,11 @@ final class FfaGame extends BedwarsGame {
         }
         World world = instance.world();
         List<Location> spawns = new ArrayList<>();
-        if (onTheBridge() && topBridge != null) {
+        if (lobby != null) {
+            for (int i = 0; i < 8; i++) {
+                spawns.add(lobby.anywhere(random));
+            }
+        } else if (onTheBridge() && topBridge != null) {
             for (int i = 0; i < 8; i++) {
                 spawns.add(at(topBridge.anywhere(random)));
             }
@@ -292,9 +333,9 @@ final class FfaGame extends BedwarsGame {
 
     // --- The spawn to choose (Archway FFA: Top bridge, Low, Mid or Random) ----------------------
 
-    /** The FFA (not the arena, nor the top bridge) on a map with spawns to choose from. */
+    /** The FFA (not the arena, nor the top bridge, nor the waiting lobby) on a map with spawns to choose from. */
     boolean choosesSpawn() {
-        return !arena && !onTheBridge() && !instance.map().spawnChoices().isEmpty();
+        return !arena && lobby == null && !onTheBridge() && !instance.map().spawnChoices().isEmpty();
     }
 
     /**
@@ -406,8 +447,13 @@ final class FfaGame extends BedwarsGame {
                     + "shop of its own: the diamonds buy Sharpness, Power II, Strength... Your armour stays; the beds have "
                     + "a defense ready for top fights.");
         } else if (onTheBridge()) {
-            player.sendMessage(ChatColor.GRAY + "Everyone fights on the platform of the top bridge, in diamond armour: fall "
+            player.sendMessage(ChatColor.GRAY + "Everyone fights on the platform of the top bridge, diamond leggings and boots on: fall "
                     + "off and you die, and come back on it. A kill heals you. /spawn takes you back to the lobby.");
+            return;
+        } else if (lobby != null) {
+            player.sendMessage(ChatColor.GRAY + "Everyone fights in the waiting lobby of the map with the kit of the FFA (as you"
+                    + " arranged it in the lobby's kit editor): fall out of it and you die, and come back in it. A kill heals"
+                    + " you. Your blocks go after " + decay.seconds() + " seconds. /spawn takes you back to the lobby.");
             return;
         } else {
             player.sendMessage(ChatColor.GRAY + "Your kit (arranged in the lobby's kit editor) comes back at each life, "
@@ -428,7 +474,10 @@ final class FfaGame extends BedwarsGame {
                 + ". /spawn takes you back to the lobby.");
     }
 
-    /** FFA: the mode's kit and diamond armour at each life. Arena: the start of a Bed Wars life. */
+    /**
+     * FFA: the mode's kit and the fight armour, its leather red for everyone, at each life. Arena:
+     * the start of a Bed Wars life.
+     */
     @Override
     void giveKit(Player player, Gamer gamer) {
         if (arena) {
@@ -441,22 +490,29 @@ final class FfaGame extends BedwarsGame {
         if (kit != null) {
             inventory.setContents(kit);
         } else {
-            // the owner's fight kit; the FFA adds 3 fireballs, a pearl, 2 stacks of wool and shears
-            List<ItemStack> items = new ArrayList<>(java.util.Arrays.asList(new ItemStack(Material.STONE_SWORD),
-                    new ItemStack(Material.GOLDEN_APPLE, 64)));
-            if (!onTheBridge()) {
-                items.add(new ItemStack(Material.FIREBALL, 3));
-                items.add(new ItemStack(Material.ENDER_PEARL));
-                items.add(new ItemStack(Material.WOOL, 64));
-                items.add(new ItemStack(Material.WOOL, 64));
-                items.add(new ItemStack(Material.SHEARS));
-            }
-            for (ItemStack item : items) {
+            for (ItemStack item : fightKit(!onTheBridge())) {
                 inventory.addItem(kitItem(item, gamer));
             }
         }
-        fightArmour(player);
+        fightArmour(player, TeamColor.RED.leather());
         player.updateInventory();
+    }
+
+    /**
+     * The owner's fight kit, when the lobby has none for the mode: a stone sword and a stack of
+     * golden apples; the FFA's (full) adds 3 fireballs, a pearl, 2 stacks of wool and shears.
+     */
+    static List<ItemStack> fightKit(boolean full) {
+        List<ItemStack> items = new ArrayList<>(java.util.Arrays.asList(new ItemStack(Material.STONE_SWORD),
+                new ItemStack(Material.GOLDEN_APPLE, 64)));
+        if (full) {
+            items.add(new ItemStack(Material.FIREBALL, 3));
+            items.add(new ItemStack(Material.ENDER_PEARL));
+            items.add(new ItemStack(Material.WOOL, 64));
+            items.add(new ItemStack(Material.WOOL, 64));
+            items.add(new ItemStack(Material.SHEARS));
+        }
+        return items;
     }
 
     @Override
@@ -486,6 +542,9 @@ final class FfaGame extends BedwarsGame {
      */
     @Override
     String cannotBuildAt(Block block) {
+        if (lobby != null) {
+            return lobby.cannotBuildAt(block);
+        }
         String refused = super.cannotBuildAt(block);
         if (refused != null || !choosesSpawn()) {
             return refused;
@@ -551,6 +610,13 @@ final class FfaGame extends BedwarsGame {
     List<Location> boardPlaces() {
         World world = instance.world();
         List<Location> places = new ArrayList<>();
+        if (lobby != null) {
+            // in the air past the east edge of the lobby, its top line a little above the heads
+            BedwarsMap.WaitingLobby room = lobby.lobby();
+            places.add(new Location(world, room.centreX + room.radius + BOARD_BESIDE_LOBBY, room.floorY + BOARD_ABOVE_LOBBY,
+                    room.centreZ));
+            return places;
+        }
         if (onTheBridge()) {
             if (topBridge != null) {
                 double[] spot = topBridge.beside(BOARD_BESIDE_BRIDGE, BOARD_ABOVE_BRIDGE);

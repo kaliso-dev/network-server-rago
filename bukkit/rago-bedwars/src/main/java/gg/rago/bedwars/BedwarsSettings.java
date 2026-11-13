@@ -244,7 +244,19 @@ final class BedwarsSettings {
          * Top Bed Fight: Top Bridge's rounds of one life to 5 points on the bridge a map has on top,
          * the spawns of the map at its ends, in leather armour with the mode's kit.
          */
-        TOP_BED_FIGHT("top-bed-fight");
+        TOP_BED_FIGHT("top-bed-fight"),
+        /**
+         * Lobby Fight: Top Bridge's rounds of one life to 5 points in the waiting lobby of the map
+         * (salle-attente: in its bedwars.yml), with the kit of the FFA.
+         */
+        LOBBY_FIGHT("lobby-fight"),
+        /** Lobby Fight FFA: the FFA in the waiting lobby of the map, open to everyone. */
+        LOBBY_FIGHT_FFA("lobby-fight-ffa");
+
+        /** True if this kind is played in the waiting lobby of its maps, which they must have. */
+        boolean inWaitingLobby() {
+            return this == LOBBY_FIGHT || this == LOBBY_FIGHT_FFA;
+        }
 
         final String word;
 

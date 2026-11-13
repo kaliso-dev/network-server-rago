@@ -63,9 +63,9 @@ class LobbySettingsTest {
         assertEquals("lobby", settings.world());
         assertEquals(0, settings.voidHeight());
         assertEquals(0, settings.defaultRating(), "a ranked ELO starts at 0, in Coal");
-        assertEquals(60, settings.modes().size(), "with the private top bridge, the clutch scenario, the bed fight, Top"
-                + " BedFight, the bridge fight 2v2, the full map first rush, Sky Rise Resources and the timed bridge, without"
-                + " the top fight or the ranked scenarios");
+        assertEquals(62, settings.modes().size(), "with the private top bridge, the clutch scenario, the bed fight, Top"
+                + " BedFight, the bridge fight 2v2, the full map first rush, Sky Rise Resources, the timed bridge and Lobby"
+                + " Fight (1v1, FFA), without the top fight or the ranked scenarios");
         assertEquals("skyrise", settings.display("skyrise-resources-1v1").group(), "beside Sky Rise");
         assertFalse(settings.catalog().get("top-bridge-1v1").ranked(), "Top Bridge: no ELO");
         assertEquals("2v2", settings.catalog().get("top-bridge-2v2").format());
@@ -111,12 +111,16 @@ class LobbySettingsTest {
                 "bridge-fight-2v2", "block-fight-1v1", "block-fight-2v2", "sumo")) {
             assertEquals("duels", settings.display(duel).category(), duel + ": in the Duels NPC and compass");
         }
-        for (String arena : Arrays.asList("top-bridge-ffa", "ffa", "free-ffa", "bridge-fight", "block-fight-arena")) {
+        for (String arena : Arrays.asList("top-bridge-ffa", "ffa", "lobby-fight-ffa", "free-ffa", "bridge-fight",
+                "block-fight-arena")) {
             assertEquals("arenes", settings.display(arena).category(), arena + ": no queue, in the Arenas");
             assertNull(settings.display(arena).group(), arena + ": one item each, side by side");
         }
-        assertEquals(Arrays.asList("top-bridge-ffa", "ffa", "free-ffa", "bridge-fight", "block-fight-arena"),
-                displayIds(settings.modesIn("arenes")), "the five arenas, nothing else");
+        assertEquals(Arrays.asList("top-bridge-ffa", "ffa", "lobby-fight-ffa", "free-ffa", "bridge-fight", "block-fight-arena"),
+                displayIds(settings.modesIn("arenes")), "the six arenas, nothing else");
+        assertEquals("duels", settings.display("lobby-fight-1v1").category(), "Lobby Fight 1v1: a duel");
+        assertNull(settings.display("lobby-fight-1v1").kit(), "no kit of its own: the FFA's");
+        assertNull(settings.display("lobby-fight-ffa").kit());
         assertEquals("entrainement", settings.display("kb-displace-bot").category(), "against a bot: practice");
         int total = 0;
         for (ModeCategory category : settings.categories()) {
@@ -156,6 +160,7 @@ class LobbySettingsTest {
         assertEquals("top-bridge", duels.get(2).group.id());
         assertEquals("bridge-fight", duels.get(3).group.id());
         assertEquals("block-placement", duels.get(4).group.id());
+        assertEquals("lobby-fight-1v1", duels.get(5).mode.mode().id(), "Lobby Fight after the block placement");
         assertTrue(ranked.size() <= 14, "two rows at most: " + ranked.size());
         assertNull(settings.display("top-fight-1v1"), "no top fight: there are bridge fight and top bridge");
         assertNull(settings.privateRoutes().get("top-fight-prive"));
