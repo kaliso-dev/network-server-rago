@@ -18,7 +18,7 @@ export function SiteFooter() {
           <p>
             <strong>Rago Practice</strong>
             <br />
-            <span className="muted">Ranked Bedwars and practice, Minecraft {settings.minecraftVersion}.</span>
+            <span className="muted">PvP practice, Minecraft {settings.minecraftVersion}, in Europe.</span>
           </p>
         </div>
         <nav aria-label="The site">

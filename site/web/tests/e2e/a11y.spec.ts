@@ -35,7 +35,7 @@ test.describe('accessibility', () => {
     await page.goto(ONLINE);
     const reachable = await page
       .locator('a[href]:visible, button:visible, summary:visible')
-      .evaluateAll((els) => els.length);
+      .evaluateAll((els) => els.filter((el) => el.getAttribute('tabindex') !== '-1').length);
     const seen = new Set<string>();
     for (let i = 0; i < reachable + 5; i++) {
       await page.keyboard.press('Tab');
@@ -57,35 +57,39 @@ test.describe('accessibility', () => {
     expect(seen.size).toBeGreaterThanOrEqual(reachable);
   });
 
-  test('the menu of small screens opens and closes with the keyboard', async ({ page, isMobile }) => {
-    test.skip(!isMobile, 'the menu shows on small screens');
+  test('the hotbar leads to the parts of the site, with the keys 1 to 9 once it has the focus', async ({ page }) => {
     await page.goto(SOON);
-    const menu = page.locator('summary[aria-label="Menu"]');
-    await menu.focus();
-    await page.keyboard.press('Enter');
-    const nav = page.getByRole('navigation', { name: 'Main, on small screens' });
-    await expect(nav.getByRole('link', { name: 'Modes' })).toBeVisible();
-    await page.keyboard.press('Enter');
-    await expect(nav.getByRole('link', { name: 'Modes' })).toBeHidden();
+    const hotbar = page.getByRole('navigation', { name: 'Main' });
+    await expect(hotbar.getByRole('link')).toHaveCount(7);
+    // the keys do nothing while the focus is elsewhere: a player typing on the page is not sent away
+    await page.keyboard.press('4');
+    await expect(page).toHaveURL(`${SOON}/`);
+    await hotbar.getByRole('link', { name: 'How to join' }).focus();
+    await page.keyboard.press('1');
+    await expect(page).toHaveURL(/\/modes$/);
+    await expect(page.getByRole('heading', { level: 1 })).toHaveText('Game modes');
+    await expect(hotbar.getByRole('link', { name: 'Game modes' })).toHaveAttribute('aria-current', 'page');
   });
 
-  test('nothing moves when reduced motion is asked for', async ({ browser }) => {
-    const context = await browser.newContext({ reducedMotion: 'reduce' });
-    const page = await context.newPage();
-    await page.goto(SOON);
-    const moving = await page.evaluate(() => {
-      const scroll = getComputedStyle(document.documentElement).scrollBehavior;
-      const animated = [...document.querySelectorAll<HTMLElement>('*')].filter((el) => {
-        const style = getComputedStyle(el);
-        return (
-          (style.animationName !== 'none' && parseFloat(style.animationDuration) > 0) ||
-          parseFloat(style.transitionDuration) > 0.01
-        );
+  for (const path of ['/', '/modes', '/modes/combo-bot']) {
+    test(`nothing moves on ${path} when reduced motion is asked for`, async ({ browser }) => {
+      const context = await browser.newContext({ reducedMotion: 'reduce' });
+      const page = await context.newPage();
+      await page.goto(SOON + path);
+      const moving = await page.evaluate(() => {
+        const scroll = getComputedStyle(document.documentElement).scrollBehavior;
+        const animated = [...document.querySelectorAll<HTMLElement>('*')].filter((el) => {
+          const style = getComputedStyle(el);
+          return (
+            (style.animationName !== 'none' && parseFloat(style.animationDuration) > 0) ||
+            parseFloat(style.transitionDuration) > 0.01
+          );
+        });
+        return { scroll, animated: animated.map((el) => el.className).slice(0, 5) };
       });
-      return { scroll, animated: animated.map((el) => el.className).slice(0, 5) };
+      expect(moving.scroll).toBe('auto');
+      expect(moving.animated).toEqual([]);
+      await context.close();
     });
-    expect(moving.scroll).toBe('auto');
-    expect(moving.animated).toEqual([]);
-    await context.close();
-  });
+  }
 });

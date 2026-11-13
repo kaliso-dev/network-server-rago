@@ -5,10 +5,12 @@
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>Rago Practice : système de design</title>
   <link rel="icon" href="../web/public/brand/rago-logo-flat.svg" type="image/svg+xml">
-  <!-- Page de travail : les polices viennent de Google Fonts. Le site les hébergera lui-même (README). -->
-  <link rel="preconnect" href="https://fonts.googleapis.com">
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Chakra+Petch:wght@500;600;700&family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@500;600&display=swap" rel="stylesheet">
+  <!-- Les polices du site lui-même (OFL), après un npm install dans web : aucun appel à un autre site. -->
+  <style>
+    @font-face { font-family: "Pixelify Sans"; font-weight: 400 700; font-display: swap; src: url("../web/node_modules/@fontsource-variable/pixelify-sans/files/pixelify-sans-latin-wght-normal.woff2") format("woff2"); }
+    @font-face { font-family: "Tiny5"; font-weight: 400; font-display: swap; src: url("../web/node_modules/@fontsource/tiny5/files/tiny5-latin-400-normal.woff2") format("woff2"); }
+    @font-face { font-family: "Inter"; font-weight: 100 900; font-display: swap; src: url("../web/node_modules/@fontsource-variable/inter/files/inter-latin-wght-normal.woff2") format("woff2"); }
+  </style>
   <link rel="stylesheet" href="tokens.css">
   <link rel="stylesheet" href="components.css">
   <style>
@@ -102,15 +104,15 @@
     <div class="container">
       <div class="eyebrow">03</div>
       <h2>Typographie</h2>
-      <p class="sg-note">Chakra Petch pour les titres (ses coupes droites rappellent le R), Inter pour le texte, JetBrains Mono pour l'adresse, les commandes et les noms du jeu. Pas de police pixel pour le texte.</p>
-      <div class="type-row"><div class="spec">Display · 44–88 px</div><div class="display">Master Ranked Bedwars.</div></div>
+      <p class="sg-note">Pixelify Sans pour les titres et les boutons (une police pixel aux courbes douces), Tiny5 pour les petits textes du jeu (adresse, commandes, tags, info-bulles), Inter pour les paragraphes. Toutes trois sous licence OFL, hébergées par le site.</p>
+      <div class="type-row"><div class="spec">Display · 44–88 px</div><div class="display">Master your skills.</div></div>
       <div class="type-row"><div class="spec">H1 · 36–64 px</div><h1 style="font-size:var(--text-h1)">Climb from Coal to Obsidian</h1></div>
-      <div class="type-row"><div class="spec">H2 · 28–44 px</div><h2 style="font-size:var(--text-h2)">Train every situation</h2></div>
+      <div class="type-row"><div class="spec">H2 · 28–44 px</div><h2 style="font-size:var(--text-h2)">Six moments of a real game, on repeat</h2></div>
       <div class="type-row"><div class="spec">H3 · 20–24 px</div><h3 style="font-size:var(--text-h3)">Block clutch</h3></div>
       <div class="type-row"><div class="spec">Lead · 17–20 px</div><p class="lead" style="margin:0">Train every situation, clutch under pressure and climb from Coal to Obsidian on a competitive 1.8.9 network.</p></div>
       <div class="type-row"><div class="spec">Body · 16 px</div><p style="margin:0;max-width:40em">Every game mode is free, ranked included. Divisions and titles are earned in games and never sold: a duel never changes your ranked ELO.</p></div>
       <div class="type-row"><div class="spec">Eyebrow · 12 px</div><div class="eyebrow">Season 2 · Ranked Bedwars</div></div>
-      <div class="type-row"><div class="spec">Mono · 14–17 px</div><div class="mc" style="font-size:1.0625rem">rago.gg &nbsp;·&nbsp; /play duels &nbsp;·&nbsp; /replay 7KQ2</div></div>
+      <div class="type-row"><div class="spec">Tiny5 · 14–17 px</div><div class="mc" style="font-size:1.0625rem">/play duels &nbsp;·&nbsp; /duel Steve &nbsp;·&nbsp; /replay 7KQ2</div></div>
     </div>
   </section>
 

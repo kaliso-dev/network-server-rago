@@ -4,10 +4,16 @@ import { ONLINE, PAGES, SOON, scrollThrough, watch } from './helpers';
 test.describe('the home page, before the opening', () => {
   test('renders its sections, with Discord first and no address', async ({ page }) => {
     await page.goto(SOON);
-    await expect(page.getByRole('heading', { level: 1 })).toHaveText('Master Ranked Bedwars.');
-    for (const id of ['join', 'train', 'modes', 'ranked', 'knockback', 'tools', 'store', 'community', 'finale']) {
-      await expect(page.locator(`[aria-labelledby="${id}"]`), id).toBeVisible();
+    await expect(page.getByRole('heading', { level: 1 })).toHaveText(/^Rago Practice\s*Master your skills\.$/);
+    // practice first: the six modes, then every other way to play, the combat, and Ranked after
+    const order = ['hero-title', 'modes', 'play', 'combat', 'ranked', 'cosmetics', 'support', 'community', 'join'];
+    for (const id of order) {
+      await expect(page.locator(`section[aria-labelledby="${id}"]`), id).toBeVisible();
     }
+    const tops = await Promise.all(
+      order.map((id) => page.locator(`section[aria-labelledby="${id}"]`).evaluate((el) => el.getBoundingClientRect().top)),
+    );
+    expect([...tops].sort((a, b) => a - b)).toEqual(tops);
     await expect(page.getByText('The server address comes with the opening.')).toBeVisible();
     await expect(page.getByRole('button', { name: /^Copy IP/ })).toHaveCount(0);
     await expect(page.getByText('Opening soon').first()).toBeVisible();
@@ -17,6 +23,40 @@ test.describe('the home page, before the opening', () => {
     await expect(page.getByRole('heading', { name: 'PREMIUM+', exact: true })).toBeVisible();
     await expect(page.getByRole('button', { name: /buy/i })).toHaveCount(0);
     await expect(page.getByRole('link', { name: /buy/i })).toHaveCount(0);
+    // a rank supports the server: the page says so, in the words of the brief
+    await expect(page.locator('section[aria-labelledby="support"]')).toContainText(
+      'Purchasing a rank is an optional way to support the server',
+    );
+  });
+
+  test('picks a mode of the six with its item, by click or with the arrows', async ({ page }) => {
+    await page.goto(SOON);
+    const tabs = page.getByRole('tablist', { name: 'The modes' });
+    const panel = page.getByRole('tabpanel');
+    await expect(tabs.getByRole('tab')).toHaveCount(6);
+    await expect(tabs.getByRole('tab', { selected: true })).toHaveAccessibleName(/^Clutch scenario/);
+    await expect(panel.getByRole('heading', { level: 3 })).toHaveText('Clutch scenario');
+    await tabs.getByRole('tab', { name: 'Combo bot' }).click();
+    await expect(panel.getByRole('heading', { level: 3 })).toHaveText('Combo bot');
+    await expect(panel.getByRole('link', { name: 'All about Combo bot' })).toHaveAttribute('href', '/modes/combo-bot');
+    await page.keyboard.press('ArrowDown');
+    await expect(tabs.getByRole('tab', { selected: true })).toBeFocused();
+    await expect(panel.getByRole('heading', { level: 3 })).toHaveText('KB displace');
+    await page.keyboard.press('Home');
+    await expect(panel.getByRole('heading', { level: 3 })).toHaveText('Clutch scenario');
+    await page.keyboard.press('ArrowUp');
+    await expect(panel.getByRole('heading', { level: 3 })).toHaveText('Block edit');
+  });
+
+  test('shows the tooltip of a cosmetic and its detail once picked', async ({ page }) => {
+    await page.goto(SOON);
+    const menus = page.locator('section[aria-labelledby="cosmetics"] .gui');
+    await expect(menus).toHaveCount(3);
+    const slot = menus.first().locator('button.slot').nth(1);
+    await slot.hover();
+    await expect(page.getByRole('tooltip')).toBeVisible();
+    await slot.click();
+    await expect(slot).toHaveAttribute('aria-pressed', 'true');
   });
 
   test('opens the Discord invite in a new tab', async ({ page }) => {

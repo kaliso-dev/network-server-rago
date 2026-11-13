@@ -4,15 +4,21 @@ import { settings } from '@/lib/settings';
 import { ButtonLink } from './ui';
 import styles from './SiteHeader.module.css';
 
-/** The sections of the home page; they become pages of their own later (doc 03, § 5.1). */
+/** The parts of the site, in the order of the hotbar (Hotbar.tsx), for the footer and the header. */
 export const NAV = [
-  { href: '/#join', label: 'Join' },
-  { href: '/#modes', label: 'Modes' },
+  { href: '/modes', label: 'Game modes' },
+  { href: '/#join', label: 'How to join' },
+  { href: '/#combat', label: 'Combat' },
   { href: '/#ranked', label: 'Ranked' },
-  { href: '/#store', label: 'Store' },
+  { href: '/#cosmetics', label: 'Cosmetics' },
+  { href: '/#support', label: 'Support' },
   { href: '/#community', label: 'Community' },
 ];
 
+/**
+ * The bar at the top: the name of the server, the way to the modes and the main action. The menu
+ * itself is the hotbar at the bottom of the screen.
+ */
 export function SiteHeader() {
   const action =
     settings.state === 'online' ? (
@@ -36,32 +42,10 @@ export function SiteHeader() {
             Rago <span>Practice</span>
           </span>
         </Link>
-        <nav className={styles.nav} aria-label="Main">
-          <ul>
-            {NAV.map((item) => (
-              <li key={item.href}>
-                <a href={item.href}>{item.label}</a>
-              </li>
-            ))}
-          </ul>
+        <nav className={styles.nav} aria-label="Shortcuts">
+          <Link href="/modes">Game modes</Link>
         </nav>
-        <div className={styles.actions}>
-          {action}
-          <details className={styles.menu}>
-            <summary aria-label="Menu">
-              <span aria-hidden="true" className={styles.burger} />
-            </summary>
-            <nav aria-label="Main, on small screens">
-              <ul>
-                {NAV.map((item) => (
-                  <li key={item.href}>
-                    <a href={item.href}>{item.label}</a>
-                  </li>
-                ))}
-              </ul>
-            </nav>
-          </details>
-        </div>
+        <div className={styles.actions}>{action}</div>
       </div>
     </header>
   );

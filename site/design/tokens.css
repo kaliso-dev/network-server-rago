@@ -1,8 +1,10 @@
 /*
  * Rago Practice: the design tokens of the website.
  * Dark theme only (decided on 13 November 2026): charcoal grounds, the red of the logo as the
- * one brand colour, white and greys for the text. The Minecraft colours of the game (categories,
- * ranks, divisions) are small accents only. Every value is explained in design/README.md.
+ * one brand colour, white and greys for the text. The 16 colours of the game's chat carry the
+ * meaning, as in the game (categories, ranks, divisions). The shapes are those of the game: pixel
+ * steps instead of rounded corners, the bevels of its menus. Every value is explained in
+ * design/README.md.
  */
 
 :root {
@@ -61,10 +63,40 @@
   --div-amethyst: #aa00aa;
   --div-obsidian: #000000;
 
-  /* Typography */
-  --font-display: "Chakra Petch", "Inter", system-ui, sans-serif;
+  /* The 16 colours of the chat (&0 to &f), as the game draws them, and the colour of a shadow */
+  --mc-0: #000000;
+  --mc-1: #0000aa;
+  --mc-2: #00aa00;
+  --mc-3: #00aaaa;
+  --mc-4: #aa0000;
+  --mc-5: #aa00aa;
+  --mc-6: #ffaa00;
+  --mc-7: #aaaaaa;
+  --mc-8: #555555;
+  --mc-9: #5555ff;
+  --mc-a: #55ff55;
+  --mc-b: #55ffff;
+  --mc-c: #ff5555;
+  --mc-d: #ff55ff;
+  --mc-e: #ffff55;
+  --mc-f: #ffffff;
+  --mc-shadow: 0.125em 0.125em 0 rgba(0, 0, 0, 0.75); /* the text shadow of the game, one pixel */
+
+  /* The menus of the game: the inventory and the tooltip of an item */
+  --gui-panel: #c6c6c6;
+  --gui-light: #ffffff;
+  --gui-dark: #555555;
+  --gui-slot: #8b8b8b;
+  --gui-slot-dark: #373737;
+  --gui-title: #404040;
+  --tooltip-bg: rgba(16, 0, 16, 0.94);
+  --tooltip-line: #3a1a8a;
+
+  /* Typography: Pixelify Sans for the titles, Tiny5 for the labels of the game, Inter for the text */
+  --font-display: "Pixelify Sans", "Inter", system-ui, sans-serif;
+  --font-pixel: "Tiny5", "Pixelify Sans", ui-monospace, monospace;
   --font-body: "Inter", system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
-  --font-mono: "JetBrains Mono", ui-monospace, "SFMono-Regular", Menlo, Consolas, monospace;
+  --font-mono: var(--font-pixel);
 
   --text-display: clamp(2.75rem, 1.6rem + 5vw, 5.5rem); /* 44 to 88 px, the hero */
   --text-h1: clamp(2.25rem, 1.5rem + 3.2vw, 4rem); /* 36 to 64 */
@@ -76,11 +108,11 @@
   --text-small: 0.875rem; /* 14 */
   --text-caption: 0.75rem; /* 12, capitals */
 
-  --leading-tight: 0.95;
+  --leading-tight: 1;
   --leading-heading: 1.08;
   --leading-body: 1.6;
   --tracking-caps: 0.12em;
-  --tracking-display: -0.01em;
+  --tracking-display: 0;
 
   /* Space: a 4 px step */
   --space-1: 0.25rem;
@@ -98,12 +130,18 @@
   --gutter: clamp(1rem, 0.5rem + 2.5vw, 3.5rem); /* 16 px on a phone, 56 on a wide screen */
   --section: clamp(4rem, 2.5rem + 6vw, 8rem); /* space between sections */
 
-  /* Shapes: soft corners, and the cut corner of the hexagon on the elements that matter */
-  --radius-sm: 6px; /* tags */
-  --radius-md: 10px; /* buttons, inputs, chips */
-  --radius-lg: 16px; /* cards */
-  --radius-xl: 22px; /* image frames */
-  --cut: 10px; /* size of the 45 degree cut (.cut utility) */
+  /* Shapes: the pixel. A corner is a step of one pixel of the game (--px), not a curve */
+  --px: 4px; /* one pixel of the game's menus, at the size the site draws them */
+  --radius-sm: 2px;
+  --radius-md: 2px;
+  --radius-lg: 0;
+  --radius-xl: 0;
+  --cut: 10px; /* size of the 45 degree cut of the logo (.cut utility) */
+  --steps: polygon(
+    0 var(--px), var(--px) var(--px), var(--px) 0, calc(100% - var(--px)) 0, calc(100% - var(--px)) var(--px),
+    100% var(--px), 100% calc(100% - var(--px)), calc(100% - var(--px)) calc(100% - var(--px)),
+    calc(100% - var(--px)) 100%, var(--px) 100%, var(--px) calc(100% - var(--px)), 0 calc(100% - var(--px))
+  ); /* the notched corners of the game's buttons and tooltips */
 
   /* Depth */
   --line: 1px solid var(--ink-600);
@@ -112,7 +150,7 @@
   --shadow-lift: 0 1px 0 rgba(255, 255, 255, 0.05) inset, 0 18px 44px rgba(0, 0, 0, 0.45);
   --glow-red: 0 10px 30px rgba(232, 25, 30, 0.28);
 
-  /* Motion: short and calm, nothing that loops */
+  /* Motion: short and calm; only the 3D objects turn, as a dropped item does in the game */
   --ease-out: cubic-bezier(0.2, 0.7, 0.2, 1);
   --ease-in-out: cubic-bezier(0.6, 0, 0.3, 1);
   --dur-fast: 120ms; /* hover, press */

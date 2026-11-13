@@ -2,8 +2,8 @@
   position: sticky;
   top: 0;
   z-index: 20;
-  border-bottom: var(--line-soft);
-  background: color-mix(in srgb, var(--ink-900) 88%, transparent);
+  background: color-mix(in srgb, var(--ink-900) 86%, transparent);
+  box-shadow: 0 2px 0 rgba(0, 0, 0, 0.5);
   backdrop-filter: blur(10px);
 }
 
@@ -28,46 +28,36 @@
 .wordmark {
   font-family: var(--font-display);
   white-space: nowrap;
-  font-size: 1.0625rem;
+  font-size: 1.25rem;
   font-weight: 700;
   letter-spacing: 0.08em;
   text-transform: uppercase;
+  text-shadow: var(--mc-shadow);
 }
 
 .wordmark span {
-  color: var(--grey-300);
+  color: var(--red-400);
 }
 
 .nav {
   margin-left: auto;
 }
 
-.nav ul,
-.menu ul {
-  display: flex;
-  gap: var(--space-1);
-  margin: 0;
-  padding: 0;
-  list-style: none;
-}
-
-.nav a,
-.menu a {
+.nav a {
   display: inline-flex;
   align-items: center;
   min-height: 2.75rem;
   padding: 0 var(--space-3);
-  border-radius: var(--radius-sm);
   color: var(--grey-200);
-  font-size: var(--text-small);
-  font-weight: 600;
+  font-family: var(--font-display);
+  font-size: 1.0625rem;
+  font-weight: 500;
+  white-space: nowrap;
 }
 
-.nav a:hover,
-.menu a:hover {
+.nav a:hover {
   color: var(--white);
   text-decoration: none;
-  background: rgba(255, 255, 255, 0.04);
 }
 
 .actions {
@@ -76,91 +66,16 @@
   gap: var(--space-2);
 }
 
-.menu {
-  display: none;
-  position: relative;
-}
-
-.menu summary {
-  display: grid;
-  place-items: center;
-  width: 2.75rem;
-  height: 2.75rem;
-  border-radius: var(--radius-md);
-  cursor: pointer;
-  list-style: none;
-}
-
-.menu summary::-webkit-details-marker {
-  display: none;
-}
-
-.burger,
-.burger::before,
-.burger::after {
-  display: block;
-  width: 1.125rem;
-  height: 2px;
-  border-radius: 1px;
-  background: var(--white);
-}
-
-.burger {
-  position: relative;
-}
-
-.burger::before,
-.burger::after {
-  content: '';
-  position: absolute;
-  left: 0;
-}
-
-.burger::before {
-  top: -6px;
-}
-
-.burger::after {
-  top: 6px;
-}
-
-.menu nav {
-  position: absolute;
-  top: calc(100% + var(--space-2));
-  right: 0;
-  min-width: 12rem;
-  padding: var(--space-2);
-  border: var(--line);
-  border-radius: var(--radius-md);
-  background: var(--ink-850);
-  box-shadow: var(--shadow-lift);
-}
-
-.menu nav ul {
-  flex-direction: column;
-}
-
-.menu nav a {
-  width: 100%;
-}
-
-@media (max-width: 860px) {
-  .nav {
-    display: none;
-  }
-
-  .actions {
-    margin-left: auto;
-  }
-
-  .menu {
-    display: block;
-  }
-}
-
-/* on a phone the logo and RAGO are enough: the bar keeps one line, whatever the button */
+/* on the smallest phones, the name alone */
 @media (max-width: 440px) {
   .wordmark span {
     display: none;
+  }
+}
+
+@media (max-width: 380px) {
+  .nav a {
+    padding: 0 var(--space-2);
+    font-size: 1rem;
   }
 }

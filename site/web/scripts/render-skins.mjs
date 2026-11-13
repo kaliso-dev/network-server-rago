@@ -3,10 +3,11 @@
  * Renders the skins of the lobby's NPCs (bukkit/rago-lobby/src/main/resources/skins, the owner's
  * own skins) as the front of the character, the way the game draws it: head, body, arms and legs,
  * with their second layer on top. Each one is written to public/skins/<name>.png, 12 times its
- * 16 x 32 pixels, so that a phone screen shows it sharp. Nothing is drawn by hand: every pixel
- * comes from the skin file.
+ * 16 x 32 pixels, so that a phone screen shows it sharp, and the skin itself to
+ * public/skins/3d/<name>.png for the 3D view. Nothing is drawn by hand: every pixel comes from the
+ * skin file.
  */
-import { mkdirSync, readdirSync, readFileSync, writeFileSync } from 'node:fs';
+import { copyFileSync, mkdirSync, readdirSync, readFileSync, writeFileSync } from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { PNG } from 'pngjs';
@@ -91,10 +92,11 @@ export function render(file) {
 }
 
 if (process.argv[1] && path.resolve(process.argv[1]) === fileURLToPath(import.meta.url)) {
-  mkdirSync(OUT, { recursive: true });
+  mkdirSync(path.join(OUT, '3d'), { recursive: true });
   const files = readdirSync(SKINS).filter((name) => name.endsWith('.png')).sort();
   for (const name of files) {
     writeFileSync(path.join(OUT, name), render(path.join(SKINS, name)));
+    copyFileSync(path.join(SKINS, name), path.join(OUT, '3d', name));
   }
   console.log(`Rendered ${files.length} skins into ${path.relative(process.cwd(), OUT)}.`);
 }

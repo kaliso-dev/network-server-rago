@@ -1,0 +1,46 @@
+.menu {
+  display: grid;
+  gap: var(--space-4);
+  justify-items: start;
+  max-width: 100%;
+}
+
+@media (min-width: 1100px) {
+  .menu[data-side] {
+    grid-template-columns: auto minmax(0, 1fr);
+    align-items: start;
+    column-gap: var(--space-6);
+  }
+}
+
+.menu li[aria-hidden='true'] {
+  cursor: default;
+}
+
+.cell {
+  position: relative;
+  display: grid;
+}
+
+/* the tooltip by the slot, above it and to its right, as the game puts it by the mouse */
+.tooltip {
+  position: absolute;
+  bottom: 70%;
+  left: 70%;
+  z-index: 5;
+  pointer-events: none;
+}
+
+.cell[data-end] .tooltip {
+  right: 70%;
+  left: auto;
+}
+
+.detail {
+  width: 100%;
+  min-height: 1px;
+}
+
+.detail:empty {
+  display: none;
+}

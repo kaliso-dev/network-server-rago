@@ -13,16 +13,13 @@ export function ButtonLink({
   children,
   variant = 'secondary',
   small = false,
-  cut = false,
 }: {
   href: string;
   children: ReactNode;
   variant?: Variant;
   small?: boolean;
-  /** The cut corner of the hexagon: only on the main action of a screen. */
-  cut?: boolean;
 }) {
-  const className = ['btn', `btn--${variant}`, small ? 'btn--sm' : '', cut ? 'cut' : ''].filter(Boolean).join(' ');
+  const className = ['btn', `btn--${variant}`, small ? 'btn--sm' : ''].filter(Boolean).join(' ');
   if (/^https?:\/\//.test(href)) {
     return (
       <a className={className} href={href} target="_blank" rel="noopener noreferrer">

@@ -1,0 +1,229 @@
+/* The page of the modes: the six first, then the inventory of each way to play */
+.hero {
+  padding-block: clamp(2.5rem, 1rem + 5vw, 5rem) var(--space-6);
+  background:
+    radial-gradient(50% 80% at 85% 0%, rgba(232, 25, 30, 0.22), transparent 70%),
+    var(--ink-900);
+}
+
+.hero :global(.lead) {
+  margin: var(--space-4) 0 var(--space-5);
+}
+
+.jump {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-2) var(--space-5);
+  font-family: var(--font-display);
+  font-weight: 600;
+}
+
+.jump a {
+  color: var(--white);
+}
+
+/* the six, one after the other, the item and the text swapping sides */
+.flagships {
+  display: grid;
+  gap: var(--space-8);
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.flagship {
+  display: grid;
+  grid-template-columns: minmax(12rem, 0.7fr) 1.3fr;
+  gap: var(--space-7);
+  align-items: center;
+}
+
+.flagship[data-flip] {
+  grid-template-columns: 1.3fr minmax(12rem, 0.7fr);
+}
+
+.flagship[data-flip] .art {
+  order: 2;
+}
+
+.art {
+  display: grid;
+  place-items: center;
+  aspect-ratio: 1;
+  background:
+    radial-gradient(50% 50% at 50% 50%, color-mix(in srgb, var(--accent) 22%, transparent), transparent 70%),
+    var(--ink-850);
+  box-shadow: inset var(--px) var(--px) 0 rgba(255, 255, 255, 0.04), inset calc(-1 * var(--px)) calc(-1 * var(--px)) 0 rgba(0, 0, 0, 0.35);
+  clip-path: var(--steps);
+}
+
+.bigItem {
+  width: 46%;
+  height: auto;
+  filter: drop-shadow(0 18px 18px rgba(0, 0, 0, 0.5));
+  animation: bob 3.14s ease-in-out infinite;
+}
+
+.art :global(.mc-item--cube) {
+  height: 46%;
+  aspect-ratio: 1;
+}
+
+@keyframes bob {
+  50% {
+    transform: translateY(-6%);
+  }
+}
+
+.copy {
+  display: grid;
+  justify-items: start;
+  gap: var(--space-3);
+}
+
+.kicker {
+  margin: 0;
+  color: var(--accent);
+  font-family: var(--font-pixel);
+  font-size: 0.9375rem;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+}
+
+.name {
+  color: var(--accent);
+  font-size: var(--text-h2);
+  text-shadow: var(--mc-shadow);
+}
+
+.hook {
+  margin: 0;
+  font-family: var(--font-display);
+  font-size: var(--text-h4);
+  font-weight: 500;
+}
+
+.summary {
+  margin: 0;
+  color: var(--grey-300);
+  max-width: 40em;
+}
+
+.facts {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: var(--space-4);
+  width: 100%;
+  margin: var(--space-2) 0 var(--space-3);
+}
+
+.facts dt {
+  color: var(--grey-400);
+  font-family: var(--font-pixel);
+  font-size: 0.875rem;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+
+.facts dd {
+  margin: 0.2rem 0 0;
+  font-weight: 600;
+  line-height: 1.35;
+}
+
+@media (max-width: 1000px) {
+  .facts {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+@media (max-width: 760px) {
+  .flagship,
+  .flagship[data-flip] {
+    grid-template-columns: 1fr;
+    gap: var(--space-5);
+  }
+
+  .flagship[data-flip] .art {
+    order: 0;
+  }
+
+  .art {
+    width: min(100%, 14rem);
+  }
+}
+
+/* the inventory of a way to play, and the mode picked in it */
+.category:nth-of-type(even) {
+  background: var(--ink-850);
+}
+
+.detail {
+  display: grid;
+  grid-template-columns: auto 1fr;
+  gap: var(--space-4);
+  max-width: 44rem;
+  padding: var(--space-5);
+  background: var(--ink-800);
+  box-shadow: inset var(--px) var(--px) 0 rgba(255, 255, 255, 0.04), inset calc(-1 * var(--px)) calc(-1 * var(--px)) 0 rgba(0, 0, 0, 0.35);
+  clip-path: var(--steps);
+}
+
+.detail :global(.slot) {
+  --slot: 3.5rem;
+  cursor: default;
+}
+
+.detail h3 {
+  font-size: var(--text-h3);
+  text-shadow: var(--mc-shadow);
+}
+
+.detail p {
+  margin: var(--space-2) 0 0;
+  color: var(--grey-300);
+}
+
+.tags {
+  font-family: var(--font-pixel);
+  font-size: 0.9375rem;
+  letter-spacing: 0.03em;
+}
+
+.more {
+  display: inline-block;
+  margin-top: var(--space-3);
+  font-weight: 600;
+}
+
+.events {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: var(--space-4);
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.events li {
+  display: grid;
+  grid-template-columns: auto 1fr;
+  gap: var(--space-4);
+  padding: var(--space-5);
+}
+
+.events h3 {
+  font-size: var(--text-h4);
+}
+
+.events p {
+  margin: var(--space-2) 0 0;
+  color: var(--grey-300);
+  font-size: var(--text-small);
+}
+
+@media (max-width: 900px) {
+  .events {
+    grid-template-columns: 1fr;
+  }
+}

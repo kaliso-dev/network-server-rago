@@ -1,10 +1,14 @@
 # Le système de design du site Rago Practice
 
 La base visuelle du site officiel et de la boutique : couleurs, typographie, espacements,
-mouvement et premiers composants. Piste choisie le 13 novembre 2026 : **un site sombre aux
-couleurs du logo** (anthracite, le rouge du logo comme seule couleur de marque, le blanc et les
-gris pour le texte), dans la suite des couleurs du jeu (« le rouge clair du logo, le blanc et le
-gris », voir le README de `bukkit/rago-lobby`).
+mouvement et composants. Piste choisie le 13 novembre 2026 : **un site sombre aux couleurs du
+logo** (anthracite, le rouge du logo comme seule couleur de marque, le blanc et les gris pour le
+texte), dans la suite des couleurs du jeu (« le rouge clair du logo, le blanc et le gris », voir
+le README de `bukkit/rago-lobby`).
+
+Refonte du même jour (« Master your skills ») : **le site parle Minecraft**. Une police pixel
+douce, les vraies textures du jeu, les menus du jeu (inventaire, info-bulle, barre d'objets) et
+les PNJ du lobby en 3D. Le practice passe d'abord, le Ranked après.
 
 | Fichier | Rôle |
 | --- | --- |
@@ -61,37 +65,60 @@ l'image de 1254 px, le dégradé et le liseré sont mesurés sur ses pixels.
 
 | Rôle | Police | Détail |
 | --- | --- | --- |
-| Titres | **Chakra Petch** 600 et 700 | ses coupes droites rappellent le R ; le titre du hero en capitales |
-| Texte | **Inter** 400 à 700 | chiffres tabulaires pour les prix et les stats |
-| Adresse, commandes, noms du jeu | **JetBrains Mono** 500 et 600 | `rago.gg`, `/play duels`, `[12✫] [VIP] Steve` |
+| Titres, boutons, noms des modes | **Pixelify Sans** 400 à 700 (variable) | une police pixel aux courbes douces : elle rappelle le jeu sans la police bitmap du jeu ; le titre du hero en capitales |
+| Petits textes du jeu : adresse, commandes, tags, info-bulles, tableau de bord | **Tiny5** 400 | `/play duels`, `[12✫] [VIP] Steve`, « 1v1 · 2v2 » ; une police pixel nette aux petites tailles |
+| Texte | **Inter** 400 à 700 (variable) | les paragraphes restent dans une police de lecture ; chiffres tabulaires pour les prix et les stats |
 
 Tailles fluides (`clamp`), du téléphone au grand écran : display 44 à 88 px, H1 36 à 64, H2 28 à 44,
 H3 20 à 24, texte d'accroche 17 à 20, texte 16, petit 14, légende 12 en capitales espacées.
 
-Les trois polices sont sous licence OFL. La page de style les charge depuis Google Fonts ; **le
-site les hébergera lui-même** (pas d'appel à Google à chaque visite, ce qui évite d'envoyer
-l'adresse IP des visiteurs européens à un tiers).
+Les trois polices sont sous licence **SIL Open Font License 1.1** (vérifié dans les paquets
+`@fontsource-variable/pixelify-sans`, `@fontsource/tiny5` et `@fontsource-variable/inter`) : libres
+pour un site commercial, à condition de ne pas les vendre seules. **Le site les héberge lui-même**
+(`next/font/local`), sans appel à Google : l'adresse IP des visiteurs n'est envoyée à personne.
 
-Pas de police pixel pour le texte. Le style Minecraft vient des images, des icônes en pixels et
-des noms du jeu reproduits avec leurs couleurs.
+- Pas de police pixel pour les paragraphes : ils restent en Inter, pour se lire vite.
+- Les ligatures sont coupées (`font-variant-ligatures: no-common-ligatures`) : le « fi » de
+  Pixelify Sans se lit comme un A (« Bed Aght »).
+- Le signe € de Pixelify Sans ressemble à un 0 : les prix sont en Tiny5.
+- La police du jeu elle-même (celle de Mojang) n'est pas utilisée.
 
 ## Espaces, formes, profondeur
 
 - Espaces par pas de 4 px (`--space-1` à `--space-10`), sections espacées de 64 à 128 px.
 - Contenu sur 1200 px au plus, marges de 16 px sur un téléphone à 56 px sur un grand écran.
-- Coins : 6 px (tags), 10 px (boutons, champs), 16 px (cartes), 22 px (cadres d'image).
-- **Le coin coupé** (`.cut`) : l'angle à 45° de l'hexagone, en haut à gauche et en bas à droite.
-  Réservé au bouton principal d'un écran (« Play now », « Buy PREMIUM+ ») : c'est la signature
-  du site, elle doit rester rare.
-- Ombres sombres et douces pour les cartes, une lueur rouge seulement sous le bouton principal.
+- **Le pixel** (`--px`, 4 px) : un pixel des menus du jeu à la taille où le site les dessine.
+  Les coins ne sont pas arrondis : ils marchent d'un pixel (`--steps`, un `clip-path`), comme les
+  boutons du jeu.
+- **Les boutons** ont le relief des boutons du jeu : clair en haut à gauche, sombre en bas à
+  droite. Le relief et les marches sont dessinés sur `::before`, pour que l'anneau de focus ne
+  soit jamais coupé.
+- Les cartes ont le même relief, plus discret. Une lueur rouge seulement sous le bouton principal.
+- Les bandes de couleur entre deux sections ont un bord en marches de pixels.
+- L'ancien coin coupé (`.cut`) reste dans `components.css` mais n'est plus utilisé.
 
 ## Mouvement
 
 Court et calme : 120 ms pour un survol, 220 ms pour un retour (« Copied! »), 420 ms pour une
-section qui apparaît. Rien ne tourne en boucle. Avec « réduire les animations » du système, tout
-mouvement s'arrête (`prefers-reduced-motion`).
+section qui apparaît. Avec « réduire les animations » du système, tout mouvement s'arrête
+(`prefers-reduced-motion`), la 3D comprise : les vues restent immobiles.
 
-## Composants (version 0.1)
+Deux mouvements en boucle seulement, ceux du jeu : l'objet posé au sol qui tourne et flotte
+(1 tour en 6,3 s, comme `RenderEntityItem`) et le PNJ qui respire (l'animation d'attente de
+skinview3d).
+
+### La 3D
+
+- **Les PNJ** : skinview3d 3.4.2 (MIT) avec les vrais skins du lobby ; on tourne autour à la
+  souris ou au doigt, sans zoom.
+- **Les objets** : un modèle extrudé, construit comme le jeu construit un objet tenu (chaque
+  pixel de la texture devient un petit cube), avec la lumière du jeu.
+- Chargée seulement quand c'est utile : la vue doit être à l'écran et WebGL disponible. Sur
+  ordinateur, après le chargement de la page ; sur téléphone et tablette, au premier geste
+  (toucher, défiler, une touche). D'ici là, l'image plate du skin ou de l'objet est montrée.
+- Hors de l'écran, le rendu s'arrête.
+
+## Composants (version 0.2)
 
 | Composant | Classe | Règles |
 | --- | --- | --- |
@@ -106,6 +133,12 @@ mouvement s'arrête (`prefers-reduced-motion`).
 | Mode de jeu | `.mode` | une vraie image de la map, la catégorie, le format, ce que le mode entraîne |
 | Produit | `.product` | icône en pixels, contenu exact, prix ou « Price to set » tant qu'il n'est pas fixé |
 | Mentions | `.notice` | « not affiliated with Mojang Studios, Microsoft or Hypixel » en bas de chaque page |
+| Inventaire du jeu | `.gui`, `.gui__title`, `.gui__slots`, `.slot` | le gris clair des menus, ses cases ; la case survolée s'éclaircit par-dessus l'objet, la case choisie garde un cadre blanc |
+| Info-bulle du jeu | `.mc-tooltip`, `.mc-tooltip__name` | le fond violet très sombre et le liseré des info-bulles ; le nom dans sa couleur du jeu |
+| Objet du jeu | `McItem` (`.mc-item`) | la vraie texture de l'objet ; les blocs et les têtes en cube, vus comme dans l'inventaire |
+| Barre d'objets | `Hotbar` | la navigation du site, en bas de l'écran : la boussole mène aux modes, le livre à « How to join »… ; les touches 1 à 9 quand elle a le focus |
+| Tableau de bord | `.scoreboard` | le tableau de droite du jeu, avec ses vrais intitulés ; des valeurs d'exemple sont dites « Example values » |
+| Pseudo au-dessus de la tête | `.nametag` | le fond gris transparent du jeu |
 
 ## Images
 
@@ -118,6 +151,11 @@ mouvement s'arrête (`prefers-reduced-motion`).
   la page de style.
 - Les 16 skins originaux des PNJ (`bukkit/rago-lobby/src/main/resources/skins`) incarnent les
   modes et les catégories, en 3D quand c'est utile.
+- **Les textures de Minecraft 1.8.8** (objets, blocs, barre d'objets) sont dans
+  `web/public/mc`, copiées par `npm run mc`. Elles sont à Mojang : **leur usage sur le site est à
+  vérifier avant l'ouverture** (`web/src/data/MINECRAFT-TEXTURES.md` dit comment les retirer).
+- Pas de fausse capture du jeu : là où une capture manque, la page le dit ou montre un menu
+  reconstruit avec les vraies textures et les vrais textes du jeu.
 - Pas de photo de banque d'images, pas d'illustration futuriste sans rapport avec le jeu.
 
 ## Accessibilité
@@ -127,5 +165,8 @@ Contraste AA pour tout le texte, focus visible au clavier sur tout ce qui se cli
 
 ## Voir la page de style
 
-Ouvrir `styleguide.html` dans un navigateur (les polices viennent d'Internet). Elle est en
-français pour l'équipe ; les textes des composants sont en anglais, comme le serveur.
+Ouvrir `styleguide.html` dans un navigateur. Elle montre les couleurs, les tailles et les
+composants de base ; les polices viennent du site (`web/node_modules/@fontsource…`), après un
+`npm install` dans `web`. Elle est en français pour l'équipe ; les textes des composants sont en
+anglais, comme le serveur. Les composants React (inventaire, barre d'objets, 3D) se voient sur le
+site lui-même (`npm run dev` dans `web`).

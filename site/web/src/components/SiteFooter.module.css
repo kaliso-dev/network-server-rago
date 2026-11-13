@@ -1,6 +1,6 @@
 .footer {
   margin-top: var(--section);
-  padding: var(--space-8) 0 var(--space-6);
+  padding: var(--space-8) 0 calc(var(--space-6) + var(--hotbar-space));
   border-top: var(--line-soft);
   background: var(--ink-950);
 }

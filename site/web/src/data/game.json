@@ -8,7 +8,8 @@
     "bukkit/rago-practice/src/main/resources/config.yml",
     "bukkit/rago-practice/src/main/java/gg/rago/practice/SumoHost.java",
     "bukkit/rago-practice/src/main/java/gg/rago/practice/EventGame.java",
-    "bukkit/rago-lobby/src/main/java/gg/rago/lobby/LobbyGadgets.java"
+    "bukkit/rago-lobby/src/main/java/gg/rago/lobby/LobbyGadgets.java",
+    "bukkit/rago-practice/src/main/java/gg/rago/practice/ComboAi.java"
   ],
   "server": {
     "title": "RAGO PRACTICE",
@@ -19,6 +20,7 @@
       "id": "entrainement",
       "name": "Practice",
       "colour": "#55FFFF",
+      "icon": "SANDSTONE",
       "slogan": [
         {
           "text": "Train alone",
@@ -41,6 +43,7 @@
       "id": "ranked",
       "name": "RBW Modes",
       "colour": "#FFAA00",
+      "icon": "BED",
       "slogan": [
         {
           "text": "Ranked ",
@@ -63,6 +66,7 @@
       "id": "duels",
       "name": "Duels",
       "colour": "#55FF55",
+      "icon": "IRON_SWORD",
       "slogan": [
         {
           "text": "Duel your friends ",
@@ -85,6 +89,7 @@
       "id": "arenes",
       "name": "Arenas",
       "colour": "#FF5555",
+      "icon": "DIAMOND_SWORD",
       "slogan": [
         {
           "text": "Jump in ",
@@ -217,6 +222,8 @@
     {
       "id": "ranked-1v1",
       "name": "Ranked Bedwars 1v1",
+      "colour": "#FFAA00",
+      "icon": "BED",
       "category": "ranked",
       "group": "ranked",
       "format": "1v1",
@@ -231,6 +238,8 @@
     {
       "id": "ranked-2v2",
       "name": "Ranked Bedwars 2v2",
+      "colour": "#FFAA00",
+      "icon": "DIAMOND_SWORD",
       "category": "ranked",
       "group": "ranked",
       "format": "2v2",
@@ -245,6 +254,8 @@
     {
       "id": "ranked-3v3",
       "name": "Ranked Bedwars 3v3",
+      "colour": "#FFAA00",
+      "icon": "DIAMOND_CHESTPLATE",
       "category": "ranked",
       "group": "ranked",
       "format": "3v3",
@@ -259,6 +270,8 @@
     {
       "id": "ranked-4v4",
       "name": "Ranked Bedwars 4v4",
+      "colour": "#FFAA00",
+      "icon": "DIAMOND_BLOCK",
       "category": "ranked",
       "group": "ranked",
       "format": "4v4",
@@ -273,6 +286,8 @@
     {
       "id": "skyrise-1v1",
       "name": "RBW Sky Rise 1v1",
+      "colour": "#FFAA00",
+      "icon": "DIAMOND_CHESTPLATE",
       "category": "ranked",
       "group": "skyrise",
       "format": "1v1",
@@ -287,6 +302,8 @@
     {
       "id": "skyrise-2v2",
       "name": "RBW Sky Rise 2v2",
+      "colour": "#FFAA00",
+      "icon": "DIAMOND_CHESTPLATE",
       "category": "ranked",
       "group": "skyrise",
       "format": "2v2",
@@ -301,6 +318,8 @@
     {
       "id": "skyrise-resources-1v1",
       "name": "RBW Sky Rise Resources 1v1",
+      "colour": "#FFAA00",
+      "icon": "GOLD_INGOT",
       "category": "ranked",
       "group": "skyrise",
       "format": "1v1",
@@ -315,6 +334,8 @@
     {
       "id": "skyrise-resources-2v2",
       "name": "RBW Sky Rise Resources 2v2",
+      "colour": "#FFAA00",
+      "icon": "GOLD_INGOT",
       "category": "ranked",
       "group": "skyrise",
       "format": "2v2",
@@ -329,6 +350,8 @@
     {
       "id": "first-rush",
       "name": "First rush solo",
+      "colour": "#FFAA00",
+      "icon": "IRON_PICKAXE",
       "category": "ranked",
       "group": "first-rush",
       "format": "1v1",
@@ -343,6 +366,8 @@
     {
       "id": "first-rush-duo",
       "name": "First rush duo",
+      "colour": "#FFAA00",
+      "icon": "IRON_PICKAXE",
       "category": "ranked",
       "group": "first-rush",
       "format": "2v2",
@@ -357,6 +382,8 @@
     {
       "id": "first-rush-full",
       "name": "First rush full map solo",
+      "colour": "#FFAA00",
+      "icon": "DIAMOND_PICKAXE",
       "category": "ranked",
       "group": "first-rush",
       "format": "1v1",
@@ -371,6 +398,8 @@
     {
       "id": "first-rush-full-duo",
       "name": "First rush full map duo",
+      "colour": "#FFAA00",
+      "icon": "DIAMOND_PICKAXE",
       "category": "ranked",
       "group": "first-rush",
       "format": "2v2",
@@ -385,6 +414,8 @@
     {
       "id": "bed-fight-1v1",
       "name": "Bed fight 1v1",
+      "colour": "#55FF55",
+      "icon": "BED",
       "category": "duels",
       "group": "bed-fight",
       "format": "1v1",
@@ -399,6 +430,8 @@
     {
       "id": "bed-fight-2v2",
       "name": "Bed fight 2v2",
+      "colour": "#55FF55",
+      "icon": "BED",
       "category": "duels",
       "group": "bed-fight",
       "format": "2v2",
@@ -413,6 +446,8 @@
     {
       "id": "top-bed-fight-1v1",
       "name": "Top BedFight 1v1",
+      "colour": "#55FF55",
+      "icon": "SHEARS",
       "category": "duels",
       "group": null,
       "format": "1v1",
@@ -427,6 +462,8 @@
     {
       "id": "top-bridge-1v1",
       "name": "Top Bridge 1v1",
+      "colour": "#55FF55",
+      "icon": "LADDER",
       "category": "duels",
       "group": "top-bridge",
       "format": "1v1",
@@ -441,6 +478,8 @@
     {
       "id": "top-bridge-2v2",
       "name": "Top Bridge 2v2",
+      "colour": "#55FF55",
+      "icon": "LADDER",
       "category": "duels",
       "group": "top-bridge",
       "format": "2v2",
@@ -455,6 +494,8 @@
     {
       "id": "top-bridge-ffa",
       "name": "Top Bridge FFA",
+      "colour": "#FF5555",
+      "icon": "LADDER",
       "category": "arenes",
       "group": null,
       "format": "FFA",
@@ -469,6 +510,8 @@
     {
       "id": "ffa",
       "name": "FFA Ranked Bedwars",
+      "colour": "#FF5555",
+      "icon": "STONE_SWORD",
       "category": "arenes",
       "group": null,
       "format": "FFA",
@@ -483,6 +526,8 @@
     {
       "id": "free-ffa",
       "name": "Arena Free",
+      "colour": "#FF5555",
+      "icon": "EMERALD",
       "category": "arenes",
       "group": null,
       "format": "FFA",
@@ -497,6 +542,8 @@
     {
       "id": "invis-practice",
       "name": "Invis practice",
+      "colour": "#FFAA00",
+      "icon": "POTION",
       "category": "ranked",
       "group": null,
       "format": "Solo",
@@ -511,6 +558,8 @@
     {
       "id": "bridge-fight",
       "name": "Bridge fight",
+      "colour": "#FF5555",
+      "icon": "WOOL",
       "category": "arenes",
       "group": null,
       "format": "FFA",
@@ -525,6 +574,8 @@
     {
       "id": "bridge-fight-1v1",
       "name": "Bridge fight 1v1",
+      "colour": "#55FF55",
+      "icon": "WOOL",
       "category": "duels",
       "group": "bridge-fight",
       "format": "1v1",
@@ -539,6 +590,8 @@
     {
       "id": "bridge-fight-2v2",
       "name": "Bridge fight 2v2",
+      "colour": "#55FF55",
+      "icon": "WOOL",
       "category": "duels",
       "group": "bridge-fight",
       "format": "2v2",
@@ -553,6 +606,8 @@
     {
       "id": "block-fight-1v1",
       "name": "Block placement 1v1",
+      "colour": "#55FF55",
+      "icon": "SANDSTONE",
       "category": "duels",
       "group": "block-placement",
       "format": "1v1",
@@ -567,6 +622,8 @@
     {
       "id": "block-fight-2v2",
       "name": "Block placement 2v2",
+      "colour": "#55FF55",
+      "icon": "SANDSTONE",
       "category": "duels",
       "group": "block-placement",
       "format": "2v2",
@@ -581,6 +638,8 @@
     {
       "id": "block-fight-arena",
       "name": "Block placement arena",
+      "colour": "#FF5555",
+      "icon": "SANDSTONE",
       "category": "arenes",
       "group": null,
       "format": "FFA",
@@ -595,6 +654,8 @@
     {
       "id": "clutch-scenario-1v1",
       "name": "Clutch scenario 1v1",
+      "colour": "#FFAA00",
+      "icon": "IRON_CHESTPLATE",
       "category": "ranked",
       "group": "clutch-scenario",
       "format": "1v1",
@@ -609,6 +670,8 @@
     {
       "id": "clutch-scenario-2v2",
       "name": "Clutch scenario 2v2",
+      "colour": "#FFAA00",
+      "icon": "IRON_CHESTPLATE",
       "category": "ranked",
       "group": "clutch-scenario",
       "format": "2v2",
@@ -623,6 +686,8 @@
     {
       "id": "clutch-scenario-3v3",
       "name": "Clutch scenario 3v3",
+      "colour": "#FFAA00",
+      "icon": "IRON_CHESTPLATE",
       "category": "ranked",
       "group": "clutch-scenario",
       "format": "3v3",
@@ -637,6 +702,8 @@
     {
       "id": "clutch-scenario-4v4",
       "name": "Clutch scenario 4v4",
+      "colour": "#FFAA00",
+      "icon": "IRON_CHESTPLATE",
       "category": "ranked",
       "group": "clutch-scenario",
       "format": "4v4",
@@ -651,6 +718,8 @@
     {
       "id": "attack-defense-1v1",
       "name": "Attack and defense 1v1",
+      "colour": "#FFAA00",
+      "icon": "IRON_SWORD",
       "category": "ranked",
       "group": "attack-defense",
       "format": "1v1",
@@ -665,6 +734,8 @@
     {
       "id": "attack-defense-2v2",
       "name": "Attack and defense 2v2",
+      "colour": "#FFAA00",
+      "icon": "IRON_SWORD",
       "category": "ranked",
       "group": "attack-defense",
       "format": "2v2",
@@ -679,6 +750,8 @@
     {
       "id": "partie-privee",
       "name": "Private game",
+      "colour": "#FFAA00",
+      "icon": "NAME_TAG",
       "category": "ranked",
       "group": "prive",
       "format": "1v1",
@@ -693,6 +766,8 @@
     {
       "id": "top-bridge-prive",
       "name": "Private top bridge",
+      "colour": "#FFAA00",
+      "icon": "LADDER",
       "category": "ranked",
       "group": "prive",
       "format": "1v1",
@@ -707,6 +782,8 @@
     {
       "id": "sumo",
       "name": "Sumo duel",
+      "colour": "#55FF55",
+      "icon": "SLIME_BALL",
       "category": "duels",
       "group": null,
       "format": "1v1",
@@ -721,6 +798,8 @@
     {
       "id": "boxing",
       "name": "Boxing",
+      "colour": "#55FF55",
+      "icon": "DIAMOND_SWORD",
       "category": "duels",
       "group": null,
       "format": "1v1",
@@ -735,6 +814,8 @@
     {
       "id": "kb-displace",
       "name": "KB displace 1v1",
+      "colour": "#55FF55",
+      "icon": "STICK",
       "category": "duels",
       "group": null,
       "format": "1v1",
@@ -749,6 +830,8 @@
     {
       "id": "block-edit-duel",
       "name": "Block edit 1v1",
+      "colour": "#55FF55",
+      "icon": "SHEARS",
       "category": "duels",
       "group": null,
       "format": "1v1",
@@ -763,6 +846,8 @@
     {
       "id": "fireball",
       "name": "Fireball fight",
+      "colour": "#55FF55",
+      "icon": "FIREBALL",
       "category": "duels",
       "group": null,
       "format": "1v1",
@@ -777,6 +862,8 @@
     {
       "id": "clutch",
       "name": "Block clutch",
+      "colour": "#55FFFF",
+      "icon": "LADDER",
       "category": "entrainement",
       "group": "clutch",
       "format": "Solo",
@@ -791,6 +878,8 @@
     {
       "id": "clutch-top-fight",
       "name": "Block clutch: top fight",
+      "colour": "#55FFFF",
+      "icon": "WOOL",
       "category": "entrainement",
       "group": "clutch",
       "format": "Solo",
@@ -805,6 +894,8 @@
     {
       "id": "block-in",
       "name": "Block in practice",
+      "colour": "#55FFFF",
+      "icon": "ENDER_STONE",
       "category": "entrainement",
       "group": null,
       "format": "Solo",
@@ -819,6 +910,8 @@
     {
       "id": "fast-defense",
       "name": "Fast defense",
+      "colour": "#55FFFF",
+      "icon": "OBSIDIAN",
       "category": "entrainement",
       "group": null,
       "format": "Solo",
@@ -833,6 +926,8 @@
     {
       "id": "block-edit",
       "name": "Block edit",
+      "colour": "#55FFFF",
+      "icon": "SHEARS",
       "category": "entrainement",
       "group": null,
       "format": "Solo",
@@ -847,6 +942,8 @@
     {
       "id": "extend-practice",
       "name": "Extend practice",
+      "colour": "#55FFFF",
+      "icon": "QUARTZ_BLOCK",
       "category": "entrainement",
       "group": null,
       "format": "Solo",
@@ -861,6 +958,8 @@
     {
       "id": "block-extend",
       "name": "Block extend",
+      "colour": "#55FFFF",
+      "icon": "WOOL",
       "category": "entrainement",
       "group": null,
       "format": "Solo",
@@ -875,6 +974,8 @@
     {
       "id": "bridge-chrono",
       "name": "Timed bridge",
+      "colour": "#55FFFF",
+      "icon": "SANDSTONE",
       "category": "entrainement",
       "group": null,
       "format": "Solo",
@@ -889,6 +990,8 @@
     {
       "id": "ladder-practice",
       "name": "Ladder practice",
+      "colour": "#55FFFF",
+      "icon": "LADDER",
       "category": "entrainement",
       "group": null,
       "format": "Solo",
@@ -903,6 +1006,8 @@
     {
       "id": "pearl-practice",
       "name": "Pearl practice",
+      "colour": "#55FFFF",
+      "icon": "ENDER_PEARL",
       "category": "entrainement",
       "group": null,
       "format": "Solo",
@@ -917,6 +1022,8 @@
     {
       "id": "fireball-practice",
       "name": "Fireball practice",
+      "colour": "#55FFFF",
+      "icon": "FIREBALL",
       "category": "entrainement",
       "group": null,
       "format": "Solo",
@@ -931,6 +1038,8 @@
     {
       "id": "shop-practice",
       "name": "Fast Shop",
+      "colour": "#55FFFF",
+      "icon": "GOLD_INGOT",
       "category": "entrainement",
       "group": null,
       "format": "Solo",
@@ -945,6 +1054,8 @@
     {
       "id": "combo-bot",
       "name": "Combo bot",
+      "colour": "#55FFFF",
+      "icon": "SKULL_ITEM",
       "category": "entrainement",
       "group": null,
       "format": "Solo",
@@ -959,6 +1070,8 @@
     {
       "id": "kb-displace-bot",
       "name": "KB displace against a bot",
+      "colour": "#55FFFF",
+      "icon": "STICK",
       "category": "entrainement",
       "group": null,
       "format": "Solo",
@@ -973,6 +1086,8 @@
     {
       "id": "bow-training",
       "name": "Bow training",
+      "colour": "#55FFFF",
+      "icon": "BOW",
       "category": "entrainement",
       "group": null,
       "format": "Solo",
@@ -987,6 +1102,8 @@
     {
       "id": "bow-duel",
       "name": "Bow duel",
+      "colour": "#55FF55",
+      "icon": "ARROW",
       "category": "duels",
       "group": null,
       "format": "1v1",
@@ -1001,6 +1118,8 @@
     {
       "id": "aim-trainer",
       "name": "Aim trainer",
+      "colour": "#55FFFF",
+      "icon": "BOW",
       "category": "entrainement",
       "group": null,
       "format": "Solo",
@@ -1015,6 +1134,8 @@
     {
       "id": "event-sumo",
       "name": "Sumo event",
+      "colour": "#55FF55",
+      "icon": "SLIME_BALL",
       "category": "duels",
       "group": null,
       "format": "FFA",
@@ -1029,6 +1150,8 @@
     {
       "id": "event-brackets",
       "name": "Brackets event",
+      "colour": "#55FF55",
+      "icon": "IRON_SWORD",
       "category": "duels",
       "group": null,
       "format": "FFA",
@@ -1043,6 +1166,8 @@
     {
       "id": "event-lms",
       "name": "Last Man Standing event",
+      "colour": "#55FF55",
+      "icon": "GOLD_SWORD",
       "category": "duels",
       "group": null,
       "format": "FFA",
@@ -1305,6 +1430,7 @@
       "id": "trail-clouds",
       "type": "trail",
       "name": "Clouds",
+      "icon": "WOOL",
       "price": 2000,
       "level": 5,
       "premium": false
@@ -1313,6 +1439,7 @@
       "id": "trail-flames",
       "type": "trail",
       "name": "Flames",
+      "icon": "BLAZE_POWDER",
       "price": 2500,
       "level": 5,
       "premium": false
@@ -1321,6 +1448,7 @@
       "id": "trail-hearts",
       "type": "trail",
       "name": "Hearts",
+      "icon": "RED_ROSE",
       "price": 3000,
       "level": 10,
       "premium": false
@@ -1329,6 +1457,7 @@
       "id": "trail-emeralds",
       "type": "trail",
       "name": "Emerald sparks",
+      "icon": "EMERALD",
       "price": 3000,
       "level": 10,
       "premium": false
@@ -1337,6 +1466,7 @@
       "id": "trail-notes",
       "type": "trail",
       "name": "Notes",
+      "icon": "NOTE_BLOCK",
       "price": 4000,
       "level": 15,
       "premium": false
@@ -1345,6 +1475,7 @@
       "id": "trail-magic",
       "type": "trail",
       "name": "Magic",
+      "icon": "GLOWSTONE_DUST",
       "price": 5000,
       "level": 20,
       "premium": false
@@ -1353,6 +1484,7 @@
       "id": "trail-ender",
       "type": "trail",
       "name": "Ender",
+      "icon": "EYE_OF_ENDER",
       "price": 6000,
       "level": 25,
       "premium": false
@@ -1361,6 +1493,7 @@
       "id": "trail-redstone",
       "type": "trail",
       "name": "Redstone",
+      "icon": "REDSTONE",
       "price": 8000,
       "level": 35,
       "premium": false
@@ -1369,6 +1502,7 @@
       "id": "kill-blood",
       "type": "kill",
       "name": "Blood",
+      "icon": "REDSTONE_BLOCK",
       "price": 3000,
       "level": 10,
       "premium": false
@@ -1377,6 +1511,7 @@
       "id": "kill-hearts",
       "type": "kill",
       "name": "Heart burst",
+      "icon": "RED_ROSE",
       "price": 3000,
       "level": 10,
       "premium": false
@@ -1385,6 +1520,7 @@
       "id": "kill-flames",
       "type": "kill",
       "name": "Flame burst",
+      "icon": "BLAZE_POWDER",
       "price": 4000,
       "level": 15,
       "premium": false
@@ -1393,6 +1529,7 @@
       "id": "kill-lightning",
       "type": "kill",
       "name": "Lightning",
+      "icon": "BLAZE_ROD",
       "price": 5000,
       "level": 20,
       "premium": false
@@ -1401,6 +1538,7 @@
       "id": "kill-firework",
       "type": "kill",
       "name": "Firework",
+      "icon": "FIREWORK",
       "price": 6000,
       "level": 25,
       "premium": false
@@ -1409,6 +1547,7 @@
       "id": "kill-explosion",
       "type": "kill",
       "name": "Explosion",
+      "icon": "TNT",
       "price": 8000,
       "level": 35,
       "premium": false
@@ -1417,6 +1556,7 @@
       "id": "win-hearts",
       "type": "win",
       "name": "Love",
+      "icon": "RED_ROSE",
       "price": 4000,
       "level": 10,
       "premium": false
@@ -1425,6 +1565,7 @@
       "id": "win-fireworks",
       "type": "win",
       "name": "Fireworks",
+      "icon": "FIREWORK",
       "price": 5000,
       "level": 10,
       "premium": false
@@ -1433,6 +1574,7 @@
       "id": "win-flames",
       "type": "win",
       "name": "Ring of fire",
+      "icon": "BLAZE_POWDER",
       "price": 6000,
       "level": 20,
       "premium": false
@@ -1441,6 +1583,7 @@
       "id": "win-party",
       "type": "win",
       "name": "Party",
+      "icon": "JUKEBOX",
       "price": 8000,
       "level": 30,
       "premium": false
@@ -1449,6 +1592,7 @@
       "id": "kill-squid",
       "type": "kill",
       "name": "Squid rocket",
+      "icon": "INK_SACK",
       "price": 0,
       "level": 1,
       "premium": true
@@ -1457,6 +1601,7 @@
       "id": "kill-meteor",
       "type": "kill",
       "name": "Meteor strike",
+      "icon": "FIREBALL",
       "price": 0,
       "level": 1,
       "premium": true
@@ -1465,6 +1610,7 @@
       "id": "win-storm",
       "type": "win",
       "name": "Thunder god",
+      "icon": "GOLD_AXE",
       "price": 0,
       "level": 1,
       "premium": true
@@ -1473,6 +1619,7 @@
       "id": "win-meteors",
       "type": "win",
       "name": "Meteor shower",
+      "icon": "MAGMA_CREAM",
       "price": 0,
       "level": 1,
       "premium": true
@@ -1489,6 +1636,103 @@
     "everyMinutes": 20,
     "lobbyPlayers": 6,
     "maxPlayers": 40
+  },
+  "attackDefense": {
+    "protection": 2,
+    "attack": [
+      {
+        "name": "Rusher",
+        "icon": "FIREBALL",
+        "description": "Fireballs to clear the bridge and throw the defenders off; the Golden Pickaxe digs fast."
+      },
+      {
+        "name": "Breaker",
+        "icon": "TNT",
+        "description": "TNT blows up the wool and the end stone of the defense; the Diamond Pickaxe does the rest."
+      },
+      {
+        "name": "Ninja",
+        "icon": "ENDER_PEARL",
+        "description": "Invisible for 30 seconds, then a pearl to land on the bed."
+      }
+    ],
+    "defense": [
+      {
+        "name": "Guardian",
+        "icon": "STICK",
+        "description": "A stone sword, and the stick to knock them off at the door."
+      },
+      {
+        "name": "Archer",
+        "icon": "BOW",
+        "description": "Shoot them off the bridge before they land."
+      },
+      {
+        "name": "Builder",
+        "icon": "ENDER_STONE",
+        "description": "End stone and wool to build the defense up again as they break it; shears for good."
+      }
+    ]
+  },
+  "comboBot": {
+    "levels": [
+      {
+        "id": "easy",
+        "name": "Easy",
+        "cps": 5,
+        "accuracy": 0.55,
+        "reach": 2.7,
+        "sprints": false,
+        "strafe": 0,
+        "wTap": 0,
+        "jumpReset": 0,
+        "reactionTicks": 8
+      },
+      {
+        "id": "normal",
+        "name": "Normal",
+        "cps": 8,
+        "accuracy": 0.75,
+        "reach": 2.9,
+        "sprints": true,
+        "strafe": 0.45,
+        "wTap": 0.4,
+        "jumpReset": 0.15,
+        "reactionTicks": 5
+      },
+      {
+        "id": "hard",
+        "name": "Hard",
+        "cps": 11,
+        "accuracy": 0.88,
+        "reach": 3,
+        "sprints": true,
+        "strafe": 0.8,
+        "wTap": 0.75,
+        "jumpReset": 0.45,
+        "reactionTicks": 3
+      },
+      {
+        "id": "expert",
+        "name": "Expert",
+        "cps": 14,
+        "accuracy": 0.95,
+        "reach": 3,
+        "sprints": true,
+        "strafe": 1,
+        "wTap": 1,
+        "jumpReset": 0.8,
+        "reactionTicks": 1
+      }
+    ]
+  },
+  "pointsToWin": {
+    "boxing": 100,
+    "kb-displace": 3,
+    "block-fight": 100,
+    "block-edit": 5,
+    "bridge-fight": 5,
+    "bow": 10
   },
   "replays": {
     "active": true,

@@ -1,13 +1,13 @@
 import { expect, test } from '@playwright/test';
-import { SOON } from './helpers';
+import { FLAGSHIP_PAGES, SOON } from './helpers';
 
 test.describe('search engines and shared links', () => {
   test.skip(({ isMobile }) => isMobile, 'the same files for every screen');
 
   test('the home page has its title, description, share image and structured data', async ({ page }) => {
     await page.goto(SOON);
-    await expect(page).toHaveTitle('Rago Practice: Ranked Bedwars and practice');
-    await expect(page.locator('meta[name="description"]')).toHaveAttribute('content', /Ranked Bedwars/);
+    await expect(page).toHaveTitle('Rago Practice: master your skills');
+    await expect(page.locator('meta[name="description"]')).toHaveAttribute('content', /PvP practice/);
     await expect(page.locator('html')).toHaveAttribute('lang', 'en');
     await expect(page.locator('meta[name="robots"]')).toHaveAttribute('content', 'noindex, nofollow');
     const image = await page.locator('meta[property="og:image"]').getAttribute('content');
@@ -16,6 +16,18 @@ test.describe('search engines and shared links', () => {
       .locator('script[type="application/ld+json"]')
       .evaluateAll((scripts) => scripts.flatMap((s) => [JSON.parse(s.textContent ?? '')].flat().map((d) => d['@type'])));
     expect(types).toEqual(expect.arrayContaining(['Organization', 'WebSite']));
+  });
+
+  test('each page of a mode has its own title, description and canonical address', async ({ page }) => {
+    await page.goto(`${SOON}/modes`);
+    await expect(page).toHaveTitle('Game modes · Rago Practice');
+    for (const path of FLAGSHIP_PAGES) {
+      await page.goto(SOON + path);
+      const title = await page.title();
+      expect(title, path).toMatch(/ · Rago Practice$/);
+      await expect(page.locator('meta[name="description"]')).toHaveAttribute('content', /.{40,}/);
+      await expect(page.locator('link[rel="canonical"]')).toHaveAttribute('href', new RegExp(`${path}$`));
+    }
   });
 
   test('the share image is a 1200 x 630 PNG', async ({ request }) => {
@@ -34,6 +46,9 @@ test.describe('search engines and shared links', () => {
     expect(robots).toContain('Disallow: /');
     const sitemap = await (await request.get(`${SOON}/sitemap.xml`)).text();
     expect(sitemap).toContain('<loc>');
+    for (const path of ['/modes', ...FLAGSHIP_PAGES]) {
+      expect(sitemap).toContain(`${path}</loc>`);
+    }
     expect(sitemap).not.toContain('/legal/');
   });
 

@@ -25,6 +25,7 @@ export const SOURCES = {
   sumoHost: 'bukkit/rago-practice/src/main/java/gg/rago/practice/SumoHost.java',
   eventGame: 'bukkit/rago-practice/src/main/java/gg/rago/practice/EventGame.java',
   gadgets: 'bukkit/rago-lobby/src/main/java/gg/rago/lobby/LobbyGadgets.java',
+  comboAi: 'bukkit/rago-practice/src/main/java/gg/rago/practice/ComboAi.java',
 };
 
 /** The 16 colours of Minecraft 1.8, by their code (&0 to &f). */
@@ -150,13 +151,14 @@ function cosmetics(lobby) {
   const overrides = lobby.boutique ?? {};
   const found = [];
   const pattern =
-    /new Cosmetic\("([a-z0-9-]+)", Type\.(TRAIL|KILL|WIN), "([^"]+)", Material\.\w+, Effect\.\w+, ([\d_]+), (\d+)(, true)?\)/g;
-  for (const [, id, type, name, price, level, premium] of read(SOURCES.cosmetics).matchAll(pattern)) {
+    /new Cosmetic\("([a-z0-9-]+)", Type\.(TRAIL|KILL|WIN), "([^"]+)", Material\.(\w+), Effect\.\w+, ([\d_]+), (\d+)(, true)?\)/g;
+  for (const [, id, type, name, icon, price, level, premium] of read(SOURCES.cosmetics).matchAll(pattern)) {
     const override = overrides[id] ?? {};
     found.push({
       id,
       type: type.toLowerCase(),
       name,
+      icon,
       price: override.prix ?? Number(price.replace(/_/g, '')),
       level: override.niveau ?? Number(level),
       premium: Boolean(premium),
@@ -184,6 +186,8 @@ export function buildGameData() {
   const modes = Object.entries(lobby.modes).map(([id, mode]) => ({
     id,
     name: plain(mode.nom),
+    colour: colourOf(mode.nom),
+    icon: mode.icone ?? null,
     category: mode.categorie,
     group: mode.groupe ?? null,
     format: format(mode),
@@ -200,6 +204,7 @@ export function buildGameData() {
     id,
     name: plain(category.nom),
     colour: colourOf(category.nom),
+    icon: category.icone ?? null,
     slogan: segments(category.slogan),
     description: paragraph(category.description),
     skin: npcs.find((npc) => npc.categorie === id && !npc.type)?.skin ?? null,
@@ -272,6 +277,31 @@ export function buildGameData() {
     cosmetics: (pack.cosmetiques ?? []).map(cosmetic),
   };
 
+  // the kits of Attack and Defense, as the menu before each round shows them
+  const attackDefense = parse(read(SOURCES.bedwarsConfig))['attaque-defense'] ?? {};
+  const roundKit = (kit) => ({ name: plain(kit.nom), icon: kit.icone, description: paragraph(kit.description) });
+
+  // the levels of the combo bot: how it clicks, aims, moves and reacts (ComboAi.LEVELS)
+  const comboLevels = [
+    ...read(SOURCES.comboAi).matchAll(
+      /new Level\("([a-z]+)", "([^"]+)", ([\d.]+), ([\d.]+), ([\d.]+), (true|false), ([\d.]+), ([\d.]+), ([\d.]+), (\d+)\)/g,
+    ),
+  ].map(([, id, name, cps, accuracy, reach, sprints, strafe, wTap, jumpReset, reaction]) => ({
+    id,
+    name,
+    cps: Number(cps),
+    accuracy: Number(accuracy),
+    reach: Number(reach),
+    sprints: sprints === 'true',
+    strafe: Number(strafe),
+    wTap: Number(wTap),
+    jumpReset: Number(jumpReset),
+    reactionTicks: Number(reaction),
+  }));
+  if (comboLevels.length === 0) {
+    throw new Error(`no level of the combo bot in ${SOURCES.comboAi}`);
+  }
+
   const events = practiceConfig.evenements ?? {};
   const automatic = events.automatiques ?? {};
 
@@ -316,6 +346,13 @@ export function buildGameData() {
       lobbyPlayers: automatic['joueurs-lobby'] ?? null,
       maxPlayers: events['joueurs-max'] ?? null,
     },
+    attackDefense: {
+      protection: attackDefense.protection ?? 2,
+      attack: (attackDefense['kits-attaque'] ?? []).map(roundKit),
+      defense: (attackDefense['kits-defense'] ?? []).map(roundKit),
+    },
+    comboBot: { levels: comboLevels },
+    pointsToWin: practiceConfig['points-pour-gagner'] ?? {},
     replays: {
       active: lobby.replays?.actif === true,
       days: lobby.replays?.jours ?? null,
