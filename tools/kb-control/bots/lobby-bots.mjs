@@ -59,9 +59,9 @@ const LOBBY_SPAWN = { x: 0.5, y: 65, z: 0.5 }
 // under that row (Bed Fight comes first).
 const DUELS_SLOT = 14
 const POINTS_TO_WIN = 3
-// run-lobby-test.sh places the NPC of the Duels category (point rbwffa), a stats NPC
-// (statsjoueur1), a wall of leaderboards (leaderboardstats), the main leaderboard
-// (leaderboardprincipal) and the kills leaderboard (leaderboardplayer) around the spawn. The points
+// run-lobby-test.sh places the NPC of the Duels category (point duels), a stats NPC
+// (profil), a wall of leaderboards (leaderboards), the main leaderboard
+// (top) and the kills leaderboard (joueurs) around the spawn. The points
 // are at y = 65; each NPC stands a block higher, on the block of polished andesite put at its point.
 const DUELS_NPC = { x: 3.5, y: 66, z: 0.5 }
 const STATS_NPC = { x: -3.5, y: 66, z: 0.5 }
@@ -402,7 +402,7 @@ async function clickBoardLine (bot, line, left) {
   else bot.activateEntity(line)
 }
 
-/** The line of the main leaderboard (leaderboardprincipal) showing this text, or undefined. */
+/** The line of the main leaderboard (top) showing this text, or undefined. */
 function mainBoardLine (bot, text) {
   return Object.values(bot.entities).find((e) => typeof e.metadata?.[2] === 'string' &&
     e.metadata[2].replace(/§./g, '') === text &&
@@ -467,11 +467,11 @@ async function checkStats (one, two) {
   // Three points: three kills for RagoUn, three deaths for RagoDeux.
   await expectFloating(one, 'Kills: 3 · Final kills: 0', 'the kills of the winner')
   await expectFloating(two, 'Kills: 0 · Final kills: 0', 'the kills of the loser')
-  await expectFloating(two, '1. RagoUn - 3', 'the kills of the day on leaderboardplayer')
-  // leaderboardplayer: the best win streaks on the left of the kills, the Network level on the right.
+  await expectFloating(two, '1. RagoUn - 3', 'the kills of the day on joueurs')
+  // joueurs: the best win streaks on the left of the kills, the Network level on the right.
   await waitFor(() => floatingTexts(two).filter((text) => text === 'Best win streak').length === 2 &&
     floatingTexts(two).includes('Network level'), 5000,
-  `the streaks and the level next to the kills on leaderboardplayer: ${JSON.stringify(floatingTexts(two))}`)
+  `the streaks and the level next to the kills on joueurs: ${JSON.stringify(floatingTexts(two))}`)
   // Network XP: 50 for the win and 5 a kill (65 of the 100 of level 1), 15 for the game lost.
   await expectLevel(one, 1, 0.65)
   await expectLevel(two, 1, 0.15)

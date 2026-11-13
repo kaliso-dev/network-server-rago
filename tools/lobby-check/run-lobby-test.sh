@@ -125,35 +125,35 @@ sed -e 's/^  fer-secondes-par-noeud: [0-9.]*$/  fer-secondes-par-noeud: 1/' \
   "$ROOT/bukkit/rago-bedwars/src/main/resources/config.yml" >"$SERVER_DIR/plugins/RagoBedwars/config.yml"
 grep -q '^  fer-secondes-par-noeud: 1$' "$SERVER_DIR/plugins/RagoBedwars/config.yml" || fail "could not speed up the iron"
 # Around the spawn of the new lobby world: the NPC of the Duels category (on its point of the
-# bundled config, rbwffa), a stats NPC, a wall of leaderboards, the main leaderboard (within click
-# range of the spawn) and the kills leaderboard.
+# bundled config, duels), a stats NPC (profil), a wall of leaderboards (leaderboards), the main
+# leaderboard (top, within click range of the spawn) and the kills leaderboard (joueurs).
 mkdir -p "$SERVER_DIR/lobby"
 cat >"$SERVER_DIR/lobby/points.yml" <<'YAML'
-rbwffa:
+duels:
   x: 3.5
   y: 65.0
   z: 0.5
   yaw: 0.0
   pitch: 0.0
-statsjoueur1:
+profil:
   x: -3.5
   y: 65.0
   z: 0.5
   yaw: 0.0
   pitch: 0.0
-leaderboardstats:
+leaderboards:
   x: 0.5
   y: 65.0
   z: -6.5
   yaw: 0.0
   pitch: 0.0
-leaderboardprincipal:
+top:
   x: 0.5
   y: 65.0
   z: 5.5
   yaw: 180.0
   pitch: 0.0
-leaderboardplayer:
+joueurs:
   x: 12.5
   y: 65.0
   z: 5.5
