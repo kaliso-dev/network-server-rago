@@ -1720,6 +1720,7 @@ public final class RagoLobby extends JavaPlugin implements LobbyService {
         }
         visibility.applyVanish(player);
         social.announce(player, true);
+        LobbyWelcome.clearTitle(player);
         LobbyWelcome.greet(player, settings);
         if (profiles.dailyReady(player.getUniqueId())) {
             player.sendMessage(ChatColor.AQUA + "Your daily reward is waiting: " + Brand.ACCENT + "/daily");
