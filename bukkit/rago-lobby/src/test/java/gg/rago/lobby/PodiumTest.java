@@ -43,15 +43,16 @@ class PodiumTest {
     }
 
     @Test
-    void theMainBoardHasThePodiumOfTheLobbyMap() throws Exception {
-        LobbyNpc wall = bundledSettings().npc("leaderboardprincipal");
-        assertEquals(Arrays.asList("0.5 67 57.5", "-1.5 66 57.5", "2.5 65 57.5"), wall.podium());
-        assertArrayEquals(new double[] {0.5, 67, 57.5}, LobbyNpc.coordinates(wall.podium().get(0)));
+    void theMainBoardHasItsPodiumOnThreePoints() throws Exception {
+        LobbyNpc wall = bundledSettings().npc("top");
+        assertEquals(Arrays.asList("top1", "top2", "top3"), wall.podium());
+        assertNull(LobbyNpc.coordinates(wall.podium().get(0)), "a point, placed with /lobby point top1");
+        assertArrayEquals(new double[] {0.5, 67, 57.5}, LobbyNpc.coordinates("0.5 67 57.5"));
         assertArrayEquals(new double[] {-1.5, 66, 57.5}, LobbyNpc.coordinates("  -1.5   66 57.5 "));
         assertNull(LobbyNpc.coordinates("podium1"), "a point name");
         assertNull(LobbyNpc.coordinates("1 2"));
         assertNull(LobbyNpc.coordinates("1 2 NaN"));
-        assertTrue(bundledSettings().npc("leaderboardplayer").podium().isEmpty(), "a podium is optional");
+        assertTrue(bundledSettings().npc("joueurs").podium().isEmpty(), "a podium is optional");
     }
 
     @Test
@@ -75,10 +76,10 @@ class PodiumTest {
         book.kill("sumo", ALICE, BOB, NAMES, SUNDAY);
         book.kill("sumo", ALICE, BOB, NAMES, SUNDAY);
         StatsDisplays displays = new StatsDisplays(settings, book, new StatsMenu(settings, book), new FakeEntities(null, null));
-        List<BoardStat> main = settings.npc("leaderboardprincipal").boards().get(0);
+        List<BoardStat> main = settings.npc("top").boards().get(0);
         assertEquals(BoardStat.LEVEL, main.get(0), "the podium shows the Network level first");
-        assertEquals(ALICE, displays.holder(main, "leaderboardprincipal#0", BOB, 0, SUNDAY).id(), "Alice won: more XP");
-        assertEquals(Arrays.asList("#1 Alice", "Level 1"), plain(displays.podiumLines(main, "leaderboardprincipal#0", BOB, 0,
+        assertEquals(ALICE, displays.holder(main, "top#0", BOB, 0, SUNDAY).id(), "Alice won: more XP");
+        assertEquals(Arrays.asList("#1 Alice", "Level 1"), plain(displays.podiumLines(main, "top#0", BOB, 0,
                 SUNDAY)));
         // a board of three, the ELO first
         List<BoardStat> stats = Arrays.asList(BoardStat.ELO, BoardStat.KILLS, BoardStat.LEVEL);

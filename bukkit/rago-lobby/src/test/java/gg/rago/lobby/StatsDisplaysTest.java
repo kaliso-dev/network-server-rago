@@ -87,16 +87,16 @@ class StatsDisplaysTest {
         assertEquals(Arrays.asList("Games played", "All modes · Weekly"), games.subList(0, 2), "a click: the next one, of the week");
 
         // a wall where each player chooses the period: the prize shows on the week
-        List<BoardStat> streaks = settings.npc("leaderboardplayer").boards().get(0);
-        List<String> daily = plain(displays.board(streaks, "leaderboardplayer#0", alice, SUNDAY));
+        List<BoardStat> streaks = settings.npc("joueurs").boards().get(0);
+        List<String> daily = plain(displays.board(streaks, "joueurs#0", alice, SUNDAY));
         assertEquals("All modes · Daily", daily.get(1));
         assertEquals("", daily.get(15));
-        displays.next(alice, streaks, "leaderboardplayer#0", true);
-        List<String> weekly = plain(displays.board(streaks, "leaderboardplayer#0", alice, SUNDAY));
+        displays.next(alice, streaks, "joueurs#0", true);
+        List<String> weekly = plain(displays.board(streaks, "joueurs#0", alice, SUNDAY));
         assertEquals("All modes · Weekly", weekly.get(1));
         assertEquals("Top 3 on Monday: 2,000 · 1,000 · 500 points + ♛", weekly.get(15));
-        List<BoardStat> levels = settings.npc("leaderboardplayer").boards().get(2);
-        assertEquals("", plain(displays.board(levels, "leaderboardplayer#2", alice, SUNDAY)).get(15), "the levels win nothing");
+        List<BoardStat> levels = settings.npc("joueurs").boards().get(2);
+        assertEquals("", plain(displays.board(levels, "joueurs#2", alice, SUNDAY)).get(15), "the levels win nothing");
     }
 
     @Test
@@ -119,8 +119,8 @@ class StatsDisplaysTest {
         book.finalDeath("bed-fight-1v1", BOB, NAMES);
         StatsDisplays displays = new StatsDisplays(settings, book, new StatsMenu(settings, book), new FakeEntities(null, null));
         Player alice = player(ALICE);
-        List<BoardStat> stats = settings.npc("leaderboardprincipal").boards().get(0);
-        String key = "leaderboardprincipal#0";
+        List<BoardStat> stats = settings.npc("top").boards().get(0);
+        String key = "top#0";
 
         List<String> level = plain(displays.board(stats, key, alice, SUNDAY));
         assertEquals("Network level", level.get(0), "the Network level first");
@@ -181,7 +181,7 @@ class StatsDisplaysTest {
         StatsBook book = new StatsBook(1000, settings.levels());
         StatsDisplays displays = new StatsDisplays(settings, book, new StatsMenu(settings, book), new FakeEntities(null, null));
         Player bob = player(BOB);
-        List<BoardStat> stats = settings.npc("leaderboardplayer").boards().get(1);
+        List<BoardStat> stats = settings.npc("joueurs").boards().get(1);
         assertEquals(Collections.singletonList(BoardStat.KILLS), stats);
         List<String> lines = plain(displays.board(stats, "p#0", bob, SUNDAY));
         assertEquals(Arrays.asList("Kills", "All modes · Daily", "", "Nobody yet"), lines.subList(0, 4));
@@ -291,7 +291,7 @@ class StatsDisplaysTest {
         book.load(stats);
         book.kill("sumo", ALICE, BOB, NAMES, SUNDAY);
         StatsDisplays displays = new StatsDisplays(settings, book, new StatsMenu(settings, book), new FakeEntities(null, null));
-        List<String> lines = plain(displays.profile(settings.npc("statsjoueur1"), player(ALICE)));
+        List<String> lines = plain(displays.profile(settings.npc("profil"), player(ALICE)));
         assertTrue(lines.contains("Network level: [6" + NetworkLevel.STAR + "]"), lines.toString());
         assertTrue(lines.contains("Kills: 1 · Final kills: 0"), lines.toString());
         assertTrue(lines.contains("Games played: 0"), lines.toString());
@@ -320,7 +320,7 @@ class StatsDisplaysTest {
         assertEquals(5, alice.games(), "every game, won or lost, every mode");
         assertEquals(2, alice.finalDeaths());
         StatsDisplays displays = new StatsDisplays(settings, book, new StatsMenu(settings, book), new FakeEntities(null, null));
-        List<String> lines = plain(displays.profile(settings.npc("statsjoueur1"), player(ALICE)));
+        List<String> lines = plain(displays.profile(settings.npc("profil"), player(ALICE)));
         assertTrue(lines.contains("Games played: 5"), lines.toString());
         assertTrue(lines.contains("Wins: 3 · Losses: 2"), lines.toString());
         assertTrue(lines.contains("WLR: 1.5"), lines.toString());

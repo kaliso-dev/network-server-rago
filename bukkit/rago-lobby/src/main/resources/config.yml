@@ -235,26 +235,31 @@ groupes:
 #          sends each new PNG once to MineSkin (api.mineskin.org) and keeps the answer in skins.yml.
 pnj:
   # The ways to play: each NPC opens its whole category (the menu of the compass), with the slogan
-  # of the category under its name (sous-titre: another line). The three of the centre side by
-  # side: Practice on the side of the Practice zone, Duels on the side of the Duels zone, RBW Modes
-  # in front (their points were the ones of Ranked Bedwars, the private games and the FFA); the
-  # Arenas on the point of the Arena Free NPC of the map, among the arenas.
-  privategame:
+  # of the category under its name (sous-titre: another line). Their points: /lobby point
+  # practice, rbw, duels, arenas.
+  practice:
     nom: "&b&lPractice"
     categorie: entrainement
     skin: practice
-  rankedbedwars1v1ou2v2elo:
+  rbw:
     nom: "&6&lRBW Modes"
     categorie: ranked
     skin: ranked
-  rbwffa:
+  duels:
     nom: "&a&lDuels"
     categorie: duels
     skin: duels
-  freearenacombo:
+  arenas:
     nom: "&c&lArenas"
     categorie: arenes
     skin: arena
+  # The private games (a Ranked Bedwars or a Top Bridge with friends, the host's settings): /lobby
+  # point prive. They stay in the RBW Modes too.
+  prive:
+    nom: "&6&lPrivate game"
+    sous-titre: "&7Your game, your friends, your rules"
+    skin: prive
+    modes: [partie-privee, top-bridge-prive]
   # Only the NPCs of the ways to play, so that a new player is not lost: every mode stays in its
   # category, in the compass and in the menus of the four. Remove the # before the lines of one to
   # show it again, on its point (/lobby point <name>; for the ones without a point now, place a
@@ -263,10 +268,6 @@ pnj:
   #   nom: "&6&lRanked Bedwars"
   #   skin: ranked
   #   modes: [ranked-1v1, ranked-2v2, ranked-3v3, ranked-4v4]
-  # prive:
-  #   nom: "&6Private game"
-  #   skin: prive
-  #   modes: [partie-privee, top-bridge-prive]
   # ffa:
   #   nom: "&cFFA and Top bridge"
   #   skin: ffa
@@ -310,19 +311,20 @@ pnj:
   #   skin: practice
   # The Shop NPC (type: shop), at the centre: a click opens the store, the starter pack
   # (pack-depart) and VIP, then what Rago Points buy. sous-titre: the line under its name.
-  # (Its point is still called aimtrainer: the aim trainer is in the Practice NPC.)
-  aimtrainer:
+  # Its point: /lobby point shop.
+  shop:
     nom: "&a&lSHOP"
     sous-titre: "&cStarter Pack &7· &bVIP"
     type: shop
     skin: shop
   # The stats NPCs (type: stats): everyone sees their own profile above it, and a click opens
-  # their stats mode by mode. nom: the first line of the profile.
-  statsjoueur1:
+  # their stats mode by mode. nom: the first line of the profile. Their points: /lobby point
+  # profil, profil2.
+  profil:
     nom: "&6&lYour Rago profile"
     type: stats
     skin: stats
-  statsjoueur2:
+  profil2:
     nom: "&6&lYour Rago profile"
     type: stats
     skin: stats
@@ -766,18 +768,19 @@ liens:
 #             goes to the next leaderboard of a board). Left out, each player chooses it.
 # A board of the week says, under the player's place, what its top wins on Monday (semaine:).
 classements:
-  leaderboardprincipal:
+  top:
     nom: "&c&lTop players"
     # The Network level first (and on the podium); a click goes to the ELO, the FKDR, the kills,
     # then the games played.
     tableaux: [[niveau, elo, fkdr, kills, parties]]
-    # The podium behind the board: the emerald (1st), the diamond (2nd), the gold block (3rd).
-    podium: ["0.5 67 57.5", "-1.5 66 57.5", "2.5 65 57.5"]
-  leaderboardstats:
+    # The podium: the top 3 of the board, in their skin. Stand on each step and type /lobby point
+    # top1 (the first), top2, then top3.
+    podium: [top1, top2, top3]
+  leaderboards:
     nom: "&c&lLeaderboards"
     tableaux: [victoires, series, parties]
   # The kills in the middle (on the point), the win streaks on the left, the Network level on the right.
-  leaderboardplayer:
+  joueurs:
     nom: "&c&lPlayer leaderboards"
     tableaux: [series, kills, niveau]
   # The wall of the week: its boards stay on this week and show what their top 3 wins on Monday

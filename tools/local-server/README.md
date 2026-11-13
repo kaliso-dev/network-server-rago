@@ -92,11 +92,11 @@ Commandes :
 - /lobby point nom (opérateurs) : marque un endroit du lobby, où se mettent les PNJ et les
   classements de plugins/RagoLobby/config.yml (le nom du point est leur clé). Retape-le ailleurs
   pour le déplacer ; /lobby points pour la liste, /lobby point tp nom pour y aller,
-  /lobby point remove nom pour l'enlever. Les PNJ de stats sont sur statsjoueur1 et
-  statsjoueur2, le mur de classements du jour, de la semaine et à vie sur leaderboardstats, le
-  classement principal sur leaderboardprincipal (clic droit : Elo, puis Kills, puis niveau
-  Network ; clic gauche : la période ou le mode classé), les kills du jour, de la semaine et à vie
-  sur leaderboardplayer, avec les séries de victoires à gauche et le niveau Network à droite.
+  /lobby point remove nom pour l'enlever. Les PNJ : practice, rbw, duels, arenas, prive
+  (Private game), shop, profil et profil2 (les stats), quests et daily (le coffre du jour). Les
+  murs : top (le classement principal, son podium sur top1, top2 et top3), leaderboards (du jour,
+  de la semaine et à vie), joueurs (séries, kills et niveau Network), semaine (son podium sur
+  semaine1, semaine2 et semaine3) et records (les records de la practice).
 - /monde tp world (opérateurs) : aller au monde plat du test de knockback, comme avant.
 
 Le plus simple pour construire le lobby : construis directement dans le monde lobby. Tape

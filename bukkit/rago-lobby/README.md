@@ -324,7 +324,7 @@ dans les files d'attente des modes de jeu.
   (traînées de projectiles, effets de kill, effets de victoire), chacun débloqué à un niveau
   Network, et montre le rang PREMIUM et les styles de pseudo. Un rang peut aussi se vendre en
   points (`prix:` et `niveau:` dans `rangs:`). Les cosmétiques ne jouent qu'en partie.
-- **Le PNJ Shop et le pack de départ (`/pack`).** Au centre du lobby (le point `aimtrainer`,
+- **Le PNJ Shop et le pack de départ (`/pack`).** Au centre du lobby (le point `shop`,
   `type: shop`), un PNJ Shop ouvre la vitrine de celui qui débute : d'abord le **pack de départ**,
   ce qu'il y a de moins cher (3,99 €, une fois par joueur : 20 000 Rago Points, 3 boosters d'XP,
   2 boosters de points et 3 cosmétiques sans leur niveau, sans rang), puis VIP (4,99 €) et ses
@@ -530,9 +530,9 @@ config.yml fourni les suit :
   dans ce menu, les tailles d'un même groupe ne font qu'un objet (Top Bridge, une échelle qui ouvre
   1v1, 2v2 et FFA), sauf si le PNJ n'a que ce groupe. Un PNJ avec `categorie:` ouvre toute sa
   catégorie, comme la boussole. Au centre, quatre PNJ seulement, un par façon de jouer, pour qu'un
-  nouveau joueur ne s'y perde pas : Practice, RBW Modes et Duels (sur les points de Ranked
-  Bedwars, de la partie privée et du FFA), et Arenas sur le point `freearenacombo` (déplaçable avec
-  `/lobby point freearenacombo`). Les PNJ d'un mode (Ranked Bedwars, partie privée, FFA,
+  nouveau joueur ne s'y perde pas : Practice, RBW Modes, Duels et Arenas (les points `practice`,
+  `rbw`, `duels` et `arenas`), plus un PNJ **Private game** (point `prive`) pour les parties
+  privées, qui restent aussi dans RBW Modes. Les PNJ d'un mode (Ranked Bedwars, FFA,
   Clutch Scenario, Attack and Defense, Sky Rise, First rush, Invis, Bridge fight,
   Block placement) et ceux des zones Practice et Duels sont en commentaire dans `pnj:` ; leurs
   modes restent dans la boussole et dans les menus des quatre. Un PNJ de catégorie montre le
@@ -562,7 +562,7 @@ config.yml fourni les suit :
   top 10, la place de celui qui regarde et quand il repart de zéro. Un clic sur un tableau change
   sa période pour ce joueur (du jour, de la semaine, à vie) ; sur un tableau `elo`, il change de
   mode classé. Un tableau peut regrouper plusieurs classements entre crochets
-  (`tableaux: [[niveau, elo, fkdr, kills, parties]]`, celui de leaderboardprincipal, qui montre
+  (`tableaux: [[niveau, elo, fkdr, kills, parties]]`, celui du mur `top`, qui montre
   d'abord le niveau Network, sur le tableau et sur le podium, puis l'ELO, le FKDR, les kills et les
   parties jouées) :
   un clic droit passe au classement suivant, un clic gauche change la période ou le mode classé, et un clic sur la ligne
@@ -570,7 +570,7 @@ config.yml fourni les suit :
   clic gauche atteint un tableau de 16 blocs, n'importe où sur son texte : le plugin suit le
   regard du joueur. Un clic droit ne l'atteint que de près : plus loin, l'objet en main (boussole,
   livre...) garde le clic droit. Le tableau `niveau` est
-  classé par XP et montre le niveau. leaderboardplayer montre les kills du jour, de la semaine et
+  classé par XP et montre le niveau. Le mur `joueurs` montre les kills du jour, de la semaine et
   à vie, entre les meilleures séries de victoires (à gauche) et le niveau Network (à droite).
   `periode: semaine` (ou `jour`, `toujours`) fixe la période des tableaux d'un mur : un clic ne fait
   plus que passer au classement suivant. C'est le mur `semaine`, dont chaque tableau dit sous la
@@ -580,8 +580,8 @@ config.yml fourni les suit :
   au-dessus : la place, son rang et son pseudo dans sa couleur (« #1 [PREMIUM+] Pseudo »), puis son
   score (« Gold 245 »). Chaque joueur voit le top de ce qu'il lit sur le tableau : ELO, kills
   ou niveau, la période, le mode classé. Une marche est un point `/lobby point`, ou `"x y z"` (là où
-  vont les pieds). Un clic sur une marche ouvre les stats de ce joueur. Celui de leaderboardprincipal
-  est le podium derrière le tableau : émeraude (1er), diamant (2e), bloc d'or (3e). Le skin d'un
+  vont les pieds). Un clic sur une marche ouvre les stats de ce joueur. Celui du mur `top` est sur
+  les points `top1`, `top2` et `top3`. Le skin d'un
   joueur est gardé dans ses stats à chaque connexion ; pour un joueur pas revenu depuis, le lobby
   le demande une fois aux serveurs de Mojang (serveur en online-mode ou derrière BungeeCord).
 
