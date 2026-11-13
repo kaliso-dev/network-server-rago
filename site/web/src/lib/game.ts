@@ -85,26 +85,6 @@ export interface RoundKit {
   description: string;
 }
 
-/** A level of the combo bot (ComboAi.LEVELS). */
-export interface BotLevel {
-  id: string;
-  name: string;
-  cps: number;
-  /** The chance that a click in reach lands, 0 to 1. */
-  accuracy: number;
-  /** How far it hits, in blocks. */
-  reach: number;
-  sprints: boolean;
-  /** How much it strafes once close, 0 to 1. */
-  strafe: number;
-  /** The chance of a w-tap after one of its hits. */
-  wTap: number;
-  /** The chance of a jump reset when it is hit on the ground. */
-  jumpReset: number;
-  /** How many ticks behind the player it steers (a tick is 50 ms). */
-  reactionTicks: number;
-}
-
 export interface GameData {
   server: { title: string; slogan: string };
   categories: Category[];
@@ -131,7 +111,22 @@ export interface GameData {
   ragoPoints: { win: number; loss: number; kill: number; daily: number };
   events: { automatic: boolean; everyMinutes: number | null; lobbyPlayers: number | null; maxPlayers: number | null };
   attackDefense: { protection: number; attack: RoundKit[]; defense: RoundKit[] };
-  comboBot: { levels: BotLevel[] };
+  /** The numbers of the block duels and trainings, read in the constants of their classes. */
+  blockPlacement: {
+    /** The points a fall into the void gives the other side, in a block placement duel. */
+    voidBonus: number;
+    /** How long a block placed in the block placement arena lasts. */
+    arenaBlockSeconds: number;
+    clutch: { knockback: { min: number; max: number }; hits: { min: number; max: number }; presets: string[] };
+    timedBridge: { distances: number[]; courses: number; secondsPerBlock: number };
+  };
+  /** The parties and their private games: the modes a private game plays, by the party's size. */
+  privateGames: {
+    partyMax: number;
+    topBridgeMinutes: number;
+    topBridgeBlockSeconds: number;
+    modes: Record<string, string[]>;
+  };
   /** The points (or hits) that win a duel, by kind of duel. */
   pointsToWin: Record<string, number>;
   replays: { active: boolean; days: number | null };

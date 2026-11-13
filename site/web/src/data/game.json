@@ -9,7 +9,12 @@
     "bukkit/rago-practice/src/main/java/gg/rago/practice/SumoHost.java",
     "bukkit/rago-practice/src/main/java/gg/rago/practice/EventGame.java",
     "bukkit/rago-lobby/src/main/java/gg/rago/lobby/LobbyGadgets.java",
-    "bukkit/rago-practice/src/main/java/gg/rago/practice/ComboAi.java"
+    "bukkit/rago-practice/src/main/java/gg/rago/practice/BlockFight.java",
+    "bukkit/rago-practice/src/main/java/gg/rago/practice/BlockArena.java",
+    "bukkit/rago-practice/src/main/java/gg/rago/practice/ClutchTraining.java",
+    "bukkit/rago-practice/src/main/java/gg/rago/practice/BridgeTraining.java",
+    "bukkit/rago-lobby/src/main/java/gg/rago/lobby/PartyBook.java",
+    "bukkit/rago-bedwars/src/main/java/gg/rago/bedwars/TopBridgeGame.java"
   ],
   "server": {
     "title": "RAGO PRACTICE",
@@ -1706,57 +1711,50 @@
       }
     ]
   },
-  "comboBot": {
-    "levels": [
-      {
-        "id": "easy",
-        "name": "Easy",
-        "cps": 5,
-        "accuracy": 0.55,
-        "reach": 2.7,
-        "sprints": false,
-        "strafe": 0,
-        "wTap": 0,
-        "jumpReset": 0,
-        "reactionTicks": 8
+  "blockPlacement": {
+    "voidBonus": 10,
+    "arenaBlockSeconds": 15,
+    "clutch": {
+      "knockback": {
+        "min": 1,
+        "max": 5
       },
-      {
-        "id": "normal",
-        "name": "Normal",
-        "cps": 8,
-        "accuracy": 0.75,
-        "reach": 2.9,
-        "sprints": true,
-        "strafe": 0.45,
-        "wTap": 0.4,
-        "jumpReset": 0.15,
-        "reactionTicks": 5
+      "hits": {
+        "min": 1,
+        "max": 3
       },
-      {
-        "id": "hard",
-        "name": "Hard",
-        "cps": 11,
-        "accuracy": 0.88,
-        "reach": 3,
-        "sprints": true,
-        "strafe": 0.8,
-        "wTap": 0.75,
-        "jumpReset": 0.45,
-        "reactionTicks": 3
-      },
-      {
-        "id": "expert",
-        "name": "Expert",
-        "cps": 14,
-        "accuracy": 0.95,
-        "reach": 3,
-        "sprints": true,
-        "strafe": 1,
-        "wTap": 1,
-        "jumpReset": 0.8,
-        "reactionTicks": 1
-      }
-    ]
+      "presets": [
+        "Hypixel",
+        "RBW",
+        "Hard"
+      ]
+    },
+    "timedBridge": {
+      "distances": [
+        16,
+        32,
+        64
+      ],
+      "courses": 12,
+      "secondsPerBlock": 3
+    }
+  },
+  "privateGames": {
+    "partyMax": 8,
+    "topBridgeMinutes": 30,
+    "topBridgeBlockSeconds": 45,
+    "modes": {
+      "partie-privee": [
+        "ranked-1v1",
+        "ranked-2v2",
+        "ranked-3v3",
+        "ranked-4v4"
+      ],
+      "top-bridge-prive": [
+        "top-bridge-1v1",
+        "top-bridge-2v2"
+      ]
+    }
   },
   "pointsToWin": {
     "boxing": 100,

@@ -3,6 +3,7 @@ import path from 'node:path';
 import { describe, expect, it } from 'vitest';
 import { REPO } from '../../scripts/import-game-data.mjs';
 import art from '@/data/mc-items.json';
+import { BLOCK_TRAININGS } from '@/lib/block-trainings';
 import { FLAGSHIPS, flagshipModes } from '@/lib/flagship';
 import { game, modeOf, playableModes } from '@/lib/game';
 import { itemArt } from '@/lib/mc';
@@ -90,6 +91,14 @@ describe('the six modes the site puts first', () => {
     }
   });
 
+  it('list as the block trainings only trainings of the game that can be played', () => {
+    const trainings = new Set(playableModes().filter((mode) => mode.category === 'entrainement').map((mode) => mode.id));
+    expect(BLOCK_TRAININGS.length).toBeGreaterThan(5);
+    for (const id of BLOCK_TRAININGS) {
+      expect(trainings.has(id), id).toBe(true);
+    }
+  });
+
   it('show the skin of their character of the lobby, when it has one', () => {
     for (const flagship of FLAGSHIPS.filter((f) => f.skin)) {
       expect(existsSync(path.join(PUBLIC, 'skins/3d', `${flagship.skin}.png`)), flagship.slug).toBe(true);
@@ -117,14 +126,24 @@ describe('what only one mode has', () => {
     expect(game.attackDefense.defense.length).toBeGreaterThan(0);
   });
 
-  it('gives the combo bot its four levels, harder each time', () => {
-    const levels = game.comboBot.levels;
-    expect(levels.map((level) => level.id)).toHaveLength(4);
-    for (let i = 1; i < levels.length; i++) {
-      const [before, after] = [levels[i - 1]!, levels[i]!];
-      expect(after.cps).toBeGreaterThan(before.cps);
-      expect(after.accuracy).toBeGreaterThan(before.accuracy);
-      expect(after.reactionTicks).toBeLessThan(before.reactionTicks);
+  it('gives the private games the modes of the game they play, and the party its size', () => {
+    expect(game.privateGames.partyMax).toBeGreaterThan(1);
+    for (const [id, modes] of Object.entries(game.privateGames.modes)) {
+      expect(() => modeOf(id), id).not.toThrow();
+      expect(modes.length, id).toBeGreaterThan(0);
+      for (const mode of modes) {
+        expect(() => modeOf(mode), mode).not.toThrow();
+      }
     }
   });
+
+  it('gives the block placement duel and trainings their numbers', () => {
+    const { voidBonus, arenaBlockSeconds, clutch, timedBridge } = game.blockPlacement;
+    expect(voidBonus).toBeGreaterThan(0);
+    expect(arenaBlockSeconds).toBeGreaterThan(0);
+    expect(clutch.knockback.max).toBeGreaterThan(clutch.knockback.min);
+    expect(clutch.presets.length).toBeGreaterThan(0);
+    expect(timedBridge.distances.length).toBeGreaterThan(0);
+  });
+
 });

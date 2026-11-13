@@ -25,7 +25,12 @@ export const SOURCES = {
   sumoHost: 'bukkit/rago-practice/src/main/java/gg/rago/practice/SumoHost.java',
   eventGame: 'bukkit/rago-practice/src/main/java/gg/rago/practice/EventGame.java',
   gadgets: 'bukkit/rago-lobby/src/main/java/gg/rago/lobby/LobbyGadgets.java',
-  comboAi: 'bukkit/rago-practice/src/main/java/gg/rago/practice/ComboAi.java',
+  blockFight: 'bukkit/rago-practice/src/main/java/gg/rago/practice/BlockFight.java',
+  blockArena: 'bukkit/rago-practice/src/main/java/gg/rago/practice/BlockArena.java',
+  blockClutch: 'bukkit/rago-practice/src/main/java/gg/rago/practice/ClutchTraining.java',
+  timedBridge: 'bukkit/rago-practice/src/main/java/gg/rago/practice/BridgeTraining.java',
+  parties: 'bukkit/rago-lobby/src/main/java/gg/rago/lobby/PartyBook.java',
+  topBridge: 'bukkit/rago-bedwars/src/main/java/gg/rago/bedwars/TopBridgeGame.java',
 };
 
 /** The 16 colours of Minecraft 1.8, by their code (&0 to &f). */
@@ -97,6 +102,26 @@ const colourOf = (text) => {
 };
 
 const read = (file) => readFileSync(path.join(REPO, file), 'utf8');
+
+/** The first group of a pattern in a file of the game; throws if the code no longer has it. */
+function found(source, pattern) {
+  const match = pattern.exec(read(SOURCES[source]));
+  if (!match) {
+    throw new Error(`no ${pattern} in ${SOURCES[source]}`);
+  }
+  return match[1];
+}
+
+const number = (source, pattern) => Number(found(source, pattern));
+
+/** A setting of a training, setting("Knockback", 1, 5, 3): its lowest and highest values. */
+function settingRange(source, name) {
+  const match = new RegExp(`setting\\("${name}", (\\d+), (\\d+), \\d+\\)`).exec(read(SOURCES[source]));
+  if (!match) {
+    throw new Error(`no setting ${name} in ${SOURCES[source]}`);
+  }
+  return { min: Number(match[1]), max: Number(match[2]) };
+}
 
 /** "4.99€" gives 4.99. */
 function amount(price) {
@@ -281,29 +306,35 @@ export function buildGameData() {
   const attackDefense = parse(read(SOURCES.bedwarsConfig))['attaque-defense'] ?? {};
   const roundKit = (kit) => ({ name: plain(kit.nom), icon: kit.icone, description: paragraph(kit.description) });
 
-  // the levels of the combo bot: how it clicks, aims, moves and reacts (ComboAi.LEVELS)
-  const comboLevels = [
-    ...read(SOURCES.comboAi).matchAll(
-      /new Level\("([a-z]+)", "([^"]+)", ([\d.]+), ([\d.]+), ([\d.]+), (true|false), ([\d.]+), ([\d.]+), ([\d.]+), (\d+)\)/g,
-    ),
-  ].map(([, id, name, cps, accuracy, reach, sprints, strafe, wTap, jumpReset, reaction]) => ({
-    id,
-    name,
-    cps: Number(cps),
-    accuracy: Number(accuracy),
-    reach: Number(reach),
-    sprints: sprints === 'true',
-    strafe: Number(strafe),
-    wTap: Number(wTap),
-    jumpReset: Number(jumpReset),
-    reactionTicks: Number(reaction),
-  }));
-  if (comboLevels.length === 0) {
-    throw new Error(`no level of the combo bot in ${SOURCES.comboAi}`);
-  }
-
   const events = practiceConfig.evenements ?? {};
   const automatic = events.automatiques ?? {};
+
+  // the block trainings and duels, by the constants of their classes
+  const presets = [...read(SOURCES.blockClutch).matchAll(/preset\("([^"]+)"/g)].map((m) => m[1]);
+  const distances = found('timedBridge', /DISTANCES = \{([\d, ]+)\}/).split(',').map(Number);
+  const blockPlacement = {
+    voidBonus: number('blockFight', /VOID_BONUS = (\d+)/),
+    arenaBlockSeconds: number('blockArena', /DECAY_TICKS = (\d+)/) / 20,
+    clutch: {
+      knockback: settingRange('blockClutch', 'Knockback'),
+      hits: settingRange('blockClutch', 'Hits'),
+      presets,
+    },
+    timedBridge: {
+      distances,
+      // straight or diagonal, flat or uphill
+      courses: distances.length * 4,
+      secondsPerBlock: number('timedBridge', /LIMIT_MS_PER_BLOCK = (\d+)L/) / 1000,
+    },
+  };
+
+  // the parties and their private games
+  const privateGames = {
+    partyMax: number('parties', /MAX_SIZE = (\d+)/),
+    topBridgeMinutes: number('topBridge', /PRACTICE_MINUTES = (\d+)/),
+    topBridgeBlockSeconds: number('topBridge', /DECAY_SECONDS = (\d+)/),
+    modes: Object.fromEntries(Object.entries(lobby['parties-privees'] ?? {})),
+  };
 
   return {
     _generated: 'by scripts/import-game-data.mjs from the files of the plugins: do not edit, run npm run data',
@@ -351,7 +382,8 @@ export function buildGameData() {
       attack: (attackDefense['kits-attaque'] ?? []).map(roundKit),
       defense: (attackDefense['kits-defense'] ?? []).map(roundKit),
     },
-    comboBot: { levels: comboLevels },
+    blockPlacement,
+    privateGames,
     pointsToWin: practiceConfig['points-pour-gagner'] ?? {},
     replays: {
       active: lobby.replays?.actif === true,

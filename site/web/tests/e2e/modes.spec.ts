@@ -5,7 +5,7 @@ import { FLAGSHIP_PAGES, ONLINE, SOON } from './helpers';
 const playable = game.modes.filter((mode) => !mode.event);
 
 test.describe('the game modes page', () => {
-  test('puts the six modes first, then each way to play in its inventory', async ({ page }) => {
+  test('puts the six modes first, then lists every mode of each way to play', async ({ page }) => {
     await page.goto(`${SOON}/modes`);
     await expect(page.getByRole('heading', { level: 1 })).toHaveText('Game modes');
     const six = page.locator('section[aria-labelledby="flagships"] li');
@@ -16,23 +16,25 @@ test.describe('the game modes page', () => {
     for (const category of game.categories) {
       const section = page.locator(`section[aria-labelledby="${category.id}"]`);
       await expect(section.getByRole('heading', { level: 2 })).toHaveText(category.name);
-      // one slot for each mode of the category that can be played, as the compass of the lobby lists them
-      const count = playable.filter((mode) => mode.category === category.id).length;
-      await expect(section.locator('button.slot')).toHaveCount(count);
+      // every mode of the category that can be played, by its name, as the compass of the lobby lists them
+      const modes = playable.filter((mode) => mode.category === category.id);
+      const list = section.getByRole('list', { name: `The modes of ${category.name}` });
+      await expect(list.getByRole('listitem')).toHaveCount(modes.length);
+      await expect(list.getByRole('heading', { level: 3 })).toHaveText(modes.map((mode) => mode.name));
     }
   });
 
-  test('shows a mode once its item is picked', async ({ page }) => {
+  test('lists the events too, and leads from a mode of the six to its page', async ({ page }) => {
     await page.goto(`${SOON}/modes`);
+    const events = page.locator('section[aria-labelledby="events"]');
+    await expect(events.getByRole('heading', { level: 3 })).toHaveText(game.modes.filter((mode) => mode.event).map((mode) => mode.name));
     const duels = page.locator('section[aria-labelledby="duels"]');
-    const modes = playable.filter((mode) => mode.category === 'duels');
-    const [first, other] = [modes[0]!, modes[3]!];
-    await expect(duels.getByRole('heading', { level: 3 })).toHaveText(first.name);
-    const slot = duels.locator('button.slot').nth(3);
-    await slot.click();
-    await expect(slot).toHaveAttribute('aria-pressed', 'true');
-    await expect(duels.getByRole('heading', { level: 3 })).toHaveText(other.name);
-    await expect(duels).toContainText(other.description);
+    await expect(duels.getByRole('link', { name: /^How it plays\s?: Block placement$/ }).first()).toHaveAttribute('href', '/modes/block-placement');
+    // every mode of the game is listed, once, under its way to play or in the events
+    const lists = page.locator('section[aria-labelledby]:not([aria-labelledby="flagships"])');
+    for (const mode of game.modes) {
+      await expect(lists.getByRole('heading', { level: 3, name: mode.name, exact: true }), mode.id).toHaveCount(1);
+    }
   });
 });
 
@@ -51,17 +53,23 @@ test.describe('the page of each of the six', () => {
     });
   }
 
-  test('the page of the combo bot shows the levels the bot plays', async ({ page }) => {
-    await page.goto(`${SOON}/modes/combo-bot`);
-    const table = page.locator('section[aria-labelledby="levels"] table');
-    const levels = game.comboBot.levels;
-    await expect(table.locator('thead th')).toHaveText(levels.map((level) => level.name));
-    await expect(table.getByRole('row', { name: /Clicks a second/ }).locator('td')).toHaveText(
-      levels.map((level) => String(level.cps)),
-    );
-    await expect(table.getByRole('row', { name: /Reaction/ }).locator('td')).toHaveText(
-      levels.map((level) => `${level.reactionTicks * 50} ms`),
-    );
+  test('the page of block placement gives the points of the game', async ({ page }) => {
+    await page.goto(`${SOON}/modes/block-placement`);
+    const facts = page.locator('section[aria-labelledby="mode-title"] dl');
+    await expect(facts).toContainText(`${game.blockPlacement.voidBonus} points to the other side`);
+    await expect(facts).toContainText(`${game.pointsToWin['block-fight']} points`);
+    const compass = page.locator('section[aria-labelledby="in-game"]');
+    await expect(compass.getByRole('heading', { level: 3 })).toHaveText(['Block placement 1v1', 'Block placement 2v2', 'Block placement arena']);
+  });
+
+  test('the page of the block clutch gives the settings of the hit', async ({ page }) => {
+    await page.goto(`${SOON}/modes/block-clutch`);
+    const { knockback, hits, presets } = game.blockPlacement.clutch;
+    const how = page.locator('section[aria-labelledby="how"]');
+    await expect(how).toContainText(`knockback ${knockback.min} to ${knockback.max}, ${hits.min} to ${hits.max} hits in a row`);
+    for (const preset of presets) {
+      await expect(how).toContainText(preset);
+    }
   });
 
   test('the page of Attack and Defense shows the kits of each side', async ({ page }) => {
@@ -75,7 +83,7 @@ test.describe('the page of each of the six', () => {
   });
 
   test('once the server is open, a page of a mode leads to the game', async ({ page }) => {
-    await page.goto(`${ONLINE}/modes/kb-displace`);
+    await page.goto(`${ONLINE}/modes/block-placement`);
     const play = page.locator('section[aria-labelledby="in-game"]');
     await expect(play.getByRole('link', { name: 'Play now' })).toBeVisible();
     await expect(play.getByText('play.example.com')).toBeVisible();

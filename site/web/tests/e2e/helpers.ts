@@ -5,12 +5,12 @@ export const ONLINE = 'http://127.0.0.1:3101';
 
 /** The pages of the six modes the site puts first (src/lib/flagship.ts). */
 export const FLAGSHIP_PAGES = [
+  '/modes/block-placement',
+  '/modes/block-clutch',
+  '/modes/block-extend',
+  '/modes/block-edit',
   '/modes/clutch-scenario',
   '/modes/attack-and-defense',
-  '/modes/invis-practice',
-  '/modes/combo-bot',
-  '/modes/kb-displace',
-  '/modes/block-edit',
 ];
 
 /** The pages of the site, each built in both states. */

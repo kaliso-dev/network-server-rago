@@ -8,9 +8,9 @@ Les styles viennent du système de design ([../design](../design/README.md)) : l
 
 | Page | Ce qu'elle montre |
 | --- | --- |
-| `/` | le hero et son PNJ en 3D, les six modes phares (un onglet par objet), les autres façons de jouer, le combat, le Ranked, les cosmétiques, le soutien au serveur, la communauté, comment rejoindre |
-| `/modes` | les six modes phares, puis chaque catégorie dans un inventaire du jeu, et les événements |
-| `/modes/<mode>` | un des six : comment une partie se passe, ses chiffres lus dans le code, les kits d'Attack and defense, les niveaux du combo bot |
+| `/` | le hero et son PNJ en 3D, les six modes phares (un onglet par objet), le practice du block placement, les autres façons de jouer, les parties privées, le combat, le Ranked, les cosmétiques, le soutien au serveur, la communauté, comment rejoindre |
+| `/modes` | les six modes phares, puis chaque mode par son nom, ses formats et sa description du jeu, rangé dans sa catégorie, et les événements |
+| `/modes/<mode>` | un des six : comment une partie se passe, ses chiffres lus dans le code, les réglages du Block clutch, les kits d'Attack and defense |
 
 La barre d'objets en bas de l'écran (`src/components/Hotbar.tsx`) est la navigation principale.
 

@@ -209,53 +209,6 @@
   color: var(--white);
 }
 
-.tableWrap {
-  max-width: 100%;
-  overflow-x: auto;
-}
-
-.table {
-  width: 100%;
-  min-width: 34rem;
-  border-collapse: collapse;
-  font-variant-numeric: tabular-nums;
-}
-
-.table th,
-.table td {
-  padding: var(--space-3) var(--space-4);
-  border-bottom: 2px solid var(--ink-700);
-  text-align: left;
-}
-
-@media (max-width: 560px) {
-  .table {
-    min-width: 0;
-    font-size: 0.8125rem;
-  }
-
-  .table th,
-  .table td {
-    padding: var(--space-2) 0.2rem;
-  }
-
-  /* the game's regular, one pixel narrower a letter than its bold */
-  .table thead th {
-    font-weight: 400;
-  }
-}
-
-.table thead th {
-  color: var(--accent);
-  font-family: var(--font-display);
-  font-size: 1rem;
-}
-
-.table tbody th {
-  color: var(--grey-300);
-  font-weight: 500;
-}
-
 .band {
   background: var(--ink-850);
 }

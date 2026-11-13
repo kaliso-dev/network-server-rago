@@ -31,9 +31,7 @@ export async function generateMetadata({ params }: { params: Promise<{ slug: str
   };
 }
 
-const percent = (value: number) => `${Math.round(value * 100)} %`;
-
-/** What only this mode has: the kits of Attack and Defense, the levels of the combo bot. */
+/** What only this mode has: the kits of Attack and Defense. */
 function Extra({ flagship }: { flagship: Flagship }) {
   if (flagship.slug === 'attack-and-defense') {
     const kits = (side: 'attack' | 'defense') =>
@@ -59,53 +57,6 @@ function Extra({ flagship }: { flagship: Flagship }) {
           <div className={styles.kits}>
             <ItemMenu title="Attack" items={kits('attack')} columns={3} initial={`attack-${game.attackDefense.attack[0]?.name}`} label="The attack kits" />
             <ItemMenu title="Defense" items={kits('defense')} columns={3} initial={`defense-${game.attackDefense.defense[0]?.name}`} label="The defense kits" />
-          </div>
-        </div>
-      </section>
-    );
-  }
-  if (flagship.slug === 'combo-bot') {
-    const levels = game.comboBot.levels;
-    const rows: { label: string; value: (level: (typeof levels)[number]) => string }[] = [
-      { label: 'Clicks a second', value: (l) => String(l.cps) },
-      { label: 'Hits that land', value: (l) => percent(l.accuracy) },
-      { label: 'Reach', value: (l) => `${l.reach.toFixed(1)} blocks` },
-      { label: 'Sprints', value: (l) => (l.sprints ? 'Yes' : 'No') },
-      { label: 'Strafes', value: (l) => percent(l.strafe) },
-      { label: 'W-taps after a hit', value: (l) => percent(l.wTap) },
-      { label: 'Jump resets', value: (l) => percent(l.jumpReset) },
-      { label: 'Reaction', value: (l) => `${l.reactionTicks * 50} ms` },
-    ];
-    return (
-      <section className="section" aria-labelledby="levels">
-        <div className="container">
-          <h2 id="levels" className={styles.heading}>
-            The {levels.length} levels
-          </h2>
-          <p className={styles.lead}>The settings of the bot at each level, as the game plays them.</p>
-          <div className={styles.tableWrap}>
-            <table className={styles.table}>
-              <thead>
-                <tr>
-                  <td />
-                  {levels.map((level) => (
-                    <th key={level.id} scope="col">
-                      {level.name}
-                    </th>
-                  ))}
-                </tr>
-              </thead>
-              <tbody>
-                {rows.map((row) => (
-                  <tr key={row.label}>
-                    <th scope="row">{row.label}</th>
-                    {levels.map((level) => (
-                      <td key={level.id}>{row.value(level)}</td>
-                    ))}
-                  </tr>
-                ))}
-              </tbody>
-            </table>
           </div>
         </div>
       </section>

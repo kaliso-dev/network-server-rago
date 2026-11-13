@@ -8,9 +8,9 @@ import { settings } from '@/lib/settings';
 import { inter, minecraft } from './fonts';
 import './globals.css';
 
-const description = `A Minecraft ${settings.minecraftVersion} PvP practice network in Europe: practice modes built from real game situations, ${
+const description = `A Minecraft ${settings.minecraftVersion} PvP practice network in Europe, built around block placement: ${
   game.categories.find((c) => c.id === 'entrainement')?.modes ?? 0
-} trainings, duels, arenas and Ranked Bedwars. Every mode is free.`;
+} trainings, modes made from real game situations, duels, arenas and Ranked Bedwars. Every mode is free.`;
 
 export const metadata: Metadata = {
   metadataBase: settings.siteUrl,

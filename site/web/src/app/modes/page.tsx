@@ -1,6 +1,5 @@
 import type { Metadata } from 'next';
 import Link from 'next/link';
-import { ItemMenu, type MenuItem } from '@/components/ItemMenu';
 import { McItem } from '@/components/McItem';
 import { McText } from '@/components/McText';
 import { SectionHeading } from '@/components/ui';
@@ -11,40 +10,34 @@ import styles from './modes.module.css';
 
 export const metadata: Metadata = {
   title: 'Game modes',
-  description: `The ${playableModes().length} modes of Rago Practice, from the six built around the moments that decide a game to the duels, arenas and Ranked Bedwars.`,
+  description: `Every one of the ${playableModes().length} modes of Rago Practice: block placement duels and trainings, the practice, the duels, the arenas, Ranked Bedwars and the private games.`,
   alternates: { canonical: '/modes' },
 };
 
-
-function modeItem(mode: Mode): MenuItem {
+/** A mode as the compass lists it: its item, its name, its formats and what its tooltip says. */
+function ModeCard({ mode }: { mode: Mode }) {
   const flagship = FLAGSHIPS.find((f) => f.modes.includes(mode.id));
   const tags = [mode.format, mode.ranked ? 'Ranked: ELO' : null, mode.startHere ? '✦ Start here' : null].filter(
     (tag): tag is string => Boolean(tag),
   );
-  return {
-    id: mode.id,
-    icon: mode.icon ?? 'BOOK',
-    name: mode.name,
-    colour: mode.colour,
-    lore: [tags.join(' · '), mode.description],
-    detail: (
-      <div className={styles.detail}>
-        <span className="slot" aria-hidden="true">
-          <McItem material={mode.icon ?? 'BOOK'} size={32} />
-        </span>
-        <div>
-          <h3 style={{ color: mode.colour ? readable(mode.colour, '#121418') : undefined }}>{mode.name}</h3>
-          <p className={styles.tags}>{tags.join(' · ')}</p>
-          <p>{mode.description}</p>
-          {flagship ? (
-            <Link href={`/modes/${flagship.slug}`} className={styles.more}>
-              All about {flagship.name} <span aria-hidden="true">→</span>
-            </Link>
-          ) : null}
-        </div>
+  return (
+    <li className={styles.mode}>
+      <span className="slot" aria-hidden="true">
+        <McItem material={mode.icon ?? 'BOOK'} size={32} />
+      </span>
+      <div>
+        <h3 style={{ color: mode.colour ? readable(mode.colour, '#121418') : undefined }}>{mode.name}</h3>
+        <p className={styles.tags}>{tags.join(' · ')}</p>
+        <p>{mode.description}</p>
+        {flagship ? (
+          <Link href={`/modes/${flagship.slug}`} className={styles.more}>
+            How it plays<span className="visually-hidden">: {flagship.name}</span>
+            <span aria-hidden="true"> →</span>
+          </Link>
+        ) : null}
       </div>
-    ),
-  };
+    </li>
+  );
 }
 
 export default function ModesPage() {
@@ -60,11 +53,11 @@ export default function ModesPage() {
             Game modes
           </h1>
           <p className="lead">
-            Six modes built around the moments that decide a game come first. Then every other way to play, as the
-            compass of the lobby shows them: hover an item for its tooltip, pick it to read more.
+            The six we built come first. Then every mode of the server, all {playableModes().length} of them and the
+            events, by the way to play that opens it in the lobby.
           </p>
           <nav className={styles.jump} aria-label="On this page">
-            <a href="#flagships">The six</a>
+            <a href="#flagships">The modes we built</a>
             {game.categories.map((category) => (
               <a key={category.id} href={`#${category.id}`} style={{ color: category.colour ? readable(category.colour) : undefined }}>
                 {category.name}
@@ -80,7 +73,7 @@ export default function ModesPage() {
           <SectionHeading
             id="flagships"
             eyebrow="The modes we built"
-            title="Six moments of a real game, on repeat"
+            title="Built around block placement"
           />
           <ol className={styles.flagships}>
             {FLAGSHIPS.map((flagship, index) => {
@@ -128,14 +121,11 @@ export default function ModesPage() {
                 title={<McText segments={[{ text: category.name, colour: category.colour }]} />}
                 lead={category.description}
               />
-              <ItemMenu
-                title={category.name}
-                items={modes.map(modeItem)}
-                columns={9}
-                initial={modes[0]?.id}
-                label={`The modes of ${category.name}: pick one to read about it`}
-                side
-              />
+              <ul className={styles.list} aria-label={`The modes of ${category.name}`}>
+                {modes.map((mode) => (
+                  <ModeCard key={mode.id} mode={mode} />
+                ))}
+              </ul>
             </div>
           </section>
         );

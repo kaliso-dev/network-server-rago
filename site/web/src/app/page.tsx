@@ -9,8 +9,10 @@ import { ModeShowcase, type ShowcaseMode } from '@/components/ModeShowcase';
 import { RankCard } from '@/components/RankCard';
 import { SkinViewer } from '@/components/three/SkinViewer';
 import { ButtonLink, SectionHeading, ServerStatus } from '@/components/ui';
+import { BLOCK_TRAININGS } from '@/lib/block-trainings';
 import { FLAGSHIPS, flagshipColour, flagshipModes } from '@/lib/flagship';
-import { categoryOf, formatEuros, formatNumber, game, playableModes, type Cosmetic } from '@/lib/game';
+import { readable } from '@/lib/colour';
+import { categoryOf, formatEuros, formatNumber, game, modeOf, playableModes, type Cosmetic } from '@/lib/game';
 import { settings } from '@/lib/settings';
 import styles from './page.module.css';
 
@@ -51,6 +53,14 @@ export default function Home() {
   const rankedFormats = game.modes.filter((mode) => mode.ranked).map((mode) => mode.format);
   const pack = game.starterPack;
   const queue = game.ranked.queue;
+  const blockTrainings = playableModes().filter((mode) => BLOCK_TRAININGS.includes(mode.id));
+  const blockTarget = game.pointsToWin['block-fight'];
+  const priv = game.privateGames;
+  // the sizes a private game plays, "1v1, 2v2, 3v3 or 4v4"
+  const privateFormats = (id: string) => {
+    const sizes = (priv.modes[id] ?? []).map((mode) => modeOf(mode).format);
+    return sizes.length <= 1 ? (sizes[0] ?? '') : `${sizes.slice(0, -1).join(', ')} or ${sizes[sizes.length - 1]}`;
+  };
 
   const showcase: ShowcaseMode[] = FLAGSHIPS.map((flagship) => ({
     slug: flagship.slug,
@@ -105,8 +115,8 @@ export default function Home() {
               <span className={`display ${styles.tagline}`}>Master your skills.</span>
             </h1>
             <p className={`lead ${styles.lead}`}>
-              Practice modes built from the moments that decide a real game, Hypixel-like knockback we measured
-              ourselves, and a server in Europe, close to its players.
+              Block placement practice, modes built from the moments that decide a real game, Hypixel-like
+              knockback we measured ourselves, and a server in Europe, close to its players.
             </p>
             <div className={styles.actions}>
               {soon ? (
@@ -179,14 +189,67 @@ export default function Home() {
           <SectionHeading
             id="modes"
             eyebrow="The modes we built"
-            title="Practise the moments that decide a game"
-            lead="Six modes that put you in one precise situation of a real game, again and again, until you win it."
+            title="Built around block placement"
+            lead="Six modes we made: a block placement duel, three ways to train your blocks, and two moments of a real Ranked Bedwars game to play again and again."
           />
           <ModeShowcase modes={showcase} />
         </div>
       </section>
 
-      {/* 3. Everything else, by the four NPCs of the lobby */}
+      {/* 3. Every training of block placement */}
+      <section className={`section ${styles.band}`} aria-labelledby="blocks">
+        <div className="container">
+          <SectionHeading
+            id="blocks"
+            eyebrow="Block placement practice"
+            title="A training for every block you place"
+            lead="Clutch after a hit, extend in the air, bridge against the clock, block yourself in, cover a bed: each one has its training, alone and at your pace."
+          />
+          <ul className={styles.blockList}>
+            {blockTrainings.map((mode) => {
+              const flagship = FLAGSHIPS.find((f) => f.modes.includes(mode.id));
+              return (
+                <li key={mode.id} className={styles.blockCard}>
+                  <span className="slot" aria-hidden="true">
+                    <McItem material={mode.icon ?? 'WOOL'} size={32} />
+                  </span>
+                  <div>
+                    <h3 style={{ color: mode.colour ? readable(mode.colour, '#121418') : undefined }}>{mode.name}</h3>
+                    <p>{mode.description}</p>
+                    {flagship ? (
+                      <Link href={`/modes/${flagship.slug}`} className={styles.more}>
+                        How it plays<span className="visually-hidden">: {flagship.name}</span>
+                        <span aria-hidden="true"> →</span>
+                      </Link>
+                    ) : null}
+                  </div>
+                </li>
+              );
+            })}
+          </ul>
+          <div className={styles.blockDuel}>
+            <span className="slot" aria-hidden="true">
+              <McItem material="SANDSTONE" size={40} />
+            </span>
+            <div>
+              <h3>Then, use them in a fight</h3>
+              <p>
+                Block placement 1v1 and 2v2: every hit is a point and the void is worth {game.blockPlacement.voidBonus}
+                {blockTarget ? `, first to ${blockTarget}` : ''}. Or the block placement arena, open to everyone.
+              </p>
+            </div>
+            <ButtonLink href="/modes/block-placement">
+              How it plays<span className="visually-hidden">: Block placement</span>
+            </ButtonLink>
+          </div>
+          <p className="notice">
+            Every training keeps your best score and the server&apos;s (<code className="mc">/records</code>), and
+            each day one training is the daily challenge of the whole server: the top 3 of the day win Network XP.
+          </p>
+        </div>
+      </section>
+
+      {/* 4. Everything else, by the four NPCs of the lobby */}
       <section className="section" aria-labelledby="play">
         <div className="container">
           <SectionHeading
@@ -224,7 +287,69 @@ export default function Home() {
         </div>
       </section>
 
-      {/* 4. Combat: the knockback and the server in Europe */}
+      {/* 5. With friends: the private games of a party */}
+      <section className="section" aria-labelledby="private">
+        <div className={`container ${styles.private}`}>
+          <figure className={styles.privateArt}>
+            <span className={styles.npcName}>
+              <McText segments={mc('&6&lPrivate game')} ground="#000000" />
+            </span>
+            <Image src="/skins/prive.png" alt="" width={96} height={192} unoptimized className={styles.privateSkin} />
+            <figcaption className="notice">In the lobby, this character opens the private games. They are in RBW Modes too.</figcaption>
+          </figure>
+          <div>
+            <SectionHeading
+              id="private"
+              eyebrow="Private games"
+              title="Play it with your party"
+              lead="Bring your friends and play between yourselves: a real Ranked Bedwars game or the top bridge, at the size of your party."
+            />
+            <ul className={styles.privateList}>
+              <li>
+                <McItem material="NAME_TAG" size={32} />
+                <div>
+                  <h3>Make a party</h3>
+                  <p>
+                    <code className="mc">/p &lt;player&gt;</code> invites a friend, for a minute. Up to {priv.partyMax}{' '}
+                    players; only the leader queues, for the whole party.
+                  </p>
+                </div>
+              </li>
+              <li>
+                <McItem material="BED" size={32} />
+                <div>
+                  <h3>{modeOf('partie-privee').name}</h3>
+                  <p>
+                    A real Ranked Bedwars game between you, on the maps of the RBW queue: {privateFormats('partie-privee')},
+                    the size follows the party.
+                  </p>
+                </div>
+              </li>
+              <li>
+                <McItem material="LADDER" size={32} />
+                <div>
+                  <h3>{modeOf('top-bridge-prive').name}</h3>
+                  <p>
+                    The top bridge as a practice: nobody is out, you are back on top right after a death, the blocks
+                    placed go after {priv.topBridgeBlockSeconds} seconds, {priv.topBridgeMinutes} minutes at most. In{' '}
+                    {privateFormats('top-bridge-prive')}, as the party.
+                  </p>
+                </div>
+              </li>
+              <li>
+                <McItem material="IRON_SWORD" size={32} />
+                <div>
+                  <h3>A full party plays at once</h3>
+                  <p>Queue a mode your party fills, two in a 1v1, four in a 2v2, and the game starts at once, between you.</p>
+                </div>
+              </li>
+            </ul>
+            <p className="notice">A private game moves no ELO, gives no XP and counts in no stats.</p>
+          </div>
+        </div>
+      </section>
+
+      {/* 6. Combat: the knockback and the server in Europe */}
       <section className={`section ${styles.band}`} aria-labelledby="combat">
         <div className="container">
           <SectionHeading
@@ -322,7 +447,7 @@ export default function Home() {
         </div>
       </section>
 
-      {/* 5. Ranked, for later */}
+      {/* 7. Ranked, for later */}
       <section className="section" aria-labelledby="ranked">
         <div className={`container ${styles.ranked}`}>
           <SectionHeading
@@ -337,7 +462,7 @@ export default function Home() {
         </div>
       </section>
 
-      {/* 6. Cosmetics: shown, not told */}
+      {/* 8. Cosmetics: shown, not told */}
       <section className={`section ${styles.band}`} aria-labelledby="cosmetics">
         <div className={`container ${styles.cosmetics}`}>
           <SectionHeading
@@ -368,7 +493,7 @@ export default function Home() {
         </div>
       </section>
 
-      {/* 7. Support the server */}
+      {/* 9. Support the server */}
       <section className="section" aria-labelledby="support">
         <div className="container">
           <SectionHeading
@@ -421,7 +546,7 @@ export default function Home() {
         </div>
       </section>
 
-      {/* 8. Community */}
+      {/* 10. Community */}
       <section className={`section ${styles.band}`} aria-labelledby="community">
         <div className="container">
           <SectionHeading id="community" eyebrow="Community" title="Play with people, not only against them" />
@@ -439,6 +564,9 @@ export default function Home() {
                 Add your friends with <code className="mc">/friend add</code>, and play together in a{' '}
                 <code className="mc">/party</code>: only the leader queues, for the whole party.
               </p>
+              <a href="#private" className={styles.more}>
+                Private games<span aria-hidden="true"> →</span>
+              </a>
             </article>
             <article className="card" aria-labelledby="community-rules">
               <McItem material="BOOK" size={48} />
@@ -453,7 +581,7 @@ export default function Home() {
         </div>
       </section>
 
-      {/* 9. Join */}
+      {/* 11. Join */}
       <section className={styles.finale} aria-labelledby="join">
         <div className="container">
           <h2 id="join" className={`display ${styles.finaleTitle}`}>

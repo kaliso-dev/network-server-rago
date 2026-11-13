@@ -1,12 +1,15 @@
 import { expect, test } from '@playwright/test';
+import game from '../../src/data/game.json' with { type: 'json' };
+import { BLOCK_TRAININGS } from '../../src/lib/block-trainings';
 import { ONLINE, PAGES, SOON, scrollThrough, watch } from './helpers';
 
 test.describe('the home page, before the opening', () => {
   test('renders its sections, with Discord first and no address', async ({ page }) => {
     await page.goto(SOON);
     await expect(page.getByRole('heading', { level: 1 })).toHaveText(/^Rago Practice\s*Master your skills\.$/);
-    // practice first: the six modes, then every other way to play, the combat, and Ranked after
-    const order = ['hero-title', 'modes', 'play', 'combat', 'ranked', 'cosmetics', 'support', 'community', 'join'];
+    // practice first: the six modes, the block trainings, every other way to play, the private games,
+    // the combat, and Ranked after
+    const order = ['hero-title', 'modes', 'blocks', 'play', 'private', 'combat', 'ranked', 'cosmetics', 'support', 'community', 'join'];
     for (const id of order) {
       await expect(page.locator(`section[aria-labelledby="${id}"]`), id).toBeVisible();
     }
@@ -34,18 +37,42 @@ test.describe('the home page, before the opening', () => {
     const tabs = page.getByRole('tablist', { name: 'The modes' });
     const panel = page.getByRole('tabpanel');
     await expect(tabs.getByRole('tab')).toHaveCount(6);
-    await expect(tabs.getByRole('tab', { selected: true })).toHaveAccessibleName(/^Clutch scenario/);
-    await expect(panel.getByRole('heading', { level: 3 })).toHaveText('Clutch scenario');
-    await tabs.getByRole('tab', { name: 'Combo bot' }).click();
-    await expect(panel.getByRole('heading', { level: 3 })).toHaveText('Combo bot');
-    await expect(panel.getByRole('link', { name: 'Read more about Combo bot' })).toHaveAttribute('href', '/modes/combo-bot');
+    await expect(tabs.getByRole('tab', { selected: true })).toHaveAccessibleName(/^Block placement/);
+    await expect(panel.getByRole('heading', { level: 3 })).toHaveText('Block placement');
+    await tabs.getByRole('tab', { name: 'Block extend' }).click();
+    await expect(panel.getByRole('heading', { level: 3 })).toHaveText('Block extend');
+    await expect(panel.getByRole('link', { name: 'Read more about Block extend' })).toHaveAttribute('href', '/modes/block-extend');
     await page.keyboard.press('ArrowDown');
     await expect(tabs.getByRole('tab', { selected: true })).toBeFocused();
-    await expect(panel.getByRole('heading', { level: 3 })).toHaveText('KB displace');
-    await page.keyboard.press('Home');
-    await expect(panel.getByRole('heading', { level: 3 })).toHaveText('Clutch scenario');
-    await page.keyboard.press('ArrowUp');
     await expect(panel.getByRole('heading', { level: 3 })).toHaveText('Block edit');
+    await page.keyboard.press('Home');
+    await expect(panel.getByRole('heading', { level: 3 })).toHaveText('Block placement');
+    await page.keyboard.press('ArrowUp');
+    await expect(panel.getByRole('heading', { level: 3 })).toHaveText('Attack and defense');
+  });
+
+  test('lists every training of block placement, then the duel that uses them', async ({ page }) => {
+    await page.goto(SOON);
+    const blocks = page.locator('section[aria-labelledby="blocks"]');
+    await expect(blocks.locator('ul > li')).toHaveCount(BLOCK_TRAININGS.length);
+    for (const id of BLOCK_TRAININGS) {
+      const mode = game.modes.find((m) => m.id === id)!;
+      await expect(blocks.getByRole('heading', { name: mode.name, exact: true })).toBeVisible();
+    }
+    await expect(blocks.getByRole('link', { name: /^How it plays\s?: Block placement$/ })).toHaveAttribute('href', '/modes/block-placement');
+    await expect(blocks).toContainText(`the void is worth ${game.blockPlacement.voidBonus}`);
+  });
+
+  test('tells what a party plays in a private game, and that nothing counts', async ({ page }) => {
+    await page.goto(SOON);
+    const games = page.locator('section[aria-labelledby="private"]');
+    for (const id of ['partie-privee', 'top-bridge-prive']) {
+      const mode = game.modes.find((m) => m.id === id)!;
+      await expect(games.getByRole('heading', { name: mode.name, exact: true })).toBeVisible();
+    }
+    await expect(games).toContainText(`Up to ${game.privateGames.partyMax} players`);
+    await expect(games).toContainText('1v1, 2v2, 3v3 or 4v4');
+    await expect(games).toContainText('A private game moves no ELO, gives no XP and counts in no stats.');
   });
 
   test('shows the tooltip of a cosmetic and its detail once picked', async ({ page }) => {

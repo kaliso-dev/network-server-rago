@@ -17,19 +17,20 @@ interface Slot {
 
 /**
  * The menu of the site is the hotbar of the lobby, at the bottom of the screen: the compass opens
- * the modes and the book tells how to join, in the slots they have in the game, the emerald is the
- * Rago Shop and the head the community. The slot of the part on the screen is selected, and its
+ * the modes and the book tells how to join, in the slots they have in the game, the sandstone is
+ * the block placement practice, the name tag the private games, the emerald is the Rago Shop and the
+ * head the community. The slot of the part on the screen is selected, and its
  * name shows above the hotbar for two seconds, as in the game. With the focus in it, 1 to 9 pick a
  * slot and the arrows move between them.
  */
 export const SLOTS: (Slot | null)[] = [
   { item: 'COMPASS', label: 'Game modes', href: '/modes', sections: ['modes', 'play'] },
   { item: 'BOOK', label: 'How to join', href: '/#join', sections: ['join'] },
-  null,
+  { item: 'SANDSTONE', label: 'Block placement', href: '/#blocks', sections: ['blocks'] },
   { item: 'DIAMOND_SWORD', label: 'Combat', href: '/#combat', sections: ['combat'] },
   { item: 'BED', label: 'Ranked', href: '/#ranked', sections: ['ranked'] },
   { item: 'FIREWORK', label: 'Cosmetics', href: '/#cosmetics', sections: ['cosmetics'] },
-  null,
+  { item: 'NAME_TAG', label: 'Private games', href: '/#private', sections: ['private'] },
   { item: 'EMERALD', label: 'Support the server', href: '/#support', sections: ['support'] },
   { item: 'PLAYER_HEAD', label: 'Community', href: '/#community', sections: ['community'] },
 ];
