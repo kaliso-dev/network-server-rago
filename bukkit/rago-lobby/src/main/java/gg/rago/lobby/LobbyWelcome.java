@@ -25,6 +25,19 @@ final class LobbyWelcome {
     private LobbyWelcome() {
     }
 
+    /**
+     * Takes off a title the game still shows from before this server: the 1.8 client keeps a title
+     * through a change of server or of account, as long as its timings say, and a server can send
+     * one to stay for hours (an AFK screen). First the default timings back (a reset, which empties
+     * the title alone), then an empty title and subtitle over the old ones, gone in five seconds.
+     * Our own titles are sent without timings: they get the default ones back too.
+     */
+    @SuppressWarnings("deprecation") // Player#resetTitle and #sendTitle are marked "API subject to change" in 1.8.8
+    static void clearTitle(Player player) {
+        player.resetTitle();
+        player.sendTitle("", "");
+    }
+
     /** Greets the player: the title the first time, the ways to play every time. */
     @SuppressWarnings("deprecation") // Player#sendTitle is marked "API subject to change" in 1.8.8
     static void greet(Player player, LobbySettings settings) {

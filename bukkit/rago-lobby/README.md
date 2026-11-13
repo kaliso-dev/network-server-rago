@@ -14,6 +14,9 @@ dans les files d'attente des modes de jeu.
   le survol montre ce qu'elle contient. À la toute première venue sur le serveur, un titre aussi
   (le `titre:` et les quatre noms).
   `accueil: false` le coupe.
+- **Un titre resté d'ailleurs est effacé.** Le jeu 1.8 garde un titre quand on change de serveur
+  ou de compte, aussi longtemps que ce serveur l'a demandé (un écran « You are AFK » peut rester
+  des heures). À la connexion, le lobby l'efface et remet les durées normales des titres.
 - **La première venue : « What do you want to do? ».** Deux secondes après l'accueil de sa toute
   première venue, un joueur reçoit un menu de quatre choix, chacun à un clic de jouer : « Train a
   skill » (le block clutch, où un nouveau commence), « Play Ranked Bedwars » (la file du 1v1
