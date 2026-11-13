@@ -1,0 +1,131 @@
+/*
+ * Rago Practice: the design tokens of the website.
+ * Dark theme only (decided on 13 November 2026): charcoal grounds, the red of the logo as the
+ * one brand colour, white and greys for the text. The Minecraft colours of the game (categories,
+ * ranks, divisions) are small accents only. Every value is explained in design/README.md.
+ */
+
+:root {
+  color-scheme: dark;
+
+  /* Brand red, measured on the logo (#F00000 rim to #600000 shadow) */
+  --red-300: #ff8080; /* small red text on dark grounds */
+  --red-400: #ff5555; /* the light red of the game (&c): links, highlights */
+  --red-500: #e8191e; /* primary buttons and brand fills; white text on it passes AA */
+  --red-600: #c40f14; /* pressed state, end of the button gradient */
+  --red-700: #9c0002; /* middle of the logo */
+  --red-800: #6c0003; /* shadow of the logo */
+  --red-900: #2a0002; /* deep red tint for glows */
+  --red-tint: rgba(232, 25, 30, 0.14); /* tag and badge grounds */
+  --red-line: rgba(232, 25, 30, 0.38);
+
+  /* Charcoal and greys (slightly cool, like the menus of the game) */
+  --ink-950: #08090b; /* footer, deepest ground */
+  --ink-900: #0c0d10; /* page ground */
+  --ink-850: #121418; /* surface */
+  --ink-800: #181b20; /* raised surface, cards */
+  --ink-750: #1e2128; /* inputs, chips */
+  --ink-700: #262a32; /* hover of a surface, strong line */
+  --ink-600: #2f343d; /* line */
+  --ink-500: #4a505b; /* disabled */
+  --grey-400: #80868f; /* muted text, captions (AA on ink-900) */
+  --grey-300: #a3a8b2; /* secondary text */
+  --grey-200: #c9ccd3;
+  --white: #ffffff; /* main text */
+
+  /* Meaning, as in the game: green to play and succeed, yellow for XP, gold for Rago Points */
+  --ok: #3ddc6a;
+  --ok-tint: rgba(61, 220, 106, 0.14);
+  --xp: #ffff55;
+  --points: #ffaa00;
+  --error: var(--red-400);
+
+  /* The categories of the compass and the ranks, in their game colours */
+  --cat-practice: #55ffff;
+  --cat-rbw: #ffaa00;
+  --cat-duels: #55ff55;
+  --cat-arenas: #ff5555;
+  --rank-vip: #55ffff;
+  --rank-premium: #ff55ff;
+
+  /* The 11 ranked divisions (config.yml, elo:) */
+  --div-coal: #555555;
+  --div-iron: #ffffff;
+  --div-gold: #ffaa00;
+  --div-diamond: #55ffff;
+  --div-emerald: #00aa00;
+  --div-sapphire: #00aaaa;
+  --div-ruby: #aa0000;
+  --div-crystal: #ff55ff;
+  --div-opal: #5555ff;
+  --div-amethyst: #aa00aa;
+  --div-obsidian: #000000;
+
+  /* Typography */
+  --font-display: "Chakra Petch", "Inter", system-ui, sans-serif;
+  --font-body: "Inter", system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+  --font-mono: "JetBrains Mono", ui-monospace, "SFMono-Regular", Menlo, Consolas, monospace;
+
+  --text-display: clamp(2.75rem, 1.6rem + 5vw, 5.5rem); /* 44 to 88 px, the hero */
+  --text-h1: clamp(2.25rem, 1.5rem + 3.2vw, 4rem); /* 36 to 64 */
+  --text-h2: clamp(1.75rem, 1.3rem + 2vw, 2.75rem); /* 28 to 44 */
+  --text-h3: clamp(1.25rem, 1.1rem + 0.6vw, 1.5rem); /* 20 to 24 */
+  --text-h4: 1.125rem; /* 18 */
+  --text-lead: clamp(1.0625rem, 1rem + 0.3vw, 1.25rem); /* 17 to 20 */
+  --text-body: 1rem; /* 16 */
+  --text-small: 0.875rem; /* 14 */
+  --text-caption: 0.75rem; /* 12, capitals */
+
+  --leading-tight: 0.95;
+  --leading-heading: 1.08;
+  --leading-body: 1.6;
+  --tracking-caps: 0.12em;
+  --tracking-display: -0.01em;
+
+  /* Space: a 4 px step */
+  --space-1: 0.25rem;
+  --space-2: 0.5rem;
+  --space-3: 0.75rem;
+  --space-4: 1rem;
+  --space-5: 1.5rem;
+  --space-6: 2rem;
+  --space-7: 3rem;
+  --space-8: 4rem;
+  --space-9: 6rem;
+  --space-10: 8rem;
+
+  --container: 75rem; /* 1200 px */
+  --gutter: clamp(1rem, 0.5rem + 2.5vw, 3.5rem); /* 16 px on a phone, 56 on a wide screen */
+  --section: clamp(4rem, 2.5rem + 6vw, 8rem); /* space between sections */
+
+  /* Shapes: soft corners, and the cut corner of the hexagon on the elements that matter */
+  --radius-sm: 6px; /* tags */
+  --radius-md: 10px; /* buttons, inputs, chips */
+  --radius-lg: 16px; /* cards */
+  --radius-xl: 22px; /* image frames */
+  --cut: 10px; /* size of the 45 degree cut (.cut utility) */
+
+  /* Depth */
+  --line: 1px solid var(--ink-600);
+  --line-soft: 1px solid rgba(255, 255, 255, 0.06);
+  --shadow-card: 0 1px 0 rgba(255, 255, 255, 0.04) inset, 0 12px 32px rgba(0, 0, 0, 0.35);
+  --shadow-lift: 0 1px 0 rgba(255, 255, 255, 0.05) inset, 0 18px 44px rgba(0, 0, 0, 0.45);
+  --glow-red: 0 10px 30px rgba(232, 25, 30, 0.28);
+
+  /* Motion: short and calm, nothing that loops */
+  --ease-out: cubic-bezier(0.2, 0.7, 0.2, 1);
+  --ease-in-out: cubic-bezier(0.6, 0, 0.3, 1);
+  --dur-fast: 120ms; /* hover, press */
+  --dur-ui: 220ms; /* menus, copy feedback */
+  --dur-reveal: 420ms; /* a section appearing */
+
+  --focus-ring: 0 0 0 2px var(--ink-900), 0 0 0 4px var(--red-400);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  :root {
+    --dur-fast: 0ms;
+    --dur-ui: 0ms;
+    --dur-reveal: 0ms;
+  }
+}
