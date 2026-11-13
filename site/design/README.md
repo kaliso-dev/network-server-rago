@@ -12,7 +12,7 @@ gris », voir le README de `bukkit/rago-lobby`).
 | `components.css` | la base de la page et les composants ci-dessous |
 | `styleguide.html` | la page de style : chaque valeur et chaque composant, à ouvrir dans un navigateur |
 | `assets/` | images provisoires de la page de style |
-| `../public/brand/` | le logo : `rago-logo.svg` (complet), `rago-logo-flat.svg` (plat), `rago-mark.svg` (le R seul), `rago-logo-original.png` (l'original, 1254 × 1254) ; les icônes : `favicon-32.png`, `apple-touch-icon.png` (180 px), `icon-512.png` |
+| `../web/public/brand/` | le logo : `rago-logo.svg` (complet), `rago-logo-flat.svg` (plat), `rago-mark.svg` (le R seul), `rago-logo-original.png` (l'original, 1254 × 1254) ; les icônes : `favicon-32.png`, `apple-touch-icon.png` (180 px), `icon-512.png` |
 
 ## Le logo
 

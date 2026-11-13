@@ -1,0 +1,461 @@
+/* The home page. The tokens and the components come from site/design. */
+
+/* 1. Hero: the red light of the logo on charcoal, never a fake screenshot */
+.hero {
+  position: relative;
+  overflow: hidden;
+  padding-block: clamp(3.5rem, 2rem + 6vw, 7.5rem) clamp(3rem, 2rem + 4vw, 6rem);
+  background:
+    radial-gradient(60% 70% at 78% 40%, rgba(232, 25, 30, 0.22), transparent 65%),
+    radial-gradient(40% 50% at 85% 30%, rgba(156, 0, 2, 0.35), transparent 70%),
+    radial-gradient(70% 60% at 10% 100%, rgba(42, 0, 2, 0.6), transparent 70%),
+    var(--ink-900);
+  border-bottom: var(--line-soft);
+}
+
+.heroGrid {
+  position: relative;
+  display: grid;
+  grid-template-columns: minmax(0, 1.25fr) minmax(0, 1fr);
+  align-items: center;
+  gap: var(--space-7);
+}
+
+.heroText {
+  display: grid;
+  gap: var(--space-5);
+}
+
+.heroText h1 {
+  margin: 0;
+}
+
+.heroText .lead,
+.heroText p {
+  margin: 0;
+}
+
+.actions {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--space-3);
+}
+
+.meta {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--space-3) var(--space-4);
+}
+
+.note {
+  margin: 0;
+  color: var(--grey-300);
+  font-size: var(--text-small);
+}
+
+.heroArt {
+  display: grid;
+  place-items: center;
+}
+
+.heroLogo {
+  width: min(100%, 21rem);
+  height: auto;
+  filter: drop-shadow(0 30px 60px rgba(0, 0, 0, 0.55));
+}
+
+@media (max-width: 900px) {
+  .heroGrid {
+    grid-template-columns: 1fr;
+  }
+
+  .heroArt {
+    order: -1;
+    justify-items: start;
+  }
+
+  .heroLogo {
+    width: 7rem;
+  }
+}
+
+/* 2. Join in three steps */
+.steps {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: var(--space-4);
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.step {
+  display: grid;
+  align-content: start;
+  gap: var(--space-3);
+  padding: var(--space-6);
+}
+
+.step h3 {
+  font-size: var(--text-h3);
+}
+
+.step p {
+  margin: 0;
+  color: var(--grey-300);
+}
+
+.stepNumber {
+  display: grid;
+  place-items: center;
+  width: 2.5rem;
+  height: 2.5rem;
+  border-radius: var(--radius-md);
+  background: var(--red-tint);
+  color: var(--red-300);
+  font-family: var(--font-display);
+  font-weight: 700;
+}
+
+@media (max-width: 900px) {
+  .steps {
+    grid-template-columns: 1fr;
+  }
+}
+
+/* 3. Train, clutch, climb */
+.pillars {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: var(--space-4);
+  align-items: start;
+}
+
+.pillar {
+  display: grid;
+  gap: var(--space-4);
+  padding: var(--space-6);
+}
+
+.pillar h3 {
+  font-size: var(--text-h3);
+}
+
+.pillar > p {
+  margin: 0;
+  color: var(--grey-300);
+}
+
+.chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-2);
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.chips li {
+  padding: 0.25rem 0.625rem;
+  border: 1px solid color-mix(in srgb, var(--cat-practice) 30%, transparent);
+  border-radius: var(--radius-sm);
+  color: var(--grey-200);
+  font-size: 0.8125rem;
+}
+
+.capture {
+  overflow: hidden;
+  margin: calc(var(--space-6) * -1) calc(var(--space-6) * -1) 0;
+  border-radius: var(--radius-lg) var(--radius-lg) 0 0;
+}
+
+.capture img {
+  width: 100%;
+  height: auto;
+  aspect-ratio: 5 / 3;
+  object-fit: cover;
+}
+
+.chat {
+  display: grid;
+  gap: var(--space-2);
+  margin: 0;
+}
+
+.chat figcaption {
+  margin: 0;
+}
+
+.miniLadder :global(.divisions) {
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  row-gap: var(--space-4);
+}
+
+.miniLadder :global(.division__elo) {
+  display: none;
+}
+
+@media (max-width: 560px) {
+  .miniLadder :global(.divisions) {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+}
+
+@media (max-width: 1000px) {
+  .pillars {
+    grid-template-columns: 1fr;
+  }
+}
+
+/* 4. The modes */
+.categories {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: var(--space-4);
+}
+
+.events {
+  max-width: 52rem;
+  margin: var(--space-6) 0 0;
+  color: var(--grey-300);
+}
+
+.events strong {
+  color: var(--white);
+}
+
+@media (max-width: 900px) {
+  .categories {
+    grid-template-columns: 1fr;
+  }
+}
+
+/* A band of a slightly raised ground, for the sections that carry figures */
+.band {
+  background: linear-gradient(180deg, var(--ink-850), var(--ink-900));
+  border-block: var(--line-soft);
+}
+
+/* 5. Ranked */
+.legend {
+  margin: var(--space-4) 0 0;
+  color: var(--grey-400);
+  font-size: var(--text-small);
+}
+
+.facts {
+  display: grid;
+  grid-template-columns: repeat(5, minmax(0, 1fr));
+  gap: var(--space-4) var(--space-6);
+  margin: var(--space-7) 0 0;
+}
+
+.facts div {
+  padding-top: var(--space-4);
+  border-top: var(--line);
+}
+
+.facts dt {
+  margin-bottom: var(--space-2);
+  font-family: var(--font-display);
+  font-weight: 700;
+}
+
+.facts dd {
+  margin: 0;
+  color: var(--grey-300);
+  font-size: var(--text-small);
+}
+
+@media (max-width: 1000px) {
+  .facts {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+}
+
+@media (max-width: 640px) {
+  .facts {
+    grid-template-columns: 1fr;
+  }
+}
+
+/* 6. Measured knockback */
+.method {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: var(--space-4);
+  margin: 0 0 var(--space-5);
+  padding: 0;
+  list-style: none;
+  counter-reset: step;
+}
+
+.method li {
+  position: relative;
+  padding: var(--space-5) 0 0 0;
+  border-top: 2px solid var(--red-500);
+  counter-increment: step;
+}
+
+.method li::before {
+  content: '0' counter(step);
+  display: block;
+  margin-bottom: var(--space-2);
+  color: var(--red-300);
+  font-family: var(--font-mono);
+  font-size: var(--text-small);
+}
+
+.method h3 {
+  margin-bottom: var(--space-2);
+  font-size: var(--text-h3);
+}
+
+.method p {
+  margin: 0;
+  color: var(--grey-300);
+}
+
+@media (max-width: 900px) {
+  .method {
+    grid-template-columns: 1fr;
+    gap: var(--space-6);
+  }
+}
+
+/* 7. The tools */
+.tools {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: var(--space-4);
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.tools li {
+  padding: var(--space-5);
+}
+
+.tools h3 {
+  margin-bottom: var(--space-2);
+  font-size: var(--text-h4);
+}
+
+.tools p {
+  margin: 0;
+  color: var(--grey-300);
+  font-size: var(--text-small);
+}
+
+@media (max-width: 900px) {
+  .tools {
+    grid-template-columns: 1fr 1fr;
+  }
+}
+
+@media (max-width: 560px) {
+  .tools {
+    grid-template-columns: 1fr;
+  }
+}
+
+/* 8. The store */
+.store {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: var(--space-4);
+  align-items: stretch;
+}
+
+.pack {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-4);
+  padding: var(--space-6);
+}
+
+.storeNote {
+  margin: var(--space-5) 0 0;
+  color: var(--grey-300);
+  font-size: var(--text-small);
+}
+
+@media (max-width: 1000px) {
+  .store {
+    grid-template-columns: 1fr;
+  }
+}
+
+/* 9. Community */
+.community {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: var(--space-4);
+}
+
+.community > article {
+  display: grid;
+  align-content: start;
+  gap: var(--space-3);
+  padding: var(--space-6);
+}
+
+.community h3 {
+  font-size: var(--text-h3);
+}
+
+.community p {
+  margin: 0;
+  color: var(--grey-300);
+}
+
+.discord {
+  background:
+    radial-gradient(90% 80% at 100% 0%, rgba(232, 25, 30, 0.14), transparent 70%),
+    var(--ink-800);
+}
+
+.discord :global(.btn) {
+  justify-self: start;
+}
+
+.rules {
+  display: grid;
+  gap: var(--space-2);
+  padding-left: 1.25rem;
+  color: var(--grey-200);
+  font-size: var(--text-small);
+}
+
+@media (max-width: 1000px) {
+  .community {
+    grid-template-columns: 1fr;
+  }
+}
+
+/* 10. Last call */
+.finale {
+  padding-block: var(--section) 0;
+}
+
+.finaleInner {
+  display: grid;
+  justify-items: center;
+  gap: var(--space-4);
+  text-align: center;
+}
+
+.finaleInner h2 {
+  font-size: var(--text-h1);
+}
+
+.finaleInner .lead {
+  margin: 0;
+}
+
+.finaleInner .actions {
+  justify-content: center;
+}

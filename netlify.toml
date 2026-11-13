@@ -1,0 +1,14 @@
+# The website (site/web) on Netlify, for a temporary copy before the release. Netlify builds it at
+# each push of the branch it follows, with its own support of Next.js. RAGO_SITE_INDEX is not set:
+# the copy stays out of search engines. The server address and the state ("soon" or "online")
+# are set in the environment of the Netlify site; see site/web/README.md.
+[build]
+  base = "site/web"
+  command = "npm run build"
+  publish = ".next"
+  # rebuild only when the site or its design system changed (the commands run from site/web)
+  ignore = "git diff --quiet $CACHED_COMMIT_REF $COMMIT_REF -- . ../design ../../netlify.toml"
+
+[build.environment]
+  NODE_VERSION = "22"
+  NEXT_TELEMETRY_DISABLED = "1"

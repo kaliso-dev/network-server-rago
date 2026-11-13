@@ -157,6 +157,7 @@ h4 {
   font-weight: 700;
   letter-spacing: 0.1em;
   text-transform: uppercase;
+  white-space: nowrap;
   text-decoration: none;
   cursor: pointer;
   transition: transform var(--dur-fast) var(--ease-out), background-color var(--dur-fast) var(--ease-out),
@@ -185,6 +186,13 @@ h4 {
   border-radius: 0;
   box-shadow: none;
   filter: drop-shadow(0 10px 24px rgba(232, 25, 30, 0.3));
+}
+
+/* the cut corner would clip the focus ring: a focused button drops its cut and shows the ring */
+.btn.cut:focus-visible {
+  clip-path: none;
+  border-radius: var(--radius-sm);
+  box-shadow: var(--focus-ring);
 }
 
 .btn--secondary {
@@ -226,6 +234,7 @@ h4 {
 .ip-chip {
   display: inline-flex;
   align-items: stretch;
+  max-width: 100%;
   border: var(--line);
   border-radius: var(--radius-md);
   background: var(--ink-850);
@@ -233,11 +242,13 @@ h4 {
 }
 
 .ip-chip__address {
+  min-width: 0;
   padding: 0.8rem 1.1rem;
   font-family: var(--font-mono);
   font-size: 1.0625rem;
   font-weight: 600;
   letter-spacing: 0.01em;
+  overflow-wrap: anywhere;
 }
 
 .ip-chip__copy {
@@ -258,6 +269,20 @@ h4 {
 .ip-chip__copy.is-copied {
   background: var(--ok-tint);
   color: var(--ok);
+}
+
+/* on a phone, the button goes under the address, whatever its length */
+@media (max-width: 480px) {
+  .ip-chip {
+    display: grid;
+    width: 100%;
+  }
+
+  .ip-chip__copy {
+    min-height: 2.75rem;
+    border-top: var(--line);
+    border-left: 0;
+  }
 }
 
 /* The state of the server: only a real count is ever shown */
@@ -367,12 +392,14 @@ h4 {
 
 .rank__price {
   display: flex;
+  flex-wrap: wrap;
   align-items: baseline;
   gap: var(--space-2);
 }
 
 .rank__amount {
   font-family: var(--font-display);
+  white-space: nowrap;
   font-size: 2.25rem;
   font-weight: 700;
   font-variant-numeric: tabular-nums;
