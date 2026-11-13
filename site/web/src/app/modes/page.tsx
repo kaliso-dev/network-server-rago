@@ -107,7 +107,7 @@ export default function ModesPage() {
                       ))}
                     </dl>
                     <Link href={`/modes/${flagship.slug}`} className="btn btn--secondary btn--sm">
-                      How {flagship.name} plays
+                      How it plays<span className="visually-hidden">: {flagship.name}</span>
                     </Link>
                   </div>
                 </li>

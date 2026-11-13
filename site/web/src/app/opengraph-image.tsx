@@ -12,7 +12,7 @@ export const dynamic = 'force-static';
 export default async function OpenGraphImage() {
   const root = process.cwd();
   const [display, logo] = await Promise.all([
-    readFile(path.join(root, 'node_modules/@fontsource/pixelify-sans/files/pixelify-sans-latin-700-normal.woff')),
+    readFile(path.join(root, 'public/mc/font/minecraft-bold.ttf')),
     readFile(path.join(root, 'public/brand/icon-512.png')),
   ]);
   const logoSrc = `data:image/png;base64,${logo.toString('base64')}`;
@@ -28,19 +28,19 @@ export default async function OpenGraphImage() {
           padding: '72px 88px',
           background: 'radial-gradient(circle at 80% 40%, #5a0004 0%, #1a0203 38%, #0c0d10 70%)',
           color: '#ffffff',
-          fontFamily: 'Pixelify Sans',
+          fontFamily: 'Minecraft',
         }}
       >
         <div style={{ display: 'flex', flexDirection: 'column', gap: 24, maxWidth: 640 }}>
-          <div style={{ fontSize: 28, letterSpacing: 6, color: '#ff8080' }}>RAGO PRACTICE</div>
-          <div style={{ fontSize: 96, lineHeight: 1, textTransform: 'uppercase', textShadow: '6px 6px 0 rgba(0,0,0,0.6)' }}>Master your skills.</div>
-          <div style={{ fontSize: 30, color: '#a3a8b2' }}>
+          <div style={{ fontSize: 32, color: '#ff8080', textShadow: '4px 4px 0 #3f1515' }}>RAGO PRACTICE</div>
+          <div style={{ fontSize: 88, lineHeight: 1.125, textTransform: 'uppercase', textShadow: '11px 11px 0 #3f3f3f' }}>Master your skills.</div>
+          <div style={{ fontSize: 32, color: '#a3a8b2', textShadow: '4px 4px 0 #292a2c' }}>
             {`Minecraft ${settings.minecraftVersion} PvP practice · Europe`}
           </div>
         </div>
         <img src={logoSrc} width={340} height={340} alt="" />
       </div>
     ),
-    { ...size, fonts: [{ name: 'Pixelify Sans', data: display, weight: 700, style: 'normal' }] },
+    { ...size, fonts: [{ name: 'Minecraft', data: display, weight: 700, style: 'normal' }] },
   );
 }

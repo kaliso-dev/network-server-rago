@@ -112,7 +112,7 @@ export function ModeShowcase({ modes }: { modes: ShowcaseMode[] }) {
             ))}
           </ol>
           <Link className="btn btn--secondary btn--sm" href={`/modes/${mode.slug}`}>
-            All about {mode.name}
+            Read more<span className="visually-hidden"> about {mode.name}</span>
           </Link>
         </div>
       </div>

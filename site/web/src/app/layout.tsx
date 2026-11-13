@@ -5,7 +5,7 @@ import { SiteFooter } from '@/components/SiteFooter';
 import { SiteHeader } from '@/components/SiteHeader';
 import { game } from '@/lib/game';
 import { settings } from '@/lib/settings';
-import { inter, pixelify, tiny5 } from './fonts';
+import { inter, minecraft } from './fonts';
 import './globals.css';
 
 const description = `A Minecraft ${settings.minecraftVersion} PvP practice network in Europe: practice modes built from real game situations, ${
@@ -46,7 +46,7 @@ export const viewport: Viewport = {
 
 export default function RootLayout({ children }: { children: ReactNode }) {
   return (
-    <html lang="en" className={`${pixelify.variable} ${tiny5.variable} ${inter.variable}`}>
+    <html lang="en" className={`${minecraft.variable} ${inter.variable}`}>
       <body>
         <SiteHeader />
         <main id="main" tabIndex={-1}>

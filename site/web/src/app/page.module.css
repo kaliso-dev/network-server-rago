@@ -65,15 +65,16 @@
 .brand {
   color: var(--red-400);
   font-family: var(--font-display);
-  font-size: clamp(1.25rem, 1rem + 1.2vw, 1.875rem);
+  font-size: clamp(1rem, 0.6rem + 1.6vw, 2rem);
+  font-size: round(nearest, clamp(1rem, 0.6rem + 1.6vw, 2rem), 8px);
   font-weight: 600;
-  letter-spacing: 0.14em;
   text-transform: uppercase;
   text-shadow: var(--mc-shadow);
 }
 
 .tagline {
-  font-size: clamp(2.75rem, 1.2rem + 6.2vw, 6.25rem);
+  font-size: clamp(2.5rem, 1rem + 3.6vw, 4rem);
+  font-size: round(nearest, clamp(2.5rem, 1rem + 3.6vw, 4rem), 8px);
   line-height: 0.95;
 }
 
@@ -99,7 +100,6 @@
   color: var(--grey-400);
   font-family: var(--font-pixel);
   font-size: 1rem;
-  letter-spacing: 0.02em;
 }
 
 .heroArt {
@@ -221,7 +221,7 @@
   padding: 0.1rem 0.5rem 0.2rem;
   background: rgba(0, 0, 0, 0.35);
   font-family: var(--font-pixel);
-  font-size: 1.25rem;
+  font-size: 1rem;
   text-shadow: var(--mc-shadow);
 }
 
@@ -314,7 +314,6 @@
 .tickName {
   font-family: var(--font-pixel);
   font-size: 1rem;
-  letter-spacing: 0.02em;
 }
 
 .tickRow:last-child .tickName {
@@ -441,7 +440,6 @@
   list-style: none;
   font-family: var(--font-pixel);
   font-size: 1rem;
-  letter-spacing: 0.02em;
 }
 
 .fair li::before {

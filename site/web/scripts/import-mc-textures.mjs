@@ -2,7 +2,8 @@
 /**
  * Copies the Minecraft 1.8.8 textures the site shows into public/mc, and writes
  * src/data/mc-items.json: for each item the game names (COMPASS, WOOL, SKULL_ITEM...), how to draw
- * it. Nothing is drawn by hand: every pixel comes from the textures of the game.
+ * it. It also turns the game's font (font/ascii.png) into the site's pixel font, public/mc/font.
+ * Nothing is drawn by hand: every pixel comes from the textures of the game.
  *
  * The textures are Mojang's. They come from the package minecraft-assets (PrismarineJS, its code
  * under the MIT licence), which is too big to be a dependency of the site (365 MB):
@@ -17,6 +18,8 @@ import { copyFileSync, existsSync, mkdirSync, readFileSync, rmSync, writeFileSyn
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { PNG } from 'pngjs';
+import wawoff2 from 'wawoff2';
+import { buildFont } from './mc-font.mjs';
 
 const HERE = path.dirname(fileURLToPath(import.meta.url));
 const WEB = path.resolve(HERE, '..');
@@ -112,7 +115,7 @@ function tinted(overlay, item, tint) {
   return out;
 }
 
-function main() {
+async function main() {
   if (!existsSync(path.join(FROM, 'items/compass.png'))) {
     console.error(`No Minecraft 1.8.8 textures in ${FROM}.\nnpm install --no-save minecraft-assets@1.19.0, or set MC_ASSETS.`);
     process.exit(1);
@@ -120,7 +123,8 @@ function main() {
   rmSync(path.join(OUT, 'items'), { recursive: true, force: true });
   rmSync(path.join(OUT, 'blocks'), { recursive: true, force: true });
   rmSync(path.join(OUT, 'gui'), { recursive: true, force: true });
-  for (const dir of ['items', 'blocks', 'gui']) {
+  rmSync(path.join(OUT, 'font'), { recursive: true, force: true });
+  for (const dir of ['items', 'blocks', 'gui', 'font']) {
     mkdirSync(path.join(OUT, dir), { recursive: true });
   }
 
@@ -165,6 +169,18 @@ function main() {
     gui[name] = write(crop(readPng(path.join(FROM, file)), x, y, width, height), `gui/${name}.png`);
   }
 
+  // the font of the game, from its own font/ascii.png (scripts/mc-font.mjs): woff2 for the pages,
+  // and the bold in TrueType for the share image, which cannot read woff2
+  const ascii = readPng(path.join(FROM, 'font/ascii.png'));
+  for (const bold of [false, true]) {
+    const ttf = new Uint8Array(buildFont(ascii, { bold }));
+    const name = bold ? 'minecraft-bold' : 'minecraft';
+    writeFileSync(path.join(OUT, `font/${name}.woff2`), await wawoff2.compress(ttf));
+    if (bold) {
+      writeFileSync(path.join(OUT, `font/${name}.ttf`), ttf);
+    }
+  }
+
   writeFileSync(
     MAP,
     `${JSON.stringify(
@@ -178,7 +194,9 @@ function main() {
       2,
     )}\n`,
   );
-  console.log(`Wrote ${Object.keys(map).length} items and ${Object.keys(gui).length} pieces of the interface to public/mc.`);
+  console.log(
+    `Wrote ${Object.keys(map).length} items, ${Object.keys(gui).length} pieces of the interface and the font of the game to public/mc.`,
+  );
 }
 
-main();
+await main();

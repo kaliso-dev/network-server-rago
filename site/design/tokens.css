@@ -92,24 +92,26 @@
   --tooltip-bg: rgba(16, 0, 16, 0.94);
   --tooltip-line: #3a1a8a;
 
-  /* Typography: Pixelify Sans for the titles, Tiny5 for the labels of the game, Inter for the text */
-  --font-display: "Pixelify Sans", "Inter", system-ui, sans-serif;
-  --font-pixel: "Tiny5", "Pixelify Sans", ui-monospace, monospace;
+  /* Typography: the font of Minecraft for all the game would write, Inter for the paragraphs */
+  /* the font of Minecraft 1.8.8, traced from its font/ascii.png (web/scripts/mc-font.mjs): one
+     pixel of the game is an eighth of the font size, so its sizes go by 8 px */
+  --font-display: "Minecraft", "Inter", system-ui, sans-serif;
+  --font-pixel: "Minecraft", "Inter", system-ui, sans-serif;
   --font-body: "Inter", system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
   --font-mono: var(--font-pixel);
 
-  --text-display: clamp(2.75rem, 1.6rem + 5vw, 5.5rem); /* 44 to 88 px, the hero */
-  --text-h1: clamp(2.25rem, 1.5rem + 3.2vw, 4rem); /* 36 to 64 */
-  --text-h2: clamp(1.75rem, 1.3rem + 2vw, 2.75rem); /* 28 to 44 */
-  --text-h3: clamp(1.25rem, 1.1rem + 0.6vw, 1.5rem); /* 20 to 24 */
-  --text-h4: 1.125rem; /* 18 */
+  --text-display: clamp(2.5rem, 1.5rem + 4.4vw, 5rem); /* 40 to 80 px, the hero */
+  --text-h1: clamp(2rem, 1.4rem + 2.6vw, 3.5rem); /* 32 to 56 */
+  --text-h2: clamp(1.5rem, 1.1rem + 1.8vw, 2.5rem); /* 24 to 40 */
+  --text-h3: clamp(1rem, 0.8rem + 0.9vw, 1.5rem); /* 16 to 24 */
+  --text-h4: 1rem; /* 16: the size of the game's text at GUI scale 2 */
   --text-lead: clamp(1.0625rem, 1rem + 0.3vw, 1.25rem); /* 17 to 20 */
   --text-body: 1rem; /* 16 */
   --text-small: 0.875rem; /* 14 */
   --text-caption: 0.75rem; /* 12, capitals */
 
-  --leading-tight: 1;
-  --leading-heading: 1.08;
+  --leading-tight: 1.125; /* a line of the game: 9 pixels for 8 */
+  --leading-heading: 1.25; /* a pixel more between two lines of a heading: 10 for 8 */
   --leading-body: 1.6;
   --tracking-caps: 0.12em;
   --tracking-display: 0;
@@ -159,6 +161,17 @@
 
   --focus-ring: 0 0 0 2px var(--ink-900), 0 0 0 4px var(--red-400);
 }
+/* where the browser can round, a title's size snaps to a multiple of 8 px: each pixel of the
+   game is then a whole number of pixels of the screen, and stays sharp */
+@supports (width: round(1px, 1px)) {
+  :root {
+    --text-display: round(nearest, clamp(2.5rem, 1.5rem + 4.4vw, 5rem), 8px);
+    --text-h1: round(nearest, clamp(2rem, 1.4rem + 2.6vw, 3.5rem), 8px);
+    --text-h2: round(nearest, clamp(1.5rem, 1.1rem + 1.8vw, 2.5rem), 8px);
+    --text-h3: round(nearest, clamp(1rem, 0.8rem + 0.9vw, 1.5rem), 8px);
+  }
+}
+
 
 @media (prefers-reduced-motion: reduce) {
   :root {

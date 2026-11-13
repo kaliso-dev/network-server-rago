@@ -85,8 +85,7 @@
   margin: 0;
   color: var(--accent);
   font-family: var(--font-pixel);
-  font-size: 0.9375rem;
-  letter-spacing: 0.05em;
+  font-size: 1rem;
   text-transform: uppercase;
 }
 
@@ -99,7 +98,7 @@
 .hook {
   margin: 0;
   font-family: var(--font-display);
-  font-size: var(--text-h4);
+  font-size: 1rem;
   font-weight: 500;
 }
 
@@ -120,8 +119,7 @@
 .facts dt {
   color: var(--grey-400);
   font-family: var(--font-pixel);
-  font-size: 0.875rem;
-  letter-spacing: 0.04em;
+  font-size: 1rem;
   text-transform: uppercase;
 }
 
@@ -140,7 +138,7 @@
 @media (max-width: 760px) {
   .flagship,
   .flagship[data-flip] {
-    grid-template-columns: 1fr;
+    grid-template-columns: minmax(0, 1fr);
     gap: var(--space-5);
   }
 
@@ -186,8 +184,7 @@
 
 .tags {
   font-family: var(--font-pixel);
-  font-size: 0.9375rem;
-  letter-spacing: 0.03em;
+  font-size: 1rem;
 }
 
 .more {

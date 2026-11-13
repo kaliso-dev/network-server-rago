@@ -38,19 +38,19 @@
   color: var(--accent);
   font-family: var(--font-pixel);
   font-size: 1rem;
-  letter-spacing: 0.05em;
   text-transform: uppercase;
 }
 
 .title {
   color: var(--accent);
-  font-size: clamp(2.5rem, 1.4rem + 4.5vw, 5rem);
+  font-size: clamp(2rem, 1rem + 3.2vw, 3.5rem);
+  font-size: round(nearest, clamp(2rem, 1rem + 3.2vw, 3.5rem), 8px);
 }
 
 .hook {
   margin: 0;
   font-family: var(--font-display);
-  font-size: var(--text-h3);
+  font-size: 1.5rem;
   font-weight: 500;
 }
 
@@ -65,8 +65,7 @@
 .facts dt {
   color: var(--grey-400);
   font-family: var(--font-pixel);
-  font-size: 0.875rem;
-  letter-spacing: 0.04em;
+  font-size: 1rem;
   text-transform: uppercase;
 }
 
@@ -176,7 +175,7 @@
 .number {
   color: var(--accent);
   font-family: var(--font-pixel);
-  font-size: 1.75rem;
+  font-size: 2rem;
   line-height: 1;
   text-shadow: var(--mc-shadow);
 }
@@ -237,14 +236,19 @@
 
   .table th,
   .table td {
-    padding: var(--space-2) 0.3rem;
+    padding: var(--space-2) 0.2rem;
+  }
+
+  /* the game's regular, one pixel narrower a letter than its bold */
+  .table thead th {
+    font-weight: 400;
   }
 }
 
 .table thead th {
   color: var(--accent);
   font-family: var(--font-display);
-  font-size: 1.125rem;
+  font-size: 1rem;
 }
 
 .table tbody th {
@@ -289,7 +293,6 @@
 
 .modeMeta {
   font-family: var(--font-pixel);
-  letter-spacing: 0.03em;
 }
 
 .play {
@@ -339,7 +342,7 @@
   display: block;
   color: var(--tab);
   font-family: var(--font-display);
-  font-size: 1.0625rem;
+  font-size: 1rem;
   text-shadow: var(--mc-shadow);
 }
 
