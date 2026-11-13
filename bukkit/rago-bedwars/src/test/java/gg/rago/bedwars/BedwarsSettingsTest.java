@@ -51,8 +51,17 @@ class BedwarsSettingsTest {
                 "top-bridge-2v2", "skyrise-1v1", "skyrise-2v2", "skyrise-resources-1v1", "skyrise-resources-2v2",
                 "first-rush", "first-rush-duo", "first-rush-full", "first-rush-full-duo", "top-bridge-ffa", "ffa", "invis-practice", "shop-practice",
                 "attack-defense-1v1", "attack-defense-2v2", "clutch-scenario-1v1", "clutch-scenario-2v2",
-                "clutch-scenario-3v3", "clutch-scenario-4v4", "bed-fight-1v1", "bed-fight-2v2", "top-bed-fight-1v1"),
+                "clutch-scenario-3v3", "clutch-scenario-4v4", "bed-fight-1v1", "bed-fight-2v2", "top-bed-fight-1v1",
+                "lobby-fight-1v1", "lobby-fight-ffa"),
                 settings.modes());
+        assertEquals(BedwarsSettings.Kind.LOBBY_FIGHT, settings.kind("lobby-fight-1v1"));
+        assertEquals(BedwarsSettings.Kind.LOBBY_FIGHT_FFA, settings.kind("lobby-fight-ffa"));
+        assertTrue(settings.kind("lobby-fight-1v1").inWaitingLobby() && settings.kind("lobby-fight-ffa").inWaitingLobby());
+        assertFalse(settings.kind("ffa").inWaitingLobby() || settings.kind("top-bridge-1v1").inWaitingLobby());
+        assertEquals(Collections.singletonList("ArchwayFFA"), settings.mapsOf("lobby-fight-1v1"),
+                "the waiting lobby of Archway FFA");
+        assertEquals(settings.mapsOf("lobby-fight-1v1"), settings.mapsOf("lobby-fight-ffa"));
+        assertFalse(settings.topBridge("lobby-fight-1v1"), "no platform: the map has its lobby");
         assertEquals(BedwarsSettings.Kind.CLASSIC, settings.kind("ranked-1v1"));
         assertEquals(BedwarsSettings.Kind.TOP_BED_FIGHT, settings.kind("top-bed-fight-1v1"));
         assertFalse(settings.topBridge("top-bed-fight-1v1"), "no platform: the map has its bridge");

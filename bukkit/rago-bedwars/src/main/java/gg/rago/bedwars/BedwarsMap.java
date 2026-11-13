@@ -17,7 +17,8 @@ import org.bukkit.configuration.file.YamlConfiguration;
  * has diamond and emerald generators, and a spectator point. A map of attack and defense
  * (attaquants:) has one complete team, the defenders, and the starts of the attackers, a team with
  * no island. A map is played once it has two sides or more (complete teams, and the attackers) and
- * is enabled. Main thread only.
+ * is enabled. A map may have its waiting lobby (salle-attente:), where Lobby Fight is played. Main
+ * thread only.
  */
 final class BedwarsMap {
 
@@ -85,6 +86,107 @@ final class BedwarsMap {
     private final List<MapPoint> killBoards = new ArrayList<>();
     /** Where blocks may be placed (iles:); none: everywhere under the build limit. */
     private final List<Island> islands = new ArrayList<>();
+    /** The waiting lobby (salle-attente:), where Lobby Fight is played; null: none. */
+    private WaitingLobby waitingLobby;
+
+    /**
+     * The waiting lobby of a map (salle-attente:), the platform high over it where the players wait
+     * for a game to start, where Lobby Fight is played: the height of its floor (the players stand
+     * one block above), the middle of its floor and how far the floor goes from there. Archway FFA
+     * has one: its glass floor at y 117, 11 blocks around the middle. Set with /bw lobbyfight, from
+     * its floor. Immutable.
+     */
+    static final class WaitingLobby {
+        /** The farthest a waiting lobby goes from its middle. */
+        static final double MAX_RADIUS = 48;
+
+        final double centreX;
+        final double centreZ;
+        final int floorY;
+        final double radius;
+
+        WaitingLobby(double centreX, double centreZ, int floorY, double radius) {
+            this.centreX = centreX;
+            this.centreZ = centreZ;
+            this.floorY = floorY;
+            this.radius = radius;
+        }
+
+        /**
+         * The lobby whose floor is these blocks (x, z, all at this height): its middle is the
+         * middle of the box around them, its radius as far as the middle of the farthest of them.
+         * Null for no block.
+         */
+        static WaitingLobby around(List<int[]> floor, int floorY) {
+            if (floor.isEmpty()) {
+                return null;
+            }
+            int minX = Integer.MAX_VALUE;
+            int maxX = Integer.MIN_VALUE;
+            int minZ = Integer.MAX_VALUE;
+            int maxZ = Integer.MIN_VALUE;
+            for (int[] block : floor) {
+                minX = Math.min(minX, block[0]);
+                maxX = Math.max(maxX, block[0]);
+                minZ = Math.min(minZ, block[1]);
+                maxZ = Math.max(maxZ, block[1]);
+            }
+            double centreX = (minX + maxX + 1) / 2.0;
+            double centreZ = (minZ + maxZ + 1) / 2.0;
+            double farthest = 0;
+            for (int[] block : floor) {
+                farthest = Math.max(farthest, Math.hypot(block[0] + 0.5 - centreX, block[1] + 0.5 - centreZ));
+            }
+            // to the half block above, so that the farthest blocks are in
+            return new WaitingLobby(centreX, centreZ, floorY, Math.max(0.5, Math.ceil(farthest * 2 - 1e-9) / 2));
+        }
+
+        /** True if the column of this block is in the lobby: its middle within the radius. */
+        boolean covers(int x, int z) {
+            double dx = x + 0.5 - centreX;
+            double dz = z + 0.5 - centreZ;
+            return dx * dx + dz * dz <= radius * radius + 1e-9;
+        }
+
+        Map<String, Object> toMap() {
+            Map<String, Object> map = new java.util.LinkedHashMap<>();
+            Map<String, Object> centre = new java.util.LinkedHashMap<>();
+            centre.put("x", centreX);
+            centre.put("z", centreZ);
+            map.put("centre", centre);
+            map.put("y", floorY);
+            map.put("rayon", radius);
+            return map;
+        }
+
+        static WaitingLobby fromSection(ConfigurationSection section, String where) {
+            ConfigurationSection centre = section.getConfigurationSection("centre");
+            if (centre == null || !(centre.get("x") instanceof Number) || !(centre.get("z") instanceof Number)) {
+                throw new IllegalArgumentException(where + ".centre: x and z");
+            }
+            Object y = section.get("y");
+            if (!(y instanceof Number) || ((Number) y).intValue() < 0 || ((Number) y).intValue() > 254) {
+                throw new IllegalArgumentException(where + ".y: the height of the floor, from 0 to 254");
+            }
+            Object radius = section.get("rayon");
+            if (!(radius instanceof Number) || ((Number) radius).doubleValue() <= 0
+                    || ((Number) radius).doubleValue() > MAX_RADIUS) {
+                throw new IllegalArgumentException(where + ".rayon: a number of blocks, more than 0, " + (int) MAX_RADIUS
+                        + " at most");
+            }
+            return new WaitingLobby(((Number) centre.get("x")).doubleValue(), ((Number) centre.get("z")).doubleValue(),
+                    ((Number) y).intValue(), ((Number) radius).doubleValue());
+        }
+
+        @Override
+        public String toString() {
+            return "floor at y " + floorY + ", " + fmt(radius) + " blocks around " + fmt(centreX) + " " + fmt(centreZ);
+        }
+
+        private static String fmt(double value) {
+            return value == Math.rint(value) ? String.valueOf((long) value) : String.valueOf(value);
+        }
+    }
 
     /**
      * An island where the players may place blocks (iles:), when the map lists them: blocks go on
@@ -503,6 +605,15 @@ final class BedwarsMap {
         return Collections.unmodifiableList(islands);
     }
 
+    /** The waiting lobby, where Lobby Fight is played (salle-attente:); null if the map has none. */
+    WaitingLobby waitingLobby() {
+        return waitingLobby;
+    }
+
+    void setWaitingLobby(WaitingLobby waitingLobby) {
+        this.waitingLobby = waitingLobby;
+    }
+
     /**
      * Why the islands of the map (iles:) keep a block from going there, null when they let it: off
      * every island (on a bridge, over the void), or above the top of the island under it.
@@ -680,6 +791,9 @@ final class BedwarsMap {
             }
             yaml.set("retirer", boxes);
         }
+        if (waitingLobby != null) {
+            yaml.createSection("salle-attente", waitingLobby.toMap());
+        }
         return yaml.saveToString();
     }
 
@@ -784,6 +898,13 @@ final class BedwarsMap {
         List<Map<?, ?>> boxes = yaml.getMapList("retirer");
         for (int i = 0; i < boxes.size(); i++) {
             map.removals.add(Removal.fromMap(boxes.get(i), "retirer[" + i + "]"));
+        }
+        if (yaml.contains("salle-attente")) {
+            ConfigurationSection lobby = yaml.getConfigurationSection("salle-attente");
+            if (lobby == null) {
+                throw new IllegalArgumentException("salle-attente: centre (x and z), y and rayon");
+            }
+            map.waitingLobby = WaitingLobby.fromSection(lobby, "salle-attente");
         }
         return map;
     }

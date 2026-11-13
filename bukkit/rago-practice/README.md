@@ -68,9 +68,12 @@ Chaque duel, sumo compris, est enregistré : `/replay` le montre à nouveau depu
   Construire, clutch, casser leurs blocs, faire tomber. Comme sur Minemen, les points sont les
   coups : chaque coup donné à l'autre camp vaut un point (le coup ne fait pas de dégâts, seulement
   son recul), et faire tomber un adversaire dans le vide donne 10 points à son camp ; seul celui
-  qui est tombé revient tout de suite sur son bloc d'or, les autres continuent et les blocs restent. Premier à
-  `points-pour-gagner.block-fight` (100). Sans ces mondes, deux petites plateformes au-dessus du
-  vide.
+  qui est tombé revient tout de suite sur son bloc d'or, avec tout son kit à nouveau (deux stacks
+  de laine), les autres continuent et les blocs restent. Premier à
+  `points-pour-gagner.block-fight` (100). Les cœurs disent le score : un joueur a toute sa vie
+  tant que l'autre camp n'a aucun point, et plus rien quand il en a 100 (20 PV à 0 coup, 0 PV à
+  100 coups, une demi-vie au moins : le score ne tue pas) ; la vie ne remonte pas toute seule.
+  Sans ces mondes, deux petites plateformes au-dessus du vide.
 - **Fireball fight** : chaque camp a son île et son lit sous une défense de bois et de laine. Le
   stuff des maps du propriétaire : épée en pierre, pioche et hache Efficiency I, 6 boules de feu,
   un stack de laine, 8 end stone, 2 TNT, cisailles, 8 échelles, armure en cuir. Tant que le lit
@@ -315,7 +318,9 @@ On revient tout de suite après une chute. Les blocs posés se fissurent de plus
 
 **Arena Free** (`free-ffa`) se joue dans la même arène du propriétaire, avec son slime, pour un
 FFA de combat pour s'entraîner : une épée en fer, rien d'autre, sans armure, et Résistance V à
-chaque vie, si bien que personne ne meurt des coups (seul le vide renvoie au départ).
+chaque vie, si bien que personne ne meurt des coups (seul le vide renvoie au départ). `/center`
+ramène au centre de l'arène (sur le sol le plus près du milieu où l'on tient debout), sauf dans
+les 5 secondes qui suivent un coup : ce n'est pas une façon d'échapper à une chute.
 
 ## Le bridge fight
 

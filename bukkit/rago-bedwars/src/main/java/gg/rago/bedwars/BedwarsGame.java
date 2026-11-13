@@ -456,6 +456,14 @@ class BedwarsGame {
     }
 
     /**
+     * True if the game is played in the waiting lobby of the map (Lobby Fight, see {@link
+     * LobbyFight}): the kit of the FFA when its mode has none of its own.
+     */
+    boolean playsInWaitingLobby() {
+        return false;
+    }
+
+    /**
      * Under this height a player (not a spectator) has fallen, dead as in the void: the map's void,
      * or a little under the platform in a game played on the top bridge.
      */
@@ -869,6 +877,10 @@ class BedwarsGame {
      */
     ItemStack[] lobbyKit(Player player, Gamer gamer) {
         ItemStack[] kit = plugin.lobby().kit(player, modeId);
+        if (kit == null && playsInWaitingLobby()) {
+            // Lobby Fight plays the kit of the FFA, as each player arranged it, unless its mode has its own
+            kit = plugin.lobby().kit(player, LobbyFight.KIT_MODE);
+        }
         if (kit == null) {
             return null;
         }
@@ -1967,22 +1979,29 @@ class BedwarsGame {
     }
 
     /**
-     * The armour of the fight kit (Top Bridge, the FFA), as in the top fights of the practice: full
-     * diamond, Protection IV, unbreakable. No effect: the absorption is the golden apples'.
+     * The armour of the fight kit (Top Bridge, the FFA), as a Bed Wars player who bought the diamond
+     * armour wears it: diamond leggings and boots, a leather helmet and chestplate in the colour
+     * given (red in the FFA, the team's in Top Bridge), all with Protection IV, unbreakable. No
+     * effect: the absorption is the golden apples'.
      */
-    static void fightArmour(Player player) {
-        Material[] pieces = {Material.DIAMOND_BOOTS, Material.DIAMOND_LEGGINGS, Material.DIAMOND_CHESTPLATE,
-            Material.DIAMOND_HELMET};
-        ItemStack[] armour = new ItemStack[pieces.length];
-        for (int i = 0; i < pieces.length; i++) {
-            ItemStack piece = new ItemStack(pieces[i]);
-            ItemMeta meta = piece.getItemMeta();
-            meta.addEnchant(Enchantment.PROTECTION_ENVIRONMENTAL, 4, true);
-            meta.spigot().setUnbreakable(true);
-            piece.setItemMeta(meta);
-            armour[i] = piece;
+    static void fightArmour(Player player, org.bukkit.Color leather) {
+        PlayerInventory inventory = player.getInventory();
+        inventory.setHelmet(fightPiece(Material.LEATHER_HELMET, leather));
+        inventory.setChestplate(fightPiece(Material.LEATHER_CHESTPLATE, leather));
+        inventory.setLeggings(fightPiece(Material.DIAMOND_LEGGINGS, leather));
+        inventory.setBoots(fightPiece(Material.DIAMOND_BOOTS, leather));
+    }
+
+    private static ItemStack fightPiece(Material material, org.bukkit.Color leather) {
+        ItemStack piece = new ItemStack(material);
+        ItemMeta meta = piece.getItemMeta();
+        if (meta instanceof LeatherArmorMeta) {
+            ((LeatherArmorMeta) meta).setColor(leather);
         }
-        player.getInventory().setArmorContents(armour);
+        meta.addEnchant(Enchantment.PROTECTION_ENVIRONMENTAL, 4, true);
+        meta.spigot().setUnbreakable(true);
+        piece.setItemMeta(meta);
+        return piece;
     }
 
     private static final Material[][] ARMOR = {

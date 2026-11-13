@@ -125,6 +125,7 @@ public final class RagoPractice extends JavaPlugin {
         getCommand("challenge").setExecutor(challenges);
         getCommand("aimtop").setExecutor(new AimTop(this));
         getCommand("speed").setExecutor(new SpeedCommand(this));
+        getCommand("center").setExecutor(new CenterCommand(this));
         startRecords(config);
         getLogger().info("Arenas in the world " + world.getName() + ": " + slots + " games of each mode at once at most. Modes: "
                 + String.join(", ", hosted));

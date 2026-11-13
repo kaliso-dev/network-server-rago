@@ -19,8 +19,8 @@ import org.bukkit.scheduler.BukkitTask;
  * Top Bridge, as the owner plays it: no bed, no forge, no shop, only the fight on the platform of
  * the top bridge (the one he built on Antenna, on any map). The players start on top, each team on
  * its half, with the mode's kit (the lobby's kit editor: a stone sword and a stack of golden apples),
- * full diamond armour with Protection IV; one who falls off the platform is
- * dead, as in the void.
+ * diamond leggings and boots with a leather helmet and chestplate in the team's colour, Protection
+ * IV; one who falls off the platform is dead, as in the void.
  *
  * <ul>
  *   <li>A game of the queue (1v1, 2v2), or of a party that fills it from the Duels: rounds, one
@@ -186,7 +186,10 @@ class TopBridgeGame extends BedwarsGame {
                 + "the lobby.");
     }
 
-    /** The mode's kit as the player arranged it, full diamond armour, at each life. */
+    /**
+     * The mode's kit as the player arranged it, and the fight armour, its leather in the team's
+     * colour, at each life.
+     */
     @Override
     void giveKit(Player player, Gamer gamer) {
         PlayerInventory inventory = player.getInventory();
@@ -199,7 +202,7 @@ class TopBridgeGame extends BedwarsGame {
                 inventory.addItem(kitItem(item.clone(), gamer));
             }
         }
-        fightArmour(player);
+        fightArmour(player, gamer.team.color.leather());
         player.updateInventory();
     }
 

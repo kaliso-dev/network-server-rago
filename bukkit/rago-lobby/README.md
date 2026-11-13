@@ -521,7 +521,8 @@ config.yml fourni les suit :
 
 - `categories:` range les modes par zone du lobby : la boussole montre les catégories (Practice à
   gauche, RBW Modes avec un lit, Duels, Arenas à droite : les modes sans file, FFA, Top Bridge FFA,
-  Bridge fight, Block placement arena et Arena Free, où l'on entre tout de suite),
+  Lobby Fight FFA, Bridge fight, Block placement arena et Arena Free, où l'on entre tout de suite ;
+  Lobby Fight 1v1 est dans Duels),
   puis les jeux de celle qu'on choisit (7 catégories, 28 objets par catégorie au plus, un groupe
   comptant pour un). Chaque mode dit sa `categorie:`. Le `slogan:` d'une catégorie (40 caractères au
   plus) dit ce qu'on y fait : sous son nom dans la boussole, sous son PNJ et dans l'accueil.

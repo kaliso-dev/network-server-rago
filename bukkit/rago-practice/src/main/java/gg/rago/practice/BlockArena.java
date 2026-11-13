@@ -41,7 +41,7 @@ import org.bukkit.util.Vector;
  *
  * <p>Arena Free (free-ffa) is the same arena for a free for all fight, as a practice: an iron sword
  * only, no armour, and Resistance V, so that nobody dies of the hits (only the void sends a player
- * back to the start).
+ * back to the start). /center takes a player back to the middle of it (see {@link #centre}).
  */
 final class BlockArena extends PracticeGame {
 
@@ -60,6 +60,8 @@ final class BlockArena extends PracticeGame {
     private static final int LAUNCH_PAUSE = 10;
     /** The id of the slime block. */
     static final int SLIME_ID = 165;
+    /** /center waits this long after a hit: it saves nobody from a knock into the void. */
+    static final long CENTRE_AFTER_HIT_MS = 5_000L;
     /** The level of Resistance (both arenas): V takes all the damage of the hits. */
     static final int RESISTANCE = 5;
     private static final Color[] COLOURS = {Color.RED, Color.BLUE, Color.LIME, Color.YELLOW, Color.AQUA, Color.WHITE,
@@ -145,6 +147,63 @@ final class BlockArena extends PracticeGame {
             }
         }
         return arena.at(0.5, 1, 0.5, random.nextInt(360) - 180f);
+    }
+
+    /** True for Arena Free, where /center plays. */
+    boolean free() {
+        return free;
+    }
+
+    /**
+     * /center in Arena Free: the player back in the middle of the arena, on the floor nearest to
+     * its centre with room to stand, looking the same way; not within {@link #CENTRE_AFTER_HIT_MS}
+     * of a hit, so that it is no way out of a knock into the void.
+     */
+    void centre(Player player) {
+        long since = sinceHit(player.getUniqueId());
+        if (since < CENTRE_AFTER_HIT_MS) {
+            long wait = (CENTRE_AFTER_HIT_MS - since + 999) / 1000;
+            player.sendMessage(ChatColor.RED + "You were just hit: /center works " + CENTRE_AFTER_HIT_MS / 1000
+                    + " seconds after the last hit (" + wait + " s more).");
+            return;
+        }
+        int[] spot = nearestStand(SPREAD, (x, z) -> arena.block(x, 0, z).getType().isSolid()
+                && arena.block(x, 1, z).isEmpty() && arena.block(x, 2, z).isEmpty());
+        Location to = arena.at(spot[0] + 0.5, 1, spot[1] + 0.5, player.getLocation().getYaw());
+        to.setPitch(player.getLocation().getPitch());
+        player.setFallDistance(0f);
+        player.setVelocity(new Vector());
+        player.teleport(to);
+        player.sendMessage(ChatColor.GREEN + "Back to the centre of the arena.");
+    }
+
+    /** Whether a player can stand at (x, z) from the centre, on the floor. */
+    interface Stand {
+        boolean at(int x, int z);
+    }
+
+    /**
+     * The spot nearest to the centre (0, 0) where a player can stand, at most this far on each
+     * axis, as {x, z}; the centre itself if none is.
+     */
+    static int[] nearestStand(int reach, Stand stand) {
+        for (int ring = 0; ring <= reach; ring++) {
+            int[] best = null;
+            for (int x = -ring; x <= ring; x++) {
+                for (int z = -ring; z <= ring; z++) {
+                    if (Math.max(Math.abs(x), Math.abs(z)) != ring || !stand.at(x, z)) {
+                        continue;
+                    }
+                    if (best == null || x * x + z * z < best[0] * best[0] + best[1] * best[1]) {
+                        best = new int[] {x, z};
+                    }
+                }
+            }
+            if (best != null) {
+                return best;
+            }
+        }
+        return new int[] {0, 0};
     }
 
     /**
@@ -357,7 +416,7 @@ final class BlockArena extends PracticeGame {
         if (free) {
             player.sendMessage(ChatColor.GREEN + "" + ChatColor.BOLD + "Arena Free" + ChatColor.GRAY
                     + " - everyone in one arena, a sword only and Resistance: nobody dies, it is a practice. The"
-                    + " slime in the black pit throws you out of it.");
+                    + " slime in the black pit throws you out of it, /center takes you back to the middle.");
         } else {
             player.sendMessage(ChatColor.AQUA + "" + ChatColor.BOLD + "Block placement arena" + ChatColor.GRAY
                     + " - everyone in one arena, Resistance: the hits only push, knock them off into the void. Build,"

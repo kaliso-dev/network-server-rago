@@ -4,9 +4,10 @@ Un plugin Bukkit 1.8.8 qui joue les modes Bed Wars du lobby (`bukkit/rago-lobby`
 Bedwars 1v1, 2v2, 3v3 et 4v4**, **RBW Sky Rise** en solo et en duo (et **Sky Rise Resources**), avec
 les règles d'une partie classique d'Hypixel, **First Rush** en solo et en duo (la même partie, sur deux îles voisines), les
 **parties privées** d'une party (le lobby choisit le 1v1, 2v2, 3v3 ou 4v4 selon sa taille), et
-six jeux à part sur des maps de Bed Wars : **Top Bridge**, **Attack and Defense**, **Clutch
+sept jeux à part sur des maps de Bed Wars : **Top Bridge**, **Attack and Defense**, **Clutch
 Scenario**,
-**FFA** (dont le Top Bridge FFA), **Invis practice** et **Fast Shop**. Chaque mode a ses maps.
+**FFA** (dont le Top Bridge FFA), **Lobby Fight** (1v1 et FFA, dans la salle d'attente de la map),
+**Invis practice** et **Fast Shop**. Chaque mode a ses maps.
 
 Les parties en équipes sont enregistrées pour `/replay` : le lobby les montre à nouveau dans une
 copie libre de leur map (voir le [README du lobby](../rago-lobby/README.md)). Pas les FFA, Fast
@@ -130,7 +131,8 @@ Les modes qui l'ont sont listés dans `top-bridge:` du config.yml.
 Ni lit ni forge ni shop : seul le combat sur le pont compte. Chaque équipe démarre en haut, sur sa
 moitié, à 12 blocs de la ligne blanche du milieu, côte à côte en 2v2, face à l'autre moitié, avec
 le stuff de combat du propriétaire : une épée en pierre et un stack de pommes d'or (arrangeables
-dans l'éditeur de kit), une armure complète en diamant Protection IV, sans effet d'absorption. Celui qui tombe à 10
+dans l'éditeur de kit), l'armure de combat d'une partie, Protection IV : jambières et bottes en
+diamant, casque et plastron en cuir à la couleur de l'équipe, sans effet d'absorption. Celui qui tombe à 10
 blocs sous la plateforme est mort, comme dans le vide (on a le temps d'un clutch). Ceux qui
 attendent regardent depuis le dessus du milieu.
 
@@ -318,8 +320,9 @@ Dans `jeux:` du config.yml, un mode peut jouer autre chose qu'une partie classiq
 - **FFA** (`ffa`, sur Archway FFA seulement, pas de choix de map) : chacun pour soi, ouvert,
   on entre et on sort quand on veut. Le kit du mode (rangé dans l'éditeur de kit du lobby) est le
   stuff de combat du propriétaire, une épée en pierre et un stack de pommes d'or, avec 3 boules de
-  feu, une perle, 2 stacks de laine et des cisailles, et à chaque vie une armure complète en diamant Protection IV
-  (sans effet d'absorption) ; on revient tout de suite après une mort ; un kill soigne ; les
+  feu, une perle, 2 stacks de laine et des cisailles, et à chaque vie l'armure de combat d'une partie,
+  Protection IV : jambières et bottes en diamant, casque et plastron en cuir rouge (sans effet
+  d'absorption) ; on revient tout de suite après une mort ; un kill soigne ; les
   blocs posés partent au bout de 10 secondes ; les kills comptent dans les stats. Archway FFA (le
   dossier `ArchwayFFA`) est l'Archway du propriétaire : des ponts de laine entre les îles, une
   défense d'end stone et de verre sur les lits rouge et vert pour les top fights, et depuis ces deux
@@ -353,6 +356,21 @@ Dans `jeux:` du config.yml, un mode peut jouer autre chose qu'une partie classiq
   milieu de la plateforme, 8 blocs après son bord et 7 blocs au-dessus. La sidebar montre le
   **top 3 des kills** de la partie en cours (les joueurs présents), sous ses kills, morts et
   série.
+- **Lobby Fight** (`lobby-fight` pour `lobby-fight-1v1`, `lobby-fight-ffa` pour `lobby-fight-ffa`) :
+  le combat dans la **salle d'attente** de la map, là où l'on attend le début d'une partie de Bed
+  Wars (sur Archway FFA, son sol de verre tout en haut au-dessus du milieu), avec le kit du FFA
+  (celui que le joueur a rangé pour le FFA dans l'éditeur de kit du lobby, ou le sien pour le
+  mode) et la même armure de combat (le cuir à la couleur de l'équipe en 1v1, rouge dans le FFA).
+  En **1v1**, des manches d'une vie comme le Top Bridge : les deux joueurs partent face à face de
+  part et d'autre du milieu de la salle, le plus loin possible sans rien entre eux (les poteaux du
+  pavillon), au plus aux trois quarts du rayon ; un kill ou une chute hors de la salle (3 blocs
+  sous son sol) donne le point à l'autre, le premier à 5 gagne, 3 secondes de compte à rebours
+  avant chaque manche ; la copie redevient la map à chaque manche. Le **FFA** est ouvert comme le
+  FFA (12 joueurs au plus) : on apparaît n'importe où sur le sol, le plus loin des autres, et on
+  revient tout de suite après une mort. Les blocs ne se posent que dans la salle, jusqu'à 6 blocs
+  au-dessus de son sol. La salle est `salle-attente:` dans le `bedwars.yml` de la map (son centre,
+  la hauteur de son sol, son rayon), que `/bw lobbyfight` écrit (voir Les maps) ; les modes ne
+  prennent que les maps qui en ont une.
 - **Free FFA** (`arene`) : la même chose avec les forges, les diamants et les émeraudes, un shop
   à lui (les diamants achètent aussi), l'armure et les outils gardés comme en Bed Wars, et sur
   chaque lit une défense de trois couches prête pour les top fights, remise quand personne n'est à
@@ -429,6 +447,14 @@ red et blue :
      - {x: 94.5, y: 77, z: 20.5, yaw: 27}
      - {x: 94.5, y: 77, z: 18.5, yaw: 27}
    ```
+
+10. Pour Lobby Fight : `/bw lobbyfight` debout sur le sol de la salle d'attente de la map. Le
+    plugin suit le sol autour du bloc sous les pieds (les blocs pleins à cette hauteur, 8000 au
+    plus, à 48 blocs au plus du centre) et écrit `salle-attente:` dans le `bedwars.yml` : le
+    milieu du sol, sa hauteur et son rayon. `/bw lobbyfight remove` l'enlève. Sur Archway FFA :
+    ```yaml
+    salle-attente: {centre: {x: 0.5, z: 0.5}, y: 117, rayon: 11.5}
+    ```
 
 `/bw maps` liste les maps, `/bw remove red|diamond|emerald|diamonds|emeralds` enlève une équipe ou
 un générateur (le plus proche, à 5 blocs), `/bw disable` ferme la map. Chaque changement est

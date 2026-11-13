@@ -81,9 +81,9 @@
           "colour": "#55FF55"
         }
       ],
-      "description": "Bed fight, Top BedFight, top bridge, bridge fight, block placement in 1v1 or 2v2; sumo, boxing, KB displace, fireball fight, bow. /duel a player to challenge them.",
+      "description": "Bed fight, Top BedFight, top bridge, bridge fight, block placement in 1v1 or 2v2; Lobby Fight, sumo, boxing, KB displace, fireball fight, bow. /duel a player to challenge them.",
       "skin": "duels",
-      "modes": 15
+      "modes": 16
     },
     {
       "id": "arenes",
@@ -104,9 +104,9 @@
           "colour": "#FF5555"
         }
       ],
-      "description": "No queue, come and go when you like: the FFA, Top Bridge FFA, bridge fight, block placement arena and Arena Free. Someone to fight at once.",
+      "description": "No queue, come and go when you like: the FFA, Top Bridge FFA, Lobby Fight FFA, bridge fight, block placement arena and Arena Free. Someone to fight at once.",
       "skin": "arena",
-      "modes": 5
+      "modes": 6
     }
   ],
   "groups": [
@@ -524,6 +524,22 @@
       ]
     },
     {
+      "id": "lobby-fight-ffa",
+      "name": "Lobby Fight FFA",
+      "colour": "#FF5555",
+      "icon": "ENDER_PEARL",
+      "category": "arenes",
+      "group": null,
+      "format": "FFA",
+      "ranked": false,
+      "startHere": false,
+      "event": false,
+      "description": "The FFA in the waiting lobby of Archway FFA, with its kit: come and go when you like, fall out of it and you die.",
+      "plugins": [
+        "bedwars"
+      ]
+    },
+    {
       "id": "free-ffa",
       "name": "Arena Free",
       "colour": "#FF5555",
@@ -633,6 +649,22 @@
       "description": "Block placement, two against two: each hit is a point, the void costs 10. First to 100.",
       "plugins": [
         "practice"
+      ]
+    },
+    {
+      "id": "lobby-fight-1v1",
+      "name": "Lobby Fight 1v1",
+      "colour": "#55FF55",
+      "icon": "ENDER_PEARL",
+      "category": "duels",
+      "group": null,
+      "format": "1v1",
+      "ranked": false,
+      "startHere": false,
+      "event": false,
+      "description": "In the waiting lobby of Archway FFA, with the kit of the FFA: rounds of one life, knock them out; the first to 5 points wins.",
+      "plugins": [
+        "bedwars"
       ]
     },
     {
