@@ -187,7 +187,8 @@ groupes:
     nom: "&6Clutch scenario"
     icone: IRON_CHESTPLATE
     description:
-      - "A real RBW game on any map:"
+      - "A real RBW game on Sky Rise"
+      - "or Archway, bridges built:"
       - "one team has lost its bed,"
       - "iron armour, stone sword,"
       - "full forges. Clutch or defend."

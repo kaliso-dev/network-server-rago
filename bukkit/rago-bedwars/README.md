@@ -207,8 +207,8 @@ gagne la partie.
 ## Clutch Scenario
 
 `clutch-scenario-1v1`, `-2v2`, `-3v3` et `-4v4` (le genre `clutch-scenario`) : une vraie partie de
-Ranked Bedwars sur n'importe quelle map (les 20 maps de la file, Sky Rise, les maps solo et duo),
-les deux équipes sur des îles opposées. L'une, tirée au sort, a déjà perdu son lit : une seule vie
+Ranked Bedwars sur Sky Rise ou Archway (les maps du mode dans `config.yml`), les deux équipes sur
+des îles opposées. L'une, tirée au sort, a déjà perdu son lit : une seule vie
 chacun, elle doit clutch. L'autre garde le sien, sous une défense duo déjà posée, celle de la map
 « Defense Claude » du propriétaire : de l'end stone autour du lit et dessus (avec un bloc de plus
 derrière la tête), puis de la laine de l'équipe par-dessus (12 end stone, 23 laines). Tout le monde part de sa base en armure de fer avec une épée en pierre, sans
@@ -216,8 +216,25 @@ enchantement ni émeraude. Toutes les forges de la map marchent, celles des île
 (`forges-partout`), et partent pleines de fer et d'or : leurs ressources sont à qui va les prendre ;
 ces îles ont aussi leur item shop et leurs upgrades (`shops-partout`). La partie est déjà à moitié
 jouée, comme une vraie à 18 minutes : générateurs de diamant au Tier III, d'émeraude au Tier II,
-puis Emerald III dans 6 minutes et la fin des lits dans 12. Ensuite, c'est une partie comme
-les autres : shop, améliorations, diamants et émeraudes, jusqu'à ce qu'il ne reste qu'une équipe.
+puis Emerald III dans 6 minutes et la fin des lits dans 12. Et ça se voit :
+
+- **Les ponts sont déjà là.** Chaque base a les siens, en laine de sa couleur, d'un bloc de large
+  comme les joueurs les posent : un vers son île de diamants, un vers le mid (le générateur
+  d'émeraude le plus proche). Sur Archway, les deux partent de la base : tout droit vers le mid, en
+  diagonale vers les diamants. Sur Sky Rise, le pont des diamants part tout droit de la base, et
+  celui du mid repart de l'île de diamants, qui est sur le chemin : il fait le tour de la tour du
+  coin par l'île d'à côté. Un pont va tout droit le long d'un axe quand les deux îles se font face,
+  sinon sur la ligne entre les deux (ou jusqu'à 3 blocs à côté si elle est bouchée), sinon le long
+  d'un axe puis de l'autre. Il ne comble que le vide entre deux îles : plat à la hauteur du bord
+  qu'il quitte, puis une marche d'un bloc à la fois jusqu'à la hauteur du bord qu'il atteint, avec
+  la place pour un joueur au-dessus. Ses blocs sont posés comme par un joueur : on les casse, et la
+  copie de la map les perd après la partie (`Bridges`).
+- **La défense de l'équipe sans lit est cassée.** La défense duo est là où était son lit, avec le
+  trou de l'attaquant qui l'a cassé : un bloc de large et deux de haut, du côté du mid jusqu'au lit
+  (les blocs au-dessus du lit restent).
+
+Ensuite, c'est une partie comme les autres : shop, améliorations, diamants et émeraudes, jusqu'à ce
+qu'il ne reste qu'une équipe.
 
 ## Bed Fight
 

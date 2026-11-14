@@ -117,6 +117,50 @@ final class Defense {
      * block is not a bed.
      */
     static Defense build(Instance instance, Block bedBlock, List<String[]> template, short colour) {
+        return build(instance, bedBlock, template, colour, null);
+    }
+
+    /**
+     * The same defense as the attacker who broke the bed left it: with their hole through it, from
+     * its side the most towards (towardX, towardZ) to the bed (see {@link #broken}). The bed is
+     * still there: the game takes it away after.
+     */
+    static Defense buildBroken(Instance instance, Block bedBlock, List<String[]> template, short colour, double towardX,
+            double towardZ) {
+        return build(instance, bedBlock, template, colour, new double[] {towardX, towardZ});
+    }
+
+    /**
+     * The places of a template around a bed (as {@link BedDefense#places}: the foot at 0, the head
+     * a block towards (hx, hz)) less the hole of the attacker who broke the bed: one block wide and
+     * two high, at the bed's height and the one over it, straight through the defense from the
+     * side the most towards (towardX, towardZ) to the half of the bed on that side. The blocks
+     * over the bed stay.
+     */
+    static List<int[]> broken(List<int[]> places, int hx, int hz, double towardX, double towardZ) {
+        int dx = 0;
+        int dz = 0;
+        if (Math.abs(towardX) >= Math.abs(towardZ)) {
+            dx = towardX >= 0 ? 1 : -1;
+        } else {
+            dz = towardZ >= 0 ? 1 : -1;
+        }
+        boolean head = hx * towardX + hz * towardZ > 0;
+        int fromX = head ? hx : 0;
+        int fromZ = head ? hz : 0;
+        List<int[]> left = new ArrayList<>();
+        for (int[] place : places) {
+            int ox = place[0] - fromX;
+            int oz = place[2] - fromZ;
+            boolean dug = place[1] <= 1 && (dx != 0 ? oz == 0 && ox * dx > 0 : ox == 0 && oz * dz > 0);
+            if (!dug) {
+                left.add(place);
+            }
+        }
+        return left;
+    }
+
+    private static Defense build(Instance instance, Block bedBlock, List<String[]> template, short colour, double[] hole) {
         List<Block> halves = Instance.bedOf(bedBlock);
         if (halves.isEmpty()) {
             return null;
@@ -125,7 +169,11 @@ final class Defense {
         Block foot = halves.get(0);
         int hx = halves.size() > 1 ? halves.get(1).getX() - foot.getX() : 0;
         int hz = halves.size() > 1 ? halves.get(1).getZ() - foot.getZ() : 1;
-        for (int[] place : BedDefense.places(template, hx, hz)) {
+        List<int[]> places = BedDefense.places(template, hx, hz);
+        if (hole != null) {
+            places = broken(places, hx, hz, hole[0], hole[1]);
+        }
+        for (int[] place : places) {
             boolean wool = place[3] == BedDefense.WOOL;
             defense.add(foot, foot.getX() + place[0], foot.getY() + place[1], foot.getZ() + place[2],
                     wool ? Material.WOOL : Material.ENDER_STONE, wool ? colour : 0);

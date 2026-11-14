@@ -169,7 +169,7 @@
     {
       "id": "clutch-scenario",
       "name": "Clutch scenario",
-      "description": "A real RBW game on any map: one team has lost its bed, iron armour, stone sword, full forges. Clutch or defend.",
+      "description": "A real RBW game on Sky Rise or Archway, bridges built: one team has lost its bed, iron armour, stone sword, full forges. Clutch or defend.",
       "modes": [
         "clutch-scenario-1v1",
         "clutch-scenario-2v2",

@@ -29,10 +29,10 @@ modes:
   shop-practice: [Archway]
   attack-defense-1v1: [BioHazard]
   attack-defense-2v2: [BioHazard]
-  clutch-scenario-1v1: [Antenna, Aquarium, Archway, Artemis, Boletum, Carapace, Catalyst, Chained, Eastwood, Extinction, Invasion, Katsu, Lectus, Obelisk, Paladin, Planet98, Rise, Stonekeep, Swashbuckle, Treenan, SkyRise, Acropolis, Ambush, Aqil, Cascade, Crogorm, Frosted, Gelato, Lighthouse, Lotus, Nebuc]
-  clutch-scenario-2v2: [Antenna, Aquarium, Archway, Artemis, Boletum, Carapace, Catalyst, Chained, Eastwood, Extinction, Invasion, Katsu, Lectus, Obelisk, Paladin, Planet98, Rise, Stonekeep, Swashbuckle, Treenan, SkyRise, Acropolis, Ambush, Aqil, Cascade, Crogorm, Frosted, Gelato, Lighthouse, Lotus, Nebuc]
-  clutch-scenario-3v3: [Antenna, Aquarium, Archway, Artemis, Boletum, Carapace, Catalyst, Chained, Eastwood, Extinction, Invasion, Katsu, Lectus, Obelisk, Paladin, Planet98, Rise, Stonekeep, Swashbuckle, Treenan, SkyRise, Acropolis, Ambush, Aqil, Cascade, Crogorm, Frosted, Gelato, Lighthouse, Lotus, Nebuc]
-  clutch-scenario-4v4: [Antenna, Aquarium, Archway, Artemis, Boletum, Carapace, Catalyst, Chained, Eastwood, Extinction, Invasion, Katsu, Lectus, Obelisk, Paladin, Planet98, Rise, Stonekeep, Swashbuckle, Treenan, SkyRise, Acropolis, Ambush, Aqil, Cascade, Crogorm, Frosted, Gelato, Lighthouse, Lotus, Nebuc]
+  clutch-scenario-1v1: [SkyRise, Archway]
+  clutch-scenario-2v2: [SkyRise, Archway]
+  clutch-scenario-3v3: [SkyRise, Archway]
+  clutch-scenario-4v4: [SkyRise, Archway]
   bed-fight-1v1: [BedFight]
   bed-fight-2v2: [BedFight]
   top-bed-fight-1v1: [TopBedFight]
@@ -69,12 +69,13 @@ modes:
 #              attaque-defense: below); a defense the map has on the bed can be broken, as in a
 #              game, and is whole again each round. The attackers win the round by breaking the bed
 #              and killing the defenders, the defenders by killing the attackers or holding 5 minutes
-#   clutch-scenario  Clutch Scenario: a real game on any map (the 20 RBW maps, Sky Rise, the solo
-#              and doubles maps), the two teams on opposite islands; one, drawn at random, has
-#              lost its bed already (one life each: clutch), the other keeps it under the owner's
-#              duo defense (end stone, then wool); everyone in iron armour with a stone sword,
-#              no enchantment, no emerald, every forge of the map full of iron and gold (the
-#              empty islands' too), the diamonds at Tier III and the emeralds at Tier II
+#   clutch-scenario  Clutch Scenario: a real game on Sky Rise or Archway, the two teams on opposite
+#              islands; one, drawn at random, has lost its bed already (one life each: clutch),
+#              the other keeps it under the owner's duo defense (end stone, then wool); everyone
+#              in iron armour with a stone sword, no enchantment, no emerald, every forge of the
+#              map full of iron and gold (the empty islands' too), the diamonds at Tier III and the
+#              emeralds at Tier II; each base has its bridges built, to its diamond island and to
+#              mid, and the bedless team's defense stands broken where its bed was
 #   bed-fight  Bed Fight, as on Minemen: two islands face to face, each bed under the defense the
 #              map has on it (wood and end stone, breakable as in a game), no forge, no shop, no
 #              upgrade; the mode's kit (the lobby's kit editor) in leather armour of the team's

@@ -100,10 +100,10 @@ class BedwarsSettingsTest {
         assertEquals(BedwarsSettings.Kind.BED_FIGHT, settings.kind("bed-fight-1v1"));
         assertEquals(BedwarsSettings.Kind.BED_FIGHT, settings.kind("bed-fight-2v2"));
         assertEquals(Collections.singletonList("BedFight"), settings.mapsOf("bed-fight-2v2"), "the owner's Bed Fight map");
-        assertEquals(31, settings.mapsOf("clutch-scenario-1v1").size(), "the RBW maps, Sky Rise, the solo and doubles maps");
-        assertTrue(settings.mapsOf("clutch-scenario-4v4").containsAll(settings.mapsOf("ranked-1v1")));
-        assertTrue(settings.mapsOf("clutch-scenario-1v1").containsAll(settings.mapsOf("first-rush")));
-        assertFalse(settings.mapsOf("clutch-scenario-2v2").contains("BioHazard"), "not on a map of attack and defense");
+        for (String size : Arrays.asList("1v1", "2v2", "3v3", "4v4")) {
+            assertEquals(Arrays.asList("SkyRise", "Archway"), settings.mapsOf("clutch-scenario-" + size),
+                    "the owner's two maps for it");
+        }
         assertEquals(Arrays.asList("Antenna", "Aquarium", "Archway", "Artemis", "Boletum", "Carapace", "Catalyst",
                 "Chained", "Eastwood", "Extinction", "Invasion", "Katsu", "Lectus", "Obelisk", "Paladin", "Planet98", "Rise",
                 "Stonekeep", "Swashbuckle", "Treenan"), settings.mapsOf("ranked-2v2"), "the maps of the RBW queue");
