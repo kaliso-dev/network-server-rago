@@ -140,8 +140,8 @@ dans les files d'attente des modes de jeu.
   après un `/spawn` : il est parti de lui-même). En party, seul le chef relance la file. Rien pour
   un mode fermé ou caché (les events).
 - **Les replays.** Les duels de RagoPractice (le sumo compris ; pas les arènes ouvertes ni les
-  entraînements) et les parties de Bed Wars en équipes (pas les FFA, Fast Shop, Invis ni le Top
-  Bridge d'entraînement d'une party) sont enregistrés : les joueurs (leurs mouvements, leurs coups,
+  entraînements) et les parties de Bed Wars en équipes (pas les FFA, Fast Shop, Invis, le Bed Break
+  Simulator ni le Top Bridge d'entraînement d'une party) sont enregistrés : les joueurs (leurs mouvements, leurs coups,
   leur vie, ce qu'ils tiennent et portent), les blocs posés et cassés, les flèches, boules de feu,
   perles et TNT, et les messages de la partie. `/replay` ouvre le menu de ses parties des derniers
   jours, `/replay CODE` montre n'importe quelle partie par son code (à partager), et **[REPLAY]**

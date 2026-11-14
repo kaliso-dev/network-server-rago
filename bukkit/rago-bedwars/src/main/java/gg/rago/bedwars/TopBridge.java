@@ -133,6 +133,11 @@ final class TopBridge {
         return spot(along, across, along < middle ? 1 : -1);
     }
 
+    /** On the middle line of the platform, {x, y, z, yaw}, facing the end of bed A (facingFirst) or of bed B. */
+    double[] centre(boolean facingFirst) {
+        return spot(middle, 0, facingFirst ? -1 : 1);
+    }
+
     /** Above the middle of the platform, {x, y, z, yaw}: where those who watch a round are. */
     double[] above() {
         double[] spot = spot(middle, 0, 1);

@@ -52,8 +52,16 @@ class BedwarsSettingsTest {
                 "first-rush", "first-rush-duo", "first-rush-full", "first-rush-full-duo", "top-bridge-ffa", "ffa", "invis-practice", "shop-practice",
                 "attack-defense-1v1", "attack-defense-2v2", "clutch-scenario-1v1", "clutch-scenario-2v2",
                 "clutch-scenario-3v3", "clutch-scenario-4v4", "bed-fight-1v1", "bed-fight-2v2", "top-bed-fight-1v1",
-                "lobby-fight-1v1", "lobby-fight-ffa"),
+                "lobby-fight-1v1", "lobby-fight-ffa", "bed-break-simulator"),
                 settings.modes());
+        assertEquals(BedwarsSettings.Kind.BED_BREAK, settings.kind("bed-break-simulator"));
+        assertEquals(Arrays.asList("Archway", "Invasion"), settings.mapsOf("bed-break-simulator"));
+        assertFalse(settings.topBridge("bed-break-simulator"), "its top bridge is its own, not the Top Bridge modes'");
+        assertEquals(Arrays.asList("Classic", "Fireball", "Fighter"), kitNames(settings.bedBreakKits()), "the config's kits");
+        for (int i = 0; i < RoundKit.BED_BREAK.size(); i++) {
+            assertEquals(RoundKit.BED_BREAK.get(i).items, settings.bedBreakKits().get(i).items, "the config gives the defaults");
+        }
+        assertEquals(2, settings.bedBreakProtection(), "Protection II on everyone's armour");
         assertEquals(BedwarsSettings.Kind.LOBBY_FIGHT, settings.kind("lobby-fight-1v1"));
         assertEquals(BedwarsSettings.Kind.LOBBY_FIGHT_FFA, settings.kind("lobby-fight-ffa"));
         assertTrue(settings.kind("lobby-fight-1v1").inWaitingLobby() && settings.kind("lobby-fight-ffa").inWaitingLobby());
@@ -233,6 +241,8 @@ class BedwarsSettingsTest {
         assertEquals(24 * 60, settings.emeraldIII());
         assertEquals(2.0, settings.fireball().self);
         assertTrue(settings.neighbours("first-rush"));
+        assertEquals(RoundKit.BED_BREAK, settings.bedBreakKits(), "the owner's three attack kits");
+        assertEquals(2, settings.bedBreakProtection());
     }
 
     @Test
@@ -282,6 +292,8 @@ class BedwarsSettingsTest {
         assertProblem("modes:\n  first-rush: []", "modes.first-rush");
         assertProblem("modes:\n  first-rush: [\"Gel ato\"]", "modes.first-rush");
         assertProblem("modes:\n  First Rush: [Gelato]", "modes");
+        assertProblem("bed-break:\n  protection: 5", "bed-break.protection");
+        assertProblem("bed-break:\n  kits:\n    - {nom: X, icone: TNT, objets: [\"tnt 99\"]}", "bed-break.kits[1].objets");
     }
 
     private static void assertProblem(String yaml, String setting) {

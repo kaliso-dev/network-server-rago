@@ -629,11 +629,11 @@ class BedwarsGame {
             }
         }
         npcsUp(islands);
-        for (MapPoint point : map.diamonds()) {
+        for (MapPoint point : midGenerators() ? map.diamonds() : Collections.<MapPoint>emptyList()) {
             Generator generator = new Generator(point.in(world), Material.DIAMOND, settings.diamond().get(0), "Diamond");
             diamonds.add(generator);
         }
-        for (MapPoint point : map.emeralds()) {
+        for (MapPoint point : midGenerators() ? map.emeralds() : Collections.<MapPoint>emptyList()) {
             Generator generator = new Generator(point.in(world), Material.EMERALD, settings.emerald().get(0), "Emerald");
             emeralds.add(generator);
         }
@@ -757,6 +757,11 @@ class BedwarsGame {
 
     /** True if the islands have their upgrades NPC. */
     boolean upgrades() {
+        return true;
+    }
+
+    /** True if the map's diamond and emerald generators go, with the economy; false: the island forges only. */
+    boolean midGenerators() {
         return true;
     }
 

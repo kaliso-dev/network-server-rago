@@ -58,9 +58,9 @@
           "colour": "#FFAA00"
         }
       ],
-      "description": "Ranked 1v1 to 4v4, and modes close to Ranked Bedwars: Sky Rise, first rush, invis, clutch scenarios, attack and defense, private games. With the server or your friends.",
+      "description": "Ranked 1v1 to 4v4, and modes close to Ranked Bedwars: Sky Rise, first rush, invis, clutch scenarios, attack and defense, Bed Break Simulator, private games. With the server or your friends.",
       "skin": "ranked",
-      "modes": 21
+      "modes": 22
     },
     {
       "id": "duels",
@@ -775,6 +775,22 @@
       "startHere": false,
       "event": false,
       "description": "Bio Hazard: one team attacks from the pink bridge, the other defends with forge and shop. First to 3 rounds, the roles swap at each round; 3 kits to attack, 3 to defend.",
+      "plugins": [
+        "bedwars"
+      ]
+    },
+    {
+      "id": "bed-break-simulator",
+      "name": "Bed Break Simulator",
+      "colour": "#FFAA00",
+      "icon": "DIAMOND_PICKAXE",
+      "category": "ranked",
+      "group": null,
+      "format": "Solo",
+      "ranked": false,
+      "startHere": false,
+      "event": false,
+      "description": "Archway or Invasion, 2 to 5 players: attack from the top bridge with one of 3 kits and break the bed; the defenders have their forge full. 3-minute rounds, each player in turn.",
       "plugins": [
         "bedwars"
       ]

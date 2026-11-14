@@ -75,8 +75,9 @@ categories:
       - "close to Ranked Bedwars: Sky"
       - "Rise, first rush, invis, clutch"
       - "scenarios, attack and defense,"
-      - "private games. With the server"
-      - "or your friends."
+      - "Bed Break Simulator, private"
+      - "games. With the server or your"
+      - "friends."
   duels:
     nom: "&a&lDuels"
     icone: IRON_SWORD
@@ -839,6 +840,7 @@ titres:
       clutch-scenario-4v4]}
     attack-defense: {nom: "Attack Defense", modes: [attack-defense-1v1, attack-defense-2v2]}
     invis: {nom: "Invis", modes: [invis-practice]}
+    bed-break: {nom: "Bed Break", modes: [bed-break-simulator]}
     sumo: {nom: "Sumo", modes: [sumo]}
     boxing: {nom: "Boxing", modes: [boxing]}
     kb-displace: {nom: "KB Displace", modes: [kb-displace]}
@@ -1359,6 +1361,24 @@ modes:
       - "First to 3 rounds, the roles"
       - "swap at each round;"
       - "3 kits to attack, 3 to defend."
+  bed-break-simulator:
+    nom: "&6Bed Break Simulator"
+    categorie: ranked
+    icone: DIAMOND_PICKAXE
+    equipes: 1
+    joueurs-par-equipe: 1
+    classe: false
+    # the items of the three attack kits (Classic, Fireball, Fighter) of the bedwars plugin, to
+    # arrange in the kit editor: each kit puts its items in their slots; a kit's Iron or Wooden
+    # Pickaxe takes the slot of the Golden one. The defenders have no kit: their forge full.
+    kit: [STONE_SWORD, GOLD_PICKAXE, "WOOL 64", "WOOL 64", FIREBALL, GOLDEN_APPLE, "LADDER 8", STICK]
+    description:
+      - "Archway or Invasion, 2 to 5"
+      - "players: attack from the top"
+      - "bridge with one of 3 kits and"
+      - "break the bed; the defenders"
+      - "have their forge full. 3-minute"
+      - "rounds, each player in turn."
   partie-privee:
     nom: "&6Private game"
     categorie: ranked

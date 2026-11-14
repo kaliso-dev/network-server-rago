@@ -13,9 +13,9 @@ import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.ItemMeta;
 
 /**
- * The menu of the kits of Attack and Defense, before a round: the kits of the player's side this
- * round (attack or defense) on the middle row, each with what it gives; the one chosen shines.
- * Main thread only.
+ * The menu of the kits of a game of rounds (Attack and Defense, the Bed Break Simulator), before a
+ * round: the kits of the player's side this round (attack or defense) on the middle row, each with
+ * what it gives; the one chosen shines. Main thread only.
  */
 final class KitMenu {
 
@@ -26,13 +26,22 @@ final class KitMenu {
     private KitMenu() {
     }
 
+    /** A game whose players choose a kit in this menu: /kit opens it, a click chooses. */
+    interface Chooser {
+        /** Opens the menu of the kits of the player's role this round; false if they do not play. */
+        boolean openKitMenu(Player player);
+
+        /** The player chose the kit of this index (attack: in the menu of the attack). */
+        void chooseKit(Player player, boolean attack, int index);
+    }
+
     static final class Holder implements InventoryHolder {
-        final AttackDefenseGame game;
+        final Chooser game;
         final boolean attack;
         final int count;
         private Inventory inventory;
 
-        Holder(AttackDefenseGame game, boolean attack, int count) {
+        Holder(Chooser game, boolean attack, int count) {
             this.game = game;
             this.attack = attack;
             this.count = count;
@@ -65,7 +74,7 @@ final class KitMenu {
         return lore;
     }
 
-    static void open(Player player, AttackDefenseGame game, boolean attack, List<RoundKit> kits, int chosen,
+    static void open(Player player, Chooser game, boolean attack, List<RoundKit> kits, int chosen,
             ShopCatalog catalog) {
         Holder holder = new Holder(game, attack, kits.size());
         Inventory inventory = Bukkit.createInventory(holder, SIZE, attack ? ATTACK_TITLE : DEFENSE_TITLE);

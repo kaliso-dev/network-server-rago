@@ -140,6 +140,7 @@ final class Titles {
                         "clutch-scenario-3v3", "clutch-scenario-4v4")),
                 new Family("attack-defense", "Attack Defense", Arrays.asList("attack-defense-1v1", "attack-defense-2v2")),
                 new Family("invis", "Invis", Arrays.asList("invis-practice")),
+                new Family("bed-break", "Bed Break", Arrays.asList("bed-break-simulator")),
                 new Family("sumo", "Sumo", Arrays.asList("sumo")),
                 new Family("boxing", "Boxing", Arrays.asList("boxing")),
                 new Family("kb-displace", "KB Displace", Arrays.asList("kb-displace")),
