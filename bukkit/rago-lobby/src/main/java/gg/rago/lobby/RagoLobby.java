@@ -67,6 +67,7 @@ public final class RagoLobby extends JavaPlugin implements LobbyService {
     private XpBoosters boosters;
     private LobbyGadgets gadgets;
     private FakeEntities fakes;
+    private Billboards billboards;
     private DuelRequests duels;
     private StatsService stats;
     private StatsDisplays statsDisplays;
@@ -250,6 +251,8 @@ public final class RagoLobby extends JavaPlugin implements LobbyService {
         fakes = new FakeEntities(this, world);
         fakes.start();
         getServer().getPluginManager().registerEvents(fakes, this);
+        billboards = new Billboards(this, world, settings.billboards());
+        getServer().getPluginManager().registerEvents(billboards, this);
         StatsMenu statsMenu = new StatsMenu(settings, stats.book());
         statsDisplays = new StatsDisplays(settings, stats.book(), statsMenu, fakes);
         statsDisplays.setWeekly(server.weekly(), weeklyBadgeText());
@@ -352,6 +355,7 @@ public final class RagoLobby extends JavaPlugin implements LobbyService {
             }
         }, 20L, 20L);
         getServer().getScheduler().runTaskTimer(this, fakes::tick, 10L, 10L);
+        getServer().getScheduler().runTaskTimer(this, billboards::tick, 1L, 1L);
         // In a game, the health under the names: a hit shows at once.
         getServer().getScheduler().runTaskTimer(this, scoreboard::updateHealth, 20L, 1L);
         // The names above the heads, twice a second (their colour stays fixed there).
@@ -372,6 +376,8 @@ public final class RagoLobby extends JavaPlugin implements LobbyService {
                 : ", no point for: " + String.join(", ", missing) + " (/lobby point <name>)"));
         // The skins never signed: the NPCs wear Steve until MineSkin answers, then are placed again.
         npcSkins.sign(this::placeDecor);
+        // The images of the billboards, drawn on maps off the main thread: placed once drawn.
+        billboards.load(this::placeDecor);
 
         // After a /reload: everyone online is brought back to the lobby.
         for (Player player : getServer().getOnlinePlayers()) {
@@ -1050,12 +1056,13 @@ public final class RagoLobby extends JavaPlugin implements LobbyService {
 
     /**
      * The NPCs, the leaderboards, then the daily chest and the quests NPC beside it, on their
-     * points. The number of NPCs placed.
+     * points, and the billboards. The number of NPCs placed.
      */
     private int placeDecor() {
         int placed = npcs.spawnAll();
         daily.place(points, state.world(), fakes);
         questsNpc.place(points, state.world(), state.spawn(), fakes);
+        billboards.place(points, state.spawn(), fakes);
         for (PluginBoard board : pluginBoards.values()) {
             SpawnPoint point = points.get(board.point);
             if (point != null) {

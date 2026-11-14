@@ -28,6 +28,8 @@ final class LobbySettings {
     private boolean welcome = true;
     /** The menu of the first arrival ({@link FirstJoinMenu}): empty for none. */
     private List<FirstChoice> firstChoices = Collections.emptyList();
+    /** The billboards of the lobby ({@link Billboards}): none without panneaux:. */
+    private List<Billboard> billboards = Collections.emptyList();
     private final String title;
     private final String address;
     private final int defaultRating;
@@ -163,6 +165,7 @@ final class LobbySettings {
             throw new IllegalArgumentException("slime: avant and haut from 0 to 4");
         }
         List<FirstChoice> firstChoices = readFirstChoices(config.getConfigurationSection("premiere-venue"), modes, categories);
+        List<Billboard> billboards = Billboard.read(config.getConfigurationSection("panneaux"));
         try {
             LobbySettings settings = new LobbySettings(world, voidHeight, title, address, defaultRating, window, categories,
                     groups, modes, npcs, levels, hypixelKey, privateRoutes);
@@ -171,6 +174,7 @@ final class LobbySettings {
             settings.mineskinKey = mineskinKey;
             settings.welcome = config.getBoolean("accueil", true);
             settings.firstChoices = Collections.unmodifiableList(firstChoices);
+            settings.billboards = billboards;
             return settings;
         } catch (IllegalArgumentException e) {
             throw new IllegalArgumentException("modes: " + e.getMessage(), e);
@@ -734,6 +738,11 @@ final class LobbySettings {
     /** The choices of the menu of the first arrival (premiere-venue:); empty: no menu. */
     List<FirstChoice> firstChoices() {
         return firstChoices;
+    }
+
+    /** The billboards of the lobby (panneaux:); empty: none. */
+    List<Billboard> billboards() {
+        return billboards;
     }
 
     double slimeForward() {

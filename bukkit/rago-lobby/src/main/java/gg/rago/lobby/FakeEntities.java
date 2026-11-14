@@ -37,10 +37,10 @@ import org.bukkit.plugin.Plugin;
  * text differs from one player to the next (each one's own stats, each one's leaderboard period).
  *
  * <p>Each player gets the fakes within {@link #SHOW_RANGE} blocks of them in the lobby world, and
- * loses them beyond {@link #HIDE_RANGE}; a change of world, a respawn or a long teleport (after
- * which the client forgets the entities of the chunks it unloads) sends them again. A click on a
- * fake reaches its {@link Fake#click} on the main thread. Main thread only, except the packet
- * listener, which only reads {@link #byEntityId}.
+ * loses them beyond {@link #HIDE_RANGE} (a fake may be seen from farther: {@link Fake#range}); a
+ * change of world, a respawn or a long teleport (after which the client forgets the entities of
+ * the chunks it unloads) sends them again. A click on a fake reaches its {@link Fake#click} on the
+ * main thread. Main thread only, except the packet listener, which only reads {@link #byEntityId}.
  */
 final class FakeEntities implements Listener {
 
@@ -86,6 +86,11 @@ final class FakeEntities implements Listener {
 
         /** Twice a second, while the player sees it: sends what changed for them. */
         void update(FakeEntities fakes, Player viewer) {
+        }
+
+        /** How far it is seen: lost {@link #HIDE_RANGE} - {@link #SHOW_RANGE} blocks farther. */
+        double range() {
+            return SHOW_RANGE;
         }
 
         /** The player no longer sees it: forgets what was sent to them. */
@@ -189,13 +194,15 @@ final class FakeEntities implements Listener {
             List<Fake> hidden = new ArrayList<>();
             for (Fake fake : fakes) {
                 double distance = fake.at.distanceSquared(eyes);
+                double show = fake.range();
+                double hide = show + HIDE_RANGE - SHOW_RANGE;
                 if (seen.contains(fake)) {
-                    if (distance > HIDE_RANGE * HIDE_RANGE) {
+                    if (distance > hide * hide) {
                         hidden.add(fake);
                     } else {
                         fake.update(this, viewer);
                     }
-                } else if (distance < SHOW_RANGE * SHOW_RANGE) {
+                } else if (distance < show * show) {
                     seen.add(fake);
                     fake.spawn(this, viewer);
                 }

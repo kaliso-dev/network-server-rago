@@ -745,6 +745,23 @@ liens:
     - "&73. No teaming in solo modes, no boosting."
     - "&74. Respect the staff: their word is final."
 
+# The billboards of the lobby: an image of yours on a wall of maps in item frames, as on Hypixel
+# (your YouTube channel, the Discord, the store...). Each block of the wall is a map of 128 x 128
+# pixels: a board of 8 x 8 blocks shows 1024 x 1024 pixels, one of 16 x 9 blocks 2048 x 1152 (a
+# 1920 x 1080 image fills it). The image is brought to the colours a 1.8 client draws on maps,
+# with dots of near colours (dithering) for the gradients, and shows whole, centred, black around
+# it if its shape is not the board's. The players see a board from 128 blocks away.
+#   image     the file in plugins/RagoLobby/panneaux/ (PNG or JPG), read at the start
+#   largeur   its width in blocks (1 to 16)
+#   hauteur   its height in blocks (1 to 16)
+#   lieu      "x y z": the block of the middle of its bottom row (just right of the middle for an
+#             even width, as seen from in front), the board facing the spawn; "x y z nord" (sud, est,
+#             ouest) to face that way. In the game instead: stand there, look where it is seen from
+#             and type /lobby point panneau-<name>; that point wins over lieu.
+# 8 billboards at most, by name (lowercase letters, digits and dashes), for example:
+#   discord: {image: discord.png, largeur: 8, hauteur: 8, lieu: "0 70 40"}
+panneaux: {}
+
 # The leaderboard walls, on their point: boards side by side, facing the spawn, the first on the
 # left. Each one shows the top 10, the player's place and when it resets.
 #   nom       the title above the wall (optional)
