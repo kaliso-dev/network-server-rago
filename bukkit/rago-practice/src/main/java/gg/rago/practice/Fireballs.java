@@ -3,6 +3,8 @@ package gg.rago.practice;
 import gg.rago.lobby.api.FireballAim;
 import org.bukkit.Location;
 import org.bukkit.entity.Fireball;
+import org.bukkit.entity.LargeFireball;
+import org.bukkit.entity.LivingEntity;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.util.Vector;
@@ -47,20 +49,26 @@ final class Fireballs {
         return fireball;
     }
 
-    /** A fireball sent by the game itself, from this point to that one. */
-    static Fireball send(Location from, Location to, double speed) {
-        Vector direction = to.toVector().subtract(from.toVector());
+    /**
+     * A fireball a bot of the game throws at this point, from its eyes, turning to it first. Thrown
+     * by the bot rather than put in the world: the packet that shows it to the players then has its
+     * thrower and how it speeds up, and it flies on their screen as it does on the server (put in
+     * the world, it would slow down there and jump ahead twice a second).
+     */
+    static Fireball throwFrom(LivingEntity thrower, Location to, double speed) {
+        Vector direction = to.toVector().subtract(thrower.getEyeLocation().toVector());
         if (direction.lengthSquared() < 1e-6) {
             direction = new Vector(0, -1, 0);
         }
         direction.normalize();
-        Location start = from.clone();
-        start.setDirection(direction);
-        Fireball fireball = from.getWorld().spawn(start, org.bukkit.entity.LargeFireball.class);
+        Location facing = thrower.getLocation();
+        facing.setDirection(direction);
+        thrower.teleport(facing);
+        Fireball fireball = thrower.launchProjectile(LargeFireball.class);
         fireball.setIsIncendiary(false);
         fireball.setYield(0f);
         if (!FireballAim.aim(fireball, direction)) {
-            // without it, a fireball of the world's own would slow down and stop
+            // without it, the fireball would keep the bit of chance the server adds to a throw
             fireball.setDirection(direction);
         }
         fireball.setVelocity(direction.clone().multiply(speed));

@@ -254,8 +254,9 @@ réglages. Un entraînement de la liste que le serveur ne joue pas est laissé d
 - **Pearl practice** : en boucle sur les maps de Bed Wars, rien à choisir : chaque essai sur la
   map suivante de `pearl.cartes` (`config.yml`) que le serveur a (son monde dans le dossier des
   mondes, avec le `bedwars.yml` du plugin Bed Wars), à un autre endroit, dans une autre direction.
-  De chaque map, le côté d'une équipe tirée à chaque démarrage est copié une fois : sa base, ses
-  îles aux diamants et le milieu. Les situations viennent de la forme des îles (`PearlMaps`) :
+  De chaque map, le côté d'une équipe est copié une fois : sa base, ses îles aux diamants et le
+  milieu (de trois côtés tirés à chaque démarrage, celui qui a le plus de genres de situations).
+  Les situations viennent de la forme des îles (`MapFinder`) :
   une perle d'une île à l'autre (6 à 45 blocs de vide), un coup qui envoie dans le vide puis une
   perle pour revenir, et surtout le pearl block clutch : sur un bloc de pont à 10-14 blocs d'une
   île et 3-5 blocs sous son sol, un coup envoie le joueur dans le vide, il lance sa perle contre le
@@ -265,10 +266,29 @@ réglages. Un entraînement de la liste que le serveur ne joue pas est laissé d
   16 blocs sous l'île la plus basse, comme sur Hypixel. L'essai compte quand le joueur tient
   debout sur l'île visée (ou sur ses blocs contre elle). Série. La zone garde une map à la fois :
   à chaque changement, ses blocs sont écrits directement dans les chunks (`FastBlocks`, une dizaine
-  de ms au lieu de 2 à 3 s de lag), éclairés à fond, sans coffre rempli ni panneau écrit. Sans
-  aucune des maps, des îles simples du plugin.
-- **Fireball practice** : le saut à la boule de feu sur une falaise de 4 blocs, au-dessus de 10
-  blocs de vide, ou renvoyer les boules d'un canon. Série.
+  de ms au lieu de 2 à 3 s de lag), éclairés à fond, sans coffre rempli ni panneau écrit ; un chunk
+  que personne ne voit (le joueur arrive du lobby, ou le bout d'une grande map) est chargé d'abord,
+  sinon le serveur donne son chunk vide et les blocs se perdent. Chaque tour de la boucle passe par
+  toutes les maps dans un nouvel ordre, jamais deux fois la même à la suite : une map ne revient pas
+  toujours avec le même genre de situation. Sans aucune des maps, des îles simples du plugin.
+- **Fireball practice** : en boucle comme le pearl practice, sur les mêmes maps (`pearl.cartes`,
+  la même partie copiée), rien à choisir : chaque essai sur une autre map, à un autre endroit, dans
+  une autre direction. Les situations viennent des ponts entre les îles (`MapFinder`), celles d'une
+  vraie partie : le pont du joueur vers une île est cassé (7 à 9 blocs de vide), un fireball jump
+  par-dessus ; la même chose avec un rusher qui arrive derrière lui en courant ; son pont finit 3 ou
+  4 blocs sous une île, contre son flanc, un fireball jump pour monter dessus ; un ennemi qui bridge
+  vers l'île du joueur, qui court sur un pont déjà fait jusqu'à elle, ou qui bridge entre deux autres
+  îles à côté de lui (le joueur, sorti sur son propre pont, à 22 blocs au plus) : trois boules de feu
+  pour le faire tomber dans le vide (ou casser la laine sous lui) avant qu'il arrive (il part trois
+  quarts de seconde après le début, le temps de le voir), l'essai raté s'il arrive ou s'il n'en
+  reste plus ; et, sur son pont vers une île, un ennemi qui lui lance trois boules de feu
+  depuis cette île : les renvoyer à l'épée avant qu'elles le touchent. Les ennemis sont des bots
+  (zombies en cuir) qui bridgent (un bloc tous les 6 ticks), courent et lancent comme des joueurs, et
+  le souffle d'une boule de feu les pousse comme un joueur. La boucle alterne saut, bridger, renvoi,
+  montée, rusher, fuite et côté ; les niveaux Fireball jumps, Knock them off et Send them back ne
+  jouent que leurs genres. Une boule de feu par saut, trois pour faire tomber, une épée en bois pour
+  renvoyer, pas de blocs. Série. Sans aucune des maps, quatre îles simples du plugin, avec tous les
+  genres.
 - **Bow training** (`bow-training`) : sur une vraie map de Bed Wars, la base rouge et le nord du
   milieu d'Archway copiés une fois (`bow-training` dans `config.yml` : le monde, la zone, le départ
   du joueur et les ponts des bots). Le joueur est sur le devant de sa base avec un arc (Infinity,

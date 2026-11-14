@@ -26,8 +26,8 @@ import org.bukkit.World;
 final class FastBlocks {
 
     private final World world;
-    private final Object handle;
-    private final Method chunkAt;
+    /** The server's chunk of a Bukkit chunk (CraftChunk#getHandle). */
+    private final Method chunkOf;
     private final Method sectionsOf;
     private final Constructor<?> newSection;
     private final Method idsOf;
@@ -46,13 +46,11 @@ final class FastBlocks {
 
     private FastBlocks(World world, String nms, String craft) throws ReflectiveOperationException {
         this.world = world;
-        handle = Class.forName(craft + ".CraftWorld").getMethod("getHandle").invoke(world);
-        Class<?> nmsWorld = Class.forName(nms + "World");
+        chunkOf = Class.forName(craft + ".CraftChunk").getMethod("getHandle");
         Class<?> chunk = Class.forName(nms + "Chunk");
         Class<?> section = Class.forName(nms + "ChunkSection");
         Class<?> nibbles = Class.forName(nms + "NibbleArray");
         Class<?> block = Class.forName(nms + "Block");
-        chunkAt = nmsWorld.getMethod("getChunkAt", int.class, int.class);
         sectionsOf = chunk.getMethod("getSections");
         initLighting = chunk.getMethod("initLighting");
         newSection = section.getConstructor(int.class, boolean.class);
@@ -111,7 +109,10 @@ final class FastBlocks {
     @SuppressWarnings("deprecation") // World#refreshChunk: what it does on a 1.8 server is what is needed here
     void write(int cx, int cz, int[] cleared, int clearedLength, int[] placed, int placedLength)
             throws ReflectiveOperationException {
-        Object chunk = chunkAt.invoke(handle, cx, cz);
+        // through Bukkit, which loads the chunk when no player is near the zone (the first attempt,
+        // the player still in the lobby): the server's own lookup then gives its one empty chunk,
+        // and the blocks written there would be lost
+        Object chunk = chunkOf.invoke(world.getChunkAt(cx, cz));
         Object[] sections = (Object[]) sectionsOf.invoke(chunk);
         char[][] ids = new char[sections.length][];
         boolean[] touched = new boolean[sections.length];

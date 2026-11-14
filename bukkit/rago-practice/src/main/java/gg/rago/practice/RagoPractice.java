@@ -233,9 +233,12 @@ public final class RagoPractice extends JavaPlugin {
         register("fast-defense", FastDefenseTraining::new, slots, spacing, false);
         register("extend-practice", ExtendTraining::new, slots, spacing, false);
         register("ladder-practice", LadderTraining::new, slots, spacing, false);
-        PearlTraining.Places pearlPlaces = pearlPlaces(config);
+        // the pearl practice and the fireball practice on the same parts of the Bed Wars maps, read once
+        List<MapParts.Part> parts = mapParts(config);
+        MapLoopTraining.Places pearlPlaces = new MapLoopTraining.Places(parts, false);
         register("pearl-practice", (h, m, a, t) -> new PearlTraining(h, m, a, t, pearlPlaces), slots, spacing, false);
-        register("fireball-practice", FireballTraining::new, slots, spacing, false);
+        MapLoopTraining.Places fireballPlaces = new MapLoopTraining.Places(parts, true);
+        register("fireball-practice", (h, m, a, t) -> new FireballTraining(h, m, a, t, fireballPlaces), slots, spacing, false);
         register("aim-trainer", (h, m, a, t) -> new AimTrainer(h, m, a, t, aimXp, aimHits), slots, spacing, false);
         onMaps(register("combo-bot", ComboBot::new, slots, spacing, false), arenas);
         register("kb-displace-bot", (h, m, a, t) -> new KbDisplaceBot(h, m, a, t, kbPlace), slots, spacing, false);
@@ -576,14 +579,17 @@ public final class RagoPractice extends JavaPlugin {
         return new BlockInTraining.Island(copy, hx, hz, places);
     }
 
+    /** Of the sides of a map, this many are read at most to find the one with the most kinds of situation. */
+    private static final int SIDES_READ = 3;
+
     /**
-     * The places of the pearl practice: a part of each map of pearl.cartes the server has (its
-     * world in the folder of the worlds, with the bedwars.yml of the Bed Wars plugin), around the
-     * base of a team drawn at each start, its diamond islands and the middle, each read once.
-     * Without any of them, the plugin's own islands.
+     * The parts of the Bed Wars maps where the pearl practice and the fireball practice play: of
+     * each map of pearl.cartes the server has (its world in the folder of the worlds, with the
+     * bedwars.yml of the Bed Wars plugin), the side of a team (its base, its diamond islands and
+     * the middle), the one with the most kinds of situation of a few drawn at random, read once.
      */
-    private PearlTraining.Places pearlPlaces(FileConfiguration config) {
-        List<PearlMaps.Part> parts = new ArrayList<>();
+    private List<MapParts.Part> mapParts(FileConfiguration config) {
+        List<MapParts.Part> parts = new ArrayList<>();
         List<String> absent = new ArrayList<>();
         Random random = new Random();
         for (String name : config.getStringList("pearl.cartes")) {
@@ -593,41 +599,52 @@ public final class RagoPractice extends JavaPlugin {
                 absent.add(name);
                 continue;
             }
-            List<PearlMaps.Anchors> sides = pearlAnchors(YamlConfiguration.loadConfiguration(points));
+            List<MapParts.Anchors> sides = pearlAnchors(YamlConfiguration.loadConfiguration(points));
             if (sides.isEmpty()) {
-                getLogger().warning("The pearl practice: the bedwars.yml of \"" + name + "\" has no team with a spawn, a bed and"
-                        + " a generator, the map is left out.");
+                getLogger().warning("The pearl and fireball practices: the bedwars.yml of \"" + name + "\" has no team with a"
+                        + " spawn, a bed and a generator, the map is left out.");
                 continue;
             }
             Collections.shuffle(sides, random);
-            PearlMaps.Part part = null;
-            // the side of a team drawn at random; another one if no situation holds on it
-            for (int i = 0; i < Math.min(2, sides.size()) && part == null; i++) {
-                int[][] box = PearlMaps.box(sides.get(i));
-                MapCopy copy = MapCopy.read(name, box[0], box[1], getLogger(), "the pearl practice");
-                if (copy == null) {
-                    break;
-                }
-                part = PearlMaps.analyse(name, sides.get(i), copy, box[0], box[1]);
+            List<MapParts.Anchors> drawn = sides.subList(0, Math.min(SIDES_READ, sides.size()));
+            List<int[][]> boxes = new ArrayList<>();
+            for (MapParts.Anchors side : drawn) {
+                boxes.add(MapParts.box(side));
             }
-            if (part == null) {
-                getLogger().warning("The pearl practice: no situation found on \"" + name + "\" (no diamond island near a base,"
-                        + " or gaps too long for a pearl), the map is left out.");
+            List<MapCopy> copies = MapCopy.read(name, boxes, getLogger(), "the pearl and fireball practices");
+            if (copies == null) {
                 continue;
             }
-            getLogger().info("The pearl practice on \"" + name + "\", the side of " + part.team + ": "
-                    + part.of(PearlMaps.Kind.PEARL).size() + " pearls, " + part.of(PearlMaps.Kind.SAVE).size() + " saves, "
-                    + part.of(PearlMaps.Kind.CLUTCH).size() + " pearl clutches (" + part.copy.size() + " blocks).");
+            MapParts.Part part = null;
+            for (int i = 0; i < drawn.size(); i++) {
+                MapParts.Part each = MapParts.analyse(name, drawn.get(i), copies.get(i), boxes.get(i)[0], boxes.get(i)[1]);
+                if (each != null && (part == null || MapParts.kindsOf(each) > MapParts.kindsOf(part))) {
+                    part = each;
+                }
+            }
+            if (part == null) {
+                getLogger().warning("The pearl and fireball practices: no situation found on \"" + name + "\" (no diamond island"
+                        + " near a base, or gaps too long), the map is left out.");
+                continue;
+            }
+            StringBuilder found = new StringBuilder();
+            for (MapParts.Kind kind : MapParts.Kind.values()) {
+                found.append(found.length() == 0 ? "" : ", ").append(part.of(kind).size()).append(' ')
+                        .append(kind.name().toLowerCase(java.util.Locale.ROOT));
+            }
+            getLogger().info("The pearl and fireball practices on \"" + name + "\", the side of " + part.team + ": " + found
+                    + " (" + part.copy.size() + " blocks).");
             parts.add(part);
         }
         if (!absent.isEmpty()) {
-            getLogger().info("The pearl practice: no world with its bedwars.yml in the folder of the worlds for " + absent
-                    + ", these maps are left out.");
+            getLogger().info("The pearl and fireball practices: no world with its bedwars.yml in the folder of the worlds for "
+                    + absent + ", these maps are left out.");
         }
         if (parts.isEmpty()) {
-            getLogger().info("The pearl practice plays on the plugin's own islands: none of the maps of pearl.cartes is here.");
+            getLogger().info("The pearl and fireball practices play on the plugin's own islands: none of the maps of pearl.cartes"
+                    + " is here.");
         }
-        return new PearlTraining.Places(parts);
+        return parts;
     }
 
     /** The colours of the teams of the Bed Wars plugin, and the data of their wool. */
@@ -635,10 +652,10 @@ public final class RagoPractice extends JavaPlugin {
     private static final int[] WOOL = {14, 11, 5, 4, 9, 0, 6, 7};
 
     /** The teams of a map's bedwars.yml with a spawn, a bed and a generator, with the diamonds and the emeralds. */
-    static List<PearlMaps.Anchors> pearlAnchors(ConfigurationSection yaml) {
+    static List<MapParts.Anchors> pearlAnchors(ConfigurationSection yaml) {
         List<double[]> diamonds = points(yaml.getMapList("diamants"));
         List<double[]> emeralds = points(yaml.getMapList("emeraudes"));
-        List<PearlMaps.Anchors> sides = new ArrayList<>();
+        List<MapParts.Anchors> sides = new ArrayList<>();
         ConfigurationSection teams = yaml.getConfigurationSection("equipes");
         if (teams == null) {
             return sides;
@@ -656,7 +673,7 @@ public final class RagoPractice extends JavaPlugin {
                     wool = WOOL[i];
                 }
             }
-            sides.add(new PearlMaps.Anchors(colour, wool, spawn, bed, generator, diamonds, emeralds));
+            sides.add(new MapParts.Anchors(colour, wool, spawn, bed, generator, diamonds, emeralds));
         }
         return sides;
     }

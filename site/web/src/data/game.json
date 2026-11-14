@@ -1083,7 +1083,7 @@
       "ranked": false,
       "startHere": false,
       "event": false,
-      "description": "Fireball jumps and sending fireballs back.",
+      "description": "A new Bed Wars map each try: fireball jump a broken bridge, knock bridgers and rushers into the void, and hit their fireballs back.",
       "plugins": [
         "practice"
       ]
