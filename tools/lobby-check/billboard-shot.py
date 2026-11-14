@@ -5,12 +5,15 @@ Usage: billboard-shot.py <screenshot.ppm>
 
 The boards of the test are plain red (the map colour 255 0 0) and plain yellow (229 229 51).
 Prints a small drawing of the screen (R: red, Y: yellow, a dot: the sky, #: anything else), then
-on its last line "red=<pixels> yellow=<pixels>".
+on its last line "red=<pixels> yellow=<pixels>", counted in the left and top 70 % of the screen
+only: the scoreboard on the right and the hearts at the bottom are red too.
 """
 import sys
 
 COLUMNS = 96
 ROWS = 27
+# Where the boards are counted: the screen but its right and bottom edges.
+COUNTED = 0.7
 
 
 def read_ppm(path):
@@ -55,7 +58,8 @@ def main():
         cell_row = cells[min(ROWS - 1, y * ROWS // height)]
         for x in range(width):
             k = kind(row[3 * x], row[3 * x + 1], row[3 * x + 2])
-            counts[k] += 1
+            if x < COUNTED * width and y < COUNTED * height:
+                counts[k] += 1
             cell_row[min(COLUMNS - 1, x * COLUMNS // width)][k] += 1
     for cell_row in cells:
         line = ""

@@ -41,8 +41,8 @@ PACKETEVENTS_URL=https://github.com/retrooper/packetevents/releases/download/v2.
 PACKETEVENTS_SHA256=060087c58ec268eae7dd0eb1f17ac3bea1eaadda1693414141ff64e506091bd7
 PORT=${KB_PORT:-25565}
 VIEWER=RagoViewer
-# Pixels of a board in a screenshot below which it is not seen: the red board covers about 20000
-# pixels from the spawn and 700 from 76 blocks away.
+# Pixels of a board in a screenshot below which it is not seen: the red board covers about 15000
+# pixels from the spawn and 450 from 76 blocks away, the yellow one about 500 from the spawn.
 SEEN=200
 
 log() { printf '[billboard-test] %s\n' "$*"; }
@@ -227,12 +227,8 @@ shot far
 
 failed=()
 [[ $(pixels spawn red) -ge $SEEN ]] || failed+=("the red board, 13 blocks in front of the spawn")
+[[ $(pixels spawn yellow) -ge $SEEN ]] || failed+=("the yellow board, alone in its chunk 76 blocks away")
 [[ $(pixels far red) -ge $SEEN ]] || failed+=("the red board, 76 blocks away")
-if [[ $(pixels spawn yellow) -ge $SEEN ]]; then
-  log "the yellow board, alone in its chunk, is seen too"
-else
-  log "the yellow board, alone in its chunk 76 blocks away, is not seen"
-fi
 if [[ ${#failed[@]} -gt 0 ]]; then
   grep -n -E 'ERROR\]|SEVERE|Exception' "$SERVER_LOG" >&2 || true
   for missing in "${failed[@]}"; do
