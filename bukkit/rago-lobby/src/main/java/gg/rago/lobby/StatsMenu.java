@@ -4,35 +4,28 @@ import gg.rago.game.GameMode;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
-import org.bukkit.Bukkit;
+import java.util.function.Predicate;
 import org.bukkit.ChatColor;
 import org.bukkit.Material;
 import org.bukkit.entity.Player;
-import org.bukkit.inventory.Inventory;
-import org.bukkit.inventory.InventoryHolder;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.ItemMeta;
 import org.bukkit.inventory.meta.SkullMeta;
 
 /**
  * The menu of a stats NPC: the player's head with their totals, then every mode of the catalogue
- * with the player's stats in it (hover a mode to read them). Nothing in it can be taken. Main
- * thread only.
+ * with the player's stats in it (hover a mode to read them), the modes they played first. More
+ * modes than a chest holds go on pages, the arrows at the top turn them. Nothing in it can be
+ * taken. Main thread only.
  */
 final class StatsMenu {
 
-    /** Marks the inventory as this menu; clicks in it are cancelled. */
-    static final class Holder implements InventoryHolder {
-        private Inventory inventory;
-
-        @Override
-        public Inventory getInventory() {
-            return inventory;
-        }
-    }
-
     private static final int HEAD_SLOT = 4;
+    private static final int PREVIOUS_SLOT = 0;
+    private static final int NEXT_SLOT = 8;
     private static final int FIRST_MODE_SLOT = 9;
+    /** The modes of one page: the five rows under the head. */
+    static final int PAGE_SIZE = 45;
 
     private final LobbySettings settings;
     private final StatsBook book;
@@ -54,21 +47,74 @@ final class StatsMenu {
 
     /** The stats of another player (a player clicked in the lobby), or the viewer's own. */
     void open(Player viewer, UUID player, String name) {
-        List<ModeDisplay> modes = settings.modes();
-        int slots = Math.min(54, FIRST_MODE_SLOT + ((modes.size() + 8) / 9) * 9);
-        Holder holder = new Holder();
+        open(viewer, player, name, 0);
+    }
+
+    /** One page of them, from 0. */
+    private void open(Player viewer, UUID player, String name, int page) {
+        PlayerStats stats = book.get(player);
+        List<ModeDisplay> modes = ordered(settings.modes(), id -> played(stats, id));
+        int pages = pages(modes.size());
+        int shownPage = Math.max(0, Math.min(page, pages - 1));
+        List<ModeDisplay> shown = page(modes, shownPage);
         String title = player.equals(viewer.getUniqueId()) ? "Your stats" : "Stats of " + name;
-        Inventory inventory = Bukkit.createInventory(holder, slots, title.length() > 32 ? title.substring(0, 32) : title);
-        holder.inventory = inventory;
+        if (pages > 1) {
+            title = title + " (" + (shownPage + 1) + "/" + pages + ")";
+        }
+        ClickMenu menu = new ClickMenu(1 + (shown.size() + 8) / 9, title);
         long now = System.currentTimeMillis();
         String day = StatsPeriod.dayKey(now);
         String week = StatsPeriod.weekKey(now);
-        PlayerStats stats = book.get(player);
-        inventory.setItem(HEAD_SLOT, head(player, name, stats, day, week));
-        for (int i = 0; i < modes.size() && FIRST_MODE_SLOT + i < slots; i++) {
-            inventory.setItem(FIRST_MODE_SLOT + i, mode(player, modes.get(i), stats, day, week));
+        menu.set(HEAD_SLOT, head(player, name, stats, day, week), null);
+        for (int i = 0; i < shown.size(); i++) {
+            menu.set(FIRST_MODE_SLOT + i, mode(player, shown.get(i), stats, day, week), null);
         }
-        viewer.openInventory(inventory);
+        if (shownPage > 0) {
+            menu.set(PREVIOUS_SLOT, ClickMenu.item(Material.ARROW, ChatColor.YELLOW + "Previous page",
+                    ChatColor.GRAY + "Page " + shownPage + "/" + pages),
+                    (clicker, right) -> open(clicker, player, name, shownPage - 1));
+        }
+        if (shownPage < pages - 1) {
+            menu.set(NEXT_SLOT, ClickMenu.item(Material.ARROW, ChatColor.YELLOW + "Next page",
+                    ChatColor.GRAY + "Page " + (shownPage + 2) + "/" + pages),
+                    (clicker, right) -> open(clicker, player, name, shownPage + 1));
+        }
+        menu.open(viewer);
+    }
+
+    /** True if the player has a game, a kill or a death in the mode. */
+    private static boolean played(PlayerStats stats, String modeId) {
+        ModeStats m = stats == null ? null : stats.mode(modeId);
+        return m != null && (m.games() > 0 || m.kills > 0 || m.deaths > 0);
+    }
+
+    /**
+     * The modes of the menu: those played first, then the others, each in the order of config.yml;
+     * a hidden mode (an event, the kit of other modes) only once played.
+     */
+    static List<ModeDisplay> ordered(List<ModeDisplay> modes, Predicate<String> played) {
+        List<ModeDisplay> first = new ArrayList<>();
+        List<ModeDisplay> then = new ArrayList<>();
+        for (ModeDisplay display : modes) {
+            if (played.test(display.mode().id())) {
+                first.add(display);
+            } else if (!display.hidden()) {
+                then.add(display);
+            }
+        }
+        first.addAll(then);
+        return first;
+    }
+
+    /** How many pages so many modes take, 1 at least. */
+    static int pages(int modes) {
+        return Math.max(1, (modes + PAGE_SIZE - 1) / PAGE_SIZE);
+    }
+
+    /** The modes of one page, from 0. */
+    static <T> List<T> page(List<T> modes, int page) {
+        int from = Math.min(modes.size(), page * PAGE_SIZE);
+        return new ArrayList<>(modes.subList(from, Math.min(modes.size(), from + PAGE_SIZE)));
     }
 
     @SuppressWarnings("deprecation") // SkullMeta#setOwner(String) is the 1.8.8 way to show a player's head
