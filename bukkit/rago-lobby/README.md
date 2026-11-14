@@ -596,6 +596,31 @@ de RagoLobby) : le serveur ne les voit pas, ils ne bougent pas et ne prennent pa
 quittent la liste des joueurs (Tab) deux secondes après être apparus, et le scoreboard du lobby
 cache leur nom au-dessus de la tête (équipe `pnj`).
 
+## Panneaux publicitaires
+
+`panneaux:` affiche vos images dans le lobby, comme les grands panneaux de Hypixel : la chaîne
+YouTube, le Discord, la boutique... Un panneau est un mur de cadres, une carte dans chacun ; une
+carte tenue par un cadre n'a pas de bordure, et les cartes côte à côte font une seule image.
+
+- L'image (PNG ou JPG) va dans `plugins/RagoLobby/panneaux/` (le dossier est créé au premier
+  démarrage), `image:` dit son nom. Elle est lue au démarrage, hors du thread principal.
+- Chaque bloc du mur est une carte de 128 x 128 pixels : un panneau de `largeur: 8` et
+  `hauteur: 8` montre 1024 x 1024 pixels, un panneau de 16 x 9 en montre 2048 x 1152 (une image
+  de 1920 x 1080 le remplit). 16 blocs de côté au plus, 8 panneaux au plus.
+- Un client 1.8 ne dessine sur une carte que 144 couleurs : le plugin y ramène l'image, avec des
+  points de couleurs voisines (le tramage, ou dithering) pour les dégradés. Vue de quelques
+  blocs, elle est presque identique à l'originale. L'image est montrée entière, centrée, avec du
+  noir autour si elle n'a pas la forme du panneau.
+- `lieu: "x y z"` place le panneau : le bloc du milieu de sa rangée du bas (celui juste à droite
+  du milieu, vu de face, pour une largeur paire), le panneau tourné vers le spawn ; `"x y z nord"`
+  (`sud`, `est`, `ouest`) le tourne de ce côté. Pour le placer en jeu : se mettre à cet endroit
+  (en vol au besoin), regarder d'où on doit le voir et taper `/lobby point panneau-<nom>`. Ce
+  point passe avant `lieu:`, et le panneau bouge tout de suite.
+- Les cadres n'existent que dans les paquets des joueurs (comme les PNJ) : rien n'est posé dans
+  le monde, on ne peut ni les casser ni les tourner. Ils se voient de 128 blocs. Chaque joueur
+  reçoit les cartes une seule fois (4 par tick : un panneau de 8 x 8 en moins d'une seconde),
+  et de nouveau seulement quand son client les oublie (changement de monde, connexion).
+
 ## Les stats
 
 Les plugins de jeu donnent le résultat de chaque partie au lobby (`recordMatch`, voir plus bas) :
