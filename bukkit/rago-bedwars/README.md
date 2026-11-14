@@ -39,10 +39,13 @@ venu voir et revient au lobby à la fin, avant les joueurs.
   les prendre (`forges-partout:` et `shops-partout:`). Les générateurs de diamant et
   d'émeraude affichent leur tier et le temps avant le prochain objet. Ils passent tier II puis III
   pendant la partie.
-- **Partage de la forge** : comme sur Hypixel, ce qu'un joueur ramasse à la forge de son île
-  (fer, or, émeraudes de l'Emerald Forge), chaque coéquipier qui se tient à 2 blocs de la forge le
-  reçoit aussi, autant chacun (`forge.partage-rayon`, 0 pour couper). Seul ce que la forge a fait
-  tomber compte : un lingot jeté dessus par un joueur ne se copie pas.
+- **Split de la forge** : comme sur Hypixel, ce qu'un joueur ramasse à une forge d'île, chaque
+  coéquipier qui se tient dans les 5×5 blocs autour d'elle le reçoit aussi, autant chacun
+  (`forge.partage-rayon`, 2.5 blocs de chaque côté, 0 pour couper). On attend à côté de la forge
+  sans toucher ses objets pendant qu'un coéquipier marche dessus. Toutes les forges d'île
+  splittent, celles des îles vides aussi (`forges-partout:`), mais seulement le fer et l'or : pas
+  les émeraudes de l'Emerald Forge, comme sur Hypixel. Seul ce que la forge a fait tomber compte :
+  un lingot jeté dessus par un joueur ne se copie pas.
 - **Événements** (réglables) : Diamond II à 6 min, Emerald II à 12, Diamond III à 18, Emerald III
   à 24, tous les lits détruits à 30, fin de la partie (égalité) à 45. Le scoreboard montre le
   prochain, les équipes (✔ tant que le lit tient, sinon le nombre de joueurs encore en vie), et

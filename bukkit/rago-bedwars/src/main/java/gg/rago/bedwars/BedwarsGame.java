@@ -646,9 +646,13 @@ class BedwarsGame {
     }
 
     /**
-     * A player picked up this many of this item. If their own island forge dropped it, each
-     * teammate standing at the forge gets as many too, as on Hypixel (not a share of it: as many
-     * each). Only what the forge made counts, never what a player threw on it.
+     * A player picked up this many of this item. If an island forge dropped it, each of their
+     * teammates standing at that forge gets as many too: the split of Hypixel, a copy each, not a
+     * share of it. A teammate waiting next to the forge without touching its items gets what one
+     * walking onto it picks up. Every island forge splits, those of the islands nobody plays too
+     * (forges-partout:); only its iron and gold, as on Hypixel: not the emeralds of the Emerald
+     * Forge, nor the diamonds and emeralds of the generators out on the map. Only what the forge
+     * made counts, never what a player threw on it.
      */
     void pickedUp(Player player, Item item, int amount) {
         Generator source = null;
@@ -664,36 +668,39 @@ class BedwarsGame {
         int own = source.taken(amount);
         double radius = settings.forgeShare();
         Gamer gamer = gamers.get(player.getUniqueId());
-        if (own <= 0 || radius <= 0 || phase != Phase.PLAYING || gamer == null || gamer.team == null) {
+        if (own <= 0 || radius <= 0 || phase != Phase.PLAYING || gamer == null || gamer.team == null
+                || !forges.contains(source) || !splits(source.material())) {
             return;
         }
-        Upgrades upgrades = gamer.team.upgrades;
-        if (upgrades == null || upgrades.forge == null
-                || (source != upgrades.iron && source != upgrades.gold && source != upgrades.emerald)) {
-            return;
-        }
-        Material material = item.getItemStack().getType();
+        Location forge = source.spot();
         for (UUID member : gamer.team.members) {
             Gamer mate = gamers.get(member);
             Player other = Bukkit.getPlayer(member);
             if (member.equals(player.getUniqueId()) || mate == null || other == null || mate.eliminated || mate.respawning
-                    || host.gameOf(member) != this || !atForge(upgrades.forge, other.getLocation(), radius)) {
+                    || host.gameOf(member) != this || !atForge(forge, other.getLocation(), radius)) {
                 continue;
             }
-            // a full inventory takes none, as it would not have picked it up
-            other.getInventory().addItem(new ItemStack(material, own));
+            // what a full inventory cannot hold is not given
+            other.getInventory().addItem(new ItemStack(source.material(), own));
             other.playSound(other.getLocation(), Sound.ITEM_PICKUP, 0.2F, 1.6F);
         }
     }
 
-    /** True if a player standing here is at this forge: within radius of it across, and 2 blocks up or down. */
+    /** True for what the split of a forge copies: its iron and gold, not the emeralds of the Emerald Forge. */
+    static boolean splits(Material material) {
+        return material == Material.IRON_INGOT || material == Material.GOLD_INGOT;
+    }
+
+    /**
+     * True if a player standing here is at this forge: within radius of it on each side, a square
+     * as the reach of a pickup is (2.5: the 5 x 5 blocks around its block), and 2 blocks up or down.
+     */
     static boolean atForge(Location forge, Location player, double radius) {
         if (forge.getWorld() != player.getWorld()) {
             return false;
         }
-        double dx = player.getX() - forge.getX();
-        double dz = player.getZ() - forge.getZ();
-        return dx * dx + dz * dz <= radius * radius && Math.abs(player.getY() - forge.getY()) <= 2;
+        return Math.abs(player.getX() - forge.getX()) <= radius && Math.abs(player.getZ() - forge.getZ()) <= radius
+                && Math.abs(player.getY() - forge.getY()) <= 2;
     }
 
     /**

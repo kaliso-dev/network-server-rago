@@ -296,7 +296,10 @@ final class BedwarsSettings {
     private final boolean demo;
     private final int respawnSeconds;
     private final Forge forge;
-    /** How far from its island forge a teammate gets what one picks up there (forge.partage-rayon); 0: nobody. */
+    /**
+     * How far from an island forge, on each side, a teammate gets what one picks up there: the split
+     * (forge.partage-rayon; 2.5: the 5 x 5 blocks around it); 0: nobody.
+     */
     private final double forgeShare;
     private final List<Rate> diamond;
     private final List<Rate> emerald;
@@ -374,7 +377,7 @@ final class BedwarsSettings {
             throw new IllegalArgumentException("reapparition-secondes: from 0 to 30");
         }
         Forge forge = forge(config);
-        double forgeShare = number(config, "forge.partage-rayon", 2, 0, 8);
+        double forgeShare = number(config, "forge.partage-rayon", 2.5, 0, 8);
         List<Rate> diamond = tiers(config, "generateurs.diamant", new double[] {30, 23, 12}, 4);
         List<Rate> emerald = tiers(config, "generateurs.emeraude", new double[] {65, 50, 35}, 2);
         String[] keys = {"diamant-2", "emeraude-2", "diamant-3", "emeraude-3", "fin-des-lits", "fin-de-partie"};

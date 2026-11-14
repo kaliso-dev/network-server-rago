@@ -14,6 +14,7 @@ import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 import org.bukkit.Location;
+import org.bukkit.Material;
 import org.bukkit.configuration.file.YamlConfiguration;
 import org.junit.jupiter.api.Test;
 
@@ -21,19 +22,47 @@ class BedwarsSettingsTest {
 
     @Test
     void teammatesAtTheForgeGetWhatOnePicksUpThere() throws Exception {
-        assertEquals(2.0, BedwarsSettings.read(bundled()).forgeShare(), 0.0, "2 blocks around the forge");
+        assertEquals(2.5, BedwarsSettings.read(bundled()).forgeShare(), 0.0, "the 5 x 5 blocks around the forge");
         YamlConfiguration config = new YamlConfiguration();
-        assertEquals(2.0, BedwarsSettings.read(config).forgeShare(), 0.0, "the same without the setting");
+        assertEquals(2.5, BedwarsSettings.read(config).forgeShare(), 0.0, "the same without the setting");
         config.set("forge.partage-rayon", 0);
         assertEquals(0.0, BedwarsSettings.read(config).forgeShare(), 0.0, "0: each keeps what they pick up");
         config.set("forge.partage-rayon", 9);
         IllegalArgumentException error = assertThrows(IllegalArgumentException.class, () -> BedwarsSettings.read(config));
         assertTrue(error.getMessage().startsWith("forge.partage-rayon: "), error.getMessage());
-        Location forge = new Location(null, 10.5, 64.2, 10.5);
-        assertTrue(BedwarsGame.atForge(forge, new Location(null, 11.9, 64, 10.5), 2), "standing on it");
-        assertTrue(BedwarsGame.atForge(forge, new Location(null, 11.5, 64, 11.5), 2), "at a corner of it");
-        assertFalse(BedwarsGame.atForge(forge, new Location(null, 12.6, 64, 10.5), 2), "a step too far");
-        assertFalse(BedwarsGame.atForge(forge, new Location(null, 10.5, 67, 10.5), 2), "above it, on a bridge");
+        Location forge = new Location(null, 10.5, 64.5, 10.5);
+        assertTrue(BedwarsGame.atForge(forge, new Location(null, 11.9, 64.5, 10.5), 2.5), "standing on it");
+        assertTrue(BedwarsGame.atForge(forge, new Location(null, 12.5, 63.5, 10.5), 2.5), "next to it, a step lower");
+        assertTrue(BedwarsGame.atForge(forge, new Location(null, 8.1, 64.5, 12.9), 2.5), "in a corner of its 5 x 5 blocks");
+        assertFalse(BedwarsGame.atForge(forge, new Location(null, 13.6, 64.5, 10.5), 2.5), "a block too far");
+        assertFalse(BedwarsGame.atForge(forge, new Location(null, 10.5, 67, 10.5), 2.5), "above it, on a bridge");
+        assertFalse(BedwarsGame.atForge(forge, new Location(null, 11.5, 64.5, 10.5), 0), "0: nobody");
+    }
+
+    /**
+     * The split of Hypixel: a teammate waits next to the forge, just out of reach of its items,
+     * while another walks onto it. A 1.8 player picks up an item less than 1.425 blocks away on each
+     * side (half their width, 0.3, a block more, and half the item's, 0.125): a square. Wherever they
+     * wait around it, on a side or at a corner, up to a block out of reach, they get the split.
+     */
+    @Test
+    void aTeammateWaitingNextToTheForgeGetsTheSplit() {
+        Location forge = new Location(null, -13.5, 64.5, -78.5);
+        double reach = 1.425;
+        for (double out = 0.01; out <= 1; out += 0.07) {
+            for (int angle = 0; angle < 360; angle += 3) {
+                double cos = Math.cos(Math.toRadians(angle));
+                double sin = Math.sin(Math.toRadians(angle));
+                // on the square the items reach, this much out of it
+                double scale = (reach + out) / Math.max(Math.abs(cos), Math.abs(sin));
+                Location waiting = new Location(null, forge.getX() + cos * scale, 65, forge.getZ() + sin * scale);
+                assertTrue(BedwarsGame.atForge(forge, waiting, 2.5), out + " out of reach at " + angle + "°");
+            }
+        }
+        assertTrue(BedwarsGame.splits(Material.IRON_INGOT));
+        assertTrue(BedwarsGame.splits(Material.GOLD_INGOT));
+        assertFalse(BedwarsGame.splits(Material.EMERALD), "the Emerald Forge's emeralds: whoever picks them up");
+        assertFalse(BedwarsGame.splits(Material.DIAMOND));
     }
 
     /** The config.yml of the plugin (the tests run in the module's folder). */
