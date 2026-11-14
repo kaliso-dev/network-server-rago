@@ -15,7 +15,7 @@ commands:
     aliases: [spawnffa]
     usage: /ffaspawn
   kit:
-    description: In Attack and Defense, chooses your kit for the round (3 to attack, 3 to defend).
+    description: In Attack and Defense and the Bed Break Simulator, chooses your kit for the round.
     aliases: [kits]
     usage: /kit
 permissions:

@@ -251,7 +251,12 @@ final class BedwarsSettings {
          */
         LOBBY_FIGHT("lobby-fight"),
         /** Lobby Fight FFA: the FFA in the waiting lobby of the map, open to everyone. */
-        LOBBY_FIGHT_FFA("lobby-fight-ffa");
+        LOBBY_FIGHT_FFA("lobby-fight-ffa"),
+        /**
+         * Bed Break Simulator: 2 to 5 players, each in turn attacks from the top bridge with a kit
+         * of bed-break: to break the bed of the others, who defend with their forge full.
+         */
+        BED_BREAK("bed-break");
 
         /** True if this kind is played in the waiting lobby of its maps, which they must have. */
         boolean inWaitingLobby() {
@@ -316,12 +321,17 @@ final class BedwarsSettings {
     private final List<RoundKit> defenseKits;
     /** The Protection level on the armour of both sides of Attack and Defense (attaque-defense.protection). */
     private final int attackDefenseProtection;
+    /** The kits of the attacker of the Bed Break Simulator to choose from (bed-break.kits). */
+    private final List<RoundKit> bedBreakKits;
+    /** The Protection level on the armour of everyone in the Bed Break Simulator (bed-break.protection). */
+    private final int bedBreakProtection;
 
     private BedwarsSettings(Map<String, List<String>> modes, Map<String, Kind> kinds, int maxGames, boolean demo,
             int respawnSeconds, Forge forge, double forgeShare, List<Rate> diamond, List<Rate> emerald, int[] events,
             Fireball fireball,
             List<String> neighbourModes, List<String> topBridgeModes, List<String> allForgeModes, List<String> allShopModes,
-            List<RoundKit> attackKits, List<RoundKit> defenseKits, int attackDefenseProtection) {
+            List<RoundKit> attackKits, List<RoundKit> defenseKits, int attackDefenseProtection, List<RoundKit> bedBreakKits,
+            int bedBreakProtection) {
         this.modes = Collections.unmodifiableMap(modes);
         this.kinds = Collections.unmodifiableMap(kinds);
         this.maxGames = maxGames;
@@ -345,6 +355,8 @@ final class BedwarsSettings {
         this.attackKits = attackKits;
         this.defenseKits = defenseKits;
         this.attackDefenseProtection = attackDefenseProtection;
+        this.bedBreakKits = bedBreakKits;
+        this.bedBreakProtection = bedBreakProtection;
     }
 
     /** The word for every map, in the maps of a mode. */
@@ -415,9 +427,14 @@ final class BedwarsSettings {
         if (attackDefenseProtection < 0 || attackDefenseProtection > 4) {
             throw new IllegalArgumentException("attaque-defense.protection: from 0 to 4");
         }
+        List<RoundKit> bedBreakKits = RoundKit.read(config.getList("bed-break.kits"), "bed-break.kits", RoundKit.BED_BREAK);
+        int bedBreakProtection = config.getInt("bed-break.protection", 2);
+        if (bedBreakProtection < 0 || bedBreakProtection > 4) {
+            throw new IllegalArgumentException("bed-break.protection: from 0 to 4");
+        }
         return new BedwarsSettings(modes, kinds(config), maxGames, config.getBoolean("carte-demo", true), respawn, forge,
                 forgeShare, diamond, emerald, events, fireball, neighbours, topBridge, allForges, allShops, attackKits,
-                defenseKits, attackDefenseProtection);
+                defenseKits, attackDefenseProtection, bedBreakKits, bedBreakProtection);
     }
 
     /** jeux: the modes that are not a classic game, each with its kind. */
@@ -714,5 +731,15 @@ final class BedwarsSettings {
     /** The Protection level on the armour of both sides of Attack and Defense, from 0 (none) to 4. */
     int attackDefenseProtection() {
         return attackDefenseProtection;
+    }
+
+    /** The kits the attacker of the Bed Break Simulator chooses from. */
+    List<RoundKit> bedBreakKits() {
+        return bedBreakKits;
+    }
+
+    /** The Protection level on the armour of everyone in the Bed Break Simulator, from 0 (none) to 4. */
+    int bedBreakProtection() {
+        return bedBreakProtection;
     }
 }

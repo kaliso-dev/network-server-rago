@@ -63,9 +63,9 @@ class LobbySettingsTest {
         assertEquals("lobby", settings.world());
         assertEquals(0, settings.voidHeight());
         assertEquals(0, settings.defaultRating(), "a ranked ELO starts at 0, in Coal");
-        assertEquals(62, settings.modes().size(), "with the private top bridge, the clutch scenario, the bed fight, Top"
-                + " BedFight, the bridge fight 2v2, the full map first rush, Sky Rise Resources, the timed bridge and Lobby"
-                + " Fight (1v1, FFA), without the top fight or the ranked scenarios");
+        assertEquals(63, settings.modes().size(), "with the private top bridge, the clutch scenario, the bed fight, Top"
+                + " BedFight, the bridge fight 2v2, the full map first rush, Sky Rise Resources, the timed bridge, Lobby"
+                + " Fight (1v1, FFA) and the Bed Break Simulator, without the top fight or the ranked scenarios");
         assertEquals("skyrise", settings.display("skyrise-resources-1v1").group(), "beside Sky Rise");
         assertFalse(settings.catalog().get("top-bridge-1v1").ranked(), "Top Bridge: no ELO");
         assertEquals("2v2", settings.catalog().get("top-bridge-2v2").format());
@@ -131,6 +131,8 @@ class LobbySettingsTest {
         }
         assertEquals("ranked", settings.display("attack-defense-1v1").category(), "Attack and Defense: in the RBW modes");
         assertEquals("ranked", settings.display("clutch-scenario-2v2").category());
+        assertEquals("ranked", settings.display("bed-break-simulator").category(), "the Bed Break Simulator: an RBW situation");
+        assertNull(settings.display("bed-break-simulator").group(), "one item, beside Attack and Defense");
         LobbySettings modeNpcs = LobbySettings.load(withModeNpcs());
         assertEquals(Arrays.asList("clutch-scenario-1v1", "clutch-scenario-2v2", "clutch-scenario-3v3",
                 "clutch-scenario-4v4"), modeNpcs.npc("clutchscenario").modeIds(), "one NPC for Clutch Scenario");
@@ -263,7 +265,7 @@ class LobbySettingsTest {
         assertEquals("§6Ranked §7and §6RBW situations", ranked.subtitle());
         assertEquals("ranked", ranked.category());
         assertTrue(ranked.modeIds().containsAll(Arrays.asList("ranked-1v1", "ranked-2v2", "ranked-3v3", "ranked-4v4",
-                "clutch-scenario-1v1", "attack-defense-1v1")), "every RBW mode, Ranked Bedwars first");
+                "clutch-scenario-1v1", "attack-defense-1v1", "bed-break-simulator")), "every RBW mode, Ranked Bedwars first");
         assertEquals(settings.modesIn("ranked").size(), ranked.modeIds().size());
         assertTrue(settings.npc("top").leaderboard());
         assertEquals(Collections.singletonList(Arrays.asList(BoardStat.LEVEL, BoardStat.ELO, BoardStat.FKDR, BoardStat.KILLS, BoardStat.GAMES)),
@@ -389,6 +391,10 @@ class LobbySettingsTest {
                 "the attacker's pickaxe, for the end stone of the defense");
         assertEquals(KitItem.parse("POTION:8206"), settings.display("invis-practice").kit().item(9), "the invisibility");
         assertEquals(KitItem.parse("EGG 2"), settings.display("invis-practice").kit().item(8), "two Bridge Eggs");
+        assertEquals(Material.GOLD_PICKAXE, settings.display("bed-break-simulator").kit().item(1).material(),
+                "the Bed Break Simulator: the slots of the items of its three attack kits");
+        assertEquals(KitItem.parse("LADDER 8"), settings.display("bed-break-simulator").kit().item(6));
+        assertEquals(Material.STICK, settings.display("bed-break-simulator").kit().item(7).material());
 
         Kit bySlot = LobbySettings.load(yaml("modes:\n  sumo:\n    kit:\n      3: STICK\n      9: 'WOOL:14 64'\n"))
                 .display("sumo").kit();

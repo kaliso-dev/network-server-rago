@@ -4,14 +4,14 @@ Un plugin Bukkit 1.8.8 qui joue les modes Bed Wars du lobby (`bukkit/rago-lobby`
 Bedwars 1v1, 2v2, 3v3 et 4v4**, **RBW Sky Rise** en solo et en duo (et **Sky Rise Resources**), avec
 les règles d'une partie classique d'Hypixel, **First Rush** en solo et en duo (la même partie, sur deux îles voisines), les
 **parties privées** d'une party (le lobby choisit le 1v1, 2v2, 3v3 ou 4v4 selon sa taille), et
-sept jeux à part sur des maps de Bed Wars : **Top Bridge**, **Attack and Defense**, **Clutch
-Scenario**,
+huit jeux à part sur des maps de Bed Wars : **Top Bridge**, **Attack and Defense**, **Clutch
+Scenario**, **Bed Break Simulator**,
 **FFA** (dont le Top Bridge FFA), **Lobby Fight** (1v1 et FFA, dans la salle d'attente de la map),
 **Invis practice** et **Fast Shop**. Chaque mode a ses maps.
 
 Les parties en équipes sont enregistrées pour `/replay` : le lobby les montre à nouveau dans une
 copie libre de leur map (voir le [README du lobby](../rago-lobby/README.md)). Pas les FFA, Fast
-Shop, Invis ni le Top Bridge d'entraînement d'une party.
+Shop, Invis, le Bed Break Simulator ni le Top Bridge d'entraînement d'une party.
 
 Toutes les parties se regardent avec `/spectate` (voir le README du lobby) : le spectateur vole
 dans le monde de la partie (pas loin sous son vide), sans rien toucher, pas même un coffre. Il
@@ -403,6 +403,33 @@ Dans `jeux:` du config.yml, un mode peut jouer autre chose qu'une partie classiq
   practice, il garde la place du joueur dans les files : la partie trouvée l'en sort directement,
   et ses scores et ses minutes font avancer les quêtes du lobby (Getting started, les réussites,
   les records, les minutes d'entraînement).
+- **Bed Break Simulator** (`bed-break`) : une situation de Ranked Bedwars, sur Archway et Invasion,
+  de 2 à 5 joueurs (du 1v1 au 1v4), en manches de 3 minutes, les deux îles opposées reliées par le
+  top bridge du mode Top Bridge. À chaque manche, un joueur attaque : il part du milieu du top
+  bridge, tourné vers la base à attaquer, avec une seule vie et le kit qu'il a choisi, et ne gagne
+  la manche qu'en cassant le lit. Les autres, quatre au plus, défendent sans kit : l'épée en bois
+  d'un début de partie, leur forge pleine de fer et d'or (la forge de la file RBW en 2v2 à 4v4) et
+  le shop de leur île, sans améliorations, ni diamants ni émeraudes ; le lit est sous la défense
+  duo du propriétaire (end stone puis laine), et ils reviennent 5 secondes après une mort. Ils
+  gagnent la manche en tuant l'attaquant ou en tenant 3 minutes. Tout le monde est en armure de
+  fer Protection II (`bed-break.protection:`, de 0 à 4), sans Sharpness. Chacun attaque à son tour
+  (deux fois chacun à 2 ou 3 joueurs) ; un lit cassé ou l'attaquant tué rapporte un point, le plus
+  de points gagne, le lit le plus rapide départage. La partie part 10 secondes après l'arrivée du
+  deuxième joueur, 3 secondes quand ils sont cinq. Avant chaque manche, le menu des kits s'ouvre
+  tout seul pour l'attaquant (`/kit` ou le bouton [CHANGE KIT] du chat le rouvre, aussi pour
+  choisir, en défendant, le kit de sa prochaine attaque) ; la manche part 5 secondes après sa mise
+  en place, 2 secondes dès que l'attaquant a choisi.
+
+| Kit d'attaque | Objets |
+|---|---|
+| Classic | épée en pierre, pioche en or (tier III : Efficacité III, Tranchant II), 2 stacks de laine |
+| Fireball | épée en pierre, une boule de feu, pioche en fer (tier II : Efficacité II), 2 stacks de laine |
+| Fighter | épée en pierre, pioche en bois (tier I : Efficacité I), pomme d'or, 8 échelles, bâton Recul I |
+
+Les kits du Bed Break Simulator se changent dans `bed-break:` du `config.yml` (de 1 à 7, les objets
+du shop par leur id, avec leur nombre) ; un kit sans épée reçoit l'épée en bois. Les objets suivent
+la place que le joueur leur a donnée dans l'éditeur de kit du lobby (le mode
+`bed-break-simulator`), sinon sa hotbar Hypixel.
 
 ## Les maps
 

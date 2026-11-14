@@ -10,10 +10,11 @@ import org.bukkit.ChatColor;
 import org.bukkit.Material;
 
 /**
- * A kit a player chooses before a round of Attack and Defense: its name, its icon, a few words,
- * and its items, those of the item shop by their id, with their amount ("wool 64", "fireball 3",
- * golden_pickaxe). Three for the attackers and three for the defenders by default
- * (attaque-defense: in config.yml). Immutable.
+ * A kit a player chooses before a round of Attack and Defense or of the Bed Break Simulator: its
+ * name, its icon, a few words, and its items, those of the item shop by their id, with their
+ * amount ("wool 64", "fireball 3", golden_pickaxe). Three for the attackers and three for the
+ * defenders of Attack and Defense by default (attaque-defense: in config.yml), three for the
+ * attacker of the Bed Break Simulator (bed-break:). Immutable.
  */
 final class RoundKit {
 
@@ -41,6 +42,22 @@ final class RoundKit {
                     Arrays.asList("bow", "arrow 24", "wool 16")),
             new RoundKit("Builder", Material.ENDER_STONE, Arrays.asList("End stone and wool to build", "the defense up again as they",
                     "break it; shears for good."), Arrays.asList("end_stone 24", "wool 32", "shears"))));
+
+    /**
+     * The attacker's kits of the Bed Break Simulator, the owner's three: the classic one (a tier III
+     * pickaxe, two stacks of blocks), the fireball one (a fireball, a tier II pickaxe, two stacks),
+     * the fighter (a tier I pickaxe, a golden apple, ladders, the knockback stick); each with a stone
+     * sword.
+     */
+    static final List<RoundKit> BED_BREAK = Collections.unmodifiableList(Arrays.asList(
+            new RoundKit("Classic", Material.GOLD_PICKAXE, Arrays.asList("The Golden Pickaxe (tier III)", "digs the end stone fast:",
+                    "two stacks to bridge in."), Arrays.asList("stone_sword", "golden_pickaxe", "wool 64", "wool 64")),
+            new RoundKit("Fireball", Material.FIREBALL, Arrays.asList("A fireball to blow the wool and", "knock a defender off, the",
+                    "Iron Pickaxe (tier II), two stacks."), Arrays.asList("stone_sword", "fireball", "iron_pickaxe", "wool 64",
+                    "wool 64")),
+            new RoundKit("Fighter", Material.STICK, Arrays.asList("Knock them off with the stick,", "a golden apple to last, ladders",
+                    "to climb; the Wooden Pickaxe."), Arrays.asList("stone_sword", "wooden_pickaxe", "golden_apple", "ladder 8",
+                    "stick"))));
 
     final String name;
     final Material icon;

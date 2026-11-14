@@ -48,7 +48,7 @@ import org.bukkit.scheduler.BukkitTask;
  * killing every attacker, or by holding {@value #ROUND_SECONDS} seconds. The first side to
  * {@value #WINS} rounds wins. Main thread only.
  */
-final class AttackDefenseGame extends BedwarsGame {
+final class AttackDefenseGame extends BedwarsGame implements KitMenu.Chooser {
 
     /** The rounds a side wins the game with. */
     static final int WINS = 3;
@@ -283,7 +283,7 @@ final class AttackDefenseGame extends BedwarsGame {
      * holding the same item there, or a sword, a pickaxe, an axe of another tier), else where
      * their Hypixel hotbar wants it.
      */
-    private static void putKitItem(Player player, Gamer gamer, ItemStack[] layout, ItemStack item,
+    static void putKitItem(Player player, Gamer gamer, ItemStack[] layout, ItemStack item,
             ShopItem.Category category) {
         PlayerInventory inventory = player.getInventory();
         if (layout != null) {
@@ -315,7 +315,8 @@ final class AttackDefenseGame extends BedwarsGame {
     // --- The kits menu --------------------------------------------------------------------------
 
     /** Opens the menu of the kits of the player's role this round; false if they do not play. */
-    boolean openKitMenu(Player player) {
+    @Override
+    public boolean openKitMenu(Player player) {
         Gamer gamer = gamers.get(player.getUniqueId());
         if (gamer == null || host.gameOf(gamer.id) != this || phase == Phase.ENDED) {
             return false;
@@ -330,7 +331,8 @@ final class AttackDefenseGame extends BedwarsGame {
      * once; during the round, from their next round of that role. Everyone ready: the countdown
      * goes on from {@value #READY_COUNTDOWN} seconds.
      */
-    void chooseKit(Player player, boolean attack, int index) {
+    @Override
+    public void chooseKit(Player player, boolean attack, int index) {
         Gamer gamer = gamers.get(player.getUniqueId());
         if (gamer == null || host.gameOf(gamer.id) != this || phase == Phase.ENDED
                 || index < 0 || index >= settings.roundKits(attack).size()) {

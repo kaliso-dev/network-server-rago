@@ -120,6 +120,8 @@ final class BedwarsHost implements MatchHost, Listener {
     private final MapDraw draw = new MapDraw(new java.util.Random());
     /** The kit each player last chose in Attack and Defense, for the attack and for the defense. */
     private final Map<UUID, int[]> roundKits = new HashMap<>();
+    /** The kit each player chose for the attacker of the Bed Break Simulator, by its index (the first by default). */
+    private final Map<UUID, Integer> bedBreakKits = new HashMap<>();
     private boolean warnedNoMap;
 
     BedwarsHost(RagoBedwars plugin) {
@@ -281,6 +283,8 @@ final class BedwarsHost implements MatchHost, Listener {
                 return new LobbyFightGame(plugin, this, instance, mode.id(), name, sides);
             case LOBBY_FIGHT_FFA:
                 return new FfaGame(plugin, this, instance, mode.id(), name, sides, false, true);
+            case BED_BREAK:
+                return new BedBreakGame(plugin, this, instance, mode.id(), name, sides);
             default:
                 return new BedwarsGame(plugin, this, instance, mode.id(), name, sides);
         }
@@ -433,6 +437,16 @@ final class BedwarsHost implements MatchHost, Listener {
             roundKits.put(player, chosen);
         }
         chosen[attack ? 0 : 1] = index;
+    }
+
+    /** The attack kit this player last chose in the Bed Break Simulator: 0, the first, at first. */
+    int bedBreakKit(UUID player) {
+        Integer chosen = bedBreakKits.get(player);
+        return chosen == null ? 0 : chosen;
+    }
+
+    void chooseBedBreakKit(UUID player, int index) {
+        bedBreakKits.put(player, index);
     }
 
     /** The player no longer belongs to their game. */

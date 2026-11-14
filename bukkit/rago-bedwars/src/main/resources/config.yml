@@ -38,6 +38,7 @@ modes:
   top-bed-fight-1v1: [TopBedFight]
   lobby-fight-1v1: [ArchwayFFA]
   lobby-fight-ffa: [ArchwayFFA]
+  bed-break-simulator: [Archway, Invasion]
 
 # The modes that are not a classic Bed Wars game, each with its kind of game:
 #   ffa        free for all, open: players join and leave when they like, each for themselves, and
@@ -95,6 +96,13 @@ modes:
 #              dead a few blocks under its floor, the blocks in the lobby only
 #   lobby-fight-ffa  Lobby Fight FFA: the FFA in the waiting lobby (12 players at most), its kit,
 #              each life somewhere on its floor away from the others
+#   bed-break  Bed Break Simulator: 2 to 5 players on the map chosen, rounds of 3 minutes, the two
+#              opposite islands linked by a top bridge; each player in turn attacks from the middle
+#              of the top bridge with one life and the kit they choose (see bed-break: below), and
+#              wins the round only by breaking the bed; the others defend it (4 at most) with no kit,
+#              their forge full and their item shop, the bed under the owner's duo defense, back 5
+#              seconds after a death; everyone in iron armour, Protection II, no Sharpness; a bed
+#              broken or the attacker killed gives a point; it starts 10 seconds after the second joins
 # A mode not listed is a classic game.
 jeux:
   top-bridge-1v1: top-bridge
@@ -114,6 +122,7 @@ jeux:
   top-bed-fight-1v1: top-bed-fight
   lobby-fight-1v1: lobby-fight
   lobby-fight-ffa: lobby-fight-ffa
+  bed-break-simulator: bed-break
 
 # Attack and Defense: the kits each player chooses from before each round, in a menu that opens by
 # itself (/kit opens it again); the countdown is 10 seconds, 3 once everyone has chosen. The
@@ -154,6 +163,29 @@ attaque-defense:
       icone: ENDER_STONE
       description: ["End stone and wool to build", "the defense up again as they", "break it; shears for good."]
       objets: ["end_stone 24", "wool 32", shears]
+
+# Bed Break Simulator: the kits the attacker chooses from before each of their rounds, in a menu
+# that opens by itself (/kit opens it again, also to choose the kit of a next attack while
+# defending); the countdown is 5 seconds, 2 once the attacker has chosen. The attacker wears iron
+# armour; a kit without a sword gets the wooden one. Each kit: nom, icone (an item), description
+# (4 lines at most), objets: the items of the item shop by their id, with their amount (as in
+# attaque-defense: above). From 1 to 7 kits; without kits:, these three. protection: the Protection
+# level on the armour of everyone, from 0 to 4 (2 by default); no Sharpness.
+bed-break:
+  protection: 2
+  kits:
+    - nom: Classic
+      icone: GOLD_PICKAXE
+      description: ["The Golden Pickaxe (tier III)", "digs the end stone fast:", "two stacks to bridge in."]
+      objets: [stone_sword, golden_pickaxe, "wool 64", "wool 64"]
+    - nom: Fireball
+      icone: FIREBALL
+      description: ["A fireball to blow the wool and", "knock a defender off, the", "Iron Pickaxe (tier II), two stacks."]
+      objets: [stone_sword, fireball, iron_pickaxe, "wool 64", "wool 64"]
+    - nom: Fighter
+      icone: STICK
+      description: ["Knock them off with the stick,", "a golden apple to last, ladders", "to climb; the Wooden Pickaxe."]
+      objets: [stone_sword, wooden_pickaxe, golden_apple, "ladder 8", stick]
 
 # How many game worlds the server keeps at most, so how many games at once (from 1 to 50).
 parties-max: 8
@@ -212,7 +244,8 @@ shops-partout: [ranked-1v1, ranked-2v2, ranked-3v3, ranked-4v4, first-rush-full,
 #              fer-secondes-par-noeud and or-secondes. The RBW queue has slower forges than a
 #              Hypixel 4v4: 60 iron and 8 gold a minute in 1v1 (lente, one node more on its maps),
 #              90 iron and 12 gold in 2v2, 3v3 and 4v4 (moyenne), not 120. Sky Rise Resources, where
-#              every island's forge goes, has slow ones: 40 iron and 5 gold a minute each.
+#              every island's forge goes, has slow ones: 40 iron and 5 gold a minute each. The Bed
+#              Break Simulator has the forge of the RBW queue in 2v2 to 4v4 (moyenne).
 forge:
   fer-secondes-par-noeud: 2
   fer-par-lot: [2]
@@ -235,6 +268,7 @@ forge:
     ranked-2v2: {vitesse: moyenne}
     ranked-3v3: {vitesse: moyenne}
     ranked-4v4: {vitesse: moyenne}
+    bed-break-simulator: {vitesse: moyenne}
     skyrise-resources-1v1: {vitesse: lente, fer-secondes-par-noeud: 1.5, or-secondes: 12}
     skyrise-resources-2v2: {vitesse: lente, fer-secondes-par-noeud: 1.5, or-secondes: 12}
 
