@@ -1167,14 +1167,16 @@ modes:
     equipes: 1
     joueurs-par-equipe: 1
     classe: false
-    # a stone sword and 3 fireballs, nothing more (no blocks, no pearl, no golden apples), with
-    # the red leather of the FFA
-    kit: [STONE_SWORD, "FIREBALL 3"]
+    # a stone sword, 5 golden apples (each kill brings them back to 5) and 3 fireballs, nothing
+    # more (no blocks, no pearl), with the red leather of the FFA
+    kit: [STONE_SWORD, "GOLDEN_APPLE 5", "FIREBALL 3"]
     description:
       - "The FFA in the waiting lobby of"
-      - "Archway FFA, a sword and 3"
-      - "fireballs: come and go when you"
-      - "like, fall out of it and you die."
+      - "Archway FFA, a sword, 5 golden"
+      - "apples (back to 5 at each kill)"
+      - "and 3 fireballs: come and go"
+      - "when you like, fall out of it"
+      - "and you die."
   free-ffa:
     nom: "&cArena Free"
     categorie: arenes
