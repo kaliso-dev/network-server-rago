@@ -95,7 +95,8 @@ modes:
 #              has one): the two players face to face across its middle, the kit of the FFA (ffa:
 #              in the lobby's config.yml, as each player arranged it) with diamond leggings and boots,
 #              dead a few blocks under its floor, the blocks in the lobby only
-#   lobby-fight-ffa  Lobby Fight FFA: the FFA in the waiting lobby (12 players at most), its kit,
+#   lobby-fight-ffa  Lobby Fight FFA: the FFA in the waiting lobby (12 players at most), with
+#              its own kit (lobby-fight-ffa: in the lobby's config.yml: a sword and 3 fireballs),
 #              each life somewhere on its floor away from the others
 #   bed-break  Bed Break Simulator: 2 to 5 players on the map chosen, rounds of 3 minutes, the two
 #              opposite islands linked by a top bridge; each player in turn attacks from the middle
