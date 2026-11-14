@@ -1,7 +1,8 @@
 /**
- * The six modes the site puts first: each puts the player in one precise moment of a real game.
+ * The six modes the site puts first: the block placement duel and trainings, and the two moments of
+ * a real Ranked Bedwars game that the server made into modes.
  * Every line here was read in the code of the plugins (the class named in `source`); the numbers
- * come from the game data, so that a change in the game changes the site. tests/unit/flagship.test.ts
+ * come from the game data, so that a change in the game changes the site. tests/unit/mc-art.test.ts
  * checks that every mode named exists and that the classes are still there.
  */
 import { categoryOf, game, modeOf, type Mode } from './game';
@@ -35,13 +36,149 @@ const formats = (ids: string[]): string => {
 };
 
 const ad = game.attackDefense;
-const levels = game.comboBot.levels;
-const firstLevel = levels[0];
-const lastLevel = levels[levels.length - 1];
-const kbTarget = game.pointsToWin['kb-displace'];
+const bp = game.blockPlacement;
+const blockTarget = game.pointsToWin['block-fight'];
 const editTarget = game.pointsToWin['block-edit'];
+const { knockback, hits, presets } = bp.clutch;
+
+const list = (names: string[]): string =>
+  names.length <= 1 ? (names[0] ?? '') : `${names.slice(0, -1).join(', ')} or ${names[names.length - 1]}`;
 
 export const FLAGSHIPS: Flagship[] = [
+  {
+    slug: 'block-placement',
+    name: 'Block placement',
+    modes: ['block-fight-1v1', 'block-fight-2v2', 'block-fight-arena'],
+    icon: 'SANDSTONE',
+    skin: 'blocs',
+    category: 'duels',
+    where: 'Compass, Duels, Block placement (the arena is in Arenas)',
+    hook: `Every hit is a point. The void is worth ${bp.voidBonus}.`,
+    summary: `Build, clutch, break their blocks and knock them off, on the block placement maps of the server. A hit does no damage, only its knockback: each one you land is a point, and each player you send into the void gives your side ${bp.voidBonus}.`,
+    steps: [
+      {
+        title: 'The kit',
+        text: 'A wooden sword, a pickaxe and an axe, shears, two stacks of wool, end stone and ladders, in Protection IV armour. Arrange it once in the kit editor.',
+      },
+      {
+        title: 'Every hit is a point',
+        text: 'A hit does no damage, only its knockback: each one you land on the other side scores. Your hearts show their score: full at 0, fewer as they near the win, and none comes back by itself.',
+      },
+      {
+        title: 'The void',
+        text: `Knock a player off and your side scores ${bp.voidBonus}. They are back on their gold block at once, with their kit whole again; the others fight on, and the blocks stay.`,
+      },
+      {
+        title: blockTarget ? `First to ${blockTarget}` : 'The arena',
+        text: `${blockTarget ? `The first side to ${blockTarget} points wins. ` : ''}In the arena, come and go when you like, with everyone: wool that never runs out, and blocks that crack and break after ${bp.arenaBlockSeconds} seconds.`,
+      },
+    ],
+    facts: [
+      { label: 'Formats', value: formats(['block-fight-1v1', 'block-fight-2v2', 'block-fight-arena']) },
+      { label: 'A hit', value: 'A point, no damage' },
+      { label: 'A fall', value: `${bp.voidBonus} points to the other side` },
+      { label: 'To win', value: blockTarget ? `${blockTarget} points` : 'The most points' },
+    ],
+    source: 'BlockFight, BlockArena',
+  },
+  {
+    slug: 'block-clutch',
+    name: 'Block clutch',
+    modes: ['clutch', 'clutch-top-fight'],
+    icon: 'LADDER',
+    skin: null,
+    category: 'entrainement',
+    where: 'Compass, Practice, Block clutch',
+    hook: 'A hit throws you off. Your wool saves you.',
+    summary:
+      'You stand at the edge of a Bed Wars island, its bed and defense beside you, and a hit sends you over the void: place your wool and catch yourself. Each clutch is measured in blocks, and the biggest of the week are on a board everyone sees.',
+    steps: [
+      {
+        title: 'Set the hit',
+        text: `From the hotbar: knockback ${knockback.min} to ${knockback.max}, ${hits.min} to ${hits.max} hits in a row, a knockback stick, a random side. Or a preset: ${list(presets)}.`,
+      },
+      {
+        title: 'Clutch',
+        text: 'Place your wool before the void takes you. Saved, you are back at the start in under a second, and the next hit comes.',
+      },
+      {
+        title: 'Measured',
+        text: 'Each clutch has a size: how far the hit threw you before you caught yourself, in blocks.',
+      },
+      {
+        title: 'The biggest of the week',
+        text: 'The sidebar and a board above each island show the biggest clutches of the week. On Monday, the top 3 win Rago Points.',
+      },
+    ],
+    facts: [
+      { label: 'Players', value: 'Solo, the others clutching beside you' },
+      { label: 'The hit', value: `Knockback ${knockback.min} to ${knockback.max}, ${hits.min} to ${hits.max} hits` },
+      { label: 'Score', value: 'Your streak, and your biggest clutch' },
+      { label: 'Where', value: 'A Bed Wars island, or a top fight' },
+    ],
+    source: 'ClutchTraining',
+  },
+  {
+    slug: 'block-extend',
+    name: 'Block extend',
+    modes: ['block-extend'],
+    icon: 'WOOL',
+    skin: null,
+    category: 'entrainement',
+    where: 'Compass, Practice, Block extend',
+    hook: 'Take the hit on the bridge. Turn, and save yourself.',
+    summary:
+      'As in a real bed fight: you stand at an exact place of a bridge, frozen until the hit lands, then turn and save yourself with your wool. Three levels, each with its own hit and its own way back.',
+    steps: [
+      {
+        title: 'Frozen until the hit',
+        text: 'You can neither move nor turn before it lands, and it always comes along the same line: as in a fight, you turn first.',
+      },
+      { title: 'Gold', text: 'A big, high hit from the front throws you straight back: clutch.' },
+      { title: 'Diamond', text: 'A sprint hit from the right: turn to the bridge and extend along it.' },
+      {
+        title: 'Emerald',
+        text: 'From the end of the bridge, a long, low hit from the front: clutch on the blocks below.',
+      },
+    ],
+    facts: [
+      { label: 'Players', value: 'Solo' },
+      { label: 'Levels', value: 'Gold, Diamond, Emerald' },
+      { label: 'Score', value: 'A streak for each level' },
+      { label: 'The kit', value: 'Wool, and ladders if you like' },
+    ],
+    source: 'BlockExtendTraining',
+  },
+  {
+    slug: 'block-edit',
+    name: 'Block edit',
+    modes: ['block-edit', 'block-edit-duel'],
+    icon: 'SHEARS',
+    skin: null,
+    category: 'entrainement',
+    where: 'Compass, Practice, Block edit (the 1v1 is in Duels)',
+    hook: 'Open, hit, close. Before they hit back.',
+    summary:
+      'A wall of wool between you and the other side. Break a block, hit through the hole, and put the block back before the hit comes back.',
+    steps: [
+      { title: 'Open', text: 'Break a block of the wall of wool.' },
+      { title: 'Hit', text: 'Hit through the hole: the bot, or the other player.' },
+      { title: 'Close', text: 'Put a block back in the wall before they hit you.' },
+      {
+        title: 'Score',
+        text: editTarget
+          ? `Against the bot, each clean edit adds to your streak. In the 1v1, a clean edit is a point, and a hit back first takes it away: first to ${editTarget}.`
+          : 'Against the bot, each clean edit adds to your streak. In the 1v1, a clean edit is a point, and a hit back first takes it away.',
+      },
+    ],
+    facts: [
+      { label: 'Formats', value: 'Solo against a bot, or 1v1' },
+      { label: 'The bot', value: 'Hits from three blocks, once it sees the hole' },
+      { label: 'Its speed', value: 'Set from the hotbar' },
+      { label: 'Damage', value: 'None, only knockback' },
+    ],
+    source: 'BlockEditTraining, BlockEditDuel',
+  },
   {
     slug: 'clutch-scenario',
     name: 'Clutch scenario',
@@ -115,149 +252,6 @@ export const FLAGSHIPS: Flagship[] = [
       { label: 'Armour', value: `Protection ${['0', 'I', 'II', 'III', 'IV'][ad.protection] ?? ad.protection} on both sides` },
     ],
     source: 'AttackDefenseGame',
-  },
-  {
-    slug: 'invis-practice',
-    name: 'Invis practice',
-    modes: ['invis-practice'],
-    icon: 'POTION',
-    skin: 'invis',
-    category: 'ranked',
-    where: 'Compass, RBW Modes, Invis practice',
-    hook: 'Find the invisible attacker before your bed falls.',
-    summary:
-      'Rounds of three minutes on the RBW maps. One player attacks from mid, invisible, without a name above the head. The others defend the bed and read the footprints and the swirls of the potion: a hit makes the attacker visible for the rest of the round.',
-    steps: [
-      {
-        title: 'Attack, unseen',
-        text: 'From mid, facing the bed, with an invisibility potion for the whole round, Jump V, a fireball, Bridge Eggs and wool.',
-      },
-      {
-        title: 'Defend, by sight',
-        text: 'Footprints on the ground and the swirls of the potion give the attacker away. One hit, and they are visible.',
-      },
-      {
-        title: 'One life to break it',
-        text: 'The attacker wins by breaking the bed. The defenders, by killing the attacker or holding three minutes; a defender is back three seconds after a death.',
-      },
-      {
-        title: 'Everyone attacks',
-        text: 'Each player attacks in turn. A bed broken or an attacker killed is a point: the most points win.',
-      },
-    ],
-    facts: [
-      { label: 'Players', value: '2 to 6' },
-      { label: 'A round', value: '3 minutes' },
-      { label: 'Maps', value: 'The 20 RBW maps' },
-      { label: 'Defenders', value: 'Four at most' },
-    ],
-    source: 'InvisGame',
-  },
-  {
-    slug: 'combo-bot',
-    name: 'Combo bot',
-    modes: ['combo-bot'],
-    icon: 'SKULL_ITEM',
-    skin: null,
-    category: 'entrainement',
-    where: 'Compass, Practice, Combo bot',
-    hook: 'A bot that fights like a 1.8 player.',
-    summary:
-      'It sprints at you, strafes, w-taps and jump resets, with a player’s physics and a player’s knockback. The hits hurt no one, only their knockback counts: your score is your longest combo.',
-    steps: [
-      {
-        title: 'Pick a level',
-        text: firstLevel && lastLevel ? `${levels.map((level) => level.name).join(', ')}: from ${firstLevel.cps} to ${lastLevel.cps} clicks a second.` : '',
-      },
-      {
-        title: 'It plays as a player',
-        text: 'It sprints at you, strafes once close and steers towards where you were a few ticks ago: its reaction time.',
-      },
-      {
-        title: 'Combo it',
-        text: 'A combo is your hits in a row before it hits back, or two seconds without a hit.',
-      },
-      {
-        title: 'Beat your best',
-        text: 'Your longest combo is your score.',
-      },
-    ],
-    facts: [
-      { label: 'Players', value: 'Solo' },
-      { label: 'Levels', value: String(levels.length) },
-      { label: 'Damage', value: 'None, only knockback' },
-      { label: 'Movement', value: 'A 1.8 player’s, tick by tick' },
-    ],
-    source: 'ComboBot, ComboAi',
-  },
-  {
-    slug: 'kb-displace',
-    name: 'KB displace',
-    modes: ['kb-displace', 'kb-displace-bot'],
-    icon: 'STICK',
-    skin: null,
-    category: 'duels',
-    where: 'Compass, Duels, KB displace (the bot is in Practice)',
-    hook: 'Turn your head in the tick of the hit.',
-    summary:
-      'A real Bed Fight top fight: a bridge one block wide, the defender on top of the defense. Run along the bridge and, in the tick of the hit, turn your head to one side: the knockback of the sprint sends them off sideways.',
-    steps: [
-      {
-        title: 'Run the bridge',
-        text: 'Invisible walls keep you in the middle of the bridge: the hit comes from the front, never from a side.',
-      },
-      {
-        title: 'Turn in the tick',
-        text: 'Turn your head to one side as you hit: the sprint pushes the defender off the top.',
-      },
-      {
-        title: 'Only a fair hit counts',
-        text: 'A hit with the head turned away from the defender, which only a cheat lands, does not count.',
-      },
-      {
-        title: 'Swap',
-        text: kbTarget
-          ? `Each hit is one attempt and the roles swap, or after 15 seconds without one. First to ${kbTarget}.`
-          : 'Each hit is one attempt and the roles swap, or after 15 seconds without one.',
-      },
-    ],
-    facts: [
-      { label: 'Formats', value: '1v1, or solo against a bot' },
-      { label: 'An attempt', value: '15 seconds at most' },
-      { label: 'Against the bot', value: 'Your time, and your tries' },
-      { label: 'Damage', value: 'None, no blocks' },
-    ],
-    source: 'KbDisplace, KbDisplaceBot',
-  },
-  {
-    slug: 'block-edit',
-    name: 'Block edit',
-    modes: ['block-edit', 'block-edit-duel'],
-    icon: 'SHEARS',
-    skin: null,
-    category: 'entrainement',
-    where: 'Compass, Practice, Block edit (the 1v1 is in Duels)',
-    hook: 'Open, hit, close. Before they hit back.',
-    summary:
-      'A wall of wool between you and the other side. Break a block, hit through the hole, and put the block back before the hit comes back.',
-    steps: [
-      { title: 'Open', text: 'Break a block of the wall of wool.' },
-      { title: 'Hit', text: 'Hit through the hole: the bot, or the other player.' },
-      { title: 'Close', text: 'Put a block back in the wall before they hit you.' },
-      {
-        title: 'Score',
-        text: editTarget
-          ? `Against the bot, each clean edit adds to your streak. In the 1v1, a clean edit is a point, and a hit back first takes it away: first to ${editTarget}.`
-          : 'Against the bot, each clean edit adds to your streak. In the 1v1, a clean edit is a point, and a hit back first takes it away.',
-      },
-    ],
-    facts: [
-      { label: 'Formats', value: 'Solo against a bot, or 1v1' },
-      { label: 'The bot', value: 'Hits from three blocks, once it sees the hole' },
-      { label: 'Its speed', value: 'Set from the hotbar' },
-      { label: 'Damage', value: 'None, only knockback' },
-    ],
-    source: 'BlockEditTraining, BlockEditDuel',
   },
 ];
 

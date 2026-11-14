@@ -7,6 +7,8 @@ import styles from './SiteHeader.module.css';
 /** The parts of the site, in the order of the hotbar (Hotbar.tsx), for the footer and the header. */
 export const NAV = [
   { href: '/modes', label: 'Game modes' },
+  { href: '/#blocks', label: 'Block placement' },
+  { href: '/#private', label: 'Private games' },
   { href: '/#join', label: 'How to join' },
   { href: '/#combat', label: 'Combat' },
   { href: '/#ranked', label: 'Ranked' },

@@ -26,7 +26,6 @@ export function ItemMenu({
   columns = 9,
   initial,
   label,
-  side = false,
 }: {
   title: string;
   items: MenuItem[];
@@ -35,8 +34,6 @@ export function ItemMenu({
   initial?: string;
   /** What a screen reader hears of the slots: "Pick a cosmetic". */
   label: string;
-  /** On a wide screen, the detail sits beside the menu rather than under it. */
-  side?: boolean;
 }) {
   const [picked, setPicked] = useState<string | undefined>(initial);
   const [hovered, setHovered] = useState<string | null>(null);
@@ -46,7 +43,7 @@ export function ItemMenu({
   const cells = rows * columns;
 
   return (
-    <div className={styles.menu} data-side={side || undefined}>
+    <div className={styles.menu}>
       <div className="gui" style={{ '--columns': columns } as CSSProperties}>
         <p className="gui__title">{title}</p>
         <ul className="gui__slots" aria-label={label}>

@@ -60,7 +60,7 @@ test.describe('accessibility', () => {
   test('the hotbar leads to the parts of the site, with the keys 1 to 9 once it has the focus', async ({ page }) => {
     await page.goto(SOON);
     const hotbar = page.getByRole('navigation', { name: 'Main' });
-    await expect(hotbar.getByRole('link')).toHaveCount(7);
+    await expect(hotbar.getByRole('link')).toHaveCount(9);
     // the keys do nothing while the focus is elsewhere: a player typing on the page is not sent away
     await page.keyboard.press('4');
     await expect(page).toHaveURL(`${SOON}/`);
@@ -71,7 +71,7 @@ test.describe('accessibility', () => {
     await expect(hotbar.getByRole('link', { name: 'Game modes' })).toHaveAttribute('aria-current', 'page');
   });
 
-  for (const path of ['/', '/modes', '/modes/combo-bot']) {
+  for (const path of ['/', '/modes', '/modes/block-placement']) {
     test(`nothing moves on ${path} when reduced motion is asked for`, async ({ browser }) => {
       const context = await browser.newContext({ reducedMotion: 'reduce' });
       const page = await context.newPage();
