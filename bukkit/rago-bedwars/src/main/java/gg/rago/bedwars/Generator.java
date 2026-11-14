@@ -128,6 +128,16 @@ final class Generator {
         unclaimed += amount;
     }
 
+    /** Where it drops its items. */
+    Location spot() {
+        return spot.clone();
+    }
+
+    /** What it drops. */
+    Material material() {
+        return material;
+    }
+
     /** True if this item lying on the ground is one it dropped (with what merged into it). */
     boolean made(Item item) {
         return dropped.contains(item);
