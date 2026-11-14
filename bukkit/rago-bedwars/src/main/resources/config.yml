@@ -25,7 +25,10 @@ modes:
   first-rush-full-duo: [Acropolis, Ambush, Aqil, Cascade, Crogorm, Frosted, Gelato, Lighthouse, Lotus, Nebuc]
   top-bridge-ffa: [Invasion]
   ffa: [ArchwayFFA]
-  invis-practice: [Antenna, Aquarium, Archway, Artemis, Boletum, Carapace, Catalyst, Chained, Eastwood, Extinction, Invasion, Katsu, Lectus, Obelisk, Paladin, Planet98, Rise, Stonekeep, Swashbuckle, Treenan]
+  invis-practice-1v1: [Antenna, Aquarium, Archway, Artemis, Boletum, Carapace, Catalyst, Chained, Eastwood, Extinction, Invasion, Katsu, Lectus, Obelisk, Paladin, Planet98, Rise, Stonekeep, Swashbuckle, Treenan]
+  invis-practice-1v2: [Antenna, Aquarium, Archway, Artemis, Boletum, Carapace, Catalyst, Chained, Eastwood, Extinction, Invasion, Katsu, Lectus, Obelisk, Paladin, Planet98, Rise, Stonekeep, Swashbuckle, Treenan]
+  invis-practice-1v3: [Antenna, Aquarium, Archway, Artemis, Boletum, Carapace, Catalyst, Chained, Eastwood, Extinction, Invasion, Katsu, Lectus, Obelisk, Paladin, Planet98, Rise, Stonekeep, Swashbuckle, Treenan]
+  invis-practice-1v4: [Antenna, Aquarium, Archway, Artemis, Boletum, Carapace, Catalyst, Chained, Eastwood, Extinction, Invasion, Katsu, Lectus, Obelisk, Paladin, Planet98, Rise, Stonekeep, Swashbuckle, Treenan]
   shop-practice: [Archway]
   attack-defense-1v1: [BioHazard]
   attack-defense-2v2: [BioHazard]
@@ -38,7 +41,10 @@ modes:
   top-bed-fight-1v1: [TopBedFight]
   lobby-fight-1v1: [ArchwayFFA]
   lobby-fight-ffa: [ArchwayFFA]
-  bed-break-simulator: [Archway, Invasion]
+  bed-break-simulator-1v1: [Archway, Invasion]
+  bed-break-simulator-1v2: [Archway, Invasion]
+  bed-break-simulator-1v3: [Archway, Invasion]
+  bed-break-simulator-1v4: [Archway, Invasion]
 
 # The modes that are not a classic Bed Wars game, each with its kind of game:
 #   ffa        free for all, open: players join and leave when they like, each for themselves, and
@@ -51,10 +57,12 @@ modes:
 #              Wars, on each bed a defense of three layers ready for top fights, and 3 seconds
 #              before a new life (no mode plays it now: Arena Free, free-ffa, is on the owner's
 #              Arena, in the practice plugin)
-#   invis      invis practice: 2 to 6 players on the map chosen, rounds of 3 minutes, one invisible
-#              (the mode's kit), at mid in front of the base to attack, against the others (a
-#              ranked defense on their bed without its wool: end stone, glass, wood); a hit makes the
-#              invisible visible; each player in turn; it starts 10 seconds after the second joins
+#   invis      invis practice: 1v1 to 1v4 (its size in the lobby's config.yml: one team of 2 to 5
+#              players), on the map chosen, rounds of 3 minutes, one invisible (the mode's kit), at
+#              mid in front of the base to attack, against the others (a ranked defense on their
+#              bed without its wool: end stone, glass, wood); a hit makes the invisible visible;
+#              each player in turn; it starts as soon as its players are in (a mode of one player:
+#              open, 2 to 5 players, 10 seconds after the second joins)
 #   top-bridge Top Bridge: no bed, no forge, the fight on the top bridge alone (see top-bridge:
 #              below), everyone starting on top with the mode's kit and iron armour, dead when
 #              they fall off it; rounds of one life, the first team to 5 points wins (a party
@@ -99,20 +107,24 @@ modes:
 #              its own kit (lobby-fight-ffa: in the lobby's config.yml: a sword, 5 golden apples
 #              that each kill brings back to 5, and 3 fireballs), each life somewhere on its floor
 #              away from the others
-#   bed-break  Bed Break Simulator: 2 to 5 players on the map chosen, rounds of 3 minutes, the two
+#   bed-break  Bed Break Simulator: 1v1 to 1v4 (2 to 5 players, as the invis practice), on the
+#              map chosen, rounds of 3 minutes, the two
 #              opposite islands linked by a top bridge; each player in turn attacks from the middle
 #              of the top bridge with one life and the kit they choose (see bed-break: below), and
 #              wins the round only by breaking the bed; the others defend it (4 at most) with no kit,
 #              their forge full and their item shop, the bed under the owner's duo defense, back 5
 #              seconds after a death; everyone in iron armour, Protection II, no Sharpness; a bed
-#              broken or the attacker killed gives a point; it starts 10 seconds after the second joins
+#              broken or the attacker killed gives a point; it starts as the invis practice
 # A mode not listed is a classic game.
 jeux:
   top-bridge-1v1: top-bridge
   top-bridge-2v2: top-bridge
   top-bridge-ffa: ffa
   ffa: ffa
-  invis-practice: invis
+  invis-practice-1v1: invis
+  invis-practice-1v2: invis
+  invis-practice-1v3: invis
+  invis-practice-1v4: invis
   shop-practice: fast-shop
   attack-defense-1v1: attaque-defense
   attack-defense-2v2: attaque-defense
@@ -125,7 +137,10 @@ jeux:
   top-bed-fight-1v1: top-bed-fight
   lobby-fight-1v1: lobby-fight
   lobby-fight-ffa: lobby-fight-ffa
-  bed-break-simulator: bed-break
+  bed-break-simulator-1v1: bed-break
+  bed-break-simulator-1v2: bed-break
+  bed-break-simulator-1v3: bed-break
+  bed-break-simulator-1v4: bed-break
 
 # Attack and Defense: the kits each player chooses from before each round, in a menu that opens by
 # itself (/kit opens it again); the countdown is 10 seconds, 3 once everyone has chosen. The
@@ -274,7 +289,10 @@ forge:
     ranked-2v2: {vitesse: moyenne}
     ranked-3v3: {vitesse: moyenne}
     ranked-4v4: {vitesse: moyenne}
-    bed-break-simulator: {vitesse: moyenne}
+    bed-break-simulator-1v1: {vitesse: moyenne}
+    bed-break-simulator-1v2: {vitesse: moyenne}
+    bed-break-simulator-1v3: {vitesse: moyenne}
+    bed-break-simulator-1v4: {vitesse: moyenne}
     skyrise-resources-1v1: {vitesse: lente, fer-secondes-par-noeud: 1.5, or-secondes: 12}
     skyrise-resources-2v2: {vitesse: lente, fer-secondes-par-noeud: 1.5, or-secondes: 12}
 

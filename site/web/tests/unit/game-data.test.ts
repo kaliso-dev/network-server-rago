@@ -92,7 +92,14 @@ describe('the game data', () => {
           (id.startsWith('event-') && events.includes(`("${id.slice('event-'.length)}",`));
     // a private game plays the modes of its list, with the party
     const privateGames: Record<string, string[]> = lobby['parties-privees'] ?? {};
-    expect(game.modes.map((mode) => mode.id).sort()).toEqual(Object.keys(lobby.modes).sort());
+    // a mode whose kit others play (kit-de:) only holds that kit: hidden, not a mode of the site
+    const configModes: Record<string, Record<string, unknown>> = lobby.modes;
+    const kitHolders = new Set(Object.values(configModes).map((mode) => mode['kit-de']).filter(Boolean));
+    for (const id of kitHolders) {
+      expect(configModes[String(id)]?.cache, `${String(id)} holds a kit`).toBe(true);
+    }
+    const shown = Object.keys(configModes).filter((id) => !kitHolders.has(id));
+    expect(game.modes.map((mode) => mode.id).sort()).toEqual(shown.sort());
     for (const mode of game.modes) {
       expect(mode.plugins, mode.id).toHaveLength(1);
       const plugin = mode.plugins[0]!;

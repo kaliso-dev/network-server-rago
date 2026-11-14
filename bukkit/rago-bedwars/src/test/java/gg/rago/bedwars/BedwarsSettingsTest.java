@@ -78,14 +78,22 @@ class BedwarsSettingsTest {
         BedwarsSettings settings = BedwarsSettings.read(bundled());
         assertEquals(Arrays.asList("ranked-1v1", "ranked-2v2", "ranked-3v3", "ranked-4v4", "top-bridge-1v1",
                 "top-bridge-2v2", "skyrise-1v1", "skyrise-2v2", "skyrise-resources-1v1", "skyrise-resources-2v2",
-                "first-rush", "first-rush-duo", "first-rush-full", "first-rush-full-duo", "top-bridge-ffa", "ffa", "invis-practice", "shop-practice",
+                "first-rush", "first-rush-duo", "first-rush-full", "first-rush-full-duo", "top-bridge-ffa", "ffa",
+                "invis-practice-1v1", "invis-practice-1v2", "invis-practice-1v3", "invis-practice-1v4", "shop-practice",
                 "attack-defense-1v1", "attack-defense-2v2", "clutch-scenario-1v1", "clutch-scenario-2v2",
                 "clutch-scenario-3v3", "clutch-scenario-4v4", "bed-fight-1v1", "bed-fight-2v2", "top-bed-fight-1v1",
-                "lobby-fight-1v1", "lobby-fight-ffa", "bed-break-simulator"),
+                "lobby-fight-1v1", "lobby-fight-ffa", "bed-break-simulator-1v1", "bed-break-simulator-1v2",
+                "bed-break-simulator-1v3", "bed-break-simulator-1v4"),
                 settings.modes());
-        assertEquals(BedwarsSettings.Kind.BED_BREAK, settings.kind("bed-break-simulator"));
-        assertEquals(Arrays.asList("Archway", "Invasion"), settings.mapsOf("bed-break-simulator"));
-        assertFalse(settings.topBridge("bed-break-simulator"), "its top bridge is its own, not the Top Bridge modes'");
+        for (int defenders = 1; defenders <= 4; defenders++) {
+            String size = "bed-break-simulator-1v" + defenders;
+            assertEquals(BedwarsSettings.Kind.BED_BREAK, settings.kind(size), size);
+            assertEquals(Arrays.asList("Archway", "Invasion"), settings.mapsOf(size), size);
+            assertFalse(settings.topBridge(size), "its top bridge is its own, not the Top Bridge modes'");
+            assertEquals(BedwarsSettings.Kind.INVIS, settings.kind("invis-practice-1v" + defenders));
+            assertEquals(settings.mapsOf("ranked-1v1"), settings.mapsOf("invis-practice-1v" + defenders),
+                    "the invis practice on the 20 maps");
+        }
         assertEquals(Arrays.asList("Classic", "Fireball", "Fighter"), kitNames(settings.bedBreakKits()), "the config's kits");
         for (int i = 0; i < RoundKit.BED_BREAK.size(); i++) {
             assertEquals(RoundKit.BED_BREAK.get(i).items, settings.bedBreakKits().get(i).items, "the config gives the defaults");
@@ -105,7 +113,8 @@ class BedwarsSettingsTest {
         assertEquals(BedwarsSettings.Kind.FFA, settings.kind("ffa"));
         assertEquals(BedwarsSettings.Kind.ARENA, BedwarsSettings.Kind.of(" Arene "), "the kind stays for a mode that wants it");
         assertFalse(settings.modes().contains("free-ffa"), "Arena Free is on the owner's Arena, in the practice plugin");
-        assertEquals(BedwarsSettings.Kind.INVIS, settings.kind("invis-practice"));
+        assertEquals(BedwarsSettings.Kind.CLASSIC, settings.kind("invis-practice"),
+                "not a mode of its own any more: its sizes are (it holds their kit in the lobby)");
         assertEquals(BedwarsSettings.Kind.FAST_SHOP, settings.kind("shop-practice"));
         assertEquals(Arrays.asList("ArchwayFFA"), settings.mapsOf("ffa"), "the owner's Archway FFA only: no map to choose");
         assertEquals(BedwarsSettings.Kind.FFA, settings.kind("top-bridge-ffa"), "a free for all...");
@@ -113,7 +122,7 @@ class BedwarsSettingsTest {
         assertEquals(java.util.Collections.singletonList("Invasion"), settings.mapsOf("top-bridge-ffa"),
                 "the free for all on the top bridge of Invasion only");
         assertEquals(settings.mapsOf("ranked-1v1"), settings.mapsOf("top-bridge-1v1"), "the top bridge on the 20 maps");
-        assertEquals(settings.mapsOf("ranked-1v1"), settings.mapsOf("invis-practice"), "the invis practice too");
+        assertEquals(settings.mapsOf("ranked-1v1"), settings.mapsOf("invis-practice-1v4"), "the invis practice too");
         assertEquals(BedwarsSettings.Kind.TOP_BRIDGE, settings.kind("top-bridge-1v1"));
         assertEquals(BedwarsSettings.Kind.TOP_BRIDGE, settings.kind("top-bridge-2v2"));
         assertTrue(settings.mapsOf("top-fight-1v1").isEmpty(), "no top fight: there are bridge fight and top bridge");

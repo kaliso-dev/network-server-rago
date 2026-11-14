@@ -43,19 +43,20 @@ import org.bukkit.scheduler.BukkitTask;
  * attacks in turn, twice each with two or three players. Breaking the bed, or killing the
  * attacker, gives a point; the most points win, the quickest bed between two equal.
  *
- * <p>The game waits for its players on its map: it starts 10 seconds after the second one joins,
- * 3 seconds once five are in. Before each round, the menu of the kits opens for the attacker (/kit
+ * <p>The game waits for its players on its map, who look at it meanwhile: its size chosen in the
+ * lobby (bed-break-simulator-1v1 to -1v4), they come in together and it starts 3 seconds later;
+ * open (a mode queued alone), it starts 10 seconds after the second one joins, 3 seconds once five
+ * are in (see {@link Lineup}). Before each round, the menu of the kits opens for the attacker (/kit
  * opens it again, also to choose the kit of a next attack while defending): the round starts
  * {@value #ROUND_COUNTDOWN} seconds after it is set, {@value #READY_COUNTDOWN} once the attacker
  * has chosen. Main thread only.
  */
 final class BedBreakGame extends BedwarsGame implements KitMenu.Chooser {
 
-    static final int MIN_PLAYERS = 2;
+    static final int MIN_PLAYERS = Lineup.MIN_PLAYERS;
+    /** At most one attacker and four defenders: 1v4. */
     static final int MAX_PLAYERS = 5;
     static final int ROUND_SECONDS = 180;
-    private static final int WAIT_SECONDS = 10;
-    private static final int FULL_WAIT_SECONDS = 3;
     /** The countdown of a round: the time for the attacker to choose their kit. */
     static final int ROUND_COUNTDOWN = 5;
     /** The countdown once the attacker has chosen. */
@@ -71,6 +72,8 @@ final class BedBreakGame extends BedwarsGame implements KitMenu.Chooser {
 
     private final Team defenders;
     private final Team attackers;
+    /** Its size (1v1 to 1v4), or open. */
+    private final Lineup lineup;
     /** The attacker of each round, in turn. */
     private final List<UUID> order = new ArrayList<>();
     private final Map<UUID, Integer> points = new HashMap<>();
@@ -83,9 +86,11 @@ final class BedBreakGame extends BedwarsGame implements KitMenu.Chooser {
     private BukkitTask waiting;
     private BukkitTask roundCountdown;
 
+    /** A game for so many players: the size of its lobby mode (2 to 5), open for 1 (see {@link Lineup}). */
     BedBreakGame(RagoBedwars plugin, BedwarsHost host, Instance instance, String modeId, String modeName,
-            List<List<Player>> sides) {
+            List<List<Player>> sides, int playersPerMatch) {
         super(plugin, host, instance, modeId, modeName, sides);
+        lineup = new Lineup(playersPerMatch, MAX_PLAYERS);
         // two opposite islands, as in a game: the bed defended, and the one the top bridge comes from
         List<TeamColor> two = instance.map().playingTeams(2);
         BedwarsMap map = instance.map();
@@ -146,9 +151,10 @@ final class BedBreakGame extends BedwarsGame implements KitMenu.Chooser {
         return false;
     }
 
+    /** Open, while it waits with room; a game of a size gets its players together. */
     @Override
     boolean joinable() {
-        return phase == Phase.WAITING && round < 0 && present().size() < MAX_PLAYERS;
+        return phase == Phase.WAITING && round < 0 && lineup.joinable(present().size());
     }
 
     @Override
@@ -163,9 +169,9 @@ final class BedBreakGame extends BedwarsGame implements KitMenu.Chooser {
         waitHere(player);
         int count = present().size();
         broadcast(ChatColor.GRAY + player.getDisplayName() + " joined the Bed Break Simulator (" + ChatColor.WHITE + count
-                + "/" + MAX_PLAYERS + ChatColor.GRAY + ").", Sound.CLICK);
-        if (count >= MAX_PLAYERS && waitLeft > FULL_WAIT_SECONDS) {
-            waitLeft = FULL_WAIT_SECONDS;
+                + "/" + lineup.capacity() + ChatColor.GRAY + ").", Sound.CLICK);
+        if (count >= lineup.capacity() && waitLeft > Lineup.FULL_WAIT_SECONDS) {
+            waitLeft = Lineup.FULL_WAIT_SECONDS;
         }
         sidebars();
     }
@@ -174,12 +180,12 @@ final class BedBreakGame extends BedwarsGame implements KitMenu.Chooser {
         prepare(player);
         player.setGameMode(GameMode.SPECTATOR);
         player.teleport(instance.map().spectatorPoint().in(instance.world()));
-        player.sendMessage(ChatColor.RED + "" + ChatColor.BOLD + "Bed Break Simulator" + ChatColor.RED + " on "
-                + ChatColor.WHITE + instance.map().world() + ChatColor.RED + ": " + MIN_PLAYERS + " to " + MAX_PLAYERS
-                + " players, rounds of 3 minutes. Each player in turn attacks from the top bridge, with one life, and"
+        player.sendMessage(ChatColor.RED + "" + ChatColor.BOLD + "Bed Break Simulator " + lineup.format() + ChatColor.RED
+                + " on " + ChatColor.WHITE + instance.map().world() + ChatColor.RED + ": " + lineup.players()
+                + ", rounds of 3 minutes. Each player in turn attacks from the top bridge, with one life, and"
                 + " has to break the bed; the others defend it with their forge full.");
-        player.sendMessage(ChatColor.GRAY + "It starts " + WAIT_SECONDS + " seconds after the second player joins; the"
-                + " menu of the attack kits opens before each of your attacks. /spawn takes you back to the lobby.");
+        player.sendMessage(ChatColor.GRAY + lineup.when() + "; the menu of the attack kits opens before each of your"
+                + " attacks. /spawn takes you back to the lobby.");
     }
 
     private void waitingSecond() {
@@ -187,7 +193,14 @@ final class BedBreakGame extends BedwarsGame implements KitMenu.Chooser {
             return;
         }
         int count = present().size();
-        if (count < MIN_PLAYERS) {
+        int startIn = lineup.startIn(count);
+        if (startIn < 0) {
+            if (!lineup.open()) {
+                // its players came together: nobody else comes
+                broadcast(ChatColor.YELLOW + "Not enough players left: the Bed Break Simulator ends.", null);
+                close();
+                return;
+            }
             if (waitLeft >= 0) {
                 waitLeft = -1;
                 broadcast(ChatColor.YELLOW + "Not enough players any more: waiting for another one.", null);
@@ -196,7 +209,7 @@ final class BedBreakGame extends BedwarsGame implements KitMenu.Chooser {
             return;
         }
         if (waitLeft < 0) {
-            waitLeft = count >= MAX_PLAYERS ? FULL_WAIT_SECONDS : WAIT_SECONDS;
+            waitLeft = startIn;
         }
         if (waitLeft == 0) {
             startRounds();
@@ -731,7 +744,7 @@ final class BedBreakGame extends BedwarsGame implements KitMenu.Chooser {
                 + instance.map().world());
         lines.add("");
         if (round < 0) {
-            lines.add(ChatColor.WHITE + "Players: " + ChatColor.GREEN + present().size() + ChatColor.GRAY + "/" + MAX_PLAYERS);
+            lines.add(ChatColor.WHITE + "Players: " + ChatColor.GREEN + present().size() + ChatColor.GRAY + "/" + lineup.capacity());
             lines.add(waitLeft >= 0 ? ChatColor.WHITE + "Starts in " + ChatColor.GREEN + waitLeft + " s"
                     : ChatColor.GRAY + "Waiting for players");
             lines.add("");

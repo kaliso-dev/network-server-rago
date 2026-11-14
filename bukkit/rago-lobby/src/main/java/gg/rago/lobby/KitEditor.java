@@ -370,7 +370,9 @@ final class KitEditor implements Listener {
         if (gameMode == null || editing.containsKey(id)) {
             return;
         }
-        String modeId = kitKey(gameMode, given.get(id));
+        // the sizes of one game keep one layout, the one of the mode holding their kit (kit-de:)
+        String base = settings.kitMode(gameMode);
+        String modeId = kitKey(base, given.get(id));
         Kit kit = kitOf(id, modeId);
         if (kit == null) {
             return;
@@ -386,9 +388,9 @@ final class KitEditor implements Listener {
             return;
         }
         layouts.set(id, modeId, layout);
-        ModeDisplay display = settings.display(gameMode);
-        String name = display == null ? gameMode : ChatColor.stripColor(display.mode().name());
-        String role = modeId.equals(gameMode) ? "" : " (" + modeId.substring(gameMode.length() + 1) + ")";
+        ModeDisplay display = settings.display(base);
+        String name = display == null ? base : ChatColor.stripColor(display.mode().name());
+        String role = modeId.equals(base) ? "" : " (" + modeId.substring(base.length() + 1) + ")";
         player.sendMessage(ChatColor.GREEN + "Kit layout saved for " + name + role + ": your next games give it this way.");
     }
 

@@ -26,8 +26,8 @@ import org.bukkit.potion.PotionEffectType;
 import org.bukkit.scheduler.BukkitTask;
 
 /**
- * Invis practice: 2 to 6 players on a Bed Wars map (the 20 maps of the RBW queue), in rounds of
- * three minutes. Each round, one player is the attacker, at mid (the emerald generator in front of
+ * Invis practice: from 1v1 to 1v4, 2 to 5 players on a Bed Wars map (the 20 maps of the RBW queue),
+ * in rounds of three minutes. Each round, one player is the attacker, at mid (the emerald generator in front of
  * the base to attack, facing its bed), with the owner's kit arranged in the lobby's kit editor: an invisibility
  * potion that lasts the whole round, without a name above the head, and a Jump V potion, 16 planks, a
  * golden pickaxe, a fireball, an iron axe, shears, a stone sword, 2 Bridge Eggs, 2 stacks of wool,
@@ -38,24 +38,25 @@ import org.bukkit.scheduler.BukkitTask;
  * island has room for): shears, wooden tools and Haste, an iron sword
  * with Sharpness, Protection IV armour and 2 stacks of wool, where the hotbar manager puts them,
  * then where the player arranged them in an earlier round (the lobby keeps it, as
- * "invis-practice/defense"); four at most, a sixth player watches that round. The attacker wins
+ * "invis-practice/defense"); four at most, more would watch that round. The attacker wins
  * the round by breaking the bed; the defenders by killing the attacker (one life) or by holding
  * three minutes; a defender comes back three seconds after a
  * death. Each player attacks in turn, twice each with two or three players. Breaking the bed, or
  * killing the attacker, gives a point; the most points win.
  *
- * <p>The game waits for its players on its map: it starts 10 seconds after the second one joins,
- * 3 seconds once six are in; a round starts 3 seconds after it is set, a second after the last
- * one. Main thread only.
+ * <p>The game waits for its players on its map, who look at it meanwhile: its size chosen in the
+ * lobby (invis-practice-1v1 to -1v4), they come in together and it starts 3 seconds later; open
+ * (a mode queued alone), it starts 10 seconds after the second one joins, 3 seconds once five are
+ * in (see {@link Lineup}). A round starts 3 seconds after it is set, a second after the last one.
+ * Main thread only.
  */
 final class InvisGame extends BedwarsGame {
 
-    static final int MIN_PLAYERS = 2;
-    static final int MAX_PLAYERS = 6;
+    static final int MIN_PLAYERS = Lineup.MIN_PLAYERS;
+    /** At most one attacker and four defenders: 1v4. */
+    static final int MAX_PLAYERS = 5;
     static final int MAX_DEFENDERS = 4;
     static final int ROUND_SECONDS = 180;
-    private static final int WAIT_SECONDS = 10;
-    private static final int FULL_WAIT_SECONDS = 3;
     private static final int ROUND_COUNTDOWN = 3;
     private static final int DEFENDER_RESPAWN = 3;
     /** Between the end of a round and the next one. */
@@ -75,6 +76,8 @@ final class InvisGame extends BedwarsGame {
 
     private final Team defenders;
     private final Team attackers;
+    /** Its size (1v1 to 1v4), or open. */
+    private final Lineup lineup;
     /** The invisible of each round, in turn. */
     private final List<UUID> order = new ArrayList<>();
     private final Map<UUID, Integer> points = new HashMap<>();
@@ -90,9 +93,11 @@ final class InvisGame extends BedwarsGame {
     private BukkitTask waiting;
     private BukkitTask roundCountdown;
 
+    /** A game for so many players: the size of its lobby mode (2 to 5), open for 1 (see {@link Lineup}). */
     InvisGame(RagoBedwars plugin, BedwarsHost host, Instance instance, String modeId, String modeName,
-            List<List<Player>> sides) {
+            List<List<Player>> sides, int playersPerMatch) {
         super(plugin, host, instance, modeId, modeName, sides);
+        lineup = new Lineup(playersPerMatch, MAX_PLAYERS);
         // two islands side by side: the bed defended, and the island of the invisible
         List<TeamColor> two = instance.map().neighbourTeams(2);
         BedwarsMap map = instance.map();
@@ -133,9 +138,10 @@ final class InvisGame extends BedwarsGame {
         return false;
     }
 
+    /** Open, while it waits with room; a game of a size gets its players together. */
     @Override
     boolean joinable() {
-        return phase == Phase.WAITING && round < 0 && present().size() < MAX_PLAYERS;
+        return phase == Phase.WAITING && round < 0 && lineup.joinable(present().size());
     }
 
     @Override
@@ -150,9 +156,9 @@ final class InvisGame extends BedwarsGame {
         waitHere(player);
         int count = present().size();
         broadcast(ChatColor.GRAY + player.getDisplayName() + " joined the invis practice (" + ChatColor.WHITE + count + "/"
-                + MAX_PLAYERS + ChatColor.GRAY + ").", Sound.CLICK);
-        if (count >= MAX_PLAYERS && waitLeft > FULL_WAIT_SECONDS) {
-            waitLeft = FULL_WAIT_SECONDS;
+                + lineup.capacity() + ChatColor.GRAY + ").", Sound.CLICK);
+        if (count >= lineup.capacity() && waitLeft > Lineup.FULL_WAIT_SECONDS) {
+            waitLeft = Lineup.FULL_WAIT_SECONDS;
         }
         sidebars();
     }
@@ -161,11 +167,11 @@ final class InvisGame extends BedwarsGame {
         prepare(player);
         player.setGameMode(GameMode.SPECTATOR);
         player.teleport(instance.map().spectatorPoint().in(instance.world()));
-        player.sendMessage(ChatColor.DARK_PURPLE + "" + ChatColor.BOLD + "Invis practice" + ChatColor.LIGHT_PURPLE + " on "
-                + ChatColor.WHITE + instance.map().world() + ChatColor.LIGHT_PURPLE + ": " + MIN_PLAYERS + " to " + MAX_PLAYERS
-                + " players, rounds of 3 minutes, one attacker against the defenders, each player in turn.");
-        player.sendMessage(ChatColor.GRAY + "It starts " + WAIT_SECONDS + " seconds after the second player joins. Your "
-                + "attacker kit is the mode's kit of the lobby's kit editor. /spawn takes you back to the lobby.");
+        player.sendMessage(ChatColor.DARK_PURPLE + "" + ChatColor.BOLD + "Invis practice " + lineup.format()
+                + ChatColor.LIGHT_PURPLE + " on " + ChatColor.WHITE + instance.map().world() + ChatColor.LIGHT_PURPLE + ": "
+                + lineup.players() + ", rounds of 3 minutes, one attacker against the defenders, each player in turn.");
+        player.sendMessage(ChatColor.GRAY + lineup.when() + ". Your attacker kit is the one of Invis practice in the lobby's"
+                + " kit editor. /spawn takes you back to the lobby.");
     }
 
     private void waitingSecond() {
@@ -173,7 +179,14 @@ final class InvisGame extends BedwarsGame {
             return;
         }
         int count = present().size();
-        if (count < MIN_PLAYERS) {
+        int startIn = lineup.startIn(count);
+        if (startIn < 0) {
+            if (!lineup.open()) {
+                // its players came together: nobody else comes
+                broadcast(ChatColor.YELLOW + "Not enough players left: the invis practice ends.", null);
+                close();
+                return;
+            }
             if (waitLeft >= 0) {
                 waitLeft = -1;
                 broadcast(ChatColor.YELLOW + "Not enough players any more: waiting for another one.", null);
@@ -182,7 +195,7 @@ final class InvisGame extends BedwarsGame {
             return;
         }
         if (waitLeft < 0) {
-            waitLeft = count >= MAX_PLAYERS ? FULL_WAIT_SECONDS : WAIT_SECONDS;
+            waitLeft = startIn;
         }
         if (waitLeft == 0) {
             startRounds();
@@ -774,7 +787,7 @@ final class InvisGame extends BedwarsGame {
         lines.add((modeLine != null ? modeLine : ChatColor.GOLD + "Invis practice") + " " + ChatColor.GRAY + instance.map().world());
         lines.add("");
         if (round < 0) {
-            lines.add(ChatColor.WHITE + "Players: " + ChatColor.GREEN + present().size() + ChatColor.GRAY + "/" + MAX_PLAYERS);
+            lines.add(ChatColor.WHITE + "Players: " + ChatColor.GREEN + present().size() + ChatColor.GRAY + "/" + lineup.capacity());
             lines.add(waitLeft >= 0 ? ChatColor.WHITE + "Starts in " + ChatColor.GREEN + waitLeft + " s"
                     : ChatColor.GRAY + "Waiting for players");
             return lines;

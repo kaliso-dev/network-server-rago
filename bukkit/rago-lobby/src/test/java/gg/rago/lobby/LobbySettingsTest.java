@@ -11,6 +11,7 @@ import gg.rago.game.GameMode;
 import java.io.InputStreamReader;
 import java.io.Reader;
 import java.nio.charset.StandardCharsets;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
@@ -63,7 +64,8 @@ class LobbySettingsTest {
         assertEquals("lobby", settings.world());
         assertEquals(0, settings.voidHeight());
         assertEquals(0, settings.defaultRating(), "a ranked ELO starts at 0, in Coal");
-        assertEquals(63, settings.modes().size(), "with the private top bridge, the clutch scenario, the bed fight, Top"
+        assertEquals(71, settings.modes().size(), "the invis practice and the Bed Break Simulator in 1v1 to 1v4 (and"
+                + " their kits), with the private top bridge, the clutch scenario, the bed fight, Top"
                 + " BedFight, the bridge fight 2v2, the full map first rush, Sky Rise Resources, the timed bridge, Lobby"
                 + " Fight (1v1, FFA) and the Bed Break Simulator, without the top fight or the ranked scenarios");
         assertEquals("skyrise", settings.display("skyrise-resources-1v1").group(), "beside Sky Rise");
@@ -135,8 +137,10 @@ class LobbySettingsTest {
         }
         assertEquals("ranked", settings.display("attack-defense-1v1").category(), "Attack and Defense: in the RBW modes");
         assertEquals("ranked", settings.display("clutch-scenario-2v2").category());
-        assertEquals("ranked", settings.display("bed-break-simulator").category(), "the Bed Break Simulator: an RBW situation");
-        assertNull(settings.display("bed-break-simulator").group(), "one item, beside Attack and Defense");
+        assertEquals("ranked", settings.display("bed-break-simulator-1v3").category(), "the Bed Break Simulator: an RBW situation");
+        assertEquals("bed-break", settings.display("bed-break-simulator-1v3").group(),
+                "its sizes as one item, beside Attack and Defense");
+        assertEquals("invis", settings.display("invis-practice-1v1").group());
         LobbySettings modeNpcs = LobbySettings.load(withModeNpcs());
         assertEquals(Arrays.asList("clutch-scenario-1v1", "clutch-scenario-2v2", "clutch-scenario-3v3",
                 "clutch-scenario-4v4"), modeNpcs.npc("clutchscenario").modeIds(), "one NPC for Clutch Scenario");
@@ -186,7 +190,11 @@ class LobbySettingsTest {
         for (String event : Arrays.asList("event-sumo", "event-brackets", "event-lms")) {
             assertTrue(settings.display(event).hidden(), "the events of /host are not in the selector: " + event);
         }
-        assertEquals(settings.modes().size() - 3, shown, "every mode but the hidden ones (the 3 events) is in the selector, once");
+        for (String holder : Arrays.asList("invis-practice", "bed-break-simulator")) {
+            assertTrue(settings.display(holder).hidden(), "a kit of the sizes of a game, not in the selector: " + holder);
+        }
+        assertEquals(settings.modes().size() - 5, shown,
+                "every mode but the hidden ones (the 3 events, the 2 kits of sizes) is in the selector, once");
         assertInvalid("groupes:\n  g: {}\nmodes:\n  sumo:\n    groupe: autre\n", "modes.sumo.groupe");
     }
 
@@ -269,7 +277,7 @@ class LobbySettingsTest {
         assertEquals("§6Ranked §7and §6RBW situations", ranked.subtitle());
         assertEquals("ranked", ranked.category());
         assertTrue(ranked.modeIds().containsAll(Arrays.asList("ranked-1v1", "ranked-2v2", "ranked-3v3", "ranked-4v4",
-                "clutch-scenario-1v1", "attack-defense-1v1", "bed-break-simulator")), "every RBW mode, Ranked Bedwars first");
+                "clutch-scenario-1v1", "attack-defense-1v1", "bed-break-simulator-1v1")), "every RBW mode, Ranked Bedwars first");
         assertEquals(settings.modesIn("ranked").size(), ranked.modeIds().size());
         assertTrue(settings.npc("top").leaderboard());
         assertEquals(Collections.singletonList(Arrays.asList(BoardStat.LEVEL, BoardStat.ELO, BoardStat.FKDR, BoardStat.KILLS, BoardStat.GAMES)),
@@ -502,6 +510,58 @@ class LobbySettingsTest {
         assertInvalid("monde: 'mon lobby'\nmodes:\n  sumo: {}\n", "monde");
         assertInvalid("file:\n  ecart-elo-secondes: 0\nmodes:\n  sumo: {}\n", "file");
         assertInvalid("titre: '&b&lUN TITRE BEAUCOUP TROP LONG POUR 1.8'\nmodes:\n  sumo: {}\n", "titre");
+    }
+
+    @Test
+    void theSizesOfAGamePlayTheKitOfOneHiddenMode() throws Exception {
+        LobbySettings settings = LobbySettings.load(bundledConfig());
+        for (String game : Arrays.asList("invis-practice", "bed-break-simulator")) {
+            assertTrue(settings.display(game).hidden(), "the kit holder is not in the selector: " + game);
+            assertNotNull(settings.display(game).kit(), "it holds the kit: " + game);
+            for (int defenders = 1; defenders <= 4; defenders++) {
+                String size = game + "-1v" + defenders;
+                ModeDisplay display = settings.display(size);
+                assertEquals(game, display.kitFrom(), size);
+                assertNull(display.kit(), "no kit of its own: " + size);
+                assertEquals("1v" + defenders, display.format(), "1 attacker against " + defenders);
+                assertEquals(defenders + 1, display.mode().playersPerTeam(), "one team of " + (defenders + 1));
+                assertEquals(1, display.mode().teams());
+                assertEquals(game, settings.kitMode(size), "its kit, arranged once for the four sizes");
+                assertEquals(game + "/defense", settings.kitMode(size + "/defense"), "and the kit of a role");
+            }
+        }
+        assertEquals("sumo", settings.kitMode("sumo"), "a mode without kit-de: its own kit");
+        assertEquals("sumo/x", settings.kitMode("sumo/x"));
+        assertNull(settings.kitMode(null));
+
+        List<LobbySettings.Entry> ranked = settings.entriesIn("ranked");
+        for (LobbySettings.Entry entry : ranked) {
+            if (entry.mode != null) {
+                assertFalse(entry.mode.hidden(), "no hidden mode in the selector: " + entry.mode.mode().id());
+            }
+        }
+        List<String> groups = new ArrayList<>();
+        for (LobbySettings.Entry entry : ranked) {
+            if (entry.group != null) {
+                groups.add(entry.group.id());
+            }
+        }
+        assertTrue(groups.containsAll(Arrays.asList("invis", "bed-break")), "each game an item opening its sizes: " + groups);
+        assertEquals(Arrays.asList("invis-practice-1v1", "invis-practice-1v2", "invis-practice-1v3", "invis-practice-1v4"),
+                displayIds(settings.modesOfGroup("invis")));
+        assertTrue(settings.entriesOf(Arrays.asList("invis-practice", "sumo")).size() == 1,
+                "an NPC naming the holder does not show it");
+
+        LobbySettings small = LobbySettings.load(yaml("modes:\n  base:\n    cache: true\n    kit: [STICK]\n"
+                + "  base-1v2:\n    equipes: 1\n    joueurs-par-equipe: 3\n    format: 1v2\n    kit-de: base\n"));
+        assertEquals("1v2", small.display("base-1v2").format());
+        assertEquals("base", small.kitMode("base-1v2"));
+        assertInvalid("modes:\n  base:\n    kit: [STICK]\n  autre:\n    kit: [STICK]\n    kit-de: base\n",
+                "modes.autre: kit or kit-de");
+        assertInvalid("modes:\n  base: {}\n  autre:\n    kit-de: base\n", "modes.autre.kit-de");
+        assertInvalid("modes:\n  autre:\n    kit-de: personne\n", "modes.autre.kit-de");
+        assertInvalid("modes:\n  autre:\n    format: ''\n", "modes.autre.format");
+        assertInvalid("modes:\n  autre:\n    format: 1v1-to-1v4-forever\n", "modes.autre.format");
     }
 
     private static void assertInvalid(String text, String expectedStart) {

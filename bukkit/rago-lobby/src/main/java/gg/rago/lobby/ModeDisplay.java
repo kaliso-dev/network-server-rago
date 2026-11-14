@@ -16,6 +16,8 @@ final class ModeDisplay {
     private final String group;
     private final boolean hidden;
     private final boolean startHere;
+    private final String kitFrom;
+    private final String format;
 
     ModeDisplay(GameMode mode, Material icon, List<String> description, String category) {
         this(mode, icon, description, category, null);
@@ -32,6 +34,13 @@ final class ModeDisplay {
 
     ModeDisplay(GameMode mode, Material icon, List<String> description, String category, Kit kit, String group,
             boolean hidden, boolean startHere) {
+        this(mode, icon, description, category, kit, group, hidden, startHere, null, null);
+    }
+
+    ModeDisplay(GameMode mode, Material icon, List<String> description, String category, Kit kit, String group,
+            boolean hidden, boolean startHere, String kitFrom, String format) {
+        this.kitFrom = kitFrom;
+        this.format = format;
         this.startHere = startHere;
         this.group = group;
         this.hidden = hidden;
@@ -47,7 +56,23 @@ final class ModeDisplay {
         return kit;
     }
 
-    /** True for a mode played only through a private game (cache: true): not in the selector. */
+    /**
+     * The mode whose kit this one plays, with the layouts the players keep of it (kit-de:): one kit
+     * for the sizes of one game, arranged once in the kit editor. Null: its own kit, if any.
+     */
+    String kitFrom() {
+        return kitFrom;
+    }
+
+    /** How the menus show its size: its own format: ("1v3"), else the mode's ("2v2", "solo"). */
+    String format() {
+        return format != null ? format : mode.format();
+    }
+
+    /**
+     * True for a mode not in the selector (cache: true): played only through a private game or an
+     * event, or holding the kit of other modes (kit-de:).
+     */
     boolean hidden() {
         return hidden;
     }

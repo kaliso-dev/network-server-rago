@@ -266,7 +266,7 @@ final class BedwarsHost implements MatchHost, Listener {
             case ARENA:
                 return new FfaGame(plugin, this, instance, mode.id(), name, sides, true);
             case INVIS:
-                return new InvisGame(plugin, this, instance, mode.id(), name, sides);
+                return new InvisGame(plugin, this, instance, mode.id(), name, sides, mode.playersPerMatch());
             case FAST_SHOP:
                 return new FastShopGame(plugin, this, instance, mode.id(), name, sides);
             case TOP_BRIDGE:
@@ -284,7 +284,7 @@ final class BedwarsHost implements MatchHost, Listener {
             case LOBBY_FIGHT_FFA:
                 return new FfaGame(plugin, this, instance, mode.id(), name, sides, false, true);
             case BED_BREAK:
-                return new BedBreakGame(plugin, this, instance, mode.id(), name, sides);
+                return new BedBreakGame(plugin, this, instance, mode.id(), name, sides, mode.playersPerMatch());
             default:
                 return new BedwarsGame(plugin, this, instance, mode.id(), name, sides);
         }

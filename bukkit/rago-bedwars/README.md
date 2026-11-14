@@ -401,8 +401,9 @@ Dans `jeux:` du config.yml, un mode peut jouer autre chose qu'une partie classiq
   côté ; on y revient 3 secondes après une mort. Aucun mode ne le joue pour l'instant : Arena Free (`free-ffa`) se joue sur l'Arena du
   propriétaire, dans le plugin practice ; il suffit d'un mode sous `jeux:` en `arene` pour le
   rouvrir.
-- **Invis practice** (`invis`) : sur les 20 maps de la file, de 2 à 6 joueurs, des manches
-  de 3 minutes. À chaque manche, un joueur attaque, au mid (le générateur d'émeraudes en face de
+- **Invis practice** (`invis`) : sur les 20 maps de la file, en 1v1, 1v2, 1v3 ou 1v4 (de 2 à 5
+  joueurs, un mode par format : `invis-practice-1v1` à `invis-practice-1v4`), des manches de 3
+  minutes. À chaque manche, un joueur attaque, au mid (le générateur d'émeraudes en face de
   la base à attaquer), tourné vers le lit, avec le kit du mode (rangé dans l'éditeur de
   kit du lobby) : une potion d'invisibilité (30 s) et une de Jump V (45 s), 16 planches, une pioche
   en or, une fireball, une hache en fer, des cisailles, une épée en pierre, 2 Bridge Eggs, 2 stacks
@@ -410,16 +411,20 @@ Dans `jeux:` du config.yml, un mode peut jouer autre chose qu'une partie classiq
   de pas au sol (une tous les 0,8 bloc, pied gauche puis pied droit, qui restent quelques
   secondes) et les tourbillons gris de la potion autour de lui : les défenseurs peuvent le
   repérer, et un coup d'un défenseur lui fait perdre son invisibilité pour le reste de la manche.
-  Les autres modes gardent l'invisibilité complète d'Hypixel. Les autres, quatre au plus,
-  défendent le lit de l'île voisine sous une défense de ranked sans sa couche de laine : end stone
+  Les autres modes gardent l'invisibilité complète d'Hypixel. Les autres, de un à quatre selon le
+  format, défendent le lit de l'île voisine sous une défense de ranked sans sa couche de laine : end stone
   sur le lit, puis verre et bois (les couches que l'île a la place de porter) ; cisailles, outils en bois et Haste,
   épée en fer Sharpness, 2 stacks de laine, armure de fer Protection IV, là où la hotbar Hypixel
   les met, puis là où le joueur les a rangés pendant une manche d'avant (le lobby garde ce
-  rangement sous `invis-practice/defense`, comme le kit de l'attaquant sous `invis-practice`).
+  rangement sous `invis-practice/defense`, comme le kit de l'attaquant sous `invis-practice`, le
+  même pour les quatre formats).
   L'attaquant gagne la manche en cassant le lit, les défenseurs en le tuant (une vie) ou en tenant
-  3 minutes. Chacun attaque à son tour ; le plus de points gagne. La partie part 10
-  secondes après l'arrivée du deuxième joueur, 3 secondes quand ils sont six ; une manche part 3
-  secondes après sa mise en place, une seconde après la fin de la précédente.
+  3 minutes. Chacun attaque à son tour ; le plus de points gagne. La partie part 3 secondes après
+  l'arrivée des joueurs de son format, avec ceux qui sont encore là (à moins de deux, elle
+  s'arrête) ; une manche part 3 secondes après sa mise en place, une seconde après la fin de la
+  précédente. Un mode de ce jeu sans `joueurs-par-equipe` de 2 ou plus dans le lobby reste ouvert,
+  comme avant les formats : de 2 à 5 joueurs, il part 10 secondes après l'arrivée du deuxième, 3
+  secondes quand ils sont cinq.
 - **Fast Shop** (`fast-shop`) : acheter le plus vite possible avec son propre quick buy (copié
   d'Hypixel dans le lobby). Sept listes, chacune avec ses records : le premier achat, l'armure de
   fer, les outils, un fireball fight, une défense de lit, un rush, et une liste au hasard. Un clic
@@ -428,18 +433,19 @@ Dans `jeux:` du config.yml, un mode peut jouer autre chose qu'une partie classiq
   et ses scores et ses minutes font avancer les quêtes du lobby (Getting started, les réussites,
   les records, les minutes d'entraînement).
 - **Bed Break Simulator** (`bed-break`) : une situation de Ranked Bedwars, sur Archway et Invasion,
-  de 2 à 5 joueurs (du 1v1 au 1v4), en manches de 3 minutes, les deux îles opposées reliées par le
+  en 1v1, 1v2, 1v3 ou 1v4 (de 2 à 5 joueurs, `bed-break-simulator-1v1` à `bed-break-simulator-1v4`),
+  en manches de 3 minutes, les deux îles opposées reliées par le
   top bridge du mode Top Bridge. À chaque manche, un joueur attaque : il part du milieu du top
   bridge, tourné vers la base à attaquer, avec une seule vie et le kit qu'il a choisi, et ne gagne
-  la manche qu'en cassant le lit. Les autres, quatre au plus, défendent sans kit : l'épée en bois
+  la manche qu'en cassant le lit. Les autres, de un à quatre selon le format, défendent sans kit : l'épée en bois
   d'un début de partie, leur forge pleine de fer et d'or (la forge de la file RBW en 2v2 à 4v4) et
   le shop de leur île, sans améliorations, ni diamants ni émeraudes ; le lit est sous la défense
   duo du propriétaire (end stone puis laine), et ils reviennent 5 secondes après une mort. Ils
   gagnent la manche en tuant l'attaquant ou en tenant 3 minutes. Tout le monde est en armure de
   fer Protection II (`bed-break.protection:`, de 0 à 4), sans Sharpness. Chacun attaque à son tour
   (deux fois chacun à 2 ou 3 joueurs) ; un lit cassé ou l'attaquant tué rapporte un point, le plus
-  de points gagne, le lit le plus rapide départage. La partie part 10 secondes après l'arrivée du
-  deuxième joueur, 3 secondes quand ils sont cinq. Avant chaque manche, le menu des kits s'ouvre
+  de points gagne, le lit le plus rapide départage. La partie part 3 secondes après l'arrivée des
+  joueurs de son format (comme l'Invis practice). Avant chaque manche, le menu des kits s'ouvre
   tout seul pour l'attaquant (`/kit` ou le bouton [CHANGE KIT] du chat le rouvre, aussi pour
   choisir, en défendant, le kit de sa prochaine attaque) ; la manche part 5 secondes après sa mise
   en place, 2 secondes dès que l'attaquant a choisi.
@@ -452,8 +458,8 @@ Dans `jeux:` du config.yml, un mode peut jouer autre chose qu'une partie classiq
 
 Les kits du Bed Break Simulator se changent dans `bed-break:` du `config.yml` (de 1 à 7, les objets
 du shop par leur id, avec leur nombre) ; un kit sans épée reçoit l'épée en bois. Les objets suivent
-la place que le joueur leur a donnée dans l'éditeur de kit du lobby (le mode
-`bed-break-simulator`), sinon sa hotbar Hypixel.
+la place que le joueur leur a donnée dans l'éditeur de kit du lobby (le mode caché
+`bed-break-simulator`, rangé une fois pour les quatre formats), sinon sa hotbar Hypixel.
 
 ## Les maps
 

@@ -219,6 +219,26 @@ groupes:
       - "Bio Hazard: attack from the"
       - "bridge with one life, defend"
       - "with your forge and shop."
+  # the invis practice and the Bed Break Simulator, from 1v1 to 1v4: one player attacks, the
+  # others defend, each in turn
+  invis:
+    nom: "&6Invis practice"
+    icone: POTION
+    description:
+      - "The 20 RBW maps, 3-minute"
+      - "rounds: an attacker with an"
+      - "invis potion, from mid, against"
+      - "the defenders of the bed, each"
+      - "player in turn: 1v1 to 1v4."
+  bed-break:
+    nom: "&6Bed Break Simulator"
+    icone: DIAMOND_PICKAXE
+    description:
+      - "Archway or Invasion: attack"
+      - "from the top bridge with one of"
+      - "3 kits and break the bed; the"
+      - "defenders have their forge full."
+      - "Each in turn, 1v1 to 1v4."
   clutch:
     nom: "&bBlock clutch"
     icone: LADDER
@@ -293,7 +313,7 @@ pnj:
   # invispracticearwhayinvasion:
   #   nom: "&6Invis practice"
   #   skin: invis
-  #   modes: [invis-practice]
+  #   modes: [invis-practice-1v1, invis-practice-1v2, invis-practice-1v3, invis-practice-1v4]
   # realisticplat:
   #   nom: "&aBridge fight"
   #   skin: bridge
@@ -857,8 +877,10 @@ titres:
     clutch-scenario: {nom: "Clutch Scenario", modes: [clutch-scenario-1v1, clutch-scenario-2v2, clutch-scenario-3v3,
       clutch-scenario-4v4]}
     attack-defense: {nom: "Attack Defense", modes: [attack-defense-1v1, attack-defense-2v2]}
-    invis: {nom: "Invis", modes: [invis-practice]}
-    bed-break: {nom: "Bed Break", modes: [bed-break-simulator]}
+    invis: {nom: "Invis", modes: [invis-practice, invis-practice-1v1, invis-practice-1v2, invis-practice-1v3,
+      invis-practice-1v4]}
+    bed-break: {nom: "Bed Break", modes: [bed-break-simulator, bed-break-simulator-1v1, bed-break-simulator-1v2,
+      bed-break-simulator-1v3, bed-break-simulator-1v4]}
     sumo: {nom: "Sumo", modes: [sumo]}
     boxing: {nom: "Boxing", modes: [boxing]}
     kb-displace: {nom: "KB Displace", modes: [kb-displace]}
@@ -894,7 +916,8 @@ parties-privees:
 #   joueurs-par-equipe the number of players in each team
 #   categorie          the category of the mode (one of categories: above)
 #   groupe             the group of the mode in its category (one of groupes: above), if any
-#   cache              true: not in the selector, played only through a private game
+#   cache              true: not in the selector, played only through a private game or an
+#                      event, or holding the kit that other modes play (kit-de:)
 #   classe             true for a ranked mode (ELO)
 #   description        the lines under the name
 #   kit                the items the mode gives, which players arrange as they like with the kit
@@ -909,6 +932,10 @@ parties-privees:
 #                      The kits below are examples, to adjust: their modes have no game yet. The
 #                      sumo has none (bare hands); give it one, a stick for example, to try the
 #                      editor in a duel.
+#   kit-de             instead of kit: the mode whose kit this one plays, as each player arranged
+#                      it: the sizes of one game share one kit, arranged once in the kit editor
+#   format             how the menus and the queue show its size ("1v3"), instead of the one its
+#                      teams make (2v2; one team of 4 players: "4 joueurs")
 modes:
   ranked-1v1:
     nom: "&6Ranked Bedwars 1v1"
@@ -1191,6 +1218,8 @@ modes:
       - "nobody dies, it is a practice."
       - "The slime of the black pit"
       - "throws you out."
+  # the kit of the invis practice, that its four sizes below play (kit-de: invis-practice): not
+  # in the selector (cache: true), its games are the sizes'; in the kit editor, arranged once
   invis-practice:
     nom: "&6Invis practice"
     categorie: ranked
@@ -1198,6 +1227,7 @@ modes:
     equipes: 1
     joueurs-par-equipe: 1
     classe: false
+    cache: true
     # the kit of the attacker (the potions: invisibility 30 s and Jump V 45 s, as in the shop);
     # the attacker wears iron armour, Protection I. The defenders have shears, wooden tools and
     # Haste, an iron sword with Sharpness, 2 stacks of wool and iron armour, Protection IV.
@@ -1208,6 +1238,64 @@ modes:
       - "invis potion, from mid, against"
       - "the defenders of the bed, each"
       - "player in turn: a hit shows them."
+  # the invis practice in 1v1 to 1v4: one team of 2 to 5 players, who attack in turn; it starts
+  # as soon as they are all in
+  invis-practice-1v1:
+    nom: "&6Invis practice 1v1"
+    categorie: ranked
+    groupe: invis
+    icone: POTION
+    equipes: 1
+    joueurs-par-equipe: 2
+    format: 1v1
+    classe: false
+    kit-de: invis-practice
+    description:
+      - "An invisible attacker against"
+      - "one defender: 2 players, each"
+      - "attacks twice, in turn."
+  invis-practice-1v2:
+    nom: "&6Invis practice 1v2"
+    categorie: ranked
+    groupe: invis
+    icone: POTION
+    equipes: 1
+    joueurs-par-equipe: 3
+    format: 1v2
+    classe: false
+    kit-de: invis-practice
+    description:
+      - "An invisible attacker against"
+      - "two defenders: 3 players, each"
+      - "attacks twice, in turn."
+  invis-practice-1v3:
+    nom: "&6Invis practice 1v3"
+    categorie: ranked
+    groupe: invis
+    icone: POTION
+    equipes: 1
+    joueurs-par-equipe: 4
+    format: 1v3
+    classe: false
+    kit-de: invis-practice
+    description:
+      - "An invisible attacker against"
+      - "three defenders: 4 players,"
+      - "each attacks once, in turn."
+  invis-practice-1v4:
+    nom: "&6Invis practice 1v4"
+    categorie: ranked
+    groupe: invis
+    icone: POTION
+    equipes: 1
+    joueurs-par-equipe: 5
+    format: 1v4
+    classe: false
+    kit-de: invis-practice
+    description:
+      - "An invisible attacker against"
+      - "four defenders: 5 players,"
+      - "each attacks once, in turn."
   bridge-fight:
     nom: "&cBridge fight"
     categorie: arenes
@@ -1382,6 +1470,8 @@ modes:
       - "First to 3 rounds, the roles"
       - "swap at each round;"
       - "3 kits to attack, 3 to defend."
+  # the kit of the Bed Break Simulator, that its four sizes below play (kit-de:
+  # bed-break-simulator): not in the selector (cache: true); in the kit editor, arranged once
   bed-break-simulator:
     nom: "&6Bed Break Simulator"
     categorie: ranked
@@ -1389,17 +1479,75 @@ modes:
     equipes: 1
     joueurs-par-equipe: 1
     classe: false
+    cache: true
     # the items of the three attack kits (Classic, Fireball, Fighter) of the bedwars plugin, to
     # arrange in the kit editor: each kit puts its items in their slots; a kit's Iron or Wooden
     # Pickaxe takes the slot of the Golden one. The defenders have no kit: their forge full.
     kit: [STONE_SWORD, GOLD_PICKAXE, "WOOL 64", "WOOL 64", FIREBALL, GOLDEN_APPLE, "LADDER 8", STICK]
     description:
-      - "Archway or Invasion, 2 to 5"
-      - "players: attack from the top"
-      - "bridge with one of 3 kits and"
-      - "break the bed; the defenders"
-      - "have their forge full. 3-minute"
-      - "rounds, each player in turn."
+      - "Archway or Invasion: attack"
+      - "from the top bridge with one of"
+      - "3 kits and break the bed; the"
+      - "defenders have their forge full."
+      - "3-minute rounds, each in turn."
+  # the Bed Break Simulator in 1v1 to 1v4: one team of 2 to 5 players, who attack in turn; it
+  # starts as soon as they are all in
+  bed-break-simulator-1v1:
+    nom: "&6Bed Break Simulator 1v1"
+    categorie: ranked
+    groupe: bed-break
+    icone: DIAMOND_PICKAXE
+    equipes: 1
+    joueurs-par-equipe: 2
+    format: 1v1
+    classe: false
+    kit-de: bed-break-simulator
+    description:
+      - "One attacker against one"
+      - "defender: 2 players, each"
+      - "attacks twice, in turn."
+  bed-break-simulator-1v2:
+    nom: "&6Bed Break Simulator 1v2"
+    categorie: ranked
+    groupe: bed-break
+    icone: DIAMOND_PICKAXE
+    equipes: 1
+    joueurs-par-equipe: 3
+    format: 1v2
+    classe: false
+    kit-de: bed-break-simulator
+    description:
+      - "One attacker against two"
+      - "defenders: 3 players, each"
+      - "attacks twice, in turn."
+  bed-break-simulator-1v3:
+    nom: "&6Bed Break Simulator 1v3"
+    categorie: ranked
+    groupe: bed-break
+    icone: DIAMOND_PICKAXE
+    equipes: 1
+    joueurs-par-equipe: 4
+    format: 1v3
+    classe: false
+    kit-de: bed-break-simulator
+    description:
+      - "One attacker against three"
+      - "defenders: 4 players, each"
+      - "attacks once, in turn."
+  bed-break-simulator-1v4:
+    nom: "&6Bed Break Simulator 1v4"
+    categorie: ranked
+    groupe: bed-break
+    icone: DIAMOND_PICKAXE
+    equipes: 1
+    joueurs-par-equipe: 5
+    format: 1v4
+    classe: false
+    kit-de: bed-break-simulator
+    description:
+      - "One attacker against four"
+      - "defenders: 5 players, each"
+      - "attacks once, in turn."
   partie-privee:
     nom: "&6Private game"
     categorie: ranked

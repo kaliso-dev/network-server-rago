@@ -65,7 +65,7 @@
       ],
       "description": "Ranked 1v1 to 4v4, and modes close to Ranked Bedwars: Sky Rise, first rush, invis, clutch scenarios, attack and defense, Bed Break Simulator, private games. With the server or your friends.",
       "skin": "ranked",
-      "modes": 22
+      "modes": 28
     },
     {
       "id": "duels",
@@ -211,6 +211,28 @@
       "modes": [
         "attack-defense-1v1",
         "attack-defense-2v2"
+      ]
+    },
+    {
+      "id": "invis",
+      "name": "Invis practice",
+      "description": "The 20 RBW maps, 3-minute rounds: an attacker with an invis potion, from mid, against the defenders of the bed, each player in turn: 1v1 to 1v4.",
+      "modes": [
+        "invis-practice-1v1",
+        "invis-practice-1v2",
+        "invis-practice-1v3",
+        "invis-practice-1v4"
+      ]
+    },
+    {
+      "id": "bed-break",
+      "name": "Bed Break Simulator",
+      "description": "Archway or Invasion: attack from the top bridge with one of 3 kits and break the bed; the defenders have their forge full. Each in turn, 1v1 to 1v4.",
+      "modes": [
+        "bed-break-simulator-1v1",
+        "bed-break-simulator-1v2",
+        "bed-break-simulator-1v3",
+        "bed-break-simulator-1v4"
       ]
     },
     {
@@ -561,17 +583,65 @@
       ]
     },
     {
-      "id": "invis-practice",
-      "name": "Invis practice",
+      "id": "invis-practice-1v1",
+      "name": "Invis practice 1v1",
       "colour": "#FFAA00",
       "icon": "POTION",
       "category": "ranked",
-      "group": null,
-      "format": "Solo",
+      "group": "invis",
+      "format": "1v1",
       "ranked": false,
       "startHere": false,
       "event": false,
-      "description": "The 20 RBW maps, 3-minute rounds: an attacker with an invis potion, from mid, against the defenders of the bed, each player in turn: a hit shows them.",
+      "description": "An invisible attacker against one defender: 2 players, each attacks twice, in turn.",
+      "plugins": [
+        "bedwars"
+      ]
+    },
+    {
+      "id": "invis-practice-1v2",
+      "name": "Invis practice 1v2",
+      "colour": "#FFAA00",
+      "icon": "POTION",
+      "category": "ranked",
+      "group": "invis",
+      "format": "1v2",
+      "ranked": false,
+      "startHere": false,
+      "event": false,
+      "description": "An invisible attacker against two defenders: 3 players, each attacks twice, in turn.",
+      "plugins": [
+        "bedwars"
+      ]
+    },
+    {
+      "id": "invis-practice-1v3",
+      "name": "Invis practice 1v3",
+      "colour": "#FFAA00",
+      "icon": "POTION",
+      "category": "ranked",
+      "group": "invis",
+      "format": "1v3",
+      "ranked": false,
+      "startHere": false,
+      "event": false,
+      "description": "An invisible attacker against three defenders: 4 players, each attacks once, in turn.",
+      "plugins": [
+        "bedwars"
+      ]
+    },
+    {
+      "id": "invis-practice-1v4",
+      "name": "Invis practice 1v4",
+      "colour": "#FFAA00",
+      "icon": "POTION",
+      "category": "ranked",
+      "group": "invis",
+      "format": "1v4",
+      "ranked": false,
+      "startHere": false,
+      "event": false,
+      "description": "An invisible attacker against four defenders: 5 players, each attacks once, in turn.",
       "plugins": [
         "bedwars"
       ]
@@ -785,17 +855,65 @@
       ]
     },
     {
-      "id": "bed-break-simulator",
-      "name": "Bed Break Simulator",
+      "id": "bed-break-simulator-1v1",
+      "name": "Bed Break Simulator 1v1",
       "colour": "#FFAA00",
       "icon": "DIAMOND_PICKAXE",
       "category": "ranked",
-      "group": null,
-      "format": "Solo",
+      "group": "bed-break",
+      "format": "1v1",
       "ranked": false,
       "startHere": false,
       "event": false,
-      "description": "Archway or Invasion, 2 to 5 players: attack from the top bridge with one of 3 kits and break the bed; the defenders have their forge full. 3-minute rounds, each player in turn.",
+      "description": "One attacker against one defender: 2 players, each attacks twice, in turn.",
+      "plugins": [
+        "bedwars"
+      ]
+    },
+    {
+      "id": "bed-break-simulator-1v2",
+      "name": "Bed Break Simulator 1v2",
+      "colour": "#FFAA00",
+      "icon": "DIAMOND_PICKAXE",
+      "category": "ranked",
+      "group": "bed-break",
+      "format": "1v2",
+      "ranked": false,
+      "startHere": false,
+      "event": false,
+      "description": "One attacker against two defenders: 3 players, each attacks twice, in turn.",
+      "plugins": [
+        "bedwars"
+      ]
+    },
+    {
+      "id": "bed-break-simulator-1v3",
+      "name": "Bed Break Simulator 1v3",
+      "colour": "#FFAA00",
+      "icon": "DIAMOND_PICKAXE",
+      "category": "ranked",
+      "group": "bed-break",
+      "format": "1v3",
+      "ranked": false,
+      "startHere": false,
+      "event": false,
+      "description": "One attacker against three defenders: 4 players, each attacks once, in turn.",
+      "plugins": [
+        "bedwars"
+      ]
+    },
+    {
+      "id": "bed-break-simulator-1v4",
+      "name": "Bed Break Simulator 1v4",
+      "colour": "#FFAA00",
+      "icon": "DIAMOND_PICKAXE",
+      "category": "ranked",
+      "group": "bed-break",
+      "format": "1v4",
+      "ranked": false,
+      "startHere": false,
+      "event": false,
+      "description": "One attacker against four defenders: 5 players, each attacks once, in turn.",
       "plugins": [
         "bedwars"
       ]
