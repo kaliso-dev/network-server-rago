@@ -61,6 +61,7 @@ import org.bukkit.event.player.PlayerPickupItemEvent;
 import org.bukkit.event.player.PlayerQuitEvent;
 import org.bukkit.event.player.PlayerRespawnEvent;
 import org.bukkit.event.player.PlayerTeleportEvent;
+import org.bukkit.event.player.PlayerVelocityEvent;
 import org.bukkit.inventory.ItemStack;
 
 /**
@@ -379,6 +380,19 @@ final class PracticeGames implements Listener {
             game.landed(victim, attacker, event);
         } else {
             game.landed(victim, null, event);
+        }
+    }
+
+    /**
+     * The velocity the game sends a player right away (the knockback of a hit): the mode may
+     * replace it (the KB displace, along its bridge). At MONITOR on purpose, though it changes the
+     * event: the combat engine sets the server's knockback at HIGHEST, and this must come after it.
+     */
+    @EventHandler(priority = EventPriority.MONITOR, ignoreCancelled = true)
+    public void onVelocity(PlayerVelocityEvent event) {
+        PracticeGame game = byPlayer.get(event.getPlayer().getUniqueId());
+        if (game != null) {
+            game.velocity(event.getPlayer(), event);
         }
     }
 

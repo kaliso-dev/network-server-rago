@@ -10,22 +10,29 @@ import org.bukkit.Material;
 import org.bukkit.Sound;
 import org.bukkit.entity.Player;
 import org.bukkit.event.entity.EntityDamageEvent;
+import org.bukkit.event.player.PlayerVelocityEvent;
 import org.bukkit.inventory.ItemStack;
+import org.bukkit.util.Vector;
 
 /**
  * KB displace as in a real Bed Fight top fight: a bridge one block wide, and the defender on the
  * top of the defense, one block below the bridge, the bridge in front of them and a block behind
  * them, nothing on the sides. The attacker runs along the bridge and, in the tick of the hit,
  * turns their head to one side: the knockback of the sprint sends the defender sideways, off the
- * top. Only a hit from the front of the defender counts (from the bridge, never from a side or
- * from behind), with the look on the defender: a hit with the head turned away from them (which
- * only a cheat lands) does not count. Invisible walls (barriers) line both sides of the bridge in
- * front of the defender: the attacker stays on it, in its middle, and cannot hit from a side. Each hit is one attempt: a displaced defender is a point for the attacker, and
- * the roles swap at each hit (or after {@link #ATTEMPT_SECONDS} seconds without one). The
- * defender stays in their notch, no damage, no blocks. First to the target. The practice against
- * a bot is {@link KbDisplaceBot}. Both play on the owner's map when the server has it (the
- * attacker on its gold block, the defender in the notch between its two raised blocks, see
- * {@link Place}), else on the plugin's own bridge.
+ * top. Only a hit from the bridge in front of the defender counts (never from a side or from
+ * behind), with the look on the defender: a hit with the head turned away from them (which only a
+ * cheat lands) does not count. Invisible walls (barriers) line both sides of the bridge in front of
+ * the defender: the attacker stays on it, in its middle. And the push of a hit always goes along
+ * the bridge, as from straight in front ({@link #knockback}): the game pushes away from where the
+ * attacker stands, so a hit from the edge of the bridge a little to a side, or from the notch where
+ * the attacker pushed the defender back, would throw them off without any turn of the head. Here
+ * only the turn of the head (the push of the sprint, the way the attacker looks) sends the defender
+ * sideways. Each hit is one attempt: a displaced defender is a point for the attacker, and the
+ * roles swap at each hit (or after {@link #ATTEMPT_SECONDS} seconds without one). The defender
+ * stays in their notch, no damage, no blocks. First to the target. The practice against a bot is
+ * {@link KbDisplaceBot}. Both play on the owner's map when the server has it (the attacker on its
+ * gold block, the defender in the notch between its two raised blocks, see {@link Place}), else on
+ * the plugin's own bridge.
  */
 final class KbDisplace extends Duel {
 
@@ -44,6 +51,24 @@ final class KbDisplace extends Duel {
     static final int ATTEMPT_SECONDS = 15;
     /** The invisible walls along the bridge are this high: a jump does not clear them. */
     static final int WALL_HEIGHT = 3;
+    /**
+     * A hit counts from the attacker's centre at least this far past the middle of the notch,
+     * towards their start: over the bridge in front, never inside the notch beside the defender.
+     */
+    static final double FRONT_MIN = 0.4;
+    /** ... and at most this far from the line of the bridge: over its blocks, never beside them. */
+    static final double ACROSS_MAX = 0.5;
+
+    /**
+     * The knockback of the game (1.8.8): the push of a hit, horizontal and up (at most {@link #UP}
+     * up), and the push a sprint adds the way the attacker looks.
+     */
+    static final double PUSH = 0.4;
+    static final double UP = 0.4;
+    static final double SPRINT_PUSH = 0.5;
+    /** The sprint's push up: for a player, the server's knockback (Hypixel's, 0.07); for a mob, the game's. */
+    static final double SPRINT_UP_PLAYER = 0.07;
+    static final double SPRINT_UP_MOB = 0.1;
 
     /**
      * Where the duel and the drill play: the plugin's own bridge, or a copy of the owner's map with
@@ -125,13 +150,17 @@ final class KbDisplace extends Duel {
         }
 
         /**
-         * True if a hit from this offset of the attacker to the defender comes from the front: from
-         * the bridge the attacker runs along, in its line, not from a side or from behind.
+         * True if the attacker, their feet at this offset from the centre (x, y, z), hits from the
+         * bridge in front of the defender: in its line, past the notch, not below the bridge.
+         * Measured from the notch and not from the defender, whom the attacker could push back in
+         * it to hit them from beside.
          */
-        boolean fromTheFront(double dx, double dz) {
+        boolean onTheBridge(double[] by) {
+            double dx = by[0] - defender[0];
+            double dz = by[2] - defender[2];
             double along = dx * front[0] + dz * front[1];
             double across = -dx * front[1] + dz * front[0];
-            return along >= 0.4 && Math.abs(across) <= 0.9;
+            return along >= FRONT_MIN && Math.abs(across) <= ACROSS_MAX && by[1] >= defender[1] - 0.5;
         }
 
         /** True if a defender who was not hit left their notch (a step, a jump): they are put back. */
@@ -151,6 +180,10 @@ final class KbDisplace extends Duel {
     /** The tick of the last hit. */
     private int knockedAt;
     private long warnedAt;
+    /** The knockback of the hit being dealt (see {@link #velocity}), to this defender in this tick, or null. */
+    private double[] dealt;
+    private UUID dealtTo;
+    private int dealtAt;
 
     KbDisplace(PracticeHost host, GameMode mode, Arena arena, List<List<Player>> teams, int target, Place place) {
         super(host, mode, arena, teams, target);
@@ -167,8 +200,9 @@ final class KbDisplace extends Duel {
         super.intro(player);
         player.sendMessage(ChatColor.GRAY + "The defender holds their place on the bridge, nothing on their sides."
                 + " Run, turn your head to the side and hit them in the same tick: they go off sideways."
-                + " Only a hit from the front, with your look on them, counts: invisible walls keep you on the bridge."
-                + " The roles swap at each hit.");
+                + " Only a hit from the bridge in front of them, with your look on them, counts: invisible walls keep"
+                + " you on the bridge, and a hit always pushes straight along it, only the turn of your head sends"
+                + " them sideways. The roles swap at each hit.");
     }
 
     // --- The place, shared with the bot -----------------------------------------------------------
@@ -196,9 +230,26 @@ final class KbDisplace extends Duel {
         return Place.PLAIN.offTheTop(feet);
     }
 
-    /** {@link Place#fromTheFront} on the plugin's own bridge (the attacker at smaller x). */
-    static boolean fromTheFront(double dx, double dz) {
-        return Place.PLAIN.fromTheFront(dx, dz);
+    /**
+     * The velocity of a hit in the KB displace: the game's knockback (EntityLiving and
+     * EntityHuman.attack of 1.8.8), except that its push away from the attacker always goes along
+     * the bridge, as from straight in front, wherever the attacker stands: the defender's motion
+     * halved, {@value #PUSH} along the bridge (front: from the defender towards the attacker's
+     * start) and {@value #UP} up, at most {@value #UP} up; a sprint adds {@value #SPRINT_PUSH} the
+     * way the attacker looks, and sprintUp up. All of it times share (the bot takes less).
+     */
+    static double[] knockback(double[] front, float attackerYaw, boolean sprint, double motionX, double motionY,
+            double motionZ, double sprintUp, double share) {
+        double vx = motionX / 2 - front[0] * PUSH;
+        double vy = Math.min(motionY / 2 + UP, UP);
+        double vz = motionZ / 2 - front[1] * PUSH;
+        if (sprint) {
+            double yaw = Math.toRadians(attackerYaw);
+            vx += -Math.sin(yaw) * SPRINT_PUSH;
+            vy += sprintUp;
+            vz += Math.cos(yaw) * SPRINT_PUSH;
+        }
+        return new double[] {vx * share, vy * share, vz * share};
     }
 
     /** How far a hit reaches, a little more than the game's 3 blocks for the lag. */
@@ -239,16 +290,19 @@ final class KbDisplace extends Duel {
         return true;
     }
 
-    /** Why a hit of the attacker does not count (null when it does): from where, how, where they look. */
-    static String refused(Place place, Player attacker, double[] by, double[] at, Location victim) {
-        if (!place.fromTheFront(by[0] - at[0], by[2] - at[2])) {
-            return "Only a hit from the front counts: from the bridge, in front of them.";
+    /**
+     * Why a hit of the attacker, their feet at this offset from the centre, does not count (null
+     * when it does): from where, where they look.
+     */
+    static String refused(Place place, Player attacker, double[] by, Location victim) {
+        if (!place.onTheBridge(by)) {
+            return "Only a hit from the bridge, in front of them, counts: never from their side or from behind.";
         }
         Location eye = attacker.getEyeLocation();
-        org.bukkit.util.Vector way = eye.getDirection();
+        Vector way = eye.getDirection();
         if (!aimedAt(eye.getX(), eye.getY(), eye.getZ(), way.getX(), way.getY(), way.getZ(), victim.getX(), victim.getY(),
                 victim.getZ())) {
-            return "Only a hit with your look on them counts: no hit from the side.";
+            return "Only a hit with your look on them counts.";
         }
         return null;
     }
@@ -320,16 +374,19 @@ final class KbDisplace extends Duel {
         return false;
     }
 
-    /** Only the attacker's hit, from the front, once per attempt; no damage, only the knockback. */
+    /**
+     * Only the attacker's hit, from the bridge in front, once per attempt; no damage, only the
+     * knockback, and that of {@link #knockback}, along the bridge: worked out here, from the
+     * defender's motion, the attacker's look and sprint before the game changes them, and put in
+     * place of the game's one when the game sends it (see {@link #velocity}).
+     */
     @Override
     boolean damage(Player victim, Player attacker, EntityDamageEvent event) {
         if (attacker == null || phase != Phase.PLAYING || sideOf(attacker.getUniqueId()) != attacker()
                 || knockedUntil >= 0) {
             return false;
         }
-        double[] by = arena.offset(attacker.getLocation());
-        double[] at = arena.offset(victim.getLocation());
-        String refused = refused(place, attacker, by, at, victim.getLocation());
+        String refused = refused(place, attacker, arena.offset(attacker.getLocation()), victim.getLocation());
         if (refused != null) {
             long now = System.currentTimeMillis();
             if (now - warnedAt > 1500L) {
@@ -338,10 +395,35 @@ final class KbDisplace extends Duel {
             }
             return false;
         }
+        Vector motion = victim.getVelocity();
+        dealt = knockback(place.front, attacker.getLocation().getYaw(), attacker.isSprinting(), motion.getX(),
+                motion.getY(), motion.getZ(), SPRINT_UP_PLAYER, 1.0);
+        dealtTo = victim.getUniqueId();
+        dealtAt = tickCount;
         event.setDamage(0.0);
         knockedUntil = tickCount + KNOCK_TICKS;
         knockedAt = tickCount;
         return true;
+    }
+
+    /**
+     * The game sends the hit defender its knockback right after the hit, pushed away from where
+     * the attacker stands (by the server or the combat engine): it becomes the one of
+     * {@link #knockback}, along the bridge. Sent at once, as the game does: set on the player later,
+     * the server's own moves of the player would eat part of it before it leaves.
+     */
+    @Override
+    void velocity(Player player, PlayerVelocityEvent event) {
+        if (dealt == null || dealtAt != tickCount || !player.getUniqueId().equals(dealtTo)) {
+            return;
+        }
+        Vector velocity = new Vector(dealt[0], dealt[1], dealt[2]);
+        dealt = null;
+        event.setVelocity(velocity);
+        // the server copies the event's vector onto the player only when it changed, and which
+        // vector the event starts with varies between 1.8 forks: set on the player too, it is the
+        // one the packet carries either way (the server puts the motion back right after)
+        player.setVelocity(velocity);
     }
 
     @Override

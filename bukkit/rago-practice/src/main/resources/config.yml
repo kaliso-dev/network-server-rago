@@ -265,8 +265,9 @@ block-in:
 # islands copied once ("centre" and "zone" as the sumo maps); "defenseur", the defender's place
 # (the notch of the bridge, between its two raised blocks; the bot stands there), and "attaquant",
 # where the attacker starts (the gold block), x, y, z, yaw each as F3 gives them. Only a hit from
-# the attacker's side, in the line of the bridge, counts. Without the world (or without this
-# section): the plugin's own bridge.
+# the bridge in front of the notch counts, and its push always goes along the bridge: only the turn
+# of the head sends the defender sideways. Without the world (or without this section): the
+# plugin's own bridge.
 kb-displace:
   monde: "KbDisplace"
   centre: [896056, 97, 896085]

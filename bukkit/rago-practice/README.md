@@ -52,9 +52,15 @@ Chaque duel, sumo compris, est enregistré : `/replay` le montre à nouveau depu
   Sans le monde, le pont du plugin : le défenseur en haut de la défense, un bloc plus bas que le
   pont, le pont devant lui et un bloc derrière. L'attaquant court sur le pont et, dans le tick du coup, tourne la
   tête d'un côté : le knockback du sprint envoie le défenseur sur le côté, dans le vide. Seul un
-  coup donné de face compte (depuis le pont, jamais d'un côté ni de derrière), sprint ou pas. Des
-  murs invisibles (barrières) bordent le pont devant le défenseur : l'attaquant reste au milieu du
-  pont et ne peut pas aller frapper sur le côté. Contre le bot, le réglage « Bot KB » de la hotbar
+  coup donné depuis le pont devant le creux compte (jamais depuis le creux lui-même, d'un côté ni
+  de derrière), avec le regard sur le défenseur, sprint ou pas. Des murs invisibles (barrières)
+  bordent le pont devant le défenseur : l'attaquant reste au milieu du pont. Et le recul d'un coup
+  part toujours dans l'axe du pont, comme d'un coup donné bien en face, où que soit l'attaquant :
+  le jeu pousse à l'opposé de l'endroit où se tient l'attaquant, donc un coup donné du bord du bloc
+  devant le défenseur, un peu de biais, ou depuis le creux où l'attaquant l'avait repoussé, le
+  jetait sur le côté sans tourner la tête. Seul le coup de tête (la poussée du sprint, dans le sens
+  où regarde l'attaquant) l'envoie maintenant sur le côté. En 1v1, ce recul remplace celui du
+  serveur au moment où le jeu l'envoie, tout de suite après le coup. Contre le bot, le réglage « Bot KB » de la hotbar
   dit quelle part du knockback il prend (60 à 100 %, 80 % par défaut) : un zombie part plus loin
   qu'un joueur qui tient sa place. Chaque coup est un
   essai : défenseur tombé, un point pour l'attaquant ; les rôles changent à chaque coup (ou après
@@ -320,7 +326,8 @@ réglages. Un entraînement de la liste que le serveur ne joue pas est laissé d
 - **KB displace contre un bot** : le même pont (celui de la map KbDisplace quand le serveur l'a),
   le joueur sur le bloc d'or, le bot à la place du défenseur, dans le creux. Après chaque coup
   on revient tout de suite au départ, pour reprendre de l'élan, jusqu'à ce que le bot tombe ; seul
-  un coup de face compte. Le score est le temps, et le scoreboard compte les essais.
+  un coup depuis le pont, de face, compte, et son recul part dans l'axe du pont : seul le coup de
+  tête envoie le bot sur le côté. Le score est le temps, et le scoreboard compte les essais.
 - **Block edit**, comme sur la map Block Edit Practice du propriétaire : une cage de verre, un mur
   de laine rouge de 5 sur 3, et derrière, un bot dans une petite pièce en bois. Casser un bloc du
   mur, frapper le bot par le trou, remettre le bloc avant qu'il ne frappe. Le bot frappe comme un
