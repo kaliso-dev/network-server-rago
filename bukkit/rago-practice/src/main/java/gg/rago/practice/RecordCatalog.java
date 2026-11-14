@@ -75,7 +75,7 @@ final class RecordCatalog {
         all.add(entry("block-extend", "Block extend", Material.SANDSTONE, BlockExtendTraining.variants()));
         all.add(entry("ladder-practice", "Ladder practice", Material.LADDER, LadderTraining.variants()));
         all.add(entry("pearl-practice", "Pearl practice", Material.ENDER_PEARL, PearlTraining.variants()));
-        all.add(entry("fireball-practice", "Fireball practice", Material.FIREBALL, FireballTraining.VARIANTS));
+        all.add(entry("fireball-practice", "Fireball practice", Material.FIREBALL, FireballTraining.variants()));
         all.add(entry("aim-trainer", "Aim trainer", Material.BOW, AimTrainer.TARGETS));
         all.add(entry("bow-training", "Bow training", Material.ARROW, BowTraining.BOTS));
         all.add(entry("combo-bot", "Combo bot", Material.SKULL_ITEM, ComboBot.variants()));

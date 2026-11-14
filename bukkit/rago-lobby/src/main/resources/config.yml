@@ -1601,8 +1601,11 @@ modes:
     joueurs-par-equipe: 1
     classe: false
     description:
-      - "Fireball jumps and"
-      - "sending fireballs back."
+      - "A new Bed Wars map each try:"
+      - "fireball jump a broken bridge,"
+      - "knock bridgers and rushers"
+      - "into the void, and hit their"
+      - "fireballs back."
   shop-practice:
     nom: "&bFast Shop"
     categorie: entrainement

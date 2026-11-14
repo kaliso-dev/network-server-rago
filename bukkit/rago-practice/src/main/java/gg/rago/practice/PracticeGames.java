@@ -17,6 +17,7 @@ import org.bukkit.World;
 import org.bukkit.block.Block;
 import org.bukkit.entity.EnderPearl;
 import org.bukkit.entity.Entity;
+import org.bukkit.entity.FallingBlock;
 import org.bukkit.entity.Fireball;
 import org.bukkit.entity.Player;
 import org.bukkit.entity.Projectile;
@@ -27,8 +28,10 @@ import org.bukkit.event.EventPriority;
 import org.bukkit.event.Listener;
 import org.bukkit.event.block.Action;
 import org.bukkit.event.block.BlockBreakEvent;
+import org.bukkit.event.block.BlockFromToEvent;
 import org.bukkit.event.block.BlockPlaceEvent;
 import org.bukkit.event.entity.CreatureSpawnEvent;
+import org.bukkit.event.entity.EntityChangeBlockEvent;
 import org.bukkit.event.entity.EntityCombustEvent;
 import org.bukkit.event.entity.EntityDamageEvent;
 import org.bukkit.event.entity.EntityDeathEvent;
@@ -722,6 +725,22 @@ final class PracticeGames implements Listener {
             game.projectileHit(shooter, projectile);
         } else if (shooter == null && byEntity.get(projectile.getUniqueId()) == game) {
             game.ownLanded(projectile);
+        }
+    }
+
+    /** The maps copied into the arenas stay as they are: no sand or gravel falls (with a bot on it)... */
+    @EventHandler(ignoreCancelled = true)
+    public void onFall(EntityChangeBlockEvent event) {
+        if (event.getEntity() instanceof FallingBlock && event.getBlock().getWorld().equals(world)) {
+            event.setCancelled(true);
+        }
+    }
+
+    /** ...and no water or lava runs out of them. */
+    @EventHandler(ignoreCancelled = true)
+    public void onFlow(BlockFromToEvent event) {
+        if (event.getBlock().getWorld().equals(world)) {
+            event.setCancelled(true);
         }
     }
 

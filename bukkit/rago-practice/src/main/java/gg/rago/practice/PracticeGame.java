@@ -322,7 +322,7 @@ abstract class PracticeGame implements Spectators.Watched {
     void projectileHit(Player shooter, Projectile projectile) {
     }
 
-    /** A projectile of the game itself (no player threw it: a cannon's fireball) landed. */
+    /** A projectile of the game itself (no player threw it: the fireball of an enemy bot) landed. */
     void ownLanded(Projectile projectile) {
     }
 

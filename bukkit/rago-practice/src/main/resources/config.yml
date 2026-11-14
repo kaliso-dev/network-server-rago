@@ -228,14 +228,18 @@ aim-trainer:
   xp-par-seconde: 1
   touches-par-xp: 10
 
-# Pearl practice, in a loop on the Bed Wars maps: each attempt on the next map of this list that the
-# server has (its world in the folder of the worlds, with its bedwars.yml of the Bed Wars plugin),
-# at another place, in another direction. Of each map, the side of a team drawn at each start is
-# copied once: its base, its diamond islands and the middle. The situations come from the shape
-# of the islands: a pearl from one island onto another, a pearl back after a hit, and the pearl
-# block clutch, a pearl to the side of an island then blocks under you against the wall. No block
-# goes more than 16 blocks under the lowest island of a situation, as under the islands on
-# Hypixel. Without any of these maps, the plugin's own islands.
+# Pearl practice and fireball practice, in a loop on the Bed Wars maps: each attempt on the next map
+# of this list that the server has (its world in the folder of the worlds, with its bedwars.yml of
+# the Bed Wars plugin), at another place, in another direction. Of each map, the side of a team is
+# copied once: its base, its diamond islands and the middle (of three sides drawn at each start,
+# the one with the most kinds of situation). The situations come from the shape of the islands and
+# of the bridges between them. Pearls: a pearl from one island onto another, a pearl back after a
+# hit, and the pearl block clutch, a pearl to the side of an island then blocks under you against
+# the wall; no block goes more than 16 blocks under the lowest island of a situation, as under the
+# islands on Hypixel. Fireballs: a fireball jump over the gap of a broken bridge (an enemy rushing
+# from behind, or not) or from a bridge up onto an island, an enemy bridging or running to knock
+# into the void, the fireballs of an enemy to hit back. Without any of these maps, the plugin's own
+# islands.
 pearl:
   cartes: [SkyRise, Archway, Invasion, Antenna, Aquarium, Artemis, Boletum, Carapace, Catalyst, Chained, Eastwood,
     Extinction, Katsu, Lectus, Obelisk, Paladin, Planet98, Rise, Stonekeep, Swashbuckle, Treenan]

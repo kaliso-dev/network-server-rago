@@ -4,6 +4,7 @@ import gg.rago.lobby.api.VoidGenerator;
 import java.io.File;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
@@ -151,6 +152,15 @@ final class MapCopy {
      * log about what plays without it. A world the plugin loads for this goes again once read.
      */
     static MapCopy read(String worldName, int[] box, int[] origin, Logger log, String what) {
+        List<MapCopy> copies = read(worldName, Collections.singletonList(new int[][] {box, origin}), log, what);
+        return copies == null ? null : copies.get(0);
+    }
+
+    /**
+     * Reads several boxes (with their origin each: {box, origin}) of the world with this name, if
+     * the server has it, loading it once. Null when the world is not there, with a word in the log.
+     */
+    static List<MapCopy> read(String worldName, List<int[][]> boxes, Logger log, String what) {
         World world = Bukkit.getWorld(worldName);
         boolean loaded = false;
         if (world == null) {
@@ -162,6 +172,22 @@ final class MapCopy {
             world = new WorldCreator(worldName).generator(new VoidGenerator()).generateStructures(false).createWorld();
             loaded = true;
         }
+        List<MapCopy> copies = new ArrayList<>();
+        StringBuilder sizes = new StringBuilder();
+        for (int[][] box : boxes) {
+            MapCopy copy = copy(world, box[0], box[1]);
+            copies.add(copy);
+            sizes.append(sizes.length() == 0 ? "" : ", ").append(copy.size());
+        }
+        if (loaded) {
+            Bukkit.unloadWorld(world, false);
+        }
+        log.info("Copied for " + what + " from the map \"" + worldName + "\": " + sizes + " blocks.");
+        return copies;
+    }
+
+    /** The blocks of the box (corners included) of a world, the origin landing on the centre of the zone. */
+    private static MapCopy copy(World world, int[] box, int[] origin) {
         int x1 = Math.min(box[0], box[3]);
         int y1 = Math.max(0, Math.min(box[1], box[4]));
         int z1 = Math.min(box[2], box[5]);
@@ -178,9 +204,6 @@ final class MapCopy {
                     raw[(x * sy + y) * sz + z] = packed(world.getBlockAt(x1 + x, y1 + y, z1 + z));
                 }
             }
-        }
-        if (loaded) {
-            Bukkit.unloadWorld(world, false);
         }
         int[] blocks = new int[raw.length * 5];
         int n = 0;
@@ -210,9 +233,7 @@ final class MapCopy {
                 }
             }
         }
-        MapCopy copy = new MapCopy(Arrays.copyOf(blocks, n));
-        log.info(Character.toUpperCase(what.charAt(0)) + what.substring(1) + " plays on the map \"" + worldName + "\": " + copy.size() + " blocks copied.");
-        return copy;
+        return new MapCopy(Arrays.copyOf(blocks, n));
     }
 
     private static int at(int[] raw, int sx, int sy, int sz, int x, int y, int z) {

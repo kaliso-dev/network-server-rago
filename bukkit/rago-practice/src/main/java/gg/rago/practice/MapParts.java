@@ -8,9 +8,10 @@ import java.util.List;
 import java.util.Set;
 
 /**
- * Where the pearl practice plays: a part of each of the owner's Bed Wars maps, read once from its
- * world, around the points of its bedwars.yml (a team's base, the one or two diamond islands
- * nearest to it, the middle), and the situations found on it by the shape of its islands:
+ * Where the pearl practice and the fireball practice play: a part of each of the owner's Bed Wars
+ * maps, read once from its world, around the points of its bedwars.yml (a team's base, the one or
+ * two diamond islands nearest to it, the middle), and the situations found on it by the shape of
+ * its islands ({@link MapFinder}):
  *
  * <ul>
  *   <li>{@link Kind#PEARL}: from the edge of an island, pearl onto another one (the base and its
@@ -19,19 +20,39 @@ import java.util.Set;
  *       they pearl back onto it;
  *   <li>{@link Kind#CLUTCH}: on the end of a bridge out in the void, a few blocks under an island,
  *       a hit throws the player off; the pearl reaches the side of the island, a wall, and the
- *       player places blocks under themselves at once (a pearl block clutch).
+ *       player places blocks under themselves at once (a pearl block clutch);
+ *   <li>the fireballs, on the bridges between those islands: a fireball jump over the gap of a
+ *       broken bridge ({@link Kind#JUMP}), the same with an enemy rushing from behind
+ *       ({@link Kind#ESCAPE}), a fireball jump from a bridge up onto an island ({@link Kind#CLIMB}),
+ *       an enemy bridging to the player's island ({@link Kind#BRIDGER}), running over a whole
+ *       bridge to it ({@link Kind#RUSHER}) or bridging past it ({@link Kind#SIDE}), to knock into
+ *       the void, and the fireballs of an enemy on another island to send back ({@link Kind#SEND}).
  * </ul>
  *
  * The islands are the columns of blocks of the part that touch each other (seen from above), as
  * the map tool of the Bed Wars plugin finds them. Every place is checked: a start where one can
  * stand and throw, a gap a pearl crosses (6 to 45 blocks), a void where the hit throws, a wall in
- * front of a bridge. Pure (no Bukkit): the tests run it on islands of their own. Immutable once made.
+ * front of a bridge, a bridge through the void. Pure (no Bukkit): the tests run it on islands of
+ * their own. Immutable once made.
  */
-final class PearlMaps {
+final class MapParts {
 
-    /** What the player does in a situation. */
+    /** What the player does in a situation: the first three in the pearl practice, the others in the fireball practice. */
     enum Kind {
-        PEARL, SAVE, CLUTCH
+        PEARL(false), SAVE(false), CLUTCH(false),
+        JUMP(true), ESCAPE(true), CLIMB(true), BRIDGER(true), RUSHER(true), SIDE(true), SEND(true);
+
+        /** True for a situation of the fireball practice. */
+        final boolean fireball;
+
+        Kind(boolean fireball) {
+            this.fireball = fireball;
+        }
+
+        /** True if the bridge put at the start is the enemy's (his colour), not the player's. */
+        boolean enemyBridge() {
+            return this == BRIDGER || this == RUSHER || this == SIDE;
+        }
     }
 
     /** The shortest and the longest gap between two islands that a pearl of a situation crosses. */
@@ -102,6 +123,8 @@ final class PearlMaps {
 
     /** A situation of a part: what to do, where from, and the island to end on. */
     static final class Situation {
+        private static final int[] NONE = new int[0];
+
         final Kind kind;
         /** One line for the chat. */
         final String what;
@@ -109,17 +132,34 @@ final class PearlMaps {
         final String title;
         /** The start, from the origin of the part: x, y (the feet), z, yaw. */
         final double[] start;
-        /** The island to end on, by its number in the part. */
+        /** The island to end on (or, for a defense, the island defended), by its number in the part. */
         final int target;
         /** The floor of that island where it is aimed at (the feet), from the origin. */
         final int targetFloor;
         /** The way the hit throws the player (x, z, of length 1); null without a hit. */
         final double[] push;
-        /** The block of the bridge under the start (x, y, z from the origin) in a clutch; null otherwise. */
+        /**
+         * The blocks of the player's own bridge put at the start in their wool (x, y, z from the origin
+         * each): the block under the start in a clutch, the bridge out of their island to knock an
+         * enemy off from the side; null without.
+         */
         final int[] platform;
+        /** The blocks of the bridge put at the start, x, y, z each (the player's, or the enemy's: {@link Kind#enemyBridge}). */
+        final int[] bridge;
+        /** The way of the enemy, the block under each of his steps in order (x, y, z each); null when he does not walk. */
+        final int[] path;
+        /** Where the enemy starts: x, y (the feet), z, yaw; null without an enemy. */
+        final double[] enemy;
+        /** A jump: how far along the way from the start the far side of the gap begins. */
+        final double reach;
 
         Situation(Kind kind, String what, String title, double[] start, int target, int targetFloor, double[] push,
                 int[] platform) {
+            this(kind, what, title, start, target, targetFloor, push, platform, NONE, null, null, 0);
+        }
+
+        Situation(Kind kind, String what, String title, double[] start, int target, int targetFloor, double[] push,
+                int[] platform, int[] bridge, int[] path, double[] enemy, double reach) {
             this.kind = kind;
             this.what = what;
             this.title = title;
@@ -128,6 +168,10 @@ final class PearlMaps {
             this.targetFloor = targetFloor;
             this.push = push;
             this.platform = platform;
+            this.bridge = bridge;
+            this.path = path;
+            this.enemy = enemy;
+            this.reach = reach;
         }
     }
 
@@ -194,9 +238,19 @@ final class PearlMaps {
             }
             return found;
         }
+
+        /** True if a situation of the pearl practice (false: of the fireball practice) is on this part. */
+        boolean hasAny(boolean fireball) {
+            for (Situation situation : situations) {
+                if (situation.kind.fireball == fireball) {
+                    return true;
+                }
+            }
+            return false;
+        }
     }
 
-    private PearlMaps() {
+    private MapParts() {
     }
 
     // --- The part of a map ----------------------------------------------------------------------
@@ -259,7 +313,7 @@ final class PearlMaps {
             return null;
         }
         int[] labels = grid.islands();
-        Finder finder = new Finder(grid, labels, anchors, origin);
+        MapFinder finder = new MapFinder(grid, labels, anchors, origin);
         List<Situation> situations = finder.situations();
         if (situations.isEmpty()) {
             return null;
@@ -471,298 +525,6 @@ final class PearlMaps {
         }
     }
 
-    // --- The situations -------------------------------------------------------------------------
-
-    /** An island of the part: its number, its point (from the origin), its floor there, its name in the messages. */
-    private static final class Island {
-        final int label;
-        final double x;
-        final double z;
-        final int floor;
-        final String name;
-        /** "your base", "the diamond island", "the middle": and with "onto" ("onto your base"...). */
-        final boolean base;
-
-        Island(int label, double x, double z, int floor, String name, boolean base) {
-            this.label = label;
-            this.x = x;
-            this.z = z;
-            this.floor = floor;
-            this.name = name;
-            this.base = base;
-        }
-    }
-
-    /** Finds the situations of a part. */
-    private static final class Finder {
-        final Grid grid;
-        final int[] labels;
-        final Set<Integer> used = new HashSet<>();
-        final List<Situation> found = new ArrayList<>();
-        Island base;
-        final List<Island> diamonds = new ArrayList<>();
-        Island middle;
-        int lowestFloor = Integer.MAX_VALUE;
-
-        Finder(Grid grid, int[] labels, Anchors anchors, int[] origin) {
-            this.grid = grid;
-            this.labels = labels;
-            base = island(anchors.spawn, origin, 3, "your base", true);
-            for (double[] diamond : anchors.ownDiamonds()) {
-                Island island = island(diamond, origin, 3, "the diamond island", false);
-                if (island != null && (base == null || island.label != base.label)) {
-                    diamonds.add(island);
-                }
-            }
-            double[] mid = anchors.middle();
-            if (mid != null) {
-                Island island = island(mid, origin, 8, "the middle", false);
-                if (island != null && (base == null || island.label != base.label) && !sameAsADiamond(island)) {
-                    middle = island;
-                }
-            }
-        }
-
-        private boolean sameAsADiamond(Island island) {
-            for (Island diamond : diamonds) {
-                if (diamond.label == island.label) {
-                    return true;
-                }
-            }
-            return false;
-        }
-
-        /** The island under a point of the map (or the nearest within reach), with the floor where one stands there. */
-        private Island island(double[] point, int[] origin, int reach, String name, boolean base) {
-            double x = point[0] - origin[0];
-            double z = point[2] - origin[2];
-            int y = floor(point[1] + 0.01) - origin[1];
-            for (int d = 0; d <= reach; d++) {
-                for (int dx = -d; dx <= d; dx++) {
-                    for (int dz = -d; dz <= d; dz++) {
-                        if (Math.max(Math.abs(dx), Math.abs(dz)) != d) {
-                            continue;
-                        }
-                        int bx = floor(x) + dx;
-                        int bz = floor(z) + dz;
-                        int label = grid.label(labels, bx, bz);
-                        if (label == 0) {
-                            continue;
-                        }
-                        int feet = grid.highestStand(bx, bz, y - 14, y + 2);
-                        if (feet == Integer.MIN_VALUE) {
-                            continue;
-                        }
-                        return new Island(label, bx + 0.5, bz + 0.5, feet, name, base);
-                    }
-                }
-            }
-            return null;
-        }
-
-        List<Situation> situations() {
-            if (base == null || diamonds.isEmpty()) {
-                return found;
-            }
-            for (Island diamond : diamonds) {
-                pearl(base, diamond);
-                pearl(diamond, base);
-                if (middle != null) {
-                    pearl(diamond, middle);
-                    pearl(middle, diamond);
-                }
-            }
-            for (Island diamond : diamonds) {
-                save(base, diamond);
-                clutch(base, diamond);
-                save(diamond, middle != null ? middle : base);
-                clutch(diamond, base);
-                if (middle != null) {
-                    clutch(diamond, middle);
-                    save(middle, diamond);
-                    clutch(middle, diamond);
-                }
-            }
-            return found;
-        }
-
-        /** The last place to stand on the island, walking from its point towards (tx, tz): x, y (feet), z; null for none. */
-        double[] edge(Island from, double tx, double tz) {
-            double dx = tx - from.x;
-            double dz = tz - from.z;
-            double length = Math.hypot(dx, dz);
-            double ux = dx / length;
-            double uz = dz / length;
-            int feet = from.floor;
-            double[] last = null;
-            int lastX = Integer.MIN_VALUE;
-            int lastZ = Integer.MIN_VALUE;
-            for (double t = 0; t < length; t += 0.25) {
-                int bx = floor(from.x + ux * t);
-                int bz = floor(from.z + uz * t);
-                if (bx == lastX && bz == lastZ) {
-                    continue;
-                }
-                lastX = bx;
-                lastZ = bz;
-                if (grid.label(labels, bx, bz) != from.label) {
-                    break;
-                }
-                // one walks up a block at most, and may drop a few
-                int y = grid.highestStand(bx, bz, feet - 8, feet + 1);
-                if (y != Integer.MIN_VALUE) {
-                    feet = y;
-                    last = new double[] {bx + 0.5, y, bz + 0.5};
-                }
-            }
-            return last;
-        }
-
-        /** Pearl from the edge of one island onto another. */
-        void pearl(Island from, Island to) {
-            double[] start = edge(from, to.x, to.z);
-            double[] end = edge(to, from.x, from.z);
-            if (start == null || end == null) {
-                return;
-            }
-            double gap = Math.hypot(end[0] - start[0], end[2] - start[2]);
-            if (gap < GAP_MIN || gap > GAP_MAX || Math.abs(end[1] - start[1]) > HEIGHT_MAX) {
-                return;
-            }
-            double[] way = unit(start[0], start[2], to.x, to.z);
-            if (!clearAhead(start, way, 2.5)) {
-                return;
-            }
-            String onto = to.base ? "back to your base" : "onto " + to.name;
-            add(new Situation(Kind.PEARL, "Pearl " + onto + ".", "Pearl " + onto,
-                    new double[] {start[0], start[1], start[2], yaw(way)}, to.label, (int) end[1], null, null), from, to);
-        }
-
-        /** On the edge of an island towards another one, a hit throws the player off: pearl back onto it. */
-        void save(Island on, Island towards) {
-            double[] edge = edge(on, towards.x, towards.z);
-            if (edge == null) {
-                return;
-            }
-            double[] out = unit(on.x, on.z, towards.x, towards.z);
-            int bx = floor(edge[0] - out[0] * 1.5);
-            int bz = floor(edge[2] - out[1] * 1.5);
-            if (grid.label(labels, bx, bz) != on.label) {
-                return;
-            }
-            int feet = grid.highestStand(bx, bz, (int) edge[1] - 1, (int) edge[1] + 1);
-            if (feet == Integer.MIN_VALUE || !voidBeyond(edge, out, 1, 8, (int) edge[1] - 25, (int) edge[1] + 3)) {
-                return;
-            }
-            // nothing stops the hit on the way to the void (a step up, a fence...), at the height of the body
-            double[] from = {bx + 0.5, feet, bz + 0.5};
-            double reach = Math.hypot(edge[0] - from[0], edge[2] - from[2]) + 1;
-            for (double t = 0.5; t <= reach; t += 0.25) {
-                int x = floor(from[0] + out[0] * t);
-                int z = floor(from[2] + out[1] * t);
-                if (!passable(grid.id(x, feet, z)) || !passable(grid.id(x, feet + 1, z))) {
-                    return;
-                }
-            }
-            String what = on.base ? "your base" : on.name;
-            add(new Situation(Kind.SAVE, "A hit throws you off " + what + ": pearl back onto it, blocks if you land short.",
-                    "Save: back onto " + what, new double[] {bx + 0.5, feet, bz + 0.5, yaw(new double[] {-out[0], -out[1]})},
-                    on.label, feet, out, null), on, towards);
-        }
-
-        /**
-         * Out on a bridge a few blocks under an island, facing its side: a hit throws the player off,
-         * the pearl reaches the wall and the player places blocks under themselves.
-         */
-        void clutch(Island on, Island side) {
-            double[] edge = edge(on, side.x, side.z);
-            if (edge == null) {
-                return;
-            }
-            double[] out = unit(on.x, on.z, side.x, side.z);
-            double length = Math.hypot(side.x - on.x, side.z - on.z);
-            for (int down : new int[] {4, 3, 5}) {
-                int feet = (int) edge[1] - down;
-                // the face: the outermost column of the island on the line with a wall at the height of the feet
-                double face = -1;
-                for (double t = 0; t < length; t += 0.25) {
-                    int bx = floor(on.x + out[0] * t);
-                    int bz = floor(on.z + out[1] * t);
-                    if (grid.label(labels, bx, bz) == on.label) {
-                        int wall = 0;
-                        for (int y = feet - 2; y <= feet + 1; y++) {
-                            if (!passable(grid.id(bx, y, bz))) {
-                                wall++;
-                            }
-                        }
-                        if (wall >= 2) {
-                            face = t;
-                        }
-                    } else if (face >= 0 && t > face + 3) {
-                        break;
-                    }
-                }
-                if (face < 0) {
-                    continue;
-                }
-                for (int far : new int[] {12, 13, 11, 14, 10}) {
-                    double px = on.x + out[0] * (face + far);
-                    double pz = on.z + out[1] * (face + far);
-                    int bx = floor(px);
-                    int bz = floor(pz);
-                    if (!grid.inside(bx, bz) || grid.label(labels, bx, bz) != 0 || !grid.empty(bx, bz, feet - 6, feet + 2)) {
-                        continue;
-                    }
-                    double[] at = {bx + 0.5, feet, bz + 0.5};
-                    // nothing between the bridge and the wall, and nothing behind it where the hit throws
-                    if (!voidBeyond(at, new double[] {-out[0], -out[1]}, 1, far - 1.5, feet - 4, feet + 3)
-                            || !voidBeyond(at, out, 1, 6, feet - 10, feet + 3)) {
-                        continue;
-                    }
-                    String what = on.base ? "your base" : on.name;
-                    add(new Situation(Kind.CLUTCH, "Hit off your bridge under " + what + ": pearl to its side, then place"
-                            + " blocks under you at once.", "Clutch: pearl to the wall of " + what,
-                            new double[] {at[0], feet, at[2], yaw(new double[] {-out[0], -out[1]})}, on.label, (int) edge[1],
-                            out, new int[] {bx, feet - 1, bz}), on, side);
-                    return;
-                }
-            }
-        }
-
-        private void add(Situation situation, Island a, Island b) {
-            found.add(situation);
-            used.add(a.label);
-            used.add(b.label);
-            lowestFloor = Math.min(lowestFloor, Math.min(a.floor, b.floor));
-            lowestFloor = Math.min(lowestFloor, (int) Math.floor(situation.start[1]));
-        }
-
-        /** True if the way at the height of the eyes is free this far: the pearl is not stopped at once. */
-        boolean clearAhead(double[] from, double[] way, double length) {
-            for (double t = 0.5; t <= length; t += 0.5) {
-                int bx = floor(from[0] + way[0] * t);
-                int bz = floor(from[2] + way[1] * t);
-                int y = (int) from[1];
-                if (!passable(grid.id(bx, y, bz)) || !passable(grid.id(bx, y + 1, bz))) {
-                    return false;
-                }
-            }
-            return true;
-        }
-
-        /** True if, from this far beyond this place along the way, no block stands from y1 to y2 for this length. */
-        boolean voidBeyond(double[] from, double[] way, double start, double length, int y1, int y2) {
-            for (double t = start; t <= length; t += 0.5) {
-                int bx = floor(from[0] + way[0] * t);
-                int bz = floor(from[2] + way[1] * t);
-                if (!grid.inside(bx, bz) || !grid.empty(bx, bz, y1, y2)) {
-                    return false;
-                }
-            }
-            return true;
-        }
-    }
-
     // --- Without the maps -----------------------------------------------------------------------
 
     /** The name of the plugin's own islands, in the messages. */
@@ -770,15 +532,22 @@ final class PearlMaps {
 
     /**
      * The plugin's own islands, when the server has none of the maps: a base, a diamond island 33
-     * blocks in front of it and a middle further on, six blocks thick (their sides are walls).
+     * blocks in front of it, a middle further on and a second diamond island beside the way
+     * between them, six blocks thick (their sides are walls).
      */
     static Part plain() {
         MapCopy blocks = boxes(Arrays.asList(
                 new int[] {-10, -5, -30, 10, 0, -12, 5},
                 new int[] {-7, -4, 22, 7, 1, 36, 24},
-                new int[] {26, -6, 52, 46, 0, 72, 98}));
+                new int[] {26, -6, 52, 46, 0, 72, 98},
+                new int[] {28, -4, 30, 38, 1, 40, 24}));
+        return plain(blocks);
+    }
+
+    /** The plugin's islands with these blocks (theirs, and more for a test). */
+    static Part plain(MapCopy blocks) {
         Anchors anchors = new Anchors("red", 14, new double[] {0.5, 1, -21.5}, new double[] {0, 1, -27},
-                new double[] {0.5, 1, -28.5}, Collections.singletonList(new double[] {0.5, 2, 29.5}),
+                new double[] {0.5, 1, -28.5}, Arrays.asList(new double[] {0.5, 2, 29.5}, new double[] {33.5, 2, 35.5}),
                 Collections.singletonList(new double[] {36.5, 1, 62.5}));
         return analyse(PLAIN, anchors, blocks, new int[] {-99, -40, -99, 99, 40, 99}, new int[] {0, 0, 0});
     }
@@ -827,6 +596,15 @@ final class PearlMaps {
     /** The yaw of Minecraft looking along this way (x, z). */
     static float yaw(double[] way) {
         return (float) Math.toDegrees(Math.atan2(-way[0], way[1]));
+    }
+
+    /** How many kinds of situation a part has. */
+    static int kindsOf(Part part) {
+        Set<Kind> kinds = new HashSet<>();
+        for (Situation situation : part.situations) {
+            kinds.add(situation.kind);
+        }
+        return kinds.size();
     }
 
     /** For the logs: the situations of a part, one per line. */
