@@ -64,6 +64,12 @@ final class QueueController {
     private java.util.function.ToIntFunction<UUID> priorities = id -> 0;
     private final Map<UUID, Long> announcedAt = new HashMap<>();
 
+    /** How the messages show the size of a mode: its own format: of config.yml ("1v3"), else the mode's. */
+    private String format(GameMode mode) {
+        ModeDisplay display = settings.display(mode.id());
+        return display != null ? display.format() : mode.format();
+    }
+
     QueueController(RagoLobby lobby, LobbySettings settings, LobbyState state, PartyBook parties, Runnable onChange) {
         this.lobby = lobby;
         this.settings = settings;
@@ -193,7 +199,7 @@ final class QueueController {
                 boolean also = result == Matchmaker.JoinResult.ALSO && !Matchmaker.alone(mode);
                 player.sendMessage(ChatColor.GREEN + (also ? "You also joined" : "You joined") + " the queue for " + mode.name()
                         + ChatColor.GREEN + (map == null ? "" : " on " + ChatColor.WHITE + map + ChatColor.GREEN) + " ("
-                        + mode.format() + ", " + matchmaker.waiting(mode.id()) + " waiting)."
+                        + format(mode) + ", " + matchmaker.waiting(mode.id()) + " waiting)."
                         + (!mode.ranked() && priorities.applyAsInt(id) > 0 ? ChatColor.AQUA + " Priority queue." : ""));
                 int queues = matchmaker.queuesOf(id).size();
                 if (inGame && state.isWatching(id)) {
@@ -491,7 +497,7 @@ final class QueueController {
         }
         if (players.size() > mode.playersPerTeam()) {
             Parties.boxed(leader, ChatColor.RED + "Your party has " + players.size() + " players: too many for "
-                    + mode.name() + ChatColor.RED + " (" + mode.format() + ").");
+                    + mode.name() + ChatColor.RED + " (" + format(mode) + ").");
             return;
         }
         for (Player member : players) {
@@ -511,7 +517,8 @@ final class QueueController {
                     toldNoArena.remove(member.getUniqueId());
                     member.sendMessage(ChatColor.GREEN + "Your party joined the queue for " + mode.name() + ChatColor.GREEN
                             + (map == null ? "" : " on " + ChatColor.WHITE + map + ChatColor.GREEN) + " ("
-                            + mode.format() + ", " + matchmaker.waiting(mode.id()) + " waiting). You will play in the same team.");
+                            + format(mode) + ", " + matchmaker.waiting(mode.id()) + " waiting)."
+                            + (mode.teams() > 1 ? " You will play in the same team." : ""));
                 }
                 announceTeam(leader, party.members(), mode);
                 onChange.run();

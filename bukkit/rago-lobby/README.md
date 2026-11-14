@@ -61,7 +61,11 @@ dans les files d'attente des modes de jeu.
   en fusionner deux, jeter un objet ni en mettre un dans le coffre. Fermer le coffre enregistre
   aussi. Le rangement est gardé par joueur et par mode dans `plugins/RagoLobby/kits/<uuid>.yml` :
   ses prochaines parties de ce mode lui donnent le kit comme ça (RagoPractice et RagoBedwars le
-  lisent : duels, FFA, invis practice...). Un mode sans `kit:` garde le kit de son jeu. Le sumo n'a
+  lisent : duels, FFA, invis practice...). Un mode sans `kit:` garde le kit de son jeu. Plusieurs
+  modes peuvent jouer le kit d'un autre (`kit-de:`) : les quatre formats de l'Invis practice
+  (`invis-practice-1v1` à `1v4`) jouent celui du mode caché `invis-practice`, ceux du Bed Break
+  Simulator celui de `bed-break-simulator` ; l'éditeur le montre une fois, et le rangement vaut
+  pour les quatre. Le sumo n'a
   pas de kit par défaut (mains nues) ; donne-lui-en un, par exemple `kit: [STICK]`, pour essayer
   l'éditeur en duel.
 - **Les parties, comme sur Hypixel.** `/p <joueur>` (ou `/party invite`) invite ; l'invitation

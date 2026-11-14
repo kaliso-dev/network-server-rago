@@ -130,12 +130,13 @@ final class TitlesMenu {
         return lore;
     }
 
-    /** The names of the modes of a title, as the lobby's menus write them. */
+    /** The names of the modes of a title, as the lobby's menus write them (not the hidden ones). */
     private List<String> modeNames(Titles.Family family) {
         List<String> names = new ArrayList<>();
         for (String id : family.modes) {
             GameMode mode = settings.catalog().get(id);
-            if (mode != null) {
+            ModeDisplay display = settings.display(id);
+            if (mode != null && (display == null || !display.hidden())) {
                 names.add(ChatColor.stripColor(mode.name()));
             }
         }

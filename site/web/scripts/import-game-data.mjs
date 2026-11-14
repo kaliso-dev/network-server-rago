@@ -159,8 +159,14 @@ function plugins(lobby) {
   };
 }
 
-/** The format shown for a mode: 1v1 to 4v4 for two teams; else solo, or free for all in the arenas. */
+/**
+ * The format shown for a mode: its own (format:, 1v3 for one attacker against three), else 1v1 to
+ * 4v4 for two teams; else solo, or free for all in the arenas.
+ */
 function format(mode) {
+  if (mode.format) {
+    return String(mode.format);
+  }
   const teams = mode.equipes ?? 1;
   const size = mode['joueurs-par-equipe'] ?? 1;
   if (teams === 2) {
@@ -208,7 +214,9 @@ export function buildGameData() {
     return { id: found.id, type: found.type, name: found.name };
   };
 
-  const modes = Object.entries(lobby.modes).map(([id, mode]) => ({
+  // a mode whose kit others play (kit-de:) only holds it: not a mode of its own on the site
+  const kitHolders = new Set(Object.values(lobby.modes).map((mode) => mode['kit-de']).filter(Boolean));
+  const modes = Object.entries(lobby.modes).filter(([id]) => !kitHolders.has(id)).map(([id, mode]) => ({
     id,
     name: plain(mode.nom),
     colour: colourOf(mode.nom),

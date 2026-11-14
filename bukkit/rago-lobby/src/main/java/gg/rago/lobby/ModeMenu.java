@@ -504,7 +504,7 @@ final class ModeMenu {
         meta.setDisplayName(mode.name());
         List<String> lore = new ArrayList<>();
         lore.add(ChatColor.GOLD + "\u2726 Popular now");
-        lore.add(ChatColor.DARK_GRAY + mode.format() + (mode.ranked() ? " · ranked" : ""));
+        lore.add(ChatColor.DARK_GRAY + display.format() + (mode.ranked() ? " · ranked" : ""));
         lore.add("");
         lore.add(ChatColor.GRAY + "Playing: " + ChatColor.WHITE + playing);
         if (!Matchmaker.alone(mode)) {
@@ -658,7 +658,7 @@ final class ModeMenu {
         ItemMeta meta = item.getItemMeta();
         meta.setDisplayName(mode.name());
         List<String> lore = new ArrayList<>();
-        lore.add(ChatColor.DARK_GRAY + mode.format() + (mode.ranked() ? " · ranked" : ""));
+        lore.add(ChatColor.DARK_GRAY + display.format() + (mode.ranked() ? " · ranked" : ""));
         if (display.startHere()) {
             lore.add(ChatColor.GOLD + "\u2726 Start here");
         }

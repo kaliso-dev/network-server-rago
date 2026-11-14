@@ -1519,6 +1519,8 @@ public final class RagoLobby extends JavaPlugin implements LobbyService {
 
     @Override
     public ItemStack[] kit(Player player, String modeId) {
+        // the sizes of one game play the kit of one mode (kit-de:), as the player arranged it
+        modeId = settings.kitMode(modeId);
         ModeDisplay display = settings.display(modeId);
         if (display == null || display.kit() == null) {
             return null;
@@ -1537,6 +1539,7 @@ public final class RagoLobby extends JavaPlugin implements LobbyService {
         if (kit == null) {
             return null;
         }
+        modeId = settings.kitMode(modeId);
         Kit known = Kit.of(kit);
         if (known.isEmpty()) {
             return kit;

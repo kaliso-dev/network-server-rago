@@ -146,6 +146,7 @@ final class LobbySettings {
             }
             modes.add(display);
         }
+        checkKitFrom(modes);
         List<LobbyNpc> npcs = readNpcs(config, modes, categories);
         NetworkLevel levels = readLevels(config.getConfigurationSection("niveau"));
         String hypixelKey = config.getString("hypixel.cle-api", "").trim();
@@ -658,8 +659,17 @@ final class LobbySettings {
                 throw new IllegalArgumentException(where + ".groupe: \"" + group + "\" is not one of the groupes");
             }
         }
-        return new ModeDisplay(mode, icon, description(section), category, readKit(where + ".kit", section), group,
-                section.getBoolean("cache", false), section.getBoolean("commencer-ici", false));
+        Kit kit = readKit(where + ".kit", section);
+        String kitFrom = section.getString("kit-de", null);
+        if (kitFrom != null && kit != null) {
+            throw new IllegalArgumentException(where + ": kit or kit-de (the mode whose kit it plays), not both");
+        }
+        String format = section.getString("format", null);
+        if (format != null && (format.trim().isEmpty() || format.length() > 16)) {
+            throw new IllegalArgumentException(where + ".format: 1 to 16 characters, as 1v3");
+        }
+        return new ModeDisplay(mode, icon, description(section), category, kit, group,
+                section.getBoolean("cache", false), section.getBoolean("commencer-ici", false), kitFrom, format);
     }
 
     /**
@@ -874,7 +884,7 @@ final class LobbySettings {
     }
 
     /**
-     * The items of a lobby NPC's menu: its modes, but two or more of one group as one item, where
+     * The items of a lobby NPC's menu: its modes (not the hidden ones), but two or more of one group as one item, where
      * the first of them is (Top Bridge 1v1, 2v2 and FFA: one ladder), unless that would leave a
      * single item (the Ranked Bedwars NPC shows its four sizes at once).
      */
@@ -882,7 +892,7 @@ final class LobbySettings {
         Map<String, Integer> perGroup = new HashMap<>();
         for (String id : modeIds) {
             ModeDisplay display = display(id);
-            if (display != null && display.group() != null) {
+            if (display != null && !display.hidden() && display.group() != null) {
                 perGroup.merge(display.group(), 1, Integer::sum);
             }
         }
@@ -890,7 +900,7 @@ final class LobbySettings {
         java.util.Set<String> seen = new java.util.HashSet<>();
         for (String id : modeIds) {
             ModeDisplay display = display(id);
-            if (display == null) {
+            if (display == null || display.hidden()) {
                 continue;
             }
             String group = display.group();
@@ -903,12 +913,49 @@ final class LobbySettings {
         if (entries.size() == 1 && entries.get(0).group != null) {
             entries.clear();
             for (String id : modeIds) {
-                if (display(id) != null) {
+                if (display(id) != null && !display(id).hidden()) {
                     entries.add(new Entry(display(id), null));
                 }
             }
         }
         return entries;
+    }
+
+    /** kit-de: names a mode of the list with a kit of its own. */
+    static void checkKitFrom(List<ModeDisplay> modes) {
+        for (ModeDisplay display : modes) {
+            String from = display.kitFrom();
+            if (from == null) {
+                continue;
+            }
+            ModeDisplay holder = null;
+            for (ModeDisplay other : modes) {
+                if (other.mode().id().equals(from)) {
+                    holder = other;
+                }
+            }
+            if (holder == null || holder.kit() == null) {
+                throw new IllegalArgumentException("modes." + display.mode().id() + ".kit-de: \"" + from
+                        + "\" is not a mode with a kit of its own");
+            }
+        }
+    }
+
+    /**
+     * Where the kit of a game of this mode, and the layouts the players keep of it, are: the mode
+     * named by its kit-de:, else the mode itself; for the kit of a role ("invis-practice-1v3/defense"),
+     * that mode's role ("invis-practice/defense").
+     */
+    String kitMode(String modeId) {
+        if (modeId == null) {
+            return null;
+        }
+        int slash = modeId.indexOf('/');
+        ModeDisplay display = display(slash < 0 ? modeId : modeId.substring(0, slash));
+        if (display == null || display.kitFrom() == null) {
+            return modeId;
+        }
+        return display.kitFrom() + (slash < 0 ? "" : modeId.substring(slash));
     }
 
     /** The modes of one category (all of them for null), in the order of config.yml. */
