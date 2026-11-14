@@ -32,6 +32,7 @@ import org.bukkit.event.entity.EntityDamageEvent;
 import org.bukkit.event.entity.ProjectileLaunchEvent;
 import org.bukkit.event.player.PlayerInteractEvent;
 import org.bukkit.event.player.PlayerTeleportEvent;
+import org.bukkit.event.player.PlayerVelocityEvent;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.PlayerInventory;
 import org.bukkit.inventory.meta.ItemMeta;
@@ -218,6 +219,13 @@ abstract class PracticeGame implements Spectators.Watched {
 
     /** A hit of a player on another one went through (after every plugin had its say). */
     void landed(Player victim, Player attacker, EntityDamageEvent event) {
+    }
+
+    /**
+     * The game is about to send this player a velocity (the knockback of a hit, right after the
+     * hit): the mode may change it. Called after every other plugin, the combat engine included.
+     */
+    void velocity(Player player, PlayerVelocityEvent event) {
     }
 
     /** The damage would kill the player: it is cancelled, and this says what happens instead. */

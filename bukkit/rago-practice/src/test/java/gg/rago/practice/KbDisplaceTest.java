@@ -25,12 +25,73 @@ class KbDisplaceTest {
     }
 
     @Test
-    void onlyAHitFromTheFrontCounts() {
-        assertTrue(KbDisplace.fromTheFront(-1.2, 0.0), "from the bridge, in front");
-        assertTrue(KbDisplace.fromTheFront(-2.8, 0.4), "at the end of the reach");
-        assertFalse(KbDisplace.fromTheFront(1.2, 0.0), "from behind");
-        assertFalse(KbDisplace.fromTheFront(-0.2, 1.0), "from a side");
-        assertFalse(KbDisplace.fromTheFront(-1.0, 1.5), "from beside the bridge");
+    void onlyAHitFromTheBridgeInFrontCounts() {
+        // the plugin's own bridge: along x, the notch at x 0 (feet at y 0), the bridge one block higher
+        KbDisplace.Place plain = KbDisplace.Place.PLAIN;
+        assertTrue(plain.onTheBridge(new double[] {-0.7, 1, 0.5}), "from the bridge, in front");
+        assertTrue(plain.onTheBridge(new double[] {-2.3, 1.6, 0.9}), "at the end of the reach, in a jump");
+        assertFalse(plain.onTheBridge(new double[] {1.7, 1, 0.5}), "from behind");
+        assertFalse(plain.onTheBridge(new double[] {0.3, 0, 1.5}), "from a side");
+        assertFalse(plain.onTheBridge(new double[] {0.3, 1, 0.5}), "over the notch, on the defender's head");
+        assertFalse(plain.onTheBridge(new double[] {-0.5, -0.2, 1.4}), "from beside the bridge, falling");
+        assertFalse(plain.onTheBridge(new double[] {-1.5, -0.8, 0.5}), "from below the bridge");
+    }
+
+    @Test
+    void aDefenderPushedBackInTheNotchOpensNoHitFromBeside() {
+        // the owner's map: the bridge along z, the defender's notch at z -3.5, the attacker's start at z 5.5
+        KbDisplace.Place map = new KbDisplace.Place(null, new double[] {0.5, 1, 5.5, 180}, new double[] {0.5, 1, -3.5, 0});
+        // the attacker dropped into the notch, beside the defender they pushed back to z -3.7: 0.4
+        // in front of them and 0.75 to their side, which a check from the defender let through
+        assertFalse(map.onTheBridge(new double[] {-0.25, 1, -3.3}), "inside the notch: never from there");
+        assertTrue(map.onTheBridge(new double[] {0.3, 2, -2.9}), "on the raised block in front, its edge");
+    }
+
+    /**
+     * How far sideways (x) a defender flies with this velocity until their feet are back at their
+     * height: the motion of a player in the air in 1.8, the push x 0.91, the fall (y - 0.08) x 0.98.
+     */
+    private static double drift(double[] velocity) {
+        double x = 0;
+        double y = 0;
+        double vx = velocity[0];
+        double vy = velocity[1];
+        for (int tick = 0; tick < 100; tick++) {
+            x += vx;
+            y += vy;
+            vx *= 0.91;
+            vy = (vy - 0.08) * 0.98;
+            if (y <= 0) {
+                break;
+            }
+        }
+        return Math.abs(x);
+    }
+
+    @Test
+    void aHitAlwaysPushesAlongTheBridgeOnlyTheTurnOfTheHeadSendsSideways() {
+        // the owner's map: the bridge along z, the attacker coming from +z, looking at the defender: yaw 180
+        double[] front = {0, 1};
+        double still = -0.0784;
+        // off the top once the body is past the edge of the block: 0.8 from the middle
+        double edge = 0.8;
+        // the old way out: from the edge of the raised block, 0.2 to a side and 0.5 in front, no turn
+        // of the head. The game pushes away from where the attacker stands: 0.15 sideways, enough to
+        // throw the defender off
+        double side = 0.2 / Math.hypot(0.2, 0.5) * KbDisplace.PUSH;
+        assertTrue(drift(new double[] {side, still / 2 + KbDisplace.UP}) > edge, "the game's push alone throws them off");
+        double[] straight = KbDisplace.knockback(front, 180f, true, 0, still, 0, KbDisplace.SPRINT_UP_PLAYER, 1.0);
+        assertEquals(0.0, straight[0], 1e-9, "here, whatever the attacker's place: nothing sideways");
+        assertEquals(-KbDisplace.PUSH - KbDisplace.SPRINT_PUSH, straight[2], 1e-9, "straight back along the bridge");
+        assertEquals(KbDisplace.UP + still / 2 + KbDisplace.SPRINT_UP_PLAYER, straight[1], 1e-9);
+        // the head turned 30 degrees in the tick of the hit, with the sprint: off sideways
+        double[] turned = KbDisplace.knockback(front, 150f, true, 0, still, 0, KbDisplace.SPRINT_UP_PLAYER, 1.0);
+        assertEquals(-0.25, turned[0], 1e-9, "the sprint's push, the way the attacker looks");
+        assertTrue(drift(turned) > edge, "a displace");
+        // the same turn without the sprint: they hold
+        double[] walking = KbDisplace.knockback(front, 150f, false, 0, still, 0, KbDisplace.SPRINT_UP_PLAYER, 1.0);
+        assertEquals(0.0, walking[0], 1e-9);
+        assertTrue(drift(walking) < edge);
     }
 
     @Test
@@ -87,9 +148,9 @@ class KbDisplaceTest {
         assertNull(RagoPractice.checkKbDisplace(section, config.getInt("espacement")));
         // on the map the bridge runs along z: the defender on the gold block looks north, the attacker comes from there
         KbDisplace.Place place = new KbDisplace.Place(null, new double[] {0.5, 1, -1.5, 0}, new double[] {0.5, 1, 5.5, 180});
-        assertTrue(place.fromTheFront(0.0, -1.2), "from the bridge, in front");
-        assertFalse(place.fromTheFront(0.0, 1.2), "from behind");
-        assertFalse(place.fromTheFront(1.0, -0.2), "from a side");
+        assertTrue(place.onTheBridge(new double[] {0.5, 1, 4.3}), "from the bridge, in front");
+        assertFalse(place.onTheBridge(new double[] {0.5, 1, 6.7}), "from behind");
+        assertFalse(place.onTheBridge(new double[] {1.5, 1, 5.3}), "from a side");
         assertFalse(place.outOfTheNotch(0.5, 1.0, 5.5));
         assertTrue(place.outOfTheNotch(0.5, 1.0, 6.2), "a step back");
         assertTrue(place.outOfTheNotch(0.5, 2.0, 5.5), "a jump");
@@ -106,17 +167,18 @@ class KbDisplaceTest {
 
     @Test
     void theBotTakesItsShareOfTheKnockbackOfTheGame() {
-        // a sprint hit from the bridge (attacker at smaller x, looking along +x... turned to +z: yaw 0)
-        double[] full = KbDisplaceBot.knockback(-2.0, 0.5, 0f, true, 0.5, 0.5, 0, -0.0784, 0, 1.0);
-        assertEquals(0.4, full[0], 1e-9, "away from the attacker");
-        assertEquals(0.4 - 0.0392 + 0.1, full[1], 1e-9, "up, then the sprint");
+        // a sprint hit on the plugin's own bridge (the attacker at smaller x), the head turned to +z: yaw 0
+        double[] front = KbDisplace.Place.PLAIN.front;
+        double[] full = KbDisplace.knockback(front, 0f, true, 0, -0.0784, 0, KbDisplace.SPRINT_UP_MOB, 1.0);
+        assertEquals(0.4, full[0], 1e-9, "away from the attacker, along the bridge");
+        assertEquals(0.4 - 0.0392 + 0.1, full[1], 1e-9, "up, then the sprint (a mob's)");
         assertEquals(0.5, full[2], 1e-9, "the sprint, the way the attacker looks");
-        double[] less = KbDisplaceBot.knockback(-2.0, 0.5, 0f, true, 0.5, 0.5, 0, -0.0784, 0, KbDisplaceBot.kbShare(1));
+        double[] less = KbDisplace.knockback(front, 0f, true, 0, -0.0784, 0, KbDisplace.SPRINT_UP_MOB, KbDisplaceBot.kbShare(1));
         assertEquals(0.6 * full[2], less[2], 1e-9);
         assertEquals(1.0, KbDisplaceBot.kbShare(5), 1e-9, "the whole knockback at the top");
         assertTrue(KbDisplaceBot.kbShare(KbDisplaceBot.DEFAULT_BOT_KB) < 1.0, "less than the game's by default");
-        double[] walk = KbDisplaceBot.knockback(-2.0, 0.5, 0f, false, 0.5, 0.5, 0, -0.0784, 0, 1.0);
-        assertEquals(0.0, walk[2], 1e-9, "no sprint: straight away from the attacker");
+        double[] walk = KbDisplace.knockback(front, 0f, false, 0, -0.0784, 0, KbDisplace.SPRINT_UP_MOB, 1.0);
+        assertEquals(0.0, walk[2], 1e-9, "no sprint: straight along the bridge");
     }
 
     @Test

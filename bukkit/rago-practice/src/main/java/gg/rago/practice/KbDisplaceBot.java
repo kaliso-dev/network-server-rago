@@ -18,11 +18,12 @@ import org.bukkit.util.Vector;
 
 /**
  * KB displace against a bot, the drill of the {@link KbDisplace} duel, on the same place: the bot
- * holds its notch on the bridge (on the owner's map, its gold block), nothing on its sides. Run along
- * the bridge, turn your head to the side and hit it in the same tick: the knockback of the sprint
- * sends it off sideways. Only a hit from the front counts. After each hit you are back at the
- * start at once, for the momentum of a new run, until the bot falls: the score is the time, and
- * the sidebar counts the tries.
+ * holds its notch on the bridge, nothing on its sides, and the player starts on the gold block of
+ * the owner's map. Run along the bridge, turn your head to the side and hit it in the same tick:
+ * the knockback of the sprint sends it off sideways. Only a hit from the bridge in front counts,
+ * and its push always goes along the bridge ({@link KbDisplace#knockback}): only the turn of the
+ * head sends the bot sideways. After each hit you are back at the start at once, for the momentum
+ * of a new run, until the bot falls: the score is the time, and the sidebar counts the tries.
  */
 final class KbDisplaceBot extends Training {
 
@@ -53,37 +54,11 @@ final class KbDisplaceBot extends Training {
         return 0.5 + 0.1 * setting;
     }
 
-    /**
-     * The velocity a hit gives the bot, as the 1.8 game gives it to a mob (its motion halved, 0.4
-     * away from the attacker and 0.4 up, at most 0.4 up; a sprint adds 0.5 the way the attacker
-     * looks and 0.1 up), times its share.
-     */
-    static double[] knockback(double attackerX, double attackerZ, float attackerYaw, boolean sprint, double x, double z,
-            double motionX, double motionY, double motionZ, double share) {
-        double dx = attackerX - x;
-        double dz = attackerZ - z;
-        double length = Math.sqrt(dx * dx + dz * dz);
-        if (length < 1.0E-4) {
-            dx = 0.01;
-            dz = 0;
-            length = 0.01;
-        }
-        double vx = motionX / 2 - dx / length * 0.4;
-        double vy = Math.min(motionY / 2 + 0.4, 0.4);
-        double vz = motionZ / 2 - dz / length * 0.4;
-        if (sprint) {
-            double yaw = Math.toRadians(attackerYaw);
-            vx += -Math.sin(yaw) * 0.5;
-            vy += 0.1;
-            vz += Math.cos(yaw) * 0.5;
-        }
-        return new double[] {vx * share, vy * share, vz * share};
-    }
-
     @Override
     String describe() {
         return "the bot holds its place on the bridge, nothing on its sides: run, turn your head to the side"
-                + " and hit it in the same tick to knock it off sideways. Invisible walls keep you on the bridge; after"
+                + " and hit it in the same tick to knock it off sideways. Invisible walls keep you on the bridge, and a"
+                + " hit always pushes straight along it: only the turn of your head sends the bot sideways. After"
                 + " each hit you start again from the start. Bot KB: how far a hit throws it.";
     }
 
@@ -176,9 +151,7 @@ final class KbDisplaceBot extends Training {
             event.setCancelled(true);
             return;
         }
-        double[] by = arena.offset(attacker.getLocation());
-        double[] at = arena.offset(bot.getLocation());
-        String refused = KbDisplace.refused(place, attacker, by, at, bot.getLocation());
+        String refused = KbDisplace.refused(place, attacker, arena.offset(attacker.getLocation()), bot.getLocation());
         if (refused != null) {
             event.setCancelled(true);
             long now = System.currentTimeMillis();
@@ -188,13 +161,13 @@ final class KbDisplaceBot extends Training {
             }
             return;
         }
-        // the knockback of the game, worked out here to give the bot its share of it (Bot KB)
+        // the knockback of the game, worked out here: its push along the bridge, whatever the
+        // attacker's place, and the bot's share of it (Bot KB)
         event.setCancelled(true);
-        Location from = attacker.getLocation();
         Location to = bot.getLocation();
         Vector motion = bot.getVelocity();
-        double[] kb = knockback(from.getX(), from.getZ(), from.getYaw(), attacker.isSprinting(), to.getX(), to.getZ(),
-                motion.getX(), motion.getY(), motion.getZ(), kbShare(botKb.value));
+        double[] kb = KbDisplace.knockback(place.front, attacker.getLocation().getYaw(), attacker.isSprinting(),
+                motion.getX(), motion.getY(), motion.getZ(), KbDisplace.SPRINT_UP_MOB, kbShare(botKb.value));
         bot.setVelocity(new Vector(kb[0], kb[1], kb[2]));
         bot.playEffect(EntityEffect.HURT);
         bot.getWorld().playSound(to, Sound.ZOMBIE_HURT, 1f, 1f);
