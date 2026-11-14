@@ -328,6 +328,54 @@ jobs:
             lobby-run/server/logs/
           if-no-files-found: warn
 
+  # A real Minecraft 1.8.9 client in the lobby: it must draw the billboards (panneaux:), walls of
+  # item frames that exist only in its packets (tools/lobby-check/run-billboard-test.sh).
+  billboard-test:
+    name: Billboard test (Minecraft 1.8.9 client)
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v7
+
+      # Java 8 runs the server and the client, 21 the Gradle build.
+      - uses: actions/setup-java@v6
+        with:
+          distribution: temurin
+          java-version: |
+            8
+            21
+
+      - uses: gradle/actions/setup-gradle@v6
+
+      # A virtual screen and software OpenGL for the client (LWJGL 2 reads the screen modes with
+      # the xrandr command), and ImageMagick for the screenshots.
+      - name: Install the display packages
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y --no-install-recommends xvfb x11-xserver-utils libgl1 libgl1-mesa-dri \
+            libxrandr2 libxxf86vm1 libxcursor1 libxi6 libxtst6 imagemagick
+
+      - run: ./gradlew :rago-lobby:assemble
+
+      - name: Run the billboard test
+        env:
+          # The test starts a Minecraft server, which requires accepting the Minecraft EULA:
+          # https://aka.ms/MinecraftEULA
+          KB_ACCEPT_EULA: "true"
+        run: |
+          export KB_SERVER_JAVA="$JAVA_HOME_8_X64/bin/java"
+          export BILLBOARD_CLIENT_JAVA="$JAVA_HOME_8_X64/bin/java"
+          xvfb-run -a -s "-screen 0 854x480x24" tools/lobby-check/run-billboard-test.sh
+
+      - uses: actions/upload-artifact@v7
+        if: always()
+        with:
+          name: billboard-test
+          path: |
+            billboard-run/*.png
+            billboard-run/*.log
+          if-no-files-found: warn
+
   # Starts the local test server the way a player does (tools/local-server), on Linux (the same
   # script as macOS) and Windows, with both Java versions its guide allows.
   local-server:
