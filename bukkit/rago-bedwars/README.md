@@ -381,8 +381,10 @@ Dans `jeux:` du config.yml, un mode peut jouer autre chose qu'une partie classiq
   Wars (sur Archway FFA, son sol de verre tout en haut au-dessus du milieu), avec la même armure
   de combat que le FFA (le cuir à la couleur de l'équipe en 1v1, rouge dans le FFA). Le 1v1 a le
   kit du FFA (celui que le joueur a rangé pour le FFA dans l'éditeur de kit du lobby), le FFA son
-  propre kit : une épée en pierre et 3 fireballs, sans blocs ni pearl (`lobby-fight-ffa:` dans le
-  `config.yml` du lobby).
+  propre kit : une épée en pierre, 5 pommes en or et 3 fireballs, sans blocs ni pearl
+  (`lobby-fight-ffa:` dans le `config.yml` du lobby) ; chaque kill soigne le tueur et remet ses
+  pommes en or à 5 (au nombre du kit), sur sa pile de pommes ou, s'il n'en a plus, à leur place
+  dans son kit.
   En **1v1**, des manches d'une vie comme le Top Bridge : les deux joueurs partent face à face de
   part et d'autre du milieu de la salle, le plus loin possible sans rien entre eux (les poteaux du
   pavillon), au plus aux trois quarts du rayon ; un kill ou une chute hors de la salle (3 blocs

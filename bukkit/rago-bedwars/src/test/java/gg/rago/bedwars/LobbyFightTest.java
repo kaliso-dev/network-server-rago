@@ -4,10 +4,13 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertNull;
+import static org.junit.jupiter.api.Assertions.assertSame;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collections;
 import java.util.List;
 import org.bukkit.Location;
 import org.bukkit.Material;
@@ -189,5 +192,78 @@ class LobbyFightTest {
         assertEquals(-90f, LobbyFight.yaw(1, 0), 1e-3, "east");
         assertEquals(0f, LobbyFight.yaw(0, 1), 1e-3, "south");
         assertEquals(180f, Math.abs(LobbyFight.yaw(0, -1)), 1e-3, "north");
+    }
+
+    /** The kit of the Lobby Fight FFA: a stone sword, 5 golden apples and 3 fireballs, in the first slots. */
+    private static ItemStack[] lobbyFfaKit() {
+        ItemStack[] kit = new ItemStack[36];
+        kit[0] = new ItemStack(Material.STONE_SWORD);
+        kit[1] = new ItemStack(Material.GOLDEN_APPLE, 5);
+        kit[2] = new ItemStack(Material.FIREBALL, 3);
+        return kit;
+    }
+
+    private static ItemStack[] copy(ItemStack[] stacks) {
+        ItemStack[] copy = new ItemStack[stacks.length];
+        for (int slot = 0; slot < stacks.length; slot++) {
+            copy[slot] = stacks[slot] == null ? null : stacks[slot].clone();
+        }
+        return copy;
+    }
+
+    @Test
+    void aKillBringsTheGoldenApplesBackToTheKits() {
+        ItemStack[] kit = lobbyFfaKit();
+        assertEquals(5, FfaGame.count(kit, Material.GOLDEN_APPLE));
+        assertEquals(0, FfaGame.count(null, Material.GOLDEN_APPLE), "no kit");
+
+        // 2 eaten: the stack held grows back to 5, the same stack (eating it goes on)
+        ItemStack[] contents = copy(kit);
+        contents[1].setAmount(3);
+        ItemStack held = contents[1];
+        assertTrue(FfaGame.refill(contents, kit, Material.GOLDEN_APPLE).isEmpty(), "no new stack");
+        assertSame(held, contents[1]);
+        assertEquals(5, held.getAmount());
+        assertEquals(3, contents[2].getAmount(), "the fireballs as they were");
+
+        // all 5 eaten: back in their slot of the kit
+        contents = copy(kit);
+        contents[1] = null;
+        assertEquals(Collections.singletonList(1), FfaGame.refill(contents, kit, Material.GOLDEN_APPLE));
+        assertEquals(Material.GOLDEN_APPLE, contents[1].getType());
+        assertEquals(5, contents[1].getAmount());
+
+        // the apples moved to slot 7, one left: it grows there, no second stack
+        contents = copy(kit);
+        contents[1] = null;
+        contents[7] = new ItemStack(Material.GOLDEN_APPLE, 1);
+        assertTrue(FfaGame.refill(contents, kit, Material.GOLDEN_APPLE).isEmpty());
+        assertEquals(5, contents[7].getAmount());
+        assertNull(contents[1]);
+
+        // none left and the fireballs moved into their slot: the first empty slot
+        contents = copy(kit);
+        contents[1] = contents[2];
+        contents[2] = null;
+        assertEquals(Collections.singletonList(2), FfaGame.refill(contents, kit, Material.GOLDEN_APPLE));
+        assertEquals(5, contents[2].getAmount());
+        assertEquals(Material.FIREBALL, contents[1].getType());
+
+        // as many as the kit (or more): nothing changes
+        contents = copy(kit);
+        assertTrue(FfaGame.refill(contents, kit, Material.GOLDEN_APPLE).isEmpty());
+        assertEquals(5, contents[1].getAmount());
+        contents[1].setAmount(9);
+        assertTrue(FfaGame.refill(contents, kit, Material.GOLDEN_APPLE).isEmpty());
+        assertEquals(9, contents[1].getAmount(), "never fewer");
+
+        // no kit, or a kit without apples: nothing
+        contents = copy(kit);
+        contents[1] = null;
+        assertTrue(FfaGame.refill(contents, null, Material.GOLDEN_APPLE).isEmpty());
+        ItemStack[] noApples = copy(kit);
+        noApples[1] = null;
+        assertTrue(FfaGame.refill(contents, noApples, Material.GOLDEN_APPLE).isEmpty());
+        assertEquals(Arrays.asList(null, null), Arrays.asList(contents[1], contents[3]), "nothing put");
     }
 }

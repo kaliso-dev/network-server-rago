@@ -539,7 +539,7 @@
       "ranked": false,
       "startHere": false,
       "event": false,
-      "description": "The FFA in the waiting lobby of Archway FFA, a sword and 3 fireballs: come and go when you like, fall out of it and you die.",
+      "description": "The FFA in the waiting lobby of Archway FFA, a sword, 5 golden apples (back to 5 at each kill) and 3 fireballs: come and go when you like, fall out of it and you die.",
       "plugins": [
         "bedwars"
       ]

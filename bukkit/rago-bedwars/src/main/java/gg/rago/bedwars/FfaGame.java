@@ -39,8 +39,10 @@ import org.bukkit.inventory.PlayerInventory;
  * boards of the most kills ever in the mode float in the air beside the fight (see
  * {@link #boardPlaces}), and the sidebar shows the 3 players with the most kills in the game. Lobby
  * Fight FFA (lobby-fight-ffa) is the FFA in the waiting lobby of the map (see {@link LobbyFight}):
- * the same kit, at most {@value #LOBBY_MAX_PLAYERS} players, each life somewhere on its floor away
- * from the others, dead a few blocks under it, the blocks in the lobby only. Main thread only.
+ * its own kit (in the lobby's config.yml: a stone sword, 5 golden apples and 3 fireballs), each
+ * kill bringing the killer's golden apples back to the kit's, at most {@value #LOBBY_MAX_PLAYERS}
+ * players, each life somewhere on its floor away from the others, dead a few blocks under it, the
+ * blocks in the lobby only. Main thread only.
  */
 final class FfaGame extends BedwarsGame {
 
@@ -451,10 +453,13 @@ final class FfaGame extends BedwarsGame {
                     + "off and you die, and come back on it. A kill heals you. /spawn takes you back to the lobby.");
             return;
         } else if (lobby != null) {
+            ItemStack[] kit = lobbyKit(player, gamer);
+            int apples = count(kit, Material.GOLDEN_APPLE);
             player.sendMessage(ChatColor.GRAY + "Everyone fights in the waiting lobby of the map with your kit (as you"
                     + " arranged it in the lobby's kit editor): fall out of it and you die, and come back in it. A kill heals"
-                    + " you." + (hasBlocks(lobbyKit(player, gamer)) ? " Your blocks go after " + decay.seconds() + " seconds."
-                    : "") + " /spawn takes you back to the lobby.");
+                    + " you" + (apples > 0 ? " and brings your golden apples back to " + apples : "") + "."
+                    + (hasBlocks(kit) ? " Your blocks go after " + decay.seconds() + " seconds." : "")
+                    + " /spawn takes you back to the lobby.");
             return;
         } else {
             player.sendMessage(ChatColor.GRAY + "Your kit (arranged in the lobby's kit editor) comes back at each life, "
@@ -547,7 +552,87 @@ final class FfaGame extends BedwarsGame {
         Player killer = Bukkit.getPlayer(author.id);
         if (!arena && killer != null && !author.respawning) {
             killer.setHealth(killer.getMaxHealth());
+            if (lobby != null) {
+                refillApples(killer, author);
+            }
         }
+    }
+
+    /** Lobby Fight FFA: a kill brings the killer's golden apples back to as many as their kit gives. */
+    private void refillApples(Player killer, Gamer author) {
+        PlayerInventory inventory = killer.getInventory();
+        ItemStack[] contents = inventory.getContents();
+        List<Integer> filled = refill(contents, lobbyKit(killer, author), Material.GOLDEN_APPLE);
+        // the stacks grown are the inventory's own (a stack being eaten goes on being eaten); set the new ones
+        for (int slot : filled) {
+            inventory.setItem(slot, contents[slot]);
+        }
+        killer.updateInventory();
+    }
+
+    /** How many items of this material these stacks hold (none without stacks). */
+    static int count(ItemStack[] stacks, Material material) {
+        int count = 0;
+        if (stacks != null) {
+            for (ItemStack item : stacks) {
+                if (item != null && item.getType() == material) {
+                    count += item.getAmount();
+                }
+            }
+        }
+        return count;
+    }
+
+    /**
+     * Brings these contents back to as many items of this material as the kit gives, when they hold
+     * fewer: onto the stacks of it they hold, the one in the kit's slot for it first; what is left
+     * in the kit's slot for it if empty, else in the first empty slots. A stack held grows in place
+     * (eating it goes on). Returns the slots that were empty and now hold a stack, for the inventory
+     * to set; none without a kit or without that material in it.
+     */
+    static List<Integer> refill(ItemStack[] contents, ItemStack[] kit, Material material) {
+        List<Integer> filled = new ArrayList<>();
+        ItemStack model = null;
+        List<Integer> order = new ArrayList<>();
+        for (int slot = 0; kit != null && slot < kit.length; slot++) {
+            if (kit[slot] != null && kit[slot].getType() == material) {
+                if (model == null) {
+                    model = kit[slot];
+                }
+                if (slot < contents.length) {
+                    order.add(slot);
+                }
+            }
+        }
+        int missing = count(kit, material) - count(contents, material);
+        if (model == null || missing <= 0) {
+            return filled;
+        }
+        for (int slot = 0; slot < contents.length; slot++) {
+            if (!order.contains(slot)) {
+                order.add(slot);
+            }
+        }
+        int max = material.getMaxStackSize();
+        for (int slot : order) {
+            ItemStack held = contents[slot];
+            if (missing > 0 && held != null && held.getType() == material && held.getDurability() == model.getDurability()
+                    && held.getAmount() < max) {
+                int put = Math.min(missing, max - held.getAmount());
+                held.setAmount(held.getAmount() + put);
+                missing -= put;
+            }
+        }
+        for (int slot : order) {
+            if (missing > 0 && (contents[slot] == null || contents[slot].getType() == Material.AIR)) {
+                ItemStack stack = model.clone();
+                stack.setAmount(Math.min(missing, max));
+                contents[slot] = stack;
+                filled.add(slot);
+                missing -= stack.getAmount();
+            }
+        }
+        return filled;
     }
 
     /**
