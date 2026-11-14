@@ -228,13 +228,17 @@ aim-trainer:
   xp-par-seconde: 1
   touches-par-xp: 10
 
-# Pearl practice on a part of Sky Rise (the red island, the diamond island in front of it and the
-# emerald island of the middle): put the folder of the world in the folder of the worlds (mondes).
-# Without it, plain islands at the same places. No block goes under limite-basse (the height on
-# the map), as under the islands on Hypixel.
+# Pearl practice, in a loop on the Bed Wars maps: each attempt on the next map of this list that the
+# server has (its world in the folder of the worlds, with its bedwars.yml of the Bed Wars plugin),
+# at another place, in another direction. Of each map, the side of a team drawn at each start is
+# copied once: its base, its diamond islands and the middle. The situations come from the shape
+# of the islands: a pearl from one island onto another, a pearl back after a hit, and the pearl
+# block clutch, a pearl to the side of an island then blocks under you against the wall. No block
+# goes more than 16 blocks under the lowest island of a situation, as under the islands on
+# Hypixel. Without any of these maps, the plugin's own islands.
 pearl:
-  monde: SkyRise
-  limite-basse: 55
+  cartes: [SkyRise, Archway, Invasion, Antenna, Aquarium, Artemis, Boletum, Carapace, Catalyst, Chained, Eastwood,
+    Extinction, Katsu, Lectus, Obelisk, Paladin, Planet98, Rise, Stonekeep, Swashbuckle, Treenan]
 
 # Block in practice on your own map, Ultimate Block-In Practice: put the folder of the world in the
 # folder of the worlds (mondes) of the server. Its island is copied into each zone, without the

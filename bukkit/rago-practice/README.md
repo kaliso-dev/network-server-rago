@@ -251,14 +251,22 @@ réglages. Un entraînement de la liste que le serveur ne joue pas est laissé d
   sur son côté, puis tombe dans l'échelle. De haut la chute va vite : l'échelle posée au dernier
   moment arrive au serveur juste après l'atterrissage, alors l'atterrissage est jugé 5 ticks plus
   tard, échelle comprise, au lieu de renvoyer le joueur tout de suite. Série.
-- **Pearl practice** : sur un morceau de Sky Rise (l'île rouge, l'île aux diamants en face, l'île
-  aux émeraudes du milieu), copié du monde `SkyRise` du dossier des mondes (`pearl` dans
-  `config.yml`), sinon des îles simples aux mêmes places. Une perle et un stack de laine par
-  essai : vers l'île aux diamants, vers le milieu, ou pour revenir sur son île après un coup qui
-  envoie dans le vide. Une perle trop courte se rattrape avec des blocs (pearl block clutch), mais
-  aucun bloc ne se pose sous la limite basse (`limite-basse`, y 55), comme sur Hypixel. L'essai
-  compte quand le joueur tient debout sur l'île visée. Une perle qui tombe à 3 blocs sous la
-  limite basse est ratée tout de suite, sans attendre. Série.
+- **Pearl practice** : en boucle sur les maps de Bed Wars, rien à choisir : chaque essai sur la
+  map suivante de `pearl.cartes` (`config.yml`) que le serveur a (son monde dans le dossier des
+  mondes, avec le `bedwars.yml` du plugin Bed Wars), à un autre endroit, dans une autre direction.
+  De chaque map, le côté d'une équipe tirée à chaque démarrage est copié une fois : sa base, ses
+  îles aux diamants et le milieu. Les situations viennent de la forme des îles (`PearlMaps`) :
+  une perle d'une île à l'autre (6 à 45 blocs de vide), un coup qui envoie dans le vide puis une
+  perle pour revenir, et surtout le pearl block clutch : sur un bloc de pont à 10-14 blocs d'une
+  île et 3-5 blocs sous son sol, un coup envoie le joueur dans le vide, il lance sa perle contre le
+  flanc de l'île et pose aussitôt des blocs sous lui contre le mur. La boucle alterne perle,
+  clutch, save, clutch ; les niveaux Pearls, Saves et Pearl clutches ne jouent qu'un genre. Une
+  perle et un stack de laine par essai ; les blocs seulement après la perle, et jamais plus de
+  16 blocs sous l'île la plus basse, comme sur Hypixel. L'essai compte quand le joueur tient
+  debout sur l'île visée (ou sur ses blocs contre elle). Série. La zone garde une map à la fois :
+  à chaque changement, ses blocs sont écrits directement dans les chunks (`FastBlocks`, une dizaine
+  de ms au lieu de 2 à 3 s de lag), éclairés à fond, sans coffre rempli ni panneau écrit. Sans
+  aucune des maps, des îles simples du plugin.
 - **Fireball practice** : le saut à la boule de feu sur une falaise de 4 blocs, au-dessus de 10
   blocs de vide, ou renvoyer les boules d'un canon. Série.
 - **Bow training** (`bow-training`) : sur une vraie map de Bed Wars, la base rouge et le nord du

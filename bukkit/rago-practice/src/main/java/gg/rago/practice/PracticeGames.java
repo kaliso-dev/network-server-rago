@@ -691,6 +691,10 @@ final class PracticeGames implements Listener {
         }
         if (game.phase != PracticeGame.Phase.PLAYING || spectating(shooter)) {
             event.setCancelled(true);
+            if (projectile instanceof EnderPearl) {
+                // the server took the pearl from the hand before this event: thrown during the countdown, it comes back
+                shooter.getInventory().addItem(new ItemStack(Material.ENDER_PEARL, 1));
+            }
             return;
         }
         game.launched(shooter, projectile, event);

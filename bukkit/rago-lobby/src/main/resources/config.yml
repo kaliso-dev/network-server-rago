@@ -1588,11 +1588,11 @@ modes:
     joueurs-par-equipe: 1
     classe: false
     description:
-      - "On a part of Sky Rise: pearl"
-      - "to the diamond island, to the"
-      - "middle, or back after a hit."
-      - "Save a short pearl with wool,"
-      - "not under the lower limit."
+      - "A new Bed Wars map each try:"
+      - "pearl onto an island, back"
+      - "after a hit, and the pearl"
+      - "block clutch: to the wall of"
+      - "an island, then wool under you."
   fireball-practice:
     nom: "&bFireball practice"
     categorie: entrainement

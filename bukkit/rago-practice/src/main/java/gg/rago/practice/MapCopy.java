@@ -227,6 +227,24 @@ final class MapCopy {
         return block.getTypeId() << 4 | (block.getData() & 15);
     }
 
+    /** Which columns of a copy to keep (x, z from the origin). */
+    interface Columns {
+        boolean keeps(int x, int z);
+    }
+
+    /** The blocks of the columns kept only. */
+    MapCopy only(Columns columns) {
+        int[] kept = new int[blocks.length];
+        int n = 0;
+        for (int i = 0; i < blocks.length; i += 5) {
+            if (columns.keeps(blocks[i], blocks[i + 2])) {
+                System.arraycopy(blocks, i, kept, n, 5);
+                n += 5;
+            }
+        }
+        return new MapCopy(Arrays.copyOf(kept, n));
+    }
+
     /** Leaves out every block of these places (offsets from the origin): the parts each round puts back. */
     MapCopy without(Iterable<int[]> places) {
         Set<Long> out = new HashSet<>();
