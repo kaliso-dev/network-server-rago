@@ -41,8 +41,8 @@ PACKETEVENTS_URL=https://github.com/retrooper/packetevents/releases/download/v2.
 PACKETEVENTS_SHA256=060087c58ec268eae7dd0eb1f17ac3bea1eaadda1693414141ff64e506091bd7
 PORT=${KB_PORT:-25565}
 VIEWER=RagoViewer
-# Pixels of a board in a screenshot below which it is not seen: the red board covers about 15000
-# pixels from the spawn and 450 from 76 blocks away, the yellow one about 500 from the spawn.
+# Pixels of a board in a screenshot below which it is not seen: the red board covers about 13000
+# pixels from the spawn and 350 from 76 blocks away, the yellow one about 500 from the spawn.
 SEEN=200
 
 log() { printf '[billboard-test] %s\n' "$*"; }
