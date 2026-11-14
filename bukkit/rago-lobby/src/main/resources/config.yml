@@ -1163,17 +1163,18 @@ modes:
   lobby-fight-ffa:
     nom: "&cLobby Fight FFA"
     categorie: arenes
-    icone: ENDER_PEARL
+    icone: FIREBALL
     equipes: 1
     joueurs-par-equipe: 1
     classe: false
-    # no kit of its own: the kit of the FFA (ffa:), as each player arranged it, with the red
-    # leather of the FFA
+    # a stone sword and 3 fireballs, nothing more (no blocks, no pearl, no golden apples), with
+    # the red leather of the FFA
+    kit: [STONE_SWORD, "FIREBALL 3"]
     description:
       - "The FFA in the waiting lobby of"
-      - "Archway FFA, with its kit: come"
-      - "and go when you like, fall out"
-      - "of it and you die."
+      - "Archway FFA, a sword and 3"
+      - "fireballs: come and go when you"
+      - "like, fall out of it and you die."
   free-ffa:
     nom: "&cArena Free"
     categorie: arenes

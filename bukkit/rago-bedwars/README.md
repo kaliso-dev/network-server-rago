@@ -378,9 +378,11 @@ Dans `jeux:` du config.yml, un mode peut jouer autre chose qu'une partie classiq
   série.
 - **Lobby Fight** (`lobby-fight` pour `lobby-fight-1v1`, `lobby-fight-ffa` pour `lobby-fight-ffa`) :
   le combat dans la **salle d'attente** de la map, là où l'on attend le début d'une partie de Bed
-  Wars (sur Archway FFA, son sol de verre tout en haut au-dessus du milieu), avec le kit du FFA
-  (celui que le joueur a rangé pour le FFA dans l'éditeur de kit du lobby, ou le sien pour le
-  mode) et la même armure de combat (le cuir à la couleur de l'équipe en 1v1, rouge dans le FFA).
+  Wars (sur Archway FFA, son sol de verre tout en haut au-dessus du milieu), avec la même armure
+  de combat que le FFA (le cuir à la couleur de l'équipe en 1v1, rouge dans le FFA). Le 1v1 a le
+  kit du FFA (celui que le joueur a rangé pour le FFA dans l'éditeur de kit du lobby), le FFA son
+  propre kit : une épée en pierre et 3 fireballs, sans blocs ni pearl (`lobby-fight-ffa:` dans le
+  `config.yml` du lobby).
   En **1v1**, des manches d'une vie comme le Top Bridge : les deux joueurs partent face à face de
   part et d'autre du milieu de la salle, le plus loin possible sans rien entre eux (les poteaux du
   pavillon), au plus aux trois quarts du rayon ; un kill ou une chute hors de la salle (3 blocs

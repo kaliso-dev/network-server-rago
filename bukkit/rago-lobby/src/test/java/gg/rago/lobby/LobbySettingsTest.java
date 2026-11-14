@@ -120,7 +120,10 @@ class LobbySettingsTest {
                 displayIds(settings.modesIn("arenes")), "the six arenas, nothing else");
         assertEquals("duels", settings.display("lobby-fight-1v1").category(), "Lobby Fight 1v1: a duel");
         assertNull(settings.display("lobby-fight-1v1").kit(), "no kit of its own: the FFA's");
-        assertNull(settings.display("lobby-fight-ffa").kit());
+        Kit lobbyFfa = settings.display("lobby-fight-ffa").kit();
+        assertEquals(Material.STONE_SWORD, lobbyFfa.item(0).material(), "Lobby Fight FFA: a sword");
+        assertEquals(KitItem.parse("FIREBALL 3"), lobbyFfa.item(1), "and fireballs");
+        assertNull(lobbyFfa.item(2), "nothing more: no blocks nor pearl");
         assertEquals("entrainement", settings.display("kb-displace-bot").category(), "against a bot: practice");
         int total = 0;
         for (ModeCategory category : settings.categories()) {

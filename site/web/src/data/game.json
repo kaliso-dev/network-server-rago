@@ -532,14 +532,14 @@
       "id": "lobby-fight-ffa",
       "name": "Lobby Fight FFA",
       "colour": "#FF5555",
-      "icon": "ENDER_PEARL",
+      "icon": "FIREBALL",
       "category": "arenes",
       "group": null,
       "format": "FFA",
       "ranked": false,
       "startHere": false,
       "event": false,
-      "description": "The FFA in the waiting lobby of Archway FFA, with its kit: come and go when you like, fall out of it and you die.",
+      "description": "The FFA in the waiting lobby of Archway FFA, a sword and 3 fireballs: come and go when you like, fall out of it and you die.",
       "plugins": [
         "bedwars"
       ]

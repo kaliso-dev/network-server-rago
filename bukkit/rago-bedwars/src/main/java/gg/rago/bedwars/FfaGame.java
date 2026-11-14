@@ -451,9 +451,10 @@ final class FfaGame extends BedwarsGame {
                     + "off and you die, and come back on it. A kill heals you. /spawn takes you back to the lobby.");
             return;
         } else if (lobby != null) {
-            player.sendMessage(ChatColor.GRAY + "Everyone fights in the waiting lobby of the map with the kit of the FFA (as you"
+            player.sendMessage(ChatColor.GRAY + "Everyone fights in the waiting lobby of the map with your kit (as you"
                     + " arranged it in the lobby's kit editor): fall out of it and you die, and come back in it. A kill heals"
-                    + " you. Your blocks go after " + decay.seconds() + " seconds. /spawn takes you back to the lobby.");
+                    + " you." + (hasBlocks(lobbyKit(player, gamer)) ? " Your blocks go after " + decay.seconds() + " seconds."
+                    : "") + " /spawn takes you back to the lobby.");
             return;
         } else {
             player.sendMessage(ChatColor.GRAY + "Your kit (arranged in the lobby's kit editor) comes back at each life, "
@@ -496,6 +497,19 @@ final class FfaGame extends BedwarsGame {
         }
         fightArmour(player, TeamColor.RED.leather());
         player.updateInventory();
+    }
+
+    /** True if this kit holds blocks to place; a kit made by the game (null) has its wool. */
+    static boolean hasBlocks(ItemStack[] kit) {
+        if (kit == null) {
+            return true;
+        }
+        for (ItemStack item : kit) {
+            if (item != null && item.getType().isBlock()) {
+                return true;
+            }
+        }
+        return false;
     }
 
     /**
