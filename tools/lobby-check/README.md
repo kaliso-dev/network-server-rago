@@ -66,3 +66,24 @@ Lancer un serveur Minecraft demande d'accepter le CLUF de Minecraft (https://aka
 le script refuse de démarrer sans `KB_ACCEPT_EULA=true`. Réglages : `KB_SERVER_JAVA` (le java du
 serveur), `KB_PORT` (25565) et `LOBBY_RUN_DIR` (`lobby-run` à la racine du dépôt, où restent le
 journal et le dossier du serveur). La CI le lance à chaque pull request, sous Java 8 et Java 21.
+
+## Les panneaux publicitaires vus par un vrai client Minecraft 1.8.9
+
+Les bots lisent les paquets des panneaux (`panneaux:` du lobby) mais ne dessinent rien.
+`run-billboard-test.sh` lance le vrai client Minecraft 1.8.9 (téléchargé chez Mojang par
+`minecraft-client.py`, chaque fichier vérifié avec le SHA-1 que donne Mojang) sur un serveur avec
+RagoLobby seul, dans le nouveau monde vide du lobby (sa plateforme de 9 × 9 blocs), avec deux
+panneaux tournés vers le spawn : un rouge à 13 blocs devant le spawn, un jaune à 76 blocs, seul
+dans un chunk sans aucun bloc. Il prend une capture d'écran au spawn, puis une autre depuis 76
+blocs derrière le spawn (la console passe le joueur en spectateur), et `billboard-shot.py` compte
+les pixels de chaque couleur. Le test échoue si l'un des trois n'est pas vu : le rouge de près et
+de loin, le jaune dans le vide.
+
+```bash
+./gradlew :rago-lobby:assemble
+KB_ACCEPT_EULA=true xvfb-run -a -s "-screen 0 854x480x24" tools/lobby-check/run-billboard-test.sh
+```
+
+Il faut python3, ImageMagick (`import` et `convert`) et Java 8 pour le client
+(`BILLBOARD_CLIENT_JAVA`). Les captures, les journaux et les téléchargements restent dans
+`billboard-run` à la racine du dépôt. La CI le lance à chaque pull request et garde les captures.
