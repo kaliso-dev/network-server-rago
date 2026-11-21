@@ -35,6 +35,7 @@ import org.bukkit.event.player.PlayerRespawnEvent;
 import org.bukkit.event.weather.ThunderChangeEvent;
 import org.bukkit.event.weather.WeatherChangeEvent;
 import org.bukkit.event.world.WorldLoadEvent;
+import org.spigotmc.event.player.PlayerSpawnLocationEvent;
 
 /**
  * The lobby rules. In the lobby world, outside the build mode: nobody takes damage or gets
@@ -67,6 +68,19 @@ final class LobbyListener implements Listener {
     }
 
     // --- Arriving and leaving -------------------------------------------------------------------
+
+    /**
+     * The player comes into the server at the lobby spawn, in the lobby world. Teleported there
+     * only by the join below, from another world (the default world on a first arrival, the arena
+     * world after leaving in a game), the server would add them to the lobby world inside the join
+     * event, before the tab list entry it sends the others after it: the others get the body first,
+     * and a 1.8.9 client draws none (only the line above the name is left). The join's teleport is
+     * then in the same world, and the body comes after the tab list entry.
+     */
+    @EventHandler(priority = EventPriority.HIGHEST)
+    public void onSpawnLocation(PlayerSpawnLocationEvent event) {
+        event.setSpawnLocation(state.spawn());
+    }
 
     @EventHandler(priority = EventPriority.HIGHEST)
     public void onJoin(PlayerJoinEvent event) {
