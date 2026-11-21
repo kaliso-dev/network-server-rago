@@ -120,7 +120,7 @@ informations manquantes.
 | 1.4 | Audit complet des statistiques (kills, games played, double comptage, par mode) | Stats | P0 | IMPLÉMENTÉ | `StatsBook`, `StatsService`, `LobbyService`, `RagoLobby`, `BedwarsGame`, `Lineup`, `BedBreakGame`, `InvisGame`, `FfaGame`, `FastShopGame`, `TopBridgeGame`, `Duel`, `BlockFight`, `FireballFight` | — | tests unitaires ; en jeu : voir le journal | — |
 | 1.5 | Kit Bedfight réinitialisé à la mort dans le vide | Kits | P0 | IMPLÉMENTÉ | `BedFightGame`, `BedwarsGame.kill` | — | tests unitaires ; en jeu : ranger sa barre en partie, mourir par un coup puis dans le vide | — |
 | 1.6 | Forges de Bed Break Simulation sur certaines maps | Bed Wars | P0 | EN COURS | `BedBreakGame`, `Generator`, `BedwarsMap`, `bedwars.yml` des maps | — | vérifier chaque map | maps en cause et ce qui ne marche pas |
-| 1.7 | Spawns First Rush trop en avant | Bed Wars | P0 | BLOQUÉ | `BedwarsMap`, `bedwars.yml`, `BedwarsGame` | — | comparer aux références | spawns de référence Hypixel |
+| 1.7 | Spawns First Rush trop en avant | Bed Wars | P0 | BLOQUÉ (cause trouvée) | `bedwars.yml` des maps (Gelato, Nebuc…), `tools/bedwars-maps` | — | en jeu sur chaque map | le point Hypixel sur une île par map (`/bw spawn red`), recopié ensuite sur les 7 autres |
 | 1.8 | Block In réaliste (casser, frapper seulement par le trou, recasser) + reset des records | Practice | P0 | IMPLÉMENTÉ | `BlockInEnemy`, `BlockInTraining`, `Records`, `RagoPractice` | 1.1 | tests unitaires (`BlockInEnemyTest`, `RecordsResetTest`) ; test réel en CI (`blockin-bots.mjs`) ; en jeu sur ta map | — |
 
 ### Étape 3 : modes existants (Phase 2)
@@ -128,9 +128,9 @@ informations manquantes.
 | # | Tâche | Cat. | Prio | Statut | Fichiers | Dépend de | Manque |
 | --- | --- | --- | --- | --- | --- | --- | --- |
 | 2.1 | Lobby Fight : 12 end stone, pioche bois, Haste, 5 pommes, blocs qui partent après 10 s (pas ceux du lobby), 3 manches | Modes | P1 | À FAIRE | `LobbyFight`, `LobbyFightGame`, `BlockDecay`, config bedwars | 1.1 | C2 |
-| 2.2 | Bedfight : protection au respawn < 2 s, coupée dès un combat ; kit gardé | Modes | P1 | À FAIRE | `BedFightGame`, `BedwarsGame` | 1.5 | — |
+| 2.2 | Bedfight : protection au respawn de la durée exacte de Minemen, coupée dès un combat ; kit gardé | Modes | P1 | BLOQUÉ | `BedFightGame`, `BedwarsGame`, `BedwarsHost` | 1.5 | durée Minemen (non publiée) : une partie enregistrée avec kb-recorder |
 | 2.3 | Bed Break Simulation : bridges refaits, pas de blocs en haut de la map, cisailles + hache, défense RBW (end stone + verre), forges | Modes | P1 | À FAIRE | `BedBreakGame`, `Bridges`, `Defense`, `game-model/BedDefense` | 1.6 | C3 |
-| 2.4 | Clutch Scenario : bridges réalistes jusqu'à la base ennemie ; rôles au hasard (leader aussi Clutcher) | Modes | P1 | À FAIRE | `ClutchScenarioGame`, `Bridges`, `Parties` | — | — |
+| 2.4 | Clutch Scenario : bridges réalistes jusqu'à la base ennemie ; rôles au hasard (leader aussi Clutcher) | Modes | P1 | IMPLÉMENTÉ | `ClutchScenarioGame`, `Bridges` | — | tests unitaires (`BridgesTest`) ; simulation sur Archway et Sky Rise ; en jeu | — |
 | 2.5 | Au moins 10 spectateurs (Block Clutch et autres practice) | Social | P1 | À FAIRE | `Spectators`, `PracticeGame.holds` | 1.2 | — |
 | 2.6 | Fireballs fidèles à Hypixel (KB, explosion, direction, fireball jump, blocs) | PvP | P1 | À FAIRE | `Fireballs`, `FireballBlast`, `FireballAim`, `PracticeGame` | — | mesures Hypixel (kb-recorder) |
 | 2.7 | TNT (timing, KB, TNT jump, environnement), réf. Hypixel / Minemen | PvP | P1 | À FAIRE | `PracticeGame.tntBlast`, `BedwarsGame` | 2.6 | mesures |
@@ -445,6 +445,45 @@ compilation et tests par la CI. **Pas testé en jeu.** À tester : au premier d�
 en Bed Wars (Kills inchangé, Final kills +1), une chute dans le vide sans coup dans un duel
 (Deaths +1), quitter une partie de Bed Break Simulator en cours (Losses +1), une partie Bed Wars
 qui finit au temps (Games played +1), un `/reload` avec un joueur connecté (stats intactes).
+
+### 1.7 Spawns First Rush — CAUSE TROUVÉE, en attente du point Hypixel
+
+**Cause** (lue dans les `bedwars.yml` et les mondes de Gelato et Nebuc) : l'outil de maps
+(`tools/bedwars-maps`) place le spawn entre le coffre et l'ender chest de l'équipe. Sur Gelato et
+Nebuc, ces deux coffres sont posés de chaque côté de la porte de la base : le joueur apparaît sur
+le seuil, tourné vers le lit, à environ 9 blocs de lui. Les 8 autres maps First Rush (Acropolis,
+Ambush, Aqil, Cascade, Crogorm, Frosted, Lighthouse, Lotus) ont la même disposition : spawn 2 ou 3
+blocs derrière la porte.
+
+**Ce qui manque** : le point exact d'Hypixel n'est ni dans les fichiers de la map (aucun repère :
+pas de panneau, de bloc ou d'entité au spawn) ni dans les sources publiques consultées (wiki
+Hypixel). Aucun point n'est inventé.
+
+**Prêt** : un seul `/bw spawn red` par map, au point Hypixel, suffit. Il est recopié sur les 7
+autres îles dans le repère de chaque île (son générateur, son lit, son shop). Vérifié sur Gelato et
+Nebuc : à partir du spawn rouge actuel, la recopie redonne exactement les 8 spawns actuels.
+
+### 2.4 Clutch Scenario — IMPLÉMENTÉ (21/11)
+
+**Rôles** : l'équipe sans lit (les Clutchers) est déjà tirée au sort parmi les deux équipes
+(`ThreadLocalRandom`, une chance sur deux), sans regarder qui est le leader de la party. C'est le
+cas depuis le 11/11, et le jar installé chez toi (14/11) l'a déjà. Le code n'a pas été changé.
+
+**Bridges** (`Bridges`, `ClutchScenarioGame`) :
+- **Droits, comme ceux des joueurs** : tout droit le long d'un axe quand les deux îles se font
+  face ; sinon tout droit, **un seul virage**, tout droit. Le pont en diagonale (un bloc à chaque
+  pas en biais) ne sert plus qu'en dernier recours, quand aucun chemin droit ne passe. Sur Archway,
+  le bridge vers le diamant est maintenant en L au lieu d'un escalier en diagonale.
+- **Jusqu'à la base ennemie** : chaque équipe a en plus le bridge de son rush, de mid (le
+  générateur d'émeraude du côté de l'ennemi) jusqu'au lit ennemi, dans sa couleur. Il arrive par
+  le côté de mid, là où la défense de l'équipe sans lit a déjà son trou.
+- **Séparés** : un bridge ne touche jamais un bridge déjà posé (au moins une colonne de vide entre
+  les deux) ; le rush longe donc le bridge de l'ennemi vers mid au lieu de se confondre avec lui.
+
+**Testé** : 11 tests unitaires de `Bridges` passent (dont 4 nouveaux : le virage unique, la
+diagonale en dernier recours, deux bridges côte à côte, le départ du rush). Simulation avec le vrai
+code de `Bridges` sur tes mondes Archway et Sky Rise : chaque équipe a ses 3 bridges, aucun n'est
+refusé. **Pas encore testé en jeu.**
 
 ### 1.6 Forges de Bed Break Simulation — EN COURS
 

@@ -8,14 +8,16 @@ import java.util.Map;
 
 /**
  * The bridges a Clutch Scenario game starts with, as a real game has them at 18 minutes: from the
- * base of each team, one to its diamond island and one to mid, one block wide, as players build
- * them. A bridge goes straight along an axis where its two islands face each other (Archway's
- * bases to mid, Sky Rise's to their diamond island). Else it follows the line between its two
- * ends, or a line at most {@value #SHIFT} blocks aside where that one is blocked (Archway's bases
- * to their diamond island, on the diagonal). Else it goes along one axis then the other (Sky
- * Rise's diamond islands to mid, round the tower on their corner, by the island between). It fills
- * the void between islands only: flat at the height of the edge it leaves, then a block up or down
- * a block, at its end, to the height of the edge it reaches, with room for a player over it all
+ * base of each team, one to its diamond island and one to mid, and the one it rushed the enemy base
+ * by, from mid; one block wide, straight as players build them. A bridge goes straight along an
+ * axis where its two islands face each other (Archway's bases to mid, Sky Rise's to their diamond
+ * island). Else along one axis then the other, one turn, which may be over the void (Archway's
+ * bases to their diamond island, Sky Rise's diamond islands to mid, round the tower on their
+ * corner). Only where neither fits does it follow the line between its two ends, or a line at most
+ * {@value #SHIFT} blocks aside: a diagonal, a block after a block. Away from the bridges already
+ * built ({@link Taken}): one beside another leaves a column of void between them. It fills the
+ * void between islands only: flat at the height of the edge it leaves, then a block up or down a
+ * block, at its end, to the height of the edge it reaches, with room for a player over it all
  * along. Pure: the map comes through {@link Solid}.
  */
 final class Bridges {
@@ -24,6 +26,14 @@ final class Bridges {
     interface Solid {
         boolean at(int x, int y, int z);
     }
+
+    /** Whether a bridge already built has a block in this column of the map. */
+    interface Taken {
+        boolean at(int x, int z);
+    }
+
+    /** No bridge built yet. */
+    static final Taken NONE_TAKEN = (x, z) -> false;
 
     /**
      * A column of the map is void where it has no solid block from this many blocks under the
@@ -68,10 +78,28 @@ final class Bridges {
     }
 
     /**
+     * The bridge a team rushed the enemy base by: from mid, the emerald generator nearest the enemy
+     * spawn (the side of mid that faces it), to the enemy bed, {from, to}; null without an emerald
+     * generator.
+     */
+    static double[][] rush(double[] enemySpawn, double[] enemyBed, List<double[]> emeralds) {
+        double[] mid = nearest(enemySpawn, emeralds);
+        return mid == null ? null : new double[][] {mid, enemyBed};
+    }
+
+    /**
      * The blocks of a bridge from a to b, points {x, y, z} where one stands (a spawn, a
      * generator): each {x, y, z}, from a's side. None if no bridge fits.
      */
     static List<int[]> plan(Solid solid, double[] a, double[] b) {
+        return plan(solid, a, b, NONE_TAKEN);
+    }
+
+    /**
+     * The same, away from the bridges already built: no block of it next to one of theirs, a
+     * column of void at least between them.
+     */
+    static List<int[]> plan(Solid solid, double[] a, double[] b, Taken taken) {
         int ax = floor(a[0]);
         int az = floor(a[2]);
         int bx = floor(b[0]);
@@ -79,7 +107,7 @@ final class Bridges {
         if (ax == bx && az == bz) {
             return Collections.emptyList();
         }
-        Columns columns = new Columns(solid, floor(a[1]) - 1, floor(b[1]) - 1);
+        Columns columns = new Columns(solid, taken, floor(a[1]) - 1, floor(b[1]) - 1);
         boolean alongZ = Math.abs(b[2] - a[2]) >= Math.abs(b[0] - a[0]);
         // straight along an axis, the one of the longer way first, as near the middle as it can
         for (int turn = 0; turn < 2; turn++) {
@@ -96,7 +124,15 @@ final class Bridges {
                 }
             }
         }
-        // along the line between the two ends, or beside it
+        // along one axis then the other, the longer way first: it may turn over the void
+        int[][] turns = alongZ ? new int[][] {{ax, bz}, {bx, az}} : new int[][] {{bx, az}, {ax, bz}};
+        for (int[] corner : turns) {
+            List<int[]> blocks = columns.bridge(path(new int[][] {{ax, az}, corner, {bx, bz}}), -1);
+            if (blocks != null) {
+                return blocks;
+            }
+        }
+        // last, along the line between the two ends, or beside it: a diagonal
         double length = Math.hypot(b[0] - a[0], b[2] - a[2]);
         double sideX = -(b[2] - a[2]) / length;
         double sideZ = (b[0] - a[0]) / length;
@@ -105,14 +141,6 @@ final class Bridges {
             int[][] corners = {{ax, az}, {floor(a[0] + sideX * shift), floor(a[2] + sideZ * shift)},
                 {floor(b[0] + sideX * shift), floor(b[2] + sideZ * shift)}, {bx, bz}};
             List<int[]> blocks = columns.bridge(path(corners), 1);
-            if (blocks != null) {
-                return blocks;
-            }
-        }
-        // along one axis then the other, the longer way first: it may turn over the void
-        int[][] turns = alongZ ? new int[][] {{ax, bz}, {bx, az}} : new int[][] {{bx, az}, {ax, bz}};
-        for (int[] corner : turns) {
-            List<int[]> blocks = columns.bridge(path(new int[][] {{ax, az}, corner, {bx, bz}}), -1);
             if (blocks != null) {
                 return blocks;
             }
@@ -193,12 +221,14 @@ final class Bridges {
     /** The map between the two ends of a bridge: which columns are void, where their floor is. */
     private static final class Columns {
         private final Solid solid;
+        private final Taken taken;
         private final int low;
         private final int high;
         private final Map<Long, Boolean> voids = new HashMap<>();
 
-        Columns(Solid solid, int floorA, int floorB) {
+        Columns(Solid solid, Taken taken, int floorA, int floorB) {
             this.solid = solid;
+            this.taken = taken;
             low = Math.min(floorA, floorB) - BELOW;
             high = Math.max(floorA, floorB) + ABOVE;
         }
@@ -229,8 +259,9 @@ final class Bridges {
         /**
          * The blocks of a bridge along these columns, over each run of void ones: null if the way
          * does not start and end on ground, if a run is off its main stretch (main -1: none), if an
-         * edge of a run has no floor or the two are too far apart in height for a block a step, or
-         * if something stands on the bridge or over it.
+         * edge of a run has no floor or the two are too far apart in height for a block a step, if
+         * something stands on the bridge or over it, or if a block of it would be next to a bridge
+         * already built.
          */
         List<int[]> bridge(List<int[]> cells, int main) {
             int count = cells.size();
@@ -267,7 +298,8 @@ final class Bridges {
                 for (int k = 0; k < length; k++) {
                     int y = k < length - steps ? from : from + Integer.signum(to - from) * (k - (length - steps) + 1);
                     int[] cell = cells.get(i + k);
-                    if (solid.at(cell[0], y, cell[1]) || solid.at(cell[0], y + 1, cell[1]) || solid.at(cell[0], y + 2, cell[1])) {
+                    if (solid.at(cell[0], y, cell[1]) || solid.at(cell[0], y + 1, cell[1]) || solid.at(cell[0], y + 2, cell[1])
+                            || besideTaken(cell[0], cell[1])) {
                         return null;
                     }
                     blocks.add(new int[] {cell[0], y, cell[1]});
@@ -275,6 +307,18 @@ final class Bridges {
                 i = j;
             }
             return blocks.isEmpty() ? null : blocks;
+        }
+
+        /** A bridge already built in this column or in one of the eight around it. */
+        private boolean besideTaken(int x, int z) {
+            for (int dx = -1; dx <= 1; dx++) {
+                for (int dz = -1; dz <= 1; dz++) {
+                    if (taken.at(x + dx, z + dz)) {
+                        return true;
+                    }
+                }
+            }
+            return false;
         }
     }
 }

@@ -2,7 +2,9 @@ package gg.rago.bedwars;
 
 import gg.rago.game.BedDefense;
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 import java.util.concurrent.ThreadLocalRandom;
 import org.bukkit.ChatColor;
 import org.bukkit.Material;
@@ -22,8 +24,9 @@ import org.bukkit.inventory.PlayerInventory;
  * the empty islands' too: forges-partout in config.yml). The game is half played already, as a
  * real one at 18 minutes: the diamond generators at Tier III, the emerald ones at Tier II, Emerald
  * III next, then the end of the beds. And it looks it: each base has its bridges built, to its
- * diamond island and to mid, in wool of its colour ({@link Bridges}); the bedless team's defense
- * stands where its bed was, with the hole the attacker dug through it from the side of mid. Then it
+ * diamond island and to mid, and the one it rushed the enemy base by, from mid, in wool of its
+ * colour ({@link Bridges}); the bedless team's defense stands where its bed was, with the hole the
+ * attacker dug through it from the side of mid. Then it
  * is a game as any other: the shop, the upgrades, the diamonds and emeralds, until one team is
  * left. Main thread only.
  */
@@ -68,9 +71,7 @@ final class ClutchScenarioGame extends BedwarsGame {
         for (Generator generator : emeralds) {
             generator.upgrade(EMERALD_TIER, settings.emerald().get(EMERALD_TIER - 1));
         }
-        for (Team team : teams) {
-            buildBridges(team);
-        }
+        buildBridges();
         for (Team team : teams) {
             if (team.points.bed == null) {
                 continue;
@@ -93,35 +94,65 @@ final class ClutchScenarioGame extends BedwarsGame {
     }
 
     /**
-     * The bridges of a team's base, to its diamond island and to mid (see {@link Bridges}), in wool
-     * of its colour, placed as by players: they break them, and the copy of the map loses them
-     * after the game.
+     * The bridges of each base, to its diamond island and to mid, then the one each team rushed the
+     * enemy base by, from mid to the enemy bed (see {@link Bridges}), in wool of its colour, each
+     * away from those built before it; placed as by players: they break them, and the copy of the
+     * map loses them after the game.
      */
-    @SuppressWarnings("deprecation") // Block#setTypeIdAndData: the 1.8 way to set a block with its data
-    private void buildBridges(Team team) {
-        if (team.points == null || team.points.spawn == null) {
-            return;
-        }
+    private void buildBridges() {
         World world = instance.world();
         Bridges.Solid solid = (x, y, z) -> world.getBlockAt(x, y, z).getType().isSolid();
-        for (double[][] route : Bridges.routes(point(team.points.spawn), points(instance.map().diamonds()),
-                points(instance.map().emeralds()))) {
-            List<int[]> blocks = Bridges.plan(solid, route[0], route[1]);
-            if (blocks.isEmpty()) {
-                plugin.getLogger().warning("No room for a bridge of the " + team.color.displayName() + " base on "
-                        + instance.map().world() + " from " + route[0][0] + " " + route[0][2] + " to " + route[1][0] + " "
-                        + route[1][2]);
+        Set<Long> built = new HashSet<>();
+        Bridges.Taken taken = (x, z) -> built.contains(column(x, z));
+        for (Team team : teams) {
+            if (team.points == null || team.points.spawn == null) {
                 continue;
             }
-            for (int[] place : blocks) {
-                Block block = world.getBlockAt(place[0], place[1], place[2]);
-                if (instance.isPlaced(block)) {
-                    continue;
-                }
-                instance.markPlaced(block);
-                block.setTypeIdAndData(Material.WOOL.getId(), (byte) team.color.woolData(), false);
+            for (double[][] route : Bridges.routes(point(team.points.spawn), points(instance.map().diamonds()),
+                    points(instance.map().emeralds()))) {
+                buildBridge(team, route, solid, taken, built);
             }
         }
+        for (Team team : teams) {
+            for (Team enemy : teams) {
+                if (enemy == team || enemy.points == null || enemy.points.spawn == null || enemy.points.bed == null) {
+                    continue;
+                }
+                MapPoint bed = enemy.points.bed;
+                double[][] route = Bridges.rush(point(enemy.points.spawn),
+                        new double[] {bed.x() + 0.5, bed.y(), bed.z() + 0.5}, points(instance.map().emeralds()));
+                if (route != null) {
+                    buildBridge(team, route, solid, taken, built);
+                }
+            }
+        }
+    }
+
+    /** One bridge of a team, in wool of its colour, its columns added to those built. */
+    @SuppressWarnings("deprecation") // Block#setTypeIdAndData: the 1.8 way to set a block with its data
+    private void buildBridge(Team team, double[][] route, Bridges.Solid solid, Bridges.Taken taken, Set<Long> built) {
+        World world = instance.world();
+        List<int[]> blocks = Bridges.plan(solid, route[0], route[1], taken);
+        if (blocks.isEmpty()) {
+            plugin.getLogger().warning("No room for a bridge of the " + team.color.displayName() + " team on "
+                    + instance.map().world() + " from " + route[0][0] + " " + route[0][2] + " to " + route[1][0] + " "
+                    + route[1][2]);
+            return;
+        }
+        for (int[] place : blocks) {
+            built.add(column(place[0], place[2]));
+            Block block = world.getBlockAt(place[0], place[1], place[2]);
+            if (instance.isPlaced(block)) {
+                continue;
+            }
+            instance.markPlaced(block);
+            block.setTypeIdAndData(Material.WOOL.getId(), (byte) team.color.woolData(), false);
+        }
+    }
+
+    /** A column of the map, as one number. */
+    private static long column(int x, int z) {
+        return ((long) x << 32) ^ (z & 0xFFFFFFFFL);
     }
 
     /** Mid, seen from this point: the nearest emerald generator, else the middle of the map. */

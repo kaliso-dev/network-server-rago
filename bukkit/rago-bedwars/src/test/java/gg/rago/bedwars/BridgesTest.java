@@ -73,10 +73,29 @@ class BridgesTest {
         assertEquals(64, back.get(28)[1]);
     }
 
-    /** Islands on the diagonal, facing on no axis: the bridge follows the line, a block after a block. */
+    /**
+     * Islands on the diagonal, facing on no axis: straight along x, one turn, straight along z, as
+     * players build it, not a diagonal a block after a block.
+     */
     @Test
-    void onTheDiagonalItFollowsTheLineBetweenThem() {
+    void onTheDiagonalItGoesStraightThenTurnsOnce() {
         Bridges.Solid solid = map(new Island(-10, 0, -40, -30, 64), new Island(20, 30, -10, 0, 64));
+        List<int[]> blocks = Bridges.plan(solid, new double[] {-5.5, 65, -35.5}, new double[] {25.5, 65, -5.5});
+        assertEquals(25 + 25, blocks.size(), "x 1 to 25 at z -36, then z -35 to -11 at x 25");
+        walkable(solid, blocks);
+        for (int i = 0; i < 25; i++) {
+            assertArrayEquals(new int[] {1 + i, 64, -36}, blocks.get(i), "straight along x");
+        }
+        for (int i = 25; i < 50; i++) {
+            assertArrayEquals(new int[] {25, 64, -35 + i - 25}, blocks.get(i), "the one turn, then straight along z");
+        }
+    }
+
+    /** Both ways with a turn blocked by towers: only then the line between them, a diagonal. */
+    @Test
+    void onlyWhereNoStraightWayFitsItFollowsTheDiagonal() {
+        Bridges.Solid solid = map(new Island(-10, 0, -40, -30, 64), new Island(20, 30, -10, 0, 64),
+                new Island(22, 28, -40, -33, 90), new Island(-9, -3, -9, -3, 90));
         List<int[]> blocks = Bridges.plan(solid, new double[] {-5.5, 65, -35.5}, new double[] {25.5, 65, -5.5});
         assertFalse(blocks.isEmpty());
         walkable(solid, blocks);
@@ -87,6 +106,39 @@ class BridgesTest {
         for (int[] block : blocks) {
             assertTrue(Math.abs((block[0] + 5.5) - (block[2] + 35.5)) <= 3, "along the line: " + Arrays.toString(block));
         }
+    }
+
+    /**
+     * A second bridge between the same islands: beside the first, a column of void between them,
+     * never on it or touching it.
+     */
+    @Test
+    void aBridgeBesideAnotherLeavesAColumnOfVoidBetweenThem() {
+        Bridges.Solid solid = map(new Island(-10, 10, -40, -30, 64), new Island(-15, 15, 0, 20, 64));
+        double[] base = {-5.5, 65, -35.5};
+        double[] mid = {0.5, 65, 10.5};
+        List<int[]> first = Bridges.plan(solid, base, mid);
+        Set<String> columns = new HashSet<>();
+        for (int[] block : first) {
+            assertEquals(-3, block[0]);
+            columns.add(block[0] + " " + block[2]);
+        }
+        List<int[]> second = Bridges.plan(solid, mid, base, (x, z) -> columns.contains(x + " " + z));
+        assertEquals(29, second.size());
+        for (int[] block : second) {
+            assertEquals(-5, block[0], "x -4 and -2 touch it: -5, the next nearest the middle");
+        }
+    }
+
+    /** The bridge of a rush: from the side of mid that faces the enemy base, to its bed. */
+    @Test
+    void aRushLeavesFromTheSideOfMidThatFacesTheEnemy() {
+        List<double[]> emeralds = Arrays.asList(new double[] {-9.5, 70, -9.5}, new double[] {10.5, 70, 10.5});
+        double[] aquaSpawn = {36.5, 71, 90.5};
+        double[] aquaBed = {36.5, 71, 82.5};
+        double[][] rush = Bridges.rush(aquaSpawn, aquaBed, emeralds);
+        assertArrayEquals(new double[][] {emeralds.get(1), aquaBed}, rush);
+        assertTrue(Bridges.rush(aquaSpawn, aquaBed, new ArrayList<>()) == null, "no mid, no rush");
     }
 
     /** A tower over the middle of the void: no line gets by it, the bridge goes along x then along z. */
