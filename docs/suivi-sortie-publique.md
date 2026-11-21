@@ -122,7 +122,7 @@ informations manquantes.
 | 1.4 | Audit complet des statistiques (kills, games played, double comptage, par mode) | Stats | P0 | IMPLÉMENTÉ | `StatsBook`, `StatsService`, `LobbyService`, `RagoLobby`, `BedwarsGame`, `Lineup`, `BedBreakGame`, `InvisGame`, `FfaGame`, `FastShopGame`, `TopBridgeGame`, `Duel`, `BlockFight`, `FireballFight` | — | tests unitaires ; en jeu : voir le journal | — |
 | 1.5 | Kit Bedfight réinitialisé à la mort dans le vide | Kits | P0 | IMPLÉMENTÉ | `BedFightGame`, `BedwarsGame.kill` | — | tests unitaires ; en jeu : ranger sa barre en partie, mourir par un coup puis dans le vide | — |
 | 1.6 | Forges de Bed Break Simulation sur certaines maps | Bed Wars | P0 | TESTÉ (en jeu par toi, 21/11) | `bedwars.yml` d'Invasion, `tools/bedwars-maps` | — | en jeu : une manche de Bed Break sur Invasion | — |
-| 1.7 | Spawns First Rush trop en avant | Bed Wars | P0 | BLOQUÉ (cause trouvée) | `bedwars.yml` des maps (Gelato, Nebuc…), `tools/bedwars-maps` | — | en jeu sur chaque map | le point Hypixel sur une île par map (`/bw spawn red`), recopié ensuite sur les 7 autres |
+| 1.7 | Spawns First Rush trop en avant | Bed Wars | P0 | IMPLÉMENTÉ sur Nebuc et Gelato (ton spawn rouge recopié sur les 7 autres îles), à vérifier en jeu | `bedwars.yml` des maps (Gelato, Nebuc…), `tools/bedwars-maps` | — | en jeu sur chaque map | le point Hypixel sur une île par map (`/bw spawn red`), recopié ensuite sur les 7 autres |
 | 1.8 | Block In réaliste (casser, frapper seulement par le trou, recasser) + reset des records | Practice | P0 | TESTÉ (en jeu par toi, 21/11) | `BlockInEnemy`, `BlockInTraining`, `Records`, `RagoPractice` | 1.1 | tests unitaires (`BlockInEnemyTest`, `RecordsResetTest`) ; test réel en CI (`blockin-bots.mjs`) ; en jeu sur ta map | — |
 
 ### Étape 3 : modes existants (Phase 2)
@@ -131,7 +131,7 @@ informations manquantes.
 | --- | --- | --- | --- | --- | --- | --- | --- |
 | 2.1 | Lobby Fight : 12 end stone, pioche bois, Haste, 5 pommes, blocs qui partent après 10 s (pas ceux du lobby), 3 manches | Modes | P1 | CORRIGÉ après l'essai en jeu (pearl, laine et cisailles remises), à retester | `LobbyFight`, `LobbyFightGame`, `FfaGame`, `BlockDecay`, config du lobby | 1.1 | tests unitaires (`LobbyFightTest`, `LobbySettingsTest`) ; en jeu sur Archway FFA (voir le journal) |
 | 2.2 | Bedfight : protection au respawn de la durée exacte de Minemen, coupée dès un combat ; kit gardé ; puis les autres modes Bed Wars (demandé après l'essai) | Modes | P1 | TESTÉ en Bed Fight (en jeu par toi) ; autres modes IMPLÉMENTÉ | `BedFightGame`, `BedwarsGame`, `BedwarsHost`, `SpawnProtection` | 1.5 | tests unitaires (`SpawnProtectionTest`) ; en jeu : frapper un joueur qui vient de réapparaître |
-| 2.3 | Bed Break Simulation : bridges refaits, pas de blocs en haut de la map, cisailles + hache, défense RBW (end stone + verre), forges | Modes | P1 | EN COURS : bridges d'Invasion et d'Archway à refaire d'après tes captures ; forges testées | `BedBreakGame`, `Bridges`, `Defense`, `game-model/BedDefense` | 1.6 | C3 |
+| 2.3 | Bed Break Simulation : bridges refaits, pas de blocs en haut de la map, cisailles + hache, défense RBW (end stone + verre), forges | Modes | P1 | EN COURS : tu construis les bridges d'Invasion et d'Archway dans `/bw edit`, je relève tes blocs ; forges testées | `BedBreakGame`, `Bridges`, `Defense`, `game-model/BedDefense` | 1.6 | C3 |
 | 2.4 | Clutch Scenario : bridges réalistes jusqu'à la base ennemie ; rôles au hasard (leader aussi Clutcher) | Modes | P1 | IMPLÉMENTÉ | `ClutchScenarioGame`, `Bridges` | — | tests unitaires (`BridgesTest`) ; simulation sur Archway et Sky Rise ; en jeu | — |
 | 2.5 | Au moins 10 spectateurs (Block Clutch et autres practice) | Social | P1 | IMPLÉMENTÉ | `tools/local-server/server.properties` (50 places), `spectate-bots.mjs` | 1.2 | test réel en CI : 10 bots regardent un Block clutch en même temps |
 | 2.6 | Fireballs fidèles à Hypixel (KB, explosion, direction, fireball jump, blocs) | PvP | P1 | EN COURS (mesure prête, à faire sur Hypixel) | `Fireballs`, `FireballBlast`, `FireballAim`, `PracticeGame` | — | mesures Hypixel (kb-recorder 0.2) |
@@ -143,7 +143,7 @@ informations manquantes.
 | # | Tâche | Cat. | Prio | Statut | Fichiers | Dépend de | Manque |
 | --- | --- | --- | --- | --- | --- | --- | --- |
 | 3.2 | FKDR avec décimales partout (« 6.42 FKDR ») | Stats | P1 | IMPLÉMENTÉ | `BoardStat`, `StatsBook`, `StatsMenu`, `StatsDisplays`, `HeadLines` | 1.4 | — |
-| 3.3 | Records practice : Lifetime d'abord, Weekly, Daily plus tard ; visibles ≥ 1 mois | Stats | P1 | À FAIRE | `Records`, `RecordBook`, `RecordsMenu` | 1.4 | — |
+| 3.3 | Records practice : Lifetime d'abord, Weekly, Daily plus tard ; visibles ≥ 1 mois | Stats | P1 | IMPLÉMENTÉ (Weekly ajouté, gardé 5 semaines ; Daily plus tard) | `Records`, `RecordBook`, `RecordsMenu` | 1.4 | — |
 | 3.4 | Menus practice : TOP 3 Lifetime du record du mode au survol | Stats | P1 | À FAIRE | `ModeMenu`, `ModeDisplay`, `RecordCatalog` | 3.3 | — |
 | 3.1 | Trois leaderboards Daily / Weekly / Lifetime liés à une même stat | Stats | P1 | À FAIRE | `StatsDisplays`, `StatsBook`, `StatsPeriod`, `BoardStat` | 1.4 | méthode pour ratios et ELO à valider |
 | 5.4d | Sélecteur `NewLeaderboard Selector` (Win Streak, Level, ELO, Wins, Kills, FKDR, WWLR…) | Lobby | P1 | À FAIRE | `LobbyNpcs`, `StatsDisplays`, point `newleaderboardselector` | 3.1 | — |
@@ -217,6 +217,72 @@ informations manquantes.
 ---
 
 ## 3. Journal des corrections
+
+### 3.3 Records Practice : Lifetime et Weekly — IMPLÉMENTÉ (21/11)
+
+**Avant** (lu dans `Records`, `RecordBook`, `RecordsMenu`, `ClutchTraining`, `DailyChallenge`) :
+- Les records des entraînements étaient déjà Lifetime : le meilleur score de chaque joueur, gardé
+  pour toujours dans `records.yml`. Rien ne les vidait, sauf la remise à zéro du Block in que tu
+  as demandée (1.8). `/records`, le mur des records et le scoreboard des entraînements ne
+  montraient que ceux-là.
+- Pas de records Weekly. Le seul classement de la semaine était celui des plus gros clutchs du
+  Block clutch (les récompenses du lobby), gardé deux semaines.
+- Le Daily n'existait que par le défi du jour : un entraînement par jour, son top du jour.
+
+**Fait** :
+- **Lifetime d'abord, et conservés** : rien ne change pour eux. Ils restent jamais vidés, et
+  premiers partout : le top 10 de `/records` s'appelle maintenant « Lifetime top 10 », et le mur
+  et le scoreboard des entraînements les montrent comme avant.
+- **Weekly** : chaque score sur un record compte aussi pour la semaine, du lundi au dimanche,
+  heure de Paris, comme les semaines du Block clutch (`weekly.2026w47.clutch.island` dans
+  `records.yml`). Ça concerne tous les records de `/records`, pas les plus gros clutchs, qui sont
+  déjà un classement de la semaine.
+- **Visibles au moins un mois** : une semaine est gardée et montrée encore 5 semaines après la
+  sienne. Le dernier jour d'une semaine reste donc visible 35 jours, plus qu'un mois. Avec 4
+  semaines, ce serait 28 jours, moins qu'un mois. Ensuite, la semaine est retirée de
+  `records.yml`. Les records Lifetime ne le sont jamais.
+- **Où on les voit** :
+  - Dans `/records`, sur chaque record, sous le Lifetime top 10 : le top 3 de la semaine
+    (« This week », et le joueur sous lui s'il est plus loin), puis le meilleur de chacune des
+    5 semaines d'avant qui en a un (« Last week », « 2 weeks ago »…).
+  - Sur le mur des records, une ligne sous le top 10 : « This week: Bob - 20 clutches ». Elle
+    remplace la ligne vide, donc le mur garde ses 19 lignes.
+- **Daily** : rien de nouveau, comme demandé (« lorsque le serveur sera plus actif ») ; le défi du
+  jour garde son top du jour.
+- **Une remise à zéro demandée** (comme celle du Block in) vide aussi les semaines de ces records.
+
+**Tests** :
+- `RecordBookTest` (3 nouveaux, passés en local : 9 sur 9) :
+  - le nom des semaines et leur passage le lundi ;
+  - la semaine 53 au tournant de l'année ;
+  - un record de temps classé pareil dans sa semaine ;
+  - seules les semaines trop vieilles sont retirées, jamais un record Lifetime ni les plus gros
+    clutchs.
+- `RecordsWeeksTest` (nouveau, lancé par la CI) :
+  - un score va sur le record et sur sa semaine ;
+  - le lundi, une semaine neuve et vide ;
+  - les semaines écrites dans le fichier et relues ;
+  - encore là 5 semaines après, parties la 6e, du livre et du fichier, les Lifetime gardés ;
+  - une semaine qui part pendant que le serveur tourne.
+- `RecordsMenuTest` (lancé par la CI) : les lignes de la semaine dans `/records` et sur le mur.
+- **Pas encore vu en jeu** : regarder `/records`, puis un record, et le mur des records au lobby.
+
+### Spawns First Rush de Nebuc et Gelato, et install du 21/11 (vers 18 h 25)
+
+- **First Rush (1.7)** : tu as posé le spawn rouge de Nebuc et de Gelato avec `/bw spawn red`. Je
+  l'ai recopié sur les 7 autres îles de chaque map, dans le repère de chaque île (son générateur,
+  son lit, son shop), avec l'outil déjà vérifié : il redonnait exactement les 8 spawns d'avant à
+  partir du rouge d'avant. Les joueurs apparaissent maintenant 4 blocs plus en arrière sur Nebuc
+  et 5 sur Gelato, tournés vers leur lit. C'est écrit dans les `bedwars.yml` de ton PC, vérifiés
+  après écriture, avec l'ancien à côté (`bedwars.yml.avant-copie-spawns-21-11`). **Pas encore vu
+  en jeu.**
+- **Build 327 installé** sur ton serveur de test (protection de 1,5 s pour tous les modes,
+  Lobby Fight, FKDR) : 5 jars identiques octet par octet à ceux de la CI, anciens jars et
+  lanceurs dans `sauvegarde-avant-maj-21-11b`, `config.yml` de RagoLobby inchangé. Toute la CI
+  Java était verte ; seul le job du site avait échoué (les données du jeu pas à jour après le
+  changement de description du Lobby Fight), corrigé.
+- **Bridges de Bed Break (2.3)** : tu les construis toi-même dans `/bw edit Invasion` et
+  `/bw edit Archway`. Voir 2.3.
 
 ### 3.2 FKDR avec décimales — IMPLÉMENTÉ (21/11)
 
@@ -480,7 +546,11 @@ en Bed Wars (Kills inchangé, Final kills +1), une chute dans le vide sans coup 
 (Deaths +1), quitter une partie de Bed Break Simulator en cours (Losses +1), une partie Bed Wars
 qui finit au temps (Games played +1), un `/reload` avec un joueur connecté (stats intactes).
 
-### 1.7 Spawns First Rush — CAUSE TROUVÉE, en attente du point Hypixel
+### 1.7 Spawns First Rush — IMPLÉMENTÉ sur Nebuc et Gelato (21/11), à vérifier en jeu
+
+**Fait (21/11)** : tu as posé le spawn rouge des deux maps ; il est recopié sur les 7 autres îles
+(voir « Spawns First Rush de Nebuc et Gelato » plus haut). Les 8 autres maps First Rush gardent le
+leur tant que tu n'y poses pas de spawn rouge.
 
 **Cause** (lue dans les `bedwars.yml` et les mondes de Gelato et Nebuc) : l'outil de maps
 (`tools/bedwars-maps`) place le spawn entre le coffre et l'ender chest de l'équipe. Sur Gelato et
@@ -594,6 +664,20 @@ en premier pendant sa protection (il redevient touchable aussitôt).
 
 **Retour en jeu (21/11)** : les bridges d'Invasion et d'Archway « c'est pas du tout ça ». Tu
 envoies une capture de ce que tu veux ; je les refais d'après elle, sans deviner avant.
+
+**Ensuite (21/11, vers 18 h 25)** : plutôt qu'une capture, tu construis le bridge dans la map.
+- **Lequel** : dans Bed Break, c'est toujours Vert qui attaque le lit de Rouge, sur les deux
+  maps. Rouge est la première équipe complète de la map, et Vert la plus loin d'elle (l'île en
+  face sur Archway, le coin opposé sur Invasion).
+- **Attention** : ce qui est construit dans `/bw edit` reste dans la map. Or Archway et Invasion
+  servent aussi en Ranked, Top Bridge et Invis.
+- **Comment** :
+  1. J'ai gardé une copie des deux maps juste avant
+     (`serveur-de-test/ponts-bed-break-avant/` dans les fichiers du projet). Je la compare à la
+     map une fois ton pont fait, pour relever tes blocs exacts.
+  2. Le jeu pose alors exactement ce pont à chaque manche, en laine verte, cassable et enlevé
+     après la manche.
+  3. Tu casses ensuite ton pont dans `/bw edit`.
 
 - **Bridges** : le top bridge (la plateforme de laine de 17 blocs de large, 16 blocs au-dessus
   des lits, tracée de lit à lit, donc en diagonale sur Invasion) est remplacé par le bridge de

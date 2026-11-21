@@ -7,10 +7,12 @@ import java.io.Writer;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.StandardCopyOption;
+import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.UUID;
+import java.util.function.Supplier;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import org.bukkit.Bukkit;
@@ -20,7 +22,9 @@ import org.bukkit.configuration.file.YamlConfiguration;
 /**
  * The record book of the trainings in plugins/RagoPractice/records.yml: read once when the plugin
  * starts, written after each new best, off the main thread (the text is made on the main thread,
- * the disk is written by an async task, the last text written last).
+ * the disk is written by an async task, the last text written last). A score on a board of records
+ * (lifetime, never emptied) also goes on that board's board of the week, Paris time; the boards of
+ * the weeks are dropped {@value RecordBook#WEEKS_KEPT} weeks after theirs.
  */
 final class Records {
 
@@ -31,22 +35,55 @@ final class Records {
     private final RecordBook book = new RecordBook();
     private final Object writing = new Object();
     private long version;
+    /** Today, Paris time: the week of the scores. */
+    private final Supplier<LocalDate> today;
+    /** The week whose kept weeks were last made sure of ({@link #dropOldWeeks}). */
+    private String weekKept;
 
     Records(RagoPractice plugin, File file) {
         this.plugin = plugin;
         this.logger = plugin.getLogger();
         this.file = file;
+        this.today = () -> LocalDate.now(DailyChallenge.PARIS);
     }
 
     /** A book written at once, with no plugin (the tests). */
     Records(Logger logger, File file) {
+        this(logger, file, () -> LocalDate.now(DailyChallenge.PARIS));
+    }
+
+    /** A book written at once, with no plugin, on these days (the tests). */
+    Records(Logger logger, File file, Supplier<LocalDate> today) {
         this.plugin = null;
         this.logger = logger;
         this.file = file;
+        this.today = today;
     }
 
     RecordBook book() {
         return book;
+    }
+
+    /** The weeks whose boards are shown: this one first, then those before still kept. */
+    List<String> weeks() {
+        return RecordBook.weeksKept(today.get());
+    }
+
+    /**
+     * Once a week: the boards of the weeks no longer kept are gone (the boards of records never),
+     * and the file written without them.
+     */
+    private void dropOldWeeks() {
+        List<String> weeks = weeks();
+        if (weeks.get(0).equals(weekKept)) {
+            return;
+        }
+        weekKept = weeks.get(0);
+        int dropped = book.dropWeeksBut(weeks);
+        if (dropped > 0) {
+            logger.info("records.yml: " + dropped + " boards of the weeks before " + weeks.get(weeks.size() - 1) + " dropped");
+            save();
+        }
     }
 
     /** Reads the file, if there is one. */
@@ -72,6 +109,7 @@ final class Records {
                 }
             }
         }
+        dropOldWeeks();
     }
 
     /** Beside records.yml: the names of the resets done ({@link #resetOnce}), one a line. */
@@ -80,13 +118,13 @@ final class Records {
     static final String BACKUP_PREFIX = "records-sauvegarde-";
 
     /**
-     * Once for this name: every board whose id starts with the prefix is emptied (a training whose
-     * rules changed: the times of before do not compare with the new ones), after a copy of
-     * records.yml as it was (records-sauvegarde-&lt;name&gt;.yml). Nothing is reset if the copy
-     * cannot be made; the reset is noted as done once records.yml is written without those boards
-     * (if the note cannot be written, the reset is made again at the next start, the first copy
-     * kept). Main thread, after {@link #load}, before the boards are defined (a board emptied
-     * forgets how it ranks). Returns how many boards were emptied, -1 when nothing was done.
+     * Once for this name: every board whose id starts with the prefix is emptied, and its boards of
+     * the weeks (a training whose rules changed: the times of before do not compare with the new
+     * ones), after a copy of records.yml as it was (records-sauvegarde-&lt;name&gt;.yml). Nothing
+     * is reset if the copy cannot be made; the reset is noted as done once records.yml is written
+     * without those boards (if the note cannot be written, the reset is made again at the next
+     * start, the first copy kept). Main thread, after {@link #load}, before the boards are defined
+     * (a board emptied forgets how it ranks). Returns how many boards were emptied, -1 when nothing was done.
      */
     int resetOnce(String name, String prefix) {
         File folder = file.getAbsoluteFile().getParentFile();
@@ -112,6 +150,8 @@ final class Records {
             return -1;
         }
         int emptied = book.dropAllBut(prefix);
+        // their boards of the weeks too: the times of before do not compare with the new ones either
+        book.dropWeeksOf(prefix);
         // at once, on this thread: the reset is written before anything else can happen
         boolean written;
         synchronized (writing) {
@@ -132,10 +172,18 @@ final class Records {
         return emptied;
     }
 
-    /** A new score: kept and written if it is the player's best. */
+    /**
+     * A new score: kept and written if it is the player's best, of all time or of the week (a board
+     * of records also has its board of the week). The result is the one of all time.
+     */
     RecordBook.Result submit(String board, UUID player, String name, long value) {
         RecordBook.Result result = book.submit(board, player, name, value);
-        if (result.personalBest) {
+        boolean changed = result.personalBest;
+        if (RecordCatalog.isRecord(board)) {
+            dropOldWeeks();
+            changed |= book.submit(RecordBook.weekly(board, weeks().get(0)), player, name, value).personalBest;
+        }
+        if (changed) {
             save();
         }
         return result;

@@ -48,6 +48,9 @@ class RecordsMenuTest {
         return book;
     }
 
+    /** The weeks kept on Friday 20 November 2026: this one (2026w47) first, then the five before. */
+    private static final List<String> WEEKS = RecordBook.weeksKept(java.time.LocalDate.of(2026, 11, 20));
+
     @Test
     void everyTrainingAndItsBoardsOnce() {
         Set<String> modes = new HashSet<>();
@@ -125,28 +128,58 @@ class RecordsMenuTest {
                 "Click: the top 10 of each"), aim);
 
         Set<UUID> friends = new HashSet<>(Arrays.asList(BOB, CARL));
-        List<String> lore = plain(RecordsMenu.boardLore(book, board("clutch.island"), ALICE, "Alice", true, friends, true));
+        List<String> lore = plain(RecordsMenu.boardLore(book, board("clutch.island"), ALICE, "Alice", true, friends, true, WEEKS));
         assertEquals("✦ The challenge of the day", lore.get(0));
         assertEquals("Your best: 12 clutches #2 of 2", lore.get(1));
         assertEquals("Among your friends: #2 of 2", lore.get(2), "Carl has no score: not counted");
-        assertEquals("Top 10", lore.get(4));
+        assertEquals("Lifetime top 10", lore.get(4));
         assertEquals("#1 Bob - 20 clutches", lore.get(5));
         assertEquals("#2 Alice - 12 clutches", lore.get(6));
         assertEquals("Click to play it", lore.get(lore.size() - 1));
 
         List<String> far = plain(RecordsMenu.boardLore(book, board("aim-trainer.jump"), ALICE, "Alice", false,
-                Collections.<UUID>emptySet(), false));
+                Collections.<UUID>emptySet(), false, WEEKS));
         assertEquals("Best: 50 hits #13 of 13", far.get(0), "another player's page");
-        assertEquals("Top 10", far.get(2), "no friends line on another's page");
+        assertEquals("Lifetime top 10", far.get(2), "no friends line on another's page");
         assertEquals("#10 P9 - 91 hits", far.get(12));
         assertEquals("...", far.get(13));
         assertEquals("#13 Alice - 50 hits", far.get(14), "the player under the top, further down");
 
-        List<String> none = plain(RecordsMenu.boardLore(book, board("aim-trainer.circle"), DAVE, "Dave", true, friends, false));
-        assertEquals(Arrays.asList("No record yet", "", "Top 10", "Nobody yet: be the first!", "", "Click to play it"), none);
+        List<String> none = plain(RecordsMenu.boardLore(book, board("aim-trainer.circle"), DAVE, "Dave", true, friends, false, WEEKS));
+        assertEquals(Arrays.asList("No record yet", "", "Lifetime top 10", "Nobody yet: be the first!", "", "This week",
+                "Nobody yet this week", "", "Click to play it"), none);
         assertEquals("#3", ChatColor.stripColor(RecordsMenu.place(3)));
         assertTrue(RecordsMenu.place(1).startsWith(ChatColor.GOLD.toString()));
         assertTrue(RecordsMenu.place(4).startsWith(ChatColor.GRAY.toString()));
+    }
+
+    @Test
+    void aBoardShowsThisWeekAndTheBestOfTheWeeksBefore() {
+        RecordBook book = book();
+        book.load("clutch.island", ALICE, "Alice", 30);
+        book.load("clutch.island", BOB, "Bob", 25);
+        for (int i = 0; i < 4; i++) {
+            book.load("weekly.2026w47.clutch.island", new UUID(3, i), "W" + i, 20 - i);
+        }
+        book.load("weekly.2026w47.clutch.island", ALICE, "Alice", 8);
+        book.load("weekly.2026w46.clutch.island", BOB, "Bob", 25);
+        book.load("weekly.2026w46.clutch.island", ALICE, "Alice", 14);
+        book.load("weekly.2026w44.clutch.island", ALICE, "Alice", 30);
+        book.load("weekly.2026w42.clutch.island", CARL, "Carl", 11);
+        book.load("weekly.2026w41.clutch.island", DAVE, "Dave", 99);
+        List<String> lore = plain(RecordsMenu.boardLore(book, board("clutch.island"), ALICE, "Alice", true,
+                Collections.<UUID>emptySet(), false, WEEKS));
+        assertEquals("Your best: 30 clutches #1 of 2", lore.get(0), "the lifetime best first");
+        assertEquals("Lifetime top 10", lore.get(2));
+        assertEquals("#1 Alice - 30 clutches", lore.get(3));
+        assertEquals("#2 Bob - 25 clutches", lore.get(4));
+        assertEquals(Arrays.asList("", "This week", "#1 W0 - 20 clutches", "#2 W1 - 19 clutches", "#3 W2 - 18 clutches", "...",
+                "#5 Alice - 8 clutches", "", "Best of the weeks before", "Last week: Bob - 25 clutches",
+                "3 weeks ago: Alice - 30 clutches", "5 weeks ago: Carl - 11 clutches", "", "Click to play it"),
+                lore.subList(5, lore.size()), "a week without a record is not shown; six weeks ago is no longer kept");
+
+        List<String> quiet = plain(RecordsMenu.weekLines(book, board("aim-trainer.jump"), ALICE, WEEKS));
+        assertEquals(Arrays.asList("This week", "Nobody yet this week"), quiet, "no week before with a record: no such lines");
     }
 
     @Test
@@ -204,27 +237,31 @@ class RecordsMenuTest {
             book.load("kb-displace-bot.still", new UUID(2, i), "P" + i, 1000 + 100 * i);
         }
         book.load("kb-displace-bot.still", ALICE, "Alice", 5000);
-        List<String> lines = plain(RecordsMenu.wallLines(book, board("kb-displace-bot.still"), ALICE, 4, 9, true));
+        book.load("weekly.2026w47.kb-displace-bot.still", BOB, "Bob", 2200);
+        book.load("weekly.2026w47.kb-displace-bot.still", ALICE, "Alice", 5000);
+        book.load("weekly.2026w46.kb-displace-bot.still", CARL, "Carl", 900);
+        List<String> lines = plain(RecordsMenu.wallLines(book, board("kb-displace-bot.still"), ALICE, 4, 9, true, "2026w47"));
         assertEquals(RecordsMenu.WALL_LINES, lines.size());
         assertEquals("KB displace against a bot", lines.get(0));
         assertEquals("Bot in the notch", lines.get(1));
         assertEquals("", lines.get(2));
         assertEquals("1. P0 - 1.000 s", lines.get(3), "a time: the shortest first");
         assertEquals("10. P9 - 1.900 s", lines.get(12));
-        assertEquals("", lines.get(13));
+        assertEquals("This week: Bob - 2.200 s", lines.get(13), "the best of this week, a time: the shortest");
         assertEquals("You: #12 - 5.000 s", lines.get(14));
         assertEquals("✦ The challenge of the day", lines.get(15));
         assertEquals("Practice records 5/9", lines.get(16));
         assertEquals("» Left click: next board", lines.get(17));
         assertEquals("» Right click: all your records", lines.get(18));
-        for (String line : RecordsMenu.wallLines(book, board("kb-displace-bot.still"), ALICE, 4, 9, true)) {
+        for (String line : RecordsMenu.wallLines(book, board("kb-displace-bot.still"), ALICE, 4, 9, true, "2026w47")) {
             assertTrue(line.length() <= 64, "a name of 1.8: " + line);
         }
 
-        List<String> empty = plain(RecordsMenu.wallLines(book, board("clutch.island"), BOB, 0, 1, false));
+        List<String> empty = plain(RecordsMenu.wallLines(book, board("clutch.island"), BOB, 0, 1, false, "2026w47"));
         assertEquals(RecordsMenu.WALL_LINES, empty.size());
         assertEquals("Nobody yet: be the first!", empty.get(3));
         assertEquals("", empty.get(4));
+        assertEquals("This week: nobody yet", empty.get(13));
         assertEquals("You: no record yet", empty.get(14));
         assertEquals("", empty.get(15));
     }

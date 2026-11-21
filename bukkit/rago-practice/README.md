@@ -163,15 +163,25 @@ donnent la leur à la fin ; l'aim trainer garde la sienne.
 score du joueur et sa place sur chaque record (une variante, une vitesse du bot du block edit, ou
 un parcours du timed bridge),
 et le résumé : combien de records, de premières places et de places dans un top 10. Un
-entraînement ouvre ses records, chacun avec son top 10, la place du joueur (sous le top quand il
-est plus loin) et sa place parmi ses amis (`/friend`). Un clic sur un record le joue : dans cet
+entraînement ouvre ses records, chacun avec son top 10 Lifetime, la place du joueur (sous le top
+quand il est plus loin) et sa place parmi ses amis (`/friend`), puis le top 3 de la semaine
+(« This week », et le joueur sous lui quand il est plus loin) et le meilleur de chacune des cinq
+semaines d'avant qui en a un (« Last week », « 2 weeks ago »…). Un clic sur un record le joue : dans cet
 entraînement, il y passe et recommence ; depuis le lobby ou un autre entraînement, le lobby y
 emmène et l'entraînement commence dessus. `/records <joueur>` montre ceux d'un autre.
 
+**Lifetime et Weekly.** Les records sont Lifetime : jamais vidés (sauf une remise à zéro
+demandée, comme celle du Block in), c'est eux que montrent d'abord `/records`, le mur et le
+scoreboard des entraînements. Chaque score compte aussi pour la semaine, du lundi au dimanche,
+heure de Paris (`weekly.2026w47.clutch.island` dans `records.yml`). Une semaine est gardée et
+montrée encore cinq semaines après la sienne, au moins un mois, puis retirée du fichier ; les
+records Lifetime restent. Pas de records Daily pour l'instant (le défi du jour garde son top du
+jour).
+
 **Le mur des records.** Au lobby, sur le point `records` (`/lobby point records`,
 `mur-des-records` dans `config.yml`, `""` pour aucun), un tableau comme ceux du lobby montre le
-top 10 d'un record après l'autre (ceux qui ont au moins un score), toutes les 8 secondes, avec la
-place de celui qui regarde et le défi du jour. Un clic gauche passe au record suivant (gardé
+top 10 Lifetime d'un record après l'autre (ceux qui ont au moins un score), toutes les 8 secondes,
+avec le meilleur de la semaine (« This week »), la place de celui qui regarde et le défi du jour. Un clic gauche passe au record suivant (gardé
 20 secondes, le temps de le lire), un clic droit ouvre `/records`.
 
 **Le défi du jour (`/challenge`).** Chaque jour (heure de Paris), un entraînement pour tout le

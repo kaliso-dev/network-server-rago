@@ -102,4 +102,60 @@ class RecordBookTest {
         assertEquals("New", book.top("aim-trainer.strafe").name);
         assertEquals(40L, book.best("aim-trainer.strafe", ONE));
     }
+
+    @Test
+    void theBoardsOfTheWeeks() {
+        assertEquals("weekly.2026w47.clutch.island", RecordBook.weekly("clutch.island", "2026w47"));
+        assertEquals("block-edit.bot.speed2", RecordBook.weeklyBase("weekly.2026w47.block-edit.bot.speed2"));
+        assertEquals("2026w47", RecordBook.weekOf("weekly.2026w47.block-edit.bot.speed2"));
+        assertNull(RecordBook.weeklyBase("clutch.island"), "a board of records is no board of a week");
+        assertNull(RecordBook.weekOf("clutch.island-blocks.2026w47"), "nor the biggest clutches of a week");
+        assertNull(RecordBook.weeklyBase("weekly.2026w47"));
+        assertNull(RecordBook.weekOf("weekly..clutch.island"));
+
+        // the weeks from Monday, Paris dates: Sunday 22 November is still the 47th, Monday the 48th
+        assertEquals("2026w47", RecordBook.week(java.time.LocalDate.of(2026, 11, 22)));
+        assertEquals("2026w48", RecordBook.week(java.time.LocalDate.of(2026, 11, 23)));
+        assertEquals("2026w53", RecordBook.week(java.time.LocalDate.of(2027, 1, 1)), "the week of its Thursday's year");
+        assertEquals(java.util.Arrays.asList("2026w47", "2026w46", "2026w45", "2026w44", "2026w43", "2026w42"),
+                RecordBook.weeksKept(java.time.LocalDate.of(2026, 11, 20)), "this week and five before: at least a month");
+        assertEquals(RecordBook.WEEKS_KEPT + 1, RecordBook.weeksKept(java.time.LocalDate.of(2027, 1, 4)).size());
+        assertEquals("2026w49", RecordBook.weeksKept(java.time.LocalDate.of(2027, 1, 4)).get(5), "over the turn of the year");
+    }
+
+    @Test
+    void aBoardOfAWeekRanksAsItsBoard() {
+        RecordBook book = new RecordBook();
+        book.define("bridge-chrono.ninja", true);
+        String week = RecordBook.weekly("bridge-chrono.ninja", "2026w47");
+        book.submit(week, ONE, "One", 9000);
+        assertTrue(book.submit(week, TWO, "Two", 8000).boardBest, "a time: the shortest is the best of the week too");
+        assertEquals("Two", book.top(week).name);
+        assertFalse(book.submit(week, ONE, "One", 9500).personalBest);
+    }
+
+    @Test
+    void onlyTheWeeksNoLongerKeptAreDropped() {
+        RecordBook book = new RecordBook();
+        book.load("clutch.island", ONE, "One", 30);
+        book.load("weekly.2026w47.clutch.island", ONE, "One", 12);
+        book.load("weekly.2026w42.clutch.island", ONE, "One", 20);
+        book.load("weekly.2026w41.clutch.island", TWO, "Two", 25);
+        book.load("weekly.2026w41.block-in.wood", TWO, "Two", 9000);
+        book.load("clutch.island-blocks.2026w40", ONE, "One", 52);
+        assertEquals(2, book.dropWeeksBut(RecordBook.weeksKept(java.time.LocalDate.of(2026, 11, 20))));
+        assertNull(book.best("weekly.2026w41.clutch.island", TWO), "six weeks ago: gone");
+        assertNull(book.best("weekly.2026w41.block-in.wood", TWO));
+        assertEquals(20L, book.best("weekly.2026w42.clutch.island", ONE), "five weeks ago: kept");
+        assertEquals(12L, book.best("weekly.2026w47.clutch.island", ONE));
+        assertEquals(30L, book.best("clutch.island", ONE), "a lifetime record is never dropped");
+        assertEquals(52L, book.best("clutch.island-blocks.2026w40", ONE), "the biggest clutches keep their own weeks");
+
+        book.load("weekly.2026w47.block-in.wood", TWO, "Two", 9000);
+        book.load("block-in.wood", TWO, "Two", 9000);
+        assertEquals(2, book.dropWeeksOf("clutch."), "the weeks of the boards of a training");
+        assertNull(book.best("weekly.2026w47.clutch.island", ONE));
+        assertEquals(9000L, book.best("weekly.2026w47.block-in.wood", TWO));
+        assertEquals(30L, book.best("clutch.island", ONE), "not its lifetime board");
+    }
 }

@@ -1,7 +1,10 @@
 package gg.rago.practice;
 
+import java.time.LocalDate;
+import java.time.temporal.WeekFields;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.LinkedHashMap;
@@ -12,9 +15,19 @@ import java.util.UUID;
 /**
  * The personal bests of the trainings, board by board ("clutch.single", "bridge.ninja"...): the
  * best score of each player and the best of all, a time (lower is better) or a count (higher is
- * better). Pure Java, main thread.
+ * better). The boards of records are lifetime ones, never emptied; each has its boards of the weeks
+ * ({@link #weekly}), the bests of a week from Monday, kept {@value #WEEKS_KEPT} weeks after it.
+ * Pure Java, main thread.
  */
 final class RecordBook {
+
+    /** The boards of the weeks: "weekly.2026w47.clutch.island", the bests of that week on "clutch.island". */
+    static final String WEEKLY = "weekly.";
+    /**
+     * The weeks kept after the one going on: five, so that the records of a week stay to be seen
+     * at least a month after it, 35 days for its last day.
+     */
+    static final int WEEKS_KEPT = 5;
 
     /** A player's best on a board. */
     static final class Entry {
@@ -53,9 +66,44 @@ final class RecordBook {
         lowerIsBetter.put(board, lower);
     }
 
+    /** True for a board of times; a board of a week ranks as its board. */
     private boolean lower(String board) {
         Boolean lower = lowerIsBetter.get(board);
+        if (lower == null && weeklyBase(board) != null) {
+            lower = lowerIsBetter.get(weeklyBase(board));
+        }
         return lower != null && lower;
+    }
+
+    /** The board of this week ("2026w47") of this board of records: "weekly.2026w47.clutch.island". */
+    static String weekly(String board, String week) {
+        return WEEKLY + week + "." + board;
+    }
+
+    /** The board of records of a board of a week ("clutch.island"), or null when it is not one. */
+    static String weeklyBase(String board) {
+        int dot = board.startsWith(WEEKLY) ? board.indexOf('.', WEEKLY.length()) : -1;
+        return dot < 0 || dot == board.length() - 1 ? null : board.substring(dot + 1);
+    }
+
+    /** The week of a board of a week ("2026w47"), or null when it is not one. */
+    static String weekOf(String board) {
+        int dot = board.startsWith(WEEKLY) ? board.indexOf('.', WEEKLY.length()) : -1;
+        return dot <= WEEKLY.length() ? null : board.substring(WEEKLY.length(), dot);
+    }
+
+    /** The week of this day, from Monday: "2026w47" (as the weeks of the biggest clutches). */
+    static String week(LocalDate day) {
+        return day.get(WeekFields.ISO.weekBasedYear()) + "w" + day.get(WeekFields.ISO.weekOfWeekBasedYear());
+    }
+
+    /** The weeks whose boards are kept on this day: this one first, then the {@value #WEEKS_KEPT} before. */
+    static List<String> weeksKept(LocalDate today) {
+        List<String> weeks = new ArrayList<>();
+        for (int back = 0; back <= WEEKS_KEPT; back++) {
+            weeks.add(week(today.minusWeeks(back)));
+        }
+        return weeks;
     }
 
     private boolean better(String board, long value, long than) {
@@ -122,6 +170,41 @@ final class RecordBook {
         List<String> gone = new ArrayList<>();
         for (String board : boards.keySet()) {
             if (board.startsWith(prefix) && !kept.contains(board)) {
+                gone.add(board);
+            }
+        }
+        for (String board : gone) {
+            boards.remove(board);
+            lowerIsBetter.remove(board);
+        }
+        return gone.size();
+    }
+
+    /**
+     * Every board of a week but those of these weeks is gone: only boards of the weeks, never one
+     * of records. Returns how many.
+     */
+    int dropWeeksBut(Collection<String> weeks) {
+        List<String> gone = new ArrayList<>();
+        for (String board : boards.keySet()) {
+            String week = weekOf(board);
+            if (week != null && !weeks.contains(week)) {
+                gone.add(board);
+            }
+        }
+        for (String board : gone) {
+            boards.remove(board);
+            lowerIsBetter.remove(board);
+        }
+        return gone.size();
+    }
+
+    /** The boards of the weeks of every board whose id starts with this are gone. Returns how many. */
+    int dropWeeksOf(String prefix) {
+        List<String> gone = new ArrayList<>();
+        for (String board : boards.keySet()) {
+            String base = weeklyBase(board);
+            if (base != null && base.startsWith(prefix)) {
                 gone.add(board);
             }
         }

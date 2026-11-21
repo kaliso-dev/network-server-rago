@@ -2,7 +2,9 @@ package gg.rago.practice;
 
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 import org.bukkit.Material;
 
 /**
@@ -64,6 +66,8 @@ final class RecordCatalog {
 
     /** Every training, the block clutch first. */
     static final List<Entry> ALL;
+    /** The id of every board of records. */
+    private static final Set<String> IDS;
 
     static {
         List<Entry> all = new ArrayList<>();
@@ -100,6 +104,16 @@ final class RecordCatalog {
         }
         all.add(new Entry("bridge-chrono", bridge, Material.SANDSTONE, courses));
         ALL = Collections.unmodifiableList(all);
+        Set<String> ids = new HashSet<>();
+        for (Board board : boards(ALL)) {
+            ids.add(board.id);
+        }
+        IDS = Collections.unmodifiableSet(ids);
+    }
+
+    /** True for a board of records ("clutch.island"), not one of the weeks or of the biggest clutches. */
+    static boolean isRecord(String board) {
+        return IDS.contains(board);
     }
 
     private RecordCatalog() {
