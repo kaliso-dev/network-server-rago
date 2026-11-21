@@ -460,6 +460,10 @@ final class PracticeGames implements Listener {
         Player player = event.getPlayer();
         PracticeGame game = byPlayer.get(player.getUniqueId());
         if (game == null) {
+            // the arenas are only the games': a block of anyone else would stay in a zone
+            if (event.getBlockPlaced().getWorld().equals(world)) {
+                event.setCancelled(true);
+            }
             return;
         }
         if (game.phase != PracticeGame.Phase.PLAYING || spectating(player)
@@ -511,6 +515,9 @@ final class PracticeGames implements Listener {
         Player player = event.getPlayer();
         PracticeGame game = byPlayer.get(player.getUniqueId());
         if (game == null) {
+            if (event.getBlock().getWorld().equals(world)) {
+                event.setCancelled(true);
+            }
             return;
         }
         if (game.phase != PracticeGame.Phase.PLAYING || spectating(player) || !game.canBreak(player, event.getBlock())) {
@@ -577,7 +584,7 @@ final class PracticeGames implements Listener {
 
     @EventHandler(ignoreCancelled = true)
     public void onBucket(PlayerBucketEmptyEvent event) {
-        if (byPlayer.containsKey(event.getPlayer().getUniqueId())) {
+        if (byPlayer.containsKey(event.getPlayer().getUniqueId()) || event.getBlockClicked().getWorld().equals(world)) {
             event.setCancelled(true);
         }
     }

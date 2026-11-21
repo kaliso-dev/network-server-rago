@@ -30,8 +30,9 @@ import org.bukkit.event.weather.WeatherChangeEvent;
 /**
  * What keeps a build world a building site: the game mode of the world for whoever enters, only
  * builders may change a protected world, and nature (rain, fire, leaves, melting ice, explosions,
- * mobs) leaves builds alone. Worlds that are not build worlds, such as the KB test world, are left
- * as Minecraft makes them, in survival mode.
+ * mobs) leaves builds alone. Worlds that are not build worlds (the lobby, the arenas, the games)
+ * keep the game mode their own plugin gives: only a builder leaving a build world in creative goes
+ * back to survival.
  */
 final class BuildListener implements Listener {
 
@@ -47,20 +48,39 @@ final class BuildListener implements Listener {
 
     @EventHandler
     public void onJoin(PlayerJoinEvent event) {
-        applyMode(event.getPlayer());
+        applyMode(event.getPlayer(), null);
     }
 
     @EventHandler
     public void onChangedWorld(PlayerChangedWorldEvent event) {
-        applyMode(event.getPlayer());
+        applyMode(event.getPlayer(), event.getFrom());
     }
 
-    private void applyMode(Player player) {
+    private void applyMode(Player player, World from) {
         WorldSettings world = worlds.settingsOf(player.getWorld());
-        GameMode mode = world != null && world.mode() == WorldSettings.Mode.CREATIF ? GameMode.CREATIVE : GameMode.SURVIVAL;
-        if (player.getGameMode() != mode) {
+        boolean fromBuild = from != null && worlds.settingsOf(from) != null;
+        GameMode mode = modeOnEntering(world == null ? null : world.mode(), fromBuild, player.getGameMode());
+        if (mode != null && player.getGameMode() != mode) {
             player.setGameMode(mode);
         }
+    }
+
+    /**
+     * The game mode to give a player who enters a world, or null to leave theirs as it is. A build
+     * world has its own (creative or survival). Any other world (the lobby, the arenas, a Bed Wars
+     * game, a spectator watching a game) is left to the plugin that sent the player there: only a
+     * builder who leaves a build world in creative mode goes back to survival. (Forcing survival in
+     * every world took the spectators of a game out of the spectator mode as soon as they were
+     * teleported into its world: they could then be hit and die.)
+     *
+     * @param buildMode the mode of the build world entered, null when it is not a build world
+     * @param fromBuildWorld true when the player comes from a build world
+     */
+    static GameMode modeOnEntering(WorldSettings.Mode buildMode, boolean fromBuildWorld, GameMode current) {
+        if (buildMode != null) {
+            return buildMode == WorldSettings.Mode.CREATIF ? GameMode.CREATIVE : GameMode.SURVIVAL;
+        }
+        return fromBuildWorld && current == GameMode.CREATIVE ? GameMode.SURVIVAL : null;
     }
 
     // --- Only builders change a protected world ---------------------------------------------------

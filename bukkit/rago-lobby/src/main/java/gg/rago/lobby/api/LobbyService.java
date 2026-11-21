@@ -45,6 +45,14 @@ public interface LobbyService {
     boolean isInGame(Player player);
 
     /**
+     * True if the players of a game are told that this player starts to watch it (/spectate):
+     * everyone but a vanished member of the staff, who checks a game without being seen.
+     */
+    default boolean announcesSpectator(Player watcher) {
+        return true;
+    }
+
+    /**
      * Puts the player alone in the queue of this mode, as the selector does but without a word: a
      * game plugin's own way into a mode (an event hosted with /host, in a mode hidden from the
      * selector). The match starts at the next tick of the queues, within a second. False when the

@@ -833,6 +833,11 @@ abstract class PracticeGame implements Spectators.Watched {
         return new ArrayList<>(names.keySet());
     }
 
+    @Override
+    public List<Player> watchedPlayers() {
+        return online();
+    }
+
     /** The players still in this game, online. */
     List<Player> online() {
         List<Player> online = new ArrayList<>();

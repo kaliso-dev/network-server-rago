@@ -159,10 +159,12 @@ dans les files d'attente des modes de jeu.
   partie de Bed Wars. Réglages dans `replays:` : `jours` (3), `taille-max-mo` (2000 ; au-delà, les
   plus vieux partent d'abord), `spectateurs-max` (6 replays regardés en même temps), et
   `actif: false` pour ne rien enregistrer.
-- **Regarder une partie en direct.** `/spectate <joueur>` (ou `/spec`) depuis le lobby : la partie
-  d'un ami, et n'importe quelle partie pour le staff (un soupçon de triche) et pour un rang qui a
-  `rago.perk.spectate` (MEDIA, mais pas la partie d'un joueur sous un nick, qui reste caché sauf
-  pour le staff et ses amis). Le spectateur arrive là où est le joueur, en mode spectateur : les
+- **Regarder une partie en direct.** `/spectate <joueur>` (ou `/spec`) depuis le lobby : n'importe
+  quelle partie, pour tout le monde (sauf la partie d'un joueur sous un nick, qui reste caché sauf
+  pour le staff et ses amis). Les joueurs de la partie lisent « <nom> is now spectating your
+  game. » (pas pour un membre du staff en vanish). Rien ne sort le spectateur du mode spectateur
+  tant qu'il regarde (ni un autre plugin, ni une commande) : il ne peut ni frapper, ni être frappé,
+  ni mourir, et revient au lobby par `/spawn` ou la fin de la partie. Le spectateur arrive là où est le joueur, en mode spectateur : les
   joueurs ne le voient pas (même pas son corps, seulement son nom grisé dans le Tab), il vole à
   travers tout et ne touche à rien. Un clic gauche sur un joueur montre la partie par ses yeux, et
   les touches de la barre ne l'emmènent que vers les joueurs de la partie. Il lit les messages de
@@ -262,8 +264,8 @@ dans les files d'attente des modes de jeu.
   trois gadgets à lui (bat blaster, mouton explosif, boule disco : `rago.perk.gadgets`), les effets
   de kill et de victoire les plus rares (squid rocket, météore, dieu du tonnerre, pluie de météores)
   un booster d'XP gratuit par jour (`rago.perk.booster`) et les events pour tout le serveur avec
-  `/host` (`rago.perk.host`, voir RagoPractice). Le staff et MEDIA en héritent. MEDIA a aussi
-  `/spectate` pour toutes les parties (`rago.perk.spectate`).
+  `/host` (`rago.perk.host`, voir RagoPractice). Le staff et MEDIA en héritent. (`/spectate` est
+  maintenant ouvert à tous ; `rago.perk.spectate` ne change plus rien.)
 - **Le + de [PREMIUM+].** Le `{+}` d'un préfixe (`prefixe: "&d[PREMIUM{+}] "`) est un + que chaque
   joueur colore dans `/style` (« Colour of your + ») : blanc par défaut, six couleurs vives en
   récompense de niveau (`plus-jaune` au niveau 5... `plus-bleu` au 85), et le noir, le plus rare, à
@@ -428,7 +430,7 @@ commentaires de `config.yml`. Les mots français de la première version (`quitt
 | `/spawn` (ou `/hub`) | retour au spawn ; pendant une partie, c'est un abandon | tout le monde |
 | `/playagain` (ou `/again`) | la partie suivante du même mode : quitte la partie (comme `/spawn`) et remet dans sa file tout de suite ; au lobby, comme le papier Play again | tout le monde |
 | `/replay`, `/replay <code>`, `/replay leave` (ou `/replays`) | le menu de ses dernières parties, une partie par son code, quitter le replay | tout le monde |
-| `/spectate <joueur>` (ou `/spec`) | regarder la partie d'un ami, invisible (`/spawn` pour revenir) | tout le monde ; toutes les parties : `rago.perk.spectate` (MEDIA, le staff) |
+| `/spectate <joueur>` (ou `/spec`) | regarder une partie, invisible (`/spawn` pour revenir) | tout le monde (la partie d'un joueur sous un nick : le staff et ses amis) |
 | `/queue <mode> [map]`, `/queue leave [mode]` (ou `/file`, `/q`) | entrer dans une file (sur une map, ou `random`), aussi depuis un entraînement ; sortir de toutes, ou d'une | tout le monde |
 | `/duel <joueur> [mode]` | défier un joueur du lobby dans un mode 1v1 (sans mode : un menu des modes 1v1) | tout le monde |
 | `/duel accept <joueur>`, `/duel deny <joueur>` | répondre à un défi (valable une minute) | tout le monde |

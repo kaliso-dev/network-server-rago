@@ -114,6 +114,18 @@ final class SumoMatch implements Spectators.Watched {
                 && location.getY() <= centre.getY() + WATCH_RANGE;
     }
 
+    @Override
+    public java.util.List<Player> watchedPlayers() {
+        java.util.List<Player> online = new java.util.ArrayList<>();
+        for (UUID id : players) {
+            Player player = Bukkit.getPlayer(id);
+            if (player != null) {
+                online.add(player);
+            }
+        }
+        return online;
+    }
+
     /** Above the side of the platform, looking at its middle. */
     @Override
     public Location watchPoint() {

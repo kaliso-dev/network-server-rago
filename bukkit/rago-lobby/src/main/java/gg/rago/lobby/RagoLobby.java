@@ -1799,6 +1799,11 @@ public final class RagoLobby extends JavaPlugin implements LobbyService {
         return visibility.canSee(viewer, target);
     }
 
+    @Override
+    public boolean announcesSpectator(Player watcher) {
+        return canBeSeen(watcher);
+    }
+
     /** False for a vanished member of the staff. */
     boolean canBeSeen(Player player) {
         return !staff.vanished(player.getUniqueId());

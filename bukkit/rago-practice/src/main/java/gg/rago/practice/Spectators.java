@@ -6,6 +6,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.UUID;
 import org.bukkit.Bukkit;
+import org.bukkit.ChatColor;
 import org.bukkit.GameMode;
 import org.bukkit.Location;
 import org.bukkit.entity.Player;
@@ -17,11 +18,13 @@ import org.bukkit.event.block.BlockPlaceEvent;
 import org.bukkit.event.entity.EntityDamageEvent;
 import org.bukkit.event.entity.FoodLevelChangeEvent;
 import org.bukkit.event.player.PlayerDropItemEvent;
+import org.bukkit.event.player.PlayerGameModeChangeEvent;
 import org.bukkit.event.player.PlayerInteractEntityEvent;
 import org.bukkit.event.player.PlayerInteractEvent;
 import org.bukkit.event.player.PlayerMoveEvent;
 import org.bukkit.event.player.PlayerPickupItemEvent;
 import org.bukkit.event.player.PlayerQuitEvent;
+import org.bukkit.event.player.PlayerRespawnEvent;
 import org.bukkit.event.player.PlayerTeleportEvent;
 
 /**
@@ -41,6 +44,9 @@ final class Spectators implements Listener {
 
         /** Where a watcher who goes too far comes back, looking at the game. */
         Location watchPoint();
+
+        /** The players of the game online, told when someone starts to watch it. */
+        List<Player> watchedPlayers();
     }
 
     /** Who watches which game, for which of its players. */
@@ -69,9 +75,22 @@ final class Spectators implements Listener {
         watcher.updateInventory();
         PracticeGame.heal(watcher);
         watcher.setGameMode(GameMode.SPECTATOR);
+        // counted as a watcher before the teleport: what happens on the way into the arena world
+        // (another plugin's change of game mode) is already refused
+        watchers.put(watcher.getUniqueId(), new Watcher(game, target.getUniqueId()));
         Location at = target.getLocation();
         watcher.teleport(game.holds(at) ? at : game.watchPoint());
-        watchers.put(watcher.getUniqueId(), new Watcher(game, target.getUniqueId()));
+        if (watcher.getGameMode() != GameMode.SPECTATOR) {
+            watcher.setGameMode(GameMode.SPECTATOR);
+        }
+        if (plugin.lobby().announcesSpectator(watcher)) {
+            String line = ChatColor.GRAY + watcher.getDisplayName() + ChatColor.GRAY + " is now spectating your game.";
+            for (Player player : game.watchedPlayers()) {
+                if (!player.equals(watcher)) {
+                    player.sendMessage(line);
+                }
+            }
+        }
     }
 
     boolean isWatching(UUID player) {
@@ -156,12 +175,12 @@ final class Spectators implements Listener {
     }
 
     /**
-     * The watcher of this game, or null. One the lobby took back by other means (or whom a command
-     * took out of the spectator mode) is forgotten: they watch nothing any more.
+     * The watcher of this game, or null. One the lobby took back by other means is forgotten: they
+     * watch nothing any more. (Nothing takes a watcher out of the spectator mode: {@link #onMode}.)
      */
     private Watcher watching(Player player) {
         Watcher watching = watchers.get(player.getUniqueId());
-        if (watching != null && (player.getGameMode() != GameMode.SPECTATOR || !plugin.lobby().isInGame(player))) {
+        if (watching != null && !plugin.lobby().isInGame(player)) {
             watchers.remove(player.getUniqueId());
             return null;
         }
@@ -243,6 +262,29 @@ final class Spectators implements Listener {
     public void onPickup(PlayerPickupItemEvent event) {
         if (watchers.containsKey(event.getPlayer().getUniqueId())) {
             event.setCancelled(true);
+        }
+    }
+
+    /**
+     * A watcher stays in the spectator mode until they leave the game (/spawn, its end): another
+     * plugin (the build tools on a change of world) or a command would otherwise put them in the
+     * arena in survival, where the players could hit and kill them.
+     */
+    @EventHandler(priority = EventPriority.HIGHEST, ignoreCancelled = true)
+    public void onMode(PlayerGameModeChangeEvent event) {
+        if (event.getNewGameMode() != GameMode.SPECTATOR && watchers.containsKey(event.getPlayer().getUniqueId())
+                && plugin.lobby().isInGame(event.getPlayer())) {
+            event.setCancelled(true);
+            event.getPlayer().sendMessage(ChatColor.GRAY + "You are spectating a game: /spawn to leave it.");
+        }
+    }
+
+    /** A watcher killed all the same (a /kill): back at the game's watch point, still watching. */
+    @EventHandler(priority = EventPriority.HIGH)
+    public void onRespawn(PlayerRespawnEvent event) {
+        Watcher watching = watchers.get(event.getPlayer().getUniqueId());
+        if (watching != null) {
+            event.setRespawnLocation(watching.game.watchPoint());
         }
     }
 
