@@ -9,7 +9,9 @@ jouent comme des joueurs :
    instant après l'accueil (quatre façons de jouer, le livre de Getting started), et ils le
    ferment ; mode aventure, la boussole, le livre de l'éditeur de kit et le
    colorant dans la barre d'objets, le scoreboard ; le PNJ Duels se tient sur un bloc de quartz
-   et le PNJ de stats sur un bloc de fer (plan 5.3). Le script donne au sumo un kit d'un bâton (le
+   et le PNJ de stats sur un bloc de fer (plan 5.3) ; qRago (plan 5.6) se tient sur de
+   l'obsidienne sous « [OWNER] qRago », les mains vides, et un clic dessus n'ouvre rien (le script
+   retire les `skin-joueur:` du config.yml : le serveur ne demande rien à Mojang, qRago est en Steve). Le script donne au sumo un kit d'un bâton (le
    config.yml fourni n'en a pas) : RagoUn ouvre l'éditeur avec le livre, choisit le sumo, déplace
    le bâton de la première case à la quatrième, enregistre (Save ramène à la liste des kits), et le retrouve là en rouvrant
    l'éditeur. Le serveur de test n'a pas de clé d'API Hypixel : RagoDeux trouve l'émeraude et le

@@ -80,6 +80,8 @@ const POINTS_TO_WIN = 3
 // bundled config.yml: quartz under the Duels NPC, iron under the stats NPC).
 const DUELS_NPC = { x: 3.5, y: 66, z: 0.5 }
 const STATS_NPC = { x: -3.5, y: 66, z: 0.5 }
+// qRago (point qrago), a person of the thank-you room, on obsidian
+const PERSON_NPC = { x: -3.5, y: 66, z: -3.5 }
 const MAIN_BOARD = { x: 0.5, z: 5.5 }
 // The kit editor: the book in the second hotbar slot, the Save button of its chest of 27 slots,
 // whose window shows the player's hotbar from slot 54 (27 of the chest, 27 of the inventory).
@@ -382,6 +384,32 @@ async function checkDuelsNpc (bot) {
   if (!title.includes('Duels')) throw new Error(`the Duels NPC opened ${title}`)
   bot.closeWindow(window)
   log('the Duels NPC is a Steve holding a sword, out of the tab list, and its click opens Duels')
+  await checkPersonNpc(bot)
+}
+
+/** qRago (plan 5.6): on obsidian, "[OWNER] qRago" above the head, empty hands; a click opens nothing. */
+async function checkPersonNpc (bot) {
+  await waitFor(() => npcAt(bot, PERSON_NPC) != null, 10000, `the NPC qRago at ${JSON.stringify(PERSON_NPC)}`)
+  const npc = npcAt(bot, PERSON_NPC)
+  const V = bot.entity.position.constructor
+  const under = () => bot.blockAt(new V(PERSON_NPC.x, PERSON_NPC.y - 1, PERSON_NPC.z))?.name
+  const line = () => Object.values(bot.entities).find((e) => typeof e.metadata?.[2] === 'string' &&
+    e.metadata[2].includes('qRago') && Math.hypot(e.position.x - PERSON_NPC.x, e.position.z - PERSON_NPC.z) < 1)
+    ?.metadata[2].replace(/§./g, '')
+  await waitFor(() => under() === 'obsidian' && line() === '[OWNER] qRago', 5000,
+    `qRago on obsidian under "[OWNER] qRago" (stands on ${under()}, reads ${JSON.stringify(line())})`)
+  if (npc.heldItem != null) throw new Error(`qRago holds ${npc.heldItem.name}`)
+  let opened = null
+  const onOpen = (window) => { opened = window }
+  bot.on('windowOpen', onOpen)
+  bot.activateEntity(npc)
+  await sleep(1500)
+  bot.removeListener('windowOpen', onOpen)
+  if (opened != null) {
+    bot.closeWindow(opened)
+    throw new Error('a click on qRago opened a menu')
+  }
+  log('qRago stands on obsidian under "[OWNER] qRago", empty-handed, and a click on the NPC opens nothing')
 }
 
 /** The queue line under the Duels NPC ("1 in queue · Click to play"), without colours, or undefined. */

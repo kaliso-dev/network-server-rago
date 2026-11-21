@@ -584,7 +584,8 @@ config.yml fourni les suit :
 - `bloc:` sous un PNJ choisit le bloc sur lequel il se tient (plan 5.3) : posé là où étaient ses
   pieds sur son point, le PNJ un bloc plus haut, comme l'andésite polie d'avant (sans `bloc:`). Un
   nom ou un id, avec la data après deux-points (`QUARTZ_BLOCK`, `"STONE:6"`, `"159:14"`). Si ce
-  bloc est déjà sous le point (posé à la main), le PNJ se tient dessus et rien n'est posé. Le
+  bloc est déjà sous le point, seul (posé à la main ; pas un sol de ce bloc, comme la plateforme
+  de quartz d'un nouveau lobby), le PNJ se tient dessus et rien n'est posé. Le
   config.yml fourni met du quartz sous les PNJ des façons de jouer et Private game, du fer sous
   les PNJ de stats et de l'émeraude sous le Shop.
 - `skin:` sous un PNJ lui donne un skin : `skins/<nom>.png` dans le dossier du plugin (64x64, le
@@ -600,6 +601,19 @@ config.yml fourni les suit :
   (api.mineskin.org), garde la réponse dans `skins.yml` (avec l'empreinte du PNG : un PNG changé
   est signé à nouveau) et replace les PNJ ; en attendant, Steve. Si MineSkin refuse sans clé, le
   log le dit : une clé gratuite (account.mineskin.org/keys) va dans `cle-mineskin:`.
+- `skin-joueur:` sous un PNJ, à la place de `skin:`, lui donne le skin d'un compte Minecraft (son
+  pseudo) : Mojang signe lui-même le skin d'un compte, le serveur le lit chez Mojang (l'UUID du
+  pseudo, puis le serveur de sessions), hors du fil principal, la première fois qu'un PNJ posé le
+  porte depuis le démarrage, et le garde dans `skins-joueurs.yml` : au démarrage suivant le PNJ le
+  porte tout de suite, même si Mojang ne répond pas ; un skin changé depuis replace les PNJ. En
+  attendant la première réponse, Steve ; un pseudo sans compte est dit dans le log.
+- `pnj:` avec `type: personne` place une personne du serveur (la salle des remerciements, plan
+  5.6) : un joueur dans le skin de son compte (`skin-joueur:`), les mains vides, avec au-dessus son
+  nom après le préfixe de son rang (`rang:`, un rang de `rangs:`), comme au-dessus de la tête d'un
+  joueur : « [OWNER] qRago ». Un clic ne fait rien. Un `rang:` absent de `rangs:` est refusé au
+  démarrage. Le config.yml fourni place `qrago` (qRago, Owner, skin du compte qRago) et
+  `kalisodev` (kaliso_dev, Dev, skin du compte kaliso_dev), sur de l'obsidienne, un bloc plus haut
+  que leur point.
 - `pnj:` avec `type: stats` place un PNJ de stats : un joueur (skin `stats`) qui tient un livre, avec au-dessus
   le profil de celui qui le regarde (niveau Network et rang, victoires, défaites, kills, meilleure
   série, victoires du jour, ELO de chaque mode classé). Chaque joueur lit le sien. Un clic ouvre

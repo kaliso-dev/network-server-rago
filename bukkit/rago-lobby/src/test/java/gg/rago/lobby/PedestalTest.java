@@ -40,11 +40,14 @@ class PedestalTest {
     @Test
     void aBlockChosenAndAlreadyUnderThePointIsKept() {
         Pedestal emerald = Pedestal.parse("EMERALD_BLOCK");
-        assertTrue(emerald.builtUnder(Material.EMERALD_BLOCK, (byte) 0), "the emerald the builder put there");
-        assertFalse(emerald.builtUnder(Material.STONE, (byte) 0));
-        assertFalse(Pedestal.parse("STONE:6").builtUnder(Material.STONE, (byte) 0), "another stone");
-        assertFalse(Pedestal.ANDESITE.builtUnder(Material.STONE, (byte) 6),
+        assertTrue(emerald.builtUnder(Material.EMERALD_BLOCK, (byte) 0, 0), "the emerald the builder put there, alone");
+        assertFalse(emerald.builtUnder(Material.STONE, (byte) 0, 0));
+        assertFalse(Pedestal.parse("STONE:6").builtUnder(Material.STONE, (byte) 0, 0), "another stone");
+        assertFalse(Pedestal.ANDESITE.builtUnder(Material.STONE, (byte) 6, 0),
                 "without bloc:, a floor of andesite still gets its pedestal, as before");
+        assertFalse(Pedestal.parse("QUARTZ_BLOCK").builtUnder(Material.QUARTZ_BLOCK, (byte) 0, 4),
+                "a floor of quartz (the platform of a new lobby): the NPC still stands a block higher");
+        assertFalse(emerald.builtUnder(Material.EMERALD_BLOCK, (byte) 0, 1), "an emerald beside it: a floor");
     }
 
     @Test

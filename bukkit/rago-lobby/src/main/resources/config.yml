@@ -255,10 +255,13 @@ groupes:
 #          invis, bridge, arena, blocs, duels, practice, shop, stats, quetes). Without it: Steve.
 #          A 1.8 client shows a skin on an NPC only once Mojang signed it: at the start the server
 #          sends each new PNG once to MineSkin (api.mineskin.org) and keeps the answer in skins.yml.
+#   skin-joueur  in place of skin: the skin of this Minecraft account (its name), read from Mojang
+#          at each start and kept in skins-joueurs.yml (worn at once on the next start).
 #   bloc   the block it stands on, put where the feet were on its point (the NPC one block
 #          higher): a name or an id, with its data after a colon (QUARTZ_BLOCK, "STONE:6",
-#          "159:14"). If that block is already under the point (you put it there), the NPC stands
-#          on it and nothing is put. Without it: polished andesite, as on Hypixel.
+#          "159:14"). If that block is already under the point, on its own (you put it there; not
+#          a floor of it), the NPC stands on it and nothing is put. Without it: polished andesite,
+#          as on Hypixel.
 pnj:
   # The ways to play: each NPC opens its whole category (the menu of the compass), with the slogan
   # of the category under its name (sous-titre: another line), on a block of quartz. Their
@@ -378,6 +381,22 @@ pnj:
     type: selecteur
     skin: stats
     minimum-parties: {jour: 5, semaine: 15}
+  # The people of the server in the thank-you room (type: personne): their name after the prefix
+  # of their rank (rang:, a rank of rangs:), as above a player's head, in the skin of their account;
+  # a click does nothing. On obsidian, one block higher than their point. Their points: /lobby
+  # point qrago, kalisodev.
+  qrago:
+    nom: "qRago"
+    type: personne
+    rang: owner
+    skin-joueur: qRago
+    bloc: OBSIDIAN
+  kalisodev:
+    nom: "kaliso_dev"
+    type: personne
+    rang: dev
+    skin-joueur: kaliso_dev
+    bloc: OBSIDIAN
 
 # The points of the daily reward chest (DAILY REWARD above it, a click gives /daily) and of the
 # quests NPC (/lobby point <name>): daily and quests when left out. The chest stands on its point

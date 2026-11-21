@@ -81,6 +81,7 @@ public final class RagoLobby extends JavaPlugin implements LobbyService {
     private HypixelProfiles hypixel;
     private Skins skins;
     private NpcSkins npcSkins;
+    private AccountSkins accountSkins;
     private Parties parties;
     private ServerSettings server;
     private Profiles profiles;
@@ -156,6 +157,7 @@ public final class RagoLobby extends JavaPlugin implements LobbyService {
         try {
             settings = LobbySettings.load(getConfig());
             server = ServerSettings.load(getConfig());
+            LobbySettings.checkRanks(settings.npcs(), server.ranks());
             endSeconds = Math.max(0, Math.min(10, getConfig().getInt("fin-de-partie-secondes", 3)));
             rankedBans = new RankedBans(getConfig().getInt("file.abandon-classe-minutes", 5));
         } catch (IllegalArgumentException e) {
@@ -291,6 +293,11 @@ public final class RagoLobby extends JavaPlugin implements LobbyService {
         skinIds.add(QuestsNpc.SKIN);
         npcSkins.load(skinIds);
         npcs.setSkins(npcSkins::get);
+        // skin-joueur: the skin of a Minecraft account, read from Mojang (skins-joueurs.yml keeps it)
+        accountSkins = new AccountSkins(this, this::write);
+        accountSkins.load();
+        npcs.setAccountSkins(accountSkins::get);
+        npcs.setRanks(id -> server.ranks().get(id));
         getServer().getPluginManager().registerEvents(npcs, this);
 
         getServer().getPluginManager().registerEvents(new LobbyListener(this, state, visibility), this);
@@ -373,6 +380,8 @@ public final class RagoLobby extends JavaPlugin implements LobbyService {
         questsNpc = new QuestsNpc(stats.book(), server, levelMenu::openQuests);
         questsNpc.setStartSteps(this::gettingStartedSteps);
         questsNpc.setSkins(npcSkins::get);
+        // a skin of an account that changed since the last start: the NPCs are placed again
+        accountSkins.onChange(this::placeDecor);
         int placed = placeDecor();
         List<String> missing = npcs.missingPoints();
         getLogger().info(placed + " NPCs and leaderboards placed" + (missing.isEmpty() ? ""
@@ -436,6 +445,9 @@ public final class RagoLobby extends JavaPlugin implements LobbyService {
         }
         if (npcSkins != null) {
             npcSkins.stop();
+        }
+        if (accountSkins != null) {
+            accountSkins.stop();
         }
         if (writer != null) {
             writer.shutdown();

@@ -58,11 +58,13 @@ final class Pedestal {
     }
 
     /**
-     * True if a block of this type and data already is this pedestal. Only for a block chosen in
-     * config.yml: one the builder put under the point is kept, the NPC stands on it.
+     * True if the block under the point (this type and data, with this many blocks of its kind
+     * beside it, north, south, east and west) already is this pedestal: only for a block chosen in
+     * config.yml, put there on its own by the builder; the NPC stands on it. A floor of that block
+     * (one of its kind beside it, the quartz platform of a new lobby) still gets its pedestal.
      */
-    boolean builtUnder(Material type, byte blockData) {
-        return chosen && type == material && blockData == data;
+    boolean builtUnder(Material type, byte blockData, int besideOfItsKind) {
+        return chosen && type == material && blockData == data && besideOfItsKind == 0;
     }
 
     @Override

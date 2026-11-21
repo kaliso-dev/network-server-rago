@@ -141,6 +141,11 @@ class MineSkinTest {
             if (npc.leaderboard()) {
                 continue;
             }
+            if (npc.account() != null) {
+                // a person of the thank-you room wears the skin of their Minecraft account (skin-joueur:)
+                assertTrue(AccountSkins.validName(npc.account()), npc.point() + ": " + npc.account());
+                continue;
+            }
             assertNotNull(npc.skin(), npc.point() + " has a skin");
             InputStream png = MineSkinTest.class.getResourceAsStream("/skins/" + npc.skin() + ".png");
             assertNotNull(png, "skins/" + npc.skin() + ".png is in the jar");

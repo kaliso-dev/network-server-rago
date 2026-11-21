@@ -6,7 +6,7 @@ import java.util.List;
 /**
  * What stands on a lobby point (config.yml, pnj: and classements:): a mode NPC that opens its
  * modes or a whole category, a stats NPC that shows each player their own stats, the Shop, the
- * leaderboard selector, or a wall of leaderboards. Immutable.
+ * leaderboard selector, a person of the server, or a wall of leaderboards. Immutable.
  */
 final class LobbyNpc {
 
@@ -23,7 +23,12 @@ final class LobbyNpc {
          * The leaderboard selector (plan 3.1): opens the menu of its stats; the stat chosen shows on
          * every wall that follows it (selecteur: in classements:), each on its own period.
          */
-        SELECTOR
+        SELECTOR,
+        /**
+         * A person of the server (the thank-you room, plan 5.6): their name after the prefix of
+         * their rank, as above a player's head; a click does nothing.
+         */
+        PERSON
     }
 
     private final String point;
@@ -42,6 +47,10 @@ final class LobbyNpc {
     /** The games a ratio (FKDR, WLR) of a day, of a week needs on the walls of a selector. */
     private final int minimumDay;
     private final int minimumWeek;
+    /** The Minecraft account whose skin it wears (skin-joueur:), or null: its skin:, or Steve. */
+    private final String account;
+    /** The rank whose prefix comes before the name of a person (rang:), or null. */
+    private final String rank;
 
     private LobbyNpc(String point, String name, Kind kind, List<String> modeIds, String category,
             List<List<BoardStat>> boards, List<String> podium) {
@@ -50,12 +59,14 @@ final class LobbyNpc {
 
     private LobbyNpc(String point, String name, Kind kind, List<String> modeIds, String category,
             List<List<BoardStat>> boards, List<String> podium, String subtitle, String skin, StatsPeriod period) {
-        this(point, name, kind, modeIds, category, boards, podium, subtitle, skin, period, null, 0, 0);
+        this(point, name, kind, modeIds, category, boards, podium, subtitle, skin, period, null, 0, 0, null, null);
     }
 
     private LobbyNpc(String point, String name, Kind kind, List<String> modeIds, String category,
             List<List<BoardStat>> boards, List<String> podium, String subtitle, String skin, StatsPeriod period,
-            String selector, int minimumDay, int minimumWeek) {
+            String selector, int minimumDay, int minimumWeek, String account, String rank) {
+        this.account = account;
+        this.rank = rank;
         this.selector = selector;
         this.minimumDay = minimumDay;
         this.minimumWeek = minimumWeek;
@@ -90,25 +101,38 @@ final class LobbyNpc {
     static LobbyNpc selector(String point, String name, List<BoardStat> stats, int minimumDay, int minimumWeek) {
         return new LobbyNpc(point, name, Kind.SELECTOR, Collections.<String>emptyList(), null,
                 Collections.singletonList(stats), Collections.<String>emptyList(), null, null, null, null, minimumDay,
-                minimumWeek);
+                minimumWeek, null, null);
+    }
+
+    /** A person of the server: their name, after the prefix of this rank (null: none). */
+    static LobbyNpc person(String point, String name, String rank) {
+        return new LobbyNpc(point, name, Kind.PERSON, Collections.<String>emptyList(), null,
+                Collections.<List<BoardStat>>emptyList(), Collections.<String>emptyList(), null, null, null, null, 0, 0,
+                null, rank);
     }
 
     /** The same NPC in the skin of this id ({@link NpcSkins}), or in Steve's for null. */
     LobbyNpc withSkin(String skin) {
         return new LobbyNpc(point, name, kind, modeIds, category, boards, podium, subtitle, skin, period, selector,
-                minimumDay, minimumWeek);
+                minimumDay, minimumWeek, account, rank);
+    }
+
+    /** The same NPC in the skin of this Minecraft account (skin-joueur:, {@link AccountSkins}); null: none. */
+    LobbyNpc withAccount(String player) {
+        return new LobbyNpc(point, name, kind, modeIds, category, boards, podium, subtitle, skin, period, selector,
+                minimumDay, minimumWeek, player, rank);
     }
 
     /** The same NPC with this line under its name (null: none). */
     LobbyNpc withSubtitle(String line) {
         return new LobbyNpc(point, name, kind, modeIds, category, boards, podium, line, skin, period, selector,
-                minimumDay, minimumWeek);
+                minimumDay, minimumWeek, account, rank);
     }
 
     /** The same wall with the period of its boards fixed (the wall of the week), or chosen by each player (null). */
     LobbyNpc withPeriod(StatsPeriod fixed) {
         return new LobbyNpc(point, name, kind, modeIds, category, boards, podium, subtitle, skin, fixed, selector,
-                minimumDay, minimumWeek);
+                minimumDay, minimumWeek, account, rank);
     }
 
     /**
@@ -117,7 +141,7 @@ final class LobbyNpc {
      */
     LobbyNpc following(LobbyNpc chooser) {
         return new LobbyNpc(point, name, kind, modeIds, category, chooser.boards, podium, subtitle, skin, period,
-                chooser.point, chooser.minimumDay, chooser.minimumWeek);
+                chooser.point, chooser.minimumDay, chooser.minimumWeek, account, rank);
     }
 
     /** The point of the selector this wall follows, or null. */
@@ -138,6 +162,16 @@ final class LobbyNpc {
     /** The id of its skin (skins/id.png, signed by {@link NpcSkins}), or null for Steve. */
     String skin() {
         return skin;
+    }
+
+    /** The Minecraft account whose skin it wears (skin-joueur:), or null. */
+    String account() {
+        return account;
+    }
+
+    /** The rank of a person (rang:, an id of rangs:), or null. */
+    String rank() {
+        return rank;
     }
 
     /** The line under the name of the Shop NPC, or of an NPC of modes that has one; else null. */

@@ -58,6 +58,10 @@ final class LobbyNpcs implements Listener {
     private java.util.function.Consumer<Player> store;
     /** The signed skin of a name of skin.yml, or null for Steve. */
     private java.util.function.Function<String, Skin> skins = id -> null;
+    /** The skin of a Minecraft account (skin-joueur:), or null for Steve. */
+    private java.util.function.Function<String, Skin> accountSkins = name -> null;
+    /** The rank of an id of rangs: (rang: of a person), or null. */
+    private java.util.function.Function<String, RankDef> ranks = id -> null;
 
     /** Every stand we spawned, to the point it belongs to. */
     private final Map<UUID, String> stands = new HashMap<>();
@@ -83,6 +87,27 @@ final class LobbyNpcs implements Listener {
 
     void setSkins(java.util.function.Function<String, Skin> skins) {
         this.skins = skins;
+    }
+
+    void setAccountSkins(java.util.function.Function<String, Skin> accountSkins) {
+        this.accountSkins = accountSkins;
+    }
+
+    void setRanks(java.util.function.Function<String, RankDef> ranks) {
+        this.ranks = ranks;
+    }
+
+    /** What the NPC wears: the skin of its account (skin-joueur:), else of its skin:, else Steve (null). */
+    private Skin skinOf(LobbyNpc npc) {
+        return npc.account() != null ? accountSkins.apply(npc.account()) : skins.apply(npc.skin());
+    }
+
+    /**
+     * The name above a person: after the prefix of their rank and in its colour, as above a
+     * player's head ("§4[OWNER] §4qRago"); the name alone without a rank.
+     */
+    static String personName(String name, RankDef rank) {
+        return rank == null ? name : rank.prefix() + rank.nameColour() + name;
     }
 
     /**
@@ -135,16 +160,27 @@ final class LobbyNpcs implements Listener {
                     displays.addPodium(npc, steps);
                 }
             } else if (npc.kind() == LobbyNpc.Kind.STATS) {
-                displays.addStatsNpc(npc, bodyName(index), skins.apply(npc.skin()), base);
+                displays.addStatsNpc(npc, bodyName(index), skinOf(npc), base);
             } else if (npc.kind() == LobbyNpc.Kind.SHOP) {
-                fakes.add(new FakePlayer(base, bodyName(index), skins.apply(npc.skin()), new ItemStack(Material.EMERALD),
+                fakes.add(new FakePlayer(base, bodyName(index), skinOf(npc), new ItemStack(Material.EMERALD),
                         (player, left) -> click(player, npc.point())));
                 Location lowest = base.clone().add(0, ABOVE_HEAD - FakeHologram.NAME_HEIGHT, 0);
                 label(npc, lowest.clone().add(0, LINE, 0), npc.name());
                 label(npc, lowest, npc.subtitle());
+            } else if (npc.kind() == LobbyNpc.Kind.PERSON) {
+                // a person of the server (plan 5.6): nothing in hand, a click does nothing
+                fakes.add(new FakePlayer(base, bodyName(index), skinOf(npc), null, (player, left) -> { }));
+                Location lowest = base.clone().add(0, ABOVE_HEAD - FakeHologram.NAME_HEIGHT, 0);
+                String name = personName(npc.name(), npc.rank() == null ? null : ranks.apply(npc.rank()));
+                if (npc.subtitle() != null) {
+                    label(npc, lowest.clone().add(0, LINE, 0), name);
+                    label(npc, lowest, npc.subtitle());
+                } else {
+                    label(npc, lowest, name);
+                }
             } else if (npc.kind() == LobbyNpc.Kind.SELECTOR) {
                 // the leaderboard selector: a click opens the menu of its stats
-                fakes.add(new FakePlayer(base, bodyName(index), skins.apply(npc.skin()), new ItemStack(Material.SIGN),
+                fakes.add(new FakePlayer(base, bodyName(index), skinOf(npc), new ItemStack(Material.SIGN),
                         (player, left) -> click(player, npc.point())));
                 Location lowest = base.clone().add(0, ABOVE_HEAD - FakeHologram.NAME_HEIGHT, 0);
                 if (npc.subtitle() != null) {
@@ -173,20 +209,35 @@ final class LobbyNpcs implements Listener {
     /**
      * As on Hypixel, a figure stands one block higher than its point, on its block (polished
      * andesite, or its bloc: in config.yml) put where its feet were. The same block each start:
-     * nothing piles up. When the block of its bloc: is already under the point (the builder put it
-     * there), the figure stands on it, on its point, and nothing is put.
+     * nothing piles up. When the block of its bloc: is already under the point, on its own (the
+     * builder put it there, it is not a floor of that block), the figure stands on it, on its
+     * point, and nothing is put.
      */
     @SuppressWarnings("deprecation") // Block#getData, Block#setTypeIdAndData: the 1.8 way to the data of a block
     static Location onPedestal(Location point, Pedestal pedestal) {
         org.bukkit.block.Block feet = point.getBlock();
         org.bukkit.block.Block under = feet.getRelative(org.bukkit.block.BlockFace.DOWN);
-        if (pedestal.builtUnder(under.getType(), under.getData())) {
+        if (pedestal.builtUnder(under.getType(), under.getData(), besideOfItsKind(under))) {
             Location on = point.clone();
             on.setY(Math.floor(point.getY()));
             return on;
         }
         feet.setTypeIdAndData(pedestal.material().getId(), pedestal.data(), false);
         return pedestalTop(point);
+    }
+
+    /** How many of the blocks north, south, east and west of this one are of its type and data. */
+    @SuppressWarnings("deprecation") // Block#getData: the 1.8 way to the data of a block
+    static int besideOfItsKind(org.bukkit.block.Block block) {
+        int count = 0;
+        for (org.bukkit.block.BlockFace face : new org.bukkit.block.BlockFace[] {org.bukkit.block.BlockFace.NORTH,
+                org.bukkit.block.BlockFace.SOUTH, org.bukkit.block.BlockFace.EAST, org.bukkit.block.BlockFace.WEST}) {
+            org.bukkit.block.Block side = block.getRelative(face);
+            if (side.getType() == block.getType() && side.getData() == block.getData()) {
+                count++;
+            }
+        }
+        return count;
     }
 
     /** Where a figure stands on the pedestal put at its point: on top of that block. */
@@ -267,7 +318,7 @@ final class LobbyNpcs implements Listener {
     private void body(final LobbyNpc npc, int index, Location at) {
         ModeCategory category = npc.category() == null ? null : settings.category(npc.category());
         ItemStack icon = new ItemStack(category != null ? category.icon() : settings.display(npc.modeIds().get(0)).icon());
-        fakes.add(new FakePlayer(at, bodyName(index), skins.apply(npc.skin()), icon, (player, left) -> click(player, npc.point())));
+        fakes.add(new FakePlayer(at, bodyName(index), skinOf(npc), icon, (player, left) -> click(player, npc.point())));
     }
 
     private ArmorStand label(LobbyNpc npc, Location at, String text) {

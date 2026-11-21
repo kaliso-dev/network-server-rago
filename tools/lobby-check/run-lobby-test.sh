@@ -99,11 +99,14 @@ settings:
   allow-end: false
 YAML
 # The bundled config.yml of the lobby, with a kit for the sumo (it gives none by default): a stick,
-# which the bots move in the kit editor and find where they put it in the duel.
+# which the bots move in the kit editor and find where they put it in the duel. Without the skins of
+# Minecraft accounts (skin-joueur:): the server asks Mojang for none, and does not place the NPCs
+# again when one arrives (they vanish for a moment) while the bots look at them; qRago wears Steve.
 mkdir -p "$SERVER_DIR/plugins/RagoLobby"
-sed '/^  sumo:$/a\    kit: [STICK]' "$ROOT/bukkit/rago-lobby/src/main/resources/config.yml" \
+sed -e '/^  sumo:$/a\    kit: [STICK]' -e '/^    skin-joueur: /d' "$ROOT/bukkit/rago-lobby/src/main/resources/config.yml" \
   >"$SERVER_DIR/plugins/RagoLobby/config.yml"
 grep -q '^    kit: \[STICK\]$' "$SERVER_DIR/plugins/RagoLobby/config.yml" || fail "could not give the sumo a kit"
+grep -q '^    skin-joueur: ' "$SERVER_DIR/plugins/RagoLobby/config.yml" && fail "could not leave out the skins of the accounts"
 # The bundled config.yml of RagoPractice, with a sumo of three rounds (one by default), so that the
 # bots play its rounds: RagoDeux falls three times and RagoUn wins 3 - 0; and the events of /host
 # waiting 15 seconds (the fewest, 60 by default) before they start.
@@ -135,8 +138,9 @@ sed -e 's/^  fer-secondes-par-noeud: [0-9.]*$/  fer-secondes-par-noeud: 1/' \
   "$ROOT/bukkit/rago-bedwars/src/main/resources/config.yml" >"$SERVER_DIR/plugins/RagoBedwars/config.yml"
 grep -q '^  fer-secondes-par-noeud: 1$' "$SERVER_DIR/plugins/RagoBedwars/config.yml" || fail "could not speed up the iron"
 # Around the spawn of the new lobby world: the NPC of the Duels category (on its point of the
-# bundled config, duels), a stats NPC (profil), a wall of leaderboards (leaderboards), the main
-# leaderboard (top, within click range of the spawn) and the kills leaderboard (joueurs).
+# bundled config, duels), a stats NPC (profil), a person of the thank-you room (qrago), a wall of
+# leaderboards (leaderboards), the main leaderboard (top, within click range of the spawn) and the
+# kills leaderboard (joueurs).
 mkdir -p "$SERVER_DIR/lobby"
 cat >"$SERVER_DIR/lobby/points.yml" <<'YAML'
 duels:
@@ -149,6 +153,12 @@ profil:
   x: -3.5
   y: 65.0
   z: 0.5
+  yaw: 0.0
+  pitch: 0.0
+qrago:
+  x: -3.5
+  y: 65.0
+  z: -3.5
   yaw: 0.0
   pitch: 0.0
 leaderboards:

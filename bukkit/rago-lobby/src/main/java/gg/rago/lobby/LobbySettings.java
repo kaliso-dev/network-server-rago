@@ -295,8 +295,18 @@ final class LobbySettings {
                             .withSubtitle(subtitle.trim().isEmpty() ? null : colour(subtitle)).withSkin(skin(npc, where)));
                     continue;
                 }
+                if ("personne".equals(type)) {
+                    if (npc.contains("modes") || npc.contains("categorie")) {
+                        throw new IllegalArgumentException(where + ": a person has neither modes nor categorie");
+                    }
+                    String rank = npc.getString("rang", "").trim();
+                    npcs.add(LobbyNpc.person(point, colour(npc.getString("nom", point)), rank.isEmpty() ? null : rank)
+                            .withSkin(skin(npc, where)));
+                    continue;
+                }
                 if (!"modes".equals(type)) {
-                    throw new IllegalArgumentException(where + ".type: \"" + type + "\" is not modes, stats, shop or selecteur");
+                    throw new IllegalArgumentException(where + ".type: \"" + type
+                            + "\" is not modes, stats, shop, selecteur or personne");
                 }
                 String category = npc.getString("categorie");
                 List<String> ids = new ArrayList<>(npc.getStringList("modes"));
@@ -333,6 +343,23 @@ final class LobbySettings {
                 }
                 npcs.add(LobbyNpc.modes(point, colour(npc.getString("nom", point)), ids, category)
                         .withSubtitle(subtitle == null || subtitle.trim().isEmpty() ? null : colour(subtitle)).withSkin(skin(npc, where)));
+            }
+            // skin-joueur: the skin of a Minecraft account, in place of skin:
+            for (int i = 0; i < npcs.size(); i++) {
+                LobbyNpc read = npcs.get(i);
+                String where = "pnj." + read.point();
+                String account = section.getConfigurationSection(read.point()).getString("skin-joueur", "").trim();
+                if (account.isEmpty()) {
+                    continue;
+                }
+                if (!AccountSkins.validName(account)) {
+                    throw new IllegalArgumentException(where + ".skin-joueur: \"" + account
+                            + "\" is not a Minecraft name (3 to 16 letters, digits or _)");
+                }
+                if (read.skin() != null) {
+                    throw new IllegalArgumentException(where + ": skin or skin-joueur, not both");
+                }
+                npcs.set(i, read.withAccount(account));
             }
         }
         ConfigurationSection boards = config.getConfigurationSection("classements");
@@ -855,6 +882,15 @@ final class LobbySettings {
     /** The point of the quests NPC (point-pnj-quetes:, quests without it). */
     String questsPoint() {
         return questsPoint;
+    }
+
+    /** Refuses a person (type: personne) whose rang: is not a rank of rangs:. */
+    static void checkRanks(List<LobbyNpc> npcs, Ranks ranks) {
+        for (LobbyNpc npc : npcs) {
+            if (npc.rank() != null && ranks.get(npc.rank()) == null) {
+                throw new IllegalArgumentException("pnj." + npc.point() + ".rang: \"" + npc.rank() + "\" is not a rank of rangs:");
+            }
+        }
     }
 
     /** The bloc: of each NPC of pnj: that has one. */

@@ -175,7 +175,7 @@ informations manquantes.
 | 5.4c | `NewDailyChest` sur diamant | Lobby | P1 | IMPLÉMENTÉ (21/11), CI en cours : le coffre du jour va sur le point choisi par `point-coffre-du-jour:` (`newdailychest` pour ton serveur), sur ton bloc de diamant ; à voir en jeu | `DailyChest`, `LobbySettings`, point `newdailychest` | — |
 | 5.5 | Daily Chest : animation à suspense, Rago Points 100–500, XP 100–2000, cosmétiques, probabilités configurables, jamais de doublon | Lobby | P2 | À FAIRE | `DailyChest`, `LobbyPoints`, `Cosmetic` | probabilités |
 | 5.6A | `RagoClient` et `RagoOptimizer` : nom, skin, diamant, liens au clic, texte « OUR OTHER PRODUCTS », visuels publicitaires existants derrière | Lobby | P2 | BLOQUÉ | `LobbyNpcs`, `Billboards`, `panneaux/` | liens, skins |
-| 5.6B | `qRago` (Owner) et `Kalisodev` (kaliso_dev, Dev) sur obsidienne, surélevés d'un bloc | Lobby | P2 | À FAIRE | `LobbyNpcs`, `NpcSkins` | — |
+| 5.6B | `qRago` (Owner) et `Kalisodev` (kaliso_dev, Dev) sur obsidienne, surélevés d'un bloc | Lobby | P2 | IMPLÉMENTÉ (21/11), CI en cours : PNJ `type: personne` sur tes points `qrago` et `kalisodev`, « [OWNER] qRago » et « [DEV] kaliso_dev » (les préfixes de `rangs:`), skin de leur compte Minecraft lu chez Mojang (`skin-joueur:`), sur obsidienne un bloc plus haut ; à voir en jeu | `LobbyNpc`, `LobbyNpcs`, `AccountSkins`, `LobbySettings`, `config.yml` | — |
 | 5.6C | `jncl` et `nativ` (affiché woryes, skin Woryes), rôle Mod en jaune clair | Lobby | P2 | BLOQUÉ | `LobbyNpcs`, `RankDef` | pseudo Woryes, C7 |
 | 5.7 | Texte de remerciement en anglais, fidèle à ton histoire, avec le Discord, à valider avant intégration | Lobby | P2 | À FAIRE | point `textremerciement`, `FakeHologram` | lien Discord |
 | 5.8 | Revoir les skins des PNJ du lobby | Lobby | P2 | À FAIRE | `NpcSkins`, `skins.yml` | — |
@@ -218,6 +218,52 @@ informations manquantes.
 
 ## 3. Journal des corrections
 
+### 5.6B qRago et Kalisodev — IMPLÉMENTÉ (21/11), CI en cours
+
+**Demande** : « qRago : skin : mon skin Minecraft qRago, nom affiché : qRago, rôle : Owner, bloc :
+obsidienne, position : surélevé d'un bloc » et « Kalisodev : skin : kaliso_dev, nom affiché :
+kaliso_dev, rôle : Dev, bloc : obsidienne, position : surélevé d'un bloc ».
+
+**Analyse** (avant le changement) :
+- Tes points `qrago` (-0.5, 70, -41.6) et `kalisodev` (2.5, 70, -41.5) sont dans points.yml, sur le
+  sol de quartz de la case Owner (y 69). Ton config.yml n'a aucun PNJ sur ces points : rien n'y
+  apparaît aujourd'hui (pas de doublon possible).
+- Les PNJ du lobby ne savaient qu'ouvrir des modes, des stats, le Shop ou le sélecteur, et ne
+  portaient que des skins de PNG signés par MineSkin : ni personne sans clic, ni skin d'un compte.
+- Les rôles existent déjà dans `rangs:` : `owner` « [OWNER] » en rouge foncé, `dev` « [DEV] » en
+  bleu clair, les préfixes du chat, du tab et du dessus de la tête.
+- Le skin d'un compte : le lobby le lit déjà chez Mojang pour les podiums (UUID du pseudo, puis le
+  serveur de sessions, qui le donne signé : un client 1.8 l'affiche sans MineSkin).
+
+**Lectures choisies** :
+- « Rôle » : le préfixe du rang devant le nom, comme au-dessus de la tête d'un joueur :
+  « [OWNER] qRago », « [DEV] kaliso_dev ».
+- « Surélevé d'un bloc sur obsidienne » : le bloc d'obsidienne posé sur le point, le PNJ dessus, un
+  bloc plus haut que le sol (comme les autres PNJ du lobby).
+- Un clic sur eux ne fait rien (le plan n'en demande pas).
+
+**Fait** :
+- `type: personne` dans `pnj:` : un PNJ les mains vides, avec au-dessus son nom après le préfixe de
+  son rang (`rang:`, un rang de `rangs:` ; un rang inconnu est refusé au démarrage). Un clic ne fait
+  rien.
+- `skin-joueur:` (pour tout PNJ, à la place de `skin:`) : le skin d'un compte Minecraft, lu chez
+  Mojang hors du fil principal la première fois qu'un PNJ posé le porte depuis le démarrage, gardé
+  dans `skins-joueurs.yml` (porté tout de suite au démarrage suivant, même si Mojang ne répond
+  pas) ; un skin changé replace les PNJ ; un pseudo sans compte est dit dans le log, le PNJ reste
+  en Steve. Un PNJ en attente porte Steve.
+- Le config.yml fourni place `qrago` (nom qRago, rang owner, skin du compte qRago) et `kalisodev`
+  (nom kaliso_dev, rang dev, skin du compte kaliso_dev), `bloc: OBSIDIAN` tous les deux.
+- Pour ton serveur (pas encore installé) : les mêmes lignes à ajouter dans ton config.yml.
+
+**Tests** (écrits, CI en cours) : `PersonNpcTest` (qRago et kaliso_dev du config.yml fourni : leur
+genre, leur compte, leur nom « §4[OWNER] §4qRago » et « §b[DEV] §bkaliso_dev », l'obsidienne ;
+sans rang, le nom seul ; les refus : rang inconnu, pseudo invalide, `skin:` et `skin-joueur:`
+ensemble, des modes ; `skin-joueur:` sur un autre PNJ ; `skins-joueurs.yml` écrit puis relu). Le
+test du lobby sur un vrai serveur place qRago près du spawn et vérifie qu'il se tient sur de
+l'obsidienne sous « [OWNER] qRago », les mains vides, et qu'un clic n'ouvre rien. Ce test retire
+`skin-joueur:` (le serveur de test ne demande rien à Mojang) : **le skin lu chez Mojang n'est pas
+testé**, il est à voir en jeu, comme l'aspect des deux PNJ.
+
 ### 5.3 et 5.4 Blocs sous les PNJ, NewQuest, NewShop, NewDailyChest — IMPLÉMENTÉ (21/11), CI en cours
 
 **Demande** : « Blocs sous les PNJ principaux : PNJ Jouer = Quartz, PNJ Stats du Joueur = Fer, PNJ
@@ -247,8 +293,9 @@ quotidiennes. Le placer sur un bloc de diamant. »
 **Fait** :
 - **5.3** : `bloc:` sous un PNJ dans config.yml choisit le bloc sur lequel il se tient (un nom ou un
   id, avec la data : `QUARTZ_BLOCK`, `"STONE:6"`, `"159:14"`) ; sans `bloc:`, l'andésite polie
-  d'avant. Si ce bloc est déjà sous le point (posé à la main), le PNJ se tient dessus et rien n'est
-  posé : c'est le cas de ton émeraude sous `newshop`. Le config.yml fourni met du quartz sous les 5
+  d'avant. Si ce bloc est déjà sous le point, seul (posé à la main, sans bloc du même genre à côté :
+  pas un sol), le PNJ se tient dessus et rien n'est posé : c'est le cas de ton émeraude sous
+  `newshop`. Le config.yml fourni met du quartz sous les 5
   PNJ pour jouer, du fer sous les PNJ de stats (`profil`, `profil2`) et de l'émeraude sous le Shop.
   Un bloc qui n'est pas un bloc plein (`DIAMOND`, `TORCH`, `AIR`, data > 15) est refusé au démarrage
   comme les autres erreurs de config.yml (RagoLobby se désactive), avec un message qui nomme
@@ -263,11 +310,18 @@ quotidiennes. Le placer sur un bloc de diamant. »
   l'ancien Shop en (3, 65, 11). Le plugin ne les retire pas (il ne casse pas de blocs qu'il ne
   pose plus). Les points `shop` et `daily` restent dans points.yml, sans effet.
 
-**Tests** (écrits, CI en cours) : `PedestalTest` (un bloc par son nom ou son id avec sa data ; les
-refus ; un bloc choisi déjà sous le point est gardé ; les blocs du config.yml fourni ; les points du
-coffre et du PNJ des quêtes, et les erreurs nommées). Le test du lobby sur un vrai serveur
+**Tests** : `PedestalTest` (un bloc par son nom ou son id avec sa data ; les refus ; un bloc choisi
+déjà sous le point, seul, est gardé, un sol de ce bloc non ; les blocs du config.yml fourni ; les
+points du coffre et du PNJ des quêtes, et les erreurs nommées). Le test du lobby sur un vrai serveur
 PandaSpigot vérifie en plus, à l'étape 1, que le PNJ Duels se tient sur du quartz et le PNJ de stats
-sur du fer. Pas encore vu avec un vrai client, ni installé sur ton serveur.
+sur du fer.
+- CI run 344 (commit c3e8846) : compilation et tests unitaires passés ; le test du lobby a échoué
+  (Java 8 et 21) : le PNJ Duels était à y 65 au lieu de 66. Cause : le monde de test est neuf, sa
+  plateforme est en quartz, et la règle « bloc déjà sous le point » le prenait pour un socle posé à
+  la main ; un sol de quartz sous les PNJ pour jouer aurait fait pareil dans un vrai lobby.
+  Corrigé : le bloc n'est gardé que s'il est seul (aucun bloc du même genre au nord, au sud, à l'est
+  ou à l'ouest), comme ton émeraude sous `newshop` ; nouvelle CI en cours.
+- Pas encore vu avec un vrai client, ni installé sur ton serveur.
 
 ### 4.4 Menu Stats — TESTÉ EN CI (21/11)
 
