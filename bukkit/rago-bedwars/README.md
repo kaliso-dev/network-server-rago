@@ -250,8 +250,10 @@ de la couleur de son équipe, à chaque vie ; la pioche et la hache ont Efficien
 rend le kit rangé comme le joueur l'avait au moment de sa mort, quelle qu'elle soit (un coup, le
 vide) : un objet déplacé pendant la partie y reste à la vie suivante (une sorte d'objet épuisée,
 toute la laine posée, garde la case qu'elle avait). La première vie a le rangement du lobby. On revient tant
-que son lit tient, 3 secondes après une mort (au plus : `reapparition-secondes` si c'est moins) ;
-la dernière équipe en vie gagne. Les lits partent à 10 minutes, égalité à 15. Les blocs se posent
+que son lit tient, 3 secondes après une mort (au plus : `reapparition-secondes` si c'est moins),
+protégé 1,5 seconde (la durée de Minemen) : aucun coup d'un ennemi ne lui fait rien, ni dégât ni
+recul, sauf s'il frappe un ennemi le premier, ce qui coupe sa protection tout de suite ; la
+dernière équipe en vie gagne. Les lits partent à 10 minutes, égalité à 15. Les blocs se posent
 partout sous la limite de construction, spawns compris : à chaque respawn, les deux blocs où le
 joueur revient (pieds et tête) partent. Aucun dégât de chute. Chaque mort fait sonner le ding de
 l'XP chez tous les joueurs de la partie.

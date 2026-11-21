@@ -561,8 +561,9 @@ final class BedwarsHost implements MatchHost, Listener {
     // --- Damage, deaths -------------------------------------------------------------------------
 
     /**
-     * In a game world, only players take damage. Between players: no friendly fire, the hit is
-     * remembered for the kill, and a hit that would kill is the death of Bed Wars (respawn or out).
+     * In a game world, only players take damage. Between players: no friendly fire, no hit on a
+     * player still protected after a respawn (Bed Fight), the hit is remembered for the kill, and a
+     * hit that would kill is the death of Bed Wars (respawn or out).
      */
     @EventHandler(priority = EventPriority.HIGH, ignoreCancelled = true)
     public void onDamage(EntityDamageEvent event) {
@@ -628,6 +629,13 @@ final class BedwarsHost implements MatchHost, Listener {
                 Gamer author = game.gamer(attacker.getUniqueId());
                 if (author == null || games.get(attacker.getUniqueId()) != game || author.team == target.team
                         || author.respawning || author.eliminated || !game.pvp()) {
+                    event.setCancelled(true);
+                    return;
+                }
+                // Hitting an enemy ends the author's own protection after a respawn at once; the
+                // victim's, while it lasts, makes the hit do nothing: no damage, no knockback.
+                author.protection.engaged();
+                if (target.protection.on(System.currentTimeMillis())) {
                     event.setCancelled(true);
                     return;
                 }

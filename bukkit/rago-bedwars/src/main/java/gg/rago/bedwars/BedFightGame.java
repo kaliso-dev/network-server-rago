@@ -24,7 +24,8 @@ import org.bukkit.inventory.PlayerInventory;
  * in leather armour of their colour, at each life. A player comes back while their bed stands,
  * {@value #RESPAWN_SECONDS} seconds after a death at most, with the kit where they had put each
  * item of it in this game (their hotbar as they arranged it during the game, not the lobby's one
- * again); the last team standing wins. The beds go at {@value #BEDS_GONE_SECONDS} seconds,
+ * again), and for {@value #PROTECTION_MILLIS} ms no enemy can hurt them, unless they hit one
+ * first; the last team standing wins. The beds go at {@value #BEDS_GONE_SECONDS} seconds,
  * and the game ends in a draw at {@value #GAME_END_SECONDS}. Main thread only.
  */
 final class BedFightGame extends BedwarsGame {
@@ -35,6 +36,8 @@ final class BedFightGame extends BedwarsGame {
     static final int GAME_END_SECONDS = 900;
     /** The longest wait before a new life (reapparition-secondes when shorter). */
     static final int RESPAWN_SECONDS = 3;
+    /** The protection after a respawn, the one of Minemen's Bed Fight (1.5 s, as the owner measured it there). */
+    static final long PROTECTION_MILLIS = 1_500L;
 
     /**
      * For each player, the item each slot of their inventory held at their last death (null:
@@ -50,6 +53,12 @@ final class BedFightGame extends BedwarsGame {
     @Override
     int respawnSeconds() {
         return respawnOf(super.respawnSeconds());
+    }
+
+    /** For {@value #PROTECTION_MILLIS} ms after a respawn, no enemy can hurt the player, unless they hit one first. */
+    @Override
+    long spawnProtectionMillis() {
+        return PROTECTION_MILLIS;
     }
 
     /** Blocks go everywhere, the spawns too: a respawn clears its place ({@link #respawn}). */

@@ -111,6 +111,8 @@ class BedwarsGame {
         /** Their ender chest in this game, made when first opened. */
         Inventory enderChest;
         BukkitTask respawn;
+        /** After a respawn, while no enemy can hurt them: see {@link BedwarsGame#spawnProtectionMillis}. */
+        final SpawnProtection protection = new SpawnProtection();
 
         Gamer(Player player, Team team, List<String> hotbar, List<ShopItem> quickBuy) {
             this.id = player.getUniqueId();
@@ -1504,6 +1506,7 @@ class BedwarsGame {
     void respawn(Player player, Gamer gamer) {
         gamer.respawning = false;
         gamer.respawn = null;
+        gamer.protection.start(System.currentTimeMillis(), spawnProtectionMillis());
         heal(player);
         player.setGameMode(GameMode.SURVIVAL);
         player.teleport(spawnOf(gamer));
@@ -1511,6 +1514,14 @@ class BedwarsGame {
         teamEffects(player, gamer);
         player.sendTitle(ChatColor.GREEN + "" + ChatColor.BOLD + "RESPAWNED!", "");
         player.sendMessage(ChatColor.YELLOW + "You have respawned!");
+    }
+
+    /**
+     * How long no enemy can hurt a player who has just respawned (0: no protection); a hit of their
+     * own on an enemy ends it at once ({@link SpawnProtection}, {@link BedwarsHost#onDamage}).
+     */
+    long spawnProtectionMillis() {
+        return 0L;
     }
 
     /** The player left the game: out of the server, or /spawn. Their team plays on without them. */

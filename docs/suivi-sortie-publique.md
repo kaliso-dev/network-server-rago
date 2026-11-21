@@ -90,8 +90,9 @@ Avant chaque installation sur ton PC : copie du dossier `plugins/` du serveur.
 - Les spawns Hypixel de référence pour First Rush (1.7) : tu as donné les maps (« Gelato, Nebuc
   etc. ») ; il manque la position de référence de chaque spawn (capture F3 sur Hypixel, ou
   coordonnées).
-- Ce qui ne marche pas sur la forge de Bed Break Simulation sur Invasion (1.6) : la map est
-  donnée, ses 4 points de forge sont justes (voir le journal).
+- ~~Ce qui ne marche pas sur la forge de Bed Break Simulation sur Invasion (1.6)~~ : répondu (« les
+  minerais fer et or spawn au milieu de la base là où le joueur spawn au lieu d'être correctement
+  dans la forge ») ; cause trouvée et `bedwars.yml` corrigé.
 - ~~Les étapes exactes du bug de reset (1.1)~~ : répondu (« Block Placement, Block edit, après
   quelques games, même avec un redémarrage ») ; bug reproduit et corrigé.
 - ~~Pour la visibilité au lobby (1.3)~~ : répondu (« quand le joueur rejoint le serveur, et
@@ -120,7 +121,7 @@ informations manquantes.
 | 1.3 | Joueurs invisibles au spawn (seul le nametag « UNRANKED » visible) | Lobby | P0 | IMPLÉMENTÉ | `LobbyListener` | — | test réel en CI (`visibility-bots.mjs`, 2 bots, 5 arrivées) ; en jeu : rejoindre le serveur pendant qu'un autre attend au spawn | — |
 | 1.4 | Audit complet des statistiques (kills, games played, double comptage, par mode) | Stats | P0 | IMPLÉMENTÉ | `StatsBook`, `StatsService`, `LobbyService`, `RagoLobby`, `BedwarsGame`, `Lineup`, `BedBreakGame`, `InvisGame`, `FfaGame`, `FastShopGame`, `TopBridgeGame`, `Duel`, `BlockFight`, `FireballFight` | — | tests unitaires ; en jeu : voir le journal | — |
 | 1.5 | Kit Bedfight réinitialisé à la mort dans le vide | Kits | P0 | IMPLÉMENTÉ | `BedFightGame`, `BedwarsGame.kill` | — | tests unitaires ; en jeu : ranger sa barre en partie, mourir par un coup puis dans le vide | — |
-| 1.6 | Forges de Bed Break Simulation sur certaines maps | Bed Wars | P0 | EN COURS | `BedBreakGame`, `Generator`, `BedwarsMap`, `bedwars.yml` des maps | — | vérifier chaque map | la map est Invasion ; il manque ce qui ne marche pas sur sa forge |
+| 1.6 | Forges de Bed Break Simulation sur certaines maps | Bed Wars | P0 | CORRIGÉ (fichier de la map) | `bedwars.yml` d'Invasion, `tools/bedwars-maps` | — | en jeu : une manche de Bed Break sur Invasion | — |
 | 1.7 | Spawns First Rush trop en avant | Bed Wars | P0 | BLOQUÉ (cause trouvée) | `bedwars.yml` des maps (Gelato, Nebuc…), `tools/bedwars-maps` | — | en jeu sur chaque map | le point Hypixel sur une île par map (`/bw spawn red`), recopié ensuite sur les 7 autres |
 | 1.8 | Block In réaliste (casser, frapper seulement par le trou, recasser) + reset des records | Practice | P0 | IMPLÉMENTÉ | `BlockInEnemy`, `BlockInTraining`, `Records`, `RagoPractice` | 1.1 | tests unitaires (`BlockInEnemyTest`, `RecordsResetTest`) ; test réel en CI (`blockin-bots.mjs`) ; en jeu sur ta map | — |
 
@@ -129,8 +130,8 @@ informations manquantes.
 | # | Tâche | Cat. | Prio | Statut | Fichiers | Dépend de | Manque |
 | --- | --- | --- | --- | --- | --- | --- | --- |
 | 2.1 | Lobby Fight : 12 end stone, pioche bois, Haste, 5 pommes, blocs qui partent après 10 s (pas ceux du lobby), 3 manches | Modes | P1 | IMPLÉMENTÉ | `LobbyFight`, `LobbyFightGame`, `FfaGame`, `BlockDecay`, config du lobby | 1.1 | tests unitaires (`LobbyFightTest`, `LobbySettingsTest`) ; en jeu sur Archway FFA (voir le journal) |
-| 2.2 | Bedfight : protection au respawn de la durée exacte de Minemen, coupée dès un combat ; kit gardé | Modes | P1 | BLOQUÉ | `BedFightGame`, `BedwarsGame`, `BedwarsHost` | 1.5 | durée Minemen (non publiée) : une partie enregistrée avec kb-recorder |
-| 2.3 | Bed Break Simulation : bridges refaits, pas de blocs en haut de la map, cisailles + hache, défense RBW (end stone + verre), forges | Modes | P1 | FAIT sauf forges (1.6) | `BedBreakGame`, `Bridges`, `Defense`, `game-model/BedDefense` | 1.6 | C3 |
+| 2.2 | Bedfight : protection au respawn de la durée exacte de Minemen, coupée dès un combat ; kit gardé | Modes | P1 | IMPLÉMENTÉ | `BedFightGame`, `BedwarsGame`, `BedwarsHost`, `SpawnProtection` | 1.5 | tests unitaires (`SpawnProtectionTest`) ; en jeu : frapper un joueur qui vient de réapparaître |
+| 2.3 | Bed Break Simulation : bridges refaits, pas de blocs en haut de la map, cisailles + hache, défense RBW (end stone + verre), forges | Modes | P1 | FAIT (forges : 1.6 corrigé) | `BedBreakGame`, `Bridges`, `Defense`, `game-model/BedDefense` | 1.6 | C3 |
 | 2.4 | Clutch Scenario : bridges réalistes jusqu'à la base ennemie ; rôles au hasard (leader aussi Clutcher) | Modes | P1 | IMPLÉMENTÉ | `ClutchScenarioGame`, `Bridges` | — | tests unitaires (`BridgesTest`) ; simulation sur Archway et Sky Rise ; en jeu | — |
 | 2.5 | Au moins 10 spectateurs (Block Clutch et autres practice) | Social | P1 | IMPLÉMENTÉ | `tools/local-server/server.properties` (50 places), `spectate-bots.mjs` | 1.2 | test réel en CI : 10 bots regardent un Block clutch en même temps |
 | 2.6 | Fireballs fidèles à Hypixel (KB, explosion, direction, fireball jump, blocs) | PvP | P1 | EN COURS (mesure prête, à faire sur Hypixel) | `Fireballs`, `FireballBlast`, `FireballAim`, `PracticeGame` | — | mesures Hypixel (kb-recorder 0.2) |
@@ -520,7 +521,23 @@ toujours là 4 secondes plus tard, puis `/spawn` les ramène au lobby. Le test j
 `server.properties` livré (50 places). Sur ton serveur actuel, mets `max-players=50` dans son
 `server.properties` (ou prends le prochain paquet).
 
-### 2.3 Bed Break Simulation — IMPLÉMENTÉ (21/11), sauf les forges (1.6)
+### 2.2 Bedfight : protection au respawn — IMPLÉMENTÉ (21/11)
+
+**Durée** : 1,5 seconde, celle de Minemen, donnée le 21/11 (« 1.5 secondes »).
+
+**Fait** (`SpawnProtection`, `BedFightGame.PROTECTION_MILLIS`, `BedwarsHost.onDamage`) : à chaque
+respawn en Bed Fight (1v1 et 2v2), pendant 1,5 s, un coup d'un ennemi (épée, flèche…) ne fait rien
+au joueur : ni dégât ni recul. Dès que le joueur frappe lui-même un ennemi, sa protection s'arrête
+tout de suite, que son coup touche ou non. La chute dans le vide tue toujours. Pas de protection au
+début de la partie (seulement au respawn, comme demandé) ni dans les autres modes. Rien n'est
+affiché au joueur protégé, rien n'était demandé.
+
+**Tests** : tests unitaires (`SpawnProtectionTest` : 1,5 s puis plus rien, coupée par un coup,
+rendue à la vie suivante, aucune dans les autres modes) ; compilation et tests par la CI. **Pas
+testé en jeu** : frapper un joueur qui vient de réapparaître (aucun recul), puis le laisser frapper
+en premier pendant sa protection (il redevient touchable aussitôt).
+
+### 2.3 Bed Break Simulation — IMPLÉMENTÉ (21/11), forges : voir 1.6 (corrigé)
 
 - **Bridges** : le top bridge (la plateforme de laine de 17 blocs de large, 16 blocs au-dessus
   des lits, tracée de lit à lit, donc en diagonale sur Invasion) est remplacé par le bridge de
@@ -557,24 +574,42 @@ avec l'ancien tracé ; `BedDefenseTest` ; `BedBreakGameTest` : les kits, le dép
 bridge). Simulation avec le vrai code de `Bridges` sur tes mondes Invasion et Archway. **Pas
 encore testé en jeu.**
 
-### 1.6 Forges de Bed Break Simulation — EN COURS
+### 1.6 Forges de Bed Break Simulation — CORRIGÉ (21/11), à vérifier en jeu
 
-Bed Break Simulator joue sur Archway et Invasion. Les points des forges (`generateur`) des deux
-maps sont au bon endroit sur l'île, et la forge des défenseurs est remplie à chaque round
-(`forge.fill()`). Le réglage des forges du serveur est correct.
+**Symptôme** (donné le 21/11) : sur Invasion, le fer et l'or apparaissent au milieu de la base, là
+où le joueur apparaît, au lieu d'être dans la forge.
 
-**Invasion (21/11)**, la map donnée : vérifié dans ses fichiers (`region/`), pas en jeu.
-- Les 4 points de forge (rouge, bleu, vert, jaune) sont au centre de la fosse de la forge : sur la
-  vitre (y 92), avec l'air au-dessus (y 93 à 95), une lanterne marine dessous. Les lingots tombent
-  donc bien sur la vitre.
+**Cause** : les points de forge d'Invasion (`generateur` de son `bedwars.yml`) sont faux. L'outil
+de maps (`tools/bedwars-maps`) cherche la forge d'Hypixel : une fosse de dalles un demi-bloc sous
+le sol. Invasion n'en a pas : c'est la seule des 17 maps de `maps-bedwars` où l'outil s'est rabattu
+sur une fosse d'un bloc (« pit »), les 16 autres ont leur fosse de dalles. La fosse trouvée était
+le sol en contrebas au milieu du dôme, et le point son centre : le disque de verre éclairé par
+dessous (48,5 93 -47,5 pour rouge), à 4 blocs du spawn. Mon analyse du 21/11 matin l'avait prise à
+tort pour la forge. Le code de Bed Break et des générateurs n'y est pour rien.
+
+**La vraie forge** : dans chaque base, trois coins du dôme ont un carré de lanternes marines dans
+le sol. Deux portent les PNJ (shop et améliorations, sous leurs barrières), le troisième, au fond
+de la base dans l'axe lit → spawn → centre, est la forge : 4 lanternes marines (rouge : x 51 à 52,
+z -52 à -51, y 92), de l'air au-dessus. Le même carré est à la même place sur les 4 bases (la map
+est symétrique).
+
+**Corrigé** : dans `C:\Users\rgabe\Rago\mondes\Invasion\bedwars.yml` (ton serveur) et dans
+`maps-bedwars/Invasion`, les 4 forges sont au centre de leur carré de lanternes, au ras du sol :
+rouge 52 93 -51, bleu 52 93 52, vert -51 93 52, jaune -51 93 -51. L'ancien point est gardé en
+commentaire au-dessus de chacune ; l'ancien fichier est dans
+`sortie-publique/forge-invasion/bedwars-avant.yml`, l'image de la base rouge (avant, après) dans
+`sortie-publique/forge-invasion/invasion-forge-rouge.png`. Le serveur lit ce fichier au démarrage :
+la correction vaut pour toutes les parties sur Invasion (Bed Break, Ranked…) au prochain démarrage.
+
+**À tester en jeu** : une manche de Bed Break sur Invasion, le fer et l'or doivent tomber sur le
+carré de lanternes au fond de la base rouge. **Pas testé en jeu.**
+
+Ce qui avait été vérifié le 21/11 au matin, et reste vrai :
 - La map ne garde aucune entité (aucun lingot ni hologramme laissé par la capture).
 - En Bed Break, les deux îles jouées sont rouge (défense) et vert (attaque), à l'opposé ; seule
   la forge rouge tourne, à la vitesse moyenne (celle de la file RBW 2v2 à 4v4), remplie au début
   de chaque manche (48 fer, 16 or).
 - Les journaux de ton serveur ont deux copies d'Invasion (14/11 et 15/11), sans aucune erreur.
-
-Je n'ai pas trouvé ce qui ne marche pas : il me faut ce que tu vois (forge vide, trop lente,
-lingots qui partent ailleurs, une forge d'une autre île qui ne tourne pas…).
 
 ### 2.6 Fireballs — MESURE PRÊTE (21/11), en attente de la séance sur Hypixel
 
