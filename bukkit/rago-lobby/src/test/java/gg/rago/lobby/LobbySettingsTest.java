@@ -522,7 +522,7 @@ class LobbySettingsTest {
         assertEquals("bot", small.entriesIn("trois").get(0).mode.mode().id(), "its own first");
         assertEquals("rover", small.entriesIn("trois").get(1).group.id(), "then the group, as one item");
         assertEquals(Arrays.asList("bot", "sumo", "boxing"), displayIds(small.modesIn("trois")));
-        assertEquals(Arrays.asList("sumo", "boxing"), displayIds(small.modesIn("duels")), "the duels as before");
+        assertEquals(Arrays.asList("sumo", "boxing", "hid"), displayIds(small.modesIn("duels")), "the duels as before");
         assertEquals("sumo", LobbySettings.load(yaml(String.format(config, "Sumo"))).entriesIn("trois").get(1).mode.mode().id(),
                 "a mode alone");
         assertInvalid(String.format(config, "nothing"), "categories.trois.aussi");
