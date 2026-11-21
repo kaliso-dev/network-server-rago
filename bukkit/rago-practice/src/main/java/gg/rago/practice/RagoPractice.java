@@ -96,6 +96,9 @@ public final class RagoPractice extends JavaPlugin {
         getServer().getScheduler().runTaskTimer(this, this::payXp, XP_PAY_TICKS, XP_PAY_TICKS);
         records = new Records(this, new File(getDataFolder(), "records.yml"));
         records.load();
+        // Block in: the enemy breaks the block-in for real now (see BlockInTraining); the times of
+        // before, against the enemy of before, start again from nothing (a copy is kept)
+        records.resetOnce("block-in-2026-11", "block-in.");
         RecordCatalog.define(records.book());
         prefs = new TrainingPrefs(this, new File(getDataFolder(), "reglages.yml"));
         prefs.load();
