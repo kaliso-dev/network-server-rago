@@ -28,8 +28,12 @@ import org.bukkit.event.EventPriority;
 import org.bukkit.event.Listener;
 import org.bukkit.event.block.Action;
 import org.bukkit.event.block.BlockBreakEvent;
+import org.bukkit.event.block.BlockFadeEvent;
+import org.bukkit.event.block.BlockFormEvent;
 import org.bukkit.event.block.BlockFromToEvent;
 import org.bukkit.event.block.BlockPlaceEvent;
+import org.bukkit.event.block.BlockSpreadEvent;
+import org.bukkit.event.block.LeavesDecayEvent;
 import org.bukkit.event.entity.CreatureSpawnEvent;
 import org.bukkit.event.entity.EntityChangeBlockEvent;
 import org.bukkit.event.entity.EntityCombustEvent;
@@ -643,7 +647,16 @@ final class PracticeGames implements Listener {
     public void onInteract(PlayerInteractEvent event) {
         Player player = event.getPlayer();
         PracticeGame game = byPlayer.get(player.getUniqueId());
-        if (game == null || event.getAction() == Action.PHYSICAL) {
+        if (game == null) {
+            return;
+        }
+        Block clicked = event.getClickedBlock();
+        if (clicked != null && clicked.getWorld().equals(world)) {
+            // a trapdoor or a fence gate of the map opened by a click stays open in the zone for the
+            // games after (no event says it changed): as it is now, it comes back at the restore
+            game.arena.clicked(clicked);
+        }
+        if (event.getAction() == Action.PHYSICAL) {
             return;
         }
         if ((event.getAction() == Action.RIGHT_CLICK_AIR || event.getAction() == Action.RIGHT_CLICK_BLOCK)
@@ -760,6 +773,39 @@ final class PracticeGames implements Listener {
     /** ...and no water or lava runs out of them. */
     @EventHandler(ignoreCancelled = true)
     public void onFlow(BlockFromToEvent event) {
+        if (event.getBlock().getWorld().equals(world)) {
+            event.setCancelled(true);
+        }
+    }
+
+    /**
+     * Nothing changes there by itself either, as no event of a player says: the grass of a map
+     * under a block placed for a minute turns to dirt (a patch of dirt where the block was, game
+     * after game), grass spreads, ice melts, snow forms, leaves decay. (A fire still goes out.)
+     */
+    @EventHandler(ignoreCancelled = true)
+    public void onFade(BlockFadeEvent event) {
+        if (event.getBlock().getWorld().equals(world) && event.getBlock().getType() != Material.FIRE) {
+            event.setCancelled(true);
+        }
+    }
+
+    @EventHandler(ignoreCancelled = true)
+    public void onForm(BlockFormEvent event) {
+        if (event.getBlock().getWorld().equals(world)) {
+            event.setCancelled(true);
+        }
+    }
+
+    @EventHandler(ignoreCancelled = true)
+    public void onSpread(BlockSpreadEvent event) {
+        if (event.getBlock().getWorld().equals(world)) {
+            event.setCancelled(true);
+        }
+    }
+
+    @EventHandler(ignoreCancelled = true)
+    public void onDecay(LeavesDecayEvent event) {
         if (event.getBlock().getWorld().equals(world)) {
             event.setCancelled(true);
         }

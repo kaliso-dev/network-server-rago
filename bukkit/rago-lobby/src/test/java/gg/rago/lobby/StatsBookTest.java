@@ -364,7 +364,7 @@ class StatsBookTest {
         assertEquals(PlayerStats.TimeOfDay.DAY, StatsFiles.fromYaml(BOB, StatsFiles.toYaml(book.get(BOB))).timeOfDay(),
                 "the server's own sky by default");
         StatsBook loaded = new StatsBook(0, NetworkLevel.DEFAULT);
-        assertTrue(loaded.load(read));
+        assertFalse(loaded.load(read), "an empty book: no profile made before the files to replace");
         assertEquals(35, loaded.elo(ALICE, "ranked-1v1"));
         // a file of the first season (ELO from 1000) starts the divisions again from 0
         String old = StatsFiles.toYaml(alice).replace("elo-saison: " + StatsFiles.ELO_SEASON, "elo-saison: 1");
