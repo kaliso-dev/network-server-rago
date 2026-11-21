@@ -158,7 +158,7 @@ informations manquantes.
 | --- | --- | --- | --- | --- | --- | --- |
 | 4.1 | Party Replay : les membres de la party rejoignent le replay | Replays | P2 | IMPLÉMENTÉ : `/p warp` du chef dans un replay ; test réel à 2 bots passé en CI (Java 8) ; à voir en jeu | `ReplayService`, `ReplayViewer`, `Parties` | — |
 | 4.1b | Sons dans les replays : étude de faisabilité | Replays | P3 | TESTÉ en CI : faisable ; sons envoyés par le serveur et blocs cassés enregistrés et rejoués ; test unitaire et test réel à 2 bots passés (run 339) ; à écouter en jeu | `ReplayRecorder`, `ReplayData` | — |
-| 4.2 | `/host` : annonce cliquable toutes les 10 s ; inscription gardée sans téléporter ; départ quand assez de joueurs | Events | P1 | TESTÉ en CI (21/11, run 341, Java 8 et 21) : annonce toutes les 10 s, inscription sans téléporter, départ quand assez d'inscrits sont hors partie ; test réel à 3 bots passé ; à voir en jeu | `Events`, `EventGame`, `PracticeHost`, `HostWatcher` | — |
+| 4.2 | `/host` : annonce cliquable toutes les 10 s ; inscription gardée sans téléporter ; départ quand assez de joueurs | Events | P1 | IMPLÉMENTÉ (21/11), CI en cours : ton choix « Les sortir de leur partie » : au lancement, les inscrits encore en partie la quittent comme avec /spawn et vont à l'event (avant : TESTÉ en CI, run 341, départ quand assez d'inscrits étaient hors partie) ; test réel à 3 bots adapté ; à voir en jeu | `Events`, `EventGame`, `PracticeHost`, `HostWatcher` | — |
 | 4.3 | Kit Editor plus clair et trié | Kits | P2 | TESTÉ en CI (21/11, run 342, Java 8 et 21) : kits rangés par catégorie et par nom, « Also for », Save et Cancel ramènent à la liste ; à voir en jeu | `KitEditor`, `KitLayouts` | — |
 | 4.4 | Menu Stats : présentation, catégories, navigation | Stats | P2 | TESTÉ en CI (21/11, run 343, Java 8 et 21) : une page des catégories du sélecteur avec les totaux de chacune, un clic montre ses modes, Go back ramène aux catégories ; à voir en jeu | `StatsMenu` | — |
 | 4.5 | `/discord` et `/store` avec les liens officiels | Cmd | P1 | BLOQUÉ | `config.yml` (`liens`), `ServerSettings` | liens officiels (C6) |
@@ -390,7 +390,42 @@ clique Save, lit « Kit saved for Sumo duel », retrouve la liste « Kit editor 
 lobby, puis retrouve le bâton là où il l'a mis. Pas encore vérifié avec un vrai client (l'aspect
 des lignes et des icônes), ni installé sur ton serveur.
 
-### 4.2 Events /host — TESTÉ EN CI (21/11)
+### 4.2 Events /host — IMPLÉMENTÉ (21/11, ton choix), CI en cours
+
+**Ton choix** (carte de décision, 21/11) : « Quand un événement /host se lance, que faire des
+inscrits encore en partie ? » → **« Les sortir de leur partie »** : « Au lancement, les inscrits
+encore en partie l'abandonnent et sont amenés dans l'événement. » Cela remplace l'option
+recommandée que j'avais codée en attendant (décrite plus bas : départ quand assez d'inscrits sont
+hors partie, les autres prévenus qu'il a commencé sans eux).
+
+**Changé** :
+- **Lancement** : après `attente-secondes`, l'event commence dès qu'il a `joueurs-min` inscrits
+  en ligne, **en partie ou non**. Chaque inscrit encore en partie lit « [Event] The Sumo event
+  starts: you leave your game for it. », puis quitte sa partie **exactement comme avec `/spawn`**
+  (le même chemin du lobby, `goToSpawn`), et tous partent ensemble à l'event par la file de son
+  mode, comme avant.
+- Conséquence voulue par « l'abandonnent » : c'est l'abandon habituel de `/spawn`. Dans un duel
+  ou une partie, l'adversaire gagne comme si le joueur avait tapé `/spawn` ; après une partie
+  **classée**, la file classée lui est fermée `file.abandon-classe-minutes` (5 min sur ton
+  serveur), avec son message. Je n'ai pas ajouté d'exception : dis-le si tu veux que l'event
+  l'épargne.
+- L'état de l'event dans le message public : « 3/40 players (1 in a game), starting » à la fin de
+  l'attente ; sous `joueurs-min` inscrits, « needs N more players to start » comme avant. La ligne
+  « starts when N more are out of a game » disparaît.
+- Les events automatiques (« Rago ») suivent la même règle : à la fin de l'attente, ils partent
+  avec `joueurs-min` inscrits, en partie ou non, et tombent sinon.
+- Code : `LobbyService.leaveGame` (nouveau, le `/spawn` du lobby), `Events` (`online`,
+  `launches`, `launch`, `status`). Docs : `rago-practice/README.md` (Les events), commentaire de
+  `evenements:` du config.yml, `tools/lobby-check/README.md` (étape 11).
+
+**Tests** : `EventsTest` adapté (l'état « starting » avec des inscrits en partie, le lancement
+après l'attente avec des inscrits en partie ou non). Le test réel à 3 bots (étape 11) est adapté :
+RagoDeux, en Block clutch, doit lire « The Sumo event starts: you leave your game for it. »,
+puis les trois « You joined the Sumo event of RagoTrois. » et « The Sumo event starts with 3
+players! » ; au premier combat, RagoTrois puis RagoDeux font `/spawn`, RagoUn doit gagner et les
+trois revenir au lobby. **Pas encore passé** : CI en cours.
+
+#### Avant ton choix — TESTÉ EN CI (21/11, run 341)
 
 **Demande** : « Lorsqu'un événement est créé avec /host, envoyer un message public dans le chat
 toutes les 10 secondes jusqu'au lancement de l'événement », cliquable pour le rejoindre, comme sur

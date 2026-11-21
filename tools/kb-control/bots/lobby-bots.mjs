@@ -962,10 +962,10 @@ function clickCommands (json) {
 /**
  * An event of /host (plan 4.2): announced to the whole server every 10 seconds with a [Click to
  * join] until it starts; joining does not move a player, who keeps playing; at the end of the wait,
- * the players out of a game go to it, and those still in a game are told they missed it.
+ * those still in a game leave it, as with /spawn, and all its players go to it.
  */
 async function playEvent (one, two, three) {
-  // RagoDeux plays the Block clutch training: it stays in it until the end
+  // RagoDeux plays the Block clutch training: it stays in it until the event starts
   let fromTwo = mark(two)
   two.chat('/queue clutch')
   await chatLine(two, /Block clutch - /, 15000, fromTwo)
@@ -1030,32 +1030,36 @@ async function playEvent (one, two, three) {
   stayed(one, oneAt, 'at the second announcement')
   log(`event: the announcement came back ${again.toFixed(1)} s after the first, RagoUn and RagoDeux read they are in`)
 
-  // the end of the wait: RagoUn and RagoTrois, out of a game, go to it; RagoDeux is told
-  fromOne = mark(one)
-  fromThree = mark(three)
-  const titlesFrom = one.titles.length
-  await chatLine(two, /The Sumo event started without you: you were in a game\./, 10000, fromTwo)
-  await chatLine(one, /You joined the Sumo event of RagoTrois\. /, 5000, fromOne)
-  await chatLine(three, /You joined the Sumo event of RagoTrois\. /, 5000, fromThree)
-  await chatLine(one, /The Sumo event starts with 2 players!/, 12000, fromOne)
-  await chatLine(one, /(RagoUn vs RagoTrois|RagoTrois vs RagoUn)/, 5000, fromOne)
-  inTraining('when the event started')
-  log('event: RagoUn and RagoTrois went to it at the end of the wait, RagoDeux was told it started without it')
-
-  await waitFor(() => one.titles.slice(titlesFrom).includes('Fight!'), 10000,
-    `the fight of the event; titles: ${JSON.stringify(one.titles.slice(titlesFrom))}`)
+  // the end of the wait: RagoDeux leaves its Block clutch for it, as with /spawn; the three go to it
   fromOne = mark(one)
   fromTwo = mark(two)
+  fromThree = mark(three)
+  const bots = { RagoUn: one, RagoDeux: two, RagoTrois: three }
+  const titlesFrom = Object.fromEntries(Object.entries(bots).map(([name, bot]) => [name, bot.titles.length]))
+  await chatLine(two, /The Sumo event starts: you leave your game for it\./, 10000, fromTwo)
+  await chatLine(two, /You joined the Sumo event of RagoTrois\. /, 5000, fromTwo)
+  await chatLine(one, /You joined the Sumo event of RagoTrois\. /, 5000, fromOne)
+  await chatLine(three, /You joined the Sumo event of RagoTrois\. /, 5000, fromThree)
+  await chatLine(one, /The Sumo event starts with 3 players!/, 12000, fromOne)
+  const vs = (await chatLine(one, /(RagoUn|RagoDeux|RagoTrois) vs (RagoUn|RagoDeux|RagoTrois)/, 5000, fromOne))
+    .match(/(RagoUn|RagoDeux|RagoTrois) vs (RagoUn|RagoDeux|RagoTrois)/)
+  log(`event: RagoDeux left its Block clutch for it at the end of the wait, the three went to it; first fight ${vs[1]} vs ${vs[2]}`)
+
+  const fighter = bots[vs[1]]
+  await waitFor(() => fighter.titles.slice(titlesFrom[vs[1]]).includes('Fight!'), 10000,
+    `the fight of the event; titles of ${vs[1]}: ${JSON.stringify(fighter.titles.slice(titlesFrom[vs[1]]))}`)
+  fromOne = mark(one)
+  fromTwo = mark(two)
+  fromThree = mark(three)
   three.chat('/spawn')
   await expectInLobby(three, 'after /spawn in the event')
+  two.chat('/spawn')
+  await expectInLobby(two, 'after /spawn in the event')
   await chatLine(one, /RagoUn won the Sumo event of RagoTrois!/, 10000, fromOne)
   await chatLine(two, /RagoUn won the Sumo event of RagoTrois!/, 5000, fromTwo)
+  await chatLine(three, /RagoUn won the Sumo event of RagoTrois!/, 5000, fromThree)
   await expectInLobby(one, 'after winning the event')
-  log('event: RagoTrois left the fight, RagoUn won and the server was told; both are back in the lobby')
-
-  inTraining('after the event')
-  two.chat('/spawn')
-  await expectInLobby(two, 'after leaving the Block clutch')
+  log('event: RagoTrois and RagoDeux left it, RagoUn won and the server was told; the three are back in the lobby')
 }
 
 async function fallOff (bot) {

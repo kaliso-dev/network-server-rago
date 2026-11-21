@@ -421,8 +421,9 @@ jusqu'au lancement : qui lance quoi, ce que c'est, où en est l'event (joueurs i
 sont en partie, quand il commence) et un **[Click to join]** (ou `/join`). S'inscrire ne
 téléporte pas : le joueur continue sa partie ou son entraînement, reste dans son mode Practice et
 garde son inscription (`/event leave` la retire). Après `attente-secondes`, l'event commence dès
-que `joueurs-min` de ses inscrits sont hors partie : ceux-là y vont ensemble, les inscrits encore
-en partie sont prévenus qu'il a commencé sans eux. Il attend ses joueurs 10 secondes au plus sur
+qu'il a `joueurs-min` inscrits, en partie ou non : les inscrits encore en partie la quittent comme
+avec `/spawn` (un abandon s'ils jouent, avec ses suites habituelles : après une partie classée, la
+file classée leur est fermée `file.abandon-classe-minutes` du lobby), puis tous y vont ensemble. Il attend ses joueurs 10 secondes au plus sur
 la plateforme, puis au Sumo et aux Brackets, un 1v1 à la fois pendant
 que les autres regardent, par manches (un joueur sans adversaire passe), 90 secondes au plus par
 combat (celui qui a touché le plus passe). Le gagnant est annoncé à tout le serveur et gagne
@@ -440,7 +441,7 @@ Les events se jouent sur les maps du sumo, dans les modes cachés `event-sumo`, 
 eu lieu depuis `minutes` minutes (20), il annonce le suivant de `types` (sumo, brackets, lms, à
 tour de rôle) de la même façon, toutes les 10 secondes avec son **[Click to join]**. Les joueurs
 s'y inscrivent comme à un event lancé par un joueur, et il commence de la même façon à la fin de
-`attente-secondes` ; sans `joueurs-min` inscrits hors partie à ce moment, il tombe (sans un mot
+`attente-secondes` ; sans `joueurs-min` inscrits à ce moment, il tombe (sans un mot
 si personne ne s'était inscrit). Tant que personne ne s'y est inscrit, un joueur PREMIUM peut
 lancer le sien à sa place. Dans `evenements.automatiques` (`actif: false` les coupe ;
 sans la section, ils tournent avec ces réglages).

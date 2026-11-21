@@ -70,9 +70,11 @@ jouent comme des joueurs :
     `/join`. RagoDeux, en plein Block clutch, s'inscrit et reste dans son entraînement ; RagoUn
     s'inscrit depuis le lobby et ne bouge pas. Le message revient 10 secondes après le premier,
     avec où en est l'event (« 3/40 players (1 in a game), starts in 5s »). À la fin de l'attente
-    (15 secondes : le script réduit `attente-secondes`), RagoUn et RagoTrois partent à l'event, et
-    RagoDeux, toujours en Block clutch, apprend qu'il a commencé sans lui. RagoTrois quitte le
-    combat avec `/spawn` : RagoUn gagne, tout le serveur est prévenu, et chacun revient au lobby.
+    (15 secondes : le script réduit `attente-secondes`), RagoDeux quitte son Block clutch comme
+    avec `/spawn` (il lit « The Sumo event starts: you leave your game for it. ») et les trois
+    partent à l'event (« The Sumo event starts with 3 players! »). Au premier combat, RagoTrois
+    puis RagoDeux quittent l'event avec `/spawn` : RagoUn gagne, tout le serveur est prévenu, et
+    chacun revient au lobby.
 
 Le test échoue si un bot n'obtient pas ce qu'il attend, ou si le journal du serveur contient une
 erreur ou une exception.

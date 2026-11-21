@@ -175,15 +175,15 @@ xp-entrainement:
 # event-sumo, event-brackets and event-lms of the lobby's config.yml. The whole server is told every
 # 10 seconds, with a [Click to join] (/join), until it starts. Joining does not move a player: they
 # keep playing their game until then (/event leave takes them out). After attente-secondes, it
-# starts as soon as joueurs-min of its players are out of a game: those go to it, the others are
-# told they missed it. joueurs-max players at most. A host waits cooldown-minutes before hosting
+# starts as soon as joueurs-min players are in: those still in a game leave it, as with /spawn (a
+# forfeit while they play), and all go to it. joueurs-max players at most. A host waits cooldown-minutes before hosting
 # again (the staff, rago.staff, never waits), and the server pause-secondes between two events.
 # The winner gets xp-gagnant Network XP, every other player xp-participation.
 # automatiques: the server hosts events on its own, under the name "Rago", when nobody does: once
 # the lobby has joueurs-lobby players out of a game (2 to 200) and no event ran for minutes minutes
 # (5 to 1440), it announces the next of types (sumo, brackets, lms, in turn) the same way; players
 # join it as a hosted one, and it starts the same way at the end of attente-secondes, or is dropped
-# without joueurs-min players out of a game then. actif: false turns them off; without the section,
+# without joueurs-min players in then. actif: false turns them off; without the section,
 # they run with these settings.
 evenements:
   attente-secondes: 60

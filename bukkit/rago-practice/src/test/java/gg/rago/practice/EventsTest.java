@@ -151,17 +151,18 @@ class EventsTest {
         assertEquals("1/40 players, starts in 50s", Events.status(1, 40, 0, 50, 2));
         assertEquals("3/40 players (2 in a game), starts in 5s", Events.status(3, 40, 2, 5, 2));
         assertEquals("3/40 players, starting", Events.status(3, 40, 0, 0, 2));
-        assertEquals("3/40 players (2 in a game), starts when 1 more is out of a game", Events.status(3, 40, 2, 0, 2));
-        assertEquals("4/40 players (4 in a game), starts when 3 more are out of a game", Events.status(4, 40, 4, 0, 3));
+        assertEquals("3/40 players (2 in a game), starting", Events.status(3, 40, 2, 0, 2),
+                "those in a game leave it when it starts");
+        assertEquals("4/40 players (4 in a game), starting", Events.status(4, 40, 4, 0, 3));
         assertEquals("1/40 players, needs 1 more player to start", Events.status(1, 40, 0, 0, 2));
         assertEquals("1/40 players (1 in a game), needs 2 more players to start", Events.status(1, 40, 1, 0, 3));
     }
 
     @Test
-    void itStartsAfterTheWaitWithEnoughPlayersOutOfAGame() {
+    void itStartsAfterTheWaitWithEnoughPlayersInGamesOrNot() {
         assertFalse(Events.launches(1, 10, 2), "the wait is not over");
-        assertFalse(Events.launches(0, 1, 2), "one player out of a game, two needed");
-        assertTrue(Events.launches(0, 2, 2));
+        assertFalse(Events.launches(0, 1, 2), "one player in, two needed");
+        assertTrue(Events.launches(0, 2, 2), "two players in, in a game or not: they leave their games");
         assertTrue(Events.launches(0, 5, 2));
     }
 }

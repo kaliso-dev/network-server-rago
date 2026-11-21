@@ -30,8 +30,8 @@ import org.bukkit.inventory.ItemStack;
  * Brackets, Last Man Standing), and the whole server is told every 10 seconds, with a
  * [Click to join], until it starts. /join (or /event join) puts a player in it without moving
  * them: they keep playing their games, and /event leave takes them out. Once the wait is over
- * (attente-secondes), it starts as soon as joueurs-min of its players are out of a game: those
- * go to it, the others are told they missed it. /spawn leaves it, /event cancel calls it off (its
+ * (attente-secondes), it starts as soon as joueurs-min players are in: those still in a game
+ * leave it (a forfeit while they play), and all go to it. /spawn leaves it, /event cancel calls it off (its
  * host or the staff). One event at a time, a pause between two, and a cooldown for each host. The
  * games are {@link EventGame}s, in modes of the lobby hidden from the selector. Main thread only.
  */
@@ -321,20 +321,15 @@ final class Events implements CommandExecutor, Listener {
 
     /**
      * "3/40 players, starts in 45s": the players in (and how many of them play a game), and when
-     * it starts: after the wait, as soon as the fewest players are in and out of a game.
+     * it starts: after the wait, as soon as the fewest players are in (those in a game leave it).
      */
     static String status(int in, int max, int busy, int waitLeft, int min) {
         String players = in + "/" + max + " players" + (busy > 0 ? " (" + busy + " in a game)" : "");
         if (waitLeft > 0) {
             return players + ", starts in " + waitLeft + "s";
         }
-        int free = in - busy;
-        if (free >= min) {
-            return players + ", starting";
-        }
         if (in >= min) {
-            int more = min - free;
-            return players + ", starts when " + more + " more " + (more == 1 ? "is" : "are") + " out of a game";
+            return players + ", starting";
         }
         int more = min - in;
         return players + ", needs " + more + " more " + (more == 1 ? "player" : "players") + " to start";
@@ -404,7 +399,7 @@ final class Events implements CommandExecutor, Listener {
     /**
      * Every second, while an event is announced and not started: its wait runs, its public message
      * comes back every {@link #ANNOUNCE_EVERY} seconds, and once the wait is over it starts as soon
-     * as joueurs-min of its players are out of a game. The server's own event without them at the
+     * as joueurs-min players are in, in a game or not. The server's own event without them at the
      * end of its wait is dropped (without a word if nobody was in); a player's event keeps waiting,
      * unless its host left with nobody in.
      */
@@ -418,7 +413,7 @@ final class Events implements CommandExecutor, Listener {
             h.waitLeft--;
         }
         h.seconds++;
-        List<Player> ready = ready(h);
+        List<Player> ready = online(h);
         if (launches(h.waitLeft, ready.size(), settings.minPlayers)) {
             launch(h, ready);
             return;
@@ -440,35 +435,36 @@ final class Events implements CommandExecutor, Listener {
         }
     }
 
-    /** True when an event starts: its wait is over and enough of its players are out of a game. */
-    static boolean launches(int waitLeft, int ready, int min) {
-        return waitLeft <= 0 && ready >= min;
+    /** True when an event starts: its wait is over and enough players are in (in a game or not). */
+    static boolean launches(int waitLeft, int in, int min) {
+        return waitLeft <= 0 && in >= min;
     }
 
-    /** The players of this event online and out of a game, in the order they joined. */
-    private List<Player> ready(Hosting h) {
-        List<Player> ready = new ArrayList<>();
+    /** The players of this event online, in the order they joined. */
+    private List<Player> online(Hosting h) {
+        List<Player> online = new ArrayList<>();
         for (UUID id : h.registered) {
             Player player = Bukkit.getPlayer(id);
-            if (player != null && !plugin.lobby().isInGame(player)) {
-                ready.add(player);
+            if (player != null) {
+                online.add(player);
             }
         }
-        return ready;
+        return online;
     }
 
     /**
-     * The event starts: its players out of a game go to it through the queue of its mode (the
-     * first one makes the game, the others join it), and those in a game are told they missed it.
+     * The event starts: its players still in a game leave it, as with /spawn (a forfeit while they
+     * play: plan 4.2, as chosen on 21/11), and all go to it through the queue of its mode (the first one
+     * makes the game, the others join it).
      */
     private void launch(Hosting h, List<Player> ready) {
         h.launched = true;
         h.going = ready.size();
-        for (UUID id : h.registered) {
-            Player player = Bukkit.getPlayer(id);
-            if (player != null && !ready.contains(player)) {
+        for (Player player : ready) {
+            if (plugin.lobby().isInGame(player)) {
                 player.sendMessage(ChatColor.GOLD + "[Event] " + ChatColor.GRAY + "The " + h.kind.label
-                        + " event started without you: you were in a game.");
+                        + " event starts: you leave your game for it.");
+                plugin.lobby().leaveGame(player);
             }
         }
         for (Player player : ready) {

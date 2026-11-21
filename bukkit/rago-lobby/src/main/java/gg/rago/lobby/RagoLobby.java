@@ -703,6 +703,11 @@ public final class RagoLobby extends JavaPlugin implements LobbyService {
         }
     }
 
+    @Override
+    public void leaveGame(Player player) {
+        goToSpawn(player);
+    }
+
     /** /spawn: back to the lobby, through the game's host when in a game. */
     void goToSpawn(Player player) {
         if (replays != null && replays.leave(player)) {

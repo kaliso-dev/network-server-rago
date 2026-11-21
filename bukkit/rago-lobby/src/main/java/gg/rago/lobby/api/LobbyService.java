@@ -46,6 +46,15 @@ public interface LobbyService {
     boolean isInGame(Player player);
 
     /**
+     * The player leaves their game as with /spawn: a forfeit while they still play (the game's
+     * host ends their part), then the lobby spawn. Out of a game, the lobby spawn only. The event
+     * of /host takes its players out of their games this way when it starts.
+     */
+    default void leaveGame(Player player) {
+        sendToLobby(player);
+    }
+
+    /**
      * True if the players of a game are told that this player starts to watch it (/spectate):
      * everyone but a vanished member of the staff, who checks a game without being seen.
      */
