@@ -72,7 +72,7 @@ Avant chaque installation sur ton PC : copie du dossier `plugins/` du serveur.
 
 | # | Point | Proposition |
 | --- | --- | --- |
-| C1 | 6.1 demande un nouveau **Fireball Fight**, mais un mode `fireball` existe déjà (`FireballFight.java`, map « Fireball Fight »). | Améliorer le mode existant (arène plus grande que Sumo, KB fireball plus fort, souffles de vent) plutôt qu'en créer un second. À confirmer. |
+| C1 | 6.1 demande un nouveau **Fireball Fight**, mais un mode `fireball` existe déjà (`FireballFight.java`, map « Fireball Fight »). | Analyse du 21/11 : le mode existant se joue avec des lits (catégorie Duels), le mode demandé est un mode de knockback sur une arène ronde type Sumo. Ce sont deux jeux différents : proposé de créer le nouveau en FUN PRACTICE et de garder l'actuel sous un autre nom (noms à choisir, question 2 du document Étape 7). |
 | C2 | 2.1 Lobby Fight : les PR #43/#44 ont réduit le kit FFA à « une épée, 3 fireballs, 5 pommes ». Le plan ajoute 12 end stone, une pioche en bois et Haste, et « 3 manches ». | Confirmé : le même kit pour le 1v1 et le FFA ; les manches ne concernent que `lobby-fight-1v1`, gagné par le premier à 3 manches (« Bo3, le premier à 3 win »). |
 | C3 | 2.3 Bed Break : « réalistes, style Ranked Bedwars » et « sur les côtés, pas en diagonale comme en Ranked Bedwars ». | Confirmé : « droit, pas en diagonale ». Fait : le bridge de l'attaquant, un bloc de large, droit, un seul virage au plus. |
 | C4 | 3.5 Network Level par défaut au-dessus des joueurs : aujourd'hui la ligne par défaut est l'ELO (« Unranked »). 3.6 garde l'ELO en Ranked. | Défaut Network Level partout, ELO en partie classée. |
@@ -182,20 +182,23 @@ informations manquantes.
 
 ### Étape 7 : nouveaux modes (Phase 6) — proposition avant tout code
 
+Les propositions sont dans le document « Étape 7 : propositions des nouveaux modes » (21/11), avec
+les 13 questions à trancher. Aucun de ces modes n'est codé.
+
 | # | Tâche | Prio | Statut | Manque |
 | --- | --- | --- | --- | --- |
-| 6.1 | Catégorie FUN PRACTICE, PNJ `FunMod2` sur quartz | P2 | À FAIRE | — |
-| 6.1a | Snowball Spleef (style Minemen) | P2 | À FAIRE | validation du concept |
-| 6.1b | Fireball Fight (voir C1) | P2 | À FAIRE | C1 |
-| 6.1c | Fast Bedwars (Bedwars 2018 simplifié) | P2 | À FAIRE | concept |
-| 6.1d | Autres modes FUN connus : propositions | P3 | À FAIRE | — |
-| 6.2 | Capture the Flag, version Bedwars et seconde version : études | P3 | À FAIRE | concepts |
-| 6.3 | Find Your Sensitivity : faisabilité et protocole | P3 | À FAIRE | — |
-| 6.4 | Block Aim Practice (patterns de la communauté) | P3 | À FAIRE | — |
-| 6.5.1 | Red Rover (Sumo, Block Placement, Block Edit, Top Bridge…) | P2 | À FAIRE | — |
-| 6.5.2 | Modes 2v1 asymétriques (Clutch Scenario, stuff amélioré) | P3 | À FAIRE | — |
-| 6.5.3 | Bot IA : étude technique | P3 | À FAIRE | — |
-| 6.6 | Catégorie 3 joueurs (Red Rover, Clutch Scenario, Bed Break Scenario, Invis Practice) | P2 | À FAIRE | PNJ ou boussole à choisir |
+| 6.1 | Catégorie FUN PRACTICE, PNJ `FunMod2` sur quartz | P2 | BLOQUÉ (proposition écrite le 21/11, attend ta validation) | le PNJ arrive avec le premier mode FUN terminé, sur le point `funmod2` |
+| 6.1a | Snowball Spleef (style Minemen) | P2 | BLOQUÉ (proposition écrite le 21/11, attend ta validation) | FFA ou non, rounds, étages, règles de Minemen |
+| 6.1b | Fireball Fight (voir C1) | P2 | BLOQUÉ (proposition écrite le 21/11, attend ta validation) | noms des deux modes, rayon de l'arène, fireballs, rounds, délai du souffle |
+| 6.1c | Fast Bedwars (Bedwars 2018 simplifié) | P2 | BLOQUÉ (proposition écrite le 21/11, attend ta validation) | ce que « 2018 » veut dire (shop, améliorations, équipes, durée), maps |
+| 6.1d | Autres modes FUN connus : propositions | P3 | BLOQUÉ (proposition écrite le 21/11, attend ta validation) | ton choix parmi Spleef, Bow Spleef, Parkour Duels, Pearl Fight, Battle Rush |
+| 6.2 | Capture the Flag, version Bedwars et seconde version : études | P3 | BLOQUÉ (proposition écrite le 21/11, attend ta validation) | version à faire d'abord, équipes, captures, durée, maps, kit |
+| 6.3 | Find Your Sensitivity : faisabilité et protocole | P3 | BLOQUÉ (proposition écrite le 21/11, attend ta validation) | durée d'une série, nombre de sensibilités, historique |
+| 6.4 | Block Aim Practice (patterns de la communauté) | P3 | BLOQUÉ (proposition écrite le 21/11, attend ta validation) | patterns d'abord, parcours ou cibles, map |
+| 6.5.1 | Red Rover (Sumo, Block Placement, Block Edit, Top Bridge…) | P2 | BLOQUÉ (proposition écrite le 21/11, attend ta validation) | rotation, points ou élimination |
+| 6.5.2 | Modes 2v1 asymétriques (Clutch Scenario, stuff amélioré) | P3 | BLOQUÉ (proposition écrite le 21/11, attend ta validation) | sens du Clutch Scenario 1v2, mode du stuff amélioré |
+| 6.5.3 | Bot IA : étude technique | P3 | À FAIRE | l'étude d'abord, sans code (question 13) |
+| 6.6 | Catégorie 3 joueurs (Red Rover, Clutch Scenario, Bed Break Scenario, Invis Practice) | P2 | BLOQUÉ (proposition écrite le 21/11, attend ta validation) | PNJ ou boussole à choisir (et le point du PNJ) ; Invis Practice et Bed Break Simulator marchent déjà en 1v2 |
 
 ### Étape 8 : administration et benchmark (Phase 7)
 
