@@ -295,11 +295,18 @@ async function arrangeSumoKit (bot) {
   await bot.clickWindow(EDITOR_HOTBAR, 0, 0)
   await bot.clickWindow(EDITOR_HOTBAR + STICK_SLOT, 0, 0)
   let from = mark(bot)
+  // Save goes back to the list of kits, with the lobby hotbar under it
+  const listAgain = new Promise((resolve) => bot.once('windowOpen', resolve))
   bot.clickWindow(KIT_SAVE, 0, 0).catch(() => {})
   await chatLine(bot, /Kit saved for Sumo duel/, 5000, from)
-  await waitFor(() => bot.currentWindow == null && hotbarItem(bot, 0)?.name === 'compass' &&
-    hotbarItem(bot, KIT_EDITOR_SLOT)?.name === 'book', 5000, `${bot.username} to get the lobby hotbar back after saving`)
-  log(`${bot.username} moved the stick of the sumo kit to hotbar slot ${STICK_SLOT + 1} and saved`)
+  const list = await Promise.race([listAgain, sleep(5000).then(() => null)])
+  if (list == null || !windowTitle(list).includes('Kit editor')) {
+    throw new Error(`${bot.username}: Save did not go back to the list of kits: ${list == null ? 'nothing opened' : windowTitle(list)}`)
+  }
+  await waitFor(() => hotbarItem(bot, 0)?.name === 'compass' && hotbarItem(bot, KIT_EDITOR_SLOT)?.name === 'book', 5000,
+    `${bot.username} to get the lobby hotbar back after saving`)
+  bot.closeWindow(list)
+  log(`${bot.username} moved the stick of the sumo kit to hotbar slot ${STICK_SLOT + 1}, saved, and is back in the list of kits`)
 
   const again = await openSumoKit(bot)
   await waitFor(() => again.slots[EDITOR_HOTBAR + STICK_SLOT]?.name === 'stick' && again.slots[EDITOR_HOTBAR] == null, 5000,

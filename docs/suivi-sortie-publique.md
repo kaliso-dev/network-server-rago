@@ -158,8 +158,8 @@ informations manquantes.
 | --- | --- | --- | --- | --- | --- | --- |
 | 4.1 | Party Replay : les membres de la party rejoignent le replay | Replays | P2 | IMPLÉMENTÉ : `/p warp` du chef dans un replay ; test réel à 2 bots passé en CI (Java 8) ; à voir en jeu | `ReplayService`, `ReplayViewer`, `Parties` | — |
 | 4.1b | Sons dans les replays : étude de faisabilité | Replays | P3 | TESTÉ en CI : faisable ; sons envoyés par le serveur et blocs cassés enregistrés et rejoués ; test unitaire et test réel à 2 bots passés (run 339) ; à écouter en jeu | `ReplayRecorder`, `ReplayData` | — |
-| 4.2 | `/host` : annonce cliquable toutes les 10 s ; inscription gardée sans téléporter ; départ quand assez de joueurs | Events | P1 | IMPLÉMENTÉ (21/11) : annonce toutes les 10 s, inscription sans téléporter, départ quand assez d'inscrits sont hors partie ; tests unitaires et test réel à 3 bots écrits, CI en cours | `Events`, `EventGame`, `PracticeHost`, `HostWatcher` | — |
-| 4.3 | Kit Editor plus clair et trié | Kits | P2 | À FAIRE | `KitEditor`, `KitLayouts` | — |
+| 4.2 | `/host` : annonce cliquable toutes les 10 s ; inscription gardée sans téléporter ; départ quand assez de joueurs | Events | P1 | TESTÉ en CI (21/11, run 341, Java 8 et 21) : annonce toutes les 10 s, inscription sans téléporter, départ quand assez d'inscrits sont hors partie ; test réel à 3 bots passé ; à voir en jeu | `Events`, `EventGame`, `PracticeHost`, `HostWatcher` | — |
+| 4.3 | Kit Editor plus clair et trié | Kits | P2 | IMPLÉMENTÉ (21/11) : kits rangés par catégorie et par nom, « Also for », Save et Cancel ramènent à la liste ; tests unitaires écrits, CI en cours | `KitEditor`, `KitLayouts` | — |
 | 4.4 | Menu Stats : présentation, catégories, navigation | Stats | P2 | À FAIRE | `StatsMenu`, `ProfileMenu`, `StatsBook` | — |
 | 4.5 | `/discord` et `/store` avec les liens officiels | Cmd | P1 | BLOQUÉ | `config.yml` (`liens`), `ServerSettings` | liens officiels (C6) |
 
@@ -218,7 +218,36 @@ informations manquantes.
 
 ## 3. Journal des corrections
 
-### 4.2 Events /host — IMPLÉMENTÉ (21/11), CI en cours
+### 4.3 Kit Editor — IMPLÉMENTÉ (21/11), CI en cours
+
+**Demande** : « Plus clair. Mieux organisé. Mieux trié. Plus facile à utiliser. »
+
+**Analyse** (avant le changement) : le livre ouvrait une seule liste de tous les modes qui ont un
+kit (24 dans le config.yml fourni), dans l'ordre du config.yml : Block edit, Invis practice,
+Attack and defense, Bed Break, puis les duels et les arènes mélangés, sans catégorie. Les modes
+cachés qui prêtent leur kit (`invis-practice`, `bed-break-simulator`) n'y disaient pas qu'ils
+servent aux formats 1v1 à 1v4, ni `lobby-fight-ffa` qu'il sert au Lobby Fight 1v1. Après Save, le
+livre se fermait : pour ranger un autre kit, il fallait le rouvrir. Rien n'expliquait qu'un kit
+rangé pendant une partie est gardé aussi.
+
+**Fait** :
+- **Mieux trié, mieux organisé** : les kits par catégorie, dans l'ordre du sélecteur (Practice, RBW
+  Modes, Duels, Arenas), triés par nom dans chacune (Bed Fight 1v1 avant Bed Fight 2v2) ; une ligne
+  par catégorie, son icône et son nom en première case, puis ses kits (8 par ligne). Avec le
+  config.yml fourni, tout tient sur une page (5 lignes) ; au-delà, des flèches de page en bas.
+- **Plus clair** : chaque kit dit quels autres modes le jouent (« Also for: Invis Practice 1v1,
+  … ») et s'il est rangé par le joueur ; un livre « How it works » en bas explique le rangement,
+  aussi pendant une partie.
+- **Plus facile** : Save et Cancel ramènent à la liste (à la même page), pour ranger plusieurs kits
+  à la suite ; fermer avec Échap enregistre et ferme, comme avant. L'import Hypixel et la boutique
+  restent en bas (mêmes cases).
+- Rien ne change dans les rangements enregistrés (`plugins/RagoLobby/kits/`).
+
+**Tests écrits** (résultats à venir) : tests unitaires (`KitEditorTest` : l'ordre par catégorie
+puis par nom, une catégorie de plus de 8 kits, les pages, le texte « Also for ») ; le test du
+lobby (étape 1) vérifie que Save ramène à la liste des kits avec la barre du lobby.
+
+### 4.2 Events /host — TESTÉ EN CI (21/11)
 
 **Demande** : « Lorsqu'un événement est créé avec /host, envoyer un message public dans le chat
 toutes les 10 secondes jusqu'au lancement de l'événement », cliquable pour le rejoindre, comme sur
@@ -249,12 +278,26 @@ seulement aux joueurs hors partie. À la fin de `attente-secondes`, l'event éta
   `joueurs-min` inscrits hors partie à la fin de l'attente, ils tombent, comme avant.
 - Docs : `rago-practice/README.md` (Les events) et le commentaire de `evenements:` du config.yml.
 
-**Tests écrits** (résultats à venir, rien n'est encore passé) : tests unitaires (`EventsTest` :
-le texte de l'état, le moment du lancement, le bouton) ; test réel à 3 bots dans le test du lobby
-(`lobby-bots.mjs`, étape 11) : RagoTrois, opérateur, lance un Sumo ; RagoDeux, en Block clutch,
-s'inscrit et doit rester dans son entraînement ; RagoUn s'inscrit au lobby et ne doit pas bouger ;
-le message doit revenir 10 s après ; à la fin de l'attente (15 s dans le test), RagoUn et
-RagoTrois doivent partir à l'event et RagoDeux être prévenu ; RagoTrois quitte, RagoUn doit gagner.
+**Tests** : tests unitaires (`EventsTest` : le texte de l'état, le moment du lancement, le bouton)
+et un test réel à 3 bots dans le test du lobby (`lobby-bots.mjs`, étape 11). **Passés** sur un
+vrai serveur PandaSpigot en CI (run 341, Java 8 et Java 21). Ce que les bots ont lu (Java 8) :
+- RagoTrois, opérateur, tape `/host sumo` : les trois lisent « [Event] RagoTrois is hosting Sumo!
+  One 1v1 at a time on the platform: knock your opponent off. The last one in wins. » ; RagoUn
+  (au lobby) et RagoDeux (en Block clutch) ont le bouton « [Click to join] or /join: 1/40 players,
+  starts in 15s », dont le clic lance bien `/join` ; RagoTrois lit « You are in (1/40 players,
+  starts in 15s) ».
+- RagoDeux tape `/join` dans son Block clutch : « You joined the Sumo event of RagoTrois (2/40
+  players (1 in a game), starts in 15s) » et reste dans son entraînement (il continue de tomber et
+  de recommencer) ; RagoUn s'inscrit et ne bouge pas du lobby.
+- Le message revient **9,9 s** après le premier : « You are in (3/40 players (1 in a game),
+  starts in 5s) » pour les trois inscrits.
+- À la fin de l'attente (15 s dans le test), RagoDeux, toujours en Block clutch, lit « The Sumo
+  event started without you: you were in a game. » ; RagoUn et RagoTrois partent à l'event :
+  « The Sumo event starts with 2 players! », « RagoTrois vs RagoUn ».
+- RagoTrois quitte le combat avec `/spawn` : « ★ RagoUn won the Sumo event of RagoTrois! » chez
+  les trois, +250 XP pour RagoUn, et chacun revient au lobby.
+
+Pas encore essayé en jeu par un joueur.
 
 ### 4.1 Party Replay — IMPLÉMENTÉ (21/11), test réel passé
 

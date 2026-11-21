@@ -55,11 +55,18 @@ dans les files d'attente des modes de jeu.
   III dans le lobby, ou rien (clic gauche plus vite, clic droit moins vite). La permission est
   `rago.perk.speed`.
 - **L'éditeur de kit.** Le livre (deuxième case) liste les modes qui ont un kit (`kit:` sous le
-  mode dans config.yml). Un clic sur un mode met son kit dans l'inventaire du joueur, rangé comme
-  il l'a laissé la dernière fois, sous un petit coffre : Save, Reset (le rangement du kit) et
-  Cancel. Le joueur déplace et échange les objets comme il veut ; il ne peut pas couper une pile,
-  en fusionner deux, jeter un objet ni en mettre un dans le coffre. Fermer le coffre enregistre
-  aussi. Le rangement est gardé par joueur et par mode dans `plugins/RagoLobby/kits/<uuid>.yml` :
+  mode dans config.yml), rangés par catégorie dans l'ordre du sélecteur (Practice, RBW Modes,
+  Duels, Arenas ; les modes d'aucune de ces catégories à la fin, « Other kits ») et triés par nom
+  dans chacune : une ligne par catégorie, son icône et son nom en première case, puis ses kits
+  (sur plusieurs lignes au-delà de 8, sur plusieurs pages avec des flèches si tout ne tient pas
+  en 5 lignes). Chaque kit dit s'il est rangé par le joueur (« Your layout is saved. ») ou non,
+  et quels autres modes le jouent (`kit-de:`, « Also for: … »). La dernière ligne a l'import
+  Hypixel, un livre « How it works » et la boutique Hypixel importée. Un clic sur un mode met son
+  kit dans l'inventaire du joueur, rangé comme il l'a laissé la dernière fois, sous un petit
+  coffre : Save, Reset (le rangement du kit) et Cancel ; Save et Cancel ramènent à la liste des
+  kits (à la même page). Le joueur déplace et échange les objets comme il veut ; il ne peut pas
+  couper une pile, en fusionner deux, jeter un objet ni en mettre un dans le coffre. Fermer le
+  coffre enregistre aussi, et ferme l'éditeur. Le rangement est gardé par joueur et par mode dans `plugins/RagoLobby/kits/<uuid>.yml` :
   ses prochaines parties de ce mode lui donnent le kit comme ça (RagoPractice et RagoBedwars le
   lisent : duels, FFA, invis practice...). Un mode sans `kit:` garde le kit de son jeu. Plusieurs
   modes peuvent jouer le kit d'un autre (`kit-de:`) : les quatre formats de l'Invis practice
