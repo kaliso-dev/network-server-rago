@@ -382,16 +382,18 @@ Dans `jeux:` du config.yml, un mode peut jouer autre chose qu'une partie classiq
 - **Lobby Fight** (`lobby-fight` pour `lobby-fight-1v1`, `lobby-fight-ffa` pour `lobby-fight-ffa`) :
   le combat dans la **salle d'attente** de la map, là où l'on attend le début d'une partie de Bed
   Wars (sur Archway FFA, son sol de verre tout en haut au-dessus du milieu), avec la même armure
-  de combat que le FFA (le cuir à la couleur de l'équipe en 1v1, rouge dans le FFA). Le 1v1 a le
-  kit du FFA (celui que le joueur a rangé pour le FFA dans l'éditeur de kit du lobby), le FFA son
-  propre kit : une épée en pierre, 5 pommes en or et 3 fireballs, sans blocs ni pearl
-  (`lobby-fight-ffa:` dans le `config.yml` du lobby) ; chaque kill soigne le tueur et remet ses
-  pommes en or à 5 (au nombre du kit), sur sa pile de pommes ou, s'il n'en a plus, à leur place
-  dans son kit.
+  de combat que le FFA (le cuir à la couleur de l'équipe en 1v1, rouge dans le FFA). Le 1v1 et le
+  FFA ont le même kit, rangé une seule fois dans l'éditeur de kit du lobby (`lobby-fight-ffa:` dans
+  le `config.yml` du lobby, que le 1v1 joue avec `kit-de:`) : une épée en pierre, 5 pommes en or,
+  3 fireballs, 12 end stone et une pioche en bois, sans pearl, avec Haste I pour miner l'end
+  stone. Les blocs posés ne vont que dans la salle et partent 10 secondes après avoir été posés ;
+  seuls les blocs posés se cassent, jamais ceux de la salle. Dans le FFA, chaque kill soigne le
+  tueur et remet ses pommes en or à 5 (au nombre du kit), sur sa pile de pommes ou, s'il n'en a
+  plus, à leur place dans son kit.
   En **1v1**, des manches d'une vie comme le Top Bridge : les deux joueurs partent face à face de
   part et d'autre du milieu de la salle, le plus loin possible sans rien entre eux (les poteaux du
   pavillon), au plus aux trois quarts du rayon ; un kill ou une chute hors de la salle (3 blocs
-  sous son sol) donne le point à l'autre, le premier à 5 gagne, 3 secondes de compte à rebours
+  sous son sol) donne le point à l'autre, le premier à 3 gagne, 3 secondes de compte à rebours
   avant chaque manche ; la copie redevient la map à chaque manche. Le **FFA** est ouvert comme le
   FFA (12 joueurs au plus) : on apparaît n'importe où sur le sol, le plus loin des autres, et on
   revient tout de suite après une mort. Les blocs ne se posent que dans la salle, jusqu'à 6 blocs

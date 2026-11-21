@@ -10,21 +10,28 @@ import org.bukkit.inventory.PlayerInventory;
 
 /**
  * Lobby Fight 1v1: the rounds of Top Bridge in the waiting lobby of the map (salle-attente: in its
- * bedwars.yml; Archway FFA has one, its glass floor high over the middle), with the kit of the FFA:
- * a stone sword, a stack of golden apples, 3 fireballs, a pearl, 2 stacks of wool and shears (the
- * FFA's kit as each player arranged it in the lobby's kit editor), diamond leggings and boots with a
+ * bedwars.yml; Archway FFA has one, its glass floor high over the middle), with the kit of Lobby
+ * Fight (lobby-fight-ffa: in the lobby's config.yml, that this mode plays with kit-de:, as each
+ * player arranged it in the lobby's kit editor: a stone sword, 5 golden apples, 3 fireballs, 12 end
+ * stone and a wooden pickaxe), Haste to mine the end stone, diamond leggings and boots with a
  * leather helmet and chestplate of the team's colour, Protection IV. The two players start face to
  * face across the middle of the lobby; one life a round, a kill or a fall off the lobby (a few
- * blocks under its floor) gives the other a point, the first to {@value TopBridgeGame#POINTS_TO_WIN}
- * wins, each round after a countdown of {@value #ROUND_COUNTDOWN} seconds. The blocks go in the
- * lobby only, and go at each round with the rollback of the map. Main thread only.
+ * blocks under its floor) gives the other a point, the first to {@value #ROUNDS_TO_WIN} wins, each
+ * round after a countdown of {@value #ROUND_COUNTDOWN} seconds. The blocks go in the lobby only,
+ * go after {@value FfaGame#DECAY_SECONDS} seconds as in Lobby Fight FFA, and all go at each round
+ * with the rollback of the map; only the blocks placed can be broken, never the lobby's. Main
+ * thread only.
  */
 final class LobbyFightGame extends TopBridgeGame {
 
     /** The countdown before each round after the first, both players frozen on their start. */
     static final int ROUND_COUNTDOWN = 3;
+    /** The rounds a player must win to win the game: the first to 3. */
+    static final int ROUNDS_TO_WIN = 3;
 
     private final LobbyFight lobby;
+    /** The blocks placed go after the FFA's seconds, as in Lobby Fight FFA. */
+    private final BlockDecay decay = new BlockDecay(FfaGame.DECAY_SECONDS);
 
     LobbyFightGame(RagoBedwars plugin, BedwarsHost host, Instance instance, String modeId, String modeName,
             List<List<Player>> sides) {
@@ -43,9 +50,29 @@ final class LobbyFightGame extends TopBridgeGame {
         return false;
     }
 
-    /** Nothing to build for a round: the rollback has taken the blocks placed away. */
+    /** Nothing to build for a round: the rollback has taken the blocks placed away, and nothing is left to decay. */
     @Override
     void buildFight() {
+        decay.clear();
+    }
+
+    @Override
+    int pointsToWin() {
+        return ROUNDS_TO_WIN;
+    }
+
+    @Override
+    void placed(Player player, Block block) {
+        super.placed(player, block);
+        decay.placed(block, seconds);
+    }
+
+    @Override
+    void everySecond() {
+        super.everySecond();
+        if (phase != Phase.ENDED) {
+            decay.tick(instance, instance.world(), seconds);
+        }
     }
 
     @Override
@@ -95,11 +122,11 @@ final class LobbyFightGame extends TopBridgeGame {
         player.sendMessage(ChatColor.YELLOW + "" + ChatColor.BOLD + modeName + ChatColor.YELLOW + " on " + ChatColor.WHITE
                 + instance.map().world() + ChatColor.YELLOW + ": you are " + gamer.team.color.coloured() + ChatColor.YELLOW
                 + ". " + roundsRule());
-        player.sendMessage(ChatColor.GRAY + "The kit of the FFA, as you arranged it in the lobby's kit editor. /spawn takes "
-                + "you back to the lobby.");
+        player.sendMessage(ChatColor.GRAY + "The kit of Lobby Fight, as you arranged it in the lobby's kit editor, with Haste."
+                + " Your blocks go after " + decay.seconds() + " seconds. /spawn takes you back to the lobby.");
     }
 
-    /** The kit of the FFA and the fight armour in the team's colour, at each round. */
+    /** The kit of Lobby Fight, Haste and the fight armour in the team's colour, at each round. */
     @Override
     void giveKit(Player player, Gamer gamer) {
         PlayerInventory inventory = player.getInventory();
@@ -108,11 +135,12 @@ final class LobbyFightGame extends TopBridgeGame {
         if (kit != null) {
             inventory.setContents(kit);
         } else {
-            for (ItemStack item : FfaGame.fightKit(true)) {
+            for (ItemStack item : LobbyFight.fallbackKit()) {
                 inventory.addItem(kitItem(item, gamer));
             }
         }
         fightArmour(player, gamer.team.color.leather());
+        LobbyFight.haste(player);
         player.updateInventory();
     }
 }

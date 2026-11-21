@@ -1194,16 +1194,17 @@ modes:
     equipes: 1
     joueurs-par-equipe: 1
     classe: false
-    # a stone sword, 5 golden apples (each kill brings them back to 5) and 3 fireballs, nothing
-    # more (no blocks, no pearl), with the red leather of the FFA
-    kit: [STONE_SWORD, "GOLDEN_APPLE 5", "FIREBALL 3"]
+    # the kit of Lobby Fight, that Lobby Fight 1v1 plays too (kit-de:): a stone sword, 5 golden
+    # apples (each kill brings them back to 5), 3 fireballs, 12 end stone (gone 10 s after being
+    # placed) and a wooden pickaxe, with Haste, no pearl, and the red leather of the FFA
+    kit: [STONE_SWORD, "GOLDEN_APPLE 5", "FIREBALL 3", "ENDER_STONE 12", WOOD_PICKAXE]
     description:
       - "The FFA in the waiting lobby of"
       - "Archway FFA, a sword, 5 golden"
-      - "apples (back to 5 at each kill)"
-      - "and 3 fireballs: come and go"
-      - "when you like, fall out of it"
-      - "and you die."
+      - "apples (back to 5 at each kill),"
+      - "3 fireballs, 12 end stone and a"
+      - "pickaxe: come and go when you"
+      - "like, fall out of it and you die."
   free-ffa:
     nom: "&cArena Free"
     categorie: arenes
@@ -1371,13 +1372,14 @@ modes:
     equipes: 2
     joueurs-par-equipe: 1
     classe: false
-    # no kit of its own: the kit of the FFA (ffa:), as each player arranged it, with diamond
-    # leggings and boots, a leather helmet and chestplate in the team's colour, Protection IV
+    # the kit of Lobby Fight FFA (lobby-fight-ffa:), as each player arranged it, with Haste and
+    # diamond leggings and boots, a leather helmet and chestplate in the team's colour, Protection IV
+    kit-de: lobby-fight-ffa
     description:
       - "In the waiting lobby of Archway"
-      - "FFA, with the kit of the FFA:"
+      - "FFA, with the kit of Lobby Fight:"
       - "rounds of one life, knock them"
-      - "out; the first to 5 points wins."
+      - "out; the first to 3 points wins."
   block-fight-arena:
     nom: "&cBlock placement arena"
     categorie: arenes

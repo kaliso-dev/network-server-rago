@@ -39,10 +39,10 @@ import org.bukkit.inventory.PlayerInventory;
  * boards of the most kills ever in the mode float in the air beside the fight (see
  * {@link #boardPlaces}), and the sidebar shows the 3 players with the most kills in the game. Lobby
  * Fight FFA (lobby-fight-ffa) is the FFA in the waiting lobby of the map (see {@link LobbyFight}):
- * its own kit (in the lobby's config.yml: a stone sword, 5 golden apples and 3 fireballs), each
- * kill bringing the killer's golden apples back to the kit's, at most {@value #LOBBY_MAX_PLAYERS}
- * players, each life somewhere on its floor away from the others, dead a few blocks under it, the
- * blocks in the lobby only. Main thread only.
+ * its own kit (in the lobby's config.yml: a stone sword, 5 golden apples, 3 fireballs, 12 end stone
+ * and a wooden pickaxe) with Haste, each kill bringing the killer's golden apples back to the kit's,
+ * at most {@value #LOBBY_MAX_PLAYERS} players, each life somewhere on its floor away from the
+ * others, dead a few blocks under it, the blocks in the lobby only. Main thread only.
  */
 final class FfaGame extends BedwarsGame {
 
@@ -487,8 +487,8 @@ final class FfaGame extends BedwarsGame {
     }
 
     /**
-     * FFA: the mode's kit and the fight armour, its leather red for everyone, at each life. Arena:
-     * the start of a Bed Wars life.
+     * FFA: the mode's kit and the fight armour, its leather red for everyone, at each life (Lobby
+     * Fight FFA: with Haste). Arena: the start of a Bed Wars life.
      */
     @Override
     void giveKit(Player player, Gamer gamer) {
@@ -502,11 +502,14 @@ final class FfaGame extends BedwarsGame {
         if (kit != null) {
             inventory.setContents(kit);
         } else {
-            for (ItemStack item : fightKit(!onTheBridge())) {
+            for (ItemStack item : lobby != null ? LobbyFight.fallbackKit() : fightKit(!onTheBridge())) {
                 inventory.addItem(kitItem(item, gamer));
             }
         }
         fightArmour(player, TeamColor.RED.leather());
+        if (lobby != null) {
+            LobbyFight.haste(player);
+        }
         player.updateInventory();
     }
 

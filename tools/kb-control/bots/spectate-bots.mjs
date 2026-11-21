@@ -7,8 +7,8 @@
 //   2. the player is told of each of them, and keeps playing (still in survival);
 //   3. a few seconds later, all ten still watch, near the player;
 //   4. /spawn takes each of them back to the lobby, then the player too.
-// The test server takes 20 players (max-players in run-arena-test.sh): the server.properties of
-// the local server had 8, too few for a game and ten spectators.
+// The test server has the 50 places of the local server's server.properties (max-players): it had
+// 8, too few for a game and ten spectators.
 //
 // Environment: KB_HOST (127.0.0.1), KB_PORT (25565).
 

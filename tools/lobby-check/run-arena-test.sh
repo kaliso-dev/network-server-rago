@@ -95,10 +95,10 @@ cp "$PRACTICE_JAR" "$SERVER_DIR/plugins/RagoPractice.jar"
 cp "$BEDWARS_JAR" "$SERVER_DIR/plugins/RagoBedwars.jar"
 echo "eula=true" >"$SERVER_DIR/eula.txt"
 
-# The settings of the local test server (tools/local-server), in offline mode for the bots.
-# 20 players at most: the spectator test has a player and ten spectators at once.
+# The settings of the local test server (tools/local-server), in offline mode for the bots. Its 50
+# places are what the spectator test needs: a player and ten spectators at once.
 sed -e 's/^online-mode=.*/online-mode=false/' -e 's/^server-ip=.*/server-ip=127.0.0.1/' \
-  -e "s/^server-port=.*/server-port=$PORT/" -e 's/^max-players=.*/max-players=20/' \
+  -e "s/^server-port=.*/server-port=$PORT/" \
   "$ROOT/tools/local-server/server.properties" >"$SERVER_DIR/server.properties"
 cat >"$SERVER_DIR/bukkit.yml" <<'YAML'
 settings:

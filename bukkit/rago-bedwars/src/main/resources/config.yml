@@ -97,16 +97,17 @@ modes:
 #              kill or a fall off the bridge (under hauteur-vide) gives a point, the first to 5 wins
 #   fast-shop  Fast Shop: each player on an island with its shop, lists of items to buy as fast as
 #              possible with their own quick buy (copied from Hypixel in the lobby), and records
-#   lobby-fight  Lobby Fight: the rounds of Top Bridge (one life, the first to 5 points) in the
+#   lobby-fight  Lobby Fight: the rounds of Top Bridge (one life, the first to 3 points) in the
 #              waiting lobby of the map, the platform over it where the players wait before a game
 #              (salle-attente: in its bedwars.yml, set with /bw lobbyfight on its floor; Archway FFA
-#              has one): the two players face to face across its middle, the kit of the FFA (ffa:
-#              in the lobby's config.yml, as each player arranged it) with diamond leggings and boots,
-#              dead a few blocks under its floor, the blocks in the lobby only
+#              has one): the two players face to face across its middle, the kit of Lobby Fight
+#              (lobby-fight-ffa: in the lobby's config.yml, as each player arranged it) with Haste
+#              and diamond leggings and boots, dead a few blocks under its floor, the blocks in the
+#              lobby only, gone 10 seconds after being placed
 #   lobby-fight-ffa  Lobby Fight FFA: the FFA in the waiting lobby (12 players at most), with
-#              its own kit (lobby-fight-ffa: in the lobby's config.yml: a sword, 5 golden apples
-#              that each kill brings back to 5, and 3 fireballs), each life somewhere on its floor
-#              away from the others
+#              the kit of Lobby Fight (lobby-fight-ffa: in the lobby's config.yml: a sword, 5 golden
+#              apples that each kill brings back to 5, 3 fireballs, 12 end stone and a wooden
+#              pickaxe) and Haste, each life somewhere on its floor away from the others
 #   bed-break  Bed Break Simulator: 1v1 to 1v4 (2 to 5 players, as the invis practice), on the
 #              map chosen, rounds of 3 minutes, the two
 #              opposite islands linked by a top bridge; each player in turn attacks from the middle

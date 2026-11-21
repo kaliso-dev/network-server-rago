@@ -107,8 +107,8 @@ côtés, le verre).
 Puis un bot joue l'entraînement Block clutch pendant que dix autres le regardent en même temps avec
 `/spectate` (`tools/kb-control/bots/spectate-bots.mjs`) : chacun passe en mode spectateur près du
 joueur, le joueur est prévenu de chacun et continue de jouer, les dix sont toujours là quelques
-secondes plus tard, et `/spawn` les ramène tous au lobby. Le serveur de test accepte 20 joueurs
-pour ce test (le `server.properties` du serveur local en avait 8).
+secondes plus tard, et `/spawn` les ramène tous au lobby. Le serveur de test a les 50 places du
+`server.properties` du serveur local (il en avait 8, trop peu pour une partie et dix spectateurs).
 
 ```bash
 ./gradlew build

@@ -1,19 +1,27 @@
 package gg.rago.bedwars;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 import java.util.Random;
 import org.bukkit.Location;
 import org.bukkit.Material;
 import org.bukkit.World;
 import org.bukkit.block.Block;
+import org.bukkit.entity.Player;
+import org.bukkit.inventory.ItemStack;
+import org.bukkit.potion.PotionEffect;
+import org.bukkit.potion.PotionEffectType;
 
 /**
  * Lobby Fight, the fight in the waiting lobby of a Bed Wars map (salle-attente: in its
- * bedwars.yml, see {@link BedwarsMap.WaitingLobby}) with the kit of the FFA: in rounds of one life
- * ({@link LobbyFightGame}, 1v1), or for everyone ({@link FfaGame}, the FFA). What both have: where a
- * player can stand on its floor, the two starts of a duel, the blocks placed only in the lobby, a
- * fall off it is a death. One per game, made on its copy of the map. Main thread only.
+ * bedwars.yml, see {@link BedwarsMap.WaitingLobby}): in rounds of one life ({@link LobbyFightGame},
+ * 1v1), or for everyone ({@link FfaGame}, the FFA). What both have: one kit (lobby-fight-ffa: in the
+ * lobby's config.yml, that the 1v1 plays with kit-de:: a stone sword, 5 golden apples, 3 fireballs,
+ * 12 end stone and a wooden pickaxe), Haste to mine the end stone, the blocks placed only in the
+ * lobby and gone after {@value FfaGame#DECAY_SECONDS} seconds (the lobby's own blocks are never
+ * broken: only the blocks placed are), where a player can stand on its floor, the two starts of a
+ * duel, a fall off it is a death. One per game, made on its copy of the map. Main thread only.
  */
 final class LobbyFight {
 
@@ -21,8 +29,13 @@ final class LobbyFight {
     static final int FALL_BELOW = 3;
     /** Blocks are placed in the lobby up to this many blocks above its floor. */
     static final int BUILD_ABOVE = 6;
-    /** The lobby mode whose kit Lobby Fight plays when the lobby has none for its own mode: the FFA. */
-    static final String KIT_MODE = "ffa";
+    /**
+     * The lobby mode whose kit Lobby Fight plays when the lobby has none for its own mode (a
+     * config.yml without kit-de: for the 1v1): Lobby Fight FFA's.
+     */
+    static final String KIT_MODE = "lobby-fight-ffa";
+    /** Haste I (the amplifier of the effect), to mine the end stone of the kit. */
+    static final int HASTE = 0;
     /** The starts of a duel are at most this far from the middle, in parts of the radius... */
     static final double START_REACH = 0.75;
     /** ...and at least this many blocks from it. */
@@ -75,6 +88,21 @@ final class LobbyFight {
     /** Where the dead and those who wait watch: above the middle of the lobby, looking down at it. */
     Location watchPoint() {
         return new Location(world, lobby.centreX, lobby.floorY + 1 + BUILD_ABOVE + 3, lobby.centreZ, 0f, 90f);
+    }
+
+    /**
+     * The kit of Lobby Fight when the lobby's config.yml has none: the one of lobby-fight-ffa: in
+     * the lobby's config.yml, a stone sword, 5 golden apples, 3 fireballs, 12 end stone and a
+     * wooden pickaxe.
+     */
+    static List<ItemStack> fallbackKit() {
+        return new ArrayList<>(Arrays.asList(new ItemStack(Material.STONE_SWORD), new ItemStack(Material.GOLDEN_APPLE, 5),
+                new ItemStack(Material.FIREBALL, 3), new ItemStack(Material.ENDER_STONE, 12), new ItemStack(Material.WOOD_PICKAXE)));
+    }
+
+    /** Haste for the life, to mine the end stone: given with the kit, after the effects of the last life are gone. */
+    static void haste(Player player) {
+        player.addPotionEffect(new PotionEffect(PotionEffectType.FAST_DIGGING, Integer.MAX_VALUE, HASTE, true, false), true);
     }
 
     /** True if a player can stand on the floor at (x, z): solid under the feet, the air for the feet and the head. */

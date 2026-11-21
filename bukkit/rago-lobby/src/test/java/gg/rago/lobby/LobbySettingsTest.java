@@ -121,12 +121,15 @@ class LobbySettingsTest {
         assertEquals(Arrays.asList("top-bridge-ffa", "ffa", "lobby-fight-ffa", "free-ffa", "bridge-fight", "block-fight-arena"),
                 displayIds(settings.modesIn("arenes")), "the six arenas, nothing else");
         assertEquals("duels", settings.display("lobby-fight-1v1").category(), "Lobby Fight 1v1: a duel");
-        assertNull(settings.display("lobby-fight-1v1").kit(), "no kit of its own: the FFA's");
+        assertNull(settings.display("lobby-fight-1v1").kit(), "no kit of its own: Lobby Fight FFA's");
+        assertEquals("lobby-fight-ffa", settings.kitMode("lobby-fight-1v1"), "one kit for both Lobby Fights (kit-de:)");
         Kit lobbyFfa = settings.display("lobby-fight-ffa").kit();
-        assertEquals(Material.STONE_SWORD, lobbyFfa.item(0).material(), "Lobby Fight FFA: a sword");
+        assertEquals(Material.STONE_SWORD, lobbyFfa.item(0).material(), "Lobby Fight: a sword");
         assertEquals(KitItem.parse("GOLDEN_APPLE 5"), lobbyFfa.item(1), "5 golden apples");
-        assertEquals(KitItem.parse("FIREBALL 3"), lobbyFfa.item(2), "and fireballs");
-        assertNull(lobbyFfa.item(3), "nothing more: no blocks nor pearl");
+        assertEquals(KitItem.parse("FIREBALL 3"), lobbyFfa.item(2), "fireballs");
+        assertEquals(KitItem.parse("ENDER_STONE 12"), lobbyFfa.item(3), "12 end stone");
+        assertEquals(Material.WOOD_PICKAXE, lobbyFfa.item(4).material(), "a wooden pickaxe");
+        assertNull(lobbyFfa.item(5), "nothing more: no pearl");
         assertEquals("entrainement", settings.display("kb-displace-bot").category(), "against a bot: practice");
         int total = 0;
         for (ModeCategory category : settings.categories()) {
