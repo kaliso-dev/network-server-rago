@@ -472,7 +472,7 @@ le propriétaire** :
 - `points-par-1v1-block-placement` (10, de 1 à 500 ; le duel se joue à 100) : les points qui
   gagnent un 1v1 de Red Rover Block Placement (choisi par le propriétaire) ;
 - `points-par-1v1-top-bridge` (1, de 1 à 5 ; Top Bridge se joue à 5) : les manches d'une vie qui
-  gagnent un 1v1 de Red Rover Top Bridge (à confirmer).
+  gagnent un 1v1 de Red Rover Top Bridge (choisi par le propriétaire).
 
 Celui qui quitte la partie est éliminé (une défaite) ; le dernier en jeu gagne. Si c'était un des
 deux combattants, celui qui attendait entre aussitôt contre l'autre.

@@ -159,7 +159,7 @@ du Top Bridge (plan 6.5) : trois joueurs (une équipe de trois de la file du lob
 sur les maps de Top Bridge, en 1v1 chacun leur tour ; celui qui attend regarde au-dessus du pont en
 spectateur. Les deux qui se battent sont les deux équipes d'un Top Bridge 1v1 (ses deux îles, son
 kit rangé par chaque joueur) et jouent ses manches d'une vie : le premier à
-`red-rover.points-par-1v1-top-bridge` manches (1, à confirmer) gagne le 1v1, puis le 1v1 suivant
+`red-rover.points-par-1v1-top-bridge` manches (1, choisi par le propriétaire) gagne le 1v1, puis le 1v1 suivant
 part tout de suite sur la map refaite. Qui affronte qui et comment la partie se gagne sont ceux des
 Red Rovers du practice (`RedRoverRotation` du `rago-game-model`), avec leurs réglages : `red-rover:`
 du config.yml de **RagoPractice**, lu par ce plugin (sans RagoPractice, ou s'ils sont faux, les

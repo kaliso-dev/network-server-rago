@@ -197,7 +197,7 @@ Snowball Spleef et Red Rover sont codés avec des valeurs de départ à confirme
 | 6.2 | Capture the Flag, version Bedwars et seconde version : études | P3 | BLOQUÉ (proposition écrite le 21/11, attend ta validation) | version à faire d'abord, équipes, captures, durée, maps, kit |
 | 6.3 | Find Your Sensitivity : faisabilité et protocole | P3 | BLOQUÉ (proposition écrite le 21/11, attend ta validation) | durée d'une série, nombre de sensibilités, historique |
 | 6.4 | Block Aim Practice (patterns de la communauté) | P3 | BLOQUÉ (proposition écrite le 21/11, attend ta validation) | patterns d'abord, parcours ou cibles, map |
-| 6.5.1 | Red Rover (Sumo, Block Placement, Block Edit, Top Bridge…) | P2 | Sumo, Block Edit, Block Placement, Top Bridge : TESTÉ par les bots en CI (21/11) ; rien encore en jeu | question 10 (qui reste, points ou élimination : codé « points, le gagnant reste, premier à 3 », à confirmer) ; 90 s par 1v1 à confirmer ; les rounds d'un 1v1 de Top Bridge (1, carte de décision) |
+| 6.5.1 | Red Rover (Sumo, Block Placement, Block Edit, Top Bridge…) | P2 | Sumo, Block Edit, Block Placement, Top Bridge : TESTÉ par les bots en CI (21/11) ; rien encore en jeu | question 10 (qui reste, points ou élimination : codé « points, le gagnant reste, premier à 3 », à confirmer) ; 90 s par 1v1 à confirmer  |
 | 6.5.2 | Modes 2v1 asymétriques (Clutch Scenario, stuff amélioré) | P3 | BLOQUÉ (proposition écrite le 21/11, attend ta validation) | sens du Clutch Scenario 1v2, mode du stuff amélioré |
 | 6.5.3 | Bot IA : étude technique | P3 | À FAIRE | l'étude d'abord, sans code (question 13) |
 | 6.6 | Catégorie 3 joueurs (Red Rover, Clutch Scenario, Bed Break Scenario, Invis Practice) | P2 | BLOQUÉ (proposition écrite le 21/11, attend ta validation) | PNJ ou boussole à choisir (et le point du PNJ) ; Invis Practice et Bed Break Simulator marchent déjà en 1v2 |
@@ -1459,7 +1459,7 @@ marquée « à confirmer » dans les `config.yml`.
   - **Red Rover Block Edit** : un edit propre gagne le 1v1 ;
   - **Red Rover Block Placement** : un coup +1, le vide +10, premier à 10 (ton choix du 21/11) ;
   - **Red Rover Top Bridge** (RagoBedwars, maps de Top Bridge, kit de Top Bridge 1v1) : des
-    rounds d'une vie, le premier à `points-par-1v1-top-bridge` (1, en attente de ton choix) gagne
+    rounds d'une vie, le premier à `points-par-1v1-top-bridge` (1, ton choix du 21/11) gagne
     le 1v1. RagoBedwars lit les réglages de Red Rover dans le `config.yml` de RagoPractice : un seul
     endroit pour les quatre. Qui affronte qui est dans `rago-game-model` (`RedRoverRotation`),
     partagé par les deux plugins.
