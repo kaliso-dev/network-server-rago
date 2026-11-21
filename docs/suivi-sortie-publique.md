@@ -158,7 +158,7 @@ informations manquantes.
 | --- | --- | --- | --- | --- | --- | --- |
 | 4.1 | Party Replay : les membres de la party rejoignent le replay | Replays | P2 | IMPLÉMENTÉ : `/p warp` du chef dans un replay ; test réel à 2 bots passé en CI (Java 8) ; à voir en jeu | `ReplayService`, `ReplayViewer`, `Parties` | — |
 | 4.1b | Sons dans les replays : étude de faisabilité | Replays | P3 | TESTÉ en CI : faisable ; sons envoyés par le serveur et blocs cassés enregistrés et rejoués ; test unitaire et test réel à 2 bots passés (run 339) ; à écouter en jeu | `ReplayRecorder`, `ReplayData` | — |
-| 4.2 | `/host` : annonce cliquable toutes les 10 s ; inscription gardée sans téléporter ; départ quand assez de joueurs | Events | P1 | IMPLÉMENTÉ (21/11), CI en cours : ton choix « Les sortir de leur partie » : au lancement, les inscrits encore en partie la quittent comme avec /spawn et vont à l'event (avant : TESTÉ en CI, run 341, départ quand assez d'inscrits étaient hors partie) ; test réel à 3 bots adapté ; à voir en jeu | `Events`, `EventGame`, `PracticeHost`, `HostWatcher` | — |
+| 4.2 | `/host` : annonce cliquable toutes les 10 s ; inscription gardée sans téléporter ; départ quand assez de joueurs | Events | P1 | TESTÉ en CI (21/11, run 346, Java 8 et 21) : ton choix « Les sortir de leur partie » : au lancement, les inscrits encore en partie la quittent comme avec /spawn et vont à l'event ; test réel à 3 bots passé ; à voir en jeu | `Events`, `EventGame`, `PracticeHost`, `HostWatcher` | — |
 | 4.3 | Kit Editor plus clair et trié | Kits | P2 | TESTÉ en CI (21/11, run 342, Java 8 et 21) : kits rangés par catégorie et par nom, « Also for », Save et Cancel ramènent à la liste ; à voir en jeu | `KitEditor`, `KitLayouts` | — |
 | 4.4 | Menu Stats : présentation, catégories, navigation | Stats | P2 | TESTÉ en CI (21/11, run 343, Java 8 et 21) : une page des catégories du sélecteur avec les totaux de chacune, un clic montre ses modes, Go back ramène aux catégories ; à voir en jeu | `StatsMenu` | — |
 | 4.5 | `/discord` et `/store` avec les liens officiels | Cmd | P1 | BLOQUÉ | `config.yml` (`liens`), `ServerSettings` | liens officiels (C6) |
@@ -169,13 +169,13 @@ informations manquantes.
 | --- | --- | --- | --- | --- | --- | --- |
 | 5.1 | Direction artistique : moins de rouge, identité Rago gardée | DA | P2 | À FAIRE | `Brand`, `config.yml`, menus, scoreboard | palette à valider |
 | 5.2 | Build monumental « RAGO PRACTICE » (rocheux, angélique, stone, void), sans détruire le spawn : plan précis d'abord | Build | P2 | BLOQUÉ | monde `lobby` | image de référence |
-| 5.3 | Blocs sous PNJ : Jouer quartz, Stats fer, Shop émeraude | Lobby | P1 | IMPLÉMENTÉ (21/11), CI en cours : `bloc:` sous chaque PNJ dans config.yml ; quartz sous les 5 PNJ pour jouer, fer sous les PNJ de stats, émeraude sous le Shop ; à voir en jeu | `Pedestal`, `LobbyNpcs`, `LobbySettings`, `config.yml` (`pnj:`) | — |
-| 5.4a | `NewQuest` relié aux quêtes | Lobby | P1 | IMPLÉMENTÉ (21/11), CI en cours : le PNJ des quêtes (clic = `/quests`) va sur le point choisi par `point-pnj-quetes:` (`newquest` pour ton serveur) ; à voir en jeu | `QuestsNpc`, `LobbySettings`, point `newquest` | — |
-| 5.4b | `NewShop` sur émeraude | Lobby | P1 | IMPLÉMENTÉ (21/11), CI en cours : le PNJ Shop passe du point `shop` au point `newshop` (config de ton serveur), sur ton bloc d'émeraude ; à voir en jeu | `LobbyNpcs`, `Pedestal`, point `newshop` | — |
-| 5.4c | `NewDailyChest` sur diamant | Lobby | P1 | IMPLÉMENTÉ (21/11), CI en cours : le coffre du jour va sur le point choisi par `point-coffre-du-jour:` (`newdailychest` pour ton serveur), sur ton bloc de diamant ; à voir en jeu | `DailyChest`, `LobbySettings`, point `newdailychest` | — |
+| 5.3 | Blocs sous PNJ : Jouer quartz, Stats fer, Shop émeraude | Lobby | P1 | TESTÉ en CI (21/11, runs 345 et 346, Java 8 et 21) : `bloc:` sous chaque PNJ dans config.yml ; quartz sous les 5 PNJ pour jouer, fer sous les PNJ de stats, émeraude sous le Shop ; à voir en jeu | `Pedestal`, `LobbyNpcs`, `LobbySettings`, `config.yml` (`pnj:`) | — |
+| 5.4a | `NewQuest` relié aux quêtes | Lobby | P1 | TESTÉ en CI (21/11, runs 345 et 346 : compilation, tests unitaires, test du lobby) : le PNJ des quêtes (clic = `/quests`) va sur le point choisi par `point-pnj-quetes:` (`newquest` pour ton serveur) ; à voir en jeu | `QuestsNpc`, `LobbySettings`, point `newquest` | — |
+| 5.4b | `NewShop` sur émeraude | Lobby | P1 | TESTÉ en CI (21/11, runs 345 et 346 : compilation, tests unitaires, test du lobby) : le PNJ Shop passe du point `shop` au point `newshop` (config de ton serveur), sur ton bloc d'émeraude ; à voir en jeu | `LobbyNpcs`, `Pedestal`, point `newshop` | — |
+| 5.4c | `NewDailyChest` sur diamant | Lobby | P1 | TESTÉ en CI (21/11, runs 345 et 346 : compilation, tests unitaires, test du lobby) : le coffre du jour va sur le point choisi par `point-coffre-du-jour:` (`newdailychest` pour ton serveur), sur ton bloc de diamant ; à voir en jeu | `DailyChest`, `LobbySettings`, point `newdailychest` | — |
 | 5.5 | Daily Chest : animation à suspense, Rago Points 100–500, XP 100–2000, cosmétiques, probabilités configurables, jamais de doublon | Lobby | P2 | À FAIRE | `DailyChest`, `LobbyPoints`, `Cosmetic` | probabilités |
 | 5.6A | `RagoClient` et `RagoOptimizer` : nom, skin, diamant, liens au clic, texte « OUR OTHER PRODUCTS », visuels publicitaires existants derrière | Lobby | P2 | BLOQUÉ | `LobbyNpcs`, `Billboards`, `panneaux/` | liens, skins |
-| 5.6B | `qRago` (Owner) et `Kalisodev` (kaliso_dev, Dev) sur obsidienne, surélevés d'un bloc | Lobby | P2 | IMPLÉMENTÉ (21/11), CI en cours : PNJ `type: personne` sur tes points `qrago` et `kalisodev`, « [OWNER] qRago » et « [DEV] kaliso_dev » (les préfixes de `rangs:`), skin de leur compte Minecraft lu chez Mojang (`skin-joueur:`), sur obsidienne un bloc plus haut ; à voir en jeu | `LobbyNpc`, `LobbyNpcs`, `AccountSkins`, `LobbySettings`, `config.yml` | — |
+| 5.6B | `qRago` (Owner) et `Kalisodev` (kaliso_dev, Dev) sur obsidienne, surélevés d'un bloc | Lobby | P2 | TESTÉ en CI (21/11, runs 345 et 346, Java 8 et 21), sauf le skin lu chez Mojang : PNJ `type: personne` sur tes points `qrago` et `kalisodev`, « [OWNER] qRago » et « [DEV] kaliso_dev » (les préfixes de `rangs:`), skin de leur compte Minecraft lu chez Mojang (`skin-joueur:`), sur obsidienne un bloc plus haut ; à voir en jeu | `LobbyNpc`, `LobbyNpcs`, `AccountSkins`, `LobbySettings`, `config.yml` | — |
 | 5.6C | `jncl` et `nativ` (affiché woryes, skin Woryes), rôle Mod en jaune clair | Lobby | P2 | BLOQUÉ | `LobbyNpcs`, `RankDef` | pseudo Woryes, C7 |
 | 5.7 | Texte de remerciement en anglais, fidèle à ton histoire, avec le Discord, à valider avant intégration | Lobby | P2 | À FAIRE | point `textremerciement`, `FakeHologram` | lien Discord |
 | 5.8 | Revoir les skins des PNJ du lobby | Lobby | P2 | À FAIRE | `NpcSkins`, `skins.yml` | — |
@@ -218,7 +218,7 @@ informations manquantes.
 
 ## 3. Journal des corrections
 
-### 5.6B qRago et Kalisodev — IMPLÉMENTÉ (21/11), CI en cours
+### 5.6B qRago et Kalisodev — TESTÉ EN CI (21/11), sauf le skin Mojang
 
 **Demande** : « qRago : skin : mon skin Minecraft qRago, nom affiché : qRago, rôle : Owner, bloc :
 obsidienne, position : surélevé d'un bloc » et « Kalisodev : skin : kaliso_dev, nom affiché :
@@ -255,16 +255,18 @@ kaliso_dev, rôle : Dev, bloc : obsidienne, position : surélevé d'un bloc ».
   (nom kaliso_dev, rang dev, skin du compte kaliso_dev), `bloc: OBSIDIAN` tous les deux.
 - Pour ton serveur (pas encore installé) : les mêmes lignes à ajouter dans ton config.yml.
 
-**Tests** (écrits, CI en cours) : `PersonNpcTest` (qRago et kaliso_dev du config.yml fourni : leur
+**Tests** : `PersonNpcTest` (qRago et kaliso_dev du config.yml fourni : leur
 genre, leur compte, leur nom « §4[OWNER] §4qRago » et « §b[DEV] §bkaliso_dev », l'obsidienne ;
 sans rang, le nom seul ; les refus : rang inconnu, pseudo invalide, `skin:` et `skin-joueur:`
 ensemble, des modes ; `skin-joueur:` sur un autre PNJ ; `skins-joueurs.yml` écrit puis relu). Le
 test du lobby sur un vrai serveur place qRago près du spawn et vérifie qu'il se tient sur de
 l'obsidienne sous « [OWNER] qRago », les mains vides, et qu'un clic n'ouvre rien. Ce test retire
 `skin-joueur:` (le serveur de test ne demande rien à Mojang) : **le skin lu chez Mojang n'est pas
-testé**, il est à voir en jeu, comme l'aspect des deux PNJ.
+testé**, il est à voir en jeu, comme l'aspect des deux PNJ. **Passés** en CI : runs 345
+(commit 4923f7d) et 346 (commit 503eb0a), compilation, tests unitaires et test du lobby sur Java 8
+et Java 21.
 
-### 5.3 et 5.4 Blocs sous les PNJ, NewQuest, NewShop, NewDailyChest — IMPLÉMENTÉ (21/11), CI en cours
+### 5.3 et 5.4 Blocs sous les PNJ, NewQuest, NewShop, NewDailyChest — TESTÉ EN CI (21/11)
 
 **Demande** : « Blocs sous les PNJ principaux : PNJ Jouer = Quartz, PNJ Stats du Joueur = Fer, PNJ
 Shop = Émeraude » et « NewQuest : PNJ des quêtes. Le relier au système de quêtes. NewShop : PNJ du
@@ -320,7 +322,9 @@ sur du fer.
   plateforme est en quartz, et la règle « bloc déjà sous le point » le prenait pour un socle posé à
   la main ; un sol de quartz sous les PNJ pour jouer aurait fait pareil dans un vrai lobby.
   Corrigé : le bloc n'est gardé que s'il est seul (aucun bloc du même genre au nord, au sud, à l'est
-  ou à l'ouest), comme ton émeraude sous `newshop` ; nouvelle CI en cours.
+  ou à l'ouest), comme ton émeraude sous `newshop`.
+- CI runs 345 (commit 4923f7d) et 346 (commit 503eb0a) : compilation, tests unitaires et test du
+  lobby **passés** sur Java 8 et Java 21 (le PNJ Duels sur le quartz, le PNJ de stats sur le fer).
 - Pas encore vu avec un vrai client, ni installé sur ton serveur.
 
 ### 4.4 Menu Stats — TESTÉ EN CI (21/11)
@@ -390,7 +394,7 @@ clique Save, lit « Kit saved for Sumo duel », retrouve la liste « Kit editor 
 lobby, puis retrouve le bâton là où il l'a mis. Pas encore vérifié avec un vrai client (l'aspect
 des lignes et des icônes), ni installé sur ton serveur.
 
-### 4.2 Events /host — IMPLÉMENTÉ (21/11, ton choix), CI en cours
+### 4.2 Events /host — TESTÉ EN CI (21/11, ton choix)
 
 **Ton choix** (carte de décision, 21/11) : « Quand un événement /host se lance, que faire des
 inscrits encore en partie ? » → **« Les sortir de leur partie »** : « Au lancement, les inscrits
@@ -423,7 +427,18 @@ après l'attente avec des inscrits en partie ou non). Le test réel à 3 bots (�
 RagoDeux, en Block clutch, doit lire « The Sumo event starts: you leave your game for it. »,
 puis les trois « You joined the Sumo event of RagoTrois. » et « The Sumo event starts with 3
 players! » ; au premier combat, RagoTrois puis RagoDeux font `/spawn`, RagoUn doit gagner et les
-trois revenir au lobby. **Pas encore passé** : CI en cours.
+trois revenir au lobby. **Passés** en CI (run 346, commit 503eb0a, Java 8 et Java 21). Ce que
+les bots ont lu (Java 21) :
+- Pendant l'attente, rien ne change : RagoDeux s'inscrit depuis son Block clutch et continue d'y
+  jouer ; le message revient 10,0 s après le premier (« 3/40 players (1 in a game), starts in 5s »).
+- À la fin de l'attente, RagoDeux, en plein Block clutch, lit « [Event] The Sumo event starts: you
+  leave your game for it. » (puis le gain de son entraînement, « +7 Network XP (practice) », comme
+  avec `/spawn`) ; les trois lisent « [Event] You joined the Sumo event of RagoTrois. », puis
+  « [Event] The Sumo event starts with 3 players! » et « [Event] RagoTrois vs RagoUn ».
+- RagoTrois quitte le combat (`/spawn`) : « RagoTrois left the fight. », « RagoTrois was
+  eliminated. » ; RagoDeux, qui attendait son tour, quitte l'event : « RagoDeux left the event. » ;
+  « [Event] ★ RagoUn won the Sumo event of RagoTrois! » chez les trois, +250 XP pour RagoUn ; les
+  trois reviennent au lobby.
 
 #### Avant ton choix — TESTÉ EN CI (21/11, run 341)
 
