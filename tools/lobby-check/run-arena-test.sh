@@ -4,8 +4,10 @@
 # first to 10, so that a fall into the void ends it; Block edit first to 2). Two bots
 # (tools/kb-control/bots/arena-bots.mjs) play Block placement 1v1, Block edit 1v1 and the Block edit
 # training several times in a row, ending the games in every way, and check at the start of each
-# game that its zone is exactly as the mode built it. Fails if the bots fail, or if the server log
-# has an error or an exception.
+# game that its zone is exactly as the mode built it. Then two other bots
+# (tools/kb-control/bots/visibility-bots.mjs) check that a player who joins the server is seen by the
+# one waiting in the lobby, and sees them (the first time, back from the lobby, from a training,
+# from a duel). Fails if the bots fail, or if the server log has an error or an exception.
 #
 # Run from anywhere, after the build:
 #   ./gradlew build
@@ -199,6 +201,9 @@ log "server started with the lobby and the practice modes"
 
 bots_status=0
 KB_HOST=127.0.0.1 KB_PORT=$PORT node "$ROOT/tools/kb-control/bots/arena-bots.mjs" || bots_status=$?
+# The same server for the lobby visibility test: two other bots, arriving while the other waits.
+visibility_status=0
+KB_HOST=127.0.0.1 KB_PORT=$PORT node "$ROOT/tools/kb-control/bots/visibility-bots.mjs" || visibility_status=$?
 stop_server
 
 # Any error or exception logged by the server fails the test, even if the bots passed. One is
@@ -209,5 +214,6 @@ if grep -n -E 'ERROR\]|SEVERE|Exception' "$SERVER_LOG" \
         -e 'https://api.github.com/repos/retrooper/packetevents/releases/latest' >&2; then
   fail "the server log has errors (above)"
 fi
-[[ $bots_status -eq 0 ]] || { tail -n 60 "$SERVER_LOG" >&2; fail "the bots stopped with status $bots_status"; }
+[[ $bots_status -eq 0 ]] || { tail -n 60 "$SERVER_LOG" >&2; fail "the arena bots stopped with status $bots_status"; }
+[[ $visibility_status -eq 0 ]] || { tail -n 60 "$SERVER_LOG" >&2; fail "the visibility bots stopped with status $visibility_status"; }
 log "PASSED"

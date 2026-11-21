@@ -87,13 +87,14 @@ Avant chaque installation sur ton PC : copie du dossier `plugins/` du serveur.
 - Liens officiels de Rago Client et de Rago Optimizer, et les skins voulus pour leurs PNJ (5.6 A).
 - Pseudo exact du compte « Woryes » pour le skin de `nativ` (5.6 C).
 - L'image de référence du lobby (5.2) : elle n'est pas dans les fichiers du projet.
-- Les spawns Hypixel de référence pour First Rush : sur quelles maps le spawn est trop en avant,
-  et la position de référence (capture F3 sur Hypixel, ou coordonnées) (1.7).
+- Les spawns Hypixel de référence pour First Rush (1.7) : tu as donné les maps (« Gelato, Nebuc
+  etc. ») ; il manque la position de référence de chaque spawn (capture F3 sur Hypixel, ou
+  coordonnées).
 - Les maps de Bed Break Simulation où les forges ne marchent pas (1.6), si tu les connais.
-- Les étapes exactes du bug de reset (1.1) : quelle map, après combien de parties, avec un
-  redémarrage du serveur ou non, Block Edit duel ou contre le bot.
-- Pour la visibilité au lobby (1.3) : en revenant de quel mode, si un relog le corrige, si tous
-  les joueurs voient le même joueur invisible.
+- ~~Les étapes exactes du bug de reset (1.1)~~ : répondu (« Block Placement, Block edit, après
+  quelques games, même avec un redémarrage ») ; bug reproduit et corrigé.
+- Pour la visibilité au lobby (1.3) : tu as répondu « quand le joueur rejoint le serveur, et
+  seulement de mon point de vue ». Reste à savoir si un relog le corrige.
 - Probabilités et cosmétiques du Daily Chest (5.5) : je proposerai des valeurs, à valider.
 - Hébergement (8.1) : budget 30 €/mois confirmé ; achat du domaine (8.2) : à faire par toi.
 
@@ -113,7 +114,7 @@ informations manquantes.
 
 | # | Tâche | Cat. | Prio | Statut | Fichiers | Dépend de | Tests | Manque |
 | --- | --- | --- | --- | --- | --- | --- | --- | --- |
-| 1.1 | Reset des arènes (Block Placement 1v1, Block Edit, autres) | Arènes | P0 | EN COURS | `Arena`, `PracticeGames`, `PracticeGame`, `MapZones`, `MapCopy` ; `Instance` (Bed Wars) | — | parties consécutives sur la même zone, avec bots | étapes exactes du bug |
+| 1.1 | Reset des arènes (Block Placement 1v1, Block Edit, autres) | Arènes | P0 | IMPLÉMENTÉ | `Arena`, `PracticeGames`, `PracticeGame`, `MapZones`, `MapCopy` ; `Instance` (Bed Wars) | — | test réel en CI (`run-arena-test.sh`, 2 bots) ; en jeu sur tes maps | — |
 | 1.2 | Spectator : jamais en Survival, intouchable, invisible, retour au lobby, ouvert à tous, message aux joueurs | Social | P0 | IMPLÉMENTÉ | `BuildListener` (build-tools), `Spectators` (practice), `Watchers` (bedwars), `Spectating`, `LobbyService`, `RagoLobby` | — | tests unitaires ; en jeu : /spectate d'un duel et d'une partie Bed Wars, se faire viser, /kill, /spawn | — |
 | 1.3 | Joueurs invisibles au spawn (seul le nametag « UNRANKED » visible) | Lobby | P0 | EN COURS | `HeadLines`, `Visibility`, `Nicks`, `LobbyScoreboard`, `FakeEntities` | — | à reproduire | conditions du bug |
 | 1.4 | Audit complet des statistiques (kills, games played, double comptage, par mode) | Stats | P0 | IMPLÉMENTÉ | `StatsBook`, `StatsService`, `LobbyService`, `RagoLobby`, `BedwarsGame`, `Lineup`, `BedBreakGame`, `InvisGame`, `FfaGame`, `FastShopGame`, `TopBridgeGame`, `Duel`, `BlockFight`, `FireballFight` | — | tests unitaires ; en jeu : voir le journal | — |
@@ -247,24 +248,50 @@ d'une partie Bed Wars (Lobby Fight), essayer de frapper le spectateur et de le f
 `/gamemode survival` pendant le spectate (refusé), `/kill` du spectateur (il reste spectateur),
 `/spawn` (retour au lobby), fin de la partie (retour au lobby).
 
-### 1.1 Reset des arènes — EN COURS
+### 1.1 Reset des arènes — IMPLÉMENTÉ (21/11)
 
-Analyse du système commun practice (`Arena`) : chaque pose (`BlockPlaceEvent`, état remplacé),
-casse et explosion passe par `Arena.placed` / `removed` / `touch`, et `restore` remet tout à la
-fin de chaque manche, de la partie, d'un abandon et de l'arrêt du plugin. Aucun mode practice ne
-pose de bloc sans passer par `Arena` (vérifié : aucun `setType` hors `Arena`, `MapCopy` et la
-plateforme du sumo). Le monde `arenes` est refait à chaque démarrage (fichier `rago-arenas.txt`
-présent chez toi). Les logs de ton serveur ne montrent aucune erreur pendant un reset.
+**Fonctionnement** : toutes les arènes practice passent par `Arena` : chaque pose
+(`BlockPlaceEvent`, état remplacé), casse et explosion est notée (`placed` / `removed` /
+`touch`), et `restore` remet tout à la fin de chaque manche, de la partie, d'un abandon et de
+l'arrêt du plugin. Le monde `arenes` est refait à chaque démarrage. Bed Wars a son propre système
+(`Instance`, une copie de la map par partie, remise par positions) : il n'a pas ce bug.
 
-Une faille liée trouvée : un joueur qui n'est pas dans la partie (un spectateur remis en
-Survival, voir 1.2) pouvait poser et casser dans le monde des arènes sans que rien ne le note ni
-ne l'en empêche. Fermée : RagoPractice refuse maintenant toute pose, casse et vidage de seau dans
-le monde `arenes` à qui ne joue pas une partie (un spectateur, un admin, un joueur sorti de sa
-partie). Pas encore testé en jeu.
+**Cause principale, reproduite par un test réel** : un nouveau test (`tools/lobby-check/run-arena-test.sh`,
+dans la CI à chaque pull request) lance un vrai serveur PandaSpigot 1.8.8 avec deux bots qui
+enchaînent les parties de Block placement 1v1, Block edit 1v1 et l'entraînement Block edit sur la
+même zone, posent et cassent des blocs (laine, échelle, end stone), finissent les parties de
+toutes les façons, et vérifient bloc par bloc, au début de chaque partie, que la zone est
+exactement comme construite. Son premier passage a échoué : après **Play again** (ou Leave, `/l`)
+cliqué sur l'écran de fin, la partie suivante dans la même zone retrouvait les blocs de la partie
+d'avant. Les joueurs partis, le serveur décharge les chunks de la zone avant le reset (3 s après
+la fin) ; les blocs gardés depuis les événements pointent encore vers ces chunks déchargés, ce
+qui est posé à travers eux est perdu, et les chunks reviennent du disque tels que la partie les a
+laissés. Cela explique « après quelques games, même après un redémarrage » : il suffit que tout
+le monde quitte l'écran de fin avant les 3 s. **Correction** : le reset pose chaque bloc à
+travers le monde (`Arena.setBack`), qui recharge le chunk. Après la correction, le test passe :
+10 parties commencées dans une zone déjà jouée, chacune exactement comme construite, aucune
+erreur dans le journal du serveur.
 
-Suite : reproduire avec des bots (deux parties de Block placement 1v1 puis de Block edit sur la
-même zone, avec blocs posés, échelles, casse d'un bloc qui porte une échelle) et vérifier la zone
-bloc par bloc ; il me faut aussi les étapes exactes que tu as vues.
+**Deux autres causes, trouvées sur tes maps Block Placement** (lecture des fichiers de la map) :
+les trappes, portillons et portes ouverts d'un clic restaient ouverts pour les parties suivantes
+(aucun événement ne dit qu'ils ont changé) : ils sont maintenant notés au clic et refermés au
+reset (`Arena.clicked`). Et l'herbe sous un bloc posé devenait de la terre (plaques de terre qui
+s'accumulent) : plus rien ne change tout seul dans le monde `arenes` (herbe, glace, neige,
+feuilles ; le feu s'éteint toujours).
+
+**Autres modes à blocs** : tous les modes practice utilisent le même `Arena` (Block placement 2v2,
+Block In, Clutch, Fast defense, Extend, Bridge, Fireball fight, Block Arena, trainings) : la
+correction vaut pour eux. Le test réel ne couvre que Block placement 1v1, Block edit 1v1 et
+l'entraînement Block edit.
+
+**Tests** : test réel en CI (ci-dessus), tests unitaires `ArenaRestoreTest` (trappe, portillon,
+porte, zone quittée). **Pas testé en jeu sur tes maps** (le serveur de test de la CI n'a pas tes
+maps : les trappes et l'herbe sont couvertes par les tests unitaires seulement). À tester :
+plusieurs parties de Block placement sur tes maps en cliquant Play again sur l'écran de fin, en
+ouvrant les trappes et portillons, et en laissant des blocs posés une minute sur l'herbe.
+
+Une faille liée, fermée plus tôt : un joueur qui n'est pas dans une partie (spectateur, admin)
+ne peut plus poser ni casser dans le monde `arenes`.
 
 ### 1.5 Kit Bedfight — IMPLÉMENTÉ (21/11)
 

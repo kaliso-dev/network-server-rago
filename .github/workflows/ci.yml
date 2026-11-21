@@ -330,9 +330,10 @@ jobs:
           if-no-files-found: warn
 
   # Two bots play the block modes of RagoPractice several times in a row, ending the games in every
-  # way: each zone played again must be exactly as built (tools/lobby-check/run-arena-test.sh).
+  # way: each zone played again must be exactly as built; then two others check that a player who
+  # joins is seen by the one waiting in the lobby (tools/lobby-check/run-arena-test.sh).
   arena-test:
-    name: Arena reset test (PandaSpigot 1.8.8, Java 21)
+    name: Arena reset and lobby visibility test (PandaSpigot 1.8.8, Java 21)
     runs-on: ubuntu-latest
     timeout-minutes: 20
     steps:
@@ -356,7 +357,7 @@ jobs:
       - run: npm ci
         working-directory: tools/kb-control/bots
 
-      - name: Run the arena reset test
+      - name: Run the arena reset and lobby visibility test
         env:
           # The test starts a Minecraft server, which requires accepting the Minecraft EULA:
           # https://aka.ms/MinecraftEULA

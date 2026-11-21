@@ -67,7 +67,7 @@ le script refuse de démarrer sans `KB_ACCEPT_EULA=true`. Réglages : `KB_SERVER
 serveur), `KB_PORT` (25565) et `LOBBY_RUN_DIR` (`lobby-run` à la racine du dépôt, où restent le
 journal et le dossier du serveur). La CI le lance à chaque pull request, sous Java 8 et Java 21.
 
-## Le reset des arènes des modes à blocs
+## Le reset des arènes des modes à blocs, et la visibilité au lobby
 
 `run-arena-test.sh` lance le même serveur, avec Block placement gagné à 10 points (une chute
 dans le vide en donne 10) et Block edit à 2. Deux bots (`tools/kb-control/bots/arena-bots.mjs`)
@@ -87,6 +87,14 @@ la première zone libre de sa rangée : une partie après l'autre se joue dans l
    un point, et le mur entier pour la manche suivante) ;
 3. l'entraînement Block edit contre le bot : des trous dans le mur et de la laine remise, puis
    `/spawn`, deux fois.
+
+Sur le même serveur, deux autres bots (`tools/kb-control/bots/visibility-bots.mjs`) vérifient
+ensuite qu'un joueur qui arrive sur le serveur est vu par celui qui attend au spawn du lobby, et le
+voit : chaque bot enregistre tous les paquets reçus sur les joueurs, et le corps de l'autre doit
+arriver après son entrée dans la tab list (un client 1.8.9 ne dessine pas le corps d'un joueur
+qu'il ne connaît pas encore : il ne reste que la ligne au-dessus du nom), ni en mode spectateur ni
+invisible. Les arrivées : la première fois, en revenant du lobby, après avoir quitté le serveur
+pendant une training, pendant un duel, et l'arrivée de celui qui attendait.
 
 ```bash
 ./gradlew build
