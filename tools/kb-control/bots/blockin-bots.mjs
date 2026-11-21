@@ -135,7 +135,8 @@ function story (events, from = 0) {
 async function place (bot, against, face, where) {
   await waitFor(() => bot.blockAt(against) != null && bot.blockAt(against).name !== 'air', 3000,
     `a block at ${against} to place against (${blockText(bot.blockAt(against))})`)
-  await bot.placeBlock(bot.blockAt(against), face).catch(() => {})
+  // looking at once (the default turns the head over several ticks): the enemy comes 2 s after the first block
+  await bot._placeBlockWithOptions(bot.blockAt(against), face, { swingArm: 'right', forceLook: true }).catch(() => {})
   await waitFor(() => bot.blockAt(where)?.name === 'wool', 3000, `wool at ${where} (there: ${blockText(bot.blockAt(where))})`)
 }
 
@@ -179,31 +180,37 @@ async function main () {
   await sleep(100)
   const up = new Vec3(0, 1, 0)
   const at = (dx, dy, dz) => feet.offset(dx, dy, dz)
-  await place(bot, at(-1, -1, 0), up, at(-1, 0, 0))
-  await place(bot, at(-1, 0, 0), up, at(-1, 1, 0))
-  await place(bot, at(0, -1, -1), up, at(0, 0, -1))
-  await place(bot, at(0, 0, -1), up, at(0, 1, -1))
-  await place(bot, at(0, 0, -1), new Vec3(1, 0, 0), at(1, 0, -1))
-  await place(bot, at(1, 0, -1), new Vec3(0, 0, 1), at(1, 0, 0))
-  await place(bot, at(1, 0, 0), up, at(1, 1, 0))
-  await place(bot, at(-1, 0, 0), new Vec3(0, 0, 1), at(-1, 0, 1))
-  await place(bot, at(-1, 0, 1), new Vec3(1, 0, 0), at(0, 0, 1))
-  await place(bot, at(0, 0, 1), up, at(0, 1, 1))
+  // a block to place against broken meanwhile by the enemy goes back first
+  const build = async (against, face, where) => {
+    if (bot.blockAt(against)?.name === 'air') await putBack(bot, against)
+    await place(bot, against, face, where)
+  }
+  await build(at(-1, -1, 0), up, at(-1, 0, 0))
+  await build(at(-1, 0, 0), up, at(-1, 1, 0))
+  await build(at(0, -1, -1), up, at(0, 0, -1))
+  await build(at(0, 0, -1), up, at(0, 1, -1))
+  await build(at(0, 0, -1), new Vec3(1, 0, 0), at(1, 0, -1))
+  await build(at(1, 0, -1), new Vec3(0, 0, 1), at(1, 0, 0))
+  await build(at(1, 0, 0), up, at(1, 1, 0))
+  await build(at(-1, 0, 0), new Vec3(0, 0, 1), at(-1, 0, 1))
+  await build(at(-1, 0, 1), new Vec3(1, 0, 0), at(0, 0, 1))
+  await build(at(0, 0, 1), up, at(0, 1, 1))
   const sides = [[1, 0], [-1, 0], [0, 1], [0, -1]]
   const walls = new Set()
   for (const [dx, dz] of sides) {
     walls.add(key(at(dx, 0, dz)))
     walls.add(key(at(dx, 1, dz)))
   }
+  // the enemy comes 2 s after the first block, and may break one while the bot builds: put back
+  const wallAt = (wall) => new Vec3(...wall.split(',').map(Number))
+  for (let round = 0; ; round++) {
+    const open = [...walls].filter((wall) => bot.blockAt(wallAt(wall))?.name !== 'wool')
+    if (open.length === 0) break
+    if (round >= 5) throw new Error(`cannot block itself in: ${open.join(', ')} still open; ${story(events)}`)
+    for (const wall of open) await putBack(bot, wallAt(wall))
+  }
   const closed = events.now()
   const fromClosed = events.length
-  for (const wall of walls) {
-    const [x, y, z] = wall.split(',').map(Number)
-    const block = bot.blockAt(new Vec3(x, y, z))
-    if (block?.name !== 'wool') {
-      throw new Error(`not blocked in after ${closed} ms: ${blockText(block)} at ${wall} (the enemy came while the bot built?); ${story(events)}`)
-    }
-  }
   log(`blocked in, the four sides at the feet and at the head, in ${closed} ms`)
 
   // 2. its first break: cracks first, then the block goes; no hit before
