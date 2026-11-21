@@ -76,7 +76,8 @@ const POINTS_TO_WIN = 3
 // run-lobby-test.sh places the NPC of the Duels category (point duels), a stats NPC
 // (profil), a wall of leaderboards (leaderboards), the main leaderboard
 // (top) and the kills leaderboard (joueurs) around the spawn. The points
-// are at y = 65; each NPC stands a block higher, on the block of polished andesite put at its point.
+// are at y = 65; each NPC stands a block higher, on the block put at its point (its bloc: in the
+// bundled config.yml: quartz under the Duels NPC, iron under the stats NPC).
 const DUELS_NPC = { x: 3.5, y: 66, z: 0.5 }
 const STATS_NPC = { x: -3.5, y: 66, z: 0.5 }
 const MAIN_BOARD = { x: 0.5, z: 5.5 }
@@ -362,6 +363,12 @@ async function checkDuelsNpc (bot) {
       .filter((e) => e.type === 'player').map((e) => [e.username, e.position]))}`)
   const npc = npcAt(bot, DUELS_NPC)
   await waitFor(() => npc.heldItem?.name === 'iron_sword', 5000, `the Duels NPC holding a sword (holds ${npc.heldItem?.name})`)
+  // plan 5.3: an NPC to play stands on quartz, the stats NPC on iron (bloc: of the bundled config)
+  const V = bot.entity.position.constructor
+  const under = (where) => bot.blockAt(new V(where.x, where.y - 1, where.z))?.name
+  await waitFor(() => under(DUELS_NPC) === 'quartz_block' && under(STATS_NPC) === 'iron_block', 5000,
+    `the Duels NPC on quartz and the stats NPC on iron (they stand on ${under(DUELS_NPC)} and ${under(STATS_NPC)})`)
+  log('the Duels NPC stands on quartz, the stats NPC on iron')
   const team = bot.teamMap?.[npc.username]
   if (team?.team !== 'pnj' || team.nameTagVisibility !== 'never') {
     throw new Error(`the name tag of ${JSON.stringify(npc.username)} is not hidden: team ${team?.team}, ${team?.nameTagVisibility}`)

@@ -12,10 +12,11 @@ import org.bukkit.block.Block;
 import org.bukkit.entity.Player;
 
 /**
- * The daily reward chest of the spawn, as on Hypixel: a chest on the point "daily" (/lobby point
- * daily, where the chest goes), with lines above it that tell each player whether their reward
- * waits, and their streak. A click on it claims the reward (the same as /daily). Without the
- * point, there is no chest: /daily and the profile still give the reward. Main thread only.
+ * The daily reward chest of the spawn, as on Hypixel: a chest on its point ("daily", /lobby point
+ * daily, where the chest goes; point-coffre-du-jour: in config.yml names another one), with lines
+ * above it that tell each player whether their reward waits, and their streak. A click on it
+ * claims the reward (the same as /daily). Without the point, there is no chest: /daily and the
+ * profile still give the reward. Main thread only.
  */
 final class DailyChest {
 
@@ -29,9 +30,9 @@ final class DailyChest {
         this.profiles = profiles;
     }
 
-    /** Puts the chest and its lines on the point, after the NPCs (which clear every hologram). */
-    void place(LobbyPoints points, World world, FakeEntities fakes) {
-        SpawnPoint point = points.get(POINT);
+    /** Puts the chest and its lines on its point, after the NPCs (which clear every hologram). */
+    void place(LobbyPoints points, String pointName, World world, FakeEntities fakes) {
+        SpawnPoint point = points.get(pointName);
         Block at = point == null ? null : point.in(world).getBlock();
         if (chest != null && !chest.equals(at) && chest.getType() == Material.CHEST) {
             chest.setType(Material.AIR);

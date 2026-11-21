@@ -408,11 +408,14 @@ dans les files d'attente des modes de jeu.
 - **Le coffre de la récompense du jour.** `/lobby point daily` pose un coffre à cet endroit (au
   spawn), avec au-dessus « DAILY REWARD », si la récompense attend ou dans combien de temps vient
   la suivante, et la série de jours. Un clic dessus la donne, comme `/daily`.
+  `point-coffre-du-jour:` dans config.yml lui donne un autre point (`newdailychest` sur le
+  serveur de test, posé sur un bloc de diamant).
 - **Le PNJ des quêtes.** À deux blocs du coffre de la récompense du jour (trois si la place est
   prise), du côté le plus loin des autres PNJ, face au spawn : un PNJ dans son skin (`quetes`),
   un livre à la main, avec au-dessus « QUESTS », où en est chacun (« Daily 2/4 · Weekly 0/4 »,
   avec « Start 1/5 » devant tant que Getting started n'est pas fini) et « Click to see them ». Un clic dessus (ou sur ses lignes) ouvre les quêtes du jour et de la
-  semaine, comme `/quests`. `/lobby point quests` le place ailleurs ; sans coffre ni ce point, il
+  semaine, comme `/quests`. `/lobby point quests` le place ailleurs (`point-pnj-quetes:` dans
+  config.yml lui donne un autre point : `newquest` sur le serveur de test) ; sans coffre ni ce point, il
   n'y en a pas.
 - **Le clic sur un joueur.** Un clic droit sur un joueur du lobby ouvre son menu : sa tête avec
   son rang, son niveau et ses divisions, un duel (le choix du mode), ses stats (par catégorie, puis mode par mode), une
@@ -578,6 +581,12 @@ config.yml fourni les suit :
   modes restent dans la boussole et dans les menus des quatre. Un PNJ de catégorie montre le
   slogan de sa catégorie sous son nom, un autre PNJ une ligne à lui avec `sous-titre:`. Les PNJ
   réapparaissent quand un point bouge.
+- `bloc:` sous un PNJ choisit le bloc sur lequel il se tient (plan 5.3) : posé là où étaient ses
+  pieds sur son point, le PNJ un bloc plus haut, comme l'andésite polie d'avant (sans `bloc:`). Un
+  nom ou un id, avec la data après deux-points (`QUARTZ_BLOCK`, `"STONE:6"`, `"159:14"`). Si ce
+  bloc est déjà sous le point (posé à la main), le PNJ se tient dessus et rien n'est posé. Le
+  config.yml fourni met du quartz sous les PNJ des façons de jouer et Private game, du fer sous
+  les PNJ de stats et de l'émeraude sous le Shop.
 - `skin:` sous un PNJ lui donne un skin : `skins/<nom>.png` dans le dossier du plugin (64x64, le
   vôtre), sinon celui de ce nom dans le jar. Le jar en a un par mode, originaux : `ranked` (armure
   de diamant et trophée), `prive` (costume et lunettes noires), `ffa` (bandeau rouge, épées

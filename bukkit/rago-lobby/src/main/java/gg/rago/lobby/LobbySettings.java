@@ -30,6 +30,11 @@ final class LobbySettings {
     private List<FirstChoice> firstChoices = Collections.emptyList();
     /** The billboards of the lobby ({@link Billboards}): none without panneaux:. */
     private List<Billboard> billboards = Collections.emptyList();
+    /** The block under each NPC that has one in config.yml (pnj: ... bloc:), by point. */
+    private Map<String, Pedestal> pedestals = Collections.emptyMap();
+    /** The points of the daily reward chest and of the quests NPC. */
+    private String dailyPoint = DailyChest.POINT;
+    private String questsPoint = QuestsNpc.POINT;
     private final String title;
     private final String address;
     private final int defaultRating;
@@ -167,6 +172,9 @@ final class LobbySettings {
         }
         List<FirstChoice> firstChoices = readFirstChoices(config.getConfigurationSection("premiere-venue"), modes, categories);
         List<Billboard> billboards = Billboard.read(config.getConfigurationSection("panneaux"));
+        Map<String, Pedestal> pedestals = readPedestals(config.getConfigurationSection("pnj"));
+        String dailyPoint = pointName(config, "point-coffre-du-jour", DailyChest.POINT);
+        String questsPoint = pointName(config, "point-pnj-quetes", QuestsNpc.POINT);
         try {
             LobbySettings settings = new LobbySettings(world, voidHeight, title, address, defaultRating, window, categories,
                     groups, modes, npcs, levels, hypixelKey, privateRoutes);
@@ -176,6 +184,9 @@ final class LobbySettings {
             settings.welcome = config.getBoolean("accueil", true);
             settings.firstChoices = Collections.unmodifiableList(firstChoices);
             settings.billboards = billboards;
+            settings.pedestals = Collections.unmodifiableMap(pedestals);
+            settings.dailyPoint = dailyPoint;
+            settings.questsPoint = questsPoint;
             return settings;
         } catch (IllegalArgumentException e) {
             throw new IllegalArgumentException("modes: " + e.getMessage(), e);
@@ -828,6 +839,51 @@ final class LobbySettings {
     /** The billboards of the lobby (panneaux:); empty: none. */
     List<Billboard> billboards() {
         return billboards;
+    }
+
+    /** The block the NPC of this point stands on: its bloc:, else polished andesite. */
+    Pedestal pedestal(String point) {
+        Pedestal pedestal = pedestals.get(point);
+        return pedestal == null ? Pedestal.ANDESITE : pedestal;
+    }
+
+    /** The point of the daily reward chest (point-coffre-du-jour:, daily without it). */
+    String dailyPoint() {
+        return dailyPoint;
+    }
+
+    /** The point of the quests NPC (point-pnj-quetes:, quests without it). */
+    String questsPoint() {
+        return questsPoint;
+    }
+
+    /** The bloc: of each NPC of pnj: that has one. */
+    static Map<String, Pedestal> readPedestals(ConfigurationSection section) {
+        Map<String, Pedestal> pedestals = new HashMap<>();
+        if (section == null) {
+            return pedestals;
+        }
+        for (String point : section.getKeys(false)) {
+            ConfigurationSection npc = section.getConfigurationSection(point);
+            if (npc == null || !npc.isSet("bloc")) {
+                continue;
+            }
+            try {
+                pedestals.put(point, Pedestal.parse(String.valueOf(npc.get("bloc"))));
+            } catch (IllegalArgumentException e) {
+                throw new IllegalArgumentException("pnj." + point + ".bloc: " + e.getMessage(), e);
+            }
+        }
+        return pedestals;
+    }
+
+    /** A point name of config.yml (a name of /lobby point), or its default without the key. */
+    private static String pointName(ConfigurationSection config, String key, String fallback) {
+        String name = config.getString(key, fallback).trim();
+        if (!LobbyPoints.validName(name)) {
+            throw new IllegalArgumentException(key + ": \"" + name + "\" is not a point name of /lobby point");
+        }
+        return name;
     }
 
     double slimeForward() {

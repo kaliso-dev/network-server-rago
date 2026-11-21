@@ -1063,8 +1063,8 @@ public final class RagoLobby extends JavaPlugin implements LobbyService {
      */
     private int placeDecor() {
         int placed = npcs.spawnAll();
-        daily.place(points, state.world(), fakes);
-        questsNpc.place(points, state.world(), state.spawn(), fakes);
+        daily.place(points, settings.dailyPoint(), state.world(), fakes);
+        questsNpc.place(points, settings.questsPoint(), settings.dailyPoint(), state.world(), state.spawn(), fakes);
         billboards.place(points, state.spawn(), fakes);
         for (PluginBoard board : pluginBoards.values()) {
             SpawnPoint point = points.get(board.point);

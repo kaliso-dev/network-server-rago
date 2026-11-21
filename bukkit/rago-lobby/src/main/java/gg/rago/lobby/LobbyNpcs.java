@@ -125,7 +125,7 @@ final class LobbyNpcs implements Listener {
             keptChunks.add(key(chunk.getX(), chunk.getZ()));
             removeOldStands(base);
             if (npc.kind() != LobbyNpc.Kind.LEADERBOARDS) {
-                base = onPedestal(base);
+                base = onPedestal(base, settings.pedestal(npc.point()));
                 removeOldStands(base);
             }
             if (npc.kind() == LobbyNpc.Kind.LEADERBOARDS) {
@@ -171,18 +171,23 @@ final class LobbyNpcs implements Listener {
     }
 
     /**
-     * As on Hypixel, a figure stands one block higher than its point, on a block of polished andesite
-     * put where its feet were. The same block each start: nothing piles up.
+     * As on Hypixel, a figure stands one block higher than its point, on its block (polished
+     * andesite, or its bloc: in config.yml) put where its feet were. The same block each start:
+     * nothing piles up. When the block of its bloc: is already under the point (the builder put it
+     * there), the figure stands on it, on its point, and nothing is put.
      */
-    @SuppressWarnings("deprecation") // Block#setTypeIdAndData: the 1.8 way to set the data of a block
-    static Location onPedestal(Location point) {
+    @SuppressWarnings("deprecation") // Block#getData, Block#setTypeIdAndData: the 1.8 way to the data of a block
+    static Location onPedestal(Location point, Pedestal pedestal) {
         org.bukkit.block.Block feet = point.getBlock();
-        feet.setTypeIdAndData(Material.STONE.getId(), POLISHED_ANDESITE, false);
+        org.bukkit.block.Block under = feet.getRelative(org.bukkit.block.BlockFace.DOWN);
+        if (pedestal.builtUnder(under.getType(), under.getData())) {
+            Location on = point.clone();
+            on.setY(Math.floor(point.getY()));
+            return on;
+        }
+        feet.setTypeIdAndData(pedestal.material().getId(), pedestal.data(), false);
         return pedestalTop(point);
     }
-
-    /** The data of polished andesite, a stone in 1.8. */
-    static final byte POLISHED_ANDESITE = 6;
 
     /** Where a figure stands on the pedestal put at its point: on top of that block. */
     static Location pedestalTop(Location point) {

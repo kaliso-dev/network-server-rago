@@ -160,7 +160,7 @@ informations manquantes.
 | 4.1b | Sons dans les replays : étude de faisabilité | Replays | P3 | TESTÉ en CI : faisable ; sons envoyés par le serveur et blocs cassés enregistrés et rejoués ; test unitaire et test réel à 2 bots passés (run 339) ; à écouter en jeu | `ReplayRecorder`, `ReplayData` | — |
 | 4.2 | `/host` : annonce cliquable toutes les 10 s ; inscription gardée sans téléporter ; départ quand assez de joueurs | Events | P1 | TESTÉ en CI (21/11, run 341, Java 8 et 21) : annonce toutes les 10 s, inscription sans téléporter, départ quand assez d'inscrits sont hors partie ; test réel à 3 bots passé ; à voir en jeu | `Events`, `EventGame`, `PracticeHost`, `HostWatcher` | — |
 | 4.3 | Kit Editor plus clair et trié | Kits | P2 | TESTÉ en CI (21/11, run 342, Java 8 et 21) : kits rangés par catégorie et par nom, « Also for », Save et Cancel ramènent à la liste ; à voir en jeu | `KitEditor`, `KitLayouts` | — |
-| 4.4 | Menu Stats : présentation, catégories, navigation | Stats | P2 | IMPLÉMENTÉ (21/11) : une page des catégories du sélecteur avec les totaux de chacune, un clic montre ses modes, Go back ramène aux catégories ; tests unitaires écrits, CI à venir | `StatsMenu` | — |
+| 4.4 | Menu Stats : présentation, catégories, navigation | Stats | P2 | TESTÉ en CI (21/11, run 343, Java 8 et 21) : une page des catégories du sélecteur avec les totaux de chacune, un clic montre ses modes, Go back ramène aux catégories ; à voir en jeu | `StatsMenu` | — |
 | 4.5 | `/discord` et `/store` avec les liens officiels | Cmd | P1 | BLOQUÉ | `config.yml` (`liens`), `ServerSettings` | liens officiels (C6) |
 
 ### Étape 6 : lobby (Phase 5)
@@ -169,10 +169,10 @@ informations manquantes.
 | --- | --- | --- | --- | --- | --- | --- |
 | 5.1 | Direction artistique : moins de rouge, identité Rago gardée | DA | P2 | À FAIRE | `Brand`, `config.yml`, menus, scoreboard | palette à valider |
 | 5.2 | Build monumental « RAGO PRACTICE » (rocheux, angélique, stone, void), sans détruire le spawn : plan précis d'abord | Build | P2 | BLOQUÉ | monde `lobby` | image de référence |
-| 5.3 | Blocs sous PNJ : Jouer quartz, Stats fer, Shop émeraude | Lobby | P1 | À FAIRE | `LobbyNpcs`, points `practice`/`statsjoueur*`/`shop` | — |
-| 5.4a | `NewQuest` relié aux quêtes | Lobby | P1 | À FAIRE | `QuestsNpc`, point `newquest` | — |
-| 5.4b | `NewShop` sur émeraude | Lobby | P1 | À FAIRE | `LobbyNpcs`, point `newshop` | — |
-| 5.4c | `NewDailyChest` sur diamant | Lobby | P1 | À FAIRE | `DailyChest`, point `newdailychest` | — |
+| 5.3 | Blocs sous PNJ : Jouer quartz, Stats fer, Shop émeraude | Lobby | P1 | IMPLÉMENTÉ (21/11), CI en cours : `bloc:` sous chaque PNJ dans config.yml ; quartz sous les 5 PNJ pour jouer, fer sous les PNJ de stats, émeraude sous le Shop ; à voir en jeu | `Pedestal`, `LobbyNpcs`, `LobbySettings`, `config.yml` (`pnj:`) | — |
+| 5.4a | `NewQuest` relié aux quêtes | Lobby | P1 | IMPLÉMENTÉ (21/11), CI en cours : le PNJ des quêtes (clic = `/quests`) va sur le point choisi par `point-pnj-quetes:` (`newquest` pour ton serveur) ; à voir en jeu | `QuestsNpc`, `LobbySettings`, point `newquest` | — |
+| 5.4b | `NewShop` sur émeraude | Lobby | P1 | IMPLÉMENTÉ (21/11), CI en cours : le PNJ Shop passe du point `shop` au point `newshop` (config de ton serveur), sur ton bloc d'émeraude ; à voir en jeu | `LobbyNpcs`, `Pedestal`, point `newshop` | — |
+| 5.4c | `NewDailyChest` sur diamant | Lobby | P1 | IMPLÉMENTÉ (21/11), CI en cours : le coffre du jour va sur le point choisi par `point-coffre-du-jour:` (`newdailychest` pour ton serveur), sur ton bloc de diamant ; à voir en jeu | `DailyChest`, `LobbySettings`, point `newdailychest` | — |
 | 5.5 | Daily Chest : animation à suspense, Rago Points 100–500, XP 100–2000, cosmétiques, probabilités configurables, jamais de doublon | Lobby | P2 | À FAIRE | `DailyChest`, `LobbyPoints`, `Cosmetic` | probabilités |
 | 5.6A | `RagoClient` et `RagoOptimizer` : nom, skin, diamant, liens au clic, texte « OUR OTHER PRODUCTS », visuels publicitaires existants derrière | Lobby | P2 | BLOQUÉ | `LobbyNpcs`, `Billboards`, `panneaux/` | liens, skins |
 | 5.6B | `qRago` (Owner) et `Kalisodev` (kaliso_dev, Dev) sur obsidienne, surélevés d'un bloc | Lobby | P2 | À FAIRE | `LobbyNpcs`, `NpcSkins` | — |
@@ -218,7 +218,58 @@ informations manquantes.
 
 ## 3. Journal des corrections
 
-### 4.4 Menu Stats — IMPLÉMENTÉ (21/11), CI à venir
+### 5.3 et 5.4 Blocs sous les PNJ, NewQuest, NewShop, NewDailyChest — IMPLÉMENTÉ (21/11), CI en cours
+
+**Demande** : « Blocs sous les PNJ principaux : PNJ Jouer = Quartz, PNJ Stats du Joueur = Fer, PNJ
+Shop = Émeraude » et « NewQuest : PNJ des quêtes. Le relier au système de quêtes. NewShop : PNJ du
+Shop. Le faire apparaître sur un bloc d'émeraude. NewDailyChest : Coffre des récompenses
+quotidiennes. Le placer sur un bloc de diamant. »
+
+**Analyse** (avant le changement) :
+- Chaque PNJ du lobby (sauf les murs de classement) se tient un bloc plus haut que son point, sur un
+  bloc d'andésite polie que le plugin pose à la place de ses pieds. Le bloc était fixe dans le code :
+  aucun moyen d'en choisir un autre.
+- Dans ton monde `lobby` (points.yml du 16/11 et fichiers de région) : l'andésite du plugin est sous
+  `practice`, `rbw`, `duels`, `arenas`, `prive`, `shop` (3, 65, 11), `profil2` et
+  `newleaderboardselector`. Le point `profil` n'existe plus (tu l'as retiré).
+- Tes nouveaux points : `newshop` (13.7, 66, 19.5) avec des blocs d'émeraude posés à la main à
+  y 64 et 65 ; `newdailychest` (13.5, 66, 23.5) avec un bloc de diamant à y 65 ; `newquest`
+  (7.5, 65, 10.6) sur le sol de pierre.
+- Le coffre du jour était lié au point `daily` (aujourd'hui en (-2, 65, 11)) et le PNJ des quêtes
+  au point `quests` (à côté du coffre sans ce point), tous deux fixés dans le code. Le PNJ des
+  quêtes est déjà relié au système de quêtes (un clic ouvre `/quests`).
+
+**Lectures choisies** :
+- « PNJ Jouer » : les 5 PNJ pour jouer (Practice, RBW Modes, Duels, Arenas et Private game).
+- NewShop, NewDailyChest et NewQuest remplacent le Shop, le coffre et le PNJ des quêtes actuels
+  (ils changent de place, sans doublon) : un seul Shop, un seul coffre, un seul PNJ des quêtes.
+
+**Fait** :
+- **5.3** : `bloc:` sous un PNJ dans config.yml choisit le bloc sur lequel il se tient (un nom ou un
+  id, avec la data : `QUARTZ_BLOCK`, `"STONE:6"`, `"159:14"`) ; sans `bloc:`, l'andésite polie
+  d'avant. Si ce bloc est déjà sous le point (posé à la main), le PNJ se tient dessus et rien n'est
+  posé : c'est le cas de ton émeraude sous `newshop`. Le config.yml fourni met du quartz sous les 5
+  PNJ pour jouer, du fer sous les PNJ de stats (`profil`, `profil2`) et de l'émeraude sous le Shop.
+  Un bloc qui n'est pas un bloc plein (`DIAMOND`, `TORCH`, `AIR`, data > 15) est refusé au démarrage
+  comme les autres erreurs de config.yml (RagoLobby se désactive), avec un message qui nomme
+  `pnj.<point>.bloc`.
+- **5.4** : `point-coffre-du-jour:` et `point-pnj-quetes:` dans config.yml choisissent les points du
+  coffre et du PNJ des quêtes (`daily` et `quests` sans eux, comme avant).
+- Pour ton serveur (pas encore installé) : `serveur-de-test/install-pnj-blocs/appliquer-config.py`
+  ajoute ces blocs à ton config.yml, passe le PNJ Shop sur le point `newshop` avec l'émeraude, et
+  met `point-coffre-du-jour: newdailychest` et `point-pnj-quetes: newquest`. Rien d'autre ne
+  change dans ton config.yml.
+- **Restes à casser en jeu** après l'installation : l'ancien coffre en (-2, 65, 11) et l'andésite de
+  l'ancien Shop en (3, 65, 11). Le plugin ne les retire pas (il ne casse pas de blocs qu'il ne
+  pose plus). Les points `shop` et `daily` restent dans points.yml, sans effet.
+
+**Tests** (écrits, CI en cours) : `PedestalTest` (un bloc par son nom ou son id avec sa data ; les
+refus ; un bloc choisi déjà sous le point est gardé ; les blocs du config.yml fourni ; les points du
+coffre et du PNJ des quêtes, et les erreurs nommées). Le test du lobby sur un vrai serveur
+PandaSpigot vérifie en plus, à l'étape 1, que le PNJ Duels se tient sur du quartz et le PNJ de stats
+sur du fer. Pas encore vu avec un vrai client, ni installé sur ton serveur.
+
+### 4.4 Menu Stats — TESTÉ EN CI (21/11)
 
 **Demande** : « Menu Stats : Améliorer la présentation, les catégories et la navigation. »
 
@@ -244,10 +295,13 @@ en RBW…).
 - Sans `categories:` dans config.yml, le menu reste celui d'avant (tous les modes d'un coup).
   Rien ne change dans les fichiers de stats.
 
-**Tests écrits** (résultats à venir) : tests unitaires (`StatsMenuTest` : les cases des
-catégories, chaque mode du config.yml fourni dans sa catégorie, les totaux d'une catégorie) ; le
-test du lobby (étape 4) lit les totaux de la catégorie Duels après le Sumo (1 victoire, 3 kills),
-clique dessus, lit les stats du Sumo, puis revient aux catégories avec Go back.
+**Tests** (CI, run 343 du 21/11, commit 625a39d) : la compilation et les tests unitaires passent
+(`StatsMenuTest` : les cases des catégories, chaque mode du config.yml fourni dans sa catégorie,
+les totaux d'une catégorie) ; le test du lobby sur un vrai serveur PandaSpigot passe sous Java 8
+et Java 21 : à l'étape 4, RagoUn ouvre le menu du PNJ de stats, lit dans la catégorie Duels sa
+victoire et ses 3 kills du Sumo, clique dessus, lit les stats du Sumo dans « Your stats: Duels »,
+puis revient aux catégories avec Go back. Pas encore vérifié avec un vrai client (l'aspect des
+icônes et du texte), ni installé sur ton serveur.
 
 ### 4.3 Kit Editor — TESTÉ EN CI (21/11)
 

@@ -8,7 +8,8 @@ jouent comme des joueurs :
 1. ils arrivent dans le lobby pour la première fois : « What do you want to do? » s'ouvre un
    instant après l'accueil (quatre façons de jouer, le livre de Getting started), et ils le
    ferment ; mode aventure, la boussole, le livre de l'éditeur de kit et le
-   colorant dans la barre d'objets, le scoreboard. Le script donne au sumo un kit d'un bâton (le
+   colorant dans la barre d'objets, le scoreboard ; le PNJ Duels se tient sur un bloc de quartz
+   et le PNJ de stats sur un bloc de fer (plan 5.3). Le script donne au sumo un kit d'un bâton (le
    config.yml fourni n'en a pas) : RagoUn ouvre l'éditeur avec le livre, choisit le sumo, déplace
    le bâton de la première case à la quatrième, enregistre (Save ramène à la liste des kits), et le retrouve là en rouvrant
    l'éditeur. Le serveur de test n'a pas de clé d'API Hypixel : RagoDeux trouve l'émeraude et le
