@@ -410,6 +410,9 @@ class LobbySettingsTest {
                 "the Bed Break Simulator: the slots of the items of its three attack kits");
         assertEquals(KitItem.parse("LADDER 8"), settings.display("bed-break-simulator").kit().item(6));
         assertEquals(Material.STICK, settings.display("bed-break-simulator").kit().item(7).material());
+        assertEquals(Material.IRON_AXE, settings.display("bed-break-simulator").kit().item(8).material(),
+                "the axe and the shears of the three kits, last: the layouts saved before them stay as they were");
+        assertEquals(Material.SHEARS, settings.display("bed-break-simulator").kit().item(9).material());
 
         Kit bySlot = LobbySettings.load(yaml("modes:\n  sumo:\n    kit:\n      3: STICK\n      9: 'WOOL:14 64'\n"))
                 .display("sumo").kit();

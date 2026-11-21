@@ -1,7 +1,7 @@
 package gg.rago.bedwars;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertSame;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
@@ -26,30 +26,61 @@ class BedBreakGameTest {
             assertEquals("Stone Sword", RoundKit.label(kit.entries(catalog).get(0)), kit.name + ": a stone sword first");
         }
         assertEquals(Arrays.asList("Classic", "Fireball", "Fighter"), names);
-        assertEquals(Arrays.asList("Stone Sword", "Golden Pickaxe", "Wool x64", "Wool x64"), labels(RoundKit.BED_BREAK.get(0)),
-                "Classic: the tier III pickaxe and two stacks of blocks");
-        assertEquals(Arrays.asList("Stone Sword", "Fireball", "Iron Pickaxe", "Wool x64", "Wool x64"),
-                labels(RoundKit.BED_BREAK.get(1)), "Fireball: a fireball, the tier II pickaxe and two stacks");
-        assertEquals(Arrays.asList("Stone Sword", "Wooden Pickaxe", "Golden Apple", "Ladder x8", "Stick (Knockback I)"),
-                labels(RoundKit.BED_BREAK.get(2)), "Fighter: the tier I pickaxe, a golden apple, ladders, the knockback stick");
-        assertEquals(catalog.pickaxes().get(2), RoundKit.BED_BREAK.get(0).entries(catalog).get(1).item, "tier III");
-        assertEquals(catalog.pickaxes().get(1), RoundKit.BED_BREAK.get(1).entries(catalog).get(2).item, "tier II");
-        assertEquals(catalog.pickaxes().get(0), RoundKit.BED_BREAK.get(2).entries(catalog).get(1).item, "tier I");
+        assertEquals(Arrays.asList("Stone Sword", "Golden Pickaxe", "Iron Axe", "Permanent Shears", "Wool x64", "Wool x64"),
+                labels(RoundKit.BED_BREAK.get(0)), "Classic: the tier III pickaxe and axe, shears, two stacks of blocks");
+        assertEquals(Arrays.asList("Stone Sword", "Fireball", "Iron Pickaxe", "Stone Axe", "Permanent Shears", "Wool x64",
+                "Wool x64"), labels(RoundKit.BED_BREAK.get(1)), "Fireball: a fireball, the tier II pickaxe and axe, shears, two stacks");
+        assertEquals(Arrays.asList("Stone Sword", "Wooden Pickaxe", "Wooden Axe", "Permanent Shears", "Golden Apple", "Ladder x8",
+                "Stick (Knockback I)"), labels(RoundKit.BED_BREAK.get(2)),
+                "Fighter: the tier I pickaxe and axe, shears, a golden apple, ladders, the knockback stick");
+        // the axe of each kit has the tier of its pickaxe
+        int[] tiers = {2, 1, 0};
+        for (int k = 0; k < tiers.length; k++) {
+            RoundKit kit = RoundKit.BED_BREAK.get(k);
+            ShopItem pickaxe = null;
+            ShopItem axe = null;
+            boolean shears = false;
+            for (RoundKit.Entry entry : kit.entries(catalog)) {
+                pickaxe = entry.item.kind() == ShopItem.Kind.PICKAXE ? entry.item : pickaxe;
+                axe = entry.item.kind() == ShopItem.Kind.AXE ? entry.item : axe;
+                shears |= entry.item.kind() == ShopItem.Kind.SHEARS;
+            }
+            assertEquals(catalog.pickaxes().get(tiers[k]), pickaxe, kit.name + ": the pickaxe of tier " + (tiers[k] + 1));
+            assertEquals(catalog.axes().get(tiers[k]), axe, kit.name + ": the axe of the same tier");
+            assertTrue(shears, kit.name + ": shears");
+        }
     }
 
+    /**
+     * The attacker starts on the middle block of their bridge, standing on it, facing the next one:
+     * along the first stretch, or the second after the turn.
+     */
     @Test
-    void theAttackerStartsInTheMiddleOfTheTopBridgeFacingTheBase() {
-        MapPoint defended = new MapPoint(0, 83, 79, 0f, 0f);
-        MapPoint other = new MapPoint(0, 83, -79, 0f, 0f);
-        TopBridge bridge = TopBridge.plan(TeamColor.RED, defended, TeamColor.BLUE, other,
-                (x, y, z) -> Math.abs(z) >= 74 && Math.abs(z) <= 99 && Math.abs(x) <= 11 && y >= 76 && y <= 82);
-        assertNotNull(bridge);
-        double[] start = bridge.centre(true);
-        assertEquals(0.5, start[0], 1e-9);
-        assertEquals(100, start[1], 1e-9, "on the platform");
-        assertEquals(0.5, start[2], 1e-9, "on its white middle line");
-        assertEquals(0, start[3], 1e-3, "facing the red base, to the south");
-        assertEquals(180, Math.abs(bridge.centre(false)[3]), 1e-3, "or the other one");
+    void theAttackerStartsInTheMiddleOfTheirBridgeFacingTheWayToTheBase() {
+        List<int[]> north = new ArrayList<>();
+        for (int z = 34; z >= -34; z--) {
+            north.add(new int[] {-44, 93, z});
+        }
+        double[] start = BedBreakGame.attackerStart(north);
+        assertEquals(-43.5, start[0], 1e-9);
+        assertEquals(94, start[1], 1e-9, "standing on the middle block");
+        assertEquals(0.5, start[2], 1e-9, "z 0: the middle of 34 to -34");
+        assertEquals(180, Math.abs(start[3]), 1e-3, "facing the next block, to the north");
+
+        List<int[]> turning = new ArrayList<>();
+        for (int z = 10; z >= 0; z--) {
+            turning.add(new int[] {0, 64, z});
+        }
+        for (int x = 1; x <= 20; x++) {
+            turning.add(new int[] {x, 64, 0});
+        }
+        double[] afterTheTurn = BedBreakGame.attackerStart(turning);
+        assertEquals(5.5, afterTheTurn[0], 1e-9, "the 16th of 31 blocks");
+        assertEquals(-90, afterTheTurn[3], 1e-3, "facing the next block, to the east");
+
+        assertEquals(-90, BedBreakGame.attackerStart(Arrays.asList(new int[] {0, 64, 0}, new int[] {1, 64, 0}))[3], 1e-3,
+                "the last block: the way it came, to the east");
+        assertNull(BedBreakGame.attackerStart(new ArrayList<>()), "no bridge: no place on it");
     }
 
     @Test
@@ -61,7 +92,7 @@ class BedBreakGameTest {
         assertEquals(1, BedBreakGame.kitIndex(1, 3));
         assertEquals(0, BedBreakGame.kitIndex(5, 3), "a kit no longer in the config: the first");
         assertEquals(0, BedBreakGame.kitIndex(-1, 3));
-        assertSame(BedDefense.DUO, BedBreakGame.DEFENSE, "the owner's duo defense on the bed");
+        assertSame(BedDefense.RANKED, BedBreakGame.DEFENSE, "the Ranked defense on the bed (end stone, glass), not the duo one");
         assertEquals(2, BedBreakGame.ARMOUR_TIER, "iron armour");
         assertTrue(BedBreakGame.READY_COUNTDOWN < BedBreakGame.ROUND_COUNTDOWN);
     }

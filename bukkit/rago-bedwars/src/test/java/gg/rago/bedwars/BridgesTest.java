@@ -91,6 +91,25 @@ class BridgesTest {
         }
     }
 
+    /**
+     * Islands whose edge slopes down to the void, a block a column (Invasion's round islands): the
+     * bridge leaves from the top of the slope, over it, and reaches the top of the other, flat at
+     * the height of the islands; not under their rim, three blocks lower.
+     */
+    @Test
+    void fromTheTopOfASlopingEdgeNotUnderTheRim() {
+        Bridges.Solid solid = map(new Island(-10, 10, -40, -30, 64), new Island(-10, 10, -29, -29, 63),
+                new Island(-10, 10, -28, -28, 62), new Island(-10, 10, -27, -27, 61),
+                new Island(-15, 15, -1, -1, 61), new Island(-15, 15, 0, 0, 62), new Island(-15, 15, 1, 1, 63),
+                new Island(-15, 15, 2, 20, 64));
+        List<int[]> blocks = Bridges.plan(solid, new double[] {0.5, 65, -35.5}, new double[] {0.5, 65, 10.5});
+        walkable(solid, blocks);
+        assertEquals(31, blocks.size(), "z -29 to 1: the void and both slopes");
+        for (int i = 0; i < blocks.size(); i++) {
+            assertArrayEquals(new int[] {0, 64, -29 + i}, blocks.get(i), "flat at the islands' floor");
+        }
+    }
+
     /** Both ways with a turn blocked by towers: only then the line between them, a diagonal. */
     @Test
     void onlyWhereNoStraightWayFitsItFollowsTheDiagonal() {

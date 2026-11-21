@@ -113,8 +113,8 @@ final class Defense {
 
     /**
      * Builds a defense of the owner's around the bed this block is part of, from a template of
-     * {@link BedDefense} (end stone, and wool of this colour), on the island only. Null if the
-     * block is not a bed.
+     * {@link BedDefense} (end stone, and wool and glass of this colour), on the island only. Null if
+     * the block is not a bed.
      */
     static Defense build(Instance instance, Block bedBlock, List<String[]> template, short colour) {
         return build(instance, bedBlock, template, colour, null);
@@ -174,9 +174,10 @@ final class Defense {
             places = broken(places, hx, hz, hole[0], hole[1]);
         }
         for (int[] place : places) {
-            boolean wool = place[3] == BedDefense.WOOL;
+            Material type = place[3] == BedDefense.WOOL ? Material.WOOL
+                    : place[3] == BedDefense.GLASS ? Material.STAINED_GLASS : Material.ENDER_STONE;
             defense.add(foot, foot.getX() + place[0], foot.getY() + place[1], foot.getZ() + place[2],
-                    wool ? Material.WOOL : Material.ENDER_STONE, wool ? colour : 0);
+                    type, type == Material.ENDER_STONE ? 0 : colour);
         }
         return defense;
     }

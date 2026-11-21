@@ -235,7 +235,7 @@ groupes:
     icone: DIAMOND_PICKAXE
     description:
       - "Archway or Invasion: attack"
-      - "from the top bridge with one of"
+      - "from your bridge with one of"
       - "3 kits and break the bed; the"
       - "defenders have their forge full."
       - "Each in turn, 1v1 to 1v4."
@@ -1484,11 +1484,13 @@ modes:
     cache: true
     # the items of the three attack kits (Classic, Fireball, Fighter) of the bedwars plugin, to
     # arrange in the kit editor: each kit puts its items in their slots; a kit's Iron or Wooden
-    # Pickaxe takes the slot of the Golden one. The defenders have no kit: their forge full.
-    kit: [STONE_SWORD, GOLD_PICKAXE, "WOOL 64", "WOOL 64", FIREBALL, GOLDEN_APPLE, "LADDER 8", STICK]
+    # Pickaxe takes the slot of the Golden one, its Stone or Wooden Axe that of the Iron one (the
+    # axe and the shears last, so that the layouts saved before them stay as they were). The
+    # defenders have no kit: their forge full.
+    kit: [STONE_SWORD, GOLD_PICKAXE, "WOOL 64", "WOOL 64", FIREBALL, GOLDEN_APPLE, "LADDER 8", STICK, IRON_AXE, SHEARS]
     description:
       - "Archway or Invasion: attack"
-      - "from the top bridge with one of"
+      - "from your bridge with one of"
       - "3 kits and break the bed; the"
       - "defenders have their forge full."
       - "3-minute rounds, each in turn."

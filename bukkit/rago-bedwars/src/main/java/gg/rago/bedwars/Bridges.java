@@ -48,6 +48,11 @@ final class Bridges {
     static final int SHIFT = 3;
     /** The bridge to mid leaves from the diamond island when that way is at most this much longer. */
     static final double VIA = 1.2;
+    /**
+     * How many columns of an island's edge that slopes down to the void (Invasion's) a bridge may
+     * cover, to leave from the top of the slope and reach the top of the other.
+     */
+    static final int LIP = BELOW + 2;
     private static final int NONE = Integer.MIN_VALUE;
 
     private Bridges() {
@@ -224,6 +229,8 @@ final class Bridges {
         private final Taken taken;
         private final int low;
         private final int high;
+        /** The floor of the higher end: the top of an edge's slope is no higher. */
+        private final int level;
         private final Map<Long, Boolean> voids = new HashMap<>();
 
         Columns(Solid solid, Taken taken, int floorA, int floorB) {
@@ -231,6 +238,7 @@ final class Bridges {
             this.taken = taken;
             low = Math.min(floorA, floorB) - BELOW;
             high = Math.max(floorA, floorB) + ABOVE;
+            level = Math.max(floorA, floorB);
         }
 
         boolean empty(int x, int z) {
@@ -261,7 +269,9 @@ final class Bridges {
          * does not start and end on ground, if a run is off its main stretch (main -1: none), if an
          * edge of a run has no floor or the two are too far apart in height for a block a step, if
          * something stands on the bridge or over it, or if a block of it would be next to a bridge
-         * already built.
+         * already built. Where an edge slopes down to the void, a step a column (the round islands
+         * of Invasion), the bridge leaves from the top of the slope, over it, as a player standing
+         * on the island builds it, and reaches the top of the other: not under the island's rim.
          */
         List<int[]> bridge(List<int[]> cells, int main) {
             int count = cells.size();
@@ -273,6 +283,8 @@ final class Bridges {
                 return null;
             }
             List<int[]> blocks = new ArrayList<>();
+            // the column the last run reached: the slope of the next one goes no further back
+            int reached = 0;
             int i = 0;
             while (i < count) {
                 if (!empty[i]) {
@@ -290,23 +302,89 @@ final class Bridges {
                 int[] after = cells.get(j);
                 int from = floor(before[0], before[1], high);
                 int to = floor(after[0], after[1], high + CLIMB);
-                int length = j - i;
-                if (from == NONE || to == NONE || Math.abs(to - from) > length) {
+                if (from == NONE || to == NONE) {
                     return null;
                 }
-                int steps = Math.abs(to - from);
-                for (int k = 0; k < length; k++) {
-                    int y = k < length - steps ? from : from + Integer.signum(to - from) * (k - (length - steps) + 1);
-                    int[] cell = cells.get(i + k);
-                    if (solid.at(cell[0], y, cell[1]) || solid.at(cell[0], y + 1, cell[1]) || solid.at(cell[0], y + 2, cell[1])
-                            || besideTaken(cell[0], cell[1])) {
-                        return null;
+                int leave = top(cells, empty, i - 1, -1, reached, from);
+                int reach = top(cells, empty, j, 1, count - 1, to);
+                // over both slopes, else one, else the void alone
+                int[][] tries = {{leave, reach}, {leave, j}, {i - 1, reach}, {i - 1, j}};
+                List<int[]> run = null;
+                for (int t = 0; t < tries.length && run == null; t++) {
+                    if (t > 0 && tries[t][0] == tries[t - 1][0] && tries[t][1] == tries[t - 1][1]) {
+                        continue;
                     }
-                    blocks.add(new int[] {cell[0], y, cell[1]});
+                    int a = tries[t][0];
+                    int b = tries[t][1];
+                    run = run(cells, a, a == i - 1 ? from : floor(cells.get(a)[0], cells.get(a)[1], level),
+                            b, b == j ? to : floor(cells.get(b)[0], cells.get(b)[1], level));
                 }
+                if (run == null) {
+                    return null;
+                }
+                blocks.addAll(run);
+                reached = j;
                 i = j;
             }
             return blocks.isEmpty() ? null : blocks;
+        }
+
+        /**
+         * The top of the slope at the edge of a run: from the edge column (its floor given), the
+         * columns away from the void, at most {@value #LIP}, while their floor goes up or stays
+         * (up to {@link #level}), on the same stretch: the first at the highest floor. The edge
+         * itself where it does not slope.
+         */
+        private int top(List<int[]> cells, boolean[] empty, int edge, int step, int limit, int edgeFloor) {
+            int best = edge;
+            int bestFloor = edgeFloor;
+            int last = edgeFloor;
+            int stretch = cells.get(edge - step)[2];
+            for (int n = 1; n <= LIP; n++) {
+                int k = edge + step * n;
+                if (step < 0 ? k < limit : k > limit) {
+                    break;
+                }
+                int[] cell = cells.get(k);
+                if (empty[k] || cell[2] != stretch) {
+                    break;
+                }
+                int floor = floor(cell[0], cell[1], level);
+                if (floor == NONE || floor < last) {
+                    break;
+                }
+                if (floor > bestFloor) {
+                    best = k;
+                    bestFloor = floor;
+                }
+                last = floor;
+            }
+            return best;
+        }
+
+        /**
+         * The blocks between the column a bridge leaves (its floor from) and the one it reaches
+         * (its floor to): flat at from, then a block up or down a block, at its end; null if the
+         * two are too far apart in height, if something stands on it or over it, or if a block of
+         * it would be next to a bridge already built.
+         */
+        private List<int[]> run(List<int[]> cells, int leave, int from, int reach, int to) {
+            int length = reach - leave - 1;
+            if (from == NONE || to == NONE || Math.abs(to - from) > length) {
+                return null;
+            }
+            int steps = Math.abs(to - from);
+            List<int[]> blocks = new ArrayList<>();
+            for (int k = 0; k < length; k++) {
+                int y = k < length - steps ? from : from + Integer.signum(to - from) * (k - (length - steps) + 1);
+                int[] cell = cells.get(leave + 1 + k);
+                if (solid.at(cell[0], y, cell[1]) || solid.at(cell[0], y + 1, cell[1]) || solid.at(cell[0], y + 2, cell[1])
+                        || besideTaken(cell[0], cell[1])) {
+                    return null;
+                }
+                blocks.add(new int[] {cell[0], y, cell[1]});
+            }
+            return blocks;
         }
 
         /** A bridge already built in this column or in one of the eight around it. */

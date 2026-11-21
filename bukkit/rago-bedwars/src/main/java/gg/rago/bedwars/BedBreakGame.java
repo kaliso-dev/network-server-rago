@@ -14,6 +14,7 @@ import org.bukkit.GameMode;
 import org.bukkit.Location;
 import org.bukkit.Material;
 import org.bukkit.Sound;
+import org.bukkit.World;
 import org.bukkit.block.Block;
 import org.bukkit.enchantments.Enchantment;
 import org.bukkit.entity.Player;
@@ -24,19 +25,24 @@ import org.bukkit.scheduler.BukkitTask;
 
 /**
  * Bed Break Simulator, a situation of Ranked Bedwars: 2 to 5 players on the map chosen (Archway or
- * Invasion), in rounds of three minutes, the two opposite islands linked by a top bridge (see
- * {@link TopBridge}). Each round, one player attacks and the others defend (four at most):
+ * Invasion), in rounds of three minutes, on two opposite islands. Each round, one player attacks
+ * and the others defend (four at most):
  *
  * <ul>
- *   <li>The attacker starts in the middle of the top bridge, facing the base to attack, with one
- *       life and the kit they chose (bed-break.kits: in config.yml): Classic (the Golden Pickaxe,
- *       tier III, two stacks of wool), Fireball (a fireball, the Iron Pickaxe, tier II, two stacks)
- *       or Fighter (the Wooden Pickaxe, tier I, a golden apple, ladders, the knockback stick), each
- *       with a stone sword. Only the bed counts: they win the round by breaking it.
+ *   <li>The attacker's bridge is built, as a player builds it: one block wide, in wool of their
+ *       colour, from their island to the bed, straight along an axis, or along the side of the map
+ *       then the other with one turn (Invasion), not a diagonal (see {@link Bridges}); the
+ *       defenders may break it. The attacker starts in its middle, facing the way to the base,
+ *       with one life and the kit they chose (bed-break.kits: in config.yml): Classic (the Golden
+ *       Pickaxe, tier III, and the Iron Axe, two stacks of wool), Fireball (a fireball, the Iron
+ *       Pickaxe, tier II, and the Stone Axe, two stacks) or Fighter (the Wooden Pickaxe and Axe,
+ *       tier I, a golden apple, ladders, the knockback stick), each with a stone sword and shears.
+ *       Only the bed counts: they win the round by breaking it. No block over the map's build
+ *       limit (hauteur-max: in its bedwars.yml).
  *   <li>The defenders have no kit: a game's start (a wooden sword), their forge full of iron and
- *       gold and their item shop, no upgrades, no diamond nor emerald; the bed under the owner's duo
- *       defense, end stone then wool ({@link BedDefense#DUO}). They come back after a death, and win
- *       the round by killing the attacker or by holding three minutes.
+ *       gold and their item shop, no upgrades, no diamond nor emerald; the bed under the Ranked
+ *       Bedwars defense, end stone under glass ({@link BedDefense#RANKED}). They come back after a
+ *       death, and win the round by killing the attacker or by holding three minutes.
  * </ul>
  *
  * Everyone wears iron armour with Protection II (bed-break.protection), no Sharpness. Each player
@@ -65,8 +71,8 @@ final class BedBreakGame extends BedwarsGame implements KitMenu.Chooser {
     private static final long BETWEEN_TICKS = 20L;
     /** Iron armour for everyone (the tier of {@link Gamer#armor}). */
     static final int ARMOUR_TIER = 2;
-    /** The defense on the bed: the owner's duo one, end stone then wool. */
-    static final List<String[]> DEFENSE = BedDefense.DUO;
+    /** The defense on the bed: the Ranked Bedwars one, end stone under glass, not the duo one. */
+    static final List<String[]> DEFENSE = BedDefense.RANKED;
     private static final String CHECK = "✔";
     private static final String CROSS = "✘";
 
@@ -80,6 +86,8 @@ final class BedBreakGame extends BedwarsGame implements KitMenu.Chooser {
     /** Each attacker's quickest bed, in seconds. */
     private final Map<UUID, Integer> quickest = new HashMap<>();
     private UUID attacker;
+    /** The attacker's bridge of this round, its blocks from their island's side; empty if none fits. */
+    private List<int[]> bridge = Collections.emptyList();
     private int round = -1;
     private boolean roundOver = true;
     private int waitLeft = -1;
@@ -91,7 +99,7 @@ final class BedBreakGame extends BedwarsGame implements KitMenu.Chooser {
             List<List<Player>> sides, int playersPerMatch) {
         super(plugin, host, instance, modeId, modeName, sides);
         lineup = new Lineup(playersPerMatch, MAX_PLAYERS);
-        // two opposite islands, as in a game: the bed defended, and the one the top bridge comes from
+        // two opposite islands, as in a game: the bed defended, and the one the attacker's bridge comes from
         List<TeamColor> two = instance.map().playingTeams(2);
         BedwarsMap map = instance.map();
         teams.clear();
@@ -182,8 +190,8 @@ final class BedBreakGame extends BedwarsGame implements KitMenu.Chooser {
         player.teleport(instance.map().spectatorPoint().in(instance.world()));
         player.sendMessage(ChatColor.RED + "" + ChatColor.BOLD + "Bed Break Simulator " + lineup.format() + ChatColor.RED
                 + " on " + ChatColor.WHITE + instance.map().world() + ChatColor.RED + ": " + lineup.players()
-                + ", rounds of 3 minutes. Each player in turn attacks from the top bridge, with one life, and"
-                + " has to break the bed; the others defend it with their forge full.");
+                + ", rounds of 3 minutes. Each player in turn attacks from the middle of their bridge, with one life,"
+                + " and has to break the bed; the others defend it with their forge full.");
         player.sendMessage(ChatColor.GRAY + lineup.when() + "; the menu of the attack kits opens before each of your"
                 + " attacks. /spawn takes you back to the lobby.");
     }
@@ -242,17 +250,17 @@ final class BedBreakGame extends BedwarsGame implements KitMenu.Chooser {
         }
         round = 0;
         assignRoles();
-        // the game itself: the top bridge, the forge and the shop, the defense (setUp), everyone in
+        // the game itself: the forge and the shop, the bridge and the defense (setUp), everyone in
         // place, the countdown, then the round
         super.begin();
     }
 
     // --- The map --------------------------------------------------------------------------------
 
-    /** The top bridge over the middle, from the island of the attacker to the bed: on every map. */
+    /** No top bridge: the attacker's own bridge, at the height of the islands (see {@link #buildBridge}). */
     @Override
     boolean hasTopBridge() {
-        return true;
+        return false;
     }
 
     /** Only the defenders' island has its forge and its item shop. */
@@ -283,15 +291,71 @@ final class BedBreakGame extends BedwarsGame implements KitMenu.Chooser {
         return settings.bedBreakProtection();
     }
 
-    /** The owner's duo defense on the bed, and the forge full of iron and gold: made again for each round. */
+    /**
+     * The attacker's bridge, the Ranked defense on the bed, and the forge full of iron and gold:
+     * made again for each round.
+     */
     @Override
     void setUp() {
+        buildBridge();
         if (defenders.points.bed != null) {
             Defense.build(instance, defenders.points.bed.blockIn(instance.world()), DEFENSE, defenders.color.woolData());
         }
         for (Generator forge : forges) {
             forge.fill();
         }
+    }
+
+    /**
+     * The bridge the attacker came by, as in Ranked Bedwars: from the spawn of their island to the
+     * defended bed, one block wide, straight, at the height of the islands ({@link Bridges}), in
+     * wool of their colour; placed as by a player: the defenders break it, and the rollback takes
+     * it away after the round.
+     */
+    @SuppressWarnings("deprecation") // Block#setTypeIdAndData: the 1.8 way to set a block with its data
+    private void buildBridge() {
+        bridge = Collections.emptyList();
+        MapPoint spawn = attackers.points.spawn;
+        MapPoint bed = defenders.points.bed;
+        if (spawn == null || bed == null) {
+            return;
+        }
+        World world = instance.world();
+        List<int[]> blocks = Bridges.plan((x, y, z) -> world.getBlockAt(x, y, z).getType().isSolid(),
+                new double[] {spawn.x(), spawn.y(), spawn.z()}, new double[] {bed.x() + 0.5, bed.y(), bed.z() + 0.5});
+        if (blocks.isEmpty()) {
+            plugin.getLogger().warning("No room for the attacker's bridge on " + instance.map().world() + " from the "
+                    + attackers.color.displayName() + " island to the " + defenders.color.displayName()
+                    + " bed: the attacker starts on their island");
+            return;
+        }
+        for (int[] place : blocks) {
+            Block block = world.getBlockAt(place[0], place[1], place[2]);
+            if (instance.isPlaced(block)) {
+                continue;
+            }
+            instance.markPlaced(block);
+            block.setTypeIdAndData(Material.WOOL.getId(), (byte) attackers.color.woolData(), false);
+        }
+        bridge = blocks;
+    }
+
+    /**
+     * Where the attacker starts on their bridge ({x, y, z, yaw}): on its middle block, facing the
+     * next one, the way to the base; null without a bridge.
+     */
+    static double[] attackerStart(List<int[]> bridge) {
+        if (bridge.isEmpty()) {
+            return null;
+        }
+        int middle = bridge.size() / 2;
+        int[] here = bridge.get(middle);
+        int[] next = bridge.get(Math.min(middle + 1, bridge.size() - 1));
+        int[] last = bridge.get(Math.max(middle - 1, 0));
+        // the last block has no next one: the way it came from, turned round
+        double dx = next != here ? next[0] - here[0] : here[0] - last[0];
+        double dz = next != here ? next[2] - here[2] : here[2] - last[2];
+        return new double[] {here[0] + 0.5, here[1] + 1, here[2] + 0.5, InvisGame.yawTowards(dx, dz)};
     }
 
     /** Only the defended bed counts: the others are part of the map. */
@@ -325,11 +389,12 @@ final class BedBreakGame extends BedwarsGame implements KitMenu.Chooser {
         return ROUND_COUNTDOWN;
     }
 
-    /** The attacker in the middle of the top bridge, facing the base; the defenders on their island. */
+    /** The attacker in the middle of their bridge, facing the way to the base; the defenders on their island. */
     @Override
     Location spawnOf(Gamer gamer) {
-        if (gamer.id.equals(attacker) && topBridge != null) {
-            return at(topBridge.centre(true));
+        double[] start = attackerStart(bridge);
+        if (gamer.id.equals(attacker) && start != null) {
+            return at(start);
         }
         return super.spawnOf(gamer);
     }
@@ -473,14 +538,14 @@ final class BedBreakGame extends BedwarsGame implements KitMenu.Chooser {
         Gamer attacking = gamers.get(attacker);
         String who = attacking == null ? "the attacker" : attacking.coloured();
         if (gamer.id.equals(attacker)) {
-            player.sendMessage(head + "you " + ChatColor.WHITE + "attack" + ChatColor.RED + " from the top bridge. Break the "
+            player.sendMessage(head + "you " + ChatColor.WHITE + "attack" + ChatColor.RED + " from your bridge. Break the "
                     + defenders.color.coloured() + ChatColor.RED + " bed within three minutes: only the bed counts."
                     + " One life.");
             player.sendTitle(ChatColor.RED + "" + ChatColor.BOLD + "ATTACK",
                     ChatColor.WHITE + "Break the " + defenders.color.coloured() + ChatColor.WHITE + " bed");
             offerKits(player);
         } else {
-            player.sendMessage(head + "defend your bed against " + who + ChatColor.RED + ", who comes by the top bridge."
+            player.sendMessage(head + "defend your bed against " + who + ChatColor.RED + ", who comes by their bridge."
                     + " No kit: your forge is full, buy what you need at the item shop. Kill them, or hold three minutes;"
                     + " you come back " + respawnSeconds() + " seconds after a death.");
             player.sendTitle(ChatColor.GREEN + "" + ChatColor.BOLD + "DEFEND", who + ChatColor.WHITE + " attacks");
@@ -584,7 +649,7 @@ final class BedBreakGame extends BedwarsGame implements KitMenu.Chooser {
         sidebars();
     }
 
-    /** The map as it was, the top bridge again, the next attacker, a countdown, and the round. */
+    /** The map as it was, the next attacker, their bridge again, a countdown, and the round. */
     private void nextRound() {
         if (phase == Phase.ENDED) {
             return;
@@ -604,7 +669,6 @@ final class BedBreakGame extends BedwarsGame implements KitMenu.Chooser {
         removeUnusedBeds();
         assignRoles();
         entitiesAgain(islands());
-        buildTopBridge();
         setUp();
         phase = Phase.STARTING;
         for (Gamer gamer : present()) {

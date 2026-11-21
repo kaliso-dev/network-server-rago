@@ -109,13 +109,16 @@ modes:
 #              apples that each kill brings back to 5, 3 fireballs, 12 end stone and a wooden
 #              pickaxe) and Haste, each life somewhere on its floor away from the others
 #   bed-break  Bed Break Simulator: 1v1 to 1v4 (2 to 5 players, as the invis practice), on the
-#              map chosen, rounds of 3 minutes, the two
-#              opposite islands linked by a top bridge; each player in turn attacks from the middle
-#              of the top bridge with one life and the kit they choose (see bed-break: below), and
-#              wins the round only by breaking the bed; the others defend it (4 at most) with no kit,
-#              their forge full and their item shop, the bed under the owner's duo defense, back 5
-#              seconds after a death; everyone in iron armour, Protection II, no Sharpness; a bed
-#              broken or the attacker killed gives a point; it starts as the invis practice
+#              map chosen, rounds of 3 minutes, on two opposite islands; each player in turn
+#              attacks with one life and the kit they choose (see bed-break: below), from the
+#              middle of their bridge: one block wide, in their colour, from their island to the
+#              bed, straight, or along the side of the map then the other with one turn, never a
+#              diagonal (the defenders may break it); no block over the map's hauteur-max; they win
+#              the round only by breaking the bed; the others defend it (4 at most) with no kit,
+#              their forge full and their item shop, the bed under the Ranked Bedwars defense (end
+#              stone under glass), back 5 seconds after a death; everyone in iron armour,
+#              Protection II, no Sharpness; a bed broken or the attacker killed gives a point; it
+#              starts as the invis practice
 # A mode not listed is a classic game.
 jeux:
   top-bridge-1v1: top-bridge
@@ -196,15 +199,15 @@ bed-break:
     - nom: Classic
       icone: GOLD_PICKAXE
       description: ["The Golden Pickaxe (tier III)", "digs the end stone fast:", "two stacks to bridge in."]
-      objets: [stone_sword, golden_pickaxe, "wool 64", "wool 64"]
+      objets: [stone_sword, golden_pickaxe, iron_axe, shears, "wool 64", "wool 64"]
     - nom: Fireball
       icone: FIREBALL
       description: ["A fireball to blow the wool and", "knock a defender off, the", "Iron Pickaxe (tier II), two stacks."]
-      objets: [stone_sword, fireball, iron_pickaxe, "wool 64", "wool 64"]
+      objets: [stone_sword, fireball, iron_pickaxe, stone_axe, shears, "wool 64", "wool 64"]
     - nom: Fighter
       icone: STICK
       description: ["Knock them off with the stick,", "a golden apple to last, ladders", "to climb; the Wooden Pickaxe."]
-      objets: [stone_sword, wooden_pickaxe, golden_apple, "ladder 8", stick]
+      objets: [stone_sword, wooden_pickaxe, wooden_axe, shears, golden_apple, "ladder 8", stick]
 
 # How many game worlds the server keeps at most, so how many games at once (from 1 to 50).
 parties-max: 8

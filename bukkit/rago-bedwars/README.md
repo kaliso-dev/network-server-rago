@@ -439,13 +439,19 @@ Dans `jeux:` du config.yml, un mode peut jouer autre chose qu'une partie classiq
   les records, les minutes d'entraînement).
 - **Bed Break Simulator** (`bed-break`) : une situation de Ranked Bedwars, sur Archway et Invasion,
   en 1v1, 1v2, 1v3 ou 1v4 (de 2 à 5 joueurs, `bed-break-simulator-1v1` à `bed-break-simulator-1v4`),
-  en manches de 3 minutes, les deux îles opposées reliées par le
-  top bridge du mode Top Bridge. À chaque manche, un joueur attaque : il part du milieu du top
-  bridge, tourné vers la base à attaquer, avec une seule vie et le kit qu'il a choisi, et ne gagne
-  la manche qu'en cassant le lit. Les autres, de un à quatre selon le format, défendent sans kit : l'épée en bois
+  en manches de 3 minutes, sur deux îles opposées. À chaque manche, un joueur attaque. Son bridge
+  est posé comme un joueur le construit en Ranked Bedwars : un bloc de large, en laine de sa
+  couleur, de son île jusqu'au lit, à la hauteur des îles, droit le long d'un axe, ou le long d'un
+  côté de la map puis de l'autre avec un seul virage (Invasion), jamais en diagonale ; sur une île
+  au bord arrondi, il part du haut du bord, pas du dessous. Les défenseurs peuvent le casser, et il
+  disparaît à la fin de la manche. L'attaquant part du milieu de son bridge, tourné vers la suite
+  du chemin, avec une seule vie et le kit qu'il a choisi, ne pose aucun bloc au-dessus de la
+  hauteur max de la map (`hauteur-max:` de son `bedwars.yml`), et ne gagne la manche qu'en cassant
+  le lit. Les autres, de un à quatre selon le format, défendent sans kit : l'épée en bois
   d'un début de partie, leur forge pleine de fer et d'or (la forge de la file RBW en 2v2 à 4v4) et
   le shop de leur île, sans améliorations, ni diamants ni émeraudes ; le lit est sous la défense
-  duo du propriétaire (end stone puis laine), et ils reviennent 5 secondes après une mort. Ils
+  de Ranked Bedwars (end stone sous le verre, celle de l'entraînement Fast defense), et ils
+  reviennent 5 secondes après une mort. Ils
   gagnent la manche en tuant l'attaquant ou en tenant 3 minutes. Tout le monde est en armure de
   fer Protection II (`bed-break.protection:`, de 0 à 4), sans Sharpness. Chacun attaque à son tour
   (deux fois chacun à 2 ou 3 joueurs) ; un lit cassé ou l'attaquant tué rapporte un point, le plus
@@ -457,9 +463,9 @@ Dans `jeux:` du config.yml, un mode peut jouer autre chose qu'une partie classiq
 
 | Kit d'attaque | Objets |
 |---|---|
-| Classic | épée en pierre, pioche en or (tier III : Efficacité III, Tranchant II), 2 stacks de laine |
-| Fireball | épée en pierre, une boule de feu, pioche en fer (tier II : Efficacité II), 2 stacks de laine |
-| Fighter | épée en pierre, pioche en bois (tier I : Efficacité I), pomme d'or, 8 échelles, bâton Recul I |
+| Classic | épée en pierre, pioche en or (tier III : Efficacité III, Tranchant II), hache en fer (tier III : Efficacité II), cisailles, 2 stacks de laine |
+| Fireball | épée en pierre, une boule de feu, pioche en fer (tier II : Efficacité II), hache en pierre (tier II : Efficacité I), cisailles, 2 stacks de laine |
+| Fighter | épée en pierre, pioche en bois et hache en bois (tier I : Efficacité I), cisailles, pomme d'or, 8 échelles, bâton Recul I |
 
 Les kits du Bed Break Simulator se changent dans `bed-break:` du `config.yml` (de 1 à 7, les objets
 du shop par leur id, avec leur nombre) ; un kit sans épée reçoit l'épée en bois. Les objets suivent

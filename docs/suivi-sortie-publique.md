@@ -74,7 +74,7 @@ Avant chaque installation sur ton PC : copie du dossier `plugins/` du serveur.
 | --- | --- | --- |
 | C1 | 6.1 demande un nouveau **Fireball Fight**, mais un mode `fireball` existe déjà (`FireballFight.java`, map « Fireball Fight »). | Améliorer le mode existant (arène plus grande que Sumo, KB fireball plus fort, souffles de vent) plutôt qu'en créer un second. À confirmer. |
 | C2 | 2.1 Lobby Fight : les PR #43/#44 ont réduit le kit FFA à « une épée, 3 fireballs, 5 pommes ». Le plan ajoute 12 end stone, une pioche en bois et Haste, et « 3 manches ». | Confirmé : le même kit pour le 1v1 et le FFA ; les manches ne concernent que `lobby-fight-1v1`, gagné par le premier à 3 manches (« Bo3, le premier à 3 win »). |
-| C3 | 2.3 Bed Break : « réalistes, style Ranked Bedwars » et « sur les côtés, pas en diagonale comme en Ranked Bedwars ». | Je lis : style RBW pour la forme, mais tracé sur les côtés. À confirmer. |
+| C3 | 2.3 Bed Break : « réalistes, style Ranked Bedwars » et « sur les côtés, pas en diagonale comme en Ranked Bedwars ». | Confirmé : « droit, pas en diagonale ». Fait : le bridge de l'attaquant, un bloc de large, droit, un seul virage au plus. |
 | C4 | 3.5 Network Level par défaut au-dessus des joueurs : aujourd'hui la ligne par défaut est l'ELO (« Unranked »). 3.6 garde l'ELO en Ranked. | Défaut Network Level partout, ELO en partie classée. |
 | C5 | 1.2 « Spectator pour tous les joueurs » et les nicks (qui cachent qui joue). | Fait : tout le monde peut regarder toute partie, sauf celle d'un joueur sous nick (staff et amis seulement). |
 | C6 | 4.5 `/discord` et `/store` existent déjà, avec `discord.gg/ragooptimizer` et `rago-optimizer.com`. | Il manque les liens officiels de Rago Practice. |
@@ -130,7 +130,7 @@ informations manquantes.
 | --- | --- | --- | --- | --- | --- | --- | --- |
 | 2.1 | Lobby Fight : 12 end stone, pioche bois, Haste, 5 pommes, blocs qui partent après 10 s (pas ceux du lobby), 3 manches | Modes | P1 | IMPLÉMENTÉ | `LobbyFight`, `LobbyFightGame`, `FfaGame`, `BlockDecay`, config du lobby | 1.1 | tests unitaires (`LobbyFightTest`, `LobbySettingsTest`) ; en jeu sur Archway FFA (voir le journal) |
 | 2.2 | Bedfight : protection au respawn de la durée exacte de Minemen, coupée dès un combat ; kit gardé | Modes | P1 | BLOQUÉ | `BedFightGame`, `BedwarsGame`, `BedwarsHost` | 1.5 | durée Minemen (non publiée) : une partie enregistrée avec kb-recorder |
-| 2.3 | Bed Break Simulation : bridges refaits, pas de blocs en haut de la map, cisailles + hache, défense RBW (end stone + verre), forges | Modes | P1 | À FAIRE | `BedBreakGame`, `Bridges`, `Defense`, `game-model/BedDefense` | 1.6 | C3 |
+| 2.3 | Bed Break Simulation : bridges refaits, pas de blocs en haut de la map, cisailles + hache, défense RBW (end stone + verre), forges | Modes | P1 | FAIT sauf forges (1.6) | `BedBreakGame`, `Bridges`, `Defense`, `game-model/BedDefense` | 1.6 | C3 |
 | 2.4 | Clutch Scenario : bridges réalistes jusqu'à la base ennemie ; rôles au hasard (leader aussi Clutcher) | Modes | P1 | IMPLÉMENTÉ | `ClutchScenarioGame`, `Bridges` | — | tests unitaires (`BridgesTest`) ; simulation sur Archway et Sky Rise ; en jeu | — |
 | 2.5 | Au moins 10 spectateurs (Block Clutch et autres practice) | Social | P1 | IMPLÉMENTÉ | `tools/local-server/server.properties` (50 places), `spectate-bots.mjs` | 1.2 | test réel en CI : 10 bots regardent un Block clutch en même temps |
 | 2.6 | Fireballs fidèles à Hypixel (KB, explosion, direction, fireball jump, blocs) | PvP | P1 | À FAIRE | `Fireballs`, `FireballBlast`, `FireballAim`, `PracticeGame` | — | mesures Hypixel (kb-recorder) |
@@ -519,6 +519,43 @@ spectateur près du joueur, le joueur est prévenu de chacun et continue de joue
 toujours là 4 secondes plus tard, puis `/spawn` les ramène au lobby. Le test joue avec le
 `server.properties` livré (50 places). Sur ton serveur actuel, mets `max-players=50` dans son
 `server.properties` (ou prends le prochain paquet).
+
+### 2.3 Bed Break Simulation — IMPLÉMENTÉ (21/11), sauf les forges (1.6)
+
+- **Bridges** : le top bridge (la plateforme de laine de 17 blocs de large, 16 blocs au-dessus
+  des lits, tracée de lit à lit, donc en diagonale sur Invasion) est remplacé par le bridge de
+  l'attaquant, comme un joueur le pose en Ranked Bedwars : un bloc de large, en laine de sa
+  couleur, de son île jusqu'au lit défendu, à la hauteur des îles. Il suit le même tracé que les
+  bridges de Clutch Scenario (`Bridges`) : droit le long d'un axe, sinon un seul virage, jamais en
+  diagonale quand un chemin droit passe. Sur Invasion (îles aux coins), il longe le bord ouest
+  puis le bord nord de la map, par l'île jaune ; sur Archway, il passe par mid. Les défenseurs
+  peuvent le casser ; il est reposé à chaque manche. L'attaquant part de son milieu, tourné vers
+  la suite du chemin. Images : `sortie-publique/bed-break/Invasion-bridge.png` et
+  `Archway-bridge.png`.
+- **Bord arrondi des îles d'Invasion** : le bord des îles descend en escalier sous l'île. Le
+  tracé partait du bas de cet escalier, 4 blocs sous le sol de l'île (y 89 au lieu de 93), et
+  arrivait de même sous le bord de l'île d'en face, avec une marche de 2 blocs impossible à
+  sauter. Le bridge part maintenant du haut du bord, par-dessus, et arrive au haut de l'autre :
+  tout à y 93. Les bridges de Clutch Scenario sur Archway et Sky Rise ne changent pas (vérifié
+  bloc par bloc avec la simulation).
+- **Placement en haut de la map** : sans le top bridge, la limite de hauteur redevient celle de
+  la map (`hauteur-max:` de son `bedwars.yml` : 116 sur Invasion, 87 sur Archway). Avant, le top
+  bridge la montait à 10 blocs au-dessus de sa plateforme (120 sur Invasion, 92 sur Archway).
+- **Kits** : cisailles et une hache du même tier que la pioche dans les trois kits (ton choix) :
+  Classic, Golden Pickaxe (tier III) et Iron Axe (tier III) ; Fireball, Iron Pickaxe (tier II) et
+  Stone Axe (tier II) ; Fighter, Wooden Pickaxe et Wooden Axe (tier I). Dans l'éditeur de kit du
+  lobby, la hache et les cisailles sont ajoutées en dernier au kit `bed-break-simulator` : les
+  rangements déjà enregistrés gardent leurs objets à leur place. **Sur ton serveur**, le
+  `config.yml` de RagoBedwars a ses propres `bed-break.kits` : ajoute-y les objets (ou enlève
+  `kits:` pour prendre ces trois kits), et `IRON_AXE, SHEARS` à la fin du kit
+  `bed-break-simulator` du `config.yml` de RagoLobby.
+- **Défense** : celle de Ranked Bedwars, end stone sous le verre (celle de l'entraînement Fast
+  defense : 12 end stone, 14 verre teinté de la couleur de l'équipe), à la place de la défense duo.
+
+**Testé** : tests unitaires (`BridgesTest` : 12 dont le nouveau du bord en escalier, qui échoue
+avec l'ancien tracé ; `BedDefenseTest` ; `BedBreakGameTest` : les kits, le départ au milieu du
+bridge). Simulation avec le vrai code de `Bridges` sur tes mondes Invasion et Archway. **Pas
+encore testé en jeu.**
 
 ### 1.6 Forges de Bed Break Simulation — EN COURS
 

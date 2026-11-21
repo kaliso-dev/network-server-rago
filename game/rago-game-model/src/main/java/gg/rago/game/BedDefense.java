@@ -8,7 +8,8 @@ import java.util.List;
  * The bed defenses the owner built, as templates that the games and the trainings build around a
  * bed. A template is one picture per height, from the bed's up; each picture has a row per place
  * along the bed (the foot's row, then the head's: both marked B in the first picture) and a column
- * per place across it. E is end stone, W wool (of the team's colour), '.' nothing.
+ * per place across it. E is end stone, W wool (of the team's colour), G glass (of the team's
+ * colour), '.' nothing.
  */
 public final class BedDefense {
 
@@ -16,6 +17,8 @@ public final class BedDefense {
     public static final char END_STONE = 'E';
     /** Wool, of the team's colour. */
     public static final char WOOL = 'W';
+    /** Glass, of the team's colour. */
+    public static final char GLASS = 'G';
     private static final char BED = 'B';
 
     /**
@@ -48,13 +51,41 @@ public final class BedDefense {
                 ".....",
                 "....."}));
 
+    /**
+     * The Ranked Bedwars defense, as the owner builds it (the fast defense training's, from the
+     * owner's pictures: 12 end stone, 14 glass): end stone on the bed, around it, and a second row
+     * on each side of it, under a layer of glass that leaves that second row bare.
+     */
+    public static final List<String[]> RANKED = Collections.unmodifiableList(java.util.Arrays.asList(
+            new String[] {
+                "..G..",
+                ".GEG.",
+                "EEBEE",
+                "EEBEE",
+                ".GEG.",
+                "..G.."},
+            new String[] {
+                ".....",
+                "..G..",
+                ".GEG.",
+                ".GEG.",
+                "..G..",
+                "....."},
+            new String[] {
+                ".....",
+                ".....",
+                "..G..",
+                "..G..",
+                ".....",
+                "....."}));
+
     private BedDefense() {
     }
 
     /**
      * Each block of a template around a bed whose foot is at (0, 0, 0) and head one block towards
-     * (hx, 0, hz): {x, y, z, block}, the block {@link #END_STONE} or {@link #WOOL}, y from 0 (the
-     * bed's height) up.
+     * (hx, 0, hz): {x, y, z, block}, the block {@link #END_STONE}, {@link #WOOL} or {@link #GLASS},
+     * y from 0 (the bed's height) up.
      */
     public static List<int[]> places(List<String[]> template, int hx, int hz) {
         String[] first = template.get(0);
@@ -75,7 +106,7 @@ public final class BedDefense {
             for (int row = 0; row < picture.length; row++) {
                 for (int column = 0; column < picture[row].length(); column++) {
                     char block = picture[row].charAt(column);
-                    if (block != END_STONE && block != WOOL) {
+                    if (block != END_STONE && block != WOOL && block != GLASS) {
                         continue;
                     }
                     int along = row - footRow;

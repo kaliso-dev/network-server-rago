@@ -37,6 +37,24 @@ class BedDefenseTest {
     }
 
     @Test
+    void theRankedDefenseIsEndStoneUnderGlass() {
+        // the bed along x: its foot at (0, 0, 0), its head at (1, 0, 0)
+        List<int[]> places = BedDefense.places(BedDefense.RANKED, 1, 0);
+        Set<String> endStone = of(places, BedDefense.END_STONE);
+        Set<String> glass = of(places, BedDefense.GLASS);
+        assertEquals(12, endStone.size(), "12 end stone");
+        assertEquals(14, glass.size(), "14 glass");
+        assertTrue(endStone.contains("0,1,0") && endStone.contains("1,1,0"), "on the bed");
+        assertTrue(glass.contains("0,2,0") && glass.contains("1,2,0"), "over it");
+        for (int z : new int[] {-2, -1, 1, 2}) {
+            assertTrue(endStone.contains("0,0," + z) && endStone.contains("1,0," + z), "two rows on each side: " + z);
+        }
+        assertTrue(!glass.contains("0,1,2") && !glass.contains("0,0,3"), "the second row left bare");
+        assertTrue(glass.contains("3,0,0") && glass.contains("-2,0,0"), "beyond the head and the foot");
+        assertTrue(!endStone.contains("0,0,0") && !glass.contains("1,0,0"), "not on the bed itself");
+    }
+
+    @Test
     void itTurnsWithTheBed() {
         // the head one block west (x - 1): past the head is west
         Set<String> endStone = of(BedDefense.places(BedDefense.DUO, -1, 0), BedDefense.END_STONE);
