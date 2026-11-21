@@ -129,6 +129,12 @@ class BedwarsGame {
 
     /** A hit gives the kill to its author if the player dies within this time (a fall in the void). */
     static final long CREDIT_MS = 10_000L;
+    /**
+     * The protection after a respawn, in every mode where a player comes back during the game: the
+     * one of Minemen's Bed Fight (1.5 s, as the owner measured it there), first made for Bed Fight
+     * and then asked for the other Bed Wars modes.
+     */
+    static final long SPAWN_PROTECTION_MILLIS = 1_500L;
     /** Around a spawn, no block can be placed: this many blocks, horizontally. */
     static final double SPAWN_PROTECTION = 3.0;
     /** Around a generator, no block can be placed. */
@@ -1517,11 +1523,12 @@ class BedwarsGame {
     }
 
     /**
-     * How long no enemy can hurt a player who has just respawned (0: no protection); a hit of their
-     * own on an enemy ends it at once ({@link SpawnProtection}, {@link BedwarsHost#onDamage}).
+     * How long no enemy can hurt a player who has just respawned ({@value #SPAWN_PROTECTION_MILLIS}
+     * ms in every mode; 0: no protection); a hit of their own on an enemy ends it at once
+     * ({@link SpawnProtection}, {@link BedwarsHost#onDamage}).
      */
     long spawnProtectionMillis() {
-        return 0L;
+        return SPAWN_PROTECTION_MILLIS;
     }
 
     /** The player left the game: out of the server, or /spawn. Their team plays on without them. */

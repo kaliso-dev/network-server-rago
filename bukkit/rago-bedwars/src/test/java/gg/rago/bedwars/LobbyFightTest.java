@@ -198,7 +198,7 @@ class LobbyFightTest {
     void lobbyFightHasItsOwnKitHasteAndThreeRoundsToWin() {
         assertEquals("lobby-fight-ffa", LobbyFight.KIT_MODE, "the 1v1 plays the kit of Lobby Fight FFA, not the FFA's");
         List<ItemStack> kit = LobbyFight.fallbackKit();
-        assertEquals(5, kit.size());
+        assertEquals(9, kit.size());
         assertEquals(Material.STONE_SWORD, kit.get(0).getType());
         assertEquals(Material.GOLDEN_APPLE, kit.get(1).getType());
         assertEquals(5, kit.get(1).getAmount(), "5 golden apples");
@@ -207,6 +207,12 @@ class LobbyFightTest {
         assertEquals(Material.ENDER_STONE, kit.get(3).getType());
         assertEquals(12, kit.get(3).getAmount(), "12 end stone");
         assertEquals(Material.WOOD_PICKAXE, kit.get(4).getType(), "a wooden pickaxe");
+        assertEquals(Material.ENDER_PEARL, kit.get(5).getType(), "the pearl of the 1v1 of before");
+        assertEquals(Material.WOOL, kit.get(6).getType(), "its wool");
+        assertEquals(64, kit.get(6).getAmount());
+        assertEquals(Material.WOOL, kit.get(7).getType(), "2 stacks");
+        assertEquals(64, kit.get(7).getAmount());
+        assertEquals(Material.SHEARS, kit.get(8).getType(), "and its shears");
         assertEquals(0, LobbyFight.HASTE, "Haste I");
         assertEquals(3, LobbyFightGame.ROUNDS_TO_WIN, "the first to 3");
         assertEquals(10, FfaGame.DECAY_SECONDS, "the blocks go after 10 seconds");

@@ -72,6 +72,10 @@ venu voir et revient au lobby à la fin, avant les joueurs.
   message donne le total de final kills du tueur, toutes parties confondues, comme sur Hypixel :
   « vaggww78 was qAbel's final #41,000. FINAL KILL! » (sans total dans une partie privée, qui ne
   compte pas dans les stats).
+- **Protection au respawn**, dans tous les modes où l'on revient pendant la partie (d'abord faite
+  pour Bed Fight, puis demandée pour les autres modes) : 1,5 seconde, la durée de Minemen, pendant
+  laquelle aucun coup d'un ennemi ne fait rien, ni dégât ni recul ; elle est coupée dès que le
+  joueur frappe un ennemi.
 - **Lits** : on ne casse pas le sien. Casser celui d'une autre équipe l'annonce à tous, avec le
   total de lits cassés du joueur (« Red Bed was destroyed by qAbel's bed #1,250! »), et ses joueurs
   ne reviendront plus.
@@ -387,8 +391,9 @@ Dans `jeux:` du config.yml, un mode peut jouer autre chose qu'une partie classiq
   de combat que le FFA (le cuir à la couleur de l'équipe en 1v1, rouge dans le FFA). Le 1v1 et le
   FFA ont le même kit, rangé une seule fois dans l'éditeur de kit du lobby (`lobby-fight-ffa:` dans
   le `config.yml` du lobby, que le 1v1 joue avec `kit-de:`) : une épée en pierre, 5 pommes en or,
-  3 fireballs, 12 end stone et une pioche en bois, sans pearl, avec Haste I pour miner l'end
-  stone. Les blocs posés ne vont que dans la salle et partent 10 secondes après avoir été posés ;
+  3 fireballs, 12 end stone, une pioche en bois, et ce qu'avait le 1v1 avant : une pearl, 2 stacks
+  de laine et des cisailles (ajoutés en dernier : un rangement fait avant garde ses objets à leur
+  place), avec Haste I pour miner l'end stone. Les blocs posés ne vont que dans la salle et partent 10 secondes après avoir été posés ;
   seuls les blocs posés se cassent, jamais ceux de la salle. Dans le FFA, chaque kill soigne le
   tueur et remet ses pommes en or à 5 (au nombre du kit), sur sa pile de pommes ou, s'il n'en a
   plus, à leur place dans son kit.

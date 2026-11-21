@@ -1195,16 +1195,19 @@ modes:
     joueurs-par-equipe: 1
     classe: false
     # the kit of Lobby Fight, that Lobby Fight 1v1 plays too (kit-de:): a stone sword, 5 golden
-    # apples (each kill brings them back to 5), 3 fireballs, 12 end stone (gone 10 s after being
-    # placed) and a wooden pickaxe, with Haste, no pearl, and the red leather of the FFA
-    kit: [STONE_SWORD, "GOLDEN_APPLE 5", "FIREBALL 3", "ENDER_STONE 12", WOOD_PICKAXE]
+    # apples (each kill brings them back to 5), 3 fireballs, 12 end stone and a wooden pickaxe,
+    # then what the 1v1 had before them: a pearl, 2 stacks of wool and shears (the blocks go 10 s
+    # after being placed; the items added last, so that the layouts saved before stay as they
+    # were), with Haste, and the red leather of the FFA
+    kit: [STONE_SWORD, "GOLDEN_APPLE 5", "FIREBALL 3", "ENDER_STONE 12", WOOD_PICKAXE, ENDER_PEARL, "WOOL 64", "WOOL 64", SHEARS]
     description:
       - "The FFA in the waiting lobby of"
       - "Archway FFA, a sword, 5 golden"
       - "apples (back to 5 at each kill),"
-      - "3 fireballs, 12 end stone and a"
-      - "pickaxe: come and go when you"
-      - "like, fall out of it and you die."
+      - "3 fireballs, blocks, a pickaxe,"
+      - "a pearl and shears: come and go"
+      - "when you like, fall out of it"
+      - "and you die."
   free-ffa:
     nom: "&cArena Free"
     categorie: arenes

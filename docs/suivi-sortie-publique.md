@@ -121,22 +121,22 @@ informations manquantes.
 | 1.3 | Joueurs invisibles au spawn (seul le nametag « UNRANKED » visible) | Lobby | P0 | IMPLÉMENTÉ | `LobbyListener` | — | test réel en CI (`visibility-bots.mjs`, 2 bots, 5 arrivées) ; en jeu : rejoindre le serveur pendant qu'un autre attend au spawn | — |
 | 1.4 | Audit complet des statistiques (kills, games played, double comptage, par mode) | Stats | P0 | IMPLÉMENTÉ | `StatsBook`, `StatsService`, `LobbyService`, `RagoLobby`, `BedwarsGame`, `Lineup`, `BedBreakGame`, `InvisGame`, `FfaGame`, `FastShopGame`, `TopBridgeGame`, `Duel`, `BlockFight`, `FireballFight` | — | tests unitaires ; en jeu : voir le journal | — |
 | 1.5 | Kit Bedfight réinitialisé à la mort dans le vide | Kits | P0 | IMPLÉMENTÉ | `BedFightGame`, `BedwarsGame.kill` | — | tests unitaires ; en jeu : ranger sa barre en partie, mourir par un coup puis dans le vide | — |
-| 1.6 | Forges de Bed Break Simulation sur certaines maps | Bed Wars | P0 | CORRIGÉ (fichier de la map) | `bedwars.yml` d'Invasion, `tools/bedwars-maps` | — | en jeu : une manche de Bed Break sur Invasion | — |
+| 1.6 | Forges de Bed Break Simulation sur certaines maps | Bed Wars | P0 | TESTÉ (en jeu par toi, 21/11) | `bedwars.yml` d'Invasion, `tools/bedwars-maps` | — | en jeu : une manche de Bed Break sur Invasion | — |
 | 1.7 | Spawns First Rush trop en avant | Bed Wars | P0 | BLOQUÉ (cause trouvée) | `bedwars.yml` des maps (Gelato, Nebuc…), `tools/bedwars-maps` | — | en jeu sur chaque map | le point Hypixel sur une île par map (`/bw spawn red`), recopié ensuite sur les 7 autres |
-| 1.8 | Block In réaliste (casser, frapper seulement par le trou, recasser) + reset des records | Practice | P0 | IMPLÉMENTÉ | `BlockInEnemy`, `BlockInTraining`, `Records`, `RagoPractice` | 1.1 | tests unitaires (`BlockInEnemyTest`, `RecordsResetTest`) ; test réel en CI (`blockin-bots.mjs`) ; en jeu sur ta map | — |
+| 1.8 | Block In réaliste (casser, frapper seulement par le trou, recasser) + reset des records | Practice | P0 | TESTÉ (en jeu par toi, 21/11) | `BlockInEnemy`, `BlockInTraining`, `Records`, `RagoPractice` | 1.1 | tests unitaires (`BlockInEnemyTest`, `RecordsResetTest`) ; test réel en CI (`blockin-bots.mjs`) ; en jeu sur ta map | — |
 
 ### Étape 3 : modes existants (Phase 2)
 
 | # | Tâche | Cat. | Prio | Statut | Fichiers | Dépend de | Manque |
 | --- | --- | --- | --- | --- | --- | --- | --- |
-| 2.1 | Lobby Fight : 12 end stone, pioche bois, Haste, 5 pommes, blocs qui partent après 10 s (pas ceux du lobby), 3 manches | Modes | P1 | IMPLÉMENTÉ | `LobbyFight`, `LobbyFightGame`, `FfaGame`, `BlockDecay`, config du lobby | 1.1 | tests unitaires (`LobbyFightTest`, `LobbySettingsTest`) ; en jeu sur Archway FFA (voir le journal) |
-| 2.2 | Bedfight : protection au respawn de la durée exacte de Minemen, coupée dès un combat ; kit gardé | Modes | P1 | IMPLÉMENTÉ | `BedFightGame`, `BedwarsGame`, `BedwarsHost`, `SpawnProtection` | 1.5 | tests unitaires (`SpawnProtectionTest`) ; en jeu : frapper un joueur qui vient de réapparaître |
-| 2.3 | Bed Break Simulation : bridges refaits, pas de blocs en haut de la map, cisailles + hache, défense RBW (end stone + verre), forges | Modes | P1 | FAIT (forges : 1.6 corrigé) | `BedBreakGame`, `Bridges`, `Defense`, `game-model/BedDefense` | 1.6 | C3 |
+| 2.1 | Lobby Fight : 12 end stone, pioche bois, Haste, 5 pommes, blocs qui partent après 10 s (pas ceux du lobby), 3 manches | Modes | P1 | CORRIGÉ après l'essai en jeu (pearl, laine et cisailles remises), à retester | `LobbyFight`, `LobbyFightGame`, `FfaGame`, `BlockDecay`, config du lobby | 1.1 | tests unitaires (`LobbyFightTest`, `LobbySettingsTest`) ; en jeu sur Archway FFA (voir le journal) |
+| 2.2 | Bedfight : protection au respawn de la durée exacte de Minemen, coupée dès un combat ; kit gardé ; puis les autres modes Bed Wars (demandé après l'essai) | Modes | P1 | TESTÉ en Bed Fight (en jeu par toi) ; autres modes IMPLÉMENTÉ | `BedFightGame`, `BedwarsGame`, `BedwarsHost`, `SpawnProtection` | 1.5 | tests unitaires (`SpawnProtectionTest`) ; en jeu : frapper un joueur qui vient de réapparaître |
+| 2.3 | Bed Break Simulation : bridges refaits, pas de blocs en haut de la map, cisailles + hache, défense RBW (end stone + verre), forges | Modes | P1 | EN COURS : bridges d'Invasion et d'Archway à refaire d'après tes captures ; forges testées | `BedBreakGame`, `Bridges`, `Defense`, `game-model/BedDefense` | 1.6 | C3 |
 | 2.4 | Clutch Scenario : bridges réalistes jusqu'à la base ennemie ; rôles au hasard (leader aussi Clutcher) | Modes | P1 | IMPLÉMENTÉ | `ClutchScenarioGame`, `Bridges` | — | tests unitaires (`BridgesTest`) ; simulation sur Archway et Sky Rise ; en jeu | — |
 | 2.5 | Au moins 10 spectateurs (Block Clutch et autres practice) | Social | P1 | IMPLÉMENTÉ | `tools/local-server/server.properties` (50 places), `spectate-bots.mjs` | 1.2 | test réel en CI : 10 bots regardent un Block clutch en même temps |
 | 2.6 | Fireballs fidèles à Hypixel (KB, explosion, direction, fireball jump, blocs) | PvP | P1 | EN COURS (mesure prête, à faire sur Hypixel) | `Fireballs`, `FireballBlast`, `FireballAim`, `PracticeGame` | — | mesures Hypixel (kb-recorder 0.2) |
 | 2.7 | TNT (timing, KB, TNT jump, environnement), réf. Hypixel / Minemen | PvP | P1 | À FAIRE | `PracticeGame.tntBlast`, `BedwarsGame` | 2.6 | mesures |
-| 2.8 | Fast Shop et API Hypixel : étude des données réellement disponibles | Modes | P2 | ÉTUDE FAITE (proposition à valider) | `FastShopGame`, `HypixelProfiles`, `HypixelProfile` | — | un vrai `/hypixel import` sur ton serveur |
+| 2.8 | Fast Shop et API Hypixel : étude des données réellement disponibles | Modes | P2 | BLOQUÉ : Hypixel refuse la clé du serveur (« Invalid API key ») | `FastShopGame`, `HypixelProfiles`, `HypixelProfile` | — | un vrai `/hypixel import` sur ton serveur |
 
 ### Étape 4 : statistiques et progression (Phase 3)
 
@@ -217,6 +217,20 @@ informations manquantes.
 ---
 
 ## 3. Journal des corrections
+
+### Ton essai en jeu du 21/11 (vers 18 h) et ce qui a suivi
+
+Sur le serveur de test (19) avec le build 325 installé :
+- **Bed Break sur Invasion** : forges et spawn « Parfait ! » (1.6 TESTÉ). Les bridges d'Invasion
+  et d'Archway « c'est pas du tout ça » : tu envoies une capture de ce que tu veux (2.3 EN COURS).
+- **Bedfight** : la protection au respawn est bonne (2.2 TESTÉ en Bed Fight). Tu demandes de la
+  mettre « dans tous les autres modes bedwars » : fait, voir 2.2.
+- **Block In** : « parfait » (1.8 TESTÉ).
+- **Reset des arènes** : « je crois que ça marche » (1.1 reste IMPLÉMENTÉ jusqu'à confirmation).
+- **Lobby Fight** : « on a pas de shears, on a plus block infini, on a plus les pearls » : corrigé,
+  voir 2.1.
+- **Fast Shop** : `/hypixel import` refusé par Hypixel, voir 2.8.
+- **First Rush** : tu poses toi-même les spawns de Nebuc et Gelato (1.7).
 
 ### 1.2 Spectator — IMPLÉMENTÉ (21/11)
 
@@ -503,6 +517,16 @@ premier à 3 win ». Je l'ai lu comme le premier à 3 manches gagnées (donc jus
   la manche suivante). Seuls les blocs posés se cassent, jamais ceux de la salle d'attente.
 - **Manches** : le premier à 3 gagne (avant : 5).
 
+**Retour en jeu (21/11)** : « on a pas de shears, on a plus block infini, on a plus les pearls ».
+Le kit du 1v1 d'avant (celui du FFA) avait une pearl, 2 stacks de laine et des cisailles ; je les
+avais retirés en donnant au 1v1 le kit du Lobby Fight FFA. **Corrigé** : le kit commun aux deux
+Lobby Fight garde les ajouts du plan (12 end stone, pioche en bois, Haste, 5 pommes) et retrouve la
+pearl, les 2 stacks de laine et les cisailles (ajoutés en dernier dans `lobby-fight-ffa:`, pour
+qu'un rangement déjà fait garde ses objets à leur place). « Blocs infinis » est lu comme les 2
+stacks de laine d'avant, rendus à chaque manche en 1v1 : aucun code ne remplissait la laine à
+l'infini avant. Le kit étant commun (ta réponse à C2), le FFA a aussi la pearl, la laine et les
+cisailles ; dis-le si le FFA doit rester sans, comme tu l'avais voulu le 14/11.
+
 **Testé** : tests unitaires (le kit, Haste I, le premier à 3, les 10 secondes, le `kit-de:` du
 1v1). **Pas encore testé en jeu** (le serveur de test n'a pas la map Archway FFA) : à faire, une
 partie de Lobby Fight 1v1 et une de FFA, poser de l'end stone et la voir partir, la casser avec
@@ -525,19 +549,33 @@ toujours là 4 secondes plus tard, puis `/spawn` les ramène au lobby. Le test j
 
 **Durée** : 1,5 seconde, celle de Minemen, donnée le 21/11 (« 1.5 secondes »).
 
-**Fait** (`SpawnProtection`, `BedFightGame.PROTECTION_MILLIS`, `BedwarsHost.onDamage`) : à chaque
+**Fait** (`SpawnProtection`, `BedwarsGame.SPAWN_PROTECTION_MILLIS`, `BedwarsHost.onDamage`) : à chaque
 respawn en Bed Fight (1v1 et 2v2), pendant 1,5 s, un coup d'un ennemi (épée, flèche…) ne fait rien
 au joueur : ni dégât ni recul. Dès que le joueur frappe lui-même un ennemi, sa protection s'arrête
 tout de suite, que son coup touche ou non. La chute dans le vide tue toujours. Pas de protection au
-début de la partie (seulement au respawn, comme demandé) ni dans les autres modes. Rien n'est
-affiché au joueur protégé, rien n'était demandé.
+début de la partie (seulement au respawn, comme demandé). Rien n'est affiché au joueur protégé,
+rien n'était demandé.
+
+**Testé en jeu par toi (21/11)** : « Parfait la spawn prot est bonne ».
+
+**Étendue aux autres modes Bed Wars (21/11, à ta demande)** : la durée est maintenant celle de
+tous les modes (`BedwarsGame.SPAWN_PROTECTION_MILLIS`, 1,5 s) : chaque fois qu'un joueur revient
+pendant la partie (`BedwarsGame.respawn`), il a la même protection qu'en Bed Fight. Ça touche les
+parties Bed Wars (Ranked Bedwars, First Rush, Clutch Scenario…), le FFA, le Top Bridge FFA, le
+Lobby Fight FFA, les défenseurs de Bed Break et d'Invis, l'Attack/Defense. Les modes en manches
+(Top Bridge, Lobby Fight 1v1) ne passent pas par un respawn : tout le monde repart en même temps à
+chaque manche, donc rien ne change pour eux. Le Fast Shop n'a pas de PvP. **Pas encore testé en
+jeu** dans ces modes.
 
 **Tests** : tests unitaires (`SpawnProtectionTest` : 1,5 s puis plus rien, coupée par un coup,
 rendue à la vie suivante, aucune dans les autres modes) ; compilation et tests par la CI. **Pas
 testé en jeu** : frapper un joueur qui vient de réapparaître (aucun recul), puis le laisser frapper
 en premier pendant sa protection (il redevient touchable aussitôt).
 
-### 2.3 Bed Break Simulation — IMPLÉMENTÉ (21/11), forges : voir 1.6 (corrigé)
+### 2.3 Bed Break Simulation — EN COURS (bridges à refaire), forges : TESTÉ (1.6)
+
+**Retour en jeu (21/11)** : les bridges d'Invasion et d'Archway « c'est pas du tout ça ». Tu
+envoies une capture de ce que tu veux ; je les refais d'après elle, sans deviner avant.
 
 - **Bridges** : le top bridge (la plateforme de laine de 17 blocs de large, 16 blocs au-dessus
   des lits, tracée de lit à lit, donc en diagonale sur Invasion) est remplacé par le bridge de
@@ -707,3 +745,17 @@ confirme la clé (refusée si l'application n'est pas encore acceptée) et les i
 quick buy, que je relirai dans `plugins/RagoLobby/hypixel/`. Un seul petit manque trouvé : un
 import fait pendant une partie de Fast Shop ne change le shop qu'à la partie suivante (le message
 d'accueil dit d'importer au lobby, donc ce cas est rare). Rien n'est codé sans ton accord.
+
+**Essai réel (21/11, 18 h 10)** : `/hypixel import qAbel` sur ton serveur de test. La console
+(`logs/latest.log`) dit : `Hypixel refused the API key (403): {"success":false,"cause":"Invalid
+API key"}`. C'est Hypixel qui répond que la clé n'est pas valable : le code a bien envoyé la
+requête et lu la réponse. La clé de `hypixel.cle-api` a la bonne forme (36 caractères, celle d'une
+clé Hypixel) et c'est exactement celle que tu avais avant la mise à jour (la fusion des configs ne
+l'a pas touchée). Les règles d'Hypixel (developer.hypixel.net/policies) : les clés de
+développement expirent (« developer keys may expire »), et seules les applications approuvées ont
+des clés qui durent plus longtemps. Tu dis aussi avoir été refusé par Hypixel pour les clés de
+développement. **Rien à corriger dans le code** : il faut une clé qu'Hypixel accepte. Une nouvelle
+clé de développement, créée sur developer.hypixel.net et collée dans `hypixel.cle-api` (puis un
+redémarrage), devrait marcher tant qu'elle n'a pas expiré ; pour durer, il faut une application
+approuvée. Sans clé valable, le Fast Shop et les modes Bed Wars marchent avec le quick buy par
+défaut ; seul l'import manque. Statut : **BLOQUÉ** (clé).

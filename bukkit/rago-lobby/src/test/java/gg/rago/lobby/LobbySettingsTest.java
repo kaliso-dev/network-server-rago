@@ -129,7 +129,11 @@ class LobbySettingsTest {
         assertEquals(KitItem.parse("FIREBALL 3"), lobbyFfa.item(2), "fireballs");
         assertEquals(KitItem.parse("ENDER_STONE 12"), lobbyFfa.item(3), "12 end stone");
         assertEquals(Material.WOOD_PICKAXE, lobbyFfa.item(4).material(), "a wooden pickaxe");
-        assertNull(lobbyFfa.item(5), "nothing more: no pearl");
+        assertEquals(Material.ENDER_PEARL, lobbyFfa.item(5).material(), "the pearl of the 1v1 of before");
+        assertEquals(KitItem.parse("WOOL 64"), lobbyFfa.item(6), "its wool");
+        assertEquals(KitItem.parse("WOOL 64"), lobbyFfa.item(7), "2 stacks");
+        assertEquals(Material.SHEARS, lobbyFfa.item(8).material(), "and its shears");
+        assertNull(lobbyFfa.item(9), "nothing more");
         assertEquals("entrainement", settings.display("kb-displace-bot").category(), "against a bot: practice");
         int total = 0;
         for (ModeCategory category : settings.categories()) {

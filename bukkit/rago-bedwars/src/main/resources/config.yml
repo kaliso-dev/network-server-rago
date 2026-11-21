@@ -106,8 +106,9 @@ modes:
 #              lobby only, gone 10 seconds after being placed
 #   lobby-fight-ffa  Lobby Fight FFA: the FFA in the waiting lobby (12 players at most), with
 #              the kit of Lobby Fight (lobby-fight-ffa: in the lobby's config.yml: a sword, 5 golden
-#              apples that each kill brings back to 5, 3 fireballs, 12 end stone and a wooden
-#              pickaxe) and Haste, each life somewhere on its floor away from the others
+#              apples that each kill brings back to 5, 3 fireballs, 12 end stone, a wooden pickaxe,
+#              a pearl, 2 stacks of wool and shears) and Haste, each life somewhere on its floor
+#              away from the others
 #   bed-break  Bed Break Simulator: 1v1 to 1v4 (2 to 5 players, as the invis practice), on the
 #              map chosen, rounds of 3 minutes, on two opposite islands; each player in turn
 #              attacks with one life and the kit they choose (see bed-break: below), from the

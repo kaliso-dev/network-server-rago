@@ -18,7 +18,8 @@ import org.bukkit.potion.PotionEffectType;
  * bedwars.yml, see {@link BedwarsMap.WaitingLobby}): in rounds of one life ({@link LobbyFightGame},
  * 1v1), or for everyone ({@link FfaGame}, the FFA). What both have: one kit (lobby-fight-ffa: in the
  * lobby's config.yml, that the 1v1 plays with kit-de:: a stone sword, 5 golden apples, 3 fireballs,
- * 12 end stone and a wooden pickaxe), Haste to mine the end stone, the blocks placed only in the
+ * 12 end stone, a wooden pickaxe, a pearl, 2 stacks of wool and shears), Haste to mine the end
+ * stone, the blocks placed only in the
  * lobby and gone after {@value FfaGame#DECAY_SECONDS} seconds (the lobby's own blocks are never
  * broken: only the blocks placed are), where a player can stand on its floor, the two starts of a
  * duel, a fall off it is a death. One per game, made on its copy of the map. Main thread only.
@@ -92,12 +93,14 @@ final class LobbyFight {
 
     /**
      * The kit of Lobby Fight when the lobby's config.yml has none: the one of lobby-fight-ffa: in
-     * the lobby's config.yml, a stone sword, 5 golden apples, 3 fireballs, 12 end stone and a
-     * wooden pickaxe.
+     * the lobby's config.yml, a stone sword, 5 golden apples, 3 fireballs, 12 end stone, a wooden
+     * pickaxe, and what the 1v1 had before them: a pearl, 2 stacks of wool and shears.
      */
     static List<ItemStack> fallbackKit() {
         return new ArrayList<>(Arrays.asList(new ItemStack(Material.STONE_SWORD), new ItemStack(Material.GOLDEN_APPLE, 5),
-                new ItemStack(Material.FIREBALL, 3), new ItemStack(Material.ENDER_STONE, 12), new ItemStack(Material.WOOD_PICKAXE)));
+                new ItemStack(Material.FIREBALL, 3), new ItemStack(Material.ENDER_STONE, 12), new ItemStack(Material.WOOD_PICKAXE),
+                new ItemStack(Material.ENDER_PEARL), new ItemStack(Material.WOOL, 64), new ItemStack(Material.WOOL, 64),
+                new ItemStack(Material.SHEARS)));
     }
 
     /** Haste for the life, to mine the end stone: given with the kit, after the effects of the last life are gone. */

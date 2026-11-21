@@ -39,8 +39,9 @@ import org.bukkit.inventory.PlayerInventory;
  * boards of the most kills ever in the mode float in the air beside the fight (see
  * {@link #boardPlaces}), and the sidebar shows the 3 players with the most kills in the game. Lobby
  * Fight FFA (lobby-fight-ffa) is the FFA in the waiting lobby of the map (see {@link LobbyFight}):
- * its own kit (in the lobby's config.yml: a stone sword, 5 golden apples, 3 fireballs, 12 end stone
- * and a wooden pickaxe) with Haste, each kill bringing the killer's golden apples back to the kit's,
+ * its own kit (in the lobby's config.yml: a stone sword, 5 golden apples, 3 fireballs, 12 end stone,
+ * a wooden pickaxe, a pearl, 2 stacks of wool and shears) with Haste, each kill bringing the
+ * killer's golden apples back to the kit's,
  * at most {@value #LOBBY_MAX_PLAYERS} players, each life somewhere on its floor away from the
  * others, dead a few blocks under it, the blocks in the lobby only. Main thread only.
  */
