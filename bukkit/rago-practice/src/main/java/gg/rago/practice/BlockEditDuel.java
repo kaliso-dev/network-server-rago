@@ -17,7 +17,8 @@ import org.bukkit.inventory.ItemStack;
  * Block edit, one against one: the station of the block edit with a room on each side of the wall
  * of wool. Break a block of the wall, hit the other player through the hole, and put a block back
  * in the wall before they hit you: that is a point. A hit back first takes the point away; then
- * it is theirs to close. The hits do no damage, only their knockback. First to the target.
+ * it is theirs to close. The hits do no damage, only their knockback. First to the target. As a
+ * Red Rover (red-rover-block-edit), a clean edit wins the 1v1.
  */
 final class BlockEditDuel extends Duel {
 
@@ -52,7 +53,7 @@ final class BlockEditDuel extends Duel {
 
     @Override
     Location spawnOf(UUID player) {
-        return sideOf(player) == 0 ? arena.at(-2.5, 1, 0.5, -90f) : arena.at(3.5, 1, 0.5, 90f);
+        return slotOf(player) == 0 ? arena.at(-2.5, 1, 0.5, -90f) : arena.at(3.5, 1, 0.5, 90f);
     }
 
     @Override
@@ -90,7 +91,7 @@ final class BlockEditDuel extends Duel {
         if (attacker == null || phase != Phase.PLAYING) {
             return;
         }
-        int side = sideOf(attacker.getUniqueId());
+        int side = slotOf(attacker.getUniqueId());
         if (pending != side) {
             attacker.sendMessage(ChatColor.YELLOW + "Hit! Put a block back in the wall before they hit you.");
             sound(attacker, Sound.NOTE_PLING, 1.4f);
@@ -113,7 +114,7 @@ final class BlockEditDuel extends Duel {
 
     @Override
     void placed(Player player, Block block) {
-        int side = sideOf(player.getUniqueId());
+        int side = slotOf(player.getUniqueId());
         if (scores(pending, side)) {
             broadcast(CHAT[side] + player.getDisplayName() + ChatColor.GRAY + " made a clean edit.", null);
             point(side);
@@ -128,8 +129,8 @@ final class BlockEditDuel extends Duel {
 
     @Override
     void extraLines(UUID viewer, List<String> lines) {
-        int side = Math.max(0, sideOf(viewer));
-        lines.add(pending < 0 ? ChatColor.GRAY + "Open, hit, close."
+        int side = slotOf(viewer);
+        lines.add(pending < 0 || side < 0 ? ChatColor.GRAY + "Open, hit, close."
                 : pending == side ? ChatColor.YELLOW + "Close the wall!" : ChatColor.RED + "Hit them back!");
     }
 }

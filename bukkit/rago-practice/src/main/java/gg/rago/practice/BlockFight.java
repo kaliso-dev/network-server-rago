@@ -25,7 +25,9 @@ import org.bukkit.inventory.ItemStack;
  * gold block at once, their kit given back whole (two stacks of wool again; the others fight on,
  * the blocks stay). First to 100 by default (points-pour-gagner.block-fight). The hearts tell the
  * score: a player has all their health while the other side has no point, none when it reaches
- * the target (see {@link #healthFor}), and none comes back by itself.
+ * the target (see {@link #healthFor}), and none comes back by itself. As a Red Rover
+ * (red-rover-block-placement), the first to red-rover.points-par-1v1-block-placement wins the
+ * 1v1, and the next one starts on the map as built.
  */
 final class BlockFight extends Duel {
 
@@ -61,7 +63,7 @@ final class BlockFight extends Duel {
     /** The hearts of every player brought to the score. */
     private void showHealth() {
         for (Player player : online()) {
-            int side = sideOf(player.getUniqueId());
+            int side = slotOf(player.getUniqueId());
             if (side >= 0 && side < points.length && !player.isDead()) {
                 player.setHealth(Math.min(player.getMaxHealth(), healthFor(points[1 - side], target)));
             }
@@ -105,7 +107,7 @@ final class BlockFight extends Duel {
 
     @Override
     Location spawnOf(UUID player) {
-        int side = sideOf(player);
+        int side = slotOf(player);
         Location start = arena.mapStart(Math.max(0, side));
         if (start != null) {
             // teammates side by side, across the way they look
@@ -152,7 +154,7 @@ final class BlockFight extends Duel {
 
     @Override
     void armour(Player player) {
-        ironArmour(player, COLOURS[Math.max(0, sideOf(player.getUniqueId()))]);
+        ironArmour(player, COLOURS[Math.max(0, slotOf(player.getUniqueId()))]);
         ItemStack[] pieces = player.getInventory().getArmorContents();
         for (ItemStack piece : pieces) {
             if (piece != null && piece.getType() != Material.AIR) {
@@ -179,14 +181,14 @@ final class BlockFight extends Duel {
         if (attacker == null || phase != Phase.PLAYING || sameSide(victim.getUniqueId(), attacker.getUniqueId())) {
             return;
         }
-        int side = sideOf(attacker.getUniqueId());
-        if (side < 0) {
+        int side = slotOf(attacker.getUniqueId());
+        if (side < 0 || slotOf(victim.getUniqueId()) < 0) {
             return;
         }
         points[side]++;
         showHealth();
         if (points[side] >= target) {
-            finish(side, null);
+            wonBy(side);
         }
     }
 
@@ -197,7 +199,7 @@ final class BlockFight extends Duel {
     @Override
     void fell(Player player) {
         UUID id = player.getUniqueId();
-        int side = sideOf(id);
+        int side = slotOf(id);
         if (side < 0 || phase != Phase.PLAYING) {
             player.teleport(spawnOf(id));
             player.setFallDistance(0f);
@@ -213,14 +215,14 @@ final class BlockFight extends Duel {
         points[other] = afterFall(points[other]);
         showHealth();
         for (Player each : online()) {
-            int mine = sideOf(each.getUniqueId());
+            int mine = slotOf(each.getUniqueId());
             each.sendMessage((mine == other ? ChatColor.GREEN + "+" + VOID_BONUS + " for your team" : ChatColor.RED + "+"
-                    + VOID_BONUS + " for " + TEAMS[other]) + ChatColor.GRAY + " (" + points[Math.max(0, mine)] + " - "
+                    + VOID_BONUS + " for " + slotName(other)) + ChatColor.GRAY + " (" + points[Math.max(0, mine)] + " - "
                     + points[1 - Math.max(0, mine)] + ")");
             each.playSound(each.getLocation(), mine == other ? Sound.ORB_PICKUP : Sound.NOTE_BASS, 1f, 1f);
         }
         if (points[other] >= target) {
-            finish(other, null);
+            wonBy(other);
             return;
         }
         // only the one who fell goes back, at once, to their start, with their kit whole again: the
@@ -230,6 +232,11 @@ final class BlockFight extends Duel {
         player.teleport(spawnOf(id));
         player.setItemOnCursor(null);
         giveKit(player);
+    }
+
+    @Override
+    boolean pointsIn1v1() {
+        return true;
     }
 
     @Override

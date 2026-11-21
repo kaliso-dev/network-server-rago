@@ -292,6 +292,13 @@ public final class RagoPractice extends JavaPlugin {
         int sumoRadius = config.getInt("sumo.rayon", 7);
         onMaps(register("red-rover-sumo", (h, m, a, t) -> new RedRover(h, m, a, t, rover, sumoRadius), slots, spacing, false),
                 zoneMaps(config, "sumo.cartes", spacing, "the Red Rover Sumo"));
+        // the duels played as Red Rovers: the block edit (a clean edit wins the 1v1) and the block
+        // placement on its maps (the first to red-rover.points-par-1v1-block-placement wins it)
+        register("red-rover-block-edit", (h, m, a, t) -> new BlockEditDuel(h, m, a, RedRover.alone(t), edit)
+                .asRedRover("Red Rover Block Edit", rover), slots, spacing, false);
+        int roverBlocks = config.getInt("red-rover.points-par-1v1-block-placement", 10);
+        onMaps(register("red-rover-block-placement", (h, m, a, t) -> new BlockFight(h, m, a, RedRover.alone(t), roverBlocks)
+                .asRedRover("Red Rover Block Placement", rover), slots, spacing, false), blockMaps);
     }
 
     /** The settings of Red Rover (red-rover); the defaults when they are wrong. */
@@ -1119,6 +1126,7 @@ public final class RagoPractice extends JavaPlugin {
             {"xp-entrainement.reussite", "3", "0", "50"},
             {"xp-entrainement.max-par-minute", "8", "0", "100"},
             {"points-pour-gagner.bow", "10", "1", "50"},
+            {"red-rover.points-par-1v1-block-placement", "10", "1", "500"},
         };
         for (String[] range : ranges) {
             int value = config.getInt(range[0], Integer.parseInt(range[1]));

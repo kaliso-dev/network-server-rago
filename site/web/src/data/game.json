@@ -88,7 +88,7 @@
       ],
       "description": "Bed fight, Top BedFight, top bridge, bridge fight, block placement in 1v1 or 2v2; Lobby Fight, sumo, boxing, KB displace, fireball fight, bow. /duel a player to challenge them.",
       "skin": "duels",
-      "modes": 17
+      "modes": 19
     },
     {
       "id": "arenes",
@@ -178,6 +178,16 @@
       "modes": [
         "bed-fight-1v1",
         "bed-fight-2v2"
+      ]
+    },
+    {
+      "id": "red-rover",
+      "name": "Red Rover",
+      "description": "Three players, 1v1 in turn, who waits watches: the sumo, the block edit, the block placement.",
+      "modes": [
+        "red-rover-sumo",
+        "red-rover-block-edit",
+        "red-rover-block-placement"
       ]
     },
     {
@@ -995,12 +1005,44 @@
       "colour": "#55FF55",
       "icon": "SLIME_BALL",
       "category": "duels",
-      "group": null,
+      "group": "red-rover",
       "format": "1v1v1",
       "ranked": false,
       "startHere": false,
       "event": false,
       "description": "Three players, 1v1 in turn on the sumo platform: who waits watches the 1v1.",
+      "plugins": [
+        "practice"
+      ]
+    },
+    {
+      "id": "red-rover-block-edit",
+      "name": "Red Rover Block Edit",
+      "colour": "#55FF55",
+      "icon": "SHEARS",
+      "category": "duels",
+      "group": "red-rover",
+      "format": "1v1v1",
+      "ranked": false,
+      "startHere": false,
+      "event": false,
+      "description": "Three players, 1v1 in turn at the wall of wool: a clean edit wins the 1v1.",
+      "plugins": [
+        "practice"
+      ]
+    },
+    {
+      "id": "red-rover-block-placement",
+      "name": "Red Rover Block Placement",
+      "colour": "#55FF55",
+      "icon": "SANDSTONE",
+      "category": "duels",
+      "group": "red-rover",
+      "format": "1v1v1",
+      "ranked": false,
+      "startHere": false,
+      "event": false,
+      "description": "Three players, 1v1 in turn on the block placement maps: a hit +1, the void +10, first to 10 wins the 1v1.",
       "plugins": [
         "practice"
       ]

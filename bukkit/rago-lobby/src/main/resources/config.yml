@@ -185,6 +185,14 @@ groupes:
       - "Two islands, a bed each: break"
       - "theirs and kill them. You come"
       - "back while your bed stands."
+  red-rover:
+    nom: "&aRed Rover"
+    icone: REDSTONE
+    description:
+      - "Three players, 1v1 in turn,"
+      - "who waits watches: the sumo,"
+      - "the block edit, the block"
+      - "placement."
   top-bridge:
     nom: "&aTop Bridge"
     icone: LADDER
@@ -978,7 +986,7 @@ titres:
     bow: {nom: "Bow Duel", modes: [bow-duel]}
     fireball-knockback: {nom: "Fireball Fight (Fun)", modes: [fireball-knockback]}
     snowball-spleef: {nom: "Snowball Spleef", modes: [snowball-spleef]}
-    red-rover: {nom: "Red Rover", modes: [red-rover-sumo]}
+    red-rover: {nom: "Red Rover", modes: [red-rover-sumo, red-rover-block-edit, red-rover-block-placement]}
 
 # The Hypixel import: players copy the quick buy of their Bed Wars shop and their hotbar manager
 # from Hypixel, in one click (the emerald in the kit editor book) or with /hypixel import <name>,
@@ -1681,11 +1689,13 @@ modes:
       - "Knock the other player off"
       - "the platform: great for"
       - "working on knockback."
-  # Red Rover Sumo (plan 6.5): three players (a party of three, or three of the queue), 1v1 in
-  # turn on the sumo platform; the rules in red-rover of RagoPractice's config.yml
+  # Red Rover (plan 6.5): three players (a party of three, or three of the queue), 1v1 in turn on
+  # the sumo platform, at the wall of the block edit, on the block placement maps; the rules in
+  # red-rover of RagoPractice's config.yml
   red-rover-sumo:
     nom: "&aRed Rover Sumo"
     categorie: duels
+    groupe: red-rover
     icone: SLIME_BALL
     equipes: 1
     joueurs-par-equipe: 3
@@ -1695,6 +1705,37 @@ modes:
       - "Three players, 1v1 in turn"
       - "on the sumo platform: who"
       - "waits watches the 1v1."
+  red-rover-block-edit:
+    nom: "&aRed Rover Block Edit"
+    categorie: duels
+    groupe: red-rover
+    icone: SHEARS
+    equipes: 1
+    joueurs-par-equipe: 3
+    format: 1v1v1
+    classe: false
+    # the kit of the block edit duel, as each player arranged it
+    kit-de: block-edit-duel
+    description:
+      - "Three players, 1v1 in turn"
+      - "at the wall of wool: a clean"
+      - "edit wins the 1v1."
+  red-rover-block-placement:
+    nom: "&aRed Rover Block Placement"
+    categorie: duels
+    groupe: red-rover
+    icone: SANDSTONE
+    equipes: 1
+    joueurs-par-equipe: 3
+    format: 1v1v1
+    classe: false
+    # the kit of the block placement 1v1, as each player arranged it
+    kit-de: block-fight-1v1
+    description:
+      - "Three players, 1v1 in turn"
+      - "on the block placement maps:"
+      - "a hit +1, the void +10, first"
+      - "to 10 wins the 1v1."
   boxing:
     nom: "&aBoxing"
     categorie: duels

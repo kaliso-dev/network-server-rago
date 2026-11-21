@@ -3,15 +3,12 @@ package gg.rago.practice;
 import gg.rago.game.GameMode;
 import java.util.ArrayList;
 import java.util.Collections;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 import java.util.Random;
 import java.util.UUID;
 import org.bukkit.ChatColor;
 import org.bukkit.Location;
 import org.bukkit.Material;
-import org.bukkit.Sound;
 import org.bukkit.entity.Player;
 import org.bukkit.event.entity.EntityDamageEvent;
 
@@ -19,9 +16,10 @@ import org.bukkit.event.entity.EntityDamageEvent;
  * Red Rover Sumo (plan 6.5, solution 1): three friends (a party, or three players of the queue)
  * on the sumo platform, in 1v1, in turn; the one who waits watches. Each 1v1 is one round of the
  * sumo (knockback only, the first off the platform loses it), quick: a second of countdown between
- * two. The rotation and the way to win (the first to a number of 1v1 won, or the last one in) are
- * in {@link RedRoverRotation}; its settings: red-rover in config.yml. On the sumo maps, or on a
- * round platform of the sumo's radius without them.
+ * two. The turns and the way to win (the first to a number of 1v1 won, or the last one in) are
+ * in {@link RedRoverTurns}; its settings: red-rover in config.yml. On the sumo maps, or on a round
+ * platform of the sumo's radius without them. The other Red Rovers are duels played so
+ * ({@link Duel#asRedRover}).
  */
 final class RedRover extends PracticeGame {
 
@@ -84,26 +82,13 @@ final class RedRover extends PracticeGame {
     /** Distance of each fighter from the centre at the start of a 1v1 (as in the sumo). */
     static final double START_DISTANCE = 3.0;
 
-    private final Settings settings;
     private final int radius;
-    private final RedRoverRotation<UUID> rotation;
-    private final Random random = new Random();
-    /** The hits of each fighter in this 1v1, for its end at the time limit. */
-    private final Map<UUID, Integer> hits = new HashMap<>();
-    private int fightSeconds;
+    private final RedRoverTurns turns;
 
     RedRover(PracticeHost host, GameMode mode, Arena arena, List<List<Player>> teams, Settings settings, int radius) {
         super(host, mode, arena, alone(teams));
-        this.settings = settings;
         this.radius = radius;
-        List<UUID> order = new ArrayList<>();
-        for (List<Player> team : teams) {
-            for (Player player : team) {
-                order.add(player.getUniqueId());
-            }
-        }
-        Collections.shuffle(order, random);
-        this.rotation = new RedRoverRotation<>(order, settings.variant, settings.stays, settings.target);
+        this.turns = new RedRoverTurns(this, "Red Rover Sumo", settings, new Random());
     }
 
     /** Each player a side of their own (the queue brings them as one team): one wins, the others lose. */
@@ -132,16 +117,8 @@ final class RedRover extends PracticeGame {
 
     @Override
     void intro(Player player) {
-        List<String> others = new ArrayList<>();
-        for (UUID id : rotation.players()) {
-            if (!id.equals(player.getUniqueId())) {
-                others.add(nameOf(id));
-            }
-        }
-        player.sendMessage(ChatColor.GREEN + "Red Rover Sumo with " + ChatColor.WHITE + String.join(", ", others) + ChatColor.GREEN
-                + ": 1v1 in turn, " + (settings.variant == RedRoverRotation.Variant.POINTS
-                ? "the first to " + settings.target + " 1v1 won wins." : "a lost 1v1 is out, the last one in wins."));
-        player.sendMessage(ChatColor.GRAY + "Knock your opponent off the platform. Who waits watches the 1v1.");
+        turns.intro(player);
+        player.sendMessage(ChatColor.GRAY + "Knock your opponent off the platform.");
     }
 
     @Override
@@ -158,7 +135,7 @@ final class RedRover extends PracticeGame {
 
     @Override
     Location spawnOf(UUID player) {
-        int index = rotation.fight().indexOf(player);
+        int index = turns.slotOf(player);
         if (index < 0) {
             return viewPoint();
         }
@@ -172,7 +149,7 @@ final class RedRover extends PracticeGame {
     /** The two fighters at their start; the others watch. */
     @Override
     void placeAtStart(Player player) {
-        if (!rotation.fights(player.getUniqueId())) {
+        if (!turns.fights(player.getUniqueId())) {
             spectate(player);
             return;
         }
@@ -181,48 +158,28 @@ final class RedRover extends PracticeGame {
 
     @Override
     void roundReset() {
-        hits.clear();
-        fightSeconds = 0;
+        turns.roundStarted();
     }
 
     @Override
     void onFight() {
-        List<UUID> fight = rotation.fight();
-        if (fight.size() == 2) {
-            replayChat(ChatColor.WHITE + nameOf(fight.get(0)) + ChatColor.GRAY + " vs " + ChatColor.WHITE + nameOf(fight.get(1)));
-        }
+        turns.onFight();
     }
 
     @Override
     void onSecond() {
-        if (settings.roundSeconds <= 0 || rotation.fight().size() != 2 || ++fightSeconds < settings.roundSeconds) {
-            return;
-        }
-        UUID a = rotation.fight().get(0);
-        UUID b = rotation.fight().get(1);
-        int ha = hits.getOrDefault(a, 0);
-        int hb = hits.getOrDefault(b, 0);
-        UUID winner = ha == hb ? (random.nextBoolean() ? a : b) : ha > hb ? a : b;
-        broadcast(ChatColor.GRAY + "Time! The one who landed more hits wins the 1v1.", null);
-        won(winner);
+        turns.second(seconds);
     }
 
     /** Only the two fighters hit each other, without damage: the knockback only. */
     @Override
     boolean damage(Player victim, Player attacker, EntityDamageEvent event) {
-        if (attacker == null || !rotation.fights(victim.getUniqueId()) || !rotation.fights(attacker.getUniqueId())
+        if (attacker == null || !turns.fights(victim.getUniqueId()) || !turns.fights(attacker.getUniqueId())
                 || event.getCause() != EntityDamageEvent.DamageCause.ENTITY_ATTACK) {
             return false;
         }
         noDamage(event);
         return true;
-    }
-
-    @Override
-    void landed(Player victim, Player attacker, EntityDamageEvent event) {
-        if (attacker != null) {
-            hits.merge(attacker.getUniqueId(), 1, Integer::sum);
-        }
     }
 
     @Override
@@ -232,7 +189,7 @@ final class RedRover extends PracticeGame {
 
     @Override
     void lethal(Player victim, Player killer) {
-        if (rotation.fights(victim.getUniqueId())) {
+        if (turns.fights(victim.getUniqueId())) {
             lost(victim.getUniqueId(), false);
         } else {
             heal(victim);
@@ -248,10 +205,10 @@ final class RedRover extends PracticeGame {
 
     /** This fighter lost the 1v1 (fell off, or died): the kill to whoever knocked them, the 1v1 to the other. */
     private void lost(UUID loser, boolean fell) {
-        if (phase != Phase.PLAYING || !rotation.fights(loser)) {
+        if (phase != Phase.PLAYING || !turns.fights(loser)) {
             return;
         }
-        UUID winner = rotation.fight().get(0).equals(loser) ? rotation.fight().get(1) : rotation.fight().get(0);
+        UUID winner = turns.opponentOf(loser);
         UUID by = killerOf(loser);
         if (counts()) {
             plugin.lobby().recordKill(mode.id(), by, loser);
@@ -259,101 +216,22 @@ final class RedRover extends PracticeGame {
         String victim = ChatColor.RED + nameOf(loser) + ChatColor.GRAY;
         broadcast(by == null ? victim + (fell ? " fell off." : " died.")
                 : victim + (fell ? " was knocked off by " : " was killed by ") + ChatColor.GREEN + nameOf(by) + ChatColor.GRAY + ".", null);
-        won(winner);
-    }
-
-    /** The 1v1 is won: the game over, or the next 1v1 at once. */
-    private void won(UUID winner) {
-        List<UUID> fight = new ArrayList<>(rotation.fight());
-        UUID loser = fight.get(0).equals(winner) ? fight.get(1) : fight.get(0);
-        UUID champion = rotation.won(winner);
-        for (Player player : online()) {
-            sound(player, player.getUniqueId().equals(winner) ? Sound.ORB_PICKUP : Sound.NOTE_BASS, 1f);
-        }
-        if (settings.variant == RedRoverRotation.Variant.POINTS) {
-            broadcast(ChatColor.GREEN + nameOf(winner) + ChatColor.GRAY + " wins the 1v1 (" + rotation.wins(winner) + "/"
-                    + settings.target + ").", null);
-        } else {
-            broadcast(ChatColor.GREEN + nameOf(winner) + ChatColor.GRAY + " wins the 1v1: " + ChatColor.RED + nameOf(loser)
-                    + ChatColor.GRAY + " is out.", null);
-        }
-        if (champion != null) {
-            finish(sideOf(champion), null);
-            return;
-        }
-        announceNext();
-        startRound();
-    }
-
-    /** Who fights next, and who waits. */
-    private void announceNext() {
-        List<UUID> fight = rotation.fight();
-        StringBuilder waiting = new StringBuilder();
-        for (UUID id : rotation.waiting()) {
-            waiting.append(waiting.length() == 0 ? "" : ", ").append(nameOf(id));
-        }
-        broadcast(ChatColor.YELLOW + "Next: " + ChatColor.WHITE + nameOf(fight.get(0)) + ChatColor.GRAY + " vs " + ChatColor.WHITE
-                + nameOf(fight.get(1)) + (waiting.length() == 0 ? "" : ChatColor.GRAY + " (" + waiting + " waits)"), null);
+        turns.won(winner);
     }
 
     /** One who leaves is out of the game (a loss); the last one in wins, else the next 1v1 goes on. */
     @Override
     void leave(Player player, boolean toLobby) {
-        UUID id = player.getUniqueId();
-        plugin.spectators().playerLeft(this, player);
-        if (phase != Phase.ENDED && rotation.isIn(id)) {
-            plugin.lobby().forfeited(mode.id(), id);
-            host.release(id);
-            boolean fought = rotation.fights(id);
-            UUID last = rotation.left(id);
-            if (last != null) {
-                finish(sideOf(last), ChatColor.GRAY + nameOf(id) + " gave up.");
-            } else {
-                broadcast(ChatColor.GRAY + nameOf(id) + " left the game.", null);
-                if (fought) {
-                    announceNext();
-                    startRound();
-                } else {
-                    sidebars();
-                }
-            }
-        }
-        host.release(id);
-        if (toLobby) {
-            plugin.lobby().sendToLobby(player);
-        }
+        turns.leave(player, toLobby);
     }
 
-    /** The 1v1 won of each player: "(Alice 3, Bob 1, Carl 0)". */
     @Override
     String result(int winner) {
-        StringBuilder text = new StringBuilder("(");
-        for (Map.Entry<UUID, Integer> score : rotation.scores().entrySet()) {
-            text.append(text.length() == 1 ? "" : ", ").append(nameOf(score.getKey())).append(' ').append(score.getValue());
-        }
-        return text.append(')').toString();
+        return turns.result();
     }
 
     @Override
     List<String> sidebar(UUID viewer) {
-        List<String> lines = new ArrayList<>();
-        lines.add(ChatColor.GREEN + "" + ChatColor.BOLD + "Red Rover Sumo");
-        lines.add(ChatColor.GRAY + goal(settings.variant, settings.target));
-        lines.add("");
-        List<UUID> fight = rotation.fight();
-        if (fight.size() == 2) {
-            lines.add(Duel.cut(ChatColor.RED + nameOf(fight.get(0))));
-            lines.add(ChatColor.GRAY + "vs");
-            lines.add(Duel.cut(ChatColor.BLUE + nameOf(fight.get(1))));
-            lines.add(" ");
-        }
-        for (Map.Entry<UUID, Integer> score : rotation.scores().entrySet()) {
-            UUID id = score.getKey();
-            ChatColor colour = !rotation.isIn(id) ? ChatColor.DARK_GRAY : id.equals(viewer) ? ChatColor.GREEN : ChatColor.WHITE;
-            String state = settings.variant == RedRoverRotation.Variant.POINTS ? String.valueOf(score.getValue())
-                    : rotation.isIn(id) ? "in" : "out";
-            lines.add(Duel.cut(colour + nameOf(id) + ChatColor.GRAY + ": " + ChatColor.YELLOW + state));
-        }
-        return lines;
+        return turns.sidebar(viewer, null);
     }
 }

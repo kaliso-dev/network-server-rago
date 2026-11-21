@@ -1,12 +1,19 @@
 // Red Rover test bots for RagoPractice (see tools/lobby-check/README.md, run-arena-test.sh).
 //
-// Three bots play Red Rover Sumo (red-rover-sumo) on a local 1.8.8 test server, with the bundled
-// settings (points, the winner stays, first to 3 1v1 won):
-//   1. the three join the queue alone and play together: two fight, the third watches (spectator);
+// Three bots play Red Rover on a local 1.8.8 test server, with the bundled settings (points, the
+// winner stays, first to 3 1v1 won):
+//   1. Red Rover Sumo (red-rover-sumo): the three join the queue alone and play together: two
+//      fight, the third watches (spectator);
 //   2. three 1v1 in a row: each time the one who is not the first winner walks off the platform;
 //      the winner stays on and fights the one who waited, the loser watches;
 //   3. after the third 1v1 won, the first winner wins the game, the two others lose; all three back
 //      in the lobby.
+//   4. Red Rover Block Placement (red-rover-block-placement, a duel played as a Red Rover, on the
+//      plugin's two platforms): a fighter walks off its platform, the void gives the other 10, the
+//      first to 10: the 1v1 won; the next one; the one who waits leaves (/spawn), then a fighter:
+//      the last one in wins.
+//   5. Red Rover Block Edit (red-rover-block-edit): a fighter leaves during the 1v1, the one who
+//      waited comes in against the other; then that one leaves too: the last one in wins.
 //
 // Environment: KB_HOST (127.0.0.1), KB_PORT (25565).
 
@@ -159,6 +166,71 @@ async function walkOff (bot, other) {
   bot.setControlState('forward', true)
 }
 
+/** The three in the queue of this Red Rover, together: its two fighters once the fight is on. */
+async function start (bots, mode, name) {
+  const from = bots.map(mark)
+  for (const bot of bots) bot.chat(`/queue ${mode}`)
+  for (let i = 0; i < bots.length; i++) await chatLine(bots[i], new RegExp(`${name} with `), 20000, from[i])
+  const fight = await fighters(bots, `the first 1v1 of the ${name}`)
+  for (const bot of fight) await chatLine(bot, /Fight!/, 10000, from[bots.indexOf(bot)])
+  log(`${name}: ${fight[0].username} vs ${fight[1].username}, ${bots.find((bot) => !fight.includes(bot)).username} watches`)
+  return fight
+}
+
+/** This bot leaves the game (/spawn): the others read it. */
+async function leaves (bot, others) {
+  const from = others.map(mark)
+  bot.chat('/spawn')
+  await expectInLobby(bot, 'after /spawn')
+  return from
+}
+
+async function blockPlacement (bots) {
+  const [a, b] = await start(bots, 'red-rover-block-placement', 'Red Rover Block Placement')
+  const waiting = bots.find((bot) => bot !== a && bot !== b)
+  // a off its platform: +10 for b, who wins the 1v1 at 10; b stays on against the one who waited
+  let from = bots.map(mark)
+  await walkOff(a, b)
+  try {
+    await chatLine(b, new RegExp(`${b.username} wins the 1v1 \\(1/3\\)`), 15000, from[bots.indexOf(b)])
+  } finally {
+    a.clearControlStates()
+  }
+  for (let i = 0; i < bots.length; i++) {
+    await chatLine(bots[i], new RegExp(`Next: ${b.username} vs ${waiting.username} \\(${a.username} waits\\)`), 5000, from[i])
+  }
+  const [c, d] = await fighters(bots, 'the second 1v1 of the block placement')
+  if (![c, d].includes(b) || ![c, d].includes(waiting)) {
+    throw new Error(`block placement, 1v1 2: ${c.username} vs ${d.username}, not ${b.username} vs ${waiting.username}`)
+  }
+  if (a.game.gameMode !== 'spectator') throw new Error(`${a.username} lost and does not watch: ${a.game.gameMode}`)
+  log(`block placement: ${b.username} won the 1v1 by the void, stays on against ${waiting.username}`)
+  // the one who waits leaves, then a fighter: the last one in wins
+  from = await leaves(a, [b, waiting])
+  await chatLine(b, new RegExp(`${a.username} left the game`), 5000, from[0])
+  from = await leaves(waiting, [b])
+  await chatLine(b, /Victory!.*gave up/, 10000, from[0])
+  await expectInLobby(b, 'after the block placement')
+  log(`block placement: ${a.username} who waited left, then ${waiting.username}: ${b.username} wins, the last one in`)
+}
+
+async function blockEdit (bots) {
+  const [a, b] = await start(bots, 'red-rover-block-edit', 'Red Rover Block Edit')
+  const waiting = bots.find((bot) => bot !== a && bot !== b)
+  // a fighter leaves: the one who waited comes in against the other at once
+  let from = await leaves(a, [b, waiting])
+  for (const [i, bot] of [b, waiting].entries()) {
+    await chatLine(bot, new RegExp(`${a.username} left the game`), 5000, from[i])
+    await chatLine(bot, new RegExp(`Next: (${b.username} vs ${waiting.username}|${waiting.username} vs ${b.username})`), 5000, from[i])
+  }
+  await fighters([b, waiting], 'the block edit after one left')
+  log(`block edit: ${a.username} left the 1v1, ${waiting.username} came in against ${b.username}`)
+  from = await leaves(b, [waiting])
+  await chatLine(waiting, /Victory!.*gave up/, 10000, from[0])
+  await expectInLobby(waiting, 'after the block edit')
+  log(`block edit: ${b.username} left too, ${waiting.username} wins`)
+}
+
 async function main () {
   const bots = []
   for (const name of ['RagoRoverUn', 'RagoRoverDeux', 'RagoRoverTrois']) bots.push(await arrive(name))
@@ -205,8 +277,12 @@ async function main () {
   log(`red rover: ${champion.username} won the game, first to 3`)
   for (const bot of bots) await expectInLobby(bot, 'after the Red Rover')
 
+  await blockPlacement(bots)
+  await blockEdit(bots)
+
   finishing = true
-  log('PASSED: Red Rover Sumo, three 1v1 in turn, the winner staying on')
+  log('PASSED: Red Rover Sumo, three 1v1 in turn, the winner staying on; Red Rover Block Placement and Block Edit,'
+    + ' a 1v1 won by the void, the next one, and those who leave')
   for (const bot of bots) bot.quit()
   await sleep(500)
   process.exit(0)

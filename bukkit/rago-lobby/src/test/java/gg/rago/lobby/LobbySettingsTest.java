@@ -64,16 +64,24 @@ class LobbySettingsTest {
         assertEquals("lobby", settings.world());
         assertEquals(0, settings.voidHeight());
         assertEquals(0, settings.defaultRating(), "a ranked ELO starts at 0, in Coal");
-        assertEquals(74, settings.modes().size(), "the invis practice and the Bed Break Simulator in 1v1 to 1v4 (and"
+        assertEquals(76, settings.modes().size(), "the invis practice and the Bed Break Simulator in 1v1 to 1v4 (and"
                 + " their kits), with the private top bridge, the clutch scenario, the bed fight, Top"
                 + " BedFight, the bridge fight 2v2, the full map first rush, Sky Rise Resources, the timed bridge, Lobby"
-                + " Fight (1v1, FFA), the Bed Break Simulator, the two modes of FUN PRACTICE and Red Rover Sumo, without"
-                + " the top fight or the ranked scenarios");
-        GameMode rover = settings.catalog().get("red-rover-sumo");
-        assertEquals(1, rover.teams(), "one team of three: a party of three joins it together");
-        assertEquals(3, rover.playersPerTeam());
-        assertEquals("1v1v1", settings.display("red-rover-sumo").format(), "as the menus show it");
-        assertFalse(rover.ranked());
+                + " Fight (1v1, FFA), the Bed Break Simulator, the two modes of FUN PRACTICE and Red Rover (sumo, block"
+                + " edit, block placement), without the top fight or the ranked scenarios");
+        for (String id : Arrays.asList("red-rover-sumo", "red-rover-block-edit", "red-rover-block-placement")) {
+            GameMode rover = settings.catalog().get(id);
+            assertEquals(1, rover.teams(), id + ": one team of three, a party of three joins it together");
+            assertEquals(3, rover.playersPerTeam(), id);
+            assertEquals("1v1v1", settings.display(id).format(), id + ", as the menus show it");
+            assertFalse(rover.ranked(), id);
+            assertEquals("duels", settings.display(id).category(), id);
+            assertEquals("red-rover", settings.display(id).group(), id + ": the Red Rovers in one item of the Duels");
+        }
+        assertEquals("block-fight-1v1", settings.kitMode("red-rover-block-placement"),
+                "the kit of the block placement, as each player arranged it");
+        assertEquals("block-edit-duel", settings.kitMode("red-rover-block-edit"), "the kit of the block edit");
+        assertEquals("red-rover-sumo", settings.kitMode("red-rover-sumo"), "the sumo's own (none: the hand)");
         assertEquals("fun", settings.display("fireball-knockback").category(), "the Fireball Fight of FUN PRACTICE");
         assertEquals("fun", settings.display("snowball-spleef").category());
         assertEquals(Material.SNOW_BALL, settings.display("snowball-spleef").icon());
@@ -182,6 +190,8 @@ class LobbySettingsTest {
         assertEquals(Arrays.asList("block-fight-1v1", "block-fight-2v2"), displayIds(settings.modesOfGroup("block-placement")));
         assertEquals(Arrays.asList("bridge-fight-1v1", "bridge-fight-2v2"), displayIds(settings.modesOfGroup("bridge-fight")));
         assertEquals(Arrays.asList("bed-fight-1v1", "bed-fight-2v2"), displayIds(settings.modesOfGroup("bed-fight")));
+        assertEquals(Arrays.asList("red-rover-sumo", "red-rover-block-edit", "red-rover-block-placement"),
+                displayIds(settings.modesOfGroup("red-rover")), "the Red Rovers as one item of the Duels");
         List<LobbySettings.Entry> duels = settings.entriesIn("duels");
         assertEquals("bed-fight", duels.get(0).group.id(), "the duels: 1v1 or 2v2 in one item each");
         assertEquals("top-bed-fight-1v1", duels.get(1).mode.mode().id(), "Top BedFight next to the bed fight, in 1v1 only");

@@ -205,7 +205,8 @@ fi
 for expected in '[RagoLobby] Lobby in the world lobby' '[RagoPractice] Arenas in the world arenes' \
     'Mode block-fight-1v1 hosted by RagoPractice' 'Mode block-edit-duel hosted by RagoPractice' \
     'Mode block-edit hosted by RagoPractice' 'Mode snowball-spleef hosted by RagoPractice' \
-    'Mode fireball-knockback hosted by RagoPractice' 'Mode red-rover-sumo hosted by RagoPractice'; do
+    'Mode fireball-knockback hosted by RagoPractice' 'Mode red-rover-sumo hosted by RagoPractice' \
+    'Mode red-rover-block-edit hosted by RagoPractice' 'Mode red-rover-block-placement hosted by RagoPractice'; do
   server_log_has "$expected" || { grep -n 'Rago' "$SERVER_LOG" >&2 || true; fail "missing in the server log: $expected"; }
 done
 log "server started with the lobby and the practice modes"

@@ -438,22 +438,38 @@ mode joue alors avec les valeurs de départ.
 
 ## Red Rover (plan 6.5, solution 1)
 
-**Red Rover Sumo** (`red-rover-sumo`, dans Duels) : trois joueurs, une party de trois ou trois
-joueurs de la file, en 1v1 chacun leur tour sur la plateforme du sumo (ses maps `sumo.cartes`, ou
-une plateforme du rayon `sumo.rayon`). Celui qui attend regarde le 1v1 en spectateur. Chaque 1v1
-est une manche du sumo (recul seul, le premier qui tombe le perd), avec une seconde de décompte
-entre deux. Les réglages, dans `red-rover:`, sont des valeurs de départ **à régler avec le
-propriétaire** :
+Trois joueurs, une party de trois ou trois joueurs de la file, en 1v1 chacun leur tour ; celui
+qui attend regarde le 1v1 en spectateur. Chaque 1v1 est une manche de son mode, avec une seconde de
+décompte entre deux, et le suivant repart sur la map telle qu'elle a été construite. Les trois
+modes sont un seul item, **Red Rover**, dans Duels :
+
+- **Red Rover Sumo** (`red-rover-sumo`) : sur la plateforme du sumo (ses maps `sumo.cartes`, ou
+  une plateforme du rayon `sumo.rayon`), recul seul, le premier qui tombe perd le 1v1 ;
+- **Red Rover Block Edit** (`red-rover-block-edit`) : le block edit en duel, au mur de laine ; un
+  edit propre (ouvrir, toucher, refermer avant d'être touché) gagne le 1v1 ;
+- **Red Rover Block Placement** (`red-rover-block-placement`) : le block placement en duel, sur ses
+  maps `block-fight.cartes` (ou les deux plateformes du plugin) ; un coup +1, une chute dans le
+  vide +10, le premier à `points-par-1v1-block-placement` (10) gagne le 1v1.
+
+Les deux derniers sont les duels `BlockEditDuel` et `BlockFight` joués en Red Rover
+(`Duel.asRedRover`) : chaque joueur est un camp à lui, les deux qui se battent ont une place dans le
+1v1 (rouge, bleu), et `RedRoverTurns` tient les tours pour les trois modes. Les kits sont ceux du
+block edit et du block placement 1v1, comme chaque joueur les a rangés (`kit-de:` dans le lobby).
+Les réglages, dans `red-rover:`, valent pour les trois et sont des valeurs de départ **à régler
+avec le propriétaire** :
 
 - `variante` : `points` (le premier à `points-pour-gagner` 1v1 gagnés, 3, gagne la partie) ou
   `elimination` (le perdant d'un 1v1 est éliminé, le dernier en jeu gagne) ;
 - `reste` (aux points) : qui reste pour le 1v1 suivant, `gagnant` ou `perdant` ; il affronte
   celui qui attendait, l'autre attend à son tour ;
 - `secondes-par-1v1` (90, comme les events ; 0 : sans limite) : au bout de ce temps, celui qui a
-  porté le plus de coups gagne le 1v1.
+  porté le plus de coups gagne le 1v1 ;
+- `points-par-1v1-block-placement` (10, de 1 à 500 ; le duel se joue à 100) : les points qui
+  gagnent un 1v1 de Red Rover Block Placement.
 
-Celui qui quitte la partie est éliminé (une défaite) ; le dernier en jeu gagne. Les variantes Block
-Placement, Block Edit et Top Bridge viendront ensuite sur la même rotation (`RedRoverRotation`).
+Celui qui quitte la partie est éliminé (une défaite) ; le dernier en jeu gagne. Si c'était un des
+deux combattants, celui qui attendait entre aussitôt contre l'autre. La variante Top Bridge, dans
+RagoBedwars, viendra ensuite.
 
 ## Les events (/host)
 
