@@ -6,6 +6,7 @@ import java.util.Map;
 import java.util.Set;
 import java.util.UUID;
 import java.util.function.BiConsumer;
+import java.util.function.BiFunction;
 import java.util.function.Function;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
@@ -309,6 +310,16 @@ public interface LobbyService {
      * keeps the week before until then.
      */
     default void addWeeklyBoard(Plugin plugin, String name, Function<String, List<Map.Entry<UUID, String>>> ranking) {
+    }
+
+    /**
+     * The records of the modes of this plugin (its trainings), shown under a mode in the menus of
+     * the lobby in the place of its Daily Streak, which a training has no use for: for a mode and
+     * the player who looks ({@code records}: the mode's id and the viewer), its record with its top
+     * 3, or null for a mode without one (it keeps its Daily Streak). Asked each time a menu opens,
+     * on the main thread. A second call of the same plugin replaces its first.
+     */
+    default void setModeRecords(Plugin plugin, BiFunction<String, UUID, ModeRecord> records) {
     }
 
     /** The friends of this player (/friend), for their place among their friends; none by default. */

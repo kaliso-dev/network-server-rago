@@ -2,10 +2,14 @@ package gg.rago.lobby;
 
 import gg.rago.game.GameMode;
 import gg.rago.game.Matchmaker;
+import gg.rago.lobby.api.ModeRecord;
 import java.util.ArrayList;
 import java.util.Comparator;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.UUID;
+import java.util.function.BiFunction;
 import java.util.function.ToIntFunction;
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
@@ -16,6 +20,7 @@ import org.bukkit.inventory.Inventory;
 import org.bukkit.inventory.InventoryHolder;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.ItemMeta;
+import org.bukkit.plugin.Plugin;
 
 /**
  * The mode selector, a chest menu. With categories in config.yml, the compass first shows one item
@@ -78,6 +83,8 @@ final class ModeMenu {
     /** The mode of the challenge of the day (a training) and what it asks, or null: none. */
     private String challengeMode;
     private String challengeLabel;
+    /** The records of the modes of each plugin that has some (the trainings), in the order they came. */
+    private final Map<Plugin, BiFunction<String, UUID, ModeRecord>> records = new LinkedHashMap<>();
 
     /** Modes in "Popular now", at most. */
     static final int MAX_POPULAR = 3;
@@ -93,6 +100,27 @@ final class ModeMenu {
     void setChallenge(String modeId, String label) {
         this.challengeMode = modeId;
         this.challengeLabel = label;
+    }
+
+    /** The records of the modes of this plugin, under its modes in the place of their Daily Streak. */
+    void setRecords(Plugin plugin, BiFunction<String, UUID, ModeRecord> records) {
+        this.records.put(plugin, records);
+    }
+
+    /** The plugin goes: its modes show their Daily Streak again. */
+    void dropRecords(Plugin plugin) {
+        records.remove(plugin);
+    }
+
+    /** The record of this mode, from the plugin that plays it; null for a mode without one. */
+    ModeRecord recordOf(String modeId, UUID viewer) {
+        for (BiFunction<String, UUID, ModeRecord> of : records.values()) {
+            ModeRecord record = of.apply(modeId, viewer);
+            if (record != null) {
+                return record;
+            }
+        }
+        return null;
     }
 
     /** /duel <player>: the 1v1 modes, a click challenges that player. */
@@ -665,7 +693,8 @@ final class ModeMenu {
         lore.add("");
         lore.addAll(display.description());
         lore.add("");
-        lore.addAll(streakLines(mode, viewer));
+        ModeRecord record = recordOf(mode.id(), viewer == null ? null : viewer.getUniqueId());
+        lore.addAll(record != null ? recordLines(record) : streakLines(mode, viewer));
         lore.add("");
         if (!queues.isPlayable(mode.id())) {
             lore.add(ChatColor.GRAY + "Coming soon");
@@ -698,7 +727,7 @@ final class ModeMenu {
         }
     }
 
-    /** Lines of the top of the day under "Daily Streak". */
+    /** Lines of the top of the day under "Daily Streak", and of the top of a training's record. */
     static final int TOP_STREAKS = 3;
 
     /**
@@ -721,6 +750,26 @@ final class ModeMenu {
         if (viewer != null) {
             lines.add(positionLine(top, viewer.getUniqueId()));
         }
+        return lines;
+    }
+
+    /**
+     * The record of a training in the place of its Daily Streak (plan 3.4), lifetime for now: what
+     * it is, "Lifetime record: Island clutch", its top 3, "1. Alice - 12 clutches", and the viewer's
+     * best and place: "Your best: 8 clutches (#5)".
+     */
+    static List<String> recordLines(ModeRecord record) {
+        List<String> lines = new ArrayList<>();
+        lines.add(Brand.ACCENT + "Lifetime record: " + ChatColor.WHITE + record.name);
+        if (record.top.isEmpty()) {
+            lines.add(ChatColor.GRAY + " Nobody yet: be the first!");
+        }
+        for (int i = 0; i < record.top.size() && i < TOP_STREAKS; i++) {
+            lines.add(Brand.ACCENT + " " + (i + 1) + ". " + ChatColor.WHITE + record.top.get(i).getKey() + Brand.ACCENT
+                    + " - " + record.top.get(i).getValue());
+        }
+        lines.add(record.best == null ? Brand.ACCENT + "Your best: " + ChatColor.GRAY + "-"
+                : Brand.ACCENT + "Your best: " + ChatColor.WHITE + record.best + ChatColor.GRAY + " (#" + record.place + ")");
         return lines;
     }
 

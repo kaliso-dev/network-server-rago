@@ -138,8 +138,9 @@ public final class RagoPractice extends JavaPlugin {
     }
 
     /**
-     * /records, the wall of the records on its point of the lobby (mur-des-records, "" for none)
-     * and the boards of the biggest clutches of the week, rewarded with the lobby's on Monday.
+     * /records, the wall of the records on its point of the lobby (mur-des-records, "" for none),
+     * the record of each training under its mode in the menus of the lobby, and the boards of the
+     * biggest clutches of the week, rewarded with the lobby's on Monday.
      */
     private void startRecords(FileConfiguration config) {
         recordsMenu = new RecordsMenu(this, RecordCatalog.played(hosted));
@@ -149,6 +150,8 @@ public final class RagoPractice extends JavaPlugin {
         if (wall != null && !wall.trim().isEmpty()) {
             lobby.setLobbyBoard(this, wall.trim(), RecordsMenu.WALL_LINES, recordsMenu::wall, recordsMenu::wallClick);
         }
+        // under each training in the menus of the lobby: its record, in the place of the Daily Streak
+        lobby.setModeRecords(this, recordsMenu::modeRecord);
         if (hosted.contains("clutch")) {
             String board = "clutch." + ClutchTraining.ISLAND.id;
             lobby.addWeeklyBoard(this, "Biggest clutches", week -> ClutchTraining.weekRanking(records.book(), board, week));

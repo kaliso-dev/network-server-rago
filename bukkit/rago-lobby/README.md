@@ -106,7 +106,12 @@ dans les files d'attente des modes de jeu.
   victoires d'affilée du joueur dans ce mode aujourd'hui) puis les trois plus longues séries du
   jour, avec les pseudos de toute l'équipe en 2v2, 3v3... (« 1. Alice, Bob - 24 »). Une série
   appartient à une équipe : les mêmes joueurs ensemble. Elles sont gardées dans
-  `plugins/RagoLobby/stats/equipes/`, un fichier par mode.
+  `plugins/RagoLobby/stats/equipes/`, un fichier par mode. Un entraînement (Block clutch, Block
+  in, Aim trainer...) montre à la place son record Lifetime, que lui donne RagoPractice
+  (`LobbyService.setModeRecords`) : « Lifetime record: Island clutch », le top 3 et le meilleur
+  score du joueur avec sa place (« Your best: 8 clutches (#5) »). C'est le record de la variante
+  sur laquelle l'entraînement commence : la première, et pour le block edit la vitesse du bot par
+  défaut. Les duels gardent leur Daily Streak.
 - **« Popular now ».** La ligne du haut de la boussole et de chaque catégorie montre les modes où
   il y a du monde en ce moment : au moins un joueur en partie ou en file, les plus joués d'abord
   (à égalité, celui où l'on attend : une partie bientôt), trois au plus, ceux de la catégorie dans

@@ -183,6 +183,38 @@ class RecordsMenuTest {
     }
 
     @Test
+    void theRecordOfATrainingForTheMenusOfTheLobby() {
+        RecordBook book = book();
+        for (int i = 0; i < 5; i++) {
+            book.load("block-in.wood", new UUID(4, i), "P" + i, 5000 + 100 * i);
+        }
+        book.load("block-in.wood", ALICE, "Alice", 9000);
+        book.load("block-in.two", BOB, "Bob", 1000);
+        gg.rago.lobby.api.ModeRecord blockIn = RecordsMenu.modeRecord(book, RecordCatalog.of("block-in"), ALICE);
+        assertEquals("3 layers, wood side", blockIn.name, "the board the training starts on, its first variant");
+        assertEquals(3, blockIn.top.size(), "a top 3");
+        assertEquals("P0", blockIn.top.get(0).getKey());
+        assertEquals("5.000 s", blockIn.top.get(0).getValue(), "a time: the shortest first");
+        assertEquals("5.200 s", blockIn.top.get(2).getValue());
+        assertEquals("9.000 s", blockIn.best);
+        assertEquals(6, blockIn.place);
+        gg.rago.lobby.api.ModeRecord nobody = RecordsMenu.modeRecord(book, RecordCatalog.of("block-in"), null);
+        assertNull(nobody.best, "no viewer");
+        assertEquals(0, nobody.place);
+
+        book.load("block-edit.bot.speed2", CARL, "Carl", 14);
+        gg.rago.lobby.api.ModeRecord edit = RecordsMenu.modeRecord(book, RecordCatalog.of("block-edit"), BOB);
+        assertEquals("Against the bot, speed 2", edit.name, "the block edit: the bot's default speed");
+        assertEquals("Carl", edit.top.get(0).getKey());
+        assertNull(edit.best);
+        assertTrue(RecordsMenu.modeRecord(book, RecordCatalog.of("aim-trainer"), ALICE).top.isEmpty());
+        assertNull(RecordsMenu.modeRecord(book, RecordCatalog.of("sumo"), ALICE), "a duel has no record");
+        for (RecordCatalog.Entry entry : RecordCatalog.ALL) {
+            assertTrue(entry.boards.contains(entry.main), entry.modeId);
+        }
+    }
+
+    @Test
     void theirPlaceAmongTheirFriends() {
         RecordBook book = book();
         book.load("clutch.island", ALICE, "Alice", 5);

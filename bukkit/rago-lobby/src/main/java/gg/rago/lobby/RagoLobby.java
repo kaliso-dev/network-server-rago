@@ -3,6 +3,7 @@ package gg.rago.lobby;
 import gg.rago.game.GameMode;
 import gg.rago.lobby.api.LobbyService;
 import gg.rago.lobby.api.MatchHost;
+import gg.rago.lobby.api.ModeRecord;
 import gg.rago.lobby.api.Replays;
 import gg.rago.lobby.api.VoidGenerator;
 import java.io.File;
@@ -23,6 +24,7 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
 import java.util.function.BiConsumer;
+import java.util.function.BiFunction;
 import java.util.function.Function;
 import java.util.logging.Level;
 import org.bukkit.ChatColor;
@@ -1132,6 +1134,9 @@ public final class RagoLobby extends JavaPlugin implements LobbyService {
     @Override
     public void unregisterHosts(Plugin plugin) {
         queues.unregister(plugin);
+        if (menu != null) {
+            menu.dropRecords(plugin);
+        }
         for (java.util.Iterator<PluginBoard> boards = pluginBoards.values().iterator(); boards.hasNext();) {
             PluginBoard board = boards.next();
             if (board.plugin.equals(plugin)) {
@@ -1684,6 +1689,13 @@ public final class RagoLobby extends JavaPlugin implements LobbyService {
     public void setDailyChallenge(String modeId, String label) {
         if (menu != null) {
             menu.setChallenge(modeId, label);
+        }
+    }
+
+    @Override
+    public void setModeRecords(Plugin plugin, BiFunction<String, UUID, ModeRecord> records) {
+        if (menu != null && records != null) {
+            menu.setRecords(plugin, records);
         }
     }
 

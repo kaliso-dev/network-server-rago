@@ -55,12 +55,22 @@ final class RecordCatalog {
         final String title;
         final Material icon;
         final List<Board> boards;
+        /**
+         * The record of the training, the one the menus of the lobby show under its mode: the board
+         * of the variant it starts on (its first; the block edit: the bot's default speed).
+         */
+        final Board main;
 
         Entry(String modeId, String title, Material icon, List<Board> boards) {
+            this(modeId, title, icon, boards, boards.get(0));
+        }
+
+        Entry(String modeId, String title, Material icon, List<Board> boards, Board main) {
             this.modeId = modeId;
             this.title = title;
             this.icon = icon;
             this.boards = Collections.unmodifiableList(boards);
+            this.main = main;
         }
     }
 
@@ -90,7 +100,7 @@ final class RecordCatalog {
             edits.add(new Board("block-edit", edit, BlockEditTraining.BOT, ".speed" + speed, BlockEditTraining.BOT.label + ", speed " + speed,
                     speed == BlockEditTraining.DEFAULT_SPEED));
         }
-        all.add(new Entry("block-edit", edit, Material.SHEARS, edits));
+        all.add(new Entry("block-edit", edit, Material.SHEARS, edits, edits.get(BlockEditTraining.DEFAULT_SPEED - 1)));
         // the timed bridge: a board for each course, flat then uphill, straight then diagonal
         String bridge = "Timed bridge";
         List<Board> courses = new ArrayList<>();

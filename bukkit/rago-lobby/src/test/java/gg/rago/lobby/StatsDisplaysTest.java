@@ -274,6 +274,30 @@ class StatsDisplaysTest {
     }
 
     @Test
+    void aTrainingShowsItsRecordInThePlaceOfItsDailyStreak() throws Exception {
+        LobbySettings settings = bundledSettings();
+        ModeMenu menu = new ModeMenu(settings, null, new StatsBook(1000, settings.levels()));
+        gg.rago.lobby.api.ModeRecord clutch = new gg.rago.lobby.api.ModeRecord("Island clutch", Arrays.asList(
+                new java.util.AbstractMap.SimpleImmutableEntry<>("Alice", "20 clutches"),
+                new java.util.AbstractMap.SimpleImmutableEntry<>("bob", "12 clutches")), "8 clutches", 5);
+        assertEquals(Arrays.asList("§cLifetime record: §fIsland clutch", "§c 1. §fAlice§c - 20 clutches", "§c 2. §fbob§c - 12 clutches",
+                "§cYour best: §f8 clutches§7 (#5)"), ModeMenu.recordLines(clutch));
+        assertEquals(Arrays.asList("§cLifetime record: §f3 layers, wood side", "§7 Nobody yet: be the first!", "§cYour best: §7-"),
+                ModeMenu.recordLines(new gg.rago.lobby.api.ModeRecord("3 layers, wood side",
+                        Collections.<java.util.Map.Entry<String, String>>emptyList(), null, 0)));
+
+        // the plugin of the trainings gives the records of its modes; the others keep their Daily Streak
+        org.bukkit.plugin.Plugin practice = (org.bukkit.plugin.Plugin) Proxy.newProxyInstance(
+                org.bukkit.plugin.Plugin.class.getClassLoader(), new Class<?>[] {org.bukkit.plugin.Plugin.class},
+                (proxy, method, args) -> method.getName().equals("hashCode") ? 7 : method.getName().equals("equals") ? proxy == args[0] : null);
+        menu.setRecords(practice, (modeId, viewer) -> modeId.equals("clutch") && ALICE.equals(viewer) ? clutch : null);
+        assertEquals(clutch, menu.recordOf("clutch", ALICE));
+        assertEquals(null, menu.recordOf("block-fight-2v2", ALICE), "a duel: no record, its Daily Streak");
+        menu.dropRecords(practice);
+        assertEquals(null, menu.recordOf("clutch", ALICE), "the plugin gone: the Daily Streak again");
+    }
+
+    @Test
     void pingsAreColouredByQuality() {
         assertEquals("§a12 ms", LobbyScoreboard.pingText(12));
         assertEquals("§e" + LobbyScoreboard.GOOD_PING + " ms", LobbyScoreboard.pingText(LobbyScoreboard.GOOD_PING));

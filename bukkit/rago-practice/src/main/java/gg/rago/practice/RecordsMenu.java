@@ -1,5 +1,6 @@
 package gg.rago.practice;
 
+import gg.rago.lobby.api.ModeRecord;
 import java.util.AbstractMap;
 import java.util.ArrayList;
 import java.util.Collections;
@@ -45,6 +46,8 @@ final class RecordsMenu implements CommandExecutor, Listener {
     static final int TOP = 10;
     /** Rows of the top of this week. */
     static final int WEEK_TOP = 3;
+    /** Rows of the top under a mode in the menus of the lobby (plan 3.4: a top 3). */
+    static final int MODE_TOP = 3;
     /** The wall shows the next board after this long. */
     static final long TURN_MS = 8_000L;
     /** A board chosen with a click stays this long before the wall turns again. */
@@ -478,6 +481,40 @@ final class RecordsMenu implements CommandExecutor, Listener {
         wanted.remove(player);
         picks.remove(player);
         lastClick.remove(player);
+    }
+
+    // --- The menus of the lobby -----------------------------------------------------------------
+
+    /**
+     * The record a menu of the lobby shows under the mode of a training, in the place of its Daily
+     * Streak (plan 3.4): its main board, lifetime for now, its top 3 and the viewer's best and place
+     * (viewer: null for none); null for a mode without records.
+     */
+    static ModeRecord modeRecord(RecordBook book, RecordCatalog.Entry entry, UUID viewer) {
+        if (entry == null) {
+            return null;
+        }
+        RecordCatalog.Board board = entry.main;
+        List<Map.Entry<String, String>> top = new ArrayList<>();
+        for (RecordBook.Entry best : book.ranked(board.id)) {
+            if (top.size() == MODE_TOP) {
+                break;
+            }
+            top.add(new AbstractMap.SimpleImmutableEntry<>(best.name, board.format(best.value)));
+        }
+        Long mine = viewer == null ? null : book.best(board.id, viewer);
+        return new ModeRecord(board.label, top, mine == null ? null : board.format(mine),
+                mine == null ? 0 : book.rank(board.id, viewer));
+    }
+
+    /** The record of this mode if this server plays it, for the menus of the lobby; null otherwise. */
+    ModeRecord modeRecord(String modeId, UUID viewer) {
+        for (RecordCatalog.Entry entry : entries) {
+            if (entry.modeId.equals(modeId)) {
+                return modeRecord(book(), entry, viewer);
+            }
+        }
+        return null;
     }
 
     // --- The wall of the lobby ------------------------------------------------------------------
