@@ -117,7 +117,7 @@ informations manquantes.
 | 1.2 | Spectator : jamais en Survival, intouchable, invisible, retour au lobby, ouvert à tous, message aux joueurs | Social | P0 | IMPLÉMENTÉ | `BuildListener` (build-tools), `Spectators` (practice), `Watchers` (bedwars), `Spectating`, `LobbyService`, `RagoLobby` | — | tests unitaires ; en jeu : /spectate d'un duel et d'une partie Bed Wars, se faire viser, /kill, /spawn | — |
 | 1.3 | Joueurs invisibles au spawn (seul le nametag « UNRANKED » visible) | Lobby | P0 | EN COURS | `HeadLines`, `Visibility`, `Nicks`, `LobbyScoreboard`, `FakeEntities` | — | à reproduire | conditions du bug |
 | 1.4 | Audit complet des statistiques (kills, games played, double comptage, par mode) | Stats | P0 | À FAIRE | `StatsService`, `PlayerStats`, `ModeStats`, `StatsFiles`, `StatsBook`, `recordMatch`/`recordKill` dans chaque mode | 1.1 | tests unitaires par mode | — |
-| 1.5 | Kit Bedfight réinitialisé à la mort dans le vide | Kits | P0 | À FAIRE | `BedFightGame`, `RoundKit`, `BedwarsGame` (respawn), `KitLayouts` | — | morts vide / épée / pendant le respawn | — |
+| 1.5 | Kit Bedfight réinitialisé à la mort dans le vide | Kits | P0 | IMPLÉMENTÉ | `BedFightGame`, `BedwarsGame.kill` | — | tests unitaires ; en jeu : ranger sa barre en partie, mourir par un coup puis dans le vide | — |
 | 1.6 | Forges de Bed Break Simulation sur certaines maps | Bed Wars | P0 | À FAIRE | `BedBreakGame`, `Generator`, `BedwarsMap`, `bedwars.yml` des maps | — | vérifier chaque map | maps en cause |
 | 1.7 | Spawns First Rush trop en avant | Bed Wars | P0 | BLOQUÉ | `BedwarsMap`, `bedwars.yml`, `BedwarsGame` | — | comparer aux références | spawns de référence Hypixel |
 | 1.8 | Block In réaliste (casser, frapper seulement par le trou, recasser) + reset des records | Practice | P0 | À FAIRE | `BlockInTraining`, `Records`, `RecordBook` | 1.1 | bot contre bot en CI | — |
@@ -265,3 +265,22 @@ partie). Pas encore testé en jeu.
 Suite : reproduire avec des bots (deux parties de Block placement 1v1 puis de Block edit sur la
 même zone, avec blocs posés, échelles, casse d'un bloc qui porte une échelle) et vérifier la zone
 bloc par bloc ; il me faut aussi les étapes exactes que tu as vues.
+
+### 1.5 Kit Bedfight — IMPLÉMENTÉ (21/11)
+
+**Fonctionnement actuel** : à chaque mort (un coup, le vide, tout passe par `BedwarsGame.kill`),
+l'inventaire est vidé, puis `BedFightGame.giveKit` redonne le kit tel qu'il est rangé dans
+l'éditeur du lobby. Tout ce que le joueur avait déplacé pendant la partie était donc perdu à chaque
+vie ; c'est surtout visible après une chute dans le vide, la mort la plus fréquente en Bed Fight.
+
+**Correction** : juste avant de vider l'inventaire, le mode note la case de chaque sorte d'objet
+(`layoutOf`) ; la vie suivante redonne le kit dans ces cases (`arranged`), deux stacks de laine
+compris. Une sorte épuisée (toute la laine posée) garde la case de la vie d'avant. Un objet
+ramassé en partie (end stone d'une défense) ne prend la place d'aucun objet du kit. La première
+vie garde le rangement du lobby. Je lis ta demande ainsi : « le kit modifié pendant la partie est
+gardé après chaque mort ». Dis-moi si tu voulais autre chose.
+
+**Tests** : tests unitaires (`BedFightGameTest`) ; compilation et tests par la CI. **Pas testé
+en jeu.** À tester : déplacer l'épée et la laine en partie, mourir d'un coup, puis dans le vide,
+puis avec l'inventaire ouvert.
+

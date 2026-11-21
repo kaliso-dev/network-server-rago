@@ -246,7 +246,10 @@ map BedFight du propriétaire : deux îles face à face, chaque lit sous la déf
 (bois et end stone), que les joueurs cassent comme dans une partie. Ni forge, ni shop, ni
 amélioration, ni diamant : chacun a le kit du mode (l'éditeur de kit du lobby ; sinon une épée,
 une pioche et une hache en bois, des cisailles et un stack de laine) en armure de cuir
-de la couleur de son équipe, à chaque vie ; la pioche et la hache ont Efficiency I. On revient tant
+de la couleur de son équipe, à chaque vie ; la pioche et la hache ont Efficiency I. Chaque vie
+rend le kit rangé comme le joueur l'avait au moment de sa mort, quelle qu'elle soit (un coup, le
+vide) : un objet déplacé pendant la partie y reste à la vie suivante (une sorte d'objet épuisée,
+toute la laine posée, garde la case qu'elle avait). La première vie a le rangement du lobby. On revient tant
 que son lit tient, 3 secondes après une mort (au plus : `reapparition-secondes` si c'est moins) ;
 la dernière équipe en vie gagne. Les lits partent à 10 minutes, égalité à 15. Les blocs se posent
 partout sous la limite de construction, spawns compris : à chaque respawn, les deux blocs où le

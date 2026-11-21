@@ -1380,6 +1380,7 @@ class BedwarsGame {
                 }
             }
         }
+        beforeDeath(victim, gamer);
         // Tools lose a tier at each death; armour and shears stay.
         if (gamer.pickaxe > 0) {
             gamer.pickaxe--;
@@ -1408,6 +1409,10 @@ class BedwarsGame {
             respawnLater(victim, gamer);
         }
         sidebars();
+    }
+
+    /** A death of the player (by a hit, the void, anything), before their inventory is emptied: a mode may look at it. */
+    void beforeDeath(Player victim, Gamer gamer) {
     }
 
     /** A final death: what the player is told, with [PLAY AGAIN] and [LEAVE] to go on at once. */

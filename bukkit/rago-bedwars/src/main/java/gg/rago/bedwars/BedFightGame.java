@@ -1,6 +1,11 @@
 package gg.rago.bedwars;
 
+import java.util.EnumSet;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
+import java.util.Set;
+import java.util.UUID;
 import org.bukkit.ChatColor;
 import org.bukkit.Material;
 import org.bukkit.Sound;
@@ -17,7 +22,9 @@ import org.bukkit.inventory.PlayerInventory;
  * break as in a game. No forge, no shop, no upgrade, no diamond: everyone has the mode's kit (the
  * lobby's kit editor; else a stone sword, a wooden pickaxe and axe, shears and two stacks of wool)
  * in leather armour of their colour, at each life. A player comes back while their bed stands,
- * {@value #RESPAWN_SECONDS} seconds after a death at most; the last team standing wins. The beds go at {@value #BEDS_GONE_SECONDS} seconds,
+ * {@value #RESPAWN_SECONDS} seconds after a death at most, with the kit where they had put each
+ * item of it in this game (their hotbar as they arranged it during the game, not the lobby's one
+ * again); the last team standing wins. The beds go at {@value #BEDS_GONE_SECONDS} seconds,
  * and the game ends in a draw at {@value #GAME_END_SECONDS}. Main thread only.
  */
 final class BedFightGame extends BedwarsGame {
@@ -28,6 +35,12 @@ final class BedFightGame extends BedwarsGame {
     static final int GAME_END_SECONDS = 900;
     /** The longest wait before a new life (reapparition-secondes when shorter). */
     static final int RESPAWN_SECONDS = 3;
+
+    /**
+     * For each player, the item each slot of their inventory held at their last death (null:
+     * nothing): the next life gives the kit in the same places.
+     */
+    private final Map<UUID, Material[]> layouts = new HashMap<>();
 
     BedFightGame(RagoBedwars plugin, BedwarsHost host, Instance instance, String modeId, String modeName,
             List<List<Player>> sides) {
@@ -112,8 +125,82 @@ final class BedFightGame extends BedwarsGame {
         }
         ItemStack[] contents = inventory.getContents();
         efficient(contents);
-        inventory.setContents(contents);
+        inventory.setContents(arranged(contents, layouts.get(gamer.id)));
         player.updateInventory();
+    }
+
+    /** Every death (a hit, the void, a fall...): where the player had put the items, kept for the next life. */
+    @Override
+    void beforeDeath(Player victim, Gamer gamer) {
+        layouts.put(gamer.id, layoutOf(victim.getInventory().getContents(), layouts.get(gamer.id)));
+    }
+
+    /**
+     * The item of each slot of an inventory (null: empty). A kind of item the player no longer has
+     * (all the wool placed) keeps the slot it had in the last layout, when that slot is free now.
+     */
+    static Material[] layoutOf(ItemStack[] contents, Material[] before) {
+        Material[] layout = new Material[contents.length];
+        Set<Material> present = EnumSet.noneOf(Material.class);
+        for (int slot = 0; slot < contents.length; slot++) {
+            ItemStack item = contents[slot];
+            if (item != null && item.getType() != Material.AIR) {
+                layout[slot] = item.getType();
+                present.add(item.getType());
+            }
+        }
+        if (before != null) {
+            for (int slot = 0; slot < Math.min(layout.length, before.length); slot++) {
+                if (layout[slot] == null && before[slot] != null && !present.contains(before[slot])) {
+                    layout[slot] = before[slot];
+                }
+            }
+        }
+        return layout;
+    }
+
+    /**
+     * The kit in the places of a layout: each item where the layout has its kind (two stacks of
+     * wool in its two slots of wool, in order), the others where the kit has them, else in the first
+     * free slot. The kit itself without a layout (the first life: the lobby's arrangement).
+     */
+    static ItemStack[] arranged(ItemStack[] kit, Material[] layout) {
+        if (layout == null) {
+            return kit;
+        }
+        ItemStack[] out = new ItemStack[Math.max(kit.length, layout.length)];
+        boolean[] placed = new boolean[kit.length];
+        for (int slot = 0; slot < layout.length; slot++) {
+            if (layout[slot] == null) {
+                continue;
+            }
+            for (int i = 0; i < kit.length; i++) {
+                if (!placed[i] && kit[i] != null && kit[i].getType() == layout[slot]) {
+                    out[slot] = kit[i];
+                    placed[i] = true;
+                    break;
+                }
+            }
+        }
+        for (int i = 0; i < kit.length; i++) {
+            if (placed[i] || kit[i] == null || kit[i].getType() == Material.AIR) {
+                continue;
+            }
+            int slot = out[i] == null ? i : firstFree(out);
+            if (slot >= 0) {
+                out[slot] = kit[i];
+            }
+        }
+        return out;
+    }
+
+    private static int firstFree(ItemStack[] items) {
+        for (int slot = 0; slot < items.length; slot++) {
+            if (items[slot] == null) {
+                return slot;
+            }
+        }
+        return -1;
     }
 
     /** Efficiency I on every pickaxe and axe of these items (the rest as they are). */
