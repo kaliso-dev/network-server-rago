@@ -1602,6 +1602,14 @@ class BedwarsGame {
                 }
             }
             plugin.lobby().recordMatch(modeId, winners, losers);
+        } else if (teams.size() > 1 && !present().isEmpty()) {
+            // a draw (the time ran out, nobody left standing): a game played for everyone in it;
+            // nothing when everyone left
+            List<UUID> players = new ArrayList<>();
+            for (Team team : teams) {
+                players.addAll(team.members);
+            }
+            plugin.lobby().recordDraw(modeId, players);
         }
         List<Gamer> killers = topKillers(new ArrayList<>(gamers.values()));
         for (Gamer gamer : gamers.values()) {

@@ -120,6 +120,9 @@ public final class RagoBedwars extends JavaPlugin {
                 getLogger().warning("The lobby has no mode \"" + mode + "\" in its config.yml: it stays closed.");
             }
         }
+        // Once: the kills and deaths of the Bed Wars modes start again from 0, since a final kill
+        // no longer counts as a kill too and a death in the void without a killer counts (21/11/2026)
+        lobby.resetKillsOnce("kills-bedwars-2026-11", settings.modes());
         List<BedwarsMap> playable = playableMaps();
         List<String> names = new ArrayList<>();
         for (BedwarsMap map : playable) {

@@ -636,14 +636,19 @@ compte comme une défaite. Les kills et les morts aussi (`recordKill`) : au sumo
 un kill pour celui qui le marque et une mort pour celui qui tombe ; une mort sans tueur (une chute
 dans le vide sans coup juste avant) compte une mort, sans kill. En Bed Wars, un final kill compte
 dans les final kills seulement et la victime dans les final deaths seulement, pas une deuxième fois
-dans les kills et les morts, comme sur Hypixel (le tueur a quand même l'XP d'un kill). Chaque joueur garde aussi son
+dans les kills et les morts, comme sur Hypixel (le tueur a quand même l'XP d'un kill). Une partie
+sans gagnant (`recordDraw` : temps écoulé, plus personne debout) compte une partie jouée pour
+chacun, ni victoire ni défaite : Games played = victoires + défaites + égalités. Chaque joueur garde aussi son
 XP Network. Une partie d'un mode classé trouvée par la file fait aussi bouger l'ELO des deux
 camps (voir « L'ELO classé ») ; un duel ou une partie privée ne touche ni l'ELO ni les séries.
 
 Sur le serveur de test, les stats sont gardées dans `plugins/RagoLobby/stats/` (un fichier par
 joueur), lues au démarrage et écrites à chaque partie, jamais sur le thread principal. Un profil
 fait avant la fin de la lecture (un joueur en ligne pendant un `/reload`) est remplacé par son
-fichier, qui est réécrit aussitôt. Sur le réseau, elles passeront dans la base de données.
+fichier, qui est réécrit aussitôt. Un plugin de jeu peut demander une seule fois une remise à zéro
+des kills et des morts de ses modes (`resetKillsOnce`), quand la façon de les compter change : le
+dossier `stats/` est d'abord copié dans `stats-sauvegarde-<nom>/`, et le nom est noté dans
+`stats-remises-a-zero.txt` pour ne jamais la refaire. Sur le réseau, elles passeront dans la base de données.
 
 ## Pour les plugins de jeu
 

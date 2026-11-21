@@ -441,4 +441,56 @@ class StatsBookTest {
         assertFalse(book.load(StatsFiles.fromYaml(BOB, StatsFiles.toYaml(before.get(BOB)))), "Bob was not there yet");
         assertEquals(2, book.get(BOB).losses());
     }
+
+    @Test
+    void aDrawIsAGamePlayedNeitherWonNorLost() throws Exception {
+        StatsBook book = new StatsBook(1000, NetworkLevel.DEFAULT);
+        win(book, SUMO, ALICE, BOB, SUNDAY);
+        assertEquals(2, book.draw(SUMO, Arrays.asList(ALICE, BOB, ALICE), NAMES, SUNDAY).size(), "each player once");
+        ModeStats alice = book.get(ALICE).mode("sumo");
+        assertEquals(1, alice.wins);
+        assertEquals(0, alice.losses);
+        assertEquals(1, alice.draws);
+        assertEquals(2, alice.games(), "every game counts");
+        assertEquals(1, alice.streak, "the streak stays as it was");
+        assertEquals(2, book.get(BOB).games());
+        assertEquals(65, book.get(ALICE).xp(), "a win, then the XP of a game played");
+        assertEquals(30, book.get(BOB).xp());
+        String sunday = StatsPeriod.dayKey(SUNDAY);
+        String week = StatsPeriod.weekKey(SUNDAY);
+        assertEquals(2, book.get(ALICE).games(StatsPeriod.DAY, null, sunday, week));
+        assertEquals(2, book.get(ALICE).games(StatsPeriod.WEEK, null, sunday, week));
+        assertEquals(2, book.ranking(BoardStat.GAMES, StatsPeriod.ALL, "sumo", SUNDAY).rows().get(0).value());
+        PlayerStats read = StatsFiles.fromYaml(ALICE, StatsFiles.toYaml(book.get(ALICE)));
+        assertEquals(1, read.mode("sumo").draws, "kept in the file");
+        assertEquals(2, read.games());
+    }
+
+    @Test
+    void aRankedDrawDoesNotGiveTheEloOfTheFloor() {
+        StatsBook book = new StatsBook(1000, NetworkLevel.DEFAULT);
+        book.draw(RANKED, Arrays.asList(ALICE, BOB), NAMES, SUNDAY);
+        assertEquals(1000, book.elo(ALICE, "ranked-1v1"), "still the starting ELO: no game won or lost yet");
+        assertEquals(0, book.get(ALICE).mode("ranked-1v1").elo, "the ELO did not move");
+    }
+
+    @Test
+    void theKillsAndDeathsOfSomeModesGoBackToZeroAndTheRestStays() {
+        StatsBook book = new StatsBook(1000, NetworkLevel.DEFAULT);
+        book.kill("bedwars-solo", ALICE, BOB, NAMES, SUNDAY);
+        book.kill("bedwars-solo", BOB, ALICE, NAMES, SUNDAY);
+        book.finalKill("bedwars-solo", ALICE, NAMES);
+        book.kill("sumo", ALICE, CARL, NAMES, SUNDAY);
+        win(book, SUMO, ALICE, CARL, SUNDAY);
+        assertEquals(2, book.resetKills(Arrays.asList("bedwars-solo", "bedwars-duo")).size(), "Alice and Bob");
+        ModeStats bedwars = book.get(ALICE).mode("bedwars-solo");
+        assertEquals(0, bedwars.kills);
+        assertEquals(0, bedwars.deaths);
+        assertEquals(0, book.get(ALICE).kills(StatsPeriod.DAY, "bedwars-solo", StatsPeriod.dayKey(SUNDAY), StatsPeriod.weekKey(SUNDAY)));
+        assertEquals(1, bedwars.finalKills, "the final kills stay");
+        assertEquals(1, book.get(ALICE).mode("sumo").kills, "another mode stays");
+        assertEquals(1, book.get(CARL).mode("sumo").deaths);
+        assertEquals(1, book.get(ALICE).mode("sumo").wins);
+        assertTrue(book.resetKills(Arrays.asList("bedwars-solo")).isEmpty(), "nothing left to reset");
+    }
 }

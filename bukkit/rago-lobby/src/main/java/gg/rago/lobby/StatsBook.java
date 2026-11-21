@@ -194,7 +194,7 @@ final class StatsBook {
         PlayerStats stats = players.get(player);
         ModeStats mode = stats == null ? null : stats.mode(modeId);
         // a player who played the mode has their ELO, even at 0: the floor of the ladder
-        return mode != null && mode.games() > 0 ? mode.elo : defaultRating;
+        return mode != null && mode.decided() > 0 ? mode.elo : defaultRating;
     }
 
     /** The player is online under this name. Returns their stats if the name changed, else null. */
@@ -315,6 +315,25 @@ final class StatsBook {
     }
 
     /**
+     * A game of this mode without a winner (the time ran out, nobody left standing): a game played
+     * for each of its players, with the XP of a game played, neither a win nor a loss. Neither the
+     * ELO nor any win streak moves. Returns the stats that changed.
+     */
+    List<PlayerStats> draw(GameMode mode, Collection<UUID> players, Names names, long millis) {
+        List<PlayerStats> changed = new ArrayList<>();
+        String day = StatsPeriod.dayKey(millis);
+        String week = StatsPeriod.weekKey(millis);
+        for (UUID id : new LinkedHashSet<>(players)) {
+            PlayerStats stats = statsOf(id, names);
+            stats.modeOrNew(mode.id()).draw(day, week);
+            stats.addXp(boosted(id, levels.lossXp()));
+            changed.add(stats);
+        }
+        forgetRankings();
+        return changed;
+    }
+
+    /**
      * A kill in a game of this mode (in a sumo: the victim fell): a kill and some XP for the killer,
      * a death for the victim (null if nobody died, unknown). Returns the stats that changed.
      */
@@ -348,6 +367,32 @@ final class StatsBook {
             PlayerStats dead = statsOf(victim, names);
             dead.modeOrNew(modeId).death();
             changed.add(dead);
+        }
+        forgetRankings();
+        return changed;
+    }
+
+    /**
+     * The kills and the deaths of these modes back to 0 for every player: ever, of the day and of
+     * the week. The rest stays (wins, final kills, beds...). Returns the stats that changed.
+     */
+    List<PlayerStats> resetKills(Collection<String> modeIds) {
+        List<PlayerStats> changed = new ArrayList<>();
+        for (PlayerStats stats : players.values()) {
+            boolean any = false;
+            for (String modeId : modeIds) {
+                ModeStats mode = stats.mode(modeId);
+                if (mode != null && (mode.kills > 0 || mode.deaths > 0 || mode.dayKills > 0 || mode.weekKills > 0)) {
+                    mode.kills = 0;
+                    mode.deaths = 0;
+                    mode.dayKills = 0;
+                    mode.weekKills = 0;
+                    any = true;
+                }
+            }
+            if (any) {
+                changed.add(stats);
+            }
         }
         forgetRankings();
         return changed;
@@ -455,7 +500,7 @@ final class StatsBook {
                 default:
                     // every player of the mode, even at 0 ELO (the bottom of Coal)
                     ModeStats mode = modeId == null ? null : stats.mode(modeId);
-                    value = mode != null && mode.games() > 0 ? mode.elo : -1;
+                    value = mode != null && mode.decided() > 0 ? mode.elo : -1;
                     break;
             }
             if (value > 0 || value == 0 && stat == BoardStat.ELO) {

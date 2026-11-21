@@ -154,7 +154,7 @@ final class StatsDisplays {
         int losses = stats == null ? 0 : stats.losses();
         int finals = stats == null ? 0 : stats.finalKills();
         String dot = ChatColor.DARK_GRAY + " · ";
-        lines.add(ChatColor.GRAY + "Games played: " + ChatColor.WHITE + (wins + losses));
+        lines.add(ChatColor.GRAY + "Games played: " + ChatColor.WHITE + (stats == null ? 0 : stats.games()));
         lines.add(ChatColor.GRAY + "Wins: " + ChatColor.GREEN + wins + dot + ChatColor.GRAY + "Losses: " + ChatColor.RED + losses);
         lines.add(ChatColor.GRAY + "WLR: " + ChatColor.GOLD + StatsMenu.ratio(wins, losses));
         lines.add(ChatColor.GRAY + "Kills: " + ChatColor.GREEN + (stats == null ? 0 : stats.kills(StatsPeriod.ALL, null, day, week))

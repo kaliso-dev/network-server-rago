@@ -77,7 +77,7 @@ final class NetworkCommands implements CommandExecutor, TabCompleter {
         List<String> mine = new ArrayList<>();
         for (GameMode mode : StatsMenu.rankedModes(lobby.settings())) {
             ModeStats stats = profile == null ? null : profile.modes().get(mode.id());
-            if (stats != null && stats.games() > 0) {
+            if (stats != null && stats.decided() > 0) {
                 mine.add(ChatColor.GRAY + StatsMenu.shortName(mode) + " " + ladder.format(stats.elo)
                         + (stats.peakElo > stats.elo ? ChatColor.DARK_GRAY + " (best " + stats.peakElo + ")" : ""));
             }

@@ -126,6 +126,9 @@ final class StatsFiles {
             ConfigurationSection section = yaml.createSection("modes." + entry.getKey());
             section.set("victoires", m.wins);
             section.set("defaites", m.losses);
+            if (m.draws > 0) {
+                section.set("egalites", m.draws);
+            }
             section.set("serie", m.streak);
             section.set("meilleure-serie", m.bestStreak);
             if (m.rated()) {
@@ -313,6 +316,7 @@ final class StatsFiles {
                 ModeStats m = stats.modeOrNew(modeId);
                 m.wins = Math.max(0, section.getInt("victoires"));
                 m.losses = Math.max(0, section.getInt("defaites"));
+                m.draws = Math.max(0, section.getInt("egalites"));
                 m.streak = Math.max(0, section.getInt("serie"));
                 m.bestStreak = Math.max(m.streak, section.getInt("meilleure-serie"));
                 int elo = Math.max(0, section.getInt("elo"));

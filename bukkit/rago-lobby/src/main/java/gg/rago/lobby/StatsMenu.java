@@ -145,7 +145,7 @@ final class StatsMenu {
         int losses = stats == null ? 0 : stats.losses();
         lore.add(line("Wins", ChatColor.GREEN, wins));
         lore.add(line("Losses", ChatColor.RED, losses));
-        lore.add(line("Games played", ChatColor.WHITE, wins + losses));
+        lore.add(line("Games played", ChatColor.WHITE, stats == null ? 0 : stats.games()));
         lore.add(ChatColor.GRAY + "WLR (wins / losses): " + ChatColor.GOLD + ratio(wins, losses));
         lore.add(line("Best win streak", Brand.ACCENT, stats == null ? 0 : stats.best(StatsPeriod.ALL, null, day, week)));
         int kills = stats == null ? 0 : stats.kills(StatsPeriod.ALL, null, day, week);

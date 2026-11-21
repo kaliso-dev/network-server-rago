@@ -1392,6 +1392,36 @@ public final class RagoLobby extends JavaPlugin implements LobbyService {
         }
     }
 
+    @Override
+    public void resetKillsOnce(String name, java.util.Collection<String> modeIds) {
+        if (stats != null) {
+            stats.resetKillsOnce(name, modeIds);
+        }
+    }
+
+    @Override
+    public void recordDraw(String modeId, List<UUID> players) {
+        GameMode mode = settings.catalog().get(modeId);
+        if (mode == null) {
+            getLogger().warning("Draw of an unknown mode ignored: " + modeId);
+            return;
+        }
+        if (players.isEmpty() || isPrivate(players)) {
+            return;
+        }
+        checkWeek();
+        stats.draw(mode, players);
+        if (mode.teams() == 2 && mode.playersPerTeam() == 1) {
+            // a 1v1 played to the end: "Play a duel" of Getting started
+            for (UUID player : players) {
+                gettingStarted(player, GettingStarted.Step.DUEL);
+            }
+        }
+        for (UUID player : players) {
+            gameKills.remove(player);
+        }
+    }
+
     /** The MVPs of a game: the most kills, at least one. */
     private List<UUID> mvps(List<UUID> winners, List<UUID> losers) {
         List<UUID> all = new ArrayList<>(winners);
@@ -1686,7 +1716,7 @@ public final class RagoLobby extends JavaPlugin implements LobbyService {
         int elo = -1;
         for (GameMode mode : settings.catalog().all()) {
             ModeStats played = profile == null ? null : profile.mode(mode.id());
-            if (mode.ranked() && played != null && played.games() > 0) {
+            if (mode.ranked() && played != null && played.decided() > 0) {
                 elo = Math.max(elo, played.elo);
             }
         }

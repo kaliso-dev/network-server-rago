@@ -116,7 +116,7 @@ informations manquantes.
 | 1.1 | Reset des arènes (Block Placement 1v1, Block Edit, autres) | Arènes | P0 | EN COURS | `Arena`, `PracticeGames`, `PracticeGame`, `MapZones`, `MapCopy` ; `Instance` (Bed Wars) | — | parties consécutives sur la même zone, avec bots | étapes exactes du bug |
 | 1.2 | Spectator : jamais en Survival, intouchable, invisible, retour au lobby, ouvert à tous, message aux joueurs | Social | P0 | IMPLÉMENTÉ | `BuildListener` (build-tools), `Spectators` (practice), `Watchers` (bedwars), `Spectating`, `LobbyService`, `RagoLobby` | — | tests unitaires ; en jeu : /spectate d'un duel et d'une partie Bed Wars, se faire viser, /kill, /spawn | — |
 | 1.3 | Joueurs invisibles au spawn (seul le nametag « UNRANKED » visible) | Lobby | P0 | EN COURS | `HeadLines`, `Visibility`, `Nicks`, `LobbyScoreboard`, `FakeEntities` | — | à reproduire | conditions du bug |
-| 1.4 | Audit complet des statistiques (kills, games played, double comptage, par mode) | Stats | P0 | IMPLÉMENTÉ | `StatsBook`, `StatsService`, `LobbyService`, `RagoLobby`, `BedwarsGame`, `Lineup`, `BedBreakGame`, `InvisGame`, `FfaGame`, `FastShopGame`, `TopBridgeGame`, `Duel`, `BlockFight`, `FireballFight` | — | tests unitaires ; en jeu : voir le journal | égalités dans Games played ? |
+| 1.4 | Audit complet des statistiques (kills, games played, double comptage, par mode) | Stats | P0 | IMPLÉMENTÉ | `StatsBook`, `StatsService`, `LobbyService`, `RagoLobby`, `BedwarsGame`, `Lineup`, `BedBreakGame`, `InvisGame`, `FfaGame`, `FastShopGame`, `TopBridgeGame`, `Duel`, `BlockFight`, `FireballFight` | — | tests unitaires ; en jeu : voir le journal | — |
 | 1.5 | Kit Bedfight réinitialisé à la mort dans le vide | Kits | P0 | IMPLÉMENTÉ | `BedFightGame`, `BedwarsGame.kill` | — | tests unitaires ; en jeu : ranger sa barre en partie, mourir par un coup puis dans le vide | — |
 | 1.6 | Forges de Bed Break Simulation sur certaines maps | Bed Wars | P0 | EN COURS | `BedBreakGame`, `Generator`, `BedwarsMap`, `bedwars.yml` des maps | — | vérifier chaque map | maps en cause et ce qui ne marche pas |
 | 1.7 | Spawns First Rush trop en avant | Bed Wars | P0 | BLOQUÉ | `BedwarsMap`, `bedwars.yml`, `BedwarsGame` | — | comparer aux références | spawns de référence Hypixel |
@@ -292,7 +292,7 @@ puis avec l'inventaire ouvert.
 | Stat | Calcul | Mise à jour | Modes |
 | --- | --- | --- | --- |
 | Wins, Losses | +1 à la fin de la partie (un abandon est une défaite) | `recordMatch` | duels et 2v2 practice (`PracticeGame.finish`), sumo (`SumoMatch.end`), toutes les parties Bed Wars à équipes (`BedwarsGame.end`), Attack and Defense, Bed Break Simulator, Invis practice |
-| Games played | Wins + Losses, par mode, du jour, de la semaine et depuis toujours | idem | idem |
+| Games played | Wins + Losses + égalités, par mode, du jour, de la semaine et depuis toujours | `recordMatch`, `recordDraw` | idem |
 | Kills, Deaths | +1 kill au tueur, +1 death à la victime | `recordKill` à chaque mort | tous les modes à combat, FFA compris ; sumo : un point = un kill |
 | Final kills, Final deaths, Beds broken, FKDR | +1 à chaque élimination / lit cassé ; FKDR = final kills / final deaths | `recordFinalKill`, `recordFinalDeath`, `recordBedBroken` | Bed Wars |
 | Network XP, Rago Points, quêtes | donnés avec les parties et les kills | `recordMatch`, `recordKill` | tous |
@@ -329,18 +329,30 @@ repartent de zéro à l'heure de Paris.
    le profil vide et il est réécrit aussitôt.
 5. **Leaderboard FKDR en retard** après une final death sans tueur (cache non vidé). Corrigé.
 
-**Pas modifié, à trancher :**
-- Une égalité (temps écoulé) ne compte pas dans Games played, puisque Games played = Wins +
-  Losses. La compter demande un nouveau compteur dans les fichiers (sans reset).
-- Les stats déjà enregistrées ne sont pas recalculées : les kills Bed Wars passés comprennent
-  encore les final kills d'avant la correction. Les séparer après coup est impossible ; seul un
-  reset des kills Bed Wars le ferait, et je n'en fais pas sans ta demande.
+6. **Égalités** (ta réponse du 21/11 : « toute game compte ») : une partie sans gagnant (temps
+   écoulé, plus personne debout, aucun point en Bed Break / Invis) compte maintenant une partie
+   jouée pour chacun de ses joueurs (compteur `egalites` dans le fichier, sans reset), avec l'XP,
+   les Rago Points et la quête d'une partie jouée. Ni victoire, ni défaite, ni ELO, ni série. Un
+   joueur parti pendant une partie qui finit en égalité a l'égalité, comme son équipe.
+7. **Reset des kills et deaths Bed Wars** (ta réponse : « reset, on repart de zéro ») : au premier
+   démarrage avec la nouvelle version, RagoBedwars demande au lobby de remettre à 0 les kills et
+   les deaths (à vie, du jour, de la semaine) de **tous ses modes**, FFA compris, pour tous les
+   joueurs. Le reste (victoires, défaites, final kills, final deaths, lits, XP, ELO) ne bouge pas.
+   Avant, le dossier `plugins/RagoLobby/stats/` est copié tel quel dans
+   `plugins/RagoLobby/stats-sauvegarde-kills-bedwars-2026-11/`. Le reset n'est fait qu'une fois
+   (noté dans `plugins/RagoLobby/stats-remises-a-zero.txt`).
+
+**Pas modifié :** les deaths des duels practice étaient aussi trop basses (morts dans le vide sans
+tueur). Elles ne sont pas remises à zéro, puisque tu as parlé des kills Bed Wars ; dis-le si tu le
+veux aussi.
 
 **Tests** : tests unitaires (`StatsBookTest` : morts sans tueur, final kills, fichier lu après un
-profil vide ; `LineupTest` : résultat avec un joueur parti) ; compilation et tests par la CI.
-**Pas testé en jeu.** À tester : un final kill en Bed Wars (Kills inchangé, Final kills +1), une
-chute dans le vide sans coup dans un duel (Deaths +1), quitter une partie de Bed Break Simulator
-en cours (Losses +1), un `/reload` avec un joueur connecté (stats intactes).
+profil vide, égalités, reset des kills ; `LineupTest` : résultat avec un joueur parti) ;
+compilation et tests par la CI. **Pas testé en jeu.** À tester : au premier démarrage, la ligne
+« Kills and deaths of [...] back to 0 » dans la console et le dossier de sauvegarde ; un final kill
+en Bed Wars (Kills inchangé, Final kills +1), une chute dans le vide sans coup dans un duel
+(Deaths +1), quitter une partie de Bed Break Simulator en cours (Losses +1), une partie Bed Wars
+qui finit au temps (Games played +1), un `/reload` avec un joueur connecté (stats intactes).
 
 ### 1.6 Forges de Bed Break Simulation — EN COURS
 

@@ -671,6 +671,13 @@ abstract class PracticeGame implements Spectators.Watched {
                 }
             }
             plugin.lobby().recordMatch(mode.id(), winners, losers);
+        } else if (winner < 0 && sides.size() > 1 && counts()) {
+            // a draw is a game played for everyone in it
+            List<UUID> players = new ArrayList<>();
+            for (List<UUID> side : sides) {
+                players.addAll(side);
+            }
+            plugin.lobby().recordDraw(mode.id(), players);
         }
         for (Player player : online()) {
             if (winner < 0) {

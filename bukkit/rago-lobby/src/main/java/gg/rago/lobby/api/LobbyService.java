@@ -88,6 +88,22 @@ public interface LobbyService {
     void recordMatch(String modeId, List<UUID> winners, List<UUID> losers);
 
     /**
+     * Once ever for this name: the kills and the deaths of these modes go back to 0 for every
+     * player (ever, of the day, of the week), after a copy of the stats files. For a change in how
+     * they are counted: everyone starts again from the same rule. The rest of the stats stays.
+     */
+    default void resetKillsOnce(String name, java.util.Collection<String> modeIds) {
+    }
+
+    /**
+     * A game of this mode is over without a winner (a draw: the time ran out, nobody left
+     * standing): every player of it gets a game played and its XP, neither a win nor a loss; the
+     * ELO and the streaks do not move. Players may have left the server already.
+     */
+    default void recordDraw(String modeId, List<UUID> players) {
+    }
+
+    /**
      * The player leaves a game of this mode they still play (a forfeit: /spawn, Play again, leaving
      * the server), not one they are out of. Called before giving them back to the lobby. After a
      * ranked game that moves the ELO, the ranked queues stay closed to them for a while

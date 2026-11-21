@@ -8,6 +8,8 @@ final class ModeStats {
 
     int wins;
     int losses;
+    /** Games without a winner (the time ran out): played, neither won nor lost. */
+    int draws;
     /** Wins in a row, up to now. */
     int streak;
     int bestStreak;
@@ -74,7 +76,21 @@ final class ModeStats {
         deaths++;
     }
 
+    /** A game without a winner, on this day of this week: a game played; the streaks stay as they are. */
+    void draw(String dayKey, String weekKey) {
+        roll(dayKey, weekKey);
+        dayGames++;
+        weekGames++;
+        draws++;
+    }
+
+    /** Every game played: won, lost or drawn. */
     int games() {
+        return wins + losses + draws;
+    }
+
+    /** The games won or lost: the ELO of a ranked mode is the player's own from the first one. */
+    int decided() {
         return wins + losses;
     }
 

@@ -625,6 +625,11 @@ final class AttackDefenseGame extends BedwarsGame implements KitMenu.Chooser {
             winners.addAll(sideMembers.get(winner));
             losers.addAll(sideMembers.get(1 - winner));
             plugin.lobby().recordMatch(modeId, winners, losers);
+        } else {
+            // a draw: a game played for everyone in it
+            List<UUID> players = new ArrayList<>(sideMembers.get(0));
+            players.addAll(sideMembers.get(1));
+            plugin.lobby().recordDraw(modeId, players);
         }
         List<String> summary = new ArrayList<>();
         summary.add(ChatColor.GREEN + "" + ChatColor.STRIKETHROUGH + "                                        ");

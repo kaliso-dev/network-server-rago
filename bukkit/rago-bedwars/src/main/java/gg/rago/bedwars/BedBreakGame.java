@@ -702,6 +702,15 @@ final class BedBreakGame extends BedwarsGame implements KitMenu.Chooser {
         Lineup.result(points.keySet(), hereIds, points, winners, losers);
         if (!winners.isEmpty()) {
             plugin.lobby().recordMatch(modeId, winners, losers);
+        } else if (!hereIds.isEmpty()) {
+            // nobody scored: a draw, a game played for everyone of the first round
+            List<UUID> players = new ArrayList<>(points.keySet());
+            for (UUID id : hereIds) {
+                if (!players.contains(id)) {
+                    players.add(id);
+                }
+            }
+            plugin.lobby().recordDraw(modeId, players);
         }
         List<String> summary = new ArrayList<>();
         summary.add(ChatColor.GREEN + "" + ChatColor.STRIKETHROUGH + "                                        ");
