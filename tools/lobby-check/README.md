@@ -104,6 +104,12 @@ coup), le frappe par ce trou en le repoussant à l'opposé, et casse à nouveau,
 frapper, le bloc que le bot remet à chaque fois ; et que rien d'autre n'est cassé (les autres
 côtés, le verre).
 
+Puis un bot joue l'entraînement Block clutch pendant que dix autres le regardent en même temps avec
+`/spectate` (`tools/kb-control/bots/spectate-bots.mjs`) : chacun passe en mode spectateur près du
+joueur, le joueur est prévenu de chacun et continue de jouer, les dix sont toujours là quelques
+secondes plus tard, et `/spawn` les ramène tous au lobby. Le serveur de test accepte 20 joueurs
+pour ce test (le `server.properties` du serveur local en avait 8).
+
 ```bash
 ./gradlew build
 (cd tools/kb-control/bots && npm ci)

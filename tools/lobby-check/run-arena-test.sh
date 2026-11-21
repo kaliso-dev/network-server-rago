@@ -9,8 +9,9 @@
 # one waiting in the lobby, and sees them (the first time, back from the lobby, from a training,
 # from a duel). Then a bot (tools/kb-control/bots/blockin-bots.mjs) blocks itself in in the Block in
 # training and checks the enemy: it breaks its way in at one side, with the cracks, hits only
-# through the hole, and breaks again a block put back. Fails if the bots fail, or if the server log
-# has an error or an exception.
+# through the hole, and breaks again a block put back. Then a bot plays the Block clutch training
+# while ten others watch it at once with /spectate (tools/kb-control/bots/spectate-bots.mjs).
+# Fails if the bots fail, or if the server log has an error or an exception.
 #
 # Run from anywhere, after the build:
 #   ./gradlew build
@@ -95,8 +96,10 @@ cp "$BEDWARS_JAR" "$SERVER_DIR/plugins/RagoBedwars.jar"
 echo "eula=true" >"$SERVER_DIR/eula.txt"
 
 # The settings of the local test server (tools/local-server), in offline mode for the bots.
+# 20 players at most: the spectator test has a player and ten spectators at once.
 sed -e 's/^online-mode=.*/online-mode=false/' -e 's/^server-ip=.*/server-ip=127.0.0.1/' \
-  -e "s/^server-port=.*/server-port=$PORT/" "$ROOT/tools/local-server/server.properties" >"$SERVER_DIR/server.properties"
+  -e "s/^server-port=.*/server-port=$PORT/" -e 's/^max-players=.*/max-players=20/' \
+  "$ROOT/tools/local-server/server.properties" >"$SERVER_DIR/server.properties"
 cat >"$SERVER_DIR/bukkit.yml" <<'YAML'
 settings:
   allow-end: false
@@ -210,6 +213,9 @@ KB_HOST=127.0.0.1 KB_PORT=$PORT node "$ROOT/tools/kb-control/bots/visibility-bot
 # The same server for the Block in training: one bot, against the enemy.
 blockin_status=0
 KB_HOST=127.0.0.1 KB_PORT=$PORT node "$ROOT/tools/kb-control/bots/blockin-bots.mjs" || blockin_status=$?
+# The same server for the spectators: one bot in the Block clutch, ten watching it at once.
+spectate_status=0
+KB_HOST=127.0.0.1 KB_PORT=$PORT node "$ROOT/tools/kb-control/bots/spectate-bots.mjs" || spectate_status=$?
 stop_server
 
 # Any error or exception logged by the server fails the test, even if the bots passed. One is
@@ -223,4 +229,5 @@ fi
 [[ $bots_status -eq 0 ]] || { tail -n 60 "$SERVER_LOG" >&2; fail "the arena bots stopped with status $bots_status"; }
 [[ $visibility_status -eq 0 ]] || { tail -n 60 "$SERVER_LOG" >&2; fail "the visibility bots stopped with status $visibility_status"; }
 [[ $blockin_status -eq 0 ]] || { tail -n 60 "$SERVER_LOG" >&2; fail "the Block in bot stopped with status $blockin_status"; }
+[[ $spectate_status -eq 0 ]] || { tail -n 60 "$SERVER_LOG" >&2; fail "the spectator bots stopped with status $spectate_status"; }
 log "PASSED"
