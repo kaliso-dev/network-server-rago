@@ -121,7 +121,7 @@ informations manquantes.
 | 1.5 | Kit Bedfight réinitialisé à la mort dans le vide | Kits | P0 | IMPLÉMENTÉ | `BedFightGame`, `BedwarsGame.kill` | — | tests unitaires ; en jeu : ranger sa barre en partie, mourir par un coup puis dans le vide | — |
 | 1.6 | Forges de Bed Break Simulation sur certaines maps | Bed Wars | P0 | EN COURS | `BedBreakGame`, `Generator`, `BedwarsMap`, `bedwars.yml` des maps | — | vérifier chaque map | maps en cause et ce qui ne marche pas |
 | 1.7 | Spawns First Rush trop en avant | Bed Wars | P0 | BLOQUÉ | `BedwarsMap`, `bedwars.yml`, `BedwarsGame` | — | comparer aux références | spawns de référence Hypixel |
-| 1.8 | Block In réaliste (casser, frapper seulement par le trou, recasser) + reset des records | Practice | P0 | EN COURS | `BlockInEnemy`, `BlockInTraining`, `Records`, `RagoPractice` | 1.1 | tests unitaires (`BlockInEnemyTest`, `RecordsResetTest`) ; test réel en CI à écrire ; en jeu | — |
+| 1.8 | Block In réaliste (casser, frapper seulement par le trou, recasser) + reset des records | Practice | P0 | IMPLÉMENTÉ | `BlockInEnemy`, `BlockInTraining`, `Records`, `RagoPractice` | 1.1 | tests unitaires (`BlockInEnemyTest`, `RecordsResetTest`) ; test réel en CI (`blockin-bots.mjs`) ; en jeu sur ta map | — |
 
 ### Étape 3 : modes existants (Phase 2)
 
@@ -320,7 +320,7 @@ les deux bots se voient (corps après l'entrée dans la tab list, ni spectateur 
 toujours là une seconde après). **Pas testé avec un vrai client 1.8.9** : les bots lisent les
 mêmes paquets qu'un client, mais à vérifier en jeu (quelqu'un au spawn, un autre qui se connecte).
 
-### 1.8 Block In réaliste — EN COURS (21/11)
+### 1.8 Block In réaliste — IMPLÉMENTÉ (21/11)
 
 **Avant** : environ toutes les 1,1 s, l'ennemi frappait par n'importe quel côté ouvert, ou
 faisait disparaître d'un coup un bloc posé au hasard autour du joueur.
@@ -347,8 +347,16 @@ bougent pas.
 **Tests** : tests unitaires `BlockInEnemyTest` (joueur à découvert, joueur enfermé : casse puis
 frappe, bloc remis : recasse sans frapper, autre côté ouvert jamais utilisé, côté de défense,
 fissures retirées) et `RecordsResetTest` (remise à zéro unique, copie, autres records gardés,
-nouveaux temps conservés aux démarrages suivants). **Pas encore testé sur un vrai serveur** : un
-test réel avec un bot est à écrire.
+nouveaux temps conservés aux démarrages suivants), et un test réel en CI
+(`tools/kb-control/bots/blockin-bots.mjs`, lancé par `run-arena-test.sh`) : sur un vrai serveur
+PandaSpigot, un bot joue l'entraînement sur l'île du plugin, s'enferme dans la laine depuis son
+départ sur l'anneau de verre, puis vérifie que l'ennemi ne le frappe pas tant qu'il est enfermé,
+casse un bloc d'un seul côté avec les fissures (250 ms entre les premières fissures et la casse,
+5 étapes vues), le frappe par ce trou 1,2 s plus tard en le repoussant à l'opposé, casse à nouveau
+le bloc remis trois fois de suite, au même côté et sans frapper, et ne casse rien d'autre (autres
+côtés, verre). Le test passe. **Pas testé en jeu sur ta map** « Ultimate Block-In Practice » (le
+serveur de test ne l'a pas) ni avec un vrai client : à essayer, en t'enfermant puis en remettant
+le bloc cassé.
 
 ### 1.5 Kit Bedfight — IMPLÉMENTÉ (21/11)
 
