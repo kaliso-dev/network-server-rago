@@ -438,9 +438,13 @@ Dans `jeux:` du config.yml, un mode peut jouer autre chose qu'une partie classiq
   comme avant les formats : de 2 à 5 joueurs, il part 10 secondes après l'arrivée du deuxième, 3
   secondes quand ils sont cinq.
 - **Fast Shop** (`fast-shop`) : acheter le plus vite possible avec son propre quick buy (copié
-  d'Hypixel dans le lobby). Sept listes, chacune avec ses records : le premier achat, l'armure de
-  fer, les outils, un fireball fight, une défense de lit, un rush, et une liste au hasard. Un clic
-  sur un objet qui n'est pas sur la liste compte comme une erreur. Comme les entraînements du
+  d'Hypixel dans le lobby). Dix listes à la suite, chacune avec ses records (`fastshop.yml`) : Rush
+  start, les défenses de lit Ranked et Solo, l'armure de fer et les outils, un fireball fight, un
+  bed break, deux clutchs, les émeraudes et un rush invisible (`FastShopGame.ORDERS`). Un clic
+  sur un objet qui n'est pas sur la liste compte comme une erreur. Dans les menus du lobby, Fast
+  Shop montre à la place de sa Daily Streak le record Lifetime de sa première liste, Rush start,
+  celle par laquelle chaque partie commence : le top 3 et le meilleur temps du joueur avec sa
+  place. Comme les entraînements du
   practice, il garde la place du joueur dans les files : la partie trouvée l'en sort directement,
   et ses scores et ses minutes font avancer les quêtes du lobby (Getting started, les réussites,
   les records, les minutes d'entraînement).

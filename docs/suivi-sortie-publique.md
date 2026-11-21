@@ -144,7 +144,7 @@ informations manquantes.
 | --- | --- | --- | --- | --- | --- | --- | --- |
 | 3.2 | FKDR avec décimales partout (« 6.42 FKDR ») | Stats | P1 | IMPLÉMENTÉ | `BoardStat`, `StatsBook`, `StatsMenu`, `StatsDisplays`, `HeadLines` | 1.4 | — |
 | 3.3 | Records practice : Lifetime d'abord, Weekly, Daily plus tard ; visibles ≥ 1 mois | Stats | P1 | IMPLÉMENTÉ (Weekly ajouté, gardé 5 semaines ; Daily plus tard) | `Records`, `RecordBook`, `RecordsMenu` | 1.4 | — |
-| 3.4 | Menus practice : TOP 3 Lifetime du record du mode au survol | Stats | P1 | IMPLÉMENTÉ (les entraînements de RagoPractice ; Fast Shop : à préciser) | `ModeMenu`, `ModeDisplay`, `RecordCatalog` | 3.3 | — |
+| 3.4 | Menus practice : TOP 3 Lifetime du record du mode au survol | Stats | P1 | IMPLÉMENTÉ (les entraînements de RagoPractice, et Fast Shop : sa première liste) | `ModeMenu`, `ModeDisplay`, `RecordCatalog` | 3.3 | — |
 | 3.1 | Trois leaderboards Daily / Weekly / Lifetime liés à une même stat | Stats | P1 | À FAIRE | `StatsDisplays`, `StatsBook`, `StatsPeriod`, `BoardStat` | 1.4 | méthode pour ratios et ELO à valider |
 | 5.4d | Sélecteur `NewLeaderboard Selector` (Win Streak, Level, ELO, Wins, Kills, FKDR, WWLR…) | Lobby | P1 | À FAIRE | `LobbyNpcs`, `StatsDisplays`, point `newleaderboardselector` | 3.1 | — |
 | 3.5 | Network Level au-dessus des joueurs par défaut (lobby, practice, autres) | Lobby | P1 | À FAIRE | `HeadLines`, `NameStyle`, `LobbyScoreboard` | 1.3 | C4 |
@@ -235,16 +235,19 @@ jour (`ModeMenu.streakLines`). Le plan le dit : pour un entraînement, elle n'es
   Si RagoPractice s'arrête, les modes reprennent leur Daily Streak.
 - Les duels (Sumo, Boxing, Bridge...) gardent leur Daily Streak : là, elle a un sens.
 
-**Pas fait, à préciser** : Fast Shop (RagoBedwars) a des records, mais un par liste d'objets à
-acheter, pas un seul record pour le mode. Il garde sa Daily Streak tant que tu ne m'as pas dit
-lequel montrer. Rien n'est inventé.
+- Fast Shop (RagoBedwars) a un record par liste d'objets à acheter, dix listes à la suite. Il
+  montre, par la même règle, le record de sa première liste, « Rush start », celle par laquelle
+  chaque partie commence : « Lifetime record: Rush start », le top 3 (« 1. Bob - 2.91 s ») et
+  le meilleur temps du joueur avec sa place. À changer si tu préfères une autre liste.
 
 **Tests** :
 - `RecordsMenuTest.theRecordOfATrainingForTheMenusOfTheLobby` : le top 3, la place du joueur, la
   vitesse 2 du block edit, rien pour un duel, et chaque entraînement a son record.
 - `StatsDisplaysTest.aTrainingShowsItsRecordInThePlaceOfItsDailyStreak` : les lignes du menu, et
   la Daily Streak qui revient sans RagoPractice.
-- Lancés par la CI. **Pas encore vu en jeu** : survoler Block clutch et Block in dans la boussole.
+- `BedwarsModesTest.fastShopShowsTheRecordOfItsFirstListInTheMenusOfTheLobby` : le top 3 de Rush
+  start, l'ordre à temps égal, la place du joueur, une liste sans temps.
+- Lancés par la CI. **Pas encore vu en jeu** : survoler Block clutch, Block in et Fast Shop dans la boussole.
 
 ### 3.3 Records Practice : Lifetime et Weekly — IMPLÉMENTÉ (21/11)
 

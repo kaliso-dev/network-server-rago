@@ -1,9 +1,11 @@
 package gg.rago.bedwars;
 
 import gg.rago.lobby.api.LobbyService;
+import gg.rago.lobby.api.ModeRecord;
 import java.io.File;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.UUID;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
@@ -120,6 +122,8 @@ public final class RagoBedwars extends JavaPlugin {
                 getLogger().warning("The lobby has no mode \"" + mode + "\" in its config.yml: it stays closed.");
             }
         }
+        // under Fast Shop in the menus of the lobby: the record of its first list, in the place of the Daily Streak
+        lobby.setModeRecords(this, this::modeRecord);
         // Once: the kills and deaths of the Bed Wars modes start again from 0, since a final kill
         // no longer counts as a kill too and a death in the void without a killer counts (21/11/2026)
         lobby.resetKillsOnce("kills-bedwars-2026-11", settings.modes());
@@ -203,6 +207,22 @@ public final class RagoBedwars extends JavaPlugin {
     /** The best times of Fast Shop. */
     FastShopRecords fastShopRecords() {
         return fastShopRecords;
+    }
+
+    /** Rows of the top under Fast Shop in the menus of the lobby (plan 3.4: a top 3). */
+    static final int MODE_TOP = 3;
+
+    /**
+     * The record the menus of the lobby show under a Fast Shop mode, in the place of its Daily
+     * Streak (plan 3.4), lifetime: its first list, the one each game starts on, as a training
+     * shows the variant it starts on. Null for the other modes: they keep their Daily Streak.
+     */
+    ModeRecord modeRecord(String modeId, UUID viewer) {
+        if (settings.kind(modeId) != BedwarsSettings.Kind.FAST_SHOP) {
+            return null;
+        }
+        FastShopGame.Order first = FastShopGame.ORDERS.get(0);
+        return fastShopRecords.modeRecord(first.id, first.name, viewer, MODE_TOP);
     }
 
     /** The shop of the arena (Free FFA). */

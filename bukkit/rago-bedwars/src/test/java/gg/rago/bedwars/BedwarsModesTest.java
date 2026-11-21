@@ -170,6 +170,35 @@ class BedwarsModesTest {
     }
 
     @Test
+    void fastShopShowsTheRecordOfItsFirstListInTheMenusOfTheLobby() {
+        FastShopRecords records = new FastShopRecords(new java.io.File("unused"), null, null);
+        UUID alice = new UUID(0, 1);
+        UUID bob = new UUID(0, 2);
+        UUID carl = new UUID(0, 3);
+        UUID dan = new UUID(0, 4);
+        records.record("rush-start", alice, "Alice", 4210);
+        records.record("rush-start", bob, "Bob", 2910);
+        records.record("rush-start", carl, "Carl", 3500);
+        records.record("rush-start", dan, "Dan", 3500);
+        records.record("fireball-fight", alice, "Alice", 1000);
+        gg.rago.lobby.api.ModeRecord rush = records.modeRecord("rush-start", "Rush start", alice, 3);
+        assertEquals("Rush start", rush.name);
+        assertEquals(3, rush.top.size(), "a top 3");
+        assertEquals("Bob", rush.top.get(0).getKey());
+        assertEquals("2.91 s", rush.top.get(0).getValue(), "as the game shows a time");
+        assertEquals("Carl", rush.top.get(1).getKey(), "at equal times, by name");
+        assertEquals("Dan", rush.top.get(2).getKey());
+        assertEquals("4.21 s", rush.best);
+        assertEquals(4, rush.place, "the slowest of four, another list apart");
+        gg.rago.lobby.api.ModeRecord none = records.modeRecord("emeralds", "Emeralds: the late game", null, 3);
+        assertTrue(none.top.isEmpty());
+        assertNull(none.best);
+        assertEquals(0, none.place);
+        assertEquals(0, records.rank("rush-start", UUID.randomUUID()));
+        assertEquals("rush-start", FastShopGame.ORDERS.get(0).id, "each game starts on this list");
+    }
+
+    @Test
     void theInvisAttackerHasTheOwnersKit() {
         ShopCatalog shop = ShopCatalog.standard();
         List<String> materials = new ArrayList<>();
