@@ -395,6 +395,81 @@ class StatsBookTest {
     }
 
     @Test
+    void theLeaderboardsOfTheSelectorHaveADayAWeekAndAnEver() throws Exception {
+        StatsBook book = new StatsBook(0, NetworkLevel.DEFAULT);
+        // Saturday: Alice beats Bob twice in ranked (+35, +35); Sunday, the same week: Bob beats her (+35, -5)
+        win(book, RANKED, ALICE, BOB, SATURDAY);
+        win(book, RANKED, ALICE, BOB, SATURDAY);
+        win(book, RANKED, BOB, ALICE, SUNDAY);
+        book.finalKill("ranked-1v1", ALICE, NAMES, SUNDAY);
+        book.finalKill("ranked-1v1", ALICE, NAMES, SUNDAY);
+        book.finalDeath("ranked-1v1", ALICE, NAMES, SUNDAY);
+        book.finalKill("ranked-1v1", BOB, NAMES, SUNDAY);
+
+        // the ELO won over the period, under 0 when lost; ever: the ELO itself
+        StatsBook.Ranking eloToday = book.ranking(BoardStat.ELO, StatsPeriod.DAY, "ranked-1v1", SUNDAY, 0);
+        assertEquals(Arrays.asList("Bob", "Alice"), names(eloToday.rows()));
+        assertEquals(35, eloToday.rows().get(0).value());
+        assertEquals(-5, eloToday.rows().get(1).value(), "a player who lost Elo today is on it too");
+        StatsBook.Ranking eloWeek = book.ranking(BoardStat.ELO, StatsPeriod.WEEK, "ranked-1v1", SUNDAY, 0);
+        assertEquals(Arrays.asList("Alice", "Bob"), names(eloWeek.rows()));
+        assertEquals(65, eloWeek.rows().get(0).value());
+        assertEquals(65, book.ranking(BoardStat.ELO, StatsPeriod.ALL, "ranked-1v1", SUNDAY, 0).rows().get(0).value());
+        assertTrue(book.ranking(BoardStat.ELO, StatsPeriod.DAY, "ranked-1v1", MONDAY, 0).rows().isEmpty(), "nobody played Monday");
+
+        // the Network level: the XP earned over the period (50 a win, 15 a loss)
+        StatsBook.Ranking xpToday = book.ranking(BoardStat.LEVEL, StatsPeriod.DAY, null, SUNDAY, 0);
+        assertEquals(Arrays.asList("Bob", "Alice"), names(xpToday.rows()));
+        assertEquals(Arrays.asList(50, 15), values(xpToday.rows()));
+        assertEquals(Arrays.asList(115, 80), values(book.ranking(BoardStat.LEVEL, StatsPeriod.WEEK, null, SUNDAY, 0).rows()));
+
+        // the FKDR of the day: Alice 2 / 1, Bob 1 / 0; each played one game today
+        StatsBook.Ranking fkdr = book.ranking(BoardStat.FKDR, StatsPeriod.DAY, null, SUNDAY, 1);
+        assertEquals(Arrays.asList("Alice", "Bob"), names(fkdr.rows()));
+        assertEquals(Arrays.asList(200, 100), values(fkdr.rows()));
+        assertTrue(book.ranking(BoardStat.FKDR, StatsPeriod.DAY, null, SUNDAY, 2).rows().isEmpty(), "two games needed: nobody");
+        assertEquals(2, book.ranking(BoardStat.FKDR, StatsPeriod.WEEK, null, SUNDAY, 3).rows().size(), "three games each this week");
+        win(book, SUMO, ALICE, BOB, SUNDAY);
+        assertTrue(book.ranking(BoardStat.FKDR, StatsPeriod.DAY, null, SUNDAY, 2).rows().isEmpty(),
+                "a sumo is not a game of the FKDR");
+
+        // the WLR: wins / losses of the period; ever, the wins alone without a loss
+        StatsBook.Ranking wlrWeek = book.ranking(BoardStat.WLR, StatsPeriod.WEEK, null, SUNDAY, 4);
+        assertEquals(Arrays.asList("Alice", "Bob"), names(wlrWeek.rows()));
+        assertEquals(Arrays.asList(300, 33), values(wlrWeek.rows()), "Alice 3 wins / 1 loss, Bob 1 / 3");
+        assertTrue(book.ranking(BoardStat.WLR, StatsPeriod.WEEK, null, SUNDAY, 5).rows().isEmpty(), "four games each");
+        assertEquals(Arrays.asList(300, 33), values(book.ranking(BoardStat.WLR, StatsPeriod.ALL, null, SUNDAY).rows()));
+        assertEquals(Arrays.asList(300, 33), values(book.ranking(BoardStat.WLR, StatsPeriod.ALL, null, SUNDAY, 99).rows()),
+                "Lifetime has no minimum");
+
+        // the counters that have periods already: the same leaderboards as before
+        assertEquals(names(book.ranking(BoardStat.WINS, StatsPeriod.DAY, null, SUNDAY).rows()),
+                names(book.ranking(BoardStat.WINS, StatsPeriod.DAY, null, SUNDAY, 5).rows()));
+
+        // all of it in the file
+        String sunday = StatsPeriod.dayKey(SUNDAY);
+        String week = StatsPeriod.weekKey(SUNDAY);
+        PlayerStats read = StatsFiles.fromYaml(ALICE, StatsFiles.toYaml(book.get(ALICE)));
+        assertEquals(StatsFiles.toYaml(book.get(ALICE)), StatsFiles.toYaml(read));
+        assertEquals(-5, read.mode("ranked-1v1").elo(StatsPeriod.DAY, sunday, week));
+        assertEquals(65, read.mode("ranked-1v1").elo(StatsPeriod.WEEK, sunday, week));
+        assertEquals(65, read.xp(StatsPeriod.DAY, sunday, week), "a loss and a win today");
+        assertEquals(165, read.xp(StatsPeriod.WEEK, sunday, week));
+        assertEquals(2, read.finalKills(StatsPeriod.DAY, sunday, week));
+        assertEquals(1, read.finalDeaths(StatsPeriod.WEEK, sunday, week));
+        assertEquals(1, read.losses(StatsPeriod.DAY, sunday, week));
+        assertEquals(0, read.xp(StatsPeriod.DAY, StatsPeriod.dayKey(MONDAY), StatsPeriod.weekKey(MONDAY)), "a new day");
+    }
+
+    private static List<Integer> values(List<StatsBook.Row> rows) {
+        List<Integer> values = new java.util.ArrayList<>();
+        for (StatsBook.Row row : rows) {
+            values.add(row.value());
+        }
+        return values;
+    }
+
+    @Test
     void aDeathNobodyGetsTheKillOfIsADeathAllTheSame() {
         StatsBook book = new StatsBook(1000, NetworkLevel.DEFAULT);
         List<PlayerStats> changed = book.kill("sumo", null, BOB, NAMES, SUNDAY);

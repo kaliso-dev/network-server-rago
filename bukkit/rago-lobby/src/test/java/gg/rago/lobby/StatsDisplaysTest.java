@@ -176,6 +176,82 @@ class StatsDisplaysTest {
     }
 
     @Test
+    void theThreeWallsOfTheSelectorShowTheSameStatEachOnItsPeriod() throws Exception {
+        YamlConfiguration yaml = LobbySettingsTest.bundledConfig();
+        String[][] walls = {{"sel-jour", "jour"}, {"sel-semaine", "semaine"}, {"sel-toujours", "toujours"}};
+        for (String[] wall : walls) {
+            yaml.set("classements." + wall[0] + ".selecteur", "newleaderboardselector");
+            yaml.set("classements." + wall[0] + ".periode", wall[1]);
+        }
+        LobbySettings settings = LobbySettings.load(yaml);
+        LobbyNpc selector = settings.npc("newleaderboardselector");
+        assertEquals(LobbyNpc.Kind.SELECTOR, selector.kind());
+        List<BoardStat> stats = selector.boards().get(0);
+        assertEquals(Arrays.asList(BoardStat.STREAK, BoardStat.LEVEL, BoardStat.ELO, BoardStat.WINS, BoardStat.KILLS,
+                BoardStat.FKDR, BoardStat.WLR, BoardStat.GAMES), stats, "the stats of the plan, in its order, then the games played");
+        StatsBook book = new StatsBook(1000, settings.levels());
+        book.record(settings.catalog().get("ranked-1v1"), Collections.singletonList(ALICE), Collections.singletonList(BOB), NAMES,
+                SUNDAY);
+        StatsDisplays displays = new StatsDisplays(settings, book, new StatsMenu(settings, book), new FakeEntities(null, null));
+        displays.setWeekly(ServerSettings.readWeekly(null, NameStyle.catalogue()), "§6§l♛");
+        for (String[] wall : walls) {
+            LobbyNpc npc = settings.npc(wall[0]);
+            assertEquals("newleaderboardselector", npc.selector());
+            assertEquals(Collections.singletonList(stats), npc.boards(), "a wall of the selector: one board, its stats");
+            displays.addWall(npc, new Location(null, 0.5, 65, 0.5));
+        }
+        Player alice = player(ALICE);
+        // first the win streak, each wall on its period
+        assertEquals(Arrays.asList("Best win streak", "All modes · Daily"),
+                plain(displays.board(stats, "sel-jour#0", alice, SUNDAY)).subList(0, 2));
+        assertEquals("All modes · Weekly", plain(displays.board(stats, "sel-semaine#0", alice, SUNDAY)).get(1));
+        assertEquals("All modes · Lifetime", plain(displays.board(stats, "sel-toujours#0", alice, SUNDAY)).get(1));
+
+        // the Network level chosen at the selector: the XP earned today and this week, the level ever
+        displays.select(ALICE, "newleaderboardselector", 1, 0);
+        List<String> day = plain(displays.board(stats, "sel-jour#0", alice, SUNDAY));
+        assertEquals(Arrays.asList("Network level", "All modes · Daily", "", "1. Alice - 50 XP", "2. Bob - 15 XP"), day.subList(0, 5));
+        assertEquals("Resets in 14 h", day.get(16));
+        assertEquals("1. Alice - 50 XP", plain(displays.board(stats, "sel-semaine#0", alice, SUNDAY)).get(3));
+        List<String> ever = plain(displays.board(stats, "sel-toujours#0", alice, SUNDAY));
+        assertEquals(Arrays.asList("Network level", "All modes · Lifetime"), ever.subList(0, 2));
+        assertEquals("1. Alice - 1", ever.get(3), "ever: the level");
+        assertEquals("Never resets", ever.get(16));
+        assertEquals("Best win streak", plain(displays.board(stats, "sel-jour#0", player(BOB), SUNDAY)).get(0),
+                "each player has their own choice");
+
+        // the Elo of a ranked mode: won today, the Elo of the season ever
+        displays.select(ALICE, "newleaderboardselector", 2, 0);
+        List<String> eloToday = plain(displays.board(stats, "sel-jour#0", alice, SUNDAY));
+        assertEquals(Arrays.asList("Ranked Elo", "Ranked Bedwars 1v1 · Daily"), eloToday.subList(0, 2));
+        assertTrue(eloToday.get(3).startsWith("1. Alice - +"), eloToday.get(3));
+        assertEquals("Resets in 14 h", eloToday.get(16));
+        List<String> eloEver = plain(displays.board(stats, "sel-toujours#0", alice, SUNDAY));
+        assertEquals("Ranked Bedwars 1v1 · Lifetime", eloEver.get(1));
+        assertEquals("Season Elo", eloEver.get(16));
+
+        // the FKDR of a day or a week needs its games
+        displays.select(ALICE, "newleaderboardselector", 5, 0);
+        assertEquals("Ranked from 5 Bed Wars games today", plain(displays.board(stats, "sel-jour#0", alice, SUNDAY)).get(15));
+        assertEquals("Ranked from 15 Bed Wars games this week", plain(displays.board(stats, "sel-semaine#0", alice, SUNDAY)).get(15));
+        assertEquals("", plain(displays.board(stats, "sel-toujours#0", alice, SUNDAY)).get(15), "Lifetime has no minimum");
+
+        // a click on one of the walls: the next stat, on the three
+        displays.next(alice, stats, "sel-semaine#0", false);
+        assertEquals("WLR", plain(displays.board(stats, "sel-jour#0", alice, SUNDAY)).get(0));
+        List<String> wlr = plain(displays.board(stats, "sel-toujours#0", alice, SUNDAY));
+        assertEquals(Arrays.asList("WLR", "All modes · Lifetime", "", "1. Alice - 1.00"), wlr.subList(0, 4), "1 win, no loss");
+        assertEquals("Nobody yet", plain(displays.board(stats, "sel-jour#0", alice, SUNDAY)).get(3), "one game: not 5 today");
+
+        // the menu of the selector: an item for each stat, for the Elo one for each ranked mode
+        int rankedModes = StatsMenu.rankedModes(settings).size();
+        assertEquals(stats.size() - 1 + rankedModes, StatsDisplays.selectorItems(stats, rankedModes).size());
+        assertTrue(StatsDisplays.selectorLore(BoardStat.FKDR, selector).contains("§7Ranked from 5 games a day, 15 a week"));
+        assertEquals(Arrays.asList("§7Daily, Weekly: the XP earned", "§7Lifetime: the Network level"),
+                StatsDisplays.selectorLore(BoardStat.LEVEL, selector));
+    }
+
+    @Test
     void theKillsBoardChangesItsPeriodOnAnyClick() throws Exception {
         LobbySettings settings = bundledSettings();
         StatsBook book = new StatsBook(1000, settings.levels());

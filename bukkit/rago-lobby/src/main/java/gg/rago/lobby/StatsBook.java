@@ -297,13 +297,13 @@ final class StatsBook {
         }
         for (UUID id : new LinkedHashSet<>(winners)) {
             PlayerStats stats = play(id, names, mode.id(), true, day, week, newElo.get(id), rated);
-            stats.addXp(boosted(id, levels.winXp()));
+            stats.earnXp(boosted(id, levels.winXp()), day, week);
             changed.add(stats);
         }
         for (UUID id : new LinkedHashSet<>(losers)) {
             if (!winners.contains(id)) {
                 PlayerStats stats = play(id, names, mode.id(), false, day, week, newElo.get(id), rated);
-                stats.addXp(boosted(id, levels.lossXp()));
+                stats.earnXp(boosted(id, levels.lossXp()), day, week);
                 changed.add(stats);
             }
         }
@@ -326,7 +326,7 @@ final class StatsBook {
         for (UUID id : new LinkedHashSet<>(players)) {
             PlayerStats stats = statsOf(id, names);
             stats.modeOrNew(mode.id()).draw(day, week);
-            stats.addXp(boosted(id, levels.lossXp()));
+            stats.earnXp(boosted(id, levels.lossXp()), day, week);
             changed.add(stats);
         }
         forgetRankings();
@@ -360,7 +360,7 @@ final class StatsBook {
             if (!finalKill) {
                 stats.modeOrNew(modeId).kill(StatsPeriod.dayKey(millis), StatsPeriod.weekKey(millis));
             }
-            stats.addXp(boosted(killer, levels.killXp()));
+            stats.earnXp(boosted(killer, levels.killXp()), StatsPeriod.dayKey(millis), StatsPeriod.weekKey(millis));
             changed.add(stats);
         }
         if (victim != null && !finalKill) {
@@ -400,8 +400,13 @@ final class StatsBook {
 
     /** A Bed Wars final kill of this player in this mode: counted; their stats, changed. */
     PlayerStats finalKill(String modeId, UUID killer, Names names) {
+        return finalKill(modeId, killer, names, System.currentTimeMillis());
+    }
+
+    /** A Bed Wars final kill at this time: counted, in its day and its week too. */
+    PlayerStats finalKill(String modeId, UUID killer, Names names, long millis) {
         PlayerStats stats = statsOf(killer, names);
-        stats.modeOrNew(modeId).finalKills++;
+        stats.modeOrNew(modeId).finalKill(StatsPeriod.dayKey(millis), StatsPeriod.weekKey(millis));
         // the FKDR leaderboard follows at once
         forgetRankings();
         return stats;
@@ -409,8 +414,13 @@ final class StatsBook {
 
     /** A Bed Wars final death of this player in this mode (out of the game): counted; their stats, changed. */
     PlayerStats finalDeath(String modeId, UUID player, Names names) {
+        return finalDeath(modeId, player, names, System.currentTimeMillis());
+    }
+
+    /** A Bed Wars final death at this time: counted, in its day and its week too. */
+    PlayerStats finalDeath(String modeId, UUID player, Names names, long millis) {
         PlayerStats stats = statsOf(player, names);
-        stats.modeOrNew(modeId).finalDeaths++;
+        stats.modeOrNew(modeId).finalDeath(StatsPeriod.dayKey(millis), StatsPeriod.weekKey(millis));
         // the FKDR leaderboard follows at once
         forgetRankings();
         return stats;
@@ -429,7 +439,8 @@ final class StatsBook {
             return null;
         }
         PlayerStats stats = statsOf(player, names);
-        stats.addXp(boosted(player, xp));
+        long now = System.currentTimeMillis();
+        stats.earnXp(boosted(player, xp), StatsPeriod.dayKey(now), StatsPeriod.weekKey(now));
         forgetRankings();
         return stats;
     }
@@ -452,10 +463,13 @@ final class StatsBook {
             boolean streaks) {
         PlayerStats stats = statsOf(id, names);
         ModeStats mode = stats.modeOrNew(modeId);
+        // the ELO before the game, as elo(player, mode) reads it: the start for a first game
+        int before = mode.decided() > 0 ? mode.elo : defaultRating;
         mode.record(won, day, week, streaks);
         if (elo != null) {
             mode.elo = elo;
             mode.peakElo = Math.max(mode.peakElo, elo);
+            mode.eloChange(elo - before, day, week);
         }
         return stats;
     }
@@ -497,6 +511,9 @@ final class StatsBook {
                 case LEVEL:
                     value = stats.xp();
                     break;
+                case WLR:
+                    value = BoardStat.fkdr(stats.wins(StatsPeriod.ALL, null, day, week), stats.losses());
+                    break;
                 default:
                     // every player of the mode, even at 0 ELO (the bottom of Coal)
                     ModeStats mode = modeId == null ? null : stats.mode(modeId);
@@ -504,6 +521,83 @@ final class StatsBook {
                     break;
             }
             if (value > 0 || value == 0 && stat == BoardStat.ELO) {
+                rows.add(new Row(stats.id(), stats.name(), value));
+            }
+        }
+        Collections.sort(rows, (a, b) -> a.value() != b.value() ? Integer.compare(b.value(), a.value())
+                : a.name().compareToIgnoreCase(b.name()));
+        ranking = new Ranking(rows);
+        rankings.put(key, ranking);
+        return ranking;
+    }
+
+    /**
+     * A leaderboard of the boards of the selector (plan 3.1), where every stat has its day, its week
+     * and its lifetime. Lifetime is {@link #ranking} itself. Over a day or a week: the wins, the
+     * games, the best streak and the kills of the period; the XP earned (Network level); the ELO
+     * won in the ranked mode (under 0: lost), for every player who played it then; the FKDR and the
+     * WLR of the counters of the period, for the players with at least {@code minimumGames} games
+     * in it (for the FKDR, the games of the modes with final kills: Bed Wars), in hundredths.
+     */
+    Ranking ranking(BoardStat stat, StatsPeriod period, String modeId, long millis, int minimumGames) {
+        if (period == StatsPeriod.ALL || stat.periodic()) {
+            return ranking(stat, period, modeId, millis);
+        }
+        String day = StatsPeriod.dayKey(millis);
+        String week = StatsPeriod.weekKey(millis);
+        newDay(day);
+        String key = "selector/" + stat + "/" + period + "/" + (stat == BoardStat.ELO ? modeId : "") + "/" + minimumGames;
+        Ranking ranking = rankings.get(key);
+        if (ranking != null) {
+            return ranking;
+        }
+        // the modes with final kills (Bed Wars): those whose games count for the FKDR
+        java.util.Set<String> finals = new java.util.HashSet<>();
+        if (stat == BoardStat.FKDR) {
+            for (PlayerStats stats : players.values()) {
+                for (Map.Entry<String, ModeStats> mode : stats.modes().entrySet()) {
+                    if (mode.getValue().finalKills > 0 || mode.getValue().finalDeaths > 0) {
+                        finals.add(mode.getKey());
+                    }
+                }
+            }
+        }
+        List<Row> rows = new ArrayList<>();
+        for (PlayerStats stats : players.values()) {
+            int value;
+            boolean ranked;
+            switch (stat) {
+                case LEVEL:
+                    value = stats.xp(period, day, week);
+                    ranked = value > 0;
+                    break;
+                case ELO: {
+                    ModeStats mode = modeId == null ? null : stats.mode(modeId);
+                    boolean played = mode != null && mode.games(period, day, week) > 0;
+                    value = played ? mode.elo(period, day, week) : 0;
+                    ranked = played;
+                    break;
+                }
+                case FKDR: {
+                    int games = 0;
+                    for (String mode : finals) {
+                        ModeStats of = stats.mode(mode);
+                        games += of == null ? 0 : of.games(period, day, week);
+                    }
+                    value = BoardStat.fkdr(stats.finalKills(period, day, week), stats.finalDeaths(period, day, week));
+                    ranked = value > 0 && games >= minimumGames;
+                    break;
+                }
+                case WLR:
+                    value = BoardStat.fkdr(stats.wins(period, null, day, week), stats.losses(period, day, week));
+                    ranked = value > 0 && stats.games(period, null, day, week) >= minimumGames;
+                    break;
+                default:
+                    value = 0;
+                    ranked = false;
+                    break;
+            }
+            if (ranked) {
                 rows.add(new Row(stats.id(), stats.name(), value));
             }
         }

@@ -145,8 +145,8 @@ informations manquantes.
 | 3.2 | FKDR avec décimales partout (« 6.42 FKDR ») | Stats | P1 | IMPLÉMENTÉ | `BoardStat`, `StatsBook`, `StatsMenu`, `StatsDisplays`, `HeadLines` | 1.4 | — |
 | 3.3 | Records practice : Lifetime d'abord, Weekly, Daily plus tard ; visibles ≥ 1 mois | Stats | P1 | IMPLÉMENTÉ (Weekly ajouté, gardé 5 semaines ; Daily plus tard) | `Records`, `RecordBook`, `RecordsMenu` | 1.4 | — |
 | 3.4 | Menus practice : TOP 3 Lifetime du record du mode au survol | Stats | P1 | IMPLÉMENTÉ (les entraînements de RagoPractice, et Fast Shop : sa première liste) | `ModeMenu`, `ModeDisplay`, `RecordCatalog` | 3.3 | — |
-| 3.1 | Trois leaderboards Daily / Weekly / Lifetime liés à une même stat | Stats | P1 | À FAIRE | `StatsDisplays`, `StatsBook`, `StatsPeriod`, `BoardStat` | 1.4 | méthode pour ratios et ELO à valider |
-| 5.4d | Sélecteur `NewLeaderboard Selector` (Win Streak, Level, ELO, Wins, Kills, FKDR, WWLR…) | Lobby | P1 | À FAIRE | `LobbyNpcs`, `StatsDisplays`, point `newleaderboardselector` | 3.1 | — |
+| 3.1 | Trois leaderboards Daily / Weekly / Lifetime liés à une même stat | Stats | P1 | EN COURS (codé, CI en cours) | `StatsDisplays`, `StatsBook`, `ModeStats`, `PlayerStats`, `StatsFiles`, `BoardStat` | 1.4 | méthode proposée le 21/11 (XP et ELO gagnés, ratios avec 5 / 15 parties), à valider ; quel mur pour quelle période (question posée) |
+| 5.4d | Sélecteur `NewLeaderboard Selector` (Win Streak, Level, ELO, Wins, Kills, FKDR, WWLR…) | Lobby | P1 | EN COURS (codé, CI en cours) | `LobbyNpc`, `LobbyNpcs`, `LobbySettings`, `StatsDisplays`, point `newleaderboardselector` | 3.1 | config de ton serveur à faire à l'installation |
 | 3.5 | Network Level au-dessus des joueurs par défaut (lobby, practice, autres) | Lobby | P1 | À FAIRE | `HeadLines`, `NameStyle`, `LobbyScoreboard` | 1.3 | C4 |
 | 3.6 | ELO des adversaires visible en Ranked | Ranked | P1 | À FAIRE | `HeadLines`, scoreboard des parties | 3.5 | — |
 | 3.8 | Nombre de joueurs en file pour chaque mode | Files | P1 | À FAIRE | `QueueController`, `ModeMenu`, `LobbyNpcs` | — | — |
@@ -217,6 +217,44 @@ informations manquantes.
 ---
 
 ## 3. Journal des corrections
+
+### 3.1 et 5.4d Leaderboards Daily / Weekly / Lifetime et sélecteur — EN COURS (21/11)
+
+**Avant** (lu dans `StatsDisplays`, `StatsBook`, `ModeStats`, `PlayerStats`, `BoardStat`) : chaque
+tableau a sa stat (ou plusieurs, un clic passe à la suivante) et chaque joueur change sa période
+d'un clic. Seuls les victoires, parties, meilleure série et kills avaient un compteur du jour et
+de la semaine. Le niveau Network, le FKDR et l'ELO n'existaient qu'à vie ; le WLR n'était pas un
+classement. Le PNJ `newleaderboardselector` avait un point, mais rien dans `config.yml`.
+
+**Fait** :
+- Nouveau type de PNJ `selecteur` : un clic ouvre le menu « Leaderboards » de ses stats (celles du
+  plan : Win Streak, Network Level, ELO avec un objet par mode classé, Wins, Kills, FKDR, WLR, puis
+  Games played). La stat choisie s'affiche aussitôt, pour celui qui la choisit, sur les murs qui
+  suivent le sélecteur (`selecteur:` + `periode:` dans `classements:`). Un clic sur l'un des trois
+  murs passe à la stat suivante sur les trois.
+- Compteurs du jour et de la semaine ajoutés : XP gagnée, ELO gagné ou perdu par mode classé,
+  final kills, final deaths, défaites. Gardés dans les fichiers de stats ; ils partent de zéro avec
+  cette version (pas d'historique jour par jour avant).
+- Méthode de calcul (proposée, à valider) : Daily et Weekly du niveau = XP gagnée ; de l'ELO = ELO
+  gagné dans le mode, négatif s'il est perdu, pour tous ceux qui ont joué ce mode dans la période ;
+  du FKDR et du WLR = ratio des compteurs de la période, à partir de 5 parties le jour et 15 la
+  semaine (`minimum-parties:`, pour le FKDR les parties des modes Bed Wars). Lifetime = le
+  classement à vie actuel, sans minimum.
+- WLR (`wlr`) ajouté aux stats des tableaux : victoires / défaites à vie, deux décimales.
+- Les murs actuels (`top`, `leaderboards`, `joueurs`, `semaine`) ne changent pas tant que leur
+  config ne dit pas `selecteur:`.
+
+**Reste** : ta réponse sur l'ordre des trois murs à côté du sélecteur (`leaderboards`, `joueurs`,
+`semaine`), puis la config de ton serveur à l'installation ; la validation de la méthode.
+
+**Tests** :
+- `StatsBookTest.theLeaderboardsOfTheSelectorHaveADayAWeekAndAnEver` : ELO gagné et perdu du jour
+  et de la semaine, XP du jour et de la semaine, FKDR et WLR avec leur minimum (une partie de sumo
+  ne compte pas pour le FKDR), Lifetime sans minimum, tout relu depuis le fichier.
+- `StatsDisplaysTest.theThreeWallsOfTheSelectorShowTheSameStatEachOnItsPeriod` : les trois murs
+  sur la même stat, chacun sur sa période, le choix au sélecteur, le clic sur un mur, le menu.
+- `LobbySettingsTest.aWallOfTheSelectorFollowsASelectorOnItsOwnPeriod` : la config et ses erreurs.
+- Lancés par la CI. **Pas encore vu en jeu.**
 
 ### 3.4 Record du mode au survol dans les menus — IMPLÉMENTÉ (21/11)
 

@@ -247,8 +247,8 @@ class LobbySettingsTest {
     @Test
     void readsTheBundledNpcs() throws Exception {
         LobbySettings settings = LobbySettings.load(bundledConfig());
-        assertEquals(12, settings.npcs().size(), "four NPCs of modes, one per way to play, and the private games; the shop,"
-                + " the stats, the boards and the wall of the week");
+        assertEquals(13, settings.npcs().size(), "four NPCs of modes, one per way to play, and the private games; the shop,"
+                + " the stats, the leaderboard selector, the boards and the wall of the week");
         LobbyNpc prive = settings.npc("prive");
         assertEquals(Arrays.asList("partie-privee", "top-bridge-prive"), prive.modeIds(), "the private games, on their own NPC");
         assertNull(prive.category());
@@ -572,6 +572,30 @@ class LobbySettingsTest {
         assertInvalid("modes:\n  autre:\n    kit-de: personne\n", "modes.autre.kit-de");
         assertInvalid("modes:\n  autre:\n    format: ''\n", "modes.autre.format");
         assertInvalid("modes:\n  autre:\n    format: 1v1-to-1v4-forever\n", "modes.autre.format");
+    }
+
+    /** The one mode a config needs. */
+    private static final String SUMO = "modes:\n  sumo: {}\n";
+
+    @Test
+    void aWallOfTheSelectorFollowsASelectorOnItsOwnPeriod() throws Exception {
+        LobbySettings settings = LobbySettings.load(yaml("pnj:\n  choix:\n    type: selecteur\n    stats: [kills, wlr, kills]\n"
+                + "    minimum-parties: {jour: 3}\nclassements:\n  mur:\n    selecteur: choix\n    periode: semaine\n" + SUMO));
+        LobbyNpc wall = settings.npc("mur");
+        assertEquals("choix", wall.selector());
+        assertEquals(StatsPeriod.WEEK, wall.period());
+        assertEquals(Collections.singletonList(Arrays.asList(BoardStat.KILLS, BoardStat.WLR)), wall.boards(), "once each");
+        assertEquals(3, wall.minimumGames(StatsPeriod.DAY));
+        assertEquals(LobbySettings.DEFAULT_MINIMUM_WEEK, wall.minimumGames(StatsPeriod.WEEK), "left out: the default");
+        assertEquals(0, wall.minimumGames(StatsPeriod.ALL));
+        assertEquals("§b§lLEADERBOARDS", settings.npc("choix").name());
+        assertNull(settings.npc("choix").subtitle());
+        assertInvalid("pnj:\n  choix:\n    type: selecteur\n    stats: [nope]\n" + SUMO, "pnj.choix.stats");
+        assertInvalid("pnj:\n  choix:\n    type: selecteur\n    minimum-parties: {jour: -1}\n" + SUMO, "pnj.choix.minimum-parties.jour");
+        assertInvalid("classements:\n  mur:\n    selecteur: personne\n    periode: jour\n" + SUMO, "classements.mur.selecteur");
+        assertInvalid("pnj:\n  choix:\n    type: selecteur\nclassements:\n  mur:\n    selecteur: choix\n" + SUMO, "classements.mur:");
+        assertInvalid("pnj:\n  choix:\n    type: selecteur\nclassements:\n  mur:\n    selecteur: choix\n    periode: jour\n"
+                + "    tableaux: [kills]\n" + SUMO, "classements.mur:");
     }
 
     private static void assertInvalid(String text, String expectedStart) {

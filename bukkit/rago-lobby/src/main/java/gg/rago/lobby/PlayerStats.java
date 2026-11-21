@@ -19,6 +19,14 @@ final class PlayerStats {
     private final Map<String, ModeStats> modes = new LinkedHashMap<>();
     /** Network XP, every mode together (see {@link NetworkLevel}). */
     private int xp;
+    /**
+     * The XP earned on a day ("2026-11-22") and in a week ("2026-W47"), for the leaderboards of the
+     * day and of the week of the selector: 0 on another day or week.
+     */
+    private String xpDay = "";
+    private int dayXp;
+    private String xpWeek = "";
+    private int weekXp;
     /** Rago Points, the money of the shop. */
     private int points;
     /** The rank the staff gave (/rank set), or null. */
@@ -199,6 +207,61 @@ final class PlayerStats {
 
     void addXp(int gained) {
         xp = (int) Math.min(Integer.MAX_VALUE, Math.max(0L, (long) xp + gained));
+    }
+
+    /** XP earned (a game, a kill, a training) on this day of this week: counted in its day and its week too. */
+    void earnXp(int gained, String day, String week) {
+        addXp(gained);
+        if (gained <= 0) {
+            return;
+        }
+        if (!day.equals(xpDay)) {
+            xpDay = day;
+            dayXp = 0;
+        }
+        if (!week.equals(xpWeek)) {
+            xpWeek = week;
+            weekXp = 0;
+        }
+        dayXp = (int) Math.min(Integer.MAX_VALUE, (long) dayXp + gained);
+        weekXp = (int) Math.min(Integer.MAX_VALUE, (long) weekXp + gained);
+    }
+
+    /** The XP earned over the day or the week; for {@link StatsPeriod#ALL}, all the XP. */
+    int xp(StatsPeriod period, String day, String week) {
+        switch (period) {
+            case DAY:
+                return day.equals(xpDay) ? dayXp : 0;
+            case WEEK:
+                return week.equals(xpWeek) ? weekXp : 0;
+            default:
+                return xp;
+        }
+    }
+
+    /** The day and the week of the XP earned, and how much in each, as in the file. */
+    String xpDay() {
+        return xpDay;
+    }
+
+    int dayXp() {
+        return dayXp;
+    }
+
+    String xpWeek() {
+        return xpWeek;
+    }
+
+    int weekXp() {
+        return weekXp;
+    }
+
+    /** From the file: the XP earned on this day and in this week. */
+    void setPeriodXp(String day, int onDay, String week, int inWeek) {
+        xpDay = day == null ? "" : day;
+        dayXp = Math.max(0, onDay);
+        xpWeek = week == null ? "" : week;
+        weekXp = Math.max(0, inWeek);
     }
 
     int points() {
@@ -629,6 +692,33 @@ final class PlayerStats {
         int total = 0;
         for (ModeStats stats : modes.values()) {
             total += stats.losses;
+        }
+        return total;
+    }
+
+    /** The losses over a period, every mode together. */
+    int losses(StatsPeriod period, String day, String week) {
+        int total = 0;
+        for (ModeStats stats : modes.values()) {
+            total += stats.losses(period, day, week);
+        }
+        return total;
+    }
+
+    /** The final kills over a period, every mode together. */
+    int finalKills(StatsPeriod period, String day, String week) {
+        int total = 0;
+        for (ModeStats stats : modes.values()) {
+            total += stats.finalKills(period, day, week);
+        }
+        return total;
+    }
+
+    /** The final deaths over a period, every mode together. */
+    int finalDeaths(StatsPeriod period, String day, String week) {
+        int total = 0;
+        for (ModeStats stats : modes.values()) {
+            total += stats.finalDeaths(period, day, week);
         }
         return total;
     }

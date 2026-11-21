@@ -18,6 +18,11 @@ enum BoardStat {
     FKDR("fkdr", "FKDR", Choice.NONE),
     /** The Network level, ranked by XP. */
     LEVEL("niveau", "Network level", Choice.NONE),
+    /**
+     * The wins over the losses, every mode together, ever (the wins alone without a loss), ranked
+     * by hundredths as the FKDR.
+     */
+    WLR("wlr", "WLR", Choice.NONE),
     /** The ELO of a ranked mode: a click changes the mode. */
     ELO("elo", "Ranked Elo", Choice.RANKED_MODE);
 
@@ -84,7 +89,7 @@ enum BoardStat {
         return null;
     }
 
-    /** "victoires, parties, series, kills, fkdr, niveau or elo", for the errors of config.yml. */
+    /** "victoires, parties, series, kills, fkdr, niveau, wlr or elo", for the errors of config.yml. */
     static String keys() {
         StringBuilder text = new StringBuilder();
         BoardStat[] all = values();

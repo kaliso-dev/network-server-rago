@@ -273,8 +273,19 @@ final class LobbySettings {
                             colour(npc.getString("sous-titre", "&cStarter Pack &7· &bVIP"))).withSkin(skin(npc, where)));
                     continue;
                 }
+                if ("selecteur".equals(type)) {
+                    if (npc.contains("modes") || npc.contains("categorie")) {
+                        throw new IllegalArgumentException(where + ": the leaderboard selector has neither modes nor categorie");
+                    }
+                    String subtitle = npc.getString("sous-titre", "");
+                    npcs.add(LobbyNpc.selector(point, colour(npc.getString("nom", "&b&lLEADERBOARDS")), selectorStats(npc, where),
+                            minimumGames(npc, where, "jour", DEFAULT_MINIMUM_DAY), minimumGames(npc, where, "semaine",
+                                    DEFAULT_MINIMUM_WEEK))
+                            .withSubtitle(subtitle.trim().isEmpty() ? null : colour(subtitle)).withSkin(skin(npc, where)));
+                    continue;
+                }
                 if (!"modes".equals(type)) {
-                    throw new IllegalArgumentException(where + ".type: \"" + type + "\" is not modes, stats or shop");
+                    throw new IllegalArgumentException(where + ".type: \"" + type + "\" is not modes, stats, shop or selecteur");
                 }
                 String category = npc.getString("categorie");
                 List<String> ids = new ArrayList<>(npc.getStringList("modes"));
@@ -324,13 +335,32 @@ final class LobbySettings {
                 List<String> podium = new ArrayList<>();
                 String name;
                 ConfigurationSection board = boards.getConfigurationSection(point);
+                // a wall of the selector: the stat each player chose there, on the period of the wall
+                LobbyNpc chooser = null;
+                if (board != null && board.isSet("selecteur")) {
+                    String of = board.getString("selecteur", "").trim();
+                    for (LobbyNpc npc : npcs) {
+                        if (npc.point().equals(of) && npc.kind() == LobbyNpc.Kind.SELECTOR) {
+                            chooser = npc;
+                        }
+                    }
+                    if (chooser == null) {
+                        throw new IllegalArgumentException(where + ".selecteur: \"" + of + "\" is not an NPC of pnj: of type"
+                                + " selecteur");
+                    }
+                    if (board.isSet("tableaux") || !board.isSet("periode")) {
+                        throw new IllegalArgumentException(where + ": a wall of the selector has its periode (jour, semaine or"
+                                + " toujours) and no tableaux: it shows the stats of the selector");
+                    }
+                }
                 if (board == null) {
                     // The short form: only the title, over a board of wins.
                     name = boards.getString(point, point);
                     stats.add(Collections.singletonList(BoardStat.WINS));
                 } else {
                     name = board.getString("nom", "");
-                    List<?> entries = board.getList("tableaux");
+                    // a wall of the selector takes its stats (LobbyNpc#following): nothing to read
+                    List<?> entries = chooser != null ? Collections.singletonList(BoardStat.WINS.key()) : board.getList("tableaux");
                     for (Object entry : entries == null ? Collections.emptyList() : entries) {
                         // A list in the list: one board whose right click goes from one stat to the next.
                         List<?> keys = entry instanceof List ? (List<?>) entry : Collections.singletonList(entry);
@@ -372,10 +402,55 @@ final class LobbySettings {
                                 + " chooses it with a click)");
                     }
                 }
-                npcs.add(LobbyNpc.leaderboards(point, colour(name), stats, podium).withPeriod(period));
+                LobbyNpc wall = LobbyNpc.leaderboards(point, colour(name), stats, podium).withPeriod(period);
+                npcs.add(chooser == null ? wall : wall.following(chooser));
             }
         }
         return npcs;
+    }
+
+    /** The games a ratio of a day needs on the walls of a selector, unless its config says otherwise (plan 3.1). */
+    static final int DEFAULT_MINIMUM_DAY = 5;
+    /** The games a ratio of a week needs. */
+    static final int DEFAULT_MINIMUM_WEEK = 15;
+
+    /**
+     * The stats of a leaderboard selector, in the order of its menu (stats:), by default those of
+     * the plan: the win streak, the Network level, the ELO, the wins, the kills, the FKDR, the WLR,
+     * then the games played.
+     */
+    private static List<BoardStat> selectorStats(ConfigurationSection npc, String where) {
+        List<BoardStat> stats = new ArrayList<>();
+        if (!npc.isSet("stats")) {
+            return java.util.Arrays.asList(BoardStat.STREAK, BoardStat.LEVEL, BoardStat.ELO, BoardStat.WINS, BoardStat.KILLS,
+                    BoardStat.FKDR, BoardStat.WLR, BoardStat.GAMES);
+        }
+        for (String key : npc.getStringList("stats")) {
+            BoardStat stat = BoardStat.of(key.trim());
+            if (stat == null) {
+                throw new IllegalArgumentException(where + ".stats: \"" + key + "\" is not " + BoardStat.keys());
+            }
+            if (!stats.contains(stat)) {
+                stats.add(stat);
+            }
+        }
+        if (stats.isEmpty()) {
+            throw new IllegalArgumentException(where + ".stats: at least one stat");
+        }
+        return stats;
+    }
+
+    /** minimum-parties.jour (or semaine) of a selector: the games a ratio of the period needs, 0 or more. */
+    private static int minimumGames(ConfigurationSection npc, String where, String period, int fallback) {
+        String key = "minimum-parties." + period;
+        if (!npc.isSet(key)) {
+            return fallback;
+        }
+        int games = npc.getInt(key, -1);
+        if (games < 0) {
+            throw new IllegalArgumentException(where + "." + key + ": a number of games, 0 or more");
+        }
+        return games;
     }
 
     /** The period of a wall of config.yml: jour, semaine or toujours; null for another word. */

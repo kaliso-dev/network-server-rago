@@ -593,6 +593,24 @@ config.yml fourni les suit :
   `periode: semaine` (ou `jour`, `toujours`) fixe la période des tableaux d'un mur : un clic ne fait
   plus que passer au classement suivant. C'est le mur `semaine`, dont chaque tableau dit sous la
   place du joueur ce que son top gagne le lundi.
+- **Le sélecteur de leaderboards** (plan 3.1) : `pnj:` avec `type: selecteur` (le PNJ
+  `newleaderboardselector`). Un clic ouvre « Leaderboards », un menu de ses stats (`stats:`, par
+  défaut celles du plan dans son ordre : la meilleure série, le niveau Network, l'ELO avec un objet
+  par mode classé, les victoires, les kills, le FKDR, le WLR, puis les parties jouées). La stat
+  choisie s'affiche aussitôt, pour celui qui l'a choisie, sur les murs qui suivent le sélecteur :
+  dans `classements:`, un mur avec `selecteur: newleaderboardselector` et sa `periode` (`jour`,
+  `semaine` ou `toujours`), sans `tableaux`. Les trois murs Daily, Weekly et Lifetime montrent donc
+  la même stat, chacun sur sa période ; un clic sur l'un d'eux passe à la stat suivante sur les
+  trois. Sur un jour ou une semaine : les victoires, kills, parties et la meilleure série de la
+  période ; pour le niveau Network, l'XP gagnée (« 1,250 XP ») ; pour l'ELO, l'ELO gagné dans le
+  mode classé, négatif s'il est perdu (« +25 », « -10 »), pour tous ceux qui l'ont joué ; pour le
+  FKDR et le WLR, le ratio des compteurs de la période, pour les joueurs qui ont au moins
+  `minimum-parties` parties dans la période (5 le jour et 15 la semaine par défaut ; pour le FKDR,
+  les parties des modes Bed Wars, ceux qui ont des final kills). Lifetime est le classement à vie,
+  sans minimum. Le WLR (`wlr`) est aussi un tableau ordinaire : victoires / défaites à vie, avec
+  deux décimales. Les compteurs du jour et de la semaine de l'XP, de l'ELO, des final kills, des
+  final deaths et des défaites sont dans les fichiers de stats (`xp-jour`, `xp-semaine`,
+  `jour.elo`, `semaine.defaites`...) et partent de zéro avec la version qui les a ajoutés.
 - `podium:` (dans un mur de `classements:`) : jusqu'à 5 marches, la 1re place d'abord. Sur chacune
   se tient le joueur à cette place du premier tableau du mur, avec son skin, et deux lignes
   au-dessus : la place, son rang et son pseudo dans sa couleur (« #1 [PREMIUM+] Pseudo »), puis son

@@ -142,6 +142,17 @@ final class LobbyNpcs implements Listener {
                 Location lowest = base.clone().add(0, ABOVE_HEAD - FakeHologram.NAME_HEIGHT, 0);
                 label(npc, lowest.clone().add(0, LINE, 0), npc.name());
                 label(npc, lowest, npc.subtitle());
+            } else if (npc.kind() == LobbyNpc.Kind.SELECTOR) {
+                // the leaderboard selector: a click opens the menu of its stats
+                fakes.add(new FakePlayer(base, bodyName(index), skins.apply(npc.skin()), new ItemStack(Material.SIGN),
+                        (player, left) -> click(player, npc.point())));
+                Location lowest = base.clone().add(0, ABOVE_HEAD - FakeHologram.NAME_HEIGHT, 0);
+                if (npc.subtitle() != null) {
+                    label(npc, lowest.clone().add(0, LINE, 0), npc.name());
+                    label(npc, lowest, npc.subtitle());
+                } else {
+                    label(npc, lowest, npc.name());
+                }
             } else {
                 body(npc, index, base);
                 Location lowest = base.clone().add(0, ABOVE_HEAD - FakeHologram.NAME_HEIGHT, 0);
@@ -300,7 +311,8 @@ final class LobbyNpcs implements Listener {
 
     private void click(Player player, String point) {
         LobbyNpc npc = point == null ? null : settings.npc(point);
-        if (npc == null || (npc.kind() != LobbyNpc.Kind.MODES && npc.kind() != LobbyNpc.Kind.SHOP) || !state.isProtected(player)) {
+        if (npc == null || (npc.kind() != LobbyNpc.Kind.MODES && npc.kind() != LobbyNpc.Kind.SHOP
+                && npc.kind() != LobbyNpc.Kind.SELECTOR) || !state.isProtected(player)) {
             return;
         }
         long now = System.currentTimeMillis();
@@ -312,6 +324,10 @@ final class LobbyNpcs implements Listener {
             if (store != null) {
                 store.accept(player);
             }
+            return;
+        }
+        if (npc.kind() == LobbyNpc.Kind.SELECTOR) {
+            displays.openSelector(player, npc);
             return;
         }
         if (npc.category() != null) {

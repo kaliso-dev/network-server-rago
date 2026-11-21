@@ -350,6 +350,22 @@ pnj:
     nom: "&6&lYour Rago profile"
     type: stats
     skin: stats
+  # The leaderboard selector (type: selecteur): a click opens the menu of its stats, and the one
+  # chosen shows at once on the three walls that follow it (selecteur: in classements:), Daily,
+  # Weekly and Lifetime, for the one who chose. Its point: /lobby point newleaderboardselector.
+  #   stats            its stats, in the order of the menu (victoires, parties, series, kills,
+  #                    fkdr, niveau, wlr, elo: one item for each ranked mode); left out: series,
+  #                    niveau, elo, victoires, kills, fkdr, wlr, parties
+  #   minimum-parties  the games a ratio (FKDR, WLR) of a day and of a week needs, so that one game
+  #                    is not the first: jour 5 and semaine 15 when left out; for the FKDR, the games
+  #                    of the Bed Wars modes. Lifetime has none.
+  # Over a day or a week, the Network level ranks the XP earned, the ELO the ELO won (or lost).
+  newleaderboardselector:
+    nom: "&b&lLEADERBOARDS"
+    sous-titre: "&7Click to choose the stat"
+    type: selecteur
+    skin: stats
+    minimum-parties: {jour: 5, semaine: 15}
 
 # A MineSkin API key (free, https://account.mineskin.org/keys), only if MineSkin refuses to sign
 # the skins of the NPCs without one (the log says so). "" asks without a key.
@@ -805,6 +821,9 @@ panneaux: {}
 #             who stands on it go. A click on a step opens that player's stats.
 #   periode   jour, semaine or toujours: the boards of the wall stay on that period (a click only
 #             goes to the next leaderboard of a board). Left out, each player chooses it.
+#   selecteur the point of a leaderboard selector (pnj:, type: selecteur): the wall has one board,
+#             with the stat each player chose at the selector, on its periode (needed), and no
+#             tableaux. A click on it goes to the next stat on every wall of the selector.
 # A board of the week says, under the player's place, what its top wins on Monday (semaine:).
 classements:
   top:
@@ -831,6 +850,21 @@ classements:
     # The podium in front of it: the top 3 of the wins of the week, in their skin. Stand on each
     # step and type /lobby point semaine1 (the first), semaine2, then semaine3.
     podium: [semaine1, semaine2, semaine3]
+  # The three walls of the leaderboard selector (pnj: newleaderboardselector), Daily, Weekly and
+  # Lifetime, the same stat on the three: the one each player chose at the selector. For example,
+  # on three points of their own (in the place of three walls above, take theirs away first):
+  # selecteur-jour:
+  #   nom: "&c&lDaily"
+  #   selecteur: newleaderboardselector
+  #   periode: jour
+  # selecteur-semaine:
+  #   nom: "&c&lWeekly"
+  #   selecteur: newleaderboardselector
+  #   periode: semaine
+  # selecteur-toujours:
+  #   nom: "&c&lLifetime"
+  #   selecteur: newleaderboardselector
+  #   periode: toujours
 
 # The leaderboards of the week: on Monday at midnight (Paris time), the first of each one win
 # Rago Points and the badge of the week, worn until the next results, and the whole server hears
