@@ -92,12 +92,16 @@ describe('the game data', () => {
           (id.startsWith('event-') && events.includes(`("${id.slice('event-'.length)}",`));
     // a private game plays the modes of its list, with the party
     const privateGames: Record<string, string[]> = lobby['parties-privees'] ?? {};
-    // a mode whose kit others play (kit-de:) only holds that kit: hidden, not a mode of the site
+    // a hidden mode whose kit others play (kit-de:) only holds that kit: not a mode of the site;
+    // one in the selector (Lobby Fight FFA, whose kit the 1v1 plays) is a mode of its own
     const configModes: Record<string, Record<string, unknown>> = lobby.modes;
-    const kitHolders = new Set(Object.values(configModes).map((mode) => mode['kit-de']).filter(Boolean));
-    for (const id of kitHolders) {
-      expect(configModes[String(id)]?.cache, `${String(id)} holds a kit`).toBe(true);
-    }
+    const kitHolders = new Set(
+      Object.values(configModes)
+        .map((mode) => mode['kit-de'])
+        .filter((id) => id && configModes[String(id)]?.cache === true),
+    );
+    expect(kitHolders.has('invis-practice') && kitHolders.has('bed-break-simulator')).toBe(true);
+    expect(kitHolders.has('lobby-fight-ffa'), 'Lobby Fight FFA is played from the selector').toBe(false);
     const shown = Object.keys(configModes).filter((id) => !kitHolders.has(id));
     expect(game.modes.map((mode) => mode.id).sort()).toEqual(shown.sort());
     for (const mode of game.modes) {

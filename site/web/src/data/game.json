@@ -561,7 +561,7 @@
       "ranked": false,
       "startHere": false,
       "event": false,
-      "description": "The FFA in the waiting lobby of Archway FFA, a sword, 5 golden apples (back to 5 at each kill) and 3 fireballs: come and go when you like, fall out of it and you die.",
+      "description": "The FFA in the waiting lobby of Archway FFA, a sword, 5 golden apples (back to 5 at each kill), 3 fireballs, 12 end stone and a pickaxe: come and go when you like, fall out of it and you die.",
       "plugins": [
         "bedwars"
       ]
@@ -737,7 +737,7 @@
       "ranked": false,
       "startHere": false,
       "event": false,
-      "description": "In the waiting lobby of Archway FFA, with the kit of the FFA: rounds of one life, knock them out; the first to 5 points wins.",
+      "description": "In the waiting lobby of Archway FFA, with the kit of Lobby Fight: rounds of one life, knock them out; the first to 3 points wins.",
       "plugins": [
         "bedwars"
       ]

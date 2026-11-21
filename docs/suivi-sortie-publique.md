@@ -73,7 +73,7 @@ Avant chaque installation sur ton PC : copie du dossier `plugins/` du serveur.
 | # | Point | Proposition |
 | --- | --- | --- |
 | C1 | 6.1 demande un nouveau **Fireball Fight**, mais un mode `fireball` existe déjà (`FireballFight.java`, map « Fireball Fight »). | Améliorer le mode existant (arène plus grande que Sumo, KB fireball plus fort, souffles de vent) plutôt qu'en créer un second. À confirmer. |
-| C2 | 2.1 Lobby Fight : les PR #43/#44 ont réduit le kit FFA à « une épée, 3 fireballs, 5 pommes ». Le plan ajoute 12 end stone, une pioche en bois et Haste, et « 3 manches ». | Les 3 manches ne concernent que `lobby-fight-1v1` (le FFA n'a pas de manches). Kit : à confirmer pour le 1v1 et le FFA. |
+| C2 | 2.1 Lobby Fight : les PR #43/#44 ont réduit le kit FFA à « une épée, 3 fireballs, 5 pommes ». Le plan ajoute 12 end stone, une pioche en bois et Haste, et « 3 manches ». | Confirmé : le même kit pour le 1v1 et le FFA ; les manches ne concernent que `lobby-fight-1v1`, gagné par le premier à 3 manches (« Bo3, le premier à 3 win »). |
 | C3 | 2.3 Bed Break : « réalistes, style Ranked Bedwars » et « sur les côtés, pas en diagonale comme en Ranked Bedwars ». | Je lis : style RBW pour la forme, mais tracé sur les côtés. À confirmer. |
 | C4 | 3.5 Network Level par défaut au-dessus des joueurs : aujourd'hui la ligne par défaut est l'ELO (« Unranked »). 3.6 garde l'ELO en Ranked. | Défaut Network Level partout, ELO en partie classée. |
 | C5 | 1.2 « Spectator pour tous les joueurs » et les nicks (qui cachent qui joue). | Fait : tout le monde peut regarder toute partie, sauf celle d'un joueur sous nick (staff et amis seulement). |
@@ -90,7 +90,8 @@ Avant chaque installation sur ton PC : copie du dossier `plugins/` du serveur.
 - Les spawns Hypixel de référence pour First Rush (1.7) : tu as donné les maps (« Gelato, Nebuc
   etc. ») ; il manque la position de référence de chaque spawn (capture F3 sur Hypixel, ou
   coordonnées).
-- Les maps de Bed Break Simulation où les forges ne marchent pas (1.6), si tu les connais.
+- Ce qui ne marche pas sur la forge de Bed Break Simulation sur Invasion (1.6) : la map est
+  donnée, ses 4 points de forge sont justes (voir le journal).
 - ~~Les étapes exactes du bug de reset (1.1)~~ : répondu (« Block Placement, Block edit, après
   quelques games, même avec un redémarrage ») ; bug reproduit et corrigé.
 - ~~Pour la visibilité au lobby (1.3)~~ : répondu (« quand le joueur rejoint le serveur, et
@@ -119,7 +120,7 @@ informations manquantes.
 | 1.3 | Joueurs invisibles au spawn (seul le nametag « UNRANKED » visible) | Lobby | P0 | IMPLÉMENTÉ | `LobbyListener` | — | test réel en CI (`visibility-bots.mjs`, 2 bots, 5 arrivées) ; en jeu : rejoindre le serveur pendant qu'un autre attend au spawn | — |
 | 1.4 | Audit complet des statistiques (kills, games played, double comptage, par mode) | Stats | P0 | IMPLÉMENTÉ | `StatsBook`, `StatsService`, `LobbyService`, `RagoLobby`, `BedwarsGame`, `Lineup`, `BedBreakGame`, `InvisGame`, `FfaGame`, `FastShopGame`, `TopBridgeGame`, `Duel`, `BlockFight`, `FireballFight` | — | tests unitaires ; en jeu : voir le journal | — |
 | 1.5 | Kit Bedfight réinitialisé à la mort dans le vide | Kits | P0 | IMPLÉMENTÉ | `BedFightGame`, `BedwarsGame.kill` | — | tests unitaires ; en jeu : ranger sa barre en partie, mourir par un coup puis dans le vide | — |
-| 1.6 | Forges de Bed Break Simulation sur certaines maps | Bed Wars | P0 | EN COURS | `BedBreakGame`, `Generator`, `BedwarsMap`, `bedwars.yml` des maps | — | vérifier chaque map | maps en cause et ce qui ne marche pas |
+| 1.6 | Forges de Bed Break Simulation sur certaines maps | Bed Wars | P0 | EN COURS | `BedBreakGame`, `Generator`, `BedwarsMap`, `bedwars.yml` des maps | — | vérifier chaque map | la map est Invasion ; il manque ce qui ne marche pas sur sa forge |
 | 1.7 | Spawns First Rush trop en avant | Bed Wars | P0 | BLOQUÉ (cause trouvée) | `bedwars.yml` des maps (Gelato, Nebuc…), `tools/bedwars-maps` | — | en jeu sur chaque map | le point Hypixel sur une île par map (`/bw spawn red`), recopié ensuite sur les 7 autres |
 | 1.8 | Block In réaliste (casser, frapper seulement par le trou, recasser) + reset des records | Practice | P0 | IMPLÉMENTÉ | `BlockInEnemy`, `BlockInTraining`, `Records`, `RagoPractice` | 1.1 | tests unitaires (`BlockInEnemyTest`, `RecordsResetTest`) ; test réel en CI (`blockin-bots.mjs`) ; en jeu sur ta map | — |
 
@@ -127,11 +128,11 @@ informations manquantes.
 
 | # | Tâche | Cat. | Prio | Statut | Fichiers | Dépend de | Manque |
 | --- | --- | --- | --- | --- | --- | --- | --- |
-| 2.1 | Lobby Fight : 12 end stone, pioche bois, Haste, 5 pommes, blocs qui partent après 10 s (pas ceux du lobby), 3 manches | Modes | P1 | À FAIRE | `LobbyFight`, `LobbyFightGame`, `BlockDecay`, config bedwars | 1.1 | C2 |
+| 2.1 | Lobby Fight : 12 end stone, pioche bois, Haste, 5 pommes, blocs qui partent après 10 s (pas ceux du lobby), 3 manches | Modes | P1 | IMPLÉMENTÉ | `LobbyFight`, `LobbyFightGame`, `FfaGame`, `BlockDecay`, config du lobby | 1.1 | tests unitaires (`LobbyFightTest`, `LobbySettingsTest`) ; en jeu sur Archway FFA (voir le journal) |
 | 2.2 | Bedfight : protection au respawn de la durée exacte de Minemen, coupée dès un combat ; kit gardé | Modes | P1 | BLOQUÉ | `BedFightGame`, `BedwarsGame`, `BedwarsHost` | 1.5 | durée Minemen (non publiée) : une partie enregistrée avec kb-recorder |
 | 2.3 | Bed Break Simulation : bridges refaits, pas de blocs en haut de la map, cisailles + hache, défense RBW (end stone + verre), forges | Modes | P1 | À FAIRE | `BedBreakGame`, `Bridges`, `Defense`, `game-model/BedDefense` | 1.6 | C3 |
 | 2.4 | Clutch Scenario : bridges réalistes jusqu'à la base ennemie ; rôles au hasard (leader aussi Clutcher) | Modes | P1 | IMPLÉMENTÉ | `ClutchScenarioGame`, `Bridges` | — | tests unitaires (`BridgesTest`) ; simulation sur Archway et Sky Rise ; en jeu | — |
-| 2.5 | Au moins 10 spectateurs (Block Clutch et autres practice) | Social | P1 | À FAIRE | `Spectators`, `PracticeGame.holds` | 1.2 | — |
+| 2.5 | Au moins 10 spectateurs (Block Clutch et autres practice) | Social | P1 | IMPLÉMENTÉ | `tools/local-server/server.properties` (50 places), `spectate-bots.mjs` | 1.2 | test réel en CI : 10 bots regardent un Block clutch en même temps |
 | 2.6 | Fireballs fidèles à Hypixel (KB, explosion, direction, fireball jump, blocs) | PvP | P1 | À FAIRE | `Fireballs`, `FireballBlast`, `FireballAim`, `PracticeGame` | — | mesures Hypixel (kb-recorder) |
 | 2.7 | TNT (timing, KB, TNT jump, environnement), réf. Hypixel / Minemen | PvP | P1 | À FAIRE | `PracticeGame.tntBlast`, `BedwarsGame` | 2.6 | mesures |
 | 2.8 | Fast Shop et API Hypixel : étude des données réellement disponibles | Modes | P2 | À FAIRE | `FastShopGame`, `HypixelProfiles`, `HypixelProfile` | — | clé API |
@@ -485,11 +486,55 @@ diagonale en dernier recours, deux bridges côte à côte, le départ du rush). 
 code de `Bridges` sur tes mondes Archway et Sky Rise : chaque équipe a ses 3 bridges, aucun n'est
 refusé. **Pas encore testé en jeu.**
 
+### 2.1 Lobby Fight — IMPLÉMENTÉ (21/11)
+
+Tes réponses : le même kit pour le 1v1 et le FFA, les 3 manches en 1v1 seulement, « Bo3, le
+premier à 3 win ». Je l'ai lu comme le premier à 3 manches gagnées (donc jusqu'à 5 manches).
+
+- **Kit** : `lobby-fight-ffa:` dans le `config.yml` du lobby : une épée en pierre, 5 pommes en
+  or, 3 fireballs, 12 end stone, une pioche en bois. Le 1v1 joue ce kit (`kit-de:
+  lobby-fight-ffa`) : un seul rangement dans l'éditeur de kit pour les deux. Avant, le 1v1 avait
+  le kit du FFA (64 pommes, pearl, laine, cisailles). Un rangement fait pour l'ancien kit garde
+  ses objets à leur place, les nouveaux vont dans les cases libres.
+- **Haste I** donné avec le kit, à chaque vie, dans les deux modes ; le retour au lobby enlève
+  tous les effets.
+- **Blocs** : en 1v1 aussi, ils partent 10 secondes après avoir été posés (avant : seulement à
+  la manche suivante). Seuls les blocs posés se cassent, jamais ceux de la salle d'attente.
+- **Manches** : le premier à 3 gagne (avant : 5).
+
+**Testé** : tests unitaires (le kit, Haste I, le premier à 3, les 10 secondes, le `kit-de:` du
+1v1). **Pas encore testé en jeu** (le serveur de test n'a pas la map Archway FFA) : à faire, une
+partie de Lobby Fight 1v1 et une de FFA, poser de l'end stone et la voir partir, la casser avec
+la pioche, gagner 3 manches.
+
+### 2.5 Au moins 10 spectateurs — IMPLÉMENTÉ (21/11)
+
+Aucune limite de spectateurs dans le code. La vraie limite était `max-players=8` du
+`server.properties` du serveur local : 8 places, trop peu pour une partie et dix spectateurs. Tu
+as choisi 50 places.
+
+**Testé** : test réel en CI sur un vrai serveur PandaSpigot (`spectate-bots.mjs`) : un bot joue
+le Block clutch, dix autres le regardent en même temps avec `/spectate`, chacun en mode
+spectateur près du joueur, le joueur est prévenu de chacun et continue de jouer, les dix sont
+toujours là 4 secondes plus tard, puis `/spawn` les ramène au lobby. Le test joue avec le
+`server.properties` livré (50 places). Sur ton serveur actuel, mets `max-players=50` dans son
+`server.properties` (ou prends le prochain paquet).
+
 ### 1.6 Forges de Bed Break Simulation — EN COURS
 
 Bed Break Simulator joue sur Archway et Invasion. Les points des forges (`generateur`) des deux
 maps sont au bon endroit sur l'île, et la forge des défenseurs est remplie à chaque round
-(`forge.fill()`). Le réglage des forges du serveur est correct. Je n'ai trouvé aucune anomalie :
-il me faut la map en cause et ce que tu vois (forge vide, trop lente, au mauvais endroit, ne
-s'améliore pas).
+(`forge.fill()`). Le réglage des forges du serveur est correct.
 
+**Invasion (21/11)**, la map donnée : vérifié dans ses fichiers (`region/`), pas en jeu.
+- Les 4 points de forge (rouge, bleu, vert, jaune) sont au centre de la fosse de la forge : sur la
+  vitre (y 92), avec l'air au-dessus (y 93 à 95), une lanterne marine dessous. Les lingots tombent
+  donc bien sur la vitre.
+- La map ne garde aucune entité (aucun lingot ni hologramme laissé par la capture).
+- En Bed Break, les deux îles jouées sont rouge (défense) et vert (attaque), à l'opposé ; seule
+  la forge rouge tourne, à la vitesse moyenne (celle de la file RBW 2v2 à 4v4), remplie au début
+  de chaque manche (48 fer, 16 or).
+- Les journaux de ton serveur ont deux copies d'Invasion (14/11 et 15/11), sans aucune erreur.
+
+Je n'ai pas trouvé ce qui ne marche pas : il me faut ce que tu vois (forge vide, trop lente,
+lingots qui partent ailleurs, une forge d'une autre île qui ne tourne pas…).

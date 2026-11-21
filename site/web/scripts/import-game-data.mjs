@@ -214,8 +214,10 @@ export function buildGameData() {
     return { id: found.id, type: found.type, name: found.name };
   };
 
-  // a mode whose kit others play (kit-de:) only holds it: not a mode of its own on the site
-  const kitHolders = new Set(Object.values(lobby.modes).map((mode) => mode['kit-de']).filter(Boolean));
+  // a mode out of the selector (cache: true) whose kit others play (kit-de:) only holds it: not a
+  // mode of its own on the site; one in the selector (Lobby Fight FFA, whose kit the 1v1 plays) is
+  const kitHolders = new Set(Object.values(lobby.modes).map((mode) => mode['kit-de'])
+    .filter((id) => id && lobby.modes[id]?.cache === true));
   const modes = Object.entries(lobby.modes).filter(([id]) => !kitHolders.has(id)).map(([id, mode]) => ({
     id,
     name: plain(mode.nom),
