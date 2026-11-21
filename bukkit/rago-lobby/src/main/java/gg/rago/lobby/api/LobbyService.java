@@ -203,6 +203,14 @@ public interface LobbyService {
     }
 
     /**
+     * True if these two players are in the same party of two or more, as the friends who queued a
+     * Clutch Scenario 1v2 together: they play on one side. False without the lobby.
+     */
+    default boolean sameParty(UUID one, UUID other) {
+        return false;
+    }
+
+    /**
      * An item of another plugin in this player's lobby hotbar, in its last slot (that of the
      * profile) while it is set, as the red dye of an event the player waits for: a right click on
      * it runs {@code onUse}. It shows whenever they are in the lobby, and goes with a null item (or

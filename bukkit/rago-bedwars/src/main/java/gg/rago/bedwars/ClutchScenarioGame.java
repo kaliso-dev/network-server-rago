@@ -4,8 +4,10 @@ import gg.rago.game.BedDefense;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Random;
 import java.util.Set;
 import java.util.concurrent.ThreadLocalRandom;
+import java.util.function.BiPredicate;
 import org.bukkit.ChatColor;
 import org.bukkit.Material;
 import org.bukkit.World;
@@ -19,7 +21,8 @@ import org.bukkit.inventory.PlayerInventory;
  * Break Simulator: the owner's choice, 22/11) on Sky Rise or Archway (the maps of the mode in
  * config.yml), the two teams on opposite islands, where one team has lost its bed already and has
  * to clutch: in 1v1 one of the two drawn at random, from 1v2 the player alone (drawn at random
- * among the players of the game, who come as one side), with one life (the owner's choice, 21/11).
+ * among the players of the game, who come as one side, but not one of a party: friends play
+ * together), with one life (the owner's choice, 21/11).
  * The other
  * keeps its bed, under the owner's duo defense already built (end stone, then wool: {@link
  * BedDefense#DUO}). Everyone starts on their island in iron armour with a stone sword, no
@@ -48,7 +51,8 @@ final class ClutchScenarioGame extends BedwarsGame {
 
     ClutchScenarioGame(RagoBedwars plugin, BedwarsHost host, Instance instance, String modeId, String modeName,
             List<List<Player>> sides) {
-        super(plugin, host, instance, modeId, modeName, alone(sides, ThreadLocalRandom.current().nextInt(count(sides))));
+        super(plugin, host, instance, modeId, modeName, alone(sides, sides.size() != 1 ? 0 : drawAlone(sides.get(0),
+                (one, other) -> plugin.lobby().sameParty(one.getUniqueId(), other.getUniqueId()), ThreadLocalRandom.current())));
         // 1v2 to 1v4: the player alone, the first side; 1v1: one of the two at random
         bedless = sides.size() == 1 ? teams.get(0) : teams.get(ThreadLocalRandom.current().nextInt(teams.size()));
     }
@@ -69,13 +73,23 @@ final class ClutchScenarioGame extends BedwarsGame {
         return split;
     }
 
-    /** The players of these sides. */
-    private static int count(List<? extends List<?>> sides) {
-        int count = 0;
-        for (List<?> side : sides) {
-            count += side.size();
+    /**
+     * Which player of the one side of a 1v2 to 1v4 plays alone: drawn among those without a friend
+     * of their party in the game, who play together (the owner's choice, 22/11); among all of them
+     * when each has one.
+     */
+    static <T> int drawAlone(List<T> players, BiPredicate<T, T> sameParty, Random random) {
+        List<Integer> free = new ArrayList<>();
+        for (int i = 0; i < players.size(); i++) {
+            boolean friend = false;
+            for (int j = 0; j < players.size() && !friend; j++) {
+                friend = i != j && sameParty.test(players.get(i), players.get(j));
+            }
+            if (!friend) {
+                free.add(i);
+            }
         }
-        return Math.max(1, count);
+        return free.isEmpty() ? random.nextInt(players.size()) : free.get(random.nextInt(free.size()));
     }
 
     /** Iron armour from the start, and what they buy over it. */

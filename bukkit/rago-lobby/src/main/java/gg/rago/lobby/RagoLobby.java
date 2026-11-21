@@ -1594,6 +1594,12 @@ public final class RagoLobby extends JavaPlugin implements LobbyService {
         return state.isInPractice(player);
     }
 
+    @Override
+    public boolean sameParty(UUID one, UUID other) {
+        PartyBook.Party party = parties.book().together(one);
+        return party != null && !one.equals(other) && party == parties.book().together(other);
+    }
+
     /** True if one of these players plays a game started without the queue (a /duel). */
     private boolean isUnrated(List<UUID> players) {
         for (UUID player : players) {

@@ -29,6 +29,27 @@ class ClutchScenarioGameTest {
     }
 
     @Test
+    void thePlayerAloneIsNeverOneOfAParty() {
+        List<String> players = Arrays.asList("friend1", "friend2", "stranger");
+        java.util.function.BiPredicate<String, String> party = (a, b) -> a.startsWith("friend") && b.startsWith("friend");
+        Set<Integer> drawn = new HashSet<>();
+        for (int seed = 0; seed < 50; seed++) {
+            drawn.add(ClutchScenarioGame.drawAlone(players, party, new java.util.Random(seed)));
+        }
+        assertEquals(java.util.Collections.singleton(2), drawn, "1v2 with a party of two: the stranger alone, the friends together");
+        List<String> fourOfThem = Arrays.asList("friend1", "a", "friend2", "b");
+        for (int seed = 0; seed < 50; seed++) {
+            int alone = ClutchScenarioGame.drawAlone(fourOfThem, party, new java.util.Random(seed));
+            assertTrue(alone == 1 || alone == 3, "1v3: one of the two without party");
+        }
+        Set<Integer> all = new HashSet<>();
+        for (int seed = 0; seed < 50; seed++) {
+            all.add(ClutchScenarioGame.drawAlone(Arrays.asList("friend1", "friend2", "friend3"), party, new java.util.Random(seed)));
+        }
+        assertEquals(3, all.size(), "a whole party (its private game): any of them");
+    }
+
+    @Test
     void ironArmourAndTheDuoDefense() {
         assertEquals(2, ClutchScenarioGame.ARMOUR_TIER, "0 leather, 1 chainmail, 2 iron");
         assertSame(BedDefense.DUO, ClutchScenarioGame.DEFENSE, "the owner's duo defense: end stone, then wool");
