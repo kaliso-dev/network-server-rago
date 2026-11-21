@@ -2,8 +2,10 @@ package gg.rago.practice;
 
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.UUID;
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
@@ -25,10 +27,13 @@ import org.bukkit.inventory.ItemStack;
 
 /**
  * The events PREMIUM players host, as on Minemen: /host opens the menu of the events (Sumo,
- * Brackets, Last Man Standing), the whole server is told with a [Click to join] for a minute,
- * /join (or /event join) comes in, /spawn leaves, /event cancel calls it off (its host or the
- * staff). One event at a time, a pause between two, and a cooldown for each host. The games are
- * {@link EventGame}s, in modes of the lobby hidden from the selector. Main thread only.
+ * Brackets, Last Man Standing), and the whole server is told every 10 seconds, with a
+ * [Click to join], until it starts. /join (or /event join) puts a player in it without moving
+ * them: they keep playing their games, and /event leave takes them out. Once the wait is over
+ * (attente-secondes), it starts as soon as joueurs-min of its players are out of a game: those
+ * go to it, the others are told they missed it. /spawn leaves it, /event cancel calls it off (its
+ * host or the staff). One event at a time, a pause between two, and a cooldown for each host. The
+ * games are {@link EventGame}s, in modes of the lobby hidden from the selector. Main thread only.
  */
 final class Events implements CommandExecutor, Listener {
 
@@ -173,19 +178,36 @@ final class Events implements CommandExecutor, Listener {
 
     /** The name the server hosts its own events under. */
     static final String SERVER_HOST = "Rago";
+    /** The public message of an event not started yet comes back every this many seconds (the plan's 10). */
+    static final int ANNOUNCE_EVERY = 10;
+    /** After the start, the seconds before an event that could not be made (no free arena) is called off. */
+    static final int LAUNCH_SECONDS = 10;
 
-    /** The event being set up or played: its kind and its host. */
+    /**
+     * The event announced, then played: its kind, its host (null for the server's own), and the
+     * players who joined it, who stay where they are until it starts.
+     */
     static final class Hosting {
         final EventGame.Kind kind;
         final UUID host;
         final String hostName;
         final long since;
+        /** Its players, in the order they joined (its host first). */
+        final Set<UUID> registered = new LinkedHashSet<>();
+        /** The seconds left of its wait (attente-secondes), then 0. */
+        int waitLeft;
+        /** The seconds since it was announced. */
+        int seconds;
+        /** True once its players were sent to it; how many were. */
+        boolean launched;
+        int going;
 
-        Hosting(EventGame.Kind kind, UUID host, String hostName, long since) {
+        Hosting(EventGame.Kind kind, UUID host, String hostName, long since, int waitLeft) {
             this.kind = kind;
             this.host = host;
             this.hostName = hostName;
             this.since = since;
+            this.waitLeft = waitLeft;
         }
     }
 
@@ -203,10 +225,9 @@ final class Events implements CommandExecutor, Listener {
     private final Settings settings;
     private final Map<UUID, Long> lastHosted = new HashMap<>();
     private long lastEnded;
+    /** The event announced or played (null: none), and its game once it started. */
     private Hosting hosting;
     private EventGame current;
-    /** The server's own event, announced and waiting for its first player, or null. */
-    private Hosting autoWaiting;
     /** When the server last announced an event of its own, and the next kind it hosts. */
     private long lastAuto;
     private int nextKind;
@@ -217,8 +238,9 @@ final class Events implements CommandExecutor, Listener {
         this.lastAuto = System.currentTimeMillis();
     }
 
-    /** The server's own events: a look every 20 seconds. */
+    /** The event announced, every second; the server's own events, a look every 20 seconds. */
     void start() {
+        Bukkit.getScheduler().runTaskTimer(plugin, this::tick, 20L, 20L);
         if (settings.auto.on) {
             Bukkit.getScheduler().runTaskTimer(plugin, this::autoTick, 400L, 400L);
         }
@@ -239,11 +261,13 @@ final class Events implements CommandExecutor, Listener {
 
     // --- The games ------------------------------------------------------------------------------
 
-    /** A game of an event mode was made: the event hosted, or one nobody hosted (refused at its start). */
+    /**
+     * A game of an event mode was made: the event that just started (its players sent to it), or
+     * one nobody hosted (refused at its start).
+     */
     EventGame created(EventGame game) {
-        if (hosting != null && hosting.kind == game.kind() && current() == null) {
+        if (hosting != null && hosting.launched && hosting.kind == game.kind() && current() == null) {
             current = game;
-            autoWaiting = null;
         }
         return game;
     }
@@ -253,29 +277,76 @@ final class Events implements CommandExecutor, Listener {
         return current == game;
     }
 
-    /** Tells the server: who hosts, what, when it starts, and the button to join. */
-    void announce(EventGame game, int secondsLeft) {
-        String line = ChatColor.GOLD + "" + ChatColor.BOLD + "[Event] " + ChatColor.YELLOW + game.hostName() + ChatColor.GRAY
-                + " is hosting " + ChatColor.GOLD + game.kind().label + ChatColor.GRAY + "! Starts in " + ChatColor.WHITE
-                + secondsLeft + "s" + ChatColor.GRAY + " (" + game.aliveCount() + "/" + settings.maxPlayers + ").";
-        String json = button(game.kind());
+    /** How many players were sent to this event when it started (0 for another game). */
+    int going(EventGame game) {
+        return current == game && hosting != null ? hosting.going : 0;
+    }
+
+    /**
+     * The public message of an event not started yet, to every player online, in a game too
+     * (they may join it and keep playing): who hosts what, what it is, where it stands, and
+     * [Click to join]. Its own players read that they are in instead of the button.
+     */
+    void announce(Hosting h) {
+        String line = ChatColor.GOLD + "" + ChatColor.BOLD + "[Event] " + ChatColor.YELLOW + h.hostName + ChatColor.GRAY
+                + " is hosting " + ChatColor.GOLD + h.kind.label + ChatColor.GRAY + "! " + String.join(" ", h.kind.description);
+        String status = status(h);
+        String json = button(h.kind, status);
         for (Player player : Bukkit.getOnlinePlayers()) {
-            if (plugin.lobby().isInGame(player)) {
-                continue;
-            }
             player.sendMessage(line);
-            // clickable through the vanilla /tellraw, as the lobby's duel buttons: names are letters, digits and _
-            Bukkit.dispatchCommand(Bukkit.getConsoleSender(), "tellraw " + player.getName() + " " + json);
-            player.playSound(player.getLocation(), Sound.NOTE_PLING, 1f, 1.4f);
+            if (h.registered.contains(player.getUniqueId())) {
+                player.sendMessage(ChatColor.GREEN + "You are in" + ChatColor.GRAY + " (" + status
+                        + "). Keep playing: you go to it when it starts. /event leave to leave.");
+            } else {
+                // clickable through the vanilla /tellraw, as the lobby's duel buttons: names are letters, digits and _
+                Bukkit.dispatchCommand(Bukkit.getConsoleSender(), "tellraw " + player.getName() + " " + json);
+            }
+            if (!plugin.lobby().isInGame(player)) {
+                player.playSound(player.getLocation(), Sound.NOTE_PLING, 1f, 1.4f);
+            }
         }
     }
 
-    /** The JSON of the [Click to join] line. */
-    static String button(EventGame.Kind kind) {
+    /** Where this event stands: its players, and when it starts. */
+    private String status(Hosting h) {
+        int busy = 0;
+        for (UUID id : h.registered) {
+            Player player = Bukkit.getPlayer(id);
+            if (player != null && plugin.lobby().isInGame(player)) {
+                busy++;
+            }
+        }
+        return status(h.registered.size(), settings.maxPlayers, busy, h.waitLeft, settings.minPlayers);
+    }
+
+    /**
+     * "3/40 players, starts in 45s": the players in (and how many of them play a game), and when
+     * it starts: after the wait, as soon as the fewest players are in and out of a game.
+     */
+    static String status(int in, int max, int busy, int waitLeft, int min) {
+        String players = in + "/" + max + " players" + (busy > 0 ? " (" + busy + " in a game)" : "");
+        if (waitLeft > 0) {
+            return players + ", starts in " + waitLeft + "s";
+        }
+        int free = in - busy;
+        if (free >= min) {
+            return players + ", starting";
+        }
+        if (in >= min) {
+            int more = min - free;
+            return players + ", starts when " + more + " more " + (more == 1 ? "is" : "are") + " out of a game";
+        }
+        int more = min - in;
+        return players + ", needs " + more + " more " + (more == 1 ? "player" : "players") + " to start";
+    }
+
+    /** The JSON of the [Click to join] line, with where the event stands. */
+    static String button(EventGame.Kind kind, String status) {
         return "[\"\",{\"text\":\"[Click to join]\",\"color\":\"green\",\"bold\":true,"
                 + "\"clickEvent\":{\"action\":\"run_command\",\"value\":\"/join\"},"
-                + "\"hoverEvent\":{\"action\":\"show_text\",\"value\":\"Join the " + kind.label + " event\"}},"
-                + "{\"text\":\" or /join\",\"color\":\"gray\"}]";
+                + "\"hoverEvent\":{\"action\":\"show_text\",\"value\":\"Join the " + kind.label
+                + " event: keep playing until it starts\"}},"
+                + "{\"text\":\" or /join: " + status + "\",\"color\":\"gray\"}]";
     }
 
     /** The event starts: its host's cooldown runs from now. */
@@ -328,24 +399,115 @@ final class Events implements CommandExecutor, Listener {
         }
     }
 
+    // --- The wait -------------------------------------------------------------------------------
+
+    /**
+     * Every second, while an event is announced and not started: its wait runs, its public message
+     * comes back every {@link #ANNOUNCE_EVERY} seconds, and once the wait is over it starts as soon
+     * as joueurs-min of its players are out of a game. The server's own event without them at the
+     * end of its wait is dropped (without a word if nobody was in); a player's event keeps waiting,
+     * unless its host left with nobody in.
+     */
+    void tick() {
+        Hosting h = hosting;
+        if (h == null || h.launched) {
+            return;
+        }
+        h.registered.removeIf(id -> Bukkit.getPlayer(id) == null);
+        if (h.waitLeft > 0) {
+            h.waitLeft--;
+        }
+        h.seconds++;
+        List<Player> ready = ready(h);
+        if (launches(h.waitLeft, ready.size(), settings.minPlayers)) {
+            launch(h, ready);
+            return;
+        }
+        if (h.host == null && h.waitLeft == 0) {
+            if (h.registered.isEmpty()) {
+                hosting = null;
+            } else {
+                callOff(h, "not enough players (" + ready.size() + "/" + settings.minPlayers + ")");
+            }
+            return;
+        }
+        if (h.host != null && h.registered.isEmpty() && Bukkit.getPlayer(h.host) == null) {
+            callOff(h, "its host left");
+            return;
+        }
+        if (h.seconds % ANNOUNCE_EVERY == 0) {
+            announce(h);
+        }
+    }
+
+    /** True when an event starts: its wait is over and enough of its players are out of a game. */
+    static boolean launches(int waitLeft, int ready, int min) {
+        return waitLeft <= 0 && ready >= min;
+    }
+
+    /** The players of this event online and out of a game, in the order they joined. */
+    private List<Player> ready(Hosting h) {
+        List<Player> ready = new ArrayList<>();
+        for (UUID id : h.registered) {
+            Player player = Bukkit.getPlayer(id);
+            if (player != null && !plugin.lobby().isInGame(player)) {
+                ready.add(player);
+            }
+        }
+        return ready;
+    }
+
+    /**
+     * The event starts: its players out of a game go to it through the queue of its mode (the
+     * first one makes the game, the others join it), and those in a game are told they missed it.
+     */
+    private void launch(Hosting h, List<Player> ready) {
+        h.launched = true;
+        h.going = ready.size();
+        for (UUID id : h.registered) {
+            Player player = Bukkit.getPlayer(id);
+            if (player != null && !ready.contains(player)) {
+                player.sendMessage(ChatColor.GOLD + "[Event] " + ChatColor.GRAY + "The " + h.kind.label
+                        + " event started without you: you were in a game.");
+            }
+        }
+        for (Player player : ready) {
+            if (!plugin.lobby().queue(player, h.kind.modeId())) {
+                h.going--;
+                player.sendMessage(ChatColor.RED + "You could not go to the " + h.kind.label + " event.");
+            }
+        }
+        // the queue makes it within a second; if nothing came of it, the players may host it again
+        Bukkit.getScheduler().runTaskLater(plugin, () -> {
+            if (hosting == h && current() == null) {
+                callOff(h, "no free arena, try again in a moment");
+            }
+        }, LAUNCH_SECONDS * 20L);
+    }
+
+    /** An event called off before it started: its players and the lobby are told why. */
+    private void callOff(Hosting h, String why) {
+        if (hosting == h) {
+            hosting = null;
+        }
+        String message = ChatColor.GOLD + "[Event] " + ChatColor.GRAY + "The " + h.kind.label + " event of " + h.hostName
+                + " is called off: " + why + ".";
+        for (Player player : Bukkit.getOnlinePlayers()) {
+            if (!plugin.lobby().isInGame(player) || h.registered.contains(player.getUniqueId())) {
+                player.sendMessage(message);
+            }
+        }
+    }
+
     // --- The server's own events -----------------------------------------------------------------
 
     /**
      * Every 20 seconds: when the lobby has enough players and no event ran for a while, the server
-     * announces the next event of its list; the first player to /join starts it, as a host would.
-     * Nobody within the wait: it is dropped without a word.
+     * announces the next event of its list; players join it as a hosted one, and it starts the same
+     * way at the end of its wait. Without enough players then, it is dropped.
      */
     void autoTick() {
         long now = System.currentTimeMillis();
-        if (autoWaiting != null) {
-            if (current() == null && now - autoWaiting.since > settings.waitSeconds * 1000L) {
-                if (hosting == autoWaiting) {
-                    hosting = null;
-                }
-                autoWaiting = null;
-            }
-            return;
-        }
         int inLobby = 0;
         for (Player player : Bukkit.getOnlinePlayers()) {
             if (!plugin.lobby().isInGame(player)) {
@@ -359,19 +521,11 @@ final class Events implements CommandExecutor, Listener {
         EventGame.Kind kind = settings.auto.kinds.get(nextKind % settings.auto.kinds.size());
         nextKind++;
         lastAuto = now;
-        hosting = new Hosting(kind, null, SERVER_HOST, now);
-        autoWaiting = hosting;
-        String line = ChatColor.GOLD + "" + ChatColor.BOLD + "[Event] " + ChatColor.YELLOW + SERVER_HOST + ChatColor.GRAY
-                + " is hosting " + ChatColor.GOLD + kind.label + ChatColor.GRAY + "! " + String.join(" ", kind.description);
-        String json = button(kind);
-        for (Player player : Bukkit.getOnlinePlayers()) {
-            if (plugin.lobby().isInGame(player)) {
-                continue;
-            }
-            player.sendMessage(line);
-            Bukkit.dispatchCommand(Bukkit.getConsoleSender(), "tellraw " + player.getName() + " " + json);
-            player.playSound(player.getLocation(), Sound.NOTE_PLING, 1f, 1.4f);
+        if (!plugin.hosts(kind.modeId())) {
+            return;
         }
+        hosting = new Hosting(kind, null, SERVER_HOST, now, settings.waitSeconds);
+        announce(hosting);
     }
 
     // --- Hosting --------------------------------------------------------------------------------
@@ -384,11 +538,12 @@ final class Events implements CommandExecutor, Listener {
         if (plugin.lobby().isInGame(player)) {
             return "Leave your game first (/spawn).";
         }
-        EventGame running = current();
-        boolean announced = hosting != null && hosting != autoWaiting && now - hosting.since < 10_000L;
-        if (running != null || announced) {
-            return "An event is already running" + (running != null && running.stage() == EventGame.Stage.WAITING
-                    ? ": /join it." : ": wait for its end.");
+        if (current() != null || (hosting != null && hosting.launched)) {
+            return "An event is already running: wait for its end.";
+        }
+        // the server's own event, with nobody in yet, gives way to a player's
+        if (hosting != null && (hosting.host != null || !hosting.registered.isEmpty())) {
+            return "An event is already announced: /join it.";
         }
         if (player.hasPermission(STAFF)) {
             return null;
@@ -410,7 +565,10 @@ final class Events implements CommandExecutor, Listener {
         return lastHosted == null ? 0 : Math.max(0, lastHosted + cooldownMinutes * 60_000L - now);
     }
 
-    /** /host with a kind: the event is set up and its host goes in first. */
+    /**
+     * /host with a kind: the event is announced to the whole server, its host in first. Nobody
+     * moves until it starts.
+     */
     void host(Player player, EventGame.Kind kind) {
         long now = System.currentTimeMillis();
         String why = whyNot(player, now);
@@ -418,62 +576,64 @@ final class Events implements CommandExecutor, Listener {
             player.sendMessage(ChatColor.RED + why);
             return;
         }
-        // a player's event takes the place of the server's, announced but not started
-        autoWaiting = null;
-        final Hosting h = new Hosting(kind, player.getUniqueId(), player.getName(), now);
-        hosting = h;
-        if (!plugin.lobby().queue(player, kind.modeId())) {
-            hosting = null;
+        if (!plugin.hosts(kind.modeId())) {
             player.sendMessage(ChatColor.RED + "The " + kind.label + " event is not open on this server.");
             return;
         }
-        player.sendMessage(ChatColor.GREEN + "Your " + kind.label + " event is being set up...");
-        // the queue starts it within a second; if nothing came of it, the host may try again
-        Bukkit.getScheduler().runTaskLater(plugin, () -> {
-            if (hosting == h && current() == null) {
-                hosting = null;
-                Player again = Bukkit.getPlayer(h.host);
-                if (again != null) {
-                    again.sendMessage(ChatColor.RED + "The event could not start (no free arena): try again in a moment.");
-                }
-            }
-        }, 200L);
+        Hosting h = new Hosting(kind, player.getUniqueId(), player.getName(), now, settings.waitSeconds);
+        h.registered.add(player.getUniqueId());
+        hosting = h;
+        announce(h);
     }
 
-    /** /join: into the event waiting for its players. */
+    /**
+     * /join: into the event announced, without moving: the player keeps playing (a game, a
+     * training) and goes to it when it starts.
+     */
     void join(Player player) {
-        EventGame game = current();
-        if (game == null && autoWaiting != null && hosting == autoWaiting) {
-            if (plugin.lobby().isInGame(player)) {
-                player.sendMessage(ChatColor.RED + "Leave your game first (/spawn).");
-            } else if (!plugin.lobby().queue(player, autoWaiting.kind.modeId())) {
-                player.sendMessage(ChatColor.RED + "You cannot join the event now.");
-            }
-            return;
-        }
-        if (game == null) {
+        Hosting h = hosting;
+        if (h == null) {
             player.sendMessage(ChatColor.GRAY + "No event to join right now. PREMIUM players host them with /host.");
             return;
         }
-        if (game.players().contains(player.getUniqueId()) && plugin.games().gameOf(player.getUniqueId()) == game) {
-            player.sendMessage(ChatColor.GRAY + "You are in the event already.");
+        UUID id = player.getUniqueId();
+        if (h.launched) {
+            EventGame game = current();
+            player.sendMessage(ChatColor.GRAY + (game != null && plugin.games().gameOf(id) == game ? "You are in the event already."
+                    : "The " + h.kind.label + " event has started: wait for the next one."));
             return;
         }
-        if (game.stage() != EventGame.Stage.WAITING) {
-            player.sendMessage(ChatColor.GRAY + "The " + game.kind().label + " event has started: wait for the next one.");
+        if (h.registered.contains(id)) {
+            player.sendMessage(ChatColor.GRAY + "You are in the " + h.kind.label + " event already (" + status(h)
+                    + "). /event leave to leave.");
             return;
         }
-        if (game.full()) {
-            player.sendMessage(ChatColor.RED + "The " + game.kind().label + " event is full.");
+        if (h.registered.size() >= settings.maxPlayers) {
+            player.sendMessage(ChatColor.RED + "The " + h.kind.label + " event is full.");
             return;
         }
-        if (plugin.lobby().isInGame(player)) {
-            player.sendMessage(ChatColor.RED + "Leave your game first (/spawn).");
+        h.registered.add(id);
+        player.sendMessage(ChatColor.GREEN + "You joined the " + h.kind.label + " event of " + h.hostName + ChatColor.GRAY + " ("
+                + status(h) + "). Keep playing: you go to it when it starts. /event leave to leave.");
+    }
+
+    /** /event leave: out of the event announced, or out of the event played. */
+    void leave(Player player) {
+        Hosting h = hosting;
+        UUID id = player.getUniqueId();
+        if (h != null && !h.launched && h.registered.remove(id)) {
+            player.sendMessage(ChatColor.GRAY + "You left the " + h.kind.label + " event.");
+            if (id.equals(h.host) && h.registered.isEmpty()) {
+                callOff(h, "its host left");
+            }
             return;
         }
-        if (!plugin.lobby().queue(player, game.kind().modeId())) {
-            player.sendMessage(ChatColor.RED + "You cannot join the event now.");
+        EventGame game = current();
+        if (game != null && plugin.games().gameOf(id) == game) {
+            game.leave(player, true);
+            return;
         }
+        player.sendMessage(ChatColor.GRAY + "You are not in an event.");
     }
 
     // --- Commands -------------------------------------------------------------------------------
@@ -508,47 +668,50 @@ final class Events implements CommandExecutor, Listener {
             return true;
         }
         if (args.length > 0 && args[0].equalsIgnoreCase("leave")) {
-            if (current() != null && plugin.games().gameOf(player.getUniqueId()) == current()) {
-                current().leave(player, true);
-            } else {
-                player.sendMessage(ChatColor.GRAY + "You are not in an event.");
-            }
+            leave(player);
             return true;
         }
         info(player);
         return true;
     }
 
+    /** /event cancel: its host or the staff calls the event off, announced or played. */
     private void cancel(CommandSender sender) {
+        Hosting h = hosting;
         EventGame game = current();
-        if (game == null) {
+        if (h == null && game == null) {
             sender.sendMessage(ChatColor.GRAY + "No event is running.");
             return;
         }
-        boolean own = sender instanceof Player && hosting != null && hosting.host != null
-                && hosting.host.equals(((Player) sender).getUniqueId());
+        boolean own = sender instanceof Player && h != null && h.host != null && h.host.equals(((Player) sender).getUniqueId());
         if (!own && !sender.hasPermission(STAFF)) {
             sender.sendMessage(ChatColor.RED + "Only its host or the staff can call the event off.");
             return;
         }
-        game.cancel("called off by " + sender.getName());
+        if (game != null) {
+            game.cancel("called off by " + sender.getName());
+        } else {
+            callOff(h, "called off by " + sender.getName());
+        }
     }
 
     private void info(Player player) {
+        Hosting h = hosting;
         EventGame game = current();
-        if (game == null && autoWaiting != null) {
-            player.sendMessage(ChatColor.GOLD + "[Event] " + ChatColor.YELLOW + autoWaiting.kind.label + ChatColor.GRAY
-                    + " hosted by the server: /join to be the first in.");
+        if (game != null) {
+            player.sendMessage(ChatColor.GOLD + "[Event] " + ChatColor.YELLOW + game.kind().label + ChatColor.GRAY + " hosted by "
+                    + game.hostName() + ", " + game.aliveCount() + " players"
+                    + (game.stage() == EventGame.Stage.WAITING ? ", starting." : ", playing."));
             return;
         }
-        if (game == null) {
-            player.sendMessage(ChatColor.GOLD + "[Event] " + ChatColor.GRAY + "No event right now. "
-                    + (player.hasPermission(PERMISSION) ? "Host one with /host." : "PREMIUM players host them with /host."));
+        if (h != null && !h.launched) {
+            player.sendMessage(ChatColor.GOLD + "[Event] " + ChatColor.YELLOW + h.kind.label + ChatColor.GRAY + " hosted by "
+                    + h.hostName + ": " + status(h) + ". " + (h.registered.contains(player.getUniqueId())
+                            ? "You are in: /event leave to leave." : "/join to join."));
             return;
         }
-        player.sendMessage(ChatColor.GOLD + "[Event] " + ChatColor.YELLOW + game.kind().label + ChatColor.GRAY + " hosted by "
-                + game.hostName() + ", " + game.aliveCount() + " players"
-                + (game.stage() == EventGame.Stage.WAITING ? ", starts in " + game.waitLeft() + "s: /join" : ", playing."));
+        player.sendMessage(ChatColor.GOLD + "[Event] " + ChatColor.GRAY + "No event right now. "
+                + (player.hasPermission(PERMISSION) ? "Host one with /host." : "PREMIUM players host them with /host."));
     }
 
     // --- The menu -------------------------------------------------------------------------------

@@ -1,7 +1,7 @@
-# lobby-check : le lobby, le duel sumo et Bed Wars joués par deux bots
+# lobby-check : le lobby, le duel sumo, Bed Wars et un event joués par des bots
 
 Un test sur un vrai serveur PandaSpigot 1.8.8 (le build 226 du test de contrôle), avec
-RagoCombatEngine, RagoLobby, RagoPractice et RagoBedwars. Deux bots mineflayer (le script
+RagoCombatEngine, RagoLobby, RagoPractice et RagoBedwars. Deux bots mineflayer, puis trois (le script
 `tools/kb-control/bots/lobby-bots.mjs`, qui partage les dépendances des bots du test de contrôle)
 jouent comme des joueurs :
 
@@ -58,6 +58,16 @@ jouent comme des joueurs :
    RagoDeux a quitté une partie classée il y a un instant. RagoUn lance First Rush duo (2v2, non
    classé) : la party attend dans la même équipe, et quitte la file avec RagoDeux. RagoUn dissout
    la party.
+10. RagoDeux quitte le serveur dans une party : RagoUn est prévenu, et RagoDeux, revenu, voit de
+    nouveau le pseudo de RagoUn au-dessus de sa tête.
+11. un event de `/host` (plan 4.2) : un troisième bot, RagoTrois, opérateur (le script écrit son
+    `ops.json`), lance un event Sumo. Tout le serveur le lit, avec un **[Click to join]** qui lance
+    `/join`. RagoDeux, en plein Block clutch, s'inscrit et reste dans son entraînement ; RagoUn
+    s'inscrit depuis le lobby et ne bouge pas. Le message revient 10 secondes après le premier,
+    avec où en est l'event (« 3/40 players (1 in a game), starts in 5s »). À la fin de l'attente
+    (15 secondes : le script réduit `attente-secondes`), RagoUn et RagoTrois partent à l'event, et
+    RagoDeux, toujours en Block clutch, apprend qu'il a commencé sans lui. RagoTrois quitte le
+    combat avec `/spawn` : RagoUn gagne, tout le serveur est prévenu, et chacun revient au lobby.
 
 Le test échoue si un bot n'obtient pas ce qu'il attend, ou si le journal du serveur contient une
 erreur ou une exception.

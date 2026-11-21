@@ -158,7 +158,7 @@ informations manquantes.
 | --- | --- | --- | --- | --- | --- | --- |
 | 4.1 | Party Replay : les membres de la party rejoignent le replay | Replays | P2 | IMPLÉMENTÉ : `/p warp` du chef dans un replay ; test réel à 2 bots passé en CI (Java 8) ; à voir en jeu | `ReplayService`, `ReplayViewer`, `Parties` | — |
 | 4.1b | Sons dans les replays : étude de faisabilité | Replays | P3 | TESTÉ en CI : faisable ; sons envoyés par le serveur et blocs cassés enregistrés et rejoués ; test unitaire et test réel à 2 bots passés (run 339) ; à écouter en jeu | `ReplayRecorder`, `ReplayData` | — |
-| 4.2 | `/host` : annonce cliquable toutes les 10 s ; inscription gardée sans téléporter ; départ quand assez de joueurs | Events | P1 | À FAIRE | `Events`, `EventGame`, `PracticeHost`, `HostWatcher` | — |
+| 4.2 | `/host` : annonce cliquable toutes les 10 s ; inscription gardée sans téléporter ; départ quand assez de joueurs | Events | P1 | IMPLÉMENTÉ (21/11) : annonce toutes les 10 s, inscription sans téléporter, départ quand assez d'inscrits sont hors partie ; tests unitaires et test réel à 3 bots écrits, CI en cours | `Events`, `EventGame`, `PracticeHost`, `HostWatcher` | — |
 | 4.3 | Kit Editor plus clair et trié | Kits | P2 | À FAIRE | `KitEditor`, `KitLayouts` | — |
 | 4.4 | Menu Stats : présentation, catégories, navigation | Stats | P2 | À FAIRE | `StatsMenu`, `ProfileMenu`, `StatsBook` | — |
 | 4.5 | `/discord` et `/store` avec les liens officiels | Cmd | P1 | BLOQUÉ | `config.yml` (`liens`), `ServerSettings` | liens officiels (C6) |
@@ -217,6 +217,44 @@ informations manquantes.
 ---
 
 ## 3. Journal des corrections
+
+### 4.2 Events /host — IMPLÉMENTÉ (21/11), CI en cours
+
+**Demande** : « Lorsqu'un événement est créé avec /host, envoyer un message public dans le chat
+toutes les 10 secondes jusqu'au lancement de l'événement », cliquable pour le rejoindre, comme sur
+Minemen ; l'event ne commence que lorsqu'il y a assez de joueurs ; avant : ne pas téléporter les
+joueurs, les laisser dans leurs parties et leurs modes Practice, garder leur inscription.
+
+**Analyse** (avant le changement) : `/host` mettait l'hôte tout de suite dans la partie de l'event
+(la file du mode caché `event-sumo`…), `/join` y téléportait aussi chaque joueur, et il fallait
+avoir quitté sa partie pour rejoindre. L'annonce partait à la création puis à 45, 30, 15 et 5 s,
+seulement aux joueurs hors partie. À la fin de `attente-secondes`, l'event était annulé sous
+`joueurs-min` joueurs.
+
+**Fait** (option recommandée de la carte de décision, en attendant ta réponse) :
+- `/host` n'envoie plus personne nulle part : il **annonce** l'event, l'hôte inscrit en premier.
+- Le message public part à **tous les joueurs en ligne** (en partie aussi) **toutes les 10
+  secondes jusqu'au lancement** : « [Event] RagoTrois is hosting Sumo! One 1v1 at a time on the
+  platform: knock your opponent off. The last one in wins. », puis « [Click to join] or /join:
+  3/40 players (1 in a game), starts in 5s » (le bouton lance `/join`). Un inscrit lit « You are
+  in (…). Keep playing: you go to it when it starts. /event leave to leave. » à la place du bouton.
+- `/join` (ou le bouton) **inscrit sans téléporter** : le joueur continue sa partie ou son
+  entraînement, reste dans son mode Practice, garde son inscription ; `/event leave` la retire.
+- **Lancement** : après `attente-secondes`, dès que `joueurs-min` inscrits sont hors partie, ceux-là
+  partent ensemble à l'event ; les inscrits encore en partie lisent « The Sumo event started
+  without you: you were in a game. ». L'event attend ses joueurs 10 s au plus, puis se joue comme
+  avant. Un event de joueur attend tant qu'il n'a pas assez d'inscrits (son hôte ou le staff peut
+  l'annuler avec `/event cancel`) ; il tombe si son hôte quitte le serveur sans autre inscrit.
+- Les events automatiques du serveur (« Rago ») sont annoncés de la même façon ; sans
+  `joueurs-min` inscrits hors partie à la fin de l'attente, ils tombent, comme avant.
+- Docs : `rago-practice/README.md` (Les events) et le commentaire de `evenements:` du config.yml.
+
+**Tests écrits** (résultats à venir, rien n'est encore passé) : tests unitaires (`EventsTest` :
+le texte de l'état, le moment du lancement, le bouton) ; test réel à 3 bots dans le test du lobby
+(`lobby-bots.mjs`, étape 11) : RagoTrois, opérateur, lance un Sumo ; RagoDeux, en Block clutch,
+s'inscrit et doit rester dans son entraînement ; RagoUn s'inscrit au lobby et ne doit pas bouger ;
+le message doit revenir 10 s après ; à la fin de l'attente (15 s dans le test), RagoUn et
+RagoTrois doivent partir à l'event et RagoDeux être prévenu ; RagoTrois quitte, RagoUn doit gagner.
 
 ### 4.1 Party Replay — IMPLÉMENTÉ (21/11), test réel passé
 

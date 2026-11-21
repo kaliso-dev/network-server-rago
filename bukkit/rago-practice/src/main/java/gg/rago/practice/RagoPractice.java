@@ -964,6 +964,11 @@ public final class RagoPractice extends JavaPlugin {
         return events;
     }
 
+    /** True if the lobby opened this mode (it has the mode in its config.yml). */
+    boolean hosts(String modeId) {
+        return hosted.contains(modeId);
+    }
+
     /** Gives the lobby the XP waiting for every player. */
     void payXp() {
         if (xp == null) {

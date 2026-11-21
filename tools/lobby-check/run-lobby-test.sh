@@ -6,7 +6,7 @@
 #    RagoPractice and RagoBedwars;
 # 2. lets two bots (tools/kb-control/bots/lobby-bots.mjs) go through the lobby, the selector, the
 #    queue, a sumo duel won 3 - 0, the return to the lobby, a forfeit, and a game of Ranked
-#    Bedwars 1v1 on the demo map of RagoBedwars;
+#    Bedwars 1v1 on the demo map of RagoBedwars, then a third (an operator) hosts an event;
 # 3. fails if the bots fail, or if the server log has an error or an exception.
 #
 # Run from anywhere, after the build:
@@ -105,11 +105,21 @@ sed '/^  sumo:$/a\    kit: [STICK]' "$ROOT/bukkit/rago-lobby/src/main/resources/
   >"$SERVER_DIR/plugins/RagoLobby/config.yml"
 grep -q '^    kit: \[STICK\]$' "$SERVER_DIR/plugins/RagoLobby/config.yml" || fail "could not give the sumo a kit"
 # The bundled config.yml of RagoPractice, with a sumo of three rounds (one by default), so that the
-# bots play its rounds: RagoDeux falls three times and RagoUn wins 3 - 0.
+# bots play its rounds: RagoDeux falls three times and RagoUn wins 3 - 0; and the events of /host
+# waiting 15 seconds (the fewest, 60 by default) before they start.
 mkdir -p "$SERVER_DIR/plugins/RagoPractice"
-sed 's/^  points-pour-gagner: 1$/  points-pour-gagner: 3/' "$ROOT/bukkit/rago-practice/src/main/resources/config.yml" \
-  >"$SERVER_DIR/plugins/RagoPractice/config.yml"
+sed -e 's/^  points-pour-gagner: 1$/  points-pour-gagner: 3/' -e 's/^  attente-secondes: 60$/  attente-secondes: 15/' \
+  "$ROOT/bukkit/rago-practice/src/main/resources/config.yml" >"$SERVER_DIR/plugins/RagoPractice/config.yml"
 grep -q '^  points-pour-gagner: 3$' "$SERVER_DIR/plugins/RagoPractice/config.yml" || fail "could not give the sumo three rounds"
+grep -q '^  attente-secondes: 15$' "$SERVER_DIR/plugins/RagoPractice/config.yml" || fail "could not shorten the wait of the events"
+# RagoTrois is an operator: it hosts an event (rago.perk.host, given to the operators). Its UUID is
+# the one of an offline-mode player: the version 3 UUID of "OfflinePlayer:RagoTrois".
+offline_uuid() {
+  node -e 'const h = require("crypto").createHash("md5").update("OfflinePlayer:" + process.argv[1]).digest()
+h[6] = (h[6] & 0x0f) | 0x30; h[8] = (h[8] & 0x3f) | 0x80
+const x = h.toString("hex"); console.log([x.slice(0, 8), x.slice(8, 12), x.slice(12, 16), x.slice(16, 20), x.slice(20)].join("-"))' "$1"
+}
+printf '[{"uuid":"%s","name":"RagoTrois","level":4}]\n' "$(offline_uuid RagoTrois)" >"$SERVER_DIR/ops.json"
 # Every bundled skin of the NPCs counts as signed already (skins.yml: the hash of its PNG and empty
 # textures, so the NPCs look like Steve): the server sends nothing to MineSkin, and does not place
 # the NPCs again after each skin signed (they vanish for a moment) while the bots look at them.

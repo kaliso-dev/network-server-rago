@@ -47,7 +47,14 @@
 //      leave in its hotbar (the leader runs it), hears the countdown of a later round, and goes back
 //      to the lobby when RagoUn leaves;
 //  10. a member leaves the server in a party: RagoUn is told, and RagoDeux, back on the server,
-//      sees RagoUn's name tag (its team) again.
+//      sees RagoUn's name tag (its team) again;
+//  11. an event of /host (plan 4.2): RagoTrois (an operator, run-lobby-test.sh) hosts a Sumo
+//      event; the whole server reads it with a [Click to join] that runs /join; RagoDeux, playing
+//      the Block clutch, joins and stays in its training, RagoUn joins from the lobby and stays
+//      there; the message comes back 10 seconds later; at the end of the wait (15 seconds,
+//      run-lobby-test.sh), RagoUn and RagoTrois go to it and RagoDeux, still in its training, is
+//      told it started without it; RagoTrois leaves the fight with /spawn, RagoUn wins, and the
+//      server is told.
 //
 // Environment: KB_HOST (127.0.0.1), KB_PORT (25565).
 
@@ -143,6 +150,9 @@ function join (username) {
       chats.get(username).push(message)
       log(`${username} < ${message}`)
     })
+    // the chat lines as sent, for their click events
+    bot.jsonChats = []
+    bot.on('message', (message) => bot.jsonChats.push(message.json))
     bot._client.on('entity_velocity', (packet) => {
       if (bot.entity != null && packet.entityId === bot.entity.id) {
         bot.velocities.push({ time: Date.now(), velocity: packet.velocity })
@@ -871,6 +881,118 @@ async function quitInParty (one, two) {
   return back
 }
 
+/** The commands a click on this chat line runs (its run_command click events, at any depth). */
+function clickCommands (json) {
+  const found = []
+  const walk = (part) => {
+    if (part == null || typeof part !== 'object') return
+    if (Array.isArray(part)) { part.forEach(walk); return }
+    if (part.clickEvent?.action === 'run_command') found.push(part.clickEvent.value)
+    walk(part.extra)
+  }
+  walk(json)
+  return found
+}
+
+/**
+ * An event of /host (plan 4.2): announced to the whole server every 10 seconds with a [Click to
+ * join] until it starts; joining does not move a player, who keeps playing; at the end of the wait,
+ * the players out of a game go to it, and those still in a game are told they missed it.
+ */
+async function playEvent (one, two, three) {
+  // RagoDeux plays the Block clutch training: it stays in it until the end
+  let fromTwo = mark(two)
+  two.chat('/queue clutch')
+  await chatLine(two, /Block clutch - /, 15000, fromTwo)
+  await waitFor(() => two.game.gameMode === 'survival', 5000, 'RagoDeux in survival mode in the Block clutch')
+  const inTraining = (what) => {
+    if (two.game.gameMode !== 'survival' || hotbarItem(two, 0)?.name === 'compass') {
+      throw new Error(`RagoDeux left its Block clutch (${what}): mode ${two.game.gameMode}, slot 0 ${hotbarItem(two, 0)?.name}`)
+    }
+  }
+  log('event: RagoDeux plays the Block clutch')
+
+  // where each one stands: joining moves nobody
+  const stayed = (bot, at, what) => {
+    if (bot.game.gameMode !== 'adventure' || hotbarItem(bot, 0)?.name !== 'compass' || bot.entity.position.distanceTo(at) > 1) {
+      throw new Error(`${bot.username} moved (${what}): mode ${bot.game.gameMode}, slot 0 ${hotbarItem(bot, 0)?.name}, ` +
+        `at ${bot.entity.position}, was at ${at}`)
+    }
+  }
+  const oneAt = one.entity.position.clone()
+  const threeAt = three.entity.position.clone()
+  let fromOne = mark(one)
+  fromTwo = mark(two)
+  let fromThree = mark(three)
+  const jsonFrom = one.jsonChats.length
+  three.chat('/host sumo')
+  const hosting = /\[Event\] RagoTrois is hosting Sumo! /
+  await chatLine(one, hosting, 5000, fromOne)
+  const firstAt = Date.now()
+  await chatLine(two, hosting, 5000, fromTwo)
+  await chatLine(three, /You are in \(1\/40 players, starts in 15s\)\. Keep playing: you go to it when it starts\./, 5000, fromThree)
+  await chatLine(one, /\[Click to join\] or \/join: 1\/40 players, starts in 15s/, 5000, fromOne)
+  const button = one.jsonChats.slice(jsonFrom).find((json) => clickCommands(json).length > 0)
+  if (button == null || JSON.stringify(clickCommands(button)) !== JSON.stringify(['/join'])) {
+    throw new Error(`the announcement of the event has no [Click to join] that runs /join: ${JSON.stringify(one.jsonChats.slice(jsonFrom))}`)
+  }
+  // a player in a game reads it too, with the same button
+  await chatLine(two, /\[Click to join\] or \/join: 1\/40 players, starts in 15s/, 5000, fromTwo)
+  log('event: RagoTrois hosts a Sumo event, the whole server reads it with a [Click to join] that runs /join')
+
+  // joining moves nobody: RagoDeux from its training, RagoUn from the lobby (the button runs /join)
+  fromTwo = mark(two)
+  two.chat('/join')
+  await chatLine(two, /You joined the Sumo event of RagoTrois \(2\/40 players \(1 in a game\), starts in \d+s\)\. Keep playing/, 5000, fromTwo)
+  fromOne = mark(one)
+  one.chat('/join')
+  await chatLine(one, /You joined the Sumo event of RagoTrois \(3\/40 players \(1 in a game\), starts in \d+s\)\. Keep playing/, 5000, fromOne)
+  await sleep(1000)
+  inTraining('after /join')
+  stayed(one, oneAt, 'after /join')
+  stayed(three, threeAt, 'after /host')
+  log('event: RagoDeux joined from its Block clutch and stays in it, RagoUn joined and stays in the lobby')
+
+  // the message again, 10 seconds after the first, with where the event stands
+  fromOne = mark(one)
+  fromTwo = mark(two)
+  await chatLine(one, hosting, 15000, fromOne)
+  const again = (Date.now() - firstAt) / 1000
+  if (again < 8 || again > 12) throw new Error(`the announcement came back after ${again.toFixed(1)} s, not 10`)
+  await chatLine(one, /You are in \(3\/40 players \(1 in a game\), starts in 5s\)/, 2000, fromOne)
+  await chatLine(two, /You are in \(3\/40 players \(1 in a game\), starts in 5s\)/, 2000, fromTwo)
+  inTraining('at the second announcement')
+  stayed(one, oneAt, 'at the second announcement')
+  log(`event: the announcement came back ${again.toFixed(1)} s after the first, RagoUn and RagoDeux read they are in`)
+
+  // the end of the wait: RagoUn and RagoTrois, out of a game, go to it; RagoDeux is told
+  fromOne = mark(one)
+  fromThree = mark(three)
+  const titlesFrom = one.titles.length
+  await chatLine(two, /The Sumo event started without you: you were in a game\./, 10000, fromTwo)
+  await chatLine(one, /You joined the Sumo event of RagoTrois\. /, 5000, fromOne)
+  await chatLine(three, /You joined the Sumo event of RagoTrois\. /, 5000, fromThree)
+  await chatLine(one, /The Sumo event starts with 2 players!/, 12000, fromOne)
+  await chatLine(one, /(RagoUn vs RagoTrois|RagoTrois vs RagoUn)/, 5000, fromOne)
+  inTraining('when the event started')
+  log('event: RagoUn and RagoTrois went to it at the end of the wait, RagoDeux was told it started without it')
+
+  await waitFor(() => one.titles.slice(titlesFrom).includes('Fight!'), 10000,
+    `the fight of the event; titles: ${JSON.stringify(one.titles.slice(titlesFrom))}`)
+  fromOne = mark(one)
+  fromTwo = mark(two)
+  three.chat('/spawn')
+  await expectInLobby(three, 'after /spawn in the event')
+  await chatLine(one, /RagoUn won the Sumo event of RagoTrois!/, 10000, fromOne)
+  await chatLine(two, /RagoUn won the Sumo event of RagoTrois!/, 5000, fromTwo)
+  await expectInLobby(one, 'after winning the event')
+  log('event: RagoTrois left the fight, RagoUn won and the server was told; both are back in the lobby')
+
+  inTraining('after the event')
+  two.chat('/spawn')
+  await expectInLobby(two, 'after leaving the Block clutch')
+}
+
 async function fallOff (bot) {
   bot.setControlState('back', true)
   bot.setControlState('jump', true)
@@ -1016,9 +1138,16 @@ async function main () {
   // 10. A member leaves the server in a party, then comes back.
   const back = await quitInParty(one, two)
 
+  // 11. An event of /host, hosted by an operator.
+  const three = await join('RagoTrois')
+  await closeFirstMenu(three)
+  await expectInLobby(three, 'on joining')
+  await playEvent(one, back, three)
+
   finishing = true
   one.quit()
   back.quit()
+  three.quit()
   await sleep(500)
   log('PASSED')
   process.exit(0)

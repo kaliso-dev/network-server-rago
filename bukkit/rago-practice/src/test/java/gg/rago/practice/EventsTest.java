@@ -1,6 +1,7 @@
 package gg.rago.practice;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
@@ -136,11 +137,31 @@ class EventsTest {
 
     @Test
     void theButtonRunsJoin() {
-        String json = Events.button(EventGame.Kind.SUMO);
+        String json = Events.button(EventGame.Kind.SUMO, "3/40 players, starts in 45s");
         assertTrue(json.contains("\"action\":\"run_command\",\"value\":\"/join\""), json);
-        assertTrue(json.contains("Join the Sumo event"), json);
+        assertTrue(json.contains("Join the Sumo event: keep playing until it starts"), json);
+        assertTrue(json.contains(" or /join: 3/40 players, starts in 45s"), json);
         // well formed: as many { as }, as many [ as ]
         assertEquals(json.chars().filter(c -> c == '{').count(), json.chars().filter(c -> c == '}').count());
         assertEquals(json.chars().filter(c -> c == '[').count(), json.chars().filter(c -> c == ']').count());
+    }
+
+    @Test
+    void theStatusSaysWhenItStarts() {
+        assertEquals("1/40 players, starts in 50s", Events.status(1, 40, 0, 50, 2));
+        assertEquals("3/40 players (2 in a game), starts in 5s", Events.status(3, 40, 2, 5, 2));
+        assertEquals("3/40 players, starting", Events.status(3, 40, 0, 0, 2));
+        assertEquals("3/40 players (2 in a game), starts when 1 more is out of a game", Events.status(3, 40, 2, 0, 2));
+        assertEquals("4/40 players (4 in a game), starts when 3 more are out of a game", Events.status(4, 40, 4, 0, 3));
+        assertEquals("1/40 players, needs 1 more player to start", Events.status(1, 40, 0, 0, 2));
+        assertEquals("1/40 players (1 in a game), needs 2 more players to start", Events.status(1, 40, 1, 0, 3));
+    }
+
+    @Test
+    void itStartsAfterTheWaitWithEnoughPlayersOutOfAGame() {
+        assertFalse(Events.launches(1, 10, 2), "the wait is not over");
+        assertFalse(Events.launches(0, 1, 2), "one player out of a game, two needed");
+        assertTrue(Events.launches(0, 2, 2));
+        assertTrue(Events.launches(0, 5, 2));
     }
 }
