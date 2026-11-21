@@ -183,19 +183,21 @@ informations manquantes.
 ### Étape 7 : nouveaux modes (Phase 6) — proposition avant tout code
 
 Les propositions sont dans le document « Étape 7 : propositions des nouveaux modes » (21/11), avec
-les 13 questions à trancher. Aucun de ces modes n'est codé.
+les 13 questions à trancher. Ta demande du 21/11 (« commence par ces 3 mods ») : Fireball Fight,
+Snowball Spleef et Red Rover sont codés avec des valeurs de départ à confirmer (détail plus bas,
+« Étape 7 : les trois premiers modes ») ; les autres attendent tes réponses.
 
 | # | Tâche | Prio | Statut | Manque |
 | --- | --- | --- | --- | --- |
-| 6.1 | Catégorie FUN PRACTICE, PNJ `FunMod2` sur quartz | P2 | BLOQUÉ (proposition écrite le 21/11, attend ta validation) | le PNJ arrive avec le premier mode FUN terminé, sur le point `funmod2` |
-| 6.1a | Snowball Spleef (style Minemen) | P2 | BLOQUÉ (proposition écrite le 21/11, attend ta validation) | FFA ou non, rounds, étages, règles de Minemen |
-| 6.1b | Fireball Fight (voir C1) | P2 | BLOQUÉ (proposition écrite le 21/11, attend ta validation) | noms des deux modes, rayon de l'arène, fireballs, rounds, délai du souffle |
+| 6.1 | Catégorie FUN PRACTICE, PNJ `FunMod2` sur quartz | P2 | IMPLÉMENTÉ (21/11 ; tests unitaires et test du lobby en CI passés) | le skin du PNJ (Steve pour l'instant), le nom de la catégorie à confirmer ; poser le point `funmod2` sur ton serveur |
+| 6.1a | Snowball Spleef (style Minemen) | P2 | TESTÉ par les bots en CI (21/11), pas encore en jeu | valeurs de départ à confirmer : rayon 12, 1 étage, écart 6, 1 boule par bloc, 1 round |
+| 6.1b | Fireball Fight (voir C1) | P2 | TESTÉ par les bots en CI (21/11), pas encore en jeu | valeurs de départ à confirmer : rayon 10, recul 1,5 / 1,2, fireballs illimitées, souffle 3 s, 1 round ; le nom (« Fireball Fight », FUN PRACTICE) |
 | 6.1c | Fast Bedwars (Bedwars 2018 simplifié) | P2 | BLOQUÉ (proposition écrite le 21/11, attend ta validation) | ce que « 2018 » veut dire (shop, améliorations, équipes, durée), maps |
 | 6.1d | Autres modes FUN connus : propositions | P3 | BLOQUÉ (proposition écrite le 21/11, attend ta validation) | ton choix parmi Spleef, Bow Spleef, Parkour Duels, Pearl Fight, Battle Rush |
 | 6.2 | Capture the Flag, version Bedwars et seconde version : études | P3 | BLOQUÉ (proposition écrite le 21/11, attend ta validation) | version à faire d'abord, équipes, captures, durée, maps, kit |
 | 6.3 | Find Your Sensitivity : faisabilité et protocole | P3 | BLOQUÉ (proposition écrite le 21/11, attend ta validation) | durée d'une série, nombre de sensibilités, historique |
 | 6.4 | Block Aim Practice (patterns de la communauté) | P3 | BLOQUÉ (proposition écrite le 21/11, attend ta validation) | patterns d'abord, parcours ou cibles, map |
-| 6.5.1 | Red Rover (Sumo, Block Placement, Block Edit, Top Bridge…) | P2 | BLOQUÉ (proposition écrite le 21/11, attend ta validation) | rotation, points ou élimination |
+| 6.5.1 | Red Rover (Sumo, Block Placement, Block Edit, Top Bridge…) | P2 | Sumo, Block Edit, Block Placement, Top Bridge : TESTÉ par les bots en CI (21/11) ; rien encore en jeu | question 10 (qui reste, points ou élimination : codé « points, le gagnant reste, premier à 3 », à confirmer) ; 90 s par 1v1 à confirmer ; les rounds d'un 1v1 de Top Bridge (1, carte de décision) |
 | 6.5.2 | Modes 2v1 asymétriques (Clutch Scenario, stuff amélioré) | P3 | BLOQUÉ (proposition écrite le 21/11, attend ta validation) | sens du Clutch Scenario 1v2, mode du stuff amélioré |
 | 6.5.3 | Bot IA : étude technique | P3 | À FAIRE | l'étude d'abord, sans code (question 13) |
 | 6.6 | Catégorie 3 joueurs (Red Rover, Clutch Scenario, Bed Break Scenario, Invis Practice) | P2 | BLOQUÉ (proposition écrite le 21/11, attend ta validation) | PNJ ou boussole à choisir (et le point du PNJ) ; Invis Practice et Bed Break Simulator marchent déjà en 1v2 |
@@ -1436,3 +1438,40 @@ clé de développement, créée sur developer.hypixel.net et collée dans `hypix
 redémarrage), devrait marcher tant qu'elle n'a pas expiré ; pour durer, il faut une application
 approuvée. Sans clé valable, le Fast Shop et les modes Bed Wars marchent avec le quick buy par
 défaut ; seul l'import manque. Statut : **BLOQUÉ** (clé).
+
+### Étape 7 : les trois premiers modes — Fireball Fight, Snowball Spleef, Red Rover (21/11)
+
+Ta demande : « Parfait commence par ces 3 mods je repond au questions ». Les questions du document
+de l'étape 7 n'ont pas encore de réponse : chaque valeur qui en dépend est une valeur de départ,
+marquée « à confirmer » dans les `config.yml`.
+
+- **FUN PRACTICE** (6.1) : une cinquième catégorie du lobby, avec le PNJ `FunMod2` sur un bloc de
+  quartz (point `funmod2`, à poser avec `/lobby point funmod2`), sans skin à lui pour l'instant.
+- **Fireball Fight** (6.1b, `fireball-knockback`, RagoPractice) : le mode à knockback, sans lit.
+  Réglages `fireball-knockback:` : rayon 10, recul 1,5 / 1,2, fireballs illimitées (0), souffle
+  de 3 s, 1 round gagnant.
+- **Snowball Spleef** (6.1a, `snowball-spleef`, RagoPractice) : réglages `snowball-spleef:` :
+  rayon 12, 1 étage, écart 6, 1 boule par bloc cassé, 1 round gagnant.
+- **Red Rover** (6.5.1) : quatre modes dans un seul item « Red Rover » des Duels, trois joueurs en
+  1v1 chacun leur tour, celui qui attend regarde. Réglages communs `red-rover:` du `config.yml` de
+  RagoPractice (aux points, le gagnant reste, premier à 3 1v1 gagnés, 90 s par 1v1) :
+  - **Red Rover Sumo** : un round de sumo gagne le 1v1 ;
+  - **Red Rover Block Edit** : un edit propre gagne le 1v1 ;
+  - **Red Rover Block Placement** : un coup +1, le vide +10, premier à 10 (ton choix du 21/11) ;
+  - **Red Rover Top Bridge** (RagoBedwars, maps de Top Bridge, kit de Top Bridge 1v1) : des
+    rounds d'une vie, le premier à `points-par-1v1-top-bridge` (1, en attente de ton choix) gagne
+    le 1v1. RagoBedwars lit les réglages de Red Rover dans le `config.yml` de RagoPractice : un seul
+    endroit pour les quatre. Qui affronte qui est dans `rago-game-model` (`RedRoverRotation`),
+    partagé par les deux plugins.
+
+**Testé** (vrais tests, en CI, pas encore en jeu sur ton serveur) : tests unitaires ; les bots
+jouent Snowball Spleef et Fireball Fight (`fun-bots`), Red Rover Sumo (trois 1v1, le gagnant
+reste, victoire au troisième), Block Placement et Block Edit (un 1v1 gagné, le suivant, ceux qui
+quittent) et Top Bridge (un 1v1 gagné en sortant du pont, le gagnant reste contre celui qui
+attendait, puis ceux qui quittent : le dernier gagne la partie) (`rover-bots`, CI du commit
+0b7b8a0) ; les 9 tests de la rotation passent aussi en local. Certains jobs Java 8 de la CI
+échouent encore avant le code, sur GitHub (somme de contrôle du JDK Temurin 8u514) : d'un
+lancement à l'autre, ce ne sont pas les mêmes jobs, et les autres passent.
+
+**À faire en jeu** : une partie de chaque mode sur ton serveur de test, après l'installation des
+nouveaux jars et du `config.yml` du lobby.
