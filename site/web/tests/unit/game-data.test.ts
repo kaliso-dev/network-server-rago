@@ -3,7 +3,7 @@ import path from 'node:path';
 import { describe, expect, it } from 'vitest';
 import { parse } from 'yaml';
 import { buildGameData, REPO, SOURCES } from '../../scripts/import-game-data.mjs';
-import { game, playableModes } from '@/lib/game';
+import { categoryOf, game, modeOf, modesShownIn } from '@/lib/game';
 
 /**
  * What the site shows of the game must be what the game does. These tests read the files of the
@@ -115,17 +115,26 @@ describe('the game data', () => {
 
   it('counts the modes of each category as the compass shows them', () => {
     for (const category of game.categories) {
-      const modes = playableModes().filter((mode) => mode.category === category.id);
+      const modes = modesShownIn(category);
       expect(category.modes).toBe(modes.length);
       expect(category.modes).toBeGreaterThan(0);
+      for (const id of category.also) {
+        // the modes it shows too keep their own category
+        expect(modeOf(id).category, id).not.toBe(category.id);
+      }
     }
+    // 3 Players, in the compass only: Red Rover of the Duels and the 1v2 of the RBW modes
+    const three = categoryOf('trois-joueurs');
+    expect(three.also).toEqual(['red-rover-sumo', 'red-rover-block-edit', 'red-rover-block-placement', 'red-rover-top-bridge',
+      'bed-break-simulator-1v2', 'invis-practice-1v2', 'clutch-scenario-1v2']);
     const events = game.modes.filter((mode) => mode.event);
     expect(events.every((mode) => lobby.modes[mode.id].cache === true)).toBe(true);
   });
 
   it('gives each category the skin of its NPC in the lobby, and the skin is rendered', () => {
     // FunMod2, the NPC of FUN PRACTICE, has no skin of its own yet (Steve in the lobby): no picture
-    const withoutSkinYet = ['fun'];
+    // 3 Players is in the compass only, without NPC (the owner's choice, 21/11)
+    const withoutSkinYet = ['fun', 'trois-joueurs'];
     for (const category of game.categories) {
       if (withoutSkinYet.includes(category.id)) {
         expect(category.skin, category.id).toBeNull();

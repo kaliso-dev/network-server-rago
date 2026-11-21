@@ -80,8 +80,8 @@ class BedwarsSettingsTest {
                 "top-bridge-2v2", "skyrise-1v1", "skyrise-2v2", "skyrise-resources-1v1", "skyrise-resources-2v2",
                 "first-rush", "first-rush-duo", "first-rush-full", "first-rush-full-duo", "top-bridge-ffa", "ffa",
                 "invis-practice-1v1", "invis-practice-1v2", "invis-practice-1v3", "invis-practice-1v4", "shop-practice",
-                "attack-defense-1v1", "attack-defense-2v2", "clutch-scenario-1v1", "clutch-scenario-2v2",
-                "clutch-scenario-3v3", "clutch-scenario-4v4", "bed-fight-1v1", "bed-fight-2v2", "top-bed-fight-1v1",
+                "attack-defense-1v1", "attack-defense-2v2", "clutch-scenario-1v1", "clutch-scenario-1v2",
+                "clutch-scenario-1v3", "clutch-scenario-1v4", "bed-fight-1v1", "bed-fight-2v2", "top-bed-fight-1v1",
                 "lobby-fight-1v1", "lobby-fight-ffa", "bed-break-simulator-1v1", "bed-break-simulator-1v2",
                 "bed-break-simulator-1v3", "bed-break-simulator-1v4", "red-rover-top-bridge"),
                 settings.modes());
@@ -132,7 +132,7 @@ class BedwarsSettingsTest {
         assertEquals(BedwarsSettings.Kind.ATTACK_DEFENSE, settings.kind("attack-defense-1v1"));
         assertEquals(BedwarsSettings.Kind.ATTACK_DEFENSE, settings.kind("attack-defense-2v2"));
         assertEquals(Collections.singletonList("BioHazard"), settings.mapsOf("attack-defense-2v2"), "the owner's Bio Hazard");
-        assertEquals(BedwarsSettings.Kind.CLUTCH_SCENARIO, settings.kind("clutch-scenario-3v3"));
+        assertEquals(BedwarsSettings.Kind.CLUTCH_SCENARIO, settings.kind("clutch-scenario-1v3"));
         assertEquals(Arrays.asList("Rusher", "Breaker", "Ninja"), kitNames(settings.roundKits(true)), "the config's kits");
         assertEquals(Arrays.asList("Guardian", "Archer", "Builder"), kitNames(settings.roundKits(false)));
         assertEquals(RoundKit.ATTACK.get(1).items, settings.roundKits(true).get(1).items, "the config gives the defaults");
@@ -141,7 +141,7 @@ class BedwarsSettingsTest {
         assertEquals(BedwarsSettings.Kind.BED_FIGHT, settings.kind("bed-fight-1v1"));
         assertEquals(BedwarsSettings.Kind.BED_FIGHT, settings.kind("bed-fight-2v2"));
         assertEquals(Collections.singletonList("BedFight"), settings.mapsOf("bed-fight-2v2"), "the owner's Bed Fight map");
-        for (String size : Arrays.asList("1v1", "2v2", "3v3", "4v4")) {
+        for (String size : Arrays.asList("1v1", "1v2", "1v3", "1v4")) {
             assertEquals(Arrays.asList("SkyRise", "Archway"), settings.mapsOf("clutch-scenario-" + size),
                     "the owner's two maps for it");
         }
@@ -163,13 +163,13 @@ class BedwarsSettingsTest {
         assertTrue(settings.allShops("first-rush-full") && settings.allShops("first-rush-full-duo"),
                 "the full map First Rush: an item shop on every island");
         assertTrue(!settings.allShops("first-rush"));
-        assertTrue(settings.allShops("clutch-scenario-1v1") && settings.allShops("clutch-scenario-4v4"),
+        assertTrue(settings.allShops("clutch-scenario-1v1") && settings.allShops("clutch-scenario-1v4"),
                 "Clutch Scenario: the shop and upgrades of the islands whose forge runs");
         for (String size : new String[] {"1v1", "2v2", "3v3", "4v4"}) {
             assertTrue(settings.allForges("ranked-" + size) && settings.allShops("ranked-" + size),
                     "Ranked Bedwars: the forges and the item shops of the side islands too");
         }
-        for (String size : new String[] {"1v1", "2v2", "3v3", "4v4"}) {
+        for (String size : new String[] {"1v1", "1v2", "1v3", "1v4"}) {
             assertTrue(settings.allForges("clutch-scenario-" + size), "Clutch Scenario: every forge of the map too");
         }
         assertTrue(!settings.neighbours("skyrise-1v1"));

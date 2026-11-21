@@ -77,7 +77,8 @@ final class StatsMenu {
         }
         List<ModeDisplay> others = modesOf(settings.modes(), OTHER, ids);
         boolean other = !ordered(others, id -> played(stats, id)).isEmpty();
-        int count = ids.size() + (other ? 1 : 0);
+        List<ModeCategory> shown = withModes(settings.categories(), settings.modes());
+        int count = shown.size() + (other ? 1 : 0);
         int[] slots = categorySlots(count);
         // the head, a row of space, then the categories
         ClickMenu menu = new ClickMenu(slots[slots.length - 1] / 9 + 1, titleOf(viewer, player, name));
@@ -86,7 +87,7 @@ final class StatsMenu {
         String week = StatsPeriod.weekKey(now);
         menu.set(HEAD_SLOT, head(player, name, stats, day, week), null);
         int at = 0;
-        for (ModeCategory category : settings.categories()) {
+        for (ModeCategory category : shown) {
             final String id = category.id();
             menu.set(slots[at++], categoryItem(category.icon(), category.name(), category.slogan(),
                     modesOf(settings.modes(), id, ids), stats, day, week),
@@ -109,6 +110,24 @@ final class StatsMenu {
             slots[i] = slots.length <= 5 ? CATEGORY_ROW + 4 - (slots.length - 1) + 2 * i : CATEGORY_ROW + i;
         }
         return slots;
+    }
+
+    /**
+     * The categories with a button: those with modes of their own. One of the modes of others only
+     * (aussi:, as 3 Players) has none, their stats are in their own categories.
+     */
+    static List<ModeCategory> withModes(List<ModeCategory> categories, List<ModeDisplay> modes) {
+        List<String> ids = new ArrayList<>();
+        for (ModeCategory category : categories) {
+            ids.add(category.id());
+        }
+        List<ModeCategory> shown = new ArrayList<>();
+        for (ModeCategory category : categories) {
+            if (!modesOf(modes, category.id(), ids).isEmpty()) {
+                shown.add(category);
+            }
+        }
+        return shown;
     }
 
     /** The modes of this category (OTHER: of none of these categories), in the order of config.yml. */

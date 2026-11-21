@@ -16,8 +16,10 @@ test.describe('the game modes page', () => {
     for (const category of game.categories) {
       const section = page.locator(`section[aria-labelledby="${category.id}"]`);
       await expect(section.getByRole('heading', { level: 2 })).toHaveText(category.name);
-      // every mode of the category that can be played, by its name, as the compass of the lobby lists them
-      const modes = playable.filter((mode) => mode.category === category.id);
+      // every mode of the category that can be played, by its name, as the compass of the lobby lists them:
+      // its own, then those of others it shows too (3 Players)
+      const modes = [...playable.filter((mode) => mode.category === category.id),
+        ...category.also.map((id) => playable.find((mode) => mode.id === id)!)];
       const list = section.getByRole('list', { name: `The modes of ${category.name}` });
       await expect(list.getByRole('listitem')).toHaveCount(modes.length);
       await expect(list.getByRole('heading', { level: 3 })).toHaveText(modes.map((mode) => mode.name));
@@ -30,10 +32,12 @@ test.describe('the game modes page', () => {
     await expect(events.getByRole('heading', { level: 3 })).toHaveText(game.modes.filter((mode) => mode.event).map((mode) => mode.name));
     const duels = page.locator('section[aria-labelledby="duels"]');
     await expect(duels.getByRole('link', { name: /^How it plays\s?: Block placement$/ }).first()).toHaveAttribute('href', '/modes/block-placement');
-    // every mode of the game is listed, once, under its way to play or in the events
+    // every mode of the game is listed, once, under its way to play or in the events, and again in the
+    // categories that show it too (3 Players)
     const lists = page.locator('section[aria-labelledby]:not([aria-labelledby="flagships"])');
     for (const mode of game.modes) {
-      await expect(lists.getByRole('heading', { level: 3, name: mode.name, exact: true }), mode.id).toHaveCount(1);
+      const shownToo = game.categories.filter((category) => (category.also as string[]).includes(mode.id)).length;
+      await expect(lists.getByRole('heading', { level: 3, name: mode.name, exact: true }), mode.id).toHaveCount(1 + shownToo);
     }
   });
 });

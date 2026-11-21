@@ -21,6 +21,8 @@ export interface Category {
   description: string;
   skin: string | null;
   modes: number;
+  /** The ids of the modes of other categories it shows too, after its own (3 Players: Red Rover...). */
+  also: string[];
 }
 
 export interface Mode {
@@ -145,6 +147,12 @@ export const categoryOf = (id: string): Category => {
 
 /** The modes of the selector: every mode but the events of /host, which have no queue. */
 export const playableModes = (): Mode[] => game.modes.filter((mode) => !mode.event);
+
+/** The modes a category shows, as the compass of the lobby: its own, then those of others it shows too. */
+export const modesShownIn = (category: Category): Mode[] => [
+  ...playableModes().filter((mode) => mode.category === category.id),
+  ...category.also.map((id) => playableModes().find((mode) => mode.id === id)).filter((mode): mode is Mode => mode != null),
+];
 
 export const eventModes = (): Mode[] => game.modes.filter((mode) => mode.event);
 

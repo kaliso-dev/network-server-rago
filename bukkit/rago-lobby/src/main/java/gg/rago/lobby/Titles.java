@@ -136,8 +136,10 @@ final class Titles {
                         "first-rush-full-duo")),
                 new Family("bed-fight", "Bed Fight", Arrays.asList("bed-fight-1v1", "bed-fight-2v2", "top-bed-fight-1v1")),
                 new Family("top-bridge", "Top Bridge", Arrays.asList("top-bridge-1v1", "top-bridge-2v2", "top-bridge-ffa")),
-                new Family("clutch-scenario", "Clutch Scenario", Arrays.asList("clutch-scenario-1v1", "clutch-scenario-2v2",
-                        "clutch-scenario-3v3", "clutch-scenario-4v4")),
+                // with the 2v2, 3v3 and 4v4 of before 22/11 (now 1v2 to 1v4): their wins still count
+                new Family("clutch-scenario", "Clutch Scenario", Arrays.asList("clutch-scenario-1v1", "clutch-scenario-1v2",
+                        "clutch-scenario-1v3", "clutch-scenario-1v4", "clutch-scenario-2v2", "clutch-scenario-3v3",
+                        "clutch-scenario-4v4")),
                 new Family("attack-defense", "Attack Defense", Arrays.asList("attack-defense-1v1", "attack-defense-2v2")),
                 new Family("invis", "Invis", Arrays.asList("invis-practice", "invis-practice-1v1", "invis-practice-1v2",
                         "invis-practice-1v3", "invis-practice-1v4")),

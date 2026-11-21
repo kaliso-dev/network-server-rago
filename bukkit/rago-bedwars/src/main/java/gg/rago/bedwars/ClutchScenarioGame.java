@@ -15,9 +15,12 @@ import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.PlayerInventory;
 
 /**
- * Clutch Scenario: a real Ranked Bedwars game (solo, doubles, 3s, 4s) on Sky Rise or Archway (the
- * maps of the mode in config.yml), the two teams on opposite islands, where one team, drawn at
- * random, has lost its bed already and has to clutch: each of its players has one life. The other
+ * Clutch Scenario: a real Ranked Bedwars game (1v1, 1v2, 1v3, 1v4, as Invis Practice and the Bed
+ * Break Simulator: the owner's choice, 22/11) on Sky Rise or Archway (the maps of the mode in
+ * config.yml), the two teams on opposite islands, where one team has lost its bed already and has
+ * to clutch: in 1v1 one of the two drawn at random, from 1v2 the player alone (drawn at random
+ * among the players of the game, who come as one side), with one life (the owner's choice, 21/11).
+ * The other
  * keeps its bed, under the owner's duo defense already built (end stone, then wool: {@link
  * BedDefense#DUO}). Everyone starts on their island in iron armour with a stone sword, no
  * enchantment, no emerald, nothing else, the forges full of iron and gold (every forge of the map,
@@ -45,8 +48,34 @@ final class ClutchScenarioGame extends BedwarsGame {
 
     ClutchScenarioGame(RagoBedwars plugin, BedwarsHost host, Instance instance, String modeId, String modeName,
             List<List<Player>> sides) {
-        super(plugin, host, instance, modeId, modeName, sides);
-        bedless = teams.get(ThreadLocalRandom.current().nextInt(teams.size()));
+        super(plugin, host, instance, modeId, modeName, alone(sides, ThreadLocalRandom.current().nextInt(count(sides))));
+        // 1v2 to 1v4: the player alone, the first side; 1v1: one of the two at random
+        bedless = sides.size() == 1 ? teams.get(0) : teams.get(ThreadLocalRandom.current().nextInt(teams.size()));
+    }
+
+    /**
+     * The sides of the game: a 1v2, 1v3 or 1v4 comes as one side (the lobby's one team of 3 to 5),
+     * split into the player of this index alone, first, and the others together; a 1v1 (two sides)
+     * as it is.
+     */
+    static <T> List<List<T>> alone(List<List<T>> sides, int index) {
+        if (sides.size() != 1 || sides.get(0).size() < 2) {
+            return sides;
+        }
+        List<T> others = new ArrayList<>(sides.get(0));
+        List<List<T>> split = new ArrayList<>();
+        split.add(java.util.Collections.singletonList(others.remove(index)));
+        split.add(others);
+        return split;
+    }
+
+    /** The players of these sides. */
+    private static int count(List<? extends List<?>> sides) {
+        int count = 0;
+        for (List<?> side : sides) {
+            count += side.size();
+        }
+        return Math.max(1, count);
     }
 
     /** Iron armour from the start, and what they buy over it. */
@@ -208,9 +237,11 @@ final class ClutchScenarioGame extends BedwarsGame {
                     + ChatColor.RED + " bed is under a defense of end stone and wool.");
             player.sendTitle(ChatColor.RED + "" + ChatColor.BOLD + "NO BED", ChatColor.WHITE + "One life: clutch!");
         } else {
+            boolean one = bedless.members.size() == 1;
             player.sendMessage(head + "You keep your bed, under a defense of end stone and wool; the " + bedless.color.coloured()
-                    + ChatColor.RED + " team has lost theirs: one final kill each.");
-            player.sendTitle(ChatColor.GREEN + "" + ChatColor.BOLD + "BED ALIVE", ChatColor.WHITE + "They have one life each");
+                    + ChatColor.RED + " team has lost theirs: " + (one ? "one final kill." : "one final kill each."));
+            player.sendTitle(ChatColor.GREEN + "" + ChatColor.BOLD + "BED ALIVE",
+                    ChatColor.WHITE + (one ? "They have one life" : "They have one life each"));
         }
         player.sendMessage(ChatColor.GRAY + "Iron armour and a stone sword, your forge full of iron and gold, your bridges "
                 + "built to mid and to your diamonds, the game half played (Diamond III, Emerald II): then it is a real "

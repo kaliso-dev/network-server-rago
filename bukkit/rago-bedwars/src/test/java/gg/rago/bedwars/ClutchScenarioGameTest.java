@@ -6,12 +6,27 @@ import static org.junit.jupiter.api.Assertions.assertSame;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import gg.rago.game.BedDefense;
+import java.util.Arrays;
+import java.util.Collections;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 import org.junit.jupiter.api.Test;
 
 class ClutchScenarioGameTest {
+
+    @Test
+    void fromOneVersusTwoThePlayerAloneIsASideOfItsOwn() {
+        List<List<String>> threeOfThem = Collections.singletonList(Arrays.asList("a", "b", "c"));
+        List<List<String>> sides = ClutchScenarioGame.alone(threeOfThem, 1);
+        assertEquals(Arrays.asList(Collections.singletonList("b"), Arrays.asList("a", "c")), sides,
+                "1v2: the player drawn alone first (the team without bed), the two others together");
+        assertEquals(Arrays.asList(Collections.singletonList("e"), Arrays.asList("a", "b", "c", "d")),
+                ClutchScenarioGame.alone(Collections.singletonList(Arrays.asList("a", "b", "c", "d", "e")), 4), "1v4");
+        assertEquals(Arrays.asList("a", "b", "c"), threeOfThem.get(0), "the lobby's side untouched");
+        List<List<String>> oneVersusOne = Arrays.asList(Collections.singletonList("a"), Collections.singletonList("b"));
+        assertSame(oneVersusOne, ClutchScenarioGame.alone(oneVersusOne, 0), "1v1: two sides already, as they are");
+    }
 
     @Test
     void ironArmourAndTheDuoDefense() {

@@ -42,7 +42,8 @@
       ],
       "description": "Clutch, block in, fast defense, bridging, extend, pearls, bow, fireballs, aim, bots: one skill at a time.",
       "skin": "practice",
-      "modes": 16
+      "modes": 16,
+      "also": []
     },
     {
       "id": "ranked",
@@ -65,7 +66,8 @@
       ],
       "description": "Ranked 1v1 to 4v4, and modes close to Ranked Bedwars: Sky Rise, first rush, invis, clutch scenarios, attack and defense, Bed Break Simulator, private games. With the server or your friends.",
       "skin": "ranked",
-      "modes": 28
+      "modes": 28,
+      "also": []
     },
     {
       "id": "duels",
@@ -88,7 +90,8 @@
       ],
       "description": "Bed fight, Top BedFight, top bridge, bridge fight, block placement in 1v1 or 2v2; Lobby Fight, sumo, boxing, KB displace, fireball fight, bow. /duel a player to challenge them.",
       "skin": "duels",
-      "modes": 20
+      "modes": 20,
+      "also": []
     },
     {
       "id": "arenes",
@@ -111,7 +114,8 @@
       ],
       "description": "No queue, come and go when you like: the FFA, Top Bridge FFA, Lobby Fight FFA, bridge fight, block placement arena and Arena Free. Someone to fight at once.",
       "skin": "arena",
-      "modes": 6
+      "modes": 6,
+      "also": []
     },
     {
       "id": "fun",
@@ -134,7 +138,40 @@
       ],
       "description": "Fireball Fight: knock them off with fireballs and wind gusts; Snowball Spleef: break the snow under their feet.",
       "skin": null,
-      "modes": 2
+      "modes": 2,
+      "also": []
+    },
+    {
+      "id": "trois-joueurs",
+      "name": "3 Players",
+      "colour": "#FFFF55",
+      "icon": "SKULL_ITEM",
+      "slogan": [
+        {
+          "text": "Three friends",
+          "colour": "#FFFF55"
+        },
+        {
+          "text": "? Play ",
+          "colour": "#AAAAAA"
+        },
+        {
+          "text": "together",
+          "colour": "#FFFF55"
+        }
+      ],
+      "description": "Red Rover: 1v1 in turn, who waits watches. Bed Break Simulator, Invis Practice and Clutch Scenario: one against two.",
+      "skin": null,
+      "modes": 7,
+      "also": [
+        "red-rover-sumo",
+        "red-rover-block-edit",
+        "red-rover-block-placement",
+        "red-rover-top-bridge",
+        "bed-break-simulator-1v2",
+        "invis-practice-1v2",
+        "clutch-scenario-1v2"
+      ]
     }
   ],
   "groups": [
@@ -206,9 +243,9 @@
       "description": "A real RBW game on Sky Rise or Archway, bridges built: one team has lost its bed, iron armour, stone sword, full forges. Clutch or defend.",
       "modes": [
         "clutch-scenario-1v1",
-        "clutch-scenario-2v2",
-        "clutch-scenario-3v3",
-        "clutch-scenario-4v4"
+        "clutch-scenario-1v2",
+        "clutch-scenario-1v3",
+        "clutch-scenario-1v4"
       ]
     },
     {
@@ -809,49 +846,49 @@
       ]
     },
     {
-      "id": "clutch-scenario-2v2",
-      "name": "Clutch scenario 2v2",
+      "id": "clutch-scenario-1v2",
+      "name": "Clutch scenario 1v2",
       "colour": "#FFAA00",
       "icon": "IRON_CHESTPLATE",
       "category": "ranked",
       "group": "clutch-scenario",
-      "format": "2v2",
+      "format": "1v2",
       "ranked": false,
       "startHere": false,
       "event": false,
-      "description": "A real RBW game, 2v2: one team has no bed and clutches, the other's bed is defended.",
+      "description": "A real RBW game: the player alone has no bed and must clutch, the bed of the 2 others is defended.",
       "plugins": [
         "bedwars"
       ]
     },
     {
-      "id": "clutch-scenario-3v3",
-      "name": "Clutch scenario 3v3",
+      "id": "clutch-scenario-1v3",
+      "name": "Clutch scenario 1v3",
       "colour": "#FFAA00",
       "icon": "IRON_CHESTPLATE",
       "category": "ranked",
       "group": "clutch-scenario",
-      "format": "3v3",
+      "format": "1v3",
       "ranked": false,
       "startHere": false,
       "event": false,
-      "description": "A real RBW game, 3v3: one team has no bed and clutches, the other's bed is defended.",
+      "description": "A real RBW game: the player alone has no bed and must clutch, the bed of the 3 others is defended.",
       "plugins": [
         "bedwars"
       ]
     },
     {
-      "id": "clutch-scenario-4v4",
-      "name": "Clutch scenario 4v4",
+      "id": "clutch-scenario-1v4",
+      "name": "Clutch scenario 1v4",
       "colour": "#FFAA00",
       "icon": "IRON_CHESTPLATE",
       "category": "ranked",
       "group": "clutch-scenario",
-      "format": "4v4",
+      "format": "1v4",
       "ranked": false,
       "startHere": false,
       "event": false,
-      "description": "A real RBW game, 4v4: one team has no bed and clutches, the other's bed is defended.",
+      "description": "A real RBW game: the player alone has no bed and must clutch, the bed of the 4 others is defended.",
       "plugins": [
         "bedwars"
       ]

@@ -5,7 +5,7 @@ import { McText } from '@/components/McText';
 import { SectionHeading } from '@/components/ui';
 import { readable } from '@/lib/colour';
 import { FLAGSHIPS, flagshipColour, flagshipModes } from '@/lib/flagship';
-import { categoryOf, eventModes, game, playableModes, type Mode } from '@/lib/game';
+import { categoryOf, eventModes, game, modesShownIn, playableModes, type Mode } from '@/lib/game';
 import styles from './modes.module.css';
 
 export const metadata: Metadata = {
@@ -111,7 +111,7 @@ export default function ModesPage() {
       </section>
 
       {game.categories.map((category) => {
-        const modes = playableModes().filter((mode) => mode.category === category.id);
+        const modes = modesShownIn(category);
         return (
           <section key={category.id} className={`section ${styles.category}`} aria-labelledby={category.id}>
             <div className="container">

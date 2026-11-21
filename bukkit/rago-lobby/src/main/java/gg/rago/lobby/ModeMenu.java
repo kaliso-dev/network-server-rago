@@ -55,6 +55,11 @@ final class ModeMenu {
         static final String GROUP = "groupe:";
         /** After a group's id: the NPC its menu was opened from, to go back to. */
         static final String FROM_NPC = "|";
+        /**
+         * After a group's id: the category its menu was opened from when it is not the group's own
+         * (aussi:, as Red Rover in 3 Players), to go back to.
+         */
+        static final String FROM_CATEGORY = ">";
         /** In the top row of "Popular now": the challenge of the day, not a mode. */
         static final String CHALLENGE = "*defi";
         private Inventory inventory;
@@ -163,10 +168,18 @@ final class ModeMenu {
 
     /** The same, from a lobby NPC's menu (its point; null: from the compass), which the back button reopens. */
     void openGroup(Player player, ModeCategory group, String npcPoint) {
+        openGroup(player, group, npcPoint, null);
+    }
+
+    /** The same, from a category that shows it but is not its own (aussi:), which the back button reopens. */
+    private void openGroup(Player player, ModeCategory group, String npcPoint, String fromCategory) {
         String title = ChatColor.stripColor(group.name());
-        int modes = settings.modesOfGroup(group.id()).size();
-        show(player, Holder.GROUP + group.id() + (npcPoint == null ? "" : Holder.FROM_NPC + npcPoint),
-                modes <= 4 ? 4 : 3 + rowsFor(modes), title.length() > 32 ? title.substring(0, 32) : title);
+        List<ModeDisplay> modes = settings.modesOfGroup(group.id());
+        String from = npcPoint != null ? Holder.FROM_NPC + npcPoint
+                : fromCategory != null && !modes.isEmpty() && !fromCategory.equals(modes.get(0).category())
+                        ? Holder.FROM_CATEGORY + fromCategory : "";
+        show(player, Holder.GROUP + group.id() + from,
+                modes.size() <= 4 ? 4 : 3 + rowsFor(modes.size()), title.length() > 32 ? title.substring(0, 32) : title);
     }
 
     /** The group of a group view, or null for another view. */
@@ -178,7 +191,16 @@ final class ModeMenu {
     private static String groupId(String view) {
         String id = view.substring(Holder.GROUP.length());
         int from = id.indexOf(Holder.FROM_NPC);
+        if (from < 0) {
+            from = id.indexOf(Holder.FROM_CATEGORY);
+        }
         return from < 0 ? id : id.substring(0, from);
+    }
+
+    /** The category a group view was opened from when it is not the group's own (aussi:), or null. */
+    private static String fromCategory(String view) {
+        int from = view == null || !view.startsWith(Holder.GROUP) ? -1 : view.indexOf(Holder.FROM_CATEGORY);
+        return from < 0 ? null : view.substring(from + Holder.FROM_CATEGORY.length());
     }
 
     /** The NPC a group view was opened from, or null. */
@@ -300,7 +322,9 @@ final class ModeMenu {
                 return;
             }
             List<ModeDisplay> grouped = groupOf(view) == null ? null : modesFor(view);
-            if (grouped != null && !grouped.isEmpty() && grouped.get(0).category() != null) {
+            if (fromCategory(view) != null && settings.category(fromCategory(view)) != null) {
+                openCategory(player, fromCategory(view));
+            } else if (grouped != null && !grouped.isEmpty() && grouped.get(0).category() != null) {
                 openCategory(player, grouped.get(0).category());
             } else {
                 open(player);
@@ -317,7 +341,7 @@ final class ModeMenu {
             for (int i = 0; i < entries.size(); i++) {
                 if (slotOf(i) == slot) {
                     if (entries.get(i).group != null) {
-                        openGroup(player, entries.get(i).group);
+                        openGroup(player, entries.get(i).group, null, view);
                     } else {
                         toggle(player, entries.get(i).mode.mode());
                     }

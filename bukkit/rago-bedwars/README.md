@@ -226,10 +226,13 @@ gagne la partie.
 
 ## Clutch Scenario
 
-`clutch-scenario-1v1`, `-2v2`, `-3v3` et `-4v4` (le genre `clutch-scenario`) : une vraie partie de
+`clutch-scenario-1v1`, `-1v2`, `-1v3` et `-1v4` (le genre `clutch-scenario`), comme Invis Practice
+et le Bed Break Simulator (ton choix du 22/11, à la place des 2v2, 3v3 et 4v4) : une vraie partie de
 Ranked Bedwars sur Sky Rise ou Archway (les maps du mode dans `config.yml`), les deux équipes sur
-des îles opposées. L'une, tirée au sort, a déjà perdu son lit : une seule vie
-chacun, elle doit clutch. L'autre garde le sien, sous une défense duo déjà posée, celle de la map
+des îles opposées. L'une a déjà perdu son lit : une seule vie, elle doit clutch. En 1v1, l'un des
+deux tiré au sort ; à partir du 1v2, le joueur seul (ton choix du 21/11) : le lobby envoie les 3 à
+5 joueurs en une équipe, et la partie en tire un au sort, seul sur son île, contre les autres
+ensemble (une party n'est pas gardée ensemble pour ce tirage : à confirmer). L'autre garde le sien, sous une défense duo déjà posée, celle de la map
 « Defense Claude » du propriétaire : de l'end stone autour du lit et dessus (avec un bloc de plus
 derrière la tête), puis de la laine de l'équipe par-dessus (12 end stone, 23 laines). Tout le monde part de sa base en armure de fer avec une épée en pierre, sans
 enchantement ni émeraude. Toutes les forges de la map marchent, celles des îles vides aussi

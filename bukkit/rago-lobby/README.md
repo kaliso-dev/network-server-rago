@@ -563,6 +563,12 @@ config.yml fourni les suit :
   puis les jeux de celle qu'on choisit (7 catégories, 28 objets par catégorie au plus, un groupe
   comptant pour un). Chaque mode dit sa `categorie:`. Le `slogan:` d'une catégorie (40 caractères au
   plus) dit ce qu'on y fait : sous son nom dans la boussole, sous son PNJ et dans l'accueil.
+- `aussi:` d'une catégorie montre en plus des jeux d'autres catégories (des modes ou des groupes),
+  après les siens, avec les mêmes files. « 3 Players » (plan 6.6), dans la boussole seulement, sans
+  PNJ (ton choix du 21/11), montre ainsi Red Rover des Duels et les 1v2 de Bed Break Simulator et
+  d'Invis Practice ; ces modes restent dans leur catégorie, leurs stats aussi (le menu des stats n'a
+  pas de bouton pour une catégorie sans modes à elle). Son nom, son slogan et sa description sont à
+  confirmer.
 - `groupes:` réunit les tailles d'un même jeu en un seul objet de sa catégorie, comme les jeux de
   Hypixel : Ranked Bedwars ouvre 1v1, 2v2, 3v3 et 4v4 côte à côte, Top Bridge ouvre 1v1, 2v2 et
   FFA, etc. Un mode y entre avec `groupe:` ; l'objet du groupe montre chaque taille avec sa file.

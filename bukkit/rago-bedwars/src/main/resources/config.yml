@@ -33,9 +33,9 @@ modes:
   attack-defense-1v1: [BioHazard]
   attack-defense-2v2: [BioHazard]
   clutch-scenario-1v1: [SkyRise, Archway]
-  clutch-scenario-2v2: [SkyRise, Archway]
-  clutch-scenario-3v3: [SkyRise, Archway]
-  clutch-scenario-4v4: [SkyRise, Archway]
+  clutch-scenario-1v2: [SkyRise, Archway]
+  clutch-scenario-1v3: [SkyRise, Archway]
+  clutch-scenario-1v4: [SkyRise, Archway]
   bed-fight-1v1: [BedFight]
   bed-fight-2v2: [BedFight]
   top-bed-fight-1v1: [TopBedFight]
@@ -79,9 +79,12 @@ modes:
 #              game, and is whole again each round. The attackers win the round by breaking the bed
 #              and killing the defenders, the defenders by killing the attackers or holding 5 minutes
 #   clutch-scenario  Clutch Scenario: a real game on Sky Rise or Archway, the two teams on opposite
-#              islands; one, drawn at random, has lost its bed already (one life each: clutch),
-#              the other keeps it under the owner's duo defense (end stone, then wool); everyone
-#              in iron armour with a stone sword, no enchantment, no emerald, every forge of the
+#              islands, 1v1 to 1v4 as Invis Practice and the Bed Break Simulator (the owner's
+#              choice, 22/11); one has lost its bed already, with one life (clutch): in 1v1 one of
+#              the two drawn at random, from 1v2 the player alone (drawn at random among the
+#              players of the game); the other keeps it under the owner's duo defense (end stone,
+#              then wool); everyone in iron armour with a stone sword, no enchantment, no emerald,
+#              every forge of the
 #              map full of iron and gold (the empty islands' too), the diamonds at Tier III and the
 #              emeralds at Tier II; each base has its bridges built, to its diamond island and to
 #              mid, and the bedless team's defense stands broken where its bed was
@@ -141,9 +144,9 @@ jeux:
   attack-defense-1v1: attaque-defense
   attack-defense-2v2: attaque-defense
   clutch-scenario-1v1: clutch-scenario
-  clutch-scenario-2v2: clutch-scenario
-  clutch-scenario-3v3: clutch-scenario
-  clutch-scenario-4v4: clutch-scenario
+  clutch-scenario-1v2: clutch-scenario
+  clutch-scenario-1v3: clutch-scenario
+  clutch-scenario-1v4: clutch-scenario
   bed-fight-1v1: bed-fight
   bed-fight-2v2: bed-fight
   top-bed-fight-1v1: top-bed-fight
@@ -246,16 +249,16 @@ iles-voisines: [first-rush, first-rush-duo, first-rush-full, first-rush-full-duo
 # Bedwars queue on the side islands of its maps of four, First Rush full map, Sky Rise Resources,
 # Clutch Scenario: their iron and gold for whoever goes to take it, with the diamonds and emeralds).
 forges-partout: [ranked-1v1, ranked-2v2, ranked-3v3, ranked-4v4, first-rush-full, first-rush-full-duo,
-  skyrise-resources-1v1, skyrise-resources-2v2, clutch-scenario-1v1, clutch-scenario-2v2, clutch-scenario-3v3,
-  clutch-scenario-4v4]
+  skyrise-resources-1v1, skyrise-resources-2v2, clutch-scenario-1v1, clutch-scenario-1v2, clutch-scenario-1v3,
+  clutch-scenario-1v4]
 
 # The modes whose games have an item shop on every island of the map, the empty islands' too (the
 # Ranked Bedwars queue, First Rush full map, Sky Rise Resources, Clutch Scenario: whoever goes to
 # take the iron of another island buys there), and its upgrades NPC: it opens the upgrades of
 # whoever clicks it. The same modes as forges-partout.
 shops-partout: [ranked-1v1, ranked-2v2, ranked-3v3, ranked-4v4, first-rush-full, first-rush-full-duo,
-  skyrise-resources-1v1, skyrise-resources-2v2, clutch-scenario-1v1, clutch-scenario-2v2, clutch-scenario-3v3,
-  clutch-scenario-4v4]
+  skyrise-resources-1v1, skyrise-resources-2v2, clutch-scenario-1v1, clutch-scenario-1v2, clutch-scenario-1v3,
+  clutch-scenario-1v4]
 
 # The forge of each island, as on Hypixel (its iron and gold counted a minute long on each map): an
 # iron node drops an ingot every fer-secondes-par-noeud seconds (30 a minute), and a forge has 1

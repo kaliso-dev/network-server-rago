@@ -231,8 +231,9 @@ final class BedwarsSettings {
          */
         ATTACK_DEFENSE("attaque-defense"),
         /**
-         * Clutch Scenario: a real game where one team has lost its bed already, the other keeps it
-         * under a ranked defense; iron armour, a stone sword and full forges from the start.
+         * Clutch Scenario: a real game, 1v1 to 1v4, where one team has lost its bed already (from
+         * 1v2 the player alone, one life), the other keeps it under a ranked defense; iron armour,
+         * a stone sword and full forges from the start.
          */
         CLUTCH_SCENARIO("clutch-scenario"),
         /**
@@ -423,8 +424,8 @@ final class BedwarsSettings {
         List<String> allShops = new ArrayList<>();
         List<String> shopsListed = config.contains("shops-partout") ? config.getStringList("shops-partout")
                 : Arrays.asList("ranked-1v1", "ranked-2v2", "ranked-3v3", "ranked-4v4", "first-rush-full", "first-rush-full-duo",
-                        "skyrise-resources-1v1", "skyrise-resources-2v2", "clutch-scenario-1v1", "clutch-scenario-2v2",
-                        "clutch-scenario-3v3", "clutch-scenario-4v4");
+                        "skyrise-resources-1v1", "skyrise-resources-2v2", "clutch-scenario-1v1", "clutch-scenario-1v2",
+                        "clutch-scenario-1v3", "clutch-scenario-1v4");
         for (String mode : shopsListed) {
             allShops.add(modeId(mode, "shops-partout"));
         }

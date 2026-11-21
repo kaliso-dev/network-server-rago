@@ -110,6 +110,20 @@ categories:
       - "with fireballs and wind gusts;"
       - "Snowball Spleef: break the snow"
       - "under their feet."
+  # The games for three players (plan 6.6), in the compass only (the owner's choice, 21/11): no NPC.
+  # aussi: the modes (or groups) of other categories it shows too, with the same queues: Red Rover
+  # of the Duels, the 1v2 of the RBW modes. Its name, slogan and description are to confirm.
+  trois-joueurs:
+    nom: "&e&l3 Players"
+    icone: SKULL_ITEM
+    slogan: "&eThree friends&7? Play &etogether"
+    description:
+      - "Red Rover: 1v1 in turn, who"
+      - "waits watches. Bed Break"
+      - "Simulator, Invis Practice and"
+      - "Clutch Scenario: one against"
+      - "two."
+    aussi: [red-rover, bed-break-simulator-1v2, invis-practice-1v2, clutch-scenario-1v2]
 
 # At each arrival in the lobby, the ways to play in the chat: a line per category (its name and
 # slogan), a click opens its modes (/play category); at the first arrival, a title too. false: none.
@@ -333,7 +347,7 @@ pnj:
   # clutchscenario:
   #   nom: "&6Clutch Scenario"
   #   skin: clutch
-  #   modes: [clutch-scenario-1v1, clutch-scenario-2v2, clutch-scenario-3v3, clutch-scenario-4v4]
+  #   modes: [clutch-scenario-1v1, clutch-scenario-1v2, clutch-scenario-1v3, clutch-scenario-1v4]
   # attackanddefense:
   #   nom: "&6Attack and Defense"
   #   skin: attaque
@@ -969,8 +983,9 @@ titres:
     first-rush: {nom: "First Rush", modes: [first-rush, first-rush-duo, first-rush-full, first-rush-full-duo]}
     bed-fight: {nom: "Bed Fight", modes: [bed-fight-1v1, bed-fight-2v2, top-bed-fight-1v1]}
     top-bridge: {nom: "Top Bridge", modes: [top-bridge-1v1, top-bridge-2v2, top-bridge-ffa]}
-    clutch-scenario: {nom: "Clutch Scenario", modes: [clutch-scenario-1v1, clutch-scenario-2v2, clutch-scenario-3v3,
-      clutch-scenario-4v4]}
+    # with the 2v2, 3v3 and 4v4 of before 22/11: their wins still count
+    clutch-scenario: {nom: "Clutch Scenario", modes: [clutch-scenario-1v1, clutch-scenario-1v2, clutch-scenario-1v3,
+      clutch-scenario-1v4, clutch-scenario-2v2, clutch-scenario-3v3, clutch-scenario-4v4]}
     attack-defense: {nom: "Attack Defense", modes: [attack-defense-1v1, attack-defense-2v2]}
     invis: {nom: "Invis", modes: [invis-practice, invis-practice-1v1, invis-practice-1v2, invis-practice-1v3,
       invis-practice-1v4]}
@@ -1506,42 +1521,50 @@ modes:
       - "A real RBW game: one of you"
       - "has no bed and must clutch,"
       - "the other's bed is defended."
-  clutch-scenario-2v2:
-    nom: "&6Clutch scenario 2v2"
+  # 1v2 to 1v4, as Invis Practice and the Bed Break Simulator (the owner's choice, 22/11, in place of
+  # the 2v2, 3v3 and 4v4): the players come as one team, the game draws the one alone.
+  clutch-scenario-1v2:
+    nom: "&6Clutch scenario 1v2"
     categorie: ranked
     groupe: clutch-scenario
     icone: IRON_CHESTPLATE
-    equipes: 2
-    joueurs-par-equipe: 2
-    classe: false
-    description:
-      - "A real RBW game, 2v2: one"
-      - "team has no bed and clutches,"
-      - "the other's bed is defended."
-  clutch-scenario-3v3:
-    nom: "&6Clutch scenario 3v3"
-    categorie: ranked
-    groupe: clutch-scenario
-    icone: IRON_CHESTPLATE
-    equipes: 2
+    equipes: 1
     joueurs-par-equipe: 3
+    format: 1v2
     classe: false
     description:
-      - "A real RBW game, 3v3: one"
-      - "team has no bed and clutches,"
-      - "the other's bed is defended."
-  clutch-scenario-4v4:
-    nom: "&6Clutch scenario 4v4"
+      - "A real RBW game: the player"
+      - "alone has no bed and must"
+      - "clutch, the bed of the 2"
+      - "others is defended."
+  clutch-scenario-1v3:
+    nom: "&6Clutch scenario 1v3"
     categorie: ranked
     groupe: clutch-scenario
     icone: IRON_CHESTPLATE
-    equipes: 2
+    equipes: 1
     joueurs-par-equipe: 4
+    format: 1v3
     classe: false
     description:
-      - "A real RBW game, 4v4: one"
-      - "team has no bed and clutches,"
-      - "the other's bed is defended."
+      - "A real RBW game: the player"
+      - "alone has no bed and must"
+      - "clutch, the bed of the 3"
+      - "others is defended."
+  clutch-scenario-1v4:
+    nom: "&6Clutch scenario 1v4"
+    categorie: ranked
+    groupe: clutch-scenario
+    icone: IRON_CHESTPLATE
+    equipes: 1
+    joueurs-par-equipe: 5
+    format: 1v4
+    classe: false
+    description:
+      - "A real RBW game: the player"
+      - "alone has no bed and must"
+      - "clutch, the bed of the 4"
+      - "others is defended."
   attack-defense-1v1:
     nom: "&6Attack and defense 1v1"
     categorie: ranked

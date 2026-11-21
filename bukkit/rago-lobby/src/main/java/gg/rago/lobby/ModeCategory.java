@@ -17,17 +17,24 @@ final class ModeCategory {
     private final Material icon;
     private final List<String> description;
     private final String slogan;
+    /** The modes and groups of other categories it shows too (aussi: in config.yml), in that order. */
+    private final List<String> also;
 
     ModeCategory(String id, String name, Material icon, List<String> description) {
         this(id, name, icon, description, null);
     }
 
     ModeCategory(String id, String name, Material icon, List<String> description, String slogan) {
+        this(id, name, icon, description, slogan, Collections.<String>emptyList());
+    }
+
+    ModeCategory(String id, String name, Material icon, List<String> description, String slogan, List<String> also) {
         this.id = id;
         this.name = name;
         this.icon = icon;
         this.description = Collections.unmodifiableList(description);
         this.slogan = slogan;
+        this.also = Collections.unmodifiableList(new java.util.ArrayList<>(also));
     }
 
     String id() {
@@ -51,5 +58,14 @@ final class ModeCategory {
     /** What a player does there, coloured, or null. */
     String slogan() {
         return slogan;
+    }
+
+    /**
+     * The ids of the modes and groups of other categories that this one shows too, as the
+     * category of the games for three players shows Red Rover of the Duels: the same modes and
+     * queues, one more way to them. Empty for most.
+     */
+    List<String> also() {
+        return also;
     }
 }

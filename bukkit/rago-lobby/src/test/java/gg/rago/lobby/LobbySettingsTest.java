@@ -40,8 +40,8 @@ class LobbySettingsTest {
         modeNpc(yaml, "ranked", "ranked", "ranked-1v1", "ranked-2v2", "ranked-3v3", "ranked-4v4");
         modeNpc(yaml, "prive", "prive", "partie-privee", "top-bridge-prive");
         modeNpc(yaml, "ffa", "ffa", "ffa", "top-bridge-1v1", "top-bridge-2v2", "top-bridge-ffa");
-        modeNpc(yaml, "clutchscenario", "clutch", "clutch-scenario-1v1", "clutch-scenario-2v2", "clutch-scenario-3v3",
-                "clutch-scenario-4v4");
+        modeNpc(yaml, "clutchscenario", "clutch", "clutch-scenario-1v1", "clutch-scenario-1v2", "clutch-scenario-1v3",
+                "clutch-scenario-1v4");
         modeNpc(yaml, "attackanddefense", "attaque", "attack-defense-1v1", "attack-defense-2v2");
         return yaml;
     }
@@ -110,7 +110,7 @@ class LobbySettingsTest {
     @Test
     void groupsTheBundledModesByCategory() throws Exception {
         LobbySettings settings = LobbySettings.load(bundledConfig());
-        assertEquals(5, settings.categories().size());
+        assertEquals(6, settings.categories().size());
         assertEquals("entrainement", settings.categories().get(0).id(), "left to right: the practice on the left");
         assertEquals("ranked", settings.categories().get(1).id());
         assertEquals("duels", settings.categories().get(2).id(), "the duels");
@@ -120,6 +120,7 @@ class LobbySettingsTest {
         assertEquals(Material.DIAMOND_SWORD, settings.categories().get(3).icon());
         assertEquals("fun", settings.categories().get(4).id(), "FUN PRACTICE (plan 6.1), after the arenas");
         assertEquals("§d§lFun Practice", settings.categories().get(4).name());
+        assertEquals("trois-joueurs", settings.categories().get(5).id(), "3 Players (plan 6.6), last: in the compass only");
         // Four ways to play: train alone, the RBW modes (not all ranked: no bed on it), duel, the arenas.
         assertEquals("§6§lRBW Modes", settings.categories().get(1).name());
         assertEquals(Material.BED, settings.categories().get(1).icon());
@@ -161,17 +162,29 @@ class LobbySettingsTest {
             int count = settings.modesIn(category.id()).size();
             int items = settings.entriesIn(category.id()).size();
             assertTrue(count > 0 && items <= LobbySettings.MAX_MODES_PER_CATEGORY, category.id() + ": " + items);
-            total += count;
+            for (ModeDisplay display : settings.modes()) {
+                // its own modes: those it shows too (aussi:) are of another category
+                total += category.id().equals(display.category()) ? 1 : 0;
+            }
         }
         assertEquals("ranked", settings.display("attack-defense-1v1").category(), "Attack and Defense: in the RBW modes");
-        assertEquals("ranked", settings.display("clutch-scenario-2v2").category());
+        assertEquals("ranked", settings.display("clutch-scenario-1v2").category());
+        for (int against = 1; against <= 4; against++) {
+            // as Invis Practice and the Bed Break Simulator: 1v1 to 1v4 (the owner's choice, 22/11)
+            GameMode clutch = settings.display("clutch-scenario-1v" + against).mode();
+            assertEquals(against + 1, clutch.playersPerMatch(), clutch.id());
+            assertEquals("clutch-scenario", settings.display(clutch.id()).group());
+        }
+        for (String gone : Arrays.asList("clutch-scenario-2v2", "clutch-scenario-3v3", "clutch-scenario-4v4")) {
+            assertNull(settings.display(gone), gone + ": now 1v2 to 1v4");
+        }
         assertEquals("ranked", settings.display("bed-break-simulator-1v3").category(), "the Bed Break Simulator: an RBW situation");
         assertEquals("bed-break", settings.display("bed-break-simulator-1v3").group(),
                 "its sizes as one item, beside Attack and Defense");
         assertEquals("invis", settings.display("invis-practice-1v1").group());
         LobbySettings modeNpcs = LobbySettings.load(withModeNpcs());
-        assertEquals(Arrays.asList("clutch-scenario-1v1", "clutch-scenario-2v2", "clutch-scenario-3v3",
-                "clutch-scenario-4v4"), modeNpcs.npc("clutchscenario").modeIds(), "one NPC for Clutch Scenario");
+        assertEquals(Arrays.asList("clutch-scenario-1v1", "clutch-scenario-1v2", "clutch-scenario-1v3",
+                "clutch-scenario-1v4"), modeNpcs.npc("clutchscenario").modeIds(), "one NPC for Clutch Scenario");
         assertEquals(4, modeNpcs.entriesOf(modeNpcs.npc("clutchscenario").modeIds()).size(),
                 "its only group: each size is an item of its menu");
         assertEquals(Arrays.asList("attack-defense-1v1", "attack-defense-2v2"), modeNpcs.npc("attackanddefense").modeIds(),
@@ -213,7 +226,9 @@ class LobbySettingsTest {
         assertEquals(Material.STONE_SWORD, settings.display("top-bridge-ffa").kit().item(0).material(), "the fight kit");
         int shown = 0;
         for (ModeCategory category : settings.categories()) {
-            for (LobbySettings.Entry entry : settings.entriesIn(category.id())) {
+            List<LobbySettings.Entry> entries = settings.entriesIn(category.id());
+            // its own items: those it shows too (aussi:, one each, last) are counted in their categories
+            for (LobbySettings.Entry entry : entries.subList(0, entries.size() - category.also().size())) {
                 shown += entry.group != null ? settings.modesOfGroup(entry.group.id()).size() : 1;
             }
         }
@@ -473,6 +488,47 @@ class LobbySettingsTest {
                 .hypixelKey());
         assertEquals("", LobbySettings.load(yaml("modes:\n  sumo: {}\n")).hypixelKey());
         assertInvalid("hypixel:\n  cle-api: my-key\nmodes:\n  sumo: {}\n", "hypixel.cle-api");
+    }
+
+    @Test
+    void theThreePlayersCategoryShowsModesOfOtherCategories() throws Exception {
+        LobbySettings settings = LobbySettings.load(bundledConfig());
+        ModeCategory three = settings.category("trois-joueurs");
+        assertEquals("§e§l3 Players", three.name());
+        assertEquals(Material.SKULL_ITEM, three.icon());
+        List<LobbySettings.Entry> entries = settings.entriesIn("trois-joueurs");
+        assertEquals(4, entries.size(), "Red Rover as one item, then the three 1v2");
+        assertEquals("red-rover", entries.get(0).group.id());
+        assertEquals("bed-break-simulator-1v2", entries.get(1).mode.mode().id());
+        assertEquals("invis-practice-1v2", entries.get(2).mode.mode().id());
+        assertEquals("clutch-scenario-1v2", entries.get(3).mode.mode().id());
+        assertEquals(Arrays.asList("red-rover-sumo", "red-rover-block-edit", "red-rover-block-placement", "red-rover-top-bridge",
+                "bed-break-simulator-1v2", "invis-practice-1v2", "clutch-scenario-1v2"),
+                displayIds(settings.modesIn("trois-joueurs")));
+        // the same modes and queues: they stay in their categories
+        assertEquals("duels", settings.display("red-rover-sumo").category());
+        assertEquals("ranked", settings.display("bed-break-simulator-1v2").category());
+        assertEquals("invis", settings.display("invis-practice-1v2").group());
+        assertTrue(displayIds(settings.modesIn("duels")).contains("red-rover-top-bridge"));
+        for (LobbyNpc npc : settings.npcs()) {
+            assertFalse("trois-joueurs".equals(npc.category()), "in the compass only, no NPC: " + npc.name());
+        }
+
+        String config = "categories:\n  duels:\n    nom: Duels\n  trois:\n    nom: Trois\n    aussi: [%s]\n"
+                + "groupes:\n  rover: {}\nmodes:\n  sumo:\n    categorie: duels\n    groupe: rover\n"
+                + "  boxing:\n    categorie: duels\n    groupe: rover\n  bot:\n    categorie: trois\n"
+                + "  hid:\n    categorie: duels\n    cache: true\n";
+        LobbySettings small = LobbySettings.load(yaml(String.format(config, "rover")));
+        assertEquals("bot", small.entriesIn("trois").get(0).mode.mode().id(), "its own first");
+        assertEquals("rover", small.entriesIn("trois").get(1).group.id(), "then the group, as one item");
+        assertEquals(Arrays.asList("bot", "sumo", "boxing"), displayIds(small.modesIn("trois")));
+        assertEquals(Arrays.asList("sumo", "boxing"), displayIds(small.modesIn("duels")), "the duels as before");
+        assertEquals("sumo", LobbySettings.load(yaml(String.format(config, "Sumo"))).entriesIn("trois").get(1).mode.mode().id(),
+                "a mode alone");
+        assertInvalid(String.format(config, "nothing"), "categories.trois.aussi");
+        assertInvalid(String.format(config, "sumo, sumo"), "categories.trois.aussi");
+        assertInvalid(String.format(config, "bot"), "categories.trois.aussi");
+        assertInvalid(String.format(config, "hid"), "categories.trois.aussi");
     }
 
     @Test

@@ -152,6 +152,7 @@ final class LobbySettings {
             modes.add(display);
         }
         checkKitFrom(modes);
+        checkAlso(categories, groups, modes, perCategory);
         List<LobbyNpc> npcs = readNpcs(config, modes, categories);
         NetworkLevel levels = readLevels(config.getConfigurationSection("niveau"));
         String hypixelKey = config.getString("hypixel.cle-api", "").trim();
@@ -624,9 +625,17 @@ final class LobbySettings {
                 throw new IllegalArgumentException(where + ".slogan: " + MAX_SLOGAN + " characters at most (it shows under"
                         + " the NPC of the category)");
             }
+            List<String> also = new ArrayList<>();
+            for (String other : category.getStringList("aussi")) {
+                String key = other.trim().toLowerCase(java.util.Locale.ROOT);
+                if (also.contains(key)) {
+                    throw new IllegalArgumentException(where + ".aussi: \"" + other + "\" twice");
+                }
+                also.add(key);
+            }
             categories.add(new ModeCategory(id, colour(category.getString("nom", id)),
                     icon(where, category.getString("icone", "CHEST")), description(category),
-                    slogan == null || slogan.trim().isEmpty() ? null : colour(slogan)));
+                    slogan == null || slogan.trim().isEmpty() ? null : colour(slogan), also));
         }
         return categories;
     }
@@ -1037,7 +1046,7 @@ final class LobbySettings {
     List<Entry> entriesIn(String categoryId) {
         List<Entry> entries = new ArrayList<>();
         java.util.Set<String> seen = new java.util.HashSet<>();
-        for (ModeDisplay display : modesIn(categoryId)) {
+        for (ModeDisplay display : ownModes(categoryId)) {
             if (display.hidden()) {
                 continue;
             }
@@ -1047,7 +1056,57 @@ final class LobbySettings {
                 entries.add(new Entry(null, group(display.group())));
             }
         }
+        // then those of other categories it shows too: a group as one item, a mode alone
+        ModeCategory category = categoryId == null ? null : category(categoryId);
+        for (String id : category == null ? Collections.<String>emptyList() : category.also()) {
+            ModeCategory group = group(id);
+            ModeDisplay display = display(id);
+            if (group != null) {
+                entries.add(new Entry(null, group));
+            } else if (display != null && !display.hidden()) {
+                entries.add(new Entry(display, null));
+            }
+        }
         return entries;
+    }
+
+    /**
+     * aussi: of each category: modes or groups of the modes list, not hidden, of another category;
+     * with its own items, a category shows MAX_MODES_PER_CATEGORY at most.
+     */
+    private static void checkAlso(List<ModeCategory> categories, List<ModeCategory> groups, List<ModeDisplay> modes,
+            Map<String, Integer> perCategory) {
+        for (ModeCategory category : categories) {
+            String where = "categories." + category.id() + ".aussi";
+            for (String id : category.also()) {
+                boolean isGroup = false;
+                for (ModeCategory group : groups) {
+                    isGroup |= group.id().equals(id);
+                }
+                String home = null;
+                boolean found = false;
+                for (ModeDisplay display : modes) {
+                    if (isGroup ? id.equals(display.group()) : display.mode().id().equals(id)) {
+                        if (display.hidden() && !isGroup) {
+                            throw new IllegalArgumentException(where + ": \"" + id + "\" is hidden from the selector");
+                        }
+                        found = true;
+                        home = display.category();
+                    }
+                }
+                if (!found) {
+                    throw new IllegalArgumentException(where + ": \"" + id + "\" is neither a mode nor a group with modes");
+                }
+                if (category.id().equals(home)) {
+                    throw new IllegalArgumentException(where + ": \"" + id + "\" is of this category already");
+                }
+            }
+            int items = perCategory.getOrDefault(category.id(), 0) + category.also().size();
+            if (items > MAX_MODES_PER_CATEGORY) {
+                throw new IllegalArgumentException(where + ": " + MAX_MODES_PER_CATEGORY + " items at most in a category,"
+                        + " its own and those of aussi");
+            }
+        }
     }
 
     /**
@@ -1125,8 +1184,29 @@ final class LobbySettings {
         return display.kitFrom() + (slash < 0 ? "" : modeId.substring(slash));
     }
 
-    /** The modes of one category (all of them for null), in the order of config.yml. */
+    /**
+     * The modes of one category (all of them for null), in the order of config.yml, then those of
+     * other categories it shows too (aussi:).
+     */
     List<ModeDisplay> modesIn(String categoryId) {
+        if (categoryId == null) {
+            return modes;
+        }
+        List<ModeDisplay> result = ownModes(categoryId);
+        ModeCategory category = category(categoryId);
+        for (String id : category == null ? Collections.<String>emptyList() : category.also()) {
+            List<ModeDisplay> more = group(id) != null ? modesOfGroup(id) : Collections.singletonList(display(id));
+            for (ModeDisplay display : more) {
+                if (display != null && !result.contains(display)) {
+                    result.add(display);
+                }
+            }
+        }
+        return result;
+    }
+
+    /** The modes whose category is this one, in the order of config.yml. */
+    private List<ModeDisplay> ownModes(String categoryId) {
         if (categoryId == null) {
             return modes;
         }

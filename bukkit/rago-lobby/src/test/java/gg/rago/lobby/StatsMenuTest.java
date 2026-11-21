@@ -102,7 +102,15 @@ class StatsMenuTest {
         for (ModeCategory category : settings.categories()) {
             categories.add(category.id());
         }
-        assertEquals(Arrays.asList("entrainement", "ranked", "duels", "arenes", "fun"), categories);
+        assertEquals(Arrays.asList("entrainement", "ranked", "duels", "arenes", "fun", "trois-joueurs"), categories);
+        assertTrue(StatsMenu.modesOf(settings.modes(), "trois-joueurs", categories).isEmpty(),
+                "3 Players shows modes of the Duels and the RBW modes (aussi:), none of its own");
+        List<String> buttons = new ArrayList<>();
+        for (ModeCategory category : StatsMenu.withModes(settings.categories(), settings.modes())) {
+            buttons.add(category.id());
+        }
+        assertEquals(Arrays.asList("entrainement", "ranked", "duels", "arenes", "fun"), buttons,
+                "no button for 3 Players: the stats of its modes are in their categories");
         List<String> fun = ids(StatsMenu.modesOf(settings.modes(), "fun", categories));
         assertTrue(fun.contains("fireball-knockback") && fun.contains("snowball-spleef"), fun.toString());
         List<String> duels = ids(StatsMenu.modesOf(settings.modes(), "duels", categories));

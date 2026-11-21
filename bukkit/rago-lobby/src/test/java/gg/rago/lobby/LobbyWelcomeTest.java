@@ -20,7 +20,7 @@ class LobbyWelcomeTest {
     void itShowsTheWaysToPlayOfTheBundledConfig() throws Exception {
         LobbySettings settings = LobbySettings.load(LobbySettingsTest.bundledConfig());
         List<ModeCategory> categories = settings.categories();
-        assertEquals("Practice · RBW Modes · Duels · Arenas · Fun Practice", ChatColor.stripColor(LobbyWelcome.subtitle(categories)),
+        assertEquals("Practice · RBW Modes · Duels · Arenas · Fun Practice · 3 Players", ChatColor.stripColor(LobbyWelcome.subtitle(categories)),
                 "the title, the first time");
         for (ModeCategory category : categories) {
             JsonObject line = new JsonParser().parse(LobbyWelcome.json(category)).getAsJsonObject();
@@ -58,7 +58,8 @@ class LobbyWelcomeTest {
         assertNull(LobbyWelcome.find(categories, " "));
         assertEquals("arenes", LobbyWelcome.find(categories, "arenas").id());
         assertEquals("fun", LobbyWelcome.find(categories, "fun practice").id());
-        assertEquals(Arrays.asList("entrainement", "ranked", "duels", "arenes", "fun"), LobbyWelcome.ids(categories));
+        assertEquals("trois-joueurs", LobbyWelcome.find(categories, "3 players").id());
+        assertEquals(Arrays.asList("entrainement", "ranked", "duels", "arenes", "fun", "trois-joueurs"), LobbyWelcome.ids(categories));
     }
 
     @Test

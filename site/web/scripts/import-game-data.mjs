@@ -235,16 +235,27 @@ export function buildGameData() {
 
   // the NPCs of the ways to play wear the skin of their category
   const npcs = Object.values(lobby.pnj ?? {});
-  const categories = Object.entries(lobby.categories).map(([id, category]) => ({
-    id,
-    name: plain(category.nom),
-    colour: colourOf(category.nom),
-    icon: category.icone ?? null,
-    slogan: segments(category.slogan),
-    description: paragraph(category.description),
-    skin: npcs.find((npc) => npc.categorie === id && !npc.type)?.skin ?? null,
-    modes: modes.filter((mode) => mode.category === id && !mode.event).length,
-  }));
+  const categories = Object.entries(lobby.categories).map(([id, category]) => {
+    // aussi: the modes (or groups) of other categories it shows too, after its own, as 3 Players
+    // shows Red Rover of the Duels: the same modes, still in their own category
+    const also = (category.aussi ?? []).flatMap((key) => {
+      const wanted = String(key).trim().toLowerCase();
+      return lobby.groupes?.[wanted]
+        ? modes.filter((mode) => mode.group === wanted && !mode.event).map((mode) => mode.id)
+        : [wanted];
+    });
+    return {
+      id,
+      name: plain(category.nom),
+      colour: colourOf(category.nom),
+      icon: category.icone ?? null,
+      slogan: segments(category.slogan),
+      description: paragraph(category.description),
+      skin: npcs.find((npc) => npc.categorie === id && !npc.type)?.skin ?? null,
+      modes: modes.filter((mode) => mode.category === id && !mode.event).length + also.length,
+      also,
+    };
+  });
 
   const groups = Object.entries(lobby.groupes).map(([id, group]) => ({
     id,
