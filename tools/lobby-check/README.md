@@ -67,6 +67,36 @@ le script refuse de démarrer sans `KB_ACCEPT_EULA=true`. Réglages : `KB_SERVER
 serveur), `KB_PORT` (25565) et `LOBBY_RUN_DIR` (`lobby-run` à la racine du dépôt, où restent le
 journal et le dossier du serveur). La CI le lance à chaque pull request, sous Java 8 et Java 21.
 
+## Le reset des arènes des modes à blocs
+
+`run-arena-test.sh` lance le même serveur, avec Block placement gagné à 10 points (une chute
+dans le vide en donne 10) et Block edit à 2. Deux bots (`tools/kb-control/bots/arena-bots.mjs`)
+jouent plusieurs parties de suite, et vérifient au début de chacune que sa zone est exactement
+comme le mode l'a construite : aucun bloc laissé par la partie d'avant, aucun qui manque. Sans les
+maps du propriétaire (le serveur de test n'en a pas), chaque mode construit sa propre arène dans
+la première zone libre de sa rangée : une partie après l'autre se joue dans la même zone.
+
+1. Block placement 1v1 : à chaque partie, les deux bots posent de la laine à côté de leur
+   plateforme, celui de l'ouest aussi une échelle et de l'end stone, puis casse la laine qui tient
+   l'échelle (l'échelle tombe avec). Les parties finissent de toutes les façons : chute dans le
+   vide (victoire, écran de fin), `/spawn` (abandon), un bot qui quitte le serveur, `/playagain`
+   depuis l'écran de fin (la partie suivante va dans une autre zone pendant que l'écran de fin
+   garde la première), et `/l` ;
+2. Block edit 1v1 : des trous dans le mur et de la laine remise dedans ; un abandon le mur ouvert,
+   un bot qui quitte le serveur, et des edits propres (un trou, un coup à travers, le bloc remis :
+   un point, et le mur entier pour la manche suivante) ;
+3. l'entraînement Block edit contre le bot : des trous dans le mur et de la laine remise, puis
+   `/spawn`, deux fois.
+
+```bash
+./gradlew build
+(cd tools/kb-control/bots && npm ci)
+KB_ACCEPT_EULA=true tools/lobby-check/run-arena-test.sh
+```
+
+Réglages : `KB_SERVER_JAVA`, `KB_PORT` et `ARENA_RUN_DIR` (`arena-run` à la racine du dépôt). La
+CI le lance à chaque pull request, sous Java 21.
+
 ## Les panneaux publicitaires vus par un vrai client Minecraft 1.8.9
 
 Les bots lisent les paquets des panneaux (`panneaux:` du lobby) mais ne dessinent rien.

@@ -65,7 +65,8 @@ jobs:
           digest=$(printf '%s' "$release" | jq -r '.assets[] | select(.name == "packetevents-spigot-2.14.0.jar") | .digest')
           echo "packetevents-spigot-2.14.0.jar: $digest"
           [[ "$digest" == sha256:* ]] || { echo "::error::no SHA-256 for packetevents-spigot-2.14.0.jar on its release"; exit 1; }
-          for file in tools/local-server/lancer-mac-linux.sh tools/local-server/lancer.ps1 tools/lobby-check/run-lobby-test.sh; do
+          for file in tools/local-server/lancer-mac-linux.sh tools/local-server/lancer.ps1 tools/lobby-check/run-lobby-test.sh \
+            tools/lobby-check/run-arena-test.sh; do
             grep -qF "${digest#sha256:}" "$file" || {
               echo "::error::$file does not pin the SHA-256 of the PacketEvents release ($digest)"; exit 1; }
           done
@@ -326,6 +327,49 @@ jobs:
           path: |
             lobby-run/server.log
             lobby-run/server/logs/
+          if-no-files-found: warn
+
+  # Two bots play the block modes of RagoPractice several times in a row, ending the games in every
+  # way: each zone played again must be exactly as built (tools/lobby-check/run-arena-test.sh).
+  arena-test:
+    name: Arena reset test (PandaSpigot 1.8.8, Java 21)
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v7
+
+      - uses: actions/setup-java@v6
+        with:
+          distribution: temurin
+          java-version: 21
+
+      - uses: gradle/actions/setup-gradle@v6
+
+      - uses: actions/setup-node@v7
+        with:
+          node-version: 22
+          cache: npm
+          cache-dependency-path: tools/kb-control/bots/package-lock.json
+
+      - run: ./gradlew assemble
+
+      - run: npm ci
+        working-directory: tools/kb-control/bots
+
+      - name: Run the arena reset test
+        env:
+          # The test starts a Minecraft server, which requires accepting the Minecraft EULA:
+          # https://aka.ms/MinecraftEULA
+          KB_ACCEPT_EULA: "true"
+        run: tools/lobby-check/run-arena-test.sh
+
+      - uses: actions/upload-artifact@v7
+        if: always()
+        with:
+          name: arena-test
+          path: |
+            arena-run/server.log
+            arena-run/server/logs/
           if-no-files-found: warn
 
   # A real Minecraft 1.8.9 client in the lobby: it must draw the billboards (panneaux:), walls of
