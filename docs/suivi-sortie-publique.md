@@ -156,7 +156,7 @@ informations manquantes.
 
 | # | Tâche | Cat. | Prio | Statut | Fichiers | Manque |
 | --- | --- | --- | --- | --- | --- | --- |
-| 4.1 | Party Replay : les membres de la party rejoignent le replay | Replays | P2 | EN COURS : codé (`/p warp` du chef dans un replay), test réel à 2 bots ajouté, CI à venir | `ReplayService`, `ReplayViewer`, `Parties` | — |
+| 4.1 | Party Replay : les membres de la party rejoignent le replay | Replays | P2 | IMPLÉMENTÉ : `/p warp` du chef dans un replay ; test réel à 2 bots passé en CI (Java 8) ; à voir en jeu | `ReplayService`, `ReplayViewer`, `Parties` | — |
 | 4.1b | Sons dans les replays : étude de faisabilité | Replays | P3 | EN COURS : faisable ; sons envoyés par le serveur et blocs cassés enregistrés et rejoués ; codé, test unitaire et test réel ajoutés, CI à venir | `ReplayRecorder`, `ReplayData` | — |
 | 4.2 | `/host` : annonce cliquable toutes les 10 s ; inscription gardée sans téléporter ; départ quand assez de joueurs | Events | P1 | À FAIRE | `Events`, `EventGame`, `PracticeHost`, `HostWatcher` | — |
 | 4.3 | Kit Editor plus clair et trié | Kits | P2 | À FAIRE | `KitEditor`, `KitLayouts` | — |
@@ -218,7 +218,7 @@ informations manquantes.
 
 ## 3. Journal des corrections
 
-### 4.1 Party Replay — EN COURS (21/11)
+### 4.1 Party Replay — IMPLÉMENTÉ (21/11), test réel passé
 
 **Demande** : « Lorsqu'un joueur lance un replay en étant dans une Party, les autres membres
 doivent pouvoir être warp dans ce replay. »
@@ -245,7 +245,11 @@ déjà, mais seulement depuis le lobby (« Go back to the lobby (/l) to warp you
 **Test** : un test réel à 2 bots ajouté au test du lobby (`lobby-bots.mjs`, étape 9) : RagoUn, chef
 de la party, ouvre `/replay`, regarde un duel de sumo, fait `/p warp` ; RagoDeux doit arriver à
 moins de 2 blocs de lui, au même moment du replay dans le scoreboard, avec seulement la boussole et
-le lit dans sa barre ; RagoUn quitte, RagoDeux doit être revenu au lobby. Résultat de la CI à venir.
+le lit dans sa barre ; RagoUn quitte, RagoDeux doit être revenu au lobby. **Passé** sur un vrai
+serveur PandaSpigot en CI (run 338, Java 8 ; le job Java 21 n'a pas démarré, panne d'installation
+de Java chez GitHub) : « You summoned 1 player to your replay. », « RagoUn warped you into the
+replay of Sumo duel, 0:11 long. », même moment (0:00 / 0:11) dans les deux scoreboards, puis
+« RagoUn left the replay. » et RagoDeux au lobby. Pas encore essayé en jeu par un joueur.
 
 ### 4.1b Sons dans les replays — FAISABLE, EN COURS (21/11)
 
