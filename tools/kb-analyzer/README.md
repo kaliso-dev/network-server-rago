@@ -69,6 +69,33 @@ Pour chaque combat :
 5. **Le regard** de l'attaquant est celui de son dernier paquet de regard avant l'attaque, ce qui
    permet de calculer la poussée en plus du sprint, qui suit le regard.
 
+## Explosions : boules de feu et TNT
+
+Avec un enregistrement de kb-recorder 0.2.0 ou plus récent, un seul fichier suffit, celui du joueur
+qui lance la boule de feu ou pose la TNT et qui se fait pousser :
+
+```bash
+tools/kb-analyzer/build/install/kb-analyzer/bin/kb-analyzer \
+  --explosions hypixel-fireballs moi-hypixel.jsonl --report explosions.md
+```
+
+`--explosions <nom> <fichier>` se répète et s'ajoute aux `--fight`. Pour chaque explosion (chaque
+paquet d'explosion reçu), le rapport donne :
+
+- **la source** : la TNT ou la boule de feu qui disparaît à moins de 150 ms de l'explosion, le délai
+  entre le clic droit et son apparition (avec l'objet tenu : 385 pour une boule de feu, 46 pour une
+  TNT), le délai entre son apparition et l'explosion, et la vitesse de la boule de feu d'après les
+  positions envoyées par le serveur ;
+- **la poussée** : celle du paquet d'explosion, ou à défaut le paquet de vitesse du joueur reçu
+  dans les 150 ms ; sa partie horizontale et verticale, la distance du centre aux pieds et aux yeux
+  du joueur, et l'angle entre la poussée horizontale et la ligne du centre vers le joueur ;
+- **le saut** : la hauteur gagnée et la distance horizontale jusqu'à l'atterrissage ;
+- **les blocs** : les blocs cassés, par type et avec leur distance au centre, les changements de
+  blocs vers l'air qui ont suivi, et les blocs restés en place à portée d'une explosion vanilla de
+  même puissance (1,73 bloc par point de puissance).
+
+Le dernier repère `/kbrec mark` avant l'explosion est recopié : c'est lui qui dit ce qu'on testait.
+
 ## Tests
 
 ```bash
@@ -77,7 +104,10 @@ Pour chaque combat :
 
 Les tests rejouent un combat inventé (`SyntheticFight`) dont on connaît chaque valeur : deux
 horloges décalées de 5 secondes, des pings différents, un coup sur deux avec sprint et trois clics
-en trop après chaque coup, que l'outil doit reconnaître comme n'ayant pas compté.
+en trop après chaque coup, que l'outil doit reconnaître comme n'ayant pas compté. `ExplosionsTest`
+rejoue un fireball jump inventé : clic droit, boule de feu, explosion sur de la laine à côté d'end
+stone, poussée envoyée par un paquet de vitesse. Le test de bout en bout du mod
+([kb-recorder](../kb-recorder/README.md)) lit aussi avec cet outil les explosions d'un vrai client.
 
 ## Limites
 
@@ -87,8 +117,9 @@ en trop après chaque coup, que l'outil doit reconnaître comme n'ayant pas comp
 - Le regard est celui du dernier paquet envoyé avant l'attaque ; avec un gros ping, le serveur peut
   en avoir reçu un autre entre-temps. C'est une des raisons pour lesquelles une partie des coups
   avec sprint ne tombe pas pile sur la valeur la plus fréquente.
-- Les enchantements Knockback, les cannes à pêche, les projectiles et les explosions ne sont pas
-  analysés. Un coup de projectile arrive aussi avec l'animation, mais sans attaque au corps à corps
-  pour le causer : il tombe dans « sprint unknown ».
+- Les enchantements Knockback, les cannes à pêche et les projectiles ne sont pas analysés dans les
+  combats. Un coup de projectile arrive aussi avec l'animation, mais sans attaque au corps à corps
+  pour le causer : il tombe dans « sprint unknown ». Les explosions ont leur propre partie
+  (`--explosions`).
 - Le décodage des paquets est aussi écrit dans `RecorderCheck` (kb-control), pour le test de bout
   en bout du mod. Les deux pourraient partager ce code plus tard.

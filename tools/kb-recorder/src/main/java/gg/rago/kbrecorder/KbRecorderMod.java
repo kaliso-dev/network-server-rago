@@ -19,7 +19,7 @@ import net.minecraftforge.fml.common.event.FMLInitializationEvent;
 public final class KbRecorderMod {
 
     static final String MOD_ID = "ragokbrecorder";
-    static final String VERSION = "0.1.0";
+    static final String VERSION = "0.2.0";
 
     /** When set, a recording with this label starts at the first connection (automated tests). */
     static final String AUTOSTART_PROPERTY = "rago.kbrecorder.autostart";

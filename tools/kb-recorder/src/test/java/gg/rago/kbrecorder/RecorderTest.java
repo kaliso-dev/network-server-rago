@@ -6,6 +6,7 @@ import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
+import gg.rago.kbrecorder.PacketBytes.EntityIdFormat;
 import java.io.File;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
@@ -84,6 +85,43 @@ class RecorderTest {
     }
 
     @Test
+    void followsPrimedTntAndFireballsFromTheirSpawnToTheirDestruction() {
+        Recorder recorder = new Recorder(directory, clock);
+        recorder.setTrackedEntities(new int[] {7});
+        // Spawn object: VarInt entity id, then the object type.
+        assertFalse(recorder.keeps(EntityIdFormat.SPAWN_OBJECT, bytes(0x2A, 2, 0, 0, 0, 0)), "a dropped item");
+        assertFalse(recorder.keeps(EntityIdFormat.SPAWN_OBJECT, bytes(0x2B, 60, 0, 0, 0, 0)), "an arrow");
+        assertTrue(recorder.keeps(EntityIdFormat.SPAWN_OBJECT, bytes(0xAC, 0x02, 63, 0, 0, 0, 0)), "a fireball");
+        assertTrue(recorder.keeps(EntityIdFormat.SPAWN_OBJECT, bytes(0x2C, 50, 0, 0, 0, 0)), "primed TNT");
+        assertTrue(recorder.keeps(EntityIdFormat.SPAWN_OBJECT, bytes(0x2D, 64, 0, 0, 0, 0)), "a small fireball");
+        assertFalse(recorder.isTracked(42));
+        assertTrue(recorder.isTracked(300));
+        assertTrue(recorder.keeps(EntityIdFormat.VARINT, bytes(0xAC, 0x02, 0, 0, 0, 0, 0, 0)), "the fireball's moves");
+        assertTrue(recorder.isTracked(44));
+        // The player list of the next tick does not forget them.
+        recorder.setTrackedEntities(new int[] {7});
+        assertTrue(recorder.isTracked(44));
+        assertTrue(recorder.isTracked(7));
+
+        // Destroy entities: VarInt count, then the ids. Kept when it names one of them.
+        assertFalse(recorder.keeps(EntityIdFormat.ENTITY_LIST, bytes(2, 0x2A, 0x2B)));
+        assertTrue(recorder.keeps(EntityIdFormat.ENTITY_LIST, bytes(2, 0x2A, 0xAC, 0x02)));
+        assertFalse(recorder.isTracked(300));
+        assertTrue(recorder.isTracked(44));
+        assertFalse(recorder.keeps(EntityIdFormat.ENTITY_LIST, bytes(1, 0xAC, 0x02)), "already destroyed");
+        assertFalse(recorder.keeps(EntityIdFormat.ENTITY_LIST, bytes(3, 0x2C)), "truncated");
+
+        // A new world forgets them: its entity ids start again.
+        assertTrue(recorder.keeps(EntityIdFormat.NEW_WORLD, bytes(0, 0, 0, 1)));
+        assertFalse(recorder.isTracked(44));
+        assertFalse(recorder.isTracked(45));
+        assertTrue(recorder.isTracked(7));
+        assertTrue(recorder.keeps(EntityIdFormat.NONE, bytes()));
+        assertTrue(recorder.keeps(EntityIdFormat.INT, bytes(0, 0, 0, 7, 2)));
+        assertFalse(recorder.keeps(EntityIdFormat.INT, bytes(0, 0, 0, 8, 2)));
+    }
+
+    @Test
     void errorsAreCountedAndOnlyTheFirstOnesWritten() throws Exception {
         Recorder recorder = new Recorder(directory, clock);
         File file = recorder.start("", "p", "u", null, "0.1.0");
@@ -119,6 +157,14 @@ class RecorderTest {
         assertEquals("combo_3_sprint_reset", Recorder.fileSafe("combo 3 sprint/reset"));
         assertEquals("d_j__vu", Recorder.fileSafe("déjà vu"));
         assertEquals(40, Recorder.fileSafe(new String(new char[100]).replace('\0', 'a')).length());
+    }
+
+    private static byte[] bytes(int... values) {
+        byte[] data = new byte[values.length];
+        for (int i = 0; i < values.length; i++) {
+            data[i] = (byte) values[i];
+        }
+        return data;
     }
 
     private static final class FakeClock implements Clock {

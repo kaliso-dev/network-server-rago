@@ -3,6 +3,8 @@
 Un mod client Forge 1.8.9 qui enregistre ce que le client reçoit et envoie pendant un combat. Il
 sert à mesurer le knockback d'un serveur, Hypixel en premier, pour construire un profil à partir de
 mesures et non de valeurs devinées (voir le [document de la formule](../../docs/combat/knockback-1.8.8.md)).
+Depuis la version 0.2.0, il enregistre aussi les boules de feu, les TNT et leurs explosions, pour
+mesurer leur poussée et les blocs qu'elles cassent.
 
 Le mod ne fait que lire : il ne modifie aucun paquet, n'automatise rien et n'affiche rien en jeu en
 dehors de ses messages de commande. Rien n'est enregistré tant qu'on n'a pas tapé `/kbrec start`.
@@ -44,6 +46,7 @@ Une ligne JSON par événement. Chaque ligne a `type`, `ms` (heure, pour aligner
 | `tick` | à la fin de chaque tick client : position, mouvement, sol, regard, sprint, touches, vie, ping du tab, et les joueurs à moins de 16 blocs (position, regard, sprint, sol) |
 | `packet` | un paquet reçu (`in`) ou envoyé (`out`), avec son id et son nom du protocole 47 et ses octets bruts en base64 |
 | `mark` | un repère de `/kbrec mark` |
+| `blocks` | à chaque explosion, juste avant que le client l'applique : son centre, sa puissance, et tous les blocs qui ne sont pas de l'air dans un cube autour du centre (`[x, y, z, id, métadonnée]`), jusqu'à 8 blocs du centre |
 | `context` | serveur, titre du scoreboard (le mode de jeu sur Hypixel), connexion ouverte ou fermée |
 | `error` | les dix premières erreurs d'enregistrement, s'il y en a |
 | `end` | nombre de ticks, de lignes perdues et d'erreurs |
@@ -52,12 +55,16 @@ Paquets gardés, tels qu'ils passent sur le réseau (après décompression) :
 
 - reçus : vitesse d'entité (le knockback), mouvements et téléportations d'entités, statut d'entité
   (coup reçu), métadonnées (sprint de l'adversaire), animation (bras de l'adversaire), explosion,
-  position forcée du joueur, vie, connexion au jeu, réapparition, keep-alive ;
-- envoyés : attaque, mouvement et regard, animation du bras, sprint et accroupi, keep-alive.
+  apparition d'objet (seulement les TNT allumées et les boules de feu), disparition d'entités
+  (seulement quand elle concerne l'une d'elles), changements de blocs, position forcée du joueur,
+  vie, connexion au jeu, réapparition, keep-alive ;
+- envoyés : attaque, mouvement et regard, clic droit (boule de feu lancée, TNT ou bloc posé),
+  animation du bras, sprint et accroupi, keep-alive.
 
-Les paquets qui concernent une entité ne sont gardés que pour le joueur et les joueurs à moins de
-16 blocs, pour qu'un enregistrement reste petit même dans un lobby plein. Le décodage des octets est
-fait par l'outil d'analyse, pas par le mod.
+Les paquets qui concernent une entité ne sont gardés que pour le joueur, les joueurs à moins de
+16 blocs, et les TNT et boules de feu depuis leur apparition jusqu'à leur disparition, pour qu'un
+enregistrement reste petit même dans un lobby plein. Le décodage des octets est fait par l'outil
+d'analyse, pas par le mod.
 
 L'écriture se fait sur un thread à part : le jeu et le réseau ne font que mettre des lignes dans une
 file. Si la file déborde (200 000 lignes en attente), les lignes en trop sont comptées dans `end`
@@ -87,14 +94,21 @@ journal des coups) :
    serveur au démarrage, et le mod commence à enregistrer à la première connexion ;
 2. un bot attaquant (`tools/kb-control/bots/recorder-attacker.mjs`) frappe le client 24 fois, avec
    et sans sprint : d'abord avec le knockback du serveur, puis avec le profil de test `control-alt`
-   appliqué par le moteur ;
+   appliqué par le moteur ; il fait ensuite apparaître une TNT allumée puis une boule de feu qui
+   tombe sur le sol, à 20 blocs des joueurs ;
 3. le client est arrêté (signal SIGTERM), ce qui ferme le fichier comme quand on quitte le jeu ;
 4. `RecorderCheck` (`tools/kb-control`) compare l'enregistrement au journal du moteur. Pour chaque
    coup, il faut exactement un paquet de vitesse pour le joueur, identique à celui que le serveur
    a envoyé, l'animation de coup reçu (statut d'entité 2) juste avant ce paquet, et dans le dernier
    tick avant le coup l'attaquant avec le sprint que le serveur a utilisé. Le fichier doit aussi
    commencer par sa ligne de session, finir par sa ligne de fin sans ligne perdue ni erreur, et
-   avoir un tick enregistré par tick client, sans trou.
+   avoir un tick enregistré par tick client, sans trou. Pour chaque explosion, `ExplosionCheck` lit
+   l'enregistrement avec [kb-analyzer](../kb-analyzer/README.md) : il faut l'apparition et la
+   disparition de la TNT ou de la boule de feu, le paquet d'explosion avec la puissance du serveur,
+   la ligne `blocks` lue avant l'explosion (chaque bloc détruit y est encore), et pour la TNT les
+   changements de blocs du serveur qui mettent de l'air à leur place.
+
+Le clic droit n'est pas couvert par ce test : personne ne joue le client.
 
 En CI, le job « KB recorder end-to-end test » le lance sous un écran virtuel (Xvfb) ; le rapport
 apparaît dans le résumé du job et l'enregistrement dans l'artefact `kb-recorder-e2e-run`. Sur
@@ -114,3 +128,6 @@ installe : les deux viennent des mêmes sources, et le build vérifie que le rem
 - Le mod enregistre ce que voit le client : la position des autres joueurs est celle que le serveur
   lui a envoyée, avec le retard du ping.
 - Le ping vient du tab, tel que le serveur le calcule ; il n'est mis à jour que de temps en temps.
+- Les blocs autour d'une explosion ne sont lus que si le serveur envoie un paquet d'explosion. Un
+  serveur qui casserait les blocs autrement ne laisserait que ses changements de blocs (vers l'air),
+  sans le type des blocs cassés : les repères (`/kbrec mark`) disent alors sur quoi on a tiré.

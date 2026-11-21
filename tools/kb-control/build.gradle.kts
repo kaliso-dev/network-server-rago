@@ -7,6 +7,8 @@ plugins {
 
 dependencies {
     implementation(project(":rago-combat-model"))
+    // RecorderCheck reads the explosions with kb-analyzer, as a measurement would.
+    implementation(project(":kb-analyzer"))
     implementation(libs.gson)
 }
 

@@ -29,6 +29,8 @@ public final class Recording {
     /** Packet lines, in file order. */
     public final List<Packet> packets = new ArrayList<>();
     public final List<Mark> marks = new ArrayList<>();
+    /** Blocks around each explosion, read just before the client applied it (kb-recorder 0.2). */
+    public final List<BlockSnapshot> blockSnapshots = new ArrayList<>();
     /** Context lines (server, sidebar, connection), as key and value. */
     public final List<String[]> contexts = new ArrayList<>();
     /** Lines that break the format. */
@@ -146,6 +148,9 @@ public final class Recording {
                 break;
             case "context":
                 contexts.add(new String[] {Json.text(line, "key"), Json.text(line, "value")});
+                break;
+            case "blocks":
+                blockSnapshots.add(BlockSnapshot.fromJson(line));
                 break;
             default:
                 break;

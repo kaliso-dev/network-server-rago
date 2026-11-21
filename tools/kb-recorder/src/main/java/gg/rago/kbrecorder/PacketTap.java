@@ -6,22 +6,27 @@ import io.netty.channel.ChannelDuplexHandler;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.ChannelPromise;
 import java.io.IOException;
+import java.util.function.Consumer;
 import net.minecraft.network.Packet;
 import net.minecraft.network.PacketBuffer;
 
 /**
  * Sits in the connection's Netty pipeline, just before Minecraft's own packet handler, and copies
  * the packets of the {@link PacketCatalog} into the recording. It only reads: every packet goes on
- * unchanged, and a recording error never reaches the connection.
+ * unchanged, and a recording error never reaches the connection. Explosions are also handed to a
+ * reader of the blocks around them, before Minecraft's handler sees them.
  */
 final class PacketTap extends ChannelDuplexHandler {
 
     static final String NAME = "rago_kb_recorder";
 
     private final Recorder recorder;
+    private final Consumer<byte[]> beforeExplosion;
 
-    PacketTap(Recorder recorder) {
+    /** {@code beforeExplosion} gets each explosion packet before the game does. */
+    PacketTap(Recorder recorder, Consumer<byte[]> beforeExplosion) {
         this.recorder = recorder;
+        this.beforeExplosion = beforeExplosion;
     }
 
     @Override
@@ -52,9 +57,13 @@ final class PacketTap extends ChannelDuplexHandler {
                 return;
             }
             byte[] data = serialize(packet);
-            if (kind.entityId != PacketBytes.EntityIdFormat.NONE
-                    && !recorder.isTracked(PacketBytes.entityId(data, kind.entityId))) {
+            if (!recorder.keeps(kind.entityId, data)) {
                 return;
+            }
+            if (received && kind.id == PacketCatalog.IN_EXPLOSION) {
+                // Before the packet goes on: the game thread reads the blocks before the client
+                // applies the explosion.
+                beforeExplosion.accept(data);
             }
             recorder.packet(received, kind.id, kind.name, data);
         } catch (Exception e) {

@@ -9,9 +9,11 @@
 #    runClient), which joins the server and starts recording at the first connection (property
 #    rago.kbrecorder.autostart);
 # 3. an attacker bot (tools/kb-control/bots/recorder-attacker.mjs) hits the client, with the
-#    server's own knockback and then with the engine's control-alt test profile;
+#    server's own knockback and then with the engine's control-alt test profile, then summons a
+#    primed TNT and a fireball far from both players;
 # 4. stops the client with SIGTERM, which makes the mod close its file in its shutdown hook, and
-#    checks the recording with RecorderCheck (tools/kb-control).
+#    checks the recording with RecorderCheck (tools/kb-control), which reads the explosions with
+#    kb-analyzer.
 #
 # The client needs a display: on a machine without a screen, run the script under xvfb-run. Run
 # from anywhere, after:

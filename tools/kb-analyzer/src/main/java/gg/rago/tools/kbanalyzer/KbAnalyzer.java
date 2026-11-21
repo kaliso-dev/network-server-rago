@@ -7,6 +7,8 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.ArrayList;
+import java.util.Collections;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
@@ -16,13 +18,15 @@ import java.util.Map;
  * recording at once. Usage:
  *
  * <pre>
- * KbAnalyzer --fight hypixel a.jsonl b.jsonl --fight rago c.jsonl d.jsonl [--report report.md]
+ * KbAnalyzer --fight hypixel a.jsonl b.jsonl --fight rago c.jsonl d.jsonl
+ *     [--explosions hypixel-fireballs e.jsonl] [--report report.md]
  * </pre>
  *
  * <p>For each fight, the report gives the most frequent vertical values of the velocity packets
  * by victim ground state and attacker sprint, the horizontal push, the intervals between two hits
  * and, for each attacker, which attacks counted depending on the time since the previous one.
- * With several fights, a table compares them.
+ * With several fights, a table compares them. For each {@code --explosions} recording, it lists
+ * the explosions with their source, their push and the blocks they broke and left.
  */
 public final class KbAnalyzer {
 
@@ -31,26 +35,30 @@ public final class KbAnalyzer {
 
     public static void main(String[] args) throws IOException {
         List<Fight> fights = new ArrayList<>();
+        Map<String, Recording> explosions = new LinkedHashMap<>();
         Path report = null;
         for (int i = 0; i < args.length; i++) {
             if ("--fight".equals(args[i]) && i + 3 < args.length) {
                 fights.add(new Fight(args[i + 1], view(Paths.get(args[i + 2])), view(Paths.get(args[i + 3]))));
                 i += 3;
+            } else if ("--explosions".equals(args[i]) && i + 2 < args.length) {
+                explosions.put(args[i + 1], Recording.read(Paths.get(args[i + 2])));
+                i += 2;
             } else if ("--report".equals(args[i]) && i + 1 < args.length) {
                 report = Paths.get(args[++i]);
             } else {
-                System.err.println("usage: KbAnalyzer --fight <name> <recording> <recording> [--fight ...]"
-                        + " [--report <file>]");
+                System.err.println("usage: KbAnalyzer [--fight <name> <recording> <recording>]..."
+                        + " [--explosions <name> <recording>]... [--report <file>]");
                 System.exit(2);
                 return;
             }
         }
-        if (fights.isEmpty()) {
-            System.err.println("give at least one --fight");
+        if (fights.isEmpty() && explosions.isEmpty()) {
+            System.err.println("give at least one --fight or --explosions");
             System.exit(2);
             return;
         }
-        String markdown = report(fights);
+        String markdown = report(fights, explosions);
         System.out.println(markdown);
         if (report != null) {
             Files.write(report, markdown.getBytes(StandardCharsets.UTF_8));
@@ -62,6 +70,11 @@ public final class KbAnalyzer {
     }
 
     public static String report(List<Fight> fights) {
+        return report(fights, Collections.<String, Recording>emptyMap());
+    }
+
+    /** The report of the fights, then of the explosions of each named recording. */
+    public static String report(List<Fight> fights, Map<String, Recording> explosions) {
         List<FightStats> stats = new ArrayList<>();
         for (Fight fight : fights) {
             stats.add(new FightStats(fight));
@@ -72,6 +85,9 @@ public final class KbAnalyzer {
         }
         for (FightStats fight : stats) {
             fight(fight, md);
+        }
+        for (Map.Entry<String, Recording> recording : explosions.entrySet()) {
+            ExplosionReport.append(recording.getKey(), recording.getValue(), md);
         }
         return md.toString();
     }
