@@ -415,7 +415,7 @@ dans les files d'attente des modes de jeu.
   semaine, comme `/quests`. `/lobby point quests` le place ailleurs ; sans coffre ni ce point, il
   n'y en a pas.
 - **Le clic sur un joueur.** Un clic droit sur un joueur du lobby ouvre son menu : sa tête avec
-  son rang, son niveau et ses divisions, un duel (le choix du mode), ses stats mode par mode, une
+  son rang, son niveau et ses divisions, un duel (le choix du mode), ses stats (par catégorie, puis mode par mode), une
   invitation dans sa party, une demande d'ami et un rang à lui offrir.
 - **Offrir un rang (`/gift <joueur>`, le bouton « Gift a rank » du shop, ou le clic sur un
   joueur).** Payé avec ses propres Rago Points, même un rang de la boutique en ligne : VIP pour
@@ -595,8 +595,13 @@ config.yml fourni les suit :
   le profil de celui qui le regarde (niveau Network et rang, victoires, défaites, kills, meilleure
   série, victoires du jour, ELO de chaque mode classé). Chaque joueur lit le sien. Un clic ouvre
   « Your stats » : la tête du joueur avec son niveau, son XP, son rang, le prochain rang et ses
-  totaux (kills, morts et K/D compris), puis chaque mode avec ses stats (survoler un mode pour les
-  lire).
+  totaux (kills, morts et K/D compris), puis les catégories du sélecteur (Practice, RBW Modes,
+  Duels, Arenas), chacune avec ses totaux dans ses modes (parties, victoires, défaites, WLR,
+  meilleure série, kills, morts, K/D, final kills et lits quand il y en a, victoires du jour et de
+  la semaine, modes joués) ; « Other modes » s'ajoute si le joueur a joué un mode d'aucune
+  catégorie. Un clic sur une catégorie montre ses modes avec les stats de chacun (survoler un mode
+  pour les lire), ceux joués d'abord ; « Go back » (en haut à gauche) ramène aux catégories, les flèches de page sont en
+  haut à droite. Sans `categories:` dans config.yml, tous les modes d'un coup, comme avant.
 - `classements:` place un mur de classements sur un point : de 1 à 5 tableaux côte à côte, face au
   spawn (`tableaux: [victoires, series, parties, kills, niveau, elo]`). Chaque tableau montre le
   top 10, la place de celui qui regarde et quand il repart de zéro. Un clic sur un tableau change

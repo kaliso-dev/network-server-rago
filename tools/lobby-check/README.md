@@ -24,7 +24,9 @@ jouent comme des joueurs :
    dégât), puis RagoDeux tombe trois fois de la plateforme : RagoUn gagne 3 - 0 ;
 4. les deux reviennent au lobby, au spawn, avec les objets du lobby, et le PNJ Duels montre de
    nouveau « 0 in queue ». Chacun lit son profil
-   au-dessus du PNJ de stats (victoires, kills) et les classements (RagoUn premier, 3 kills) ; la
+   au-dessus du PNJ de stats (victoires, kills) et les classements (RagoUn premier, 3 kills) ;
+   RagoUn ouvre le menu du PNJ de stats : la catégorie Duels a sa victoire et ses 3 kills, un clic
+   dessus montre le sumo avec les mêmes stats, « Go back » ramène aux catégories ; la
    barre d'XP montre le niveau Network (65 XP pour RagoUn : la victoire et trois kills, 15 pour
    RagoDeux) ; RagoUn clique sur le classement principal (clic droit : Elo, puis Kills, clic
    gauche : la semaine, clic droit : niveau Network) ; dans le menu du PNJ Duels, le sumo montre

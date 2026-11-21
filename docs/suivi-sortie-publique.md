@@ -159,8 +159,8 @@ informations manquantes.
 | 4.1 | Party Replay : les membres de la party rejoignent le replay | Replays | P2 | IMPLÉMENTÉ : `/p warp` du chef dans un replay ; test réel à 2 bots passé en CI (Java 8) ; à voir en jeu | `ReplayService`, `ReplayViewer`, `Parties` | — |
 | 4.1b | Sons dans les replays : étude de faisabilité | Replays | P3 | TESTÉ en CI : faisable ; sons envoyés par le serveur et blocs cassés enregistrés et rejoués ; test unitaire et test réel à 2 bots passés (run 339) ; à écouter en jeu | `ReplayRecorder`, `ReplayData` | — |
 | 4.2 | `/host` : annonce cliquable toutes les 10 s ; inscription gardée sans téléporter ; départ quand assez de joueurs | Events | P1 | TESTÉ en CI (21/11, run 341, Java 8 et 21) : annonce toutes les 10 s, inscription sans téléporter, départ quand assez d'inscrits sont hors partie ; test réel à 3 bots passé ; à voir en jeu | `Events`, `EventGame`, `PracticeHost`, `HostWatcher` | — |
-| 4.3 | Kit Editor plus clair et trié | Kits | P2 | IMPLÉMENTÉ (21/11) : kits rangés par catégorie et par nom, « Also for », Save et Cancel ramènent à la liste ; tests unitaires écrits, CI en cours | `KitEditor`, `KitLayouts` | — |
-| 4.4 | Menu Stats : présentation, catégories, navigation | Stats | P2 | À FAIRE | `StatsMenu`, `ProfileMenu`, `StatsBook` | — |
+| 4.3 | Kit Editor plus clair et trié | Kits | P2 | TESTÉ en CI (21/11, run 342, Java 8 et 21) : kits rangés par catégorie et par nom, « Also for », Save et Cancel ramènent à la liste ; à voir en jeu | `KitEditor`, `KitLayouts` | — |
+| 4.4 | Menu Stats : présentation, catégories, navigation | Stats | P2 | IMPLÉMENTÉ (21/11) : une page des catégories du sélecteur avec les totaux de chacune, un clic montre ses modes, Go back ramène aux catégories ; tests unitaires écrits, CI à venir | `StatsMenu` | — |
 | 4.5 | `/discord` et `/store` avec les liens officiels | Cmd | P1 | BLOQUÉ | `config.yml` (`liens`), `ServerSettings` | liens officiels (C6) |
 
 ### Étape 6 : lobby (Phase 5)
@@ -218,7 +218,38 @@ informations manquantes.
 
 ## 3. Journal des corrections
 
-### 4.3 Kit Editor — IMPLÉMENTÉ (21/11), CI en cours
+### 4.4 Menu Stats — IMPLÉMENTÉ (21/11), CI à venir
+
+**Demande** : « Menu Stats : Améliorer la présentation, les catégories et la navigation. »
+
+**Analyse** (avant le changement) : le menu « Your stats » (PNJ de stats, profil, clic sur un
+joueur) montrait la tête du joueur puis tous les modes d'un coup, dans l'ordre du config.yml, ceux
+joués d'abord : 66 modes visibles avec le config.yml fourni, sur 2 pages (45 + 21), l'entraînement,
+le ranked, les duels et les arènes mélangés, sans aucune catégorie. Pour trouver un mode, il
+fallait survoler les cases une par une ; aucun total par catégorie (combien de victoires en Duels,
+en RBW…).
+
+**Fait** :
+- **Catégories** : la première page montre la tête (les totaux, comme avant) et les catégories du
+  sélecteur dans son ordre (Practice, RBW Modes, Duels, Arenas), avec leur icône, une case sur
+  deux au milieu, comme le sélecteur. « Other modes » s'ajoute seulement si le joueur a joué un
+  mode d'aucune catégorie (aucun avec le config.yml fourni : les 71 modes ont la leur).
+- **Présentation** : chaque catégorie montre son slogan et les totaux du joueur dans ses modes :
+  parties, victoires, défaites, WLR, meilleure série, kills, morts, K/D, final kills, final deaths,
+  FKDR et lits quand il y en a, victoires du jour et de la semaine, et « Modes played: x/y » ;
+  « No game yet » si rien n'est joué.
+- **Navigation** : un clic sur une catégorie montre ses modes (titre « Your stats: Duels »), ceux
+  joués d'abord, chacun avec ses stats comme avant ; « Go back » (la flèche des autres menus, en haut à gauche) ramène aux
+  catégories ; les flèches de page passent en haut à droite (cases 7 et 8).
+- Sans `categories:` dans config.yml, le menu reste celui d'avant (tous les modes d'un coup).
+  Rien ne change dans les fichiers de stats.
+
+**Tests écrits** (résultats à venir) : tests unitaires (`StatsMenuTest` : les cases des
+catégories, chaque mode du config.yml fourni dans sa catégorie, les totaux d'une catégorie) ; le
+test du lobby (étape 4) lit les totaux de la catégorie Duels après le Sumo (1 victoire, 3 kills),
+clique dessus, lit les stats du Sumo, puis revient aux catégories avec Go back.
+
+### 4.3 Kit Editor — TESTÉ EN CI (21/11)
 
 **Demande** : « Plus clair. Mieux organisé. Mieux trié. Plus facile à utiliser. »
 
@@ -243,9 +274,13 @@ rangé pendant une partie est gardé aussi.
   restent en bas (mêmes cases).
 - Rien ne change dans les rangements enregistrés (`plugins/RagoLobby/kits/`).
 
-**Tests écrits** (résultats à venir) : tests unitaires (`KitEditorTest` : l'ordre par catégorie
-puis par nom, une catégorie de plus de 8 kits, les pages, le texte « Also for ») ; le test du
-lobby (étape 1) vérifie que Save ramène à la liste des kits avec la barre du lobby.
+**Tests** (CI, run 342 du 21/11, commit 846ced9) : la compilation et les tests unitaires passent
+(`KitEditorTest` : l'ordre par catégorie puis par nom, une catégorie de plus de 8 kits, les pages,
+le texte « Also for ») ; le test du lobby sur un vrai serveur PandaSpigot passe sous Java 8 et
+Java 21 : à l'étape 1, RagoUn trouve le kit Sumo dans la nouvelle liste, déplace son bâton,
+clique Save, lit « Kit saved for Sumo duel », retrouve la liste « Kit editor » avec la barre du
+lobby, puis retrouve le bâton là où il l'a mis. Pas encore vérifié avec un vrai client (l'aspect
+des lignes et des icônes), ni installé sur ton serveur.
 
 ### 4.2 Events /host — TESTÉ EN CI (21/11)
 

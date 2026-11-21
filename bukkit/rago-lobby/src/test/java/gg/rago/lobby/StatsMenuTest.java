@@ -77,4 +77,72 @@ class StatsMenuTest {
         assertEquals(StatsMenu.PAGE_SIZE, (int) StatsMenu.page(modes, 1).get(0));
         assertTrue(StatsMenu.page(modes, 2).isEmpty());
     }
+
+    @Test
+    void theCategoriesStandOneSlotApartInTheMiddle() {
+        assertEquals(Arrays.asList(19, 21, 23, 25), list(StatsMenu.categorySlots(4)), "as the selector");
+        assertEquals(Collections.singletonList(22), list(StatsMenu.categorySlots(1)));
+        assertEquals(Arrays.asList(20, 22, 24), list(StatsMenu.categorySlots(3)));
+        assertEquals(Arrays.asList(18, 20, 22, 24, 26), list(StatsMenu.categorySlots(5)));
+        assertEquals(Arrays.asList(18, 19, 20, 21, 22, 23), list(StatsMenu.categorySlots(6)), "side by side above five");
+    }
+
+    private static List<Integer> list(int[] slots) {
+        List<Integer> list = new ArrayList<>();
+        for (int slot : slots) {
+            list.add(slot);
+        }
+        return list;
+    }
+
+    @Test
+    void eachModeIsInItsCategory() throws Exception {
+        LobbySettings settings = LobbySettings.load(LobbySettingsTest.bundledConfig());
+        List<String> categories = new ArrayList<>();
+        for (ModeCategory category : settings.categories()) {
+            categories.add(category.id());
+        }
+        assertEquals(Arrays.asList("entrainement", "ranked", "duels", "arenes"), categories);
+        List<String> duels = ids(StatsMenu.modesOf(settings.modes(), "duels", categories));
+        assertTrue(duels.contains("sumo"));
+        assertFalse(duels.contains("ffa"));
+        assertTrue(ids(StatsMenu.modesOf(settings.modes(), "arenes", categories)).contains("ffa"));
+        int each = 0;
+        for (String category : categories) {
+            each += StatsMenu.modesOf(settings.modes(), category, categories).size();
+        }
+        assertEquals(settings.modes().size(), each, "every mode in one category");
+        assertTrue(StatsMenu.modesOf(settings.modes(), StatsMenu.OTHER, categories).isEmpty(),
+                "the bundled modes all have a category of the selector");
+    }
+
+    @Test
+    void aCategorySumsItsModes() {
+        ModeStats sumo = new ModeStats();
+        sumo.wins = 3;
+        sumo.losses = 1;
+        sumo.kills = 9;
+        sumo.deaths = 4;
+        sumo.bestStreak = 3;
+        ModeStats bedFight = new ModeStats();
+        bedFight.wins = 2;
+        bedFight.losses = 2;
+        bedFight.draws = 1;
+        bedFight.finalKills = 5;
+        bedFight.finalDeaths = 2;
+        bedFight.beds = 4;
+        bedFight.bestStreak = 2;
+        ModeStats untouched = new ModeStats();
+        StatsMenu.Totals totals = StatsMenu.totals(Arrays.asList(sumo, null, bedFight, untouched), "2026-11-21", "2026-W47");
+        assertEquals(5, totals.wins);
+        assertEquals(3, totals.losses);
+        assertEquals(9, totals.games(), "the draws are played too");
+        assertEquals(9, totals.kills);
+        assertEquals(4, totals.deaths);
+        assertEquals(5, totals.finalKills);
+        assertEquals(2, totals.finalDeaths);
+        assertEquals(4, totals.beds);
+        assertEquals(3, totals.bestStreak, "the best of the modes, not their sum");
+        assertEquals(2, totals.played, "a mode without a game is not played");
+    }
 }

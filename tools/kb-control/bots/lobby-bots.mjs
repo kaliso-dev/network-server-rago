@@ -18,7 +18,8 @@
 //      RagoDeux walks off the platform three times, so RagoUn wins 3 - 0;
 //   4. both come back to the lobby (0 in queue again under the Duels NPC), and read their own stats above the stats NPC and on the
 //      leaderboard wall (RagoUn first with one win, and three kills); a click on the stats NPC opens
-//      the stats menu; the XP bar shows the Network level; clicks on the main leaderboard go from the
+//      the stats menu (its categories: the Duels hold the sumo's win, a click shows the sumo, Back
+//      returns); the XP bar shows the Network level; clicks on the main leaderboard go from the
 //      Network level to the Elo, the FKDR, the kills (a click on their period line: the kills of the
 //      week) and the games played; the sumo of the Duels NPC shows RagoUn first in the top win
 //      streaks of the day;
@@ -497,14 +498,36 @@ async function checkStats (one, two) {
   one.activateEntity(npc)
   const window = await Promise.race([opened, sleep(5000).then(() => null)])
   if (window == null) throw new Error('a click on the stats NPC did not open a menu')
-  const title = typeof window.title === 'string' ? window.title : JSON.stringify(window.title)
+  const title = windowTitle(window)
   if (!title.includes('Your stats')) throw new Error(`the stats NPC opened ${title}`)
-  const sumo = window.slots.find((item) => item?.name === 'slime_ball')
+  // the first page: the categories of the selector, the Duels (an iron sword) with the sumo's win and kills
+  const duelsSlot = window.slots.findIndex((item, slot) => slot < window.inventoryStart && item?.name === 'iron_sword')
+  const duels = JSON.stringify(window.slots[duelsSlot]?.nbt ?? null)
+  if (duelsSlot < 0 || !duels.includes('Wins: §a1') || !duels.includes('Kills: §a3')) {
+    throw new Error(`no Duels category with the sumo's win and kills in the stats menu: ${duels}`)
+  }
+  // a click on it: its modes, the sumo (its slime ball) with its stats
+  const modesOpened = new Promise((resolve) => one.once('windowOpen', resolve))
+  one.clickWindow(duelsSlot, 0, 0).catch(() => {})
+  const modes = await Promise.race([modesOpened, sleep(5000).then(() => null)])
+  if (modes == null || !windowTitle(modes).includes('Your stats: Duels')) {
+    throw new Error(`a click on the Duels of the stats menu opened ${modes == null ? 'nothing' : windowTitle(modes)}`)
+  }
+  const sumo = modes.slots.find((item, slot) => slot < modes.inventoryStart && item?.name === 'slime_ball')
   const lore = JSON.stringify(sumo?.nbt ?? null)
   if (!lore.includes('Wins: §a1')) throw new Error(`no sumo win in the stats menu: ${lore}`)
   if (!lore.includes('Kills: §a3')) throw new Error(`no sumo kills in the stats menu: ${lore}`)
-  one.closeWindow(window)
-  log('stats: each bot reads its own profile, the leaderboard has RagoUn first, the menu opens')
+  // Back: the categories again
+  const backOpened = new Promise((resolve) => one.once('windowOpen', resolve))
+  one.clickWindow(0, 0, 0).catch(() => {})
+  const back = await Promise.race([backOpened, sleep(5000).then(() => null)])
+  if (back == null || windowTitle(back).includes(':') ||
+    !back.slots.some((item, slot) => slot < back.inventoryStart && item?.name === 'iron_sword')) {
+    throw new Error(`Back in the stats menu opened ${back == null ? 'nothing' : windowTitle(back)}`)
+  }
+  one.closeWindow(back)
+  log('stats: each bot reads its own profile, the leaderboard has RagoUn first, the menu opens on the categories, ' +
+    'the Duels show the sumo, Back returns')
   // Three points: three kills for RagoUn, three deaths for RagoDeux.
   await expectFloating(one, 'Kills: 3 · Final kills: 0', 'the kills of the winner')
   await expectFloating(two, 'Kills: 0 · Final kills: 0', 'the kills of the loser')
