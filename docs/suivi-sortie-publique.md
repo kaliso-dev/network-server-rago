@@ -158,9 +158,9 @@ informations manquantes.
 | --- | --- | --- | --- | --- | --- | --- |
 | 4.1 | Party Replay : les membres de la party rejoignent le replay | Replays | P2 | IMPLÉMENTÉ : `/p warp` du chef dans un replay ; test réel à 2 bots passé en CI (Java 8) ; à voir en jeu | `ReplayService`, `ReplayViewer`, `Parties` | — |
 | 4.1b | Sons dans les replays : étude de faisabilité | Replays | P3 | TESTÉ en CI : faisable ; sons envoyés par le serveur et blocs cassés enregistrés et rejoués ; test unitaire et test réel à 2 bots passés (run 339) ; à écouter en jeu | `ReplayRecorder`, `ReplayData` | — |
-| 4.2 | `/host` : annonce cliquable toutes les 10 s ; inscription gardée sans téléporter ; départ quand assez de joueurs | Events | P1 | TESTÉ en CI (21/11, run 346, Java 8 et 21) : ton choix « Les sortir de leur partie » : au lancement, les inscrits encore en partie la quittent comme avec /spawn et vont à l'event ; test réel à 3 bots passé ; à voir en jeu | `Events`, `EventGame`, `PracticeHost`, `HostWatcher` | — |
-| 4.3 | Kit Editor plus clair et trié | Kits | P2 | TESTÉ en CI (21/11, run 342, Java 8 et 21) : kits rangés par catégorie et par nom, « Also for », Save et Cancel ramènent à la liste ; à voir en jeu | `KitEditor`, `KitLayouts` | — |
-| 4.4 | Menu Stats : présentation, catégories, navigation | Stats | P2 | TESTÉ en CI (21/11, run 343, Java 8 et 21) : une page des catégories du sélecteur avec les totaux de chacune, un clic montre ses modes, Go back ramène aux catégories ; à voir en jeu | `StatsMenu` | — |
+| 4.2 | `/host` : annonce cliquable toutes les 10 s ; inscription gardée sans téléporter ; départ quand assez de joueurs | Events | P1 | TESTÉ en CI (21/11, run 346, Java 8 et 21) : ton choix « Les sortir de leur partie » : au lancement, les inscrits encore en partie la quittent comme avec /spawn et vont à l'event ; test réel à 3 bots passé ; installé sur ton serveur le 21/11 (build 346, sauvegarde `sauvegarde-avant-maj-21-11d`) ; à voir en jeu | `Events`, `EventGame`, `PracticeHost`, `HostWatcher` | — |
+| 4.3 | Kit Editor plus clair et trié | Kits | P2 | TESTÉ en CI (21/11, run 342, Java 8 et 21) : kits rangés par catégorie et par nom, « Also for », Save et Cancel ramènent à la liste ; installé sur ton serveur le 21/11 (build 346, sauvegarde `sauvegarde-avant-maj-21-11d`) ; à voir en jeu | `KitEditor`, `KitLayouts` | — |
+| 4.4 | Menu Stats : présentation, catégories, navigation | Stats | P2 | TESTÉ en CI (21/11, run 343, Java 8 et 21) : une page des catégories du sélecteur avec les totaux de chacune, un clic montre ses modes, Go back ramène aux catégories ; installé sur ton serveur le 21/11 (build 346, sauvegarde `sauvegarde-avant-maj-21-11d`) ; à voir en jeu | `StatsMenu` | — |
 | 4.5 | `/discord` et `/store` avec les liens officiels | Cmd | P1 | BLOQUÉ | `config.yml` (`liens`), `ServerSettings` | liens officiels (C6) |
 
 ### Étape 6 : lobby (Phase 5)
@@ -169,13 +169,13 @@ informations manquantes.
 | --- | --- | --- | --- | --- | --- | --- |
 | 5.1 | Direction artistique : moins de rouge, identité Rago gardée | DA | P2 | À FAIRE | `Brand`, `config.yml`, menus, scoreboard | palette à valider |
 | 5.2 | Build monumental « RAGO PRACTICE » (rocheux, angélique, stone, void), sans détruire le spawn : plan précis d'abord | Build | P2 | BLOQUÉ | monde `lobby` | image de référence |
-| 5.3 | Blocs sous PNJ : Jouer quartz, Stats fer, Shop émeraude | Lobby | P1 | TESTÉ en CI (21/11, runs 345 et 346, Java 8 et 21) : `bloc:` sous chaque PNJ dans config.yml ; quartz sous les 5 PNJ pour jouer, fer sous les PNJ de stats, émeraude sous le Shop ; à voir en jeu | `Pedestal`, `LobbyNpcs`, `LobbySettings`, `config.yml` (`pnj:`) | — |
-| 5.4a | `NewQuest` relié aux quêtes | Lobby | P1 | TESTÉ en CI (21/11, runs 345 et 346 : compilation, tests unitaires, test du lobby) : le PNJ des quêtes (clic = `/quests`) va sur le point choisi par `point-pnj-quetes:` (`newquest` pour ton serveur) ; à voir en jeu | `QuestsNpc`, `LobbySettings`, point `newquest` | — |
-| 5.4b | `NewShop` sur émeraude | Lobby | P1 | TESTÉ en CI (21/11, runs 345 et 346 : compilation, tests unitaires, test du lobby) : le PNJ Shop passe du point `shop` au point `newshop` (config de ton serveur), sur ton bloc d'émeraude ; à voir en jeu | `LobbyNpcs`, `Pedestal`, point `newshop` | — |
-| 5.4c | `NewDailyChest` sur diamant | Lobby | P1 | TESTÉ en CI (21/11, runs 345 et 346 : compilation, tests unitaires, test du lobby) : le coffre du jour va sur le point choisi par `point-coffre-du-jour:` (`newdailychest` pour ton serveur), sur ton bloc de diamant ; à voir en jeu | `DailyChest`, `LobbySettings`, point `newdailychest` | — |
+| 5.3 | Blocs sous PNJ : Jouer quartz, Stats fer, Shop émeraude | Lobby | P1 | TESTÉ en CI (21/11, runs 345 et 346, Java 8 et 21) : `bloc:` sous chaque PNJ dans config.yml ; quartz sous les 5 PNJ pour jouer, fer sous les PNJ de stats, émeraude sous le Shop ; installé sur ton serveur le 21/11 (build 346, sauvegarde `sauvegarde-avant-maj-21-11d`) ; à voir en jeu | `Pedestal`, `LobbyNpcs`, `LobbySettings`, `config.yml` (`pnj:`) | — |
+| 5.4a | `NewQuest` relié aux quêtes | Lobby | P1 | TESTÉ en CI (21/11, runs 345 et 346 : compilation, tests unitaires, test du lobby) : le PNJ des quêtes (clic = `/quests`) va sur le point choisi par `point-pnj-quetes:` (`newquest` pour ton serveur) ; installé sur ton serveur le 21/11 (build 346, sauvegarde `sauvegarde-avant-maj-21-11d`) ; à voir en jeu | `QuestsNpc`, `LobbySettings`, point `newquest` | — |
+| 5.4b | `NewShop` sur émeraude | Lobby | P1 | TESTÉ en CI (21/11, runs 345 et 346 : compilation, tests unitaires, test du lobby) : le PNJ Shop passe du point `shop` au point `newshop` (config de ton serveur), sur ton bloc d'émeraude ; installé sur ton serveur le 21/11 (build 346, sauvegarde `sauvegarde-avant-maj-21-11d`) ; à voir en jeu | `LobbyNpcs`, `Pedestal`, point `newshop` | — |
+| 5.4c | `NewDailyChest` sur diamant | Lobby | P1 | TESTÉ en CI (21/11, runs 345 et 346 : compilation, tests unitaires, test du lobby) : le coffre du jour va sur le point choisi par `point-coffre-du-jour:` (`newdailychest` pour ton serveur), sur ton bloc de diamant ; installé sur ton serveur le 21/11 (build 346, sauvegarde `sauvegarde-avant-maj-21-11d`) ; à voir en jeu | `DailyChest`, `LobbySettings`, point `newdailychest` | — |
 | 5.5 | Daily Chest : animation à suspense, Rago Points 100–500, XP 100–2000, cosmétiques, probabilités configurables, jamais de doublon | Lobby | P2 | À FAIRE | `DailyChest`, `LobbyPoints`, `Cosmetic` | probabilités |
 | 5.6A | `RagoClient` et `RagoOptimizer` : nom, skin, diamant, liens au clic, texte « OUR OTHER PRODUCTS », visuels publicitaires existants derrière | Lobby | P2 | BLOQUÉ | `LobbyNpcs`, `Billboards`, `panneaux/` | liens, skins |
-| 5.6B | `qRago` (Owner) et `Kalisodev` (kaliso_dev, Dev) sur obsidienne, surélevés d'un bloc | Lobby | P2 | TESTÉ en CI (21/11, runs 345 et 346, Java 8 et 21), sauf le skin lu chez Mojang : PNJ `type: personne` sur tes points `qrago` et `kalisodev`, « [OWNER] qRago » et « [DEV] kaliso_dev » (les préfixes de `rangs:`), skin de leur compte Minecraft lu chez Mojang (`skin-joueur:`), sur obsidienne un bloc plus haut ; à voir en jeu | `LobbyNpc`, `LobbyNpcs`, `AccountSkins`, `LobbySettings`, `config.yml` | — |
+| 5.6B | `qRago` (Owner) et `Kalisodev` (kaliso_dev, Dev) sur obsidienne, surélevés d'un bloc | Lobby | P2 | TESTÉ en CI (21/11, runs 345 et 346, Java 8 et 21), sauf le skin lu chez Mojang : PNJ `type: personne` sur tes points `qrago` et `kalisodev`, « [OWNER] qRago » et « [DEV] kaliso_dev » (les préfixes de `rangs:`), skin de leur compte Minecraft lu chez Mojang (`skin-joueur:`), sur obsidienne un bloc plus haut ; installé sur ton serveur le 21/11 (build 346, sauvegarde `sauvegarde-avant-maj-21-11d`) ; à voir en jeu | `LobbyNpc`, `LobbyNpcs`, `AccountSkins`, `LobbySettings`, `config.yml` | — |
 | 5.6C | `jncl` et `nativ` (affiché woryes, skin Woryes), rôle Mod en jaune clair | Lobby | P2 | BLOQUÉ | `LobbyNpcs`, `RankDef` | pseudo Woryes, C7 |
 | 5.7 | Texte de remerciement en anglais, fidèle à ton histoire, avec le Discord, à valider avant intégration | Lobby | P2 | À FAIRE | point `textremerciement`, `FakeHologram` | lien Discord |
 | 5.8 | Revoir les skins des PNJ du lobby | Lobby | P2 | À FAIRE | `NpcSkins`, `skins.yml` | — |
@@ -253,7 +253,7 @@ kaliso_dev, rôle : Dev, bloc : obsidienne, position : surélevé d'un bloc ».
   en Steve. Un PNJ en attente porte Steve.
 - Le config.yml fourni place `qrago` (nom qRago, rang owner, skin du compte qRago) et `kalisodev`
   (nom kaliso_dev, rang dev, skin du compte kaliso_dev), `bloc: OBSIDIAN` tous les deux.
-- Pour ton serveur (pas encore installé) : les mêmes lignes à ajouter dans ton config.yml.
+- Pour ton serveur : les mêmes lignes ajoutées à ton config.yml (installé le 21/11, voir 5.3 et 5.4).
 
 **Tests** : `PersonNpcTest` (qRago et kaliso_dev du config.yml fourni : leur
 genre, leur compte, leur nom « §4[OWNER] §4qRago » et « §b[DEV] §bkaliso_dev », l'obsidienne ;
@@ -304,7 +304,8 @@ quotidiennes. Le placer sur un bloc de diamant. »
   `pnj.<point>.bloc`.
 - **5.4** : `point-coffre-du-jour:` et `point-pnj-quetes:` dans config.yml choisissent les points du
   coffre et du PNJ des quêtes (`daily` et `quests` sans eux, comme avant).
-- Pour ton serveur (pas encore installé) : `serveur-de-test/install-pnj-blocs/appliquer-config.py`
+- Pour ton serveur (**installé le 21/11**, build 346 ; ton ancien config.yml est dans
+  `sauvegarde-avant-maj-21-11d\plugins\RagoLobby\`) : `serveur-de-test/install-pnj-blocs/appliquer-config.py`
   ajoute ces blocs à ton config.yml, passe le PNJ Shop sur le point `newshop` avec l'émeraude, et
   met `point-coffre-du-jour: newdailychest` et `point-pnj-quetes: newquest`. Rien d'autre ne
   change dans ton config.yml.
@@ -325,7 +326,8 @@ sur du fer.
   ou à l'ouest), comme ton émeraude sous `newshop`.
 - CI runs 345 (commit 4923f7d) et 346 (commit 503eb0a) : compilation, tests unitaires et test du
   lobby **passés** sur Java 8 et Java 21 (le PNJ Duels sur le quartz, le PNJ de stats sur le fer).
-- Pas encore vu avec un vrai client, ni installé sur ton serveur.
+- Installé sur ton serveur le 21/11 (build 346, plugins et config.yml du lobby vérifiés octet par
+  octet, anciens dans `sauvegarde-avant-maj-21-11d`) ; pas encore vu avec un vrai client.
 
 ### 4.4 Menu Stats — TESTÉ EN CI (21/11)
 
