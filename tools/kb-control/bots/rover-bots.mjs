@@ -14,6 +14,9 @@
 //      the last one in wins.
 //   5. Red Rover Block Edit (red-rover-block-edit): a fighter leaves during the 1v1, the one who
 //      waited comes in against the other; then that one leaves too: the last one in wins.
+//   6. Red Rover Top Bridge (red-rover-top-bridge, in RagoBedwars, on its demo map): a fighter
+//      walks off the side of the top bridge, the other wins the round, so the 1v1 (one round of one
+//      life); the next one; the one who waits leaves, then a fighter: the last one in wins.
 //
 // Environment: KB_HOST (127.0.0.1), KB_PORT (25565).
 
@@ -22,7 +25,7 @@ import mineflayer from 'mineflayer'
 
 const HOST = process.env.KB_HOST ?? '127.0.0.1'
 const PORT = Number(process.env.KB_PORT ?? '25565')
-const TEST_TIMEOUT_MS = 4 * 60 * 1000
+const TEST_TIMEOUT_MS = 5 * 60 * 1000
 
 let finishing = false
 /** The vector class of mineflayer's positions (from the first bot): new Vec3(x, y, z). */
@@ -166,6 +169,17 @@ async function walkOff (bot, other) {
   bot.setControlState('forward', true)
 }
 
+/** The bot walks across the line to the other one, off the side of the top bridge. */
+async function walkSideways (bot, other) {
+  const p = bot.entity.position
+  const q = other.entity.position
+  const length = Math.hypot(q.x - p.x, q.z - p.z) || 1
+  const dx = -(q.z - p.z) / length
+  const dz = (q.x - p.x) / length
+  await bot.lookAt(p.offset(dx * 20, 1.62, dz * 20), true)
+  bot.setControlState('forward', true)
+}
+
 /** The three in the queue of this Red Rover, together: its two fighters once the fight is on. */
 async function start (bots, mode, name) {
   const from = bots.map(mark)
@@ -231,6 +245,36 @@ async function blockEdit (bots) {
   log(`block edit: ${b.username} left too, ${waiting.username} wins`)
 }
 
+async function topBridge (bots) {
+  const [a, b] = await start(bots, 'red-rover-top-bridge', 'Red Rover Top Bridge')
+  const waiting = bots.find((bot) => bot !== a && bot !== b)
+  // a off the side of the bridge: b wins the round, so the 1v1; b stays on against the one who waited
+  let from = bots.map(mark)
+  await walkSideways(a, b)
+  try {
+    await chatLine(b, new RegExp(`${b.username} wins the 1v1 \\(1/3\\)`), 15000, from[bots.indexOf(b)])
+  } finally {
+    a.clearControlStates()
+  }
+  for (let i = 0; i < bots.length; i++) {
+    await chatLine(bots[i], new RegExp(`Next: ${b.username} vs ${waiting.username} \\(${a.username} waits\\)`), 5000, from[i])
+  }
+  const [c, d] = await fighters(bots, 'the second 1v1 of the top bridge')
+  if (![c, d].includes(b) || ![c, d].includes(waiting)) {
+    throw new Error(`top bridge, 1v1 2: ${c.username} vs ${d.username}, not ${b.username} vs ${waiting.username}`)
+  }
+  if (a.game.gameMode !== 'spectator') throw new Error(`${a.username} lost and does not watch: ${a.game.gameMode}`)
+  log(`top bridge: ${b.username} won the 1v1, ${a.username} off the bridge; ${b.username} stays on against ${waiting.username}`)
+  // the one who waits leaves, then a fighter: the last one in wins
+  from = await leaves(a, [b, waiting])
+  await chatLine(b, new RegExp(`${a.username} left the game`), 5000, from[0])
+  from = await leaves(waiting, [b])
+  await chatLine(b, new RegExp(`${waiting.username} gave up`), 10000, from[0])
+  await chatLine(b, new RegExp(`Winner: .* - ${b.username}`), 10000, from[0])
+  await expectInLobby(b, 'after the top bridge')
+  log(`top bridge: ${a.username} who waited left, then ${waiting.username}: ${b.username} wins, the last one in`)
+}
+
 async function main () {
   const bots = []
   for (const name of ['RagoRoverUn', 'RagoRoverDeux', 'RagoRoverTrois']) bots.push(await arrive(name))
@@ -279,10 +323,12 @@ async function main () {
 
   await blockPlacement(bots)
   await blockEdit(bots)
+  await topBridge(bots)
 
   finishing = true
   log('PASSED: Red Rover Sumo, three 1v1 in turn, the winner staying on; Red Rover Block Placement and Block Edit,'
-    + ' a 1v1 won by the void, the next one, and those who leave')
+    + ' a 1v1 won by the void, the next one, and those who leave; Red Rover Top Bridge, a 1v1 won off the bridge,'
+    + ' the next one, and those who leave')
   for (const bot of bots) bot.quit()
   await sleep(500)
   process.exit(0)

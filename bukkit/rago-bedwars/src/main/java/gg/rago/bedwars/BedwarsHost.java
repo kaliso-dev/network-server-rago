@@ -14,6 +14,7 @@ import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
+import java.util.Random;
 import java.util.Set;
 import java.util.UUID;
 import java.util.WeakHashMap;
@@ -285,6 +286,9 @@ final class BedwarsHost implements MatchHost, Listener {
                 return new FfaGame(plugin, this, instance, mode.id(), name, sides, false, true);
             case BED_BREAK:
                 return new BedBreakGame(plugin, this, instance, mode.id(), name, sides, mode.playersPerMatch());
+            case RED_ROVER_TOP_BRIDGE:
+                return new RedRoverTopBridgeGame(plugin, this, instance, mode.id(), name, sides, plugin.redRover(),
+                        plugin.redRoverRounds(), new Random());
             default:
                 return new BedwarsGame(plugin, this, instance, mode.id(), name, sides);
         }

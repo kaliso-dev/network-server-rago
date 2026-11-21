@@ -4,8 +4,8 @@ Un plugin Bukkit 1.8.8 qui joue les modes Bed Wars du lobby (`bukkit/rago-lobby`
 Bedwars 1v1, 2v2, 3v3 et 4v4**, **RBW Sky Rise** en solo et en duo (et **Sky Rise Resources**), avec
 les règles d'une partie classique d'Hypixel, **First Rush** en solo et en duo (la même partie, sur deux îles voisines), les
 **parties privées** d'une party (le lobby choisit le 1v1, 2v2, 3v3 ou 4v4 selon sa taille), et
-huit jeux à part sur des maps de Bed Wars : **Top Bridge**, **Attack and Defense**, **Clutch
-Scenario**, **Bed Break Simulator**,
+neuf jeux à part sur des maps de Bed Wars : **Top Bridge**, **Red Rover Top Bridge**, **Attack
+and Defense**, **Clutch Scenario**, **Bed Break Simulator**,
 **FFA** (dont le Top Bridge FFA), **Lobby Fight** (1v1 et FFA, dans la salle d'attente de la map),
 **Invis practice** et **Fast Shop**. Chaque mode a ses maps.
 
@@ -153,6 +153,19 @@ attendent regardent depuis le dessus du milieu.
 - **Le mode Private top bridge** (le PNJ des parties privées) : un practice sans fin. Personne
   n'est éliminé : on revient en haut tout de suite après une mort, les blocs posés partent au bout de
   45 secondes, et la partie dure 30 minutes au plus. Rien ne compte dans les stats.
+
+`red-rover-top-bridge` (le jeu `red-rover-top-bridge`, `RedRoverTopBridgeGame`) est le Red Rover
+du Top Bridge (plan 6.5) : trois joueurs (une équipe de trois de la file du lobby) sur le top bridge,
+sur les maps de Top Bridge, en 1v1 chacun leur tour ; celui qui attend regarde au-dessus du pont en
+spectateur. Les deux qui se battent sont les deux équipes d'un Top Bridge 1v1 (ses deux îles, son
+kit rangé par chaque joueur) et jouent ses manches d'une vie : le premier à
+`red-rover.points-par-1v1-top-bridge` manches (1, à confirmer) gagne le 1v1, puis le 1v1 suivant
+part tout de suite sur la map refaite. Qui affronte qui et comment la partie se gagne sont ceux des
+Red Rovers du practice (`RedRoverRotation` du `rago-game-model`), avec leurs réglages : `red-rover:`
+du config.yml de **RagoPractice**, lu par ce plugin (sans RagoPractice, ou s'ils sont faux, les
+réglages par défaut, dit une fois dans la console). Au bout de `secondes-par-1v1`, celui qui a porté
+le plus de coups dans le 1v1 le gagne. Celui qui quitte est éliminé (une défaite) ; un seul gagne la
+partie, tous les autres la perdent.
 
 `top-bridge-ffa` est le FFA libre sur le pont, sur Invasion seulement : on entre et on sort quand on veut,
 chacun pour soi, avec le même stuff de combat à chaque vie. Le top bridge relie les

@@ -45,6 +45,7 @@ modes:
   bed-break-simulator-1v2: [Archway, Invasion]
   bed-break-simulator-1v3: [Archway, Invasion]
   bed-break-simulator-1v4: [Archway, Invasion]
+  red-rover-top-bridge: [Antenna, Aquarium, Archway, Artemis, Boletum, Carapace, Catalyst, Chained, Eastwood, Extinction, Invasion, Katsu, Lectus, Obelisk, Paladin, Planet98, Rise, Stonekeep, Swashbuckle, Treenan]
 
 # The modes that are not a classic Bed Wars game, each with its kind of game:
 #   ffa        free for all, open: players join and leave when they like, each for themselves, and
@@ -120,6 +121,12 @@ modes:
 #              stone under glass), back 5 seconds after a death; everyone in iron armour,
 #              Protection II, no Sharpness; a bed broken or the attacker killed gives a point; it
 #              starts as the invis practice
+#   red-rover-top-bridge  Red Rover Top Bridge (plan 6.5): three players (one team of the lobby's
+#              queue) on the top bridge of Top Bridge, on its maps, in 1v1 in turn; who waits
+#              watches above the bridge. A 1v1 is played as Top Bridge (one life a round, the kit of
+#              Top Bridge 1v1); who fights next and how the game is won, as in the Red Rovers of the
+#              practice plugin: their settings, red-rover in the config.yml of RagoPractice
+#              (points-par-1v1-top-bridge: the rounds that win a 1v1)
 # A mode not listed is a classic game.
 jeux:
   top-bridge-1v1: top-bridge
@@ -146,6 +153,7 @@ jeux:
   bed-break-simulator-1v2: bed-break
   bed-break-simulator-1v3: bed-break
   bed-break-simulator-1v4: bed-break
+  red-rover-top-bridge: red-rover-top-bridge
 
 # Attack and Defense: the kits each player chooses from before each round, in a menu that opens by
 # itself (/kit opens it again); the countdown is 10 seconds, 3 once everyone has chosen. The

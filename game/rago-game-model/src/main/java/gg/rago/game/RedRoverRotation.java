@@ -1,4 +1,4 @@
-package gg.rago.practice;
+package gg.rago.game;
 
 import java.util.ArrayList;
 import java.util.Collections;
@@ -11,12 +11,14 @@ import java.util.Map;
  * waiting. After each 1v1, the one who stays (the winner, or the loser, as the settings say) fights
  * the one who waited longest, and the other one waits. Two ways to win: the first to a number of
  * 1v1 won (points), or the last one in, a lost 1v1 being out (elimination: the winner stays).
- * No Bukkit here: the players are whatever T is (their UUID in the game).
+ * No Bukkit here: the players are whatever T is (their UUID in the game). Shared by the Red Rovers
+ * of RagoPractice (Sumo, Block Edit, Block Placement) and of RagoBedwars (Top Bridge), with their
+ * settings ({@link Settings}).
  */
-final class RedRoverRotation<T> {
+public final class RedRoverRotation<T> {
 
     /** How the game is won. */
-    enum Variant {
+    public enum Variant {
         /** The first to a number of 1v1 won wins the game. */
         POINTS,
         /** The loser of a 1v1 is out; the last one in wins the game. */
@@ -24,7 +26,80 @@ final class RedRoverRotation<T> {
     }
 
     /** Who stays on for the next 1v1 (with points; in an elimination, the winner, since the loser is out). */
-    enum Stays { WINNER, LOSER }
+    public enum Stays { WINNER, LOSER }
+
+    /**
+     * The settings of every Red Rover: red-rover in the config.yml of RagoPractice (variante,
+     * reste, points-pour-gagner, secondes-par-1v1), which RagoBedwars reads too.
+     */
+    public static final class Settings {
+        /** The settings when those of config.yml are wrong or missing: the bundled ones. */
+        public static final Settings DEFAULTS = new Settings(Variant.POINTS, Stays.WINNER, 3, 90);
+
+        public final Variant variant;
+        public final Stays stays;
+        /** With points: the 1v1 won to win the game. */
+        public final int target;
+        /** A 1v1 ends after this long (0: never): the one who landed more hits wins it. */
+        public final int roundSeconds;
+
+        public Settings(Variant variant, Stays stays, int target, int roundSeconds) {
+            this.variant = variant;
+            this.stays = stays;
+            this.target = target;
+            this.roundSeconds = roundSeconds;
+        }
+
+        /** The settings of these words and numbers of config.yml, or null if one is wrong (see {@link #check}). */
+        public static Settings of(String variant, String stays, int target, int roundSeconds) {
+            return check(variant, stays, target, roundSeconds) != null ? null
+                    : new Settings(variantOf(variant), staysOf(stays), target, roundSeconds);
+        }
+
+        /** The variant of its word in config.yml (points, elimination), or null. */
+        public static Variant variantOf(String word) {
+            if ("points".equalsIgnoreCase(word)) {
+                return Variant.POINTS;
+            }
+            if ("elimination".equalsIgnoreCase(word)) {
+                return Variant.ELIMINATION;
+            }
+            return null;
+        }
+
+        /** Who stays on of its word in config.yml (gagnant, perdant), or null. */
+        public static Stays staysOf(String word) {
+            if ("gagnant".equalsIgnoreCase(word)) {
+                return Stays.WINNER;
+            }
+            if ("perdant".equalsIgnoreCase(word)) {
+                return Stays.LOSER;
+            }
+            return null;
+        }
+
+        /** What is wrong with these values, or null. */
+        public static String check(String variant, String stays, int target, int roundSeconds) {
+            if (variantOf(variant) == null) {
+                return "variante must be points or elimination";
+            }
+            if (staysOf(stays) == null) {
+                return "reste must be gagnant or perdant";
+            }
+            if (target < 1 || target > 10) {
+                return "points-pour-gagner must be from 1 to 10";
+            }
+            if (roundSeconds < 0 || roundSeconds > 600) {
+                return "secondes-par-1v1 must be from 0 (no limit) to 600";
+            }
+            return null;
+        }
+
+        /** What the game is won by, for the players: "First to 3" or "Elimination". */
+        public String goal() {
+            return variant == Variant.POINTS ? "First to " + target : "Elimination";
+        }
+    }
 
     private final Variant variant;
     private final Stays stays;
@@ -39,7 +114,7 @@ final class RedRoverRotation<T> {
     private final List<T> in = new ArrayList<>();
 
     /** Two players at least, in the order they come in: the first two fight first. */
-    RedRoverRotation(List<T> order, Variant variant, Stays stays, int target) {
+    public RedRoverRotation(List<T> order, Variant variant, Stays stays, int target) {
         if (order.size() < 2) {
             throw new IllegalArgumentException("a Red Rover needs two players at least");
         }
@@ -55,46 +130,46 @@ final class RedRoverRotation<T> {
         waiting.addAll(order.subList(2, order.size()));
     }
 
-    Variant variant() {
+    public Variant variant() {
         return variant;
     }
 
-    int target() {
+    public int target() {
         return target;
     }
 
     /** The two who fight now (empty once the game is won). */
-    List<T> fight() {
+    public List<T> fight() {
         return Collections.unmodifiableList(fight);
     }
 
     /** The ones who wait, the next to fight first. */
-    List<T> waiting() {
+    public List<T> waiting() {
         return Collections.unmodifiableList(waiting);
     }
 
-    boolean fights(T player) {
+    public boolean fights(T player) {
         return fight.contains(player);
     }
 
     /** True while the player is in the game (not out, not gone). */
-    boolean isIn(T player) {
+    public boolean isIn(T player) {
         return in.contains(player);
     }
 
     /** The players still in. */
-    List<T> players() {
+    public List<T> players() {
         return Collections.unmodifiableList(in);
     }
 
     /** The 1v1 this player won. */
-    int wins(T player) {
+    public int wins(T player) {
         Integer won = wins.get(player);
         return won == null ? 0 : won;
     }
 
     /** Everyone of the start, gone or not, with their 1v1 won. */
-    Map<T, Integer> scores() {
+    public Map<T, Integer> scores() {
         return Collections.unmodifiableMap(wins);
     }
 
@@ -102,7 +177,7 @@ final class RedRoverRotation<T> {
      * This fighter won the 1v1: the winner of the game if that makes one, else null and the next
      * 1v1 is set.
      */
-    T won(T winner) {
+    public T won(T winner) {
         if (!fight.contains(winner)) {
             throw new IllegalArgumentException(winner + " does not fight now");
         }
@@ -133,7 +208,7 @@ final class RedRoverRotation<T> {
      * is left (the winner), else null; a fighter who left is replaced by the next who waits, the
      * other fighter staying on.
      */
-    T left(T player) {
+    public T left(T player) {
         if (!in.remove(player)) {
             return null;
         }

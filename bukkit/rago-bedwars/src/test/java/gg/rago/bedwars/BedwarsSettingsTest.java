@@ -83,8 +83,11 @@ class BedwarsSettingsTest {
                 "attack-defense-1v1", "attack-defense-2v2", "clutch-scenario-1v1", "clutch-scenario-2v2",
                 "clutch-scenario-3v3", "clutch-scenario-4v4", "bed-fight-1v1", "bed-fight-2v2", "top-bed-fight-1v1",
                 "lobby-fight-1v1", "lobby-fight-ffa", "bed-break-simulator-1v1", "bed-break-simulator-1v2",
-                "bed-break-simulator-1v3", "bed-break-simulator-1v4"),
+                "bed-break-simulator-1v3", "bed-break-simulator-1v4", "red-rover-top-bridge"),
                 settings.modes());
+        assertEquals(BedwarsSettings.Kind.RED_ROVER_TOP_BRIDGE, settings.kind("red-rover-top-bridge"));
+        assertEquals(settings.mapsOf("top-bridge-1v1"), settings.mapsOf("red-rover-top-bridge"),
+                "Red Rover Top Bridge on the maps of Top Bridge");
         for (int defenders = 1; defenders <= 4; defenders++) {
             String size = "bed-break-simulator-1v" + defenders;
             assertEquals(BedwarsSettings.Kind.BED_BREAK, settings.kind(size), size);

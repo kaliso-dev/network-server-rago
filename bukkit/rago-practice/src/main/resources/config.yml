@@ -376,7 +376,9 @@ snowball-spleef:
 # Red Rover (plan 6.5, solution 1): three players in 1v1, in turn; the one who waits watches. Each
 # 1v1 is a round of its mode: the sumo (on sumo.cartes, or a platform of sumo.rayon), the block
 # edit (a clean edit), the block placement (on block-fight.cartes: the first to
-# points-par-1v1-block-placement, a hit +1, a fall into the void +10). The same settings for all.
+# points-par-1v1-block-placement, a hit +1, a fall into the void +10, chosen by the owner), the top
+# bridge (in RagoBedwars, on the maps of Top Bridge: the first to points-par-1v1-top-bridge rounds
+# of one life). The same settings for all, the top bridge's too (RagoBedwars reads them here).
 # Starting values, to set with the owner.
 red-rover:
   # points: the first to points-pour-gagner 1v1 won wins; elimination: a lost 1v1 is out, the last
@@ -387,5 +389,7 @@ red-rover:
   points-pour-gagner: 3
   # a 1v1 ends after this long (0: never): the one who landed more hits wins it (as in the events)
   secondes-par-1v1: 90
-  # the block placement: the points that win a 1v1 (1 to 500; the duel plays to 100)
+  # the block placement: the points that win a 1v1 (1 to 500; the duel plays to 100), chosen by the owner
   points-par-1v1-block-placement: 10
+  # the top bridge: the rounds of one life that win a 1v1 (1 to 5; Top Bridge plays to 5), to confirm
+  points-par-1v1-top-bridge: 1

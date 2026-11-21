@@ -1,6 +1,7 @@
 package gg.rago.practice;
 
 import gg.rago.game.ArenaGrid;
+import gg.rago.game.RedRoverRotation;
 import gg.rago.lobby.api.LobbyService;
 import gg.rago.lobby.api.VoidGenerator;
 import java.io.File;
@@ -288,7 +289,7 @@ public final class RagoPractice extends JavaPlugin {
         SnowballSpleef.Settings spleef = snowballSpleef(config);
         register("snowball-spleef", (h, m, a, t) -> new SnowballSpleef(h, m, a, t, spleefPoints, spleef), slots, spacing, false);
         // Red Rover (plan 6.5), after the others too: the sumo in 1v1 in turn, on the sumo maps
-        RedRover.Settings rover = redRover(config);
+        RedRoverRotation.Settings rover = redRover(config);
         int sumoRadius = config.getInt("sumo.rayon", 7);
         onMaps(register("red-rover-sumo", (h, m, a, t) -> new RedRover(h, m, a, t, rover, sumoRadius), slots, spacing, false),
                 zoneMaps(config, "sumo.cartes", spacing, "the Red Rover Sumo"));
@@ -302,17 +303,17 @@ public final class RagoPractice extends JavaPlugin {
     }
 
     /** The settings of Red Rover (red-rover); the defaults when they are wrong. */
-    private RedRover.Settings redRover(FileConfiguration config) {
+    private RedRoverRotation.Settings redRover(FileConfiguration config) {
         String variant = config.getString("red-rover.variante", "points");
         String stays = config.getString("red-rover.reste", "gagnant");
         int target = config.getInt("red-rover.points-pour-gagner", 3);
         int seconds = config.getInt("red-rover.secondes-par-1v1", 90);
-        String problem = RedRover.Settings.check(variant, stays, target, seconds);
+        String problem = RedRoverRotation.Settings.check(variant, stays, target, seconds);
         if (problem != null) {
             getLogger().warning("red-rover in config.yml: " + problem + ". Red Rover plays with its default settings.");
-            return new RedRover.Settings(RedRoverRotation.Variant.POINTS, RedRoverRotation.Stays.WINNER, 3, 90);
+            return RedRoverRotation.Settings.DEFAULTS;
         }
-        return new RedRover.Settings(RedRover.Settings.variantOf(variant), RedRover.Settings.staysOf(stays), target, seconds);
+        return RedRoverRotation.Settings.of(variant, stays, target, seconds);
     }
 
     /** The settings of the Fireball Fight of FUN PRACTICE (fireball-knockback); the defaults when they are wrong. */
@@ -1127,6 +1128,8 @@ public final class RagoPractice extends JavaPlugin {
             {"xp-entrainement.max-par-minute", "8", "0", "100"},
             {"points-pour-gagner.bow", "10", "1", "50"},
             {"red-rover.points-par-1v1-block-placement", "10", "1", "500"},
+            // read by RagoBedwars (Red Rover Top Bridge), checked here with the other Red Rover settings
+            {"red-rover.points-par-1v1-top-bridge", "1", "1", "5"},
         };
         for (String[] range : ranges) {
             int value = config.getInt(range[0], Integer.parseInt(range[1]));

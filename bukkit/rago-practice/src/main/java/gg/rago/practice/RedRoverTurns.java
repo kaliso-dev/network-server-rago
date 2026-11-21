@@ -1,5 +1,6 @@
 package gg.rago.practice;
 
+import gg.rago.game.RedRoverRotation;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
@@ -20,7 +21,7 @@ import org.bukkit.entity.Player;
  */
 final class RedRoverTurns {
 
-    final RedRover.Settings settings;
+    final RedRoverRotation.Settings settings;
     final RedRoverRotation<UUID> rotation;
     private final PracticeGame game;
     /** The name of the mode, "Red Rover Sumo". */
@@ -29,7 +30,7 @@ final class RedRoverTurns {
     /** The hits of each fighter when this 1v1 started (the recap counts them), for the time limit. */
     private final Map<UUID, Integer> hitsBefore = new HashMap<>();
 
-    RedRoverTurns(PracticeGame game, String title, RedRover.Settings settings, Random random) {
+    RedRoverTurns(PracticeGame game, String title, RedRoverRotation.Settings settings, Random random) {
         this.game = game;
         this.title = title;
         this.settings = settings;
@@ -202,7 +203,7 @@ final class RedRoverTurns {
     List<String> sidebar(UUID viewer, int[] fightPoints) {
         List<String> lines = new ArrayList<>();
         lines.add(ChatColor.GREEN + "" + ChatColor.BOLD + title);
-        lines.add(ChatColor.GRAY + RedRover.goal(settings.variant, settings.target));
+        lines.add(ChatColor.GRAY + settings.goal());
         lines.add("");
         List<UUID> fight = rotation.fight();
         if (fight.size() == 2) {

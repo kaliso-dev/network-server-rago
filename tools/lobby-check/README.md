@@ -149,8 +149,12 @@ perdant passant spectateur ; au troisième 1v1 gagné, victoire du gagnant, déf
 et retour des trois au lobby. Ils jouent ensuite Red Rover Block Placement, sur les deux plateformes
 du plugin : un combattant sort de la sienne, le vide donne 10 à l'autre qui gagne ainsi le 1v1, et
 le 1v1 suivant l'oppose à celui qui attendait ; celui qui attend quitte la partie (`/spawn`), puis
-un combattant, et le dernier en jeu gagne. Enfin Red Rover Block Edit : un combattant quitte le
+un combattant, et le dernier en jeu gagne. Puis Red Rover Block Edit : un combattant quitte le
 1v1, celui qui attendait entre contre l'autre, puis celui-là quitte aussi et le dernier gagne.
+Enfin Red Rover Top Bridge (RagoBedwars, sur sa carte de démo `bw-demo`) : un combattant sort du
+côté du top bridge, l'autre gagne le round et donc le 1v1 (un round d'une vie), le 1v1 suivant
+l'oppose à celui qui attendait ; celui qui attend quitte la partie, puis un combattant, et le
+dernier en jeu gagne.
 
 ```bash
 ./gradlew build

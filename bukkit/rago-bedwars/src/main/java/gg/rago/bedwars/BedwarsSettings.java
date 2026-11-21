@@ -256,7 +256,13 @@ final class BedwarsSettings {
          * Bed Break Simulator: 2 to 5 players, each in turn attacks from the top bridge with a kit
          * of bed-break: to break the bed of the others, who defend with their forge full.
          */
-        BED_BREAK("bed-break");
+        BED_BREAK("bed-break"),
+        /**
+         * Red Rover Top Bridge (plan 6.5): three players or more on the top bridge, in 1v1 in turn,
+         * each 1v1 played as Top Bridge's rounds; the settings of every Red Rover (red-rover in the
+         * config.yml of RagoPractice).
+         */
+        RED_ROVER_TOP_BRIDGE("red-rover-top-bridge");
 
         /** True if this kind is played in the waiting lobby of its maps, which they must have. */
         boolean inWaitingLobby() {

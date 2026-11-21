@@ -1,6 +1,7 @@
 package gg.rago.practice;
 
 import gg.rago.game.GameMode;
+import gg.rago.game.RedRoverRotation;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
@@ -23,69 +24,14 @@ import org.bukkit.event.entity.EntityDamageEvent;
  */
 final class RedRover extends PracticeGame {
 
-    /** The settings of the mode (red-rover in config.yml). */
-    static final class Settings {
-        final RedRoverRotation.Variant variant;
-        final RedRoverRotation.Stays stays;
-        /** With points: the 1v1 won to win the game. */
-        final int target;
-        /** A 1v1 ends after this long (0: never): the one who landed more hits wins it. */
-        final int roundSeconds;
-
-        Settings(RedRoverRotation.Variant variant, RedRoverRotation.Stays stays, int target, int roundSeconds) {
-            this.variant = variant;
-            this.stays = stays;
-            this.target = target;
-            this.roundSeconds = roundSeconds;
-        }
-
-        /** The variant of its word in config.yml (points, elimination), or null. */
-        static RedRoverRotation.Variant variantOf(String word) {
-            if ("points".equalsIgnoreCase(word)) {
-                return RedRoverRotation.Variant.POINTS;
-            }
-            if ("elimination".equalsIgnoreCase(word)) {
-                return RedRoverRotation.Variant.ELIMINATION;
-            }
-            return null;
-        }
-
-        /** Who stays on of its word in config.yml (gagnant, perdant), or null. */
-        static RedRoverRotation.Stays staysOf(String word) {
-            if ("gagnant".equalsIgnoreCase(word)) {
-                return RedRoverRotation.Stays.WINNER;
-            }
-            if ("perdant".equalsIgnoreCase(word)) {
-                return RedRoverRotation.Stays.LOSER;
-            }
-            return null;
-        }
-
-        /** What is wrong with these values, or null. */
-        static String check(String variant, String stays, int target, int roundSeconds) {
-            if (variantOf(variant) == null) {
-                return "variante must be points or elimination";
-            }
-            if (staysOf(stays) == null) {
-                return "reste must be gagnant or perdant";
-            }
-            if (target < 1 || target > 10) {
-                return "points-pour-gagner must be from 1 to 10";
-            }
-            if (roundSeconds < 0 || roundSeconds > 600) {
-                return "secondes-par-1v1 must be from 0 (no limit) to 600";
-            }
-            return null;
-        }
-    }
-
     /** Distance of each fighter from the centre at the start of a 1v1 (as in the sumo). */
     static final double START_DISTANCE = 3.0;
 
     private final int radius;
     private final RedRoverTurns turns;
 
-    RedRover(PracticeHost host, GameMode mode, Arena arena, List<List<Player>> teams, Settings settings, int radius) {
+    RedRover(PracticeHost host, GameMode mode, Arena arena, List<List<Player>> teams, RedRoverRotation.Settings settings,
+            int radius) {
         super(host, mode, arena, alone(teams));
         this.radius = radius;
         this.turns = new RedRoverTurns(this, "Red Rover Sumo", settings, new Random());
@@ -100,11 +46,6 @@ final class RedRover extends PracticeGame {
             }
         }
         return sides;
-    }
-
-    /** What the game is won by, for the players: "First to 3" or "Elimination". */
-    static String goal(RedRoverRotation.Variant variant, int target) {
-        return variant == RedRoverRotation.Variant.POINTS ? "First to " + target : "Elimination";
     }
 
     @Override

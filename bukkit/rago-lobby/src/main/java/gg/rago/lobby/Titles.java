@@ -154,7 +154,7 @@ final class Titles {
                 new Family("fireball-knockback", "Fireball Fight (Fun)", Arrays.asList("fireball-knockback")),
                 new Family("snowball-spleef", "Snowball Spleef", Arrays.asList("snowball-spleef")),
                 new Family("red-rover", "Red Rover", Arrays.asList("red-rover-sumo", "red-rover-block-edit",
-                        "red-rover-block-placement")));
+                        "red-rover-block-placement", "red-rover-top-bridge")));
         return new Titles(true, steps, families);
     }
 

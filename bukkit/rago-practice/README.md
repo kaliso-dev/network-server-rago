@@ -440,7 +440,7 @@ mode joue alors avec les valeurs de départ.
 
 Trois joueurs, une party de trois ou trois joueurs de la file, en 1v1 chacun leur tour ; celui
 qui attend regarde le 1v1 en spectateur. Chaque 1v1 est une manche de son mode, avec une seconde de
-décompte entre deux, et le suivant repart sur la map telle qu'elle a été construite. Les trois
+décompte entre deux, et le suivant repart sur la map telle qu'elle a été construite. Les quatre
 modes sont un seul item, **Red Rover**, dans Duels :
 
 - **Red Rover Sumo** (`red-rover-sumo`) : sur la plateforme du sumo (ses maps `sumo.cartes`, ou
@@ -449,14 +449,19 @@ modes sont un seul item, **Red Rover**, dans Duels :
   edit propre (ouvrir, toucher, refermer avant d'être touché) gagne le 1v1 ;
 - **Red Rover Block Placement** (`red-rover-block-placement`) : le block placement en duel, sur ses
   maps `block-fight.cartes` (ou les deux plateformes du plugin) ; un coup +1, une chute dans le
-  vide +10, le premier à `points-par-1v1-block-placement` (10) gagne le 1v1.
+  vide +10, le premier à `points-par-1v1-block-placement` (10) gagne le 1v1 ;
+- **Red Rover Top Bridge** (`red-rover-top-bridge`), joué par RagoBedwars (voir son README) : sur
+  le top bridge des maps de Top Bridge, des manches d'une vie, le premier à
+  `points-par-1v1-top-bridge` manches (1) gagne le 1v1.
 
-Les deux derniers sont les duels `BlockEditDuel` et `BlockFight` joués en Red Rover
+Block Edit et Block Placement sont les duels `BlockEditDuel` et `BlockFight` joués en Red Rover
 (`Duel.asRedRover`) : chaque joueur est un camp à lui, les deux qui se battent ont une place dans le
-1v1 (rouge, bleu), et `RedRoverTurns` tient les tours pour les trois modes. Les kits sont ceux du
-block edit et du block placement 1v1, comme chaque joueur les a rangés (`kit-de:` dans le lobby).
-Les réglages, dans `red-rover:`, valent pour les trois et sont des valeurs de départ **à régler
-avec le propriétaire** :
+1v1 (rouge, bleu), et `RedRoverTurns` tient les tours pour les trois modes du practice. Qui
+affronte qui (`RedRoverRotation`) et les réglages sont dans `rago-game-model`, partagés avec
+RagoBedwars. Les kits sont ceux du block edit, du block placement 1v1 et de Top Bridge 1v1, comme
+chaque joueur les a rangés (`kit-de:` dans le lobby). Les réglages, dans `red-rover:`, valent pour
+les quatre (RagoBedwars les lit dans ce config.yml) et sont des valeurs de départ **à régler avec
+le propriétaire** :
 
 - `variante` : `points` (le premier à `points-pour-gagner` 1v1 gagnés, 3, gagne la partie) ou
   `elimination` (le perdant d'un 1v1 est éliminé, le dernier en jeu gagne) ;
@@ -465,11 +470,12 @@ avec le propriétaire** :
 - `secondes-par-1v1` (90, comme les events ; 0 : sans limite) : au bout de ce temps, celui qui a
   porté le plus de coups gagne le 1v1 ;
 - `points-par-1v1-block-placement` (10, de 1 à 500 ; le duel se joue à 100) : les points qui
-  gagnent un 1v1 de Red Rover Block Placement.
+  gagnent un 1v1 de Red Rover Block Placement (choisi par le propriétaire) ;
+- `points-par-1v1-top-bridge` (1, de 1 à 5 ; Top Bridge se joue à 5) : les manches d'une vie qui
+  gagnent un 1v1 de Red Rover Top Bridge (à confirmer).
 
 Celui qui quitte la partie est éliminé (une défaite) ; le dernier en jeu gagne. Si c'était un des
-deux combattants, celui qui attendait entre aussitôt contre l'autre. La variante Top Bridge, dans
-RagoBedwars, viendra ensuite.
+deux combattants, celui qui attendait entre aussitôt contre l'autre.
 
 ## Les events (/host)
 

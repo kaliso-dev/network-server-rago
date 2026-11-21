@@ -1,6 +1,7 @@
 package gg.rago.practice;
 
 import gg.rago.game.GameMode;
+import gg.rago.game.RedRoverRotation;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
@@ -52,7 +53,7 @@ abstract class Duel extends PracticeGame {
      * This duel played as a Red Rover named so ("Red Rover Block Edit"), its teams split a player a
      * side ({@link RedRover#alone}): before the game begins.
      */
-    Duel asRedRover(String name, RedRover.Settings settings) {
+    Duel asRedRover(String name, RedRoverRotation.Settings settings) {
         rover = new RedRoverTurns(this, name, settings, new Random());
         return this;
     }

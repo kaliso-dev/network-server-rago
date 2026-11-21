@@ -1,5 +1,6 @@
 package gg.rago.bedwars;
 
+import gg.rago.game.RedRoverRotation;
 import gg.rago.lobby.api.LobbyService;
 import gg.rago.lobby.api.ModeRecord;
 import java.io.File;
@@ -10,6 +11,8 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
 import org.bukkit.command.PluginCommand;
+import org.bukkit.configuration.ConfigurationSection;
+import org.bukkit.plugin.Plugin;
 import org.bukkit.plugin.java.JavaPlugin;
 
 /**
@@ -36,6 +39,8 @@ public final class RagoBedwars extends JavaPlugin {
     private BedwarsHost host;
     /** Those who watch a game with the lobby's /spectate. */
     private Watchers watchers;
+    /** The last problem told about the Red Rover settings, not told again. */
+    private String redRoverWarned;
 
     @Override
     public void onEnable() {
@@ -198,6 +203,46 @@ public final class RagoBedwars extends JavaPlugin {
 
     BedwarsSettings settings() {
         return settings;
+    }
+
+    /**
+     * The settings of every Red Rover, for Red Rover Top Bridge: red-rover in the config.yml of
+     * RagoPractice, where the owner sets those of all the Red Rovers; the defaults without it, or
+     * when they are wrong (told once in the log).
+     */
+    RedRoverRotation.Settings redRover() {
+        ConfigurationSection section = redRoverSection();
+        RedRoverRotation.Settings rover = section == null ? null : RedRoverTopBridgeGame.settingsOf(section);
+        if (rover == null) {
+            warnRedRover(section == null ? "no red-rover in the config.yml of RagoPractice (is it installed?)"
+                    : RedRoverTopBridgeGame.problemOf(section));
+            return RedRoverRotation.Settings.DEFAULTS;
+        }
+        return rover;
+    }
+
+    /** The rounds that win a 1v1 of Red Rover Top Bridge (red-rover.points-par-1v1-top-bridge of RagoPractice). */
+    int redRoverRounds() {
+        ConfigurationSection section = redRoverSection();
+        int rounds = section == null ? RedRoverTopBridgeGame.ROUNDS_PER_1V1 : RedRoverTopBridgeGame.roundsOf(section);
+        if (rounds < 0) {
+            warnRedRover("points-par-1v1-top-bridge must be from 1 to " + RedRoverTopBridgeGame.MAX_ROUNDS_PER_1V1);
+            return RedRoverTopBridgeGame.ROUNDS_PER_1V1;
+        }
+        return rounds;
+    }
+
+    /** red-rover in the config.yml of RagoPractice, or null. */
+    private ConfigurationSection redRoverSection() {
+        Plugin practice = getServer().getPluginManager().getPlugin("RagoPractice");
+        return practice == null ? null : practice.getConfig().getConfigurationSection("red-rover");
+    }
+
+    private void warnRedRover(String problem) {
+        if (!problem.equals(redRoverWarned)) {
+            redRoverWarned = problem;
+            getLogger().warning("Red Rover Top Bridge: " + problem + ". It plays with the default settings of Red Rover.");
+        }
     }
 
     ShopCatalog catalog() {

@@ -192,7 +192,7 @@ groupes:
       - "Three players, 1v1 in turn,"
       - "who waits watches: the sumo,"
       - "the block edit, the block"
-      - "placement."
+      - "placement, the top bridge."
   top-bridge:
     nom: "&aTop Bridge"
     icone: LADDER
@@ -986,7 +986,8 @@ titres:
     bow: {nom: "Bow Duel", modes: [bow-duel]}
     fireball-knockback: {nom: "Fireball Fight (Fun)", modes: [fireball-knockback]}
     snowball-spleef: {nom: "Snowball Spleef", modes: [snowball-spleef]}
-    red-rover: {nom: "Red Rover", modes: [red-rover-sumo, red-rover-block-edit, red-rover-block-placement]}
+    red-rover: {nom: "Red Rover", modes: [red-rover-sumo, red-rover-block-edit, red-rover-block-placement,
+        red-rover-top-bridge]}
 
 # The Hypixel import: players copy the quick buy of their Bed Wars shop and their hotbar manager
 # from Hypixel, in one click (the emerald in the kit editor book) or with /hypixel import <name>,
@@ -1690,8 +1691,8 @@ modes:
       - "the platform: great for"
       - "working on knockback."
   # Red Rover (plan 6.5): three players (a party of three, or three of the queue), 1v1 in turn on
-  # the sumo platform, at the wall of the block edit, on the block placement maps; the rules in
-  # red-rover of RagoPractice's config.yml
+  # the sumo platform, at the wall of the block edit, on the block placement maps, on the top bridge
+  # (RagoBedwars); the rules in red-rover of RagoPractice's config.yml
   red-rover-sumo:
     nom: "&aRed Rover Sumo"
     categorie: duels
@@ -1736,6 +1737,21 @@ modes:
       - "on the block placement maps:"
       - "a hit +1, the void +10, first"
       - "to 10 wins the 1v1."
+  red-rover-top-bridge:
+    nom: "&aRed Rover Top Bridge"
+    categorie: duels
+    groupe: red-rover
+    icone: LADDER
+    equipes: 1
+    joueurs-par-equipe: 3
+    format: 1v1v1
+    classe: false
+    # the kit of Top Bridge 1v1, as each player arranged it
+    kit-de: top-bridge-1v1
+    description:
+      - "Three players, 1v1 in turn"
+      - "on the top bridge: a round"
+      - "of one life wins the 1v1."
   boxing:
     nom: "&aBoxing"
     categorie: duels

@@ -206,7 +206,8 @@ for expected in '[RagoLobby] Lobby in the world lobby' '[RagoPractice] Arenas in
     'Mode block-fight-1v1 hosted by RagoPractice' 'Mode block-edit-duel hosted by RagoPractice' \
     'Mode block-edit hosted by RagoPractice' 'Mode snowball-spleef hosted by RagoPractice' \
     'Mode fireball-knockback hosted by RagoPractice' 'Mode red-rover-sumo hosted by RagoPractice' \
-    'Mode red-rover-block-edit hosted by RagoPractice' 'Mode red-rover-block-placement hosted by RagoPractice'; do
+    'Mode red-rover-block-edit hosted by RagoPractice' 'Mode red-rover-block-placement hosted by RagoPractice' \
+    'Mode red-rover-top-bridge hosted by RagoBedwars'; do
   server_log_has "$expected" || { grep -n 'Rago' "$SERVER_LOG" >&2 || true; fail "missing in the server log: $expected"; }
 done
 log "server started with the lobby and the practice modes"
@@ -225,7 +226,8 @@ KB_HOST=127.0.0.1 KB_PORT=$PORT node "$ROOT/tools/kb-control/bots/spectate-bots.
 # The same server for FUN PRACTICE: two bots, a Snowball Spleef then a Fireball Fight.
 fun_status=0
 KB_HOST=127.0.0.1 KB_PORT=$PORT node "$ROOT/tools/kb-control/bots/fun-bots.mjs" || fun_status=$?
-# The same server for Red Rover Sumo: three bots, three 1v1 in turn.
+# The same server for Red Rover: three bots, the sumo (three 1v1 in turn), the block placement, the
+# block edit, and the top bridge (RagoBedwars, on its demo map).
 rover_status=0
 KB_HOST=127.0.0.1 KB_PORT=$PORT node "$ROOT/tools/kb-control/bots/rover-bots.mjs" || rover_status=$?
 stop_server

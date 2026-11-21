@@ -88,7 +88,7 @@
       ],
       "description": "Bed fight, Top BedFight, top bridge, bridge fight, block placement in 1v1 or 2v2; Lobby Fight, sumo, boxing, KB displace, fireball fight, bow. /duel a player to challenge them.",
       "skin": "duels",
-      "modes": 19
+      "modes": 20
     },
     {
       "id": "arenes",
@@ -183,11 +183,12 @@
     {
       "id": "red-rover",
       "name": "Red Rover",
-      "description": "Three players, 1v1 in turn, who waits watches: the sumo, the block edit, the block placement.",
+      "description": "Three players, 1v1 in turn, who waits watches: the sumo, the block edit, the block placement, the top bridge.",
       "modes": [
         "red-rover-sumo",
         "red-rover-block-edit",
-        "red-rover-block-placement"
+        "red-rover-block-placement",
+        "red-rover-top-bridge"
       ]
     },
     {
@@ -1045,6 +1046,22 @@
       "description": "Three players, 1v1 in turn on the block placement maps: a hit +1, the void +10, first to 10 wins the 1v1.",
       "plugins": [
         "practice"
+      ]
+    },
+    {
+      "id": "red-rover-top-bridge",
+      "name": "Red Rover Top Bridge",
+      "colour": "#55FF55",
+      "icon": "LADDER",
+      "category": "duels",
+      "group": "red-rover",
+      "format": "1v1v1",
+      "ranked": false,
+      "startHere": false,
+      "event": false,
+      "description": "Three players, 1v1 in turn on the top bridge: a round of one life wins the 1v1.",
+      "plugins": [
+        "bedwars"
       ]
     },
     {
