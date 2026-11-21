@@ -28,7 +28,8 @@ import org.bukkit.scoreboard.Team;
  * player in a team of their own, whose prefix shows their rank (in a game: their team, as the game
  * says) and whose suffix shows their badge and Network level, above their head: "§c[ADMIN] §cSofiene
  * §6[12✫]" (a name takes one colour there: the middle one of a gradient); in the lobby, not the level
- * when the line above the name shows it (the default). In the lobby the tab list
+ * when the line above the name shows it (the default); in a game that moves the ELO, the ELO of its
+ * mode in place of the level, which the opponents read above the head and in the tab list. In the lobby the tab list
  * shows the whole look, the gradient too: "§6[12✫] §d[PREMIUM§f+§d] §5So§dfi§fene §d§l✦". The tab list
  * sorts the teams by name: the players of a game first, then the highest ranks. In a game, the
  * sidebar shows the mode and the player's ping, and in a 1v1 the opponent and their ping; a game
@@ -263,7 +264,8 @@ final class LobbyScoreboard {
             String level = " " + levels.tag(shownLevel, MAX_TEAM - 1 - (game != null ? 0 : badge.length()));
             boolean hidden = other.hasPotionEffect(PotionEffectType.INVISIBILITY);
             boolean inLobby = other.getWorld().equals(lobby);
-            String suffix = game != null ? fit(level) : suffix(badge, level, " " + levels.tag(shownLevel, MAX_TEAM - 1),
+            String elo = rankedTag(id);
+            String suffix = elo != null ? elo : game != null ? fit(level) : suffix(badge, level, " " + levels.tag(shownLevel, MAX_TEAM - 1),
                     inLobby && levelAbove.test(other), !inLobby);
             listName(other, game != null ? null : listNameOf(other));
             if (game != null) {
@@ -279,6 +281,28 @@ final class LobbyScoreboard {
             }
         }
         return tags;
+    }
+
+    /**
+     * In a game that moves the ELO (a ranked mode from the queue: not a party's private game nor a
+     * /duel, not watched), what follows the player's name above their head and in the tab list in
+     * place of their Network level (plan 3.6): their ELO in that mode, " §6Gold 245". Null elsewhere,
+     * and for a nicked player, whose ELO would tell who they are.
+     */
+    private String rankedTag(UUID id) {
+        String modeId = state.gameOf(id);
+        GameMode mode = modeId == null ? null : settings.catalog().get(modeId);
+        if (mode == null || !mode.ranked() || state.isWatching(id) || state.isInPrivateGame(id) || state.isUnrated(id)
+                || names.nick(id) != null) {
+            return null;
+        }
+        return eloTag(book.ladder(), book.elo(id, modeId));
+    }
+
+    /** " §6Gold 245": the division and the ELO after a name, or " §61245" when both do not fit in 16 characters. */
+    static String eloTag(EloLadder ladder, int elo) {
+        String full = " " + ladder.format(elo);
+        return full.length() <= MAX_TEAM ? full : fit(" " + ladder.division(elo).colour() + elo);
     }
 
     /** The badge and the level after the name, or the badge alone when both do not fit in 16 characters. */

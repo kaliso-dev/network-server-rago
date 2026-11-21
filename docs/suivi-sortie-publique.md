@@ -148,7 +148,7 @@ informations manquantes.
 | 3.1 | Trois leaderboards Daily / Weekly / Lifetime liés à une même stat | Stats | P1 | EN COURS (codé, CI en cours) | `StatsDisplays`, `StatsBook`, `ModeStats`, `PlayerStats`, `StatsFiles`, `BoardStat` | 1.4 | méthode proposée le 21/11 (XP et ELO gagnés, ratios avec 5 / 15 parties), à valider ; quel mur pour quelle période (question posée) |
 | 5.4d | Sélecteur `NewLeaderboard Selector` (Win Streak, Level, ELO, Wins, Kills, FKDR, WWLR…) | Lobby | P1 | EN COURS (codé, CI en cours) | `LobbyNpc`, `LobbyNpcs`, `LobbySettings`, `StatsDisplays`, point `newleaderboardselector` | 3.1 | config de ton serveur à faire à l'installation |
 | 3.5 | Network Level au-dessus des joueurs par défaut (lobby, practice, autres) | Lobby | P1 | EN COURS (codé, CI en cours) | `HeadLines`, `RagoLobby`, `LobbyScoreboard`, `ProfileMenu` | 1.3 | C4 |
-| 3.6 | ELO des adversaires visible en Ranked | Ranked | P1 | À FAIRE | `HeadLines`, scoreboard des parties | 3.5 | — |
+| 3.6 | ELO des adversaires visible en Ranked | Ranked | P1 | EN COURS (codé, CI en cours) | `LobbyScoreboard` (pseudo et Tab en partie) | 3.5 | — |
 | 3.8 | Nombre de joueurs en file pour chaque mode | Files | P1 | À FAIRE | `QueueController`, `ModeMenu`, `LobbyNpcs` | — | — |
 | 3.7 | Organisation Solo / Party / Ranked (ELO par mode) : proposition avant tout code | Files | P2 | À FAIRE | `ModeCategory`, `ModeMenu`, `QueueController`, `Matchmaker`, `EloLadder` | 3.8 | validation de la proposition |
 
@@ -217,6 +217,26 @@ informations manquantes.
 ---
 
 ## 3. Journal des corrections
+
+### 3.6 ELO des adversaires en Ranked — EN COURS (21/11)
+
+**Choix.** Parmi Tab, scoreboard, pseudo et lobby d'attente : **le pseudo**, qui en partie est
+aussi ce que montre le Tab (les joueurs d'une partie n'ont pas de nom de Tab à eux, le client
+montre l'équipe : préfixe, pseudo, suffixe). Une seule modification, lisible pour chaque
+adversaire, en 1v1 comme en 4v4, ce que le scoreboard de côté ne peut pas (15 lignes, et Ranked
+Bed Wars y met déjà les siennes). Le lobby d'attente ne sert pas : on attend la file au lobby sans
+connaître l'adversaire, on le découvre au compte à rebours, où l'ELO s'affiche déjà.
+
+**Ce qui change.** En partie classée **qui compte** (mode classé, venu de la file : pas une partie
+privée de party ni un `/duel`, qui ne bougent pas l'ELO), le suffixe du pseudo montre l'ELO du
+joueur dans ce mode, avec sa division, **à la place** du niveau Network : `R Sofiene Gold 245`,
+au-dessus de la tête et dans le Tab, dès le compte à rebours. Au-delà de 16 caractères (Obsidian à
+10 000 et plus) : l'ELO seul, à la couleur de sa division. Ailleurs, le niveau reste. Un joueur
+sous `/nick` garde le niveau 1 de son nick : son ELO dirait qui il est.
+
+**Tests.** Test unitaire du texte (`NameStyleTest`, de 0 à 20 000, toujours dans 16 caractères).
+CI en cours. **À vérifier en jeu** : une partie Ranked depuis la file, l'ELO de l'adversaire
+au-dessus de sa tête et dans le Tab.
 
 ### 3.5 Network Level au-dessus des joueurs par défaut — EN COURS (21/11)
 

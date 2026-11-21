@@ -173,6 +173,17 @@ class NameStyleTest {
     }
 
     @Test
+    void inARankedGameTheEloFollowsTheNameInPlaceOfTheLevel() {
+        assertEquals(" §6Gold 245", LobbyScoreboard.eloTag(EloLadder.DEFAULT, 245));
+        assertEquals(" §8Coal 0", LobbyScoreboard.eloTag(EloLadder.DEFAULT, 0));
+        assertEquals(" §0Obsidian 1000", LobbyScoreboard.eloTag(EloLadder.DEFAULT, 1000), "16 characters: it fits");
+        assertEquals(" §010000", LobbyScoreboard.eloTag(EloLadder.DEFAULT, 10000), "too long: the ELO in its colour");
+        for (int elo = 0; elo <= 20000; elo += 50) {
+            assertTrue(LobbyScoreboard.eloTag(EloLadder.DEFAULT, elo).length() <= 16, String.valueOf(elo));
+        }
+    }
+
+    @Test
     void theLevelIsNotTwiceAboveTheHeadAndAlwaysThereInAGame() {
         // in the lobby, the line above the name shows the level: the name keeps its badge alone
         assertEquals(" §d§l✦", LobbyScoreboard.suffix(" §d§l✦", " §7[12✫]", " §7[12✫]", true, false));
