@@ -50,7 +50,11 @@ jouent comme des joueurs :
    `/spawn` : RagoUn gagne et les deux reviennent au lobby.
 9. une party : RagoUn invite RagoDeux avec `/p RagoDeux`, RagoDeux accepte, `/party list` et
    `/pc` marchent ; RagoDeux ne peut pas lancer de file (seul le chef le fait). RagoUn lance le
-   sumo : partie privée entre eux, sans stats ni XP. RagoUn lance Ranked Bedwars 2v2 : refusé,
+   sumo : partie privée entre eux, sans stats ni XP. RagoUn regarde le replay d'un duel de sumo
+   (`/replay`, le menu de ses parties) et y fait venir RagoDeux avec `/p warp` : RagoDeux arrive à
+   côté de RagoUn, au même moment du replay, avec seulement les joueurs et le lit dans sa barre
+   (le chef mène le replay), et revient au lobby quand RagoUn quitte le replay. RagoUn lance
+   Ranked Bedwars 2v2 : refusé,
    RagoDeux a quitté une partie classée il y a un instant. RagoUn lance First Rush duo (2v2, non
    classé) : la party attend dans la même équipe, et quitte la file avec RagoDeux. RagoUn dissout
    la party.

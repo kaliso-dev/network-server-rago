@@ -347,12 +347,20 @@ final class Parties implements Listener {
     /**
      * As on Hypixel, every online member comes to the leader: a member in a game leaves it (as with
      * /spawn, a forfeit in a duel), a member elsewhere comes back to the lobby, then each one stands
-     * where the leader stands. The leader warps from the lobby.
+     * where the leader stands. The leader warps from the lobby, or from a replay they watch: the
+     * members then come into the replay ({@link ReplayService#warpParty}).
      */
     private void warp(Player player) {
         PartyBook.Party party = book.together(player.getUniqueId());
         if (party == null || !party.isLeader(player.getUniqueId())) {
             boxed(player, ChatColor.RED + (party == null ? "You are not currently in a party." : "You are not the party leader!"));
+            return;
+        }
+        ReplayService replays = lobby.replayService();
+        if (replays != null && replays.watching(player)) {
+            int warped = replays.warpParty(player, party.members());
+            boxed(player, ChatColor.GRAY + "You summoned " + ChatColor.WHITE + warped + ChatColor.GRAY
+                    + (warped == 1 ? " player" : " players") + " to your replay.");
             return;
         }
         if (!state.isInLobby(player)) {

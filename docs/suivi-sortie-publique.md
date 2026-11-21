@@ -131,7 +131,7 @@ informations manquantes.
 | --- | --- | --- | --- | --- | --- | --- | --- |
 | 2.1 | Lobby Fight : 12 end stone, pioche bois, Haste, 5 pommes, blocs qui partent après 10 s (pas ceux du lobby), 3 manches | Modes | P1 | CORRIGÉ après l'essai en jeu (pearl, laine et cisailles remises), à retester | `LobbyFight`, `LobbyFightGame`, `FfaGame`, `BlockDecay`, config du lobby | 1.1 | tests unitaires (`LobbyFightTest`, `LobbySettingsTest`) ; en jeu sur Archway FFA (voir le journal) |
 | 2.2 | Bedfight : protection au respawn de la durée exacte de Minemen, coupée dès un combat ; kit gardé ; puis les autres modes Bed Wars (demandé après l'essai) | Modes | P1 | TESTÉ en Bed Fight (en jeu par toi) ; autres modes IMPLÉMENTÉ | `BedFightGame`, `BedwarsGame`, `BedwarsHost`, `SpawnProtection` | 1.5 | tests unitaires (`SpawnProtectionTest`) ; en jeu : frapper un joueur qui vient de réapparaître |
-| 2.3 | Bed Break Simulation : bridges refaits, pas de blocs en haut de la map, cisailles + hache, défense RBW (end stone + verre), forges | Modes | P1 | EN COURS : tes escaliers rouges relevés (65 laines par map) ; plateforme rouge et verte en haut proposée (images), à valider ; forges testées | `BedBreakGame`, `Bridges`, `Defense`, `game-model/BedDefense` | 1.6 | C3 |
+| 2.3 | Bed Break Simulation : bridges refaits, pas de blocs en haut de la map, cisailles + hache, défense RBW (end stone + verre), forges | Modes | P1 | EN COURS : tes escaliers rouges relevés (65 laines par map) ; plateforme rouge et verte en haut proposée (images) et codée en attendant ton choix (CI entière passée : build, tests unitaires et tests réels) ; à ajouter aux deux maps ; forges testées | `BedBreakGame`, `Bridges`, `Defense`, `game-model/BedDefense` | 1.6 | C3 |
 | 2.4 | Clutch Scenario : bridges réalistes jusqu'à la base ennemie ; rôles au hasard (leader aussi Clutcher) | Modes | P1 | IMPLÉMENTÉ | `ClutchScenarioGame`, `Bridges` | — | tests unitaires (`BridgesTest`) ; simulation sur Archway et Sky Rise ; en jeu | — |
 | 2.5 | Au moins 10 spectateurs (Block Clutch et autres practice) | Social | P1 | IMPLÉMENTÉ | `tools/local-server/server.properties` (50 places), `spectate-bots.mjs` | 1.2 | test réel en CI : 10 bots regardent un Block clutch en même temps |
 | 2.6 | Fireballs fidèles à Hypixel (KB, explosion, direction, fireball jump, blocs) | PvP | P1 | EN COURS (mesure prête, à faire sur Hypixel) | `Fireballs`, `FireballBlast`, `FireballAim`, `PracticeGame` | — | mesures Hypixel (kb-recorder 0.2) |
@@ -156,7 +156,7 @@ informations manquantes.
 
 | # | Tâche | Cat. | Prio | Statut | Fichiers | Manque |
 | --- | --- | --- | --- | --- | --- | --- |
-| 4.1 | Party Replay : les membres de la party rejoignent le replay | Replays | P2 | À FAIRE | `ReplayService`, `ReplayViewer`, `Parties` | — |
+| 4.1 | Party Replay : les membres de la party rejoignent le replay | Replays | P2 | EN COURS : codé (`/p warp` du chef dans un replay), test réel à 2 bots ajouté, CI à venir | `ReplayService`, `ReplayViewer`, `Parties` | — |
 | 4.1b | Sons dans les replays : étude de faisabilité | Replays | P3 | À FAIRE | `ReplayRecorder`, `ReplayData` | — |
 | 4.2 | `/host` : annonce cliquable toutes les 10 s ; inscription gardée sans téléporter ; départ quand assez de joueurs | Events | P1 | À FAIRE | `Events`, `EventGame`, `PracticeHost`, `HostWatcher` | — |
 | 4.3 | Kit Editor plus clair et trié | Kits | P2 | À FAIRE | `KitEditor`, `KitLayouts` | — |
@@ -217,6 +217,37 @@ informations manquantes.
 ---
 
 ## 3. Journal des corrections
+
+### 4.1 Party Replay — EN COURS (21/11)
+
+**Demande** : « Lorsqu'un joueur lance un replay en étant dans une Party, les autres membres
+doivent pouvoir être warp dans ce replay. »
+
+**Analyse** : un replay est montré à un seul joueur (`ReplayViewer`) : les corps des joueurs sont
+des paquets envoyés à lui seul, les blocs changent dans le monde du replay (un emplacement de
+`rago_replays` pour un duel, une copie de la map pour une partie de Bed Wars). `/p warp` existait
+déjà, mais seulement depuis le lobby (« Go back to the lobby (/l) to warp your party. »).
+
+**Fait** (sans nouvelle commande, avec le `/p warp` d'Hypixel) :
+- Le chef de party qui regarde un replay tape `/p warp` : chaque membre en ligne y vient, comme
+  `/p warp` au lobby (un membre en partie la quitte comme avec `/spawn`, un membre dans un autre
+  replay le quitte). Il arrive à côté du chef : « RagoUn warped you into the replay of … ».
+- Les membres voient **le même replay au même moment** : les mêmes blocs (le même monde), et les
+  corps et projectiles envoyés à chacun au moment du chef. Le chef mène le replay (pause, recul,
+  avance, vitesse) ; la barre des membres n'a que les joueurs (aller voir un joueur) et le lit
+  (quitter). Le chef qui quitte le replay ramène les membres au lobby (« RagoUn left the
+  replay. »).
+- Un chef de party qui lance un replay voit le rappel « Your party can watch it with you:
+  /p warp ».
+- `spectateurs-max` (6 replays en même temps) compte les replays, pas les membres venus dans celui
+  du chef : ils n'ajoutent pas de monde ni d'emplacement.
+
+**Test** : un test réel à 2 bots ajouté au test du lobby (`lobby-bots.mjs`, étape 9) : RagoUn, chef
+de la party, ouvre `/replay`, regarde un duel de sumo, fait `/p warp` ; RagoDeux doit arriver à
+moins de 2 blocs de lui, au même moment du replay dans le scoreboard, avec seulement la boussole et
+le lit dans sa barre ; RagoUn quitte, RagoDeux doit être revenu au lobby. Résultat de la CI à venir.
+
+**Sons (4.1b)** : étude de faisabilité à suivre.
 
 ### 3.7 Organisation Solo / Party / Ranked — PROPOSITION (21/11), à valider
 
@@ -849,6 +880,26 @@ L'attaquant part du milieu, tourné vers le lit rouge. La limite de hauteur rest
 au-dessus du milieu) serait juste au-dessus de la plateforme, mais il est déjà retiré de chaque
 partie (`retirer:` de son `bedwars.yml`, comme sur Hypixel) : il ne gêne pas. Images : `sortie-publique/bed-break/Invasion-plateforme.png` et
 `Archway-plateforme.png`. **À valider** avant de coder.
+
+**Plateforme codée en attendant ton choix (21/11, commit bf51927)** : l'option recommandée, pour
+ne pas perdre de temps ; rien n'est posé sur tes maps tant que tu n'as pas choisi.
+- Une section `bed-break:` du `bedwars.yml` de la map : `escalier` (tes 65 blocs, du bas vers le
+  haut) et `plateforme` (sa hauteur et ses deux coins). `/bw` la réécrit telle quelle.
+- À chaque manche : la plateforme est posée comme une partie de la map (ni cassable ni soufflée,
+  enlevée après), seulement là où il y a de l'air ; moitié rouge côté lit rouge, moitié verte,
+  le bloc du milieu blanc. L'escalier est posé en laine rouge, cassable comme un bloc posé.
+- L'attaquant part du milieu de la plateforme, tourné vers la moitié rouge. Sans section
+  `bed-break:`, rien ne change (le bridge d'avant).
+- La hauteur de placement reste `hauteur-max` de la map (116 sur Invasion, 87 sur Archway) : la
+  plateforme est à 114 et 86, sous la limite.
+- **Testé** : CI entière passée (run 44935292552 ; deux tests réels relancés après une panne d'installation de Java chez GitHub, puis passés) ; build et tests unitaires : `BedBreakGameTest` (la plateforme
+  d'Invasion fait 17 × 43 blocs, un seul blanc, deux moitiés égales ; le départ au milieu, tourné
+  vers le lit rouge, sur Invasion, Archway et une plateforme est-ouest) et `BedwarsMapTest` (la
+  section relue telle qu'écrite, et les erreurs). **Pas encore testé en jeu.**
+- **Pour l'ajouter à tes maps** (après ton choix) : le script
+  `serveur-de-test/install-bedbreak-haut/ajouter-bed-break.py` ajoute la section aux deux
+  `bedwars.yml` (il refuse une plateforme au-dessus de `hauteur-max`), et les régions d'avant
+  (`ponts-bed-break-avant/`) enlèvent tes 65 blocs de la map elle-même, puisque le jeu les pose.
 
 - **Bridges** : le top bridge (la plateforme de laine de 17 blocs de large, 16 blocs au-dessus
   des lits, tracée de lit à lit, donc en diagonale sur Invasion) est remplacé par le bridge de

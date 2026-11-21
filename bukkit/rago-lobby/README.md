@@ -158,11 +158,16 @@ dans les files d'attente des modes de jeu.
   attend le retour au lobby), en volant autour des joueurs. La barre met en pause, recule ou avance
   de 10 secondes, change la vitesse (x0.25 à x4 : clic droit plus vite, clic gauche moins vite sur
   l'horloge), va voir un joueur (la boussole), et le lit (ou `/replay leave`, ou `/spawn`) ramène
-  au lobby. Un duel est rejoué dans un monde à part (`rago_replays`, effacé à chaque démarrage),
+  au lobby. **En party**, le chef qui regarde un replay y fait venir ses membres avec `/p warp`
+  (comme `/p warp` au lobby : un membre en partie la quitte, un membre dans un autre replay le
+  quitte) : ils arrivent à côté de lui et voient le même moment du replay, que le chef mène (pause,
+  recul, vitesse) ; leur barre n'a que les joueurs et le lit, et quand le chef quitte le replay, ils
+  reviennent au lobby. Un chef de party qui lance un replay voit « /p warp » en rappel. Un duel est
+  rejoué dans un monde à part (`rago_replays`, effacé à chaque démarrage),
   une partie de Bed Wars dans une copie libre de sa map. Les fichiers sont dans
   `plugins/RagoLobby/replays` : quelques dizaines de Ko pour un duel, quelques centaines pour une
   partie de Bed Wars. Réglages dans `replays:` : `jours` (3), `taille-max-mo` (2000 ; au-delà, les
-  plus vieux partent d'abord), `spectateurs-max` (6 replays regardés en même temps), et
+  plus vieux partent d'abord), `spectateurs-max` (6 replays regardés en même temps ; les membres d'une party venus dans le replay du chef ne comptent pas), et
   `actif: false` pour ne rien enregistrer.
 - **Regarder une partie en direct.** `/spectate <joueur>` (ou `/spec`) depuis le lobby : n'importe
   quelle partie, pour tout le monde (sauf la partie d'un joueur sous un nick, qui reste caché sauf

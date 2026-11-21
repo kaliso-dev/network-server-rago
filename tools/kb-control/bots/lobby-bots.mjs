@@ -40,7 +40,10 @@
 //      cannot queue (only the leader does); RagoUn queues the sumo: a private game between them,
 //      without stats or XP; RagoUn queues Ranked Bedwars 2v2: refused, RagoDeux left a ranked game
 //      a moment ago; RagoUn queues First Rush duo (2v2, unranked): the party waits in one team, and
-//      leaves the queue with RagoDeux; RagoUn disbands the party;
+//      leaves the queue with RagoDeux; RagoUn disbands the party; in between, RagoUn watches the
+//      replay of a sumo duel (/replay, the menu of its games) and brings RagoDeux into it with /p warp:
+//      RagoDeux comes beside RagoUn, at the same moment of the replay, with only the players and
+//      leave in its hotbar (the leader runs it), and goes back to the lobby when RagoUn leaves;
 //  10. a member leaves the server in a party: RagoUn is told, and RagoDeux, back on the server,
 //      sees RagoUn's name tag (its team) again.
 //
@@ -747,6 +750,7 @@ async function playParty (one, two) {
   const xp = chats.get(one.username).slice(fromOne).find((line) => /Network XP/.test(line))
   if (xp != null) throw new Error(`the private game of the party was counted: ${xp}`)
   log('party: two in a 1v1 mode play a private game against each other, without stats')
+  await partyReplay(one, two)
 
   // two in a 2v2 mode: no ranked queue, RagoDeux left a ranked game a moment ago (playBedwars);
   // the queue of an unranked one, in one team
@@ -764,6 +768,67 @@ async function playParty (one, two) {
   one.chat('/party disband')
   await chatLine(two, /RagoUn has disbanded the party!/, 5000, fromTwo)
   log('party: no ranked queue after RagoDeux left a ranked game; in a 2v2 mode the party queues together, leaves together, then is disbanded')
+}
+
+/** The elapsed and total seconds of the replay in the sidebar ("▶ 0:05 / 0:12"), or null. */
+function replayClock (bot) {
+  for (const line of sidebarLines(bot)) {
+    const clock = /(\d+):(\d\d) \/ (\d+):(\d\d)/.exec(line)
+    if (clock != null) {
+      return { at: Number(clock[1]) * 60 + Number(clock[2]), length: Number(clock[3]) * 60 + Number(clock[4]) }
+    }
+  }
+  return null
+}
+
+/**
+ * Plan 4.1: RagoUn, leader of the party, watches the replay of a sumo duel from /replay, then
+ * /p warp brings RagoDeux into it: beside RagoUn, at the same moment, with the players and leave
+ * only (the leader runs the replay). RagoUn leaves: RagoDeux goes back to the lobby with it.
+ */
+async function partyReplay (one, two) {
+  let fromOne = mark(one)
+  let fromTwo = mark(two)
+  const opened = new Promise((resolve) => one.once('windowOpen', resolve))
+  one.chat('/replay')
+  const menu = await Promise.race([opened, sleep(5000).then(() => null)])
+  if (menu == null) throw new Error('/replay did not open the menu of the replays')
+  if (!windowTitle(menu).includes('Your replays')) throw new Error(`/replay opened ${windowTitle(menu)}`)
+  const sumo = menu.slots.findIndex((item, slot) => slot < 45 && item != null && /Sumo/i.test(JSON.stringify(item.nbt ?? null)))
+  if (sumo < 0) {
+    throw new Error(`no sumo duel in RagoUn's replays: ${JSON.stringify(menu.slots.slice(0, 45).filter((item) => item != null).map((item) => item.nbt))}`)
+  }
+  one.clickWindow(sumo, 0, 0).catch(() => {})
+  await chatLine(one, /^Replay of .*Sumo.*long\./, 15000, fromOne)
+  await chatLine(one, /Your party can watch it with you: \/p warp/, 5000, fromOne)
+  await waitFor(() => hotbarItem(one, 3)?.name === 'dye', 5000,
+    `the pause button of the replay in RagoUn's hotbar: ${hotbarItem(one, 3)?.name}`)
+  log('party replay: RagoUn, the leader, watches the replay of a sumo duel, and is told /p warp brings the party')
+
+  fromOne = mark(one)
+  one.chat('/p warp')
+  await chatLine(one, /You summoned 1 player to your replay\./, 5000, fromOne)
+  await chatLine(two, /RagoUn warped you into the replay of .*Sumo/, 5000, fromTwo)
+  await waitFor(() => hotbarItem(two, 0)?.name === 'compass' && hotbarItem(two, 8)?.name === 'bed', 5000,
+    `the players and leave in RagoDeux's hotbar: ${hotbarItem(two, 0)?.name}, ${hotbarItem(two, 8)?.name}`)
+  for (const slot of [2, 3, 4, 6]) {
+    if (hotbarItem(two, slot) != null) throw new Error(`RagoDeux has ${hotbarItem(two, slot).name} in slot ${slot}: the leader runs the replay`)
+  }
+  const distance = one.entity.position.distanceTo(two.entity.position)
+  if (distance > 2) throw new Error(`RagoDeux is ${distance.toFixed(1)} blocks from RagoUn in the replay`)
+  await waitFor(() => {
+    const a = replayClock(one)
+    const b = replayClock(two)
+    return a != null && b != null && a.length === b.length && Math.abs(a.at - b.at) <= 1
+  }, 5000, `the same moment of the replay in both sidebars: ${JSON.stringify(sidebarLines(one))} / ${JSON.stringify(sidebarLines(two))}`)
+  log(`party replay: /p warp brought RagoDeux beside RagoUn, same moment (${JSON.stringify(replayClock(two))}), players and leave only`)
+
+  fromTwo = mark(two)
+  one.chat('/replay leave')
+  await chatLine(two, /RagoUn left the replay\./, 5000, fromTwo)
+  await expectInLobby(one, 'after leaving the replay')
+  await expectInLobby(two, 'after the leader left the replay')
+  log('party replay: RagoUn left, and RagoDeux went back to the lobby with it')
 }
 
 /**

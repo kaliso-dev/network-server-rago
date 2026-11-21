@@ -24,6 +24,7 @@ import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.BitSet;
+import java.util.Collection;
 import java.util.Comparator;
 import java.util.Date;
 import java.util.HashMap;
@@ -88,8 +89,10 @@ import org.bukkit.plugin.Plugin;
  * replays/(id).replay, and /replay shows a player their last games, or any game by its code. A
  * replay of an arena whose blocks it holds (a practice duel) is shown in the lobby's own empty
  * world, rago_replays, one stage every 1000 blocks; a replay of a map (a Bed Wars game) in a world
- * the game plugin makes again ({@link ReplayStages}). The files are read and written away from the
- * main thread, kept a few days, within a size. Main thread only, except the file work.
+ * the game plugin makes again ({@link ReplayStages}). A party leader watching a replay brings the
+ * party into it with /p warp ({@link #warpParty}): the members follow the leader's replay, on its
+ * stage. The files are read and written away from the main thread, kept a few days, within a size.
+ * Main thread only, except the file work.
  */
 final class ReplayService implements Replays, Listener {
 
@@ -415,8 +418,15 @@ final class ReplayService implements Replays, Listener {
                 recorder.tick(things);
             }
         }
-        for (ReplayViewer viewer : new ArrayList<>(viewers.values())) {
+        List<ReplayViewer> watched = new ArrayList<>(viewers.values());
+        // the replays of their own first: the party members following one show its moment
+        watched.sort(Comparator.comparing((ReplayViewer viewer) -> viewer.lead() != null));
+        for (ReplayViewer viewer : watched) {
             Player player = viewer.player();
+            if (viewers.get(player.getUniqueId()) != viewer) {
+                // a member whose leader stopped watching in this loop
+                continue;
+            }
             if (!player.isOnline() || !player.getWorld().equals(viewer.world())) {
                 stopViewer(viewer, false);
                 continue;
@@ -567,7 +577,7 @@ final class ReplayService implements Replays, Listener {
             player.sendMessage(ChatColor.RED + "Go back to the lobby to watch a replay: /spawn");
             return;
         }
-        if (viewers.size() + loading.size() >= maxViewers) {
+        if (ownReplays() + loading.size() >= maxViewers) {
             player.sendMessage(ChatColor.RED + "Too many replays are being watched: try again in a minute.");
             return;
         }
@@ -660,6 +670,76 @@ final class ReplayService implements Replays, Listener {
         ReplayViewer viewer = new ReplayViewer(this, player, data, world, ox, oy, oz, release);
         viewers.put(id, viewer);
         viewer.begin();
+        PartyBook.Party party = lobby.parties() == null ? null : lobby.parties().book().together(id);
+        if (party != null && party.isLeader(id) && party.size() > 1) {
+            player.sendMessage(ChatColor.GRAY + "Your party can watch it with you: " + ChatColor.WHITE + "/p warp");
+        }
+    }
+
+    /**
+     * /p warp by a party leader watching a replay (plan 4.1): as /p warp brings the members to the
+     * leader in the lobby, every online member comes into the replay. A member in a game leaves it
+     * first (as with /spawn), one watching another replay leaves it; each one then follows the
+     * leader's replay: the same stage, at the leader's moment. Returns how many members came in.
+     */
+    int warpParty(Player leader, Collection<UUID> members) {
+        ReplayViewer mine = viewers.get(leader.getUniqueId());
+        if (mine == null) {
+            return 0;
+        }
+        // a leader following a replay brings the party into that one
+        ReplayViewer replay = mine.lead() != null ? mine.lead() : mine;
+        int warped = 0;
+        for (UUID member : members) {
+            Player other = Bukkit.getPlayer(member);
+            if (other == null || other.equals(leader)) {
+                continue;
+            }
+            ReplayViewer theirs = viewers.get(member);
+            if (theirs == replay || (theirs != null && theirs.lead() == replay)) {
+                // already in it
+                continue;
+            }
+            // not the replay they asked for or were loading: this one
+            pending.remove(member);
+            pendingSince.remove(member);
+            loading.remove(member);
+            if (theirs != null) {
+                stopViewer(theirs, true);
+            }
+            if (lobby.state().isInGame(other)) {
+                lobby.goToSpawn(other);
+            } else if (!lobby.state().isInLobby(other)) {
+                lobby.sendToLobby(other);
+            }
+            if (!lobby.state().isInLobby(other) || lobby.state().isInGame(other)) {
+                continue;
+            }
+            follow(other, replay);
+            warped++;
+        }
+        return warped;
+    }
+
+    /** The member follows the leader's replay. */
+    private void follow(Player player, ReplayViewer lead) {
+        if (lobby.queues().queueOf(player) != null) {
+            lobby.queues().leave(player, true);
+        }
+        ReplayViewer viewer = new ReplayViewer(this, player, lead);
+        viewers.put(player.getUniqueId(), viewer);
+        viewer.begin();
+    }
+
+    /** The replays watched on a stage of their own: the members following a leader's add none. */
+    private int ownReplays() {
+        int own = 0;
+        for (ReplayViewer viewer : viewers.values()) {
+            if (viewer.lead() == null) {
+                own++;
+            }
+        }
+        return own;
     }
 
     /** The code of the player's game of this mode that ended in the last two minutes, if it was recorded; null else. */
@@ -717,6 +797,17 @@ final class ReplayService implements Replays, Listener {
         Player player = viewer.player();
         if (viewers.remove(player.getUniqueId()) == null) {
             return;
+        }
+        if (viewer.lead() == null) {
+            // the members following this replay leave first: its stage goes with it
+            for (ReplayViewer other : new ArrayList<>(viewers.values())) {
+                if (other.lead() == viewer) {
+                    stopViewer(other, true);
+                    if (other.player().isOnline()) {
+                        other.player().sendMessage(ChatColor.GRAY + player.getName() + " left the replay.");
+                    }
+                }
+            }
         }
         viewer.end();
         viewer.release().run();
