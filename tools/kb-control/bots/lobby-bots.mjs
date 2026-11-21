@@ -50,12 +50,14 @@
 //  10. a member leaves the server in a party: RagoUn is told, and RagoDeux, back on the server,
 //      sees RagoUn's name tag (its team) again;
 //  11. an event of /host (plan 4.2): RagoTrois (an operator, run-lobby-test.sh) hosts a Sumo
-//      event; the whole server reads it with a [Click to join] that runs /join; RagoDeux, playing
-//      the Block clutch, joins and stays in its training, RagoUn joins from the lobby and stays
-//      there; the message comes back 10 seconds later; at the end of the wait (15 seconds,
-//      run-lobby-test.sh), RagoUn and RagoTrois go to it and RagoDeux, still in its training, is
-//      told it started without it; RagoTrois leaves the fight with /spawn, RagoUn wins, and the
-//      server is told.
+//      event; the whole server reads its announcement with a [CLICK TO JOIN] that runs /join, and
+//      RagoTrois, in it, reads "You are in!" and has the red dye "Cancel the event" in its last
+//      slot; RagoDeux, playing the Block clutch, joins and stays in its training, RagoUn joins from
+//      the lobby and stays there, with the red dye "Leave the event": a right click takes it out (its
+//      profile comes back), and it joins again; the announcement comes back 20 seconds later; at
+//      the end of the wait (25 seconds, run-lobby-test.sh), RagoDeux leaves its training for it and
+//      the three go to it; RagoTrois and RagoDeux leave the fight with /spawn, RagoUn wins, and the
+//      server is told; then RagoTrois hosts another one and calls it off with its red dye.
 //
 // Environment: KB_HOST (127.0.0.1), KB_PORT (25565).
 
@@ -960,10 +962,17 @@ function clickCommands (json) {
   return found
 }
 
+/** The red dye of an event in the last slot of the lobby hotbar, with this name (Leave or Cancel the event). */
+function eventDye (bot, name) {
+  const item = hotbarItem(bot, 8)
+  return item?.name === 'dye' && item.metadata === 1 && JSON.stringify(item.nbt ?? null).includes(name)
+}
+
 /**
- * An event of /host (plan 4.2): announced to the whole server every 10 seconds with a [Click to
- * join] until it starts; joining does not move a player, who keeps playing; at the end of the wait,
- * those still in a game leave it, as with /spawn, and all its players go to it.
+ * An event of /host (plan 4.2): announced to the whole server every 20 seconds with a [CLICK TO
+ * JOIN] until it starts; joining does not move a player, who keeps playing, and the red dye of the
+ * lobby hotbar takes them out (its host's calls it off); at the end of the wait, those still in a
+ * game leave it, as with /spawn, and all its players go to it.
  */
 async function playEvent (one, two, three) {
   // RagoDeux plays the Block clutch training: it stays in it until the event starts
@@ -992,19 +1001,21 @@ async function playEvent (one, two, three) {
   let fromThree = mark(three)
   const jsonFrom = one.jsonChats.length
   three.chat('/host sumo')
-  const hosting = /\[Event\] RagoTrois is hosting Sumo! /
+  const hosting = /SUMO EVENT[\s\S]*Hosted by RagoTrois[\s\S]*Knock your opponent off the platform\./
   await chatLine(one, hosting, 5000, fromOne)
   const firstAt = Date.now()
   await chatLine(two, hosting, 5000, fromTwo)
-  await chatLine(three, /You are in \(1\/40 players, starts in 15s\)\. Keep playing: you go to it when it starts\./, 5000, fromThree)
-  await chatLine(one, /\[Click to join\] or \/join: 1\/40 players, starts in 15s/, 5000, fromOne)
+  await chatLine(three, /SUMO EVENT[\s\S]*Starts in 25s\s+•\s+1\/40 players[\s\S]*You are in!/, 5000, fromThree)
+  await chatLine(one, /Starts in 25s\s+•\s+1\/40 players[\s\S]*\[CLICK TO JOIN\]/, 5000, fromOne)
   const button = one.jsonChats.slice(jsonFrom).find((json) => clickCommands(json).length > 0)
   if (button == null || JSON.stringify(clickCommands(button)) !== JSON.stringify(['/join'])) {
-    throw new Error(`the announcement of the event has no [Click to join] that runs /join: ${JSON.stringify(one.jsonChats.slice(jsonFrom))}`)
+    throw new Error(`the announcement of the event has no [CLICK TO JOIN] that runs /join: ${JSON.stringify(one.jsonChats.slice(jsonFrom))}`)
   }
   // a player in a game reads it too, with the same button
-  await chatLine(two, /\[Click to join\] or \/join: 1\/40 players, starts in 15s/, 5000, fromTwo)
-  log('event: RagoTrois hosts a Sumo event, the whole server reads it with a [Click to join] that runs /join')
+  await chatLine(two, /Starts in 25s\s+•\s+1\/40 players[\s\S]*\[CLICK TO JOIN\]/, 5000, fromTwo)
+  await waitFor(() => eventDye(three, 'Cancel the event'), 3000,
+    `the red dye Cancel the event in the last slot of RagoTrois: ${JSON.stringify(hotbarItem(three, 8) ?? null)}`)
+  log('event: RagoTrois hosts a Sumo event, the whole server reads it with a [CLICK TO JOIN] that runs /join; RagoTrois has the red dye Cancel the event')
 
   // joining moves nobody: RagoDeux from its training, RagoUn from the lobby (the button runs /join)
   fromTwo = mark(two)
@@ -1013,20 +1024,34 @@ async function playEvent (one, two, three) {
   fromOne = mark(one)
   one.chat('/join')
   await chatLine(one, /You joined the Sumo event of RagoTrois \(3\/40 players \(1 in a game\), starts in \d+s\)\. Keep playing/, 5000, fromOne)
+  // the red dye of RagoUn takes it out of the event, its profile comes back; it joins again
+  await waitFor(() => eventDye(one, 'Leave the event'), 3000,
+    `the red dye Leave the event in the last slot of RagoUn: ${JSON.stringify(hotbarItem(one, 8) ?? null)}`)
+  fromOne = mark(one)
+  await useHotbarItem(one, 8)
+  await chatLine(one, /You left the Sumo event\./, 3000, fromOne)
+  await waitFor(() => hotbarItem(one, 8)?.name === 'skull', 3000,
+    `the profile back in the last slot of RagoUn: ${JSON.stringify(hotbarItem(one, 8) ?? null)}`)
+  one.setQuickBarSlot(0)
+  fromOne = mark(one)
+  one.chat('/join')
+  await chatLine(one, /You joined the Sumo event of RagoTrois \(3\/40 players \(1 in a game\), starts in \d+s\)\. Keep playing/, 5000, fromOne)
+  await waitFor(() => eventDye(one, 'Leave the event'), 3000, 'the red dye of RagoUn again')
+  log('event: RagoUn left the event with its red dye (its profile came back) and joined again')
   await sleep(1000)
   inTraining('after /join')
   stayed(one, oneAt, 'after /join')
   stayed(three, threeAt, 'after /host')
   log('event: RagoDeux joined from its Block clutch and stays in it, RagoUn joined and stays in the lobby')
 
-  // the message again, 10 seconds after the first, with where the event stands
+  // the message again, 20 seconds after the first, with where the event stands
   fromOne = mark(one)
   fromTwo = mark(two)
-  await chatLine(one, hosting, 15000, fromOne)
+  await chatLine(one, hosting, 25000, fromOne)
   const again = (Date.now() - firstAt) / 1000
-  if (again < 8 || again > 12) throw new Error(`the announcement came back after ${again.toFixed(1)} s, not 10`)
-  await chatLine(one, /You are in \(3\/40 players \(1 in a game\), starts in 5s\)/, 2000, fromOne)
-  await chatLine(two, /You are in \(3\/40 players \(1 in a game\), starts in 5s\)/, 2000, fromTwo)
+  if (again < 18 || again > 22) throw new Error(`the announcement came back after ${again.toFixed(1)} s, not 20`)
+  await chatLine(one, /Starts in 5s\s+•\s+3\/40 players[\s\S]*You are in!/, 2000, fromOne)
+  await chatLine(two, /Starts in 5s\s+•\s+3\/40 players[\s\S]*You are in!/, 2000, fromTwo)
   inTraining('at the second announcement')
   stayed(one, oneAt, 'at the second announcement')
   log(`event: the announcement came back ${again.toFixed(1)} s after the first, RagoUn and RagoDeux read they are in`)
@@ -1061,6 +1086,20 @@ async function playEvent (one, two, three) {
   await chatLine(three, /RagoUn won the Sumo event of RagoTrois!/, 5000, fromThree)
   await expectInLobby(one, 'after winning the event')
   log('event: RagoTrois and RagoDeux left it, RagoUn won and the server was told; the three are back in the lobby')
+
+  // another one, called off by its host with its red dye; nobody keeps a red dye
+  fromOne = mark(one)
+  fromThree = mark(three)
+  three.chat('/host sumo')
+  await chatLine(one, hosting, 5000, fromOne)
+  await waitFor(() => eventDye(three, 'Cancel the event'), 3000, 'the red dye Cancel the event of RagoTrois')
+  await useHotbarItem(three, 8)
+  await chatLine(one, /The Sumo event of RagoTrois is called off: called off by its host\./, 3000, fromOne)
+  await chatLine(three, /The Sumo event of RagoTrois is called off: called off by its host\./, 3000, fromThree)
+  await waitFor(() => hotbarItem(three, 8)?.name === 'skull', 3000,
+    `the profile back in the last slot of RagoTrois: ${JSON.stringify(hotbarItem(three, 8) ?? null)}`)
+  three.setQuickBarSlot(0)
+  log('event: RagoTrois hosted another one and called it off with its red dye, the server was told')
 }
 
 async function fallOff (bot) {

@@ -7,6 +7,7 @@ import java.util.Set;
 import java.util.UUID;
 import java.util.function.BiConsumer;
 import java.util.function.BiFunction;
+import java.util.function.Consumer;
 import java.util.function.Function;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
@@ -199,6 +200,15 @@ public interface LobbyService {
      */
     default boolean inPartyPractice(UUID player) {
         return false;
+    }
+
+    /**
+     * An item of another plugin in this player's lobby hotbar, in its last slot (that of the
+     * profile) while it is set, as the red dye of an event the player waits for: a right click on
+     * it runs {@code onUse}. It shows whenever they are in the lobby, and goes with a null item (or
+     * when they leave the server). A lobby without it ignores it.
+     */
+    default void setHotbarExtra(Player player, ItemStack item, Consumer<Player> onUse) {
     }
 
     /**

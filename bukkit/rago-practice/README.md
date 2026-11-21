@@ -482,11 +482,15 @@ deux combattants, celui qui attendait entre aussitôt contre l'autre.
 Comme sur Minemen, un joueur PREMIUM (`rago.perk.host`) lance un event pour tout le serveur avec
 `/host` : un menu avec Sumo, Brackets (un tournoi en 1v1 avec épée et armure) et Last Man
 Standing (tout le monde en même temps, le dernier debout gagne), ou directement
-`/host sumo|brackets|lms`. Tout le serveur est prévenu dans le chat toutes les 10 secondes,
-jusqu'au lancement : qui lance quoi, ce que c'est, où en est l'event (joueurs inscrits, combien
-sont en partie, quand il commence) et un **[Click to join]** (ou `/join`). S'inscrire ne
-téléporte pas : le joueur continue sa partie ou son entraînement, reste dans son mode Practice et
-garde son inscription (`/event leave` la retire). Après `attente-secondes`, l'event commence dès
+`/host sumo|brackets|lms`. Tout le serveur est prévenu dans le chat toutes les 20 secondes
+(demande du propriétaire, 21/11), jusqu'au lancement : un message centré entre deux lignes
+(« SUMO EVENT », « Hosted by … », l'event en une ligne, « Starts in 40s • 3/40 players ») et un
+**[CLICK TO JOIN]** vert ; tout le message lance `/join`. Ses inscrits lisent « You are in! » à la
+place du bouton. S'inscrire ne téléporte pas : le joueur continue sa partie ou son entraînement,
+reste dans son mode Practice et garde son inscription. Au lobby, une poudre rouge prend le
+dernier slot de sa barre (à la place du profil) tant que l'event attend : « Leave the event » le
+désinscrit, et pour l'hôte « Cancel the event » l'annule (`/event leave` et `/event cancel` font
+pareil). Après `attente-secondes`, l'event commence dès
 qu'il a `joueurs-min` inscrits, en partie ou non : les inscrits encore en partie la quittent comme
 avec `/spawn` (un abandon s'ils jouent, avec ses suites habituelles : après une partie classée, la
 file classée leur est fermée `file.abandon-classe-minutes` du lobby), puis tous y vont ensemble. Il attend ses joueurs 10 secondes au plus sur
@@ -505,7 +509,7 @@ Les events se jouent sur les maps du sumo, dans les modes cachés `event-sumo`, 
 **Les events automatiques.** Quand personne n'en lance, le serveur en lance lui-même, au nom de
 « Rago » : dès qu'il y a `joueurs-lobby` joueurs hors partie (6 par défaut) et qu'aucun event n'a
 eu lieu depuis `minutes` minutes (20), il annonce le suivant de `types` (sumo, brackets, lms, à
-tour de rôle) de la même façon, toutes les 10 secondes avec son **[Click to join]**. Les joueurs
+tour de rôle) de la même façon, toutes les 20 secondes avec son **[CLICK TO JOIN]**. Les joueurs
 s'y inscrivent comme à un event lancé par un joueur, et il commence de la même façon à la fin de
 `attente-secondes` ; sans `joueurs-min` inscrits à ce moment, il tombe (sans un mot
 si personne ne s'était inscrit). Tant que personne ne s'y est inscrit, un joueur PREMIUM peut

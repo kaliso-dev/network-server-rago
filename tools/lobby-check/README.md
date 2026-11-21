@@ -66,15 +66,19 @@ jouent comme des joueurs :
 10. RagoDeux quitte le serveur dans une party : RagoUn est prévenu, et RagoDeux, revenu, voit de
     nouveau le pseudo de RagoUn au-dessus de sa tête.
 11. un event de `/host` (plan 4.2) : un troisième bot, RagoTrois, opérateur (le script écrit son
-    `ops.json`), lance un event Sumo. Tout le serveur le lit, avec un **[Click to join]** qui lance
-    `/join`. RagoDeux, en plein Block clutch, s'inscrit et reste dans son entraînement ; RagoUn
-    s'inscrit depuis le lobby et ne bouge pas. Le message revient 10 secondes après le premier,
-    avec où en est l'event (« 3/40 players (1 in a game), starts in 5s »). À la fin de l'attente
-    (15 secondes : le script réduit `attente-secondes`), RagoDeux quitte son Block clutch comme
+    `ops.json`), lance un event Sumo. Tout le serveur lit l'annonce (« SUMO EVENT », « Hosted by
+    RagoTrois », « Starts in 25s • 1/40 players »), avec un **[CLICK TO JOIN]** qui lance `/join` ;
+    RagoTrois lit « You are in! » et a la poudre rouge « Cancel the event » dans le dernier slot.
+    RagoDeux, en plein Block clutch, s'inscrit et reste dans son entraînement ; RagoUn s'inscrit
+    depuis le lobby, ne bouge pas et reçoit la poudre rouge « Leave the event » : il la clique, sort
+    de l'event (son profil revient dans le slot), et s'inscrit de nouveau. L'annonce revient 20
+    secondes après la première (« Starts in 5s • 3/40 players »). À la fin de l'attente
+    (25 secondes : le script réduit `attente-secondes`), RagoDeux quitte son Block clutch comme
     avec `/spawn` (il lit « The Sumo event starts: you leave your game for it. ») et les trois
     partent à l'event (« The Sumo event starts with 3 players! »). Au premier combat, RagoTrois
     puis RagoDeux quittent l'event avec `/spawn` : RagoUn gagne, tout le serveur est prévenu, et
-    chacun revient au lobby.
+    chacun revient au lobby. Enfin RagoTrois lance un autre event et l'annule avec sa poudre rouge :
+    tout le serveur lit qu'il est annulé.
 
 Le test échoue si un bot n'obtient pas ce qu'il attend, ou si le journal du serveur contient une
 erreur ou une exception.

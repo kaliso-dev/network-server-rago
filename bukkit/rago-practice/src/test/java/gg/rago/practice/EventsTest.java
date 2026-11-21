@@ -136,14 +136,37 @@ class EventsTest {
     }
 
     @Test
-    void theButtonRunsJoin() {
-        String json = Events.button(EventGame.Kind.SUMO, "3/40 players, starts in 45s");
+    void theAnnouncementRunsJoin() {
+        String json = Events.announcement(EventGame.Kind.SUMO, "Steve", 40, 3, 40, 0, false);
         assertTrue(json.contains("\"action\":\"run_command\",\"value\":\"/join\""), json);
-        assertTrue(json.contains("Join the Sumo event: keep playing until it starts"), json);
-        assertTrue(json.contains(" or /join: 3/40 players, starts in 45s"), json);
-        // well formed: as many { as }, as many [ as ]
-        assertEquals(json.chars().filter(c -> c == '{').count(), json.chars().filter(c -> c == '}').count());
-        assertEquals(json.chars().filter(c -> c == '[').count(), json.chars().filter(c -> c == ']').count());
+        assertTrue(json.contains("Click to join the Sumo event"), json);
+        assertTrue(json.contains("[CLICK TO JOIN]"), json);
+        assertTrue(json.contains("SUMO EVENT") && json.contains("Steve") && json.contains("40s"), json);
+        // a line above and a line under
+        assertEquals(2, json.split(java.util.regex.Pattern.quote(Events.SEPARATOR), -1).length - 1, json);
+        com.google.gson.JsonObject parsed = new com.google.gson.JsonParser().parse(json).getAsJsonObject();
+        assertEquals("/join", parsed.getAsJsonObject("clickEvent").get("value").getAsString());
+        // once the wait is over: how many more players it needs
+        String waiting = Events.announcement(EventGame.Kind.LMS, Events.SERVER_HOST, 0, 1, 40, 1, false);
+        assertTrue(waiting.contains("Needs 1 more player"), waiting);
+        new com.google.gson.JsonParser().parse(waiting);
+        // its own players: no button, nothing to click
+        String in = Events.announcement(EventGame.Kind.BRACKETS, "Steve", 20, 2, 40, 0, true);
+        assertTrue(in.contains("You are in!") && !in.contains("[CLICK TO JOIN]") && !in.contains("clickEvent"), in);
+        new com.google.gson.JsonParser().parse(in);
+    }
+
+    @Test
+    void theLinesAreCentred() {
+        String pad = Events.pad("[CLICK TO JOIN]", true);
+        int middle = Events.width(pad, false) + Events.width("[CLICK TO JOIN]", true) / 2;
+        assertTrue(Math.abs(Events.CHAT_WIDTH / 2 - middle) <= 4, "centred: " + middle);
+        assertTrue(Events.width(Events.SEPARATOR, false) <= Events.CHAT_WIDTH, "the line fits the chat");
+    }
+
+    @Test
+    void anEventIsAnnouncedEveryTwentySeconds() {
+        assertEquals(20, Events.ANNOUNCE_EVERY);
     }
 
     @Test

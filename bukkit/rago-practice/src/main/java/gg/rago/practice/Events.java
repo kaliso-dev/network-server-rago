@@ -27,9 +27,10 @@ import org.bukkit.inventory.ItemStack;
 
 /**
  * The events PREMIUM players host, as on Minemen: /host opens the menu of the events (Sumo,
- * Brackets, Last Man Standing), and the whole server is told every 10 seconds, with a
- * [Click to join], until it starts. /join (or /event join) puts a player in it without moving
- * them: they keep playing their games, and /event leave takes them out. Once the wait is over
+ * Brackets, Last Man Standing), and the whole server is told every 20 seconds, a message between
+ * two lines with its [CLICK TO JOIN], until it starts. /join (or /event join) puts a player in it
+ * without moving them: they keep playing their games, and the red dye of their lobby hotbar (or
+ * /event leave) takes them out; their host's red dye calls it off. Once the wait is over
  * (attente-secondes), it starts as soon as joueurs-min players are in: those still in a game
  * leave it (a forfeit while they play), and all go to it. /spawn leaves it, /event cancel calls it off (its
  * host or the staff). One event at a time, a pause between two, and a cooldown for each host. The
@@ -178,8 +179,15 @@ final class Events implements CommandExecutor, Listener {
 
     /** The name the server hosts its own events under. */
     static final String SERVER_HOST = "Rago";
-    /** The public message of an event not started yet comes back every this many seconds (the plan's 10). */
-    static final int ANNOUNCE_EVERY = 10;
+    /** The public message of an event not started yet comes back every this many seconds (the owner's 20, on 21/11). */
+    static final int ANNOUNCE_EVERY = 20;
+    /** The red dye in the last slot of the lobby hotbar while an event waits: its host calls it off, the others leave. */
+    static final String LEAVE_ITEM = ChatColor.RED + "" + ChatColor.BOLD + "Leave the event " + ChatColor.GRAY + "(right click)";
+    static final String CANCEL_ITEM = ChatColor.RED + "" + ChatColor.BOLD + "Cancel the event " + ChatColor.GRAY + "(right click)";
+    /** The width of the chat in pixels (the default of the 1.8 client). */
+    static final int CHAT_WIDTH = 320;
+    /** The line above and under the announcement. */
+    static final String SEPARATOR = repeat('-', 53);
     /** After the start, the seconds before an event that could not be made (no free arena) is called off. */
     static final int LAUNCH_SECONDS = 10;
 
@@ -284,26 +292,143 @@ final class Events implements CommandExecutor, Listener {
 
     /**
      * The public message of an event not started yet, to every player online, in a game too
-     * (they may join it and keep playing): who hosts what, what it is, where it stands, and
-     * [Click to join]. Its own players read that they are in instead of the button.
+     * (they may join it and keep playing): the announcement, with its [CLICK TO JOIN]; its own
+     * players read that they are in instead.
      */
     void announce(Hosting h) {
-        String line = ChatColor.GOLD + "" + ChatColor.BOLD + "[Event] " + ChatColor.YELLOW + h.hostName + ChatColor.GRAY
-                + " is hosting " + ChatColor.GOLD + h.kind.label + ChatColor.GRAY + "! " + String.join(" ", h.kind.description);
-        String status = status(h);
-        String json = button(h.kind, status);
+        int missing = Math.max(0, settings.minPlayers - h.registered.size());
+        String open = announcement(h.kind, h.hostName, h.waitLeft, h.registered.size(), settings.maxPlayers, missing, false);
+        String in = announcement(h.kind, h.hostName, h.waitLeft, h.registered.size(), settings.maxPlayers, missing, true);
         for (Player player : Bukkit.getOnlinePlayers()) {
-            player.sendMessage(line);
-            if (h.registered.contains(player.getUniqueId())) {
-                player.sendMessage(ChatColor.GREEN + "You are in" + ChatColor.GRAY + " (" + status
-                        + "). Keep playing: you go to it when it starts. /event leave to leave.");
-            } else {
-                // clickable through the vanilla /tellraw, as the lobby's duel buttons: names are letters, digits and _
-                Bukkit.dispatchCommand(Bukkit.getConsoleSender(), "tellraw " + player.getName() + " " + json);
-            }
+            // through the vanilla /tellraw, as the lobby's duel buttons: names are letters, digits and _
+            Bukkit.dispatchCommand(Bukkit.getConsoleSender(), "tellraw " + player.getName() + " "
+                    + (h.registered.contains(player.getUniqueId()) ? in : open));
             if (!plugin.lobby().isInGame(player)) {
                 player.playSound(player.getLocation(), Sound.NOTE_PLING, 1f, 1.4f);
             }
+        }
+    }
+
+    /**
+     * The JSON of the announcement: between two lines, centred, the event and its host, what it
+     * is, when it starts (or how many more players it needs, once its wait is over) and how many
+     * are in, then the green [CLICK TO JOIN]: the whole message runs /join. For its own players
+     * ({@code in}), "You are in!" instead, without the button.
+     */
+    static String announcement(EventGame.Kind kind, String hostName, int secondsLeft, int players, int maxPlayers, int missing,
+            boolean in) {
+        String title = kind.label.toUpperCase(java.util.Locale.ROOT) + " EVENT";
+        String hosted = "Hosted by " + hostName;
+        String count = players + "/" + maxPlayers + " players";
+        String when = secondsLeft > 0 ? "Starts in " + secondsLeft + "s"
+                : "Needs " + missing + " more " + (missing == 1 ? "player" : "players");
+        // the bullet is about as wide as a dot: the line is centred on this
+        String plain = when + "  .  " + count;
+        String last = in ? "You are in!" : "[CLICK TO JOIN]";
+        StringBuilder json = new StringBuilder("{\"text\":\"\",\"extra\":[");
+        json.append(part(SEPARATOR, "dark_gray", "\"strikethrough\":true")).append(',').append(part("\\n", "white", null));
+        json.append(',').append(part(pad(title, true), "white", null)).append(',').append(part(title, "gold", "\"bold\":true"));
+        json.append(',').append(part("\\n" + pad(hosted, false) + "Hosted by ", "gray", null)).append(',')
+                .append(part(hostName, "yellow", null));
+        json.append(',').append(part("\\n" + pad(kind.tagline(), false) + kind.tagline(), "white", null));
+        json.append(',').append(part("\\n" + pad(plain, false), "gray", null));
+        if (secondsLeft > 0) {
+            json.append(',').append(part("Starts in ", "gray", null)).append(',')
+                    .append(part(secondsLeft + "s", "green", "\"bold\":true"));
+        } else {
+            json.append(',').append(part(when, "yellow", null));
+        }
+        json.append(',').append(part("  \\u2022  ", "dark_gray", null))
+                .append(',').append(part(String.valueOf(players), "green", "\"bold\":true"))
+                .append(',').append(part("/" + maxPlayers + " players", "gray", null));
+        json.append(',').append(part("\\n\\n" + pad(last, true), "white", null)).append(',')
+                .append(part(last, "green", "\"bold\":true"));
+        json.append(',').append(part("\\n", "white", null)).append(',').append(part(SEPARATOR, "dark_gray", "\"strikethrough\":true"));
+        json.append(']');
+        if (!in) {
+            json.append(",\"clickEvent\":{\"action\":\"run_command\",\"value\":\"/join\"},")
+                    .append("\"hoverEvent\":{\"action\":\"show_text\",\"value\":{\"text\":\"Click to join the ")
+                    .append(kind.label).append(" event\",\"color\":\"green\"}}");
+        }
+        return json.append('}').toString();
+    }
+
+    /** A piece of the announcement: its text (already escaped), its colour and more of its style. */
+    private static String part(String text, String color, String style) {
+        return "{\"text\":\"" + text + "\",\"color\":\"" + color + "\"" + (style == null ? "" : "," + style) + "}";
+    }
+
+    /** The spaces that centre this text in the chat. */
+    static String pad(String text, boolean bold) {
+        int spaces = Math.max(0, (CHAT_WIDTH - width(text, bold)) / 2 / 4);
+        return repeat(' ', spaces);
+    }
+
+    /** About the width of a text in the font of the 1.8 client, in pixels. */
+    static int width(String text, boolean bold) {
+        int width = 0;
+        for (char c : text.toCharArray()) {
+            int w;
+            if (c == ' ' || c == 'I' || c == 't') {
+                w = 4;
+            } else if (c == 'i' || c == '.' || c == '!' || c == ':' || c == '\'' || c == '|') {
+                w = 2;
+            } else if (c == 'l') {
+                w = 3;
+            } else if (c == 'f' || c == 'k' || c == '[' || c == ']') {
+                w = 5;
+            } else {
+                w = 6;
+            }
+            width += w + (bold && c != ' ' ? 1 : 0);
+        }
+        return width;
+    }
+
+    private static String repeat(char c, int count) {
+        StringBuilder out = new StringBuilder();
+        for (int i = 0; i < count; i++) {
+            out.append(c);
+        }
+        return out.toString();
+    }
+
+    /** The red dye of a player of this event: Cancel the event for its host, Leave the event for the others. */
+    static ItemStack dye(boolean host) {
+        ItemStack item = new ItemStack(Material.INK_SACK, 1, (short) 1);
+        org.bukkit.inventory.meta.ItemMeta meta = item.getItemMeta();
+        meta.setDisplayName(host ? CANCEL_ITEM : LEAVE_ITEM);
+        meta.setLore(host ? java.util.Arrays.asList(ChatColor.GRAY + "Calls the event off.")
+                : java.util.Arrays.asList(ChatColor.GRAY + "Takes you out of the event."));
+        item.setItemMeta(meta);
+        return item;
+    }
+
+    /** The red dye in this player's lobby hotbar, while the event waits. */
+    private void giveDye(Hosting h, Player player) {
+        plugin.lobby().setHotbarExtra(player, dye(player.getUniqueId().equals(h.host)), this::useDye);
+    }
+
+    /** The red dye out of this player's lobby hotbar (online or not: the lobby forgets those who left). */
+    private void takeDye(UUID id) {
+        Player player = Bukkit.getPlayer(id);
+        if (player != null) {
+            plugin.lobby().setHotbarExtra(player, null, null);
+        }
+    }
+
+    /** A right click on the red dye: its host calls the event off, another player leaves it. */
+    private void useDye(Player player) {
+        Hosting h = hosting;
+        UUID id = player.getUniqueId();
+        if (h == null || h.launched || !h.registered.contains(id)) {
+            takeDye(id);
+            return;
+        }
+        if (id.equals(h.host)) {
+            callOff(h, "called off by its host");
+        } else {
+            leave(player);
         }
     }
 
@@ -333,15 +458,6 @@ final class Events implements CommandExecutor, Listener {
         }
         int more = min - in;
         return players + ", needs " + more + " more " + (more == 1 ? "player" : "players") + " to start";
-    }
-
-    /** The JSON of the [Click to join] line, with where the event stands. */
-    static String button(EventGame.Kind kind, String status) {
-        return "[\"\",{\"text\":\"[Click to join]\",\"color\":\"green\",\"bold\":true,"
-                + "\"clickEvent\":{\"action\":\"run_command\",\"value\":\"/join\"},"
-                + "\"hoverEvent\":{\"action\":\"show_text\",\"value\":\"Join the " + kind.label
-                + " event: keep playing until it starts\"}},"
-                + "{\"text\":\" or /join: " + status + "\",\"color\":\"gray\"}]";
     }
 
     /** The event starts: its host's cooldown runs from now. */
@@ -460,6 +576,9 @@ final class Events implements CommandExecutor, Listener {
     private void launch(Hosting h, List<Player> ready) {
         h.launched = true;
         h.going = ready.size();
+        for (UUID id : h.registered) {
+            takeDye(id);
+        }
         for (Player player : ready) {
             if (plugin.lobby().isInGame(player)) {
                 player.sendMessage(ChatColor.GOLD + "[Event] " + ChatColor.GRAY + "The " + h.kind.label
@@ -485,6 +604,9 @@ final class Events implements CommandExecutor, Listener {
     private void callOff(Hosting h, String why) {
         if (hosting == h) {
             hosting = null;
+        }
+        for (UUID id : h.registered) {
+            takeDye(id);
         }
         String message = ChatColor.GOLD + "[Event] " + ChatColor.GRAY + "The " + h.kind.label + " event of " + h.hostName
                 + " is called off: " + why + ".";
@@ -579,6 +701,7 @@ final class Events implements CommandExecutor, Listener {
         Hosting h = new Hosting(kind, player.getUniqueId(), player.getName(), now, settings.waitSeconds);
         h.registered.add(player.getUniqueId());
         hosting = h;
+        giveDye(h, player);
         announce(h);
     }
 
@@ -609,8 +732,9 @@ final class Events implements CommandExecutor, Listener {
             return;
         }
         h.registered.add(id);
+        giveDye(h, player);
         player.sendMessage(ChatColor.GREEN + "You joined the " + h.kind.label + " event of " + h.hostName + ChatColor.GRAY + " ("
-                + status(h) + "). Keep playing: you go to it when it starts. /event leave to leave.");
+                + status(h) + "). Keep playing: you go to it when it starts. The red dye takes you out.");
     }
 
     /** /event leave: out of the event announced, or out of the event played. */
@@ -618,6 +742,7 @@ final class Events implements CommandExecutor, Listener {
         Hosting h = hosting;
         UUID id = player.getUniqueId();
         if (h != null && !h.launched && h.registered.remove(id)) {
+            takeDye(id);
             player.sendMessage(ChatColor.GRAY + "You left the " + h.kind.label + " event.");
             if (id.equals(h.host) && h.registered.isEmpty()) {
                 callOff(h, "its host left");

@@ -159,6 +159,13 @@ final class LobbyListener implements Listener {
         }
         // Chests, doors, buttons and the like are not used in the lobby.
         event.setUseInteractedBlock(Event.Result.DENY);
+        if ((event.getAction() == Action.RIGHT_CLICK_AIR || event.getAction() == Action.RIGHT_CLICK_BLOCK)
+                && lobby.useExtra(player, event.getItem())) {
+            // The item of another plugin in the last slot, as the red dye of an event (setHotbarExtra).
+            event.setUseItemInHand(Event.Result.DENY);
+            event.setCancelled(true);
+            return;
+        }
         HotbarItem item = HotbarItem.of(event.getItem());
         if (item == null) {
             return;

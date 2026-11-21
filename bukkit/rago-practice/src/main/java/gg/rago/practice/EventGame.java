@@ -56,6 +56,18 @@ final class EventGame extends PracticeGame {
             return "event-" + id;
         }
 
+        /** The event in one line, for the announcement. */
+        String tagline() {
+            switch (this) {
+                case SUMO:
+                    return "Knock your opponent off the platform.";
+                case BRACKETS:
+                    return "A 1v1 tournament with a Bed Wars kit.";
+                default:
+                    return "Everyone at once: the last one standing wins.";
+            }
+        }
+
         static Kind ofMode(String modeId) {
             for (Kind kind : values()) {
                 if (kind.modeId().equals(modeId)) {

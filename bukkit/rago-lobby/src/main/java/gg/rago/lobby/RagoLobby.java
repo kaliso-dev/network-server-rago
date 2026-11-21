@@ -113,6 +113,9 @@ public final class RagoLobby extends JavaPlugin implements LobbyService {
     private final Map<UUID, String> playAgain = new HashMap<>();
     /** Until when the Play again paper stays in the hotbar (then [PLAY AGAIN] and /playagain only). */
     private final Map<UUID, Long> paperUntil = new HashMap<>();
+    /** The items of other plugins in the last slot of the hotbar (setHotbarExtra), and their right click. */
+    private final Map<UUID, ItemStack> extraItems = new HashMap<>();
+    private final Map<UUID, java.util.function.Consumer<Player>> extraUses = new HashMap<>();
     /** How long the Play again paper stays in the hotbar after a game. */
     static final long PLAY_AGAIN_PAPER_MS = 10000L;
     private final NextGame nextGame = new NextGame(this);
@@ -790,6 +793,8 @@ public final class RagoLobby extends JavaPlugin implements LobbyService {
             () -> gameKills.remove(id),
             () -> playAgain.remove(id),
             () -> paperUntil.remove(id),
+            () -> extraItems.remove(id),
+            () -> extraUses.remove(id),
             () -> kitEditor.forget(id),
             () -> kits.forget(id),
             () -> hypixel.forget(id),
@@ -908,8 +913,42 @@ public final class RagoLobby extends JavaPlugin implements LobbyService {
             }
         }
         inventory.setItem(HotbarItem.SHOP.slot(), HotbarItem.SHOP.create());
-        inventory.setItem(HotbarItem.PROFILE.slot(), ownHead(player));
+        ItemStack extra = extraItems.get(player.getUniqueId());
+        inventory.setItem(HotbarItem.PROFILE.slot(), extra != null ? extra.clone() : ownHead(player));
         player.updateInventory();
+    }
+
+    @Override
+    public void setHotbarExtra(Player player, ItemStack item, java.util.function.Consumer<Player> onUse) {
+        UUID id = player.getUniqueId();
+        if (item == null || onUse == null) {
+            if (extraItems.remove(id) == null) {
+                return;
+            }
+            extraUses.remove(id);
+        } else {
+            extraItems.put(id, item.clone());
+            extraUses.put(id, onUse);
+        }
+        if (player.isOnline() && state.isProtected(player)) {
+            giveHotbar(player);
+        }
+    }
+
+    /**
+     * A right click with this item in the lobby: true if it is this player's item of another plugin
+     * (setHotbarExtra), whose use then runs.
+     */
+    boolean useExtra(Player player, ItemStack item) {
+        ItemStack extra = extraItems.get(player.getUniqueId());
+        if (item == null || extra == null || !extra.isSimilar(item)) {
+            return false;
+        }
+        java.util.function.Consumer<Player> use = extraUses.get(player.getUniqueId());
+        if (use != null) {
+            use.accept(player);
+        }
+        return true;
     }
 
     /**

@@ -109,13 +109,13 @@ grep -q '^    kit: \[STICK\]$' "$SERVER_DIR/plugins/RagoLobby/config.yml" || fai
 grep -q '^    skin-joueur: ' "$SERVER_DIR/plugins/RagoLobby/config.yml" && fail "could not leave out the skins of the accounts"
 # The bundled config.yml of RagoPractice, with a sumo of three rounds (one by default), so that the
 # bots play its rounds: RagoDeux falls three times and RagoUn wins 3 - 0; and the events of /host
-# waiting 15 seconds (the fewest, 60 by default) before they start.
+# waiting 25 seconds (60 by default) before they start: the announcement comes back once, at 20.
 mkdir -p "$SERVER_DIR/plugins/RagoPractice"
-sed -e '/^sumo:$/,/^[a-z]/s/^  points-pour-gagner: 1$/  points-pour-gagner: 3/' -e 's/^  attente-secondes: 60$/  attente-secondes: 15/' \
+sed -e '/^sumo:$/,/^[a-z]/s/^  points-pour-gagner: 1$/  points-pour-gagner: 3/' -e 's/^  attente-secondes: 60$/  attente-secondes: 25/' \
   "$ROOT/bukkit/rago-practice/src/main/resources/config.yml" >"$SERVER_DIR/plugins/RagoPractice/config.yml"
 sed -n '/^sumo:$/,/^[a-z]/p' "$SERVER_DIR/plugins/RagoPractice/config.yml" | grep -q '^  points-pour-gagner: 3$' \
   || fail "could not give the sumo three rounds"
-grep -q '^  attente-secondes: 15$' "$SERVER_DIR/plugins/RagoPractice/config.yml" || fail "could not shorten the wait of the events"
+grep -q '^  attente-secondes: 25$' "$SERVER_DIR/plugins/RagoPractice/config.yml" || fail "could not shorten the wait of the events"
 # RagoTrois is an operator: it hosts an event (rago.perk.host, given to the operators). Its UUID is
 # the one of an offline-mode player: the version 3 UUID of "OfflinePlayer:RagoTrois".
 offline_uuid() {
