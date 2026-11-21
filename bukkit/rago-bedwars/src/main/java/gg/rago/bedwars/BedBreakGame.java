@@ -307,22 +307,26 @@ final class BedBreakGame extends BedwarsGame implements KitMenu.Chooser {
     }
 
     /**
-     * The bridge the attacker came by, as in Ranked Bedwars: from the spawn of their island to the
-     * defended bed, one block wide, straight, at the height of the islands ({@link Bridges}), in
-     * wool of their colour; placed as by a player: the defenders break it, and the rollback takes
-     * it away after the round.
+     * The bridge the attacker came by, as in Ranked Bedwars: from the front of their island, where
+     * their own bed is (else their spawn), to the defended bed, one block wide, straight, at the
+     * height of the islands ({@link Bridges}), in wool of their colour; placed as by a player: the
+     * defenders break it, and the rollback takes it away after the round. Not from the spawn: on
+     * Invasion it is in the middle of a dome, whose glass walls a bridge cannot go through.
      */
     @SuppressWarnings("deprecation") // Block#setTypeIdAndData: the 1.8 way to set a block with its data
     private void buildBridge() {
         bridge = Collections.emptyList();
+        MapPoint own = attackers.points.bed;
         MapPoint spawn = attackers.points.spawn;
         MapPoint bed = defenders.points.bed;
-        if (spawn == null || bed == null) {
+        if (own == null && spawn == null || bed == null) {
             return;
         }
+        double[] from = own != null ? new double[] {own.x() + 0.5, own.y(), own.z() + 0.5}
+                : new double[] {spawn.x(), spawn.y(), spawn.z()};
         World world = instance.world();
         List<int[]> blocks = Bridges.plan((x, y, z) -> world.getBlockAt(x, y, z).getType().isSolid(),
-                new double[] {spawn.x(), spawn.y(), spawn.z()}, new double[] {bed.x() + 0.5, bed.y(), bed.z() + 0.5});
+                from, new double[] {bed.x() + 0.5, bed.y(), bed.z() + 0.5});
         if (blocks.isEmpty()) {
             plugin.getLogger().warning("No room for the attacker's bridge on " + instance.map().world() + " from the "
                     + attackers.color.displayName() + " island to the " + defenders.color.displayName()

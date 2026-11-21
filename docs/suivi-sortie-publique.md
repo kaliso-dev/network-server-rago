@@ -136,7 +136,7 @@ informations manquantes.
 | 2.5 | Au moins 10 spectateurs (Block Clutch et autres practice) | Social | P1 | IMPLÉMENTÉ | `tools/local-server/server.properties` (50 places), `spectate-bots.mjs` | 1.2 | test réel en CI : 10 bots regardent un Block clutch en même temps |
 | 2.6 | Fireballs fidèles à Hypixel (KB, explosion, direction, fireball jump, blocs) | PvP | P1 | EN COURS (mesure prête, à faire sur Hypixel) | `Fireballs`, `FireballBlast`, `FireballAim`, `PracticeGame` | — | mesures Hypixel (kb-recorder 0.2) |
 | 2.7 | TNT (timing, KB, TNT jump, environnement), réf. Hypixel / Minemen | PvP | P1 | À FAIRE | `PracticeGame.tntBlast`, `BedwarsGame` | 2.6 | mesures |
-| 2.8 | Fast Shop et API Hypixel : étude des données réellement disponibles | Modes | P2 | À FAIRE | `FastShopGame`, `HypixelProfiles`, `HypixelProfile` | — | clé API |
+| 2.8 | Fast Shop et API Hypixel : étude des données réellement disponibles | Modes | P2 | ÉTUDE FAITE (proposition à valider) | `FastShopGame`, `HypixelProfiles`, `HypixelProfile` | — | un vrai `/hypixel import` sur ton serveur |
 
 ### Étape 4 : statistiques et progression (Phase 3)
 
@@ -542,7 +542,10 @@ en premier pendant sa protection (il redevient touchable aussitôt).
 - **Bridges** : le top bridge (la plateforme de laine de 17 blocs de large, 16 blocs au-dessus
   des lits, tracée de lit à lit, donc en diagonale sur Invasion) est remplacé par le bridge de
   l'attaquant, comme un joueur le pose en Ranked Bedwars : un bloc de large, en laine de sa
-  couleur, de son île jusqu'au lit défendu, à la hauteur des îles. Il suit le même tracé que les
+  couleur, de l'avant de son île (là où est son propre lit) jusqu'au lit défendu, à la hauteur
+  des îles. Il ne part plus du spawn depuis que celui d'Invasion est au milieu du dôme (1.6) : un
+  tracé droit depuis là traverse la vitre du dôme et descendait à y 88 sous l'île du diamant.
+  Il suit le même tracé que les
   bridges de Clutch Scenario (`Bridges`) : droit le long d'un axe, sinon un seul virage, jamais en
   diagonale quand un chemin droit passe. Sur Invasion (îles aux coins), il longe le bord ouest
   puis le bord nord de la map, par l'île jaune ; sur Archway, il passe par mid. Les défenseurs
@@ -595,8 +598,15 @@ est symétrique).
 
 **Corrigé** : dans `C:\Users\rgabe\Rago\mondes\Invasion\bedwars.yml` (ton serveur) et dans
 `maps-bedwars/Invasion`, les 4 forges sont au centre de leur carré de lanternes, au ras du sol :
-rouge 52 93 -51, bleu 52 93 52, vert -51 93 52, jaune -51 93 -51. L'ancien point est gardé en
-commentaire au-dessus de chacune ; l'ancien fichier est dans
+rouge 52 93 -51, bleu 52 93 52, vert -51 93 52, jaune -51 93 -51.
+
+**Spawn** (ta correction du 21/11 : « le joueur doit spawn au milieu de sa base exactement au point
+rouge, before glass in the middle ») : les 4 spawns sont sur la vitre du milieu du dôme, au ras du
+sol, tournés vers leur lit comme avant : rouge 48,5 93 -47,5, bleu 48,5 93 48,5, vert -47,5 93
+48,5, jaune -47,5 93 -47,5 (avant : 4 blocs plus près du lit, sur le rebord, y 94). Le bridge de
+Bed Break part donc maintenant de l'avant de l'île de l'attaquant (voir 2.3).
+
+Les anciens points sont gardés en commentaire au-dessus de chacun ; l'ancien fichier est dans
 `sortie-publique/forge-invasion/bedwars-avant.yml`, l'image de la base rouge (avant, après) dans
 `sortie-publique/forge-invasion/invasion-forge-rouge.png`. Le serveur lit ce fichier au démarrage :
 la correction vaut pour toutes les parties sur Invasion (Bed Break, Ranked…) au prochain démarrage.
@@ -643,3 +653,56 @@ l'air), chaque bloc détruit encore présent dans la lecture d'avant. Le clic dr
 
 **Reste** : la séance sur Hypixel avec le mod 0.2.0, puis les nouvelles valeurs (RagoBedwars,
 practice, Lobby Fight) à partir des mesures.
+
+### 2.8 Fast Shop et API Hypixel — ÉTUDE FAITE (21/11), proposition à valider
+
+**Ce qui existe déjà** (lu dans le code, rien de changé) :
+- `/hypixel import [pseudo]`, ou l'émeraude de l'éditeur de kit, copie depuis l'API Hypixel le
+  **quick buy** (21 cases) et le **hotbar manager** (9 cases) d'un joueur, avec la clé du serveur
+  (`hypixel.cle-api` de RagoLobby). Une requête `GET /v2/player` par import (plus une à Mojang pour
+  un autre pseudo que le sien). Limites : une fois par minute et par joueur, 100 imports par
+  5 minutes pour tout le serveur, une pause d'une minute si Hypixel refuse la clé (403) ou demande
+  de ralentir (429). Gardé par joueur dans `plugins/RagoLobby/hypixel/<uuid>.yml` ; `/hypixel shop`
+  le montre.
+- Le Fast Shop et tous les modes Bed Wars ouvrent le shop avec ce quick buy (sinon celui par
+  défaut), et rangent les objets achetés selon le hotbar manager.
+- Sur ton serveur de test (19), la clé est remplie, mais le dossier `hypixel/` n'existe pas : aucun
+  import n'y a encore été fait, donc la clé et la lecture n'ont jamais été vérifiées en vrai.
+
+**Ce que l'API donne vraiment** (sources : developer.hypixel.net/policies et la documentation
+api.hypixel.net) :
+- `/v2/player` (clé obligatoire, en-tête `API-Key`) renvoie `stats.Bedwars`. Le quick buy y est
+  `favourites_2` (21 identifiants séparés par des virgules, `null` pour une case vide) et le hotbar
+  manager `favorite_slots` (Melee, Blocks, Tools, Ranged, Potions, Utility, Compass ou `null`).
+  **Ces champs ne sont pas dans la documentation officielle** : ils viennent des réponses réelles,
+  et la communauté s'en sert (par exemple un gist de 2025 qui liste le quick buy par défaut). Un
+  joueur qui n'a jamais réglé son shop peut ne pas les avoir : l'import le dit au joueur.
+- Les identifiants : les 14 du quick buy par défaut (wool, stone_sword, chainmail_boots, bow,
+  speed_ii_potion_(45_seconds), tnt, oak_wood_planks, iron_sword, iron_boots, shears, arrow,
+  invisibility_potion_(30_seconds), water_bucket, null) sont confirmés par cette source et
+  reconnus par notre shop. Les autres (hardened_clay, blast-proof_glass, stick_(knockback_i),
+  wooden_pickaxe, magic_milk, compact_pop-up_tower…) ne sont confirmés par aucune source publique
+  que j'ai pu lire ; notre shop les reconnaît par un mot (clay, glass, stick, pickaxe, milk,
+  tower…). Un identifiant inconnu laisse la case vide, sans erreur.
+
+**Ce que l'API ne donne pas** : rien de ce qui se passe pendant une partie. Pas les achats d'une
+partie, pas le temps d'un achat, pas de « record » de shop, pas de classement de vitesse ; pas de
+mise à jour poussée quand le joueur change son quick buy (il faut redemander). `/v2/recentgames`
+ne liste que les parties récentes (mode, map, début, fin), sans achats. Le Fast Shop ne peut donc
+pas comparer un temps à Hypixel : ses records restent les nôtres.
+
+**Règles d'Hypixel qui comptent** : la clé ne se partage pas et ne va pas dans le code (elle est
+dans `config.yml` du serveur, c'est bon) ; une application « Personal » est pour un projet non
+monétisé, un serveur qui vend quelque chose (grades, boutique) doit avoir une application
+« Production » ; les clés de développement expirent ; garder les réponses en cache est demandé,
+interroger en boucle (polling) ou suivre les sessions des joueurs est interdit. Hypixel ne publie
+pas le nombre de requêtes permis : le commentaire du code qui disait « 300 en 5 minutes » n'avait
+pas de source, il est corrigé ; le 429 met déjà les imports en pause.
+
+**Proposition** : l'intégration actuelle utilise déjà tout ce que l'API donne pour le shop. Je
+propose de la garder telle quelle, sans import automatique (interdit par les règles), et de la
+vérifier par un vrai import : `/hypixel import` sur ton compte, sur ton serveur de test. Ça
+confirme la clé (refusée si l'application n'est pas encore acceptée) et les identifiants de ton
+quick buy, que je relirai dans `plugins/RagoLobby/hypixel/`. Un seul petit manque trouvé : un
+import fait pendant une partie de Fast Shop ne change le shop qu'à la partie suivante (le message
+d'accueil dit d'importer au lobby, donc ce cas est rare). Rien n'est codé sans ton accord.
