@@ -100,6 +100,16 @@ categories:
       - "Lobby Fight FFA, bridge fight,"
       - "block placement arena and Arena"
       - "Free. Someone to fight at once."
+  # FUN PRACTICE (plan 6.1): the fun modes, one after the other
+  fun:
+    nom: "&d&lFun Practice"
+    icone: SNOW_BALL
+    slogan: "&dFun modes &7to play with &danyone"
+    description:
+      - "Fireball Fight: knock them off"
+      - "with fireballs and wind gusts;"
+      - "Snowball Spleef: break the snow"
+      - "under their feet."
 
 # At each arrival in the lobby, the ways to play in the chat: a line per category (its name and
 # slogan), a click opens its modes (/play category); at the first arrival, a title too. false: none.
@@ -285,6 +295,12 @@ pnj:
     nom: "&c&lArenas"
     categorie: arenes
     skin: arena
+    bloc: QUARTZ_BLOCK
+  # FUN PRACTICE (plan 6.1): the NPC FunMod2, on its point funmod2, on a block of quartz; no skin
+  # of its own yet (Steve).
+  funmod2:
+    nom: "&d&lFun Practice"
+    categorie: fun
     bloc: QUARTZ_BLOCK
   # The private games (a Ranked Bedwars or a Top Bridge with friends, the host's settings): /lobby
   # point prive. They stay in the RBW Modes too.
@@ -960,6 +976,8 @@ titres:
     block-edit: {nom: "Block Edit", modes: [block-edit-duel]}
     fireball: {nom: "Fireball Fight", modes: [fireball]}
     bow: {nom: "Bow Duel", modes: [bow-duel]}
+    fireball-knockback: {nom: "Fireball Fight (Fun)", modes: [fireball-knockback]}
+    snowball-spleef: {nom: "Snowball Spleef", modes: [snowball-spleef]}
 
 # The Hypixel import: players copy the quick buy of their Bed Wars shop and their hotbar manager
 # from Hypixel, in one click (the emerald in the kit editor book) or with /hypixel import <name>,
@@ -1711,6 +1729,35 @@ modes:
       - "their bed, the last one"
       - "standing wins. Blasts and"
       - "falls do no damage."
+  # FUN PRACTICE (plan 6.1). The Fireball Fight of the knockback (not the one above, with beds):
+  # the fireballs as many as the player likes, one every half second, unless fireball-knockback in
+  # the config.yml of RagoPractice says how many; the feather is the wind gust.
+  fireball-knockback:
+    nom: "&dFireball Fight"
+    categorie: fun
+    icone: FIREBALL
+    equipes: 2
+    joueurs-par-equipe: 1
+    classe: false
+    kit: ["FIREBALL 64", FEATHER]
+    description:
+      - "A round platform over the"
+      - "void: knock them off with"
+      - "fireballs; the wind gust"
+      - "throws you up. No damage."
+  snowball-spleef:
+    nom: "&dSnowball Spleef"
+    categorie: fun
+    icone: SNOW_BALL
+    equipes: 2
+    joueurs-par-equipe: 1
+    classe: false
+    kit: [DIAMOND_SPADE]
+    description:
+      - "Break the snow under them:"
+      - "each block gives a snowball"
+      - "that breaks the snow and"
+      - "pushes. Don't fall!"
   clutch:
     nom: "&bBlock clutch"
     categorie: entrainement

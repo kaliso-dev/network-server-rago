@@ -64,10 +64,14 @@ class LobbySettingsTest {
         assertEquals("lobby", settings.world());
         assertEquals(0, settings.voidHeight());
         assertEquals(0, settings.defaultRating(), "a ranked ELO starts at 0, in Coal");
-        assertEquals(71, settings.modes().size(), "the invis practice and the Bed Break Simulator in 1v1 to 1v4 (and"
+        assertEquals(73, settings.modes().size(), "the invis practice and the Bed Break Simulator in 1v1 to 1v4 (and"
                 + " their kits), with the private top bridge, the clutch scenario, the bed fight, Top"
                 + " BedFight, the bridge fight 2v2, the full map first rush, Sky Rise Resources, the timed bridge, Lobby"
-                + " Fight (1v1, FFA) and the Bed Break Simulator, without the top fight or the ranked scenarios");
+                + " Fight (1v1, FFA), the Bed Break Simulator and the two modes of FUN PRACTICE, without the top fight or"
+                + " the ranked scenarios");
+        assertEquals("fun", settings.display("fireball-knockback").category(), "the Fireball Fight of FUN PRACTICE");
+        assertEquals("fun", settings.display("snowball-spleef").category());
+        assertEquals(Material.SNOW_BALL, settings.display("snowball-spleef").icon());
         assertEquals("skyrise", settings.display("skyrise-resources-1v1").group(), "beside Sky Rise");
         assertFalse(settings.catalog().get("top-bridge-1v1").ranked(), "Top Bridge: no ELO");
         assertEquals("2v2", settings.catalog().get("top-bridge-2v2").format());
@@ -91,7 +95,7 @@ class LobbySettingsTest {
     @Test
     void groupsTheBundledModesByCategory() throws Exception {
         LobbySettings settings = LobbySettings.load(bundledConfig());
-        assertEquals(4, settings.categories().size());
+        assertEquals(5, settings.categories().size());
         assertEquals("entrainement", settings.categories().get(0).id(), "left to right: the practice on the left");
         assertEquals("ranked", settings.categories().get(1).id());
         assertEquals("duels", settings.categories().get(2).id(), "the duels");
@@ -99,6 +103,8 @@ class LobbySettingsTest {
         assertEquals("arenes", settings.categories().get(3).id(), "the arenas on the right");
         assertEquals("§c§lArenas", settings.categories().get(3).name());
         assertEquals(Material.DIAMOND_SWORD, settings.categories().get(3).icon());
+        assertEquals("fun", settings.categories().get(4).id(), "FUN PRACTICE (plan 6.1), after the arenas");
+        assertEquals("§d§lFun Practice", settings.categories().get(4).name());
         // Four ways to play: train alone, the RBW modes (not all ranked: no bed on it), duel, the arenas.
         assertEquals("§6§lRBW Modes", settings.categories().get(1).name());
         assertEquals(Material.BED, settings.categories().get(1).icon());
@@ -247,8 +253,9 @@ class LobbySettingsTest {
     @Test
     void readsTheBundledNpcs() throws Exception {
         LobbySettings settings = LobbySettings.load(bundledConfig());
-        assertEquals(15, settings.npcs().size(), "four NPCs of modes, one per way to play, and the private games; the shop,"
-                + " the stats, the leaderboard selector, the boards and the wall of the week; qRago and kaliso_dev");
+        assertEquals(16, settings.npcs().size(), "five NPCs of modes, one per way to play (FunMod2 for FUN PRACTICE), and"
+                + " the private games; the shop, the stats, the leaderboard selector, the boards and the wall of the week;"
+                + " qRago and kaliso_dev");
         LobbyNpc prive = settings.npc("prive");
         assertEquals(Arrays.asList("partie-privee", "top-bridge-prive"), prive.modeIds(), "the private games, on their own NPC");
         assertNull(prive.category());
@@ -261,11 +268,16 @@ class LobbySettingsTest {
         List<String> categories = new java.util.ArrayList<>();
         for (LobbyNpc npc : settings.npcs()) {
             if (npc.kind() == LobbyNpc.Kind.MODES && npc != prive) {
-                assertNotNull(npc.category(), npc.point() + ": only the NPCs of the four categories");
+                assertNotNull(npc.category(), npc.point() + ": only the NPCs of the five categories");
                 categories.add(npc.category());
             }
         }
-        assertEquals(Arrays.asList("entrainement", "ranked", "duels", "arenes"), categories, "Practice, RBW Modes, Duels, Arenas");
+        assertEquals(Arrays.asList("entrainement", "ranked", "duels", "arenes", "fun"), categories,
+                "Practice, RBW Modes, Duels, Arenas, Fun Practice");
+        LobbyNpc fun = settings.npc("funmod2");
+        assertEquals("§d§lFun Practice", fun.name());
+        assertNull(fun.skin(), "FunMod2 has no skin of its own yet: Steve");
+        assertEquals(displayIds(settings.modesIn("fun")), fun.modeIds(), "FunMod2 holds the modes of FUN PRACTICE");
         LobbyNpc arenas = settings.npc("arenas");
         assertEquals("§c§lArenas", arenas.name());
         assertEquals("arena", arenas.skin());

@@ -1133,7 +1133,8 @@ abstract class PracticeGame implements Spectators.Watched {
             if (!Fireballs.reaches(at.getX() - centre.getX(), at.getY() - centre.getY(), at.getZ() - centre.getZ())) {
                 continue;
             }
-            double[] push = Fireballs.push(centre.getX(), centre.getY(), centre.getZ(), at.getX(), at.getY(), at.getZ());
+            double[] push = fireballPush(player, thrower,
+                    Fireballs.push(centre.getX(), centre.getY(), centre.getZ(), at.getX(), at.getY(), at.getZ()));
             player.setVelocity(new Vector(push[0], push[1], push[2]));
             double damage;
             if (thrower == null || thrower.equals(player)) {
@@ -1154,6 +1155,15 @@ abstract class PracticeGame implements Spectators.Watched {
                 entity.setVelocity(new Vector(push[0], push[1], push[2]));
             }
         }
+    }
+
+    /**
+     * The push of a fireball's blast on this player, from the one of Bed Wars ({@link Fireballs#push}):
+     * a mode may make it stronger (the Fireball Fight of FUN PRACTICE). Thrower: the player of the
+     * game who threw it, or null. Default: as it is.
+     */
+    double[] fireballPush(Player player, Player thrower, double[] push) {
+        return push;
     }
 
     /** True if the TNT of this mode hurts as the server's own does; false: it only pushes ({@link #tntBlast}). */

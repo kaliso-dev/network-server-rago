@@ -133,6 +133,14 @@ joueur, le joueur est prévenu de chacun et continue de jouer, les dix sont touj
 secondes plus tard, et `/spawn` les ramène tous au lobby. Le serveur de test a les 50 places du
 `server.properties` du serveur local (il en avait 8, trop peu pour une partie et dix spectateurs).
 
+Pour finir, deux bots jouent les deux modes de FUN PRACTICE (`tools/kb-control/bots/fun-bots.mjs`),
+avec les réglages livrés (une manche) : au Snowball Spleef, la pelle casse un bloc de neige et
+donne une boule, la boule casse la neige où elle tombe, puis l'un casse la neige sous ses pieds,
+tombe et l'autre gagne ; au Fireball Fight, le souffle de vent (la plume, regard en l'air) fait
+monter le bot, un deuxième tout de suite doit attendre, il retombe sans dégât, une fireball le
+repousse sans dégât (la pile du lanceur reste à 64), puis il tombe de la plateforme et l'autre
+gagne. Les deux reviennent au lobby après chaque partie.
+
 ```bash
 ./gradlew build
 (cd tools/kb-control/bots && npm ci)

@@ -337,3 +337,38 @@ bow-training:
     - [-13, -22, -13, -61]
     - [-9, -24, -9, -61]
     - [-16, -20, -16, -61]
+
+# FUN PRACTICE (plan 6.1). The values below are starting values, to tune in game with the owner:
+# the owner still has to choose the rounds, the radius, the fireballs and the delay of the gust.
+#
+# Fireball Fight (the "fireball-knockback" mode of the lobby, not the "fireball" of the Duels with
+# its beds): a round platform of quartz over the void, a little bigger than the sumo's (rayon, 5 to
+# 30, the sumo's is 7); knock the other one off with fireballs, which push the others recul-
+# horizontal times (across) and recul-vertical times (up) as hard as in Bed Wars (0.5 to 5; the
+# thrower's own fireball jump stays as in Bed Wars); fireballs: how many in each round (0: no
+# limit, one every half second as in Bed Wars); the wind gust (the feather) throws the player up
+# and forward as the lobby's leap feather, once every souffle-secondes (0 to 60; the bar of
+# experience fills up again). No damage: a hit pushes as in the sumo; the first off the platform
+# loses the round, the first to points-pour-gagner rounds (1 to 10) wins. cartes: the owner's maps,
+# as the boxing's (with "departs"); none: the platform of the plugin.
+fireball-knockback:
+  points-pour-gagner: 1
+  rayon: 10
+  recul-horizontal: 1.5
+  recul-vertical: 1.2
+  fireballs: 0
+  souffle-secondes: 3
+  cartes: []
+
+# Snowball Spleef: floors of snow over the void (etages, 1 to 5, ecart-etages blocks one under the
+# other, 3 to 20), each of radius rayon (5 to 40). A diamond shovel (Efficiency V) breaks the snow
+# at once, and each block it breaks gives boules-par-bloc snowballs (0 to 16); a snowball breaks
+# the snow it lands on and pushes the player it hits, without damage; no hits with the hand. The
+# first under the lowest floor loses the round; the floors are whole again at each round; the first
+# to points-pour-gagner rounds (1 to 10) wins.
+snowball-spleef:
+  points-pour-gagner: 1
+  rayon: 12
+  etages: 1
+  ecart-etages: 6
+  boules-par-bloc: 1

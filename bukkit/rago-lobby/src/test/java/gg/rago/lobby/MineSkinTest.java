@@ -21,6 +21,9 @@ import org.junit.jupiter.api.Test;
 
 class MineSkinTest {
 
+    /** The NPCs whose skin the owner has not chosen yet: they wear Steve (FunMod2, plan 6.1). */
+    private static final java.util.Set<String> WITHOUT_SKIN_YET = java.util.Collections.singleton("funmod2");
+
     private static final String SIGNED = "{\"success\":true,\"skin\":{\"uuid\":\"abc\",\"name\":\"rago-clutch\","
             + "\"texture\":{\"data\":{\"value\":\"dmFsdWU=\",\"signature\":\"c2lnbmF0dXJl\"},"
             + "\"url\":{\"skin\":\"http://textures.minecraft.net/texture/1\"}}},"
@@ -144,6 +147,11 @@ class MineSkinTest {
             if (npc.account() != null) {
                 // a person of the thank-you room wears the skin of their Minecraft account (skin-joueur:)
                 assertTrue(AccountSkins.validName(npc.account()), npc.point() + ": " + npc.account());
+                continue;
+            }
+            if (WITHOUT_SKIN_YET.contains(npc.point())) {
+                // its skin is not chosen yet: Steve until then
+                assertNull(npc.skin(), npc.point());
                 continue;
             }
             assertNotNull(npc.skin(), npc.point() + " has a skin");

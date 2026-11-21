@@ -277,6 +277,54 @@ public final class RagoPractice extends JavaPlugin {
         register("bridge-fight-2v2", (h, m, a, t) -> new BridgeDuel(h, m, a, t, bridge, bridgeProtection), slots, spacing, false);
         // the timed bridge, its twelve courses side by side; last too
         register("bridge-chrono", BridgeTraining::new, slots, spacing, false);
+        // FUN PRACTICE (plan 6.1), after the others so that they keep their zones: the Fireball Fight
+        // of the knockback, on the plugin's platform or on the maps of fireball-knockback.cartes,
+        // and the Snowball Spleef
+        int fireballPoints = Math.max(1, Math.min(10, config.getInt("fireball-knockback.points-pour-gagner", 1)));
+        FireballKnockback.Settings fireball = fireballKnockback(config);
+        onMaps(register("fireball-knockback", (h, m, a, t) -> new FireballKnockback(h, m, a, t, fireballPoints, fireball), slots,
+                spacing, false), zoneMaps(config, "fireball-knockback.cartes", spacing, "the Fireball Fight of FUN PRACTICE"));
+        int spleefPoints = Math.max(1, Math.min(10, config.getInt("snowball-spleef.points-pour-gagner", 1)));
+        SnowballSpleef.Settings spleef = snowballSpleef(config);
+        register("snowball-spleef", (h, m, a, t) -> new SnowballSpleef(h, m, a, t, spleefPoints, spleef), slots, spacing, false);
+    }
+
+    /** The settings of the Fireball Fight of FUN PRACTICE (fireball-knockback); the defaults when they are wrong. */
+    private FireballKnockback.Settings fireballKnockback(FileConfiguration config) {
+        int radius = config.getInt("fireball-knockback.rayon", 10);
+        double across = config.getDouble("fireball-knockback.recul-horizontal", 1.5);
+        double up = config.getDouble("fireball-knockback.recul-vertical", 1.2);
+        int fireballs = config.getInt("fireball-knockback.fireballs", 0);
+        int gust = config.getInt("fireball-knockback.souffle-secondes", 3);
+        int points = config.getInt("fireball-knockback.points-pour-gagner", 1);
+        String problem = FireballKnockback.Settings.check(radius, across, up, fireballs, gust);
+        if (problem == null && (points < 1 || points > 10)) {
+            problem = "points-pour-gagner must be from 1 to 10";
+        }
+        if (problem != null) {
+            getLogger().warning("fireball-knockback in config.yml: " + problem + ". The Fireball Fight of FUN PRACTICE plays with"
+                    + " its default settings.");
+            return new FireballKnockback.Settings(10, 1.5, 1.2, 0, 3);
+        }
+        return new FireballKnockback.Settings(radius, across, up, fireballs, gust);
+    }
+
+    /** The settings of the Snowball Spleef (snowball-spleef); the defaults when they are wrong. */
+    private SnowballSpleef.Settings snowballSpleef(FileConfiguration config) {
+        int radius = config.getInt("snowball-spleef.rayon", 12);
+        int floors = config.getInt("snowball-spleef.etages", 1);
+        int gap = config.getInt("snowball-spleef.ecart-etages", 6);
+        int snowballs = config.getInt("snowball-spleef.boules-par-bloc", 1);
+        int points = config.getInt("snowball-spleef.points-pour-gagner", 1);
+        String problem = SnowballSpleef.Settings.check(radius, floors, gap, snowballs);
+        if (problem == null && (points < 1 || points > 10)) {
+            problem = "points-pour-gagner must be from 1 to 10";
+        }
+        if (problem != null) {
+            getLogger().warning("snowball-spleef in config.yml: " + problem + ". The Snowball Spleef plays with its default settings.");
+            return new SnowballSpleef.Settings(12, 1, 6, 1);
+        }
+        return new SnowballSpleef.Settings(radius, floors, gap, snowballs);
     }
 
     /**

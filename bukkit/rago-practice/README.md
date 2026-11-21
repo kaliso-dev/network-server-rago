@@ -411,6 +411,31 @@ l'autre (un son de victoire pour qui gagne la manche, un autre pour qui la perd)
 `bridge-fight-2v2` est le même en 2v2 (avec la même épée en bois) : chaque équipe côte à côte sur son carré, le point quand
 toute l'équipe d'en face est tombée ou morte.
 
+## FUN PRACTICE (plan 6.1)
+
+Deux modes en 1v1, dans la catégorie FUN PRACTICE du lobby (son PNJ FunMod2, sur un bloc de
+quartz). Aucun dégât dans les deux : le premier qui tombe donne le point à l'autre, comme au sumo.
+Les valeurs de départ ci-dessous sont **à régler avec le propriétaire**.
+
+- **Fireball Fight** (`fireball-knockback`, pas le Fireball fight des duels avec ses lits) : une
+  plateforme ronde de quartz au-dessus du vide, un peu plus grande que celle du sumo
+  (`rayon` 10). Des fireballs (clic droit, une toutes les demi-secondes ; `fireballs` 0 : autant
+  qu'on veut, la pile reste pleine) qui poussent les autres plus fort qu'en Bed Wars
+  (`recul-horizontal` 1,5 et `recul-vertical` 1,2 fois), le saut sur sa propre fireball restant
+  celui de Bed Wars. Le **souffle de vent** (la plume) : le saut de la plume du lobby, une fois
+  toutes les `souffle-secondes` (3), la barre d'expérience montrant quand il revient. Une frappe
+  pousse sans dégât. Les maps du propriétaire pourront aller dans `fireball-knockback.cartes`
+  (comme celles du sumo) ; sans map, la plateforme du plugin.
+- **Snowball Spleef** (`snowball-spleef`) : un sol de neige au-dessus du vide (`rayon` 12 ;
+  `etages` 1, `ecart-etages` 6 pour en mettre plusieurs l'un sous l'autre), une pelle en diamant
+  Efficacité V qui casse la neige d'un coup, et `boules-par-bloc` (1) boule de neige par bloc
+  cassé. Une boule casse la neige où elle tombe, ou pousse le joueur qu'elle touche, sans dégât ;
+  personne ne frappe à la main. Tomber sous le dernier étage fait perdre la manche ; les étages
+  sont remis à neuf à chaque manche.
+
+Les deux : `points-pour-gagner` 1 (de 1 à 10). Des réglages faux sont signalés au démarrage, et le
+mode joue alors avec les valeurs de départ.
+
 ## Les events (/host)
 
 Comme sur Minemen, un joueur PREMIUM (`rago.perk.host`) lance un event pour tout le serveur avec

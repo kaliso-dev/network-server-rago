@@ -150,7 +150,9 @@ final class Titles {
                 new Family("bridge-fight", "Bridge Fight", Arrays.asList("bridge-fight-1v1", "bridge-fight-2v2")),
                 new Family("block-edit", "Block Edit", Arrays.asList("block-edit-duel")),
                 new Family("fireball", "Fireball Fight", Arrays.asList("fireball")),
-                new Family("bow", "Bow Duel", Arrays.asList("bow-duel")));
+                new Family("bow", "Bow Duel", Arrays.asList("bow-duel")),
+                new Family("fireball-knockback", "Fireball Fight (Fun)", Arrays.asList("fireball-knockback")),
+                new Family("snowball-spleef", "Snowball Spleef", Arrays.asList("snowball-spleef")));
         return new Titles(true, steps, families);
     }
 
