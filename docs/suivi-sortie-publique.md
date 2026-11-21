@@ -131,7 +131,7 @@ informations manquantes.
 | --- | --- | --- | --- | --- | --- | --- | --- |
 | 2.1 | Lobby Fight : 12 end stone, pioche bois, Haste, 5 pommes, blocs qui partent après 10 s (pas ceux du lobby), 3 manches | Modes | P1 | CORRIGÉ après l'essai en jeu (pearl, laine et cisailles remises), à retester | `LobbyFight`, `LobbyFightGame`, `FfaGame`, `BlockDecay`, config du lobby | 1.1 | tests unitaires (`LobbyFightTest`, `LobbySettingsTest`) ; en jeu sur Archway FFA (voir le journal) |
 | 2.2 | Bedfight : protection au respawn de la durée exacte de Minemen, coupée dès un combat ; kit gardé ; puis les autres modes Bed Wars (demandé après l'essai) | Modes | P1 | TESTÉ en Bed Fight (en jeu par toi) ; autres modes IMPLÉMENTÉ | `BedFightGame`, `BedwarsGame`, `BedwarsHost`, `SpawnProtection` | 1.5 | tests unitaires (`SpawnProtectionTest`) ; en jeu : frapper un joueur qui vient de réapparaître |
-| 2.3 | Bed Break Simulation : bridges refaits, pas de blocs en haut de la map, cisailles + hache, défense RBW (end stone + verre), forges | Modes | P1 | EN COURS : tu construis les bridges d'Invasion et d'Archway dans `/bw edit`, je relève tes blocs ; forges testées | `BedBreakGame`, `Bridges`, `Defense`, `game-model/BedDefense` | 1.6 | C3 |
+| 2.3 | Bed Break Simulation : bridges refaits, pas de blocs en haut de la map, cisailles + hache, défense RBW (end stone + verre), forges | Modes | P1 | EN COURS : tes escaliers rouges relevés (65 laines par map) ; plateforme rouge et verte en haut proposée (images), à valider ; forges testées | `BedBreakGame`, `Bridges`, `Defense`, `game-model/BedDefense` | 1.6 | C3 |
 | 2.4 | Clutch Scenario : bridges réalistes jusqu'à la base ennemie ; rôles au hasard (leader aussi Clutcher) | Modes | P1 | IMPLÉMENTÉ | `ClutchScenarioGame`, `Bridges` | — | tests unitaires (`BridgesTest`) ; simulation sur Archway et Sky Rise ; en jeu | — |
 | 2.5 | Au moins 10 spectateurs (Block Clutch et autres practice) | Social | P1 | IMPLÉMENTÉ | `tools/local-server/server.properties` (50 places), `spectate-bots.mjs` | 1.2 | test réel en CI : 10 bots regardent un Block clutch en même temps |
 | 2.6 | Fireballs fidèles à Hypixel (KB, explosion, direction, fireball jump, blocs) | PvP | P1 | EN COURS (mesure prête, à faire sur Hypixel) | `Fireballs`, `FireballBlast`, `FireballAim`, `PracticeGame` | — | mesures Hypixel (kb-recorder 0.2) |
@@ -145,12 +145,12 @@ informations manquantes.
 | 3.2 | FKDR avec décimales partout (« 6.42 FKDR ») | Stats | P1 | IMPLÉMENTÉ | `BoardStat`, `StatsBook`, `StatsMenu`, `StatsDisplays`, `HeadLines` | 1.4 | — |
 | 3.3 | Records practice : Lifetime d'abord, Weekly, Daily plus tard ; visibles ≥ 1 mois | Stats | P1 | IMPLÉMENTÉ (Weekly ajouté, gardé 5 semaines ; Daily plus tard) | `Records`, `RecordBook`, `RecordsMenu` | 1.4 | — |
 | 3.4 | Menus practice : TOP 3 Lifetime du record du mode au survol | Stats | P1 | IMPLÉMENTÉ (les entraînements de RagoPractice, et Fast Shop : sa première liste) | `ModeMenu`, `ModeDisplay`, `RecordCatalog` | 3.3 | — |
-| 3.1 | Trois leaderboards Daily / Weekly / Lifetime liés à une même stat | Stats | P1 | EN COURS (codé, CI en cours) | `StatsDisplays`, `StatsBook`, `ModeStats`, `PlayerStats`, `StatsFiles`, `BoardStat` | 1.4 | méthode proposée le 21/11 (XP et ELO gagnés, ratios avec 5 / 15 parties), à valider ; quel mur pour quelle période (question posée) |
-| 5.4d | Sélecteur `NewLeaderboard Selector` (Win Streak, Level, ELO, Wins, Kills, FKDR, WWLR…) | Lobby | P1 | EN COURS (codé, CI en cours) | `LobbyNpc`, `LobbyNpcs`, `LobbySettings`, `StatsDisplays`, point `newleaderboardselector` | 3.1 | config de ton serveur à faire à l'installation |
-| 3.5 | Network Level au-dessus des joueurs par défaut (lobby, practice, autres) | Lobby | P1 | EN COURS (codé, CI en cours) | `HeadLines`, `RagoLobby`, `LobbyScoreboard`, `ProfileMenu` | 1.3 | C4 |
-| 3.6 | ELO des adversaires visible en Ranked | Ranked | P1 | EN COURS (codé, CI en cours) | `LobbyScoreboard` (pseudo et Tab en partie) | 3.5 | — |
-| 3.8 | Nombre de joueurs en file pour chaque mode | Files | P1 | EN COURS (déjà en place, test réel ajouté, CI en cours) | `QueueController`, `ModeMenu`, `LobbyNpcs`, `lobby-bots.mjs` | — | — |
-| 3.7 | Organisation Solo / Party / Ranked (ELO par mode) : proposition avant tout code | Files | P2 | À FAIRE | `ModeCategory`, `ModeMenu`, `QueueController`, `Matchmaker`, `EloLadder` | 3.8 | validation de la proposition |
+| 3.1 | Trois leaderboards Daily / Weekly / Lifetime liés à une même stat | Stats | P1 | IMPLÉMENTÉ (CI passée : build, tests unitaires et tests réels) | `StatsDisplays`, `StatsBook`, `ModeStats`, `PlayerStats`, `StatsFiles`, `BoardStat` | 1.4 | méthode proposée le 21/11 (XP et ELO gagnés, ratios avec 5 / 15 parties), à valider ; murs : leaderboards Daily, joueurs Weekly, semaine Lifetime (ton choix du 21/11) |
+| 5.4d | Sélecteur `NewLeaderboard Selector` (Win Streak, Level, ELO, Wins, Kills, FKDR, WWLR…) | Lobby | P1 | IMPLÉMENTÉ (CI passée) | `LobbyNpc`, `LobbyNpcs`, `LobbySettings`, `StatsDisplays`, point `newleaderboardselector` | 3.1 | config de ton serveur prête (`serveur-de-test/install-selecteur/appliquer-config.py`), appliquée à l'installation |
+| 3.5 | Network Level au-dessus des joueurs par défaut (lobby, practice, autres) | Lobby | P1 | IMPLÉMENTÉ (tests unitaires passés en CI ; à voir en jeu) | `HeadLines`, `RagoLobby`, `LobbyScoreboard`, `ProfileMenu` | 1.3 | C4 |
+| 3.6 | ELO des adversaires visible en Ranked | Ranked | P1 | IMPLÉMENTÉ (tests unitaires passés en CI ; à voir en jeu) | `LobbyScoreboard` (pseudo et Tab en partie) | 3.5 | — |
+| 3.8 | Nombre de joueurs en file pour chaque mode | Files | P1 | TESTÉ (test réel en CI, Java 8 et 21 : les bots lisent 0, 1, 0 sous le PNJ Duels et dans le menu) | `QueueController`, `ModeMenu`, `LobbyNpcs`, `lobby-bots.mjs` | — | — |
+| 3.7 | Organisation Solo / Party / Ranked (ELO par mode) : proposition avant tout code | Files | P2 | BLOQUÉ (proposition faite le 21/11, à valider) | `ModeCategory`, `ModeMenu`, `QueueController`, `Matchmaker`, `EloLadder` | 3.8 | validation de la proposition |
 
 ### Étape 5 : expérience joueur (Phase 4)
 
@@ -218,7 +218,16 @@ informations manquantes.
 
 ## 3. Journal des corrections
 
-### 3.8 Nombre de joueurs en file — analyse, test réel ajouté (21/11)
+### 3.7 Organisation Solo / Party / Ranked — PROPOSITION (21/11), à valider
+
+Rien n'est codé. La proposition est dans `sortie-publique/proposition-solo-party-ranked.md` (fichiers
+du projet) : le sélecteur s'ouvre sur SOLO (les 4 catégories d'aujourd'hui), PARTY (parties
+privées à la taille de la party, file en équipe, Ranked en équipe : tout existe déjà) et RANKED
+(Ranked Bedwars, plus une version classée de modes de Solo, chacune avec son ELO). Quatre
+questions : quels modes en Ranked (1v1, 2v2), Ranked Bedwars dans RBW Modes ou non, FFA de party
+et duels party contre party ou non, boussole ou trois objets.
+
+### 3.8 Nombre de joueurs en file — TESTÉ (test réel en CI, 21/11)
 
 **Ce qui existe déjà.** Chaque mode qui a une file montre combien de joueurs y attendent, et le
 nombre est recalculé chaque seconde : dans le sélecteur (`In queue: N` sur chaque mode, le total
@@ -236,9 +245,10 @@ garde sa place (voulu). Je n'ai pas trouvé de cas où le nombre resterait faux.
 **Ce qui manquait : une vérification réelle.** Aucun test ne lisait ces nombres. Le test sur un vrai
 serveur (`tools/lobby-check`, bots en CI) les lit maintenant : le sumo montre `In queue: 0` dans le
 sélecteur ; sous le PNJ Duels, RagoDeux lit `0 in queue`, puis `1 in queue` quand RagoUn rejoint
-la file, puis `0 in queue` au retour du duel. CI en cours.
+la file, puis `0 in queue` au retour du duel. **Passé** en CI (run 335, build 8daefe6) sur
+PandaSpigot 1.8.8, en Java 8 et en Java 21.
 
-### 3.6 ELO des adversaires en Ranked — EN COURS (21/11)
+### 3.6 ELO des adversaires en Ranked — IMPLÉMENTÉ (21/11)
 
 **Choix.** Parmi Tab, scoreboard, pseudo et lobby d'attente : **le pseudo**, qui en partie est
 aussi ce que montre le Tab (les joueurs d'une partie n'ont pas de nom de Tab à eux, le client
@@ -254,11 +264,11 @@ au-dessus de la tête et dans le Tab, dès le compte à rebours. Au-delà de 16 
 10 000 et plus) : l'ELO seul, à la couleur de sa division. Ailleurs, le niveau reste. Un joueur
 sous `/nick` garde le niveau 1 de son nick : son ELO dirait qui il est.
 
-**Tests.** Test unitaire du texte (`NameStyleTest`, de 0 à 20 000, toujours dans 16 caractères).
-CI en cours. **À vérifier en jeu** : une partie Ranked depuis la file, l'ELO de l'adversaire
+**Tests.** Test unitaire du texte (`NameStyleTest`, de 0 à 20 000, toujours dans 16 caractères),
+passé en CI (run 335). **À vérifier en jeu** : une partie Ranked depuis la file, l'ELO de l'adversaire
 au-dessus de sa tête et dans le Tab.
 
-### 3.5 Network Level au-dessus des joueurs par défaut — EN COURS (21/11)
+### 3.5 Network Level au-dessus des joueurs par défaut — IMPLÉMENTÉ (21/11)
 
 **Avant.** Deux choses s'affichent au-dessus d'un joueur :
 
@@ -284,11 +294,12 @@ remonte le pseudo d'une ligne (rendu du client 1.8, `RenderPlayer`) ; une ligne 
 chevaucherait. Le niveau après le pseudo est lu par le client lui-même, sans ce risque.
 
 **Tests.** Tests unitaires : le défaut et le choix gardé (`HeadLineNickTest`), le pseudo sans le
-niveau en double et le niveau avant le badge hors du lobby (`NameStyleTest`). CI en cours. **À
+niveau en double et le niveau avant le badge hors du lobby (`NameStyleTest`). Passés en CI (run
+335). **À
 vérifier en jeu** : au lobby, `Level [x✫]` au-dessus d'un joueur qui n'a rien choisi, et son pseudo
 sans `[x✫]` répété ; en entraînement avec un badge `BETTER`, le niveau après le pseudo.
 
-### 3.1 et 5.4d Leaderboards Daily / Weekly / Lifetime et sélecteur — EN COURS (21/11)
+### 3.1 et 5.4d Leaderboards Daily / Weekly / Lifetime et sélecteur — IMPLÉMENTÉ (21/11)
 
 **Avant** (lu dans `StatsDisplays`, `StatsBook`, `ModeStats`, `PlayerStats`, `BoardStat`) : chaque
 tableau a sa stat (ou plusieurs, un clic passe à la suivante) et chaque joueur change sa période
@@ -324,7 +335,8 @@ classement. Le PNJ `newleaderboardselector` avait un point, mais rien dans `conf
 - `StatsDisplaysTest.theThreeWallsOfTheSelectorShowTheSameStatEachOnItsPeriod` : les trois murs
   sur la même stat, chacun sur sa période, le choix au sélecteur, le clic sur un mur, le menu.
 - `LobbySettingsTest.aWallOfTheSelectorFollowsASelectorOnItsOwnPeriod` : la config et ses erreurs.
-- Lancés par la CI. **Pas encore vu en jeu.**
+- Passés en CI (run 335, après la correction d'un test de `StatsBookTest` : un kill final daté
+  d'un autre jour que son kill). **Pas encore vu en jeu.**
 
 ### 3.4 Record du mode au survol dans les menus — IMPLÉMENTÉ (21/11)
 
@@ -799,7 +811,7 @@ rendue à la vie suivante, aucune dans les autres modes) ; compilation et tests 
 testé en jeu** : frapper un joueur qui vient de réapparaître (aucun recul), puis le laisser frapper
 en premier pendant sa protection (il redevient touchable aussitôt).
 
-### 2.3 Bed Break Simulation — EN COURS (bridges à refaire), forges : TESTÉ (1.6)
+### 2.3 Bed Break Simulation — EN COURS (escaliers relevés, plateforme à valider), forges : TESTÉ (1.6)
 
 **Retour en jeu (21/11)** : les bridges d'Invasion et d'Archway « c'est pas du tout ça ». Tu
 envoies une capture de ce que tu veux ; je les refais d'après elle, sans deviner avant.
@@ -817,6 +829,27 @@ envoies une capture de ce que tu veux ; je les refais d'après elle, sans devine
   2. Le jeu pose alors exactement ce pont à chaque manche, en laine verte, cassable et enlevé
      après la manche.
   3. Tu casses ensuite ton pont dans `/bw edit`.
+
+**Tes escaliers (21/11, 18 h 39)** : « bw edit Archway et Invasion est fini, j'ai fait le pont ; ce
+qu'il te reste à faire c'est la plateforme rouge et vert en haut, mais surtout respecter la limite
+de hauteur des maps » (Invasion 116, Archway 87, et la liste des autres maps). Relevé en comparant
+la map à la copie d'avant, bloc par bloc : sur chaque map **65 laines rouges**, rien d'autre de
+changé. Un escalier d'un bloc de large qui monte d'un bloc tous les deux, depuis l'île rouge :
+- Invasion : de 33 93 -39 vers l'ouest le long de z -39 jusqu'à x 8 (y 105), puis vers le sud le
+  long de x 8 jusqu'à 8 114 -21 ;
+- Archway : de -4 69 -65 vers le sud le long de x -4 jusqu'à y 86 (z -25), puis en biais jusqu'à
+  -1 86 -22, au-dessus de l'arche (haut de l'arche : y 84).
+
+**La plateforme** : c'est celle de ton Top Bridge d'Antenna (`TopBridge`) : 17 de large, chaque
+moitié à la couleur de l'équipe de son côté, une ligne blanche au milieu. Proposée à la hauteur du
+haut de ton escalier (y 114 sur Invasion, y 86 sur Archway), dans l'axe nord-sud, de ton escalier
+jusqu'au même point côté vert : x -8 à 8, z -21 à 21 sur Invasion, z -22 à 22 sur Archway.
+L'attaquant part du milieu, tourné vers le lit rouge. La limite de hauteur reste celle de la map
+(plus de +10 au-dessus de la plateforme). **Problème sur Invasion** : le dôme d'attente de la map
+(y 115 à 124, au-dessus du milieu, rayon 11) a un anneau qui descend à y 115-116, juste dans le
+passage d'un joueur sur une plateforme à y 114 ; il faudrait l'enlever pendant les manches de Bed
+Break et le remettre après. Images : `sortie-publique/bed-break/Invasion-plateforme.png` et
+`Archway-plateforme.png`. **À valider** avant de coder.
 
 - **Bridges** : le top bridge (la plateforme de laine de 17 blocs de large, 16 blocs au-dessus
   des lits, tracée de lit à lit, donc en diagonale sur Invasion) est remplacé par le bridge de
