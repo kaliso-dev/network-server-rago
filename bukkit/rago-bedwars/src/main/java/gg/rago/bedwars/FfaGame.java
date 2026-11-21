@@ -125,6 +125,12 @@ final class FfaGame extends BedwarsGame {
         return false;
     }
 
+    /** A free for all: a fall nobody gets the kill of is no death (a kill counts for both). */
+    @Override
+    boolean countsDeaths() {
+        return false;
+    }
+
     @Override
     boolean joinable() {
         return phase != Phase.ENDED && present().size() < (lobby != null ? LOBBY_MAX_PLAYERS : MAX_PLAYERS);

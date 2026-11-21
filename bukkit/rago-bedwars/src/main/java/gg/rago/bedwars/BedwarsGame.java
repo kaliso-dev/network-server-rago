@@ -1371,7 +1371,8 @@ class BedwarsGame {
             } else {
                 author.kills++;
             }
-            plugin.lobby().recordKill(modeId, author.id, gamer.id);
+            // a final kill: the XP of a kill, counted in the final kills only (not again in the kills)
+            plugin.lobby().recordKill(modeId, author.id, gamer.id, finalKill);
             Player authorPlayer = Bukkit.getPlayer(author.id);
             if (authorPlayer != null) {
                 loot(victim, authorPlayer);
@@ -1379,6 +1380,9 @@ class BedwarsGame {
                     authorPlayer.playSound(authorPlayer.getLocation(), Sound.ORB_PICKUP, 1f, 1f);
                 }
             }
+        } else if (!finalKill && countsDeaths()) {
+            // a death nobody gets the kill of (the void, a fall): a death all the same
+            plugin.lobby().recordKill(modeId, null, gamer.id);
         }
         beforeDeath(victim, gamer);
         // Tools lose a tier at each death; armour and shears stay.
@@ -1409,6 +1413,15 @@ class BedwarsGame {
             respawnLater(victim, gamer);
         }
         sidebars();
+    }
+
+    /**
+     * True if a death nobody gets the kill of (the void, a fall) counts in the player's deaths: in a
+     * game against other players. False in a free for all or a training, where one falls as one
+     * likes (a kill there still counts, for the killer and the victim).
+     */
+    boolean countsDeaths() {
+        return true;
     }
 
     /** A death of the player (by a hit, the void, anything), before their inventory is emptied: a mode may look at it. */

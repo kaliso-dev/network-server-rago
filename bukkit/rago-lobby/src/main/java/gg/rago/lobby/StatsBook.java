@@ -177,14 +177,16 @@ final class StatsBook {
         return players.get(player);
     }
 
-    /** Adds stats read from a file, unless the player already has some in memory. */
+    /**
+     * Adds stats read from a file. A profile already in memory was made before the files were read
+     * (a player online during a /reload, or who joined in the first moments): the file's stats
+     * take its place, else that empty profile would be written over the file at its next change.
+     * Returns true if they took the place of such a profile.
+     */
     boolean load(PlayerStats stats) {
-        if (players.containsKey(stats.id())) {
-            return false;
-        }
-        players.put(stats.id(), stats);
+        boolean replaced = players.put(stats.id(), stats) != null;
         forgetRankings();
-        return true;
+        return replaced;
     }
 
     /** The player's ELO in a ranked mode: the starting one before their first ranked game. */
@@ -317,15 +319,32 @@ final class StatsBook {
      * a death for the victim (null if nobody died, unknown). Returns the stats that changed.
      */
     List<PlayerStats> kill(String modeId, UUID killer, UUID victim, Names names, long millis) {
+        return kill(modeId, killer, victim, false, names, millis);
+    }
+
+    /**
+     * A kill in a game of this mode: a kill and some XP for the killer, a death for the victim
+     * (null if nobody died, unknown). A death nobody gets the kill of (killer null: the void, a
+     * fall; or the victim themselves) is a death all the same. A Bed Wars final kill gives the
+     * killer the XP of a kill, but it is counted in the final kills and the final deaths only
+     * ({@link #finalKill}, {@link #finalDeath}), not again in the kills and the deaths, as on
+     * Hypixel. Returns the stats that changed.
+     */
+    List<PlayerStats> kill(String modeId, UUID killer, UUID victim, boolean finalKill, Names names, long millis) {
         List<PlayerStats> changed = new ArrayList<>();
-        if (killer == null || killer.equals(victim)) {
-            return changed;
+        if (killer != null && killer.equals(victim)) {
+            // no kill of oneself
+            killer = null;
         }
-        PlayerStats stats = statsOf(killer, names);
-        stats.modeOrNew(modeId).kill(StatsPeriod.dayKey(millis), StatsPeriod.weekKey(millis));
-        stats.addXp(boosted(killer, levels.killXp()));
-        changed.add(stats);
-        if (victim != null) {
+        if (killer != null) {
+            PlayerStats stats = statsOf(killer, names);
+            if (!finalKill) {
+                stats.modeOrNew(modeId).kill(StatsPeriod.dayKey(millis), StatsPeriod.weekKey(millis));
+            }
+            stats.addXp(boosted(killer, levels.killXp()));
+            changed.add(stats);
+        }
+        if (victim != null && !finalKill) {
             PlayerStats dead = statsOf(victim, names);
             dead.modeOrNew(modeId).death();
             changed.add(dead);
@@ -338,6 +357,8 @@ final class StatsBook {
     PlayerStats finalKill(String modeId, UUID killer, Names names) {
         PlayerStats stats = statsOf(killer, names);
         stats.modeOrNew(modeId).finalKills++;
+        // the FKDR leaderboard follows at once
+        forgetRankings();
         return stats;
     }
 
@@ -345,6 +366,8 @@ final class StatsBook {
     PlayerStats finalDeath(String modeId, UUID player, Names names) {
         PlayerStats stats = statsOf(player, names);
         stats.modeOrNew(modeId).finalDeaths++;
+        // the FKDR leaderboard follows at once
+        forgetRankings();
         return stats;
     }
 

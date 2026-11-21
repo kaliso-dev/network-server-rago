@@ -633,13 +633,17 @@ Les plugins de jeu donnent le résultat de chaque partie au lobby (`recordMatch`
 victoires, défaites, série de victoires en cours et meilleure série, par mode, à vie, du jour et
 de la semaine (heure de Paris : le jour repart à minuit, la semaine le lundi à minuit). Un abandon
 compte comme une défaite. Les kills et les morts aussi (`recordKill`) : au sumo, chaque point est
-un kill pour celui qui le marque et une mort pour celui qui tombe. Chaque joueur garde aussi son
+un kill pour celui qui le marque et une mort pour celui qui tombe ; une mort sans tueur (une chute
+dans le vide sans coup juste avant) compte une mort, sans kill. En Bed Wars, un final kill compte
+dans les final kills seulement et la victime dans les final deaths seulement, pas une deuxième fois
+dans les kills et les morts, comme sur Hypixel (le tueur a quand même l'XP d'un kill). Chaque joueur garde aussi son
 XP Network. Une partie d'un mode classé trouvée par la file fait aussi bouger l'ELO des deux
 camps (voir « L'ELO classé ») ; un duel ou une partie privée ne touche ni l'ELO ni les séries.
 
 Sur le serveur de test, les stats sont gardées dans `plugins/RagoLobby/stats/` (un fichier par
-joueur), lues au démarrage et écrites à chaque partie, jamais sur le thread principal. Sur le
-réseau, elles passeront dans la base de données.
+joueur), lues au démarrage et écrites à chaque partie, jamais sur le thread principal. Un profil
+fait avant la fin de la lecture (un joueur en ligne pendant un `/reload`) est remplacé par son
+fichier, qui est réécrit aussitôt. Sur le réseau, elles passeront dans la base de données.
 
 ## Pour les plugins de jeu
 
@@ -659,7 +663,8 @@ mode rangé comme le joueur l'a voulu (36 cases, `null` si le mode n'a pas de ki
 `player.getInventory().setContents(kit)`. Pendant la partie, les joueurs appartiennent au jeu,
 qui les rend avec `lobby.sendToLobby(player)`. `MatchHost.abandon(player)` est appelé quand un
 joueur tape `/spawn` en pleine partie. `lobby.recordKill("sumo", tueur, victime)` compte un kill
-(et l'XP qui va avec). Un entraînement donne de l'XP Network avec
+(et l'XP qui va avec) ; `tueur` à `null` : une mort sans tueur. `lobby.recordKill(mode, tueur,
+victime, true)` donne l'XP d'un final kill sans le compter dans les kills. Un entraînement donne de l'XP Network avec
 `lobby.giveXp("aim-trainer", joueur, xp, "aim trainer")` (rien dans une partie privée). Un joueur qui quitte une partie qu'il joue encore
 (un abandon) est signalé avec `lobby.forfeited("sumo", joueur)` avant d'être rendu au lobby : après
 une partie classée, les files classées lui sont fermées un moment. À la fin, `lobby.recordMatch("sumo", gagnants, perdants)` compte la partie

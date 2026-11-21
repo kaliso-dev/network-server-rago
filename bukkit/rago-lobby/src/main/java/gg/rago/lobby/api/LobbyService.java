@@ -99,9 +99,22 @@ public interface LobbyService {
     /**
      * A kill in a game of this mode (in a sumo: the victim fell off and the killer got the point).
      * The killer gets a kill and some Network XP, the victim a death (null when nobody died).
-     * Counted in the stats and the kill leaderboards, of the day, the week and ever.
+     * Counted in the stats and the kill leaderboards, of the day, the week and ever. A death
+     * nobody gets the kill of (killer null: the void, a fall) is a death all the same.
      */
     void recordKill(String modeId, UUID killer, UUID victim);
+
+    /**
+     * As {@link #recordKill(String, UUID, UUID)}; for a Bed Wars final kill ({@code finalKill}),
+     * the killer gets the Network XP, the points and the quests of a kill, but the kill is counted
+     * in the final kills only ({@link #recordFinalKill}) and the death in the final deaths only
+     * ({@link #recordFinalDeath}), not again in the kills and the deaths, as on Hypixel.
+     */
+    default void recordKill(String modeId, UUID killer, UUID victim, boolean finalKill) {
+        if (!finalKill) {
+            recordKill(modeId, killer, victim);
+        }
+    }
 
     /**
      * The player's ELO in this ranked mode (the starting ELO before their first game), shown in

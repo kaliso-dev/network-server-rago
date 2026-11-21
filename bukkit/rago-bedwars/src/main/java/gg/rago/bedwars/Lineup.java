@@ -1,5 +1,12 @@
 package gg.rago.bedwars;
 
+import java.util.Collection;
+import java.util.LinkedHashSet;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
+import java.util.UUID;
+
 /**
  * How many players a game in rounds is for (the invis practice, the Bed Break Simulator), one of
  * them attacking the others in turn. Its size chosen in the lobby, 1v1 to 1v4 (one team of 2 to 5
@@ -66,5 +73,32 @@ final class Lineup {
     String when() {
         return open() ? "It starts " + WAIT_SECONDS + " seconds after the second player joins"
                 : "It starts as soon as the " + size + " players are in";
+    }
+
+    /**
+     * The result of a game in rounds, for the stats: of the players still there ({@code here}),
+     * the ones with the most points win; every other player of the game ({@code players}, the
+     * ones of its first round) loses, one who left it before the end too (a forfeit is a loss,
+     * as in every mode). Without a point among the players still there: no result, both lists
+     * left empty.
+     */
+    static void result(Collection<UUID> players, Collection<UUID> here, Map<UUID, Integer> points,
+            List<UUID> winners, List<UUID> losers) {
+        int most = 0;
+        for (UUID id : here) {
+            most = Math.max(most, points.getOrDefault(id, 0));
+        }
+        if (most <= 0) {
+            return;
+        }
+        Set<UUID> all = new LinkedHashSet<>(players);
+        all.addAll(here);
+        for (UUID id : all) {
+            if (here.contains(id) && points.getOrDefault(id, 0) == most) {
+                winners.add(id);
+            } else {
+                losers.add(id);
+            }
+        }
     }
 }

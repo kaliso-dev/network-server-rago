@@ -1459,6 +1459,11 @@ public final class RagoLobby extends JavaPlugin implements LobbyService {
 
     @Override
     public void recordKill(String modeId, UUID killer, UUID victim) {
+        recordKill(modeId, killer, victim, false);
+    }
+
+    @Override
+    public void recordKill(String modeId, UUID killer, UUID victim, boolean finalKill) {
         if (settings.catalog().get(modeId) == null) {
             getLogger().warning("Kill in an unknown mode ignored: " + modeId);
             return;
@@ -1467,7 +1472,7 @@ public final class RagoLobby extends JavaPlugin implements LobbyService {
             return;
         }
         checkWeek();
-        stats.kill(modeId, killer, victim);
+        stats.kill(modeId, killer, victim, finalKill);
         if (killer != null && !killer.equals(victim)) {
             Integer kills = gameKills.get(killer);
             gameKills.put(killer, kills == null ? 1 : kills + 1);

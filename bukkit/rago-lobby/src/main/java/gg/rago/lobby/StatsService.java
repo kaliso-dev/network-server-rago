@@ -122,11 +122,14 @@ final class StatsService {
                     int added = 0;
                     for (PlayerStats stats : loaded) {
                         if (book.load(stats)) {
-                            added++;
-                            if (Bukkit.getPlayer(stats.id()) != null) {
-                                // Online before the files were read (a /reload): level and rank follow.
-                                xpListener.xpChanged(stats.id());
-                            }
+                            // A profile made before the files were read (a /reload) may have been
+                            // written over the file meanwhile: the file's stats are written again.
+                            save(stats);
+                        }
+                        added++;
+                        if (Bukkit.getPlayer(stats.id()) != null) {
+                            // Online before the files were read (a /reload): level and rank follow.
+                            xpListener.xpChanged(stats.id());
                         }
                     }
                     for (Map.Entry<String, List<TeamStreak>> mode : loadedTeams.entrySet()) {
@@ -261,9 +264,22 @@ final class StatsService {
 
     /** A kill in a game: counts it, gives the killer some XP, and writes both files. */
     void kill(String modeId, UUID killer, UUID victim) {
-        Map<UUID, Integer> before = xpOf(Collections.singletonList(killer),
+        kill(modeId, killer, victim, false);
+    }
+
+    /**
+     * A kill in a game (killer null: a death nobody gets the kill of), or a Bed Wars final kill: the
+     * XP, the points and the quests of a kill, but counted in the final kills only (see
+     * {@link StatsBook#kill(String, UUID, UUID, boolean, StatsBook.Names, long)}). Writes the files.
+     */
+    void kill(String modeId, UUID killer, UUID victim, boolean finalKill) {
+        if (killer != null && killer.equals(victim)) {
+            // no kill of oneself: a death
+            killer = null;
+        }
+        Map<UUID, Integer> before = xpOf(killer == null ? Collections.<UUID>emptyList() : Collections.singletonList(killer),
                 victim == null ? Collections.<UUID>emptyList() : Collections.singletonList(victim));
-        for (PlayerStats stats : book.kill(modeId, killer, victim, StatsService::nameOf, System.currentTimeMillis())) {
+        for (PlayerStats stats : book.kill(modeId, killer, victim, finalKill, StatsService::nameOf, System.currentTimeMillis())) {
             Integer old = before.get(stats.id());
             Player player = Bukkit.getPlayer(stats.id());
             if (player != null && old != null && stats.xp() > old) {

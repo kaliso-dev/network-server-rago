@@ -98,6 +98,12 @@ class TopBridgeGame extends BedwarsGame {
         return !practice;
     }
 
+    /** A fall in a practice is no death; in a game of rounds, it is one. */
+    @Override
+    boolean countsDeaths() {
+        return !practice;
+    }
+
     @Override
     boolean hasTopBridge() {
         return true;

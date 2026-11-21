@@ -112,6 +112,12 @@ final class FastShopGame extends BedwarsGame {
         return false;
     }
 
+    /** A training: no death counted. */
+    @Override
+    boolean countsDeaths() {
+        return false;
+    }
+
     @Override
     boolean joinable() {
         return phase != Phase.ENDED && present().size() < islands.size() * PER_ISLAND;

@@ -1,6 +1,7 @@
 package gg.rago.lobby;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
@@ -171,7 +172,10 @@ class StatsBookTest {
         StatsBook.Ranking level = book.ranking(BoardStat.LEVEL, StatsPeriod.DAY, "sumo", SUNDAY);
         assertEquals(Arrays.asList("Alice", "Bob"), names(level.rows()));
         assertEquals(105, level.rows().get(0).value(), "ranked by XP");
-        assertTrue(book.kill("sumo", ALICE, ALICE, NAMES, SUNDAY).isEmpty(), "no kill of oneself");
+        assertEquals(1, book.kill("sumo", ALICE, ALICE, NAMES, SUNDAY).size(), "no kill of oneself: a death");
+        assertEquals(105, book.get(ALICE).xp(), "no XP for it");
+        assertEquals(1, book.get(ALICE).mode("sumo").kills);
+        assertEquals(1, book.get(ALICE).mode("sumo").deaths);
         assertEquals(1, book.kill("sumo", CARL, null, NAMES, SUNDAY).size(), "a kill without a known victim");
         assertEquals(5, book.get(CARL).xp());
     }
@@ -388,5 +392,53 @@ class StatsBookTest {
         assertEquals(3, read.finalKills());
         assertEquals(1, read.beds());
         assertEquals(2, read.modes().get("ranked-1v1").finalKills);
+    }
+
+    @Test
+    void aDeathNobodyGetsTheKillOfIsADeathAllTheSame() {
+        StatsBook book = new StatsBook(1000, NetworkLevel.DEFAULT);
+        List<PlayerStats> changed = book.kill("sumo", null, BOB, NAMES, SUNDAY);
+        assertEquals(1, changed.size(), "the victim only");
+        assertEquals(1, book.get(BOB).mode("sumo").deaths, "fell into the void");
+        assertEquals(0, book.get(BOB).mode("sumo").kills);
+        assertEquals(0, book.get(BOB).xp());
+        assertTrue(book.kill("sumo", null, null, NAMES, SUNDAY).isEmpty(), "nobody");
+    }
+
+    @Test
+    void aFinalKillIsCountedInTheFinalKillsOnlyNotAgainInTheKills() {
+        StatsBook book = new StatsBook(1000, NetworkLevel.DEFAULT);
+        // a kill, then a final kill, as BedwarsGame tells them
+        book.kill("bedwars-solo", ALICE, BOB, false, NAMES, SUNDAY);
+        book.kill("bedwars-solo", ALICE, BOB, true, NAMES, SUNDAY);
+        book.finalKill("bedwars-solo", ALICE, NAMES);
+        book.finalDeath("bedwars-solo", BOB, NAMES);
+        ModeStats alice = book.get(ALICE).mode("bedwars-solo");
+        ModeStats bob = book.get(BOB).mode("bedwars-solo");
+        assertEquals(1, alice.kills, "the final kill is not a kill too");
+        assertEquals(1, alice.finalKills);
+        assertEquals(1, bob.deaths, "the final death is not a death too");
+        assertEquals(1, bob.finalDeaths);
+        assertEquals(1, book.get(ALICE).kills(StatsPeriod.DAY, null, StatsPeriod.dayKey(SUNDAY), StatsPeriod.weekKey(SUNDAY)));
+        assertEquals(10, book.get(ALICE).xp(), "the XP of a kill for each");
+        // a final death nobody gets the kill of: the final death only (BedwarsGame tells nothing else)
+        assertTrue(book.kill("bedwars-solo", null, BOB, true, NAMES, SUNDAY).isEmpty());
+    }
+
+    @Test
+    void theFileOfAPlayerTakesThePlaceOfAProfileMadeBeforeItWasRead() throws Exception {
+        StatsBook before = new StatsBook(1000, NetworkLevel.DEFAULT);
+        win(before, SUMO, ALICE, BOB, SUNDAY);
+        win(before, SUMO, ALICE, BOB, SUNDAY);
+        String file = StatsFiles.toYaml(before.get(ALICE));
+        StatsBook book = new StatsBook(1000, NetworkLevel.DEFAULT);
+        // a /reload: Alice is online, her profile is made before the files are read
+        PlayerStats early = book.profile(ALICE, "Alice");
+        assertEquals(0, early.games());
+        assertTrue(book.load(StatsFiles.fromYaml(ALICE, file)), "it took the place of the empty profile");
+        assertEquals(2, book.get(ALICE).games(), "her stats, not the empty profile");
+        assertEquals(2, book.get(ALICE).mode("sumo").wins);
+        assertFalse(book.load(StatsFiles.fromYaml(BOB, StatsFiles.toYaml(before.get(BOB)))), "Bob was not there yet");
+        assertEquals(2, book.get(BOB).losses());
     }
 }

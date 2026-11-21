@@ -205,7 +205,8 @@ final class BlockFight extends Duel {
         }
         UUID by = killerOf(id);
         deathMessage(player, by, true);
-        if (by != null && counts()) {
+        if (counts()) {
+            // by null: a death nobody gets the kill of (the void, a fall), a death all the same
             plugin.lobby().recordKill(mode.id(), by, id);
         }
         int other = 1 - side;
