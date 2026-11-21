@@ -14,14 +14,16 @@ jouent comme des joueurs :
    l'éditeur. Le serveur de test n'a pas de clé d'API Hypixel : RagoDeux trouve l'émeraude et le
    coffre de l'import Hypixel en bas du livre, et l'émeraude comme `/hypixel import Notch` disent
    que l'import n'est pas en place, `/hypixel shop` que rien n'a été importé ;
-2. RagoUn ouvre le sélecteur d'un clic droit et clique sur le duel sumo ; RagoDeux tape
-   `/queue sumo` ;
+2. RagoUn ouvre le sélecteur d'un clic droit (le sumo montre « In queue: 0 ») et clique sur le
+   duel sumo : sous le PNJ Duels, RagoDeux lit « 0 in queue » puis « 1 in queue » (plan 3.8) ;
+   RagoDeux tape `/queue sumo` ;
 3. le duel démarre, après le décompte 3, 2, 1, « Fight! » affiché en titre (sans fondu), chacun a
    le bâton là où il l'a rangé (RagoUn : quatrième case, RagoDeux : la première, celle du kit), et
    le scoreboard montre l'adversaire et le ping des deux joueurs :
    RagoUn frappe RagoDeux une fois (il doit recevoir du knockback et aucun
    dégât), puis RagoDeux tombe trois fois de la plateforme : RagoUn gagne 3 - 0 ;
-4. les deux reviennent au lobby, au spawn, avec les objets du lobby. Chacun lit son profil
+4. les deux reviennent au lobby, au spawn, avec les objets du lobby, et le PNJ Duels montre de
+   nouveau « 0 in queue ». Chacun lit son profil
    au-dessus du PNJ de stats (victoires, kills) et les classements (RagoUn premier, 3 kills) ; la
    barre d'XP montre le niveau Network (65 XP pour RagoUn : la victoire et trois kills, 15 pour
    RagoDeux) ; RagoUn clique sur le classement principal (clic droit : Elo, puis Kills, clic

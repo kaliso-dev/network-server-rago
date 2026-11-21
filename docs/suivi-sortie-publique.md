@@ -149,7 +149,7 @@ informations manquantes.
 | 5.4d | Sélecteur `NewLeaderboard Selector` (Win Streak, Level, ELO, Wins, Kills, FKDR, WWLR…) | Lobby | P1 | EN COURS (codé, CI en cours) | `LobbyNpc`, `LobbyNpcs`, `LobbySettings`, `StatsDisplays`, point `newleaderboardselector` | 3.1 | config de ton serveur à faire à l'installation |
 | 3.5 | Network Level au-dessus des joueurs par défaut (lobby, practice, autres) | Lobby | P1 | EN COURS (codé, CI en cours) | `HeadLines`, `RagoLobby`, `LobbyScoreboard`, `ProfileMenu` | 1.3 | C4 |
 | 3.6 | ELO des adversaires visible en Ranked | Ranked | P1 | EN COURS (codé, CI en cours) | `LobbyScoreboard` (pseudo et Tab en partie) | 3.5 | — |
-| 3.8 | Nombre de joueurs en file pour chaque mode | Files | P1 | À FAIRE | `QueueController`, `ModeMenu`, `LobbyNpcs` | — | — |
+| 3.8 | Nombre de joueurs en file pour chaque mode | Files | P1 | EN COURS (déjà en place, test réel ajouté, CI en cours) | `QueueController`, `ModeMenu`, `LobbyNpcs`, `lobby-bots.mjs` | — | — |
 | 3.7 | Organisation Solo / Party / Ranked (ELO par mode) : proposition avant tout code | Files | P2 | À FAIRE | `ModeCategory`, `ModeMenu`, `QueueController`, `Matchmaker`, `EloLadder` | 3.8 | validation de la proposition |
 
 ### Étape 5 : expérience joueur (Phase 4)
@@ -217,6 +217,26 @@ informations manquantes.
 ---
 
 ## 3. Journal des corrections
+
+### 3.8 Nombre de joueurs en file — analyse, test réel ajouté (21/11)
+
+**Ce qui existe déjà.** Chaque mode qui a une file montre combien de joueurs y attendent, et le
+nombre est recalculé chaque seconde : dans le sélecteur (`In queue: N` sur chaque mode, le total
+sur chaque catégorie, chaque mode d'un groupe, « Popular now », et `Waiting for this map` dans le
+menu des maps), sous chaque PNJ de modes (`N in queue · Click to play`, la somme de ses modes) et
+dans `/queue`. Les modes joués seuls (entraînements) n'ont pas de file : ils démarrent tout de
+suite. Le nombre vient de la file elle-même (`Matchmaker.waiting`) : un joueur compte une fois par
+file où il attend, une party compte chacun de ses joueurs.
+
+**Mises à jour vérifiées dans le code.** Un joueur sort des files quand sa partie est trouvée, quand
+il lance une partie par un autre chemin (`/duel`, partie privée), quand il quitte le serveur (sa
+party avec lui), quand sa party change, et quand il quitte la file ; pendant un entraînement il
+garde sa place (voulu). Je n'ai pas trouvé de cas où le nombre resterait faux.
+
+**Ce qui manquait : une vérification réelle.** Aucun test ne lisait ces nombres. Le test sur un vrai
+serveur (`tools/lobby-check`, bots en CI) les lit maintenant : le sumo montre `In queue: 0` dans le
+sélecteur ; sous le PNJ Duels, RagoDeux lit `0 in queue`, puis `1 in queue` quand RagoUn rejoint
+la file, puis `0 in queue` au retour du duel. CI en cours.
 
 ### 3.6 ELO des adversaires en Ranked — EN COURS (21/11)
 

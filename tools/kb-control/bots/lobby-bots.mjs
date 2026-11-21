@@ -10,12 +10,13 @@
 //      moves the stick of the sumo kit (run-lobby-test.sh gives the sumo one) from the first
 //      hotbar slot to the fourth, saves, and finds it there when it opens the editor again;
 //   2. RagoUn opens the selector with a right click, opens the Duels category (Daily Streak: 0 on
-//      the sumo, nobody in its top yet), then clicks the sumo duel; RagoDeux types /queue sumo;
+//      the sumo, nobody in its top yet, nobody in its queue), then clicks the sumo duel: the line
+//      under the Duels NPC goes from 0 to 1 in queue; RagoDeux types /queue sumo;
 //   3. the duel starts after a 3, 2, 1 countdown in titles, each bot gets the stick where it put
 //      it (RagoUn: fourth slot, RagoDeux: the kit's first), the sidebar shows the opponent and both
 //      pings: RagoUn walks up to RagoDeux and hits it once (knockback, no damage), then
 //      RagoDeux walks off the platform three times, so RagoUn wins 3 - 0;
-//   4. both come back to the lobby, and read their own stats above the stats NPC and on the
+//   4. both come back to the lobby (0 in queue again under the Duels NPC), and read their own stats above the stats NPC and on the
 //      leaderboard wall (RagoUn first with one win, and three kills); a click on the stats NPC opens
 //      the stats menu; the XP bar shows the Network level; clicks on the main leaderboard go from the
 //      Network level to the Elo, the FKDR, the kills (a click on their period line: the kills of the
@@ -232,6 +233,7 @@ async function openSelectorAndJoinSumo (bot) {
   if (!lore.includes('§cDaily Streak: 0') || lore.includes(' 1. ')) {
     throw new Error(`${bot.username}: the sumo should show Daily Streak: 0 and nobody in its top: ${lore}`)
   }
+  if (!lore.includes('§7In queue: §f0')) throw new Error(`${bot.username}: the sumo should show nobody in its queue: ${lore}`)
   const from = mark(bot)
   // The server cancels the click (the menu cannot be emptied): do not wait for its acceptance.
   bot.clickWindow(sumo, 0, 0).catch(() => {})
@@ -347,6 +349,20 @@ async function checkDuelsNpc (bot) {
   if (!title.includes('Duels')) throw new Error(`the Duels NPC opened ${title}`)
   bot.closeWindow(window)
   log('the Duels NPC is a Steve holding a sword, out of the tab list, and its click opens Duels')
+}
+
+/** The queue line under the Duels NPC ("1 in queue · Click to play"), without colours, or undefined. */
+function duelsQueueLine (bot) {
+  const line = Object.values(bot.entities).find((e) => typeof e.metadata?.[2] === 'string' &&
+    e.metadata[2].includes('in queue') && Math.hypot(e.position.x - DUELS_NPC.x, e.position.z - DUELS_NPC.z) < 1)
+  return line?.metadata[2].replace(/§./g, '')
+}
+
+/** The Duels NPC counts the players in the queues of its modes; the line changes within a second or two. */
+async function expectDuelsQueue (bot, count, what) {
+  const expected = `${count} in queue · Click to play`
+  await waitFor(() => duelsQueueLine(bot) === expected, 5000,
+    `${bot.username} to read "${expected}" under the Duels NPC (${what}): ${JSON.stringify(duelsQueueLine(bot))}`)
 }
 
 /** Every line of floating text this bot sees: the names of the armor stands, without colours. */
@@ -810,8 +826,11 @@ async function main () {
   await arrangeSumoKit(one)
   await checkHypixelImport(two)
 
-  // 2. The queue.
+  // 2. The queue, and its count under the Duels NPC (plan 3.8).
+  await expectDuelsQueue(two, 0, 'nobody waits yet')
   await openSelectorAndJoinSumo(one)
+  await expectDuelsQueue(two, 1, 'RagoUn waits for a sumo duel')
+  log('the Duels NPC counts RagoUn in its queue')
   let fromOne = mark(one)
   let fromTwo = mark(two)
   two.chat('/queue sumo')
@@ -872,6 +891,8 @@ async function main () {
   await expectInLobby(one, 'after the duel')
   await expectInLobby(two, 'after the duel')
   log('both are back in the lobby')
+  await expectDuelsQueue(two, 0, 'the duel took both out of the queue')
+  log('the Duels NPC counts nobody in its queue again')
   await checkStats(one, two)
 
   // 5. A forfeit.
