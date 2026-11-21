@@ -436,6 +436,25 @@ Les valeurs de départ ci-dessous sont **à régler avec le propriétaire**.
 Les deux : `points-pour-gagner` 1 (de 1 à 10). Des réglages faux sont signalés au démarrage, et le
 mode joue alors avec les valeurs de départ.
 
+## Red Rover (plan 6.5, solution 1)
+
+**Red Rover Sumo** (`red-rover-sumo`, dans Duels) : trois joueurs, une party de trois ou trois
+joueurs de la file, en 1v1 chacun leur tour sur la plateforme du sumo (ses maps `sumo.cartes`, ou
+une plateforme du rayon `sumo.rayon`). Celui qui attend regarde le 1v1 en spectateur. Chaque 1v1
+est une manche du sumo (recul seul, le premier qui tombe le perd), avec une seconde de décompte
+entre deux. Les réglages, dans `red-rover:`, sont des valeurs de départ **à régler avec le
+propriétaire** :
+
+- `variante` : `points` (le premier à `points-pour-gagner` 1v1 gagnés, 3, gagne la partie) ou
+  `elimination` (le perdant d'un 1v1 est éliminé, le dernier en jeu gagne) ;
+- `reste` (aux points) : qui reste pour le 1v1 suivant, `gagnant` ou `perdant` ; il affronte
+  celui qui attendait, l'autre attend à son tour ;
+- `secondes-par-1v1` (90, comme les events ; 0 : sans limite) : au bout de ce temps, celui qui a
+  porté le plus de coups gagne le 1v1.
+
+Celui qui quitte la partie est éliminé (une défaite) ; le dernier en jeu gagne. Les variantes Block
+Placement, Block Edit et Top Bridge viendront ensuite sur la même rotation (`RedRoverRotation`).
+
 ## Les events (/host)
 
 Comme sur Minemen, un joueur PREMIUM (`rago.perk.host`) lance un event pour tout le serveur avec

@@ -372,3 +372,15 @@ snowball-spleef:
   etages: 1
   ecart-etages: 6
   boules-par-bloc: 1
+
+# Red Rover (plan 6.5, solution 1): three players in 1v1, in turn, on the sumo maps (sumo.cartes)
+# or on a platform of sumo.rayon; the one who waits watches. Starting values, to set with the owner.
+red-rover:
+  # points: the first to points-pour-gagner 1v1 won wins; elimination: a lost 1v1 is out, the last
+  # one in wins
+  variante: points
+  # with points, who stays on for the next 1v1: gagnant (the winner) or perdant (the loser)
+  reste: gagnant
+  points-pour-gagner: 3
+  # a 1v1 ends after this long (0: never): the one who landed more hits wins it (as in the events)
+  secondes-par-1v1: 90

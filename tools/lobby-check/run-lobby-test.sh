@@ -111,9 +111,10 @@ grep -q '^    skin-joueur: ' "$SERVER_DIR/plugins/RagoLobby/config.yml" && fail 
 # bots play its rounds: RagoDeux falls three times and RagoUn wins 3 - 0; and the events of /host
 # waiting 15 seconds (the fewest, 60 by default) before they start.
 mkdir -p "$SERVER_DIR/plugins/RagoPractice"
-sed -e 's/^  points-pour-gagner: 1$/  points-pour-gagner: 3/' -e 's/^  attente-secondes: 60$/  attente-secondes: 15/' \
+sed -e '/^sumo:$/,/^[a-z]/s/^  points-pour-gagner: 1$/  points-pour-gagner: 3/' -e 's/^  attente-secondes: 60$/  attente-secondes: 15/' \
   "$ROOT/bukkit/rago-practice/src/main/resources/config.yml" >"$SERVER_DIR/plugins/RagoPractice/config.yml"
-grep -q '^  points-pour-gagner: 3$' "$SERVER_DIR/plugins/RagoPractice/config.yml" || fail "could not give the sumo three rounds"
+sed -n '/^sumo:$/,/^[a-z]/p' "$SERVER_DIR/plugins/RagoPractice/config.yml" | grep -q '^  points-pour-gagner: 3$' \
+  || fail "could not give the sumo three rounds"
 grep -q '^  attente-secondes: 15$' "$SERVER_DIR/plugins/RagoPractice/config.yml" || fail "could not shorten the wait of the events"
 # RagoTrois is an operator: it hosts an event (rago.perk.host, given to the operators). Its UUID is
 # the one of an offline-mode player: the version 3 UUID of "OfflinePlayer:RagoTrois".

@@ -64,11 +64,16 @@ class LobbySettingsTest {
         assertEquals("lobby", settings.world());
         assertEquals(0, settings.voidHeight());
         assertEquals(0, settings.defaultRating(), "a ranked ELO starts at 0, in Coal");
-        assertEquals(73, settings.modes().size(), "the invis practice and the Bed Break Simulator in 1v1 to 1v4 (and"
+        assertEquals(74, settings.modes().size(), "the invis practice and the Bed Break Simulator in 1v1 to 1v4 (and"
                 + " their kits), with the private top bridge, the clutch scenario, the bed fight, Top"
                 + " BedFight, the bridge fight 2v2, the full map first rush, Sky Rise Resources, the timed bridge, Lobby"
-                + " Fight (1v1, FFA), the Bed Break Simulator and the two modes of FUN PRACTICE, without the top fight or"
-                + " the ranked scenarios");
+                + " Fight (1v1, FFA), the Bed Break Simulator, the two modes of FUN PRACTICE and Red Rover Sumo, without"
+                + " the top fight or the ranked scenarios");
+        GameMode rover = settings.catalog().get("red-rover-sumo");
+        assertEquals(1, rover.teams(), "one team of three: a party of three joins it together");
+        assertEquals(3, rover.playersPerTeam());
+        assertEquals("1v1v1", settings.display("red-rover-sumo").format(), "as the menus show it");
+        assertFalse(rover.ranked());
         assertEquals("fun", settings.display("fireball-knockback").category(), "the Fireball Fight of FUN PRACTICE");
         assertEquals("fun", settings.display("snowball-spleef").category());
         assertEquals(Material.SNOW_BALL, settings.display("snowball-spleef").icon());

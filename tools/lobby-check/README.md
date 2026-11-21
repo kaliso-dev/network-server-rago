@@ -141,6 +141,13 @@ monter le bot, un deuxième tout de suite doit attendre, il retombe sans dégât
 repousse sans dégât (la pile du lanceur reste à 64), puis il tombe de la plateforme et l'autre
 gagne. Les deux reviennent au lobby après chaque partie.
 
+Puis trois bots jouent Red Rover Sumo (`tools/kb-control/bots/rover-bots.mjs`), avec les réglages
+livrés (aux points, le gagnant reste, premier à 3) : ils entrent seuls dans la file et jouent
+ensemble, deux s'affrontent pendant que le troisième regarde en spectateur ; trois 1v1 de suite où
+l'autre combattant sort de la plateforme, le gagnant restant contre celui qui attendait et le
+perdant passant spectateur ; au troisième 1v1 gagné, victoire du gagnant, défaite des deux autres,
+et retour des trois au lobby.
+
 ```bash
 ./gradlew build
 (cd tools/kb-control/bots && npm ci)

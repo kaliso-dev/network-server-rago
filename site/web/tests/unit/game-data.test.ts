@@ -124,7 +124,13 @@ describe('the game data', () => {
   });
 
   it('gives each category the skin of its NPC in the lobby, and the skin is rendered', () => {
+    // FunMod2, the NPC of FUN PRACTICE, has no skin of its own yet (Steve in the lobby): no picture
+    const withoutSkinYet = ['fun'];
     for (const category of game.categories) {
+      if (withoutSkinYet.includes(category.id)) {
+        expect(category.skin, category.id).toBeNull();
+        continue;
+      }
       expect(category.skin, category.id).not.toBeNull();
       const skin = readFileSync(path.join(REPO, 'site/web/public/skins', `${category.skin}.png`));
       expect(skin.subarray(1, 4).toString()).toBe('PNG');

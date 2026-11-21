@@ -978,6 +978,7 @@ titres:
     bow: {nom: "Bow Duel", modes: [bow-duel]}
     fireball-knockback: {nom: "Fireball Fight (Fun)", modes: [fireball-knockback]}
     snowball-spleef: {nom: "Snowball Spleef", modes: [snowball-spleef]}
+    red-rover: {nom: "Red Rover", modes: [red-rover-sumo]}
 
 # The Hypixel import: players copy the quick buy of their Bed Wars shop and their hotbar manager
 # from Hypixel, in one click (the emerald in the kit editor book) or with /hypixel import <name>,
@@ -1680,6 +1681,20 @@ modes:
       - "Knock the other player off"
       - "the platform: great for"
       - "working on knockback."
+  # Red Rover Sumo (plan 6.5): three players (a party of three, or three of the queue), 1v1 in
+  # turn on the sumo platform; the rules in red-rover of RagoPractice's config.yml
+  red-rover-sumo:
+    nom: "&aRed Rover Sumo"
+    categorie: duels
+    icone: SLIME_BALL
+    equipes: 1
+    joueurs-par-equipe: 3
+    format: 1v1v1
+    classe: false
+    description:
+      - "Three players, 1v1 in turn"
+      - "on the sumo platform: who"
+      - "waits watches the 1v1."
   boxing:
     nom: "&aBoxing"
     categorie: duels

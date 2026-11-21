@@ -152,7 +152,8 @@ final class Titles {
                 new Family("fireball", "Fireball Fight", Arrays.asList("fireball")),
                 new Family("bow", "Bow Duel", Arrays.asList("bow-duel")),
                 new Family("fireball-knockback", "Fireball Fight (Fun)", Arrays.asList("fireball-knockback")),
-                new Family("snowball-spleef", "Snowball Spleef", Arrays.asList("snowball-spleef")));
+                new Family("snowball-spleef", "Snowball Spleef", Arrays.asList("snowball-spleef")),
+                new Family("red-rover", "Red Rover", Arrays.asList("red-rover-sumo")));
         return new Titles(true, steps, families);
     }
 

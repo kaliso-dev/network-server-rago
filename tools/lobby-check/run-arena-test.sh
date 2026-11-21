@@ -13,7 +13,8 @@
 # while ten others watch it at once with /spectate (tools/kb-control/bots/spectate-bots.mjs). Last,
 # two bots play the two modes of FUN PRACTICE (tools/kb-control/bots/fun-bots.mjs): the Snowball
 # Spleef (the shovel, the snowballs, a fall under the snow) and the Fireball Fight (the wind gust,
-# a fireball that pushes without hurting, a fall off the platform).
+# a fireball that pushes without hurting, a fall off the platform), and three bots play Red Rover
+# Sumo (tools/kb-control/bots/rover-bots.mjs): three 1v1 in turn, the winner staying on.
 # Fails if the bots fail, or if the server log has an error or an exception.
 #
 # Run from anywhere, after the build:
@@ -204,7 +205,7 @@ fi
 for expected in '[RagoLobby] Lobby in the world lobby' '[RagoPractice] Arenas in the world arenes' \
     'Mode block-fight-1v1 hosted by RagoPractice' 'Mode block-edit-duel hosted by RagoPractice' \
     'Mode block-edit hosted by RagoPractice' 'Mode snowball-spleef hosted by RagoPractice' \
-    'Mode fireball-knockback hosted by RagoPractice'; do
+    'Mode fireball-knockback hosted by RagoPractice' 'Mode red-rover-sumo hosted by RagoPractice'; do
   server_log_has "$expected" || { grep -n 'Rago' "$SERVER_LOG" >&2 || true; fail "missing in the server log: $expected"; }
 done
 log "server started with the lobby and the practice modes"
@@ -223,6 +224,9 @@ KB_HOST=127.0.0.1 KB_PORT=$PORT node "$ROOT/tools/kb-control/bots/spectate-bots.
 # The same server for FUN PRACTICE: two bots, a Snowball Spleef then a Fireball Fight.
 fun_status=0
 KB_HOST=127.0.0.1 KB_PORT=$PORT node "$ROOT/tools/kb-control/bots/fun-bots.mjs" || fun_status=$?
+# The same server for Red Rover Sumo: three bots, three 1v1 in turn.
+rover_status=0
+KB_HOST=127.0.0.1 KB_PORT=$PORT node "$ROOT/tools/kb-control/bots/rover-bots.mjs" || rover_status=$?
 stop_server
 
 # Any error or exception logged by the server fails the test, even if the bots passed. One is
@@ -238,4 +242,5 @@ fi
 [[ $blockin_status -eq 0 ]] || { tail -n 60 "$SERVER_LOG" >&2; fail "the Block in bot stopped with status $blockin_status"; }
 [[ $spectate_status -eq 0 ]] || { tail -n 60 "$SERVER_LOG" >&2; fail "the spectator bots stopped with status $spectate_status"; }
 [[ $fun_status -eq 0 ]] || { tail -n 60 "$SERVER_LOG" >&2; fail "the FUN PRACTICE bots stopped with status $fun_status"; }
+[[ $rover_status -eq 0 ]] || { tail -n 60 "$SERVER_LOG" >&2; fail "the Red Rover bots stopped with status $rover_status"; }
 log "PASSED"

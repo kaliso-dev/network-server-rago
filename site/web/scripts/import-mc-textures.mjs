@@ -77,6 +77,7 @@ const ITEMS = {
   SHEARS: { item: 'items/shears.png' },
   SKULL_ITEM: { head: 'entity/skeleton/skeleton.png' },
   SLIME_BALL: { item: 'items/slimeball.png' },
+  SNOW_BALL: { item: 'items/snowball.png' },
   STICK: { item: 'items/stick.png' },
   STONE_SWORD: { item: 'items/stone_sword.png' },
   TNT: { block: { top: 'blocks/tnt_top.png', side: 'blocks/tnt_side.png' } },

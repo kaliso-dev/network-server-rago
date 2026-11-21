@@ -102,7 +102,9 @@ class StatsMenuTest {
         for (ModeCategory category : settings.categories()) {
             categories.add(category.id());
         }
-        assertEquals(Arrays.asList("entrainement", "ranked", "duels", "arenes"), categories);
+        assertEquals(Arrays.asList("entrainement", "ranked", "duels", "arenes", "fun"), categories);
+        List<String> fun = ids(StatsMenu.modesOf(settings.modes(), "fun", categories));
+        assertTrue(fun.contains("fireball-knockback") && fun.contains("snowball-spleef"), fun.toString());
         List<String> duels = ids(StatsMenu.modesOf(settings.modes(), "duels", categories));
         assertTrue(duels.contains("sumo"));
         assertFalse(duels.contains("ffa"));

@@ -287,6 +287,25 @@ public final class RagoPractice extends JavaPlugin {
         int spleefPoints = Math.max(1, Math.min(10, config.getInt("snowball-spleef.points-pour-gagner", 1)));
         SnowballSpleef.Settings spleef = snowballSpleef(config);
         register("snowball-spleef", (h, m, a, t) -> new SnowballSpleef(h, m, a, t, spleefPoints, spleef), slots, spacing, false);
+        // Red Rover (plan 6.5), after the others too: the sumo in 1v1 in turn, on the sumo maps
+        RedRover.Settings rover = redRover(config);
+        int sumoRadius = config.getInt("sumo.rayon", 7);
+        onMaps(register("red-rover-sumo", (h, m, a, t) -> new RedRover(h, m, a, t, rover, sumoRadius), slots, spacing, false),
+                zoneMaps(config, "sumo.cartes", spacing, "the Red Rover Sumo"));
+    }
+
+    /** The settings of Red Rover (red-rover); the defaults when they are wrong. */
+    private RedRover.Settings redRover(FileConfiguration config) {
+        String variant = config.getString("red-rover.variante", "points");
+        String stays = config.getString("red-rover.reste", "gagnant");
+        int target = config.getInt("red-rover.points-pour-gagner", 3);
+        int seconds = config.getInt("red-rover.secondes-par-1v1", 90);
+        String problem = RedRover.Settings.check(variant, stays, target, seconds);
+        if (problem != null) {
+            getLogger().warning("red-rover in config.yml: " + problem + ". Red Rover plays with its default settings.");
+            return new RedRover.Settings(RedRoverRotation.Variant.POINTS, RedRoverRotation.Stays.WINNER, 3, 90);
+        }
+        return new RedRover.Settings(RedRover.Settings.variantOf(variant), RedRover.Settings.staysOf(stays), target, seconds);
     }
 
     /** The settings of the Fireball Fight of FUN PRACTICE (fireball-knockback); the defaults when they are wrong. */

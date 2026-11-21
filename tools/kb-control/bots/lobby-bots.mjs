@@ -67,11 +67,12 @@ const PORT = Number(process.env.KB_PORT ?? '25565')
 const TEST_TIMEOUT_MS = 7 * 60 * 1000
 // A new lobby world has a platform at y = 64: players stand at y = 65, at the centre.
 const LOBBY_SPAWN = { x: 0.5, y: 65, z: 0.5 }
-// The bundled config.yml has four categories, one slot apart in the middle row: Practice on the
-// left (slot 10), RBW Modes, Duels in slot 14, the Arenas on the right. The top row of the menus is
-// "Popular now" (the modes with players right now). The sumo is the slime ball of the Duels menu,
-// under that row (Bed Fight comes first).
-const DUELS_SLOT = 14
+// The bundled config.yml has five categories, side by side in the middle row (one slot apart up to
+// four, ModeMenu.categorySlot): Practice on the left (slot 11), RBW Modes, Duels in slot 13, the
+// Arenas, FUN PRACTICE on the right. The top row of the menus is "Popular now" (the modes with
+// players right now). The sumo is the slime ball of the Duels menu, under that row (Bed Fight comes
+// first).
+const DUELS_SLOT = 13
 const POINTS_TO_WIN = 3
 // run-lobby-test.sh places the NPC of the Duels category (point duels), a stats NPC
 // (profil), a wall of leaderboards (leaderboards), the main leaderboard

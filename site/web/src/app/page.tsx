@@ -265,14 +265,16 @@ export default function Home() {
                   <span className={styles.npcName}>
                     <McText segments={[{ text: category.name, colour: category.colour, bold: true }]} ground="#000000" />
                   </span>
-                  <Image
-                    src={`/skins/${category.skin}.png`}
-                    alt=""
-                    width={96}
-                    height={192}
-                    unoptimized
-                    className={styles.npcSkin}
-                  />
+                  {category.skin ? (
+                    <Image
+                      src={`/skins/${category.skin}.png`}
+                      alt=""
+                      width={96}
+                      height={192}
+                      unoptimized
+                      className={styles.npcSkin}
+                    />
+                  ) : null}
                   <span className={styles.npcSlogan}>
                     <McText segments={category.slogan} ground="#121418" />
                   </span>

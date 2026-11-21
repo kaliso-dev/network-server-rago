@@ -169,6 +169,10 @@
       "kind": "item",
       "src": "/mc/items/slime_ball.png"
     },
+    "SNOW_BALL": {
+      "kind": "item",
+      "src": "/mc/items/snow_ball.png"
+    },
     "STICK": {
       "kind": "item",
       "src": "/mc/items/stick.png"

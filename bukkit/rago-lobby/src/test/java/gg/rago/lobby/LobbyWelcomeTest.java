@@ -13,14 +13,14 @@ import java.util.List;
 import org.bukkit.ChatColor;
 import org.junit.jupiter.api.Test;
 
-/** The welcome of the lobby: the four ways to play, clickable. */
+/** The welcome of the lobby: the ways to play, clickable. */
 class LobbyWelcomeTest {
 
     @Test
-    void itShowsTheFourWaysToPlayOfTheBundledConfig() throws Exception {
+    void itShowsTheWaysToPlayOfTheBundledConfig() throws Exception {
         LobbySettings settings = LobbySettings.load(LobbySettingsTest.bundledConfig());
         List<ModeCategory> categories = settings.categories();
-        assertEquals("Practice · RBW Modes · Duels · Arenas", ChatColor.stripColor(LobbyWelcome.subtitle(categories)),
+        assertEquals("Practice · RBW Modes · Duels · Arenas · Fun Practice", ChatColor.stripColor(LobbyWelcome.subtitle(categories)),
                 "the title, the first time");
         for (ModeCategory category : categories) {
             JsonObject line = new JsonParser().parse(LobbyWelcome.json(category)).getAsJsonObject();
@@ -57,7 +57,8 @@ class LobbyWelcomeTest {
         assertNull(LobbyWelcome.find(categories, "bedwars"));
         assertNull(LobbyWelcome.find(categories, " "));
         assertEquals("arenes", LobbyWelcome.find(categories, "arenas").id());
-        assertEquals(Arrays.asList("entrainement", "ranked", "duels", "arenes"), LobbyWelcome.ids(categories));
+        assertEquals("fun", LobbyWelcome.find(categories, "fun practice").id());
+        assertEquals(Arrays.asList("entrainement", "ranked", "duels", "arenes", "fun"), LobbyWelcome.ids(categories));
     }
 
     @Test
