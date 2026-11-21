@@ -695,9 +695,10 @@ pas comparer un temps à Hypixel : ses records restent les nôtres.
 dans `config.yml` du serveur, c'est bon) ; une application « Personal » est pour un projet non
 monétisé, un serveur qui vend quelque chose (grades, boutique) doit avoir une application
 « Production » ; les clés de développement expirent ; garder les réponses en cache est demandé,
-interroger en boucle (polling) ou suivre les sessions des joueurs est interdit. Hypixel ne publie
-pas le nombre de requêtes permis : le commentaire du code qui disait « 300 en 5 minutes » n'avait
-pas de source, il est corrigé ; le 429 met déjà les imports en pause.
+interroger en boucle (polling) ou suivre les sessions des joueurs est interdit. Les règles ne
+donnent pas le nombre de requêtes permis ; le code parle de 300 en 5 minutes pour une nouvelle clé,
+chiffre que je n'ai pas pu revérifier. Il reste bien en dessous (100 en 5 minutes), et un 429 met
+déjà les imports en pause.
 
 **Proposition** : l'intégration actuelle utilise déjà tout ce que l'API donne pour le shop. Je
 propose de la garder telle quelle, sans import automatique (interdit par les règles), et de la
