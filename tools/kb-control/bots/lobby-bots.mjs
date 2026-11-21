@@ -41,9 +41,11 @@
 //      without stats or XP; RagoUn queues Ranked Bedwars 2v2: refused, RagoDeux left a ranked game
 //      a moment ago; RagoUn queues First Rush duo (2v2, unranked): the party waits in one team, and
 //      leaves the queue with RagoDeux; RagoUn disbands the party; in between, RagoUn watches the
-//      replay of a sumo duel (/replay, the menu of its games) and brings RagoDeux into it with /p warp:
+//      replay of the sumo duel it won 3 - 0 (/replay, the menu of its games), hears its countdown
+//      (the sounds of the game come back in the replay), and brings RagoDeux into it with /p warp:
 //      RagoDeux comes beside RagoUn, at the same moment of the replay, with only the players and
-//      leave in its hotbar (the leader runs it), and goes back to the lobby when RagoUn leaves;
+//      leave in its hotbar (the leader runs it), hears the countdown of a later round, and goes back
+//      to the lobby when RagoUn leaves;
 //  10. a member leaves the server in a party: RagoUn is told, and RagoDeux, back on the server,
 //      sees RagoUn's name tag (its team) again.
 //
@@ -124,6 +126,9 @@ function join (username) {
     const bot = mineflayer.createBot({ host: HOST, port: PORT, username, auth: 'offline', version: '1.8.8' })
     chats.set(username, [])
     bot.velocities = []
+    // the sounds the server sends (1.8: their names), for the sounds of the replays
+    bot.sounds = []
+    bot._client.on('named_sound_effect', (packet) => bot.sounds.push(packet.soundName))
     bot.titles = []
     bot.titleTimes = []
     bot.on('title', (text, type) => { if (type === 'title') bot.titles.push(plainText(text)) })
@@ -782,21 +787,25 @@ function replayClock (bot) {
 }
 
 /**
- * Plan 4.1: RagoUn, leader of the party, watches the replay of a sumo duel from /replay, then
- * /p warp brings RagoDeux into it: beside RagoUn, at the same moment, with the players and leave
- * only (the leader runs the replay). RagoUn leaves: RagoDeux goes back to the lobby with it.
+ * Plan 4.1: RagoUn, leader of the party, watches the replay of its 3 - 0 sumo duel from /replay,
+ * then /p warp brings RagoDeux into it: beside RagoUn, at the same moment, with the players and
+ * leave only (the leader runs the replay). RagoUn leaves: RagoDeux goes back to the lobby with it.
+ * Plan 4.1b: both hear the notes of the duel's countdowns, recorded with the game.
  */
 async function partyReplay (one, two) {
   let fromOne = mark(one)
   let fromTwo = mark(two)
+  const heardOne = one.sounds.length
   const opened = new Promise((resolve) => one.once('windowOpen', resolve))
   one.chat('/replay')
   const menu = await Promise.race([opened, sleep(5000).then(() => null)])
   if (menu == null) throw new Error('/replay did not open the menu of the replays')
   if (!windowTitle(menu).includes('Your replays')) throw new Error(`/replay opened ${windowTitle(menu)}`)
-  const sumo = menu.slots.findIndex((item, slot) => slot < 45 && item != null && /Sumo/i.test(JSON.stringify(item.nbt ?? null)))
+  // the duel RagoUn won 3 - 0: three rounds, each after a countdown
+  const sumo = menu.slots.findIndex((item, slot) => slot < 45 && item != null && /Sumo/i.test(JSON.stringify(item.nbt ?? null)) &&
+    JSON.stringify(item.nbt ?? null).includes('RagoUn won (3 - 0)'))
   if (sumo < 0) {
-    throw new Error(`no sumo duel in RagoUn's replays: ${JSON.stringify(menu.slots.slice(0, 45).filter((item) => item != null).map((item) => item.nbt))}`)
+    throw new Error(`no 3 - 0 sumo duel in RagoUn's replays: ${JSON.stringify(menu.slots.slice(0, 45).filter((item) => item != null).map((item) => item.nbt))}`)
   }
   one.clickWindow(sumo, 0, 0).catch(() => {})
   await chatLine(one, /^Replay of .*Sumo.*long\./, 15000, fromOne)
@@ -804,6 +813,9 @@ async function partyReplay (one, two) {
   await waitFor(() => hotbarItem(one, 3)?.name === 'dye', 5000,
     `the pause button of the replay in RagoUn's hotbar: ${hotbarItem(one, 3)?.name}`)
   log('party replay: RagoUn, the leader, watches the replay of a sumo duel, and is told /p warp brings the party')
+  await waitFor(() => one.sounds.slice(heardOne).some((name) => /^note\./.test(name)), 10000,
+    `RagoUn to hear the countdown in the replay; sounds: ${JSON.stringify(one.sounds.slice(heardOne))}`)
+  log(`party replay: RagoUn hears the sounds of the duel (${JSON.stringify([...new Set(one.sounds.slice(heardOne))])})`)
 
   fromOne = mark(one)
   one.chat('/p warp')
@@ -822,6 +834,10 @@ async function partyReplay (one, two) {
     return a != null && b != null && a.length === b.length && Math.abs(a.at - b.at) <= 1
   }, 5000, `the same moment of the replay in both sidebars: ${JSON.stringify(sidebarLines(one))} / ${JSON.stringify(sidebarLines(two))}`)
   log(`party replay: /p warp brought RagoDeux beside RagoUn, same moment (${JSON.stringify(replayClock(two))}), players and leave only`)
+  const heardTwo = two.sounds.length
+  await waitFor(() => two.sounds.slice(heardTwo).some((name) => /^note\./.test(name)), 30000,
+    `RagoDeux to hear a countdown of the replay; sounds: ${JSON.stringify(two.sounds.slice(heardTwo))}`)
+  log(`party replay: RagoDeux hears the sounds of the replay too (${JSON.stringify([...new Set(two.sounds.slice(heardTwo))])})`)
 
   fromTwo = mark(two)
   one.chat('/replay leave')

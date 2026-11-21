@@ -55,7 +55,8 @@ import org.bukkit.potion.PotionEffect;
  * One player watching a replay: the game's players are bodies sent to their client alone (through
  * PacketEvents), moved each tick as they moved, with their items, hits and swings; the blocks
  * change in the stage world as they changed in the game, and are put back when the replay jumps
- * back or ends. The viewer flies around, and the hotbar runs the replay: the players, 10 seconds
+ * back or ends; the viewer hears what the players heard, and sees the bits of the blocks they
+ * broke. The viewer flies around, and the hotbar runs the replay: the players, 10 seconds
  * back, pause, 10 seconds forward, the speed, leave. A party member the leader warped in (/p warp)
  * follows the leader's replay (see {@link #lead}): on the same stage, at the leader's moment, the
  * blocks changed by the leader's replay; their hotbar has the players and leave. Main thread only.
@@ -344,7 +345,7 @@ final class ReplayViewer {
     }
 
     /** Forward to this tick: what happened on the way, at once when it is a jump. */
-    @SuppressWarnings("deprecation") // Player#playEffect(Location, Effect, int): the 1.8 way to show a blast to one player
+    @SuppressWarnings("deprecation") // Player#playEffect(Location, Effect, int): the 1.8 way to show a blast or a broken block to one player
     private void forward(int target, boolean jump) {
         int lines = 0;
         for (int t = tick + 1; t <= target; t++) {
@@ -394,6 +395,20 @@ final class ReplayViewer {
                                     oy + event.b / (double) ReplayData.UNIT, oz + event.c / (double) ReplayData.UNIT);
                             viewer.playEffect(at, Effect.EXPLOSION_LARGE, 0);
                             viewer.playSound(at, Sound.EXPLODE, 2.0F, 1.0F);
+                        }
+                        break;
+                    case ReplayData.SOUND:
+                        // what the players heard there, as the server sent it (pitch: 63 for 1.0)
+                        if (last) {
+                            Location at = new Location(world, ox + event.a / (double) ReplayData.UNIT,
+                                    oy + event.b / (double) ReplayData.UNIT, oz + event.c / (double) ReplayData.UNIT);
+                            viewer.playSound(at, event.text, Float.intBitsToFloat(event.d), (event.e + 0.5F) / 63F);
+                        }
+                        break;
+                    case ReplayData.BREAK:
+                        // the sound and bits of the broken block, as the players near it got them
+                        if (last) {
+                            viewer.playEffect(new Location(world, ox + event.a, oy + event.b, oz + event.c), Effect.STEP_SOUND, event.d);
                         }
                         break;
                     default:

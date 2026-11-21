@@ -152,7 +152,10 @@ dans les files d'attente des modes de jeu.
   entraînements) et les parties de Bed Wars en équipes (pas les FFA, Fast Shop, Invis, le Bed Break
   Simulator ni le Top Bridge d'entraînement d'une party) sont enregistrés : les joueurs (leurs mouvements, leurs coups,
   leur vie, ce qu'ils tiennent et portent), les blocs posés et cassés, les flèches, boules de feu,
-  perles et TNT, et les messages de la partie. `/replay` ouvre le menu de ses parties des derniers
+  perles et TNT, les messages de la partie, et ses **sons** : ceux que le serveur envoie aux joueurs
+  de la partie (coups, blocs posés, arcs, compte à rebours, sons des jeux…, une seule fois chacun
+  même entendu par tous), et le bruit et les éclats des blocs cassés. Les pas, que le serveur
+  n'envoie jamais, n'y sont pas. Un replay d'avant n'a pas de sons. `/replay` ouvre le menu de ses parties des derniers
   jours, `/replay CODE` montre n'importe quelle partie par son code (à partager), et **[REPLAY]**
   celle qu'on vient de jouer. On regarde depuis le lobby (demandé pendant une partie, le replay
   attend le retour au lobby), en volant autour des joueurs. La barre met en pause, recule ou avance

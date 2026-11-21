@@ -1,5 +1,13 @@
 package gg.rago.lobby;
 
+import com.github.retrooper.packetevents.PacketEvents;
+import com.github.retrooper.packetevents.event.PacketListenerAbstract;
+import com.github.retrooper.packetevents.event.PacketListenerCommon;
+import com.github.retrooper.packetevents.event.PacketListenerPriority;
+import com.github.retrooper.packetevents.event.PacketSendEvent;
+import com.github.retrooper.packetevents.protocol.packettype.PacketType;
+import com.github.retrooper.packetevents.util.Vector3d;
+import com.github.retrooper.packetevents.wrapper.play.server.WrapperPlayServerSoundEffect;
 import gg.rago.lobby.api.ReplayRecording;
 import gg.rago.lobby.api.ReplaySetup;
 import gg.rago.lobby.api.ReplayStages;
@@ -33,8 +41,11 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
+import java.util.Queue;
 import java.util.Set;
 import java.util.UUID;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.ConcurrentLinkedQueue;
 import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
@@ -153,6 +164,27 @@ final class ReplayService implements Replays, Listener {
         }
     }
 
+    /** A sound the server sent to a player of a recorded game (read on the network thread). */
+    private static final class Heard {
+        final UUID player;
+        final String name;
+        final double x;
+        final double y;
+        final double z;
+        final float volume;
+        final int pitch;
+
+        Heard(UUID player, String name, double x, double y, double z, float volume, int pitch) {
+            this.player = player;
+            this.name = name;
+            this.x = x;
+            this.y = y;
+            this.z = z;
+            this.volume = volume;
+            this.pitch = pitch;
+        }
+    }
+
     /** What a sweep of the folder found: the replays kept, and the ids deleted. */
     private static final class Sweep {
         final List<ReplayData.Info> kept = new ArrayList<>();
@@ -175,6 +207,11 @@ final class ReplayService implements Replays, Listener {
 
     private final Map<World, Group> groups = new HashMap<>();
     private final Map<UUID, ReplayRecorder> byActor = new HashMap<>();
+    /** The players of the recorded games, for the network thread: their sounds are recorded. */
+    private final Set<UUID> listening = ConcurrentHashMap.newKeySet();
+    /** The sounds sent to them since the last tick, written in the replay at the next one. */
+    private final Queue<Heard> sounds = new ConcurrentLinkedQueue<>();
+    private PacketListenerCommon soundListener;
     private boolean hookWarned;
     /** Newest first. */
     private final List<ReplayData.Info> index = new ArrayList<>();
@@ -223,12 +260,34 @@ final class ReplayService implements Replays, Listener {
             }
         });
         sweep(true);
+        // the sounds the server sends to the players of a recorded game (plan 4.1b): no Bukkit
+        // event tells them, the packets do
+        soundListener = PacketEvents.getAPI().getEventManager().registerListener(new PacketListenerAbstract(PacketListenerPriority.MONITOR) {
+            @Override
+            public void onPacketSend(PacketSendEvent event) {
+                if (event.getPacketType() != PacketType.Play.Server.SOUND_EFFECT || event.getUser() == null
+                        || !listening.contains(event.getUser().getUUID())) {
+                    return;
+                }
+                WrapperPlayServerSoundEffect sound = new WrapperPlayServerSoundEffect(event);
+                if (sound.getSound() == null || sound.getSound().getSoundId() == null || sound.getPosition() == null) {
+                    return;
+                }
+                Vector3d at = sound.getPosition();
+                sounds.add(new Heard(event.getUser().getUUID(), sound.getSound().getSoundId().getKey(), at.getX(), at.getY(),
+                        at.getZ(), sound.getVolume(), Math.round(sound.getPitch() * 63F)));
+            }
+        });
         task = Bukkit.getScheduler().runTaskTimer(lobby, this::tick, 1L, 1L).getTaskId();
         Bukkit.getScheduler().runTaskTimer(lobby, () -> sweep(false), SWEEP_TICKS, SWEEP_TICKS);
     }
 
     /** The plugin stops: the replays watched end, the files being written are finished. */
     void stop() {
+        if (soundListener != null) {
+            PacketEvents.getAPI().getEventManager().unregisterListener(soundListener);
+            soundListener = null;
+        }
         for (ReplayViewer viewer : new ArrayList<>(viewers.values())) {
             stopViewer(viewer, true);
         }
@@ -336,10 +395,12 @@ final class ReplayService implements Replays, Listener {
 
     void actorAdded(ReplayRecorder recorder, UUID player) {
         byActor.put(player, recorder);
+        listening.add(player);
     }
 
     void stopped(ReplayRecorder recorder) {
         byActor.values().removeIf(each -> each == recorder);
+        listening.retainAll(byActor.keySet());
         Group group = groups.get(recorder.world());
         if (group == null) {
             return;
@@ -407,6 +468,14 @@ final class ReplayService implements Replays, Listener {
     // --- Each tick ------------------------------------------------------------------------------
 
     private void tick() {
+        // the sounds heard since the last tick, in the game of the player who heard each one
+        for (Heard heard = sounds.poll(); heard != null; heard = sounds.poll()) {
+            ReplayRecorder recorder = byActor.get(heard.player);
+            Player player = recorder == null ? null : Bukkit.getPlayer(heard.player);
+            if (player != null && player.getWorld().equals(recorder.world())) {
+                recorder.sound(heard.name, heard.x, heard.y, heard.z, heard.volume, heard.pitch);
+            }
+        }
         for (Map.Entry<World, Group> entry : new ArrayList<>(groups.entrySet())) {
             Group group = entry.getValue();
             if (group.recorders.isEmpty()) {
@@ -1029,8 +1098,18 @@ final class ReplayService implements Replays, Listener {
     }
 
     @EventHandler(priority = EventPriority.MONITOR, ignoreCancelled = true)
+    @SuppressWarnings("deprecation") // Block#getTypeId and getData: the 1.8 block id and data
     public void onBreak(BlockBreakEvent event) {
         changed(event.getBlock());
+        // its sound and bits, which the players near it got (the one who broke it makes them itself)
+        Block block = event.getBlock();
+        Group group = groups.get(block.getWorld());
+        if (group != null) {
+            int state = block.getTypeId() | (block.getData() & 0xF) << 12;
+            for (ReplayRecorder recorder : group.recorders) {
+                recorder.broke(block.getX(), block.getY(), block.getZ(), state);
+            }
+        }
     }
 
     @EventHandler(priority = EventPriority.MONITOR, ignoreCancelled = true)

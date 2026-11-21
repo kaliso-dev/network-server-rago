@@ -157,7 +157,7 @@ informations manquantes.
 | # | Tâche | Cat. | Prio | Statut | Fichiers | Manque |
 | --- | --- | --- | --- | --- | --- | --- |
 | 4.1 | Party Replay : les membres de la party rejoignent le replay | Replays | P2 | EN COURS : codé (`/p warp` du chef dans un replay), test réel à 2 bots ajouté, CI à venir | `ReplayService`, `ReplayViewer`, `Parties` | — |
-| 4.1b | Sons dans les replays : étude de faisabilité | Replays | P3 | À FAIRE | `ReplayRecorder`, `ReplayData` | — |
+| 4.1b | Sons dans les replays : étude de faisabilité | Replays | P3 | EN COURS : faisable ; sons envoyés par le serveur et blocs cassés enregistrés et rejoués ; codé, test unitaire et test réel ajoutés, CI à venir | `ReplayRecorder`, `ReplayData` | — |
 | 4.2 | `/host` : annonce cliquable toutes les 10 s ; inscription gardée sans téléporter ; départ quand assez de joueurs | Events | P1 | À FAIRE | `Events`, `EventGame`, `PracticeHost`, `HostWatcher` | — |
 | 4.3 | Kit Editor plus clair et trié | Kits | P2 | À FAIRE | `KitEditor`, `KitLayouts` | — |
 | 4.4 | Menu Stats : présentation, catégories, navigation | Stats | P2 | À FAIRE | `StatsMenu`, `ProfileMenu`, `StatsBook` | — |
@@ -247,7 +247,47 @@ de la party, ouvre `/replay`, regarde un duel de sumo, fait `/p warp` ; RagoDeux
 moins de 2 blocs de lui, au même moment du replay dans le scoreboard, avec seulement la boussole et
 le lit dans sa barre ; RagoUn quitte, RagoDeux doit être revenu au lobby. Résultat de la CI à venir.
 
-**Sons (4.1b)** : étude de faisabilité à suivre.
+### 4.1b Sons dans les replays — FAISABLE, EN COURS (21/11)
+
+**Demande** : « Ajouter les sons des replays si techniquement possible. Analyse la faisabilité. »
+
+**Analyse** :
+- Avant, un replay ne gardait aucun son. Seuls les coups (le corps qui clignote rouge, dont le
+  client du spectateur fait lui-même le bruit) et les explosions (un son ajouté au replay) en
+  avaient.
+- En 1.8, les sons d'une partie viennent de deux endroits :
+  1. le serveur les envoie aux joueurs proches : blocs posés, arc, coups, TNT allumée, explosion,
+     et tous les sons des plugins (compte à rebours, lit détruit, kill…) ;
+  2. le client les fait de lui-même : ses propres pas, le bloc qu'il casse lui-même, etc. Les
+     autres joueurs reçoivent le bruit et les éclats du bloc cassé par le serveur.
+- Bukkit n'a pas d'événement pour les sons. PacketEvents (déjà installé pour le lobby) voit
+  chaque paquet de son envoyé. **C'est donc faisable** :
+  - enregistrer les sons envoyés aux joueurs de la partie ;
+  - enregistrer chaque bloc cassé (événement Bukkit) ;
+  - les rejouer au spectateur au même endroit et au même moment.
+- **Limites** :
+  - Les pas des joueurs, que le serveur n'envoie jamais, ne sont pas enregistrés.
+  - Un son que seul un joueur a reçu (un « ding » de kill) est rejoué à l'endroit où il l'a
+    entendu.
+  - Un replay enregistré avant ce changement reste sans sons. Il se lit toujours : le format ne
+    change pas, deux types d'enregistrement s'ajoutent.
+
+**Fait** :
+- Pendant une partie enregistrée, chaque son envoyé à l'un de ses joueurs est enregistré, une
+  seule fois même si tous l'ont reçu. Pour chaque son : son nom 1.8, l'endroit, le volume et la
+  hauteur.
+- Chaque bloc cassé par un joueur est enregistré avec son type.
+- Au replay, le spectateur entend ces sons au même endroit et au même moment, et voit les éclats
+  des blocs cassés. Les membres d'une party venus dans le replay du chef les entendent aussi.
+- Pendant un saut (10 secondes en avant ou en arrière), seuls les derniers instants sont joués,
+  comme les coups.
+
+**Tests** :
+- Test unitaire `ReplayDataTest` : un son et un bloc cassé relus tels qu'écrits.
+- Test réel (`lobby-bots.mjs`, étape 9) : dans le replay du duel de sumo gagné 3 - 0, RagoUn doit
+  entendre les notes du compte à rebours. RagoDeux, venu par `/p warp`, doit entendre celles d'une
+  manche suivante.
+- Résultat de la CI à venir. Le rendu à l'oreille reste à juger en jeu.
 
 ### 3.7 Organisation Solo / Party / Ranked — PROPOSITION (21/11), à valider
 
