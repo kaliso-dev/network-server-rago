@@ -969,6 +969,17 @@ function eventDye (bot, name) {
 }
 
 /**
+ * A right click on the floor with the item of this slot, as a player does: the use packet in the air
+ * that activateItem sends is dropped by the server when the player looks at a block after placing
+ * one (RagoUn placed its wool in Bed Wars), as in fireballJump.
+ */
+async function useOnFloor (bot, slot) {
+  bot.setQuickBarSlot(slot)
+  await sleep(250)
+  bot.activateBlock(bot.blockAt(bot.entity.position.offset(0, -1, 0))).catch(() => {})
+}
+
+/**
  * An event of /host (plan 4.2): announced to the whole server every 20 seconds with a [CLICK TO
  * JOIN] until it starts; joining does not move a player, who keeps playing, and the red dye of the
  * lobby hotbar takes them out (its host's calls it off); at the end of the wait, those still in a
@@ -1028,7 +1039,7 @@ async function playEvent (one, two, three) {
   await waitFor(() => eventDye(one, 'Leave the event'), 3000,
     `the red dye Leave the event in the last slot of RagoUn: ${JSON.stringify(hotbarItem(one, 8) ?? null)}`)
   fromOne = mark(one)
-  await useHotbarItem(one, 8)
+  await useOnFloor(one, 8)
   await chatLine(one, /You left the Sumo event\./, 3000, fromOne)
   await waitFor(() => hotbarItem(one, 8)?.name === 'skull', 3000,
     `the profile back in the last slot of RagoUn: ${JSON.stringify(hotbarItem(one, 8) ?? null)}`)
@@ -1093,7 +1104,7 @@ async function playEvent (one, two, three) {
   three.chat('/host sumo')
   await chatLine(one, hosting, 5000, fromOne)
   await waitFor(() => eventDye(three, 'Cancel the event'), 3000, 'the red dye Cancel the event of RagoTrois')
-  await useHotbarItem(three, 8)
+  await useOnFloor(three, 8)
   await chatLine(one, /The Sumo event of RagoTrois is called off: called off by its host\./, 3000, fromOne)
   await chatLine(three, /The Sumo event of RagoTrois is called off: called off by its host\./, 3000, fromThree)
   await waitFor(() => hotbarItem(three, 8)?.name === 'skull', 3000,
