@@ -131,13 +131,30 @@ function story (events, from = 0) {
     + `${e.to ? ' ' + e.from + '>' + e.to : ''}${e.what === 'push' ? ` (${e.x.toFixed(2)}, ${e.y.toFixed(2)}, ${e.z.toFixed(2)})` : ''}`).join(', ')
 }
 
-/** Places the wool in hand against this face of the block at `against`; wool must then be at `where`. */
+/**
+ * Places the wool in hand against this face of the block at `against`; wool must then be at
+ * `where`. Tried again a few times: the server can drop a placement that comes too soon after
+ * another (each try is said in the log).
+ */
 async function place (bot, against, face, where) {
   await waitFor(() => bot.blockAt(against) != null && bot.blockAt(against).name !== 'air', 3000,
     `a block at ${against} to place against (${blockText(bot.blockAt(against))})`)
-  // looking at once (the default turns the head over several ticks): the enemy comes 2 s after the first block
-  await bot._placeBlockWithOptions(bot.blockAt(against), face, { swingArm: 'right', forceLook: true }).catch(() => {})
-  await waitFor(() => bot.blockAt(where)?.name === 'wool', 3000, `wool at ${where} (there: ${blockText(bot.blockAt(where))})`)
+  for (let attempt = 1; ; attempt++) {
+    // looking at once (the default turns the head over several ticks): the enemy comes 2 s after the first block
+    const error = await bot._placeBlockWithOptions(bot.blockAt(against), face, { swingArm: 'right', forceLook: true })
+      .then(() => null, (e) => e)
+    try {
+      await waitFor(() => bot.blockAt(where)?.name === 'wool', 400, `wool at ${where}`)
+      return
+    } catch {
+      const p = bot.entity.position
+      const why = `wool not placed at ${where} against ${against} (there: ${blockText(bot.blockAt(where))}; ${error?.message ?? 'no error'}; `
+        + `the bot at ${p.x.toFixed(2)}, ${p.y.toFixed(2)}, ${p.z.toFixed(2)}, holding ${bot.heldItem?.name ?? 'nothing'} x${bot.heldItem?.count ?? 0})`
+      if (attempt >= 4) throw new Error(why)
+      log(`try ${attempt}: ${why}`)
+      await sleep(150)
+    }
+  }
 }
 
 /** Wool back at `where`, against any block next to it. */
