@@ -331,7 +331,8 @@ jobs:
 
   # Two bots play the block modes of RagoPractice several times in a row, ending the games in every
   # way: each zone played again must be exactly as built; then two others check that a player who
-  # joins is seen by the one waiting in the lobby (tools/lobby-check/run-arena-test.sh).
+  # joins is seen by the one waiting in the lobby, and one plays the Block in training against its
+  # enemy (tools/lobby-check/run-arena-test.sh).
   arena-test:
     name: Arena reset and lobby visibility test (PandaSpigot 1.8.8, Java 21)
     runs-on: ubuntu-latest

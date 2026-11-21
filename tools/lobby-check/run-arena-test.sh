@@ -7,7 +7,10 @@
 # game that its zone is exactly as the mode built it. Then two other bots
 # (tools/kb-control/bots/visibility-bots.mjs) check that a player who joins the server is seen by the
 # one waiting in the lobby, and sees them (the first time, back from the lobby, from a training,
-# from a duel). Fails if the bots fail, or if the server log has an error or an exception.
+# from a duel). Then a bot (tools/kb-control/bots/blockin-bots.mjs) blocks itself in in the Block in
+# training and checks the enemy: it breaks its way in at one side, with the cracks, hits only
+# through the hole, and breaks again a block put back. Fails if the bots fail, or if the server log
+# has an error or an exception.
 #
 # Run from anywhere, after the build:
 #   ./gradlew build
@@ -204,6 +207,9 @@ KB_HOST=127.0.0.1 KB_PORT=$PORT node "$ROOT/tools/kb-control/bots/arena-bots.mjs
 # The same server for the lobby visibility test: two other bots, arriving while the other waits.
 visibility_status=0
 KB_HOST=127.0.0.1 KB_PORT=$PORT node "$ROOT/tools/kb-control/bots/visibility-bots.mjs" || visibility_status=$?
+# The same server for the Block in training: one bot, against the enemy.
+blockin_status=0
+KB_HOST=127.0.0.1 KB_PORT=$PORT node "$ROOT/tools/kb-control/bots/blockin-bots.mjs" || blockin_status=$?
 stop_server
 
 # Any error or exception logged by the server fails the test, even if the bots passed. One is
@@ -216,4 +222,5 @@ if grep -n -E 'ERROR\]|SEVERE|Exception' "$SERVER_LOG" \
 fi
 [[ $bots_status -eq 0 ]] || { tail -n 60 "$SERVER_LOG" >&2; fail "the arena bots stopped with status $bots_status"; }
 [[ $visibility_status -eq 0 ]] || { tail -n 60 "$SERVER_LOG" >&2; fail "the visibility bots stopped with status $visibility_status"; }
+[[ $blockin_status -eq 0 ]] || { tail -n 60 "$SERVER_LOG" >&2; fail "the Block in bot stopped with status $blockin_status"; }
 log "PASSED"

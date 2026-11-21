@@ -96,6 +96,14 @@ qu'il ne connaît pas encore : il ne reste que la ligne au-dessus du nom), ni en
 invisible. Les arrivées : la première fois, en revenant du lobby, après avoir quitté le serveur
 pendant une training, pendant un duel, et l'arrivée de celui qui attendait.
 
+Enfin, un bot (`tools/kb-control/bots/blockin-bots.mjs`) joue l'entraînement Block in sur l'île
+du plugin (le serveur de test n'a pas la map) : depuis son départ sur un coin de l'anneau de verre,
+il s'enferme dans la laine (les quatre côtés, aux pieds et à la tête), puis vérifie que l'ennemi
+ne le frappe pas tant qu'il est enfermé, casse un bloc d'un côté avec ses fissures (pas d'un
+coup), le frappe par ce trou en le repoussant à l'opposé, et casse à nouveau, du même côté et sans
+frapper, le bloc que le bot remet à chaque fois ; et que rien d'autre n'est cassé (les autres
+côtés, le verre).
+
 ```bash
 ./gradlew build
 (cd tools/kb-control/bots && npm ci)
