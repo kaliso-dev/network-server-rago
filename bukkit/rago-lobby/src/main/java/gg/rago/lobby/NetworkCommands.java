@@ -753,7 +753,7 @@ final class NetworkCommands implements CommandExecutor, TabCompleter {
                 + profile.deaths() + ChatColor.GRAY + "  K/D: " + Brand.ACCENT + StatsMenu.ratio(kills, profile.deaths()));
         sender.sendMessage(ChatColor.GRAY + "Final kills: " + ChatColor.GREEN + profile.finalKills() + ChatColor.GRAY
                 + "  Final deaths: " + ChatColor.RED + profile.finalDeaths() + ChatColor.GRAY + "  FKDR: " + ChatColor.GOLD
-                + StatsMenu.ratio(profile.finalKills(), profile.finalDeaths()));
+                + StatsMenu.fkdr(profile.finalKills(), profile.finalDeaths()));
     }
 
     // --- Completion -----------------------------------------------------------------------------

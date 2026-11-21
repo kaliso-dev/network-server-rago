@@ -576,7 +576,8 @@ config.yml fourni les suit :
   mode classé. Un tableau peut regrouper plusieurs classements entre crochets
   (`tableaux: [[niveau, elo, fkdr, kills, parties]]`, celui du mur `top`, qui montre
   d'abord le niveau Network, sur le tableau et sur le podium, puis l'ELO, le FKDR, les kills et les
-  parties jouées) :
+  parties jouées ; le FKDR s'écrit toujours avec deux décimales, « 6.42 », « 3.00 », comme dans
+  les menus, le profil et `/stats`) :
   un clic droit passe au classement suivant, un clic gauche change la période ou le mode classé, et un clic sur la ligne
   « Click here: next leaderboard » ou « Click here: change the period » fait ce qu'elle dit. Un
   clic gauche atteint un tableau de 16 blocs, n'importe où sur son texte : le plugin suit le

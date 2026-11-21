@@ -55,9 +55,13 @@ enum BoardStat {
         return choice;
     }
 
-    /** "2.5", "3", "0.33": a value of the FKDR board, ranked by hundredths. */
+    /**
+     * "6.42", "2.50", "3.00", "0.33": an FKDR in hundredths, always with its two decimals (the
+     * plan: "6.42 FKDR", never a whole number alone), on the boards as in the menus.
+     */
     static String hundredths(int value) {
-        return value % 100 == 0 ? String.valueOf(value / 100) : String.valueOf(value / 100.0);
+        int hundredths = Math.abs(value) % 100;
+        return (value < 0 ? "-" : "") + Math.abs(value) / 100 + "." + (hundredths < 10 ? "0" : "") + hundredths;
     }
 
     /** The FKDR in hundredths (the final kills alone without a final death). */

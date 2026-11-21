@@ -159,7 +159,7 @@ final class StatsDisplays {
         lines.add(ChatColor.GRAY + "WLR: " + ChatColor.GOLD + StatsMenu.ratio(wins, losses));
         lines.add(ChatColor.GRAY + "Kills: " + ChatColor.GREEN + (stats == null ? 0 : stats.kills(StatsPeriod.ALL, null, day, week))
                 + dot + ChatColor.GRAY + "Final kills: " + ChatColor.GREEN + finals);
-        lines.add(ChatColor.GRAY + "FKDR: " + ChatColor.GOLD + StatsMenu.ratio(finals, stats == null ? 0 : stats.finalDeaths()));
+        lines.add(ChatColor.GRAY + "FKDR: " + ChatColor.GOLD + StatsMenu.fkdr(finals, stats == null ? 0 : stats.finalDeaths()));
         lines.add(ChatColor.GRAY + "Best win streak: " + Brand.ACCENT + (stats == null ? 0 : stats.best(StatsPeriod.ALL, null, day, week))
                 + dot + ChatColor.GRAY + "Wins today: " + ChatColor.GREEN
                 + (stats == null ? 0 : stats.wins(StatsPeriod.DAY, null, day, week)));
@@ -373,7 +373,7 @@ final class StatsDisplays {
 
     /**
      * The value a board shows: the level for the Network level (ranked by XP), the division with
-     * the ELO ("Gold 245"), the ratio for the FKDR ("2.5"), the number otherwise.
+     * the ELO ("Gold 245"), the ratio for the FKDR ("2.50"), the number otherwise.
      */
     private String shown(BoardStat stat, int value) {
         if (stat == BoardStat.LEVEL) {

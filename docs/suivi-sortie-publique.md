@@ -142,7 +142,7 @@ informations manquantes.
 
 | # | Tâche | Cat. | Prio | Statut | Fichiers | Dépend de | Manque |
 | --- | --- | --- | --- | --- | --- | --- | --- |
-| 3.2 | FKDR avec décimales partout (« 6.42 FKDR ») | Stats | P1 | À FAIRE | `BoardStat`, `StatsBook`, `StatsMenu`, `StatsDisplays`, `HeadLines` | 1.4 | — |
+| 3.2 | FKDR avec décimales partout (« 6.42 FKDR ») | Stats | P1 | IMPLÉMENTÉ | `BoardStat`, `StatsBook`, `StatsMenu`, `StatsDisplays`, `HeadLines` | 1.4 | — |
 | 3.3 | Records practice : Lifetime d'abord, Weekly, Daily plus tard ; visibles ≥ 1 mois | Stats | P1 | À FAIRE | `Records`, `RecordBook`, `RecordsMenu` | 1.4 | — |
 | 3.4 | Menus practice : TOP 3 Lifetime du record du mode au survol | Stats | P1 | À FAIRE | `ModeMenu`, `ModeDisplay`, `RecordCatalog` | 3.3 | — |
 | 3.1 | Trois leaderboards Daily / Weekly / Lifetime liés à une même stat | Stats | P1 | À FAIRE | `StatsDisplays`, `StatsBook`, `StatsPeriod`, `BoardStat` | 1.4 | méthode pour ratios et ELO à valider |
@@ -217,6 +217,24 @@ informations manquantes.
 ---
 
 ## 3. Journal des corrections
+
+### 3.2 FKDR avec décimales — IMPLÉMENTÉ (21/11)
+
+**Avant** : le FKDR s'écrivait comme un nombre ordinaire, sans zéros inutiles : « 3 » pour 3
+final kills par final death, « 2.5 », « 0 », et sans final death le nombre de final kills seul
+(« 5 »). Un joueur voyait donc souvent un nombre entier.
+
+**Fait** : un seul format pour le FKDR, toujours deux décimales (`BoardStat.hundredths`,
+`StatsMenu.fkdr`) : « 6.42 », « 2.50 », « 3.00 », « 0.00 », « 5.00 » sans final death (la règle
+d'Hypixel : les final kills seuls). Partout où il s'affiche : les tableaux de classement et le
+podium (`StatsDisplays`), le profil du PNJ de stats, le menu Stats (total et par mode), `/stats`
+et `/top fkdr` (`NetworkCommands`). Le WLR et le K/D ne changent pas (le plan ne parle que du
+FKDR). Le classement reste calculé au centième près, comme avant.
+
+**Tests** : tests unitaires (`StatsMenuTest.theFkdrAlwaysHasTwoDecimals` : 6.42, 2.50, 3.00, 0.33,
+0.67, 0.07, 5.00, 0.00 ; `StatsDisplaysTest` : tableau, podium et profil en deux décimales) ;
+le format vérifié en local en compilant `BoardStat` seul. **Pas encore vu en jeu** : regarder le
+tableau FKDR du mur `top`, le PNJ de stats, le menu Stats et `/stats`.
 
 ### Ton essai en jeu du 21/11 (vers 18 h) et ce qui a suivi
 

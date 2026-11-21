@@ -157,7 +157,7 @@ final class StatsMenu {
         int finalDeaths = stats == null ? 0 : stats.finalDeaths();
         lore.add(line("Final kills", ChatColor.GREEN, finals));
         lore.add(line("Final deaths", ChatColor.RED, finalDeaths));
-        lore.add(ChatColor.GRAY + "FKDR (final kills / final deaths): " + ChatColor.GOLD + ratio(finals, finalDeaths));
+        lore.add(ChatColor.GRAY + "FKDR (final kills / final deaths): " + ChatColor.GOLD + fkdr(finals, finalDeaths));
         lore.add("");
         lore.add(line("Wins today", ChatColor.GREEN, stats == null ? 0 : stats.wins(StatsPeriod.DAY, null, day, week)));
         lore.add(line("Wins this week", ChatColor.GREEN, stats == null ? 0 : stats.wins(StatsPeriod.WEEK, null, day, week)));
@@ -198,7 +198,7 @@ final class StatsMenu {
             if (m.finalKills > 0 || m.finalDeaths > 0 || m.beds > 0) {
                 lore.add(line("Final kills", ChatColor.GREEN, m.finalKills));
                 lore.add(line("Final deaths", ChatColor.RED, m.finalDeaths));
-                lore.add(ChatColor.GRAY + "FKDR: " + ChatColor.GOLD + ratio(m.finalKills, m.finalDeaths));
+                lore.add(ChatColor.GRAY + "FKDR: " + ChatColor.GOLD + fkdr(m.finalKills, m.finalDeaths));
                 lore.add(line("Beds broken", Brand.ACCENT, m.beds));
             }
             lore.add("");
@@ -219,6 +219,11 @@ final class StatsMenu {
 
     private static String line(String what, ChatColor colour, int value) {
         return ChatColor.GRAY + what + ": " + colour + value;
+    }
+
+    /** The FKDR with two decimals ("6.42", "3.00"); the final kills alone without a final death. */
+    static String fkdr(int finalKills, int finalDeaths) {
+        return BoardStat.hundredths(BoardStat.fkdr(finalKills, finalDeaths));
     }
 
     /** 2.5, or the wins alone when there is no loss. */

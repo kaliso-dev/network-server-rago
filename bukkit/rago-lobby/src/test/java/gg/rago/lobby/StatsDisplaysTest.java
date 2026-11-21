@@ -142,11 +142,11 @@ class StatsDisplaysTest {
         List<String> fkdr = plain(displays.board(stats, key, alice, SUNDAY));
         assertEquals("FKDR", fkdr.get(0), "then the FKDR");
         assertEquals("All modes · Lifetime", fkdr.get(1));
-        assertEquals("1. Alice - 2.5", fkdr.get(3), "5 final kills, 2 final deaths");
+        assertEquals("1. Alice - 2.50", fkdr.get(3), "5 final kills, 2 final deaths: two decimals");
         assertEquals("2. Bob - 0.67", fkdr.get(4), "2 final kills, 3 final deaths");
-        assertEquals("You: #1 - 2.5", fkdr.get(3 + StatsDisplays.TOP + 1));
+        assertEquals("You: #1 - 2.50", fkdr.get(3 + StatsDisplays.TOP + 1));
         assertEquals(StatsDisplays.BOARD_LINES - 1, fkdr.size(), "one click line: nothing to change on it");
-        assertEquals(java.util.Arrays.asList("#1 Alice", "2.5 FKDR"), plain(displays.podiumLines(stats, key, ALICE, 0, SUNDAY)));
+        assertEquals(java.util.Arrays.asList("#1 Alice", "2.50 FKDR"), plain(displays.podiumLines(stats, key, ALICE, 0, SUNDAY)));
 
         displays.next(alice, stats, key, false);
         List<String> kills = plain(displays.board(stats, key, alice, SUNDAY));
@@ -295,7 +295,7 @@ class StatsDisplaysTest {
         assertTrue(lines.contains("Network level: [6" + NetworkLevel.STAR + "]"), lines.toString());
         assertTrue(lines.contains("Kills: 1 · Final kills: 0"), lines.toString());
         assertTrue(lines.contains("Games played: 0"), lines.toString());
-        assertTrue(lines.contains("FKDR: 0"), lines.toString());
+        assertTrue(lines.contains("FKDR: 0.00"), lines.toString());
         assertEquals("CLICK FOR YOUR STATS", lines.get(lines.size() - 1));
         assertEquals(11, lines.size(), "the lines of the hologram");
     }
@@ -324,7 +324,7 @@ class StatsDisplaysTest {
         assertTrue(lines.contains("Games played: 5"), lines.toString());
         assertTrue(lines.contains("Wins: 3 · Losses: 2"), lines.toString());
         assertTrue(lines.contains("WLR: 1.5"), lines.toString());
-        assertTrue(lines.contains("FKDR: 2.5"), "5 final kills, 2 final deaths: " + lines);
+        assertTrue(lines.contains("FKDR: 2.50"), "5 final kills, 2 final deaths: " + lines);
         PlayerStats read = StatsFiles.fromYaml(ALICE, StatsFiles.toYaml(alice));
         assertEquals(2, read.finalDeaths(), "kept in the file");
         assertEquals(1, read.mode("ranked-2v2").finalDeaths);

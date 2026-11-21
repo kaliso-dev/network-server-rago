@@ -24,6 +24,19 @@ class StatsMenuTest {
     }
 
     @Test
+    void theFkdrAlwaysHasTwoDecimals() {
+        assertEquals("6.42", StatsMenu.fkdr(642, 100), "the plan's example");
+        assertEquals("2.50", StatsMenu.fkdr(5, 2));
+        assertEquals("3.00", StatsMenu.fkdr(3, 1), "a whole number shows its decimals too");
+        assertEquals("0.33", StatsMenu.fkdr(1, 3));
+        assertEquals("0.67", StatsMenu.fkdr(2, 3), "rounded");
+        assertEquals("0.07", StatsMenu.fkdr(1, 15));
+        assertEquals("5.00", StatsMenu.fkdr(5, 0), "the final kills alone without a final death");
+        assertEquals("0.00", StatsMenu.fkdr(0, 0));
+        assertEquals("12.05", BoardStat.hundredths(1205), "the boards' values, in hundredths");
+    }
+
+    @Test
     void theModesPlayedComeFirstAndTheHiddenOnlyOncePlayed() throws Exception {
         List<ModeDisplay> all = LobbySettings.load(LobbySettingsTest.bundledConfig()).modes();
         int hidden = 0;
