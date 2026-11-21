@@ -450,13 +450,20 @@ Dans `jeux:` du config.yml, un mode peut jouer autre chose qu'une partie classiq
   les records, les minutes d'entraînement).
 - **Bed Break Simulator** (`bed-break`) : une situation de Ranked Bedwars, sur Archway et Invasion,
   en 1v1, 1v2, 1v3 ou 1v4 (de 2 à 5 joueurs, `bed-break-simulator-1v1` à `bed-break-simulator-1v4`),
-  en manches de 3 minutes, sur deux îles opposées. À chaque manche, un joueur attaque. Son bridge
+  en manches de 3 minutes, sur deux îles opposées. À chaque manche, un joueur attaque. Sur une map
+  qui a son chemin par le haut (`bed-break:` de son `bedwars.yml`, voir plus bas), il vient d'en
+  haut : la plateforme du Top Bridge (17 de large, chaque moitié à la couleur de l'équipe de son
+  côté, un bloc blanc au milieu) est posée au haut de l'escalier que le propriétaire a construit
+  depuis l'île défendue ; l'escalier est posé en laine des défenseurs, comme par un joueur (ils
+  peuvent le casser), la plateforme fait partie de la map pour la manche ; les deux disparaissent
+  à la fin de la manche ; l'attaquant part du milieu de la plateforme, tourné vers la moitié des
+  défenseurs. Sinon, son bridge
   est posé comme un joueur le construit en Ranked Bedwars : un bloc de large, en laine de sa
   couleur, de son île jusqu'au lit, à la hauteur des îles, droit le long d'un axe, ou le long d'un
-  côté de la map puis de l'autre avec un seul virage (Invasion), jamais en diagonale ; sur une île
+  côté de la map puis de l'autre avec un seul virage, jamais en diagonale ; sur une île
   au bord arrondi, il part du haut du bord, pas du dessous. Les défenseurs peuvent le casser, et il
-  disparaît à la fin de la manche. L'attaquant part du milieu de son bridge, tourné vers la suite
-  du chemin, avec une seule vie et le kit qu'il a choisi, ne pose aucun bloc au-dessus de la
+  disparaît à la fin de la manche ; l'attaquant part du milieu de son bridge, tourné vers la suite
+  du chemin. Il a une seule vie et le kit qu'il a choisi, ne pose aucun bloc au-dessus de la
   hauteur max de la map (`hauteur-max:` de son `bedwars.yml`), et ne gagne la manche qu'en cassant
   le lit. Les autres, de un à quatre selon le format, défendent sans kit : l'épée en bois
   d'un début de partie, leur forge pleine de fer et d'or (la forge de la file RBW en 2v2 à 4v4) et
@@ -477,6 +484,22 @@ Dans `jeux:` du config.yml, un mode peut jouer autre chose qu'une partie classiq
 | Classic | épée en pierre, pioche en or (tier III : Efficacité III, Tranchant II), hache en fer (tier III : Efficacité II), cisailles, 2 stacks de laine |
 | Fireball | épée en pierre, une boule de feu, pioche en fer (tier II : Efficacité II), hache en pierre (tier II : Efficacité I), cisailles, 2 stacks de laine |
 | Fighter | épée en pierre, pioche en bois et hache en bois (tier I : Efficacité I), cisailles, pomme d'or, 8 échelles, bâton Recul I |
+
+Le chemin par le haut d'une map, dans son `bedwars.yml` (relevé dans `/bw edit`, gardé par les
+sauvegardes de `/bw`) :
+
+```yaml
+bed-break:
+  # l'escalier, de l'île défendue jusqu'en haut : ses blocs, "x y z"
+  escalier:
+  - 33 93 -39
+  - 32 93 -39
+  # la plateforme : sa hauteur et deux coins opposés ; sous la hauteur max de la map
+  plateforme:
+    y: 114
+    de: {x: -8, z: -21}
+    a: {x: 8, z: 21}
+```
 
 Les kits du Bed Break Simulator se changent dans `bed-break:` du `config.yml` (de 1 à 7, les objets
 du shop par leur id, avec leur nombre) ; un kit sans épée reçoit l'épée en bois. Les objets suivent

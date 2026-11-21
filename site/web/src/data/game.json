@@ -227,7 +227,7 @@
     {
       "id": "bed-break",
       "name": "Bed Break Simulator",
-      "description": "Archway or Invasion: attack from your bridge with one of 3 kits and break the bed; the defenders have their forge full. Each in turn, 1v1 to 1v4.",
+      "description": "Archway or Invasion: attack from the top with one of 3 kits and break the bed; the defenders have their forge full. Each in turn, 1v1 to 1v4.",
       "modes": [
         "bed-break-simulator-1v1",
         "bed-break-simulator-1v2",

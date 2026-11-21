@@ -845,10 +845,9 @@ moitié à la couleur de l'équipe de son côté, une ligne blanche au milieu. P
 haut de ton escalier (y 114 sur Invasion, y 86 sur Archway), dans l'axe nord-sud, de ton escalier
 jusqu'au même point côté vert : x -8 à 8, z -21 à 21 sur Invasion, z -22 à 22 sur Archway.
 L'attaquant part du milieu, tourné vers le lit rouge. La limite de hauteur reste celle de la map
-(plus de +10 au-dessus de la plateforme). **Problème sur Invasion** : le dôme d'attente de la map
-(y 115 à 124, au-dessus du milieu, rayon 11) a un anneau qui descend à y 115-116, juste dans le
-passage d'un joueur sur une plateforme à y 114 ; il faudrait l'enlever pendant les manches de Bed
-Break et le remettre après. Images : `sortie-publique/bed-break/Invasion-plateforme.png` et
+(plus de +10 au-dessus de la plateforme). Sur Invasion, le dôme d'attente de la map (y 115 à 124,
+au-dessus du milieu) serait juste au-dessus de la plateforme, mais il est déjà retiré de chaque
+partie (`retirer:` de son `bedwars.yml`, comme sur Hypixel) : il ne gêne pas. Images : `sortie-publique/bed-break/Invasion-plateforme.png` et
 `Archway-plateforme.png`. **À valider** avant de coder.
 
 - **Bridges** : le top bridge (la plateforme de laine de 17 blocs de large, 16 blocs au-dessus

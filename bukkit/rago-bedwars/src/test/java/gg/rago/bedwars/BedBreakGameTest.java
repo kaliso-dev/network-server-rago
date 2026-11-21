@@ -8,6 +8,7 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 import gg.rago.game.BedDefense;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -81,6 +82,53 @@ class BedBreakGameTest {
         assertEquals(-90, BedBreakGame.attackerStart(Arrays.asList(new int[] {0, 64, 0}, new int[] {1, 64, 0}))[3], 1e-3,
                 "the last block: the way it came, to the east");
         assertNull(BedBreakGame.attackerStart(new ArrayList<>()), "no bridge: no place on it");
+    }
+
+    /**
+     * On a map with its way up (the owner's stairway on Invasion and Archway, 21/11): the Top Bridge
+     * platform at the top of the stairway, 17 wide, the half towards the defended bed in the
+     * defenders' colour, the other in the attacker's, the middle row split in two around a white
+     * block; the attacker stands on that block, facing the defenders' half.
+     */
+    @Test
+    void theAttackerStartsInTheMiddleOfThePlatformAtTheTopFacingTheDefendersHalf() {
+        // Invasion: the platform at y 114 (the top of the stairway), x -8 to 8, z -21 to 21; the red bed in the north-east
+        BedwarsMap.BedBreakTop invasion = new BedwarsMap.BedBreakTop(
+                Arrays.asList(new int[] {33, 93, -39}, new int[] {8, 114, -21}), 114, 8, 21, -8, -21);
+        List<int[]> blocks = BedBreakGame.platform(invasion, 39.5, -38.5);
+        assertEquals(17 * 43, blocks.size(), "17 wide, from z -21 to 21");
+        int[] count = new int[3];
+        for (int[] block : blocks) {
+            assertEquals(114, block[1], "all at the height of the platform");
+            count[block[3]]++;
+            int expected = block[2] < 0 ? BedBreakGame.DEFENDERS : block[2] > 0 ? BedBreakGame.ATTACKERS
+                    : block[0] == 0 ? BedBreakGame.WHITE : block[0] > 0 ? BedBreakGame.DEFENDERS : BedBreakGame.ATTACKERS;
+            assertEquals(expected, block[3], block[0] + " " + block[2]);
+        }
+        assertEquals(1, count[BedBreakGame.WHITE], "one white block, in the middle");
+        assertEquals(count[BedBreakGame.DEFENDERS], count[BedBreakGame.ATTACKERS], "two halves alike");
+        double[] start = BedBreakGame.platformStart(invasion, 39.5, -38.5);
+        assertEquals(0.5, start[0], 1e-9);
+        assertEquals(115, start[1], 1e-9, "standing on the platform");
+        assertEquals(0.5, start[2], 1e-9, "on the white block");
+        assertEquals(180, Math.abs(start[3]), 1e-3, "facing the north: the red half and the stairway");
+
+        // Archway: y 86 (the limit is 87), z -22 to 22; the red bed in the north
+        BedwarsMap.BedBreakTop archway = new BedwarsMap.BedBreakTop(Arrays.asList(new int[] {-4, 69, -65}), 86, -8, -22, 8, 22);
+        double[] onArchway = BedBreakGame.platformStart(archway, -14.5, -66.5);
+        assertEquals(87, onArchway[1], 1e-9);
+        assertEquals(180, Math.abs(onArchway[3]), 1e-3, "facing the red half");
+        assertEquals(BedBreakGame.DEFENDERS, BedBreakGame.platform(archway, -14.5, -66.5).get(0)[3], "the north-west corner: red's");
+
+        // along x, the defended bed in the east: facing the east, the east half the defenders'
+        BedwarsMap.BedBreakTop eastWest = new BedwarsMap.BedBreakTop(Collections.<int[]>emptyList(), 100, -20, -3, 20, 3);
+        double[] facingEast = BedBreakGame.platformStart(eastWest, 60.5, 0.5);
+        assertEquals(-90, facingEast[3], 1e-3, "facing the east");
+        for (int[] block : BedBreakGame.platform(eastWest, 60.5, 0.5)) {
+            if (block[0] != 0) {
+                assertEquals(block[0] > 0 ? BedBreakGame.DEFENDERS : BedBreakGame.ATTACKERS, block[3], block[0] + " " + block[2]);
+            }
+        }
     }
 
     @Test

@@ -235,7 +235,7 @@ groupes:
     icone: DIAMOND_PICKAXE
     description:
       - "Archway or Invasion: attack"
-      - "from your bridge with one of"
+      - "from the top with one of"
       - "3 kits and break the bed; the"
       - "defenders have their forge full."
       - "Each in turn, 1v1 to 1v4."
@@ -1527,7 +1527,7 @@ modes:
     kit: [STONE_SWORD, GOLD_PICKAXE, "WOOL 64", "WOOL 64", FIREBALL, GOLDEN_APPLE, "LADDER 8", STICK, IRON_AXE, SHEARS]
     description:
       - "Archway or Invasion: attack"
-      - "from your bridge with one of"
+      - "from the top with one of"
       - "3 kits and break the bed; the"
       - "defenders have their forge full."
       - "3-minute rounds, each in turn."

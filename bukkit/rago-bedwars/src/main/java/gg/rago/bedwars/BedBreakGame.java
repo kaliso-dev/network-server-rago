@@ -29,11 +29,16 @@ import org.bukkit.scheduler.BukkitTask;
  * and the others defend (four at most):
  *
  * <ul>
- *   <li>The attacker's bridge is built, as a player builds it: one block wide, in wool of their
- *       colour, from their island to the bed, straight along an axis, or along the side of the map
- *       then the other with one turn (Invasion), not a diagonal (see {@link Bridges}); the
- *       defenders may break it. The attacker starts in its middle, facing the way to the base,
- *       with one life and the kit they chose (bed-break.kits: in config.yml): Classic (the Golden
+ *   <li>The way of the attacker, on a map with its way up (bed-break: in its bedwars.yml, see
+ *       {@link BedwarsMap.BedBreakTop}): the owner's stairway from the defended island up to the
+ *       top, in the defenders' wool, placed as by a player (the defenders may break it), and the
+ *       Top Bridge platform at its top, part of the map for the round, each half in the colour of
+ *       the team on its side and a white block in the middle; the attacker starts in its middle,
+ *       facing the defenders' half. On a map without, their bridge is built as a player builds it:
+ *       one block wide, in wool of their colour, from their island to the bed, straight along an
+ *       axis, or along the side of the map then the other with one turn, not a diagonal (see
+ *       {@link Bridges}); the defenders may break it, and the attacker starts in its middle, facing
+ *       the way to the base. The attacker has one life and the kit they chose (bed-break.kits: in config.yml): Classic (the Golden
  *       Pickaxe, tier III, and the Iron Axe, two stacks of wool), Fireball (a fireball, the Iron
  *       Pickaxe, tier II, and the Stone Axe, two stacks) or Fighter (the Wooden Pickaxe and Axe,
  *       tier I, a golden apple, ladders, the knockback stick), each with a stone sword and shears.
@@ -88,6 +93,8 @@ final class BedBreakGame extends BedwarsGame implements KitMenu.Chooser {
     private UUID attacker;
     /** The attacker's bridge of this round, its blocks from their island's side; empty if none fits. */
     private List<int[]> bridge = Collections.emptyList();
+    /** Where the attacker starts on the platform at the top, {x, y, z, yaw}; null on a map without (see {@link #buildTop}). */
+    private double[] topStart;
     private int round = -1;
     private boolean roundOver = true;
     private int waitLeft = -1;
@@ -190,7 +197,8 @@ final class BedBreakGame extends BedwarsGame implements KitMenu.Chooser {
         player.teleport(instance.map().spectatorPoint().in(instance.world()));
         player.sendMessage(ChatColor.RED + "" + ChatColor.BOLD + "Bed Break Simulator " + lineup.format() + ChatColor.RED
                 + " on " + ChatColor.WHITE + instance.map().world() + ChatColor.RED + ": " + lineup.players()
-                + ", rounds of 3 minutes. Each player in turn attacks from the middle of their bridge, with one life,"
+                + ", rounds of 3 minutes. Each player in turn attacks from " + (fromTheTop()
+                ? "the platform at the top" : "the middle of their bridge") + ", with one life,"
                 + " and has to break the bed; the others defend it with their forge full.");
         player.sendMessage(ChatColor.GRAY + lineup.when() + "; the menu of the attack kits opens before each of your"
                 + " attacks. /spawn takes you back to the lobby.");
@@ -292,18 +300,116 @@ final class BedBreakGame extends BedwarsGame implements KitMenu.Chooser {
     }
 
     /**
-     * The attacker's bridge, the Ranked defense on the bed, and the forge full of iron and gold:
-     * made again for each round.
+     * The attacker's way (the platform at the top and the stairway, else their bridge), the Ranked
+     * defense on the bed, and the forge full of iron and gold: made again for each round.
      */
     @Override
     void setUp() {
-        buildBridge();
+        BedwarsMap.BedBreakTop top = instance.map().bedBreakTop();
+        topStart = null;
+        bridge = Collections.emptyList();
+        if (fromTheTop()) {
+            buildTop(top);
+        } else {
+            buildBridge();
+        }
         if (defenders.points.bed != null) {
             Defense.build(instance, defenders.points.bed.blockIn(instance.world()), DEFENSE, defenders.color.woolData());
         }
         for (Generator forge : forges) {
             forge.fill();
         }
+    }
+
+    /**
+     * The way up of this map, as the owner built it (bed-break: in its bedwars.yml): the platform at
+     * the top, each half in the colour of the team on its side and a white block in the middle, part
+     * of the map for the round (no one breaks it, the rollback takes it away); then the stairway
+     * from the defended island up to it, in the defenders' wool, placed as by a player: the
+     * defenders may break it, the rollback takes it away after the round. Where the map has a block
+     * already, it stays.
+     */
+    @SuppressWarnings("deprecation") // Block#setTypeIdAndData: the 1.8 way to set a block with its data
+    private void buildTop(BedwarsMap.BedBreakTop top) {
+        World world = instance.world();
+        MapPoint bed = defenders.points.bed;
+        for (int[] cell : platform(top, bed.x() + 0.5, bed.z() + 0.5)) {
+            Block block = world.getBlockAt(cell[0], cell[1], cell[2]);
+            if (block.getType() != Material.AIR) {
+                continue;
+            }
+            short wool = cell[3] == WHITE ? TeamColor.WHITE.woolData()
+                    : (cell[3] == DEFENDERS ? defenders : attackers).color.woolData();
+            instance.build(block, Material.WOOL, (byte) wool);
+        }
+        for (int[] place : top.stairs) {
+            Block block = world.getBlockAt(place[0], place[1], place[2]);
+            if (block.getType() != Material.AIR || instance.isPlaced(block)) {
+                continue;
+            }
+            instance.markPlaced(block);
+            block.setTypeIdAndData(Material.WOOL.getId(), (byte) defenders.color.woolData(), false);
+        }
+        topStart = platformStart(top, bed.x() + 0.5, bed.z() + 0.5);
+    }
+
+    /** True if the attacker comes from the top: the map has its way up (bed-break:) and the defended bed. */
+    private boolean fromTheTop() {
+        return instance.map().bedBreakTop() != null && defenders.points.bed != null;
+    }
+
+    /** A block of the platform: white, in the middle. */
+    static final int WHITE = 0;
+    /** A block of the platform on the defenders' half. */
+    static final int DEFENDERS = 1;
+    /** A block of the platform on the attacker's half. */
+    static final int ATTACKERS = 2;
+
+    /**
+     * The blocks of the platform at the top, {x, y, z, half}: along its length (its longer side),
+     * the half nearer the defended bed (centre bedX, bedZ) is {@link #DEFENDERS}, the other
+     * {@link #ATTACKERS}; on the middle row (an odd length), one side of its middle block is the
+     * defenders', the other the attacker's, and the middle block is {@link #WHITE}: the colours of
+     * {@link TopBridge}.
+     */
+    static List<int[]> platform(BedwarsMap.BedBreakTop top, double bedX, double bedZ) {
+        boolean alongZ = top.maxZ - top.minZ >= top.maxX - top.minX;
+        double middle = alongZ ? (top.minZ + top.maxZ + 1) / 2.0 : (top.minX + top.maxX + 1) / 2.0;
+        double centre = alongZ ? (top.minX + top.maxX + 1) / 2.0 : (top.minZ + top.maxZ + 1) / 2.0;
+        // the defenders' end: -1 at the low x or z, 1 at the high one
+        int defendersEnd = (alongZ ? bedZ : bedX) < middle ? -1 : 1;
+        List<int[]> blocks = new ArrayList<>();
+        for (int x = top.minX; x <= top.maxX; x++) {
+            for (int z = top.minZ; z <= top.maxZ; z++) {
+                double along = (alongZ ? z : x) + 0.5 - middle;
+                double across = (alongZ ? x : z) + 0.5 - centre;
+                int half;
+                if (Math.abs(along) > 1e-9) {
+                    half = along * defendersEnd > 0 ? DEFENDERS : ATTACKERS;
+                } else if (Math.abs(across) > 1e-9) {
+                    // as on the Top Bridge: the defenders' side of the middle row, to their left
+                    // looking at the attacker's end
+                    half = (alongZ ? across * defendersEnd : -across * defendersEnd) < 0 ? DEFENDERS : ATTACKERS;
+                } else {
+                    half = WHITE;
+                }
+                blocks.add(new int[] {x, top.platformY, z, half});
+            }
+        }
+        return blocks;
+    }
+
+    /**
+     * Where the attacker starts on the platform at the top, {x, y, z, yaw}: standing on its middle,
+     * facing the defenders' half (the end nearer the defended bed, centre bedX, bedZ).
+     */
+    static double[] platformStart(BedwarsMap.BedBreakTop top, double bedX, double bedZ) {
+        boolean alongZ = top.maxZ - top.minZ >= top.maxX - top.minX;
+        double x = (top.minX + top.maxX + 1) / 2.0;
+        double z = (top.minZ + top.maxZ + 1) / 2.0;
+        int defendersEnd = (alongZ ? bedZ - z : bedX - x) < 0 ? -1 : 1;
+        float yaw = alongZ ? InvisGame.yawTowards(0, defendersEnd) : InvisGame.yawTowards(defendersEnd, 0);
+        return new double[] {x, top.platformY + 1, z, yaw};
     }
 
     /**
@@ -393,10 +499,13 @@ final class BedBreakGame extends BedwarsGame implements KitMenu.Chooser {
         return ROUND_COUNTDOWN;
     }
 
-    /** The attacker in the middle of their bridge, facing the way to the base; the defenders on their island. */
+    /**
+     * The attacker in the middle of the platform at the top, facing the defenders' half (else in the
+     * middle of their bridge, facing the way to the base); the defenders on their island.
+     */
     @Override
     Location spawnOf(Gamer gamer) {
-        double[] start = attackerStart(bridge);
+        double[] start = topStart != null ? topStart : attackerStart(bridge);
         if (gamer.id.equals(attacker) && start != null) {
             return at(start);
         }
@@ -542,14 +651,16 @@ final class BedBreakGame extends BedwarsGame implements KitMenu.Chooser {
         Gamer attacking = gamers.get(attacker);
         String who = attacking == null ? "the attacker" : attacking.coloured();
         if (gamer.id.equals(attacker)) {
-            player.sendMessage(head + "you " + ChatColor.WHITE + "attack" + ChatColor.RED + " from your bridge. Break the "
+            player.sendMessage(head + "you " + ChatColor.WHITE + "attack" + ChatColor.RED + " from "
+                    + (fromTheTop() ? "the platform at the top" : "your bridge") + ". Break the "
                     + defenders.color.coloured() + ChatColor.RED + " bed within three minutes: only the bed counts."
                     + " One life.");
             player.sendTitle(ChatColor.RED + "" + ChatColor.BOLD + "ATTACK",
                     ChatColor.WHITE + "Break the " + defenders.color.coloured() + ChatColor.WHITE + " bed");
             offerKits(player);
         } else {
-            player.sendMessage(head + "defend your bed against " + who + ChatColor.RED + ", who comes by their bridge."
+            player.sendMessage(head + "defend your bed against " + who + ChatColor.RED + ", who comes "
+                    + (fromTheTop() ? "from the platform at the top." : "by their bridge.")
                     + " No kit: your forge is full, buy what you need at the item shop. Kill them, or hold three minutes;"
                     + " you come back " + respawnSeconds() + " seconds after a death.");
             player.sendTitle(ChatColor.GREEN + "" + ChatColor.BOLD + "DEFEND", who + ChatColor.WHITE + " attacks");

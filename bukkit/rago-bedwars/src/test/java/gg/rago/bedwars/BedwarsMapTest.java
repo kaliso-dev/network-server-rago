@@ -268,6 +268,35 @@ class BedwarsMapTest {
     }
 
     @Test
+    void theWayUpOfBedBreakReadsBackAsWritten() throws Exception {
+        assertNull(demo().bedBreakTop(), "a map without: none");
+        assertFalse(demo().toYaml().contains("bed-break"));
+        BedwarsMap map = BedwarsMap.fromYaml("Invasion", "actif: true\nbed-break:\n  escalier:\n  - 33 93 -39\n  - 32 93 -39\n"
+                + "  - 8 114 -21\n  plateforme:\n    y: 114\n    de: {x: 8, z: 21}\n    a: {x: -8, z: -21}\n");
+        BedwarsMap.BedBreakTop top = map.bedBreakTop();
+        assertEquals(3, top.stairs.size());
+        assertEquals(Arrays.asList(33, 93, -39), Arrays.asList(top.stairs.get(0)[0], top.stairs.get(0)[1], top.stairs.get(0)[2]));
+        assertEquals(Arrays.asList(8, 114, -21), Arrays.asList(top.stairs.get(2)[0], top.stairs.get(2)[1], top.stairs.get(2)[2]));
+        assertEquals(114, top.platformY);
+        assertEquals(Arrays.asList(-8, -21, 8, 21), Arrays.asList(top.minX, top.minZ, top.maxX, top.maxZ), "the corners in any order");
+        BedwarsMap.BedBreakTop again = map.copy().bedBreakTop();
+        assertEquals(top.stairs.size(), again.stairs.size(), "written back as read (a /bw save keeps it)");
+        for (int i = 0; i < top.stairs.size(); i++) {
+            assertTrue(Arrays.equals(top.stairs.get(i), again.stairs.get(i)), "block " + i);
+        }
+        assertEquals(Arrays.asList(114, -8, -21, 8, 21), Arrays.asList(again.platformY, again.minX, again.minZ, again.maxX, again.maxZ));
+        String platform = "  plateforme:\n    y: 114\n    de: {x: 8, z: 21}\n    a: {x: -8, z: -21}\n";
+        assertThrows(IllegalArgumentException.class, () -> BedwarsMap.fromYaml("m", "bed-break:\n  escalier:\n  - 33 93\n" + platform));
+        assertThrows(IllegalArgumentException.class, () -> BedwarsMap.fromYaml("m", "bed-break:\n  escalier:\n  - 33 trois -39\n" + platform));
+        assertThrows(IllegalArgumentException.class, () -> BedwarsMap.fromYaml("m", "bed-break:\n  escalier:\n  - 1 2 3\n"));
+        assertThrows(IllegalArgumentException.class, () -> BedwarsMap.fromYaml("m", "bed-break:\n  escalier:\n  - 1 2 3\n"
+                + platform.replace("y: 114", "y: 300")));
+        assertThrows(IllegalArgumentException.class, () -> BedwarsMap.fromYaml("m", "bed-break:\n  escalier:\n  - 1 2 3\n"
+                + platform.replace("de: {x: 8, z: 21}", "de: {x: 8}")));
+        assertThrows(IllegalArgumentException.class, () -> BedwarsMap.fromYaml("m", "bed-break:\n" + platform));
+    }
+
+    @Test
     void theIslandsKeepTheBlocksOffTheBridges() throws Exception {
         BedwarsMap map = read("actif: true\niles:\n"
                 + "- {centre: {x: 0.5, z: -0.5}, rayon: 27.5, bas: 55, haut: 80}\n"
