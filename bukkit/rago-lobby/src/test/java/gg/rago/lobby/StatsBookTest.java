@@ -486,8 +486,9 @@ class StatsBookTest {
         // a kill, then a final kill, as BedwarsGame tells them
         book.kill("bedwars-solo", ALICE, BOB, false, NAMES, SUNDAY);
         book.kill("bedwars-solo", ALICE, BOB, true, NAMES, SUNDAY);
-        book.finalKill("bedwars-solo", ALICE, NAMES);
-        book.finalDeath("bedwars-solo", BOB, NAMES);
+        // at the same moment (the final kills have their day and week now: another day would roll them)
+        book.finalKill("bedwars-solo", ALICE, NAMES, SUNDAY);
+        book.finalDeath("bedwars-solo", BOB, NAMES, SUNDAY);
         ModeStats alice = book.get(ALICE).mode("bedwars-solo");
         ModeStats bob = book.get(BOB).mode("bedwars-solo");
         assertEquals(1, alice.kills, "the final kill is not a kill too");
