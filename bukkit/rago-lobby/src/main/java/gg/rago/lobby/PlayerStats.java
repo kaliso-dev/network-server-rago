@@ -71,7 +71,7 @@ final class PlayerStats {
     private String boosterDay;
     private int coinBoosters;
     private long coinBoosterLeftMs;
-    /** What shows above the name (an id of {@link HeadLines.Shown}, null for the ELO), and the custom message. */
+    /** What shows above the name (an id of {@link HeadLines.Shown}, null for the default: the Network level), and the custom message. */
     private String headLine;
     private String headMessage;
     /** The name the player plays under (/nick), or null. */

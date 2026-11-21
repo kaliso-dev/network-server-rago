@@ -315,6 +315,7 @@ public final class RagoLobby extends JavaPlugin implements LobbyService {
         profiles.names().setNicks(nicks::nick);
         headLines = new HeadLines(world, this::headLine);
         headLines.start();
+        scoreboard.setLevelAbove(world, this::levelAbove);
         getServer().getPluginManager().registerEvents(headLines, this);
         cosmetics.start();
         getServer().getPluginManager().registerEvents(kitEditor, this);
@@ -1711,19 +1712,37 @@ public final class RagoLobby extends JavaPlugin implements LobbyService {
         return profile == null ? null : profile.hotbar();
     }
 
-    /** The line above the name of a lobby player (none while nicked): what they chose, the ELO by default. */
-    private String headLine(Player player) {
+    /**
+     * What shows above the name of a lobby player: what they chose, the Network level by default (plan
+     * 3.5); null while nicked (nothing).
+     */
+    private HeadLines.Shown headChoice(Player player) {
         UUID id = player.getUniqueId();
         if (nicks.nick(id) != null) {
+            return null;
+        }
+        PlayerStats profile = stats.book().get(id);
+        HeadLines.Shown shown = HeadLines.Shown.chosen(profile == null ? null : profile.headLine());
+        if (shown == HeadLines.Shown.MESSAGE && (profile.headMessage() == null || !player.hasPermission("rago.perk.message"))
+                || shown == HeadLines.Shown.TITLE && !server.titles().on()) {
+            shown = HeadLines.Shown.DEFAULT;
+        }
+        return shown;
+    }
+
+    /** In the lobby, the line above the name of this player shows their level (they are not nicked). */
+    private boolean levelAbove(Player player) {
+        return headChoice(player) == HeadLines.Shown.LEVEL;
+    }
+
+    /** The line above the name of a lobby player (none while nicked): what they chose, the Network level by default. */
+    private String headLine(Player player) {
+        UUID id = player.getUniqueId();
+        HeadLines.Shown shown = headChoice(player);
+        if (shown == null) {
             return "";
         }
         PlayerStats profile = stats.book().get(id);
-        HeadLines.Shown shown = profile == null || profile.headLine() == null ? HeadLines.Shown.ELO
-                : HeadLines.Shown.of(profile.headLine());
-        if (shown == null || shown == HeadLines.Shown.MESSAGE && (profile.headMessage() == null
-                || !player.hasPermission("rago.perk.message")) || shown == HeadLines.Shown.TITLE && !server.titles().on()) {
-            shown = HeadLines.Shown.ELO;
-        }
         Titles.Title title = shown == HeadLines.Shown.TITLE ? server.titles().worn(profile) : null;
         int elo = -1;
         for (GameMode mode : settings.catalog().all()) {

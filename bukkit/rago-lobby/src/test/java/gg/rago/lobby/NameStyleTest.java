@@ -173,6 +173,20 @@ class NameStyleTest {
     }
 
     @Test
+    void theLevelIsNotTwiceAboveTheHeadAndAlwaysThereInAGame() {
+        // in the lobby, the line above the name shows the level: the name keeps its badge alone
+        assertEquals(" §d§l✦", LobbyScoreboard.suffix(" §d§l✦", " §7[12✫]", " §7[12✫]", true, false));
+        assertEquals("", LobbyScoreboard.suffix("", " §7[12✫]", " §7[12✫]", true, false));
+        // in the lobby with another line: as before, the badge when both do not fit
+        assertEquals(" §c§lRAGO", LobbyScoreboard.suffix(" §c§lRAGO", " §7[12✫]", " §7[12✫]", false, false));
+        // in a training or another game: both when they fit, else the level
+        assertEquals(" §d§l✦ §7[12✫]", LobbyScoreboard.suffix(" §d§l✦", " §7[12✫]", " §7[12✫]", false, true));
+        assertEquals(" §7[12✫]", LobbyScoreboard.suffix(" §6§lBETTER", " §7[12✫]", " §7[12✫]", false, true));
+        assertEquals(" §e[§f234§e✫]", LobbyScoreboard.suffix(" §6§lBETTER", " §e[234✫]", " §e[§f234§e✫]", false, true),
+                "the level alone in its longest form");
+    }
+
+    @Test
     void theStyleCommandFindsAStyleByItsKeyOrItsId() {
         ServerSettings server = ServerSettings.load(new YamlConfiguration());
         assertEquals("couleur-feu", NetworkCommands.styleNamed(server, "couleur-feu").key());

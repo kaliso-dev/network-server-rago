@@ -40,9 +40,9 @@ import org.bukkit.event.player.PlayerQuitEvent;
 import org.bukkit.event.player.PlayerTeleportEvent;
 
 /**
- * A line of text above the name of each lobby player, which they choose: their ranked ELO (by
- * default), their level, wins, kills or best streak, the title they wear, a message of their own
- * (PREMIUM), or nothing.
+ * A line of text above the name of each lobby player, which they choose: their Network level (by
+ * default, plan 3.5), their ranked ELO, wins, kills or best streak, the title they wear, a message
+ * of their own (PREMIUM), or nothing.
  * Each line is an invisible marker armor stand (no hitbox: it never takes a click) known only to
  * the clients, which follows its player: it is sent with the player, moves when the player moves
  * (the same packets, for its id) and goes with them. Its text changes at most once a second.
@@ -86,6 +86,15 @@ final class HeadLines implements Listener {
 
         String[] description() {
             return description.clone();
+        }
+
+        /** What a player shows who never chose: the Network level (plan 3.5). */
+        static final Shown DEFAULT = LEVEL;
+
+        /** The choice saved (an id, or null when the player never chose), the default when none or unknown. */
+        static Shown chosen(String id) {
+            Shown shown = id == null ? null : of(id);
+            return shown == null ? DEFAULT : shown;
         }
 
         /** The choice of this id ("victoires", or the English "wins"), or null. */

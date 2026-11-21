@@ -285,9 +285,14 @@ dans les files d'attente des modes de jeu.
   de pièces peuvent tourner en même temps. La boutique en ligne en donne avec
   `/booster give <joueur> [nombre] [xp|coins|daily]` (xp par défaut).
 - **La ligne au-dessus du pseudo (`/display`).** Au lobby, chaque joueur a une ligne au-dessus
-  de son pseudo, qu'il choisit : son ELO classé (par défaut, « Unranked » sans partie classée),
-  son niveau, ses victoires, ses kills, sa meilleure série, le titre qu'il porte, un message à lui (PREMIUM :
+  de son pseudo, qu'il choisit : son niveau Network (par défaut, plan 3.5 : `Level [12✫]`), son
+  ELO classé (« Unranked » sans partie classée), ses victoires, ses kills, sa meilleure série, le
+  titre qu'il porte, un message à lui (PREMIUM :
   `/display message <texte>`, 32 caractères, couleurs avec `&`, sans texte brouillé) ou rien. Le
+  choix fait avant reste (qui avait choisi l'ELO le garde). Quand la ligne montre le niveau, le
+  pseudo ne le répète pas après lui (il garde son badge). Hors du lobby (entraînements, duels, Bed
+  Wars), le niveau reste après le pseudo, et passe avant le badge quand les deux ne tiennent pas
+  dans les 16 caractères d'une équipe 1.8. Le
   menu est dans le profil. C'est un porte-armure invisible, sans hitbox, connu des seuls clients,
   qui suit le joueur (mêmes paquets de mouvement) ; la ligne change au plus une fois par seconde.
 - **`/nick` (PREMIUM).** On joue sous un autre pseudo (3 à 16 lettres, chiffres ou `_`, pas celui

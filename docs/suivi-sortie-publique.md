@@ -147,7 +147,7 @@ informations manquantes.
 | 3.4 | Menus practice : TOP 3 Lifetime du record du mode au survol | Stats | P1 | IMPLÉMENTÉ (les entraînements de RagoPractice, et Fast Shop : sa première liste) | `ModeMenu`, `ModeDisplay`, `RecordCatalog` | 3.3 | — |
 | 3.1 | Trois leaderboards Daily / Weekly / Lifetime liés à une même stat | Stats | P1 | EN COURS (codé, CI en cours) | `StatsDisplays`, `StatsBook`, `ModeStats`, `PlayerStats`, `StatsFiles`, `BoardStat` | 1.4 | méthode proposée le 21/11 (XP et ELO gagnés, ratios avec 5 / 15 parties), à valider ; quel mur pour quelle période (question posée) |
 | 5.4d | Sélecteur `NewLeaderboard Selector` (Win Streak, Level, ELO, Wins, Kills, FKDR, WWLR…) | Lobby | P1 | EN COURS (codé, CI en cours) | `LobbyNpc`, `LobbyNpcs`, `LobbySettings`, `StatsDisplays`, point `newleaderboardselector` | 3.1 | config de ton serveur à faire à l'installation |
-| 3.5 | Network Level au-dessus des joueurs par défaut (lobby, practice, autres) | Lobby | P1 | À FAIRE | `HeadLines`, `NameStyle`, `LobbyScoreboard` | 1.3 | C4 |
+| 3.5 | Network Level au-dessus des joueurs par défaut (lobby, practice, autres) | Lobby | P1 | EN COURS (codé, CI en cours) | `HeadLines`, `RagoLobby`, `LobbyScoreboard`, `ProfileMenu` | 1.3 | C4 |
 | 3.6 | ELO des adversaires visible en Ranked | Ranked | P1 | À FAIRE | `HeadLines`, scoreboard des parties | 3.5 | — |
 | 3.8 | Nombre de joueurs en file pour chaque mode | Files | P1 | À FAIRE | `QueueController`, `ModeMenu`, `LobbyNpcs` | — | — |
 | 3.7 | Organisation Solo / Party / Ranked (ELO par mode) : proposition avant tout code | Files | P2 | À FAIRE | `ModeCategory`, `ModeMenu`, `QueueController`, `Matchmaker`, `EloLadder` | 3.8 | validation de la proposition |
@@ -217,6 +217,36 @@ informations manquantes.
 ---
 
 ## 3. Journal des corrections
+
+### 3.5 Network Level au-dessus des joueurs par défaut — EN COURS (21/11)
+
+**Avant.** Deux choses s'affichent au-dessus d'un joueur :
+
+- la **ligne au-dessus du pseudo** (`HeadLines`, un porte-armure invisible), au lobby seulement,
+  au choix du joueur (`/display`). Par défaut c'était l'ELO classé, donc « Unranked » au-dessus de
+  presque tout le monde (c'est le « UNRANKED » du point 1.3) ;
+- le **pseudo** lui-même (équipe de scoreboard, `LobbyScoreboard`) : rang devant, badge et niveau
+  `[12✫]` après, partout. Mais une équipe 1.8 n'a que 16 caractères après le pseudo : avec un long
+  badge (`BETTER`, `✫100`…), le niveau sautait, au lobby comme en entraînement.
+
+**Ce qui change.**
+
+- La ligne par défaut est le **niveau Network** (`Level [12✫]`) : `HeadLines.Shown.DEFAULT`,
+  utilisé par la ligne, le menu `/display` et le profil. Le choix déjà fait par un joueur est gardé
+  (qui avait choisi l'ELO le garde) : rien n'est effacé dans les fichiers de stats.
+- Au lobby, quand la ligne montre le niveau, le pseudo ne le répète pas : il garde son badge.
+- Hors du lobby (entraînements, duels, Bed Wars et les autres modes), il n'y a pas de ligne au-dessus
+  du pseudo : le niveau reste après le pseudo, et passe désormais **avant le badge** quand les deux
+  ne tiennent pas. En partie d'équipe (Bed Wars, duels), le niveau était déjà seul après le pseudo.
+
+Pourquoi pas la ligne flottante en partie : en partie, la vie (« 20 ❤ ») est sous le pseudo, ce qui
+remonte le pseudo d'une ligne (rendu du client 1.8, `RenderPlayer`) ; une ligne flottante à hauteur fixe le
+chevaucherait. Le niveau après le pseudo est lu par le client lui-même, sans ce risque.
+
+**Tests.** Tests unitaires : le défaut et le choix gardé (`HeadLineNickTest`), le pseudo sans le
+niveau en double et le niveau avant le badge hors du lobby (`NameStyleTest`). CI en cours. **À
+vérifier en jeu** : au lobby, `Level [x✫]` au-dessus d'un joueur qui n'a rien choisi, et son pseudo
+sans `[x✫]` répété ; en entraînement avec un badge `BETTER`, le niveau après le pseudo.
 
 ### 3.1 et 5.4d Leaderboards Daily / Weekly / Lifetime et sélecteur — EN COURS (21/11)
 
