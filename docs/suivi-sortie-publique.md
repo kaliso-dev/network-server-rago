@@ -131,7 +131,7 @@ informations manquantes.
 | --- | --- | --- | --- | --- | --- | --- | --- |
 | 2.1 | Lobby Fight : 12 end stone, pioche bois, Haste, 5 pommes, blocs qui partent après 10 s (pas ceux du lobby), 3 manches | Modes | P1 | CORRIGÉ après l'essai en jeu (pearl, laine et cisailles remises), à retester | `LobbyFight`, `LobbyFightGame`, `FfaGame`, `BlockDecay`, config du lobby | 1.1 | tests unitaires (`LobbyFightTest`, `LobbySettingsTest`) ; en jeu sur Archway FFA (voir le journal) |
 | 2.2 | Bedfight : protection au respawn de la durée exacte de Minemen, coupée dès un combat ; kit gardé ; puis les autres modes Bed Wars (demandé après l'essai) | Modes | P1 | TESTÉ en Bed Fight (en jeu par toi) ; autres modes IMPLÉMENTÉ | `BedFightGame`, `BedwarsGame`, `BedwarsHost`, `SpawnProtection` | 1.5 | tests unitaires (`SpawnProtectionTest`) ; en jeu : frapper un joueur qui vient de réapparaître |
-| 2.3 | Bed Break Simulation : bridges refaits, pas de blocs en haut de la map, cisailles + hache, défense RBW (end stone + verre), forges | Modes | P1 | EN COURS : tes escaliers rouges relevés (65 laines par map) ; plateforme rouge et verte en haut proposée (images) et codée en attendant ton choix (CI entière passée : build, tests unitaires et tests réels) ; à ajouter aux deux maps ; forges testées | `BedBreakGame`, `Bridges`, `Defense`, `game-model/BedDefense` | 1.6 | C3 |
+| 2.3 | Bed Break Simulation : bridges refaits, pas de blocs en haut de la map, cisailles + hache, défense RBW (end stone + verre), forges | Modes | P1 | IMPLÉMENTÉ : tes escaliers rouges relevés (65 laines par map) ; plateforme du Top Bridge (ton choix du 21/11) codée, CI entière passée ; ajoutée aux `bedwars.yml` d'Invasion et d'Archway, tes 65 blocs enlevés des maps (le jeu les pose à chaque manche) ; plugins du build 339 installés le 21/11 ; forges testées ; plateforme à tester en jeu | `BedBreakGame`, `Bridges`, `Defense`, `game-model/BedDefense` | 1.6 | C3 |
 | 2.4 | Clutch Scenario : bridges réalistes jusqu'à la base ennemie ; rôles au hasard (leader aussi Clutcher) | Modes | P1 | IMPLÉMENTÉ | `ClutchScenarioGame`, `Bridges` | — | tests unitaires (`BridgesTest`) ; simulation sur Archway et Sky Rise ; en jeu | — |
 | 2.5 | Au moins 10 spectateurs (Block Clutch et autres practice) | Social | P1 | IMPLÉMENTÉ | `tools/local-server/server.properties` (50 places), `spectate-bots.mjs` | 1.2 | test réel en CI : 10 bots regardent un Block clutch en même temps |
 | 2.6 | Fireballs fidèles à Hypixel (KB, explosion, direction, fireball jump, blocs) | PvP | P1 | EN COURS (mesure prête, à faire sur Hypixel) | `Fireballs`, `FireballBlast`, `FireballAim`, `PracticeGame` | — | mesures Hypixel (kb-recorder 0.2) |
@@ -146,7 +146,7 @@ informations manquantes.
 | 3.3 | Records practice : Lifetime d'abord, Weekly, Daily plus tard ; visibles ≥ 1 mois | Stats | P1 | IMPLÉMENTÉ (Weekly ajouté, gardé 5 semaines ; Daily plus tard) | `Records`, `RecordBook`, `RecordsMenu` | 1.4 | — |
 | 3.4 | Menus practice : TOP 3 Lifetime du record du mode au survol | Stats | P1 | IMPLÉMENTÉ (les entraînements de RagoPractice, et Fast Shop : sa première liste) | `ModeMenu`, `ModeDisplay`, `RecordCatalog` | 3.3 | — |
 | 3.1 | Trois leaderboards Daily / Weekly / Lifetime liés à une même stat | Stats | P1 | IMPLÉMENTÉ (CI passée : build, tests unitaires et tests réels) | `StatsDisplays`, `StatsBook`, `ModeStats`, `PlayerStats`, `StatsFiles`, `BoardStat` | 1.4 | méthode proposée le 21/11 (XP et ELO gagnés, ratios avec 5 / 15 parties), à valider ; murs : leaderboards Daily, joueurs Weekly, semaine Lifetime (ton choix du 21/11) |
-| 5.4d | Sélecteur `NewLeaderboard Selector` (Win Streak, Level, ELO, Wins, Kills, FKDR, WWLR…) | Lobby | P1 | IMPLÉMENTÉ (CI passée) | `LobbyNpc`, `LobbyNpcs`, `LobbySettings`, `StatsDisplays`, point `newleaderboardselector` | 3.1 | config de ton serveur prête (`serveur-de-test/install-selecteur/appliquer-config.py`), appliquée à l'installation |
+| 5.4d | Sélecteur `NewLeaderboard Selector` (Win Streak, Level, ELO, Wins, Kills, FKDR, WWLR…) | Lobby | P1 | IMPLÉMENTÉ (CI passée) | `LobbyNpc`, `LobbyNpcs`, `LobbySettings`, `StatsDisplays`, point `newleaderboardselector` | 3.1 | config de ton serveur modifiée le 21/11 (`serveur-de-test/install-selecteur/appliquer-config.py`, ancienne copie dans `sauvegarde-avant-maj-21-11c`) ; à voir en jeu |
 | 3.5 | Network Level au-dessus des joueurs par défaut (lobby, practice, autres) | Lobby | P1 | IMPLÉMENTÉ (tests unitaires passés en CI ; à voir en jeu) | `HeadLines`, `RagoLobby`, `LobbyScoreboard`, `ProfileMenu` | 1.3 | C4 |
 | 3.6 | ELO des adversaires visible en Ranked | Ranked | P1 | IMPLÉMENTÉ (tests unitaires passés en CI ; à voir en jeu) | `LobbyScoreboard` (pseudo et Tab en partie) | 3.5 | — |
 | 3.8 | Nombre de joueurs en file pour chaque mode | Files | P1 | TESTÉ (test réel en CI, Java 8 et 21 : les bots lisent 0, 1, 0 sous le PNJ Duels et dans le menu) | `QueueController`, `ModeMenu`, `LobbyNpcs`, `lobby-bots.mjs` | — | — |
@@ -157,7 +157,7 @@ informations manquantes.
 | # | Tâche | Cat. | Prio | Statut | Fichiers | Manque |
 | --- | --- | --- | --- | --- | --- | --- |
 | 4.1 | Party Replay : les membres de la party rejoignent le replay | Replays | P2 | IMPLÉMENTÉ : `/p warp` du chef dans un replay ; test réel à 2 bots passé en CI (Java 8) ; à voir en jeu | `ReplayService`, `ReplayViewer`, `Parties` | — |
-| 4.1b | Sons dans les replays : étude de faisabilité | Replays | P3 | EN COURS : faisable ; sons envoyés par le serveur et blocs cassés enregistrés et rejoués ; codé, test unitaire et test réel ajoutés, CI à venir | `ReplayRecorder`, `ReplayData` | — |
+| 4.1b | Sons dans les replays : étude de faisabilité | Replays | P3 | TESTÉ en CI : faisable ; sons envoyés par le serveur et blocs cassés enregistrés et rejoués ; test unitaire et test réel à 2 bots passés (run 339) ; à écouter en jeu | `ReplayRecorder`, `ReplayData` | — |
 | 4.2 | `/host` : annonce cliquable toutes les 10 s ; inscription gardée sans téléporter ; départ quand assez de joueurs | Events | P1 | À FAIRE | `Events`, `EventGame`, `PracticeHost`, `HostWatcher` | — |
 | 4.3 | Kit Editor plus clair et trié | Kits | P2 | À FAIRE | `KitEditor`, `KitLayouts` | — |
 | 4.4 | Menu Stats : présentation, catégories, navigation | Stats | P2 | À FAIRE | `StatsMenu`, `ProfileMenu`, `StatsBook` | — |
@@ -251,7 +251,7 @@ de Java chez GitHub) : « You summoned 1 player to your replay. », « RagoUn wa
 replay of Sumo duel, 0:11 long. », même moment (0:00 / 0:11) dans les deux scoreboards, puis
 « RagoUn left the replay. » et RagoDeux au lobby. Pas encore essayé en jeu par un joueur.
 
-### 4.1b Sons dans les replays — FAISABLE, EN COURS (21/11)
+### 4.1b Sons dans les replays — FAISABLE, TESTÉ EN CI (21/11)
 
 **Demande** : « Ajouter les sons des replays si techniquement possible. Analyse la faisabilité. »
 
@@ -291,7 +291,11 @@ replay of Sumo duel, 0:11 long. », même moment (0:00 / 0:11) dans les deux sco
 - Test réel (`lobby-bots.mjs`, étape 9) : dans le replay du duel de sumo gagné 3 - 0, RagoUn doit
   entendre les notes du compte à rebours. RagoDeux, venu par `/p warp`, doit entendre celles d'une
   manche suivante.
-- Résultat de la CI à venir. Le rendu à l'oreille reste à juger en jeu.
+- **Résultat** (run 339, commit cf08a76, Java 8 ; Java 21 passé aussi après une relance pour une
+  panne d'installation de Java chez GitHub) : le test unitaire passe ; dans le vrai serveur,
+  RagoUn entend `note.hat` (le compte à rebours du duel) dans le replay, et RagoDeux, venu par
+  `/p warp`, l'entend aussi moins d'une seconde après son arrivée. Le rendu à l'oreille reste à
+  juger en jeu.
 
 ### 3.7 Organisation Solo / Party / Ranked — PROPOSITION (21/11), à valider
 
@@ -492,6 +496,20 @@ jour (`ModeMenu.streakLines`). Le plan le dit : pour un entraînement, elle n'es
   - une semaine qui part pendant que le serveur tourne.
 - `RecordsMenuTest` (lancé par la CI) : les lignes de la semaine dans `/records` et sur le mur.
 - **Pas encore vu en jeu** : regarder `/records`, puis un record, et le mur des records au lobby.
+
+### Install du 21/11 au soir (vers 20 h, serveur arrêté)
+
+- **Build 339 installé** (commit cf08a76, toute la CI passée, deux jobs Java 21 relancés après une
+  panne d'installation de Java chez GitHub) : records de la semaine, record au survol, sélecteur
+  de leaderboards, niveau au-dessus des joueurs, ELO en Ranked, plateforme de Bed Break, replay
+  en party, sons des replays. 5 jars identiques octet par octet à ceux de la CI ; anciens jars et
+  lanceurs dans `sauvegarde-avant-maj-21-11c`.
+- **`config.yml` de RagoLobby** : le PNJ `newleaderboardselector` et ses murs Daily, Weekly,
+  Lifetime (`appliquer-config.py`), et les deux descriptions de Bed Break (« from the top » au
+  lieu de « from your bridge »). Rien d'autre ne change ; l'ancien est dans
+  `sauvegarde-avant-maj-21-11c\plugins\RagoLobby\`.
+- **Invasion et Archway** : section `bed-break:` et tes 65 blocs enlevés de la map (voir 2.3).
+- **Pas encore vu en jeu.**
 
 ### Spawns First Rush de Nebuc et Gelato, et install du 21/11 (vers 18 h 25)
 
@@ -925,8 +943,9 @@ au-dessus du milieu) serait juste au-dessus de la plateforme, mais il est déjà
 partie (`retirer:` de son `bedwars.yml`, comme sur Hypixel) : il ne gêne pas. Images : `sortie-publique/bed-break/Invasion-plateforme.png` et
 `Archway-plateforme.png`. **À valider** avant de coder.
 
-**Plateforme codée en attendant ton choix (21/11, commit bf51927)** : l'option recommandée, pour
-ne pas perdre de temps ; rien n'est posé sur tes maps tant que tu n'as pas choisi.
+**Plateforme du Top Bridge (21/11, commit bf51927), ton choix du 21/11** : codée avant ton choix
+pour ne pas perdre de temps, puis posée sur tes maps une fois choisie (voir « Ajoutée à tes maps »
+plus bas).
 - Une section `bed-break:` du `bedwars.yml` de la map : `escalier` (tes 65 blocs, du bas vers le
   haut) et `plateforme` (sa hauteur et ses deux coins). `/bw` la réécrit telle quelle.
 - À chaque manche : la plateforme est posée comme une partie de la map (ni cassable ni soufflée,
@@ -944,6 +963,17 @@ ne pas perdre de temps ; rien n'est posé sur tes maps tant que tu n'as pas choi
   `serveur-de-test/install-bedbreak-haut/ajouter-bed-break.py` ajoute la section aux deux
   `bedwars.yml` (il refuse une plateforme au-dessus de `hauteur-max`), et les régions d'avant
   (`ponts-bed-break-avant/`) enlèvent tes 65 blocs de la map elle-même, puisque le jeu les pose.
+- **Ajoutée à tes maps (21/11, serveur arrêté)** :
+  - les deux `bedwars.yml` de `C:\Users\rgabe\Rago\mondes` ont leur section `bed-break:` (tes
+    65 blocs et la plateforme à y 114 sur Invasion, y 86 sur Archway, sous `hauteur-max`) ; le
+    reste du fichier est inchangé ;
+  - tes 65 laines rouges sont enlevées des régions des deux maps. Avant de le faire, j'ai vérifié
+    que la seule différence entre la copie d'avant ton escalier et la map actuelle était ces 65
+    blocs (air → laine rouge), puis remis les régions d'avant ;
+  - tout est relu sur ton PC octet par octet après l'écriture ;
+  - la version avec ton escalier est gardée dans `sauvegarde-avant-maj-21-11c\mondes\` du serveur
+    et dans `serveur-de-test/install-21-11c/avant/` du projet ; les copies du projet
+    (`maps-bedwars/`) ont le nouveau `bedwars.yml`.
 
 - **Bridges** : le top bridge (la plateforme de laine de 17 blocs de large, 16 blocs au-dessus
   des lits, tracée de lit à lit, donc en diagonale sur Invasion) est remplacé par le bridge de
