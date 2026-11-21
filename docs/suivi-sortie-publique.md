@@ -93,8 +93,8 @@ Avant chaque installation sur ton PC : copie du dossier `plugins/` du serveur.
 - Les maps de Bed Break Simulation où les forges ne marchent pas (1.6), si tu les connais.
 - ~~Les étapes exactes du bug de reset (1.1)~~ : répondu (« Block Placement, Block edit, après
   quelques games, même avec un redémarrage ») ; bug reproduit et corrigé.
-- Pour la visibilité au lobby (1.3) : tu as répondu « quand le joueur rejoint le serveur, et
-  seulement de mon point de vue ». Reste à savoir si un relog le corrige.
+- ~~Pour la visibilité au lobby (1.3)~~ : répondu (« quand le joueur rejoint le serveur, et
+  seulement de mon point de vue ») ; bug reproduit par un test réel et corrigé.
 - Probabilités et cosmétiques du Daily Chest (5.5) : je proposerai des valeurs, à valider.
 - Hébergement (8.1) : budget 30 €/mois confirmé ; achat du domaine (8.2) : à faire par toi.
 
@@ -116,12 +116,12 @@ informations manquantes.
 | --- | --- | --- | --- | --- | --- | --- | --- | --- |
 | 1.1 | Reset des arènes (Block Placement 1v1, Block Edit, autres) | Arènes | P0 | IMPLÉMENTÉ | `Arena`, `PracticeGames`, `PracticeGame`, `MapZones`, `MapCopy` ; `Instance` (Bed Wars) | — | test réel en CI (`run-arena-test.sh`, 2 bots) ; en jeu sur tes maps | — |
 | 1.2 | Spectator : jamais en Survival, intouchable, invisible, retour au lobby, ouvert à tous, message aux joueurs | Social | P0 | IMPLÉMENTÉ | `BuildListener` (build-tools), `Spectators` (practice), `Watchers` (bedwars), `Spectating`, `LobbyService`, `RagoLobby` | — | tests unitaires ; en jeu : /spectate d'un duel et d'une partie Bed Wars, se faire viser, /kill, /spawn | — |
-| 1.3 | Joueurs invisibles au spawn (seul le nametag « UNRANKED » visible) | Lobby | P0 | EN COURS | `HeadLines`, `Visibility`, `Nicks`, `LobbyScoreboard`, `FakeEntities` | — | à reproduire | conditions du bug |
+| 1.3 | Joueurs invisibles au spawn (seul le nametag « UNRANKED » visible) | Lobby | P0 | IMPLÉMENTÉ | `LobbyListener` | — | test réel en CI (`visibility-bots.mjs`, 2 bots, 5 arrivées) ; en jeu : rejoindre le serveur pendant qu'un autre attend au spawn | — |
 | 1.4 | Audit complet des statistiques (kills, games played, double comptage, par mode) | Stats | P0 | IMPLÉMENTÉ | `StatsBook`, `StatsService`, `LobbyService`, `RagoLobby`, `BedwarsGame`, `Lineup`, `BedBreakGame`, `InvisGame`, `FfaGame`, `FastShopGame`, `TopBridgeGame`, `Duel`, `BlockFight`, `FireballFight` | — | tests unitaires ; en jeu : voir le journal | — |
 | 1.5 | Kit Bedfight réinitialisé à la mort dans le vide | Kits | P0 | IMPLÉMENTÉ | `BedFightGame`, `BedwarsGame.kill` | — | tests unitaires ; en jeu : ranger sa barre en partie, mourir par un coup puis dans le vide | — |
 | 1.6 | Forges de Bed Break Simulation sur certaines maps | Bed Wars | P0 | EN COURS | `BedBreakGame`, `Generator`, `BedwarsMap`, `bedwars.yml` des maps | — | vérifier chaque map | maps en cause et ce qui ne marche pas |
 | 1.7 | Spawns First Rush trop en avant | Bed Wars | P0 | BLOQUÉ | `BedwarsMap`, `bedwars.yml`, `BedwarsGame` | — | comparer aux références | spawns de référence Hypixel |
-| 1.8 | Block In réaliste (casser, frapper seulement par le trou, recasser) + reset des records | Practice | P0 | À FAIRE | `BlockInTraining`, `Records`, `RecordBook` | 1.1 | bot contre bot en CI | — |
+| 1.8 | Block In réaliste (casser, frapper seulement par le trou, recasser) + reset des records | Practice | P0 | EN COURS | `BlockInEnemy`, `BlockInTraining`, `Records`, `RagoPractice` | 1.1 | tests unitaires (`BlockInEnemyTest`, `RecordsResetTest`) ; test réel en CI à écrire ; en jeu | — |
 
 ### Étape 3 : modes existants (Phase 2)
 
@@ -292,6 +292,63 @@ ouvrant les trappes et portillons, et en laissant des blocs posés une minute su
 
 Une faille liée, fermée plus tôt : un joueur qui n'est pas dans une partie (spectateur, admin)
 ne peut plus poser ni casser dans le monde `arenes`.
+
+### 1.3 Joueurs invisibles à l'arrivée — IMPLÉMENTÉ (21/11)
+
+**Cause, reproduite par un test réel** : un nouveau test (`tools/kb-control/bots/visibility-bots.mjs`,
+lancé par `run-arena-test.sh` dans la CI) connecte deux bots à un vrai serveur PandaSpigot 1.8.8 et
+enregistre, dès le premier paquet, tout ce que le serveur leur dit des joueurs (entrée dans la tab
+list, corps, mode de jeu, invisibilité). Son premier passage a échoué dès la première arrivée :
+le joueur qui attendait au spawn recevait le **corps** du nouveau joueur **avant son entrée dans
+la tab list**. Un client 1.8.9 ne dessine pas le corps d'un joueur qu'il ne connaît pas encore :
+il ne reste que la ligne au-dessus de la tête (« Unranked »), exactement ce que tu voyais, et
+seulement chez ceux déjà présents. Pourquoi : à la connexion, le lobby envoyait le joueur au spawn
+par une téléportation **pendant** l'événement de connexion ; quand le joueur arrivait d'un autre
+monde (le monde par défaut à la première connexion, le monde `arenes` s'il avait quitté en
+partie), le serveur l'ajoutait au monde du lobby tout de suite, avant d'envoyer aux autres son
+entrée dans la tab list (envoyée juste après l'événement).
+
+**Correction** : le joueur apparaît directement au spawn du lobby quand il se connecte
+(`PlayerSpawnLocationEvent`, `LobbyListener.onSpawnLocation`) ; la téléportation de la connexion
+reste dans le même monde, et le corps arrive après l'entrée dans la tab list. Rien d'autre ne
+change à l'arrivée (même spawn qu'avant).
+
+**Tests** : après la correction, le test réel passe pour les 5 cas : première connexion, retour
+après avoir quitté au lobby, après avoir quitté pendant un entraînement (Block edit), après avoir
+quitté pendant un duel (Block placement 1v1), et l'arrivée de celui qui attendait. Pour chacun,
+les deux bots se voient (corps après l'entrée dans la tab list, ni spectateur ni invisible, et
+toujours là une seconde après). **Pas testé avec un vrai client 1.8.9** : les bots lisent les
+mêmes paquets qu'un client, mais à vérifier en jeu (quelqu'un au spawn, un autre qui se connecte).
+
+### 1.8 Block In réaliste — EN COURS (21/11)
+
+**Avant** : environ toutes les 1,1 s, l'ennemi frappait par n'importe quel côté ouvert, ou
+faisait disparaître d'un coup un bloc posé au hasard autour du joueur.
+
+**Maintenant** (`BlockInEnemy`) : l'ennemi se tient d'**un** côté du joueur, comme un joueur de
+Bed Wars.
+- Côté ouvert (au niveau des pieds ou de la tête) : il frappe par là (recul à l'opposé, comme
+  avant).
+- Côté fermé par un bloc du joueur : il le casse d'abord, avec les fissures sur le bloc, dans le
+  temps d'un joueur 1.8 au sol avec l'outil du kit (laine aux cisailles : 5 ticks, 0,25 s ;
+  calcul vanilla : dureté 0,8, cisailles ×5), puis frappe par le trou.
+- Un bloc remis referme le côté : il doit le casser à nouveau avant de frapper.
+- Il ne frappe jamais par un autre côté ouvert, et ne casse ni la défense ni la map : un côté
+  fermé par ceux-là, il passe à un autre côté qu'il peut atteindre (s'il n'y en a aucun, il
+  attend).
+- Son rythme reste celui d'avant : un geste (frapper, ou commencer à casser) environ toutes les
+  1,1 s (± 0,3 s) ; il arrive toujours 2 s après le départ, et le réglage « Enemy » le coupe.
+
+**Records** : remis à zéro une seule fois au premier démarrage de cette version (tableaux
+`block-in.*`), après une copie de `records.yml` dans `records-sauvegarde-block-in-2026-11.yml` ;
+c'est noté dans `records-remis-a-zero.txt` pour ne jamais le refaire. Les autres records ne
+bougent pas.
+
+**Tests** : tests unitaires `BlockInEnemyTest` (joueur à découvert, joueur enfermé : casse puis
+frappe, bloc remis : recasse sans frapper, autre côté ouvert jamais utilisé, côté de défense,
+fissures retirées) et `RecordsResetTest` (remise à zéro unique, copie, autres records gardés,
+nouveaux temps conservés aux démarrages suivants). **Pas encore testé sur un vrai serveur** : un
+test réel avec un bot est à écrire.
 
 ### 1.5 Kit Bedfight — IMPLÉMENTÉ (21/11)
 
