@@ -1473,5 +1473,9 @@ attendait, puis ceux qui quittent : le dernier gagne la partie) (`rover-bots`, C
 échouent encore avant le code, sur GitHub (somme de contrôle du JDK Temurin 8u514) : d'un
 lancement à l'autre, ce ne sont pas les mêmes jobs, et les autres passent.
 
-**À faire en jeu** : une partie de chaque mode sur ton serveur de test, après l'installation des
-nouveaux jars et du `config.yml` du lobby.
+**Installé** sur ton serveur de test le 21/11 (vers 0h20, heure de Paris) : les 5 plugins du commit
+e8fd5fa et les `config.yml` du lobby, du practice et du Bed Wars (tes réglages gardés, seuls les
+nouveaux modes ajoutés) ; l'ancien état est dans `sauvegarde-avant-maj-fun-1`.
+
+**À faire en jeu** : une partie de chaque mode sur ton serveur de test ; poser le PNJ avec
+`/lobby point funmod2`.
