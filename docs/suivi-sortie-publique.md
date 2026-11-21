@@ -133,7 +133,7 @@ informations manquantes.
 | 2.3 | Bed Break Simulation : bridges refaits, pas de blocs en haut de la map, cisailles + hache, défense RBW (end stone + verre), forges | Modes | P1 | FAIT sauf forges (1.6) | `BedBreakGame`, `Bridges`, `Defense`, `game-model/BedDefense` | 1.6 | C3 |
 | 2.4 | Clutch Scenario : bridges réalistes jusqu'à la base ennemie ; rôles au hasard (leader aussi Clutcher) | Modes | P1 | IMPLÉMENTÉ | `ClutchScenarioGame`, `Bridges` | — | tests unitaires (`BridgesTest`) ; simulation sur Archway et Sky Rise ; en jeu | — |
 | 2.5 | Au moins 10 spectateurs (Block Clutch et autres practice) | Social | P1 | IMPLÉMENTÉ | `tools/local-server/server.properties` (50 places), `spectate-bots.mjs` | 1.2 | test réel en CI : 10 bots regardent un Block clutch en même temps |
-| 2.6 | Fireballs fidèles à Hypixel (KB, explosion, direction, fireball jump, blocs) | PvP | P1 | À FAIRE | `Fireballs`, `FireballBlast`, `FireballAim`, `PracticeGame` | — | mesures Hypixel (kb-recorder) |
+| 2.6 | Fireballs fidèles à Hypixel (KB, explosion, direction, fireball jump, blocs) | PvP | P1 | EN COURS (mesure prête, à faire sur Hypixel) | `Fireballs`, `FireballBlast`, `FireballAim`, `PracticeGame` | — | mesures Hypixel (kb-recorder 0.2) |
 | 2.7 | TNT (timing, KB, TNT jump, environnement), réf. Hypixel / Minemen | PvP | P1 | À FAIRE | `PracticeGame.tntBlast`, `BedwarsGame` | 2.6 | mesures |
 | 2.8 | Fast Shop et API Hypixel : étude des données réellement disponibles | Modes | P2 | À FAIRE | `FastShopGame`, `HypixelProfiles`, `HypixelProfile` | — | clé API |
 
@@ -575,3 +575,36 @@ maps sont au bon endroit sur l'île, et la forge des défenseurs est remplie à 
 
 Je n'ai pas trouvé ce qui ne marche pas : il me faut ce que tu vois (forge vide, trop lente,
 lingots qui partent ailleurs, une forge d'une autre île qui ne tourne pas…).
+
+### 2.6 Fireballs — MESURE PRÊTE (21/11), en attente de la séance sur Hypixel
+
+**Analyse** : les valeurs des boules de feu de RagoBedwars (`BedwarsSettings.Fireball` : vitesse
+1, rayon 3, recul horizontal 1, vertical 0,65, 1 cœur de dégâts) et du practice (`Fireballs`) sont
+celles de BedWars1058 ; aucune n'a été mesurée sur Hypixel. `mesures-hypixel.md` le dit aussi :
+explosions et boules de feu non mesurées. Le mod kb-recorder 0.1.0 ne pouvait pas les mesurer : il
+gardait le paquet d'explosion, mais pas la boule de feu ni la TNT, ni le clic droit, ni les blocs.
+Rien n'est changé dans le jeu sans mesure (pas de valeur inventée).
+
+**Fait** :
+- **kb-recorder 0.2.0** : suit les TNT allumées et les boules de feu de leur apparition à leur
+  disparition (position, vitesse), enregistre les changements de blocs et le clic droit, et, juste
+  avant que le client applique une explosion, écrit tous les blocs autour d'elle (ligne `blocks`) :
+  on sait ce qu'elle casse et ce qu'elle laisse, bloc par bloc.
+- **kb-analyzer `--explosions`** : pour chaque explosion, la source, le délai clic → apparition →
+  explosion, la vitesse de la boule de feu, la puissance, la poussée (celle de l'explosion ou un
+  paquet de vitesse envoyé à part), sa direction par rapport au centre, la hauteur et la longueur du
+  saut, les blocs cassés et laissés par type.
+- **Protocole** de la séance : `docs/combat/protocole-explosions.md` (fireball jumps, boule de feu
+  sur un autre joueur à 1, 2, 3 blocs, murs de laine, bois, argile, end stone, verre, obsidienne,
+  TNT pour 2.7).
+
+**Testé** : tests unitaires du mod, de kb-analyzer (dont un fireball jump inventé) et de la
+vérification, en local et en CI. Test de bout en bout en CI avec un vrai client Minecraft 1.8.9 et
+le mod, sur PandaSpigot : les 24 coups passent comme avant, et les deux explosions sont retrouvées
+par kb-analyzer : la TNT (puissance 4, 119 blocs détruits, 1 156 blocs lus avant, 51 remis à l'air
+par le serveur) et la boule de feu (puissance 1, 9 blocs détruits, 147 lus avant, 3 remis à
+l'air), chaque bloc détruit encore présent dans la lecture d'avant. Le clic droit n'est pas couvert
+(personne ne joue le client). Rien n'est encore mesuré sur Hypixel.
+
+**Reste** : la séance sur Hypixel avec le mod 0.2.0, puis les nouvelles valeurs (RagoBedwars,
+practice, Lobby Fight) à partir des mesures.
