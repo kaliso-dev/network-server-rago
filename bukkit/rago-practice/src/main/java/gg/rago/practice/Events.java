@@ -25,9 +25,9 @@ import org.bukkit.inventory.ItemStack;
 
 /**
  * The events PREMIUM players host, as on Minemen: /host opens the menu of the events (Sumo,
- * Brackets, Last Man Standing), the whole server is told with a [Click to join] for a minute,
- * /join (or /event join) comes in, /spawn leaves, /event cancel calls it off (its host or the
- * staff). One event at a time, a pause between two, and a cooldown for each host. The games are
+ * Brackets, Last Man Standing), the whole server is told every 20 seconds (a [CLICK TO JOIN]
+ * message) while it waits, /join (or /event join) comes in, the red dye (or /spawn) leaves; its
+ * host's red dye or /event cancel calls it off (its host or the staff). One event at a time, a pause between two, and a cooldown for each host. The games are
  * {@link EventGame}s, in modes of the lobby hidden from the selector. Main thread only.
  */
 final class Events implements CommandExecutor, Listener {
@@ -255,27 +255,98 @@ final class Events implements CommandExecutor, Listener {
 
     /** Tells the server: who hosts, what, when it starts, and the button to join. */
     void announce(EventGame game, int secondsLeft) {
-        String line = ChatColor.GOLD + "" + ChatColor.BOLD + "[Event] " + ChatColor.YELLOW + game.hostName() + ChatColor.GRAY
-                + " is hosting " + ChatColor.GOLD + game.kind().label + ChatColor.GRAY + "! Starts in " + ChatColor.WHITE
-                + secondsLeft + "s" + ChatColor.GRAY + " (" + game.aliveCount() + "/" + settings.maxPlayers + ").";
-        String json = button(game.kind());
+        tellAnnouncement(announcement(game.kind(), game.hostName(), secondsLeft, game.aliveCount(), settings.maxPlayers));
+    }
+
+    /** The announcement to everyone out of a game, through the vanilla /tellraw (names are letters, digits and _). */
+    private void tellAnnouncement(String json) {
         for (Player player : Bukkit.getOnlinePlayers()) {
             if (plugin.lobby().isInGame(player)) {
                 continue;
             }
-            player.sendMessage(line);
-            // clickable through the vanilla /tellraw, as the lobby's duel buttons: names are letters, digits and _
             Bukkit.dispatchCommand(Bukkit.getConsoleSender(), "tellraw " + player.getName() + " " + json);
             player.playSound(player.getLocation(), Sound.NOTE_PLING, 1f, 1.4f);
         }
     }
 
-    /** The JSON of the [Click to join] line. */
-    static String button(EventGame.Kind kind) {
-        return "[\"\",{\"text\":\"[Click to join]\",\"color\":\"green\",\"bold\":true,"
-                + "\"clickEvent\":{\"action\":\"run_command\",\"value\":\"/join\"},"
-                + "\"hoverEvent\":{\"action\":\"show_text\",\"value\":\"Join the " + kind.label + " event\"}},"
-                + "{\"text\":\" or /join\",\"color\":\"gray\"}]";
+    /** The width of the chat in pixels (the default of the 1.8 client). */
+    static final int CHAT_WIDTH = 320;
+    /** The line above and under the announcement. */
+    static final String SEPARATOR = repeat('-', 53);
+
+    /**
+     * The JSON of the announcement: between two lines, the event and its host, what it is, when it
+     * starts and how many are in, and the [CLICK TO JOIN] button. The whole message runs /join when
+     * clicked. secondsLeft below 0: the server's own event, waiting for its first player.
+     */
+    static String announcement(EventGame.Kind kind, String hostName, int secondsLeft, int players, int maxPlayers) {
+        String title = kind.label.toUpperCase(java.util.Locale.ROOT) + " EVENT";
+        String hosted = "Hosted by " + hostName;
+        String status = secondsLeft < 0 ? "Be the first one in!"
+                : "Starts in " + secondsLeft + "s  .  " + players + "/" + maxPlayers + " players";
+        String button = "[CLICK TO JOIN]";
+        StringBuilder json = new StringBuilder("{\"text\":\"\",\"extra\":[");
+        json.append(part(SEPARATOR, "dark_gray", "\"strikethrough\":true")).append(',').append(part("\\n", "white", null));
+        json.append(',').append(part(pad(title, true), "white", null)).append(',').append(part(title, "gold", "\"bold\":true"));
+        json.append(',').append(part("\\n" + pad(hosted, false) + "Hosted by ", "gray", null)).append(',')
+                .append(part(hostName, "yellow", null));
+        json.append(',').append(part("\\n" + pad(kind.tagline(), false) + kind.tagline(), "white", null));
+        if (secondsLeft < 0) {
+            json.append(',').append(part("\\n" + pad(status, false) + status, "aqua", null));
+        } else {
+            json.append(',').append(part("\\n" + pad(status, false) + "Starts in ", "gray", null))
+                    .append(',').append(part(secondsLeft + "s", "green", "\"bold\":true"))
+                    .append(',').append(part("  \\u2022  ", "dark_gray", null))
+                    .append(',').append(part(String.valueOf(players), "green", "\"bold\":true"))
+                    .append(',').append(part("/" + maxPlayers + " players", "gray", null));
+        }
+        json.append(',').append(part("\\n\\n" + pad(button, true), "white", null)).append(',')
+                .append(part(button, "green", "\"bold\":true"));
+        json.append(',').append(part("\\n", "white", null)).append(',').append(part(SEPARATOR, "dark_gray", "\"strikethrough\":true"));
+        json.append("],\"clickEvent\":{\"action\":\"run_command\",\"value\":\"/join\"},")
+                .append("\"hoverEvent\":{\"action\":\"show_text\",\"value\":{\"text\":\"Click to join the ")
+                .append(kind.label).append(" event\",\"color\":\"green\"}}}");
+        return json.toString();
+    }
+
+    /** A piece of the announcement: its text (already escaped), its colour and more of its style. */
+    private static String part(String text, String color, String style) {
+        return "{\"text\":\"" + text + "\",\"color\":\"" + color + "\"" + (style == null ? "" : "," + style) + "}";
+    }
+
+    /** The spaces that centre this text in the chat. */
+    static String pad(String text, boolean bold) {
+        int spaces = Math.max(0, (CHAT_WIDTH - width(text, bold)) / 2 / 4);
+        return repeat(' ', spaces);
+    }
+
+    /** About the width of a text in the font of the 1.8 client, in pixels. */
+    static int width(String text, boolean bold) {
+        int width = 0;
+        for (char c : text.toCharArray()) {
+            int w;
+            if (c == ' ' || c == 'I' || c == 't') {
+                w = 4;
+            } else if (c == 'i' || c == '.' || c == '!' || c == ':' || c == '\'' || c == '|') {
+                w = 2;
+            } else if (c == 'l') {
+                w = 3;
+            } else if (c == 'f' || c == 'k' || c == '[' || c == ']') {
+                w = 5;
+            } else {
+                w = 6;
+            }
+            width += w + (bold && c != ' ' ? 1 : 0);
+        }
+        return width;
+    }
+
+    private static String repeat(char c, int count) {
+        StringBuilder out = new StringBuilder();
+        for (int i = 0; i < count; i++) {
+            out.append(c);
+        }
+        return out.toString();
     }
 
     /** The event starts: its host's cooldown runs from now. */
@@ -343,6 +414,9 @@ final class Events implements CommandExecutor, Listener {
                     hosting = null;
                 }
                 autoWaiting = null;
+            } else if (current() == null && hosting == autoWaiting) {
+                // still nobody in: told again, every 20 seconds
+                tellAnnouncement(announcement(autoWaiting.kind, SERVER_HOST, -1, 0, settings.maxPlayers));
             }
             return;
         }
@@ -361,17 +435,7 @@ final class Events implements CommandExecutor, Listener {
         lastAuto = now;
         hosting = new Hosting(kind, null, SERVER_HOST, now);
         autoWaiting = hosting;
-        String line = ChatColor.GOLD + "" + ChatColor.BOLD + "[Event] " + ChatColor.YELLOW + SERVER_HOST + ChatColor.GRAY
-                + " is hosting " + ChatColor.GOLD + kind.label + ChatColor.GRAY + "! " + String.join(" ", kind.description);
-        String json = button(kind);
-        for (Player player : Bukkit.getOnlinePlayers()) {
-            if (plugin.lobby().isInGame(player)) {
-                continue;
-            }
-            player.sendMessage(line);
-            Bukkit.dispatchCommand(Bukkit.getConsoleSender(), "tellraw " + player.getName() + " " + json);
-            player.playSound(player.getLocation(), Sound.NOTE_PLING, 1f, 1.4f);
-        }
+        tellAnnouncement(announcement(kind, SERVER_HOST, -1, 0, settings.maxPlayers));
     }
 
     // --- Hosting --------------------------------------------------------------------------------

@@ -55,6 +55,18 @@ final class EventGame extends PracticeGame {
             return "event-" + id;
         }
 
+        /** The event in one line, for the announcement. */
+        String tagline() {
+            switch (this) {
+                case SUMO:
+                    return "Knock your opponent off the platform.";
+                case BRACKETS:
+                    return "A 1v1 tournament with a Bed Wars kit.";
+                default:
+                    return "Everyone at once: the last one standing wins.";
+            }
+        }
+
         static Kind ofMode(String modeId) {
             for (Kind kind : values()) {
                 if (kind.modeId().equals(modeId)) {
@@ -85,12 +97,18 @@ final class EventGame extends PracticeGame {
     static final int FIGHT_COUNTDOWN = 3;
     /** A 1v1 ends after this long: the one who landed more hits goes through. */
     static final int FIGHT_SECONDS = 90;
-    /** The seconds before the end of the wait when the server is told again. */
-    static final int[] ANNOUNCE_AT = {45, 30, 15, 5};
+    /** While the event waits, the server is told again every this many seconds. */
+    static final int ANNOUNCE_EVERY = 20;
+    /** The red dye of the wait: its slot, and its names (the host calls the event off, the others leave). */
+    static final int LEAVE_SLOT = 8;
+    static final String LEAVE_ITEM = ChatColor.RED + "" + ChatColor.BOLD + "Leave the event " + ChatColor.GRAY + "(right click)";
+    static final String CANCEL_ITEM = ChatColor.RED + "" + ChatColor.BOLD + "Cancel the event " + ChatColor.GRAY + "(right click)";
 
     private final Events events;
     private final Kind kind;
     private final String hostName;
+    /** The player who hosts it (null: the server's own event). */
+    private final UUID hostId;
     private final Random random = new Random();
     private Stage stage = Stage.WAITING;
     private int waitLeft;
@@ -116,6 +134,7 @@ final class EventGame extends PracticeGame {
         this.kind = ofMode == null ? Kind.SUMO : ofMode;
         Events.Hosting hosting = events.hosting();
         this.hostName = hosting != null && hosting.kind == kind ? hosting.hostName : teams.get(0).get(0).getName();
+        this.hostId = hosting != null && hosting.kind == kind ? hosting.host : null;
         this.waitLeft = events.settings().waitSeconds;
         for (List<Player> team : teams) {
             for (Player player : team) {
@@ -242,6 +261,7 @@ final class EventGame extends PracticeGame {
             heal(player);
             player.getInventory().clear();
             player.getInventory().setArmorContents(null);
+            player.getInventory().setItem(LEAVE_SLOT, leaveItem(player.getUniqueId()));
             player.updateInventory();
             player.teleport(spawnOf(player.getUniqueId()));
             player.setFallDistance(0f);
@@ -252,6 +272,41 @@ final class EventGame extends PracticeGame {
             return;
         }
         super.placeAtStart(player);
+    }
+
+    /** True if this player hosts the event (the server's own events have no host). */
+    boolean hostedBy(UUID player) {
+        return hostId != null && hostId.equals(player);
+    }
+
+    /** The red dye of the wait: Cancel the event for its host, Leave the event for the others. */
+    ItemStack leaveItem(UUID player) {
+        return hostedBy(player)
+                ? named(Material.INK_SACK, 1, 1, CANCEL_ITEM, ChatColor.GRAY + "Calls the event off", ChatColor.GRAY
+                        + "and sends everyone back.")
+                : named(Material.INK_SACK, 1, 1, LEAVE_ITEM, ChatColor.GRAY + "Back to the lobby.");
+    }
+
+    /** The red dye while the event waits: its host calls it off, a player leaves it. */
+    @Override
+    void interact(Player player, org.bukkit.event.player.PlayerInteractEvent event) {
+        if (event.getAction() != org.bukkit.event.block.Action.RIGHT_CLICK_AIR
+                && event.getAction() != org.bukkit.event.block.Action.RIGHT_CLICK_BLOCK) {
+            return;
+        }
+        ItemStack item = event.getItem();
+        if (isNamed(item, Material.INK_SACK, CANCEL_ITEM) || isNamed(item, Material.INK_SACK, LEAVE_ITEM)) {
+            event.setCancelled(true);
+            if (stage != Stage.WAITING) {
+                return;
+            }
+            if (hostedBy(player.getUniqueId())) {
+                cancel("called off by its host");
+            } else {
+                player.sendMessage(ChatColor.GRAY + "You left the " + kind.label + " event.");
+                leave(player, true);
+            }
+        }
     }
 
     @Override
@@ -278,7 +333,8 @@ final class EventGame extends PracticeGame {
     @Override
     void intro(Player player) {
         player.sendMessage(ChatColor.GOLD + "[Event] " + ChatColor.YELLOW + "You joined the " + kind.label + " event of "
-                + hostName + ". " + ChatColor.GRAY + String.join(" ", kind.description) + " /spawn to leave.");
+                + hostName + ". " + ChatColor.GRAY + kind.tagline() + " "
+                + (hostedBy(player.getUniqueId()) ? "The red dye calls it off." : "The red dye takes you back."));
     }
 
     @Override
@@ -302,10 +358,8 @@ final class EventGame extends PracticeGame {
     void onSecond() {
         if (stage == Stage.WAITING) {
             waitLeft--;
-            for (int at : ANNOUNCE_AT) {
-                if (waitLeft == at) {
-                    events.announce(this, waitLeft);
-                }
+            if (waitLeft > 0 && (events.settings().waitSeconds - waitLeft) % ANNOUNCE_EVERY == 0) {
+                events.announce(this, waitLeft);
             }
             if (waitLeft <= 0) {
                 startEvent();

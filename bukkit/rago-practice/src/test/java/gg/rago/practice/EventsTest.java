@@ -135,12 +135,36 @@ class EventsTest {
     }
 
     @Test
-    void theButtonRunsJoin() {
-        String json = Events.button(EventGame.Kind.SUMO);
+    void theAnnouncementRunsJoin() {
+        String json = Events.announcement(EventGame.Kind.SUMO, "Steve", 40, 3, 40);
         assertTrue(json.contains("\"action\":\"run_command\",\"value\":\"/join\""), json);
-        assertTrue(json.contains("Join the Sumo event"), json);
-        // well formed: as many { as }, as many [ as ]
-        assertEquals(json.chars().filter(c -> c == '{').count(), json.chars().filter(c -> c == '}').count());
-        assertEquals(json.chars().filter(c -> c == '[').count(), json.chars().filter(c -> c == ']').count());
+        assertTrue(json.contains("Click to join the Sumo event"), json);
+        assertTrue(json.contains("[CLICK TO JOIN]"), json);
+        assertTrue(json.contains("SUMO EVENT") && json.contains("Steve") && json.contains("40s"), json);
+        // a line above and a line under
+        assertEquals(2, json.split(java.util.regex.Pattern.quote(Events.SEPARATOR), -1).length - 1, json);
+        // well formed: as many { as }, as many [ as ] (the button's brackets aside)
+        String bare = json.replace("[CLICK TO JOIN]", "");
+        assertEquals(bare.chars().filter(c -> c == '{').count(), bare.chars().filter(c -> c == '}').count());
+        assertEquals(bare.chars().filter(c -> c == '[').count(), bare.chars().filter(c -> c == ']').count());
+        com.google.gson.JsonObject parsed = new com.google.gson.JsonParser().parse(json).getAsJsonObject();
+        assertEquals("/join", parsed.getAsJsonObject("clickEvent").get("value").getAsString());
+        String server = Events.announcement(EventGame.Kind.LMS, Events.SERVER_HOST, -1, 0, 40);
+        assertTrue(server.contains("Be the first one in!"), server);
+        new com.google.gson.JsonParser().parse(server);
+    }
+
+    @Test
+    void theLinesAreCentred() {
+        String pad = Events.pad("[CLICK TO JOIN]", true);
+        int width = Events.width(pad, false) + Events.width("[CLICK TO JOIN]", true);
+        assertTrue(Math.abs(Events.CHAT_WIDTH / 2 - (Events.width(pad, false) + Events.width("[CLICK TO JOIN]", true) / 2)) <= 4,
+                "centred: " + width);
+        assertTrue(Events.width(Events.SEPARATOR, false) <= Events.CHAT_WIDTH, "the line fits the chat");
+    }
+
+    @Test
+    void anEventIsAnnouncedEveryTwentySeconds() {
+        assertEquals(20, EventGame.ANNOUNCE_EVERY);
     }
 }
