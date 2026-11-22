@@ -275,20 +275,30 @@ async function buildInBlockFight (game) {
   await hold(west, 'shears')
   // a block broken drops on the ground (the owner's ask of 22/11): the wool, for anyone to pick up
   const broken = at(-6, 0, 0)
-  let dropped = null
+  // the item of a drop comes in the entity's metadata, after the itemDrop event: the handler only
+  // keeps the items that fell near the broken block, and they are read once their metadata is in
+  const near = []
   const onDrop = (entity) => {
-    const item = entity.getDroppedItem?.()
-    if (item != null && entity.position.distanceTo(broken.offset(0.5, 0.5, 0.5)) < 2) dropped = item
+    if (entity.position.distanceTo(broken.offset(0.5, 0.5, 0.5)) < 2) near.push(entity)
   }
+  const woolDropped = () => {
+    for (const entity of near) {
+      let item = null
+      try { item = entity.getDroppedItem() } catch { item = null }
+      if (item != null && item.name === 'wool') return item
+    }
+    return null
+  }
+  let dropped = null
   west.on('itemDrop', onDrop)
   try {
     await dig(west, broken)
     await waitFor(() => west.blockAt(at(-6, 0, -1))?.name === 'air', 3000, 'the ladder to fall with the wool it hung on')
-    await waitFor(() => dropped != null, 3000, 'the broken wool to drop on the ground')
+    await waitFor(() => (dropped = woolDropped()) != null, 3000, 'the broken wool to drop on the ground')
   } finally {
     west.removeListener('itemDrop', onDrop)
   }
-  if (dropped.name !== 'wool' || dropped.count !== 1) throw new Error(`the broken wool dropped ${dropped.count} ${dropped.name}`)
+  if (dropped.count !== 1) throw new Error(`the broken wool dropped ${dropped.count} wool`)
   log('block placement: wool, a ladder and end stone placed, the wool under the ladder broken (the ladder fell with it, the wool dropped on the ground)')
 }
 
