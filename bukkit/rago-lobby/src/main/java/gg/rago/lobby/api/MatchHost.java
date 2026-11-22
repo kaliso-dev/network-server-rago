@@ -78,6 +78,14 @@ public interface MatchHost {
     }
 
     /**
+     * The settings the party leader chooses in the lobby for a private game of this mode, in the
+     * order of the menu (Bedwars Normal: Speed, Max Diamond...); empty, the default, when it has none.
+     */
+    default List<PrivateSetting> privateSettings(GameMode mode) {
+        return Collections.emptyList();
+    }
+
+    /**
      * The teams of this map in this mode, in their order, each as the icon of its colour (a wool
      * named in its colour): the team menu of a private game whose players choose their teams
      * (Bedwars Normal), whose match then lists them in this order

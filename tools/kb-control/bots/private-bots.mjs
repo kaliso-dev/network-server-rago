@@ -6,7 +6,10 @@
 // Normal shows its two rows, 4s and 2s, with no map; and its 4s cannot be queued alone. The rest
 // is played through test-equipes, a mode that run-arena-test.sh adds to the lobby's config with the
 // same room (parties-privees-equipes) on Fast Bedwars 2v2, whose map here is the demo map (two
-// teams of two, red and blue):
+// teams of two, red and blue), and the settings of the leader (reglages-prives, which the script
+// gives Fast Bedwars 2v2 too):
+//   0. the leader sets the game from the map menu: Speed II (three clicks, then a right-click back),
+//      Max Diamond, Max Emerald and Break the Map on; another player cannot (/pg settings);
 //   1. only the leader starts it; its menu shows a row "2v2" with bw-demo; a click starts the team
 //      choice for the whole party, the team menu opening for each with the red and the blue wool;
 //   2. the leader and the second bot click red; the third clicks red too: full; it closes its menu
@@ -14,7 +17,10 @@
 //   3. the countdown (8 seconds here) ends: the game starts by itself with red the two who chose it
 //      and blue the third, who chose none (the emptiest team), in no stats;
 //   4. the game is a Fast Bedwars 2v2 on bw-demo with those teams: the two red bots on the red
-//      island, the third on the blue one; it leaves, red wins, all back in the lobby.
+//      island, the third on the blue one; with the settings: Speed II on the leader, Protection IV
+//      on its armour and Sharpness on its sword, the emerald generator at Tier III and no Emerald
+//      event in the sidebar, a block of the island broken by hand; the third leaves, red wins, all
+//      back in the lobby.
 //
 // Environment: KB_HOST (127.0.0.1), KB_PORT (25565).
 
@@ -32,6 +38,14 @@ const RED_SLOT = 10
 const BLUE_SLOT = 12
 /** The countdown of test-equipes in run-arena-test.sh. */
 const COUNTDOWN = 8
+/** TeamRooms.settingSlot: four settings, two slots apart in the second row; the back arrow under them. */
+const SETTING_SLOTS = { speed: 10, maxDiamond: 12, maxEmerald: 14, breakMap: 16 }
+const SETTINGS_BACK = 22
+/** The settings in the team menu of the leader. */
+const TEAM_SETTINGS_SLOT = 26
+/** A block of the red island out of the protection of its spawn and its generator (DemoMap, BedwarsGame.near). */
+const ISLAND_BLOCK = [-30, 64, 3]
+const SPEED = 1
 
 let finishing = false
 
@@ -166,12 +180,16 @@ async function bedwarsNormal (leader, other) {
   for (const slot of [1, 10]) {
     if (menu.slots[slot] != null) throw new Error(`a map in the menu, slot ${slot}: ${text(menu.slots[slot])}: no map of 4 or 8 teams here`)
   }
+  // its last row: the settings of the game, Bedwars Normal having them (reglages-prives)
+  if (menu.slots[22]?.name !== 'comparator' || !text(menu.slots[22]).includes('Game settings')) {
+    throw new Error(`the settings of the game in the last row of Bedwars Normal: ${menu.slots[22]?.name} ${text(menu.slots[22])}`)
+  }
   leader.closeWindow(menu)
   const from = mark(leader)
   leader.chat('/queue bedwars-normal-4s')
   await chatLine(leader, /Bedwars Normal 4s is played with your party: its leader clicks Bedwars Normal in the Private games\./, 5000, from)
   log('Bedwars Normal: only the leader starts it; its menu has the row of the 4s, then the row of the 2s, no map of 4 or 8'
-    + ' teams on this server; its 4s is no queue')
+    + ' teams on this server, then the settings of the game; its 4s is no queue')
 }
 
 /** The team menu that just opened for this bot, with the red wool and the blue wool. */
@@ -185,6 +203,48 @@ async function teamMenu (bot, count) {
   return menu
 }
 
+/** A click of the leader on a setting, and what the leader is told: "RagoPriveUn set Speed: Speed I." */
+async function clickSetting (leader, slot, right, told) {
+  const from = mark(leader)
+  leader.clickWindow(slot, right ? 1 : 0, 0).catch(() => {})
+  await chatLine(leader, new RegExp(`^${leader.username} set ${told}\\.$`), 5000, from)
+}
+
+/** 0. The leader sets the game from the map menu; the second cannot. Returns the map menu, open again. */
+async function setGame (leader, second, maps) {
+  const fromSecond = mark(second)
+  second.chat('/pg settings')
+  await chatLine(second, /Only the party leader sets the game of a private game\./, 5000, fromSecond)
+  const button = maps.slots.find((item) => item?.name === 'comparator')
+  if (button == null || !text(button).includes('Game settings') || !text(button).includes('Speed: None')) {
+    throw new Error(`the settings of the game in the map menu, all as in a normal game: ${text(button)}`)
+  }
+  const count = leader.windows.length
+  leader.clickWindow(button.slot, 0, 0).catch(() => {})
+  const menu = await windowAfter(leader, count, 'Game settings', 'the settings of the game')
+  const icons = { speed: 'sugar', maxDiamond: 'diamond', maxEmerald: 'emerald', breakMap: 'iron_pickaxe' }
+  await waitFor(() => Object.entries(icons).every(([key, name]) => menu.slots[SETTING_SLOTS[key]]?.name === name), 5000,
+    () => `the four settings: ${Object.values(SETTING_SLOTS).map((at) => menu.slots[at]?.name).join(', ')}`)
+  for (const told of ['Speed: Speed I', 'Speed: Speed II', 'Speed: Speed III']) await clickSetting(leader, SETTING_SLOTS.speed, false, told)
+  await clickSetting(leader, SETTING_SLOTS.speed, true, 'Speed: Speed II')
+  await clickSetting(leader, SETTING_SLOTS.maxDiamond, false, 'Max Diamond: On')
+  await clickSetting(leader, SETTING_SLOTS.maxEmerald, false, 'Max Emerald: On')
+  await clickSetting(leader, SETTING_SLOTS.breakMap, false, 'Break the Map: On')
+  await waitFor(() => text(menu.slots[SETTING_SLOTS.speed]).includes('Speed: Speed II'), 5000,
+    () => `the menu to show Speed II: ${text(menu.slots[SETTING_SLOTS.speed])}`)
+  const back = leader.windows.length
+  leader.clickWindow(SETTINGS_BACK, 0, 0).catch(() => {})
+  const again = await windowAfter(leader, back, 'Test teams: choose a map', 'the map menu again, from the settings')
+  await waitFor(() => again.slots.some((item) => item?.name === 'comparator'), 5000, 'the settings in the map menu again')
+  const now = text(again.slots.find((item) => item?.name === 'comparator'))
+  for (const set of ['Speed: Speed II', 'Max Diamond: On', 'Max Emerald: On', 'Break the Map: On']) {
+    if (!now.includes(set)) throw new Error(`the map menu to show ${set}: ${now}`)
+  }
+  log(`settings: ${second.username} cannot set the game; ${leader.username} set Speed II (three clicks, a right-click back),`
+    + ' Max Diamond, Max Emerald and Break the Map from the map menu, and went back to it')
+  return again
+}
+
 async function chooseTeams (leader, second, third) {
   const bots = [leader, second, third]
   const marks = bots.map(mark)
@@ -195,6 +255,7 @@ async function chooseTeams (leader, second, third) {
     () => `the demo map in the menu: ${maps.slots[1]?.name}`)
   if (!text(maps.slots[0]).includes('2v2 (2 teams of 2)')) throw new Error(`the row of Fast Bedwars 2v2: ${text(maps.slots[0])}`)
   if (!text(maps.slots[1]).includes('bw-demo')) throw new Error(`the map of the row: ${text(maps.slots[1])}`)
+  await setGame(leader, second, maps)
   const afterMaps = leader.windows.length
   leader.clickWindow(1, 0, 0).catch(() => {})
   for (const [i, bot] of bots.entries()) {
@@ -203,7 +264,10 @@ async function chooseTeams (leader, second, third) {
   }
   const menus = []
   for (const [i, bot] of bots.entries()) menus.push(await teamMenu(bot, i === 0 ? afterMaps : counts[i]))
-  log('team choice: the demo map chosen, the team menu opened for the three, red and blue')
+  // the settings in the team menu: the leader's only
+  await waitFor(() => menus[0].slots[TEAM_SETTINGS_SLOT]?.name === 'comparator', 5000, 'the settings in the team menu of the leader')
+  if (menus[1].slots[TEAM_SETTINGS_SLOT] != null) throw new Error(`the settings in the team menu of ${second.username}`)
+  log('team choice: the demo map chosen, the team menu opened for the three, red and blue, the settings in the leader\'s')
 
   // 2. red for the leader and the second; full for the third
   leader.clickWindow(RED_SLOT, 0, 0).catch(() => {})
@@ -233,6 +297,7 @@ async function chooseTeams (leader, second, third) {
     await chatLine(bot, /Private game of your party in Test teams 2v2 on bw-demo\. It counts in no stats\./, 8000, marks[i])
     await chatLine(bot, new RegExp(`Red: ${leader.username}, ${second.username}$`), 2000, marks[i])
     await chatLine(bot, new RegExp(`Blue: ${third.username}$`), 2000, marks[i])
+    await chatLine(bot, /Settings: Speed: Speed II, Max Diamond: On, Max Emerald: On, Break the Map: On$/, 2000, marks[i])
   }
   log(`countdown: the game started by itself, red ${leader.username} and ${second.username}, blue ${third.username}`
     + ' (who chose none, in the emptiest team), in no stats')
@@ -249,12 +314,59 @@ async function play (leader, second, third, marks) {
       () => `${bot.username} (${team}) on its island, near x ${spawnX}: ${bot.game.gameMode} at ${where(bot)}`)
   }
   log('game: Fast Bedwars 2v2 on bw-demo with the teams chosen, the two red bots on the red island, the third on the blue one')
+  await rules(leader, marks[0])
   const from = mark(leader)
   third.chat('/spawn')
   await expectInLobby(third, 'after /spawn')
   await chatLine(leader, /Winner: Red/, 10000, from)
   for (const bot of [leader, second]) await expectInLobby(bot, 'after the game')
   log(`end: ${third.username} left, red won, all back in the lobby`)
+}
+
+/** The lines of the sidebar, top to bottom, without colours. */
+function sidebarLines (bot) {
+  return (bot.scoreboard?.sidebar?.items ?? []).map((item) => String(item.name).replace(/§./g, ''))
+}
+
+/** The names over the entities the bot sees (the texts of the generators), without colours. */
+function labels (bot) {
+  return Object.values(bot.entities).map((e) => String(e.metadata?.[2] ?? '').replace(/§./g, '')).filter((name) => name.trim() !== '')
+}
+
+function enchanted (item, name, level) {
+  return (item?.enchants ?? []).some((e) => e.name === name && e.lvl === level)
+}
+
+/** 4. The settings of the leader in the game. */
+async function rules (leader, from) {
+  await chatLine(leader, /Settings of the party leader: Speed II, Max Diamond, Max Emerald, Break the Map$/, 5000, from)
+  await waitFor(() => leader.entity.effects?.[SPEED]?.amplifier === 1, 8000,
+    () => `Speed II on ${leader.username}: ${JSON.stringify(leader.entity.effects)}`)
+  await waitFor(() => enchanted(leader.inventory.slots[5], 'protection', 4)
+    && enchanted(leader.inventory.items().find((item) => item.name.endsWith('_sword')), 'sharpness', 1), 5000,
+  () => `Protection IV and Sharpness I (Max Diamond): helmet ${JSON.stringify(leader.inventory.slots[5]?.enchants)}, sword`
+    + ` ${JSON.stringify(leader.inventory.items().find((item) => item.name.endsWith('_sword'))?.enchants)}`)
+  await waitFor(() => labels(leader).some((name) => name.includes('Tier III Emerald')), 10000,
+    () => `the emerald generator at Tier III (Max Emerald): ${JSON.stringify(labels(leader))}`)
+  await waitFor(() => sidebarLines(leader).some((line) => /^Bed Gone in \d+:\d\d$/.test(line)), 5000,
+    () => `the beds next in the sidebar, no Emerald event (Max Emerald): ${JSON.stringify(sidebarLines(leader))}`)
+  if (sidebarLines(leader).some((line) => line.includes('Emerald'))) {
+    throw new Error(`an Emerald event in the sidebar with Max Emerald: ${JSON.stringify(sidebarLines(leader))}`)
+  }
+  // Break the Map: a block of the island, not placed by a player, breaks
+  const Vec3 = leader.entity.position.constructor
+  const at = new Vec3(...ISLAND_BLOCK)
+  const before = leader.blockAt(at)?.name
+  if (before == null || before === 'air') throw new Error(`no block of the island at ${ISLAND_BLOCK}: ${before}`)
+  const fromDig = mark(leader)
+  await leader.dig(leader.blockAt(at), true)
+  await sleep(1000)
+  if (leader.blockAt(at)?.name !== 'air') {
+    throw new Error(`Break the Map: the ${before} at ${ISLAND_BLOCK} is still there (${leader.blockAt(at)?.name}); chat`
+      + ` ${JSON.stringify(leader.chats.slice(fromDig))}`)
+  }
+  log(`rules: Speed II on ${leader.username}, Protection IV and Sharpness I from the start, the emerald generator at Tier III`
+    + ` and the beds next in the sidebar, the ${before} of the island at ${ISLAND_BLOCK} broken by hand`)
 }
 
 async function main () {
@@ -267,8 +379,9 @@ async function main () {
   await play(leader, second, third, marks)
 
   finishing = true
-  log('PASSED: Bedwars Normal of the Private games, its rows of 4s and 2s; the team choice of its party: the map, the team'
-    + ' menu, a team full, /pg team, the countdown, who chose none in the emptiest team, the game with the teams chosen')
+  log('PASSED: Bedwars Normal of the Private games, its rows of 4s and 2s; the settings of the leader (Speed, Max Diamond,'
+    + ' Max Emerald, Break the Map); the team choice of its party: the map, the team menu, a team full, /pg team, the'
+    + ' countdown, who chose none in the emptiest team, the game with the teams chosen and the settings')
   for (const bot of [leader, second, third]) bot.quit()
   await sleep(500)
   process.exit(0)

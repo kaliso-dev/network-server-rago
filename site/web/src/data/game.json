@@ -372,6 +372,7 @@
       "ranked": true,
       "startHere": false,
       "event": false,
+      "sizeOf": null,
       "description": "Ranked Bedwars in 1v1, on the 20 maps of the RBW queue: your ELO goes up or down after every game.",
       "plugins": [
         "bedwars"
@@ -388,6 +389,7 @@
       "ranked": true,
       "startHere": false,
       "event": false,
+      "sizeOf": null,
       "description": "Ranked Bedwars, two against two, on the RBW maps.",
       "plugins": [
         "bedwars"
@@ -404,6 +406,7 @@
       "ranked": true,
       "startHere": false,
       "event": false,
+      "sizeOf": null,
       "description": "Ranked Bedwars, three against three, on the RBW maps.",
       "plugins": [
         "bedwars"
@@ -420,6 +423,7 @@
       "ranked": true,
       "startHere": false,
       "event": false,
+      "sizeOf": null,
       "description": "Ranked Bedwars, four against four, on the RBW maps.",
       "plugins": [
         "bedwars"
@@ -436,6 +440,7 @@
       "ranked": true,
       "startHere": false,
       "event": false,
+      "sizeOf": null,
       "description": "Bed fight in 1v1, ranked: your ELO goes up or down after every game.",
       "plugins": [
         "bedwars"
@@ -452,6 +457,7 @@
       "ranked": true,
       "startHere": false,
       "event": false,
+      "sizeOf": null,
       "description": "Top Bridge in 1v1, ranked: the first to 5 points wins, your ELO follows.",
       "plugins": [
         "bedwars"
@@ -468,6 +474,7 @@
       "ranked": true,
       "startHere": false,
       "event": false,
+      "sizeOf": null,
       "description": "Bridge fight in 1v1, ranked: first to 5, your ELO follows.",
       "plugins": [
         "practice"
@@ -484,6 +491,7 @@
       "ranked": true,
       "startHere": false,
       "event": false,
+      "sizeOf": null,
       "description": "Block placement in 1v1, ranked: first to 100, your ELO follows.",
       "plugins": [
         "practice"
@@ -500,6 +508,7 @@
       "ranked": true,
       "startHere": false,
       "event": false,
+      "sizeOf": null,
       "description": "The sumo duel, ranked: knock them off, your ELO follows.",
       "plugins": [
         "practice"
@@ -516,6 +525,7 @@
       "ranked": true,
       "startHere": false,
       "event": false,
+      "sizeOf": null,
       "description": "Boxing, ranked: first to 100 hits, your ELO follows.",
       "plugins": [
         "practice"
@@ -532,6 +542,7 @@
       "ranked": false,
       "startHere": false,
       "event": false,
+      "sizeOf": null,
       "description": "A solo Bedwars, RBW style, on Sky Rise.",
       "plugins": [
         "bedwars"
@@ -548,6 +559,7 @@
       "ranked": false,
       "startHere": false,
       "event": false,
+      "sizeOf": null,
       "description": "A duo Bedwars, RBW style, on Sky Rise.",
       "plugins": [
         "bedwars"
@@ -564,6 +576,7 @@
       "ranked": false,
       "startHere": false,
       "event": false,
+      "sizeOf": null,
       "description": "Sky Rise 1v1 with the forge and the item shop of every island: go and take their iron and gold. Slow forges.",
       "plugins": [
         "bedwars"
@@ -580,6 +593,7 @@
       "ranked": false,
       "startHere": false,
       "event": false,
+      "sizeOf": null,
       "description": "Sky Rise 2v2 with the forge and the item shop of every island: go and take their iron and gold. Slow forges.",
       "plugins": [
         "bedwars"
@@ -596,6 +610,7 @@
       "ranked": false,
       "startHere": false,
       "event": false,
+      "sizeOf": null,
       "description": "A real Bedwars 1v1, RBW style, on two islands side by side: the first rush decides it. Choose the map.",
       "plugins": [
         "bedwars"
@@ -612,6 +627,7 @@
       "ranked": false,
       "startHere": false,
       "event": false,
+      "sizeOf": null,
       "description": "A real Bedwars 2v2, RBW style, on two islands side by side: the first rush decides it. Choose the map.",
       "plugins": [
         "bedwars"
@@ -628,6 +644,7 @@
       "ranked": false,
       "startHere": false,
       "event": false,
+      "sizeOf": null,
       "description": "First rush 1v1 with the whole map: diamonds, emeralds and the forges of the empty islands. Choose the map.",
       "plugins": [
         "bedwars"
@@ -644,6 +661,7 @@
       "ranked": false,
       "startHere": false,
       "event": false,
+      "sizeOf": null,
       "description": "First rush 2v2 with the whole map: diamonds, emeralds and the forges of the empty islands. Choose the map.",
       "plugins": [
         "bedwars"
@@ -660,6 +678,7 @@
       "ranked": false,
       "startHere": false,
       "event": false,
+      "sizeOf": null,
       "description": "Two islands face to face, a bed on each: bridge over, break their bed and kill them. You come back while yours stands.",
       "plugins": [
         "bedwars"
@@ -676,6 +695,7 @@
       "ranked": false,
       "startHere": false,
       "event": false,
+      "sizeOf": null,
       "description": "Bed fight, two against two: break their bed, then the last team standing wins.",
       "plugins": [
         "bedwars"
@@ -692,6 +712,7 @@
       "ranked": false,
       "startHere": false,
       "event": false,
+      "sizeOf": null,
       "description": "Bed fight, one against two: the player alone, drawn at random, has a better stuff than the two others.",
       "plugins": [
         "bedwars"
@@ -708,6 +729,7 @@
       "ranked": false,
       "startHere": false,
       "event": false,
+      "sizeOf": null,
       "description": "On the bridge at the top of Bed fight: kill them or knock them off, rounds of one life, the first to 5 points wins.",
       "plugins": [
         "bedwars"
@@ -724,6 +746,7 @@
       "ranked": false,
       "startHere": false,
       "event": false,
+      "sizeOf": null,
       "description": "On top of the top bridge of Antenna, on the 20 RBW maps: no bed, rounds of one life, the first to 5 points wins.",
       "plugins": [
         "bedwars"
@@ -740,6 +763,7 @@
       "ranked": false,
       "startHere": false,
       "event": false,
+      "sizeOf": null,
       "description": "Top Bridge, two against two: the first team to 5 points.",
       "plugins": [
         "bedwars"
@@ -756,6 +780,7 @@
       "ranked": false,
       "startHere": false,
       "event": false,
+      "sizeOf": null,
       "description": "The top bridge of Invasion, free for all: come and go when you like, diamond armour, and back on top at each death.",
       "plugins": [
         "bedwars"
@@ -772,6 +797,7 @@
       "ranked": false,
       "startHere": false,
       "event": false,
+      "sizeOf": null,
       "description": "Free for all on Archway FFA, in diamond armour: spawn on the top bridge, low, mid or at random; come and go when you like. A kill heals you and gives your whole kit back.",
       "plugins": [
         "bedwars"
@@ -788,6 +814,7 @@
       "ranked": false,
       "startHere": false,
       "event": false,
+      "sizeOf": null,
       "description": "The FFA in the waiting lobby of Archway FFA, a sword, 5 golden apples (back to 5 at each kill), 3 fireballs, blocks, a pickaxe, a pearl and shears: come and go when you like, fall out of it and you die.",
       "plugins": [
         "bedwars"
@@ -804,6 +831,7 @@
       "ranked": false,
       "startHere": false,
       "event": false,
+      "sizeOf": null,
       "description": "Free for all in the arena, a sword only and Resistance: nobody dies, it is a practice. The slime of the black pit throws you out.",
       "plugins": [
         "practice"
@@ -820,6 +848,7 @@
       "ranked": false,
       "startHere": false,
       "event": false,
+      "sizeOf": null,
       "description": "An invisible attacker against one defender: 2 players, each attacks twice, in turn.",
       "plugins": [
         "bedwars"
@@ -836,6 +865,7 @@
       "ranked": false,
       "startHere": false,
       "event": false,
+      "sizeOf": null,
       "description": "An invisible attacker against two defenders: 3 players, each attacks twice, in turn.",
       "plugins": [
         "bedwars"
@@ -852,6 +882,7 @@
       "ranked": false,
       "startHere": false,
       "event": false,
+      "sizeOf": null,
       "description": "An invisible attacker against three defenders: 4 players, each attacks once, in turn.",
       "plugins": [
         "bedwars"
@@ -868,6 +899,7 @@
       "ranked": false,
       "startHere": false,
       "event": false,
+      "sizeOf": null,
       "description": "An invisible attacker against four defenders: 5 players, each attacks once, in turn.",
       "plugins": [
         "bedwars"
@@ -884,6 +916,7 @@
       "ranked": false,
       "startHere": false,
       "event": false,
+      "sizeOf": null,
       "description": "Free for all, no blocks: the hits only push, knock them into the void. Real damage on the middle platform only.",
       "plugins": [
         "practice"
@@ -900,6 +933,7 @@
       "ranked": false,
       "startHere": false,
       "event": false,
+      "sizeOf": null,
       "description": "A real 1v1 on a platform of its own, no blocks: a kill or a fall is a point. First to 5.",
       "plugins": [
         "practice"
@@ -916,6 +950,7 @@
       "ranked": false,
       "startHere": false,
       "event": false,
+      "sizeOf": null,
       "description": "The bridge fight, two against two on one platform: when a whole team is out, the other scores. First to 5.",
       "plugins": [
         "practice"
@@ -932,6 +967,7 @@
       "ranked": false,
       "startHere": false,
       "event": false,
+      "sizeOf": null,
       "description": "On the block placement maps, as on Minemen: each hit is a point, the void costs 10. Build, clutch, knock them off: first to 100.",
       "plugins": [
         "practice"
@@ -948,6 +984,7 @@
       "ranked": false,
       "startHere": false,
       "event": false,
+      "sizeOf": null,
       "description": "Block placement, two against two: each hit is a point, the void costs 10. First to 100.",
       "plugins": [
         "practice"
@@ -964,6 +1001,7 @@
       "ranked": false,
       "startHere": false,
       "event": false,
+      "sizeOf": null,
       "description": "In the waiting lobby of Archway FFA, with the kit of Lobby Fight: rounds of one life, knock them out; the first to 3 points wins.",
       "plugins": [
         "bedwars"
@@ -980,6 +1018,7 @@
       "ranked": false,
       "startHere": false,
       "event": false,
+      "sizeOf": null,
       "description": "Block placement in an arena, with everyone: wool and shears, no damage, knock them off. The blocks break after 15 seconds.",
       "plugins": [
         "practice"
@@ -996,6 +1035,7 @@
       "ranked": false,
       "startHere": false,
       "event": false,
+      "sizeOf": null,
       "description": "A real RBW game: one of you has no bed and must clutch, the other's bed is defended.",
       "plugins": [
         "bedwars"
@@ -1012,6 +1052,7 @@
       "ranked": false,
       "startHere": false,
       "event": false,
+      "sizeOf": null,
       "description": "A real RBW game: the player alone has no bed and must clutch, the bed of the 2 others is defended.",
       "plugins": [
         "bedwars"
@@ -1028,6 +1069,7 @@
       "ranked": false,
       "startHere": false,
       "event": false,
+      "sizeOf": null,
       "description": "A real RBW game: the player alone has no bed and must clutch, the bed of the 3 others is defended.",
       "plugins": [
         "bedwars"
@@ -1044,6 +1086,7 @@
       "ranked": false,
       "startHere": false,
       "event": false,
+      "sizeOf": null,
       "description": "A real RBW game: the player alone has no bed and must clutch, the bed of the 4 others is defended.",
       "plugins": [
         "bedwars"
@@ -1060,6 +1103,7 @@
       "ranked": false,
       "startHere": false,
       "event": false,
+      "sizeOf": null,
       "description": "Bio Hazard: the attacker on the pink bridge, one life; the defender with forge and shop. First to 3 rounds, the roles swap at each round; 3 kits to attack, 3 to defend.",
       "plugins": [
         "bedwars"
@@ -1076,6 +1120,7 @@
       "ranked": false,
       "startHere": false,
       "event": false,
+      "sizeOf": null,
       "description": "Bio Hazard: one team attacks from the pink bridge, the other defends with forge and shop. First to 3 rounds, the roles swap at each round; 3 kits to attack, 3 to defend.",
       "plugins": [
         "bedwars"
@@ -1092,6 +1137,7 @@
       "ranked": false,
       "startHere": false,
       "event": false,
+      "sizeOf": null,
       "description": "One attacker against one defender: 2 players, each attacks twice, in turn.",
       "plugins": [
         "bedwars"
@@ -1108,6 +1154,7 @@
       "ranked": false,
       "startHere": false,
       "event": false,
+      "sizeOf": null,
       "description": "One attacker against two defenders: 3 players, each attacks twice, in turn.",
       "plugins": [
         "bedwars"
@@ -1124,6 +1171,7 @@
       "ranked": false,
       "startHere": false,
       "event": false,
+      "sizeOf": null,
       "description": "One attacker against three defenders: 4 players, each attacks once, in turn.",
       "plugins": [
         "bedwars"
@@ -1140,6 +1188,7 @@
       "ranked": false,
       "startHere": false,
       "event": false,
+      "sizeOf": null,
       "description": "One attacker against four defenders: 5 players, each attacks once, in turn.",
       "plugins": [
         "bedwars"
@@ -1156,6 +1205,7 @@
       "ranked": false,
       "startHere": false,
       "event": false,
+      "sizeOf": null,
       "description": "A Bed Wars game with your party, as on Hypixel: choose a map of 4s or 2s, then everyone their team. 2 to 16 players.",
       "plugins": [
         "bedwars"
@@ -1171,7 +1221,8 @@
       "format": "4s",
       "ranked": false,
       "startHere": false,
-      "event": true,
+      "event": false,
+      "sizeOf": "bedwars-normal",
       "description": "",
       "plugins": [
         "bedwars"
@@ -1187,7 +1238,8 @@
       "format": "2s",
       "ranked": false,
       "startHere": false,
-      "event": true,
+      "event": false,
+      "sizeOf": "bedwars-normal",
       "description": "",
       "plugins": [
         "bedwars"
@@ -1204,6 +1256,7 @@
       "ranked": false,
       "startHere": false,
       "event": false,
+      "sizeOf": null,
       "description": "Knock the other player off the platform: great for working on knockback.",
       "plugins": [
         "practice"
@@ -1220,6 +1273,7 @@
       "ranked": false,
       "startHere": false,
       "event": false,
+      "sizeOf": null,
       "description": "Three players, 1v1 in turn on the sumo platform: who waits watches the 1v1.",
       "plugins": [
         "practice"
@@ -1236,6 +1290,7 @@
       "ranked": false,
       "startHere": false,
       "event": false,
+      "sizeOf": null,
       "description": "Three players, 1v1 in turn at the wall of wool: a clean edit wins the 1v1.",
       "plugins": [
         "practice"
@@ -1252,6 +1307,7 @@
       "ranked": false,
       "startHere": false,
       "event": false,
+      "sizeOf": null,
       "description": "Three players, 1v1 in turn on the block placement maps: a hit +1, the void +10, first to 10 wins the 1v1.",
       "plugins": [
         "practice"
@@ -1268,6 +1324,7 @@
       "ranked": false,
       "startHere": false,
       "event": false,
+      "sizeOf": null,
       "description": "Three players, 1v1 in turn on the top bridge: a round of one life wins the 1v1.",
       "plugins": [
         "bedwars"
@@ -1284,6 +1341,7 @@
       "ranked": false,
       "startHere": false,
       "event": false,
+      "sizeOf": null,
       "description": "First to 100 hits, to work on your combos. /speed: Speed II off or on.",
       "plugins": [
         "practice"
@@ -1300,6 +1358,7 @@
       "ranked": false,
       "startHere": false,
       "event": false,
+      "sizeOf": null,
       "description": "A real top fight: run along the bridge and knock the defender off sideways. Roles swap each hit.",
       "plugins": [
         "practice"
@@ -1316,6 +1375,7 @@
       "ranked": false,
       "startHere": false,
       "event": false,
+      "sizeOf": null,
       "description": "A wall of wool between you: open, hit, close before they hit you back. First to 5.",
       "plugins": [
         "practice"
@@ -1332,6 +1392,7 @@
       "ranked": false,
       "startHere": false,
       "event": false,
+      "sizeOf": null,
       "description": "Fireballs and TNT: break their bed, the last one standing wins. Blasts and falls do no damage.",
       "plugins": [
         "practice"
@@ -1348,6 +1409,7 @@
       "ranked": false,
       "startHere": false,
       "event": false,
+      "sizeOf": null,
       "description": "Three players on a big platform over the void: knock them off with fireballs. Double jump, and wool that goes fast. No hits, no damage.",
       "plugins": [
         "practice"
@@ -1364,6 +1426,7 @@
       "ranked": false,
       "startHere": false,
       "event": false,
+      "sizeOf": null,
       "description": "Break the snow under them: each block gives a snowball that breaks the snow too, or pushes them. Two floors, no hand hits: don't fall!",
       "plugins": [
         "practice"
@@ -1380,6 +1443,7 @@
       "ranked": false,
       "startHere": false,
       "event": false,
+      "sizeOf": null,
       "description": "Race them on your own lane: five sections, four checkpoints. A fall takes you back to the last one. First to the finish wins!",
       "plugins": [
         "practice"
@@ -1396,6 +1460,7 @@
       "ranked": false,
       "startHere": false,
       "event": false,
+      "sizeOf": null,
       "description": "The Bridge with a flag: take theirs at the back of their base and bring it home over the bridge to capture it.",
       "plugins": [
         "bedwars"
@@ -1412,6 +1477,7 @@
       "ranked": false,
       "startHere": false,
       "event": false,
+      "sizeOf": null,
       "description": "CTF The Bridge, two against two: one takes their flag, the other guards yours.",
       "plugins": [
         "bedwars"
@@ -1428,6 +1494,7 @@
       "ranked": false,
       "startHere": false,
       "event": false,
+      "sizeOf": null,
       "description": "Castle against castle, a mid between: Bed Wars with a flag in each keep in place of the bed. Bring theirs to yours.",
       "plugins": [
         "bedwars"
@@ -1444,6 +1511,7 @@
       "ranked": false,
       "startHere": false,
       "event": false,
+      "sizeOf": null,
       "description": "CTF Castle, four against four: defend your keep, raid theirs.",
       "plugins": [
         "bedwars"
@@ -1460,6 +1528,7 @@
       "ranked": false,
       "startHere": false,
       "event": false,
+      "sizeOf": null,
       "description": "Bed Wars made fast: faster forges, earlier events, the beds gone at 15 minutes, a smaller shop, no upgrades.",
       "plugins": [
         "bedwars"
@@ -1476,6 +1545,7 @@
       "ranked": false,
       "startHere": false,
       "event": false,
+      "sizeOf": null,
       "description": "Fast Bedwars, two against two: rush fast, defend fast.",
       "plugins": [
         "bedwars"
@@ -1492,6 +1562,7 @@
       "ranked": false,
       "startHere": true,
       "event": false,
+      "sizeOf": null,
       "description": "Solo, on a small island next to the islands of the others: a hit throws you off, place your wool to save yourself. Set the knockback, the hits, a KB stick in the hotbar.",
       "plugins": [
         "practice"
@@ -1508,6 +1579,7 @@
       "ranked": false,
       "startHere": false,
       "event": false,
+      "sizeOf": null,
       "description": "The block clutch on a top fight platform, at the build limit: no block above it.",
       "plugins": [
         "practice"
@@ -1524,6 +1596,7 @@
       "ranked": false,
       "startHere": false,
       "event": false,
+      "sizeOf": null,
       "description": "Drop on a bed defense, block yourself in and dig to the bed: the time of each layer.",
       "plugins": [
         "practice"
@@ -1540,6 +1613,7 @@
       "ranked": false,
       "startHere": false,
       "event": false,
+      "sizeOf": null,
       "description": "Build a bed defense as fast as you can: Ranked (end stone, glass) or duo (end stone, wool).",
       "plugins": [
         "practice"
@@ -1556,6 +1630,7 @@
       "ranked": false,
       "startHere": false,
       "event": false,
+      "sizeOf": null,
       "description": "Break a block of the wall, hit the bot behind it, put the block back before it hits you.",
       "plugins": [
         "practice"
@@ -1572,6 +1647,7 @@
       "ranked": false,
       "startHere": false,
       "event": false,
+      "sizeOf": null,
       "description": "Double and triple extends: jump a gap too long, extend your wool in the air (5+1, 6+0, 6+1, 7+0, 7-1, 7-2). Chain: 10 pads in a row, no stop. Ladders included.",
       "plugins": [
         "practice"
@@ -1588,6 +1664,7 @@
       "ranked": false,
       "startHere": false,
       "event": false,
+      "sizeOf": null,
       "description": "As in a real bed fight: take a hit on the bridge, save yourself with your wool. Gold, Diamond, Emerald: the hit comes from your look. Wool and ladders.",
       "plugins": [
         "practice"
@@ -1604,6 +1681,7 @@
       "ranked": false,
       "startHere": false,
       "event": false,
+      "sizeOf": null,
       "description": "Bridge 16, 32 or 64 blocks against the clock, with any technique: straight or diagonal, flat or uphill, or with a turn. A record for each course.",
       "plugins": [
         "practice"
@@ -1620,6 +1698,7 @@
       "ranked": false,
       "startHere": false,
       "event": false,
+      "sizeOf": null,
       "description": "Block-ladder clutch: jump from 4 to 24 blocks, wool and a ladder before the ground.",
       "plugins": [
         "practice"
@@ -1636,6 +1715,7 @@
       "ranked": false,
       "startHere": false,
       "event": false,
+      "sizeOf": null,
       "description": "A new Bed Wars map each try: pearl onto an island, back after a hit, and the pearl block clutch: to the wall of an island, then wool under you.",
       "plugins": [
         "practice"
@@ -1652,6 +1732,7 @@
       "ranked": false,
       "startHere": false,
       "event": false,
+      "sizeOf": null,
       "description": "A new Bed Wars map each try: fireball jump a broken bridge, knock bridgers and rushers into the void, and hit their fireballs back.",
       "plugins": [
         "practice"
@@ -1668,6 +1749,7 @@
       "ranked": false,
       "startHere": false,
       "event": false,
+      "sizeOf": null,
       "description": "Buy lists of items as fast as you can, with your own Hypixel quick buy (copy it in one click: the book).",
       "plugins": [
         "bedwars"
@@ -1684,6 +1766,7 @@
       "ranked": false,
       "startHere": false,
       "event": false,
+      "sizeOf": null,
       "description": "Run, turn your head, hit: knock the bot off sideways. Back at the start after each hit.",
       "plugins": [
         "practice"
@@ -1700,6 +1783,7 @@
       "ranked": false,
       "startHere": false,
       "event": false,
+      "sizeOf": null,
       "description": "On Archway: bots bridge from the middle to your base, knock them off with your bow. Hits, accuracy, the longest shot.",
       "plugins": [
         "practice"
@@ -1716,6 +1800,7 @@
       "ranked": false,
       "startHere": false,
       "event": false,
+      "sizeOf": null,
       "description": "Bow 1v1 on Archway, the base against the middle: each arrow that hits is a point. First to 10.",
       "plugins": [
         "practice"
@@ -1732,6 +1817,7 @@
       "ranked": false,
       "startHere": false,
       "event": false,
+      "sizeOf": null,
       "description": "Aim training, solo, moving targets. XP for each second on the target, and a top of the best.",
       "plugins": [
         "practice"
@@ -1748,6 +1834,7 @@
       "ranked": false,
       "startHere": false,
       "event": false,
+      "sizeOf": null,
       "description": "A face lights up: under your feet, on the side of the bridge or on the bed. A block on it, faster at each level.",
       "plugins": [
         "practice"
@@ -1764,6 +1851,7 @@
       "ranked": false,
       "startHere": false,
       "event": true,
+      "sizeOf": null,
       "description": "Hosted with /host: one 1v1 at a time, the last one in wins.",
       "plugins": [
         "practice"
@@ -1780,6 +1868,7 @@
       "ranked": false,
       "startHere": false,
       "event": true,
+      "sizeOf": null,
       "description": "Hosted with /host: a 1v1 tournament with a Bed Wars kit.",
       "plugins": [
         "practice"
@@ -1796,6 +1885,7 @@
       "ranked": false,
       "startHere": false,
       "event": true,
+      "sizeOf": null,
       "description": "Hosted with /host: everyone at once, the last one standing wins.",
       "plugins": [
         "practice"

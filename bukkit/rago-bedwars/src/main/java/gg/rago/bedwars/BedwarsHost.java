@@ -7,7 +7,9 @@ import gg.rago.game.MatchProposal;
 import gg.rago.game.QueueEntry;
 import gg.rago.lobby.api.EndOfGame;
 import gg.rago.lobby.api.MatchHost;
+import gg.rago.lobby.api.PrivateSetting;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.EnumSet;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -234,6 +236,10 @@ final class BedwarsHost implements MatchHost, Listener {
         }
         BedwarsGame game = create(kind, instance, mode, sides);
         game.modeLine = mode.name();
+        if (plugin.settings().privateRules(mode.id())) {
+            // Bedwars Normal: the settings its party leader chose in the lobby, if a private game
+            game.rules = PrivateRules.of(plugin.lobby().privateSettings(firstPlayer(sides)));
+        }
         for (List<Player> side : sides) {
             for (Player player : side) {
                 games.put(player.getUniqueId(), game);
@@ -348,6 +354,47 @@ final class BedwarsHost implements MatchHost, Listener {
             maps.removeIf(map -> map.completeTeams().size() != mode.teams());
         }
         return maps;
+    }
+
+    /** The first player of the match, or null. */
+    private static UUID firstPlayer(List<List<Player>> sides) {
+        for (List<Player> side : sides) {
+            if (!side.isEmpty()) {
+                return side.get(0).getUniqueId();
+            }
+        }
+        return null;
+    }
+
+    /**
+     * The settings the party leader chooses in the lobby for a private game of Bedwars Normal
+     * (reglages-prives): Speed, Max Diamond, Max Emerald, Break the Map ({@link PrivateRules}).
+     */
+    @Override
+    public List<PrivateSetting> privateSettings(GameMode mode) {
+        if (!plugin.settings().privateRules(mode.id())) {
+            return Collections.emptyList();
+        }
+        List<PrivateSetting> offered = new ArrayList<>();
+        for (PrivateRules.Setting setting : PrivateRules.SETTINGS) {
+            offered.add(new PrivateSetting(setting.id, setting.name, iconOf(setting.id), setting.choices, setting.description));
+        }
+        return offered;
+    }
+
+    private static Material iconOf(String setting) {
+        switch (setting) {
+            case PrivateRules.SPEED:
+                return Material.SUGAR;
+            case PrivateRules.MAX_DIAMOND:
+                return Material.DIAMOND;
+            case PrivateRules.MAX_EMERALD:
+                return Material.EMERALD;
+            case PrivateRules.BREAK_MAP:
+                return Material.IRON_PICKAXE;
+            default:
+                return Material.PAPER;
+        }
     }
 
     /**

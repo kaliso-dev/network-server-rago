@@ -4,8 +4,10 @@ import gg.rago.game.GameMode;
 import gg.rago.game.MatchProposal;
 import gg.rago.game.QueueEntry;
 import gg.rago.lobby.api.MatchHost;
+import gg.rago.lobby.api.PrivateSetting;
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
@@ -30,7 +32,10 @@ import org.bukkit.inventory.meta.ItemMeta;
  * of its modes (the 4s, then the 2s); then every player of the party has the team menu (the colours
  * of the map) for the countdown of the mode, 20 seconds, and the game starts by itself with the
  * teams of {@link TeamRoom}, in no stats. /pg team opens the menu again. A party that changes, or a
- * player who leaves the lobby, cancels it. Main thread only.
+ * player who leaves the lobby, cancels it. The leader sets the game (Speed, Max Diamond...: the
+ * settings its host offers, {@link MatchHost#privateSettings}) from the map menu, the team menu or
+ * /pg settings; they are kept for the leader's next games until they leave the server. Main thread
+ * only.
  */
 final class TeamRooms {
 
@@ -43,6 +48,8 @@ final class TeamRooms {
     private static final int MAX_ROWS = 6;
     /** Where the teams stand in their menu: the middle row, two slots apart when they are 4 or fewer. */
     private static final int TEAM_ROW = 9;
+    /** The settings of the game in the team menu, for the leader: its last slot. */
+    private static final int SETTINGS_SLOT = 26;
 
     /** A party choosing its teams on its map. */
     static final class Room {
@@ -50,17 +57,21 @@ final class TeamRooms {
         final GameMode mode;
         final String map;
         final UUID party;
+        /** The party leader who started it: who sets the game. */
+        final UUID leader;
         final TeamRoom teams;
         final List<ItemStack> icons;
         int secondsLeft;
         /** The team menu of each player who has it open: brought up to date at each choice. */
         final Map<UUID, ClickMenu> menus = new HashMap<>();
 
-        Room(GameMode menuMode, GameMode mode, String map, UUID party, TeamRoom teams, List<ItemStack> icons, int seconds) {
+        Room(GameMode menuMode, GameMode mode, String map, UUID party, UUID leader, TeamRoom teams, List<ItemStack> icons,
+                int seconds) {
             this.menuMode = menuMode;
             this.mode = mode;
             this.map = map;
             this.party = party;
+            this.leader = leader;
             this.teams = teams;
             this.icons = icons;
             this.secondsLeft = seconds;
@@ -80,6 +91,8 @@ final class TeamRooms {
     private final RagoLobby lobby;
     private final Logger logger;
     private final List<Room> rooms = new ArrayList<>();
+    /** The settings each leader chose (setting id: index of its choice), for their next games. */
+    private final Map<UUID, Map<String, Integer>> chosenSettings = new HashMap<>();
 
     TeamRooms(QueueController queues, LobbySettings settings, LobbyState state, PartyBook parties, RagoLobby lobby) {
         this.queues = queues;
@@ -145,9 +158,15 @@ final class TeamRooms {
             maps.add(of);
             rows += rowsOf(of.size());
         }
+        List<PrivateSetting> offered = settingsOf(modes);
+        if (!offered.isEmpty()) {
+            // the last row: the settings of the game
+            rows++;
+        }
         ClickMenu menu = new ClickMenu(Math.min(MAX_ROWS, rows), ChatColor.stripColor(menuMode.name()) + ": choose a map");
+        int mapRows = offered.isEmpty() ? MAX_ROWS : MAX_ROWS - 1;
         int row = 0;
-        for (int m = 0; m < modes.size() && row < MAX_ROWS; m++) {
+        for (int m = 0; m < modes.size() && row < mapRows; m++) {
             GameMode mode = modes.get(m);
             List<String> of = maps.get(m);
             int slot = row * 9;
@@ -160,7 +179,7 @@ final class TeamRooms {
                     // a new row of the same size: its first slot stays empty, under the label
                     slot++;
                 }
-                if (slot >= MAX_ROWS * 9) {
+                if (slot >= mapRows * 9) {
                     logger.warning(menuMode.id() + ": too many maps for one menu, " + map + " and the next ones are left out");
                     break;
                 }
@@ -172,6 +191,10 @@ final class TeamRooms {
                         fits ? (who, right) -> chooseMap(who, menuMode, chosenMode, chosenMap) : null);
             }
             row += rowsOf(of.size());
+        }
+        if (!offered.isEmpty()) {
+            menu.set((menu.size() / 9 - 1) * 9 + 4, settingsItem(player.getUniqueId(), offered),
+                    (who, right) -> openSettings(who, menuMode, null));
         }
         menu.open(player);
     }
@@ -254,8 +277,8 @@ final class TeamRooms {
         }
         PartyBook.Party party = parties.together(leader.getUniqueId());
         int seconds = settings.teamRooms().get(menuMode.id());
-        Room room = new Room(menuMode, mode, map, party.id(), new TeamRoom(ids, mode.teams(), mode.playersPerTeam()),
-                icons(mode, map), seconds);
+        Room room = new Room(menuMode, mode, map, party.id(), leader.getUniqueId(),
+                new TeamRoom(ids, mode.teams(), mode.playersPerTeam()), icons(mode, map), seconds);
         rooms.add(room);
         for (Player member : members) {
             member.closeInventory();
@@ -346,6 +369,10 @@ final class TeamRooms {
         menu.set(22, ClickMenu.item(Material.WATCH, ChatColor.YELLOW + "The game starts in " + room.secondsLeft + " s",
                 ChatColor.stripColor(room.menuMode.name()) + " " + format(room.mode) + " on " + room.map,
                 "With no choice, you go in the emptiest team."), null);
+        List<PrivateSetting> offered = settingsOf(Collections.singletonList(room.mode));
+        if (viewer.equals(room.leader) && !offered.isEmpty()) {
+            menu.set(SETTINGS_SLOT, settingsItem(viewer, offered), (player, right) -> openSettings(player, room.menuMode, room));
+        }
     }
 
     private void choose(Player player, int team) {
@@ -384,6 +411,182 @@ final class TeamRooms {
             }
             fill(room, entry.getValue(), entry.getKey());
         }
+    }
+
+    // --- The settings of the leader -----------------------------------------------------------------
+
+    /** The settings the hosts of these modes offer: those of the first that has some. */
+    private List<PrivateSetting> settingsOf(List<GameMode> modes) {
+        for (GameMode mode : modes) {
+            MatchHost host = queues.hostOf(mode.id());
+            if (host == null) {
+                continue;
+            }
+            try {
+                List<PrivateSetting> offered = host.privateSettings(mode);
+                if (offered != null && !offered.isEmpty()) {
+                    return offered;
+                }
+            } catch (RuntimeException e) {
+                logger.log(Level.WARNING, "The mode " + mode.id() + " could not give its settings", e);
+            }
+        }
+        return Collections.emptyList();
+    }
+
+    /** The choice of this leader for this setting: the index of its choice, 0 (a normal game) by default. */
+    private int choiceOf(UUID leader, PrivateSetting setting) {
+        Map<String, Integer> chosen = chosenSettings.get(leader);
+        Integer index = chosen == null ? null : chosen.get(setting.id);
+        return index == null || index < 0 || index >= setting.choices.size() ? 0 : index;
+    }
+
+    /** The choices of this leader for these settings, those not as in a normal game only. */
+    private Map<String, Integer> settingsFor(UUID leader, List<PrivateSetting> offered) {
+        Map<String, Integer> chosen = new HashMap<>();
+        for (PrivateSetting setting : offered) {
+            int index = choiceOf(leader, setting);
+            if (index != 0) {
+                chosen.put(setting.id, index);
+            }
+        }
+        return chosen;
+    }
+
+    /** "Speed II, Max Diamond: On": the settings of this leader not as in a normal game, or "". */
+    private String changed(UUID leader, List<PrivateSetting> offered) {
+        List<String> parts = new ArrayList<>();
+        for (PrivateSetting setting : offered) {
+            int index = choiceOf(leader, setting);
+            if (index != 0) {
+                parts.add(setting.name + ": " + setting.choices.get(index));
+            }
+        }
+        return String.join(", ", parts);
+    }
+
+    /** The item that opens the settings: what is set now. */
+    private ItemStack settingsItem(UUID leader, List<PrivateSetting> offered) {
+        List<String> lore = new ArrayList<>();
+        lore.add("Set the game, as the host on Hypixel.");
+        lore.add("");
+        for (PrivateSetting setting : offered) {
+            int index = choiceOf(leader, setting);
+            lore.add(ChatColor.GRAY + setting.name + ": " + (index == 0 ? ChatColor.WHITE : ChatColor.GREEN)
+                    + setting.choices.get(index));
+        }
+        lore.add("");
+        lore.add(ChatColor.YELLOW + "Click to set the game.");
+        return ClickMenu.item(Material.REDSTONE_COMPARATOR, 0, ChatColor.GREEN + "Game settings", lore);
+    }
+
+    /** /pg settings: the settings of the game, for the leader of a party. */
+    void openSettings(Player player) {
+        Room room = roomOf(player.getUniqueId());
+        if (room != null) {
+            openSettings(player, room.menuMode, room);
+            return;
+        }
+        for (String id : settings.teamRooms().keySet()) {
+            GameMode menuMode = settings.catalog().get(id);
+            if (menuMode != null && !settingsOf(settings.privateRoutes().get(id)).isEmpty()) {
+                openSettings(player, menuMode, null);
+                return;
+            }
+        }
+        player.sendMessage(ChatColor.RED + "No private game has settings on this server.");
+    }
+
+    /**
+     * The settings menu of the leader: each setting, a click for the next choice, a right-click for
+     * the one before; the party is told each change while it chooses its teams.
+     */
+    private void openSettings(Player player, GameMode menuMode, Room room) {
+        PartyBook.Party party = parties.together(player.getUniqueId());
+        if (room != null ? !player.getUniqueId().equals(room.leader) : party == null || !party.isLeader(player.getUniqueId())) {
+            player.closeInventory();
+            Parties.boxed(player, ChatColor.RED + "Only the party leader sets the game of a private game.");
+            return;
+        }
+        List<PrivateSetting> offered = settingsOf(room != null ? Collections.singletonList(room.mode)
+                : settings.privateRoutes().get(menuMode.id()));
+        if (offered.isEmpty()) {
+            player.sendMessage(ChatColor.RED + ChatColor.stripColor(menuMode.name()) + " has no settings.");
+            return;
+        }
+        int settingRows = offered.size() <= 4 ? 1 : (offered.size() + 6) / 7;
+        ClickMenu menu = new ClickMenu(Math.min(MAX_ROWS, settingRows + 2), "Game settings");
+        fillSettings(menu, player.getUniqueId(), menuMode, room, offered);
+        menu.open(player);
+    }
+
+    /** The slot of a setting in its menu: from the second row, side by side, two apart when they are 4 or fewer. */
+    static int settingSlot(int setting, int settings) {
+        if (settings <= 4) {
+            return 9 + 1 + setting * 2 + (4 - settings);
+        }
+        return 9 * (1 + setting / 7) + 1 + setting % 7;
+    }
+
+    private void fillSettings(ClickMenu menu, UUID leader, GameMode menuMode, Room room, List<PrivateSetting> offered) {
+        for (int i = 0; i < offered.size(); i++) {
+            PrivateSetting setting = offered.get(i);
+            int index = choiceOf(leader, setting);
+            List<String> lore = new ArrayList<>();
+            for (String line : setting.description) {
+                lore.add(ChatColor.GRAY + line);
+            }
+            lore.add("");
+            for (int c = 0; c < setting.choices.size(); c++) {
+                lore.add(c == index ? ChatColor.GREEN + "> " + setting.choices.get(c) : ChatColor.GRAY + "  " + setting.choices.get(c));
+            }
+            lore.add("");
+            lore.add(ChatColor.YELLOW + "Click: next. Right-click: back.");
+            ItemStack item = ClickMenu.item(setting.icon, 0, (index == 0 ? ChatColor.WHITE : ChatColor.GREEN) + setting.name
+                    + ChatColor.GRAY + ": " + (index == 0 ? ChatColor.WHITE : ChatColor.GREEN) + setting.choices.get(index), lore);
+            if (index != 0) {
+                ClickMenu.glow(item);
+            }
+            final PrivateSetting chosen = setting;
+            int slot = settingSlot(i, offered.size());
+            if (slot < menu.size() - 9) {
+                menu.set(slot, item, (who, right) -> {
+                    choose(who, chosen, right, room);
+                    fillSettings(menu, leader, menuMode, room, offered);
+                });
+            }
+        }
+        menu.set(menu.size() - 5, ClickMenu.back(room != null && rooms.contains(room) ? "the teams" : "the maps"),
+                (who, right) -> {
+                    if (room != null && rooms.contains(room)) {
+                        openTeams(who);
+                    } else if (room == null) {
+                        open(who, menuMode);
+                    } else {
+                        who.closeInventory();
+                    }
+                });
+    }
+
+    /** The leader clicked a setting: its next choice (right: the one before), told to the party. */
+    private void choose(Player leader, PrivateSetting setting, boolean back, Room room) {
+        int count = setting.choices.size();
+        int index = (choiceOf(leader.getUniqueId(), setting) + (back ? count - 1 : 1)) % count;
+        chosenSettings.computeIfAbsent(leader.getUniqueId(), id -> new HashMap<>()).put(setting.id, index);
+        leader.playSound(leader.getLocation(), Sound.CLICK, 1f, 1f);
+        String told = ChatColor.GRAY + leader.getName() + " set " + ChatColor.WHITE + setting.name + ChatColor.GRAY + ": "
+                + (index == 0 ? ChatColor.WHITE : ChatColor.GREEN) + setting.choices.get(index) + ChatColor.GRAY + ".";
+        if (room != null && rooms.contains(room)) {
+            tell(room, told);
+            refresh(room);
+        } else {
+            leader.sendMessage(told);
+        }
+    }
+
+    /** The player left the server: their settings go. */
+    void forget(UUID player) {
+        chosenSettings.remove(player);
     }
 
     // --- The countdown ----------------------------------------------------------------------------
@@ -454,6 +657,7 @@ final class TeamRooms {
                 sides.add(room.teamName(t) + ChatColor.GRAY + ": " + ChatColor.WHITE + String.join(", ", names));
             }
         }
+        String settingsLine = changed(room.leader, settingsOf(Collections.singletonList(room.mode)));
         for (UUID id : room.teams.players()) {
             Player player = Bukkit.getPlayer(id);
             if (player == null) {
@@ -468,6 +672,9 @@ final class TeamRooms {
             for (String side : sides) {
                 player.sendMessage(ChatColor.GRAY + " " + side);
             }
+            if (!settingsLine.isEmpty()) {
+                player.sendMessage(ChatColor.GRAY + " Settings: " + ChatColor.WHITE + settingsLine);
+            }
         }
         MatchProposal match;
         try {
@@ -477,7 +684,12 @@ final class TeamRooms {
             tell(room, ChatColor.RED + "The game could not start: try again.");
             return;
         }
-        queues.startDirect(match, true);
+        Map<String, Integer> chosen = settingsFor(room.leader, settingsOf(Collections.singletonList(room.mode)));
+        if (chosen.isEmpty()) {
+            queues.startDirect(match, true);
+        } else {
+            queues.startDirect(match, chosen);
+        }
     }
 
     private void cancel(Room room, String why) {

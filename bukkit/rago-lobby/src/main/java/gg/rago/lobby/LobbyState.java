@@ -26,6 +26,8 @@ final class LobbyState {
     private final Set<UUID> privateGame = new HashSet<>();
     /** Those of them whose game came from the Private games (parties-privees): its practice. */
     private final Set<UUID> practice = new HashSet<>();
+    /** Those of them whose party leader set the game (Bedwars Normal): setting id, index of its choice. */
+    private final Map<UUID, Map<String, Integer>> privateSettings = new HashMap<>();
     /**
      * The players of a game started without the queue (a /duel): it counts, but never moves the
      * ranked ELO nor the win streaks, which two friends could farm against each other.
@@ -108,6 +110,7 @@ final class LobbyState {
         ownerTool.remove(player);
         privateGame.remove(player);
         practice.remove(player);
+        privateSettings.remove(player);
         unrated.remove(player);
         watching.remove(player);
     }
@@ -121,6 +124,19 @@ final class LobbyState {
 
     boolean isInPrivateGame(UUID player) {
         return privateGame.contains(player);
+    }
+
+    /** The settings the party leader chose for this player's private game (Bedwars Normal). */
+    void setPrivateSettings(UUID player, Map<String, Integer> settings) {
+        if (privateGame.contains(player) && settings != null && !settings.isEmpty()) {
+            privateSettings.put(player, Collections.unmodifiableMap(new HashMap<>(settings)));
+        }
+    }
+
+    /** The settings of this player's private game: empty when the leader set none. */
+    Map<String, Integer> privateSettings(UUID player) {
+        Map<String, Integer> settings = privateSettings.get(player);
+        return settings == null ? Collections.<String, Integer>emptyMap() : settings;
     }
 
     /** The player's private game came from the Private games: the practice of its mode. */
@@ -204,6 +220,7 @@ final class LobbyState {
         building.remove(player);
         privateGame.remove(player);
         practice.remove(player);
+        privateSettings.remove(player);
         unrated.remove(player);
         watching.remove(player);
     }

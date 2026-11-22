@@ -204,12 +204,18 @@ Bedwars Normal). Seul le chef de la party la lance ; son menu montre les deux li
 carte (le serveur de test n'a aucune map de 4 ou 8 équipes), et `/queue bedwars-normal-4s` seul
 est refusé. Le reste passe par `test-equipes`, un mode caché que le script ajoute à la config du
 lobby avec le même choix des équipes (`parties-privees-equipes`) sur Fast Bedwars 2v2, donc sur la
-carte démo, avec un compte à rebours de 8 secondes : le chef clique `bw-demo`, le menu des équipes
-s'ouvre pour les trois (laine rouge et bleue) ; le chef et le deuxième prennent rouge, le troisième
+carte démo, avec un compte à rebours de 8 secondes. Le script donne aussi les réglages du chef de
+party (`reglages-prives`) à Fast Bedwars 2v2 : un autre joueur ne peut pas régler (`/pg settings`) ;
+le chef ouvre « Game settings » depuis le menu des maps, met Speed II (trois clics, puis un clic
+droit en arrière), Max Diamond, Max Emerald et Break the Map, et revient au menu des maps qui les
+montre. Le chef clique `bw-demo`, le menu des équipes s'ouvre pour les trois (laine rouge et bleue,
+les réglages dans celui du chef seulement) ; le chef et le deuxième prennent rouge, le troisième
 aussi : « Red is full. » ; il ferme son menu, `/pg team` le rouvre avec les deux noms sous rouge. À
 la fin du compte à rebours la partie part seule : rouge les deux qui l'ont choisi, bleu le troisième
-(l'équipe la plus vide), sans stats (le log du serveur le dit). Chacun est sur l'île de son équipe ;
-le troisième s'en va, rouge gagne, et les trois reviennent au lobby. Une vraie partie sur une map de
+(l'équipe la plus vide), sans stats (le log du serveur le dit), les réglages écrits. Chacun est sur
+l'île de son équipe ; le chef a Speed II, Protection IV sur son armure et Sharpness sur son épée dès
+le début, voit le générateur d'émeraudes au Tier III et les lits comme prochain événement (aucun
+Emerald), et casse à la main un bloc de son île ; le troisième s'en va, rouge gagne, et les trois reviennent au lobby. Une vraie partie sur une map de
 4s ou de 2s n'est pas jouée par les bots.
 Enfin un bot invite RagoBot dans sa party (`tools/kb-control/bots/ragobot-bots.mjs`) : RagoBot
 entre tout de suite, à côté de lui ; une deuxième invitation, une file classée, un mode qu'il ne

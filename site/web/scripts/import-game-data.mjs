@@ -250,6 +250,16 @@ export function buildGameData() {
   // mode of its own on the site; one in the selector (Lobby Fight FFA, whose kit the 1v1 plays) is
   const kitHolders = new Set(Object.values(lobby.modes).map((mode) => mode['kit-de'])
     .filter((id) => id && lobby.modes[id]?.cache === true));
+  // the sizes of a private game whose players choose their teams (parties-privees-equipes: the 4s
+  // and 2s of Bedwars Normal), out of the selector too: played only from it, not modes of their own
+  const sizeOf = {};
+  for (const [room, settings] of Object.entries(lobby['parties-privees-equipes'] ?? {})) {
+    for (const id of settings.cartes ?? []) {
+      if (lobby.modes[id]?.cache === true) {
+        sizeOf[id] = room;
+      }
+    }
+  }
   const modes = Object.entries(lobby.modes).filter(([id]) => !kitHolders.has(id)).map(([id, mode]) => ({
     id,
     name: plain(mode.nom),
@@ -260,10 +270,14 @@ export function buildGameData() {
     format: format(mode),
     ranked: mode.classe === true,
     startHere: mode['commencer-ici'] === true,
-    event: mode.cache === true,
+    event: mode.cache === true && !(id in sizeOf),
+    sizeOf: sizeOf[id] ?? null,
     description: paragraph(mode.description),
     plugins: pluginsOf(id),
   }));
+
+  // in the selector: neither an event of /host nor a size of a private game
+  const inSelector = (mode) => !mode.event && mode.sizeOf == null;
 
   // the NPCs of the ways to play wear the skin of their category
   const npcs = Object.values(lobby.pnj ?? {});
@@ -275,7 +289,7 @@ export function buildGameData() {
     const also = (category.aussi ?? []).flatMap((key) => {
       const wanted = String(key).trim().toLowerCase();
       return lobby.groupes?.[wanted]
-        ? modes.filter((mode) => mode.group === wanted && !mode.event).map((mode) => mode.id)
+        ? modes.filter((mode) => mode.group === wanted && inSelector(mode)).map((mode) => mode.id)
         : [wanted];
     });
     return {
@@ -286,7 +300,7 @@ export function buildGameData() {
       slogan: segments(category.slogan),
       description: paragraph(category.description),
       skin: npcs.find((npc) => npc.categorie === id && !npc.type)?.skin ?? null,
-      modes: modes.filter((mode) => mode.category === id && !mode.event).length + also.length,
+      modes: modes.filter((mode) => mode.category === id && inSelector(mode)).length + also.length,
       also,
     };
   });

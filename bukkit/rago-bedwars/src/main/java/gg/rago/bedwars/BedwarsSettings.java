@@ -400,6 +400,8 @@ final class BedwarsSettings {
     private final List<String> allShopModes;
     /** equipes-exactes: see {@link #exactTeams}. */
     private List<String> exactTeamModes = Collections.emptyList();
+    /** reglages-prives: see {@link #privateRules}. */
+    private List<String> privateRuleModes = Collections.emptyList();
     /** The kits of Attack and Defense to choose from, each side its own (attaque-defense:). */
     private final List<RoundKit> attackKits;
     private final List<RoundKit> defenseKits;
@@ -522,6 +524,11 @@ final class BedwarsSettings {
                 attackKits, defenseKits, attackDefenseProtection, bedBreakKits, bedBreakProtection, strongStuff(config),
                 ctf(config), fast(config));
         settings.exactTeamModes = Collections.unmodifiableList(exactTeams);
+        List<String> privateRules = new ArrayList<>();
+        for (String mode : config.getStringList("reglages-prives")) {
+            privateRules.add(modeId(mode, "reglages-prives"));
+        }
+        settings.privateRuleModes = Collections.unmodifiableList(privateRules);
         return settings;
     }
 
@@ -913,6 +920,14 @@ final class BedwarsSettings {
      */
     boolean exactTeams(String modeId) {
         return exactTeamModes.contains(modeId);
+    }
+
+    /**
+     * True for a mode whose private games the party leader sets ({@link PrivateRules}: Speed, Max
+     * Diamond...), in the lobby before the game (reglages-prives: Bedwars Normal, its 4s and 2s).
+     */
+    boolean privateRules(String modeId) {
+        return privateRuleModes.contains(modeId);
     }
 
     /** True if the games of this mode have an item shop on every island of the map, the empty ones' too. */

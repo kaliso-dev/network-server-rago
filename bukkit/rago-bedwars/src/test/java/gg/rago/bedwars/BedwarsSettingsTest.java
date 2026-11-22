@@ -93,8 +93,10 @@ class BedwarsSettingsTest {
             assertEquals(BedwarsSettings.Kind.CLASSIC, settings.kind(size), size);
             assertEquals(Collections.emptyList(), settings.mapsOf(size), size + ": every map (toutes)");
             assertTrue(settings.exactTeams(size), size + ": only the maps of its number of teams");
+            assertTrue(settings.privateRules(size), size + ": the party leader sets its private games");
         }
         assertFalse(settings.exactTeams("first-rush-full"), "First Rush on any map of 4 teams or more");
+        assertFalse(settings.privateRules("fast-bedwars-2v2"), "only Bedwars Normal has the settings of the leader");
         // the ranked duels (plan 3.7): the game and the maps of their mode of Solo, top bridge included
         assertEquals(BedwarsSettings.Kind.BED_FIGHT, settings.kind("ranked-bed-fight-1v1"));
         assertEquals(settings.mapsOf("bed-fight-1v1"), settings.mapsOf("ranked-bed-fight-1v1"));

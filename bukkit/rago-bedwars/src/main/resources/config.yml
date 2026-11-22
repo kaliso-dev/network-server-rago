@@ -326,6 +326,13 @@ fast-bedwars:
 # config.yml): Bedwars Normal, its 4s (4 teams) on the maps of 4 teams, its 2s (8 teams) on those of 8.
 equipes-exactes: [bedwars-normal-4s, bedwars-normal-2s]
 
+# The modes whose private games the party leader sets in the lobby before the game (Bedwars Normal,
+# the owner's answers of 22/11): Speed (none, I, II or III for everyone), Max Diamond (every team
+# with Sharpened Swords and Reinforced Armor IV from the start), Max Emerald (the emerald generators
+# at Tier III from the start, the game as long as usual), Break the Map (every block of the map
+# breaks, but around the spawns and the generators). Each is as in a normal game until set.
+reglages-prives: [bedwars-normal-4s, bedwars-normal-2s]
+
 # How many game worlds the server keeps at most, so how many games at once (from 1 to 50).
 parties-max: 8
 

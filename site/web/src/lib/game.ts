@@ -37,6 +37,8 @@ export interface Mode {
   ranked: boolean;
   startHere: boolean;
   event: boolean;
+  /** The private game whose size this mode is (the 4s and 2s of Bedwars Normal): played only from it. */
+  sizeOf: string | null;
   description: string;
   plugins: string[];
 }
@@ -147,8 +149,11 @@ export const categoryOf = (id: string): Category => {
   return found;
 };
 
-/** The modes of the selector: every mode but the events of /host, which have no queue. */
-export const playableModes = (): Mode[] => game.modes.filter((mode) => !mode.event);
+/**
+ * The modes of the selector: every mode but the events of /host, which have no queue, and the sizes
+ * of a private game (the 4s and 2s of Bedwars Normal), played only from it.
+ */
+export const playableModes = (): Mode[] => game.modes.filter((mode) => !mode.event && mode.sizeOf == null);
 
 /** The modes a category shows, as the compass of the lobby: its own, then those of others it shows too. */
 export const modesShownIn = (category: Category): Mode[] => [

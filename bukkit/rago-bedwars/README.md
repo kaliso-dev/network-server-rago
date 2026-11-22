@@ -114,7 +114,22 @@ du lobby, une partie classique, sur toutes les maps du serveur (`toutes`), seule
 équipes (voir le README de RagoLobby) : son match donne les équipes de la map dans l'ordre des
 couleurs, une équipe que personne n'a choisie vide. Elle ne joue pas : son lit est enlevé, comme
 celui des îles vides. Le menu des équipes du lobby montre les couleurs que l'hôte donne pour la
-map (`teamIcons`). Les réglages du chef de party viennent ensuite.
+map (`teamIcons`).
+
+Les réglages du chef de party (`reglages-prives:`, `PrivateRules`, testés par `PrivateRulesTest`),
+tes quatre d'abord ; chacun est celui d'une partie normale tant qu'il n'est pas changé :
+- **Speed** : aucun, Speed I, II ou III pour tous, toute la partie (une potion du shop plus forte
+  passe devant le temps qu'elle dure) ;
+- **Max Diamond** (« tout les enchantement debloqué ») : chaque équipe commence avec Sharpened
+  Swords et Reinforced Armor IV. Maniac Miner, la Forge et le Heal Pool restent à acheter, à
+  confirmer ;
+- **Max Emerald** (« event au max Emerald 3 mais avec le temps normal d'une game ») : les
+  générateurs d'émeraudes partent au Tier III ; Emerald II et III ne viennent plus, les lits et la
+  fin de partie à leur heure ;
+- **Break the Map** : tout bloc de la map se casse, sauf autour des spawns et des générateurs (là
+  où on ne peut rien poser) ; les lits restent ceux de la partie, la copie de la map part avec elle.
+Les réglages d'Hypixel du tableau (One Hit One Kill, Health Buff, Low Gravity, Respawn Time, Event
+Times, Bed Instabreak) viennent ensuite.
 
 ## First Rush
 

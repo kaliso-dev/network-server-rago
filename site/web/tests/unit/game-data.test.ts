@@ -134,6 +134,11 @@ describe('the game data', () => {
       'bed-break-simulator-1v2', 'invis-practice-1v2', 'clutch-scenario-1v2', 'bed-fight-1v2']);
     const events = game.modes.filter((mode) => mode.event);
     expect(events.every((mode) => lobby.modes[mode.id].cache === true)).toBe(true);
+    // the 4s and 2s of Bedwars Normal: hidden too, but no events, played only from Bedwars Normal
+    for (const size of ['bedwars-normal-4s', 'bedwars-normal-2s']) {
+      expect(modeOf(size).event, size).toBe(false);
+      expect(modeOf(size).sizeOf, size).toBe('bedwars-normal');
+    }
   });
 
   it('gives each category the skin of its NPC in the lobby, and the skin is rendered', () => {

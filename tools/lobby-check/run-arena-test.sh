@@ -25,8 +25,9 @@
 # events (no Diamond II), no diamond generator nor upgrades NPC, its fast forge, its smaller shop.
 # Then three bots in a party play the private games (tools/kb-control/bots/private-bots.mjs): the
 # menu of Bedwars Normal (its rows of 4s and 2s, with no map here), then test-equipes, a hidden mode
-# this script adds with the same team choice on Fast Bedwars 2v2: the map, the team of each (one
-# full), /pg team, the countdown, the game with the teams chosen, in no stats.
+# this script adds with the same team choice on Fast Bedwars 2v2: the settings of the leader (Speed
+# II, Max Diamond, Max Emerald, Break the Map), the map, the team of each (one full), /pg team, the
+# countdown, the game with the teams chosen and the settings, in no stats.
 # Then a bot invites RagoBot into its party (tools/kb-control/bots/ragobot-bots.mjs): RagoBot refuses
 # ranked and the modes it does not play, wins a Sumo duel, a Boxing, a round of Top Bridge 1v1 and
 # a round of Lobby Fight 1v1 against the bot who stands still; in a Block placement 1v1 (RagoArbitre
@@ -178,11 +179,15 @@ for png in "$ROOT"/bukkit/rago-lobby/src/main/resources/skins/*.png; do
 done >"$SERVER_DIR/plugins/RagoLobby/skins.yml"
 grep -q '^quetes:$' "$SERVER_DIR/plugins/RagoLobby/skins.yml" || fail "could not write skins.yml"
 # The bundled config.yml of RagoBedwars, with an ingot a second on each iron node, whatever the
-# bundled speed (the fireball, 40 iron, comes in a few seconds).
+# bundled speed (the fireball, 40 iron, comes in a few seconds); and the settings of the party
+# leader (reglages-prives) on Fast Bedwars 2v2 too, the game of test-equipes for the private game bots.
 mkdir -p "$SERVER_DIR/plugins/RagoBedwars"
 sed -e 's/^  fer-secondes-par-noeud: [0-9.]*$/  fer-secondes-par-noeud: 1/' \
+  -e 's/^reglages-prives: \[bedwars-normal-4s, bedwars-normal-2s\]$/reglages-prives: [bedwars-normal-4s, bedwars-normal-2s, fast-bedwars-2v2]/' \
   "$ROOT/bukkit/rago-bedwars/src/main/resources/config.yml" >"$SERVER_DIR/plugins/RagoBedwars/config.yml"
 grep -q '^  fer-secondes-par-noeud: 1$' "$SERVER_DIR/plugins/RagoBedwars/config.yml" || fail "could not speed up the iron"
+grep -q '^reglages-prives: \[bedwars-normal-4s, bedwars-normal-2s, fast-bedwars-2v2\]$' "$SERVER_DIR/plugins/RagoBedwars/config.yml" \
+  || fail "could not give Fast Bedwars 2v2 the settings of the party leader"
 # Around the spawn of the new lobby world: the NPC of the Duels category (on its point of the
 # bundled config, duels), a stats NPC (profil), a wall of leaderboards (leaderboards), the main
 # leaderboard (top, within click range of the spawn) and the kills leaderboard (joueurs).

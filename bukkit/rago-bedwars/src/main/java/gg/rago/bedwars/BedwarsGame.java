@@ -168,6 +168,8 @@ class BedwarsGame {
     final List<Generator> forges = new ArrayList<>();
     final List<Generator> diamonds = new ArrayList<>();
     final List<Generator> emeralds = new ArrayList<>();
+    /** The settings of the party leader of a private game of Bedwars Normal; those of a normal game else. */
+    PrivateRules rules = PrivateRules.NONE;
     /** The shop and upgrades NPCs, and where they stand. */
     private final Map<Entity, Location> npcs = new HashMap<>();
     /** The upgrades NPCs (each opens the upgrades of the team of whoever clicks it). */
@@ -373,6 +375,7 @@ class BedwarsGame {
             economyUp(islands());
         }
         setUp();
+        applyRules();
         for (Gamer gamer : gamers.values()) {
             Player player = Bukkit.getPlayer(gamer.id);
             if (player == null) {
@@ -380,6 +383,10 @@ class BedwarsGame {
             }
             place(player, gamer);
             welcome(player, gamer);
+            if (rules.any()) {
+                player.sendMessage(ChatColor.GOLD + "Settings of the party leader: " + ChatColor.WHITE
+                        + String.join(", ", rules.summary()));
+            }
             if (teamNameTags()) {
                 plugin.lobby().setGameNameTag(player, gamer.team.color.letter() + " " + gamer.team.color.chat());
             }
@@ -1086,9 +1093,29 @@ class BedwarsGame {
         }
     }
 
+    /**
+     * Before the players are placed: the settings of the party leader ({@link PrivateRules}): with Max
+     * Diamond, every team with Sharpened Swords and Reinforced Armor IV; with Max Emerald, the emerald
+     * generators at Tier III (Emerald II and III then do not come, see {@link #events}). Speed is on
+     * the players each second ({@link #teamEffects}), Break the Map at each block ({@link #breaksMap}).
+     */
+    void applyRules() {
+        if (rules.maxDiamond()) {
+            for (Team team : teams) {
+                team.upgrades.setTier(Upgrades.Kind.SHARPENED_SWORDS, Upgrades.Kind.SHARPENED_SWORDS.tiers());
+                team.upgrades.setTier(Upgrades.Kind.REINFORCED_ARMOR, Upgrades.Kind.REINFORCED_ARMOR.tiers());
+            }
+        }
+        if (rules.maxEmerald()) {
+            for (Generator generator : emeralds) {
+                generator.upgrade(3, settings.emerald().get(2));
+            }
+        }
+    }
+
     /** The timed events of a game: the generators going up a tier, the end of the beds, the end. */
     void events() {
-        int[] times = times();
+        int[] times = rules.times(times());
         if (seconds == times[0]) {
             upgrade(diamonds, 2, settings.diamond().get(1), "Diamond");
         } else if (seconds == times[1]) {
@@ -1123,7 +1150,7 @@ class BedwarsGame {
 
     /** The next timed event and when: "Diamond II", 180 seconds. */
     private String nextEvent() {
-        int[] times = times();
+        int[] times = rules.times(times());
         String[] names = {"Diamond II", "Emerald II", "Diamond III", "Emerald III", "Bed Gone", "Game End"};
         for (int i = 0; i < times.length; i++) {
             if (times[i] > seconds) {
@@ -1198,10 +1225,11 @@ class BedwarsGame {
 
     /**
      * True if this block of the map, not placed by a player, may be broken (the rollback puts it
-     * back): never, but on the bridge of Top Bed Fight.
+     * back): never, but on the bridge of Top Bed Fight, and where a block may be placed in a private
+     * game of Bedwars Normal with Break the Map (so not around the spawns and the generators).
      */
     boolean breaksMap(Block block) {
-        return false;
+        return rules.breakMap() && cannotBuildAt(block) == null;
     }
 
     /**
@@ -2525,6 +2553,10 @@ class BedwarsGame {
      * the swords and axes they carry, the Heal Pool's Regeneration while they are in their base.
      */
     void teamEffects(Player player, Gamer gamer) {
+        if (rules.speed() > 0) {
+            // the Speed of the party leader's settings, under a stronger potion of the shop
+            keep(player, PotionEffectType.SPEED, rules.speed() - 1);
+        }
         Upgrades upgrades = gamer.team.upgrades;
         if (upgrades.haste() > 0) {
             keep(player, PotionEffectType.FAST_DIGGING, upgrades.haste() - 1);

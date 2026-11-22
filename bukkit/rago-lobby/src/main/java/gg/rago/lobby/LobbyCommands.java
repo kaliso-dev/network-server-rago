@@ -62,6 +62,11 @@ final class LobbyCommands implements TabExecutor {
                     lobby.queues().rooms().openTeams(player);
                     return true;
                 }
+                // /pg settings: the party leader sets the game (Speed, Max Diamond...)
+                if (args.length == 1 && args[0].equalsIgnoreCase("settings")) {
+                    lobby.queues().rooms().openSettings(player);
+                    return true;
+                }
                 return false;
             case "pc":
                 if (args.length == 0) {

@@ -1637,6 +1637,11 @@ public final class RagoLobby extends JavaPlugin implements LobbyService {
     }
 
     @Override
+    public Map<String, Integer> privateSettings(UUID player) {
+        return state.privateSettings(player);
+    }
+
+    @Override
     public boolean inOwnerToolGame(UUID player) {
         return state.isOwnerToolGame(player);
     }

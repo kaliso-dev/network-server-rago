@@ -105,7 +105,13 @@ dans les files d'attente des modes de jeu.
   taille de la map (deux au moins : 5 joueurs sans choix sur une 2s font 2, 2 et 1 ; 6 sur une 4s
   font 3 et 3). De 2 à 16 joueurs ; une party qui change, ou un joueur qui quitte le lobby, annule.
   La logique des équipes est dans `TeamRoom` (testée par `TeamRoomTest`), les menus dans
-  `TeamRooms`. Les réglages du chef de party viennent ensuite.
+  `TeamRooms`. Le chef de party règle la partie (ta réponse 7) : le comparateur « Game settings »
+  de la dernière ligne du menu des maps, celui de son menu d'équipes, ou `/pg settings` ; un clic
+  passe au choix suivant, un clic droit revient au précédent, et la party lit chaque changement
+  pendant le choix des équipes. Les réglages viennent du plugin du mode (`MatchHost.privateSettings`,
+  pour Bedwars Normal : Speed, Max Diamond, Max Emerald, Break the Map, voir le README de
+  RagoBedwars) ; le lobby les donne à la partie (`LobbyService.privateSettings`). Ils restent ceux
+  du chef pour ses parties suivantes, jusqu'à ce qu'il quitte le serveur.
 - **RagoBot** (`ragobot:`, le choix du propriétaire du 22/11). `/p invite RagoBot` (ou `/p RagoBot`)
   le fait entrer tout de suite dans la party, à côté du chef : un vrai joueur du serveur, avec le
   skin d'un compte (`skin:`, qRago) et le nom RagoBot, un par party qui l'invite (`max:` à la

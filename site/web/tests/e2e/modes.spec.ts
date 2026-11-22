@@ -2,7 +2,8 @@ import { expect, test } from '@playwright/test';
 import game from '../../src/data/game.json' with { type: 'json' };
 import { FLAGSHIP_PAGES, ONLINE, SOON } from './helpers';
 
-const playable = game.modes.filter((mode) => !mode.event);
+// as on the site (playableModes): neither the events of /host nor the 4s and 2s of Bedwars Normal, played from it
+const playable = game.modes.filter((mode) => !mode.event && mode.sizeOf == null);
 
 test.describe('the game modes page', () => {
   test('puts the six modes first, then lists every mode of each way to play', async ({ page }) => {
@@ -35,7 +36,8 @@ test.describe('the game modes page', () => {
     // every mode of the game is listed, once, under its way to play or in the events, and again in the
     // categories that show it too (3 Players)
     const lists = page.locator('section[aria-labelledby]:not([aria-labelledby="flagships"])');
-    for (const mode of game.modes) {
+    // (the 4s and 2s of Bedwars Normal are played only from it: listed as Bedwars Normal)
+    for (const mode of game.modes.filter((mode) => mode.sizeOf == null)) {
       const shownToo = game.categories.filter((category) => (category.also as string[]).includes(mode.id)).length;
       await expect(lists.getByRole('heading', { level: 3, name: mode.name, exact: true }), mode.id).toHaveCount(1 + shownToo);
     }
