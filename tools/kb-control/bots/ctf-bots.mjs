@@ -499,7 +499,7 @@ async function main () {
     await runTo(red, -FLAG_X + 0.5, () => red.chats.slice(from[0]).some((line) => /captured the Blue Flag!/.test(line)),
       `capture ${capture}`)
     for (const [i, bot] of [red, blue].entries()) {
-      await chatLine(bot, new RegExp(`${red.username} captured the Blue Flag! (Red ${capture} - 0 Blue|Blue 0 - ${capture} Red)`),
+      await chatLine(bot, new RegExp(`${red.username} captured the Blue Flag! Red ${capture} - Blue 0$`),
         5000, from[i])
     }
     if (capture < 3) {
@@ -508,7 +508,7 @@ async function main () {
       await expectFlagLine(red, `Captures: ${capture}`, `capture ${capture}`)
       await expectFlagLine(blue, 'B Blue: 0 Safe YOU', `capture ${capture}`)
     }
-    log(`runner: capture ${capture}, Red ${capture} - 0 Blue`)
+    log(`runner: capture ${capture}, Red ${capture} - Blue 0`)
   }
 
   // 5. the end
