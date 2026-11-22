@@ -38,7 +38,7 @@ class LobbySettingsTest {
     static YamlConfiguration withModeNpcs() throws Exception {
         YamlConfiguration yaml = bundledConfig();
         modeNpc(yaml, "ranked", "ranked", "ranked-1v1", "ranked-2v2", "ranked-3v3", "ranked-4v4");
-        modeNpc(yaml, "partieprivee", "prive", "partie-privee", "top-bridge-prive");
+        modeNpc(yaml, "partieprivee", "prive", "bedwars-normal");
         modeNpc(yaml, "ffa", "ffa", "ffa", "top-bridge-1v1", "top-bridge-2v2", "top-bridge-ffa");
         modeNpc(yaml, "clutchscenario", "clutch", "clutch-scenario-1v1", "clutch-scenario-1v2", "clutch-scenario-1v3",
                 "clutch-scenario-1v4");
@@ -150,7 +150,7 @@ class LobbySettingsTest {
         String[][] games = {
             {"ranked-1v1", "ranked-2v2", "ranked-3v3", "ranked-4v4"},
             {"bed-fight-1v1", "bed-fight-2v2", "bed-fight-1v2", "ranked-bed-fight-1v1"},
-            {"top-bridge-1v1", "top-bridge-2v2", "top-bridge-ffa", "ranked-top-bridge-1v1", "red-rover-top-bridge", "top-bridge-prive"},
+            {"top-bridge-1v1", "top-bridge-2v2", "top-bridge-ffa", "ranked-top-bridge-1v1", "red-rover-top-bridge"},
             {"bridge-fight", "bridge-fight-1v1", "bridge-fight-2v2", "ranked-bridge-fight-1v1"},
             {"block-fight-1v1", "block-fight-2v2", "block-fight-arena", "ranked-block-fight-1v1", "red-rover-block-placement"},
             {"lobby-fight-ffa", "lobby-fight-1v1"},
@@ -297,9 +297,8 @@ class LobbySettingsTest {
         assertNull(settings.privateRoutes().get("top-fight-prive"));
         assertEquals(Arrays.asList("attack-defense-1v1", "attack-defense-2v2"),
                 displayIds(settings.modesOfGroup("attack-defense")));
-        assertEquals(Arrays.asList("top-bridge-1v1", "top-bridge-2v2"), ids(settings.privateRoutes().get("top-bridge-prive")),
-                "the practice of the top bridge, with the party");
-        assertTrue(LobbySettings.load(withModeNpcs()).npc("partieprivee").modeIds().contains("top-bridge-prive"));
+        assertNull(settings.privateRoutes().get("top-bridge-prive"), "replaced by Bedwars Normal (the owner, 22/11)");
+        assertTrue(LobbySettings.load(withModeNpcs()).npc("partieprivee").modeIds().contains("bedwars-normal"));
         assertTrue(settings.display("top-bridge-1v1").kit() != null, "the kit of the rounds, arranged in the kit editor");
         assertEquals(Material.STONE_SWORD, settings.display("top-bridge-ffa").kit().item(0).material(), "the fight kit");
         int shown = 0;
@@ -417,8 +416,8 @@ class LobbySettingsTest {
         assertEquals("fun", fun.category());
         assertEquals("fun", fun.skin(), "the skin of the Fun Practice (22/11)");
         assertEquals(displayIds(settings.modesIn("fun")), fun.modeIds(), "it holds the modes of FUN PRACTICE");
-        assertEquals(Arrays.asList("partie-privee", "top-bridge-prive"), displayIds(settings.modesOfGroup("prive")),
-                "the private games stay in the RBW Modes, one item");
+        assertEquals(Arrays.asList("bedwars-normal"), displayIds(settings.modesOfGroup("prive")),
+                "the private games stay in the RBW Modes, one item: Bedwars Normal in the place of the two of before");
         assertTrue(settings.entriesIn("ranked").stream().anyMatch(entry -> entry.group != null && "prive".equals(entry.group.id())));
         LobbyNpc arenas = settings.npc("arenas");
         assertEquals("§c§lArenas", arenas.name());
@@ -734,14 +733,53 @@ class LobbySettingsTest {
     @Test
     void privateGamesFollowThePartySizeFromTheSmallestMode() throws Exception {
         LobbySettings settings = LobbySettings.load(bundledConfig());
-        java.util.List<GameMode> rbw = settings.privateRoutes().get("partie-privee");
-        assertEquals(Arrays.asList("ranked-1v1", "ranked-2v2", "ranked-3v3", "ranked-4v4"), ids(rbw));
-        assertEquals(Arrays.asList("top-bridge-1v1", "top-bridge-2v2"), ids(settings.privateRoutes().get("top-bridge-prive")));
+        // the owner's answers of 22/11: the Private game and the Private top bridge replaced
+        assertNull(settings.privateRoutes().get("partie-privee"));
+        assertNull(settings.display("partie-privee"));
+        assertNull(settings.display("top-bridge-prive"));
         assertNull(settings.privateRoutes().get("ranked-1v1"));
 
         LobbySettings unordered = LobbySettings.load(yaml("parties-privees:\n  prive: [duo, solo]\nmodes:\n  prive: {}\n"
                 + "  solo: {equipes: 2, joueurs-par-equipe: 1}\n  duo: {equipes: 2, joueurs-par-equipe: 2}\n"));
         assertEquals(Arrays.asList("solo", "duo"), ids(unordered.privateRoutes().get("prive")));
+    }
+
+    @Test
+    void bedwarsNormalHasItsPlayersChooseTheirTeams() throws Exception {
+        LobbySettings settings = LobbySettings.load(bundledConfig());
+        // the owner's answers of 22/11: the maps of 4s and of 2s, 20 seconds to choose the teams
+        assertEquals(Integer.valueOf(20), settings.teamRooms().get("bedwars-normal"));
+        assertEquals(Arrays.asList("bedwars-normal-4s", "bedwars-normal-2s"), ids(settings.privateRoutes().get("bedwars-normal")),
+                "a row of maps for each, the 4s first");
+        GameMode fours = settings.catalog().get("bedwars-normal-4s");
+        GameMode twos = settings.catalog().get("bedwars-normal-2s");
+        assertEquals(Arrays.asList(4, 4, 8, 2), Arrays.asList(fours.teams(), fours.playersPerTeam(), twos.teams(), twos.playersPerTeam()));
+        assertEquals(16, fours.playersPerMatch(), "4 x 4");
+        assertEquals(16, twos.playersPerMatch(), "2 x 8");
+        assertFalse(fours.ranked() || twos.ranked(), "in no stats");
+        assertTrue(settings.display("bedwars-normal-4s").hidden() && settings.display("bedwars-normal-2s").hidden(),
+                "not in the selector: their maps after the click");
+        assertEquals("4s", settings.display("bedwars-normal-4s").format());
+        assertEquals("2s", settings.display("bedwars-normal-2s").format());
+        assertNull(settings.teamRooms().get("ranked-1v1"));
+
+        LobbySettings short_ = LobbySettings.load(yaml("parties-privees-equipes:\n  prive: {cartes: [duo]}\nmodes:\n"
+                + "  prive: {}\n  duo: {equipes: 2, joueurs-par-equipe: 2}\n"));
+        assertEquals(Integer.valueOf(20), short_.teamRooms().get("prive"), "20 seconds by default");
+    }
+
+    @Test
+    void refusesWrongPrivateGamesWithTeamsChosen() {
+        String modes = "modes:\n  prive: {}\n  duo: {equipes: 2, joueurs-par-equipe: 2}\n  solo: {equipes: 1}\n";
+        assertInvalid("parties-privees-equipes:\n  prive: {cartes: [autre]}\n" + modes, "parties-privees-equipes.prive.cartes");
+        assertInvalid("parties-privees-equipes:\n  prive: {cartes: [solo]}\n" + modes, "parties-privees-equipes.prive.cartes");
+        assertInvalid("parties-privees-equipes:\n  prive: {cartes: []}\n" + modes, "parties-privees-equipes.prive.cartes");
+        assertInvalid("parties-privees-equipes:\n  prive: {cartes: [duo], compte-a-rebours: 0}\n" + modes,
+                "parties-privees-equipes.prive.compte-a-rebours");
+        assertInvalid("parties-privees-equipes:\n  autre: {cartes: [duo]}\n" + modes, "parties-privees-equipes.autre");
+        assertInvalid("parties-privees-equipes:\n  prive: [duo]\n" + modes, "parties-privees-equipes.prive");
+        assertInvalid("parties-privees:\n  prive: [duo]\nparties-privees-equipes:\n  prive: {cartes: [duo]}\n" + modes,
+                "parties-privees-equipes.prive");
     }
 
     @Test

@@ -92,8 +92,11 @@ describe('the game data', () => {
           new RegExp(`alsoRanked\\([^;]*?,\\s*"${id}"\\);`).test(practice) ||
           sumo.includes(`MODE_ID = "${id}"`) ||
           (id.startsWith('event-') && events.includes(`("${id.slice('event-'.length)}",`));
-    // a private game plays the modes of its list, with the party
-    const privateGames: Record<string, string[]> = lobby['parties-privees'] ?? {};
+    // a private game plays the modes of its list, with the party; Bedwars Normal those of its maps
+    const privateGames: Record<string, string[]> = { ...(lobby['parties-privees'] ?? {}) };
+    for (const [id, room] of Object.entries<{ cartes?: string[] }>(lobby['parties-privees-equipes'] ?? {})) {
+      privateGames[id] = room.cartes ?? [];
+    }
     // a hidden mode whose kit others play (kit-de:) only holds that kit: not a mode of the site;
     // one in the selector (Lobby Fight FFA, whose kit the 1v1 plays) is a mode of its own
     const configModes: Record<string, Record<string, unknown>> = lobby.modes;

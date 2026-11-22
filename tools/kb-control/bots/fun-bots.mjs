@@ -340,31 +340,72 @@ async function snowballSpleef (one, two) {
   const aim = new Vec3(Math.floor(e.x) + 3.5, game.centre.y, Math.floor(e.z) + 0.5)
   await east.lookAt(aim, true)
   await sleep(200)
+  // The server sends a snowball's place every 10 ticks only: one that hits the floor above in fewer
+  // is never seen moving. Its flight time tells where it went: the ticks of 1.8 snowball physics
+  // from the eyes to the underside of the top floor along the look (a block in its way at once
+  // would take it away in a tick or two, a miss through the hole would fly for a second and more).
+  const flightTicks = ticksToCeiling(e.offset(0, 1.62, 0), aim, game.centre.y)
   let ball = null
-  let lastY = null
+  let thrownAt = null
+  let goneAt = null
   const onSpawn = (entity) => {
-    if (ball == null && entity !== east.entity && entity.type !== 'player' && entity.position.distanceTo(e.offset(0, 1.62, 0)) < 3) ball = entity.id
+    if (ball == null && entity !== east.entity && entity.type !== 'player' && entity.position.distanceTo(e.offset(0, 1.62, 0)) < 3) {
+      ball = entity.id
+      thrownAt = Date.now()
+    }
   }
-  const onGone = (entity) => { if (ball != null && entity.id === ball) lastY = entity.position.y }
+  const onGone = (entity) => { if (ball != null && entity.id === ball) goneAt = Date.now() }
   east.on('entitySpawn', onSpawn)
   east.on('entityGone', onGone)
   try {
     east.activateItem()
-    await waitFor(() => lastY != null, 5000, `the snowball thrown up to land (${ball == null ? 'never seen' : 'seen, never gone'})`)
+    await waitFor(() => goneAt != null, 5000, `the snowball thrown up to land (${ball == null ? 'never seen' : 'seen, never gone'})`)
   } finally {
     east.removeListener('entitySpawn', onSpawn)
     east.removeListener('entityGone', onGone)
   }
   await sleep(800)
-  if (lastY < game.centre.y - 1.5) throw new Error(`the snowball thrown up did not reach the top floor: gone at y ${lastY.toFixed(1)}, the floor at ${game.centre.y}`)
+  const flight = goneAt - thrownAt
+  if (flightTicks == null) throw new Error('the aim of the snowball misses the top floor')
+  if (flight < (flightTicks - 2) * 50 || flight > (flightTicks + 10) * 50) {
+    throw new Error(`the snowball thrown up did not land on the top floor: gone after ${flight} ms, the floor ${flightTicks} ticks away`)
+  }
   if (snowLeft(east, game) !== top) throw new Error(`a snowball thrown from the second floor broke the top floor: ${top} blocks before, ${snowLeft(east, game)} now`)
-  log(`snowball spleef: from the second floor, a snowball thrown up landed on the top floor (y ${lastY.toFixed(1)}) and broke nothing there`)
+  log(`snowball spleef: from the second floor, a snowball thrown up landed on the top floor (after ${flight} ms, ${flightTicks} ticks away) and broke nothing there`)
   await hold(east, 'diamond_shovel')
   await dig(east, east.entity.position.offset(0, -0.5, 0).floored())
   await chatLine(west, /Victory!/, 10000, fromWest)
   log('snowball spleef: the east bot fell under the second floor, the west bot won')
   await expectInLobby(west, 'after the snowball spleef')
   await expectInLobby(east, 'after the snowball spleef')
+}
+
+/**
+ * The ticks a snowball thrown from these eyes towards this point takes to reach the underside of
+ * the floor at this y, by the physics of 1.8 (EntityProjectile: 1.5 blocks a tick along the look,
+ * then each tick it moves, slows to 0.99 and falls 0.03); null if it never gets there.
+ */
+function ticksToCeiling (eyes, aim, floorY) {
+  const dx = aim.x - eyes.x
+  const dy = aim.y - eyes.y
+  const dz = aim.z - eyes.z
+  const length = Math.hypot(dx, dy, dz)
+  let x = eyes.x
+  let y = eyes.y - 0.1
+  let z = eyes.z
+  let vx = dx / length * 1.5
+  let vy = dy / length * 1.5
+  let vz = dz / length * 1.5
+  for (let tick = 1; tick <= 100; tick++) {
+    x += vx
+    y += vy
+    z += vz
+    if (y >= floorY) return tick
+    vx *= 0.99
+    vy = vy * 0.99 - 0.03
+    vz *= 0.99
+  }
+  return null
 }
 
 /** The wool of each side of the Fireball Fight, by its colour (FireballKnockback.SIDE_WOOL): red, blue, green. */

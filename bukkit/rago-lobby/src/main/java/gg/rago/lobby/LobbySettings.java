@@ -7,6 +7,7 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -73,6 +74,7 @@ final class LobbySettings {
     private final NetworkLevel levels;
     private final String hypixelKey;
     private final Map<String, List<GameMode>> privateRoutes;
+    private Map<String, Integer> teamRooms = Collections.emptyMap();
 
     private LobbySettings(String world, int voidHeight, String title, String address, int defaultRating,
             RatingWindow window, List<ModeCategory> categories, List<ModeCategory> groups, List<ModeDisplay> modes,
@@ -171,6 +173,8 @@ final class LobbySettings {
                     + " with dashes, from developer.hypixel.net), or \"\" for no import");
         }
         Map<String, List<GameMode>> privateRoutes = readPrivateRoutes(config.getConfigurationSection("parties-privees"), modes);
+        Map<String, Integer> teamRooms = readTeamRooms(config.getConfigurationSection("parties-privees-equipes"), modes,
+                privateRoutes);
         String mineskinKey = config.getString("cle-mineskin", "").trim();
         if (!mineskinKey.isEmpty() && !mineskinKey.matches("[A-Za-z0-9_.-]{8,200}")) {
             throw new IllegalArgumentException("cle-mineskin: not a MineSkin API key (account.mineskin.org/keys),"
@@ -220,6 +224,7 @@ final class LobbySettings {
             settings.pedestals = Collections.unmodifiableMap(pedestals);
             settings.dailyPoint = dailyPoint;
             settings.questsPoint = questsPoint;
+            settings.teamRooms = Collections.unmodifiableMap(teamRooms);
             return settings;
         } catch (IllegalArgumentException e) {
             throw new IllegalArgumentException("modes: " + e.getMessage(), e);
@@ -267,9 +272,74 @@ final class LobbySettings {
         return routes;
     }
 
+    /**
+     * parties-privees-equipes: the private games whose players choose their teams (Bedwars Normal,
+     * the owner's answers of 22/11), each with the countdown of its team choice, in seconds. Their
+     * modes (cartes:, a row of maps each, in their order) go in the routes too, as those of
+     * parties-privees: the mode is open when one of them is.
+     */
+    private static Map<String, Integer> readTeamRooms(ConfigurationSection section, List<ModeDisplay> modes,
+            Map<String, List<GameMode>> routes) {
+        Map<String, Integer> rooms = new LinkedHashMap<>();
+        if (section == null) {
+            return rooms;
+        }
+        Map<String, GameMode> byId = new HashMap<>();
+        for (ModeDisplay display : modes) {
+            byId.put(display.mode().id(), display.mode());
+        }
+        for (String id : section.getKeys(false)) {
+            String where = "parties-privees-equipes." + id;
+            if (!byId.containsKey(id)) {
+                throw new IllegalArgumentException(where + ": no mode " + id + " in modes");
+            }
+            if (routes.containsKey(id)) {
+                throw new IllegalArgumentException(where + ": already in parties-privees");
+            }
+            ConfigurationSection room = section.getConfigurationSection(id);
+            if (room == null) {
+                throw new IllegalArgumentException(where + ": cartes and compte-a-rebours, as {cartes: [a-4s, a-2s],"
+                        + " compte-a-rebours: 20}");
+            }
+            List<GameMode> targets = new ArrayList<>();
+            for (String target : room.getStringList("cartes")) {
+                GameMode mode = byId.get(target);
+                if (mode == null) {
+                    throw new IllegalArgumentException(where + ".cartes: no mode " + target + " in modes");
+                }
+                if (mode.teams() < 2) {
+                    throw new IllegalArgumentException(where + ".cartes: " + target
+                            + " has one team, a private game needs two at least");
+                }
+                if (target.equals(id)) {
+                    throw new IllegalArgumentException(where + ".cartes: a mode cannot play itself");
+                }
+                targets.add(mode);
+            }
+            if (targets.isEmpty()) {
+                throw new IllegalArgumentException(where + ".cartes: a list of modes, as [bedwars-normal-4s, bedwars-normal-2s]");
+            }
+            int seconds = room.getInt("compte-a-rebours", 20);
+            if (seconds < 1 || seconds > 300) {
+                throw new IllegalArgumentException(where + ".compte-a-rebours: from 1 to 300 seconds");
+            }
+            routes.put(id, targets);
+            rooms.put(id, seconds);
+        }
+        return rooms;
+    }
+
     /** The private game modes whose size follows the party, with the modes each plays, smallest first. */
     Map<String, List<GameMode>> privateRoutes() {
         return privateRoutes;
+    }
+
+    /**
+     * The private games whose players choose their teams (Bedwars Normal), with the seconds of the
+     * team choice; their modes, a row of maps each, are their {@link #privateRoutes}, in their order.
+     */
+    Map<String, Integer> teamRooms() {
+        return teamRooms;
     }
 
     /** The skin of an NPC (skin: id), or null for Steve. */

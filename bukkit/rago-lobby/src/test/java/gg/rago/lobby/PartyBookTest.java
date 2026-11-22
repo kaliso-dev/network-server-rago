@@ -90,7 +90,9 @@ class PartyBookTest {
     }
 
     @Test
-    void aPartyHoldsEightPlayers() {
+    void aPartyHoldsSixteenPlayers() {
+        // the owner's limit of 22/11: a full map of Bedwars Normal
+        assertEquals(16, PartyBook.MAX_SIZE);
         PartyBook book = new PartyBook();
         for (int i = 2; i <= PartyBook.MAX_SIZE; i++) {
             UUID player = new UUID(0, 10 + i);

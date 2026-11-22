@@ -32,6 +32,10 @@ commands:
     description: Parties as on Hypixel. Only the leader joins a queue, for the whole party.
     usage: /party <invite|accept|leave|list|kick|transfer|warp|disband|chat> [player], or /p <player>
     aliases: [p]
+  privategame:
+    description: The team menu of your party's private game of Bedwars Normal, while it chooses.
+    usage: /pg team
+    aliases: [pg]
   pc:
     description: Send a message to your party.
     usage: /pc <message>

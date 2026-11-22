@@ -63,6 +63,8 @@ final class QueueController {
     /** The place of each player in the queues, from their ranks (PREMIUM+ before VIP before the others). */
     private java.util.function.ToIntFunction<UUID> priorities = id -> 0;
     private final Map<UUID, Long> announcedAt = new HashMap<>();
+    /** The parties choosing their teams before a private game of Bedwars Normal. */
+    private final TeamRooms rooms;
 
     /** How the messages show the size of a mode: its own format: of config.yml ("1v3"), else the mode's. */
     private String format(GameMode mode) {
@@ -79,6 +81,12 @@ final class QueueController {
         this.matchmaker = new Matchmaker(settings.catalog().all(), settings.window());
         this.matchmaker.setPriorities(id -> priorities.applyAsInt(id));
         this.onChange = onChange;
+        this.rooms = new TeamRooms(this, settings, state, parties, lobby);
+    }
+
+    /** The private games whose players choose their teams (Bedwars Normal). */
+    TeamRooms rooms() {
+        return rooms;
     }
 
     void setBook(StatsBook book) {
@@ -171,6 +179,18 @@ final class QueueController {
         }
         if (lobby.isFrozen(player.getUniqueId())) {
             player.sendMessage(ChatColor.RED + "You are frozen by the staff: you cannot join a game.");
+            return;
+        }
+        if (rooms.handles(mode.id())) {
+            // Bedwars Normal: the leader chooses the map, then everyone their team
+            rooms.open(player, mode);
+            return;
+        }
+        GameMode room = rooms.roomOfTarget(mode.id());
+        if (room != null) {
+            // its 4s or 2s (/queue bedwars-normal-4s): only from Bedwars Normal, with a party
+            player.sendMessage(ChatColor.RED + mode.name() + ChatColor.RED + " " + format(mode) + " is played with your party: "
+                    + "its leader clicks " + room.name() + ChatColor.RED + " in the Private games.");
             return;
         }
         if (settings.privateRoutes().containsKey(mode.id())) {
@@ -645,6 +665,7 @@ final class QueueController {
      * transferred): those who waited, with their party or alone, leave the queue.
      */
     void partyChanged(Collection<UUID> players) {
+        rooms.partyChanged(players);
         for (UUID id : players) {
             List<GameMode> waiting = matchmaker.queuesOf(id);
             if (waiting.isEmpty()) {
@@ -808,6 +829,7 @@ final class QueueController {
 
     /** Once a second: starts the matches that were found, and the direct ones whose map is ready. */
     void tick() {
+        rooms.tick();
         startWaiting();
         List<MatchProposal> matches = matchmaker.poll(System.currentTimeMillis());
         for (MatchProposal match : matches) {

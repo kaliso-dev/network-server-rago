@@ -19,8 +19,11 @@ import java.util.UUID;
 final class PartyBook {
 
     static final long INVITE_MS = 60_000;
-    /** The size of a party on Hypixel without a rank. */
-    static final int MAX_SIZE = 8;
+    /**
+     * The players of a party at most: 16, the owner's limit of 22/11 (a full map of Bedwars Normal,
+     * 2 x 8 on a map of 2s, 4 x 4 on a map of 4s); 8 before, as on Hypixel without a rank.
+     */
+    static final int MAX_SIZE = 16;
 
     /** A party: its leader first, then the others in the order they joined. */
     static final class Party {

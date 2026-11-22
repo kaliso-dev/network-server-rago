@@ -5,6 +5,7 @@ import gg.rago.game.MatchProposal;
 import java.util.Collections;
 import java.util.List;
 import org.bukkit.entity.Player;
+import org.bukkit.inventory.ItemStack;
 
 /**
  * What a game plugin gives the lobby for each mode it plays. The lobby calls it on the main
@@ -73,6 +74,16 @@ public interface MatchHost {
      * choice ({@link MatchProposal#map()}). Empty, the default: no choice, the host picks the map.
      */
     default List<String> maps(GameMode mode) {
+        return Collections.emptyList();
+    }
+
+    /**
+     * The teams of this map in this mode, in their order, each as the icon of its colour (a wool
+     * named in its colour): the team menu of a private game whose players choose their teams
+     * (Bedwars Normal), whose match then lists them in this order
+     * ({@link MatchProposal#withChosenTeams}). Empty, the default: the lobby shows numbered teams.
+     */
+    default List<ItemStack> teamIcons(GameMode mode, String map) {
         return Collections.emptyList();
     }
 }

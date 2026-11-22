@@ -106,6 +106,16 @@ qui l'ont gagné, le son de l'orbe d'XP (`ORB_PICKUP`). La victoire garde aussi 
   marchent tout de suite ; puis retour au lobby. Après une égalité, retour immédiat. Quitter le
   serveur ou taper `/spawn` pendant la partie, c'est l'abandonner (une défaite).
 
+## Bedwars Normal
+
+`bedwars-normal-4s` et `bedwars-normal-2s` (tes réponses du 22/11) : la partie privée d'une party
+du lobby, une partie classique, sur toutes les maps du serveur (`toutes`), seulement celles de 4
+équipes pour la 4s et de 8 équipes pour la 2s (`equipes-exactes:`). Le lobby choisit la map et les
+équipes (voir le README de RagoLobby) : son match donne les équipes de la map dans l'ordre des
+couleurs, une équipe que personne n'a choisie vide. Elle ne joue pas : son lit est enlevé, comme
+celui des îles vides. Le menu des équipes du lobby montre les couleurs que l'hôte donne pour la
+map (`teamIcons`). Les réglages du chef de party viennent ensuite.
+
 ## First Rush
 
 `first-rush` (1v1) et `first-rush-duo` (2v2) sont de vraies parties, comme RBW Sky Rise, mais les
@@ -155,7 +165,8 @@ attendent regardent depuis le dessus du milieu.
   30 minutes, l'équipe en tête gagne. Une party qui remplit le match depuis les Duels (deux
   joueurs en 1v1, quatre en 2v2) joue les mêmes manches jusqu'à 5 points, en partie privée : rien
   ne compte dans les stats.
-- **Le mode Private top bridge** (le PNJ des parties privées) : un practice sans fin. Personne
+- **Le practice des Private games** (le Private top bridge, remplacé par Bedwars Normal le 22/11 :
+  aucun mode du lobby ne le joue plus, le code reste) : un practice sans fin. Personne
   n'est éliminé : on revient en haut tout de suite après une mort, les blocs posés partent au bout de
   45 secondes, et la partie dure 30 minutes au plus. Rien ne compte dans les stats.
 

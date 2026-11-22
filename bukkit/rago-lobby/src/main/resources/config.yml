@@ -283,9 +283,9 @@ groupes:
     nom: "&6Private games"
     icone: NAME_TAG
     description:
-      - "With your party: a real RBW"
-      - "game or a top bridge, the size"
-      - "follows the party."
+      - "With your party: Bedwars"
+      - "Normal on a map of 4s or 2s,"
+      - "2 to 16 players."
   attack-defense:
     nom: "&6Attack and defense"
     icone: IRON_SWORD
@@ -433,13 +433,13 @@ pnj:
   #   nom: "&aBlock placement"
   #   skin: blocs
   #   modes: [block-fight-1v1, block-fight-2v2, block-fight-arena]
-  # The Private game NPC (a Ranked Bedwars or a Top Bridge with friends, the host's settings), on a
-  # point of its own (/lobby point partieprivee): the private games stay in the RBW Modes too.
+  # The Private game NPC (Bedwars Normal with friends since 22/11), on a point of its own (/lobby
+  # point partieprivee): the private games stay in the RBW Modes too.
   # partieprivee:
   #   nom: "&6&lPrivate game"
   #   sous-titre: "&7Your game, your friends, your rules"
   #   skin: prive
-  #   modes: [partie-privee, top-bridge-prive]
+  #   modes: [bedwars-normal]
   #   bloc: QUARTZ_BLOCK
   # The NPCs of the side zones, on their front sign, if you want them there too:
   # attackdefenseversionrbw:
@@ -1177,10 +1177,24 @@ hypixel:
 # The private games whose size follows the party: a party leader who clicks one of these modes
 # starts a private game of the party against itself (in no stats), in the one of its modes made
 # for the party's size: 2 players play the 1v1, 4 the 2v2, 6 the 3v3, 8 the 4v4. A player without
-# a party is asked to make one (/party invite <name>).
-parties-privees:
-  partie-privee: [ranked-1v1, ranked-2v2, ranked-3v3, ranked-4v4]
-  top-bridge-prive: [top-bridge-1v1, top-bridge-2v2]
+# a party is asked to make one (/party invite <name>). None since 22/11: the Private game (RBW 1v1
+# to 4v4) and the Private top bridge are replaced by Bedwars Normal (the owner's answer), below.
+#   partie-privee: [ranked-1v1, ranked-2v2, ranked-3v3, ranked-4v4]
+parties-privees: {}
+
+# The private games whose players choose their teams: Bedwars Normal (the owner's answers of
+# 22/11), as on Hypixel. The party leader clicks it and chooses a map, in a row for each mode of
+# cartes (the 4s, then the 2s; the maps of each as its game plugin gives them: in Bed Wars, every
+# map of 4 teams for the 4s, of 8 teams for the 2s). Then each player of the party chooses their
+# team, among the colours of the map, for compte-a-rebours seconds (/pg team opens the menu
+# again), and the game starts by itself, in no stats: the teams of the map's size (4 players in
+# the 4s, 2 in the 2s), as many as the party fills, two at least; a team full refuses a player,
+# and so does a team that would hold the whole party; who chose none goes in the emptiest. A
+# party of 2 to 16 players (the owner's limit). The party changing cancels it.
+parties-privees-equipes:
+  bedwars-normal:
+    cartes: [bedwars-normal-4s, bedwars-normal-2s]
+    compte-a-rebours: 20
 
 # RagoBot: a player of the server, with the skin of an account and the name RagoBot, invited
 # into a party with /p invite RagoBot (or /p RagoBot): it joins at once, next to the leader, one
@@ -1996,31 +2010,41 @@ modes:
       - "One attacker against four"
       - "defenders: 5 players, each"
       - "attacks once, in turn."
-  partie-privee:
-    nom: "&6Private game"
+  # The Private games (the owner's answers of 22/11: they replace the Private game, RBW 1v1 to 4v4,
+  # and the Private top bridge): Bedwars Normal, see parties-privees-equipes. Its two sizes below
+  # are not in the selector (cache: true): the leader chooses one of their maps after the click.
+  bedwars-normal:
+    nom: "&6Bedwars Normal"
     categorie: ranked
     groupe: prive
-    icone: NAME_TAG
+    icone: BED
     equipes: 2
     joueurs-par-equipe: 1
+    format: "2 to 16"
     classe: false
     description:
-      - "A real private RBW game with your"
-      - "party: 1v1, 2v2, 3v3 or 4v4, the"
-      - "size follows the party."
-  top-bridge-prive:
-    nom: "&6Private top bridge"
+      - "A Bed Wars game with your party,"
+      - "as on Hypixel: choose a map of"
+      - "4s or 2s, then everyone their"
+      - "team. 2 to 16 players."
+  bedwars-normal-4s:
+    nom: "&6Bedwars Normal"
     categorie: ranked
-    groupe: prive
-    icone: LADDER
-    equipes: 2
-    joueurs-par-equipe: 1
+    icone: BED
+    equipes: 4
+    joueurs-par-equipe: 4
+    format: 4s
     classe: false
-    description:
-      - "A practice with your party on"
-      - "the top bridge: no bed, back on"
-      - "top at each death, 30 minutes."
-      - "1v1 or 2v2, as the party."
+    cache: true
+  bedwars-normal-2s:
+    nom: "&6Bedwars Normal"
+    categorie: ranked
+    icone: BED
+    equipes: 8
+    joueurs-par-equipe: 2
+    format: 2s
+    classe: false
+    cache: true
   sumo:
     nom: "&aSumo duel"
     categorie: duels

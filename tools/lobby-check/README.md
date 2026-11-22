@@ -199,6 +199,18 @@ des améliorations. Le bot rouge ramasse au moins 7 ors en 12 secondes sur son s
 fois plus rapide ; 4 ou 5 avec celle d'une partie), ouvre le shop : le Quick Buy par défaut, sa 21e
 case vide sans panneau, et les Blocks avec seulement laine, verre, end stone et planches ; il achète
 de la laine. Le bleu quitte la partie : le rouge gagne, et les deux reviennent au lobby.
+Puis trois bots en party jouent les parties privées (`tools/kb-control/bots/private-bots.mjs`,
+Bedwars Normal). Seul le chef de la party la lance ; son menu montre les deux lignes 4s et 2s, sans
+carte (le serveur de test n'a aucune map de 4 ou 8 équipes), et `/queue bedwars-normal-4s` seul
+est refusé. Le reste passe par `test-equipes`, un mode caché que le script ajoute à la config du
+lobby avec le même choix des équipes (`parties-privees-equipes`) sur Fast Bedwars 2v2, donc sur la
+carte démo, avec un compte à rebours de 8 secondes : le chef clique `bw-demo`, le menu des équipes
+s'ouvre pour les trois (laine rouge et bleue) ; le chef et le deuxième prennent rouge, le troisième
+aussi : « Red is full. » ; il ferme son menu, `/pg team` le rouvre avec les deux noms sous rouge. À
+la fin du compte à rebours la partie part seule : rouge les deux qui l'ont choisi, bleu le troisième
+(l'équipe la plus vide), sans stats (le log du serveur le dit). Chacun est sur l'île de son équipe ;
+le troisième s'en va, rouge gagne, et les trois reviennent au lobby. Une vraie partie sur une map de
+4s ou de 2s n'est pas jouée par les bots.
 Enfin un bot invite RagoBot dans sa party (`tools/kb-control/bots/ragobot-bots.mjs`) : RagoBot
 entre tout de suite, à côté de lui ; une deuxième invitation, une file classée, un mode qu'il ne
 joue pas et un `/duel RagoBot` d'un autre joueur sont refusés. Le bot joue le Sumo duel contre

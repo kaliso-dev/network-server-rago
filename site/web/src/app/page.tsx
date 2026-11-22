@@ -57,11 +57,9 @@ export default function Home() {
   const blockTrainings = playableModes().filter((mode) => BLOCK_TRAININGS.includes(mode.id));
   const blockTarget = game.pointsToWin['block-fight'];
   const priv = game.privateGames;
-  // the sizes a private game plays, "1v1, 2v2, 3v3 or 4v4"
-  const privateFormats = (id: string) => {
-    const sizes = (priv.modes[id] ?? []).map((mode) => modeOf(mode).format);
-    return sizes.length <= 1 ? (sizes[0] ?? '') : `${sizes.slice(0, -1).join(', ')} or ${sizes[sizes.length - 1]}`;
-  };
+  // Bedwars Normal: its sizes, as their maps are named ("4s or 2s"), and the seconds to choose the teams
+  const normalSizes = (priv.modes['bedwars-normal'] ?? []).map((mode) => modeOf(mode).format).join(' or ');
+  const teamChoiceSeconds = priv.teamChoiceSeconds['bedwars-normal'];
 
   const showcase: ShowcaseMode[] = FLAGSHIPS.map((flagship) => ({
     slug: flagship.slug,
@@ -305,7 +303,7 @@ export default function Home() {
               id="private"
               eyebrow="Private games"
               title="Play it with your party"
-              lead="Bring your friends and play between yourselves: a real Ranked Bedwars game or the top bridge, at the size of your party."
+              lead="Bring your friends and play between yourselves: a Bed Wars game as on Hypixel, on the map you choose, in the teams you choose."
             />
             <ul className={styles.privateList}>
               <li>
@@ -321,21 +319,11 @@ export default function Home() {
               <li>
                 <McItem material="BED" size={32} />
                 <div>
-                  <h3>{modeOf('partie-privee').name}</h3>
+                  <h3>{modeOf('bedwars-normal').name}</h3>
                   <p>
-                    A real Ranked Bedwars game between you, on the maps of the RBW queue: {privateFormats('partie-privee')},
-                    the size follows the party.
-                  </p>
-                </div>
-              </li>
-              <li>
-                <McItem material="LADDER" size={32} />
-                <div>
-                  <h3>{modeOf('top-bridge-prive').name}</h3>
-                  <p>
-                    The top bridge as a practice: nobody is out, you are back on top right after a death, the blocks
-                    placed go after {priv.topBridgeBlockSeconds} seconds, {priv.topBridgeMinutes} minutes at most. In{' '}
-                    {privateFormats('top-bridge-prive')}, as the party.
+                    The leader picks a map of {normalSizes}: four teams of four, or eight teams of two. Then everyone
+                    picks their team, and the game starts {teamChoiceSeconds} seconds later. From 2 to {priv.partyMax}{' '}
+                    players.
                   </p>
                 </div>
               </li>

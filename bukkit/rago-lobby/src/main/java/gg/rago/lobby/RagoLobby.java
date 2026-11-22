@@ -354,7 +354,7 @@ public final class RagoLobby extends JavaPlugin implements LobbyService {
         }
         LobbyCommands commands = new LobbyCommands(this);
         for (String name : new String[] {"lobby", "spawn", "playagain", "queue", "play", "duel", "hypixel", "party", "pc", "chat",
-                "replay"}) {
+                "replay", "privategame"}) {
             getCommand(name).setExecutor(commands);
             getCommand(name).setTabCompleter(commands);
         }

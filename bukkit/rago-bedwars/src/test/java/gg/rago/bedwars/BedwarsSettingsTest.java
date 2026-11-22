@@ -85,8 +85,16 @@ class BedwarsSettingsTest {
                 "lobby-fight-1v1", "lobby-fight-ffa", "bed-break-simulator-1v1", "bed-break-simulator-1v2",
                 "bed-break-simulator-1v3", "bed-break-simulator-1v4", "red-rover-top-bridge", "ctf-bridge-1v1",
                 "ctf-bridge-2v2", "ctf-castle-2v2", "ctf-castle-4v4", "fast-bedwars-1v1", "fast-bedwars-2v2",
-                "ranked-bed-fight-1v1", "ranked-top-bridge-1v1"),
+                "ranked-bed-fight-1v1", "ranked-top-bridge-1v1", "bedwars-normal-4s", "bedwars-normal-2s"),
                 settings.modes());
+        // Bedwars Normal (the owner's answers of 22/11): a classic game on every map, of 4 teams
+        // for the 4s and of 8 for the 2s
+        for (String size : Arrays.asList("bedwars-normal-4s", "bedwars-normal-2s")) {
+            assertEquals(BedwarsSettings.Kind.CLASSIC, settings.kind(size), size);
+            assertEquals(Collections.emptyList(), settings.mapsOf(size), size + ": every map (toutes)");
+            assertTrue(settings.exactTeams(size), size + ": only the maps of its number of teams");
+        }
+        assertFalse(settings.exactTeams("first-rush-full"), "First Rush on any map of 4 teams or more");
         // the ranked duels (plan 3.7): the game and the maps of their mode of Solo, top bridge included
         assertEquals(BedwarsSettings.Kind.BED_FIGHT, settings.kind("ranked-bed-fight-1v1"));
         assertEquals(settings.mapsOf("bed-fight-1v1"), settings.mapsOf("ranked-bed-fight-1v1"));

@@ -216,6 +216,10 @@ class BedwarsGame {
         this.catalog = catalog;
         List<TeamColor> colors = teamColors(sides.size());
         for (int i = 0; i < sides.size(); i++) {
+            if (sides.get(i).isEmpty()) {
+                // a team nobody chose in a private game of Bedwars Normal: no team, its bed taken away
+                continue;
+            }
             TeamColor color = colors.get(i);
             Team team = new Team(color, instance.map().teams().get(color));
             teams.add(team);

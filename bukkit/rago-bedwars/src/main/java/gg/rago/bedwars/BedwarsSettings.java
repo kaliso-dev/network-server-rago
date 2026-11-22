@@ -398,6 +398,8 @@ final class BedwarsSettings {
     private final List<String> allForgeModes;
     /** The modes whose games have an item shop on every island of the map, the empty ones' too. */
     private final List<String> allShopModes;
+    /** equipes-exactes: see {@link #exactTeams}. */
+    private List<String> exactTeamModes = Collections.emptyList();
     /** The kits of Attack and Defense to choose from, each side its own (attaque-defense:). */
     private final List<RoundKit> attackKits;
     private final List<RoundKit> defenseKits;
@@ -511,10 +513,16 @@ final class BedwarsSettings {
         if (bedBreakProtection < 0 || bedBreakProtection > 4) {
             throw new IllegalArgumentException("bed-break.protection: from 0 to 4");
         }
-        return new BedwarsSettings(modes, kinds(config), maxGames, config.getBoolean("carte-demo", true), respawn, forge,
-                forgeShare, diamond, emerald, events, fireball, neighbours, topBridge, allForges, allShops, attackKits,
-                defenseKits, attackDefenseProtection, bedBreakKits, bedBreakProtection, strongStuff(config), ctf(config),
-                fast(config));
+        List<String> exactTeams = new ArrayList<>();
+        for (String mode : config.getStringList("equipes-exactes")) {
+            exactTeams.add(modeId(mode, "equipes-exactes"));
+        }
+        BedwarsSettings settings = new BedwarsSettings(modes, kinds(config), maxGames, config.getBoolean("carte-demo", true),
+                respawn, forge, forgeShare, diamond, emerald, events, fireball, neighbours, topBridge, allForges, allShops,
+                attackKits, defenseKits, attackDefenseProtection, bedBreakKits, bedBreakProtection, strongStuff(config),
+                ctf(config), fast(config));
+        settings.exactTeamModes = Collections.unmodifiableList(exactTeams);
+        return settings;
     }
 
     /** The keys of the six timed events of a game, in their order. */
@@ -897,6 +905,14 @@ final class BedwarsSettings {
     /** True if the games of this mode keep every forge of the map going, the empty islands' too. */
     boolean allForges(String modeId) {
         return allForgeModes.contains(modeId);
+    }
+
+    /**
+     * True for a mode played only on the maps of exactly as many teams as the mode has
+     * (equipes-exactes: Bedwars Normal, its 4s on the maps of 4 teams, its 2s on those of 8).
+     */
+    boolean exactTeams(String modeId) {
+        return exactTeamModes.contains(modeId);
     }
 
     /** True if the games of this mode have an item shop on every island of the map, the empty ones' too. */

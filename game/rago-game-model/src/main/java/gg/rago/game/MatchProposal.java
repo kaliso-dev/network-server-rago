@@ -9,7 +9,8 @@ import java.util.UUID;
 /**
  * A match the matchmaker found: the mode, and the players of each team, as queue entries so that a
  * match that cannot start (no free arena) goes back to the queue with its original waiting times.
- * The players agree on the map: those who chose one chose the same. Immutable.
+ * The players agree on the map: those who chose one chose the same. Each team is full, but in a
+ * private game whose players chose their teams ({@link #withChosenTeams}). Immutable.
  */
 public final class MatchProposal {
 
@@ -17,19 +18,43 @@ public final class MatchProposal {
     private final List<List<QueueEntry>> teams;
 
     public MatchProposal(GameMode mode, List<List<QueueEntry>> teams) {
+        this(mode, teams, false);
+    }
+
+    /**
+     * chosen: the teams the players of a private game chose (Bedwars Normal), each of 0 to
+     * playersPerTeam players, two of them at least with players; else each team full.
+     */
+    private MatchProposal(GameMode mode, List<List<QueueEntry>> teams, boolean chosen) {
         this.mode = Objects.requireNonNull(mode, "mode");
         if (teams.size() != mode.teams()) {
             throw new IllegalArgumentException(mode + ": " + teams.size() + " teams instead of " + mode.teams());
         }
         List<List<QueueEntry>> copy = new ArrayList<>();
+        int played = 0;
         for (List<QueueEntry> team : teams) {
-            if (team.size() != mode.playersPerTeam()) {
+            if (chosen ? team.size() > mode.playersPerTeam() : team.size() != mode.playersPerTeam()) {
                 throw new IllegalArgumentException(mode + ": a team of " + team.size() + " instead of "
-                        + mode.playersPerTeam());
+                        + (chosen ? "at most " : "") + mode.playersPerTeam());
+            }
+            if (!team.isEmpty()) {
+                played++;
             }
             copy.add(Collections.unmodifiableList(new ArrayList<>(team)));
         }
+        if (chosen && played < 2) {
+            throw new IllegalArgumentException(mode + ": " + played + " team with players, two at least");
+        }
         this.teams = Collections.unmodifiableList(copy);
+    }
+
+    /**
+     * A private game whose players chose their teams (Bedwars Normal, in the Private games): the
+     * mode's teams in their order (the colours of the map), each of 0 to playersPerTeam players, two
+     * of them at least with players. An empty team is one nobody plays: the game goes without it.
+     */
+    public static MatchProposal withChosenTeams(GameMode mode, List<List<QueueEntry>> teams) {
+        return new MatchProposal(mode, teams, true);
     }
 
     public GameMode mode() {

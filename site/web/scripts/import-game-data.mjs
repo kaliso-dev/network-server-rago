@@ -169,13 +169,26 @@ function plugins(lobby) {
     return found;
   };
   // a private game plays the modes of its list (parties-privees), with the party
-  const privateGames = lobby['parties-privees'] ?? {};
+  const privateGames = privateRoutes(lobby);
   return (id) => {
     if (privateGames[id]) {
       return [...new Set(privateGames[id].flatMap(of))];
     }
     return of(id);
   };
+}
+
+/**
+ * The modes each private game plays: those of its list in parties-privees (the size follows the
+ * party), and for those whose players choose their teams (parties-privees-equipes: Bedwars
+ * Normal) the modes of their maps (cartes:).
+ */
+function privateRoutes(lobby) {
+  const routes = { ...(lobby['parties-privees'] ?? {}) };
+  for (const [id, room] of Object.entries(lobby['parties-privees-equipes'] ?? {})) {
+    routes[id] = room.cartes ?? [];
+  }
+  return routes;
 }
 
 /**
@@ -375,7 +388,11 @@ export function buildGameData() {
     partyMax: number('parties', /MAX_SIZE = (\d+)/),
     topBridgeMinutes: number('topBridge', /PRACTICE_MINUTES = (\d+)/),
     topBridgeBlockSeconds: number('topBridge', /DECAY_SECONDS = (\d+)/),
-    modes: Object.fromEntries(Object.entries(lobby['parties-privees'] ?? {})),
+    modes: privateRoutes(lobby),
+    // the seconds the players of a party have to choose their teams (Bedwars Normal)
+    teamChoiceSeconds: Object.fromEntries(
+      Object.entries(lobby['parties-privees-equipes'] ?? {}).map(([id, room]) => [id, room['compte-a-rebours'] ?? 20]),
+    ),
   };
 
   return {

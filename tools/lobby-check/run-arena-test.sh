@@ -23,6 +23,10 @@
 # other map the plugin makes: the start of Bed Wars in the castles, then one team leaves. Last, two
 # bots play Fast Bedwars 1v1 (tools/kb-control/bots/fast-bots.mjs) on the demo map: its welcome, its
 # events (no Diamond II), no diamond generator nor upgrades NPC, its fast forge, its smaller shop.
+# Then three bots in a party play the private games (tools/kb-control/bots/private-bots.mjs): the
+# menu of Bedwars Normal (its rows of 4s and 2s, with no map here), then test-equipes, a hidden mode
+# this script adds with the same team choice on Fast Bedwars 2v2: the map, the team of each (one
+# full), /pg team, the countdown, the game with the teams chosen, in no stats.
 # Then a bot invites RagoBot into its party (tools/kb-control/bots/ragobot-bots.mjs): RagoBot refuses
 # ranked and the modes it does not play, wins a Sumo duel, a Boxing, a round of Top Bridge 1v1 and
 # a round of Lobby Fight 1v1 against the bot who stands still; in a Block placement 1v1 (RagoArbitre
@@ -143,6 +147,17 @@ QRAGO_UUID=$(offline_uuid qRago)
 sed -e "/^outils-owner:$/,/^[a-z]/s/^  uuid: \"\"$/  uuid: \"$QRAGO_UUID\"/" "$ROOT/bukkit/rago-lobby/src/main/resources/config.yml" \
   >"$SERVER_DIR/plugins/RagoLobby/config.yml"
 grep -q "^  uuid: \"$QRAGO_UUID\"$" "$SERVER_DIR/plugins/RagoLobby/config.yml" || fail "could not give the Owner tools the id of qRago"
+# For the private game bots (private-bots.mjs): test-equipes, a hidden mode whose players choose
+# their teams as in Bedwars Normal (parties-privees-equipes), on Fast Bedwars 2v2, whose map here
+# is the demo map (the test server has no map of 4 or 8 teams), with a countdown of 8 seconds.
+LOBBY_CONFIG="$SERVER_DIR/plugins/RagoLobby/config.yml"
+awk '{ print }
+  /^modes:$/ { print "  test-equipes: {nom: \"&6Test teams\", categorie: ranked, cache: true}" }
+  /^parties-privees-equipes:$/ { print "  test-equipes:"; print "    cartes: [fast-bedwars-2v2]"; print "    compte-a-rebours: 8" }' \
+  "$LOBBY_CONFIG" >"$LOBBY_CONFIG.new" && mv "$LOBBY_CONFIG.new" "$LOBBY_CONFIG"
+grep -q '^  test-equipes: {nom: "&6Test teams", categorie: ranked, cache: true}$' "$LOBBY_CONFIG" \
+  || fail "could not add the mode test-equipes"
+grep -q '^    cartes: \[fast-bedwars-2v2\]$' "$LOBBY_CONFIG" || fail "could not add the team choice of test-equipes"
 printf '[{"uuid":"%s","name":"qRago","level":4},{"uuid":"%s","name":"RagoOp","level":4},{"uuid":"%s","name":"RagoMapOp","level":4},{"uuid":"%s","name":"RagoArbitre","level":4}]\n' \
   "$QRAGO_UUID" "$(offline_uuid RagoOp)" "$(offline_uuid RagoMapOp)" "$(offline_uuid RagoArbitre)" >"$SERVER_DIR/ops.json"
 # The bundled config.yml of RagoPractice, with the block modes ending at once: Block placement
@@ -278,6 +293,10 @@ KB_HOST=127.0.0.1 KB_PORT=$PORT node "$ROOT/tools/kb-control/bots/ctf-bots.mjs" 
 # The same server for Fast Bedwars: two bots, Fast Bedwars 1v1 (RagoBedwars, on its demo map).
 fast_status=0
 KB_HOST=127.0.0.1 KB_PORT=$PORT node "$ROOT/tools/kb-control/bots/fast-bots.mjs" || fast_status=$?
+# The same server for the private games: three bots in a party, the menu of Bedwars Normal, then
+# test-equipes: the map, the team of each, the countdown, a Fast Bedwars 2v2 with those teams.
+private_status=0
+KB_HOST=127.0.0.1 KB_PORT=$PORT node "$ROOT/tools/kb-control/bots/private-bots.mjs" || private_status=$?
 # The same server for RagoBot: a bot invites it into its party, plays the Sumo duel, the Boxing, Top
 # Bridge 1v1 and Lobby Fight 1v1 (on the middle island of the demo map, made its waiting lobby by
 # RagoMapOp) against it, then Block placement 1v1 (RagoArbitre moves the players with /tp: a clutch, the
@@ -307,6 +326,10 @@ fi
 [[ $rover_status -eq 0 ]] || { tail -n 60 "$SERVER_LOG" >&2; fail "the Red Rover bots stopped with status $rover_status"; }
 [[ $ctf_status -eq 0 ]] || { tail -n 60 "$SERVER_LOG" >&2; fail "the Capture the Flag bots stopped with status $ctf_status"; }
 [[ $fast_status -eq 0 ]] || { tail -n 60 "$SERVER_LOG" >&2; fail "the Fast Bedwars bots stopped with status $fast_status"; }
+[[ $private_status -eq 0 ]] || { tail -n 60 "$SERVER_LOG" >&2; fail "the private game bots stopped with status $private_status"; }
+# The game whose teams the party chose counts in no stats.
+server_log_has '[RagoLobby] Private game of a party in fast-bedwars-2v2: not counted in the stats' \
+  || fail "the game of test-equipes was not a private game"
 [[ $ragobot_status -eq 0 ]] || { tail -n 60 "$SERVER_LOG" >&2; fail "the RagoBot bots stopped with status $ragobot_status"; }
 server_log_has '[RagoLobby] RagoBot joined for the party of RagoLeader' || fail "RagoBot did not join for the party of RagoLeader"
 # A game with RagoBot counts in the players' stats: none is a private game of the party.

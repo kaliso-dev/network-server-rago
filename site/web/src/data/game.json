@@ -62,7 +62,7 @@
       ],
       "description": "Modes close to Ranked Bedwars: Sky Rise, first rush, invis, clutch scenarios, attack and defense, Bed Break Simulator, private games. With the server or your friends. Ranked Bedwars is in Ranked.",
       "skin": "ranked",
-      "modes": 24,
+      "modes": 23,
       "also": []
     },
     {
@@ -287,10 +287,9 @@
     {
       "id": "prive",
       "name": "Private games",
-      "description": "With your party: a real RBW game or a top bridge, the size follows the party.",
+      "description": "With your party: Bedwars Normal on a map of 4s or 2s, 2 to 16 players.",
       "modes": [
-        "partie-privee",
-        "top-bridge-prive"
+        "bedwars-normal"
       ]
     },
     {
@@ -1147,33 +1146,49 @@
       ]
     },
     {
-      "id": "partie-privee",
-      "name": "Private game",
+      "id": "bedwars-normal",
+      "name": "Bedwars Normal",
       "colour": "#FFAA00",
-      "icon": "NAME_TAG",
+      "icon": "BED",
       "category": "ranked",
       "group": "prive",
-      "format": "1v1",
+      "format": "2 to 16",
       "ranked": false,
       "startHere": false,
       "event": false,
-      "description": "A real private RBW game with your party: 1v1, 2v2, 3v3 or 4v4, the size follows the party.",
+      "description": "A Bed Wars game with your party, as on Hypixel: choose a map of 4s or 2s, then everyone their team. 2 to 16 players.",
       "plugins": [
         "bedwars"
       ]
     },
     {
-      "id": "top-bridge-prive",
-      "name": "Private top bridge",
+      "id": "bedwars-normal-4s",
+      "name": "Bedwars Normal",
       "colour": "#FFAA00",
-      "icon": "LADDER",
+      "icon": "BED",
       "category": "ranked",
-      "group": "prive",
-      "format": "1v1",
+      "group": null,
+      "format": "4s",
       "ranked": false,
       "startHere": false,
-      "event": false,
-      "description": "A practice with your party on the top bridge: no bed, back on top at each death, 30 minutes. 1v1 or 2v2, as the party.",
+      "event": true,
+      "description": "",
+      "plugins": [
+        "bedwars"
+      ]
+    },
+    {
+      "id": "bedwars-normal-2s",
+      "name": "Bedwars Normal",
+      "colour": "#FFAA00",
+      "icon": "BED",
+      "category": "ranked",
+      "group": null,
+      "format": "2s",
+      "ranked": false,
+      "startHere": false,
+      "event": true,
+      "description": "",
       "plugins": [
         "bedwars"
       ]
@@ -2313,20 +2328,17 @@
     }
   },
   "privateGames": {
-    "partyMax": 8,
+    "partyMax": 16,
     "topBridgeMinutes": 30,
     "topBridgeBlockSeconds": 45,
     "modes": {
-      "partie-privee": [
-        "ranked-1v1",
-        "ranked-2v2",
-        "ranked-3v3",
-        "ranked-4v4"
-      ],
-      "top-bridge-prive": [
-        "top-bridge-1v1",
-        "top-bridge-2v2"
+      "bedwars-normal": [
+        "bedwars-normal-4s",
+        "bedwars-normal-2s"
       ]
+    },
+    "teamChoiceSeconds": {
+      "bedwars-normal": 20
     }
   },
   "pointsToWin": {

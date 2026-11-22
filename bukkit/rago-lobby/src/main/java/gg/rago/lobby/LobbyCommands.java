@@ -56,6 +56,13 @@ final class LobbyCommands implements TabExecutor {
         switch (name) {
             case "party":
                 return lobby.parties().command(player, args);
+            case "privategame":
+                // /pg team: the team menu of a private game of Bedwars Normal, while the party chooses
+                if (args.length == 1 && args[0].equalsIgnoreCase("team")) {
+                    lobby.queues().rooms().openTeams(player);
+                    return true;
+                }
+                return false;
             case "pc":
                 if (args.length == 0) {
                     return false;

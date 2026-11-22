@@ -129,6 +129,7 @@ export interface GameData {
     topBridgeMinutes: number;
     topBridgeBlockSeconds: number;
     modes: Record<string, string[]>;
+    teamChoiceSeconds: Record<string, number>;
   };
   /** The points (or hits) that win a duel, by kind of duel. */
   pointsToWin: Record<string, number>;

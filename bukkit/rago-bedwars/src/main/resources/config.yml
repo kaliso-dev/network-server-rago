@@ -59,6 +59,12 @@ modes:
   # as their mode of Solo, with their own queue and ELO
   ranked-bed-fight-1v1: [BedFight]
   ranked-top-bridge-1v1: [Antenna, Aquarium, Archway, Artemis, Boletum, Carapace, Catalyst, Chained, Eastwood, Extinction, Invasion, Katsu, Lectus, Obelisk, Paladin, Planet98, Rise, Stonekeep, Swashbuckle, Treenan]
+  # Bedwars Normal, the private game of a party (the owner's answers of 22/11: "toutes les maps
+  # qu'on a, map 2s map 4s"): a classic game on every map of the server, only those of 4 teams for
+  # the 4s and of 8 teams for the 2s (equipes-exactes: below); the lobby's party chooses the map,
+  # then its teams (parties-privees-equipes in the lobby's config.yml)
+  bedwars-normal-4s: toutes
+  bedwars-normal-2s: toutes
 
 # The modes that are not a classic Bed Wars game, each with its kind of game:
 #   ffa        free for all, open: players join and leave when they like, each for themselves, and
@@ -315,6 +321,10 @@ fast-bedwars:
   shop: [wool, plank, end_stone, glass, stone_sword, iron_sword, chainmail, iron_boots, shears, pickaxe, axe,
     bow, arrow, speed, jump, tnt, water, golden_apple, fireball, ender_pearl]
   ameliorations: false
+
+# The modes played only on the maps of exactly as many teams as the mode (in the lobby's
+# config.yml): Bedwars Normal, its 4s (4 teams) on the maps of 4 teams, its 2s (8 teams) on those of 8.
+equipes-exactes: [bedwars-normal-4s, bedwars-normal-2s]
 
 # How many game worlds the server keeps at most, so how many games at once (from 1 to 50).
 parties-max: 8

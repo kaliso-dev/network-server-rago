@@ -79,7 +79,8 @@ dans les files d'attente des modes de jeu.
   l'éditeur en duel.
 - **Les parties, comme sur Hypixel.** `/p <joueur>` (ou `/party invite`) invite ; l'invitation
   dure une minute, avec un « Click here to join! » cliquable, et la party naît avec la première
-  invitation (8 joueurs au plus). `/party accept`, `leave`, `list`, `kick`, `transfer`, `warp`
+  invitation (16 joueurs au plus depuis le 22/11, ta limite pour Bedwars Normal ; 8 avant, comme
+  sur Hypixel sans grade). `/party accept`, `leave`, `list`, `kick`, `transfer`, `warp`
   (les membres du lobby viennent au chef), `disband`, et le chat de party avec `/pc <message>` ou
   `/chat party` (`/chat all` pour revenir). Les messages sont entre deux lignes bleues. Seul le
   chef lance une file, pour toute la party :
@@ -91,6 +92,20 @@ dans les files d'attente des modes de jeu.
   - plus grande qu'une équipe sans remplir la partie, elle est refusée.
   Un joueur qui quitte la file, la party, ou le serveur fait sortir toute la party de la file. Un
   chef qui part laisse la party au joueur suivant.
+- **Les Private games : Bedwars Normal** (`parties-privees-equipes:`, tes réponses du 22/11 ; il
+  remplace la Private game, RBW 1v1 à 4v4, et le Private top bridge). Dans RBW Modes, l'objet
+  Private games, le chef de party clique Bedwars Normal et choisit une map : une ligne pour les 4s
+  (les maps à 4 équipes, `bedwars-normal-4s`), une pour les 2s (les maps à 8 équipes,
+  `bedwars-normal-2s`), telles que RagoBedwars les donne. Chaque joueur de la party choisit
+  ensuite son équipe dans un menu (les couleurs de la map, `/pg team` le rouvre) pendant 20
+  secondes (`compte-a-rebours`), puis la partie part seule, sans compter dans les stats : des
+  équipes de 4 sur une map de 4s, de 2 sur une map de 2s, comme sur Hypixel. Une équipe pleine
+  refuse un joueur, et aussi celle qui contiendrait toute la party (il faut deux équipes) ; celui
+  qui n'a pas choisi va dans l'équipe la moins remplie, en ouvrant les équipes qu'il faut à la
+  taille de la map (deux au moins : 5 joueurs sans choix sur une 2s font 2, 2 et 1 ; 6 sur une 4s
+  font 3 et 3). De 2 à 16 joueurs ; une party qui change, ou un joueur qui quitte le lobby, annule.
+  La logique des équipes est dans `TeamRoom` (testée par `TeamRoomTest`), les menus dans
+  `TeamRooms`. Les réglages du chef de party viennent ensuite.
 - **RagoBot** (`ragobot:`, le choix du propriétaire du 22/11). `/p invite RagoBot` (ou `/p RagoBot`)
   le fait entrer tout de suite dans la party, à côté du chef : un vrai joueur du serveur, avec le
   skin d'un compte (`skin:`, qRago) et le nom RagoBot, un par party qui l'invite (`max:` à la

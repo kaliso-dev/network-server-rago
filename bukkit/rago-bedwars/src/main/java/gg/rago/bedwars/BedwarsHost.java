@@ -342,7 +342,37 @@ final class BedwarsHost implements MatchHost, Listener {
             maps = new ArrayList<>(maps);
             maps.removeIf(map -> map.waitingLobby() == null);
         }
+        if (plugin.settings().exactTeams(mode.id())) {
+            // Bedwars Normal: the 4s on the maps of 4 teams, the 2s on those of 8 (not the demo map)
+            maps = new ArrayList<>(maps);
+            maps.removeIf(map -> map.completeTeams().size() != mode.teams());
+        }
         return maps;
+    }
+
+    /**
+     * The teams of this map in the order a game of this mode gives them to the sides of its match
+     * (the map's complete teams, in the order of the colours): a wool of each colour, named in it,
+     * for the team menu of Bedwars Normal in the lobby. Empty when the map does not play this mode.
+     */
+    @Override
+    public List<ItemStack> teamIcons(GameMode mode, String map) {
+        List<ItemStack> icons = new ArrayList<>();
+        for (BedwarsMap playable : mapsFor(mode)) {
+            if (!playable.world().equalsIgnoreCase(map)) {
+                continue;
+            }
+            for (TeamColor color : playable.playingTeams(mode.teams())) {
+                ItemStack wool = new ItemStack(Material.WOOL, 1, color.woolData());
+                org.bukkit.inventory.meta.ItemMeta meta = wool.getItemMeta();
+                if (meta != null) {
+                    meta.setDisplayName(ChatColor.RESET + color.coloured());
+                    wool.setItemMeta(meta);
+                }
+                icons.add(wool);
+            }
+        }
+        return icons;
     }
 
     /**

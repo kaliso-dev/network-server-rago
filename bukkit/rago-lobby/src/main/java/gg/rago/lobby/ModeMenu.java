@@ -404,6 +404,15 @@ final class ModeMenu {
             return false;
         }
         List<GameMode> routes = settings.privateRoutes().get(mode.id());
+        if (routes != null && settings.teamRooms().containsKey(mode.id())) {
+            // Bedwars Normal: from 2 players to the size of its maps (16), the teams chosen
+            for (GameMode target : routes) {
+                if (size >= 2 && size <= target.playersPerMatch() && queues.isPlayable(target.id())) {
+                    return true;
+                }
+            }
+            return false;
+        }
         if (routes != null) {
             for (GameMode target : routes) {
                 if (target.playersPerMatch() == size && target.ranked() && queues.isPlayable(target.id())) {
