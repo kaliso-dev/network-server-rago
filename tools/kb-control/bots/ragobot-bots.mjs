@@ -305,9 +305,10 @@ async function lobbyFight1v1 (leader, problems) {
     await sleep(1000)
   }
   try {
-    const welcome = await chatLine(leader, /Lobby Fight 1v1 on bw-demo: you are in the \S+ team\./, 20000, from)
-    const team = /you are in the (\S+) team\./.exec(welcome)[1]
-    log(`lobby fight 1v1: RagoLeader in the ${team} team, against RagoBot, on the middle island of bw-demo`)
+    // "Lobby Fight 1v1 on bw-demo: you are Red. Rounds of one life in the waiting lobby of the map: ..."
+    const welcome = await chatLine(leader, /Lobby Fight 1v1 on bw-demo: you are \S+\./, 20000, from)
+    const team = /you are (\S+)\./.exec(welcome)[1]
+    log(`lobby fight 1v1: RagoLeader is ${team}, against RagoBot, on the middle island of bw-demo`)
     await waitFor(() => leader.health < 20, 60000,
       `RagoBot to hit RagoLeader with its sword (health ${leader.health}; ${seen.summary()})`)
     log(`lobby fight 1v1: RagoBot hit RagoLeader (health ${leader.health.toFixed(1)})`)
