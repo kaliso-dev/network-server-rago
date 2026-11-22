@@ -64,11 +64,13 @@ class LobbySettingsTest {
         assertEquals("lobby", settings.world());
         assertEquals(0, settings.voidHeight());
         assertEquals(0, settings.defaultRating(), "a ranked ELO starts at 0, in Coal");
-        assertEquals(77, settings.modes().size(), "the invis practice and the Bed Break Simulator in 1v1 to 1v4 (and"
+        assertEquals(78, settings.modes().size(), "the invis practice and the Bed Break Simulator in 1v1 to 1v4 (and"
                 + " their kits), with the private top bridge, the clutch scenario, the bed fight, Top"
                 + " BedFight, the bridge fight 2v2, the full map first rush, Sky Rise Resources, the timed bridge, Lobby"
-                + " Fight (1v1, FFA), the Bed Break Simulator, the two modes of FUN PRACTICE and Red Rover (sumo, block"
-                + " edit, block placement, top bridge), without the top fight or the ranked scenarios");
+                + " Fight (1v1, FFA), the Bed Break Simulator, the two modes of FUN PRACTICE, Red Rover (sumo, block"
+                + " edit, block placement, top bridge) and Find Your Sensitivity, without the top fight or the ranked"
+                + " scenarios");
+        assertEquals("entrainement", settings.display("find-your-sensitivity").category(), "a training of the aim");
         for (String id : Arrays.asList("red-rover-sumo", "red-rover-block-edit", "red-rover-block-placement",
                 "red-rover-top-bridge")) {
             GameMode rover = settings.catalog().get(id);

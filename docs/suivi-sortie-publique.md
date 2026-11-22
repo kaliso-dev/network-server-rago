@@ -196,7 +196,7 @@ Snowball Spleef et Red Rover sont codés avec des valeurs de départ à confirme
 | 6.1c | Fast Bedwars (Bedwars 2018 simplifié) | P2 | BLOQUÉ (proposition écrite le 21/11, attend ta validation) | ce que « 2018 » veut dire (shop, améliorations, équipes, durée), maps |
 | 6.1d | Autres modes FUN connus : propositions | P3 | BLOQUÉ (proposition écrite le 21/11, attend ta validation) | ton choix parmi Spleef, Bow Spleef, Parkour Duels, Pearl Fight, Battle Rush |
 | 6.2 | Capture the Flag, version Bedwars et seconde version : études | P3 | BLOQUÉ (proposition écrite le 21/11, attend ta validation) | version à faire d'abord, équipes, captures, durée, maps, kit |
-| 6.3 | Find Your Sensitivity : faisabilité et protocole | P3 | BLOQUÉ (proposition écrite le 21/11, attend ta validation) | durée d'une série, nombre de sensibilités, historique |
+| 6.3 | Find Your Sensitivity : faisabilité et protocole | P3 | IMPLÉMENTÉ le 22/11 (ton choix sur la carte : « Find Your Sensitivity » d'abord), selon le protocole de la proposition ; pas encore joué, ni par les bots ni en jeu (détail plus bas, « Étape 7 : Find Your Sensitivity ») | question 9, valeurs de départ à confirmer : séries d'environ une minute (12 flicks, 4 demi-tours, 20 s de suivi), 3 sensibilités (la tienne, 20 % moins vite, 20 % plus vite), sans historique ; l'icône (œil de l'Ender) |
 | 6.4 | Block Aim Practice (patterns de la communauté) | P3 | BLOQUÉ (proposition écrite le 21/11, attend ta validation) | patterns d'abord, parcours ou cibles, map |
 | 6.5.1 | Red Rover (Sumo, Block Placement, Block Edit, Top Bridge…) | P2 | Sumo, Block Edit, Block Placement, Top Bridge : TESTÉ par les bots en CI (21/11) ; rien encore en jeu | question 10 (qui reste, points ou élimination : codé « points, le gagnant reste, premier à 3 », à confirmer) ; 90 s par 1v1 à confirmer  |
 | 6.5.2 | Modes 2v1 asymétriques (Clutch Scenario, stuff amélioré) | P3 | Clutch Scenario : IMPLÉMENTÉ le 22/11, build et tests unitaires passés en CI (le partage du joueur seul, la party gardée ensemble) ; pas encore joué, ni par les bots ni en jeu ; en 1v1, 1v2, 1v3 et 1v4 comme Invis Practice et le Bed Break Simulator (ta demande du 22/11, à la place des 2v2, 3v3 et 4v4 ; les victoires de ceux-ci comptent toujours pour le titre Clutch Scenario) ; à partir du 1v2, le joueur seul, tiré au sort, part sans lit avec une vie, les autres gardent le leur (ton choix du 21/11) ; une party reste ensemble, le joueur seul est tiré parmi les autres (ton choix du 22/11). Stuff amélioré : BLOQUÉ | mode du stuff amélioré |
@@ -1493,3 +1493,39 @@ aucune config ni aucun monde touché ; l'ancien état est dans `sauvegarde-avant
 
 **À faire en jeu** : une partie de chaque mode sur ton serveur de test ; poser le PNJ avec
 `/lobby point funmod2`.
+
+### Étape 7 : Find Your Sensitivity (22/11)
+
+Ta demande du 22/11 : « En attendant que je test commence l'étape suivante des mods », puis ton
+choix sur la carte : Find Your Sensitivity d'abord. Codé selon le protocole du document de
+l'étape 7 ; la question 9 n'a pas de réponse, donc chaque nombre est une valeur de départ, à
+confirmer.
+
+- **Le mode** (`find-your-sensitivity`, RagoPractice, catégorie Practice de la boussole) : le
+  joueur donne la sensibilité de ses options (Options > Controls > Mouse Settings) avec le
+  comparateur (boutons -10, -1, +1, +10 ; 100 % par défaut, comme dans le jeu), puis tape la
+  cible verte. Trois séries identiques : à sa sensibilité, puis à une qui tourne 20 % moins vite
+  et à une 20 % plus vite (sur la courbe du client 1.8.9 : 100 % donne 88 % et 110 %). Entre
+  deux séries, le jeu lui dit quelle valeur mettre dans ses options ; s'il n'y arrive pas
+  exactement, il entre la sienne au comparateur.
+- **Une série** : 12 flicks (35 à 120° à gauche et à droite du viseur) et 4 demi-tours (une cible
+  derrière), dans un ordre tiré au sort mais le même pour les trois séries ; chaque cible finie
+  par un clic dessus, 3 secondes au plus ; puis 20 secondes à suivre une cible qui strafe comme
+  celle de l'aim trainer. Le joueur reste sur son bloc (des barrières invisibles autour) : chaque
+  cible est à 6 blocs.
+- **Les mesures** : le temps jusqu'au clic sur la cible ; un dépassement (le viseur passe le bord
+  de la cible) ou un arrêt avant la cible, selon ce qui vient en premier ; les corrections (le
+  viseur qui repart dans l'autre sens) ; le suivi (le pourcentage des ticks sur la cible).
+- **Le résultat** : chaque série, la plus précise (le meilleur total des rangs sur ces quatre
+  mesures, à confirmer), le sens à prendre (plus de dépassements : plus bas ; plus d'arrêts
+  avant : plus haut), et que cela ne vaut que pour cette souris à son DPI, le ping pouvant le
+  décaler. Rien n'est gardé : ni record, ni historique. L'XP des entraînements (par minute)
+  reste celle de tous les entraînements.
+- **Le menu des réglages** des entraînements sait maintenant faire des pas de 10 pour un réglage
+  qui en a besoin ; seuls les réglages de Find Your Sensitivity s'en servent, les autres ne
+  changent pas.
+
+**Testé** : les calculs (les sensibilités, les dépassements et arrêts avant, les demi-tours, le
+classement des séries) sur des flicks simulés, en local ; les tests unitaires en CI : en cours.
+Rien encore en jeu.
+

@@ -65,6 +65,10 @@ abstract class Training extends PracticeGame {
         /** Its value by default, that "Reset to default" (or shift and a right click on the blaze rod) gives back. */
         final int initial;
         int value;
+        /** A step besides the step of one (-10 and +10 beside - and +), for a setting of many values; 0 without. */
+        int bigStep;
+        /** What the value is in, written after it ("%") instead of "/max"; null: "/max". */
+        String unit;
 
         Setting(String label, int min, int max, int value, boolean toggle) {
             this.label = label;
@@ -79,10 +83,20 @@ abstract class Training extends PracticeGame {
             return value != 0;
         }
 
-        /** The value as the player reads it: "3/5" with a bar, or On / Off. */
+        /** The same setting with a step of this many besides the step of one, its value written in this unit. */
+        Setting big(int step, String unit) {
+            this.bigStep = step;
+            this.unit = unit;
+            return this;
+        }
+
+        /** The value as the player reads it: "3/5" with a bar, "100%" in its unit, or On / Off. */
         String text() {
             if (toggle) {
                 return on() ? ChatColor.GREEN + "On" : ChatColor.RED + "Off";
+            }
+            if (unit != null) {
+                return ChatColor.WHITE + "" + value + unit;
             }
             StringBuilder bar = new StringBuilder();
             for (int i = min; i <= max && max - min <= 10; i++) {
@@ -667,6 +681,9 @@ abstract class Training extends PracticeGame {
     static final int LOWER_COLUMN = 3;
     static final int VALUE_COLUMN = 4;
     static final int RAISE_COLUMN = 5;
+    /** The bigger steps of a setting that has them (-10, +10), beside - and +. */
+    static final int BIG_LOWER_COLUMN = 2;
+    static final int BIG_RAISE_COLUMN = 6;
 
     /**
      * A new attempt while the settings are open (a fall that began before they opened): the
@@ -705,7 +722,7 @@ abstract class Training extends PracticeGame {
             Setting setting = settings.get(i);
             int row = (firstSettingRow() + i) * 9;
             String byDefault = ChatColor.GRAY + "Default: " + (setting.toggle ? (setting.initial != 0 ? "On" : "Off")
-                    : ChatColor.WHITE + "" + setting.initial);
+                    : ChatColor.WHITE + "" + setting.initial + (setting.unit == null ? "" : setting.unit));
             if (setting.toggle) {
                 items[row + VALUE_COLUMN] = named(Material.INK_SACK, 1, setting.on() ? GREEN_DYE : GRAY_DYE,
                         ChatColor.WHITE + setting.label + ": " + setting.text(), byDefault, ChatColor.RED + "Click: on or off");
@@ -718,6 +735,12 @@ abstract class Training extends PracticeGame {
                     byDefault);
             items[row + RAISE_COLUMN] = named(Material.STAINED_GLASS_PANE, 1, GREEN_PANE, ChatColor.GREEN + "+ " + setting.label,
                     ChatColor.RED + "Click: raise");
+            if (setting.bigStep > 0) {
+                items[row + BIG_LOWER_COLUMN] = named(Material.STAINED_GLASS_PANE, 1, RED_PANE, ChatColor.RED + "-" + setting.bigStep
+                        + " " + setting.label, ChatColor.RED + "Click: lower by " + setting.bigStep);
+                items[row + BIG_RAISE_COLUMN] = named(Material.STAINED_GLASS_PANE, 1, GREEN_PANE, ChatColor.GREEN + "+" + setting.bigStep
+                        + " " + setting.label, ChatColor.RED + "Click: raise by " + setting.bigStep);
+            }
         }
         int bottom = bottomRow() * 9;
         if (!settings.isEmpty()) {
@@ -785,7 +808,8 @@ abstract class Training extends PracticeGame {
         int index = row - firstSettingRow();
         if (index >= 0 && index < settings.size()) {
             Setting setting = settings.get(index);
-            int by = setting.toggle ? (column == VALUE_COLUMN ? 1 : 0) : column == RAISE_COLUMN ? 1 : column == LOWER_COLUMN ? -1 : 0;
+            int by = setting.toggle ? (column == VALUE_COLUMN ? 1 : 0) : column == RAISE_COLUMN ? 1 : column == LOWER_COLUMN ? -1
+                    : column == BIG_RAISE_COLUMN ? setting.bigStep : column == BIG_LOWER_COLUMN ? -setting.bigStep : 0;
             if (by == 0) {
                 return;
             }

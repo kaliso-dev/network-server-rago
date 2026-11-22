@@ -322,6 +322,19 @@ réglages. Un entraînement de la liste que le serveur ne joue pas est laissé d
   barre d'XP montre l'XP de l'essai, la barre le temps qui reste. À la fin, le joueur reçoit
   cette XP en XP Network, plus 1 pour 10 coups (`aim-trainer` dans `config.yml`), et voit le top 5
   de la variante. `/aimtop [strafe|jump|circle]` montre le top de partout.
+- **Find your sensitivity** (étape 7, le protocole de la proposition) : le joueur donne la
+  sensibilité de ses options (Options > Controls > Mouse Settings) avec le comparateur (pas de 1
+  ou de 10, 100 % par défaut comme dans le jeu), puis joue la même série à cette sensibilité et à
+  deux autres autour : une qui tourne 20 % moins vite et une 20 % plus vite, sur la courbe du
+  client 1.8.9 (100 % donne 88 % et 110 %). Une série : 12 flicks de 35 à 120° de part et d'autre
+  du viseur et 4 demi-tours (une cible derrière), chacun fini par un clic sur la cible (3 secondes
+  au plus), puis 20 secondes à suivre une cible qui strafe comme celle de l'aim trainer. Le
+  joueur reste sur son bloc (des barrières autour), donc chaque cible est aussi loin (6 blocs).
+  À la fin : chaque série (temps jusqu'à la cible, dépassements, arrêts avant la cible,
+  corrections, suivi), la plus précise (le meilleur total des rangs sur ces quatre mesures), le
+  sens à prendre (plus de dépassements : plus bas ; plus d'arrêts avant : plus haut), et que cela
+  ne vaut que pour cette souris à son DPI, le ping pouvant le décaler. Rien n'est gardé : ni
+  record, ni historique. Toutes ces valeurs sont des valeurs de départ, à confirmer.
 - **Combo bot** : une IA qui se bat comme un joueur 1.8 (`ComboAi`), sans dégâts ; le plus long
   combo. Elle sprinte vers le joueur, strafe une fois proche, clique à son CPS avec sa précision et
   sa reach (mesurée jusqu'à la hitbox), et ses coups poussent comme ceux d'un joueur (un coup en

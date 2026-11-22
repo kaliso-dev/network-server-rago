@@ -42,7 +42,7 @@
       ],
       "description": "Clutch, block in, fast defense, bridging, extend, pearls, bow, fireballs, aim, bots: one skill at a time.",
       "skin": "practice",
-      "modes": 16,
+      "modes": 17,
       "also": []
     },
     {
@@ -1465,6 +1465,22 @@
       "startHere": false,
       "event": false,
       "description": "Aim training, solo, moving targets. XP for each second on the target, and a top of the best.",
+      "plugins": [
+        "practice"
+      ]
+    },
+    {
+      "id": "find-your-sensitivity",
+      "name": "Find your sensitivity",
+      "colour": "#55FFFF",
+      "icon": "EYE_OF_ENDER",
+      "category": "entrainement",
+      "group": null,
+      "format": "Solo",
+      "ranked": false,
+      "startHere": false,
+      "event": false,
+      "description": "Flicks, 180s and tracking at your sensitivity and two around it: the most precise one for your mouse.",
       "plugins": [
         "practice"
       ]

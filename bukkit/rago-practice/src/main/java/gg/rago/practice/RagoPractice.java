@@ -300,6 +300,8 @@ public final class RagoPractice extends JavaPlugin {
         int roverBlocks = config.getInt("red-rover.points-par-1v1-block-placement", 10);
         onMaps(register("red-rover-block-placement", (h, m, a, t) -> new BlockFight(h, m, a, RedRover.alone(t), roverBlocks)
                 .asRedRover("Red Rover Block Placement", rover), slots, spacing, false), blockMaps);
+        // Find Your Sensitivity (plan, step 7), after the others too, so that they keep their zones
+        register("find-your-sensitivity", FindYourSensitivity::new, slots, spacing, false);
     }
 
     /** The settings of Red Rover (red-rover); the defaults when they are wrong. */
