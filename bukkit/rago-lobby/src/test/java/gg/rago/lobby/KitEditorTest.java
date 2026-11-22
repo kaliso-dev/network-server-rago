@@ -1,8 +1,6 @@
 package gg.rago.lobby;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertFalse;
-import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.util.ArrayList;
@@ -40,64 +38,56 @@ class KitEditorTest {
     private static final List<String> CATEGORIES = Arrays.asList("entrainement", "ranked", "duels", "arenes");
 
     @Test
-    void theKitsGoByCategoryThenByName() {
+    void theFirstChestShowsTheCategoriesWithAKitInTheirOrder() {
+        // the owner's ask of 22/11 (19h51): as the compass, the categories first
         List<String> modes = new ArrayList<>(NAME.keySet());
         Collections.shuffle(modes, new java.util.Random(7));
-        List<KitEditor.Row> rows = KitEditor.rows(modes, CATEGORY, NAME, CATEGORIES);
-        assertEquals(5, rows.size());
-        assertEquals("entrainement", rows.get(0).category);
-        assertEquals(Collections.singletonList("block-edit"), rows.get(0).modes);
-        assertEquals("ranked", rows.get(1).category);
-        assertEquals(Arrays.asList("attack-defense-1v1", "invis-practice"), rows.get(1).modes);
-        assertEquals("duels", rows.get(2).category);
-        assertEquals(Arrays.asList("bed-fight-1v1", "bed-fight-2v2", "boxing"), rows.get(2).modes);
-        assertEquals("arenes", rows.get(3).category);
+        assertEquals(Arrays.asList("entrainement", "ranked", "duels", "arenes", KitEditor.OTHER),
+                KitEditor.categories(modes, CATEGORY, CATEGORIES));
+        List<String> listed = Arrays.asList("entrainement", "ranked", "duels", "arenes", "fun");
+        assertEquals(Arrays.asList("entrainement", "duels"),
+                KitEditor.categories(Arrays.asList("boxing", "block-edit"), CATEGORY, listed),
+                "a category without a kit is left out, the order is the selector's");
+        assertEquals(Collections.emptyList(), KitEditor.categories(new ArrayList<>(), CATEGORY, listed));
+    }
+
+    @Test
+    void aCategoryShowsItsKitsByName() {
+        List<String> modes = new ArrayList<>(NAME.keySet());
+        Collections.shuffle(modes, new java.util.Random(7));
+        assertEquals(Collections.singletonList("block-edit"), KitEditor.kitsOf("entrainement", modes, CATEGORY, NAME, CATEGORIES));
+        assertEquals(Arrays.asList("attack-defense-1v1", "invis-practice"), KitEditor.kitsOf("ranked", modes, CATEGORY, NAME, CATEGORIES));
+        assertEquals(Arrays.asList("bed-fight-1v1", "bed-fight-2v2", "boxing"), KitEditor.kitsOf("duels", modes, CATEGORY, NAME, CATEGORIES));
         // without the colours and the case: "bridge fight" before "FFA"
-        assertEquals(Arrays.asList("bridge-fight", "ffa"), rows.get(3).modes);
-        assertNull(rows.get(4).category, "the modes of no category the selector has, last");
-        assertEquals(Arrays.asList("elsewhere", "lost"), rows.get(4).modes);
-        for (KitEditor.Row row : rows) {
-            assertTrue(row.first);
-        }
+        assertEquals(Arrays.asList("bridge-fight", "ffa"), KitEditor.kitsOf("arenes", modes, CATEGORY, NAME, CATEGORIES));
+        assertEquals(Arrays.asList("elsewhere", "lost"), KitEditor.kitsOf(KitEditor.OTHER, modes, CATEGORY, NAME, CATEGORIES),
+                "the kits of no category the selector has");
+        assertEquals(NAME.size(), KitEditor.kitsOf(KitEditor.ALL, modes, CATEGORY, NAME, CATEGORIES).size(),
+                "without categories, every kit");
     }
 
     @Test
-    void aCategoryTakesMoreRowsWithMoreThanEightKits() {
-        List<String> modes = new ArrayList<>();
-        Map<String, String> category = new HashMap<>();
-        Map<String, String> name = new HashMap<>();
-        for (int i = 1; i <= 11; i++) {
-            String id = String.format("duel-%02d", i);
-            modes.add(id);
-            category.put(id, "duels");
-            name.put(id, "Duel " + String.format("%02d", i));
+    void theKitsOfACategoryAreLaidAsInTheMenusOfTheCompass() {
+        // seven a row under an empty row, the bottom row for the back button
+        assertEquals(ModeMenu.slotOf(0), KitEditor.kitSlot(0, 3));
+        assertEquals(10, KitEditor.kitSlot(0, 14));
+        assertEquals(19, KitEditor.kitSlot(7, 14), "the eighth kit on the next row");
+        assertEquals(3, KitEditor.kitRows(1));
+        assertEquals(3, KitEditor.kitRows(7));
+        assertEquals(4, KitEditor.kitRows(14), "the 14 kits of Duels: two rows");
+        assertEquals(6, KitEditor.kitRows(KitEditor.FRAMED_KITS));
+        // beyond, nine a row from the top, five rows at most
+        assertEquals(KitEditor.FRAMED_KITS, KitEditor.kitSlot(KitEditor.FRAMED_KITS, KitEditor.FRAMED_KITS + 1));
+        assertEquals(5, KitEditor.kitRows(KitEditor.FRAMED_KITS + 1));
+        assertEquals(6, KitEditor.kitRows(KitEditor.MAX_KITS));
+        assertEquals(6, KitEditor.kitRows(KitEditor.MAX_KITS + 10));
+        for (int count = 1; count <= KitEditor.MAX_KITS; count++) {
+            int size = 9 * KitEditor.kitRows(count);
+            assertTrue(size <= 54, "a chest has six rows at most: " + count);
+            for (int i = 0; i < count; i++) {
+                assertTrue(KitEditor.kitSlot(i, count) < size - 9, "above the bottom row: kit " + i + " of " + count);
+            }
         }
-        List<KitEditor.Row> rows = KitEditor.rows(modes, category, name, CATEGORIES);
-        assertEquals(2, rows.size());
-        assertEquals(KitEditor.ROW_KITS, rows.get(0).modes.size());
-        assertTrue(rows.get(0).first);
-        assertFalse(rows.get(1).first, "its label on its first row only");
-        assertEquals(Arrays.asList("duel-09", "duel-10", "duel-11"), rows.get(1).modes);
-    }
-
-    @Test
-    void theListTakesMorePagesWhenItDoesNotFit() {
-        List<String> modes = new ArrayList<>();
-        Map<String, String> category = new HashMap<>();
-        for (int i = 0; i < 7; i++) {
-            // seven categories of one kit each: seven rows, five a page
-            String id = "mode-" + i;
-            modes.add(id);
-            category.put(id, "c" + i);
-        }
-        List<String> categories = Arrays.asList("c0", "c1", "c2", "c3", "c4", "c5", "c6");
-        List<KitEditor.Row> rows = KitEditor.rows(modes, category, new HashMap<>(), categories);
-        assertEquals(2, KitEditor.pages(rows));
-        assertEquals(KitEditor.PAGE_ROWS, KitEditor.page(rows, 0).size());
-        assertEquals(2, KitEditor.page(rows, 1).size());
-        assertEquals("c5", KitEditor.page(rows, 1).get(0).category);
-        assertEquals(1, KitEditor.pages(new ArrayList<>()), "one page, even empty");
-        assertTrue(KitEditor.page(rows, 9).isEmpty());
     }
 
     @Test

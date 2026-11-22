@@ -6,8 +6,9 @@
 //      after the welcome (four ways to play, the book of Getting started), and they close it;
 //      adventure mode, the selector in the first hotbar slot, the kit
 //      editor book in the second, the sidebar; the Duels NPC is a Steve holding a sword, out of
-//      the tab list, and a click on it opens Duels; RagoUn opens the kit editor with the book and
-//      moves the stick of the sumo kit (run-lobby-test.sh gives the sumo one) from the first
+//      the tab list, and a click on it opens Duels; RagoUn opens the kit editor with the book (the
+//      categories first, as in the compass), opens Duels there, then the sumo kit, and
+//      moves its stick (run-lobby-test.sh gives the sumo a kit) from the first
 //      hotbar slot to the fourth, saves, and finds it there when it opens the editor again;
 //   2. RagoUn opens the selector with a right click: six rows, Ranked, Party, Red Rover and 3 Players
 //      in its top row, the five other categories in the centre; Red Rover opens its modes, whose back button
@@ -364,9 +365,23 @@ async function openSumoKit (bot) {
   const list = await Promise.race([listOpened, sleep(5000).then(() => null)])
   if (list == null) throw new Error(`${bot.username}: the kit editor did not open on a right click on the book`)
   if (!windowTitle(list).includes('Kit editor')) throw new Error(`${bot.username}: the book opened ${windowTitle(list)}`)
-  const sumo = list.slots.findIndex((item, slot) => slot < list.inventoryStart &&
+  // as the compass (the owner's ask of 22/11, 19h51): the categories first, in the middle row; the
+  // sumo is in Duels (an iron sword)
+  const duels = list.slots.findIndex((item, slot) => slot >= 9 && slot < 18 && item?.name === 'iron_sword' &&
+    JSON.stringify(item?.nbt ?? null).includes('Duels'))
+  if (duels < 0) throw new Error(`${bot.username}: no Duels in the middle row of the kit editor: ${JSON.stringify(list.slots.slice(0, list.inventoryStart).map((item) => item?.name ?? null))}`)
+  const kitsOpened = new Promise((resolve) => bot.once('windowOpen', resolve))
+  bot.clickWindow(duels, 0, 0).catch(() => {})
+  const kits = await Promise.race([kitsOpened, sleep(5000).then(() => null)])
+  if (kits == null || !windowTitle(kits).includes('Kit editor: Duels')) {
+    throw new Error(`${bot.username}: Duels in the kit editor opened ${kits == null ? 'nothing' : windowTitle(kits)}`)
+  }
+  if (kits.slots[kits.inventoryStart - 5]?.name !== 'arrow') {
+    throw new Error(`${bot.username}: no back button in the kits of Duels: ${kits.slots[kits.inventoryStart - 5]?.name}`)
+  }
+  const sumo = kits.slots.findIndex((item, slot) => slot < kits.inventoryStart &&
     JSON.stringify(item?.nbt ?? null).includes('Sumo duel'))
-  if (sumo < 0) throw new Error(`${bot.username}: no sumo in the kit editor: ${JSON.stringify(list.slots.map((item) => item?.name))}`)
+  if (sumo < 0) throw new Error(`${bot.username}: no sumo in the kits of Duels: ${JSON.stringify(kits.slots.map((item) => item?.name))}`)
   const editorOpened = new Promise((resolve) => bot.once('windowOpen', resolve))
   // The server cancels the click (the list cannot be emptied): do not wait for its acceptance.
   bot.clickWindow(sumo, 0, 0).catch(() => {})
@@ -384,18 +399,18 @@ async function arrangeSumoKit (bot) {
   await bot.clickWindow(EDITOR_HOTBAR, 0, 0)
   await bot.clickWindow(EDITOR_HOTBAR + STICK_SLOT, 0, 0)
   let from = mark(bot)
-  // Save goes back to the list of kits, with the lobby hotbar under it
+  // Save goes back to the kits of Duels, with the lobby hotbar under it
   const listAgain = new Promise((resolve) => bot.once('windowOpen', resolve))
   bot.clickWindow(KIT_SAVE, 0, 0).catch(() => {})
   await chatLine(bot, /Kit saved for Sumo duel/, 5000, from)
   const list = await Promise.race([listAgain, sleep(5000).then(() => null)])
-  if (list == null || !windowTitle(list).includes('Kit editor')) {
-    throw new Error(`${bot.username}: Save did not go back to the list of kits: ${list == null ? 'nothing opened' : windowTitle(list)}`)
+  if (list == null || !windowTitle(list).includes('Kit editor: Duels')) {
+    throw new Error(`${bot.username}: Save did not go back to the kits of Duels: ${list == null ? 'nothing opened' : windowTitle(list)}`)
   }
   await waitFor(() => hotbarItem(bot, 0)?.name === 'compass' && hotbarItem(bot, KIT_EDITOR_SLOT)?.name === 'book', 5000,
     `${bot.username} to get the lobby hotbar back after saving`)
   bot.closeWindow(list)
-  log(`${bot.username} moved the stick of the sumo kit to hotbar slot ${STICK_SLOT + 1}, saved, and is back in the list of kits`)
+  log(`${bot.username} opened Duels in the categories of the kit editor, moved the stick of the sumo kit to hotbar slot ${STICK_SLOT + 1}, saved, and is back in the kits of Duels`)
 
   const again = await openSumoKit(bot)
   await waitFor(() => again.slots[EDITOR_HOTBAR + STICK_SLOT]?.name === 'stick' && again.slots[EDITOR_HOTBAR] == null, 5000,

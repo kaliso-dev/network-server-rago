@@ -27,17 +27,19 @@ import org.bukkit.inventory.meta.ItemMeta;
 import org.bukkit.plugin.Plugin;
 
 /**
- * The kit editor, opened by the book of the lobby hotbar. A first chest lists the modes that give
- * a kit, by category in the order of the selector (Practice, RBW Modes, Duels, Arenas), sorted by
- * name in each: a row for each category, its label first, then its kits (on more rows if it has
- * more than 8, on more pages if they do not fit). Each kit says which other modes play it and
- * whether the player arranged it. Clicking one puts that kit in the player's inventory, as they
+ * The kit editor, opened by the book of the lobby hotbar. As the compass (the owner's ask of 22/11,
+ * 19h51: "trié comme le menu de la boussole ... par categorie"), a first chest shows the categories
+ * that have a kit, in the order of the selector (Practice, RBW Modes, Duels, Arenas, Fun Practice),
+ * in its middle row, one slot apart as in the compass; a click opens the kits of that category,
+ * sorted by name, seven a row as in the menus of the compass, with "Back to the categories" in the
+ * bottom row. Without categories, the book shows every kit at once. Each kit says which other
+ * modes play it and whether the player arranged it. Clicking one puts that kit in the player's inventory, as they
  * arranged it last time, with a small chest above it: Save and Cancel (both back to the list),
  * Reset (the kit's own layout). The player moves the items of their inventory where they want
  * them; closing the chest saves too. The items stay the server's: they can be moved, not split,
  * merged, dropped or put in the chest. The lobby hotbar comes back once the chest is closed. The
- * bottom row of the list explains it, copies the player's Bed Wars shop and hotbar manager from
- * Hypixel in one click, and shows them. Main thread only.
+ * bottom row of the first chest explains it, copies the player's Bed Wars shop and hotbar manager
+ * from Hypixel in one click, and shows them. Main thread only.
  */
 final class KitEditor implements Listener {
 
@@ -47,42 +49,37 @@ final class KitEditor implements Listener {
     static final int SAVE = 11;
     static final int RESET = 13;
     static final int CANCEL = 15;
-    /** A page of the list: five rows of kits at most, the last row for the buttons. */
-    static final int PAGE_ROWS = 5;
-    /** A row of the list: the category's label in the first column, then 8 kits. */
-    static final int ROW_KITS = 8;
-    /** In the last row of the list: the page before, copy the Hypixel shop, how it works, show the shop, the page after. */
-    static final int PREVIOUS_COLUMN = 0;
+    /** The first chest: the categories in its middle row, the buttons in its bottom row. */
+    static final int CATEGORIES_SIZE = 27;
+    /** In the bottom row of the first chest: copy the Hypixel shop, how it works, show the shop. */
     static final int IMPORT_COLUMN = 3;
     static final int HELP_COLUMN = 4;
     static final int SHOP_COLUMN = 5;
-    static final int NEXT_COLUMN = 8;
+    /** The kits of a chest framed as in the menus of the compass (seven a row under an empty row), up to this many. */
+    static final int FRAMED_KITS = 28;
+    /** The kits of a chest at most: five rows of nine above the bottom row. */
+    static final int MAX_KITS = 45;
+    /** The view of the kits of no category the selector has ("Other kits"). */
+    static final String OTHER = "(other)";
+    /** The view of every kit, when the selector has no categories. */
+    static final String ALL = "(all)";
 
-    /** A row of the list: the kits of one category (null: of none the selector has), its label on the first. */
-    static final class Row {
-        final String category;
-        final boolean first;
-        final List<String> modes;
-
-        Row(String category, boolean first, List<String> modes) {
-            this.category = category;
-            this.first = first;
-            this.modes = Collections.unmodifiableList(new ArrayList<>(modes));
-        }
-    }
-
-    /** Marks our chests: the list of modes (no mode), or the editor of one mode's kit; the page of the list. */
+    /**
+     * Marks our chests: the categories (no mode, no view), the kits of a view (no mode), or the
+     * editor of one mode's kit, with the view it came from.
+     */
     static final class Holder implements InventoryHolder {
         private final String modeId;
-        /** The kits of the list, by slot. */
-        private final Map<Integer, String> modes;
-        private final int page;
+        /** The kits shown: a category id, OTHER or ALL; null for the categories. */
+        private final String view;
+        /** What each slot opens: a category (its id, or OTHER) in the first chest, a kit (its mode id) in a view. */
+        private final Map<Integer, String> links;
         private Inventory inventory;
 
-        Holder(String modeId, Map<Integer, String> modes, int page) {
+        Holder(String modeId, String view, Map<Integer, String> links) {
             this.modeId = modeId;
-            this.modes = modes;
-            this.page = page;
+            this.view = view;
+            this.links = links;
         }
 
         /** The mode being edited, or null for the list of modes. */
@@ -104,8 +101,8 @@ final class KitEditor implements Listener {
     private final HypixelProfiles hypixel;
     /** The players arranging a kit, and its mode. */
     private final Map<UUID, String> editing = new HashMap<>();
-    /** The players who saved or cancelled: the list comes back, at this page. */
-    private final Map<UUID, Integer> backToList = new HashMap<>();
+    /** The players who saved or cancelled: the kits they came from come back (a view). */
+    private final Map<UUID, String> backToList = new HashMap<>();
     /** The kits that games make themselves, by player then mode (or mode/role): learnt when a game gives one. */
     private final Map<UUID, Map<String, Kit>> codeKits = new HashMap<>();
     /** The kit a game gave each player last: its mode, or mode/role (the defenders of the invis practice). */
@@ -135,28 +132,40 @@ final class KitEditor implements Listener {
     }
 
     /**
-     * The rows of the list: the kits by category, in the order of the categories (those of no
-     * category listed come last), sorted by name in each (ignoring colours and case); a category
-     * starts a row, and takes as many rows of {@link #ROW_KITS} as it needs.
+     * The categories of the first chest, as in the compass: those of the selector that have a kit,
+     * in its order, then OTHER when some kits have no category it lists.
      */
-    static List<Row> rows(List<String> modes, Map<String, String> categoryOf, Map<String, String> nameOf, List<String> categories) {
-        List<String> order = new ArrayList<>(categories);
-        order.add(null);
-        List<Row> rows = new ArrayList<>();
-        for (String category : order) {
-            List<String> kits = new ArrayList<>();
+    static List<String> categories(List<String> modes, Map<String, String> categoryOf, List<String> categories) {
+        List<String> shown = new ArrayList<>();
+        for (String category : categories) {
             for (String mode : modes) {
-                String of = categoryOf.get(mode);
-                if (category == null ? of == null || !categories.contains(of) : category.equals(of)) {
-                    kits.add(mode);
+                if (category.equals(categoryOf.get(mode))) {
+                    shown.add(category);
+                    break;
                 }
             }
-            kits.sort((a, b) -> sortName(nameOf.get(a), a).compareTo(sortName(nameOf.get(b), b)));
-            for (int from = 0; from < kits.size(); from += ROW_KITS) {
-                rows.add(new Row(category, from == 0, kits.subList(from, Math.min(kits.size(), from + ROW_KITS))));
+        }
+        for (String mode : modes) {
+            if (!categories.contains(categoryOf.get(mode))) {
+                shown.add(OTHER);
+                break;
             }
         }
-        return rows;
+        return shown;
+    }
+
+    /** The kits of a view (a category, OTHER or ALL), sorted by name, ignoring colours and case. */
+    static List<String> kitsOf(String view, List<String> modes, Map<String, String> categoryOf, Map<String, String> nameOf,
+            List<String> categories) {
+        List<String> kits = new ArrayList<>();
+        for (String mode : modes) {
+            String of = categoryOf.get(mode);
+            if (ALL.equals(view) || (OTHER.equals(view) ? !categories.contains(of) : view.equals(of))) {
+                kits.add(mode);
+            }
+        }
+        kits.sort((a, b) -> sortName(nameOf.get(a), a).compareTo(sortName(nameOf.get(b), b)));
+        return kits;
     }
 
     private static String sortName(String name, String mode) {
@@ -164,15 +173,20 @@ final class KitEditor implements Listener {
         return plain.toLowerCase(java.util.Locale.ROOT);
     }
 
-    /** The rows of the list on this page ({@link #PAGE_ROWS} a page). */
-    static List<Row> page(List<Row> rows, int page) {
-        int from = Math.min(rows.size(), Math.max(0, page) * PAGE_ROWS);
-        return rows.subList(from, Math.min(rows.size(), from + PAGE_ROWS));
+    /**
+     * The slot of the n-th of {@code count} kits of a view: seven a row under an empty row, as in
+     * the menus of the compass, up to {@link #FRAMED_KITS}; nine a row from the top beyond.
+     */
+    static int kitSlot(int index, int count) {
+        return count <= FRAMED_KITS ? ModeMenu.slotOf(index) : index;
     }
 
-    /** How many pages the list has (one at least). */
-    static int pages(List<Row> rows) {
-        return Math.max(1, (rows.size() + PAGE_ROWS - 1) / PAGE_ROWS);
+    /** The rows of the chest of {@code count} kits (at most {@link #MAX_KITS}), its bottom row included. */
+    static int kitRows(int count) {
+        if (count <= FRAMED_KITS) {
+            return 2 + Math.max(1, (count + 6) / 7);
+        }
+        return Math.min(MAX_KITS, count + 8) / 9 + 1;
     }
 
     /** The names of the other modes that play this mode's kit (kit-de:), colours removed. */
@@ -211,13 +225,23 @@ final class KitEditor implements Listener {
         return editing.containsKey(player.getUniqueId());
     }
 
-    /** The book: the modes whose kit can be arranged, and the Hypixel shop. */
+    /** The book: the categories of the kits, as the compass; without categories, every kit at once. */
     void openModes(Player player) {
-        openModes(player, 0);
+        openList(player, settings.categories().isEmpty() ? ALL : null);
     }
 
-    /** The list of kits at this page. */
-    void openModes(Player player, int page) {
+    /** The view of the kits a mode is in: its category, OTHER, or ALL without categories. */
+    private String viewOf(String modeId) {
+        if (settings.categories().isEmpty()) {
+            return ALL;
+        }
+        ModeDisplay display = settings.display(modeId);
+        String category = display == null ? null : display.category();
+        return category != null && settings.category(category) != null ? category : OTHER;
+    }
+
+    /** The first chest (view null: the categories), or the kits of a view. */
+    void openList(Player player, String view) {
         List<String> ids = new ArrayList<>();
         Map<String, String> categoryOf = new HashMap<>();
         Map<String, String> nameOf = new HashMap<>();
@@ -226,42 +250,53 @@ final class KitEditor implements Listener {
             categoryOf.put(display.mode().id(), display.category());
             nameOf.put(display.mode().id(), display.mode().name());
         }
-        Map<String, ModeCategory> categories = new HashMap<>();
         List<String> order = new ArrayList<>();
         for (ModeCategory category : settings.categories()) {
-            categories.put(category.id(), category);
             order.add(category.id());
         }
-        List<Row> rows = rows(ids, categoryOf, nameOf, order);
-        int pages = pages(rows);
-        int at = Math.max(0, Math.min(page, pages - 1));
-        List<Row> shown = page(rows, at);
-        Map<Integer, String> slots = new HashMap<>();
-        Holder holder = new Holder(null, slots, at);
-        int size = 9 * (shown.size() + 1);
-        Inventory inventory = Bukkit.createInventory(holder, size, pages > 1 ? TITLE + " (" + (at + 1) + "/" + pages + ")" : TITLE);
+        Map<Integer, String> links = new HashMap<>();
+        Holder holder = new Holder(null, view, links);
+        Inventory inventory;
+        if (view == null) {
+            // as the middle row of the compass: one slot apart, centred, in the order of the selector
+            List<String> shown = categories(ids, categoryOf, order);
+            inventory = Bukkit.createInventory(holder, CATEGORIES_SIZE, TITLE);
+            for (int i = 0; i < shown.size() && i < 9; i++) {
+                String id = shown.get(i);
+                int slot = 9 + ModeMenu.compassColumn(i, Math.min(9, shown.size()));
+                links.put(slot, id);
+                inventory.setItem(slot, categoryItem(OTHER.equals(id) ? null : settings.category(id),
+                        kitsOf(id, ids, categoryOf, nameOf, order).size()));
+            }
+            buttons(player, inventory);
+        } else {
+            List<String> kits = kitsOf(view, ids, categoryOf, nameOf, order);
+            if (kits.size() > MAX_KITS) {
+                kits = kits.subList(0, MAX_KITS);
+            }
+            ModeCategory category = settings.category(view);
+            String title = ALL.equals(view) ? TITLE : TITLE + ": "
+                    + (category == null ? "Other kits" : ChatColor.stripColor(category.name()));
+            inventory = Bukkit.createInventory(holder, 9 * kitRows(kits.size()), title.length() > 32 ? title.substring(0, 32) : title);
+            for (int i = 0; i < kits.size(); i++) {
+                int slot = kitSlot(i, kits.size());
+                links.put(slot, kits.get(i));
+                inventory.setItem(slot, kitItem(player, settings.display(kits.get(i))));
+            }
+            if (ALL.equals(view)) {
+                buttons(player, inventory);
+            } else {
+                inventory.setItem(ModeMenu.backSlot(inventory.getSize()), item(Material.ARROW, 0,
+                        ChatColor.GRAY + "Back to the categories"));
+            }
+        }
         holder.inventory = inventory;
-        for (int row = 0; row < shown.size(); row++) {
-            Row each = shown.get(row);
-            if (each.first || row == 0) {
-                inventory.setItem(row * 9, label(each.category == null ? null : categories.get(each.category), order.isEmpty()));
-            }
-            for (int i = 0; i < each.modes.size(); i++) {
-                String modeId = each.modes.get(i);
-                int slot = row * 9 + 1 + i;
-                slots.put(slot, modeId);
-                inventory.setItem(slot, kitItem(player, settings.display(modeId)));
-            }
-        }
-        int last = size - 9;
-        if (at > 0) {
-            inventory.setItem(last + PREVIOUS_COLUMN, item(Material.ARROW, 0, ChatColor.YELLOW + "Previous page",
-                    ChatColor.GRAY + "Page " + at + " of " + pages));
-        }
-        if (at < pages - 1) {
-            inventory.setItem(last + NEXT_COLUMN, item(Material.ARROW, 0, ChatColor.YELLOW + "Next page",
-                    ChatColor.GRAY + "Page " + (at + 2) + " of " + pages));
-        }
+        player.openInventory(inventory);
+    }
+
+    /** The bottom row of the first chest: copy the Hypixel shop, how it works, show the shop. */
+    private void buttons(Player player, Inventory inventory) {
+        int last = inventory.getSize() - 9;
         HypixelProfile imported = hypixel.get(player.getUniqueId());
         inventory.setItem(last + IMPORT_COLUMN, hypixel.enabled()
                 ? item(Material.EMERALD, 0, ChatColor.GREEN + "Import your Hypixel shop",
@@ -273,10 +308,11 @@ final class KitEditor implements Listener {
                 : item(Material.EMERALD, 0, ChatColor.GRAY + "Import your Hypixel shop",
                         ChatColor.RED + "Not set up on this server yet."));
         inventory.setItem(last + HELP_COLUMN, item(Material.BOOK, 0, ChatColor.GOLD + "How it works",
-                ChatColor.GRAY + "Click a kit: its items come into",
-                ChatColor.GRAY + "your inventory. Move them where",
-                ChatColor.GRAY + "you want them, then " + ChatColor.GREEN + "Save" + ChatColor.GRAY + ":",
-                ChatColor.GRAY + "your next games give them this way.", "",
+                ChatColor.GRAY + "Click a category, then a kit: its",
+                ChatColor.GRAY + "items come into your inventory.",
+                ChatColor.GRAY + "Move them where you want them,",
+                ChatColor.GRAY + "then " + ChatColor.GREEN + "Save" + ChatColor.GRAY + ": your next games give",
+                ChatColor.GRAY + "them this way.", "",
                 ChatColor.GRAY + "In a game too: move the items of",
                 ChatColor.GRAY + "your kit, close your inventory,",
                 ChatColor.GRAY + "and the new layout is kept."));
@@ -285,20 +321,20 @@ final class KitEditor implements Listener {
                         : ChatColor.GRAY + "The quick buy of " + ChatColor.WHITE + imported.name()
                                 + ChatColor.GRAY + ": " + imported.items() + " items.",
                 "", Brand.ACCENT + "Click to see it"));
-        player.openInventory(inventory);
     }
 
     /**
-     * The label of a row: its category's icon and name; the modes of no category: "Other kits", or
-     * "Kits" when the selector has no categories.
+     * A category of the first chest: its icon, name and slogan, as in the compass, and how many
+     * kits it has; the kits of no category: "Other kits".
      */
-    private static ItemStack label(ModeCategory category, boolean noCategories) {
+    private static ItemStack categoryItem(ModeCategory category, int kits) {
+        String count = ChatColor.GRAY + "" + kits + (kits == 1 ? " kit" : " kits");
+        String click = Brand.ACCENT + "Click to see its kits";
         if (category == null) {
-            return item(Material.CHEST, 0, ChatColor.WHITE + "" + ChatColor.BOLD + (noCategories ? "Kits" : "Other kits"));
+            return item(Material.CHEST, 0, ChatColor.WHITE + "" + ChatColor.BOLD + "Other kits", count, "", click);
         }
-        String slogan = category.slogan();
-        return slogan == null ? item(category.icon(), 0, category.name())
-                : item(category.icon(), 0, category.name(), slogan);
+        return category.slogan() == null ? item(category.icon(), 0, category.name(), count, "", click)
+                : item(category.icon(), 0, category.name(), category.slogan(), "", count, "", click);
     }
 
     /** A kit of the list: the mode, the other modes that play its kit, the player's layout or not. */
@@ -318,11 +354,11 @@ final class KitEditor implements Listener {
 
     /** Puts the mode's kit in the player's inventory, as they arranged it, under the editor chest. */
     void edit(Player player, String modeId) {
-        edit(player, modeId, 0);
+        edit(player, modeId, viewOf(modeId));
     }
 
-    /** The same, from this page of the list: Save and Cancel go back to it. */
-    void edit(Player player, String modeId, int page) {
+    /** The same, from the kits of this view: Save and Cancel go back to them. */
+    void edit(Player player, String modeId, String view) {
         ModeDisplay display = settings.display(modeId);
         if (display == null || display.kit() == null || !state.isProtected(player)) {
             return;
@@ -330,7 +366,7 @@ final class KitEditor implements Listener {
         // Before the inventory changes: the lobby hotbar must not come back over the kit.
         editing.put(player.getUniqueId(), modeId);
         fill(player, display.kit().arrange(layouts.get(player.getUniqueId(), modeId)));
-        Holder holder = new Holder(modeId, Collections.<Integer, String>emptyMap(), page);
+        Holder holder = new Holder(modeId, view, Collections.<Integer, String>emptyMap());
         String title = "Kit: " + ChatColor.stripColor(display.mode().name());
         Inventory inventory = Bukkit.createInventory(holder, SIZE, title.length() > 32 ? title.substring(0, 32) : title);
         holder.inventory = inventory;
@@ -361,12 +397,13 @@ final class KitEditor implements Listener {
         int top = event.getView().getTopInventory().getSize();
         if (holder.modeId == null) {
             event.setCancelled(true);
-            if (raw == top - 9 + IMPORT_COLUMN) {
+            boolean buttons = holder.view == null || ALL.equals(holder.view);
+            if (buttons && raw == top - 9 + IMPORT_COLUMN) {
                 closeLater(player);
                 hypixel.importFor(player, null);
                 return;
             }
-            if (raw == top - 9 + SHOP_COLUMN) {
+            if (buttons && raw == top - 9 + SHOP_COLUMN) {
                 final HypixelProfile imported = hypixel.get(player.getUniqueId());
                 if (imported == null) {
                     player.sendMessage(ChatColor.GRAY + "You have not imported your Hypixel shop yet: click the"
@@ -380,21 +417,24 @@ final class KitEditor implements Listener {
                 });
                 return;
             }
-            final int turn = raw == top - 9 + PREVIOUS_COLUMN ? -1 : raw == top - 9 + NEXT_COLUMN ? 1 : 0;
-            if (turn != 0 && event.getCurrentItem() != null && event.getCurrentItem().getType() == Material.ARROW) {
+            if (!buttons && raw == ModeMenu.backSlot(top)) {
                 Bukkit.getScheduler().runTask(plugin, () -> {
                     if (player.isOnline() && player.getOpenInventory().getTopInventory().getHolder() == holder) {
-                        openModes(player, holder.page + turn);
+                        openList(player, null);
                     }
                 });
                 return;
             }
-            final String modeId = holder.modes.get(raw);
-            if (modeId != null) {
-                // Not from inside the click: the next tick opens the editor.
+            final String link = holder.links.get(raw);
+            if (link != null) {
+                // Not from inside the click: the next tick opens the kits of the category, or the editor.
                 Bukkit.getScheduler().runTask(plugin, () -> {
                     if (player.isOnline() && player.getOpenInventory().getTopInventory().getHolder() == holder) {
-                        edit(player, modeId, holder.page);
+                        if (holder.view == null) {
+                            openList(player, link);
+                        } else {
+                            edit(player, link, holder.view);
+                        }
                     }
                 });
             }
@@ -407,7 +447,7 @@ final class KitEditor implements Listener {
         if (raw >= 0 && raw < top) {
             event.setCancelled(true);
             if (raw == SAVE) {
-                backToList.put(player.getUniqueId(), holder.page);
+                backToList.put(player.getUniqueId(), holder.view);
                 closeLater(player);
             } else if (raw == RESET) {
                 ModeDisplay display = settings.display(holder.modeId);
@@ -416,7 +456,7 @@ final class KitEditor implements Listener {
                 player.sendMessage(ChatColor.GRAY + "The kit is back to its default layout: save to keep it.");
             } else if (raw == CANCEL) {
                 editing.remove(player.getUniqueId());
-                backToList.put(player.getUniqueId(), holder.page);
+                backToList.put(player.getUniqueId(), holder.view);
                 player.sendMessage(ChatColor.GRAY + "Nothing changed: your kit stays as it was.");
                 closeLater(player);
             }
@@ -602,14 +642,14 @@ final class KitEditor implements Listener {
             save(player, modeId);
         }
         player.setItemOnCursor(null);
-        final Integer page = backToList.remove(player.getUniqueId());
+        final String view = backToList.remove(player.getUniqueId());
         // The lobby hotbar comes back, unless a game started meanwhile (it gives its own items); after
-        // Save or Cancel, the list of kits too.
+        // Save or Cancel, the kits the player came from too.
         Bukkit.getScheduler().runTask(plugin, () -> {
             if (player.isOnline() && !isEditing(player) && state.isProtected(player)) {
                 lobbyHotbar.accept(player);
-                if (page != null) {
-                    openModes(player, page);
+                if (view != null) {
+                    openList(player, view);
                 }
             }
         });
