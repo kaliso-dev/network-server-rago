@@ -2,26 +2,22 @@ package gg.rago.lobby;
 
 import com.github.retrooper.packetevents.protocol.entity.data.EntityData;
 import com.github.retrooper.packetevents.protocol.entity.data.EntityDataTypes;
-import com.github.retrooper.packetevents.protocol.player.Equipment;
-import com.github.retrooper.packetevents.protocol.player.EquipmentSlot;
 import com.github.retrooper.packetevents.protocol.player.GameMode;
 import com.github.retrooper.packetevents.protocol.player.TextureProperty;
 import com.github.retrooper.packetevents.protocol.player.UserProfile;
 import com.github.retrooper.packetevents.protocol.world.Location;
-import com.github.retrooper.packetevents.wrapper.play.server.WrapperPlayServerEntityEquipment;
 import com.github.retrooper.packetevents.wrapper.play.server.WrapperPlayServerEntityHeadLook;
 import com.github.retrooper.packetevents.wrapper.play.server.WrapperPlayServerPlayerInfo;
 import com.github.retrooper.packetevents.wrapper.play.server.WrapperPlayServerSpawnPlayer;
-import io.github.retrooper.packetevents.util.SpigotConversionUtil;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.UUID;
 import org.bukkit.entity.Player;
-import org.bukkit.inventory.ItemStack;
 
 /**
- * An NPC body: a player in its skin (Steve without one), holding an item, facing one way. Its name
+ * An NPC body: a player in its skin (Steve without one), hands empty (the owner's ask of 22/11),
+ * facing one way. Its name
  * tag is hidden by the lobby scoreboard (team {@link LobbyScoreboard#NPC_TEAM}), its name is
  * shown by the lines above it, and it leaves the tab list two seconds after appearing.
  */
@@ -34,22 +30,16 @@ final class FakePlayer extends FakeEntities.Fake {
     private static final byte ALL_PARTS = 0x7F;
 
     private final UserProfile profile;
-    private final ItemStack hand;
 
     /**
      * @param name a name no real player can have (it contains a colour code): it is the team entry
      *     that hides its name tag
+     * @param skin its signed skin, or null for Steve
      */
-    FakePlayer(org.bukkit.Location at, String name, ItemStack hand, FakeEntities.Clicker clicker) {
-        this(at, name, null, hand, clicker);
-    }
-
-    /** @param skin its signed skin, or null for Steve */
-    FakePlayer(org.bukkit.Location at, String name, Skin skin, ItemStack hand, FakeEntities.Clicker clicker) {
+    FakePlayer(org.bukkit.Location at, String name, Skin skin, FakeEntities.Clicker clicker) {
         super(at, 1, clicker);
         this.profile = new UserProfile(steveId(), name, skin == null ? Collections.<TextureProperty>emptyList()
                 : Collections.singletonList(new TextureProperty("textures", skin.value(), skin.signature())));
-        this.hand = hand;
     }
 
     /** The profile sent to the clients: its name, and its skin if it has one. */
@@ -83,10 +73,6 @@ final class FakePlayer extends FakeEntities.Fake {
         fakes.send(viewer, new WrapperPlayServerSpawnPlayer(id(0), profile.getUUID(),
                 new Location(at.getX(), at.getY(), at.getZ(), at.getYaw(), 0f), metadata));
         fakes.send(viewer, new WrapperPlayServerEntityHeadLook(id(0), at.getYaw()));
-        if (hand != null) {
-            fakes.send(viewer, new WrapperPlayServerEntityEquipment(id(0), Collections.singletonList(
-                    new Equipment(EquipmentSlot.MAIN_HAND, SpigotConversionUtil.fromBukkitItemStack(hand)))));
-        }
         fakes.later(TAB_LIST_TICKS, () -> {
             if (viewer.isOnline()) {
                 WrapperPlayServerPlayerInfo.PlayerData gone =

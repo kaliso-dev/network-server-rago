@@ -14,11 +14,10 @@ import org.bukkit.Material;
 import org.bukkit.World;
 import org.bukkit.block.Block;
 import org.bukkit.entity.Player;
-import org.bukkit.inventory.ItemStack;
 
 /**
- * The quests NPC of the spawn: a figure in the skin quetes beside the daily reward chest, holding
- * a book and quill, facing the spawn, with lines above its head that tell each player how many of
+ * The quests NPC of the spawn: a figure in the skin quetes beside the daily reward chest, facing
+ * the spawn, with lines above its head that tell each player how many of
  * the daily and weekly quests they have done. A click on it or on its lines opens the quests (the
  * page of /quests). It stands on its point once one is placed ("quests", /lobby point quests;
  * point-pnj-quetes: in config.yml names another one); else two blocks beside the daily chest
@@ -68,7 +67,7 @@ final class QuestsNpc {
             return null;
         }
         FakeEntities.Clicker click = (player, left) -> click(player);
-        fakes.add(new FakePlayer(at, LobbyNpcs.questsName(), skins.apply(SKIN), new ItemStack(Material.BOOK_AND_QUILL), click));
+        fakes.add(new FakePlayer(at, LobbyNpcs.questsName(), skins.apply(SKIN), click));
         fakes.add(new FakeHologram(at.clone().add(0, LobbyNpcs.ABOVE_HEAD, 0), LINES, this::lines, click));
         return at;
     }

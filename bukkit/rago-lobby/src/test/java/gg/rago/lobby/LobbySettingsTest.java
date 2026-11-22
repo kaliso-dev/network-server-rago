@@ -410,7 +410,7 @@ class LobbySettingsTest {
         LobbyNpc fun = settings.npc("prive");
         assertEquals("§d§lFun Practice", fun.name());
         assertEquals("fun", fun.category());
-        assertNull(fun.skin(), "Fun Practice has no skin of its own yet: Steve");
+        assertEquals("fun", fun.skin(), "the skin of the Fun Practice (22/11)");
         assertEquals(displayIds(settings.modesIn("fun")), fun.modeIds(), "it holds the modes of FUN PRACTICE");
         assertEquals(Arrays.asList("partie-privee", "top-bridge-prive"), displayIds(settings.modesOfGroup("prive")),
                 "the private games stay in the RBW Modes, one item");

@@ -133,7 +133,7 @@
         }
       ],
       "description": "Fireball Fight: knock them off with fireballs and wind gusts; Snowball Spleef: break the snow under their feet; Capture the Flag on The Bridge or castle against castle; Fast Bedwars; Parkour Duel: race them to the finish.",
-      "skin": null,
+      "skin": "fun",
       "modes": 9,
       "also": []
     },

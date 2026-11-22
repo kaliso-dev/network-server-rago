@@ -11,7 +11,6 @@ import java.util.UUID;
 import org.bukkit.ChatColor;
 import org.bukkit.Chunk;
 import org.bukkit.Location;
-import org.bukkit.Material;
 import org.bukkit.World;
 import org.bukkit.entity.ArmorStand;
 import org.bukkit.entity.Entity;
@@ -24,12 +23,11 @@ import org.bukkit.event.entity.EntityDamageEvent;
 import org.bukkit.event.player.PlayerArmorStandManipulateEvent;
 import org.bukkit.event.player.PlayerInteractEntityEvent;
 import org.bukkit.event.world.ChunkUnloadEvent;
-import org.bukkit.inventory.ItemStack;
 
 /**
  * The NPCs and leaderboards of the lobby, standing on the /lobby points named in config.yml. A
  * mode NPC is a player in its skin ({@link NpcSkins}; Steve without one) ({@link FakePlayer}, sent through PacketEvents)
- * holding the icon of its mode or category, facing the spawn, with its name and its queue count
+ * with empty hands, facing the spawn, with its name and its queue count
  * floating above its head (two invisible armor stands). A click on it or its lines (left or
  * right) joins its mode's queue, or opens a menu of its modes when it has several or when its
  * mode is not open yet (the menu then says so). Stats NPCs and leaderboard walls are drawn by
@@ -162,14 +160,14 @@ final class LobbyNpcs implements Listener {
             } else if (npc.kind() == LobbyNpc.Kind.STATS) {
                 displays.addStatsNpc(npc, bodyName(index), skinOf(npc), base);
             } else if (npc.kind() == LobbyNpc.Kind.SHOP) {
-                fakes.add(new FakePlayer(base, bodyName(index), skinOf(npc), new ItemStack(Material.EMERALD),
+                fakes.add(new FakePlayer(base, bodyName(index), skinOf(npc),
                         (player, left) -> click(player, npc.point())));
                 Location lowest = base.clone().add(0, ABOVE_HEAD - FakeHologram.NAME_HEIGHT, 0);
                 label(npc, lowest.clone().add(0, LINE, 0), npc.name());
                 label(npc, lowest, npc.subtitle());
             } else if (npc.kind() == LobbyNpc.Kind.PERSON) {
-                // a person of the server (plan 5.6): nothing in hand, a click does nothing
-                fakes.add(new FakePlayer(base, bodyName(index), skinOf(npc), null, (player, left) -> { }));
+                // a person of the server (plan 5.6): a click does nothing
+                fakes.add(new FakePlayer(base, bodyName(index), skinOf(npc), (player, left) -> { }));
                 Location lowest = base.clone().add(0, ABOVE_HEAD - FakeHologram.NAME_HEIGHT, 0);
                 String name = personName(npc.name(), npc.rank() == null ? null : ranks.apply(npc.rank()));
                 if (npc.subtitle() != null) {
@@ -179,9 +177,9 @@ final class LobbyNpcs implements Listener {
                     label(npc, lowest, name);
                 }
             } else if (npc.kind() == LobbyNpc.Kind.PRODUCT) {
-                // a product of Rago (plan 5.6A): nothing in hand, a click shows its links; its title
+                // a product of Rago (plan 5.6A): a click shows its links; its title
                 // (OUR OTHER PRODUCTS) above its name, its line under it
-                fakes.add(new FakePlayer(base, bodyName(index), skinOf(npc), null, (player, left) -> click(player, npc.point())));
+                fakes.add(new FakePlayer(base, bodyName(index), skinOf(npc), (player, left) -> click(player, npc.point())));
                 List<String> lines = new ArrayList<>();
                 if (npc.title() != null) {
                     lines.add(npc.title());
@@ -196,7 +194,7 @@ final class LobbyNpcs implements Listener {
                 }
             } else if (npc.kind() == LobbyNpc.Kind.SELECTOR) {
                 // the leaderboard selector: a click opens the menu of its stats
-                fakes.add(new FakePlayer(base, bodyName(index), skinOf(npc), new ItemStack(Material.SIGN),
+                fakes.add(new FakePlayer(base, bodyName(index), skinOf(npc),
                         (player, left) -> click(player, npc.point())));
                 Location lowest = base.clone().add(0, ABOVE_HEAD - FakeHologram.NAME_HEIGHT, 0);
                 if (npc.subtitle() != null) {
@@ -332,9 +330,7 @@ final class LobbyNpcs implements Listener {
     }
 
     private void body(final LobbyNpc npc, int index, Location at) {
-        ModeCategory category = npc.category() == null ? null : settings.category(npc.category());
-        ItemStack icon = new ItemStack(category != null ? category.icon() : settings.display(npc.modeIds().get(0)).icon());
-        fakes.add(new FakePlayer(at, bodyName(index), skinOf(npc), icon, (player, left) -> click(player, npc.point())));
+        fakes.add(new FakePlayer(at, bodyName(index), skinOf(npc), (player, left) -> click(player, npc.point())));
     }
 
     private ArmorStand label(LobbyNpc npc, Location at, String text) {

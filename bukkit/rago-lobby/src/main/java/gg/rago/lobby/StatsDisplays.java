@@ -20,7 +20,7 @@ import org.bukkit.util.Vector;
 /**
  * What the stats show in the lobby, each player reading their own:
  * <ul>
- * <li>a stats NPC: a Steve holding a book, with the player's profile floating above its head
+ * <li>a stats NPC: a body in its skin, with the player's profile floating above its head
  * (Network level and rank, wins, losses, kills, best streak, wins of the day, ELO of each ranked
  * mode); a click opens {@link StatsMenu};
  * <li>a leaderboard wall: boards side by side, each with its top 10, the player's own place and
@@ -133,14 +133,14 @@ final class StatsDisplays {
 
     // --- Stats NPC ------------------------------------------------------------------------------
 
-    /** A body holding a book on the point (in its skin, Steve without one), the player's profile above it. */
+    /** A body on the point (in its skin, Steve without one), the player's profile above it. */
     void addStatsNpc(final LobbyNpc npc, String bodyName, Skin skin, Location base) {
         FakeEntities.Clicker open = (player, left) -> {
             if (cooled(player)) {
                 menu.open(player);
             }
         };
-        fakes.add(new FakePlayer(base, bodyName, skin, new ItemStack(Material.BOOK), open));
+        fakes.add(new FakePlayer(base, bodyName, skin, open));
         Location bottom = base.clone().add(0, LobbyNpcs.ABOVE_HEAD, 0);
         fakes.add(new FakeHologram(bottom, PROFILE_LINES, viewer -> profile(npc, viewer), open));
     }

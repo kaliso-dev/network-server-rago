@@ -21,8 +21,8 @@ import org.junit.jupiter.api.Test;
 
 class MineSkinTest {
 
-    /** The NPCs whose skin the owner has not chosen yet: they wear Steve (Fun Practice, plan 6.1, on the point prive). */
-    private static final java.util.Set<String> WITHOUT_SKIN_YET = java.util.Collections.singleton("prive");
+    /** The NPCs whose skin is not chosen yet: they wear Steve (none since the Fun Practice got its own, 22/11). */
+    private static final java.util.Set<String> WITHOUT_SKIN_YET = java.util.Collections.emptySet();
 
     private static final String SIGNED = "{\"success\":true,\"skin\":{\"uuid\":\"abc\",\"name\":\"rago-clutch\","
             + "\"texture\":{\"data\":{\"value\":\"dmFsdWU=\",\"signature\":\"c2lnbmF0dXJl\"},"

@@ -365,7 +365,7 @@ async function topBridge2v2 (leader, others) {
     leader.chat('/queue top-bridge-2v2')
     const answer = await chatLine(leader, new RegExp(`${queued.source}|RagoBot is not in the lobby: your party cannot join a queue\\.`), 5000, asked)
     if (queued.test(answer)) break
-    if (Date.now() > deadline) throw new Error(`RagoBot never came back to the lobby after the top bridge 1v1 (${answer})`)
+    if (Date.now() > deadline) throw new Error(`RagoBot never came back to the lobby after the Lobby Fight 1v1 (${answer})`)
     await sleep(1000)
   }
   for (const other of others) other.chat('/queue top-bridge-2v2')

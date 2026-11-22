@@ -431,13 +431,19 @@ function npcAt (bot, where) {
     Math.hypot(e.position.x - where.x, e.position.y - where.y, e.position.z - where.z) < 0.5)
 }
 
-/** The Duels NPC: a Steve with the category's sword, out of the tab list, name tag hidden; a click opens Duels. */
+/** The Duels NPC: a Steve with empty hands (the owner's ask of 22/11), out of the tab list, name tag hidden; a click opens Duels. */
 async function checkDuelsNpc (bot) {
   await waitFor(() => npcAt(bot, DUELS_NPC) != null, 10000,
     `the Duels NPC at ${JSON.stringify(DUELS_NPC)}; players: ${JSON.stringify(Object.values(bot.entities)
       .filter((e) => e.type === 'player').map((e) => [e.username, e.position]))}`)
   const npc = npcAt(bot, DUELS_NPC)
-  await waitFor(() => npc.heldItem?.name === 'iron_sword', 5000, `the Duels NPC holding a sword (holds ${npc.heldItem?.name})`)
+  // its equipment would come with it: a moment later, still nothing in its hand, nor in the stats NPC's
+  await waitFor(() => npcAt(bot, STATS_NPC) != null, 5000, `the stats NPC at ${JSON.stringify(STATS_NPC)}`)
+  await sleep(1000)
+  for (const [what, body] of [['the Duels NPC', npc], ['the stats NPC', npcAt(bot, STATS_NPC)]]) {
+    if (body == null) throw new Error(`${what} is not there`)
+    if (body.heldItem != null) throw new Error(`${what} holds ${body.heldItem.name}`)
+  }
   // plan 5.3: an NPC to play stands on quartz, the stats NPC on iron (bloc: of the bundled config)
   const V = bot.entity.position.constructor
   const under = (where) => bot.blockAt(new V(where.x, where.y - 1, where.z))?.name

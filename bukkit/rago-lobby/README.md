@@ -439,7 +439,7 @@ dans les files d'attente des modes de jeu.
   serveur de test, posé sur un bloc de diamant).
 - **Le PNJ des quêtes.** À deux blocs du coffre de la récompense du jour (trois si la place est
   prise), du côté le plus loin des autres PNJ, face au spawn : un PNJ dans son skin (`quetes`),
-  un livre à la main, avec au-dessus « QUESTS », où en est chacun (« Daily 2/4 · Weekly 0/4 »,
+  avec au-dessus « QUESTS », où en est chacun (« Daily 2/4 · Weekly 0/4 »,
   avec « Start 1/5 » devant tant que Getting started n'est pas fini) et « Click to see them ». Un clic dessus (ou sur ses lignes) ouvre les quêtes du jour et de la
   semaine, comme `/quests`. `/lobby point quests` le place ailleurs (`point-pnj-quetes:` dans
   config.yml lui donne un autre point : `newquest` sur le serveur de test) ; sans coffre ni ce point, il
@@ -620,8 +620,8 @@ config.yml fourni les suit :
   FFA, etc. Un mode y entre avec `groupe:` ; l'objet du groupe montre chaque taille avec sa file.
   Un mode `cache: true` ne paraît pas dans la boussole et ne se joue qu'en partie privée.
 - `pnj:` place un PNJ sur un point de `/lobby point` (la clé) : un joueur dans son skin, tourné
-  vers le spawn, qui tient l'icône du mode, avec son nom et le nombre de joueurs en file au-dessus
-  de la tête. Un clic rejoint la file du mode, ou ouvre un menu quand le PNJ a plusieurs modes ;
+  vers le spawn, les mains vides (aucun PNJ ne tient d'objet depuis la demande du 22/11), avec son
+  nom et le nombre de joueurs en file au-dessus de la tête. Un clic rejoint la file du mode, ou ouvre un menu quand le PNJ a plusieurs modes ;
   dans ce menu, les tailles d'un même groupe ne font qu'un objet (Top Bridge, une échelle qui ouvre
   1v1, 2v2 et FFA), sauf si le PNJ n'a que ce groupe. Un PNJ avec `categorie:` ouvre les jeux de
   sa catégorie, rien d'autre au-dessus. Au centre, quatre PNJ seulement, un par façon de jouer, pour qu'un
@@ -644,14 +644,20 @@ config.yml fourni les suit :
   config.yml fourni met du quartz sous les PNJ des façons de jouer (Fun Practice compris), du fer sous
   les PNJ de stats et de l'émeraude sous le Shop.
 - `skin:` sous un PNJ lui donne un skin : `skins/<nom>.png` dans le dossier du plugin (64x64, le
-  vôtre), sinon celui de ce nom dans le jar. Le jar en a un par mode, originaux : `ranked` (armure
-  de diamant et trophée), `prive` (costume et lunettes noires), `ffa` (bandeau rouge, épées
-  croisées), `skyrise` (lunettes d'aviateur, nuage), `rush` (casquette, éclair), `invis` (capuche
-  violette, potion), `clutch` (end stone, laine, lit), `attaque` (chevalier de fer au tabard
-  rouge), `bridge` (bleu et blanc), `arena` (gladiateur vert), `blocs` (casque de chantier, laine
-  de toutes les couleurs), `duels` (moitié rouge moitié bleu, casque de diamant), `practice`
-  (survêtement de coach), `shop` (marchand au tablier vert, émeraude) et `stats` (robe de savant,
-  lunettes, livre). Sans `skin:`, Steve. Un client 1.8 ne montre le skin d'un PNJ que signé par
+  vôtre), sinon celui de ce nom dans le jar. Le jar en a un par mode, originaux. Ceux des PNJ du
+  `config.yml` fourni, redessinés le 22/11 avec la deuxième couche (casquette, capuche, casque) et
+  chacun dans la couleur de sa catégorie : `practice` (le coach, casquette et survêtement turquoise,
+  sifflet), `ranked` (le joueur de Bed Wars, cuir doré, jambières de diamant, le lit sur la
+  poitrine), `duels` (le duelliste, tunique verte, avant-bras en mailles, épées croisées), `arena`
+  (le gladiateur, casque de bronze à crête), `fun` (capuche violette, boule de neige, baskets),
+  `shop` (le marchand, casquette, tablier vert et émeraude), `stats` (l'analyste, costume bleu
+  nuit, cravate et lunettes dorées) et `quetes` (l'explorateur, chapeau, veste de cuir, boussole
+  dorée) ; `tools/npc-skins/npc_skins.py` les redessine. Les autres, pour les PNJ laissés en
+  commentaire : `prive` (costume et lunettes noires), `ffa` (bandeau rouge, épées croisées),
+  `skyrise` (lunettes d'aviateur, nuage), `rush` (casquette, éclair), `invis` (capuche violette,
+  potion), `clutch` (end stone, laine, lit), `attaque` (chevalier de fer au tabard rouge), `bridge`
+  (bleu et blanc), `blocs` (casque de chantier, laine de toutes les couleurs). Sans `skin:`, Steve.
+  Aucun PNJ ne tient d'objet. Un client 1.8 ne montre le skin d'un PNJ que signé par
   Mojang : au démarrage, le serveur envoie une fois chaque nouveau PNG à MineSkin
   (api.mineskin.org), garde la réponse dans `skins.yml` (avec l'empreinte du PNG : un PNG changé
   est signé à nouveau) et replace les PNJ ; en attendant, Steve. Si MineSkin refuse sans clé, le
@@ -689,7 +695,7 @@ config.yml fourni les suit :
   `textremerciement2` (ses lignes sont `*merci`, celles de gauche : un texte changé à gauche
   change aussi à droite) ; 20 lignes, du sol au plafond de la salle (6 blocs). `/lobby points`
   les montre.
-- `pnj:` avec `type: stats` place un PNJ de stats : un joueur (skin `stats`) qui tient un livre, avec au-dessus
+- `pnj:` avec `type: stats` place un PNJ de stats : un joueur (skin `stats`), avec au-dessus
   le profil de celui qui le regarde (niveau Network et rang, victoires, défaites, kills, meilleure
   série, victoires du jour, ELO de chaque mode classé). Chaque joueur lit le sien. Un clic ouvre
   « Your stats » : la tête du joueur avec son niveau, son XP, son rang, le prochain rang et ses
