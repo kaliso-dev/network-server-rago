@@ -23,13 +23,13 @@
 //      leaves;
 //   6. Block placement 1v1 (block-fight-1v1, RagoPractice, first to 10 in run-arena-test.sh), on
 //      the two platforms the mode builds without a map, 16 blocks apart over the void (RagoBot
-//      bridges at step 4 only): RagoOp, an operator, moves the players with /tp.
+//      bridges at step 4 only): RagoArbitre, an operator, moves the players with /tp.
 //      The clutch: RagoBot over the void beside its platform places wool under itself and stands
 //      on it. The block under the other: RagoLeader on a block of its wool alone over the void,
 //      RagoBot on the platform of RagoLeader, out of its hits: RagoBot breaks the wool, RagoLeader
 //      falls, +10 for Blue: RagoLeader loses;
 //   7. Red Rover Block Placement (red-rover-block-placement): RagoAutreUn joins the party, the
-//      three play 1v1 in turn; RagoBot fights the one in its 1v1 (RagoOp brings them onto its
+//      three play 1v1 in turn; RagoBot fights the one in its 1v1 (RagoArbitre brings them onto its
 //      platform) and wins it; the two others leave, RagoAutreUn leaves the party;
 //   8. Top Bridge 2v2: the party of RagoLeader and RagoBot queues as one team, two players alone
 //      join the queue: the four play, RagoBot hits one of the two others; they leave;
@@ -421,7 +421,7 @@ async function queueWhenBack (leader, mode, started, after) {
   }
 }
 
-/** RagoOp, an operator, moves a player of the game: /tp <name> <x> <y> <z>. */
+/** RagoArbitre, an operator, moves a player of the game: /tp <name> <x> <y> <z>. */
 function teleport (op, name, x, y, z) {
   op.chat(`/tp ${name} ${x.toFixed(2)} ${y.toFixed(2)} ${z.toFixed(2)}`)
 }
@@ -430,7 +430,7 @@ function teleport (op, name, x, y, z) {
  * Block placement 1v1, on the arena the mode builds without a map (the test server has none):
  * two floors of 3 by 3 at x -9..-7 and 7..9 from its centre, 16 blocks apart over the void,
  * RagoLeader starting on the west one (the first team of the party), RagoBot on the east one.
- * Nothing joins the two (RagoBot bridges at step 4 only): RagoOp, an operator, moves them.
+ * Nothing joins the two (RagoBot bridges at step 4 only): RagoArbitre, an operator, moves them.
  *   1. the clutch: RagoBot over the void south of its floor, its feet 2 blocks over it: it places
  *      wool under itself against the side of its floor, stands on it, and no one gets the 10 of
  *      a fall;
@@ -477,7 +477,7 @@ async function blockPlacement1v1 (leader, op, problems) {
     await waitFor(() => leader.blockAt(clutch)?.name === 'wool', 5000, () => {
       const bot = ragoBot(leader)
       return `RagoBot over the void to place wool under itself at ${clutch} (there: ${blockText(leader.blockAt(clutch))};`
-        + ` RagoBot at ${bot ? where(bot) : 'out of sight'}; RagoOp read ${JSON.stringify(op.chats.slice(-3))})`
+        + ` RagoBot at ${bot ? where(bot) : 'out of sight'}; RagoArbitre read ${JSON.stringify(op.chats.slice(-3))})`
     })
     await sleep(2000)
     const fall = leader.chats.slice(since).find((line) => /\+10 for|Victory!|Defeat\./.test(line))
@@ -491,7 +491,7 @@ async function blockPlacement1v1 (leader, op, problems) {
     // 2. the block under the other
     teleport(op, 'RagoLeader', centre.x - 3.5, centre.y + 1, centre.z + 0.5)
     await waitFor(() => leader.entity.position.distanceTo(at(-3.5, 1, 0.5)) < 0.3 && leader.entity.onGround, 5000,
-      () => `RagoLeader on its wool alone over the void (at ${where(leader.entity)}; RagoOp read ${JSON.stringify(op.chats.slice(-3))})`)
+      () => `RagoLeader on its wool alone over the void (at ${where(leader.entity)}; RagoArbitre read ${JSON.stringify(op.chats.slice(-3))})`)
     since = mark(leader)
     const hurts = seen.hurts
     const under = at(-4, 0, 0)
@@ -539,7 +539,7 @@ async function walkOff (bot, other) {
  * 1v1, the void 10): RagoAutreUn joins the party of RagoLeader and RagoBot, the three play (the
  * party of three joins the queue of the mode and fills its match at once). If the
  * first 1v1 is that of the two others, one walks off its floor: the other wins it, and meets
- * RagoBot. In the 1v1 of RagoBot, RagoOp brings the other onto RagoBot (/tp), who stands still:
+ * RagoBot. In the 1v1 of RagoBot, RagoArbitre brings the other onto RagoBot (/tp), who stands still:
  * RagoBot hits them, or knocks them into the void, and wins the 1v1. Then the two others leave
  * the game, RagoAutreUn leaves the party.
  */
@@ -582,14 +582,14 @@ async function redRoverBlockPlacement (leader, other, op) {
     opponent = fighting[0]
     await chatLine(opponent, /Fight!/, 10000, marks[humans.indexOf(opponent)])
   }
-  log(`red rover block placement: RagoBot vs ${opponent.username}, RagoOp brings ${opponent.username} onto RagoBot`)
+  log(`red rover block placement: RagoBot vs ${opponent.username}, RagoArbitre brings ${opponent.username} onto RagoBot`)
   const before = mark(opponent)
   const health = opponent.health
   op.chat(`/tp ${opponent.username} ${BOT}`)
   await chatLine(opponent, /RagoBot wins the 1v1 \(1\/3\)/, 30000, before).catch((error) => {
     const bot = ragoBot(opponent)
     throw new Error(`${error.message}; ${opponent.username} at ${where(opponent.entity)} (health ${opponent.health}),`
-      + ` RagoBot at ${bot ? where(bot) : 'out of sight'}; RagoOp read ${JSON.stringify(op.chats.slice(-3))}`)
+      + ` RagoBot at ${bot ? where(bot) : 'out of sight'}; RagoArbitre read ${JSON.stringify(op.chats.slice(-3))}`)
   })
   log(`red rover block placement: RagoBot won its 1v1 against ${opponent.username} (health ${health} then ${opponent.health})`)
   // the two others leave the game: RagoBot, the last one in, wins
@@ -642,7 +642,7 @@ async function main () {
   Vec3 = leader.entity.position.constructor
   const others = [await arrive('RagoAutreUn'), await arrive('RagoAutreDeux')]
   // an operator (ops.json of run-arena-test.sh), who moves the players of the block placement with /tp
-  const op = await arrive('RagoOp')
+  const op = await arrive('RagoArbitre')
 
   // 1. the invite, and what it refuses
   await invite(leader)

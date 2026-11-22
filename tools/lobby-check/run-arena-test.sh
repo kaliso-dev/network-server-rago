@@ -23,7 +23,7 @@
 # events (no Diamond II), no diamond generator nor upgrades NPC, its fast forge, its smaller shop.
 # Then a bot invites RagoBot into its party (tools/kb-control/bots/ragobot-bots.mjs): RagoBot refuses
 # ranked and the modes it does not play, wins a Sumo duel, a Boxing, a round of Top Bridge 1v1 and
-# a round of Lobby Fight 1v1 against the bot who stands still; in a Block placement 1v1 (RagoOp
+# a round of Lobby Fight 1v1 against the bot who stands still; in a Block placement 1v1 (RagoArbitre
 # moves the players with /tp) it clutches over the void and breaks the wool under the bot, who
 # falls; it wins its 1v1 of a Red Rover Block Placement; it plays Top Bridge 2v2 in the party's
 # team against two others, and leaves the
@@ -128,7 +128,9 @@ YAML
 # this server is in offline mode, where a name alone is not enough. Its UUID is the one of an
 # offline-mode player: the version 3 UUID of "OfflinePlayer:qRago". qRago and RagoOp are operators
 # (rago.admin): /owner is for qRago only, even among the operators. RagoMapOp too, who sets the
-# waiting lobby of the demo map for the Lobby Fight of RagoBot (/bw lobbyfight).
+# waiting lobby of the demo map for the Lobby Fight of RagoBot (/bw lobbyfight), and RagoArbitre,
+# who moves the players of the Block placement of RagoBot (/tp): each joins once, as a new player
+# (the Owner tool bots wait for the menu of the first arrival of RagoOp).
 offline_uuid() {
   node -e 'const h = require("crypto").createHash("md5").update("OfflinePlayer:" + process.argv[1]).digest()
 h[6] = (h[6] & 0x0f) | 0x30; h[8] = (h[8] & 0x3f) | 0x80
@@ -139,8 +141,8 @@ QRAGO_UUID=$(offline_uuid qRago)
 sed -e "/^outils-owner:$/,/^[a-z]/s/^  uuid: \"\"$/  uuid: \"$QRAGO_UUID\"/" "$ROOT/bukkit/rago-lobby/src/main/resources/config.yml" \
   >"$SERVER_DIR/plugins/RagoLobby/config.yml"
 grep -q "^  uuid: \"$QRAGO_UUID\"$" "$SERVER_DIR/plugins/RagoLobby/config.yml" || fail "could not give the Owner tools the id of qRago"
-printf '[{"uuid":"%s","name":"qRago","level":4},{"uuid":"%s","name":"RagoOp","level":4},{"uuid":"%s","name":"RagoMapOp","level":4}]\n' \
-  "$QRAGO_UUID" "$(offline_uuid RagoOp)" "$(offline_uuid RagoMapOp)" >"$SERVER_DIR/ops.json"
+printf '[{"uuid":"%s","name":"qRago","level":4},{"uuid":"%s","name":"RagoOp","level":4},{"uuid":"%s","name":"RagoMapOp","level":4},{"uuid":"%s","name":"RagoArbitre","level":4}]\n' \
+  "$QRAGO_UUID" "$(offline_uuid RagoOp)" "$(offline_uuid RagoMapOp)" "$(offline_uuid RagoArbitre)" >"$SERVER_DIR/ops.json"
 # The bundled config.yml of RagoPractice, with the block modes ending at once: Block placement
 # first to 10 (a fall into the void gives 10), Block edit first to 2; and the Boxing of RagoBot
 # first to 10 hits.
@@ -276,7 +278,7 @@ fast_status=0
 KB_HOST=127.0.0.1 KB_PORT=$PORT node "$ROOT/tools/kb-control/bots/fast-bots.mjs" || fast_status=$?
 # The same server for RagoBot: a bot invites it into its party, plays the Sumo duel, the Boxing, Top
 # Bridge 1v1 and Lobby Fight 1v1 (on the middle island of the demo map, made its waiting lobby by
-# RagoMapOp) against it, then Block placement 1v1 (RagoOp moves the players with /tp: a clutch, the
+# RagoMapOp) against it, then Block placement 1v1 (RagoArbitre moves the players with /tp: a clutch, the
 # wool under the bot broken), a Red Rover Block Placement with a third player, then Top Bridge 2v2
 # with it against two others, and sends it away.
 ragobot_status=0
