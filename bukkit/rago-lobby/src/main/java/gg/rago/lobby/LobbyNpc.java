@@ -6,7 +6,7 @@ import java.util.List;
 /**
  * What stands on a lobby point (config.yml, pnj: and classements:): a mode NPC that opens its
  * modes or a whole category, a stats NPC that shows each player their own stats, the Shop, the
- * leaderboard selector, a person of the server, or a wall of leaderboards. Immutable.
+ * leaderboard selector, a person of the server, a product of Rago, or a wall of leaderboards. Immutable.
  */
 final class LobbyNpc {
 
@@ -28,7 +28,12 @@ final class LobbyNpc {
          * A person of the server (the thank-you room, plan 5.6): their name after the prefix of
          * their rank, as above a player's head; a click does nothing.
          */
-        PERSON
+        PERSON,
+        /**
+         * A product of Rago (OUR OTHER PRODUCTS, plan 5.6A: Rago Client, Rago Optimizer): its title
+         * above its name, the line under it; a click shows its links in the chat.
+         */
+        PRODUCT
     }
 
     private final String point;
@@ -51,6 +56,10 @@ final class LobbyNpc {
     private final String account;
     /** The rank whose prefix comes before the name of a person (rang:), or null. */
     private final String rank;
+    /** The line above the name of a product (titre:), or null. */
+    private final String title;
+    /** What a click on a product shows in the chat, line by line (liens:); empty otherwise. */
+    private final List<String> links;
 
     private LobbyNpc(String point, String name, Kind kind, List<String> modeIds, String category,
             List<List<BoardStat>> boards, List<String> podium) {
@@ -65,6 +74,16 @@ final class LobbyNpc {
     private LobbyNpc(String point, String name, Kind kind, List<String> modeIds, String category,
             List<List<BoardStat>> boards, List<String> podium, String subtitle, String skin, StatsPeriod period,
             String selector, int minimumDay, int minimumWeek, String account, String rank) {
+        this(point, name, kind, modeIds, category, boards, podium, subtitle, skin, period, selector, minimumDay,
+                minimumWeek, account, rank, null, Collections.<String>emptyList());
+    }
+
+    private LobbyNpc(String point, String name, Kind kind, List<String> modeIds, String category,
+            List<List<BoardStat>> boards, List<String> podium, String subtitle, String skin, StatsPeriod period,
+            String selector, int minimumDay, int minimumWeek, String account, String rank, String title,
+            List<String> links) {
+        this.title = title;
+        this.links = Collections.unmodifiableList(links);
         this.account = account;
         this.rank = rank;
         this.selector = selector;
@@ -111,28 +130,38 @@ final class LobbyNpc {
                 null, rank);
     }
 
+    /**
+     * A product of Rago (OUR OTHER PRODUCTS): its name, the line above it (null: none) and what a
+     * click shows in the chat, line by line.
+     */
+    static LobbyNpc product(String point, String name, String title, List<String> links) {
+        return new LobbyNpc(point, name, Kind.PRODUCT, Collections.<String>emptyList(), null,
+                Collections.<List<BoardStat>>emptyList(), Collections.<String>emptyList(), null, null, null, null, 0, 0,
+                null, null, title, links);
+    }
+
     /** The same NPC in the skin of this id ({@link NpcSkins}), or in Steve's for null. */
     LobbyNpc withSkin(String skin) {
         return new LobbyNpc(point, name, kind, modeIds, category, boards, podium, subtitle, skin, period, selector,
-                minimumDay, minimumWeek, account, rank);
+                minimumDay, minimumWeek, account, rank, title, links);
     }
 
     /** The same NPC in the skin of this Minecraft account (skin-joueur:, {@link AccountSkins}); null: none. */
     LobbyNpc withAccount(String player) {
         return new LobbyNpc(point, name, kind, modeIds, category, boards, podium, subtitle, skin, period, selector,
-                minimumDay, minimumWeek, player, rank);
+                minimumDay, minimumWeek, player, rank, title, links);
     }
 
     /** The same NPC with this line under its name (null: none). */
     LobbyNpc withSubtitle(String line) {
         return new LobbyNpc(point, name, kind, modeIds, category, boards, podium, line, skin, period, selector,
-                minimumDay, minimumWeek, account, rank);
+                minimumDay, minimumWeek, account, rank, title, links);
     }
 
     /** The same wall with the period of its boards fixed (the wall of the week), or chosen by each player (null). */
     LobbyNpc withPeriod(StatsPeriod fixed) {
         return new LobbyNpc(point, name, kind, modeIds, category, boards, podium, subtitle, skin, fixed, selector,
-                minimumDay, minimumWeek, account, rank);
+                minimumDay, minimumWeek, account, rank, title, links);
     }
 
     /**
@@ -141,7 +170,17 @@ final class LobbyNpc {
      */
     LobbyNpc following(LobbyNpc chooser) {
         return new LobbyNpc(point, name, kind, modeIds, category, chooser.boards, podium, subtitle, skin, period,
-                chooser.point, chooser.minimumDay, chooser.minimumWeek, account, rank);
+                chooser.point, chooser.minimumDay, chooser.minimumWeek, account, rank, title, links);
+    }
+
+    /** The line above the name of a product (titre:), or null. */
+    String title() {
+        return title;
+    }
+
+    /** What a click on a product shows in the chat, line by line; empty for the other NPCs. */
+    List<String> links() {
+        return links;
     }
 
     /** The point of the selector this wall follows, or null. */

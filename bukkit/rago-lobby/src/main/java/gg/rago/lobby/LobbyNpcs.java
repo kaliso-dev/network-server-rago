@@ -178,6 +178,22 @@ final class LobbyNpcs implements Listener {
                 } else {
                     label(npc, lowest, name);
                 }
+            } else if (npc.kind() == LobbyNpc.Kind.PRODUCT) {
+                // a product of Rago (plan 5.6A): nothing in hand, a click shows its links; its title
+                // (OUR OTHER PRODUCTS) above its name, its line under it
+                fakes.add(new FakePlayer(base, bodyName(index), skinOf(npc), null, (player, left) -> click(player, npc.point())));
+                List<String> lines = new ArrayList<>();
+                if (npc.title() != null) {
+                    lines.add(npc.title());
+                }
+                lines.add(npc.name());
+                if (npc.subtitle() != null) {
+                    lines.add(npc.subtitle());
+                }
+                Location lowest = base.clone().add(0, ABOVE_HEAD - FakeHologram.NAME_HEIGHT, 0);
+                for (int line = 0; line < lines.size(); line++) {
+                    label(npc, lowest.clone().add(0, LINE * (lines.size() - 1 - line), 0), lines.get(line));
+                }
             } else if (npc.kind() == LobbyNpc.Kind.SELECTOR) {
                 // the leaderboard selector: a click opens the menu of its stats
                 fakes.add(new FakePlayer(base, bodyName(index), skinOf(npc), new ItemStack(Material.SIGN),
@@ -368,7 +384,7 @@ final class LobbyNpcs implements Listener {
     private void click(Player player, String point) {
         LobbyNpc npc = point == null ? null : settings.npc(point);
         if (npc == null || (npc.kind() != LobbyNpc.Kind.MODES && npc.kind() != LobbyNpc.Kind.SHOP
-                && npc.kind() != LobbyNpc.Kind.SELECTOR) || !state.isProtected(player)) {
+                && npc.kind() != LobbyNpc.Kind.SELECTOR && npc.kind() != LobbyNpc.Kind.PRODUCT) || !state.isProtected(player)) {
             return;
         }
         long now = System.currentTimeMillis();
@@ -384,6 +400,13 @@ final class LobbyNpcs implements Listener {
         }
         if (npc.kind() == LobbyNpc.Kind.SELECTOR) {
             displays.openSelector(player, npc);
+            return;
+        }
+        if (npc.kind() == LobbyNpc.Kind.PRODUCT) {
+            // its links in the chat, as /discord and /store give theirs
+            for (String line : npc.links()) {
+                player.sendMessage(line);
+            }
             return;
         }
         if (npc.category() != null) {

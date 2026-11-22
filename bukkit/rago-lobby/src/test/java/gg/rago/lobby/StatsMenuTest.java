@@ -102,15 +102,22 @@ class StatsMenuTest {
         for (ModeCategory category : settings.categories()) {
             categories.add(category.id());
         }
-        assertEquals(Arrays.asList("entrainement", "ranked", "duels", "arenes", "fun", "trois-joueurs"), categories);
+        assertEquals(Arrays.asList("entrainement", "ranked", "duels", "arenes", "fun", "trois-joueurs", "party", "classe"),
+                categories);
         assertTrue(StatsMenu.modesOf(settings.modes(), "trois-joueurs", categories).isEmpty(),
                 "3 Players shows modes of the Duels and the RBW modes (aussi:), none of its own");
         List<String> buttons = new ArrayList<>();
         for (ModeCategory category : StatsMenu.withModes(settings.categories(), settings.modes())) {
             buttons.add(category.id());
         }
-        assertEquals(Arrays.asList("entrainement", "ranked", "duels", "arenes", "fun"), buttons,
-                "no button for 3 Players: the stats of its modes are in their categories");
+        assertEquals(Arrays.asList("entrainement", "ranked", "duels", "arenes", "fun", "classe"), buttons,
+                "no button for 3 Players nor Party: the stats of their modes are in their categories; Ranked (plan 3.7)"
+                + " holds the ranked modes");
+        assertTrue(StatsMenu.modesOf(settings.modes(), "party", categories).isEmpty(), "Party has no modes of its own");
+        List<String> ranked = ids(StatsMenu.modesOf(settings.modes(), "classe", categories));
+        assertTrue(ranked.containsAll(Arrays.asList("ranked-1v1", "ranked-sumo", "ranked-bed-fight-1v1")), ranked.toString());
+        assertFalse(ids(StatsMenu.modesOf(settings.modes(), "ranked", categories)).contains("ranked-1v1"),
+                "Ranked Bedwars left RBW Modes for Ranked");
         List<String> fun = ids(StatsMenu.modesOf(settings.modes(), "fun", categories));
         assertTrue(fun.contains("fireball-knockback") && fun.contains("snowball-spleef"), fun.toString());
         List<String> duels = ids(StatsMenu.modesOf(settings.modes(), "duels", categories));

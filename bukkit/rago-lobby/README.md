@@ -636,6 +636,13 @@ config.yml fourni les suit :
   démarrage. Le config.yml fourni place `qrago` (qRago, Owner, skin du compte qRago) et
   `kalisodev` (kaliso_dev, Dev, skin du compte kaliso_dev), sur de l'obsidienne, un bloc plus haut
   que leur point.
+- `pnj:` avec `type: produit` place un produit de Rago (OUR OTHER PRODUCTS, plan 5.6A) : un joueur
+  les mains vides, avec au-dessus son titre (`titre:`), son nom, et une ligne dessous si
+  `sous-titre:` est donné. Un clic écrit ses liens dans le chat, ligne par ligne (`liens:`, de 1 à
+  8 lignes, avec les couleurs `&`), comme `/discord` et `/store`. Ni `modes:`, ni `categorie:`, ni
+  `rang:`. Le config.yml fourni place `ragoclient` (Rago Client) et `ragooptimizer` (Rago
+  Optimizer), tous deux dans le skin du compte qRago, sur un bloc de diamant, avec « OUR OTHER
+  PRODUCTS » au-dessus de chacun ; leurs liens : `rago-optimizer.com` et `discord.gg/ragooptimizer`.
 - `pnj:` avec `type: stats` place un PNJ de stats : un joueur (skin `stats`) qui tient un livre, avec au-dessus
   le profil de celui qui le regarde (niveau Network et rang, victoires, défaites, kills, meilleure
   série, victoires du jour, ELO de chaque mode classé). Chaque joueur lit le sien. Un clic ouvre

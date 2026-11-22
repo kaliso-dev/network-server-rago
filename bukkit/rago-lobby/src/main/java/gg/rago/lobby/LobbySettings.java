@@ -48,6 +48,8 @@ final class LobbySettings {
     static final int MAX_MODES_PER_CATEGORY = 28;
     /** One row: the top row of the compass, where they sit side by side. */
     static final int MAX_CATEGORIES = 9;
+    /** The lines a click on a product NPC shows in the chat (liens:), at most. */
+    static final int MAX_PRODUCT_LINKS = 8;
     /** The slogan of a category, without its colours: one line above an NPC. */
     static final int MAX_SLOGAN = 40;
     /** Leaderboards side by side on one point. */
@@ -305,9 +307,30 @@ final class LobbySettings {
                             .withSkin(skin(npc, where)));
                     continue;
                 }
+                if ("produit".equals(type)) {
+                    if (npc.contains("modes") || npc.contains("categorie") || npc.contains("rang")) {
+                        throw new IllegalArgumentException(where + ": a product has neither modes, categorie nor rang");
+                    }
+                    List<String> links = new ArrayList<>();
+                    for (String line : npc.getStringList("liens")) {
+                        if (!line.trim().isEmpty()) {
+                            links.add(colour(line));
+                        }
+                    }
+                    if (links.isEmpty() || links.size() > MAX_PRODUCT_LINKS) {
+                        throw new IllegalArgumentException(where + ".liens: from 1 to " + MAX_PRODUCT_LINKS
+                                + " lines, what a click shows in the chat");
+                    }
+                    String title = npc.getString("titre", "");
+                    String subtitle = npc.getString("sous-titre", "");
+                    npcs.add(LobbyNpc.product(point, colour(npc.getString("nom", point)),
+                            title.trim().isEmpty() ? null : colour(title), links)
+                            .withSubtitle(subtitle.trim().isEmpty() ? null : colour(subtitle)).withSkin(skin(npc, where)));
+                    continue;
+                }
                 if (!"modes".equals(type)) {
                     throw new IllegalArgumentException(where + ".type: \"" + type
-                            + "\" is not modes, stats, shop, selecteur or personne");
+                            + "\" is not modes, stats, shop, selecteur, personne or produit");
                 }
                 String category = npc.getString("categorie");
                 List<String> ids = new ArrayList<>(npc.getStringList("modes"));

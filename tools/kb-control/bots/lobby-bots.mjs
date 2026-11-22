@@ -88,6 +88,8 @@ const DUELS_NPC = { x: 3.5, y: 66, z: 0.5 }
 const STATS_NPC = { x: -3.5, y: 66, z: 0.5 }
 // qRago (point qrago), a person of the thank-you room, on obsidian
 const PERSON_NPC = { x: -3.5, y: 66, z: -3.5 }
+// Rago Client (point ragoclient), a product of Rago (OUR OTHER PRODUCTS), on diamond
+const PRODUCT_NPC = { x: 3.5, y: 66, z: -3.5 }
 const MAIN_BOARD = { x: 0.5, z: 5.5 }
 // The kit editor: the book in the second hotbar slot, the Save button of its chest of 27 slots,
 // whose window shows the player's hotbar from slot 54 (27 of the chest, 27 of the inventory).
@@ -406,6 +408,7 @@ async function checkDuelsNpc (bot) {
   bot.closeWindow(window)
   log('the Duels NPC is a Steve holding a sword, out of the tab list, and its click opens the compass on Duels')
   await checkPersonNpc(bot)
+  await checkProductNpc(bot)
 }
 
 /** qRago (plan 5.6): on obsidian, "[OWNER] qRago" above the head, empty hands; a click opens nothing. */
@@ -431,6 +434,37 @@ async function checkPersonNpc (bot) {
     throw new Error('a click on qRago opened a menu')
   }
   log('qRago stands on obsidian under "[OWNER] qRago", empty-handed, and a click on the NPC opens nothing')
+}
+
+/**
+ * Rago Client (plan 5.6A): on diamond, "OUR OTHER PRODUCTS" above "Rago Client", empty hands; a
+ * click opens nothing and writes its links in the chat.
+ */
+async function checkProductNpc (bot) {
+  await waitFor(() => npcAt(bot, PRODUCT_NPC) != null, 10000, `the NPC Rago Client at ${JSON.stringify(PRODUCT_NPC)}`)
+  const npc = npcAt(bot, PRODUCT_NPC)
+  const V = bot.entity.position.constructor
+  const under = () => bot.blockAt(new V(PRODUCT_NPC.x, PRODUCT_NPC.y - 1, PRODUCT_NPC.z))?.name
+  // its lines from the top: the title, then the name
+  const lines = () => Object.values(bot.entities).filter((e) => typeof e.metadata?.[2] === 'string' &&
+    e.metadata[2].length > 0 && Math.hypot(e.position.x - PRODUCT_NPC.x, e.position.z - PRODUCT_NPC.z) < 1)
+    .sort((a, b) => b.position.y - a.position.y).map((e) => e.metadata[2].replace(/§./g, ''))
+  await waitFor(() => under() === 'diamond_block' && JSON.stringify(lines()) === JSON.stringify(['OUR OTHER PRODUCTS', 'Rago Client']),
+    5000, `Rago Client on diamond under "OUR OTHER PRODUCTS" (stands on ${under()}, reads ${JSON.stringify(lines())})`)
+  if (npc.heldItem != null) throw new Error(`Rago Client holds ${npc.heldItem.name}`)
+  let opened = null
+  const onOpen = (window) => { opened = window }
+  bot.on('windowOpen', onOpen)
+  const from = mark(bot)
+  bot.activateEntity(npc)
+  await chatLine(bot, /Rago Client: rago-optimizer\.com/, 5000, from)
+  await chatLine(bot, /Join our Discord: discord\.gg\/ragooptimizer/, 5000, from)
+  bot.removeListener('windowOpen', onOpen)
+  if (opened != null) {
+    bot.closeWindow(opened)
+    throw new Error('a click on Rago Client opened a menu')
+  }
+  log('Rago Client stands on diamond under "OUR OTHER PRODUCTS", empty-handed, and a click writes its two links in the chat')
 }
 
 /** The queue line under the Duels NPC ("1 in queue · Click to play"), without colours, or undefined. */

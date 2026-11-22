@@ -489,6 +489,28 @@ pnj:
     rang: dev
     skin-joueur: kaliso_dev
     bloc: OBSIDIAN
+  # OUR OTHER PRODUCTS (plan 5.6A), in the thank-you room (type: produit): its title (titre:) above
+  # its name, a line under it if sous-titre: is given; a click shows its links in the chat, line by
+  # line (liens:, from 1 to 8 lines). On a block of diamond. Their points: /lobby point ragoclient,
+  # ragooptimizer.
+  ragoclient:
+    nom: "&b&lRago Client"
+    type: produit
+    titre: "&6&lOUR OTHER PRODUCTS"
+    skin-joueur: qRago
+    bloc: DIAMOND_BLOCK
+    liens:
+      - "&c&lRAGO &8» &fRago Client: &crago-optimizer.com"
+      - "&c&lRAGO &8» &fJoin our Discord: &cdiscord.gg/ragooptimizer"
+  ragooptimizer:
+    nom: "&b&lRago Optimizer"
+    type: produit
+    titre: "&6&lOUR OTHER PRODUCTS"
+    skin-joueur: qRago
+    bloc: DIAMOND_BLOCK
+    liens:
+      - "&c&lRAGO &8» &fRago Optimizer: &crago-optimizer.com"
+      - "&c&lRAGO &8» &fJoin our Discord: &cdiscord.gg/ragooptimizer"
 
 # The points of the daily reward chest (DAILY REWARD above it, a click gives /daily) and of the
 # quests NPC (/lobby point <name>): daily and quests when left out. The chest stands on its point

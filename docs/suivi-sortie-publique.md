@@ -150,7 +150,7 @@ informations manquantes.
 | 3.5 | Network Level au-dessus des joueurs par défaut (lobby, practice, autres) | Lobby | P1 | IMPLÉMENTÉ (tests unitaires passés en CI ; à voir en jeu) | `HeadLines`, `RagoLobby`, `LobbyScoreboard`, `ProfileMenu` | 1.3 | C4 |
 | 3.6 | ELO des adversaires visible en Ranked | Ranked | P1 | IMPLÉMENTÉ (tests unitaires passés en CI ; à voir en jeu) | `LobbyScoreboard` (pseudo et Tab en partie) | 3.5 | — |
 | 3.8 | Nombre de joueurs en file pour chaque mode | Files | P1 | TESTÉ (test réel en CI, Java 8 et 21 : les bots lisent 0, 1, 0 sous le PNJ Duels et dans le menu) | `QueueController`, `ModeMenu`, `LobbyNpcs`, `lobby-bots.mjs` | — | — |
-| 3.7 | Organisation Solo / Party / Ranked (ELO par mode) : proposition avant tout code | Files | P2 | IMPLÉMENTÉ le 22/11 (ta réponse « Build » et ton choix « les grands duels 1v1 ») : deux onglets de plus dans la boussole, Party et Ranked ; Ranked tient Ranked Bedwars 1v1 à 4v4 (ses ELO gardés) et six duels classés en 1v1, chacun avec son ELO (Bed Fight, Top Bridge, Bridge Fight, Block Placement, Sumo, Boxing) ; Party montre ce que la party joue contre elle-même à sa taille. Testé par les tests du dépôt en CI seulement, pas encore joué en jeu ni installé (voir le journal) | `ModeCategory`, `ModeMenu`, `QueueController`, `LobbySettings`, `DuelRequests`, `StatsMenu`, `RagoPractice`, `SumoHost`, config.yml du lobby et des Bed Wars | 3.8 | — |
+| 3.7 | Organisation Solo / Party / Ranked (ELO par mode) : proposition avant tout code | Files | P2 | IMPLÉMENTÉ le 22/11 (ta réponse « Build » et ton choix « les grands duels 1v1 ») : deux onglets de plus dans la boussole, Party et Ranked ; Ranked tient Ranked Bedwars 1v1 à 4v4 (ses ELO gardés) et six duels classés en 1v1, chacun avec son ELO (Bed Fight, Top Bridge, Bridge Fight, Block Placement, Sumo, Boxing) ; Party montre ce que la party joue contre elle-même à sa taille. Tests du dépôt en CI : le run 385 (5e5ba79) a trouvé 1 test sur 300 à mettre à jour (le menu des stats gagne le bouton Ranked), corrigé avec 5.6A ; pas encore joué en jeu ni installé (voir le journal) | `ModeCategory`, `ModeMenu`, `QueueController`, `LobbySettings`, `DuelRequests`, `StatsMenu`, `RagoPractice`, `SumoHost`, config.yml du lobby et des Bed Wars | 3.8 | — |
 
 ### Étape 5 : expérience joueur (Phase 4)
 
@@ -174,7 +174,7 @@ informations manquantes.
 | 5.4b | `NewShop` sur émeraude | Lobby | P1 | TESTÉ en CI (21/11, runs 345 et 346 : compilation, tests unitaires, test du lobby) : le PNJ Shop passe du point `shop` au point `newshop` (config de ton serveur), sur ton bloc d'émeraude ; installé sur ton serveur le 21/11 (build 346, sauvegarde `sauvegarde-avant-maj-21-11d`) ; à voir en jeu | `LobbyNpcs`, `Pedestal`, point `newshop` | — |
 | 5.4c | `NewDailyChest` sur diamant | Lobby | P1 | TESTÉ en CI (21/11, runs 345 et 346 : compilation, tests unitaires, test du lobby) : le coffre du jour va sur le point choisi par `point-coffre-du-jour:` (`newdailychest` pour ton serveur), sur ton bloc de diamant ; installé sur ton serveur le 21/11 (build 346, sauvegarde `sauvegarde-avant-maj-21-11d`) ; à voir en jeu | `DailyChest`, `LobbySettings`, point `newdailychest` | — |
 | 5.5 | Daily Chest : animation à suspense, Rago Points 100–500, XP 100–2000, cosmétiques, probabilités configurables, jamais de doublon | Lobby | P2 | À FAIRE | `DailyChest`, `LobbyPoints`, `Cosmetic` | probabilités |
-| 5.6A | `RagoClient` et `RagoOptimizer` : nom, skin, diamant, liens au clic, texte « OUR OTHER PRODUCTS », visuels publicitaires existants derrière | Lobby | P2 | À FAIRE : tes réponses du 22/11, les liens `rago-optimizer.com` et `discord.gg/ragooptimizer` pour les deux, le skin de qRago pour les deux | `LobbyNpcs`, `Billboards`, `panneaux/` | — |
+| 5.6A | `RagoClient` et `RagoOptimizer` : nom, skin, diamant, liens au clic, texte « OUR OTHER PRODUCTS », visuels publicitaires existants derrière | Lobby | P2 | IMPLÉMENTÉ le 22/11 (tes réponses : les liens `rago-optimizer.com` et `discord.gg/ragooptimizer`, le skin de qRago pour les deux) : PNJ `type: produit` sur tes points `ragoclient` et `ragooptimizer`, « Rago Client » et « Rago Optimizer » sous « OUR OTHER PRODUCTS », sur un bloc de diamant, un clic écrit le site et le Discord dans le chat ; tes deux panneaux `rago-client` et `rago-optimizer` (tes visuels) à replacer 3 blocs derrière, contre le mur, en 6 x 6 (la hauteur du mur), à l'install (voir le journal). Testé en CI par les tests du dépôt et le bot du lobby (il clique Rago Client et lit ses deux liens) une fois le run passé ; pas encore installé ni vu en jeu | `LobbyNpc`, `LobbyNpcs`, `LobbySettings`, `config.yml`, `panneaux:` de ton config | — |
 | 5.6B | `qRago` (Owner) et `Kalisodev` (kaliso_dev, Dev) sur obsidienne, surélevés d'un bloc | Lobby | P2 | TESTÉ en CI (21/11, runs 345 et 346, Java 8 et 21), sauf le skin lu chez Mojang : PNJ `type: personne` sur tes points `qrago` et `kalisodev`, « [OWNER] qRago » et « [DEV] kaliso_dev » (les préfixes de `rangs:`), skin de leur compte Minecraft lu chez Mojang (`skin-joueur:`), sur obsidienne un bloc plus haut ; installé sur ton serveur le 21/11 (build 346, sauvegarde `sauvegarde-avant-maj-21-11d`) ; à voir en jeu | `LobbyNpc`, `LobbyNpcs`, `AccountSkins`, `LobbySettings`, `config.yml` | — |
 | 5.6C | `jncl` et `nativ` (affiché woryes, skin Woryes), rôle Mod en jaune clair | Lobby | P2 | À FAIRE : ta réponse du 22/11, jncl affiché « directement », nativ affiché « woryes » (C7) | `LobbyNpcs`, `RankDef` | — |
 | 5.7 | Texte de remerciement en anglais, fidèle à ton histoire, avec le Discord, à valider avant intégration | Lobby | P2 | À FAIRE | point `textremerciement`, `FakeHologram` | — (Discord : `discord.gg/ragooptimizer`, 22/11) |
@@ -1806,6 +1806,46 @@ syntaxe Java (javac, sans les classes de Bukkit) et les tests du site (34 passé
 tournent en CI. Pas encore joué en jeu, rien d'installé : à l'install, les 6 modes, les 2
 catégories et les nouvelles descriptions du `config.yml` du lobby s'ajoutent à tes réglages par
 la fusion, et le `config.yml` des Bed Wars gagne ses 2 modes classés.
+
+### 5.6A Rago Client et Rago Optimizer, OUR OTHER PRODUCTS (22/11)
+
+Le plan : « PNJ 1 — RagoClient », nom affiché « Rago Client », bloc de diamant, au clic les
+liens officiels ; pareil pour « PNJ 2 — RagoOptimizer » ; « OUR OTHER PRODUCTS » au-dessus des
+deux PNJ ; les visuels publicitaires déjà utilisés dans le lobby replacés derrière eux, contre le
+mur. Tes réponses du 22/11 : `rago-optimizer.com` et `discord.gg/ragooptimizer` pour les deux, le
+skin de qRago pour les deux.
+
+- Un nouveau type de PNJ, `type: produit` : un joueur dans le skin de qRago (`skin-joueur: qRago`),
+  les mains vides, sur un bloc de diamant (un bloc plus haut que son point, comme les autres PNJ).
+  Au-dessus : « OUR OTHER PRODUCTS » (`titre:`), puis son nom. Un clic écrit ses liens dans le
+  chat, comme `/discord` et `/store` : `RAGO » Rago Client: rago-optimizer.com` puis `RAGO » Join
+  our Discord: discord.gg/ragooptimizer` (`liens:`, de 1 à 8 lignes, modifiables).
+- « OUR OTHER PRODUCTS » au-dessus de chacun des deux PNJ : tes points `ragoclient` et
+  `ragooptimizer` sont à 22 blocs l'un de l'autre, un seul texte au milieu serait loin des deux.
+  Si tu préfères un seul texte entre eux, dis-le.
+- Les couleurs sont les miennes (le titre en or, les noms en aqua), à changer dans le config si tu
+  veux. Pas de ligne sous le nom (le plan n'en demande pas ; `sous-titre:` en ajoute une).
+- **Les visuels** : ce sont tes deux panneaux `rago-client` et `rago-optimizer` (tes images
+  `rago-client.png` et `rago-optimizer.png`), qui ne sont que dans ton `config.yml`, pas dans
+  celui du dépôt. J'ai lu ton monde `lobby` : le mur est 4 blocs derrière tes PNJ (z = -40), plein
+  de y = 69 à 74 sur 9 blocs de large derrière chacun, avec l'air juste devant (z = -39) et le
+  plafond à y = 75. Un panneau de 8 x 8 n'y tient pas en hauteur : 6 x 6, la hauteur du mur. À
+  l'install, je change seulement ces deux panneaux dans ton config (largeur 6, hauteur 6,
+  `lieu: "-11 69 -39 sud"` et `"11 69 -39 sud"`, tournés vers les PNJ), sans afficher le reste du
+  fichier ; ou tu le fais toi-même, ou tu te mets à l'endroit et tapes `/lobby point
+  panneau-rago-client` (le point passe avant `lieu:`).
+- **À voir** : sous tes points `ragoclient` et `ragooptimizer` (y = 70), il y a un bloc d'air (y =
+  69) puis la dalle du sol (y = 68) : le bloc de diamant sera en l'air, d'un bloc. Pareil sous
+  `jncl` et `nativ`. Sous `qrago` et `kalisodev`, tu as posé un bloc de quartz. Pour le poser au
+  sol : refaire le point debout sur le sol, ou poser un bloc dessous.
+
+Fichiers : `LobbyNpc`, `LobbyNpcs`, `LobbySettings`, `config.yml` du lobby, le README du lobby.
+Tests : `ProductNpcTest` (les deux PNJ du config, les erreurs de config), `LobbySettingsTest`
+(18 PNJ), et le bot du lobby en CI (`lobby-bots.mjs`) : il trouve Rago Client sur du diamant sous
+« OUR OTHER PRODUCTS », clique dessus et lit ses deux liens dans le chat. Vérifié ici : la
+syntaxe Java (javac, sans les classes de Bukkit) et celle du bot (node --check) ; le reste tourne
+en CI. Avec ce commit, `StatsMenuTest` est mis à jour pour 3.7 (le run 385 l'avait trouvé : le
+menu des stats a maintenant un bouton Ranked, avec les modes classés, et pas de bouton Party).
 
 ### Installation du 22/11 au matin (aa724b7)
 
