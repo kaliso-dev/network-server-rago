@@ -179,7 +179,7 @@ informations manquantes.
 | 5.6C | `jncl` et `nativ` (affiché woryes, skin Woryes), rôle Mod en jaune clair | Lobby | P2 | BLOQUÉ | `LobbyNpcs`, `RankDef` | pseudo Woryes, C7 |
 | 5.7 | Texte de remerciement en anglais, fidèle à ton histoire, avec le Discord, à valider avant intégration | Lobby | P2 | À FAIRE | point `textremerciement`, `FakeHologram` | lien Discord |
 | 5.8 | Revoir les skins des PNJ du lobby | Lobby | P2 | À FAIRE | `NpcSkins`, `skins.yml` | — |
-| 5.9 | Boussole comme sur Minemen (ta demande du 22/11) : les catégories en haut, un espace, puis les modes de la catégorie choisie | Lobby | P1 | IMPLÉMENTÉ le 22/11, pas encore testé (CI en cours) : les 6 catégories sur la ligne du haut (slots 1 à 6), une ligne vide, les jeux de la catégorie choisie à partir du slot 19 ; un clic sur une autre catégorie change les jeux dans le même menu, celle choisie brille (« Its modes are below ») ; s'ouvre sur Practice, ou sur la catégorie du PNJ, de `/play` ou du groupe dont on revient ; « Popular now » passe sur la ligne du bas ; le menu garde la taille de la plus grande catégorie (Practice, 15 jeux : 6 lignes) | `ModeMenu`, `lobby-bots.mjs` | les catégories restent celles d'aujourd'hui ; d'autres (Duo, Ranked…, voir 3.7) sont à choisir |
+| 5.9 | Boussole comme sur Minemen (ta demande du 22/11) : les catégories en haut, un espace, puis les modes de la catégorie choisie | Lobby | P1 | TESTÉ par les bots en CI le 22/11 (commit af042fc, Java 8 et 21 : le PNJ Duels ouvre la boussole sur Duels ; un clic sur Duels en haut remplace les jeux de Practice dans le même menu, puis la sumo rejoint sa file) ; installé sur ton serveur le 22/11 vers 1h40 (seul `rago-lobby` change, sauvegarde `sauvegarde-avant-maj-af042fc`) ; pas encore vu en jeu : les 6 catégories sur la ligne du haut (slots 1 à 6), une ligne vide, les jeux de la catégorie choisie à partir du slot 19 ; un clic sur une autre catégorie change les jeux dans le même menu, celle choisie brille (« Its modes are below ») ; s'ouvre sur Practice, ou sur la catégorie du PNJ, de `/play` ou du groupe dont on revient ; « Popular now » passe sur la ligne du bas ; le menu garde la taille de la plus grande catégorie (Practice, 15 jeux : 6 lignes) | `ModeMenu`, `lobby-bots.mjs` | les catégories restent celles d'aujourd'hui ; d'autres (Duo, Ranked…, voir 3.7) sont à choisir |
 
 ### Étape 7 : nouveaux modes (Phase 6) — proposition avant tout code
 
@@ -1486,6 +1486,10 @@ nouveaux modes ajoutés) ; l'ancien état est dans `sauvegarde-avant-maj-fun-1`.
 Wars fusionnés avec tes réglages, sans conflit ; le PNJ Fun Practice baissé d'un bloc
 (`points.yml` et la région `r.-1.0.mca` du monde du lobby). Empreintes SHA-256 vérifiées sur ton
 PC ; l'ancien état est dans `sauvegarde-avant-maj-0271f26`.
+
+**Installé** encore le 22/11 (vers 1h40) : les 5 plugins du commit af042fc, la boussole façon
+Minemen (5.9) ; seul `rago-lobby` change, les 4 autres jars sont identiques octet pour octet ;
+aucune config ni aucun monde touché ; l'ancien état est dans `sauvegarde-avant-maj-af042fc`.
 
 **À faire en jeu** : une partie de chaque mode sur ton serveur de test ; poser le PNJ avec
 `/lobby point funmod2`.
