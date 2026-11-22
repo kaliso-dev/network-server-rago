@@ -251,6 +251,57 @@ class StatsDisplaysTest {
                 StatsDisplays.selectorLore(BoardStat.LEVEL, selector));
     }
 
+    /**
+     * The menu of the selector, sorted and clearer (the owner's ask of 22/11, 19h51): the stats on
+     * their row, the Elo of each ranked mode under them, sorted by name.
+     */
+    @Test
+    void theSelectorMenuPutsTheStatsThenTheEloOfEachRankedModeByName() throws Exception {
+        LobbySettings settings = bundledSettings();
+        List<BoardStat> stats = settings.npc("newleaderboardselector").boards().get(0);
+        List<String> names = new java.util.ArrayList<>();
+        for (GameMode mode : StatsMenu.rankedModes(settings)) {
+            names.add(ChatColor.stripColor(mode.name()));
+        }
+        assertEquals(10, names.size(), "the ranked modes of the bundled config");
+        StatsDisplays.SelectorLayout layout = StatsDisplays.selectorLayout(stats, names);
+        assertEquals(6, layout.rows);
+        assertEquals(17, layout.items.size(), "7 stats and the Elo of 10 ranked modes");
+        // the 7 stats, in their order, on the second row (slots 10 to 16)
+        for (int i = 0; i < 7; i++) {
+            assertEquals(10 + i, layout.items.get(i)[2]);
+            assertTrue(stats.get(layout.items.get(i)[0]).choice() != BoardStat.Choice.RANKED_MODE);
+        }
+        assertEquals(BoardStat.STREAK, stats.get(layout.items.get(0)[0]), "the order of stats: (the plan's)");
+        assertEquals(BoardStat.GAMES, stats.get(layout.items.get(6)[0]));
+        // an empty row, then the Elo, seven a row, by the name of the mode
+        List<String> elo = new java.util.ArrayList<>();
+        List<Integer> slots = new java.util.ArrayList<>();
+        for (int[] item : layout.items.subList(7, 17)) {
+            assertEquals(BoardStat.ELO, stats.get(item[0]));
+            elo.add(names.get(item[1]));
+            slots.add(item[2]);
+        }
+        assertEquals(Arrays.asList("Ranked Bed Fight 1v1", "Ranked Bedwars 1v1", "Ranked Bedwars 2v2", "Ranked Bedwars 3v3",
+                "Ranked Bedwars 4v4", "Ranked Block Placement 1v1", "Ranked Boxing", "Ranked Bridge Fight 1v1", "Ranked Sumo",
+                "Ranked Top Bridge 1v1"), elo);
+        assertEquals(Arrays.asList(28, 29, 30, 31, 32, 33, 34, 37, 38, 39), slots);
+        // without ranked modes: the stats alone, framed
+        StatsDisplays.SelectorLayout alone = StatsDisplays.selectorLayout(stats, Collections.<String>emptyList());
+        assertEquals(3, alone.rows);
+        assertEquals(7, alone.items.size());
+        // too many to frame in six rows: side by side, as before
+        List<String> many = new java.util.ArrayList<>();
+        for (int i = 0; i < 20; i++) {
+            many.add("Ranked " + (char) ('A' + i));
+        }
+        StatsDisplays.SelectorLayout packed = StatsDisplays.selectorLayout(stats, many);
+        assertEquals(3, packed.rows);
+        for (int i = 0; i < packed.items.size(); i++) {
+            assertEquals(i, packed.items.get(i)[2]);
+        }
+    }
+
     @Test
     void theKillsBoardChangesItsPeriodOnAnyClick() throws Exception {
         LobbySettings settings = bundledSettings();

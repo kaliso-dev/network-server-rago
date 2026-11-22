@@ -772,7 +772,13 @@ signature, pas la couleur de tout :
 - **Le sélecteur de leaderboards** (plan 3.1) : `pnj:` avec `type: selecteur` (le PNJ
   `newleaderboardselector`). Un clic ouvre « Leaderboards », un menu de ses stats (`stats:`, par
   défaut celles du plan dans son ordre : la meilleure série, le niveau Network, l'ELO avec un objet
-  par mode classé, les victoires, les kills, le FKDR, le WLR, puis les parties jouées). La stat
+  par mode classé, les victoires, les kills, le FKDR, le WLR, puis les parties jouées), rangé
+  (ta demande du 22/11, 19h51 : « trier et faire en sorte que ce soit plus clair ») : les stats
+  sur une ligne à elles, dans cet ordre, sept par ligne sous une ligne vide comme les menus de la
+  boussole ; en dessous, après une ligne vide, l'ELO de chaque mode classé, avec l'icône et le nom
+  du mode, triés par nom (Ranked Bed Fight 1v1, Ranked Bedwars 1v1 à 4v4, Ranked Block Placement
+  1v1, Ranked Boxing…) ; une ligne vide en bas. Côte à côte comme avant si cela ne tient pas en
+  six lignes. La stat
   choisie s'affiche aussitôt, pour celui qui l'a choisie, sur les murs qui suivent le sélecteur :
   dans `classements:`, un mur avec `selecteur: newleaderboardselector` et sa `periode` (`jour`,
   `semaine` ou `toujours`), sans `tableaux`. Les trois murs Daily, Weekly et Lifetime montrent donc

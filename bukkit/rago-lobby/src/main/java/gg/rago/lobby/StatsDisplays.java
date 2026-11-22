@@ -472,32 +472,90 @@ final class StatsDisplays {
 
     /**
      * The NPC of the leaderboard selector (plan 3.1): the menu of its stats, one item for each, and
-     * for the ELO one for each ranked mode. The stat clicked shows on the walls that follow it, on
-     * the period of each (Daily, Weekly, Lifetime), for the one who clicked.
+     * for the ELO one for each ranked mode, laid out by {@link #selectorLayout}. The stat clicked
+     * shows on the walls that follow it, on the period of each (Daily, Weekly, Lifetime), for the
+     * one who clicked.
      */
     void openSelector(Player player, LobbyNpc selector) {
         List<BoardStat> stats = selector.boards().get(0);
-        List<int[]> items = selectorItems(stats, ranked.size());
-        ClickMenu chest = new ClickMenu(Math.max(1, (items.size() + 8) / 9), "Leaderboards");
+        List<String> rankedNames = new ArrayList<>();
+        for (GameMode mode : ranked) {
+            rankedNames.add(ChatColor.stripColor(mode.name()));
+        }
+        SelectorLayout layout = selectorLayout(stats, rankedNames);
+        ClickMenu chest = new ClickMenu(layout.rows, "Leaderboards");
         Choice now = choiceAt(player.getUniqueId(), selectorKey(selector.point()));
-        for (int i = 0; i < items.size(); i++) {
-            final int stat = items.get(i)[0];
-            final int option = items.get(i)[1];
+        for (int[] each : layout.items) {
+            final int stat = each[0];
+            final int option = each[1];
             BoardStat shown = stats.get(stat);
             GameMode mode = shown.choice() == BoardStat.Choice.RANKED_MODE && !ranked.isEmpty() ? ranked.get(option) : null;
             String name = selectorName(shown, mode);
-            List<String> lore = new ArrayList<>(selectorLore(shown, selector));
+            List<String> lore = new ArrayList<>();
+            if (mode != null) {
+                // the Elo of one ranked mode: its name and its icon, as in the menus
+                lore.add(ChatColor.GRAY + shown.title());
+            }
+            lore.addAll(selectorLore(shown, selector));
             boolean chosen = now.stat % stats.size() == stat && (mode == null || now.option % ranked.size() == option);
             lore.add("");
             lore.add(chosen ? ChatColor.GREEN + "Shown now" : ChatColor.YELLOW + "Click to show it");
-            ItemStack item = ClickMenu.item(selectorIcon(shown), 0, ChatColor.AQUA + "" + ChatColor.BOLD + name, lore);
-            chest.set(i, chosen ? ClickMenu.glow(item) : item, (clicker, right) -> {
+            ModeDisplay display = mode == null ? null : settings.display(mode.id());
+            Material icon = display != null ? display.icon() : selectorIcon(shown);
+            String title = mode == null ? shown.title() : ChatColor.stripColor(mode.name());
+            ItemStack item = ClickMenu.item(icon, 0, ChatColor.AQUA + "" + ChatColor.BOLD + title, lore);
+            chest.set(each[2], chosen ? ClickMenu.glow(item) : item, (clicker, right) -> {
                 select(clicker.getUniqueId(), selector.point(), stat, option);
                 clicker.closeInventory();
                 clicker.sendMessage(ChatColor.GREEN + "Leaderboards: " + ChatColor.WHITE + name);
             });
         }
         chest.open(player);
+    }
+
+    /** The menu of a selector: each item {the stat's index, its option, its slot}, and the rows of its chest. */
+    static final class SelectorLayout {
+        final List<int[]> items = new ArrayList<>();
+        int rows;
+    }
+
+    /**
+     * The menu of a selector, sorted and clearer (the owner's ask of 22/11, 19h51): its stats on a
+     * row of their own, in their order (stats:), seven a row under an empty row, as in the menus of
+     * the compass; under them, after an empty row, the Elo of each ranked mode, sorted by the name
+     * of the mode (colours and case aside), seven a row; an empty row at the bottom. Side by side
+     * from the top, as before, when that does not fit in six rows.
+     */
+    static SelectorLayout selectorLayout(List<BoardStat> stats, List<String> rankedNames) {
+        List<int[]> general = new ArrayList<>();
+        List<int[]> elo = new ArrayList<>();
+        for (int[] item : selectorItems(stats, rankedNames.size())) {
+            (stats.get(item[0]).choice() == BoardStat.Choice.RANKED_MODE ? elo : general).add(item);
+        }
+        elo.sort((a, b) -> rankedNames.get(a[1]).toLowerCase(java.util.Locale.ROOT)
+                .compareTo(rankedNames.get(b[1]).toLowerCase(java.util.Locale.ROOT)));
+        int generalRows = (general.size() + 6) / 7;
+        int eloRows = (elo.size() + 6) / 7;
+        int gap = generalRows > 0 && eloRows > 0 ? 1 : 0;
+        SelectorLayout layout = new SelectorLayout();
+        layout.rows = 1 + generalRows + gap + eloRows + 1;
+        if (layout.rows > 6) {
+            List<int[]> all = new ArrayList<>(general);
+            all.addAll(elo);
+            for (int i = 0; i < all.size() && i < 54; i++) {
+                layout.items.add(new int[] {all.get(i)[0], all.get(i)[1], i});
+            }
+            layout.rows = Math.max(1, Math.min(6, (all.size() + 8) / 9));
+            return layout;
+        }
+        for (int i = 0; i < general.size(); i++) {
+            layout.items.add(new int[] {general.get(i)[0], general.get(i)[1], (1 + i / 7) * 9 + 1 + i % 7});
+        }
+        int first = 1 + generalRows + gap;
+        for (int i = 0; i < elo.size(); i++) {
+            layout.items.add(new int[] {elo.get(i)[0], elo.get(i)[1], (first + i / 7) * 9 + 1 + i % 7});
+        }
+        return layout;
     }
 
     /**
