@@ -1183,6 +1183,25 @@ ragobot:
     rotation: 30
     soin-a: 10
 
+# The Owner's test tools (plan 7.1), to test the PvP and the protections of the server:
+#   /owner reach <3-6|off>     the Owner's hits land up to that far (a fair player's reach is 3),
+#                              as a reach cheat's: the first player along their aim, with no block
+#                              between, as the server makes a hit
+#   /owner scaffold [on|off]   walking off an edge, a block of the one in hand goes under their feet,
+#                              as a scaffold cheat's (where the game lets them place a block)
+#   /owner off                 both off; /owner alone: what is on
+# For this account only: anyone else reads what Spigot answers for a command it does not know (the
+# account needs rago.admin too: the owner rank, or op). Off until the Owner turns them on, off
+# again once they leave the server. Never in a ranked game: they do nothing there. A game where
+# the Owner has a tool on counts for nobody in it: no stats, no XP, no ELO, no record.
+#   compte  the Owner's account ("": no tool for anyone)
+#   uuid    "" on a server that verifies the names (online mode, or behind BungeeCord); in offline
+#           mode, the id of the account on this server, without which the tools stay off (anyone
+#           can take a name there)
+outils-owner:
+  compte: qRago
+  uuid: ""
+
 # The modes, in the order of the selector. The id (the key) holds only lowercase letters without
 # accents, digits and dashes. A mode stays "Coming soon" in the selector until a game plugin
 # hosts it.

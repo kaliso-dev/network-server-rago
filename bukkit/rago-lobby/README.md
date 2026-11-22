@@ -101,6 +101,18 @@ dans les files d'attente des modes de jeu.
   strafe, w-tap, jump reset, réaction, rotation, pomme d'or sous `soin-a`), pas de niveaux. Il
   quitte le serveur une fois revenu au lobby sans party (`/p kick RagoBot`, party dissoute).
   `/duel RagoBot` renvoie vers la party. Les valeurs du `config.yml` sont à confirmer en jeu.
+- **Les outils Owner** (`outils-owner:`, plan 7.1, le choix du propriétaire du 22/11), pour tester le
+  PvP et les protections du serveur. `/owner reach <3-6|off>` : les coups du propriétaire portent
+  jusqu'à cette distance (3 pour un joueur normal), comme ceux d'un reach : le premier joueur dans
+  sa visée, sans bloc entre eux, prend le coup comme le serveur fait un coup. `/owner scaffold
+  [on|off]` : en sortant d'un bord, un bloc de celui qu'il tient se pose sous ses pieds, comme avec
+  un scaffold (là où la partie le laisse poser un bloc). `/owner off` coupe tout, `/owner` seul dit
+  ce qui est actif. Pour le compte `compte:` (qRago) seulement, qui doit avoir aussi `rago.admin`
+  (le rang owner, ou op) : pour tous les autres, opérateurs compris, la commande n'existe pas (la
+  réponse de Spigot à une commande inconnue). Coupés par défaut, et de nouveau en quittant le
+  serveur. Jamais en classé : ils n'y font rien. Une partie où un outil est actif ne compte pour
+  personne : ni stats, ni XP, ni ELO, ni record. Sur un serveur en mode offline (les noms n'y sont
+  pas vérifiés), il faut l'id du compte dans `uuid:`, sinon les outils restent coupés.
 - **L'import Hypixel.** Pour les modes qui se jouent sur une map de Bed Wars (Ranked Bedwars,
   First Rush, Private Game) et Fast Shop, chaque joueur copie son shop Hypixel : le quick buy
   (les 21 cases, trois lignes de sept) et le hotbar manager (le genre d'objet de chaque case de la

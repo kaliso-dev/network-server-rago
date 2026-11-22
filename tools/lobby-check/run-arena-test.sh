@@ -24,7 +24,10 @@
 # Then a bot invites RagoBot into its party (tools/kb-control/bots/ragobot-bots.mjs): RagoBot refuses
 # ranked and the modes it does not play, wins a Sumo duel and a round of Top Bridge 1v1 against the
 # bot who stands still, plays Top Bridge 2v2 in the party's team against two others, and leaves the
-# server once kicked from the party; none of these games is counted as a private game.
+# server once kicked from the party; none of these games is counted as a private game. Last, the
+# Owner tools (tools/kb-control/bots/owner-bots.mjs): /owner for qRago only, Reach that lands from
+# 6 blocks in a sumo and does nothing in a ranked sumo, Scaffold in a Block placement 1v1; the games
+# with a tool on are counted for nobody, the ranked one is.
 # Fails if the bots fail, or if the server log has an error or an exception.
 #
 # Run from anywhere, after the build:
@@ -118,9 +121,22 @@ cat >"$SERVER_DIR/bukkit.yml" <<'YAML'
 settings:
   allow-end: false
 YAML
-# The bundled config.yml of the lobby, as it is.
+# The bundled config.yml of the lobby, with the id of qRago for the Owner tools (outils-owner.uuid):
+# this server is in offline mode, where a name alone is not enough. Its UUID is the one of an
+# offline-mode player: the version 3 UUID of "OfflinePlayer:qRago". qRago and RagoOp are operators
+# (rago.admin): /owner is for qRago only, even among the operators.
+offline_uuid() {
+  node -e 'const h = require("crypto").createHash("md5").update("OfflinePlayer:" + process.argv[1]).digest()
+h[6] = (h[6] & 0x0f) | 0x30; h[8] = (h[8] & 0x3f) | 0x80
+const x = h.toString("hex"); console.log([x.slice(0, 8), x.slice(8, 12), x.slice(12, 16), x.slice(16, 20), x.slice(20)].join("-"))' "$1"
+}
 mkdir -p "$SERVER_DIR/plugins/RagoLobby"
-cp "$ROOT/bukkit/rago-lobby/src/main/resources/config.yml" "$SERVER_DIR/plugins/RagoLobby/config.yml"
+QRAGO_UUID=$(offline_uuid qRago)
+sed -e "/^outils-owner:$/,/^[a-z]/s/^  uuid: \"\"$/  uuid: \"$QRAGO_UUID\"/" "$ROOT/bukkit/rago-lobby/src/main/resources/config.yml" \
+  >"$SERVER_DIR/plugins/RagoLobby/config.yml"
+grep -q "^  uuid: \"$QRAGO_UUID\"$" "$SERVER_DIR/plugins/RagoLobby/config.yml" || fail "could not give the Owner tools the id of qRago"
+printf '[{"uuid":"%s","name":"qRago","level":4},{"uuid":"%s","name":"RagoOp","level":4}]\n' "$QRAGO_UUID" "$(offline_uuid RagoOp)" \
+  >"$SERVER_DIR/ops.json"
 # The bundled config.yml of RagoPractice, with the block modes ending at once: Block placement
 # first to 10 (a fall into the void gives 10), Block edit first to 2.
 mkdir -p "$SERVER_DIR/plugins/RagoPractice"
@@ -256,6 +272,10 @@ KB_HOST=127.0.0.1 KB_PORT=$PORT node "$ROOT/tools/kb-control/bots/fast-bots.mjs"
 # 1v1 against it, then Top Bridge 2v2 with it against two others, and sends it away.
 ragobot_status=0
 KB_HOST=127.0.0.1 KB_PORT=$PORT node "$ROOT/tools/kb-control/bots/ragobot-bots.mjs" || ragobot_status=$?
+# The same server for the Owner tools: qRago (the account of outils-owner) and two others; Reach in
+# a sumo and in a ranked sumo, Scaffold in a Block placement 1v1.
+owner_status=0
+KB_HOST=127.0.0.1 KB_PORT=$PORT node "$ROOT/tools/kb-control/bots/owner-bots.mjs" || owner_status=$?
 stop_server
 
 # Any error or exception logged by the server fails the test, even if the bots passed. One is
@@ -279,5 +299,14 @@ server_log_has '[RagoLobby] RagoBot joined for the party of RagoLeader' || fail 
 # A game with RagoBot counts in the players' stats: none is a private game of the party.
 if grep -n -E 'Private game of a party in (sumo|top-bridge-1v1|top-bridge-2v2):' "$SERVER_LOG" >&2; then
   fail "a game with RagoBot was counted as a private game (above)"
+fi
+[[ $owner_status -eq 0 ]] || { tail -n 60 "$SERVER_LOG" >&2; fail "the Owner tool bots stopped with status $owner_status"; }
+# A game with an Owner tool on counts for nobody; never one in a ranked game, where they do nothing.
+for mode in sumo block-fight-1v1; do
+  server_log_has "[RagoLobby] Game with an Owner tool in $mode: not counted in the stats" \
+    || fail "the $mode game of qRago with an Owner tool on was counted"
+done
+if grep -n -F 'Game with an Owner tool in ranked-' "$SERVER_LOG" >&2; then
+  fail "a ranked game was taken for a game with an Owner tool (above)"
 fi
 log "PASSED"

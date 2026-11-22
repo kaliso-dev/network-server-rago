@@ -196,7 +196,19 @@ Bridge 1v1 (carte démo), RagoBot traverse le pont, le frappe à l'épée et gag
 s'en va. En Top Bridge 2v2, la party (le bot et RagoBot) attend dans la file comme une équipe, deux
 autres bots seuls la rejoignent : RagoBot frappe l'un d'eux, ils s'en vont. Après `/p kick
 RagoBot`, puis après une party dissoute, RagoBot quitte le serveur. Le log du serveur ne doit
-compter aucune de ces parties comme partie privée (elles comptent dans les stats).
+compter aucune de ces parties comme partie privée (elles comptent dans les stats). Les bots notent
+ce que leur client voit de RagoBot pendant chaque partie (ses apparitions, ses déplacements, ses
+coups ; les coups reçus, les knockbacks, les téléportations, le bloc sous les pieds, le chemin) :
+le joueur doit voir RagoBot venir et recevoir son knockback, vérifié après toutes les parties.
+Pour finir, les outils Owner (`tools/kb-control/bots/owner-bots.mjs`), avec dans `config.yml` l'id
+offline de qRago (`outils-owner.uuid`) et qRago et RagoOp opérateurs : `/owner` est une commande
+inconnue pour RagoCible et pour RagoOp ; qRago voit ses outils coupés et une portée hors de 3 à 6
+est refusée. En Sumo duel, qRago active Reach 6 dans la partie (elle ne compte plus pour personne)
+et frappe RagoCible à 6 blocs : le coup porte (knockback, compté dans le récap), sans XP ni points.
+En Ranked Sumo, Reach ne fait rien (« Never in a ranked game »), ses coups à 6 blocs ne poussent
+personne. En Block placement 1v1, Scaffold actif, qRago recule hors de sa plateforme, laine en
+main : la laine se pose sous lui et il ne tombe pas. Le log du serveur doit dire que le Sumo et le
+Block placement n'ont pas compté, et rien de tel pour la partie classée.
 
 ```bash
 ./gradlew build

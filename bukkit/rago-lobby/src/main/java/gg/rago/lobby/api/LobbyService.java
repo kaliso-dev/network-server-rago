@@ -194,6 +194,14 @@ public interface LobbyService {
     }
 
     /**
+     * True if this player's game is one where the Owner had a test tool on (/owner, Reach or
+     * Scaffold): it counts for nobody, so a training keeps no record of it either.
+     */
+    default boolean inOwnerToolGame(UUID player) {
+        return false;
+    }
+
+    /**
      * True if this player's private game came from the Private games (parties-privees, such as the
      * private top bridge): the practice of its mode, without rounds. A party that fills a mode of
      * the Duels plays it as everyone does, in no stats.

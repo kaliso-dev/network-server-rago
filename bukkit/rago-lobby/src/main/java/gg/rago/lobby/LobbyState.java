@@ -36,6 +36,10 @@ final class LobbyState {
      * when they come back, and the sidebar of that player.
      */
     private final Map<UUID, UUID> watching = new HashMap<>();
+    /** The players of each player's game, from its start (the player too). */
+    private final Map<UUID, List<UUID>> together = new HashMap<>();
+    /** The players of a game where the Owner had a test tool on (/owner): it counts for nobody. */
+    private final Set<UUID> ownerTool = new HashSet<>();
 
     LobbyState(World world, SpawnPoint spawn) {
         this.world = world;
@@ -100,6 +104,8 @@ final class LobbyState {
     void leaveGame(UUID player) {
         inGame.remove(player);
         opponents.remove(player);
+        together.remove(player);
+        ownerTool.remove(player);
         privateGame.remove(player);
         practice.remove(player);
         unrated.remove(player);
@@ -150,6 +156,33 @@ final class LobbyState {
         return others == null ? Collections.<UUID>emptyList() : others;
     }
 
+    /** The players of the player's game, the player too, as it started. */
+    void setTogether(UUID player, List<UUID> players) {
+        together.put(player, Collections.unmodifiableList(players));
+    }
+
+    /** The players of the player's game (the player too); empty out of a game or unknown. */
+    List<UUID> togetherWith(UUID player) {
+        List<UUID> players = inGame.containsKey(player) ? together.get(player) : null;
+        return players == null ? Collections.<UUID>emptyList() : players;
+    }
+
+    /** The Owner had a test tool on in the player's game: it counts for nobody. */
+    void markOwnerTool(UUID player) {
+        if (inGame.containsKey(player)) {
+            ownerTool.add(player);
+        }
+    }
+
+    boolean isOwnerToolGame(UUID player) {
+        return ownerTool.contains(player);
+    }
+
+    /** The player's game counts in no stats: a party's private game, or one with an Owner tool. */
+    boolean countsNothing(UUID player) {
+        return privateGame.contains(player) || ownerTool.contains(player);
+    }
+
     boolean isBuilding(Player player) {
         return building.contains(player.getUniqueId());
     }
@@ -166,6 +199,8 @@ final class LobbyState {
     void forget(UUID player) {
         inGame.remove(player);
         opponents.remove(player);
+        together.remove(player);
+        ownerTool.remove(player);
         building.remove(player);
         privateGame.remove(player);
         practice.remove(player);

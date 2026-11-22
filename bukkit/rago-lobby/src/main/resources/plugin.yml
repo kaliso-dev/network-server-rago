@@ -209,6 +209,14 @@ commands:
   store:
     description: The web store of the server.
     usage: /store
+  # The Owner's test tools (outils-owner: of config.yml), for that account only. rago.admin (the
+  # owner rank, or op) hides the command from the others' tab completion; anyone without it, or
+  # with it but not the Owner's account, reads what Spigot answers for a command it does not know.
+  owner:
+    description: The Owner's test tools.
+    usage: /owner
+    permission: rago.admin
+    permission-message: 'Unknown command. Type "/help" for help.'
 permissions:
   rago.lobby.admin:
     description: Place the lobby spawn and points, and edit the lobby in build mode.

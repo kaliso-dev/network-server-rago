@@ -992,6 +992,15 @@ abstract class Training extends PracticeGame {
      * the challenge of the day when this is its training.
      */
     void score(long value, boolean quiet) {
+        if (host.plugin().lobby().inOwnerToolGame(me)) {
+            // the Owner had a test tool on (/owner): no record, no challenge
+            last = format(value);
+            Player player = player();
+            if (player != null && !quiet) {
+                player.sendMessage(ChatColor.GRAY + format(value) + " (not counted: an Owner tool is on)");
+            }
+            return;
+        }
         record(value, quiet);
         if (host.challenges() != null) {
             host.challenges().scored(me, myName, challengeBoard(), value);
@@ -1034,6 +1043,10 @@ abstract class Training extends PracticeGame {
      * nothing said; the other trainings of the board see the new best at once.
      */
     RecordBook.Result submitTo(String board, long value) {
+        if (host.plugin().lobby().inOwnerToolGame(me)) {
+            // the Owner had a test tool on: on no board
+            return new RecordBook.Result(host.records().book().best(board, me), false, false);
+        }
         RecordBook.Result result = host.records().submit(board, me, myName, value);
         if (result.personalBest) {
             othersOn(board);

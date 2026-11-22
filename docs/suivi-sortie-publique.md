@@ -210,7 +210,7 @@ propositions » (Claude Docs), avec 9 questions à trancher.
 
 | # | Tâche | Prio | Statut | Fichiers | Manque |
 | --- | --- | --- | --- | --- | --- |
-| 7.1 | Outils Owner (Reach, Scaffold…) réservés au compte Owner | P3 | BLOQUÉ : ta réponse du 22/11, « je t'écoute » ; ma recommandation envoyée (qRago seul, Reach et Scaffold, coupés par défaut, jamais en Ranked, partie non comptée), à faire à l'étape 8 sans contre-ordre | `StaffTools`, `StaffPanel`, `LobbyService` | C8 ; questions 1, 2 et 5 |
+| 7.1 | Outils Owner (Reach, Scaffold…) réservés au compte Owner | P3 | IMPLÉMENTÉ, en test par les bots en CI (journal « Outils Owner ») : ta réponse du 22/11, « je t'écoute », puis « Enchaine » sur ma recommandation (qRago seul, Reach et Scaffold, coupés par défaut, jamais en Ranked, partie non comptée) | `OwnerTools`, `OwnerRules` (nouveaux), `LobbyState`, `QueueController`, `RagoLobby`, `LobbyService`, `Training` (practice), `plugin.yml`, `config.yml` | C8 ; questions 1, 2 et 5 |
 | 7.2 | Rejoindre une partie en cours comme participant (admin), sans fausser les stats | P2 | BLOQUÉ (proposition du 22/11 : `/join <joueur>`, l'admin ne garde pas son équipe en vie, partie non comptée) | `Spectating`, `PracticeGame`, `BedwarsGame`, `LobbyService` | questions 3, 4 et 5 |
 | 7.3 | AntiCheat compatible KB custom, fireballs, TNT, practice ; Owner exempté | P1 | BLOQUÉ (proposition du 22/11 : Grim, gratuit, Java 17 ou plus ; alertes seules pendant un essai) | à choisir (Grim, Vulcan…) | questions 6, 7 et 8 |
 | 7.4 | FPSbenchmark : PNJ `fpsbenchmark` sur `159:14`, hors boussole, scénarios reproductibles | P3 | BLOQUÉ (proposition du 22/11 : faux joueurs par paquets, caméra fixe, graine fixe) | point `fpsbenchmark` | question 9 : nom affiché, skin, lieux, nombres, durées |
@@ -2042,6 +2042,50 @@ Top Bridge 2v2 dans l'équipe de la party, et quitte le serveur après `/p kick`
 dissoute. Vérifié ici : la syntaxe Java, et `BotBrainTest` (10 tests) et `PartyBookTest` (6, sans
 celui du bouton qui demande Bukkit) lancés ici, tous passés ; le reste tourne en CI.
 À l'install : la section `ragobot:` arrive avec la fusion de ton `config.yml`.
+
+### Outils Owner (7.1, 22/11)
+
+Ma recommandation du 22/11, sans contre-ordre de ta part (« Enchaine ») :
+
+- `/owner reach <3-6|off>` : tes coups portent jusqu'à cette distance (3 pour un joueur normal, 6
+  au plus : au-delà, un serveur 1.8 refuse un coup de toute façon). Quand tu cliques dans le vide,
+  le premier joueur dans ta visée, au-delà de 3 blocs et dans ta portée, sans bloc plein entre
+  vous, prend le coup comme le serveur fait un coup de joueur (règles de la partie, knockback de
+  RagoCombatEngine). En dessous de 3, ton client frappe lui-même, rien ne change.
+- `/owner scaffold [on|off]` : en sortant d'un bord (au sol l'instant d'avant, donc pas en sautant
+  ni en tombant), un bloc de celui que tu tiens se pose sous tes pieds, contre le bloc voisin, comme
+  un joueur pose un bloc : la partie peut le refuser (zone, règles), et hors créatif il est pris
+  dans ta main. Seulement en survie ou en créatif (jamais au lobby).
+- `/owner off` coupe tout ; `/owner` seul dit ce qui est actif.
+- Pour le compte `outils-owner.compte` (qRago) seulement, qui doit aussi avoir `rago.admin` (ton
+  rang owner, ou op) : la permission cache `/owner` de la complétion des autres. Pour tous les
+  autres, opérateurs compris, la réponse est celle de Spigot à une commande inconnue (« Unknown
+  command. Type "/help" for help. »).
+- Coupés par défaut, et de nouveau quand tu quittes le serveur. Jamais en classé : ils n'y font
+  rien (un message te le dit si tu les actives en partie classée).
+- Une partie où un outil est actif ne compte pour personne dedans : ni victoire ni défaite, ni
+  kills, ni XP, ni points, ni quêtes, ni ELO, ni record d'entraînement (« not counted: an Owner tool
+  is on »). Activé en pleine partie, un message te le dit ; le log du serveur note « Game with an
+  Owner tool in (mode): not counted in the stats ».
+
+Une différence avec ma recommandation, à confirmer : je proposais l'UUID lu dans le
+`usercache.json`. Sur un serveur en mode online (ou derrière BungeeCord), Mojang vérifie le nom :
+le nom qRago suffit, sans UUID à copier (`uuid: ""`). En mode offline, n'importe qui peut prendre
+un nom : il faut alors l'id de ton compte dans `outils-owner.uuid`, sinon les outils restent coupés
+(le log le dit au démarrage). À l'install, je regarderai seulement la ligne `online-mode` de ton
+`server.properties` (sans rien y changer) pour savoir lequel des deux.
+
+Fichiers : `OwnerTools`, `OwnerRules` (nouveaux), `LobbyState` (les joueurs de chaque partie, et
+celles marquées), `QueueController`, `RagoLobby` (rien n'est compté pour une partie marquée),
+`LobbyService` et `Training` de RagoPractice (pas de record), `plugin.yml` (`/owner`), `config.yml`
+(section `outils-owner:`), README du lobby. Tests : `OwnerRulesTest` (qui est l'Owner, la portée,
+où un coup touche, où le scaffold pose), `OwnerSettingsTest` ; en CI, `owner-bots.mjs` : `/owner`
+inconnu pour un joueur et pour un autre opérateur ; Reach 6 en Sumo duel (le coup porte à 6 blocs,
+la partie ne compte pas, ni XP ni points) ; en Ranked Sumo, aucun coup et la partie compte ; Scaffold
+en Block placement 1v1 (la laine se pose sous qRago qui recule hors de sa plateforme, la partie ne
+compte pas). Vérifié ici : la syntaxe Java, et `OwnerRulesTest` (6 tests) lancé ici, passé ; le
+reste tourne en CI. À l'install : la section `outils-owner:` arrive avec la fusion de ton
+`config.yml`.
 
 ### Installation du 22/11 au matin (aa724b7)
 

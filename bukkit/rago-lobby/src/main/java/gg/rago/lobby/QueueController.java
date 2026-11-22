@@ -986,6 +986,7 @@ final class QueueController {
             }
             for (QueueEntry entry : team) {
                 state.setOpponents(entry.player(), others);
+                state.setTogether(entry.player(), new ArrayList<>(match.players()));
             }
         }
         boolean started;

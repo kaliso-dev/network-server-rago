@@ -85,6 +85,9 @@ public final class RagoLobby extends JavaPlugin implements LobbyService {
     private Parties parties;
     /** RagoBot, invited into the parties (/p invite RagoBot). */
     private RagoBots bots;
+    /** outils-owner: of config.yml, read at the start. */
+    private OwnerTools.Settings ownerSettings;
+    private OwnerTools ownerTools;
     private ServerSettings server;
     private Profiles profiles;
     private ShopMenu shop;
@@ -165,6 +168,7 @@ public final class RagoLobby extends JavaPlugin implements LobbyService {
             LobbySettings.checkRanks(settings.npcs(), server.ranks());
             endSeconds = Math.max(0, Math.min(10, getConfig().getInt("fin-de-partie-secondes", 3)));
             rankedBans = new RankedBans(getConfig().getInt("file.abandon-classe-minutes", 5));
+            ownerSettings = OwnerTools.Settings.read(getConfig().getConfigurationSection("outils-owner"));
         } catch (IllegalArgumentException e) {
             getLogger().severe("config.yml is invalid, RagoLobby is disabled: " + e.getMessage());
             getServer().getPluginManager().disablePlugin(this);
@@ -311,6 +315,11 @@ public final class RagoLobby extends JavaPlugin implements LobbyService {
         partyBook.setMayLead(id -> !RagoBots.isBot(id));
         parties.setBots(bots);
         getServer().getPluginManager().registerEvents(bots, this);
+        // outils-owner: the Owner's test tools (/owner), for their account only
+        ownerTools = new OwnerTools(this, state, ownerSettings);
+        getServer().getPluginManager().registerEvents(ownerTools, this);
+        getCommand("owner").setExecutor(ownerTools);
+        getCommand("owner").setTabCompleter(ownerTools);
 
         getServer().getPluginManager().registerEvents(new LobbyListener(this, state, visibility), this);
         // every world of the server: the lobby's, the maps, the arenas (those loaded later too: the listener)
@@ -371,6 +380,7 @@ public final class RagoLobby extends JavaPlugin implements LobbyService {
             scoreboard.updateAll();
             headLines.tick();
             bots.second();
+            ownerTools.second();
             menu.refreshOpen();
             npcs.update();
             if (seconds % 20 == 0) {
@@ -1454,6 +1464,10 @@ public final class RagoLobby extends JavaPlugin implements LobbyService {
             getLogger().info("Private game of a party in " + modeId + ": not counted in the stats");
             return;
         }
+        if (isOwnerToolGame(winners) || isOwnerToolGame(losers)) {
+            getLogger().info("Game with an Owner tool in " + modeId + ": not counted in the stats");
+            return;
+        }
         boolean rated = !isUnrated(winners) && !isUnrated(losers);
         // the week before gets its results before a game of the new week starts the counters again
         checkWeek();
@@ -1492,7 +1506,7 @@ public final class RagoLobby extends JavaPlugin implements LobbyService {
             getLogger().warning("Draw of an unknown mode ignored: " + modeId);
             return;
         }
-        if (players.isEmpty() || isPrivate(players)) {
+        if (players.isEmpty() || isPrivate(players) || isOwnerToolGame(players)) {
             return;
         }
         checkWeek();
@@ -1552,7 +1566,7 @@ public final class RagoLobby extends JavaPlugin implements LobbyService {
 
     @Override
     public int recordFinalKill(String modeId, UUID killer) {
-        if (killer == null || settings.catalog().get(modeId) == null || state.isInPrivateGame(killer)
+        if (killer == null || settings.catalog().get(modeId) == null || state.countsNothing(killer)
                 || RagoBots.isBot(killer)) {
             return 0;
         }
@@ -1561,7 +1575,7 @@ public final class RagoLobby extends JavaPlugin implements LobbyService {
 
     @Override
     public void recordFinalDeath(String modeId, UUID player) {
-        if (player != null && settings.catalog().get(modeId) != null && !state.isInPrivateGame(player)
+        if (player != null && settings.catalog().get(modeId) != null && !state.countsNothing(player)
                 && !RagoBots.isBot(player)) {
             stats.finalDeath(modeId, player);
         }
@@ -1569,7 +1583,7 @@ public final class RagoLobby extends JavaPlugin implements LobbyService {
 
     @Override
     public int recordBedBroken(String modeId, UUID player) {
-        if (player == null || settings.catalog().get(modeId) == null || state.isInPrivateGame(player)
+        if (player == null || settings.catalog().get(modeId) == null || state.countsNothing(player)
                 || RagoBots.isBot(player)) {
             return 0;
         }
@@ -1587,7 +1601,7 @@ public final class RagoLobby extends JavaPlugin implements LobbyService {
             getLogger().warning("Kill in an unknown mode ignored: " + modeId);
             return;
         }
-        if ((killer != null && state.isInPrivateGame(killer)) || (victim != null && state.isInPrivateGame(victim))) {
+        if ((killer != null && state.countsNothing(killer)) || (victim != null && state.countsNothing(victim))) {
             return;
         }
         checkWeek();
@@ -1605,7 +1619,7 @@ public final class RagoLobby extends JavaPlugin implements LobbyService {
             getLogger().warning("XP of an unknown mode ignored: " + modeId);
             return;
         }
-        if (player == null || xp <= 0 || state.isInPrivateGame(player) || RagoBots.isBot(player)) {
+        if (player == null || xp <= 0 || state.countsNothing(player) || RagoBots.isBot(player)) {
             return;
         }
         stats.giveXp(player, xp, reason);
@@ -1614,6 +1628,11 @@ public final class RagoLobby extends JavaPlugin implements LobbyService {
     @Override
     public boolean inPrivateGame(UUID player) {
         return state.isInPrivateGame(player);
+    }
+
+    @Override
+    public boolean inOwnerToolGame(UUID player) {
+        return state.isOwnerToolGame(player);
     }
 
     @Override
@@ -1631,6 +1650,16 @@ public final class RagoLobby extends JavaPlugin implements LobbyService {
     private boolean isUnrated(List<UUID> players) {
         for (UUID player : players) {
             if (state.isUnrated(player)) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    /** True if one of these players plays a game where the Owner had a test tool on (/owner). */
+    private boolean isOwnerToolGame(List<UUID> players) {
+        for (UUID player : players) {
+            if (state.isOwnerToolGame(player)) {
                 return true;
             }
         }
@@ -1761,7 +1790,7 @@ public final class RagoLobby extends JavaPlugin implements LobbyService {
 
     /** A training of a mode of this lobby, not in a private game: the quests count it. */
     private boolean countsForQuests(Player player, String modeId) {
-        return player != null && settings.catalog().get(modeId) != null && !state.isInPrivateGame(player.getUniqueId());
+        return player != null && settings.catalog().get(modeId) != null && !state.countsNothing(player.getUniqueId());
     }
 
     /** The steps of Getting started on this server: the Hypixel import needs its key, the Discord its link. */
