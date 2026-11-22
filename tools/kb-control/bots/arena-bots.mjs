@@ -275,17 +275,19 @@ async function buildInBlockFight (game) {
   await hold(west, 'shears')
   // a block broken drops on the ground (the owner's ask of 22/11): the wool, for anyone to pick up
   const broken = at(-6, 0, 0)
-  // the item of a drop comes in the entity's metadata, after the itemDrop event: the handler only
-  // keeps the items that fell near the broken block, and they are read once their metadata is in
+  // the item of a drop is the item stack of the entity's metadata, read once it is in: the handler
+  // only keeps the items that fell near the broken block (getDroppedItem looks at index 8, but in
+  // 1.8 the item stack of a dropped item is at index 10, so the stack is found by its fields)
   const near = []
   const onDrop = (entity) => {
     if (entity.position.distanceTo(broken.offset(0.5, 0.5, 0.5)) < 2) near.push(entity)
   }
+  const wool = west.registry.itemsByName.wool.id
   const woolDropped = () => {
     for (const entity of near) {
-      let item = null
-      try { item = entity.getDroppedItem() } catch { item = null }
-      if (item != null && item.name === 'wool') return item
+      const stack = Object.values(entity.metadata ?? {}).find((value) => value != null && typeof value === 'object' &&
+        typeof value.blockId === 'number' && typeof value.itemCount === 'number')
+      if (stack != null && stack.blockId === wool) return { name: 'wool', count: stack.itemCount }
     }
     return null
   }
