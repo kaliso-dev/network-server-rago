@@ -142,13 +142,17 @@ joueur, le joueur est prévenu de chacun (en rouge et en gras, avec un ding) et 
 secondes plus tard, et `/spawn` les ramène tous au lobby. Le serveur de test a les 50 places du
 `server.properties` du serveur local (il en avait 8, trop peu pour une partie et dix spectateurs).
 
-Pour finir, deux bots jouent les deux modes de FUN PRACTICE (`tools/kb-control/bots/fun-bots.mjs`),
-avec les réglages livrés (une manche) : au Snowball Spleef, la pelle casse un bloc de neige et
-donne une boule, la boule casse la neige où elle tombe, puis l'un casse la neige sous ses pieds,
-tombe et l'autre gagne ; au Fireball Fight, le souffle de vent (la plume, regard en l'air) fait
-monter le bot, un deuxième tout de suite doit attendre, il retombe sans dégât, une fireball le
-repousse sans dégât (la pile du lanceur reste à 64), puis il tombe de la plateforme et l'autre
-gagne. Les deux reviennent au lobby après chaque partie.
+Pour finir, des bots jouent les modes de FUN PRACTICE (`tools/kb-control/bots/fun-bots.mjs`),
+avec les réglages livrés (une manche) : au Snowball Spleef (deux bots), la pelle casse un bloc de
+neige et donne une boule, la boule casse la neige où elle tombe, puis l'un casse la neige sous ses
+pieds, tombe et l'autre gagne ; au Fireball Fight (trois bots, chacun pour soi, sur la plateforme
+de rayon 20), chacun a 64 fireballs et 64 laines de sa couleur (rouge, bleu, vert), pas de plume,
+et le double saut dès le départ ; le bleu frappe trois fois le vert sans le pousser ni le blesser
+(pas de coups), le vert fait un double saut regard en l'air (il monte, un deuxième tout de suite
+doit attendre, il retombe sans dégât), le rouge pose une laine (sa pile reste à 64, le bloc part
+au bout de 3 secondes) puis lance une fireball qui repousse le vert sans dégât ; le bleu tombe de
+la plateforme (il regarde, les deux autres continuent), puis le vert : le rouge, le dernier
+dessus, gagne. Tous reviennent au lobby après chaque partie.
 
 Puis trois bots jouent Red Rover Sumo (`tools/kb-control/bots/rover-bots.mjs`), avec les réglages
 livrés (aux points, le gagnant reste, premier à 3) : ils entrent seuls dans la file et jouent

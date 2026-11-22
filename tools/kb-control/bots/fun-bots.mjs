@@ -1,7 +1,7 @@
 // FUN PRACTICE test bots for RagoPractice (see tools/lobby-check/README.md, run-arena-test.sh).
 //
-// Two bots play the two modes of FUN PRACTICE (plan 6.1) on a local 1.8.8 test server, with the
-// bundled settings (one round each):
+// Bots play the modes of FUN PRACTICE (plan 6.1) on a local 1.8.8 test server, with the bundled
+// settings (one round each): two of them the duels, three the Fireball Fight:
 //   1. Snowball Spleef (snowball-spleef): two floors of snow, both bots on the top one, a diamond
 //      shovel each; the west bot breaks a block of snow with it and gets a snowball, throws the
 //      snowball on the floor (one block of snow less where it lands), then throws snowballs at the
@@ -9,10 +9,14 @@
 //      players cannot hit each other); then the east bot breaks the snow under its own feet, lands
 //      on the second floor (still in the game), breaks it again, falls under it, and the west bot
 //      wins;
-//   2. Fireball Fight (fireball-knockback): 64 fireballs and the wind gust (a feather) each; the
-//      east bot uses the gust looking up (it goes up, a second gust at once must wait, it lands
-//      unhurt), the west bot throws a fireball at it (the east bot is pushed away, unhurt, and the
-//      west bot's stack stays full), then the east bot walks off the platform: the west bot wins;
+//   2. Fireball Fight (fireball-knockback), three bots each for themselves on the platform of 20
+//      blocks: 64 fireballs and 64 wool of their colour each (red, blue, green), no feather, the
+//      double jump from the start; the blue bot hits the green one three times (no push, no harm:
+//      no hits), the green one double jumps looking up (it goes up, a second one at once must wait,
+//      it lands unhurt), the red one places a block of its wool (its stack stays full, the block
+//      goes after 3 seconds) and throws a fireball at the green one (pushed away, unhurt, the stack
+//      full); then the blue one walks off the platform (out, the others play on), the green one
+//      too: the red one, the last one on, wins;
 //   3. Parkour Duel (parkour-duel): each bot on its lane (red and blue clay), no kit; the blue bot
 //      walks off its start and is put back on it (no point), the red bot runs the course
 //      (parkour-runner.mjs: each jump planned with the physics of 1.8) to the first checkpoint,
@@ -333,73 +337,205 @@ async function snowballSpleef (one, two) {
   await expectInLobby(east, 'after the snowball spleef')
 }
 
-async function fireballFight (one, two) {
-  const game = await startDuel(one, two, 'fireball-knockback', 'Fireball Fight', 5)
-  const { west, east } = game
-  for (const bot of [west, east]) {
-    if (countOf(bot, 'fire_charge') !== 64) throw new Error(`${bot.username} has ${countOf(bot, 'fire_charge')} fireballs, not 64`)
-    if (countOf(bot, 'feather') !== 1) throw new Error(`${bot.username} has no wind gust (feather)`)
-    const under = bot.blockAt(bot.entity.position.offset(0, -0.5, 0))
-    if (under?.name !== 'quartz_block') throw new Error(`${bot.username} does not stand on quartz: ${blockText(under)}`)
-  }
-  log('fireball fight: 64 fireballs and the wind gust each, on the quartz platform')
+/** The wool of each side of the Fireball Fight, by its colour (FireballKnockback.SIDE_WOOL): red, blue, green. */
+const FIREBALL_WOOL = { 14: 'red', 11: 'blue', 5: 'green' }
+/** The bundled radius of the Fireball Fight platform (fireball-knockback.rayon) and the start, half of it from the middle. */
+const FIREBALL_RADIUS = 20
+const FIREBALL_START = 10
+/** The bundled life of a block placed in the Fireball Fight (fireball-knockback.blocs-secondes). */
+const FIREBALL_BLOCK_SECONDS = 3
 
-  // 1. the wind gust, looking up: up it goes; a second one at once must wait; it lands unhurt
-  await hold(east, 'feather')
-  await east.look(east.entity.yaw, Math.PI / 2, true)
-  await sleep(200)
-  const ground = east.entity.position.y
-  let highest = ground
-  const onMove = () => { highest = Math.max(highest, east.entity.position.y) }
-  east.on('move', onMove)
+/** The metadata of the wool in the bot's inventory (null without any). */
+function woolColour (bot) {
+  return bot.inventory.items().find((item) => item.name === 'wool')?.metadata ?? null
+}
+
+/** Jump pressed twice in the air, as the 1.8 client says it: "I fly now" (the abilities, the flying flag). */
+function doubleJump (bot) {
+  bot._client.write('abilities', { flags: 2, flyingSpeed: 0.05, walkingSpeed: 0.1 })
+}
+
+/**
+ * The bot walks away from the middle of the platform until it falls off (letting go once in the air,
+ * so that it falls by the edge, in the chunks of the platform: mineflayer takes the empty chunks of
+ * the void on 1.8 for chunks gone, and a bot in one stops moving): its fall is told to the others.
+ */
+async function walkOffPlatform (bot, centre, others) {
+  const p = bot.entity.position
+  const away = Math.atan2(p.x - (centre.x + 0.5), p.z - (centre.z + 0.5))
+  await bot.lookAt(p.offset(Math.sin(away) * 30, 1.62, Math.cos(away) * 30), true)
+  const from = others.map(mark)
+  const letGo = () => { if (!bot.entity.onGround) bot.setControlState('forward', false) }
+  bot.on('physicsTick', letGo)
+  bot.setControlState('forward', true)
   try {
-    east.activateItem()
-    await waitFor(() => highest > ground + 2, 3000, `the wind gust to lift the east bot (up to ${highest}, from ${ground})`)
-    const fromEast = mark(east)
-    east.activateItem()
-    await chatLine(east, /Wind gust ready in \d+ seconds?\./, 3000, fromEast)
-    await waitFor(() => east.entity.onGround && Math.abs(east.entity.position.y - ground) < 0.1, 10000,
-      `the east bot back on the platform (at ${where(east)})`)
+    await waitFor(() => others.every((o, i) => o.chats.slice(from[i]).some((line) => line.includes(`${bot.username} fell into the void`)
+      || line.includes(`${bot.username} was knocked into the void`))), 15000, `${bot.username} to fall off the platform (at ${where(bot)})`)
   } finally {
-    east.removeListener('move', onMove)
+    bot.removeListener('physicsTick', letGo)
+    bot.clearControlStates()
   }
-  await sleep(300)
-  if (east.health < 20) throw new Error(`the east bot was hurt by its fall after the gust: health ${east.health}`)
-  log(`fireball fight: the wind gust lifted the east bot ${(highest - ground).toFixed(1)} blocks, it landed unhurt`)
+}
 
-  // 2. a fireball at the east bot: pushed away, unhurt; the west bot's stack stays full
-  const start = east.entity.position.clone()
-  await hold(west, 'fire_charge')
-  await west.lookAt(east.entity.position.offset(0, 1, 0), true)
-  await sleep(200)
-  const fromWest = mark(west)
-  west.activateItem()
-  let pushed = 0
-  await waitFor(() => {
-    const p = east.entity.position
-    pushed = Math.hypot(p.x - start.x, p.z - start.z)
-    return pushed > 2 || west.chats.slice(fromWest).some((line) => /Victory!/.test(line))
-  }, 5000, `the fireball to push the east bot (moved ${pushed.toFixed(1)} blocks)`)
-  if (east.health < 20) throw new Error(`the fireball hurt the east bot: health ${east.health}`)
-  if (!west.chats.slice(fromWest).some((line) => /Victory!/.test(line))) {
-    // still in the game (the end of a game takes the kit away): no limit, the stack is full again
-    if (countOf(west, 'fire_charge') !== 64) throw new Error(`the stack of fireballs is not full again: ${countOf(west, 'fire_charge')}`)
+async function fireballFight (one, two, three) {
+  const bots = [one, two, three]
+  const from = bots.map(mark)
+  for (const bot of bots) {
+    bot.lastAbilities = null
+    bot._client.on('abilities', (packet) => { bot.lastAbilities = packet })
+    bot.chat('/queue fireball-knockback')
   }
-  log(`fireball fight: the fireball pushed the east bot ${pushed.toFixed(1)} blocks, unhurt (west: ${countOf(west, 'fire_charge')} fireballs)`)
-
-  // 3. the east bot walks off the platform (if the fireball did not throw it off): the west bot wins
-  if (!west.chats.slice(fromWest).some((line) => /Victory!/.test(line))) {
-    await east.lookAt(east.entity.position.offset(20, 1.62, 0), true)
-    east.setControlState('forward', true)
-    try {
-      await chatLine(west, /Victory!/, 15000, fromWest)
-    } finally {
-      east.clearControlStates()
+  for (const [i, bot] of bots.entries()) {
+    const others = bots.filter((other) => other !== bot)
+    await chatLine(bot, new RegExp(`Fireball Fight against .*(${others[0].username}.*${others[1].username}|${others[1].username}.*${others[0].username})`),
+      15000, from[i])
+  }
+  await waitFor(() => bots.every((bot) => bot.game.gameMode === 'survival'), 5000, 'survival mode in the Fireball Fight')
+  await sleep(500)
+  // the sides by the colour of their wool, the middle of the platform between the three starts
+  const side = {}
+  for (const bot of bots) {
+    const colour = FIREBALL_WOOL[woolColour(bot)]
+    if (colour == null || side[colour] != null) throw new Error(`${bot.username} has no wool of its own colour: ${woolColour(bot)}`)
+    side[colour] = bot
+  }
+  const { red, blue, green } = side
+  const mid = bots.reduce((sum, bot) => ({ x: sum.x + bot.entity.position.x / 3, z: sum.z + bot.entity.position.z / 3 }), { x: 0, z: 0 })
+  const centre = { x: Math.floor(mid.x), y: Math.floor(red.entity.position.y) - 1, z: Math.floor(mid.z) }
+  for (const bot of bots) {
+    const p = bot.entity.position
+    const distance = Math.hypot(p.x - (centre.x + 0.5), p.z - (centre.z + 0.5))
+    if (Math.abs(distance - FIREBALL_START) > 0.6) throw new Error(`${bot.username} starts ${distance.toFixed(2)} from the middle, not ${FIREBALL_START}`)
+    if (countOf(bot, 'fire_charge') !== 64) throw new Error(`${bot.username} has ${countOf(bot, 'fire_charge')} fireballs, not 64`)
+    if (countOf(bot, 'wool') !== 64) throw new Error(`${bot.username} has ${countOf(bot, 'wool')} wool, not 64`)
+    if (countOf(bot, 'feather') !== 0) throw new Error(`${bot.username} still has the feather of the wind gust`)
+    const under = bot.blockAt(p.offset(0, -0.5, 0))
+    if (under?.name !== 'quartz_block') throw new Error(`${bot.username} does not stand on quartz: ${blockText(under)}`)
+    if (bot.lastAbilities == null || (bot.lastAbilities.flags & 4) === 0) {
+      throw new Error(`${bot.username} may not double jump from the start (abilities: ${JSON.stringify(bot.lastAbilities)})`)
     }
   }
-  log('fireball fight: the east bot fell off the platform, the west bot won')
-  await expectInLobby(west, 'after the fireball fight')
-  await expectInLobby(east, 'after the fireball fight')
+  const inside = red.blockAt(new Vec3(centre.x - FIREBALL_RADIUS, centre.y, centre.z))
+  const beyond = red.blockAt(new Vec3(centre.x - FIREBALL_RADIUS - 1, centre.y, centre.z))
+  if (inside?.name !== 'quartz_block' || beyond?.name === 'quartz_block') {
+    throw new Error(`the platform does not end ${FIREBALL_RADIUS} blocks from its middle: ${blockText(inside)}, then ${blockText(beyond)}`)
+  }
+  for (const [i, bot] of bots.entries()) await chatLine(bot, /Fight!/, 10000, from[i])
+  log(`fireball fight: red ${red.username}, blue ${blue.username}, green ${green.username}, ${FIREBALL_START} blocks from the middle of a`
+    + ` platform of ${FIREBALL_RADIUS}; 64 fireballs and 64 wool of their colour each, no feather, the double jump from the start`)
+
+  // 1. no hits: the blue bot walks up to the green one and hits it, which neither pushes nor hurts it
+  await blue.lookAt(green.entity.position.offset(0, 1.62, 0), true)
+  blue.setControlState('forward', true)
+  try {
+    await waitFor(() => blue.entity.position.distanceTo(green.entity.position) < 2.5, 10000,
+      `the blue bot to walk up to the green one (${blue.entity.position.distanceTo(green.entity.position).toFixed(1)} apart)`)
+  } finally {
+    blue.clearControlStates()
+  }
+  await sleep(500)
+  const still = green.entity.position.clone()
+  let pushes = 0
+  const onVelocity = (packet) => { if (packet.entityId === green.entity.id) pushes++ }
+  green._client.on('entity_velocity', onVelocity)
+  try {
+    for (let hit = 0; hit < 3; hit++) {
+      await blue.lookAt(green.entity.position.offset(0, 1.5, 0), true)
+      blue.attack(blue.entities[green.entity.id] ?? Object.values(blue.entities).find((e) => e.username === green.username))
+      await sleep(400)
+    }
+    await sleep(500)
+  } finally {
+    green._client.removeListener('entity_velocity', onVelocity)
+  }
+  const moved = green.entity.position.distanceTo(still)
+  if (pushes > 0 || moved > 0.1) throw new Error(`a hit pushed the green bot: ${pushes} velocity packets, moved ${moved.toFixed(2)} blocks`)
+  if (green.health < 20) throw new Error(`a hit hurt the green bot: health ${green.health}`)
+  log('fireball fight: three hits of the blue bot on the green one, neither pushed nor hurt it')
+  // the blue bot steps back towards the middle, out of the blast of the fireball to come
+  await blue.lookAt(new Vec3(centre.x + 0.5, blue.entity.position.y + 1.62, centre.z + 0.5), true)
+  blue.setControlState('forward', true)
+  await sleep(1500)
+  blue.clearControlStates()
+
+  // 2. the double jump, looking up: up it goes; a second one at once must wait; it lands unhurt
+  await green.look(green.entity.yaw, Math.PI / 2, true)
+  await sleep(200)
+  const ground = green.entity.position.y
+  let highest = ground
+  const onMove = () => { highest = Math.max(highest, green.entity.position.y) }
+  green.on('move', onMove)
+  try {
+    green.setControlState('jump', true)
+    await waitFor(() => !green.entity.onGround, 2000, 'the green bot to jump')
+    green.setControlState('jump', false)
+    doubleJump(green)
+    await waitFor(() => highest > ground + 2, 3000, `the double jump to lift the green bot (up to ${highest}, from ${ground})`)
+    const fromGreen = mark(green)
+    doubleJump(green)
+    await chatLine(green, /Double jump ready in \d+ seconds?\./, 3000, fromGreen)
+    await waitFor(() => green.entity.onGround && Math.abs(green.entity.position.y - ground) < 0.1, 10000,
+      `the green bot back on the platform (at ${where(green)})`)
+  } finally {
+    green.removeListener('move', onMove)
+    green.clearControlStates()
+  }
+  await sleep(300)
+  if (green.health < 20) throw new Error(`the green bot was hurt by its fall after the double jump: health ${green.health}`)
+  if (green.game.gameMode !== 'survival') throw new Error(`the green bot is not in the fight after its double jump: ${green.game.gameMode}`)
+  log(`fireball fight: the double jump lifted the green bot ${(highest - ground).toFixed(1)} blocks, a second one at once had to wait,`
+    + ' it landed unhurt')
+
+  // 3. the wool: a block placed on the platform, of the bot's colour; the stack stays full; the block
+  // goes after its seconds
+  await hold(red, 'wool')
+  const feet = red.entity.position.floored()
+  const placedAt = new Vec3(feet.x, feet.y, feet.z + 1)
+  const placedWhen = Date.now()
+  await red.placeBlock(red.blockAt(placedAt.offset(0, -1, 0)), new Vec3(0, 1, 0)).catch(() => {})
+  await waitFor(() => red.blockAt(placedAt)?.name === 'wool', 5000, `the red bot to place wool at ${placedAt} (there: ${blockText(red.blockAt(placedAt))})`)
+  if (red.blockAt(placedAt).metadata !== 14) throw new Error(`the red bot's wool is not red: ${blockText(red.blockAt(placedAt))}`)
+  await waitFor(() => countOf(red, 'wool') === 64, 3000, `the stack of wool full again (has ${countOf(red, 'wool')})`)
+  await waitFor(() => red.blockAt(placedAt)?.name === 'air', (FIREBALL_BLOCK_SECONDS + 3) * 1000,
+    `the block of wool to go after ${FIREBALL_BLOCK_SECONDS} seconds (there: ${blockText(red.blockAt(placedAt))})`)
+  const lasted = (Date.now() - placedWhen) / 1000
+  if (lasted < FIREBALL_BLOCK_SECONDS - 1) throw new Error(`the block of wool went after ${lasted.toFixed(1)} seconds only`)
+  log(`fireball fight: a block of red wool placed, the stack still full, the block gone after ${lasted.toFixed(1)} seconds`)
+
+  // 4. a fireball of the red bot at the green one: pushed away, unhurt; the red bot's stack stays full
+  const start = green.entity.position.clone()
+  await hold(red, 'fire_charge')
+  await red.lookAt(green.entity.position.offset(0, 1, 0), true)
+  await sleep(200)
+  const fromRed = mark(red)
+  red.activateItem()
+  let pushed = 0
+  await waitFor(() => {
+    const p = green.entity.position
+    pushed = Math.hypot(p.x - start.x, p.z - start.z)
+    return pushed > 2 || green.game.gameMode === 'spectator'
+  }, 5000, `the fireball to push the green bot (moved ${pushed.toFixed(1)} blocks)`)
+  if (green.health < 20) throw new Error(`the fireball hurt the green bot: health ${green.health}`)
+  if (red.chats.slice(fromRed).some((line) => /Victory!/.test(line))) throw new Error('the game ended with two players still on the platform')
+  if (countOf(red, 'fire_charge') !== 64) throw new Error(`the stack of fireballs is not full again: ${countOf(red, 'fire_charge')}`)
+  log(`fireball fight: the fireball pushed the green bot ${pushed.toFixed(1)} blocks, unhurt (red: ${countOf(red, 'fire_charge')} fireballs)`)
+  await sleep(1500)
+
+  // 5. the blue bot walks off the platform: out, the two others play on; then the green bot (if the
+  // fireball did not throw it off already): the red bot, the last one on, wins
+  const greenOut = green.game.gameMode === 'spectator'
+  if (greenOut) log('fireball fight: the fireball threw the green bot off the platform: it watches, the two others play on')
+  await walkOffPlatform(blue, centre, [red, green])
+  if (!greenOut) {
+    await waitFor(() => blue.game.gameMode === 'spectator', 5000, 'the blue bot to watch, out of the round')
+    if (red.chats.slice(fromRed).some((line) => /Victory!/.test(line))) throw new Error('the game ended with two players still on the platform')
+    log('fireball fight: the blue bot fell off the platform and watches, the two others play on')
+    await walkOffPlatform(green, centre, [red, blue])
+  }
+  await chatLine(red, /Victory!/, 10000, fromRed)
+  for (const bot of [blue, green]) await chatLine(bot, /Defeat/, 10000, from[bots.indexOf(bot)])
+  log('fireball fight: the red bot, the last one on the platform, won')
+  for (const bot of bots) await expectInLobby(bot, 'after the fireball fight')
 }
 
 /**
@@ -508,14 +644,16 @@ async function parkourDuel (one, two) {
 async function main () {
   const one = await arrive('RagoFunUn')
   const two = await arrive('RagoFunDeux')
+  const three = await arrive('RagoFunTrois')
   Vec3 = one.entity.position.constructor
   await snowballSpleef(one, two)
-  await fireballFight(one, two)
+  await fireballFight(one, two, three)
   await parkourDuel(one, two)
   finishing = true
-  log('PASSED: the Snowball Spleef, the Fireball Fight and the Parkour Duel of FUN PRACTICE')
+  log('PASSED: the Snowball Spleef, the Fireball Fight (three players) and the Parkour Duel of FUN PRACTICE')
   one.quit()
   two.quit()
+  three.quit()
   await sleep(500)
   process.exit(0)
 }

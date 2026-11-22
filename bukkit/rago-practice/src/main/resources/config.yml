@@ -341,22 +341,27 @@ bow-training:
 # the owner still has to choose the rounds, the radius, the fireballs and the delay of the gust.
 #
 # Fireball Fight (the "fireball-knockback" mode of the lobby, not the "fireball" of the Duels with
-# its beds): a round platform of quartz over the void, a little bigger than the sumo's (rayon, 5 to
-# 30, the sumo's is 7); knock the other one off with fireballs, which push the others recul-
-# horizontal times (across) and recul-vertical times (up) as hard as in Bed Wars (0.5 to 5; the
-# thrower's own fireball jump stays as in Bed Wars); fireballs: how many in each round (0: no
-# limit, one every half second as in Bed Wars); the wind gust (the feather) throws the player up
-# and forward as the lobby's leap feather, once every souffle-secondes (0 to 60; the bar of
-# experience fills up again). No damage: a hit pushes as in the sumo; the first off the platform
-# loses the round, the first to points-pour-gagner rounds (1 to 10) wins. cartes: the owner's maps,
-# as the boxing's (with "departs"); none: the platform of the plugin.
+# its beds): three players at once, each for themselves (the owner's ask of 22/11, 19h55), on a big
+# round platform of quartz over the void (rayon, 5 to 30; 10 before the ask "agrandi beaucoup la
+# plateforme", 20 now: to confirm); knock the others off with fireballs, which push the others
+# recul-horizontal times (across) and recul-vertical times (up) as hard as in Bed Wars (0.5 to 5; the
+# thrower's own fireball jump stays as in Bed Wars); fireballs: how many in each round (0: no limit,
+# one every half second as in Bed Wars). The double jump from the start (jump twice in the air, in
+# place of the feather of the wind gust): it throws the player up and forward as the lobby's leap
+# feather, once every souffle-secondes (0 to 60; the bar of experience fills up again). Wool of the
+# player's colour that never runs out; each block placed goes after blocs-secondes (1 to 30; 3 to
+# start, "despawn très vite": to confirm), cracking more and more. No hits and no damage: only the
+# fireballs push. The last one on the platform wins the round, the first to points-pour-gagner rounds
+# (1 to 10) wins. cartes: the owner's maps, as the boxing's (with "departs", one for each of the
+# three); none: the platform of the plugin.
 fireball-knockback:
   points-pour-gagner: 1
-  rayon: 10
+  rayon: 20
   recul-horizontal: 1.5
   recul-vertical: 1.2
   fireballs: 0
   souffle-secondes: 3
+  blocs-secondes: 3
   cartes: []
 
 # Snowball Spleef: floors of snow over the void (etages, 1 to 5, ecart-etages blocks one under the

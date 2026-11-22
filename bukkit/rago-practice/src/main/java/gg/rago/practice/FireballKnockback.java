@@ -1,30 +1,39 @@
 package gg.rago.practice;
 
 import gg.rago.game.GameMode;
+import java.util.ArrayDeque;
+import java.util.ArrayList;
+import java.util.Deque;
 import java.util.HashMap;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.UUID;
+import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
 import org.bukkit.Effect;
 import org.bukkit.Location;
 import org.bukkit.Material;
 import org.bukkit.Sound;
+import org.bukkit.block.Block;
 import org.bukkit.entity.Fireball;
 import org.bukkit.entity.Player;
 import org.bukkit.event.block.Action;
+import org.bukkit.event.block.BlockPlaceEvent;
 import org.bukkit.event.entity.EntityDamageEvent;
 import org.bukkit.event.player.PlayerInteractEvent;
+import org.bukkit.event.player.PlayerToggleFlightEvent;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.ItemMeta;
 import org.bukkit.util.Vector;
 
 /**
- * The Fireball Fight of FUN PRACTICE (plan 6.1): a round platform over the void, a little bigger
- * than the sumo's; knock the other player off with fireballs that push harder than in Bed Wars,
- * and jump out of a bad spot with the wind gust (a feather, the leap of the lobby's leap feather).
- * No damage, only the push (a hit pushes too, as in the sumo); the first off the platform gives
- * the point to the other, as in the sumo. Not the Fireball fight of the Duels ({@link
+ * The Fireball Fight of FUN PRACTICE (plan 6.1): three players at once on a big round platform over
+ * the void (the owner's ask of 22/11), each for themselves; knock the others off with fireballs
+ * that push harder than in Bed Wars, and get out of a bad spot with the double jump (jump twice in
+ * the air: the leap of the lobby's leap feather, once every few seconds). Wool that never runs out,
+ * each block placed gone after a few seconds. No hits, no damage: only the push of the fireballs.
+ * The last one on the platform wins the round. Not the Fireball fight of the Duels ({@link
  * FireballFight}, with beds). Its settings: fireball-knockback in config.yml.
  */
 final class FireballKnockback extends Duel {
@@ -38,19 +47,22 @@ final class FireballKnockback extends Duel {
         final double up;
         /** Fireballs of each round; 0: as many as the player likes (one every half second). */
         final int fireballs;
-        /** Seconds between two wind gusts of a player. */
+        /** Seconds between two double jumps of a player. */
         final int gustSeconds;
+        /** Seconds a block placed stays. */
+        final int blockSeconds;
 
-        Settings(int radius, double across, double up, int fireballs, int gustSeconds) {
+        Settings(int radius, double across, double up, int fireballs, int gustSeconds, int blockSeconds) {
             this.radius = radius;
             this.across = across;
             this.up = up;
             this.fireballs = fireballs;
             this.gustSeconds = gustSeconds;
+            this.blockSeconds = blockSeconds;
         }
 
         /** What is wrong with these values, or null. */
-        static String check(int radius, double across, double up, int fireballs, int gustSeconds) {
+        static String check(int radius, double across, double up, int fireballs, int gustSeconds, int blockSeconds) {
             if (radius < 5 || radius > 30) {
                 return "rayon must be from 5 to 30";
             }
@@ -63,24 +75,53 @@ final class FireballKnockback extends Duel {
             if (gustSeconds < 0 || gustSeconds > 60) {
                 return "souffle-secondes must be from 0 to 60";
             }
+            if (blockSeconds < 1 || blockSeconds > 30) {
+                return "blocs-secondes must be from 1 to 30";
+            }
             return null;
         }
     }
 
     /** Below the platform by this much, a player has fallen off (as in the sumo). */
     static final double FALL_DEPTH = SumoMatch.FALL_DEPTH;
-    /** The names of the two items, in the kit as the player arranged it. */
+    /** The names of the items, in the kit as the player arranged it. */
     static final String FIREBALL_NAME = ChatColor.GOLD + "Fireball";
     static final String GUST_NAME = ChatColor.AQUA + "Wind gust";
+    /** The three sides: their colour in the chat, their name and the colour of their wool. */
+    static final ChatColor[] SIDE_CHAT = {ChatColor.RED, ChatColor.BLUE, ChatColor.GREEN};
+    static final String[] SIDE_NAMES = {"Red", "Blue", "Green"};
+    static final int[] SIDE_WOOL = {Shapes.RED, Shapes.BLUE, Shapes.LIME};
+    /** How often the cracks of the blocks placed are brought up to date. */
+    private static final int CRACK_TICKS = 5;
+
+    /** A block placed: where, when (the tick of the round), the number of its cracks and their stage now. */
+    private static final class Placed {
+        final Block block;
+        final int tick;
+        final int id = BlockCracks.newId();
+        int stage = -1;
+
+        Placed(Block block, int tick) {
+            this.block = block;
+            this.tick = tick;
+        }
+    }
 
     private final Settings settings;
+    /** The rounds won by each side. */
+    private final int[] scores;
     private final Map<UUID, Long> lastFireball = new HashMap<>();
-    /** When each player may use the wind gust again (System.currentTimeMillis). */
+    /** When each player may double jump again (System.currentTimeMillis). */
     private final Map<UUID, Long> gustReady = new HashMap<>();
+    /** The blocks placed, oldest first, and the last placing of each block (an older one there no longer counts). */
+    private final Deque<Placed> decaying = new ArrayDeque<>();
+    private final Map<Block, Placed> latest = new HashMap<>();
 
+    /** Teams: a player a side ({@link RedRover#alone}), three of them. */
     FireballKnockback(PracticeHost host, GameMode mode, Arena arena, List<List<Player>> teams, int target, Settings settings) {
         super(host, mode, arena, teams, target);
         this.settings = settings;
+        this.scores = new int[sides.size()];
     }
 
     @Override
@@ -88,11 +129,49 @@ final class FireballKnockback extends Duel {
         return "Fireball Fight";
     }
 
+    /** The colour of a side in the chat. */
+    static ChatColor chatOf(int side) {
+        return SIDE_CHAT[Math.max(0, Math.min(SIDE_CHAT.length - 1, side))];
+    }
+
+    /** The name of a side ("Red"). */
+    static String nameOfSide(int side) {
+        return SIDE_NAMES[Math.max(0, Math.min(SIDE_NAMES.length - 1, side))];
+    }
+
+    @Override
+    ChatColor sideColour(int side) {
+        return chatOf(side);
+    }
+
     @Override
     void intro(Player player) {
-        super.intro(player);
-        player.sendMessage(ChatColor.GRAY + "Knock them off with your fireballs (right click); the wind gust (the feather)"
-                + " throws you up and forward. No damage: the first off the platform loses the round.");
+        int side = Math.max(0, sideOf(player.getUniqueId()));
+        // the name of each player in the colour of their side, above their head and in the tab list
+        plugin.lobby().setGameNameTag(player, chatOf(side).toString());
+        List<String> others = new ArrayList<>();
+        for (int s = 0; s < sides.size(); s++) {
+            if (s != side) {
+                others.add(chatOf(s) + namesOf(s) + ChatColor.GREEN);
+            }
+        }
+        player.sendMessage(ChatColor.GREEN + title() + " against " + joined(others) + ": first to " + goal() + " wins.");
+        player.sendMessage(ChatColor.GRAY + "Knock them off with your fireballs (right click); jump twice to double jump."
+                + " Your wool never runs out, but each block goes after " + settings.blockSeconds
+                + (settings.blockSeconds == 1 ? " second" : " seconds") + ". No hits, no damage: the last one on the platform"
+                + " wins the round.");
+    }
+
+    /** "A", "A and B", "A, B and C". */
+    static String joined(List<String> names) {
+        StringBuilder text = new StringBuilder();
+        for (int i = 0; i < names.size(); i++) {
+            if (i > 0) {
+                text.append(i == names.size() - 1 ? " and " : ", ");
+            }
+            text.append(names.get(i));
+        }
+        return text.toString();
     }
 
     @Override
@@ -113,6 +192,12 @@ final class FireballKnockback extends Duel {
         super.roundReset();
         lastFireball.clear();
         gustReady.clear();
+        // the arena is as it was: the blocks placed went with it, their cracks too
+        for (Placed placed : latest.values()) {
+            BlockCracks.show(online(), placed.id, placed.block, -1, plugin.getLogger());
+        }
+        decaying.clear();
+        latest.clear();
     }
 
     /** How far from the middle each side starts on the plugin's platform. */
@@ -120,16 +205,36 @@ final class FireballKnockback extends Duel {
         return Math.max(3, radius / 2);
     }
 
+    /**
+     * Where this side of so many starts on the plugin's platform, this far from the middle, facing
+     * it: x and z from the middle, and the yaw. The first side west of the middle, the others
+     * around the platform at equal angles (with two sides, the second east of it).
+     */
+    static double[] start(int side, int count, double distance) {
+        double angle = Math.PI + 2 * Math.PI * side / Math.max(1, count);
+        double x = Math.cos(angle) * distance;
+        double z = Math.sin(angle) * distance;
+        return new double[] {x, z, Math.toDegrees(Math.atan2(x, -z))};
+    }
+
     @Override
     Location spawnOf(UUID player) {
         int side = Math.max(0, sideOf(player));
-        Location start = arena.mapStart(side);
-        if (start != null) {
-            return start;
+        if (arena.map() != null && arena.map().starts.length >= sides.size()) {
+            Location start = arena.mapStart(side);
+            if (start != null) {
+                return start;
+            }
         }
-        double distance = startDistance(settings.radius);
-        double z = across(player) * 2 + 0.5;
-        return side == 0 ? arena.at(0.5 - distance, 1, z, -90f) : arena.at(0.5 + distance, 1, z, 90f);
+        double[] start = start(side, sides.size(), startDistance(settings.radius));
+        return arena.at(0.5 + start[0], 1, 0.5 + start[1], (float) start[2]);
+    }
+
+    /** At the start, the double jump: the player may fly, and a flight becomes the jump ({@link #toggledFlight}). */
+    @Override
+    void placeAtStart(Player player) {
+        super.placeAtStart(player);
+        player.setAllowFlight(true);
     }
 
     @Override
@@ -146,7 +251,7 @@ final class FireballKnockback extends Duel {
 
     @Override
     ItemStack[] defaultKit(Player player) {
-        return new ItemStack[] {new ItemStack(Material.FIREBALL, fireballsOf(settings.fireballs)), new ItemStack(Material.FEATHER)};
+        return new ItemStack[] {new ItemStack(Material.FIREBALL, fireballsOf(settings.fireballs)), new ItemStack(Material.WOOL, 64)};
     }
 
     /** The fireballs of a round in the kit: the limit, or a full stack when there is none. */
@@ -154,7 +259,10 @@ final class FireballKnockback extends Duel {
         return limit <= 0 ? 64 : limit;
     }
 
-    /** The fireballs and the feather named, the fireballs as many as the settings say. */
+    /**
+     * The fireballs named, as many as the settings say; the wool in the colour of the player's side
+     * (a feather of an older kit stays the wind gust, as the double jump).
+     */
     @Override
     void afterKit(Player player) {
         ItemStack[] items = player.getInventory().getContents();
@@ -170,6 +278,7 @@ final class FireballKnockback extends Duel {
             }
         }
         player.getInventory().setContents(items);
+        recolour(player.getInventory(), SIDE_WOOL[Math.max(0, Math.min(SIDE_WOOL.length - 1, sideOf(player.getUniqueId())))]);
         player.setLevel(0);
         player.setExp(1f);
     }
@@ -182,14 +291,10 @@ final class FireballKnockback extends Duel {
         }
     }
 
-    /** A hit pushes as in the sumo, without damage; nothing else hurts (no fall damage). */
+    /** No hits (the owner's ask of 22/11) and nothing else hurts (no fall damage): only the fireballs push. */
     @Override
     boolean damage(Player victim, Player attacker, EntityDamageEvent event) {
-        if (attacker == null || event.getCause() != EntityDamageEvent.DamageCause.ENTITY_ATTACK) {
-            return false;
-        }
-        noDamage(event);
-        return true;
+        return false;
     }
 
     /** The fireballs only push (their hit still counts for the point): no damage. */
@@ -211,12 +316,83 @@ final class FireballKnockback extends Duel {
         return new double[] {push[0] * across, push[1] * up, push[2] * across};
     }
 
+    // --- The blocks -----------------------------------------------------------------------------
+
+    /** The wool never runs out: the stack in the hand is full again after each block. */
+    @Override
+    boolean refills() {
+        return true;
+    }
+
+    /** On the platform and around it, not too far up nor down. */
+    @Override
+    boolean canPlace(Player player, Block block, BlockPlaceEvent event) {
+        return arena.contains(block, settings.radius + 8, 12, 14);
+    }
+
+    @Override
+    void placed(Player player, Block block) {
+        Placed placed = new Placed(block, tickCount);
+        Placed before = latest.put(block, placed);
+        if (before != null) {
+            // its cracks go with it
+            BlockCracks.show(online(), before.id, block, -1, plugin.getLogger());
+        }
+        decaying.addLast(placed);
+    }
+
+    /** The ticks a block placed stays. */
+    static int lifeTicks(int blockSeconds) {
+        return blockSeconds * 20;
+    }
+
+    /** The blocks placed whose time is up go; the others crack more and more. */
+    private void decay() {
+        int life = lifeTicks(settings.blockSeconds);
+        while (!decaying.isEmpty() && tickCount - decaying.peekFirst().tick >= life) {
+            Placed placed = decaying.pollFirst();
+            if (latest.get(placed.block) != placed) {
+                continue;
+            }
+            latest.remove(placed.block);
+            BlockCracks.show(online(), placed.id, placed.block, -1, plugin.getLogger());
+            if (arena.isPlaced(placed.block)) {
+                arena.restore(placed.block);
+            }
+        }
+        if (tickCount % CRACK_TICKS != 0) {
+            return;
+        }
+        List<Player> viewers = online();
+        Iterator<Placed> all = decaying.iterator();
+        while (all.hasNext()) {
+            Placed placed = all.next();
+            if (latest.get(placed.block) != placed) {
+                continue;
+            }
+            if (!arena.isPlaced(placed.block) || placed.block.getType() == Material.AIR) {
+                // blown up or broken before its time
+                BlockCracks.show(viewers, placed.id, placed.block, -1, plugin.getLogger());
+                latest.remove(placed.block);
+                all.remove();
+                continue;
+            }
+            int stage = BlockCracks.stage(tickCount - placed.tick, life);
+            if (stage != placed.stage) {
+                placed.stage = stage;
+                BlockCracks.show(viewers, placed.id, placed.block, stage, plugin.getLogger());
+            }
+        }
+    }
+
+    // --- The double jump ------------------------------------------------------------------------
+
     @Override
     boolean ticks() {
         return true;
     }
 
-    /** The bar of experience shows when the wind gust is ready again. */
+    /** The bar of experience shows when the double jump is ready again; the blocks placed decay. */
     @Override
     void tick() {
         long now = System.currentTimeMillis();
@@ -224,14 +400,28 @@ final class FireballKnockback extends Duel {
             Long ready = gustReady.get(player.getUniqueId());
             player.setExp(gustBar(ready == null ? 0 : ready - now, settings.gustSeconds));
         }
+        decay();
     }
 
-    /** The bar of experience (0 to 1) when the gust is ready again in this many milliseconds. */
+    /** The bar of experience (0 to 1) when the double jump is ready again in this many milliseconds. */
     static float gustBar(long leftMs, int gustSeconds) {
         if (leftMs <= 0 || gustSeconds <= 0) {
             return 1f;
         }
         return Math.max(0f, Math.min(1f, 1f - leftMs / (gustSeconds * 1000f)));
+    }
+
+    /** Jump pressed twice in the air: no flight, the double jump (when it is ready, in the fight). */
+    @Override
+    void toggledFlight(Player player, PlayerToggleFlightEvent event) {
+        if (!event.isFlying()) {
+            return;
+        }
+        event.setCancelled(true);
+        player.setFlying(false);
+        if (!out.contains(player.getUniqueId())) {
+            gust(player);
+        }
     }
 
     @Override
@@ -266,7 +456,7 @@ final class FireballKnockback extends Duel {
         }
     }
 
-    /** The wind gust: the leap of the lobby's leap feather, once every few seconds. */
+    /** The double jump: the leap of the lobby's leap feather, once every few seconds. */
     private void gust(Player player) {
         if (phase != Phase.PLAYING) {
             return;
@@ -275,7 +465,7 @@ final class FireballKnockback extends Duel {
         Long ready = gustReady.get(player.getUniqueId());
         if (ready != null && now < ready) {
             long left = (ready - now + 999) / 1000;
-            player.sendMessage(ChatColor.GRAY + "Wind gust ready in " + left + (left == 1 ? " second." : " seconds."));
+            player.sendMessage(ChatColor.GRAY + "Double jump ready in " + left + (left == 1 ? " second." : " seconds."));
             return;
         }
         gustReady.put(player.getUniqueId(), now + settings.gustSeconds * 1000L);
@@ -287,8 +477,8 @@ final class FireballKnockback extends Duel {
     }
 
     /**
-     * The velocity of the gust for a player looking this way: that of the lobby's leap feather
-     * (LobbyGadgets#leap), 1.6 forward across, and up at least 0.7, more when looking up.
+     * The velocity of the double jump for a player looking this way: that of the lobby's leap
+     * feather (LobbyGadgets#leap), 1.6 forward across, and up at least 0.7, more when looking up.
      */
     static double[] leap(Vector look) {
         double x = look.getX();
@@ -302,5 +492,134 @@ final class FireballKnockback extends Duel {
             z = 0;
         }
         return new double[] {x, Math.max(0.7, look.getY() * 1.4 + 0.5), z};
+    }
+
+    // --- The rounds, each for themselves --------------------------------------------------------
+
+    @Override
+    void deathMessage(Player player, UUID by, boolean fell) {
+        String victim = chatOf(sideOf(player.getUniqueId())) + player.getDisplayName() + ChatColor.GRAY;
+        String text;
+        if (by == null) {
+            text = victim + (fell ? " fell into the void." : " died.");
+        } else {
+            text = victim + (fell ? " was knocked into the void by " : " was killed by ") + chatOf(sideOf(by)) + nameOf(by)
+                    + ChatColor.GRAY + ".";
+        }
+        broadcast(text, null);
+    }
+
+    /** The player is out of this round (the kill to the last one who pushed them): once one side is left, its point. */
+    @Override
+    void out(Player player, boolean fell) {
+        UUID id = player.getUniqueId();
+        int side = sideOf(id);
+        if (side < 0 || phase != Phase.PLAYING || out.contains(id)) {
+            return;
+        }
+        UUID by = killerOf(id);
+        deathMessage(player, by, fell);
+        if (counts()) {
+            // by null: a death nobody gets the kill of (the void, a fall), a death all the same
+            plugin.lobby().recordKill(mode.id(), by, id);
+        }
+        out.add(id);
+        if (sidesLeft().size() > 1) {
+            spectate(player);
+            return;
+        }
+        roundOverIfOneLeft();
+    }
+
+    /** The sides still in the round. */
+    private List<Integer> sidesLeft() {
+        List<Integer> left = new ArrayList<>();
+        for (int side = 0; side < sides.size(); side++) {
+            if (alive(side)) {
+                left.add(side);
+            }
+        }
+        return left;
+    }
+
+    /** One side left in the round: its point; none (all gone at once): the round again. */
+    private void roundOverIfOneLeft() {
+        List<Integer> left = sidesLeft();
+        if (left.size() == 1) {
+            point(left.get(0));
+        } else if (left.isEmpty() && phase == Phase.PLAYING && !online().isEmpty()) {
+            startRound();
+        }
+    }
+
+    @Override
+    void point(int side) {
+        if (phase != Phase.PLAYING) {
+            return;
+        }
+        scores[side]++;
+        replayChat(chatOf(side) + "Point for " + nameOfSide(side) + ChatColor.GRAY + " " + scoreLine(scores, -1));
+        for (Player player : online()) {
+            int mine = sideOf(player.getUniqueId());
+            player.sendMessage((mine == side ? ChatColor.GREEN + "Point for you" : chatOf(side) + "Point for " + nameOf(sides.get(side).get(0)))
+                    + ChatColor.GRAY + " " + scoreLine(scores, mine));
+            pointSound(player, mine == side);
+        }
+        if (scores[side] >= target) {
+            finish(side, null);
+        } else {
+            startRound();
+        }
+    }
+
+    /** The rounds won, "(1 - 0 - 0)": this side's first (-1: in the order of the sides). */
+    static String scoreLine(int[] scores, int first) {
+        StringBuilder text = new StringBuilder("(");
+        if (first >= 0 && first < scores.length) {
+            text.append(scores[first]);
+        }
+        for (int side = 0; side < scores.length; side++) {
+            if (side == first) {
+                continue;
+            }
+            if (text.length() > 1) {
+                text.append(" - ");
+            }
+            text.append(scores[side]);
+        }
+        return text.append(')').toString();
+    }
+
+    /** A player who left: if they were the last but one in the round, the last one's point. */
+    @Override
+    void left(Player player) {
+        if (phase == Phase.PLAYING) {
+            roundOverIfOneLeft();
+        }
+    }
+
+    @Override
+    String result(int winner) {
+        return scoreLine(scores, winner);
+    }
+
+    @Override
+    List<String> sidebar(UUID viewer) {
+        int mine = sideOf(viewer);
+        List<String> lines = new ArrayList<>();
+        lines.add(cut(mode.name()));
+        lines.add("");
+        for (int side = 0; side < sides.size(); side++) {
+            String who = sides.get(side).isEmpty() ? nameOfSide(side) : nameOf(sides.get(side).get(0));
+            String state = out.containsAll(sides.get(side)) ? ChatColor.GRAY + " ✘" : "";
+            lines.add(cut(chatOf(side) + who + ": " + ChatColor.WHITE + scores[side] + state + (side == mine ? ChatColor.GRAY + " (you)" : "")));
+        }
+        lines.add(ChatColor.GRAY + "First to " + goal());
+        lines.add("");
+        lines.add(ChatColor.WHITE + "Time: " + ChatColor.GREEN + clock(seconds) + ChatColor.GRAY + "  Round " + round);
+        lines.add("");
+        Player me = Bukkit.getPlayer(viewer);
+        lines.add(ChatColor.WHITE + "Your ping: " + Ping.text(me));
+        return lines;
     }
 }

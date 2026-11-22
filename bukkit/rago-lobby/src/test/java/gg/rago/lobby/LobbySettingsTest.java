@@ -88,6 +88,11 @@ class LobbySettingsTest {
         assertEquals("red-rover-sumo", settings.kitMode("red-rover-sumo"), "the sumo's own (none: the hand)");
         assertEquals("top-bridge-1v1", settings.kitMode("red-rover-top-bridge"), "the kit of Top Bridge 1v1");
         assertEquals("fun", settings.display("fireball-knockback").category(), "the Fireball Fight of FUN PRACTICE");
+        GameMode fireball = settings.catalog().get("fireball-knockback");
+        assertEquals(1, fireball.teams(), "the Fireball Fight: three players each for themselves (the owner, 22/11, 19h55)");
+        assertEquals(3, fireball.playersPerTeam());
+        assertEquals("1v1v1", settings.display("fireball-knockback").format(), "as the menus show it");
+        assertFalse(fireball.ranked());
         assertEquals("fun", settings.display("snowball-spleef").category());
         assertEquals(Material.SNOW_BALL, settings.display("snowball-spleef").icon());
         assertEquals("fun", settings.display("parkour-duel").category(), "the Parkour Duel of FUN PRACTICE");

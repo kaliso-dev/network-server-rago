@@ -118,7 +118,7 @@ categories:
     slogan: "&dFun modes &7to play with &danyone"
     description:
       - "Fireball Fight: knock them off"
-      - "with fireballs and wind gusts;"
+      - "with fireballs, three at once;"
       - "Snowball Spleef: break the snow"
       - "under their feet; Capture the"
       - "Flag on The Bridge or castle"
@@ -2144,21 +2144,26 @@ modes:
       - "standing wins. Blasts and"
       - "falls do no damage."
   # FUN PRACTICE (plan 6.1). The Fireball Fight of the knockback (not the one above, with beds):
-  # the fireballs as many as the player likes, one every half second, unless fireball-knockback in
-  # the config.yml of RagoPractice says how many; the feather is the wind gust.
+  # three players at once, each for themselves (the owner's ask of 22/11): a party of three, or
+  # three of the queue. The fireballs as many as the player likes, one every half second, unless
+  # fireball-knockback in the config.yml of RagoPractice says how many; the double jump from the
+  # start (no feather); wool that never runs out, each block gone after a few seconds; no hits.
   fireball-knockback:
     nom: "&dFireball Fight"
     categorie: fun
     icone: FIREBALL
-    equipes: 2
-    joueurs-par-equipe: 1
+    equipes: 1
+    joueurs-par-equipe: 3
+    format: 1v1v1
     classe: false
-    kit: ["FIREBALL 64", FEATHER]
+    kit: ["FIREBALL 64", "WOOL 64"]
     description:
-      - "A round platform over the"
-      - "void: knock them off with"
-      - "fireballs; the wind gust"
-      - "throws you up. No damage."
+      - "Three players on a big"
+      - "platform over the void:"
+      - "knock them off with"
+      - "fireballs. Double jump, and"
+      - "wool that goes fast. No"
+      - "hits, no damage."
   snowball-spleef:
     nom: "&dSnowball Spleef"
     categorie: fun

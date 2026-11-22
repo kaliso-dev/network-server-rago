@@ -132,7 +132,7 @@
           "colour": "#FF55FF"
         }
       ],
-      "description": "Fireball Fight: knock them off with fireballs and wind gusts; Snowball Spleef: break the snow under their feet; Capture the Flag on The Bridge or castle against castle; Fast Bedwars; Parkour Duel: race them to the finish.",
+      "description": "Fireball Fight: knock them off with fireballs, three at once; Snowball Spleef: break the snow under their feet; Capture the Flag on The Bridge or castle against castle; Fast Bedwars; Parkour Duel: race them to the finish.",
       "skin": "fun",
       "modes": 9,
       "also": []
@@ -1329,11 +1329,11 @@
       "icon": "FIREBALL",
       "category": "fun",
       "group": null,
-      "format": "1v1",
+      "format": "1v1v1",
       "ranked": false,
       "startHere": false,
       "event": false,
-      "description": "A round platform over the void: knock them off with fireballs; the wind gust throws you up. No damage.",
+      "description": "Three players on a big platform over the void: knock them off with fireballs. Double jump, and wool that goes fast. No hits, no damage.",
       "plugins": [
         "practice"
       ]

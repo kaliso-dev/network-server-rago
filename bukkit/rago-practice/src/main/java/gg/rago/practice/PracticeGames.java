@@ -65,6 +65,7 @@ import org.bukkit.event.player.PlayerPickupItemEvent;
 import org.bukkit.event.player.PlayerQuitEvent;
 import org.bukkit.event.player.PlayerRespawnEvent;
 import org.bukkit.event.player.PlayerTeleportEvent;
+import org.bukkit.event.player.PlayerToggleFlightEvent;
 import org.bukkit.event.player.PlayerVelocityEvent;
 import org.bukkit.inventory.ItemStack;
 
@@ -231,6 +232,17 @@ final class PracticeGames implements Listener {
             return;
         }
         game.moved(player, from, to);
+    }
+
+    /** Jump pressed twice in the air by a player of a game (not one who watches): the game's say (a double jump...). */
+    @EventHandler(ignoreCancelled = true)
+    public void onToggleFlight(PlayerToggleFlightEvent event) {
+        Player player = event.getPlayer();
+        PracticeGame game = byPlayer.get(player.getUniqueId());
+        if (game == null || spectating(player)) {
+            return;
+        }
+        game.toggledFlight(player, event);
     }
 
     @EventHandler(priority = EventPriority.HIGH, ignoreCancelled = true)

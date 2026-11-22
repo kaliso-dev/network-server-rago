@@ -31,6 +31,7 @@ import org.bukkit.event.entity.EntityDamageByEntityEvent;
 import org.bukkit.event.entity.EntityDamageEvent;
 import org.bukkit.event.entity.ProjectileLaunchEvent;
 import org.bukkit.event.player.PlayerInteractEvent;
+import org.bukkit.event.player.PlayerToggleFlightEvent;
 import org.bukkit.event.player.PlayerTeleportEvent;
 import org.bukkit.event.player.PlayerVelocityEvent;
 import org.bukkit.inventory.ItemStack;
@@ -207,6 +208,13 @@ abstract class PracticeGame implements Spectators.Watched {
 
     /** The player moved (in the fight or not, not in the void). */
     void moved(Player player, Location from, Location to) {
+    }
+
+    /**
+     * A player of the game (not watching) pressed jump twice in the air, which starts a flight
+     * when they may fly: by default nothing more happens (a mode lets them fly, or not).
+     */
+    void toggledFlight(Player player, PlayerToggleFlightEvent event) {
     }
 
     /**

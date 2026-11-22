@@ -460,20 +460,27 @@ toute l'équipe d'en face est tombée ou morte.
 
 ## FUN PRACTICE (plan 6.1)
 
-Trois modes en 1v1, dans la catégorie FUN PRACTICE du lobby (son PNJ Fun Practice, sur un bloc de
-quartz, au point `prive` où était le PNJ Private game : ta demande du 22/11). Aucun dégât dans les trois. Au Fireball Fight et au Snowball Spleef, le premier qui tombe
-donne le point à l'autre, comme au sumo ; au Parkour Duel, une chute ramène au dernier checkpoint.
-Les valeurs de départ ci-dessous sont **à régler avec le propriétaire**.
+Trois modes dans la catégorie FUN PRACTICE du lobby (son PNJ Fun Practice, sur un bloc de quartz,
+au point `prive` où était le PNJ Private game : ta demande du 22/11) : le Fireball Fight à trois,
+chacun pour soi, le Snowball Spleef et le Parkour Duel en 1v1. Aucun dégât dans les trois. Au
+Snowball Spleef, le premier qui tombe donne le point à l'autre, comme au sumo ; au Fireball Fight,
+le dernier sur la plateforme gagne la manche ; au Parkour Duel, une chute ramène au dernier
+checkpoint. Les valeurs de départ ci-dessous sont **à régler avec le propriétaire**.
 
-- **Fireball Fight** (`fireball-knockback`, pas le Fireball fight des duels avec ses lits) : une
-  plateforme ronde de quartz au-dessus du vide, un peu plus grande que celle du sumo
-  (`rayon` 10). Des fireballs (clic droit, une toutes les demi-secondes ; `fireballs` 0 : autant
-  qu'on veut, la pile reste pleine) qui poussent les autres plus fort qu'en Bed Wars
-  (`recul-horizontal` 1,5 et `recul-vertical` 1,2 fois), le saut sur sa propre fireball restant
-  celui de Bed Wars. Le **souffle de vent** (la plume) : le saut de la plume du lobby, une fois
-  toutes les `souffle-secondes` (3), la barre d'expérience montrant quand il revient. Une frappe
-  pousse sans dégât. Les maps du propriétaire pourront aller dans `fireball-knockback.cartes`
-  (comme celles du sumo) ; sans map, la plateforme du plugin.
+- **Fireball Fight** (`fireball-knockback`, pas le Fireball fight des duels avec ses lits) : trois
+  joueurs en même temps, chacun pour soi (rouge, bleu, vert ; une party de trois ou trois joueurs
+  de la file), sur une grande plateforme ronde de quartz au-dessus du vide (`rayon` 20, 10 avant
+  ta demande du 22/11 « agrandi beaucoup la plateforme » : à confirmer), chacun à mi-chemin du
+  bord, à un tiers de tour des autres, tourné vers le milieu. Des fireballs (clic droit, une toutes
+  les demi-secondes ; `fireballs` 0 : autant qu'on veut, la pile reste pleine) qui poussent les
+  autres plus fort qu'en Bed Wars (`recul-horizontal` 1,5 et `recul-vertical` 1,2 fois), le saut
+  sur sa propre fireball restant celui de Bed Wars. Le **double saut** dès le départ (sauter deux
+  fois en l'air, à la place de la plume) : le saut de la plume du lobby, une fois toutes les
+  `souffle-secondes` (3), la barre d'expérience montrant quand il revient. De la laine de sa
+  couleur qui ne s'épuise jamais ; chaque bloc posé se fissure et part au bout de
+  `blocs-secondes` (3, « despawn très vite » : à confirmer). Aucune frappe : ni poussée, ni dégât.
+  Les maps du propriétaire pourront aller dans `fireball-knockback.cartes` (comme celles du sumo,
+  avec un départ pour chacun des trois) ; sans map, la plateforme du plugin.
 - **Snowball Spleef** (`snowball-spleef`) : deux sols de neige au-dessus du vide, l'un sous
   l'autre (`etages` 2, `ecart-etages` 6 blocs entre eux ; `rayon` 18, à confirmer : ton choix du
   22/11, « agrandi la map, fait 2 étages »), une pelle en diamant Efficacité V qui casse la neige
