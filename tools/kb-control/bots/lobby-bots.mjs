@@ -94,8 +94,9 @@ const PERSON_NPC = { x: -3.5, y: 66, z: -3.5 }
 const PRODUCT_NPC = { x: 3.5, y: 66, z: -3.5 }
 // The thank-you text (point textremerciement, plan 5.7): its 20 lines float above the point, the
 // last one 0.45 block high, the others 0.27 block apart (LobbyText, FakeHologram); the two empty
-// ones show nothing.
-const THANK_YOU_TEXT = { x: -8.5, y: 65, z: -3.5 }
+// ones show nothing. The same text on the other side of the room (point textremerciement2, the
+// owner's ask of 22/11, 17h56).
+const THANK_YOU_TEXTS = [{ x: -8.5, y: 65, z: -3.5 }, { x: 8.5, y: 65, z: -3.5 }]
 const THANK_YOU_LINES = [
   'THANK YOU',
   'Rago Practice took a very long time to build, but I have',
@@ -524,19 +525,22 @@ async function checkProductNpc (bot) {
  * small stand).
  */
 async function checkThankYouText (bot) {
-  const stands = () => Object.values(bot.entities).filter((e) => typeof e.metadata?.[2] === 'string' &&
-    e.metadata[2].length > 0 && Math.hypot(e.position.x - THANK_YOU_TEXT.x, e.position.z - THANK_YOU_TEXT.z) < 0.5)
-    .sort((a, b) => b.position.y - a.position.y)
-  const lines = () => stands().map((e) => e.metadata[2].replace(/§./g, ''))
-  await waitFor(() => JSON.stringify(lines()) === JSON.stringify(THANK_YOU_LINES), 10000,
-    `the thank-you text on its point (reads ${JSON.stringify(lines())})`)
-  const all = stands()
-  const top = all[0].position.y + 1 - THANK_YOU_TEXT.y
-  const bottom = all[all.length - 1].position.y + 1 - THANK_YOU_TEXT.y
-  if (Math.abs(top - (0.45 + 19 * 0.27)) > 0.05 || Math.abs(bottom - 0.45) > 0.05) {
-    throw new Error(`the thank-you text floats from ${bottom.toFixed(2)} to ${top.toFixed(2)} blocks above its point`)
+  for (const [side, at] of THANK_YOU_TEXTS.entries()) {
+    const stands = () => Object.values(bot.entities).filter((e) => typeof e.metadata?.[2] === 'string' &&
+      e.metadata[2].length > 0 && Math.hypot(e.position.x - at.x, e.position.z - at.z) < 0.5)
+      .sort((a, b) => b.position.y - a.position.y)
+    const lines = () => stands().map((e) => e.metadata[2].replace(/§./g, ''))
+    const where = side === 0 ? 'on the left (textremerciement)' : 'on the right (textremerciement2)'
+    await waitFor(() => JSON.stringify(lines()) === JSON.stringify(THANK_YOU_LINES), 10000,
+      `the thank-you text ${where} (reads ${JSON.stringify(lines())})`)
+    const all = stands()
+    const top = all[0].position.y + 1 - at.y
+    const bottom = all[all.length - 1].position.y + 1 - at.y
+    if (Math.abs(top - (0.45 + 19 * 0.27)) > 0.05 || Math.abs(bottom - 0.45) > 0.05) {
+      throw new Error(`the thank-you text ${where} floats from ${bottom.toFixed(2)} to ${top.toFixed(2)} blocks above its point`)
+    }
+    log(`the thank-you text ${where} reads its ${THANK_YOU_LINES.length} lines as validated, from ${bottom.toFixed(2)} to ${top.toFixed(2)} blocks above its point`)
   }
-  log(`the thank-you text reads its ${THANK_YOU_LINES.length} lines as validated, from ${bottom.toFixed(2)} to ${top.toFixed(2)} blocks above its point`)
 }
 
 /** The queue line under the Duels NPC ("1 in queue · Click to play"), without colours, or undefined. */

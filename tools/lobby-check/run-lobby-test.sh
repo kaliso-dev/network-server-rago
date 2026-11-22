@@ -140,7 +140,7 @@ sed -e 's/^  fer-secondes-par-noeud: [0-9.]*$/  fer-secondes-par-noeud: 1/' \
 grep -q '^  fer-secondes-par-noeud: 1$' "$SERVER_DIR/plugins/RagoBedwars/config.yml" || fail "could not speed up the iron"
 # Around the spawn of the new lobby world: the NPC of the Duels category (on its point of the
 # bundled config, duels), a stats NPC (profil), a person of the thank-you room (qrago), a product
-# of Rago (ragoclient), the thank-you text (textremerciement), a wall of leaderboards
+# of Rago (ragoclient), the thank-you text on both sides (textremerciement, textremerciement2), a wall of leaderboards
 # (leaderboards), the main leaderboard (top, within click range of the spawn) and the kills
 # leaderboard (joueurs).
 mkdir -p "$SERVER_DIR/lobby"
@@ -171,6 +171,12 @@ ragoclient:
   pitch: 0.0
 textremerciement:
   x: -8.5
+  y: 65.0
+  z: -3.5
+  yaw: 0.0
+  pitch: 0.0
+textremerciement2:
+  x: 8.5
   y: 65.0
   z: -3.5
   yaw: 0.0

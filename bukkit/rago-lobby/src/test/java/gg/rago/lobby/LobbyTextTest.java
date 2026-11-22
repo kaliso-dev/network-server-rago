@@ -51,8 +51,11 @@ class LobbyTextTest {
         assertEquals(VALIDATED, plain);
         assertEquals("§6§lTHANK YOU", text.lines.get(0), "its title in gold");
         assertEquals("§fJoin our Discord: §cdiscord.gg/ragooptimizer", text.lines.get(19), "the Discord, as on the products");
-        assertEquals(1, settings.texts().size());
+        // on both sides of the room (the owner's ask of 22/11, 17h56): the same lines on the right
+        assertEquals(2, settings.texts().size());
+        assertEquals(text.lines, settings.text("textremerciement2").lines, "the right side reads the left side's lines");
         assertNull(settings.npc("textremerciement"), "a text, not an NPC");
+        assertNull(settings.npc("textremerciement2"));
     }
 
     /** The room is 6 blocks high (air from y 69 to 74 of the lobby, above the point at y 69). */

@@ -41,27 +41,29 @@ class PersonNpcTest {
     }
 
     @Test
-    void theModeratorsOfTheBundledConfig() throws Exception {
+    void theModeratorsAreOutOfTheThankYouRoom() throws Exception {
+        // the owner's ask of 22/11 (17h56): "supprime woryes et directement"
         YamlConfiguration bundled = LobbySettingsTest.bundledConfig();
         LobbySettings settings = LobbySettings.load(bundled);
         Ranks ranks = ServerSettings.load(bundled).ranks();
         LobbySettings.checkRanks(settings.npcs(), ranks);
-        assertEquals("§e[MOD] ", ranks.get("mod").prefix(), "the Mod rank in light yellow (plan 5.6C)");
+        assertNull(settings.npc("jncl"), "directement");
+        assertNull(settings.npc("nativ"), "woryes");
+        assertEquals("§e[MOD] ", ranks.get("mod").prefix(), "the Mod rank stays in light yellow (plan 5.6C)");
         assertEquals("§e[MOD] ", Ranks.defaults().get("mod").prefix(), "also without rangs: in the config");
 
-        LobbyNpc jncl = settings.npc("jncl");
+        // brought back as the comment of config.yml says: on the block of every NPC
+        bundled.set("pnj.jncl.nom", "directement");
+        bundled.set("pnj.jncl.type", "personne");
+        bundled.set("pnj.jncl.rang", "mod");
+        bundled.set("pnj.jncl.skin-joueur", "jncl");
+        LobbySettings back = LobbySettings.load(bundled);
+        LobbyNpc jncl = back.npc("jncl");
         assertEquals(LobbyNpc.Kind.PERSON, jncl.kind());
         assertEquals("jncl", jncl.account(), "the point jncl, in the skin of the account jncl");
         assertEquals("§e[MOD] §edirectement", LobbyNpcs.personName(jncl.name(), ranks.get(jncl.rank())),
                 "shown as directement, after the prefix of Mod");
-
-        LobbyNpc nativ = settings.npc("nativ");
-        assertEquals(LobbyNpc.Kind.PERSON, nativ.kind());
-        assertEquals("Woryes", nativ.account(), "the point nativ, in the skin of the account Woryes");
-        assertEquals("§e[MOD] §eworyes", LobbyNpcs.personName(nativ.name(), ranks.get(nativ.rank())),
-                "shown as woryes");
-        assertEquals(Pedestal.ANDESITE, settings.pedestal("jncl"), "no block chosen: the block of every NPC");
-        assertEquals(Pedestal.ANDESITE, settings.pedestal("nativ"));
+        assertEquals(Pedestal.ANDESITE, back.pedestal("jncl"), "no block chosen: the block of every NPC");
     }
 
     @Test

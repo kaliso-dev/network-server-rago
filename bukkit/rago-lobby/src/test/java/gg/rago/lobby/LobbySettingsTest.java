@@ -351,12 +351,13 @@ class LobbySettingsTest {
     @Test
     void readsTheBundledNpcs() throws Exception {
         LobbySettings settings = LobbySettings.load(bundledConfig());
-        assertEquals(19, settings.npcs().size(), "five NPCs of modes, one per way to play (Fun Practice on the point"
+        assertEquals(17, settings.npcs().size(), "five NPCs of modes, one per way to play (Fun Practice on the point"
                 + " of the Private game NPC before); the shop, the stats, the leaderboard selector, the boards and the wall"
-                + " of the week; qRago and kaliso_dev; Rago Client and Rago Optimizer; the moderators jncl and nativ");
+                + " of the week; qRago and kaliso_dev; Rago Client and Rago Optimizer (the moderators jncl and nativ out"
+                + " since 22/11, 17h56)");
         for (String gone : Arrays.asList("ranked", "ffa", "clutchscenario", "attackanddefense", "rbwsolo1v1ou2v2skyrise",
                 "firstrushnebucgelatosoloduo", "invispracticearwhayinvasion", "realisticplat",
-                "blockplacementarena", "attackdefenseversionrbw", "blockinpractice", "partieprivee", "funmod2")) {
+                "blockplacementarena", "attackdefenseversionrbw", "blockinpractice", "partieprivee", "funmod2", "jncl", "nativ")) {
             assertNull(settings.npc(gone), gone + ": its modes stay in the compass");
         }
         List<String> categories = new java.util.ArrayList<>();

@@ -488,8 +488,7 @@ pnj:
   # The people of the server in the thank-you room (type: personne): their name after the prefix
   # of their rank (rang:, a rank of rangs:), as above a player's head, in the skin of their account;
   # a click does nothing. One block higher than their point, on their block: obsidian for the Owner
-  # and the Dev; the moderators on the block of every NPC (bloc: changes it). Their points: /lobby
-  # point qrago, kalisodev, jncl, nativ.
+  # and the Dev; without bloc:, the block of every NPC. Their points: /lobby point qrago, kalisodev.
   qrago:
     nom: "qRago"
     type: personne
@@ -502,16 +501,19 @@ pnj:
     rang: dev
     skin-joueur: kaliso_dev
     bloc: OBSIDIAN
-  jncl:
-    nom: "directement"
-    type: personne
-    rang: mod
-    skin-joueur: jncl
-  nativ:
-    nom: "woryes"
-    type: personne
-    rang: mod
-    skin-joueur: Woryes
+  # The moderators directement (point jncl) and woryes (point nativ), out of the thank-you room at
+  # the owner's ask of 22/11 (17h56); their points stay in points.yml. To bring one back, take the
+  # # off its lines:
+  # jncl:
+  #   nom: "directement"
+  #   type: personne
+  #   rang: mod
+  #   skin-joueur: jncl
+  # nativ:
+  #   nom: "woryes"
+  #   type: personne
+  #   rang: mod
+  #   skin-joueur: Woryes
   # OUR OTHER PRODUCTS (plan 5.6A), in the thank-you room (type: produit): its title (titre:) above
   # its name, a line under it if sous-titre: is given; a click shows its links in the chat, line by
   # line (liens:, from 1 to 8 lines). On a block of diamond. Their points: /lobby point ragoclient,
@@ -542,9 +544,12 @@ pnj:
 # included (cut a longer one in two).
 textes:
   # The thank-you text (plan 5.7, validated by the owner on 22/11), in the thank-you room: 20
-  # lines, from the floor to the ceiling of the room. Its point: /lobby point textremerciement.
+  # lines, from the floor to the ceiling of the room, on both sides of the room (the owner's ask of
+  # 22/11, 17h56): the same lines on the left (point textremerciement) and on the right (point
+  # textremerciement2, its lines: *merci, those of the left). /lobby point textremerciement, and
+  # textremerciement2.
   textremerciement:
-    lignes:
+    lignes: &merci
       - "&6&lTHANK YOU"
       - "&fRago Practice took a very long time to build, but I have"
       - "&fdreamed of it for years: my own server means a lot to me."
@@ -565,6 +570,8 @@ textes:
       - "&fAs a player, I know what players want: this server is here"
       - "&fto help you train and have more fun with your friends."
       - "&fJoin our Discord: &cdiscord.gg/ragooptimizer"
+  textremerciement2:
+    lignes: *merci
 
 # The points of the daily reward chest (DAILY REWARD above it, a click gives /daily) and of the
 # quests NPC (/lobby point <name>): daily and quests when left out. The chest stands on its point

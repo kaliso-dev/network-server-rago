@@ -667,9 +667,10 @@ config.yml fourni les suit :
   joueur : « [OWNER] qRago ». Un clic ne fait rien. Un `rang:` absent de `rangs:` est refusé au
   démarrage. Le config.yml fourni place `qrago` (qRago, Owner, skin du compte qRago) et
   `kalisodev` (kaliso_dev, Dev, skin du compte kaliso_dev), sur de l'obsidienne, un bloc plus haut
-  que leur point, et les deux modérateurs (plan 5.6C) : `jncl` (affiché « directement », Mod, skin
-  du compte jncl) et `nativ` (affiché « woryes », Mod, skin du compte Woryes), sur le bloc de tous
-  les PNJ (andésite polie, `bloc:` le change). Le rang Mod est en jaune clair (`&e[MOD]`).
+  que leur point. Sans `bloc:`, une personne est sur le bloc de tous les PNJ (andésite polie). Les
+  deux modérateurs (plan 5.6C), `jncl` (affiché « directement ») et `nativ` (affiché « woryes »),
+  sont retirés à ta demande du 22/11 (17h56) : ils restent en commentaire dans le config.yml,
+  leurs points dans `points.yml`. Le rang Mod reste en jaune clair (`&e[MOD]`).
 - `pnj:` avec `type: produit` place un produit de Rago (OUR OTHER PRODUCTS, plan 5.6A) : un joueur
   les mains vides, avec au-dessus son titre (`titre:`), son nom, et une ligne dessous si
   `sous-titre:` est donné. Un clic écrit ses liens dans le chat, ligne par ligne (`liens:`, de 1 à
@@ -682,8 +683,11 @@ config.yml fourni les suit :
   au-dessus, à 0,27 bloc l'une de l'autre. `""` laisse un blanc. Une ligne fait 64 caractères au
   plus, codes de couleur compris : une plus longue est refusée au démarrage (la couper en deux), et
   un texte sur le point d'un PNJ aussi. Chacun lit le même ; un clic ne fait rien. Le config.yml
-  fourni place le texte de remerciement (plan 5.7, validé le 22/11) sur `textremerciement` : 20
-  lignes, du sol au plafond de la salle des remerciements (6 blocs). `/lobby points` le montre.
+  fourni place le texte de remerciement (plan 5.7, validé le 22/11) des deux côtés de la salle des
+  remerciements (ta demande du 22/11, 17h56) : à gauche sur `textremerciement`, à droite sur
+  `textremerciement2` (ses lignes sont `*merci`, celles de gauche : un texte changé à gauche
+  change aussi à droite) ; 20 lignes, du sol au plafond de la salle (6 blocs). `/lobby points`
+  les montre.
 - `pnj:` avec `type: stats` place un PNJ de stats : un joueur (skin `stats`) qui tient un livre, avec au-dessus
   le profil de celui qui le regarde (niveau Network et rang, victoires, défaites, kills, meilleure
   série, victoires du jour, ELO de chaque mode classé). Chaque joueur lit le sien. Un clic ouvre
