@@ -228,8 +228,8 @@ async function sumo (leader, problems) {
     log('sumo: RagoLeader vs RagoBot, RagoLeader stands still')
     const end = await chatLine(leader, /^(Defeat\.|Victory!)/, 90000, from)
     if (!end.startsWith('Defeat.')) throw new Error(`RagoLeader won the sumo: RagoBot fell off on its own (${end}; ${seen.summary()})`)
-    const recap = await chatLine(leader, /- RagoBot: \d+ hits/, 5000, from)
-    hits = Number(/- RagoBot: (\d+) hits/.exec(recap)[1])
+    const recap = await chatLine(leader, /- RagoBot: \d+ hits?\b/, 5000, from)
+    hits = Number(/- RagoBot: (\d+) hits?\b/.exec(recap)[1])
     if (hits < 1) throw new Error(`RagoBot won the sumo without a hit: RagoLeader fell off on its own (${recap}; ${seen.summary()})`)
   } finally {
     seen.stop()
