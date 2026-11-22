@@ -17,8 +17,9 @@ jouent comme des joueurs :
    l'éditeur. Le serveur de test n'a pas de clé d'API Hypixel : RagoDeux trouve l'émeraude et le
    coffre de l'import Hypixel en bas du livre, et l'émeraude comme `/hypixel import Notch` disent
    que l'import n'est pas en place, `/hypixel shop` que rien n'a été importé ;
-2. RagoUn ouvre le sélecteur d'un clic droit (le sumo montre « In queue: 0 ») et clique sur le
-   duel sumo : sous le PNJ Duels, RagoDeux lit « 0 in queue » puis « 1 in queue » (plan 3.8) ;
+2. RagoUn ouvre le sélecteur d'un clic droit (les catégories sur la ligne du milieu, comme
+   avant), clique sur Duels : ses jeux s'ouvrent, rien sur leur ligne du haut (le sumo montre
+   « In queue: 0 ») ; il clique sur le duel sumo : sous le PNJ Duels, RagoDeux lit « 0 in queue » puis « 1 in queue » (plan 3.8) ;
    RagoDeux tape `/queue sumo` ;
 3. le duel démarre, après le décompte 3, 2, 1, « Fight! » affiché en titre (sans fondu), chacun a
    le bâton là où il l'a rangé (RagoUn : quatrième case, RagoDeux : la première, celle du kit), et
@@ -105,7 +106,8 @@ la première zone libre de sa rangée : une partie après l'autre se joue dans l
 
 1. Block placement 1v1 : à chaque partie, les deux bots posent de la laine à côté de leur
    plateforme, celui de l'ouest aussi une échelle et de l'end stone, puis casse la laine qui tient
-   l'échelle (l'échelle tombe avec). Les parties finissent de toutes les façons : chute dans le
+   l'échelle (l'échelle tombe avec, la laine tombe par terre). À la première partie, le bot de
+   l'ouest s'enferme sauf au-dessus de sa tête : ce dernier bloc est refusé (l'anti full box). Les parties finissent de toutes les façons : chute dans le
    vide (victoire, écran de fin), `/spawn` (abandon), un bot qui quitte le serveur, `/playagain`
    depuis l'écran de fin (la partie suivante va dans une autre zone pendant que l'écran de fin
    garde la première), et `/l` ;

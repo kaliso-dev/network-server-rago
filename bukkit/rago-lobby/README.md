@@ -143,11 +143,11 @@ dans les files d'attente des modes de jeu.
   score du joueur avec sa place (« Your best: 8 clutches (#5) »). C'est le record de la variante
   sur laquelle l'entraînement commence : la première, et pour le block edit la vitesse du bot par
   défaut. Les duels gardent leur Daily Streak.
-- **« Popular now ».** La ligne du bas de la boussole montre les modes où il y a du monde en ce
-  moment, toutes catégories confondues : au moins un joueur en partie ou en file, les plus joués
-  d'abord (à égalité, celui où l'on attend : une partie bientôt), trois au plus. Si les jeux d'une
-  catégorie prennent quatre lignes, il ne reste pas de place pour elle. Chacun dit combien jouent
-  et attendent, et un clic entre dans sa file comme
+- **« Popular now ».** La ligne du haut de la boussole, au-dessus des catégories, montre les modes
+  où il y a du monde en ce moment, toutes catégories confondues : au moins un joueur en partie ou
+  en file, les plus joués d'abord (à égalité, celui où l'on attend : une partie bientôt), trois au
+  plus. Le menu d'une catégorie (depuis la boussole, son PNJ ou `/play`) n'a rien sur sa ligne du
+  haut (ta demande du 22/11). Chacun dit combien jouent et attendent, et un clic entre dans sa file comme
   ailleurs. Au bout de la ligne, le **défi du jour** des entraînements (une montre qui brille, ce
   qu'il demande) : un clic le lance (`/challenge play`), depuis le lobby ou depuis un entraînement.
   Les parties privées ne comptent pas. La ligne se met à jour chaque seconde avec le menu.
@@ -581,14 +581,14 @@ config.yml fourni les suit :
 
 ## Catégories, PNJ et classements
 
-- `categories:` range les modes par zone du lobby. La boussole est rangée comme sur Minemen (ta
-  demande du 22/11) : les catégories côte à côte sur la ligne du haut (Practice à gauche, RBW Modes
-  avec un lit, Duels, Arenas : les modes sans file, FFA, Top Bridge FFA, Lobby Fight FFA, Bridge
-  fight, Block placement arena et Arena Free, où l'on entre tout de suite ; Lobby Fight 1v1 est dans
-  Duels ; puis Fun Practice, 3 Players, Party et Ranked), une ligne vide, puis les jeux de la
-  catégorie choisie (9 catégories, 28 objets par catégorie au plus, un groupe comptant pour un). Elle s'ouvre sur la
-  première catégorie, ou sur celle du PNJ, de `/play` ou du groupe dont on revient ; un clic sur une
-  autre catégorie change les jeux dans le même menu, et celle choisie brille. Chaque mode dit sa `categorie:`. Le `slogan:` d'une catégorie (40 caractères au
+- `categories:` range les modes par zone du lobby : la boussole montre les catégories côte à côte
+  sur sa ligne du milieu, sous « Popular now » (Practice à gauche, RBW Modes avec un lit, Duels,
+  Arenas : les modes sans file, FFA, Top Bridge FFA, Lobby Fight FFA, Bridge fight, Block placement
+  arena et Arena Free, où l'on entre tout de suite ; Lobby Fight 1v1 est dans Duels ; puis Fun
+  Practice, 3 Players, Party et Ranked), puis un clic ouvre les jeux de celle qu'on choisit, avec
+  « Back to the categories » en bas (9 catégories, 28 objets par catégorie au plus, un groupe
+  comptant pour un). C'est la boussole d'avant la version « comme sur Minemen », remise à ta demande
+  du 22/11. Chaque mode dit sa `categorie:`. Le `slogan:` d'une catégorie (40 caractères au
   plus) dit ce qu'on y fait : sous son nom dans la boussole, sous son PNJ et dans l'accueil.
 - `aussi:` d'une catégorie montre en plus des jeux d'autres catégories (des modes ou des groupes),
   après les siens, avec les mêmes files. « 3 Players » (plan 6.6), dans la boussole seulement, sans
@@ -596,7 +596,7 @@ config.yml fourni les suit :
   d'Invis Practice ; ces modes restent dans leur catégorie, leurs stats aussi (le menu des stats n'a
   pas de bouton pour une catégorie sans modes à elle). Son nom, son slogan et sa description sont à
   confirmer.
-- **Solo / Party / Ranked (plan 3.7).** Les six premiers onglets sont le Solo d'avant ; **Ranked**
+- **Solo / Party / Ranked (plan 3.7).** Les six premières catégories sont le Solo d'avant ; **Ranked**
   (`classe`) tient tous les modes classés, chacun avec son ELO, sa division, sa file par ELO et son
   classement : Ranked Bedwars 1v1 à 4v4 (sorti de RBW Modes, ses ELO gardés) et les six grands duels
   en 1v1 (ton choix du 22/11) : Ranked Bed Fight, Ranked Top Bridge, Ranked Bridge Fight, Ranked
@@ -607,7 +607,7 @@ config.yml fourni les suit :
   elle) montre au joueur ce que sa party joue contre elle-même à sa taille : à deux les 1v1, à trois
   les 1v2 et Red Rover, à quatre les 2v2... et la partie privée de Ranked Bedwars ; hors party, un
   objet dit comment en créer une. Une party qui tient dans une équipe file toujours contre d'autres
-  depuis les autres onglets, Ranked compris (avec la moyenne de ses ELO). `/play ranked` ouvre
+  depuis les autres catégories, Ranked compris (avec la moyenne de ses ELO). `/play ranked` ouvre
   toujours RBW Modes (son id), `/play classe` ouvre Ranked.
 - `groupes:` réunit les tailles d'un même jeu en un seul objet de sa catégorie, comme les jeux de
   Hypixel : Ranked Bedwars ouvre 1v1, 2v2, 3v3 et 4v4 côte à côte, Top Bridge ouvre 1v1, 2v2 et
@@ -617,11 +617,14 @@ config.yml fourni les suit :
   vers le spawn, qui tient l'icône du mode, avec son nom et le nombre de joueurs en file au-dessus
   de la tête. Un clic rejoint la file du mode, ou ouvre un menu quand le PNJ a plusieurs modes ;
   dans ce menu, les tailles d'un même groupe ne font qu'un objet (Top Bridge, une échelle qui ouvre
-  1v1, 2v2 et FFA), sauf si le PNJ n'a que ce groupe. Un PNJ avec `categorie:` ouvre la boussole
-  sur sa catégorie. Au centre, quatre PNJ seulement, un par façon de jouer, pour qu'un
+  1v1, 2v2 et FFA), sauf si le PNJ n'a que ce groupe. Un PNJ avec `categorie:` ouvre les jeux de
+  sa catégorie, rien d'autre au-dessus. Au centre, quatre PNJ seulement, un par façon de jouer, pour qu'un
   nouveau joueur ne s'y perde pas : Practice, RBW Modes, Duels et Arenas (les points `practice`,
-  `rbw`, `duels` et `arenas`), plus un PNJ **Private game** (point `prive`) pour les parties
-  privées, qui restent aussi dans RBW Modes. Les PNJ d'un mode (Ranked Bedwars, FFA,
+  `rbw`, `duels` et `arenas`), plus le PNJ **Fun Practice** sur le point `prive`, à la place du
+  PNJ Private game (ta demande du 22/11 ; son point d'avant, `funmod2`, n'a plus de PNJ ; le bloc de
+  quartz que le plugin a pu y poser reste, à casser à la main si tu veux). Les parties privées
+  sont dans RBW Modes (l'objet Private games) ; le PNJ Private game est en commentaire dans
+  `pnj:` (`partieprivee`), pour un autre point. Les PNJ d'un mode (Ranked Bedwars, FFA,
   Clutch Scenario, Attack and Defense, Sky Rise, First rush, Invis, Bridge fight,
   Block placement) et ceux des zones Practice et Duels sont en commentaire dans `pnj:` ; leurs
   modes restent dans la boussole et dans les menus des quatre. Un PNJ de catégorie montre le
@@ -632,7 +635,7 @@ config.yml fourni les suit :
   nom ou un id, avec la data après deux-points (`QUARTZ_BLOCK`, `"STONE:6"`, `"159:14"`). Si ce
   bloc est déjà sous le point, seul (posé à la main ; pas un sol de ce bloc, comme la plateforme
   de quartz d'un nouveau lobby), le PNJ se tient dessus et rien n'est posé. Le
-  config.yml fourni met du quartz sous les PNJ des façons de jouer et Private game, du fer sous
+  config.yml fourni met du quartz sous les PNJ des façons de jouer (Fun Practice compris), du fer sous
   les PNJ de stats et de l'émeraude sous le Shop.
 - `skin:` sous un PNJ lui donne un skin : `skins/<nom>.png` dans le dossier du plugin (64x64, le
   vôtre), sinon celui de ce nom dans le jar. Le jar en a un par mode, originaux : `ranked` (armure

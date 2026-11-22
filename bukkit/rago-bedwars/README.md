@@ -123,7 +123,7 @@ et 5 or par minute chacune, au lieu de 90 et 8.
 ## Top Bridge
 
 `top-bridge-1v1`, `top-bridge-2v2` et la version classée `ranked-top-bridge-1v1` (plan 3.7 : sa propre
-file et son ELO, onglet Ranked) (le jeu `top-bridge`) se jouent sur les 20 maps de la file,
+file et son ELO, catégorie Ranked) (le jeu `top-bridge`) se jouent sur les 20 maps de la file,
 sur le **top bridge** construit sur Antenna : au début de la partie, le plugin pose sur la copie
 une plateforme de laine de 17 blocs de large au-dessus du milieu, chaque moitié à la couleur de
 l'équipe de son côté (un bloc blanc au centre), et depuis le bord de chaque île un escalier de laine
@@ -264,7 +264,7 @@ qu'il ne reste qu'une équipe.
 ## Bed Fight
 
 `bed-fight-1v1`, `bed-fight-2v2`, `bed-fight-1v2` et leur version classée `ranked-bed-fight-1v1`
-(plan 3.7 : sa propre file et son ELO, onglet Ranked) (le genre `bed-fight`), comme le Bed Fight de Minemen, sur la
+(plan 3.7 : sa propre file et son ELO, catégorie Ranked) (le genre `bed-fight`), comme le Bed Fight de Minemen, sur la
 map BedFight du propriétaire : deux îles face à face, chaque lit sous la défense que la map a déjà
 (bois et end stone), que les joueurs cassent comme dans une partie. Ni forge, ni shop, ni
 amélioration, ni diamant : chacun a le kit du mode (l'éditeur de kit du lobby ; sinon une épée,
@@ -452,8 +452,9 @@ Dans `jeux:` du config.yml, un mode peut jouer autre chose qu'une partie classiq
   stuff de combat du propriétaire, une épée en pierre et un stack de pommes d'or, avec 3 boules de
   feu, une perle, 2 stacks de laine et des cisailles, et à chaque vie l'armure de combat d'une partie,
   Protection IV : jambières et bottes en diamant, casque et plastron en cuir rouge (sans effet
-  d'absorption) ; on revient tout de suite après une mort ; un kill soigne ; les
-  blocs posés partent au bout de 10 secondes ; les kills comptent dans les stats. Archway FFA (le
+  d'absorption) ; on revient tout de suite après une mort ; un kill soigne et redonne tout le kit
+  (ta demande du 22/11 : chaque objet remis au nombre du kit, boules de feu, perle, laine, pommes,
+  sur ses piles ou à sa place dans le kit) ; les blocs posés partent au bout de 10 secondes ; les kills comptent dans les stats. Archway FFA (le
   dossier `ArchwayFFA`) est l'Archway du propriétaire : des ponts de laine entre les îles, une
   défense d'end stone et de verre sur les lits rouge et vert pour les top fights, et depuis ces deux
   îles un escalier jusqu'au top bridge au-dessus du milieu (sa plateforme à y 85) ; on construit

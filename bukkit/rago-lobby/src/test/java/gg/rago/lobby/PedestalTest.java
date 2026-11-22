@@ -53,7 +53,7 @@ class PedestalTest {
     @Test
     void theBundledNpcsStandOnTheBlocksOfThePlan() throws Exception {
         LobbySettings settings = LobbySettings.load(LobbySettingsTest.bundledConfig());
-        for (String play : new String[] {"practice", "rbw", "duels", "arenas", "funmod2", "prive"}) {
+        for (String play : new String[] {"practice", "rbw", "duels", "arenas", "prive"}) {
             assertEquals(Material.QUARTZ_BLOCK, settings.pedestal(play).material(), play);
         }
         assertEquals(Material.IRON_BLOCK, settings.pedestal("profil").material());

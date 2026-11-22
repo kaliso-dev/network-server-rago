@@ -69,15 +69,13 @@ const PORT = Number(process.env.KB_PORT ?? '25565')
 const TEST_TIMEOUT_MS = 7 * 60 * 1000
 // A new lobby world has a platform at y = 64: players stand at y = 65, at the centre.
 const LOBBY_SPAWN = { x: 0.5, y: 65, z: 0.5 }
-// The compass is laid out as on Minemen (ModeMenu): the eight categories of the bundled config.yml
-// side by side in the top row (ModeMenu.tabSlot), Practice on the left (slot 0), RBW Modes, Duels in
-// slot 2, the Arenas, FUN PRACTICE, 3 Players, then Party and Ranked (plan 3.7) on the right; an
-// empty row; then the modes of the category chosen, from slot 19 (Practice when the compass opens).
-// A click on Duels shows its modes in the same menu: the sumo is its slime ball (Bed Fight comes
-// first). The bottom row is "Popular now" (the modes with players right now).
-const PRACTICE_SLOT = 0
-const DUELS_SLOT = 2
-const FIRST_MODE_SLOT = 19
+// The compass (ModeMenu, as before the Minemen layout, the owner's ask of 22/11): "Popular now" in
+// the top row (the modes with players right now), then the eight categories of the bundled
+// config.yml side by side in the middle row (ModeMenu.categorySlot): Practice on the left (slot 9),
+// RBW Modes, Duels in slot 11, the Arenas, FUN PRACTICE, 3 Players, then Party and Ranked (plan 3.7).
+// A click on Duels opens its modes in a menu of their own, with nothing in its top row: the sumo is
+// its slime ball (Bed Fight comes first), the back button in the bottom row.
+const DUELS_SLOT = 11
 const POINTS_TO_WIN = 3
 // run-lobby-test.sh places the NPC of the Duels category (point duels), a stats NPC
 // (profil), a wall of leaderboards (leaderboards), the main leaderboard
@@ -274,19 +272,15 @@ async function openSelectorAndJoinSumo (bot) {
   if (window.slots[DUELS_SLOT]?.name !== 'iron_sword') {
     throw new Error(`${bot.username}: slot ${DUELS_SLOT} holds ${window.slots[DUELS_SLOT]?.name}, not the Duels category`)
   }
-  if (!chosenCategory(window, PRACTICE_SLOT) || chosenCategory(window, DUELS_SLOT)) {
-    throw new Error(`${bot.username}: the compass should open on Practice: ${JSON.stringify(window.slots.slice(0, 9).map((item) => item?.name))}`)
-  }
-  if (window.slots[FIRST_MODE_SLOT] == null || window.slots.slice(9, 18).some((item) => item != null)) {
-    throw new Error(`${bot.username}: the modes of Practice should come after an empty row: ${JSON.stringify(window.slots.slice(9, 27).map((item) => item?.name))}`)
-  }
-  // The server cancels the click and changes the menu in place: no new window.
+  if (window.inventoryStart !== 27) throw new Error(`${bot.username}: the compass should have three rows, not ${window.inventoryStart / 9}`)
+  const duelsOpened = new Promise((resolve) => bot.once('windowOpen', resolve))
   bot.clickWindow(DUELS_SLOT, 0, 0).catch(() => {})
-  await waitFor(() => chosenCategory(window, DUELS_SLOT) && sumoSlot(window) >= 0, 5000,
-    `${bot.username}: the modes of Duels in the compass after a click on Duels`)
-  if (bot.currentWindow !== window) throw new Error(`${bot.username}: a click on Duels opened another menu`)
-  log(`${bot.username} clicked Duels in the top row of the compass: its modes took the place of those of Practice`)
-  const duels = window
+  const duels = await Promise.race([duelsOpened, sleep(5000).then(() => null)])
+  if (duels == null) throw new Error(`${bot.username}: the Duels category did not open`)
+  const duelsTitle = windowTitle(duels)
+  if (!duelsTitle.includes('Duels')) throw new Error(`${bot.username}: unexpected category title ${duelsTitle}`)
+  checkNothingOnTop(bot, duels, 'Duels')
+  log(`${bot.username} clicked Duels in the compass: its modes opened, with nothing in their top row`)
   const sumo = sumoSlot(duels)
   if (sumo < 0) throw new Error(`${bot.username}: no sumo in Duels: ${JSON.stringify(duels.slots.slice(0, duels.inventoryStart).map((item) => item?.name))}`)
   const icon = duels.slots[sumo]
@@ -302,15 +296,15 @@ async function openSelectorAndJoinSumo (bot) {
   log(`${bot.username} joined the sumo queue from the selector`)
 }
 
-/** The slot of the sumo among the modes of the compass: its slime ball, above the bottom row ("Popular now"), or -1. */
+/** The slot of the sumo in the Duels menu: its slime ball under the top row, above the back button's row, or -1. */
 function sumoSlot (window) {
-  return window.slots.findIndex((item, slot) => slot >= FIRST_MODE_SLOT && slot < window.inventoryStart - 9 &&
-    item?.name === 'slime_ball')
+  return window.slots.findIndex((item, slot) => slot >= 9 && slot < window.inventoryStart - 9 && item?.name === 'slime_ball')
 }
 
-/** Whether the category in this slot of the compass is the one chosen: "Its modes are below". */
-function chosenCategory (window, slot) {
-  return JSON.stringify(window.slots[slot]?.nbt ?? null).includes('Its modes are below')
+/** The menu of a category (from the compass or its NPC) has nothing in its top row (the owner's ask of 22/11). */
+function checkNothingOnTop (bot, window, name) {
+  const top = window.slots.slice(0, 9).map((item) => item?.name ?? null)
+  if (top.some((item) => item != null)) throw new Error(`${bot.username}: the top row of ${name} should be empty: ${JSON.stringify(top)}`)
 }
 
 function windowTitle (window) {
@@ -426,11 +420,10 @@ async function checkDuelsNpc (bot) {
   const window = await Promise.race([opened, sleep(5000).then(() => null)])
   if (window == null) throw new Error('a click on the Duels NPC did not open a menu')
   const title = typeof window.title === 'string' ? window.title : JSON.stringify(window.title)
-  if (!title.includes('Game modes') || !chosenCategory(window, DUELS_SLOT)) {
-    throw new Error(`the Duels NPC opened ${title}, on ${JSON.stringify(window.slots[DUELS_SLOT]?.name)} (${chosenCategory(window, DUELS_SLOT) ? '' : 'not '}chosen)`)
-  }
+  if (!title.includes('Duels')) throw new Error(`the Duels NPC opened ${title}`)
+  checkNothingOnTop(bot, window, 'the menu of the Duels NPC')
   bot.closeWindow(window)
-  log('the Duels NPC is a Steve holding a sword, out of the tab list, and its click opens the compass on Duels')
+  log('the Duels NPC is a Steve holding a sword, out of the tab list, and its click opens Duels, with nothing in its top row')
   await checkPersonNpc(bot)
   await checkProductNpc(bot)
   await checkThankYouText(bot)

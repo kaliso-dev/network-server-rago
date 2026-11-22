@@ -470,7 +470,7 @@ final class FfaGame extends BedwarsGame {
             return;
         } else {
             player.sendMessage(ChatColor.GRAY + "Your kit (arranged in the lobby's kit editor) comes back at each life, "
-                    + "and a kill heals you.");
+                    + "and a kill heals you and gives your whole kit back.");
             if (choosesSpawn()) {
                 sendButton(player, ChatColor.GRAY + "Where you spawn: "
                         + String.join(", ", instance.map().spawnChoices().keySet()) + " or Random. ",
@@ -564,8 +564,52 @@ final class FfaGame extends BedwarsGame {
             killer.setHealth(killer.getMaxHealth());
             if (lobby != null) {
                 refillApples(killer, author);
+            } else if (!onTheBridge()) {
+                refillKit(killer, author);
             }
         }
+    }
+
+    /**
+     * The FFA (the owner's ask of 22/11): a kill brings the killer's whole kit back, each of its
+     * items to as many as the kit gives (fireballs, pearl, wool, golden apples...), as the lobby's
+     * kit editor arranged it, else the owner's fight kit.
+     */
+    private void refillKit(Player killer, Gamer author) {
+        ItemStack[] kit = lobbyKit(killer, author);
+        if (kit == null) {
+            List<ItemStack> items = fightKit(true);
+            kit = new ItemStack[items.size()];
+            for (int i = 0; i < kit.length; i++) {
+                kit[i] = kitItem(items.get(i), author);
+            }
+        }
+        PlayerInventory inventory = killer.getInventory();
+        ItemStack[] contents = inventory.getContents();
+        // the stacks grown are the inventory's own (a stack being eaten goes on being eaten); set the new ones
+        for (int slot : refillAll(contents, kit)) {
+            inventory.setItem(slot, contents[slot]);
+        }
+        killer.updateInventory();
+    }
+
+    /**
+     * Brings these contents back to the kit: each of its items, in the order of its slots, to as
+     * many as it gives, as {@link #refill} does for one. Returns the slots that were empty and now
+     * hold a stack, for the inventory to set.
+     */
+    static List<Integer> refillAll(ItemStack[] contents, ItemStack[] kit) {
+        List<Integer> filled = new ArrayList<>();
+        List<Material> done = new ArrayList<>();
+        for (int slot = 0; kit != null && slot < kit.length; slot++) {
+            ItemStack item = kit[slot];
+            if (item == null || item.getType() == Material.AIR || done.contains(item.getType())) {
+                continue;
+            }
+            done.add(item.getType());
+            filled.addAll(refill(contents, kit, item.getType()));
+        }
+        return filled;
     }
 
     /** Lobby Fight FFA: a kill brings the killer's golden apples back to as many as their kit gives. */

@@ -27,6 +27,19 @@ class BlockFightRulesTest {
     }
 
     @Test
+    void aBlockBrokenInBlockPlacementDropsAsItsItem() {
+        org.bukkit.inventory.ItemStack red = BlockFight.kept(Material.WOOL, (byte) 14);
+        assertEquals(Material.WOOL, red.getType());
+        assertEquals(14, red.getDurability(), "the wool of its colour");
+        assertEquals(1, red.getAmount());
+        assertEquals(Material.ENDER_STONE, BlockFight.kept(Material.ENDER_STONE, (byte) 0).getType());
+        org.bukkit.inventory.ItemStack ladder = BlockFight.kept(Material.LADDER, (byte) 3);
+        assertEquals(Material.LADDER, ladder.getType());
+        assertEquals(0, ladder.getDurability(), "a ladder whichever way it faced");
+        assertEquals(null, BlockFight.kept(Material.SANDSTONE, (byte) 2), "only the blocks of the kit");
+    }
+
+    @Test
     void theHeartsFallAsTheOtherSideNearsItsHundredHits() {
         assertEquals(20.0, BlockFight.healthFor(0, 100), 1e-9, "0 hits: 20 HP");
         assertEquals(10.0, BlockFight.healthFor(50, 100), 1e-9, "half way: half the hearts");

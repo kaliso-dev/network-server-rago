@@ -25,19 +25,19 @@ import org.bukkit.inventory.meta.ItemMeta;
 import org.bukkit.plugin.Plugin;
 
 /**
- * The mode selector, a chest menu. With categories in config.yml, the compass is laid out as on
- * Minemen (the owner's ask of 22/11): the categories side by side in the top row, an empty row,
- * then the modes of the category chosen (the first one when it opens; a lobby NPC or /play opens
- * it on its own). A click on another category shows its modes in the same menu. The modes of one group (groupes: in config.yml, the sizes of one game:
+ * The mode selector, a chest menu. With categories in config.yml, the compass first shows one item
+ * per category, in its middle row; clicking one opens that category's modes, with a back button in
+ * the bottom row (the owner's ask of 22/11: the compass as before the Minemen layout). A lobby NPC
+ * and /play open a category's modes at once, with nothing above them. The modes of one group (groupes: in config.yml, the sizes of one game:
  * 1v1, 2v2...) are one item there, which opens them side by side, as the games of Hypixel. Without categories, every mode is shown at once. Modes are seven per
  * row, framed by an empty row above and below. Clicking a playable mode joins its queue; clicking
  * the mode one waits for leaves it. A mode whose game offers several maps first asks which one:
  * a map, or any map (the queue is shorter). Hovering a mode shows the player's win streak of the
  * day in it, the three teams with the longest streaks of the day (every name of a team of two
  * or more), as on Minemen, and the player's position among all of them. Open menus are refreshed every second, for the queue counts.
- * The bottom row of the compass is "Popular now", when a row is left under the modes: the modes
- * with players in a game or in the queue right now (the most first, three at most) and the
- * challenge of the day of the trainings, each a click away. The mode marked commencer-ici: (the block clutch) shines with
+ * The top row of the compass is "Popular now": the modes with players in a game or in the queue
+ * right now (the most first, three at most) and the challenge of the day of the trainings, each a
+ * click away. The mode marked commencer-ici: (the block clutch) shines with
  * "Start here", in its category, its group and on the category's item. The category of the parties
  * (party: true, plan 3.7) has no modes of its own: it shows the games the viewer's party plays
  * against itself, at its size.
@@ -49,9 +49,9 @@ final class ModeMenu {
 
     /**
      * Marks our inventories: a click in one of them is a click in the selector. The view is the
-     * compass (CATEGORIES, with the category chosen), an NPC's modes (NPC + its point), a group's
-     * modes (GROUP + its id), a mode's maps (MAPS + its id), the modes of /duel (DUEL), or every
-     * mode (null).
+     * category menu (CATEGORIES), one category's modes (its id), an NPC's modes (NPC + its point),
+     * a group's modes (GROUP + its id), a mode's maps (MAPS + its id), the modes of /duel (DUEL),
+     * or every mode (null).
      */
     static final class Holder implements InventoryHolder {
         static final String CATEGORIES = "";
@@ -70,11 +70,7 @@ final class ModeMenu {
         static final String CHALLENGE = "*defi";
         private Inventory inventory;
         private final String view;
-        /** In the compass: the category whose modes are shown under the categories. */
-        private String selected;
-        /** In the compass: the first slot of the row of "Popular now", or -1: no row left for it. */
-        private int popularRow = -1;
-        /** What each column of "Popular now" shows (a mode id, CHALLENGE), else null. */
+        /** In the compass: what each slot of the top row shows in "Popular now" (a mode id, CHALLENGE), else null. */
         private final String[] popular = new String[9];
 
         Holder(String view) {
@@ -83,11 +79,6 @@ final class ModeMenu {
 
         String view() {
             return view;
-        }
-
-        /** In the compass: the category chosen. */
-        String selected() {
-            return selected;
         }
 
         @Override
@@ -155,32 +146,27 @@ final class ModeMenu {
         this.book = book;
     }
 
-    /** The compass: the categories with the modes of the first one if there are any, else every mode. */
+    /** The compass: the categories if there are any, else every mode. */
     void open(Player player) {
         if (settings.categories().isEmpty()) {
             show(player, (String) null, 2 + rowsFor(settings.modes().size()), TITLE);
         } else {
-            openCategory(player, settings.categories().get(0).id());
+            show(player, Holder.CATEGORIES, 3, TITLE);
         }
     }
 
     /**
-     * The compass, with this category's modes under the categories: from the compass, a lobby NPC,
-     * /play or the back button of a group. False if unknown. Its size is that of the category with
-     * the most modes, so that a click on another category changes the menu in place.
+     * One category's modes, with nothing above them: from the compass, a lobby NPC, /play or the
+     * back button of a group. False if unknown.
      */
     boolean openCategory(Player player, String categoryId) {
-        if (settings.category(categoryId) == null) {
+        ModeCategory category = settings.category(categoryId);
+        if (category == null) {
             return false;
         }
-        int modeRows = 1;
-        for (ModeCategory category : settings.categories()) {
-            modeRows = Math.max(modeRows, rowsFor(compassEntries(category.id(), player).size()));
-        }
-        Holder holder = new Holder(Holder.CATEGORIES);
-        holder.selected = categoryId;
-        holder.popularRow = popularRowOf(modeRows);
-        show(player, holder, compassRows(modeRows), TITLE);
+        String title = ChatColor.stripColor(category.name());
+        show(player, categoryId, 3 + rowsFor(compassEntries(categoryId, player).size()),
+                title.length() > 32 ? title.substring(0, 32) : title);
         return true;
     }
 
@@ -314,29 +300,9 @@ final class ModeMenu {
         return 9 + (9 - count) / 2 + index;
     }
 
-    /** The column of the n-th of {@code count} items of "Popular now", centred in its row. */
+    /** The slot of the n-th of {@code count} items of "Popular now", centred in the top row of the compass. */
     static int popularSlot(int index, int count) {
         return categorySlot(index, count) - 9;
-    }
-
-    /** The slot of the n-th of {@code count} categories of the compass: its top row, centred. */
-    static int tabSlot(int index, int count) {
-        return categorySlot(index, count) - 9;
-    }
-
-    /** The slot of the n-th mode of the compass: under the categories and an empty row, columns 1 to 7. */
-    static int compassSlot(int index) {
-        return slotOf(index) + 9;
-    }
-
-    /** The rows of the compass: the categories, an empty row, the modes, and "Popular now" if a row is left. */
-    static int compassRows(int modeRows) {
-        return Math.min(6, 3 + modeRows);
-    }
-
-    /** The first slot of "Popular now" in the compass, its bottom row; -1 when the modes take every row. */
-    static int popularRowOf(int modeRows) {
-        return 3 + modeRows <= 6 ? (2 + modeRows) * 9 : -1;
     }
 
     /** The back button: middle of the bottom row. */
@@ -345,8 +311,8 @@ final class ModeMenu {
     }
 
     /**
-     * The items under the categories for this one: its modes and groups, or for the category of the
-     * parties those of the viewer's party at its size.
+     * The items of a category's menu: its modes and groups, or for the category of the parties
+     * those of the viewer's party at its size.
      */
     private List<LobbySettings.Entry> compassEntries(String categoryId, HumanEntity viewer) {
         ModeCategory category = categoryId == null ? null : settings.category(categoryId);
@@ -463,7 +429,17 @@ final class ModeMenu {
     void click(Player player, Holder holder, int slot) {
         String view = holder.view();
         if (Holder.CATEGORIES.equals(view)) {
-            clickCompass(player, holder, slot);
+            if (slot >= 0 && slot < holder.popular.length && holder.popular[slot] != null) {
+                clickPopular(player, holder.popular[slot]);
+                return;
+            }
+            List<ModeCategory> categories = settings.categories();
+            for (int i = 0; i < categories.size(); i++) {
+                if (categorySlot(i, categories.size()) == slot) {
+                    openCategory(player, categories.get(i).id());
+                    return;
+                }
+            }
             return;
         }
         if (hasBack(view) && slot == backSlot(holder.getInventory().getSize())) {
@@ -487,6 +463,20 @@ final class ModeMenu {
         GameMode mapsOf = mapsMode(view);
         if (mapsOf != null) {
             clickMap(player, mapsOf, slot);
+            return;
+        }
+        if (settings.category(view) != null) {
+            List<LobbySettings.Entry> entries = compassEntries(view, player);
+            for (int i = 0; i < entries.size(); i++) {
+                if (slotOf(i) == slot) {
+                    if (entries.get(i).group != null) {
+                        openGroup(player, entries.get(i).group, null, view);
+                    } else {
+                        toggle(player, entries.get(i).mode.mode());
+                    }
+                    return;
+                }
+            }
             return;
         }
         LobbyNpc npc = view != null && view.startsWith(Holder.NPC) ? settings.npc(view.substring(Holder.NPC.length())) : null;
@@ -521,41 +511,6 @@ final class ModeMenu {
             return;
         }
         toggle(player, mode);
-    }
-
-    /**
-     * Clicked in the compass: "Popular now", a category (its modes take the place of the others, in
-     * the same menu), or a mode of the category chosen (a group opens its sizes).
-     */
-    private void clickCompass(Player player, Holder holder, int slot) {
-        if (holder.popularRow >= 0 && slot >= holder.popularRow && slot < holder.popularRow + 9) {
-            String id = holder.popular[slot - holder.popularRow];
-            if (id != null) {
-                clickPopular(player, id);
-            }
-            return;
-        }
-        List<ModeCategory> categories = settings.categories();
-        for (int i = 0; i < categories.size(); i++) {
-            if (tabSlot(i, categories.size()) == slot) {
-                if (!categories.get(i).id().equals(holder.selected)) {
-                    holder.selected = categories.get(i).id();
-                    fill(holder.getInventory(), player);
-                }
-                return;
-            }
-        }
-        List<LobbySettings.Entry> entries = compassEntries(holder.selected, player);
-        for (int i = 0; i < entries.size(); i++) {
-            if (compassSlot(i) == slot) {
-                if (entries.get(i).group != null) {
-                    openGroup(player, entries.get(i).group, null, holder.selected);
-                } else {
-                    toggle(player, entries.get(i).mode.mode());
-                }
-                return;
-            }
-        }
     }
 
     /** Clicked in "Popular now": the challenge of the day (its command, in the trainings plugin), or a mode. */
@@ -634,13 +589,27 @@ final class ModeMenu {
             return;
         }
         if (Holder.CATEGORIES.equals(view)) {
-            fillCompass(inventory, (Holder) inventory.getHolder(), current, viewer);
+            List<ModeCategory> categories = settings.categories();
+            for (int i = 0; i < categories.size(); i++) {
+                inventory.setItem(categorySlot(i, categories.size()), icon(categories.get(i), current, viewer));
+            }
+            fillPopular(inventory, settings.modes(), current, viewer);
             return;
         }
         int last = hasBack(view) ? backSlot(inventory.getSize()) - 4 : inventory.getSize();
         LobbyNpc npc = view != null && view.startsWith(Holder.NPC) ? settings.npc(view.substring(Holder.NPC.length())) : null;
-        if (npc != null) {
-            List<LobbySettings.Entry> entries = settings.entriesOf(npc.modeIds());
+        ModeCategory category = settings.category(view);
+        if (category != null || npc != null) {
+            List<LobbySettings.Entry> entries = npc != null ? settings.entriesOf(npc.modeIds()) : compassEntries(view, viewer);
+            if (category != null) {
+                // the games of a party change with its size: nothing stays of the ones before
+                for (int slot = 0; slot < last; slot++) {
+                    inventory.setItem(slot, null);
+                }
+                if (entries.isEmpty() && category.party()) {
+                    inventory.setItem(slotOf(PER_ROW / 2), partyHint(partySize(viewer)));
+                }
+            }
             for (int i = 0; i < entries.size() && slotOf(i) < last; i++) {
                 LobbySettings.Entry entry = entries.get(i);
                 inventory.setItem(slotOf(i), entry.group != null ? icon(entry.group, current, viewer)
@@ -655,45 +624,15 @@ final class ModeMenu {
         if (hasBack(view)) {
             ItemStack back = new ItemStack(Material.ARROW);
             ItemMeta meta = back.getItemMeta();
-            meta.setDisplayName(ChatColor.GRAY + "Back to the modes");
+            meta.setDisplayName(ChatColor.GRAY + (category != null ? "Back to the categories" : "Back to the modes"));
             back.setItemMeta(meta);
             inventory.setItem(backSlot(inventory.getSize()), back);
         }
     }
 
     /**
-     * The compass: the categories in the top row (the one chosen shines), an empty row, the modes
-     * of the category chosen, and "Popular now" in the bottom row when there is one. Every slot is
-     * set again: a click on another category leaves nothing of the modes of the one before.
-     */
-    private void fillCompass(Inventory inventory, Holder holder, List<GameMode> current, HumanEntity viewer) {
-        for (int slot = 0; slot < inventory.getSize(); slot++) {
-            inventory.setItem(slot, null);
-        }
-        List<ModeCategory> categories = settings.categories();
-        for (int i = 0; i < categories.size(); i++) {
-            ModeCategory category = categories.get(i);
-            inventory.setItem(tabSlot(i, categories.size()), icon(category, current, category.id().equals(holder.selected), viewer));
-        }
-        int last = holder.popularRow >= 0 ? holder.popularRow : inventory.getSize();
-        List<LobbySettings.Entry> entries = compassEntries(holder.selected, viewer);
-        ModeCategory chosen = holder.selected == null ? null : settings.category(holder.selected);
-        if (entries.isEmpty() && chosen != null && chosen.party()) {
-            inventory.setItem(compassSlot(PER_ROW / 2), partyHint(partySize(viewer)));
-        }
-        for (int i = 0; i < entries.size() && compassSlot(i) < last; i++) {
-            LobbySettings.Entry entry = entries.get(i);
-            inventory.setItem(compassSlot(i), entry.group != null ? icon(entry.group, current, viewer)
-                    : icon(entry.mode, current.contains(entry.mode.mode()), viewer));
-        }
-        if (holder.popularRow >= 0) {
-            fillPopular(inventory, settings.modes(), current, viewer);
-        }
-    }
-
-    /**
-     * "Popular now", the bottom row of the compass: the modes with players right now, the most
-     * first, then the challenge of the day. What each column holds goes in the holder, for the click.
+     * "Popular now", the top row of the compass: the modes with players right now, the most first,
+     * then the challenge of the day. What each slot holds goes in the holder, for the click.
      */
     private void fillPopular(Inventory inventory, List<ModeDisplay> modes, List<GameMode> current, HumanEntity viewer) {
         Holder holder = (Holder) inventory.getHolder();
@@ -709,15 +648,14 @@ final class ModeMenu {
         if (challengeMode != null && queues.isPlayable(challengeMode)) {
             shown.add(Holder.CHALLENGE);
         }
-        for (int column = 0; column < holder.popular.length; column++) {
-            holder.popular[column] = null;
-            inventory.setItem(holder.popularRow + column, null);
+        for (int slot = 0; slot < holder.popular.length; slot++) {
+            holder.popular[slot] = null;
+            inventory.setItem(slot, null);
         }
         for (int i = 0; i < shown.size(); i++) {
             String id = shown.get(i);
-            int column = popularSlot(i, shown.size());
-            int slot = holder.popularRow + column;
-            holder.popular[column] = id;
+            int slot = popularSlot(i, shown.size());
+            holder.popular[slot] = id;
             if (Holder.CHALLENGE.equals(id)) {
                 inventory.setItem(slot, challengeIcon());
             } else {
@@ -822,8 +760,8 @@ final class ModeMenu {
         inventory.setItem(backSlot(inventory.getSize()), back);
     }
 
-    /** A category in the top row of the compass; the one chosen shines, its modes are below. */
-    private ItemStack icon(ModeCategory category, List<GameMode> current, boolean selected, HumanEntity viewer) {
+    /** A category in the compass: what it is, its games and queue, and the click to its modes. */
+    private ItemStack icon(ModeCategory category, List<GameMode> current, HumanEntity viewer) {
         ItemStack item = new ItemStack(category.icon());
         ItemMeta meta = item.getItemMeta();
         meta.setDisplayName(category.name());
@@ -840,10 +778,10 @@ final class ModeMenu {
             lore.add(size < 2 ? ChatColor.GRAY + "You are not in a party"
                     : ChatColor.GRAY + "Your party of " + ChatColor.WHITE + size + ChatColor.GRAY + ": " + ChatColor.WHITE + games
                             + ChatColor.GRAY + (games == 1 ? " game" : " games"));
-            lore.add(selected ? Brand.ACCENT + "\u25bc Its modes are below" : ChatColor.GREEN + "Click to see its modes");
+            lore.add(ChatColor.GREEN + "Click to see the modes");
             meta.setLore(lore);
             item.setItemMeta(meta);
-            return selected ? ClickMenu.glow(item) : item;
+            return item;
         }
         List<ModeDisplay> modes = settings.modesIn(category.id());
         int waiting = 0;
@@ -870,10 +808,10 @@ final class ModeMenu {
         if (here) {
             lore.add(Brand.ACCENT + "You are in a queue of this category");
         }
-        lore.add(selected ? Brand.ACCENT + "\u25bc Its modes are below" : ChatColor.GREEN + "Click to see its modes");
+        lore.add(ChatColor.GREEN + "Click to see the modes");
         meta.setLore(lore);
         item.setItemMeta(meta);
-        return selected ? ClickMenu.glow(item) : item;
+        return item;
     }
 
     /** A group in its category: its name, what it is, and each of its modes with its queue. */

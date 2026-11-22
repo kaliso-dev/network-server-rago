@@ -38,7 +38,7 @@ class LobbySettingsTest {
     static YamlConfiguration withModeNpcs() throws Exception {
         YamlConfiguration yaml = bundledConfig();
         modeNpc(yaml, "ranked", "ranked", "ranked-1v1", "ranked-2v2", "ranked-3v3", "ranked-4v4");
-        modeNpc(yaml, "prive", "prive", "partie-privee", "top-bridge-prive");
+        modeNpc(yaml, "partieprivee", "prive", "partie-privee", "top-bridge-prive");
         modeNpc(yaml, "ffa", "ffa", "ffa", "top-bridge-1v1", "top-bridge-2v2", "top-bridge-ffa");
         modeNpc(yaml, "clutchscenario", "clutch", "clutch-scenario-1v1", "clutch-scenario-1v2", "clutch-scenario-1v3",
                 "clutch-scenario-1v4");
@@ -264,7 +264,7 @@ class LobbySettingsTest {
                 displayIds(settings.modesOfGroup("attack-defense")));
         assertEquals(Arrays.asList("top-bridge-1v1", "top-bridge-2v2"), ids(settings.privateRoutes().get("top-bridge-prive")),
                 "the practice of the top bridge, with the party");
-        assertTrue(LobbySettings.load(withModeNpcs()).npc("prive").modeIds().contains("top-bridge-prive"));
+        assertTrue(LobbySettings.load(withModeNpcs()).npc("partieprivee").modeIds().contains("top-bridge-prive"));
         assertTrue(settings.display("top-bridge-1v1").kit() != null, "the kit of the rounds, arranged in the kit editor");
         assertEquals(Material.STONE_SWORD, settings.display("top-bridge-ffa").kit().item(0).material(), "the fight kit");
         int shown = 0;
@@ -298,7 +298,7 @@ class LobbySettingsTest {
         List<LobbySettings.Entry> ranked = settings.entriesOf(settings.npc("ranked").modeIds());
         assertEquals(4, ranked.size(), "one group only: its modes, one by one, as before");
         assertEquals("ranked-1v1", ranked.get(0).mode.mode().id());
-        assertEquals(2, settings.entriesOf(settings.npc("prive").modeIds()).size(),
+        assertEquals(2, settings.entriesOf(settings.npc("partieprivee").modeIds()).size(),
                 "the private game and the private top bridge: no group of two");
     }
 
@@ -328,31 +328,32 @@ class LobbySettingsTest {
     @Test
     void readsTheBundledNpcs() throws Exception {
         LobbySettings settings = LobbySettings.load(bundledConfig());
-        assertEquals(20, settings.npcs().size(), "five NPCs of modes, one per way to play (FunMod2 for FUN PRACTICE), and"
-                + " the private games; the shop, the stats, the leaderboard selector, the boards and the wall of the week;"
-                + " qRago and kaliso_dev; Rago Client and Rago Optimizer; the moderators jncl and nativ");
-        LobbyNpc prive = settings.npc("prive");
-        assertEquals(Arrays.asList("partie-privee", "top-bridge-prive"), prive.modeIds(), "the private games, on their own NPC");
-        assertNull(prive.category());
-        assertEquals("prive", prive.skin());
+        assertEquals(19, settings.npcs().size(), "five NPCs of modes, one per way to play (Fun Practice on the point"
+                + " of the Private game NPC before); the shop, the stats, the leaderboard selector, the boards and the wall"
+                + " of the week; qRago and kaliso_dev; Rago Client and Rago Optimizer; the moderators jncl and nativ");
         for (String gone : Arrays.asList("ranked", "ffa", "clutchscenario", "attackanddefense", "rbwsolo1v1ou2v2skyrise",
                 "firstrushnebucgelatosoloduo", "invispracticearwhayinvasion", "realisticplat",
-                "blockplacementarena", "attackdefenseversionrbw", "blockinpractice")) {
+                "blockplacementarena", "attackdefenseversionrbw", "blockinpractice", "partieprivee", "funmod2")) {
             assertNull(settings.npc(gone), gone + ": its modes stay in the compass");
         }
         List<String> categories = new java.util.ArrayList<>();
         for (LobbyNpc npc : settings.npcs()) {
-            if (npc.kind() == LobbyNpc.Kind.MODES && npc != prive) {
+            if (npc.kind() == LobbyNpc.Kind.MODES) {
                 assertNotNull(npc.category(), npc.point() + ": only the NPCs of the five categories");
                 categories.add(npc.category());
             }
         }
         assertEquals(Arrays.asList("entrainement", "ranked", "duels", "arenes", "fun"), categories,
                 "Practice, RBW Modes, Duels, Arenas, Fun Practice");
-        LobbyNpc fun = settings.npc("funmod2");
+        // the owner's ask of 22/11: the Fun Practice NPC in the place of the Private game NPC, on its point
+        LobbyNpc fun = settings.npc("prive");
         assertEquals("§d§lFun Practice", fun.name());
-        assertNull(fun.skin(), "FunMod2 has no skin of its own yet: Steve");
-        assertEquals(displayIds(settings.modesIn("fun")), fun.modeIds(), "FunMod2 holds the modes of FUN PRACTICE");
+        assertEquals("fun", fun.category());
+        assertNull(fun.skin(), "Fun Practice has no skin of its own yet: Steve");
+        assertEquals(displayIds(settings.modesIn("fun")), fun.modeIds(), "it holds the modes of FUN PRACTICE");
+        assertEquals(Arrays.asList("partie-privee", "top-bridge-prive"), displayIds(settings.modesOfGroup("prive")),
+                "the private games stay in the RBW Modes, one item");
+        assertTrue(settings.entriesIn("ranked").stream().anyMatch(entry -> entry.group != null && "prive".equals(entry.group.id())));
         LobbyNpc arenas = settings.npc("arenas");
         assertEquals("§c§lArenas", arenas.name());
         assertEquals("arena", arenas.skin());

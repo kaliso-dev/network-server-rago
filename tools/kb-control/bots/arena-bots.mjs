@@ -7,8 +7,10 @@
 // zone (zone 0); a zone seen for the first time is only built, and proves nothing.
 //   1. Block placement 1v1 (block-fight-1v1, first to 10 in run-arena-test.sh: a fall into the
 //      void ends it): each game, both bots place wool beside their platform, the west one a ladder
-//      and end stone too, then breaks the wool under the ladder (the ladder falls with it); the
-//      games end in every way a game ends: a fall into the void (a win, the end screen), /spawn
+//      and end stone too, then breaks the wool under the ladder (the ladder falls with it, the
+//      wool drops on the ground); in the first game, the west bot closes itself in but for the
+//      block above its head, which is refused (the anti full box); the games end in every way a
+//      game ends: a fall into the void (a win, the end screen), /spawn
 //      (a forfeit), a bot leaving the server, /playagain from the end screen (the next game goes
 //      to another zone while the end screen holds the first), and /l;
 //   2. Block edit 1v1 (block-edit-duel, first to 2): each game, holes in the wall and wool put back
@@ -271,9 +273,50 @@ async function buildInBlockFight (game) {
   await place(east, at(6, 0, 0), new Vec3(-1, 0, 0), at(5, 0, 0), 'wool')
   await place(east, at(6, 0, 0), new Vec3(0, 1, 0), at(6, 1, 0), 'wool')
   await hold(west, 'shears')
-  await dig(west, at(-6, 0, 0))
-  await waitFor(() => west.blockAt(at(-6, 0, -1))?.name === 'air', 3000, 'the ladder to fall with the wool it hung on')
-  log('block placement: wool, a ladder and end stone placed, the wool under the ladder broken (the ladder fell with it)')
+  // a block broken drops on the ground (the owner's ask of 22/11): the wool, for anyone to pick up
+  const broken = at(-6, 0, 0)
+  let dropped = null
+  const onDrop = (entity) => {
+    const item = entity.getDroppedItem?.()
+    if (item != null && entity.position.distanceTo(broken.offset(0.5, 0.5, 0.5)) < 2) dropped = item
+  }
+  west.on('itemDrop', onDrop)
+  try {
+    await dig(west, broken)
+    await waitFor(() => west.blockAt(at(-6, 0, -1))?.name === 'air', 3000, 'the ladder to fall with the wool it hung on')
+    await waitFor(() => dropped != null, 3000, 'the broken wool to drop on the ground')
+  } finally {
+    west.removeListener('itemDrop', onDrop)
+  }
+  if (dropped.name !== 'wool' || dropped.count !== 1) throw new Error(`the broken wool dropped ${dropped.count} ${dropped.name}`)
+  log('block placement: wool, a ladder and end stone placed, the wool under the ladder broken (the ladder fell with it, the wool dropped on the ground)')
+}
+
+/**
+ * The anti full box (the owner's choice of 22/11): the west bot closes itself in on its platform,
+ * the four sides of its feet and of its head, then a block beside the top; the block above its
+ * head, the last of the box, is refused.
+ */
+async function boxInIsRefused (game) {
+  const { west, centre } = game
+  const at = (dx, dy, dz) => new Vec3(centre.x + dx, centre.y + dy, centre.z + dz)
+  const feet = west.entity.position.floored()
+  if (!feet.equals(at(-8, 1, 0))) throw new Error(`the west bot should stand at its start ${at(-8, 1, 0)}, not ${feet}`)
+  await hold(west, 'wool')
+  const up = new Vec3(0, 1, 0)
+  for (const [dx, dz] of [[1, 0], [-1, 0], [0, 1], [0, -1]]) {
+    await place(west, at(-8 + dx, 0, dz), up, at(-8 + dx, 1, dz), 'wool')
+    await place(west, at(-8 + dx, 1, dz), up, at(-8 + dx, 2, dz), 'wool')
+  }
+  await place(west, at(-7, 2, 0), up, at(-7, 3, 0), 'wool')
+  const from = mark(west)
+  await west.placeBlock(west.blockAt(at(-7, 3, 0)), new Vec3(-1, 0, 0)).catch(() => {})
+  await chatLine(west, /You can't box yourself in!/, 5000, from)
+  await sleep(500)
+  if (west.blockAt(at(-8, 3, 0))?.name !== 'air') {
+    throw new Error(`the block above the head of the west bot was placed: ${blockText(west.blockAt(at(-8, 3, 0)))}`)
+  }
+  log('block placement: the four sides of its feet and of its head placed, the block above its head refused ("You can\'t box yourself in!")')
 }
 
 /** The east bot steps back off its platform, into the void: +10, the west side wins (first to 10). */
@@ -298,6 +341,7 @@ async function blockPlacementGames (state) {
     await checkStart(game.west, 'block-fight-1v1', game.centre, BLOCK_FIGHT_BOX, design, what)
     await fight(game)
     await buildInBlockFight(game)
+    if (n === 0) await boxInIsRefused(game)
     if (ending === 'void') {
       await eastFalls(game)
     } else if (ending === 'spawn' || ending === 'last') {

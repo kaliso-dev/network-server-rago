@@ -29,7 +29,7 @@ Ceux qui regardent un duel ou un entraînement (`/spectate`, voir le
 joueur qu'ils sont venus voir, ne s'éloignent pas de l'arène et reviennent au lobby à la fin.
 Chaque duel, sumo compris, est enregistré : `/replay` le montre à nouveau depuis le lobby, avec
 **[REPLAY]** dans la ligne d'après-partie (voir le [README du lobby](../rago-lobby/README.md)).
-Quatre duels ont leur version classée (plan 3.7, onglet Ranked de la boussole) : `ranked-sumo`,
+Quatre duels ont leur version classée (plan 3.7, catégorie Ranked de la boussole) : `ranked-sumo`,
 `ranked-boxing`, `ranked-block-fight-1v1` et `ranked-bridge-fight-1v1`. Chacune est jouée par l'hôte
 de son mode de Solo, sur ses zones et ses maps (les rangées des autres modes ne bougent pas), avec
 sa propre file et son propre ELO ; les stats, les kills et le replay de la partie vont à la version
@@ -80,7 +80,13 @@ jouée.
   coups : chaque coup donné à l'autre camp vaut un point (le coup ne fait pas de dégâts, seulement
   son recul), et faire tomber un adversaire dans le vide donne 10 points à son camp ; seul celui
   qui est tombé revient tout de suite sur son bloc d'or, avec tout son kit à nouveau (deux stacks
-  de laine), les autres continuent et les blocs restent. Premier à
+  de laine), les autres continuent et les blocs restent. Un bloc cassé tombe par terre, comme
+  au Fireball Fight : la laine de sa couleur, l'end stone, l'échelle, à ramasser par n'importe qui
+  (ta demande du 22/11). **Anti full box** (ton choix du 22/11) : un bloc qui enfermerait
+  complètement un joueur, celui qui le pose ou un autre (ses quatre côtés aux pieds et à la tête,
+  et au-dessus de sa tête), est refusé (« You can't box yourself in! », « You can't box a player
+  in! ») ; le sol ne compte pas. Les deux valent pour le 1v1, le 2v2, le Ranked et le Red Rover
+  Block Placement, le même jeu. Premier à
   `points-pour-gagner.block-fight` (100). Les cœurs disent le score : un joueur a toute sa vie
   tant que l'autre camp n'a aucun point, et plus rien quand il en a 100 (20 PV à 0 coup, 0 PV à
   100 coups, une demi-vie au moins : le score ne tue pas) ; la vie ne remonte pas toute seule.
@@ -449,8 +455,8 @@ toute l'équipe d'en face est tombée ou morte.
 
 ## FUN PRACTICE (plan 6.1)
 
-Trois modes en 1v1, dans la catégorie FUN PRACTICE du lobby (son PNJ FunMod2, sur un bloc de
-quartz). Aucun dégât dans les trois. Au Fireball Fight et au Snowball Spleef, le premier qui tombe
+Trois modes en 1v1, dans la catégorie FUN PRACTICE du lobby (son PNJ Fun Practice, sur un bloc de
+quartz, au point `prive` où était le PNJ Private game : ta demande du 22/11). Aucun dégât dans les trois. Au Fireball Fight et au Snowball Spleef, le premier qui tombe
 donne le point à l'autre, comme au sumo ; au Parkour Duel, une chute ramène au dernier checkpoint.
 Les valeurs de départ ci-dessous sont **à régler avec le propriétaire**.
 

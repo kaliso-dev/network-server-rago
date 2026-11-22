@@ -374,19 +374,13 @@ pnj:
     categorie: arenes
     skin: arena
     bloc: QUARTZ_BLOCK
-  # FUN PRACTICE (plan 6.1): the NPC FunMod2, on its point funmod2, on a block of quartz; no skin
-  # of its own yet (Steve).
-  funmod2:
+  # FUN PRACTICE (plan 6.1): the NPC of the Fun Practice, on the point prive, where the Private
+  # game NPC stood (the owner's ask of 22/11: the Fun Practice NPC in its place, no Private game
+  # NPC), on a block of quartz; no skin of its own yet (Steve). The private games are in the RBW
+  # Modes (the item Private games). Its point before, funmod2, has no NPC any more.
+  prive:
     nom: "&d&lFun Practice"
     categorie: fun
-    bloc: QUARTZ_BLOCK
-  # The private games (a Ranked Bedwars or a Top Bridge with friends, the host's settings): /lobby
-  # point prive. They stay in the RBW Modes too.
-  prive:
-    nom: "&6&lPrivate game"
-    sous-titre: "&7Your game, your friends, your rules"
-    skin: prive
-    modes: [partie-privee, top-bridge-prive]
     bloc: QUARTZ_BLOCK
   # Only the NPCs of the ways to play, so that a new player is not lost: every mode stays in its
   # category, in the compass and in the menus of the four. Remove the # before the lines of one to
@@ -428,6 +422,14 @@ pnj:
   #   nom: "&aBlock placement"
   #   skin: blocs
   #   modes: [block-fight-1v1, block-fight-2v2, block-fight-arena]
+  # The Private game NPC (a Ranked Bedwars or a Top Bridge with friends, the host's settings), on a
+  # point of its own (/lobby point partieprivee): the private games stay in the RBW Modes too.
+  # partieprivee:
+  #   nom: "&6&lPrivate game"
+  #   sous-titre: "&7Your game, your friends, your rules"
+  #   skin: prive
+  #   modes: [partie-privee, top-bridge-prive]
+  #   bloc: QUARTZ_BLOCK
   # The NPCs of the side zones, on their front sign, if you want them there too:
   # attackdefenseversionrbw:
   #   nom: "&a&lDuels"
@@ -1569,7 +1571,8 @@ modes:
       - "in diamond armour: spawn on"
       - "the top bridge, low, mid or"
       - "at random; come and go when"
-      - "you like, a kill heals you."
+      - "you like. A kill heals you and"
+      - "gives your whole kit back."
   lobby-fight-ffa:
     nom: "&cLobby Fight FFA"
     categorie: arenes

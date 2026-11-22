@@ -7,6 +7,7 @@ import org.bukkit.ChatColor;
 import org.bukkit.Location;
 import org.bukkit.Sound;
 import org.bukkit.Material;
+import org.bukkit.World;
 import org.bukkit.block.Block;
 import org.bukkit.enchantments.Enchantment;
 import org.bukkit.entity.Player;
@@ -23,7 +24,8 @@ import org.bukkit.inventory.ItemStack;
  * landed on the other side is a point (a hit does no damage, only its knockback), and a fall into
  * the void gives the other side {@value #VOID_BONUS} points and sends the one who fell back on their
  * gold block at once, their kit given back whole (two stacks of wool again; the others fight on,
- * the blocks stay). First to 100 by default (points-pour-gagner.block-fight). The hearts tell the
+ * the blocks stay). A block broken drops on the ground, for anyone to pick up, and no block may
+ * close a player in completely (the anti full box, {@link FullBox}). First to 100 by default (points-pour-gagner.block-fight). The hearts tell the
  * score: a player has all their health while the other side has no point, none when it reaches
  * the target (see {@link #healthFor}), and none comes back by itself. As a Red Rover
  * (red-rover-block-placement), the first to red-rover.points-par-1v1-block-placement wins the
@@ -244,11 +246,46 @@ final class BlockFight extends Duel {
         lines.add(ChatColor.GRAY + "A hit: +1, a knock into the void: +" + VOID_BONUS);
     }
 
+    /**
+     * In the zone of the map; never a block that closes a player in completely (the anti full box,
+     * the owner's choice of 22/11: see {@link FullBox}), the one who places it or another.
+     */
     @Override
     boolean canPlace(Player player, Block block, BlockPlaceEvent event) {
-        if (arena.map() != null) {
-            return arena.contains(block, 45, 12, 25);
+        boolean inZone = arena.map() != null ? arena.contains(block, 45, 12, 25) : arena.contains(block, 30, 12, 16);
+        if (!inZone) {
+            return false;
         }
-        return arena.contains(block, 30, 12, 16);
+        World world = block.getWorld();
+        for (Player inGame : online()) {
+            Location feet = inGame.getLocation();
+            if (inGame.getGameMode() == org.bukkit.GameMode.SPECTATOR || !world.equals(feet.getWorld())) {
+                continue;
+            }
+            if (FullBox.closes(feet.getBlockX(), feet.getBlockY(), feet.getBlockZ(), block.getX(), block.getY(), block.getZ(),
+                    (x, y, z) -> world.getBlockAt(x, y, z).getType().isSolid())) {
+                player.sendMessage(ChatColor.RED + (inGame == player ? "You can't box yourself in!" : "You can't box a player in!"));
+                return false;
+            }
+        }
+        return true;
+    }
+
+    /**
+     * A block broken (one placed in the round) drops on the ground, as a block broken anywhere
+     * (the owner's ask of 22/11): the wool of its colour, the end stone, the ladders of the kit.
+     */
+    @Override
+    @SuppressWarnings("deprecation") // Block#getData: the colour of the wool
+    ItemStack dropOf(Block block) {
+        return kept(block.getType(), block.getData());
+    }
+
+    /** The item a broken block of this type gives back: wool (of its colour), end stone, a ladder; null for another. */
+    static ItemStack kept(Material type, byte data) {
+        if (type == Material.WOOL) {
+            return new ItemStack(Material.WOOL, 1, data);
+        }
+        return type == Material.ENDER_STONE || type == Material.LADDER ? new ItemStack(type) : null;
     }
 }
