@@ -200,7 +200,7 @@ Snowball Spleef et Red Rover sont codés avec des valeurs de départ à confirme
 | 6.4 | Block Aim Practice (patterns de la communauté) | P3 | Parcours : IMPLÉMENTÉ le 22/11 (ton choix sur la carte : Block Aim ensuite) ; le Bridge Chrono avait déjà les ponts droits, diagonaux et en montée, il a maintenant aussi le pont avec un virage (16, 32 et 64 blocs, un record chacun) ; build et tests unitaires passés en CI (d216c86) ; installé le 22/11 (avec 28a4bee), pas encore joué. Placement sur cible : IMPLÉMENTÉ le 22/11, nouveau mode « Block aim » (`block-aim`) : une face s'allume sous les pieds au bout du pont, sur le côté du pont ou sur le lit, 5 niveaux de plus en plus rapides comme ceux de Ladder Practice, un record par niveau ; build et tests unitaires passés en CI (28a4bee) ; installé sur ton serveur de test le 22/11 avec le pont avec virage, pas encore joué (détail plus bas, « Étape 7 : Block Aim Practice ») | à confirmer : le virage à droite, à mi-chemin, à plat ; pas de virage en montée (la place manque à moins de 64 blocs du centre) ; placement sur cible : la scène générée (question 8 sans réponse), les 15 faces, les temps des 5 niveaux (3 s à 1 s), un bloc posé ailleurs compté sans finir la série |
 | 6.5.1 | Red Rover (Sumo, Block Placement, Block Edit, Top Bridge…) | P2 | Sumo, Block Edit, Block Placement, Top Bridge : TESTÉ par les bots en CI (21/11) ; rien encore en jeu | question 10 (qui reste, points ou élimination : codé « points, le gagnant reste, premier à 3 », à confirmer) ; 90 s par 1v1 à confirmer  |
 | 6.5.2 | Modes 2v1 asymétriques (Clutch Scenario, stuff amélioré) | P3 | Clutch Scenario : IMPLÉMENTÉ le 22/11, build et tests unitaires passés en CI (le partage du joueur seul, la party gardée ensemble) ; pas encore joué, ni par les bots ni en jeu ; en 1v1, 1v2, 1v3 et 1v4 comme Invis Practice et le Bed Break Simulator (ta demande du 22/11, à la place des 2v2, 3v3 et 4v4 ; les victoires de ceux-ci comptent toujours pour le titre Clutch Scenario) ; à partir du 1v2, le joueur seul, tiré au sort, part sans lit avec une vie, les autres gardent le leur (ton choix du 21/11) ; une party reste ensemble, le joueur seul est tiré parmi les autres (ton choix du 22/11). Stuff amélioré : IMPLÉMENTÉ le 22/11 (ton choix sur la carte : Bed Fight 1v2), CI verte (3cdfed2 : build, tests unitaires, tests sur serveur) ; installé sur ton serveur de test le 22/11 (aa724b7) ; pas encore joué | l'écart de stuff (valeurs de départ : jambières et bottes en fer, épée en pierre, sans Protection, dans `stuff-ameliore:` de la config de rago-bedwars) |
-| 6.5.3 | Bot IA : étude technique | P3 | EN COURS : RagoBot écrit, en test par les bots en CI (journal « RagoBot ») ; tes réponses du 22/11 aux 6 questions (détail plus bas, « Tes réponses du 22/11 ») : un vrai joueur, en Top Bridge 1v1 et 2v2 et en Sumo 1v1 pour commencer. Le Combo Bot : TESTÉ en CI le 22/11 (243a20d), retiré des menus (journal « Combo Bot retiré des menus ») | — |
+| 6.5.3 | Bot IA : étude technique | P3 | EN COURS : RagoBot écrit et installé sur ton serveur de test le 22/11 ; en CI, le Sumo passé, le Top Bridge 1v1 bloqué au bord de l'escalier, corrigé, en test (journal « RagoBot ») ; tes réponses du 22/11 aux 6 questions (détail plus bas, « Tes réponses du 22/11 ») : un vrai joueur, en Top Bridge 1v1 et 2v2 et en Sumo 1v1 pour commencer. Le Combo Bot : TESTÉ en CI le 22/11 (243a20d), retiré des menus (journal « Combo Bot retiré des menus ») | — |
 | 6.6 | Catégorie 3 joueurs (Red Rover, Clutch Scenario, Bed Break Scenario, Invis Practice) | P2 | IMPLÉMENTÉ le 22/11, CI verte (tests unitaires ; les bots du lobby ouvrent la boussole à 6 catégories et y prennent Duels au slot 12 ; tests du site) : « 3 Players » dans la boussole seulement, sans PNJ (ton choix du 21/11), après Fun Practice ; elle montre Red Rover (un objet), Bed Break Simulator 1v2, Invis Practice 1v2 et Clutch Scenario 1v2 (`aussi:` de `categories:`), avec les mêmes files : ces modes restent dans leur catégorie, leurs stats aussi ; le retour d'un groupe ouvert depuis elle y ramène ; aussi dans l'accueil, `/play 3 players` et le site (tests du site passés en local) | son nom, son slogan, sa description et son icône (une tête) sont à confirmer ; la boussole passe à 6 catégories, côte à côte des slots 10 à 15 (sur la ligne du haut, slots 1 à 6, depuis 5.9) |
 
 ### Étape 8 : administration et benchmark (Phase 7)
@@ -210,7 +210,7 @@ propositions » (Claude Docs), avec 9 questions à trancher.
 
 | # | Tâche | Prio | Statut | Fichiers | Manque |
 | --- | --- | --- | --- | --- | --- |
-| 7.1 | Outils Owner (Reach, Scaffold…) réservés au compte Owner | P3 | IMPLÉMENTÉ, en test par les bots en CI (journal « Outils Owner ») : ta réponse du 22/11, « je t'écoute », puis « Enchaine » sur ma recommandation (qRago seul, Reach et Scaffold, coupés par défaut, jamais en Ranked, partie non comptée) | `OwnerTools`, `OwnerRules` (nouveaux), `LobbyState`, `QueueController`, `RagoLobby`, `LobbyService`, `Training` (practice), `plugin.yml`, `config.yml` | C8 ; questions 1, 2 et 5 |
+| 7.1 | Outils Owner (Reach, Scaffold…) réservés au compte Owner | P3 | TESTÉ EN CI le 22/11 (75050b8, les bots Owner : journal « Outils Owner »), installé sur ton serveur de test le 22/11, essai en jeu à faire : ta réponse du 22/11, « je t'écoute », puis « Enchaine » sur ma recommandation (qRago seul, Reach et Scaffold, coupés par défaut, jamais en Ranked, partie non comptée) | `OwnerTools`, `OwnerRules` (nouveaux), `LobbyState`, `QueueController`, `RagoLobby`, `LobbyService`, `Training` (practice), `plugin.yml`, `config.yml` | C8 ; questions 1, 2 et 5 |
 | 7.2 | Rejoindre une partie en cours comme participant (admin), sans fausser les stats | P2 | BLOQUÉ (proposition du 22/11 : `/join <joueur>`, l'admin ne garde pas son équipe en vie, partie non comptée) | `Spectating`, `PracticeGame`, `BedwarsGame`, `LobbyService` | questions 3, 4 et 5 |
 | 7.3 | AntiCheat compatible KB custom, fireballs, TNT, practice ; Owner exempté | P1 | BLOQUÉ (proposition du 22/11 : Grim, gratuit, Java 17 ou plus ; alertes seules pendant un essai) | à choisir (Grim, Vulcan…) | questions 6, 7 et 8 |
 | 7.4 | FPSbenchmark : PNJ `fpsbenchmark` sur `159:14`, hors boussole, scénarios reproductibles | P3 | BLOQUÉ (proposition du 22/11 : faux joueurs par paquets, caméra fixe, graine fixe) | point `fpsbenchmark` | question 9 : nom affiché, skin, lieux, nombres, durées |
@@ -2043,6 +2043,39 @@ dissoute. Vérifié ici : la syntaxe Java, et `BotBrainTest` (10 tests) et `Part
 celui du bouton qui demande Bukkit) lancés ici, tous passés ; le reste tourne en CI.
 À l'install : la section `ragobot:` arrive avec la fusion de ton `config.yml`.
 
+**En CI le 22/11 (75050b8).** Passés : l'invitation et les refus, le Sumo duel (RagoBot pousse le
+bot immobile hors de la plateforme : 2 coups, vu par le client du bot avec 82 déplacements, 24
+coups d'épée et 2 knockbacks). Échoué : le Top Bridge 1v1. RagoBot frappe une fois 3 secondes
+après « Fight! », puis plus rien pendant 60 secondes, sans que personne tombe. Lors du passage
+précédent (d0bc040), il avait gagné la manche en poussant le bot jusqu'en bas de l'escalier.
+
+**La cause** (trouvée ici, pas encore vue en CI). L'escalier du Top Bridge fait un bloc de large.
+RagoBot ne fait un pas que si le sol continue sous le centre de ses pieds, à 0,6 et à 1,2 bloc
+devant lui. Quand il se tient près du bord de l'escalier et que l'autre est un peu de ce côté,
+tous ses chemins vers lui sortent de l'escalier : tout droit, avec ou sans strafe. Il reste donc
+sur place, et contre un joueur immobile, pour toujours.
+
+**Ce que j'ai simulé.** Une simulation grossière de la physique 1.8, avec la vraie carte du Top
+Bridge de bw-demo (calculée par `TopBridge`) et le vrai `BotBrain`, face à un joueur immobile :
+- sans la correction, il reste bloqué dans 73 parties sur 200 ;
+- avec la correction, il gagne les 200.
+
+C'est une simulation, pas le serveur.
+
+**La correction** (`BotBrain`). Quand aucun de ses chemins ne garde le sol, il essaie les mêmes
+touches tournées de 20, 40 puis 60 degrés, d'un côté puis de l'autre. Le premier chemin qui garde
+le sol le ramène vers le milieu de l'escalier, et aux ticks suivants il va droit vers l'autre.
+Jamais au-delà de 60 degrés : si l'autre est derrière un bord sans chemin vers lui, il reste sur
+place, comme avant.
+
+Tests :
+- nouveau `BotBrainTest.onAPathOneBlockWideItGoesOnToTheOtherALittleToItsSide`, qui échoue avec
+  l'ancien code ;
+- les 11 tests de `BotBrainTest` lancés ici, tous passés ;
+- en CI, le message d'échec du Top Bridge 1v1 donne maintenant où sont RagoLeader et RagoBot.
+
+Ce qu'il reste à vérifier : le Top Bridge 1v1 et 2v2 en CI, puis en jeu.
+
 ### Outils Owner (7.1, 22/11)
 
 Ma recommandation du 22/11, sans contre-ordre de ta part (« Enchaine ») :
@@ -2086,6 +2119,60 @@ en Block placement 1v1 (la laine se pose sous qRago qui recule hors de sa platef
 compte pas). Vérifié ici : la syntaxe Java, et `OwnerRulesTest` (6 tests) lancé ici, passé ; le
 reste tourne en CI. À l'install : la section `outils-owner:` arrive avec la fusion de ton
 `config.yml`.
+
+**En CI le 22/11 (75050b8) : tous les tests des bots Owner passés.**
+- `/owner` est inconnu pour RagoCible et pour RagoOp (opérateur), et qRago voit l'état de ses
+  outils.
+- `/owner reach 7` est refusé.
+- En Sumo duel, Reach 6 activé dans la partie : le coup donné à 6 blocs pousse RagoCible. La
+  victoire est là, le récapitulatif compte le coup, et la partie ne donne ni XP ni points.
+- En Ranked Sumo : le message « Never in a ranked game », 3 coups dans le vide sans effet, et la
+  partie compte.
+- En Block placement 1v1 avec Scaffold : qRago recule de 4 blocs hors de sa plateforme sans
+  tomber, la laine se pose sous lui (128 laines, puis 125) et la partie ne compte pas.
+- Le log du serveur note « Game with an Owner tool in sumo » et « in block-fight-1v1: not counted
+  in the stats ».
+
+Le test du Top Bridge de RagoBot a échoué avant la vérification automatique de ces deux lignes du
+log : je les ai vues dans la fin du log, et elles seront vérifiées au prochain passage.
+
+**À l'install du 22/11** : ton serveur est en `online-mode=true` (sans BungeeCord), donc
+`uuid: ""` reste tel quel. Il suffit d'être qRago et op (ou rang owner).
+
+### Installation du 22/11 après-midi (75050b8)
+
+Ta demande du 22/11 à 14h34 : « Release Owner Tool et install la nouvelle version sur mon pc ».
+
+**Installé** sur ton serveur de test le 22/11, vers 14h50 heure de Paris, serveur arrêté :
+- les 5 plugins du commit 75050b8, empreinte du zip vérifiée ;
+- `rago-lobby`, `rago-practice` et `rago-bedwars` changent, `rago-combat-engine` et
+  `rago-build-tools` sont identiques.
+
+Ce que contient cette version, depuis aa724b7 :
+- les menus Solo / Party / Ranked (3.7) ;
+- les PNJ Rago Client et Rago Optimizer et leurs panneaux (5.6A), jncl et nativ (5.6C) ;
+- le texte de remerciement ;
+- le Snowball Spleef à deux étages (rayon 18) et le Parkour Duel ;
+- le Combo Bot retiré des menus ;
+- RagoBot et les outils Owner.
+
+Les trois `config.yml` sont fusionnés avec tes réglages :
+- lobby : 269 lignes ajoutées, 39 retirées. Le seul conflit portait sur un commentaire, celui des
+  PNJ de la salle des remerciements (3 lignes de ton fichier contre les 5 du nouveau) : j'ai pris
+  le nouveau, aucun réglage n'est touché ;
+- practice : 18 ajoutées, 11 retirées, dont `rayon: 18`, `etages: 2` et `parkour-duel:` ;
+- bedwars : 7 ajoutées, 1 retirée.
+
+Dans ton `config.yml` du lobby, j'ai aussi déplacé les panneaux `rago-client` et `rago-optimizer`
+contre le mur. Ils font 6 x 6, avec `lieu: "-11 69 -39 sud"` et `"11 69 -39 sud"` : seules 6 lignes
+changent, et `points.yml` n'a pas de point qui les remplace.
+
+J'ai lu seulement la ligne `online-mode` de `server.properties` et la ligne `bungeecord` de
+`spigot.yml`, sans les changer. Rien d'autre n'est touché : ni `server.properties`, ni l'icône, ni
+les mondes. L'ancien état est dans `sauvegarde-avant-maj-75050b8`.
+
+Rien n'est encore joué en jeu. La correction de RagoBot en Top Bridge (journal « RagoBot ») n'est
+pas dans cette version.
 
 ### Installation du 22/11 au matin (aa724b7)
 

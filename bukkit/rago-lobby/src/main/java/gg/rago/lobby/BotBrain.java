@@ -129,6 +129,12 @@ final class BotBrain {
     /** How far ahead it looks for the ground before a step (blocks), and how far down (blocks). */
     static final double[] AHEAD = {0.6, 1.2};
     static final int DROP = 3;
+    /**
+     * When every way of its keys goes off an edge, it tries them turned by these angles (degrees),
+     * to one side then the other: never more than 60, so that the other beyond an edge with no way
+     * to them still leaves it standing, as before.
+     */
+    static final double[] TURNS = {20, 40, 60};
 
     final Skill skill;
     private final Random random;
@@ -267,7 +273,10 @@ final class BotBrain {
 
     /**
      * On the ground, it steps only where the ground goes on: else the other side of its strafe, or
-     * no forward, or no strafe, or it stands.
+     * no forward, or no strafe, or the same keys turned a little to one side ({@link #TURNS}), or it
+     * stands. The turn is for a path one block wide (the stairway of the Top Bridge) when it stands
+     * near its side and the other is a little to that side: every way at the other goes off the
+     * path, the one turned back towards its middle does not, and the next ticks it walks at them.
      */
     private void keepOnGround(Controls controls, Sight sight) {
         if (controls.forward == 0 && controls.strafe == 0) {
@@ -289,6 +298,20 @@ final class BotBrain {
         if (controls.forward != 0 && safe(sight, controls.yaw, controls.forward, 0)) {
             controls.strafe = 0;
             return;
+        }
+        for (double turn : TURNS) {
+            for (int way = 1; way >= -1; way -= 2) {
+                double radians = Math.toRadians(turn * way);
+                double cos = Math.cos(radians);
+                double sin = Math.sin(radians);
+                double forward = controls.forward * cos - controls.strafe * sin;
+                double strafe = controls.forward * sin + controls.strafe * cos;
+                if (safe(sight, controls.yaw, forward, strafe)) {
+                    controls.forward = forward;
+                    controls.strafe = strafe;
+                    return;
+                }
+            }
         }
         controls.forward = 0;
         controls.strafe = 0;

@@ -251,7 +251,10 @@ async function topBridge1v1 (leader, problems) {
     await waitFor(() => leader.health < 20, 60000,
       `RagoBot to hit RagoLeader with its sword (health ${leader.health}; ${seen.summary()})`)
     log(`top bridge 1v1: RagoBot hit RagoLeader (health ${leader.health.toFixed(1)})`)
-    const round = await chatLine(leader, /\S+ wins round 1!/, 60000, from)
+    const round = await chatLine(leader, /\S+ wins round 1!/, 60000, from).catch((error) => {
+      const bot = ragoBot(leader)
+      throw new Error(`${error.message}; RagoLeader at ${where(leader.entity)}, RagoBot at ${bot ? where(bot) : 'out of sight'}; ${seen.summary()}`)
+    })
     if (round.startsWith(team)) throw new Error(`RagoLeader's team won the round: RagoBot fell off on its own (${round}; ${seen.summary()})`)
   } finally {
     seen.stop()

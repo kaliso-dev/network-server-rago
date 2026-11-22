@@ -129,6 +129,34 @@ class BotBrainTest {
     }
 
     @Test
+    void onAPathOneBlockWideItGoesOnToTheOtherALittleToItsSide() {
+        // the stairway of the Top Bridge, seen from above: a path one block wide (the blocks of z 0),
+        // endless in x; it stands at its side (z 0.02), the other down the path a little to that
+        // side (z -0.4): every way at them goes off the path at first. As a player, it walks back
+        // towards the middle of the path and on to them; in CI, it stood there for the whole round.
+        BotBrain brain = new BotBrain(BotBrain.Skill.BUNDLED, new Random(6));
+        BotBrain.Sight sight = facing(-6.5, -0.4);
+        sight.z = 0.02;
+        sight.yaw = BotBrain.yawTo(sight.tx - sight.x, sight.tz - sight.z);
+        sight.ground = (bx, by, bz) -> by == 0 && bz == 0;
+        assertFalse(BotBrain.safe(sight, sight.yaw, 1, 0), "straight at them, it would step off");
+        boolean there = false;
+        for (int tick = 0; tick < 100 && !there; tick++) {
+            BotBrain.Controls controls = brain.think(sight);
+            assertTrue(BotBrain.safe(sight, controls.yaw, controls.forward, controls.strafe)
+                    || controls.forward == 0 && controls.strafe == 0, "tick " + tick);
+            // a rough walk: 0.2 of a block a tick, the way of its keys
+            double[] way = BotBrain.way(controls.yaw, controls.forward, controls.strafe);
+            sight.x += way[0] * 0.2;
+            sight.z += way[1] * 0.2;
+            sight.yaw = controls.yaw;
+            assertTrue(sight.z >= 0 && sight.z < 1, "it stays on the path, tick " + tick + ": z " + sight.z);
+            there = Math.hypot(sight.tx - sight.x, sight.tz - sight.z) <= BotBrain.FAR;
+        }
+        assertTrue(there, "it reached the other: at x " + sight.x + ", z " + sight.z);
+    }
+
+    @Test
     void itEatsAGoldenAppleWhenLowAndAway() {
         BotBrain.Sight away = facing(10.5, 0.5);
         away.health = 8;
