@@ -591,7 +591,7 @@ final class ModeMenu {
         if (Holder.CATEGORIES.equals(view)) {
             List<ModeCategory> categories = settings.categories();
             for (int i = 0; i < categories.size(); i++) {
-                inventory.setItem(categorySlot(i, categories.size()), icon(categories.get(i), current, viewer));
+                inventory.setItem(categorySlot(i, categories.size()), categoryIcon(categories.get(i), current, viewer));
             }
             fillPopular(inventory, settings.modes(), current, viewer);
             return;
@@ -761,7 +761,7 @@ final class ModeMenu {
     }
 
     /** A category in the compass: what it is, its games and queue, and the click to its modes. */
-    private ItemStack icon(ModeCategory category, List<GameMode> current, HumanEntity viewer) {
+    private ItemStack categoryIcon(ModeCategory category, List<GameMode> current, HumanEntity viewer) {
         ItemStack item = new ItemStack(category.icon());
         ItemMeta meta = item.getItemMeta();
         meta.setDisplayName(category.name());

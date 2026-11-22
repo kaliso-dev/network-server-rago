@@ -773,7 +773,7 @@
       "ranked": false,
       "startHere": false,
       "event": false,
-      "description": "Free for all on Archway FFA, in diamond armour: spawn on the top bridge, low, mid or at random; come and go when you like, a kill heals you.",
+      "description": "Free for all on Archway FFA, in diamond armour: spawn on the top bridge, low, mid or at random; come and go when you like. A kill heals you and gives your whole kit back.",
       "plugins": [
         "bedwars"
       ]
