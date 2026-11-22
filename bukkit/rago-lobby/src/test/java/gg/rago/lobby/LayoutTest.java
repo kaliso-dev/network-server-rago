@@ -26,7 +26,31 @@ class LayoutTest {
     }
 
     @Test
-    void popularNowIsTheTopRowAboveTheCategories() {
+    void theCompassIsLaidOutAsOnMinemen() {
+        // the six categories of the bundled config.yml side by side in the top row, Duels the third
+        assertEquals(1, ModeMenu.tabSlot(0, 6), "Practice on the left");
+        assertEquals(3, ModeMenu.tabSlot(2, 6), "Duels");
+        assertEquals(6, ModeMenu.tabSlot(5, 6), "3 Players on the right");
+        for (int i = 0; i < 6; i++) {
+            assertTrue(ModeMenu.tabSlot(i, 6) < 9, "the top row");
+        }
+        // then an empty row, then the modes of the category chosen, seven per row
+        assertEquals(19, ModeMenu.compassSlot(0), "row 2, under the empty row");
+        assertEquals(25, ModeMenu.compassSlot(6));
+        assertEquals(28, ModeMenu.compassSlot(7));
+        // the 15 entries of Practice, the most: three rows of modes, "Popular now" in the bottom row
+        assertEquals(6, ModeMenu.compassRows(3));
+        assertEquals(45, ModeMenu.popularRowOf(3));
+        assertEquals(4, ModeMenu.compassRows(1), "the categories, the empty row, a row of modes, Popular now");
+        assertEquals(27, ModeMenu.popularRowOf(1));
+        // four rows of modes (28, the most a category may hold) take the bottom row: no Popular now
+        assertEquals(6, ModeMenu.compassRows(4));
+        assertEquals(-1, ModeMenu.popularRowOf(4));
+        assertEquals(52, ModeMenu.compassSlot(LobbySettings.MAX_MODES_PER_CATEGORY - 1), "the last slot but one of six rows");
+    }
+
+    @Test
+    void popularNowIsCentredInItsRow() {
         assertEquals(4, ModeMenu.popularSlot(0, 1), "one item: the middle of the top row");
         assertEquals(2, ModeMenu.popularSlot(0, 3));
         assertEquals(6, ModeMenu.popularSlot(2, 3));

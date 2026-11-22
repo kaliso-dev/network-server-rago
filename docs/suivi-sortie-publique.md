@@ -179,6 +179,7 @@ informations manquantes.
 | 5.6C | `jncl` et `nativ` (affiché woryes, skin Woryes), rôle Mod en jaune clair | Lobby | P2 | BLOQUÉ | `LobbyNpcs`, `RankDef` | pseudo Woryes, C7 |
 | 5.7 | Texte de remerciement en anglais, fidèle à ton histoire, avec le Discord, à valider avant intégration | Lobby | P2 | À FAIRE | point `textremerciement`, `FakeHologram` | lien Discord |
 | 5.8 | Revoir les skins des PNJ du lobby | Lobby | P2 | À FAIRE | `NpcSkins`, `skins.yml` | — |
+| 5.9 | Boussole comme sur Minemen (ta demande du 22/11) : les catégories en haut, un espace, puis les modes de la catégorie choisie | Lobby | P1 | IMPLÉMENTÉ le 22/11, pas encore testé (CI en cours) : les 6 catégories sur la ligne du haut (slots 1 à 6), une ligne vide, les jeux de la catégorie choisie à partir du slot 19 ; un clic sur une autre catégorie change les jeux dans le même menu, celle choisie brille (« Its modes are below ») ; s'ouvre sur Practice, ou sur la catégorie du PNJ, de `/play` ou du groupe dont on revient ; « Popular now » passe sur la ligne du bas ; le menu garde la taille de la plus grande catégorie (Practice, 15 jeux : 6 lignes) | `ModeMenu`, `lobby-bots.mjs` | les catégories restent celles d'aujourd'hui ; d'autres (Duo, Ranked…, voir 3.7) sont à choisir |
 
 ### Étape 7 : nouveaux modes (Phase 6) — proposition avant tout code
 
@@ -200,16 +201,19 @@ Snowball Spleef et Red Rover sont codés avec des valeurs de départ à confirme
 | 6.5.1 | Red Rover (Sumo, Block Placement, Block Edit, Top Bridge…) | P2 | Sumo, Block Edit, Block Placement, Top Bridge : TESTÉ par les bots en CI (21/11) ; rien encore en jeu | question 10 (qui reste, points ou élimination : codé « points, le gagnant reste, premier à 3 », à confirmer) ; 90 s par 1v1 à confirmer  |
 | 6.5.2 | Modes 2v1 asymétriques (Clutch Scenario, stuff amélioré) | P3 | Clutch Scenario : IMPLÉMENTÉ le 22/11, build et tests unitaires passés en CI (le partage du joueur seul, la party gardée ensemble) ; pas encore joué, ni par les bots ni en jeu ; en 1v1, 1v2, 1v3 et 1v4 comme Invis Practice et le Bed Break Simulator (ta demande du 22/11, à la place des 2v2, 3v3 et 4v4 ; les victoires de ceux-ci comptent toujours pour le titre Clutch Scenario) ; à partir du 1v2, le joueur seul, tiré au sort, part sans lit avec une vie, les autres gardent le leur (ton choix du 21/11) ; une party reste ensemble, le joueur seul est tiré parmi les autres (ton choix du 22/11). Stuff amélioré : BLOQUÉ | mode du stuff amélioré |
 | 6.5.3 | Bot IA : étude technique | P3 | À FAIRE | l'étude d'abord, sans code (question 13) |
-| 6.6 | Catégorie 3 joueurs (Red Rover, Clutch Scenario, Bed Break Scenario, Invis Practice) | P2 | IMPLÉMENTÉ le 22/11, CI verte (tests unitaires ; les bots du lobby ouvrent la boussole à 6 catégories et y prennent Duels au slot 12 ; tests du site) : « 3 Players » dans la boussole seulement, sans PNJ (ton choix du 21/11), après Fun Practice ; elle montre Red Rover (un objet), Bed Break Simulator 1v2, Invis Practice 1v2 et Clutch Scenario 1v2 (`aussi:` de `categories:`), avec les mêmes files : ces modes restent dans leur catégorie, leurs stats aussi ; le retour d'un groupe ouvert depuis elle y ramène ; aussi dans l'accueil, `/play 3 players` et le site (tests du site passés en local) | son nom, son slogan, sa description et son icône (une tête) sont à confirmer ; la boussole passe à 6 catégories, côte à côte des slots 10 à 15 |
+| 6.6 | Catégorie 3 joueurs (Red Rover, Clutch Scenario, Bed Break Scenario, Invis Practice) | P2 | IMPLÉMENTÉ le 22/11, CI verte (tests unitaires ; les bots du lobby ouvrent la boussole à 6 catégories et y prennent Duels au slot 12 ; tests du site) : « 3 Players » dans la boussole seulement, sans PNJ (ton choix du 21/11), après Fun Practice ; elle montre Red Rover (un objet), Bed Break Simulator 1v2, Invis Practice 1v2 et Clutch Scenario 1v2 (`aussi:` de `categories:`), avec les mêmes files : ces modes restent dans leur catégorie, leurs stats aussi ; le retour d'un groupe ouvert depuis elle y ramène ; aussi dans l'accueil, `/play 3 players` et le site (tests du site passés en local) | son nom, son slogan, sa description et son icône (une tête) sont à confirmer ; la boussole passe à 6 catégories, côte à côte des slots 10 à 15 (sur la ligne du haut, slots 1 à 6, depuis 5.9) |
 
 ### Étape 8 : administration et benchmark (Phase 7)
 
+Proposition écrite le 22/11, rien n'est codé : document « Étape 8 : administration et benchmark —
+propositions » (Claude Docs), avec 9 questions à trancher.
+
 | # | Tâche | Prio | Statut | Fichiers | Manque |
 | --- | --- | --- | --- | --- | --- |
-| 7.1 | Outils Owner (Reach, Scaffold…) réservés au compte Owner | P3 | À FAIRE | `StaffTools`, `StaffPanel` | C8 |
-| 7.2 | Rejoindre une partie en cours comme participant (admin), sans fausser les stats | P2 | À FAIRE | `Spectating`, `PracticeGame`, `BedwarsGame` | — |
-| 7.3 | AntiCheat compatible KB custom, fireballs, TNT, practice ; Owner exempté | P1 | À FAIRE | à choisir (Grim, Vulcan…) | choix de l'anticheat |
-| 7.4 | FPSbenchmark : PNJ `fpsbenchmark` sur `159:14`, hors boussole, scénarios reproductibles | P3 | À FAIRE | point `fpsbenchmark` | — |
+| 7.1 | Outils Owner (Reach, Scaffold…) réservés au compte Owner | P3 | BLOQUÉ (proposition du 22/11 : UUID dans `config.yml`, Reach à la distance que tu choisis, Scaffold, jamais en Ranked, partie non comptée) | `StaffTools`, `StaffPanel`, `LobbyService` | C8 ; questions 1, 2 et 5 |
+| 7.2 | Rejoindre une partie en cours comme participant (admin), sans fausser les stats | P2 | BLOQUÉ (proposition du 22/11 : `/join <joueur>`, l'admin ne garde pas son équipe en vie, partie non comptée) | `Spectating`, `PracticeGame`, `BedwarsGame`, `LobbyService` | questions 3, 4 et 5 |
+| 7.3 | AntiCheat compatible KB custom, fireballs, TNT, practice ; Owner exempté | P1 | BLOQUÉ (proposition du 22/11 : Grim, gratuit, Java 17 ou plus ; alertes seules pendant un essai) | à choisir (Grim, Vulcan…) | questions 6, 7 et 8 |
+| 7.4 | FPSbenchmark : PNJ `fpsbenchmark` sur `159:14`, hors boussole, scénarios reproductibles | P3 | BLOQUÉ (proposition du 22/11 : faux joueurs par paquets, caméra fixe, graine fixe) | point `fpsbenchmark` | question 9 : nom affiché, skin, lieux, nombres, durées |
 
 ### Étape 9 : release (Phases 8 et 9)
 

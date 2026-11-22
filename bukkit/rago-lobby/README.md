@@ -119,10 +119,11 @@ dans les files d'attente des modes de jeu.
   score du joueur avec sa place (« Your best: 8 clutches (#5) »). C'est le record de la variante
   sur laquelle l'entraînement commence : la première, et pour le block edit la vitesse du bot par
   défaut. Les duels gardent leur Daily Streak.
-- **« Popular now ».** La ligne du haut de la boussole et de chaque catégorie montre les modes où
-  il y a du monde en ce moment : au moins un joueur en partie ou en file, les plus joués d'abord
-  (à égalité, celui où l'on attend : une partie bientôt), trois au plus, ceux de la catégorie dans
-  une catégorie. Chacun dit combien jouent et attendent, et un clic entre dans sa file comme
+- **« Popular now ».** La ligne du bas de la boussole montre les modes où il y a du monde en ce
+  moment, toutes catégories confondues : au moins un joueur en partie ou en file, les plus joués
+  d'abord (à égalité, celui où l'on attend : une partie bientôt), trois au plus. Si les jeux d'une
+  catégorie prennent quatre lignes, il ne reste pas de place pour elle. Chacun dit combien jouent
+  et attendent, et un clic entre dans sa file comme
   ailleurs. Au bout de la ligne, le **défi du jour** des entraînements (une montre qui brille, ce
   qu'il demande) : un clic le lance (`/challenge play`), depuis le lobby ou depuis un entraînement.
   Les parties privées ne comptent pas. La ligne se met à jour chaque seconde avec le menu.
@@ -556,12 +557,14 @@ config.yml fourni les suit :
 
 ## Catégories, PNJ et classements
 
-- `categories:` range les modes par zone du lobby : la boussole montre les catégories (Practice à
-  gauche, RBW Modes avec un lit, Duels, Arenas à droite : les modes sans file, FFA, Top Bridge FFA,
-  Lobby Fight FFA, Bridge fight, Block placement arena et Arena Free, où l'on entre tout de suite ;
-  Lobby Fight 1v1 est dans Duels),
-  puis les jeux de celle qu'on choisit (7 catégories, 28 objets par catégorie au plus, un groupe
-  comptant pour un). Chaque mode dit sa `categorie:`. Le `slogan:` d'une catégorie (40 caractères au
+- `categories:` range les modes par zone du lobby. La boussole est rangée comme sur Minemen (ta
+  demande du 22/11) : les catégories côte à côte sur la ligne du haut (Practice à gauche, RBW Modes
+  avec un lit, Duels, Arenas : les modes sans file, FFA, Top Bridge FFA, Lobby Fight FFA, Bridge
+  fight, Block placement arena et Arena Free, où l'on entre tout de suite ; Lobby Fight 1v1 est dans
+  Duels ; puis Fun Practice et 3 Players), une ligne vide, puis les jeux de la catégorie choisie
+  (7 catégories, 28 objets par catégorie au plus, un groupe comptant pour un). Elle s'ouvre sur la
+  première catégorie, ou sur celle du PNJ, de `/play` ou du groupe dont on revient ; un clic sur une
+  autre catégorie change les jeux dans le même menu, et celle choisie brille. Chaque mode dit sa `categorie:`. Le `slogan:` d'une catégorie (40 caractères au
   plus) dit ce qu'on y fait : sous son nom dans la boussole, sous son PNJ et dans l'accueil.
 - `aussi:` d'une catégorie montre en plus des jeux d'autres catégories (des modes ou des groupes),
   après les siens, avec les mêmes files. « 3 Players » (plan 6.6), dans la boussole seulement, sans
@@ -577,8 +580,8 @@ config.yml fourni les suit :
   vers le spawn, qui tient l'icône du mode, avec son nom et le nombre de joueurs en file au-dessus
   de la tête. Un clic rejoint la file du mode, ou ouvre un menu quand le PNJ a plusieurs modes ;
   dans ce menu, les tailles d'un même groupe ne font qu'un objet (Top Bridge, une échelle qui ouvre
-  1v1, 2v2 et FFA), sauf si le PNJ n'a que ce groupe. Un PNJ avec `categorie:` ouvre toute sa
-  catégorie, comme la boussole. Au centre, quatre PNJ seulement, un par façon de jouer, pour qu'un
+  1v1, 2v2 et FFA), sauf si le PNJ n'a que ce groupe. Un PNJ avec `categorie:` ouvre la boussole
+  sur sa catégorie. Au centre, quatre PNJ seulement, un par façon de jouer, pour qu'un
   nouveau joueur ne s'y perde pas : Practice, RBW Modes, Duels et Arenas (les points `practice`,
   `rbw`, `duels` et `arenas`), plus un PNJ **Private game** (point `prive`) pour les parties
   privées, qui restent aussi dans RBW Modes. Les PNJ d'un mode (Ranked Bedwars, FFA,
