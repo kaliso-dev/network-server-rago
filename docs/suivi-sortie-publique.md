@@ -191,7 +191,7 @@ Snowball Spleef et Red Rover sont codés avec des valeurs de départ à confirme
 | # | Tâche | Prio | Statut | Manque |
 | --- | --- | --- | --- | --- |
 | 6.1 | Catégorie FUN PRACTICE, PNJ `FunMod2` sur quartz | P2 | IMPLÉMENTÉ (21/11 ; tests unitaires et test du lobby en CI passés) | le skin du PNJ (Steve pour l'instant), le nom de la catégorie à confirmer ; poser le point `funmod2` sur ton serveur |
-| 6.1a | Snowball Spleef (style Minemen) | P2 | TESTÉ par les bots en CI (21/11), pas encore en jeu | valeurs de départ à confirmer : rayon 12, 1 étage, écart 6, 1 boule par bloc, 1 round |
+| 6.1a | Snowball Spleef (style Minemen) | P2 | IMPLÉMENTÉ le 22/11 (ta demande : « agrandi la map fait 2 étape, et fait en sorte que les joueurs ne puisse pas se frapper entre eux ») : 2 étages de neige, 6 blocs l'un sous l'autre, rayon 18 au lieu de 12 ; plus aucune poussée entre joueurs (ni main, ni boule de neige). Le bot de la CI le vérifie une fois le run passé ; pas encore installé | valeurs à confirmer : rayon 18 (« agrandi » sans chiffre), 2 étages, écart 6, 1 boule par bloc, 1 round |
 | 6.1b | Fireball Fight (voir C1) | P2 | TESTÉ par les bots en CI (21/11), pas encore en jeu | valeurs de départ à confirmer : rayon 10, recul 1,5 / 1,2, fireballs illimitées, souffle 3 s, 1 round ; le nom (« Fireball Fight », FUN PRACTICE) |
 | 6.1c | Fast Bedwars (Bedwars 2018 simplifié) | P2 | TESTÉ par les bots en CI le 22/11 (757ba0b), installé sur ton serveur de test le 22/11 (aa724b7), pas encore joué en jeu : codé selon la proposition du 21/11 (ta demande du 22/11 : finir les modes demandés), `fast-bedwars-1v1` et `fast-bedwars-2v2` dans Fun Practice, sur les 20 maps RBW ; forges deux fois plus rapides, événements deux fois plus tôt, shop des 20 objets du Quick Buy par défaut, pas d'améliorations ni de diamants (détail plus bas, « Étape 7 : Fast Bedwars ») | ce que « 2018 » veut dire (shop, améliorations, équipes, durée) ; valeurs de départ à confirmer : 240 fers et 24 ors par minute, lits à 15 min, fin à 22 min 30, la liste du shop, pas d'améliorations, 1v1 et 2v2, les 20 maps RBW |
 | 6.1d | Autres modes FUN connus : propositions | P3 | À FAIRE : ton choix du 22/11, Parkour Duel « dans une map stylée » ; et le Snowball Spleef : map agrandie, deux étages, les joueurs ne peuvent plus se frapper | — |
@@ -1871,6 +1871,34 @@ Fichiers : `config.yml` du lobby (`pnj:`, `rangs:`), `Ranks` (le rang Mod par d�
 Tests : `PersonNpcTest` (les deux modérateurs, leur nom après « [MOD] » en jaune clair, leurs
 comptes, leur bloc), `LobbySettingsTest` (20 PNJ). Vérifié ici : la syntaxe Java ; le reste
 tourne en CI.
+
+### 6.1a Snowball Spleef : deux étages, plus grand, sans coups (22/11)
+
+Ta demande du 22/11 : « pour le mod spleef agrandi la map fait 2 étape, et fait en sorte que les
+joueurs ne puisse pas se frapper entre eux ».
+
+- **Deux étages** : deux sols de neige, le second 6 blocs sous le premier (`etages: 2`,
+  `ecart-etages: 6`). Tomber du premier sur le second ne fait rien perdre (et ne blesse pas) ; on
+  perd en tombant sous le second.
+- **Plus grand** : rayon 18 au lieu de 12 (le sol fait 37 blocs de large au lieu de 25, un peu plus
+  du double de neige). Tu n'as pas donné de chiffre : 18 est à confirmer, `rayon:` dans le
+  `config.yml` de RagoPractice (de 5 à 40). Chaque joueur part à 9 blocs du milieu.
+- **Sans coups** : la main ne poussait déjà pas. Ce qui poussait, c'était la boule de neige qui
+  touche un joueur. J'ai lu « ne puissent pas se frapper » comme « personne ne pousse personne » :
+  une boule qui touche un joueur s'arrête maintenant sur lui, sans le pousser ni casser de neige.
+  On ne gagne plus qu'en cassant la neige sous l'autre. Si tu voulais garder la poussée des boules
+  et enlever seulement les coups à la main, dis-le : c'est une ligne.
+- Le texte du mode dans la boussole ne dit plus « pushes » : « Break the snow under them: each
+  block gives a snowball that breaks the snow too. Two floors, no hits: don't fall! ».
+
+Fichiers : `SnowballSpleef`, `RagoPractice` (les valeurs par défaut), le `config.yml` de RagoPractice
+et celui du lobby (la description), les README, le site (sa description). Tests :
+`SnowballSpleefTest` (les réglages fournis : 2 étages, rayon 18) et le bot de FUN PRACTICE en CI
+(`fun-bots.mjs`) : il vérifie le second étage, lance des boules de neige sur l'autre bot jusqu'à
+en toucher un (aucune poussée, aucun bloc cassé), puis fait tomber l'autre bot sur le second
+étage (toujours en jeu) et sous lui (victoire). Vérifié ici : la syntaxe Java, celle du bot et les
+tests du site (34 passés). À l'install : ton `config.yml` de RagoPractice garde ses valeurs
+(`rayon: 12`, `etages: 1`) tant qu'on ne les change pas ; je les passerai à 18 et 2.
 
 ### Installation du 22/11 au matin (aa724b7)
 

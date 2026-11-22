@@ -20,11 +20,12 @@ import org.bukkit.inventory.ItemStack;
 import org.bukkit.util.Vector;
 
 /**
- * Snowball Spleef, the spleef of FUN PRACTICE (plan 6.1): a floor of snow over the void (or
- * several, one under the other), a diamond shovel that breaks the snow at once, and a snowball
- * for each block broken. A snowball breaks the snow it lands on, and pushes the player it hits,
- * without damage; nobody hits with the hand. The first to fall under the lowest floor loses the
- * round; the floors are whole again at each round. Its settings: snowball-spleef in config.yml.
+ * Snowball Spleef, the spleef of FUN PRACTICE (plan 6.1): floors of snow over the void, one under
+ * the other (two, the owner's choice of 22/11), a diamond shovel that breaks the snow at once, and
+ * a snowball for each block broken. A snowball breaks the snow it lands on. The players cannot
+ * hit each other (the owner, 22/11): neither with the hand nor with a snowball, which stops on a
+ * player without pushing them. The first to fall under the lowest floor loses the round; the
+ * floors are whole again at each round. Its settings: snowball-spleef in config.yml.
  */
 final class SnowballSpleef extends Duel {
 
@@ -79,7 +80,7 @@ final class SnowballSpleef extends Duel {
     static final double STEP = 0.1;
 
     private final Settings settings;
-    /** The snowballs that hit a player: they break no snow where they land. */
+    /** The snowballs that stopped on a player: they break no snow where they land. */
     private final Set<UUID> struckPlayer = new HashSet<>();
 
     SnowballSpleef(PracticeHost host, GameMode mode, Arena arena, List<List<Player>> teams, int target, Settings settings) {
@@ -96,7 +97,7 @@ final class SnowballSpleef extends Duel {
     void intro(Player player) {
         super.intro(player);
         player.sendMessage(ChatColor.GRAY + "Break the snow under them with your shovel; each block gives a snowball, which"
-                + " breaks the snow it lands on and pushes the player it hits. The first to fall loses the round.");
+                + " breaks the snow it lands on. No hits: dig them down. The first to fall under the last floor loses the round.");
     }
 
     @Override
@@ -165,16 +166,17 @@ final class SnowballSpleef extends Duel {
         player.getInventory().setContents(items);
     }
 
-    /** Only the snowballs push, without damage: no hit with the hand, no fall damage. */
+    /**
+     * Nobody hits anybody: no hit with the hand, no push of a snowball (it stops on the player and
+     * breaks no snow), no fall damage.
+     */
     @Override
     boolean damage(Player victim, Player attacker, EntityDamageEvent event) {
         Entity damager = damager(event);
-        if (attacker == null || !(damager instanceof Snowball)) {
-            return false;
+        if (damager instanceof Snowball) {
+            struckPlayer.add(damager.getUniqueId());
         }
-        struckPlayer.add(damager.getUniqueId());
-        noDamage(event);
-        return true;
+        return false;
     }
 
     /** The snow of the floors breaks, nothing else. */
@@ -196,7 +198,7 @@ final class SnowballSpleef extends Duel {
         }
     }
 
-    /** A snowball breaks the snow it lands on, unless it hit a player. */
+    /** A snowball breaks the snow it lands on, unless it stopped on a player. */
     @Override
     @SuppressWarnings("deprecation") // Material#getId: the block of the effect
     void projectileHit(Player shooter, Projectile projectile) {

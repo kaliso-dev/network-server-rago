@@ -2028,8 +2028,9 @@ modes:
     description:
       - "Break the snow under them:"
       - "each block gives a snowball"
-      - "that breaks the snow and"
-      - "pushes. Don't fall!"
+      - "that breaks the snow too."
+      - "Two floors, no hits:"
+      - "don't fall!"
   # Capture the Flag (plan 6.2), The Bridge: played by RagoBedwars on its map CtfBridge; the kit of
   # The Bridge (Hypixel's), in leather armour of the team without the cap; the clay in the team's
   # colour, the pickaxe with Efficiency II, the arrow back 3.5 seconds after being shot. The two

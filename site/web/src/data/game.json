@@ -1349,7 +1349,7 @@
       "ranked": false,
       "startHere": false,
       "event": false,
-      "description": "Break the snow under them: each block gives a snowball that breaks the snow and pushes. Don't fall!",
+      "description": "Break the snow under them: each block gives a snowball that breaks the snow too. Two floors, no hits: don't fall!",
       "plugins": [
         "practice"
       ]

@@ -353,8 +353,8 @@ public final class RagoPractice extends JavaPlugin {
 
     /** The settings of the Snowball Spleef (snowball-spleef); the defaults when they are wrong. */
     private SnowballSpleef.Settings snowballSpleef(FileConfiguration config) {
-        int radius = config.getInt("snowball-spleef.rayon", 12);
-        int floors = config.getInt("snowball-spleef.etages", 1);
+        int radius = config.getInt("snowball-spleef.rayon", 18);
+        int floors = config.getInt("snowball-spleef.etages", 2);
         int gap = config.getInt("snowball-spleef.ecart-etages", 6);
         int snowballs = config.getInt("snowball-spleef.boules-par-bloc", 1);
         int points = config.getInt("snowball-spleef.points-pour-gagner", 1);
@@ -364,7 +364,7 @@ public final class RagoPractice extends JavaPlugin {
         }
         if (problem != null) {
             getLogger().warning("snowball-spleef in config.yml: " + problem + ". The Snowball Spleef plays with its default settings.");
-            return new SnowballSpleef.Settings(12, 1, 6, 1);
+            return new SnowballSpleef.Settings(18, 2, 6, 1);
         }
         return new SnowballSpleef.Settings(radius, floors, gap, snowballs);
     }

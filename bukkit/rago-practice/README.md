@@ -460,12 +460,13 @@ Les valeurs de départ ci-dessous sont **à régler avec le propriétaire**.
   toutes les `souffle-secondes` (3), la barre d'expérience montrant quand il revient. Une frappe
   pousse sans dégât. Les maps du propriétaire pourront aller dans `fireball-knockback.cartes`
   (comme celles du sumo) ; sans map, la plateforme du plugin.
-- **Snowball Spleef** (`snowball-spleef`) : un sol de neige au-dessus du vide (`rayon` 12 ;
-  `etages` 1, `ecart-etages` 6 pour en mettre plusieurs l'un sous l'autre), une pelle en diamant
-  Efficacité V qui casse la neige d'un coup, et `boules-par-bloc` (1) boule de neige par bloc
-  cassé. Une boule casse la neige où elle tombe, ou pousse le joueur qu'elle touche, sans dégât ;
-  personne ne frappe à la main. Tomber sous le dernier étage fait perdre la manche ; les étages
-  sont remis à neuf à chaque manche.
+- **Snowball Spleef** (`snowball-spleef`) : deux sols de neige au-dessus du vide, l'un sous
+  l'autre (`etages` 2, `ecart-etages` 6 blocs entre eux ; `rayon` 18, à confirmer : ton choix du
+  22/11, « agrandi la map, fait 2 étages »), une pelle en diamant Efficacité V qui casse la neige
+  d'un coup, et `boules-par-bloc` (1) boule de neige par bloc cassé. Une boule casse la neige où
+  elle tombe. Les joueurs ne peuvent pas se frapper : ni à la main, ni avec une boule, qui
+  s'arrête sur le joueur touché sans le pousser ni casser de neige. Tomber sous le dernier étage
+  fait perdre la manche ; les étages sont remis à neuf à chaque manche.
 
 Les deux : `points-pour-gagner` 1 (de 1 à 10). Des réglages faux sont signalés au démarrage, et le
 mode joue alors avec les valeurs de départ.

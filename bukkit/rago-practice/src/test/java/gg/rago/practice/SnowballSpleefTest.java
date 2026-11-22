@@ -76,5 +76,8 @@ class SnowballSpleefTest {
                 config.getInt("snowball-spleef.ecart-etages"), config.getInt("snowball-spleef.boules-par-bloc")));
         int points = config.getInt("snowball-spleef.points-pour-gagner");
         assertTrue(points >= 1 && points <= 10);
+        assertEquals(2, config.getInt("snowball-spleef.etages"), "two floors (the owner, 22/11)");
+        assertEquals(18, config.getInt("snowball-spleef.rayon"), "a bigger map than the first one, of 12");
+        assertEquals(9, SnowballSpleef.startDistance(18), 1e-9, "each side starts 9 blocks from the middle");
     }
 }

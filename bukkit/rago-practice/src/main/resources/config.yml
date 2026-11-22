@@ -363,13 +363,14 @@ fireball-knockback:
 # Snowball Spleef: floors of snow over the void (etages, 1 to 5, ecart-etages blocks one under the
 # other, 3 to 20), each of radius rayon (5 to 40). A diamond shovel (Efficiency V) breaks the snow
 # at once, and each block it breaks gives boules-par-bloc snowballs (0 to 16); a snowball breaks
-# the snow it lands on and pushes the player it hits, without damage; no hits with the hand. The
-# first under the lowest floor loses the round; the floors are whole again at each round; the first
-# to points-pour-gagner rounds (1 to 10) wins.
+# the snow it lands on. The players cannot hit each other: no hits with the hand, and a snowball
+# stops on a player without pushing them. The first under the lowest floor loses the round; the
+# floors are whole again at each round; the first to points-pour-gagner rounds (1 to 10) wins.
+# Two floors and a bigger map: the owner's choice of 22/11 (a radius of 18, to confirm).
 snowball-spleef:
   points-pour-gagner: 1
-  rayon: 12
-  etages: 1
+  rayon: 18
+  etages: 2
   ecart-etages: 6
   boules-par-bloc: 1
 

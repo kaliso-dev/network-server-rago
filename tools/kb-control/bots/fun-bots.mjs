@@ -2,10 +2,13 @@
 //
 // Two bots play the two modes of FUN PRACTICE (plan 6.1) on a local 1.8.8 test server, with the
 // bundled settings (one round each):
-//   1. Snowball Spleef (snowball-spleef): the floor of snow under both, a diamond shovel each; the
-//      west bot breaks a block of snow with it and gets a snowball, throws the snowball on the
-//      floor (one block of snow less where it lands), then the east bot breaks the snow under its
-//      own feet, falls under the floor, and the west bot wins;
+//   1. Snowball Spleef (snowball-spleef): two floors of snow, both bots on the top one, a diamond
+//      shovel each; the west bot breaks a block of snow with it and gets a snowball, throws the
+//      snowball on the floor (one block of snow less where it lands), then throws snowballs at the
+//      east bot until one reaches it: it stops there, without pushing it nor breaking snow (the
+//      players cannot hit each other); then the east bot breaks the snow under its own feet, lands
+//      on the second floor (still in the game), breaks it again, falls under it, and the west bot
+//      wins;
 //   2. Fireball Fight (fireball-knockback): 64 fireballs and the wind gust (a feather) each; the
 //      east bot uses the gust looking up (it goes up, a second gust at once must wait, it lands
 //      unhurt), the west bot throws a fireball at it (the east bot is pushed away, unhurt, and the
@@ -20,8 +23,10 @@ import mineflayer from 'mineflayer'
 const HOST = process.env.KB_HOST ?? '127.0.0.1'
 const PORT = Number(process.env.KB_PORT ?? '25565')
 const TEST_TIMEOUT_MS = 4 * 60 * 1000
-/** The bundled radius of the snow floor (snowball-spleef.rayon): the west start is 6 from the middle. */
-const SPLEEF_RADIUS = 12
+/** The bundled radius of the snow floors (snowball-spleef.rayon): the west start is 9 from the middle. */
+const SPLEEF_RADIUS = 18
+/** The bundled blocks from the top floor down to the second one (snowball-spleef.ecart-etages). */
+const SPLEEF_GAP = 6
 
 let finishing = false
 /** The vector class of mineflayer's positions (from the first bot): new Vec3(x, y, z). */
@@ -175,8 +180,41 @@ function snowLeft (bot, game) {
   return snow
 }
 
+/**
+ * The pitch (mineflayer's: up is positive) that throws a snowball from a player standing at `from`
+ * to the middle of the player standing at `to`, as the server moves it: 1.5 blocks a tick from 0.1
+ * under the eyes, then each tick 0.99 of its speed and 0.03 down.
+ */
+function snowballPitch (from, to) {
+  const distance = Math.hypot(to.x - from.x, to.z - from.z)
+  const start = from.y + 1.62 - 0.1
+  const target = to.y + 0.9
+  const heightThere = (pitch) => {
+    let along = 0
+    let y = start
+    let across = 1.5 * Math.cos(pitch)
+    let up = 1.5 * Math.sin(pitch)
+    for (let tick = 0; tick < 200; tick++) {
+      if (along + across >= distance) return y + up * (distance - along) / across
+      along += across
+      y += up
+      across *= 0.99
+      up = up * 0.99 - 0.03
+    }
+    return -Infinity
+  }
+  let low = -0.5
+  let high = 0.8
+  for (let i = 0; i < 40; i++) {
+    const middle = (low + high) / 2
+    if (heightThere(middle) < target) low = middle
+    else high = middle
+  }
+  return (low + high) / 2
+}
+
 async function snowballSpleef (one, two) {
-  const game = await startDuel(one, two, 'snowball-spleef', 'Snowball Spleef', 6)
+  const game = await startDuel(one, two, 'snowball-spleef', 'Snowball Spleef', 9)
   const { west, east, at } = game
   for (const bot of [west, east]) {
     const under = bot.blockAt(bot.entity.position.offset(0, -0.5, 0))
@@ -187,8 +225,12 @@ async function snowballSpleef (one, two) {
   log(`snowball spleef: both on the snow floor (${floor} blocks), the west bot at ${where(west)}`)
 
   // 1. the shovel breaks the snow, a snowball for it
+  const second = west.blockAt(at(0, -SPLEEF_GAP, 0))
+  if (second?.name !== 'snow') throw new Error(`no second floor of snow ${SPLEEF_GAP} blocks under the top one: ${blockText(second)}`)
+  log('snowball spleef: a second floor of snow under the top one')
+
   await hold(west, 'diamond_shovel')
-  await dig(west, at(-3, 0, 0))
+  await dig(west, at(-7, 0, 0))
   await waitFor(() => countOf(west, 'snowball') === 1, 3000, `a snowball for the block broken (has ${countOf(west, 'snowball')})`)
   log('snowball spleef: a block of snow broken with the shovel, a snowball for it')
 
@@ -204,13 +246,65 @@ async function snowballSpleef (one, two) {
     `one block of snow less where the snowball landed (${before} before, ${snowLeft(west, game)} now)`)
   log('snowball spleef: the snowball broke the block of snow it landed on')
 
-  // 3. the east bot breaks the snow under itself and falls under the floor: the west bot wins
+  // 3. no hits: a snowball thrown at the east bot stops on it, without pushing it nor breaking
+  // snow. A throw that misses lands on the floor behind it (a block of snow less): again, three
+  // times at most.
+  await hold(west, 'diamond_shovel')
+  for (const dx of [-7, -6, -5]) await dig(west, at(dx, 0, 2))
+  await waitFor(() => countOf(west, 'snowball') === 3, 3000, `a snowball for each of the 3 blocks broken (has ${countOf(west, 'snowball')})`)
+  await hold(west, 'snowball')
+  const standing = east.entity.position.clone()
+  let pushes = 0
+  const onVelocity = (packet) => { if (packet.entityId === east.entity.id) pushes++ }
+  east._client.on('entity_velocity', onVelocity)
+  let reached = 0
+  try {
+    for (let throwNo = 1; throwNo <= 3 && reached === 0; throwNo++) {
+      const snow = snowLeft(west, game)
+      const gone = new Promise((resolve) => {
+        const onGone = (entity) => {
+          if (entity.name === 'snowball') {
+            west.removeListener('entityGone', onGone)
+            resolve(true)
+          }
+        }
+        west.on('entityGone', onGone)
+      })
+      const w = west.entity.position
+      await west.look(Math.atan2(-(standing.x - w.x), -(standing.z - w.z)), snowballPitch(w, standing), true)
+      await sleep(200)
+      west.activateItem()
+      if (!(await Promise.race([gone, sleep(5000).then(() => false)]))) throw new Error('the snowball thrown at the east bot never landed')
+      await sleep(800)
+      if (snowLeft(west, game) === snow) reached = throwNo
+      else log(`snowball spleef: throw ${throwNo} at the east bot missed it (a block of snow less behind it)`)
+    }
+    await sleep(500)
+  } finally {
+    east._client.removeListener('entity_velocity', onVelocity)
+  }
+  if (reached === 0) throw new Error('three snowballs thrown at the east bot, none reached it')
+  const moved = Math.hypot(east.entity.position.x - standing.x, east.entity.position.z - standing.z)
+  if (pushes > 0 || moved > 0.1) throw new Error(`the snowball pushed the east bot: ${pushes} velocity packets, moved ${moved.toFixed(2)} blocks`)
+  if (east.health < 20) throw new Error(`the snowball hurt the east bot: health ${east.health}`)
+  log(`snowball spleef: snowball ${reached} reached the east bot and stopped there, without pushing it nor breaking snow`)
+
+  // 4. the east bot breaks the snow under itself, lands on the second floor (still in the game),
+  // breaks it again and falls under it: the west bot wins
   const fromWest = mark(west)
   await hold(east, 'diamond_shovel')
-  const under = east.entity.position.offset(0, -0.5, 0).floored()
-  await dig(east, under)
+  await dig(east, east.entity.position.offset(0, -0.5, 0).floored())
+  await waitFor(() => east.entity.onGround && east.entity.position.y < game.centre.y - SPLEEF_GAP + 1.5, 5000,
+    `the east bot on the second floor (at ${where(east)})`)
+  const below = east.blockAt(east.entity.position.offset(0, -0.5, 0))
+  if (below?.name !== 'snow') throw new Error(`the east bot does not stand on the snow of the second floor: ${blockText(below)} at ${where(east)}`)
+  await sleep(500)
+  if (west.chats.slice(fromWest).some((line) => /Victory!/.test(line))) throw new Error('the game ended on the second floor')
+  if (east.health < 20) throw new Error(`the fall to the second floor hurt the east bot: health ${east.health}`)
+  log(`snowball spleef: the east bot fell on the second floor (${where(east)}), unhurt and still in the game`)
+  await dig(east, east.entity.position.offset(0, -0.5, 0).floored())
   await chatLine(west, /Victory!/, 10000, fromWest)
-  log('snowball spleef: the east bot fell under the floor, the west bot won')
+  log('snowball spleef: the east bot fell under the second floor, the west bot won')
   await expectInLobby(west, 'after the snowball spleef')
   await expectInLobby(east, 'after the snowball spleef')
 }
