@@ -23,7 +23,9 @@
 # events (no Diamond II), no diamond generator nor upgrades NPC, its fast forge, its smaller shop.
 # Then a bot invites RagoBot into its party (tools/kb-control/bots/ragobot-bots.mjs): RagoBot refuses
 # ranked and the modes it does not play, wins a Sumo duel, a Boxing, a round of Top Bridge 1v1 and
-# a round of Lobby Fight 1v1 against the bot who stands still, plays Top Bridge 2v2 in the party's
+# a round of Lobby Fight 1v1 against the bot who stands still; in a Block placement 1v1 (RagoOp
+# moves the players with /tp) it clutches over the void and breaks the wool under the bot, who
+# falls; it wins its 1v1 of a Red Rover Block Placement; it plays Top Bridge 2v2 in the party's
 # team against two others, and leaves the
 # server once kicked from the party; none of these games is counted as a private game. Last, the
 # Owner tools (tools/kb-control/bots/owner-bots.mjs): /owner for qRago only, Reach that lands from
@@ -274,7 +276,9 @@ fast_status=0
 KB_HOST=127.0.0.1 KB_PORT=$PORT node "$ROOT/tools/kb-control/bots/fast-bots.mjs" || fast_status=$?
 # The same server for RagoBot: a bot invites it into its party, plays the Sumo duel, the Boxing, Top
 # Bridge 1v1 and Lobby Fight 1v1 (on the middle island of the demo map, made its waiting lobby by
-# RagoMapOp) against it, then Top Bridge 2v2 with it against two others, and sends it away.
+# RagoMapOp) against it, then Block placement 1v1 (RagoOp moves the players with /tp: a clutch, the
+# wool under the bot broken), a Red Rover Block Placement with a third player, then Top Bridge 2v2
+# with it against two others, and sends it away.
 ragobot_status=0
 KB_HOST=127.0.0.1 KB_PORT=$PORT node "$ROOT/tools/kb-control/bots/ragobot-bots.mjs" || ragobot_status=$?
 # The same server for the Owner tools: qRago (the account of outils-owner) and two others; Reach in
@@ -302,7 +306,7 @@ fi
 [[ $ragobot_status -eq 0 ]] || { tail -n 60 "$SERVER_LOG" >&2; fail "the RagoBot bots stopped with status $ragobot_status"; }
 server_log_has '[RagoLobby] RagoBot joined for the party of RagoLeader' || fail "RagoBot did not join for the party of RagoLeader"
 # A game with RagoBot counts in the players' stats: none is a private game of the party.
-if grep -n -E 'Private game of a party in (sumo|boxing|top-bridge-1v1|lobby-fight-1v1|top-bridge-2v2):' "$SERVER_LOG" >&2; then
+if grep -n -E 'Private game of a party in (sumo|boxing|top-bridge-1v1|lobby-fight-1v1|block-fight-1v1|red-rover-block-placement|top-bridge-2v2):' "$SERVER_LOG" >&2; then
   fail "a game with RagoBot was counted as a private game (above)"
 fi
 [[ $owner_status -eq 0 ]] || { tail -n 60 "$SERVER_LOG" >&2; fail "the Owner tool bots stopped with status $owner_status"; }

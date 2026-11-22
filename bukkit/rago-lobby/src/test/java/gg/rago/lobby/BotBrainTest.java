@@ -224,4 +224,200 @@ class BotBrainTest {
         back.yaw += 180;
         assertFalse(behind.think(back).hit, "its back to the other");
     }
+
+    // --- The blocks (the Block Placement, step 2 of the owner's order of 22/11) ------------------
+
+    /**
+     * Knocked off the edge of a floor (the blocks of x 0 and less, at y 0), in the air at
+     * (1.5, 1.2, 0.5) over the void, facing the other at -x: as a player, it takes its wool and looks
+     * down at the side of the edge block, then clicks it: the new block goes under its feet.
+     */
+    private static BotBrain.Sight offTheEdge() {
+        BotBrain.Sight sight = facing(-5.5, 0.5);
+        sight.x = 1.5;
+        sight.y = 1.2;
+        sight.onGround = false;
+        sight.yaw = 90;
+        sight.pitch = 0;
+        sight.ground = (bx, by, bz) -> by == 0 && bx <= 0;
+        sight.blocks = true;
+        sight.sword = 0;
+        sight.held = 0;
+        sight.block = 4;
+        return sight;
+    }
+
+    @Test
+    void knockedOffOverTheVoidItClutches() {
+        BotBrain brain = new BotBrain(BotBrain.Skill.BUNDLED, new Random(8));
+        BotBrain.Sight sight = offTheEdge();
+        assertTrue(BotBrain.overVoid(sight.ground, sight.x, sight.y, sight.z));
+        assertArrayEquals(new int[] {0, 0, 0, 5}, BotBrain.clutchPlace(sight), "the east side of the edge block");
+        BotBrain.Controls controls = null;
+        int tick = 0;
+        for (; tick < 6; tick++) {
+            controls = brain.think(sight);
+            assertEquals(0, controls.swings, "no click at the other while it clutches");
+            assertFalse(controls.sprint);
+            if (tick == 0) {
+                assertEquals(4, controls.slot, "its wool in hand");
+                sight.held = 4;
+            }
+            if (controls.place != null) {
+                break;
+            }
+            assertTrue(controls.pitch - sight.pitch <= BotBrain.Skill.BUNDLED.turn + 1e-3, "its head at its turn");
+            sight.yaw = controls.yaw;
+            sight.pitch = controls.pitch;
+        }
+        assertArrayEquals(new int[] {0, 0, 0, 5}, controls.place, "a right click on the side it looks at, tick " + tick);
+        assertTrue(tick >= 2, "it had to look down first: tick " + tick);
+        assertTrue(controls.pitch > 70, "looking down at the side: " + controls.pitch);
+        assertEquals(1.0, controls.cursor[0], 1e-3, "on that side");
+        assertTrue(controls.cursor[1] >= 0 && controls.cursor[1] <= 1 && controls.cursor[2] >= 0 && controls.cursor[2] <= 1);
+        BotBrain.Controls next = brain.think(sight);
+        assertTrue(next.place == null, "one block, then it waits for its next (6 a second)");
+    }
+
+    @Test
+    void itClutchesOnlyOverTheVoidAndWhereBlocksAreUsed() {
+        BotBrain.Sight ground = offTheEdge();
+        // ground six blocks under it: it lands there, no clutch
+        ground.ground = (bx, by, bz) -> by == 0 && bx <= 0 || by == -5;
+        assertFalse(BotBrain.overVoid(ground.ground, ground.x, ground.y, ground.z));
+        BotBrain brain = new BotBrain(BotBrain.Skill.BUNDLED, new Random(9));
+        for (int tick = 0; tick < 6; tick++) {
+            assertTrue(brain.think(ground).place == null, "ground under it, tick " + tick);
+        }
+        BotBrain.Sight sumo = offTheEdge();
+        sumo.blocks = false;
+        brain = new BotBrain(BotBrain.Skill.BUNDLED, new Random(9));
+        for (int tick = 0; tick < 6; tick++) {
+            BotBrain.Controls controls = brain.think(sumo);
+            assertTrue(controls.place == null, "not a game of blocks, tick " + tick);
+            assertEquals(-1, controls.slot, "its sword stays in hand");
+        }
+        BotBrain.Sight none = offTheEdge();
+        none.block = -1;
+        brain = new BotBrain(BotBrain.Skill.BUNDLED, new Random(9));
+        for (int tick = 0; tick < 6; tick++) {
+            assertTrue(brain.think(none).place == null, "no block left in its kit");
+        }
+        BotBrain.Sight far = offTheEdge();
+        // three blocks out: no block beside any place under it
+        far.x = 3.5;
+        assertTrue(BotBrain.clutchPlace(far) == null);
+    }
+
+    /**
+     * Its platform at x 7 to 9 (y 0), the other at (4.5, 1, 0.5) on the end of their bridge of wool
+     * (x -6 to 4, z 0) over the void, two blocks short of it: out of its hits.
+     */
+    private static BotBrain.Sight otherOnTheirBridge() {
+        BotBrain.Sight sight = facing(4.5, 0.5);
+        sight.x = 8.5;
+        sight.yaw = 90;
+        sight.pitch = 0;
+        sight.ground = (bx, by, bz) -> by == 0 && (bx >= 7 && bx <= 9 || bx >= -6 && bx <= 4 && bz == 0);
+        sight.blocks = true;
+        sight.sword = 0;
+        sight.held = 0;
+        sight.block = 4;
+        sight.targetOnGround = true;
+        // its shears in slot 3 for the wool of the bridge, nothing for its own platform
+        sight.breakable = (bx, by, bz) -> by == 0 && bz == 0 && bx >= -6 && bx <= 4 ? 3 : -1;
+        return sight;
+    }
+
+    @Test
+    void theOtherOverTheVoidOnABlockOfTheirsItBreaksIt() {
+        BotBrain.Sight sight = otherOnTheirBridge();
+        assertArrayEquals(new int[] {4, 0, 0}, BotBrain.holding(sight.ground, sight.tx, sight.ty, sight.tz));
+        BotBrain brain = new BotBrain(BotBrain.Skill.BUNDLED, new Random(10));
+        BotBrain.Controls controls = null;
+        int tick = 0;
+        for (; tick < 6; tick++) {
+            controls = brain.think(sight);
+            assertEquals(0, controls.swings, "no click at the other: its button is on the block");
+            if (tick == 0) {
+                assertEquals(3, controls.slot, "its shears for the wool");
+                sight.held = 3;
+            }
+            if (controls.dig != null) {
+                break;
+            }
+            sight.yaw = controls.yaw;
+            sight.pitch = controls.pitch;
+        }
+        assertArrayEquals(new int[] {4, 0, 0, 5}, controls.dig, "the east side of the block under them, tick " + tick);
+        assertEquals(0, controls.forward, "it stands while it breaks the block");
+        assertEquals(0, controls.strafe, "it stands while it breaks the block");
+        assertFalse(controls.sprint, "it stands while it breaks the block");
+    }
+
+    @Test
+    void itBreaksNoBlockOfTheMapNorOneOverGroundNorWithinItsHits() {
+        BotBrain.Sight map = otherOnTheirBridge();
+        map.breakable = (bx, by, bz) -> -1;
+        BotBrain brain = new BotBrain(BotBrain.Skill.BUNDLED, new Random(11));
+        for (int tick = 0; tick < 6; tick++) {
+            BotBrain.Controls controls = brain.think(map);
+            assertTrue(controls.dig == null, "a block of the map, or one the game refused");
+            map.yaw = controls.yaw;
+            map.pitch = controls.pitch;
+        }
+        BotBrain.Sight ground = otherOnTheirBridge();
+        ground.ground = (bx, by, bz) -> by == 0 && (bx >= 7 && bx <= 9 || bx >= -6 && bx <= 4 && bz == 0) || by == -3;
+        assertTrue(BotBrain.holding(ground.ground, ground.tx, ground.ty, ground.tz) == null, "ground under it: no fall");
+        BotBrain.Sight close = otherOnTheirBridge();
+        close.tx = 6.5;
+        close.ground = (bx, by, bz) -> by == 0 && (bx >= 7 && bx <= 9 || bx >= -6 && bx <= 6 && bz == 0);
+        close.breakable = (bx, by, bz) -> by == 0 && bz == 0 && bx >= -6 && bx <= 6 ? 3 : -1;
+        brain = new BotBrain(BotBrain.Skill.BUNDLED, new Random(12));
+        for (int tick = 0; tick < 6; tick++) {
+            assertTrue(brain.think(close).dig == null, "within its hits it fights");
+        }
+        BotBrain.Sight jumping = otherOnTheirBridge();
+        jumping.targetOnGround = false;
+        assertTrue(new BotBrain(BotBrain.Skill.BUNDLED, new Random(13)).think(jumping).dig == null, "in the air");
+        BotBrain.Sight across = otherOnTheirBridge();
+        // standing across two blocks: one broken holds them all the same
+        assertTrue(BotBrain.holding(across.ground, 4.05, 1, 0.5) == null);
+    }
+
+    @Test
+    void itJumpsUpAStepOfOneBlockOnItsWay() {
+        BotBrain.Sight sight = facing(6.5, 0.5);
+        sight.ty = 2;
+        sight.blocks = true;
+        // a step of one block at x 1, y 1 (on the floor at y 0), then the other up there
+        sight.ground = (bx, by, bz) -> by == 0 || by == 1 && bx >= 1;
+        BotBrain brain = new BotBrain(BotBrain.Skill.BUNDLED, new Random(14));
+        assertTrue(brain.think(sight).jump, "the step before it");
+        BotBrain.Sight wall = facing(6.5, 0.5);
+        wall.blocks = true;
+        wall.ground = (bx, by, bz) -> by == 0 || bx == 1 && (by == 1 || by == 2);
+        assertFalse(new BotBrain(BotBrain.Skill.BUNDLED, new Random(14)).think(wall).jump, "a wall of two blocks");
+        BotBrain.Sight top = facing(6.5, 0.5);
+        top.ground = sight.ground;
+        top.ty = 2;
+        assertFalse(new BotBrain(BotBrain.Skill.BUNDLED, new Random(14)).think(top).jump,
+                "outside the games of blocks, as before: it jumps only to the other right there");
+    }
+
+    @Test
+    void itsLookMeetsTheSideOfABlockAsAClientsDoes() {
+        BotBrain.Sight sight = facing(5.5, 0.5);
+        // straight down from (0.5, 1, 0.5): the top of the block under its feet
+        double[] down = BotBrain.rayHit(sight, 0, 90, 0, 0, 0);
+        assertEquals(BotBrain.UP, (int) down[0]);
+        assertEquals(1.0, down[2], 1e-9);
+        // straight ahead (+x at yaw -90), at the height of its eyes (2.62): the west side of the block at x 2
+        double[] ahead = BotBrain.rayHit(sight, -90, 0, 2, 2, 0);
+        assertEquals(4, (int) ahead[0]);
+        assertEquals(2.0, ahead[1], 1e-9);
+        assertTrue(BotBrain.rayHit(sight, -90, 0, 2, 1, 0) == null, "the block under that height");
+        assertTrue(BotBrain.rayHit(sight, -90, 0, 6, 2, 0) == null, "4.5 from its eyes at most");
+        assertTrue(BotBrain.rayHit(sight, 90, 0, 2, 2, 0) == null, "behind it");
+    }
 }

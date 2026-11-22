@@ -63,6 +63,15 @@ final class BotBody {
     /** Where it was at the last move event, null: from where it stands. */
     private Location lastMove;
     private int deadTicks;
+    /** The block it digs {x, y, z, side}, null: none; and the damage done to it so far (1: broken). */
+    private int[] digging;
+    private double digDamage;
+    /** A dig just finished: the block, and what it was, to see next tick if it was broken. */
+    private int[] checking;
+    private Material checkedType;
+    /** The blocks whose dig the game refused (the map's own): never tried again. */
+    private final Set<Long> refused = new java.util.HashSet<>();
+    private static final int MAX_REFUSED = 4096;
 
     private BotBody(Player player, int entityId, Queue<double[]> arrived) {
         this.player = player;
@@ -172,6 +181,10 @@ final class BotBody {
                 nms.motZ.setDouble(entity, packet[3]);
                 knocked = true;
             } else {
+                // its client confirms the teleport at once (else the server takes none of its blocks)
+                if (nms.checkMovement != null) {
+                    nms.checkMovement.setBoolean(nms.connection.get(entity), true);
+                }
                 if (packet[1] > 0) {
                     nms.motX.setDouble(entity, 0);
                 }
@@ -193,10 +206,10 @@ final class BotBody {
     }
 
     /**
-     * Presses these keys for one tick (target: the player it fights, or null), then moves as the
-     * server moves a player.
+     * Presses these keys for one tick (target: the player it fights, or null): the slot held,
+     * sprint, where it looks, its clicks on the other. Then {@link #blocks}, then {@link #move}.
      */
-    void play(BotBrain.Controls controls, Player target) throws ReflectiveOperationException {
+    void act(BotBrain.Controls controls, Player target) throws ReflectiveOperationException {
         Nms n = nms;
         Object entity = handle();
         PlayerInventory inventory = player.getInventory();
@@ -225,10 +238,102 @@ final class BotBody {
                 n.attack.invoke(handle(), n.entityHandle.invoke(target));
             }
         }
+    }
+
+    /**
+     * Its clicks on the blocks this tick, as a client sends them after its clicks on the other: a
+     * right click on the side of a block with the block held (the server places it as for a
+     * player: its events, the rules of the game, the anti full box), the left button held on a
+     * block (a dig started, its damage added a tick at a time as the client adds it, the dig
+     * finished once it reaches 1, as long as a player's break takes; stopped if it looks away). A
+     * dig the game refused (the block still there) is not tried again ({@link #refused}).
+     */
+    void blocks(BotBrain.Controls controls) throws ReflectiveOperationException {
         if (!player.isOnline() || player.isDead()) {
             return;
         }
-        entity = handle();
+        BlockNms b = blockNms();
+        Nms n = nms;
+        Object entity = handle();
+        Object connection = n.connection.get(entity);
+        if (checking != null) {
+            if (player.getWorld().getBlockAt(checking[0], checking[1], checking[2]).getType() == checkedType) {
+                refuse(checking);
+            }
+            checking = null;
+        }
+        if (controls.place != null) {
+            int[] at = controls.place;
+            float[] cursor = controls.cursor == null ? new float[] {0.5f, 0.5f, 0.5f} : controls.cursor;
+            Object item = n.itemInHand.invoke(n.inventory.get(entity));
+            Object packet = b.newPlace.newInstance(b.newPosition.newInstance(at[0], at[1], at[2]), at[3], item,
+                    cursor[0], cursor[1], cursor[2]);
+            b.placeTime.setLong(packet, System.currentTimeMillis());
+            b.place.invoke(connection, packet);
+            n.swing.invoke(connection, n.newSwing.newInstance());
+        }
+        int[] dig = controls.dig;
+        if (dig == null) {
+            if (digging != null) {
+                b.dig(connection, b.abort, digging);
+                digging = null;
+            }
+            return;
+        }
+        if (digging == null || digging[0] != dig[0] || digging[1] != dig[1] || digging[2] != dig[2]) {
+            if (digging != null) {
+                b.dig(connection, b.abort, digging);
+            }
+            digging = dig.clone();
+            digDamage = 0;
+            b.dig(connection, b.start, dig);
+            n.swing.invoke(connection, n.newSwing.newInstance());
+            digDamage = b.damage(entity, dig);
+            if (digDamage >= 1) {
+                // broken at once, as the server breaks it with the start
+                finishDig(dig);
+            }
+            return;
+        }
+        n.swing.invoke(connection, n.newSwing.newInstance());
+        digDamage += b.damage(entity, dig);
+        if (digDamage >= 1) {
+            b.dig(connection, b.stop, dig);
+            finishDig(dig);
+        }
+    }
+
+    /** The dig ended: next tick, the block still there was refused. */
+    private void finishDig(int[] dig) {
+        digging = null;
+        digDamage = 0;
+        checking = dig.clone();
+        checkedType = player.getWorld().getBlockAt(dig[0], dig[1], dig[2]).getType();
+    }
+
+    private void refuse(int[] block) {
+        if (refused.size() >= MAX_REFUSED) {
+            refused.clear();
+        }
+        refused.add(key(block[0], block[1], block[2]));
+    }
+
+    /** True if the game refused it the dig of this block before. */
+    boolean refused(int x, int y, int z) {
+        return refused.contains(key(x, y, z));
+    }
+
+    private static long key(int x, int y, int z) {
+        return ((long) x & 0x3FFFFFF) << 38 | ((long) y & 0xFFF) << 26 | (long) z & 0x3FFFFFF;
+    }
+
+    /** Then the keys: eating, the way it walks and jumps; the server moves it as it moves a player. */
+    void move(BotBrain.Controls controls) throws ReflectiveOperationException {
+        if (!player.isOnline() || player.isDead()) {
+            return;
+        }
+        Nms n = nms;
+        Object entity = handle();
         if (controls.eat && !eating()) {
             eat(entity);
         }
@@ -310,6 +415,88 @@ final class BotBody {
         return entityId;
     }
 
+    private static BlockNms blockNms;
+
+    /** The reflection of its clicks on blocks, once; a failure tells what this server lacks. */
+    static synchronized BlockNms blockNms() throws ReflectiveOperationException {
+        if (blockNms == null) {
+            blockNms = new BlockNms(nms());
+        }
+        return blockNms;
+    }
+
+    /** The packets of a client's clicks on blocks, and the damage of a dig, from the server's classes. */
+    static final class BlockNms {
+        final Constructor<?> newPosition;
+        final Constructor<?> newPlace;
+        final Field placeTime;
+        final Method place;
+        private final Constructor<?> newDig;
+        private final Field digPosition;
+        private final Field digSide;
+        private final Field digType;
+        private final Method digHandler;
+        final Object start;
+        final Object abort;
+        final Object stop;
+        private final Object[] sides = new Object[6];
+        private final Method getType;
+        private final Method getBlock;
+        private final Method getDamage;
+        private final Field world;
+
+        BlockNms(Nms n) throws ReflectiveOperationException {
+            String craftRoot = Bukkit.getServer().getClass().getPackage().getName();
+            String root = "net.minecraft.server." + craftRoot.substring(craftRoot.lastIndexOf('.') + 1) + ".";
+            Class<?> position = Class.forName(root + "BlockPosition");
+            Class<?> item = Class.forName(root + "ItemStack");
+            Class<?> placePacket = Class.forName(root + "PacketPlayInBlockPlace");
+            Class<?> digPacket = Class.forName(root + "PacketPlayInBlockDig");
+            Class<?> digTypes = Class.forName(root + "PacketPlayInBlockDig$EnumPlayerDigType");
+            Class<?> direction = Class.forName(root + "EnumDirection");
+            Class<?> playerConnection = Class.forName(root + "PlayerConnection");
+            Class<?> worldClass = Class.forName(root + "World");
+            Class<?> human = Class.forName(root + "EntityHuman");
+            newPosition = position.getConstructor(int.class, int.class, int.class);
+            newPlace = placePacket.getConstructor(position, int.class, item, float.class, float.class, float.class);
+            placeTime = placePacket.getField("timestamp");
+            place = playerConnection.getMethod("a", placePacket);
+            newDig = digPacket.getConstructor();
+            digPosition = Nms.fieldOfType(digPacket, position);
+            digSide = Nms.fieldOfType(digPacket, direction);
+            digType = Nms.fieldOfType(digPacket, digTypes);
+            digHandler = playerConnection.getMethod("a", digPacket);
+            start = Nms.enumValue(digTypes, "START_DESTROY_BLOCK");
+            abort = Nms.enumValue(digTypes, "ABORT_DESTROY_BLOCK");
+            stop = Nms.enumValue(digTypes, "STOP_DESTROY_BLOCK");
+            String[] names = {"DOWN", "UP", "NORTH", "SOUTH", "WEST", "EAST"};
+            for (int i = 0; i < names.length; i++) {
+                sides[i] = Nms.enumValue(direction, names[i]);
+            }
+            getType = worldClass.getMethod("getType", position);
+            getBlock = getType.getReturnType().getMethod("getBlock");
+            getDamage = Class.forName(root + "Block").getMethod("getDamage", human, worldClass, position);
+            world = n.entityWorld;
+        }
+
+        /** A dig packet of this kind for the block {x, y, z, side}, handled as the server handles a client's. */
+        void dig(Object connection, Object kind, int[] block) throws ReflectiveOperationException {
+            Object packet = newDig.newInstance();
+            digPosition.set(packet, newPosition.newInstance(block[0], block[1], block[2]));
+            digSide.set(packet, sides[Math.max(0, Math.min(5, block[3]))]);
+            digType.set(packet, kind);
+            digHandler.invoke(connection, packet);
+        }
+
+        /** The damage a tick of digging does to the block {x, y, z}, with the item held: 1 breaks it. */
+        double damage(Object entity, int[] block) throws ReflectiveOperationException {
+            Object level = world.get(entity);
+            Object at = newPosition.newInstance(block[0], block[1], block[2]);
+            Object type = getBlock.invoke(getType.invoke(level, at));
+            return ((Number) getDamage.invoke(type, entity, level, at)).doubleValue();
+        }
+    }
+
     // --- The reflection -------------------------------------------------------------------------
 
     /** The classes, fields and methods of the server it uses. */
@@ -350,6 +537,8 @@ final class BotBody {
         final Field interactManager;
         final Field entityWorld;
         final Field connection;
+        /** PlayerConnection.checkMovement: false from a teleport until the client confirms it; null if none. */
+        final Field checkMovement;
         final Field motX;
         final Field motY;
         final Field motZ;
@@ -446,6 +635,14 @@ final class BotBody {
             interactManager = entityPlayer.getField("playerInteractManager");
             entityWorld = entity.getField("world");
             connection = entityPlayer.getField("playerConnection");
+            Field confirmed = null;
+            try {
+                confirmed = playerConnection.getDeclaredField("checkMovement");
+                confirmed.setAccessible(true);
+            } catch (NoSuchFieldException e) {
+                // another server: nothing to confirm
+            }
+            checkMovement = confirmed != null && confirmed.getType() == boolean.class ? confirmed : null;
 
             motX = entity.getField("motX");
             motY = entity.getField("motY");
@@ -520,7 +717,7 @@ final class BotBody {
             return newEmbeddedChannel.newInstance(handlers);
         }
 
-        private static Object enumValue(Class<?> type, String name) {
+        static Object enumValue(Class<?> type, String name) {
             for (Object constant : type.getEnumConstants()) {
                 if (((Enum<?>) constant).name().equals(name)) {
                     return constant;
@@ -535,7 +732,7 @@ final class BotBody {
             return field;
         }
 
-        private static Field fieldOfType(Class<?> owner, Class<?> type) throws NoSuchFieldException {
+        static Field fieldOfType(Class<?> owner, Class<?> type) throws NoSuchFieldException {
             for (Field field : owner.getDeclaredFields()) {
                 if (type.isAssignableFrom(field.getType()) && !java.lang.reflect.Modifier.isStatic(field.getModifiers())) {
                     field.setAccessible(true);

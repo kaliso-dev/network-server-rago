@@ -16,6 +16,14 @@ import java.util.Random;
  * walks off an edge on its own (the void, the water of the sumo). Low on health, away from the
  * other one or very low, it eats a golden apple if it has one, once its regeneration is over. One
  * skill, the same for every RagoBot ({@link Skill}): no levels.
+ *
+ * <p>In a game of blocks (the Block Placement, step 2 of the owner's order of 22/11), as a player
+ * there: knocked off over the void, it clutches (a block of its kit under its feet, against the side
+ * of the block beside it, looking at that side); the other standing over the void on one block of
+ * theirs out of its hits, it breaks that block (its shears on the wool, its pickaxe on the end
+ * stone, as long as a player's break takes), and they fall; it jumps up a step of one block on its
+ * way. Its clicks on the blocks go where it looks, as a client's: it turns its head to the side it
+ * clicks, at its turn a tick, and clicks once its look is on it, within a client's reach.
  */
 final class BotBrain {
 
@@ -26,7 +34,7 @@ final class BotBrain {
          * w-tap, jump reset, reaction), a turn of 30 degrees a tick and a golden apple under 10
          * health. To set in game: the owner has not tried it yet.
          */
-        static final Skill BUNDLED = new Skill(11, 0.88, 3.0, 0.8, 0.75, 0.45, 3, 30, 10);
+        static final Skill BUNDLED = new Skill(11, 0.88, 3.0, 0.8, 0.75, 0.45, 3, 30, 10, 6);
 
         /** Clicks a second. */
         final double cps;
@@ -46,9 +54,19 @@ final class BotBrain {
         final double turn;
         /** Under this health (20 is full), it eats a golden apple. */
         final double healAt;
+        /**
+         * Blocks it places a second at most (a clutch is one): to set in game with the owner, as
+         * the rest.
+         */
+        final double blocksPerSecond;
 
         Skill(double cps, double accuracy, double reach, double strafe, double wTap, double jumpReset, int reaction,
                 double turn, double healAt) {
+            this(cps, accuracy, reach, strafe, wTap, jumpReset, reaction, turn, healAt, 6);
+        }
+
+        Skill(double cps, double accuracy, double reach, double strafe, double wTap, double jumpReset, int reaction,
+                double turn, double healAt, double blocksPerSecond) {
             this.cps = cps;
             this.accuracy = accuracy;
             this.reach = reach;
@@ -58,12 +76,21 @@ final class BotBrain {
             this.reaction = reaction;
             this.turn = turn;
             this.healAt = healAt;
+            this.blocksPerSecond = blocksPerSecond;
         }
     }
 
     /** The blocks around the bot: true where a block holds a player up (not air, not water). */
     interface Ground {
         boolean solid(int x, int y, int z);
+    }
+
+    /**
+     * The blocks of the players it may break: the hotbar slot of its tool for the block there (its
+     * shears for the wool of a kit), -1 for any other block, or one the game refused it before.
+     */
+    interface Breakable {
+        int tool(int x, int y, int z);
     }
 
     /** What the bot knows this tick. */
@@ -91,6 +118,13 @@ final class BotBrain {
         /** It eats (an item in use). */
         boolean eating;
         Ground ground;
+        /** Its game is played with blocks (the Block Placement): it places and breaks them there. */
+        boolean blocks;
+        /** The hotbar slot of the blocks it places (the wool of its kit), -1: none. */
+        int block = -1;
+        /** The other one stands on the ground. */
+        boolean targetOnGround;
+        Breakable breakable;
     }
 
     /** What the bot presses this tick. */
@@ -110,6 +144,15 @@ final class BotBrain {
         int swings;
         /** The first click hits the other. */
         boolean hit;
+        /**
+         * A right click with the block held on this side of this block, {x, y, z, side} (the sides
+         * as a client numbers them: {@link #FACES}); null: none. The new block goes beside it.
+         */
+        int[] place;
+        /** Where its look meets that side, from the corner of the block (0 to 1 each way). */
+        float[] cursor;
+        /** The left button held on this block, {x, y, z, side}: it digs it; null: it digs nothing. */
+        int[] dig;
     }
 
     /** The most ticks of reaction: the length of its memory of the other. */
@@ -135,6 +178,24 @@ final class BotBrain {
      * to them still leaves it standing, as before.
      */
     static final double[] TURNS = {20, 40, 60};
+    /**
+     * The sides of a block, as a client numbers them in its clicks: down, up, north (-z), south
+     * (+z), west (-x), east (+x); each the way out of the block.
+     */
+    static final int[][] FACES = {{0, -1, 0}, {0, 1, 0}, {0, 0, -1}, {0, 0, 1}, {-1, 0, 0}, {1, 0, 0}};
+    static final int DOWN = 0;
+    static final int UP = 1;
+    /** A client reaches a block this far from its eyes, in survival. */
+    static final double REACH_BLOCKS = 4.5;
+    /**
+     * Nothing this many blocks under it: the void (the fall line of the Block Placement is 10 under
+     * its floor).
+     */
+    static final int VOID_DEPTH = 10;
+    /** How many blocks under its feet it looks for a place to clutch, the first right under. */
+    static final int CLUTCH_DEPTH = 3;
+    /** Half the width of a player. */
+    static final double HALF_WIDTH = 0.3;
 
     final Skill skill;
     private final Random random;
@@ -149,6 +210,8 @@ final class BotBrain {
     /** Ticks left of a w-tap (forward let go). */
     private int wTapTicks;
     private double clicks;
+    /** Ticks until its next block. */
+    private int placeWait;
 
     BotBrain(Skill skill, Random random) {
         this.skill = skill;
@@ -161,6 +224,9 @@ final class BotBrain {
         Controls controls = new Controls();
         controls.yaw = sight.yaw;
         controls.pitch = sight.pitch;
+        if (placeWait > 0) {
+            placeWait--;
+        }
         if (!sight.fighting) {
             // nothing to fight (the lobby, a countdown, dead in a round): it stands, and forgets
             seenCount = 0;
@@ -190,6 +256,11 @@ final class BotBrain {
         } else if (sight.sword >= 0 && sight.held != sight.sword) {
             controls.slot = sight.sword;
         }
+        // its hands on the blocks: a clutch first, else the block under the other
+        boolean clutching = !eating && sight.blocks && sight.ground != null && clutch(sight, controls);
+        boolean digging = !eating && !clutching && sight.blocks && sight.ground != null
+                && undermine(sight, controls, target);
+        boolean onBlocks = clutching || digging;
 
         if (--sideTicks <= 0) {
             side = -side;
@@ -227,13 +298,24 @@ final class BotBrain {
             controls.forward *= EATING_SPEED;
             controls.strafe *= EATING_SPEED;
         }
+        if (digging && controls.dig != null) {
+            // it stands while it breaks the block out of its hits, its look on it, as a player
+            // does: a step on would take it into its hits or off the edge before the block goes
+            controls.forward = 0;
+            controls.strafe = 0;
+            controls.jump = false;
+        }
         if (sight.onGround && sight.ground != null) {
             keepOnGround(controls, sight);
+            if (sight.blocks && stepAhead(sight, controls.yaw, controls.forward, controls.strafe)) {
+                // a step of one block on its way (the hills of the block placement maps): a jump
+                controls.jump = true;
+            }
         }
-        controls.sprint = !eating && controls.forward >= 0.8;
+        controls.sprint = !eating && !onBlocks && controls.forward >= 0.8;
 
         int now = clicks();
-        if (!eating && now > 0) {
+        if (!eating && !onBlocks && now > 0) {
             controls.swings = now;
             double ex = sight.x;
             double ey = sight.y + EYES;
@@ -248,6 +330,276 @@ final class BotBrain {
             }
         }
         return controls;
+    }
+
+    // --- Blocks ---------------------------------------------------------------------------------
+
+    /**
+     * Over the void, a block of its kit under its feet: in the highest place under it it can reach
+     * (its top at its feet at most), against the side of the block beside that place. It holds the
+     * block, turns its head to that side, and clicks once its look is on it. True while it clutches.
+     */
+    private boolean clutch(Sight sight, Controls controls) {
+        if (sight.block < 0 || !overVoid(sight.ground, sight.x, sight.y, sight.z)) {
+            return false;
+        }
+        int[] against = clutchPlace(sight);
+        if (against == null) {
+            return false;
+        }
+        controls.slot = sight.held == sight.block ? -1 : sight.block;
+        lookAt(sight, controls, faceCentre(against, against[3]));
+        double[] hit = rayHit(sight, controls.yaw, controls.pitch, against[0], against[1], against[2]);
+        if (hit != null && (int) hit[0] == against[3] && placeWait == 0) {
+            controls.place = against;
+            controls.cursor = new float[] {(float) (hit[1] - against[0]), (float) (hit[2] - against[1]),
+                (float) (hit[3] - against[2])};
+            placeWait = (int) Math.ceil(20 / Math.max(0.1, skill.blocksPerSecond));
+        }
+        return true;
+    }
+
+    /**
+     * Where it clutches: {x, y, z, side} of the block it clicks, the new block beside it under its
+     * feet; null if no place under it touches a block it can reach.
+     */
+    static int[] clutchPlace(Sight sight) {
+        int[][] columns = footprint(sight.x, sight.z);
+        int top = (int) Math.floor(sight.y + 1e-6) - 1;
+        double ex = sight.x;
+        double ey = sight.y + EYES;
+        double ez = sight.z;
+        for (int cy = top; cy > top - CLUTCH_DEPTH; cy--) {
+            for (int[] column : columns) {
+                if (sight.ground.solid(column[0], cy, column[1])) {
+                    continue;
+                }
+                for (int face = 2; face < FACES.length; face++) {
+                    int nx = column[0] + FACES[face][0];
+                    int ny = cy + FACES[face][1];
+                    int nz = column[1] + FACES[face][2];
+                    if (!sight.ground.solid(nx, ny, nz)) {
+                        continue;
+                    }
+                    // the side of that block towards the place: the other way
+                    int side = face ^ 1;
+                    double[] centre = faceCentre(new int[] {nx, ny, nz}, side);
+                    if (distance(ex, ey, ez, centre[0], centre[1], centre[2]) <= REACH_BLOCKS) {
+                        return new int[] {nx, ny, nz, side};
+                    }
+                }
+            }
+        }
+        return null;
+    }
+
+    /**
+     * The other stands on one block over the void, a block of the players it can break, out of its
+     * hits but within its reach: it holds its tool, turns its head to the side of that block towards
+     * it, and digs it once its look is on it. True while it does.
+     */
+    private boolean undermine(Sight sight, Controls controls, double[] other) {
+        if (!sight.targetOnGround || sight.breakable == null) {
+            return false;
+        }
+        if (reach(sight.x, sight.y + EYES, sight.z, sight.tx, sight.ty, sight.tz) <= skill.reach) {
+            // within its hits: it fights
+            return false;
+        }
+        int[] under = holding(sight.ground, other[0], other[1], other[2]);
+        if (under == null) {
+            return false;
+        }
+        int tool = sight.breakable.tool(under[0], under[1], under[2]);
+        if (tool < 0 || nearest(sight, under) > REACH_BLOCKS) {
+            return false;
+        }
+        controls.slot = sight.held == tool ? -1 : tool;
+        lookAt(sight, controls, faceCentre(under, sideTowards(sight, under)));
+        double[] hit = rayHit(sight, controls.yaw, controls.pitch, under[0], under[1], under[2]);
+        if (hit != null) {
+            controls.dig = new int[] {under[0], under[1], under[2], (int) hit[0]};
+        }
+        return true;
+    }
+
+    /**
+     * The one block that holds up a player standing at (x, y, z), {x, y, z}, when nothing else
+     * does and the void is under it; else null.
+     */
+    static int[] holding(Ground ground, double x, double y, double z) {
+        int level = (int) Math.floor(y - 0.01);
+        int[] found = null;
+        for (int[] column : footprint(x, z)) {
+            if (ground.solid(column[0], level, column[1])) {
+                if (found != null && (found[0] != column[0] || found[2] != column[1])) {
+                    return null;
+                }
+                found = new int[] {column[0], level, column[1]};
+            }
+        }
+        if (found == null) {
+            return null;
+        }
+        for (int[] column : footprint(x, z)) {
+            for (int down = 1; down <= VOID_DEPTH; down++) {
+                if (ground.solid(column[0], level - down, column[1])) {
+                    return null;
+                }
+            }
+        }
+        return found;
+    }
+
+    /** True if no block is under a player at (x, y, z) for VOID_DEPTH blocks: it would fall into the void. */
+    static boolean overVoid(Ground ground, double x, double y, double z) {
+        int feet = (int) Math.floor(y - 0.01);
+        for (int[] column : footprint(x, z)) {
+            for (int down = 0; down < VOID_DEPTH; down++) {
+                if (ground.solid(column[0], feet - down, column[1])) {
+                    return false;
+                }
+            }
+        }
+        return true;
+    }
+
+    /** The columns of blocks under a player at (x, z), {x, z} each, the one under its middle first. */
+    static int[][] footprint(double x, double z) {
+        int mx = (int) Math.floor(x);
+        int mz = (int) Math.floor(z);
+        int[][] all = new int[5][];
+        int n = 0;
+        all[n++] = new int[] {mx, mz};
+        for (double cx : new double[] {x - HALF_WIDTH, x + HALF_WIDTH}) {
+            for (double cz : new double[] {z - HALF_WIDTH, z + HALF_WIDTH}) {
+                int bx = (int) Math.floor(cx);
+                int bz = (int) Math.floor(cz);
+                boolean known = false;
+                for (int i = 0; i < n; i++) {
+                    known |= all[i][0] == bx && all[i][1] == bz;
+                }
+                if (!known) {
+                    all[n++] = new int[] {bx, bz};
+                }
+            }
+        }
+        int[][] columns = new int[n][];
+        System.arraycopy(all, 0, columns, 0, n);
+        return columns;
+    }
+
+    /** True if a step of one block stands where these keys take it on the ground, with room above. */
+    boolean stepAhead(Sight sight, float yaw, double forward, double strafe) {
+        if (forward == 0 && strafe == 0) {
+            return false;
+        }
+        double[] way = way(yaw, forward, strafe);
+        int feet = (int) Math.floor(sight.y + 0.01);
+        int ax = (int) Math.floor(sight.x + way[0] * (HALF_WIDTH + 0.2));
+        int az = (int) Math.floor(sight.z + way[1] * (HALF_WIDTH + 0.2));
+        if (ax == (int) Math.floor(sight.x) && az == (int) Math.floor(sight.z)) {
+            return false;
+        }
+        Ground ground = sight.ground;
+        return ground.solid(ax, feet, az) && !ground.solid(ax, feet + 1, az) && !ground.solid(ax, feet + 2, az)
+                && !ground.solid((int) Math.floor(sight.x), feet + 2, (int) Math.floor(sight.z));
+    }
+
+    /** It turns its head towards this point, at its turn a tick. */
+    private void lookAt(Sight sight, Controls controls, double[] point) {
+        double dx = point[0] - sight.x;
+        double dy = point[1] - (sight.y + EYES);
+        double dz = point[2] - sight.z;
+        controls.yaw = turn(sight.yaw, yawTo(dx, dz), skill.turn);
+        float pitch = (float) -Math.toDegrees(Math.atan2(dy, Math.max(Math.sqrt(dx * dx + dz * dz), 1e-6)));
+        controls.pitch = (float) clamp(turn(sight.pitch, pitch, skill.turn), -90, 90);
+    }
+
+    /** The middle of this side of the block {x, y, z}. */
+    static double[] faceCentre(int[] block, int side) {
+        return new double[] {block[0] + 0.5 + FACES[side][0] * 0.5, block[1] + 0.5 + FACES[side][1] * 0.5,
+            block[2] + 0.5 + FACES[side][2] * 0.5};
+    }
+
+    /** The side of the block it sees best: the one towards its eyes along the way they are furthest from it. */
+    static int sideTowards(Sight sight, int[] block) {
+        double dx = sight.x - (block[0] + 0.5);
+        double dy = sight.y + EYES - (block[1] + 0.5);
+        double dz = sight.z - (block[2] + 0.5);
+        if (Math.abs(dy) > Math.max(Math.abs(dx), Math.abs(dz))) {
+            return dy > 0 ? UP : DOWN;
+        }
+        if (Math.abs(dx) >= Math.abs(dz)) {
+            return dx > 0 ? 5 : 4;
+        }
+        return dz > 0 ? 3 : 2;
+    }
+
+    /**
+     * Where the look of its eyes (yaw, pitch) enters the block {x, y, z} within a client's reach:
+     * {side, x, y, z} of that point; null if it misses it.
+     */
+    static double[] rayHit(Sight sight, float yaw, float pitch, int bx, int by, int bz) {
+        double yawRad = Math.toRadians(yaw);
+        double pitchRad = Math.toRadians(pitch);
+        double[] from = {sight.x, sight.y + EYES, sight.z};
+        double[] dir = {-Math.sin(yawRad) * Math.cos(pitchRad), -Math.sin(pitchRad), Math.cos(yawRad) * Math.cos(pitchRad)};
+        double[] low = {bx, by, bz};
+        double enter = 0;
+        double leave = REACH_BLOCKS;
+        int side = -1;
+        for (int axis = 0; axis < 3; axis++) {
+            if (Math.abs(dir[axis]) < 1e-9) {
+                if (from[axis] < low[axis] || from[axis] > low[axis] + 1) {
+                    return null;
+                }
+                continue;
+            }
+            double t1 = (low[axis] - from[axis]) / dir[axis];
+            double t2 = (low[axis] + 1 - from[axis]) / dir[axis];
+            // entering through the low side (moving up the axis) or the high side
+            int nearSide = dir[axis] > 0 ? 2 * axisFace(axis) : 2 * axisFace(axis) + 1;
+            double near = Math.min(t1, t2);
+            double far = Math.max(t1, t2);
+            if (near > enter) {
+                enter = near;
+                side = nearSide;
+            }
+            leave = Math.min(leave, far);
+            if (enter > leave) {
+                return null;
+            }
+        }
+        if (side < 0) {
+            // its eyes inside the block
+            return null;
+        }
+        return new double[] {side, from[0] + dir[0] * enter, from[1] + dir[1] * enter, from[2] + dir[2] * enter};
+    }
+
+    /**
+     * The pair of sides of an axis in {@link #FACES}, as its first index halved: y is 0 (down, up),
+     * z 1 (north, south), x 2 (west, east).
+     */
+    private static int axisFace(int axis) {
+        return axis == 0 ? 2 : axis == 1 ? 0 : 1;
+    }
+
+    /** From its eyes to the nearest point of the block {x, y, z}. */
+    static double nearest(Sight sight, int[] block) {
+        double ex = sight.x;
+        double ey = sight.y + EYES;
+        double ez = sight.z;
+        return distance(ex, ey, ez, clamp(ex, block[0], block[0] + 1), clamp(ey, block[1], block[1] + 1),
+                clamp(ez, block[2], block[2] + 1));
+    }
+
+    private static double distance(double ax, double ay, double az, double bx, double by, double bz) {
+        double x = ax - bx;
+        double y = ay - by;
+        double z = az - bz;
+        return Math.sqrt(x * x + y * y + z * z);
     }
 
     // --- The other, as it saw them ------------------------------------------------------------

@@ -1191,7 +1191,11 @@ parties-privees:
 #   actif   false: /p invite RagoBot finds nobody
 #   skin    the account whose skin it wears
 #   max     RagoBots online at once at most, 1 to 50 (each is a player of the server)
-#   modes   the modes it plays (two teams, not ranked)
+#   modes   the modes it plays (two teams, or a Red Rover; not ranked). In the Block Placement
+#           (1v1, 2v2, Red Rover) it uses the blocks of its kit as a player: knocked off over the
+#           void, it clutches (a block under its feet); the other on one block of theirs over the
+#           void, out of its hits, it breaks that block (shears on the wool, pickaxe on the end
+#           stone) and they fall; it jumps up the steps of the maps
 #   skill   its one skill, the same for every RagoBot (no levels), to set in game:
 #     cps         clicks a second (1 to 20)
 #     precision   the chance that a click with its aim on the other lands (0 to 1)
@@ -1202,14 +1206,17 @@ parties-privees:
 #     reaction    how many ticks behind the other it steers (0 to 9)
 #     rotation    the degrees it turns its head a tick at most (5 to 180)
 #     soin-a      under this health (20 is full), it eats a golden apple of its kit (0 to 20)
+#     blocs-par-seconde  blocks it places a second at most (1 to 20)
 #   The values below: the "hard" level of the old combo bot, a turn of 30 degrees a tick, a golden
-#   apple under 10 health, and 10 RagoBots at most; all to confirm in game.
+#   apple under 10 health, 6 blocks a second, and 10 RagoBots at most; all to confirm in game.
 ragobot:
   actif: true
   skin: qRago
   max: 10
-  # Boxing and Lobby Fight 1v1: step 1 of the owner's order of 22/11 (17h54), no new skill
-  modes: [top-bridge-1v1, top-bridge-2v2, sumo, boxing, lobby-fight-1v1]
+  # Boxing and Lobby Fight 1v1: step 1 of the owner's order of 22/11 (17h54), no new skill; the
+  # Block Placement 1v1, 2v2 and its Red Rover: step 2, with the blocks
+  modes: [top-bridge-1v1, top-bridge-2v2, sumo, boxing, lobby-fight-1v1, block-fight-1v1, block-fight-2v2,
+    red-rover-block-placement]
   skill:
     cps: 11
     precision: 0.88
@@ -1220,6 +1227,7 @@ ragobot:
     reaction: 3
     rotation: 30
     soin-a: 10
+    blocs-par-seconde: 6
 
 # The Owner's test tools (plan 7.1), to test the PvP and the protections of the server:
 #   /owner reach <3-6|off>     the Owner's hits land up to that far (a fair player's reach is 3),

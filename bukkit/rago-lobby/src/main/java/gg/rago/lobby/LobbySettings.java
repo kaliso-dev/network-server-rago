@@ -6,8 +6,10 @@ import gg.rago.game.RatingWindow;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import org.bukkit.ChatColor;
 import org.bukkit.Material;
 import org.bukkit.configuration.ConfigurationSection;
@@ -191,10 +193,15 @@ final class LobbySettings {
             }
         }
         Map<String, GameMode> modesById = new HashMap<>();
+        Set<String> inTurns = new HashSet<>();
         for (ModeDisplay display : modes) {
             modesById.put(display.mode().id(), display.mode());
+            if ("1v1v1".equals(display.format())) {
+                // a Red Rover: each player against the others, in turn
+                inTurns.add(display.mode().id());
+            }
         }
-        BotSettings bots = BotSettings.read(config.getConfigurationSection("ragobot"), modesById);
+        BotSettings bots = BotSettings.read(config.getConfigurationSection("ragobot"), modesById, inTurns);
         Map<String, Pedestal> pedestals = readPedestals(config.getConfigurationSection("pnj"));
         String dailyPoint = pointName(config, "point-coffre-du-jour", DailyChest.POINT);
         String questsPoint = pointName(config, "point-pnj-quetes", QuestsNpc.POINT);

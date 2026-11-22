@@ -94,8 +94,14 @@ dans les files d'attente des modes de jeu.
   skin d'un compte (`skin:`, qRago) et le nom RagoBot, un par party qui l'invite (`max:` à la
   fois, de 1 à 50). Il joue les parties de la party dans ses modes (`modes:`, Top Bridge 1v1 et
   2v2 et le Sumo 1v1 d'abord ; puis Boxing et Lobby Fight 1v1, l'étape 1 de l'ordre que tu as
-  validé le 22/11 : voir le suivi), comme un membre : une party de deux joue le 1v1 contre lui, une
-  party avec lui attend dans la file du 2v2 comme une équipe. Jamais en classé, jamais pour remplir
+  validé le 22/11 ; puis Block placement 1v1, 2v2 et Red Rover Block Placement, l'étape 2 : voir le
+  suivi), comme un membre : une party de deux joue le 1v1 contre lui, une party avec lui attend
+  dans la file du 2v2 comme une équipe, une party de trois joue un Red Rover avec lui (il se bat
+  contre celui de son 1v1). En Block placement seulement, il pose et casse des blocs par les
+  paquets d'un client, dans les règles de la partie : au-dessus du vide, il pose un bloc de son kit
+  sous lui (le clutch) ; l'autre debout sur un seul bloc au-dessus du vide, hors de ses coups, il
+  s'arrête et casse ce bloc (laine aux cisailles, end stone à la pioche) ; il saute les marches
+  d'un bloc. Sa vitesse de pose : `skill.blocs-par-seconde`. Jamais en classé, jamais pour remplir
   une file au hasard, jamais chef de la party (le chef qui part la laisse au joueur suivant ; sans
   autre joueur, elle est dissoute). Une partie avec lui compte dans les stats et l'XP des joueurs,
   jamais dans l'ELO ; lui n'a pas de stats. Un seul niveau (`skill:` : CPS, précision, portée,

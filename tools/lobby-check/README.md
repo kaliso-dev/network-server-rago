@@ -201,7 +201,17 @@ RagoBot sans bouger : RagoBot vient à lui, frappe, le pousse et le sort de la p
 1v1 (carte démo), RagoBot traverse le pont, le frappe à l'épée et gagne une manche ; le bot s'en
 va. Pour le Lobby Fight 1v1, RagoMapOp (opérateur) fait de l'île du milieu de la carte démo sa
 salle d'attente (`/bw lobbyfight`, 121 blocs), comme sur Archway FFA ; RagoBot y frappe le bot à
-l'épée en pierre et gagne une manche ; le bot s'en va. En Top Bridge 2v2, la party (le bot et RagoBot) attend dans la file comme une équipe, deux
+l'épée en pierre et gagne une manche ; le bot s'en va. En Block placement 1v1, sur les deux
+plateformes que le mode construit sans carte (à 16 blocs l'une de l'autre au-dessus du vide, que
+RagoBot ne sait pas encore relier : le bridge est l'étape 4), RagoOp (opérateur) déplace les
+joueurs avec `/tp`. Le clutch : RagoBot, mis au-dessus du vide à côté de sa plateforme, pose de la
+laine sous lui et y reste debout. Le bloc sous l'autre : le bot pose trois laines au bout de sa
+plateforme et casse les deux premières ; le bot sur la troisième, seule au-dessus du vide, et
+RagoBot sur la plateforme du bot, hors de portée de ses coups : RagoBot casse la laine sans le
+frapper, le bot tombe, +10 pour Blue, le bot perd. En Red Rover Block Placement, un deuxième bot
+entre dans la party et les trois jouent leurs 1v1 à tour de rôle ; dans le 1v1 de RagoBot, RagoOp
+amène l'autre sur lui (`/tp`) : RagoBot le frappe et gagne son 1v1 ; les deux bots s'en vont.
+En Top Bridge 2v2, la party (le bot et RagoBot) attend dans la file comme une équipe, deux
 autres bots seuls la rejoignent : RagoBot frappe l'un d'eux, ils s'en vont. Après `/p kick
 RagoBot`, puis après une party dissoute, RagoBot quitte le serveur. Le log du serveur ne doit
 compter aucune de ces parties comme partie privée (elles comptent dans les stats). Les bots notent

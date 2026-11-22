@@ -20,10 +20,17 @@ final class BotSettings {
     static final String NAME = "RagoBot";
     /**
      * The modes of the bundled config: those the owner asked for first (22/11), then Boxing and
-     * Lobby Fight 1v1, step 1 of the owner's order of 22/11 (17h54).
+     * Lobby Fight 1v1, step 1 of the owner's order of 22/11 (17h54), then the Block Placement 1v1
+     * and 2v2 and its Red Rover, step 2.
      */
-    static final List<String> DEFAULT_MODES = Collections.unmodifiableList(
-            Arrays.asList("top-bridge-1v1", "top-bridge-2v2", "sumo", "boxing", "lobby-fight-1v1"));
+    static final List<String> DEFAULT_MODES = Collections.unmodifiableList(Arrays.asList("top-bridge-1v1", "top-bridge-2v2",
+            "sumo", "boxing", "lobby-fight-1v1", "block-fight-1v1", "block-fight-2v2", "red-rover-block-placement"));
+    /**
+     * The modes where it places and breaks blocks, as a player there (step 2 of the owner's order
+     * of 22/11, 17h54: the Block Placement 1v1 and 2v2, and its Red Rover).
+     */
+    static final java.util.Set<String> BLOCK_MODES = Collections.unmodifiableSet(new java.util.HashSet<>(
+            Arrays.asList("block-fight-1v1", "block-fight-2v2", "red-rover-block-placement")));
     static final int MAX_BOTS = 50;
 
     /** False: /p invite RagoBot finds nobody. */
@@ -54,9 +61,14 @@ final class BotSettings {
 
     /**
      * ragobot: of config.yml; byId the modes of modes:. Its modes must exist, be played by two
-     * teams, and not be ranked: RagoBot never moves an ELO.
+     * teams (or be a Red Rover, each player against the others in turn: inTurns, the modes whose
+     * format: is 1v1v1), and not be ranked: RagoBot never moves an ELO.
      */
     static BotSettings read(ConfigurationSection section, Map<String, GameMode> byId) {
+        return read(section, byId, Collections.<String>emptySet());
+    }
+
+    static BotSettings read(ConfigurationSection section, Map<String, GameMode> byId, java.util.Set<String> inTurns) {
         boolean enabled = section == null || section.getBoolean("actif", true);
         String skin = section == null ? "qRago" : section.getString("skin", "qRago");
         if (!AccountSkins.validName(skin)) {
@@ -84,7 +96,7 @@ final class BotSettings {
             if (mode.ranked()) {
                 throw new IllegalArgumentException("ragobot.modes: " + id + " is ranked, RagoBot never plays ranked");
             }
-            if (mode.teams() < 2) {
+            if (mode.teams() < 2 && !inTurns.contains(id)) {
                 throw new IllegalArgumentException("ragobot.modes: " + id + " has one team, RagoBot plays against the others");
             }
             if (!modes.contains(id)) {
@@ -110,7 +122,8 @@ final class BotSettings {
         int reaction = (int) number(section, "reaction", bundled.reaction, 0, BotBrain.MEMORY - 1);
         double turn = number(section, "rotation", bundled.turn, 5, 180);
         double healAt = number(section, "soin-a", bundled.healAt, 0, 20);
-        return new BotBrain.Skill(cps, accuracy, reach, strafe, wTap, jumpReset, reaction, turn, healAt);
+        double blocks = number(section, "blocs-par-seconde", bundled.blocksPerSecond, 1, 20);
+        return new BotBrain.Skill(cps, accuracy, reach, strafe, wTap, jumpReset, reaction, turn, healAt, blocks);
     }
 
     private static double number(ConfigurationSection section, String key, double bundled, double low, double high) {

@@ -3,7 +3,8 @@
 // RagoBot is a player of the server that a party leader invites with /p invite RagoBot (the
 // owner's choice of 22/11: only in a party, never ranked, never to fill a random queue; Top Bridge
 // 1v1 and 2v2 and the Sumo 1v1 first, then Boxing and Lobby Fight 1v1, step 1 of the owner's order
-// of 22/11, 17h54). Test bots, with the bundled settings:
+// of 22/11, 17h54, then Block placement 1v1, 2v2 and its Red Rover, step 2: it places blocks to
+// save itself, and breaks those of the other). Test bots, with the bundled settings:
 //   1. RagoLeader invites RagoBot: it joins the party at once and stands next to it; a second
 //      invite finds it there already; RagoBot refuses a ranked queue and a mode it does not play;
 //      /duel RagoBot from another player points to the party;
@@ -20,9 +21,19 @@
 //      lobbyfight), as the owner did on Archway FFA;
 //      RagoBot hits RagoLeader with the stone sword of the kit until it wins a round; RagoLeader
 //      leaves;
-//   6. Top Bridge 2v2: the party of RagoLeader and RagoBot queues as one team, two players alone
+//   6. Block placement 1v1 (block-fight-1v1, RagoPractice, first to 10 in run-arena-test.sh), on
+//      the two platforms the mode builds without a map, 16 blocks apart over the void (RagoBot
+//      bridges at step 4 only): RagoOp, an operator, moves the players with /tp.
+//      The clutch: RagoBot over the void beside its platform places wool under itself and stands
+//      on it. The block under the other: RagoLeader on a block of its wool alone over the void,
+//      RagoBot on the platform of RagoLeader, out of its hits: RagoBot breaks the wool, RagoLeader
+//      falls, +10 for Blue: RagoLeader loses;
+//   7. Red Rover Block Placement (red-rover-block-placement): RagoAutreUn joins the party, the
+//      three play 1v1 in turn; RagoBot fights the one in its 1v1 (RagoOp brings them onto its
+//      platform) and wins it; the two others leave, RagoAutreUn leaves the party;
+//   8. Top Bridge 2v2: the party of RagoLeader and RagoBot queues as one team, two players alone
 //      join the queue: the four play, RagoBot hits one of the two others; they leave;
-//   7. /p kick RagoBot: RagoBot leaves the server; invited again, then the party disbanded: it
+//   9. /p kick RagoBot: RagoBot leaves the server; invited again, then the party disbanded: it
 //      leaves again.
 // run-arena-test.sh also checks the server log: no game of these was counted as a private game of
 // a party (those count in no stats), and no error.
@@ -34,10 +45,12 @@ import mineflayer from 'mineflayer'
 
 const HOST = process.env.KB_HOST ?? '127.0.0.1'
 const PORT = Number(process.env.KB_PORT ?? '25565')
-const TEST_TIMEOUT_MS = 7 * 60 * 1000
+const TEST_TIMEOUT_MS = 9 * 60 * 1000
 const BOT = 'RagoBot'
 
 let finishing = false
+/** The vector class of mineflayer's positions (from the first bot): new Vec3(x, y, z). */
+let Vec3 = null
 
 function abort (error) {
   console.error(`[ragobot-bots] FAILED: ${error.message}`)
@@ -50,10 +63,11 @@ function log (text) {
   console.log(`[ragobot-bots] ${text}`)
 }
 
+/** Waits until `condition` holds; `what` (a text, or a function for a text of the moment it failed) says what for. */
 async function waitFor (condition, timeoutMs, what) {
   const deadline = Date.now() + timeoutMs
   while (!condition()) {
-    if (Date.now() > deadline) throw new Error(`timed out waiting for ${what}`)
+    if (Date.now() > deadline) throw new Error(`timed out waiting for ${typeof what === 'function' ? what() : what}`)
     await sleep(20)
   }
 }
@@ -215,7 +229,7 @@ async function invite (leader) {
   const from = mark(leader)
   leader.chat(`/p invite ${BOT}`)
   await chatLine(leader, /RagoBot joined the party\./, 10000, from)
-  await chatLine(leader, /RagoBot plays .*Top Bridge 1v1, Top Bridge 2v2, Sumo duel, Boxing and Lobby Fight 1v1.* with your party, never ranked: your games with it count in your stats, never in the ELO\./, 5000, from)
+  await chatLine(leader, /RagoBot plays .*Top Bridge 1v1, Top Bridge 2v2, Sumo duel, Boxing, Lobby Fight 1v1, Block placement 1v1, Block placement 2v2 and Red Rover Block Placement.* with your party, never ranked: your games with it count in your stats, never in the ELO\./, 5000, from)
   await waitFor(() => ragoBot(leader) != null, 5000, `${leader.username} to see RagoBot (players: ${Object.keys(leader.players).join(', ')})`)
   const distance = ragoBot(leader).position.distanceTo(leader.entity.position)
   if (distance > 3) throw new Error(`RagoBot joined ${distance.toFixed(1)} blocks away from ${leader.username}, at ${where(ragoBot(leader))}`)
@@ -355,6 +369,239 @@ async function topBridge1v1 (leader, problems) {
   log('top bridge 1v1: RagoLeader left, back in the lobby with RagoBot')
 }
 
+/** The bot holds the first item of this name in its hotbar. */
+async function hold (bot, name) {
+  let slot = -1
+  await waitFor(() => {
+    for (let i = 0; i < 9; i++) {
+      if (hotbarItem(bot, i)?.name === name) {
+        slot = i
+        return true
+      }
+    }
+    return false
+  }, 5000, `${bot.username} to have ${name} in its hotbar: ${JSON.stringify([...Array(9).keys()].map((i) => hotbarItem(bot, i)?.name ?? null))}`)
+  bot.setQuickBarSlot(slot)
+  await sleep(100)
+}
+
+function blockText (block) {
+  return block == null ? 'not loaded' : `${block.name}:${block.metadata}`
+}
+
+/** Places the item in hand against this face of the block at `against`; the new block must be `name` at `at`. */
+async function place (bot, against, face, at, name) {
+  await waitFor(() => bot.blockAt(against) != null && bot.blockAt(against).name !== 'air', 5000,
+    `${bot.username}: a block at ${against} to place against (${blockText(bot.blockAt(against))})`)
+  await bot.placeBlock(bot.blockAt(against), face).catch(() => {})
+  await waitFor(() => bot.blockAt(at)?.name === name, 5000,
+    `${bot.username} to place ${name} at ${at} (there: ${blockText(bot.blockAt(at))})`)
+}
+
+/** Breaks the block at `at`, which must be air after. */
+async function dig (bot, at) {
+  await waitFor(() => bot.blockAt(at) != null, 5000, `${bot.username}: the block at ${at} loaded`)
+  await bot.dig(bot.blockAt(at), true)
+  await waitFor(() => bot.blockAt(at)?.name === 'air', 5000,
+    `${bot.username} to break the block at ${at} (there: ${blockText(bot.blockAt(at))})`)
+}
+
+/**
+ * The leader joins the queue of this mode once RagoBot is back in the lobby from the game before
+ * (after its end screen): until then, the party waits for it, as for any player of the party.
+ */
+async function queueWhenBack (leader, mode, started, after) {
+  const deadline = Date.now() + 20000
+  for (let asked = mark(leader); ; asked = mark(leader)) {
+    leader.chat(`/queue ${mode}`)
+    const answer = await chatLine(leader, new RegExp(`${started.source}|RagoBot is not in the lobby: your party cannot join a queue\\.`), 5000, asked)
+    if (started.test(answer)) return
+    if (Date.now() > deadline) throw new Error(`RagoBot never came back to the lobby after ${after} (${answer})`)
+    await sleep(1000)
+  }
+}
+
+/** RagoOp, an operator, moves a player of the game: /tp <name> <x> <y> <z>. */
+function teleport (op, name, x, y, z) {
+  op.chat(`/tp ${name} ${x.toFixed(2)} ${y.toFixed(2)} ${z.toFixed(2)}`)
+}
+
+/**
+ * Block placement 1v1, on the arena the mode builds without a map (the test server has none):
+ * two floors of 3 by 3 at x -9..-7 and 7..9 from its centre, 16 blocks apart over the void,
+ * RagoLeader starting on the west one (the first team of the party), RagoBot on the east one.
+ * Nothing joins the two (RagoBot bridges at step 4 only): RagoOp, an operator, moves them.
+ *   1. the clutch: RagoBot over the void south of its floor, its feet 2 blocks over it: it places
+ *      wool under itself against the side of its floor, stands on it, and no one gets the 10 of
+ *      a fall;
+ *   2. the block under the other: RagoLeader places three blocks of wool out of its floor, east,
+ *      and breaks the first two: the third is alone over the void. RagoLeader on it, RagoBot on
+ *      the floor of RagoLeader, out of its hits: RagoBot breaks the wool under RagoLeader (with
+ *      no hit), RagoLeader falls, +10 for Blue, the 10 of the game: RagoLeader loses.
+ */
+async function blockPlacement1v1 (leader, op, problems) {
+  const from = mark(leader)
+  const seen = watch(leader)
+  try {
+    await queueWhenBack(leader, 'block-fight-1v1',
+      /Game of your party in Block placement 1v1: RagoLeader vs RagoBot\. It counts in your stats, never in the ELO\./, 'the Lobby Fight 1v1')
+    await chatLine(leader, /Block fight against RagoBot/, 15000, from)
+    await waitFor(() => leader.game.gameMode === 'survival' && ragoBot(leader) != null, 5000,
+      `RagoLeader in survival mode and RagoBot in sight in the block placement (mode ${leader.game.gameMode})`)
+    await sleep(500)
+    const p = leader.entity.position
+    const centre = { x: Math.round(p.x + 7.5), y: Math.floor(p.y) - 1, z: Math.floor(p.z) }
+    const at = (dx, dy, dz) => new Vec3(centre.x + dx, centre.y + dy, centre.z + dz)
+    const start = ragoBot(leader).position
+    if (Math.abs(start.x - (centre.x + 8.5)) > 0.6 || Math.abs(start.z - (centre.z + 0.5)) > 0.6) {
+      throw new Error(`RagoLeader should start on the west floor and RagoBot on the east one: RagoLeader at ${where(leader.entity)}, RagoBot at ${where(ragoBot(leader))}`)
+    }
+    await chatLine(leader, /Fight!/, 10000, from)
+    log(`block placement 1v1: RagoLeader vs RagoBot, the floors 16 blocks apart over the void (centre ${JSON.stringify(centre)})`)
+
+    // RagoLeader: three blocks of wool out of its floor, east, the first two broken
+    const east = new Vec3(1, 0, 0)
+    await hold(leader, 'wool')
+    await place(leader, at(-7, 0, 0), east, at(-6, 0, 0), 'wool')
+    await place(leader, at(-6, 0, 0), east, at(-5, 0, 0), 'wool')
+    await place(leader, at(-5, 0, 0), east, at(-4, 0, 0), 'wool')
+    await hold(leader, 'shears')
+    await dig(leader, at(-6, 0, 0))
+    await dig(leader, at(-5, 0, 0))
+    log('block placement 1v1: RagoLeader placed three blocks of wool out of its floor and broke the first two')
+
+    // 1. the clutch
+    let since = mark(leader)
+    const clutch = at(8, 0, 2)
+    teleport(op, BOT, centre.x + 8.5, centre.y + 3, centre.z + 2.7)
+    await waitFor(() => leader.blockAt(clutch)?.name === 'wool', 5000, () => {
+      const bot = ragoBot(leader)
+      return `RagoBot over the void to place wool under itself at ${clutch} (there: ${blockText(leader.blockAt(clutch))};`
+        + ` RagoBot at ${bot ? where(bot) : 'out of sight'}; RagoOp read ${JSON.stringify(op.chats.slice(-3))})`
+    })
+    await sleep(2000)
+    const fall = leader.chats.slice(since).find((line) => /\+10 for|Victory!|Defeat\./.test(line))
+    if (fall != null) throw new Error(`RagoBot fell into the void after its clutch: ${fall} (${seen.summary()})`)
+    const after = ragoBot(leader)
+    if (after == null || after.position.y < centre.y + 0.9) {
+      throw new Error(`RagoBot does not stand on its floor nor its wool after the clutch: ${after ? where(after) : 'out of sight'}`)
+    }
+    log(`block placement 1v1: the clutch, RagoBot placed wool under itself at ${clutch} and stands at ${where(after)}`)
+
+    // 2. the block under the other
+    teleport(op, 'RagoLeader', centre.x - 3.5, centre.y + 1, centre.z + 0.5)
+    await waitFor(() => leader.entity.position.distanceTo(at(-3.5, 1, 0.5)) < 0.3 && leader.entity.onGround, 5000,
+      () => `RagoLeader on its wool alone over the void (at ${where(leader.entity)}; RagoOp read ${JSON.stringify(op.chats.slice(-3))})`)
+    since = mark(leader)
+    const hurts = seen.hurts
+    const under = at(-4, 0, 0)
+    let fellAt = null
+    teleport(op, BOT, centre.x - 8.5, centre.y + 1, centre.z + 0.5)
+    await waitFor(() => {
+      if (leader.blockAt(under)?.name !== 'air') return false
+      fellAt = leader.entity.position.clone()
+      return true
+    }, 15000, () => {
+      const bot = ragoBot(leader)
+      return `RagoBot to break the wool under RagoLeader at ${under} (there: ${blockText(leader.blockAt(under))};`
+        + ` RagoLeader at ${where(leader.entity)}, RagoBot at ${bot ? where(bot) : 'out of sight'}; ${seen.summary()})`
+    })
+    if (fellAt.y < centre.y + 0.9) throw new Error(`RagoLeader fell before its wool went: at ${fellAt} (${seen.summary()})`)
+    if (seen.hurts !== hurts) throw new Error(`RagoBot hit RagoLeader on its wool: ${seen.hurts - hurts} hurts (${seen.summary()})`)
+    const bot = ragoBot(leader)
+    log(`block placement 1v1: RagoBot broke the wool under RagoLeader from ${bot ? where(bot) : 'out of sight'}, out of its hits`)
+    await chatLine(leader, /\+10 for Blue/, 10000, since)
+    const end = await chatLine(leader, /^(Defeat\.|Victory!)/, 10000, since)
+    if (!end.startsWith('Defeat.')) throw new Error(`RagoLeader won the block placement: ${end} (${seen.summary()})`)
+  } finally {
+    seen.stop()
+  }
+  log(`block placement 1v1: RagoLeader fell with its wool, +10 for Blue: RagoBot won; ${seen.summary()}`)
+  asAPlayerSeesIt('block placement 1v1', seen, problems, false)
+  await expectInLobby(leader, 'after the block placement')
+}
+
+/** The bot walks away from the other one until it falls off its floor. */
+async function walkOff (bot, other) {
+  const p = bot.entity.position
+  const q = other.entity.position
+  let dx = p.x - q.x
+  let dz = p.z - q.z
+  const length = Math.hypot(dx, dz) || 1
+  dx /= length
+  dz /= length
+  await bot.lookAt(p.offset(dx * 20, 1.62, dz * 20), true)
+  bot.setControlState('forward', true)
+}
+
+/**
+ * Red Rover Block Placement (red-rover-block-placement, 1v1 in turn, first to 10 points wins the
+ * 1v1, the void 10): RagoAutreUn joins the party of RagoLeader and RagoBot, the three play. If the
+ * first 1v1 is that of the two others, one walks off its floor: the other wins it, and meets
+ * RagoBot. In the 1v1 of RagoBot, RagoOp brings the other onto RagoBot (/tp), who stands still:
+ * RagoBot hits them, or knocks them into the void, and wins the 1v1. Then the two others leave
+ * the game, RagoAutreUn leaves the party.
+ */
+async function redRoverBlockPlacement (leader, other, op) {
+  const from = mark(leader)
+  let fromOther = mark(other)
+  leader.chat(`/p invite ${other.username}`)
+  await chatLine(other, /RagoLeader has invited you to join their party!/, 5000, fromOther)
+  other.chat('/party accept RagoLeader')
+  await chatLine(leader, new RegExp(`${other.username} joined the party\\.`), 5000, from)
+  const humans = [leader, other]
+  const marks = humans.map(mark)
+  await queueWhenBack(leader, 'red-rover-block-placement',
+    /Game of your party in Red Rover Block Placement: .*\. It counts in your stats, never in the ELO\./, 'the block placement')
+  for (const [i, bot] of humans.entries()) await chatLine(bot, /Red Rover Block Placement with /, 20000, marks[i])
+  await waitFor(() => humans.every((bot) => ['survival', 'spectator'].includes(bot.game.gameMode)) &&
+    humans.some((bot) => bot.game.gameMode === 'survival'), 8000,
+  () => `the first 1v1 of the Red Rover (${humans.map((bot) => `${bot.username} ${bot.game.gameMode}`).join(', ')})`)
+  await sleep(300)
+  const fighting = humans.filter((bot) => bot.game.gameMode === 'survival')
+  let opponent
+  if (fighting.length === 2) {
+    // RagoBot waits: the first walks off its floor, the other wins the 1v1, then meets RagoBot
+    const [a, b] = fighting
+    await chatLine(a, /Fight!/, 10000, marks[humans.indexOf(a)])
+    log(`red rover block placement: ${a.username} vs ${b.username}, RagoBot waits`)
+    const before = mark(b)
+    await walkOff(a, b)
+    try {
+      await chatLine(b, new RegExp(`${b.username} wins the 1v1 \\(1/3\\)`), 15000, before)
+    } finally {
+      a.clearControlStates()
+    }
+    await chatLine(b, new RegExp(`Next: ${b.username} vs RagoBot \\(${a.username} waits\\)`), 5000, before)
+    await waitFor(() => b.game.gameMode === 'survival' && a.game.gameMode === 'spectator', 8000,
+      () => `${b.username} against RagoBot, ${a.username} watching (${a.game.gameMode}, ${b.game.gameMode})`)
+    await chatLine(b, /Fight!/, 15000, before)
+    opponent = b
+  } else {
+    opponent = fighting[0]
+    await chatLine(opponent, /Fight!/, 10000, marks[humans.indexOf(opponent)])
+  }
+  log(`red rover block placement: RagoBot vs ${opponent.username}, RagoOp brings ${opponent.username} onto RagoBot`)
+  const before = mark(opponent)
+  const health = opponent.health
+  op.chat(`/tp ${opponent.username} ${BOT}`)
+  await chatLine(opponent, /RagoBot wins the 1v1 \(1\/3\)/, 30000, before).catch((error) => {
+    const bot = ragoBot(opponent)
+    throw new Error(`${error.message}; ${opponent.username} at ${where(opponent.entity)} (health ${opponent.health}),`
+      + ` RagoBot at ${bot ? where(bot) : 'out of sight'}; RagoOp read ${JSON.stringify(op.chats.slice(-3))}`)
+  })
+  log(`red rover block placement: RagoBot won its 1v1 against ${opponent.username} (health ${health} then ${opponent.health})`)
+  // the two others leave the game: RagoBot, the last one in, wins
+  for (const bot of [other, leader]) {
+    bot.chat('/spawn')
+    await expectInLobby(bot, 'after /spawn in the Red Rover')
+  }
+  fromOther = mark(other)
+  other.chat('/party leave')
+  await chatLine(other, /You left the party\./, 5000, fromOther)
+  log(`red rover block placement: RagoLeader and ${other.username} left the game, ${other.username} left the party`)
+}
+
 async function topBridge2v2 (leader, others) {
   const from = [leader, ...others].map(mark)
   // RagoBot comes back from the game RagoLeader left after its end screen: until then, the party
@@ -391,7 +638,10 @@ async function topBridge2v2 (leader, others) {
 
 async function main () {
   const leader = await arrive('RagoLeader')
+  Vec3 = leader.entity.position.constructor
   const others = [await arrive('RagoAutreUn'), await arrive('RagoAutreDeux')]
+  // an operator (ops.json of run-arena-test.sh), who moves the players of the block placement with /tp
+  const op = await arrive('RagoOp')
 
   // 1. the invite, and what it refuses
   await invite(leader)
@@ -402,22 +652,24 @@ async function main () {
   leader.chat('/queue ranked-1v1')
   await chatLine(leader, /RagoBot never plays ranked: \/p kick RagoBot first\./, 5000, from)
   from = mark(leader)
-  leader.chat('/queue block-fight-1v1')
-  await chatLine(leader, /RagoBot plays .*Lobby Fight 1v1 only: \/p kick RagoBot to play /, 5000, from)
+  leader.chat('/queue block-edit-duel')
+  await chatLine(leader, /RagoBot plays .*Red Rover Block Placement only: \/p kick RagoBot to play /, 5000, from)
   const fromOther = mark(others[0])
   others[0].chat(`/duel ${BOT}`)
   await chatLine(others[0], /RagoBot plays with your party: \/p invite RagoBot, then pick its mode as the leader\./, 5000, fromOther)
   log('invite: RagoBot joined the party next to RagoLeader; it refuses a second invite, ranked, a mode it does not play, a /duel')
 
-  // 2. to 6. its games; what a player sees of RagoBot in them is checked at the end, after all
+  // 2. to 8. its games; what a player sees of RagoBot in them is checked at the end, after all
   const problems = []
   await sumo(leader, problems)
   await boxing(leader, problems)
   await topBridge1v1(leader, problems)
   await lobbyFight1v1(leader, problems)
+  await blockPlacement1v1(leader, op, problems)
+  await redRoverBlockPlacement(leader, others[0], op)
   await topBridge2v2(leader, others)
 
-  // 7. it leaves once out of the party
+  // 9. it leaves once out of the party
   from = mark(leader)
   leader.chat(`/p kick ${BOT}`)
   await chatLine(leader, /RagoBot has been removed from the party\./, 5000, from)
@@ -432,9 +684,10 @@ async function main () {
 
   finishing = true
   log('PASSED: RagoBot joins a party by /p invite, refuses ranked and the other modes, wins a Sumo duel, a Boxing,'
-    + ' a round of Top Bridge 1v1 and a round of Lobby Fight 1v1 against a player who stands still, plays Top Bridge'
-    + ' 2v2 in its party\'s team, and leaves the server once out of the party')
-  for (const bot of [leader, ...others]) bot.quit()
+    + ' a round of Top Bridge 1v1 and a round of Lobby Fight 1v1 against a player who stands still; in Block placement'
+    + ' 1v1 it clutches over the void and breaks the wool under the other, who falls; it wins its 1v1 of a Red Rover'
+    + ' Block Placement; it plays Top Bridge 2v2 in its party\'s team, and leaves the server once out of the party')
+  for (const bot of [leader, ...others, op]) bot.quit()
   await sleep(500)
   process.exit(0)
 }

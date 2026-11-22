@@ -23,6 +23,9 @@ class BotSettingsTest {
                 new GameMode("sumo", "&aSumo duel", 2, 1, false),
                 new GameMode("boxing", "&aBoxing", 2, 1, false),
                 new GameMode("lobby-fight-1v1", "&aLobby Fight 1v1", 2, 1, false),
+                new GameMode("block-fight-1v1", "&aBlock placement 1v1", 2, 1, false),
+                new GameMode("block-fight-2v2", "&aBlock placement 2v2", 2, 2, false),
+                new GameMode("red-rover-block-placement", "&aRed Rover Block Placement", 1, 3, false),
                 new GameMode("ranked-sumo", "&6Ranked Sumo", 2, 1, true),
                 new GameMode("clutch", "&eClutch", 1, 1, false))) {
             byId.put(mode.id(), mode);
@@ -30,10 +33,13 @@ class BotSettingsTest {
         return byId;
     }
 
+    /** The Red Rovers among these modes (their format: 1v1v1 in config.yml). */
+    private static final java.util.Set<String> IN_TURNS = Collections.singleton("red-rover-block-placement");
+
     private static BotSettings read(String text) throws Exception {
         YamlConfiguration yaml = new YamlConfiguration();
         yaml.loadFromString(text);
-        return BotSettings.read(yaml.getConfigurationSection("ragobot"), modes());
+        return BotSettings.read(yaml.getConfigurationSection("ragobot"), modes(), IN_TURNS);
     }
 
     private static void assertInvalid(String text, String expectedStart) {
@@ -43,18 +49,41 @@ class BotSettingsTest {
 
     @Test
     void withoutItsSectionItPlaysTheModesTheOwnerAskedFor() {
-        BotSettings bots = BotSettings.read(null, modes());
+        BotSettings bots = BotSettings.read(null, modes(), IN_TURNS);
         assertTrue(bots.enabled);
         assertEquals("qRago", bots.skin);
         assertEquals(10, bots.max);
         assertEquals(BotSettings.DEFAULT_MODES, bots.modes);
-        assertEquals("Top Bridge 1v1, Top Bridge 2v2, Sumo duel, Boxing and Lobby Fight 1v1", bots.modeNames,
-                "Boxing and Lobby Fight 1v1: step 1 of the owner's order of 22/11 (17h54)");
+        assertEquals("Top Bridge 1v1, Top Bridge 2v2, Sumo duel, Boxing, Lobby Fight 1v1, Block placement 1v1,"
+                + " Block placement 2v2 and Red Rover Block Placement", bots.modeNames,
+                "Boxing and Lobby Fight 1v1: step 1 of the owner's order of 22/11 (17h54); the Block Placement: step 2");
         assertSame(BotBrain.Skill.BUNDLED, bots.skill);
         assertTrue(bots.plays("sumo"));
         assertTrue(bots.plays("boxing"));
         assertTrue(bots.plays("lobby-fight-1v1"));
+        assertTrue(bots.plays("block-fight-1v1"));
+        assertTrue(bots.plays("block-fight-2v2"));
+        assertTrue(bots.plays("red-rover-block-placement"));
         assertFalse(bots.plays("ranked-sumo"));
+    }
+
+    @Test
+    void itUsesTheBlocksInTheBlockPlacementOnly() {
+        assertEquals(new java.util.HashSet<>(Arrays.asList("block-fight-1v1", "block-fight-2v2", "red-rover-block-placement")),
+                BotSettings.BLOCK_MODES, "step 2 of the owner's order of 22/11 (17h54)");
+        assertTrue(BotSettings.DEFAULT_MODES.containsAll(BotSettings.BLOCK_MODES));
+    }
+
+    @Test
+    void aRedRoverIsAGameOfOneTeamItPlays() throws Exception {
+        assertEquals(Collections.singletonList("red-rover-block-placement"),
+                read("ragobot:\n  modes: [red-rover-block-placement]\n").modes, "each player against the others in turn");
+        IllegalArgumentException error = assertThrows(IllegalArgumentException.class, () -> {
+            YamlConfiguration yaml = new YamlConfiguration();
+            yaml.loadFromString("ragobot:\n  modes: [red-rover-block-placement]\n");
+            BotSettings.read(yaml.getConfigurationSection("ragobot"), modes());
+        });
+        assertTrue(error.getMessage().startsWith("ragobot.modes: red-rover-block-placement has one team"), error.getMessage());
     }
 
     @Test
@@ -79,6 +108,7 @@ class BotSettingsTest {
         assertEquals(5, bots.skill.reaction);
         assertEquals(BotBrain.Skill.BUNDLED.turn, bots.skill.turn, 0, "the rest as bundled");
         assertEquals(BotBrain.Skill.BUNDLED.healAt, bots.skill.healAt, 0);
+        assertEquals(BotBrain.Skill.BUNDLED.blocksPerSecond, bots.skill.blocksPerSecond, 0);
     }
 
     @Test
@@ -94,6 +124,7 @@ class BotSettingsTest {
         assertInvalid("ragobot:\n  skill:\n    portee: 3.5\n", "ragobot.skill.portee: from 1 to 3");
         assertInvalid("ragobot:\n  skill:\n    precision: high\n", "ragobot.skill.precision: a number");
         assertInvalid("ragobot:\n  skill:\n    reaction: 10\n", "ragobot.skill.reaction: from 0 to 9");
+        assertInvalid("ragobot:\n  skill:\n    blocs-par-seconde: 0\n", "ragobot.skill.blocs-par-seconde: from 1 to 20");
     }
 
     @Test
@@ -112,5 +143,7 @@ class BotSettingsTest {
         assertEquals(bundled.reaction, bots.skill.reaction);
         assertEquals(bundled.turn, bots.skill.turn, 0);
         assertEquals(bundled.healAt, bots.skill.healAt, 0);
+        assertEquals(bundled.blocksPerSecond, bots.skill.blocksPerSecond, 0);
+        assertEquals(6, bundled.blocksPerSecond, 0, "6 blocks a second, to confirm in game");
     }
 }

@@ -50,6 +50,8 @@ final class RagoBots implements Listener {
     private final Map<UUID, Bot> bots = new LinkedHashMap<>();
     /** This server lacks what its body needs: no RagoBot until a restart. */
     private boolean broken;
+    /** False once its clicks on blocks failed: it plays without them until a restart. */
+    private boolean blocksWork = true;
 
     private static final class Bot {
         final BotBody body;
@@ -210,13 +212,28 @@ final class RagoBots implements Listener {
         boolean knocked = body.receive();
         Player player = body.player;
         Player target = target(player);
-        BotBrain.Controls controls = bot.brain.think(sight(player, body, knocked, target));
-        body.play(controls, target);
+        BotBrain.Sight sight = sight(player, body, knocked, target);
+        sight.blocks = blocksWork && BotSettings.BLOCK_MODES.contains(state.gameOf(player.getUniqueId()));
+        BotBrain.Controls controls = bot.brain.think(sight);
+        body.act(controls, target);
+        if (blocksWork) {
+            try {
+                body.blocks(controls);
+            } catch (ReflectiveOperationException | RuntimeException | LinkageError e) {
+                // its clicks on blocks only: it plays on without them, until a restart
+                blocksWork = false;
+                lobby.getLogger().log(Level.SEVERE, BotSettings.NAME + " cannot place nor break blocks on this server"
+                        + " (its clicks are made with the classes of CraftBukkit 1.8.8): it plays on without, until a restart", e);
+            }
+        }
+        body.move(controls);
     }
 
     /**
      * The player it fights: the nearest of the other team(s) of its game, in its world, alive and
-     * playing. None in the lobby, while it watches or lies dead in a round.
+     * playing; in a game of one team (the Red Rover), the nearest other player of it who plays (its
+     * opponent of the 1v1: the one who waits watches). None in the lobby, while it watches or lies
+     * dead in a round.
      */
     private Player target(Player bot) {
         UUID id = bot.getUniqueId();
@@ -226,7 +243,13 @@ final class RagoBots implements Listener {
         Location at = bot.getLocation();
         Player best = null;
         double nearest = Double.MAX_VALUE;
-        for (UUID other : state.opponentsOf(id)) {
+        List<UUID> others = state.opponentsOf(id);
+        if (others.isEmpty()) {
+            // a game of one team (the Red Rover): the others of its game, the one who waits watching
+            others = new ArrayList<>(state.togetherWith(id));
+            others.remove(id);
+        }
+        for (UUID other : others) {
             Player player = Bukkit.getPlayer(other);
             if (player == null || player.isDead() || !player.getWorld().equals(bot.getWorld())
                     || player.getGameMode() == GameMode.SPECTATOR || player.getGameMode() == GameMode.CREATIVE) {
@@ -261,23 +284,56 @@ final class RagoBots implements Listener {
             sight.ty = there.getY();
             sight.tz = there.getZ();
         }
+        if (target != null) {
+            sight.targetOnGround = target.isOnGround();
+        }
         PlayerInventory inventory = player.getInventory();
         sight.held = inventory.getHeldItemSlot();
+        int shears = -1;
+        int pickaxe = -1;
+        int endStone = -1;
         for (int slot = 0; slot < 9; slot++) {
             ItemStack item = inventory.getItem(slot);
             if (item == null) {
                 continue;
             }
-            if (sight.sword < 0 && item.getType().name().endsWith("_SWORD")) {
+            Material type = item.getType();
+            if (sight.sword < 0 && type.name().endsWith("_SWORD")) {
                 sight.sword = slot;
             }
-            if (sight.gapple < 0 && item.getType() == Material.GOLDEN_APPLE) {
+            if (sight.gapple < 0 && type == Material.GOLDEN_APPLE) {
                 sight.gapple = slot;
             }
+            if (sight.block < 0 && type == Material.WOOL) {
+                sight.block = slot;
+            }
+            if (endStone < 0 && type == Material.ENDER_STONE) {
+                endStone = slot;
+            }
+            if (shears < 0 && type == Material.SHEARS) {
+                shears = slot;
+            }
+            if (pickaxe < 0 && type.name().endsWith("_PICKAXE")) {
+                pickaxe = slot;
+            }
+        }
+        if (sight.block < 0) {
+            // its wool used up: the end stone of the kit
+            sight.block = endStone;
         }
         sight.eating = body.eating();
         final World world = player.getWorld();
         sight.ground = (x, y, z) -> world.isChunkLoaded(x >> 4, z >> 4) && world.getBlockAt(x, y, z).getType().isSolid();
+        final int wool = shears;
+        final int stone = pickaxe;
+        // the blocks of the kit of the Block Placement, with the tool of a player for each
+        sight.breakable = (x, y, z) -> {
+            if (!world.isChunkLoaded(x >> 4, z >> 4) || body.refused(x, y, z)) {
+                return -1;
+            }
+            Material type = world.getBlockAt(x, y, z).getType();
+            return type == Material.WOOL ? wool : type == Material.ENDER_STONE ? stone : -1;
+        };
         return sight;
     }
 
