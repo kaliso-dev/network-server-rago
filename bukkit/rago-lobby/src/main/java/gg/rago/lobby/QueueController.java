@@ -859,8 +859,8 @@ final class QueueController {
      * {@link #startDirect(MatchProposal, boolean)}, the game getting the settings
      * ({@link gg.rago.lobby.api.LobbyService#privateSettings}).
      */
-    boolean startDirect(MatchProposal match, Map<String, Integer> settings) {
-        return startDirect(match, true, false, settings);
+    boolean startDirect(MatchProposal match, Map<String, Integer> leaderSettings) {
+        return startDirect(match, true, false, leaderSettings);
     }
 
     private boolean startDirect(MatchProposal match, boolean privateGame, boolean practice) {
@@ -869,9 +869,10 @@ final class QueueController {
 
     /**
      * As {@link #startDirect(MatchProposal, boolean)}; practice: a private game played as a practice;
-     * settings: those of its party leader, or null.
+     * leaderSettings: those of its party leader, or null.
      */
-    private boolean startDirect(MatchProposal match, boolean privateGame, boolean practice, Map<String, Integer> settings) {
+    private boolean startDirect(MatchProposal match, boolean privateGame, boolean practice,
+            Map<String, Integer> leaderSettings) {
         for (UUID id : match.players()) {
             Player player = Bukkit.getPlayer(id);
             if (player != null) {
@@ -882,13 +883,13 @@ final class QueueController {
         MatchHost host = hosts.get(match.mode().id());
         if (host != null && !ready(host, match)) {
             // a copy of the map is being made: the game starts as soon as it is there
-            waitingDirect.add(new DirectWait(match, privateGame, practice, settings,
+            waitingDirect.add(new DirectWait(match, privateGame, practice, leaderSettings,
                     System.currentTimeMillis() + DIRECT_WAIT_MILLIS));
             tell(match, ChatColor.GRAY + "The map is being prepared: the game starts in a moment.");
             onChange.run();
             return true;
         }
-        boolean started = start(match, false, privateGame, practice, settings);
+        boolean started = start(match, false, privateGame, practice, leaderSettings);
         onChange.run();
         return started;
     }
@@ -899,14 +900,14 @@ final class QueueController {
         final boolean privateGame;
         final boolean practice;
         /** The settings of the party leader (Bedwars Normal), or null. */
-        final Map<String, Integer> settings;
+        final Map<String, Integer> leaderSettings;
         final long until;
 
-        DirectWait(MatchProposal match, boolean privateGame, boolean practice, Map<String, Integer> settings, long until) {
+        DirectWait(MatchProposal match, boolean privateGame, boolean practice, Map<String, Integer> leaderSettings, long until) {
             this.match = match;
             this.privateGame = privateGame;
             this.practice = practice;
-            this.settings = settings;
+            this.leaderSettings = leaderSettings;
             this.until = until;
         }
     }
@@ -923,7 +924,7 @@ final class QueueController {
                 tell(wait.match, ChatColor.GRAY + "The game was cancelled: a player is no longer in the lobby.");
             } else if (ready(host, wait.match)) {
                 waitingDirect.remove(wait);
-                start(wait.match, false, wait.privateGame, wait.practice, wait.settings);
+                start(wait.match, false, wait.privateGame, wait.practice, wait.leaderSettings);
                 onChange.run();
             } else if (now > wait.until) {
                 waitingDirect.remove(wait);
@@ -976,7 +977,7 @@ final class QueueController {
     }
 
     private boolean start(MatchProposal match, boolean requeue, boolean privateGame, boolean practice,
-            Map<String, Integer> settings) {
+            Map<String, Integer> leaderSettings) {
         String modeId = match.mode().id();
         MatchHost host = hosts.get(modeId);
         List<Player> players = new ArrayList<>();
@@ -1017,7 +1018,7 @@ final class QueueController {
                 if (practice) {
                     state.markPractice(player.getUniqueId());
                 }
-                state.setPrivateSettings(player.getUniqueId(), settings);
+                state.setPrivateSettings(player.getUniqueId(), leaderSettings);
             }
             if (!requeue || withBot) {
                 // not from the queue (a /duel), or with RagoBot: no ELO, no win streak

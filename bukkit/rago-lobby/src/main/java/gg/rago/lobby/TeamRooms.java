@@ -684,11 +684,11 @@ final class TeamRooms {
             tell(room, ChatColor.RED + "The game could not start: try again.");
             return;
         }
-        Map<String, Integer> chosen = settingsFor(room.leader, settingsOf(Collections.singletonList(room.mode)));
-        if (chosen.isEmpty()) {
+        Map<String, Integer> set = settingsFor(room.leader, settingsOf(Collections.singletonList(room.mode)));
+        if (set.isEmpty()) {
             queues.startDirect(match, true);
         } else {
-            queues.startDirect(match, chosen);
+            queues.startDirect(match, set);
         }
     }
 
