@@ -330,7 +330,7 @@ class StatsDisplaysTest {
         StatsBook book = new StatsBook(1000, settings.levels());
         ModeMenu menu = new ModeMenu(settings, null, book);
         long now = System.currentTimeMillis();
-        assertEquals(Arrays.asList("§cDaily Streak: 0", "§cYour position: §7-"),
+        assertEquals(Arrays.asList("§eDaily Streak: 0", "§eYour position: §7-"),
                 menu.streakLines(settings.catalog().get("block-fight-2v2"), player(ALICE)), "nobody yet: no top");
         UUID carl = new UUID(0, 3);
         UUID dave = new UUID(0, 4);
@@ -339,13 +339,13 @@ class StatsDisplaysTest {
             book.record(settings.catalog().get("block-fight-2v2"), Arrays.asList(BOB, ALICE), Arrays.asList(carl, dave), names, now);
         }
         book.record(settings.catalog().get("block-fight-2v2"), Arrays.asList(carl, dave), Arrays.asList(ALICE, BOB), names, now);
-        assertEquals(Arrays.asList("§cDaily Streak: 0", "§c 1. §fAlice, bob§c - 2", "§c 2. §fCarl, Dave§c - 1",
-                "§cYour position: §f#1§7 (2)"), menu.streakLines(settings.catalog().get("block-fight-2v2"), player(ALICE)),
+        assertEquals(Arrays.asList("§eDaily Streak: 0", "§e 1. §fAlice, bob§e - 2", "§e 2. §fCarl, Dave§e - 1",
+                "§eYour position: §f#1§7 (2)"), menu.streakLines(settings.catalog().get("block-fight-2v2"), player(ALICE)),
                 "the best of the day of the viewer's team, then their place");
         List<String> carls = menu.streakLines(settings.catalog().get("block-fight-2v2"), player(carl));
-        assertEquals("§cDaily Streak: 1", carls.get(0), "the viewer's wins in a row");
-        assertEquals("§cYour position: §f#2§7 (1)", carls.get(carls.size() - 1));
-        assertEquals("§cYour position: §7-", ModeMenu.positionLine(book.topStreaks("block-fight-2v2", StatsPeriod.DAY, now),
+        assertEquals("§eDaily Streak: 1", carls.get(0), "the viewer's wins in a row");
+        assertEquals("§eYour position: §f#2§7 (1)", carls.get(carls.size() - 1));
+        assertEquals("§eYour position: §7-", ModeMenu.positionLine(book.topStreaks("block-fight-2v2", StatsPeriod.DAY, now),
                 new UUID(0, 9)), "not on the board today");
     }
 
@@ -356,9 +356,9 @@ class StatsDisplaysTest {
         gg.rago.lobby.api.ModeRecord clutch = new gg.rago.lobby.api.ModeRecord("Island clutch", Arrays.asList(
                 new java.util.AbstractMap.SimpleImmutableEntry<>("Alice", "20 clutches"),
                 new java.util.AbstractMap.SimpleImmutableEntry<>("bob", "12 clutches")), "8 clutches", 5);
-        assertEquals(Arrays.asList("§cLifetime record: §fIsland clutch", "§c 1. §fAlice§c - 20 clutches", "§c 2. §fbob§c - 12 clutches",
-                "§cYour best: §f8 clutches§7 (#5)"), ModeMenu.recordLines(clutch));
-        assertEquals(Arrays.asList("§cLifetime record: §f3 layers, wood side", "§7 Nobody yet: be the first!", "§cYour best: §7-"),
+        assertEquals(Arrays.asList("§eLifetime record: §fIsland clutch", "§e 1. §fAlice§e - 20 clutches", "§e 2. §fbob§e - 12 clutches",
+                "§eYour best: §f8 clutches§7 (#5)"), ModeMenu.recordLines(clutch));
+        assertEquals(Arrays.asList("§eLifetime record: §f3 layers, wood side", "§7 Nobody yet: be the first!", "§eYour best: §7-"),
                 ModeMenu.recordLines(new gg.rago.lobby.api.ModeRecord("3 layers, wood side",
                         Collections.<java.util.Map.Entry<String, String>>emptyList(), null, 0)));
 

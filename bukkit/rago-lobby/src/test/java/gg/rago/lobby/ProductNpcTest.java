@@ -33,8 +33,8 @@ class ProductNpcTest {
             assertNull(npc.category());
             assertTrue(npc.modeIds().isEmpty());
             assertEquals(Material.DIAMOND_BLOCK, settings.pedestal(product[0]).material(), "on a block of diamond");
-            assertEquals(Arrays.asList("§c§lRAGO §8» §f" + product[2] + ": §crago-optimizer.com",
-                    "§c§lRAGO §8» §fJoin our Discord: §cdiscord.gg/ragooptimizer"), npc.links(),
+            assertEquals(Arrays.asList("§c§lRAGO §8» §f" + product[2] + ": §erago-optimizer.com",
+                    "§c§lRAGO §8» §fJoin our Discord: §ediscord.gg/ragooptimizer"), npc.links(),
                     "a click shows the website and the Discord");
         }
     }

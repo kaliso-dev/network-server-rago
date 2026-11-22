@@ -50,7 +50,7 @@ class LobbyTextTest {
         }
         assertEquals(VALIDATED, plain);
         assertEquals("§6§lTHANK YOU", text.lines.get(0), "its title in gold");
-        assertEquals("§fJoin our Discord: §cdiscord.gg/ragooptimizer", text.lines.get(19), "the Discord, as on the products");
+        assertEquals("§fJoin our Discord: §ediscord.gg/ragooptimizer", text.lines.get(19), "the Discord, as on the products");
         // on both sides of the room (the owner's ask of 22/11, 17h56): the same lines on the right
         assertEquals(2, settings.texts().size());
         assertEquals(text.lines, settings.text("textremerciement2").lines, "the right side reads the left side's lines");

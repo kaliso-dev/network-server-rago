@@ -25,7 +25,7 @@ import org.bukkit.event.player.AsyncPlayerChatEvent;
  */
 final class Parties implements Listener {
 
-    static final String LINE = Brand.ACCENT.toString() + ChatColor.STRIKETHROUGH
+    static final String LINE = Brand.SOCIAL.toString() + ChatColor.STRIKETHROUGH
             + "-----------------------------------------------------";
     private static final List<String> SUBCOMMANDS = Arrays.asList("invite", "accept", "leave", "list", "disband",
             "kick", "remove", "transfer", "promote", "warp", "chat");
@@ -462,7 +462,7 @@ final class Parties implements Listener {
             player.sendMessage(muted);
             return;
         }
-        String line = Brand.ACCENT + "Party " + ChatColor.DARK_GRAY + "> " + name(player) + ChatColor.WHITE + ": " + message;
+        String line = Brand.SOCIAL + "Party " + ChatColor.DARK_GRAY + "> " + name(player) + ChatColor.WHITE + ": " + message;
         for (UUID member : party.members()) {
             Player other = Bukkit.getPlayer(member);
             if (other != null) {

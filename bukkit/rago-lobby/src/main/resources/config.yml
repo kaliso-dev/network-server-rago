@@ -18,7 +18,7 @@ slime:
 
 # The lobby scoreboard: its title (32 characters at most) and its last line.
 titre: "&c&lRAGO PRACTICE"
-adresse: "&crago.gg"
+adresse: "&erago.gg"
 
 # The queues. A ranked queue matches players by their ELO (see elo: below), from
 # elo-par-defaut before a player's first ranked game: the ELO gap accepted starts at
@@ -454,7 +454,7 @@ pnj:
   # block of emerald. Its point: /lobby point shop.
   shop:
     nom: "&a&lSHOP"
-    sous-titre: "&cStarter Pack &7· &bVIP"
+    sous-titre: "&6Starter Pack &7· &bVIP"
     type: shop
     skin: shop
     bloc: EMERALD_BLOCK
@@ -527,8 +527,8 @@ pnj:
     skin-joueur: qRago
     bloc: DIAMOND_BLOCK
     liens:
-      - "&c&lRAGO &8» &fRago Client: &crago-optimizer.com"
-      - "&c&lRAGO &8» &fJoin our Discord: &cdiscord.gg/ragooptimizer"
+      - "&c&lRAGO &8» &fRago Client: &erago-optimizer.com"
+      - "&c&lRAGO &8» &fJoin our Discord: &ediscord.gg/ragooptimizer"
   ragooptimizer:
     nom: "&b&lRago Optimizer"
     type: produit
@@ -536,8 +536,8 @@ pnj:
     skin-joueur: qRago
     bloc: DIAMOND_BLOCK
     liens:
-      - "&c&lRAGO &8» &fRago Optimizer: &crago-optimizer.com"
-      - "&c&lRAGO &8» &fJoin our Discord: &cdiscord.gg/ragooptimizer"
+      - "&c&lRAGO &8» &fRago Optimizer: &erago-optimizer.com"
+      - "&c&lRAGO &8» &fJoin our Discord: &ediscord.gg/ragooptimizer"
 
 # The texts of the lobby (textes:), each on its own point (/lobby point <name>), the same for
 # everyone; a click does nothing. Its lines (lignes:, from 1 to 30, top to bottom, colours with &)
@@ -571,7 +571,7 @@ textes:
       - "&fPure passion, no money goal: a real project with a real goal."
       - "&fAs a player, I know what players want: this server is here"
       - "&fto help you train and have more fun with your friends."
-      - "&fJoin our Discord: &cdiscord.gg/ragooptimizer"
+      - "&fJoin our Discord: &ediscord.gg/ragooptimizer"
   textremerciement2:
     lignes: *merci
 
@@ -946,7 +946,7 @@ chat:
 
 # The header and footer of the tab list (4 lines each at most): {joueurs} the players online,
 # {ping} the player's ping. In the colours of the server (README: Les couleurs du serveur): its
-# name in red, the slogan, rago.gg in red at the bottom.
+# name in red, the slogan, rago.gg and what to type in yellow at the bottom.
 tab:
   haut:
     - "&c&lRAGO PRACTICE"
@@ -955,41 +955,41 @@ tab:
   bas:
     - ""
     - "&f{joueurs} &7players online &8• &7Ping: &f{ping} ms"
-    - "&7Ranks, Rago Points & more: &c/shop"
-    - "&crago.gg"
+    - "&7Ranks, Rago Points & more: &e/shop"
+    - "&erago.gg"
 
 # The message under the server's name in the server list: 2 lines of about 270 pixels each (a
 # letter is 6, a space 4, 1 more in bold; longer, the first line wraps and hides the second). The
-# first says what the server is; the second, NEW in red then what is new: change it at each update.
+# first says what the server is; the second, NEW in gold then what is new: change it at each update.
 motd:
   - "&cRAGO PRACTICE &8• &fBed Wars Practice, Ranked & Duels"
-  - "&c&lNEW &8» &fHypixel knockback, prestiges & season badges"
+  - "&6&lNEW &8» &fHypixel knockback, prestiges & season badges"
 
 # The tips told to the lobby, one every "minutes", in turn. One prefix for the server's messages:
 # RAGO in bold red, then » in dark grey; short lines in English, starting with a verb.
 annonces:
   minutes: 5
   messages:
-    - "&c&lRAGO &8» &fEarn Rago Points in every game, spend them in the &c/shop&f."
-    - "&c&lRAGO &8» &fClaim your daily reward with &c/daily&f: days in a row give more."
-    - "&c&lRAGO &8» &fAdd your friends with &c/friend add&f, play together in a &c/party&f."
-    - "&c&lRAGO &8» &fClimb the ranked divisions, from Coal to Obsidian: &c/top elo&f."
-    - "&c&lRAGO &8» &fRead the news and the store on &crago-optimizer.com&f."
-    - "&c&lRAGO &8» &fPick ranks, cosmetics and the colour of your &d+&f in the &c/shop&f."
-    - "&c&lRAGO &8» &fGo &d[PREMIUM+]&f: +50% XP, /fly, the &d+&f and gadgets of its own on &crago-optimizer.com&f."
-    - "&c&lRAGO &8» &fGet Rago Optimizer on &crago-optimizer.com&f."
-    - "&c&lRAGO &8» &fPlay any game for Rago Points, spend them in the &c/shop&f."
-    - "&c&lRAGO &8» &fDownload Rago Optimizer and read its news: &crago-optimizer.com&f."
-    - "&c&lRAGO &8» &fGrab the &6Starter Pack&f: 20,000 Rago Points, 5 boosters and 3 cosmetics for 3.99€: &c/pack"
-    - "&c&lRAGO &8» &fHost Sumo, Brackets and LMS for the whole server with &d[PREMIUM+]&f: &c/host"
+    - "&c&lRAGO &8» &fEarn Rago Points in every game, spend them in the &e/shop&f."
+    - "&c&lRAGO &8» &fClaim your daily reward with &e/daily&f: days in a row give more."
+    - "&c&lRAGO &8» &fAdd your friends with &e/friend add&f, play together in a &e/party&f."
+    - "&c&lRAGO &8» &fClimb the ranked divisions, from Coal to Obsidian: &e/top elo&f."
+    - "&c&lRAGO &8» &fRead the news and the store on &erago-optimizer.com&f."
+    - "&c&lRAGO &8» &fPick ranks, cosmetics and the colour of your &d+&f in the &e/shop&f."
+    - "&c&lRAGO &8» &fGo &d[PREMIUM+]&f: +50% XP, /fly, the &d+&f and gadgets of its own on &erago-optimizer.com&f."
+    - "&c&lRAGO &8» &fGet Rago Optimizer on &erago-optimizer.com&f."
+    - "&c&lRAGO &8» &fPlay any game for Rago Points, spend them in the &e/shop&f."
+    - "&c&lRAGO &8» &fDownload Rago Optimizer and read its news: &erago-optimizer.com&f."
+    - "&c&lRAGO &8» &fGrab the &6Starter Pack&f: 20,000 Rago Points, 5 boosters and 3 cosmetics for 3.99€: &e/pack"
+    - "&c&lRAGO &8» &fHost Sumo, Brackets and LMS for the whole server with &d[PREMIUM+]&f: &e/host"
 
 # What /discord, /site, /rules and /store show (one line or a list).
 liens:
-  discord: "&c&lRAGO &8» &fJoin our Discord: &cdiscord.gg/ragooptimizer"
-  site: "&c&lRAGO &8» &fOur website: &crago-optimizer.com"
-  boutique: "&c&lRAGO &8» &fThe store: &crago-optimizer.com"
+  discord: "&c&lRAGO &8» &fJoin our Discord: &ediscord.gg/ragooptimizer"
+  site: "&c&lRAGO &8» &fOur website: &erago-optimizer.com"
+  boutique: "&c&lRAGO &8» &fThe store: &erago-optimizer.com"
   regles:
-    - "&c&lRules"
+    - "&6&lRules"
     - "&71. No cheats, macros or unfair mods."
     - "&72. No insults, spam or advertising."
     - "&73. No teaming in solo modes, no boosting."
@@ -1041,7 +1041,7 @@ panneaux: {}
 # A board of the week says, under the player's place, what its top wins on Monday (semaine:).
 classements:
   top:
-    nom: "&c&lTop players"
+    nom: "&6&lTop players"
     # The Network level first (and on the podium); a click goes to the ELO, the FKDR, the kills,
     # then the games played.
     tableaux: [[niveau, elo, fkdr, kills, parties]]
@@ -1049,16 +1049,16 @@ classements:
     # top1 (the first), top2, then top3.
     podium: [top1, top2, top3]
   leaderboards:
-    nom: "&c&lLeaderboards"
+    nom: "&6&lLeaderboards"
     tableaux: [victoires, series, parties]
   # The kills in the middle (on the point), the win streaks on the left, the Network level on the right.
   joueurs:
-    nom: "&c&lPlayer leaderboards"
+    nom: "&6&lPlayer leaderboards"
     tableaux: [series, kills, niveau]
   # The wall of the week: its boards stay on this week and show what their top 3 wins on Monday
   # (semaine: below). Place it with /lobby point semaine where it is seen from the spawn.
   semaine:
-    nom: "&c&lThis week"
+    nom: "&6&lThis week"
     periode: semaine
     tableaux: [victoires, series, [kills, parties]]
     # The podium in front of it: the top 3 of the wins of the week, in their skin. Stand on each

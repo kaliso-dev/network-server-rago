@@ -308,7 +308,7 @@ async function openSelectorAndJoinSumo (bot) {
   if (sumo < 0) throw new Error(`${bot.username}: no sumo in Duels: ${JSON.stringify(duels.slots.slice(0, duels.inventoryStart).map((item) => item?.name))}`)
   const icon = duels.slots[sumo]
   const lore = JSON.stringify(icon.nbt ?? null)
-  if (!lore.includes('§cDaily Streak: 0') || lore.includes(' 1. ')) {
+  if (!lore.includes('§eDaily Streak: 0') || lore.includes(' 1. ')) {
     throw new Error(`${bot.username}: the sumo should show Daily Streak: 0 and nobody in its top: ${lore}`)
   }
   if (!lore.includes('§7In queue: §f0')) throw new Error(`${bot.username}: the sumo should show nobody in its queue: ${lore}`)
@@ -645,7 +645,7 @@ async function checkTopStreak (bot) {
   const window = await Promise.race([opened, sleep(5000).then(() => null)])
   if (window == null) throw new Error('a click on the Duels NPC did not open a menu')
   const lore = JSON.stringify(window.slots[sumoSlot(window)]?.nbt ?? null)
-  if (!lore.includes('§cDaily Streak: 0') || !lore.includes('§c 1. §fRagoUn§c - 1')) {
+  if (!lore.includes('§eDaily Streak: 0') || !lore.includes('§e 1. §fRagoUn§e - 1')) {
     throw new Error(`${bot.username}: the sumo of the Duels NPC does not show RagoUn's streak: ${lore}`)
   }
   bot.closeWindow(window)

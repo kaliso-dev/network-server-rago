@@ -20,7 +20,7 @@ final class Social {
 
     static final int MAX_FRIENDS = 100;
     static final long REQUEST_MILLIS = 5 * 60_000L;
-    static final String LINE = Brand.ACCENT + "" + ChatColor.STRIKETHROUGH + "-----------------------------------------------------";
+    static final String LINE = Brand.SOCIAL + "" + ChatColor.STRIKETHROUGH + "-----------------------------------------------------";
 
     private final RagoLobby lobby;
     private final StatsService stats;

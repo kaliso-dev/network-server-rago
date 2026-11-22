@@ -105,7 +105,7 @@ final class LobbySettings {
         if (ChatColor.stripColor(title).isEmpty() || title.length() > 32) {
             throw new IllegalArgumentException("titre: from 1 to 32 characters, colour codes included");
         }
-        String address = colour(config.getString("adresse", "&crago.gg"));
+        String address = colour(config.getString("adresse", "&erago.gg"));
         if (address.length() > 40) {
             throw new IllegalArgumentException("adresse: 40 characters at most, colour codes included");
         }
@@ -307,7 +307,7 @@ final class LobbySettings {
                         throw new IllegalArgumentException(where + ": the Shop NPC has neither modes nor categorie");
                     }
                     npcs.add(LobbyNpc.shop(point, colour(npc.getString("nom", "&a&lSHOP")),
-                            colour(npc.getString("sous-titre", "&cStarter Pack &7· &bVIP"))).withSkin(skin(npc, where)));
+                            colour(npc.getString("sous-titre", "&6Starter Pack &7· &bVIP"))).withSkin(skin(npc, where)));
                     continue;
                 }
                 if ("selecteur".equals(type)) {
