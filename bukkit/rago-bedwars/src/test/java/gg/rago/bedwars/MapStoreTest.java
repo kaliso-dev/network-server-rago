@@ -86,11 +86,13 @@ class MapStoreTest {
         assertEquals(Arrays.asList(archway, gelato, nebuc), MapStore.named(all, 2, Collections.<String>emptyList()),
                 "every map with two teams or more, and never the demo map");
         BedwarsMap ctf = withTeams(CtfMaps.BRIDGE, 2);
-        List<BedwarsMap> withCtf = Arrays.asList(demo, archway, ctf, gelato);
+        BedwarsMap castle = withTeams(CtfMaps.CASTLE, 2);
+        List<BedwarsMap> withCtf = Arrays.asList(demo, archway, ctf, castle, gelato);
         assertEquals(Arrays.asList(archway, gelato), MapStore.named(withCtf, 2, Collections.<String>emptyList()),
                 "every map is never a map of Capture the Flag: it has no bed");
         assertEquals(Collections.singletonList(ctf), MapStore.named(withCtf, 2, Collections.singletonList("ctfbridge")),
                 "the modes that name it play on it");
+        assertEquals(Collections.singletonList(castle), MapStore.named(withCtf, 2, Collections.singletonList(CtfMaps.CASTLE)));
         assertEquals(Collections.singletonList(demo), MapStore.named(all, 2, Collections.singletonList("Missing")),
                 "none of its maps is on the server: the demo map");
         assertTrue(MapStore.named(Arrays.asList(archway, gelato), 2, Collections.singletonList("Missing")).isEmpty());

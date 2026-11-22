@@ -47,9 +47,11 @@ modes:
   bed-break-simulator-1v3: [Archway, Invasion]
   bed-break-simulator-1v4: [Archway, Invasion]
   red-rover-top-bridge: [Antenna, Aquarium, Archway, Artemis, Boletum, Carapace, Catalyst, Chained, Eastwood, Extinction, Invasion, Katsu, Lectus, Obelisk, Paladin, Planet98, Rise, Stonekeep, Swashbuckle, Treenan]
-  # Capture the Flag: the map the plugin makes itself the first time a mode lists it
+  # Capture the Flag: the two maps the plugin makes itself the first time a mode lists them
   ctf-bridge-1v1: [CtfBridge]
   ctf-bridge-2v2: [CtfBridge]
+  ctf-castle-2v2: [CtfCastle]
+  ctf-castle-4v4: [CtfCastle]
 
 # The modes that are not a classic Bed Wars game, each with its kind of game:
 #   ffa        free for all, open: players join and leave when they like, each for themselves, and
@@ -148,6 +150,12 @@ modes:
 #              Efficiency II, two stacks of clay of the team, 8 golden apples that heal at once and
 #              give two hearts of absorption, one arrow that comes back 3.5 seconds after being
 #              shot), where each player put it at their last death; nobody builds on a flag
+#   ctf-chateau  Capture the Flag, castle against castle (the owner's choice of 22/11): on
+#              CtfCastle, made by the plugin, a castle of stone bricks for each team (walls, four
+#              towers, a gate towards the middle, the keep with the flag at the back) and one
+#              middle island with the diamonds and the emerald; the forge, the shop and the upgrades
+#              of Bed Wars in each courtyard, the generators going up a tier as in a game; the flags
+#              as in ctf-bridge; no bed: back after reapparition-secondes, each time
 # A mode not listed is a classic game.
 jeux:
   top-bridge-1v1: top-bridge
@@ -178,6 +186,8 @@ jeux:
   red-rover-top-bridge: red-rover-top-bridge
   ctf-bridge-1v1: ctf-bridge
   ctf-bridge-2v2: ctf-bridge
+  ctf-castle-2v2: ctf-chateau
+  ctf-castle-4v4: ctf-chateau
 
 # Attack and Defense: the kits each player chooses from before each round, in a menu that opens by
 # itself (/kit opens it again); the countdown is 10 seconds, 3 once everyone has chosen. The
@@ -252,13 +262,14 @@ stuff-ameliore:
   epee: STONE_SWORD
   protection: 0
 
-# Capture the Flag (ctf-bridge): captures, the captures that win (1 to 20); minutes-bridge, how
-# long a game lasts at most (1 to 60): then the team with the most captures wins, a draw when they
-# have as many; retour-drapeau-secondes, how long a dropped flag waits before it goes back to its
-# base by itself (5 to 300). Starting values, to set in game.
+# Capture the Flag (ctf-bridge and ctf-chateau): captures, the captures that win (1 to 20);
+# minutes-bridge and minutes-chateau, how long a game lasts at most (1 to 60): then the team with
+# the most captures wins, a draw when they have as many; retour-drapeau-secondes, how long a dropped
+# flag waits before it goes back to its base by itself (5 to 300). Starting values, to set in game.
 ctf:
   captures: 3
   minutes-bridge: 15
+  minutes-chateau: 20
   retour-drapeau-secondes: 30
 
 # How many game worlds the server keeps at most, so how many games at once (from 1 to 50).

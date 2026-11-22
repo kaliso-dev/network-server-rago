@@ -64,11 +64,11 @@ class LobbySettingsTest {
         assertEquals("lobby", settings.world());
         assertEquals(0, settings.voidHeight());
         assertEquals(0, settings.defaultRating(), "a ranked ELO starts at 0, in Coal");
-        assertEquals(82, settings.modes().size(), "the invis practice and the Bed Break Simulator in 1v1 to 1v4 (and"
+        assertEquals(84, settings.modes().size(), "the invis practice and the Bed Break Simulator in 1v1 to 1v4 (and"
                 + " their kits), with the private top bridge, the clutch scenario, the bed fight (1v1, 2v2, 1v2), Top"
                 + " BedFight, the bridge fight 2v2, the full map first rush, Sky Rise Resources, the timed bridge, Lobby"
                 + " Fight (1v1, FFA), the Bed Break Simulator, the four modes of FUN PRACTICE (CTF The Bridge 1v1 and"
-                + " 2v2 with them), Red Rover (sumo, block edit, block placement, top bridge), Find Your Sensitivity and"
+                + " 2v2, CTF Castle 2v2 and 4v4 with them), Red Rover (sumo, block edit, block placement, top bridge), Find Your Sensitivity and"
                 + " Block aim, without the top fight or the ranked scenarios");
         assertEquals("entrainement", settings.display("find-your-sensitivity").category(), "a training of the aim");
         assertEquals("entrainement", settings.display("block-aim").category(), "a training of the placement");
@@ -97,6 +97,14 @@ class LobbySettingsTest {
             assertEquals("ctf-bridge-1v1", settings.kitMode(id), id + ": one kit, the one of The Bridge");
         }
         assertEquals(2, settings.catalog().get("ctf-bridge-2v2").playersPerTeam());
+        for (String id : Arrays.asList("ctf-castle-2v2", "ctf-castle-4v4")) {
+            assertEquals("fun", settings.display(id).category(), id + ": the castles in FUN PRACTICE too");
+            assertEquals("ctf-castle", settings.display(id).group(), id + ": its two sizes in one item");
+            assertFalse(settings.catalog().get(id).ranked(), id);
+            assertEquals(2, settings.catalog().get(id).teams(), id + ": castle against castle");
+        }
+        assertEquals(2, settings.catalog().get("ctf-castle-2v2").playersPerTeam());
+        assertEquals(4, settings.catalog().get("ctf-castle-4v4").playersPerTeam());
         assertEquals("skyrise", settings.display("skyrise-resources-1v1").group(), "beside Sky Rise");
         assertFalse(settings.catalog().get("top-bridge-1v1").ranked(), "Top Bridge: no ELO");
         assertEquals("2v2", settings.catalog().get("top-bridge-2v2").format());

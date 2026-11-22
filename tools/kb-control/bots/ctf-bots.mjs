@@ -16,6 +16,13 @@
 //   4. three times: it takes the blue flag and brings it to its own, a capture each time;
 //   5. the third capture wins: the winner and the captures in the end summary, both back in the
 //      lobby.
+// Then four bots play CTF Castle 2v2 (ctf-castle-2v2) on CtfCastle, the other map the plugin makes:
+//   6. each starts in the courtyard of its castle with the start of Bed Wars (a wooden sword, the
+//      leather armour), the flags Safe in the sidebar; the gate of the castle open, the walls on each
+//      side of it, the flag a banner on gold in the keep, the emerald and the diamonds in the
+//      middle, the item shop in the courtyard; a red bot picks up iron at its forge and walks into
+//      its keep to its own flag: nothing happens (it is home);
+//   7. the two blue bots leave the game: red wins, all four back in the lobby.
 //
 // Environment: KB_HOST (127.0.0.1), KB_PORT (25565).
 
@@ -30,6 +37,11 @@ const FLOOR = 64
 const BRIDGE_HALF = 20
 const SPAWN_X = 25
 const FLAG_X = 34
+/** CtfMaps, CtfCastle: the gates at 45, the spawns at 56, the forges at 59, the keeps from 64, the flags at 69. */
+const CASTLE_FRONT = 45
+const CASTLE_SPAWN_X = 56
+const CASTLE_FORGE_X = 59
+const CASTLE_FLAG_X = 69
 /** The arrow comes back this long after it was shot (CaptureTheFlagGame.ARROW_MILLIS). */
 const ARROW_MILLIS = 3500
 /** The clay of each team: the data of its stained clay. */
@@ -352,6 +364,103 @@ async function take (red, blue, what) {
   }
 }
 
+/** The bot walks along z 0.5 towards this x, until within half a block of it. */
+async function walkAlong (bot, x, what) {
+  await bot.lookAt(new Vec3(x, bot.entity.position.y + 1.62, 0.5), true)
+  bot.setControlState('forward', true)
+  try {
+    await waitFor(() => Math.abs(bot.entity.position.x - x) < 0.5, 15000, `${bot.username} to walk to x ${x} (${what}; at ${where(bot)})`)
+  } finally {
+    bot.clearControlStates()
+  }
+  await sleep(300)
+}
+
+/** 6 and 7. Four bots, CTF Castle 2v2: the start of Bed Wars in the castles, then blue leaves. */
+async function castle (bots) {
+  const from = bots.map(mark)
+  for (const bot of bots) bot.chat('/queue ctf-castle-2v2')
+  const teams = { Red: [], Blue: [] }
+  for (const [i, bot] of bots.entries()) {
+    const line = await chatLine(bot,
+      /CTF Castle 2v2 on CtfCastle: you are in the (Red|Blue) team\. Take the enemy flag and bring it to your own/, 30000, from[i])
+    teams[line.includes('Red team') ? 'Red' : 'Blue'].push(bot)
+  }
+  if (teams.Red.length !== 2 || teams.Blue.length !== 2) {
+    throw new Error(`not two teams of two: red ${teams.Red.map((bot) => bot.username)}, blue ${teams.Blue.map((bot) => bot.username)}`)
+  }
+  for (const [i, bot] of bots.entries()) {
+    await chatLine(bot, /First to 3 captures, 20 minutes at most\. You always come back after a death\.$/, 5000, from[i])
+    await chatLine(bot, /Fight!/, 15000, from[i])
+  }
+  log(`CTF Castle 2v2: ${teams.Red.map((bot) => bot.username).join(', ')} red, ${teams.Blue.map((bot) => bot.username).join(', ')} blue`)
+
+  for (const [team, side] of [['Red', -1], ['Blue', 1]]) {
+    for (const bot of teams[team]) {
+      const spawnX = side * CASTLE_SPAWN_X + 0.5
+      await waitFor(() => bot.game.gameMode === 'survival' && countOf(bot, 'wooden_sword') === 1 &&
+        bot.inventory.slots[5]?.name === 'leather_helmet', 5000,
+      `${bot.username} to start as in Bed Wars: ${bot.game.gameMode}, ${JSON.stringify(bot.inventory.items().map((item) => item.name))},`
+        + ` helmet ${bot.inventory.slots[5]?.name}`)
+      const p = bot.entity.position
+      if (Math.abs(p.x - spawnX) > 1.5 || Math.abs(p.z - 0.5) > 1.5) {
+        throw new Error(`${bot.username} (${team}) is not on its spawn in the courtyard (${spawnX}, 0.5): at ${where(bot)}`)
+      }
+      await expectFlagLine(bot, `${team[0]} ${team}: 0 Safe YOU`, 'in the castle')
+      const other = team === 'Red' ? 'Blue' : 'Red'
+      await expectFlagLine(bot, `${other[0]} ${other}: 0 Safe`, 'in the castle')
+      await expectFlagLine(bot, 'First to 3 captures', 'in the castle')
+    }
+    // its castle: the gate open, the walls on each side, the flag on gold in the keep, the item shop
+    const bot = teams[team][0]
+    const check = async (x, y, z, name, what) => {
+      const at = new Vec3(x, y, z)
+      const block = await loadedBlock(bot, at)
+      if (block.name !== name) throw new Error(`${what} at ${at}: ${blockText(block)}, not ${name}`)
+    }
+    for (let y = FLOOR + 1; y <= FLOOR + 4; y++) await check(side * CASTLE_FRONT, y, 0, 'air', `the gate of the ${team} castle`)
+    await check(side * CASTLE_FRONT, FLOOR + 1, 2, 'stonebrick', `the wall of the ${team} castle`)
+    await check(side * CASTLE_FLAG_X, FLOOR + 1, 0, 'standing_banner', `the ${team} flag`)
+    await check(side * CASTLE_FLAG_X, FLOOR, 0, 'gold_block', `under the ${team} flag`)
+    await check(side * CASTLE_FORGE_X, FLOOR, 0, 'iron_block', `the ${team} forge`)
+    await waitFor(() => Object.values(bot.entities).some((e) => String(e.metadata?.[2] ?? '').includes('ITEM SHOP') &&
+      Math.sign(e.position.x) === side), 5000, `the item shop of the ${team} castle`)
+    if (team === 'Red') {
+      await check(0, FLOOR, 0, 'emerald_block', 'the emerald generator of the middle')
+      await check(0, FLOOR, 6, 'diamond_block', 'a diamond generator of the middle')
+      await check(0, FLOOR, -6, 'diamond_block', 'a diamond generator of the middle')
+    }
+  }
+  log('castle: the four in their courtyards with the start of Bed Wars, the flags Safe; the gates open, the flags'
+    + ' on gold in the keeps, the forges, the item shops, the emerald and the diamonds in the middle')
+
+  // a red bot: iron at its forge, then into its keep to its own flag, which stays home
+  const red = teams.Red[0]
+  const fromRed = mark(red)
+  await walkAlong(red, -CASTLE_FORGE_X + 0.5, 'to the forge')
+  await waitFor(() => countOf(red, 'iron_ingot') >= 1, 15000, `${red.username} to pick up iron at its forge`)
+  await walkAlong(red, -CASTLE_FLAG_X + 1.5, 'into the keep')
+  await sleep(1000)
+  if (red.chats.slice(fromRed).some((line) => /took the|captured the|must be at your base/.test(line))) {
+    throw new Error(`a red bot at its own flag at home: ${JSON.stringify(red.chats.slice(fromRed))}`)
+  }
+  await expectFlagLine(red, 'R Red: 0 Safe YOU', 'at its own flag')
+  log(`castle: ${red.username} picked up ${countOf(red, 'iron_ingot')} iron at its forge, walked into its keep to its flag: still Safe`)
+
+  // 7. blue leaves: red wins
+  const fromEnd = teams.Red.map(mark)
+  for (const bot of teams.Blue) {
+    bot.chat('/spawn')
+    await expectInLobby(bot, 'after /spawn')
+  }
+  for (const [i, bot] of teams.Red.entries()) {
+    await chatLine(bot, new RegExp(`Winner: Red - `), 10000, fromEnd[i])
+    await chatLine(bot, /You: 0 kills, 0 captures/, 5000, fromEnd[i])
+    await expectInLobby(bot, 'after the castle')
+  }
+  log('castle: blue left the game, red won, all four back in the lobby')
+}
+
 async function main () {
   const one = await arrive('RagoCtfUn')
   const two = await arrive('RagoCtfDeux')
@@ -411,11 +520,15 @@ async function main () {
   await expectInLobby(blue, 'after the game')
   log('end: red won at its third capture, both back in the lobby')
 
+  const three = await arrive('RagoCtfTrois')
+  const four = await arrive('RagoCtfQuatre')
+  await castle([one, two, three, four])
+
   finishing = true
   log('PASSED: CTF The Bridge 1v1, its kit, its bridge that breaks, the golden apple, the arrow that comes back,'
-    + ' a flag taken and back to its base from the void, three captures and the win')
-  one.quit()
-  two.quit()
+    + ' a flag taken and back to its base from the void, three captures and the win; CTF Castle 2v2, the start of'
+    + ' Bed Wars in the castles, the flags in their keeps, the forge, the shop and the middle')
+  for (const bot of [one, two, three, four]) bot.quit()
   await sleep(500)
   process.exit(0)
 }

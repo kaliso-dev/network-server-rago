@@ -518,9 +518,10 @@ jobs:
           expect "[RagoBuildTools] Worlds of $data/mondes" logs/latest.log
           expect '[RagoLobby] Lobby in the world lobby' logs/latest.log
           expect '[RagoPractice] Arenas in the world arenes' logs/latest.log
-          # The map of CTF The Bridge, made by the plugin since its modes list it in its config.yml.
+          # The maps of Capture the Flag, made by the plugin since its modes list them in its config.yml.
           expect '[RagoBedwars] Capture the Flag map CtfBridge created' logs/latest.log
-          expect '[RagoBedwars] Bed Wars maps ready: bw-demo, CtfBridge;' logs/latest.log
+          expect '[RagoBedwars] Capture the Flag map CtfCastle created' logs/latest.log
+          expect '[RagoBedwars] Bed Wars maps ready: bw-demo, CtfBridge, CtfCastle;' logs/latest.log
           echo 'monde creer ci vide' >&3
           wait_for 'World ci created' 30 || fail "/monde creer did not create the world"
           echo 'schematic list' >&3
@@ -535,7 +536,8 @@ jobs:
           # The demo map of RagoBedwars, made at the first launch, is read back from its folder.
           [ -f "$data/mondes/bw-demo/bedwars.yml" ] || fail "the Bed Wars demo map was not saved in $data/mondes"
           [ -f "$data/mondes/CtfBridge/bedwars.yml" ] || fail "the map of CTF The Bridge was not saved in $data/mondes"
-          expect '[RagoBedwars] Bed Wars maps ready: bw-demo, CtfBridge;' logs/latest.log
+          [ -f "$data/mondes/CtfCastle/bedwars.yml" ] || fail "the map of CTF Castle was not saved in $data/mondes"
+          expect '[RagoBedwars] Bed Wars maps ready: bw-demo, CtfBridge, CtfCastle;' logs/latest.log
           [ -f "$data/mondes/lobby/level.dat" ] || fail "the lobby world was not saved in $data/mondes"
           archive=$(ls "$data"/sauvegardes/mondes-*.tar.gz | sort | tail -n 1)
           echo "Backup: $archive"
@@ -589,8 +591,8 @@ jobs:
               'hit delay 9 ticks, locked',
               '[WorldEdit] Enabling WorldEdit v6.1', "[RagoBuildTools] Worlds of $data\mondes",
               '[RagoLobby] Lobby in the world lobby', '[RagoPractice] Arenas in the world arenes',
-              '[RagoBedwars] Capture the Flag map CtfBridge created',
-              '[RagoBedwars] Bed Wars maps ready: bw-demo, CtfBridge;') {
+              '[RagoBedwars] Capture the Flag map CtfBridge created', '[RagoBedwars] Capture the Flag map CtfCastle created',
+              '[RagoBedwars] Bed Wars maps ready: bw-demo, CtfBridge, CtfCastle;') {
             Assert-Log $expected
           }
           $config = Get-Content plugins/WorldEdit/config.yml -Raw

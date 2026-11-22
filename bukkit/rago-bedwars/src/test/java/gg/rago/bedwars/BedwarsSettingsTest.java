@@ -84,18 +84,25 @@ class BedwarsSettingsTest {
                 "clutch-scenario-1v3", "clutch-scenario-1v4", "bed-fight-1v1", "bed-fight-2v2", "bed-fight-1v2", "top-bed-fight-1v1",
                 "lobby-fight-1v1", "lobby-fight-ffa", "bed-break-simulator-1v1", "bed-break-simulator-1v2",
                 "bed-break-simulator-1v3", "bed-break-simulator-1v4", "red-rover-top-bridge", "ctf-bridge-1v1",
-                "ctf-bridge-2v2"),
+                "ctf-bridge-2v2", "ctf-castle-2v2", "ctf-castle-4v4"),
                 settings.modes());
         for (String size : Arrays.asList("ctf-bridge-1v1", "ctf-bridge-2v2")) {
             assertEquals(BedwarsSettings.Kind.CTF_BRIDGE, settings.kind(size), size);
             assertEquals(Collections.singletonList(CtfMaps.BRIDGE), settings.mapsOf(size), size + ": the map the plugin makes");
             assertFalse(settings.topBridge(size), size);
         }
+        for (String size : Arrays.asList("ctf-castle-2v2", "ctf-castle-4v4")) {
+            assertEquals(BedwarsSettings.Kind.CTF_CASTLE, settings.kind(size), size);
+            assertEquals(Collections.singletonList(CtfMaps.CASTLE), settings.mapsOf(size), size + ": the map the plugin makes");
+            assertFalse(settings.topBridge(size), size);
+        }
         assertTrue(settings.playsMap("ctfbridge"), "the map is made: a mode lists it");
+        assertTrue(settings.playsMap(CtfMaps.CASTLE));
         assertFalse(settings.playsMap("Nowhere"));
         BedwarsSettings.Ctf ctf = settings.ctf();
         assertEquals(3, ctf.captures, "first to 3 captures, to start");
         assertEquals(15, ctf.bridgeMinutes, "15 minutes, as a game of The Bridge 1v1 or 2v2 on Hypixel");
+        assertEquals(20, ctf.castleMinutes, "20 minutes in the castles, a bigger map");
         assertEquals(30, ctf.returnSeconds);
         assertEquals(BedwarsSettings.Kind.RED_ROVER_TOP_BRIDGE, settings.kind("red-rover-top-bridge"));
         assertEquals(settings.mapsOf("top-bridge-1v1"), settings.mapsOf("red-rover-top-bridge"),

@@ -316,8 +316,9 @@ bout, face à face), les lits des îles, et le générateur et le shop, inutilis
 
 ## Capture the Flag
 
-Le CTF du plan (6.2), en deux types, tes deux du 22/11. Le premier, The Bridge, est fait :
-`ctf-bridge-1v1` et `ctf-bridge-2v2` (le genre `ctf-bridge`), dans Fun Practice.
+Le CTF du plan (6.2), en deux types, tes deux du 22/11 : The Bridge, `ctf-bridge-1v1` et
+`ctf-bridge-2v2` (le genre `ctf-bridge`), et le type normal, château contre château avec un mid,
+`ctf-castle-2v2` et `ctf-castle-4v4` (le genre `ctf-chateau`). Tous dans Fun Practice.
 
 Chaque équipe a son drapeau, une bannière de sa couleur sur un bloc d'or au fond de sa base (le
 point du lit de la map). Un ennemi qui marche dessus le prend : la bannière passe sur sa tête, toute
@@ -346,9 +347,21 @@ Une pomme en or remet toute la vie d'un coup et donne deux cœurs d'absorption. 
 partagent un kit, à ranger dans l'éditeur de kit du lobby. `ctf.minutes-bridge` (15, la durée
 d'Hypixel en 1v1 et 2v2).
 
+**Château contre château** : sur CtfCastle, l'autre map que le plugin construit (même règle), une
+grande map de 151 blocs de long, rouge à l'ouest et bleu à l'est. Deux châteaux de pierre taillée
+(un peu moussue et fissurée, pareil des deux côtés) de 31 blocs sur 31, et un mid rond entre les
+deux, à 34 blocs de vide de chaque château, avec l'émeraude au centre et deux diamants, entre des
+ruines. Chaque château a ses murs de deux blocs d'épaisseur avec leurs créneaux, quatre tours aux
+coins, une porte de 3 de large vers le mid, une cour avec le spawn, la forge (sur du fer), l'item
+shop et les améliorations, et au fond le donjon, où le drapeau est posé sur de l'or ; les murs et
+les tours sont éclairés. C'est une partie de Bed Wars : la forge, le shop, les améliorations et les
+pièges de chaque équipe, les générateurs du mid qui montent de niveau comme dans une partie, les
+blocs que l'on pose pour traverser le vide ; seuls les blocs posés par les joueurs se cassent. Sans
+lit, on revient toujours, après `reapparition-secondes`. `ctf.minutes-chateau` (20).
+
 Les valeurs (captures, durées, retour du drapeau) sont dans `ctf:` du `config.yml`, à régler en
-jeu. Le dessin de la map est à valider : on peut la modifier en jeu et la sauver, le plugin ne la
-reconstruit pas tant que son dossier existe.
+jeu. Le dessin des deux maps est à valider : on peut les modifier en jeu et les sauver, le plugin
+ne les reconstruit pas tant que leur dossier existe.
 
 ## Améliorations et pièges
 

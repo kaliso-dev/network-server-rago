@@ -291,6 +291,8 @@ final class BedwarsHost implements MatchHost, Listener {
                         plugin.redRoverRounds(), new Random());
             case CTF_BRIDGE:
                 return new CaptureTheFlagGame(plugin, this, instance, mode.id(), name, sides, true);
+            case CTF_CASTLE:
+                return new CaptureTheFlagGame(plugin, this, instance, mode.id(), name, sides, false);
             default:
                 return new BedwarsGame(plugin, this, instance, mode.id(), name, sides);
         }

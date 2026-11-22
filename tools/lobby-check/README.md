@@ -172,6 +172,13 @@ prend le drapeau adverse (la bannière sur sa tête, « Taken » chez le défens
 avec : le drapeau retourne à sa base et l'attaquant revient aussitôt sur la sienne avec son kit.
 Puis trois fois il prend le drapeau et le ramène au sien : une capture à chaque fois, la troisième
 gagne la partie (le gagnant et les captures dans le résumé de fin), et les deux reviennent au lobby.
+Puis quatre bots jouent CTF Castle 2v2 (sur `CtfCastle`, l'autre carte du plugin) : chacun part
+dans la cour de son château avec le départ de Bed Wars (épée en bois, armure en cuir), les drapeaux
+« Safe » ; la porte du château est ouverte, les murs de chaque côté, le drapeau est une bannière sur
+de l'or dans le donjon, la forge sur son fer, l'item shop dans la cour, l'émeraude et les diamants
+au mid ; un bot rouge ramasse du fer à sa forge puis entre dans son donjon jusqu'à son drapeau :
+rien ne se passe (il est chez lui). Les deux bleus quittent la partie : les rouges gagnent, et les
+quatre reviennent au lobby.
 
 ```bash
 ./gradlew build

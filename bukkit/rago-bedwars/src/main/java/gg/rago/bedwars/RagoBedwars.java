@@ -82,6 +82,7 @@ public final class RagoBedwars extends JavaPlugin {
         }
         // the maps of Capture the Flag, made the first time a mode of config.yml plays them
         ctfMap(CtfMaps.BRIDGE, CtfMaps::bridgePlan, CtfMaps::bridgeLayout);
+        ctfMap(CtfMaps.CASTLE, CtfMaps::castlePlan, CtfMaps::castleLayout);
 
         watchers = new Watchers(this);
         getServer().getPluginManager().registerEvents(watchers, this);

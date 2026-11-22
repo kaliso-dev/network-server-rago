@@ -49,6 +49,9 @@ import org.bukkit.potion.PotionEffectType;
  *       stacks of clay of the team and 8 golden apples, which heal at once and give two hearts of
  *       absorption; the mode's kit as each player arranged it in the lobby, kept in place from a life
  *       to the next. No forge, no shop; back at once after a death. ctf.minutes-bridge minutes.</li>
+ *   <li><b>Castle</b> (kind ctf-chateau, map CtfCastle): a game of Bed Wars, with its forge, its
+ *       shop and its upgrades in each castle, the diamonds and emeralds in the middle, its armour
+ *       and tools; back after the server's seconds. ctf.minutes-chateau minutes.</li>
  * </ul>
  *
  * <p>The captures to win, the times (ctf: in config.yml) and the kit are starting values, to confirm

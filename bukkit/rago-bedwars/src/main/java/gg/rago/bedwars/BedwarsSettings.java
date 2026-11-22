@@ -306,7 +306,12 @@ final class BedwarsSettings {
          * Capture the Flag, The Bridge (plan 6.2): two bases joined by a bridge of clay that breaks,
          * the kit of The Bridge, a flag at the back of each base; no bed, no forge, no shop.
          */
-        CTF_BRIDGE("ctf-bridge");
+        CTF_BRIDGE("ctf-bridge"),
+        /**
+         * Capture the Flag, castle against castle (plan 6.2): a big map, a castle for each team and a
+         * middle, the forges, shops and upgrades of Bed Wars; a flag in each keep, no bed.
+         */
+        CTF_CASTLE("ctf-chateau");
 
         /** True if this kind is played in the waiting lobby of its maps, which they must have. */
         boolean inWaitingLobby() {
