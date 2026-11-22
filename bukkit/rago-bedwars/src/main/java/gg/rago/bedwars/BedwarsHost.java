@@ -49,6 +49,7 @@ import org.bukkit.event.Listener;
 import org.bukkit.event.block.Action;
 import org.bukkit.event.block.BlockBreakEvent;
 import org.bukkit.event.block.BlockBurnEvent;
+import org.bukkit.event.block.BlockDamageEvent;
 import org.bukkit.event.block.BlockFadeEvent;
 import org.bukkit.event.block.BlockFormEvent;
 import org.bukkit.event.block.BlockFromToEvent;
@@ -392,6 +393,16 @@ final class BedwarsHost implements MatchHost, Listener {
                 return Material.EMERALD;
             case PrivateRules.BREAK_MAP:
                 return Material.IRON_PICKAXE;
+            case PrivateRules.HEALTH_BUFF:
+                return Material.GOLDEN_APPLE;
+            case PrivateRules.LOW_GRAVITY:
+                return Material.FEATHER;
+            case PrivateRules.RESPAWN_TIME:
+                return Material.WATCH;
+            case PrivateRules.EVENT_TIMES:
+                return Material.EXP_BOTTLE;
+            case PrivateRules.BED_INSTABREAK:
+                return Material.BED;
             default:
                 return Material.PAPER;
         }
@@ -1049,6 +1060,22 @@ final class BedwarsHost implements MatchHost, Listener {
             return;
         }
         game.instance().unmark(block);
+    }
+
+    /**
+     * Bed Instabreak, a setting of the party leader: the first punch on the bed of another team breaks
+     * it, then {@link #onBreak} takes it as any bed broken.
+     */
+    @EventHandler(priority = EventPriority.HIGH, ignoreCancelled = true)
+    public void onBedPunch(BlockDamageEvent event) {
+        BedwarsGame game = playing(event.getPlayer());
+        if (game == null || !game.rules.bedInstabreak() || event.getBlock().getType() != Material.BED_BLOCK) {
+            return;
+        }
+        BedwarsGame.Team bed = game.bedTeam(event.getBlock());
+        if (bed != null && bed != game.gamer(event.getPlayer().getUniqueId()).team) {
+            event.setInstaBreak(true);
+        }
     }
 
     @EventHandler(priority = EventPriority.HIGH, ignoreCancelled = true)

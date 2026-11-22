@@ -109,8 +109,8 @@ dans les files d'attente des modes de jeu.
   de la dernière ligne du menu des maps, celui de son menu d'équipes, ou `/pg settings` ; un clic
   passe au choix suivant, un clic droit revient au précédent, et la party lit chaque changement
   pendant le choix des équipes. Les réglages viennent du plugin du mode (`MatchHost.privateSettings`,
-  pour Bedwars Normal : Speed, Max Diamond, Max Emerald, Break the Map, voir le README de
-  RagoBedwars) ; le lobby les donne à la partie (`LobbyService.privateSettings`). Ils restent ceux
+  pour Bedwars Normal : Speed, Max Diamond, Max Emerald, Break the Map, puis Health Buff, Low
+  Gravity, Respawn Time, Event Times et Bed Instabreak, voir le README de RagoBedwars) ; le lobby les donne à la partie (`LobbyService.privateSettings`). Ils restent ceux
   du chef pour ses parties suivantes, jusqu'à ce qu'il quitte le serveur.
 - **RagoBot** (`ragobot:`, le choix du propriétaire du 22/11). `/p invite RagoBot` (ou `/p RagoBot`)
   le fait entrer tout de suite dans la party, à côté du chef : un vrai joueur du serveur, avec le

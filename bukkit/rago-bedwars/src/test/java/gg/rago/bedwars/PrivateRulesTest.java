@@ -61,6 +61,73 @@ class PrivateRulesTest {
     }
 
     @Test
+    void thenThoseOfHypixelAsItsMenuTellsThem() {
+        List<String> ids = Arrays.asList(PrivateRules.HEALTH_BUFF, PrivateRules.LOW_GRAVITY, PrivateRules.RESPAWN_TIME,
+                PrivateRules.EVENT_TIMES, PrivateRules.BED_INSTABREAK);
+        assertEquals(4 + ids.size(), PrivateRules.SETTINGS.size());
+        for (int i = 0; i < ids.size(); i++) {
+            assertEquals(ids.get(i), PrivateRules.SETTINGS.get(4 + i).id, "after the owner's four, in the order of Hypixel's menu");
+        }
+        assertEquals(Arrays.asList("Normal Health", "Double Health", "Triple Health"), PrivateRules.SETTINGS.get(4).choices);
+        assertEquals(Arrays.asList("Normal", "1 second", "10 seconds"), PrivateRules.SETTINGS.get(6).choices);
+        assertEquals(Arrays.asList("1x - Normal", "0.5x - Slower", "2x - Faster", "4x - Fastest"),
+                PrivateRules.SETTINGS.get(7).choices);
+    }
+
+    @Test
+    void healthBuffDoublesOrTriplesTheHearts() {
+        assertEquals(-1, PrivateRules.NONE.healthBoost(), "no Health Boost in a normal game");
+        // each level of Health Boost: 4 health points more, over the 20 of a player
+        int doubled = PrivateRules.of(Collections.singletonMap(PrivateRules.HEALTH_BUFF, 1)).healthBoost();
+        assertEquals(40, 20 + 4 * (doubled + 1), "Double Health: 20 hearts");
+        int tripled = PrivateRules.of(Collections.singletonMap(PrivateRules.HEALTH_BUFF, 2)).healthBoost();
+        assertEquals(60, 20 + 4 * (tripled + 1), "Triple Health: 30 hearts");
+    }
+
+    @Test
+    void respawnTimeOrThatOfTheMode() {
+        assertEquals(5, PrivateRules.NONE.respawnSeconds(5));
+        assertEquals(1, PrivateRules.of(Collections.singletonMap(PrivateRules.RESPAWN_TIME, 1)).respawnSeconds(5));
+        assertEquals(10, PrivateRules.of(Collections.singletonMap(PrivateRules.RESPAWN_TIME, 2)).respawnSeconds(5));
+    }
+
+    @Test
+    void eventTimesBringEachEventSoonerOrLater() {
+        int[] times = {360, 720, 1080, 1440, 1800, 2700};
+        assertArrayEquals(new int[] {720, 1440, 2160, 2880, 3600, 5400},
+                PrivateRules.of(Collections.singletonMap(PrivateRules.EVENT_TIMES, 1)).times(times), "0.5x: slower");
+        assertArrayEquals(new int[] {180, 360, 540, 720, 900, 1350},
+                PrivateRules.of(Collections.singletonMap(PrivateRules.EVENT_TIMES, 2)).times(times), "2x: faster");
+        assertArrayEquals(new int[] {90, 180, 270, 360, 450, 675},
+                PrivateRules.of(Collections.singletonMap(PrivateRules.EVENT_TIMES, 3)).times(times), "4x: fastest");
+        Map<String, Integer> chosen = new HashMap<>();
+        chosen.put(PrivateRules.EVENT_TIMES, 2);
+        chosen.put(PrivateRules.MAX_EMERALD, 1);
+        assertArrayEquals(new int[] {180, -1, 540, -1, 900, 1350}, PrivateRules.of(chosen).times(times),
+                "with Max Emerald, no Emerald II nor III");
+        assertArrayEquals(new int[] {-1, 360, 540, 720, 900, 1350},
+                PrivateRules.of(Collections.singletonMap(PrivateRules.EVENT_TIMES, 2)).times(new int[] {-1, 720, 1080, 1440, 1800, 2700}),
+                "an event that does not come does not come");
+    }
+
+    @Test
+    void theHypixelSettingsAtTheStart() {
+        Map<String, Integer> chosen = new HashMap<>();
+        chosen.put(PrivateRules.HEALTH_BUFF, 1);
+        chosen.put(PrivateRules.LOW_GRAVITY, 1);
+        chosen.put(PrivateRules.RESPAWN_TIME, 1);
+        chosen.put(PrivateRules.EVENT_TIMES, 2);
+        chosen.put(PrivateRules.BED_INSTABREAK, 1);
+        PrivateRules rules = PrivateRules.of(chosen);
+        assertTrue(rules.lowGravity());
+        assertTrue(rules.bedInstabreak());
+        assertFalse(PrivateRules.NONE.lowGravity());
+        assertFalse(PrivateRules.NONE.bedInstabreak());
+        assertEquals(Arrays.asList("Double Health", "Low Gravity", "Respawn Time: 1 second", "Event Times: 2x - Faster",
+                "Bed Instabreak"), rules.summary());
+    }
+
+    @Test
     void aChoiceOutOfItsSettingIsThatOfANormalGame() {
         Map<String, Integer> chosen = new HashMap<>();
         chosen.put(PrivateRules.SPEED, 7);

@@ -9,7 +9,9 @@
 // teams of two, red and blue), and the settings of the leader (reglages-prives, which the script
 // gives Fast Bedwars 2v2 too):
 //   0. the leader sets the game from the map menu: Speed II (three clicks, then a right-click back),
-//      Max Diamond, Max Emerald and Break the Map on; another player cannot (/pg settings);
+//      Max Diamond, Max Emerald and Break the Map on; then those of Hypixel: Double Health, Low
+//      Gravity, Respawn Time 1 second, Event Times 2x (two clicks), Bed Instabreak; another player
+//      cannot (/pg settings);
 //   1. only the leader starts it; its menu shows a row "2v2" with bw-demo; a click starts the team
 //      choice for the whole party, the team menu opening for each with the red and the blue wool;
 //   2. the leader and the second bot click red; the third clicks red too: full; it closes its menu
@@ -19,8 +21,10 @@
 //   4. the game is a Fast Bedwars 2v2 on bw-demo with those teams: the two red bots on the red
 //      island, the third on the blue one; with the settings: Speed II on the leader, Protection IV
 //      on its armour and Sharpness on its sword, the emerald generator at Tier III and no Emerald
-//      event in the sidebar, a block of the island broken by hand; the third leaves, red wins, all
-//      back in the lobby.
+//      event in the sidebar, a block of the island broken by hand; 20 hearts and Jump Boost III on
+//      the leader, the end of the beds at half its time; the leader walks into the void and is back
+//      a second later, its 20 hearts full; the third leaves, red wins, all back in the lobby. Bed
+//      Instabreak is not played here (no bot goes to the other island): only its unit tests.
 //
 // Environment: KB_HOST (127.0.0.1), KB_PORT (25565).
 
@@ -38,14 +42,32 @@ const RED_SLOT = 10
 const BLUE_SLOT = 12
 /** The countdown of test-equipes in run-arena-test.sh. */
 const COUNTDOWN = 8
-/** TeamRooms.settingSlot: four settings, two slots apart in the second row; the back arrow under them. */
-const SETTING_SLOTS = { speed: 10, maxDiamond: 12, maxEmerald: 14, breakMap: 16 }
-const SETTINGS_BACK = 22
+/** TeamRooms.settingSlot: nine settings, seven in the second row, two in the third; the back arrow under them. */
+const SETTING_SLOTS = {
+  speed: 10,
+  maxDiamond: 11,
+  maxEmerald: 12,
+  breakMap: 13,
+  healthBuff: 14,
+  lowGravity: 15,
+  respawnTime: 16,
+  eventTimes: 19,
+  bedInstabreak: 20
+}
+const SETTINGS_BACK = 31
 /** The settings in the team menu of the leader. */
 const TEAM_SETTINGS_SLOT = 26
 /** A block of the red island out of the protection of its spawn and its generator (DemoMap, BedwarsGame.near). */
 const ISLAND_BLOCK = [-30, 64, 3]
 const SPEED = 1
+const JUMP_BOOST = 8
+/** Double Health: 20 hearts. */
+const DOUBLE_HEALTH = 40
+/** The end of the beds in Fast Bedwars (fast-bedwars.evenements.fin-des-lits, 15 minutes), at Event Times 2x. */
+const BEDS_GONE_AT_2X = 15 * 60 / 2
+/** The last choices of the leader, as the start of the game tells them. */
+const CHOSEN = ['Speed: Speed II', 'Max Diamond: On', 'Max Emerald: On', 'Break the Map: On', 'Health Buff: Double Health',
+  'Low Gravity: On', 'Respawn Time: 1 second', 'Event Times: 2x - Faster', 'Bed Instabreak: On']
 
 let finishing = false
 
@@ -222,14 +244,30 @@ async function setGame (leader, second, maps) {
   const count = leader.windows.length
   leader.clickWindow(button.slot, 0, 0).catch(() => {})
   const menu = await windowAfter(leader, count, 'Game settings', 'the settings of the game')
-  const icons = { speed: 'sugar', maxDiamond: 'diamond', maxEmerald: 'emerald', breakMap: 'iron_pickaxe' }
+  const icons = {
+    speed: 'sugar',
+    maxDiamond: 'diamond',
+    maxEmerald: 'emerald',
+    breakMap: 'iron_pickaxe',
+    healthBuff: 'golden_apple',
+    lowGravity: 'feather',
+    respawnTime: 'clock',
+    eventTimes: 'experience_bottle',
+    bedInstabreak: 'bed'
+  }
   await waitFor(() => Object.entries(icons).every(([key, name]) => menu.slots[SETTING_SLOTS[key]]?.name === name), 5000,
-    () => `the four settings: ${Object.values(SETTING_SLOTS).map((at) => menu.slots[at]?.name).join(', ')}`)
+    () => `the nine settings: ${Object.values(SETTING_SLOTS).map((at) => menu.slots[at]?.name).join(', ')}`)
   for (const told of ['Speed: Speed I', 'Speed: Speed II', 'Speed: Speed III']) await clickSetting(leader, SETTING_SLOTS.speed, false, told)
   await clickSetting(leader, SETTING_SLOTS.speed, true, 'Speed: Speed II')
   await clickSetting(leader, SETTING_SLOTS.maxDiamond, false, 'Max Diamond: On')
   await clickSetting(leader, SETTING_SLOTS.maxEmerald, false, 'Max Emerald: On')
   await clickSetting(leader, SETTING_SLOTS.breakMap, false, 'Break the Map: On')
+  await clickSetting(leader, SETTING_SLOTS.healthBuff, false, 'Health Buff: Double Health')
+  await clickSetting(leader, SETTING_SLOTS.lowGravity, false, 'Low Gravity: On')
+  await clickSetting(leader, SETTING_SLOTS.respawnTime, false, 'Respawn Time: 1 second')
+  await clickSetting(leader, SETTING_SLOTS.eventTimes, false, 'Event Times: 0\\.5x - Slower')
+  await clickSetting(leader, SETTING_SLOTS.eventTimes, false, 'Event Times: 2x - Faster')
+  await clickSetting(leader, SETTING_SLOTS.bedInstabreak, false, 'Bed Instabreak: On')
   await waitFor(() => text(menu.slots[SETTING_SLOTS.speed]).includes('Speed: Speed II'), 5000,
     () => `the menu to show Speed II: ${text(menu.slots[SETTING_SLOTS.speed])}`)
   const back = leader.windows.length
@@ -237,11 +275,12 @@ async function setGame (leader, second, maps) {
   const again = await windowAfter(leader, back, 'Test teams: choose a map', 'the map menu again, from the settings')
   await waitFor(() => again.slots.some((item) => item?.name === 'comparator'), 5000, 'the settings in the map menu again')
   const now = text(again.slots.find((item) => item?.name === 'comparator'))
-  for (const set of ['Speed: Speed II', 'Max Diamond: On', 'Max Emerald: On', 'Break the Map: On']) {
+  for (const set of CHOSEN) {
     if (!now.includes(set)) throw new Error(`the map menu to show ${set}: ${now}`)
   }
   log(`settings: ${second.username} cannot set the game; ${leader.username} set Speed II (three clicks, a right-click back),`
-    + ' Max Diamond, Max Emerald and Break the Map from the map menu, and went back to it')
+    + ' Max Diamond, Max Emerald, Break the Map, Double Health, Low Gravity, Respawn Time 1 second, Event Times 2x (two'
+    + ' clicks) and Bed Instabreak from the map menu, and went back to it')
   return again
 }
 
@@ -297,7 +336,7 @@ async function chooseTeams (leader, second, third) {
     await chatLine(bot, /Private game of your party in Test teams 2v2 on bw-demo\. It counts in no stats\./, 8000, marks[i])
     await chatLine(bot, new RegExp(`Red: ${leader.username}, ${second.username}$`), 2000, marks[i])
     await chatLine(bot, new RegExp(`Blue: ${third.username}$`), 2000, marks[i])
-    await chatLine(bot, /Settings: Speed: Speed II, Max Diamond: On, Max Emerald: On, Break the Map: On$/, 2000, marks[i])
+    await chatLine(bot, new RegExp(`Settings: ${CHOSEN.join(', ').replace(/\./g, '\\.')}$`), 2000, marks[i])
   }
   log(`countdown: the game started by itself, red ${leader.username} and ${second.username}, blue ${third.username}`
     + ' (who chose none, in the emptiest team), in no stats')
@@ -315,6 +354,7 @@ async function play (leader, second, third, marks) {
   }
   log('game: Fast Bedwars 2v2 on bw-demo with the teams chosen, the two red bots on the red island, the third on the blue one')
   await rules(leader, marks[0])
+  await respawnTime(leader)
   const from = mark(leader)
   third.chat('/spawn')
   await expectInLobby(third, 'after /spawn')
@@ -339,7 +379,9 @@ function enchanted (item, name, level) {
 
 /** 4. The settings of the leader in the game. */
 async function rules (leader, from) {
-  await chatLine(leader, /Settings of the party leader: Speed II, Max Diamond, Max Emerald, Break the Map$/, 5000, from)
+  await chatLine(leader, /Settings of the party leader: Speed II, Max Diamond, Max Emerald, Break the Map, Double Health, Low Gravity,/
+    , 5000, from)
+  await chatLine(leader, /, Low Gravity, Respawn Time: 1 second, Event Times: 2x - Faster, Bed Instabreak$/, 1000, from)
   await waitFor(() => leader.entity.effects?.[SPEED]?.amplifier === 1, 8000,
     () => `Speed II on ${leader.username}: ${JSON.stringify(leader.entity.effects)}`)
   await waitFor(() => enchanted(leader.inventory.slots[5], 'protection', 4)
@@ -353,6 +395,14 @@ async function rules (leader, from) {
   if (sidebarLines(leader).some((line) => line.includes('Emerald'))) {
     throw new Error(`an Emerald event in the sidebar with Max Emerald: ${JSON.stringify(sidebarLines(leader))}`)
   }
+  // Event Times 2x: the end of the beds at half its time
+  const bedsGone = sidebarLines(leader).map((line) => /^Bed Gone in (\d+):(\d\d)$/.exec(line)).find((found) => found != null)
+  const left = Number(bedsGone[1]) * 60 + Number(bedsGone[2])
+  if (left > BEDS_GONE_AT_2X) throw new Error(`Event Times 2x: the beds gone in ${bedsGone[1]}:${bedsGone[2]}, after ${BEDS_GONE_AT_2X} s`)
+  // Health Buff (Double Health) and Low Gravity (Jump Boost III)
+  await waitFor(() => leader.health === DOUBLE_HEALTH, 5000, () => `Double Health on ${leader.username}: ${leader.health}`)
+  await waitFor(() => leader.entity.effects?.[JUMP_BOOST]?.amplifier === 2, 5000,
+    () => `Jump Boost III (Low Gravity) on ${leader.username}: ${JSON.stringify(leader.entity.effects)}`)
   // Break the Map: a block of the island, not placed by a player, breaks
   const Vec3 = leader.entity.position.constructor
   const at = new Vec3(...ISLAND_BLOCK)
@@ -366,7 +416,30 @@ async function rules (leader, from) {
       + ` ${JSON.stringify(leader.chats.slice(fromDig))}`)
   }
   log(`rules: Speed II on ${leader.username}, Protection IV and Sharpness I from the start, the emerald generator at Tier III`
-    + ` and the beds next in the sidebar, the ${before} of the island at ${ISLAND_BLOCK} broken by hand`)
+    + ` and the beds next in the sidebar, gone in ${bedsGone[1]}:${bedsGone[2]} (Event Times 2x), ${DOUBLE_HEALTH / 2} hearts`
+    + ` and Jump Boost III, the ${before} of the island at ${ISLAND_BLOCK} broken by hand`)
+}
+
+/** Respawn Time 1 second: the leader walks off its island into the void, back a second later with its hearts full. */
+async function respawnTime (leader) {
+  const Vec3 = leader.entity.position.constructor
+  const from = mark(leader)
+  const p = leader.entity.position
+  // west, along the middle of the island: the floor of its generator, then the void
+  await leader.lookAt(new Vec3(p.x - 30, p.y + 1.62, p.z), true)
+  leader.setControlState('forward', true)
+  const fell = new RegExp(`${leader.username} fell into the void\\.`)
+  await waitFor(() => leader.chats.slice(from).some((line) => fell.test(line)), 15000,
+    () => `${leader.username} to fall into the void, at ${where(leader)}; chat: ${JSON.stringify(leader.chats.slice(from))}`)
+  const died = Date.now()
+  leader.setControlState('forward', false)
+  await chatLine(leader, /You have respawned!/, 8000, from)
+  const took = Date.now() - died
+  if (took > 2500) throw new Error(`${leader.username} respawned after ${took} ms, not about 1 second (Respawn Time)`)
+  await waitFor(() => Math.abs(leader.entity.position.x - RED_SPAWN_X) < 3 && leader.health === DOUBLE_HEALTH, 5000,
+    () => `${leader.username} on its island with ${DOUBLE_HEALTH / 2} hearts after its respawn: ${where(leader)}, ${leader.health}`)
+  log(`respawn: ${leader.username} fell into the void and respawned ${took} ms later (Respawn Time 1 second),`
+    + ` ${DOUBLE_HEALTH / 2} hearts again`)
 }
 
 async function main () {
@@ -380,7 +453,7 @@ async function main () {
 
   finishing = true
   log('PASSED: Bedwars Normal of the Private games, its rows of 4s and 2s; the settings of the leader (Speed, Max Diamond,'
-    + ' Max Emerald, Break the Map); the team choice of its party: the map, the team menu, a team full, /pg team, the'
+    + ' Max Emerald, Break the Map, Health Buff, Low Gravity, Respawn Time, Event Times; Bed Instabreak in the menu); the team choice of its party: the map, the team menu, a team full, /pg team, the'
     + ' countdown, who chose none in the emptiest team, the game with the teams chosen and the settings')
   for (const bot of [leader, second, third]) bot.quit()
   await sleep(500)

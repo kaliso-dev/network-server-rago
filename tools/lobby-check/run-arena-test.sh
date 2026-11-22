@@ -26,8 +26,9 @@
 # Then three bots in a party play the private games (tools/kb-control/bots/private-bots.mjs): the
 # menu of Bedwars Normal (its rows of 4s and 2s, with no map here), then test-equipes, a hidden mode
 # this script adds with the same team choice on Fast Bedwars 2v2: the settings of the leader (Speed
-# II, Max Diamond, Max Emerald, Break the Map), the map, the team of each (one full), /pg team, the
-# countdown, the game with the teams chosen and the settings, in no stats.
+# II, Max Diamond, Max Emerald, Break the Map, Double Health, Low Gravity, Respawn Time 1 second,
+# Event Times 2x, Bed Instabreak), the map, the team of each (one full), /pg team, the countdown,
+# the game with the teams chosen and the settings, in no stats.
 # Then a bot invites RagoBot into its party (tools/kb-control/bots/ragobot-bots.mjs): RagoBot refuses
 # ranked and the modes it does not play, wins a Sumo duel, a Boxing, a round of Top Bridge 1v1 and
 # a round of Lobby Fight 1v1 against the bot who stands still; in a Block placement 1v1 (RagoArbitre

@@ -128,8 +128,17 @@ tes quatre d'abord ; chacun est celui d'une partie normale tant qu'il n'est pas 
   fin de partie à leur heure ;
 - **Break the Map** : tout bloc de la map se casse, sauf autour des spawns et des générateurs (là
   où on ne peut rien poser) ; les lits restent ceux de la partie, la copie de la map part avec elle.
-Les réglages d'Hypixel du tableau (One Hit One Kill, Health Buff, Low Gravity, Respawn Time, Event
-Times, Bed Instabreak) viennent ensuite.
+Puis ceux des parties privées d'Hypixel (« comme sur hypixel »), comme son menu les décrit :
+- **Health Buff** : Normal, Double ou Triple Health (10, 20 ou 30 cœurs), par un Health Boost sur
+  chaque joueur, ses cœurs pleins au départ et à chaque retour ;
+- **Low Gravity** : Jump Boost III pour tous, toute la partie ;
+- **Respawn Time** : 1 ou 10 secondes au lieu de celui de la partie (`reapparition-secondes`, 5) ;
+- **Event Times** : 0.5x (plus lent), 2x (plus rapide) ou 4x (le plus rapide) : chaque événement
+  (les tiers des générateurs, la fin des lits, la fin de partie) vient deux fois plus tard, deux ou
+  quatre fois plus tôt ; avec Max Emerald, toujours sans Emerald II ni III ;
+- **Bed Instabreak** : le lit d'une autre équipe se casse d'un seul coup de poing (le sien, jamais).
+One Hit One Kill (« les objets qui tuent d'un coup », au choix sur Hypixel) attend la liste de ces
+objets.
 
 ## First Rush
 

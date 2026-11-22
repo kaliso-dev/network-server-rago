@@ -851,9 +851,9 @@ class BedwarsGame {
         return true;
     }
 
-    /** The seconds before a dead player comes back. */
+    /** The seconds before a dead player comes back (Respawn Time of the party leader's settings). */
     int respawnSeconds() {
-        return settings.respawnSeconds();
+        return rules.respawnSeconds(settings.respawnSeconds());
     }
 
     /** A player died (author: who gets the kill, or null), after the game counted it. */
@@ -1096,8 +1096,10 @@ class BedwarsGame {
     /**
      * Before the players are placed: the settings of the party leader ({@link PrivateRules}): with Max
      * Diamond, every team with Sharpened Swords and Reinforced Armor IV; with Max Emerald, the emerald
-     * generators at Tier III (Emerald II and III then do not come, see {@link #events}). Speed is on
-     * the players each second ({@link #teamEffects}), Break the Map at each block ({@link #breaksMap}).
+     * generators at Tier III (Emerald II and III then do not come, see {@link #events}). Speed, Low
+     * Gravity and Health Buff are on the players each second ({@link #teamEffects}), Break the Map at
+     * each block ({@link #breaksMap}), Respawn Time at each death ({@link #respawnSeconds}), Event
+     * Times in {@link #events}, Bed Instabreak at each punch on a bed (BedwarsHost.onBedPunch).
      */
     void applyRules() {
         if (rules.maxDiamond()) {
@@ -2550,12 +2552,26 @@ class BedwarsGame {
 
     /**
      * The upgrades of the player's team on them, each second and at each respawn: Haste, Sharpness on
-     * the swords and axes they carry, the Heal Pool's Regeneration while they are in their base.
+     * the swords and axes they carry, the Heal Pool's Regeneration while they are in their base; and
+     * the party leader's settings: Speed, Low Gravity, Health Buff.
      */
     void teamEffects(Player player, Gamer gamer) {
         if (rules.speed() > 0) {
             // the Speed of the party leader's settings, under a stronger potion of the shop
             keep(player, PotionEffectType.SPEED, rules.speed() - 1);
+        }
+        if (rules.lowGravity()) {
+            // Low Gravity: Jump Boost III, as on Hypixel
+            keep(player, PotionEffectType.JUMP, 2);
+        }
+        if (rules.healthBoost() >= 0) {
+            // Health Buff: the hearts more, full at the start and at each respawn
+            PotionEffect now = effect(player, PotionEffectType.HEALTH_BOOST);
+            if (now == null || now.getAmplifier() < rules.healthBoost()) {
+                player.addPotionEffect(new PotionEffect(PotionEffectType.HEALTH_BOOST, FOREVER, rules.healthBoost(), true, false),
+                        true);
+                player.setHealth(player.getMaxHealth());
+            }
         }
         Upgrades upgrades = gamer.team.upgrades;
         if (upgrades.haste() > 0) {
