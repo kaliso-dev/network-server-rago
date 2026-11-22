@@ -51,6 +51,7 @@ const ITEMS = {
   ENDER_PEARL: { item: 'items/ender_pearl.png' },
   ENDER_STONE: { block: { top: 'blocks/end_stone.png', side: 'blocks/end_stone.png' } },
   EYE_OF_ENDER: { item: 'items/ender_eye.png' },
+  FEATHER: { item: 'items/feather.png' },
   FIREBALL: { item: 'items/fireball.png' },
   FIREWORK: { item: 'items/fireworks.png' },
   GLOWSTONE_DUST: { item: 'items/glowstone_dust.png' },

@@ -64,12 +64,12 @@ class LobbySettingsTest {
         assertEquals("lobby", settings.world());
         assertEquals(0, settings.voidHeight());
         assertEquals(0, settings.defaultRating(), "a ranked ELO starts at 0, in Coal");
-        assertEquals(92, settings.modes().size(), "the six ranked duels (plan 3.7), the invis practice and the Bed Break Simulator in 1v1 to 1v4 (and"
+        assertEquals(93, settings.modes().size(), "the six ranked duels (plan 3.7), the invis practice and the Bed Break Simulator in 1v1 to 1v4 (and"
                 + " their kits), with the private top bridge, the clutch scenario, the bed fight (1v1, 2v2, 1v2), Top"
                 + " BedFight, the bridge fight 2v2, the full map first rush, Sky Rise Resources, the timed bridge, Lobby"
                 + " Fight (1v1, FFA), the Bed Break Simulator, the four modes of FUN PRACTICE (CTF The Bridge 1v1 and"
-                + " 2v2, CTF Castle 2v2 and 4v4 with them, Fast Bedwars 1v1 and 2v2), Red Rover (sumo, block edit, block placement, top bridge), Find Your Sensitivity and"
-                + " Block aim, without the top fight or the ranked scenarios");
+                + " 2v2, CTF Castle 2v2 and 4v4 with them, Fast Bedwars 1v1 and 2v2), Red Rover (sumo, block edit, block placement, top bridge), Find Your Sensitivity,"
+                + " Block aim and Parkour Duel, without the top fight or the ranked scenarios");
         assertEquals("entrainement", settings.display("find-your-sensitivity").category(), "a training of the aim");
         assertEquals("entrainement", settings.display("block-aim").category(), "a training of the placement");
         for (String id : Arrays.asList("red-rover-sumo", "red-rover-block-edit", "red-rover-block-placement",
@@ -90,6 +90,10 @@ class LobbySettingsTest {
         assertEquals("fun", settings.display("fireball-knockback").category(), "the Fireball Fight of FUN PRACTICE");
         assertEquals("fun", settings.display("snowball-spleef").category());
         assertEquals(Material.SNOW_BALL, settings.display("snowball-spleef").icon());
+        assertEquals("fun", settings.display("parkour-duel").category(), "the Parkour Duel of FUN PRACTICE");
+        assertEquals(Material.FEATHER, settings.display("parkour-duel").icon());
+        assertFalse(settings.catalog().get("parkour-duel").ranked());
+        assertNull(settings.display("parkour-duel").kit(), "no kit: the empty hand");
         for (String id : Arrays.asList("ctf-bridge-1v1", "ctf-bridge-2v2")) {
             assertEquals("fun", settings.display(id).category(), id + ": Capture the Flag in FUN PRACTICE");
             assertEquals("ctf-bridge", settings.display(id).group(), id + ": its two sizes in one item");

@@ -12,21 +12,33 @@
 //   2. Fireball Fight (fireball-knockback): 64 fireballs and the wind gust (a feather) each; the
 //      east bot uses the gust looking up (it goes up, a second gust at once must wait, it lands
 //      unhurt), the west bot throws a fireball at it (the east bot is pushed away, unhurt, and the
-//      west bot's stack stays full), then the east bot walks off the platform: the west bot wins.
+//      west bot's stack stays full), then the east bot walks off the platform: the west bot wins;
+//   3. Parkour Duel (parkour-duel): each bot on its lane (red and blue clay), no kit; the blue bot
+//      walks off its start and is put back on it (no point), the red bot runs the course
+//      (parkour-runner.mjs: each jump planned with the physics of 1.8) to the first checkpoint,
+//      walks off it and is put back on it, then runs on through the four checkpoints to the
+//      finish: it wins.
 // Both back in the lobby after each game.
 //
 // Environment: KB_HOST (127.0.0.1), KB_PORT (25565).
 
 import { setTimeout as sleep } from 'node:timers/promises'
 import mineflayer from 'mineflayer'
+import { createRunner, runCourse, settle } from './parkour-runner.mjs'
 
 const HOST = process.env.KB_HOST ?? '127.0.0.1'
 const PORT = Number(process.env.KB_PORT ?? '25565')
-const TEST_TIMEOUT_MS = 4 * 60 * 1000
+const TEST_TIMEOUT_MS = 8 * 60 * 1000
 /** The bundled radius of the snow floors (snowball-spleef.rayon): the west start is 9 from the middle. */
 const SPLEEF_RADIUS = 18
 /** The bundled blocks from the top floor down to the second one (snowball-spleef.ecart-etages). */
 const SPLEEF_GAP = 6
+/** The course of the Parkour Duel (ParkourCourse.java): the start, from the middle of a lane, facing +x. */
+const PARKOUR_START = { x: -47.5, y: 1, z: 0.5 }
+/** Each lane this far from the middle of the arena, across: red at -5, blue at +5. */
+const PARKOUR_LANE_Z = 5
+/** The middle of the first checkpoint (x -32 to -30), from the middle of a lane. */
+const PARKOUR_CHECKPOINT_1 = { x: -30.5, y: 1, z: 0.5 }
 
 let finishing = false
 /** The vector class of mineflayer's positions (from the first bot): new Vec3(x, y, z). */
@@ -261,20 +273,32 @@ async function snowballSpleef (one, two) {
   try {
     for (let throwNo = 1; throwNo <= 3 && reached === 0; throwNo++) {
       const snow = snowLeft(west, game)
+      const w = west.entity.position
+      await west.look(Math.atan2(-(standing.x - w.x), -(standing.z - w.z)), snowballPitch(w, standing), true)
+      await sleep(200)
+      // the snowball: the entity that appears by the west bot's eyes after the throw (mineflayer
+      // does not name the objects of 1.8 well), until it goes
+      let ball = null
       const gone = new Promise((resolve) => {
+        const onSpawn = (entity) => {
+          if (ball == null && entity !== west.entity && entity.type !== 'player' && entity.position.distanceTo(w.offset(0, 1.62, 0)) < 3) {
+            ball = entity.id
+          }
+        }
         const onGone = (entity) => {
-          if (entity.name === 'snowball') {
+          if (ball != null && entity.id === ball) {
+            west.removeListener('entitySpawn', onSpawn)
             west.removeListener('entityGone', onGone)
             resolve(true)
           }
         }
+        west.on('entitySpawn', onSpawn)
         west.on('entityGone', onGone)
       })
-      const w = west.entity.position
-      await west.look(Math.atan2(-(standing.x - w.x), -(standing.z - w.z)), snowballPitch(w, standing), true)
-      await sleep(200)
       west.activateItem()
-      if (!(await Promise.race([gone, sleep(5000).then(() => false)]))) throw new Error('the snowball thrown at the east bot never landed')
+      if (!(await Promise.race([gone, sleep(5000).then(() => false)]))) {
+        throw new Error(`the snowball thrown at the east bot never landed (${ball == null ? 'never seen' : 'seen, never gone'})`)
+      }
       await sleep(800)
       if (snowLeft(west, game) === snow) reached = throwNo
       else log(`snowball spleef: throw ${throwNo} at the east bot missed it (a block of snow less behind it)`)
@@ -378,14 +402,110 @@ async function fireballFight (one, two) {
   await expectInLobby(east, 'after the fireball fight')
 }
 
+/** The bot walks this way (a yaw) until the server puts it somewhere else (a fall: back on its checkpoint). */
+async function walkOff (bot, yaw, what) {
+  bot.entity.yaw = yaw
+  const moved = new Promise((resolve) => bot.once('forcedMove', resolve))
+  bot.setControlState('forward', true)
+  try {
+    if (!(await Promise.race([moved.then(() => true), sleep(8000).then(() => false)]))) {
+      throw new Error(`${bot.username} walked off ${what} and was not put back (at ${where(bot)})`)
+    }
+  } finally {
+    bot.clearControlStates()
+  }
+  await settle(bot)
+}
+
+function near (bot, place, what) {
+  const p = bot.entity.position
+  if (Math.abs(p.x - place.x) > 0.6 || Math.abs(p.z - place.z) > 0.6 || Math.abs(p.y - place.y) > 0.2) {
+    throw new Error(`${bot.username} is not ${what}: at ${where(bot)}, not ${place.x}, ${place.y}, ${place.z}`)
+  }
+}
+
+async function parkourDuel (one, two) {
+  const fromOne = mark(one)
+  const fromTwo = mark(two)
+  one.chat('/queue parkour-duel')
+  two.chat('/queue parkour-duel')
+  await chatLine(one, new RegExp(`Parkour Duel against ${two.username}`), 15000, fromOne)
+  await chatLine(two, new RegExp(`Parkour Duel against ${one.username}`), 15000, fromTwo)
+  await waitFor(() => one.game.gameMode === 'survival' && two.game.gameMode === 'survival', 5000, 'survival mode in the duel')
+  await sleep(500)
+  // red (side 0) on the lane at z -5 from the middle, blue at +5, both at the start
+  const [red, blue] = one.entity.position.z < two.entity.position.z ? [one, two] : [two, one]
+  const fromRed = red === one ? fromOne : fromTwo
+  const fromBlue = blue === one ? fromOne : fromTwo
+  const p = red.entity.position
+  const centre = { x: Math.round(p.x - PARKOUR_START.x), y: Math.round(p.y - PARKOUR_START.y), z: Math.round(p.z - PARKOUR_START.z + PARKOUR_LANE_Z) }
+  const at = (dx, dy, dz) => new Vec3(centre.x + dx, centre.y + dy, centre.z + dz)
+  const start = (lane) => ({ x: centre.x + PARKOUR_START.x, y: centre.y + PARKOUR_START.y, z: centre.z + lane + PARKOUR_START.z })
+  near(blue, start(PARKOUR_LANE_Z), 'at the start of the blue lane')
+  for (const bot of [red, blue]) {
+    if (bot.inventory.items().length > 0) throw new Error(`${bot.username} has a kit: ${bot.inventory.items().map((item) => item.name)}`)
+  }
+  for (const [lane, colour, name] of [[-PARKOUR_LANE_Z, 14, 'red'], [PARKOUR_LANE_Z, 11, 'blue']]) {
+    const checks = [[at(-48, 0, lane), 'quartz_block', 0, 'the start'], [at(-50, 0, lane - 2), 'stained_hardened_clay', colour, 'the border of the start'],
+      [at(-43, 0, lane), 'quartz_block', 2, 'the first pillar'], [at(-31, 1, lane), 'light_weighted_pressure_plate', 0, 'the plate of the first checkpoint']]
+    for (const [place, block, data, what] of checks) {
+      const there = red.blockAt(place)
+      if (there?.name !== block || there.metadata !== data) {
+        throw new Error(`${what} of the ${name} lane at ${place} is ${blockText(there)}, not ${block}:${data}`)
+      }
+    }
+  }
+  log(`parkour duel: both at the start of their lane (red and blue clay, quartz pillars), no kit; centre ${JSON.stringify(centre)}`)
+  await chatLine(red, /Fight!/, 10000, fromRed)
+  await chatLine(blue, /Fight!/, 10000, fromBlue)
+
+  // 1. the blue bot walks off its start, away from the red lane: back on its start, no point
+  await walkOff(blue, Math.PI, 'its start')
+  near(blue, start(PARKOUR_LANE_Z), 'back at its start')
+  if (blue.health < 20) throw new Error(`the fall hurt the blue bot: health ${blue.health}`)
+  if ([...red.chats.slice(fromRed), ...blue.chats.slice(fromBlue)].some((line) => /Point for|Victory!|Defeat/.test(line))) {
+    throw new Error('a fall gave a point')
+  }
+  log('parkour duel: the blue bot fell off its start and was put back on it, no point')
+
+  // 2. the red bot runs to the first checkpoint, walks off it: back on it
+  const world = { getBlock: (pos) => red.blockAt(pos, false) }
+  const runner = createRunner(red.registry, world)
+  const lane = { zMin: centre.z - PARKOUR_LANE_Z - 2, zMax: centre.z - PARKOUR_LANE_Z + 2 }
+  const seen = (pattern) => () => red.chats.slice(fromRed).some((line) => pattern.test(line))
+  const first = await runCourse(red, world, runner, lane, { until: seen(/Checkpoint 1\/4!/), log: (line) => log(`parkour duel: ${line}`) })
+  log(`parkour duel: the red bot reached checkpoint 1 in ${first.jumps} jumps (${first.misses} missed)`)
+  await walkOff(red, 0, 'the first checkpoint')
+  const checkpoint = { x: centre.x + PARKOUR_CHECKPOINT_1.x, y: centre.y + PARKOUR_CHECKPOINT_1.y, z: centre.z - PARKOUR_LANE_Z + PARKOUR_CHECKPOINT_1.z }
+  near(red, checkpoint, 'back on the first checkpoint')
+  if (red.chats.slice(fromRed).some((line) => /Point for|Victory!|Defeat/.test(line))) throw new Error('a fall gave a point')
+  log('parkour duel: the red bot fell off the first checkpoint and was put back on it')
+
+  // 3. on to the finish, through the other checkpoints
+  const rest = await runCourse(red, world, runner, lane, { until: seen(/finished the course in/), log: (line) => log(`parkour duel: ${line}`) })
+  const lines = red.chats.slice(fromRed)
+  let last = 0
+  for (let k = 1; k <= 4; k++) {
+    const index = lines.findIndex((line) => line.includes(`Checkpoint ${k}/4!`))
+    if (index < last) throw new Error(`checkpoint ${k} of 4 not reached in order: ${JSON.stringify(lines)}`)
+    last = index
+  }
+  await chatLine(red, /Victory!/, 10000, fromRed)
+  await chatLine(blue, new RegExp(`${red.username} finished the course in`), 5000, fromBlue)
+  log(`parkour duel: the red bot reached checkpoints 2, 3 and 4 and the finish in ${rest.jumps} jumps (${rest.misses} missed): it won`)
+  await expectInLobby(red, 'after the parkour duel')
+  await expectInLobby(blue, 'after the parkour duel')
+}
+
 async function main () {
   const one = await arrive('RagoFunUn')
   const two = await arrive('RagoFunDeux')
   Vec3 = one.entity.position.constructor
   await snowballSpleef(one, two)
   await fireballFight(one, two)
+  await parkourDuel(one, two)
   finishing = true
-  log('PASSED: the Snowball Spleef and the Fireball Fight of FUN PRACTICE')
+  log('PASSED: the Snowball Spleef, the Fireball Fight and the Parkour Duel of FUN PRACTICE')
   one.quit()
   two.quit()
   await sleep(500)

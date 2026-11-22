@@ -315,6 +315,9 @@ public final class RagoPractice extends JavaPlugin {
         register("find-your-sensitivity", FindYourSensitivity::new, slots, spacing, false);
         // Block aim, the placement on a target (plan, step 6.4), after them all too
         register("block-aim", BlockAimTraining::new, slots, spacing, false);
+        // Parkour Duel (FUN PRACTICE, the owner's choice of 22/11), last, so that the others keep their zones
+        int parkourPoints = Math.max(1, Math.min(10, config.getInt("parkour-duel.points-pour-gagner", 1)));
+        register("parkour-duel", (h, m, a, t) -> new ParkourDuel(h, m, a, t, parkourPoints), slots, spacing, false);
     }
 
     /** The settings of Red Rover (red-rover); the defaults when they are wrong. */

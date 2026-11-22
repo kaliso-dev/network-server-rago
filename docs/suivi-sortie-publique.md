@@ -194,7 +194,7 @@ Snowball Spleef et Red Rover sont codés avec des valeurs de départ à confirme
 | 6.1a | Snowball Spleef (style Minemen) | P2 | IMPLÉMENTÉ le 22/11 (ta demande : « agrandi la map fait 2 étape, et fait en sorte que les joueurs ne puisse pas se frapper entre eux ») : 2 étages de neige, 6 blocs l'un sous l'autre, rayon 18 au lieu de 12 ; plus aucune poussée entre joueurs (ni main, ni boule de neige). Le bot de la CI le vérifie une fois le run passé ; pas encore installé | valeurs à confirmer : rayon 18 (« agrandi » sans chiffre), 2 étages, écart 6, 1 boule par bloc, 1 round |
 | 6.1b | Fireball Fight (voir C1) | P2 | TESTÉ par les bots en CI (21/11), pas encore en jeu | valeurs de départ à confirmer : rayon 10, recul 1,5 / 1,2, fireballs illimitées, souffle 3 s, 1 round ; le nom (« Fireball Fight », FUN PRACTICE) |
 | 6.1c | Fast Bedwars (Bedwars 2018 simplifié) | P2 | TESTÉ par les bots en CI le 22/11 (757ba0b), installé sur ton serveur de test le 22/11 (aa724b7), pas encore joué en jeu : codé selon la proposition du 21/11 (ta demande du 22/11 : finir les modes demandés), `fast-bedwars-1v1` et `fast-bedwars-2v2` dans Fun Practice, sur les 20 maps RBW ; forges deux fois plus rapides, événements deux fois plus tôt, shop des 20 objets du Quick Buy par défaut, pas d'améliorations ni de diamants (détail plus bas, « Étape 7 : Fast Bedwars ») | ce que « 2018 » veut dire (shop, améliorations, équipes, durée) ; valeurs de départ à confirmer : 240 fers et 24 ors par minute, lits à 15 min, fin à 22 min 30, la liste du shop, pas d'améliorations, 1v1 et 2v2, les 20 maps RBW |
-| 6.1d | Autres modes FUN connus : propositions | P3 | À FAIRE : ton choix du 22/11, Parkour Duel « dans une map stylée » ; et le Snowball Spleef : map agrandie, deux étages, les joueurs ne peuvent plus se frapper | — |
+| 6.1d | Autres modes FUN connus : Parkour Duel | P3 | IMPLÉMENTÉ le 22/11 (ton choix : Parkour Duel « dans une map stylée ») : une course sur un parcours du plugin, une piste par joueur, 5 sections à thème, 4 checkpoints, une chute ramène au dernier ; chaque saut essayé avec la physique 1.8. Le bot de la CI fait tout le parcours une fois le run passé ; pas encore installé. (Le Snowball Spleef agrandi : ligne 6.1a) | à confirmer : le parcours lui-même (à toi de le jouer), 1 manche gagnante |
 | 6.2 | Capture the Flag, version Bedwars et seconde version : études | P3 | TESTÉ par les bots en CI le 22/11 (757ba0b), installé sur ton serveur de test le 22/11 (aa724b7), pas encore joué en jeu : tes deux types du 22/11, The Bridge (`ctf-bridge-1v1`, `ctf-bridge-2v2`, map CtfBridge) et château contre château avec un mid (`ctf-castle-2v2`, `ctf-castle-4v4`, map CtfCastle), dans Fun Practice ; les deux maps construites par le plugin (détail plus bas, « Étape 7 : Capture the Flag ») | valeurs de départ à confirmer : 3 captures, 15 et 20 minutes, 30 s de retour du drapeau, les tailles, le dessin des deux maps, les icônes |
 | 6.3 | Find Your Sensitivity : faisabilité et protocole | P3 | IMPLÉMENTÉ le 22/11 (ton choix sur la carte : « Find Your Sensitivity » d'abord), selon le protocole de la proposition ; build et tests unitaires passés en CI (0bcfd61), installé sur ton serveur de test ; pas encore joué, ni par les bots ni en jeu (détail plus bas, « Étape 7 : Find Your Sensitivity ») | question 9, valeurs de départ à confirmer : séries d'environ une minute (12 flicks, 4 demi-tours, 20 s de suivi), 3 sensibilités (la tienne, 20 % moins vite, 20 % plus vite), sans historique ; l'icône (œil de l'Ender) |
 | 6.4 | Block Aim Practice (patterns de la communauté) | P3 | Parcours : IMPLÉMENTÉ le 22/11 (ton choix sur la carte : Block Aim ensuite) ; le Bridge Chrono avait déjà les ponts droits, diagonaux et en montée, il a maintenant aussi le pont avec un virage (16, 32 et 64 blocs, un record chacun) ; build et tests unitaires passés en CI (d216c86) ; installé le 22/11 (avec 28a4bee), pas encore joué. Placement sur cible : IMPLÉMENTÉ le 22/11, nouveau mode « Block aim » (`block-aim`) : une face s'allume sous les pieds au bout du pont, sur le côté du pont ou sur le lit, 5 niveaux de plus en plus rapides comme ceux de Ladder Practice, un record par niveau ; build et tests unitaires passés en CI (28a4bee) ; installé sur ton serveur de test le 22/11 avec le pont avec virage, pas encore joué (détail plus bas, « Étape 7 : Block Aim Practice ») | à confirmer : le virage à droite, à mi-chemin, à plat ; pas de virage en montée (la place manque à moins de 64 blocs du centre) ; placement sur cible : la scène générée (question 8 sans réponse), les 15 faces, les temps des 5 niveaux (3 s à 1 s), un bloc posé ailleurs compté sans finir la série |
@@ -1456,6 +1456,8 @@ marquée « à confirmer » dans les `config.yml`.
   de 3 s, 1 round gagnant.
 - **Snowball Spleef** (6.1a, `snowball-spleef`, RagoPractice) : réglages `snowball-spleef:` :
   rayon 12, 1 étage, écart 6, 1 boule par bloc cassé, 1 round gagnant.
+- **Parkour Duel** (6.1d, `parkour-duel`, RagoPractice) : le parcours du plugin (`ParkourCourse`),
+  réglage `parkour-duel:` : 1 manche gagnante.
 - **Red Rover** (6.5.1) : quatre modes dans un seul item « Red Rover » des Duels, trois joueurs en
   1v1 chacun leur tour, celui qui attend regarde. Réglages communs `red-rover:` du `config.yml` de
   RagoPractice (aux points, le gagnant reste, premier à 3 1v1 gagnés, 90 s par 1v1) :
@@ -1899,6 +1901,46 @@ en toucher un (aucune poussée, aucun bloc cassé), puis fait tomber l'autre bot
 étage (toujours en jeu) et sous lui (victoire). Vérifié ici : la syntaxe Java, celle du bot et les
 tests du site (34 passés). À l'install : ton `config.yml` de RagoPractice garde ses valeurs
 (`rayon: 12`, `etages: 1`) tant qu'on ne les change pas ; je les passerai à 18 et 2.
+
+### 6.1d Parkour Duel (22/11)
+
+Ton choix du 22/11 : « Parkour Duel dans une map stylée ». Comme le Parkour Duel connu (celui de
+Hypixel) : une course, le premier à l'arrivée gagne, sans coups.
+
+- **Le parcours** (`ParkourCourse`, construit par le plugin comme la plateforme du Snowball
+  Spleef) : une piste par joueur, la même pour les deux, rouge et bleue côte à côte (10 blocs de
+  vide entre elles : on ne gêne pas l'autre et on ne passe pas chez lui). Environ 100 blocs de long,
+  cinq sections à thème : des piliers de quartz, un escalier de verre bleu clair qui monte, un
+  zigzag de prismarine avec une course d'élan en prismarine sombre et un saut de trois blocs au
+  bout, des lanternes aquatiques qui descendent puis remontent, une ligne d'or jusqu'à l'arrivée.
+  Le départ en quartz sous une arche de quartz, l'arrivée en or avec un bloc de diamant au milieu,
+  sous une arche d'or et de glowstone, chaque plateforme bordée de la couleur de la piste.
+- **Les checkpoints** : quatre, entre les sections (une lanterne aquatique sous une plaque d'or). Le
+  joueur qui en atteint un le voit dans le chat (« Checkpoint 2/4! ») et sur son tableau (celui des
+  deux équipes). Une chute le ramène sur le dernier atteint, sans point pour l'autre.
+- **La fin** : le premier sur l'arrivée gagne la manche ; le chat dit son temps (« ... finished the
+  course in 41.250s. »). 1 manche gagnante (`parkour-duel.points-pour-gagner`, de 1 à 10). Aucun
+  kit, aucun coup, aucun dégât de chute, pas de limite de temps (comme les autres duels).
+- **Chaque saut est faisable** : je les ai tous essayés avec la physique de Minecraft 1.8 (celle
+  de mineflayer, prismarine-physics) : trois blocs de vide au plus, deux en montant d'un bloc,
+  chacun réussi de nombreuses façons (de 215 à 1764 façons sur 3510 essayées par saut). Ce que je
+  ne peux pas juger d'ici : si le parcours te plaît en jeu (« stylé ») et s'il est assez dur.
+- Dans la boussole : FUN PRACTICE, « Parkour Duel » (une plume), et la catégorie le cite. Un titre
+  « Parkour Duel » comme les autres modes, et le site le montre.
+
+Fichiers : `ParkourCourse`, `ParkourDuel`, `RagoPractice` (le mode, en dernier pour que les autres
+gardent leurs zones), les `config.yml` de RagoPractice et du lobby, `Titles`, les README, le site
+(le mode, la plume). Tests : `ParkourCourseTest` (chaque bloc existe en 1.8 et a sa place, chaque
+saut dans les limites, les checkpoints dans l'ordre, les pistes séparées, le réglage fourni),
+`LobbySettingsTest` (93 modes, le Parkour Duel dans FUN, sans kit), `StatsMenuTest`, et le bot de
+FUN PRACTICE en CI (`fun-bots.mjs`, `parkour-runner.mjs`) : il vérifie les deux pistes (leurs
+couleurs, leurs blocs), fait tomber le bot bleu de son départ (remis au départ, aucun point), puis
+le bot rouge court jusqu'au premier checkpoint en calculant chaque saut, en tombe (remis dessus),
+et va au bout par les trois autres checkpoints : il gagne. Vérifié ici : la syntaxe Java ; les
+tests de `ParkourCourseTest` sur le parcours, lancés avec des remplaçants de JUnit et de Bukkit
+(6 sur 7 passés, le 7e lit le `config.yml` et ne tourne qu'en CI) ; le bot sur le parcours simulé
+avec la même physique (30 sauts, 0 raté, les 4 checkpoints puis l'arrivée) ; les tests du site
+(34 passés). Le vrai test sur un serveur se fait en CI.
 
 ### Installation du 22/11 au matin (aa724b7)
 

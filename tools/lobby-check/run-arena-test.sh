@@ -211,6 +211,7 @@ fi
 for expected in '[RagoLobby] Lobby in the world lobby' '[RagoPractice] Arenas in the world arenes' \
     'Mode block-fight-1v1 hosted by RagoPractice' 'Mode block-edit-duel hosted by RagoPractice' \
     'Mode block-edit hosted by RagoPractice' 'Mode snowball-spleef hosted by RagoPractice' \
+    'Mode parkour-duel hosted by RagoPractice' \
     'Mode fireball-knockback hosted by RagoPractice' 'Mode red-rover-sumo hosted by RagoPractice' \
     'Mode red-rover-block-edit hosted by RagoPractice' 'Mode red-rover-block-placement hosted by RagoPractice' \
     'Mode red-rover-top-bridge hosted by RagoBedwars' 'Mode ctf-bridge-1v1 hosted by RagoBedwars' \

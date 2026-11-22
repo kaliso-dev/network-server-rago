@@ -63,6 +63,10 @@
       "kind": "item",
       "src": "/mc/items/eye_of_ender.png"
     },
+    "FEATHER": {
+      "kind": "item",
+      "src": "/mc/items/feather.png"
+    },
     "FIREBALL": {
       "kind": "item",
       "src": "/mc/items/fireball.png"

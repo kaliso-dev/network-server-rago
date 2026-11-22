@@ -374,6 +374,13 @@ snowball-spleef:
   ecart-etages: 6
   boules-par-bloc: 1
 
+# Parkour Duel: a race on a course of the plugin, each side on its own lane of the same course (five
+# sections, four checkpoints). A fall takes the player back to their last checkpoint; no hits, no
+# fall damage. The first to the finish wins the round; the first to points-pour-gagner rounds (1 to
+# 10) wins the duel.
+parkour-duel:
+  points-pour-gagner: 1
+
 # Red Rover (plan 6.5, solution 1): three players in 1v1, in turn; the one who waits watches. Each
 # 1v1 is a round of its mode: the sumo (on sumo.cartes, or a platform of sumo.rayon), the block
 # edit (a clean edit), the block placement (on block-fight.cartes: the first to

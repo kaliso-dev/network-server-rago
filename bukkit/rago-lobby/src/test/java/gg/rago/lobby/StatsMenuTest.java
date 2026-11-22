@@ -119,7 +119,8 @@ class StatsMenuTest {
         assertFalse(ids(StatsMenu.modesOf(settings.modes(), "ranked", categories)).contains("ranked-1v1"),
                 "Ranked Bedwars left RBW Modes for Ranked");
         List<String> fun = ids(StatsMenu.modesOf(settings.modes(), "fun", categories));
-        assertTrue(fun.contains("fireball-knockback") && fun.contains("snowball-spleef"), fun.toString());
+        assertTrue(fun.contains("fireball-knockback") && fun.contains("snowball-spleef") && fun.contains("parkour-duel"),
+                fun.toString());
         List<String> duels = ids(StatsMenu.modesOf(settings.modes(), "duels", categories));
         assertTrue(duels.contains("sumo"));
         assertFalse(duels.contains("ffa"));

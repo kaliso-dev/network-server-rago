@@ -447,8 +447,9 @@ toute l'équipe d'en face est tombée ou morte.
 
 ## FUN PRACTICE (plan 6.1)
 
-Deux modes en 1v1, dans la catégorie FUN PRACTICE du lobby (son PNJ FunMod2, sur un bloc de
-quartz). Aucun dégât dans les deux : le premier qui tombe donne le point à l'autre, comme au sumo.
+Trois modes en 1v1, dans la catégorie FUN PRACTICE du lobby (son PNJ FunMod2, sur un bloc de
+quartz). Aucun dégât dans les trois. Au Fireball Fight et au Snowball Spleef, le premier qui tombe
+donne le point à l'autre, comme au sumo ; au Parkour Duel, une chute ramène au dernier checkpoint.
 Les valeurs de départ ci-dessous sont **à régler avec le propriétaire**.
 
 - **Fireball Fight** (`fireball-knockback`, pas le Fireball fight des duels avec ses lits) : une
@@ -467,8 +468,18 @@ Les valeurs de départ ci-dessous sont **à régler avec le propriétaire**.
   elle tombe. Les joueurs ne peuvent pas se frapper : ni à la main, ni avec une boule, qui
   s'arrête sur le joueur touché sans le pousser ni casser de neige. Tomber sous le dernier étage
   fait perdre la manche ; les étages sont remis à neuf à chaque manche.
+- **Parkour Duel** (`parkour-duel`, ton choix du 22/11, « dans une map stylée ») : une course sur un
+  parcours du plugin (`ParkourCourse`), le même pour les deux, chacun sur sa piste (rouge et bleue,
+  côte à côte, 10 blocs l'une de l'autre). Cinq sections à thème : des piliers de quartz, un
+  escalier de verre bleu clair qui monte, un zigzag de prismarine et un saut de trois blocs au
+  bout, des lanternes aquatiques qui descendent et remontent, une ligne d'or jusqu'à l'arrivée
+  (de l'or, un bloc de diamant au milieu, sous une arche d'or et de glowstone). Quatre checkpoints
+  entre les sections (une lanterne sous une plaque d'or, bordée de la couleur de la piste) : une
+  chute ramène au dernier atteint. Le premier sur l'arrivée gagne la manche. Aucun kit, aucun coup,
+  aucun dégât de chute. Chaque saut a été essayé avec la physique de Minecraft 1.8
+  (prismarine-physics) : trois blocs de vide au plus (deux en montant d'un bloc).
 
-Les deux : `points-pour-gagner` 1 (de 1 à 10). Des réglages faux sont signalés au démarrage, et le
+Les trois : `points-pour-gagner` 1 (de 1 à 10). Des réglages faux sont signalés au démarrage, et le
 mode joue alors avec les valeurs de départ.
 
 ## Red Rover (plan 6.5, solution 1)

@@ -132,9 +132,9 @@
           "colour": "#FF55FF"
         }
       ],
-      "description": "Fireball Fight: knock them off with fireballs and wind gusts; Snowball Spleef: break the snow under their feet; Capture the Flag on The Bridge or castle against castle; Fast Bedwars.",
+      "description": "Fireball Fight: knock them off with fireballs and wind gusts; Snowball Spleef: break the snow under their feet; Capture the Flag on The Bridge or castle against castle; Fast Bedwars; Parkour Duel: race them to the finish.",
       "skin": null,
-      "modes": 8,
+      "modes": 9,
       "also": []
     },
     {
@@ -1350,6 +1350,22 @@
       "startHere": false,
       "event": false,
       "description": "Break the snow under them: each block gives a snowball that breaks the snow too. Two floors, no hits: don't fall!",
+      "plugins": [
+        "practice"
+      ]
+    },
+    {
+      "id": "parkour-duel",
+      "name": "Parkour Duel",
+      "colour": "#FF55FF",
+      "icon": "FEATHER",
+      "category": "fun",
+      "group": null,
+      "format": "1v1",
+      "ranked": false,
+      "startHere": false,
+      "event": false,
+      "description": "Race them on your own lane: five sections, four checkpoints. A fall takes you back to the last one. First to the finish wins!",
       "plugins": [
         "practice"
       ]
