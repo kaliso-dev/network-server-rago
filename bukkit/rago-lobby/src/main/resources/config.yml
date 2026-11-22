@@ -475,8 +475,9 @@ pnj:
     minimum-parties: {jour: 5, semaine: 15}
   # The people of the server in the thank-you room (type: personne): their name after the prefix
   # of their rank (rang:, a rank of rangs:), as above a player's head, in the skin of their account;
-  # a click does nothing. On obsidian, one block higher than their point. Their points: /lobby
-  # point qrago, kalisodev.
+  # a click does nothing. One block higher than their point, on their block: obsidian for the Owner
+  # and the Dev; the moderators on the block of every NPC (bloc: changes it). Their points: /lobby
+  # point qrago, kalisodev, jncl, nativ.
   qrago:
     nom: "qRago"
     type: personne
@@ -489,6 +490,16 @@ pnj:
     rang: dev
     skin-joueur: kaliso_dev
     bloc: OBSIDIAN
+  jncl:
+    nom: "directement"
+    type: personne
+    rang: mod
+    skin-joueur: jncl
+  nativ:
+    nom: "woryes"
+    type: personne
+    rang: mod
+    skin-joueur: Woryes
   # OUR OTHER PRODUCTS (plan 5.6A), in the thank-you room (type: produit): its title (titre:) above
   # its name, a line under it if sous-titre: is given; a click shows its links in the chat, line by
   # line (liens:, from 1 to 8 lines). On a block of diamond. Their points: /lobby point ragoclient,
@@ -688,8 +699,8 @@ rangs:
     permissions: [rago.admin]
     herite: mod
   mod:
-    prefixe: "&2[MOD] "
-    couleur: "&2"
+    prefixe: "&e[MOD] "
+    couleur: "&e"
     staff: true
     permissions: [rago.mod]
     herite: helper

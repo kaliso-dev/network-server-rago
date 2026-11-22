@@ -635,7 +635,9 @@ config.yml fourni les suit :
   joueur : « [OWNER] qRago ». Un clic ne fait rien. Un `rang:` absent de `rangs:` est refusé au
   démarrage. Le config.yml fourni place `qrago` (qRago, Owner, skin du compte qRago) et
   `kalisodev` (kaliso_dev, Dev, skin du compte kaliso_dev), sur de l'obsidienne, un bloc plus haut
-  que leur point.
+  que leur point, et les deux modérateurs (plan 5.6C) : `jncl` (affiché « directement », Mod, skin
+  du compte jncl) et `nativ` (affiché « woryes », Mod, skin du compte Woryes), sur le bloc de tous
+  les PNJ (andésite polie, `bloc:` le change). Le rang Mod est en jaune clair (`&e[MOD]`).
 - `pnj:` avec `type: produit` place un produit de Rago (OUR OTHER PRODUCTS, plan 5.6A) : un joueur
   les mains vides, avec au-dessus son titre (`titre:`), son nom, et une ligne dessous si
   `sous-titre:` est donné. Un clic écrit ses liens dans le chat, ligne par ligne (`liens:`, de 1 à

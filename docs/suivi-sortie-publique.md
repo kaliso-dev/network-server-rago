@@ -83,9 +83,9 @@ Avant chaque installation sur ton PC : copie du dossier `plugins/` du serveur.
 
 ### 1.5 Ce qui manque (à fournir, rien n'est inventé)
 
-- Lien officiel du Discord de Rago Practice, et du Store (4.5, 5.7, 8.2).
-- Liens officiels de Rago Client et de Rago Optimizer, et les skins voulus pour leurs PNJ (5.6 A).
-- Pseudo exact du compte « Woryes » pour le skin de `nativ` (5.6 C).
+- ~~Lien officiel du Discord de Rago Practice, et du Store (4.5, 5.7, 8.2).~~ Reçu le 22/11 : `discord.gg/ragooptimizer` et `rago-optimizer.com`.
+- ~~Liens officiels de Rago Client et de Rago Optimizer, et les skins voulus pour leurs PNJ (5.6 A).~~ Reçu le 22/11 : les mêmes liens, le skin de qRago.
+- ~~Pseudo exact du compte « Woryes » pour le skin de `nativ` (5.6 C).~~ Le 22/11 : le compte `Woryes`, comme dans le plan ; s'il n'existe pas chez Mojang, le log du lobby le dit au démarrage.
 - L'image de référence du lobby (5.2) : elle n'est pas dans les fichiers du projet.
 - Les spawns Hypixel de référence pour First Rush (1.7) : tu as donné les maps (« Gelato, Nebuc
   etc. ») ; il manque la position de référence de chaque spawn (capture F3 sur Hypixel, ou
@@ -176,7 +176,7 @@ informations manquantes.
 | 5.5 | Daily Chest : animation à suspense, Rago Points 100–500, XP 100–2000, cosmétiques, probabilités configurables, jamais de doublon | Lobby | P2 | À FAIRE | `DailyChest`, `LobbyPoints`, `Cosmetic` | probabilités |
 | 5.6A | `RagoClient` et `RagoOptimizer` : nom, skin, diamant, liens au clic, texte « OUR OTHER PRODUCTS », visuels publicitaires existants derrière | Lobby | P2 | IMPLÉMENTÉ le 22/11 (tes réponses : les liens `rago-optimizer.com` et `discord.gg/ragooptimizer`, le skin de qRago pour les deux) : PNJ `type: produit` sur tes points `ragoclient` et `ragooptimizer`, « Rago Client » et « Rago Optimizer » sous « OUR OTHER PRODUCTS », sur un bloc de diamant, un clic écrit le site et le Discord dans le chat ; tes deux panneaux `rago-client` et `rago-optimizer` (tes visuels) à replacer 3 blocs derrière, contre le mur, en 6 x 6 (la hauteur du mur), à l'install (voir le journal). Testé en CI par les tests du dépôt et le bot du lobby (il clique Rago Client et lit ses deux liens) une fois le run passé ; pas encore installé ni vu en jeu | `LobbyNpc`, `LobbyNpcs`, `LobbySettings`, `config.yml`, `panneaux:` de ton config | — |
 | 5.6B | `qRago` (Owner) et `Kalisodev` (kaliso_dev, Dev) sur obsidienne, surélevés d'un bloc | Lobby | P2 | TESTÉ en CI (21/11, runs 345 et 346, Java 8 et 21), sauf le skin lu chez Mojang : PNJ `type: personne` sur tes points `qrago` et `kalisodev`, « [OWNER] qRago » et « [DEV] kaliso_dev » (les préfixes de `rangs:`), skin de leur compte Minecraft lu chez Mojang (`skin-joueur:`), sur obsidienne un bloc plus haut ; installé sur ton serveur le 21/11 (build 346, sauvegarde `sauvegarde-avant-maj-21-11d`) ; à voir en jeu | `LobbyNpc`, `LobbyNpcs`, `AccountSkins`, `LobbySettings`, `config.yml` | — |
-| 5.6C | `jncl` et `nativ` (affiché woryes, skin Woryes), rôle Mod en jaune clair | Lobby | P2 | À FAIRE : ta réponse du 22/11, jncl affiché « directement », nativ affiché « woryes » (C7) | `LobbyNpcs`, `RankDef` | — |
+| 5.6C | `jncl` et `nativ` (affiché woryes, skin Woryes), rôle Mod en jaune clair | Lobby | P2 | IMPLÉMENTÉ le 22/11 (ta réponse : jncl affiché « directement », nativ affiché « woryes », C7) : PNJ `type: personne` sur tes points `jncl` et `nativ`, « [MOD] directement » dans le skin du compte jncl et « [MOD] woryes » dans le skin du compte Woryes ; le rang Mod passe en jaune clair (`&e`, avant vert foncé `&2`), partout où le rang se voit (chat, tab, au-dessus de la tête) ; pas de bloc demandé dans le plan pour eux : le bloc de tous les PNJ (andésite polie). Testé en CI par les tests du dépôt une fois le run passé ; pas encore installé ni vu en jeu | `LobbySettings`, `Ranks`, `config.yml` (`pnj:`, `rangs:`) | 5.6B |
 | 5.7 | Texte de remerciement en anglais, fidèle à ton histoire, avec le Discord, à valider avant intégration | Lobby | P2 | À FAIRE | point `textremerciement`, `FakeHologram` | — (Discord : `discord.gg/ragooptimizer`, 22/11) |
 | 5.8 | Revoir les skins des PNJ du lobby | Lobby | P2 | À FAIRE | `NpcSkins`, `skins.yml` | — |
 | 5.9 | Boussole comme sur Minemen (ta demande du 22/11) : les catégories en haut, un espace, puis les modes de la catégorie choisie | Lobby | P1 | TESTÉ par les bots en CI le 22/11 (commit af042fc, Java 8 et 21 : le PNJ Duels ouvre la boussole sur Duels ; un clic sur Duels en haut remplace les jeux de Practice dans le même menu, puis la sumo rejoint sa file) ; installé sur ton serveur le 22/11 vers 1h40 (seul `rago-lobby` change, sauvegarde `sauvegarde-avant-maj-af042fc`) ; pas encore vu en jeu : les 6 catégories sur la ligne du haut (slots 1 à 6), une ligne vide, les jeux de la catégorie choisie à partir du slot 19 ; un clic sur une autre catégorie change les jeux dans le même menu, celle choisie brille (« Its modes are below ») ; s'ouvre sur Practice, ou sur la catégorie du PNJ, de `/play` ou du groupe dont on revient ; « Popular now » passe sur la ligne du bas ; le menu garde la taille de la plus grande catégorie (Practice, 15 jeux : 6 lignes) | `ModeMenu`, `lobby-bots.mjs` | depuis 3.7 (22/11, pas encore installé) : 8 onglets, Party et Ranked en plus, sur les slots 0 à 7 |
@@ -1846,6 +1846,31 @@ Tests : `ProductNpcTest` (les deux PNJ du config, les erreurs de config), `Lobby
 syntaxe Java (javac, sans les classes de Bukkit) et celle du bot (node --check) ; le reste tourne
 en CI. Avec ce commit, `StatsMenuTest` est mis à jour pour 3.7 (le run 385 l'avait trouvé : le
 menu des stats a maintenant un bouton Ranked, avec les modes classés, et pas de bouton Party).
+
+### 5.6C Les modérateurs jncl et nativ (22/11)
+
+Le plan : « PNJ 5 — jncl », nom à afficher « directemeent », skin du joueur jncl, rôle Mod ;
+« PNJ 6 — nativ », nom à afficher « woryes », skin du joueur Woryes, rôle Mod ; « Couleur du rôle
+Mod : utiliser un jaune clair ». Ta réponse du 22/11 : « jncl : directement nativ : woryes ».
+
+- Deux PNJ `type: personne`, comme qRago et kaliso_dev : sur le point `jncl`, « [MOD] directement »
+  dans le skin du compte `jncl` ; sur le point `nativ`, « [MOD] woryes » dans le skin du compte
+  `Woryes`. Les mains vides, un clic ne fait rien. Le nom interne (le point), le compte du skin et
+  le nom affiché restent séparés, comme le plan le demande.
+- **Le rang Mod en jaune clair** : `&e[MOD]` au lieu de `&2[MOD]` (vert foncé), dans `rangs:` du
+  config et dans les rangs par défaut du plugin. C'est le rang lui-même qui change : un vrai
+  modérateur le verra aussi en jaune clair dans le chat, le tab et au-dessus de sa tête. Si ton
+  `config.yml` a déjà son propre `mod:`, la fusion à l'install le garde (dis-moi si tu veux le
+  jaune quand même).
+- **Le bloc** : le plan n'en donne pas pour eux (contrairement à l'obsidienne de qRago et de
+  kaliso_dev), donc c'est le bloc de tous les PNJ, l'andésite polie, un bloc plus haut que leur
+  point. Une ligne `bloc:` le change. Comme pour Rago Client, il y a un bloc d'air sous tes points
+  `jncl` et `nativ` (y = 69, ton bloc de fer est à y = 68) : le bloc sera en l'air, d'un bloc.
+
+Fichiers : `config.yml` du lobby (`pnj:`, `rangs:`), `Ranks` (le rang Mod par défaut), le README.
+Tests : `PersonNpcTest` (les deux modérateurs, leur nom après « [MOD] » en jaune clair, leurs
+comptes, leur bloc), `LobbySettingsTest` (20 PNJ). Vérifié ici : la syntaxe Java ; le reste
+tourne en CI.
 
 ### Installation du 22/11 au matin (aa724b7)
 

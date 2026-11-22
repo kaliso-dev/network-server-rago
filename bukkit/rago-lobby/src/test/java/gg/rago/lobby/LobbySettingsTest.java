@@ -323,9 +323,9 @@ class LobbySettingsTest {
     @Test
     void readsTheBundledNpcs() throws Exception {
         LobbySettings settings = LobbySettings.load(bundledConfig());
-        assertEquals(18, settings.npcs().size(), "five NPCs of modes, one per way to play (FunMod2 for FUN PRACTICE), and"
+        assertEquals(20, settings.npcs().size(), "five NPCs of modes, one per way to play (FunMod2 for FUN PRACTICE), and"
                 + " the private games; the shop, the stats, the leaderboard selector, the boards and the wall of the week;"
-                + " qRago and kaliso_dev; Rago Client and Rago Optimizer");
+                + " qRago and kaliso_dev; Rago Client and Rago Optimizer; the moderators jncl and nativ");
         LobbyNpc prive = settings.npc("prive");
         assertEquals(Arrays.asList("partie-privee", "top-bridge-prive"), prive.modeIds(), "the private games, on their own NPC");
         assertNull(prive.category());

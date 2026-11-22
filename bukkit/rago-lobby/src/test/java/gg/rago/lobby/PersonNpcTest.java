@@ -41,6 +41,30 @@ class PersonNpcTest {
     }
 
     @Test
+    void theModeratorsOfTheBundledConfig() throws Exception {
+        YamlConfiguration bundled = LobbySettingsTest.bundledConfig();
+        LobbySettings settings = LobbySettings.load(bundled);
+        Ranks ranks = ServerSettings.load(bundled).ranks();
+        LobbySettings.checkRanks(settings.npcs(), ranks);
+        assertEquals("§e[MOD] ", ranks.get("mod").prefix(), "the Mod rank in light yellow (plan 5.6C)");
+        assertEquals("§e[MOD] ", Ranks.defaults().get("mod").prefix(), "also without rangs: in the config");
+
+        LobbyNpc jncl = settings.npc("jncl");
+        assertEquals(LobbyNpc.Kind.PERSON, jncl.kind());
+        assertEquals("jncl", jncl.account(), "the point jncl, in the skin of the account jncl");
+        assertEquals("§e[MOD] §edirectement", LobbyNpcs.personName(jncl.name(), ranks.get(jncl.rank())),
+                "shown as directement, after the prefix of Mod");
+
+        LobbyNpc nativ = settings.npc("nativ");
+        assertEquals(LobbyNpc.Kind.PERSON, nativ.kind());
+        assertEquals("Woryes", nativ.account(), "the point nativ, in the skin of the account Woryes");
+        assertEquals("§e[MOD] §eworyes", LobbyNpcs.personName(nativ.name(), ranks.get(nativ.rank())),
+                "shown as woryes");
+        assertEquals(Pedestal.ANDESITE, settings.pedestal("jncl"), "no block chosen: the block of every NPC");
+        assertEquals(Pedestal.ANDESITE, settings.pedestal("nativ"));
+    }
+
+    @Test
     void aPersonWithoutARankShowsTheirNameAlone() throws Exception {
         YamlConfiguration yaml = LobbySettingsTest.bundledConfig();
         yaml.set("pnj.qrago.rang", null);
