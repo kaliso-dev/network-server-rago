@@ -199,7 +199,7 @@ Snowball Spleef et Red Rover sont codés avec des valeurs de départ à confirme
 | 6.3 | Find Your Sensitivity : faisabilité et protocole | P3 | IMPLÉMENTÉ le 22/11 (ton choix sur la carte : « Find Your Sensitivity » d'abord), selon le protocole de la proposition ; build et tests unitaires passés en CI (0bcfd61), installé sur ton serveur de test ; pas encore joué, ni par les bots ni en jeu (détail plus bas, « Étape 7 : Find Your Sensitivity ») | question 9, valeurs de départ à confirmer : séries d'environ une minute (12 flicks, 4 demi-tours, 20 s de suivi), 3 sensibilités (la tienne, 20 % moins vite, 20 % plus vite), sans historique ; l'icône (œil de l'Ender) |
 | 6.4 | Block Aim Practice (patterns de la communauté) | P3 | Parcours : IMPLÉMENTÉ le 22/11 (ton choix sur la carte : Block Aim ensuite) ; le Bridge Chrono avait déjà les ponts droits, diagonaux et en montée, il a maintenant aussi le pont avec un virage (16, 32 et 64 blocs, un record chacun) ; build et tests unitaires passés en CI (d216c86) ; installé le 22/11 (avec 28a4bee), pas encore joué. Placement sur cible : IMPLÉMENTÉ le 22/11, nouveau mode « Block aim » (`block-aim`) : une face s'allume sous les pieds au bout du pont, sur le côté du pont ou sur le lit, 5 niveaux de plus en plus rapides comme ceux de Ladder Practice, un record par niveau ; build et tests unitaires passés en CI (28a4bee) ; installé sur ton serveur de test le 22/11 avec le pont avec virage, pas encore joué (détail plus bas, « Étape 7 : Block Aim Practice ») | à confirmer : le virage à droite, à mi-chemin, à plat ; pas de virage en montée (la place manque à moins de 64 blocs du centre) ; placement sur cible : la scène générée (question 8 sans réponse), les 15 faces, les temps des 5 niveaux (3 s à 1 s), un bloc posé ailleurs compté sans finir la série |
 | 6.5.1 | Red Rover (Sumo, Block Placement, Block Edit, Top Bridge…) | P2 | Sumo, Block Edit, Block Placement, Top Bridge : TESTÉ par les bots en CI (21/11) ; rien encore en jeu | question 10 (qui reste, points ou élimination : codé « points, le gagnant reste, premier à 3 », à confirmer) ; 90 s par 1v1 à confirmer  |
-| 6.5.2 | Modes 2v1 asymétriques (Clutch Scenario, stuff amélioré) | P3 | Clutch Scenario : IMPLÉMENTÉ le 22/11, build et tests unitaires passés en CI (le partage du joueur seul, la party gardée ensemble) ; pas encore joué, ni par les bots ni en jeu ; en 1v1, 1v2, 1v3 et 1v4 comme Invis Practice et le Bed Break Simulator (ta demande du 22/11, à la place des 2v2, 3v3 et 4v4 ; les victoires de ceux-ci comptent toujours pour le titre Clutch Scenario) ; à partir du 1v2, le joueur seul, tiré au sort, part sans lit avec une vie, les autres gardent le leur (ton choix du 21/11) ; une party reste ensemble, le joueur seul est tiré parmi les autres (ton choix du 22/11). Stuff amélioré : BLOQUÉ | mode du stuff amélioré |
+| 6.5.2 | Modes 2v1 asymétriques (Clutch Scenario, stuff amélioré) | P3 | Clutch Scenario : IMPLÉMENTÉ le 22/11, build et tests unitaires passés en CI (le partage du joueur seul, la party gardée ensemble) ; pas encore joué, ni par les bots ni en jeu ; en 1v1, 1v2, 1v3 et 1v4 comme Invis Practice et le Bed Break Simulator (ta demande du 22/11, à la place des 2v2, 3v3 et 4v4 ; les victoires de ceux-ci comptent toujours pour le titre Clutch Scenario) ; à partir du 1v2, le joueur seul, tiré au sort, part sans lit avec une vie, les autres gardent le leur (ton choix du 21/11) ; une party reste ensemble, le joueur seul est tiré parmi les autres (ton choix du 22/11). Stuff amélioré : IMPLÉMENTÉ le 22/11 (ton choix sur la carte : Bed Fight 1v2), CI verte (3cdfed2 : build, tests unitaires, tests sur serveur) ; pas encore joué | l'écart de stuff (valeurs de départ : jambières et bottes en fer, épée en pierre, sans Protection, dans `stuff-ameliore:` de la config de rago-bedwars) |
 | 6.5.3 | Bot IA : étude technique | P3 | À FAIRE | l'étude d'abord, sans code (question 13) |
 | 6.6 | Catégorie 3 joueurs (Red Rover, Clutch Scenario, Bed Break Scenario, Invis Practice) | P2 | IMPLÉMENTÉ le 22/11, CI verte (tests unitaires ; les bots du lobby ouvrent la boussole à 6 catégories et y prennent Duels au slot 12 ; tests du site) : « 3 Players » dans la boussole seulement, sans PNJ (ton choix du 21/11), après Fun Practice ; elle montre Red Rover (un objet), Bed Break Simulator 1v2, Invis Practice 1v2 et Clutch Scenario 1v2 (`aussi:` de `categories:`), avec les mêmes files : ces modes restent dans leur catégorie, leurs stats aussi ; le retour d'un groupe ouvert depuis elle y ramène ; aussi dans l'accueil, `/play 3 players` et le site (tests du site passés en local) | son nom, son slogan, sa description et son icône (une tête) sont à confirmer ; la boussole passe à 6 catégories, côte à côte des slots 10 à 15 (sur la ligne du haut, slots 1 à 6, depuis 5.9) |
 
@@ -1599,3 +1599,31 @@ lobby est fusionné avec tes réglages, sans conflit : les 12 lignes de Block ai
 description du Bridge Chrono passe de 2 à 3 lignes (« with a turn »), comme dans le jar. Rien
 d'autre n'est touché (ni `server.properties`, ni les mondes) ; l'ancien état est dans
 `sauvegarde-avant-maj-28a4bee`.
+
+### Étape 7 : Stuff amélioré, le Bed Fight 1v2 (22/11)
+
+Ton choix sur la carte : « Bed Fight 1v2 : le joueur seul, tiré au sort, a un meilleur stuff que
+les deux autres ; l'écart de départ est à régler en jeu avec toi. »
+
+- **Le mode** `bed-fight-1v2` (« Bed fight 1v2 »), dans l'objet Bed fight des Duels à côté du 1v1
+  et du 2v2, et dans la catégorie 3 Players. Même map (BedFight), mêmes règles, même kit du lobby
+  (son propre kit dans l'éditeur, comme le 1v1 et le 2v2) ; non classé. Ses victoires comptent pour
+  le titre Bed Fight.
+- **Le joueur seul** : les trois joueurs arrivent en une équipe de 3, partagée par la partie comme
+  le Clutch Scenario. Il est tiré au sort, mais pas parmi les joueurs d'une party : des amis jouent
+  ensemble (comme ton choix du 22/11 pour le Clutch Scenario).
+- **Son meilleur stuff**, à chaque vie : des jambières et des bottes en fer (le casque et le
+  plastron restent en cuir de sa couleur, comme en Bed Wars), une épée en pierre à la place de celle
+  en bois, dans la case où il l'a rangée. Au début, le chat dit à chacun ce stuff.
+- **Réglable sans recompiler**, pour caler l'écart en jeu : `stuff-ameliore:` dans le `config.yml`
+  de rago-bedwars, `armure` (0 cuir, 1 maille, 2 fer, 3 diamant), `epee` (`STONE_SWORD`,
+  `IRON_SWORD`…), `protection` (0 à 4). Une valeur fausse est refusée au démarrage avec son nom.
+- **À confirmer** : les trois valeurs de départ (fer, épée en pierre, sans Protection).
+
+**Testé** : en CI (commit 3cdfed2), le build et les tests unitaires passent : la lecture de
+`stuff-ameliore:` et ses erreurs, l'épée remplacée dans sa case, le texte du stuff, le mode dans
+la config du lobby, la catégorie 3 Players (5 entrées) et le site. Les tests sur serveur (lobby et
+sumo, Java 8 et 21 ; reset des arènes) et le site passent aussi ; seul le job du serveur de test
+Linux en Java 8 échoue, avant tout code, sur l'empreinte de Temurin 8u514 (déjà signalé sur la
+PR). Aucun bot ne joue encore de partie de Bed Fight 1v2, rien en jeu, rien d'installé (ton PC
+est éteint cette nuit).
