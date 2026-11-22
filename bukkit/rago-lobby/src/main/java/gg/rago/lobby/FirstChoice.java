@@ -74,7 +74,7 @@ final class FirstChoice {
                         "from the first game. Train", "while you wait."), "ranked-1v1", null),
                 new FirstChoice("duel", ChatColor.GREEN + "Duel a friend", Material.IRON_SWORD, grey("/duel <player> challenges a",
                         "friend; or a duel with anyone:", "sumo, boxing, bridge..."), null, "duels"),
-                new FirstChoice("arenes", ChatColor.RED + "Fight now", Material.DIAMOND_SWORD, grey("The FFA: no queue, in at once",
+                new FirstChoice("arenes", ChatColor.RED + "Fight now", Material.STONE_SWORD, grey("The FFA: no queue, in at once",
                         "with whoever is there."), "ffa", null));
     }
 

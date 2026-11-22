@@ -2149,6 +2149,20 @@ les deux lignes y sont, et aucune partie classée n'y est notée.
 **À l'install du 22/11** : ton serveur est en `online-mode=true` (sans BungeeCord), donc
 `uuid: ""` reste tel quel. Il suffit d'être qRago et op (ou rang owner).
 
+### Ta liste du 22/11 (18h22)
+
+Ta demande du 22/11 à 18h22, avec ces choix laissés à moi (« fait ce que tu penses etre le
+meilleur »). Je les fais un par un, dans cet ordre : les icônes, les skins des PNJ, la direction
+artistique, le Daily Chest. Ton feu vert de 18h29 pour installer (« des que tu as finis tu peux push
+installer sur mon pc ») : j'installe dès que la CI en cours est passée.
+
+| Point | Ce que j'ai fait | Statut |
+| --- | --- | --- |
+| « assure toi que chaque mod qui se joue dans plusieurs mods (ffa duel practice) ont le meme item/icon dans tout les pnj et menu » | Toutes les icônes des modes viennent de `icone:` dans le `config.yml` du lobby (boussole, menus des PNJ, éditeur de kit, statistiques, titres, Popular now) ; le menu des records du practice a les siennes (`RecordCatalog`). J'ai relevé chaque jeu joué dans plusieurs modes. Déjà le même objet partout : Bed Fight (lit), Top Bridge (échelle), Bridge Fight (laine), Block Placement (grès), Sumo (slime), Boxing (épée en diamant), Block Edit (cisailles), KB displace (bâton), Fireball (boule de feu), avec leurs versions Ranked, Red Rover, FFA et event. Changés : **Ranked Bedwars 2v2, 3v3, 4v4** prennent le lit, comme le 1v1 et le groupe (avant : épée, plastron, bloc de diamant) ; **Lobby Fight FFA** prend la perle, comme le Lobby Fight 1v1 (avant : la boule de feu, déjà celle des modes Fireball) ; **Bow duel** prend l'arc, comme Bow training et Aim trainer (avant : la flèche) ; dans le menu des records, **Bow training** prend l'arc et **Block extend** la laine, comme dans les menus du lobby ; dans le menu de la première venue, « Fight now » prend l'épée en pierre du FFA qu'il ouvre (avant : l'épée en diamant). Gardés différents, car ce sont des jeux différents dans un même groupe : Sky Rise et Sky Rise Resources, First rush et First rush full map, Block clutch et sa version top fight, Top BedFight. Test `LobbySettingsTest.oneGameKeepsOneItemInAllItsModes` (12 jeux), `GettingStartedTest` ; le bot du lobby lit l'épée en pierre dans le menu de la première venue ; le site reprend les icônes (`game.json`). Remarque, non changé : dans la boussole, Arenas et Ranked ont tous deux l'épée en diamant | IMPLÉMENTÉ, CI à venir |
+| « La revue des skins des PNJ : a toi de selectionner de meilleur skin et d'enlever les items des mains des joueurs » | — | À FAIRE, après les icônes |
+| « La direction artistique (moins de rouge) : Prend la meillleur palette qui reste dans la DA mais sans en abuser » | — | À FAIRE, après les skins |
+| « Le Daily Chest : l'animation à suspense et les probabilités […] je veux quelque chose d'impressionnant » | — | À FAIRE, après la direction artistique |
+
 ### La salle des remerciements (22/11, 17h56)
 
 Ta demande du 22/11 à 17h56. J'ai lu la salle dans ton monde lobby (`mondes/lobby`, fichiers de

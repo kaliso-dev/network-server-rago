@@ -93,12 +93,12 @@ final class RecordCatalog {
         all.add(entry("block-in", "Block in practice", Material.ENDER_STONE, BlockInTraining.DEFENSES));
         all.add(entry("fast-defense", "Fast defense", Material.OBSIDIAN, FastDefenseTraining.DEFENSES));
         all.add(entry("extend-practice", "Extend practice", Material.QUARTZ_BLOCK, ExtendTraining.variants()));
-        all.add(entry("block-extend", "Block extend", Material.SANDSTONE, BlockExtendTraining.variants()));
+        all.add(entry("block-extend", "Block extend", Material.WOOL, BlockExtendTraining.variants()));
         all.add(entry("ladder-practice", "Ladder practice", Material.LADDER, LadderTraining.variants()));
         all.add(entry("pearl-practice", "Pearl practice", Material.ENDER_PEARL, PearlTraining.variants()));
         all.add(entry("fireball-practice", "Fireball practice", Material.FIREBALL, FireballTraining.variants()));
         all.add(entry("aim-trainer", "Aim trainer", Material.BOW, AimTrainer.TARGETS));
-        all.add(entry("bow-training", "Bow training", Material.ARROW, BowTraining.BOTS));
+        all.add(entry("bow-training", "Bow training", Material.BOW, BowTraining.BOTS));
         all.add(entry("combo-bot", "Combo bot", Material.SKULL_ITEM, ComboBot.variants()));
         all.add(entry("kb-displace-bot", "KB displace against a bot", Material.STICK, KbDisplaceBot.STILL));
         String edit = "Block edit";

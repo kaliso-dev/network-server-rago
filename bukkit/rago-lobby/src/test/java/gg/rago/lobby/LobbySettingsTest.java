@@ -138,6 +138,36 @@ class LobbySettingsTest {
     }
 
     @Test
+    void oneGameKeepsOneItemInAllItsModes() throws Exception {
+        // the owner's ask of 22/11: a game played in several modes (FFA, duel, practice, ranked,
+        // Red Rover) shows the same item everywhere, so that players find it again
+        LobbySettings settings = LobbySettings.load(bundledConfig());
+        String[][] games = {
+            {"ranked-1v1", "ranked-2v2", "ranked-3v3", "ranked-4v4"},
+            {"bed-fight-1v1", "bed-fight-2v2", "bed-fight-1v2", "ranked-bed-fight-1v1"},
+            {"top-bridge-1v1", "top-bridge-2v2", "top-bridge-ffa", "ranked-top-bridge-1v1", "red-rover-top-bridge", "top-bridge-prive"},
+            {"bridge-fight", "bridge-fight-1v1", "bridge-fight-2v2", "ranked-bridge-fight-1v1"},
+            {"block-fight-1v1", "block-fight-2v2", "block-fight-arena", "ranked-block-fight-1v1", "red-rover-block-placement"},
+            {"lobby-fight-ffa", "lobby-fight-1v1"},
+            {"sumo", "ranked-sumo", "red-rover-sumo", "event-sumo"},
+            {"boxing", "ranked-boxing"},
+            {"block-edit", "block-edit-duel", "red-rover-block-edit"},
+            {"kb-displace", "kb-displace-bot"},
+            {"fireball", "fireball-knockback", "fireball-practice"},
+            {"bow-duel", "bow-training", "aim-trainer"},
+        };
+        for (String[] game : games) {
+            Material first = settings.display(game[0]).icon();
+            for (String id : game) {
+                assertEquals(first, settings.display(id).icon(), id + ": the item of " + game[0]);
+            }
+        }
+        assertEquals(Material.BED, settings.group("ranked").icon(), "the group of Ranked Bedwars too");
+        assertEquals(Material.ENDER_PEARL, settings.display("lobby-fight-ffa").icon(), "Lobby Fight: the pearl of its kit");
+        assertEquals(Material.BOW, settings.display("bow-duel").icon());
+    }
+
+    @Test
     void groupsTheBundledModesByCategory() throws Exception {
         LobbySettings settings = LobbySettings.load(bundledConfig());
         assertEquals(8, settings.categories().size());

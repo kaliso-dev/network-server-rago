@@ -201,7 +201,7 @@ premiere-venue:
       - "sumo, boxing, bridge..."
   arenes:
     nom: "&cFight now"
-    icone: DIAMOND_SWORD
+    icone: STONE_SWORD
     mode: ffa
     description:
       - "The FFA: no queue, in at once"
@@ -1224,7 +1224,9 @@ outils-owner:
 # accents, digits and dashes. A mode stays "Coming soon" in the selector until a game plugin
 # hosts it.
 #   nom                the name shown (colour codes with &)
-#   icone              the item shown in the selector (a Minecraft 1.8 item name)
+#   icone              the item shown in the selector (a Minecraft 1.8 item name). One game keeps
+#                      one item in all its modes (FFA, duel, practice, ranked, Red Rover), in the
+#                      menus and the NPCs, so that players find it again (the owner's ask of 22/11)
 #   equipes            the number of teams in a game
 #   joueurs-par-equipe the number of players in each team
 #   categorie          the category of the mode (one of categories: above)
@@ -1267,7 +1269,7 @@ modes:
     nom: "&6Ranked Bedwars 2v2"
     categorie: classe
     groupe: ranked
-    icone: DIAMOND_SWORD
+    icone: BED
     equipes: 2
     joueurs-par-equipe: 2
     classe: true
@@ -1278,7 +1280,7 @@ modes:
     nom: "&6Ranked Bedwars 3v3"
     categorie: classe
     groupe: ranked
-    icone: DIAMOND_CHESTPLATE
+    icone: BED
     equipes: 2
     joueurs-par-equipe: 3
     classe: true
@@ -1289,7 +1291,7 @@ modes:
     nom: "&6Ranked Bedwars 4v4"
     categorie: classe
     groupe: ranked
-    icone: DIAMOND_BLOCK
+    icone: BED
     equipes: 2
     joueurs-par-equipe: 4
     classe: true
@@ -1592,7 +1594,7 @@ modes:
   lobby-fight-ffa:
     nom: "&cLobby Fight FFA"
     categorie: arenes
-    icone: FIREBALL
+    icone: ENDER_PEARL
     equipes: 1
     joueurs-par-equipe: 1
     classe: false
@@ -2421,7 +2423,7 @@ modes:
   bow-duel:
     nom: "&aBow duel"
     categorie: duels
-    icone: ARROW
+    icone: BOW
     equipes: 2
     joueurs-par-equipe: 1
     classe: false
