@@ -154,7 +154,7 @@ final class ModeMenu {
     /** The compass: the categories with the modes of the first one if there are any, else every mode. */
     void open(Player player) {
         if (settings.categories().isEmpty()) {
-            show(player, null, 2 + rowsFor(settings.modes().size()), TITLE);
+            show(player, (String) null, 2 + rowsFor(settings.modes().size()), TITLE);
         } else {
             openCategory(player, settings.categories().get(0).id());
         }
