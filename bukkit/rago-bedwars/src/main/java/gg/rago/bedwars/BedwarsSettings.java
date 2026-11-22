@@ -196,6 +196,24 @@ final class BedwarsSettings {
         }
     }
 
+    /**
+     * Fast Bedwars (fast-bedwars: in config.yml): when its events come, in seconds of game (as the
+     * six of evenements:), the ids of the items its shop sells, and whether it has the team
+     * upgrades (their NPC; the diamonds of the map, which buy only them). Starting values, to set
+     * in game with the owner.
+     */
+    static final class Fast {
+        final int[] events;
+        final List<String> shop;
+        final boolean upgrades;
+
+        Fast(int[] events, List<String> shop, boolean upgrades) {
+            this.events = events.clone();
+            this.shop = Collections.unmodifiableList(new ArrayList<>(shop));
+            this.upgrades = upgrades;
+        }
+    }
+
     static final class Fireball {
         final double speed;
         final double radius;
@@ -311,7 +329,13 @@ final class BedwarsSettings {
          * Capture the Flag, castle against castle (plan 6.2): a big map, a castle for each team and a
          * middle, the forges, shops and upgrades of Bed Wars; a flag in each keep, no bed.
          */
-        CTF_CASTLE("ctf-chateau");
+        CTF_CASTLE("ctf-chateau"),
+        /**
+         * Fast Bedwars (plan 6.1): a game of Bed Wars made fast and simple, on the maps of Bed Wars:
+         * its own forges (forge.modes), its events earlier, a smaller shop and no team upgrades by
+         * default (fast-bedwars: in config.yml).
+         */
+        FAST_BEDWARS("fast-bedwars");
 
         /** True if this kind is played in the waiting lobby of its maps, which they must have. */
         boolean inWaitingLobby() {
@@ -387,13 +411,15 @@ final class BedwarsSettings {
     private final Stuff strongStuff;
     /** Capture the Flag (ctf:). */
     private final Ctf ctf;
+    /** Fast Bedwars (fast-bedwars:). */
+    private final Fast fast;
 
     private BedwarsSettings(Map<String, List<String>> modes, Map<String, Kind> kinds, int maxGames, boolean demo,
             int respawnSeconds, Forge forge, double forgeShare, List<Rate> diamond, List<Rate> emerald, int[] events,
             Fireball fireball,
             List<String> neighbourModes, List<String> topBridgeModes, List<String> allForgeModes, List<String> allShopModes,
             List<RoundKit> attackKits, List<RoundKit> defenseKits, int attackDefenseProtection, List<RoundKit> bedBreakKits,
-            int bedBreakProtection, Stuff strongStuff, Ctf ctf) {
+            int bedBreakProtection, Stuff strongStuff, Ctf ctf, Fast fast) {
         this.modes = Collections.unmodifiableMap(modes);
         this.kinds = Collections.unmodifiableMap(kinds);
         this.maxGames = maxGames;
@@ -421,6 +447,7 @@ final class BedwarsSettings {
         this.bedBreakProtection = bedBreakProtection;
         this.strongStuff = strongStuff;
         this.ctf = ctf;
+        this.fast = fast;
     }
 
     /** The word for every map, in the maps of a mode. */
@@ -441,19 +468,7 @@ final class BedwarsSettings {
         double forgeShare = number(config, "forge.partage-rayon", 2.5, 0, 8);
         List<Rate> diamond = tiers(config, "generateurs.diamant", new double[] {30, 23, 12}, 4);
         List<Rate> emerald = tiers(config, "generateurs.emeraude", new double[] {65, 50, 35}, 2);
-        String[] keys = {"diamant-2", "emeraude-2", "diamant-3", "emeraude-3", "fin-des-lits", "fin-de-partie"};
-        double[] defaults = {6, 12, 18, 24, 30, 45};
-        int[] events = new int[keys.length];
-        int previous = 0;
-        for (int i = 0; i < keys.length; i++) {
-            String path = "evenements." + keys[i];
-            double minutes = config.getDouble(path, defaults[i]);
-            events[i] = (int) Math.round(minutes * 60);
-            if (events[i] <= previous || minutes > 180) {
-                throw new IllegalArgumentException(path + ": in minutes of game, after the event above and 180 at most");
-            }
-            previous = events[i];
-        }
+        int[] events = events(config, "evenements.", new double[] {6, 12, 18, 24, 30, 45});
         Fireball fireball = new Fireball(number(config, "boule-de-feu.vitesse", 1.0, 0.1, 5),
                 number(config, "boule-de-feu.rayon", 3, 1, 8),
                 number(config, "boule-de-feu.recul-horizontal", 1.0, 0, 5),
@@ -498,7 +513,63 @@ final class BedwarsSettings {
         }
         return new BedwarsSettings(modes, kinds(config), maxGames, config.getBoolean("carte-demo", true), respawn, forge,
                 forgeShare, diamond, emerald, events, fireball, neighbours, topBridge, allForges, allShops, attackKits,
-                defenseKits, attackDefenseProtection, bedBreakKits, bedBreakProtection, strongStuff(config), ctf(config));
+                defenseKits, attackDefenseProtection, bedBreakKits, bedBreakProtection, strongStuff(config), ctf(config),
+                fast(config));
+    }
+
+    /** The keys of the six timed events of a game, in their order. */
+    private static final String[] EVENT_KEYS = {"diamant-2", "emeraude-2", "diamant-3", "emeraude-3", "fin-des-lits",
+        "fin-de-partie"};
+
+    /** The six timed events under this path (evenements.), in seconds, each after the one above. */
+    private static int[] events(ConfigurationSection config, String prefix, double[] defaults) {
+        int[] events = new int[EVENT_KEYS.length];
+        int previous = 0;
+        for (int i = 0; i < EVENT_KEYS.length; i++) {
+            String path = prefix + EVENT_KEYS[i];
+            double minutes = config.getDouble(path, defaults[i]);
+            events[i] = (int) Math.round(minutes * 60);
+            if (events[i] <= previous || minutes > 180) {
+                throw new IllegalArgumentException(path + ": in minutes of game, after the event above and 180 at most");
+            }
+            previous = events[i];
+        }
+        return events;
+    }
+
+    /**
+     * fast-bedwars: Fast Bedwars; by default its events twice as early as those of a game (3, 6,
+     * 9, 12, 15 and 22.5 minutes), the shop of the items of the default quick buy, no upgrades.
+     */
+    private static Fast fast(ConfigurationSection config) {
+        int[] events = events(config, "fast-bedwars.evenements.", new double[] {3, 6, 9, 12, 15, 22.5});
+        List<String> shop = new ArrayList<>();
+        if (config.contains("fast-bedwars.shop")) {
+            if (!config.isList("fast-bedwars.shop")) {
+                throw new IllegalArgumentException("fast-bedwars.shop: a list of the items of the shop, such as [wool, stone_sword]");
+            }
+            ShopCatalog catalog = ShopCatalog.standard();
+            for (String id : config.getStringList("fast-bedwars.shop")) {
+                String key = id.trim().toLowerCase(java.util.Locale.ROOT);
+                if (catalog.byId(key) == null) {
+                    throw new IllegalArgumentException("fast-bedwars.shop: \"" + id + "\" is not an item of the shop (its ids:"
+                            + " wool, stone_sword, chainmail, pickaxe, bow, speed, tnt...)");
+                }
+                if (!shop.contains(key)) {
+                    shop.add(key);
+                }
+            }
+            if (shop.isEmpty()) {
+                throw new IllegalArgumentException("fast-bedwars.shop: at least one item");
+            }
+        } else {
+            for (String id : ShopCatalog.DEFAULT_QUICK_BUY) {
+                if (id != null) {
+                    shop.add(id);
+                }
+            }
+        }
+        return new Fast(events, shop, config.getBoolean("fast-bedwars.ameliorations", false));
     }
 
     /** ctf: Capture the Flag (3 captures, 15 minutes on The Bridge, 20 in the castles, 30 seconds by default). */
@@ -865,5 +936,9 @@ final class BedwarsSettings {
 
     Ctf ctf() {
         return ctf;
+    }
+
+    Fast fast() {
+        return fast;
     }
 }

@@ -136,9 +136,9 @@
           "colour": "#FF55FF"
         }
       ],
-      "description": "Fireball Fight: knock them off with fireballs and wind gusts; Snowball Spleef: break the snow under their feet; Capture the Flag on The Bridge or castle against castle.",
+      "description": "Fireball Fight: knock them off with fireballs and wind gusts; Snowball Spleef: break the snow under their feet; Capture the Flag on The Bridge or castle against castle; Fast Bedwars.",
       "skin": null,
-      "modes": 6,
+      "modes": 8,
       "also": []
     },
     {
@@ -324,6 +324,15 @@
       "modes": [
         "ctf-castle-2v2",
         "ctf-castle-4v4"
+      ]
+    },
+    {
+      "id": "fast-bedwars",
+      "name": "Fast Bedwars",
+      "description": "Bed Wars, fast and simple: faster forges, earlier events, a smaller shop. 1v1 or 2v2.",
+      "modes": [
+        "fast-bedwars-1v1",
+        "fast-bedwars-2v2"
       ]
     },
     {
@@ -1293,6 +1302,38 @@
       "startHere": false,
       "event": false,
       "description": "CTF Castle, four against four: defend your keep, raid theirs.",
+      "plugins": [
+        "bedwars"
+      ]
+    },
+    {
+      "id": "fast-bedwars-1v1",
+      "name": "Fast Bedwars 1v1",
+      "colour": "#FF55FF",
+      "icon": "BED",
+      "category": "fun",
+      "group": "fast-bedwars",
+      "format": "1v1",
+      "ranked": false,
+      "startHere": false,
+      "event": false,
+      "description": "Bed Wars made fast: faster forges, earlier events, the beds gone at 15 minutes, a smaller shop, no upgrades.",
+      "plugins": [
+        "bedwars"
+      ]
+    },
+    {
+      "id": "fast-bedwars-2v2",
+      "name": "Fast Bedwars 2v2",
+      "colour": "#FF55FF",
+      "icon": "BED",
+      "category": "fun",
+      "group": "fast-bedwars",
+      "format": "2v2",
+      "ranked": false,
+      "startHere": false,
+      "event": false,
+      "description": "Fast Bedwars, two against two: rush fast, defend fast.",
       "plugins": [
         "bedwars"
       ]

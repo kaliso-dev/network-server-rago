@@ -64,11 +64,11 @@ class LobbySettingsTest {
         assertEquals("lobby", settings.world());
         assertEquals(0, settings.voidHeight());
         assertEquals(0, settings.defaultRating(), "a ranked ELO starts at 0, in Coal");
-        assertEquals(84, settings.modes().size(), "the invis practice and the Bed Break Simulator in 1v1 to 1v4 (and"
+        assertEquals(86, settings.modes().size(), "the invis practice and the Bed Break Simulator in 1v1 to 1v4 (and"
                 + " their kits), with the private top bridge, the clutch scenario, the bed fight (1v1, 2v2, 1v2), Top"
                 + " BedFight, the bridge fight 2v2, the full map first rush, Sky Rise Resources, the timed bridge, Lobby"
                 + " Fight (1v1, FFA), the Bed Break Simulator, the four modes of FUN PRACTICE (CTF The Bridge 1v1 and"
-                + " 2v2, CTF Castle 2v2 and 4v4 with them), Red Rover (sumo, block edit, block placement, top bridge), Find Your Sensitivity and"
+                + " 2v2, CTF Castle 2v2 and 4v4 with them, Fast Bedwars 1v1 and 2v2), Red Rover (sumo, block edit, block placement, top bridge), Find Your Sensitivity and"
                 + " Block aim, without the top fight or the ranked scenarios");
         assertEquals("entrainement", settings.display("find-your-sensitivity").category(), "a training of the aim");
         assertEquals("entrainement", settings.display("block-aim").category(), "a training of the placement");
@@ -105,6 +105,14 @@ class LobbySettingsTest {
         }
         assertEquals(2, settings.catalog().get("ctf-castle-2v2").playersPerTeam());
         assertEquals(4, settings.catalog().get("ctf-castle-4v4").playersPerTeam());
+        for (String id : Arrays.asList("fast-bedwars-1v1", "fast-bedwars-2v2")) {
+            assertEquals("fun", settings.display(id).category(), id + ": Fast Bedwars in FUN PRACTICE (plan 6.1)");
+            assertEquals("fast-bedwars", settings.display(id).group(), id + ": its two sizes in one item");
+            assertFalse(settings.catalog().get(id).ranked(), id);
+            assertEquals(2, settings.catalog().get(id).teams(), id);
+        }
+        assertEquals(1, settings.catalog().get("fast-bedwars-1v1").playersPerTeam());
+        assertEquals(2, settings.catalog().get("fast-bedwars-2v2").playersPerTeam());
         assertEquals("skyrise", settings.display("skyrise-resources-1v1").group(), "beside Sky Rise");
         assertFalse(settings.catalog().get("top-bridge-1v1").ranked(), "Top Bridge: no ELO");
         assertEquals("2v2", settings.catalog().get("top-bridge-2v2").format());

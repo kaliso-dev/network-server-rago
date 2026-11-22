@@ -637,7 +637,7 @@ class BedwarsGame {
             }
         }
         npcsUp(islands);
-        for (MapPoint point : midGenerators() ? map.diamonds() : Collections.<MapPoint>emptyList()) {
+        for (MapPoint point : midGenerators() && diamondGenerators() ? map.diamonds() : Collections.<MapPoint>emptyList()) {
             Generator generator = new Generator(point.in(world), Material.DIAMOND, settings.diamond().get(0), "Diamond");
             diamonds.add(generator);
         }
@@ -778,6 +778,21 @@ class BedwarsGame {
     /** True if the map's diamond and emerald generators go, with the economy; false: the island forges only. */
     boolean midGenerators() {
         return true;
+    }
+
+    /** True if the map's diamond generators go with its emerald ones (see {@link #midGenerators}). */
+    boolean diamondGenerators() {
+        return true;
+    }
+
+    /**
+     * When the timed events come, in seconds of game: tier II and III of the diamonds and the
+     * emeralds, the end of the beds, the end (those of evenements: in config.yml); -1 for one that
+     * does not come.
+     */
+    int[] times() {
+        return new int[] {settings.diamondII(), settings.emeraldII(), settings.diamondIII(), settings.emeraldIII(),
+            settings.bedsGone(), settings.gameEnd()};
     }
 
     /** Before the players are placed: what the game builds or changes on the map. */
@@ -1069,15 +1084,16 @@ class BedwarsGame {
 
     /** The timed events of a game: the generators going up a tier, the end of the beds, the end. */
     void events() {
-        if (seconds == settings.diamondII()) {
+        int[] times = times();
+        if (seconds == times[0]) {
             upgrade(diamonds, 2, settings.diamond().get(1), "Diamond");
-        } else if (seconds == settings.emeraldII()) {
+        } else if (seconds == times[1]) {
             upgrade(emeralds, 2, settings.emerald().get(1), "Emerald");
-        } else if (seconds == settings.diamondIII()) {
+        } else if (seconds == times[2]) {
             upgrade(diamonds, 3, settings.diamond().get(2), "Diamond");
-        } else if (seconds == settings.emeraldIII()) {
+        } else if (seconds == times[3]) {
             upgrade(emeralds, 3, settings.emerald().get(2), "Emerald");
-        } else if (seconds == settings.bedsGone()) {
+        } else if (seconds == times[4]) {
             for (Team team : teams) {
                 if (team.bed) {
                     destroyBed(team);
@@ -1085,7 +1101,7 @@ class BedwarsGame {
             }
             broadcast(ChatColor.RED + "" + ChatColor.BOLD + "All beds have been destroyed!", Sound.ENDERDRAGON_GROWL);
             title(ChatColor.RED + "" + ChatColor.BOLD + "BEDS DESTROYED", ChatColor.WHITE + "Nobody respawns any more!");
-        } else if (seconds >= settings.gameEnd()) {
+        } else if (seconds >= times[5]) {
             broadcast(ChatColor.YELLOW + "Time is up: the game ends in a draw.", Sound.NOTE_BASS);
             end(null);
         }
@@ -1103,8 +1119,7 @@ class BedwarsGame {
 
     /** The next timed event and when: "Diamond II", 180 seconds. */
     private String nextEvent() {
-        int[] times = {settings.diamondII(), settings.emeraldII(), settings.diamondIII(), settings.emeraldIII(),
-            settings.bedsGone(), settings.gameEnd()};
+        int[] times = times();
         String[] names = {"Diamond II", "Emerald II", "Diamond III", "Emerald III", "Bed Gone", "Game End"};
         for (int i = 0; i < times.length; i++) {
             if (times[i] > seconds) {

@@ -18,7 +18,9 @@
 # bots play CTF The Bridge 1v1 (tools/kb-control/bots/ctf-bots.mjs) on the map the plugin makes:
 # the kit, the bridge that breaks, the golden apple, the arrow that comes back, a flag taken and
 # back to its base from the void, three captures and the win; and four bots CTF Castle 2v2, on the
-# other map the plugin makes: the start of Bed Wars in the castles, then one team leaves.
+# other map the plugin makes: the start of Bed Wars in the castles, then one team leaves. Last, two
+# bots play Fast Bedwars 1v1 (tools/kb-control/bots/fast-bots.mjs) on the demo map: its welcome, its
+# events (no Diamond II), no diamond generator nor upgrades NPC, its fast forge, its smaller shop.
 # Fails if the bots fail, or if the server log has an error or an exception.
 #
 # Run from anywhere, after the build:
@@ -213,7 +215,7 @@ for expected in '[RagoLobby] Lobby in the world lobby' '[RagoPractice] Arenas in
     'Mode red-rover-block-edit hosted by RagoPractice' 'Mode red-rover-block-placement hosted by RagoPractice' \
     'Mode red-rover-top-bridge hosted by RagoBedwars' 'Mode ctf-bridge-1v1 hosted by RagoBedwars' \
     'Mode ctf-castle-2v2 hosted by RagoBedwars' '[RagoBedwars] Capture the Flag map CtfBridge created' \
-    '[RagoBedwars] Capture the Flag map CtfCastle created'; do
+    '[RagoBedwars] Capture the Flag map CtfCastle created' 'Mode fast-bedwars-1v1 hosted by RagoBedwars'; do
   server_log_has "$expected" || { grep -n 'Rago' "$SERVER_LOG" >&2 || true; fail "missing in the server log: $expected"; }
 done
 log "server started with the lobby and the practice modes"
@@ -240,6 +242,9 @@ KB_HOST=127.0.0.1 KB_PORT=$PORT node "$ROOT/tools/kb-control/bots/rover-bots.mjs
 # then four, CTF Castle 2v2 (on CtfCastle).
 ctf_status=0
 KB_HOST=127.0.0.1 KB_PORT=$PORT node "$ROOT/tools/kb-control/bots/ctf-bots.mjs" || ctf_status=$?
+# The same server for Fast Bedwars: two bots, Fast Bedwars 1v1 (RagoBedwars, on its demo map).
+fast_status=0
+KB_HOST=127.0.0.1 KB_PORT=$PORT node "$ROOT/tools/kb-control/bots/fast-bots.mjs" || fast_status=$?
 stop_server
 
 # Any error or exception logged by the server fails the test, even if the bots passed. One is
@@ -257,4 +262,5 @@ fi
 [[ $fun_status -eq 0 ]] || { tail -n 60 "$SERVER_LOG" >&2; fail "the FUN PRACTICE bots stopped with status $fun_status"; }
 [[ $rover_status -eq 0 ]] || { tail -n 60 "$SERVER_LOG" >&2; fail "the Red Rover bots stopped with status $rover_status"; }
 [[ $ctf_status -eq 0 ]] || { tail -n 60 "$SERVER_LOG" >&2; fail "the Capture the Flag bots stopped with status $ctf_status"; }
+[[ $fast_status -eq 0 ]] || { tail -n 60 "$SERVER_LOG" >&2; fail "the Fast Bedwars bots stopped with status $fast_status"; }
 log "PASSED"

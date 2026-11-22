@@ -293,6 +293,8 @@ final class BedwarsHost implements MatchHost, Listener {
                 return new CaptureTheFlagGame(plugin, this, instance, mode.id(), name, sides, true);
             case CTF_CASTLE:
                 return new CaptureTheFlagGame(plugin, this, instance, mode.id(), name, sides, false);
+            case FAST_BEDWARS:
+                return new FastBedwarsGame(plugin, this, instance, mode.id(), name, sides);
             default:
                 return new BedwarsGame(plugin, this, instance, mode.id(), name, sides);
         }

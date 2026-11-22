@@ -5,6 +5,7 @@ import gg.rago.bedwars.ShopItem.Currency;
 import gg.rago.bedwars.ShopItem.Kind;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
 import java.util.Locale;
@@ -27,11 +28,21 @@ final class ShopCatalog {
     private final List<ShopItem> items;
     private final List<ShopItem> pickaxes;
     private final List<ShopItem> axes;
+    /**
+     * The shop the Hypixel ids of a quick buy are read in: this one, or the whole shop a reduced
+     * one comes from (see {@link #only}).
+     */
+    private final ShopCatalog whole;
 
     private ShopCatalog(List<ShopItem> items, List<ShopItem> pickaxes, List<ShopItem> axes) {
+        this(items, pickaxes, axes, null);
+    }
+
+    private ShopCatalog(List<ShopItem> items, List<ShopItem> pickaxes, List<ShopItem> axes, ShopCatalog whole) {
         this.items = Collections.unmodifiableList(items);
         this.pickaxes = Collections.unmodifiableList(pickaxes);
         this.axes = Collections.unmodifiableList(axes);
+        this.whole = whole == null ? this : whole;
     }
 
     static ShopCatalog standard() {
@@ -181,6 +192,26 @@ final class ShopCatalog {
         return new ShopCatalog(items, standard.pickaxes, standard.axes);
     }
 
+    /**
+     * This shop reduced to the items of these ids (Fast Bedwars: fast-bedwars.shop in config.yml),
+     * in the order of the shop; the pickaxe and the axe tier after tier, as here, if listed. A
+     * player's quick buy is read in this whole shop, then keeps only what the reduced one sells.
+     */
+    ShopCatalog only(Collection<String> ids) {
+        List<ShopItem> kept = new ArrayList<>();
+        for (ShopItem item : items) {
+            if (ids.contains(item.id())) {
+                kept.add(item);
+            }
+        }
+        return new ShopCatalog(kept, pickaxes, axes, this);
+    }
+
+    /** True if this shop is reduced from a whole one (see {@link #only}). */
+    boolean reduced() {
+        return whole != this;
+    }
+
     /** A pickaxe or axe tier: tier is its place in the list (0 wooden), level its Efficiency. */
     private static ShopItem tool(String id, String name, Kind kind, Material material, int price, Currency currency,
             int efficiency, int tier) {
@@ -244,14 +275,16 @@ final class ShopCatalog {
 
     /**
      * The 21 slots of a player's quick buy: from the Hypixel ids they imported, else the default
-     * one. Null for an empty slot or an id the shop does not know.
+     * one. Null for an empty slot or an id the shop does not know; in a reduced shop, for an item
+     * it does not sell too (a Bow (Power I) of Hypixel is not the plain bow of a reduced shop).
      */
     List<ShopItem> quickBuy(List<String> hypixel) {
         List<String> ids = hypixel == null ? DEFAULT_QUICK_BUY : hypixel;
         List<ShopItem> slots = new ArrayList<>();
         for (int i = 0; i < 21; i++) {
             String id = i < ids.size() ? ids.get(i) : null;
-            slots.add(hypixel == null ? (id == null ? null : byId(id)) : forHypixel(id));
+            ShopItem item = hypixel == null ? (id == null ? null : whole.byId(id)) : whole.forHypixel(id);
+            slots.add(item != null && items.contains(item) ? item : null);
         }
         return slots;
     }

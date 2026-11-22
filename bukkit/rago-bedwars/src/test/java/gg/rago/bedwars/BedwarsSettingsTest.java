@@ -84,7 +84,7 @@ class BedwarsSettingsTest {
                 "clutch-scenario-1v3", "clutch-scenario-1v4", "bed-fight-1v1", "bed-fight-2v2", "bed-fight-1v2", "top-bed-fight-1v1",
                 "lobby-fight-1v1", "lobby-fight-ffa", "bed-break-simulator-1v1", "bed-break-simulator-1v2",
                 "bed-break-simulator-1v3", "bed-break-simulator-1v4", "red-rover-top-bridge", "ctf-bridge-1v1",
-                "ctf-bridge-2v2", "ctf-castle-2v2", "ctf-castle-4v4"),
+                "ctf-bridge-2v2", "ctf-castle-2v2", "ctf-castle-4v4", "fast-bedwars-1v1", "fast-bedwars-2v2"),
                 settings.modes());
         for (String size : Arrays.asList("ctf-bridge-1v1", "ctf-bridge-2v2")) {
             assertEquals(BedwarsSettings.Kind.CTF_BRIDGE, settings.kind(size), size);
@@ -251,6 +251,22 @@ class BedwarsSettingsTest {
         assertEquals(6 * 60, settings.diamondII());
         assertEquals(30 * 60, settings.bedsGone());
         assertEquals(45 * 60, settings.gameEnd());
+        // Fast Bedwars (plan 6.1): on the maps of the ranked modes, twice the forge of a Hypixel map of
+        // four teams or fewer (240 iron and 24 gold a minute), the events twice as early
+        for (String size : Arrays.asList("fast-bedwars-1v1", "fast-bedwars-2v2")) {
+            assertEquals(BedwarsSettings.Kind.FAST_BEDWARS, settings.kind(size), size);
+            assertEquals(settings.mapsOf("ranked-1v1"), settings.mapsOf(size), size + ": the 20 maps of the RBW queue");
+            assertFalse(settings.topBridge(size), size);
+            assertEquals(1200 / 240, forge.forMode(size).iron("Archway", 1, 4).ticks, size);
+            assertEquals(1200 / 24, forge.forMode(size).gold(4).ticks, size);
+        }
+        assertEquals(1200 / 120, forge.iron("Archway", 1, 4).ticks, "a Hypixel map of four teams: 120 iron a minute");
+        assertEquals(1200 / 12, forge.gold(4).ticks, "and 12 gold");
+        BedwarsSettings.Fast fast = settings.fast();
+        assertArrayEquals(new int[] {3 * 60, 6 * 60, 9 * 60, 12 * 60, 15 * 60, 22 * 60 + 30}, fast.events);
+        assertEquals(20, fast.shop.size(), "the 20 items of the default quick buy");
+        assertTrue(fast.shop.containsAll(ShopCatalog.DEFAULT_QUICK_BUY.subList(0, 20)), fast.shop.toString());
+        assertFalse(fast.upgrades, "no team upgrades, to start");
         BedwarsSettings.Fireball fireball = settings.fireball();
         assertEquals(1.0, fireball.speed);
         assertEquals(2.0, fireball.self);
@@ -316,6 +332,27 @@ class BedwarsSettingsTest {
         assertEquals(15, settings.ctf().bridgeMinutes);
         assertEquals(20, settings.ctf().castleMinutes);
         assertEquals(30, settings.ctf().returnSeconds);
+        BedwarsSettings.Fast fast = settings.fast();
+        assertArrayEquals(new int[] {180, 360, 540, 720, 900, 1350}, fast.events, "without fast-bedwars: as the bundled config");
+        assertEquals(new java.util.ArrayList<>(ShopCatalog.DEFAULT_QUICK_BUY.subList(0, 20)), fast.shop,
+                "the items of the default quick buy, in its order");
+        assertFalse(fast.upgrades);
+    }
+
+    @Test
+    void fastBedwarsIsSetInTheConfig() throws Exception {
+        YamlConfiguration config = new YamlConfiguration();
+        config.loadFromString("fast-bedwars:\n  evenements:\n    diamant-2: 2\n    emeraude-2: 4\n    diamant-3: 6\n"
+                + "    emeraude-3: 8\n    fin-des-lits: 10\n    fin-de-partie: 15\n  shop: [WOOL, tnt, wool, \" pickaxe\"]\n"
+                + "  ameliorations: true");
+        BedwarsSettings.Fast fast = BedwarsSettings.read(config).fast();
+        assertArrayEquals(new int[] {120, 240, 360, 480, 600, 900}, fast.events);
+        assertEquals(Arrays.asList("wool", "tnt", "pickaxe"), fast.shop, "the case does not matter, each item once");
+        assertTrue(fast.upgrades);
+        YamlConfiguration some = new YamlConfiguration();
+        some.loadFromString("fast-bedwars:\n  evenements:\n    fin-de-partie: 30");
+        assertArrayEquals(new int[] {180, 360, 540, 720, 900, 1800}, BedwarsSettings.read(some).fast().events,
+                "the events not given: those of Fast Bedwars by default");
     }
 
     @Test
@@ -395,6 +432,10 @@ class BedwarsSettingsTest {
         assertProblem("ctf:\n  minutes-bridge: 61", "ctf.minutes-bridge");
         assertProblem("ctf:\n  minutes-chateau: 0", "ctf.minutes-chateau");
         assertProblem("ctf:\n  retour-drapeau-secondes: 2", "ctf.retour-drapeau-secondes");
+        assertProblem("fast-bedwars:\n  shop: [wool, excalibur]", "fast-bedwars.shop");
+        assertProblem("fast-bedwars:\n  shop: []", "fast-bedwars.shop");
+        assertProblem("fast-bedwars:\n  shop: wool", "fast-bedwars.shop");
+        assertProblem("fast-bedwars:\n  evenements:\n    fin-des-lits: 1", "fast-bedwars.evenements.fin-des-lits");
         assertProblem("bed-break:\n  kits:\n    - {nom: X, icone: TNT, objets: [\"tnt 99\"]}", "bed-break.kits[1].objets");
     }
 

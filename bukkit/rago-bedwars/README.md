@@ -363,6 +363,30 @@ Les valeurs (captures, durées, retour du drapeau) sont dans `ctf:` du `config.y
 jeu. Le dessin des deux maps est à valider : on peut les modifier en jeu et les sauver, le plugin
 ne les reconstruit pas tant que leur dossier existe.
 
+## Fast Bedwars
+
+Le Bedwars simplifié du plan (6.1), « rapide, simple et amusant », comme proposé le 21/11 :
+`fast-bedwars-1v1` et `fast-bedwars-2v2` (le genre `fast-bedwars`), dans Fun Practice, sur les 20
+maps de la file RBW. C'est une partie de Bed Wars (lits, îles, forge, shop, émeraudes, réapparition
+tant que le lit tient), avec :
+
+- **des forges plus rapides** : celles de ses modes dans `forge.modes`, deux fois celles d'une map
+  Hypixel de quatre équipes ou moins pour commencer (240 fers et 24 ors par minute) ;
+- **des événements plus tôt** : `fast-bedwars.evenements`, deux fois plus tôt qu'une partie pour
+  commencer (Emerald II à 6 minutes, Emerald III à 12, la fin des lits à 15, la fin à 22 min 30) ;
+- **un shop plus petit** : `fast-bedwars.shop`, la liste des objets vendus, par leur id ; pour
+  commencer, les 20 objets du Quick Buy par défaut (laine, planches, end stone, verre, épées en
+  pierre et en fer, armures en mailles et en fer, cisailles, pioche, hache, arc, flèches, potions de
+  vitesse et de saut, TNT, seau d'eau, pomme en or, fireball, ender pearl). Les autres ne sont ni
+  dans les catégories ni dans le Quick Buy du joueur (une case vide, sans le panneau « Empty slot! ») ;
+- **pas d'améliorations d'équipe** : `fast-bedwars.ameliorations: false`, ni PNJ des améliorations
+  ni pièges ; les diamants n'achetant que les améliorations, la map n'a alors pas de générateur de
+  diamants (ni Diamond II ni III). `true` remet les améliorations et les diamants.
+
+Le message d'accueil le dit en une ligne. Toutes ces valeurs, les tailles (1v1, 2v2) et les maps
+sont des valeurs de départ à régler en jeu ; ce que « le Bedwars de 2018 » veut dire pour toi est
+encore à préciser.
+
 ## Améliorations et pièges
 
 Le villageois « TEAM UPGRADES » de chaque île ouvre « Upgrades & Traps », comme sur Hypixel. Tout

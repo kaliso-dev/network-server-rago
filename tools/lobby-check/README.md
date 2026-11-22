@@ -179,6 +179,15 @@ de l'or dans le donjon, la forge sur son fer, l'item shop dans la cour, l'émera
 au mid ; un bot rouge ramasse du fer à sa forge puis entre dans son donjon jusqu'à son drapeau :
 rien ne se passe (il est chez lui). Les deux bleus quittent la partie : les rouges gagnent, et les
 quatre reviennent au lobby.
+Enfin deux bots jouent Fast Bedwars 1v1 (`tools/kb-control/bots/fast-bots.mjs`, RagoBedwars, sur
+la carte démo : aucune de ses 20 maps n'est sur le serveur de test). Chacun part sur son île avec le
+départ de Bed Wars et lit les deux lignes d'accueil (forges plus rapides, shop plus petit, pas
+d'améliorations, les lits à 15:00, la fin à 22:30) ; le scoreboard annonce Emerald II à 6 minutes,
+sans Diamond II ; il voit le générateur d'émeraudes, aucun de diamants, l'item shop et pas de PNJ
+des améliorations. Le bot rouge ramasse au moins 7 ors en 12 secondes sur son spawn (une forge deux
+fois plus rapide ; 4 ou 5 avec celle d'une partie), ouvre le shop : le Quick Buy par défaut, sa 21e
+case vide sans panneau, et les Blocks avec seulement laine, verre, end stone et planches ; il achète
+de la laine. Le bleu quitte la partie : le rouge gagne, et les deux reviennent au lobby.
 
 ```bash
 ./gradlew build

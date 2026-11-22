@@ -52,6 +52,9 @@ modes:
   ctf-bridge-2v2: [CtfBridge]
   ctf-castle-2v2: [CtfCastle]
   ctf-castle-4v4: [CtfCastle]
+  # Fast Bedwars: the 20 maps of the RBW queue, as the ranked modes (to confirm with the owner)
+  fast-bedwars-1v1: [Antenna, Aquarium, Archway, Artemis, Boletum, Carapace, Catalyst, Chained, Eastwood, Extinction, Invasion, Katsu, Lectus, Obelisk, Paladin, Planet98, Rise, Stonekeep, Swashbuckle, Treenan]
+  fast-bedwars-2v2: [Antenna, Aquarium, Archway, Artemis, Boletum, Carapace, Catalyst, Chained, Eastwood, Extinction, Invasion, Katsu, Lectus, Obelisk, Paladin, Planet98, Rise, Stonekeep, Swashbuckle, Treenan]
 
 # The modes that are not a classic Bed Wars game, each with its kind of game:
 #   ffa        free for all, open: players join and leave when they like, each for themselves, and
@@ -156,6 +159,11 @@ modes:
 #              middle island with the diamonds and the emerald; the forge, the shop and the upgrades
 #              of Bed Wars in each courtyard, the generators going up a tier as in a game; the flags
 #              as in ctf-bridge; no bed: back after reapparition-secondes, each time
+#   fast-bedwars  Fast Bedwars (plan 6.1, as proposed on 21/11): a game of Bed Wars, fast and
+#              simple, on the maps of Bed Wars: the forges of its modes in forge.modes (twice those
+#              of a Hypixel map of four teams or fewer, to start), its events earlier, a smaller shop
+#              and no team upgrades (see fast-bedwars: below); without the upgrades, no diamond
+#              generator (the diamonds buy only the upgrades), so no Diamond II nor III
 # A mode not listed is a classic game.
 jeux:
   top-bridge-1v1: top-bridge
@@ -188,6 +196,8 @@ jeux:
   ctf-bridge-2v2: ctf-bridge
   ctf-castle-2v2: ctf-chateau
   ctf-castle-4v4: ctf-chateau
+  fast-bedwars-1v1: fast-bedwars
+  fast-bedwars-2v2: fast-bedwars
 
 # Attack and Defense: the kits each player chooses from before each round, in a menu that opens by
 # itself (/kit opens it again); the countdown is 10 seconds, 3 once everyone has chosen. The
@@ -272,6 +282,34 @@ ctf:
   minutes-chateau: 20
   retour-drapeau-secondes: 30
 
+# Fast Bedwars (fast-bedwars in jeux:): starting values, to set in game with the owner.
+#   evenements     when its events come, in minutes of game, each after the one above (as
+#                  evenements: below): twice as early as in a game, to start
+#   shop           the items its item shop sells, by their id (those of the kits of attaque-defense:);
+#                  the others are not in its categories nor in the Quick Buy. To start, the 20 items
+#                  of the default Quick Buy: wool, oak planks, end stone, blast-proof glass, the
+#                  stone and iron swords, the chainmail and iron armour, shears, the pickaxe and the
+#                  axe, the bow and the arrows, the speed and jump potions, TNT, the water bucket,
+#                  the golden apple, the fireball and the ender pearl. All the ids: wool, clay, glass,
+#                  end_stone, ladder, plank, obsidian, stone_sword, iron_sword, diamond_sword, stick,
+#                  chainmail, iron_boots, diamond_boots, shears, pickaxe, axe, arrow, bow,
+#                  bow_(power_i), bow_(power_i__punch_i), speed, jump, invisibility, golden_apple,
+#                  fireball, tnt, ender_pearl, water, sponge, bedbug, dream_defender, bridge_egg,
+#                  milk, tower
+#   ameliorations  true: the team upgrades and traps (their NPC) and the diamond generators, as in
+#                  a game; false: neither
+fast-bedwars:
+  evenements:
+    diamant-2: 3
+    emeraude-2: 6
+    diamant-3: 9
+    emeraude-3: 12
+    fin-des-lits: 15
+    fin-de-partie: 22.5
+  shop: [wool, plank, end_stone, glass, stone_sword, iron_sword, chainmail, iron_boots, shears, pickaxe, axe,
+    bow, arrow, speed, jump, tnt, water, golden_apple, fireball, ender_pearl]
+  ameliorations: false
+
 # How many game worlds the server keeps at most, so how many games at once (from 1 to 50).
 parties-max: 8
 
@@ -333,7 +371,9 @@ shops-partout: [ranked-1v1, ranked-2v2, ranked-3v3, ranked-4v4, first-rush-full,
 #              Hypixel 4v4: 60 iron and 8 gold a minute in 1v1 (lente, one node more on its maps),
 #              90 iron and 12 gold in 2v2, 3v3 and 4v4 (moyenne), not 120. Sky Rise Resources, where
 #              every island's forge goes, has slow ones: 40 iron and 5 gold a minute each. The Bed
-#              Break Simulator has the forge of the RBW queue in 2v2 to 4v4 (moyenne).
+#              Break Simulator has the forge of the RBW queue in 2v2 to 4v4 (moyenne). Fast Bedwars
+#              has twice the forge of a Hypixel map of four teams or fewer, to start: 240 iron and
+#              24 gold a minute (rapide, an iron node every second, gold every 2.5 seconds).
 forge:
   fer-secondes-par-noeud: 2
   fer-par-lot: [2]
@@ -362,6 +402,8 @@ forge:
     bed-break-simulator-1v4: {vitesse: moyenne}
     skyrise-resources-1v1: {vitesse: lente, fer-secondes-par-noeud: 1.5, or-secondes: 12}
     skyrise-resources-2v2: {vitesse: lente, fer-secondes-par-noeud: 1.5, or-secondes: 12}
+    fast-bedwars-1v1: {vitesse: rapide, fer-secondes-par-noeud: 1, or-secondes: 2.5}
+    fast-bedwars-2v2: {vitesse: rapide, fer-secondes-par-noeud: 1, or-secondes: 2.5}
 
 # The diamond and emerald generators: one item every so many seconds, at most so many lying on
 # it; three tiers (I, II, III), faster and faster.

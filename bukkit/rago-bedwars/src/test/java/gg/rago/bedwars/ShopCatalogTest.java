@@ -100,6 +100,46 @@ class ShopCatalogTest {
         assertTrue(ShopItem.Category.values().length < 9);
     }
 
+    private static List<String> ids(List<ShopItem> items) {
+        List<String> ids = new ArrayList<>();
+        for (ShopItem item : items) {
+            ids.add(item == null ? null : item.id());
+        }
+        return ids;
+    }
+
+    /** Fast Bedwars: the shop reduced to a list of items, in the order of the shop, by category. */
+    @Test
+    void aReducedShopSellsOnlyItsItems() {
+        ShopCatalog fast = catalog.only(Arrays.asList("tnt", "wool", "pickaxe", "end_stone", "bow", "glass"));
+        assertTrue(fast.reduced());
+        assertTrue(!catalog.reduced() && !ShopCatalog.arena().reduced());
+        assertEquals(Arrays.asList("wool", "glass", "end_stone", "pickaxe", "bow", "tnt"), ids(fast.all()),
+                "in the order of the shop");
+        assertEquals(Arrays.asList("wool", "glass", "end_stone"), ids(fast.in(ShopItem.Category.BLOCKS)));
+        assertTrue(fast.in(ShopItem.Category.MELEE).isEmpty(), "no sword listed: an empty category");
+        assertEquals(Arrays.asList("pickaxe"), ids(fast.in(ShopItem.Category.TOOLS)), "the pickaxe, not the axe");
+        assertEquals(catalog.pickaxes(), fast.pickaxes(), "the pickaxe tier after tier");
+        assertNull(fast.byId("stone_sword"));
+        assertNotNull(fast.byId("tnt"));
+    }
+
+    @Test
+    void theQuickBuyOfAReducedShopKeepsWhatItSells() {
+        ShopCatalog fast = catalog.only(Arrays.asList("wool", "bow", "tnt"));
+        List<ShopItem> standard = fast.quickBuy(null);
+        assertEquals(21, standard.size());
+        assertEquals("wool", standard.get(0).id(), "the default quick buy, in its places");
+        assertNull(standard.get(1), "the stone sword is not sold");
+        assertEquals("bow", standard.get(4).id());
+        assertEquals("tnt", standard.get(6).id());
+        List<String> hypixel = Arrays.asList("bow_(power_i)", "bow", "wool", "diamond_sword");
+        // read in the whole shop: Hypixel's Bow (Power I) is not the plain bow of the reduced shop
+        assertEquals(Arrays.asList(null, "bow", "wool", null), ids(fast.quickBuy(hypixel)).subList(0, 4));
+        assertEquals(Arrays.asList("bow_(power_i)", "bow", "wool", "diamond_sword"),
+                ids(catalog.quickBuy(hypixel)).subList(0, 4), "the whole shop, as before");
+    }
+
     @Test
     void pricesReadAsOnHypixel() {
         assertEquals(org.bukkit.ChatColor.WHITE + "4 Iron", ShopItem.Currency.IRON.amount(4));
