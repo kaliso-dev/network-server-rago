@@ -402,16 +402,24 @@ async function fireballFight (one, two) {
   await expectInLobby(east, 'after the fireball fight')
 }
 
-/** The bot walks this way (a yaw) until the server puts it somewhere else (a fall: back on its checkpoint). */
+/**
+ * The bot walks this way (a yaw) off the edge, lets go once in the air, and waits for the server to
+ * put it somewhere else (a fall: back on its checkpoint). Towards the gap between the lanes: the
+ * chunks of the void around the course are empty, which mineflayer takes on 1.8 for chunks gone,
+ * and a bot in one stops moving.
+ */
 async function walkOff (bot, yaw, what) {
   bot.entity.yaw = yaw
   const moved = new Promise((resolve) => bot.once('forcedMove', resolve))
+  const letGo = () => { if (!bot.entity.onGround) bot.setControlState('forward', false) }
+  bot.on('physicsTick', letGo)
   bot.setControlState('forward', true)
   try {
     if (!(await Promise.race([moved.then(() => true), sleep(8000).then(() => false)]))) {
       throw new Error(`${bot.username} walked off ${what} and was not put back (at ${where(bot)})`)
     }
   } finally {
+    bot.removeListener('physicsTick', letGo)
     bot.clearControlStates()
   }
   await settle(bot)
@@ -459,8 +467,8 @@ async function parkourDuel (one, two) {
   await chatLine(red, /Fight!/, 10000, fromRed)
   await chatLine(blue, /Fight!/, 10000, fromBlue)
 
-  // 1. the blue bot walks off its start, away from the red lane: back on its start, no point
-  await walkOff(blue, Math.PI, 'its start')
+  // 1. the blue bot walks off its start (north, into the gap between the lanes): back on its start, no point
+  await walkOff(blue, 0, 'its start')
   near(blue, start(PARKOUR_LANE_Z), 'back at its start')
   if (blue.health < 20) throw new Error(`the fall hurt the blue bot: health ${blue.health}`)
   if ([...red.chats.slice(fromRed), ...blue.chats.slice(fromBlue)].some((line) => /Point for|Victory!|Defeat/.test(line))) {
@@ -468,14 +476,14 @@ async function parkourDuel (one, two) {
   }
   log('parkour duel: the blue bot fell off its start and was put back on it, no point')
 
-  // 2. the red bot runs to the first checkpoint, walks off it: back on it
+  // 2. the red bot runs to the first checkpoint, walks off it (south, into the gap): back on it
   const world = { getBlock: (pos) => red.blockAt(pos, false) }
   const runner = createRunner(red.registry, world)
   const lane = { zMin: centre.z - PARKOUR_LANE_Z - 2, zMax: centre.z - PARKOUR_LANE_Z + 2 }
   const seen = (pattern) => () => red.chats.slice(fromRed).some((line) => pattern.test(line))
   const first = await runCourse(red, world, runner, lane, { until: seen(/Checkpoint 1\/4!/), log: (line) => log(`parkour duel: ${line}`) })
   log(`parkour duel: the red bot reached checkpoint 1 in ${first.jumps} jumps (${first.misses} missed)`)
-  await walkOff(red, 0, 'the first checkpoint')
+  await walkOff(red, Math.PI, 'the first checkpoint')
   const checkpoint = { x: centre.x + PARKOUR_CHECKPOINT_1.x, y: centre.y + PARKOUR_CHECKPOINT_1.y, z: centre.z - PARKOUR_LANE_Z + PARKOUR_CHECKPOINT_1.z }
   near(red, checkpoint, 'back on the first checkpoint')
   if (red.chats.slice(fromRed).some((line) => /Point for|Victory!|Defeat/.test(line))) throw new Error('a fall gave a point')
