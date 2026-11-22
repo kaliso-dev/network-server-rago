@@ -193,14 +193,14 @@ Snowball Spleef et Red Rover sont codés avec des valeurs de départ à confirme
 | 6.1 | Catégorie FUN PRACTICE, PNJ `FunMod2` sur quartz | P2 | IMPLÉMENTÉ (21/11 ; tests unitaires et test du lobby en CI passés) | le skin du PNJ (Steve pour l'instant), le nom de la catégorie à confirmer ; poser le point `funmod2` sur ton serveur |
 | 6.1a | Snowball Spleef (style Minemen) | P2 | TESTÉ par les bots en CI (21/11), pas encore en jeu | valeurs de départ à confirmer : rayon 12, 1 étage, écart 6, 1 boule par bloc, 1 round |
 | 6.1b | Fireball Fight (voir C1) | P2 | TESTÉ par les bots en CI (21/11), pas encore en jeu | valeurs de départ à confirmer : rayon 10, recul 1,5 / 1,2, fireballs illimitées, souffle 3 s, 1 round ; le nom (« Fireball Fight », FUN PRACTICE) |
-| 6.1c | Fast Bedwars (Bedwars 2018 simplifié) | P2 | BLOQUÉ (proposition écrite le 21/11, attend ta validation) | ce que « 2018 » veut dire (shop, améliorations, équipes, durée), maps |
+| 6.1c | Fast Bedwars (Bedwars 2018 simplifié) | P2 | TESTÉ par les bots en CI le 22/11 (757ba0b), pas encore en jeu ni installé : codé selon la proposition du 21/11 (ta demande du 22/11 : finir les modes demandés), `fast-bedwars-1v1` et `fast-bedwars-2v2` dans Fun Practice, sur les 20 maps RBW ; forges deux fois plus rapides, événements deux fois plus tôt, shop des 20 objets du Quick Buy par défaut, pas d'améliorations ni de diamants (détail plus bas, « Étape 7 : Fast Bedwars ») | ce que « 2018 » veut dire (shop, améliorations, équipes, durée) ; valeurs de départ à confirmer : 240 fers et 24 ors par minute, lits à 15 min, fin à 22 min 30, la liste du shop, pas d'améliorations, 1v1 et 2v2, les 20 maps RBW |
 | 6.1d | Autres modes FUN connus : propositions | P3 | BLOQUÉ (proposition écrite le 21/11, attend ta validation) | ton choix parmi Spleef, Bow Spleef, Parkour Duels, Pearl Fight, Battle Rush |
-| 6.2 | Capture the Flag, version Bedwars et seconde version : études | P3 | BLOQUÉ (proposition écrite le 21/11, attend ta validation) | version à faire d'abord, équipes, captures, durée, maps, kit |
+| 6.2 | Capture the Flag, version Bedwars et seconde version : études | P3 | TESTÉ par les bots en CI le 22/11 (757ba0b), pas encore en jeu ni installé : tes deux types du 22/11, The Bridge (`ctf-bridge-1v1`, `ctf-bridge-2v2`, map CtfBridge) et château contre château avec un mid (`ctf-castle-2v2`, `ctf-castle-4v4`, map CtfCastle), dans Fun Practice ; les deux maps construites par le plugin (détail plus bas, « Étape 7 : Capture the Flag ») | valeurs de départ à confirmer : 3 captures, 15 et 20 minutes, 30 s de retour du drapeau, les tailles, le dessin des deux maps, les icônes |
 | 6.3 | Find Your Sensitivity : faisabilité et protocole | P3 | IMPLÉMENTÉ le 22/11 (ton choix sur la carte : « Find Your Sensitivity » d'abord), selon le protocole de la proposition ; build et tests unitaires passés en CI (0bcfd61), installé sur ton serveur de test ; pas encore joué, ni par les bots ni en jeu (détail plus bas, « Étape 7 : Find Your Sensitivity ») | question 9, valeurs de départ à confirmer : séries d'environ une minute (12 flicks, 4 demi-tours, 20 s de suivi), 3 sensibilités (la tienne, 20 % moins vite, 20 % plus vite), sans historique ; l'icône (œil de l'Ender) |
 | 6.4 | Block Aim Practice (patterns de la communauté) | P3 | Parcours : IMPLÉMENTÉ le 22/11 (ton choix sur la carte : Block Aim ensuite) ; le Bridge Chrono avait déjà les ponts droits, diagonaux et en montée, il a maintenant aussi le pont avec un virage (16, 32 et 64 blocs, un record chacun) ; build et tests unitaires passés en CI (d216c86) ; installé le 22/11 (avec 28a4bee), pas encore joué. Placement sur cible : IMPLÉMENTÉ le 22/11, nouveau mode « Block aim » (`block-aim`) : une face s'allume sous les pieds au bout du pont, sur le côté du pont ou sur le lit, 5 niveaux de plus en plus rapides comme ceux de Ladder Practice, un record par niveau ; build et tests unitaires passés en CI (28a4bee) ; installé sur ton serveur de test le 22/11 avec le pont avec virage, pas encore joué (détail plus bas, « Étape 7 : Block Aim Practice ») | à confirmer : le virage à droite, à mi-chemin, à plat ; pas de virage en montée (la place manque à moins de 64 blocs du centre) ; placement sur cible : la scène générée (question 8 sans réponse), les 15 faces, les temps des 5 niveaux (3 s à 1 s), un bloc posé ailleurs compté sans finir la série |
 | 6.5.1 | Red Rover (Sumo, Block Placement, Block Edit, Top Bridge…) | P2 | Sumo, Block Edit, Block Placement, Top Bridge : TESTÉ par les bots en CI (21/11) ; rien encore en jeu | question 10 (qui reste, points ou élimination : codé « points, le gagnant reste, premier à 3 », à confirmer) ; 90 s par 1v1 à confirmer  |
 | 6.5.2 | Modes 2v1 asymétriques (Clutch Scenario, stuff amélioré) | P3 | Clutch Scenario : IMPLÉMENTÉ le 22/11, build et tests unitaires passés en CI (le partage du joueur seul, la party gardée ensemble) ; pas encore joué, ni par les bots ni en jeu ; en 1v1, 1v2, 1v3 et 1v4 comme Invis Practice et le Bed Break Simulator (ta demande du 22/11, à la place des 2v2, 3v3 et 4v4 ; les victoires de ceux-ci comptent toujours pour le titre Clutch Scenario) ; à partir du 1v2, le joueur seul, tiré au sort, part sans lit avec une vie, les autres gardent le leur (ton choix du 21/11) ; une party reste ensemble, le joueur seul est tiré parmi les autres (ton choix du 22/11). Stuff amélioré : IMPLÉMENTÉ le 22/11 (ton choix sur la carte : Bed Fight 1v2), CI verte (3cdfed2 : build, tests unitaires, tests sur serveur) ; pas encore joué | l'écart de stuff (valeurs de départ : jambières et bottes en fer, épée en pierre, sans Protection, dans `stuff-ameliore:` de la config de rago-bedwars) |
-| 6.5.3 | Bot IA : étude technique | P3 | À FAIRE | l'étude d'abord, sans code (question 13) |
+| 6.5.3 | Bot IA : étude technique | P3 | BLOQUÉ (étude écrite le 22/11, document « Étape 7 : étude du bot IA », rien codé : attend tes réponses) | 6 questions : la voie (faux joueur côté serveur recommandé), le premier objectif (4e place d'un Top Bridge 2v2), quand un bot joue, son nom et son skin, les stats, les niveaux |
 | 6.6 | Catégorie 3 joueurs (Red Rover, Clutch Scenario, Bed Break Scenario, Invis Practice) | P2 | IMPLÉMENTÉ le 22/11, CI verte (tests unitaires ; les bots du lobby ouvrent la boussole à 6 catégories et y prennent Duels au slot 12 ; tests du site) : « 3 Players » dans la boussole seulement, sans PNJ (ton choix du 21/11), après Fun Practice ; elle montre Red Rover (un objet), Bed Break Simulator 1v2, Invis Practice 1v2 et Clutch Scenario 1v2 (`aussi:` de `categories:`), avec les mêmes files : ces modes restent dans leur catégorie, leurs stats aussi ; le retour d'un groupe ouvert depuis elle y ramène ; aussi dans l'accueil, `/play 3 players` et le site (tests du site passés en local) | son nom, son slogan, sa description et son icône (une tête) sont à confirmer ; la boussole passe à 6 catégories, côte à côte des slots 10 à 15 (sur la ligne du haut, slots 1 à 6, depuis 5.9) |
 
 ### Étape 8 : administration et benchmark (Phase 7)
@@ -1627,3 +1627,104 @@ sumo, Java 8 et 21 ; reset des arènes) et le site passent aussi ; seul le job d
 Linux en Java 8 échoue, avant tout code, sur l'empreinte de Temurin 8u514 (déjà signalé sur la
 PR). Aucun bot ne joue encore de partie de Bed Fight 1v2, rien en jeu, rien d'installé (ton PC
 est éteint cette nuit).
+
+### Étape 7 : Capture the Flag, The Bridge et château contre château (22/11)
+
+Ta demande du 22/11 (vers 3 h 10) : « Pour le CTF j'imagine 2 type : 1. The Bridge 2. type normal
+avec une map assez grande type Chateau vs Chateau et 1 mid. » Les deux sont dans Fun Practice, non
+classés, dans le titre « Capture the Flag ».
+
+- **Les règles communes** : un drapeau par équipe, une bannière de sa couleur sur un bloc d'or au
+  fond de sa base. On le prend en marchant dessus (la bannière passe sur la tête du porteur) et on
+  marque en l'apportant sur son propre drapeau, s'il est chez lui. Le porteur qui meurt le lâche :
+  un ennemi le reprend, un joueur de son équipe le ramène en le touchant, sinon il rentre seul
+  après 30 s ; tombé dans le vide, il rentre tout de suite. Pas de lit : on revient toujours. On ne
+  pose pas de bloc sur un drapeau. La première équipe à 3 captures gagne, sinon celle qui en a le
+  plus à la fin du temps (égalité possible). Le scoreboard montre le score et l'état de chaque
+  drapeau (« Safe », « Taken », « Dropped 24s »).
+- **The Bridge** (`ctf-bridge-1v1`, `ctf-bridge-2v2`) : sur CtfBridge, une map que le plugin
+  construit lui-même. Deux bases en quartz reliées par un pont d'argile d'un bloc de large et de 41
+  de long, qu'on casse et sur lequel on construit (4 blocs dessous à 4 au-dessus). Le kit de The
+  Bridge d'Hypixel : armure en cuir sans casque, épée en fer, arc, pioche en diamant Efficiency II,
+  deux stacks d'argile de l'équipe, 8 pommes d'or (toute la vie d'un coup et deux cœurs
+  d'absorption), une flèche qui revient 3,5 s après le tir. Ni forge ni shop ; retour immédiat
+  après une mort, avec le kit rangé comme dans l'éditeur du lobby. 15 minutes au plus.
+- **Château contre château** (`ctf-castle-2v2`, `ctf-castle-4v4`) : sur CtfCastle, l'autre map
+  construite par le plugin, 151 blocs de long. Deux châteaux de pierre taillée de 31 × 31 (murs à
+  créneaux, quatre tours, une porte vers le mid, une cour éclairée, le donjon au fond avec le
+  drapeau) et un mid rond avec l'émeraude et deux diamants, à 34 blocs de vide de chaque château.
+  C'est une partie de Bed Wars : forge, shop, améliorations et pièges dans la cour, générateurs du
+  mid qui montent de niveau ; on revient après les 5 s de réapparition. 20 minutes au plus.
+- **Réglable sans recompiler** : `ctf:` dans le `config.yml` de rago-bedwars (`captures`,
+  `minutes-bridge`, `minutes-chateau`, `retour-drapeau-secondes`).
+- **À confirmer** : 3 captures, 15 et 20 minutes, 30 s de retour du drapeau, les tailles (The
+  Bridge 1v1 et 2v2, château 2v2 et 4v4), le dessin des deux maps (modifiables en jeu : le plugin
+  ne les reconstruit pas tant que leur dossier existe), les icônes (arc, épée en fer).
+
+**Testé** : en CI (commit 757ba0b), le build et les tests unitaires passent (les deux maps, leur
+symétrie, le chemin de la porte au drapeau, les lumières, les réglages, les drapeaux), et les bots
+jouent les deux types sur le vrai serveur. The Bridge 1v1 : le kit, le pont d'un bloc, la pioche
+qui casse le bout du pont et l'argile remise, la pomme d'or (absorption, sans régénération), la
+flèche revenue après 3,9 s, le drapeau pris puis rentré tout seul depuis le vide, trois captures
+(« Red 3 - Blue 0 ») et la victoire, le retour au lobby. Château 2v2 : les quatre dans leur cour
+avec le départ de Bed Wars, la porte ouverte, les murs, les drapeaux sur l'or dans les donjons, les
+forges, les shops, l'émeraude et les diamants du mid ; un bot ramasse 6 fers à sa forge et va
+jusqu'à son drapeau sans rien déclencher ; les bleus partent, les rouges gagnent. Un premier essai
+du test bots s'était arrêté à la première capture : il attendait le score sous une autre forme
+(« Red 1 - 0 Blue ») que celle du jeu ; le test est corrigé (49f1b4a), le jeu n'a pas changé. Pas
+encore joué en jeu par de vrais joueurs. Rien d'installé (ton PC est éteint cette nuit) : à
+l'install, les nouvelles lignes `modes:`, `jeux:` et `ctf:` du `config.yml` de
+rago-bedwars et les 4 modes et 2 groupes du `config.yml` du lobby seront à ajouter à tes réglages.
+
+### Étape 7 : Fast Bedwars (22/11)
+
+Ta demande du 22/11 : « finir tous les mods que j'avais demandés, un par un », en restant fidèle au
+plan (6.1 : « un Bedwars simplifié, inspiré du Bedwars de 2018 : rapide, simple et amusant ») et à
+la proposition du 21/11 : le construire sur le plugin Bed Wars, rapide par les forges et les
+événements, simple par un shop réduit et peu ou pas d'améliorations, sur les maps du Bed Wars.
+
+- **Les modes** `fast-bedwars-1v1` et `fast-bedwars-2v2` (« Fast Bedwars 1v1 / 2v2 »), dans Fun
+  Practice (un objet « Fast Bedwars »), non classés, sur les 20 maps de la file RBW, avec leur
+  titre. Une vraie partie de Bed Wars : lits, îles, forge, shop, émeraudes, réapparition tant que
+  le lit tient.
+- **Rapide** : la forge deux fois celle d'une map Hypixel de quatre équipes ou moins (240 fers et
+  24 ors par minute, dans `forge.modes`) ; les événements deux fois plus tôt (Emerald II à 6 min,
+  Emerald III à 12, la fin des lits à 15, la fin de la partie à 22 min 30). Les événements étaient
+  communs à tous les modes : Fast Bedwars a maintenant les siens, `fast-bedwars.evenements`.
+- **Simple** : un shop réduit à une liste (`fast-bedwars.shop`) : pour commencer, les 20 objets du
+  Quick Buy par défaut (laine, planches, end stone, verre, épées en pierre et en fer, armures en
+  mailles et en fer, cisailles, pioche, hache, arc, flèches, potions de vitesse et de saut, TNT,
+  seau d'eau, pomme en or, fireball, ender pearl). Le Quick Buy du joueur (celui d'Hypixel s'il l'a
+  importé) garde ses places, sans les objets non vendus. Pas d'améliorations d'équipe
+  (`fast-bedwars.ameliorations: false`) : ni PNJ, ni pièges, et donc pas de générateur de diamants
+  (ils n'achètent que les améliorations), ni Diamond II ni III. `true` les remet.
+- **L'accueil** le dit en une ligne : « Faster forges, a smaller shop, no team upgrades. The beds go
+  at 15:00, the game ends at 22:30. »
+- **À confirmer** : ce que « le Bedwars de 2018 » veut dire pour toi (toujours sans réponse :
+  shop, améliorations, équipes, durée) ; la liste du shop ; les valeurs des forges et des
+  événements ; pas d'améliorations ; les tailles (1v1 et 2v2) ; les maps (les 20 de la file RBW) ;
+  l'icône (un lit).
+
+**Testé** : en CI (commit 757ba0b), le build et les tests unitaires passent (les réglages
+`fast-bedwars:` et leurs erreurs, les forges du mode, le shop réduit et son Quick Buy, les
+événements sans diamants, la ligne d'accueil, les modes du lobby), et deux bots jouent Fast
+Bedwars 1v1 sur la carte démo : les deux lignes d'accueil, Emerald II annoncé à 6 minutes sans
+Diamond II, le générateur d'émeraudes sans générateur de diamants, l'item shop sans PNJ des
+améliorations, 9 ors et 92 fers ramassés en 12 secondes sur le spawn, le Quick Buy par défaut
+sans le panneau « Empty slot! », les Blocks réduits à laine, verre, end stone et planches, la
+laine achetée ; le bleu part, le rouge gagne. Pas encore joué en jeu ; pas testé sur une des 20
+maps RBW (absentes du serveur de test). Rien d'installé : à l'install, les lignes
+`modes:`, `jeux:`, `forge.modes` et `fast-bedwars:` du `config.yml` de rago-bedwars et les 2 modes
+et le groupe du `config.yml` du lobby seront à ajouter à tes réglages.
+
+### Étape 7 : Bot IA, l'étude technique (22/11)
+
+Question 13 du document des propositions : l'étude seule, sans code. Document « Étape 7 : étude du
+bot IA » (Claude Docs). En bref : un bot qui joue comme un joueur est faisable s'il est un vrai
+joueur pour le serveur, un faux joueur créé par le plugin sans client derrière, qui entre dans les
+files et les équipes sans réécrire les modes ; le combat existe déjà (`ComboAi`, le Combo Bot et
+ses 4 niveaux), restent le déplacement, les blocs et les décisions. Premier objectif proposé : la
+quatrième place d'un Top Bridge 2v2, en cinq étapes testées chacune par les bots en CI, puis une
+mesure du temps par tick avec 1, 4 et 10 bots. Le coût est estimé, pas mesuré. **6 questions à
+trancher** (la voie, l'objectif, quand un bot joue, son nom et son skin, les stats, les niveaux) :
+rien n'est codé avant tes réponses.
