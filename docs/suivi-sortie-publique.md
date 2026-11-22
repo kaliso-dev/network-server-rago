@@ -200,7 +200,7 @@ Snowball Spleef et Red Rover sont codés avec des valeurs de départ à confirme
 | 6.4 | Block Aim Practice (patterns de la communauté) | P3 | Parcours : IMPLÉMENTÉ le 22/11 (ton choix sur la carte : Block Aim ensuite) ; le Bridge Chrono avait déjà les ponts droits, diagonaux et en montée, il a maintenant aussi le pont avec un virage (16, 32 et 64 blocs, un record chacun) ; build et tests unitaires passés en CI (d216c86) ; installé le 22/11 (avec 28a4bee), pas encore joué. Placement sur cible : IMPLÉMENTÉ le 22/11, nouveau mode « Block aim » (`block-aim`) : une face s'allume sous les pieds au bout du pont, sur le côté du pont ou sur le lit, 5 niveaux de plus en plus rapides comme ceux de Ladder Practice, un record par niveau ; build et tests unitaires passés en CI (28a4bee) ; installé sur ton serveur de test le 22/11 avec le pont avec virage, pas encore joué (détail plus bas, « Étape 7 : Block Aim Practice ») | à confirmer : le virage à droite, à mi-chemin, à plat ; pas de virage en montée (la place manque à moins de 64 blocs du centre) ; placement sur cible : la scène générée (question 8 sans réponse), les 15 faces, les temps des 5 niveaux (3 s à 1 s), un bloc posé ailleurs compté sans finir la série |
 | 6.5.1 | Red Rover (Sumo, Block Placement, Block Edit, Top Bridge…) | P2 | Sumo, Block Edit, Block Placement, Top Bridge : TESTÉ par les bots en CI (21/11) ; rien encore en jeu | question 10 (qui reste, points ou élimination : codé « points, le gagnant reste, premier à 3 », à confirmer) ; 90 s par 1v1 à confirmer  |
 | 6.5.2 | Modes 2v1 asymétriques (Clutch Scenario, stuff amélioré) | P3 | Clutch Scenario : IMPLÉMENTÉ le 22/11, build et tests unitaires passés en CI (le partage du joueur seul, la party gardée ensemble) ; pas encore joué, ni par les bots ni en jeu ; en 1v1, 1v2, 1v3 et 1v4 comme Invis Practice et le Bed Break Simulator (ta demande du 22/11, à la place des 2v2, 3v3 et 4v4 ; les victoires de ceux-ci comptent toujours pour le titre Clutch Scenario) ; à partir du 1v2, le joueur seul, tiré au sort, part sans lit avec une vie, les autres gardent le leur (ton choix du 21/11) ; une party reste ensemble, le joueur seul est tiré parmi les autres (ton choix du 22/11). Stuff amélioré : IMPLÉMENTÉ le 22/11 (ton choix sur la carte : Bed Fight 1v2), CI verte (3cdfed2 : build, tests unitaires, tests sur serveur) ; installé sur ton serveur de test le 22/11 (aa724b7) ; pas encore joué | l'écart de stuff (valeurs de départ : jambières et bottes en fer, épée en pierre, sans Protection, dans `stuff-ameliore:` de la config de rago-bedwars) |
-| 6.5.3 | Bot IA : étude technique | P3 | TESTÉ EN CI le 22/11 (47fdcd4 : Sumo, Top Bridge 1v1 et 2v2, invitation, refus, départ), essai en jeu à faire ; installé sur ton serveur de test le 22/11 sans la correction du Top Bridge (journal « RagoBot ») ; tes réponses du 22/11 aux 6 questions (détail plus bas, « Tes réponses du 22/11 ») : un vrai joueur, en Top Bridge 1v1 et 2v2 et en Sumo 1v1 pour commencer. Le Combo Bot : TESTÉ en CI le 22/11 (243a20d), retiré des menus (journal « Combo Bot retiré des menus ») | — |
+| 6.5.3 | Bot IA : étude technique | P3 | TESTÉ EN CI le 22/11 (47fdcd4 : Sumo, Top Bridge 1v1 et 2v2, invitation, refus, départ), essai en jeu à faire ; installé sur ton serveur de test le 22/11 à 14h50 sans la correction du Top Bridge, puis vers 17h30 avec elle (e0dadff, journal « RagoBot ») ; tes réponses du 22/11 aux 6 questions (détail plus bas, « Tes réponses du 22/11 ») : un vrai joueur, en Top Bridge 1v1 et 2v2 et en Sumo 1v1 pour commencer. Le Combo Bot : TESTÉ en CI le 22/11 (243a20d), retiré des menus (journal « Combo Bot retiré des menus ») | — |
 | 6.6 | Catégorie 3 joueurs (Red Rover, Clutch Scenario, Bed Break Scenario, Invis Practice) | P2 | IMPLÉMENTÉ le 22/11, CI verte (tests unitaires ; les bots du lobby ouvrent la boussole à 6 catégories et y prennent Duels au slot 12 ; tests du site) : « 3 Players » dans la boussole seulement, sans PNJ (ton choix du 21/11), après Fun Practice ; elle montre Red Rover (un objet), Bed Break Simulator 1v2, Invis Practice 1v2 et Clutch Scenario 1v2 (`aussi:` de `categories:`), avec les mêmes files : ces modes restent dans leur catégorie, leurs stats aussi ; le retour d'un groupe ouvert depuis elle y ramène ; aussi dans l'accueil, `/play 3 players` et le site (tests du site passés en local) | son nom, son slogan, sa description et son icône (une tête) sont à confirmer ; la boussole passe à 6 catégories, côte à côte des slots 10 à 15 (sur la ligne du haut, slots 1 à 6, depuis 5.9) |
 
 ### Étape 8 : administration et benchmark (Phase 7)
@@ -2083,8 +2083,8 @@ Tests :
 - Il quitte le serveur après `/p kick` et après une party dissoute.
 
 Un seul passage : il montre que RagoBot n'est plus bloqué cette fois, pas qu'il ne le sera jamais.
-Reste l'essai en jeu. La correction n'est pas dans la version installée le 22/11 à 14h50 : elle
-arrive avec la prochaine install.
+Reste l'essai en jeu. La correction n'est pas dans la version installée le 22/11 à 14h50 ; elle
+est dans celle installée vers 17h30 (e0dadff).
 
 ### Outils Owner (7.1, 22/11)
 
@@ -2149,20 +2149,49 @@ les deux lignes y sont, et aucune partie classée n'y est notée.
 **À l'install du 22/11** : ton serveur est en `online-mode=true` (sans BungeeCord), donc
 `uuid: ""` reste tel quel. Il suffit d'être qRago et op (ou rang owner).
 
+### Installation du 22/11 en fin d'après-midi (e0dadff)
+
+Ta demande du 22/11 à 16h53 : « Install et push sur le server ».
+
+**Installé** sur ton serveur de test le 22/11, vers 17h30 heure de Paris, serveur arrêté :
+- les 5 plugins du commit e0dadff, empreinte du zip vérifiée ;
+- `rago-lobby`, `rago-practice` et `rago-bedwars` changent, `rago-combat-engine` et
+  `rago-build-tools` sont identiques.
+
+Ce que contient cette version, depuis 75050b8 :
+- la correction de RagoBot en Top Bridge (47fdcd4) ;
+- ta liste du 22/11 à 16h22 (ci-dessous) : la boussole avec ses catégories, les menus des PNJ sans
+  rien en haut, le kit FFA rendu après un kill, l'anti full box et les blocs récupérés en Block
+  Placement, le PNJ Fun Practice sur le point `prive`.
+
+Seul le `config.yml` du lobby change. Il est fusionné avec tes réglages, sans conflit : 15 lignes
+ajoutées, 12 retirées, comme dans le jar. Il n'y a plus de PNJ sur `funmod2`, `prive` est le PNJ
+Fun Practice et `partieprivee` est en commentaire. Les `config.yml` du practice et des Bed Wars
+ne changent pas.
+
+J'ai seulement lu les `points.yml` du lobby, sans les changer. Ils ont encore les points `prive` et
+`funmod2`, et pas de point `panneau-rago-client` ni `panneau-rago-optimizer` : les deux panneaux
+restent au `lieu` de ton `config.yml`. Rien d'autre n'est touché : ni `server.properties`, ni
+l'icône, ni les mondes. L'ancien état est dans `sauvegarde-avant-maj-e0dadff`.
+
+Rien n'est encore joué en jeu.
+
 ### Ta liste du 22/11 (16h22)
 
-Ta liste du 22/11 à 16h22, point par point. Tout est codé, avec ses tests ; rien n'est encore
-passé en CI ni installé. « TESTÉ » viendra seulement après la CI.
+Ta liste du 22/11 à 16h22, point par point. Tout est codé, avec ses tests, passé en CI au commit
+e0dadff et installé sur ton serveur (voir « Installation du 22/11 en fin d'après-midi »). « TESTÉ »
+veut dire testé en CI, par les tests et les bots nommés dans la ligne : rien n'est encore joué en jeu
+par un joueur.
 
 | Point | Ce que j'ai fait | Statut |
 | --- | --- | --- |
-| « FFA : redonner le kit complet après un kill » | Dans le FFA (`ffa`, Archway FFA), un kill soigne et remet tout le kit : chaque objet au nombre du kit (boules de feu, perle, laine, pommes), sur ses piles ou à sa place dans le kit, celui de l'éditeur de kit ou à défaut le kit de combat. Lobby Fight FFA (les pommes seules) et Top Bridge FFA ne changent pas. `FfaGame.refillAll`, test `aKillInTheFfaBringsTheWholeKitBack` | IMPLÉMENTÉ |
-| « Block Placement 1v1 : Anti Full boxe comme en bedfight » | Je n'ai trouvé aucune règle anti full box dans notre Bed Fight ; ton choix sur la carte : « Interdire de s'enfermer ». Un bloc qui enfermerait complètement un joueur, celui qui le pose ou un autre (ses quatre côtés aux pieds et à la tête, et au-dessus de sa tête ; le sol ne compte pas), est refusé : « You can't box yourself in! » ou « You can't box a player in! ». Pour tout le Block Placement : 1v1, 2v2, Ranked et Red Rover (le même jeu) ; pas l'arène de block placement. `FullBox`, `BlockFight.canPlace`, test `FullBoxTest` (passé en local) et le bot de l'arène | IMPLÉMENTÉ |
-| « Récupérer les blocks quand on les casse » | En Block Placement, un bloc cassé tombe par terre, comme au Fireball Fight : la laine de sa couleur, l'end stone, l'échelle, à ramasser par n'importe qui. `BlockFight.dropOf`, test et bot de l'arène | IMPLÉMENTÉ |
-| « remettre la boussole comme avant avec les différentes catégories » | La boussole d'avant 5.9 : « Popular now » en haut, les 8 catégories côte à côte sur la ligne du milieu (Party et Ranked comprises, slots 9 à 16) ; un clic ouvre les jeux de la catégorie, avec « Back to the categories » en bas. `ModeMenu`, `LayoutTest`, bot du lobby | IMPLÉMENTÉ |
-| « enlever les items en haut dans les menus des PNJ, remettre comme avant » | Le menu d'une catégorie, depuis son PNJ, la boussole ou `/play`, n'a plus rien sur sa ligne du haut (ni les catégories, ni « Popular now ») : seulement ses jeux. Le bot du lobby le vérifie pour le PNJ Duels | IMPLÉMENTÉ |
-| « enlever le PNJ Fun practice et le mettre à la place de private game » | Dans le `config.yml` fourni, le PNJ Fun Practice est sur le point `prive`, celui du PNJ Private game, sur le quartz déjà là ; il n'y a plus de PNJ Private game (en commentaire, `partieprivee`, pour un autre point) ni de PNJ sur `funmod2`. Ton `points.yml` n'est pas touché. Le bloc de quartz que le plugin a pu poser sous l'ancien PNJ, au point `funmod2`, reste : à casser à la main si tu veux | IMPLÉMENTÉ |
-| « private game le mettre dans la catégorie rbw mod comme mod » | Déjà le cas : RBW Modes a l'objet « Private games », qui ouvre Private game et Private top bridge. Je n'ai rien changé, le test le vérifie | IMPLÉMENTÉ (déjà là) |
+| « FFA : redonner le kit complet après un kill » | Dans le FFA (`ffa`, Archway FFA), un kill soigne et remet tout le kit : chaque objet au nombre du kit (boules de feu, perle, laine, pommes), sur ses piles ou à sa place dans le kit, celui de l'éditeur de kit ou à défaut le kit de combat. Lobby Fight FFA (les pommes seules) et Top Bridge FFA ne changent pas. `FfaGame.refillAll`, test `aKillInTheFfaBringsTheWholeKitBack` (test seul, aucun bot ne joue le FFA) | TESTÉ en CI (e0dadff) |
+| « Block Placement 1v1 : Anti Full boxe comme en bedfight » | Je n'ai trouvé aucune règle anti full box dans notre Bed Fight ; ton choix sur la carte : « Interdire de s'enfermer ». Un bloc qui enfermerait complètement un joueur, celui qui le pose ou un autre (ses quatre côtés aux pieds et à la tête, et au-dessus de sa tête ; le sol ne compte pas), est refusé : « You can't box yourself in! » ou « You can't box a player in! ». Pour tout le Block Placement : 1v1, 2v2, Ranked et Red Rover (le même jeu) ; pas l'arène de block placement. `FullBox`, `BlockFight.canPlace`, test `FullBoxTest` et le bot de l'arène : il s'enferme sur sa plateforme, les quatre côtés aux pieds et à la tête, et le bloc au-dessus de sa tête est refusé avec « You can't box yourself in! » | TESTÉ en CI (e0dadff) |
+| « Récupérer les blocks quand on les casse » | En Block Placement, un bloc cassé tombe par terre, comme au Fireball Fight : la laine de sa couleur, l'end stone, l'échelle, à ramasser par n'importe qui. `BlockFight.dropOf`, test et bot de l'arène : la laine cassée tombe par terre, une laine | TESTÉ en CI (e0dadff) |
+| « remettre la boussole comme avant avec les différentes catégories » | La boussole d'avant 5.9 : « Popular now » en haut, les 8 catégories côte à côte sur la ligne du milieu (Party et Ranked comprises, slots 9 à 16) ; un clic ouvre les jeux de la catégorie, avec « Back to the categories » en bas. `ModeMenu`, `LayoutTest`, bot du lobby : la boussole à 3 lignes, Duels au slot 11, son menu à lui | TESTÉ en CI (15446cb) |
+| « enlever les items en haut dans les menus des PNJ, remettre comme avant » | Le menu d'une catégorie, depuis son PNJ, la boussole ou `/play`, n'a plus rien sur sa ligne du haut (ni les catégories, ni « Popular now ») : seulement ses jeux. Le bot du lobby le vérifie pour le PNJ Duels et pour Duels depuis la boussole | TESTÉ en CI (15446cb) |
+| « enlever le PNJ Fun practice et le mettre à la place de private game » | Dans le `config.yml` fourni, le PNJ Fun Practice est sur le point `prive`, celui du PNJ Private game, sur le quartz déjà là ; il n'y a plus de PNJ Private game (en commentaire, `partieprivee`, pour un autre point) ni de PNJ sur `funmod2`. Ton `points.yml` n'est pas touché. Le bloc de quartz que le plugin a pu poser sous l'ancien PNJ, au point `funmod2`, reste : à casser à la main si tu veux. À l'installation, ton `points.yml` du lobby a bien encore les points `prive` et `funmod2`. Tests `LobbySettingsTest`, `MineSkinTest`, `PedestalTest` | TESTÉ en CI (e0dadff) |
+| « private game le mettre dans la catégorie rbw mod comme mod » | Déjà le cas : RBW Modes a l'objet « Private games », qui ouvre Private game et Private top bridge. Je n'ai rien changé, le test le vérifie | TESTÉ en CI (e0dadff, déjà là) |
 
 ### Installation du 22/11 après-midi (75050b8)
 
