@@ -196,9 +196,12 @@ de la laine. Le bleu quitte la partie : le rouge gagne, et les deux reviennent a
 Enfin un bot invite RagoBot dans sa party (`tools/kb-control/bots/ragobot-bots.mjs`) : RagoBot
 entre tout de suite, à côté de lui ; une deuxième invitation, une file classée, un mode qu'il ne
 joue pas et un `/duel RagoBot` d'un autre joueur sont refusés. Le bot joue le Sumo duel contre
-RagoBot sans bouger : RagoBot vient à lui, frappe, le pousse et le sort de la plateforme. En Top
-Bridge 1v1 (carte démo), RagoBot traverse le pont, le frappe à l'épée et gagne une manche ; le bot
-s'en va. En Top Bridge 2v2, la party (le bot et RagoBot) attend dans la file comme une équipe, deux
+RagoBot sans bouger : RagoBot vient à lui, frappe, le pousse et le sort de la plateforme. En Boxing
+(premier à 10 coups pour le test), RagoBot place ses 10 coups le premier : 10 - 0. En Top Bridge
+1v1 (carte démo), RagoBot traverse le pont, le frappe à l'épée et gagne une manche ; le bot s'en
+va. Pour le Lobby Fight 1v1, RagoMapOp (opérateur) fait de l'île du milieu de la carte démo sa
+salle d'attente (`/bw lobbyfight`, 121 blocs), comme sur Archway FFA ; RagoBot y frappe le bot à
+l'épée en pierre et gagne une manche ; le bot s'en va. En Top Bridge 2v2, la party (le bot et RagoBot) attend dans la file comme une équipe, deux
 autres bots seuls la rejoignent : RagoBot frappe l'un d'eux, ils s'en vont. Après `/p kick
 RagoBot`, puis après une party dissoute, RagoBot quitte le serveur. Le log du serveur ne doit
 compter aucune de ces parties comme partie privée (elles comptent dans les stats). Les bots notent

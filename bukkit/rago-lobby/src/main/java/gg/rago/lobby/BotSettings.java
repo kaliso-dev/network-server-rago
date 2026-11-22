@@ -18,9 +18,12 @@ final class BotSettings {
 
     /** The name it plays under, the same for every RagoBot online (one per party). */
     static final String NAME = "RagoBot";
-    /** The modes of the bundled config, those the owner asked for first (22/11). */
+    /**
+     * The modes of the bundled config: those the owner asked for first (22/11), then Boxing and
+     * Lobby Fight 1v1, step 1 of the owner's order of 22/11 (17h54).
+     */
     static final List<String> DEFAULT_MODES = Collections.unmodifiableList(
-            Arrays.asList("top-bridge-1v1", "top-bridge-2v2", "sumo"));
+            Arrays.asList("top-bridge-1v1", "top-bridge-2v2", "sumo", "boxing", "lobby-fight-1v1"));
     static final int MAX_BOTS = 50;
 
     /** False: /p invite RagoBot finds nobody. */

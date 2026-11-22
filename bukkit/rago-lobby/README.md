@@ -93,7 +93,8 @@ dans les files d'attente des modes de jeu.
   le fait entrer tout de suite dans la party, à côté du chef : un vrai joueur du serveur, avec le
   skin d'un compte (`skin:`, qRago) et le nom RagoBot, un par party qui l'invite (`max:` à la
   fois, de 1 à 50). Il joue les parties de la party dans ses modes (`modes:`, Top Bridge 1v1 et
-  2v2 et le Sumo 1v1 d'abord), comme un membre : une party de deux joue le 1v1 contre lui, une
+  2v2 et le Sumo 1v1 d'abord ; puis Boxing et Lobby Fight 1v1, l'étape 1 de l'ordre que tu as
+  validé le 22/11 : voir le suivi), comme un membre : une party de deux joue le 1v1 contre lui, une
   party avec lui attend dans la file du 2v2 comme une équipe. Jamais en classé, jamais pour remplir
   une file au hasard, jamais chef de la party (le chef qui part la laisse au joueur suivant ; sans
   autre joueur, elle est dissoute). Une partie avec lui compte dans les stats et l'XP des joueurs,

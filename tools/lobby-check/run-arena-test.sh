@@ -22,8 +22,9 @@
 # bots play Fast Bedwars 1v1 (tools/kb-control/bots/fast-bots.mjs) on the demo map: its welcome, its
 # events (no Diamond II), no diamond generator nor upgrades NPC, its fast forge, its smaller shop.
 # Then a bot invites RagoBot into its party (tools/kb-control/bots/ragobot-bots.mjs): RagoBot refuses
-# ranked and the modes it does not play, wins a Sumo duel and a round of Top Bridge 1v1 against the
-# bot who stands still, plays Top Bridge 2v2 in the party's team against two others, and leaves the
+# ranked and the modes it does not play, wins a Sumo duel, a Boxing, a round of Top Bridge 1v1 and
+# a round of Lobby Fight 1v1 against the bot who stands still, plays Top Bridge 2v2 in the party's
+# team against two others, and leaves the
 # server once kicked from the party; none of these games is counted as a private game. Last, the
 # Owner tools (tools/kb-control/bots/owner-bots.mjs): /owner for qRago only, Reach that lands from
 # 6 blocks in a sumo and does nothing in a ranked sumo, Scaffold in a Block placement 1v1; the games
@@ -124,7 +125,8 @@ YAML
 # The bundled config.yml of the lobby, with the id of qRago for the Owner tools (outils-owner.uuid):
 # this server is in offline mode, where a name alone is not enough. Its UUID is the one of an
 # offline-mode player: the version 3 UUID of "OfflinePlayer:qRago". qRago and RagoOp are operators
-# (rago.admin): /owner is for qRago only, even among the operators.
+# (rago.admin): /owner is for qRago only, even among the operators. RagoMapOp too, who sets the
+# waiting lobby of the demo map for the Lobby Fight of RagoBot (/bw lobbyfight).
 offline_uuid() {
   node -e 'const h = require("crypto").createHash("md5").update("OfflinePlayer:" + process.argv[1]).digest()
 h[6] = (h[6] & 0x0f) | 0x30; h[8] = (h[8] & 0x3f) | 0x80
@@ -135,15 +137,17 @@ QRAGO_UUID=$(offline_uuid qRago)
 sed -e "/^outils-owner:$/,/^[a-z]/s/^  uuid: \"\"$/  uuid: \"$QRAGO_UUID\"/" "$ROOT/bukkit/rago-lobby/src/main/resources/config.yml" \
   >"$SERVER_DIR/plugins/RagoLobby/config.yml"
 grep -q "^  uuid: \"$QRAGO_UUID\"$" "$SERVER_DIR/plugins/RagoLobby/config.yml" || fail "could not give the Owner tools the id of qRago"
-printf '[{"uuid":"%s","name":"qRago","level":4},{"uuid":"%s","name":"RagoOp","level":4}]\n' "$QRAGO_UUID" "$(offline_uuid RagoOp)" \
-  >"$SERVER_DIR/ops.json"
+printf '[{"uuid":"%s","name":"qRago","level":4},{"uuid":"%s","name":"RagoOp","level":4},{"uuid":"%s","name":"RagoMapOp","level":4}]\n' \
+  "$QRAGO_UUID" "$(offline_uuid RagoOp)" "$(offline_uuid RagoMapOp)" >"$SERVER_DIR/ops.json"
 # The bundled config.yml of RagoPractice, with the block modes ending at once: Block placement
-# first to 10 (a fall into the void gives 10), Block edit first to 2.
+# first to 10 (a fall into the void gives 10), Block edit first to 2; and the Boxing of RagoBot
+# first to 10 hits.
 mkdir -p "$SERVER_DIR/plugins/RagoPractice"
-sed -e 's/^  block-fight: 100$/  block-fight: 10/' -e 's/^  block-edit: 5$/  block-edit: 2/' \
+sed -e 's/^  block-fight: 100$/  block-fight: 10/' -e 's/^  block-edit: 5$/  block-edit: 2/' -e 's/^  boxing: 100$/  boxing: 10/' \
   "$ROOT/bukkit/rago-practice/src/main/resources/config.yml" >"$SERVER_DIR/plugins/RagoPractice/config.yml"
 grep -q '^  block-fight: 10$' "$SERVER_DIR/plugins/RagoPractice/config.yml" || fail "could not end the block placement at 10"
 grep -q '^  block-edit: 2$' "$SERVER_DIR/plugins/RagoPractice/config.yml" || fail "could not end the block edit at 2"
+grep -q '^  boxing: 10$' "$SERVER_DIR/plugins/RagoPractice/config.yml" || fail "could not end the boxing at 10 hits"
 # Every bundled skin of the NPCs counts as signed already (skins.yml: the hash of its PNG and empty
 # textures, so the NPCs look like Steve): the server sends nothing to MineSkin, and does not place
 # the NPCs again after each skin signed (they vanish for a moment) while the bots look at them.
@@ -268,8 +272,9 @@ KB_HOST=127.0.0.1 KB_PORT=$PORT node "$ROOT/tools/kb-control/bots/ctf-bots.mjs" 
 # The same server for Fast Bedwars: two bots, Fast Bedwars 1v1 (RagoBedwars, on its demo map).
 fast_status=0
 KB_HOST=127.0.0.1 KB_PORT=$PORT node "$ROOT/tools/kb-control/bots/fast-bots.mjs" || fast_status=$?
-# The same server for RagoBot: a bot invites it into its party, plays the Sumo duel and Top Bridge
-# 1v1 against it, then Top Bridge 2v2 with it against two others, and sends it away.
+# The same server for RagoBot: a bot invites it into its party, plays the Sumo duel, the Boxing, Top
+# Bridge 1v1 and Lobby Fight 1v1 (on the middle island of the demo map, made its waiting lobby by
+# RagoMapOp) against it, then Top Bridge 2v2 with it against two others, and sends it away.
 ragobot_status=0
 KB_HOST=127.0.0.1 KB_PORT=$PORT node "$ROOT/tools/kb-control/bots/ragobot-bots.mjs" || ragobot_status=$?
 # The same server for the Owner tools: qRago (the account of outils-owner) and two others; Reach in
@@ -297,7 +302,7 @@ fi
 [[ $ragobot_status -eq 0 ]] || { tail -n 60 "$SERVER_LOG" >&2; fail "the RagoBot bots stopped with status $ragobot_status"; }
 server_log_has '[RagoLobby] RagoBot joined for the party of RagoLeader' || fail "RagoBot did not join for the party of RagoLeader"
 # A game with RagoBot counts in the players' stats: none is a private game of the party.
-if grep -n -E 'Private game of a party in (sumo|top-bridge-1v1|top-bridge-2v2):' "$SERVER_LOG" >&2; then
+if grep -n -E 'Private game of a party in (sumo|boxing|top-bridge-1v1|lobby-fight-1v1|top-bridge-2v2):' "$SERVER_LOG" >&2; then
   fail "a game with RagoBot was counted as a private game (above)"
 fi
 [[ $owner_status -eq 0 ]] || { tail -n 60 "$SERVER_LOG" >&2; fail "the Owner tool bots stopped with status $owner_status"; }

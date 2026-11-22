@@ -2,7 +2,8 @@
 //
 // RagoBot is a player of the server that a party leader invites with /p invite RagoBot (the
 // owner's choice of 22/11: only in a party, never ranked, never to fill a random queue; Top Bridge
-// 1v1 and 2v2 and the Sumo 1v1 first). Test bots, with the bundled settings:
+// 1v1 and 2v2 and the Sumo 1v1 first, then Boxing and Lobby Fight 1v1, step 1 of the owner's order
+// of 22/11, 17h54). Test bots, with the bundled settings:
 //   1. RagoLeader invites RagoBot: it joins the party at once and stands next to it; a second
 //      invite finds it there already; RagoBot refuses a ranked queue and a mode it does not play;
 //      /duel RagoBot from another player points to the party;
@@ -10,11 +11,18 @@
 //      the stats; RagoLeader stands still: RagoBot pushes it off the platform, with at least one
 //      hit in the recap: RagoLeader loses. RagoLeader must see RagoBot come to it and get its
 //      knockback, as a player does (checked at the end, with what its client saw of the game);
-//   3. Top Bridge 1v1 (top-bridge-1v1, RagoBedwars, on its demo map): RagoBot crosses the bridge
+//   3. Boxing (boxing, RagoPractice, first to 10 hits in run-arena-test.sh): RagoLeader stands
+//      still, RagoBot lands its 10 hits first: RagoLeader loses 10 - 0;
+//   4. Top Bridge 1v1 (top-bridge-1v1, RagoBedwars, on its demo map): RagoBot crosses the bridge
 //      and hits RagoLeader with the sword of the kit, until it wins a round; RagoLeader leaves;
-//   4. Top Bridge 2v2: the party of RagoLeader and RagoBot queues as one team, two players alone
+//   5. Lobby Fight 1v1 (lobby-fight-1v1, RagoBedwars): RagoMapOp, an operator (ops.json of
+//      run-arena-test.sh), makes the middle island of the demo map its waiting lobby (/bw
+//      lobbyfight), as the owner did on Archway FFA;
+//      RagoBot hits RagoLeader with the stone sword of the kit until it wins a round; RagoLeader
+//      leaves;
+//   6. Top Bridge 2v2: the party of RagoLeader and RagoBot queues as one team, two players alone
 //      join the queue: the four play, RagoBot hits one of the two others; they leave;
-//   5. /p kick RagoBot: RagoBot leaves the server; invited again, then the party disbanded: it
+//   7. /p kick RagoBot: RagoBot leaves the server; invited again, then the party disbanded: it
 //      leaves again.
 // run-arena-test.sh also checks the server log: no game of these was counted as a private game of
 // a party (those count in no stats), and no error.
@@ -72,7 +80,7 @@ function join (username) {
       bot.on('error', (error) => abort(new Error(`${username}: ${error.message}`)))
       bot.on('kicked', (reason) => abort(new Error(`${username} was kicked: ${JSON.stringify(reason)}`)))
       bot.on('end', (reason) => {
-        if (!finishing) abort(new Error(`${username} disconnected: ${reason}`))
+        if (!finishing && !bot.leaving) abort(new Error(`${username} disconnected: ${reason}`))
       })
       resolve(bot)
     })
@@ -207,7 +215,7 @@ async function invite (leader) {
   const from = mark(leader)
   leader.chat(`/p invite ${BOT}`)
   await chatLine(leader, /RagoBot joined the party\./, 10000, from)
-  await chatLine(leader, /RagoBot plays .*Top Bridge 1v1, Top Bridge 2v2 and Sumo duel.* with your party, never ranked: your games with it count in your stats, never in the ELO\./, 5000, from)
+  await chatLine(leader, /RagoBot plays .*Top Bridge 1v1, Top Bridge 2v2, Sumo duel, Boxing and Lobby Fight 1v1.* with your party, never ranked: your games with it count in your stats, never in the ELO\./, 5000, from)
   await waitFor(() => ragoBot(leader) != null, 5000, `${leader.username} to see RagoBot (players: ${Object.keys(leader.players).join(', ')})`)
   const distance = ragoBot(leader).position.distanceTo(leader.entity.position)
   if (distance > 3) throw new Error(`RagoBot joined ${distance.toFixed(1)} blocks away from ${leader.username}, at ${where(ragoBot(leader))}`)
@@ -237,6 +245,85 @@ async function sumo (leader, problems) {
   log(`sumo: RagoBot pushed RagoLeader off the platform and won, ${hits} hits in the recap; ${seen.summary()}`)
   asAPlayerSeesIt('sumo', seen, problems)
   await expectInLobby(leader, 'after the sumo')
+}
+
+async function boxing (leader, problems) {
+  const from = mark(leader)
+  const seen = watch(leader)
+  let score
+  leader.chat('/queue boxing')
+  try {
+    await chatLine(leader, /Game of your party in Boxing: RagoLeader vs RagoBot\. It counts in your stats, never in the ELO\./, 5000, from)
+    await chatLine(leader, /Boxing against RagoBot/, 15000, from)
+    log('boxing: RagoLeader vs RagoBot, RagoLeader stands still')
+    const end = await chatLine(leader, /^(Defeat\.|Victory!)/, 90000, from)
+    if (!end.startsWith('Defeat.')) throw new Error(`RagoLeader won the boxing without a hit (${end}; ${seen.summary()})`)
+    score = /\((\d+) - (\d+) hits/.exec(end)
+    if (score == null || Number(score[1]) < 10 || Number(score[2]) !== 0) {
+      throw new Error(`the boxing should end 10 - 0 for RagoBot: ${end} (${seen.summary()})`)
+    }
+  } finally {
+    seen.stop()
+  }
+  log(`boxing: RagoBot landed its ${score[1]} hits first (${score[1]} - ${score[2]}); ${seen.summary()}`)
+  asAPlayerSeesIt('boxing', seen, problems)
+  await expectInLobby(leader, 'after the boxing')
+}
+
+/**
+ * RagoMapOp, an operator (ops.json of run-arena-test.sh), makes the middle island of the demo map
+ * (its floor at y 64, 11 blocks square) the waiting lobby of the map, as the owner did on Archway
+ * FFA with /bw lobbyfight: Lobby Fight is then played there. It leaves the server after.
+ */
+async function waitingLobbyOnTheDemoMap () {
+  const op = await arrive('RagoMapOp')
+  let from = mark(op)
+  op.chat('/bw edit bw-demo')
+  await chatLine(op, /You are on bw-demo\./, 20000, from)
+  op.chat('/tp 0.5 65 0.5')
+  await waitFor(() => op.entity.position.distanceTo({ x: 0.5, y: 65, z: 0.5 }) < 0.5 && op.entity.onGround, 10000,
+    `RagoMapOp on the middle island of bw-demo (at ${where(op.entity)})`)
+  from = mark(op)
+  op.chat('/bw lobbyfight')
+  await chatLine(op, /Waiting lobby of bw-demo: floor at y 64, .* \(121 blocks of floor\)\./, 5000, from)
+  op.leaving = true
+  op.quit()
+  log('lobby fight: RagoMapOp made the middle island of bw-demo its waiting lobby (121 blocks), and left')
+}
+
+async function lobbyFight1v1 (leader, problems) {
+  await waitingLobbyOnTheDemoMap()
+  const from = mark(leader)
+  const seen = watch(leader)
+  // RagoBot comes back from the game before after its end screen: until then, the party waits for it
+  const deadline = Date.now() + 20000
+  for (let asked = mark(leader); ; asked = mark(leader)) {
+    leader.chat('/queue lobby-fight-1v1')
+    const answer = await chatLine(leader, /Game of your party in Lobby Fight 1v1: RagoLeader vs RagoBot\.|RagoBot is not in the lobby: your party cannot join a queue\./, 5000, asked)
+    if (answer.startsWith('Game of your party')) break
+    if (Date.now() > deadline) throw new Error(`RagoBot never came back to the lobby after the top bridge 1v1 (${answer})`)
+    await sleep(1000)
+  }
+  try {
+    const welcome = await chatLine(leader, /Lobby Fight 1v1 on bw-demo: you are in the \S+ team\./, 20000, from)
+    const team = /you are in the (\S+) team\./.exec(welcome)[1]
+    log(`lobby fight 1v1: RagoLeader in the ${team} team, against RagoBot, on the middle island of bw-demo`)
+    await waitFor(() => leader.health < 20, 60000,
+      `RagoBot to hit RagoLeader with its sword (health ${leader.health}; ${seen.summary()})`)
+    log(`lobby fight 1v1: RagoBot hit RagoLeader (health ${leader.health.toFixed(1)})`)
+    const round = await chatLine(leader, /\S+ wins round 1!/, 60000, from).catch((error) => {
+      const bot = ragoBot(leader)
+      throw new Error(`${error.message}; RagoLeader at ${where(leader.entity)}, RagoBot at ${bot ? where(bot) : 'out of sight'}; ${seen.summary()}`)
+    })
+    if (round.startsWith(team)) throw new Error(`RagoLeader's team won the round: RagoBot fell off on its own (${round}; ${seen.summary()})`)
+  } finally {
+    seen.stop()
+  }
+  log(`lobby fight 1v1: RagoBot won the first round; ${seen.summary()}`)
+  asAPlayerSeesIt('lobby fight 1v1', seen, problems)
+  leader.chat('/spawn')
+  await expectInLobby(leader, 'after /spawn in the lobby fight')
+  log('lobby fight 1v1: RagoLeader left, back in the lobby with RagoBot')
 }
 
 async function topBridge1v1 (leader, problems) {
@@ -315,19 +402,21 @@ async function main () {
   await chatLine(leader, /RagoBot never plays ranked: \/p kick RagoBot first\./, 5000, from)
   from = mark(leader)
   leader.chat('/queue block-fight-1v1')
-  await chatLine(leader, /RagoBot plays .*Sumo duel only: \/p kick RagoBot to play /, 5000, from)
+  await chatLine(leader, /RagoBot plays .*Lobby Fight 1v1 only: \/p kick RagoBot to play /, 5000, from)
   const fromOther = mark(others[0])
   others[0].chat(`/duel ${BOT}`)
   await chatLine(others[0], /RagoBot plays with your party: \/p invite RagoBot, then pick its mode as the leader\./, 5000, fromOther)
   log('invite: RagoBot joined the party next to RagoLeader; it refuses a second invite, ranked, a mode it does not play, a /duel')
 
-  // 2. to 4. its games; what a player sees of RagoBot in them is checked at the end, after all
+  // 2. to 6. its games; what a player sees of RagoBot in them is checked at the end, after all
   const problems = []
   await sumo(leader, problems)
+  await boxing(leader, problems)
   await topBridge1v1(leader, problems)
+  await lobbyFight1v1(leader, problems)
   await topBridge2v2(leader, others)
 
-  // 5. it leaves once out of the party
+  // 7. it leaves once out of the party
   from = mark(leader)
   leader.chat(`/p kick ${BOT}`)
   await chatLine(leader, /RagoBot has been removed from the party\./, 5000, from)
@@ -341,9 +430,9 @@ async function main () {
   if (problems.length > 0) throw new Error(problems.join('; '))
 
   finishing = true
-  log('PASSED: RagoBot joins a party by /p invite, refuses ranked and the other modes, wins a Sumo duel and a round'
-    + ' of Top Bridge 1v1 against a player who stands still, plays Top Bridge 2v2 in its party\'s team, and'
-    + ' leaves the server once out of the party')
+  log('PASSED: RagoBot joins a party by /p invite, refuses ranked and the other modes, wins a Sumo duel, a Boxing,'
+    + ' a round of Top Bridge 1v1 and a round of Lobby Fight 1v1 against a player who stands still, plays Top Bridge'
+    + ' 2v2 in its party\'s team, and leaves the server once out of the party')
   for (const bot of [leader, ...others]) bot.quit()
   await sleep(500)
   process.exit(0)

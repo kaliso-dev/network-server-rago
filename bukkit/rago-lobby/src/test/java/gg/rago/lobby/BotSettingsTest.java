@@ -21,6 +21,8 @@ class BotSettingsTest {
         for (GameMode mode : Arrays.asList(new GameMode("top-bridge-1v1", "&aTop Bridge 1v1", 2, 1, false),
                 new GameMode("top-bridge-2v2", "&aTop Bridge 2v2", 2, 2, false),
                 new GameMode("sumo", "&aSumo duel", 2, 1, false),
+                new GameMode("boxing", "&aBoxing", 2, 1, false),
+                new GameMode("lobby-fight-1v1", "&aLobby Fight 1v1", 2, 1, false),
                 new GameMode("ranked-sumo", "&6Ranked Sumo", 2, 1, true),
                 new GameMode("clutch", "&eClutch", 1, 1, false))) {
             byId.put(mode.id(), mode);
@@ -46,9 +48,12 @@ class BotSettingsTest {
         assertEquals("qRago", bots.skin);
         assertEquals(10, bots.max);
         assertEquals(BotSettings.DEFAULT_MODES, bots.modes);
-        assertEquals("Top Bridge 1v1, Top Bridge 2v2 and Sumo duel", bots.modeNames);
+        assertEquals("Top Bridge 1v1, Top Bridge 2v2, Sumo duel, Boxing and Lobby Fight 1v1", bots.modeNames,
+                "Boxing and Lobby Fight 1v1: step 1 of the owner's order of 22/11 (17h54)");
         assertSame(BotBrain.Skill.BUNDLED, bots.skill);
         assertTrue(bots.plays("sumo"));
+        assertTrue(bots.plays("boxing"));
+        assertTrue(bots.plays("lobby-fight-1v1"));
         assertFalse(bots.plays("ranked-sumo"));
     }
 

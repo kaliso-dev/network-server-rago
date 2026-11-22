@@ -1188,7 +1188,8 @@ ragobot:
   actif: true
   skin: qRago
   max: 10
-  modes: [top-bridge-1v1, top-bridge-2v2, sumo]
+  # Boxing and Lobby Fight 1v1: step 1 of the owner's order of 22/11 (17h54), no new skill
+  modes: [top-bridge-1v1, top-bridge-2v2, sumo, boxing, lobby-fight-1v1]
   skill:
     cps: 11
     precision: 0.88
