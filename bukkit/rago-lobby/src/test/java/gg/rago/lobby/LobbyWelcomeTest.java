@@ -20,7 +20,8 @@ class LobbyWelcomeTest {
     void itShowsTheWaysToPlayOfTheBundledConfig() throws Exception {
         LobbySettings settings = LobbySettings.load(LobbySettingsTest.bundledConfig());
         List<ModeCategory> categories = settings.categories();
-        assertEquals("Practice · RBW Modes · Duels · Arenas · Fun Practice · 3 Players", ChatColor.stripColor(LobbyWelcome.subtitle(categories)),
+        assertEquals("Practice · RBW Modes · Duels · Arenas · Fun Practice · 3 Players · Party · Ranked",
+                ChatColor.stripColor(LobbyWelcome.subtitle(categories)),
                 "the title, the first time");
         for (ModeCategory category : categories) {
             JsonObject line = new JsonParser().parse(LobbyWelcome.json(category)).getAsJsonObject();
@@ -59,7 +60,11 @@ class LobbyWelcomeTest {
         assertEquals("arenes", LobbyWelcome.find(categories, "arenas").id());
         assertEquals("fun", LobbyWelcome.find(categories, "fun practice").id());
         assertEquals("trois-joueurs", LobbyWelcome.find(categories, "3 players").id());
-        assertEquals(Arrays.asList("entrainement", "ranked", "duels", "arenes", "fun", "trois-joueurs"), LobbyWelcome.ids(categories));
+        assertEquals("party", LobbyWelcome.find(categories, "party").id());
+        assertEquals("classe", LobbyWelcome.find(categories, "classe").id(), "Ranked (plan 3.7)");
+        assertEquals("ranked", LobbyWelcome.find(categories, "ranked").id(), "the id first: /play ranked opens RBW Modes, as before");
+        assertEquals(Arrays.asList("entrainement", "ranked", "duels", "arenes", "fun", "trois-joueurs", "party", "classe"),
+                LobbyWelcome.ids(categories));
     }
 
     @Test

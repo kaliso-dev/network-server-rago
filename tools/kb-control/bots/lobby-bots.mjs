@@ -69,13 +69,14 @@ const PORT = Number(process.env.KB_PORT ?? '25565')
 const TEST_TIMEOUT_MS = 7 * 60 * 1000
 // A new lobby world has a platform at y = 64: players stand at y = 65, at the centre.
 const LOBBY_SPAWN = { x: 0.5, y: 65, z: 0.5 }
-// The compass is laid out as on Minemen (ModeMenu): the six categories of the bundled config.yml
-// side by side in the top row (ModeMenu.tabSlot), Practice on the left (slot 1), RBW Modes, Duels in
-// slot 3, the Arenas, FUN PRACTICE, 3 Players on the right; an empty row; then the modes of the
-// category chosen, from slot 19 (Practice when the compass opens). A click on Duels shows its modes
-// in the same menu: the sumo is its slime ball (Bed Fight comes first). The bottom row is "Popular
-// now" (the modes with players right now).
-const DUELS_SLOT = 3
+// The compass is laid out as on Minemen (ModeMenu): the eight categories of the bundled config.yml
+// side by side in the top row (ModeMenu.tabSlot), Practice on the left (slot 0), RBW Modes, Duels in
+// slot 2, the Arenas, FUN PRACTICE, 3 Players, then Party and Ranked (plan 3.7) on the right; an
+// empty row; then the modes of the category chosen, from slot 19 (Practice when the compass opens).
+// A click on Duels shows its modes in the same menu: the sumo is its slime ball (Bed Fight comes
+// first). The bottom row is "Popular now" (the modes with players right now).
+const PRACTICE_SLOT = 0
+const DUELS_SLOT = 2
 const FIRST_MODE_SLOT = 19
 const POINTS_TO_WIN = 3
 // run-lobby-test.sh places the NPC of the Duels category (point duels), a stats NPC
@@ -247,7 +248,7 @@ async function openSelectorAndJoinSumo (bot) {
   if (window.slots[DUELS_SLOT]?.name !== 'iron_sword') {
     throw new Error(`${bot.username}: slot ${DUELS_SLOT} holds ${window.slots[DUELS_SLOT]?.name}, not the Duels category`)
   }
-  if (!chosenCategory(window, 1) || chosenCategory(window, DUELS_SLOT)) {
+  if (!chosenCategory(window, PRACTICE_SLOT) || chosenCategory(window, DUELS_SLOT)) {
     throw new Error(`${bot.username}: the compass should open on Practice: ${JSON.stringify(window.slots.slice(0, 9).map((item) => item?.name))}`)
   }
   if (window.slots[FIRST_MODE_SLOT] == null || window.slots.slice(9, 18).some((item) => item != null)) {

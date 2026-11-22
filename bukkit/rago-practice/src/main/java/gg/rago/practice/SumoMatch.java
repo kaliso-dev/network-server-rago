@@ -42,6 +42,8 @@ final class SumoMatch implements Spectators.Watched {
 
     private final RagoPractice plugin;
     private final SumoHost host;
+    /** The lobby mode of the duel: the sumo, or its ranked twin (plan 3.7), with its own ELO. */
+    private final String modeId;
     private final int slot;
     private final Location centre;
     /** The name of the map, or null on the plain platform. */
@@ -58,10 +60,11 @@ final class SumoMatch implements Spectators.Watched {
     /** The recording of the duel for /replay, or null. */
     private ReplayRecording replay;
 
-    SumoMatch(RagoPractice plugin, SumoHost host, int slot, Location centre, String map, Player first, Player second,
-            int target) {
+    SumoMatch(RagoPractice plugin, SumoHost host, String modeId, int slot, Location centre, String map, Player first,
+            Player second, int target) {
         this.plugin = plugin;
         this.host = host;
+        this.modeId = modeId;
         this.slot = slot;
         this.centre = centre;
         this.map = map;
@@ -227,7 +230,7 @@ final class SumoMatch implements Spectators.Watched {
         }
         int scorer = 1 - side;
         // A point is a kill for the scorer and a death for the player who fell.
-        plugin.lobby().recordKill(SumoHost.MODE_ID, players[scorer], players[side]);
+        plugin.lobby().recordKill(modeId, players[scorer], players[side]);
         boolean won = score.point(scorer);
         replayChat(Duel.CHAT[scorer] + "Point for " + names[scorer] + ChatColor.GRAY + " (" + score.text(0) + ")");
         for (int s = 0; s < 2; s++) {
@@ -253,7 +256,7 @@ final class SumoMatch implements Spectators.Watched {
         plugin.spectators().playerLeft(this, player);
         if (phase != Phase.ENDED) {
             // a forfeit: the queues of a ranked mode close for a while (the lobby says which)
-            plugin.lobby().forfeited(SumoHost.MODE_ID, player.getUniqueId());
+            plugin.lobby().forfeited(modeId, player.getUniqueId());
             end(1 - side, true);
         }
         host.release(player.getUniqueId());
@@ -266,7 +269,7 @@ final class SumoMatch implements Spectators.Watched {
         phase = Phase.ENDED;
         cancelCountdown();
         // Counted in the stats and the leaderboards; a forfeit is a loss.
-        plugin.lobby().recordMatch(SumoHost.MODE_ID, Collections.singletonList(players[winner]),
+        plugin.lobby().recordMatch(modeId, Collections.singletonList(players[winner]),
                 Collections.singletonList(players[1 - winner]));
         for (int side = 0; side < 2; side++) {
             Player player = Bukkit.getPlayer(players[side]);
@@ -384,7 +387,7 @@ final class SumoMatch implements Spectators.Watched {
         player.getInventory().setArmorContents(null);
         // A sumo gives no items, unless its kit: in the lobby's config.yml has some (a stick...):
         // then the player gets them as they arranged them in the kit editor.
-        ItemStack[] kit = plugin.lobby().kit(player, SumoHost.MODE_ID);
+        ItemStack[] kit = plugin.lobby().kit(player, modeId);
         if (kit != null) {
             player.getInventory().setContents(kit);
         }

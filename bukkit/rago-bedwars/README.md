@@ -122,7 +122,8 @@ et 5 or par minute chacune, au lieu de 90 et 8.
 
 ## Top Bridge
 
-`top-bridge-1v1` et `top-bridge-2v2` (le jeu `top-bridge`) se jouent sur les 20 maps de la file,
+`top-bridge-1v1`, `top-bridge-2v2` et la version classée `ranked-top-bridge-1v1` (plan 3.7 : sa propre
+file et son ELO, onglet Ranked) (le jeu `top-bridge`) se jouent sur les 20 maps de la file,
 sur le **top bridge** construit sur Antenna : au début de la partie, le plugin pose sur la copie
 une plateforme de laine de 17 blocs de large au-dessus du milieu, chaque moitié à la couleur de
 l'équipe de son côté (un bloc blanc au centre), et depuis le bord de chaque île un escalier de laine
@@ -262,7 +263,8 @@ qu'il ne reste qu'une équipe.
 
 ## Bed Fight
 
-`bed-fight-1v1`, `bed-fight-2v2` et `bed-fight-1v2` (le genre `bed-fight`), comme le Bed Fight de Minemen, sur la
+`bed-fight-1v1`, `bed-fight-2v2`, `bed-fight-1v2` et leur version classée `ranked-bed-fight-1v1`
+(plan 3.7 : sa propre file et son ELO, onglet Ranked) (le genre `bed-fight`), comme le Bed Fight de Minemen, sur la
 map BedFight du propriétaire : deux îles face à face, chaque lit sous la défense que la map a déjà
 (bois et end stone), que les joueurs cassent comme dans une partie. Ni forge, ni shop, ni
 amélioration, ni diamant : chacun a le kit du mode (l'éditeur de kit du lobby ; sinon une épée,

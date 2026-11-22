@@ -50,12 +50,14 @@ replays:
   taille-max-mo: 2000
   spectateurs-max: 6
 
-# The categories of the selector, one per zone of the lobby, in the order of the menu (7 at most):
-# left to right, as in the lobby. The compass first shows the categories, then the games of the
-# one picked (28 modes at most per category). Without a categories section, the compass shows
-# every mode at once (35 at most). slogan: what a player does there, in a few words (40 characters
-# at most, colours not counted): under its name in the compass, under its NPC, and in the welcome
-# of the lobby; its key words in the colour of the category, the rest in grey (&7).
+# The categories of the selector, one per zone of the lobby, in the order of the menu (9 at most,
+# side by side in the top row of the compass): left to right, as in the lobby. The compass first
+# shows the categories, then the games of the one picked (28 modes at most per category). Without
+# a categories section, the compass shows every mode at once (35 at most). slogan: what a player
+# does there, in a few words (40 characters at most, colours not counted): under its name in the
+# compass, under its NPC, and in the welcome of the lobby; its key words in the colour of the
+# category, the rest in grey (&7). party: true makes it the category of the parties (one at
+# most): no modes of its own, the games each viewer's party plays against itself at its size.
 categories:
   entrainement:
     nom: "&b&lPractice"
@@ -69,15 +71,15 @@ categories:
   ranked:
     nom: "&6&lRBW Modes"
     icone: BED
-    slogan: "&6Ranked &7and &6RBW situations"
+    slogan: "&6RBW situations &7to practice"
     description:
-      - "Ranked 1v1 to 4v4, and modes"
-      - "close to Ranked Bedwars: Sky"
-      - "Rise, first rush, invis, clutch"
-      - "scenarios, attack and defense,"
-      - "Bed Break Simulator, private"
-      - "games. With the server or your"
-      - "friends."
+      - "Modes close to Ranked Bedwars:"
+      - "Sky Rise, first rush, invis,"
+      - "clutch scenarios, attack and"
+      - "defense, Bed Break Simulator,"
+      - "private games. With the server"
+      - "or your friends. Ranked Bedwars"
+      - "is in Ranked."
   duels:
     nom: "&a&lDuels"
     icone: IRON_SWORD
@@ -126,6 +128,33 @@ categories:
       - "Clutch Scenario and Bed Fight:"
       - "one against two."
     aussi: [red-rover, bed-break-simulator-1v2, invis-practice-1v2, clutch-scenario-1v2, bed-fight-1v2]
+  # PARTY (plan 3.7): no modes of its own (party: true). The compass shows there what the viewer's
+  # party plays against itself, at its size: two players the 1v1s, three the 1v2s and Red Rover,
+  # four the 2v2s... (a private game, in no stats). A party that fits in one team (two players in a
+  # 2v2) still queues against others from the other categories, ranked too (with the mean ELO).
+  party:
+    nom: "&9&lParty"
+    icone: NAME_TAG
+    slogan: "&9Your party &7against &9itself"
+    party: true
+    description:
+      - "The games your party plays"
+      - "against itself, at its size."
+      - "Only the leader starts one."
+  # RANKED (plan 3.7, the owner's choice of 22/11): every ranked mode (classe: true), each with its
+  # own ELO, division, queue by ELO and leaderboard: Ranked Bedwars 1v1 to 4v4, and the six great
+  # duels in 1v1, the same games as their unranked modes (same maps, same kit, arranged once in the
+  # kit editor), with their own queue. /duel and the private games of a party are never ranked.
+  classe:
+    nom: "&6&lRanked"
+    icone: DIAMOND_SWORD
+    slogan: "&6Your ELO &7in every game"
+    description:
+      - "Ranked Bedwars 1v1 to 4v4, and"
+      - "Bed Fight, Top Bridge, Bridge"
+      - "Fight, Block Placement, Sumo"
+      - "and Boxing in 1v1: each with"
+      - "its own ELO and divisions."
 
 # At each arrival in the lobby, the ways to play in the chat: a line per category (its name and
 # slogan), a click opens its modes (/play category); at the first arrival, a title too. false: none.
@@ -1080,7 +1109,7 @@ parties-privees:
 modes:
   ranked-1v1:
     nom: "&6Ranked Bedwars 1v1"
-    categorie: ranked
+    categorie: classe
     groupe: ranked
     icone: BED
     equipes: 2
@@ -1093,7 +1122,7 @@ modes:
       - "down after every game."
   ranked-2v2:
     nom: "&6Ranked Bedwars 2v2"
-    categorie: ranked
+    categorie: classe
     groupe: ranked
     icone: DIAMOND_SWORD
     equipes: 2
@@ -1104,7 +1133,7 @@ modes:
       - "two, on the RBW maps."
   ranked-3v3:
     nom: "&6Ranked Bedwars 3v3"
-    categorie: ranked
+    categorie: classe
     groupe: ranked
     icone: DIAMOND_CHESTPLATE
     equipes: 2
@@ -1115,7 +1144,7 @@ modes:
       - "three, on the RBW maps."
   ranked-4v4:
     nom: "&6Ranked Bedwars 4v4"
-    categorie: ranked
+    categorie: classe
     groupe: ranked
     icone: DIAMOND_BLOCK
     equipes: 2
@@ -1124,6 +1153,75 @@ modes:
     description:
       - "Ranked Bedwars, four against"
       - "four, on the RBW maps."
+  # The six great duels in ranked 1v1 (plan 3.7, the owner's choice of 22/11): the game of their
+  # unranked mode (kit-de: its kit, as each player arranged it), with their own queue by ELO.
+  ranked-bed-fight-1v1:
+    nom: "&6Ranked Bed Fight 1v1"
+    categorie: classe
+    icone: BED
+    equipes: 2
+    joueurs-par-equipe: 1
+    classe: true
+    kit-de: bed-fight-1v1
+    description:
+      - "Bed fight in 1v1, ranked: your"
+      - "ELO goes up or down after"
+      - "every game."
+  ranked-top-bridge-1v1:
+    nom: "&6Ranked Top Bridge 1v1"
+    categorie: classe
+    icone: LADDER
+    equipes: 2
+    joueurs-par-equipe: 1
+    classe: true
+    kit-de: top-bridge-1v1
+    description:
+      - "Top Bridge in 1v1, ranked: the"
+      - "first to 5 points wins, your"
+      - "ELO follows."
+  ranked-bridge-fight-1v1:
+    nom: "&6Ranked Bridge Fight 1v1"
+    categorie: classe
+    icone: WOOL
+    equipes: 2
+    joueurs-par-equipe: 1
+    classe: true
+    kit-de: bridge-fight-1v1
+    description:
+      - "Bridge fight in 1v1, ranked:"
+      - "first to 5, your ELO follows."
+  ranked-block-fight-1v1:
+    nom: "&6Ranked Block Placement 1v1"
+    categorie: classe
+    icone: SANDSTONE
+    equipes: 2
+    joueurs-par-equipe: 1
+    classe: true
+    kit-de: block-fight-1v1
+    description:
+      - "Block placement in 1v1, ranked:"
+      - "first to 100, your ELO follows."
+  ranked-sumo:
+    nom: "&6Ranked Sumo"
+    categorie: classe
+    icone: SLIME_BALL
+    equipes: 2
+    joueurs-par-equipe: 1
+    classe: true
+    description:
+      - "The sumo duel, ranked: knock"
+      - "them off, your ELO follows."
+  ranked-boxing:
+    nom: "&6Ranked Boxing"
+    categorie: classe
+    icone: DIAMOND_SWORD
+    equipes: 2
+    joueurs-par-equipe: 1
+    classe: true
+    kit-de: boxing
+    description:
+      - "Boxing, ranked: first to 100"
+      - "hits, your ELO follows."
   skyrise-1v1:
     nom: "&6RBW Sky Rise 1v1"
     categorie: ranked

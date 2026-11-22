@@ -29,6 +29,11 @@ Ceux qui regardent un duel ou un entraînement (`/spectate`, voir le
 joueur qu'ils sont venus voir, ne s'éloignent pas de l'arène et reviennent au lobby à la fin.
 Chaque duel, sumo compris, est enregistré : `/replay` le montre à nouveau depuis le lobby, avec
 **[REPLAY]** dans la ligne d'après-partie (voir le [README du lobby](../rago-lobby/README.md)).
+Quatre duels ont leur version classée (plan 3.7, onglet Ranked de la boussole) : `ranked-sumo`,
+`ranked-boxing`, `ranked-block-fight-1v1` et `ranked-bridge-fight-1v1`. Chacune est jouée par l'hôte
+de son mode de Solo, sur ses zones et ses maps (les rangées des autres modes ne bougent pas), avec
+sa propre file et son propre ELO ; les stats, les kills et le replay de la partie vont à la version
+jouée.
 
 - **Sumo** : sur les maps sumo du serveur (Ponsen, Fort Royale, White Crystal, Space Mine, Sumo,
   dans le dossier des mondes), tirées au hasard à chaque duel ; sans elles, une plateforme ronde.

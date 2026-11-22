@@ -8,7 +8,9 @@ import org.bukkit.Material;
  * A category of the selector, matching a zone of the lobby; or a group of a category (groupes:
  * in config.yml), the sizes of one game shown as one item. A category may have a slogan: what a
  * player does there, in a few words ("Train alone"), shown under its name in the compass, under
- * its NPC and in the welcome of the lobby. Immutable.
+ * its NPC and in the welcome of the lobby. A category may be the one of the parties (party: true
+ * in config.yml, plan 3.7): no modes of its own, the compass shows there what the viewer's party
+ * plays against itself at its size. Immutable.
  */
 final class ModeCategory {
 
@@ -19,6 +21,8 @@ final class ModeCategory {
     private final String slogan;
     /** The modes and groups of other categories it shows too (aussi: in config.yml), in that order. */
     private final List<String> also;
+    /** True for the category of the parties: its modes follow the size of the viewer's party. */
+    private final boolean party;
 
     ModeCategory(String id, String name, Material icon, List<String> description) {
         this(id, name, icon, description, null);
@@ -29,6 +33,12 @@ final class ModeCategory {
     }
 
     ModeCategory(String id, String name, Material icon, List<String> description, String slogan, List<String> also) {
+        this(id, name, icon, description, slogan, also, false);
+    }
+
+    ModeCategory(String id, String name, Material icon, List<String> description, String slogan, List<String> also,
+            boolean party) {
+        this.party = party;
         this.id = id;
         this.name = name;
         this.icon = icon;
@@ -67,5 +77,13 @@ final class ModeCategory {
      */
     List<String> also() {
         return also;
+    }
+
+    /**
+     * True for the category of the parties (plan 3.7): it has no modes of its own; the compass
+     * shows there the games the viewer's party plays against itself, at its size.
+     */
+    boolean party() {
+        return party;
     }
 }

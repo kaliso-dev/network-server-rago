@@ -27,12 +27,19 @@ class LayoutTest {
 
     @Test
     void theCompassIsLaidOutAsOnMinemen() {
-        // the six categories of the bundled config.yml side by side in the top row, Duels the third
-        assertEquals(1, ModeMenu.tabSlot(0, 6), "Practice on the left");
-        assertEquals(3, ModeMenu.tabSlot(2, 6), "Duels");
-        assertEquals(6, ModeMenu.tabSlot(5, 6), "3 Players on the right");
-        for (int i = 0; i < 6; i++) {
-            assertTrue(ModeMenu.tabSlot(i, 6) < 9, "the top row");
+        // six categories side by side in the top row, centred
+        assertEquals(1, ModeMenu.tabSlot(0, 6));
+        assertEquals(3, ModeMenu.tabSlot(2, 6));
+        assertEquals(6, ModeMenu.tabSlot(5, 6));
+        // the eight of the bundled config.yml (plan 3.7): the Solo ones, Duels the third, then Party and Ranked
+        assertEquals(0, ModeMenu.tabSlot(0, 8), "Practice on the left");
+        assertEquals(2, ModeMenu.tabSlot(2, 8), "Duels");
+        assertEquals(6, ModeMenu.tabSlot(6, 8), "Party");
+        assertEquals(7, ModeMenu.tabSlot(7, 8), "Ranked");
+        for (int count = 1; count <= LobbySettings.MAX_CATEGORIES; count++) {
+            for (int i = 0; i < count; i++) {
+                assertTrue(ModeMenu.tabSlot(i, count) >= 0 && ModeMenu.tabSlot(i, count) < 9, count + " categories: the top row");
+            }
         }
         // then an empty row, then the modes of the category chosen, seven per row
         assertEquals(19, ModeMenu.compassSlot(0), "row 2, under the empty row");

@@ -50,7 +50,8 @@ export default function Home() {
   const modeCount = playableModes().length;
   const trainings = playableModes().filter((mode) => mode.category === 'entrainement').length;
   const practice = categoryOf('entrainement');
-  const rankedFormats = game.modes.filter((mode) => mode.ranked).map((mode) => mode.format);
+  // the sizes of Ranked Bedwars (its group): the other ranked modes are duels in 1v1 (plan 3.7)
+  const rankedFormats = game.modes.filter((mode) => mode.ranked && mode.group === 'ranked').map((mode) => mode.format);
   const pack = game.starterPack;
   const queue = game.ranked.queue;
   const blockTrainings = playableModes().filter((mode) => BLOCK_TRAININGS.includes(mode.id));

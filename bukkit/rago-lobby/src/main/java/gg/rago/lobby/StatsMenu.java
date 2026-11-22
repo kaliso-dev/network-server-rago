@@ -445,11 +445,21 @@ final class StatsMenu {
         return ranked;
     }
 
-    /** "1v1" for a 1 against 1, else the mode's name without colours. */
+    /**
+     * The ranked mode in a few letters, after "Elo": "1v1" for Ranked Bedwars 1v1, its game for
+     * the other ranked duels (plan 3.7: "Sumo", "Bed Fight 1v1"), else the mode's name without
+     * colours.
+     */
     static String shortName(GameMode mode) {
+        String name = ChatColor.stripColor(mode.name());
+        if (name.startsWith(RANKED) && !name.startsWith(RANKED + "Bedwars ")) {
+            return name.substring(RANKED.length());
+        }
         if (mode.teams() == 2) {
             return mode.playersPerTeam() + "v" + mode.playersPerTeam();
         }
-        return ChatColor.stripColor(mode.name());
+        return name;
     }
+
+    private static final String RANKED = "Ranked ";
 }

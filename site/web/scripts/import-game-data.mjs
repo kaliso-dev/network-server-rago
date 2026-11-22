@@ -132,12 +132,20 @@ function amount(price) {
   return Number(match[1].replace(',', '.'));
 }
 
+/** A ranked duel of the practice plugin, on the host of its mode of Solo: alsoRanked(..., "ranked-boxing"); */
+const RANKED_TWIN = /alsoRanked\([^;]*?,\s*"([a-z0-9-]+)"\);/g;
+
 /** The modes each plugin runs: the Bed Wars plugin by its config, the practice plugin by its code. */
 function plugins(lobby) {
   const bedwars = new Set(Object.keys(parse(read(SOURCES.bedwarsConfig)).modes ?? {}));
-  const practice = new Set([...read(SOURCES.practicePlugin).matchAll(/register\("([a-z0-9-]+)"/g)].map((m) => m[1]));
-  const sumo = /MODE_ID\s*=\s*"([a-z0-9-]+)"/.exec(read(SOURCES.sumoHost));
-  if (sumo) {
+  const practiceCode = read(SOURCES.practicePlugin);
+  const practice = new Set([...practiceCode.matchAll(/register\("([a-z0-9-]+)"/g)].map((m) => m[1]));
+  // the ranked duels (plan 3.7), played by the hosts of their modes of Solo: alsoRanked(host, "id")
+  for (const twin of practiceCode.matchAll(RANKED_TWIN)) {
+    practice.add(twin[1]);
+  }
+  // the sumo and the ranked sumo
+  for (const sumo of read(SOURCES.sumoHost).matchAll(/MODE_ID\s*=\s*"([a-z0-9-]+)"/g)) {
     practice.add(sumo[1]);
   }
   for (const kind of read(SOURCES.eventGame).matchAll(/^\s*[A-Z_]+\("([a-z0-9-]+)",/gm)) {
@@ -235,7 +243,9 @@ export function buildGameData() {
 
   // the NPCs of the ways to play wear the skin of their category
   const npcs = Object.values(lobby.pnj ?? {});
-  const categories = Object.entries(lobby.categories).map(([id, category]) => {
+  // the category of the parties (party: true, plan 3.7) has no modes of its own: in the compass, the
+  // games of the viewer's party at its size; not a way to play of the site
+  const categories = Object.entries(lobby.categories).filter(([, category]) => category.party !== true).map(([id, category]) => {
     // aussi: the modes (or groups) of other categories it shows too, after its own, as 3 Players
     // shows Red Rover of the Duels: the same modes, still in their own category
     const also = (category.aussi ?? []).flatMap((key) => {

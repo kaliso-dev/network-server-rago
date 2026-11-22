@@ -150,7 +150,7 @@ informations manquantes.
 | 3.5 | Network Level au-dessus des joueurs par défaut (lobby, practice, autres) | Lobby | P1 | IMPLÉMENTÉ (tests unitaires passés en CI ; à voir en jeu) | `HeadLines`, `RagoLobby`, `LobbyScoreboard`, `ProfileMenu` | 1.3 | C4 |
 | 3.6 | ELO des adversaires visible en Ranked | Ranked | P1 | IMPLÉMENTÉ (tests unitaires passés en CI ; à voir en jeu) | `LobbyScoreboard` (pseudo et Tab en partie) | 3.5 | — |
 | 3.8 | Nombre de joueurs en file pour chaque mode | Files | P1 | TESTÉ (test réel en CI, Java 8 et 21 : les bots lisent 0, 1, 0 sous le PNJ Duels et dans le menu) | `QueueController`, `ModeMenu`, `LobbyNpcs`, `lobby-bots.mjs` | — | — |
-| 3.7 | Organisation Solo / Party / Ranked (ELO par mode) : proposition avant tout code | Files | P2 | À FAIRE : ta réponse du 22/11, « Build », et ton choix sur la carte : « les grands duels 1v1 » (Bed Fight, Top Bridge, Bridge Fight, Block Placement, Sumo et Boxing en 1v1 classé, plus Ranked Bedwars comme aujourd'hui) | `ModeCategory`, `ModeMenu`, `QueueController`, `Matchmaker`, `EloLadder` | 3.8 | — |
+| 3.7 | Organisation Solo / Party / Ranked (ELO par mode) : proposition avant tout code | Files | P2 | IMPLÉMENTÉ le 22/11 (ta réponse « Build » et ton choix « les grands duels 1v1 ») : deux onglets de plus dans la boussole, Party et Ranked ; Ranked tient Ranked Bedwars 1v1 à 4v4 (ses ELO gardés) et six duels classés en 1v1, chacun avec son ELO (Bed Fight, Top Bridge, Bridge Fight, Block Placement, Sumo, Boxing) ; Party montre ce que la party joue contre elle-même à sa taille. Testé par les tests du dépôt en CI seulement, pas encore joué en jeu ni installé (voir le journal) | `ModeCategory`, `ModeMenu`, `QueueController`, `LobbySettings`, `DuelRequests`, `StatsMenu`, `RagoPractice`, `SumoHost`, config.yml du lobby et des Bed Wars | 3.8 | — |
 
 ### Étape 5 : expérience joueur (Phase 4)
 
@@ -179,7 +179,7 @@ informations manquantes.
 | 5.6C | `jncl` et `nativ` (affiché woryes, skin Woryes), rôle Mod en jaune clair | Lobby | P2 | À FAIRE : ta réponse du 22/11, jncl affiché « directement », nativ affiché « woryes » (C7) | `LobbyNpcs`, `RankDef` | — |
 | 5.7 | Texte de remerciement en anglais, fidèle à ton histoire, avec le Discord, à valider avant intégration | Lobby | P2 | À FAIRE | point `textremerciement`, `FakeHologram` | — (Discord : `discord.gg/ragooptimizer`, 22/11) |
 | 5.8 | Revoir les skins des PNJ du lobby | Lobby | P2 | À FAIRE | `NpcSkins`, `skins.yml` | — |
-| 5.9 | Boussole comme sur Minemen (ta demande du 22/11) : les catégories en haut, un espace, puis les modes de la catégorie choisie | Lobby | P1 | TESTÉ par les bots en CI le 22/11 (commit af042fc, Java 8 et 21 : le PNJ Duels ouvre la boussole sur Duels ; un clic sur Duels en haut remplace les jeux de Practice dans le même menu, puis la sumo rejoint sa file) ; installé sur ton serveur le 22/11 vers 1h40 (seul `rago-lobby` change, sauvegarde `sauvegarde-avant-maj-af042fc`) ; pas encore vu en jeu : les 6 catégories sur la ligne du haut (slots 1 à 6), une ligne vide, les jeux de la catégorie choisie à partir du slot 19 ; un clic sur une autre catégorie change les jeux dans le même menu, celle choisie brille (« Its modes are below ») ; s'ouvre sur Practice, ou sur la catégorie du PNJ, de `/play` ou du groupe dont on revient ; « Popular now » passe sur la ligne du bas ; le menu garde la taille de la plus grande catégorie (Practice, 15 jeux : 6 lignes) | `ModeMenu`, `lobby-bots.mjs` | les catégories restent celles d'aujourd'hui ; d'autres (Duo, Ranked…, voir 3.7) sont à choisir |
+| 5.9 | Boussole comme sur Minemen (ta demande du 22/11) : les catégories en haut, un espace, puis les modes de la catégorie choisie | Lobby | P1 | TESTÉ par les bots en CI le 22/11 (commit af042fc, Java 8 et 21 : le PNJ Duels ouvre la boussole sur Duels ; un clic sur Duels en haut remplace les jeux de Practice dans le même menu, puis la sumo rejoint sa file) ; installé sur ton serveur le 22/11 vers 1h40 (seul `rago-lobby` change, sauvegarde `sauvegarde-avant-maj-af042fc`) ; pas encore vu en jeu : les 6 catégories sur la ligne du haut (slots 1 à 6), une ligne vide, les jeux de la catégorie choisie à partir du slot 19 ; un clic sur une autre catégorie change les jeux dans le même menu, celle choisie brille (« Its modes are below ») ; s'ouvre sur Practice, ou sur la catégorie du PNJ, de `/play` ou du groupe dont on revient ; « Popular now » passe sur la ligne du bas ; le menu garde la taille de la plus grande catégorie (Practice, 15 jeux : 6 lignes) | `ModeMenu`, `lobby-bots.mjs` | depuis 3.7 (22/11, pas encore installé) : 8 onglets, Party et Ranked en plus, sur les slots 0 à 7 |
 
 ### Étape 7 : nouveaux modes (Phase 6) — proposition avant tout code
 
@@ -582,7 +582,7 @@ replay of Sumo duel, 0:11 long. », même moment (0:00 / 0:11) dans les deux sco
   `/p warp`, l'entend aussi moins d'une seconde après son arrivée. Le rendu à l'oreille reste à
   juger en jeu.
 
-### 3.7 Organisation Solo / Party / Ranked — PROPOSITION (21/11), à valider
+### 3.7 Organisation Solo / Party / Ranked — PROPOSITION (21/11), validée le 22/11 (voir « 3.7 Solo / Party / Ranked, le code (22/11) »)
 
 Rien n'est codé. La proposition est dans `sortie-publique/proposition-solo-party-ranked.md` (fichiers
 du projet) : le sélecteur s'ouvre sur SOLO (les 4 catégories d'aujourd'hui), PARTY (parties
@@ -1752,6 +1752,60 @@ grande liste des bugs de la nouvelle version, une fois les modes et fonctionnali
 - **Fast Shop et API Hypixel (2.8)** : tu refais une demande de clé.
 - **Fast Bedwars (6.1c)** : « Bedwars 2018 », ce sont les maps de l'époque, les premières. Il me
   faut leurs mondes (comme pour les maps RBW), ou au moins leurs noms.
+
+### 3.7 Solo / Party / Ranked, le code (22/11)
+
+Ta réponse du 22/11 : « Solo / Party / Ranked : Build », et ton choix sur la carte : « les grands
+duels 1v1 ». La proposition est suivie, dans la boussole comme sur Minemen que tu as demandée
+ensuite (5.9) : les six onglets d'aujourd'hui sont le **Solo**, et deux onglets s'ajoutent sur la
+même ligne du haut, **Party** puis **Ranked** (dans l'ordre de la proposition : Solo, Party,
+Ranked). Huit onglets au lieu de six : Practice passe du slot 1 au slot 0, Duels du slot 3 au slot 2.
+
+- **Ranked** (la catégorie `classe` du `config.yml` du lobby) : tous les modes classés, chacun avec
+  son ELO, sa division, sa file par ELO, son classement (le sélecteur de leaderboards, `/top elo`),
+  les saisons et la file fermée 5 minutes après un abandon, comme Ranked Bedwars aujourd'hui.
+  - Ranked Bedwars 1v1 à 4v4 y passe, avec ses ELO (rien n'est perdu). Il sort de RBW Modes, comme
+    le dit la proposition (« Seul Ranked Bedwars en sort, pour aller dans RANKED ») : la question 2
+    (le garder aussi dans RBW Modes) n'avait pas de réponse ; si tu le veux aussi là, c'est une
+    ligne (`aussi: [ranked]` dans la catégorie RBW Modes). Le PNJ RBW Modes ouvre la boussole sur
+    RBW Modes, avec l'onglet Ranked à côté.
+  - Six duels classés en 1v1 : `ranked-bed-fight-1v1`, `ranked-top-bridge-1v1`,
+    `ranked-bridge-fight-1v1`, `ranked-block-fight-1v1` (Block Placement), `ranked-sumo` et
+    `ranked-boxing`. Chacun est le même jeu que son mode de Solo : même plugin, mêmes maps (les 20
+    maps RBW pour Top Bridge, BedFight pour Bed Fight, les zones et maps de Practice pour les
+    quatre autres), même kit (`kit-de:` : le kit de Solo, arrangé une fois dans l'éditeur ; le
+    sumo n'en a pas), mais sa propre file par ELO et son propre ELO. Les modes de Solo ne changent
+    pas et restent dans Duels.
+  - Les stats d'une partie classée (victoires, kills, replay) vont au mode classé joué, comme pour
+    Ranked Bedwars. Dans les lignes « Elo » (profil, menu des stats, `/season`), un duel classé
+    s'appelle par son jeu (« Elo Sumo », « Elo Bed Fight 1v1 ») et Ranked Bedwars garde « Elo 1v1 ».
+  - `/duel` ne propose pas les duels classés : un `/duel` n'est jamais classé, ce serait le même
+    duel que son mode de Solo, déjà dans la liste. Ranked Bedwars 1v1 y reste.
+- **Party** (la catégorie `party`, avec `party: true`) : pas de modes à elle. Elle montre au
+  joueur ce que sa party joue contre elle-même à sa taille, en partie privée (sans stats ni ELO,
+  comme aujourd'hui) : à deux les 1v1, à trois les 1v2 et Red Rover, à quatre les 2v2, etc., et la
+  partie privée de Ranked Bedwars ; les tailles d'un même jeu font un seul objet quand il y en a
+  plusieurs. Hors party, un objet dit comment en créer une (`/party invite <name>`). Seul le chef
+  lance, comme aujourd'hui. Une party qui tient dans une équipe (deux joueurs en 2v2) file toujours
+  contre d'autres depuis les autres onglets, Ranked compris, avec la moyenne de ses ELO. Rien de
+  nouveau n'est ajouté (pas de FFA de party ni de party contre party : la question 3 est restée
+  sans réponse, je suis la proposition, « ce qui existe »).
+- **Accès** : la boussole (question 4 sans réponse, je suis la proposition). `/play` et `/queue`
+  ne changent pas : `/play ranked` ouvre toujours RBW Modes (c'est l'id de cette catégorie),
+  `/play classe` ouvre Ranked, `/play party` ouvre Party.
+- **Le site** montre la catégorie Ranked et ses modes ; Party n'y est pas (elle n'a pas de modes à
+  elle). La section Ranked de l'accueil parle toujours de Ranked Bedwars en 1v1, 2v2, 3v3 et 4v4.
+
+Fichiers : lobby (`ModeCategory`, `LobbySettings`, `ModeMenu`, `QueueController`, `DuelRequests`,
+`StatsMenu`, `config.yml`), Bed Wars (`config.yml` : `modes:`, `jeux:`, `top-bridge:`), Practice
+(`RagoPractice`, `SumoHost`, `SumoMatch`, `PracticeHost`), le site (données et accueil), les bots
+du lobby (`lobby-bots.mjs`, slots des onglets), les README. Tests : `LobbySettingsTest` (92 modes,
+8 catégories, le contenu de Ranked, la catégorie Party et ses erreurs de config),
+`LobbyWelcomeTest`, `LayoutTest`, `BedwarsSettingsTest`, les tests du site. Vérifié ici : la
+syntaxe Java (javac, sans les classes de Bukkit) et les tests du site (34 passés) ; les tests Java
+tournent en CI. Pas encore joué en jeu, rien d'installé : à l'install, les 6 modes, les 2
+catégories et les nouvelles descriptions du `config.yml` du lobby s'ajoutent à tes réglages par
+la fusion, et le `config.yml` des Bed Wars gagne ses 2 modes classés.
 
 ### Installation du 22/11 au matin (aa724b7)
 

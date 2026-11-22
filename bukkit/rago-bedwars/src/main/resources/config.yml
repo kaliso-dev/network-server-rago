@@ -55,6 +55,10 @@ modes:
   # Fast Bedwars: the 20 maps of the RBW queue, as the ranked modes (to confirm with the owner)
   fast-bedwars-1v1: [Antenna, Aquarium, Archway, Artemis, Boletum, Carapace, Catalyst, Chained, Eastwood, Extinction, Invasion, Katsu, Lectus, Obelisk, Paladin, Planet98, Rise, Stonekeep, Swashbuckle, Treenan]
   fast-bedwars-2v2: [Antenna, Aquarium, Archway, Artemis, Boletum, Carapace, Catalyst, Chained, Eastwood, Extinction, Invasion, Katsu, Lectus, Obelisk, Paladin, Planet98, Rise, Stonekeep, Swashbuckle, Treenan]
+  # The ranked duels of Bed Wars (plan 3.7, the owner's choice of 22/11): the same game, maps and kit
+  # as their mode of Solo, with their own queue and ELO
+  ranked-bed-fight-1v1: [BedFight]
+  ranked-top-bridge-1v1: [Antenna, Aquarium, Archway, Artemis, Boletum, Carapace, Catalyst, Chained, Eastwood, Extinction, Invasion, Katsu, Lectus, Obelisk, Paladin, Planet98, Rise, Stonekeep, Swashbuckle, Treenan]
 
 # The modes that are not a classic Bed Wars game, each with its kind of game:
 #   ffa        free for all, open: players join and leave when they like, each for themselves, and
@@ -198,6 +202,8 @@ jeux:
   ctf-castle-4v4: ctf-chateau
   fast-bedwars-1v1: fast-bedwars
   fast-bedwars-2v2: fast-bedwars
+  ranked-bed-fight-1v1: bed-fight
+  ranked-top-bridge-1v1: top-bridge
 
 # Attack and Defense: the kits each player chooses from before each round, in a menu that opens by
 # itself (/kit opens it again); the countdown is 10 seconds, 3 once everyone has chosen. The
@@ -328,7 +334,7 @@ reapparition-secondes: 5
 # goes with the game. In a free for all (top-bridge-ffa), it links the two islands farthest apart,
 # and everyone starts and comes back on the platform, with a sword only; a player 10 blocks under
 # it has fallen, dead as in the void (in the top-bridge games too).
-top-bridge: [top-bridge-1v1, top-bridge-2v2, top-bridge-ffa]
+top-bridge: [top-bridge-1v1, top-bridge-2v2, top-bridge-ffa, ranked-top-bridge-1v1]
 
 # The modes whose teams play on neighbouring islands (First Rush: the first island and the one
 # next to it), instead of opposite islands as in the other modes.

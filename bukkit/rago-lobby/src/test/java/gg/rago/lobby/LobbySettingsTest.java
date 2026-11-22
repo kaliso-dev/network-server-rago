@@ -64,7 +64,7 @@ class LobbySettingsTest {
         assertEquals("lobby", settings.world());
         assertEquals(0, settings.voidHeight());
         assertEquals(0, settings.defaultRating(), "a ranked ELO starts at 0, in Coal");
-        assertEquals(86, settings.modes().size(), "the invis practice and the Bed Break Simulator in 1v1 to 1v4 (and"
+        assertEquals(92, settings.modes().size(), "the six ranked duels (plan 3.7), the invis practice and the Bed Break Simulator in 1v1 to 1v4 (and"
                 + " their kits), with the private top bridge, the clutch scenario, the bed fight (1v1, 2v2, 1v2), Top"
                 + " BedFight, the bridge fight 2v2, the full map first rush, Sky Rise Resources, the timed bridge, Lobby"
                 + " Fight (1v1, FFA), the Bed Break Simulator, the four modes of FUN PRACTICE (CTF The Bridge 1v1 and"
@@ -136,7 +136,7 @@ class LobbySettingsTest {
     @Test
     void groupsTheBundledModesByCategory() throws Exception {
         LobbySettings settings = LobbySettings.load(bundledConfig());
-        assertEquals(6, settings.categories().size());
+        assertEquals(8, settings.categories().size());
         assertEquals("entrainement", settings.categories().get(0).id(), "left to right: the practice on the left");
         assertEquals("ranked", settings.categories().get(1).id());
         assertEquals("duels", settings.categories().get(2).id(), "the duels");
@@ -146,7 +146,14 @@ class LobbySettingsTest {
         assertEquals(Material.DIAMOND_SWORD, settings.categories().get(3).icon());
         assertEquals("fun", settings.categories().get(4).id(), "FUN PRACTICE (plan 6.1), after the arenas");
         assertEquals("§d§lFun Practice", settings.categories().get(4).name());
-        assertEquals("trois-joueurs", settings.categories().get(5).id(), "3 Players (plan 6.6), last: in the compass only");
+        assertEquals("trois-joueurs", settings.categories().get(5).id(), "3 Players (plan 6.6): in the compass only");
+        // plan 3.7: the Solo categories, then Party and Ranked, side by side in the top row of the compass
+        assertEquals("party", settings.categories().get(6).id(), "Party, after the Solo categories");
+        assertEquals("§9§lParty", settings.categories().get(6).name());
+        assertTrue(settings.categories().get(6).party(), "the category of the parties");
+        assertEquals("classe", settings.categories().get(7).id(), "Ranked, last");
+        assertEquals("§6§lRanked", settings.categories().get(7).name());
+        assertFalse(settings.categories().get(7).party());
         // Four ways to play: train alone, the RBW modes (not all ranked: no bed on it), duel, the arenas.
         assertEquals("§6§lRBW Modes", settings.categories().get(1).name());
         assertEquals(Material.BED, settings.categories().get(1).icon());
@@ -187,6 +194,10 @@ class LobbySettingsTest {
         for (ModeCategory category : settings.categories()) {
             int count = settings.modesIn(category.id()).size();
             int items = settings.entriesIn(category.id()).size();
+            if (category.party()) {
+                assertEquals(0, count, "Party has no modes of its own: those of the viewer's party, at its size");
+                continue;
+            }
             assertTrue(count > 0 && items <= LobbySettings.MAX_MODES_PER_CATEGORY, category.id() + ": " + items);
             for (ModeDisplay display : settings.modes()) {
                 // its own modes: those it shows too (aussi:) are of another category
@@ -223,8 +234,8 @@ class LobbySettingsTest {
     @Test
     void theSizesOfOneGameAreOneItemOfTheirCategory() throws Exception {
         LobbySettings settings = LobbySettings.load(bundledConfig());
-        List<LobbySettings.Entry> ranked = settings.entriesIn("ranked");
-        assertEquals("ranked", ranked.get(0).group.id(), "Ranked Bedwars first");
+        List<LobbySettings.Entry> ranked = settings.entriesIn("classe");
+        assertEquals("ranked", ranked.get(0).group.id(), "Ranked Bedwars first, in Ranked (plan 3.7)");
         assertEquals(Arrays.asList("ranked-1v1", "ranked-2v2", "ranked-3v3", "ranked-4v4"),
                 displayIds(settings.modesOfGroup("ranked")));
         assertEquals(Arrays.asList("top-bridge-1v1", "top-bridge-2v2"), displayIds(settings.modesOfGroup("top-bridge")));
@@ -352,10 +363,12 @@ class LobbySettingsTest {
         assertTrue(duels.modeIds().contains("kb-displace"));
         LobbyNpc ranked = settings.npc("rbw");
         assertEquals("§6§lRBW Modes", ranked.name());
-        assertEquals("§6Ranked §7and §6RBW situations", ranked.subtitle());
+        assertEquals("§6RBW situations §7to practice", ranked.subtitle());
         assertEquals("ranked", ranked.category());
-        assertTrue(ranked.modeIds().containsAll(Arrays.asList("ranked-1v1", "ranked-2v2", "ranked-3v3", "ranked-4v4",
-                "clutch-scenario-1v1", "attack-defense-1v1", "bed-break-simulator-1v1")), "every RBW mode, Ranked Bedwars first");
+        assertTrue(ranked.modeIds().containsAll(Arrays.asList("skyrise-1v1", "clutch-scenario-1v1", "attack-defense-1v1",
+                "bed-break-simulator-1v1")), "every RBW mode");
+        assertFalse(ranked.modeIds().contains("ranked-1v1"), "Ranked Bedwars is in Ranked (plan 3.7), a tab of the compass"
+                + " the NPC opens");
         assertEquals(settings.modesIn("ranked").size(), ranked.modeIds().size());
         assertTrue(settings.npc("top").leaderboard());
         assertEquals(Collections.singletonList(Arrays.asList(BoardStat.LEVEL, BoardStat.ELO, BoardStat.FKDR, BoardStat.KILLS, BoardStat.GAMES)),
@@ -557,6 +570,66 @@ class LobbySettingsTest {
         assertInvalid(String.format(config, "sumo, sumo"), "categories.trois.aussi");
         assertInvalid(String.format(config, "bot"), "categories.trois.aussi");
         assertInvalid(String.format(config, "hid"), "categories.trois.aussi");
+    }
+
+    @Test
+    void rankedHoldsEveryRankedModeWithItsOwnElo() throws Exception {
+        LobbySettings settings = LobbySettings.load(bundledConfig());
+        List<LobbySettings.Entry> entries = settings.entriesIn("classe");
+        assertEquals(7, entries.size(), "Ranked Bedwars as one item, then the six great duels in 1v1 (the owner's choice, 22/11)");
+        assertEquals("ranked", entries.get(0).group.id());
+        String[][] twins = {{"ranked-bed-fight-1v1", "bed-fight-1v1"}, {"ranked-top-bridge-1v1", "top-bridge-1v1"},
+            {"ranked-bridge-fight-1v1", "bridge-fight-1v1"}, {"ranked-block-fight-1v1", "block-fight-1v1"},
+            {"ranked-sumo", "sumo"}, {"ranked-boxing", "boxing"}};
+        for (int i = 0; i < twins.length; i++) {
+            String id = twins[i][0];
+            String solo = twins[i][1];
+            assertEquals(id, entries.get(i + 1).mode.mode().id());
+            GameMode mode = settings.catalog().get(id);
+            assertTrue(mode.ranked(), id + ": its own ELO");
+            assertEquals(2, mode.teams(), id);
+            assertEquals(1, mode.playersPerTeam(), id + ": in 1v1");
+            assertFalse(settings.catalog().get(solo).ranked(), solo + ": the mode of Solo stays unranked");
+            assertEquals("duels", settings.display(solo).category(), solo + ": still in Duels");
+            assertNull(settings.display(id).kit(), id + ": no kit of its own");
+            if (settings.display(solo).kit() != null) {
+                assertEquals(solo, settings.kitMode(id), id + ": the kit of its mode of Solo, as each player arranged it");
+            } else {
+                assertEquals("sumo", solo, "the sumo, the only one without a kit");
+            }
+        }
+        for (ModeDisplay display : settings.modes()) {
+            if (display.mode().ranked()) {
+                assertEquals("classe", display.category(), display.mode().id() + ": every ranked mode in Ranked");
+            }
+        }
+        assertEquals("ranked", settings.display("skyrise-1v1").category(), "the RBW situations stay in RBW Modes");
+    }
+
+    @Test
+    void partyShowsWhatAPartyPlaysAgainstItself() throws Exception {
+        LobbySettings settings = LobbySettings.load(bundledConfig());
+        assertTrue(settings.category("party").party());
+        assertTrue(settings.modesIn("party").isEmpty(), "no modes of its own");
+        GameMode bedFight = settings.catalog().get("bed-fight-1v1");
+        assertTrue(ModeMenu.fitsParty(bedFight, 2), "two players fill a 1v1: a private game");
+        assertFalse(ModeMenu.fitsParty(bedFight, 3));
+        assertFalse(ModeMenu.fitsParty(bedFight, 1), "alone: no party");
+        GameMode bedFight2v2 = settings.catalog().get("bed-fight-2v2");
+        assertFalse(ModeMenu.fitsParty(bedFight2v2, 2), "two players are one team of a 2v2: they queue, from Duels");
+        assertTrue(ModeMenu.fitsParty(bedFight2v2, 4));
+        assertTrue(ModeMenu.fitsParty(settings.catalog().get("bed-fight-1v2"), 3), "three players: the 1v2s");
+        assertFalse(ModeMenu.fitsParty(settings.catalog().get("ranked-sumo"), 2), "a private game is never ranked");
+        assertFalse(ModeMenu.fitsParty(settings.catalog().get("ranked-1v1"), 2), "Ranked Bedwars: through the private game");
+
+        String config = "categories:\n  duels:\n    nom: Duels\n  party:\n    nom: Party\n    party: true\n%s"
+                + "modes:\n  sumo:\n    categorie: %s\n";
+        assertTrue(LobbySettings.load(yaml(String.format(config, "", "duels"))).category("party").party());
+        assertFalse(LobbySettings.load(yaml(String.format(config, "", "duels"))).category("duels").party(), "false by default");
+        assertInvalid(String.format(config, "", "party"), "modes.sumo.categorie");
+        assertInvalid(String.format(config.replace("    party: true\n", "    party: true\n    aussi: [sumo]\n"), "", "duels"),
+                "categories.party.aussi");
+        assertInvalid(String.format(config, "  other:\n    party: true\n", "duels"), "categories.other.party");
     }
 
     @Test

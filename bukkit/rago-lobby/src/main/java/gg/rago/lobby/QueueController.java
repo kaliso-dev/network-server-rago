@@ -120,6 +120,12 @@ final class QueueController {
         }
     }
 
+    /** The players of this player's party, 0 out of a party (for the Party category of the compass). */
+    int partySize(Player player) {
+        PartyBook.Party party = parties.together(player.getUniqueId());
+        return party == null ? 0 : party.size();
+    }
+
     /**
      * True if a game plugin plays this mode: its queue is open. A private game whose size follows
      * the party is open when one of the modes it plays is.

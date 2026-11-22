@@ -84,8 +84,16 @@ class BedwarsSettingsTest {
                 "clutch-scenario-1v3", "clutch-scenario-1v4", "bed-fight-1v1", "bed-fight-2v2", "bed-fight-1v2", "top-bed-fight-1v1",
                 "lobby-fight-1v1", "lobby-fight-ffa", "bed-break-simulator-1v1", "bed-break-simulator-1v2",
                 "bed-break-simulator-1v3", "bed-break-simulator-1v4", "red-rover-top-bridge", "ctf-bridge-1v1",
-                "ctf-bridge-2v2", "ctf-castle-2v2", "ctf-castle-4v4", "fast-bedwars-1v1", "fast-bedwars-2v2"),
+                "ctf-bridge-2v2", "ctf-castle-2v2", "ctf-castle-4v4", "fast-bedwars-1v1", "fast-bedwars-2v2",
+                "ranked-bed-fight-1v1", "ranked-top-bridge-1v1"),
                 settings.modes());
+        // the ranked duels (plan 3.7): the game and the maps of their mode of Solo, top bridge included
+        assertEquals(BedwarsSettings.Kind.BED_FIGHT, settings.kind("ranked-bed-fight-1v1"));
+        assertEquals(settings.mapsOf("bed-fight-1v1"), settings.mapsOf("ranked-bed-fight-1v1"));
+        assertEquals(BedwarsSettings.Kind.TOP_BRIDGE, settings.kind("ranked-top-bridge-1v1"));
+        assertEquals(settings.mapsOf("top-bridge-1v1"), settings.mapsOf("ranked-top-bridge-1v1"));
+        assertTrue(settings.topBridge("ranked-top-bridge-1v1"), "the platform of Top Bridge");
+        assertFalse(settings.topBridge("ranked-bed-fight-1v1"));
         for (String size : Arrays.asList("ctf-bridge-1v1", "ctf-bridge-2v2")) {
             assertEquals(BedwarsSettings.Kind.CTF_BRIDGE, settings.kind(size), size);
             assertEquals(Collections.singletonList(CtfMaps.BRIDGE), settings.mapsOf(size), size + ": the map the plugin makes");

@@ -52,21 +52,17 @@
       "icon": "BED",
       "slogan": [
         {
-          "text": "Ranked ",
+          "text": "RBW situations ",
           "colour": "#FFAA00"
         },
         {
-          "text": "and ",
+          "text": "to practice",
           "colour": "#AAAAAA"
-        },
-        {
-          "text": "RBW situations",
-          "colour": "#FFAA00"
         }
       ],
-      "description": "Ranked 1v1 to 4v4, and modes close to Ranked Bedwars: Sky Rise, first rush, invis, clutch scenarios, attack and defense, Bed Break Simulator, private games. With the server or your friends.",
+      "description": "Modes close to Ranked Bedwars: Sky Rise, first rush, invis, clutch scenarios, attack and defense, Bed Break Simulator, private games. With the server or your friends. Ranked Bedwars is in Ranked.",
       "skin": "ranked",
-      "modes": 28,
+      "modes": 24,
       "also": []
     },
     {
@@ -173,6 +169,26 @@
         "clutch-scenario-1v2",
         "bed-fight-1v2"
       ]
+    },
+    {
+      "id": "classe",
+      "name": "Ranked",
+      "colour": "#FFAA00",
+      "icon": "DIAMOND_SWORD",
+      "slogan": [
+        {
+          "text": "Your ELO ",
+          "colour": "#FFAA00"
+        },
+        {
+          "text": "in every game",
+          "colour": "#AAAAAA"
+        }
+      ],
+      "description": "Ranked Bedwars 1v1 to 4v4, and Bed Fight, Top Bridge, Bridge Fight, Block Placement, Sumo and Boxing in 1v1: each with its own ELO and divisions.",
+      "skin": null,
+      "modes": 10,
+      "also": []
     }
   ],
   "groups": [
@@ -351,7 +367,7 @@
       "name": "Ranked Bedwars 1v1",
       "colour": "#FFAA00",
       "icon": "BED",
-      "category": "ranked",
+      "category": "classe",
       "group": "ranked",
       "format": "1v1",
       "ranked": true,
@@ -367,7 +383,7 @@
       "name": "Ranked Bedwars 2v2",
       "colour": "#FFAA00",
       "icon": "DIAMOND_SWORD",
-      "category": "ranked",
+      "category": "classe",
       "group": "ranked",
       "format": "2v2",
       "ranked": true,
@@ -383,7 +399,7 @@
       "name": "Ranked Bedwars 3v3",
       "colour": "#FFAA00",
       "icon": "DIAMOND_CHESTPLATE",
-      "category": "ranked",
+      "category": "classe",
       "group": "ranked",
       "format": "3v3",
       "ranked": true,
@@ -399,7 +415,7 @@
       "name": "Ranked Bedwars 4v4",
       "colour": "#FFAA00",
       "icon": "DIAMOND_BLOCK",
-      "category": "ranked",
+      "category": "classe",
       "group": "ranked",
       "format": "4v4",
       "ranked": true,
@@ -408,6 +424,102 @@
       "description": "Ranked Bedwars, four against four, on the RBW maps.",
       "plugins": [
         "bedwars"
+      ]
+    },
+    {
+      "id": "ranked-bed-fight-1v1",
+      "name": "Ranked Bed Fight 1v1",
+      "colour": "#FFAA00",
+      "icon": "BED",
+      "category": "classe",
+      "group": null,
+      "format": "1v1",
+      "ranked": true,
+      "startHere": false,
+      "event": false,
+      "description": "Bed fight in 1v1, ranked: your ELO goes up or down after every game.",
+      "plugins": [
+        "bedwars"
+      ]
+    },
+    {
+      "id": "ranked-top-bridge-1v1",
+      "name": "Ranked Top Bridge 1v1",
+      "colour": "#FFAA00",
+      "icon": "LADDER",
+      "category": "classe",
+      "group": null,
+      "format": "1v1",
+      "ranked": true,
+      "startHere": false,
+      "event": false,
+      "description": "Top Bridge in 1v1, ranked: the first to 5 points wins, your ELO follows.",
+      "plugins": [
+        "bedwars"
+      ]
+    },
+    {
+      "id": "ranked-bridge-fight-1v1",
+      "name": "Ranked Bridge Fight 1v1",
+      "colour": "#FFAA00",
+      "icon": "WOOL",
+      "category": "classe",
+      "group": null,
+      "format": "1v1",
+      "ranked": true,
+      "startHere": false,
+      "event": false,
+      "description": "Bridge fight in 1v1, ranked: first to 5, your ELO follows.",
+      "plugins": [
+        "practice"
+      ]
+    },
+    {
+      "id": "ranked-block-fight-1v1",
+      "name": "Ranked Block Placement 1v1",
+      "colour": "#FFAA00",
+      "icon": "SANDSTONE",
+      "category": "classe",
+      "group": null,
+      "format": "1v1",
+      "ranked": true,
+      "startHere": false,
+      "event": false,
+      "description": "Block placement in 1v1, ranked: first to 100, your ELO follows.",
+      "plugins": [
+        "practice"
+      ]
+    },
+    {
+      "id": "ranked-sumo",
+      "name": "Ranked Sumo",
+      "colour": "#FFAA00",
+      "icon": "SLIME_BALL",
+      "category": "classe",
+      "group": null,
+      "format": "1v1",
+      "ranked": true,
+      "startHere": false,
+      "event": false,
+      "description": "The sumo duel, ranked: knock them off, your ELO follows.",
+      "plugins": [
+        "practice"
+      ]
+    },
+    {
+      "id": "ranked-boxing",
+      "name": "Ranked Boxing",
+      "colour": "#FFAA00",
+      "icon": "DIAMOND_SWORD",
+      "category": "classe",
+      "group": null,
+      "format": "1v1",
+      "ranked": true,
+      "startHere": false,
+      "event": false,
+      "description": "Boxing, ranked: first to 100 hits, your ELO follows.",
+      "plugins": [
+        "practice"
       ]
     },
     {

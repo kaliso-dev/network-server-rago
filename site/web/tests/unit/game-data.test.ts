@@ -88,6 +88,8 @@ describe('the game data', () => {
       plugin === 'bedwars'
         ? bedwars.has(id)
         : practice.includes(`register("${id}"`) ||
+          // a ranked duel (plan 3.7), on the host of its mode of Solo
+          new RegExp(`alsoRanked\\([^;]*?,\\s*"${id}"\\);`).test(practice) ||
           sumo.includes(`MODE_ID = "${id}"`) ||
           (id.startsWith('event-') && events.includes(`("${id.slice('event-'.length)}",`));
     // a private game plays the modes of its list, with the party
@@ -133,8 +135,8 @@ describe('the game data', () => {
 
   it('gives each category the skin of its NPC in the lobby, and the skin is rendered', () => {
     // FunMod2, the NPC of FUN PRACTICE, has no skin of its own yet (Steve in the lobby): no picture
-    // 3 Players is in the compass only, without NPC (the owner's choice, 21/11)
-    const withoutSkinYet = ['fun', 'trois-joueurs'];
+    // 3 Players is in the compass only, without NPC (the owner's choice, 21/11), as Ranked (plan 3.7)
+    const withoutSkinYet = ['fun', 'trois-joueurs', 'classe'];
     for (const category of game.categories) {
       if (withoutSkinYet.includes(category.id)) {
         expect(category.skin, category.id).toBeNull();

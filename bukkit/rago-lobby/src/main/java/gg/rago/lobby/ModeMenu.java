@@ -5,9 +5,11 @@ import gg.rago.game.Matchmaker;
 import gg.rago.lobby.api.ModeRecord;
 import java.util.ArrayList;
 import java.util.Comparator;
+import java.util.HashSet;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.UUID;
 import java.util.function.BiFunction;
 import java.util.function.ToIntFunction;
@@ -36,7 +38,9 @@ import org.bukkit.plugin.Plugin;
  * The bottom row of the compass is "Popular now", when a row is left under the modes: the modes
  * with players in a game or in the queue right now (the most first, three at most) and the
  * challenge of the day of the trainings, each a click away. The mode marked commencer-ici: (the block clutch) shines with
- * "Start here", in its category, its group and on the category's item.
+ * "Start here", in its category, its group and on the category's item. The category of the parties
+ * (party: true, plan 3.7) has no modes of its own: it shows the games the viewer's party plays
+ * against itself, at its size.
  */
 final class ModeMenu {
 
@@ -171,7 +175,7 @@ final class ModeMenu {
         }
         int modeRows = 1;
         for (ModeCategory category : settings.categories()) {
-            modeRows = Math.max(modeRows, rowsFor(settings.entriesIn(category.id()).size()));
+            modeRows = Math.max(modeRows, rowsFor(compassEntries(category.id(), player).size()));
         }
         Holder holder = new Holder(Holder.CATEGORIES);
         holder.selected = categoryId;
@@ -340,6 +344,121 @@ final class ModeMenu {
         return size - 5;
     }
 
+    /**
+     * The items under the categories for this one: its modes and groups, or for the category of the
+     * parties those of the viewer's party at its size.
+     */
+    private List<LobbySettings.Entry> compassEntries(String categoryId, HumanEntity viewer) {
+        ModeCategory category = categoryId == null ? null : settings.category(categoryId);
+        if (category == null || !category.party()) {
+            return settings.entriesIn(categoryId);
+        }
+        return partyEntries(partySize(viewer));
+    }
+
+    /** The players of the viewer's party, 0 out of a party. */
+    private int partySize(HumanEntity viewer) {
+        return viewer instanceof Player ? queues.partySize((Player) viewer) : 0;
+    }
+
+    /**
+     * What a party of this size plays against itself (plan 3.7), in the order of the compass: the
+     * modes whose game it fills (two players the 1v1s, four the 2v2s...), those whose one team it
+     * makes (the 1v2s and Red Rover for three), and the private games whose size follows the party.
+     * A group with one such mode is that mode, with several the group. Empty out of a party.
+     */
+    List<LobbySettings.Entry> partyEntries(int size) {
+        List<LobbySettings.Entry> result = new ArrayList<>();
+        if (size < 2) {
+            return result;
+        }
+        Set<String> seen = new HashSet<>();
+        for (ModeCategory category : settings.categories()) {
+            if (category.party()) {
+                continue;
+            }
+            for (LobbySettings.Entry entry : settings.entriesIn(category.id())) {
+                if (entry.group == null) {
+                    if (forParty(entry.mode, size) && seen.add(entry.mode.mode().id())) {
+                        result.add(entry);
+                    }
+                    continue;
+                }
+                List<ModeDisplay> fit = new ArrayList<>();
+                for (ModeDisplay display : settings.modesOfGroup(entry.group.id())) {
+                    if (forParty(display, size)) {
+                        fit.add(display);
+                    }
+                }
+                if (fit.isEmpty() || !seen.add(Holder.GROUP + entry.group.id())) {
+                    continue;
+                }
+                if (fit.size() == 1) {
+                    if (seen.add(fit.get(0).mode().id())) {
+                        result.add(new LobbySettings.Entry(fit.get(0), null));
+                    }
+                } else {
+                    result.add(entry);
+                }
+            }
+        }
+        return result;
+    }
+
+    /**
+     * Whether a party of this size plays this mode, played now, against itself. A private game whose
+     * size follows the party is shown for a mode of its list that does not show itself: Ranked
+     * Bedwars (the private game is never ranked); the private Top Bridge 1v1 is Top Bridge 1v1, shown.
+     */
+    private boolean forParty(ModeDisplay display, int size) {
+        GameMode mode = display.mode();
+        if (display.hidden() || !queues.isPlayable(mode.id())) {
+            return false;
+        }
+        List<GameMode> routes = settings.privateRoutes().get(mode.id());
+        if (routes != null) {
+            for (GameMode target : routes) {
+                if (target.playersPerMatch() == size && target.ranked() && queues.isPlayable(target.id())) {
+                    return true;
+                }
+            }
+            return false;
+        }
+        return fitsParty(mode, size);
+    }
+
+    /**
+     * Whether a party of this size plays this mode against itself: it fills a game of two teams or
+     * more (unranked: a private game counts in no ELO), or makes its one team (a 1v2 of three).
+     */
+    static boolean fitsParty(GameMode mode, int size) {
+        if (size < 2) {
+            return false;
+        }
+        return mode.teams() >= 2 ? !mode.ranked() && mode.playersPerMatch() == size : mode.playersPerTeam() == size;
+    }
+
+    /** In the category of the parties, with no game to show: how to make a party, or that none fits its size. */
+    private static ItemStack partyHint(int size) {
+        ItemStack item = new ItemStack(Material.NAME_TAG);
+        ItemMeta meta = item.getItemMeta();
+        List<String> lore = new ArrayList<>();
+        if (size < 2) {
+            meta.setDisplayName(ChatColor.BLUE + "" + ChatColor.BOLD + "You are not in a party");
+            lore.add(ChatColor.GRAY + "Invite your friends with");
+            lore.add(ChatColor.WHITE + "/party invite <name>" + ChatColor.GRAY + ":");
+            lore.add(ChatColor.GRAY + "your party then plays here");
+            lore.add(ChatColor.GRAY + "against itself, at its size.");
+        } else {
+            meta.setDisplayName(ChatColor.BLUE + "" + ChatColor.BOLD + "No game for a party of " + size);
+            lore.add(ChatColor.GRAY + "Two players play the 1v1s,");
+            lore.add(ChatColor.GRAY + "three the 1v2s, four the 2v2s.");
+        }
+        meta.setLore(lore);
+        item.setItemMeta(meta);
+        return item;
+    }
+
     /** Clicked in our menu: open a category, go back, or join or leave a mode's queue. */
     void click(Player player, Holder holder, int slot) {
         String view = holder.view();
@@ -426,7 +545,7 @@ final class ModeMenu {
                 return;
             }
         }
-        List<LobbySettings.Entry> entries = settings.entriesIn(holder.selected);
+        List<LobbySettings.Entry> entries = compassEntries(holder.selected, player);
         for (int i = 0; i < entries.size(); i++) {
             if (compassSlot(i) == slot) {
                 if (entries.get(i).group != null) {
@@ -554,10 +673,14 @@ final class ModeMenu {
         List<ModeCategory> categories = settings.categories();
         for (int i = 0; i < categories.size(); i++) {
             ModeCategory category = categories.get(i);
-            inventory.setItem(tabSlot(i, categories.size()), icon(category, current, category.id().equals(holder.selected)));
+            inventory.setItem(tabSlot(i, categories.size()), icon(category, current, category.id().equals(holder.selected), viewer));
         }
         int last = holder.popularRow >= 0 ? holder.popularRow : inventory.getSize();
-        List<LobbySettings.Entry> entries = settings.entriesIn(holder.selected);
+        List<LobbySettings.Entry> entries = compassEntries(holder.selected, viewer);
+        ModeCategory chosen = holder.selected == null ? null : settings.category(holder.selected);
+        if (entries.isEmpty() && chosen != null && chosen.party()) {
+            inventory.setItem(compassSlot(PER_ROW / 2), partyHint(partySize(viewer)));
+        }
         for (int i = 0; i < entries.size() && compassSlot(i) < last; i++) {
             LobbySettings.Entry entry = entries.get(i);
             inventory.setItem(compassSlot(i), entry.group != null ? icon(entry.group, current, viewer)
@@ -700,7 +823,7 @@ final class ModeMenu {
     }
 
     /** A category in the top row of the compass; the one chosen shines, its modes are below. */
-    private ItemStack icon(ModeCategory category, List<GameMode> current, boolean selected) {
+    private ItemStack icon(ModeCategory category, List<GameMode> current, boolean selected, HumanEntity viewer) {
         ItemStack item = new ItemStack(category.icon());
         ItemMeta meta = item.getItemMeta();
         meta.setDisplayName(category.name());
@@ -710,6 +833,18 @@ final class ModeMenu {
             lore.add("");
         }
         lore.addAll(category.description());
+        if (category.party()) {
+            int size = partySize(viewer);
+            int games = partyEntries(size).size();
+            lore.add("");
+            lore.add(size < 2 ? ChatColor.GRAY + "You are not in a party"
+                    : ChatColor.GRAY + "Your party of " + ChatColor.WHITE + size + ChatColor.GRAY + ": " + ChatColor.WHITE + games
+                            + ChatColor.GRAY + (games == 1 ? " game" : " games"));
+            lore.add(selected ? Brand.ACCENT + "\u25bc Its modes are below" : ChatColor.GREEN + "Click to see its modes");
+            meta.setLore(lore);
+            item.setItemMeta(meta);
+            return selected ? ClickMenu.glow(item) : item;
+        }
         List<ModeDisplay> modes = settings.modesIn(category.id());
         int waiting = 0;
         boolean here = false;

@@ -3,6 +3,7 @@ package gg.rago.practice;
 import gg.rago.game.ArenaGrid;
 import gg.rago.game.RedRoverRotation;
 import gg.rago.lobby.api.LobbyService;
+import gg.rago.lobby.api.MatchHost;
 import gg.rago.lobby.api.VoidGenerator;
 import java.io.File;
 import java.io.IOException;
@@ -60,6 +61,8 @@ public final class RagoPractice extends JavaPlugin {
     /** The challenge of the day (/challenge). */
     private Challenges challenges;
     private final List<String> hosted = new ArrayList<>();
+    /** The ranked twins of the duels (plan 3.7), played by the hosts of their modes of Solo. */
+    private final List<String> rankedTwins = new ArrayList<>();
     /** The Network XP of the trainings and the free arenas, given every two minutes. */
     private PracticeXp xp;
     /** How often the XP of the trainings goes to the lobby: two minutes. */
@@ -115,6 +118,8 @@ public final class RagoPractice extends JavaPlugin {
         getServer().getPluginManager().registerEvents(sumo, this);
         if (!lobby.registerHost(this, SumoHost.MODE_ID, sumo)) {
             getLogger().warning("The lobby has no mode \"" + SumoHost.MODE_ID + "\" in its config.yml: the sumo duel stays closed.");
+        } else {
+            alsoRanked(sumo, SumoHost.RANKED_MODE_ID);
         }
 
         games = new PracticeGames(this, world);
@@ -135,7 +140,7 @@ public final class RagoPractice extends JavaPlugin {
         getCommand("center").setExecutor(new CenterCommand(this));
         startRecords(config);
         getLogger().info("Arenas in the world " + world.getName() + ": " + slots + " games of each mode at once at most. Modes: "
-                + String.join(", ", hosted));
+                + String.join(", ", hosted) + (rankedTwins.isEmpty() ? "" : "; ranked: " + String.join(", ", rankedTwins)));
     }
 
     /**
@@ -219,11 +224,16 @@ public final class RagoPractice extends JavaPlugin {
         BlockInTraining.Island island = blockInIsland(config);
 
         List<MapZones.ZoneMap> arenas = zoneMaps(config, "boxing.cartes", spacing, "the boxing and the combo bot");
-        onMaps(register("boxing", (h, m, a, t) -> new Boxing(h, m, a, t, boxing), slots, spacing, false), arenas);
+        PracticeHost boxingHost = register("boxing", (h, m, a, t) -> new Boxing(h, m, a, t, boxing), slots, spacing, false);
+        onMaps(boxingHost, arenas);
+        alsoRanked(boxingHost, "ranked-boxing");
         KbDisplace.Place kbPlace = kbDisplacePlace(config, spacing);
         register("kb-displace", (h, m, a, t) -> new KbDisplace(h, m, a, t, kb, kbPlace), slots, spacing, false);
         List<MapZones.ZoneMap> blockMaps = zoneMaps(config, "block-fight.cartes", spacing, "the block placement");
-        onMaps(register("block-fight-1v1", (h, m, a, t) -> new BlockFight(h, m, a, t, blocks), slots, spacing, false), blockMaps);
+        PracticeHost blockFight = register("block-fight-1v1", (h, m, a, t) -> new BlockFight(h, m, a, t, blocks), slots, spacing,
+                false);
+        onMaps(blockFight, blockMaps);
+        alsoRanked(blockFight, "ranked-block-fight-1v1");
         onMaps(register("block-fight-2v2", (h, m, a, t) -> new BlockFight(h, m, a, t, blocks), slots, spacing, false), blockMaps);
         // the rows of the old Top Fight, and of Attack and Defense (on the owner's maps, in the Bed
         // Wars plugin), stay reserved, so that the other modes keep their zones
@@ -260,7 +270,8 @@ public final class RagoPractice extends JavaPlugin {
         register("clutch-top-fight", (h, m, a, t) -> new ClutchTraining(h, m, a, t, true, null), slots, ClutchTraining.SPACING, false);
         register("block-edit", BlockEditTraining::new, slots, spacing, false);
         register("block-edit-duel", (h, m, a, t) -> new BlockEditDuel(h, m, a, t, edit), slots, spacing, false);
-        register("bridge-fight-1v1", (h, m, a, t) -> new BridgeDuel(h, m, a, t, bridge, bridgeProtection), slots, spacing, false);
+        alsoRanked(register("bridge-fight-1v1", (h, m, a, t) -> new BridgeDuel(h, m, a, t, bridge, bridgeProtection), slots,
+                spacing, false), "ranked-bridge-fight-1v1");
         BlockExtendTraining.Course course = blockExtendCourse(config, spacing);
         register("block-extend", (h, m, a, t) -> new BlockExtendTraining(h, m, a, t, course), slots, spacing, false);
         BowTraining.Course bow = bowCourse(config, spacing);
@@ -945,6 +956,23 @@ public final class RagoPractice extends JavaPlugin {
             }
         }
         return null;
+    }
+
+    /**
+     * The ranked twin of a duel (plan 3.7, the owner's choice of 22/11): the same game, maps and kit
+     * as its mode of Solo, played by the same host on the same zones (its row is not shifted, nor
+     * those of the modes after it), with its own queue, ELO and leaderboards in the lobby. Nothing
+     * when the duel is closed or the lobby has no such mode.
+     */
+    private void alsoRanked(MatchHost host, String rankedId) {
+        if (host == null) {
+            return;
+        }
+        if (lobby.registerHost(this, rankedId, host)) {
+            rankedTwins.add(rankedId);
+        } else {
+            getLogger().warning("The lobby has no mode \"" + rankedId + "\" in its config.yml: it stays closed.");
+        }
     }
 
     /** The host of the mode, or null when the lobby does not have the mode. */

@@ -561,8 +561,8 @@ config.yml fourni les suit :
   demande du 22/11) : les catégories côte à côte sur la ligne du haut (Practice à gauche, RBW Modes
   avec un lit, Duels, Arenas : les modes sans file, FFA, Top Bridge FFA, Lobby Fight FFA, Bridge
   fight, Block placement arena et Arena Free, où l'on entre tout de suite ; Lobby Fight 1v1 est dans
-  Duels ; puis Fun Practice et 3 Players), une ligne vide, puis les jeux de la catégorie choisie
-  (7 catégories, 28 objets par catégorie au plus, un groupe comptant pour un). Elle s'ouvre sur la
+  Duels ; puis Fun Practice, 3 Players, Party et Ranked), une ligne vide, puis les jeux de la
+  catégorie choisie (9 catégories, 28 objets par catégorie au plus, un groupe comptant pour un). Elle s'ouvre sur la
   première catégorie, ou sur celle du PNJ, de `/play` ou du groupe dont on revient ; un clic sur une
   autre catégorie change les jeux dans le même menu, et celle choisie brille. Chaque mode dit sa `categorie:`. Le `slogan:` d'une catégorie (40 caractères au
   plus) dit ce qu'on y fait : sous son nom dans la boussole, sous son PNJ et dans l'accueil.
@@ -572,6 +572,19 @@ config.yml fourni les suit :
   d'Invis Practice ; ces modes restent dans leur catégorie, leurs stats aussi (le menu des stats n'a
   pas de bouton pour une catégorie sans modes à elle). Son nom, son slogan et sa description sont à
   confirmer.
+- **Solo / Party / Ranked (plan 3.7).** Les six premiers onglets sont le Solo d'avant ; **Ranked**
+  (`classe`) tient tous les modes classés, chacun avec son ELO, sa division, sa file par ELO et son
+  classement : Ranked Bedwars 1v1 à 4v4 (sorti de RBW Modes, ses ELO gardés) et les six grands duels
+  en 1v1 (ton choix du 22/11) : Ranked Bed Fight, Ranked Top Bridge, Ranked Bridge Fight, Ranked
+  Block Placement, Ranked Sumo et Ranked Boxing. Chacun est le même jeu que son mode de Solo (même
+  map, même kit avec `kit-de:`, arrangé une fois dans l'éditeur), joué par le même plugin sur les
+  mêmes zones, avec sa propre file ; le mode de Solo ne change pas, et `/duel` ne propose que lui
+  (un `/duel` n'est jamais classé). **Party** (`party: true`, une catégorie au plus, sans modes à
+  elle) montre au joueur ce que sa party joue contre elle-même à sa taille : à deux les 1v1, à trois
+  les 1v2 et Red Rover, à quatre les 2v2... et la partie privée de Ranked Bedwars ; hors party, un
+  objet dit comment en créer une. Une party qui tient dans une équipe file toujours contre d'autres
+  depuis les autres onglets, Ranked compris (avec la moyenne de ses ELO). `/play ranked` ouvre
+  toujours RBW Modes (son id), `/play classe` ouvre Ranked.
 - `groupes:` réunit les tailles d'un même jeu en un seul objet de sa catégorie, comme les jeux de
   Hypixel : Ranked Bedwars ouvre 1v1, 2v2, 3v3 et 4v4 côte à côte, Top Bridge ouvre 1v1, 2v2 et
   FFA, etc. Un mode y entre avec `groupe:` ; l'objet du groupe montre chaque taille avec sa file.

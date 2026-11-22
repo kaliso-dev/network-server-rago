@@ -46,8 +46,8 @@ final class LobbySettings {
      * modes of a group are one item there.
      */
     static final int MAX_MODES_PER_CATEGORY = 28;
-    /** One row of the category menu. */
-    static final int MAX_CATEGORIES = 7;
+    /** One row: the top row of the compass, where they sit side by side. */
+    static final int MAX_CATEGORIES = 9;
     /** The slogan of a category, without its colours: one line above an NPC. */
     static final int MAX_SLOGAN = 40;
     /** Leaderboards side by side on one point. */
@@ -625,6 +625,17 @@ final class LobbySettings {
                 throw new IllegalArgumentException(where + ".slogan: " + MAX_SLOGAN + " characters at most (it shows under"
                         + " the NPC of the category)");
             }
+            boolean party = category.getBoolean("party", false);
+            for (ModeCategory before : categories) {
+                if (party && before.party()) {
+                    throw new IllegalArgumentException(where + ".party: one category of the parties at most, \""
+                            + before.id() + "\" is");
+                }
+            }
+            if (party && !category.getStringList("aussi").isEmpty()) {
+                throw new IllegalArgumentException(where + ".aussi: not in the category of the parties (party: true), whose"
+                        + " modes follow the size of the viewer's party");
+            }
             List<String> also = new ArrayList<>();
             for (String other : category.getStringList("aussi")) {
                 String key = other.trim().toLowerCase(java.util.Locale.ROOT);
@@ -635,7 +646,7 @@ final class LobbySettings {
             }
             categories.add(new ModeCategory(id, colour(category.getString("nom", id)),
                     icon(where, category.getString("icone", "CHEST")), description(category),
-                    slogan == null || slogan.trim().isEmpty() ? null : colour(slogan), also));
+                    slogan == null || slogan.trim().isEmpty() ? null : colour(slogan), also, party));
         }
         return categories;
     }
@@ -765,6 +776,10 @@ final class LobbySettings {
             boolean known = false;
             for (ModeCategory c : categories) {
                 known |= c.id().equals(category);
+                if (c.id().equals(category) && c.party()) {
+                    throw new IllegalArgumentException(where + ".categorie: \"" + category + "\" is the category of the"
+                            + " parties (party: true): it has no modes of its own, it shows those of the others");
+                }
             }
             if (!known) {
                 throw new IllegalArgumentException(where + ".categorie: \"" + category
