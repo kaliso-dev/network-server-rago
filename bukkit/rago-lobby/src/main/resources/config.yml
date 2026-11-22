@@ -50,6 +50,14 @@ replays:
   taille-max-mo: 2000
   spectateurs-max: 6
 
+# The compass (the owner's choice of 22/11, 17h54): its top row holds these categories or groups
+# (groupes:), in this order, one slot apart and centred; the other categories go in the middle row,
+# one slot apart up to five (side by side beyond), and "Popular now" in the bottom row. A group
+# (Red Rover) opens its modes, whose back button comes back to the compass. Empty or missing: the
+# compass as before, "Popular now" on top and every category in the middle row.
+boussole:
+  haut: [red-rover, party, trois-joueurs, classe]
+
 # The categories of the selector, one per zone of the lobby, in the order of the menu (9 at most,
 # side by side in the top row of the compass): left to right, as in the lobby. The compass first
 # shows the categories, then the games of the one picked (28 modes at most per category). Without

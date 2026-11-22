@@ -28,6 +28,7 @@ final class LobbySettings {
     private boolean welcome = true;
     /** The menu of the first arrival ({@link FirstJoinMenu}): empty for none. */
     private List<FirstChoice> firstChoices = Collections.emptyList();
+    private List<String> compassTop = Collections.emptyList();
     /** The billboards of the lobby ({@link Billboards}): none without panneaux:. */
     private List<Billboard> billboards = Collections.emptyList();
     /** The texts of the lobby ({@link LobbyText}): none without textes:. */
@@ -130,6 +131,7 @@ final class LobbySettings {
                     + " shows no more");
         }
         List<ModeCategory> groups = readGroups(config.getConfigurationSection("groupes"));
+        List<String> compassTop = readCompassTop(config.getConfigurationSection("boussole"), categories, groups);
         Map<String, Integer> perCategory = new HashMap<>();
         Map<String, String> groupCategory = new HashMap<>();
         java.util.Set<String> groupsSeen = new java.util.HashSet<>();
@@ -204,6 +206,7 @@ final class LobbySettings {
             settings.mineskinKey = mineskinKey;
             settings.welcome = config.getBoolean("accueil", true);
             settings.firstChoices = Collections.unmodifiableList(firstChoices);
+            settings.compassTop = Collections.unmodifiableList(compassTop);
             settings.billboards = billboards;
             settings.texts = Collections.unmodifiableList(texts);
             settings.bots = bots;
@@ -928,6 +931,43 @@ final class LobbySettings {
     /** The choices of the menu of the first arrival (premiere-venue:); empty: no menu. */
     List<FirstChoice> firstChoices() {
         return firstChoices;
+    }
+
+    /**
+     * The top row of the compass (boussole.haut, the owner's choice of 22/11): categories or groups
+     * by id, in their order; empty: "Popular now" on top and every category under it.
+     */
+    List<String> compassTop() {
+        return compassTop;
+    }
+
+    /** boussole.haut: ids of categories or groups, each once, a row of 9 at most; empty without it. */
+    static List<String> readCompassTop(ConfigurationSection compass, List<ModeCategory> categories, List<ModeCategory> groups) {
+        List<String> top = new ArrayList<>();
+        if (compass == null) {
+            return top;
+        }
+        java.util.Set<String> known = new java.util.HashSet<>();
+        for (ModeCategory category : categories) {
+            known.add(category.id());
+        }
+        for (ModeCategory group : groups) {
+            known.add(group.id());
+        }
+        for (String id : compass.getStringList("haut")) {
+            if (!known.contains(id)) {
+                throw new IllegalArgumentException("boussole.haut: \"" + id + "\" is neither a category (categories:) nor a group"
+                        + " (groupes:)");
+            }
+            if (top.contains(id)) {
+                throw new IllegalArgumentException("boussole.haut: \"" + id + "\" twice");
+            }
+            top.add(id);
+        }
+        if (top.size() > 9) {
+            throw new IllegalArgumentException("boussole.haut: 9 at most, the top row of the compass");
+        }
+        return top;
     }
 
     /** The billboards of the lobby (panneaux:); empty: none. */

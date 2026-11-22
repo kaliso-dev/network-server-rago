@@ -143,7 +143,7 @@ dans les files d'attente des modes de jeu.
   score du joueur avec sa place (« Your best: 8 clutches (#5) »). C'est le record de la variante
   sur laquelle l'entraînement commence : la première, et pour le block edit la vitesse du bot par
   défaut. Les duels gardent leur Daily Streak.
-- **« Popular now ».** La ligne du haut de la boussole, au-dessus des catégories, montre les modes
+- **« Popular now ».** La ligne du bas de la boussole, sous les catégories, montre les modes
   où il y a du monde en ce moment, toutes catégories confondues : au moins un joueur en partie ou
   en file, les plus joués d'abord (à égalité, celui où l'on attend : une partie bientôt), trois au
   plus. Le menu d'une catégorie (depuis la boussole, son PNJ ou `/play`) n'a rien sur sa ligne du
@@ -583,14 +583,17 @@ config.yml fourni les suit :
 
 ## Catégories, PNJ et classements
 
-- `categories:` range les modes par zone du lobby : la boussole montre les catégories côte à côte
-  sur sa ligne du milieu, sous « Popular now » (Practice à gauche, RBW Modes avec un lit, Duels,
-  Arenas : les modes sans file, FFA, Top Bridge FFA, Lobby Fight FFA, Bridge fight, Block placement
-  arena et Arena Free, où l'on entre tout de suite ; Lobby Fight 1v1 est dans Duels ; puis Fun
-  Practice, 3 Players, Party et Ranked), puis un clic ouvre les jeux de celle qu'on choisit, avec
-  « Back to the categories » en bas (9 catégories, 28 objets par catégorie au plus, un groupe
-  comptant pour un). C'est la boussole d'avant la version « comme sur Minemen », remise à ta demande
-  du 22/11. Chaque mode dit sa `categorie:`. Le `slogan:` d'une catégorie (40 caractères au
+- `categories:` range les modes par zone du lobby. La boussole (ton choix du 22/11, 17h54,
+  `boussole: haut:`) a trois lignes, centrées, une case entre chaque objet : en haut Red Rover (le
+  groupe, qui ouvre ses quatre modes, et son bouton retour revient à la boussole), Party, 3 Players
+  et Ranked ; au milieu Practice, RBW Modes avec un lit, Duels au centre, Arenas (les modes sans
+  file, FFA, Top Bridge FFA, Lobby Fight FFA, Bridge fight, Block placement arena et Arena Free, où
+  l'on entre tout de suite ; Lobby Fight 1v1 est dans Duels) et Fun Practice ; en bas « Popular
+  now ». Un clic ouvre les jeux de celle qu'on choisit, avec « Back to the categories » en bas
+  (9 catégories, 28 objets par catégorie au plus, un groupe comptant pour un). `boussole: haut:`
+  prend des catégories ou des groupes (`groupes:`), 9 au plus, chacun une fois ; sans lui, la
+  boussole d'avant : « Popular now » en haut, toutes les catégories côte à côte en dessous. Chaque
+  mode dit sa `categorie:`. Le `slogan:` d'une catégorie (40 caractères au
   plus) dit ce qu'on y fait : sous son nom dans la boussole, sous son PNJ et dans l'accueil.
 - `aussi:` d'une catégorie montre en plus des jeux d'autres catégories (des modes ou des groupes),
   après les siens, avec les mêmes files. « 3 Players » (plan 6.6), dans la boussole seulement, sans

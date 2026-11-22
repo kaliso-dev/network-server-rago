@@ -17,8 +17,10 @@ jouent comme des joueurs :
    l'éditeur. Le serveur de test n'a pas de clé d'API Hypixel : RagoDeux trouve l'émeraude et le
    coffre de l'import Hypixel en bas du livre, et l'émeraude comme `/hypixel import Notch` disent
    que l'import n'est pas en place, `/hypixel shop` que rien n'a été importé ;
-2. RagoUn ouvre le sélecteur d'un clic droit (les catégories sur la ligne du milieu, comme
-   avant), clique sur Duels : ses jeux s'ouvrent, rien sur leur ligne du haut (le sumo montre
+2. RagoUn ouvre le sélecteur d'un clic droit : Red Rover, Party, 3 Players et Ranked sur la
+   ligne du haut, une case entre chacun, les cinq autres catégories en dessous, Duels au centre
+   (ton choix du 22/11, 17h54) ; Red Rover ouvre ses modes, dont le bouton retour revient à la
+   boussole ; il clique sur Duels : ses jeux s'ouvrent, rien sur leur ligne du haut (le sumo montre
    « In queue: 0 ») ; il clique sur le duel sumo : sous le PNJ Duels, RagoDeux lit « 0 in queue » puis « 1 in queue » (plan 3.8) ;
    RagoDeux tape `/queue sumo` ;
 3. le duel démarre, après le décompte 3, 2, 1, « Fight! » affiché en titre (sans fondu), chacun a

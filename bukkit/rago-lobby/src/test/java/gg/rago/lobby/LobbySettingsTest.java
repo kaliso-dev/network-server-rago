@@ -303,6 +303,29 @@ class LobbySettingsTest {
     }
 
     @Test
+    void theCompassPutsRedRoverPartyThreePlayersAndRankedOnTop() throws Exception {
+        // the owner's ask of 22/11 (17h54): Red Rover (a group), Party, 3 Players and Ranked on top
+        LobbySettings settings = LobbySettings.load(bundledConfig());
+        assertEquals(Arrays.asList("red-rover", "party", "trois-joueurs", "classe"), settings.compassTop());
+        assertNotNull(settings.group("red-rover"), "Red Rover is a group, which the top row opens");
+        assertNull(settings.category("red-rover"));
+        List<String> middle = new ArrayList<>();
+        for (ModeCategory category : settings.categories()) {
+            if (!settings.compassTop().contains(category.id())) {
+                middle.add(category.id());
+            }
+        }
+        assertEquals(Arrays.asList("entrainement", "ranked", "duels", "arenes", "fun"), middle,
+                "Practice, RBW Modes, Duels, Arenas and Fun Practice in the middle row, in their order");
+        assertEquals(Collections.emptyList(), LobbySettings.load(yaml("categories:\n  duels: {}\n" + SUMO)).compassTop(),
+                "without boussole: the compass as before");
+        String two = "categories:\n  duels: {}\n  fun: {}\ngroupes:\n  g: {}\n" + SUMO;
+        assertEquals(Arrays.asList("g", "fun"), LobbySettings.load(yaml(two + "boussole:\n  haut: [g, fun]\n")).compassTop());
+        assertInvalid(two + "boussole:\n  haut: [nope]\n", "boussole.haut: \"nope\" is neither");
+        assertInvalid(two + "boussole:\n  haut: [fun, fun]\n", "boussole.haut: \"fun\" twice");
+    }
+
+    @Test
     void aNewPlayerStartsWithTheBlockClutch() throws Exception {
         LobbySettings settings = LobbySettings.load(bundledConfig());
         List<String> start = new java.util.ArrayList<>();

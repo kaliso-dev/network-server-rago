@@ -3,6 +3,8 @@ package gg.rago.lobby;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
+import java.util.Arrays;
+import java.util.Collections;
 import org.junit.jupiter.api.Test;
 
 class LayoutTest {
@@ -27,7 +29,7 @@ class LayoutTest {
 
     @Test
     void theCompassShowsTheCategoriesInItsMiddleRow() {
-        // the eight of the bundled config.yml (plan 3.7) side by side: Duels the third, then Party and Ranked
+        // without boussole.haut, as before 22/11 (17h54): eight categories side by side, Duels the third
         assertEquals(9, ModeMenu.categorySlot(0, 8), "Practice on the left");
         assertEquals(11, ModeMenu.categorySlot(2, 8), "Duels");
         assertEquals(15, ModeMenu.categorySlot(6, 8), "Party");
@@ -38,6 +40,30 @@ class LayoutTest {
                 assertTrue(slot >= 9 && slot < 18, count + " categories: the middle row of three, under Popular now");
             }
         }
+    }
+
+    @Test
+    void theRowsOfTheCompassAreCentredAndOneSlotApartUpToFive() {
+        // the owner's ask of 22/11 (17h54): Red Rover, Party, 3 Players and Ranked on top, the five others under them
+        assertEquals(Arrays.asList(1, 3, 5, 7), columns(4), "the top row");
+        assertEquals(Arrays.asList(0, 2, 4, 6, 8), columns(5), "the middle row: Duels in the middle (column 4, slot 13)");
+        assertEquals(Collections.singletonList(4), columns(1));
+        assertEquals(Arrays.asList(3, 5), columns(2));
+        assertEquals(Arrays.asList(1, 2, 3, 4, 5, 6), columns(6), "side by side beyond five");
+        assertEquals(Arrays.asList(0, 1, 2, 3, 4, 5, 6, 7, 8), columns(9));
+        for (int count = 1; count <= 9; count++) {
+            assertEquals(count, new java.util.HashSet<>(columns(count)).size(), count + ": one column each");
+        }
+    }
+
+    private static java.util.List<Integer> columns(int count) {
+        java.util.List<Integer> columns = new java.util.ArrayList<>();
+        for (int i = 0; i < count; i++) {
+            int column = ModeMenu.compassColumn(i, count);
+            assertTrue(column >= 0 && column < 9, count + ": column " + column);
+            columns.add(column);
+        }
+        return columns;
     }
 
     @Test

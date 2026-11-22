@@ -70,8 +70,10 @@ final class ModeMenu {
         static final String CHALLENGE = "*defi";
         private Inventory inventory;
         private final String view;
-        /** In the compass: what each slot of the top row shows in "Popular now" (a mode id, CHALLENGE), else null. */
-        private final String[] popular = new String[9];
+        /** In the compass: what each slot shows in "Popular now" (a mode id, CHALLENGE), else null. */
+        private final String[] popular = new String[27];
+        /** In the compass: the category or group each slot opens (its id), else null. */
+        private final String[] links = new String[27];
 
         Holder(String view) {
             this.view = view;
@@ -300,9 +302,20 @@ final class ModeMenu {
         return 9 + (9 - count) / 2 + index;
     }
 
-    /** The slot of the n-th of {@code count} items of "Popular now", centred in the top row of the compass. */
+    /** The slot of the n-th of {@code count} items of "Popular now", centred in its row of the compass (0 to 8). */
     static int popularSlot(int index, int count) {
         return categorySlot(index, count) - 9;
+    }
+
+    /**
+     * The column (0 to 8) of the n-th of {@code count} in a row of the compass, centred: one slot
+     * apart up to five (the owner's ask of 22/11, "plus clair"), side by side beyond.
+     */
+    static int compassColumn(int index, int count) {
+        if (2 * count - 1 <= 9) {
+            return (9 - (2 * count - 1)) / 2 + 2 * index;
+        }
+        return (9 - count) / 2 + index;
     }
 
     /** The back button: middle of the bottom row. */
@@ -433,12 +446,12 @@ final class ModeMenu {
                 clickPopular(player, holder.popular[slot]);
                 return;
             }
-            List<ModeCategory> categories = settings.categories();
-            for (int i = 0; i < categories.size(); i++) {
-                if (categorySlot(i, categories.size()) == slot) {
-                    openCategory(player, categories.get(i).id());
-                    return;
-                }
+            String link = slot >= 0 && slot < holder.links.length ? holder.links[slot] : null;
+            if (link != null && settings.category(link) != null) {
+                openCategory(player, link);
+            } else if (link != null && settings.group(link) != null) {
+                // a group of the top row (Red Rover): its back button comes back to the compass
+                openGroup(player, settings.group(link), null, Holder.CATEGORIES);
             }
             return;
         }
@@ -451,7 +464,9 @@ final class ModeMenu {
             List<ModeDisplay> grouped = groupOf(view) == null ? null : modesFor(view);
             GameMode maps = mapsMode(view);
             ModeDisplay mapsDisplay = maps == null ? null : settings.display(maps.id());
-            if (fromCategory(view) != null && settings.category(fromCategory(view)) != null) {
+            if (Holder.CATEGORIES.equals(fromCategory(view))) {
+                open(player);
+            } else if (fromCategory(view) != null && settings.category(fromCategory(view)) != null) {
                 openCategory(player, fromCategory(view));
             } else if (grouped != null && !grouped.isEmpty() && grouped.get(0).category() != null) {
                 openCategory(player, grouped.get(0).category());
@@ -589,11 +604,30 @@ final class ModeMenu {
             return;
         }
         if (Holder.CATEGORIES.equals(view)) {
-            List<ModeCategory> categories = settings.categories();
-            for (int i = 0; i < categories.size(); i++) {
-                inventory.setItem(categorySlot(i, categories.size()), categoryIcon(categories.get(i), current, viewer));
+            // the top row (boussole.haut), the other categories under it, "Popular now" at the bottom;
+            // without a top row, the compass as before: "Popular now" on top, every category under it
+            Holder holder = (Holder) inventory.getHolder();
+            java.util.Arrays.fill(holder.links, null);
+            List<String> top = settings.compassTop();
+            List<ModeCategory> middle = new ArrayList<>();
+            for (ModeCategory category : settings.categories()) {
+                if (!top.contains(category.id())) {
+                    middle.add(category);
+                }
             }
-            fillPopular(inventory, settings.modes(), current, viewer);
+            for (int i = 0; i < top.size(); i++) {
+                ModeCategory category = settings.category(top.get(i));
+                int slot = compassColumn(i, top.size());
+                inventory.setItem(slot, category != null ? categoryIcon(category, current, viewer)
+                        : icon(settings.group(top.get(i)), current, viewer));
+                holder.links[slot] = top.get(i);
+            }
+            for (int i = 0; i < middle.size(); i++) {
+                int slot = top.isEmpty() ? categorySlot(i, middle.size()) : 9 + compassColumn(i, middle.size());
+                inventory.setItem(slot, categoryIcon(middle.get(i), current, viewer));
+                holder.links[slot] = middle.get(i).id();
+            }
+            fillPopular(inventory, settings.modes(), current, viewer, top.isEmpty() ? 0 : 2);
             return;
         }
         int last = hasBack(view) ? backSlot(inventory.getSize()) - 4 : inventory.getSize();
@@ -634,7 +668,7 @@ final class ModeMenu {
      * "Popular now", the top row of the compass: the modes with players right now, the most first,
      * then the challenge of the day. What each slot holds goes in the holder, for the click.
      */
-    private void fillPopular(Inventory inventory, List<ModeDisplay> modes, List<GameMode> current, HumanEntity viewer) {
+    private void fillPopular(Inventory inventory, List<ModeDisplay> modes, List<GameMode> current, HumanEntity viewer, int row) {
         Holder holder = (Holder) inventory.getHolder();
         Map<String, Integer> playing = queues.playing();
         List<String> candidates = new ArrayList<>();
@@ -648,13 +682,13 @@ final class ModeMenu {
         if (challengeMode != null && queues.isPlayable(challengeMode)) {
             shown.add(Holder.CHALLENGE);
         }
-        for (int slot = 0; slot < holder.popular.length; slot++) {
+        for (int slot = 9 * row; slot < 9 * row + 9; slot++) {
             holder.popular[slot] = null;
             inventory.setItem(slot, null);
         }
         for (int i = 0; i < shown.size(); i++) {
             String id = shown.get(i);
-            int slot = popularSlot(i, shown.size());
+            int slot = 9 * row + popularSlot(i, shown.size());
             holder.popular[slot] = id;
             if (Holder.CHALLENGE.equals(id)) {
                 inventory.setItem(slot, challengeIcon());

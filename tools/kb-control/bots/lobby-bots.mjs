@@ -9,7 +9,9 @@
 //      the tab list, and a click on it opens Duels; RagoUn opens the kit editor with the book and
 //      moves the stick of the sumo kit (run-lobby-test.sh gives the sumo one) from the first
 //      hotbar slot to the fourth, saves, and finds it there when it opens the editor again;
-//   2. RagoUn opens the selector with a right click, opens the Duels category (Daily Streak: 0 on
+//   2. RagoUn opens the selector with a right click: Red Rover, Party, 3 Players and Ranked in its
+//      top row, the five other categories under them; Red Rover opens its modes, whose back button
+//      comes back to the compass; it opens the Duels category (Daily Streak: 0 on
 //      the sumo, nobody in its top yet, nobody in its queue), then clicks the sumo duel: the line
 //      under the Duels NPC goes from 0 to 1 in queue; RagoDeux types /queue sumo;
 //   3. the duel starts after a 3, 2, 1 countdown in titles, each bot gets the stick where it put
@@ -69,13 +71,15 @@ const PORT = Number(process.env.KB_PORT ?? '25565')
 const TEST_TIMEOUT_MS = 7 * 60 * 1000
 // A new lobby world has a platform at y = 64: players stand at y = 65, at the centre.
 const LOBBY_SPAWN = { x: 0.5, y: 65, z: 0.5 }
-// The compass (ModeMenu, as before the Minemen layout, the owner's ask of 22/11): "Popular now" in
-// the top row (the modes with players right now), then the eight categories of the bundled
-// config.yml side by side in the middle row (ModeMenu.categorySlot): Practice on the left (slot 9),
-// RBW Modes, Duels in slot 11, the Arenas, FUN PRACTICE, 3 Players, then Party and Ranked (plan 3.7).
+// The compass (ModeMenu, the owner's ask of 22/11, 17h54, boussole.haut of the bundled config.yml):
+// Red Rover, Party, 3 Players and Ranked in the top row, one slot apart (ModeMenu.compassColumn);
+// Practice, RBW Modes, Duels, the Arenas and Fun Practice in the middle row, one slot apart, Duels in
+// the middle (slot 13); "Popular now" in the bottom row (the modes with players right now).
 // A click on Duels opens its modes in a menu of their own, with nothing in its top row: the sumo is
 // its slime ball (Bed Fight comes first), the back button in the bottom row.
-const DUELS_SLOT = 11
+const COMPASS = { 1: 'redstone', 3: 'name_tag', 5: 'skull', 7: 'diamond_sword', 9: 'sandstone', 11: 'bed', 13: 'iron_sword', 15: 'diamond_sword', 17: 'snowball' }
+const RED_ROVER_SLOT = 1
+const DUELS_SLOT = 13
 const POINTS_TO_WIN = 3
 // run-lobby-test.sh places the NPC of the Duels category (point duels), a stats NPC
 // (profil), a wall of leaderboards (leaderboards), the main leaderboard
@@ -272,10 +276,25 @@ async function openSelectorAndJoinSumo (bot) {
   if (window == null) throw new Error(`${bot.username}: the selector did not open on a right click`)
   const title = typeof window.title === 'string' ? window.title : JSON.stringify(window.title)
   if (!title.includes('Game modes')) throw new Error(`${bot.username}: unexpected window title ${title}`)
-  if (window.slots[DUELS_SLOT]?.name !== 'iron_sword') {
-    throw new Error(`${bot.username}: slot ${DUELS_SLOT} holds ${window.slots[DUELS_SLOT]?.name}, not the Duels category`)
-  }
   if (window.inventoryStart !== 27) throw new Error(`${bot.username}: the compass should have three rows, not ${window.inventoryStart / 9}`)
+  checkCompass(bot, window)
+  // Red Rover (a group of the top row): its modes, whose back button comes back to the compass
+  const roverOpened = new Promise((resolve) => bot.once('windowOpen', resolve))
+  bot.clickWindow(RED_ROVER_SLOT, 0, 0).catch(() => {})
+  const rover = await Promise.race([roverOpened, sleep(5000).then(() => null)])
+  if (rover == null || !windowTitle(rover).includes('Red Rover')) {
+    throw new Error(`${bot.username}: Red Rover in the compass opened ${rover == null ? 'nothing' : windowTitle(rover)}`)
+  }
+  const backSlot = rover.inventoryStart - 5
+  if (rover.slots[backSlot]?.name !== 'arrow') throw new Error(`${bot.username}: no back button in Red Rover: ${rover.slots[backSlot]?.name}`)
+  const compassAgain = new Promise((resolve) => bot.once('windowOpen', resolve))
+  bot.clickWindow(backSlot, 0, 0).catch(() => {})
+  const again = await Promise.race([compassAgain, sleep(5000).then(() => null)])
+  if (again == null || !windowTitle(again).includes('Game modes')) {
+    throw new Error(`${bot.username}: the back button of Red Rover opened ${again == null ? 'nothing' : windowTitle(again)}`)
+  }
+  checkCompass(bot, again)
+  log(`${bot.username}: Red Rover, Party, 3 Players and Ranked on top of the compass; Red Rover and its back button`)
   const duelsOpened = new Promise((resolve) => bot.once('windowOpen', resolve))
   bot.clickWindow(DUELS_SLOT, 0, 0).catch(() => {})
   const duels = await Promise.race([duelsOpened, sleep(5000).then(() => null)])
@@ -297,6 +316,17 @@ async function openSelectorAndJoinSumo (bot) {
   bot.clickWindow(sumo, 0, 0).catch(() => {})
   await chatLine(bot, /You joined the queue for .*Sumo duel/, 5000, from)
   log(`${bot.username} joined the sumo queue from the selector`)
+}
+
+/** The two rows of categories of the compass (COMPASS), and nothing else in them. */
+function checkCompass (bot, window) {
+  for (let slot = 0; slot < 18; slot++) {
+    const name = window.slots[slot]?.name ?? null
+    if (name !== (COMPASS[slot] ?? null)) {
+      throw new Error(`${bot.username}: slot ${slot} of the compass holds ${name}, not ${COMPASS[slot] ?? 'nothing'}: ` +
+        JSON.stringify(window.slots.slice(0, 18).map((item) => item?.name ?? null)))
+    }
+  }
 }
 
 /** The slot of the sumo in the Duels menu: its slime ball under the top row, above the back button's row, or -1. */
