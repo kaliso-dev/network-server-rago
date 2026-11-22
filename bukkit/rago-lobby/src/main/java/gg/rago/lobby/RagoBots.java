@@ -67,6 +67,10 @@ final class RagoBots implements Listener {
         this.state = state;
         this.parties = parties;
         this.skins = skins;
+        if (settings.enabled) {
+            // asked from Mojang at the start, so that the first RagoBot of the run wears it already
+            skins.apply(settings.skin);
+        }
     }
 
     /** True if this player is a RagoBot. Any thread. */

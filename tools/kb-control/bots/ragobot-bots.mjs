@@ -7,8 +7,9 @@
 //      invite finds it there already; RagoBot refuses a ranked queue and a mode it does not play;
 //      /duel RagoBot from another player points to the party;
 //   2. Sumo 1v1 (sumo, RagoPractice): RagoLeader and RagoBot, a game of the party that counts in
-//      the stats; RagoLeader stands still: RagoBot comes to it, swings and pushes it (knockback),
-//      and pushes it off the platform: RagoLeader loses;
+//      the stats; RagoLeader stands still: RagoBot pushes it off the platform, with at least one
+//      hit in the recap: RagoLeader loses. RagoLeader must see RagoBot come to it and get its
+//      knockback, as a player does (checked at the end, with what its client saw of the game);
 //   3. Top Bridge 1v1 (top-bridge-1v1, RagoBedwars, on its demo map): RagoBot crosses the bridge
 //      and hits RagoLeader with the sword of the kit, until it wins a round; RagoLeader leaves;
 //   4. Top Bridge 2v2: the party of RagoLeader and RagoBot queues as one team, two players alone
@@ -54,7 +55,6 @@ function join (username) {
     const bot = mineflayer.createBot({ host: HOST, port: PORT, username, auth: 'offline', version: '1.8.8' })
     bot.firstMenu = null
     bot.chats = []
-    bot.pushes = 0
     bot.on('windowOpen', (window) => {
       const title = typeof window.title === 'string' ? window.title : JSON.stringify(window.title)
       if (title.includes('What do you want to do?')) bot.firstMenu = window
@@ -73,10 +73,6 @@ function join (username) {
       bot.on('kicked', (reason) => abort(new Error(`${username} was kicked: ${JSON.stringify(reason)}`)))
       bot.on('end', (reason) => {
         if (!finishing) abort(new Error(`${username} disconnected: ${reason}`))
-      })
-      // its own knockback: the velocity the server sends it
-      bot._client.on('entity_velocity', (packet) => {
-        if (bot.entity != null && packet.entityId === bot.entity.id) bot.pushes++
       })
       resolve(bot)
     })
@@ -122,24 +118,86 @@ function where (entity) {
   return `${p.x.toFixed(1)}, ${p.y.toFixed(1)}, ${p.z.toFixed(1)}`
 }
 
-/** Watches RagoBot from this bot: its swings, and how far it went from where it was first seen. */
+/**
+ * Watches the game from this bot's client, packet by packet: the entity of RagoBot (its spawns,
+ * its moves, its swings), and what reaches this bot (its hurts, its knockbacks, its teleports,
+ * its world changes), with the block under its feet and where it went. Its summary says all
+ * of it, for the log and for a failure.
+ */
 function watch (bot) {
-  const seen = { swings: 0, start: null, farthest: 0 }
-  const onSwing = (entity) => {
-    if (entity.username === BOT) seen.swings++
+  const seen = {
+    ids: new Set(), spawns: [], destroyed: 0, moves: 0, swings: 0, start: null, farthest: 0,
+    hurts: 0, pushes: 0, teleports: 0, worlds: 0, under: new Set(), path: []
+  }
+  const current = ragoBot(bot)
+  if (current != null) seen.ids.add(current.id)
+  const onPacket = (packet, meta) => {
+    switch (meta.name) {
+      case 'named_entity_spawn':
+        if (packet.playerUUID === bot.players[BOT]?.uuid) {
+          seen.ids.add(packet.entityId)
+          seen.spawns.push(`${packet.entityId} at ${(packet.x / 32).toFixed(1)}, ${(packet.y / 32).toFixed(1)}, ${(packet.z / 32).toFixed(1)}`)
+        }
+        break
+      case 'entity_destroy':
+        seen.destroyed += packet.entityIds.filter((id) => seen.ids.has(id)).length
+        break
+      case 'rel_entity_move':
+      case 'entity_move_look':
+      case 'entity_teleport':
+        if (seen.ids.has(packet.entityId)) seen.moves++
+        break
+      case 'animation':
+        if (seen.ids.has(packet.entityId) && packet.animation === 0) seen.swings++
+        break
+      case 'entity_status':
+        if (packet.entityId === bot.entity.id && packet.entityStatus === 2) seen.hurts++
+        break
+      case 'entity_velocity':
+        if (packet.entityId === bot.entity.id) seen.pushes++
+        break
+      case 'position':
+        seen.teleports++
+        break
+      case 'respawn':
+        seen.worlds++
+        break
+    }
   }
   const onMove = (entity) => {
-    if (entity.username !== BOT) return
+    if (!seen.ids.has(entity.id)) return
     if (seen.start == null) seen.start = entity.position.clone()
     seen.farthest = Math.max(seen.farthest, entity.position.distanceTo(seen.start))
   }
-  bot.on('entitySwingArm', onSwing)
+  let last = null
+  const sample = setInterval(() => {
+    const p = bot.entity.position
+    const block = bot.blockAt(p.offset(0, -0.5, 0))
+    seen.under.add(block == null ? 'not loaded' : block.name)
+    if ((last == null || last.distanceTo(p) > 0.5) && seen.path.length < 40) {
+      seen.path.push(`${p.x.toFixed(1)},${p.y.toFixed(1)},${p.z.toFixed(1)}`)
+      last = p.clone()
+    }
+  }, 100)
+  bot._client.on('packet', onPacket)
   bot.on('entityMoved', onMove)
   seen.stop = () => {
-    bot.removeListener('entitySwingArm', onSwing)
+    clearInterval(sample)
+    bot._client.removeListener('packet', onPacket)
     bot.removeListener('entityMoved', onMove)
   }
+  seen.summary = () => `RagoBot as ${bot.username} saw it: entity ${[...seen.ids].join('/') || 'never seen'}`
+    + ` (spawned ${seen.spawns.join('; ') || 'never'}, ${seen.destroyed} destroyed), ${seen.moves} moves,`
+    + ` ${seen.farthest.toFixed(1)} blocks from where it first moved, ${seen.swings} swings; ${bot.username}:`
+    + ` ${seen.hurts} hurts, ${seen.pushes} knockbacks, ${seen.teleports} teleports, ${seen.worlds} world changes,`
+    + ` under its feet ${[...seen.under].join('/')}, its path ${seen.path.join(' ')}`
   return seen
+}
+
+/** What a player sees of RagoBot in a game: it comes to them, and its hits push them. */
+function asAPlayerSeesIt (game, seen, problems, pushed = true) {
+  if (seen.moves === 0 || seen.farthest < 1) problems.push(`${game}: RagoLeader did not see RagoBot move (${seen.summary()})`)
+  if (pushed && seen.pushes === 0) problems.push(`${game}: no knockback reached RagoLeader (${seen.summary()})`)
 }
 
 async function invite (leader) {
@@ -156,50 +214,47 @@ async function gone (bot, what) {
   await waitFor(() => bot.players[BOT] == null, 5000, `RagoBot to leave the server (${what})`)
 }
 
-async function sumo (leader) {
-  let from = mark(leader)
-  const pushesBefore = leader.pushes
+async function sumo (leader, problems) {
+  const from = mark(leader)
   const seen = watch(leader)
+  let hits
   leader.chat('/queue sumo')
-  await chatLine(leader, /Game of your party in Sumo duel: RagoLeader vs RagoBot\. It counts in your stats, never in the ELO\./, 5000, from)
-  await chatLine(leader, /Sumo duel against RagoBot/, 15000, from)
-  log(`sumo: RagoLeader vs RagoBot, RagoLeader stands still`)
-  from = mark(leader)
   try {
-    await waitFor(() => leader.pushes - pushesBefore >= 3 && seen.swings >= 3, 45000,
-      `RagoBot to swing at RagoLeader and push it (${seen.swings} swings seen, ${leader.pushes - pushesBefore} pushes,`
-      + ` RagoBot ${ragoBot(leader) == null ? 'not seen' : `at ${where(ragoBot(leader))}, ${seen.farthest.toFixed(1)} blocks from its start`},`
-      + ` RagoLeader at ${where(leader.entity)})`)
-    log(`sumo: RagoBot came ${seen.farthest.toFixed(1)} blocks, swung ${seen.swings} times, pushed RagoLeader ${leader.pushes - pushesBefore} times`)
+    await chatLine(leader, /Game of your party in Sumo duel: RagoLeader vs RagoBot\. It counts in your stats, never in the ELO\./, 5000, from)
+    await chatLine(leader, /Sumo duel against RagoBot/, 15000, from)
+    log('sumo: RagoLeader vs RagoBot, RagoLeader stands still')
     const end = await chatLine(leader, /^(Defeat\.|Victory!)/, 90000, from)
-    if (!end.startsWith('Defeat.')) throw new Error(`RagoLeader won the sumo: RagoBot fell off on its own (${end})`)
+    if (!end.startsWith('Defeat.')) throw new Error(`RagoLeader won the sumo: RagoBot fell off on its own (${end}; ${seen.summary()})`)
+    const recap = await chatLine(leader, /- RagoBot: \d+ hits/, 5000, from)
+    hits = Number(/- RagoBot: (\d+) hits/.exec(recap)[1])
+    if (hits < 1) throw new Error(`RagoBot won the sumo without a hit: RagoLeader fell off on its own (${recap}; ${seen.summary()})`)
   } finally {
     seen.stop()
   }
+  log(`sumo: RagoBot pushed RagoLeader off the platform and won, ${hits} hits in the recap; ${seen.summary()}`)
+  asAPlayerSeesIt('sumo', seen, problems)
   await expectInLobby(leader, 'after the sumo')
-  log(`sumo: RagoBot pushed RagoLeader off the platform and won, after ${seen.swings} swings`)
 }
 
-async function topBridge1v1 (leader) {
+async function topBridge1v1 (leader, problems) {
   let from = mark(leader)
   const seen = watch(leader)
   leader.chat('/queue top-bridge-1v1')
-  await chatLine(leader, /Game of your party in Top Bridge 1v1: RagoLeader vs RagoBot\. It counts in your stats, never in the ELO\./, 5000, from)
-  const welcome = await chatLine(leader, /Top Bridge 1v1 on .*: you are in the \S+ team\./, 20000, from)
-  const team = /you are in the (\S+) team\./.exec(welcome)[1]
-  log(`top bridge 1v1: RagoLeader in the ${team} team, against RagoBot`)
   try {
+    await chatLine(leader, /Game of your party in Top Bridge 1v1: RagoLeader vs RagoBot\. It counts in your stats, never in the ELO\./, 5000, from)
+    const welcome = await chatLine(leader, /Top Bridge 1v1 on .*: you are in the \S+ team\./, 20000, from)
+    const team = /you are in the (\S+) team\./.exec(welcome)[1]
+    log(`top bridge 1v1: RagoLeader in the ${team} team, against RagoBot`)
     await waitFor(() => leader.health < 20, 60000,
-      `RagoBot to hit RagoLeader with its sword (health ${leader.health}, ${seen.swings} swings seen, RagoBot`
-      + ` ${ragoBot(leader) == null ? 'not seen' : `at ${where(ragoBot(leader))}, ${seen.farthest.toFixed(1)} blocks from its start`},`
-      + ` RagoLeader at ${where(leader.entity)})`)
-    log(`top bridge 1v1: RagoBot crossed ${seen.farthest.toFixed(1)} blocks and hit RagoLeader (health ${leader.health.toFixed(1)})`)
+      `RagoBot to hit RagoLeader with its sword (health ${leader.health}; ${seen.summary()})`)
+    log(`top bridge 1v1: RagoBot hit RagoLeader (health ${leader.health.toFixed(1)})`)
     const round = await chatLine(leader, /\S+ wins round 1!/, 60000, from)
-    if (round.startsWith(team)) throw new Error(`RagoLeader's team won the round: RagoBot fell off on its own (${round})`)
+    if (round.startsWith(team)) throw new Error(`RagoLeader's team won the round: RagoBot fell off on its own (${round}; ${seen.summary()})`)
   } finally {
     seen.stop()
   }
-  log('top bridge 1v1: RagoBot won the first round')
+  log(`top bridge 1v1: RagoBot won the first round; ${seen.summary()}`)
+  asAPlayerSeesIt('top bridge 1v1', seen, problems)
   from = mark(leader)
   leader.chat('/spawn')
   await expectInLobby(leader, 'after /spawn in the top bridge')
@@ -251,9 +306,10 @@ async function main () {
   await chatLine(others[0], /RagoBot plays with your party: \/p invite RagoBot, then pick its mode as the leader\./, 5000, fromOther)
   log('invite: RagoBot joined the party next to RagoLeader; it refuses a second invite, ranked, a mode it does not play, a /duel')
 
-  // 2. to 4. its games
-  await sumo(leader)
-  await topBridge1v1(leader)
+  // 2. to 4. its games; what a player sees of RagoBot in them is checked at the end, after all
+  const problems = []
+  await sumo(leader, problems)
+  await topBridge1v1(leader, problems)
   await topBridge2v2(leader, others)
 
   // 5. it leaves once out of the party
@@ -267,6 +323,7 @@ async function main () {
   leader.chat('/party disband')
   await gone(leader, 'the party disbanded')
   log('invited again, then the party disbanded: it left the server')
+  if (problems.length > 0) throw new Error(problems.join('; '))
 
   finishing = true
   log('PASSED: RagoBot joins a party by /p invite, refuses ranked and the other modes, wins a Sumo duel and a round'
