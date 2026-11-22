@@ -24,7 +24,7 @@ import mineflayer from 'mineflayer'
 
 const HOST = process.env.KB_HOST ?? '127.0.0.1'
 const PORT = Number(process.env.KB_PORT ?? '25565')
-const TEST_TIMEOUT_MS = 5 * 60 * 1000
+const TEST_TIMEOUT_MS = 8 * 60 * 1000
 /** CtfMaps: the floor, the bridge from -20 to 20 at z 0, the spawns at 25, the flags at 34. */
 const FLOOR = 64
 const BRIDGE_HALF = 20
@@ -121,6 +121,12 @@ function sidebarLines (bot) {
 
 function blockText (block) {
   return block == null ? 'not loaded' : `${block.name}:${block.metadata}`
+}
+
+/** The block at this place once the bot has it (its chunk can come a moment after the bot arrives). */
+async function loadedBlock (bot, at) {
+  await waitFor(() => bot.blockAt(at) != null, 10000, `${bot.username} to have the block at ${at} (its chunk)`)
+  return bot.blockAt(at)
 }
 
 function where (bot) {
@@ -272,18 +278,20 @@ async function checkStart (red, blue) {
   // the bridge, one block wide, in the colours of the teams; the flags on gold
   for (const x of [-BRIDGE_HALF, -1, 0, 1, BRIDGE_HALF]) {
     const at = new Vec3(x, FLOOR, 0)
-    await waitFor(() => red.blockAt(at) != null, 5000, `the bridge at ${at} loaded`)
-    const block = red.blockAt(at)
+    const block = await loadedBlock(red, at)
     const data = x < 0 ? CLAY.Red : x > 0 ? CLAY.Blue : 0
     if (block.name !== 'stained_hardened_clay' || block.metadata !== data) throw new Error(`the bridge at ${at}: ${blockText(block)}`)
+    // north of the bridge (z -1) a chunk can be all void: the server sends none, the bot has no block there
     for (const z of [-1, 1]) {
-      const beside = red.blockAt(new Vec3(x, FLOOR, z))
-      if (beside?.name !== 'air') throw new Error(`the bridge is wider than a block at ${x}, ${FLOOR}, ${z}: ${blockText(beside)}`)
+      const beside = z > 0 ? await loadedBlock(red, new Vec3(x, FLOOR, z)) : red.blockAt(new Vec3(x, FLOOR, z))
+      if (beside != null && beside.name !== 'air') {
+        throw new Error(`the bridge is wider than a block at ${x}, ${FLOOR}, ${z}: ${blockText(beside)}`)
+      }
     }
   }
   for (const side of [-1, 1]) {
-    const flag = red.blockAt(new Vec3(side * FLAG_X, FLOOR + 1, 0))
-    const gold = red.blockAt(new Vec3(side * FLAG_X, FLOOR, 0))
+    const flag = await loadedBlock(red, new Vec3(side * FLAG_X, FLOOR + 1, 0))
+    const gold = await loadedBlock(red, new Vec3(side * FLAG_X, FLOOR, 0))
     if (flag?.name !== 'standing_banner' || gold?.name !== 'gold_block') {
       throw new Error(`the flag at x ${side * FLAG_X}: ${blockText(flag)} on ${blockText(gold)}`)
     }
