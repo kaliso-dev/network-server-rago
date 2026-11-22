@@ -109,7 +109,8 @@ categories:
       - "Fireball Fight: knock them off"
       - "with fireballs and wind gusts;"
       - "Snowball Spleef: break the snow"
-      - "under their feet."
+      - "under their feet; Capture the"
+      - "Flag on The Bridge."
   # The games for three players (plan 6.6), in the compass only (the owner's choice, 21/11): no NPC.
   # aussi: the modes (or groups) of other categories it shows too, with the same queues: Red Rover
   # of the Duels, the 1v2 of the RBW modes. Its name, slogan and description are to confirm.
@@ -271,6 +272,14 @@ groupes:
       - "3 kits and break the bed; the"
       - "defenders have their forge full."
       - "Each in turn, 1v1 to 1v4."
+  # Capture the Flag (category fun)
+  ctf-bridge:
+    nom: "&dCTF The Bridge"
+    icone: BOW
+    description:
+      - "The Bridge with a flag in each"
+      - "base: take theirs, bring it"
+      - "home. 1v1 or 2v2."
   clutch:
     nom: "&bBlock clutch"
     icone: LADDER
@@ -1001,6 +1010,7 @@ titres:
     bow: {nom: "Bow Duel", modes: [bow-duel]}
     fireball-knockback: {nom: "Fireball Fight (Fun)", modes: [fireball-knockback]}
     snowball-spleef: {nom: "Snowball Spleef", modes: [snowball-spleef]}
+    capture-the-flag: {nom: "Capture the Flag", modes: [ctf-bridge-1v1, ctf-bridge-2v2]}
     red-rover: {nom: "Red Rover", modes: [red-rover-sumo, red-rover-block-edit, red-rover-block-placement,
         red-rover-top-bridge]}
 
@@ -1872,6 +1882,37 @@ modes:
       - "each block gives a snowball"
       - "that breaks the snow and"
       - "pushes. Don't fall!"
+  # Capture the Flag (plan 6.2), The Bridge: played by RagoBedwars on its map CtfBridge; the kit of
+  # The Bridge (Hypixel's), in leather armour of the team without the cap; the clay in the team's
+  # colour, the pickaxe with Efficiency II, the arrow back 3.5 seconds after being shot. The two
+  # sizes share one kit.
+  ctf-bridge-1v1:
+    nom: "&dCTF The Bridge 1v1"
+    categorie: fun
+    groupe: ctf-bridge
+    icone: BOW
+    equipes: 2
+    joueurs-par-equipe: 1
+    classe: false
+    kit: [IRON_SWORD, BOW, DIAMOND_PICKAXE, "STAINED_CLAY 64", "STAINED_CLAY 64", "GOLDEN_APPLE 8", "", "", ARROW]
+    description:
+      - "The Bridge with a flag: take"
+      - "theirs at the back of their"
+      - "base and bring it home over"
+      - "the bridge to capture it."
+  ctf-bridge-2v2:
+    nom: "&dCTF The Bridge 2v2"
+    categorie: fun
+    groupe: ctf-bridge
+    icone: BOW
+    equipes: 2
+    joueurs-par-equipe: 2
+    classe: false
+    kit-de: ctf-bridge-1v1
+    description:
+      - "CTF The Bridge, two against"
+      - "two: one takes their flag,"
+      - "the other guards yours."
   clutch:
     nom: "&bBlock clutch"
     categorie: entrainement

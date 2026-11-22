@@ -160,6 +160,19 @@ côté du top bridge, l'autre gagne le round et donc le 1v1 (un round d'une vie)
 l'oppose à celui qui attendait ; celui qui attend quitte la partie, puis un combattant, et le
 dernier en jeu gagne.
 
+Enfin deux bots jouent CTF The Bridge 1v1 (`tools/kb-control/bots/ctf-bots.mjs`, RagoBedwars, sur
+la carte `CtfBridge` que le plugin fabrique), avec les réglages livrés (premier à 3 captures) :
+chacun part de sa base tourné vers le pont, avec le kit de The Bridge (épée en fer, arc, pioche en
+diamant, deux stacks d'argile de son équipe, 8 pommes d'or, la flèche dans la dernière case) et
+l'armure en cuir sans casque ; le pont fait un bloc de large, chaque drapeau est une bannière sur
+de l'or, tous deux « Safe » dans le scoreboard. Le défenseur casse le bout du pont de son côté à la
+pioche et remet de l'argile, mange une pomme d'or (absorption, pas de régénération), tire sa flèche
+qui revient dans la dernière case environ 3,5 s plus tard, puis s'écarte. L'attaquant traverse,
+prend le drapeau adverse (la bannière sur sa tête, « Taken » chez le défenseur), saute dans le vide
+avec : le drapeau retourne à sa base et l'attaquant revient aussitôt sur la sienne avec son kit.
+Puis trois fois il prend le drapeau et le ramène au sien : une capture à chaque fois, la troisième
+gagne la partie (le gagnant et les captures dans le résumé de fin), et les deux reviennent au lobby.
+
 ```bash
 ./gradlew build
 (cd tools/kb-control/bots && npm ci)

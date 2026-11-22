@@ -10,6 +10,8 @@ import java.util.UUID;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
+import java.util.function.Consumer;
+import java.util.function.Supplier;
 import org.bukkit.command.PluginCommand;
 import org.bukkit.configuration.ConfigurationSection;
 import org.bukkit.plugin.Plugin;
@@ -78,6 +80,8 @@ public final class RagoBedwars extends JavaPlugin {
             maps.save(demo);
             getLogger().info("Demo map " + DemoMap.WORLD + " created (carte-demo: false in config.yml turns it off)");
         }
+        // the maps of Capture the Flag, made the first time a mode of config.yml plays them
+        ctfMap(CtfMaps.BRIDGE, CtfMaps::bridgePlan, CtfMaps::bridgeLayout);
 
         watchers = new Watchers(this);
         getServer().getPluginManager().registerEvents(watchers, this);
@@ -154,6 +158,20 @@ public final class RagoBedwars extends JavaPlugin {
         // the first copy is of a real map when there is one: the demo map only serves without them
         getServer().getScheduler().runTaskLater(this,
                 () -> instances.prepare(MapStore.inAdvance(playableMaps()), false), PREWARM_TICKS);
+    }
+
+    /**
+     * A map of Capture the Flag ({@link CtfMaps}), built and set up the first time a mode of
+     * config.yml lists it; left as it is once its world exists (its points can be changed with /bw).
+     */
+    private void ctfMap(String name, Supplier<CtfMaps.Plan> plan, Consumer<BedwarsMap> layout) {
+        if (!settings.playsMap(name) || !CtfMaps.buildIfMissing(name, plan)) {
+            return;
+        }
+        BedwarsMap map = maps.getOrCreate(name);
+        layout.accept(map);
+        maps.save(map);
+        getLogger().info("Capture the Flag map " + name + " created");
     }
 
     @Override

@@ -177,6 +177,25 @@ final class BedwarsSettings {
         }
     }
 
+    /**
+     * Capture the Flag (ctf: in config.yml): the captures that win, the minutes a game of The Bridge
+     * and of the castles lasts at most, the seconds before a dropped flag goes back by itself.
+     * Starting values, to set in game with the owner.
+     */
+    static final class Ctf {
+        final int captures;
+        final int bridgeMinutes;
+        final int castleMinutes;
+        final int returnSeconds;
+
+        Ctf(int captures, int bridgeMinutes, int castleMinutes, int returnSeconds) {
+            this.captures = captures;
+            this.bridgeMinutes = bridgeMinutes;
+            this.castleMinutes = castleMinutes;
+            this.returnSeconds = returnSeconds;
+        }
+    }
+
     static final class Fireball {
         final double speed;
         final double radius;
@@ -282,7 +301,12 @@ final class BedwarsSettings {
          * each 1v1 played as Top Bridge's rounds; the settings of every Red Rover (red-rover in the
          * config.yml of RagoPractice).
          */
-        RED_ROVER_TOP_BRIDGE("red-rover-top-bridge");
+        RED_ROVER_TOP_BRIDGE("red-rover-top-bridge"),
+        /**
+         * Capture the Flag, The Bridge (plan 6.2): two bases joined by a bridge of clay that breaks,
+         * the kit of The Bridge, a flag at the back of each base; no bed, no forge, no shop.
+         */
+        CTF_BRIDGE("ctf-bridge");
 
         /** True if this kind is played in the waiting lobby of its maps, which they must have. */
         boolean inWaitingLobby() {
@@ -356,13 +380,15 @@ final class BedwarsSettings {
     private final int bedBreakProtection;
     /** The better stuff of the player alone of a Bed Fight 1v2 (stuff-ameliore:). */
     private final Stuff strongStuff;
+    /** Capture the Flag (ctf:). */
+    private final Ctf ctf;
 
     private BedwarsSettings(Map<String, List<String>> modes, Map<String, Kind> kinds, int maxGames, boolean demo,
             int respawnSeconds, Forge forge, double forgeShare, List<Rate> diamond, List<Rate> emerald, int[] events,
             Fireball fireball,
             List<String> neighbourModes, List<String> topBridgeModes, List<String> allForgeModes, List<String> allShopModes,
             List<RoundKit> attackKits, List<RoundKit> defenseKits, int attackDefenseProtection, List<RoundKit> bedBreakKits,
-            int bedBreakProtection, Stuff strongStuff) {
+            int bedBreakProtection, Stuff strongStuff, Ctf ctf) {
         this.modes = Collections.unmodifiableMap(modes);
         this.kinds = Collections.unmodifiableMap(kinds);
         this.maxGames = maxGames;
@@ -389,6 +415,7 @@ final class BedwarsSettings {
         this.bedBreakKits = bedBreakKits;
         this.bedBreakProtection = bedBreakProtection;
         this.strongStuff = strongStuff;
+        this.ctf = ctf;
     }
 
     /** The word for every map, in the maps of a mode. */
@@ -466,7 +493,28 @@ final class BedwarsSettings {
         }
         return new BedwarsSettings(modes, kinds(config), maxGames, config.getBoolean("carte-demo", true), respawn, forge,
                 forgeShare, diamond, emerald, events, fireball, neighbours, topBridge, allForges, allShops, attackKits,
-                defenseKits, attackDefenseProtection, bedBreakKits, bedBreakProtection, strongStuff(config));
+                defenseKits, attackDefenseProtection, bedBreakKits, bedBreakProtection, strongStuff(config), ctf(config));
+    }
+
+    /** ctf: Capture the Flag (3 captures, 15 minutes on The Bridge, 20 in the castles, 30 seconds by default). */
+    private static Ctf ctf(ConfigurationSection config) {
+        int captures = config.getInt("ctf.captures", 3);
+        if (captures < 1 || captures > 20) {
+            throw new IllegalArgumentException("ctf.captures: from 1 to 20");
+        }
+        int bridge = config.getInt("ctf.minutes-bridge", 15);
+        if (bridge < 1 || bridge > 60) {
+            throw new IllegalArgumentException("ctf.minutes-bridge: from 1 to 60");
+        }
+        int castle = config.getInt("ctf.minutes-chateau", 20);
+        if (castle < 1 || castle > 60) {
+            throw new IllegalArgumentException("ctf.minutes-chateau: from 1 to 60");
+        }
+        int back = config.getInt("ctf.retour-drapeau-secondes", 30);
+        if (back < 5 || back > 300) {
+            throw new IllegalArgumentException("ctf.retour-drapeau-secondes: from 5 to 300");
+        }
+        return new Ctf(captures, bridge, castle, back);
     }
 
     /** stuff-ameliore: the better stuff of the player alone of a Bed Fight 1v2 (iron, a stone sword, no Protection by default). */
@@ -683,6 +731,18 @@ final class BedwarsSettings {
         return kind == null ? Kind.CLASSIC : kind;
     }
 
+    /** True if a mode lists this map by its name (in modes:). */
+    boolean playsMap(String world) {
+        for (List<String> maps : modes.values()) {
+            for (String map : maps) {
+                if (map.equalsIgnoreCase(world)) {
+                    return true;
+                }
+            }
+        }
+        return false;
+    }
+
     /** The names of this mode's maps, in the order given; empty for every map. */
     List<String> mapsOf(String modeId) {
         List<String> maps = modes.get(modeId);
@@ -796,5 +856,9 @@ final class BedwarsSettings {
     /** The better stuff of the player alone of a Bed Fight 1v2. */
     Stuff strongStuff() {
         return strongStuff;
+    }
+
+    Ctf ctf() {
+        return ctf;
     }
 }

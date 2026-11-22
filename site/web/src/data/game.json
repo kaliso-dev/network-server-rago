@@ -136,9 +136,9 @@
           "colour": "#FF55FF"
         }
       ],
-      "description": "Fireball Fight: knock them off with fireballs and wind gusts; Snowball Spleef: break the snow under their feet.",
+      "description": "Fireball Fight: knock them off with fireballs and wind gusts; Snowball Spleef: break the snow under their feet; Capture the Flag on The Bridge.",
       "skin": null,
-      "modes": 2,
+      "modes": 4,
       "also": []
     },
     {
@@ -306,6 +306,15 @@
         "bed-break-simulator-1v2",
         "bed-break-simulator-1v3",
         "bed-break-simulator-1v4"
+      ]
+    },
+    {
+      "id": "ctf-bridge",
+      "name": "CTF The Bridge",
+      "description": "The Bridge with a flag in each base: take theirs, bring it home. 1v1 or 2v2.",
+      "modes": [
+        "ctf-bridge-1v1",
+        "ctf-bridge-2v2"
       ]
     },
     {
@@ -1213,6 +1222,38 @@
       "description": "Break the snow under them: each block gives a snowball that breaks the snow and pushes. Don't fall!",
       "plugins": [
         "practice"
+      ]
+    },
+    {
+      "id": "ctf-bridge-1v1",
+      "name": "CTF The Bridge 1v1",
+      "colour": "#FF55FF",
+      "icon": "BOW",
+      "category": "fun",
+      "group": "ctf-bridge",
+      "format": "1v1",
+      "ranked": false,
+      "startHere": false,
+      "event": false,
+      "description": "The Bridge with a flag: take theirs at the back of their base and bring it home over the bridge to capture it.",
+      "plugins": [
+        "bedwars"
+      ]
+    },
+    {
+      "id": "ctf-bridge-2v2",
+      "name": "CTF The Bridge 2v2",
+      "colour": "#FF55FF",
+      "icon": "BOW",
+      "category": "fun",
+      "group": "ctf-bridge",
+      "format": "2v2",
+      "ranked": false,
+      "startHere": false,
+      "event": false,
+      "description": "CTF The Bridge, two against two: one takes their flag, the other guards yours.",
+      "plugins": [
+        "bedwars"
       ]
     },
     {

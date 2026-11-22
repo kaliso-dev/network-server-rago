@@ -14,7 +14,10 @@
 # two bots play the two modes of FUN PRACTICE (tools/kb-control/bots/fun-bots.mjs): the Snowball
 # Spleef (the shovel, the snowballs, a fall under the snow) and the Fireball Fight (the wind gust,
 # a fireball that pushes without hurting, a fall off the platform), and three bots play Red Rover
-# Sumo (tools/kb-control/bots/rover-bots.mjs): three 1v1 in turn, the winner staying on.
+# Sumo (tools/kb-control/bots/rover-bots.mjs): three 1v1 in turn, the winner staying on. Then two
+# bots play CTF The Bridge 1v1 (tools/kb-control/bots/ctf-bots.mjs) on the map the plugin makes:
+# the kit, the bridge that breaks, the golden apple, the arrow that comes back, a flag taken and
+# back to its base from the void, three captures and the win.
 # Fails if the bots fail, or if the server log has an error or an exception.
 #
 # Run from anywhere, after the build:
@@ -207,7 +210,8 @@ for expected in '[RagoLobby] Lobby in the world lobby' '[RagoPractice] Arenas in
     'Mode block-edit hosted by RagoPractice' 'Mode snowball-spleef hosted by RagoPractice' \
     'Mode fireball-knockback hosted by RagoPractice' 'Mode red-rover-sumo hosted by RagoPractice' \
     'Mode red-rover-block-edit hosted by RagoPractice' 'Mode red-rover-block-placement hosted by RagoPractice' \
-    'Mode red-rover-top-bridge hosted by RagoBedwars'; do
+    'Mode red-rover-top-bridge hosted by RagoBedwars' 'Mode ctf-bridge-1v1 hosted by RagoBedwars' \
+    '[RagoBedwars] Capture the Flag map CtfBridge created'; do
   server_log_has "$expected" || { grep -n 'Rago' "$SERVER_LOG" >&2 || true; fail "missing in the server log: $expected"; }
 done
 log "server started with the lobby and the practice modes"
@@ -230,6 +234,9 @@ KB_HOST=127.0.0.1 KB_PORT=$PORT node "$ROOT/tools/kb-control/bots/fun-bots.mjs" 
 # block edit, and the top bridge (RagoBedwars, on its demo map).
 rover_status=0
 KB_HOST=127.0.0.1 KB_PORT=$PORT node "$ROOT/tools/kb-control/bots/rover-bots.mjs" || rover_status=$?
+# The same server for Capture the Flag: two bots, CTF The Bridge 1v1 (RagoBedwars, on CtfBridge).
+ctf_status=0
+KB_HOST=127.0.0.1 KB_PORT=$PORT node "$ROOT/tools/kb-control/bots/ctf-bots.mjs" || ctf_status=$?
 stop_server
 
 # Any error or exception logged by the server fails the test, even if the bots passed. One is
@@ -246,4 +253,5 @@ fi
 [[ $spectate_status -eq 0 ]] || { tail -n 60 "$SERVER_LOG" >&2; fail "the spectator bots stopped with status $spectate_status"; }
 [[ $fun_status -eq 0 ]] || { tail -n 60 "$SERVER_LOG" >&2; fail "the FUN PRACTICE bots stopped with status $fun_status"; }
 [[ $rover_status -eq 0 ]] || { tail -n 60 "$SERVER_LOG" >&2; fail "the Red Rover bots stopped with status $rover_status"; }
+[[ $ctf_status -eq 0 ]] || { tail -n 60 "$SERVER_LOG" >&2; fail "the Capture the Flag bots stopped with status $ctf_status"; }
 log "PASSED"

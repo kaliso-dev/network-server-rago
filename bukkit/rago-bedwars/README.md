@@ -314,6 +314,42 @@ de 10 blocs sur les côtés du pont. Les lits restent en bas, sur les îles, hor
 La map n'est pas dans le dépôt : son `bedwars.yml` donne les deux spawns (juste devant le bloc du
 bout, face à face), les lits des îles, et le générateur et le shop, inutilisés, sur les spawns.
 
+## Capture the Flag
+
+Le CTF du plan (6.2), en deux types, tes deux du 22/11. Le premier, The Bridge, est fait :
+`ctf-bridge-1v1` et `ctf-bridge-2v2` (le genre `ctf-bridge`), dans Fun Practice.
+
+Chaque équipe a son drapeau, une bannière de sa couleur sur un bloc d'or au fond de sa base (le
+point du lit de la map). Un ennemi qui marche dessus le prend : la bannière passe sur sa tête, toute
+la partie l'entend. Il marque en l'apportant sur son propre drapeau, si celui-ci est chez lui (sinon
+le chat le lui dit) ; le drapeau ennemi retourne à sa base. Le porteur qui meurt lâche le drapeau là
+où il tombe, une bannière qui flotte avec le temps qui reste : un ennemi le reprend en marchant
+dessus, un joueur de son équipe le ramène chez lui en le touchant, sinon il rentre seul après
+`ctf.retour-drapeau-secondes` (30). Tombé dans le vide, il rentre tout de suite ; un porteur qui
+quitte la partie aussi. Personne n'est jamais éliminé : il n'y a pas de lit. On ne pose aucun bloc
+sur un drapeau (son bloc et celui du dessus), pour qu'il puisse toujours rentrer ; autour, oui. Un
+porteur n'est jamais invisible. La première équipe à `ctf.captures` (3) captures gagne ; à la fin du
+temps, celle qui en a le plus, égalité si elles en ont autant. Le tableau de droite donne le score,
+l'état de chaque drapeau (« Safe », « Taken », « Dropped 24s ») et les captures du joueur.
+
+**The Bridge** : sur CtfBridge, une map que le plugin construit lui-même la première fois qu'un mode
+de `modes:` la cite (comme la map démo), rouge à l'ouest et bleu à l'est. Comme le The Bridge
+d'Hypixel : un pont d'argile d'un bloc de large et de 41 de long entre les deux bases (rouge sur la
+moitié rouge, bleu sur la bleue, blanc au milieu), qu'on casse et sur lequel on construit, de 4 blocs
+sous le pont à 4 au-dessus (les 9 blocs de hauteur de The Bridge). Les bases, en quartz, ne se
+cassent pas ; leur drapeau est au fond, devant un mur aux vitres de la couleur de l'équipe. Ni forge
+ni shop ; on revient tout de suite après une mort, avec le kit de The Bridge (le wiki Hypixel) rangé
+comme on l'avait à sa mort : l'armure de cuir de l'équipe sans le casque, une épée en fer, un arc,
+une pioche en diamant Efficiency II, deux stacks d'argile de l'équipe, 8 pommes en or et une flèche
+qui revient 3,5 secondes après avoir été tirée, dans la case où elle était (jamais plus d'une).
+Une pomme en or remet toute la vie d'un coup et donne deux cœurs d'absorption. Les deux tailles
+partagent un kit, à ranger dans l'éditeur de kit du lobby. `ctf.minutes-bridge` (15, la durée
+d'Hypixel en 1v1 et 2v2).
+
+Les valeurs (captures, durées, retour du drapeau) sont dans `ctf:` du `config.yml`, à régler en
+jeu. Le dessin de la map est à valider : on peut la modifier en jeu et la sauver, le plugin ne la
+reconstruit pas tant que son dossier existe.
+
 ## Améliorations et pièges
 
 Le villageois « TEAM UPGRADES » de chaque île ouvre « Upgrades & Traps », comme sur Hypixel. Tout

@@ -82,13 +82,20 @@ final class MapStore {
     }
 
     /**
-     * Among these maps, those of these names (in their order; empty: all of them) that a game of
-     * this many teams can be played on (see {@link #choose}). The demo map stands in when none of
-     * them can.
+     * Among these maps, those of these names (in their order; empty: all of them but the maps of
+     * Capture the Flag) that a game of this many teams can be played on (see {@link #choose}). The
+     * demo map stands in when none of them can.
      */
     static List<BedwarsMap> named(Collection<BedwarsMap> maps, int teams, List<String> names) {
         if (names.isEmpty()) {
-            return choose(maps, teams);
+            // every map, but those of Capture the Flag (no bed): only the modes that name them play them
+            List<BedwarsMap> every = new ArrayList<>();
+            for (BedwarsMap map : maps) {
+                if (!CtfMaps.isCtfMap(map.world())) {
+                    every.add(map);
+                }
+            }
+            return choose(every, teams);
         }
         List<BedwarsMap> chosen = new ArrayList<>();
         for (String name : names) {
@@ -125,16 +132,22 @@ final class MapStore {
 
     /**
      * These playable maps without the demo map, unless it is the only one: the maps a copy is made
-     * of before anyone asks for a game.
+     * of before anyone asks for a game. The maps of Capture the Flag ({@link CtfMaps}) only when
+     * there is no other: they serve their own modes, the copy made in advance is for Bed Wars.
      */
     static List<BedwarsMap> inAdvance(Collection<BedwarsMap> playable) {
         List<BedwarsMap> real = new ArrayList<>();
+        List<BedwarsMap> bedWars = new ArrayList<>();
         for (BedwarsMap map : playable) {
+            if (CtfMaps.isCtfMap(map.world())) {
+                continue;
+            }
+            bedWars.add(map);
             if (!DemoMap.WORLD.equals(map.world())) {
                 real.add(map);
             }
         }
-        return real.isEmpty() ? new ArrayList<>(playable) : real;
+        return !real.isEmpty() ? real : !bedWars.isEmpty() ? bedWars : new ArrayList<>(playable);
     }
 
     private static List<BedwarsMap> fitting(Collection<BedwarsMap> maps, int teams) {

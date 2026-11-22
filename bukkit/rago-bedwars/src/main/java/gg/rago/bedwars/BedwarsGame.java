@@ -1436,6 +1436,10 @@ class BedwarsGame {
     void beforeDeath(Player victim, Gamer gamer) {
     }
 
+    /** The player ate or drank this (a golden apple, a potion), after the game let them: a mode may add to it. */
+    void ate(Player player, ItemStack item) {
+    }
+
     /** A final death: what the player is told, with [PLAY AGAIN] and [LEAVE] to go on at once. */
     void outOfGame(Player victim, Gamer gamer) {
         victim.sendTitle(ChatColor.RED + "" + ChatColor.BOLD + "YOU DIED!", ChatColor.GRAY + "You are now a spectator.");
@@ -1655,8 +1659,7 @@ class BedwarsGame {
                 player.sendMessage(KILLER_PLACES[i] + ChatColor.GRAY + " - " + killer.coloured() + ChatColor.GRAY + " - "
                         + ChatColor.WHITE + (killer.kills + killer.finalKills));
             }
-            player.sendMessage(ChatColor.GRAY + "  You: " + gamer.kills + " kills, " + gamer.finalKills
-                    + " final kills, " + gamer.beds + " beds broken");
+            player.sendMessage(summaryLine(gamer));
             player.sendMessage(ChatColor.GREEN + "" + ChatColor.STRIKETHROUGH + "                                        ");
         }
         // the end for the replay and those who watch the game
@@ -1672,6 +1675,12 @@ class BedwarsGame {
             replay = null;
         }
         afterTheEnd(winner != null);
+    }
+
+    /** The player's own line of the end summary: their kills, final kills and beds broken. */
+    String summaryLine(Gamer gamer) {
+        return ChatColor.GRAY + "  You: " + gamer.kills + " kills, " + gamer.finalKills + " final kills, " + gamer.beds
+                + " beds broken";
     }
 
     /** The places of the end summary, as on Hypixel. */

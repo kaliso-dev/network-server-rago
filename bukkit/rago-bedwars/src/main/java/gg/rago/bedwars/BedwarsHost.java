@@ -289,6 +289,8 @@ final class BedwarsHost implements MatchHost, Listener {
             case RED_ROVER_TOP_BRIDGE:
                 return new RedRoverTopBridgeGame(plugin, this, instance, mode.id(), name, sides, plugin.redRover(),
                         plugin.redRoverRounds(), new Random());
+            case CTF_BRIDGE:
+                return new CaptureTheFlagGame(plugin, this, instance, mode.id(), name, sides, true);
             default:
                 return new BedwarsGame(plugin, this, instance, mode.id(), name, sides);
         }
@@ -1187,12 +1189,19 @@ final class BedwarsHost implements MatchHost, Listener {
         }
     }
 
-    /** The empty bottle of a potion goes, as on Hypixel. */
+    /** The empty bottle of a potion goes, as on Hypixel; the mode may add to what was eaten. */
     @EventHandler(priority = EventPriority.MONITOR, ignoreCancelled = true)
     public void onConsume(PlayerItemConsumeEvent event) {
         final Player player = event.getPlayer();
-        if (games.containsKey(player.getUniqueId()) && event.getItem().getType() == Material.POTION) {
+        BedwarsGame game = games.get(player.getUniqueId());
+        if (game == null) {
+            return;
+        }
+        if (event.getItem().getType() == Material.POTION) {
             Bukkit.getScheduler().runTask(plugin, () -> player.getInventory().remove(Material.GLASS_BOTTLE));
+        }
+        if (playing(player) == game) {
+            game.ate(player, event.getItem());
         }
     }
 

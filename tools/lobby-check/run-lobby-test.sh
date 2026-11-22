@@ -217,7 +217,8 @@ if [[ "$started" != true ]]; then
 fi
 for expected in '[RagoLobby] Lobby in the world lobby' 'Mode sumo hosted by RagoPractice' \
     '[RagoPractice] Arenas in the world arenes' '[RagoBedwars] Demo map bw-demo created' \
-    'Mode ranked-1v1 hosted by RagoBedwars' '[RagoBedwars] Bed Wars maps ready: bw-demo;'; do
+    'Mode ranked-1v1 hosted by RagoBedwars' '[RagoBedwars] Capture the Flag map CtfBridge created' \
+    '[RagoBedwars] Bed Wars maps ready: bw-demo, CtfBridge;'; do
   server_log_has "$expected" || { grep -n 'Rago' "$SERVER_LOG" >&2 || true; fail "missing in the server log: $expected"; }
 done
 log "server started with the lobby, the sumo duel and Bed Wars"

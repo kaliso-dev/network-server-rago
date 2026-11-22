@@ -47,6 +47,9 @@ modes:
   bed-break-simulator-1v3: [Archway, Invasion]
   bed-break-simulator-1v4: [Archway, Invasion]
   red-rover-top-bridge: [Antenna, Aquarium, Archway, Artemis, Boletum, Carapace, Catalyst, Chained, Eastwood, Extinction, Invasion, Katsu, Lectus, Obelisk, Paladin, Planet98, Rise, Stonekeep, Swashbuckle, Treenan]
+  # Capture the Flag: the map the plugin makes itself the first time a mode lists it
+  ctf-bridge-1v1: [CtfBridge]
+  ctf-bridge-2v2: [CtfBridge]
 
 # The modes that are not a classic Bed Wars game, each with its kind of game:
 #   ffa        free for all, open: players join and leave when they like, each for themselves, and
@@ -133,6 +136,18 @@ modes:
 #              Top Bridge 1v1); who fights next and how the game is won, as in the Red Rovers of the
 #              practice plugin: their settings, red-rover in the config.yml of RagoPractice
 #              (points-par-1v1-top-bridge: the rounds that win a 1v1)
+#   ctf-bridge  Capture the Flag, The Bridge (plan 6.2, the owner's choice of 22/11): on CtfBridge,
+#              made by the plugin, two bases of quartz joined by a bridge of clay that breaks; at
+#              the back of each base its flag, a banner of the team on gold. Walk onto the enemy
+#              flag to take it (it goes on your head), bring it to your own flag while yours is at
+#              home: a capture. A carrier who dies drops it there: the enemy takes it again, its team
+#              brings it back by touching it, else it goes back by itself (ctf: below); into the
+#              void it goes back at once. No bed, no forge, no shop: back at once after a death,
+#              with the kit of The Bridge (Hypixel's): leather armour of the team without the cap,
+#              the mode's kit (the lobby's kit editor: an iron sword, a bow, a diamond pickaxe with
+#              Efficiency II, two stacks of clay of the team, 8 golden apples that heal at once and
+#              give two hearts of absorption, one arrow that comes back 3.5 seconds after being
+#              shot), where each player put it at their last death; nobody builds on a flag
 # A mode not listed is a classic game.
 jeux:
   top-bridge-1v1: top-bridge
@@ -161,6 +176,8 @@ jeux:
   bed-break-simulator-1v3: bed-break
   bed-break-simulator-1v4: bed-break
   red-rover-top-bridge: red-rover-top-bridge
+  ctf-bridge-1v1: ctf-bridge
+  ctf-bridge-2v2: ctf-bridge
 
 # Attack and Defense: the kits each player chooses from before each round, in a menu that opens by
 # itself (/kit opens it again); the countdown is 10 seconds, 3 once everyone has chosen. The
@@ -234,6 +251,15 @@ stuff-ameliore:
   armure: 2
   epee: STONE_SWORD
   protection: 0
+
+# Capture the Flag (ctf-bridge): captures, the captures that win (1 to 20); minutes-bridge, how
+# long a game lasts at most (1 to 60): then the team with the most captures wins, a draw when they
+# have as many; retour-drapeau-secondes, how long a dropped flag waits before it goes back to its
+# base by itself (5 to 300). Starting values, to set in game.
+ctf:
+  captures: 3
+  minutes-bridge: 15
+  retour-drapeau-secondes: 30
 
 # How many game worlds the server keeps at most, so how many games at once (from 1 to 50).
 parties-max: 8

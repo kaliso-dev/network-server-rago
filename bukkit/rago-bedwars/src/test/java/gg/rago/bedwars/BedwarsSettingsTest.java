@@ -83,8 +83,20 @@ class BedwarsSettingsTest {
                 "attack-defense-1v1", "attack-defense-2v2", "clutch-scenario-1v1", "clutch-scenario-1v2",
                 "clutch-scenario-1v3", "clutch-scenario-1v4", "bed-fight-1v1", "bed-fight-2v2", "bed-fight-1v2", "top-bed-fight-1v1",
                 "lobby-fight-1v1", "lobby-fight-ffa", "bed-break-simulator-1v1", "bed-break-simulator-1v2",
-                "bed-break-simulator-1v3", "bed-break-simulator-1v4", "red-rover-top-bridge"),
+                "bed-break-simulator-1v3", "bed-break-simulator-1v4", "red-rover-top-bridge", "ctf-bridge-1v1",
+                "ctf-bridge-2v2"),
                 settings.modes());
+        for (String size : Arrays.asList("ctf-bridge-1v1", "ctf-bridge-2v2")) {
+            assertEquals(BedwarsSettings.Kind.CTF_BRIDGE, settings.kind(size), size);
+            assertEquals(Collections.singletonList(CtfMaps.BRIDGE), settings.mapsOf(size), size + ": the map the plugin makes");
+            assertFalse(settings.topBridge(size), size);
+        }
+        assertTrue(settings.playsMap("ctfbridge"), "the map is made: a mode lists it");
+        assertFalse(settings.playsMap("Nowhere"));
+        BedwarsSettings.Ctf ctf = settings.ctf();
+        assertEquals(3, ctf.captures, "first to 3 captures, to start");
+        assertEquals(15, ctf.bridgeMinutes, "15 minutes, as a game of The Bridge 1v1 or 2v2 on Hypixel");
+        assertEquals(30, ctf.returnSeconds);
         assertEquals(BedwarsSettings.Kind.RED_ROVER_TOP_BRIDGE, settings.kind("red-rover-top-bridge"));
         assertEquals(settings.mapsOf("top-bridge-1v1"), settings.mapsOf("red-rover-top-bridge"),
                 "Red Rover Top Bridge on the maps of Top Bridge");
@@ -293,6 +305,21 @@ class BedwarsSettingsTest {
         assertEquals(2, settings.strongStuff().armour, "without stuff-ameliore: the same as the bundled config");
         assertEquals(org.bukkit.Material.STONE_SWORD, settings.strongStuff().sword);
         assertEquals(0, settings.strongStuff().protection);
+        assertEquals(3, settings.ctf().captures, "without ctf: the same as the bundled config");
+        assertEquals(15, settings.ctf().bridgeMinutes);
+        assertEquals(20, settings.ctf().castleMinutes);
+        assertEquals(30, settings.ctf().returnSeconds);
+    }
+
+    @Test
+    void theCaptureTheFlagIsSetInTheConfig() throws Exception {
+        YamlConfiguration config = new YamlConfiguration();
+        config.loadFromString("ctf:\n  captures: 5\n  minutes-bridge: 10\n  minutes-chateau: 30\n  retour-drapeau-secondes: 15");
+        BedwarsSettings.Ctf ctf = BedwarsSettings.read(config).ctf();
+        assertEquals(5, ctf.captures);
+        assertEquals(10, ctf.bridgeMinutes);
+        assertEquals(30, ctf.castleMinutes);
+        assertEquals(15, ctf.returnSeconds);
     }
 
     @Test
@@ -357,6 +384,10 @@ class BedwarsSettingsTest {
         assertProblem("stuff-ameliore:\n  epee: IRON_AXE", "stuff-ameliore.epee");
         assertProblem("stuff-ameliore:\n  epee: Excalibur", "stuff-ameliore.epee");
         assertProblem("stuff-ameliore:\n  protection: -1", "stuff-ameliore.protection");
+        assertProblem("ctf:\n  captures: 0", "ctf.captures");
+        assertProblem("ctf:\n  minutes-bridge: 61", "ctf.minutes-bridge");
+        assertProblem("ctf:\n  minutes-chateau: 0", "ctf.minutes-chateau");
+        assertProblem("ctf:\n  retour-drapeau-secondes: 2", "ctf.retour-drapeau-secondes");
         assertProblem("bed-break:\n  kits:\n    - {nom: X, icone: TNT, objets: [\"tnt 99\"]}", "bed-break.kits[1].objets");
     }
 
