@@ -626,16 +626,16 @@ signature, pas la couleur de tout :
 
 ## Catégories, PNJ et classements
 
-- `categories:` range les modes par zone du lobby. La boussole (ton choix du 22/11, 17h54,
-  `boussole: haut:`) a trois lignes, centrées, une case entre chaque objet : en haut Red Rover (le
-  groupe, qui ouvre ses quatre modes, et son bouton retour revient à la boussole), Party, 3 Players
-  et Ranked ; au milieu Practice, RBW Modes avec un lit, Duels au centre, Arenas (les modes sans
-  file, FFA, Top Bridge FFA, Lobby Fight FFA, Bridge fight, Block placement arena et Arena Free, où
-  l'on entre tout de suite ; Lobby Fight 1v1 est dans Duels) et Fun Practice ; en bas « Popular
-  now ». Un clic ouvre les jeux de celle qu'on choisit, avec « Back to the categories » en bas
+- `categories:` range les modes par zone du lobby. La boussole (tes demandes du 22/11, 17h54 et
+  19h51, `boussole: haut:`) a six lignes, centrées, une case entre chaque objet : en haut Ranked,
+  Party, Red Rover (le groupe, qui ouvre ses quatre modes, et son bouton retour revient à la
+  boussole) et 3 Players ; au centre (troisième ligne) les catégories des PNJ du lobby : Practice,
+  RBW Modes avec un lit, Duels au milieu, Arenas (les modes sans file, FFA, Top Bridge FFA, Lobby
+  Fight FFA, Bridge fight, Block placement arena et Arena Free, où l'on entre tout de suite ; Lobby
+  Fight 1v1 est dans Duels) et Fun Practice ; en bas « Popular now ». Un clic ouvre les jeux de celle qu'on choisit, avec « Back to the categories » en bas
   (9 catégories, 28 objets par catégorie au plus, un groupe comptant pour un). `boussole: haut:`
   prend des catégories ou des groupes (`groupes:`), 9 au plus, chacun une fois ; sans lui, la
-  boussole d'avant : « Popular now » en haut, toutes les catégories côte à côte en dessous. Chaque
+  boussole d'avant, en trois lignes : « Popular now » en haut, toutes les catégories côte à côte en dessous. Chaque
   mode dit sa `categorie:`. Le `slogan:` d'une catégorie (40 caractères au
   plus) dit ce qu'on y fait : sous son nom dans la boussole, sous son PNJ et dans l'accueil.
 - `aussi:` d'une catégorie montre en plus des jeux d'autres catégories (des modes ou des groupes),

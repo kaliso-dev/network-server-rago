@@ -333,10 +333,10 @@ class LobbySettingsTest {
     }
 
     @Test
-    void theCompassPutsRedRoverPartyThreePlayersAndRankedOnTop() throws Exception {
-        // the owner's ask of 22/11 (17h54): Red Rover (a group), Party, 3 Players and Ranked on top
+    void theCompassPutsRankedPartyRedRoverAndThreePlayersOnTop() throws Exception {
+        // the owner's ask of 22/11 (19h51): Ranked, Party, Red Rover (a group) and 3 Players on top
         LobbySettings settings = LobbySettings.load(bundledConfig());
-        assertEquals(Arrays.asList("red-rover", "party", "trois-joueurs", "classe"), settings.compassTop());
+        assertEquals(Arrays.asList("classe", "party", "red-rover", "trois-joueurs"), settings.compassTop());
         assertNotNull(settings.group("red-rover"), "Red Rover is a group, which the top row opens");
         assertNull(settings.category("red-rover"));
         List<String> middle = new ArrayList<>();
@@ -346,7 +346,7 @@ class LobbySettingsTest {
             }
         }
         assertEquals(Arrays.asList("entrainement", "ranked", "duels", "arenes", "fun"), middle,
-                "Practice, RBW Modes, Duels, Arenas and Fun Practice in the middle row, in their order");
+                "Practice, RBW Modes, Duels, Arenas and Fun Practice in the centre, in their order");
         YamlConfiguration without = bundledConfig();
         without.set("boussole", null);
         assertEquals(Collections.emptyList(), LobbySettings.load(without).compassTop(), "without boussole: the compass as before");

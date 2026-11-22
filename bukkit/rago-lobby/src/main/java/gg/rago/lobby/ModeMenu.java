@@ -26,8 +26,9 @@ import org.bukkit.plugin.Plugin;
 
 /**
  * The mode selector, a chest menu. With categories in config.yml, the compass first shows one item
- * per category, in its middle row; clicking one opens that category's modes, with a back button in
- * the bottom row (the owner's ask of 22/11: the compass as before the Minemen layout). A lobby NPC
+ * per category: with a top row (boussole.haut), six rows, that row on top, the other categories in
+ * the middle, "Popular now" at the bottom (the owner's asks of 22/11); clicking one opens that
+ * category's modes, with a back button in the bottom row. A lobby NPC
  * and /play open a category's modes at once, with nothing above them. The modes of one group (groupes: in config.yml, the sizes of one game:
  * 1v1, 2v2...) are one item there, which opens them side by side, as the games of Hypixel. Without categories, every mode is shown at once. Modes are seven per
  * row, framed by an empty row above and below. Clicking a playable mode joins its queue; clicking
@@ -46,6 +47,14 @@ final class ModeMenu {
 
     static final String TITLE = "Game modes";
     private static final int PER_ROW = 7;
+    /**
+     * The compass with a top row (boussole.haut): six rows (the owner's ask of 22/11, 19h51, "le
+     * menu doit etre beaucoup plus grand"), the top row, the categories of the lobby NPCs in the
+     * middle (CENTRE_ROW), "Popular now" in the bottom row.
+     */
+    static final int COMPASS_SIZE = 54;
+    /** The row of the categories of the lobby NPCs in the compass of six rows. */
+    static final int CENTRE_ROW = 2;
 
     /**
      * Marks our inventories: a click in one of them is a click in the selector. The view is the
@@ -71,9 +80,9 @@ final class ModeMenu {
         private Inventory inventory;
         private final String view;
         /** In the compass: what each slot shows in "Popular now" (a mode id, CHALLENGE), else null. */
-        private final String[] popular = new String[27];
+        private final String[] popular = new String[COMPASS_SIZE];
         /** In the compass: the category or group each slot opens (its id), else null. */
-        private final String[] links = new String[27];
+        private final String[] links = new String[COMPASS_SIZE];
 
         Holder(String view) {
             this.view = view;
@@ -153,7 +162,7 @@ final class ModeMenu {
         if (settings.categories().isEmpty()) {
             show(player, (String) null, 2 + rowsFor(settings.modes().size()), TITLE);
         } else {
-            show(player, Holder.CATEGORIES, 3, TITLE);
+            show(player, Holder.CATEGORIES, settings.compassTop().isEmpty() ? 3 : COMPASS_SIZE / 9, TITLE);
         }
     }
 
@@ -604,8 +613,10 @@ final class ModeMenu {
             return;
         }
         if (Holder.CATEGORIES.equals(view)) {
-            // the top row (boussole.haut), the other categories under it, "Popular now" at the bottom;
-            // without a top row, the compass as before: "Popular now" on top, every category under it
+            // the top row (boussole.haut), the other categories in the middle (CENTRE_ROW), "Popular
+            // now" in the bottom row of the six (the owner's ask of 22/11, 19h51: a much bigger menu);
+            // without a top row, the compass as before, in three rows: "Popular now" on top, every
+            // category under it
             Holder holder = (Holder) inventory.getHolder();
             java.util.Arrays.fill(holder.links, null);
             List<String> top = settings.compassTop();
@@ -623,11 +634,11 @@ final class ModeMenu {
                 holder.links[slot] = top.get(i);
             }
             for (int i = 0; i < middle.size(); i++) {
-                int slot = top.isEmpty() ? categorySlot(i, middle.size()) : 9 + compassColumn(i, middle.size());
+                int slot = top.isEmpty() ? categorySlot(i, middle.size()) : 9 * CENTRE_ROW + compassColumn(i, middle.size());
                 inventory.setItem(slot, categoryIcon(middle.get(i), current, viewer));
                 holder.links[slot] = middle.get(i).id();
             }
-            fillPopular(inventory, settings.modes(), current, viewer, top.isEmpty() ? 0 : 2);
+            fillPopular(inventory, settings.modes(), current, viewer, top.isEmpty() ? 0 : COMPASS_SIZE / 9 - 1);
             return;
         }
         int last = hasBack(view) ? backSlot(inventory.getSize()) - 4 : inventory.getSize();

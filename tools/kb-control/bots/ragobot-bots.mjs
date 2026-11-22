@@ -536,7 +536,8 @@ async function walkOff (bot, other) {
 
 /**
  * Red Rover Block Placement (red-rover-block-placement, 1v1 in turn, first to 10 points wins the
- * 1v1, the void 10): RagoAutreUn joins the party of RagoLeader and RagoBot, the three play. If the
+ * 1v1, the void 10): RagoAutreUn joins the party of RagoLeader and RagoBot, the three play (the
+ * party of three joins the queue of the mode and fills its match at once). If the
  * first 1v1 is that of the two others, one walks off its floor: the other wins it, and meets
  * RagoBot. In the 1v1 of RagoBot, RagoOp brings the other onto RagoBot (/tp), who stands still:
  * RagoBot hits them, or knocks them into the void, and wins the 1v1. Then the two others leave
@@ -552,7 +553,7 @@ async function redRoverBlockPlacement (leader, other, op) {
   const humans = [leader, other]
   const marks = humans.map(mark)
   await queueWhenBack(leader, 'red-rover-block-placement',
-    /Game of your party in Red Rover Block Placement: .*\. It counts in your stats, never in the ELO\./, 'the block placement')
+    /Your party joined the queue for Red Rover Block Placement \(1v1v1, 3 waiting\)\./, 'the block placement')
   for (const [i, bot] of humans.entries()) await chatLine(bot, /Red Rover Block Placement with /, 20000, marks[i])
   await waitFor(() => humans.every((bot) => ['survival', 'spectator'].includes(bot.game.gameMode)) &&
     humans.some((bot) => bot.game.gameMode === 'survival'), 8000,
