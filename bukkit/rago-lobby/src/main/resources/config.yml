@@ -525,6 +525,37 @@ pnj:
       - "&c&lRAGO &8» &fRago Optimizer: &crago-optimizer.com"
       - "&c&lRAGO &8» &fJoin our Discord: &cdiscord.gg/ragooptimizer"
 
+# The texts of the lobby (textes:), each on its own point (/lobby point <name>), the same for
+# everyone; a click does nothing. Its lines (lignes:, from 1 to 30, top to bottom, colours with &)
+# float above the point: the last one half a block high, the others above it, 0.27 block apart
+# (20 lines rise 5.6 blocks). "" leaves a gap; a line is 64 characters at most, its colour codes
+# included (cut a longer one in two).
+textes:
+  # The thank-you text (plan 5.7, validated by the owner on 22/11), in the thank-you room: 20
+  # lines, from the floor to the ceiling of the room. Its point: /lobby point textremerciement.
+  textremerciement:
+    lignes:
+      - "&6&lTHANK YOU"
+      - "&fRago Practice took a very long time to build, but I have"
+      - "&fdreamed of it for years: my own server means a lot to me."
+      - "&fIt is not made to earn money: Premium ranks get nothing"
+      - "&fmore in gameplay than anyone else."
+      - ""
+      - "&fAs a big PvP and Hypixel player, I found no way to train."
+      - "&fI was tired of Hypixel RBW housings and of solo practice"
+      - "&fmaps for Block Placement, and high ping on Hypixel is"
+      - "&funbearable. So I made this server to help you train Block"
+      - "&fPlacement, Hypixel Bedwars and RBW with Hypixel KB, and"
+      - "&fabove all with low ping. Fight your friends in 1v1 and"
+      - "&f2v2 duels and train with lots of fun, like Minemen but much"
+      - "&fbetter: low ping, Hypixel KB and real modes to train. You"
+      - "&fnever get bored, and you can train everything."
+      - ""
+      - "&fPure passion, no money goal: a real project with a real goal."
+      - "&fAs a player, I know what players want: this server is here"
+      - "&fto help you train and have more fun with your friends."
+      - "&fJoin our Discord: &cdiscord.gg/ragooptimizer"
+
 # The points of the daily reward chest (DAILY REWARD above it, a click gives /daily) and of the
 # quests NPC (/lobby point <name>): daily and quests when left out. The chest stands on its point
 # (on the block under it); the quests NPC on its point, or beside the chest without one.

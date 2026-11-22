@@ -90,6 +90,30 @@ const STATS_NPC = { x: -3.5, y: 66, z: 0.5 }
 const PERSON_NPC = { x: -3.5, y: 66, z: -3.5 }
 // Rago Client (point ragoclient), a product of Rago (OUR OTHER PRODUCTS), on diamond
 const PRODUCT_NPC = { x: 3.5, y: 66, z: -3.5 }
+// The thank-you text (point textremerciement, plan 5.7): its 20 lines float above the point, the
+// last one 0.45 block high, the others 0.27 block apart (LobbyText, FakeHologram); the two empty
+// ones show nothing.
+const THANK_YOU_TEXT = { x: -8.5, y: 65, z: -3.5 }
+const THANK_YOU_LINES = [
+  'THANK YOU',
+  'Rago Practice took a very long time to build, but I have',
+  'dreamed of it for years: my own server means a lot to me.',
+  'It is not made to earn money: Premium ranks get nothing',
+  'more in gameplay than anyone else.',
+  'As a big PvP and Hypixel player, I found no way to train.',
+  'I was tired of Hypixel RBW housings and of solo practice',
+  'maps for Block Placement, and high ping on Hypixel is',
+  'unbearable. So I made this server to help you train Block',
+  'Placement, Hypixel Bedwars and RBW with Hypixel KB, and',
+  'above all with low ping. Fight your friends in 1v1 and',
+  '2v2 duels and train with lots of fun, like Minemen but much',
+  'better: low ping, Hypixel KB and real modes to train. You',
+  'never get bored, and you can train everything.',
+  'Pure passion, no money goal: a real project with a real goal.',
+  'As a player, I know what players want: this server is here',
+  'to help you train and have more fun with your friends.',
+  'Join our Discord: discord.gg/ragooptimizer'
+]
 const MAIN_BOARD = { x: 0.5, z: 5.5 }
 // The kit editor: the book in the second hotbar slot, the Save button of its chest of 27 slots,
 // whose window shows the player's hotbar from slot 54 (27 of the chest, 27 of the inventory).
@@ -409,6 +433,7 @@ async function checkDuelsNpc (bot) {
   log('the Duels NPC is a Steve holding a sword, out of the tab list, and its click opens the compass on Duels')
   await checkPersonNpc(bot)
   await checkProductNpc(bot)
+  await checkThankYouText(bot)
 }
 
 /** qRago (plan 5.6): on obsidian, "[OWNER] qRago" above the head, empty hands; a click opens nothing. */
@@ -465,6 +490,27 @@ async function checkProductNpc (bot) {
     throw new Error('a click on Rago Client opened a menu')
   }
   log('Rago Client stands on diamond under "OUR OTHER PRODUCTS", empty-handed, and a click writes its two links in the chat')
+}
+
+/**
+ * The thank-you text (plan 5.7): its lines on their point, top to bottom, as the owner validated
+ * them; the first 5.58 blocks above the point, the last 0.45 (a name floats a block above its
+ * small stand).
+ */
+async function checkThankYouText (bot) {
+  const stands = () => Object.values(bot.entities).filter((e) => typeof e.metadata?.[2] === 'string' &&
+    e.metadata[2].length > 0 && Math.hypot(e.position.x - THANK_YOU_TEXT.x, e.position.z - THANK_YOU_TEXT.z) < 0.5)
+    .sort((a, b) => b.position.y - a.position.y)
+  const lines = () => stands().map((e) => e.metadata[2].replace(/§./g, ''))
+  await waitFor(() => JSON.stringify(lines()) === JSON.stringify(THANK_YOU_LINES), 10000,
+    `the thank-you text on its point (reads ${JSON.stringify(lines())})`)
+  const all = stands()
+  const top = all[0].position.y + 1 - THANK_YOU_TEXT.y
+  const bottom = all[all.length - 1].position.y + 1 - THANK_YOU_TEXT.y
+  if (Math.abs(top - (0.45 + 19 * 0.27)) > 0.05 || Math.abs(bottom - 0.45) > 0.05) {
+    throw new Error(`the thank-you text floats from ${bottom.toFixed(2)} to ${top.toFixed(2)} blocks above its point`)
+  }
+  log(`the thank-you text reads its ${THANK_YOU_LINES.length} lines as validated, from ${bottom.toFixed(2)} to ${top.toFixed(2)} blocks above its point`)
 }
 
 /** The queue line under the Duels NPC ("1 in queue · Click to play"), without colours, or undefined. */

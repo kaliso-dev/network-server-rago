@@ -1115,13 +1115,21 @@ public final class RagoLobby extends JavaPlugin implements LobbyService {
 
     /**
      * The NPCs, the leaderboards, then the daily chest and the quests NPC beside it, on their
-     * points, and the billboards. The number of NPCs placed.
+     * points, the billboards and the texts (textes:, the thank-you text). The number of NPCs placed.
      */
     private int placeDecor() {
         int placed = npcs.spawnAll();
         daily.place(points, settings.dailyPoint(), state.world(), fakes);
         questsNpc.place(points, settings.questsPoint(), settings.dailyPoint(), state.world(), state.spawn(), fakes);
         billboards.place(points, state.spawn(), fakes);
+        for (LobbyText text : settings.texts()) {
+            SpawnPoint point = points.get(text.point);
+            if (point != null) {
+                List<String> lines = text.lines;
+                fakes.add(new FakeHologram(point.in(state.world()).add(0, LobbyText.BOTTOM, 0), lines.size(),
+                        viewer -> lines, null));
+            }
+        }
         for (PluginBoard board : pluginBoards.values()) {
             SpawnPoint point = points.get(board.point);
             if (point != null) {

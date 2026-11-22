@@ -645,6 +645,13 @@ config.yml fourni les suit :
   `rang:`. Le config.yml fourni place `ragoclient` (Rago Client) et `ragooptimizer` (Rago
   Optimizer), tous deux dans le skin du compte qRago, sur un bloc de diamant, avec « OUR OTHER
   PRODUCTS » au-dessus de chacun ; leurs liens : `rago-optimizer.com` et `discord.gg/ragooptimizer`.
+- `textes:` place un texte sur son point (pas un PNJ) : ses lignes (`lignes:`, de 1 à 30, de haut
+  en bas, avec les couleurs `&`) flottent au-dessus du point, la dernière à 0,45 bloc, les autres
+  au-dessus, à 0,27 bloc l'une de l'autre. `""` laisse un blanc. Une ligne fait 64 caractères au
+  plus, codes de couleur compris : une plus longue est refusée au démarrage (la couper en deux), et
+  un texte sur le point d'un PNJ aussi. Chacun lit le même ; un clic ne fait rien. Le config.yml
+  fourni place le texte de remerciement (plan 5.7, validé le 22/11) sur `textremerciement` : 20
+  lignes, du sol au plafond de la salle des remerciements (6 blocs). `/lobby points` le montre.
 - `pnj:` avec `type: stats` place un PNJ de stats : un joueur (skin `stats`) qui tient un livre, avec au-dessus
   le profil de celui qui le regarde (niveau Network et rang, victoires, défaites, kills, meilleure
   série, victoires du jour, ELO de chaque mode classé). Chaque joueur lit le sien. Un clic ouvre

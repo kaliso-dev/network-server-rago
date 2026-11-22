@@ -264,9 +264,12 @@ final class LobbyCommands implements TabExecutor {
         for (java.util.Map.Entry<String, SpawnPoint> entry : all.entrySet()) {
             SpawnPoint p = entry.getValue();
             LobbyNpc npc = lobby.settings().npc(entry.getKey());
+            LobbyText text = lobby.settings().text(entry.getKey());
             player.sendMessage(ChatColor.GRAY + " " + entry.getKey() + ": " + (int) Math.floor(p.x()) + " "
                     + (int) Math.floor(p.y()) + " " + (int) Math.floor(p.z())
-                    + (npc == null ? ChatColor.DARK_GRAY + " (no NPC)" : ChatColor.GREEN + " → " + npc.name()));
+                    + (npc != null ? ChatColor.GREEN + " → " + npc.name()
+                            : text != null ? ChatColor.GREEN + " → a text of " + text.lines.size() + " lines"
+                            : ChatColor.DARK_GRAY + " (no NPC)"));
         }
         List<String> missing = new ArrayList<>();
         for (LobbyNpc npc : lobby.settings().npcs()) {
@@ -274,8 +277,13 @@ final class LobbyCommands implements TabExecutor {
                 missing.add(npc.point());
             }
         }
+        for (LobbyText text : lobby.settings().texts()) {
+            if (!all.containsKey(text.point)) {
+                missing.add(text.point);
+            }
+        }
         if (!missing.isEmpty()) {
-            player.sendMessage(ChatColor.GRAY + "NPCs without a point (/lobby point <name>): " + String.join(", ", missing));
+            player.sendMessage(ChatColor.GRAY + "NPCs and texts without a point (/lobby point <name>): " + String.join(", ", missing));
         }
     }
 

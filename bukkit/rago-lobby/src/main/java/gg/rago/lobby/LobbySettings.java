@@ -30,6 +30,8 @@ final class LobbySettings {
     private List<FirstChoice> firstChoices = Collections.emptyList();
     /** The billboards of the lobby ({@link Billboards}): none without panneaux:. */
     private List<Billboard> billboards = Collections.emptyList();
+    /** The texts of the lobby ({@link LobbyText}): none without textes:. */
+    private List<LobbyText> texts = Collections.emptyList();
     /** The block under each NPC that has one in config.yml (pnj: ... bloc:), by point. */
     private Map<String, Pedestal> pedestals = Collections.emptyMap();
     /** The points of the daily reward chest and of the quests NPC. */
@@ -175,6 +177,15 @@ final class LobbySettings {
         }
         List<FirstChoice> firstChoices = readFirstChoices(config.getConfigurationSection("premiere-venue"), modes, categories);
         List<Billboard> billboards = Billboard.read(config.getConfigurationSection("panneaux"));
+        List<LobbyText> texts = LobbyText.read(config.getConfigurationSection("textes"));
+        for (LobbyText text : texts) {
+            for (LobbyNpc npc : npcs) {
+                if (npc.point().equals(text.point)) {
+                    throw new IllegalArgumentException("textes." + text.point + ": the point of an NPC (pnj:), a text needs"
+                            + " its own point");
+                }
+            }
+        }
         Map<String, Pedestal> pedestals = readPedestals(config.getConfigurationSection("pnj"));
         String dailyPoint = pointName(config, "point-coffre-du-jour", DailyChest.POINT);
         String questsPoint = pointName(config, "point-pnj-quetes", QuestsNpc.POINT);
@@ -187,6 +198,7 @@ final class LobbySettings {
             settings.welcome = config.getBoolean("accueil", true);
             settings.firstChoices = Collections.unmodifiableList(firstChoices);
             settings.billboards = billboards;
+            settings.texts = Collections.unmodifiableList(texts);
             settings.pedestals = Collections.unmodifiableMap(pedestals);
             settings.dailyPoint = dailyPoint;
             settings.questsPoint = questsPoint;
@@ -913,6 +925,21 @@ final class LobbySettings {
     /** The billboards of the lobby (panneaux:); empty: none. */
     List<Billboard> billboards() {
         return billboards;
+    }
+
+    /** The texts of the lobby (textes:), each on its point; empty: none. */
+    List<LobbyText> texts() {
+        return texts;
+    }
+
+    /** The text on this point, or null. */
+    LobbyText text(String point) {
+        for (LobbyText text : texts) {
+            if (text.point.equals(point)) {
+                return text;
+            }
+        }
+        return null;
     }
 
     /** The block the NPC of this point stands on: its bloc:, else polished andesite. */
