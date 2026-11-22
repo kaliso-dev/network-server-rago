@@ -2175,9 +2175,9 @@ modes:
     description:
       - "Break the snow under them:"
       - "each block gives a snowball"
-      - "that breaks the snow too."
-      - "Two floors, no hits:"
-      - "don't fall!"
+      - "that breaks the snow too,"
+      - "or pushes them. Two floors,"
+      - "no hand hits: don't fall!"
   # Parkour Duel (the owner's choice of 22/11): a race on RagoPractice's course, each side on its
   # own lane; a fall takes the player back to their last checkpoint. No kit, no hits.
   parkour-duel:

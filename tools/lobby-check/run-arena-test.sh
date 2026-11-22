@@ -12,7 +12,8 @@
 # through the hole, and breaks again a block put back. Then a bot plays the Block clutch training
 # while ten others watch it at once with /spectate (tools/kb-control/bots/spectate-bots.mjs). Last,
 # bots play the modes of FUN PRACTICE (tools/kb-control/bots/fun-bots.mjs): two the Snowball Spleef
-# (the shovel, the snowballs, a fall under the snow), three the Fireball Fight (no hits, the double
+# (the shovel, the snowballs, one that pushes, none that breaks a floor from below, a fall under the
+# snow), three the Fireball Fight (no hits, the double
 # jump, the wool that goes, a fireball that pushes without hurting, two falls off the platform), and
 # two the Parkour Duel; and three bots play Red Rover
 # Sumo (tools/kb-control/bots/rover-bots.mjs): three 1v1 in turn, the winner staying on. Then two

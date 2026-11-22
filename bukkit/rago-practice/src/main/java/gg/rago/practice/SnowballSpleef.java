@@ -22,10 +22,12 @@ import org.bukkit.util.Vector;
 /**
  * Snowball Spleef, the spleef of FUN PRACTICE (plan 6.1): floors of snow over the void, one under
  * the other (two, the owner's choice of 22/11), a diamond shovel that breaks the snow at once, and
- * a snowball for each block broken. A snowball breaks the snow it lands on. The players cannot
- * hit each other (the owner, 22/11): neither with the hand nor with a snowball, which stops on a
- * player without pushing them. The first to fall under the lowest floor loses the round; the
- * floors are whole again at each round. Its settings: snowball-spleef in config.yml.
+ * a snowball for each block broken. A snowball breaks the snow it lands on. No hits with the hand
+ * (the owner, 22/11); a snowball hits a player (the owner, 22/11, 19h55): it pushes them as in
+ * Minecraft, without damage, and breaks no snow there. Nobody breaks the snow of a floor above
+ * them, with the shovel or a snowball: the floors are far enough apart for the shovel to be out of
+ * reach from below. The first to fall under the lowest floor loses the round; the floors are whole
+ * again at each round. Its settings: snowball-spleef in config.yml.
  */
 final class SnowballSpleef extends Duel {
 
@@ -80,7 +82,7 @@ final class SnowballSpleef extends Duel {
     static final double STEP = 0.1;
 
     private final Settings settings;
-    /** The snowballs that stopped on a player: they break no snow where they land. */
+    /** The snowballs that hit a player: they break no snow where they land. */
     private final Set<UUID> struckPlayer = new HashSet<>();
 
     SnowballSpleef(PracticeHost host, GameMode mode, Arena arena, List<List<Player>> teams, int target, Settings settings) {
@@ -97,7 +99,8 @@ final class SnowballSpleef extends Duel {
     void intro(Player player) {
         super.intro(player);
         player.sendMessage(ChatColor.GRAY + "Break the snow under them with your shovel; each block gives a snowball, which"
-                + " breaks the snow it lands on. No hits: dig them down. The first to fall under the last floor loses the round.");
+                + " breaks the snow it lands on, or pushes them when it hits them. No hits with the hand: dig them down."
+                + " The first to fall under the last floor loses the round.");
     }
 
     @Override
@@ -167,22 +170,31 @@ final class SnowballSpleef extends Duel {
     }
 
     /**
-     * Nobody hits anybody: no hit with the hand, no push of a snowball (it stops on the player and
-     * breaks no snow), no fall damage.
+     * No hit with the hand and no fall damage; a snowball of the other player hits: it pushes as in
+     * Minecraft, without damage, and breaks no snow where it lands.
      */
     @Override
     boolean damage(Player victim, Player attacker, EntityDamageEvent event) {
         Entity damager = damager(event);
         if (damager instanceof Snowball) {
             struckPlayer.add(damager.getUniqueId());
+            if (attacker != null) {
+                noDamage(event);
+                return true;
+            }
         }
         return false;
     }
 
-    /** The snow of the floors breaks, nothing else. */
+    /** The snow of the floors breaks, nothing else, and never a floor above the player. */
     @Override
     boolean canBreak(Player player, Block block) {
-        return block.getType() == Material.SNOW_BLOCK && onFloors(block);
+        return block.getType() == Material.SNOW_BLOCK && onFloors(block) && !above(block.getY(), player.getLocation().getBlockY());
+    }
+
+    /** True if a block at this height is above a player whose feet are at this height: a floor over their head. */
+    static boolean above(int blockY, int feetY) {
+        return blockY >= feetY;
     }
 
     /** True if the block is in the box of the floors. */
@@ -216,7 +228,9 @@ final class SnowballSpleef extends Duel {
             return;
         }
         Block block = at.getWorld().getBlockAt(hit[0], hit[1], hit[2]);
-        if (block.getType() != Material.SNOW_BLOCK || !onFloors(block)) {
+        if (block.getType() != Material.SNOW_BLOCK || !onFloors(block)
+                || (shooter != null && above(block.getY(), shooter.getLocation().getBlockY()))) {
+            // a floor above the thrower: thrown up from the floor below, it breaks nothing
             return;
         }
         arena.removed(block);

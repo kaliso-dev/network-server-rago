@@ -144,8 +144,10 @@ secondes plus tard, et `/spawn` les ramène tous au lobby. Le serveur de test a 
 
 Pour finir, des bots jouent les modes de FUN PRACTICE (`tools/kb-control/bots/fun-bots.mjs`),
 avec les réglages livrés (une manche) : au Snowball Spleef (deux bots), la pelle casse un bloc de
-neige et donne une boule, la boule casse la neige où elle tombe, puis l'un casse la neige sous ses
-pieds, tombe et l'autre gagne ; au Fireball Fight (trois bots, chacun pour soi, sur la plateforme
+neige et donne une boule, la boule casse la neige où elle tombe, une boule lancée sur l'autre le
+pousse sans le blesser ni casser de neige là, puis l'autre casse la neige sous ses pieds, tombe
+sur l'étage du bas (9 blocs plus bas), y lance sa boule vers l'étage du haut (elle n'y casse
+rien), casse l'étage du bas, tombe et le premier gagne ; au Fireball Fight (trois bots, chacun pour soi, sur la plateforme
 de rayon 20), chacun a 64 fireballs et 64 laines de sa couleur (rouge, bleu, vert), pas de plume,
 et le double saut dès le départ ; le bleu frappe trois fois le vert sans le pousser ni le blesser
 (pas de coups), le vert fait un double saut regard en l'air (il monte, un deuxième tout de suite

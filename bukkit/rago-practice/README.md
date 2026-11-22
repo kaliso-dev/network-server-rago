@@ -482,12 +482,16 @@ checkpoint. Les valeurs de départ ci-dessous sont **à régler avec le proprié
   Les maps du propriétaire pourront aller dans `fireball-knockback.cartes` (comme celles du sumo,
   avec un départ pour chacun des trois) ; sans map, la plateforme du plugin.
 - **Snowball Spleef** (`snowball-spleef`) : deux sols de neige au-dessus du vide, l'un sous
-  l'autre (`etages` 2, `ecart-etages` 6 blocs entre eux ; `rayon` 18, à confirmer : ton choix du
-  22/11, « agrandi la map, fait 2 étages »), une pelle en diamant Efficacité V qui casse la neige
-  d'un coup, et `boules-par-bloc` (1) boule de neige par bloc cassé. Une boule casse la neige où
-  elle tombe. Les joueurs ne peuvent pas se frapper : ni à la main, ni avec une boule, qui
-  s'arrête sur le joueur touché sans le pousser ni casser de neige. Tomber sous le dernier étage
-  fait perdre la manche ; les étages sont remis à neuf à chaque manche.
+  l'autre (`etages` 2, `ecart-etages` 9 blocs entre eux, 6 avant ta demande du 22/11 à 19h55 ;
+  `rayon` 18, à confirmer : ton choix du 22/11, « agrandi la map, fait 2 étages »), une pelle en
+  diamant Efficacité V qui casse la neige d'un coup, et `boules-par-bloc` (1) boule de neige par
+  bloc cassé. Une boule casse la neige où elle tombe. Pas de coups à la main ; une boule qui
+  touche un joueur le pousse comme dans Minecraft, sans dégât, et ne casse pas de neige là.
+  Personne ne casse la neige d'un étage au-dessus de lui (ni à la pelle, ni avec une boule) ; à
+  9 blocs, l'étage du haut est de toute façon hors de portée depuis celui du bas (en 1.8, la
+  portée est de 4,5 blocs depuis les yeux, à 1,62 au-dessus des pieds, 1,25 de plus en haut d'un
+  saut : jusqu'à 8,37 blocs au-dessus du sol du bas). Tomber sous le dernier étage fait perdre la
+  manche ; les étages sont remis à neuf à chaque manche.
 - **Parkour Duel** (`parkour-duel`, ton choix du 22/11, « dans une map stylée ») : une course sur un
   parcours du plugin (`ParkourCourse`), le même pour les deux, chacun sur sa piste (rouge et bleue,
   côte à côte, 10 blocs l'une de l'autre). Cinq sections à thème : des piliers de quartz, un

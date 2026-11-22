@@ -5,10 +5,10 @@
 //   1. Snowball Spleef (snowball-spleef): two floors of snow, both bots on the top one, a diamond
 //      shovel each; the west bot breaks a block of snow with it and gets a snowball, throws the
 //      snowball on the floor (one block of snow less where it lands), then throws snowballs at the
-//      east bot until one reaches it: it stops there, without pushing it nor breaking snow (the
-//      players cannot hit each other); then the east bot breaks the snow under its own feet, lands
-//      on the second floor (still in the game), breaks it again, falls under it, and the west bot
-//      wins;
+//      east bot until one reaches it: it pushes it, without hurting it nor breaking snow there;
+//      then the east bot breaks the snow under its own feet, lands on the second floor, 9 blocks
+//      down (still in the game), throws its snowball up at the top floor (it breaks nothing there:
+//      no floor breaks from below), breaks the second floor, falls under it, and the west bot wins;
 //   2. Fireball Fight (fireball-knockback), three bots each for themselves on the platform of 20
 //      blocks: 64 fireballs and 64 wool of their colour each (red, blue, green), no feather, the
 //      double jump from the start; the blue bot hits the green one three times (no push, no harm:
@@ -36,7 +36,7 @@ const TEST_TIMEOUT_MS = 8 * 60 * 1000
 /** The bundled radius of the snow floors (snowball-spleef.rayon): the west start is 9 from the middle. */
 const SPLEEF_RADIUS = 18
 /** The bundled blocks from the top floor down to the second one (snowball-spleef.ecart-etages). */
-const SPLEEF_GAP = 6
+const SPLEEF_GAP = 9
 /** The course of the Parkour Duel (ParkourCourse.java): the start, from the middle of a lane, facing +x. */
 const PARKOUR_START = { x: -47.5, y: 1, z: 0.5 }
 /** Each lane this far from the middle of the arena, across: red at -5, blue at +5. */
@@ -262,8 +262,8 @@ async function snowballSpleef (one, two) {
     `one block of snow less where the snowball landed (${before} before, ${snowLeft(west, game)} now)`)
   log('snowball spleef: the snowball broke the block of snow it landed on')
 
-  // 3. no hits: a snowball thrown at the east bot stops on it, without pushing it nor breaking
-  // snow. A throw that misses lands on the floor behind it (a block of snow less): again, three
+  // 3. a snowball thrown at the east bot hits it: it pushes it, without hurting it nor breaking snow
+  // there. A throw that misses lands on the floor behind it (a block of snow less): again, three
   // times at most.
   await hold(west, 'diamond_shovel')
   for (const dx of [-7, -6, -5]) await dig(west, at(dx, 0, 2))
@@ -313,9 +313,9 @@ async function snowballSpleef (one, two) {
   }
   if (reached === 0) throw new Error('three snowballs thrown at the east bot, none reached it')
   const moved = Math.hypot(east.entity.position.x - standing.x, east.entity.position.z - standing.z)
-  if (pushes > 0 || moved > 0.1) throw new Error(`the snowball pushed the east bot: ${pushes} velocity packets, moved ${moved.toFixed(2)} blocks`)
+  if (pushes === 0 || moved < 0.2) throw new Error(`the snowball did not push the east bot: ${pushes} velocity packets, moved ${moved.toFixed(2)} blocks`)
   if (east.health < 20) throw new Error(`the snowball hurt the east bot: health ${east.health}`)
-  log(`snowball spleef: snowball ${reached} reached the east bot and stopped there, without pushing it nor breaking snow`)
+  log(`snowball spleef: snowball ${reached} hit the east bot: pushed ${moved.toFixed(2)} blocks, unhurt, no snow broken there`)
 
   // 4. the east bot breaks the snow under itself, lands on the second floor (still in the game),
   // breaks it again and falls under it: the west bot wins
@@ -330,6 +330,36 @@ async function snowballSpleef (one, two) {
   if (west.chats.slice(fromWest).some((line) => /Victory!/.test(line))) throw new Error('the game ended on the second floor')
   if (east.health < 20) throw new Error(`the fall to the second floor hurt the east bot: health ${east.health}`)
   log(`snowball spleef: the east bot fell on the second floor (${where(east)}), unhurt and still in the game`)
+
+  // 5. from the second floor, a snowball thrown up at the top floor, three blocks aside from the
+  // hole: it lands on it and breaks nothing
+  await waitFor(() => countOf(east, 'snowball') === 1, 3000, `a snowball for the block the east bot broke (has ${countOf(east, 'snowball')})`)
+  const top = snowLeft(east, game)
+  await hold(east, 'snowball')
+  const e = east.entity.position
+  const aim = new Vec3(Math.floor(e.x) + 3.5, game.centre.y, Math.floor(e.z) + 0.5)
+  await east.lookAt(aim, true)
+  await sleep(200)
+  let ball = null
+  let lastY = null
+  const onSpawn = (entity) => {
+    if (ball == null && entity !== east.entity && entity.type !== 'player' && entity.position.distanceTo(e.offset(0, 1.62, 0)) < 3) ball = entity.id
+  }
+  const onGone = (entity) => { if (ball != null && entity.id === ball) lastY = entity.position.y }
+  east.on('entitySpawn', onSpawn)
+  east.on('entityGone', onGone)
+  try {
+    east.activateItem()
+    await waitFor(() => lastY != null, 5000, `the snowball thrown up to land (${ball == null ? 'never seen' : 'seen, never gone'})`)
+  } finally {
+    east.removeListener('entitySpawn', onSpawn)
+    east.removeListener('entityGone', onGone)
+  }
+  await sleep(800)
+  if (lastY < game.centre.y - 1.5) throw new Error(`the snowball thrown up did not reach the top floor: gone at y ${lastY.toFixed(1)}, the floor at ${game.centre.y}`)
+  if (snowLeft(east, game) !== top) throw new Error(`a snowball thrown from the second floor broke the top floor: ${top} blocks before, ${snowLeft(east, game)} now`)
+  log(`snowball spleef: from the second floor, a snowball thrown up landed on the top floor (y ${lastY.toFixed(1)}) and broke nothing there`)
+  await hold(east, 'diamond_shovel')
   await dig(east, east.entity.position.offset(0, -0.5, 0).floored())
   await chatLine(west, /Victory!/, 10000, fromWest)
   log('snowball spleef: the east bot fell under the second floor, the west bot won')

@@ -2,6 +2,7 @@ package gg.rago.practice;
 
 import static org.junit.jupiter.api.Assertions.assertArrayEquals;
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
@@ -79,5 +80,20 @@ class SnowballSpleefTest {
         assertEquals(2, config.getInt("snowball-spleef.etages"), "two floors (the owner, 22/11)");
         assertEquals(18, config.getInt("snowball-spleef.rayon"), "a bigger map than the first one, of 12");
         assertEquals(9, SnowballSpleef.startDistance(18), 1e-9, "each side starts 9 blocks from the middle");
+        int gap = config.getInt("snowball-spleef.ecart-etages");
+        assertEquals(9, gap, "the lower floor lower (the owner, 22/11, 19h55): 6 before");
+        // from the lower floor (its top 1 above it), the eyes 1.62 above the feet and 1.25 higher at the
+        // top of a jump, the 4.5 blocks of reach of 1.8 end under the top floor
+        assertTrue(1 + 1.62 + 1.25 + 4.5 < gap, "the top floor out of the reach of a player on the lower one");
+    }
+
+    @Test
+    void nobodyBreaksAFloorAboveThem() {
+        // standing on the top floor at y 64: the feet at 65
+        assertFalse(SnowballSpleef.above(64, 65), "the floor they stand on breaks");
+        assertFalse(SnowballSpleef.above(55, 65), "a floor under them breaks (a snowball thrown down a hole)");
+        // standing on the lower floor at y 55: the feet at 56, the top floor at 64 over their head
+        assertTrue(SnowballSpleef.above(64, 56), "the top floor, over the head of a player on the lower one");
+        assertTrue(SnowballSpleef.above(56, 56));
     }
 }

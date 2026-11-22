@@ -367,15 +367,20 @@ fireball-knockback:
 # Snowball Spleef: floors of snow over the void (etages, 1 to 5, ecart-etages blocks one under the
 # other, 3 to 20), each of radius rayon (5 to 40). A diamond shovel (Efficiency V) breaks the snow
 # at once, and each block it breaks gives boules-par-bloc snowballs (0 to 16); a snowball breaks
-# the snow it lands on. The players cannot hit each other: no hits with the hand, and a snowball
-# stops on a player without pushing them. The first under the lowest floor loses the round; the
-# floors are whole again at each round; the first to points-pour-gagner rounds (1 to 10) wins.
-# Two floors and a bigger map: the owner's choice of 22/11 (a radius of 18, to confirm).
+# the snow it lands on. No hits with the hand; a snowball hits a player (the owner's ask of 22/11,
+# 19h55): it pushes them as in Minecraft, without damage, and breaks no snow there. Nobody breaks
+# the snow of a floor above them, with the shovel or a snowball. The first under the lowest floor
+# loses the round; the floors are whole again at each round; the first to points-pour-gagner rounds
+# (1 to 10) wins. Two floors and a bigger map: the owner's choice of 22/11 (a radius of 18, to
+# confirm). The lower floor 9 blocks under the top one (6 before; the owner's ask of 22/11, 19h55:
+# out of reach from below): a 1.8 player reaches a block 4.5 blocks from the eyes, 1.62 above the
+# feet, 1.25 higher at the top of a jump: standing on the lower floor (its top 1 block above it),
+# up to 1 + 1.62 + 1.25 + 4.5 = 8.37 blocks above it; the top floor starts 9 above it.
 snowball-spleef:
   points-pour-gagner: 1
   rayon: 18
   etages: 2
-  ecart-etages: 6
+  ecart-etages: 9
   boules-par-bloc: 1
 
 # Parkour Duel: a race on a course of the plugin, each side on its own lane of the same course (five
