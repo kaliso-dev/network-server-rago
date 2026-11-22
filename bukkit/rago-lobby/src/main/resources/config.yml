@@ -546,13 +546,12 @@ pnj:
 # (20 lines rise 5.6 blocks). "" leaves a gap; a line is 64 characters at most, its colour codes
 # included (cut a longer one in two).
 textes:
-  # The thank-you text (plan 5.7, validated by the owner on 22/11), in the thank-you room: 20
-  # lines, from the floor to the ceiling of the room, on both sides of the room (the owner's ask of
-  # 22/11, 17h56): the same lines on the left (point textremerciement) and on the right (point
-  # textremerciement2, its lines: *merci, those of the left). /lobby point textremerciement, and
-  # textremerciement2.
+  # The thank-you text (plan 5.7, validated by the owner on 22/11), in the thank-you room, cut in
+  # two (the owner's ask of 22/11, 19h51): its first part on the left (point textremerciement), the
+  # rest on the right (point textremerciement2), cut between two sentences; the words as
+  # validated. /lobby point textremerciement, and textremerciement2.
   textremerciement:
-    lignes: &merci
+    lignes:
       - "&6&lTHANK YOU"
       - "&fRago Practice took a very long time to build, but I have"
       - "&fdreamed of it for years: my own server means a lot to me."
@@ -562,19 +561,20 @@ textes:
       - "&fAs a big PvP and Hypixel player, I found no way to train."
       - "&fI was tired of Hypixel RBW housings and of solo practice"
       - "&fmaps for Block Placement, and high ping on Hypixel is"
-      - "&funbearable. So I made this server to help you train Block"
-      - "&fPlacement, Hypixel Bedwars and RBW with Hypixel KB, and"
-      - "&fabove all with low ping. Fight your friends in 1v1 and"
-      - "&f2v2 duels and train with lots of fun, like Minemen but much"
-      - "&fbetter: low ping, Hypixel KB and real modes to train. You"
-      - "&fnever get bored, and you can train everything."
+      - "&funbearable."
+  textremerciement2:
+    lignes:
+      - "&fSo I made this server to help you train Block Placement,"
+      - "&fHypixel Bedwars and RBW with Hypixel KB, and above all with"
+      - "&flow ping. Fight your friends in 1v1 and 2v2 duels and train"
+      - "&fwith lots of fun, like Minemen but much better: low ping,"
+      - "&fHypixel KB and real modes to train. You never get bored, and"
+      - "&fyou can train everything."
       - ""
       - "&fPure passion, no money goal: a real project with a real goal."
       - "&fAs a player, I know what players want: this server is here"
       - "&fto help you train and have more fun with your friends."
       - "&fJoin our Discord: &ediscord.gg/ragooptimizer"
-  textremerciement2:
-    lignes: *merci
 
 # The points of the daily reward chest (DAILY REWARD above it, a click opens the Daily Chest)
 # and of the quests NPC (/lobby point <name>): daily and quests when left out. The chest stands on

@@ -99,12 +99,12 @@ const STATS_NPC = { x: -3.5, y: 66, z: 0.5 }
 const PERSON_NPC = { x: -3.5, y: 66, z: -3.5 }
 // Rago Client (point ragoclient), a product of Rago (OUR OTHER PRODUCTS), on diamond
 const PRODUCT_NPC = { x: 3.5, y: 66, z: -3.5 }
-// The thank-you text (point textremerciement, plan 5.7): its 20 lines float above the point, the
-// last one 0.45 block high, the others 0.27 block apart (LobbyText, FakeHologram); the two empty
-// ones show nothing. The same text on the other side of the room (point textremerciement2, the
-// owner's ask of 22/11, 17h56).
+// The thank-you text (plan 5.7), cut in two (the owner's ask of 22/11, 19h51): its first part on
+// the left (point textremerciement), the rest on the right (point textremerciement2). The lines of
+// each float above its point, the last one 0.45 block high, the others 0.27 block apart
+// (LobbyText, FakeHologram); an empty one shows nothing.
 const THANK_YOU_TEXTS = [{ x: -8.5, y: 65, z: -3.5 }, { x: 8.5, y: 65, z: -3.5 }]
-const THANK_YOU_LINES = [
+const THANK_YOU_LINES = [[
   'THANK YOU',
   'Rago Practice took a very long time to build, but I have',
   'dreamed of it for years: my own server means a lot to me.',
@@ -113,17 +113,21 @@ const THANK_YOU_LINES = [
   'As a big PvP and Hypixel player, I found no way to train.',
   'I was tired of Hypixel RBW housings and of solo practice',
   'maps for Block Placement, and high ping on Hypixel is',
-  'unbearable. So I made this server to help you train Block',
-  'Placement, Hypixel Bedwars and RBW with Hypixel KB, and',
-  'above all with low ping. Fight your friends in 1v1 and',
-  '2v2 duels and train with lots of fun, like Minemen but much',
-  'better: low ping, Hypixel KB and real modes to train. You',
-  'never get bored, and you can train everything.',
+  'unbearable.'
+], [
+  'So I made this server to help you train Block Placement,',
+  'Hypixel Bedwars and RBW with Hypixel KB, and above all with',
+  'low ping. Fight your friends in 1v1 and 2v2 duels and train',
+  'with lots of fun, like Minemen but much better: low ping,',
+  'Hypixel KB and real modes to train. You never get bored, and',
+  'you can train everything.',
   'Pure passion, no money goal: a real project with a real goal.',
   'As a player, I know what players want: this server is here',
   'to help you train and have more fun with your friends.',
   'Join our Discord: discord.gg/ragooptimizer'
-]
+]]
+// with the empty lines (no stand): 10 on the left, 11 on the right
+const THANK_YOU_ROWS = [10, 11]
 const MAIN_BOARD = { x: 0.5, z: 5.5 }
 // The kit editor: the book in the second hotbar slot, the Save button of its chest of 27 slots,
 // whose window shows the player's hotbar from slot 54 (27 of the chest, 27 of the inventory).
@@ -534,9 +538,9 @@ async function checkProductNpc (bot) {
 }
 
 /**
- * The thank-you text (plan 5.7): its lines on their point, top to bottom, as the owner validated
- * them; the first 5.58 blocks above the point, the last 0.45 (a name floats a block above its
- * small stand).
+ * The thank-you text (plan 5.7), cut in two: the lines of each side on its point, top to bottom,
+ * as the owner validated them; the last 0.45 block above the point, the first (rows - 1) * 0.27
+ * above it (a name floats a block above its small stand).
  */
 async function checkThankYouText (bot) {
   for (const [side, at] of THANK_YOU_TEXTS.entries()) {
@@ -545,15 +549,15 @@ async function checkThankYouText (bot) {
       .sort((a, b) => b.position.y - a.position.y)
     const lines = () => stands().map((e) => e.metadata[2].replace(/§./g, ''))
     const where = side === 0 ? 'on the left (textremerciement)' : 'on the right (textremerciement2)'
-    await waitFor(() => JSON.stringify(lines()) === JSON.stringify(THANK_YOU_LINES), 10000,
+    await waitFor(() => JSON.stringify(lines()) === JSON.stringify(THANK_YOU_LINES[side]), 10000,
       `the thank-you text ${where} (reads ${JSON.stringify(lines())})`)
     const all = stands()
     const top = all[0].position.y + 1 - at.y
     const bottom = all[all.length - 1].position.y + 1 - at.y
-    if (Math.abs(top - (0.45 + 19 * 0.27)) > 0.05 || Math.abs(bottom - 0.45) > 0.05) {
+    if (Math.abs(top - (0.45 + (THANK_YOU_ROWS[side] - 1) * 0.27)) > 0.05 || Math.abs(bottom - 0.45) > 0.05) {
       throw new Error(`the thank-you text ${where} floats from ${bottom.toFixed(2)} to ${top.toFixed(2)} blocks above its point`)
     }
-    log(`the thank-you text ${where} reads its ${THANK_YOU_LINES.length} lines as validated, from ${bottom.toFixed(2)} to ${top.toFixed(2)} blocks above its point`)
+    log(`the thank-you text ${where} reads its ${THANK_YOU_LINES[side].length} lines as validated, from ${bottom.toFixed(2)} to ${top.toFixed(2)} blocks above its point`)
   }
 }
 

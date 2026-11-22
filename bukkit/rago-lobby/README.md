@@ -733,10 +733,10 @@ signature, pas la couleur de tout :
   plus, codes de couleur compris : une plus longue est refusée au démarrage (la couper en deux), et
   un texte sur le point d'un PNJ aussi. Chacun lit le même ; un clic ne fait rien. Le config.yml
   fourni place le texte de remerciement (plan 5.7, validé le 22/11) des deux côtés de la salle des
-  remerciements (ta demande du 22/11, 17h56) : à gauche sur `textremerciement`, à droite sur
-  `textremerciement2` (ses lignes sont `*merci`, celles de gauche : un texte changé à gauche
-  change aussi à droite) ; 20 lignes, du sol au plafond de la salle (6 blocs). `/lobby points`
-  les montre.
+  remerciements, coupé en deux (ta demande du 22/11, 19h51) : sa première partie à gauche sur
+  `textremerciement` (10 lignes, jusqu'à « unbearable. »), la suite à droite sur
+  `textremerciement2` (11 lignes, depuis « So I made this server »), coupé entre deux phrases, les
+  mots tels que validés. `/lobby points` les montre.
 - `pnj:` avec `type: stats` place un PNJ de stats : un joueur (skin `stats`), avec au-dessus
   le profil de celui qui le regarde (niveau Network et rang, victoires, défaites, kills, meilleure
   série, victoires du jour, ELO de chaque mode classé). Chaque joueur lit le sien. Un clic ouvre
