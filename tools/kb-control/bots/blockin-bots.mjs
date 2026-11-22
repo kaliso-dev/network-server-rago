@@ -251,7 +251,12 @@ async function main () {
   const fromBreak = events.indexOf(brokenAt)
   await waitFor(() => events.slice(fromBreak).some((e) => e.what === 'hit'), 4000, `a hit through the hole; since the break: ${story(events, fromBreak)}`)
   const hit = events.slice(fromBreak).find((e) => e.what === 'hit')
-  const push = events.slice(fromBreak).find((e) => e.what === 'push' && Math.abs(e.t - hit.t) <= 300 && (e.x !== 0 || e.z !== 0))
+  // the push of the hit can come after its hurt (the velocity goes at the end of the server's
+  // tick, the hurt at once): it is waited for, 300 ms at most after the hit
+  const pushOf = () => events.slice(fromBreak).find((e) => e.what === 'push' && Math.abs(e.t - hit.t) <= 300 && (e.x !== 0 || e.z !== 0))
+  const until = Date.now() + 400
+  while (pushOf() == null && Date.now() < until) await sleep(20)
+  const push = pushOf()
   if (push == null) throw new Error(`no push with the hit: ${story(events, fromBreak)}`)
   const along = push.x * side[0] + push.z * side[1]
   if (along > -0.2) throw new Error(`the hit did not push away from side (${side}): ${story(events, fromBreak)}`)
