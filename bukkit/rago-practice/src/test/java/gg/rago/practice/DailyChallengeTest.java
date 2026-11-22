@@ -179,7 +179,11 @@ class DailyChallengeTest {
             assertTrue(DailyChallenge.CATALOG.containsKey(board), board);
         }
         assertTrue(DailyChallenge.CATALOG.containsKey("aim-trainer." + AimTrainer.VARIANTS[2]));
-        assertTrue(DailyChallenge.CATALOG.containsKey("combo-bot." + ComboAi.LEVELS[ComboAi.LEVELS.length - 1].id));
+        assertTrue(DailyChallenge.CATALOG.containsKey("combo-bot." + ComboAi.LEVELS[ComboAi.LEVELS.length - 1].id),
+                "an old config that lists the Combo bot still reads");
+        for (String board : DailyChallenge.Settings.DEFAULT_BOARDS) {
+            assertFalse(board.startsWith("combo-bot."), "the Combo bot left the menus (22/11), and the challenge");
+        }
         assertEquals("Block in practice: 3 layers, wood side", DailyChallenge.CATALOG.get("block-in.wood").label());
 
         YamlConfiguration wrong = new YamlConfiguration();

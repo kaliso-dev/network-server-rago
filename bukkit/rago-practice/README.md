@@ -191,8 +191,8 @@ avec le meilleur de la semaine (« This week »), la place de celui qui regarde 
 
 **Le défi du jour (`/challenge`).** Chaque jour (heure de Paris), un entraînement pour tout le
 serveur, le suivant de `defi-du-jour.epreuves` à tour de rôle (le même toute la journée, même après
-un redémarrage) : Block-In côté bois, island clutch, aim trainer, fast defense, ladder, combo bot
-difficile, extend en chaîne... Le meilleur score de chaque joueur du jour fait le classement du
+un redémarrage) : Block-In côté bois, island clutch, aim trainer, fast defense, ladder, extend en
+chaîne... Le meilleur score de chaque joueur du jour fait le classement du
 jour ; à minuit, le 1er, le 2e et le 3e gagnent 750, 500 et 300 XP Network (`xp-podium`), annoncés à
 tout le serveur (même si le serveur était éteint à minuit). Le premier score du jour d'un joueur
 lui donne 100 XP, plus 25 par jour d'affilée où il a joué le défi (7 jours au plus : 250). À
@@ -356,7 +356,9 @@ réglages. Un entraînement de la liste que le serveur ne joue pas est laissé d
   d'un essai attend : elle lance la série quand le joueur est prêt. Le temps moyen par cible et les
   blocs posés ailleurs sont comptés et montrés (un bloc posé ailleurs part aussi, il ne finit pas
   la série). Toutes ces valeurs sont des valeurs de départ, à confirmer.
-- **Combo bot** : une IA qui se bat comme un joueur 1.8 (`ComboAi`), sans dégâts ; le plus long
+- **Combo bot** (retiré des menus le 22/11, ta demande « le combo bot on le supprime » : il n'est plus
+  ouvert, ses records restent dans les données, hors de `/records` et du mur ; son combat, `ComboAi`,
+  servira à RagoBot. Ce qui suit décrit l'entraînement tel qu'il était) : une IA qui se bat comme un joueur 1.8 (`ComboAi`), sans dégâts ; le plus long
   combo. Elle sprinte vers le joueur, strafe une fois proche, clique à son CPS avec sa précision et
   sa reach (mesurée jusqu'à la hitbox), et ses coups poussent comme ceux d'un joueur (un coup en
   sprint pousse plus loin). Après un coup elle peut w-tap, touchée au sol elle peut jump reset, et

@@ -83,6 +83,9 @@ class RecordsMenuTest {
         assertEquals(2, played.size(), "the closed ones (in brackets) and the duels stay out");
         assertEquals("clutch", played.get(0).modeId, "in the order of the catalog");
         assertEquals("aim-trainer", played.get(1).modeId);
+        // the Combo bot left the menus (22/11): its records stay in the book, out of the menu
+        assertFalse(RecordCatalog.of("combo-bot").boards.isEmpty(), "its boards stay defined: its records are kept");
+        assertTrue(RecordCatalog.played(Arrays.asList("clutch", "(combo-bot)")).stream().noneMatch((e) -> e.modeId.equals("combo-bot")));
     }
 
     @Test

@@ -42,7 +42,7 @@
       ],
       "description": "Clutch, block in, fast defense, bridging, extend, pearls, bow, fireballs, aim, bots: one skill at a time.",
       "skin": "practice",
-      "modes": 18,
+      "modes": 17,
       "also": []
     },
     {
@@ -1656,22 +1656,6 @@
       "description": "Buy lists of items as fast as you can, with your own Hypixel quick buy (copy it in one click: the book).",
       "plugins": [
         "bedwars"
-      ]
-    },
-    {
-      "id": "combo-bot",
-      "name": "Combo bot",
-      "colour": "#55FFFF",
-      "icon": "SKULL_ITEM",
-      "category": "entrainement",
-      "group": null,
-      "format": "Solo",
-      "ranked": false,
-      "startHere": false,
-      "event": false,
-      "description": "An AI that fights as a player: sprint hits, strafes, w-taps, jump resets. Easy to Expert: combo it without being hit.",
-      "plugins": [
-        "practice"
       ]
     },
     {

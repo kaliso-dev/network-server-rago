@@ -223,7 +223,7 @@ public final class RagoPractice extends JavaPlugin {
         int aimHits = config.getInt("aim-trainer.touches-par-xp", 10);
         BlockInTraining.Island island = blockInIsland(config);
 
-        List<MapZones.ZoneMap> arenas = zoneMaps(config, "boxing.cartes", spacing, "the boxing and the combo bot");
+        List<MapZones.ZoneMap> arenas = zoneMaps(config, "boxing.cartes", spacing, "the boxing");
         PracticeHost boxingHost = register("boxing", (h, m, a, t) -> new Boxing(h, m, a, t, boxing), slots, spacing, false);
         onMaps(boxingHost, arenas);
         alsoRanked(boxingHost, "ranked-boxing");
@@ -257,7 +257,9 @@ public final class RagoPractice extends JavaPlugin {
         MapLoopTraining.Places fireballPlaces = new MapLoopTraining.Places(parts, true);
         register("fireball-practice", (h, m, a, t) -> new FireballTraining(h, m, a, t, fireballPlaces), slots, spacing, false);
         register("aim-trainer", (h, m, a, t) -> new AimTrainer(h, m, a, t, aimXp, aimHits), slots, spacing, false);
-        onMaps(register("combo-bot", ComboBot::new, slots, spacing, false), arenas);
+        // the Combo bot left the menus (the owner, 22/11): its row stays reserved, so that the other
+        // modes keep their zones; its records stay (RecordCatalog), out of /records and the wall
+        hosted.add("(combo-bot)");
         register("kb-displace-bot", (h, m, a, t) -> new KbDisplaceBot(h, m, a, t, kbPlace), slots, spacing, false);
         List<MapZones.ZoneMap> arenaMaps = withoutBlocks(zoneMaps(config, "block-fight-arena.cartes", spacing,
                 "the block placement arena"), GOLD_ID);

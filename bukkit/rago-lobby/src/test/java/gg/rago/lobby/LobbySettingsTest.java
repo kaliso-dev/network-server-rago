@@ -64,12 +64,12 @@ class LobbySettingsTest {
         assertEquals("lobby", settings.world());
         assertEquals(0, settings.voidHeight());
         assertEquals(0, settings.defaultRating(), "a ranked ELO starts at 0, in Coal");
-        assertEquals(93, settings.modes().size(), "the six ranked duels (plan 3.7), the invis practice and the Bed Break Simulator in 1v1 to 1v4 (and"
+        assertEquals(92, settings.modes().size(), "the six ranked duels (plan 3.7), the invis practice and the Bed Break Simulator in 1v1 to 1v4 (and"
                 + " their kits), with the private top bridge, the clutch scenario, the bed fight (1v1, 2v2, 1v2), Top"
                 + " BedFight, the bridge fight 2v2, the full map first rush, Sky Rise Resources, the timed bridge, Lobby"
                 + " Fight (1v1, FFA), the Bed Break Simulator, the four modes of FUN PRACTICE (CTF The Bridge 1v1 and"
                 + " 2v2, CTF Castle 2v2 and 4v4 with them, Fast Bedwars 1v1 and 2v2), Red Rover (sumo, block edit, block placement, top bridge), Find Your Sensitivity,"
-                + " Block aim and Parkour Duel, without the top fight or the ranked scenarios");
+                + " Block aim and Parkour Duel, without the top fight, the ranked scenarios or the Combo bot");
         assertEquals("entrainement", settings.display("find-your-sensitivity").category(), "a training of the aim");
         assertEquals("entrainement", settings.display("block-aim").category(), "a training of the placement");
         for (String id : Arrays.asList("red-rover-sumo", "red-rover-block-edit", "red-rover-block-placement",
@@ -258,6 +258,7 @@ class LobbySettingsTest {
         assertEquals("lobby-fight-1v1", duels.get(5).mode.mode().id(), "Lobby Fight after the block placement");
         assertTrue(ranked.size() <= 14, "two rows at most: " + ranked.size());
         assertNull(settings.display("top-fight-1v1"), "no top fight: there are bridge fight and top bridge");
+        assertNull(settings.display("combo-bot"), "no Combo bot in the menus (the owner, 22/11)");
         assertNull(settings.privateRoutes().get("top-fight-prive"));
         assertEquals(Arrays.asList("attack-defense-1v1", "attack-defense-2v2"),
                 displayIds(settings.modesOfGroup("attack-defense")));
