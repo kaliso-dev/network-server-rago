@@ -2473,18 +2473,8 @@ modes:
       - "moving targets. XP for"
       - "each second on the target,"
       - "and a top of the best."
-  find-your-sensitivity:
-    nom: "&bFind your sensitivity"
-    categorie: entrainement
-    icone: EYE_OF_ENDER
-    equipes: 1
-    joueurs-par-equipe: 1
-    classe: false
-    description:
-      - "Flicks, 180s and tracking at"
-      - "your sensitivity and two"
-      - "around it: the most precise"
-      - "one for your mouse."
+  # Find your sensitivity left the menus (the owner, 22/11, 19h51: "Find your sensivity
+  # supprime"): RagoPractice no longer opens it; its code stays, unplugged.
   block-aim:
     nom: "&bBlock aim"
     categorie: entrainement

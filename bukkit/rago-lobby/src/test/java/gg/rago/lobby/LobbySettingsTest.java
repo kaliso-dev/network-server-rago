@@ -64,13 +64,13 @@ class LobbySettingsTest {
         assertEquals("lobby", settings.world());
         assertEquals(0, settings.voidHeight());
         assertEquals(0, settings.defaultRating(), "a ranked ELO starts at 0, in Coal");
-        assertEquals(92, settings.modes().size(), "the six ranked duels (plan 3.7), the invis practice and the Bed Break Simulator in 1v1 to 1v4 (and"
+        assertEquals(91, settings.modes().size(), "the six ranked duels (plan 3.7), the invis practice and the Bed Break Simulator in 1v1 to 1v4 (and"
                 + " their kits), with the private top bridge, the clutch scenario, the bed fight (1v1, 2v2, 1v2), Top"
                 + " BedFight, the bridge fight 2v2, the full map first rush, Sky Rise Resources, the timed bridge, Lobby"
                 + " Fight (1v1, FFA), the Bed Break Simulator, the four modes of FUN PRACTICE (CTF The Bridge 1v1 and"
-                + " 2v2, CTF Castle 2v2 and 4v4 with them, Fast Bedwars 1v1 and 2v2), Red Rover (sumo, block edit, block placement, top bridge), Find Your Sensitivity,"
-                + " Block aim and Parkour Duel, without the top fight, the ranked scenarios or the Combo bot");
-        assertEquals("entrainement", settings.display("find-your-sensitivity").category(), "a training of the aim");
+                + " 2v2, CTF Castle 2v2 and 4v4 with them, Fast Bedwars 1v1 and 2v2), Red Rover (sumo, block edit, block placement, top bridge),"
+                + " Block aim and Parkour Duel, without the top fight, the ranked scenarios, the Combo bot or Find Your Sensitivity");
+        assertNull(settings.display("find-your-sensitivity"), "no Find Your Sensitivity in the menus (the owner, 22/11, 19h51)");
         assertEquals("entrainement", settings.display("block-aim").category(), "a training of the placement");
         for (String id : Arrays.asList("red-rover-sumo", "red-rover-block-edit", "red-rover-block-placement",
                 "red-rover-top-bridge")) {

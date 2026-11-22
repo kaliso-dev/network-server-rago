@@ -340,7 +340,9 @@ réglages. Un entraînement de la liste que le serveur ne joue pas est laissé d
   barre d'XP montre l'XP de l'essai, la barre le temps qui reste. À la fin, le joueur reçoit
   cette XP en XP Network, plus 1 pour 10 coups (`aim-trainer` dans `config.yml`), et voit le top 5
   de la variante. `/aimtop [strafe|jump|circle]` montre le top de partout.
-- **Find your sensitivity** (étape 7, le protocole de la proposition) : le joueur donne la
+- **Find your sensitivity** (étape 7) : **retiré des menus** (ta demande du 22/11, 19h51 : « Find
+  your sensivity supprime ») : RagoPractice ne l'ouvre plus, sa rangée de zones reste réservée et
+  son code reste dans le dépôt, débranché. Ce qu'il faisait (le protocole de la proposition) : le joueur donne la
   sensibilité de ses options (Options > Controls > Mouse Settings) avec le comparateur (pas de 1
   ou de 10, 100 % par défaut comme dans le jeu), puis joue la même série à cette sensibilité et à
   deux autres autour : une qui tourne 20 % moins vite et une 20 % plus vite, sur la courbe du

@@ -313,8 +313,9 @@ public final class RagoPractice extends JavaPlugin {
         int roverBlocks = config.getInt("red-rover.points-par-1v1-block-placement", 10);
         onMaps(register("red-rover-block-placement", (h, m, a, t) -> new BlockFight(h, m, a, RedRover.alone(t), roverBlocks)
                 .asRedRover("Red Rover Block Placement", rover), slots, spacing, false), blockMaps);
-        // Find Your Sensitivity (plan, step 7), after the others too, so that they keep their zones
-        register("find-your-sensitivity", FindYourSensitivity::new, slots, spacing, false);
+        // Find Your Sensitivity (plan, step 7) left the menus (the owner, 22/11, 19h51): its row stays
+        // reserved, so that the other modes keep their zones; its code stays, unplugged
+        hosted.add("(find-your-sensitivity)");
         // Block aim, the placement on a target (plan, step 6.4), after them all too
         register("block-aim", BlockAimTraining::new, slots, spacing, false);
         // Parkour Duel (FUN PRACTICE, the owner's choice of 22/11), last, so that the others keep their zones
