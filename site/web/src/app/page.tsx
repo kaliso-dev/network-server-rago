@@ -257,7 +257,7 @@ export default function Home() {
             id="play"
             eyebrow={`${modeCount} modes, ${game.categories.length} ways to play`}
             title="And every other way to play"
-            lead="In the lobby, four characters open the modes, as the compass does. Every mode is free."
+            lead="In the lobby, five characters open the modes, as the compass does. Every mode is free."
           />
           <ul className={styles.npcs}>
             {game.categories.map((category) => (

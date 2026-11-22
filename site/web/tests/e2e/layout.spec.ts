@@ -57,10 +57,10 @@ test.describe('the layout', () => {
   test('the skins of the lobby characters load and keep their pixels', async ({ page }) => {
     await page.goto(SOON);
     await scrollThrough(page);
-    // the four characters of the ways to play, the one of the private games, and the one of the hero
-    // before its 3D loads
+    // the four characters of the ways to play, the one of Fun Practice (its own skin since 22/11), the
+    // one of the private games, and the one of the hero before its 3D loads
     const skins = page.locator('img[src^="/skins/"]');
-    await expect(skins).toHaveCount(6);
+    await expect(skins).toHaveCount(7);
     for (const skin of await skins.all()) {
       await skin.scrollIntoViewIfNeeded();
       await expect.poll(() => skin.evaluate((img: HTMLImageElement) => img.complete && img.naturalWidth)).toBe(192);
