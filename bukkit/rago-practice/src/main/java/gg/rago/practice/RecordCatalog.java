@@ -127,6 +127,7 @@ final class RecordCatalog {
         int each = 2 * BridgeTraining.VARIANTS.length;
         all.add(new Entry("bridge-chrono", bridge, Material.SANDSTONE, courses, courses.get(0),
                 new int[] {each, each, BridgeTraining.VARIANTS.length}));
+        all.add(entry("block-aim", "Block aim", Material.GLOWSTONE_DUST, BlockAimTraining.variants()));
         ALL = Collections.unmodifiableList(all);
         Set<String> ids = new HashSet<>();
         for (Board board : boards(ALL)) {

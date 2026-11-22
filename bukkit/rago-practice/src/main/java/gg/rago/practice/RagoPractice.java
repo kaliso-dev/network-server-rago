@@ -302,6 +302,8 @@ public final class RagoPractice extends JavaPlugin {
                 .asRedRover("Red Rover Block Placement", rover), slots, spacing, false), blockMaps);
         // Find Your Sensitivity (plan, step 7), after the others too, so that they keep their zones
         register("find-your-sensitivity", FindYourSensitivity::new, slots, spacing, false);
+        // Block aim, the placement on a target (plan, step 6.4), after them all too
+        register("block-aim", BlockAimTraining::new, slots, spacing, false);
     }
 
     /** The settings of Red Rover (red-rover); the defaults when they are wrong. */

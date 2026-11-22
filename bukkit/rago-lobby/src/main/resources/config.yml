@@ -2079,6 +2079,18 @@ modes:
       - "your sensitivity and two"
       - "around it: the most precise"
       - "one for your mouse."
+  block-aim:
+    nom: "&bBlock aim"
+    categorie: entrainement
+    icone: GLOWSTONE_DUST
+    equipes: 1
+    joueurs-par-equipe: 1
+    classe: false
+    description:
+      - "A face lights up: under your"
+      - "feet, on the side of the"
+      - "bridge or on the bed. A block"
+      - "on it, faster at each level."
   # The events a PREMIUM player hosts with /host (RagoPractice): hidden from the selector, the
   # players come in with /join while the server is told about it.
   event-sumo:

@@ -197,7 +197,7 @@ Snowball Spleef et Red Rover sont codés avec des valeurs de départ à confirme
 | 6.1d | Autres modes FUN connus : propositions | P3 | BLOQUÉ (proposition écrite le 21/11, attend ta validation) | ton choix parmi Spleef, Bow Spleef, Parkour Duels, Pearl Fight, Battle Rush |
 | 6.2 | Capture the Flag, version Bedwars et seconde version : études | P3 | BLOQUÉ (proposition écrite le 21/11, attend ta validation) | version à faire d'abord, équipes, captures, durée, maps, kit |
 | 6.3 | Find Your Sensitivity : faisabilité et protocole | P3 | IMPLÉMENTÉ le 22/11 (ton choix sur la carte : « Find Your Sensitivity » d'abord), selon le protocole de la proposition ; build et tests unitaires passés en CI (0bcfd61), installé sur ton serveur de test ; pas encore joué, ni par les bots ni en jeu (détail plus bas, « Étape 7 : Find Your Sensitivity ») | question 9, valeurs de départ à confirmer : séries d'environ une minute (12 flicks, 4 demi-tours, 20 s de suivi), 3 sensibilités (la tienne, 20 % moins vite, 20 % plus vite), sans historique ; l'icône (œil de l'Ender) |
-| 6.4 | Block Aim Practice (patterns de la communauté) | P3 | Parcours : IMPLÉMENTÉ le 22/11 (ton choix sur la carte : Block Aim ensuite) ; le Bridge Chrono avait déjà les ponts droits, diagonaux et en montée, il a maintenant aussi le pont avec un virage (16, 32 et 64 blocs, un record chacun) ; build et tests unitaires passés en CI (d216c86) ; pas encore installé ni joué. Placement sur cible : À FAIRE, ensuite (détail plus bas, « Étape 7 : Block Aim Practice ») | à confirmer : le virage à droite, à mi-chemin, à plat ; pas de virage en montée (la place manque à moins de 64 blocs du centre) ; question 8 pour le placement sur cible |
+| 6.4 | Block Aim Practice (patterns de la communauté) | P3 | Parcours : IMPLÉMENTÉ le 22/11 (ton choix sur la carte : Block Aim ensuite) ; le Bridge Chrono avait déjà les ponts droits, diagonaux et en montée, il a maintenant aussi le pont avec un virage (16, 32 et 64 blocs, un record chacun) ; build et tests unitaires passés en CI (d216c86) ; pas encore installé ni joué. Placement sur cible : IMPLÉMENTÉ le 22/11, nouveau mode « Block aim » (`block-aim`) : une face s'allume sous les pieds au bout du pont, sur le côté du pont ou sur le lit, 5 niveaux de plus en plus rapides comme ceux de Ladder Practice, un record par niveau ; build et tests unitaires en CI à venir ; pas encore installé ni joué (détail plus bas, « Étape 7 : Block Aim Practice ») | à confirmer : le virage à droite, à mi-chemin, à plat ; pas de virage en montée (la place manque à moins de 64 blocs du centre) ; placement sur cible : la scène générée (question 8 sans réponse), les 15 faces, les temps des 5 niveaux (3 s à 1 s), un bloc posé ailleurs compté sans finir la série |
 | 6.5.1 | Red Rover (Sumo, Block Placement, Block Edit, Top Bridge…) | P2 | Sumo, Block Edit, Block Placement, Top Bridge : TESTÉ par les bots en CI (21/11) ; rien encore en jeu | question 10 (qui reste, points ou élimination : codé « points, le gagnant reste, premier à 3 », à confirmer) ; 90 s par 1v1 à confirmer  |
 | 6.5.2 | Modes 2v1 asymétriques (Clutch Scenario, stuff amélioré) | P3 | Clutch Scenario : IMPLÉMENTÉ le 22/11, build et tests unitaires passés en CI (le partage du joueur seul, la party gardée ensemble) ; pas encore joué, ni par les bots ni en jeu ; en 1v1, 1v2, 1v3 et 1v4 comme Invis Practice et le Bed Break Simulator (ta demande du 22/11, à la place des 2v2, 3v3 et 4v4 ; les victoires de ceux-ci comptent toujours pour le titre Clutch Scenario) ; à partir du 1v2, le joueur seul, tiré au sort, part sans lit avec une vie, les autres gardent le leur (ton choix du 21/11) ; une party reste ensemble, le joueur seul est tiré parmi les autres (ton choix du 22/11). Stuff amélioré : BLOQUÉ | mode du stuff amélioré |
 | 6.5.3 | Bot IA : étude technique | P3 | À FAIRE | l'étude d'abord, sans code (question 13) |
@@ -1560,3 +1560,29 @@ pont avec un virage et le placement sur cible.
 64 blocs du centre), puis les tests unitaires en CI (commit d216c86, tous les jobs verts, Java 8
 et 21). Rien encore en jeu, ni installé.
 
+**Le placement sur cible** (22/11, pendant que tu testes) : un nouveau mode d'entraînement,
+« Block aim » (`block-aim`, dans la boussole avec les autres entraînements, icône poudre de
+glowstone).
+
+- **La scène**, générée (ta question 8 n'a pas encore de réponse : ni map à toi, ni patterns
+  choisis) : une île de 4 sur 3 en bois avec un lit au milieu, et un pont de laine bleue de 3 blocs
+  qui en sort. Le joueur apparaît au début du pont, face au lit.
+- **Une face s'allume** (de la poussière verte dessus), parmi 15 : sous les pieds (le bout du pont :
+  il faut s'avancer au bord, shift tenu, comme en bridge), sur le côté du pont (6 faces), ou sur le
+  lit à couvrir (8 faces : dessus, côtés, bouts ; shift tenu pour poser contre le lit, comme sur
+  Hypixel). On y pose un bloc le plus vite possible ; il part aussitôt et la face suivante
+  s'allume, jamais la même, à 4,5 blocs au plus de la précédente (pour que le temps reste jouable).
+- **Les niveaux**, comme les hauteurs de Ladder Practice (les colorants vert et rouge de la hotbar) : 3 s, 2,5 s,
+  2 s, 1,5 s et 1 s par cible, un record chacun (`block-aim.level1` à `level5`, aussi dans
+  `/records`). Chaque cible posée à temps ajoute un à la série ; une cible pas posée à temps ou une
+  chute la finit. La première cible d'un essai attend : elle lance la série quand tu es prêt.
+- **On compte** le temps moyen par cible et les blocs posés ailleurs (au scoreboard et à la fin de
+  la série) ; un bloc posé ailleurs part aussi, il ne finit pas la série.
+- **À confirmer** : la scène, les faces, les 5 temps, la distance de 4,5 blocs entre deux cibles,
+  et qu'un bloc posé ailleurs ne finisse pas la série. Pas de défi du jour pour ce mode.
+
+**Testé** : en local, les 15 faces : chacune est visible et à portée (4,5 blocs) d'une place où
+le joueur peut se tenir sur la scène, debout ou au bord shift tenu, sans être dans la case du bloc
+à poser ; le tirage de la cible suivante (3 000 tirages : jamais la même, toujours à 4,5 blocs au
+plus, les trois places tirées). Ces tests sont dans `BlockAimTest` ; les tests unitaires en CI
+restent à passer. Rien encore en jeu, ni installé.

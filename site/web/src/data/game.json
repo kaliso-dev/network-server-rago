@@ -42,7 +42,7 @@
       ],
       "description": "Clutch, block in, fast defense, bridging, extend, pearls, bow, fireballs, aim, bots: one skill at a time.",
       "skin": "practice",
-      "modes": 17,
+      "modes": 18,
       "also": []
     },
     {
@@ -1481,6 +1481,22 @@
       "startHere": false,
       "event": false,
       "description": "Flicks, 180s and tracking at your sensitivity and two around it: the most precise one for your mouse.",
+      "plugins": [
+        "practice"
+      ]
+    },
+    {
+      "id": "block-aim",
+      "name": "Block aim",
+      "colour": "#55FFFF",
+      "icon": "GLOWSTONE_DUST",
+      "category": "entrainement",
+      "group": null,
+      "format": "Solo",
+      "ranked": false,
+      "startHere": false,
+      "event": false,
+      "description": "A face lights up: under your feet, on the side of the bridge or on the bed. A block on it, faster at each level.",
       "plugins": [
         "practice"
       ]

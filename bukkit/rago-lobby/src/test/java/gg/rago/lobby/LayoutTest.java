@@ -38,7 +38,7 @@ class LayoutTest {
         assertEquals(19, ModeMenu.compassSlot(0), "row 2, under the empty row");
         assertEquals(25, ModeMenu.compassSlot(6));
         assertEquals(28, ModeMenu.compassSlot(7));
-        // the 16 entries of Practice, the most: three rows of modes, "Popular now" in the bottom row
+        // the 17 entries of Practice, the most: three rows of modes, "Popular now" in the bottom row
         assertEquals(6, ModeMenu.compassRows(3));
         assertEquals(45, ModeMenu.popularRowOf(3));
         assertEquals(4, ModeMenu.compassRows(1), "the categories, the empty row, a row of modes, Popular now");

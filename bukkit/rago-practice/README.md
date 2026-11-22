@@ -339,6 +339,18 @@ réglages. Un entraînement de la liste que le serveur ne joue pas est laissé d
   sens à prendre (plus de dépassements : plus bas ; plus d'arrêts avant : plus haut), et que cela
   ne vaut que pour cette souris à son DPI, le ping pouvant le décaler. Rien n'est gardé : ni
   record, ni historique. Toutes ces valeurs sont des valeurs de départ, à confirmer.
+- **Block aim** (`block-aim`, plan 6.4, le placement sur cible de la proposition de l'étape 7) :
+  une île de 4 sur 3 avec un lit au milieu et un pont de laine de 3 blocs qui en sort. Une face
+  s'allume (de la poussière verte dessus) : sous les pieds au bout du pont (il faut s'avancer au
+  bord, shift tenu), sur le côté du pont, ou sur le lit à couvrir (dessus, ses côtés, ses bouts ;
+  shift tenu pour poser contre le lit, comme sur Hypixel). Le joueur y pose un bloc le plus vite
+  possible ; le bloc part aussitôt et la face suivante s'allume, à 4,5 blocs au plus de la
+  précédente, jamais la même. Comme les hauteurs de Ladder practice, 5 niveaux de plus en plus
+  rapides (3 s, 2,5 s, 2 s, 1,5 s puis 1 s par cible), chacun son record : chaque cible posée à
+  temps ajoute un à la série, une cible pas posée à temps ou une chute la finit. La première cible
+  d'un essai attend : elle lance la série quand le joueur est prêt. Le temps moyen par cible et les
+  blocs posés ailleurs sont comptés et montrés (un bloc posé ailleurs part aussi, il ne finit pas
+  la série). Toutes ces valeurs sont des valeurs de départ, à confirmer.
 - **Combo bot** : une IA qui se bat comme un joueur 1.8 (`ComboAi`), sans dégâts ; le plus long
   combo. Elle sprinte vers le joueur, strafe une fois proche, clique à son CPS avec sa précision et
   sa reach (mesurée jusqu'à la hitbox), et ses coups poussent comme ceux d'un joueur (un coup en
