@@ -317,12 +317,19 @@ class LobbySettingsTest {
         }
         assertEquals(Arrays.asList("entrainement", "ranked", "duels", "arenes", "fun"), middle,
                 "Practice, RBW Modes, Duels, Arenas and Fun Practice in the middle row, in their order");
-        assertEquals(Collections.emptyList(), LobbySettings.load(yaml("categories:\n  duels: {}\n" + SUMO)).compassTop(),
-                "without boussole: the compass as before");
-        String two = "categories:\n  duels: {}\n  fun: {}\ngroupes:\n  g: {}\n" + SUMO;
-        assertEquals(Arrays.asList("g", "fun"), LobbySettings.load(yaml(two + "boussole:\n  haut: [g, fun]\n")).compassTop());
-        assertInvalid(two + "boussole:\n  haut: [nope]\n", "boussole.haut: \"nope\" is neither");
-        assertInvalid(two + "boussole:\n  haut: [fun, fun]\n", "boussole.haut: \"fun\" twice");
+        YamlConfiguration without = bundledConfig();
+        without.set("boussole", null);
+        assertEquals(Collections.emptyList(), LobbySettings.load(without).compassTop(), "without boussole: the compass as before");
+        YamlConfiguration other = bundledConfig();
+        other.set("boussole.haut", Arrays.asList("red-rover", "fun"));
+        assertEquals(Arrays.asList("red-rover", "fun"), LobbySettings.load(other).compassTop(), "a group, then a category");
+        for (Object[] wrong : new Object[][] {{Arrays.asList("nope"), "boussole.haut: \"nope\" is neither"},
+                {Arrays.asList("party", "party"), "boussole.haut: \"party\" twice"}}) {
+            YamlConfiguration yaml = bundledConfig();
+            yaml.set("boussole.haut", wrong[0]);
+            IllegalArgumentException error = assertThrows(IllegalArgumentException.class, () -> LobbySettings.load(yaml));
+            assertTrue(error.getMessage().startsWith((String) wrong[1]), error.getMessage());
+        }
     }
 
     @Test
