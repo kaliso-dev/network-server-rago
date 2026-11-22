@@ -200,7 +200,7 @@ Snowball Spleef et Red Rover sont codés avec des valeurs de départ à confirme
 | 6.4 | Block Aim Practice (patterns de la communauté) | P3 | Parcours : IMPLÉMENTÉ le 22/11 (ton choix sur la carte : Block Aim ensuite) ; le Bridge Chrono avait déjà les ponts droits, diagonaux et en montée, il a maintenant aussi le pont avec un virage (16, 32 et 64 blocs, un record chacun) ; build et tests unitaires passés en CI (d216c86) ; installé le 22/11 (avec 28a4bee), pas encore joué. Placement sur cible : IMPLÉMENTÉ le 22/11, nouveau mode « Block aim » (`block-aim`) : une face s'allume sous les pieds au bout du pont, sur le côté du pont ou sur le lit, 5 niveaux de plus en plus rapides comme ceux de Ladder Practice, un record par niveau ; build et tests unitaires passés en CI (28a4bee) ; installé sur ton serveur de test le 22/11 avec le pont avec virage, pas encore joué (détail plus bas, « Étape 7 : Block Aim Practice ») | à confirmer : le virage à droite, à mi-chemin, à plat ; pas de virage en montée (la place manque à moins de 64 blocs du centre) ; placement sur cible : la scène générée (question 8 sans réponse), les 15 faces, les temps des 5 niveaux (3 s à 1 s), un bloc posé ailleurs compté sans finir la série |
 | 6.5.1 | Red Rover (Sumo, Block Placement, Block Edit, Top Bridge…) | P2 | Sumo, Block Edit, Block Placement, Top Bridge : TESTÉ par les bots en CI (21/11) ; rien encore en jeu | question 10 (qui reste, points ou élimination : codé « points, le gagnant reste, premier à 3 », à confirmer) ; 90 s par 1v1 à confirmer  |
 | 6.5.2 | Modes 2v1 asymétriques (Clutch Scenario, stuff amélioré) | P3 | Clutch Scenario : IMPLÉMENTÉ le 22/11, build et tests unitaires passés en CI (le partage du joueur seul, la party gardée ensemble) ; pas encore joué, ni par les bots ni en jeu ; en 1v1, 1v2, 1v3 et 1v4 comme Invis Practice et le Bed Break Simulator (ta demande du 22/11, à la place des 2v2, 3v3 et 4v4 ; les victoires de ceux-ci comptent toujours pour le titre Clutch Scenario) ; à partir du 1v2, le joueur seul, tiré au sort, part sans lit avec une vie, les autres gardent le leur (ton choix du 21/11) ; une party reste ensemble, le joueur seul est tiré parmi les autres (ton choix du 22/11). Stuff amélioré : IMPLÉMENTÉ le 22/11 (ton choix sur la carte : Bed Fight 1v2), CI verte (3cdfed2 : build, tests unitaires, tests sur serveur) ; installé sur ton serveur de test le 22/11 (aa724b7) ; pas encore joué | l'écart de stuff (valeurs de départ : jambières et bottes en fer, épée en pierre, sans Protection, dans `stuff-ameliore:` de la config de rago-bedwars) |
-| 6.5.3 | Bot IA : étude technique | P3 | EN COURS : RagoBot écrit et installé sur ton serveur de test le 22/11 ; en CI, le Sumo passé, le Top Bridge 1v1 bloqué au bord de l'escalier, corrigé, en test (journal « RagoBot ») ; tes réponses du 22/11 aux 6 questions (détail plus bas, « Tes réponses du 22/11 ») : un vrai joueur, en Top Bridge 1v1 et 2v2 et en Sumo 1v1 pour commencer. Le Combo Bot : TESTÉ en CI le 22/11 (243a20d), retiré des menus (journal « Combo Bot retiré des menus ») | — |
+| 6.5.3 | Bot IA : étude technique | P3 | TESTÉ EN CI le 22/11 (47fdcd4 : Sumo, Top Bridge 1v1 et 2v2, invitation, refus, départ), essai en jeu à faire ; installé sur ton serveur de test le 22/11 sans la correction du Top Bridge (journal « RagoBot ») ; tes réponses du 22/11 aux 6 questions (détail plus bas, « Tes réponses du 22/11 ») : un vrai joueur, en Top Bridge 1v1 et 2v2 et en Sumo 1v1 pour commencer. Le Combo Bot : TESTÉ en CI le 22/11 (243a20d), retiré des menus (journal « Combo Bot retiré des menus ») | — |
 | 6.6 | Catégorie 3 joueurs (Red Rover, Clutch Scenario, Bed Break Scenario, Invis Practice) | P2 | IMPLÉMENTÉ le 22/11, CI verte (tests unitaires ; les bots du lobby ouvrent la boussole à 6 catégories et y prennent Duels au slot 12 ; tests du site) : « 3 Players » dans la boussole seulement, sans PNJ (ton choix du 21/11), après Fun Practice ; elle montre Red Rover (un objet), Bed Break Simulator 1v2, Invis Practice 1v2 et Clutch Scenario 1v2 (`aussi:` de `categories:`), avec les mêmes files : ces modes restent dans leur catégorie, leurs stats aussi ; le retour d'un groupe ouvert depuis elle y ramène ; aussi dans l'accueil, `/play 3 players` et le site (tests du site passés en local) | son nom, son slogan, sa description et son icône (une tête) sont à confirmer ; la boussole passe à 6 catégories, côte à côte des slots 10 à 15 (sur la ligne du haut, slots 1 à 6, depuis 5.9) |
 
 ### Étape 8 : administration et benchmark (Phase 7)
@@ -2074,7 +2074,17 @@ Tests :
 - les 11 tests de `BotBrainTest` lancés ici, tous passés ;
 - en CI, le message d'échec du Top Bridge 1v1 donne maintenant où sont RagoLeader et RagoBot.
 
-Ce qu'il reste à vérifier : le Top Bridge 1v1 et 2v2 en CI, puis en jeu.
+**En CI le 22/11 (47fdcd4), avec la correction : tout le test de RagoBot est passé.**
+- L'invitation et les refus passent.
+- Sumo duel gagné en 2 coups.
+- Top Bridge 1v1 : RagoBot pousse le bot immobile dans l'escalier puis le fait tomber, et gagne la
+  manche. Vu par le client du bot : 129 déplacements sur 21 blocs, 35 coups d'épée, 3 knockbacks.
+- Top Bridge 2v2 : il joue dans l'équipe de la party et frappe un adversaire.
+- Il quitte le serveur après `/p kick` et après une party dissoute.
+
+Un seul passage : il montre que RagoBot n'est plus bloqué cette fois, pas qu'il ne le sera jamais.
+Reste l'essai en jeu. La correction n'est pas dans la version installée le 22/11 à 14h50 : elle
+arrive avec la prochaine install.
 
 ### Outils Owner (7.1, 22/11)
 
@@ -2133,8 +2143,8 @@ reste tourne en CI. À l'install : la section `outils-owner:` arrive avec la fus
 - Le log du serveur note « Game with an Owner tool in sumo » et « in block-fight-1v1: not counted
   in the stats ».
 
-Le test du Top Bridge de RagoBot a échoué avant la vérification automatique de ces deux lignes du
-log : je les ai vues dans la fin du log, et elles seront vérifiées au prochain passage.
+Au passage suivant (47fdcd4), la vérification automatique du log du serveur est passée aussi :
+les deux lignes y sont, et aucune partie classée n'y est notée.
 
 **À l'install du 22/11** : ton serveur est en `online-mode=true` (sans BungeeCord), donc
 `uuid: ""` reste tel quel. Il suffit d'être qRago et op (ou rang owner).
