@@ -60,17 +60,24 @@ final class RecordCatalog {
          * of the variant it starts on (its first; the block edit: the bot's default speed).
          */
         final Board main;
+        /** How many boards each row of its page shows (the timed bridge: 6, 6, 3); null: rows of the same size. */
+        final int[] rows;
 
         Entry(String modeId, String title, Material icon, List<Board> boards) {
             this(modeId, title, icon, boards, boards.get(0));
         }
 
         Entry(String modeId, String title, Material icon, List<Board> boards, Board main) {
+            this(modeId, title, icon, boards, main, null);
+        }
+
+        Entry(String modeId, String title, Material icon, List<Board> boards, Board main, int[] rows) {
             this.modeId = modeId;
             this.title = title;
             this.icon = icon;
             this.boards = Collections.unmodifiableList(boards);
             this.main = main;
+            this.rows = rows;
         }
     }
 
@@ -101,7 +108,8 @@ final class RecordCatalog {
                     speed == BlockEditTraining.DEFAULT_SPEED));
         }
         all.add(new Entry("block-edit", edit, Material.SHEARS, edits, edits.get(BlockEditTraining.DEFAULT_SPEED - 1)));
-        // the timed bridge: a board for each course, flat then uphill, straight then diagonal
+        // the timed bridge: a board for each course, flat then uphill, straight then diagonal, then
+        // the courses with a turn: a row each on its page
         String bridge = "Timed bridge";
         List<Board> courses = new ArrayList<>();
         for (boolean uphill : new boolean[] {false, true}) {
@@ -112,7 +120,13 @@ final class RecordCatalog {
                 }
             }
         }
-        all.add(new Entry("bridge-chrono", bridge, Material.SANDSTONE, courses));
+        for (Training.Variant distance : BridgeTraining.VARIANTS) {
+            courses.add(new Board("bridge-chrono", bridge, distance, BridgeTraining.suffix(false, false, true),
+                    BridgeTraining.label(distance, false, false, true), false));
+        }
+        int each = 2 * BridgeTraining.VARIANTS.length;
+        all.add(new Entry("bridge-chrono", bridge, Material.SANDSTONE, courses, courses.get(0),
+                new int[] {each, each, BridgeTraining.VARIANTS.length}));
         ALL = Collections.unmodifiableList(all);
         Set<String> ids = new HashSet<>();
         for (Board board : boards(ALL)) {

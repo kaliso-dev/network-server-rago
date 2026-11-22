@@ -13,7 +13,7 @@ import java.util.List;
 import java.util.Set;
 import org.junit.jupiter.api.Test;
 
-/** The timed bridge: 16, 32 or 64 blocks, straight or diagonal, flat or uphill, a board each. */
+/** The timed bridge: 16, 32 or 64 blocks, straight or diagonal, flat or uphill, or with a turn, a board each. */
 class BridgeTrainingTest {
 
     private static final String MODE = "bridge-chrono";
@@ -26,6 +26,7 @@ class BridgeTrainingTest {
                     all.add(BridgeTraining.course(i, diagonal, uphill));
                 }
             }
+            all.add(BridgeTraining.course(i, false, false, true));
         }
         return all;
     }
@@ -42,6 +43,11 @@ class BridgeTrainingTest {
             assertEquals(distance, (diagonal.reach - 1) * Math.sqrt(2), 1.0, "diagonally");
             assertEquals(distance / 4, BridgeTraining.course(i, true, true).rise, "uphill: a quarter of the distance higher");
             assertEquals(distance / 4, BridgeTraining.course(i, false, true).rise);
+            BridgeTraining.Course turn = BridgeTraining.course(i, true, true, true);
+            assertTrue(turn.turn && !turn.diagonal, "a turn: neither diagonal");
+            assertEquals(0, turn.rise, "nor uphill");
+            assertEquals(distance / 2, turn.reach, "the turn halfway");
+            assertEquals(distance, turn.reach + turn.afterTurn());
         }
         assertEquals(16, BridgeTraining.course(2, false, true).rise, "64 blocks: 16 higher");
         assertEquals("64 blocks", BridgeTraining.VARIANTS[2].label);
@@ -76,6 +82,23 @@ class BridgeTrainingTest {
         assertFalse(diagonal.between(dx, 1, dz), "not on the start pad");
         assertFalse(diagonal.between(dx + diagonal.reach, 1, dz + diagonal.reach), "nor on the green pad");
         assertTrue(diagonal.between(dx + diagonal.reach - 1, 0, dz + diagonal.reach - 1), "up to its corner");
+
+        // 32 blocks with a turn: west for 16, then north for 16
+        BridgeTraining.Course turn = BridgeTraining.course(1, false, false, true);
+        int tx = turn.x;
+        int tz = turn.z;
+        assertTrue(turn.between(tx - 1, 0, tz), "the first block, west of the start pad");
+        assertTrue(turn.between(tx - 16, 0, tz), "the turn");
+        assertTrue(turn.between(tx - 19, 0, tz + 3), "around it");
+        assertTrue(turn.between(tx - 16, 0, tz - 16), "the last block of the second leg");
+        assertTrue(turn.between(tx - 13, -3, tz - 10), "beside it and under it");
+        assertFalse(turn.between(tx - 12, 0, tz - 10), "too far on the side of the second leg");
+        assertFalse(turn.between(tx - 10, 0, tz + 4), "too far on the side of the first leg");
+        assertFalse(turn.between(tx - 20, 0, tz), "too far past the turn");
+        assertFalse(turn.between(tx, 1, tz), "not on the start pad");
+        assertFalse(turn.between(tx - 16, 1, tz - 17), "nor on the green pad");
+        assertTrue(turn.onStart(tx + 4, tz + 2));
+        assertFalse(turn.onStart(tx - 1, tz));
     }
 
     @Test
@@ -97,6 +120,15 @@ class BridgeTrainingTest {
         assertTrue(diagonal.line(diagonal.x + corner + 3, diagonal.z + corner));
         assertFalse(diagonal.line(diagonal.x + corner + 1, diagonal.z + corner + 1));
         assertFalse(diagonal.finish(diagonal.x + corner - 1, 0, diagonal.z + corner));
+
+        BridgeTraining.Course turn = BridgeTraining.course(0, false, false, true);
+        int after = turn.afterTurn();
+        assertTrue(turn.finish(turn.x - turn.reach, 0, turn.z - after - 1), "north of the turn, its first row: the gold line");
+        assertTrue(turn.line(turn.x - turn.reach + 2, turn.z - after - 1));
+        assertFalse(turn.line(turn.x - turn.reach, turn.z - after - 2));
+        assertTrue(turn.finish(turn.x - turn.reach - 2, 0, turn.z - after - 5), "its last row");
+        assertFalse(turn.finish(turn.x - turn.reach, 0, turn.z - after - 6), "behind it");
+        assertFalse(turn.finish(turn.x - turn.reach, 0, turn.z - after), "the end of the bridge");
     }
 
     @Test
@@ -109,15 +141,16 @@ class BridgeTrainingTest {
             // the look of a yaw in Minecraft: x = -sin, z = cos
             double lookX = -Math.sin(yaw);
             double lookZ = Math.cos(yaw);
-            assertEquals(course.diagonal ? Math.sqrt(0.5) : 0, lookX, 1e-9);
-            assertEquals(course.diagonal ? Math.sqrt(0.5) : 1, lookZ, 1e-9);
+            // with a turn: west, along its first leg
+            assertEquals(course.turn ? -1 : course.diagonal ? Math.sqrt(0.5) : 0, lookX, 1e-9);
+            assertEquals(course.turn ? 0 : course.diagonal ? Math.sqrt(0.5) : 1, lookZ, 1e-9);
         }
     }
 
     @Test
-    void theTwelveCoursesStandApartNearTheCentre() {
+    void theFifteenCoursesStandApartNearTheCentre() {
         List<BridgeTraining.Course> all = all();
-        assertEquals(12, all.size());
+        assertEquals(15, all.size());
         for (int x = -100; x <= 100; x++) {
             for (int z = -100; z <= 100; z++) {
                 int owners = 0;
@@ -143,30 +176,51 @@ class BridgeTrainingTest {
         assertEquals("bridge-chrono.32", BridgeTraining.boardOf(MODE, v32, false, false), "straight and flat: the distance's");
         assertEquals("bridge-chrono.32.diagonal.up", BridgeTraining.boardOf(MODE, v32, true, true));
         assertEquals("32 blocks, diagonal, uphill", BridgeTraining.label(v32, true, true));
-        assertArrayEquals(new int[] {1, 1, 1}, BridgeTraining.parse(MODE, "bridge-chrono.32.diagonal.up"));
-        assertArrayEquals(new int[] {2, 0, 1}, BridgeTraining.parse(MODE, "bridge-chrono.64.up"));
-        assertArrayEquals(new int[] {0, 0, 0}, BridgeTraining.parse(MODE, "bridge-chrono.16"));
+        assertEquals("bridge-chrono.32.turn", BridgeTraining.boardOf(MODE, v32, true, true, true), "a turn: flat, straight");
+        assertEquals("32 blocks, with a turn", BridgeTraining.label(v32, false, false, true));
+        assertArrayEquals(new int[] {1, 1, 1, 0}, BridgeTraining.parse(MODE, "bridge-chrono.32.diagonal.up"));
+        assertArrayEquals(new int[] {2, 0, 1, 0}, BridgeTraining.parse(MODE, "bridge-chrono.64.up"));
+        assertArrayEquals(new int[] {0, 0, 0, 0}, BridgeTraining.parse(MODE, "bridge-chrono.16"));
+        assertArrayEquals(new int[] {2, 0, 0, 1}, BridgeTraining.parse(MODE, "bridge-chrono.64.turn"));
+        assertNull(BridgeTraining.parse(MODE, "bridge-chrono.64.turn.up"));
         assertNull(BridgeTraining.parse(MODE, "bridge-chrono.32.up.diagonal"));
         assertNull(BridgeTraining.parse(MODE, "bridge-chrono.48"));
         assertNull(BridgeTraining.parse(MODE, "extend-practice.32"));
 
         RecordCatalog.Entry entry = RecordCatalog.of(MODE);
         assertNotNull(entry, "in /records and on the wall");
-        assertEquals(12, entry.boards.size());
+        assertEquals(15, entry.boards.size());
         Set<String> ids = new HashSet<>();
         for (RecordCatalog.Board board : entry.boards) {
             assertTrue(ids.add(board.id));
             int[] course = BridgeTraining.parse(MODE, board.id);
             assertNotNull(course, board.id);
-            assertEquals(BridgeTraining.label(board.variant, course[1] == 1, course[2] == 1), board.label);
-            assertEquals(course[1] == 0 && course[2] == 0 ? board.id : null, board.challenge, "the challenge: straight and flat");
+            assertEquals(BridgeTraining.label(board.variant, course[1] == 1, course[2] == 1, course[3] == 1), board.label);
+            assertEquals(course[1] == 0 && course[2] == 0 && course[3] == 0 ? board.id : null, board.challenge,
+                    "the challenge: straight and flat");
             assertTrue(board.timed());
         }
         assertEquals("bridge-chrono.16", entry.boards.get(0).id, "the flat courses first");
         assertEquals("bridge-chrono.64.diagonal", entry.boards.get(5).id);
         assertEquals("bridge-chrono.16.up", entry.boards.get(6).id, "then the uphill ones");
+        assertEquals("bridge-chrono.16.turn", entry.boards.get(12).id, "then the ones with a turn");
+        assertEquals("bridge-chrono.16", entry.main.id);
+        assertArrayEquals(new int[] {6, 6, 3}, entry.rows);
         assertEquals("Timed bridge: 32 blocks", DailyChallenge.CATALOG.get("bridge-chrono.32").label(), "a challenge of the day");
         assertEquals("4.3", BridgeTraining.perSecond(30, 7000));
+    }
+
+    @Test
+    void fifteenBoardsInRowsOfSixSixAndThree() {
+        int[] rows = {6, 6, 3};
+        // right under the summary: the flat courses, the uphill ones, the ones with a turn
+        assertEquals(10, RecordsMenu.boardSlot(0, rows));
+        assertEquals(15, RecordsMenu.boardSlot(5, rows));
+        assertEquals(19, RecordsMenu.boardSlot(6, rows));
+        assertEquals(24, RecordsMenu.boardSlot(11, rows));
+        assertEquals(30, RecordsMenu.boardSlot(12, rows));
+        assertEquals(32, RecordsMenu.boardSlot(14, rows));
+        assertEquals(-1, RecordsMenu.boardSlot(15, rows));
     }
 
     @Test

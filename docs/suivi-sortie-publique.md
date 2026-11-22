@@ -197,7 +197,7 @@ Snowball Spleef et Red Rover sont codés avec des valeurs de départ à confirme
 | 6.1d | Autres modes FUN connus : propositions | P3 | BLOQUÉ (proposition écrite le 21/11, attend ta validation) | ton choix parmi Spleef, Bow Spleef, Parkour Duels, Pearl Fight, Battle Rush |
 | 6.2 | Capture the Flag, version Bedwars et seconde version : études | P3 | BLOQUÉ (proposition écrite le 21/11, attend ta validation) | version à faire d'abord, équipes, captures, durée, maps, kit |
 | 6.3 | Find Your Sensitivity : faisabilité et protocole | P3 | IMPLÉMENTÉ le 22/11 (ton choix sur la carte : « Find Your Sensitivity » d'abord), selon le protocole de la proposition ; build et tests unitaires passés en CI (0bcfd61), installé sur ton serveur de test ; pas encore joué, ni par les bots ni en jeu (détail plus bas, « Étape 7 : Find Your Sensitivity ») | question 9, valeurs de départ à confirmer : séries d'environ une minute (12 flicks, 4 demi-tours, 20 s de suivi), 3 sensibilités (la tienne, 20 % moins vite, 20 % plus vite), sans historique ; l'icône (œil de l'Ender) |
-| 6.4 | Block Aim Practice (patterns de la communauté) | P3 | BLOQUÉ (proposition écrite le 21/11, attend ta validation) | patterns d'abord, parcours ou cibles, map |
+| 6.4 | Block Aim Practice (patterns de la communauté) | P3 | Parcours : IMPLÉMENTÉ le 22/11 (ton choix sur la carte : Block Aim ensuite) ; le Bridge Chrono avait déjà les ponts droits, diagonaux et en montée, il a maintenant aussi le pont avec un virage (16, 32 et 64 blocs, un record chacun) ; CI en cours ; pas encore joué. Placement sur cible : À FAIRE, ensuite (détail plus bas, « Étape 7 : Block Aim Practice ») | à confirmer : le virage à droite, à mi-chemin, à plat ; pas de virage en montée (la place manque à moins de 64 blocs du centre) ; question 8 pour le placement sur cible |
 | 6.5.1 | Red Rover (Sumo, Block Placement, Block Edit, Top Bridge…) | P2 | Sumo, Block Edit, Block Placement, Top Bridge : TESTÉ par les bots en CI (21/11) ; rien encore en jeu | question 10 (qui reste, points ou élimination : codé « points, le gagnant reste, premier à 3 », à confirmer) ; 90 s par 1v1 à confirmer  |
 | 6.5.2 | Modes 2v1 asymétriques (Clutch Scenario, stuff amélioré) | P3 | Clutch Scenario : IMPLÉMENTÉ le 22/11, build et tests unitaires passés en CI (le partage du joueur seul, la party gardée ensemble) ; pas encore joué, ni par les bots ni en jeu ; en 1v1, 1v2, 1v3 et 1v4 comme Invis Practice et le Bed Break Simulator (ta demande du 22/11, à la place des 2v2, 3v3 et 4v4 ; les victoires de ceux-ci comptent toujours pour le titre Clutch Scenario) ; à partir du 1v2, le joueur seul, tiré au sort, part sans lit avec une vie, les autres gardent le leur (ton choix du 21/11) ; une party reste ensemble, le joueur seul est tiré parmi les autres (ton choix du 22/11). Stuff amélioré : BLOQUÉ | mode du stuff amélioré |
 | 6.5.3 | Bot IA : étude technique | P3 | À FAIRE | l'étude d'abord, sans code (question 13) |
@@ -1535,4 +1535,27 @@ faudrait viser à la souris), il reste à l'essayer sur ton serveur.
 changent, les 3 autres jars sont identiques. Le `config.yml` du lobby est fusionné avec tes
 réglages, sans conflit : seules les 12 lignes du mode sont ajoutées. Rien d'autre n'est touché
 (ni `server.properties`, ni les mondes) ; l'ancien état est dans `sauvegarde-avant-maj-0bcfd61`.
+
+### Étape 7 : Block Aim Practice (22/11)
+
+Ta demande : « passer à l'étape suivante le temps que je teste », puis ton choix sur la carte :
+Block Aim Practice. Ma carte se trompait : elle parlait d'ajouter des ponts diagonaux et en
+montée, mais le Bridge Chrono les avait déjà (12 parcours). De la proposition, il restait donc le
+pont avec un virage et le placement sur cible.
+
+- **Le pont avec un virage** (le Bridge Chrono, `bridge-chrono`) : un réglage « Turn » de plus. Le
+  pont part vers l'ouest, tourne à droite (vers le nord) à mi-chemin et finit sur le pad vert,
+  à plat : 8 + 8, 16 + 16 ou 32 + 32 blocs. Allumer le virage éteint la diagonale et la montée,
+  et l'inverse. Les 3 parcours sont placés dans la place que laissent les 12 autres, à moins de
+  64 blocs du centre comme eux, avec le même écart de 2 blocs. Un record chacun
+  (`bridge-chrono.16.turn`…) ; `/records` montre maintenant le Bridge Chrono en trois rangées (à
+  plat, en montée, avec un virage). Le défi du jour reste le pont droit et à plat.
+- **À confirmer** : le virage à droite, sa place à mi-chemin, à plat seulement. Un virage en
+  montée demanderait 3 parcours de plus : il n'y a pas la place pour celui de 64 blocs à moins de
+  64 blocs du centre.
+- **Ensuite** : le placement sur cible (une face s'allume, tu y poses un bloc le plus vite
+  possible, des niveaux de plus en plus rapides), avec des valeurs de départ à confirmer.
+
+**Testé** : la place des 15 parcours vérifiée en local (aucun ne touche un autre, tous à moins de
+64 blocs du centre) ; les tests unitaires en CI : en cours. Rien encore en jeu.
 

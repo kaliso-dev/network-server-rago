@@ -259,9 +259,13 @@ réglages. Un entraînement de la liste que le serveur ne joue pas est laissé d
   posent qu'entre les deux pads, et un essai a 3 secondes par bloc de distance au plus. La fin dit
   le temps, les blocs posés et les blocs par seconde. Laine et sandstone, sans fin. La distance se
   choisit dans la ligne du mode des réglages, la diagonale et la montée sont deux réglages oui/non.
-  Les douze parcours sont côte à côte dans l'arène, chacun avec son record (`/records` les montre
-  en deux rangées : à plat, puis en montée). Pour en faire un défi du jour : `bridge-chrono.16`,
-  `.32` ou `.64` (droit et à plat) dans `defi-du-jour.epreuves`.
+  Le réglage « Turn » (Block Aim Practice, étape 7) donne un pont avec un virage : vers l'ouest
+  jusqu'à la moitié de la distance, puis à droite (vers le nord) jusqu'au pad vert, à plat ; il
+  enlève la diagonale et la montée, qui l'enlèvent à leur tour (le virage à droite et sa place à
+  mi-chemin sont à confirmer). Les quinze parcours sont côte à côte dans l'arène, à moins de 64
+  blocs du centre, chacun avec son record (`/records` les montre en trois rangées : à plat, en
+  montée, avec un virage). Pour en faire un défi du jour : `bridge-chrono.16`, `.32` ou `.64`
+  (droit et à plat) dans `defi-du-jour.epreuves`.
 - **Ladder practice** : le block-ladder clutch de la map de lavy. Le joueur saute d'une
   plateforme de 4 à 24 blocs et, en tombant, pose une laine sur le pad de pierre et une échelle
   sur son côté, puis tombe dans l'échelle. De haut la chute va vite : l'échelle posée au dernier

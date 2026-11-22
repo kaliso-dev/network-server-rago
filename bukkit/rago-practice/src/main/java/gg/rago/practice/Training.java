@@ -817,6 +817,7 @@ abstract class Training extends PracticeGame {
                 sound(player, Sound.VILLAGER_NO, 1f);
                 return;
             }
+            stepped(setting);
             remember();
             changed(player, Sound.CLICK, by > 0 ? 1.2f : 0.9f);
             return;
@@ -841,6 +842,13 @@ abstract class Training extends PracticeGame {
                 }
             }
         }
+    }
+
+    /**
+     * A setting changed in the menu, before it is kept and shown: a training whose settings go
+     * against each other (a course with a turn is not diagonal) puts the others right here.
+     */
+    void stepped(Setting setting) {
     }
 
     /** The settings take the values of this preset. */

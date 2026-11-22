@@ -1320,7 +1320,7 @@
       "ranked": false,
       "startHere": false,
       "event": false,
-      "description": "Bridge 16, 32 or 64 blocks against the clock, with any technique: straight or diagonal, flat or uphill. A record for each course.",
+      "description": "Bridge 16, 32 or 64 blocks against the clock, with any technique: straight or diagonal, flat or uphill, or with a turn. A record for each course.",
       "plugins": [
         "practice"
       ]

@@ -1956,8 +1956,9 @@ modes:
       - "Bridge 16, 32 or 64 blocks"
       - "against the clock, with any"
       - "technique: straight or"
-      - "diagonal, flat or uphill."
-      - "A record for each course."
+      - "diagonal, flat or uphill, or"
+      - "with a turn. A record for"
+      - "each course."
   ladder-practice:
     nom: "&bLadder practice"
     categorie: entrainement

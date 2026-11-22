@@ -16,9 +16,10 @@ import org.bukkit.inventory.ItemStack;
 /**
  * Timed bridge: from a pad to the green one over 16, 32 or 64 blocks of void, as fast as
  * possible, with any technique (speed bridge, ninja, breezily, god bridge, telly...). Straight or
- * diagonal, flat or uphill (the green pad higher by a quarter of the distance): the twelve
- * courses stand side by side in the arena, each with its own record board. The time runs from the
- * first block to the first step on the green pad; the blocks go between the two pads only.
+ * diagonal, flat or uphill (the green pad higher by a quarter of the distance), or with a turn
+ * (Block Aim Practice, plan step 7: a turn to the right halfway, flat): the fifteen courses stand
+ * side by side in the arena, each with its own record board. The time runs from the first block
+ * to the first step on the green pad; the blocks go between the two pads only.
  */
 final class BridgeTraining extends Training {
 
@@ -28,6 +29,14 @@ final class BridgeTraining extends Training {
     /** The end of the board of a diagonal course, then of an uphill one: "bridge-chrono.32.diagonal.up". */
     static final String DIAGONAL = "diagonal";
     static final String UP = "up";
+    /** The end of the board of a course with a turn: "bridge-chrono.32.turn". */
+    static final String TURN = "turn";
+    /**
+     * Where the courses with a turn start (the front row of their start pad, from the centre), for
+     * 16, 32 and 64 blocks: they face west, then turn right (north) halfway, in the room the other
+     * courses leave within 64 blocks of the centre. The turn and where it comes are to confirm.
+     */
+    static final int[][] TURN_STARTS = {{16, 26}, {-12, 44}, {31, 41}};
     /** A pad is 5 by 5. */
     static final int PAD = 5;
     /** The blocks go this far at most on each side of a straight course (of a diagonal one: one more). */
@@ -45,25 +54,49 @@ final class BridgeTraining extends Training {
     /**
      * One course in the arena. A straight one runs along z from the middle of the front row of its
      * start pad (x, z); a diagonal one runs along x and z at once from the front corner (x, z) of its
-     * start pad, which is behind and on the left of that corner.
+     * start pad, which is behind and on the left of that corner; one with a turn runs west from the
+     * middle of the front row (x, z) of its start pad for reach blocks, then north to the green pad.
      */
     static final class Course {
         final int distance;
         final boolean diagonal;
+        final boolean turn;
         /** How much higher the top of the green pad is than the start's. */
         final int rise;
         final int x;
         final int z;
-        /** Straight: the first row of the green pad, from z; diagonal: its corner, from x and from z. */
+        /**
+         * Straight: the first row of the green pad, from z; diagonal: its corner, from x and from z;
+         * with a turn: the blocks to the turn, the rest of the distance after it.
+         */
         final int reach;
 
         Course(int distance, boolean diagonal, int rise, int x, int z, int reach) {
+            this(distance, diagonal, false, rise, x, z, reach);
+        }
+
+        Course(int distance, boolean diagonal, boolean turn, int rise, int x, int z, int reach) {
             this.distance = distance;
             this.diagonal = diagonal;
+            this.turn = turn;
             this.rise = rise;
             this.x = x;
             this.z = z;
             this.reach = reach;
+        }
+
+        /** With a turn: the blocks after it, to the green pad. */
+        int afterTurn() {
+            return distance - reach;
+        }
+
+        /** With a turn: how far ahead (west) of the start pad's front row, and how far to the right (north). */
+        private int ahead(int bx) {
+            return x - bx;
+        }
+
+        private int right(int bz) {
+            return z - bz;
         }
 
         /** True if the block (bx, by, bz) of the arena is between the two pads, where the blocks of the bridge go. */
@@ -73,6 +106,13 @@ final class BridgeTraining extends Training {
             }
             int dx = bx - x;
             int dz = bz - z;
+            if (turn) {
+                int u = ahead(bx);
+                int v = right(bz);
+                // the first leg to beyond the turn, then the second one from beside the first to the green pad
+                return Math.abs(v) <= SIDE && u >= 1 && u <= reach + SIDE
+                        || Math.abs(u - reach) <= SIDE && v >= -SIDE && v <= afterTurn();
+            }
             if (!diagonal) {
                 return Math.abs(dx) <= SIDE && dz >= 1 && dz < reach;
             }
@@ -83,6 +123,9 @@ final class BridgeTraining extends Training {
         boolean onStart(int bx, int bz) {
             int dx = bx - x;
             int dz = bz - z;
+            if (turn) {
+                return Math.abs(right(bz)) <= PAD / 2 && ahead(bx) > -PAD && ahead(bx) <= 0;
+            }
             if (!diagonal) {
                 return Math.abs(dx) <= PAD / 2 && dz > -PAD && dz <= 0;
             }
@@ -93,6 +136,9 @@ final class BridgeTraining extends Training {
         boolean onFinish(int bx, int bz) {
             int dx = bx - x;
             int dz = bz - z;
+            if (turn) {
+                return Math.abs(ahead(bx) - reach) <= PAD / 2 && right(bz) > afterTurn() && right(bz) <= afterTurn() + PAD;
+            }
             if (!diagonal) {
                 return Math.abs(dx) <= PAD / 2 && dz >= reach && dz < reach + PAD;
             }
@@ -106,11 +152,20 @@ final class BridgeTraining extends Training {
 
         /** True for the first row (two, diagonally) of the green pad, in gold to be seen from afar. */
         boolean line(int bx, int bz) {
+            if (turn) {
+                return onFinish(bx, bz) && right(bz) == afterTurn() + 1;
+            }
             return onFinish(bx, bz) && (diagonal ? bx - x == reach || bz - z == reach : bz - z == reach);
         }
 
-        /** The start: on the start pad, a step and a half back from the void, facing the green pad. */
+        /**
+         * The start: on the start pad, a step and a half back from the void, facing the green pad
+         * (with a turn: facing the first leg, west).
+         */
         double[] start() {
+            if (turn) {
+                return new double[] {x + 2.5, 1, z + 0.5, 90};
+            }
             return diagonal ? new double[] {x - 0.5, 1, z - 0.5, -45} : new double[] {x + 0.5, 1, z - 1.5, 0};
         }
 
@@ -122,6 +177,7 @@ final class BridgeTraining extends Training {
 
     private final Setting diagonal;
     private final Setting uphill;
+    private final Setting turn;
     private long started;
     /** The time of the attempt, once on the green pad. */
     private long finishedIn;
@@ -132,6 +188,7 @@ final class BridgeTraining extends Training {
         super(host, mode, arena, teams, VARIANTS);
         this.diagonal = toggle("Diagonal", false);
         this.uphill = toggle("Uphill", false);
+        this.turn = toggle("Turn", false);
     }
 
     static Variant[] variants() {
@@ -149,7 +206,15 @@ final class BridgeTraining extends Training {
      * blocks from the centre, where the spectators of the training see it.
      */
     static Course course(int index, boolean diagonal, boolean uphill) {
+        return course(index, diagonal, uphill, false);
+    }
+
+    /** The course of a distance; with a turn, flat and not diagonal whatever the two others say. */
+    static Course course(int index, boolean diagonal, boolean uphill, boolean turn) {
         int distance = DISTANCES[index];
+        if (turn) {
+            return new Course(distance, false, true, 0, TURN_STARTS[index][0], TURN_STARTS[index][1], distance / 2);
+        }
         int rise = uphill ? distance / 4 : 0;
         // the courses from the middle out: 64, 64 uphill, 32, 32 uphill, 16, 16 uphill
         int out = DISTANCES.length - 1 - index;
@@ -165,26 +230,50 @@ final class BridgeTraining extends Training {
 
     /** "bridge-chrono.32", "bridge-chrono.64.diagonal.up": the board of a course. */
     static String boardOf(String modeId, Variant v, boolean diagonal, boolean uphill) {
-        return modeId + "." + v.id + suffix(diagonal, uphill);
+        return boardOf(modeId, v, diagonal, uphill, false);
+    }
+
+    /** The board of a course, "bridge-chrono.32.turn" with a turn. */
+    static String boardOf(String modeId, Variant v, boolean diagonal, boolean uphill, boolean turn) {
+        return modeId + "." + v.id + suffix(diagonal, uphill, turn);
     }
 
     /** What the settings add to the board of a distance: "", ".diagonal", ".up", ".diagonal.up". */
     static String suffix(boolean diagonal, boolean uphill) {
+        return suffix(diagonal, uphill, false);
+    }
+
+    /** The same, ".turn" with a turn (which is flat and not diagonal). */
+    static String suffix(boolean diagonal, boolean uphill, boolean turn) {
+        if (turn) {
+            return "." + TURN;
+        }
         return (diagonal ? "." + DIAGONAL : "") + (uphill ? "." + UP : "");
     }
 
     /** "32 blocks", "64 blocks, diagonal, uphill": the name of a course's board. */
     static String label(Variant v, boolean diagonal, boolean uphill) {
+        return label(v, diagonal, uphill, false);
+    }
+
+    /** The same, "32 blocks, with a turn" with a turn. */
+    static String label(Variant v, boolean diagonal, boolean uphill, boolean turn) {
+        if (turn) {
+            return v.label + ", with a turn";
+        }
         return v.label + (diagonal ? ", diagonal" : "") + (uphill ? ", uphill" : "");
     }
 
-    /** {the distance's index, diagonal (1 or 0), uphill (1 or 0)} of a board of the mode, or null. */
+    /** {the distance's index, diagonal (1 or 0), uphill (1 or 0), turn (1 or 0)} of a board of the mode, or null. */
     static int[] parse(String modeId, String board) {
         for (int i = 0; i < VARIANTS.length; i++) {
+            if (boardOf(modeId, VARIANTS[i], false, false, true).equals(board)) {
+                return new int[] {i, 0, 0, 1};
+            }
             for (int diagonal = 0; diagonal <= 1; diagonal++) {
                 for (int uphill = 0; uphill <= 1; uphill++) {
                     if (boardOf(modeId, VARIANTS[i], diagonal == 1, uphill == 1).equals(board)) {
-                        return new int[] {i, diagonal, uphill};
+                        return new int[] {i, diagonal, uphill, 0};
                     }
                 }
             }
@@ -193,13 +282,13 @@ final class BridgeTraining extends Training {
     }
 
     private Course course() {
-        return course(variant, diagonal.on(), uphill.on());
+        return course(variant, diagonal.on(), uphill.on(), turn.on());
     }
 
     /** The board of the records: each course has its own; straight and flat, the distance's alone. */
     @Override
     String boardOf(Variant v) {
-        return boardOf(mode.id(), v, diagonal.on(), uphill.on());
+        return boardOf(mode.id(), v, diagonal.on(), uphill.on(), turn.on());
     }
 
     /** The challenge of the day is a distance, straight and flat. */
@@ -207,6 +296,7 @@ final class BridgeTraining extends Training {
     void forChallenge() {
         diagonal.value = 0;
         uphill.value = 0;
+        turn.value = 0;
     }
 
     @Override
@@ -218,12 +308,28 @@ final class BridgeTraining extends Training {
         variant = course[0];
         diagonal.value = course[1];
         uphill.value = course[2];
+        turn.value = course[3];
         return true;
+    }
+
+    /** A course with a turn is flat and not diagonal: one setting turned on turns the others off. */
+    @Override
+    void stepped(Setting setting) {
+        if (setting == turn && turn.on()) {
+            diagonal.value = 0;
+            uphill.value = 0;
+        } else if ((setting == diagonal || setting == uphill) && setting.on()) {
+            turn.value = 0;
+        }
     }
 
     @Override
     String describe() {
         Course course = course();
+        if (course.turn) {
+            return "bridge " + course.distance + " blocks to the green pad, turning right after " + course.reach
+                    + ", with any technique. The time runs from your first block.";
+        }
         return "bridge " + course.distance + " blocks" + (course.diagonal ? " diagonally" : "") + " to the green pad"
                 + (course.rise > 0 ? ", " + course.rise + " blocks higher" : "")
                 + ", with any technique. The time runs from your first block.";
@@ -237,6 +343,7 @@ final class BridgeTraining extends Training {
                     build(arena, course(i, diagonalCourse, uphillCourse));
                 }
             }
+            build(arena, course(i, false, false, true));
         }
     }
 
@@ -246,6 +353,13 @@ final class BridgeTraining extends Training {
         int finishX = course.diagonal ? course.x + course.reach : startX;
         int startZ = course.z - PAD + 1;
         int finishZ = course.z + course.reach;
+        if (course.turn) {
+            // west of the start pad's front row, then north of the turn
+            startX = course.x;
+            startZ = course.z - PAD / 2;
+            finishX = course.x - course.reach - PAD / 2;
+            finishZ = course.z - course.afterTurn() - PAD;
+        }
         pad(arena, startX, startZ, 0, Shapes.WHITE, Shapes.LIGHT_GRAY);
         pad(arena, finishX, finishZ, course.rise, Shapes.LIME, Shapes.GREEN);
         for (int dx = 0; dx < PAD; dx++) {
@@ -354,8 +468,9 @@ final class BridgeTraining extends Training {
     @Override
     void trainingLines(List<String> lines) {
         long elapsed = done ? finishedIn : started == 0 ? 0 : now() - started;
-        lines.add(ChatColor.WHITE + "Course: " + ChatColor.GREEN + (diagonal.on() ? "Diagonal" : "Straight") + ", "
-                + (uphill.on() ? "uphill" : "flat"));
+        Course course = course();
+        lines.add(ChatColor.WHITE + "Course: " + ChatColor.GREEN + (course.turn ? "With a turn"
+                : (course.diagonal ? "Diagonal" : "Straight") + ", " + (course.rise > 0 ? "uphill" : "flat")));
         lines.add(ChatColor.WHITE + "Time: " + ChatColor.GREEN + time(elapsed) + " s");
         lines.add(ChatColor.WHITE + "Blocks: " + ChatColor.GREEN + blocks);
     }

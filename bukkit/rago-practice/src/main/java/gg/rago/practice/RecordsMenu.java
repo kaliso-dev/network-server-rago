@@ -218,9 +218,12 @@ final class RecordsMenu implements CommandExecutor, Listener {
         about.add(ChatColor.GRAY + "Click a board to play it.");
         page.inventory.setItem(TOP_SLOT, item(entry.icon, ChatColor.AQUA + "" + ChatColor.BOLD + entry.title, about));
         Set<UUID> friends = mine ? plugin.lobby().friends(player) : Collections.<UUID>emptySet();
-        int count = Math.min(entry.boards.size(), PER_ROW * 2);
+        int count = Math.min(entry.boards.size(), entry.rows == null ? PER_ROW * 2 : PER_ROW * 3);
         for (int i = 0; i < count; i++) {
-            int slot = boardSlot(i, count);
+            int slot = entry.rows == null ? boardSlot(i, count) : boardSlot(i, entry.rows);
+            if (slot < 0) {
+                continue;
+            }
             RecordCatalog.Board board = entry.boards.get(i);
             page.boards.put(slot, board);
             ItemStack icon = item(entry.icon, ChatColor.YELLOW + board.label,
@@ -244,6 +247,24 @@ final class RecordsMenu implements CommandExecutor, Listener {
         int row = i / perRow;
         int inRow = Math.min(perRow, count - row * perRow);
         return 9 * (2 + row) + (9 - inRow) / 2 + i % perRow;
+    }
+
+    /**
+     * The slot of the board i on a page whose rows show these many boards each (three at most, of
+     * seven at most), each row in the middle: the timed bridge's 6 flat courses, its 6 uphill ones,
+     * its 3 with a turn. Three rows start right under the summary; -1 for a board past the rows.
+     */
+    static int boardSlot(int i, int[] rows) {
+        int first = rows.length >= 3 ? 1 : 2;
+        int before = 0;
+        for (int row = 0; row < rows.length && row < 3; row++) {
+            int inRow = Math.min(PER_ROW, rows[row]);
+            if (i < before + inRow) {
+                return 9 * (first + row) + (9 - inRow) / 2 + i - before;
+            }
+            before += rows[row];
+        }
+        return -1;
     }
 
     /** {boards with a score of the player, first places, places in a top 10}. */
