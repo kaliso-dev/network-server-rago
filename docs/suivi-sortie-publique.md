@@ -77,8 +77,8 @@ Avant chaque installation sur ton PC : copie du dossier `plugins/` du serveur.
 | C3 | 2.3 Bed Break : « réalistes, style Ranked Bedwars » et « sur les côtés, pas en diagonale comme en Ranked Bedwars ». | Confirmé : « droit, pas en diagonale ». Fait : le bridge de l'attaquant, un bloc de large, droit, un seul virage au plus. |
 | C4 | 3.5 Network Level par défaut au-dessus des joueurs : aujourd'hui la ligne par défaut est l'ELO (« Unranked »). 3.6 garde l'ELO en Ranked. | Défaut Network Level partout, ELO en partie classée. |
 | C5 | 1.2 « Spectator pour tous les joueurs » et les nicks (qui cachent qui joue). | Fait : tout le monde peut regarder toute partie, sauf celle d'un joueur sous nick (staff et amis seulement). |
-| C6 | 4.5 `/discord` et `/store` existent déjà, avec `discord.gg/ragooptimizer` et `rago-optimizer.com`. | Il manque les liens officiels de Rago Practice. |
-| C7 | 5.6 « jncl : nom à afficher : directemeent ». | Je lis « affiché directement : jncl ». À confirmer. |
+| C6 | 4.5 `/discord` et `/store` existent déjà, avec `discord.gg/ragooptimizer` et `rago-optimizer.com`. | Réglé le 22/11 : ce sont les liens officiels (« rago-optimizer.com et discord.gg/ragooptimizer »). |
+| C7 | 5.6 « jncl : nom à afficher : directemeent ». | Réglé le 22/11 : « jncl : directement nativ : woryes », jncl affiché « directement », nativ affiché « woryes ». |
 | C8 | 7.1 Reach et Scaffold sont des triches. | Réservés au compte Owner (UUID), désactivés par défaut, jamais en partie classée ni comptée. |
 
 ### 1.5 Ce qui manque (à fournir, rien n'est inventé)
@@ -136,7 +136,7 @@ informations manquantes.
 | 2.5 | Au moins 10 spectateurs (Block Clutch et autres practice) | Social | P1 | IMPLÉMENTÉ | `tools/local-server/server.properties` (50 places), `spectate-bots.mjs` | 1.2 | test réel en CI : 10 bots regardent un Block clutch en même temps |
 | 2.6 | Fireballs fidèles à Hypixel (KB, explosion, direction, fireball jump, blocs) | PvP | P1 | EN COURS (mesure prête, à faire sur Hypixel) | `Fireballs`, `FireballBlast`, `FireballAim`, `PracticeGame` | — | mesures Hypixel (kb-recorder 0.2) |
 | 2.7 | TNT (timing, KB, TNT jump, environnement), réf. Hypixel / Minemen | PvP | P1 | À FAIRE | `PracticeGame.tntBlast`, `BedwarsGame` | 2.6 | mesures |
-| 2.8 | Fast Shop et API Hypixel : étude des données réellement disponibles | Modes | P2 | BLOQUÉ : Hypixel refuse la clé du serveur (« Invalid API key ») | `FastShopGame`, `HypixelProfiles`, `HypixelProfile` | — | un vrai `/hypixel import` sur ton serveur |
+| 2.8 | Fast Shop et API Hypixel : étude des données réellement disponibles | Modes | P2 | BLOQUÉ : Hypixel refuse la clé du serveur (« Invalid API key ») ; tu refais une demande de clé (22/11) | `FastShopGame`, `HypixelProfiles`, `HypixelProfile` | — | un vrai `/hypixel import` sur ton serveur |
 
 ### Étape 4 : statistiques et progression (Phase 3)
 
@@ -150,7 +150,7 @@ informations manquantes.
 | 3.5 | Network Level au-dessus des joueurs par défaut (lobby, practice, autres) | Lobby | P1 | IMPLÉMENTÉ (tests unitaires passés en CI ; à voir en jeu) | `HeadLines`, `RagoLobby`, `LobbyScoreboard`, `ProfileMenu` | 1.3 | C4 |
 | 3.6 | ELO des adversaires visible en Ranked | Ranked | P1 | IMPLÉMENTÉ (tests unitaires passés en CI ; à voir en jeu) | `LobbyScoreboard` (pseudo et Tab en partie) | 3.5 | — |
 | 3.8 | Nombre de joueurs en file pour chaque mode | Files | P1 | TESTÉ (test réel en CI, Java 8 et 21 : les bots lisent 0, 1, 0 sous le PNJ Duels et dans le menu) | `QueueController`, `ModeMenu`, `LobbyNpcs`, `lobby-bots.mjs` | — | — |
-| 3.7 | Organisation Solo / Party / Ranked (ELO par mode) : proposition avant tout code | Files | P2 | BLOQUÉ (proposition faite le 21/11, à valider) | `ModeCategory`, `ModeMenu`, `QueueController`, `Matchmaker`, `EloLadder` | 3.8 | validation de la proposition |
+| 3.7 | Organisation Solo / Party / Ranked (ELO par mode) : proposition avant tout code | Files | P2 | À FAIRE : ta réponse du 22/11, « Build », et ton choix sur la carte : « les grands duels 1v1 » (Bed Fight, Top Bridge, Bridge Fight, Block Placement, Sumo et Boxing en 1v1 classé, plus Ranked Bedwars comme aujourd'hui) | `ModeCategory`, `ModeMenu`, `QueueController`, `Matchmaker`, `EloLadder` | 3.8 | — |
 
 ### Étape 5 : expérience joueur (Phase 4)
 
@@ -161,23 +161,23 @@ informations manquantes.
 | 4.2 | `/host` : annonce cliquable toutes les 10 s (20 s depuis ta demande du 21/11) ; inscription gardée sans téléporter ; départ quand assez de joueurs ; poudre rouge pour quitter ou annuler | Events | P1 | Ta demande du 21/11 (poudre rouge « Leave the event » / « Cancel the event » au dernier slot, annonce centrée entre deux lignes avec [CLICK TO JOIN], toutes les 20 s) : IMPLÉMENTÉ le 22/11 dans cette PR (la PR #48 partait de l'ancienne version des events) ; TESTÉ par les bots en CI le 22/11 (Java 8 : l'annonce, le [CLICK TO JOIN], la poudre Leave puis Cancel ; le premier essai échouait côté test, le clic « en l'air » d'un bot qui vient de poser un bloc étant ignoré par le serveur : le bot clique maintenant le sol, comme un joueur) ; pas encore en jeu. Avant : ton choix « Les sortir de leur partie » : au lancement, les inscrits encore en partie la quittent comme avec /spawn et vont à l'event ; test réel à 3 bots passé ; installé sur ton serveur le 21/11 (build 346, sauvegarde `sauvegarde-avant-maj-21-11d`) ; à voir en jeu | `Events`, `EventGame`, `PracticeHost`, `HostWatcher` | — |
 | 4.3 | Kit Editor plus clair et trié | Kits | P2 | TESTÉ en CI (21/11, run 342, Java 8 et 21) : kits rangés par catégorie et par nom, « Also for », Save et Cancel ramènent à la liste ; installé sur ton serveur le 21/11 (build 346, sauvegarde `sauvegarde-avant-maj-21-11d`) ; à voir en jeu | `KitEditor`, `KitLayouts` | — |
 | 4.4 | Menu Stats : présentation, catégories, navigation | Stats | P2 | TESTÉ en CI (21/11, run 343, Java 8 et 21) : une page des catégories du sélecteur avec les totaux de chacune, un clic montre ses modes, Go back ramène aux catégories ; installé sur ton serveur le 21/11 (build 346, sauvegarde `sauvegarde-avant-maj-21-11d`) ; à voir en jeu | `StatsMenu` | — |
-| 4.5 | `/discord` et `/store` avec les liens officiels | Cmd | P1 | BLOQUÉ | `config.yml` (`liens`), `ServerSettings` | liens officiels (C6) |
+| 4.5 | `/discord` et `/store` avec les liens officiels | Cmd | P1 | IMPLÉMENTÉ : tes liens officiels du 22/11 sont ceux déjà en place, `discord.gg/ragooptimizer` et `rago-optimizer.com` (C6) | `config.yml` (`liens`), `ServerSettings` | — |
 
 ### Étape 6 : lobby (Phase 5)
 
 | # | Tâche | Cat. | Prio | Statut | Fichiers / points | Manque |
 | --- | --- | --- | --- | --- | --- | --- |
 | 5.1 | Direction artistique : moins de rouge, identité Rago gardée | DA | P2 | À FAIRE | `Brand`, `config.yml`, menus, scoreboard | palette à valider |
-| 5.2 | Build monumental « RAGO PRACTICE » (rocheux, angélique, stone, void), sans détruire le spawn : plan précis d'abord | Build | P2 | BLOQUÉ | monde `lobby` | image de référence |
+| 5.2 | Build monumental « RAGO PRACTICE » (rocheux, angélique, stone, void), sans détruire le spawn : plan précis d'abord | Build | P2 | BLOQUÉ : ta réponse du 22/11, tu m'envoies l'image, à faire après les modes et les fonctionnalités | monde `lobby` | image de référence |
 | 5.3 | Blocs sous PNJ : Jouer quartz, Stats fer, Shop émeraude | Lobby | P1 | TESTÉ en CI (21/11, runs 345 et 346, Java 8 et 21) : `bloc:` sous chaque PNJ dans config.yml ; quartz sous les 5 PNJ pour jouer, fer sous les PNJ de stats, émeraude sous le Shop ; installé sur ton serveur le 21/11 (build 346, sauvegarde `sauvegarde-avant-maj-21-11d`) ; à voir en jeu | `Pedestal`, `LobbyNpcs`, `LobbySettings`, `config.yml` (`pnj:`) | — |
 | 5.4a | `NewQuest` relié aux quêtes | Lobby | P1 | TESTÉ en CI (21/11, runs 345 et 346 : compilation, tests unitaires, test du lobby) : le PNJ des quêtes (clic = `/quests`) va sur le point choisi par `point-pnj-quetes:` (`newquest` pour ton serveur) ; installé sur ton serveur le 21/11 (build 346, sauvegarde `sauvegarde-avant-maj-21-11d`) ; à voir en jeu | `QuestsNpc`, `LobbySettings`, point `newquest` | — |
 | 5.4b | `NewShop` sur émeraude | Lobby | P1 | TESTÉ en CI (21/11, runs 345 et 346 : compilation, tests unitaires, test du lobby) : le PNJ Shop passe du point `shop` au point `newshop` (config de ton serveur), sur ton bloc d'émeraude ; installé sur ton serveur le 21/11 (build 346, sauvegarde `sauvegarde-avant-maj-21-11d`) ; à voir en jeu | `LobbyNpcs`, `Pedestal`, point `newshop` | — |
 | 5.4c | `NewDailyChest` sur diamant | Lobby | P1 | TESTÉ en CI (21/11, runs 345 et 346 : compilation, tests unitaires, test du lobby) : le coffre du jour va sur le point choisi par `point-coffre-du-jour:` (`newdailychest` pour ton serveur), sur ton bloc de diamant ; installé sur ton serveur le 21/11 (build 346, sauvegarde `sauvegarde-avant-maj-21-11d`) ; à voir en jeu | `DailyChest`, `LobbySettings`, point `newdailychest` | — |
 | 5.5 | Daily Chest : animation à suspense, Rago Points 100–500, XP 100–2000, cosmétiques, probabilités configurables, jamais de doublon | Lobby | P2 | À FAIRE | `DailyChest`, `LobbyPoints`, `Cosmetic` | probabilités |
-| 5.6A | `RagoClient` et `RagoOptimizer` : nom, skin, diamant, liens au clic, texte « OUR OTHER PRODUCTS », visuels publicitaires existants derrière | Lobby | P2 | BLOQUÉ | `LobbyNpcs`, `Billboards`, `panneaux/` | liens, skins |
+| 5.6A | `RagoClient` et `RagoOptimizer` : nom, skin, diamant, liens au clic, texte « OUR OTHER PRODUCTS », visuels publicitaires existants derrière | Lobby | P2 | À FAIRE : tes réponses du 22/11, les liens `rago-optimizer.com` et `discord.gg/ragooptimizer` pour les deux, le skin de qRago pour les deux | `LobbyNpcs`, `Billboards`, `panneaux/` | — |
 | 5.6B | `qRago` (Owner) et `Kalisodev` (kaliso_dev, Dev) sur obsidienne, surélevés d'un bloc | Lobby | P2 | TESTÉ en CI (21/11, runs 345 et 346, Java 8 et 21), sauf le skin lu chez Mojang : PNJ `type: personne` sur tes points `qrago` et `kalisodev`, « [OWNER] qRago » et « [DEV] kaliso_dev » (les préfixes de `rangs:`), skin de leur compte Minecraft lu chez Mojang (`skin-joueur:`), sur obsidienne un bloc plus haut ; installé sur ton serveur le 21/11 (build 346, sauvegarde `sauvegarde-avant-maj-21-11d`) ; à voir en jeu | `LobbyNpc`, `LobbyNpcs`, `AccountSkins`, `LobbySettings`, `config.yml` | — |
-| 5.6C | `jncl` et `nativ` (affiché woryes, skin Woryes), rôle Mod en jaune clair | Lobby | P2 | BLOQUÉ | `LobbyNpcs`, `RankDef` | pseudo Woryes, C7 |
-| 5.7 | Texte de remerciement en anglais, fidèle à ton histoire, avec le Discord, à valider avant intégration | Lobby | P2 | À FAIRE | point `textremerciement`, `FakeHologram` | lien Discord |
+| 5.6C | `jncl` et `nativ` (affiché woryes, skin Woryes), rôle Mod en jaune clair | Lobby | P2 | À FAIRE : ta réponse du 22/11, jncl affiché « directement », nativ affiché « woryes » (C7) | `LobbyNpcs`, `RankDef` | — |
+| 5.7 | Texte de remerciement en anglais, fidèle à ton histoire, avec le Discord, à valider avant intégration | Lobby | P2 | À FAIRE | point `textremerciement`, `FakeHologram` | — (Discord : `discord.gg/ragooptimizer`, 22/11) |
 | 5.8 | Revoir les skins des PNJ du lobby | Lobby | P2 | À FAIRE | `NpcSkins`, `skins.yml` | — |
 | 5.9 | Boussole comme sur Minemen (ta demande du 22/11) : les catégories en haut, un espace, puis les modes de la catégorie choisie | Lobby | P1 | TESTÉ par les bots en CI le 22/11 (commit af042fc, Java 8 et 21 : le PNJ Duels ouvre la boussole sur Duels ; un clic sur Duels en haut remplace les jeux de Practice dans le même menu, puis la sumo rejoint sa file) ; installé sur ton serveur le 22/11 vers 1h40 (seul `rago-lobby` change, sauvegarde `sauvegarde-avant-maj-af042fc`) ; pas encore vu en jeu : les 6 catégories sur la ligne du haut (slots 1 à 6), une ligne vide, les jeux de la catégorie choisie à partir du slot 19 ; un clic sur une autre catégorie change les jeux dans le même menu, celle choisie brille (« Its modes are below ») ; s'ouvre sur Practice, ou sur la catégorie du PNJ, de `/play` ou du groupe dont on revient ; « Popular now » passe sur la ligne du bas ; le menu garde la taille de la plus grande catégorie (Practice, 15 jeux : 6 lignes) | `ModeMenu`, `lobby-bots.mjs` | les catégories restent celles d'aujourd'hui ; d'autres (Duo, Ranked…, voir 3.7) sont à choisir |
 
@@ -194,13 +194,13 @@ Snowball Spleef et Red Rover sont codés avec des valeurs de départ à confirme
 | 6.1a | Snowball Spleef (style Minemen) | P2 | TESTÉ par les bots en CI (21/11), pas encore en jeu | valeurs de départ à confirmer : rayon 12, 1 étage, écart 6, 1 boule par bloc, 1 round |
 | 6.1b | Fireball Fight (voir C1) | P2 | TESTÉ par les bots en CI (21/11), pas encore en jeu | valeurs de départ à confirmer : rayon 10, recul 1,5 / 1,2, fireballs illimitées, souffle 3 s, 1 round ; le nom (« Fireball Fight », FUN PRACTICE) |
 | 6.1c | Fast Bedwars (Bedwars 2018 simplifié) | P2 | TESTÉ par les bots en CI le 22/11 (757ba0b), installé sur ton serveur de test le 22/11 (aa724b7), pas encore joué en jeu : codé selon la proposition du 21/11 (ta demande du 22/11 : finir les modes demandés), `fast-bedwars-1v1` et `fast-bedwars-2v2` dans Fun Practice, sur les 20 maps RBW ; forges deux fois plus rapides, événements deux fois plus tôt, shop des 20 objets du Quick Buy par défaut, pas d'améliorations ni de diamants (détail plus bas, « Étape 7 : Fast Bedwars ») | ce que « 2018 » veut dire (shop, améliorations, équipes, durée) ; valeurs de départ à confirmer : 240 fers et 24 ors par minute, lits à 15 min, fin à 22 min 30, la liste du shop, pas d'améliorations, 1v1 et 2v2, les 20 maps RBW |
-| 6.1d | Autres modes FUN connus : propositions | P3 | BLOQUÉ (proposition écrite le 21/11, attend ta validation) | ton choix parmi Spleef, Bow Spleef, Parkour Duels, Pearl Fight, Battle Rush |
+| 6.1d | Autres modes FUN connus : propositions | P3 | À FAIRE : ton choix du 22/11, Parkour Duel « dans une map stylée » ; et le Snowball Spleef : map agrandie, deux étages, les joueurs ne peuvent plus se frapper | — |
 | 6.2 | Capture the Flag, version Bedwars et seconde version : études | P3 | TESTÉ par les bots en CI le 22/11 (757ba0b), installé sur ton serveur de test le 22/11 (aa724b7), pas encore joué en jeu : tes deux types du 22/11, The Bridge (`ctf-bridge-1v1`, `ctf-bridge-2v2`, map CtfBridge) et château contre château avec un mid (`ctf-castle-2v2`, `ctf-castle-4v4`, map CtfCastle), dans Fun Practice ; les deux maps construites par le plugin (détail plus bas, « Étape 7 : Capture the Flag ») | valeurs de départ à confirmer : 3 captures, 15 et 20 minutes, 30 s de retour du drapeau, les tailles, le dessin des deux maps, les icônes |
 | 6.3 | Find Your Sensitivity : faisabilité et protocole | P3 | IMPLÉMENTÉ le 22/11 (ton choix sur la carte : « Find Your Sensitivity » d'abord), selon le protocole de la proposition ; build et tests unitaires passés en CI (0bcfd61), installé sur ton serveur de test ; pas encore joué, ni par les bots ni en jeu (détail plus bas, « Étape 7 : Find Your Sensitivity ») | question 9, valeurs de départ à confirmer : séries d'environ une minute (12 flicks, 4 demi-tours, 20 s de suivi), 3 sensibilités (la tienne, 20 % moins vite, 20 % plus vite), sans historique ; l'icône (œil de l'Ender) |
 | 6.4 | Block Aim Practice (patterns de la communauté) | P3 | Parcours : IMPLÉMENTÉ le 22/11 (ton choix sur la carte : Block Aim ensuite) ; le Bridge Chrono avait déjà les ponts droits, diagonaux et en montée, il a maintenant aussi le pont avec un virage (16, 32 et 64 blocs, un record chacun) ; build et tests unitaires passés en CI (d216c86) ; installé le 22/11 (avec 28a4bee), pas encore joué. Placement sur cible : IMPLÉMENTÉ le 22/11, nouveau mode « Block aim » (`block-aim`) : une face s'allume sous les pieds au bout du pont, sur le côté du pont ou sur le lit, 5 niveaux de plus en plus rapides comme ceux de Ladder Practice, un record par niveau ; build et tests unitaires passés en CI (28a4bee) ; installé sur ton serveur de test le 22/11 avec le pont avec virage, pas encore joué (détail plus bas, « Étape 7 : Block Aim Practice ») | à confirmer : le virage à droite, à mi-chemin, à plat ; pas de virage en montée (la place manque à moins de 64 blocs du centre) ; placement sur cible : la scène générée (question 8 sans réponse), les 15 faces, les temps des 5 niveaux (3 s à 1 s), un bloc posé ailleurs compté sans finir la série |
 | 6.5.1 | Red Rover (Sumo, Block Placement, Block Edit, Top Bridge…) | P2 | Sumo, Block Edit, Block Placement, Top Bridge : TESTÉ par les bots en CI (21/11) ; rien encore en jeu | question 10 (qui reste, points ou élimination : codé « points, le gagnant reste, premier à 3 », à confirmer) ; 90 s par 1v1 à confirmer  |
 | 6.5.2 | Modes 2v1 asymétriques (Clutch Scenario, stuff amélioré) | P3 | Clutch Scenario : IMPLÉMENTÉ le 22/11, build et tests unitaires passés en CI (le partage du joueur seul, la party gardée ensemble) ; pas encore joué, ni par les bots ni en jeu ; en 1v1, 1v2, 1v3 et 1v4 comme Invis Practice et le Bed Break Simulator (ta demande du 22/11, à la place des 2v2, 3v3 et 4v4 ; les victoires de ceux-ci comptent toujours pour le titre Clutch Scenario) ; à partir du 1v2, le joueur seul, tiré au sort, part sans lit avec une vie, les autres gardent le leur (ton choix du 21/11) ; une party reste ensemble, le joueur seul est tiré parmi les autres (ton choix du 22/11). Stuff amélioré : IMPLÉMENTÉ le 22/11 (ton choix sur la carte : Bed Fight 1v2), CI verte (3cdfed2 : build, tests unitaires, tests sur serveur) ; installé sur ton serveur de test le 22/11 (aa724b7) ; pas encore joué | l'écart de stuff (valeurs de départ : jambières et bottes en fer, épée en pierre, sans Protection, dans `stuff-ameliore:` de la config de rago-bedwars) |
-| 6.5.3 | Bot IA : étude technique | P3 | BLOQUÉ (étude écrite le 22/11, document « Étape 7 : étude du bot IA », rien codé : attend tes réponses) | 6 questions : la voie (faux joueur côté serveur recommandé), le premier objectif (4e place d'un Top Bridge 2v2), quand un bot joue, son nom et son skin, les stats, les niveaux |
+| 6.5.3 | Bot IA : étude technique | P3 | À FAIRE : tes réponses du 22/11 aux 6 questions (détail plus bas, « Tes réponses du 22/11 ») ; RagoBot, un vrai joueur, en Top Bridge 1v1 et 2v2 et en Sumo 1v1 pour commencer | — |
 | 6.6 | Catégorie 3 joueurs (Red Rover, Clutch Scenario, Bed Break Scenario, Invis Practice) | P2 | IMPLÉMENTÉ le 22/11, CI verte (tests unitaires ; les bots du lobby ouvrent la boussole à 6 catégories et y prennent Duels au slot 12 ; tests du site) : « 3 Players » dans la boussole seulement, sans PNJ (ton choix du 21/11), après Fun Practice ; elle montre Red Rover (un objet), Bed Break Simulator 1v2, Invis Practice 1v2 et Clutch Scenario 1v2 (`aussi:` de `categories:`), avec les mêmes files : ces modes restent dans leur catégorie, leurs stats aussi ; le retour d'un groupe ouvert depuis elle y ramène ; aussi dans l'accueil, `/play 3 players` et le site (tests du site passés en local) | son nom, son slogan, sa description et son icône (une tête) sont à confirmer ; la boussole passe à 6 catégories, côte à côte des slots 10 à 15 (sur la ligne du haut, slots 1 à 6, depuis 5.9) |
 
 ### Étape 8 : administration et benchmark (Phase 7)
@@ -210,7 +210,7 @@ propositions » (Claude Docs), avec 9 questions à trancher.
 
 | # | Tâche | Prio | Statut | Fichiers | Manque |
 | --- | --- | --- | --- | --- | --- |
-| 7.1 | Outils Owner (Reach, Scaffold…) réservés au compte Owner | P3 | BLOQUÉ (proposition du 22/11 : UUID dans `config.yml`, Reach à la distance que tu choisis, Scaffold, jamais en Ranked, partie non comptée) | `StaffTools`, `StaffPanel`, `LobbyService` | C8 ; questions 1, 2 et 5 |
+| 7.1 | Outils Owner (Reach, Scaffold…) réservés au compte Owner | P3 | BLOQUÉ : ta réponse du 22/11, « je t'écoute » ; ma recommandation envoyée (qRago seul, Reach et Scaffold, coupés par défaut, jamais en Ranked, partie non comptée), à faire à l'étape 8 sans contre-ordre | `StaffTools`, `StaffPanel`, `LobbyService` | C8 ; questions 1, 2 et 5 |
 | 7.2 | Rejoindre une partie en cours comme participant (admin), sans fausser les stats | P2 | BLOQUÉ (proposition du 22/11 : `/join <joueur>`, l'admin ne garde pas son équipe en vie, partie non comptée) | `Spectating`, `PracticeGame`, `BedwarsGame`, `LobbyService` | questions 3, 4 et 5 |
 | 7.3 | AntiCheat compatible KB custom, fireballs, TNT, practice ; Owner exempté | P1 | BLOQUÉ (proposition du 22/11 : Grim, gratuit, Java 17 ou plus ; alertes seules pendant un essai) | à choisir (Grim, Vulcan…) | questions 6, 7 et 8 |
 | 7.4 | FPSbenchmark : PNJ `fpsbenchmark` sur `159:14`, hors boussole, scénarios reproductibles | P3 | BLOQUÉ (proposition du 22/11 : faux joueurs par paquets, caméra fixe, graine fixe) | point `fpsbenchmark` | question 9 : nom affiché, skin, lieux, nombres, durées |
@@ -1716,6 +1716,42 @@ laine achetée ; le bleu part, le rouge gagne. Pas encore joué en jeu ; pas tes
 maps RBW (absentes du serveur de test). Rien d'installé : à l'install, les lignes
 `modes:`, `jeux:`, `forge.modes` et `fast-bedwars:` du `config.yml` de rago-bedwars et les 2 modes
 et le groupe du `config.yml` du lobby seront à ajouter à tes réglages.
+
+### Tes réponses du 22/11 (10h37)
+
+Tu as répondu à toutes les questions ouvertes « pour que tu puisses build ». Tu feras ensuite une
+grande liste des bugs de la nouvelle version, une fois les modes et fonctionnalités finis.
+
+- **Bot IA (6.5.3)**, tes réponses aux 6 questions de l'étude :
+  1. un vrai joueur pour le serveur (le faux joueur côté serveur), qui s'appelle RagoBot. On joue
+     avec ou contre lui seulement en party ou en duel 1v1, jamais en Ranked. `/p invite RagoBot` :
+     il rejoint tout seul ; il peut être dans plusieurs parties à la fois s'il y a beaucoup de monde ;
+  2. à terme dans presque tous les modes, en équipe ou en 1v1 ; pour commencer, Top Bridge 1v1 et
+     2v2, et Sumo 1v1 ;
+  3. jamais pour compléter une file : seulement si un joueur l'invite ; sinon il ne fait rien ;
+  4. le skin de qRago, le nom RagoBot ;
+  5. ce sont des parties de party : on gagne de l'XP, jamais d'ELO ; il compte comme un vrai joueur ;
+  6. pas de niveaux : « c'est un vrai joueur avec un skill prédéfini » ; et le Combo Bot est
+     supprimé (« le combo bot on le supprime »). Je le lis ainsi : l'entraînement Combo Bot sort des
+     menus, ses records restent dans les données ; le code de son combat (`ComboAi`) sert au bot.
+- **Autres modes FUN (6.1d)** : Parkour Duel, « dans une map stylée ». Et « le mod spleef » : la
+  map agrandie, en deux étages, les joueurs ne peuvent plus se frapper. Je le lis comme le Snowball
+  Spleef actuel.
+- **Outils Owner (7.1)** : « je t'écoute ». Ma recommandation : ton compte qRago seul (UUID lu
+  dans le `usercache.json` du serveur), Reach et Scaffold seulement, coupés par défaut, jamais en
+  Ranked, une partie avec un outil actif ne compte pour personne.
+- **Solo / Party / Ranked (3.7)** : « Build ». Ton choix sur la carte pour la question 1 : « les
+  grands duels 1v1 », Bed Fight, Top Bridge, Bridge Fight, Block Placement, Sumo et Boxing en 1v1
+  classé, chacun avec son ELO, plus Ranked Bedwars comme aujourd'hui. Pour les autres, je suis la proposition : Ranked Bedwars passe dans RANKED, la
+  Party garde ce qui existe, la boussole donne accès à Solo, Party et Ranked.
+- **`/discord`, `/store` et le texte de remerciement (4.5, 5.7)** : `rago-optimizer.com` et
+  `discord.gg/ragooptimizer`, déjà ceux des commandes.
+- **RagoClient et RagoOptimizer (5.6A)** : les mêmes liens pour les deux, et le skin de qRago.
+- **jncl et nativ (5.6C)** : jncl affiché « directement », nativ affiché « woryes ».
+- **Build monumental (5.2)** : tu m'envoies l'image ; à faire après les modes et fonctionnalités.
+- **Fast Shop et API Hypixel (2.8)** : tu refais une demande de clé.
+- **Fast Bedwars (6.1c)** : « Bedwars 2018 », ce sont les maps de l'époque, les premières. Il me
+  faut leurs mondes (comme pour les maps RBW), ou au moins leurs noms.
 
 ### Installation du 22/11 au matin (aa724b7)
 
