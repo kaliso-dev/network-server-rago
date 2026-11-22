@@ -6,6 +6,7 @@ import java.util.Collections;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import org.bukkit.Material;
 import org.bukkit.configuration.ConfigurationSection;
 
 /** The settings of config.yml, checked. Immutable. */
@@ -158,6 +159,24 @@ final class BedwarsSettings {
      * on each axis), away from the blast and upwards, which replaces the blast's own; its fixed
      * damage, armour or not, in half hearts.
      */
+    /**
+     * The better stuff of the player alone of a Bed Fight 1v2 (stuff-ameliore: in config.yml): the
+     * tier of their leggings and boots (0 leather as the others, 1 chainmail, 2 iron, 3 diamond),
+     * their sword in place of the kit's, the Protection level on their armour. Starting values, to
+     * set in game with the owner.
+     */
+    static final class Stuff {
+        final int armour;
+        final Material sword;
+        final int protection;
+
+        Stuff(int armour, Material sword, int protection) {
+            this.armour = armour;
+            this.sword = sword;
+            this.protection = protection;
+        }
+    }
+
     static final class Fireball {
         final double speed;
         final double radius;
@@ -335,13 +354,15 @@ final class BedwarsSettings {
     private final List<RoundKit> bedBreakKits;
     /** The Protection level on the armour of everyone in the Bed Break Simulator (bed-break.protection). */
     private final int bedBreakProtection;
+    /** The better stuff of the player alone of a Bed Fight 1v2 (stuff-ameliore:). */
+    private final Stuff strongStuff;
 
     private BedwarsSettings(Map<String, List<String>> modes, Map<String, Kind> kinds, int maxGames, boolean demo,
             int respawnSeconds, Forge forge, double forgeShare, List<Rate> diamond, List<Rate> emerald, int[] events,
             Fireball fireball,
             List<String> neighbourModes, List<String> topBridgeModes, List<String> allForgeModes, List<String> allShopModes,
             List<RoundKit> attackKits, List<RoundKit> defenseKits, int attackDefenseProtection, List<RoundKit> bedBreakKits,
-            int bedBreakProtection) {
+            int bedBreakProtection, Stuff strongStuff) {
         this.modes = Collections.unmodifiableMap(modes);
         this.kinds = Collections.unmodifiableMap(kinds);
         this.maxGames = maxGames;
@@ -367,6 +388,7 @@ final class BedwarsSettings {
         this.attackDefenseProtection = attackDefenseProtection;
         this.bedBreakKits = bedBreakKits;
         this.bedBreakProtection = bedBreakProtection;
+        this.strongStuff = strongStuff;
     }
 
     /** The word for every map, in the maps of a mode. */
@@ -444,7 +466,25 @@ final class BedwarsSettings {
         }
         return new BedwarsSettings(modes, kinds(config), maxGames, config.getBoolean("carte-demo", true), respawn, forge,
                 forgeShare, diamond, emerald, events, fireball, neighbours, topBridge, allForges, allShops, attackKits,
-                defenseKits, attackDefenseProtection, bedBreakKits, bedBreakProtection);
+                defenseKits, attackDefenseProtection, bedBreakKits, bedBreakProtection, strongStuff(config));
+    }
+
+    /** stuff-ameliore: the better stuff of the player alone of a Bed Fight 1v2 (iron, a stone sword, no Protection by default). */
+    private static Stuff strongStuff(ConfigurationSection config) {
+        int armour = config.getInt("stuff-ameliore.armure", 2);
+        if (armour < 0 || armour > 3) {
+            throw new IllegalArgumentException("stuff-ameliore.armure: from 0 (leather) to 3 (diamond)");
+        }
+        String name = config.getString("stuff-ameliore.epee", "STONE_SWORD");
+        Material sword = Material.matchMaterial(name.trim());
+        if (sword == null || !sword.name().endsWith("_SWORD")) {
+            throw new IllegalArgumentException("stuff-ameliore.epee: a sword, such as STONE_SWORD or IRON_SWORD");
+        }
+        int protection = config.getInt("stuff-ameliore.protection", 0);
+        if (protection < 0 || protection > 4) {
+            throw new IllegalArgumentException("stuff-ameliore.protection: from 0 to 4");
+        }
+        return new Stuff(armour, sword, protection);
     }
 
     /** jeux: the modes that are not a classic game, each with its kind. */
@@ -751,5 +791,10 @@ final class BedwarsSettings {
     /** The Protection level on the armour of everyone in the Bed Break Simulator, from 0 (none) to 4. */
     int bedBreakProtection() {
         return bedBreakProtection;
+    }
+
+    /** The better stuff of the player alone of a Bed Fight 1v2. */
+    Stuff strongStuff() {
+        return strongStuff;
     }
 }

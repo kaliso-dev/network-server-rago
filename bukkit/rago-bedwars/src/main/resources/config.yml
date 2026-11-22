@@ -38,6 +38,7 @@ modes:
   clutch-scenario-1v4: [SkyRise, Archway]
   bed-fight-1v1: [BedFight]
   bed-fight-2v2: [BedFight]
+  bed-fight-1v2: [BedFight]
   top-bed-fight-1v1: [TopBedFight]
   lobby-fight-1v1: [ArchwayFFA]
   lobby-fight-ffa: [ArchwayFFA]
@@ -92,7 +93,9 @@ modes:
 #              map has on it (wood and end stone, breakable as in a game), no forge, no shop, no
 #              upgrade; the mode's kit (the lobby's kit editor) in leather armour of the team's
 #              colour at each life; back while the bed stands, the last team wins; the beds go at
-#              10 minutes, a draw at 15
+#              10 minutes, a draw at 15. In a 1v2 (one team of 3 in the lobby's config.yml), the
+#              player alone is drawn at random (not one of a party) and has the better stuff of
+#              stuff-ameliore: below
 #   top-bed-fight  Top Bed Fight, on a map with its own bridge on top (the owner's TopBedFight, at
 #              the build limit): the two players start on the spawns of the map, at its ends, each
 #              with a block at their back they cannot break nor go behind; the bridge breaks (to
@@ -149,6 +152,7 @@ jeux:
   clutch-scenario-1v4: clutch-scenario
   bed-fight-1v1: bed-fight
   bed-fight-2v2: bed-fight
+  bed-fight-1v2: bed-fight
   top-bed-fight-1v1: top-bed-fight
   lobby-fight-1v1: lobby-fight
   lobby-fight-ffa: lobby-fight-ffa
@@ -220,6 +224,16 @@ bed-break:
       icone: STICK
       description: ["Knock them off with the stick,", "a golden apple to last, ladders", "to climb; the Wooden Pickaxe."]
       objets: [stone_sword, wooden_pickaxe, wooden_axe, shears, golden_apple, "ladder 8", stick]
+
+# Bed Fight 1v2: the better stuff of the player alone, at each life, against the two others in the
+# mode's kit and leather armour. armure: the tier of their leggings and boots (0 leather as the
+# others, 1 chainmail, 2 iron, 3 diamond); epee: their sword in place of the kit's (WOOD_SWORD,
+# STONE_SWORD, GOLD_SWORD, IRON_SWORD, DIAMOND_SWORD); protection: the Protection level on their
+# armour, from 0 to 4. Starting values, to set in game.
+stuff-ameliore:
+  armure: 2
+  epee: STONE_SWORD
+  protection: 0
 
 # How many game worlds the server keeps at most, so how many games at once (from 1 to 50).
 parties-max: 8

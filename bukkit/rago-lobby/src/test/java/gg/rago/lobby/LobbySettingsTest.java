@@ -64,8 +64,8 @@ class LobbySettingsTest {
         assertEquals("lobby", settings.world());
         assertEquals(0, settings.voidHeight());
         assertEquals(0, settings.defaultRating(), "a ranked ELO starts at 0, in Coal");
-        assertEquals(79, settings.modes().size(), "the invis practice and the Bed Break Simulator in 1v1 to 1v4 (and"
-                + " their kits), with the private top bridge, the clutch scenario, the bed fight, Top"
+        assertEquals(80, settings.modes().size(), "the invis practice and the Bed Break Simulator in 1v1 to 1v4 (and"
+                + " their kits), with the private top bridge, the clutch scenario, the bed fight (1v1, 2v2, 1v2), Top"
                 + " BedFight, the bridge fight 2v2, the full map first rush, Sky Rise Resources, the timed bridge, Lobby"
                 + " Fight (1v1, FFA), the Bed Break Simulator, the two modes of FUN PRACTICE, Red Rover (sumo, block"
                 + " edit, block placement, top bridge), Find Your Sensitivity and Block aim, without the top fight or the"
@@ -207,7 +207,8 @@ class LobbySettingsTest {
         assertEquals(Arrays.asList("top-bridge-1v1", "top-bridge-2v2"), displayIds(settings.modesOfGroup("top-bridge")));
         assertEquals(Arrays.asList("block-fight-1v1", "block-fight-2v2"), displayIds(settings.modesOfGroup("block-placement")));
         assertEquals(Arrays.asList("bridge-fight-1v1", "bridge-fight-2v2"), displayIds(settings.modesOfGroup("bridge-fight")));
-        assertEquals(Arrays.asList("bed-fight-1v1", "bed-fight-2v2"), displayIds(settings.modesOfGroup("bed-fight")));
+        assertEquals(Arrays.asList("bed-fight-1v1", "bed-fight-2v2", "bed-fight-1v2"),
+                displayIds(settings.modesOfGroup("bed-fight")), "the 1v2 with them, its player alone with a better stuff");
         assertEquals(Arrays.asList("red-rover-sumo", "red-rover-block-edit", "red-rover-block-placement",
                 "red-rover-top-bridge"), displayIds(settings.modesOfGroup("red-rover")), "the Red Rovers as one item of the Duels");
         List<LobbySettings.Entry> duels = settings.entriesIn("duels");
@@ -500,13 +501,14 @@ class LobbySettingsTest {
         assertEquals("§e§l3 Players", three.name());
         assertEquals(Material.SKULL_ITEM, three.icon());
         List<LobbySettings.Entry> entries = settings.entriesIn("trois-joueurs");
-        assertEquals(4, entries.size(), "Red Rover as one item, then the three 1v2");
+        assertEquals(5, entries.size(), "Red Rover as one item, then the four 1v2");
         assertEquals("red-rover", entries.get(0).group.id());
         assertEquals("bed-break-simulator-1v2", entries.get(1).mode.mode().id());
         assertEquals("invis-practice-1v2", entries.get(2).mode.mode().id());
         assertEquals("clutch-scenario-1v2", entries.get(3).mode.mode().id());
+        assertEquals("bed-fight-1v2", entries.get(4).mode.mode().id());
         assertEquals(Arrays.asList("red-rover-sumo", "red-rover-block-edit", "red-rover-block-placement", "red-rover-top-bridge",
-                "bed-break-simulator-1v2", "invis-practice-1v2", "clutch-scenario-1v2"),
+                "bed-break-simulator-1v2", "invis-practice-1v2", "clutch-scenario-1v2", "bed-fight-1v2"),
                 displayIds(settings.modesIn("trois-joueurs")));
         // the same modes and queues: they stay in their categories
         assertEquals("duels", settings.display("red-rover-sumo").category());

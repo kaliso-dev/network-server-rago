@@ -123,10 +123,10 @@ describe('the game data', () => {
         expect(modeOf(id).category, id).not.toBe(category.id);
       }
     }
-    // 3 Players, in the compass only: Red Rover of the Duels and the 1v2 of the RBW modes
+    // 3 Players, in the compass only: Red Rover of the Duels, the 1v2 of the RBW modes and the Bed fight 1v2
     const three = categoryOf('trois-joueurs');
     expect(three.also).toEqual(['red-rover-sumo', 'red-rover-block-edit', 'red-rover-block-placement', 'red-rover-top-bridge',
-      'bed-break-simulator-1v2', 'invis-practice-1v2', 'clutch-scenario-1v2']);
+      'bed-break-simulator-1v2', 'invis-practice-1v2', 'clutch-scenario-1v2', 'bed-fight-1v2']);
     const events = game.modes.filter((mode) => mode.event);
     expect(events.every((mode) => lobby.modes[mode.id].cache === true)).toBe(true);
   });

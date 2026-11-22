@@ -1,11 +1,14 @@
 package gg.rago.bedwars;
 
+import java.util.ArrayList;
 import java.util.EnumSet;
 import java.util.HashMap;
 import java.util.List;
+import java.util.Locale;
 import java.util.Map;
 import java.util.Set;
 import java.util.UUID;
+import java.util.concurrent.ThreadLocalRandom;
 import org.bukkit.ChatColor;
 import org.bukkit.Material;
 import org.bukkit.Sound;
@@ -26,7 +29,13 @@ import org.bukkit.inventory.PlayerInventory;
  * item of it in this game (their hotbar as they arranged it during the game, not the lobby's one
  * again), and for {@value BedwarsGame#SPAWN_PROTECTION_MILLIS} ms no enemy can hurt them, unless
  * they hit one first (as in every mode); the last team standing wins. The beds go at {@value #BEDS_GONE_SECONDS} seconds,
- * and the game ends in a draw at {@value #GAME_END_SECONDS}. Main thread only.
+ * and the game ends in a draw at {@value #GAME_END_SECONDS}.
+ *
+ * <p>The 1v2 (the stuff amélioré of the plan, the owner's choice, 22/11): the three players come as
+ * one side, the one who plays alone is drawn at random among them (not one of a party: friends play
+ * together, as in Clutch Scenario), and has a better stuff than the two others, at each life: the
+ * leggings and boots, the sword and the Protection of stuff-ameliore: in config.yml (iron, a stone
+ * sword, no Protection to start: the gap is to be set in game with the owner). Main thread only.
  */
 final class BedFightGame extends BedwarsGame {
 
@@ -42,10 +51,17 @@ final class BedFightGame extends BedwarsGame {
      * nothing): the next life gives the kit in the same places.
      */
     private final Map<UUID, Material[]> layouts = new HashMap<>();
+    /** The team of the player alone of a 1v2, with the better stuff; null in a 1v1 or 2v2. */
+    private final Team strong;
 
     BedFightGame(RagoBedwars plugin, BedwarsHost host, Instance instance, String modeId, String modeName,
             List<List<Player>> sides) {
-        super(plugin, host, instance, modeId, modeName, sides);
+        super(plugin, host, instance, modeId, modeName, ClutchScenarioGame.alone(sides, sides.size() != 1 ? 0
+                : ClutchScenarioGame.drawAlone(sides.get(0),
+                        (one, other) -> plugin.lobby().sameParty(one.getUniqueId(), other.getUniqueId()),
+                        ThreadLocalRandom.current())));
+        // a 1v2 comes as one side, split: the player alone is the first team
+        strong = sides.size() == 1 && sides.get(0).size() >= 2 ? teams.get(0) : null;
     }
 
     @Override
@@ -109,12 +125,16 @@ final class BedFightGame extends BedwarsGame {
         }
     }
 
-    /** Leather armour of the team's colour and the mode's kit, at each life; the pickaxe and the axe with Efficiency I. */
+    /**
+     * Leather armour of the team's colour and the mode's kit, at each life; the pickaxe and the axe
+     * with Efficiency I. The player alone of a 1v2: the leggings, boots and sword of stuff-ameliore.
+     */
     @Override
     void giveKit(Player player, Gamer gamer) {
         PlayerInventory inventory = player.getInventory();
         inventory.clear();
-        gamer.armor = 0;
+        BedwarsSettings.Stuff stuff = gamer.team == strong ? settings.strongStuff() : null;
+        gamer.armor = stuff == null ? 0 : stuff.armour;
         wearArmor(player, gamer);
         ItemStack[] kit = lobbyKit(player, gamer);
         if (kit != null) {
@@ -125,9 +145,36 @@ final class BedFightGame extends BedwarsGame {
             }
         }
         ItemStack[] contents = inventory.getContents();
+        if (stuff != null) {
+            for (int slot : swordsAs(contents, stuff.sword)) {
+                contents[slot] = kitItem(contents[slot], gamer);
+            }
+        }
         efficient(contents);
         inventory.setContents(arranged(contents, layouts.get(gamer.id)));
         player.updateInventory();
+    }
+
+    /** The Protection of stuff-ameliore on the armour of the player alone of a 1v2; none on the others (no upgrade). */
+    @Override
+    int armourProtection(Gamer gamer) {
+        return gamer.team == strong ? settings.strongStuff().protection : super.armourProtection(gamer);
+    }
+
+    /**
+     * Each sword of these items becomes this one, in its slot (the better sword of the player alone
+     * of a 1v2): the slots changed, whose items are new, not yet made unbreakable.
+     */
+    static List<Integer> swordsAs(ItemStack[] items, Material sword) {
+        List<Integer> changed = new ArrayList<>();
+        for (int slot = 0; slot < items.length; slot++) {
+            ItemStack item = items[slot];
+            if (item != null && item.getType().name().endsWith("_SWORD") && item.getType() != sword) {
+                items[slot] = new ItemStack(sword, item.getAmount());
+                changed.add(slot);
+            }
+        }
+        return changed;
     }
 
     /** Every death (a hit, the void, a fall...): where the player had put the items, kept for the next life. */
@@ -280,5 +327,29 @@ final class BedFightGame extends BedwarsGame {
                 + " while it stands.");
         player.sendMessage(ChatColor.GRAY + "No shop, no forge: your kit at each life (edit it in the lobby). The beds go at "
                 + clock(BEDS_GONE_SECONDS) + ", a draw at " + clock(GAME_END_SECONDS) + ". /spawn takes you back to the lobby.");
+        if (strong != null) {
+            String stuff = stuffOf(settings.strongStuff());
+            player.sendMessage(ChatColor.GOLD + (gamer.team == strong
+                    ? "You play alone against two, with a better stuff at each life: " + stuff + "."
+                    : "The player alone has a better stuff at each life: " + stuff + "."));
+        }
+    }
+
+    private static final String[] TIERS = {"leather", "chainmail", "iron", "diamond"};
+    private static final String[] PROTECTION = {"", "I", "II", "III", "IV"};
+
+    /** The better stuff, as the players read it: "iron leggings and boots, a stone sword, Protection I". */
+    static String stuffOf(BedwarsSettings.Stuff stuff) {
+        List<String> parts = new ArrayList<>();
+        if (stuff.armour > 0) {
+            parts.add(TIERS[stuff.armour] + " leggings and boots");
+        }
+        String sword = stuff.sword.name().substring(0, stuff.sword.name().length() - "_SWORD".length());
+        String word = sword.equals("WOOD") ? "wooden" : sword.equals("GOLD") ? "golden" : sword.toLowerCase(Locale.ROOT);
+        parts.add((word.startsWith("i") ? "an " : "a ") + word + " sword");
+        if (stuff.protection > 0) {
+            parts.add("Protection " + PROTECTION[stuff.protection]);
+        }
+        return String.join(", ", parts);
     }
 }

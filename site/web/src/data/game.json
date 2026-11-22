@@ -90,7 +90,7 @@
       ],
       "description": "Bed fight, Top BedFight, top bridge, bridge fight, block placement in 1v1 or 2v2; Lobby Fight, sumo, boxing, KB displace, fireball fight, bow. /duel a player to challenge them.",
       "skin": "duels",
-      "modes": 20,
+      "modes": 21,
       "also": []
     },
     {
@@ -160,9 +160,9 @@
           "colour": "#FFFF55"
         }
       ],
-      "description": "Red Rover: 1v1 in turn, who waits watches. Bed Break Simulator, Invis Practice and Clutch Scenario: one against two.",
+      "description": "Red Rover: 1v1 in turn, who waits watches. Bed Break Simulator, Invis Practice, Clutch Scenario and Bed Fight: one against two.",
       "skin": null,
-      "modes": 7,
+      "modes": 8,
       "also": [
         "red-rover-sumo",
         "red-rover-block-edit",
@@ -170,7 +170,8 @@
         "red-rover-top-bridge",
         "bed-break-simulator-1v2",
         "invis-practice-1v2",
-        "clutch-scenario-1v2"
+        "clutch-scenario-1v2",
+        "bed-fight-1v2"
       ]
     }
   ],
@@ -214,7 +215,8 @@
       "description": "Two islands, a bed each: break theirs and kill them. You come back while your bed stands.",
       "modes": [
         "bed-fight-1v1",
-        "bed-fight-2v2"
+        "bed-fight-2v2",
+        "bed-fight-1v2"
       ]
     },
     {
@@ -537,6 +539,22 @@
       "startHere": false,
       "event": false,
       "description": "Bed fight, two against two: break their bed, then the last team standing wins.",
+      "plugins": [
+        "bedwars"
+      ]
+    },
+    {
+      "id": "bed-fight-1v2",
+      "name": "Bed fight 1v2",
+      "colour": "#55FF55",
+      "icon": "BED",
+      "category": "duels",
+      "group": "bed-fight",
+      "format": "1v2",
+      "ranked": false,
+      "startHere": false,
+      "event": false,
+      "description": "Bed fight, one against two: the player alone, drawn at random, has a better stuff than the two others.",
       "plugins": [
         "bedwars"
       ]

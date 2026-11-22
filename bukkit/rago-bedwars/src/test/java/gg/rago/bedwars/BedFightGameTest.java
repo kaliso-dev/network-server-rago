@@ -51,6 +51,34 @@ class BedFightGameTest {
     }
 
     @Test
+    void thePlayerAloneOfA1v2HasTheBetterSwordInItsSlot() {
+        ItemStack[] kit = lobbyKit();
+        kit[0] = null;
+        kit[7] = new ItemStack(Material.WOOD_SWORD);
+        assertEquals(java.util.Collections.singletonList(7), BedFightGame.swordsAs(kit, Material.STONE_SWORD),
+                "the sword where the player put it");
+        assertEquals(Material.STONE_SWORD, kit[7].getType());
+        assertEquals(Material.WOOD_PICKAXE, kit[1].getType(), "the rest of the kit as it is");
+        assertEquals(Material.WOOD_AXE, kit[2].getType());
+        assertEquals(Material.SHEARS, kit[3].getType());
+        assertEquals(64, kit[4].getAmount());
+        assertNull(kit[0]);
+        assertEquals(java.util.Collections.emptyList(), BedFightGame.swordsAs(kit, Material.STONE_SWORD),
+                "already the better sword: nothing to change");
+    }
+
+    @Test
+    void thePlayersReadTheBetterStuff() {
+        assertEquals("iron leggings and boots, a stone sword",
+                BedFightGame.stuffOf(new BedwarsSettings.Stuff(2, Material.STONE_SWORD, 0)));
+        assertEquals("diamond leggings and boots, an iron sword, Protection II",
+                BedFightGame.stuffOf(new BedwarsSettings.Stuff(3, Material.IRON_SWORD, 2)));
+        assertEquals("a golden sword, Protection I", BedFightGame.stuffOf(new BedwarsSettings.Stuff(0, Material.GOLD_SWORD, 1)),
+                "leather as the others: not said");
+        assertEquals("a wooden sword", BedFightGame.stuffOf(new BedwarsSettings.Stuff(0, Material.WOOD_SWORD, 0)));
+    }
+
+    @Test
     void theFirstLifeHasTheKitOfTheLobby() {
         ItemStack[] kit = lobbyKit();
         assertSame(kit, BedFightGame.arranged(kit, null));

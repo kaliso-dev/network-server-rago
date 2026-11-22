@@ -81,7 +81,7 @@ class BedwarsSettingsTest {
                 "first-rush", "first-rush-duo", "first-rush-full", "first-rush-full-duo", "top-bridge-ffa", "ffa",
                 "invis-practice-1v1", "invis-practice-1v2", "invis-practice-1v3", "invis-practice-1v4", "shop-practice",
                 "attack-defense-1v1", "attack-defense-2v2", "clutch-scenario-1v1", "clutch-scenario-1v2",
-                "clutch-scenario-1v3", "clutch-scenario-1v4", "bed-fight-1v1", "bed-fight-2v2", "top-bed-fight-1v1",
+                "clutch-scenario-1v3", "clutch-scenario-1v4", "bed-fight-1v1", "bed-fight-2v2", "bed-fight-1v2", "top-bed-fight-1v1",
                 "lobby-fight-1v1", "lobby-fight-ffa", "bed-break-simulator-1v1", "bed-break-simulator-1v2",
                 "bed-break-simulator-1v3", "bed-break-simulator-1v4", "red-rover-top-bridge"),
                 settings.modes());
@@ -141,6 +141,12 @@ class BedwarsSettingsTest {
         assertEquals(BedwarsSettings.Kind.BED_FIGHT, settings.kind("bed-fight-1v1"));
         assertEquals(BedwarsSettings.Kind.BED_FIGHT, settings.kind("bed-fight-2v2"));
         assertEquals(Collections.singletonList("BedFight"), settings.mapsOf("bed-fight-2v2"), "the owner's Bed Fight map");
+        assertEquals(BedwarsSettings.Kind.BED_FIGHT, settings.kind("bed-fight-1v2"));
+        assertEquals(Collections.singletonList("BedFight"), settings.mapsOf("bed-fight-1v2"), "the 1v2 on the same map");
+        BedwarsSettings.Stuff stuff = settings.strongStuff();
+        assertEquals(2, stuff.armour, "the player alone of the 1v2: iron leggings and boots to start");
+        assertEquals(org.bukkit.Material.STONE_SWORD, stuff.sword);
+        assertEquals(0, stuff.protection);
         for (String size : Arrays.asList("1v1", "1v2", "1v3", "1v4")) {
             assertEquals(Arrays.asList("SkyRise", "Archway"), settings.mapsOf("clutch-scenario-" + size),
                     "the owner's two maps for it");
@@ -284,6 +290,19 @@ class BedwarsSettingsTest {
         assertTrue(settings.neighbours("first-rush"));
         assertEquals(RoundKit.BED_BREAK, settings.bedBreakKits(), "the owner's three attack kits");
         assertEquals(2, settings.bedBreakProtection());
+        assertEquals(2, settings.strongStuff().armour, "without stuff-ameliore: the same as the bundled config");
+        assertEquals(org.bukkit.Material.STONE_SWORD, settings.strongStuff().sword);
+        assertEquals(0, settings.strongStuff().protection);
+    }
+
+    @Test
+    void theBetterStuffOfTheBedFight1v2IsSetInTheConfig() throws Exception {
+        YamlConfiguration config = new YamlConfiguration();
+        config.loadFromString("stuff-ameliore:\n  armure: 3\n  epee: iron_sword\n  protection: 1");
+        BedwarsSettings.Stuff stuff = BedwarsSettings.read(config).strongStuff();
+        assertEquals(3, stuff.armour);
+        assertEquals(org.bukkit.Material.IRON_SWORD, stuff.sword, "the case does not matter");
+        assertEquals(1, stuff.protection);
     }
 
     @Test
@@ -334,6 +353,10 @@ class BedwarsSettingsTest {
         assertProblem("modes:\n  first-rush: [\"Gel ato\"]", "modes.first-rush");
         assertProblem("modes:\n  First Rush: [Gelato]", "modes");
         assertProblem("bed-break:\n  protection: 5", "bed-break.protection");
+        assertProblem("stuff-ameliore:\n  armure: 4", "stuff-ameliore.armure");
+        assertProblem("stuff-ameliore:\n  epee: IRON_AXE", "stuff-ameliore.epee");
+        assertProblem("stuff-ameliore:\n  epee: Excalibur", "stuff-ameliore.epee");
+        assertProblem("stuff-ameliore:\n  protection: -1", "stuff-ameliore.protection");
         assertProblem("bed-break:\n  kits:\n    - {nom: X, icone: TNT, objets: [\"tnt 99\"]}", "bed-break.kits[1].objets");
     }
 

@@ -262,7 +262,7 @@ qu'il ne reste qu'une équipe.
 
 ## Bed Fight
 
-`bed-fight-1v1` et `bed-fight-2v2` (le genre `bed-fight`), comme le Bed Fight de Minemen, sur la
+`bed-fight-1v1`, `bed-fight-2v2` et `bed-fight-1v2` (le genre `bed-fight`), comme le Bed Fight de Minemen, sur la
 map BedFight du propriétaire : deux îles face à face, chaque lit sous la défense que la map a déjà
 (bois et end stone), que les joueurs cassent comme dans une partie. Ni forge, ni shop, ni
 amélioration, ni diamant : chacun a le kit du mode (l'éditeur de kit du lobby ; sinon une épée,
@@ -278,6 +278,15 @@ dernière équipe en vie gagne. Les lits partent à 10 minutes, égalité à 15.
 partout sous la limite de construction, spawns compris : à chaque respawn, les deux blocs où le
 joueur revient (pieds et tête) partent. Aucun dégât de chute. Chaque mort fait sonner le ding de
 l'XP chez tous les joueurs de la partie.
+
+Le 1v2 (le « stuff amélioré » du plan, ton choix du 22/11) : les trois joueurs arrivent du lobby en
+une seule équipe de 3, que la partie partage comme le Clutch Scenario. Le joueur seul est tiré au
+sort parmi eux, mais pas un joueur d'une party : des amis jouent ensemble. Il a un meilleur stuff que
+les deux autres, à chaque vie, réglé dans `stuff-ameliore:` du `config.yml` : `armure`, le niveau
+de ses jambières et bottes (0 cuir comme les autres, 1 maille, 2 fer, 3 diamant) ; `epee`, son
+épée à la place de celle du kit, dans la case où il l'a rangée (`STONE_SWORD`, `IRON_SWORD`…) ;
+`protection`, la Protection sur son armure, de 0 à 4. Les valeurs de départ (fer, épée en pierre,
+sans Protection) sont à régler en jeu. Au début, le chat dit à chacun le stuff du joueur seul.
 
 La map n'est pas dans le dépôt : son `bedwars.yml` donne à chaque équipe son spawn (sur la map du
 propriétaire, le petit bloc de laine rouge ou bleue de sa base) et son lit ; le générateur et le

@@ -120,10 +120,10 @@ categories:
     description:
       - "Red Rover: 1v1 in turn, who"
       - "waits watches. Bed Break"
-      - "Simulator, Invis Practice and"
-      - "Clutch Scenario: one against"
-      - "two."
-    aussi: [red-rover, bed-break-simulator-1v2, invis-practice-1v2, clutch-scenario-1v2]
+      - "Simulator, Invis Practice,"
+      - "Clutch Scenario and Bed Fight:"
+      - "one against two."
+    aussi: [red-rover, bed-break-simulator-1v2, invis-practice-1v2, clutch-scenario-1v2, bed-fight-1v2]
 
 # At each arrival in the lobby, the ways to play in the chat: a line per category (its name and
 # slogan), a click opens its modes (/play category); at the first arrival, a title too. false: none.
@@ -981,7 +981,7 @@ titres:
   familles:
     sky-rise: {nom: "Sky Rise", modes: [skyrise-1v1, skyrise-2v2, skyrise-resources-1v1, skyrise-resources-2v2]}
     first-rush: {nom: "First Rush", modes: [first-rush, first-rush-duo, first-rush-full, first-rush-full-duo]}
-    bed-fight: {nom: "Bed Fight", modes: [bed-fight-1v1, bed-fight-2v2, top-bed-fight-1v1]}
+    bed-fight: {nom: "Bed Fight", modes: [bed-fight-1v1, bed-fight-2v2, bed-fight-1v2, top-bed-fight-1v1]}
     top-bridge: {nom: "Top Bridge", modes: [top-bridge-1v1, top-bridge-2v2, top-bridge-ffa]}
     # with the 2v2, 3v3 and 4v4 of before 22/11: their wins still count
     clutch-scenario: {nom: "Clutch Scenario", modes: [clutch-scenario-1v1, clutch-scenario-1v2, clutch-scenario-1v3,
@@ -1226,6 +1226,25 @@ modes:
       - "Bed fight, two against two:"
       - "break their bed, then the last"
       - "team standing wins."
+  # one team of 3 here, split by the game: the player alone, drawn at random (not one of a party),
+  # against the two others
+  bed-fight-1v2:
+    nom: "&aBed fight 1v2"
+    categorie: duels
+    groupe: bed-fight
+    icone: BED
+    equipes: 1
+    joueurs-par-equipe: 3
+    format: 1v2
+    classe: false
+    # with full leather armour in the colour of the team; the player alone has the better stuff of
+    # stuff-ameliore: in the config.yml of rago-bedwars
+    kit: [WOOD_SWORD, WOOD_PICKAXE, WOOD_AXE, SHEARS, "WOOL 64"]
+    description:
+      - "Bed fight, one against two:"
+      - "the player alone, drawn at"
+      - "random, has a better stuff"
+      - "than the two others."
   top-bed-fight-1v1:
     nom: "&aTop BedFight 1v1"
     categorie: duels

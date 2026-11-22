@@ -134,7 +134,8 @@ final class Titles {
                         "skyrise-resources-2v2")),
                 new Family("first-rush", "First Rush", Arrays.asList("first-rush", "first-rush-duo", "first-rush-full",
                         "first-rush-full-duo")),
-                new Family("bed-fight", "Bed Fight", Arrays.asList("bed-fight-1v1", "bed-fight-2v2", "top-bed-fight-1v1")),
+                new Family("bed-fight", "Bed Fight", Arrays.asList("bed-fight-1v1", "bed-fight-2v2", "bed-fight-1v2",
+                        "top-bed-fight-1v1")),
                 new Family("top-bridge", "Top Bridge", Arrays.asList("top-bridge-1v1", "top-bridge-2v2", "top-bridge-ffa")),
                 // with the 2v2, 3v3 and 4v4 of before 22/11 (now 1v2 to 1v4): their wins still count
                 new Family("clutch-scenario", "Clutch Scenario", Arrays.asList("clutch-scenario-1v1", "clutch-scenario-1v2",
