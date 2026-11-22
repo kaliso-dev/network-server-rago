@@ -9,6 +9,7 @@ import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
 import org.bukkit.GameMode;
 import org.bukkit.Location;
+import org.bukkit.Sound;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.EventPriority;
@@ -75,11 +76,13 @@ final class Watchers implements Listener {
             watcher.setGameMode(GameMode.SPECTATOR);
         }
         if (plugin.lobby().announcesSpectator(watcher)) {
-            String line = ChatColor.GRAY + watcher.getDisplayName() + ChatColor.GRAY + " is now spectating your game.";
+            // in red and bold, with a ding (the owner's ask of 22/11): the players see it at once
+            String line = spectatingLine(watcher.getDisplayName());
             for (BedwarsGame.Gamer gamer : game.present()) {
                 Player player = Bukkit.getPlayer(gamer.id);
                 if (player != null && !player.equals(watcher)) {
                     player.sendMessage(line);
+                    player.playSound(player.getLocation(), Sound.ORB_PICKUP, 1f, 1f);
                 }
             }
         }
@@ -89,6 +92,12 @@ final class Watchers implements Listener {
     static boolean holds(BedwarsGame game, Location location) {
         return location.getWorld() != null && location.getWorld().equals(game.instance().world())
                 && location.getY() >= game.instance().map().voidY() - UNDER_THE_VOID;
+    }
+
+    /** "<name> is now spectating your game.", all in red and bold (the name without its rank's colours). */
+    static String spectatingLine(String displayName) {
+        String red = ChatColor.RED + "" + ChatColor.BOLD;
+        return red + ChatColor.stripColor(displayName) + red + " is now spectating your game.";
     }
 
     boolean isWatching(UUID player) {

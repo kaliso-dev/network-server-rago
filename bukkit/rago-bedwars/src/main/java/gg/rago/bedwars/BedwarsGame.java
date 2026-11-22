@@ -1659,6 +1659,7 @@ class BedwarsGame {
             } else if (gamer.team == winner) {
                 player.sendTitle(ChatColor.GOLD + "" + ChatColor.BOLD + "VICTORY!", "");
                 player.playSound(player.getLocation(), Sound.LEVEL_UP, 1f, 1f);
+                ding(player);
             } else {
                 player.sendTitle(ChatColor.RED + "" + ChatColor.BOLD + "GAME OVER!", "");
             }
@@ -2668,6 +2669,24 @@ class BedwarsGame {
     }
 
     // --- Messages -------------------------------------------------------------------------------
+
+    /**
+     * The ding (the owner's ask of 22/11), the sound of an XP orb: each round, point or game won
+     * rings it for those who won it.
+     */
+    static void ding(Player player) {
+        player.playSound(player.getLocation(), Sound.ORB_PICKUP, 1f, 1f);
+    }
+
+    /** The ding for the players of this team still in the game. */
+    void ding(Team team) {
+        for (UUID id : team.members) {
+            Player player = Bukkit.getPlayer(id);
+            if (player != null && host.gameOf(id) == this) {
+                ding(player);
+            }
+        }
+    }
 
     void broadcast(String message, Sound sound) {
         replayChat(message);

@@ -566,6 +566,7 @@ final class EventGame extends PracticeGame {
             Player won = Bukkit.getPlayer(winner);
             if (won != null && host.gameOf(winner) == this) {
                 sound(won, Sound.LEVEL_UP, 1.2f);
+                ding(won);
                 spectate(won);
             }
         }

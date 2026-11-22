@@ -207,7 +207,8 @@ dans les files d'attente des modes de jeu.
 - **Regarder une partie en direct.** `/spectate <joueur>` (ou `/spec`) depuis le lobby : n'importe
   quelle partie, pour tout le monde (sauf la partie d'un joueur sous un nick, qui reste caché sauf
   pour le staff et ses amis). Les joueurs de la partie lisent « <nom> is now spectating your
-  game. » (pas pour un membre du staff en vanish). Rien ne sort le spectateur du mode spectateur
+  game. », en rouge et en gras, avec un ding (le son de l'orbe d'XP ; ta demande du 22/11), pas pour
+  un membre du staff en vanish (le message vient de RagoPractice ou de RagoBedwars, selon la partie). Rien ne sort le spectateur du mode spectateur
   tant qu'il regarde (ni un autre plugin, ni une commande) : il ne peut ni frapper, ni être frappé,
   ni mourir, et revient au lobby par `/spawn` ou la fin de la partie. Le spectateur arrive là où est le joueur, en mode spectateur : les
   joueurs ne le voient pas (même pas son corps, seulement son nom grisé dans le Tab), il vole à
@@ -487,6 +488,7 @@ commentaires de `config.yml`. Les mots français de la première version (`quitt
 | `/playagain` (ou `/again`) | la partie suivante du même mode : quitte la partie (comme `/spawn`) et remet dans sa file tout de suite ; au lobby, comme le papier Play again | tout le monde |
 | `/replay`, `/replay <code>`, `/replay leave` (ou `/replays`) | le menu de ses dernières parties, une partie par son code, quitter le replay | tout le monde |
 | `/spectate <joueur>` (ou `/spec`) | regarder une partie, invisible (`/spawn` pour revenir) | tout le monde (la partie d'un joueur sous un nick : le staff et ses amis) |
+| `/ping [joueur]` | son ping, ou celui d'un joueur (comme sur Minemen) : en vert sous 80 ms, en jaune sous 150, en rouge au-delà, comme dans les barres des parties. Un joueur sous un nick se trouve par son nick ; par son vrai nom, seulement pour le staff | tout le monde |
 | `/queue <mode> [map]`, `/queue leave [mode]` (ou `/file`, `/q`) | entrer dans une file (sur une map, ou `random`), aussi depuis un entraînement ; sortir de toutes, ou d'une | tout le monde |
 | `/duel <joueur> [mode]` | défier un joueur du lobby dans un mode 1v1 (sans mode : un menu des modes 1v1) | tout le monde |
 | `/duel accept <joueur>`, `/duel deny <joueur>` | répondre à un défi (valable une minute) | tout le monde |

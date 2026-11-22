@@ -23,7 +23,7 @@ final class NetworkCommands implements CommandExecutor, TabCompleter {
     static final String[] NAMES = {"shop", "gift", "profile", "daily", "friend", "msg", "reply", "rank", "points", "top", "stats",
         "fly", "staffchat", "vanish", "freeze", "report", "reports", "clearchat", "mutechat", "ban", "unban", "mute", "unmute", "kick",
         "warn", "history", "staff", "discord", "rules", "site", "store", "style", "level", "quests", "display", "nick", "realname", "booster", "pack", "settings", "season",
-        "titles", "spectate"};
+        "titles", "spectate", "ping"};
 
     private static final String[] TOPS = {"elo", "level", "wins", "kills", "fkdr", "streak", "games", "points"};
 
@@ -93,6 +93,59 @@ final class NetworkCommands implements CommandExecutor, TabCompleter {
         }
     }
 
+    /**
+     * /ping [player] (the owner's ask of 22/11, as on Minemen): the player's ping, as the server
+     * measures it for the sidebar. A player under a nick is found by their nick; their real name
+     * finds them only for the staff and themselves.
+     */
+    private void ping(CommandSender sender, String[] args) {
+        if (args.length > 1) {
+            sender.sendMessage(ChatColor.RED + "Usage: /ping [player]");
+            return;
+        }
+        if (args.length == 0) {
+            Player self = player(sender);
+            if (self != null) {
+                self.sendMessage(ChatColor.GRAY + "Your ping: " + pingText(LobbyScoreboard.pingOf(self)));
+            }
+            return;
+        }
+        Player target = pingTarget(sender, args[0]);
+        if (target == null) {
+            sender.sendMessage(ChatColor.RED + "Can't find a player by the name of '" + args[0] + "'");
+            return;
+        }
+        if (target.equals(sender)) {
+            target.sendMessage(ChatColor.GRAY + "Your ping: " + pingText(LobbyScoreboard.pingOf(target)));
+            return;
+        }
+        String shown = lobby.profiles().names().shown(target.getUniqueId(), target.getName());
+        sender.sendMessage(shown + ChatColor.GRAY + "'s ping: " + pingText(LobbyScoreboard.pingOf(target)));
+    }
+
+    /** The player /ping names: by the name the others see, or by their real name for the staff and themselves. */
+    private Player pingTarget(CommandSender sender, String name) {
+        Player byNick = lobby.nicks().byNick(name);
+        if (byNick != null && (!(sender instanceof Player) || lobby.canSee((Player) sender, byNick))) {
+            return byNick;
+        }
+        Player target = sender instanceof Player ? lobby.social().visible((Player) sender, name) : Bukkit.getPlayerExact(name);
+        if (target == null) {
+            return null;
+        }
+        boolean nicked = lobby.profiles().names().nick(target.getUniqueId()) != null;
+        return !nicked || target.equals(sender) || sender.hasPermission("rago.staff") ? target : null;
+    }
+
+    /** "42 ms" in green, yellow or red, as the sidebars of the games colour it (80 and 150 ms); "?" unknown. */
+    static String pingText(int ms) {
+        if (ms < 0) {
+            return ChatColor.GRAY + "?";
+        }
+        ChatColor colour = ms < 80 ? ChatColor.GREEN : ms < 150 ? ChatColor.YELLOW : ChatColor.RED;
+        return colour + "" + ms + " ms";
+    }
+
     private static String rest(String[] args, int from) {
         return String.join(" ", Arrays.copyOfRange(args, Math.min(from, args.length), args.length)).trim();
     }
@@ -145,6 +198,9 @@ final class NetworkCommands implements CommandExecutor, TabCompleter {
                 if ((player = player(sender)) != null) {
                     lobby.social().command(player, args);
                 }
+                return true;
+            case "ping":
+                ping(sender, args);
                 return true;
             case "msg":
                 if ((player = player(sender)) != null) {
@@ -763,6 +819,11 @@ final class NetworkCommands implements CommandExecutor, TabCompleter {
         List<String> options = new ArrayList<>();
         String typed = args.length == 0 ? "" : args[args.length - 1].toLowerCase(Locale.ROOT);
         switch (command.getName()) {
+            case "ping":
+                if (args.length == 1) {
+                    options.addAll(onlineNames(sender));
+                }
+                break;
             case "friend":
                 if (args.length == 1) {
                     options.addAll(Arrays.asList("add", "accept", "deny", "remove", "list", "requests", "toggle"));

@@ -758,6 +758,9 @@ final class BedBreakGame extends BedwarsGame implements KitMenu.Chooser {
                 boolean won = gamer.id.equals(attacker) == attackerWon;
                 player.sendTitle(won ? ChatColor.GOLD + "" + ChatColor.BOLD + "ROUND WON"
                         : ChatColor.RED + "" + ChatColor.BOLD + "ROUND LOST", "");
+                if (won) {
+                    ding(player);
+                }
             }
         }
         later(BETWEEN_TICKS, this::nextRound);
@@ -915,6 +918,7 @@ final class BedBreakGame extends BedwarsGame implements KitMenu.Chooser {
             if (winners.contains(gamer.id)) {
                 player.sendTitle(ChatColor.GOLD + "" + ChatColor.BOLD + "VICTORY!", "");
                 player.playSound(player.getLocation(), Sound.LEVEL_UP, 1f, 1f);
+                ding(player);
             } else {
                 player.sendTitle(winners.isEmpty() ? ChatColor.YELLOW + "" + ChatColor.BOLD + "DRAW"
                         : ChatColor.RED + "" + ChatColor.BOLD + "GAME OVER!", "");

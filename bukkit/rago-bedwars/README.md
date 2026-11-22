@@ -17,7 +17,11 @@ Toutes les parties se regardent avec `/spectate` (voir le README du lobby) : le 
 dans le monde de la partie (pas loin sous son vide), sans rien toucher, pas même un coffre. Il
 entend ce que les spectateurs d'une partie entendent (pas le chat d'une équipe), parle avec les
 autres spectateurs et les joueurs éliminés (« [SPECTATOR] »), voit le sidebar du joueur qu'il est
-venu voir et revient au lobby à la fin, avant les joueurs.
+venu voir et revient au lobby à la fin, avant les joueurs. Les joueurs lisent l'arrivée de chacun
+en rouge et en gras, avec un ding.
+
+**Le ding** (ta demande du 22/11) : chaque manche, point (une capture du CTF) ou partie gagnés le fait sonner pour ceux
+qui l'ont gagné, le son de l'orbe d'XP (`ORB_PICKUP`). La victoire garde aussi son son de level up.
 
 ## La partie
 
@@ -166,7 +170,8 @@ Red Rovers du practice (`RedRoverRotation` du `rago-game-model`), avec leurs ré
 du config.yml de **RagoPractice**, lu par ce plugin (sans RagoPractice, ou s'ils sont faux, les
 réglages par défaut, dit une fois dans la console). Au bout de `secondes-par-1v1`, celui qui a porté
 le plus de coups dans le 1v1 le gagne. Celui qui quitte est éliminé (une défaite) ; un seul gagne la
-partie, tous les autres la perdent.
+partie, tous les autres la perdent. À la fin, le top 3 de la partie, comme pour les Red Rovers du
+practice (voir son README).
 
 `top-bridge-ffa` est le FFA libre sur le pont, sur Invasion seulement : on entre et on sort quand on veut,
 chacun pour soi, avec le même stuff de combat à chaque vie. Le top bridge relie les

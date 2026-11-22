@@ -76,6 +76,9 @@ commands:
     description: Friends as on Hypixel.
     usage: /friend <add|accept|deny|remove|list|requests|toggle> [player], or /f <player>
     aliases: [f, friends, ami, amis]
+  ping:
+    description: Your ping, or a player's.
+    usage: /ping [player]
   msg:
     description: A private message.
     usage: /msg <player> <message>

@@ -10,6 +10,7 @@ import java.io.FileInputStream;
 import java.io.InputStreamReader;
 import java.io.Reader;
 import java.nio.charset.StandardCharsets;
+import org.bukkit.ChatColor;
 import org.bukkit.configuration.ConfigurationSection;
 import org.bukkit.configuration.file.YamlConfiguration;
 import org.junit.jupiter.api.Test;
@@ -54,5 +55,12 @@ class RedRoverTopBridgeTest {
         assertEquals(5, RedRoverTopBridgeGame.roundsOf(section));
         assertEquals(RedRoverTopBridgeGame.ROUNDS_PER_1V1, RedRoverTopBridgeGame.roundsOf(new YamlConfiguration()),
                 "missing: one round");
+    }
+
+    @Test
+    void theTopOfTheEndReadsAsTheKillersOfABedWarsGame() {
+        assertEquals("  " + ChatColor.GOLD + ChatColor.BOLD + "2nd" + ChatColor.GRAY + " - " + ChatColor.WHITE + "Bob"
+                + ChatColor.GRAY + " - " + ChatColor.WHITE + 1 + ChatColor.GRAY + " 1v1 won", RedRoverTopBridgeGame.topLine(1, "Bob", 1));
+        assertEquals(3, RedRoverTopBridgeGame.TOP);
     }
 }

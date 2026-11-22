@@ -320,6 +320,9 @@ class TopBridgeGame extends BedwarsGame {
         broadcast(winner == null ? ChatColor.YELLOW + "Round " + round + ": nobody is left, no point. " + score
                 : winner.color.coloured() + ChatColor.YELLOW + " wins round " + round + "! " + score,
                 winner == null ? Sound.NOTE_BASS : Sound.LEVEL_UP);
+        if (winner != null) {
+            ding(winner);
+        }
         if (winner != null && points[teams.indexOf(winner)] >= pointsToWin()) {
             reachedTarget(winner);
             sidebars();

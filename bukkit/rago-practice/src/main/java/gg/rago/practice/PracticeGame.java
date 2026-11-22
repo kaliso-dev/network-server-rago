@@ -689,6 +689,7 @@ abstract class PracticeGame implements Spectators.Watched {
                 player.sendMessage(ChatColor.GOLD + "" + ChatColor.BOLD + "Victory!" + ChatColor.GRAY + " " + result(winner)
                         + (why == null ? "" : " " + why));
                 player.playSound(player.getLocation(), Sound.LEVEL_UP, 1f, 1f);
+                ding(player);
             } else {
                 player.sendMessage(ChatColor.RED + "" + ChatColor.BOLD + "Defeat." + ChatColor.GRAY + " " + result(winner));
             }
@@ -1231,6 +1232,14 @@ abstract class PracticeGame implements Spectators.Watched {
 
     static void sound(Player player, Sound sound, float pitch) {
         player.playSound(player.getLocation(), sound, 1f, pitch);
+    }
+
+    /**
+     * The ding (the owner's ask of 22/11), the sound of an XP orb: each round, point or game won
+     * rings it for those who won it (a point of a duel already rang it: {@link Duel#pointSound}).
+     */
+    static void ding(Player player) {
+        sound(player, Sound.ORB_PICKUP, 1f);
     }
 
     @SuppressWarnings("deprecation") // Player#sendTitle is marked "API subject to change" in 1.8.8

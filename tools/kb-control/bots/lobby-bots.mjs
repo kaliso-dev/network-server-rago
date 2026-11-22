@@ -184,6 +184,9 @@ function join (username) {
       chats.get(username).push(message)
       log(`${username} < ${message}`)
     })
+    // the sounds heard by name: the ding of a point or a game won is random.orb (the owner's ask of 22/11)
+    bot.sounds = []
+    bot.on('soundEffectHeard', (name) => bot.sounds.push(name))
     // the chat lines as sent, for their click events
     bot.jsonChats = []
     bot.on('message', (message) => bot.jsonChats.push(message.json))
@@ -1291,11 +1294,16 @@ async function main () {
       if (two.health < 20) throw new Error(`RagoDeux took damage in the sumo duel (health ${two.health})`)
       log('hit: RagoDeux got knockback and no damage')
     }
+    const heard = one.sounds.length
     await fallOff(two)
     await chatLine(two, /Point for RagoUn/, 10000, fromTwo)
     stop(two)
     await chatLine(one, /Your point/, 5000, fromOne)
-    log(`round ${round}: RagoDeux fell, point for RagoUn`)
+    // the ding of the point won, and on the last one the ding of the game won too
+    const dings = () => one.sounds.slice(heard).filter((name) => name === 'random.orb').length
+    const want = round === POINTS_TO_WIN ? 2 : 1
+    await waitFor(() => dings() >= want, 3000, `RagoUn to hear ${want} ding(s) for round ${round}; sounds: ${JSON.stringify(one.sounds.slice(heard))}`)
+    log(`round ${round}: RagoDeux fell, point for RagoUn (${dings()} ding${dings() > 1 ? 's' : ''})`)
   }
   await chatLine(one, /Victory!.*3 - 0/, 5000, fromOne)
   await chatLine(two, /Defeat.*0 - 3/, 5000, fromTwo)

@@ -4,7 +4,7 @@
 // plays the Block clutch training; ten others come one after the other and watch it with the
 // lobby's /spectate:
 //   1. each is told it spectates, in the spectator mode, near the player, in the training's world;
-//   2. the player is told of each of them, and keeps playing (still in survival);
+//   2. the player is told of each of them, in red and bold with a ding, and keeps playing (still in survival);
 //   3. a few seconds later, all ten still watch, near the player;
 //   4. /spawn takes each of them back to the lobby, then the player too.
 // The test server has the 50 places of the local server's server.properties (max-players): it had
@@ -49,6 +49,12 @@ function join (username) {
     const bot = mineflayer.createBot({ host: HOST, port: PORT, username, auth: 'offline', version: '1.8.8' })
     bot.firstMenu = null
     bot.chats = []
+    // the same lines with their colours (§ codes), and the sounds heard: the spectator's line is red
+    // and bold, with a ding
+    bot.coloured = []
+    bot.sounds = []
+    bot.on('message', (message) => bot.coloured.push(message.toMotd()))
+    bot.on('soundEffectHeard', (name) => bot.sounds.push(name))
     bot.on('windowOpen', (window) => {
       const title = typeof window.title === 'string' ? window.title : JSON.stringify(window.title)
       if (title.includes('What do you want to do?')) bot.firstMenu = window
@@ -118,6 +124,8 @@ async function main () {
   // 1. ten spectators, one after the other
   const watchers = []
   const told = player.chats.length
+  const toldColoured = player.coloured.length
+  const heard = player.sounds.length
   for (let i = 1; i <= WATCHERS; i++) {
     const name = `RagoVue${String(i).padStart(2, '0')}`
     const watcher = await arrive(name)
@@ -137,6 +145,13 @@ async function main () {
     return lines.length >= WATCHERS
   }, 5000, `the player told of the ${WATCHERS} spectators; chat: ${JSON.stringify(player.chats.slice(told))}`)
   if (player.game.gameMode !== 'survival') throw new Error(`the player left the training: mode ${player.game.gameMode}`)
+  // in red and bold, each with a ding (the owner's ask of 22/11)
+  const red = player.coloured.slice(toldColoured).filter((line) => /RagoVue\d+.* is now spectating your game/.test(line))
+  const notRed = red.filter((line) => !/^(§[rcl])*§c§l(§[rcl])*RagoVue\d+(§[rcl])* is now spectating your game/.test(line))
+  if (red.length < WATCHERS || notRed.length > 0) throw new Error(`the spectators' lines should be red and bold: ${JSON.stringify(red)}`)
+  const dings = player.sounds.slice(heard).filter((name) => name === 'random.orb').length
+  if (dings < WATCHERS) throw new Error(`the player heard ${dings} dings for ${WATCHERS} spectators: ${JSON.stringify(player.sounds.slice(heard))}`)
+  log(`the player read each spectator in red and bold, with a ding (${dings} heard)`)
 
   // 3. all still there a few seconds later
   await sleep(4000)

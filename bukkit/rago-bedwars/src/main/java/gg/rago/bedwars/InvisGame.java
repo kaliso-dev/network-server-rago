@@ -614,6 +614,9 @@ final class InvisGame extends BedwarsGame {
                 continue;
             }
             boolean won = gamer.id.equals(invisible) == invisibleWon;
+            if (won) {
+                ding(player);
+            }
             if (!watching.contains(gamer.id)) {
                 player.sendTitle(won ? ChatColor.GOLD + "" + ChatColor.BOLD + "ROUND WON" : ChatColor.RED + "" + ChatColor.BOLD
                         + "ROUND LOST", "");
@@ -780,6 +783,7 @@ final class InvisGame extends BedwarsGame {
             if (winners.contains(gamer.id)) {
                 player.sendTitle(ChatColor.GOLD + "" + ChatColor.BOLD + "VICTORY!", "");
                 player.playSound(player.getLocation(), Sound.LEVEL_UP, 1f, 1f);
+                ding(player);
             } else {
                 player.sendTitle(winners.isEmpty() ? ChatColor.YELLOW + "" + ChatColor.BOLD + "DRAW"
                         : ChatColor.RED + "" + ChatColor.BOLD + "GAME OVER!", "");

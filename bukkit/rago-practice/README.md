@@ -27,6 +27,9 @@ aussi (sans [View]) ; pas dans les events.
 Ceux qui regardent un duel ou un entraînement (`/spectate`, voir le
 [README du lobby](../rago-lobby/README.md)) lisent ses messages et son récap, voient le sidebar du
 joueur qu'ils sont venus voir, ne s'éloignent pas de l'arène et reviennent au lobby à la fin.
+Les joueurs lisent l'arrivée de chacun en rouge et en gras, avec un ding.
+**Le ding** (ta demande du 22/11) : chaque point, manche ou partie gagnés le fait sonner pour ceux
+qui l'ont gagné, le son de l'orbe d'XP (`ORB_PICKUP`). La victoire garde aussi son son de level up.
 Chaque duel, sumo compris, est enregistré : `/replay` le montre à nouveau depuis le lobby, avec
 **[REPLAY]** dans la ligne d'après-partie (voir le [README du lobby](../rago-lobby/README.md)).
 Quatre duels ont leur version classée (plan 3.7, catégorie Ranked de la boussole) : `ranked-sumo`,
@@ -507,6 +510,12 @@ modes sont un seul item, **Red Rover**, dans Duels :
 - **Red Rover Top Bridge** (`red-rover-top-bridge`), joué par RagoBedwars (voir son README) : sur
   le top bridge des maps de Top Bridge, des manches d'une vie, le premier à
   `points-par-1v1-top-bridge` manches (1) gagne le 1v1.
+
+À la fin de la partie, tous lisent le **top 3** (ta demande du 22/11) : « 1st - Alice - 3 1v1 won »,
+puis 2nd et 3rd, colorés comme les meilleurs tueurs de la fin d'une partie de Bed Wars. Le gagnant
+de la partie est premier ; puis le classement va aux 1v1 gagnés ; à égalité, un joueur encore là
+passe avant un joueur sorti, le dernier sorti avant ceux sortis plus tôt, sinon l'ordre du début
+(`RedRoverRotation.top`, le même pour les quatre Red Rovers).
 
 Block Edit et Block Placement sont les duels `BlockEditDuel` et `BlockFight` joués en Red Rover
 (`Duel.asRedRover`) : chaque joueur est un camp à lui, les deux qui se battent ont une place dans le

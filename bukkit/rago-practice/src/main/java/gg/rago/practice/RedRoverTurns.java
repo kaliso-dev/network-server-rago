@@ -136,6 +136,7 @@ final class RedRoverTurns {
         }
         if (champion != null) {
             game.finish(game.sideOf(champion), null);
+            tellTop(champion);
             return;
         }
         announceNext();
@@ -171,6 +172,7 @@ final class RedRoverTurns {
             UUID last = rotation.left(id);
             if (last != null) {
                 game.finish(game.sideOf(last), ChatColor.GRAY + game.nameOf(id) + " gave up.");
+                tellTop(last);
             } else {
                 game.broadcast(ChatColor.GRAY + game.nameOf(id) + " left the game.", null);
                 if (fought) {
@@ -185,6 +187,31 @@ final class RedRoverTurns {
         if (toLobby) {
             game.plugin.lobby().sendToLobby(player);
         }
+    }
+
+    /** How many the top of the end shows (the owner's ask of 22/11: the top 3). */
+    static final int TOP = 3;
+
+    /** Its places, coloured as the killers' of the end of a Bed Wars game. */
+    private static final String[] PLACES = {
+        ChatColor.YELLOW + "" + ChatColor.BOLD + "1st",
+        ChatColor.GOLD + "" + ChatColor.BOLD + "2nd",
+        ChatColor.RED + "" + ChatColor.BOLD + "3rd",
+    };
+
+    /** The top 3 of the game, once it is over: the winner first, then by 1v1 won ({@link RedRoverRotation#top}). */
+    private void tellTop(UUID champion) {
+        List<UUID> top = rotation.top(champion, TOP);
+        game.broadcast(ChatColor.GOLD + "" + ChatColor.BOLD + "Top " + top.size(), null);
+        for (int i = 0; i < top.size(); i++) {
+            game.broadcast(topLine(i, game.nameOf(top.get(i)), rotation.wins(top.get(i))), null);
+        }
+    }
+
+    /** "  1st - Alice - 3 1v1 won": a place of the top, from 0. */
+    static String topLine(int place, String name, int won) {
+        return "  " + PLACES[place] + ChatColor.GRAY + " - " + ChatColor.WHITE + name + ChatColor.GRAY + " - " + ChatColor.WHITE + won
+                + ChatColor.GRAY + " 1v1 won";
     }
 
     /** The 1v1 won of each player: "(Alice 3, Bob 1, Carl 0)". */

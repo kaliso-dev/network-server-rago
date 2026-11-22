@@ -112,6 +112,8 @@ public final class RedRoverRotation<T> {
     private final Map<T, Integer> wins = new LinkedHashMap<>();
     /** The players still in the game: not out (elimination), not gone. */
     private final List<T> in = new ArrayList<>();
+    /** The ones out (a 1v1 lost in an elimination) or gone, in the order they went out. */
+    private final List<T> out = new ArrayList<>();
 
     /** Two players at least, in the order they come in: the first two fight first. */
     public RedRoverRotation(List<T> order, Variant variant, Stays stays, int target) {
@@ -174,6 +176,32 @@ public final class RedRoverRotation<T> {
     }
 
     /**
+     * The best of the game, at most count of them (the top 3 of its end, the owner's ask of 22/11):
+     * the winner of the game first (null: none), then by 1v1 won; between as many, one still in
+     * before one out, the last out before those out earlier, else in the order of the start.
+     */
+    public List<T> top(T champion, int count) {
+        List<T> ranked = new ArrayList<>(wins.keySet());
+        ranked.sort((a, b) -> {
+            if (a.equals(champion) != b.equals(champion)) {
+                return a.equals(champion) ? -1 : 1;
+            }
+            if (wins(a) != wins(b)) {
+                return wins(b) - wins(a);
+            }
+            // the sort keeps the order of the start between equals
+            return Integer.compare(outRank(b), outRank(a));
+        });
+        return new ArrayList<>(ranked.subList(0, Math.min(Math.max(count, 0), ranked.size())));
+    }
+
+    /** Higher for one still in than for one out, and for one out later than for one out earlier. */
+    private int outRank(T player) {
+        int index = out.indexOf(player);
+        return index < 0 ? Integer.MAX_VALUE : index;
+    }
+
+    /**
      * This fighter won the 1v1: the winner of the game if that makes one, else null and the next
      * 1v1 is set.
      */
@@ -195,6 +223,7 @@ public final class RedRoverRotation<T> {
             return null;
         }
         in.remove(loser);
+        out.add(loser);
         if (in.size() == 1) {
             return winner;
         }
@@ -212,6 +241,7 @@ public final class RedRoverRotation<T> {
         if (!in.remove(player)) {
             return null;
         }
+        out.add(player);
         waiting.remove(player);
         boolean fought = fight.remove(player);
         if (in.size() == 1) {

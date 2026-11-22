@@ -238,6 +238,9 @@ final class SumoMatch implements Spectators.Watched {
             if (p != null) {
                 p.sendMessage((s == scorer ? ChatColor.GREEN + "Your point" : ChatColor.RED + "Point for " + names[scorer])
                         + ChatColor.GRAY + " (" + score.text(s) + ")");
+                if (s == scorer) {
+                    PracticeGame.ding(p);
+                }
             }
         }
         if (won) {
@@ -280,6 +283,7 @@ final class SumoMatch implements Spectators.Watched {
                 player.sendMessage(ChatColor.GOLD + "Victory!" + ChatColor.GRAY + " (" + score.text(side) + ")"
                         + (forfeit ? ChatColor.GRAY + " " + names[1 - side] + " gave up." : ""));
                 player.playSound(player.getLocation(), Sound.LEVEL_UP, 1f, 1f);
+                PracticeGame.ding(player);
             } else {
                 player.sendMessage(ChatColor.RED + "Defeat." + ChatColor.GRAY + " (" + score.text(side) + ")");
             }

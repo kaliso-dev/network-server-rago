@@ -6,8 +6,8 @@
 //      fight, the third watches (spectator);
 //   2. three 1v1 in a row: each time the one who is not the first winner walks off the platform;
 //      the winner stays on and fights the one who waited, the loser watches;
-//   3. after the third 1v1 won, the first winner wins the game, the two others lose; all three back
-//      in the lobby.
+//   3. after the third 1v1 won, the first winner wins the game, the two others lose, all three read
+//      the top 3 (the winner first); all three back in the lobby.
 //   4. Red Rover Block Placement (red-rover-block-placement, a duel played as a Red Rover, on the
 //      plugin's two platforms): a fighter walks off its platform, the void gives the other 10, the
 //      first to 10: the 1v1 won; the next one; the one who waits leaves (/spawn), then a fighter:
@@ -319,6 +319,15 @@ async function main () {
     await chatLine(bots[i], bots[i] === champion ? /Victory!/ : /Defeat\./, 10000, from[i])
   }
   log(`red rover: ${champion.username} won the game, first to 3`)
+  // the top 3 of the end (the owner's ask of 22/11): the champion first with its 3 1v1 won, the others 0
+  const others = bots.filter((bot) => bot !== champion).map((bot) => bot.username).join('|')
+  for (let i = 0; i < bots.length; i++) {
+    await chatLine(bots[i], /^Top 3$/, 5000, from[i])
+    await chatLine(bots[i], new RegExp(`1st - ${champion.username} - 3 1v1 won`), 5000, from[i])
+    await chatLine(bots[i], new RegExp(`2nd - (${others}) - 0 1v1 won`), 5000, from[i])
+    await chatLine(bots[i], new RegExp(`3rd - (${others}) - 0 1v1 won`), 5000, from[i])
+  }
+  log(`red rover: the top 3 of the end, ${champion.username} first`)
   for (const bot of bots) await expectInLobby(bot, 'after the Red Rover')
 
   await blockPlacement(bots)

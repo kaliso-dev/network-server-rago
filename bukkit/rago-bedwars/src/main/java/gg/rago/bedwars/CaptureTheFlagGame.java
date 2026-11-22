@@ -328,6 +328,7 @@ final class CaptureTheFlagGame extends BedwarsGame {
                 captures.merge(gamer.id, 1, Integer::sum);
                 broadcast(gamer.coloured() + ChatColor.YELLOW + " captured the " + flagName(carried) + ChatColor.YELLOW
                         + "! " + score(), Sound.LEVEL_UP);
+                ding(gamer.team);
                 title(gamer.team.color.chat() + "" + ChatColor.BOLD + gamer.team.color.displayName().toUpperCase(Locale.ROOT)
                         + " SCORES!", score());
                 sidebars();

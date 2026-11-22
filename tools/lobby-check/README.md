@@ -25,7 +25,8 @@ jouent comme des joueurs :
    le bâton là où il l'a rangé (RagoUn : quatrième case, RagoDeux : la première, celle du kit), et
    le scoreboard montre l'adversaire et le ping des deux joueurs :
    RagoUn frappe RagoDeux une fois (il doit recevoir du knockback et aucun
-   dégât), puis RagoDeux tombe trois fois de la plateforme : RagoUn gagne 3 - 0 ;
+   dégât), puis RagoDeux tombe trois fois de la plateforme : RagoUn gagne 3 - 0, et entend le
+   ding (`random.orb`) à chaque point, et une fois de plus à la victoire ;
 4. les deux reviennent au lobby, au spawn, avec les objets du lobby, et le PNJ Duels montre de
    nouveau « 0 in queue ». Chacun lit son profil
    au-dessus du PNJ de stats (victoires, kills) et les classements (RagoUn premier, 3 kills) ;
@@ -135,7 +136,7 @@ côtés, le verre).
 
 Puis un bot joue l'entraînement Block clutch pendant que dix autres le regardent en même temps avec
 `/spectate` (`tools/kb-control/bots/spectate-bots.mjs`) : chacun passe en mode spectateur près du
-joueur, le joueur est prévenu de chacun et continue de jouer, les dix sont toujours là quelques
+joueur, le joueur est prévenu de chacun (en rouge et en gras, avec un ding) et continue de jouer, les dix sont toujours là quelques
 secondes plus tard, et `/spawn` les ramène tous au lobby. Le serveur de test a les 50 places du
 `server.properties` du serveur local (il en avait 8, trop peu pour une partie et dix spectateurs).
 
@@ -152,7 +153,7 @@ livrés (aux points, le gagnant reste, premier à 3) : ils entrent seuls dans la
 ensemble, deux s'affrontent pendant que le troisième regarde en spectateur ; trois 1v1 de suite où
 l'autre combattant sort de la plateforme, le gagnant restant contre celui qui attendait et le
 perdant passant spectateur ; au troisième 1v1 gagné, victoire du gagnant, défaite des deux autres,
-et retour des trois au lobby. Ils jouent ensuite Red Rover Block Placement, sur les deux plateformes
+le top 3 lu par les trois (le gagnant premier avec ses 3 1v1 gagnés), et retour des trois au lobby. Ils jouent ensuite Red Rover Block Placement, sur les deux plateformes
 du plugin : un combattant sort de la sienne, le vide donne 10 à l'autre qui gagne ainsi le 1v1, et
 le 1v1 suivant l'oppose à celui qui attendait ; celui qui attend quitte la partie (`/spawn`), puis
 un combattant, et le dernier en jeu gagne. Puis Red Rover Block Edit : un combattant quitte le

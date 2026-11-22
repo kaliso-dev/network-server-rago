@@ -323,6 +323,12 @@ final class RedRoverTopBridgeGame extends TopBridgeGame {
         }
         over = true;
         broadcast(ChatColor.YELLOW + "1v1 won: " + ChatColor.WHITE + result(), null);
+        // the top 3 of the game (the owner's ask of 22/11): the winner first, then by 1v1 won
+        List<UUID> top = rotation.top(champion, TOP);
+        broadcast(ChatColor.GOLD + "" + ChatColor.BOLD + "Top " + top.size(), null);
+        for (int i = 0; i < top.size(); i++) {
+            broadcast(topLine(i, nameOf(top.get(i)), rotation.wins(top.get(i))), null);
+        }
         Gamer winner = gamers.get(champion);
         Team won = winner.team;
         Team lost = won == teams.get(0) ? teams.get(1) : teams.get(0);
@@ -334,6 +340,21 @@ final class RedRoverTopBridgeGame extends TopBridgeGame {
         }
         end(won);
     }
+
+    /** How many the top of the end shows (the owner's ask of 22/11: the top 3). */
+    static final int TOP = 3;
+
+    /** "  1st - Alice - 3 1v1 won": a place of the top, from 0, coloured as the killers' of the end. */
+    static String topLine(int place, String name, int won) {
+        return "  " + PLACES[place] + ChatColor.GRAY + " - " + ChatColor.WHITE + name + ChatColor.GRAY + " - " + ChatColor.WHITE + won
+                + ChatColor.GRAY + " 1v1 won";
+    }
+
+    private static final String[] PLACES = {
+        ChatColor.YELLOW + "" + ChatColor.BOLD + "1st",
+        ChatColor.GOLD + "" + ChatColor.BOLD + "2nd",
+        ChatColor.RED + "" + ChatColor.BOLD + "3rd",
+    };
 
     /** The 1v1 won of each player: "Alice 3, Bob 1, Carl 0". */
     private String result() {
