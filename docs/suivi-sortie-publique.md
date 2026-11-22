@@ -1477,5 +1477,11 @@ lancement à l'autre, ce ne sont pas les mêmes jobs, et les autres passent.
 e8fd5fa et les `config.yml` du lobby, du practice et du Bed Wars (tes réglages gardés, seuls les
 nouveaux modes ajoutés) ; l'ancien état est dans `sauvegarde-avant-maj-fun-1`.
 
+**Installé** à nouveau le 22/11 (vers 1h15, heure de Paris) : les 5 plugins du commit 0271f26
+(Clutch Scenario 1v1 à 1v4, catégorie 3 Players, /host) et les `config.yml` du lobby et du Bed
+Wars fusionnés avec tes réglages, sans conflit ; le PNJ Fun Practice baissé d'un bloc
+(`points.yml` et la région `r.-1.0.mca` du monde du lobby). Empreintes SHA-256 vérifiées sur ton
+PC ; l'ancien état est dans `sauvegarde-avant-maj-0271f26`.
+
 **À faire en jeu** : une partie de chaque mode sur ton serveur de test ; poser le PNJ avec
 `/lobby point funmod2`.
