@@ -64,8 +64,8 @@ class LobbySettingsTest {
         assertEquals("lobby", settings.world());
         assertEquals(0, settings.voidHeight());
         assertEquals(0, settings.defaultRating(), "a ranked ELO starts at 0, in Coal");
-        assertEquals(91, settings.modes().size(), "the six ranked duels (plan 3.7), the invis practice and the Bed Break Simulator in 1v1 to 1v4 (and"
-                + " their kits), with the private top bridge, the clutch scenario, the bed fight (1v1, 2v2, 1v2), Top"
+        assertEquals(92, settings.modes().size(), "the six ranked duels (plan 3.7), the invis practice and the Bed Break Simulator in 1v1 to 1v4 (and"
+                + " their kits), with Bedwars Normal (its 4s and 2s), the clutch scenario, the bed fight (1v1, 2v2, 1v2), Top"
                 + " BedFight, the bridge fight 2v2, the full map first rush, Sky Rise Resources, the timed bridge, Lobby"
                 + " Fight (1v1, FFA), the Bed Break Simulator, the four modes of FUN PRACTICE (CTF The Bridge 1v1 and"
                 + " 2v2, CTF Castle 2v2 and 4v4 with them, Fast Bedwars 1v1 and 2v2), Red Rover (sumo, block edit, block placement, top bridge),"
@@ -315,8 +315,12 @@ class LobbySettingsTest {
         for (String holder : Arrays.asList("invis-practice", "bed-break-simulator")) {
             assertTrue(settings.display(holder).hidden(), "a kit of the sizes of a game, not in the selector: " + holder);
         }
-        assertEquals(settings.modes().size() - 5, shown,
-                "every mode but the hidden ones (the 3 events, the 2 kits of sizes) is in the selector, once");
+        for (String size : Arrays.asList("bedwars-normal-4s", "bedwars-normal-2s")) {
+            assertTrue(settings.display(size).hidden(), "played only from Bedwars Normal, not in the selector: " + size);
+        }
+        assertEquals(settings.modes().size() - 7, shown,
+                "every mode but the hidden ones (the 3 events, the 2 kits of sizes, the 4s and 2s of Bedwars Normal) is in"
+                        + " the selector, once");
         assertInvalid("groupes:\n  g: {}\nmodes:\n  sumo:\n    groupe: autre\n", "modes.sumo.groupe");
     }
 
@@ -332,8 +336,9 @@ class LobbySettingsTest {
         List<LobbySettings.Entry> ranked = settings.entriesOf(settings.npc("ranked").modeIds());
         assertEquals(4, ranked.size(), "one group only: its modes, one by one, as before");
         assertEquals("ranked-1v1", ranked.get(0).mode.mode().id());
-        assertEquals(2, settings.entriesOf(settings.npc("partieprivee").modeIds()).size(),
-                "the private game and the private top bridge: no group of two");
+        List<LobbySettings.Entry> privateGames = settings.entriesOf(settings.npc("partieprivee").modeIds());
+        assertEquals(1, privateGames.size(), "Bedwars Normal alone, its 4s and 2s hidden");
+        assertEquals("bedwars-normal", privateGames.get(0).mode.mode().id(), "a group of one: the mode itself");
     }
 
     @Test
