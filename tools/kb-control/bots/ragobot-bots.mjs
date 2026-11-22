@@ -84,8 +84,11 @@ function mark (bot) {
 }
 
 async function chatLine (bot, pattern, timeoutMs, from) {
-  await waitFor(() => bot.chats.slice(from).some((line) => pattern.test(line)), timeoutMs,
-    `${bot.username} to read ${pattern}; chat: ${JSON.stringify(bot.chats.slice(from))}`)
+  try {
+    await waitFor(() => bot.chats.slice(from).some((line) => pattern.test(line)), timeoutMs, `${bot.username} to read ${pattern}`)
+  } catch (error) {
+    throw new Error(`${error.message}; chat: ${JSON.stringify(bot.chats.slice(from))}`)
+  }
   return bot.chats.slice(from).find((line) => pattern.test(line))
 }
 
@@ -263,8 +266,17 @@ async function topBridge1v1 (leader, problems) {
 
 async function topBridge2v2 (leader, others) {
   const from = [leader, ...others].map(mark)
-  leader.chat('/queue top-bridge-2v2')
-  await chatLine(leader, /Your party joined the queue for .*Top Bridge 2v2.*You will play in the same team\./, 5000, from[0])
+  // RagoBot comes back from the game RagoLeader left after its end screen: until then, the party
+  // waits for it, as for any player of the party
+  const queued = /Your party joined the queue for .*Top Bridge 2v2.*You will play in the same team\./
+  const deadline = Date.now() + 20000
+  for (let asked = mark(leader); ; asked = mark(leader)) {
+    leader.chat('/queue top-bridge-2v2')
+    const answer = await chatLine(leader, new RegExp(`${queued.source}|RagoBot is not in the lobby: your party cannot join a queue\\.`), 5000, asked)
+    if (queued.test(answer)) break
+    if (Date.now() > deadline) throw new Error(`RagoBot never came back to the lobby after the top bridge 1v1 (${answer})`)
+    await sleep(1000)
+  }
   for (const other of others) other.chat('/queue top-bridge-2v2')
   const welcome = await chatLine(leader, /Top Bridge 2v2 on .*: you are in the \S+ team\./, 30000, from[0])
   const team = /you are in the (\S+) team\./.exec(welcome)[1]
