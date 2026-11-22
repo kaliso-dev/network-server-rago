@@ -297,7 +297,7 @@ final class HeadLines implements Listener {
             all[i] = ids.get(i);
         }
         for (Player viewer : Bukkit.getOnlinePlayers()) {
-            if (all.length > 0 && viewers.contains(viewer.getUniqueId())) {
+            if (all.length > 0 && viewers.contains(viewer.getUniqueId()) && !RagoBots.isBot(viewer)) {
                 PacketEvents.getAPI().getPlayerManager().sendPacket(viewer, new WrapperPlayServerDestroyEntities(all));
             }
         }
@@ -335,7 +335,7 @@ final class HeadLines implements Listener {
             WrapperPlayServerEntityMetadata packet = new WrapperPlayServerEntityMetadata(OFFSET + player.getEntityId(), metadata);
             for (Player viewer : lobby.getPlayers()) {
                 // a client without the stand (too far, hidden) leaves it: it gets the line with the player
-                if (viewer != player && viewer.canSee(player)) {
+                if (viewer != player && viewer.canSee(player) && !RagoBots.isBot(viewer)) {
                     PacketEvents.getAPI().getPlayerManager().sendPacket(viewer, packet);
                 }
             }

@@ -32,6 +32,8 @@ final class LobbySettings {
     private List<Billboard> billboards = Collections.emptyList();
     /** The texts of the lobby ({@link LobbyText}): none without textes:. */
     private List<LobbyText> texts = Collections.emptyList();
+    /** RagoBot (ragobot:). */
+    private BotSettings bots;
     /** The block under each NPC that has one in config.yml (pnj: ... bloc:), by point. */
     private Map<String, Pedestal> pedestals = Collections.emptyMap();
     /** The points of the daily reward chest and of the quests NPC. */
@@ -186,6 +188,11 @@ final class LobbySettings {
                 }
             }
         }
+        Map<String, GameMode> modesById = new HashMap<>();
+        for (ModeDisplay display : modes) {
+            modesById.put(display.mode().id(), display.mode());
+        }
+        BotSettings bots = BotSettings.read(config.getConfigurationSection("ragobot"), modesById);
         Map<String, Pedestal> pedestals = readPedestals(config.getConfigurationSection("pnj"));
         String dailyPoint = pointName(config, "point-coffre-du-jour", DailyChest.POINT);
         String questsPoint = pointName(config, "point-pnj-quetes", QuestsNpc.POINT);
@@ -199,6 +206,7 @@ final class LobbySettings {
             settings.firstChoices = Collections.unmodifiableList(firstChoices);
             settings.billboards = billboards;
             settings.texts = Collections.unmodifiableList(texts);
+            settings.bots = bots;
             settings.pedestals = Collections.unmodifiableMap(pedestals);
             settings.dailyPoint = dailyPoint;
             settings.questsPoint = questsPoint;
@@ -925,6 +933,11 @@ final class LobbySettings {
     /** The billboards of the lobby (panneaux:); empty: none. */
     List<Billboard> billboards() {
         return billboards;
+    }
+
+    /** RagoBot (ragobot:). */
+    BotSettings bots() {
+        return bots;
     }
 
     /** The texts of the lobby (textes:), each on its point; empty: none. */

@@ -831,6 +831,9 @@ final class ReplayViewer {
     // --- Packets --------------------------------------------------------------------------------
 
     private void send(PacketWrapper<?> packet) {
+        if (RagoBots.isBot(viewer)) {
+            return;
+        }
         PacketEvents.getAPI().getPlayerManager().sendPacket(viewer, packet);
     }
 

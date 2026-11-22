@@ -105,6 +105,12 @@ final class DuelRequests {
             challenger.sendMessage(ChatColor.RED + "You cannot duel yourself.");
             return false;
         }
+        if (RagoBots.isBot(target)) {
+            // it plays in a party only, never by a duel request
+            challenger.sendMessage(ChatColor.GRAY + BotSettings.NAME + " plays with your party: " + ChatColor.WHITE
+                    + "/p invite " + BotSettings.NAME + ChatColor.GRAY + ", then pick its mode as the leader.");
+            return false;
+        }
         if (!state.isInLobby(challenger) || state.isInGame(challenger)) {
             challenger.sendMessage(ChatColor.RED + "Go back to the lobby (/spawn) to start a duel.");
             return false;

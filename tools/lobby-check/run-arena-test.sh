@@ -21,6 +21,10 @@
 # other map the plugin makes: the start of Bed Wars in the castles, then one team leaves. Last, two
 # bots play Fast Bedwars 1v1 (tools/kb-control/bots/fast-bots.mjs) on the demo map: its welcome, its
 # events (no Diamond II), no diamond generator nor upgrades NPC, its fast forge, its smaller shop.
+# Then a bot invites RagoBot into its party (tools/kb-control/bots/ragobot-bots.mjs): RagoBot refuses
+# ranked and the modes it does not play, wins a Sumo duel and a round of Top Bridge 1v1 against the
+# bot who stands still, plays Top Bridge 2v2 in the party's team against two others, and leaves the
+# server once kicked from the party; none of these games is counted as a private game.
 # Fails if the bots fail, or if the server log has an error or an exception.
 #
 # Run from anywhere, after the build:
@@ -216,7 +220,9 @@ for expected in '[RagoLobby] Lobby in the world lobby' '[RagoPractice] Arenas in
     'Mode red-rover-block-edit hosted by RagoPractice' 'Mode red-rover-block-placement hosted by RagoPractice' \
     'Mode red-rover-top-bridge hosted by RagoBedwars' 'Mode ctf-bridge-1v1 hosted by RagoBedwars' \
     'Mode ctf-castle-2v2 hosted by RagoBedwars' '[RagoBedwars] Capture the Flag map CtfBridge created' \
-    '[RagoBedwars] Capture the Flag map CtfCastle created' 'Mode fast-bedwars-1v1 hosted by RagoBedwars'; do
+    '[RagoBedwars] Capture the Flag map CtfCastle created' 'Mode fast-bedwars-1v1 hosted by RagoBedwars' \
+    'Mode sumo hosted by RagoPractice' 'Mode top-bridge-1v1 hosted by RagoBedwars' \
+    'Mode top-bridge-2v2 hosted by RagoBedwars'; do
   server_log_has "$expected" || { grep -n 'Rago' "$SERVER_LOG" >&2 || true; fail "missing in the server log: $expected"; }
 done
 log "server started with the lobby and the practice modes"
@@ -246,6 +252,10 @@ KB_HOST=127.0.0.1 KB_PORT=$PORT node "$ROOT/tools/kb-control/bots/ctf-bots.mjs" 
 # The same server for Fast Bedwars: two bots, Fast Bedwars 1v1 (RagoBedwars, on its demo map).
 fast_status=0
 KB_HOST=127.0.0.1 KB_PORT=$PORT node "$ROOT/tools/kb-control/bots/fast-bots.mjs" || fast_status=$?
+# The same server for RagoBot: a bot invites it into its party, plays the Sumo duel and Top Bridge
+# 1v1 against it, then Top Bridge 2v2 with it against two others, and sends it away.
+ragobot_status=0
+KB_HOST=127.0.0.1 KB_PORT=$PORT node "$ROOT/tools/kb-control/bots/ragobot-bots.mjs" || ragobot_status=$?
 stop_server
 
 # Any error or exception logged by the server fails the test, even if the bots passed. One is
@@ -264,4 +274,10 @@ fi
 [[ $rover_status -eq 0 ]] || { tail -n 60 "$SERVER_LOG" >&2; fail "the Red Rover bots stopped with status $rover_status"; }
 [[ $ctf_status -eq 0 ]] || { tail -n 60 "$SERVER_LOG" >&2; fail "the Capture the Flag bots stopped with status $ctf_status"; }
 [[ $fast_status -eq 0 ]] || { tail -n 60 "$SERVER_LOG" >&2; fail "the Fast Bedwars bots stopped with status $fast_status"; }
+[[ $ragobot_status -eq 0 ]] || { tail -n 60 "$SERVER_LOG" >&2; fail "the RagoBot bots stopped with status $ragobot_status"; }
+server_log_has '[RagoLobby] RagoBot joined for the party of RagoLeader' || fail "RagoBot did not join for the party of RagoLeader"
+# A game with RagoBot counts in the players' stats: none is a private game of the party.
+if grep -n -E 'Private game of a party in (sumo|top-bridge-1v1|top-bridge-2v2):' "$SERVER_LOG" >&2; then
+  fail "a game with RagoBot was counted as a private game (above)"
+fi
 log "PASSED"

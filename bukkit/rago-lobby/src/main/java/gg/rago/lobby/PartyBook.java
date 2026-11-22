@@ -92,6 +92,13 @@ final class PartyBook {
     }
 
     private final Map<UUID, Party> partyOf = new HashMap<>();
+    /** Who may lead a party: everyone but RagoBot ({@link RagoBots}). */
+    private java.util.function.Predicate<UUID> mayLead = player -> true;
+
+    /** Who may lead a party: the leader who goes passes the party to the next one who may. */
+    void setMayLead(java.util.function.Predicate<UUID> mayLead) {
+        this.mayLead = mayLead;
+    }
 
     /** The player's party, or null. A party of one is there while its invites run. */
     Party of(UUID player) {
@@ -148,9 +155,9 @@ final class PartyBook {
     }
 
     /**
-     * The player leaves their party (or is kicked, or left the server). The next player leads when
-     * the leader goes. A party left with one player and no invite is disbanded. Returns the party
-     * left, or null.
+     * The player leaves their party (or is kicked, or left the server). The next player who may
+     * lead leads when the leader goes. A party left with one player and no invite, or with nobody
+     * who may lead, is disbanded. Returns the party left, or null.
      */
     Party leave(UUID player) {
         Party party = partyOf.remove(player);
@@ -158,7 +165,16 @@ final class PartyBook {
             return null;
         }
         party.members.remove(player);
-        if (party.members.isEmpty() || (party.size() == 1 && party.invites.isEmpty())) {
+        if (!party.members.isEmpty() && !mayLead.test(party.members.get(0))) {
+            for (int i = 1; i < party.members.size(); i++) {
+                if (mayLead.test(party.members.get(i))) {
+                    party.members.add(0, party.members.remove(i));
+                    break;
+                }
+            }
+        }
+        if (party.members.isEmpty() || (party.size() == 1 && party.invites.isEmpty())
+                || !mayLead.test(party.members.get(0))) {
             disband(party);
         }
         return party;
@@ -174,10 +190,11 @@ final class PartyBook {
         return true;
     }
 
-    /** The leader gives the party to this player. False if they are not in it. */
+    /** The leader gives the party to this player. False if they are not in it, or may not lead. */
     boolean transfer(UUID leader, UUID player) {
         Party party = partyOf.get(leader);
-        if (party == null || !party.isLeader(leader) || leader.equals(player) || !party.contains(player)) {
+        if (party == null || !party.isLeader(leader) || leader.equals(player) || !party.contains(player)
+                || !mayLead.test(player)) {
             return false;
         }
         party.members.remove(player);

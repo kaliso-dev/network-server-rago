@@ -569,4 +569,24 @@ class StatsBookTest {
         assertEquals(1, book.get(ALICE).mode("sumo").wins);
         assertTrue(book.resetKills(Arrays.asList("bedwars-solo")).isEmpty(), "nothing left to reset");
     }
+
+    /** RagoBot (here Carl): its games, kills and deaths count for the players against it, never for itself. */
+    @Test
+    void aPlayerWithoutStatsCountsForTheOthersOnly() {
+        StatsBook book = new StatsBook(1000, NetworkLevel.DEFAULT);
+        book.setCounted(id -> !id.equals(CARL));
+        win(book, SUMO, CARL, ALICE, SATURDAY);
+        win(book, SUMO, ALICE, CARL, SATURDAY);
+        book.kill("sumo", CARL, ALICE, NAMES, SATURDAY);
+        book.kill("sumo", ALICE, CARL, NAMES, SATURDAY);
+        book.draw(SUMO, Arrays.asList(ALICE, CARL), NAMES, SATURDAY);
+        assertNull(book.get(CARL), "no stats of its own");
+        ModeStats alice = book.get(ALICE).mode("sumo");
+        assertEquals(1, alice.wins);
+        assertEquals(1, alice.losses);
+        assertEquals(1, alice.draws);
+        assertEquals(1, alice.kills);
+        assertEquals(1, alice.deaths);
+        assertTrue(book.get(ALICE).xp() > 0, "the XP of her games");
+    }
 }

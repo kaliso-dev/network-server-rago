@@ -85,6 +85,11 @@ final class LobbyListener implements Listener {
     @EventHandler(priority = EventPriority.HIGHEST)
     public void onJoin(PlayerJoinEvent event) {
         event.setJoinMessage(null);
+        if (RagoBots.isBot(event.getPlayer())) {
+            // RagoBot: in the lobby state, without a player's welcome, stats nor Hypixel profile
+            lobby.sendToLobby(event.getPlayer());
+            return;
+        }
         lobby.joined(event.getPlayer());
         lobby.sendToLobby(event.getPlayer());
     }

@@ -107,4 +107,30 @@ class PartyBookTest {
         assertTrue(json.contains("\"value\":\"/party accept RagoUn\""), json);
         assertTrue(json.startsWith("[") && json.endsWith("]"), json);
     }
+
+    /** RagoBot (here C) never leads: a party passes over it, and ends when only it may lead. */
+    @Test
+    void aPlayerWhoMayNotLeadNeverLeads() {
+        PartyBook book = new PartyBook();
+        book.setMayLead(player -> !player.equals(C));
+        book.invite(A, C, 0);
+        book.accept(C, A, 0);
+        book.invite(A, B, 0);
+        book.accept(B, A, 0);
+        assertEquals(Arrays.asList(A, C, B), book.of(A).members());
+        assertFalse(book.transfer(A, C), "it may not lead");
+        assertTrue(book.of(A).isLeader(A));
+        PartyBook.Party party = book.leave(A);
+        assertEquals(Arrays.asList(B, C), party.members(), "the next one who may lead leads");
+        assertFalse(party.isDisbanded());
+        assertTrue(book.of(C).isLeader(B));
+
+        PartyBook alone = new PartyBook();
+        alone.setMayLead(player -> !player.equals(C));
+        alone.invite(A, C, 0);
+        alone.accept(C, A, 0);
+        PartyBook.Party left = alone.leave(A);
+        assertTrue(left.isDisbanded(), "nobody left who may lead");
+        assertNull(alone.of(C));
+    }
 }

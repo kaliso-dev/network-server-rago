@@ -188,6 +188,15 @@ des améliorations. Le bot rouge ramasse au moins 7 ors en 12 secondes sur son s
 fois plus rapide ; 4 ou 5 avec celle d'une partie), ouvre le shop : le Quick Buy par défaut, sa 21e
 case vide sans panneau, et les Blocks avec seulement laine, verre, end stone et planches ; il achète
 de la laine. Le bleu quitte la partie : le rouge gagne, et les deux reviennent au lobby.
+Enfin un bot invite RagoBot dans sa party (`tools/kb-control/bots/ragobot-bots.mjs`) : RagoBot
+entre tout de suite, à côté de lui ; une deuxième invitation, une file classée, un mode qu'il ne
+joue pas et un `/duel RagoBot` d'un autre joueur sont refusés. Le bot joue le Sumo duel contre
+RagoBot sans bouger : RagoBot vient à lui, frappe, le pousse et le sort de la plateforme. En Top
+Bridge 1v1 (carte démo), RagoBot traverse le pont, le frappe à l'épée et gagne une manche ; le bot
+s'en va. En Top Bridge 2v2, la party (le bot et RagoBot) attend dans la file comme une équipe, deux
+autres bots seuls la rejoignent : RagoBot frappe l'un d'eux, ils s'en vont. Après `/p kick
+RagoBot`, puis après une party dissoute, RagoBot quitte le serveur. Le log du serveur ne doit
+compter aucune de ces parties comme partie privée (elles comptent dans les stats).
 
 ```bash
 ./gradlew build

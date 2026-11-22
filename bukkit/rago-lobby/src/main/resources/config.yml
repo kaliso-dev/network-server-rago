@@ -1144,6 +1144,45 @@ parties-privees:
   partie-privee: [ranked-1v1, ranked-2v2, ranked-3v3, ranked-4v4]
   top-bridge-prive: [top-bridge-1v1, top-bridge-2v2]
 
+# RagoBot: a player of the server, with the skin of an account and the name RagoBot, invited
+# into a party with /p invite RagoBot (or /p RagoBot): it joins at once, next to the leader, one
+# for each party that invites it. It plays the party's games of its modes with it, as a member
+# of the party (a party of two plays the 1v1 against it, a party with it waits in the 2v2 queue as
+# one team), never ranked, never in a random queue, and never leads the party. A game with it
+# counts in the players' stats and XP, never in the ELO; it has no stats of its own. It leaves
+# the server once back in the lobby without a party (/p kick RagoBot, the party disbanded).
+#   actif   false: /p invite RagoBot finds nobody
+#   skin    the account whose skin it wears
+#   max     RagoBots online at once at most, 1 to 50 (each is a player of the server)
+#   modes   the modes it plays (two teams, not ranked)
+#   skill   its one skill, the same for every RagoBot (no levels), to set in game:
+#     cps         clicks a second (1 to 20)
+#     precision   the chance that a click with its aim on the other lands (0 to 1)
+#     portee      its reach, from its eyes to the other's box (1 to 3)
+#     strafe      how much it strafes around the other once close (0 to 1)
+#     w-tap       the chance of a w-tap after one of its hits (0 to 1)
+#     jump-reset  the chance of a jump reset when it is hit on the ground (0 to 1)
+#     reaction    how many ticks behind the other it steers (0 to 9)
+#     rotation    the degrees it turns its head a tick at most (5 to 180)
+#     soin-a      under this health (20 is full), it eats a golden apple of its kit (0 to 20)
+#   The values below: the "hard" level of the old combo bot, a turn of 30 degrees a tick, a golden
+#   apple under 10 health, and 10 RagoBots at most; all to confirm in game.
+ragobot:
+  actif: true
+  skin: qRago
+  max: 10
+  modes: [top-bridge-1v1, top-bridge-2v2, sumo]
+  skill:
+    cps: 11
+    precision: 0.88
+    portee: 3.0
+    strafe: 0.8
+    w-tap: 0.75
+    jump-reset: 0.45
+    reaction: 3
+    rotation: 30
+    soin-a: 10
+
 # The modes, in the order of the selector. The id (the key) holds only lowercase letters without
 # accents, digits and dashes. A mode stays "Coming soon" in the selector until a game plugin
 # hosts it.

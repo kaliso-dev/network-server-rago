@@ -28,6 +28,10 @@ final class Books {
     }
 
     static void open(Plugin plugin, final Player player, String title, List<String> jsonPages) {
+        if (RagoBots.isBot(player)) {
+            // no client to read it (and PacketEvents knows no RagoBot)
+            return;
+        }
         NBTList<NBTString> pages = NBTList.createStringList();
         for (String page : jsonPages) {
             pages.addTag(new NBTString(page));

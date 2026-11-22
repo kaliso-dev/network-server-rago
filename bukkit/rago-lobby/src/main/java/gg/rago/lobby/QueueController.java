@@ -463,6 +463,9 @@ final class QueueController {
                     + String.join(", ", sizes) + " players, two teams of the same size."));
             return;
         }
+        if (botRefuses(player, party, chosen)) {
+            return;
+        }
         // from the Private games: the practice of the mode (the top bridge without rounds)
         startPrivate(party, players, chosen, map, true);
     }
@@ -471,6 +474,9 @@ final class QueueController {
     private void joinTogether(Player leader, PartyBook.Party party, GameMode mode, String map) {
         if (!party.isLeader(leader.getUniqueId())) {
             Parties.boxed(leader, ChatColor.RED + "Only the party leader can join a queue.");
+            return;
+        }
+        if (botRefuses(leader, party, mode)) {
             return;
         }
         List<Player> players = new ArrayList<>();
@@ -542,6 +548,29 @@ final class QueueController {
     }
 
     /**
+     * RagoBot plays only its modes (ragobot.modes), never ranked: a party with it is told so, and
+     * stays out of the queue. False when the party may go.
+     */
+    private boolean botRefuses(Player leader, PartyBook.Party party, GameMode mode) {
+        if (RagoBots.botOf(party) == null) {
+            return false;
+        }
+        BotSettings bot = lobby.bots() == null ? null : lobby.bots().settings();
+        if (mode.ranked()) {
+            Parties.boxed(leader, ChatColor.GRAY + BotSettings.NAME + ChatColor.RED + " never plays ranked: "
+                    + ChatColor.WHITE + "/p kick " + BotSettings.NAME + ChatColor.RED + " first.");
+            return true;
+        }
+        if (bot == null || !bot.plays(mode.id())) {
+            Parties.boxed(leader, ChatColor.GRAY + BotSettings.NAME + ChatColor.RED + " plays "
+                    + (bot == null ? "no mode" : bot.modeNames) + " only: " + ChatColor.WHITE + "/p kick "
+                    + BotSettings.NAME + ChatColor.RED + " to play " + mode.name() + ChatColor.RED + ".");
+            return true;
+        }
+        return false;
+    }
+
+    /**
      * A team of a 2v2 joined its queue (a player alone, or a party): the rest of the lobby (not in a
      * queue nor a game) is told,
      * "Sofiene's team is queuing Bed fight 2v2 [JOIN NOW]", and the button joins the same queue,
@@ -583,6 +612,9 @@ final class QueueController {
      * nowhere; from the Private games (parties-privees), the practice of the mode.
      */
     private void startPrivate(PartyBook.Party party, List<Player> players, GameMode mode, String map, boolean practice) {
+        // with RagoBot, the game counts as one against a player (stats, XP), never in the ELO; its
+        // practice, as every practice, in nothing
+        boolean counted = !practice && RagoBots.botOf(party) != null;
         long now = System.currentTimeMillis();
         List<List<QueueEntry>> teams = new ArrayList<>();
         List<List<String>> names = new ArrayList<>();
@@ -600,11 +632,12 @@ final class QueueController {
             sides.add(String.join(" and ", side));
         }
         for (Player member : players) {
-            member.sendMessage(ChatColor.LIGHT_PURPLE + "Private game of your party in " + mode.name() + ChatColor.LIGHT_PURPLE
-                    + ": " + ChatColor.WHITE + String.join(ChatColor.LIGHT_PURPLE + " vs " + ChatColor.WHITE, sides)
-                    + ChatColor.LIGHT_PURPLE + ". It counts in no stats.");
+            member.sendMessage(ChatColor.LIGHT_PURPLE + (counted ? "Game of your party in " : "Private game of your party in ")
+                    + mode.name() + ChatColor.LIGHT_PURPLE + ": " + ChatColor.WHITE
+                    + String.join(ChatColor.LIGHT_PURPLE + " vs " + ChatColor.WHITE, sides) + ChatColor.LIGHT_PURPLE
+                    + (counted ? ". It counts in your stats, never in the ELO." : ". It counts in no stats."));
         }
-        startDirect(new MatchProposal(mode, teams), true, practice);
+        startDirect(new MatchProposal(mode, teams), !counted, practice);
     }
 
     /**
@@ -931,6 +964,7 @@ final class QueueController {
         if (requeue && !releaseAll(match, players)) {
             return false;
         }
+        boolean withBot = RagoBots.anyBot(match.players());
         // The players belong to the game before it starts: the host teleports them during start().
         for (Player player : players) {
             lobby.enterGame(player, modeId);
@@ -940,8 +974,8 @@ final class QueueController {
                     state.markPractice(player.getUniqueId());
                 }
             }
-            if (!requeue) {
-                // not from the queue (a /duel): no ELO, no win streak
+            if (!requeue || withBot) {
+                // not from the queue (a /duel), or with RagoBot: no ELO, no win streak
                 state.markUnrated(player.getUniqueId());
             }
         }

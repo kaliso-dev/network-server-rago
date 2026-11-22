@@ -35,6 +35,8 @@ final class Parties implements Listener {
     private final LobbyState state;
     private final NetworkRanks ranks;
     private QueueController queues;
+    /** RagoBot, who comes into a party at once (/p invite RagoBot); null: none. */
+    private RagoBots bots;
     /** Whether a player may invite another (their settings): yes to everyone by default. */
     private java.util.function.BiPredicate<Player, Player> gate = (from, to) -> true;
     /** The players whose chat goes to their party (/chat party). Read by the chat thread. */
@@ -49,6 +51,10 @@ final class Parties implements Listener {
 
     void setQueues(QueueController queues) {
         this.queues = queues;
+    }
+
+    void setBots(RagoBots bots) {
+        this.bots = bots;
     }
 
     /** Who may invite whom: the gate tells the inviter why not. */
@@ -170,6 +176,10 @@ final class Parties implements Listener {
     }
 
     private void invite(Player player, String name) {
+        if (bots != null && bots.enabled() && name.equalsIgnoreCase(BotSettings.NAME)) {
+            inviteBot(player);
+            return;
+        }
         Player target = Bukkit.getPlayerExact(name);
         if (target == null || !lobby.canSee(player, target)) {
             boxed(player, ChatColor.RED + "Couldn't find a player with that name!");
@@ -206,6 +216,48 @@ final class Parties implements Listener {
         // Clickable through the vanilla /tellraw, as the duel buttons: names are letters, digits and _.
         Bukkit.dispatchCommand(Bukkit.getConsoleSender(), "tellraw " + target.getName() + " " + joinButton(player.getName()));
         target.sendMessage(LINE);
+    }
+
+    /**
+     * /p invite RagoBot: it joins the party at once, as a member (a RagoBot of its own for each
+     * party), next to the leader. One per party.
+     */
+    private void inviteBot(Player player) {
+        if (RagoBots.isBot(player)) {
+            return;
+        }
+        PartyBook.Party party = book.of(player.getUniqueId());
+        if (party != null && !party.isLeader(player.getUniqueId())) {
+            boxed(player, ChatColor.RED + "You are not the party leader!");
+            return;
+        }
+        if (RagoBots.botOf(party) != null) {
+            boxed(player, ChatColor.GRAY + BotSettings.NAME + ChatColor.RED + " is already in the party.");
+            return;
+        }
+        if (party != null && party.size() >= PartyBook.MAX_SIZE) {
+            boxed(player, ChatColor.RED + "The party is full (" + PartyBook.MAX_SIZE + " players).");
+            return;
+        }
+        Player bot = bots.join(player);
+        if (bot == null) {
+            return;
+        }
+        long now = System.currentTimeMillis();
+        if (book.invite(player.getUniqueId(), bot.getUniqueId(), now) != PartyBook.Invite.SENT
+                || book.accept(bot.getUniqueId(), player.getUniqueId(), now) != PartyBook.Accept.JOINED) {
+            // the party changed while it joined: without a party, it leaves the server the next second
+            boxed(player, ChatColor.RED + BotSettings.NAME + " could not join your party: try again.");
+            return;
+        }
+        PartyBook.Party joined = book.of(player.getUniqueId());
+        changed(joined.members());
+        tellParty(joined, name(bot) + ChatColor.GRAY + " joined the party.");
+        BotSettings settings = bots.settings();
+        boxed(player, ChatColor.GRAY + BotSettings.NAME + " plays " + ChatColor.WHITE + settings.modeNames + ChatColor.GRAY
+                + " with your party, never ranked: your games with it count in your stats, never in the ELO.",
+                ChatColor.GRAY + "Pick a mode as the leader. " + ChatColor.WHITE + "/p kick " + BotSettings.NAME
+                + ChatColor.GRAY + " sends it away.");
     }
 
     /** The JSON of "You have 60 seconds to accept. Click here to join!" for an invite of this player. */
@@ -336,6 +388,10 @@ final class Parties implements Listener {
         UUID target = member(party, name);
         if (target == null || target.equals(player.getUniqueId())) {
             boxed(player, ChatColor.RED + "That player is not in your party.");
+            return;
+        }
+        if (RagoBots.isBot(target)) {
+            boxed(player, ChatColor.GRAY + BotSettings.NAME + ChatColor.RED + " cannot lead a party.");
             return;
         }
         changed(party.members());

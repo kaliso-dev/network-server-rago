@@ -177,7 +177,7 @@ informations manquantes.
 | 5.6A | `RagoClient` et `RagoOptimizer` : nom, skin, diamant, liens au clic, texte « OUR OTHER PRODUCTS », visuels publicitaires existants derrière | Lobby | P2 | IMPLÉMENTÉ le 22/11 (tes réponses : les liens `rago-optimizer.com` et `discord.gg/ragooptimizer`, le skin de qRago pour les deux) : PNJ `type: produit` sur tes points `ragoclient` et `ragooptimizer`, « Rago Client » et « Rago Optimizer » sous « OUR OTHER PRODUCTS », sur un bloc de diamant, un clic écrit le site et le Discord dans le chat ; tes deux panneaux `rago-client` et `rago-optimizer` (tes visuels) à replacer 3 blocs derrière, contre le mur, en 6 x 6 (la hauteur du mur), à l'install (voir le journal). Testé en CI par les tests du dépôt et le bot du lobby (il clique Rago Client et lit ses deux liens) une fois le run passé ; pas encore installé ni vu en jeu | `LobbyNpc`, `LobbyNpcs`, `LobbySettings`, `config.yml`, `panneaux:` de ton config | — |
 | 5.6B | `qRago` (Owner) et `Kalisodev` (kaliso_dev, Dev) sur obsidienne, surélevés d'un bloc | Lobby | P2 | TESTÉ en CI (21/11, runs 345 et 346, Java 8 et 21), sauf le skin lu chez Mojang : PNJ `type: personne` sur tes points `qrago` et `kalisodev`, « [OWNER] qRago » et « [DEV] kaliso_dev » (les préfixes de `rangs:`), skin de leur compte Minecraft lu chez Mojang (`skin-joueur:`), sur obsidienne un bloc plus haut ; installé sur ton serveur le 21/11 (build 346, sauvegarde `sauvegarde-avant-maj-21-11d`) ; à voir en jeu | `LobbyNpc`, `LobbyNpcs`, `AccountSkins`, `LobbySettings`, `config.yml` | — |
 | 5.6C | `jncl` et `nativ` (affiché woryes, skin Woryes), rôle Mod en jaune clair | Lobby | P2 | IMPLÉMENTÉ le 22/11 (ta réponse : jncl affiché « directement », nativ affiché « woryes », C7) : PNJ `type: personne` sur tes points `jncl` et `nativ`, « [MOD] directement » dans le skin du compte jncl et « [MOD] woryes » dans le skin du compte Woryes ; le rang Mod passe en jaune clair (`&e`, avant vert foncé `&2`), partout où le rang se voit (chat, tab, au-dessus de la tête) ; pas de bloc demandé dans le plan pour eux : le bloc de tous les PNJ (andésite polie). Testé en CI par les tests du dépôt une fois le run passé ; pas encore installé ni vu en jeu | `LobbySettings`, `Ranks`, `config.yml` (`pnj:`, `rangs:`) | 5.6B |
-| 5.7 | Texte de remerciement en anglais, fidèle à ton histoire, avec le Discord, à valider avant intégration | Lobby | P2 | IMPLÉMENTÉ (validé le 22/11 : « Le texte est parfait » ; à installer) | point `textremerciement`, `textes:` du `config.yml`, `LobbyText`, `FakeHologram` | — (Discord : `discord.gg/ragooptimizer`, 22/11) |
+| 5.7 | Texte de remerciement en anglais, fidèle à ton histoire, avec le Discord, à valider avant intégration | Lobby | P2 | TESTÉ en CI le 22/11 (5216997 : le bot du lobby lit ses 18 lignes dans l'ordre) ; validé le 22/11 : « Le texte est parfait » ; à installer | point `textremerciement`, `textes:` du `config.yml`, `LobbyText`, `FakeHologram` | — (Discord : `discord.gg/ragooptimizer`, 22/11) |
 | 5.8 | Revoir les skins des PNJ du lobby | Lobby | P2 | À FAIRE | `NpcSkins`, `skins.yml` | — |
 | 5.9 | Boussole comme sur Minemen (ta demande du 22/11) : les catégories en haut, un espace, puis les modes de la catégorie choisie | Lobby | P1 | TESTÉ par les bots en CI le 22/11 (commit af042fc, Java 8 et 21 : le PNJ Duels ouvre la boussole sur Duels ; un clic sur Duels en haut remplace les jeux de Practice dans le même menu, puis la sumo rejoint sa file) ; installé sur ton serveur le 22/11 vers 1h40 (seul `rago-lobby` change, sauvegarde `sauvegarde-avant-maj-af042fc`) ; pas encore vu en jeu : les 6 catégories sur la ligne du haut (slots 1 à 6), une ligne vide, les jeux de la catégorie choisie à partir du slot 19 ; un clic sur une autre catégorie change les jeux dans le même menu, celle choisie brille (« Its modes are below ») ; s'ouvre sur Practice, ou sur la catégorie du PNJ, de `/play` ou du groupe dont on revient ; « Popular now » passe sur la ligne du bas ; le menu garde la taille de la plus grande catégorie (Practice, 15 jeux : 6 lignes) | `ModeMenu`, `lobby-bots.mjs` | depuis 3.7 (22/11, pas encore installé) : 8 onglets, Party et Ranked en plus, sur les slots 0 à 7 |
 
@@ -200,7 +200,7 @@ Snowball Spleef et Red Rover sont codés avec des valeurs de départ à confirme
 | 6.4 | Block Aim Practice (patterns de la communauté) | P3 | Parcours : IMPLÉMENTÉ le 22/11 (ton choix sur la carte : Block Aim ensuite) ; le Bridge Chrono avait déjà les ponts droits, diagonaux et en montée, il a maintenant aussi le pont avec un virage (16, 32 et 64 blocs, un record chacun) ; build et tests unitaires passés en CI (d216c86) ; installé le 22/11 (avec 28a4bee), pas encore joué. Placement sur cible : IMPLÉMENTÉ le 22/11, nouveau mode « Block aim » (`block-aim`) : une face s'allume sous les pieds au bout du pont, sur le côté du pont ou sur le lit, 5 niveaux de plus en plus rapides comme ceux de Ladder Practice, un record par niveau ; build et tests unitaires passés en CI (28a4bee) ; installé sur ton serveur de test le 22/11 avec le pont avec virage, pas encore joué (détail plus bas, « Étape 7 : Block Aim Practice ») | à confirmer : le virage à droite, à mi-chemin, à plat ; pas de virage en montée (la place manque à moins de 64 blocs du centre) ; placement sur cible : la scène générée (question 8 sans réponse), les 15 faces, les temps des 5 niveaux (3 s à 1 s), un bloc posé ailleurs compté sans finir la série |
 | 6.5.1 | Red Rover (Sumo, Block Placement, Block Edit, Top Bridge…) | P2 | Sumo, Block Edit, Block Placement, Top Bridge : TESTÉ par les bots en CI (21/11) ; rien encore en jeu | question 10 (qui reste, points ou élimination : codé « points, le gagnant reste, premier à 3 », à confirmer) ; 90 s par 1v1 à confirmer  |
 | 6.5.2 | Modes 2v1 asymétriques (Clutch Scenario, stuff amélioré) | P3 | Clutch Scenario : IMPLÉMENTÉ le 22/11, build et tests unitaires passés en CI (le partage du joueur seul, la party gardée ensemble) ; pas encore joué, ni par les bots ni en jeu ; en 1v1, 1v2, 1v3 et 1v4 comme Invis Practice et le Bed Break Simulator (ta demande du 22/11, à la place des 2v2, 3v3 et 4v4 ; les victoires de ceux-ci comptent toujours pour le titre Clutch Scenario) ; à partir du 1v2, le joueur seul, tiré au sort, part sans lit avec une vie, les autres gardent le leur (ton choix du 21/11) ; une party reste ensemble, le joueur seul est tiré parmi les autres (ton choix du 22/11). Stuff amélioré : IMPLÉMENTÉ le 22/11 (ton choix sur la carte : Bed Fight 1v2), CI verte (3cdfed2 : build, tests unitaires, tests sur serveur) ; installé sur ton serveur de test le 22/11 (aa724b7) ; pas encore joué | l'écart de stuff (valeurs de départ : jambières et bottes en fer, épée en pierre, sans Protection, dans `stuff-ameliore:` de la config de rago-bedwars) |
-| 6.5.3 | Bot IA : étude technique | P3 | À FAIRE : tes réponses du 22/11 aux 6 questions (détail plus bas, « Tes réponses du 22/11 ») ; RagoBot, un vrai joueur, en Top Bridge 1v1 et 2v2 et en Sumo 1v1 pour commencer. Le Combo Bot : TESTÉ en CI le 22/11 (243a20d), retiré des menus (journal « Combo Bot retiré des menus ») | — |
+| 6.5.3 | Bot IA : étude technique | P3 | EN COURS : RagoBot écrit, en test par les bots en CI (journal « RagoBot ») ; tes réponses du 22/11 aux 6 questions (détail plus bas, « Tes réponses du 22/11 ») : un vrai joueur, en Top Bridge 1v1 et 2v2 et en Sumo 1v1 pour commencer. Le Combo Bot : TESTÉ en CI le 22/11 (243a20d), retiré des menus (journal « Combo Bot retiré des menus ») | — |
 | 6.6 | Catégorie 3 joueurs (Red Rover, Clutch Scenario, Bed Break Scenario, Invis Practice) | P2 | IMPLÉMENTÉ le 22/11, CI verte (tests unitaires ; les bots du lobby ouvrent la boussole à 6 catégories et y prennent Duels au slot 12 ; tests du site) : « 3 Players » dans la boussole seulement, sans PNJ (ton choix du 21/11), après Fun Practice ; elle montre Red Rover (un objet), Bed Break Simulator 1v2, Invis Practice 1v2 et Clutch Scenario 1v2 (`aussi:` de `categories:`), avec les mêmes files : ces modes restent dans leur catégorie, leurs stats aussi ; le retour d'un groupe ouvert depuis elle y ramène ; aussi dans l'accueil, `/play 3 players` et le site (tests du site passés en local) | son nom, son slogan, sa description et son icône (une tête) sont à confirmer ; la boussole passe à 6 catégories, côte à côte des slots 10 à 15 (sur la ligne du haut, slots 1 à 6, depuis 5.9) |
 
 ### Étape 8 : administration et benchmark (Phase 7)
@@ -1993,8 +1993,55 @@ point `textremerciement` (x 0, y 69, z -35 dans ton lobby).
 Fichiers : `LobbyText` (nouveau), `LobbySettings`, `RagoLobby`, `LobbyCommands`, le `config.yml` et
 le README du lobby. Tests : `LobbyTextTest` (le texte mot pour mot, sa hauteur dans la salle, les
 erreurs refusées) ; le bot du lobby en CI lit les 18 lignes écrites, dans l'ordre, sur un point du
-serveur de test, et vérifie leurs hauteurs. Vérifié ici : la syntaxe Java ; le reste tourne en CI.
+serveur de test, et vérifie leurs hauteurs. Vérifié ici : la syntaxe Java ; le reste tourne en CI : la CI du 22/11 (5216997) est passée, ce bot compris.
 À l'install : la section `textes:` arrive avec la fusion de ton `config.yml`.
+
+### RagoBot (6.5.3, 22/11)
+
+Tes réponses du 22/11 (« Tes réponses du 22/11 », plus haut), sans rien de plus :
+
+- `/p invite RagoBot` (ou `/p RagoBot`) : RagoBot entre tout de suite dans la party, à côté du
+  chef. C'est un joueur du serveur (un faux joueur sans client derrière, que le serveur connecte
+  comme un joueur), nommé RagoBot, avec le skin du compte qRago. Un par party qui l'invite, 10 à la
+  fois au plus (`ragobot.max`, à confirmer).
+- Il joue les parties de la party dans ses modes : Top Bridge 1v1, Top Bridge 2v2 et le Sumo duel.
+  Une party de deux (toi et lui) joue le 1v1 contre lui ; une party de deux avec lui attend dans la
+  file du 2v2 comme une équipe, contre deux autres joueurs ; une party de quatre avec lui joue le
+  2v2 entre elle. Il n'est jamais chef : le chef qui part laisse la party au joueur suivant, et une
+  party où il reste sans joueur est dissoute.
+- Refusés, avec un message : le classé (« RagoBot never plays ranked: /p kick RagoBot first. »), un
+  mode qu'il ne joue pas, une deuxième invitation, `/duel RagoBot` (qui renvoie vers la party).
+  Jamais dans une file au hasard.
+- Les stats : une partie avec lui compte dans les stats et l'XP des joueurs (victoire, défaite,
+  kills, morts), jamais dans l'ELO. Lui n'a pas de stats (mon choix, à confirmer : il n'entre pas
+  dans les classements).
+- Un seul niveau, sans niveaux (`ragobot.skill` du `config.yml`) : 11 CPS, 88 % de précision,
+  portée 3, strafe, w-tap, jump reset, 3 ticks de réaction, 30° de rotation par tick, une pomme
+  d'or sous 10 de vie si son kit en a. Ce sont les valeurs du niveau « hard » de l'ancien Combo
+  Bot, à confirmer en jeu. Sur le sol, il ne marche jamais de lui-même dans le vide ni hors de la
+  plateforme du sumo.
+- Comment il joue : à chaque tick, il appuie sur les touches d'un client (avancer, strafe, saut,
+  sprint, clics, slot, manger) et le serveur le déplace avec la physique 1.8 d'un joueur ; ses
+  coups passent par l'attaque d'un joueur, donc par le knockback de RagoCombatEngine.
+- Il quitte le serveur une fois revenu au lobby sans party (`/p kick RagoBot`, la party dissoute,
+  ses joueurs partis). En partie, il la joue jusqu'au bout.
+
+À confirmer : les valeurs du skill, le maximum de 10, l'absence de stats pour lui. Deux limites :
+plusieurs RagoBot en même temps portent le même nom, donc une commande qui cherche un joueur par
+son nom (`/msg RagoBot`) n'en trouve qu'un ; les plugins de ton serveur qui ne sont pas dans le
+dépôt n'ont pas été essayés avec lui.
+
+Fichiers : `BotSettings`, `BotBrain`, `BotBody`, `RagoBots` (nouveaux), `Parties`, `PartyBook`,
+`QueueController`, `StatsBook`, `RagoLobby`, `LobbySettings`, `DuelRequests`, `LobbyListener`,
+`FakeEntities`, `HeadLines`, `Books`, `ReplayViewer`, le `config.yml` (section `ragobot:`) et le
+README du lobby. Tests : `BotBrainTest` (visée, rotation, réaction, bords, pomme d'or, portée et
+clics), `BotSettingsTest`, `PartyBookTest` (il n'est jamais chef), `StatsBookTest` (il ne compte
+que pour les autres) ; en CI, `ragobot-bots.mjs` : un bot l'invite, RagoBot refuse le classé et les
+autres modes, gagne un Sumo duel et une manche de Top Bridge 1v1 contre le bot immobile, joue le
+Top Bridge 2v2 dans l'équipe de la party, et quitte le serveur après `/p kick` et après une party
+dissoute. Vérifié ici : la syntaxe Java, et `BotBrainTest` (10 tests) et `PartyBookTest` (6, sans
+celui du bouton qui demande Bukkit) lancés ici, tous passés ; le reste tourne en CI.
+À l'install : la section `ragobot:` arrive avec la fusion de ton `config.yml`.
 
 ### Installation du 22/11 au matin (aa724b7)
 

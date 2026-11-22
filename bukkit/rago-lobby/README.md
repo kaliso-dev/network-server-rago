@@ -89,6 +89,18 @@ dans les files d'attente des modes de jeu.
   - plus grande qu'une équipe sans remplir la partie, elle est refusée.
   Un joueur qui quitte la file, la party, ou le serveur fait sortir toute la party de la file. Un
   chef qui part laisse la party au joueur suivant.
+- **RagoBot** (`ragobot:`, le choix du propriétaire du 22/11). `/p invite RagoBot` (ou `/p RagoBot`)
+  le fait entrer tout de suite dans la party, à côté du chef : un vrai joueur du serveur, avec le
+  skin d'un compte (`skin:`, qRago) et le nom RagoBot, un par party qui l'invite (`max:` à la
+  fois, de 1 à 50). Il joue les parties de la party dans ses modes (`modes:`, Top Bridge 1v1 et
+  2v2 et le Sumo 1v1 d'abord), comme un membre : une party de deux joue le 1v1 contre lui, une
+  party avec lui attend dans la file du 2v2 comme une équipe. Jamais en classé, jamais pour remplir
+  une file au hasard, jamais chef de la party (le chef qui part la laisse au joueur suivant ; sans
+  autre joueur, elle est dissoute). Une partie avec lui compte dans les stats et l'XP des joueurs,
+  jamais dans l'ELO ; lui n'a pas de stats. Un seul niveau (`skill:` : CPS, précision, portée,
+  strafe, w-tap, jump reset, réaction, rotation, pomme d'or sous `soin-a`), pas de niveaux. Il
+  quitte le serveur une fois revenu au lobby sans party (`/p kick RagoBot`, party dissoute).
+  `/duel RagoBot` renvoie vers la party. Les valeurs du `config.yml` sont à confirmer en jeu.
 - **L'import Hypixel.** Pour les modes qui se jouent sur une map de Bed Wars (Ranked Bedwars,
   First Rush, Private Game) et Fast Shop, chaque joueur copie son shop Hypixel : le quick buy
   (les 21 cases, trois lignes de sept) et le hotbar manager (le genre d'objet de chaque case de la

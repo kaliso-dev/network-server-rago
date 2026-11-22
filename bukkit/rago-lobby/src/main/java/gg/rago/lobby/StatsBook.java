@@ -108,6 +108,11 @@ final class StatsBook {
     private String rankedDay = "";
     /** What each player's Network XP is multiplied by (the boost of PREMIUM): 1 by default. */
     private java.util.function.ToDoubleFunction<UUID> boost = player -> 1.0;
+    /**
+     * Who has stats: everyone but RagoBot ({@link RagoBots}), whose games count for the players
+     * against it, never for itself (nor in the leaderboards).
+     */
+    private java.util.function.Predicate<UUID> counted = player -> true;
 
     StatsBook(int defaultRating, NetworkLevel levels) {
         this(defaultRating, levels, EloLadder.DEFAULT);
@@ -125,6 +130,11 @@ final class StatsBook {
 
     void setBoost(java.util.function.ToDoubleFunction<UUID> boost) {
         this.boost = boost;
+    }
+
+    /** Who has stats (see {@link #counted}). */
+    void setCounted(java.util.function.Predicate<UUID> counted) {
+        this.counted = counted;
     }
 
     /** What the player's Network XP is multiplied by: 1 without a boost. */
@@ -296,12 +306,15 @@ final class StatsBook {
             }
         }
         for (UUID id : new LinkedHashSet<>(winners)) {
+            if (!counted.test(id)) {
+                continue;
+            }
             PlayerStats stats = play(id, names, mode.id(), true, day, week, newElo.get(id), rated);
             stats.earnXp(boosted(id, levels.winXp()), day, week);
             changed.add(stats);
         }
         for (UUID id : new LinkedHashSet<>(losers)) {
-            if (!winners.contains(id)) {
+            if (!winners.contains(id) && counted.test(id)) {
                 PlayerStats stats = play(id, names, mode.id(), false, day, week, newElo.get(id), rated);
                 stats.earnXp(boosted(id, levels.lossXp()), day, week);
                 changed.add(stats);
@@ -324,6 +337,9 @@ final class StatsBook {
         String day = StatsPeriod.dayKey(millis);
         String week = StatsPeriod.weekKey(millis);
         for (UUID id : new LinkedHashSet<>(players)) {
+            if (!counted.test(id)) {
+                continue;
+            }
             PlayerStats stats = statsOf(id, names);
             stats.modeOrNew(mode.id()).draw(day, week);
             stats.earnXp(boosted(id, levels.lossXp()), day, week);
@@ -354,6 +370,13 @@ final class StatsBook {
         if (killer != null && killer.equals(victim)) {
             // no kill of oneself
             killer = null;
+        }
+        // RagoBot: its kill is a death of the player, its death a kill of the player
+        if (killer != null && !counted.test(killer)) {
+            killer = null;
+        }
+        if (victim != null && !counted.test(victim)) {
+            victim = null;
         }
         if (killer != null) {
             PlayerStats stats = statsOf(killer, names);
