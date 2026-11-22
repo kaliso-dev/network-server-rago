@@ -491,7 +491,8 @@ export default function Home() {
           </div>
           <p className="notice">
             Rago Points are earned in the game ({game.ragoPoints.win} a win, {game.ragoPoints.kill} a kill,{' '}
-            {game.ragoPoints.daily} a day) and have no value outside it. Videos of each effect are on their way.
+            {game.ragoPoints.daily.min} to {game.ragoPoints.daily.max} in the Daily Chest each day) and have no value
+            outside it. Videos of each effect are on their way.
           </p>
         </div>
       </section>

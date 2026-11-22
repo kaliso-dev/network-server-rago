@@ -191,8 +191,10 @@ final class ProfileMenu {
         menu.set(41, ClickMenu.item(ready ? Material.CHEST : Material.ENDER_CHEST, ChatColor.AQUA + "Daily reward",
                 ready ? Brand.ACCENT + "Click to claim" : ChatColor.GRAY + "Claimed today, come back tomorrow"),
                 (p, right) -> {
-                    profiles.claimDaily(p);
-                    open(p);
+                    // ready: the spin of the Daily Chest opens in place of the profile
+                    if (!lobby.daily().claim(p)) {
+                        open(p);
+                    }
                 });
         menu.open(player);
     }

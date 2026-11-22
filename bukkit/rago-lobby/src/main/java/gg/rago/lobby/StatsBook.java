@@ -468,6 +468,16 @@ final class StatsBook {
         return stats;
     }
 
+    /** Network XP of a reward (the Daily Chest), as it is, not boosted: counted in its day and its week too. */
+    void rewardXp(PlayerStats stats, int xp) {
+        if (xp <= 0) {
+            return;
+        }
+        long now = System.currentTimeMillis();
+        stats.earnXp(xp, StatsPeriod.dayKey(now), StatsPeriod.weekKey(now));
+        forgetRankings();
+    }
+
     /** Where to find the name of a player who has no stats yet. */
     interface Names {
         String of(UUID player);

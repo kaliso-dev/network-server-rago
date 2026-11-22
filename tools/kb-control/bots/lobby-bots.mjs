@@ -59,7 +59,12 @@
 //      profile comes back), and it joins again; the announcement comes back 20 seconds later; at
 //      the end of the wait (25 seconds, run-lobby-test.sh), RagoDeux leaves its training for it and
 //      the three go to it; RagoTrois and RagoDeux leave the fight with /spawn, RagoUn wins, and the
-//      server is told; then RagoTrois hosts another one and calls it off with its red dye.
+//      server is told; then RagoTrois hosts another one and calls it off with its red dye;
+//  12. the Daily Chest (the owner's ask of 22/11, 18h22): RagoTrois types /daily, the menu Daily
+//      Chest opens with the chances of each rarity on the hopper above its centre; its reel moves on
+//      a note that rises, slows down and stops: the chat tells the reward and its rarity, and the
+//      first day of the streak; the menu closes on the title of that rarity; a second /daily is
+//      refused until tomorrow.
 //
 // Environment: KB_HOST (127.0.0.1), KB_PORT (25565).
 
@@ -1256,6 +1261,49 @@ function stop (bot) {
   bot.clearControlStates()
 }
 
+// The Daily Chest: its centre, where the reel stops, and the pointer above it with the chances.
+const DAILY_CENTRE = 13
+const DAILY_POINTER = 4
+
+async function checkDailyChest (bot) {
+  const from = mark(bot)
+  const heard = bot.sounds.length
+  const titles = bot.titles.length
+  bot.chat('/daily')
+  await waitFor(() => bot.currentWindow != null && windowTitle(bot.currentWindow).includes('Daily Chest'), 5000,
+    `${bot.username}: the menu of the Daily Chest after /daily`)
+  const window = bot.currentWindow
+  const pointer = JSON.stringify(window.slots[DAILY_POINTER]?.nbt ?? null)
+  if (window.slots[DAILY_POINTER]?.name !== 'hopper' || !pointer.includes('Common') || !pointer.includes('55%') ||
+      !pointer.includes('Legendary') || !pointer.includes('5%')) {
+    throw new Error(`${bot.username}: the chances of the Daily Chest on its hopper: ${window.slots[DAILY_POINTER]?.name} ${pointer}`)
+  }
+  const centre = () => JSON.stringify(window.slots[DAILY_CENTRE]?.nbt ?? null)
+  const first = centre()
+  await waitFor(() => centre() !== first, 3000, `${bot.username}: the reel of the Daily Chest to move`)
+  const line = await chatLine(bot, /DAILY CHEST! (COMMON|RARE|EPIC|LEGENDARY) /, 12000, from)
+  const rarity = line.match(/DAILY CHEST! (COMMON|RARE|EPIC|LEGENDARY) /)[1]
+  const notes = bot.sounds.slice(heard).filter((name) => name === 'note.pling').length
+  if (notes < 20) {
+    throw new Error(`${bot.username}: the notes of the spin, one a step: ${notes}; sounds: ${JSON.stringify(bot.sounds.slice(heard))}`)
+  }
+  if (!centre().includes(rarity)) {
+    throw new Error(`${bot.username}: the reel stopped on another reward than the ${rarity} told: ${centre()}`)
+  }
+  await chatLine(bot, /Day 1 in a row: come back tomorrow for a streak bonus\./, 3000, from)
+  await waitFor(() => bot.currentWindow == null && bot.titles.slice(titles).includes(`${rarity}!`), 6000,
+    `${bot.username}: the menu of the Daily Chest to close on the title ${rarity}!; titles: ${JSON.stringify(bot.titles.slice(titles))}`)
+  log(`Daily Chest: the reel spun (${notes} notes) and stopped on a ${rarity} reward: ${line.replace(/^.*DAILY CHEST! /, '')}`)
+  const again = mark(bot)
+  bot.chat('/daily')
+  await chatLine(bot, /You already claimed today's reward\. Come back in/, 5000, again)
+  await sleep(500)
+  if (bot.currentWindow != null) {
+    throw new Error(`${bot.username}: a second /daily the same day opened ${windowTitle(bot.currentWindow)}`)
+  }
+  log('Daily Chest: a second /daily the same day is refused')
+}
+
 async function main () {
   const one = await join('RagoUn')
   const two = await join('RagoDeux')
@@ -1402,6 +1450,9 @@ async function main () {
   await closeFirstMenu(three)
   await expectInLobby(three, 'on joining')
   await playEvent(one, back, three)
+
+  // 12. The Daily Chest.
+  await checkDailyChest(three)
 
   finishing = true
   one.quit()

@@ -143,10 +143,10 @@ class NetworkFeaturesTest {
         assertEquals(4, Profiles.nextStreak("2026-11-08", 3, "2026-11-09", "2026-11-08"), "claimed yesterday");
         assertEquals(1, Profiles.nextStreak("2026-11-06", 3, "2026-11-09", "2026-11-08"), "a missed day");
         assertEquals(0, Profiles.nextStreak("2026-11-09", 4, "2026-11-09", "2026-11-08"), "already claimed today");
-        ServerSettings.Points points = new ServerSettings.Points(20, 5, 2, 10, 100, 25);
-        assertEquals(100, points.dailyReward(1));
-        assertEquals(150, points.dailyReward(3));
-        assertEquals(250, points.dailyReward(30), "up to seven days");
+        ServerSettings.Points points = new ServerSettings.Points(20, 5, 2, 10, 25);
+        assertEquals(0, points.streakBonus(1), "the first day: what the Daily Chest gives, no bonus");
+        assertEquals(50, points.streakBonus(3));
+        assertEquals(150, points.streakBonus(30), "up to seven days");
         assertEquals("2026-11-08", StatsPeriod.previousDayKey(java.time.ZonedDateTime.of(2026, 11, 9, 12, 0, 0, 0,
                 StatsPeriod.ZONE).toInstant().toEpochMilli()));
     }

@@ -191,7 +191,7 @@ final class NetworkCommands implements CommandExecutor, TabCompleter {
                 return true;
             case "daily":
                 if ((player = player(sender)) != null) {
-                    lobby.profiles().claimDaily(player);
+                    lobby.daily().claim(player);
                 }
                 return true;
             case "friend":

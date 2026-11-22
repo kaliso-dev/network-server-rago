@@ -436,6 +436,18 @@ final class StatsService {
         save(stats);
     }
 
+    /**
+     * Network XP of a reward (the Daily Chest): as it is, without the boosters nor the Rago Points of
+     * the trainings; a new level gives its own. The caller tells the player. The file is written.
+     */
+    void rewardXp(UUID id, int xp) {
+        PlayerStats stats = book.profile(id, nameOf(id));
+        int old = stats.xp();
+        book.rewardXp(stats, xp);
+        gained(stats, old);
+        save(stats);
+    }
+
     // --- Quests and level rewards ----------------------------------------------------------------
 
     /** One more of what the quests count, today and this week: the quests it completed. */

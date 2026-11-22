@@ -1,10 +1,12 @@
 package gg.rago.lobby;
 
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Random;
 import java.util.Set;
 import java.util.UUID;
 import org.bukkit.Bukkit;
@@ -582,7 +584,29 @@ final class Profiles {
         return profile == null || !StatsPeriod.dayKey(System.currentTimeMillis()).equals(profile.dailyDay());
     }
 
-    void claimDaily(Player player) {
+    /** A claim of the Daily Chest: the reward drawn, the day of the streak and its bonus. */
+    static final class DailyClaim {
+        final DailyRewards.Reward reward;
+        final int streak;
+        /** The Rago Points the streak adds (0 on its first day). */
+        final int bonus;
+        /** The cosmetics the player did not own when they claimed: the reel shows them too. */
+        final List<Cosmetic> unowned;
+
+        DailyClaim(DailyRewards.Reward reward, int streak, int bonus, List<Cosmetic> unowned) {
+            this.reward = reward;
+            this.streak = streak;
+            this.bonus = bonus;
+            this.unowned = Collections.unmodifiableList(new ArrayList<>(unowned));
+        }
+    }
+
+    /**
+     * Claims today's Daily Chest: the day and the streak are written at once (one claim a day), and
+     * the reward drawn, among the cosmetics the player does not own (never one of PREMIUM). The chest
+     * gives it with {@link #giveDaily} at the end of its spin. Null, and told, if already claimed.
+     */
+    DailyClaim drawDaily(Player player, Random random) {
         long now = System.currentTimeMillis();
         PlayerStats profile = of(player);
         int streak = nextStreak(profile.dailyDay(), profile.dailyStreak(), StatsPeriod.dayKey(now),
@@ -590,16 +614,42 @@ final class Profiles {
         if (streak == 0) {
             player.sendMessage(ChatColor.RED + "You already claimed today's reward. "
                     + StatsPeriod.DAY.resetText(now).replace("Resets in", "Come back in") + ".");
-            return;
+            return null;
         }
-        int reward = server.points().dailyReward(streak);
         profile.setDaily(StatsPeriod.dayKey(now), streak);
-        profile.addPoints(reward);
         changed(profile);
-        player.sendMessage(ChatColor.GREEN + "Daily reward: " + ChatColor.GOLD + "+" + reward + " Rago Points"
-                + ChatColor.GRAY + " (day " + streak + " in a row"
-                + (streak < ServerSettings.Points.MAX_STREAK ? ", come back tomorrow for more)" : ")"));
-        player.playSound(player.getLocation(), Sound.ORB_PICKUP, 1f, 1f);
+        List<Cosmetic> unowned = new ArrayList<>();
+        for (Cosmetic cosmetic : server.cosmetics().values()) {
+            if (!cosmetic.premium() && !owns(player, cosmetic)) {
+                unowned.add(cosmetic);
+            }
+        }
+        return new DailyClaim(server.dailyRewards().draw(random, unowned), streak, server.points().streakBonus(streak), unowned);
+    }
+
+    /** The end of the spin: the reward of the claim and the streak bonus, told in the chat. */
+    void giveDaily(Player player, DailyClaim claim) {
+        PlayerStats profile = of(player);
+        DailyRewards.Reward reward = claim.reward;
+        if (reward.kind == DailyRewards.Kind.COSMETIC) {
+            profile.cosmetics().add(reward.cosmetic.id());
+        }
+        profile.addPoints(claim.bonus + (reward.kind == DailyRewards.Kind.POINTS ? reward.amount : 0));
+        changed(profile);
+        player.sendMessage(ChatColor.AQUA + "" + ChatColor.BOLD + "DAILY CHEST! " + reward.rarity.tag() + " " + reward.label()
+                + (reward.instead ? ChatColor.GRAY + " (you own every cosmetic)" : ""));
+        if (reward.kind == DailyRewards.Kind.COSMETIC) {
+            player.sendMessage(ChatColor.GRAY + "It is yours: wear it from the " + Brand.ACCENT + "/shop" + ChatColor.GRAY + ".");
+        }
+        String more = claim.streak < ServerSettings.Points.MAX_STREAK ? ", come back tomorrow for more)" : ")";
+        player.sendMessage(claim.bonus > 0
+                ? ChatColor.GOLD + "+" + DailyRewards.number(claim.bonus) + " Rago Points" + ChatColor.GRAY + " streak bonus (day "
+                        + claim.streak + " in a row" + more
+                : ChatColor.GRAY + "Day " + claim.streak + " in a row: come back tomorrow for a streak bonus.");
+        if (reward.kind == DailyRewards.Kind.XP) {
+            // after the lines of the chest: a new level is told after them
+            stats.rewardXp(player.getUniqueId(), reward.amount);
+        }
     }
 
     // --- Staff ----------------------------------------------------------------------------------

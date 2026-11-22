@@ -575,9 +575,9 @@ textes:
   textremerciement2:
     lignes: *merci
 
-# The points of the daily reward chest (DAILY REWARD above it, a click gives /daily) and of the
-# quests NPC (/lobby point <name>): daily and quests when left out. The chest stands on its point
-# (on the block under it); the quests NPC on its point, or beside the chest without one.
+# The points of the daily reward chest (DAILY REWARD above it, a click opens the Daily Chest)
+# and of the quests NPC (/lobby point <name>): daily and quests when left out. The chest stands on
+# its point (on the block under it); the quests NPC on its point, or beside the chest without one.
 point-coffre-du-jour: daily
 point-pnj-quetes: quests
 
@@ -896,18 +896,36 @@ saison:
     Opal: 5000, Amethyst: 7500, Obsidian: 10000}
 
 # The Rago Points, spent in the shop: for a win, a game played (lost), a kill, each new level
-# (the level times par-niveau: 100 for level 10), and the daily reward (/daily): quotidien, plus
-# quotidien-serie for each day in a row, up to 7 days. The trainings, the practice, the aim
-# trainer and the events give one point for each xp-par-point Network XP they give (at least one;
-# 0: none). A points booster (x3) multiplies the points of the games, kills and trainings.
+# (the level times par-niveau: 100 for level 10), and the streak of the Daily Chest (/daily):
+# quotidien-serie for each day in a row after the first, up to 7 days, on top of what the chest
+# gives (coffre-du-jour: below). The trainings, the practice, the aim trainer and the events give
+# one point for each xp-par-point Network XP they give (at least one; 0: none). A points booster
+# (x3) multiplies the points of the games, kills and trainings.
 rago-points:
   victoire: 20
   defaite: 5
   kill: 2
   par-niveau: 10
-  quotidien: 100
   quotidien-serie: 25
   xp-par-point: 3
+
+# The Daily Chest (its chest at the spawn, /daily, the profile, the shop): once a day, a reel of
+# rewards spins, slows down and stops on the player's reward, which lights up in the colour of its
+# rarity. Each reward of recompenses, by name: rarete (commun white, rare blue, epique purple,
+# legendaire gold: the bigger the rarity, the bigger its show; a legendary is told to the lobby),
+# what it gives (rago-points or xp, Network XP without the boosters: an amount, or "min-max" for a
+# draw between both; or cosmetique: true, a cosmetic of the shop the player does not own yet,
+# never one of PREMIUM: with none left, the largest rago-points of the list instead) and chance
+# (in %, of the total of the list: 100 here). The menu shows the chance of each rarity.
+coffre-du-jour:
+  recompenses:
+    points-commun: {rarete: commun, rago-points: 100-200, chance: 30}
+    xp-commun: {rarete: commun, xp: 100-500, chance: 25}
+    points-rare: {rarete: rare, rago-points: 200-350, chance: 15}
+    xp-rare: {rarete: rare, xp: 500-1000, chance: 13}
+    points-epique: {rarete: epique, rago-points: 350-500, chance: 6}
+    xp-epique: {rarete: epique, xp: 1000-2000, chance: 6}
+    cosmetique: {rarete: legendaire, cosmetique: true, chance: 5}
 
 # The cosmetics of the shop: projectile trails, kill effects and victory effects. Each one has a
 # price in Rago Points and a Network level needed, which can be changed here by its name:

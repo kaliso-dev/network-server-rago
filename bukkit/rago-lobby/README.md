@@ -385,8 +385,8 @@ dans les files d'attente des modes de jeu.
 - **Les Rago Points et la boutique (`/shop`).** Les points se gagnent en partie (20 par victoire,
   5 par défaite, 2 par kill), dans le practice, les entraînements, l'aim trainer et les events
   (un point pour 3 XP Network qu'ils donnent, au moins un : `rago-points.xp-par-point`), à chaque
-  niveau (le niveau fois 10) et avec la récompense du jour
-  (`/daily` : 100, plus 25 par jour d'affilée, jusqu'à 7 jours). La boutique vend 18 cosmétiques
+  niveau (le niveau fois 10) et avec le Daily Chest (`/daily`, ci-dessous : de 100 à 500, plus
+  25 par jour d'affilée après le premier, jusqu'à 7 jours). La boutique vend 18 cosmétiques
   (traînées de projectiles, effets de kill, effets de victoire), chacun débloqué à un niveau
   Network, et montre le rang PREMIUM et les styles de pseudo. Un rang peut aussi se vendre en
   points (`prix:` et `niveau:` dans `rangs:`). Les cosmétiques ne jouent qu'en partie.
@@ -434,9 +434,41 @@ dans les files d'attente des modes de jeu.
   feu d'artifice de sa couleur avec `rago.perk.join` (PREMIUM et le staff).
 - **Le coffre de la récompense du jour.** `/lobby point daily` pose un coffre à cet endroit (au
   spawn), avec au-dessus « DAILY REWARD », si la récompense attend ou dans combien de temps vient
-  la suivante, et la série de jours. Un clic dessus la donne, comme `/daily`.
-  `point-coffre-du-jour:` dans config.yml lui donne un autre point (`newdailychest` sur le
-  serveur de test, posé sur un bloc de diamant).
+  la suivante, et la série de jours. Un clic dessus l'ouvre, comme `/daily`, le profil et la
+  boutique. `point-coffre-du-jour:` dans config.yml lui donne un autre point (`newdailychest` sur
+  le serveur de test, posé sur un bloc de diamant).
+- **Le Daily Chest** (ta demande du 22/11, 18h22 : « je veux quelque chose d'impressionnant »).
+  Une fois par jour, un menu « Daily Chest » s'ouvre : au milieu, une bande de récompenses défile
+  entre des vitres qui changent de couleur à chaque pas, sur une note qui monte, de plus en plus
+  lentement (32 pas, environ 6 secondes) ; elle s'arrête sur la récompense du joueur, au centre
+  sous l'entonnoir (qui donne les chances de chaque rareté). Un court silence, puis la récompense
+  s'allume dans la couleur de sa rareté, le reste de la bande s'éteint, les vitres prennent sa
+  couleur (elles clignotent pour Epic et Legendary) avec le son de sa rareté ; le chat la donne.
+  Le menu se ferme sur un grand titre (« RARE! » et la récompense dessous). Au coffre du spawn,
+  le couvercle s'ouvre pendant le tirage, des glyphes d'enchantement tournent autour, et à la
+  fin des étincelles, un feu d'artifice bleu (Rare), violet (Epic) ou trois dorés (Legendary)
+  au-dessus. Une récompense Legendary est annoncée à tout le lobby. Fermer le menu avant la fin
+  donne la récompense tout de suite (de même si le joueur part ou si le serveur s'arrête) ; le
+  jour est noté dès l'ouverture, une seule fois par jour.
+  Ce qu'il donne (`coffre-du-jour.recompenses:`, chaque ligne : sa rareté, ce qu'elle donne, de
+  combien à combien, sa chance en %) — mes choix, comme tu me l'as demandé, modifiables :
+
+  | Rareté | Récompense | Chance |
+  |---|---|---|
+  | Common (blanc) | 100 à 200 Rago Points | 30 % |
+  | Common | 100 à 500 XP Network | 25 % |
+  | Rare (bleu) | 200 à 350 Rago Points | 15 % |
+  | Rare | 500 à 1 000 XP Network | 13 % |
+  | Epic (violet) | 350 à 500 Rago Points | 6 % |
+  | Epic | 1 000 à 2 000 XP Network | 6 % |
+  | Legendary (or) | un cosmétique de la boutique | 5 % |
+
+  Soit Common 55 %, Rare 28 %, Epic 12 %, Legendary 5 % (un cosmétique tous les 20 jours en
+  moyenne). Jamais de doublon : le cosmétique est tiré parmi ceux que le joueur n'a pas (ni
+  achetés, ni donnés par son rang), jamais un de PREMIUM ; s'il les a tous, il reçoit à la place
+  la plus grosse récompense en Rago Points de la liste (500). L'XP est donnée telle quelle, sans
+  les boosters. La série (`rago-points.quotidien-serie`, 25) s'ajoute en Rago Points à partir du
+  deuxième jour d'affilée ; `rago-points.quotidien` ne sert plus (le coffre tire la récompense).
 - **Le PNJ des quêtes.** À deux blocs du coffre de la récompense du jour (trois si la place est
   prise), du côté le plus loin des autres PNJ, face au spawn : un PNJ dans son skin (`quetes`),
   avec au-dessus « QUESTS », où en est chacun (« Daily 2/4 · Weekly 0/4 »,

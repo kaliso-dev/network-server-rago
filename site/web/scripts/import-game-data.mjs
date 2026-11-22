@@ -123,6 +123,17 @@ function settingRange(source, name) {
   return { min: Number(match[1]), max: Number(match[2]) };
 }
 
+/** The Rago Points the Daily Chest gives (coffre-du-jour.recompenses: "100-200" or 250): the least and the most. */
+function dailyChestPoints(chest) {
+  const ranges = Object.values(chest?.recompenses ?? {})
+    .filter((reward) => reward['rago-points'] != null)
+    .map((reward) => String(reward['rago-points']).split('-').map((part) => Number(part.trim())));
+  if (!ranges.length || ranges.some((range) => range.some((value) => !Number.isInteger(value)))) {
+    throw new Error('no Rago Points in coffre-du-jour.recompenses of the lobby config');
+  }
+  return { min: Math.min(...ranges.map((range) => range[0])), max: Math.max(...ranges.map((range) => range[range.length - 1])) };
+}
+
 /** "4.99€" gives 4.99. */
 function amount(price) {
   const match = /(\d+(?:[.,]\d+)?)/.exec(String(price));
@@ -400,7 +411,7 @@ export function buildGameData() {
       win: lobby['rago-points'].victoire,
       loss: lobby['rago-points'].defaite,
       kill: lobby['rago-points'].kill,
-      daily: lobby['rago-points'].quotidien,
+      daily: dailyChestPoints(lobby['coffre-du-jour']),
     },
     events: {
       automatic: automatic.actif === true,

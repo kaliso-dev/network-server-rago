@@ -2252,7 +2252,10 @@
     "win": 20,
     "loss": 5,
     "kill": 2,
-    "daily": 100
+    "daily": {
+      "min": 100,
+      "max": 500
+    }
   },
   "events": {
     "automatic": true,

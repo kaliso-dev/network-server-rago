@@ -110,7 +110,8 @@ export interface GameData {
     cosmetics: CosmeticRef[];
   };
   cosmetics: Cosmetic[];
-  ragoPoints: { win: number; loss: number; kill: number; daily: number };
+  /** daily: the least and the most Rago Points of the Daily Chest. */
+  ragoPoints: { win: number; loss: number; kill: number; daily: { min: number; max: number } };
   events: { automatic: boolean; everyMinutes: number | null; lobbyPlayers: number | null; maxPlayers: number | null };
   attackDefense: { protection: number; attack: RoundKit[]; defense: RoundKit[] };
   /** The numbers of the block duels and trainings, read in the constants of their classes. */

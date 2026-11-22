@@ -401,7 +401,8 @@ public final class RagoLobby extends JavaPlugin implements LobbyService {
             names.advance();
             scoreboard.updateListNames();
         }, 16L, 6L);
-        daily = new DailyChest(profiles);
+        daily = new DailyChest(this, profiles);
+        shop.setDaily(daily);
         questsNpc = new QuestsNpc(stats.book(), server, levelMenu::openQuests);
         questsNpc.setStartSteps(this::gettingStartedSteps);
         questsNpc.setSkins(npcSkins::get);
@@ -433,6 +434,10 @@ public final class RagoLobby extends JavaPlugin implements LobbyService {
     @Override
     public void onDisable() {
         getServer().getServicesManager().unregisterAll(this);
+        if (daily != null) {
+            // a Daily Chest that spins gives its reward, saved with the others below
+            daily.stop();
+        }
         if (bots != null) {
             // no RagoBot without its plugin: it would stand still
             bots.removeAll();
@@ -809,6 +814,7 @@ public final class RagoLobby extends JavaPlugin implements LobbyService {
     void forget(Player player) {
         final UUID id = player.getUniqueId();
         Runnable[] steps = {
+            () -> daily.forget(player),
             () -> arrivedOnce.remove(id),
             () -> info.forget(id),
             () -> social.announce(player, false),

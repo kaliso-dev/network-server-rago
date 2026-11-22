@@ -17,6 +17,7 @@ import org.bukkit.event.entity.EntityDamageEvent;
 import org.bukkit.event.entity.FoodLevelChangeEvent;
 import org.bukkit.event.hanging.HangingBreakByEntityEvent;
 import org.bukkit.event.inventory.InventoryClickEvent;
+import org.bukkit.event.inventory.InventoryCloseEvent;
 import org.bukkit.event.inventory.InventoryDragEvent;
 import org.bukkit.event.player.PlayerAnimationEvent;
 import org.bukkit.event.player.PlayerAnimationType;
@@ -159,7 +160,7 @@ final class LobbyListener implements Listener {
         if (event.getClickedBlock() != null && lobby.daily() != null && lobby.daily().isChest(event.getClickedBlock())) {
             // The daily chest of the spawn, whatever is in the hand.
             event.setCancelled(true);
-            lobby.daily().claim(player);
+            lobby.daily().claimAtChest(player);
             return;
         }
         // Chests, doors, buttons and the like are not used in the lobby.
@@ -238,6 +239,14 @@ final class LobbyListener implements Listener {
         }
         if (state.isProtected(player)) {
             event.setCancelled(true);
+        }
+    }
+
+    /** The menu of the Daily Chest closed during its spin: the reward at once. */
+    @EventHandler
+    public void onInventoryClose(InventoryCloseEvent event) {
+        if (event.getPlayer() instanceof Player && lobby.daily() != null) {
+            lobby.daily().closed((Player) event.getPlayer(), event.getInventory());
         }
     }
 
