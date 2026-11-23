@@ -166,6 +166,23 @@ async function dig (bot, at) {
 }
 
 /**
+ * Breaks every block of snow this bot stands on: its feet, 0.6 wide, rest on up to four blocks
+ * (stopped at x 6.1, on the blocks 5 and 6, it stayed on the 5 once the 6 was broken).
+ */
+async function digUnder (bot) {
+  const p = bot.entity.position
+  const done = new Set()
+  for (const dx of [-0.299, 0.299]) {
+    for (const dz of [-0.299, 0.299]) {
+      const at = new Vec3(Math.floor(p.x + dx), Math.floor(p.y - 0.5), Math.floor(p.z + dz))
+      if (done.has(at.toString())) continue
+      done.add(at.toString())
+      if (bot.blockAt(at)?.name === 'snow') await dig(bot, at)
+    }
+  }
+}
+
+/**
  * Both bots in a duel of this mode: the west one (side 0, at centre.x + 0.5 - distance) and the
  * east one (centre.x + 0.5 + distance), and the centre (the block under the middle).
  */
@@ -392,7 +409,7 @@ async function snowballSpleef (one, two) {
     await sleep(300)
   }
   await hold(east, 'diamond_shovel')
-  await dig(east, east.entity.position.offset(0, -0.5, 0).floored())
+  await digUnder(east)
   const narrowY = game.centre.y - SPLEEF_GAP - SPLEEF_NARROW_GAP
   await waitFor(() => east.entity.onGround && east.entity.position.y < narrowY + 1.5, 5000,
     `the east bot on the narrow third floor, ${SPLEEF_NARROW_GAP} blocks under the second (at ${where(east)})`)
@@ -404,7 +421,7 @@ async function snowballSpleef (one, two) {
   await sleep(500)
   if (west.chats.slice(fromWest).some((line) => /Victory!/.test(line))) throw new Error('the game ended on the narrow floor')
   log(`snowball spleef: the east bot walked to the middle, broke the second floor and landed on the narrow third one (${where(east)}), still in the game`)
-  await dig(east, east.entity.position.offset(0, -0.5, 0).floored())
+  await digUnder(east)
   await chatLine(west, /Victory!/, 10000, fromWest)
   log('snowball spleef: the east bot fell under the narrow third floor, the west bot won')
   await expectInLobby(west, 'after the snowball spleef')

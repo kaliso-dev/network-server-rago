@@ -147,6 +147,23 @@ function ragoBot (bot) {
   return bot.players[BOT]?.entity ?? null
 }
 
+/**
+ * Keeps a column of air where this bot is while it may be knocked into the void, until the returned
+ * function is called: mineflayer takes the empty chunks of the void on 1.8 for chunks gone, and a
+ * bot in one stops moving (knocked off the floor into the next chunk, it stayed in the air at y 56.9,
+ * never falling far enough for the server to see it fall).
+ */
+function fallThroughEmptyChunks (bot) {
+  const timer = setInterval(() => {
+    const p = bot.entity?.position
+    const loaded = bot.world.getColumns()[0]
+    if (p == null || loaded == null || bot.blockAt(p) != null) return
+    const air = new loaded.column.constructor({ minY: bot.game.minY, worldHeight: bot.game.height })
+    bot.world.setColumn(Math.floor(p.x / 16), Math.floor(p.z / 16), air)
+  }, 50)
+  return () => clearInterval(timer)
+}
+
 function where (entity) {
   const p = entity.position
   return `${p.x.toFixed(1)}, ${p.y.toFixed(1)}, ${p.z.toFixed(1)}`
@@ -594,12 +611,13 @@ async function redRoverBlockPlacement (leader, other, op) {
   log(`red rover block placement: RagoBot vs ${opponent.username}, RagoArbitre brings ${opponent.username} onto RagoBot`)
   const before = mark(opponent)
   const health = opponent.health
+  const falling = fallThroughEmptyChunks(opponent)
   op.chat(`/tp ${opponent.username} ${BOT}`)
   await chatLine(opponent, /RagoBot wins the 1v1 \(1\/3\)/, 30000, before).catch((error) => {
     const bot = ragoBot(opponent)
     throw new Error(`${error.message}; ${opponent.username} at ${where(opponent.entity)} (health ${opponent.health}),`
       + ` RagoBot at ${bot ? where(bot) : 'out of sight'}; RagoArbitre read ${JSON.stringify(op.chats.slice(-3))}`)
-  })
+  }).finally(falling)
   log(`red rover block placement: RagoBot won its 1v1 against ${opponent.username} (health ${health} then ${opponent.health})`)
   // the two others leave the game: RagoBot, the last one in, wins
   for (const bot of [other, leader]) {
