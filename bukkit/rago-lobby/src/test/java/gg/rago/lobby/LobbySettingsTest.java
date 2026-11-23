@@ -194,7 +194,7 @@ class LobbySettingsTest {
         assertEquals("§6§lRanked", settings.categories().get(7).name());
         assertFalse(settings.categories().get(7).party());
         // Four ways to play: train alone, the RBW modes (not all ranked: no bed on it), duel, the arenas.
-        assertEquals("§6§lRBW Modes", settings.categories().get(1).name());
+        assertEquals("§6§lBedwars Modes", settings.categories().get(1).name(), "RBW Modes before (the owner, 23/11)");
         assertEquals(Material.BED, settings.categories().get(1).icon());
         for (ModeCategory category : settings.categories()) {
             assertTrue(category.slogan() != null && category.slogan().startsWith(category.name().substring(0, 2)),
@@ -400,8 +400,8 @@ class LobbySettingsTest {
     @Test
     void readsTheBundledNpcs() throws Exception {
         LobbySettings settings = LobbySettings.load(bundledConfig());
-        assertEquals(17, settings.npcs().size(), "five NPCs of modes, one per way to play (Fun Practice on the point"
-                + " of the Private game NPC before); the shop, the stats, the leaderboard selector, the boards and the wall"
+        assertEquals(18, settings.npcs().size(), "six NPCs of modes, one per way to play (Ranked on the point of the"
+                + " Fun Practice NPC before, the Fun Practice on a point of its own, 23/11); the shop, the stats, the leaderboard selector, the boards and the wall"
                 + " of the week; qRago and kaliso_dev; Rago Client and Rago Optimizer (the moderators jncl and nativ out"
                 + " since 22/11, 17h56)");
         for (String gone : Arrays.asList("ranked", "ffa", "clutchscenario", "attackanddefense", "rbwsolo1v1ou2v2skyrise",
@@ -412,14 +412,22 @@ class LobbySettingsTest {
         List<String> categories = new java.util.ArrayList<>();
         for (LobbyNpc npc : settings.npcs()) {
             if (npc.kind() == LobbyNpc.Kind.MODES) {
-                assertNotNull(npc.category(), npc.point() + ": only the NPCs of the five categories");
+                assertNotNull(npc.category(), npc.point() + ": only the NPCs of the six categories");
                 categories.add(npc.category());
             }
         }
-        assertEquals(Arrays.asList("entrainement", "ranked", "duels", "arenes", "fun"), categories,
-                "Practice, RBW Modes, Duels, Arenas, Fun Practice");
-        // the owner's ask of 22/11: the Fun Practice NPC in the place of the Private game NPC, on its point
-        LobbyNpc fun = settings.npc("prive");
+        assertEquals(Arrays.asList("entrainement", "ranked", "duels", "arenes", "classe", "fun"), categories,
+                "Practice, Bedwars Modes, Duels, Arenas, Ranked, Fun Practice");
+        // the owner's ask of 23/11: the Ranked NPC in the place of the Fun Practice NPC, on its point,
+        // its name tag in the colours and the layout of the Arenas NPC
+        LobbyNpc rankedNpc = settings.npc("prive");
+        assertEquals("§c§lRanked", rankedNpc.name());
+        assertEquals("classe", rankedNpc.category(), "it opens the Ranked menu of the compass, as /ranked");
+        assertEquals(LobbyCommands.RANKED_CATEGORY, rankedNpc.category());
+        assertEquals("§cYour ELO §7in every game", rankedNpc.subtitle(), "the slogan of Ranked, in red and grey as the Arenas");
+        assertEquals(displayIds(settings.modesIn("classe")), rankedNpc.modeIds(), "it holds the ranked modes");
+        // the Fun Practice NPC on a point of its own (/lobby point funpractice)
+        LobbyNpc fun = settings.npc("funpractice");
         assertEquals("§d§lFun Practice", fun.name());
         assertEquals("fun", fun.category());
         assertEquals("fun", fun.skin(), "the skin of the Fun Practice (22/11)");
@@ -442,7 +450,7 @@ class LobbySettingsTest {
         assertEquals(settings.modesIn("duels").size(), duels.modeIds().size(), "a category NPC holds its modes");
         assertTrue(duels.modeIds().contains("boxing"));
         LobbyNpc ranked = settings.npc("rbw");
-        assertEquals("§6§lRBW Modes", ranked.name());
+        assertEquals("§6§lBedwars Modes", ranked.name(), "RBW Modes before (the owner, 23/11)");
         assertEquals("§6RBW situations §7to practice", ranked.subtitle());
         assertEquals("ranked", ranked.category());
         assertTrue(ranked.modeIds().containsAll(Arrays.asList("skyrise-1v1", "clutch-scenario-1v1", "attack-defense-1v1",

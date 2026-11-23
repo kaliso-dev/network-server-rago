@@ -76,8 +76,9 @@ categories:
       - "Clutch, block in, fast defense,"
       - "bridging, extend, bow, aim: one"
       - "skill at a time."
+  # Bedwars Modes, RBW Modes before (renamed by the owner, 23/11)
   ranked:
-    nom: "&6&lRBW Modes"
+    nom: "&6&lBedwars Modes"
     icone: BED
     slogan: "&6RBW situations &7to practice"
     description:
@@ -369,7 +370,7 @@ pnj:
     skin: practice
     bloc: QUARTZ_BLOCK
   rbw:
-    nom: "&6&lRBW Modes"
+    nom: "&6&lBedwars Modes"
     categorie: ranked
     skin: ranked
     bloc: QUARTZ_BLOCK
@@ -383,11 +384,20 @@ pnj:
     categorie: arenes
     skin: arena
     bloc: QUARTZ_BLOCK
-  # FUN PRACTICE (plan 6.1): the NPC of the Fun Practice, on the point prive, where the Private
-  # game NPC stood (the owner's ask of 22/11: the Fun Practice NPC in its place, no Private game
-  # NPC), on a block of quartz. The private games are in the RBW Modes (the item Private games).
-  # Its point before, funmod2, has no NPC any more.
+  # RANKED (the owner's ask of 23/11): on the point prive, in the place of the Fun Practice NPC,
+  # it opens the Ranked menu of the compass (as /ranked), on a block of quartz; its name tag in the
+  # colours and the layout of the Arenas NPC: its name in red and bold, the slogan of Ranked under
+  # it in red and grey. Its skin, the one of the old Ranked Bedwars NPC, is to confirm.
   prive:
+    nom: "&c&lRanked"
+    categorie: classe
+    sous-titre: "&cYour ELO &7in every game"
+    skin: ranked
+    bloc: QUARTZ_BLOCK
+  # FUN PRACTICE (plan 6.1): its NPC left the point prive for the Ranked NPC (the owner, 23/11); it
+  # shows once its own point is placed: /lobby point funpractice where it goes. The private games
+  # are in the Bedwars Modes (the item Private games).
+  funpractice:
     nom: "&d&lFun Practice"
     categorie: fun
     skin: fun
@@ -433,7 +443,7 @@ pnj:
   #   skin: blocs
   #   modes: [block-fight-1v1, block-fight-2v2, block-fight-arena]
   # The Private game NPC (Bedwars Normal with friends since 22/11), on a point of its own (/lobby
-  # point partieprivee): the private games stay in the RBW Modes too.
+  # point partieprivee): the private games stay in the Bedwars Modes too.
   # partieprivee:
   #   nom: "&6&lPrivate game"
   #   sous-titre: "&7Your game, your friends, your rules"

@@ -142,9 +142,9 @@ describe('the game data', () => {
   });
 
   it('gives each category the skin of its NPC in the lobby, and the skin is rendered', () => {
-    // the NPC of FUN PRACTICE has its own skin since 22/11 (fun); 3 Players is in the compass only,
-    // without NPC (the owner's choice, 21/11), as Ranked (plan 3.7): no picture
-    const withoutSkinYet = ['trois-joueurs', 'classe'];
+    // the NPC of FUN PRACTICE has its own skin since 22/11 (fun), Ranked has its NPC since 23/11
+    // (ranked); 3 Players is in the compass only, without NPC (the owner's choice, 21/11): no picture
+    const withoutSkinYet = ['trois-joueurs'];
     for (const category of game.categories) {
       if (withoutSkinYet.includes(category.id)) {
         expect(category.skin, category.id).toBeNull();

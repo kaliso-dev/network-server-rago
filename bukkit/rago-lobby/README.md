@@ -582,7 +582,8 @@ commentaires de `config.yml`. Les mots français de la première version (`quitt
 | `/pc <message>`, `/chat party`, `/chat all` | écrire à sa party, y envoyer tout son chat, revenir au chat de tous | tout le monde |
 | `/hypixel import [pseudo]` | copier le shop Bed Wars (quick buy et hotbar manager) de son compte Hypixel, ou de celui de ce pseudo | tout le monde |
 | `/hypixel shop` | voir le shop Hypixel copié | tout le monde |
-| `/play [catégorie]` (ou `/modes`, `/games`, `/jouer`) | la boussole, ou les modes d'une catégorie (son id ou son nom : `/play duels`, `/play rbw modes`) | tout le monde |
+| `/play [catégorie]` (ou `/modes`, `/games`, `/jouer`) | la boussole, ou les modes d'une catégorie (son id ou son nom : `/play duels`, `/play bedwars modes`) | tout le monde |
+| `/ranked` | le menu Ranked de la boussole : Ranked Bedwars et les duels classés (ta demande du 23/11) | tout le monde |
 | `/lobby modes` | les modes et leur file (aussi depuis la console) | tout le monde |
 | `/lobby setspawn` | place le spawn du lobby là où tu es (écrit dans `spawn.yml`, dans le dossier du monde du lobby) | `rago.lobby.admin` |
 | `/lobby point <nom>` | place ou déplace un point nommé là où tu es : où iront les PNJ des modes, les classements, les décorations (écrit dans `points.yml`, dans le dossier du monde) | `rago.lobby.admin` |
@@ -702,7 +703,8 @@ signature, pas la couleur de tout :
   les 1v2 et Red Rover, à quatre les 2v2... et la partie privée de Ranked Bedwars ; hors party, un
   objet dit comment en créer une. Une party qui tient dans une équipe file toujours contre d'autres
   depuis les autres catégories, Ranked compris (avec la moyenne de ses ELO). `/play ranked` ouvre
-  toujours RBW Modes (son id), `/play classe` ouvre Ranked.
+  toujours Bedwars Modes (son id ; RBW Modes avant ta demande du 23/11), `/play classe` et
+  `/ranked` (ta demande du 23/11) ouvrent Ranked.
 - `groupes:` réunit les tailles d'un même jeu en un seul objet de sa catégorie, comme les jeux de
   Hypixel : Ranked Bedwars ouvre 1v1, 2v2, 3v3 et 4v4 côte à côte, Top Bridge ouvre 1v1, 2v2 et
   FFA, etc. Un mode y entre avec `groupe:` ; l'objet du groupe montre chaque taille avec sa file.
@@ -713,11 +715,15 @@ signature, pas la couleur de tout :
   dans ce menu, les tailles d'un même groupe ne font qu'un objet (Top Bridge, une échelle qui ouvre
   1v1, 2v2 et FFA), sauf si le PNJ n'a que ce groupe. Un PNJ avec `categorie:` ouvre les jeux de
   sa catégorie, rien d'autre au-dessus. Au centre, quatre PNJ seulement, un par façon de jouer, pour qu'un
-  nouveau joueur ne s'y perde pas : Practice, RBW Modes, Duels et Arenas (les points `practice`,
-  `rbw`, `duels` et `arenas`), plus le PNJ **Fun Practice** sur le point `prive`, à la place du
-  PNJ Private game (ta demande du 22/11 ; son point d'avant, `funmod2`, n'a plus de PNJ ; le bloc de
-  quartz que le plugin a pu y poser reste, à casser à la main si tu veux). Les parties privées
-  sont dans RBW Modes (l'objet Private games) ; le PNJ Private game est en commentaire dans
+  nouveau joueur ne s'y perde pas : Practice, Bedwars Modes (RBW Modes avant le 23/11), Duels et
+  Arenas (les points `practice`, `rbw`, `duels` et `arenas`), plus le PNJ **Ranked** sur le point
+  `prive` (ta demande du 23/11) : il ouvre le menu Ranked de la boussole, comme `/ranked`, avec son
+  nom en rouge et gras et le slogan de Ranked dessous en rouge et gris, comme le PNJ Arenas (son
+  skin, celui de l'ancien PNJ Ranked Bedwars, est à confirmer). Le PNJ **Fun Practice**, qui était
+  sur ce point depuis le 22/11, a maintenant son propre point : `/lobby point funpractice` là où
+  il doit aller (il n'apparaît pas avant). Le bloc de quartz que le plugin a pu poser sous un
+  ancien point reste, à casser à la main si tu veux. Les parties privées
+  sont dans Bedwars Modes (l'objet Private games) ; le PNJ Private game est en commentaire dans
   `pnj:` (`partieprivee`), pour un autre point. Les PNJ d'un mode (Ranked Bedwars, FFA,
   Clutch Scenario, Attack and Defense, Sky Rise, First rush, Invis, Bridge fight,
   Block placement) et ceux des zones Practice et Duels sont en commentaire dans `pnj:` ; leurs

@@ -47,7 +47,7 @@
     },
     {
       "id": "ranked",
-      "name": "RBW Modes",
+      "name": "Bedwars Modes",
       "colour": "#FFAA00",
       "icon": "BED",
       "slogan": [
@@ -186,7 +186,7 @@
         }
       ],
       "description": "Ranked Bedwars 1v1 to 4v4, and Bed Fight, Top Bridge, Bridge Fight, Block Placement, Sumo and Boxing in 1v1: each with its own ELO and divisions.",
-      "skin": null,
+      "skin": "ranked",
       "modes": 10,
       "also": []
     }

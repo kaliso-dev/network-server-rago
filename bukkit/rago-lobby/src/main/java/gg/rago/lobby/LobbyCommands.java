@@ -32,6 +32,9 @@ final class LobbyCommands implements TabExecutor {
 
     private static final List<String> ADMIN = Arrays.asList("setspawn", "build", "modes", "point", "points");
 
+    /** The category /ranked opens: Ranked in the compass (the owner's ask of 23/11). */
+    static final String RANKED_CATEGORY = "classe";
+
     private final RagoLobby lobby;
 
     LobbyCommands(RagoLobby lobby) {
@@ -86,6 +89,9 @@ final class LobbyCommands implements TabExecutor {
                 return queue(player, args);
             case "play":
                 return play(player, args);
+            case "ranked":
+                // /ranked: the Ranked menu of the compass, as /play does it (the owner's ask of 23/11)
+                return play(player, new String[] {RANKED_CATEGORY});
             case "duel":
                 return duel(player, args);
             case "hypixel":

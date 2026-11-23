@@ -255,7 +255,7 @@ export default function Home() {
             id="play"
             eyebrow={`${modeCount} modes, ${game.categories.length} ways to play`}
             title="And every other way to play"
-            lead="In the lobby, five characters open the modes, as the compass does. Every mode is free."
+            lead="In the lobby, six characters open the modes, as the compass does. Every mode is free."
           />
           <ul className={styles.npcs}>
             {game.categories.map((category) => (
@@ -296,7 +296,7 @@ export default function Home() {
               <McText segments={mc('&6&lPrivate game')} ground="#000000" />
             </span>
             <Image src="/skins/prive.png" alt="" width={96} height={192} unoptimized className={styles.privateSkin} />
-            <figcaption className="notice">In the lobby, this character opens the private games. They are in RBW Modes too.</figcaption>
+            <figcaption className="notice">In the lobby, this character opens the private games. They are in Bedwars Modes too.</figcaption>
           </figure>
           <div>
             <SectionHeading

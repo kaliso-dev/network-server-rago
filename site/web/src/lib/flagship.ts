@@ -186,7 +186,7 @@ export const FLAGSHIPS: Flagship[] = [
     icon: 'IRON_CHESTPLATE',
     skin: 'clutch',
     category: 'ranked',
-    where: 'Compass, RBW Modes, Clutch scenario',
+    where: 'Compass, Bedwars Modes, Clutch scenario',
     hook: 'A Ranked game at 18 minutes. One team has no bed left.',
     summary:
       'A real Ranked Bedwars game, already half played, from 1v1 to 1v4. One side has lost its bed and has one life: in 1v1 one of you, drawn at random, from 1v2 the player alone. The other side keeps its bed under a defense already built. Clutch your way back, or close it out.',
@@ -223,7 +223,7 @@ export const FLAGSHIPS: Flagship[] = [
     icon: 'IRON_SWORD',
     skin: 'attaque',
     category: 'ranked',
-    where: 'Compass, RBW Modes, Attack and defense',
+    where: 'Compass, Bedwars Modes, Attack and defense',
     hook: 'One bridge, one bed, one life to break it.',
     summary:
       'On Bio Hazard, the attackers come by the pink bridge with one life. The defenders hold their base with its forge and its item shop, and come back while their bed stands. The roles swap every round.',

@@ -25,6 +25,9 @@ commands:
     description: The ways to play, or the modes of one (practice, duels...).
     usage: /play [category]
     aliases: [modes, games, jouer]
+  ranked:
+    description: The Ranked menu of the compass - Ranked Bedwars and the ranked duels.
+    usage: /ranked
   duel:
     description: Challenge a lobby player to a 1v1.
     usage: /duel <player> [mode], /duel accept <player>, /duel deny <player>
