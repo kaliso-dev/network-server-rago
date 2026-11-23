@@ -2257,14 +2257,22 @@ bot ne joue un coup sur un ennemi), à tester en jeu avec toi. La liste des arme
 
 ### Installation du 23/11 avant ce soir (dfae3b7)
 
-Ton « Fait tout » du 23/11 : tout installer avant ce soir. Le kit de dfae3b7 (FFA Archway, RagoBot
-Block Edit, One Hit One Kill) : la consigne est envoyée à la session sur ton PC, qui s'était
-arrêtée ; elle repart à ton prochain message dans le fil (un nouveau lien du kit si le premier a
-expiré). Même déroulé qu'au matin : sauvegarde `sauvegarde-avant-maj-dfae3b7`, fusion à trois des
-trois config.yml (attendu : lobby 39 / 5, practice 0 / 0, bedwars 11 / 1), les 5 jars remplacés ;
-server.properties, l'icône et les mondes jamais touchés.
+Ton « Fait tout » du 23/11 : tout installer avant ce soir. Fait le 23/11 vers 11h30, serveur
+arrêté, sans le lancer : le kit de dfae3b7 (SHA-256 conforme), sauvegarde dans
+`sauvegarde-avant-maj-dfae3b7\plugins\` (5 jars et 3 configs) ; fusion à trois des trois
+config.yml sans conflit (lobby 39 ajoutées / 5 retirées, practice 0 / 0, bedwars 11 / 1, comme
+attendu) : FFA Archway dans `parties-privees`, Block edit 1v1 et Red Rover Block Edit dans les
+modes de RagoBot, `ffa-privee-minutes: 30`, les réglages privés et tes 46 lignes de `panneaux:`
+inchangés. Jars changés : rago-lobby et rago-bedwars (les trois autres n'avaient pas changé). Le
+monde ArchwayFFA est dans `%USERPROFILE%\Rago\mondes` (vu, pas ouvert). Rien d'autre n'est
+touché : ni `server.properties`, ni l'icône, ni les mondes.
 
-Statut : À FAIRE (attend que la session reparte sur ton PC).
+Pour les prochaines installations : `lancer.ps1` démarre le serveur avec un chemin relatif
+(`pandaspigot-226.jar`), donc savoir s'il tourne demande de chercher aussi « pandaspigot » et
+« world-container » dans les lignes de commande Java, et si le port 25565 écoute (ton client
+Minecraft, lancé par rago-launcher.exe, est un autre Java).
+
+Statut : installé le 23/11 ; rien n'est encore joué en jeu.
 
 ### Installation du 23/11 au matin (50d79b6)
 
