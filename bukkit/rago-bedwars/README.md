@@ -103,8 +103,17 @@ qui l'ont gagné, le son de l'orbe d'XP (`ORB_PICKUP`). La victoire garde aussi 
   Tout le monde reste 3 secondes dans l'arène (`fin-de-partie-secondes` du config.yml du lobby,
   0 pour repartir tout de suite), le temps de voir les gagnants et leur effet de victoire, avec le
   papier **Play again** et le lit **Leave** dans la barre (et les deux boutons dans le chat) qui
-  marchent tout de suite ; puis retour au lobby. Après une égalité, retour immédiat. Quitter le
-  serveur ou taper `/spawn` pendant la partie, c'est l'abandonner (une défaite).
+  marchent tout de suite ; puis retour au lobby. Après une égalité, retour immédiat. Taper
+  `/spawn` pendant la partie, c'est l'abandonner (une défaite).
+- **Déconnexion** (ta demande du 23/11, dans les parties classiques : Ranked Bedwars, Sky Rise,
+  First Rush, les parties privées de Bedwars Normal ; pas les duels ni les autres modes, où quitter
+  le serveur reste un abandon) : la partie continue (« X disconnected. »), son équipe le garde.
+  Tant qu'un coéquipier joue encore, il peut revenir quand il veut ; sinon (un 1v1, ou le dernier
+  de son équipe), il a 3 minutes : passé ce temps, il est éliminé (« did not come back in time »,
+  un abandon : files classées fermées un moment) et la partie continue sans lui (en 1v1, l'autre
+  gagne). De retour sur le serveur, il revient dans la partie (« X reconnected. ») comme après une
+  mort : inventaire perdu, outils d'un niveau en moins, spectateur 10 secondes, puis sur son île ;
+  sans lit (cassé pendant son absence ou pendant ces 10 secondes), il est éliminé.
 
 ## Bedwars Normal
 

@@ -115,6 +115,15 @@ public interface LobbyService {
     }
 
     /**
+     * The player, back on the server, goes back into their game of this mode, which waited for them
+     * (a disconnection in a game of Bed Wars): the lobby counts them in it again, as at its start.
+     * The game puts them back in it. False, the default: the lobby cannot, the game lets them go.
+     */
+    default boolean backInGame(Player player, String modeId) {
+        return false;
+    }
+
+    /**
      * The player leaves a game of this mode they still play (a forfeit: /spawn, Play again, leaving
      * the server), not one they are out of. Called before giving them back to the lobby. After a
      * ranked game that moves the ELO, the ranked queues stay closed to them for a while

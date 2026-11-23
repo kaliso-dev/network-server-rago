@@ -762,6 +762,17 @@ public final class RagoLobby extends JavaPlugin implements LobbyService {
         visibility.showAll(player);
     }
 
+    /** Back on the server, into the game of this mode that waited for them: in it again, out of the queues. */
+    @Override
+    public boolean backInGame(Player player, String modeId) {
+        if (queues.hostOf(modeId) == null) {
+            return false;
+        }
+        queues.leave(player, false);
+        enterGame(player, modeId);
+        return true;
+    }
+
     /** The game did not start after all. */
     void cancelGame(Player player) {
         state.leaveGame(player.getUniqueId());

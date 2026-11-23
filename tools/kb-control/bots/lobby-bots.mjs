@@ -34,7 +34,9 @@
 //      the item shop villager (under its floating name, ITEM SHOP) and buys wool from its Quick Buy, cannot place it near its spawn,
 //      places it by its bed and breaks it again, cannot break its own bed, buys a fireball and
 //      jumps on it at its feet (the blast lifts it and takes a heart, not its life); RagoDeux walks off its
-//      island, dies in the void and respawns (its bed stands), then leaves with /spawn: RagoUn
+//      island, dies in the void and respawns (its bed stands), leaves the server and comes back:
+//      the game waited for it, a spectator for 10 seconds then back on its island (the owner's ask
+//      of 23/11), then leaves with /spawn: RagoUn
 //      wins, and both are back in the lobby; RagoDeux left a ranked game it still played, so the
 //      ranked queues are closed to it for 5 minutes;
 //   8. a First Rush, a real 1v1: RagoUn asks for a map the mode does not have, then for bw-demo,
@@ -897,7 +899,10 @@ async function voidAndRespawn (bot, other) {
   log(`${bot.username} fell into the void and respawned`)
 }
 
-/** Ranked Bedwars 1v1 on the demo map, ending with RagoDeux leaving: RagoUn wins. */
+/**
+ * Ranked Bedwars 1v1 on the demo map: RagoDeux leaves the server and comes back into the game,
+ * then leaves it with /spawn: RagoUn wins. Returns the RagoDeux of now.
+ */
 async function playBedwars (one, two) {
   const fromOne = mark(one)
   const fromTwo = mark(two)
@@ -909,6 +914,7 @@ async function playBedwars (one, two) {
   await chatLine(one, /Fight!/, 10000, fromOne)
   await shopAndBuild(one)
   await voidAndRespawn(two, one)
+  two = await disconnectAndReturn(one, two)
   const fromEnd = mark(one)
   const fromLeft = mark(two)
   two.chat('/spawn')
@@ -919,6 +925,35 @@ async function playBedwars (one, two) {
   await expectInLobby(one, 'after the Bed Wars game')
   await expectInLobby(two, 'after /spawn in the Bed Wars game')
   log('Bed Wars: RagoDeux left, RagoUn won, both are back in the lobby; no ranked queue for RagoDeux for 5 minutes')
+  return two
+}
+
+/**
+ * RagoDeux leaves the server in the middle of the game (the owner's ask of 23/11): the game goes on
+ * without it, RagoUn does not win; back on the server, it is in the game again, a spectator for 10
+ * seconds as after a death, then on its island (its bed stands). Returns the RagoDeux of now.
+ */
+async function disconnectAndReturn (one, two) {
+  const fromOne = mark(one)
+  two.leaving = true
+  two.quit()
+  await chatLine(one, /RagoDeux disconnected\./, 5000, fromOne)
+  await sleep(3000)
+  const ended = chats.get(one.username).slice(fromOne).find((line) => /Winner:|left the game/.test(line))
+  if (ended != null) throw new Error(`the game did not wait for RagoDeux, gone from the server: ${ended}`)
+  if (one.game.gameMode !== 'survival') throw new Error(`RagoUn is no longer playing: ${one.game.gameMode}`)
+  const back = await join('RagoDeux')
+  await chatLine(one, /RagoDeux reconnected\./, 10000, fromOne)
+  await waitFor(() => back.game.gameMode === 'spectator', 5000, `RagoDeux, back, a spectator first: ${back.game.gameMode}`)
+  const backAt = Date.now()
+  await chatLine(back, /You have respawned!/, 15000, 0)
+  const waited = Date.now() - backAt
+  if (waited < 8000) throw new Error(`RagoDeux respawned ${waited} ms after its return: 10 seconds as a spectator first`)
+  await waitFor(() => back.game.gameMode === 'survival' && countOf(back, 'wooden_sword') === 1 &&
+    Math.abs(back.entity.position.y - (BEDWARS_FLOOR + 1)) < 0.5, 5000,
+  `RagoDeux back on its island with its sword: ${back.game.gameMode} at ${back.entity.position}`)
+  log(`Bed Wars: RagoDeux left the server, the game went on; back, a spectator for ${(waited / 1000).toFixed(1)} s, then on its island`)
+  return back
 }
 
 /** First Rush: a real 1v1 on two neighbouring islands, on the map chosen in the queue. */
@@ -1317,7 +1352,7 @@ async function checkDailyChest (bot) {
 
 async function main () {
   const one = await join('RagoUn')
-  const two = await join('RagoDeux')
+  let two = await join('RagoDeux')
   log('both bots joined')
 
   // 1. The lobby.
@@ -1444,8 +1479,8 @@ async function main () {
   await expectInLobby(two, 'after /spawn in the /duel match')
   log('/duel: RagoDeux accepted, the duel started without the queue')
 
-  // 7. Ranked Bedwars 1v1 (RagoBedwars), on its demo map.
-  await playBedwars(one, two)
+  // 7. Ranked Bedwars 1v1 (RagoBedwars), on its demo map: RagoDeux leaves the server and comes back.
+  two = await playBedwars(one, two)
 
   // 8. First Rush: a real game on two islands side by side.
   await playFirstRush(one, two)

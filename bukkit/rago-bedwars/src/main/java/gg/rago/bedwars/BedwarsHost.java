@@ -85,6 +85,7 @@ import org.bukkit.event.player.PlayerInteractEntityEvent;
 import org.bukkit.event.player.PlayerInteractEvent;
 import org.bukkit.event.player.PlayerItemConsumeEvent;
 import org.bukkit.event.player.PlayerItemDamageEvent;
+import org.bukkit.event.player.PlayerJoinEvent;
 import org.bukkit.event.player.PlayerMoveEvent;
 import org.bukkit.event.player.PlayerPickupItemEvent;
 import org.bukkit.event.player.PlayerQuitEvent;
@@ -1522,13 +1523,40 @@ final class BedwarsHost implements MatchHost, Listener {
 
     // --- Leaving --------------------------------------------------------------------------------
 
-    /** Leaving the server in the middle of a game: out of it. Before RagoLobby forgets the player. */
+    /**
+     * Leaving the server in the middle of a game: out of it, or in a game that waits for them (a
+     * classic game of Bed Wars, ranked or not: {@link BedwarsGame#mayComeBack}) gone for a while,
+     * their place kept. Before RagoLobby forgets the player.
+     */
     @EventHandler
     public void onQuit(PlayerQuitEvent event) {
         toldNoMap.remove(event.getPlayer().getUniqueId());
         BedwarsGame game = games.get(event.getPlayer().getUniqueId());
         if (game != null) {
-            game.leave(event.getPlayer(), false);
+            if (game.mayComeBack(event.getPlayer())) {
+                game.away(event.getPlayer());
+            } else {
+                game.leave(event.getPlayer(), false);
+            }
+        }
+    }
+
+    /**
+     * Back on the server while their game waits for them ({@link BedwarsGame#awaits}): after the
+     * lobby (MONITOR, the lobby is HIGHEST), back in the game. A game that no longer waits for them
+     * lets them go.
+     */
+    @EventHandler(priority = EventPriority.MONITOR)
+    public void onJoin(PlayerJoinEvent event) {
+        Player player = event.getPlayer();
+        BedwarsGame game = games.get(player.getUniqueId());
+        if (game == null) {
+            return;
+        }
+        if (game.awaits(player.getUniqueId()) && plugin.lobby().backInGame(player, game.modeId())) {
+            game.returned(player);
+        } else {
+            games.remove(player.getUniqueId());
         }
     }
 

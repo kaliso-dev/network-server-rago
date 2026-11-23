@@ -111,6 +111,10 @@ class BedwarsGame {
         /** Their ender chest in this game, made when first opened. */
         Inventory enderChest;
         BukkitTask respawn;
+        /** Gone from the server in the middle of the game, and may come back: see {@link BedwarsGame#away}. */
+        boolean away;
+        /** When they left the server, while {@link #away}. */
+        long awaySince;
         /** After a respawn, while no enemy can hurt them: see {@link BedwarsGame#spawnProtectionMillis}. */
         final SpawnProtection protection = new SpawnProtection();
 
@@ -1076,6 +1080,9 @@ class BedwarsGame {
                 utilities.second();
                 everySecond();
             }
+            if (phase == Phase.PLAYING) {
+                awayTooLong();
+            }
         }
         for (Generator generator : diamonds) {
             generator.refreshText();
@@ -1533,13 +1540,20 @@ class BedwarsGame {
     }
 
     private void respawnLater(final Player victim, final Gamer gamer) {
-        final int total = respawnSeconds();
+        respawnLater(victim, gamer, respawnSeconds(), ChatColor.RED + "" + ChatColor.BOLD + "YOU DIED!", false);
+    }
+
+    /**
+     * Back in the game after these seconds as a spectator, under this title; with needsBed (a
+     * return to the game, {@link #returned}), out of the game instead if the bed is gone by then.
+     */
+    private void respawnLater(final Player victim, final Gamer gamer, final int total, final String title,
+            final boolean needsBed) {
         if (total <= 0) {
             respawn(victim, gamer);
             return;
         }
-        victim.sendTitle(ChatColor.RED + "" + ChatColor.BOLD + "YOU DIED!",
-                ChatColor.YELLOW + "You will respawn in " + ChatColor.RED + total + ChatColor.YELLOW + " seconds!");
+        victim.sendTitle(title, ChatColor.YELLOW + "You will respawn in " + ChatColor.RED + total + ChatColor.YELLOW + " seconds!");
         gamer.respawn = Bukkit.getScheduler().runTaskTimer(plugin, new Runnable() {
             private int left = total;
 
@@ -1552,11 +1566,15 @@ class BedwarsGame {
                     return;
                 }
                 if (left > 0) {
-                    player.sendTitle(ChatColor.RED + "" + ChatColor.BOLD + "YOU DIED!", ChatColor.YELLOW
+                    player.sendTitle(title, ChatColor.YELLOW
                             + "You will respawn in " + ChatColor.RED + left + ChatColor.YELLOW + " seconds!");
                     return;
                 }
                 cancel(gamer.respawn);
+                if (needsBed && !gamer.team.bed) {
+                    outWithoutBed(player, gamer);
+                    return;
+                }
                 respawn(player, gamer);
             }
         }, 20L, 20L);
@@ -1582,6 +1600,143 @@ class BedwarsGame {
      */
     long spawnProtectionMillis() {
         return SPAWN_PROTECTION_MILLIS;
+    }
+
+    // --- Back after a disconnection -------------------------------------------------------------
+
+    /** How long a player gone from the server has to come back, when no teammate plays on: 3 minutes. */
+    static final long RETURN_MILLIS = 3 * 60_000L;
+    /** Back on the server: a spectator for this long first, as after a death, then back on their island. */
+    static final int RETURN_SPECTATOR_SECONDS = 10;
+
+    /**
+     * True if a player who leaves the server in the middle of this game may come back into it (the
+     * owner's ask of 23/11: in the Bed Wars games and in ranked, not in the duels): a classic game
+     * of Bed Wars, so Ranked Bedwars, Sky Rise, First Rush and the private games of Bedwars Normal.
+     * The other modes of the plugin (duels, trainings, arenas, fun modes) each have their own class:
+     * a player who leaves is out at once, as before.
+     */
+    boolean waitsForReturn() {
+        return getClass() == BedwarsGame.class;
+    }
+
+    /** True if this player, leaving the server now, may come back into this game ({@link #away}). */
+    boolean mayComeBack(Player player) {
+        Gamer gamer = gamers.get(player.getUniqueId());
+        return gamer != null && !gamer.eliminated && !gamer.away && waitsForReturn() && host.gameOf(gamer.id) == this
+                && (phase == Phase.PLAYING || phase == Phase.STARTING);
+    }
+
+    /**
+     * The player left the server in the middle of the game ({@link #mayComeBack}): the game goes on
+     * without them, their team keeps them. In a game where a teammate of theirs plays on, they may
+     * come back as long as one does; else (a 1v1, or the last of their team) within
+     * {@link #RETURN_MILLIS}, or they are out and the game goes on (a 1v1: the other wins). Back,
+     * {@link #returned}.
+     */
+    void away(Player player) {
+        Gamer gamer = gamers.get(player.getUniqueId());
+        plugin.watchers().playerLeft(this, player);
+        gamer.away = true;
+        gamer.awaySince = System.currentTimeMillis();
+        gamer.respawning = false;
+        cancel(gamer.respawn);
+        gamer.respawn = null;
+        broadcast(gamer.coloured() + ChatColor.GRAY + " disconnected.", null);
+        sidebars();
+    }
+
+    /** True if this player left the server in this game and may still come back into it. */
+    boolean awaits(UUID player) {
+        Gamer gamer = gamers.get(player);
+        return gamer != null && gamer.away && !gamer.eliminated && phase != Phase.ENDED && host.gameOf(player) == this;
+    }
+
+    /**
+     * Back on the server ({@link #awaits}), the lobby has them in this game again: as after a
+     * death, a spectator for {@value #RETURN_SPECTATOR_SECONDS} seconds (their inventory gone, their
+     * tools a tier down), then back on their island; out of the game at once if their bed is gone,
+     * or if it is gone by then.
+     */
+    void returned(Player player) {
+        Gamer gamer = gamers.get(player.getUniqueId());
+        gamer.away = false;
+        if (phase == Phase.STARTING) {
+            // the game has not begun: on their spawn, as the others
+            place(player, gamer);
+            welcome(player, gamer);
+            if (teamNameTags()) {
+                plugin.lobby().setGameNameTag(player, gamer.team.color.letter() + " " + gamer.team.color.chat());
+            }
+            sidebars();
+            return;
+        }
+        if (gamer.pickaxe > 0) {
+            gamer.pickaxe--;
+        }
+        if (gamer.axe > 0) {
+            gamer.axe--;
+        }
+        prepare(player);
+        player.setGameMode(GameMode.SPECTATOR);
+        player.teleport(watchPoint());
+        if (teamNameTags()) {
+            plugin.lobby().setGameNameTag(player, gamer.team.color.letter() + " " + gamer.team.color.chat());
+        }
+        broadcast(gamer.coloured() + ChatColor.GRAY + " reconnected.", null);
+        if (!gamer.team.bed) {
+            outWithoutBed(player, gamer);
+            return;
+        }
+        gamer.respawning = true;
+        respawnLater(player, gamer, RETURN_SPECTATOR_SECONDS, ChatColor.YELLOW + "" + ChatColor.BOLD + "RECONNECTED!", true);
+        sidebars();
+    }
+
+    /** Back with no bed (on their return, or by the end of its seconds): out of the game, a spectator. */
+    private void outWithoutBed(Player player, Gamer gamer) {
+        gamer.respawning = false;
+        gamer.eliminated = true;
+        broadcast(gamer.coloured() + ChatColor.GRAY + " has no bed any more: out of the game.", null);
+        outOfGame(player, gamer);
+        teamOut(gamer.team);
+        sidebars();
+        checkEnd();
+    }
+
+    /** True if a teammate of this player plays on: in the game, on the server. */
+    private boolean teammatePlays(Gamer gamer) {
+        for (UUID member : gamer.team.members) {
+            Gamer mate = gamers.get(member);
+            if (mate != gamer && mate != null && !mate.eliminated && !mate.away && host.gameOf(member) == this) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    /**
+     * Each second: a player gone for {@link #RETURN_MILLIS} with no teammate playing on is out of
+     * the game, a forfeit (the ranked queues close for a while, as when one leaves).
+     */
+    private void awayTooLong() {
+        long now = System.currentTimeMillis();
+        for (Gamer gamer : new ArrayList<>(gamers.values())) {
+            if (phase != Phase.PLAYING) {
+                return;
+            }
+            if (!gamer.away || gamer.eliminated || now - gamer.awaySince < RETURN_MILLIS || teammatePlays(gamer)) {
+                continue;
+            }
+            gamer.eliminated = true;
+            plugin.lobby().forfeited(modeId, gamer.id);
+            host.release(gamer.id);
+            broadcast(gamer.coloured() + ChatColor.GRAY + " did not come back in time: out of the game.", null);
+            left(gamer);
+            teamOut(gamer.team);
+            sidebars();
+            checkEnd();
+        }
     }
 
     /** The player left the game: out of the server, or /spawn. Their team plays on without them. */
