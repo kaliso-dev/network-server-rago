@@ -132,7 +132,7 @@
           "colour": "#FF55FF"
         }
       ],
-      "description": "Fireball Fight: knock them off with fireballs, three at once; Snowball Spleef: break the snow under their feet; Capture the Flag on The Bridge or castle against castle; Fast Bedwars; Parkour Duel: race them to the finish.",
+      "description": "Fireball Fight: knock them off with fireballs, three at once; Snowball Spleef: break the snow under their feet; Capture the Flag on The Bridge or castle against castle; 2017 Bedwars; Parkour Duel: race them to the finish.",
       "skin": "fun",
       "modes": 9,
       "also": []
@@ -344,7 +344,7 @@
     },
     {
       "id": "fast-bedwars",
-      "name": "Fast Bedwars",
+      "name": "2017 Bedwars",
       "description": "Bed Wars, fast and simple: faster forges, earlier events, a smaller shop. 1v1 or 2v2.",
       "modes": [
         "fast-bedwars-1v1",
@@ -1537,7 +1537,7 @@
     },
     {
       "id": "fast-bedwars-1v1",
-      "name": "Fast Bedwars 1v1",
+      "name": "2017 Bedwars 1v1",
       "colour": "#FF55FF",
       "icon": "BED",
       "category": "fun",
@@ -1554,7 +1554,7 @@
     },
     {
       "id": "fast-bedwars-2v2",
-      "name": "Fast Bedwars 2v2",
+      "name": "2017 Bedwars 2v2",
       "colour": "#FF55FF",
       "icon": "BED",
       "category": "fun",
@@ -1564,7 +1564,7 @@
       "startHere": false,
       "event": false,
       "sizeOf": null,
-      "description": "Fast Bedwars, two against two: rush fast, defend fast.",
+      "description": "2017 Bedwars, two against two: rush fast, defend fast.",
       "plugins": [
         "bedwars"
       ]

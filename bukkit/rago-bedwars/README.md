@@ -410,7 +410,11 @@ Les valeurs (captures, durées, retour du drapeau) sont dans `ctf:` du `config.y
 jeu. Le dessin des deux maps est à valider : on peut les modifier en jeu et les sauver, le plugin
 ne les reconstruit pas tant que leur dossier existe.
 
-## Fast Bedwars
+## 2017 Bedwars (Fast Bedwars avant le 23/11)
+
+Renommé « 2017 Bedwars » le 23/11 (ta demande) : seul le nom que voient les joueurs change (les
+`nom:` du `config.yml` du lobby et le titre) ; les ids `fast-bedwars-*` et la section
+`fast-bedwars:` restent, les stats avec eux.
 
 Le Bedwars simplifié du plan (6.1), « rapide, simple et amusant », comme proposé le 21/11 :
 `fast-bedwars-1v1` et `fast-bedwars-2v2` (le genre `fast-bedwars`), dans Fun Practice, sur les 20

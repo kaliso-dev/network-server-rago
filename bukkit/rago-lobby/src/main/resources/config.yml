@@ -121,7 +121,7 @@ categories:
       - "Snowball Spleef: break the snow"
       - "under their feet; Capture the"
       - "Flag on The Bridge or castle"
-      - "against castle; Fast Bedwars;"
+      - "against castle; 2017 Bedwars;"
       - "Parkour Duel: race them to the"
       - "finish."
   # The games for three players (plan 6.6), in the compass only (the owner's choice, 21/11): no NPC.
@@ -327,9 +327,9 @@ groupes:
       - "A big map, castle against"
       - "castle and a mid: Bed Wars with"
       - "a flag in each keep. 2v2, 4v4."
-  # Fast Bedwars (category fun)
+  # 2017 Bedwars, Fast Bedwars before (category fun; renamed by the owner, 23/11)
   fast-bedwars:
-    nom: "&dFast Bedwars"
+    nom: "&d2017 Bedwars"
     icone: BED
     description:
       - "Bed Wars, fast and simple:"
@@ -1159,7 +1159,7 @@ titres:
     snowball-spleef: {nom: "Snowball Spleef", modes: [snowball-spleef]}
     parkour-duel: {nom: "Parkour Duel", modes: [parkour-duel]}
     capture-the-flag: {nom: "Capture the Flag", modes: [ctf-bridge-1v1, ctf-bridge-2v2, ctf-castle-2v2, ctf-castle-4v4]}
-    fast-bedwars: {nom: "Fast Bedwars", modes: [fast-bedwars-1v1, fast-bedwars-2v2]}
+    fast-bedwars: {nom: "2017 Bedwars", modes: [fast-bedwars-1v1, fast-bedwars-2v2]}
     red-rover: {nom: "Red Rover", modes: [red-rover-sumo, red-rover-block-edit, red-rover-block-placement,
         red-rover-top-bridge]}
 
@@ -2294,10 +2294,11 @@ modes:
     description:
       - "CTF Castle, four against four:"
       - "defend your keep, raid theirs."
-  # Fast Bedwars (plan 6.1): played by RagoBedwars on the maps of the RBW queue; its forges, events,
+  # 2017 Bedwars (Fast Bedwars of plan 6.1, renamed by the owner on 23/11; its ids stay, and its
+  # stats with them): played by RagoBedwars on the maps of the RBW queue; its forges, events,
   # shop and upgrades in the config.yml of RagoBedwars (fast-bedwars:). Sizes to confirm.
   fast-bedwars-1v1:
-    nom: "&dFast Bedwars 1v1"
+    nom: "&d2017 Bedwars 1v1"
     categorie: fun
     groupe: fast-bedwars
     icone: BED
@@ -2310,7 +2311,7 @@ modes:
       - "beds gone at 15 minutes, a"
       - "smaller shop, no upgrades."
   fast-bedwars-2v2:
-    nom: "&dFast Bedwars 2v2"
+    nom: "&d2017 Bedwars 2v2"
     categorie: fun
     groupe: fast-bedwars
     icone: BED
@@ -2318,7 +2319,7 @@ modes:
     joueurs-par-equipe: 2
     classe: false
     description:
-      - "Fast Bedwars, two against"
+      - "2017 Bedwars, two against"
       - "two: rush fast, defend fast."
   clutch:
     nom: "&bBlock clutch"

@@ -392,7 +392,7 @@ async function chooseTeams (leader, second, third) {
 async function play (leader, second, third, marks) {
   const teams = [[leader, 'Red', RED_SPAWN_X], [second, 'Red', RED_SPAWN_X], [third, 'Blue', BLUE_SPAWN_X]]
   for (const [i, [bot, team]] of teams.entries()) {
-    await chatLine(bot, new RegExp(`Fast Bedwars 2v2 on bw-demo: you are in the ${team} team\\.`), 30000, marks[i])
+    await chatLine(bot, new RegExp(`2017 Bedwars 2v2 on bw-demo: you are in the ${team} team\\.`), 30000, marks[i])
   }
   for (const [bot, team, spawnX] of teams) {
     await waitFor(() => bot.game.gameMode === 'survival' && Math.abs(bot.entity.position.x - spawnX) < 3, 10000,

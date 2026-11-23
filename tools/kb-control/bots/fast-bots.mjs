@@ -150,7 +150,7 @@ async function start (one, two) {
   const teams = {}
   for (const [i, bot] of [one, two].entries()) {
     const line = await chatLine(bot,
-      /Fast Bedwars 1v1 on bw-demo: you are in the (Red|Blue) team\. Protect your bed and destroy the others'!/, 30000, from[i])
+      /2017 Bedwars 1v1 on bw-demo: you are in the (Red|Blue) team\. Protect your bed and destroy the others'!/, 30000, from[i])
     teams[line.includes('Red team') ? 'Red' : 'Blue'] = bot
   }
   if (teams.Red == null || teams.Blue == null) throw new Error('the two bots are not in two teams')
