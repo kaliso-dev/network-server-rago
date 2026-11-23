@@ -653,6 +653,8 @@ async function ffaArchway (leader, second, third) {
     await chatLine(bot, /Time is up\./, (FFA_MINUTES * 60 + 30) * 1000, marks[i])
     await chatLine(bot, /Draw: no team won\./, 2000, marks[i])
     await chatLine(bot, /Kills leaderboard/, 2000, marks[i])
+    // the last line of the end: the whole leaderboard has arrived before it is read
+    await chatLine(bot, /You: \d+ kills?, \d+ deaths?$/, 2000, marks[i])
   }
   const took = Math.round((Date.now() - started) / 1000)
   // level in kills (none): the same place, by name; the third with its death
