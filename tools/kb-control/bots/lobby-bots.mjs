@@ -100,35 +100,24 @@ const STATS_NPC = { x: -3.5, y: 66, z: 0.5 }
 const PERSON_NPC = { x: -3.5, y: 66, z: -3.5 }
 // Rago Client (point ragoclient), a product of Rago (OUR OTHER PRODUCTS), on diamond
 const PRODUCT_NPC = { x: 3.5, y: 66, z: -3.5 }
-// The thank-you text (plan 5.7), cut in two (the owner's ask of 22/11, 19h51): its first part on
-// the left (point textremerciement), the rest on the right (point textremerciement2). The lines of
+// The texts of the thank-you room: INFORMATION : on both sides, short (the owner's ask of 23/11),
+// on the left (point textremerciement) and on the right (point textremerciement2). The lines of
 // each float above its point, the last one 0.45 block high, the others 0.27 block apart
 // (LobbyText, FakeHologram); an empty one shows nothing.
 const THANK_YOU_TEXTS = [{ x: -8.5, y: 65, z: -3.5 }, { x: 8.5, y: 65, z: -3.5 }]
 const THANK_YOU_LINES = [[
-  'THANK YOU',
-  'Rago Practice took a very long time to build, but I have',
-  'dreamed of it for years: my own server means a lot to me.',
-  'It is not made to earn money: Premium ranks get nothing',
-  'more in gameplay than anyone else.',
-  'As a big PvP and Hypixel player, I found no way to train.',
-  'I was tired of Hypixel RBW housings and of solo practice',
-  'maps for Block Placement, and high ping on Hypixel is',
-  'unbearable.'
+  'INFORMATION :',
+  'A server I dreamed of for years, made by a PvP',
+  'and Hypixel player who had nowhere to train.',
+  'No pay to win: Premium gives nothing in gameplay.'
 ], [
-  'So I made this server to help you train Block Placement,',
-  'Hypixel Bedwars and RBW with Hypixel KB, and above all with',
-  'low ping. Fight your friends in 1v1 and 2v2 duels and train',
-  'with lots of fun, like Minemen but much better: low ping,',
-  'Hypixel KB and real modes to train. You never get bored, and',
-  'you can train everything.',
-  'Pure passion, no money goal: a real project with a real goal.',
-  'As a player, I know what players want: this server is here',
-  'to help you train and have more fun with your friends.',
+  'INFORMATION :',
+  'Train Block Placement, Bedwars and RBW with',
+  'Hypixel KB and low ping, alone or with friends.',
   'Join our Discord: discord.gg/ragooptimizer'
 ]]
-// with the empty lines (no stand): 10 on the left, 11 on the right
-const THANK_YOU_ROWS = [10, 11]
+// no empty line: 4 on each side
+const THANK_YOU_ROWS = [4, 4]
 const MAIN_BOARD = { x: 0.5, z: 5.5 }
 // The kit editor: the book in the second hotbar slot, the Save button of its chest of 27 slots,
 // whose window shows the player's hotbar from slot 54 (27 of the chest, 27 of the inventory).
