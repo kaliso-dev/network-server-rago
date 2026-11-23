@@ -485,13 +485,19 @@ checkpoint. Les valeurs de départ ci-dessous sont **à régler avec le proprié
   l'autre (`etages` 2, `ecart-etages` 9 blocs entre eux, 6 avant ta demande du 22/11 à 19h55 ;
   `rayon` 18, à confirmer : ton choix du 22/11, « agrandi la map, fait 2 étages »), une pelle en
   diamant Efficacité V qui casse la neige d'un coup, et `boules-par-bloc` (1) boule de neige par
-  bloc cassé. Une boule casse la neige où elle tombe. Pas de coups à la main ; une boule qui
+  bloc cassé. Une boule casse toujours le bloc de neige où elle tombe (ta demande du 23/11, « 100%
+  du temps ») : le serveur suit son chemin bloc par bloc, même un coin ou une arête qu'elle frôle
+  (avant, il regardait tous les dixièmes de bloc et pouvait passer à côté d'un coin). Sous les deux
+  étages, un troisième plus étroit et plus proche (ta demande du 23/11, « plus petit (étroit) et
+  moins bas (4-5 blocks) ») : `etage-etroit-ecart` 5 blocs sous le deuxième, `etage-etroit-rayon`
+  9 (la moitié des autres, à confirmer ; 0 pour ne pas l'avoir) ; le départ de chacun, à 9 blocs du
+  milieu, est au-dessus de son bord. Pas de coups à la main ; une boule qui
   touche un joueur le pousse comme dans Minecraft, sans dégât, et ne casse pas de neige là.
   Personne ne casse la neige d'un étage au-dessus de lui (ni à la pelle, ni avec une boule) ; à
   9 blocs, l'étage du haut est de toute façon hors de portée depuis celui du bas (en 1.8, la
   portée est de 4,5 blocs depuis les yeux, à 1,62 au-dessus des pieds, 1,25 de plus en haut d'un
   saut : jusqu'à 8,37 blocs au-dessus du sol du bas). Tomber sous le dernier étage fait perdre la
-  manche ; les étages sont remis à neuf à chaque manche.
+  manche (le troisième, étroit, est le dernier) ; les étages sont remis à neuf à chaque manche.
 - **Parkour Duel** (`parkour-duel`, ton choix du 22/11, « dans une map stylée ») : une course sur un
   parcours du plugin (`ParkourCourse`), le même pour les deux, chacun sur sa piste (rouge et bleue,
   côte à côte, 10 blocs l'une de l'autre). Cinq sections à thème : des piliers de quartz, un

@@ -2149,6 +2149,39 @@ les deux lignes y sont, et aucune partie classée n'y est notée.
 **À l'install du 22/11** : ton serveur est en `online-mode=true` (sans BungeeCord), donc
 `uuid: ""` reste tel quel. Il suffit d'être qRago et op (ou rang owner).
 
+### Ta liste du 23/11 (20h54), après ton test
+
+Ta liste du 23/11 à 20h54, après tes tests de la version installée (dfae3b7). Je les fais un par
+un : d'abord les corrections simples, puis les gros changements ; ceux qui ne sont pas encore
+précisés passent d'abord par une proposition.
+
+| Point | Ce que je fais | Statut |
+| --- | --- | --- |
+| « les boules de neige qu'on récupère en cassant des blocs, quand on les lance, elles doivent casser les blocs de neige 100 % du temps » | Spleef : chaque boule qui tombe sur un bloc de neige le casse. | À FAIRE |
+| « Rajoute aussi un troisième étage plus petit (étroit) et moins bas (4-5 blocs) » | Spleef : un troisième étage, plus étroit, 4 à 5 blocs sous le deuxième. | À FAIRE |
+| « Change les 20 secondes en 30 secondes, et quand tout le monde a sélectionné sa team, ça passe à 15 secondes directement, à part si c'est déjà passé » | Private game : le compte à rebours du choix des équipes à 30 s ; à 15 s dès que tout le monde a une équipe, s'il en reste plus. | À FAIRE |
+| « Quand on lance une private game avec sa party, ça doit directement TP tous les joueurs au lobby d'attente bedwars de base et c'est là-bas que le host doit faire les settings de la map et que les joueurs puissent choisir leur équipe, PAS AVANT DANS LE PNJ » | Private game : la party part tout de suite au lobby d'attente de la partie Bed Wars ; le chef y règle la partie et chacun y choisit son équipe. | À FAIRE |
+| « PROBLÈME DE DÉCONNEXION » (Bed Wars et Ranked, pas les duels) | La partie continue sans lui. En 1v1 : 3 minutes pour revenir, sinon éliminé et l'autre gagne. En équipe : il peut revenir tant qu'un coéquipier vit. À son retour : 10 s en spectateur puis il réapparaît ; sans lit, éliminé. | À FAIRE |
+| « Block placement anti full box : ça ne marche pas, quand on respawn on est coincé dans des blocs […] le même système qu'en bedfight » | Le retour en Block Placement comme en Bed Fight. | À FAIRE |
+| « Daily chest : l'animation légèrement plus rapide […] mais que les items tournent beaucoup plus vite » | Une animation plus courte, la bande qui défile beaucoup plus vite. | À FAIRE |
+| « Rago Bot : […] je propose de lui rajouter un ping de 40 ms » | RagoBot : 40 ms de ping (ses coups arrivent 40 ms plus tard). | À FAIRE |
+| « il faut qu'il prenne en compte la map et qu'il avance et joue sur la map comme un vrai joueur » | RagoBot : se déplacer en tenant compte des murs et du relief. Gros changement : proposition d'abord. | À FAIRE |
+| « lui apprendre à poser des blocs et à block placement son adversaire […] puis le combo » | RagoBot : poser des blocs devant l'adversaire pour le bloquer, puis le combo. Proposition d'abord. | À FAIRE |
+| « Enlever certains mods : Knockback Displace, Pearl practice, Fireball Practice » | Retirés des menus et des files. | À FAIRE |
+| « Top Bed Fight 2v2, le même mod que Top Bedfight 1v1 mais en 2v2 » | Attend ta map. | BLOQUÉ (ta map) |
+| « Attack and defense, je t'expliquerai demain ma vision » | Attend ta vision. | BLOQUÉ (tes explications) |
+| « Renomme le mod Fast bedwars en 2017 Bedwars » | Le nom affiché partout. | À FAIRE |
+| « Message de remerciement : pour les deux messages sur les côtés mettre à la place de "thank you" "INFORMATION :" […] diminuer et raccourcir les messages » | Les deux côtés titrés « INFORMATION : », des textes courts, quelques mots en couleur. | À FAIRE |
+| « Build le lobby avec la référence que j'ai envoyée en image » | Ton image (îles flottantes, statue d'ange, temple blanc) gardée dans les fichiers du projet (`sortie-publique/references/lobby-reference-23-11.png`). Proposition d'abord. | À FAIRE |
+| « Le pnj et le module RBW Mod renomme-le en Bedwars Mods » | Le PNJ et le menu de la boussole. | À FAIRE |
+| « Ajoute la commande /ranked qui ouvre le menu Ranked Mod de la boussole » | `/ranked`. | À FAIRE |
+| « ajoute le PNJ RANKED à la place du PNJ FUN PRACTICE […] la couleur du PNJ doit être la même couleur et disposition que celui de ARENA » | Le PNJ Ranked sur le point du PNJ Fun Practice. | À FAIRE |
+| « Pour le PNJ Fun practice donne-moi la commande pour placer des points » | La commande à taper, puis tu me dis l'endroit. | À FAIRE |
+| « Fait un reset de toutes les stats des joueurs (TOUT) » | Ton choix du 23/11 à 20h55 : « Les stats seulement » (kills, victoires, ELO, niveau, records, leaderboards) ; gardés : Rago Points, cosmétiques, rangs, amis, réglages, kits. Une sauvegarde complète avant. | À FAIRE |
+| « pour les Top Score dans practice, ou les leaderboards dans FFA ne reset plus, on attend la release pour ça » | Plus de remise à zéro des records et des leaderboards d'ici la sortie. | À FAIRE |
+| « les badges (NAMETAG) ou les caractères euros ou dollars (PNJ SHOP) […] tous les caractères spéciaux sont buggés » | Cause probable : ton serveur démarre avec Java 17 (`JAVA_HOME`), dont l'encodage par défaut sur ton PC est Windows-1252, et le serveur 1.8 lit alors les config.yml dans cet encodage. Tes trois config.yml sont sains (UTF-8, aucun caractère abîmé). À corriger dans le lanceur et dans les plugins. | À FAIRE |
+| « Fireball : copier les mêmes fireballs que sur Minemen » | Je cherche d'abord comment elles marchent sur Minemen (vitesse, recul, dégâts). | À FAIRE |
+
 ### FFA Archway en partie privée (23/11)
 
 Ton choix du 23/11 : « 30 minutes, puis classement des kills », puis « Fait tout ». C'est la

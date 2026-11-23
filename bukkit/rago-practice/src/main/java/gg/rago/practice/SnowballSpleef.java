@@ -26,8 +26,10 @@ import org.bukkit.util.Vector;
  * (the owner, 22/11); a snowball hits a player (the owner, 22/11, 19h55): it pushes them as in
  * Minecraft, without damage, and breaks no snow there. Nobody breaks the snow of a floor above
  * them, with the shovel or a snowball: the floors are far enough apart for the shovel to be out of
- * reach from below. The first to fall under the lowest floor loses the round; the floors are whole
- * again at each round. Its settings: snowball-spleef in config.yml.
+ * reach from below. Under them, a narrower floor, closer (the owner's ask of 23/11: « un troisième
+ * étage plus petit (étroit) et moins bas (4-5 blocks) »). The first to fall under the lowest floor
+ * loses the round; the floors are whole again at each round. Its settings: snowball-spleef in
+ * config.yml.
  */
 final class SnowballSpleef extends Duel {
 
@@ -41,16 +43,36 @@ final class SnowballSpleef extends Duel {
         final int gap;
         /** Snowballs for each block of snow the shovel breaks. */
         final int snowballs;
+        /** Radius of the narrow floor under the others, 0 for none. */
+        final int narrowRadius;
+        /** Blocks from the last of the floors down to the narrow one. */
+        final int narrowGap;
 
         Settings(int radius, int floors, int gap, int snowballs) {
+            this(radius, floors, gap, snowballs, 0, 0);
+        }
+
+        Settings(int radius, int floors, int gap, int snowballs, int narrowRadius, int narrowGap) {
             this.radius = radius;
             this.floors = floors;
             this.gap = gap;
             this.snowballs = snowballs;
+            this.narrowRadius = narrowRadius;
+            this.narrowGap = narrowRadius > 0 ? narrowGap : 0;
+        }
+
+        /** The height of the lowest floor under the top one (the narrow one if there is one). */
+        int lowestDy() {
+            return floorDy(floors - 1, gap) - narrowGap;
         }
 
         /** What is wrong with these values, or null. */
         static String check(int radius, int floors, int gap, int snowballs) {
+            return check(radius, floors, gap, snowballs, 0, 0);
+        }
+
+        /** What is wrong with these values, or null. */
+        static String check(int radius, int floors, int gap, int snowballs, int narrowRadius, int narrowGap) {
             if (radius < 5 || radius > 40) {
                 return "rayon must be from 5 to 40";
             }
@@ -60,8 +82,14 @@ final class SnowballSpleef extends Duel {
             if (gap < 3 || gap > 20) {
                 return "ecart-etages must be from 3 to 20";
             }
-            if (floors * gap > 60) {
-                return "etages x ecart-etages must be 60 blocks at most";
+            if (narrowRadius != 0 && (narrowRadius < 3 || narrowRadius >= radius)) {
+                return "etage-etroit-rayon must be 0 (none) or from 3 to less than rayon";
+            }
+            if (narrowRadius != 0 && (narrowGap < 3 || narrowGap > 20)) {
+                return "etage-etroit-ecart must be from 3 to 20";
+            }
+            if (floors * gap + (narrowRadius != 0 ? narrowGap : 0) > 60) {
+                return "etages x ecart-etages, with etage-etroit-ecart, must be 60 blocks at most";
             }
             if (snowballs < 0 || snowballs > 16) {
                 return "boules-par-bloc must be from 0 to 16";
@@ -78,8 +106,6 @@ final class SnowballSpleef extends Duel {
      * little).
      */
     static final double REACH = 1.5;
-    /** The step of that search, in blocks. */
-    static final double STEP = 0.1;
 
     private final Settings settings;
     /** The snowballs that hit a player: they break no snow where they land. */
@@ -118,6 +144,9 @@ final class SnowballSpleef extends Duel {
         for (int n = 0; n < settings.floors; n++) {
             Shapes.disc(arena, 0, 0, floorDy(n, settings.gap), settings.radius, Material.SNOW_BLOCK, 0);
         }
+        if (settings.narrowRadius > 0) {
+            Shapes.disc(arena, 0, 0, settings.lowestDy(), settings.narrowRadius, Material.SNOW_BLOCK, 0);
+        }
     }
 
     @Override
@@ -142,7 +171,7 @@ final class SnowballSpleef extends Duel {
     /** Under the lowest floor: out. */
     @Override
     double fallY() {
-        return arena.floorY() + floorDy(settings.floors - 1, settings.gap) - FALL_DEPTH;
+        return arena.floorY() + settings.lowestDy() - FALL_DEPTH;
     }
 
     @Override
@@ -199,7 +228,7 @@ final class SnowballSpleef extends Duel {
 
     /** True if the block is in the box of the floors. */
     private boolean onFloors(Block block) {
-        return arena.contains(block, settings.radius + 1, -floorDy(settings.floors - 1, settings.gap), 0);
+        return arena.contains(block, settings.radius + 1, -settings.lowestDy(), 0);
     }
 
     /** A snowball for each block broken with the shovel. */
@@ -246,24 +275,47 @@ final class SnowballSpleef extends Duel {
     /**
      * The block a projectile landing at (x, y, z) on its way (vx, vy, vz, a move of a tick) hit: the
      * first block from there along its way, as far as a move and a half block ({@value #REACH} at
-     * least); null if none, or if it does not move.
+     * least); null if none, or if it does not move. Every block the way crosses is looked at, one
+     * after the other (Amanatides and Woo), even one it only clips at a corner or an edge, as the
+     * server's own ray finds it: a snowball that lands on a block always breaks that block (the
+     * owner's ask of 23/11, « 100% du temps »; before, a look every tenth of a block could pass by
+     * a corner).
      */
     static int[] struck(double x, double y, double z, double vx, double vy, double vz, Solid solid) {
         double length = Math.sqrt(vx * vx + vy * vy + vz * vz);
         if (length < 1e-6) {
             return null;
         }
-        double dx = vx / length;
-        double dy = vy / length;
-        double dz = vz / length;
-        double reach = Math.max(REACH, length + 0.5);
-        for (double along = 0; along <= reach + 1e-9; along += STEP) {
-            int bx = (int) Math.floor(x + dx * along);
-            int by = (int) Math.floor(y + dy * along);
-            int bz = (int) Math.floor(z + dz * along);
-            if (solid.at(bx, by, bz)) {
-                return new int[] {bx, by, bz};
+        double[] dir = {vx / length, vy / length, vz / length};
+        double[] from = {x, y, z};
+        int[] block = {(int) Math.floor(x), (int) Math.floor(y), (int) Math.floor(z)};
+        int[] step = new int[3];
+        double[] next = new double[3];
+        double[] across = new double[3];
+        for (int axis = 0; axis < 3; axis++) {
+            if (dir[axis] > 0) {
+                step[axis] = 1;
+                next[axis] = (block[axis] + 1 - from[axis]) / dir[axis];
+                across[axis] = 1 / dir[axis];
+            } else if (dir[axis] < 0) {
+                step[axis] = -1;
+                next[axis] = (from[axis] - block[axis]) / -dir[axis];
+                across[axis] = -1 / dir[axis];
+            } else {
+                next[axis] = Double.POSITIVE_INFINITY;
+                across[axis] = Double.POSITIVE_INFINITY;
             }
+        }
+        double reach = Math.max(REACH, length + 0.5);
+        double along = 0;
+        while (along <= reach + 1e-9) {
+            if (solid.at(block[0], block[1], block[2])) {
+                return block;
+            }
+            int axis = next[0] <= next[1] && next[0] <= next[2] ? 0 : next[1] <= next[2] ? 1 : 2;
+            along = next[axis];
+            next[axis] += across[axis];
+            block[axis] += step[axis];
         }
         return null;
     }

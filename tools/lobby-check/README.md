@@ -146,8 +146,9 @@ Pour finir, des bots jouent les modes de FUN PRACTICE (`tools/kb-control/bots/fu
 avec les réglages livrés (une manche) : au Snowball Spleef (deux bots), la pelle casse un bloc de
 neige et donne une boule, la boule casse la neige où elle tombe, une boule lancée sur l'autre le
 pousse sans le blesser ni casser de neige là, puis l'autre casse la neige sous ses pieds, tombe
-sur l'étage du bas (9 blocs plus bas), y lance sa boule vers l'étage du haut (elle n'y casse
-rien), casse l'étage du bas, tombe et le premier gagne ; au Fireball Fight (trois bots, chacun pour soi, sur la plateforme
+sur le deuxième étage (9 blocs plus bas), y lance sa boule vers l'étage du haut (elle n'y casse
+rien), marche vers le milieu, casse le deuxième étage, tombe sur le troisième, étroit (5 blocs plus
+bas ; pas de neige à 10 blocs du milieu), le casse, tombe et le premier gagne ; au Fireball Fight (trois bots, chacun pour soi, sur la plateforme
 de rayon 20), chacun a 64 fireballs et 64 laines de sa couleur (rouge, bleu, vert), pas de plume,
 et le double saut dès le départ ; le bleu frappe trois fois le vert sans le pousser ni le blesser
 (pas de coups), le vert fait un double saut regard en l'air (il monte, un deuxième tout de suite

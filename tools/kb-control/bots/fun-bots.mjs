@@ -8,7 +8,9 @@
 //      east bot until one reaches it: it pushes it, without hurting it nor breaking snow there;
 //      then the east bot breaks the snow under its own feet, lands on the second floor, 9 blocks
 //      down (still in the game), throws its snowball up at the top floor (it breaks nothing there:
-//      no floor breaks from below), breaks the second floor, falls under it, and the west bot wins;
+//      no floor breaks from below), walks towards the middle, breaks the second floor and lands on
+//      the narrow third one, 5 blocks down (the owner's ask of 23/11), breaks it too, falls under
+//      it, and the west bot wins;
 //   2. Fireball Fight (fireball-knockback), three bots each for themselves on the platform of 20
 //      blocks: 64 fireballs and 64 wool of their colour each (red, blue, green), no feather, the
 //      double jump from the start; the blue bot hits the green one three times (no push, no harm:
@@ -37,6 +39,9 @@ const TEST_TIMEOUT_MS = 8 * 60 * 1000
 const SPLEEF_RADIUS = 18
 /** The bundled blocks from the top floor down to the second one (snowball-spleef.ecart-etages). */
 const SPLEEF_GAP = 9
+/** The bundled narrow third floor (snowball-spleef.etage-etroit-rayon and etage-etroit-ecart). */
+const SPLEEF_NARROW_RADIUS = 9
+const SPLEEF_NARROW_GAP = 5
 /** The course of the Parkour Duel (ParkourCourse.java): the start, from the middle of a lane, facing +x. */
 const PARKOUR_START = { x: -47.5, y: 1, z: 0.5 }
 /** Each lane this far from the middle of the arena, across: red at -5, blue at +5. */
@@ -372,10 +377,36 @@ async function snowballSpleef (one, two) {
   }
   if (snowLeft(east, game) !== top) throw new Error(`a snowball thrown from the second floor broke the top floor: ${top} blocks before, ${snowLeft(east, game)} now`)
   log(`snowball spleef: from the second floor, a snowball thrown up landed on the top floor (after ${flight} ms, ${flightTicks} ticks away) and broke nothing there`)
+  // 6. towards the middle, over the narrow floor (the snowball pushed it away), then down on it
+  const middle = new Vec3(game.centre.x + 0.5, east.entity.position.y + 1.62, game.centre.z + 0.5)
+  const overNarrow = () => Math.hypot(east.entity.position.x - middle.x, east.entity.position.z - middle.z) < SPLEEF_NARROW_RADIUS - 3
+  if (!overNarrow()) {
+    await east.lookAt(middle, true)
+    east.setControlState('forward', true)
+    try {
+      await waitFor(overNarrow, 8000, () => `the east bot over the narrow floor, walking to the middle (at ${where(east)})`)
+    } finally {
+      east.setControlState('forward', false)
+    }
+    await waitFor(() => east.entity.onGround, 3000, 'the east bot to stop')
+    await sleep(300)
+  }
   await hold(east, 'diamond_shovel')
   await dig(east, east.entity.position.offset(0, -0.5, 0).floored())
+  const narrowY = game.centre.y - SPLEEF_GAP - SPLEEF_NARROW_GAP
+  await waitFor(() => east.entity.onGround && east.entity.position.y < narrowY + 1.5, 5000,
+    `the east bot on the narrow third floor, ${SPLEEF_NARROW_GAP} blocks under the second (at ${where(east)})`)
+  const narrow = east.blockAt(east.entity.position.offset(0, -0.5, 0))
+  if (narrow?.name !== 'snow') throw new Error(`the east bot does not stand on the snow of the narrow floor: ${blockText(narrow)} at ${where(east)}`)
+  // narrow: no snow a block past its radius, along x from the middle
+  const past = east.blockAt(new Vec3(game.centre.x + SPLEEF_NARROW_RADIUS + 1, narrowY, game.centre.z))
+  if (past?.name === 'snow') throw new Error(`the third floor is not narrow: snow ${SPLEEF_NARROW_RADIUS + 1} blocks from the middle`)
+  await sleep(500)
+  if (west.chats.slice(fromWest).some((line) => /Victory!/.test(line))) throw new Error('the game ended on the narrow floor')
+  log(`snowball spleef: the east bot walked to the middle, broke the second floor and landed on the narrow third one (${where(east)}), still in the game`)
+  await dig(east, east.entity.position.offset(0, -0.5, 0).floored())
   await chatLine(west, /Victory!/, 10000, fromWest)
-  log('snowball spleef: the east bot fell under the second floor, the west bot won')
+  log('snowball spleef: the east bot fell under the narrow third floor, the west bot won')
   await expectInLobby(west, 'after the snowball spleef')
   await expectInLobby(east, 'after the snowball spleef')
 }

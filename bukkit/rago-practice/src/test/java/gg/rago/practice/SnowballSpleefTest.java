@@ -37,6 +37,47 @@ class SnowballSpleefTest {
     }
 
     @Test
+    void aSnowballThatClipsTheCornerOfABlockBreaksThatBlock() {
+        // only the block (1, 64, 0): the way goes into it through its top 0.02 from its edge and out
+        // through its side 0.02 under its top (the owner, 23/11: « 100% du temps »); a look every
+        // tenth of a block passed by it
+        SnowballSpleef.Solid one = (x, y, z) -> x == 1 && y == 64 && z == 0;
+        assertArrayEquals(new int[] {1, 64, 0}, SnowballSpleef.struck(1.68, 65.3, 0.5, 0.6, -0.6, 0, one));
+        // the same along z, and with all three axes moving
+        SnowballSpleef.Solid alongZ = (x, y, z) -> x == 0 && y == 64 && z == 1;
+        assertArrayEquals(new int[] {0, 64, 1}, SnowballSpleef.struck(0.5, 65.3, 1.68, 0, -0.6, 0.6, alongZ));
+        assertArrayEquals(new int[] {1, 64, 0}, SnowballSpleef.struck(1.68, 65.3, 0.3, 0.6, -0.6, 0.1, one));
+        // its edge going down the other way, x decreasing
+        SnowballSpleef.Solid west = (x, y, z) -> x == -2 && y == 64 && z == 0;
+        assertArrayEquals(new int[] {-2, 64, 0}, SnowballSpleef.struck(-0.68, 65.3, 0.5, -0.6, -0.6, 0, west));
+    }
+
+    @Test
+    void theFirstBlockOnItsWayIsTheOneItBreaks() {
+        // two blocks on its way: the nearer one
+        SnowballSpleef.Solid two = (x, y, z) -> y == 64 && (x == 2 || x == 3) && z == 0;
+        assertArrayEquals(new int[] {2, 64, 0}, SnowballSpleef.struck(0.5, 65.5, 0.5, 1.2, -0.5, 0, two));
+        // landing inside a block: that block
+        assertArrayEquals(new int[] {0, 64, 0}, SnowballSpleef.struck(0.5, 64.9, 0.5, 0.3, -0.2, 0, FLOOR));
+    }
+
+    @Test
+    void aNarrowFloorUnderTheOthers() {
+        // the owner, 23/11: a third floor, narrower, 4-5 blocks under the second
+        SnowballSpleef.Settings settings = new SnowballSpleef.Settings(18, 2, 9, 1, 9, 5);
+        assertEquals(-14, settings.lowestDy(), "9 blocks to the second floor, then 5 to the narrow one");
+        assertEquals(-9, new SnowballSpleef.Settings(18, 2, 9, 1).lowestDy(), "without it, the second floor is the lowest");
+        assertEquals(-9, new SnowballSpleef.Settings(18, 2, 9, 1, 0, 5).lowestDy(), "a radius of 0: none");
+        assertNull(SnowballSpleef.Settings.check(18, 2, 9, 1, 9, 5));
+        assertNull(SnowballSpleef.Settings.check(18, 2, 9, 1, 0, 0), "none");
+        assertTrue(SnowballSpleef.Settings.check(18, 2, 9, 1, 2, 5).startsWith("etage-etroit-rayon"));
+        assertTrue(SnowballSpleef.Settings.check(18, 2, 9, 1, 18, 5).startsWith("etage-etroit-rayon"), "narrower than the others");
+        assertTrue(SnowballSpleef.Settings.check(18, 2, 9, 1, 9, 2).startsWith("etage-etroit-ecart"));
+        assertTrue(SnowballSpleef.Settings.check(18, 2, 9, 1, 9, 21).startsWith("etage-etroit-ecart"));
+        assertTrue(SnowballSpleef.Settings.check(12, 4, 12, 1, 9, 13).startsWith("etages x"), "48 + 13 blocks deep");
+    }
+
+    @Test
     void aFastSnowballStillFindsTheBlock() {
         // 2.5 blocks a tick, 2 blocks above the floor: farther than the least reach of 1.5
         assertArrayEquals(new int[] {0, 64, 0}, SnowballSpleef.struck(0.5, 66.0, 0.5, 0, -2.5, 0, FLOOR));
@@ -85,6 +126,13 @@ class SnowballSpleefTest {
         // from the lower floor (its top 1 above it), the eyes 1.62 above the feet and 1.25 higher at the
         // top of a jump, the 4.5 blocks of reach of 1.8 end under the top floor
         assertTrue(1 + 1.62 + 1.25 + 4.5 < gap, "the top floor out of the reach of a player on the lower one");
+        // the narrow floor under them (the owner, 23/11: « plus petit (étroit) et moins bas (4-5 blocks) »)
+        int narrowRadius = config.getInt("snowball-spleef.etage-etroit-rayon");
+        int narrowGap = config.getInt("snowball-spleef.etage-etroit-ecart");
+        assertNull(SnowballSpleef.Settings.check(18, 2, gap, 1, narrowRadius, narrowGap));
+        assertTrue(narrowRadius > 0 && narrowRadius < 18, "narrower: " + narrowRadius);
+        assertTrue(narrowGap >= 4 && narrowGap <= 5, "4-5 blocks under the second floor: " + narrowGap);
+        assertTrue(narrowRadius >= 9, "the start of each side, 9 blocks from the middle, over it: who falls straight down lands on it");
     }
 
     @Test

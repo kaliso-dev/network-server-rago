@@ -375,12 +375,17 @@ fireball-knockback:
 # confirm). The lower floor 9 blocks under the top one (6 before; the owner's ask of 22/11, 19h55:
 # out of reach from below): a 1.8 player reaches a block 4.5 blocks from the eyes, 1.62 above the
 # feet, 1.25 higher at the top of a jump: standing on the lower floor (its top 1 block above it),
-# up to 1 + 1.62 + 1.25 + 4.5 = 8.37 blocks above it; the top floor starts 9 above it.
+# up to 1 + 1.62 + 1.25 + 4.5 = 8.37 blocks above it; the top floor starts 9 above it. Under them, a
+# narrower floor (the owner's ask of 23/11: « un troisième étage plus petit (étroit) et moins bas
+# (4-5 blocks) »): etage-etroit-rayon (0 for none, else 3 to less than rayon; 9, half of the others,
+# to confirm), etage-etroit-ecart blocks under the last one (3 to 20; 5).
 snowball-spleef:
   points-pour-gagner: 1
   rayon: 18
   etages: 2
   ecart-etages: 9
+  etage-etroit-rayon: 9
+  etage-etroit-ecart: 5
   boules-par-bloc: 1
 
 # Parkour Duel: a race on a course of the plugin, each side on its own lane of the same course (five

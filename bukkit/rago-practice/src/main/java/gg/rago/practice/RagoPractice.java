@@ -366,15 +366,17 @@ public final class RagoPractice extends JavaPlugin {
         int gap = config.getInt("snowball-spleef.ecart-etages", 9);
         int snowballs = config.getInt("snowball-spleef.boules-par-bloc", 1);
         int points = config.getInt("snowball-spleef.points-pour-gagner", 1);
-        String problem = SnowballSpleef.Settings.check(radius, floors, gap, snowballs);
+        int narrowRadius = config.getInt("snowball-spleef.etage-etroit-rayon", 0);
+        int narrowGap = config.getInt("snowball-spleef.etage-etroit-ecart", 5);
+        String problem = SnowballSpleef.Settings.check(radius, floors, gap, snowballs, narrowRadius, narrowGap);
         if (problem == null && (points < 1 || points > 10)) {
             problem = "points-pour-gagner must be from 1 to 10";
         }
         if (problem != null) {
             getLogger().warning("snowball-spleef in config.yml: " + problem + ". The Snowball Spleef plays with its default settings.");
-            return new SnowballSpleef.Settings(18, 2, 9, 1);
+            return new SnowballSpleef.Settings(18, 2, 9, 1, 9, 5);
         }
-        return new SnowballSpleef.Settings(radius, floors, gap, snowballs);
+        return new SnowballSpleef.Settings(radius, floors, gap, snowballs, narrowRadius, narrowGap);
     }
 
     /**
