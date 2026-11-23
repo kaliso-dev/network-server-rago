@@ -9,6 +9,7 @@ import org.bukkit.Sound;
 import org.bukkit.Material;
 import org.bukkit.World;
 import org.bukkit.block.Block;
+import org.bukkit.block.BlockFace;
 import org.bukkit.enchantments.Enchantment;
 import org.bukkit.entity.Player;
 import org.bukkit.event.block.BlockPlaceEvent;
@@ -24,7 +25,7 @@ import org.bukkit.inventory.ItemStack;
  * landed on the other side is a point (a hit does no damage, only its knockback), and a fall into
  * the void gives the other side {@value #VOID_BONUS} points and sends the one who fell back on their
  * gold block at once, their kit given back whole (two stacks of wool again; the others fight on,
- * the blocks stay). A block broken drops on the ground, for anyone to pick up, and no block may
+ * the blocks stay, but those where they come back go first, as in Bed Fight). A block broken drops on the ground, for anyone to pick up, and no block may
  * close a player in completely (the anti full box, {@link FullBox}). First to 100 by default (points-pour-gagner.block-fight). The hearts tell the
  * score: a player has all their health while the other side has no point, none when it reaches
  * the target (see {@link #healthFor}), and none comes back by itself. As a Red Rover
@@ -72,11 +73,25 @@ final class BlockFight extends Duel {
         }
     }
 
-    /** At the start, the hearts the score leaves (all of them at 0 - 0). */
+    /** At the start, the hearts the score leaves (all of them at 0 - 0); the start cleared first. */
     @Override
     void placeAtStart(Player player) {
+        clearStart(player.getUniqueId());
         super.placeAtStart(player);
         showHealth();
+    }
+
+    /**
+     * The two blocks where the player comes back (feet and head) go first, as in Bed Fight (the
+     * owner's ask of 23/11): nobody comes back walled in by the blocks placed on their start.
+     */
+    void clearStart(UUID player) {
+        Block feet = spawnOf(player).getBlock();
+        for (Block block : new Block[] {feet, feet.getRelative(BlockFace.UP)}) {
+            if (block.getType() != Material.AIR) {
+                block.setType(Material.AIR);
+            }
+        }
     }
 
     /** The hearts are the score: none comes back by itself. */
@@ -231,6 +246,7 @@ final class BlockFight extends Duel {
         // others fight on, the blocks stay
         forgetHits(id);
         player.setFallDistance(0f);
+        clearStart(id);
         player.teleport(spawnOf(id));
         player.setItemOnCursor(null);
         giveKit(player);

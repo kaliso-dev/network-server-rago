@@ -88,8 +88,10 @@ jouée.
   (ta demande du 22/11). **Anti full box** (ton choix du 22/11) : un bloc qui enfermerait
   complètement un joueur, celui qui le pose ou un autre (ses quatre côtés aux pieds et à la tête,
   et au-dessus de sa tête), est refusé (« You can't box yourself in! », « You can't box a player
-  in! ») ; le sol ne compte pas. Les deux valent pour le 1v1, le 2v2, le Ranked et le Red Rover
-  Block Placement, le même jeu. Premier à
+  in! ») ; le sol ne compte pas. Et comme en Bed Fight (ta demande du 23/11 : on revenait coincé
+  dans des blocs) : les deux blocs où un joueur revient, pieds et tête, sont enlevés juste avant,
+  après une chute comme au début d'un 1v1 du Red Rover. Les deux valent pour le 1v1, le 2v2, le
+  Ranked et le Red Rover Block Placement, le même jeu. Premier à
   `points-pour-gagner.block-fight` (100). Les cœurs disent le score : un joueur a toute sa vie
   tant que l'autre camp n'a aucun point, et plus rien quand il en a 100 (20 PV à 0 coup, 0 PV à
   100 coups, une demi-vie au moins : le score ne tue pas) ; la vie ne remonte pas toute seule.
