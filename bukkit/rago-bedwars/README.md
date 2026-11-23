@@ -137,11 +137,10 @@ Puis ceux des parties privées d'Hypixel (« comme sur hypixel »), comme son me
   (les tiers des générateurs, la fin des lits, la fin de partie) vient deux fois plus tard, deux ou
   quatre fois plus tôt ; avec Max Emerald, toujours sans Emerald II ni III ;
 - **Bed Instabreak** : le lit d'une autre équipe se casse d'un seul coup de poing (le sien, jamais) ;
-- **One Hit One Kill** (ton « Fait tout » du 23/11, l'option recommandée : le chef choisit les
-  armes) : comme le menu d'Hypixel (« Select which items should instantly kill enemies »), un clic
+- **One Hit One Kill** (ton choix du 23/11 : « Le chef choisit les armes ») : comme le menu d'Hypixel (« Select which items should instantly kill enemies »), un clic
   ouvre les armes, chacune On ou Off : Wooden Sword, Stone Sword, Iron Sword, Diamond Sword,
-  Knockback Stick, Bow, Fireball, TNT (les armes de la boutique ; la liste exacte d'Hypixel n'est
-  écrite nulle part, à confirmer ; le poing n'y est pas). Un coup d'une arme cochée sur un ennemi
+  Knockback Stick, Bow, Fireball, TNT (les armes de la boutique, la liste exacte d'Hypixel n'étant
+  écrite nulle part ; le poing n'y est pas). Un coup d'une arme cochée sur un ennemi
   le tue d'un coup, comme un coup mortel : l'épée ou le bâton en main, la flèche d'un arc, la TNT
   allumée par un joueur, la fireball par son explosion (jamais sur soi ni un coéquipier, jamais
   pendant la protection après un retour).
