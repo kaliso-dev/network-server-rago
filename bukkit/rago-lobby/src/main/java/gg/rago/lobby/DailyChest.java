@@ -172,7 +172,10 @@ final class DailyChest {
         private final Block at;
         private final ClickMenu menu = new ClickMenu(3, TITLE);
         private final List<ItemStack> reel = new ArrayList<>();
-        private final int[] delays = DailyRewards.delays(DailyRewards.SHIFTS);
+        private final int[] positions = DailyRewards.positions(DailyRewards.SHIFTS, DailyRewards.SPIN_TICKS);
+        /** The ticks of the spin gone, and the moves of the reel (a note each). */
+        private int tick;
+        private int moves;
         private int shift;
         private int wait;
         private int after;
@@ -226,18 +229,24 @@ final class DailyChest {
                     wait--;
                     return;
                 }
-                if (shift < DailyRewards.SHIFTS) {
-                    shift++;
-                    showReel();
-                    for (int slot : frame()) {
-                        menu.set(slot, pane(FLASH[random.nextInt(FLASH.length)]), null);
+                if (tick < positions.length) {
+                    int next = positions[tick++];
+                    if (next != shift) {
+                        shift = next;
+                        moves++;
+                        showReel();
+                        for (int slot : frame()) {
+                            menu.set(slot, pane(FLASH[random.nextInt(FLASH.length)]), null);
+                        }
+                        // a note a little higher at each move, as the reel slows down
+                        player.playSound(player.getLocation(), Sound.NOTE_PLING, 0.6f, 0.6f + 1.4f * shift / DailyRewards.SHIFTS);
+                        if (at != null && moves % 2 == 0) {
+                            at.getWorld().spigot().playEffect(top(), Effect.FLYING_GLYPH, 0, 0, 0.4f, 0.4f, 0.4f, 0.6f, 10, 32);
+                        }
                     }
-                    // a note a little higher at each step, as the reel slows down
-                    player.playSound(player.getLocation(), Sound.NOTE_PLING, 0.6f, 0.6f + 1.4f * shift / DailyRewards.SHIFTS);
-                    if (at != null && shift % 2 == 0) {
-                        at.getWorld().spigot().playEffect(top(), Effect.FLYING_GLYPH, 0, 0, 0.4f, 0.4f, 0.4f, 0.6f, 10, 32);
+                    if (tick == positions.length) {
+                        wait = PAUSE;
                     }
-                    wait = shift < DailyRewards.SHIFTS ? delays[shift] - 1 : PAUSE;
                     return;
                 }
                 reveal();

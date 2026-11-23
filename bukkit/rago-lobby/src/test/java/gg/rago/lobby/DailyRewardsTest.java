@@ -178,18 +178,24 @@ class DailyRewardsTest {
     }
 
     @Test
-    void theSpinSlowsDownForAboutSixSeconds() {
-        int[] delays = DailyRewards.delays(DailyRewards.SHIFTS);
-        assertEquals(DailyRewards.SHIFTS, delays.length);
-        assertEquals(1, delays[0], "fast at first: a step a tick");
-        assertEquals(1 + DailyRewards.SLOW, delays[delays.length - 1], "the last step, the slowest");
-        int total = 0;
-        for (int i = 0; i < delays.length; i++) {
-            assertTrue(i == 0 || delays[i] >= delays[i - 1], "never faster again: " + Arrays.toString(delays));
-            total += delays[i];
+    void theSpinIsShorterAndItsItemsMuchFaster() {
+        // the owner's ask of 23/11: a little shorter, the items much faster (before: 32 items in
+        // 114 ticks, at most one a tick, 126 ticks from the click to the reward)
+        int[] positions = DailyRewards.positions(DailyRewards.SHIFTS, DailyRewards.SPIN_TICKS);
+        assertEquals(DailyRewards.SPIN_TICKS, positions.length);
+        assertEquals(DailyRewards.SHIFTS, positions[positions.length - 1], "it stops on the reward");
+        assertTrue(positions[0] >= 1, "it moves from the first tick");
+        assertTrue(positions[19] >= 24, "the first second: more than 20 items (one a tick before): " + positions[19]);
+        int stillAtTheEnd = 0;
+        for (int i = 0; i < positions.length; i++) {
+            int before = i == 0 ? 0 : positions[i - 1];
+            assertTrue(positions[i] >= before && positions[i] - before <= 2, "never back, two items a tick at most: "
+                    + Arrays.toString(positions));
+            stillAtTheEnd = positions[i] == DailyRewards.SHIFTS - 1 ? stillAtTheEnd + 1 : stillAtTheEnd;
         }
-        total += DailyChest.PAUSE;
-        assertTrue(total >= 100 && total <= 140, "from the click to the reward, in ticks: " + total);
+        assertTrue(stillAtTheEnd >= 8 && stillAtTheEnd <= 12, "the last item, about half a second as before: " + stillAtTheEnd);
+        int total = DailyRewards.SPIN_TICKS + DailyChest.PAUSE;
+        assertTrue(total >= 90 && total <= 110, "from the click to the reward, in ticks: " + total);
         // the reel holds the steps and the 9 slots shown, the reward in the centre at the end
         assertEquals(4, DailyChest.CENTRE - DailyChest.REEL);
     }

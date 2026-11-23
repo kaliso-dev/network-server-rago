@@ -492,7 +492,8 @@ dans les files d'attente des modes de jeu.
 - **Le Daily Chest** (ta demande du 22/11, 18h22 : « je veux quelque chose d'impressionnant »).
   Une fois par jour, un menu « Daily Chest » s'ouvre : au milieu, une bande de récompenses défile
   entre des vitres qui changent de couleur à chaque pas, sur une note qui monte, de plus en plus
-  lentement (32 pas, environ 6 secondes) ; elle s'arrête sur la récompense du joueur, au centre
+  lentement (64 objets en 4,5 secondes, jusqu'à deux objets par tick au début ; ta demande du 23/11 :
+  un peu plus court, les objets beaucoup plus vite ; avant, 32 objets en 5,7 secondes) ; elle s'arrête sur la récompense du joueur, au centre
   sous l'entonnoir (qui donne les chances de chaque rareté). Un court silence, puis la récompense
   s'allume dans la couleur de sa rareté, le reste de la bande s'éteint, les vitres prennent sa
   couleur (elles clignotent pour Epic et Legendary) avec le son de sa rareté ; le chat la donne.

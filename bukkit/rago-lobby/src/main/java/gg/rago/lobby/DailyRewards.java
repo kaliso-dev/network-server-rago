@@ -344,21 +344,26 @@ final class DailyRewards {
 
     // --- The spin of the chest ------------------------------------------------------------------
 
-    /** Steps of the spin before it stops. */
-    static final int SHIFTS = 32;
-    /** Ticks added to the last step: the spin slows down from 1 tick a step to 1 + this. */
-    static final int SLOW = 10;
+    /**
+     * Items the reel passes before it stops on the reward: 64, in 4.5 seconds (the owner's ask of
+     * 23/11: a little shorter, the items much faster; 32 in 5.7 seconds before).
+     */
+    static final int SHIFTS = 64;
+    /** Ticks the reel spins. */
+    static final int SPIN_TICKS = 90;
 
     /**
-     * The ticks before each step of the spin: 1 at first, then longer and longer (a cubic ease),
-     * up to 1 + {@link #SLOW} for the last one. About 6 seconds in all.
+     * Where the reel is after each tick of the spin (the item at its first slot): fast at first, up
+     * to two items a tick, then slower and slower (a quadratic ease out), about half a second for
+     * the last item; shifts at the last tick.
      */
-    static int[] delays(int shifts) {
-        int[] delays = new int[shifts];
-        for (int i = 0; i < shifts; i++) {
-            double t = shifts == 1 ? 1 : (double) i / (shifts - 1);
-            delays[i] = 1 + (int) Math.round(SLOW * t * t * t);
+    static int[] positions(int shifts, int ticks) {
+        int[] positions = new int[ticks];
+        for (int t = 1; t <= ticks; t++) {
+            double left = 1 - (double) t / ticks;
+            positions[t - 1] = Math.min(shifts, (int) Math.floor(shifts * (1 - left * left)));
         }
-        return delays;
+        positions[ticks - 1] = shifts;
+        return positions;
     }
 }
