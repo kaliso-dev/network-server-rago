@@ -86,6 +86,10 @@ final class BlockFight extends Duel {
      * owner's ask of 23/11): nobody comes back walled in by the blocks placed on their start.
      */
     void clearStart(UUID player) {
+        if (slotOf(player) < 0) {
+            // one who waits (a Red Rover) only watches
+            return;
+        }
         Block feet = spawnOf(player).getBlock();
         for (Block block : new Block[] {feet, feet.getRelative(BlockFace.UP)}) {
             if (block.getType() != Material.AIR) {
