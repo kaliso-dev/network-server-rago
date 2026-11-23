@@ -420,4 +420,230 @@ class BotBrainTest {
         assertTrue(BotBrain.rayHit(sight, -90, 0, 6, 2, 0) == null, "4.5 from its eyes at most");
         assertTrue(BotBrain.rayHit(sight, 90, 0, 2, 2, 0) == null, "behind it");
     }
+
+    // --- The block edit (step 3) ------------------------------------------------------------------
+
+    /**
+     * The station of the block edit 1v1 as EditStation builds it, from its centre (0, 0, 0): the
+     * wall of wool at x 0, z -2 to 2, y 1 to 3, the beam over it, the floor at y 0, the glass case;
+     * the holes: the blocks of the wall broken.
+     */
+    private static final class EditWorld {
+        final java.util.Set<String> holes = new java.util.HashSet<>();
+
+        boolean wall(int x, int y, int z) {
+            return x == 0 && y >= 1 && y <= 3 && Math.abs(z) <= 2;
+        }
+
+        boolean solid(int x, int y, int z) {
+            if (wall(x, y, z)) {
+                return !holes.contains(x + "," + y + "," + z);
+            }
+            boolean inside = x >= -6 && x <= 6 && Math.abs(z) <= 3 && y >= 0 && y <= 5;
+            boolean glass = inside && (x == -6 || x == 6 || Math.abs(z) == 3 || y == 0 || y == 5);
+            return glass || y == 0 && Math.abs(x) <= 5 && Math.abs(z) <= 2 || x == 0 && y == 4 && Math.abs(z) <= 2;
+        }
+
+        void open(int x, int y, int z) {
+            holes.add(x + "," + y + "," + z);
+        }
+
+        void close(int x, int y, int z) {
+            holes.remove(x + "," + y + "," + z);
+        }
+    }
+
+    /** RagoBot against the wall on its side (east), the other at (x, 1, z); its sword, shears, wool in slots 0, 1, 2. */
+    private static BotBrain.Sight atTheWall(EditWorld world, double x, double z) {
+        BotBrain.Sight sight = new BotBrain.Sight();
+        sight.x = 0.5 + BotBrain.AT_WALL;
+        sight.y = 1;
+        sight.z = 0.5;
+        sight.yaw = 90;
+        sight.onGround = true;
+        sight.health = 20;
+        sight.fighting = true;
+        sight.tx = x;
+        sight.ty = 1;
+        sight.tz = z;
+        sight.targetOnGround = true;
+        sight.ground = world::solid;
+        sight.breakable = (bx, by, bz) -> world.wall(bx, by, bz) && world.solid(bx, by, bz) ? 1 : -1;
+        sight.edit = true;
+        sight.blocks = true;
+        sight.sword = 0;
+        sight.held = 0;
+        sight.block = 2;
+        return sight;
+    }
+
+    /** Its head, its hand: where it looked and what it held, for the next tick. */
+    private static void follow(BotBrain.Sight sight, BotBrain.Controls controls) {
+        sight.yaw = controls.yaw;
+        sight.pitch = controls.pitch;
+        if (controls.slot >= 0) {
+            sight.held = controls.slot;
+        }
+    }
+
+    /** The block a placement makes: beside the block clicked, on its side. */
+    private static int[] placedAt(int[] place) {
+        int[] face = BotBrain.FACES[place[3]];
+        return new int[] {place[0] + face[0], place[1] + face[1], place[2] + face[2]};
+    }
+
+    /** It thinks until it digs (at most 20 ticks), with no click at the other before. */
+    private static BotBrain.Controls untilItDigs(BotBrain brain, BotBrain.Sight sight) {
+        for (int tick = 0; tick < 20; tick++) {
+            BotBrain.Controls controls = brain.think(sight);
+            assertFalse(controls.hit, "no hit through the wall, tick " + tick);
+            assertTrue(controls.place == null, "nothing to close, tick " + tick);
+            follow(sight, controls);
+            if (controls.dig != null) {
+                return controls;
+            }
+        }
+        throw new AssertionError("it never opened the wall");
+    }
+
+    @Test
+    void inTheBlockEditItOpensHitsThroughTheHoleAndClosesIt() {
+        EditWorld world = new EditWorld();
+        BotBrain.Sight sight = atTheWall(world, -0.5 - BotBrain.HALF_WIDTH + 0.18, 0.5);
+        BotBrain brain = new BotBrain(skill(20, 1, 3), new Random(21));
+        BotBrain.Controls controls = untilItDigs(brain, sight);
+        assertArrayEquals(new int[] {0, 2, 0, 5}, controls.dig,
+                "the block of the wall at the height of its head, in front of the other, its east side");
+        assertEquals(1, sight.held, "its shears");
+        assertEquals(0, controls.forward, 0, "it stands while it breaks the block");
+        assertEquals(0, controls.strafe, 0);
+        world.open(0, 2, 0);
+        int hitAt = -1;
+        for (int tick = 0; tick < 20 && hitAt < 0; tick++) {
+            controls = brain.think(sight);
+            follow(sight, controls);
+            assertTrue(controls.dig == null && controls.place == null, "it hits first, tick " + tick);
+            if (controls.hit) {
+                hitAt = tick;
+            }
+        }
+        assertTrue(hitAt >= 3, "its hit through the hole, after its reaction time (3 ticks): tick " + hitAt);
+        assertEquals(0, sight.held, "its sword");
+        int[] place = null;
+        for (int tick = 0; tick < 20 && place == null; tick++) {
+            controls = brain.think(sight);
+            assertFalse(controls.hit, "its point: it closes, tick " + tick);
+            follow(sight, controls);
+            place = controls.place;
+        }
+        assertTrue(place != null, "it closes the wall after its hit");
+        assertEquals(2, sight.held, "its wool");
+        assertArrayEquals(new int[] {0, 2, 0}, placedAt(place), "the block back in the hole");
+        assertTrue(world.wall(place[0], place[1], place[2]) || place[1] == 4, "against a block of the wall or the beam");
+        assertTrue(controls.cursor != null);
+    }
+
+    @Test
+    void theOtherOutOfItsHitsWithoutItsHitItClosesAllTheSame() {
+        EditWorld world = new EditWorld();
+        BotBrain.Sight sight = atTheWall(world, -0.5 - BotBrain.HALF_WIDTH + 0.18, 0.5);
+        BotBrain brain = new BotBrain(skill(20, 1, 3), new Random(22));
+        // its speed set to nothing at the start of the round, the wall whole: not a hit of the other
+        sight.knocked = true;
+        brain.think(sight);
+        sight.knocked = false;
+        untilItDigs(brain, sight);
+        world.open(0, 2, 0);
+        // the other steps back out of its hits before its first hit
+        sight.tx = -3.5;
+        int[] place = null;
+        for (int tick = 0; tick < 20 && place == null; tick++) {
+            BotBrain.Controls controls = brain.think(sight);
+            assertFalse(controls.hit, "out of its hits, tick " + tick);
+            follow(sight, controls);
+            place = controls.place;
+        }
+        assertTrue(place != null, "it closes the hole");
+        assertArrayEquals(new int[] {0, 2, 0}, placedAt(place));
+    }
+
+    @Test
+    void hitByTheOtherItHitsBackThroughTheirHoleThenCloses() {
+        EditWorld world = new EditWorld();
+        // the other opened the wall in front of it, and hit it from their side, out of its hits
+        world.open(0, 2, 0);
+        BotBrain.Sight sight = atTheWall(world, -2.5, 0.5);
+        BotBrain brain = new BotBrain(skill(20, 1, 3), new Random(23));
+        sight.knocked = true;
+        for (int tick = 0; tick < 30; tick++) {
+            BotBrain.Controls controls = brain.think(sight);
+            sight.knocked = false;
+            follow(sight, controls);
+            assertFalse(controls.hit, "out of its hits, tick " + tick);
+            assertTrue(controls.dig == null, "no other block broken, tick " + tick);
+            assertTrue(controls.place == null, "their point: it does not close, tick " + tick);
+        }
+        // the other comes to the wall: its hit back, then the wall closed
+        sight.tx = -0.5 - BotBrain.HALF_WIDTH + 0.18;
+        boolean hit = false;
+        int[] place = null;
+        for (int tick = 0; tick < 40 && place == null; tick++) {
+            BotBrain.Controls controls = brain.think(sight);
+            follow(sight, controls);
+            assertTrue(controls.dig == null, "no other block broken, tick " + tick);
+            hit |= controls.hit;
+            if (controls.place != null) {
+                assertTrue(hit, "its hit back first");
+                place = controls.place;
+            }
+        }
+        assertTrue(place != null, "it closes after its hit back");
+        assertArrayEquals(new int[] {0, 2, 0}, placedAt(place));
+    }
+
+    @Test
+    void itNeverHitsThroughTheWallAndOpensOnlyForAHit() {
+        EditWorld world = new EditWorld();
+        BotBrain.Sight far = atTheWall(world, -2.5, 0.5);
+        BotBrain brain = new BotBrain(skill(20, 1, 0), new Random(24));
+        for (int tick = 0; tick < 40; tick++) {
+            BotBrain.Controls controls = brain.think(far);
+            follow(far, controls);
+            assertTrue(controls.dig == null, "the other out of its hits even through a hole: it waits, tick " + tick);
+            assertFalse(controls.hit);
+            assertEquals(0, controls.swings);
+        }
+        BotBrain.Sight close = atTheWall(world, -0.5 - BotBrain.HALF_WIDTH + 0.18, 0.5);
+        close.blocks = false;
+        brain = new BotBrain(skill(20, 1, 0), new Random(25));
+        for (int tick = 0; tick < 40; tick++) {
+            BotBrain.Controls controls = brain.think(close);
+            follow(close, controls);
+            assertFalse(controls.hit, "the wall whole between them, tick " + tick);
+            assertTrue(controls.dig == null, "its clicks on the blocks do not work here");
+        }
+        world.open(0, 1, 0);
+        brain = new BotBrain(skill(20, 1, 0), new Random(26));
+        for (int tick = 0; tick < 40; tick++) {
+            BotBrain.Controls controls = brain.think(close);
+            follow(close, controls);
+            assertFalse(controls.hit, "a hole at their feet only: no line from its eyes to them, tick " + tick);
+        }
+    }
+
+    @Test
+    void itGoesAgainstTheWallInFrontOfTheOther() {
+        EditWorld world = new EditWorld();
+        BotBrain.Sight sight = atTheWall(world, -0.5 - BotBrain.HALF_WIDTH + 0.18, -1.5);
+        sight.x = 3.5;
+        BotBrain.Controls controls = new BotBrain(skill(20, 1, 3), new Random(27)).think(sight);
+        double[] way = BotBrain.way(controls.yaw, controls.forward, controls.strafe);
+        double dx = 0.5 + BotBrain.AT_WALL - sight.x;
+        double dz = -1.5 - sight.z;
+        double length = Math.hypot(dx, dz);
+        assertEquals(dx / length, way[0], 1e-6, "towards its place against the wall, in front of the other");
+        assertEquals(dz / length, way[1], 1e-6);
+        assertFalse(controls.sprint || controls.jump);
+        assertTrue(controls.dig == null && !controls.hit);
+    }
 }

@@ -248,6 +248,13 @@ RagoBot sur la plateforme du bot, hors de portée de ses coups : RagoBot casse l
 frapper, le bot tombe, +10 pour Blue, le bot perd. En Red Rover Block Placement, un deuxième bot
 entre dans la party et les trois jouent leurs 1v1 à tour de rôle ; dans le 1v1 de RagoBot, RagoArbitre
 amène l'autre sur lui (`/tp`) : RagoBot le frappe et gagne son 1v1 ; les deux bots s'en vont.
+En Block edit 1v1 (premier à 2 pour le test), la défense : au « Fight! », le bot casse le bloc du
+mur à hauteur de tête en face de RagoBot et le frappe par le trou depuis son départ, hors de portée
+des coups de RagoBot ; puis il vient au mur : RagoBot le frappe en retour (« Hit back: your point
+is gone. »), ne casse aucun autre bloc et referme le mur (« RagoBot made a clean edit. »).
+L'attaque : le bot reste contre le mur ; RagoBot ouvre le mur en face de lui, le frappe par le trou
+et referme : 2 - 0. En Red Rover Block Edit, un autre bot rentre dans la party ; dans le 1v1 de
+RagoBot, l'autre reste contre le mur et RagoBot gagne son 1v1 par un edit propre.
 En Top Bridge 2v2, la party (le bot et RagoBot) attend dans la file comme une équipe, deux
 autres bots seuls la rejoignent : RagoBot frappe l'un d'eux, ils s'en vont. Après `/p kick
 RagoBot`, puis après une party dissoute, RagoBot quitte le serveur. Le log du serveur ne doit

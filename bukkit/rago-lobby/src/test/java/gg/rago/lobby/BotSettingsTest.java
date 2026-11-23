@@ -26,6 +26,8 @@ class BotSettingsTest {
                 new GameMode("block-fight-1v1", "&aBlock placement 1v1", 2, 1, false),
                 new GameMode("block-fight-2v2", "&aBlock placement 2v2", 2, 2, false),
                 new GameMode("red-rover-block-placement", "&aRed Rover Block Placement", 1, 3, false),
+                new GameMode("block-edit-duel", "&aBlock edit 1v1", 2, 1, false),
+                new GameMode("red-rover-block-edit", "&aRed Rover Block Edit", 1, 3, false),
                 new GameMode("ranked-sumo", "&6Ranked Sumo", 2, 1, true),
                 new GameMode("clutch", "&eClutch", 1, 1, false))) {
             byId.put(mode.id(), mode);
@@ -34,7 +36,8 @@ class BotSettingsTest {
     }
 
     /** The Red Rovers among these modes (their format: 1v1v1 in config.yml). */
-    private static final java.util.Set<String> IN_TURNS = Collections.singleton("red-rover-block-placement");
+    private static final java.util.Set<String> IN_TURNS = new java.util.HashSet<>(
+            Arrays.asList("red-rover-block-placement", "red-rover-block-edit"));
 
     private static BotSettings read(String text) throws Exception {
         YamlConfiguration yaml = new YamlConfiguration();
@@ -55,8 +58,9 @@ class BotSettingsTest {
         assertEquals(10, bots.max);
         assertEquals(BotSettings.DEFAULT_MODES, bots.modes);
         assertEquals("Top Bridge 1v1, Top Bridge 2v2, Sumo duel, Boxing, Lobby Fight 1v1, Block placement 1v1,"
-                + " Block placement 2v2 and Red Rover Block Placement", bots.modeNames,
-                "Boxing and Lobby Fight 1v1: step 1 of the owner's order of 22/11 (17h54); the Block Placement: step 2");
+                + " Block placement 2v2, Red Rover Block Placement, Block edit 1v1 and Red Rover Block Edit", bots.modeNames,
+                "Boxing and Lobby Fight 1v1: step 1 of the owner's order of 22/11 (17h54); the Block Placement: step 2;"
+                + " the Block edit: step 3");
         assertSame(BotBrain.Skill.BUNDLED, bots.skill);
         assertTrue(bots.plays("sumo"));
         assertTrue(bots.plays("boxing"));
@@ -64,6 +68,8 @@ class BotSettingsTest {
         assertTrue(bots.plays("block-fight-1v1"));
         assertTrue(bots.plays("block-fight-2v2"));
         assertTrue(bots.plays("red-rover-block-placement"));
+        assertTrue(bots.plays("block-edit-duel"));
+        assertTrue(bots.plays("red-rover-block-edit"));
         assertFalse(bots.plays("ranked-sumo"));
     }
 
@@ -72,6 +78,16 @@ class BotSettingsTest {
         assertEquals(new java.util.HashSet<>(Arrays.asList("block-fight-1v1", "block-fight-2v2", "red-rover-block-placement")),
                 BotSettings.BLOCK_MODES, "step 2 of the owner's order of 22/11 (17h54)");
         assertTrue(BotSettings.DEFAULT_MODES.containsAll(BotSettings.BLOCK_MODES));
+    }
+
+    @Test
+    void itEditsTheWallInTheBlockEditOnly() {
+        assertEquals(new java.util.HashSet<>(Arrays.asList("block-edit-duel", "red-rover-block-edit")),
+                BotSettings.EDIT_MODES, "step 3 of the owner's order of 22/11 (17h54)");
+        assertTrue(BotSettings.DEFAULT_MODES.containsAll(BotSettings.EDIT_MODES));
+        for (String mode : BotSettings.EDIT_MODES) {
+            assertFalse(BotSettings.BLOCK_MODES.contains(mode), mode + ": the wall, not the clutch nor the block under the other");
+        }
     }
 
     @Test

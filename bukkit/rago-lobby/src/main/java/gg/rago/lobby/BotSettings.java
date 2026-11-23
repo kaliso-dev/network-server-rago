@@ -21,16 +21,24 @@ final class BotSettings {
     /**
      * The modes of the bundled config: those the owner asked for first (22/11), then Boxing and
      * Lobby Fight 1v1, step 1 of the owner's order of 22/11 (17h54), then the Block Placement 1v1
-     * and 2v2 and its Red Rover, step 2.
+     * and 2v2 and its Red Rover, step 2, then the Block edit 1v1 and its Red Rover, step 3.
      */
     static final List<String> DEFAULT_MODES = Collections.unmodifiableList(Arrays.asList("top-bridge-1v1", "top-bridge-2v2",
-            "sumo", "boxing", "lobby-fight-1v1", "block-fight-1v1", "block-fight-2v2", "red-rover-block-placement"));
+            "sumo", "boxing", "lobby-fight-1v1", "block-fight-1v1", "block-fight-2v2", "red-rover-block-placement",
+            "block-edit-duel", "red-rover-block-edit"));
     /**
      * The modes where it places and breaks blocks, as a player there (step 2 of the owner's order
      * of 22/11, 17h54: the Block Placement 1v1 and 2v2, and its Red Rover).
      */
     static final java.util.Set<String> BLOCK_MODES = Collections.unmodifiableSet(new java.util.HashSet<>(
             Arrays.asList("block-fight-1v1", "block-fight-2v2", "red-rover-block-placement")));
+    /**
+     * The modes of the block edit, the wall of wool between it and the other (step 3 of the owner's
+     * order of 22/11, the choices by default of its proposal, approved on 23/11): it opens the wall,
+     * hits through the hole and closes it, as a player there.
+     */
+    static final java.util.Set<String> EDIT_MODES = Collections.unmodifiableSet(new java.util.HashSet<>(
+            Arrays.asList("block-edit-duel", "red-rover-block-edit")));
     static final int MAX_BOTS = 50;
 
     /** False: /p invite RagoBot finds nobody. */

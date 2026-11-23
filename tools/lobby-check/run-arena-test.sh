@@ -34,8 +34,10 @@
 # ranked and the modes it does not play, wins a Sumo duel, a Boxing, a round of Top Bridge 1v1 and
 # a round of Lobby Fight 1v1 against the bot who stands still; in a Block placement 1v1 (RagoArbitre
 # moves the players with /tp) it clutches over the void and breaks the wool under the bot, who
-# falls; it wins its 1v1 of a Red Rover Block Placement; it plays Top Bridge 2v2 in the party's
-# team against two others, and leaves the
+# falls; it wins its 1v1 of a Red Rover Block Placement; in a Block edit 1v1 it hits back through
+# the hole of the bot and closes the wall, then opens it, hits through the hole and closes it, and
+# wins; it wins its 1v1 of a Red Rover Block Edit with a clean edit; it plays Top Bridge 2v2 in the
+# party's team against two others, and leaves the
 # server once kicked from the party; none of these games is counted as a private game. Last, the
 # Owner tools (tools/kb-control/bots/owner-bots.mjs): /owner for qRago only, Reach that lands from
 # 6 blocks in a sumo and does nothing in a ranked sumo, Scaffold in a Block placement 1v1; the games
@@ -311,8 +313,9 @@ KB_HOST=127.0.0.1 KB_PORT=$PORT node "$ROOT/tools/kb-control/bots/private-bots.m
 # The same server for RagoBot: a bot invites it into its party, plays the Sumo duel, the Boxing, Top
 # Bridge 1v1 and Lobby Fight 1v1 (on the middle island of the demo map, made its waiting lobby by
 # RagoMapOp) against it, then Block placement 1v1 (RagoArbitre moves the players with /tp: a clutch, the
-# wool under the bot broken), a Red Rover Block Placement with a third player, then Top Bridge 2v2
-# with it against two others, and sends it away.
+# wool under the bot broken), a Red Rover Block Placement with a third player, Block edit 1v1 (its
+# defence, then its attack) and a Red Rover Block Edit, then Top Bridge 2v2 with it against two
+# others, and sends it away.
 ragobot_status=0
 KB_HOST=127.0.0.1 KB_PORT=$PORT node "$ROOT/tools/kb-control/bots/ragobot-bots.mjs" || ragobot_status=$?
 # The same server for the Owner tools: qRago (the account of outils-owner) and two others; Reach in

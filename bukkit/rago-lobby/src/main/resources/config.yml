@@ -1232,9 +1232,10 @@ ragobot:
   skin: qRago
   max: 10
   # Boxing and Lobby Fight 1v1: step 1 of the owner's order of 22/11 (17h54), no new skill; the
-  # Block Placement 1v1, 2v2 and its Red Rover: step 2, with the blocks
+  # Block Placement 1v1, 2v2 and its Red Rover: step 2, with the blocks; the Block edit 1v1 and its
+  # Red Rover: step 3 (it opens the wall, hits through the hole, closes it)
   modes: [top-bridge-1v1, top-bridge-2v2, sumo, boxing, lobby-fight-1v1, block-fight-1v1, block-fight-2v2,
-    red-rover-block-placement]
+    red-rover-block-placement, block-edit-duel, red-rover-block-edit]
   skill:
     cps: 11
     precision: 0.88

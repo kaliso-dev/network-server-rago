@@ -212,8 +212,11 @@ final class RagoBots implements Listener {
         boolean knocked = body.receive();
         Player player = body.player;
         Player target = target(player);
-        BotBrain.Sight sight = sight(player, body, knocked, target);
-        sight.blocks = blocksWork && BotSettings.BLOCK_MODES.contains(state.gameOf(player.getUniqueId()));
+        String game = state.gameOf(player.getUniqueId());
+        boolean edit = BotSettings.EDIT_MODES.contains(game);
+        BotBrain.Sight sight = sight(player, body, knocked, target, edit);
+        sight.edit = edit;
+        sight.blocks = blocksWork && (edit || BotSettings.BLOCK_MODES.contains(game));
         BotBrain.Controls controls = bot.brain.think(sight);
         body.act(controls, target);
         if (blocksWork) {
@@ -264,7 +267,8 @@ final class RagoBots implements Listener {
         return best;
     }
 
-    private static BotBrain.Sight sight(Player player, BotBody body, boolean knocked, Player target)
+    /** What it sees this tick; edit: its game is a block edit. */
+    private static BotBrain.Sight sight(Player player, BotBody body, boolean knocked, Player target, final boolean edit)
             throws ReflectiveOperationException {
         BotBrain.Sight sight = new BotBrain.Sight();
         Location at = player.getLocation();
@@ -326,9 +330,11 @@ final class RagoBots implements Listener {
         sight.ground = (x, y, z) -> world.isChunkLoaded(x >> 4, z >> 4) && world.getBlockAt(x, y, z).getType().isSolid();
         final int wool = shears;
         final int stone = pickaxe;
-        // the blocks of the kit of the Block Placement, with the tool of a player for each
+        // the blocks of the kit of the Block Placement, with the tool of a player for each; in the
+        // block edit, the wool of the wall, the only blocks the mode lets break: a dig the game
+        // refused there (in the countdown, the round over) is tried again in the next round
         sight.breakable = (x, y, z) -> {
-            if (!world.isChunkLoaded(x >> 4, z >> 4) || body.refused(x, y, z)) {
+            if (!world.isChunkLoaded(x >> 4, z >> 4) || !edit && body.refused(x, y, z)) {
                 return -1;
             }
             Material type = world.getBlockAt(x, y, z).getType();

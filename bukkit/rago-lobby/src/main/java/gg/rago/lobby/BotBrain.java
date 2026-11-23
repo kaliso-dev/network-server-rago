@@ -1,5 +1,9 @@
 package gg.rago.lobby;
 
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 import java.util.Random;
 
 /**
@@ -24,6 +28,17 @@ import java.util.Random;
  * stone, as long as a player's break takes), and they fall; it jumps up a step of one block on its
  * way. Its clicks on the blocks go where it looks, as a client's: it turns its head to the side it
  * clicks, at its turn a tick, and clicks once its look is on it, within a client's reach.
+ *
+ * <p>In the block edit (step 3 of the owner's order of 22/11, the choices by default of its
+ * proposal, approved on 23/11), at the wall of wool between it and the other, with the rules of
+ * the mode: the wall whole, nobody's point, it goes against the wall in front of the other, on its
+ * side; once the other is in its hits through the block at the height of its head, it breaks that
+ * block (its shears), hits them through the hole after its reaction time, and puts a block of wool
+ * back in the hole against a block beside it: its point, if its hit was the last. The other out of
+ * its hits again without its hit, it closes the hole all the same. Hit by the other (their point),
+ * it hits back through the hole once they are in its hits, then closes; knocked away, it comes
+ * back to the wall in front of the hole. A hole of the other's, it plays through it and breaks no
+ * other block. Its hits there go only through a hole: never through a block.
  */
 final class BotBrain {
 
@@ -125,6 +140,11 @@ final class BotBrain {
         /** The other one stands on the ground. */
         boolean targetOnGround;
         Breakable breakable;
+        /**
+         * Its game is a block edit (the Block edit 1v1, the Red Rover Block Edit): the wall of
+         * wool between it and the other, the blocks it may break ({@link #breakable}).
+         */
+        boolean edit;
     }
 
     /** What the bot presses this tick. */
@@ -196,6 +216,14 @@ final class BotBrain {
     static final int CLUTCH_DEPTH = 3;
     /** Half the width of a player. */
     static final double HALF_WIDTH = 0.3;
+    /** Further than this between two ticks, it was moved to its start: a new round of the block edit. */
+    static final double MOVED = 1.5;
+    /** Its place before the wall: this far from the middle of the wall, its body against it. */
+    static final double AT_WALL = 0.5 + HALF_WIDTH + 0.02;
+    /** How far around it (blocks) it looks for the wall of the block edit. */
+    static final int WALL_SEARCH = 6;
+    /** The points of the other it may hit through a hole, above their feet: their head, chest and legs. */
+    static final double[] HIT_POINTS = {EYES, CHEST, 0.6};
 
     final Skill skill;
     private final Random random;
@@ -212,6 +240,26 @@ final class BotBrain {
     private double clicks;
     /** Ticks until its next block. */
     private int placeWait;
+
+    /** The blocks of the wall of its block edit, {x, y, z} each; null until it saw it. */
+    private int[][] wall;
+    /** The axis across the wall (0: its blocks at one x, 2: at one z), and that x or z. */
+    private int wallAxis;
+    private int wallAt;
+    /** The wall from one end to the other (along it), and from its bottom to its top. */
+    private int wallLow;
+    private int wallHigh;
+    private int wallBottom;
+    private int wallTop;
+    /** Who hit last in its block edit: 1 it (its point), -1 the other (theirs), 0 nobody this round. */
+    private int lastHit;
+    /** The other was in its hits through a hole of the wall (or the block it opened for it). */
+    private boolean hadInHits;
+    /** Ticks in a row the other is in its hits through a hole. */
+    private int inHitsTicks;
+    /** Where it stood the tick before, in the block edit. */
+    private double lastX = Double.NaN;
+    private double lastZ;
 
     BotBrain(Skill skill, Random random) {
         this.skill = skill;
@@ -232,10 +280,14 @@ final class BotBrain {
             seenCount = 0;
             wTapTicks = 0;
             clicks = 0;
+            forgetEdit();
             return controls;
         }
         see(sight.tx, sight.ty, sight.tz);
         double[] target = believed();
+        if (sight.edit) {
+            return edit(sight, controls, target);
+        }
         double dx = target[0] - sight.x;
         double dz = target[2] - sight.z;
         double distance = Math.sqrt(dx * dx + dz * dz);
@@ -600,6 +652,358 @@ final class BotBrain {
         double y = ay - by;
         double z = az - bz;
         return Math.sqrt(x * x + y * y + z * z);
+    }
+
+    // --- The block edit -------------------------------------------------------------------------
+
+    /** A new round, or no game: it forgets the wall and who hit last. */
+    private void forgetEdit() {
+        wall = null;
+        lastHit = 0;
+        hadInHits = false;
+        inHitsTicks = 0;
+        lastX = Double.NaN;
+    }
+
+    /** Its tick in the block edit; believed: where it believes the other is. */
+    private Controls edit(Sight sight, Controls controls, double[] believed) {
+        if (!Double.isNaN(lastX) && Math.hypot(sight.x - lastX, sight.z - lastZ) > MOVED) {
+            // moved to its start: a new round, the wall as built again
+            forgetEdit();
+        }
+        lastX = sight.x;
+        lastZ = sight.z;
+        lookAt(sight, controls, new double[] {believed[0], believed[1] + CHEST, believed[2]});
+        if (wall == null && sight.breakable != null && sight.ground != null) {
+            findWall(sight);
+        }
+        if (wall == null) {
+            // no wall in sight: it stands, and hits nothing
+            return controls;
+        }
+        List<int[]> holes = holes(sight.ground);
+        if (holes.isEmpty()) {
+            hadInHits = false;
+        } else if (sight.knocked) {
+            // the other hit it through a hole: their point (the wall whole, a knock is the game's:
+            // its speed set to nothing at the start of a round)
+            lastHit = -1;
+        }
+        double point = hitPoint(sight, null);
+        boolean inHits = !Double.isNaN(point);
+        inHitsTicks = inHits ? inHitsTicks + 1 : 0;
+        hadInHits |= inHits;
+
+        // 1. its point: it closes the wall
+        if (lastHit == 1 && !holes.isEmpty() && close(sight, controls, holes)) {
+            return controls;
+        }
+        // 2. the other in its hits through a hole: it hits them, after its reaction time
+        if (inHits && lastHit != 1) {
+            hit(sight, controls, believed, point);
+            return controls;
+        }
+        // 3. the other out of its hits again without its hit: it closes all the same (not their point)
+        if (hadInHits && lastHit == 0 && !holes.isEmpty() && close(sight, controls, holes)) {
+            return controls;
+        }
+        int head = (int) Math.floor(sight.y + 0.01) + 1;
+        int lat = wallAxis == 0 ? 2 : 0;
+        double[] other = {sight.tx, sight.ty, sight.tz};
+        // 4. a hole to hit through, at the height of its head: it stands in front of it, for the other
+        int[] usable = null;
+        for (int[] hole : holes) {
+            if (hole[1] == head && (usable == null
+                    || Math.abs(hole[lat] + 0.5 - other[lat]) < Math.abs(usable[lat] + 0.5 - other[lat]))) {
+                usable = hole;
+            }
+        }
+        if (usable != null) {
+            standBefore(sight, controls, usable[lat]);
+            return controls;
+        }
+        // 5. none: it opens one, the block at the height of its head in front of the other
+        int lane = (int) Math.max(wallLow, Math.min(wallHigh, Math.floor(other[lat])));
+        int[] block = new int[3];
+        block[wallAxis] = wallAt;
+        block[lat] = lane;
+        block[1] = Math.max(wallBottom, Math.min(wallTop, head));
+        if (!standBefore(sight, controls, lane) || !sight.blocks) {
+            return controls;
+        }
+        int tool = sight.breakable.tool(block[0], block[1], block[2]);
+        if (tool < 0 || nearest(sight, block) > REACH_BLOCKS || Double.isNaN(hitPoint(sight, block))) {
+            // out of its hits even through it: it waits for the other at the wall
+            return controls;
+        }
+        hadInHits = true;
+        controls.slot = sight.held == tool ? -1 : tool;
+        lookAt(sight, controls, faceCentre(block, sideTowards(sight, block)));
+        double[] hit = rayHit(sight, controls.yaw, controls.pitch, block[0], block[1], block[2]);
+        if (hit != null) {
+            controls.dig = new int[] {block[0], block[1], block[2], (int) hit[0]};
+        }
+        return controls;
+    }
+
+    /**
+     * The wall of the block edit: the blocks it may break around it (the wool of the wall, the
+     * only blocks the mode lets break), in the plane holding most of them; the holes between them
+     * are blocks of the wall too.
+     */
+    private void findWall(Sight sight) {
+        int bx = (int) Math.floor(sight.x);
+        int by = (int) Math.floor(sight.y + 0.01);
+        int bz = (int) Math.floor(sight.z);
+        List<int[]> found = new ArrayList<>();
+        Map<Integer, Integer> atX = new HashMap<>();
+        Map<Integer, Integer> atZ = new HashMap<>();
+        for (int x = bx - WALL_SEARCH; x <= bx + WALL_SEARCH; x++) {
+            for (int z = bz - WALL_SEARCH; z <= bz + WALL_SEARCH; z++) {
+                for (int y = by - 1; y <= by + 3; y++) {
+                    if (sight.breakable.tool(x, y, z) >= 0) {
+                        found.add(new int[] {x, y, z});
+                        atX.merge(x, 1, Integer::sum);
+                        atZ.merge(z, 1, Integer::sum);
+                    }
+                }
+            }
+        }
+        int[] bestX = most(atX);
+        int[] bestZ = most(atZ);
+        if (Math.max(bestX[1], bestZ[1]) < 3) {
+            return;
+        }
+        wallAxis = bestX[1] >= bestZ[1] ? 0 : 2;
+        wallAt = wallAxis == 0 ? bestX[0] : bestZ[0];
+        int lat = wallAxis == 0 ? 2 : 0;
+        wallLow = Integer.MAX_VALUE;
+        wallHigh = Integer.MIN_VALUE;
+        wallBottom = Integer.MAX_VALUE;
+        wallTop = Integer.MIN_VALUE;
+        for (int[] block : found) {
+            if (block[wallAxis] == wallAt) {
+                wallLow = Math.min(wallLow, block[lat]);
+                wallHigh = Math.max(wallHigh, block[lat]);
+                wallBottom = Math.min(wallBottom, block[1]);
+                wallTop = Math.max(wallTop, block[1]);
+            }
+        }
+        int[][] blocks = new int[(wallHigh - wallLow + 1) * (wallTop - wallBottom + 1)][];
+        int n = 0;
+        for (int along = wallLow; along <= wallHigh; along++) {
+            for (int y = wallBottom; y <= wallTop; y++) {
+                int[] block = new int[3];
+                block[wallAxis] = wallAt;
+                block[lat] = along;
+                block[1] = y;
+                blocks[n++] = block;
+            }
+        }
+        wall = blocks;
+    }
+
+    /** The key counted most, {key, count}; {0, 0} for none. */
+    private static int[] most(Map<Integer, Integer> counts) {
+        int[] best = {0, 0};
+        for (Map.Entry<Integer, Integer> entry : counts.entrySet()) {
+            if (entry.getValue() > best[1]) {
+                best = new int[] {entry.getKey(), entry.getValue()};
+            }
+        }
+        return best;
+    }
+
+    /** The blocks of the wall missing now. */
+    private List<int[]> holes(Ground ground) {
+        List<int[]> holes = new ArrayList<>();
+        for (int[] block : wall) {
+            if (!ground.solid(block[0], block[1], block[2])) {
+                holes.add(block);
+            }
+        }
+        return holes;
+    }
+
+    /**
+     * The other in its hits through the wall: the height above their feet of a point of theirs
+     * within its reach with nothing solid between its eyes and it (open: a block counted as gone,
+     * or null); NaN if none.
+     */
+    double hitPoint(Sight sight, int[] open) {
+        double ex = sight.x;
+        double ey = sight.y + EYES;
+        double ez = sight.z;
+        if (reach(ex, ey, ez, sight.tx, sight.ty, sight.tz) > skill.reach) {
+            return Double.NaN;
+        }
+        for (double height : HIT_POINTS) {
+            if (clear(sight.ground, ex, ey, ez, sight.tx, sight.ty + height, sight.tz, open)) {
+                return height;
+            }
+        }
+        return Double.NaN;
+    }
+
+    /** True if no solid block is between these two points (open: a block counted as gone, or null). */
+    static boolean clear(Ground ground, double ax, double ay, double az, double bx, double by, double bz, int[] open) {
+        double length = distance(ax, ay, az, bx, by, bz);
+        int steps = Math.max(1, (int) Math.ceil(length / 0.05));
+        for (int i = 0; i <= steps; i++) {
+            double t = (double) i / steps;
+            int x = (int) Math.floor(ax + (bx - ax) * t);
+            int y = (int) Math.floor(ay + (by - ay) * t);
+            int z = (int) Math.floor(az + (bz - az) * t);
+            if (open != null && x == open[0] && y == open[1] && z == open[2]) {
+                continue;
+            }
+            if (ground.solid(x, y, z)) {
+                return false;
+            }
+        }
+        return true;
+    }
+
+    /**
+     * It hits the other through the hole, its sword in hand, its look on the point it sees of them
+     * (height: above their feet), after its reaction time: a hit lands when its look meets their
+     * box within its reach, with nothing solid before.
+     */
+    private void hit(Sight sight, Controls controls, double[] believed, double height) {
+        if (sight.sword >= 0 && sight.held != sight.sword) {
+            controls.slot = sight.sword;
+        }
+        lookAt(sight, controls, new double[] {believed[0], believed[1] + height, believed[2]});
+        int now = clicks();
+        if (now <= 0) {
+            return;
+        }
+        controls.swings = now;
+        if (inHitsTicks > skill.reaction && looksAtTheOther(sight, controls.yaw, controls.pitch)
+                && random.nextDouble() < skill.accuracy) {
+            controls.hit = true;
+            lastHit = 1;
+        }
+    }
+
+    /** True if its look (yaw, pitch) meets the box of the other within its reach, nothing solid before. */
+    boolean looksAtTheOther(Sight sight, float yaw, float pitch) {
+        double yawRad = Math.toRadians(yaw);
+        double pitchRad = Math.toRadians(pitch);
+        double[] from = {sight.x, sight.y + EYES, sight.z};
+        double[] dir = {-Math.sin(yawRad) * Math.cos(pitchRad), -Math.sin(pitchRad), Math.cos(yawRad) * Math.cos(pitchRad)};
+        double[] low = {sight.tx - 0.4, sight.ty - 0.1, sight.tz - 0.4};
+        double[] high = {sight.tx + 0.4, sight.ty + 1.9, sight.tz + 0.4};
+        double enter = 0;
+        double leave = skill.reach;
+        for (int axis = 0; axis < 3; axis++) {
+            if (Math.abs(dir[axis]) < 1e-9) {
+                if (from[axis] < low[axis] || from[axis] > high[axis]) {
+                    return false;
+                }
+                continue;
+            }
+            double t1 = (low[axis] - from[axis]) / dir[axis];
+            double t2 = (high[axis] - from[axis]) / dir[axis];
+            enter = Math.max(enter, Math.min(t1, t2));
+            leave = Math.min(leave, Math.max(t1, t2));
+            if (enter > leave) {
+                return false;
+            }
+        }
+        return clear(sight.ground, from[0], from[1], from[2], from[0] + dir[0] * enter, from[1] + dir[1] * enter,
+                from[2] + dir[2] * enter, null);
+    }
+
+    /**
+     * It puts a block of wool in a hole of the wall: against the side of a block beside the hole
+     * (the wall around it, the ground under it, the beam over it), the nearest to its eyes within a
+     * client's reach, its look on that side. Out of reach of every hole, it goes in front of the
+     * nearest. True while it does either.
+     */
+    private boolean close(Sight sight, Controls controls, List<int[]> holes) {
+        if (sight.block < 0 || !sight.blocks) {
+            return false;
+        }
+        double ex = sight.x;
+        double ey = sight.y + EYES;
+        double ez = sight.z;
+        int[] against = null;
+        double best = Double.MAX_VALUE;
+        int[] nearestHole = null;
+        double nearestDistance = Double.MAX_VALUE;
+        for (int[] hole : holes) {
+            double distance = nearest(sight, hole);
+            if (distance < nearestDistance) {
+                nearestDistance = distance;
+                nearestHole = hole;
+            }
+            for (int face = 0; face < FACES.length; face++) {
+                int nx = hole[0] + FACES[face][0];
+                int ny = hole[1] + FACES[face][1];
+                int nz = hole[2] + FACES[face][2];
+                if (!sight.ground.solid(nx, ny, nz)) {
+                    continue;
+                }
+                // the side of that block towards the hole: the other way
+                int side = face ^ 1;
+                double[] centre = faceCentre(new int[] {nx, ny, nz}, side);
+                double away = distance(ex, ey, ez, centre[0], centre[1], centre[2]);
+                if (away <= REACH_BLOCKS && away < best) {
+                    best = away;
+                    against = new int[] {nx, ny, nz, side};
+                }
+            }
+        }
+        if (against == null) {
+            if (nearestHole == null) {
+                return false;
+            }
+            standBefore(sight, controls, nearestHole[wallAxis == 0 ? 2 : 0]);
+            return true;
+        }
+        controls.slot = sight.held == sight.block ? -1 : sight.block;
+        lookAt(sight, controls, faceCentre(against, against[3]));
+        double[] hit = rayHit(sight, controls.yaw, controls.pitch, against[0], against[1], against[2]);
+        if (hit != null && (int) hit[0] == against[3] && placeWait == 0) {
+            controls.place = against;
+            controls.cursor = new float[] {(float) (hit[1] - against[0]), (float) (hit[2] - against[1]),
+                (float) (hit[3] - against[2])};
+            placeWait = (int) Math.ceil(20 / Math.max(0.1, skill.blocksPerSecond));
+            // its point made if its hit was the last; either way, nobody's now as far as it knows
+            lastHit = 0;
+            hadInHits = false;
+        }
+        return true;
+    }
+
+    /**
+     * It walks to its place against the wall, on its side, in front of the blocks of the wall at
+     * along (along the wall), and stands there. True once there.
+     */
+    private boolean standBefore(Sight sight, Controls controls, int along) {
+        int lat = wallAxis == 0 ? 2 : 0;
+        double[] me = {sight.x, sight.y, sight.z};
+        int side = me[wallAxis] > wallAt + 0.5 ? 1 : -1;
+        double[] spot = new double[3];
+        spot[wallAxis] = wallAt + 0.5 + side * AT_WALL;
+        spot[lat] = along + 0.5;
+        double across = spot[wallAxis] - me[wallAxis];
+        double sideways = spot[lat] - me[lat];
+        if (Math.abs(across) <= 0.15 && Math.abs(sideways) <= 0.2) {
+            return true;
+        }
+        double dx = spot[0] - me[0];
+        double dz = spot[2] - me[2];
+        double length = Math.sqrt(dx * dx + dz * dz);
+        double speed = length > 0.5 ? 1 : Math.max(0.3, length * 2);
+        double radians = Math.toRadians(controls.yaw);
+        double sin = Math.sin(radians);
+        double cos = Math.cos(radians);
+        // the keys that take it that way, facing where it looks (the inverse of way())
+        controls.forward = (-dx * sin + dz * cos) / length * speed;
+        controls.strafe = (dx * cos + dz * sin) / length * speed;
+        return false;
     }
 
     // --- The other, as it saw them ------------------------------------------------------------
