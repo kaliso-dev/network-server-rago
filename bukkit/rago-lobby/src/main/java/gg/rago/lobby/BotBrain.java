@@ -47,9 +47,9 @@ final class BotBrain {
         /**
          * The bundled skill: the "hard" level of the combo bot (its CPS, accuracy, reach, strafe,
          * w-tap, jump reset, reaction), a turn of 30 degrees a tick and a golden apple under 10
-         * health. To set in game: the owner has not tried it yet.
+         * health, and a ping of 40 ms (the owner's ask of 23/11). To set in game.
          */
-        static final Skill BUNDLED = new Skill(11, 0.88, 3.0, 0.8, 0.75, 0.45, 3, 30, 10, 6);
+        static final Skill BUNDLED = new Skill(11, 0.88, 3.0, 0.8, 0.75, 0.45, 3, 30, 10, 6, 40);
 
         /** Clicks a second. */
         final double cps;
@@ -74,6 +74,11 @@ final class BotBrain {
          * the rest.
          */
         final double blocksPerSecond;
+        /**
+         * Its ping, in milliseconds: its hits go by where the other was this long ago, as a
+         * player's do (the owner's ask of 23/11: with none, it had the first hit every time).
+         */
+        final int ping;
 
         Skill(double cps, double accuracy, double reach, double strafe, double wTap, double jumpReset, int reaction,
                 double turn, double healAt) {
@@ -82,6 +87,11 @@ final class BotBrain {
 
         Skill(double cps, double accuracy, double reach, double strafe, double wTap, double jumpReset, int reaction,
                 double turn, double healAt, double blocksPerSecond) {
+            this(cps, accuracy, reach, strafe, wTap, jumpReset, reaction, turn, healAt, blocksPerSecond, 0);
+        }
+
+        Skill(double cps, double accuracy, double reach, double strafe, double wTap, double jumpReset, int reaction,
+                double turn, double healAt, double blocksPerSecond, int ping) {
             this.cps = cps;
             this.accuracy = accuracy;
             this.reach = reach;
@@ -92,6 +102,7 @@ final class BotBrain {
             this.turn = turn;
             this.healAt = healAt;
             this.blocksPerSecond = blocksPerSecond;
+            this.ping = ping;
         }
     }
 
@@ -267,8 +278,38 @@ final class BotBrain {
         this.sideTicks = nextSideTicks();
     }
 
-    /** This tick's keys, from this tick's sight. */
+    /** Its ping at most, in milliseconds: the ticks it remembers. */
+    static final int MAX_PING = 300;
+
+    /**
+     * This tick's keys, from this tick's sight. In a fight, it decides by where the other was its
+     * ping ago (its hits too, as a player's), and remembers where they are now.
+     */
     Controls think(Sight sight) {
+        if (!sight.fighting) {
+            return decide(sight);
+        }
+        see(sight.tx, sight.ty, sight.tz);
+        if (skill.ping <= 0) {
+            return decide(sight);
+        }
+        double tx = sight.tx;
+        double ty = sight.ty;
+        double tz = sight.tz;
+        double[] lagged = lagged();
+        sight.tx = lagged[0];
+        sight.ty = lagged[1];
+        sight.tz = lagged[2];
+        try {
+            return decide(sight);
+        } finally {
+            sight.tx = tx;
+            sight.ty = ty;
+            sight.tz = tz;
+        }
+    }
+
+    private Controls decide(Sight sight) {
         Controls controls = new Controls();
         controls.yaw = sight.yaw;
         controls.pitch = sight.pitch;
@@ -283,7 +324,6 @@ final class BotBrain {
             forgetEdit();
             return controls;
         }
-        see(sight.tx, sight.ty, sight.tz);
         double[] target = believed();
         if (sight.edit) {
             return edit(sight, controls, target);
@@ -1014,6 +1054,26 @@ final class BotBrain {
         seen[seenAt][1] = y;
         seen[seenAt][2] = z;
         seenCount = Math.min(MEMORY, seenCount + 1);
+    }
+
+    /**
+     * Where the other was its ping ago: between where they were at the ticks around then (40 ms,
+     * 0.8 of a tick, is mostly where they were the tick before).
+     */
+    double[] lagged() {
+        double back = skill.ping / 50.0;
+        int whole = (int) Math.floor(back);
+        double part = back - whole;
+        double[] newer = seenBack(whole);
+        double[] older = seenBack(whole + 1);
+        return new double[] {newer[0] + (older[0] - newer[0]) * part, newer[1] + (older[1] - newer[1]) * part,
+            newer[2] + (older[2] - newer[2]) * part};
+    }
+
+    /** Where the other was this many ticks ago, or the furthest back it saw them. */
+    private double[] seenBack(int ticks) {
+        int back = Math.max(0, Math.min(ticks, seenCount - 1));
+        return seen[((seenAt - back) % MEMORY + MEMORY) % MEMORY];
     }
 
     /** Where it believes the other is: where they were its reaction time ago. */

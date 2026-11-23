@@ -161,5 +161,7 @@ class BotSettingsTest {
         assertEquals(bundled.healAt, bots.skill.healAt, 0);
         assertEquals(bundled.blocksPerSecond, bots.skill.blocksPerSecond, 0);
         assertEquals(6, bundled.blocksPerSecond, 0, "6 blocks a second, to confirm in game");
+        assertEquals(bundled.ping, bots.skill.ping);
+        assertEquals(40, bundled.ping, "40 ms, the owner's ask of 23/11");
     }
 }

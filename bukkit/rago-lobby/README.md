@@ -147,7 +147,10 @@ dans les files d'attente des modes de jeu.
   dernier) ; l'autre sorti de ses coups sans être touché, il referme quand même. Touché par l'autre,
   il le frappe en retour par le trou dès qu'il est dans ses coups, puis referme ; reculé, il revient
   au mur en face du trou. Par le trou de l'autre, il joue sans casser d'autre bloc. Il ne frappe
-  jamais à travers un bloc. Sa vitesse de pose : `skill.blocs-par-seconde`. Jamais en classé, jamais pour remplir
+  jamais à travers un bloc. Sa vitesse de pose : `skill.blocs-par-seconde`. Son ping
+  (`skill.ping`, 40 ms, ta demande du 23/11 : sans ping il avait le premier coup à chaque fois) :
+  ses coups se jouent sur l'endroit où l'autre était il y a 40 ms, comme ceux d'un joueur ; l'autre
+  qui arrive dans sa portée n'est touché que le tick d'après. Jamais en classé, jamais pour remplir
   une file au hasard, jamais chef de la party (le chef qui part la laisse au joueur suivant ; sans
   autre joueur, elle est dissoute). Une partie avec lui compte dans les stats et l'XP des joueurs,
   jamais dans l'ELO ; lui n'a pas de stats. Un seul niveau (`skill:` : CPS, précision, portée,

@@ -131,7 +131,8 @@ final class BotSettings {
         double turn = number(section, "rotation", bundled.turn, 5, 180);
         double healAt = number(section, "soin-a", bundled.healAt, 0, 20);
         double blocks = number(section, "blocs-par-seconde", bundled.blocksPerSecond, 1, 20);
-        return new BotBrain.Skill(cps, accuracy, reach, strafe, wTap, jumpReset, reaction, turn, healAt, blocks);
+        int ping = (int) number(section, "ping", bundled.ping, 0, BotBrain.MAX_PING);
+        return new BotBrain.Skill(cps, accuracy, reach, strafe, wTap, jumpReset, reaction, turn, healAt, blocks, ping);
     }
 
     private static double number(ConfigurationSection section, String key, double bundled, double low, double high) {

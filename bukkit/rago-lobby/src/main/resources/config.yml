@@ -1234,8 +1234,12 @@ parties-privees-equipes:
 #     rotation    the degrees it turns its head a tick at most (5 to 180)
 #     soin-a      under this health (20 is full), it eats a golden apple of its kit (0 to 20)
 #     blocs-par-seconde  blocks it places a second at most (1 to 20)
+#     ping        its ping in milliseconds (0 to 300): its hits go by where the other was this long
+#                 ago, as a player's do (40, the owner's ask of 23/11: without, it had the first hit
+#                 every time)
 #   The values below: the "hard" level of the old combo bot, a turn of 30 degrees a tick, a golden
-#   apple under 10 health, 6 blocks a second, and 10 RagoBots at most; all to confirm in game.
+#   apple under 10 health, 6 blocks a second, a ping of 40 ms, and 10 RagoBots at most; all to
+#   confirm in game.
 ragobot:
   actif: true
   skin: qRago
@@ -1256,6 +1260,7 @@ ragobot:
     rotation: 30
     soin-a: 10
     blocs-par-seconde: 6
+    ping: 40
 
 # The Owner's test tools (plan 7.1), to test the PvP and the protections of the server:
 #   /owner reach <3-6|off>     the Owner's hits land up to that far (a fair player's reach is 3),

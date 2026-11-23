@@ -62,6 +62,31 @@ class BotBrainTest {
     }
 
     @Test
+    void itsHitsGoByWhereTheOtherWasItsPingAgo() {
+        // the owner's ask of 23/11: a ping of 40 ms, as a player's; without, it had the first hit
+        // every time. Many clicks a tick, every one on its aim, no reaction: only the ping differs.
+        BotBrain.Skill bundled = BotBrain.Skill.BUNDLED;
+        BotBrain.Skill lagging = new BotBrain.Skill(40, 1, 3.0, bundled.strafe, 0, 0, 0, bundled.turn, bundled.healAt,
+                bundled.blocksPerSecond, 40);
+        BotBrain.Skill none = new BotBrain.Skill(40, 1, 3.0, bundled.strafe, 0, 0, 0, bundled.turn, bundled.healAt,
+                bundled.blocksPerSecond, 0);
+        assertEquals(40, BotBrain.Skill.BUNDLED.ping, "the bundled one: 40 ms");
+        BotBrain late = new BotBrain(lagging, new Random(21));
+        BotBrain instant = new BotBrain(none, new Random(21));
+        // the other runs in: 3.5 from its eyes, then 2.9 (in its reach of 3)
+        BotBrain.Sight far = facing(0.5 + 3.9, 0.5);
+        assertFalse(late.think(far).hit);
+        assertFalse(instant.think(facing(0.5 + 3.9, 0.5)).hit);
+        BotBrain.Sight in = facing(0.5 + 3.3, 0.5);
+        assertTrue(instant.think(facing(0.5 + 3.3, 0.5)).hit, "no ping: the hit the tick they come in");
+        assertFalse(late.think(in).hit, "40 ms: it sees them where they were, 0.8 of the way back: out of its reach");
+        assertEquals(0.5 + 3.3, in.tx, 1e-9, "the sight given back as it was");
+        assertTrue(late.think(facing(0.5 + 3.3, 0.5)).hit, "the tick after, they were there: its hit");
+        double[] lagged = late.lagged();
+        assertEquals(0.5 + 3.3, lagged[0], 1e-9);
+    }
+
+    @Test
     void withNobodyToFightItStands() {
         BotBrain brain = new BotBrain(BotBrain.Skill.BUNDLED, new Random(1));
         BotBrain.Sight sight = facing(5, 0.5);
