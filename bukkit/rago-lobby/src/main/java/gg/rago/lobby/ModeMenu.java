@@ -414,8 +414,10 @@ final class ModeMenu {
             return false;
         }
         if (routes != null) {
+            // FFA Archway: its free for all, hidden, from 2 players to 16
             for (GameMode target : routes) {
-                if (target.playersPerMatch() == size && target.ranked() && queues.isPlayable(target.id())) {
+                if (QueueController.takesParty(target, size) && (target.ranked() || QueueController.eachForThemselves(target))
+                        && queues.isPlayable(target.id())) {
                     return true;
                 }
             }

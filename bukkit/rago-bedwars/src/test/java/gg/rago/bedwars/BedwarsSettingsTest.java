@@ -85,8 +85,8 @@ class BedwarsSettingsTest {
                 "lobby-fight-1v1", "lobby-fight-ffa", "bed-break-simulator-1v1", "bed-break-simulator-1v2",
                 "bed-break-simulator-1v3", "bed-break-simulator-1v4", "red-rover-top-bridge", "ctf-bridge-1v1",
                 "ctf-bridge-2v2", "ctf-castle-2v2", "ctf-castle-4v4", "fast-bedwars-1v1", "fast-bedwars-2v2",
-                "ranked-bed-fight-1v1", "ranked-top-bridge-1v1", "bedwars-normal-4s", "bedwars-normal-2s"),
-                settings.modes());
+                "ranked-bed-fight-1v1", "ranked-top-bridge-1v1", "bedwars-normal-4s", "bedwars-normal-2s",
+                "ffa-archway-partie"), settings.modes());
         // Bedwars Normal (the owner's answers of 22/11): a classic game on every map, of 4 teams
         // for the 4s and of 8 for the 2s
         for (String size : Arrays.asList("bedwars-normal-4s", "bedwars-normal-2s")) {
@@ -157,6 +157,11 @@ class BedwarsSettingsTest {
                 "not a mode of its own any more: its sizes are (it holds their kit in the lobby)");
         assertEquals(BedwarsSettings.Kind.FAST_SHOP, settings.kind("shop-practice"));
         assertEquals(Arrays.asList("ArchwayFFA"), settings.mapsOf("ffa"), "the owner's Archway FFA only: no map to choose");
+        // FFA Archway (the owner's choice of 23/11): the FFA of a party alone, on the FFA's map, 30 minutes
+        assertEquals(BedwarsSettings.Kind.FFA, settings.kind("ffa-archway-partie"));
+        assertEquals(settings.mapsOf("ffa"), settings.mapsOf("ffa-archway-partie"), "the map of the FFA");
+        assertFalse(settings.privateRules("ffa-archway-partie"), "no settings of the leader: the FFA's rules");
+        assertEquals(30, settings.privateFfaMinutes(), "30 minutes, then the kills leaderboard");
         assertEquals(BedwarsSettings.Kind.FFA, settings.kind("top-bridge-ffa"), "a free for all...");
         assertTrue(settings.topBridge("top-bridge-ffa"), "...with the top bridge");
         assertEquals(java.util.Collections.singletonList("Invasion"), settings.mapsOf("top-bridge-ffa"),
@@ -334,6 +339,7 @@ class BedwarsSettingsTest {
     void anEmptyConfigGivesTheDefaults() {
         BedwarsSettings settings = BedwarsSettings.read(new YamlConfiguration());
         assertTrue(settings.modes().isEmpty());
+        assertEquals(30, settings.privateFfaMinutes(), "FFA Archway: 30 minutes");
         assertEquals(13, settings.forge().iron("Gelato", 1, 8).ticks, "90 a minute");
         assertEquals(40, settings.forge().iron("Lighthouse", 1, 8).ticks, "30 a minute");
         assertArrayEquals(new int[] {2}, settings.forge().iron("Gelato", 1, 8).batches);
@@ -425,6 +431,8 @@ class BedwarsSettingsTest {
         assertProblem("modes: [\"Ranked 1v1\"]", "modes");
         assertProblem("parties-max: 0", "parties-max");
         assertProblem("reapparition-secondes: 60", "reapparition-secondes");
+        assertProblem("ffa-privee-minutes: 0", "ffa-privee-minutes");
+        assertProblem("ffa-privee-minutes: 121", "ffa-privee-minutes");
         assertProblem("forge:\n  fer-secondes-par-noeud: 0", "forge.fer-secondes-par-noeud");
         assertProblem("forge:\n  vitesses:\n    Lotus: vite", "forge.vitesses.Lotus");
         assertProblem("forge:\n  vitesses:\n    Lotus: {solo: lente}", "forge.vitesses.Lotus.equipes");

@@ -1682,7 +1682,7 @@ class BedwarsGame {
             }
             plugin.lobby().recordDraw(modeId, players);
         }
-        List<Gamer> killers = topKillers(new ArrayList<>(gamers.values()));
+        List<String> board = endBoard();
         for (Gamer gamer : gamers.values()) {
             Player player = Bukkit.getPlayer(gamer.id);
             if (player == null || host.gameOf(gamer.id) != this) {
@@ -1701,13 +1701,11 @@ class BedwarsGame {
             player.sendMessage(ChatColor.WHITE + "" + ChatColor.BOLD + "  " + modeName);
             player.sendMessage(winner == null ? ChatColor.YELLOW + "  Draw: no team won."
                     : ChatColor.YELLOW + "  Winner: " + winner.color.coloured() + ChatColor.YELLOW + " - " + names(winner));
-            if (!killers.isEmpty()) {
+            if (!board.isEmpty()) {
                 player.sendMessage("");
             }
-            for (int i = 0; i < killers.size(); i++) {
-                Gamer killer = killers.get(i);
-                player.sendMessage(KILLER_PLACES[i] + ChatColor.GRAY + " - " + killer.coloured() + ChatColor.GRAY + " - "
-                        + ChatColor.WHITE + (killer.kills + killer.finalKills));
+            for (String line : board) {
+                player.sendMessage(line);
             }
             player.sendMessage(summaryLine(gamer));
             player.sendMessage(ChatColor.GREEN + "" + ChatColor.STRIKETHROUGH + "                                        ");
@@ -1715,16 +1713,26 @@ class BedwarsGame {
         // the end for the replay and those who watch the game
         replayChat(winner == null ? ChatColor.YELLOW + "Draw: no team won."
                 : ChatColor.YELLOW + "Winner: " + winner.color.coloured() + ChatColor.YELLOW + " - " + names(winner));
-        for (int i = 0; i < killers.size(); i++) {
-            Gamer killer = killers.get(i);
-            replayChat(KILLER_PLACES[i] + ChatColor.GRAY + " - " + killer.coloured() + ChatColor.GRAY + " - "
-                    + ChatColor.WHITE + (killer.kills + killer.finalKills));
+        for (String line : board) {
+            replayChat(line);
         }
         if (replay != null) {
             replay.finish(winner == null ? "Draw" : winner.color.displayName() + " won (" + names(winner) + ")");
             replay = null;
         }
         afterTheEnd(winner != null);
+    }
+
+    /** The lines of the end summary under the winner: the three first killers, as on Hypixel (none without a kill). */
+    List<String> endBoard() {
+        List<String> lines = new ArrayList<>();
+        List<Gamer> killers = topKillers(new ArrayList<>(gamers.values()));
+        for (int i = 0; i < killers.size(); i++) {
+            Gamer killer = killers.get(i);
+            lines.add(KILLER_PLACES[i] + ChatColor.GRAY + " - " + killer.coloured() + ChatColor.GRAY + " - "
+                    + ChatColor.WHITE + (killer.kills + killer.finalKills));
+        }
+        return lines;
     }
 
     /** The player's own line of the end summary: their kills, final kills and beds broken. */

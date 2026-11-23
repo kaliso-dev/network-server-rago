@@ -251,12 +251,21 @@ export function buildGameData() {
   const kitHolders = new Set(Object.values(lobby.modes).map((mode) => mode['kit-de'])
     .filter((id) => id && lobby.modes[id]?.cache === true));
   // the sizes of a private game whose players choose their teams (parties-privees-equipes: the 4s
-  // and 2s of Bedwars Normal), out of the selector too: played only from it, not modes of their own
+  // and 2s of Bedwars Normal), out of the selector too: played only from it, not modes of their own;
+  // so is the game of a private game whose size follows the party (parties-privees) out of the
+  // selector (the game of FFA Archway)
   const sizeOf = {};
   for (const [room, settings] of Object.entries(lobby['parties-privees-equipes'] ?? {})) {
     for (const id of settings.cartes ?? []) {
       if (lobby.modes[id]?.cache === true) {
         sizeOf[id] = room;
+      }
+    }
+  }
+  for (const [route, targets] of Object.entries(lobby['parties-privees'] ?? {})) {
+    for (const id of targets ?? []) {
+      if (lobby.modes[id]?.cache === true) {
+        sizeOf[id] = route;
       }
     }
   }

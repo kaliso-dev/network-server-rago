@@ -24,7 +24,13 @@
 //      event in the sidebar, a block of the island broken by hand; 20 hearts and Jump Boost III on
 //      the leader, the end of the beds at half its time; the leader walks into the void and is back
 //      a second later, its 20 hearts full; the third leaves, red wins, all back in the lobby. Bed
-//      Instabreak is not played here (no bot goes to the other island): only its unit tests.
+//      Instabreak is not played here (no bot goes to the other island): only its unit tests;
+//   5. FFA Archway (the owner's choice of 23/11), the FFA of the party alone: its game is no queue,
+//      only the leader starts it; the three in the FFA (on the demo map here), each for themselves,
+//      the end in the sidebar; the third walks into the void and comes back at once; after its
+//      minutes (1 here: ffa-privee-minutes in run-arena-test.sh, 30 on the server) "Time is up.",
+//      nobody with a kill: a draw, and the kills leaderboard of the three, level, by name, the
+//      third with its death; all back in the lobby.
 //
 // Environment: KB_HOST (127.0.0.1), KB_PORT (25565).
 
@@ -33,7 +39,7 @@ import mineflayer from 'mineflayer'
 
 const HOST = process.env.KB_HOST ?? '127.0.0.1'
 const PORT = Number(process.env.KB_PORT ?? '25565')
-const TEST_TIMEOUT_MS = 3 * 60 * 1000
+const TEST_TIMEOUT_MS = 5 * 60 * 1000
 /** DemoMap: the spawns of the two islands. */
 const RED_SPAWN_X = -32.5
 const BLUE_SPAWN_X = 33.5
@@ -65,6 +71,8 @@ const JUMP_BOOST = 8
 const DOUBLE_HEALTH = 40
 /** The end of the beds in Fast Bedwars (fast-bedwars.evenements.fin-des-lits, 15 minutes), at Event Times 2x. */
 const BEDS_GONE_AT_2X = 15 * 60 / 2
+/** The minutes of FFA Archway on the test server (ffa-privee-minutes in run-arena-test.sh). */
+const FFA_MINUTES = 1
 /** The last choices of the leader, as the start of the game tells them. */
 const CHOSEN = ['Speed: Speed II', 'Max Diamond: On', 'Max Emerald: On', 'Break the Map: On', 'Health Buff: Double Health',
   'Low Gravity: On', 'Respawn Time: 1 second', 'Event Times: 2x - Faster', 'Bed Instabreak: On']
@@ -442,6 +450,66 @@ async function respawnTime (leader) {
     + ` ${DOUBLE_HEALTH / 2} hearts again`)
 }
 
+/** A death: the bot walks off its island of the demo map (west from red, east from blue) into the void, back at once. */
+async function fall (bot) {
+  const Vec3 = bot.entity.position.constructor
+  const from = mark(bot)
+  const p = bot.entity.position
+  await bot.lookAt(new Vec3(p.x + (p.x < 0 ? -30 : 30), p.y + 1.62, p.z), true)
+  bot.setControlState('forward', true)
+  const fell = new RegExp(`${bot.username} fell into the void\\.`)
+  await waitFor(() => bot.chats.slice(from).some((line) => fell.test(line)), 15000,
+    () => `${bot.username} to fall into the void, at ${where(bot)}; chat: ${JSON.stringify(bot.chats.slice(from))}`)
+  bot.setControlState('forward', false)
+  await waitFor(() => bot.game.gameMode === 'survival' && bot.entity.position.y > 60, 8000,
+    () => `${bot.username} back in the FFA after its fall: ${bot.game.gameMode} at ${where(bot)}`)
+}
+
+/** 5. FFA Archway, the FFA of the party alone, until the end of its minutes and its kills leaderboard. */
+async function ffaArchway (leader, second, third) {
+  const bots = [leader, second, third]
+  let from = mark(leader)
+  leader.chat('/queue ffa-archway-partie')
+  await chatLine(leader, /FFA Archway is played with your party: its leader clicks FFA Archway in the Private games\./, 5000, from)
+  from = mark(second)
+  second.chat('/queue ffa-archway')
+  await chatLine(second, /Only the party leader can start a private game\./, 5000, from)
+  const marks = bots.map(mark)
+  leader.chat('/queue ffa-archway')
+  const started = Date.now()
+  for (const [i, bot] of bots.entries()) {
+    await chatLine(bot, new RegExp(`Private game of your party in FFA Archway: ${leader.username} vs ${second.username}`
+      + ` vs ${third.username}\\. It counts in no stats\\.`), 5000, marks[i])
+    await chatLine(bot, /FFA Archway on bw-demo: everyone for themselves\./, 30000, marks[i])
+  }
+  for (const bot of bots) {
+    await waitFor(() => bot.game.gameMode === 'survival' && sidebarLines(bot).includes('Players: 3')
+      && sidebarLines(bot).some((line) => /^Ends in: \d+:\d\d$/.test(line)), 10000,
+    () => `${bot.username} in the FFA of the party, the end in its sidebar: ${bot.game.gameMode}, ${JSON.stringify(sidebarLines(bot))}`)
+  }
+  log(`FFA Archway: its game is no queue, only the leader starts it; the three in the FFA of the party on bw-demo, the end`
+    + ` in the sidebar (${sidebarLines(leader).find((line) => line.startsWith('Ends in: '))})`)
+  await fall(third)
+  log(`FFA Archway: ${third.username} fell into the void and came back at once`)
+  for (const [i, bot] of bots.entries()) {
+    await chatLine(bot, /Time is up\./, (FFA_MINUTES * 60 + 30) * 1000, marks[i])
+    await chatLine(bot, /Draw: no team won\./, 2000, marks[i])
+    await chatLine(bot, /Kills leaderboard/, 2000, marks[i])
+  }
+  const took = Math.round((Date.now() - started) / 1000)
+  // level in kills (none): the same place, by name; the third with its death
+  const expected = [`1. ${second.username} - 0 kills, 0 deaths`, `1. ${third.username} - 0 kills, 1 death`,
+    `1. ${leader.username} - 0 kills, 0 deaths`]
+  const board = leader.chats.slice(marks[0]).map((line) => line.trim()).filter((line) => /^\d+\. /.test(line))
+  if (JSON.stringify(board) !== JSON.stringify(expected)) {
+    throw new Error(`the kills leaderboard: ${JSON.stringify(board)}, not ${JSON.stringify(expected)}`)
+  }
+  await chatLine(third, /You: 0 kills, 1 death$/, 2000, marks[2])
+  for (const bot of bots) await expectInLobby(bot, 'after the FFA of the party')
+  log(`FFA Archway: "Time is up." ${took} s after the start (${FFA_MINUTES} minute here), a draw, the kills leaderboard`
+    + ` ${JSON.stringify(board)}, all back in the lobby`)
+}
+
 async function main () {
   const leader = await arrive('RagoPriveUn')
   const second = await arrive('RagoPriveDeux')
@@ -450,11 +518,13 @@ async function main () {
   await bedwarsNormal(leader, second)
   const marks = await chooseTeams(leader, second, third)
   await play(leader, second, third, marks)
+  await ffaArchway(leader, second, third)
 
   finishing = true
   log('PASSED: Bedwars Normal of the Private games, its rows of 4s and 2s; the settings of the leader (Speed, Max Diamond,'
     + ' Max Emerald, Break the Map, Health Buff, Low Gravity, Respawn Time, Event Times; Bed Instabreak in the menu); the team choice of its party: the map, the team menu, a team full, /pg team, the'
-    + ' countdown, who chose none in the emptiest team, the game with the teams chosen and the settings')
+    + ' countdown, who chose none in the emptiest team, the game with the teams chosen and the settings; FFA Archway, the'
+    + ' FFA of the party alone, until its end and its kills leaderboard')
   for (const bot of [leader, second, third]) bot.quit()
   await sleep(500)
   process.exit(0)

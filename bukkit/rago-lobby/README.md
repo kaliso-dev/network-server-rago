@@ -112,6 +112,17 @@ dans les files d'attente des modes de jeu.
   pour Bedwars Normal : Speed, Max Diamond, Max Emerald, Break the Map, puis Health Buff, Low
   Gravity, Respawn Time, Event Times et Bed Instabreak, voir le README de RagoBedwars) ; le lobby les donne à la partie (`LobbyService.privateSettings`). Ils restent ceux
   du chef pour ses parties suivantes, jusqu'à ce qu'il quitte le serveur.
+- **Les Private games : FFA Archway** (`parties-privees:`, ton choix du 23/11 : « 30 minutes, puis
+  classement des kills »). Dans l'objet Private games, à côté de Bedwars Normal, le chef de party
+  clique FFA Archway (`ffa-archway`) : toute la party (de 2 à 16 joueurs) entre dans sa propre
+  copie d'Archway FFA, chacun pour soi, avec les règles et le kit du FFA (`kit-de: ffa`, tel que
+  chacun l'a rangé), sans compter dans les stats. Personne d'autre n'y entre. Son jeu,
+  `ffa-archway-partie` (16 équipes d'un joueur, caché), ne se lance que depuis FFA Archway :
+  `/queue ffa-archway-partie` renvoie vers lui. La partie finit au bout de 30 minutes
+  (`ffa-privee-minutes` dans le config.yml de RagoBedwars) avec le classement des kills de la
+  partie (voir le README de RagoBedwars). Une liste de `parties-privees:` dont le mode a plus de
+  deux équipes d'un joueur (`QueueController.eachForThemselves`) prend une party de 2 joueurs
+  jusqu'à son nombre d'équipes, un par équipe ; les autres modes restent à leur taille exacte.
 - **RagoBot** (`ragobot:`, le choix du propriétaire du 22/11). `/p invite RagoBot` (ou `/p RagoBot`)
   le fait entrer tout de suite dans la party, à côté du chef : un vrai joueur du serveur, avec le
   skin d'un compte (`skin:`, qRago) et le nom RagoBot, un par party qui l'invite (`max:` à la

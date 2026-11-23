@@ -402,6 +402,8 @@ final class BedwarsSettings {
     private List<String> exactTeamModes = Collections.emptyList();
     /** reglages-prives: see {@link #privateRules}. */
     private List<String> privateRuleModes = Collections.emptyList();
+    /** ffa-privee-minutes: see {@link #privateFfaMinutes}. */
+    private int privateFfaMinutes = 30;
     /** The kits of Attack and Defense to choose from, each side its own (attaque-defense:). */
     private final List<RoundKit> attackKits;
     private final List<RoundKit> defenseKits;
@@ -529,6 +531,11 @@ final class BedwarsSettings {
             privateRules.add(modeId(mode, "reglages-prives"));
         }
         settings.privateRuleModes = Collections.unmodifiableList(privateRules);
+        int ffaMinutes = config.getInt("ffa-privee-minutes", 30);
+        if (ffaMinutes < 1 || ffaMinutes > 120) {
+            throw new IllegalArgumentException("ffa-privee-minutes: from 1 to 120");
+        }
+        settings.privateFfaMinutes = ffaMinutes;
         return settings;
     }
 
@@ -928,6 +935,14 @@ final class BedwarsSettings {
      */
     boolean privateRules(String modeId) {
         return privateRuleModes.contains(modeId);
+    }
+
+    /**
+     * How many minutes the FFA of a party lasts (FFA Archway in the Private games, the owner's
+     * choice of 23/11: 30), before the kills leaderboard of the game (ffa-privee-minutes).
+     */
+    int privateFfaMinutes() {
+        return privateFfaMinutes;
     }
 
     /** True if the games of this mode have an item shop on every island of the map, the empty ones' too. */

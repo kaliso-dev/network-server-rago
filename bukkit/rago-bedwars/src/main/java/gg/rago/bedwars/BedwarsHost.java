@@ -213,7 +213,10 @@ final class BedwarsHost implements MatchHost, Listener {
             return false;
         }
         BedwarsSettings.Kind kind = plugin.settings().kind(mode.id());
-        BedwarsGame joinable = kind == BedwarsSettings.Kind.CLASSIC ? null : joinable(mode.id(), maps);
+        // FFA Archway (the Private games, the owner's choice of 23/11): the party's own FFA, in a copy
+        // of the map of its own, nobody else in it, until the end of its minutes
+        boolean partyFfa = kind == BedwarsSettings.Kind.FFA && plugin.lobby().inPrivateGame(firstPlayer(sides));
+        BedwarsGame joinable = kind == BedwarsSettings.Kind.CLASSIC || partyFfa ? null : joinable(mode.id(), maps);
         if (joinable != null) {
             // an open game with room, an invis practice still waiting for its players: in it at once
             for (List<Player> side : sides) {
@@ -235,7 +238,17 @@ final class BedwarsHost implements MatchHost, Listener {
             plugin.instances().release(instance);
             return false;
         }
-        BedwarsGame game = create(kind, instance, mode, sides);
+        // the party's FFA starts with its first player; the others join it at once, each in a colour of their own
+        List<Player> joining = new ArrayList<>();
+        if (partyFfa) {
+            for (List<Player> side : sides) {
+                joining.addAll(side);
+            }
+            sides = new ArrayList<>();
+            sides.add(new ArrayList<>(Collections.singletonList(joining.remove(0))));
+        }
+        BedwarsGame game = partyFfa ? new FfaGame(plugin, this, instance, mode.id(), ChatColor.stripColor(mode.name()), sides,
+                plugin.settings().privateFfaMinutes()) : create(kind, instance, mode, sides);
         game.modeLine = mode.name();
         if (plugin.settings().privateRules(mode.id())) {
             // Bedwars Normal: the settings its party leader chose in the lobby, if a private game
@@ -251,6 +264,10 @@ final class BedwarsHost implements MatchHost, Listener {
         // recorded for /replay from before its start: the blocks the start changes are in the replay
         game.record();
         game.begin();
+        for (Player player : joining) {
+            toldNoMap.remove(player.getUniqueId());
+            game.join(player);
+        }
         // The next game of the mode is on another map, drawn now; the next match should not wait for
         // its copy: one is made now if none is free and there is room.
         if (maps.size() > 1) {
@@ -334,9 +351,12 @@ final class BedwarsHost implements MatchHost, Listener {
         return null;
     }
 
-    /** The islands a game of this mode needs: one per team, two at least. */
-    static int islands(GameMode mode) {
-        return Math.max(2, mode.teams());
+    /**
+     * The islands a game of this mode needs: one per team, two at least; a free for all, two (FFA
+     * Archway, 16 teams of one: its players come back on any island, see {@link FfaGame}).
+     */
+    int islands(GameMode mode) {
+        return plugin.settings().kind(mode.id()) == BedwarsSettings.Kind.FFA ? 2 : Math.max(2, mode.teams());
     }
 
     /**

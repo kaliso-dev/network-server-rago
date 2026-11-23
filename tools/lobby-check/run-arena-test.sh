@@ -28,7 +28,8 @@
 # this script adds with the same team choice on Fast Bedwars 2v2: the settings of the leader (Speed
 # II, Max Diamond, Max Emerald, Break the Map, Double Health, Low Gravity, Respawn Time 1 second,
 # Event Times 2x, Bed Instabreak), the map, the team of each (one full), /pg team, the countdown,
-# the game with the teams chosen and the settings, in no stats.
+# the game with the teams chosen and the settings, in no stats; then FFA Archway, the FFA of the
+# party alone (1 minute here), a death, its end and its kills leaderboard.
 # Then a bot invites RagoBot into its party (tools/kb-control/bots/ragobot-bots.mjs): RagoBot refuses
 # ranked and the modes it does not play, wins a Sumo duel, a Boxing, a round of Top Bridge 1v1 and
 # a round of Lobby Fight 1v1 against the bot who stands still; in a Block placement 1v1 (RagoArbitre
@@ -180,15 +181,18 @@ for png in "$ROOT"/bukkit/rago-lobby/src/main/resources/skins/*.png; do
 done >"$SERVER_DIR/plugins/RagoLobby/skins.yml"
 grep -q '^quetes:$' "$SERVER_DIR/plugins/RagoLobby/skins.yml" || fail "could not write skins.yml"
 # The bundled config.yml of RagoBedwars, with an ingot a second on each iron node, whatever the
-# bundled speed (the fireball, 40 iron, comes in a few seconds); and the settings of the party
-# leader (reglages-prives) on Fast Bedwars 2v2 too, the game of test-equipes for the private game bots.
+# bundled speed (the fireball, 40 iron, comes in a few seconds); the settings of the party
+# leader (reglages-prives) on Fast Bedwars 2v2 too, the game of test-equipes for the private game
+# bots; and FFA Archway, the FFA of a party, ending after 1 minute instead of 30 (ffa-privee-minutes).
 mkdir -p "$SERVER_DIR/plugins/RagoBedwars"
 sed -e 's/^  fer-secondes-par-noeud: [0-9.]*$/  fer-secondes-par-noeud: 1/' \
   -e 's/^reglages-prives: \[bedwars-normal-4s, bedwars-normal-2s\]$/reglages-prives: [bedwars-normal-4s, bedwars-normal-2s, fast-bedwars-2v2]/' \
+  -e 's/^ffa-privee-minutes: 30$/ffa-privee-minutes: 1/' \
   "$ROOT/bukkit/rago-bedwars/src/main/resources/config.yml" >"$SERVER_DIR/plugins/RagoBedwars/config.yml"
 grep -q '^  fer-secondes-par-noeud: 1$' "$SERVER_DIR/plugins/RagoBedwars/config.yml" || fail "could not speed up the iron"
 grep -q '^reglages-prives: \[bedwars-normal-4s, bedwars-normal-2s, fast-bedwars-2v2\]$' "$SERVER_DIR/plugins/RagoBedwars/config.yml" \
   || fail "could not give Fast Bedwars 2v2 the settings of the party leader"
+grep -q '^ffa-privee-minutes: 1$' "$SERVER_DIR/plugins/RagoBedwars/config.yml" || fail "could not end FFA Archway after 1 minute"
 # Around the spawn of the new lobby world: the NPC of the Duels category (on its point of the
 # bundled config, duels), a stats NPC (profil), a wall of leaderboards (leaderboards), the main
 # leaderboard (top, within click range of the spawn) and the kills leaderboard (joueurs).
@@ -300,7 +304,8 @@ KB_HOST=127.0.0.1 KB_PORT=$PORT node "$ROOT/tools/kb-control/bots/ctf-bots.mjs" 
 fast_status=0
 KB_HOST=127.0.0.1 KB_PORT=$PORT node "$ROOT/tools/kb-control/bots/fast-bots.mjs" || fast_status=$?
 # The same server for the private games: three bots in a party, the menu of Bedwars Normal, then
-# test-equipes: the map, the team of each, the countdown, a Fast Bedwars 2v2 with those teams.
+# test-equipes: the map, the team of each, the countdown, a Fast Bedwars 2v2 with those teams; then
+# FFA Archway, the FFA of the party, until its end (1 minute here) and its kills leaderboard.
 private_status=0
 KB_HOST=127.0.0.1 KB_PORT=$PORT node "$ROOT/tools/kb-control/bots/private-bots.mjs" || private_status=$?
 # The same server for RagoBot: a bot invites it into its party, plays the Sumo duel, the Boxing, Top

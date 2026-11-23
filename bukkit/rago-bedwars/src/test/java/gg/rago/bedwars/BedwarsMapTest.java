@@ -344,6 +344,26 @@ class BedwarsMapTest {
     }
 
     @Test
+    void theFfaOfAPartyEndsWithItsKillsLeaderboard() {
+        // FFA Archway (the owner's choice of 23/11): every player, the most kills first, level ones at the same place
+        List<Map.Entry<String, int[]>> players = new java.util.ArrayList<>();
+        players.add(new java.util.AbstractMap.SimpleEntry<>("\u00a7cZoe", new int[] {5, 2}));
+        players.add(new java.util.AbstractMap.SimpleEntry<>("\u00a79Sofiene", new int[] {12, 3}));
+        players.add(new java.util.AbstractMap.SimpleEntry<>("\u00a7aali", new int[] {5, 1}));
+        players.add(new java.util.AbstractMap.SimpleEntry<>("\u00a7eBob", new int[] {1, 0}));
+        players.add(new java.util.AbstractMap.SimpleEntry<>("\u00a7dNew", new int[] {0, 1}));
+        assertEquals(java.util.Arrays.asList("  Kills leaderboard", "  1. Sofiene - 12 kills, 3 deaths",
+                "  2. ali - 5 kills, 1 death", "  2. Zoe - 5 kills, 2 deaths", "  4. Bob - 1 kill, 0 deaths",
+                "  5. New - 0 kills, 1 death"), plain(FfaGame.leaderboard(players)),
+                "level in kills: the same place, by name; the next one after them");
+        List<Map.Entry<String, int[]>> none = new java.util.ArrayList<>();
+        none.add(new java.util.AbstractMap.SimpleEntry<>("B", new int[] {0, 0}));
+        none.add(new java.util.AbstractMap.SimpleEntry<>("A", new int[] {0, 2}));
+        assertEquals(java.util.Arrays.asList("  Kills leaderboard", "  1. A - 0 kills, 2 deaths", "  1. B - 0 kills, 0 deaths"),
+                plain(FfaGame.leaderboard(none)), "nobody with a kill: all first");
+    }
+
+    @Test
     void theBoardOfKillsShowsTheTenFirst() {
         List<Map.Entry<String, Integer>> top = new java.util.ArrayList<>();
         assertEquals(java.util.Arrays.asList("TOP KILLS", "Lifetime", "Nobody yet"), plain(KillBoard.lines(top)));

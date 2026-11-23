@@ -197,6 +197,13 @@ final class QueueController {
             joinPrivate(player, mode, map);
             return;
         }
+        GameMode route = privateRouteOf(mode.id());
+        if (route != null) {
+            // FFA Archway's game (/queue ffa-archway-partie): only from FFA Archway, with a party
+            player.sendMessage(ChatColor.RED + mode.name() + ChatColor.RED + " is played with your party: its leader clicks "
+                    + route.name() + ChatColor.RED + " in the Private games.");
+            return;
+        }
         if (!isPlayable(mode.id())) {
             player.sendMessage(ChatColor.GRAY + mode.name() + ChatColor.GRAY + " is coming soon.");
             return;
@@ -469,10 +476,12 @@ final class QueueController {
         }
         GameMode chosen = null;
         List<String> sizes = new ArrayList<>();
+        boolean free = false;
         for (GameMode target : settings.privateRoutes().get(mode.id())) {
             if (hosts.containsKey(target.id())) {
-                sizes.add(String.valueOf(target.playersPerMatch()));
-                if (chosen == null && target.playersPerMatch() == players.size()) {
+                free |= eachForThemselves(target);
+                sizes.add(eachForThemselves(target) ? "2 to " + target.playersPerMatch() : String.valueOf(target.playersPerMatch()));
+                if (chosen == null && takesParty(target, players.size())) {
                     chosen = target;
                 }
             }
@@ -480,7 +489,7 @@ final class QueueController {
         if (chosen == null) {
             Parties.boxed(player, ChatColor.RED + (sizes.isEmpty() ? mode.name() + ChatColor.RED + " is coming soon."
                     : "Your party has " + players.size() + " players: " + mode.name() + ChatColor.RED + " is played with "
-                    + String.join(", ", sizes) + " players, two teams of the same size."));
+                    + String.join(", ", sizes) + (free ? " players." : " players, two teams of the same size.")));
             return;
         }
         if (botRefuses(player, party, chosen)) {
@@ -488,6 +497,45 @@ final class QueueController {
         }
         // from the Private games: the practice of the mode (the top bridge without rounds)
         startPrivate(party, players, chosen, map, true);
+    }
+
+    /**
+     * The private game (parties-privees) whose hidden mode this is, played only from it (FFA
+     * Archway, for its game ffa-archway-partie); null for another mode.
+     */
+    private GameMode privateRouteOf(String modeId) {
+        ModeDisplay display = settings.display(modeId);
+        if (display == null || !display.hidden()) {
+            return null;
+        }
+        for (Map.Entry<String, List<GameMode>> route : settings.privateRoutes().entrySet()) {
+            for (GameMode target : route.getValue()) {
+                ModeDisplay from = settings.display(route.getKey());
+                if (target.id().equals(modeId) && from != null) {
+                    return from.mode();
+                }
+            }
+        }
+        return null;
+    }
+
+    /**
+     * True for a mode of more than two teams of one player each: a free for all (FFA Archway in
+     * the Private games, the owner's choice of 23/11), which a party plays each for themselves.
+     */
+    static boolean eachForThemselves(GameMode mode) {
+        return mode.teams() > 2 && mode.playersPerTeam() == 1;
+    }
+
+    /**
+     * True if a party of this size plays this mode of a private game (parties-privees): a free for
+     * all from 2 players to as many as its teams, one in each; another mode at its exact size.
+     */
+    static boolean takesParty(GameMode target, int size) {
+        if (eachForThemselves(target)) {
+            return size >= 2 && size <= target.playersPerMatch();
+        }
+        return target.playersPerMatch() == size;
     }
 
     /** The leader queues the party: a private game if it fills the match, else the queue, in one team. */
@@ -649,7 +697,9 @@ final class QueueController {
         }
         List<String> sides = new ArrayList<>();
         for (List<String> side : names) {
-            sides.add(String.join(" and ", side));
+            if (!side.isEmpty()) {
+                sides.add(String.join(" and ", side));
+            }
         }
         for (Player member : players) {
             member.sendMessage(ChatColor.LIGHT_PURPLE + (counted ? "Game of your party in " : "Private game of your party in ")
@@ -657,7 +707,9 @@ final class QueueController {
                     + String.join(ChatColor.LIGHT_PURPLE + " vs " + ChatColor.WHITE, sides) + ChatColor.LIGHT_PURPLE
                     + (counted ? ". It counts in your stats, never in the ELO." : ". It counts in no stats."));
         }
-        startDirect(new MatchProposal(mode, teams), !counted, practice);
+        // a free for all: one player in each team, the others empty
+        startDirect(eachForThemselves(mode) ? MatchProposal.withChosenTeams(mode, teams) : new MatchProposal(mode, teams),
+                !counted, practice);
     }
 
     /**

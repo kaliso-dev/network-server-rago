@@ -62,7 +62,7 @@
       ],
       "description": "Modes close to Ranked Bedwars: Sky Rise, first rush, invis, clutch scenarios, attack and defense, Bed Break Simulator, private games. With the server or your friends. Ranked Bedwars is in Ranked.",
       "skin": "ranked",
-      "modes": 23,
+      "modes": 24,
       "also": []
     },
     {
@@ -289,7 +289,8 @@
       "name": "Private games",
       "description": "With your party: Bedwars Normal on a map of 4s or 2s, 2 to 16 players.",
       "modes": [
-        "bedwars-normal"
+        "bedwars-normal",
+        "ffa-archway"
       ]
     },
     {
@@ -1240,6 +1241,40 @@
       "startHere": false,
       "event": false,
       "sizeOf": "bedwars-normal",
+      "description": "",
+      "plugins": [
+        "bedwars"
+      ]
+    },
+    {
+      "id": "ffa-archway",
+      "name": "FFA Archway",
+      "colour": "#FFAA00",
+      "icon": "STONE_SWORD",
+      "category": "ranked",
+      "group": "prive",
+      "format": "2 to 16",
+      "ranked": false,
+      "startHere": false,
+      "event": false,
+      "sizeOf": null,
+      "description": "The FFA of Archway with your party alone, each for themselves: 30 minutes, then the kills leaderboard. 2 to 16 players.",
+      "plugins": [
+        "bedwars"
+      ]
+    },
+    {
+      "id": "ffa-archway-partie",
+      "name": "FFA Archway",
+      "colour": "#FFAA00",
+      "icon": "STONE_SWORD",
+      "category": "ranked",
+      "group": null,
+      "format": "2 to 16",
+      "ranked": false,
+      "startHere": false,
+      "event": false,
+      "sizeOf": "ffa-archway",
       "description": "",
       "plugins": [
         "bedwars"
@@ -2422,6 +2457,9 @@
     "topBridgeMinutes": 30,
     "topBridgeBlockSeconds": 45,
     "modes": {
+      "ffa-archway": [
+        "ffa-archway-partie"
+      ],
       "bedwars-normal": [
         "bedwars-normal-4s",
         "bedwars-normal-2s"

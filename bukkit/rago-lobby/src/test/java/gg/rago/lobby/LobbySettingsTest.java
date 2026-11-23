@@ -64,8 +64,8 @@ class LobbySettingsTest {
         assertEquals("lobby", settings.world());
         assertEquals(0, settings.voidHeight());
         assertEquals(0, settings.defaultRating(), "a ranked ELO starts at 0, in Coal");
-        assertEquals(92, settings.modes().size(), "the six ranked duels (plan 3.7), the invis practice and the Bed Break Simulator in 1v1 to 1v4 (and"
-                + " their kits), with Bedwars Normal (its 4s and 2s), the clutch scenario, the bed fight (1v1, 2v2, 1v2), Top"
+        assertEquals(94, settings.modes().size(), "the six ranked duels (plan 3.7), the invis practice and the Bed Break Simulator in 1v1 to 1v4 (and"
+                + " their kits), with Bedwars Normal (its 4s and 2s) and FFA Archway (its game), the clutch scenario, the bed fight (1v1, 2v2, 1v2), Top"
                 + " BedFight, the bridge fight 2v2, the full map first rush, Sky Rise Resources, the timed bridge, Lobby"
                 + " Fight (1v1, FFA), the Bed Break Simulator, the four modes of FUN PRACTICE (CTF The Bridge 1v1 and"
                 + " 2v2, CTF Castle 2v2 and 4v4 with them, Fast Bedwars 1v1 and 2v2), Red Rover (sumo, block edit, block placement, top bridge),"
@@ -318,9 +318,10 @@ class LobbySettingsTest {
         for (String size : Arrays.asList("bedwars-normal-4s", "bedwars-normal-2s")) {
             assertTrue(settings.display(size).hidden(), "played only from Bedwars Normal, not in the selector: " + size);
         }
-        assertEquals(settings.modes().size() - 7, shown,
-                "every mode but the hidden ones (the 3 events, the 2 kits of sizes, the 4s and 2s of Bedwars Normal) is in"
-                        + " the selector, once");
+        assertTrue(settings.display("ffa-archway-partie").hidden(), "played only from FFA Archway, not in the selector");
+        assertEquals(settings.modes().size() - 8, shown,
+                "every mode but the hidden ones (the 3 events, the 2 kits of sizes, the 4s and 2s of Bedwars Normal, the game"
+                        + " of FFA Archway) is in the selector, once");
         assertInvalid("groupes:\n  g: {}\nmodes:\n  sumo:\n    groupe: autre\n", "modes.sumo.groupe");
     }
 
@@ -421,8 +422,9 @@ class LobbySettingsTest {
         assertEquals("fun", fun.category());
         assertEquals("fun", fun.skin(), "the skin of the Fun Practice (22/11)");
         assertEquals(displayIds(settings.modesIn("fun")), fun.modeIds(), "it holds the modes of FUN PRACTICE");
-        assertEquals(Arrays.asList("bedwars-normal"), displayIds(settings.modesOfGroup("prive")),
-                "the private games stay in the RBW Modes, one item: Bedwars Normal in the place of the two of before");
+        assertEquals(Arrays.asList("bedwars-normal", "ffa-archway"), displayIds(settings.modesOfGroup("prive")),
+                "the private games stay in the RBW Modes, one item: Bedwars Normal in the place of the two of before, and FFA"
+                        + " Archway (23/11)");
         assertTrue(settings.entriesIn("ranked").stream().anyMatch(entry -> entry.group != null && "prive".equals(entry.group.id())));
         LobbyNpc arenas = settings.npc("arenas");
         assertEquals("§c§lArenas", arenas.name());
@@ -771,6 +773,32 @@ class LobbySettingsTest {
         LobbySettings short_ = LobbySettings.load(yaml("parties-privees-equipes:\n  prive: {cartes: [duo]}\nmodes:\n"
                 + "  prive: {}\n  duo: {equipes: 2, joueurs-par-equipe: 2}\n"));
         assertEquals(Integer.valueOf(20), short_.teamRooms().get("prive"), "20 seconds by default");
+    }
+
+    @Test
+    void ffaArchwayIsTheFfaOfAPartyAlone() throws Exception {
+        LobbySettings settings = LobbySettings.load(bundledConfig());
+        // the owner's choice of 23/11: the FFA of Archway with the party alone, each for themselves
+        assertEquals(Arrays.asList("ffa-archway-partie"), ids(settings.privateRoutes().get("ffa-archway")));
+        assertNull(settings.teamRooms().get("ffa-archway"), "no team to choose: each for themselves");
+        assertEquals("§6FFA Archway", settings.display("ffa-archway").mode().name());
+        GameMode game = settings.catalog().get("ffa-archway-partie");
+        assertEquals(Arrays.asList(16, 1), Arrays.asList(game.teams(), game.playersPerTeam()), "16 teams of one");
+        assertEquals(PartyBook.MAX_SIZE, game.playersPerMatch(), "a full party fills it");
+        assertFalse(game.ranked(), "in no stats");
+        assertEquals("ffa", settings.kitMode("ffa-archway-partie"), "the kit of the FFA, as each player arranged it");
+        assertTrue(QueueController.eachForThemselves(game));
+        assertFalse(QueueController.takesParty(game, 1), "alone: no party");
+        assertTrue(QueueController.takesParty(game, 2));
+        assertTrue(QueueController.takesParty(game, 7), "any size, one player in each team");
+        assertTrue(QueueController.takesParty(game, 16));
+        assertFalse(QueueController.takesParty(game, 17));
+        GameMode duel = settings.catalog().get("ranked-1v1");
+        assertFalse(QueueController.eachForThemselves(duel), "a 1v1 is played at its size");
+        assertTrue(QueueController.takesParty(duel, 2));
+        assertFalse(QueueController.takesParty(duel, 3));
+        assertFalse(QueueController.eachForThemselves(settings.catalog().get("bedwars-normal-4s")), "4 teams of 4");
+        assertFalse(QueueController.eachForThemselves(settings.catalog().get("ffa")), "the open FFA: one team, joined one by one");
     }
 
     @Test

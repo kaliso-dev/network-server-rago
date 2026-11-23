@@ -527,6 +527,17 @@ Dans `jeux:` du config.yml, un mode peut jouer autre chose qu'une partie classiq
   milieu de la plateforme, 8 blocs après son bord et 7 blocs au-dessus. La sidebar montre le
   **top 3 des kills** de la partie en cours (les joueurs présents), sous ses kills, morts et
   série.
+  **FFA Archway** (`ffa-archway-partie`, ton choix du 23/11 : « 30 minutes, puis classement des
+  kills ») : le FFA d'une party seule, lancé par son chef dans les Private games du lobby. Une
+  partie de `ffa` lancée comme partie privée d'une party (le lobby le dit à `BedwarsHost.start`)
+  a sa propre copie de la map, que personne d'autre ne rejoint ; le premier joueur la commence, les
+  autres y entrent aussitôt, chacun dans sa couleur. Mêmes règles et même kit que le FFA, sans le
+  classement des kills à vie (la partie ne compte dans aucune stat). La sidebar montre « Ends in »,
+  « One minute left. » une minute avant la fin, puis au bout de `ffa-privee-minutes` (30, de 1 à
+  120) « Time is up. » : celui qui a le plus de kills gagne (plusieurs à égalité en tête : égalité),
+  et le résumé de fin donne le **classement des kills** de la partie, tous les joueurs encore là,
+  du plus de kills au moins (par nom à égalité, à la même place), avec leurs morts
+  (`FfaGame.leaderboard`). Puis tout le monde revient au lobby.
 - **Lobby Fight** (`lobby-fight` pour `lobby-fight-1v1`, `lobby-fight-ffa` pour `lobby-fight-ffa`) :
   le combat dans la **salle d'attente** de la map, là où l'on attend le début d'une partie de Bed
   Wars (sur Archway FFA, son sol de verre tout en haut au-dessus du milieu), avec la même armure

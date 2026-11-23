@@ -221,6 +221,15 @@ Jump Boost III, et casse à la main un bloc de son île ; puis il marche dans le
 île une seconde plus tard, ses 20 cœurs pleins ; le troisième s'en va, rouge gagne, et les trois
 reviennent au lobby. Une vraie partie sur une map de 4s ou de 2s n'est pas jouée par les bots, ni
 Bed Instabreak (aucun bot ne va jusqu'à l'autre île) : celui-ci n'a que ses tests unitaires.
+Ensuite la même party joue FFA Archway (ton choix du 23/11) : `/queue ffa-archway-partie` est
+refusé (« played with your party »), le deuxième ne peut pas le lancer, le chef le lance
+(`/queue ffa-archway`) : les trois sont dans le FFA de la party, sur la carte démo ici (« A vs B vs
+C », sans stats), « Ends in » et « Players: 3 » dans la sidebar ; le troisième marche dans le vide et
+revient tout de suite. Le script met `ffa-privee-minutes` à 1 (30 sur le serveur) : au bout d'une
+minute, « Time is up. », personne n'a de kill donc égalité, et le classement des kills donne les
+trois à la même place, par nom, le troisième avec sa mort ; les trois reviennent au lobby. Un kill
+entre deux bots n'est pas joué : l'ordre du classement avec des kills est vérifié par les tests
+unitaires (`BedwarsMapTest`).
 Enfin un bot invite RagoBot dans sa party (`tools/kb-control/bots/ragobot-bots.mjs`) : RagoBot
 entre tout de suite, à côté de lui ; une deuxième invitation, une file classée, un mode qu'il ne
 joue pas et un `/duel RagoBot` d'un autre joueur sont refusés. Le bot joue le Sumo duel contre

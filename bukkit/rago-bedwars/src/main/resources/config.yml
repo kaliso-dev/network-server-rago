@@ -65,6 +65,8 @@ modes:
   # then its teams (parties-privees-equipes in the lobby's config.yml)
   bedwars-normal-4s: toutes
   bedwars-normal-2s: toutes
+  # FFA Archway, the private FFA of a party (the owner's choice of 23/11): the FFA's map
+  ffa-archway-partie: [ArchwayFFA]
 
 # The modes that are not a classic Bed Wars game, each with its kind of game:
 #   ffa        free for all, open: players join and leave when they like, each for themselves, and
@@ -210,6 +212,7 @@ jeux:
   fast-bedwars-2v2: fast-bedwars
   ranked-bed-fight-1v1: bed-fight
   ranked-top-bridge-1v1: top-bridge
+  ffa-archway-partie: ffa
 
 # Attack and Defense: the kits each player chooses from before each round, in a menu that opens by
 # itself (/kit opens it again); the countdown is 10 seconds, 3 once everyone has chosen. The
@@ -330,8 +333,15 @@ equipes-exactes: [bedwars-normal-4s, bedwars-normal-2s]
 # the owner's answers of 22/11): Speed (none, I, II or III for everyone), Max Diamond (every team
 # with Sharpened Swords and Reinforced Armor IV from the start), Max Emerald (the emerald generators
 # at Tier III from the start, the game as long as usual), Break the Map (every block of the map
-# breaks, but around the spawns and the generators). Each is as in a normal game until set.
+# breaks, but around the spawns and the generators); then those of Hypixel's private games: Health
+# Buff, Low Gravity, Respawn Time, Event Times and Bed Instabreak. Each is as in a normal game until set.
 reglages-prives: [bedwars-normal-4s, bedwars-normal-2s]
+
+# FFA Archway, the FFA of a party alone in the Private games (the owner's choice of 23/11: « 30
+# minutes, puis classement des kills »): a game of a mode of kind ffa started as a private game of a
+# party ends after this many minutes (from 1 to 120), with the kills leaderboard of the game; who
+# has the most kills wins (several level at the top: a draw). The open FFA never ends.
+ffa-privee-minutes: 30
 
 # How many game worlds the server keeps at most, so how many games at once (from 1 to 50).
 parties-max: 8

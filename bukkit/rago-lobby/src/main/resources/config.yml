@@ -1177,10 +1177,13 @@ hypixel:
 # The private games whose size follows the party: a party leader who clicks one of these modes
 # starts a private game of the party against itself (in no stats), in the one of its modes made
 # for the party's size: 2 players play the 1v1, 4 the 2v2, 6 the 3v3, 8 the 4v4. A player without
-# a party is asked to make one (/party invite <name>). None since 22/11: the Private game (RBW 1v1
-# to 4v4) and the Private top bridge are replaced by Bedwars Normal (the owner's answer), below.
+# a party is asked to make one (/party invite <name>). Since 22/11 the Private game (RBW 1v1 to
+# 4v4) and the Private top bridge are replaced by Bedwars Normal (the owner's answer), below:
 #   partie-privee: [ranked-1v1, ranked-2v2, ranked-3v3, ranked-4v4]
-parties-privees: {}
+# A free for all (more than two teams of one player) takes a party of 2 players up to its number
+# of teams, each for themselves: FFA Archway (the owner's choice of 23/11), its game in modes.
+parties-privees:
+  ffa-archway: [ffa-archway-partie]
 
 # The private games whose players choose their teams: Bedwars Normal (the owner's answers of
 # 22/11), as on Hypixel. The party leader clicks it and chooses a map, in a row for each mode of
@@ -2045,6 +2048,36 @@ modes:
     format: 2s
     classe: false
     cache: true
+  # FFA Archway (the owner's choice of 23/11): the FFA of Archway FFA with the party alone, in a
+  # copy of the map of its own, each for themselves, as the FFA (its kit as each player arranged
+  # it, kit-de: ffa), in no stats; it ends after 30 minutes with the kills leaderboard of the game
+  # (ffa-privee-minutes in the config.yml of RagoBedwars). Its game, ffa-archway-partie, is not in
+  # the selector (cache: true): 16 teams of one, a party of 2 to 16 players, one in each.
+  ffa-archway:
+    nom: "&6FFA Archway"
+    categorie: ranked
+    groupe: prive
+    icone: STONE_SWORD
+    equipes: 2
+    joueurs-par-equipe: 1
+    format: "2 to 16"
+    classe: false
+    description:
+      - "The FFA of Archway with your"
+      - "party alone, each for"
+      - "themselves: 30 minutes, then"
+      - "the kills leaderboard."
+      - "2 to 16 players."
+  ffa-archway-partie:
+    nom: "&6FFA Archway"
+    categorie: ranked
+    icone: STONE_SWORD
+    equipes: 16
+    joueurs-par-equipe: 1
+    format: "2 to 16"
+    classe: false
+    cache: true
+    kit-de: ffa
   sumo:
     nom: "&aSumo duel"
     categorie: duels
