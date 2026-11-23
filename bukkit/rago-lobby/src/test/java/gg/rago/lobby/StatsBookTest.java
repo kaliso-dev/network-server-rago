@@ -585,7 +585,8 @@ class StatsBookTest {
         alice.friends().add(BOB);
         assertTrue(alice.xp() > 0);
         assertFalse(book.teams("block-fight-2v2").isEmpty());
-        assertEquals(java.util.Collections.singleton("block-fight-2v2"), book.teamModes());
+        assertEquals(new java.util.HashSet<>(Arrays.asList("sumo", "ranked-1v1", "block-fight-2v2")), book.teamModes(),
+                "a streak for each team that won, a team of one too");
         assertEquals(4, book.resetStats().size(), "Alice, Bob, Carl and Dave");
         assertEquals(0, alice.xp(), "the XP, so the level");
         assertEquals(0, alice.xp(StatsPeriod.DAY, StatsPeriod.dayKey(SUNDAY), StatsPeriod.weekKey(SUNDAY)));
