@@ -1,7 +1,9 @@
 package gg.rago.lobby;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -93,5 +95,24 @@ class TeamRoomTest {
         assertEquals(TeamRoom.Choice.UNKNOWN, room.choose(UUID.randomUUID(), 0));
         assertThrows(IllegalArgumentException.class, () -> new TeamRoom(party(17), 8, 2), "16 at most on a map of 2s");
         assertThrows(IllegalArgumentException.class, () -> new TeamRoom(party(1), 8, 2), "a party of two at least");
+    }
+
+    @Test
+    void onceEveryoneHasChosenFifteenSecondsAreLeft() {
+        // the owner's ask of 23/11: 15 seconds once all have a team, unless fewer are left
+        List<UUID> players = party(3);
+        TeamRoom room = new TeamRoom(players, 4, 4);
+        assertFalse(room.allChose());
+        room.choose(players.get(0), 0);
+        room.choose(players.get(1), 1);
+        assertFalse(room.allChose(), "one has not chosen");
+        room.choose(players.get(2), 1);
+        assertTrue(room.allChose());
+        room.choose(players.get(2), 0);
+        assertTrue(room.allChose(), "a change of team: still all chosen");
+        assertEquals(15, TeamRoom.secondsOnceAllChose(30));
+        assertEquals(15, TeamRoom.secondsOnceAllChose(16));
+        assertEquals(15, TeamRoom.secondsOnceAllChose(15));
+        assertEquals(8, TeamRoom.secondsOnceAllChose(8), "fewer left already: no change");
     }
 }

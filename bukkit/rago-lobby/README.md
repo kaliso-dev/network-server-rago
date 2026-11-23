@@ -97,8 +97,9 @@ dans les files d'attente des modes de jeu.
   Private games, le chef de party clique Bedwars Normal et choisit une map : une ligne pour les 4s
   (les maps à 4 équipes, `bedwars-normal-4s`), une pour les 2s (les maps à 8 équipes,
   `bedwars-normal-2s`), telles que RagoBedwars les donne. Chaque joueur de la party choisit
-  ensuite son équipe dans un menu (les couleurs de la map, `/pg team` le rouvre) pendant 20
-  secondes (`compte-a-rebours`), puis la partie part seule, sans compter dans les stats : des
+  ensuite son équipe dans un menu (les couleurs de la map, `/pg team` le rouvre) pendant 30
+  secondes (`compte-a-rebours`, ta demande du 23/11), ramenées à 15 dès que tout le monde a
+  choisi (sauf s'il en reste déjà moins), puis la partie part seule, sans compter dans les stats : des
   équipes de 4 sur une map de 4s, de 2 sur une map de 2s, comme sur Hypixel. Une équipe pleine
   refuse un joueur, et aussi celle qui contiendrait toute la party (il faut deux équipes) ; celui
   qui n'a pas choisi va dans l'équipe la moins remplie, en ouvrant les équipes qu'il faut à la

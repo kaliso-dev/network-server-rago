@@ -1189,15 +1189,16 @@ parties-privees:
 # 22/11), as on Hypixel. The party leader clicks it and chooses a map, in a row for each mode of
 # cartes (the 4s, then the 2s; the maps of each as its game plugin gives them: in Bed Wars, every
 # map of 4 teams for the 4s, of 8 teams for the 2s). Then each player of the party chooses their
-# team, among the colours of the map, for compte-a-rebours seconds (/pg team opens the menu
-# again), and the game starts by itself, in no stats: the teams of the map's size (4 players in
+# team, among the colours of the map, for compte-a-rebours seconds (30, the owner's ask of 23/11;
+# 15 once everyone has chosen, unless fewer are left; /pg team opens the menu again), and the game
+# starts by itself, in no stats: the teams of the map's size (4 players in
 # the 4s, 2 in the 2s), as many as the party fills, two at least; a team full refuses a player,
 # and so does a team that would hold the whole party; who chose none goes in the emptiest. A
 # party of 2 to 16 players (the owner's limit). The party changing cancels it.
 parties-privees-equipes:
   bedwars-normal:
     cartes: [bedwars-normal-4s, bedwars-normal-2s]
-    compte-a-rebours: 20
+    compte-a-rebours: 30
 
 # RagoBot: a player of the server, with the skin of an account and the name RagoBot, invited
 # into a party with /p invite RagoBot (or /p RagoBot): it joins at once, next to the leader, one

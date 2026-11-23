@@ -31,7 +31,8 @@ import org.bukkit.inventory.meta.ItemMeta;
  * The private games whose players choose their teams (parties-privees-equipes: Bedwars Normal, the
  * owner's answers of 22/11). The party leader clicks the mode and chooses a map, in a row for each
  * of its modes (the 4s, then the 2s); then every player of the party has the team menu (the colours
- * of the map) for the countdown of the mode, 20 seconds, and the game starts by itself with the
+ * of the map) for the countdown of the mode, 30 seconds (15 once everyone has chosen, the owner's
+ * ask of 23/11), and the game starts by itself with the
  * teams of {@link TeamRoom}, in no stats. /pg team opens the menu again. A party that changes, or a
  * player who leaves the lobby, cancels it. The leader sets the game (Speed, Max Diamond...: the
  * settings its host offers, {@link MatchHost#privateSettings}) from the map menu, the team menu or
@@ -386,6 +387,11 @@ final class TeamRooms {
             case CHOSEN:
                 player.playSound(player.getLocation(), Sound.CLICK, 1f, 1f);
                 tell(room, ChatColor.GRAY + player.getName() + " joined " + room.teamName(team) + ChatColor.GRAY + ".");
+                if (room.teams.allChose() && TeamRoom.secondsOnceAllChose(room.secondsLeft) < room.secondsLeft) {
+                    room.secondsLeft = TeamRoom.secondsOnceAllChose(room.secondsLeft);
+                    tell(room, ChatColor.YELLOW + "Everyone chose a team: the game starts in " + ChatColor.RED
+                            + room.secondsLeft + ChatColor.YELLOW + " seconds.");
+                }
                 refresh(room);
                 break;
             case FULL:

@@ -754,8 +754,8 @@ class LobbySettingsTest {
     @Test
     void bedwarsNormalHasItsPlayersChooseTheirTeams() throws Exception {
         LobbySettings settings = LobbySettings.load(bundledConfig());
-        // the owner's answers of 22/11: the maps of 4s and of 2s, 20 seconds to choose the teams
-        assertEquals(Integer.valueOf(20), settings.teamRooms().get("bedwars-normal"));
+        // the owner's answers of 22/11: the maps of 4s and of 2s; 30 seconds to choose the teams (23/11, 20 before)
+        assertEquals(Integer.valueOf(30), settings.teamRooms().get("bedwars-normal"));
         assertEquals(Arrays.asList("bedwars-normal-4s", "bedwars-normal-2s"), ids(settings.privateRoutes().get("bedwars-normal")),
                 "a row of maps for each, the 4s first");
         GameMode fours = settings.catalog().get("bedwars-normal-4s");
@@ -772,7 +772,7 @@ class LobbySettingsTest {
 
         LobbySettings short_ = LobbySettings.load(yaml("parties-privees-equipes:\n  prive: {cartes: [duo]}\nmodes:\n"
                 + "  prive: {}\n  duo: {equipes: 2, joueurs-par-equipe: 2}\n"));
-        assertEquals(Integer.valueOf(20), short_.teamRooms().get("prive"), "20 seconds by default");
+        assertEquals(Integer.valueOf(30), short_.teamRooms().get("prive"), "30 seconds by default");
     }
 
     @Test

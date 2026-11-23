@@ -37,6 +37,13 @@ final class TeamRoom {
     private final List<UUID> players;
     private final Map<UUID, Integer> chosen = new LinkedHashMap<>();
 
+    /**
+     * The seconds left once every player has chosen a team, unless fewer are left already (the
+     * owner's ask of 23/11: « quand tout le monde a sélectionné sa team, ça passe à 15 secondes
+     * directement, à part si c'est déjà passé »).
+     */
+    static final int ALL_CHOSEN_SECONDS = 15;
+
     /** The players in the order of the party (its leader first), choosing among this many teams of this size. */
     TeamRoom(List<UUID> players, int teams, int size) {
         if (teams < 2 || size < 1) {
@@ -98,6 +105,16 @@ final class TeamRoom {
         chosen.remove(player);
         chosen.put(player, team);
         return Choice.CHOSEN;
+    }
+
+    /** True once every player of the room has chosen a team. */
+    boolean allChose() {
+        return chosen.size() == players.size();
+    }
+
+    /** The seconds left of a countdown at this many, now that every player has chosen: 15 at most. */
+    static int secondsOnceAllChose(int left) {
+        return Math.min(left, ALL_CHOSEN_SECONDS);
     }
 
     /** As many teams as the party needs at the size of the mode's, two at least. */

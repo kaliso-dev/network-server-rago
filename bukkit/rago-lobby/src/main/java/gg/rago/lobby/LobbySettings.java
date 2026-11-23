@@ -299,7 +299,7 @@ final class LobbySettings {
             ConfigurationSection room = section.getConfigurationSection(id);
             if (room == null) {
                 throw new IllegalArgumentException(where + ": cartes and compte-a-rebours, as {cartes: [a-4s, a-2s],"
-                        + " compte-a-rebours: 20}");
+                        + " compte-a-rebours: 30}");
             }
             List<GameMode> targets = new ArrayList<>();
             for (String target : room.getStringList("cartes")) {
@@ -319,7 +319,7 @@ final class LobbySettings {
             if (targets.isEmpty()) {
                 throw new IllegalArgumentException(where + ".cartes: a list of modes, as [bedwars-normal-4s, bedwars-normal-2s]");
             }
-            int seconds = room.getInt("compte-a-rebours", 20);
+            int seconds = room.getInt("compte-a-rebours", 30);
             if (seconds < 1 || seconds > 300) {
                 throw new IllegalArgumentException(where + ".compte-a-rebours: from 1 to 300 seconds");
             }
