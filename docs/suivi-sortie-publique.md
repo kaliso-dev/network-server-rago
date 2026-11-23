@@ -2257,7 +2257,7 @@ bot ne joue un coup sur un ennemi), à tester en jeu avec toi. La liste des arme
 
 ### Installation du 23/11 avant ce soir (dfae3b7)
 
-Ton « Fait tout » du 23/11 : tout installer avant ce soir. Fait le 23/11 vers 11h30, serveur
+Ton « Fait tout » du 23/11 : tout installer avant ce soir. Fait le 23/11 vers 11h20, serveur
 arrêté, sans le lancer : le kit de dfae3b7 (SHA-256 conforme), sauvegarde dans
 `sauvegarde-avant-maj-dfae3b7\plugins\` (5 jars et 3 configs) ; fusion à trois des trois
 config.yml sans conflit (lobby 39 ajoutées / 5 retirées, practice 0 / 0, bedwars 11 / 1, comme
