@@ -1030,6 +1030,30 @@ final class QueueController {
 
     private boolean start(MatchProposal match, boolean requeue, boolean privateGame, boolean practice,
             Map<String, Integer> leaderSettings) {
+        return start(match, requeue, privateGame, practice, leaderSettings, false);
+    }
+
+    /**
+     * A private game whose party chose its map, its settings and its teams in the waiting lobby of
+     * its host ({@link TeamRooms}, the owner's ask of 23/11), once {@link #mapReady}: the host takes
+     * the players from the waiting lobby to the map. False if it did not start.
+     */
+    boolean startFromWaitingLobby(MatchProposal match, Map<String, Integer> leaderSettings) {
+        forgetWaiting(match.players());
+        boolean started = start(match, false, true, false, leaderSettings, true);
+        onChange.run();
+        return started;
+    }
+
+    /** True if the host of this match can start it now (a copy of its map is free); asking may start the copy. */
+    boolean mapReady(MatchProposal match) {
+        MatchHost host = hosts.get(match.mode().id());
+        return host == null || ready(host, match);
+    }
+
+    /** As above; fromWaitingLobby: the players wait in the waiting lobby of their private game, not in the lobby. */
+    private boolean start(MatchProposal match, boolean requeue, boolean privateGame, boolean practice,
+            Map<String, Integer> leaderSettings, boolean fromWaitingLobby) {
         String modeId = match.mode().id();
         MatchHost host = hosts.get(modeId);
         List<Player> players = new ArrayList<>();
@@ -1037,8 +1061,9 @@ final class QueueController {
             Player player = Bukkit.getPlayer(id);
             // A player who left the lobby without leaving the queue (sent elsewhere by a command)
             // is not started: the others go back to the queue. From the queue, a player in a
-            // training is: the training lets them go.
-            if (player != null && (requeue ? available(player) : state.isInLobby(player))) {
+            // training is: the training lets them go. From the waiting lobby of a private game: in it.
+            if (player != null && (requeue ? available(player) : fromWaitingLobby ? state.isInGame(player)
+                    : state.isInLobby(player))) {
                 players.add(player);
             }
         }

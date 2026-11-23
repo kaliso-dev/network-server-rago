@@ -93,10 +93,22 @@ dans les files d'attente des modes de jeu.
   Un joueur qui quitte la file, la party, ou le serveur fait sortir toute la party de la file. Un
   chef qui part laisse la party au joueur suivant.
 - **Les Private games : Bedwars Normal** (`parties-privees-equipes:`, tes réponses du 22/11 ; il
-  remplace la Private game, RBW 1v1 à 4v4, et le Private top bridge). Dans RBW Modes, l'objet
-  Private games, le chef de party clique Bedwars Normal et choisit une map : une ligne pour les 4s
-  (les maps à 4 équipes, `bedwars-normal-4s`), une pour les 2s (les maps à 8 équipes,
-  `bedwars-normal-2s`), telles que RagoBedwars les donne. Chaque joueur de la party choisit
+  remplace la Private game, RBW 1v1 à 4v4, et le Private top bridge). Dans Bedwars Modes, l'objet
+  Private games, le chef de party clique Bedwars Normal : toute la party part aussitôt dans le
+  **lobby d'attente** (ta demande du 23/11 : « ça doit directement TP tous les joueurs au lobby
+  d'attente bedwars de base et c'est là-bas que le host doit faire les settings de la map et que
+  les joueurs puissent choisir leur équipe, PAS AVANT DANS LE PNJ » ; la map choisie là-bas aussi,
+  ton choix du 23/11), celui que donne RagoBedwars (`MatchHost.canGather` et `gather` : la salle
+  d'attente d'Archway FFA, dans une copie à la party, voir son README). Si elle n'est pas prête (la
+  copie se fait), la party l'attend au lobby quelques secondes. Là-bas, en mode aventure, le chef a
+  l'objet de la map (une carte vide, case 1) et celui des réglages (un comparateur, case 2), tout le
+  monde celui des équipes (une laine, case 5) ; le menu des maps s'ouvre tout seul pour le chef :
+  une ligne pour les 4s (les maps à 4 équipes, `bedwars-normal-4s`), une pour les 2s (les maps à 8
+  équipes, `bedwars-normal-2s`), telles que RagoBedwars les donne. Un clic droit sur l'objet de la
+  map le rouvre ; celui des équipes attend que la map soit choisie. Le chat du lobby d'attente est
+  celui de la party seule. `/spawn` ramène au lobby, et annule la partie pour toute la party, qui
+  revient au lobby. Sans lobby d'attente (`salle-attente-privee` vide, ou une map sans salle
+  d'attente), le chef choisit la map depuis le lobby, comme avant. Chaque joueur de la party choisit
   ensuite son équipe dans un menu (les couleurs de la map, `/pg team` le rouvre) pendant 30
   secondes (`compte-a-rebours`, ta demande du 23/11), ramenées à 15 dès que tout le monde a
   choisi (sauf s'il en reste déjà moins), puis la partie part seule, sans compter dans les stats : des
@@ -104,10 +116,13 @@ dans les files d'attente des modes de jeu.
   refuse un joueur, et aussi celle qui contiendrait toute la party (il faut deux équipes) ; celui
   qui n'a pas choisi va dans l'équipe la moins remplie, en ouvrant les équipes qu'il faut à la
   taille de la map (deux au moins : 5 joueurs sans choix sur une 2s font 2, 2 et 1 ; 6 sur une 4s
-  font 3 et 3). De 2 à 16 joueurs ; une party qui change, ou un joueur qui quitte le lobby, annule.
+  font 3 et 3). Le compte à rebours fini, la partie part sur la map choisie, depuis le lobby
+  d'attente (si sa copie se fait encore, la party l'attend là-bas). De 2 à 16 joueurs ; une party
+  qui change, ou un joueur qui quitte le lobby d'attente (ou le lobby), annule.
   La logique des équipes est dans `TeamRoom` (testée par `TeamRoomTest`), les menus dans
   `TeamRooms`. Le chef de party règle la partie (ta réponse 7) : le comparateur « Game settings »
-  de la dernière ligne du menu des maps, celui de son menu d'équipes, ou `/pg settings` ; un clic
+  de la dernière ligne du menu des maps, celui de son menu d'équipes, l'objet des réglages du lobby
+  d'attente, ou `/pg settings` ; un clic
   passe au choix suivant, un clic droit revient au précédent, et la party lit chaque changement
   pendant le choix des équipes. Un réglage d'objets à cocher (`PrivateSetting.toggles`, One Hit One
   Kill) ouvre au clic son propre menu : chaque objet avec son icône, un clic le met On ou Off, la

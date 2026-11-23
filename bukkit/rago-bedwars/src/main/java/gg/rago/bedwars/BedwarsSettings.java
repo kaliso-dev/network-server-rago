@@ -404,6 +404,8 @@ final class BedwarsSettings {
     private List<String> privateRuleModes = Collections.emptyList();
     /** ffa-privee-minutes: see {@link #privateFfaMinutes}. */
     private int privateFfaMinutes = 30;
+    /** salle-attente-privee: see {@link #privateWaitingMap}. */
+    private String privateWaitingMap = "";
     /** The kits of Attack and Defense to choose from, each side its own (attaque-defense:). */
     private final List<RoundKit> attackKits;
     private final List<RoundKit> defenseKits;
@@ -536,6 +538,7 @@ final class BedwarsSettings {
             throw new IllegalArgumentException("ffa-privee-minutes: from 1 to 120");
         }
         settings.privateFfaMinutes = ffaMinutes;
+        settings.privateWaitingMap = config.getString("salle-attente-privee", "").trim();
         return settings;
     }
 
@@ -943,6 +946,16 @@ final class BedwarsSettings {
      */
     int privateFfaMinutes() {
         return privateFfaMinutes;
+    }
+
+    /**
+     * The map whose waiting lobby (salle-attente: in its bedwars.yml) the party of a private game of
+     * Bedwars Normal goes to at once, a copy of its own, where its leader chooses the map and sets
+     * the game and everyone their team (the owner's ask of 23/11; salle-attente-privee); "" for none:
+     * the lobby's menus, as before.
+     */
+    String privateWaitingMap() {
+        return privateWaitingMap;
     }
 
     /** True if the games of this mode have an item shop on every island of the map, the empty ones' too. */

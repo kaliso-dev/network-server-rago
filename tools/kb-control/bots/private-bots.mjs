@@ -1,24 +1,33 @@
 // Private game test bots for RagoLobby and RagoBedwars (see tools/lobby-check/README.md,
 // run-arena-test.sh): Bedwars Normal, the private game whose players choose their teams (the
-// owner's answers of 22/11).
+// owner's answers of 22/11), in its waiting lobby (the owner's ask of 23/11: the party goes there
+// at once; there the leader chooses the map and sets the game, everyone chooses their team).
 //
-// Three bots make a party. The test server has no map of 4 or 8 teams, so the menu of Bedwars
-// Normal shows its two rows, 4s and 2s, with no map; and its 4s cannot be queued alone. The rest
-// is played through test-equipes, a mode that run-arena-test.sh adds to the lobby's config with the
-// same room (parties-privees-equipes) on Fast Bedwars 2v2, whose map here is the demo map (two
+// RagoSalleOp, an operator (ops.json of run-arena-test.sh), first makes the middle island of the
+// demo map its waiting lobby (/bw lobbyfight), the waiting lobby of the private games here
+// (salle-attente-privee: bw-demo in run-arena-test.sh; Archway FFA on the owner's server). Three
+// bots make a party. Bedwars Normal takes the three at once to that waiting lobby, in a copy of the
+// demo map of their own, in adventure mode: the leader with the items of the map (slot 0) and of the
+// settings (slot 1), everyone with the item of the teams (slot 4); the menu of the maps opens for the
+// leader: the test server has no map of 4 or 8 teams, so it shows its two rows, 4s and 2s, with no
+// map; the item of the map opens it again; the item of the teams says the map comes first; the
+// leader's /spawn cancels it, all three back in the lobby; and its 4s cannot be queued alone. The
+// rest is played through test-equipes, a mode that run-arena-test.sh adds to the lobby's config with
+// the same room (parties-privees-equipes) on Fast Bedwars 2v2, whose map here is the demo map (two
 // teams of two, red and blue), and the settings of the leader (reglages-prives, which the script
-// gives Fast Bedwars 2v2 too):
+// gives Fast Bedwars 2v2 too), the party in the waiting lobby again:
 //   0. the leader sets the game from the map menu: Speed II (three clicks, then a right-click back),
 //      Max Diamond, Max Emerald and Break the Map on; then those of Hypixel: Double Health, Low
 //      Gravity, Respawn Time 1 second, Event Times 2x (two clicks), Bed Instabreak, and One Hit One
 //      Kill, whose click opens its weapons, each on or off: the Wooden Sword on, the Bow on then off
 //      again; another player cannot (/pg settings);
-//   1. only the leader starts it; its menu shows a row "2v2" with bw-demo; a click starts the team
-//      choice for the whole party, the team menu opening for each with the red and the blue wool;
+//   1. only the leader starts it, the three in the waiting lobby; its menu shows a row "2v2" with
+//      bw-demo; a click starts the team choice for the whole party, the team menu opening for each
+//      with the red and the blue wool;
 //   2. the leader and the second bot click red; the third clicks red too: full; it closes its menu
 //      and /pg team opens it again, with the two of red written under it;
-//   3. the countdown (8 seconds here) ends: the game starts by itself with red the two who chose it
-//      and blue the third, who chose none (the emptiest team), in no stats;
+//   3. the countdown (8 seconds here) ends: the game starts by itself, from the waiting lobby, with
+//      red the two who chose it and blue the third, who chose none (the emptiest team), in no stats;
 //   4. the game is a Fast Bedwars 2v2 on bw-demo with those teams: the two red bots on the red
 //      island, the third on the blue one; with the settings: Speed II on the leader, Protection IV
 //      on its armour and Sharpness on its sword, the emerald generator at Tier III and no Emerald
@@ -45,6 +54,12 @@ const TEST_TIMEOUT_MS = 5 * 60 * 1000
 /** DemoMap: the spawns of the two islands. */
 const RED_SPAWN_X = -32.5
 const BLUE_SPAWN_X = 33.5
+/** The middle island of the demo map, floor at y 64: the waiting lobby of the private games here. */
+const WAITING_LOBBY = { x: 0.5, y: 65, z: 0.5 }
+/** TeamRooms: the items of the waiting lobby in the hotbar. */
+const MAP_ITEM_SLOT = 0
+const SETTINGS_ITEM_SLOT = 1
+const TEAM_ITEM_SLOT = 4
 /** TeamRooms.teamSlot: two teams, two slots apart in the middle row. */
 const RED_SLOT = 10
 const BLUE_SLOT = 12
@@ -129,7 +144,7 @@ function join (username) {
       bot.on('error', (error) => abort(new Error(`${username}: ${error.message}`)))
       bot.on('kicked', (reason) => abort(new Error(`${username} was kicked: ${JSON.stringify(reason)}`)))
       bot.on('end', (reason) => {
-        if (!finishing) abort(new Error(`${username} disconnected: ${reason}`))
+        if (!finishing && !bot.leaving) abort(new Error(`${username} disconnected: ${reason}`))
       })
       resolve(bot)
     })
@@ -169,6 +184,63 @@ async function expectInLobby (bot, what) {
     () => `${bot.username} in the lobby (${what}): mode ${bot.game.gameMode}, slot 0 ${hotbarItem(bot, 0)?.name}`)
 }
 
+/**
+ * In the waiting lobby of a private game: on the middle island of a copy of the demo map, in
+ * adventure mode, the item of the teams in slot 4; the leader with the items of the map (slot 0)
+ * and of the settings (slot 1), the others with nothing in slot 0.
+ */
+async function expectInWaitingLobby (bot, leads, what) {
+  const p = () => bot.entity.position
+  await waitFor(() => bot.game.gameMode === 'adventure' && hotbarItem(bot, TEAM_ITEM_SLOT)?.name === 'wool'
+    && Math.abs(p().x - WAITING_LOBBY.x) < 4 && Math.abs(p().z - WAITING_LOBBY.z) < 4 && Math.abs(p().y - WAITING_LOBBY.y) < 2,
+  15000, () => `${bot.username} in the waiting lobby (${what}): mode ${bot.game.gameMode} at ${where(bot)}, slot 4`
+    + ` ${hotbarItem(bot, TEAM_ITEM_SLOT)?.name}`)
+  if (!text(hotbarItem(bot, TEAM_ITEM_SLOT)).includes('Choose your team')) {
+    throw new Error(`${bot.username}: the item of the teams: ${text(hotbarItem(bot, TEAM_ITEM_SLOT))}`)
+  }
+  const map = hotbarItem(bot, MAP_ITEM_SLOT)
+  const settings = hotbarItem(bot, SETTINGS_ITEM_SLOT)
+  if (leads) {
+    if (!['map', 'empty_map'].includes(map?.name) || !text(map).includes('Choose the map')) {
+      throw new Error(`${bot.username}, the leader: the item of the map in slot 0: ${map?.name} ${text(map)}`)
+    }
+    if (settings?.name !== 'comparator' || !text(settings).includes('Game settings')) {
+      throw new Error(`${bot.username}, the leader: the item of the settings in slot 1: ${settings?.name} ${text(settings)}`)
+    }
+  } else if (map != null || settings != null) {
+    throw new Error(`${bot.username}: an item of the leader: ${map?.name} ${settings?.name}`)
+  }
+}
+
+/** A right-click with the item of this slot of the hotbar. */
+function useSlot (bot, slot) {
+  bot.setQuickBarSlot(slot)
+  bot.activateItem()
+  bot.deactivateItem()
+}
+
+/**
+ * RagoSalleOp, an operator (ops.json of run-arena-test.sh), makes the middle island of the demo map
+ * (its floor at y 64, 11 blocks square) the waiting lobby of the map with /bw lobbyfight, as the
+ * owner did on Archway FFA: the waiting lobby of the private games here (salle-attente-privee:
+ * bw-demo in run-arena-test.sh). It leaves the server after.
+ */
+async function waitingLobbyOnTheDemoMap () {
+  const op = await arrive('RagoSalleOp')
+  let from = mark(op)
+  op.chat('/bw edit bw-demo')
+  await chatLine(op, /You are on bw-demo\./, 20000, from)
+  op.chat(`/tp ${WAITING_LOBBY.x} ${WAITING_LOBBY.y} ${WAITING_LOBBY.z}`)
+  await waitFor(() => op.entity.position.distanceTo(WAITING_LOBBY) < 0.5 && op.entity.onGround, 10000,
+    () => `RagoSalleOp on the middle island of bw-demo (at ${where(op)})`)
+  from = mark(op)
+  op.chat('/bw lobbyfight')
+  await chatLine(op, /Waiting lobby of bw-demo: floor at y 64, .* \(121 blocks of floor\)\./, 5000, from)
+  op.leaving = true
+  op.quit()
+  log('waiting lobby: RagoSalleOp made the middle island of bw-demo its waiting lobby (121 blocks), and left')
+}
+
 /** A bot just arrived: the menu of the first arrival closed, in the lobby. */
 async function arrive (username) {
   const bot = await join(username)
@@ -198,14 +270,8 @@ async function party (leader, others) {
   log(`party: ${leader.username} with ${others.map((bot) => bot.username).join(' and ')}`)
 }
 
-/** Bedwars Normal itself: its rows of 4s and 2s, empty on this server; its 4s not a queue. */
-async function bedwarsNormal (leader, other) {
-  const fromOther = mark(other)
-  other.chat('/queue bedwars-normal')
-  await chatLine(other, /Only the party leader can start a private game\./, 5000, fromOther)
-  const count = leader.windows.length
-  leader.chat('/queue bedwars-normal')
-  const menu = await windowAfter(leader, count, 'Bedwars Normal: choose a map', 'the maps of Bedwars Normal')
+/** The menu of the maps of Bedwars Normal, open: its rows of 4s and 2s, empty on this server, and the settings. */
+async function emptyMapsOfBedwarsNormal (menu) {
   await waitFor(() => menu.slots[0] != null && menu.slots[9] != null, 5000, 'the two rows of the menu')
   const fours = text(menu.slots[0])
   const twos = text(menu.slots[9])
@@ -222,12 +288,57 @@ async function bedwarsNormal (leader, other) {
   if (menu.slots[22]?.name !== 'comparator' || !text(menu.slots[22]).includes('Game settings')) {
     throw new Error(`the settings of the game in the last row of Bedwars Normal: ${menu.slots[22]?.name} ${text(menu.slots[22])}`)
   }
+}
+
+/**
+ * Bedwars Normal itself: only the leader starts it; the party at once in its waiting lobby, where
+ * the menu of its maps opens for the leader (its rows of 4s and 2s, empty on this server), again
+ * with the item of the map; the item of the teams waits for the map; the leader's /spawn cancels it,
+ * the three back in the lobby; its 4s is not a queue.
+ */
+async function bedwarsNormal (leader, second, third) {
+  const bots = [leader, second, third]
+  const fromSecond = mark(second)
+  second.chat('/queue bedwars-normal')
+  await chatLine(second, /Only the party leader can start a private game\./, 5000, fromSecond)
+  const marks = bots.map(mark)
+  const count = leader.windows.length
+  leader.chat('/queue bedwars-normal')
+  const arrived = new RegExp(`Private game of Bedwars Normal in its waiting lobby: ${leader.username} chooses the map and sets`
+    + ' the game, then everyone chooses their team\\. /spawn takes you back to the lobby\\.')
+  for (const [i, bot] of bots.entries()) {
+    await chatLine(bot, arrived, 40000, marks[i])
+    await expectInWaitingLobby(bot, i === 0, 'Bedwars Normal')
+  }
+  log(`Bedwars Normal: only the leader starts it; the three at once in its waiting lobby, on the middle island of a copy of`
+    + ` bw-demo (${where(leader)}), in adventure mode; the leader with the items of the map and the settings, all with the`
+    + ' item of the teams')
+  const menu = await windowAfter(leader, count, 'Bedwars Normal: choose a map', 'the maps of Bedwars Normal, in the waiting lobby')
+  await emptyMapsOfBedwarsNormal(menu)
   leader.closeWindow(menu)
+  const again = leader.windows.length
+  useSlot(leader, MAP_ITEM_SLOT)
+  const reopened = await windowAfter(leader, again, 'Bedwars Normal: choose a map', 'the maps again, from the item of the map')
+  await emptyMapsOfBedwarsNormal(reopened)
+  leader.closeWindow(reopened)
+  const fromItem = mark(second)
+  useSlot(second, TEAM_ITEM_SLOT)
+  await chatLine(second, new RegExp(`${leader.username} has not chosen the map yet: the teams are its colours\\.`), 5000, fromItem)
+  log('Bedwars Normal: the menu of its maps opened for the leader in the waiting lobby, the row of the 4s, then the row of the'
+    + ' 2s, no map of 4 or 8 teams on this server, then the settings of the game; the item of the map opened it again; the'
+    + ' item of the teams waits for the map')
+  const left = bots.map(mark)
+  leader.chat('/spawn')
+  const cancelled = new RegExp(`${leader.username} left the waiting lobby: the private game of Bedwars Normal is cancelled\\.`)
+  for (const [i, bot] of bots.entries()) {
+    await chatLine(bot, cancelled, 5000, left[i])
+    await expectInLobby(bot, 'after the leader left the waiting lobby')
+  }
+  log(`Bedwars Normal: ${leader.username} left the waiting lobby with /spawn: cancelled, the three back in the lobby`)
   const from = mark(leader)
   leader.chat('/queue bedwars-normal-4s')
   await chatLine(leader, /Bedwars Normal 4s is played with your party: its leader clicks Bedwars Normal in the Private games\./, 5000, from)
-  log('Bedwars Normal: only the leader starts it; its menu has the row of the 4s, then the row of the 2s, no map of 4 or 8'
-    + ' teams on this server, then the settings of the game; its 4s is no queue')
+  log('Bedwars Normal: its 4s is no queue')
 }
 
 /** The team menu that just opened for this bot, with the red wool and the blue wool. */
@@ -335,6 +446,13 @@ async function chooseTeams (leader, second, third) {
   const marks = bots.map(mark)
   const counts = bots.map((bot) => bot.windows.length)
   leader.chat('/queue test-equipes')
+  const arrived = new RegExp(`Private game of Test teams in its waiting lobby: ${leader.username} chooses the map and sets`
+    + ' the game, then everyone chooses their team\\.')
+  for (const [i, bot] of bots.entries()) {
+    await chatLine(bot, arrived, 40000, marks[i])
+    await expectInWaitingLobby(bot, i === 0, 'Test teams')
+  }
+  log('test-equipes: the three in its waiting lobby, the menu of its maps open for the leader')
   const maps = await windowAfter(leader, counts[0], 'Test teams: choose a map', 'the maps of test-equipes')
   await waitFor(() => maps.slots[1]?.name === 'map' || maps.slots[1]?.name === 'empty_map', 5000,
     () => `the demo map in the menu: ${maps.slots[1]?.name}`)
@@ -379,13 +497,14 @@ async function chooseTeams (leader, second, third) {
   // 3. the countdown, then the game with the teams chosen
   for (const [i, bot] of bots.entries()) {
     await chatLine(bot, /The game starts in 3 seconds\.\.\./, (COUNTDOWN + 2) * 1000, marks[i])
-    await chatLine(bot, /Private game of your party in Test teams 2v2 on bw-demo\. It counts in no stats\./, 8000, marks[i])
+    // from the waiting lobby: a copy of the map may be made first
+    await chatLine(bot, /Private game of your party in Test teams 2v2 on bw-demo\. It counts in no stats\./, 40000, marks[i])
     await chatLine(bot, new RegExp(`Red: ${leader.username}, ${second.username}$`), 2000, marks[i])
     await chatLine(bot, new RegExp(`Blue: ${third.username}$`), 2000, marks[i])
     await chatLine(bot, new RegExp(`Settings: ${CHOSEN.join(', ').replace(/\./g, '\\.')}$`), 2000, marks[i])
   }
-  log(`countdown: the game started by itself, red ${leader.username} and ${second.username}, blue ${third.username}`
-    + ' (who chose none, in the emptiest team), in no stats')
+  log(`countdown: the game started by itself from the waiting lobby, red ${leader.username} and ${second.username}, blue`
+    + ` ${third.username} (who chose none, in the emptiest team), in no stats`)
   return marks
 }
 
@@ -550,17 +669,19 @@ async function ffaArchway (leader, second, third) {
 }
 
 async function main () {
+  await waitingLobbyOnTheDemoMap()
   const leader = await arrive('RagoPriveUn')
   const second = await arrive('RagoPriveDeux')
   const third = await arrive('RagoPriveTrois')
   await party(leader, [second, third])
-  await bedwarsNormal(leader, second)
+  await bedwarsNormal(leader, second, third)
   const marks = await chooseTeams(leader, second, third)
   await play(leader, second, third, marks)
   await ffaArchway(leader, second, third)
 
   finishing = true
-  log('PASSED: Bedwars Normal of the Private games, its rows of 4s and 2s; the settings of the leader (Speed, Max Diamond,'
+  log('PASSED: Bedwars Normal of the Private games in its waiting lobby, its rows of 4s and 2s, its items, cancelled by the'
+    + ' leader\'s /spawn; the settings of the leader (Speed, Max Diamond,'
     + ' Max Emerald, Break the Map, Health Buff, Low Gravity, Respawn Time, Event Times; Bed Instabreak and One Hit One Kill'
     + ' in the menu); the team choice of its party: the map, the team menu, a team full, /pg team, the'
     + ' countdown, who chose none in the emptiest team, the game with the teams chosen and the settings; FFA Archway, the'

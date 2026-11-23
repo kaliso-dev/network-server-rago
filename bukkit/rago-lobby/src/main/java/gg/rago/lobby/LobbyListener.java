@@ -147,6 +147,14 @@ final class LobbyListener implements Listener {
     @EventHandler(priority = EventPriority.LOW)
     public void onInteract(PlayerInteractEvent event) {
         Player player = event.getPlayer();
+        if ((event.getAction() == Action.RIGHT_CLICK_AIR || event.getAction() == Action.RIGHT_CLICK_BLOCK)
+                && lobby.queues().rooms().useItem(player, event.getItem())) {
+            // the items of the waiting lobby of a private game: the map, the settings, the teams
+            event.setUseItemInHand(Event.Result.DENY);
+            event.setUseInteractedBlock(Event.Result.DENY);
+            event.setCancelled(true);
+            return;
+        }
         if (!state.isProtected(player)) {
             return;
         }

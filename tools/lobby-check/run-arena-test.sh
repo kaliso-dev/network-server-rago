@@ -23,8 +23,11 @@
 # other map the plugin makes: the start of Bed Wars in the castles, then one team leaves. Last, two
 # bots play Fast Bedwars 1v1 (tools/kb-control/bots/fast-bots.mjs) on the demo map: its welcome, its
 # events (no Diamond II), no diamond generator nor upgrades NPC, its fast forge, its smaller shop.
-# Then three bots in a party play the private games (tools/kb-control/bots/private-bots.mjs): the
-# menu of Bedwars Normal (its rows of 4s and 2s, with no map here), then test-equipes, a hidden mode
+# Then three bots in a party play the private games (tools/kb-control/bots/private-bots.mjs), whose
+# waiting lobby (salle-attente-privee, the demo map here) RagoSalleOp sets first on the middle island
+# of the demo map (/bw lobbyfight): Bedwars Normal takes the party to it at once, where the leader
+# has the menu of its maps (its rows of 4s and 2s, with no map here) and the items of the waiting
+# lobby; the leader's /spawn cancels it for all; then test-equipes, a hidden mode
 # this script adds with the same team choice on Fast Bedwars 2v2: the settings of the leader (Speed
 # II, Max Diamond, Max Emerald, Break the Map, Double Health, Low Gravity, Respawn Time 1 second,
 # Event Times 2x, Bed Instabreak), the map, the team of each (one full), /pg team, the countdown,
@@ -139,7 +142,8 @@ YAML
 # this server is in offline mode, where a name alone is not enough. Its UUID is the one of an
 # offline-mode player: the version 3 UUID of "OfflinePlayer:qRago". qRago and RagoOp are operators
 # (rago.admin): /owner is for qRago only, even among the operators. RagoMapOp too, who sets the
-# waiting lobby of the demo map for the Lobby Fight of RagoBot (/bw lobbyfight), and RagoArbitre,
+# waiting lobby of the demo map for the Lobby Fight of RagoBot (/bw lobbyfight), RagoSalleOp, who
+# sets it first for the waiting lobby of the private games (private-bots.mjs), and RagoArbitre,
 # who moves the players of the Block placement of RagoBot (/tp): each joins once, as a new player
 # (the Owner tool bots wait for the menu of the first arrival of RagoOp).
 offline_uuid() {
@@ -163,8 +167,9 @@ awk '{ print }
 grep -q '^  test-equipes: {nom: "&6Test teams", categorie: ranked, cache: true}$' "$LOBBY_CONFIG" \
   || fail "could not add the mode test-equipes"
 grep -q '^    cartes: \[fast-bedwars-2v2\]$' "$LOBBY_CONFIG" || fail "could not add the team choice of test-equipes"
-printf '[{"uuid":"%s","name":"qRago","level":4},{"uuid":"%s","name":"RagoOp","level":4},{"uuid":"%s","name":"RagoMapOp","level":4},{"uuid":"%s","name":"RagoArbitre","level":4}]\n' \
-  "$QRAGO_UUID" "$(offline_uuid RagoOp)" "$(offline_uuid RagoMapOp)" "$(offline_uuid RagoArbitre)" >"$SERVER_DIR/ops.json"
+printf '[{"uuid":"%s","name":"qRago","level":4},{"uuid":"%s","name":"RagoOp","level":4},{"uuid":"%s","name":"RagoMapOp","level":4},{"uuid":"%s","name":"RagoArbitre","level":4},{"uuid":"%s","name":"RagoSalleOp","level":4}]\n' \
+  "$QRAGO_UUID" "$(offline_uuid RagoOp)" "$(offline_uuid RagoMapOp)" "$(offline_uuid RagoArbitre)" "$(offline_uuid RagoSalleOp)" \
+  >"$SERVER_DIR/ops.json"
 # The bundled config.yml of RagoPractice, with the block modes ending at once: Block placement
 # first to 10 (a fall into the void gives 10), Block edit first to 2; and the Boxing of RagoBot
 # first to 10 hits.
@@ -185,16 +190,21 @@ grep -q '^quetes:$' "$SERVER_DIR/plugins/RagoLobby/skins.yml" || fail "could not
 # The bundled config.yml of RagoBedwars, with an ingot a second on each iron node, whatever the
 # bundled speed (the fireball, 40 iron, comes in a few seconds); the settings of the party
 # leader (reglages-prives) on Fast Bedwars 2v2 too, the game of test-equipes for the private game
-# bots; and FFA Archway, the FFA of a party, ending after 1 minute instead of 30 (ffa-privee-minutes).
+# bots; FFA Archway, the FFA of a party, ending after 1 minute instead of 30 (ffa-privee-minutes);
+# and the waiting lobby of the private games on the demo map (salle-attente-privee), the server
+# having no Archway FFA.
 mkdir -p "$SERVER_DIR/plugins/RagoBedwars"
 sed -e 's/^  fer-secondes-par-noeud: [0-9.]*$/  fer-secondes-par-noeud: 1/' \
   -e 's/^reglages-prives: \[bedwars-normal-4s, bedwars-normal-2s\]$/reglages-prives: [bedwars-normal-4s, bedwars-normal-2s, fast-bedwars-2v2]/' \
   -e 's/^ffa-privee-minutes: 30$/ffa-privee-minutes: 1/' \
+  -e 's/^salle-attente-privee: ArchwayFFA$/salle-attente-privee: bw-demo/' \
   "$ROOT/bukkit/rago-bedwars/src/main/resources/config.yml" >"$SERVER_DIR/plugins/RagoBedwars/config.yml"
 grep -q '^  fer-secondes-par-noeud: 1$' "$SERVER_DIR/plugins/RagoBedwars/config.yml" || fail "could not speed up the iron"
 grep -q '^reglages-prives: \[bedwars-normal-4s, bedwars-normal-2s, fast-bedwars-2v2\]$' "$SERVER_DIR/plugins/RagoBedwars/config.yml" \
   || fail "could not give Fast Bedwars 2v2 the settings of the party leader"
 grep -q '^ffa-privee-minutes: 1$' "$SERVER_DIR/plugins/RagoBedwars/config.yml" || fail "could not end FFA Archway after 1 minute"
+grep -q '^salle-attente-privee: bw-demo$' "$SERVER_DIR/plugins/RagoBedwars/config.yml" \
+  || fail "could not put the waiting lobby of the private games on the demo map"
 # Around the spawn of the new lobby world: the NPC of the Duels category (on its point of the
 # bundled config, duels), a stats NPC (profil), a wall of leaderboards (leaderboards), the main
 # leaderboard (top, within click range of the spawn) and the kills leaderboard (joueurs).
@@ -305,8 +315,9 @@ KB_HOST=127.0.0.1 KB_PORT=$PORT node "$ROOT/tools/kb-control/bots/ctf-bots.mjs" 
 # The same server for Fast Bedwars: two bots, Fast Bedwars 1v1 (RagoBedwars, on its demo map).
 fast_status=0
 KB_HOST=127.0.0.1 KB_PORT=$PORT node "$ROOT/tools/kb-control/bots/fast-bots.mjs" || fast_status=$?
-# The same server for the private games: three bots in a party, the menu of Bedwars Normal, then
-# test-equipes: the map, the team of each, the countdown, a Fast Bedwars 2v2 with those teams; then
+# The same server for the private games: RagoSalleOp sets the waiting lobby of the demo map; three
+# bots in a party, Bedwars Normal in its waiting lobby, then test-equipes there: the map, the team
+# of each, the countdown, a Fast Bedwars 2v2 with those teams; then
 # FFA Archway, the FFA of the party, until its end (1 minute here) and its kills leaderboard.
 private_status=0
 KB_HOST=127.0.0.1 KB_PORT=$PORT node "$ROOT/tools/kb-control/bots/private-bots.mjs" || private_status=$?
