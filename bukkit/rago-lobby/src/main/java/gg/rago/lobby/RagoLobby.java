@@ -63,6 +63,13 @@ public final class RagoLobby extends JavaPlugin implements LobbyService {
     private LobbyScoreboard scoreboard;
     /** Writes files (spawn.yml, points.yml) away from the main thread, one at a time. */
     private ExecutorService writer;
+    /**
+     * The reset of every player's stats asked by the owner on 23/11/2026 (the XP, the levels, the
+     * wins, the kills, the ELO; not the Rago Points, the ranks, the cosmetics, the friends, the
+     * settings). Done once: its name is kept in plugins/RagoLobby/stats-remises-a-zero.txt. No other
+     * reset of the stats, the records or the leaderboards until the release.
+     */
+    static final String STATS_RESET = "stats-2026-11";
     private LobbyPoints points;
     private LobbyNpcs npcs;
     private DailyChest daily;
@@ -291,6 +298,9 @@ public final class RagoLobby extends JavaPlugin implements LobbyService {
         firstJoin = new FirstJoinMenu(this, settings, queues, menu);
         // once every file is read: the week may have turned while the server was off
         stats.load(this::checkWeek);
+        // then, once ever: every player's stats start again from nothing (the owner, 23/11/2026),
+        // a copy of them kept
+        stats.resetStatsOnce(STATS_RESET);
         fakes = new FakeEntities(this, world);
         fakes.start();
         getServer().getPluginManager().registerEvents(fakes, this);

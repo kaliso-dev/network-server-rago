@@ -256,6 +256,23 @@ final class PlayerStats {
         return weekXp;
     }
 
+    /**
+     * The stats back to nothing: the Network XP (so the level), of all time, of the day and of the
+     * week, and every mode (wins, kills, ELO, streaks, records of the day and of the week). The rest
+     * of the profile stays: the Rago Points, the ranks, the cosmetics, the friends, the settings,
+     * the quests, the seasons that ended. True if there was something to reset.
+     */
+    boolean resetStats() {
+        boolean any = xp != 0 || dayXp != 0 || weekXp != 0 || !modes.isEmpty();
+        xp = 0;
+        xpDay = "";
+        dayXp = 0;
+        xpWeek = "";
+        weekXp = 0;
+        modes.clear();
+        return any;
+    }
+
     /** From the file: the XP earned on this day and in this week. */
     void setPeriodXp(String day, int onDay, String week, int inWeek) {
         xpDay = day == null ? "" : day;

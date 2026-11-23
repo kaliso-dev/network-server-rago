@@ -263,6 +263,64 @@ final class StatsService {
                 + " players; the stats before are in " + backup);
     }
 
+    /**
+     * Once ever for this name (kept in plugins/RagoLobby/{@value #RESETS_FILE}): every player's
+     * stats back to nothing ({@link StatsBook#resetStats}: the XP and the level, the wins, the
+     * kills, the ELO, the streaks, and those of the teams), after a copy of the stats folder in
+     * plugins/RagoLobby/{@value #BACKUP_PREFIX}name/. Nothing is reset if the copy cannot be made
+     * (the next start tries again); a copy already there stays, never written over. The rest of
+     * the profile stays (Rago Points, ranks, cosmetics, friends, settings). Waits for the files to
+     * be read. Main thread.
+     */
+    void resetStatsOnce(String name) {
+        if (!filesRead) {
+            afterLoad.add(() -> resetStatsOnce(name));
+            return;
+        }
+        if (resetsDone.contains("*") || resetsDone.contains(name)) {
+            return;
+        }
+        final File backup = new File(plugin.getDataFolder(), BACKUP_PREFIX + name);
+        // the copy first, on the writer thread after the files written so far; the reset after it
+        io.execute(() -> {
+            boolean copied = true;
+            if (!backup.exists()) {
+                try {
+                    copyFolder(folder.toPath(), backup.toPath());
+                } catch (IOException e) {
+                    plugin.getLogger().log(Level.SEVERE, "Cannot copy the stats in " + backup + ": they are not reset ("
+                            + name + ")", e);
+                    copied = false;
+                }
+            }
+            if (copied && plugin.isEnabled()) {
+                Bukkit.getScheduler().runTask(plugin, () -> resetStatsNow(name, backup));
+            }
+        });
+    }
+
+    /** The reset of {@link #resetStatsOnce}, the copy made. Main thread. */
+    private void resetStatsNow(String name, File backup) {
+        if (!resetsDone.add(name)) {
+            return;
+        }
+        Set<String> teamModes = book.teamModes();
+        List<PlayerStats> changed = book.resetStats();
+        for (PlayerStats stats : changed) {
+            save(stats);
+            if (Bukkit.getPlayer(stats.id()) != null) {
+                xpListener.xpChanged(stats.id());
+            }
+        }
+        for (String mode : teamModes) {
+            writer.write(new File(new File(folder, StatsFiles.TEAMS_FOLDER), mode + ".yml"),
+                    StatsFiles.teamsToYaml(mode, Collections.<TeamStreak>emptyList()));
+        }
+        writer.write(new File(plugin.getDataFolder(), RESETS_FILE), String.join("\n", resetsDone) + "\n");
+        plugin.getLogger().info("Stats of " + changed.size() + " players and the team streaks of " + teamModes.size()
+                + " modes back to 0 (" + name + "); the stats before are in " + backup);
+    }
+
     /** Copies a folder and everything in it, its files kept as they are. Writer thread. */
     private static void copyFolder(java.nio.file.Path from, java.nio.file.Path to) throws IOException {
         if (!Files.isDirectory(from)) {

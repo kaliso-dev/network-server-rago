@@ -56,6 +56,27 @@ class RecordsResetTest {
                 .contains("block-in-2026-11"));
     }
 
+    /** The owner's reset of every player's stats (23/11/2026): every board, after a copy, once. */
+    @Test
+    void theResetOfTheStatsEmptiesEveryBoardOnce() throws Exception {
+        Records before = records();
+        before.book().load("block-in.wood", ONE, "One", 9100);
+        before.book().load("bridge-chrono.ninja", TWO, "Two", 12000);
+        before.save();
+
+        Records records = records();
+        assertEquals(2, records.resetOnce("stats-2026-11", ""));
+        assertNull(records.book().best("block-in.wood", ONE));
+        assertNull(records.book().best("bridge-chrono.ninja", TWO));
+        assertNull(records().book().best("bridge-chrono.ninja", TWO), "written at once");
+        Records backup = new Records(LOG, new File(folder, "records-sauvegarde-stats-2026-11.yml"));
+        backup.load();
+        assertEquals(12000L, backup.book().best("bridge-chrono.ninja", TWO), "the copy of before");
+        records().submit("bridge-chrono.ninja", ONE, "One", 15000);
+        assertEquals(-1, records().resetOnce("stats-2026-11", ""), "once");
+        assertEquals(15000L, records().book().best("bridge-chrono.ninja", ONE), "the times made after stay");
+    }
+
     @Test
     void theTimesMadeAfterTheResetStayAtTheNextStarts() throws Exception {
         Records first = records();

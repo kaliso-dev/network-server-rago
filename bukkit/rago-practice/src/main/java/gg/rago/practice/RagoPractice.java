@@ -32,6 +32,9 @@ import org.bukkit.plugin.java.JavaPlugin;
  */
 public final class RagoPractice extends JavaPlugin {
 
+    /** The owner's reset of every player's stats, 23/11/2026: its name, as in RagoLobby. */
+    static final String STATS_RESET = "stats-2026-11";
+
     /** Height of the arena platforms. */
     static final int ARENA_Y = VoidGenerator.PLATFORM_Y;
     /** The z of the first row of zones of the practice modes (the sumo plays on z = 0). */
@@ -130,10 +133,17 @@ public final class RagoPractice extends JavaPlugin {
         // Block in: the enemy breaks the block-in for real now (see BlockInTraining); the times of
         // before, against the enemy of before, start again from nothing (a copy is kept)
         records.resetOnce("block-in-2026-11", "block-in.");
+        // The owner's reset of every player's stats (23/11/2026, RagoLobby does the rest): every
+        // record and top score starts again, and so does the challenge of the day (copies kept).
+        // No other reset of the records until the release.
+        File challengeFile = new File(getDataFolder(), "defi.yml");
+        if (records.resetOnce(STATS_RESET, "") >= 0) {
+            setAside(challengeFile, new File(getDataFolder(), "defi-sauvegarde-" + STATS_RESET + ".yml"));
+        }
         RecordCatalog.define(records.book());
         prefs = new TrainingPrefs(this, new File(getDataFolder(), "reglages.yml"));
         prefs.load();
-        challenges = new Challenges(this, challengeSettings(config), new File(getDataFolder(), "defi.yml"));
+        challenges = new Challenges(this, challengeSettings(config), challengeFile);
 
         spectators = new Spectators(this);
         getServer().getPluginManager().registerEvents(spectators, this);
@@ -1013,6 +1023,19 @@ public final class RagoPractice extends JavaPlugin {
     }
 
     /** The host of the mode, or null when the lobby does not have the mode. */
+    /** A file set aside under this name (a reset), unless a copy is there already: kept as it was. */
+    private void setAside(File file, File copy) {
+        if (!file.isFile() || copy.exists()) {
+            return;
+        }
+        try {
+            java.nio.file.Files.move(file.toPath(), copy.toPath());
+            getLogger().info(file.getName() + " starts again; the one before is " + copy.getName());
+        } catch (java.io.IOException e) {
+            getLogger().log(Level.WARNING, "Cannot set " + file + " aside: it stays", e);
+        }
+    }
+
     private PracticeHost register(String modeId, PracticeHost.Factory factory, int slots, int spacing, boolean open) {
         int row = FIRST_ROW_Z + ROW_SPACING * hosted.size();
         PracticeHost host = new PracticeHost(this, games, modeId, factory, new ArenaGrid(open ? 1 : slots, spacing), row, open);

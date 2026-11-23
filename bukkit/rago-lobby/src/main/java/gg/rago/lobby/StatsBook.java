@@ -421,6 +421,27 @@ final class StatsBook {
         return changed;
     }
 
+    /**
+     * Every player's stats back to nothing ({@link PlayerStats#resetStats}: the XP, the level, every
+     * mode) and the streaks of every team. Returns the stats that changed.
+     */
+    List<PlayerStats> resetStats() {
+        List<PlayerStats> changed = new ArrayList<>();
+        for (PlayerStats stats : players.values()) {
+            if (stats.resetStats()) {
+                changed.add(stats);
+            }
+        }
+        teams.clear();
+        forgetRankings();
+        return changed;
+    }
+
+    /** The modes in which a team has a streak (a file of stats/equipes each). */
+    Set<String> teamModes() {
+        return new HashSet<>(teams.keySet());
+    }
+
     /** A Bed Wars final kill of this player in this mode: counted; their stats, changed. */
     PlayerStats finalKill(String modeId, UUID killer, Names names) {
         return finalKill(modeId, killer, names, System.currentTimeMillis());

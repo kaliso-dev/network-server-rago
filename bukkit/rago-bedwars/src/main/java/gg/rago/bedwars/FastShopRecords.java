@@ -49,6 +49,30 @@ final class FastShopRecords {
         this.logger = logger;
     }
 
+    /**
+     * Once for this name (the owner's reset of every player's stats): the file set aside as
+     * fastshop-sauvegarde-&lt;name&gt;.yml, kept as it was, and the records start again. That copy
+     * marks the reset as done (an empty one when there were no records yet). Before {@link #load}.
+     */
+    void resetOnce(String name) {
+        File copy = new File(file.getAbsoluteFile().getParentFile(), "fastshop-sauvegarde-" + name + ".yml");
+        if (copy.exists()) {
+            return;
+        }
+        try {
+            java.nio.file.Files.createDirectories(copy.getParentFile().toPath());
+            if (file.isFile()) {
+                java.nio.file.Files.move(file.toPath(), copy.toPath());
+                logger.info("Fast Shop records reset (" + name + "); the records before are in " + copy.getName());
+            } else {
+                java.nio.file.Files.write(copy.toPath(),
+                        "# No Fast Shop records before the reset.\n".getBytes(java.nio.charset.StandardCharsets.UTF_8));
+            }
+        } catch (IOException e) {
+            logger.log(Level.WARNING, "Cannot set " + file + " aside: the Fast Shop records are not reset (" + name + ")", e);
+        }
+    }
+
     /** Reads the file, at the start of the plugin. Nothing if there is none yet. */
     void load() {
         if (!file.isFile()) {

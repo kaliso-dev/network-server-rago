@@ -917,6 +917,19 @@ des kills et des morts de ses modes (`resetKillsOnce`), quand la façon de les c
 dossier `stats/` est d'abord copié dans `stats-sauvegarde-<nom>/`, et le nom est noté dans
 `stats-remises-a-zero.txt` pour ne jamais la refaire. Sur le réseau, elles passeront dans la base de données.
 
+Remise à zéro des stats du 23/11/2026 (`stats-2026-11`, demandée par le propriétaire : « les stats
+seulement ») : au premier démarrage avec cette version, une fois les fichiers lus, le dossier
+`stats/` est copié dans `stats-sauvegarde-stats-2026-11/` ; si la copie échoue, rien n'est remis à
+zéro (le démarrage suivant réessaie). Puis l'XP (donc le niveau), du jour, de la semaine et de
+toujours, et tous les modes de chaque joueur (victoires, kills, morts, ELO, séries, meilleurs scores)
+repartent de rien, ainsi que les séries des équipes (`stats/equipes/`). Restent : les Rago Points,
+les rangs, les cosmétiques, les amis, les réglages, les quêtes, les récompenses de niveau déjà
+données, les saisons finies. Les titres suivent les victoires : ils reviennent avec elles. RagoPractice
+vide en même temps tous ses records et top scores (`records-sauvegarde-stats-2026-11.yml`) et le défi
+du jour (`defi-sauvegarde-stats-2026-11.yml`), RagoBedwars ceux du Fast Shop
+(`fastshop-sauvegarde-stats-2026-11.yml`). Aucune autre remise à zéro des stats, des records ni des
+classements jusqu'à la sortie publique.
+
 ## Pour les plugins de jeu
 
 Un plugin de jeu dépend de RagoLobby (`depend: [RagoLobby]` dans son `plugin.yml`, et

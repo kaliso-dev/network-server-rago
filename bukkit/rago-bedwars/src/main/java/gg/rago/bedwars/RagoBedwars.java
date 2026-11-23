@@ -29,6 +29,9 @@ import org.bukkit.plugin.java.JavaPlugin;
  */
 public final class RagoBedwars extends JavaPlugin {
 
+    /** The owner's reset of every player's stats, 23/11/2026: its name, as in RagoLobby. */
+    static final String STATS_RESET = "stats-2026-11";
+
     /** How often the items of the players in a game are made unbreakable, the new ones (see Unbreakable). */
     static final long UNBREAKABLE_TICKS = 5L;
 
@@ -102,6 +105,8 @@ public final class RagoBedwars extends JavaPlugin {
         File container = getServer().getWorldContainer();
         maps = new MapStore(container, io, getLogger());
         fastShopRecords = new FastShopRecords(new File(getDataFolder(), "fastshop.yml"), io, getLogger());
+        // the owner's reset of every player's stats (23/11/2026, RagoLobby does the rest), once
+        fastShopRecords.resetOnce(STATS_RESET);
         fastShopRecords.load();
         instances = new Instances(this, container, io, settings.maxGames());
         instances.deleteLeftovers();

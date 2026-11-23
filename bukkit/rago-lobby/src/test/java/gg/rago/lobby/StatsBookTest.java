@@ -570,6 +570,38 @@ class StatsBookTest {
         assertTrue(book.resetKills(Arrays.asList("bedwars-solo")).isEmpty(), "nothing left to reset");
     }
 
+    /** The owner's reset of 23/11/2026: the stats start again from nothing, the rest of the profile stays. */
+    @Test
+    void resetStatsEmptiesTheStatsAndKeepsTheProfile() {
+        StatsBook book = new StatsBook(1000, NetworkLevel.DEFAULT);
+        win(book, SUMO, ALICE, BOB, SUNDAY);
+        win(book, RANKED, ALICE, BOB, SUNDAY);
+        book.kill("sumo", ALICE, BOB, NAMES, SUNDAY);
+        duo(book, ALICE, BOB, CARL, DAVE, SUNDAY);
+        PlayerStats alice = book.get(ALICE);
+        alice.addPoints(1234);
+        alice.setRank("admin");
+        alice.cosmetics().add("trail-flames");
+        alice.friends().add(BOB);
+        assertTrue(alice.xp() > 0);
+        assertFalse(book.teams("block-fight-2v2").isEmpty());
+        assertEquals(java.util.Collections.singleton("block-fight-2v2"), book.teamModes());
+        assertEquals(4, book.resetStats().size(), "Alice, Bob, Carl and Dave");
+        assertEquals(0, alice.xp(), "the XP, so the level");
+        assertEquals(0, alice.xp(StatsPeriod.DAY, StatsPeriod.dayKey(SUNDAY), StatsPeriod.weekKey(SUNDAY)));
+        assertEquals(0, alice.xp(StatsPeriod.WEEK, StatsPeriod.dayKey(SUNDAY), StatsPeriod.weekKey(SUNDAY)));
+        assertTrue(alice.modes().isEmpty(), "the wins, the kills, the ELO of every mode");
+        assertEquals(1000, book.elo(ALICE, "ranked-1v1"), "the ELO of a new player");
+        assertTrue(book.teams("block-fight-2v2").isEmpty(), "the streaks of the teams");
+        assertTrue(book.teamModes().isEmpty());
+        assertEquals(0, book.ranking(BoardStat.WINS, StatsPeriod.ALL, null, SUNDAY).rows().size(), "the leaderboards");
+        assertEquals(1234, alice.points(), "the Rago Points stay");
+        assertEquals("admin", alice.rank());
+        assertTrue(alice.cosmetics().contains("trail-flames"));
+        assertTrue(alice.friends().contains(BOB));
+        assertTrue(book.resetStats().isEmpty(), "nothing left to reset");
+    }
+
     /** RagoBot (here Carl): its games, kills and deaths count for the players against it, never for itself. */
     @Test
     void aPlayerWithoutStatsCountsForTheOthersOnly() {

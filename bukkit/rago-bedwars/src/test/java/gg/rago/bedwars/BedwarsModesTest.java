@@ -169,6 +169,28 @@ class BedwarsModesTest {
         assertEquals("Alice", again.top("rush").name);
     }
 
+    /** The owner's reset of every player's stats (23/11/2026): the records start again, once, a copy kept. */
+    @Test
+    void fastShopRecordsStartAgainOnceAtTheResetOfTheStats(@org.junit.jupiter.api.io.TempDir java.io.File folder) throws Exception {
+        java.util.logging.Logger log = java.util.logging.Logger.getLogger("fastshop-test");
+        java.io.File file = new java.io.File(folder, "fastshop.yml");
+        java.nio.file.Files.write(file.toPath(),
+                "records:\n  rush:\n    00000000-0000-0000-0000-000000000001: 6543\n".getBytes(java.nio.charset.StandardCharsets.UTF_8));
+        FastShopRecords records = new FastShopRecords(file, null, log);
+        records.resetOnce("stats-2026-11");
+        records.load();
+        assertNull(records.top("rush"), "the records start again");
+        FastShopRecords copy = new FastShopRecords(new java.io.File(folder, "fastshop-sauvegarde-stats-2026-11.yml"), null, log);
+        copy.load();
+        assertEquals(Long.valueOf(6543), copy.best("rush", new UUID(0, 1)), "the records before, kept");
+        java.nio.file.Files.write(file.toPath(),
+                "records:\n  rush:\n    00000000-0000-0000-0000-000000000002: 5000\n".getBytes(java.nio.charset.StandardCharsets.UTF_8));
+        FastShopRecords again = new FastShopRecords(file, null, log);
+        again.resetOnce("stats-2026-11");
+        again.load();
+        assertEquals(Long.valueOf(5000), again.best("rush", new UUID(0, 2)), "once: the records made after it stay");
+    }
+
     @Test
     void fastShopShowsTheRecordOfItsFirstListInTheMenusOfTheLobby() {
         FastShopRecords records = new FastShopRecords(new java.io.File("unused"), null, null);
