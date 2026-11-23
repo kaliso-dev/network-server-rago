@@ -195,9 +195,10 @@ public interface LobbyService {
 
     /**
      * The settings the party leader chose for the private game this player plays (setting id: the
-     * index of its choice in {@link PrivateSetting#choices}, 0 for that of a normal game), as the host
-     * of its mode offered them ({@link MatchHost#privateSettings}); empty when none. The lobby knows
-     * them before the game starts.
+     * index of its choice in {@link PrivateSetting#choices}, or the bits of the items ticked for
+     * {@link PrivateSetting#toggles}; 0 for that of a normal game), as the host of its mode offered
+     * them ({@link MatchHost#privateSettings}); empty when none. The lobby knows them before the
+     * game starts.
      */
     default Map<String, Integer> privateSettings(UUID player) {
         return Collections.emptyMap();

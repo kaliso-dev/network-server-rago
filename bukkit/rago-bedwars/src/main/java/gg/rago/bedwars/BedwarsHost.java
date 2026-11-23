@@ -9,6 +9,7 @@ import gg.rago.lobby.api.EndOfGame;
 import gg.rago.lobby.api.MatchHost;
 import gg.rago.lobby.api.PrivateSetting;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.EnumSet;
 import java.util.HashMap;
@@ -31,6 +32,7 @@ import org.bukkit.Material;
 import org.bukkit.Sound;
 import org.bukkit.World;
 import org.bukkit.block.Block;
+import org.bukkit.entity.Arrow;
 import org.bukkit.entity.Egg;
 import org.bukkit.entity.EnderPearl;
 import org.bukkit.entity.Entity;
@@ -398,10 +400,17 @@ final class BedwarsHost implements MatchHost, Listener {
         }
         List<PrivateSetting> offered = new ArrayList<>();
         for (PrivateRules.Setting setting : PrivateRules.SETTINGS) {
-            offered.add(new PrivateSetting(setting.id, setting.name, iconOf(setting.id), setting.choices, setting.description));
+            offered.add(setting.toggles
+                    ? PrivateSetting.toggles(setting.id, setting.name, iconOf(setting.id), setting.choices, WEAPON_ICONS,
+                            setting.description)
+                    : new PrivateSetting(setting.id, setting.name, iconOf(setting.id), setting.choices, setting.description));
         }
         return offered;
     }
+
+    /** The icons of the weapons of One Hit One Kill in its menu, in the order of {@link PrivateRules#WEAPONS}. */
+    private static final List<Material> WEAPON_ICONS = Arrays.asList(Material.WOOD_SWORD, Material.STONE_SWORD,
+            Material.IRON_SWORD, Material.DIAMOND_SWORD, Material.STICK, Material.BOW, Material.FIREBALL, Material.TNT);
 
     private static Material iconOf(String setting) {
         switch (setting) {
@@ -423,6 +432,8 @@ final class BedwarsHost implements MatchHost, Listener {
                 return Material.EXP_BOTTLE;
             case PrivateRules.BED_INSTABREAK:
                 return Material.BED;
+            case PrivateRules.ONE_HIT_ONE_KILL:
+                return Material.DIAMOND_SWORD;
             default:
                 return Material.PAPER;
         }
@@ -681,7 +692,8 @@ final class BedwarsHost implements MatchHost, Listener {
     /**
      * In a game world, only players take damage. Between players: no friendly fire, no hit on a
      * player still protected after a respawn (Bed Fight), the hit is remembered for the kill, and a
-     * hit that would kill is the death of Bed Wars (respawn or out).
+     * hit that would kill is the death of Bed Wars (respawn or out), as is the hit of an enemy with a
+     * weapon of One Hit One Kill (a private game's setting).
      */
     @EventHandler(priority = EventPriority.HIGH, ignoreCancelled = true)
     public void onDamage(EntityDamageEvent event) {
@@ -758,6 +770,11 @@ final class BedwarsHost implements MatchHost, Listener {
                     return;
                 }
                 game.hit(target, author);
+                if (game.rules.oneHitKills(weaponOf(damager))) {
+                    event.setCancelled(true);
+                    game.kill(victim, attacker, false);
+                    return;
+                }
             } else {
                 // Their own fireball or TNT: the damage and the jump, nobody to credit.
                 attacker = null;
@@ -915,6 +932,22 @@ final class BedwarsHost implements MatchHost, Listener {
         if (game != null) {
             game.utilities.died(entity);
         }
+    }
+
+    /**
+     * The weapon of One Hit One Kill of this damage (an index of {@link PrivateRules#WEAPONS}), -1
+     * if none: the item in the hand of the one who hit, the arrow of a bow, the TNT. The fireball's
+     * is in {@link BedwarsGame#blast}, its hit hurting nobody here.
+     */
+    private static int weaponOf(Entity damager) {
+        if (damager instanceof Player) {
+            ItemStack hand = ((Player) damager).getItemInHand();
+            return hand == null ? -1 : PrivateRules.weaponInHand(hand.getType().name());
+        }
+        if (damager instanceof Arrow) {
+            return PrivateRules.BOW;
+        }
+        return damager instanceof TNTPrimed ? PrivateRules.TNT : -1;
     }
 
     /** The player behind this damage: the one who hit, shot, threw the fireball or lit the TNT. */

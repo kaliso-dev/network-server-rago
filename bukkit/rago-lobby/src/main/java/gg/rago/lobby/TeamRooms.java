@@ -6,6 +6,7 @@ import gg.rago.game.QueueEntry;
 import gg.rago.lobby.api.MatchHost;
 import gg.rago.lobby.api.PrivateSetting;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
@@ -434,11 +435,14 @@ final class TeamRooms {
         return Collections.emptyList();
     }
 
-    /** The choice of this leader for this setting: the index of its choice, 0 (a normal game) by default. */
+    /**
+     * The choice of this leader for this setting: the index of its choice (the bits of the items
+     * ticked for items to tick), 0 (a normal game) by default.
+     */
     private int choiceOf(UUID leader, PrivateSetting setting) {
         Map<String, Integer> chosen = chosenSettings.get(leader);
         Integer index = chosen == null ? null : chosen.get(setting.id);
-        return index == null || index < 0 || index >= setting.choices.size() ? 0 : index;
+        return index == null || !setting.valid(index) ? 0 : index;
     }
 
     /** The choices of this leader for these settings, those not as in a normal game only. */
@@ -459,7 +463,7 @@ final class TeamRooms {
         for (PrivateSetting setting : offered) {
             int index = choiceOf(leader, setting);
             if (index != 0) {
-                parts.add(setting.name + ": " + setting.choices.get(index));
+                parts.add(setting.name + ": " + setting.describe(index));
             }
         }
         return String.join(", ", parts);
@@ -473,7 +477,7 @@ final class TeamRooms {
         for (PrivateSetting setting : offered) {
             int index = choiceOf(leader, setting);
             lore.add(ChatColor.GRAY + setting.name + ": " + (index == 0 ? ChatColor.WHITE : ChatColor.GREEN)
-                    + setting.choices.get(index));
+                    + setting.describe(index));
         }
         lore.add("");
         lore.add(ChatColor.YELLOW + "Click to set the game.");
@@ -499,7 +503,8 @@ final class TeamRooms {
 
     /**
      * The settings menu of the leader: each setting, a click for the next choice, a right-click for
-     * the one before; the party is told each change while it chooses its teams.
+     * the one before (for items to tick, a click opens them: {@link #openToggles}); the party is
+     * told each change while it chooses its teams.
      */
     private void openSettings(Player player, GameMode menuMode, Room room) {
         PartyBook.Party party = parties.together(player.getUniqueId());
@@ -538,12 +543,15 @@ final class TeamRooms {
             }
             lore.add("");
             for (int c = 0; c < setting.choices.size(); c++) {
-                lore.add(c == index ? ChatColor.GREEN + "> " + setting.choices.get(c) : ChatColor.GRAY + "  " + setting.choices.get(c));
+                boolean on = setting.toggles ? (index & 1 << c) != 0 : c == index;
+                lore.add(on ? ChatColor.GREEN + "> " + setting.choices.get(c) : ChatColor.GRAY + "  " + setting.choices.get(c));
             }
             lore.add("");
-            lore.add(ChatColor.YELLOW + "Click: next. Right-click: back.");
+            lore.add(ChatColor.YELLOW + (setting.toggles ? "Click to choose them." : "Click: next. Right-click: back."));
+            String shown = setting.toggles && index != 0 ? Integer.bitCount(index) + "/" + setting.choices.size()
+                    : setting.describe(index);
             ItemStack item = ClickMenu.item(setting.icon, 0, (index == 0 ? ChatColor.WHITE : ChatColor.GREEN) + setting.name
-                    + ChatColor.GRAY + ": " + (index == 0 ? ChatColor.WHITE : ChatColor.GREEN) + setting.choices.get(index), lore);
+                    + ChatColor.GRAY + ": " + (index == 0 ? ChatColor.WHITE : ChatColor.GREEN) + shown, lore);
             if (index != 0) {
                 ClickMenu.glow(item);
             }
@@ -551,6 +559,10 @@ final class TeamRooms {
             int slot = settingSlot(i, offered.size());
             if (slot < menu.size() - 9) {
                 menu.set(slot, item, (who, right) -> {
+                    if (chosen.toggles) {
+                        openToggles(who, menuMode, room, offered, chosen);
+                        return;
+                    }
                     choose(who, chosen, right, room);
                     fillSettings(menu, leader, menuMode, room, offered);
                 });
@@ -571,11 +583,66 @@ final class TeamRooms {
     /** The leader clicked a setting: its next choice (right: the one before), told to the party. */
     private void choose(Player leader, PrivateSetting setting, boolean back, Room room) {
         int count = setting.choices.size();
-        int index = (choiceOf(leader.getUniqueId(), setting) + (back ? count - 1 : 1)) % count;
+        set(leader, setting, (choiceOf(leader.getUniqueId(), setting) + (back ? count - 1 : 1)) % count, room);
+    }
+
+    /**
+     * The menu of a setting of items to tick (One Hit One Kill: which weapons kill in one hit),
+     * for the leader: each item with its icon, a click turns it on or off; the arrow back to the
+     * settings.
+     */
+    private void openToggles(Player player, GameMode menuMode, Room room, List<PrivateSetting> offered,
+            PrivateSetting setting) {
+        if (room != null ? !rooms.contains(room) || !player.getUniqueId().equals(room.leader) : !leads(player)) {
+            player.closeInventory();
+            return;
+        }
+        int itemRows = setting.choices.size() <= 4 ? 1 : (setting.choices.size() + 6) / 7;
+        ClickMenu menu = new ClickMenu(Math.min(MAX_ROWS, itemRows + 2), setting.name);
+        fillToggles(menu, player.getUniqueId(), menuMode, room, offered, setting);
+        menu.open(player);
+    }
+
+    private boolean leads(Player player) {
+        PartyBook.Party party = parties.together(player.getUniqueId());
+        return party != null && party.isLeader(player.getUniqueId());
+    }
+
+    private void fillToggles(ClickMenu menu, UUID leader, GameMode menuMode, Room room, List<PrivateSetting> offered,
+            PrivateSetting setting) {
+        int ticked = choiceOf(leader, setting);
+        for (int i = 0; i < setting.choices.size(); i++) {
+            boolean on = (ticked & 1 << i) != 0;
+            String name = setting.choices.get(i);
+            ItemStack item = ClickMenu.item(setting.icons.get(i), 0, (on ? ChatColor.GREEN : ChatColor.RED) + name
+                    + ChatColor.GRAY + ": " + (on ? ChatColor.GREEN + "On" : ChatColor.RED + "Off"),
+                    Arrays.asList(ChatColor.GRAY + setting.name + ".", "",
+                            ChatColor.YELLOW + (on ? "Click to turn it off." : "Click to turn it on.")));
+            if (on) {
+                ClickMenu.glow(item);
+            }
+            final int bit = 1 << i;
+            int slot = settingSlot(i, setting.choices.size());
+            if (slot < menu.size() - 9) {
+                menu.set(slot, item, (who, right) -> {
+                    if (room != null ? !rooms.contains(room) || !who.getUniqueId().equals(room.leader) : !leads(who)) {
+                        who.closeInventory();
+                        return;
+                    }
+                    set(who, setting, choiceOf(who.getUniqueId(), setting) ^ bit, room);
+                    fillToggles(menu, leader, menuMode, room, offered, setting);
+                });
+            }
+        }
+        menu.set(menu.size() - 5, ClickMenu.back("the settings"), (who, right) -> openSettings(who, menuMode, room));
+    }
+
+    /** The leader's choice for this setting is now this one, told to the party. */
+    private void set(Player leader, PrivateSetting setting, int index, Room room) {
         chosenSettings.computeIfAbsent(leader.getUniqueId(), id -> new HashMap<>()).put(setting.id, index);
         leader.playSound(leader.getLocation(), Sound.CLICK, 1f, 1f);
         String told = ChatColor.GRAY + leader.getName() + " set " + ChatColor.WHITE + setting.name + ChatColor.GRAY + ": "
-                + (index == 0 ? ChatColor.WHITE : ChatColor.GREEN) + setting.choices.get(index) + ChatColor.GRAY + ".";
+                + (index == 0 ? ChatColor.WHITE : ChatColor.GREEN) + setting.describe(index) + ChatColor.GRAY + ".";
         if (room != null && rooms.contains(room)) {
             tell(room, told);
             refresh(room);

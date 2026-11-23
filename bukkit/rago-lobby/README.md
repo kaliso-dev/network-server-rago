@@ -108,9 +108,13 @@ dans les files d'attente des modes de jeu.
   `TeamRooms`. Le chef de party règle la partie (ta réponse 7) : le comparateur « Game settings »
   de la dernière ligne du menu des maps, celui de son menu d'équipes, ou `/pg settings` ; un clic
   passe au choix suivant, un clic droit revient au précédent, et la party lit chaque changement
-  pendant le choix des équipes. Les réglages viennent du plugin du mode (`MatchHost.privateSettings`,
-  pour Bedwars Normal : Speed, Max Diamond, Max Emerald, Break the Map, puis Health Buff, Low
-  Gravity, Respawn Time, Event Times et Bed Instabreak, voir le README de RagoBedwars) ; le lobby les donne à la partie (`LobbyService.privateSettings`). Ils restent ceux
+  pendant le choix des équipes. Un réglage d'objets à cocher (`PrivateSetting.toggles`, One Hit One
+  Kill) ouvre au clic son propre menu : chaque objet avec son icône, un clic le met On ou Off, la
+  flèche revient aux réglages ; son choix est un bit par objet coché. Les réglages viennent du
+  plugin du mode (`MatchHost.privateSettings`, pour Bedwars Normal : Speed, Max Diamond, Max
+  Emerald, Break the Map, puis Health Buff, Low Gravity, Respawn Time, Event Times, Bed Instabreak
+  et One Hit One Kill, voir le README de RagoBedwars) ; le lobby les donne à la partie
+  (`LobbyService.privateSettings`). Ils restent ceux
   du chef pour ses parties suivantes, jusqu'à ce qu'il quitte le serveur.
 - **Les Private games : FFA Archway** (`parties-privees:`, ton choix du 23/11 : « 30 minutes, puis
   classement des kills »). Dans l'objet Private games, à côté de Bedwars Normal, le chef de party

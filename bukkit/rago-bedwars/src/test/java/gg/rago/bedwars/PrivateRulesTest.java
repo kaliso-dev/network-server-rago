@@ -63,7 +63,7 @@ class PrivateRulesTest {
     @Test
     void thenThoseOfHypixelAsItsMenuTellsThem() {
         List<String> ids = Arrays.asList(PrivateRules.HEALTH_BUFF, PrivateRules.LOW_GRAVITY, PrivateRules.RESPAWN_TIME,
-                PrivateRules.EVENT_TIMES, PrivateRules.BED_INSTABREAK);
+                PrivateRules.EVENT_TIMES, PrivateRules.BED_INSTABREAK, PrivateRules.ONE_HIT_ONE_KILL);
         assertEquals(4 + ids.size(), PrivateRules.SETTINGS.size());
         for (int i = 0; i < ids.size(); i++) {
             assertEquals(ids.get(i), PrivateRules.SETTINGS.get(4 + i).id, "after the owner's four, in the order of Hypixel's menu");
@@ -132,10 +132,49 @@ class PrivateRulesTest {
         Map<String, Integer> chosen = new HashMap<>();
         chosen.put(PrivateRules.SPEED, 7);
         chosen.put(PrivateRules.BREAK_MAP, -1);
-        chosen.put("one-hit-one-kill", 1);
+        chosen.put("an-unknown-setting", 1);
+        chosen.put(PrivateRules.ONE_HIT_ONE_KILL, 1 << PrivateRules.WEAPONS.size());
         PrivateRules rules = PrivateRules.of(chosen);
         assertEquals(0, rules.speed());
         assertFalse(rules.breakMap());
         assertFalse(rules.any());
+    }
+
+    @Test
+    void oneHitOneKillTheWeaponsTheLeaderTicks() {
+        PrivateRules.Setting setting = PrivateRules.SETTINGS.get(PrivateRules.SETTINGS.size() - 1);
+        assertEquals(PrivateRules.ONE_HIT_ONE_KILL, setting.id);
+        assertEquals("One Hit One Kill", setting.name);
+        assertTrue(setting.toggles, "weapons to tick, each on or off");
+        assertEquals(Arrays.asList("Select which items should", "instantly kill enemies."), setting.description,
+                "the text of Hypixel's menu");
+        assertEquals(Arrays.asList("Wooden Sword", "Stone Sword", "Iron Sword", "Diamond Sword", "Knockback Stick", "Bow",
+                "Fireball", "TNT"), setting.choices);
+        for (int weapon = 0; weapon < PrivateRules.WEAPONS.size(); weapon++) {
+            assertFalse(PrivateRules.NONE.oneHitKills(weapon), "no weapon kills in one hit in a normal game");
+        }
+        // the Wooden Sword, the Bow and the TNT ticked
+        int ticked = 1 | 1 << PrivateRules.BOW | 1 << PrivateRules.TNT;
+        PrivateRules rules = PrivateRules.of(Collections.singletonMap(PrivateRules.ONE_HIT_ONE_KILL, ticked));
+        assertTrue(rules.any());
+        assertTrue(rules.oneHitKills(PrivateRules.weaponInHand("WOOD_SWORD")));
+        assertFalse(rules.oneHitKills(PrivateRules.weaponInHand("STONE_SWORD")));
+        assertFalse(rules.oneHitKills(PrivateRules.weaponInHand("IRON_SWORD")));
+        assertFalse(rules.oneHitKills(PrivateRules.weaponInHand("DIAMOND_SWORD")));
+        assertFalse(rules.oneHitKills(PrivateRules.weaponInHand("STICK")));
+        assertTrue(rules.oneHitKills(PrivateRules.BOW));
+        assertFalse(rules.oneHitKills(PrivateRules.FIREBALL));
+        assertTrue(rules.oneHitKills(PrivateRules.TNT));
+        assertEquals(-1, PrivateRules.weaponInHand("AIR"), "a fist is no weapon");
+        assertEquals(-1, PrivateRules.weaponInHand("WOOL"));
+        assertFalse(rules.oneHitKills(-1));
+        assertEquals(Collections.singletonList("One Hit One Kill: Wooden Sword, Bow, TNT"), rules.summary());
+        // all of them
+        PrivateRules all = PrivateRules.of(Collections.singletonMap(PrivateRules.ONE_HIT_ONE_KILL,
+                (1 << PrivateRules.WEAPONS.size()) - 1));
+        for (String item : Arrays.asList("WOOD_SWORD", "STONE_SWORD", "IRON_SWORD", "DIAMOND_SWORD", "STICK")) {
+            assertTrue(all.oneHitKills(PrivateRules.weaponInHand(item)), item);
+        }
+        assertTrue(all.oneHitKills(PrivateRules.FIREBALL));
     }
 }

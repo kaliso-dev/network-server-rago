@@ -208,8 +208,9 @@ carte démo, avec un compte à rebours de 8 secondes. Le script donne aussi les 
 party (`reglages-prives`) à Fast Bedwars 2v2 : un autre joueur ne peut pas régler (`/pg settings`) ;
 le chef ouvre « Game settings » depuis le menu des maps, met Speed II (trois clics, puis un clic
 droit en arrière), Max Diamond, Max Emerald et Break the Map, puis ceux d'Hypixel : Double Health,
-Low Gravity, Respawn Time à 1 seconde, Event Times à 2x (deux clics) et Bed Instabreak, et revient au
-menu des maps qui les montre. Le chef clique `bw-demo`, le menu des équipes s'ouvre pour les trois (laine rouge et bleue,
+Low Gravity, Respawn Time à 1 seconde, Event Times à 2x (deux clics), Bed Instabreak et One Hit One
+Kill, dont le clic ouvre les huit armes, toutes Off : il met la Wooden Sword On, le Bow On puis Off,
+revient aux réglages (« 1/8 »), puis au menu des maps qui les montre. Le chef clique `bw-demo`, le menu des équipes s'ouvre pour les trois (laine rouge et bleue,
 les réglages dans celui du chef seulement) ; le chef et le deuxième prennent rouge, le troisième
 aussi : « Red is full. » ; il ferme son menu, `/pg team` le rouvre avec les deux noms sous rouge. À
 la fin du compte à rebours la partie part seule : rouge les deux qui l'ont choisi, bleu le troisième
@@ -220,7 +221,8 @@ Emerald), la fin des lits à moins de 7 min 30 (la moitié des 15 min de Fast Be
 Jump Boost III, et casse à la main un bloc de son île ; puis il marche dans le vide et revient sur son
 île une seconde plus tard, ses 20 cœurs pleins ; le troisième s'en va, rouge gagne, et les trois
 reviennent au lobby. Une vraie partie sur une map de 4s ou de 2s n'est pas jouée par les bots, ni
-Bed Instabreak (aucun bot ne va jusqu'à l'autre île) : celui-ci n'a que ses tests unitaires.
+Bed Instabreak ni One Hit One Kill (aucun bot ne va jusqu'à l'autre île) : ceux-ci n'ont que leurs
+tests unitaires (la ligne « Settings » du départ porte « One Hit One Kill: Wooden Sword »).
 Ensuite la même party joue FFA Archway (ton choix du 23/11) : `/queue ffa-archway-partie` est
 refusé (« played with your party »), le deuxième ne peut pas le lancer, le chef le lance
 (`/queue ffa-archway`) : les trois sont dans le FFA de la party, sur la carte démo ici (« A vs B vs

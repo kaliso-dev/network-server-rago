@@ -25,7 +25,10 @@ import java.util.Map;
  * <li>Respawn Time: 1 or 10 seconds instead of that of a normal game;
  * <li>Event Times: the timed events at 0.5x (slower), 2x (faster) or 4x (fastest): the tiers of
  * the generators, the end of the beds and the end of the game;
- * <li>Bed Instabreak: the bed of another team breaks with a single punch.
+ * <li>Bed Instabreak: the bed of another team breaks with a single punch;
+ * <li>One Hit One Kill: the weapons the leader ticks kill an enemy in one hit (its menu on Hypixel:
+ * « Select which items should instantly kill enemies »); the weapons of the shop, Hypixel's own list
+ * written nowhere: the swords, the Knockback Stick, the bow, the fireball and the TNT.
  * </ul>
  * Pure logic, for the tests.
  */
@@ -40,6 +43,21 @@ final class PrivateRules {
     static final String RESPAWN_TIME = "respawn-time";
     static final String EVENT_TIMES = "event-times";
     static final String BED_INSTABREAK = "bed-instabreak";
+    static final String ONE_HIT_ONE_KILL = "one-hit-one-kill";
+
+    /**
+     * The weapons of One Hit One Kill, in the order of its menu (bit i of its choice for the
+     * weapon i): the item in the hand of the one who hits, by its name in Bukkit, or the arrow of a
+     * bow, the fireball, the TNT.
+     */
+    static final List<String> WEAPONS = Collections.unmodifiableList(Arrays.asList("Wooden Sword", "Stone Sword",
+            "Iron Sword", "Diamond Sword", "Knockback Stick", "Bow", "Fireball", "TNT"));
+    /** The items of the hand of the four swords and the stick, in the order of {@link #WEAPONS}. */
+    private static final List<String> IN_HAND = Arrays.asList("WOOD_SWORD", "STONE_SWORD", "IRON_SWORD",
+            "DIAMOND_SWORD", "STICK");
+    static final int BOW = 5;
+    static final int FIREBALL = 6;
+    static final int TNT = 7;
 
     /** A setting as the lobby's menu shows it: its choices in order, the first that of a normal game. */
     static final class Setting {
@@ -47,12 +65,24 @@ final class PrivateRules {
         final String name;
         final List<String> choices;
         final List<String> description;
+        /** True for items to tick, each on or off ({@link #choices}): its choice is their bits. */
+        final boolean toggles;
 
         Setting(String id, String name, List<String> choices, String... description) {
+            this(id, name, false, choices, description);
+        }
+
+        Setting(String id, String name, boolean toggles, List<String> choices, String... description) {
             this.id = id;
             this.name = name;
+            this.toggles = toggles;
             this.choices = Collections.unmodifiableList(new ArrayList<>(choices));
             this.description = Collections.unmodifiableList(Arrays.asList(description));
+        }
+
+        /** True if this choice is one of this setting: an index of its choices, or the bits of its items. */
+        boolean valid(int choice) {
+            return choice >= 0 && choice < (toggles ? 1 << choices.size() : choices.size());
         }
     }
 
@@ -78,7 +108,9 @@ final class PrivateRules {
             new Setting(EVENT_TIMES, "Event Times", Arrays.asList("1x - Normal", "0.5x - Slower", "2x - Faster", "4x - Fastest"),
                     "How soon the events come:", "the tiers of the generators,", "the end of the beds and the", "end of the game."),
             new Setting(BED_INSTABREAK, "Bed Instabreak", OFF_ON,
-                    "The beds break with a", "single punch.")));
+                    "The beds break with a", "single punch."),
+            new Setting(ONE_HIT_ONE_KILL, "One Hit One Kill", true, WEAPONS,
+                    "Select which items should", "instantly kill enemies.")));
 
     /** The pace of each choice of Event Times: {how fast, how slow}; an event at t comes at t * slow / fast. */
     private static final int[][] PACES = {{1, 1}, {1, 2}, {2, 1}, {4, 1}};
@@ -94,8 +126,9 @@ final class PrivateRules {
     }
 
     /**
-     * The rules of the choices the lobby gives (setting id: the index of its choice, 0 for that of a
-     * normal game); a setting missing, unknown or out of its choices is as in a normal game.
+     * The rules of the choices the lobby gives (setting id: the index of its choice, or the bits of
+     * the weapons ticked for One Hit One Kill; 0 for that of a normal game); a setting missing,
+     * unknown or out of its choices is as in a normal game.
      */
     static PrivateRules of(Map<String, Integer> chosen) {
         if (chosen == null || chosen.isEmpty()) {
@@ -105,7 +138,7 @@ final class PrivateRules {
         for (int i = 0; i < at.length; i++) {
             Setting setting = SETTINGS.get(i);
             Integer index = chosen.get(setting.id);
-            at[i] = index == null || index < 0 || index >= setting.choices.size() ? 0 : index;
+            at[i] = index == null || !setting.valid(index) ? 0 : index;
         }
         return new PrivateRules(at);
     }
@@ -166,6 +199,16 @@ final class PrivateRules {
         return choice(BED_INSTABREAK) == 1;
     }
 
+    /** One Hit One Kill: true if this weapon (an index of {@link #WEAPONS}, -1 for none) kills in one hit. */
+    boolean oneHitKills(int weapon) {
+        return weapon >= 0 && weapon < WEAPONS.size() && (choice(ONE_HIT_ONE_KILL) & 1 << weapon) != 0;
+    }
+
+    /** The weapon of One Hit One Kill of this item in the hand (its name in Bukkit), -1 if none. */
+    static int weaponInHand(String item) {
+        return IN_HAND.indexOf(item);
+    }
+
     /** True if a setting is not as in a normal game. */
     boolean any() {
         for (int choice : chosen) {
@@ -179,7 +222,7 @@ final class PrivateRules {
     /**
      * The settings not as in a normal game, as the players are told at the start: the choice of
      * those it names ("Speed II", "Double Health"), the name of those that are on ("Max Emerald"),
-     * else both ("Respawn Time: 1 second").
+     * else both ("Respawn Time: 1 second"; "One Hit One Kill: Wooden Sword, Bow").
      */
     List<String> summary() {
         List<String> lines = new ArrayList<>();
@@ -188,6 +231,16 @@ final class PrivateRules {
                 continue;
             }
             Setting setting = SETTINGS.get(i);
+            if (setting.toggles) {
+                List<String> ticked = new ArrayList<>();
+                for (int item = 0; item < setting.choices.size(); item++) {
+                    if ((chosen[i] & 1 << item) != 0) {
+                        ticked.add(setting.choices.get(item));
+                    }
+                }
+                lines.add(setting.name + ": " + String.join(", ", ticked));
+                continue;
+            }
             String choice = setting.choices.get(chosen[i]);
             if (setting.choices.equals(OFF_ON)) {
                 lines.add(setting.name);

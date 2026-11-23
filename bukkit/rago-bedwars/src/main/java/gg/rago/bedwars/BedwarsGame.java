@@ -2232,7 +2232,8 @@ class BedwarsGame {
     /**
      * A fireball thrown by this player (or null) has exploded: each player of the game around it is
      * pushed away and up, as on Hypixel, and takes its fixed damage (none to a teammate). Hurting an
-     * enemy counts as a hit, for the kill if they fall.
+     * enemy counts as a hit, for the kill if they fall; with the fireball in One Hit One Kill (a
+     * private game's setting), it kills them.
      */
     void blast(org.bukkit.entity.Fireball fireball, Player thrower) {
         if (phase != Phase.PLAYING) {
@@ -2264,6 +2265,10 @@ class BedwarsGame {
             } else {
                 damage = rules.enemies;
                 hit(gamer, author);
+                if (this.rules.oneHitKills(PrivateRules.FIREBALL)) {
+                    kill(player, thrower, false);
+                    continue;
+                }
             }
             if (damage <= 0) {
                 continue;

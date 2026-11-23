@@ -10,8 +10,9 @@
 // gives Fast Bedwars 2v2 too):
 //   0. the leader sets the game from the map menu: Speed II (three clicks, then a right-click back),
 //      Max Diamond, Max Emerald and Break the Map on; then those of Hypixel: Double Health, Low
-//      Gravity, Respawn Time 1 second, Event Times 2x (two clicks), Bed Instabreak; another player
-//      cannot (/pg settings);
+//      Gravity, Respawn Time 1 second, Event Times 2x (two clicks), Bed Instabreak, and One Hit One
+//      Kill, whose click opens its weapons, each on or off: the Wooden Sword on, the Bow on then off
+//      again; another player cannot (/pg settings);
 //   1. only the leader starts it; its menu shows a row "2v2" with bw-demo; a click starts the team
 //      choice for the whole party, the team menu opening for each with the red and the blue wool;
 //   2. the leader and the second bot click red; the third clicks red too: full; it closes its menu
@@ -24,7 +25,8 @@
 //      event in the sidebar, a block of the island broken by hand; 20 hearts and Jump Boost III on
 //      the leader, the end of the beds at half its time; the leader walks into the void and is back
 //      a second later, its 20 hearts full; the third leaves, red wins, all back in the lobby. Bed
-//      Instabreak is not played here (no bot goes to the other island): only its unit tests;
+//      Instabreak and One Hit One Kill are not played here (no bot goes to the other island): only
+//      their unit tests;
 //   5. FFA Archway (the owner's choice of 23/11), the FFA of the party alone: its game is no queue,
 //      only the leader starts it; the three in the FFA (on the demo map here), each for themselves,
 //      the end in the sidebar; the third walks into the void and comes back at once; after its
@@ -48,7 +50,7 @@ const RED_SLOT = 10
 const BLUE_SLOT = 12
 /** The countdown of test-equipes in run-arena-test.sh. */
 const COUNTDOWN = 8
-/** TeamRooms.settingSlot: nine settings, seven in the second row, two in the third; the back arrow under them. */
+/** TeamRooms.settingSlot: ten settings, seven in the second row, three in the third; the back arrow under them. */
 const SETTING_SLOTS = {
   speed: 10,
   maxDiamond: 11,
@@ -58,9 +60,14 @@ const SETTING_SLOTS = {
   lowGravity: 15,
   respawnTime: 16,
   eventTimes: 19,
-  bedInstabreak: 20
+  bedInstabreak: 20,
+  oneHitOneKill: 21
 }
 const SETTINGS_BACK = 31
+/** The weapons of One Hit One Kill in its menu (TeamRooms.settingSlot of eight), by their items; the back arrow under them. */
+const WEAPON_SLOTS = [[10, 'wooden_sword'], [11, 'stone_sword'], [12, 'iron_sword'], [13, 'diamond_sword'], [14, 'stick'],
+  [15, 'bow'], [16, 'fire_charge'], [19, 'tnt']]
+const WEAPONS_BACK = 31
 /** The settings in the team menu of the leader. */
 const TEAM_SETTINGS_SLOT = 26
 /** A block of the red island out of the protection of its spawn and its generator (DemoMap, BedwarsGame.near). */
@@ -75,7 +82,8 @@ const BEDS_GONE_AT_2X = 15 * 60 / 2
 const FFA_MINUTES = 1
 /** The last choices of the leader, as the start of the game tells them. */
 const CHOSEN = ['Speed: Speed II', 'Max Diamond: On', 'Max Emerald: On', 'Break the Map: On', 'Health Buff: Double Health',
-  'Low Gravity: On', 'Respawn Time: 1 second', 'Event Times: 2x - Faster', 'Bed Instabreak: On']
+  'Low Gravity: On', 'Respawn Time: 1 second', 'Event Times: 2x - Faster', 'Bed Instabreak: On',
+  'One Hit One Kill: Wooden Sword']
 
 let finishing = false
 
@@ -261,10 +269,11 @@ async function setGame (leader, second, maps) {
     lowGravity: 'feather',
     respawnTime: 'clock',
     eventTimes: 'experience_bottle',
-    bedInstabreak: 'bed'
+    bedInstabreak: 'bed',
+    oneHitOneKill: 'diamond_sword'
   }
   await waitFor(() => Object.entries(icons).every(([key, name]) => menu.slots[SETTING_SLOTS[key]]?.name === name), 5000,
-    () => `the nine settings: ${Object.values(SETTING_SLOTS).map((at) => menu.slots[at]?.name).join(', ')}`)
+    () => `the ten settings: ${Object.values(SETTING_SLOTS).map((at) => menu.slots[at]?.name).join(', ')}`)
   for (const told of ['Speed: Speed I', 'Speed: Speed II', 'Speed: Speed III']) await clickSetting(leader, SETTING_SLOTS.speed, false, told)
   await clickSetting(leader, SETTING_SLOTS.speed, true, 'Speed: Speed II')
   await clickSetting(leader, SETTING_SLOTS.maxDiamond, false, 'Max Diamond: On')
@@ -278,6 +287,7 @@ async function setGame (leader, second, maps) {
   await clickSetting(leader, SETTING_SLOTS.bedInstabreak, false, 'Bed Instabreak: On')
   await waitFor(() => text(menu.slots[SETTING_SLOTS.speed]).includes('Speed: Speed II'), 5000,
     () => `the menu to show Speed II: ${text(menu.slots[SETTING_SLOTS.speed])}`)
+  await oneHitOneKill(leader)
   const back = leader.windows.length
   leader.clickWindow(SETTINGS_BACK, 0, 0).catch(() => {})
   const again = await windowAfter(leader, back, 'Test teams: choose a map', 'the map menu again, from the settings')
@@ -288,8 +298,36 @@ async function setGame (leader, second, maps) {
   }
   log(`settings: ${second.username} cannot set the game; ${leader.username} set Speed II (three clicks, a right-click back),`
     + ' Max Diamond, Max Emerald, Break the Map, Double Health, Low Gravity, Respawn Time 1 second, Event Times 2x (two'
-    + ' clicks) and Bed Instabreak from the map menu, and went back to it')
+    + ' clicks), Bed Instabreak and One Hit One Kill with the Wooden Sword from the map menu, and went back to it')
   return again
+}
+
+/**
+ * One Hit One Kill: its click opens its weapons, none on; the Wooden Sword on, the Bow on then off
+ * again; the arrow goes back to the settings, which show one weapon of eight.
+ */
+async function oneHitOneKill (leader) {
+  const count = leader.windows.length
+  leader.clickWindow(SETTING_SLOTS.oneHitOneKill, 0, 0).catch(() => {})
+  const weapons = await windowAfter(leader, count, 'One Hit One Kill', 'the weapons of One Hit One Kill')
+  await waitFor(() => WEAPON_SLOTS.every(([at, name]) => weapons.slots[at]?.name === name), 5000,
+    () => `the eight weapons: ${WEAPON_SLOTS.map(([at]) => weapons.slots[at]?.name).join(', ')}`)
+  for (const [at] of WEAPON_SLOTS) {
+    if (!text(weapons.slots[at]).includes(': Off')) throw new Error(`a weapon on before any click: ${text(weapons.slots[at])}`)
+  }
+  await clickSetting(leader, WEAPON_SLOTS[0][0], false, 'One Hit One Kill: Wooden Sword')
+  await clickSetting(leader, WEAPON_SLOTS[5][0], false, 'One Hit One Kill: Wooden Sword, Bow')
+  await clickSetting(leader, WEAPON_SLOTS[5][0], false, 'One Hit One Kill: Wooden Sword')
+  await waitFor(() => text(weapons.slots[WEAPON_SLOTS[0][0]]).includes('Wooden Sword: On')
+    && text(weapons.slots[WEAPON_SLOTS[5][0]]).includes('Bow: Off'), 5000,
+  () => `the Wooden Sword on and the Bow off: ${text(weapons.slots[WEAPON_SLOTS[0][0]])} ${text(weapons.slots[WEAPON_SLOTS[5][0]])}`)
+  const back = leader.windows.length
+  leader.clickWindow(WEAPONS_BACK, 0, 0).catch(() => {})
+  const settings = await windowAfter(leader, back, 'Game settings', 'the settings again, from the weapons')
+  await waitFor(() => text(settings.slots[SETTING_SLOTS.oneHitOneKill]).includes('One Hit One Kill: 1/8'), 5000,
+    () => `the settings to show one weapon of eight: ${text(settings.slots[SETTING_SLOTS.oneHitOneKill])}`)
+  log(`One Hit One Kill: its eight weapons, none on; ${leader.username} set the Wooden Sword on, the Bow on then off, and`
+    + ' went back to the settings (1/8)')
 }
 
 async function chooseTeams (leader, second, third) {
@@ -389,7 +427,8 @@ function enchanted (item, name, level) {
 async function rules (leader, from) {
   await chatLine(leader, /Settings of the party leader: Speed II, Max Diamond, Max Emerald, Break the Map, Double Health, Low Gravity,/
     , 5000, from)
-  await chatLine(leader, /, Low Gravity, Respawn Time: 1 second, Event Times: 2x - Faster, Bed Instabreak$/, 1000, from)
+  await chatLine(leader, /, Low Gravity, Respawn Time: 1 second, Event Times: 2x - Faster, Bed Instabreak, One Hit One Kill: Wooden Sword$/,
+    1000, from)
   await waitFor(() => leader.entity.effects?.[SPEED]?.amplifier === 1, 8000,
     () => `Speed II on ${leader.username}: ${JSON.stringify(leader.entity.effects)}`)
   await waitFor(() => enchanted(leader.inventory.slots[5], 'protection', 4)
@@ -522,7 +561,8 @@ async function main () {
 
   finishing = true
   log('PASSED: Bedwars Normal of the Private games, its rows of 4s and 2s; the settings of the leader (Speed, Max Diamond,'
-    + ' Max Emerald, Break the Map, Health Buff, Low Gravity, Respawn Time, Event Times; Bed Instabreak in the menu); the team choice of its party: the map, the team menu, a team full, /pg team, the'
+    + ' Max Emerald, Break the Map, Health Buff, Low Gravity, Respawn Time, Event Times; Bed Instabreak and One Hit One Kill'
+    + ' in the menu); the team choice of its party: the map, the team menu, a team full, /pg team, the'
     + ' countdown, who chose none in the emptiest team, the game with the teams chosen and the settings; FFA Archway, the'
     + ' FFA of the party alone, until its end and its kills leaderboard')
   for (const bot of [leader, second, third]) bot.quit()
