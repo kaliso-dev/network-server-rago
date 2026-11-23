@@ -33,6 +33,7 @@ import org.bukkit.Material;
 import org.bukkit.Sound;
 import org.bukkit.World;
 import org.bukkit.WorldCreator;
+import org.bukkit.configuration.file.FileConfiguration;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.PlayerInventory;
@@ -155,6 +156,33 @@ public final class RagoLobby extends JavaPlugin implements LobbyService {
             this.lines = lines;
             this.text = text;
             this.click = click;
+        }
+    }
+
+    /** config.yml, read as UTF-8 ({@link Utf8Config}): Bukkit 1.8 reads it in the system's charset. */
+    private FileConfiguration utf8Config;
+
+    @Override
+    public FileConfiguration getConfig() {
+        if (utf8Config == null) {
+            reloadConfig();
+        }
+        return utf8Config;
+    }
+
+    @Override
+    public void reloadConfig() {
+        utf8Config = Utf8Config.read(new File(getDataFolder(), "config.yml"), getResource("config.yml"), getLogger());
+    }
+
+    @Override
+    public void saveConfig() {
+        File file = new File(getDataFolder(), "config.yml");
+        try {
+            Files.createDirectories(getDataFolder().toPath());
+            Files.write(file.toPath(), getConfig().saveToString().getBytes(StandardCharsets.UTF_8));
+        } catch (IOException e) {
+            getLogger().log(Level.SEVERE, "Could not save " + file, e);
         }
     }
 

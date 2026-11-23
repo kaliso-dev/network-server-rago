@@ -56,7 +56,8 @@ final class TrainingPrefs {
         if (!file.isFile()) {
             return;
         }
-        YamlConfiguration yaml = YamlConfiguration.loadConfiguration(file);
+        // written in UTF-8 (save), read in UTF-8 too, whatever the charset of the system
+        YamlConfiguration yaml = Utf8Config.file(file, plugin.getLogger());
         for (String player : yaml.getKeys(false)) {
             ConfigurationSection modes = yaml.getConfigurationSection(player);
             UUID id;

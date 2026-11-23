@@ -624,6 +624,13 @@ ligne du scoreboard, les réglages de la file classée, et la liste des modes (n
 joueurs par équipe, classé, description). Le fichier fourni explique chaque réglage. Un fichier
 invalide désactive le plugin avec un message qui dit quoi corriger.
 
+Les trois plugins (RagoLobby, RagoPractice, RagoBedwars) lisent leur `config.yml` en UTF-8, quel que
+soit le système (ton signalement du 23/11 : les badges et les € et $ du shop cassés). Bukkit 1.8 le
+lit dans le jeu de caractères du système, Windows-1252 sur un Windows français, où « 4.99€ »
+devenait « 4.99â‚¬ » et le ✦ des badges des caractères au hasard. Un fichier enregistré en « ANSI »
+par un éditeur se lit encore comme avant. Les records et les réglages des entraînements
+(`records.yml`, `reglages.yml`), déjà écrits en UTF-8, sont aussi relus en UTF-8.
+
 Si le monde du lobby n'existe pas, le plugin le crée : un monde vide avec une plateforme de
 quartz. On peut construire le lobby directement dedans (`/lobby build`), ou mettre le nom d'un autre
 monde dans `monde`, puis `/lobby setspawn`. Le spawn et les points sont rangés dans le dossier du

@@ -4,6 +4,9 @@ import gg.rago.game.RedRoverRotation;
 import gg.rago.lobby.api.LobbyService;
 import gg.rago.lobby.api.ModeRecord;
 import java.io.File;
+import java.io.IOException;
+import java.nio.charset.StandardCharsets;
+import java.nio.file.Files;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
@@ -12,8 +15,10 @@ import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
 import java.util.function.Consumer;
 import java.util.function.Supplier;
+import java.util.logging.Level;
 import org.bukkit.command.PluginCommand;
 import org.bukkit.configuration.ConfigurationSection;
+import org.bukkit.configuration.file.FileConfiguration;
 import org.bukkit.plugin.Plugin;
 import org.bukkit.plugin.java.JavaPlugin;
 
@@ -43,6 +48,33 @@ public final class RagoBedwars extends JavaPlugin {
     private Watchers watchers;
     /** The last problem told about the Red Rover settings, not told again. */
     private String redRoverWarned;
+
+    /** config.yml, read as UTF-8 ({@link Utf8Config}): Bukkit 1.8 reads it in the system's charset. */
+    private FileConfiguration utf8Config;
+
+    @Override
+    public FileConfiguration getConfig() {
+        if (utf8Config == null) {
+            reloadConfig();
+        }
+        return utf8Config;
+    }
+
+    @Override
+    public void reloadConfig() {
+        utf8Config = Utf8Config.read(new File(getDataFolder(), "config.yml"), getResource("config.yml"), getLogger());
+    }
+
+    @Override
+    public void saveConfig() {
+        File file = new File(getDataFolder(), "config.yml");
+        try {
+            Files.createDirectories(getDataFolder().toPath());
+            Files.write(file.toPath(), getConfig().saveToString().getBytes(StandardCharsets.UTF_8));
+        } catch (IOException e) {
+            getLogger().log(Level.SEVERE, "Could not save " + file, e);
+        }
+    }
 
     @Override
     public void onEnable() {

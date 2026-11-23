@@ -91,7 +91,8 @@ final class Records {
         if (!file.isFile()) {
             return;
         }
-        YamlConfiguration yaml = YamlConfiguration.loadConfiguration(file);
+        // written in UTF-8 (save), read in UTF-8 too, whatever the charset of the system
+        YamlConfiguration yaml = Utf8Config.file(file, logger);
         for (String board : yaml.getKeys(false)) {
             ConfigurationSection section = yaml.getConfigurationSection(board);
             if (section == null) {
