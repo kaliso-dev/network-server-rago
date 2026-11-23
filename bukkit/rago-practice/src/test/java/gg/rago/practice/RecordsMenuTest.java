@@ -86,6 +86,12 @@ class RecordsMenuTest {
         // the Combo bot left the menus (22/11): its records stay in the book, out of the menu
         assertFalse(RecordCatalog.of("combo-bot").boards.isEmpty(), "its boards stay defined: its records are kept");
         assertTrue(RecordCatalog.played(Arrays.asList("clutch", "(combo-bot)")).stream().noneMatch((e) -> e.modeId.equals("combo-bot")));
+        // so did Pearl practice, Fireball practice and KB displace against a bot (23/11), their records kept
+        for (String gone : Arrays.asList("pearl-practice", "fireball-practice", "kb-displace-bot")) {
+            assertFalse(RecordCatalog.of(gone).boards.isEmpty(), gone + ": its records are kept");
+            assertTrue(RecordCatalog.played(Arrays.asList("clutch", "(" + gone + ")")).stream().noneMatch((e) -> e.modeId.equals(gone)),
+                    gone + ": out of /records and the wall");
+        }
     }
 
     @Test

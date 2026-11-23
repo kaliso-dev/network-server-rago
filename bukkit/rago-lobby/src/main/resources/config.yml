@@ -74,9 +74,8 @@ categories:
     slogan: "&bTrain alone&7, at your &bown pace"
     description:
       - "Clutch, block in, fast defense,"
-      - "bridging, extend, pearls, bow,"
-      - "fireballs, aim, bots: one skill"
-      - "at a time."
+      - "bridging, extend, bow, aim: one"
+      - "skill at a time."
   ranked:
     nom: "&6&lRBW Modes"
     icone: BED
@@ -97,8 +96,8 @@ categories:
       - "Bed fight, Top BedFight, top"
       - "bridge, bridge fight, block"
       - "placement in 1v1 or 2v2; Lobby"
-      - "Fight, sumo, boxing, KB displace,"
-      - "fireball fight, bow."
+      - "Fight, sumo, boxing, fireball"
+      - "fight, bow."
       - "/duel a player to challenge them."
   # the modes without a queue: in at once, with whoever is there
   arenes:
@@ -1151,7 +1150,6 @@ titres:
       bed-break-simulator-1v3, bed-break-simulator-1v4]}
     sumo: {nom: "Sumo", modes: [sumo]}
     boxing: {nom: "Boxing", modes: [boxing]}
-    kb-displace: {nom: "KB Displace", modes: [kb-displace]}
     block-placement: {nom: "Block Placement", modes: [block-fight-1v1, block-fight-2v2]}
     bridge-fight: {nom: "Bridge Fight", modes: [bridge-fight-1v1, bridge-fight-2v2]}
     block-edit: {nom: "Block Edit", modes: [block-edit-duel]}
@@ -2165,18 +2163,7 @@ modes:
       - "First to 100 hits,"
       - "to work on your combos."
       - "/speed: Speed II off or on."
-  kb-displace:
-    nom: "&aKB displace 1v1"
-    categorie: duels
-    icone: STICK
-    equipes: 2
-    joueurs-par-equipe: 1
-    classe: false
-    kit: [STONE_SWORD]
-    description:
-      - "A real top fight: run along the"
-      - "bridge and knock the defender"
-      - "off sideways. Roles swap each hit."
+  # KB displace 1v1 left the menus (the owner, 23/11): its records and wins stay in the data
   block-edit-duel:
     nom: "&aBlock edit 1v1"
     categorie: duels
@@ -2450,32 +2437,8 @@ modes:
       - "Block-ladder clutch: jump from"
       - "4 to 24 blocks, wool and a"
       - "ladder before the ground."
-  pearl-practice:
-    nom: "&bPearl practice"
-    categorie: entrainement
-    icone: ENDER_PEARL
-    equipes: 1
-    joueurs-par-equipe: 1
-    classe: false
-    description:
-      - "A new Bed Wars map each try:"
-      - "pearl onto an island, back"
-      - "after a hit, and the pearl"
-      - "block clutch: to the wall of"
-      - "an island, then wool under you."
-  fireball-practice:
-    nom: "&bFireball practice"
-    categorie: entrainement
-    icone: FIREBALL
-    equipes: 1
-    joueurs-par-equipe: 1
-    classe: false
-    description:
-      - "A new Bed Wars map each try:"
-      - "fireball jump a broken bridge,"
-      - "knock bridgers and rushers"
-      - "into the void, and hit their"
-      - "fireballs back."
+  # Pearl practice and Fireball practice left the menus (the owner, 23/11): their records stay in
+  # RagoPractice's data
   shop-practice:
     nom: "&bFast Shop"
     categorie: entrainement
@@ -2489,18 +2452,8 @@ modes:
       - "Hypixel quick buy (copy it"
       - "in one click: the book)."
   # The Combo bot training left the menus (the owner, 22/11: "le combo bot on le supprime"): its
-  # records stay in RagoPractice's data, its fight goes to RagoBot.
-  kb-displace-bot:
-    nom: "&bKB displace against a bot"
-    categorie: entrainement
-    icone: STICK
-    equipes: 1
-    joueurs-par-equipe: 1
-    classe: false
-    description:
-      - "Run, turn your head, hit: knock"
-      - "the bot off sideways. Back at"
-      - "the start after each hit."
+  # records stay in RagoPractice's data, its fight goes to RagoBot. KB displace against a bot too
+  # (the owner, 23/11), its records kept.
   bow-training:
     nom: "&bBow training"
     categorie: entrainement

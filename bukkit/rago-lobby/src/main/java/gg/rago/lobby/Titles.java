@@ -148,7 +148,6 @@ final class Titles {
                         "bed-break-simulator-1v2", "bed-break-simulator-1v3", "bed-break-simulator-1v4")),
                 new Family("sumo", "Sumo", Arrays.asList("sumo")),
                 new Family("boxing", "Boxing", Arrays.asList("boxing")),
-                new Family("kb-displace", "KB Displace", Arrays.asList("kb-displace")),
                 new Family("block-placement", "Block Placement", Arrays.asList("block-fight-1v1", "block-fight-2v2")),
                 new Family("bridge-fight", "Bridge Fight", Arrays.asList("bridge-fight-1v1", "bridge-fight-2v2")),
                 new Family("block-edit", "Block Edit", Arrays.asList("block-edit-duel")),

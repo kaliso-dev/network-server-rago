@@ -64,12 +64,13 @@ class LobbySettingsTest {
         assertEquals("lobby", settings.world());
         assertEquals(0, settings.voidHeight());
         assertEquals(0, settings.defaultRating(), "a ranked ELO starts at 0, in Coal");
-        assertEquals(94, settings.modes().size(), "the six ranked duels (plan 3.7), the invis practice and the Bed Break Simulator in 1v1 to 1v4 (and"
+        assertEquals(90, settings.modes().size(), "the six ranked duels (plan 3.7), the invis practice and the Bed Break Simulator in 1v1 to 1v4 (and"
                 + " their kits), with Bedwars Normal (its 4s and 2s) and FFA Archway (its game), the clutch scenario, the bed fight (1v1, 2v2, 1v2), Top"
                 + " BedFight, the bridge fight 2v2, the full map first rush, Sky Rise Resources, the timed bridge, Lobby"
                 + " Fight (1v1, FFA), the Bed Break Simulator, the four modes of FUN PRACTICE (CTF The Bridge 1v1 and"
                 + " 2v2, CTF Castle 2v2 and 4v4 with them, Fast Bedwars 1v1 and 2v2), Red Rover (sumo, block edit, block placement, top bridge),"
-                + " Block aim and Parkour Duel, without the top fight, the ranked scenarios, the Combo bot or Find Your Sensitivity");
+                + " Block aim and Parkour Duel, without the top fight, the ranked scenarios, the Combo bot, Find Your Sensitivity,"
+                + " KB displace (1v1 and against a bot), Pearl practice or Fireball practice (the owner, 23/11)");
         assertNull(settings.display("find-your-sensitivity"), "no Find Your Sensitivity in the menus (the owner, 22/11, 19h51)");
         assertEquals("entrainement", settings.display("block-aim").category(), "a training of the placement");
         for (String id : Arrays.asList("red-rover-sumo", "red-rover-block-edit", "red-rover-block-placement",
@@ -157,8 +158,7 @@ class LobbySettingsTest {
             {"sumo", "ranked-sumo", "red-rover-sumo", "event-sumo"},
             {"boxing", "ranked-boxing"},
             {"block-edit", "block-edit-duel", "red-rover-block-edit"},
-            {"kb-displace", "kb-displace-bot"},
-            {"fireball", "fireball-knockback", "fireball-practice"},
+            {"fireball", "fireball-knockback"},
             {"bow-duel", "bow-training", "aim-trainer"},
         };
         for (String[] game : games) {
@@ -228,7 +228,9 @@ class LobbySettingsTest {
         assertEquals(KitItem.parse("WOOL 64"), lobbyFfa.item(7), "2 stacks");
         assertEquals(Material.SHEARS, lobbyFfa.item(8).material(), "and its shears");
         assertNull(lobbyFfa.item(9), "nothing more");
-        assertEquals("entrainement", settings.display("kb-displace-bot").category(), "against a bot: practice");
+        for (String gone : Arrays.asList("kb-displace", "kb-displace-bot", "pearl-practice", "fireball-practice")) {
+            assertNull(settings.display(gone), gone + ": out of the menus (the owner, 23/11)");
+        }
         int total = 0;
         for (ModeCategory category : settings.categories()) {
             int count = settings.modesIn(category.id()).size();
@@ -438,7 +440,7 @@ class LobbySettingsTest {
         assertEquals("§bTrain alone§7, at your §bown pace", settings.npc("practice").subtitle());
         assertEquals("entrainement", settings.npc("practice").category());
         assertEquals(settings.modesIn("duels").size(), duels.modeIds().size(), "a category NPC holds its modes");
-        assertTrue(duels.modeIds().contains("kb-displace"));
+        assertTrue(duels.modeIds().contains("boxing"));
         LobbyNpc ranked = settings.npc("rbw");
         assertEquals("§6§lRBW Modes", ranked.name());
         assertEquals("§6RBW situations §7to practice", ranked.subtitle());

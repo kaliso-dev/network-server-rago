@@ -183,7 +183,9 @@ class DailyChallengeTest {
                 "an old config that lists the Combo bot still reads");
         for (String board : DailyChallenge.Settings.DEFAULT_BOARDS) {
             assertFalse(board.startsWith("combo-bot."), "the Combo bot left the menus (22/11), and the challenge");
+            assertFalse(board.startsWith("kb-displace-bot."), "KB displace against a bot left the menus (23/11), and the challenge");
         }
+        assertTrue(DailyChallenge.CATALOG.containsKey("kb-displace-bot.still"), "an old config that lists it still reads");
         assertEquals("Block in practice: 3 layers, wood side", DailyChallenge.CATALOG.get("block-in.wood").label());
 
         YamlConfiguration wrong = new YamlConfiguration();

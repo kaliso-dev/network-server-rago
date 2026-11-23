@@ -206,14 +206,13 @@ evenements:
 # block-in.wool, block-in.two, clutch.island, clutch-top-fight.top, aim-trainer.strafe,
 # aim-trainer.jump, aim-trainer.circle, fast-defense.ranked, fast-defense.duo, ladder-practice.h4
 # (h8 ... h24), ladder-practice.random,
-# extend-practice.chain (and its jumps: double-5-1...), kb-displace-bot.still, block-edit.bot,
+# extend-practice.chain (and its jumps: double-5-1...), block-edit.bot,
 # bridge-chrono.16 (32, 64: the timed bridge, straight and flat).
 # actif: false turns it off; without the section, it runs with these settings.
 defi-du-jour:
   actif: true
   epreuves: [block-in.wood, clutch.island, aim-trainer.strafe, fast-defense.ranked, ladder-practice.random,
-    extend-practice.chain, clutch-top-fight.top, block-edit.bot, block-in.two, aim-trainer.circle,
-    kb-displace-bot.still]
+    extend-practice.chain, clutch-top-fight.top, block-edit.bot, block-in.two, aim-trainer.circle]
   xp-participation: 100
   xp-par-jour-de-suite: 25
   jours-de-suite-max: 7
@@ -230,6 +229,8 @@ aim-trainer:
   xp-par-seconde: 1
   touches-par-xp: 10
 
+# (Pearl practice and fireball practice left the menus, the owner's ask of 23/11: this section is no
+# longer read, it stays to put them back.)
 # Pearl practice and fireball practice, in a loop on the Bed Wars maps: each attempt on the next map
 # of this list that the server has (its world in the folder of the worlds, with its bedwars.yml of
 # the Bed Wars plugin), at another place, in another direction. Of each map, the side of a team is
@@ -263,6 +264,8 @@ block-in:
     - [-68, 76, -22, 135, 60]
     - [-68, 76, -30, 45, 60]
 
+# (KB displace, 1v1 and against a bot, left the menus, the owner's ask of 23/11: this section is no
+# longer read, it stays to put them back.)
 # KB displace (the duel and the drill against a bot) on the owner's map KbDisplace: its bridge and
 # islands copied once ("centre" and "zone" as the sumo maps); "defenseur", the defender's place
 # (the notch of the bridge, between its two raised blocks; the bot stands there), and "attaquant",

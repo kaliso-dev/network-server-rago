@@ -53,7 +53,7 @@ jouée.
   suite en partie, sinon pour ses prochains boxings, jusqu'au redémarrage). Avec un nombre, c'est
   toujours la vitesse de vol des builders (`/vitesse` de RagoBuildTools). Les arènes sont copiées
   comme les maps du sumo et ne sont pas dans le dépôt.
-- **KB displace**, comme un vrai top fight de Bed Fight, sur la map KbDisplace du propriétaire
+- **KB displace** (retiré des menus le 23/11, ta demande : il n'est plus ouvert, ses records et ses victoires restent dans les données, hors de `/records` et du mur ; son code reste, débranché. Ce qui suit le décrit tel qu'il était), comme un vrai top fight de Bed Fight, sur la map KbDisplace du propriétaire
   (section `kb-displace` de `config.yml`, copiée une fois au démarrage) : son pont d'un bloc de
   large, rien sur les côtés : l'attaquant part du bloc d'or, le défenseur se tient dans le creux du
   pont, entre ses deux blocs surélevés, 9 blocs devant lui.
@@ -285,7 +285,7 @@ réglages. Un entraînement de la liste que le serveur ne joue pas est laissé d
   sur son côté, puis tombe dans l'échelle. De haut la chute va vite : l'échelle posée au dernier
   moment arrive au serveur juste après l'atterrissage, alors l'atterrissage est jugé 5 ticks plus
   tard, échelle comprise, au lieu de renvoyer le joueur tout de suite. Série.
-- **Pearl practice** : en boucle sur les maps de Bed Wars, rien à choisir : chaque essai sur la
+- **Pearl practice** (retiré des menus le 23/11, ta demande : il n'est plus ouvert, ses records restent dans les données, hors de `/records` et du mur ; son code reste, débranché. Ce qui suit le décrit tel qu'il était) : en boucle sur les maps de Bed Wars, rien à choisir : chaque essai sur la
   map suivante de `pearl.cartes` (`config.yml`) que le serveur a (son monde dans le dossier des
   mondes, avec le `bedwars.yml` du plugin Bed Wars), à un autre endroit, dans une autre direction.
   De chaque map, le côté d'une équipe est copié une fois : sa base, ses îles aux diamants et le
@@ -305,7 +305,7 @@ réglages. Un entraînement de la liste que le serveur ne joue pas est laissé d
   sinon le serveur donne son chunk vide et les blocs se perdent. Chaque tour de la boucle passe par
   toutes les maps dans un nouvel ordre, jamais deux fois la même à la suite : une map ne revient pas
   toujours avec le même genre de situation. Sans aucune des maps, des îles simples du plugin.
-- **Fireball practice** : en boucle comme le pearl practice, sur les mêmes maps (`pearl.cartes`,
+- **Fireball practice** (retiré des menus le 23/11, ta demande : il n'est plus ouvert, ses records restent dans les données, hors de `/records` et du mur ; son code reste, débranché. Ce qui suit le décrit tel qu'il était) : en boucle comme le pearl practice, sur les mêmes maps (`pearl.cartes`,
   la même partie copiée), rien à choisir : chaque essai sur une autre map, à un autre endroit, dans
   une autre direction. Les situations viennent des ponts entre les îles (`MapFinder`), celles d'une
   vraie partie : le pont du joueur vers une île est cassé (7 à 9 blocs de vide), un fireball jump
@@ -380,7 +380,7 @@ réglages. Un entraînement de la liste que le serveur ne joue pas est laissé d
   déplace chaque tick avec la physique d'un joueur. Le scoreboard compte aussi les coups de chacun
   et le plus long combo du bot. Sur les arènes du boxing : le joueur sur le premier bloc de
   diamant, le bot 8 blocs devant lui.
-- **KB displace contre un bot** : le même pont (celui de la map KbDisplace quand le serveur l'a),
+- **KB displace contre un bot** (retiré des menus le 23/11, ta demande : il n'est plus ouvert, ses records restent dans les données, hors de `/records` et du mur ; son code reste, débranché. Ce qui suit le décrit tel qu'il était) : le même pont (celui de la map KbDisplace quand le serveur l'a),
   le joueur sur le bloc d'or, le bot à la place du défenseur, dans le creux. Après chaque coup
   on revient tout de suite au départ, pour reprendre de l'élan, jusqu'à ce que le bot tombe ; seul
   un coup depuis le pont, de face, compte, et son recul part dans l'axe du pont : seul le coup de

@@ -40,9 +40,9 @@
           "colour": "#55FFFF"
         }
       ],
-      "description": "Clutch, block in, fast defense, bridging, extend, pearls, bow, fireballs, aim, bots: one skill at a time.",
+      "description": "Clutch, block in, fast defense, bridging, extend, bow, aim: one skill at a time.",
       "skin": "practice",
-      "modes": 16,
+      "modes": 13,
       "also": []
     },
     {
@@ -84,9 +84,9 @@
           "colour": "#55FF55"
         }
       ],
-      "description": "Bed fight, Top BedFight, top bridge, bridge fight, block placement in 1v1 or 2v2; Lobby Fight, sumo, boxing, KB displace, fireball fight, bow. /duel a player to challenge them.",
+      "description": "Bed fight, Top BedFight, top bridge, bridge fight, block placement in 1v1 or 2v2; Lobby Fight, sumo, boxing, fireball fight, bow. /duel a player to challenge them.",
       "skin": "duels",
-      "modes": 21,
+      "modes": 20,
       "also": []
     },
     {
@@ -1383,23 +1383,6 @@
       ]
     },
     {
-      "id": "kb-displace",
-      "name": "KB displace 1v1",
-      "colour": "#55FF55",
-      "icon": "STICK",
-      "category": "duels",
-      "group": null,
-      "format": "1v1",
-      "ranked": false,
-      "startHere": false,
-      "event": false,
-      "sizeOf": null,
-      "description": "A real top fight: run along the bridge and knock the defender off sideways. Roles swap each hit.",
-      "plugins": [
-        "practice"
-      ]
-    },
-    {
       "id": "block-edit-duel",
       "name": "Block edit 1v1",
       "colour": "#55FF55",
@@ -1740,40 +1723,6 @@
       ]
     },
     {
-      "id": "pearl-practice",
-      "name": "Pearl practice",
-      "colour": "#55FFFF",
-      "icon": "ENDER_PEARL",
-      "category": "entrainement",
-      "group": null,
-      "format": "Solo",
-      "ranked": false,
-      "startHere": false,
-      "event": false,
-      "sizeOf": null,
-      "description": "A new Bed Wars map each try: pearl onto an island, back after a hit, and the pearl block clutch: to the wall of an island, then wool under you.",
-      "plugins": [
-        "practice"
-      ]
-    },
-    {
-      "id": "fireball-practice",
-      "name": "Fireball practice",
-      "colour": "#55FFFF",
-      "icon": "FIREBALL",
-      "category": "entrainement",
-      "group": null,
-      "format": "Solo",
-      "ranked": false,
-      "startHere": false,
-      "event": false,
-      "sizeOf": null,
-      "description": "A new Bed Wars map each try: fireball jump a broken bridge, knock bridgers and rushers into the void, and hit their fireballs back.",
-      "plugins": [
-        "practice"
-      ]
-    },
-    {
       "id": "shop-practice",
       "name": "Fast Shop",
       "colour": "#55FFFF",
@@ -1788,23 +1737,6 @@
       "description": "Buy lists of items as fast as you can, with your own Hypixel quick buy (copy it in one click: the book).",
       "plugins": [
         "bedwars"
-      ]
-    },
-    {
-      "id": "kb-displace-bot",
-      "name": "KB displace against a bot",
-      "colour": "#55FFFF",
-      "icon": "STICK",
-      "category": "entrainement",
-      "group": null,
-      "format": "Solo",
-      "ranked": false,
-      "startHere": false,
-      "event": false,
-      "sizeOf": null,
-      "description": "Run, turn your head, hit: knock the bot off sideways. Back at the start after each hit.",
-      "plugins": [
-        "practice"
       ]
     },
     {
@@ -2466,7 +2398,7 @@
       ]
     },
     "teamChoiceSeconds": {
-      "bedwars-normal": 20
+      "bedwars-normal": 30
     }
   },
   "pointsToWin": {

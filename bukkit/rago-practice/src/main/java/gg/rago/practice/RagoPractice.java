@@ -214,7 +214,6 @@ public final class RagoPractice extends JavaPlugin {
     /** Every practice mode, on its own row of zones. */
     private void registerModes(FileConfiguration config, World world, int slots, int spacing) {
         int boxing = config.getInt("points-pour-gagner.boxing", 100);
-        int kb = config.getInt("points-pour-gagner.kb-displace", 3);
         int blocks = config.getInt("points-pour-gagner.block-fight", 100);
         int edit = config.getInt("points-pour-gagner.block-edit", 5);
         int bridge = config.getInt("points-pour-gagner.bridge-fight", 5);
@@ -227,8 +226,9 @@ public final class RagoPractice extends JavaPlugin {
         PracticeHost boxingHost = register("boxing", (h, m, a, t) -> new Boxing(h, m, a, t, boxing), slots, spacing, false);
         onMaps(boxingHost, arenas);
         alsoRanked(boxingHost, "ranked-boxing");
-        KbDisplace.Place kbPlace = kbDisplacePlace(config, spacing);
-        register("kb-displace", (h, m, a, t) -> new KbDisplace(h, m, a, t, kb, kbPlace), slots, spacing, false);
+        // KB displace 1v1 left the menus (the owner, 23/11): its row stays reserved, so that the other
+        // modes keep their zones; its code stays, unplugged
+        hosted.add("(kb-displace)");
         List<MapZones.ZoneMap> blockMaps = zoneMaps(config, "block-fight.cartes", spacing, "the block placement");
         PracticeHost blockFight = register("block-fight-1v1", (h, m, a, t) -> new BlockFight(h, m, a, t, blocks), slots, spacing,
                 false);
@@ -250,17 +250,17 @@ public final class RagoPractice extends JavaPlugin {
         register("fast-defense", FastDefenseTraining::new, slots, spacing, false);
         register("extend-practice", ExtendTraining::new, slots, spacing, false);
         register("ladder-practice", LadderTraining::new, slots, spacing, false);
-        // the pearl practice and the fireball practice on the same parts of the Bed Wars maps, read once
-        List<MapParts.Part> parts = mapParts(config);
-        MapLoopTraining.Places pearlPlaces = new MapLoopTraining.Places(parts, false);
-        register("pearl-practice", (h, m, a, t) -> new PearlTraining(h, m, a, t, pearlPlaces), slots, spacing, false);
-        MapLoopTraining.Places fireballPlaces = new MapLoopTraining.Places(parts, true);
-        register("fireball-practice", (h, m, a, t) -> new FireballTraining(h, m, a, t, fireballPlaces), slots, spacing, false);
+        // the pearl practice and the fireball practice left the menus (the owner, 23/11): their rows stay
+        // reserved, their records stay (RecordCatalog), out of /records and the wall; the Bed Wars maps
+        // they played on are no longer read
+        hosted.add("(pearl-practice)");
+        hosted.add("(fireball-practice)");
         register("aim-trainer", (h, m, a, t) -> new AimTrainer(h, m, a, t, aimXp, aimHits), slots, spacing, false);
         // the Combo bot left the menus (the owner, 22/11): its row stays reserved, so that the other
         // modes keep their zones; its records stay (RecordCatalog), out of /records and the wall
         hosted.add("(combo-bot)");
-        register("kb-displace-bot", (h, m, a, t) -> new KbDisplaceBot(h, m, a, t, kbPlace), slots, spacing, false);
+        // KB displace against a bot left the menus too (the owner, 23/11), its records kept
+        hosted.add("(kb-displace-bot)");
         List<MapZones.ZoneMap> arenaMaps = withoutBlocks(zoneMaps(config, "block-fight-arena.cartes", spacing,
                 "the block placement arena"), GOLD_ID);
         onMaps(register("block-fight-arena", (h, m, a, t) -> new BlockArena(h, m, a, t, false), slots, spacing, true), arenaMaps);
