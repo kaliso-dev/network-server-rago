@@ -67,8 +67,11 @@ jouent comme des joueurs :
    RagoDeux a quitté une partie classée il y a un instant. RagoUn lance First Rush duo (2v2, non
    classé) : la party attend dans la même équipe, et quitte la file avec RagoDeux. RagoUn dissout
    la party.
-10. RagoDeux quitte le serveur dans une party : RagoUn est prévenu, et RagoDeux, revenu, voit de
-    nouveau le pseudo de RagoUn au-dessus de sa tête.
+10. RagoDeux quitte le serveur dans une party : RagoUn lit qu'il a 60 secondes pour revenir, et
+    `/p list` le montre encore ; RagoDeux, revenu, est toujours dans la party (les deux le lisent,
+    `/p list` : 2 membres) et voit de nouveau le pseudo de RagoUn au-dessus de sa tête ; RagoUn
+    dissout la party. La sortie au bout de 60 s est vérifiée par les tests unitaires
+    (`PartyBookTest`).
 11. un event de `/host` (plan 4.2) : un troisième bot, RagoTrois, opérateur (le script écrit son
     `ops.json`), lance un event Sumo. Tout le serveur lit l'annonce (« SUMO EVENT », « Hosted by
     RagoTrois », « Starts in 25s • 1/40 players »), avec un **[CLICK TO JOIN]** qui lance `/join` ;
@@ -201,20 +204,26 @@ fois plus rapide ; 4 ou 5 avec celle d'une partie), ouvre le shop : le Quick Buy
 case vide sans panneau, et les Blocks avec seulement laine, verre, end stone et planches ; il achète
 de la laine. Le bleu quitte la partie : le rouge gagne, et les deux reviennent au lobby.
 Puis trois bots en party jouent les parties privées (`tools/kb-control/bots/private-bots.mjs`,
-Bedwars Normal). Seul le chef de la party la lance ; son menu montre les deux lignes 4s et 2s, sans
-carte (le serveur de test n'a aucune map de 4 ou 8 équipes), et `/queue bedwars-normal-4s` seul
-est refusé. Le reste passe par `test-equipes`, un mode caché que le script ajoute à la config du
+Bedwars Normal). D'abord, RagoSalleOp (opérateur) fait de l'île du milieu de la carte démo son lobby
+d'attente (`/bw lobbyfight`). Seul le chef de la party lance la partie privée ; son menu des maps
+s'ouvre au lobby (ta demande du 25/11 : personne ne bouge encore) et montre les deux lignes 4s et
+2s, sans carte (le serveur de test n'a aucune map de 4 ou 8 équipes), et `/queue bedwars-normal-4s`
+seul est refusé. Le reste passe par `test-equipes`, un mode caché que le script ajoute à la config du
 lobby avec le même choix des équipes (`parties-privees-equipes`) sur Fast Bedwars 2v2, donc sur la
-carte démo, avec un compte à rebours de 8 secondes. Le script donne aussi les réglages du chef de
+carte démo, avec un compte à rebours de 8 secondes. Un premier essai : le chef choisit `bw-demo` au
+lobby, les trois vont au lobby d'attente au-dessus de la carte, sur une copie à eux ; le `/spawn` du
+deuxième annule la partie privée pour tous, revenus au lobby. Le script donne aussi les réglages du chef de
 party (`reglages-prives`) à Fast Bedwars 2v2 : un autre joueur ne peut pas régler (`/pg settings`) ;
 le chef ouvre « Game settings » depuis le menu des maps, met Speed II (trois clics, puis un clic
 droit en arrière), Max Diamond, Max Emerald et Break the Map, puis ceux d'Hypixel : Double Health,
 Low Gravity, Respawn Time à 1 seconde, Event Times à 2x (deux clics), Bed Instabreak et One Hit One
 Kill, dont le clic ouvre les huit armes, toutes Off : il met la Wooden Sword On, le Bow On puis Off,
-revient aux réglages (« 1/8 »), puis au menu des maps qui les montre. Le chef clique `bw-demo`, le menu des équipes s'ouvre pour les trois (laine rouge et bleue,
-les réglages dans celui du chef seulement) ; le chef et le deuxième prennent rouge, le troisième
+revient aux réglages (« 1/8 »), puis au menu des maps qui les montre. Le chef clique `bw-demo` : les
+trois vont au lobby d'attente au-dessus de la carte, en aventure, avec « Choose your team » (case
+5), le chef aussi avec « Game settings » (case 2), et le menu des équipes s'ouvre pour les trois
+(laine rouge et bleue, les réglages dans celui du chef seulement) ; le chef et le deuxième prennent rouge, le troisième
 aussi : « Red is full. » ; il ferme son menu, `/pg team` le rouvre avec les deux noms sous rouge. À
-la fin du compte à rebours la partie part seule : rouge les deux qui l'ont choisi, bleu le troisième
+la fin du compte à rebours la partie part seule, sur cette même copie : rouge les deux qui l'ont choisi, bleu le troisième
 (l'équipe la plus vide), sans stats (le log du serveur le dit), les réglages écrits. Chacun est sur
 l'île de son équipe ; le chef a Speed II, Protection IV sur son armure et Sharpness sur son épée dès
 le début, voit le générateur d'émeraudes au Tier III et les lits comme prochain événement (aucun

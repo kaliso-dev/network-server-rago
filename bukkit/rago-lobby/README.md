@@ -82,7 +82,11 @@ dans les files d'attente des modes de jeu.
   invitation (16 joueurs au plus depuis le 22/11, ta limite pour Bedwars Normal ; 8 avant, comme
   sur Hypixel sans grade). `/party accept`, `leave`, `list`, `kick`, `transfer`, `warp`
   (les membres du lobby viennent au chef), `disband`, et le chat de party avec `/pc <message>` ou
-  `/chat party` (`/chat all` pour revenir). Les messages sont entre deux lignes bleues. Seul le
+  `/chat party` (`/chat all` pour revenir). Les messages sont entre deux lignes bleues. Un
+  joueur qui quitte le serveur reste dans sa party 60 secondes (ta demande du 25/11) : les autres
+  le lisent, `/party list` le montre avec un point rouge, le chef peut le `kick` ; revenu à temps,
+  il est toujours dedans ; sinon il en sort (si c'était le chef, le suivant présent sur le serveur
+  mène). La party quitte la file où elle attendait. RagoBot, lui, en sort tout de suite. Seul le
   chef lance une file, pour toute la party :
   - une party qui remplit toute la partie (deux joueurs dans un mode 1v1, quatre dans un 2v2...)
     joue tout de suite une partie privée entre ses joueurs, qui ne compte dans aucune stat (ni

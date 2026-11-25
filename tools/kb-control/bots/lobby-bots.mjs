@@ -1111,9 +1111,11 @@ async function partyReplay (one, two) {
 }
 
 /**
- * RagoDeux leaves the server while in RagoUn's party, then comes back: RagoUn is told, and the
- * lobby forgot RagoDeux whole (an error there left its old scoreboard: no name tags at all).
- * Returns the RagoDeux of now.
+ * RagoDeux leaves the server while in RagoUn's party, then comes back: RagoUn is told that it has
+ * 60 seconds to rejoin (the owner's ask of 25/11: the party is not left at once) and still lists it
+ * in the party; back, RagoDeux is in it again, and the lobby forgot RagoDeux whole (an error there
+ * left its old scoreboard: no name tags at all). The minute itself is played by the unit tests
+ * (PartyBookTest). RagoUn then disbands the party. Returns the RagoDeux of now.
  */
 async function quitInParty (one, two) {
   let fromOne = mark(one)
@@ -1125,12 +1127,25 @@ async function quitInParty (one, two) {
   fromOne = mark(one)
   two.leaving = true
   two.quit()
-  await chatLine(one, /RagoDeux left the server and the party\./, 5000, fromOne)
+  await chatLine(one, /RagoDeux disconnected: they have 60 seconds to rejoin before they are removed from the party\./, 5000, fromOne)
+  fromOne = mark(one)
+  one.chat('/p list')
+  await chatLine(one, /Party Members: .*RagoDeux ●/, 5000, fromOne)
+  fromOne = mark(one)
   const back = await join('RagoDeux')
   await expectInLobby(back, 'back on the server')
+  await chatLine(back, /You are back in .*RagoUn's party\./, 10000)
+  await chatLine(one, /RagoDeux rejoined the party\./, 5000, fromOne)
   await waitFor(() => back.teamMap?.RagoUn != null, 5000,
     `RagoDeux, back, to see the name tag of RagoUn: teams ${JSON.stringify(Object.keys(back.teamMap ?? {}))}`)
-  log('party: RagoDeux left the server in the party, RagoUn was told, and back it sees the name tags')
+  let fromBack = mark(back)
+  back.chat('/p list')
+  await chatLine(back, /Party Members \(2\)/, 5000, fromBack)
+  fromBack = mark(back)
+  one.chat('/p disband')
+  await chatLine(back, /RagoUn has disbanded the party!/, 5000, fromBack)
+  log('party: RagoDeux left the server in the party, RagoUn was told it has 60 seconds; back, RagoDeux is still in'
+    + ' the party and sees the name tags; RagoUn disbanded it')
   return back
 }
 

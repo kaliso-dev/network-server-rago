@@ -24,15 +24,15 @@
 # bots play Fast Bedwars 1v1 (tools/kb-control/bots/fast-bots.mjs) on the demo map: its welcome, its
 # events (no Diamond II), no diamond generator nor upgrades NPC, its fast forge, its smaller shop.
 # Then three bots in a party play the private games (tools/kb-control/bots/private-bots.mjs), whose
-# waiting lobby (salle-attente-privee, the demo map here) RagoSalleOp sets first on the middle island
-# of the demo map (/bw lobbyfight): Bedwars Normal takes the party to it at once, where the leader
-# has the menu of its maps (its rows of 4s and 2s, with no map here) and the items of the waiting
-# lobby; the leader's /spawn cancels it for all; then test-equipes, a hidden mode
-# this script adds with the same team choice on Fast Bedwars 2v2: the settings of the leader (Speed
-# II, Max Diamond, Max Emerald, Break the Map, Double Health, Low Gravity, Respawn Time 1 second,
-# Event Times 2x, Bed Instabreak), the map, the team of each (one full), /pg team, the countdown,
-# the game with the teams chosen and the settings, in no stats; then FFA Archway, the FFA of the
-# party alone (1 minute here), a death, its end and its kills leaderboard.
+# waiting lobby RagoSalleOp sets first on the middle island of the demo map (/bw lobbyfight):
+# Bedwars Normal opens the menu of its maps in the lobby (its rows of 4s and 2s, with no map here);
+# then test-equipes, a hidden mode this script adds with the same team choice on Fast Bedwars 2v2:
+# the map chosen in the lobby takes the party to the waiting lobby over it, with its items; the
+# second's /spawn cancels it for all; then the settings of the leader (Speed II, Max Diamond, Max
+# Emerald, Break the Map, Double Health, Low Gravity, Respawn Time 1 second, Event Times 2x, Bed
+# Instabreak), the map, the team of each (one full), /pg team, the countdown, the game on that copy
+# with the teams chosen and the settings, in no stats; then FFA Archway, the FFA of the party alone
+# (1 minute here), a death, its end and its kills leaderboard.
 # Then a bot invites RagoBot into its party (tools/kb-control/bots/ragobot-bots.mjs): RagoBot refuses
 # ranked and the modes it does not play, wins a Sumo duel, a Boxing, a round of Top Bridge 1v1 and
 # a round of Lobby Fight 1v1 against the bot who stands still; in a Block placement 1v1 (RagoArbitre
@@ -316,9 +316,10 @@ KB_HOST=127.0.0.1 KB_PORT=$PORT node "$ROOT/tools/kb-control/bots/ctf-bots.mjs" 
 fast_status=0
 KB_HOST=127.0.0.1 KB_PORT=$PORT node "$ROOT/tools/kb-control/bots/fast-bots.mjs" || fast_status=$?
 # The same server for the private games: RagoSalleOp sets the waiting lobby of the demo map; three
-# bots in a party, Bedwars Normal in its waiting lobby, then test-equipes there: the map, the team
-# of each, the countdown, a Fast Bedwars 2v2 with those teams; then
-# FFA Archway, the FFA of the party, until its end (1 minute here) and its kills leaderboard.
+# bots in a party, the maps of Bedwars Normal in the lobby, then test-equipes: the map chosen in the
+# lobby, the party in the waiting lobby over it, the team of each, the countdown, a Fast Bedwars
+# 2v2 on that copy with those teams; then FFA Archway, the FFA of the party, until its end (1 minute
+# here) and its kills leaderboard.
 private_status=0
 KB_HOST=127.0.0.1 KB_PORT=$PORT node "$ROOT/tools/kb-control/bots/private-bots.mjs" || private_status=$?
 # The same server for RagoBot: a bot invites it into its party, plays the Sumo duel, the Boxing, Top

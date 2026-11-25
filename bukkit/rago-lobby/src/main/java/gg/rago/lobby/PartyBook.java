@@ -24,6 +24,12 @@ final class PartyBook {
      * 2 x 8 on a map of 2s, 4 x 4 on a map of 4s); 8 before, as on Hypixel without a rank.
      */
     static final int MAX_SIZE = 16;
+    /**
+     * How long a member who left the server stays in their party (the owner's ask of 25/11: « quand
+     * le joueur déconnecte ça ne doit pas quitter la party, il a juste 60 secondes pour se reconnecter
+     * sinon il est kick »).
+     */
+    static final long OFFLINE_MS = 60_000;
 
     /** A party: its leader first, then the others in the order they joined. */
     static final class Party {
@@ -95,6 +101,8 @@ final class PartyBook {
     }
 
     private final Map<UUID, Party> partyOf = new HashMap<>();
+    /** The members off the server, still in their party, and until when they stay in it. */
+    private final Map<UUID, Long> offline = new HashMap<>();
     /** Who may lead a party: everyone but RagoBot ({@link RagoBots}). */
     private java.util.function.Predicate<UUID> mayLead = player -> true;
 
@@ -158,16 +166,28 @@ final class PartyBook {
     }
 
     /**
-     * The player leaves their party (or is kicked, or left the server). The next player who may
-     * lead leads when the leader goes. A party left with one player and no invite, or with nobody
-     * who may lead, is disbanded. Returns the party left, or null.
+     * The player leaves their party (or is kicked, or did not come back on the server in time). The
+     * next player who may lead, on the server if one is, leads when the leader goes. A party left
+     * with one player and no invite, or with nobody who may lead, is disbanded. Returns the party
+     * left, or null.
      */
     Party leave(UUID player) {
+        offline.remove(player);
         Party party = partyOf.remove(player);
         if (party == null) {
             return null;
         }
+        boolean led = party.isLeader(player);
         party.members.remove(player);
+        if (led && !party.members.isEmpty() && !mayLeadNow(party.members.get(0))) {
+            // the next who may lead and is on the server; with none on it, the next who may lead
+            for (int i = 1; i < party.members.size(); i++) {
+                if (mayLeadNow(party.members.get(i))) {
+                    party.members.add(0, party.members.remove(i));
+                    break;
+                }
+            }
+        }
         if (!party.members.isEmpty() && !mayLead.test(party.members.get(0))) {
             for (int i = 1; i < party.members.size(); i++) {
                 if (mayLead.test(party.members.get(i))) {
@@ -181,6 +201,11 @@ final class PartyBook {
             disband(party);
         }
         return party;
+    }
+
+    /** May lead the party now: may lead, and is on the server. */
+    private boolean mayLeadNow(UUID player) {
+        return mayLead.test(player) && !offline.containsKey(player);
     }
 
     /** The leader takes this player out of the party. False if they are not in it. */
@@ -210,11 +235,42 @@ final class PartyBook {
         List<UUID> members = party.members();
         for (UUID member : members) {
             partyOf.remove(member);
+            offline.remove(member);
         }
         party.members.clear();
         party.invites.clear();
         party.disbanded = true;
         return members;
+    }
+
+    /** The member left the server: still in their party for {@link #OFFLINE_MS}. Their party, or null (none). */
+    Party wentOffline(UUID player, long nowMillis) {
+        Party party = partyOf.get(player);
+        if (party != null) {
+            offline.put(player, nowMillis + OFFLINE_MS);
+        }
+        return party;
+    }
+
+    /** The member is back on the server in time: still in their party. Their party, or null (they were in none). */
+    Party backOnline(UUID player) {
+        return offline.remove(player) == null ? null : partyOf.get(player);
+    }
+
+    /** True while this member is off the server, still in their party. */
+    boolean isOffline(UUID player) {
+        return offline.containsKey(player);
+    }
+
+    /** The members off the server for longer than {@link #OFFLINE_MS}: still in their party, to take out of it. */
+    List<UUID> offlineTooLong(long nowMillis) {
+        List<UUID> gone = new ArrayList<>();
+        for (Map.Entry<UUID, Long> entry : offline.entrySet()) {
+            if (entry.getValue() < nowMillis) {
+                gone.add(entry.getKey());
+            }
+        }
+        return gone;
     }
 
     /** Removes the invites that ran out; a party of one left without invite is disbanded. */

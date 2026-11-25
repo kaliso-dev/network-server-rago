@@ -135,4 +135,77 @@ class PartyBookTest {
         assertTrue(left.isDisbanded(), "nobody left who may lead");
         assertNull(alone.of(C));
     }
+
+    /** The owner's ask of 25/11: a member off the server stays in the party for a minute, then is out. */
+    @Test
+    void aMemberOffTheServerStaysInThePartyForAMinute() {
+        PartyBook book = party(A, B, C);
+        PartyBook.Party party = book.wentOffline(B, 1000);
+        assertSame(book.of(A), party);
+        assertTrue(book.isOffline(B));
+        assertEquals(Arrays.asList(A, B, C), book.together(A).members(), "still in the party");
+        assertTrue(book.offlineTooLong(1000 + PartyBook.OFFLINE_MS).isEmpty(), "a minute, not less");
+        assertEquals(Arrays.asList(B), book.offlineTooLong(1000 + PartyBook.OFFLINE_MS + 1));
+        book.leave(B);
+        assertFalse(book.isOffline(B));
+        assertNull(book.of(B), "out after the minute");
+        assertEquals(Arrays.asList(A, C), book.of(A).members());
+        assertTrue(book.offlineTooLong(Long.MAX_VALUE).isEmpty());
+    }
+
+    @Test
+    void aMemberBackInTimeIsStillInTheParty() {
+        PartyBook book = party(A, B);
+        book.wentOffline(B, 0);
+        assertSame(book.of(A), book.backOnline(B));
+        assertFalse(book.isOffline(B));
+        assertTrue(book.offlineTooLong(PartyBook.OFFLINE_MS + 1).isEmpty(), "back: no longer counted");
+        assertEquals(Arrays.asList(A, B), book.together(B).members());
+        assertNull(book.backOnline(B), "back once");
+        assertNull(book.wentOffline(C, 0), "in no party");
+        assertFalse(book.isOffline(C));
+    }
+
+    /** The leader off the server leads until the minute is over; then the next one on the server leads. */
+    @Test
+    void theLeaderOffTheServerIsFollowedByOneOnIt() {
+        PartyBook book = party(A, B, C);
+        book.wentOffline(A, 0);
+        book.wentOffline(B, 0);
+        assertTrue(book.of(C).isLeader(A), "the leader off the server still leads");
+        PartyBook.Party party = book.leave(A);
+        assertEquals(Arrays.asList(C, B), party.members(), "the next one on the server leads");
+        assertTrue(book.isOffline(B));
+
+        PartyBook all = party(A, B);
+        all.wentOffline(A, 0);
+        all.wentOffline(B, 0);
+        PartyBook.Party left = all.leave(A);
+        assertTrue(left.isDisbanded(), "one left, and no invite");
+        assertFalse(all.isOffline(B));
+        assertNull(all.backOnline(B));
+    }
+
+    @Test
+    void aMemberOffTheServerIsOutWhenThePartyEndsOrKicksThem() {
+        PartyBook book = party(A, B, C);
+        book.wentOffline(B, 0);
+        assertTrue(book.kick(A, B));
+        assertFalse(book.isOffline(B));
+        assertNull(book.of(B));
+        book.wentOffline(C, 0);
+        book.disband(book.of(A));
+        assertFalse(book.isOffline(C));
+        assertNull(book.backOnline(C));
+    }
+
+    /** A party of these players, the first leading. */
+    private static PartyBook party(UUID... players) {
+        PartyBook book = new PartyBook();
+        for (int i = 1; i < players.length; i++) {
+            book.invite(players[0], players[i], 0);
+            book.accept(players[i], players[0], 0);
+        }
+        return book;
+    }
 }

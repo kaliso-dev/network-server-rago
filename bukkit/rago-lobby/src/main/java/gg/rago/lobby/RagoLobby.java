@@ -880,6 +880,7 @@ public final class RagoLobby extends JavaPlugin implements LobbyService {
             () -> kits.forget(id),
             () -> hypixel.forget(id),
             () -> statsDisplays.forget(id),
+            () -> parties.leaving(player),
             () -> ranks.forget(id),
             () -> queues.forget(id),
             () -> parties.forget(id),
@@ -1977,6 +1978,8 @@ public final class RagoLobby extends JavaPlugin implements LobbyService {
         }
         visibility.applyVanish(player);
         social.announce(player, true);
+        // back within a minute of leaving: still in their party (the owner's ask of 25/11)
+        parties.rejoined(player);
         LobbyWelcome.clearTitle(player);
         LobbyWelcome.greet(player, settings);
         if (profiles.dailyReady(player.getUniqueId())) {
