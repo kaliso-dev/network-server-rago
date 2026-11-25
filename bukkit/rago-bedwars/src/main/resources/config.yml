@@ -343,12 +343,13 @@ reglages-prives: [bedwars-normal-4s, bedwars-normal-2s]
 # has the most kills wins (several level at the top: a draw). The open FFA never ends.
 ffa-privee-minutes: 30
 
-# The waiting lobby of the private games of Bedwars Normal (the owner's ask of 23/11: the party goes
-# there at once; there its leader chooses the map and sets the game, everyone chooses their team,
-# then the game starts on the map chosen): the map whose waiting lobby (salle-attente: in its
-# bedwars.yml, set with /bw lobbyfight on its floor) the party goes to, in a copy of its own. Archway
-# FFA, the only map with one on the owner's server for now (to confirm). "" or a map without one:
-# the leader chooses the map from the lobby, as before.
+# The private games of Bedwars Normal (the owner's ask of 25/11): once its leader has chosen the map
+# in the lobby, the party goes to the waiting lobby over that map (salle-attente: in its bedwars.yml,
+# set with /bw lobbyfight on its floor), in a copy of its own, chooses its teams there while the
+# leader sets the game, then plays on that copy. A map without its waiting lobby: the party waits
+# in the one of this map instead (Archway FFA, the only one set on the owner's server for now, to
+# confirm), then plays on a copy of the map chosen. "" or a map without one: the teams are chosen
+# from the lobby, as before.
 salle-attente-privee: ArchwayFFA
 
 # How many game worlds the server keeps at most, so how many games at once (from 1 to 50).

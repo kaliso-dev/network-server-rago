@@ -12,13 +12,15 @@ import org.bukkit.entity.Player;
 /**
  * The waiting lobby of a private game of Bedwars Normal (the owner's ask of 23/11: « ça doit
  * directement TP tous les joueurs au lobby d'attente bedwars de base et c'est là-bas que le host doit
- * faire les settings de la map et que les joueurs puissent choisir leur équipe »; the map chosen
- * there too, the owner's choice of 23/11): the party in the waiting lobby (salle-attente:) of a copy of the
- * map of salle-attente-privee, its own, while its leader chooses the map and sets the game and
- * everyone chooses their team, with the items and the menus of the lobby. Nobody is hurt or hungry
- * there, nobody builds (adventure mode); who falls off the lobby is back in its middle. It is over
- * when the last of them is gone: to the map of their game, or back to the lobby; its copy is then
- * free again. Main thread only.
+ * faire les settings de la map et que les joueurs puissent choisir leur équipe »; since the owner's
+ * ask of 25/11, the map chosen first, in the lobby: « dès qu'il choisit la map ça le tp lui et les
+ * membres de la party sur le lobby d'attente au-dessus de la map qu'il a choisie »): the party in the
+ * waiting lobby (salle-attente:) of a copy of its own of the map chosen (or of the map of
+ * salle-attente-privee, for a map without one), while its leader sets the game and everyone chooses
+ * their team, with the items and the menus of the lobby. Nobody is hurt or hungry there, nobody
+ * builds (adventure mode); who falls off the lobby is back in its middle. It is over when the last
+ * of them is gone: to their game (on this same copy when it is the map of the game), or back to the
+ * lobby; its copy is then free again, unless their game plays on it. Main thread only.
  */
 final class PrivateWaitingLobby {
 

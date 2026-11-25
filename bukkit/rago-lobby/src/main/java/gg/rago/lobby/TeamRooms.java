@@ -29,21 +29,20 @@ import org.bukkit.inventory.meta.ItemMeta;
 
 /**
  * The private games whose players choose their teams (parties-privees-equipes: Bedwars Normal, the
- * owner's answers of 22/11). The party leader clicks the mode: the whole party goes at once to the
- * waiting lobby of its host ({@link MatchHost#gather}, the owner's ask of 23/11: « ça doit
- * directement TP tous les joueurs au lobby d'attente bedwars ... c'est là-bas que le host doit faire
- * les settings de la map et que les joueurs puissent choisir leur équipe, PAS AVANT DANS LE PNJ »),
- * where the leader chooses a map (the owner's choice of 23/11: in the waiting lobby), in a row for each of
- * its modes (the 4s, then the 2s), with the item of the map in their hotbar; then every player of
- * the party has the team menu (the colours of the map; the item of the teams) for the countdown of
- * the mode, 30 seconds (15 once everyone has chosen, the owner's ask of 23/11), and the game starts by
- * itself on that map with the teams of {@link TeamRoom}, in no stats. /pg team opens the menu again. A
- * party that changes, or a player who leaves the waiting lobby (/spawn, the server), cancels it: the
- * others go back to the lobby. A host without a waiting lobby ({@link MatchHost.Gathering#NONE}):
- * the map and the teams are chosen from the lobby, as before. The leader sets the game (Speed, Max
- * Diamond...: the settings its host offers, {@link MatchHost#privateSettings}) from the map menu, the
- * team menu, the item of the settings or /pg settings; they are kept for the leader's next games
- * until they leave the server. Main thread only.
+ * owner's answers of 22/11). The party leader clicks the mode and chooses a map in its menu, in the
+ * lobby, in a row for each of its modes (the 4s, then the 2s); then the whole party goes to the
+ * waiting lobby over that map, as for a game (the owner's ask of 25/11: « dès qu'il choisit la map ça
+ * le tp lui et les membres de la party sur le lobby d'attente au-dessus de la map qu'il a choisie »,
+ * {@link MatchHost#gather}), where every player has the team menu (the colours of the map; the item
+ * of the teams) for the countdown of the mode, 30 seconds (15 once everyone has chosen, the owner's
+ * ask of 23/11), while the leader sets the game; then the game starts by itself on that map with the
+ * teams of {@link TeamRoom}, in no stats. /pg team opens the menu again. A party that changes, or a
+ * player who leaves the waiting lobby (/spawn, the server), cancels it: the others go back to the
+ * lobby. A host without a waiting lobby for that map ({@link MatchHost.Gathering#NONE}): the teams
+ * are chosen from the lobby, as before. The leader sets the game (Speed, Max Diamond...: the
+ * settings its host offers, {@link MatchHost#privateSettings}) from the map menu, the team menu, the
+ * item of the settings or /pg settings; they are kept for the leader's next games until they leave
+ * the server. Main thread only.
  */
 final class TeamRooms {
 
@@ -58,12 +57,10 @@ final class TeamRooms {
     private static final int TEAM_ROW = 9;
     /** The settings of the game in the team menu, for the leader: its last slot. */
     private static final int SETTINGS_SLOT = 26;
-    /** The items of the waiting lobby, by their names: the map and the settings for the leader, the teams for everyone. */
-    static final String MAP_ITEM = ChatColor.GREEN + "Choose the map";
+    /** The items of the waiting lobby, by their names: the settings for the leader, the teams for everyone. */
     static final String SETTINGS_ITEM = ChatColor.GREEN + "Game settings";
     static final String TEAM_ITEM = ChatColor.GREEN + "Choose your team";
     /** Their slots in the hotbar. */
-    static final int MAP_ITEM_SLOT = 0;
     static final int SETTINGS_ITEM_SLOT = 1;
     static final int TEAM_ITEM_SLOT = 4;
 
@@ -71,8 +68,8 @@ final class TeamRooms {
     static final class Room {
         final GameMode menuMode;
         /**
-         * The mode whose host has the waiting lobby (the first mode of menuMode with a host), or null:
-         * no waiting lobby, the map and the teams chosen from the lobby, as before.
+         * The mode of the map chosen, whose host has the waiting lobby of the party, or null: no
+         * waiting lobby, the teams chosen from the lobby, as before.
          */
         final GameMode hostMode;
         final UUID party;
@@ -181,21 +178,16 @@ final class TeamRooms {
     // --- The map ----------------------------------------------------------------------------------
 
     /**
-     * The player clicked the mode: the party of its leader goes to the waiting lobby of the mode,
-     * where the leader chooses the map; with no waiting lobby, the leader chooses it here. In a room
-     * already: its map menu for the leader while the map is not chosen, else the team menu.
+     * The player clicked the mode: the map menu, in the lobby (the leader chooses the map there, then
+     * the party goes to the waiting lobby over it). In a room already: the team menu, once there.
      */
     void open(Player player, GameMode menuMode) {
         Room room = roomOf(player.getUniqueId());
         if (room != null) {
-            if (room.map != null) {
-                openTeams(player);
-            } else if (!room.gathered) {
+            if (room.hostMode != null && !room.gathered) {
                 player.sendMessage(ChatColor.GRAY + "The waiting lobby of the private game is being prepared: in a moment.");
-            } else if (player.getUniqueId().equals(room.leader)) {
-                openMaps(player, room.menuMode, room.players.size());
             } else {
-                player.sendMessage(ChatColor.GRAY + nameOf(room.leader) + " chooses the map of the private game.");
+                openTeams(player);
             }
             return;
         }
@@ -203,55 +195,27 @@ final class TeamRooms {
         if (members == null) {
             return;
         }
-        GameMode hostMode = hostModeOf(menuMode);
-        MatchHost.Gathering gathering = canGather(hostMode);
-        if (gathering == MatchHost.Gathering.NONE) {
-            // no waiting lobby on this server: the map, then the teams, from the lobby, as before
-            openMaps(player, menuMode, members.size());
-            return;
-        }
-        List<UUID> ids = new ArrayList<>();
-        for (Player member : members) {
-            ids.add(member.getUniqueId());
-        }
-        room = new Room(menuMode, hostMode, parties.together(player.getUniqueId()).id(), player.getUniqueId(), ids);
-        rooms.add(room);
-        if (gathering == MatchHost.Gathering.READY) {
-            gather(room);
-        } else {
-            room.gatherUntil = System.currentTimeMillis() + QueueController.DIRECT_WAIT_MILLIS;
-            tell(room, ChatColor.GRAY + "The waiting lobby of the private game is being prepared: in a moment.");
-        }
+        openMaps(player, menuMode, members.size());
     }
 
-    /** The mode of this one whose host has the waiting lobby: the first with a host, or null. */
-    private GameMode hostModeOf(GameMode menuMode) {
-        for (GameMode mode : settings.privateRoutes().get(menuMode.id())) {
-            if (queues.hostOf(mode.id()) != null) {
-                return mode;
-            }
-        }
-        return null;
-    }
-
-    /** May a party go to the waiting lobby of this mode's host now? NONE without a host, or if it fails to answer. */
-    private MatchHost.Gathering canGather(GameMode hostMode) {
-        MatchHost host = hostMode == null ? null : queues.hostOf(hostMode.id());
+    /** May a party go to the waiting lobby of the room's map now? NONE without a host, or if it fails to answer. */
+    private MatchHost.Gathering canGather(Room room) {
+        MatchHost host = queues.hostOf(room.mode.id());
         if (host == null) {
             return MatchHost.Gathering.NONE;
         }
         try {
-            MatchHost.Gathering answer = host.canGather(hostMode);
+            MatchHost.Gathering answer = host.canGather(room.mode, room.map);
             return answer == null ? MatchHost.Gathering.NONE : answer;
         } catch (RuntimeException e) {
-            logger.log(Level.WARNING, "The mode " + hostMode.id() + " could not tell if its waiting lobby is ready", e);
+            logger.log(Level.WARNING, "The mode " + room.mode.id() + " could not tell if its waiting lobby is ready", e);
             return MatchHost.Gathering.NONE;
         }
     }
 
     /**
      * The party goes to its waiting lobby: it belongs to the host's game from now on; the items of
-     * the waiting lobby, and the map menu for the leader. If the host cannot take it, the private
+     * the waiting lobby, and the team menu for everyone. If the host cannot take it, the private
      * game is cancelled, the players still in the lobby.
      */
     private void gather(Room room) {
@@ -270,7 +234,7 @@ final class TeamRooms {
         MatchHost host = queues.hostOf(room.hostMode.id());
         boolean gathered;
         try {
-            gathered = host != null && host.gather(room.hostMode, players);
+            gathered = host != null && host.gather(room.mode, room.map, players);
         } catch (RuntimeException e) {
             logger.log(Level.WARNING, "The mode " + room.hostMode.id() + " could not take a party to its waiting lobby", e);
             gathered = false;
@@ -283,31 +247,22 @@ final class TeamRooms {
             return;
         }
         room.gathered = true;
-        String leader = nameOf(room.leader);
         for (Player player : players) {
             giveItems(room, player);
-            Parties.boxed(player, ChatColor.LIGHT_PURPLE + "Private game of " + room.menuMode.name() + ChatColor.LIGHT_PURPLE
-                    + " in its waiting lobby: " + ChatColor.WHITE + leader + ChatColor.LIGHT_PURPLE + " chooses the map and"
-                    + " sets the game, then everyone chooses their team. /spawn takes you back to the lobby.");
         }
-        Player first = Bukkit.getPlayer(room.leader);
-        if (first != null) {
-            openMaps(first, room.menuMode, room.players.size());
-        }
+        startChoosing(room);
     }
 
-    /** The items of the waiting lobby: the map and the settings for the leader, the teams for everyone. */
+    /** The items of the waiting lobby: the settings for the leader, the teams for everyone. */
     private void giveItems(Room room, Player player) {
         if (player.getUniqueId().equals(room.leader)) {
-            player.getInventory().setItem(MAP_ITEM_SLOT, ClickMenu.item(Material.EMPTY_MAP, MAP_ITEM,
-                    "Right-click to choose the map of the game."));
             if (!settingsOf(modesOf(room)).isEmpty()) {
                 player.getInventory().setItem(SETTINGS_ITEM_SLOT, ClickMenu.item(Material.REDSTONE_COMPARATOR, SETTINGS_ITEM,
                         "Right-click to set the game."));
             }
         }
         player.getInventory().setItem(TEAM_ITEM_SLOT, ClickMenu.item(Material.WOOL, TEAM_ITEM,
-                "Right-click to choose your team,", "once the map is chosen."));
+                "Right-click to choose your team."));
         player.updateInventory();
     }
 
@@ -319,9 +274,7 @@ final class TeamRooms {
         }
         // ClickMenu.item names them after a reset of the colours
         String name = item.getItemMeta().getDisplayName();
-        if (name.equals(ChatColor.RESET + MAP_ITEM)) {
-            open(player, room.menuMode);
-        } else if (name.equals(ChatColor.RESET + SETTINGS_ITEM)) {
+        if (name.equals(ChatColor.RESET + SETTINGS_ITEM)) {
             openSettings(player);
         } else if (name.equals(ChatColor.RESET + TEAM_ITEM)) {
             openTeams(player);
@@ -332,9 +285,9 @@ final class TeamRooms {
         return true;
     }
 
-    /** The modes whose settings the leader of this room sets: the mode of its map, or all of them before. */
+    /** The modes whose settings the leader of this room sets: the mode of its map. */
     private List<GameMode> modesOf(Room room) {
-        return room.mode != null ? Collections.singletonList(room.mode) : settings.privateRoutes().get(room.menuMode.id());
+        return Collections.singletonList(room.mode);
     }
 
     private static String nameOf(UUID player) {
@@ -453,54 +406,64 @@ final class TeamRooms {
     }
 
     /**
-     * The leader chose the map: the team choice starts for the whole party, in its waiting lobby (or
-     * in the lobby, with no waiting lobby: the room starts now).
+     * The leader chose the map, in the lobby: the party goes to the waiting lobby over it, where the
+     * team choice starts (with no waiting lobby for it: here, as before).
      */
     private void chooseMap(Player leader, GameMode menuMode, GameMode mode, String map) {
-        Room room = roomOf(leader.getUniqueId());
-        if (room != null && (!room.gathered || room.map != null || !leader.getUniqueId().equals(room.leader))) {
+        if (roomOf(leader.getUniqueId()) != null) {
             leader.closeInventory();
             return;
         }
-        int size;
-        if (room != null) {
-            size = room.players.size();
-        } else {
-            List<Player> members = members(leader, menuMode);
-            if (members == null) {
-                leader.closeInventory();
-                return;
-            }
-            size = members.size();
-            if (size <= mode.playersPerMatch()) {
-                List<UUID> ids = new ArrayList<>();
-                for (Player member : members) {
-                    ids.add(member.getUniqueId());
-                }
-                room = new Room(menuMode, null, parties.together(leader.getUniqueId()).id(), leader.getUniqueId(), ids);
-            }
-        }
-        if (size > mode.playersPerMatch()) {
+        List<Player> members = members(leader, menuMode);
+        if (members == null) {
             leader.closeInventory();
-            Parties.boxed(leader, ChatColor.RED + "Your party has " + size + " players: " + map
+            return;
+        }
+        if (members.size() > mode.playersPerMatch()) {
+            leader.closeInventory();
+            Parties.boxed(leader, ChatColor.RED + "Your party has " + members.size() + " players: " + map
                     + " has room for " + mode.playersPerMatch() + ".");
             return;
         }
-        int seconds = settings.teamRooms().get(menuMode.id());
-        room.mapChosen(mode, map, new TeamRoom(room.players, mode.teams(), mode.playersPerTeam()), icons(mode, map), seconds);
-        if (!rooms.contains(room)) {
-            rooms.add(room);
+        leader.closeInventory();
+        List<UUID> ids = new ArrayList<>();
+        for (Player member : members) {
+            ids.add(member.getUniqueId());
         }
+        int seconds = settings.teamRooms().get(menuMode.id());
+        Room probe = new Room(menuMode, mode, parties.together(leader.getUniqueId()).id(), leader.getUniqueId(), ids);
+        probe.mapChosen(mode, map, new TeamRoom(probe.players, mode.teams(), mode.playersPerTeam()), icons(mode, map), seconds);
+        MatchHost.Gathering gathering = canGather(probe);
+        Room room = probe;
+        if (gathering == MatchHost.Gathering.NONE) {
+            // no waiting lobby for this map: the teams chosen from the lobby, as before
+            room = new Room(menuMode, null, probe.party, probe.leader, ids);
+            room.mapChosen(mode, map, probe.teams, probe.icons, seconds);
+        }
+        rooms.add(room);
+        if (gathering == MatchHost.Gathering.NONE) {
+            startChoosing(room);
+        } else if (gathering == MatchHost.Gathering.READY) {
+            gather(room);
+        } else {
+            room.gatherUntil = System.currentTimeMillis() + QueueController.DIRECT_WAIT_MILLIS;
+            tell(room, ChatColor.GRAY + "The waiting lobby of the private game is being prepared: in a moment.");
+        }
+    }
+
+    /** The team choice starts for the whole party: told, the button of /pg team, the team menu. */
+    private void startChoosing(Room room) {
+        String leader = nameOf(room.leader);
         for (UUID id : room.players) {
             Player member = Bukkit.getPlayer(id);
             if (member == null) {
                 continue;
             }
-            member.closeInventory();
-            Parties.boxed(member, ChatColor.LIGHT_PURPLE + leader.getName() + " started a private game of "
-                    + menuMode.name() + " " + format(mode) + ChatColor.LIGHT_PURPLE + " on " + ChatColor.WHITE + map
-                    + ChatColor.LIGHT_PURPLE + ": choose your team (" + teamsText(mode) + "). The game starts in "
-                    + seconds + " seconds; with no choice, you go in the emptiest team.");
+            Parties.boxed(member, ChatColor.LIGHT_PURPLE + leader + " started a private game of "
+                    + room.menuMode.name() + " " + format(room.mode) + ChatColor.LIGHT_PURPLE + " on " + ChatColor.WHITE + room.map
+                    + ChatColor.LIGHT_PURPLE + ": choose your team (" + teamsText(room.mode) + "). The game starts in "
+                    + room.secondsLeft + " seconds; with no choice, you go in the emptiest team."
+                    + (room.gathered ? " " + leader + " sets the game meanwhile; /spawn takes you back to the lobby." : ""));
             // clickable through the vanilla /tellraw, as the other buttons of the lobby: names are letters, digits and _
             Bukkit.dispatchCommand(Bukkit.getConsoleSender(), "tellraw " + member.getName() + " " + TEAM_BUTTON);
             openTeams(member);
@@ -902,10 +865,6 @@ final class TeamRooms {
                 waitForWaitingLobby(room);
                 continue;
             }
-            if (room.map == null) {
-                // the leader chooses the map
-                continue;
-            }
             if (room.secondsLeft > 0) {
                 room.secondsLeft--;
                 if (room.secondsLeft > 0) {
@@ -929,7 +888,7 @@ final class TeamRooms {
 
     /** The party waits in the lobby for its waiting lobby: in it once it is ready, or the game cancelled after a while. */
     private void waitForWaitingLobby(Room room) {
-        MatchHost.Gathering gathering = canGather(room.hostMode);
+        MatchHost.Gathering gathering = canGather(room);
         if (gathering == MatchHost.Gathering.READY) {
             gather(room);
         } else if (gathering == MatchHost.Gathering.NONE) {

@@ -950,9 +950,9 @@ final class BedwarsSettings {
 
     /**
      * The map whose waiting lobby (salle-attente: in its bedwars.yml) the party of a private game of
-     * Bedwars Normal goes to at once, a copy of its own, where its leader chooses the map and sets
-     * the game and everyone their team (the owner's ask of 23/11; salle-attente-privee); "" for none:
-     * the lobby's menus, as before.
+     * Bedwars Normal waits in, a copy of its own, when the map its leader chose has none of its own
+     * (salle-attente-privee; the owner's ask of 25/11: the waiting lobby over the map chosen); "" for
+     * none: the teams are chosen from the lobby.
      */
     String privateWaitingMap() {
         return privateWaitingMap;

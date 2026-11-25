@@ -125,17 +125,17 @@ couleurs, une équipe que personne n'a choisie vide. Elle ne joue pas : son lit 
 celui des îles vides. Le menu des équipes du lobby montre les couleurs que l'hôte donne pour la
 map (`teamIcons`).
 
-**Le lobby d'attente** (ta demande du 23/11 ; `salle-attente-privee:`, `PrivateWaitingLobby`) : la
-party part aussitôt dans la salle d'attente (`salle-attente:`) de la map nommée là, Archway FFA
-(la seule de ton serveur qui en a une pour l'instant, à confirmer), dans une copie à elle seule,
-au milieu du sol, en mode aventure, sans rien en main ; le chef y choisit la map et règle la
-partie, chacun son équipe, avec les objets et les menus du lobby (voir le README de RagoLobby).
-Personne n'y prend de dégâts ni n'a faim, personne n'y construit ni n'utilise les portes, coffres
-ou boutons ; qui tombe du sol (3 blocs sous lui) revient au milieu ; on n'y jette rien ; son chat
-est celui de la party seule. La partie part ensuite sur une copie de la map choisie, et la copie
-du lobby d'attente est libre dès que le dernier joueur en est parti (vers la partie, le lobby ou
-hors du serveur). Une map sans salle d'attente, ou `salle-attente-privee: ""` : le chef choisit la
-map depuis le lobby, comme avant (un avertissement dans le log, une seule fois).
+**Le lobby d'attente** (ta demande du 25/11 ; `PrivateWaitingLobby`) : la map choisie par le chef
+au lobby, la party part dans la salle d'attente de cette map (`salle-attente:` de son bedwars.yml,
+posée avec `/bw lobbyfight` sur son sol), dans une copie à elle seule, au milieu du sol, en mode
+aventure, sans rien en main ; chacun y choisit son équipe pendant que le chef règle la partie, avec
+les objets et les menus du lobby (voir le README de RagoLobby). Personne n'y prend de dégâts ni n'a
+faim, personne n'y construit ni n'utilise les portes, coffres ou boutons ; qui tombe du sol (3 blocs
+sous lui) revient au milieu ; on n'y jette rien ; son chat est celui de la party seule. La partie se
+joue ensuite sur cette même copie, sous leurs pieds. Une map sans salle d'attente : la party attend
+dans celle de la map de `salle-attente-privee:` (Archway FFA, la seule réglée sur ton serveur pour
+l'instant, à confirmer), puis joue sur une copie de la map choisie ; cette copie-là est libre dès
+que le dernier joueur en est parti. Aucune : les équipes se choisissent au lobby, comme avant.
 
 Les réglages du chef de party (`reglages-prives:`, `PrivateRules`, testés par `PrivateRulesTest`),
 tes quatre d'abord ; chacun est celui d'une partie normale tant qu'il n'est pas changé :

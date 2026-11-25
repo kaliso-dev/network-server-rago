@@ -106,23 +106,25 @@ public interface MatchHost {
     }
 
     /**
-     * May a party go now to the waiting lobby of a private game of this mode (the owner's ask of
-     * 23/11: the party goes there at once, and there its leader chooses the map and sets the game,
-     * everyone their team)? Asking may get one ready (start the copy of its map). NONE, the default:
+     * May a party go now to the waiting lobby of its private game of this mode on this map, the map
+     * its leader chose in the lobby (the owner's ask of 25/11: once the map is chosen, the party goes
+     * to the waiting lobby over it, as for a game, and there everyone chooses their team while the
+     * leader sets the game)? Asking may get one ready (start the copy of its map). NONE, the default:
      * this host has none.
      */
-    default Gathering canGather(GameMode mode) {
+    default Gathering canGather(GameMode mode, String map) {
         return Gathering.NONE;
     }
 
     /**
      * Takes these players, a party, its leader first, to a waiting lobby of their own for their
-     * private game of this mode, after {@link #canGather} said READY; the lobby made them belong to
-     * this mode's game first. They stay in it until their game starts ({@link #start} takes them from
-     * it to the map) or they leave it ({@link #abandon}, back to the lobby). False if it could not
-     * after all (the default): they are still in the lobby.
+     * private game of this mode on this map, after {@link #canGather} said READY; the lobby made them
+     * belong to this mode's game first. They stay in it until their game starts ({@link #start} takes
+     * them from it to the map, the same copy when it is the waiting lobby of that map) or they leave it
+     * ({@link #abandon}, back to the lobby). False if it could not after all (the default): they are
+     * still in the lobby.
      */
-    default boolean gather(GameMode mode, List<Player> players) {
+    default boolean gather(GameMode mode, String map, List<Player> players) {
         return false;
     }
 }

@@ -152,12 +152,32 @@ final class BedwarsHost implements MatchHost, Listener {
                 && joinable(match.mode().id(), maps) != null) {
             return true;
         }
+        if (waitingOn(sidesOf(match), maps) != null) {
+            // a private game whose waiting lobby is over its map: played on that copy
+            return true;
+        }
         List<BedwarsMap> drawn = drawn(match.mode(), maps);
         if (plugin.instances().hasFree(drawn)) {
             return true;
         }
         plugin.instances().prepare(drawn, true);
         return false;
+    }
+
+    /** The online players of the match, by team; a team without a player online stays empty. */
+    private static List<List<Player>> sidesOf(MatchProposal match) {
+        List<List<Player>> sides = new ArrayList<>();
+        for (List<QueueEntry> team : match.teams()) {
+            List<Player> side = new ArrayList<>();
+            for (QueueEntry entry : team) {
+                Player player = Bukkit.getPlayer(entry.player());
+                if (player != null) {
+                    side.add(player);
+                }
+            }
+            sides.add(side);
+        }
+        return sides;
     }
 
     /**
@@ -234,8 +254,23 @@ final class BedwarsHost implements MatchHost, Listener {
             }
             return true;
         }
-        List<BedwarsMap> drawn = drawn(mode, maps);
-        Instance instance = plugin.instances().acquire(drawn);
+        PrivateWaitingLobby waitedOn = waitingOn(sides, maps);
+        List<BedwarsMap> drawn = waitedOn != null ? Collections.singletonList(waitedOn.instance().map()) : drawn(mode, maps);
+        Instance instance;
+        if (waitedOn != null) {
+            // the private game waited over its map: played on that copy, which stays taken
+            instance = waitedOn.instance();
+            if (instance.map().sides() < islands(mode)) {
+                // the players still stand in it: their copy is freed when they leave it
+                return false;
+            }
+            for (UUID id : waitedOn.players()) {
+                waiting.remove(id);
+                waitedOn.remove(id);
+            }
+        } else {
+            instance = plugin.instances().acquire(drawn);
+        }
         if (instance == null) {
             // a match waits: a copy of its map is made, room made for it if need be
             plugin.instances().prepare(drawn, true);
@@ -474,17 +509,17 @@ final class BedwarsHost implements MatchHost, Listener {
     }
 
     /**
-     * The waiting lobby of the private games of Bedwars Normal (salle-attente-privee: Archway FFA):
-     * READY when a copy of its map is free, else PREPARING (a copy is made); NONE when no map of that
-     * name has a waiting lobby (salle-attente:).
+     * The waiting lobby of a private game of Bedwars Normal on the map its leader chose (the owner's
+     * ask of 25/11): that map's own (salle-attente:), else the map of salle-attente-privee (Archway
+     * FFA). READY when a copy is free, else PREPARING (a copy is made); NONE when neither has one.
      */
     @Override
-    public Gathering canGather(GameMode mode) {
-        BedwarsMap map = privateWaitingMap();
-        if (map == null) {
+    public Gathering canGather(GameMode mode, String map) {
+        BedwarsMap waitingMap = waitingMapFor(mode, map);
+        if (waitingMap == null) {
             return Gathering.NONE;
         }
-        List<BedwarsMap> maps = Collections.singletonList(map);
+        List<BedwarsMap> maps = Collections.singletonList(waitingMap);
         if (plugin.instances().hasFree(maps)) {
             return Gathering.READY;
         }
@@ -492,11 +527,11 @@ final class BedwarsHost implements MatchHost, Listener {
         return Gathering.PREPARING;
     }
 
-    /** The party in the waiting lobby of a copy of its own of the map of salle-attente-privee. */
+    /** The party in the waiting lobby of a copy of its own of the map it chose (or of salle-attente-privee). */
     @Override
-    public boolean gather(GameMode mode, List<Player> players) {
-        BedwarsMap map = privateWaitingMap();
-        if (map == null) {
+    public boolean gather(GameMode mode, String map, List<Player> players) {
+        BedwarsMap waitingMap = waitingMapFor(mode, map);
+        if (waitingMap == null) {
             return false;
         }
         for (Player player : players) {
@@ -504,7 +539,7 @@ final class BedwarsHost implements MatchHost, Listener {
                 return false;
             }
         }
-        Instance instance = plugin.instances().acquire(Collections.singletonList(map));
+        Instance instance = plugin.instances().acquire(Collections.singletonList(waitingMap));
         if (instance == null) {
             return false;
         }
@@ -520,6 +555,55 @@ final class BedwarsHost implements MatchHost, Listener {
             lobby.welcome(player);
         }
         return true;
+    }
+
+    /**
+     * Where a private game of this mode on this map waits: the chosen map if it has its waiting
+     * lobby, else the map of salle-attente-privee; null if neither.
+     */
+    private BedwarsMap waitingMapFor(GameMode mode, String map) {
+        if (map != null) {
+            for (BedwarsMap candidate : mapsFor(mode)) {
+                if (candidate.world().equalsIgnoreCase(map) && candidate.playable() && candidate.waitingLobby() != null) {
+                    return candidate;
+                }
+            }
+        }
+        return privateWaitingMap();
+    }
+
+    /**
+     * The waiting lobby all the players of these sides wait in, if it is a copy of one of these maps:
+     * their game is played on that copy, under their feet (the owner's ask of 25/11); else null.
+     */
+    private PrivateWaitingLobby waitingOn(List<List<Player>> sides, List<BedwarsMap> maps) {
+        PrivateWaitingLobby lobby = null;
+        for (List<Player> side : sides) {
+            for (Player player : side) {
+                PrivateWaitingLobby of = waiting.get(player.getUniqueId());
+                if (of == null || lobby != null && of != lobby) {
+                    return null;
+                }
+                lobby = of;
+            }
+        }
+        if (lobby == null || lobby.players().size() != count(sides)) {
+            return null;
+        }
+        for (BedwarsMap map : maps) {
+            if (map.world().equals(lobby.instance().map().world())) {
+                return lobby;
+            }
+        }
+        return null;
+    }
+
+    private static int count(List<List<Player>> sides) {
+        int count = 0;
+        for (List<Player> side : sides) {
+            count += side.size();
+        }
+        return count;
     }
 
     /** The map of salle-attente-privee if it has a waiting lobby and can be played, else null (told once in the log). */
