@@ -74,7 +74,14 @@ function join (username) {
 }
 
 function windowTitle (window) {
-  return typeof window.title === 'string' ? window.title : JSON.stringify(window.title)
+  const title = typeof window.title === 'string' ? window.title : JSON.stringify(window.title)
+  // the server sends the title as JSON text, its apostrophe as ' ("Duel RagoDuoTrois's
+  // party"): the text the client shows
+  try {
+    const shown = JSON.parse(title)
+    if (typeof shown === 'string') return shown
+  } catch (e) {}
+  return title
 }
 
 /** The name and lore of an item, without colours. */
