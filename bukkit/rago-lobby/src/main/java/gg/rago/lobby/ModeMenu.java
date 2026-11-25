@@ -102,6 +102,8 @@ final class ModeMenu {
     private final QueueController queues;
     private final StatsBook book;
     private DuelRequests duels;
+    /** Party Duels, in the Party category (the owner's ask of 25/11); null: not there. */
+    private PartyDuels partyDuels;
     /** The mode of the challenge of the day (a training) and what it asks, or null: none. */
     private String challengeMode;
     private String challengeLabel;
@@ -113,6 +115,15 @@ final class ModeMenu {
 
     void setDuels(DuelRequests duels) {
         this.duels = duels;
+    }
+
+    void setPartyDuels(PartyDuels partyDuels) {
+        this.partyDuels = partyDuels;
+    }
+
+    /** Party Duels in the Party category: the last slot of its bottom row, right of the back button. */
+    static int partyDuelsSlot(int size) {
+        return size - 1;
     }
 
     /**
@@ -437,6 +448,25 @@ final class ModeMenu {
         return mode.teams() >= 2 ? !mode.ranked() && mode.playersPerMatch() == size : mode.playersPerTeam() == size;
     }
 
+    /** Party Duels, in the category of the parties: the other parties of the server, to challenge. */
+    private static ItemStack partyDuelsIcon(int size) {
+        ItemStack item = new ItemStack(Material.IRON_SWORD);
+        ItemMeta meta = item.getItemMeta();
+        meta.setDisplayName(ChatColor.BLUE + "" + ChatColor.BOLD + "Party Duels");
+        List<String> lore = new ArrayList<>();
+        lore.add(ChatColor.GRAY + "Challenge another party of the");
+        lore.add(ChatColor.GRAY + "server in a mode of the Duels,");
+        lore.add(ChatColor.GRAY + "a team of each party (two");
+        lore.add(ChatColor.GRAY + "parties of two: the 2v2s).");
+        lore.add(ChatColor.GRAY + "Also with " + ChatColor.WHITE + "/duel" + ChatColor.GRAY + ".");
+        lore.add("");
+        lore.add(size < 2 ? ChatColor.GRAY + "You are not in a party" : ChatColor.GREEN + "Click to see the parties");
+        meta.setLore(lore);
+        meta.addItemFlags(org.bukkit.inventory.ItemFlag.HIDE_ATTRIBUTES);
+        item.setItemMeta(meta);
+        return item;
+    }
+
     /** In the category of the parties, with no game to show: how to make a party, or that none fits its size. */
     private static ItemStack partyHint(int size) {
         ItemStack item = new ItemStack(Material.NAME_TAG);
@@ -501,6 +531,10 @@ final class ModeMenu {
             return;
         }
         if (settings.category(view) != null) {
+            if (settings.category(view).party() && partyDuels != null && slot == partyDuelsSlot(holder.getInventory().getSize())) {
+                partyDuels.open(player);
+                return;
+            }
             List<LobbySettings.Entry> entries = compassEntries(view, player);
             for (int i = 0; i < entries.size(); i++) {
                 if (slotOf(i) == slot) {
@@ -664,6 +698,9 @@ final class ModeMenu {
                 }
                 if (entries.isEmpty() && category.party()) {
                     inventory.setItem(slotOf(PER_ROW / 2), partyHint(partySize(viewer)));
+                }
+                if (category.party() && partyDuels != null) {
+                    inventory.setItem(partyDuelsSlot(inventory.getSize()), partyDuelsIcon(partySize(viewer)));
                 }
             }
             for (int i = 0; i < entries.size() && slotOf(i) < last; i++) {

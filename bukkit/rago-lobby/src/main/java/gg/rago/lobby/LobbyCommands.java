@@ -181,11 +181,21 @@ final class LobbyCommands implements TabExecutor {
 
     private boolean duel(Player player, String[] args) {
         if (args.length == 2 && (args[0].equalsIgnoreCase("accept") || args[0].equalsIgnoreCase("accepter"))) {
-            lobby.duels().accept(player, args[1]);
+            // a party duel of that leader's party first, else a duel of that player
+            if (!lobby.partyDuels().accept(player, args[1])) {
+                lobby.duels().accept(player, args[1]);
+            }
             return true;
         }
         if (args.length == 2 && (args[0].equalsIgnoreCase("deny") || args[0].equalsIgnoreCase("refuser"))) {
-            lobby.duels().refuse(player, args[1]);
+            if (!lobby.partyDuels().refuse(player, args[1])) {
+                lobby.duels().refuse(player, args[1]);
+            }
+            return true;
+        }
+        if (args.length == 0 && lobby.parties().book().together(player.getUniqueId()) != null) {
+            // in a party of two or more: the other parties of the server (the owner's ask of 25/11)
+            lobby.partyDuels().open(player);
             return true;
         }
         if (args.length == 0 || args.length > 2) {

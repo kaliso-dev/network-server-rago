@@ -79,6 +79,7 @@ public final class RagoLobby extends JavaPlugin implements LobbyService {
     private FakeEntities fakes;
     private Billboards billboards;
     private DuelRequests duels;
+    private PartyDuels partyDuels;
     private StatsService stats;
     private StatsDisplays statsDisplays;
     private NetworkRanks ranks;
@@ -295,6 +296,10 @@ public final class RagoLobby extends JavaPlugin implements LobbyService {
         duels.setGate(social::acceptsDuel);
         duels.setFrozen(this::isFrozen);
         menu.setDuels(duels);
+        partyDuels = new PartyDuels(settings, state, queues, partyBook, ranks);
+        partyDuels.setGate(social::acceptsDuel);
+        partyDuels.setFrozen(this::isFrozen);
+        menu.setPartyDuels(partyDuels);
         firstJoin = new FirstJoinMenu(this, settings, queues, menu);
         // once every file is read: the week may have turned while the server was off
         stats.load(this::checkWeek);
@@ -2137,6 +2142,10 @@ public final class RagoLobby extends JavaPlugin implements LobbyService {
 
     DuelRequests duels() {
         return duels;
+    }
+
+    PartyDuels partyDuels() {
+        return partyDuels;
     }
 
     Parties parties() {

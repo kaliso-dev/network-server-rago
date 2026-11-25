@@ -116,6 +116,27 @@ final class PartyBook {
         return partyOf.get(player);
     }
 
+    /** The parties of two players or more (party duels), in no order. */
+    List<Party> parties() {
+        List<Party> parties = new ArrayList<>();
+        for (Party party : new LinkedHashSet<>(partyOf.values())) {
+            if (party.size() >= 2 && !party.disbanded) {
+                parties.add(party);
+            }
+        }
+        return parties;
+    }
+
+    /** The party of this id if it is on (not disbanded), or null. */
+    Party party(UUID id) {
+        for (Party party : partyOf.values()) {
+            if (party.id().equals(id) && !party.disbanded) {
+                return party;
+            }
+        }
+        return null;
+    }
+
     /** The player's party when someone else is in it, or null. */
     Party together(UUID player) {
         Party party = partyOf.get(player);

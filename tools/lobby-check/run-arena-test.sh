@@ -33,6 +33,9 @@
 # Instabreak), the map, the team of each (one full), /pg team, the countdown, the game on that copy
 # with the teams chosen and the settings, in no stats; then FFA Archway, the FFA of the party alone
 # (1 minute here), a death, its end and its kills leaderboard.
+# Then two parties of two duel (tools/kb-control/bots/party-duel-bots.mjs): Party Duels in the Party
+# category and /duel show the other party, the modes of the Duels for two parties of two (Top
+# Bridge 2v2), the challenge, denied, then accepted: Top Bridge 2v2, a party a team.
 # Then a bot invites RagoBot into its party (tools/kb-control/bots/ragobot-bots.mjs): RagoBot refuses
 # ranked and the modes it does not play, wins a Sumo duel, a Boxing, a round of Top Bridge 1v1 and
 # a round of Lobby Fight 1v1 against the bot who stands still; in a Block placement 1v1 (RagoArbitre
@@ -322,6 +325,9 @@ KB_HOST=127.0.0.1 KB_PORT=$PORT node "$ROOT/tools/kb-control/bots/fast-bots.mjs"
 # here) and its kills leaderboard.
 private_status=0
 KB_HOST=127.0.0.1 KB_PORT=$PORT node "$ROOT/tools/kb-control/bots/private-bots.mjs" || private_status=$?
+# The same server for the party duels: two parties of two, Top Bridge 2v2 a party a team.
+party_duel_status=0
+KB_HOST=127.0.0.1 KB_PORT=$PORT node "$ROOT/tools/kb-control/bots/party-duel-bots.mjs" || party_duel_status=$?
 # The same server for RagoBot: a bot invites it into its party, plays the Sumo duel, the Boxing, Top
 # Bridge 1v1 and Lobby Fight 1v1 (on the middle island of the demo map, made its waiting lobby by
 # RagoMapOp) against it, then Block placement 1v1 (RagoArbitre moves the players with /tp: a clutch, the
@@ -356,6 +362,7 @@ fi
 # The game whose teams the party chose counts in no stats.
 server_log_has '[RagoLobby] Private game of a party in fast-bedwars-2v2: not counted in the stats' \
   || fail "the game of test-equipes was not a private game"
+[[ $party_duel_status -eq 0 ]] || { tail -n 60 "$SERVER_LOG" >&2; fail "the party duel bots stopped with status $party_duel_status"; }
 [[ $ragobot_status -eq 0 ]] || { tail -n 60 "$SERVER_LOG" >&2; fail "the RagoBot bots stopped with status $ragobot_status"; }
 server_log_has '[RagoLobby] RagoBot joined for the party of RagoLeader' || fail "RagoBot did not join for the party of RagoLeader"
 # A game with RagoBot counts in the players' stats: none is a private game of the party.

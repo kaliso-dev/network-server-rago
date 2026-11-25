@@ -30,7 +30,7 @@ commands:
     usage: /ranked
   duel:
     description: Challenge a lobby player to a 1v1.
-    usage: /duel <player> [mode], /duel accept <player>, /duel deny <player>
+    usage: /duel <player> [mode], /duel (a party leader - the other parties), /duel accept <player>, /duel deny <player>
   party:
     description: Parties as on Hypixel. Only the leader joins a queue, for the whole party.
     usage: /party <invite|accept|leave|list|kick|transfer|warp|disband|chat> [player], or /p <player>

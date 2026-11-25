@@ -242,6 +242,16 @@ minute, « Time is up. », personne n'a de kill donc égalité, et le classement
 trois à la même place, par nom, le troisième avec sa mort ; les trois reviennent au lobby. Un kill
 entre deux bots n'est pas joué : l'ordre du classement avec des kills est vérifié par les tests
 unitaires (`BedwarsMapTest`).
+Puis deux parties de deux se défient (`tools/kb-control/bots/party-duel-bots.mjs`, ta demande du
+25/11) : RagoDuoUn mène RagoDuoDeux, RagoDuoTrois mène RagoDuoQuatre. `/duel` de RagoDuoDeux est
+refusé (seul le chef défie). RagoDuoUn ouvre la catégorie Party (`/play party`) : « Party Duels »
+dans sa dernière case ; le clic montre les parties du serveur, celle de RagoDuoTrois avec la tête
+de son chef et ses deux joueurs ; le clic sur elle montre les modes des Duels pour deux parties de
+deux, Top Bridge 2v2 parmi eux, que des 2v2 ; le clic sur Top Bridge 2v2 envoie le défi, lu par les
+quatre (RagoDuoTrois avec [Accept] [Deny]) ; `/duel deny RagoDuoUn` le refuse. RagoDuoUn défie de
+nouveau, depuis `/duel` cette fois ; `/duel accept RagoDuoUn` : les quatre lisent le duel de
+parties et jouent Top Bridge 2v2, chaque party dans son équipe ; la party de RagoDuoTrois part avec
+`/spawn`, les quatre reviennent au lobby.
 Enfin un bot invite RagoBot dans sa party (`tools/kb-control/bots/ragobot-bots.mjs`) : RagoBot
 entre tout de suite, à côté de lui ; une deuxième invitation, une file classée, un mode qu'il ne
 joue pas et un `/duel RagoBot` d'un autre joueur sont refusés. Le bot joue le Sumo duel contre

@@ -96,6 +96,17 @@ dans les files d'attente des modes de jeu.
   - plus grande qu'une équipe sans remplir la partie, elle est refusée.
   Un joueur qui quitte la file, la party, ou le serveur fait sortir toute la party de la file. Un
   chef qui part laisse la party au joueur suivant.
+- **Les duels entre parties** (`PartyDuels`, ta demande du 25/11). Le chef d'une party de deux ou
+  plus ouvre les autres parties du serveur avec `/duel` (sans nom), ou avec « Party Duels », la
+  dernière case de la catégorie Party de la boussole : chaque party, la tête de son chef et ses
+  joueurs (une party dont le chef est déconnecté n'y est pas). Le clic sur l'une montre les modes
+  de la catégorie Duels dont les deux équipes ont la taille des deux parties (deux parties de deux :
+  les 2v2 des Duels ; des tailles différentes, ou 3 et plus tant qu'il n'y a pas de mode 3v3 ou 4v4
+  dans Duels : aucun) ; le clic sur un mode envoie le défi. Le chef de l'autre party a une minute
+  pour répondre ([Accept] [Deny], ou `/duel accept <chef>`, `/duel deny <chef>`) ; les deux parties
+  jouent alors la partie, une équipe chacune, sans la file, comme un `/duel` : ni ELO ni série de
+  victoires, les victoires et l'XP comptent. Tous doivent être au lobby, aucun gelé par le staff,
+  sans RagoBot.
 - **Les Private games : Bedwars Normal** (`parties-privees-equipes:`, tes réponses du 22/11 ; il
   remplace la Private game, RBW 1v1 à 4v4, et le Private top bridge). Dans Bedwars Modes, l'objet
   Private games, le chef de party clique Bedwars Normal et choisit la map dans son menu, au lobby
@@ -597,7 +608,8 @@ commentaires de `config.yml`. Les mots français de la première version (`quitt
 | `/ping [joueur]` | son ping, ou celui d'un joueur (comme sur Minemen) : en vert sous 80 ms, en jaune sous 150, en rouge au-delà, comme dans les barres des parties. Un joueur sous un nick se trouve par son nick ; par son vrai nom, seulement pour le staff | tout le monde |
 | `/queue <mode> [map]`, `/queue leave [mode]` (ou `/file`, `/q`) | entrer dans une file (sur une map, ou `random`), aussi depuis un entraînement ; sortir de toutes, ou d'une | tout le monde |
 | `/duel <joueur> [mode]` | défier un joueur du lobby dans un mode 1v1 (sans mode : un menu des modes 1v1) | tout le monde |
-| `/duel accept <joueur>`, `/duel deny <joueur>` | répondre à un défi (valable une minute) | tout le monde |
+| `/duel` (chef d'une party de deux ou plus) | les autres parties du serveur, à défier dans un mode des Duels à leur taille | tout le monde |
+| `/duel accept <joueur>`, `/duel deny <joueur>` | répondre à un défi, d'un joueur ou de la party d'un chef (valable une minute) | tout le monde |
 | `/party invite <joueur>` (ou `/p <joueur>`), `/party accept <joueur>` | inviter dans sa party (valable une minute), rejoindre une party | tout le monde |
 | `/party leave`, `list`, `kick <joueur>`, `transfer <joueur>`, `warp`, `disband` | quitter, voir, gérer la party (le chef) | tout le monde |
 | `/pc <message>`, `/chat party`, `/chat all` | écrire à sa party, y envoyer tout son chat, revenir au chat de tous | tout le monde |
