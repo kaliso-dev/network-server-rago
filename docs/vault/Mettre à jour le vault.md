@@ -1,7 +1,7 @@
 ---
 type: règle
 tags: [règle, vault]
-maj: 2026-11-25
+maj: 2026-11-26
 ---
 # Mettre à jour le vault
 
@@ -26,7 +26,7 @@ Ce vault est la **mémoire du projet** : la mémoire intégrée de Claude est d�
 ## 3. À la fin de chaque tâche (obligatoire, avant de dire « fini »)
 1. **Mettre à jour** la note de chaque sujet touché pour qu'elle décrive **l'état réel d'aujourd'hui** (pas l'historique).
 2. **Supprimer** ce qui n'est plus vrai : un mode ou une fonction abandonnés perdent leur description ; il reste **une ligne** dans [[Décisions]] > « Abandonné » (date, quoi, raison). Un mode seulement *retiré des menus* (code gardé) reste listé comme tel dans [[Catalogue des modes]].
-3. [[État actuel]] : branche, PR ouvertes, dernière installation sur le serveur de test, ce qui attend Sofiene.
+3. [[État actuel]] : branche, PR ouvertes, dernière installation sur le serveur de test, ce qui attend Abel (en jeu) et Sofiene (décisions et accords).
 4. [[Journal]] : une ligne datée par événement marquant.
 5. [[Décisions]] : chaque décision de Sofiene, datée, avec ses mots entre « ».
 6. [[Bugs et problèmes connus]] ; [[Questions ouvertes]] (retirer les questions répondues).

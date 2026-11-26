@@ -1,7 +1,7 @@
 ---
 type: technique
 tags: [tests, bots, mineflayer, ci]
-maj: 2026-11-25
+maj: 2026-11-26
 ---
 # Tests et bots
 
@@ -17,5 +17,5 @@ Les tests qui font tourner un **vrai serveur PandaSpigot 1.8.8 (build 226)** et 
 | Serveur de test | job `local-server` | le dossier assemblé démarre deux fois (Linux et Windows, Java 8 et 21), plugins actifs, monde retrouvé et sauvegardé | `local-server` (4 combinaisons) |
 
 - Spectateurs : jusqu'à 10 en même temps testés ([[Replays et spectateurs]]).
-- Les bots n'ont pas de vrai ping ni de vrais réflexes : **un test vert ne remplace pas un essai en jeu** par Sofiene. Beaucoup de fonctions sont « TESTÉ EN CI, pas encore joué » ([[État actuel]]).
+- Les bots n'ont pas de vrai ping ni de vrais réflexes : **un test vert ne remplace pas un essai en jeu** (les essais en jeu sont faits par Abel). Beaucoup de fonctions sont « TESTÉ EN CI, pas encore joué » ([[État actuel]]).
 - `tools/local-server` sert aussi aux bots : le serveur est lancé avec `RAGO_ACCEPTE_CLUF=oui`.

@@ -1,7 +1,7 @@
 ---
 type: index
 tags: [index]
-maj: 2026-11-25
+maj: 2026-11-26
 ---
 # Rago Practice : le projet
 
@@ -10,9 +10,9 @@ maj: 2026-11-25
 
 **Rago Practice** est un serveur Minecraft **1.8.9** (PvP 1.8), hébergé en Europe, pour **s'entraîner au Bed Wars et au Ranked Bedwars (RBW)** : des entraînements solo (clutch, bridge, block in…), des duels, des arènes ouvertes, des modes Bed Wars inspirés d'Hypixel, un Ranked avec ELO, et un lobby façon Hypixel / Minemen. Sa promesse : un **knockback aussi proche que possible de celui d'Hypixel, mesuré et non deviné** ([[Knockback et combat]]). Slogan en jeu : **« Train. Clutch. Climb. »**. Tout le jeu est en **anglais** ; le code, les commits récents, la doc et ce vault sont en français (les commits sont en anglais).
 
-Le dépôt GitHub s'appelle **`kaliso-dev/network-server-rago`** (public depuis le 10/11, voir [[CI GitHub Actions]]). Le projet est aussi appelé « Rago Minecraft server » par Sofiene. Décideur : [[Personnes et comptes|Sofiene]] (GitHub `kaliso-dev`). Il fait partie de la famille Rago avec Rago Optimizer (dépôt `kaliso-dev/Rago`, son propre vault) et Rago Client (dépôt `kaliso-dev/Rago-Client`) : voir [[Autres projets Rago]].
+Le dépôt GitHub s'appelle **`kaliso-dev/network-server-rago`** (public depuis le 10/11, voir [[CI GitHub Actions]]). Le projet est aussi appelé « Rago Minecraft server » par Sofiene. Décideur : [[Personnes et comptes|Sofiene]] (GitHub `kaliso-dev`), qui valide les actions GitHub et les installations. Essais en jeu, réglages de maps et séances de mesure : **Abel** (propriétaire du compte qRago et du PC du serveur de test). C'est un **projet à part** de la famille Rago, à côté de Rago Optimizer (dépôt `kaliso-dev/Rago`, son propre vault) et de Rago Client (dépôt `kaliso-dev/Rago-Client`), dont il ne fait pas partie : voir [[Autres projets Rago]].
 
-**Rien n'est en production** au 25/11/2026 : le serveur tourne seulement comme [[Serveur de test]] sur un PC Windows, et le [[Site]] n'est pas en ligne. La sortie publique est préparée par le plan de Sofiene du 21/11, suivi dans `docs/suivi-sortie-publique.md` ([[Plan de sortie publique]]).
+**Rien n'est en production** au 26/11/2026 : le serveur tourne seulement comme [[Serveur de test]] sur le PC Windows d'Abel, et le [[Site]] n'est pas en ligne (domaine, Discord, site et hébergeur sont mis de côté jusqu'à ce que le serveur soit fini). La sortie publique est préparée par le plan de Sofiene du 21/11, suivi dans `docs/suivi-sortie-publique.md` ([[Plan de sortie publique]]).
 
 ## Les briques
 | Brique | Note | Où dans le dépôt |

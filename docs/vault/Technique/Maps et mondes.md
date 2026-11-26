@@ -1,12 +1,12 @@
 ---
 type: technique
 tags: [maps, mondes, bedwars.yml]
-maj: 2026-11-25
+maj: 2026-11-26
 code: bukkit/rago-bedwars (MapCommands, BedwarsMap, MapStore, Instances), bukkit/rago-practice (MapFinder, MapCopy, MapParts), tools/bedwars-maps, tools/build-tools
 ---
 # Maps et mondes
 
-**Les maps ne sont pas dans le dépôt** : elles sont dans le dossier des mondes du [[Serveur de test]] (`C:\Users\rgabe\Rago\mondes`), apportées par Sofiene (maps d'Hypixel, maps qu'il a construites ou reçues). Retour à [[Reprendre le développement]].
+**Les maps ne sont pas dans le dépôt** : elles sont dans le dossier des mondes du [[Serveur de test]] (`C:\Users\rgabe\Rago\mondes`, sur le PC d'Abel) : maps d'Hypixel, maps construites ou reçues. Les réglages de maps en jeu (`/bw…`) sont faits par Abel. Retour à [[Reprendre le développement]].
 
 ## Les mondes du serveur
 - `lobby` (le lobby, avec `spawn.yml` et `points.yml`), `world` (monde plat du test de knockback), `arenes` (les plateformes du practice, refait à chaque démarrage), `rago_replays` (replays de duels, effacé à chaque démarrage), `bw-demo` (map de démo créée par RagoBedwars), `bw_<map>_<n>` (copies des parties de Bed Wars, supprimées à l'arrêt), mondes de build de RagoBuildTools, et un dossier par map.
@@ -17,10 +17,10 @@ code: bukkit/rago-bedwars (MapCommands, BedwarsMap, MapStore, Instances), bukkit
 |---|---|
 | Ranked Bedwars, Invis practice, Top Bridge, 2017 Bedwars (20 maps RBW) | Antenna, Aquarium, Archway, Artemis, Boletum, Carapace, Catalyst, Chained, Eastwood, Extinction, Invasion, Katsu, Lectus, Obelisk, Paladin, Planet98, Rise, Stonekeep, Swashbuckle, Treenan (chacune avec sa `hauteur-max` de la file) |
 | RBW Sky Rise, Clutch Scenario | SkyRise (`hauteur-min: 63`) ; Clutch Scenario aussi Archway |
-| First Rush | Acropolis, Ambush, Aqil, Cascade, Crogorm, Frosted, Gelato, Lighthouse, Lotus, Nebuc (spawns corrigés sur Nebuc et Gelato le 21/11, les autres attendent le point Hypixel) |
+| First Rush | Acropolis, Ambush, Aqil, Cascade, Crogorm, Frosted, Gelato, Lighthouse, Lotus, Nebuc (spawns corrigés sur Nebuc et Gelato le 21/11 ; sur les autres, pas encore posés : à faire par Abel, 26/11) |
 | Bed Break Simulator | Archway, Invasion (escalier et plateforme `bed-break:`) |
 | Attack and Defense | BioHazard (`attaquants:`) |
-| FFA, Lobby Fight, FFA Archway, salle d'attente privée | ArchwayFFA (`salle-attente: {centre: {x: 0.5, z: 0.5}, y: 117, rayon: 11.5}`) |
+| FFA, Lobby Fight, FFA Archway, salle d'attente privée | ArchwayFFA (`salle-attente: {centre: {x: 0.5, z: 0.5}, y: 117, rayon: 11.5}`) ; c'est la seule map qui a une `salle-attente:` (26/11) : à poser par Abel sur chaque map de Bedwars Normal ([[Parties privées]]) |
 | Top Bridge FFA | le top bridge d'Invasion |
 | Bed Fight, Top BedFight | map Bed Fight du propriétaire |
 | CTF | CtfBridge et CtfCastle (construites par le plugin, à valider) |

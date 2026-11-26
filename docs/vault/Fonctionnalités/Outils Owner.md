@@ -1,7 +1,7 @@
 ---
 type: fonctionnalité
 tags: [owner, reach, scaffold, test]
-maj: 2026-11-25
+maj: 2026-11-26
 code: bukkit/rago-lobby (OwnerTools, OwnerRules)
 ---
 # Outils Owner
@@ -13,4 +13,4 @@ Plan 7.1, choix du propriétaire du 22/11 : des outils **de triche contrôlée**
 - `/owner off` coupe tout, `/owner` seul dit ce qui est actif.
 - **Pour le compte `compte:` (qRago) seulement**, qui doit aussi avoir `rago.admin` : pour tous les autres (opérateurs compris), la commande n'existe pas (réponse de Spigot à une commande inconnue). Sur un serveur en mode offline, il faut l'UUID du compte dans `uuid:` (vide dans le dépôt), sinon les outils restent coupés.
 - Coupés par défaut et à la déconnexion. **Jamais en classé** (ils n'y font rien). Une partie où un outil est actif ne compte pour personne : ni stats, ni XP, ni ELO, ni record.
-- À qui est le compte qRago ? question **q122** ([[Questions ouvertes]], [[Personnes et comptes]]).
+- Le compte qRago est celui d'**Abel** (réponse du 26/11 à q122, [[Personnes et comptes]]).

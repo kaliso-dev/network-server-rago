@@ -1,11 +1,13 @@
 ---
 type: technique
 tags: [production, hébergement, réseau]
-maj: 2026-11-25
+maj: 2026-11-26
 ---
 # Hébergement et production
 
-**Rien n'est en production au 25/11/2026.** Pas de machine louée, pas de domaine en service connu, pas de proxy, pas de base de données, pas de boutique. Le seul serveur est le [[Serveur de test]] sur le PC de Sofiene. Retour à [[Projet]].
+**Rien n'est en production au 26/11/2026.** Pas de machine louée, pas de domaine en service connu, pas de proxy, pas de base de données, pas de boutique. Le seul serveur est le [[Serveur de test]] sur le PC d'Abel (« FULL PC GAMER »). Retour à [[Projet]].
+
+> **Mis de côté jusqu'à ce que le serveur soit fini** (Abel, 26/11) : le domaine (`rago.gg`), l'invitation Discord, le site et l'hébergeur. La question du domaine (**q127**) est **reportée, pas tranchée**.
 
 ## Ce qui est prévu (plan d'architecture v1 du 06/11, OBSERVÉ, pas décidé en détail)
 Résumé ici, détail dans [[Plan d'architecture v1]] :
@@ -15,4 +17,4 @@ Résumé ici, détail dans [[Plan d'architecture v1]] :
 - Le choix de Java pour la production (8 ou 21) se fera au jalon infrastructure ([[Dépendances et compatibilité]]).
 
 ## Ce qui manque avant d'ouvrir (voir [[Plan de sortie publique]])
-Hébergeur et machine, domaine (`rago.gg` affiché en jeu : **q127**), réseau (proxy, base de données, stats partagées), anticheat (plan 7.3, BLOQUÉ), clé d'API Hypixel de production, boutique Tebex et pages légales, site en ligne, essais en jeu de tout ce qui n'est que TESTÉ EN CI, mesure des boules de feu. **Staging d'abord, production après validation de Sofiene** (règle fixe).
+Hébergeur et machine, domaine (`rago.gg` affiché en jeu : **q127**, reportée), réseau (proxy, base de données, stats partagées), anticheat (plan 7.3, BLOQUÉ), clé d'API Hypixel de production, boutique Tebex et pages légales, site en ligne, essais en jeu de tout ce qui n'est que TESTÉ EN CI, mesure des boules de feu (séance d'Abel). **Staging d'abord, production après validation de Sofiene** (règle fixe).

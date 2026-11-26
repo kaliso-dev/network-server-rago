@@ -1,11 +1,11 @@
 ---
 type: pilotage
 tags: [décisions]
-maj: 2026-11-25
+maj: 2026-11-26
 ---
 # Décisions
 
-Les décisions de Sofiene sur Rago Practice, datées, avec ses mots quand ils sont connus. Source : les PR, les commits (« the owner, 23/11 ») et `docs/suivi-sortie-publique.md`. La plus récente prime. Retour à [[Projet]], voir [[Règles de travail]].
+Les décisions sur Rago Practice, datées, avec les mots de leur auteur quand ils sont connus : celles de Sofiene (décideur) et, depuis le 26/11, les réponses d'Abel données dans Rago Hub. Source : les PR, les commits (« the owner, 23/11 »), `docs/suivi-sortie-publique.md` et Rago Hub. La plus récente prime ; les actions GitHub et les installations attendent toujours l'accord de Sofiene. Retour à [[Projet]], voir [[Règles de travail]].
 
 ## Fondations (06/11 au 12/11)
 | Date | Décision | Note |
@@ -57,6 +57,12 @@ Les décisions de Sofiene sur Rago Practice, datées, avec ses mots quand ils so
 | 25/11 | Duels entre parties : « Tous les modes, une équipe par party » (9h48) → proposition d'abord | [[Party, amis et messages]] |
 | 25/11 | « Tu peux installer oui » (14h47) : installation de `2de1bca` | [[Installer une version sur le serveur de test]] |
 | 25/11 | Créer ce vault pour passer sur un compte Claude Team | [[Mettre à jour le vault]] |
+
+## Réponses d'Abel (26/11, Rago Hub)
+| Date | Décision | Note |
+|---|---|---|
+| 26/11 | Domaine (`rago.gg`), invitation Discord, site et hébergeur **mis de côté jusqu'à ce que le serveur soit fini** (q127 reportée, pas tranchée) | [[Hébergement et production]], [[Site]] |
+| 26/11 | **Fermer sans fusion** la PR #48 (events, teinture rouge : dépassée par #47) et la PR #10 (CI sous Java 25 : ne change pas le jeu) ; demande d'Abel, conseil du Chef ; **en attente du « GO » de Sofiene** | [[Branches et PR]] |
 
 ## Abandonné
 - 07/11 : ping simulé au corps à corps (PR #8 fermée) : injouable en jeu.

@@ -1,7 +1,7 @@
 ---
 type: suivi
 tags: [bugs, problèmes]
-maj: 2026-11-25
+maj: 2026-11-26
 ---
 # Bugs et problèmes connus
 
@@ -11,15 +11,16 @@ Retour à [[État actuel]]. Les corrections passées et leur détail sont dans l
 | Problème | État |
 |---|---|
 | Clé d'API Hypixel refusée (« Invalid API key ») : pas d'import du Quick Buy | BLOQUÉ, nouvelle demande de Sofiene (22/11) ([[Import Hypixel]]) |
-| Boules de feu et TNT jamais mesurées (valeurs de BedWars1058) | BLOQUÉ, séance de mesure ([[Boules de feu et TNT]]) |
-| Spawns First Rush trop en avant sur les maps autres que Nebuc et Gelato | À FAIRE (le point Hypixel d'une île par map) |
+| Boules de feu et TNT jamais mesurées (valeurs de BedWars1058) | BLOQUÉ, séance de mesure à faire par Abel ([[Boules de feu et TNT]]) |
+| Spawns First Rush trop en avant sur les maps autres que Nebuc et Gelato | À FAIRE en jeu par Abel (spawns pas encore posés au 26/11 ; le point Hypixel d'une île par map) |
 | Bridges du Bed Break Simulator sur Invasion et Archway « pas du tout ça » (essai du 21/11) | remplacés par la plateforme du Top Bridge ; à tester en jeu |
 | Encodage : badges et € cassés sur Windows (Java 17, Windows-1252) | corrigé le 23/11 (lecture UTF-8) ; **à vérifier en jeu** |
 | Reset des arènes (Block Placement, Block Edit) | IMPLÉMENTÉ, « je crois que ça marche » (21/11) : à confirmer |
-| Lobby d'attente de Bedwars Normal : seule ArchwayFFA a une `salle-attente:` | à poser sur chaque map ([[Parties privées]]) |
+| Lobby d'attente de Bedwars Normal : seule ArchwayFFA a une `salle-attente:` | à poser par Abel sur chaque map (`/bw edit <map>` puis `/bw lobbyfight`) ([[Parties privées]]) |
 | `/speed` déclaré par RagoPractice et RagoBuildTools (alias) | À VÉRIFIER en jeu ([[Commandes et permissions]]) |
-| Discord du site (`discord.gg/FXcvN7mWX`) différent de celui du jeu (`discord.gg/ragooptimizer`) | À VÉRIFIER ([[Site]]) |
-| Beaucoup de fonctions **TESTÉ EN CI** mais jamais jouées en jeu depuis le 23/11 | essai en jeu de Sofiene ([[État actuel]]) |
+| Discord du site (`discord.gg/FXcvN7mWX`) différent de celui du jeu (`discord.gg/ragooptimizer`) | mis de côté avec le site jusqu'à ce que le serveur soit fini (Abel, 26/11) ([[Site]]) |
+| Java du serveur de test : 17 (suivi) ou 25 (PR #10) ? | À VÉRIFIER ([[Serveur de test]]) |
+| Beaucoup de fonctions **TESTÉ EN CI** mais jamais jouées en jeu depuis le 23/11 | essai en jeu d'Abel ; À VÉRIFIER s'il a été fait depuis l'installation du 25/11 ([[État actuel]]) |
 
 ## Documentation dépassée dans le dépôt
 - `README.md` racine : dit « Jalon en cours : M1 Labo KB », que RagoPractice ne joue que le sumo, et que stats, Ranked, cosmétiques sont « à venir » : **dépassé** (tout cela existe depuis les PR #9 à #46, 11-14/11). À réécrire (petite PR doc, sur demande).

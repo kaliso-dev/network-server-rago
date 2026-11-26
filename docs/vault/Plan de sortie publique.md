@@ -1,7 +1,7 @@
 ---
 type: pilotage
 tags: [pilotage, plan, sortie]
-maj: 2026-11-25
+maj: 2026-11-26
 ---
 # Plan de sortie publique
 
@@ -21,11 +21,11 @@ Architecture relevée (voir [[Architecture]]), systèmes partagés à corriger u
 | 1.4 | Audit des stats (double comptage des final kills, morts sans tueur, abandons) | IMPLÉMENTÉ |
 | 1.5 | Kit Bed Fight remis au rangement du lobby à la mort | IMPLÉMENTÉ |
 | 1.6 | Forges de Bed Break sur Invasion | TESTÉ EN JEU (21/11) |
-| 1.7 | Spawns First Rush trop en avant | IMPLÉMENTÉ sur Nebuc et Gelato ; autres maps : il manque le point Hypixel |
+| 1.7 | Spawns First Rush trop en avant | IMPLÉMENTÉ sur Nebuc et Gelato ; autres maps : spawns pas encore posés, à faire en jeu par Abel (26/11) |
 | 1.8 | Block In réaliste + remise à zéro de ses records | TESTÉ EN JEU (21/11) |
 
 ## Étape 3 : modes existants (P1)
-2.1 Lobby Fight (kit commun, Haste, blocs qui partent après 10 s, premier à 3) : corrigé après l'essai, à retester · 2.2 Bed Fight protection au respawn 1,5 s : TESTÉ EN JEU, étendue aux autres modes Bed Wars · 2.3 Bed Break Simulator (bridges droits, défense RBW, plateforme du Top Bridge) : IMPLÉMENTÉ, plateforme à tester · 2.4 Clutch Scenario (bridges réalistes) : IMPLÉMENTÉ · 2.5 10 spectateurs (50 places) : test réel en CI · 2.6 Fireballs fidèles à Hypixel : mesure prête, BLOQUÉ · 2.7 TNT : À FAIRE après 2.6 · 2.8 Fast Shop et API Hypixel : BLOQUÉ (clé refusée).
+2.1 Lobby Fight (kit commun, Haste, blocs qui partent après 10 s, premier à 3) : corrigé après l'essai, à retester · 2.2 Bed Fight protection au respawn 1,5 s : TESTÉ EN JEU, étendue aux autres modes Bed Wars · 2.3 Bed Break Simulator (bridges droits, défense RBW, plateforme du Top Bridge) : IMPLÉMENTÉ, plateforme à tester · 2.4 Clutch Scenario (bridges réalistes) : IMPLÉMENTÉ · 2.5 10 spectateurs (50 places) : test réel en CI · 2.6 Fireballs fidèles à Hypixel : mesure prête, BLOQUÉ (séance de mesure d'Abel) · 2.7 TNT : À FAIRE après 2.6 · 2.8 Fast Shop et API Hypixel : BLOQUÉ (clé refusée).
 
 ## Étape 4 : stats et progression
 3.1 Leaderboards Daily / Weekly / Lifetime : IMPLÉMENTÉ · 3.2 FKDR à deux décimales : IMPLÉMENTÉ · 3.3 Records Lifetime et Weekly (gardés 5 semaines) : IMPLÉMENTÉ · 3.4 Top 3 Lifetime au survol des menus : IMPLÉMENTÉ · 3.5 Network Level au-dessus des têtes par défaut : IMPLÉMENTÉ · 3.6 ELO des adversaires en Ranked : IMPLÉMENTÉ · 3.7 Solo / Party / Ranked : IMPLÉMENTÉ (22/11) · 3.8 nombre de joueurs en file : TESTÉ EN CI · 5.4d sélecteur de leaderboard : IMPLÉMENTÉ. Détail : [[Statistiques et classements]], [[Files, Ranked et ELO]].
@@ -43,7 +43,7 @@ Architecture relevée (voir [[Architecture]]), systèmes partagés à corriger u
 7.1 Outils Owner (Reach, Scaffold) : TESTÉ EN CI ([[Outils Owner]]) · 7.2 rejoindre une partie en cours (admin) : BLOQUÉ · 7.3 anticheat (Grim proposé) : BLOQUÉ · 7.4 FPS benchmark : BLOQUÉ.
 
 ## Étape 9 : release
-8.1 hébergeur européen ≤ 30 €/mois : À FAIRE · 8.2 site, liens, Netlify, domaine : À FAIRE · 9 sécurité et tests finaux : À FAIRE. Voir [[Hébergement et production]].
+8.1 hébergeur européen ≤ 30 €/mois et 8.2 site, liens, Netlify, domaine : **mis de côté jusqu'à ce que le serveur soit fini** (Abel, 26/11) · 9 sécurité et tests finaux : À FAIRE. Voir [[Hébergement et production]].
 
-## Les listes de Sofiene après ses essais
-Depuis le 22/11, Sofiene teste la version installée et envoie une liste datée (22/11 à 16h22, 17h54, 18h22, 19h51 ; 23/11 à 20h54 ; 25/11 à 9h19). Chaque point est codé un par un, les simples d'abord, les gros passent par une proposition. Les points de la liste du 23/11 encore ouverts : RagoBot qui joue sur la map, RagoBot qui pose des blocs, Top Bed Fight 2v2 (sa map), Attack and Defense (sa vision), build du lobby, fireballs de Minemen.
+## Les listes de retours après les essais en jeu
+Depuis le 22/11, la version installée est essayée en jeu (les essais en jeu sont faits par Abel, précisé le 26/11) et une liste datée de retours arrive (22/11 à 16h22, 17h54, 18h22, 19h51 ; 23/11 à 20h54 ; 25/11 à 9h19). Abel a annoncé le 26/11 une nouvelle liste de maps, modes et features à ajouter. Chaque point est codé un par un, les simples d'abord, les gros passent par une proposition. Les points de la liste du 23/11 encore ouverts : RagoBot qui joue sur la map, RagoBot qui pose des blocs, Top Bed Fight 2v2 (sa map) et Attack and Defense (sa vision), tous deux **À VÉRIFIER** depuis qu'Abel a dit le 26/11 que toutes les maps et tous les modes dont il avait parlé sont finis, build du lobby, fireballs de Minemen.

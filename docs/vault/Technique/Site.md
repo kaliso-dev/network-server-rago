@@ -1,12 +1,12 @@
 ---
 type: technique
 tags: [site, nextjs, netlify, design]
-maj: 2026-11-25
+maj: 2026-11-26
 code: site/web (Next.js), site/design (système de design)
 ---
 # Site
 
-Le site officiel de **Rago Practice** et, plus tard, sa boutique, dans le même dépôt (dossier `site/`, hors du build Gradle) pour partager les noms, couleurs et données du jeu. **Pas en ligne** au 25/11. Détail : `site/README.md`, `site/web/README.md`, `site/design/README.md`. Code : [[Code du site]]. Retour à [[Projet]].
+Le site officiel de **Rago Practice** et, plus tard, sa boutique, dans le même dépôt (dossier `site/`, hors du build Gradle) pour partager les noms, couleurs et données du jeu. **Pas en ligne** au 26/11, et **mis de côté jusqu'à ce que le serveur soit fini** (Abel, 26/11), avec le domaine, l'invitation Discord et l'hébergeur ([[Hébergement et production]]). Détail : `site/README.md`, `site/web/README.md`, `site/design/README.md`. Code : [[Code du site]]. Retour à [[Projet]].
 
 ## État (CONFIRMÉ dans les README)
 | Partie | État |
@@ -28,7 +28,7 @@ Le site officiel de **Rago Practice** et, plus tard, sa boutique, dans le même 
 ## Hébergement
 `netlify.toml` (racine) est prêt pour une **copie temporaire** (base `site/web`, `npm run build`, Node 22, reconstruit seulement si `site/` change). **Aucun site Netlify n'existe pour ce dépôt** (le compte Netlify connecté a rago-optimiser, peeclay, kaliso-dev, cesium-horlogerie-archive : vérifié le 25/11). Créer la copie = « Import an existing project » sur Netlify, choisir `kaliso-dev/network-server-rago` : **à faire seulement sur demande de Sofiene**.
 
-## Points à trancher
-- Le Discord par défaut du site (`discord.gg/FXcvN7mWX`) n'est pas celui affiché en jeu (`discord.gg/ragooptimizer`, lien officiel choisi le 22/11) : **À VÉRIFIER** lequel garder.
-- Le domaine du site et du serveur (`rago.gg` est affiché en jeu) : question **q127**.
+## Points à trancher (reportés jusqu'à ce que le serveur soit fini, 26/11)
+- Le Discord par défaut du site (`discord.gg/FXcvN7mWX`) n'est pas celui affiché en jeu (`discord.gg/ragooptimizer`, lien officiel choisi le 22/11) : lequel garder, à trancher plus tard.
+- Le domaine du site et du serveur (`rago.gg` est affiché en jeu) : question **q127**, reportée, pas tranchée.
 - Ne pas confondre avec le site de Rago Optimizer refait dans le projet « New Brand Rago » ([[Autres projets Rago]]).

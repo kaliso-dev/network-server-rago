@@ -1,7 +1,7 @@
 ---
 type: fonctionnalité
 tags: [parties-privees, private-games, bedwars-normal, party]
-maj: 2026-11-25
+maj: 2026-11-26
 code: bukkit/rago-lobby (TeamRoom, TeamRooms, PrivateSetting, PartyDuels), bukkit/rago-bedwars (PrivateWaitingLobby, PrivateRules, FfaGame)
 ---
 # Parties privées
@@ -15,7 +15,9 @@ L'objet **Private games** (dans Bedwars Modes et dans la catégorie Party de la 
 4. Le chef règle la partie (comparateur **Game settings**, case 2 ; `/pg settings` ; clic = choix suivant, clic droit = précédent) ; la party lit chaque changement. Les réglages restent ceux du chef jusqu'à sa déconnexion.
 5. La partie part sur **la même copie**, sous leurs pieds. De 2 à 16 joueurs. Une party qui change, ou un joueur qui quitte, annule ; `/spawn` annule pour toute la party.
 
-Une map sans `salle-attente:` : la party attend dans celle de `salle-attente-privee` (**Archway FFA**, la seule réglée sur le serveur de test, à confirmer), puis joue sur une copie de la map choisie. Aucune salle : les équipes se choisissent au lobby.
+Une map sans `salle-attente:` : la party attend dans celle de `salle-attente-privee` (**Archway FFA**, la seule réglée sur le serveur de test, confirmé par Abel le 26/11), puis joue sur une copie de la map choisie. Aucune salle : les équipes se choisissent au lobby.
+
+**À faire par Abel en jeu** (26/11) : poser le lobby d'attente de **chaque map de Bedwars Normal** (`/bw edit <map>`, debout sur le sol voulu, puis `/bw lobbyfight`, qui écrit `salle-attente:` dans le `bedwars.yml` de la map) ([[Maps et mondes]], [[État actuel]]).
 
 **Les réglages** (`reglages-prives:`, `PrivateRules`, testés par `PrivateRulesTest`) : les quatre de Sofiene d'abord, **Speed** (aucun, I, II, III), **Max Diamond** (Sharpened Swords + Reinforced Armor IV au départ ; Maniac Miner, Forge et Heal Pool restent à acheter, à confirmer), **Max Emerald** (émeraudes au Tier III dès le départ), **Break the Map** (tout bloc se casse sauf près des spawns et générateurs) ; puis ceux d'Hypixel : **Health Buff** (10/20/30 cœurs), **Low Gravity** (Jump Boost III), **Respawn Time** (1 ou 10 s), **Event Times** (0.5x, 2x, 4x), **Bed Instabreak**, **One Hit One Kill** (choix du 23/11 : le chef coche les armes qui tuent d'un coup parmi Wooden/Stone/Iron/Diamond Sword, Knockback Stick, Bow, Fireball, TNT ; le poing n'y est pas ; la liste exacte d'Hypixel n'est écrite nulle part).
 
