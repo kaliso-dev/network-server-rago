@@ -10,20 +10,20 @@ Ce qui reste à faire avant la sortie publique, dans l'ordre du plan de Sofiene.
 ## Tout de suite
 1. **Abel, en jeu** : poser `salle-attente:` sur chaque map de Bedwars Normal (`/bw edit <map>`, debout sur le sol voulu, `/bw lobbyfight`) pour que la party attende au-dessus de sa map ([[Parties privées]]) ; poser les spawns de First Rush (pas encore faits, seules Nebuc et Gelato en ont) ([[Bed Wars]]) ; faire la séance de mesure des boules de feu et de la TNT ([[Boules de feu et TNT]]).
 2. **Recevoir la liste d'Abel** (maps, modes et features à ajouter, annoncée le 26/11), puis la traiter comme les listes d'avant : un commit par point, CI, installation après l'accord d'Abel ou de Sofiene.
-3. Essai en jeu de la version installée le 25/11 (`2de1bca`) : **À VÉRIFIER** s'il est encore à faire (pas dans la liste d'Abel du 26/11). Les essais en jeu sont faits par Abel.
+3. **Essai en jeu par Abel** de la version installée le 25/11 (`2de1bca`) : pas encore fait (Abel, 26/11). Recevoir aussi ce qu'Abel a fini (Top Bed Fight 2v2, Attack and Defense) et ses plugins de fireball.
 4. Valider les propositions en attente : RagoBot qui suit la map et pose des blocs, build du lobby, fireballs de Minemen (23/11) ; duels entre parties dans tous les modes (25/11) ; étape 8 ([[Questions ouvertes]]).
 5. Fusionner la PR #53 (vault) dans `main` ; décider de fusionner la PR #47 dans `main` (sur demande d'Abel ou de Sofiene) ([[Branches et PR]]). Les PR #48 et #10 sont fermées depuis le 26/11.
 
 ## Étapes du plan encore ouvertes
 | Étape | Reste à faire | Statut |
 |---|---|---|
-| 2.6 / 2.7 Fireballs et TNT | séance de mesure d'Abel sur Hypixel (ou Minemen) avec kb-recorder 0.2.0, puis régler | BLOQUÉ ([[Boules de feu et TNT]]) |
+| 2.6 / 2.7 Fireballs et TNT | séance de mesure d'Abel sur Hypixel (ou Minemen) avec kb-recorder 0.2.0, puis régler ; en attendant, plugins qui imitent les fireballs d'Hypixel trouvés par Abel (à recevoir et vérifier, 26/11) | BLOQUÉ ([[Boules de feu et TNT]]) |
 | 2.8 Fast Shop et API Hypixel | une clé API Hypixel valide ; Sofiene refait une demande | BLOQUÉ ([[Import Hypixel]]) |
 | 1.7 Spawns First Rush | fait sur Nebuc et Gelato ; sur les autres maps, les spawns sont **à poser en jeu par Abel** (pas encore faits au 26/11 ; le point Hypixel de référence par `/bw spawn red` sur une île, recopié sur les 7 autres) | À FAIRE ([[Bed Wars]]) |
 | 2.3 Bed Break | plateforme de départ à tester en jeu | À TESTER |
 | 5.2 Build monumental « RAGO PRACTICE » du lobby | proposition du 23/11 à valider (image de référence reçue) | BLOQUÉ ([[Lobby]]) |
-| Top Bed Fight 2v2 | la map à envoyer (demande du 23/11) ; encore attendue ? Abel dit le 26/11 que toutes les maps et tous les modes dont il avait parlé sont finis | À VÉRIFIER |
-| Attack and Defense | la vision à expliquer (23/11) ; encore attendue ? (même réponse d'Abel du 26/11) | À VÉRIFIER |
+| Top Bed Fight 2v2 | la map est finie (Abel, 26/11) ; il l'envoie | BLOQUÉ (envoi d'Abel) |
+| Attack and Defense | fini de son côté (Abel, 26/11) ; il l'envoie | BLOQUÉ (envoi d'Abel) |
 | 6.5.3 RagoBot | étapes 4 à 6 de l'ordre (déplacement sur la map, blocs, combo) | BLOQUÉ ([[RagoBot]]) |
 | 7.2 Rejoindre une partie en cours (admin) | proposition du 22/11 : `/join <joueur>`, partie non comptée | BLOQUÉ |
 | 7.3 Anticheat | proposition du 22/11 : Grim (gratuit, Java 17+), alertes seules pendant un essai | BLOQUÉ |

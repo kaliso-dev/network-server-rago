@@ -19,8 +19,8 @@ Retour à [[État actuel]]. Les corrections passées et leur détail sont dans l
 | Lobby d'attente de Bedwars Normal : seule ArchwayFFA a une `salle-attente:` | à poser par Abel sur chaque map (`/bw edit <map>` puis `/bw lobbyfight`) ([[Parties privées]]) |
 | `/speed` déclaré par RagoPractice et RagoBuildTools (alias) | À VÉRIFIER en jeu ([[Commandes et permissions]]) |
 | Discord du site (`discord.gg/FXcvN7mWX`) différent de celui du jeu (`discord.gg/ragooptimizer`) | mis de côté avec le site jusqu'à ce que le serveur soit fini (Abel, 26/11) ([[Site]]) |
-| Java du serveur de test : 17 (suivi) ou 25 (PR #10) ? | À VÉRIFIER ([[Serveur de test]]) |
-| Beaucoup de fonctions **TESTÉ EN CI** mais jamais jouées en jeu depuis le 23/11 | essai en jeu d'Abel ; À VÉRIFIER s'il a été fait depuis l'installation du 25/11 ([[État actuel]]) |
+| Java du serveur de test : 17 (suivi) ou 25 (PR #10) ? | À VÉRIFIER : Abel ne sait pas ; la fenêtre de `lancer-windows.bat` l'affiche au démarrage ([[Serveur de test]]) |
+| Beaucoup de fonctions **TESTÉ EN CI** mais jamais jouées en jeu depuis le 23/11 | essai en jeu d'Abel de la version du 25/11 : pas encore fait (26/11) ([[État actuel]]) |
 
 ## Documentation dépassée dans le dépôt
 - `README.md` racine : dit « Jalon en cours : M1 Labo KB », que RagoPractice ne joue que le sumo, et que stats, Ranked, cosmétiques sont « à venir » : **dépassé** (tout cela existe depuis les PR #9 à #46, 11-14/11). À réécrire (petite PR doc, sur demande).

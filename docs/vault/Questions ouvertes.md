@@ -28,8 +28,8 @@ Mode d'emploi (outil ArtifactData, collection `questions`) :
 - **q126** (projet à part ?) : **projet à part**, pas une partie de Rago Client. Traitement : « Rago Practice est un projet à part : Autres projets Rago et Projet mis à jour (26/11). »
 
 ## Nouvelles questions préparées le 26/11 (à ajouter sur la page)
-- **q128** : le [[Serveur de test]] tourne-t-il sous **Java 17** (ce que dit le suivi des 21-25/11) ou **Java 25** (ce que dit la description de la PR #10 du 11/11) ? **À VÉRIFIER**.
-- **q129** : Abel a dit le 26/11 que toutes les maps et tous les modes dont il avait parlé sont finis. (a) L'essai en jeu de la version installée le 25/11 (`2de1bca`) est-il fait ? (b) La map de Top Bed Fight 2v2 et la « vision » d'Attack and Defense (23/11) sont-elles encore attendues ? **À VÉRIFIER** ([[État actuel]], [[Bed Wars]]).
+- **q128** : le [[Serveur de test]] tourne-t-il sous **Java 17** (ce que dit le suivi des 21-25/11) ou **Java 25** (ce que dit la description de la PR #10 du 11/11) ? **À VÉRIFIER** : Abel ne sait pas (26/11) ; la réponse est en tête de la fenêtre de `lancer-windows.bat` (ligne « Java: … »).
+- Répondu sans passer par la page (Abel, 26/11) : l'essai en jeu de la version du 25/11 n'est **pas encore fait** ; Top Bed Fight 2v2 et Attack and Defense sont **finis** de son côté, il les envoie, avec des plugins qui imitent les fireballs d'Hypixel ([[État actuel]]).
 ## Dans les propositions envoyées à Sofiene (pas sur la page)
 Ces questions sont dans des documents de proposition ; leurs réponses arrivent dans les fils de travail. Détail : [[Plan de sortie publique]].
 - **Propositions du 23/11** (https://claude.ai/artifact/HbZBGpwTZadVRtzdcsCyPY) : 1. RagoBot qui se déplace sur la map (3 questions) ; 2. RagoBot qui pose des blocs devant l'adversaire puis le combo (3 questions) ; 3. construire le lobby d'après l'image de référence (4 questions) ; 4. fireballs comme sur Minemen, à mesurer (2 questions).
