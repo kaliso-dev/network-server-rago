@@ -1,22 +1,20 @@
 ---
 type: historique
 tags: [historique, pr, github]
-maj: 2026-11-25
+maj: 2026-11-26
 ---
 # Pull requests
 
-Toutes les PR du dépôt `kaliso-dev/network-server-rago` au 25/11/2026. État actuel des branches : [[Branches et PR]]. Retour à [[Chronologie du projet]].
+Toutes les PR du dépôt `kaliso-dev/network-server-rago` au 26/11/2026. État actuel des branches : [[Branches et PR]]. Retour à [[Chronologie du projet]].
 
 ## Ouvertes
 | PR | Titre | Branche | Note |
 |---|---|---|---|
-| **#47** | Reset des arènes, spectateurs, kit Bed Fight, stats fiables, et checklist de la sortie publique | `claude/project-thread-wi9w0x` | ouverte le 21/11 ; **tout le travail du 21 au 25/11** (172 commits) ; fusionnable ; la fusion attend Sofiene |
-| #48 | Events: red dye to leave or cancel… | `claude/project-thread-5mjx75` | 21/11, 1 commit, dépassée par #47 (q124) |
-| #10 | CI : vérifier aussi le serveur sous Java 25 | `claude/ci-java-25` | 11/11, 1 commit, 83 de retard (q125) |
-| (cette PR) | Vault Obsidian du projet | `claude/project-thread-c5qy7f` | 25/11 |
+| **#47** | Reset des arènes, spectateurs, kit Bed Fight, stats fiables, et checklist de la sortie publique | `claude/project-thread-wi9w0x` | ouverte le 21/11 ; **tout le travail du 21 au 25/11** (172 commits) ; fusionnable, CI 14/14 verte ; la fusion attend Sofiene |
+| #53 | Vault : réponses d'Abel du 26/11, PR #48 et #10 fermées, accord d'Abel | `claude/vault-abel-26-11` | ouverte le 26/11 ; `docs/vault/` et `CLAUDE.md` seulement ; la fusion attend Abel ou Sofiene |
 
 ## Fermées sans fusion
-#3, #5, #6, #7 (leur contenu est arrivé dans `main` par la ligne principale, fusions directes du 11/11 : « Merge /kb sparring », « Merge the KB recorder mod and kb-analyzer », « Merge the measured hypixel-approx-v1 profile ») ; **#8** : ping simulé (abandonné, [[Knockback et combat]]).
+**#48** « Events: red dye to leave or cancel, clearer announcement every 20 s » (`claude/project-thread-5mjx75`, ouverte le 21/11) : fermée le 26/11, dépassée par #47 qui fait la même chose sur le code récent · **#10** « CI : vérifier aussi le serveur sous Java 25 » (`claude/ci-java-25`, ouverte le 11/11) : fermée le 26/11, pas utile pour l'instant, à refaire si la production tourne sous Java 25 · #3, #5, #6, #7 (leur contenu est arrivé dans `main` par la ligne principale, fusions directes du 11/11 : « Merge /kb sparring », « Merge the KB recorder mod and kb-analyzer », « Merge the measured hypixel-approx-v1 profile ») ; **#8** : ping simulé (abandonné, [[Knockback et combat]]).
 
 ## Fusionnées dans `main` (titres des commits de fusion)
 | PR | Fusion | Titre | Branche |
@@ -61,3 +59,7 @@ Toutes les PR du dépôt `kaliso-dev/network-server-rago` au 25/11/2026. État a
 | #44 | 14/11 | Lobby Fight FFA : 5 pommes en or, remises à 5 à chaque kill | `claude/project-thread-nukjdk` |
 | #45 | 14/11 | Panneaux publicitaires : test avec un vrai client Minecraft 1.8.9 | `claude/project-thread-nukjdk` |
 | #46 | 14/11 | Invis practice et Bed Break Simulator en 1v1 à 1v4 | `claude/project-thread-nukjdk` |
+| #49 | 25/11 | Vault Obsidian du projet (docs/vault) et CLAUDE.md | `claude/project-thread-c5qy7f` |
+| #50 | 26/11 | Rago Hub : hook de retour des fils | `rago-hub-hook` |
+| #51 | 26/11 | Rago Hub : hook v2 (activité en direct, images, tokens) | `rago-hub-hook` |
+| #52 | 26/11 | Rago Hub : hook v3 (tâches en direct, texte en cours, outils hub.py) | `rago-hub-hook` |

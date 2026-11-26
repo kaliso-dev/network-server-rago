@@ -1,34 +1,35 @@
 ---
 type: pilotage
 tags: [pilotage, à-faire]
-maj: 2026-11-25
+maj: 2026-11-26
 ---
 # Prochaines étapes
 
-Ce qui reste à faire avant la sortie publique, dans l'ordre du plan de Sofiene. Le détail tâche par tâche : [[Plan de sortie publique]]. Ce qui attend Sofiene : [[État actuel]]. Retour à [[Projet]].
+Ce qui reste à faire avant la sortie publique, dans l'ordre du plan de Sofiene. Le détail tâche par tâche : [[Plan de sortie publique]]. Ce qui attend Abel et Sofiene : [[État actuel]]. Retour à [[Projet]].
 
 ## Tout de suite
-1. **Essai en jeu** par Sofiene de la version installée le 25/11 (`2de1bca`), puis traiter sa liste de retours (c'est le rythme depuis le 22/11 : une liste datée, un commit par point, CI, installation après son accord).
-2. **Poser `salle-attente:` sur chaque map de Bedwars Normal** (`/bw edit <map>`, debout sur le sol voulu, `/bw lobbyfight`) pour que la party attende au-dessus de sa map ([[Parties privées]]).
-3. Valider les propositions en attente : RagoBot qui suit la map et pose des blocs, build du lobby, fireballs de Minemen (23/11) ; duels entre parties dans tous les modes (25/11) ; étape 8 ([[Questions ouvertes]]).
-4. Décider de fusionner la PR #47 dans `main` (et de fermer #48 et #10) ([[Branches et PR]]).
+1. **Abel, en jeu** : poser `salle-attente:` sur chaque map de Bedwars Normal (`/bw edit <map>`, debout sur le sol voulu, `/bw lobbyfight`) pour que la party attende au-dessus de sa map ([[Parties privées]]) ; poser les spawns de First Rush (pas encore faits, seules Nebuc et Gelato en ont) ([[Bed Wars]]) ; faire la séance de mesure des boules de feu et de la TNT ([[Boules de feu et TNT]]).
+2. **Recevoir la liste d'Abel** (maps, modes et features à ajouter, annoncée le 26/11), puis la traiter comme les listes d'avant : un commit par point, CI, installation après l'accord d'Abel ou de Sofiene.
+3. **Essai en jeu par Abel** de la version installée le 25/11 (`2de1bca`) : pas encore fait (Abel, 26/11). Recevoir aussi ce qu'Abel a fini (Top Bed Fight 2v2, Attack and Defense) et ses plugins de fireball.
+4. Valider les propositions en attente : RagoBot qui suit la map et pose des blocs, build du lobby, fireballs de Minemen (23/11) ; duels entre parties dans tous les modes (25/11) ; étape 8 ([[Questions ouvertes]]).
+5. Fusionner la PR #53 (vault) dans `main` ; décider de fusionner la PR #47 dans `main` (sur demande d'Abel ou de Sofiene) ([[Branches et PR]]). Les PR #48 et #10 sont fermées depuis le 26/11.
 
 ## Étapes du plan encore ouvertes
 | Étape | Reste à faire | Statut |
 |---|---|---|
-| 2.6 / 2.7 Fireballs et TNT | mesurer sur Hypixel (ou Minemen) avec kb-recorder 0.2.0, puis régler | BLOQUÉ ([[Boules de feu et TNT]]) |
+| 2.6 / 2.7 Fireballs et TNT | séance de mesure d'Abel sur Hypixel (ou Minemen) avec kb-recorder 0.2.0, puis régler ; en attendant, plugins qui imitent les fireballs d'Hypixel trouvés par Abel (à recevoir et vérifier, 26/11) | BLOQUÉ ([[Boules de feu et TNT]]) |
 | 2.8 Fast Shop et API Hypixel | une clé API Hypixel valide ; Sofiene refait une demande | BLOQUÉ ([[Import Hypixel]]) |
-| 1.7 Spawns First Rush | fait sur Nebuc et Gelato ; les autres maps attendent le point Hypixel de référence (`/bw spawn red` sur une île, recopié sur les 7 autres) | À FAIRE ([[Bed Wars]]) |
+| 1.7 Spawns First Rush | fait sur Nebuc et Gelato ; sur les autres maps, les spawns sont **à poser en jeu par Abel** (pas encore faits au 26/11 ; le point Hypixel de référence par `/bw spawn red` sur une île, recopié sur les 7 autres) | À FAIRE ([[Bed Wars]]) |
 | 2.3 Bed Break | plateforme de départ à tester en jeu | À TESTER |
 | 5.2 Build monumental « RAGO PRACTICE » du lobby | proposition du 23/11 à valider (image de référence reçue) | BLOQUÉ ([[Lobby]]) |
-| Top Bed Fight 2v2 | la map de Sofiene | BLOQUÉ |
-| Attack and Defense | la vision de Sofiene | BLOQUÉ |
+| Top Bed Fight 2v2 | la map est finie (Abel, 26/11) ; il l'envoie | BLOQUÉ (envoi d'Abel) |
+| Attack and Defense | fini de son côté (Abel, 26/11) ; il l'envoie | BLOQUÉ (envoi d'Abel) |
 | 6.5.3 RagoBot | étapes 4 à 6 de l'ordre (déplacement sur la map, blocs, combo) | BLOQUÉ ([[RagoBot]]) |
 | 7.2 Rejoindre une partie en cours (admin) | proposition du 22/11 : `/join <joueur>`, partie non comptée | BLOQUÉ |
 | 7.3 Anticheat | proposition du 22/11 : Grim (gratuit, Java 17+), alertes seules pendant un essai | BLOQUÉ |
 | 7.4 FPS benchmark | PNJ `fpsbenchmark`, faux joueurs par paquets | BLOQUÉ |
-| 8.1 Hébergeur européen ≤ 30 €/mois | comparatif d'offres réelles | À FAIRE ([[Hébergement et production]]) |
-| 8.2 Site | vérifier, liens, Netlify, domaine (à acheter par Sofiene) | À FAIRE ([[Site]]) |
+| 8.1 Hébergeur européen ≤ 30 €/mois | comparatif d'offres réelles ; **mis de côté jusqu'à ce que le serveur soit fini** (Abel, 26/11) | DÉCIDÉ : mis de côté ([[Hébergement et production]]) |
+| 8.2 Site | vérifier, liens (invitation Discord), Netlify, domaine ; **mis de côté jusqu'à ce que le serveur soit fini** (Abel, 26/11) | DÉCIDÉ : mis de côté ([[Site]]) |
 | 9 Sécurité, tests finaux | modes, stats, lobby, social, performances | À FAIRE |
 
 ## Plus tard (prévu dans le code ou l'architecture, pas commencé)

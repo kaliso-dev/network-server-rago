@@ -1,7 +1,7 @@
 ---
 type: technique
 tags: [ci, github-actions]
-maj: 2026-11-25
+maj: 2026-11-26
 ---
 # CI GitHub Actions
 
@@ -24,5 +24,5 @@ Un seul workflow : `.github/workflows/ci.yml` (668 lignes). Retour à [[Construi
 
 - **Le dépôt est public depuis le 10/11** (DÉCIDÉ) : les minutes gratuites de GitHub Actions d'un dépôt privé étaient épuisées ; un dépôt public a des minutes illimitées. Conséquence : **rien de secret ne doit jamais être commité** ([[Clés et secrets]]).
 - La CI n'a **aucun secret** et ne déploie rien.
-- PR #10 (`claude/ci-java-25`, CI sous Java 25) : ouverte, pas fusionnée ; question **q125** ([[Questions ouvertes]]).
+- PR #10 (`claude/ci-java-25`, CI sous Java 25) : **fermée sans fusion le 26/11** (elle ne change pas le jeu ; à refaire si l'hébergeur de production tourne sous Java 25) ([[Décisions]]). La CI vérifie donc toujours Java 8 et 21 seulement. Sa description disait que le serveur de test est lancé sous Java 25, le suivi dit Java 17 : **À VÉRIFIER** ([[Serveur de test]]).
 - Le récit des runs (numéros, verts ou rouges) est dans `docs/suivi-sortie-publique.md` ; l'état de la PR #47 se lit sur GitHub.

@@ -1,7 +1,7 @@
 ---
 type: technique
 tags: [onboarding, développement]
-maj: 2026-11-25
+maj: 2026-11-26
 ---
 # Reprendre le développement
 
@@ -14,7 +14,7 @@ La fiche à lire **avant de coder ou de dépanner**. Retour à [[Projet]].
 4. Le suivi de la sortie publique : `docs/suivi-sortie-publique.md` (2 559 lignes, **sur la branche de la PR #47**, pas encore sur `main`) : chaque demande du plan du 21/11, son statut et son journal ([[Plan de sortie publique]]).
 
 ## Quelle branche ?
-**Le travail récent est sur la PR #47** (`claude/project-thread-wi9w0x`, ouverte, 172 commits, non fusionnée au 25/11) ; `main` est resté au 14/11 (PR #46). Pour toute nouvelle tâche sur le jeu, partir de la branche de la PR #47 tant qu'elle n'est pas fusionnée, ou demander à Sofiene. Voir [[Branches et PR]].
+**Le travail récent sur le jeu est sur la PR #47** (`claude/project-thread-wi9w0x`, ouverte, 172 commits, non fusionnée au 26/11) ; le code du jeu de `main` est resté au 14/11 (PR #46). Pour toute nouvelle tâche sur le jeu, partir de la branche de la PR #47 tant qu'elle n'est pas fusionnée, ou demander à Sofiene ou à Abel. **Le vault, `CLAUDE.md` et le dossier `.claude/` (hook Rago Hub) sont sur `main`** (PR #49 à #52), **pas sur la branche de la #47**. Voir [[Branches et PR]].
 
 ## Quelle fiche pour quel travail
 | Je veux… | Lire | Fichiers principaux |
@@ -25,7 +25,7 @@ La fiche à lire **avant de coder ou de dépanner**. Retour à [[Projet]].
 | Bed Wars | [[Bed Wars]], [[Code de rago-bedwars]] | `BedwarsGame`, `BedwarsHost`, `BedwarsSettings` |
 | le knockback | [[Knockback et combat]], [[Mesures Hypixel]] | `combat/` ; **ne jamais inventer de valeur** |
 | une map | [[Maps et mondes]] | `/bw`, `tools/bedwars-maps` |
-| installer sur le PC de Sofiene | [[Installer une version sur le serveur de test]] | artefact CI `rago-serveur-de-test` |
+| installer sur le serveur de test (PC d'Abel « FULL PC GAMER ») | [[Installer une version sur le serveur de test]] | artefact CI `rago-serveur-de-test` |
 | le site | [[Site]], [[Code du site]] | `site/web`, `site/design` |
 
 ## Commandes
@@ -44,4 +44,5 @@ Détail : [[Construire et tester]], [[Tests et bots]].
 - Les plugins de jeu prennent les classes de RagoLobby (`depend: [RagoLobby]`, `compileOnly`), sans copier `rago-game-model`.
 - PacketEvents est un plugin à part, installé à côté de RagoLobby.
 - Le README racine et celui de `rago-game-model` ont des passages dépassés ([[Bugs et problèmes connus]]).
-- Signaler ce qui n'est pas testé en jeu : beaucoup de choses sont **TESTÉ EN CI** mais pas jouées par Sofiene.
+- Signaler ce qui n'est pas testé en jeu : beaucoup de choses sont **TESTÉ EN CI** mais pas encore jouées en jeu (les essais en jeu sont faits par Abel).
+- Un fil lancé par Rago Hub démarre sur `main` : passer sur la branche de la #47 fait disparaître `.claude/hooks/` (absent de cette branche) et le hook Rago Hub échoue à chaque outil (vu le 26/11). Le vault n'existe pas non plus sur cette branche : une mise à jour du vault part d'une branche de `main` et passe par une **petite PR vers `main`** (choix d'Abel du 26/11, [[Branches et PR]]).

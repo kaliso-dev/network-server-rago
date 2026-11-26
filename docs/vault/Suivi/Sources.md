@@ -1,7 +1,7 @@
 ---
 type: suivi
 tags: [sources]
-maj: 2026-11-25
+maj: 2026-11-26
 ---
 # Sources
 
@@ -23,4 +23,5 @@ D'où vient chaque information de ce vault, de la plus sûre à la moins sûre. 
   - Page « Questions du vault Rago » (commune aux projets Rago) : https://claude.ai/artifact/1mqjZuFNVqGT5JhBmG6HPk
   - Claude Docs cités par le suivi : « Proposition : Private Game, Bedwars Normal et FFA Archway » (22/11), « Étape 7 : étude du bot IA » (22/11), le doc de direction artistique du site.
 - **Fichiers du projet Claude** (pas dans le dépôt) : `site-officiel/` (analyse et stratégie du site), `sortie-publique/references/lobby-reference-23-11.png` (image de référence du lobby), `serveur-de-test/install-*/` (scripts de fusion des configs). **À récupérer avant le changement de compte** : ils ne suivent pas le dépôt.
-- Le PC de Sofiene (serveur de test, maps, données des joueurs) : [[Serveur de test]].
+- Le PC d'Abel « FULL PC GAMER » (serveur de test, maps, données des joueurs) : [[Serveur de test]].
+- **Rago Hub** (depuis le 26/11) : les fils de travail lancés par Abel ou le chef, leur mémoire commune et leurs comptes rendus (outil `.claude/hooks/hub.py` sur `main`). Les réponses d'Abel du 26/11 y ont été données ([[Personnes et comptes]]).

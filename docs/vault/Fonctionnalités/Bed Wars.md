@@ -1,7 +1,7 @@
 ---
 type: fonctionnalité
 tags: [bedwars, ragobedwars, rbw]
-maj: 2026-11-25
+maj: 2026-11-26
 code: bukkit/rago-bedwars (BedwarsGame, BedwarsHost, Instances…)
 ---
 # Bed Wars
@@ -26,15 +26,15 @@ Les modes Bed Wars sont joués par **RagoBedwars** (`bukkit/rago-bedwars`, 59 cl
 | **Ranked Bedwars** | `ranked-1v1` à `ranked-4v4` | les 20 maps de la file RBW (Antenna, Aquarium, Archway, Artemis, Boletum, Carapace, Catalyst, Chained, Eastwood, Extinction, Invasion, Katsu, Lectus, Obelisk, Paladin, Planet98, Rise, Stonekeep, Swashbuckle, Treenan), chacune avec sa hauteur max ; ELO par mode ; sur les maps à 4 îles, les îles des côtés gardent forge, shop et upgrades (`forges-partout:`, `shops-partout:`) |
 | RBW Sky Rise | `skyrise-1v1`, `skyrise-2v2` | une vraie partie RBW sur SkyRise |
 | RBW Sky Rise Resources | `skyrise-resources-1v1/2v2` | Sky Rise avec forges et shops des 6 îles vides à prendre, forges lentes (40 fers, 5 ors/min) |
-| First Rush | `first-rush`, `first-rush-duo` | partie réelle sur deux **îles voisines** ; maps duo au choix : Acropolis, Ambush, Aqil, Cascade, Crogorm, Frosted, Gelato, Lighthouse, Lotus, Nebuc ; spawns corrigés sur Nebuc et Gelato (21/11), les autres attendent le point Hypixel |
+| First Rush | `first-rush`, `first-rush-duo` | partie réelle sur deux **îles voisines** ; maps duo au choix : Acropolis, Ambush, Aqil, Cascade, Crogorm, Frosted, Gelato, Lighthouse, Lotus, Nebuc ; spawns corrigés sur Nebuc et Gelato (21/11) ; sur les autres maps, spawns **pas encore posés** : à faire en jeu par Abel (26/11) |
 | First Rush full map | `first-rush-full`, `first-rush-full-duo` | la même avec toute la map (diamants, émeraudes, forges et shops des îles vides) |
 | Invis practice | `invis-practice-1v1` à `1v4` | 20 maps RBW, manches de 3 min : un attaquant invisible (potion) depuis le mid contre les défenseurs du lit, chacun attaque à son tour (2 fois de 1v1 à 1v2, 1 fois en 1v3 et 1v4) ; armure cachée comme sur Hypixel ; un départ avant la fin = défaite |
 | Bed Break Simulator | `bed-break-simulator-1v1` à `1v4` | Archway ou Invasion : l'attaquant part de la **plateforme du Top Bridge** (en haut de l'escalier rouge relevé sur la map, 65 laines posées par le jeu à chaque manche) avec un de 3 kits ; bridge droit d'un bloc, un virage au plus ; défense RBW (end stone + verre), forges pleines (corrigées sur Invasion, TESTÉ EN JEU), cisailles et hache ; manches de 3 min ; plateforme à tester en jeu |
 | Clutch Scenario | `clutch-scenario-1v1` à `1v4` | une vraie partie RBW sur **Sky Rise ou Archway** « à 18 minutes » : bridges déjà posés (vers diamants, mid, et le rush jusqu'à la base ennemie, `Bridges`), la défense du lit perdu cassée ; le joueur seul (tiré au sort, une party reste ensemble) n'a pas de lit et une vie, les autres gardent le leur |
-| Attack and Defense | `attack-defense-1v1/2v2` | sur **BioHazard** : les attaquants depuis le pont rose (une vie, fer, kit d'attaque au choix : Rusher…), les défenseurs avec forge, shop et kit de défense ; Protection II des deux côtés ; premier à **3 manches**, rôles échangés à chaque manche ; `/kit` ; Sofiene doit expliquer « sa vision » (23/11) |
+| Attack and Defense | `attack-defense-1v1/2v2` | sur **BioHazard** : les attaquants depuis le pont rose (une vie, fer, kit d'attaque au choix : Rusher…), les défenseurs avec forge, shop et kit de défense ; Protection II des deux côtés ; premier à **3 manches**, rôles échangés à chaque manche ; `/kit` ; la version d'Abel est finie (26/11), il l'envoie : le mode changera peut-être à réception |
 | Bedwars Normal | `bedwars-normal` (+ `-4s`, `-2s` cachés) | partie privée d'une party : [[Parties privées]] |
 
 Les duels de RagoBedwars (Bed Fight, Top BedFight, Top Bridge, Lobby Fight 1v1, Red Rover Top Bridge) sont dans [[Duels]] et [[Red Rover et 3 Players]] ; les FFA dans [[Arènes ouvertes]] ; CTF et 2017 Bedwars dans [[Fun Practice]] ; Fast Shop dans [[Entraînements]].
 
 ## Réglage des maps
-`/bw` (permission `rago.bedwars.admin`) pose les points d'une map dans son `bedwars.yml` ; l'outil `tools/bedwars-maps` les trouve tout seul sur une map d'Hypixel ([[Maps et mondes]]). `parties-max: 8` copies en même temps ; une map de démo (`carte-demo: true`) quand aucune map n'est prête.
+`/bw` (permission `rago.bedwars.admin`) pose les points d'une map dans son `bedwars.yml` (réglages faits en jeu par Abel) ; l'outil `tools/bedwars-maps` les trouve tout seul sur une map d'Hypixel ([[Maps et mondes]]). `parties-max: 8` copies en même temps ; une map de démo (`carte-demo: true`) quand aucune map n'est prête.
