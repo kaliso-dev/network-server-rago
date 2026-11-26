@@ -1,15 +1,15 @@
 ---
 type: règle
 tags: [règle]
-maj: 2026-11-25
+maj: 2026-11-26
 ---
 # Règles de travail
 
-Règles en vigueur au 25/11/2026 pour ce dépôt. Elles viennent du `README.md` du dépôt (« Règles du projet »), du suivi de la sortie publique (`docs/suivi-sortie-publique.md`) et des règles générales de Sofiene pour tous les projets Rago (vault de Rago Optimizer). Détail daté dans [[Décisions]]. Retour à [[Projet]].
+Règles en vigueur au 26/11/2026 pour ce dépôt. Elles viennent du `README.md` du dépôt (« Règles du projet »), du suivi de la sortie publique (`docs/suivi-sortie-publique.md`) et des règles générales de Sofiene pour tous les projets Rago (vault de Rago Optimizer). Détail daté dans [[Décisions]]. Retour à [[Projet]].
 
 ## Règles de Sofiene (tous les projets Rago)
-1. **Rien sur GitHub sans demande explicite de Sofiene** : préparer est permis (branche, PR), fusionner non. « fusionne » / « push » de Sofiene = accord pour fusionner la PR concernée.
-2. **Rien d'installé sur le [[Serveur de test]] sans son accord** : chaque installation du suivi attend son « oui » / « Tu peux installer » (ex. 24/11 à 14h46, 25/11 à 14h47). Voir [[Installer une version sur le serveur de test]].
+1. **Rien sur GitHub sans demande explicite de Sofiene ou d'Abel** : préparer est permis (branche, PR), fusionner non. « fusionne » / « push » de l'un d'eux = accord pour fusionner la PR concernée. **Depuis le 26/11, l'accord d'Abel suffit, au même titre que celui de Sofiene, pour GitHub et pour le serveur de test** (Sofiene : « l'accord d'abel suffira désormais », [[Décisions]]).
+2. **Rien d'installé sur le [[Serveur de test]] sans l'accord de Sofiene ou d'Abel** : chaque installation attend un « oui » / « Tu peux installer » (ex. 24/11 à 14h46, 25/11 à 14h47). Un accord vaut pour l'installation demandée. Voir [[Installer une version sur le serveur de test]].
 3. **Aucun secret** dans le dépôt, le vault, un commit, une PR ou le chat ([[Clés et secrets]]).
 4. **Ne jamais affirmer sans preuve** : un statut TESTÉ n'est donné que si c'est vérifié (tests, bots en CI, ou essai en jeu signalé comme tel). Ce qui n'a pas été joué en jeu est dit « pas encore joué en jeu ».
 5. **Ne jamais deviner** : une question à Sofiene plutôt qu'une supposition ; une valeur choisie par Claude est écrite « à confirmer ». Les gros changements passent d'abord par une **proposition** (Claude Docs ou Artifact) avant tout code (règle de l'étape 7 du plan, appliquée depuis à chaque demande floue).
@@ -34,5 +34,5 @@ Règles en vigueur au 25/11/2026 pour ce dépôt. Elles viennent du `README.md` 
 ## PR et commits
 - Commits : en **anglais**, une phrase qui décrit l'effet (« Party: a member who disconnects has 60 seconds to rejoin ») ; une demande de Sofiene est souvent citée « (the owner, 23/11) ».
 - Titres et descriptions de PR : en **français** (« Pourquoi », « Changements », « Tests », avec ce qui n'est pas testé en jeu).
-- Branches `claude/…`, PR vers `main` ; pas de branche de staging dans ce dépôt ([[Branches et PR]]).
+- Branches `claude/…`, PR vers `main` ; pas de branche de staging dans ce dépôt ([[Branches et PR]]). Le vault vit sur `main` : chaque mise à jour du vault passe par une petite PR vers `main` (choix d'Abel du 26/11).
 - Le document de suivi `docs/suivi-sortie-publique.md` est mis à jour à chaque demande (statut, commit, test, installation) : c'est le journal détaillé ; ce vault en donne l'état.

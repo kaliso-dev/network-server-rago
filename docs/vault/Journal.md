@@ -10,7 +10,8 @@ Une ligne datée par événement marquant, la plus récente en haut. L'histoire 
 | Date | Événement | Note |
 |---|---|---|
 | 26/11 | Réponses d'Abel dans Rago Hub : qRago et le PC du serveur de test (« FULL PC GAMER ») sont à lui, dernière version dans `Downloads\rago-serveur-de-test (19)` ; c'est lui qui fait essais en jeu, réglages de maps et mesures ; Rago Practice est un projet à part ; domaine, Discord, site et hébergeur mis de côté ; maps et modes finis, restent le lobby d'attente de Bedwars Normal, les spawns de First Rush et la mesure des boules de feu | [[État actuel]], [[Personnes et comptes]] |
-| 26/11 | Fermeture sans fusion des PR #48 et #10 décidée (demande d'Abel, conseil du Chef), en attente du « GO » de Sofiene | [[Décisions]] |
+| 26/11 | Sofiene : « l'accord d'abel suffira désormais » (GitHub et serveur de test) | [[Règles de travail]] |
+| 26/11 | PR #48 et #10 **fermées sans fusion** (demande d'Abel, conseil du Chef) ; PR #53 ouverte vers `main` pour la mise à jour du vault (option A) | [[Branches et PR]], [[Décisions]] |
 | 26/11 | PR #50, #51, #52 fusionnées dans `main` : hook Rago Hub (`.claude/`), les fils de travail sont lancés depuis Rago Hub | [[Branches et PR]] |
 | 25/11 | PR #49 fusionnée dans `main` : ce vault et `CLAUDE.md` | [[Pull requests]] |
 | 25/11 | Vault créé (`docs/vault/`) pour reprendre le projet sur un nouveau compte Claude ; 6 questions posées (q122 à q127) | [[Mettre à jour le vault]] |

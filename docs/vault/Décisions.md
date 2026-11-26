@@ -5,7 +5,7 @@ maj: 2026-11-26
 ---
 # Décisions
 
-Les décisions sur Rago Practice, datées, avec les mots de leur auteur quand ils sont connus : celles de Sofiene (décideur) et, depuis le 26/11, les réponses d'Abel données dans Rago Hub. Source : les PR, les commits (« the owner, 23/11 »), `docs/suivi-sortie-publique.md` et Rago Hub. La plus récente prime ; les actions GitHub et les installations attendent toujours l'accord de Sofiene. Retour à [[Projet]], voir [[Règles de travail]].
+Les décisions sur Rago Practice, datées, avec les mots de leur auteur quand ils sont connus : celles de Sofiene (décideur) et, depuis le 26/11, les réponses d'Abel données dans Rago Hub. Source : les PR, les commits (« the owner, 23/11 »), `docs/suivi-sortie-publique.md` et Rago Hub. La plus récente prime ; les actions GitHub et les installations attendent l'accord de Sofiene ou, depuis le 26/11, celui d'Abel. Retour à [[Projet]], voir [[Règles de travail]].
 
 ## Fondations (06/11 au 12/11)
 | Date | Décision | Note |
@@ -57,12 +57,14 @@ Les décisions sur Rago Practice, datées, avec les mots de leur auteur quand il
 | 25/11 | Duels entre parties : « Tous les modes, une équipe par party » (9h48) → proposition d'abord | [[Party, amis et messages]] |
 | 25/11 | « Tu peux installer oui » (14h47) : installation de `2de1bca` | [[Installer une version sur le serveur de test]] |
 | 25/11 | Créer ce vault pour passer sur un compte Claude Team | [[Mettre à jour le vault]] |
+| 26/11 | **« l'accord d'abel suffira désormais »** : l'accord d'Abel suffit, au même titre que celui de Sofiene, pour GitHub (push, PR, fermeture, fusion) et pour le serveur de test (écrit dans la conversation principale de Rago Hub, relayé par le chef) | [[Règles de travail]] |
 
 ## Réponses d'Abel (26/11, Rago Hub)
 | Date | Décision | Note |
 |---|---|---|
 | 26/11 | Domaine (`rago.gg`), invitation Discord, site et hébergeur **mis de côté jusqu'à ce que le serveur soit fini** (q127 reportée, pas tranchée) | [[Hébergement et production]], [[Site]] |
-| 26/11 | **Fermer sans fusion** la PR #48 (events, teinture rouge : dépassée par #47) et la PR #10 (CI sous Java 25 : ne change pas le jeu) ; demande d'Abel, conseil du Chef ; **en attente du « GO » de Sofiene** | [[Branches et PR]] |
+| 26/11 | **Fermer sans fusion** la PR #48 (events, teinture rouge : dépassée par #47) et la PR #10 (CI sous Java 25 : ne change pas le jeu) ; demande d'Abel (« Je valide »), conseil du Chef ; **fait le 26/11** | [[Branches et PR]] |
+| 26/11 | Les mises à jour du vault passent par une **petite PR vers `main`** (option A, « Go A ») : le vault n'existe pas sur la branche de la PR #47 | [[Branches et PR]] |
 
 ## Abandonné
 - 07/11 : ping simulé au corps à corps (PR #8 fermée) : injouable en jeu.
@@ -72,3 +74,4 @@ Les décisions sur Rago Practice, datées, avec les mots de leur auteur quand il
 - 22/11 : Find Your Sensitivity retiré des menus (code gardé).
 - 23/11 : KB displace (1v1 et contre un bot), Pearl practice, Fireball practice, titre KB Displace retirés des menus (code et records gardés).
 - 23/11 : Private game qui envoie la party au lobby d'attente d'Archway dès le clic : remplacée le 25/11 (la map d'abord, au lobby).
+- 26/11 : CI sous Java 25 (PR #10 fermée sans fusion) : pas utile pour l'instant ; à refaire si l'hébergeur de production tourne sous Java 25. (La PR #48, fermée le même jour, n'abandonne rien : son contenu est dans la #47.)

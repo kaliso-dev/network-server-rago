@@ -16,8 +16,9 @@ Rago Practice n'est **pas encore ouvert au public**. Tout le travail sur le jeu 
 | Production | aucune : pas d'hébergeur, pas de proxy, pas de base de données, pas d'adresse publique ; domaine, Discord, site et hébergeur **mis de côté jusqu'à ce que le serveur soit fini** (Abel, 26/11) ([[Hébergement et production]]) | CONFIRMÉ (code, suivi 25/11) |
 | Branche `main` | `97d674f` du 26/11 ; code du jeu au 14/11 (PR #46) ; ensuite seulement le vault et `CLAUDE.md` (PR #49, 25/11) et le hook Rago Hub dans `.claude/` (PR #50, #51, #52, 26/11) | CONFIRMÉ (git, 26/11) |
 | PR #47 | branche `claude/project-thread-wi9w0x`, **172 commits d'avance** sur `main`, 7 de retard (le vault et le hook, aucun fichier en commun), « mergeable clean » ; titre « Reset des arènes, spectateurs, kit Bed Fight, stats fiables, et checklist de la sortie publique » ; dernier commit `ce8edc5` le 25/11 à 13:51 UTC, **CI 14/14 verte** ; c'est l'état le plus récent du jeu | CONFIRMÉ (GitHub, 26/11) |
-| PR #48 | « Events: red dye to leave or cancel… » (21/11), 1 commit, **dépassée** : la même demande est codée dans #47 ; **à fermer sans fusion** (demande d'Abel du 26/11, conseil du Chef), en attente du « GO » de Sofiene | DÉCIDÉ, pas encore fait |
-| PR #10 | « CI : vérifier aussi le serveur sous Java 25 » (11/11), 1 commit, ne change pas le jeu ; **à fermer sans fusion** (même décision du 26/11), en attente du « GO » de Sofiene | DÉCIDÉ, pas encore fait |
+| PR #53 | mise à jour du vault (réponses d'Abel du 26/11, fermeture de #48 et #10, accord d'Abel), branche `claude/vault-abel-26-11`, vers `main` ; **ouverte, la fusion attend Abel ou Sofiene** | CONFIRMÉ (GitHub, 26/11) |
+| PR #48 et #10 | **fermées sans fusion le 26/11** (demande d'Abel, conseil du Chef) : #48 (events, teinture rouge) dépassée par #47 ; #10 (CI sous Java 25) ne change pas le jeu | CONFIRMÉ (GitHub, 26/11) |
+| Accords | depuis le 26/11, **l'accord d'Abel suffit, au même titre que celui de Sofiene**, pour GitHub et pour le serveur de test ([[Règles de travail]]) | DÉCIDÉ (Sofiene, 26/11) |
 | Serveur de test | PandaSpigot 1.8.8 build 226 sur le **PC d'Abel « FULL PC GAMER »** (profil Windows `rgabe`) ; dernière version dans `C:\Users\rgabe\Downloads\rago-serveur-de-test (19)`, mondes dans `C:\Users\rgabe\Rago\mondes` ; Java : **À VÉRIFIER** (17 d'après le suivi, 25 d'après la PR #10) ; dernière installation : **`2de1bca` le 25/11** (après le « Tu peux installer oui » de 14h47), sauvegarde `sauvegarde-avant-maj-2de1bca\plugins\` | CONFIRMÉ (Abel, 26/11) pour le PC et le dossier ; OBSERVÉ (suivi) pour le reste |
 | Remise à zéro des stats | demandée le 23/11 (« Les stats seulement ») ; faite une seule fois au premier démarrage de la version installée le 24/11, après copie ([[Statistiques et classements]]) ; ensuite **plus aucune remise à zéro avant la sortie** (« on attend la release pour ça ») | DÉCIDÉ |
 | Knockback | profil `hypixel-approx-v1` + 9 ticks entre deux coups, **verrouillé** (`locked: true`) entre joueurs ; mesuré sur Hypixel le 07/11 ([[Mesures Hypixel]]) | CONFIRMÉ (code) |
@@ -28,7 +29,7 @@ Rago Practice n'est **pas encore ouvert au public**. Tout le travail sur le jeu 
 | Site officiel | Next.js dans `site/web`, état « bientôt » ; **aucun site Netlify** pour Rago Practice sur le compte (vérifié le 25/11) ; domaine pas acheté ; **mis de côté jusqu'à ce que le serveur soit fini** (Abel, 26/11) ([[Site]]) | CONFIRMÉ (Netlify) |
 | Clé API Hypixel | refusée (« Invalid API key ») ; Sofiene refait une demande (22/11) ; l'[[Import Hypixel]] ne marche pas tant qu'il n'y a pas de clé | BLOQUÉ |
 | CI GitHub | 9 jobs (14 avec les matrices), à chaque push sur `main` et chaque PR ; dépôt **public** donc minutes gratuites ([[CI GitHub Actions]]) | CONFIRMÉ |
-| Vault | créé le 25/11 et fusionné dans `main` (PR #49) ; fils de travail lancés depuis Rago Hub depuis le 26/11 ; il n'existe pas sur la branche de la #47 ([[Branches et PR]]) | CONFIRMÉ (git) |
+| Vault | créé le 25/11 et fusionné dans `main` (PR #49) ; fils de travail lancés depuis Rago Hub depuis le 26/11 ; il n'existe pas sur la branche de la #47 : ses mises à jour passent par une petite PR vers `main` (PR #53 ouverte le 26/11) ([[Branches et PR]]) | CONFIRMÉ (git) |
 
 ## Ce qui attend Abel (en jeu, sur le serveur de test)
 1. Poser le lobby d'attente (`/bw edit <map>` puis `/bw lobbyfight`, qui écrit `salle-attente:`) sur **chaque map de Bedwars Normal** : seule ArchwayFFA en a un ([[Parties privées]]).
@@ -36,10 +37,10 @@ Rago Practice n'est **pas encore ouvert au public**. Tout le travail sur le jeu 
 3. Faire la **séance de mesure des boules de feu et de la TNT** avec kb-recorder 0.2.0 ([[Boules de feu et TNT]]).
 4. Envoyer sa liste de maps, modes et features à ajouter (annoncée le 26/11).
 
-## Ce qui attend Sofiene (décisions et accords)
-1. Donner son « GO » pour fermer les PR #48 et #10 sans fusion (décidé le 26/11) et dire où pousser la mise à jour du vault ([[Questions ouvertes]]).
-2. Répondre aux propositions en attente (23/11, 25/11, étape 8) et aux [[Questions ouvertes]].
-3. Dire si la PR #47 doit être fusionnée dans `main` (rien n'est fusionné sans sa demande, [[Règles de travail]]).
+## Ce qui attend une décision ou un accord (Sofiene ou Abel)
+1. Fusionner la PR #53 (vault) dans `main`.
+2. Répondre aux propositions en attente (23/11, 25/11, étape 8) et aux [[Questions ouvertes]] ; passer q122 à q126 en « traitée » sur la page des questions (compte qui y a accès).
+3. Dire si la PR #47 doit être fusionnée dans `main` (rien n'est fusionné sans la demande de Sofiene ou d'Abel, [[Règles de travail]]).
 4. Donner l'accord pour chaque installation sur le serveur de test ([[Installer une version sur le serveur de test]]).
 
 ## À vérifier

@@ -6,7 +6,7 @@ code: tools/local-server, tools/build-tools
 ---
 # Serveur de test
 
-**Le seul serveur qui existe** : il tourne sur le **PC Windows d'Abel, nommé « FULL PC GAMER »** (profil Windows `rgabe`, réponse d'Abel du 26/11 à q123). C'est là qu'Abel fait les essais en jeu, les réglages de maps et les séances de mesure ; quelques amis s'y connectent ; **pas ouvert au public**. Les installations s'y font seulement avec l'accord de Sofiene ([[Installer une version sur le serveur de test]]). Mode d'emploi complet : `tools/local-server/README.md` (renommé `LISEZ-MOI.txt` dans le dossier assemblé). Retour à [[Projet]].
+**Le seul serveur qui existe** : il tourne sur le **PC Windows d'Abel, nommé « FULL PC GAMER »** (profil Windows `rgabe`, réponse d'Abel du 26/11 à q123). C'est là qu'Abel fait les essais en jeu, les réglages de maps et les séances de mesure ; quelques amis s'y connectent ; **pas ouvert au public**. Les installations s'y font seulement avec l'accord de Sofiene ou d'Abel ([[Installer une version sur le serveur de test]]). Mode d'emploi complet : `tools/local-server/README.md` (renommé `LISEZ-MOI.txt` dans le dossier assemblé). Retour à [[Projet]].
 
 ## Ce qui est connu (CONFIRMÉ par Abel le 26/11, sinon OBSERVÉ dans le suivi, 21-25/11)
 - **Dernière version du serveur** : dans **`C:\Users\rgabe\Downloads\rago-serveur-de-test (19)`** (Abel, 26/11). Mondes dans **`C:\Users\rgabe\Rago\mondes`** (le dossier `Rago` du profil Windows `rgabe`, `RAGO_DONNEES` par défaut).

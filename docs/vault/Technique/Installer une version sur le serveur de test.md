@@ -8,7 +8,7 @@ maj: 2026-11-26
 La procédure suivie par les Claude du projet pour mettre une nouvelle version sur le serveur de test, qui tourne sur le **PC d'Abel « FULL PC GAMER »** (reconstituée depuis le journal de `docs/suivi-sortie-publique.md`). Retour à [[Serveur de test]].
 
 ## Règle
-**Jamais sans l'accord explicite de Sofiene** pour cette installation (ex. « Tu peux installer oui », 25/11 14h47 ; « Install tout sur mon [serveur] », 22/11 9h49). Un accord vaut pour l'installation demandée, pas pour les suivantes. Le serveur de test n'est pas la production, mais ses données (stats, mondes, points) sont à garder ([[Règles de travail]]).
+**Jamais sans l'accord explicite de Sofiene ou d'Abel** pour cette installation (l'accord d'Abel suffit depuis le 26/11 ; ex. « Tu peux installer oui », 25/11 14h47 ; « Install tout sur mon [serveur] », 22/11 9h49). Un accord vaut pour l'installation demandée, pas pour les suivantes. Le serveur de test n'est pas la production, mais ses données (stats, mondes, points) sont à garder ([[Règles de travail]]).
 
 ## Où
 La dernière version en service est dans **`C:\Users\rgabe\Downloads\rago-serveur-de-test (19)`** (Abel, 26/11) ; les mondes sont à part, dans `C:\Users\rgabe\Rago\mondes`.
@@ -24,7 +24,7 @@ La dernière version en service est dans **`C:\Users\rgabe\Downloads\rago-serveu
 8. Mettre à jour [[État actuel]] et [[Journal]] de ce vault.
 
 ## Accès au PC
-Le PC est celui d'**Abel**, « FULL PC GAMER », profil Windows `rgabe` (réponse du 26/11 à q123). Les installations passées ont été faites à distance depuis des sessions Claude (accès au dossier ou Remote Control) : le moyen exact reste **À VÉRIFIER**. Sans accès, préparer le zip et le mode d'emploi pour qu'Abel l'installe sur son PC, après l'accord de Sofiene.
+Le PC est celui d'**Abel**, « FULL PC GAMER », profil Windows `rgabe` (réponse du 26/11 à q123). Les installations passées ont été faites à distance depuis des sessions Claude (accès au dossier ou Remote Control) : le moyen exact reste **À VÉRIFIER**. Sans accès, préparer le zip et le mode d'emploi pour qu'Abel l'installe sur son PC.
 
 ## Revenir en arrière
 Arrêter le serveur, remettre les jars et configs de `sauvegarde-avant-maj-<sha>`. Les mondes : sauvegardes automatiques zip du lanceur dans `C:\Users\rgabe\Rago\sauvegardes`.

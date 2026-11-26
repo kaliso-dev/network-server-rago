@@ -9,10 +9,10 @@ Ce qui reste à faire avant la sortie publique, dans l'ordre du plan de Sofiene.
 
 ## Tout de suite
 1. **Abel, en jeu** : poser `salle-attente:` sur chaque map de Bedwars Normal (`/bw edit <map>`, debout sur le sol voulu, `/bw lobbyfight`) pour que la party attende au-dessus de sa map ([[Parties privées]]) ; poser les spawns de First Rush (pas encore faits, seules Nebuc et Gelato en ont) ([[Bed Wars]]) ; faire la séance de mesure des boules de feu et de la TNT ([[Boules de feu et TNT]]).
-2. **Recevoir la liste d'Abel** (maps, modes et features à ajouter, annoncée le 26/11), puis la traiter comme les listes d'avant : un commit par point, CI, installation après l'accord de Sofiene.
+2. **Recevoir la liste d'Abel** (maps, modes et features à ajouter, annoncée le 26/11), puis la traiter comme les listes d'avant : un commit par point, CI, installation après l'accord d'Abel ou de Sofiene.
 3. Essai en jeu de la version installée le 25/11 (`2de1bca`) : **À VÉRIFIER** s'il est encore à faire (pas dans la liste d'Abel du 26/11). Les essais en jeu sont faits par Abel.
 4. Valider les propositions en attente : RagoBot qui suit la map et pose des blocs, build du lobby, fireballs de Minemen (23/11) ; duels entre parties dans tous les modes (25/11) ; étape 8 ([[Questions ouvertes]]).
-5. Fermer les PR #48 et #10 sans fusion (décidé le 26/11, en attente du « GO » de Sofiene) ; décider de fusionner la PR #47 dans `main` ([[Branches et PR]]).
+5. Fusionner la PR #53 (vault) dans `main` ; décider de fusionner la PR #47 dans `main` (sur demande d'Abel ou de Sofiene) ([[Branches et PR]]). Les PR #48 et #10 sont fermées depuis le 26/11.
 
 ## Étapes du plan encore ouvertes
 | Étape | Reste à faire | Statut |
