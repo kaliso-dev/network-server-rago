@@ -164,6 +164,7 @@ class LobbySettingsTest {
             {"boxing", "ranked-boxing"},
             {"block-edit", "block-edit-duel", "red-rover-block-edit"},
             {"fireball", "fireball-knockback"},
+            {"clutch", "clutch-top-fight"},
             {"bow-duel", "bow-training", "aim-trainer"},
         };
         for (String[] game : games) {
@@ -307,6 +308,8 @@ class LobbySettingsTest {
                 duels.get(9).mode.mode().id(), duels.get(10).mode.mode().id(), duels.get(11).mode.mode().id()));
         List<LobbySettings.Entry> practice = settings.entriesIn("entrainement");
         assertEquals("clutch", practice.get(0).group.id(), "Block clutch first in the Practice (the owner, 27/11)");
+        assertEquals(Material.SANDSTONE, settings.group("clutch").icon(), "Block clutch and its top fight: a sandstone (the owner, 27/11)");
+        assertEquals(Material.SANDSTONE, settings.display("clutch-top-fight").icon());
         assertEquals("fast-defense", practice.get(1).mode.mode().id());
         assertEquals("bow-training", practice.get(practice.size() - 1).mode.mode().id(), "the bow last: known everywhere");
         assertEquals(Material.WOOL, settings.group("block-placement").icon(), "a yellow wool (the owner, 27/11)");

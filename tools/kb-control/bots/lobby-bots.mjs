@@ -244,7 +244,7 @@ function hotbarItem (bot, slot) {
 async function closeFirstMenu (bot) {
   await waitFor(() => bot.firstMenu != null, 8000, `${bot.username}: the menu of the first arrival`)
   const icons = [10, 12, 14, 16, 31].map((slot) => bot.firstMenu.slots[slot]?.name ?? null)
-  if (JSON.stringify(icons) !== JSON.stringify(['ladder', 'bed', 'iron_sword', 'stone_sword', 'book'])) {
+  if (JSON.stringify(icons) !== JSON.stringify(['sandstone', 'bed', 'iron_sword', 'stone_sword', 'book'])) {
     throw new Error(`${bot.username}: the menu of the first arrival holds ${JSON.stringify(icons)}`)
   }
   bot.closeWindow(bot.firstMenu)

@@ -178,7 +178,7 @@ accueil: true
 premiere-venue:
   entrainer:
     nom: "&bTrain a skill"
-    icone: LADDER
+    icone: SANDSTONE
     mode: clutch
     description:
       - "Start with the block clutch:"
@@ -339,7 +339,7 @@ groupes:
       - "and the emeralds."
   clutch:
     nom: "&bBlock clutch"
-    icone: LADDER
+    icone: SANDSTONE
     description:
       - "A hit throws you off: place"
       - "your wool to save yourself."
@@ -2365,7 +2365,7 @@ modes:
     nom: "&bBlock clutch"
     categorie: entrainement
     groupe: clutch
-    icone: LADDER
+    icone: SANDSTONE
     # "Start here" in the menus: the first training of a new player (one mode or more)
     commencer-ici: true
     equipes: 1
@@ -2382,7 +2382,7 @@ modes:
     nom: "&bBlock clutch: top fight"
     categorie: entrainement
     groupe: clutch
-    icone: WOOL
+    icone: SANDSTONE
     equipes: 1
     joueurs-par-equipe: 1
     classe: false
