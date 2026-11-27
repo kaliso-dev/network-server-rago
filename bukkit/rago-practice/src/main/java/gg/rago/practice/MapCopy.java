@@ -266,6 +266,17 @@ final class MapCopy {
         return new MapCopy(Arrays.copyOf(kept, n));
     }
 
+    /** The same blocks moved by (dx, dy, dz): a second build beside the first in one zone. */
+    MapCopy shifted(int dx, int dy, int dz) {
+        int[] moved = blocks.clone();
+        for (int i = 0; i < moved.length; i += 5) {
+            moved[i] += dx;
+            moved[i + 1] += dy;
+            moved[i + 2] += dz;
+        }
+        return new MapCopy(moved);
+    }
+
     /** Leaves out every block of these places (offsets from the origin): the parts each round puts back. */
     MapCopy without(Iterable<int[]> places) {
         Set<Long> out = new HashSet<>();
