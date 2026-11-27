@@ -402,7 +402,7 @@ async function quitAndComeBack (state, leaver, winner) {
 
 // --- Block edit ----------------------------------------------------------------------------------
 
-/** EditStation#build, block for block: the glass case, the grass floor, the wall of this wool, the bot's room of wood. */
+/** EditStation#build, block for block: the case of barrier blocks, the grass floor, the wall of this wool, the bot's room of wood. */
 function editDesign (duel, wool) {
   const design = new Map()
   const build = (x, y, z, name, data = 0) => design.set(`${x},${y},${z}`, [name, data])
@@ -412,7 +412,7 @@ function editDesign (duel, wool) {
   for (let x = west; x <= east; x++) {
     for (let y = 0; y <= 5; y++) {
       for (let z = -side; z <= side; z++) {
-        if (x === west || x === east || Math.abs(z) === side || y === 0 || y === 5) build(x, y, z, 'glass')
+        if (x === west || x === east || Math.abs(z) === side || y === 0 || y === 5) build(x, y, z, 'barrier')
       }
     }
   }
