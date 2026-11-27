@@ -122,7 +122,7 @@ categories:
       - "Snowball Spleef: break the snow"
       - "under their feet; Capture the"
       - "Flag on The Bridge or castle"
-      - "against castle; 2017 Bedwars;"
+      - "against castle; 2012 Bedwars;"
       - "Parkour Duel: race them to the"
       - "finish."
   # The games for three players (plan 6.6), in the compass only (the owner's choice, 21/11): no NPC.
@@ -328,14 +328,15 @@ groupes:
       - "A big map, castle against"
       - "castle and a mid: Bed Wars with"
       - "a flag in each keep. 2v2, 4v4."
-  # 2017 Bedwars, Fast Bedwars before (category fun; renamed by the owner, 23/11)
-  fast-bedwars:
-    nom: "&d2017 Bedwars"
+  # 2012 Bedwars (category fun), in the place of 2017 Bedwars (the owner, 27/11)
+  bedwars-2012:
+    nom: "&d2012 Bedwars"
     icone: BED
     description:
-      - "Bed Wars, fast and simple:"
-      - "faster forges, earlier events,"
-      - "a smaller shop. 1v1 or 2v2."
+      - "A rush of 2012, 4v4: hide"
+      - "your bed, clay, no upgrades."
+      - "With or without the diamonds"
+      - "and the emeralds."
   clutch:
     nom: "&bBlock clutch"
     icone: LADDER
@@ -1171,7 +1172,7 @@ titres:
     snowball-spleef: {nom: "Snowball Spleef", modes: [snowball-spleef]}
     parkour-duel: {nom: "Parkour Duel", modes: [parkour-duel]}
     capture-the-flag: {nom: "Capture the Flag", modes: [ctf-bridge-1v1, ctf-bridge-2v2, ctf-castle-2v2, ctf-castle-4v4]}
-    fast-bedwars: {nom: "2017 Bedwars", modes: [fast-bedwars-1v1, fast-bedwars-2v2]}
+    bedwars-2012: {nom: "2012 Bedwars", modes: [bedwars-2012, bedwars-2012-classique]}
     red-rover: {nom: "Red Rover", modes: [red-rover-sumo, red-rover-block-edit, red-rover-block-placement,
         red-rover-top-bridge]}
 
@@ -2303,33 +2304,35 @@ modes:
     description:
       - "CTF Castle, four against four:"
       - "defend your keep, raid theirs."
-  # 2017 Bedwars (Fast Bedwars of plan 6.1, renamed by the owner on 23/11; its ids stay, and its
-  # stats with them): played by RagoBedwars on the maps of the RBW queue; its forges, events,
-  # shop and upgrades in the config.yml of RagoBedwars (fast-bedwars:). Sizes to confirm.
-  fast-bedwars-1v1:
-    nom: "&d2017 Bedwars 1v1"
+  # 2012 Bedwars (the owner's ask of 27/11), in the place of 2017 Bedwars, whose stats are not kept
+  # (as every mode of the Fun Practice): a rush of 2012, four against four on its own map, each
+  # team hides its bed in the first minute; played by RagoBedwars (bedwars-2012 and
+  # bedwars-2012-classique in its jeux:), with or without the diamonds and the emeralds.
+  bedwars-2012:
+    nom: "&d2012 Bedwars"
     categorie: fun
-    groupe: fast-bedwars
+    groupe: bedwars-2012
     icone: BED
     equipes: 2
-    joueurs-par-equipe: 1
+    joueurs-par-equipe: 4
     classe: false
     description:
-      - "Bed Wars made fast: faster"
-      - "forges, earlier events, the"
-      - "beds gone at 15 minutes, a"
-      - "smaller shop, no upgrades."
-  fast-bedwars-2v2:
-    nom: "&d2017 Bedwars 2v2"
+      - "A rush of 2012, four against"
+      - "four: hide your bed in the"
+      - "first minute. Clay, diamonds"
+      - "and emeralds, no upgrades."
+  bedwars-2012-classique:
+    nom: "&d2012 Bedwars Classic"
     categorie: fun
-    groupe: fast-bedwars
+    groupe: bedwars-2012
     icone: BED
     equipes: 2
-    joueurs-par-equipe: 2
+    joueurs-par-equipe: 4
     classe: false
     description:
-      - "2017 Bedwars, two against"
-      - "two: rush fast, defend fast."
+      - "The same rush without the"
+      - "diamonds and the emeralds:"
+      - "the forges of the bases only."
   clutch:
     nom: "&bBlock clutch"
     categorie: entrainement

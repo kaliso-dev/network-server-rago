@@ -68,7 +68,7 @@ class LobbySettingsTest {
                 + " their kits), with Bedwars Normal (its 4s and 2s) and FFA Archway (its game), the clutch scenario, the bed fight (1v1, 2v2, 1v2), Top"
                 + " BedFight, the bridge fight 2v2, the full map first rush, Sky Rise Resources, the timed bridge, Lobby"
                 + " Fight (1v1, FFA), the Bed Break Simulator, the four modes of FUN PRACTICE (CTF The Bridge 1v1 and"
-                + " 2v2, CTF Castle 2v2 and 4v4 with them, Fast Bedwars 1v1 and 2v2), Red Rover (sumo, block edit, block placement, top bridge),"
+                + " 2v2, CTF Castle 2v2 and 4v4 with them, 2012 Bedwars and its Classic), Red Rover (sumo, block edit, block placement, top bridge),"
                 + " Block aim and Parkour Duel, without the top fight, the ranked scenarios, the Combo bot, Find Your Sensitivity,"
                 + " KB displace (1v1 and against a bot), Pearl practice or Fireball practice (the owner, 23/11), nor the bridge fight"
                 + " FFA (the owner, 27/11)");
@@ -117,14 +117,15 @@ class LobbySettingsTest {
         }
         assertEquals(2, settings.catalog().get("ctf-castle-2v2").playersPerTeam());
         assertEquals(4, settings.catalog().get("ctf-castle-4v4").playersPerTeam());
-        for (String id : Arrays.asList("fast-bedwars-1v1", "fast-bedwars-2v2")) {
-            assertEquals("fun", settings.display(id).category(), id + ": Fast Bedwars in FUN PRACTICE (plan 6.1)");
-            assertEquals("fast-bedwars", settings.display(id).group(), id + ": its two sizes in one item");
+        // 2012 Bedwars in the place of 2017 Bedwars (the owner, 27/11): 4v4, with or without the diamonds and emeralds
+        assertNull(settings.display("fast-bedwars-1v1"), "2017 Bedwars left the menus");
+        for (String id : Arrays.asList("bedwars-2012", "bedwars-2012-classique")) {
+            assertEquals("fun", settings.display(id).category(), id + ": in FUN PRACTICE");
+            assertEquals("bedwars-2012", settings.display(id).group(), id + ": its two versions in one item");
             assertFalse(settings.catalog().get(id).ranked(), id);
-            assertEquals(2, settings.catalog().get(id).teams(), id);
+            assertEquals(2, settings.catalog().get(id).teams(), id + ": two great bases");
+            assertEquals(4, settings.catalog().get(id).playersPerTeam(), id + ": four against four");
         }
-        assertEquals(1, settings.catalog().get("fast-bedwars-1v1").playersPerTeam());
-        assertEquals(2, settings.catalog().get("fast-bedwars-2v2").playersPerTeam());
         assertEquals("skyrise", settings.display("skyrise-resources-1v1").group(), "beside Sky Rise");
         assertFalse(settings.catalog().get("top-bridge-1v1").ranked(), "Top Bridge: no ELO");
         assertEquals("2v2", settings.catalog().get("top-bridge-2v2").format());

@@ -365,6 +365,10 @@ final class BedwarsHost implements MatchHost, Listener {
                 return new CaptureTheFlagGame(plugin, this, instance, mode.id(), name, sides, false);
             case FAST_BEDWARS:
                 return new FastBedwarsGame(plugin, this, instance, mode.id(), name, sides);
+            case BEDWARS_2012:
+                return new Bedwars2012Game(plugin, this, instance, mode.id(), name, sides, true);
+            case BEDWARS_2012_CLASSIC:
+                return new Bedwars2012Game(plugin, this, instance, mode.id(), name, sides, false);
             default:
                 return new BedwarsGame(plugin, this, instance, mode.id(), name, sides);
         }
@@ -1414,6 +1418,22 @@ final class BedwarsHost implements MatchHost, Listener {
     }
 
     // --- Items ----------------------------------------------------------------------------------
+
+    /**
+     * 2012 Bedwars: a right click on the top of a block with the team's bed hides it there (the game
+     * puts it, not the client: the places it refuses, its message).
+     */
+    @EventHandler(priority = EventPriority.LOW)
+    public void onHideBed(PlayerInteractEvent event) {
+        if (event.getAction() != Action.RIGHT_CLICK_BLOCK || !Bedwars2012Game.isBedToHide(event.getItem())) {
+            return;
+        }
+        BedwarsGame game = games.get(event.getPlayer().getUniqueId());
+        if (game instanceof Bedwars2012Game) {
+            event.setCancelled(true);
+            ((Bedwars2012Game) game).hideBed(event.getPlayer(), event.getClickedBlock(), event.getBlockFace());
+        }
+    }
 
     @EventHandler(priority = EventPriority.HIGH)
     public void onInteract(PlayerInteractEvent event) {

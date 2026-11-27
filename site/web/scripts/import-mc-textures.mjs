@@ -59,11 +59,13 @@ const ITEMS = {
   GOLD_INGOT: { item: 'items/gold_ingot.png' },
   GOLD_SWORD: { item: 'items/gold_sword.png' },
   INK_SACK: { item: 'items/dye_powder_black.png' },
+  IRON_BLOCK: { block: { top: 'blocks/iron_block.png', side: 'blocks/iron_block.png' } },
   IRON_CHESTPLATE: { item: 'items/iron_chestplate.png' },
   IRON_PICKAXE: { item: 'items/iron_pickaxe.png' },
   IRON_SWORD: { item: 'items/iron_sword.png' },
   JUKEBOX: { block: { top: 'blocks/jukebox_top.png', side: 'blocks/jukebox_side.png' } },
   LADDER: { item: 'blocks/ladder.png' },
+  LEASH: { item: 'items/lead.png' },
   MAGMA_CREAM: { item: 'items/magma_cream.png' },
   NAME_TAG: { item: 'items/name_tag.png' },
   NOTE_BLOCK: { block: { top: 'blocks/noteblock.png', side: 'blocks/noteblock.png' } },
@@ -83,6 +85,9 @@ const ITEMS = {
   STONE_SWORD: { item: 'items/stone_sword.png' },
   TNT: { block: { top: 'blocks/tnt_top.png', side: 'blocks/tnt_side.png' } },
   WOOL: { block: { top: 'blocks/wool_colored_white.png', side: 'blocks/wool_colored_white.png' } },
+  // the wools of a colour (icone: WOOL:14 in the lobby's config.yml, the owner's ask of 27/11)
+  'WOOL:14': { block: { top: 'blocks/wool_colored_red.png', side: 'blocks/wool_colored_red.png' } },
+  'WOOL:4': { block: { top: 'blocks/wool_colored_yellow.png', side: 'blocks/wool_colored_yellow.png' } },
 };
 
 /** Blocks the pages are built with, beyond the items: the bridge of red wool under the hero. */

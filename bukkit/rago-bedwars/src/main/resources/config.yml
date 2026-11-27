@@ -53,8 +53,9 @@ modes:
   ctf-castle-2v2: [CtfCastle]
   ctf-castle-4v4: [CtfCastle]
   # Fast Bedwars: the 20 maps of the RBW queue, as the ranked modes (to confirm with the owner)
-  fast-bedwars-1v1: [Antenna, Aquarium, Archway, Artemis, Boletum, Carapace, Catalyst, Chained, Eastwood, Extinction, Invasion, Katsu, Lectus, Obelisk, Paladin, Planet98, Rise, Stonekeep, Swashbuckle, Treenan]
-  fast-bedwars-2v2: [Antenna, Aquarium, Archway, Artemis, Boletum, Carapace, Catalyst, Chained, Eastwood, Extinction, Invasion, Katsu, Lectus, Obelisk, Paladin, Planet98, Rise, Stonekeep, Swashbuckle, Treenan]
+  # 2012 Bedwars (the owner, 27/11), in the place of 2017 Bedwars: on its own map
+  bedwars-2012: [Bedwars2012]
+  bedwars-2012-classique: [Bedwars2012]
   # The ranked duels of Bed Wars (plan 3.7, the owner's choice of 22/11): the same game, maps and kit
   # as their mode of Solo, with their own queue and ELO
   ranked-bed-fight-1v1: [BedFight]
@@ -176,6 +177,12 @@ modes:
 #              of a Hypixel map of four teams or fewer, to start), its events earlier, a smaller shop
 #              and no team upgrades (see fast-bedwars: below); without the upgrades, no diamond
 #              generator (the diamonds buy only the upgrades), so no Diamond II nor III
+#   bedwars-2012  2012 Bedwars (the owner's ask of 27/11), a rush of 2012: two great bases, each
+#              team hides its bed in the first minute (right click on the top of a block with it,
+#              not on a spawn, a generator or next to a shop), else it goes on the bed of the
+#              map, behind its base; clay in the place of the wool, the shop and forges of a
+#              game, no team upgrades; the diamonds of the islands and the emeralds of the middle
+#   bedwars-2012-classique  the same without the diamond and emerald generators
 # A mode not listed is a classic game.
 jeux:
   top-bridge-1v1: top-bridge
@@ -208,8 +215,8 @@ jeux:
   ctf-bridge-2v2: ctf-bridge
   ctf-castle-2v2: ctf-chateau
   ctf-castle-4v4: ctf-chateau
-  fast-bedwars-1v1: fast-bedwars
-  fast-bedwars-2v2: fast-bedwars
+  bedwars-2012: bedwars-2012
+  bedwars-2012-classique: bedwars-2012-classique
   ranked-bed-fight-1v1: bed-fight
   ranked-top-bridge-1v1: top-bridge
   ffa-archway-partie: ffa
@@ -444,8 +451,6 @@ forge:
     bed-break-simulator-1v4: {vitesse: moyenne}
     skyrise-resources-1v1: {vitesse: lente, fer-secondes-par-noeud: 1.5, or-secondes: 12}
     skyrise-resources-2v2: {vitesse: lente, fer-secondes-par-noeud: 1.5, or-secondes: 12}
-    fast-bedwars-1v1: {vitesse: rapide, fer-secondes-par-noeud: 1, or-secondes: 2.5}
-    fast-bedwars-2v2: {vitesse: rapide, fer-secondes-par-noeud: 1, or-secondes: 2.5}
 
 # The diamond and emerald generators: one item every so many seconds, at most so many lying on
 # it; three tiers (I, II, III), faster and faster.
