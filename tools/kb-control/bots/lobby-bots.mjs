@@ -80,14 +80,15 @@ const TEST_TIMEOUT_MS = 7 * 60 * 1000
 // A new lobby world has a platform at y = 64: players stand at y = 65, at the centre.
 const LOBBY_SPAWN = { x: 0.5, y: 65, z: 0.5 }
 // The compass (ModeMenu, the owner's asks of 22/11, 17h54 and 19h51, boussole.haut of the bundled
-// config.yml): six rows; Ranked, Party, Red Rover and 3 Players in the top row, one slot apart
+// config.yml): five rows since 27/11 (smaller, everything centred); Ranked, Party, Red Rover and 3 Players in the top row, one slot apart
 // (ModeMenu.compassColumn); Practice, RBW Modes, Duels, the Arenas and Fun Practice (the categories
 // of the lobby NPCs) in the third row (ModeMenu.CENTRE_ROW), one slot apart, Duels in the middle
 // (slot 22); "Popular now" in the bottom row (the modes with players right now).
 // A click on Duels opens its modes in a menu of their own, with nothing in its top row: the sumo is
-// its slime ball (Bed Fight comes first), the back button in the bottom row.
-const COMPASS = { 1: 'diamond_sword', 3: 'name_tag', 5: 'redstone', 7: 'skull', 18: 'sandstone', 20: 'bed', 22: 'iron_sword', 24: 'diamond_sword', 26: 'snowball' }
-const COMPASS_ROWS = 6
+// its lead (a leash, as on Minemen: the owner, 27/11; Bed Fight comes first), the back button in the
+// bottom row. The Arenas are a red wool (the owner, 27/11).
+const COMPASS = { 1: 'diamond_sword', 3: 'name_tag', 5: 'redstone', 7: 'skull', 18: 'sandstone', 20: 'bed', 22: 'iron_sword', 24: 'wool', 26: 'snowball' }
+const COMPASS_ROWS = 5
 const RED_ROVER_SLOT = 5
 const DUELS_SLOT = 22
 const POINTS_TO_WIN = 3
@@ -109,9 +110,9 @@ const PRODUCT_NPC = { x: 3.5, y: 66, z: -3.5 }
 const THANK_YOU_TEXTS = [{ x: -8.5, y: 65, z: -3.5 }, { x: 8.5, y: 65, z: -3.5 }]
 const THANK_YOU_LINES = [[
   'INFORMATION :',
-  'A server I dreamed of for years, made by a PvP',
-  'and Hypixel player who had nowhere to train.',
-  'No pay to win: Premium gives nothing in gameplay.'
+  'A server to train and have fun with friends.',
+  'Practice modes found nowhere else, made by us',
+  'for real game situations, to help you improve.'
 ], [
   'INFORMATION :',
   'Train Block Placement, Bedwars and RBW with',
@@ -243,7 +244,7 @@ function hotbarItem (bot, slot) {
 async function closeFirstMenu (bot) {
   await waitFor(() => bot.firstMenu != null, 8000, `${bot.username}: the menu of the first arrival`)
   const icons = [10, 12, 14, 16, 31].map((slot) => bot.firstMenu.slots[slot]?.name ?? null)
-  if (JSON.stringify(icons) !== JSON.stringify(['ladder', 'bed', 'iron_sword', 'stone_sword', 'book'])) {
+  if (JSON.stringify(icons) !== JSON.stringify(['sandstone', 'bed', 'iron_sword', 'stone_sword', 'book'])) {
     throw new Error(`${bot.username}: the menu of the first arrival holds ${JSON.stringify(icons)}`)
   }
   bot.closeWindow(bot.firstMenu)
@@ -280,7 +281,7 @@ async function openSelectorAndJoinSumo (bot) {
   if (window == null) throw new Error(`${bot.username}: the selector did not open on a right click`)
   const title = typeof window.title === 'string' ? window.title : JSON.stringify(window.title)
   if (!title.includes('Game modes')) throw new Error(`${bot.username}: unexpected window title ${title}`)
-  if (window.inventoryStart !== 9 * COMPASS_ROWS) throw new Error(`${bot.username}: the compass should have six rows, not ${window.inventoryStart / 9}`)
+  if (window.inventoryStart !== 9 * COMPASS_ROWS) throw new Error(`${bot.username}: the compass should have five rows, not ${window.inventoryStart / 9}`)
   checkCompass(bot, window)
   // Red Rover (a group of the top row): its modes, whose back button comes back to the compass
   const roverOpened = new Promise((resolve) => bot.once('windowOpen', resolve))
@@ -298,7 +299,7 @@ async function openSelectorAndJoinSumo (bot) {
     throw new Error(`${bot.username}: the back button of Red Rover opened ${again == null ? 'nothing' : windowTitle(again)}`)
   }
   checkCompass(bot, again)
-  log(`${bot.username}: a compass of six rows, Ranked, Party, Red Rover and 3 Players on top, the categories of the NPCs in the centre; Red Rover and its back button`)
+  log(`${bot.username}: a compass of five rows, Ranked, Party, Red Rover and 3 Players on top, the categories of the NPCs in the centre; Red Rover and its back button`)
   const duelsOpened = new Promise((resolve) => bot.once('windowOpen', resolve))
   bot.clickWindow(DUELS_SLOT, 0, 0).catch(() => {})
   const duels = await Promise.race([duelsOpened, sleep(5000).then(() => null)])
@@ -334,9 +335,9 @@ function checkCompass (bot, window) {
   }
 }
 
-/** The slot of the sumo in the Duels menu: its slime ball under the top row, above the back button's row, or -1. */
+/** The slot of the sumo in the Duels menu: its lead under the top row, above the back button's row, or -1. */
 function sumoSlot (window) {
-  return window.slots.findIndex((item, slot) => slot >= 9 && slot < window.inventoryStart - 9 && item?.name === 'slime_ball')
+  return window.slots.findIndex((item, slot) => slot >= 9 && slot < window.inventoryStart - 9 && item?.name === 'lead')
 }
 
 /** The menu of a category (from the compass or its NPC) has nothing in its top row (the owner's ask of 22/11). */
@@ -696,14 +697,14 @@ async function checkStats (one, two) {
   if (duelsSlot < 0 || !duels.includes('Wins: §a1') || !duels.includes('Kills: §a3')) {
     throw new Error(`no Duels category with the sumo's win and kills in the stats menu: ${duels}`)
   }
-  // a click on it: its modes, the sumo (its slime ball) with its stats
+  // a click on it: its modes, the sumo (its lead) with its stats
   const modesOpened = new Promise((resolve) => one.once('windowOpen', resolve))
   one.clickWindow(duelsSlot, 0, 0).catch(() => {})
   const modes = await Promise.race([modesOpened, sleep(5000).then(() => null)])
   if (modes == null || !windowTitle(modes).includes('Your stats: Duels')) {
     throw new Error(`a click on the Duels of the stats menu opened ${modes == null ? 'nothing' : windowTitle(modes)}`)
   }
-  const sumo = modes.slots.find((item, slot) => slot < modes.inventoryStart && item?.name === 'slime_ball')
+  const sumo = modes.slots.find((item, slot) => slot < modes.inventoryStart && item?.name === 'lead')
   const lore = JSON.stringify(sumo?.nbt ?? null)
   if (!lore.includes('Wins: §a1')) throw new Error(`no sumo win in the stats menu: ${lore}`)
   if (!lore.includes('Kills: §a3')) throw new Error(`no sumo kills in the stats menu: ${lore}`)

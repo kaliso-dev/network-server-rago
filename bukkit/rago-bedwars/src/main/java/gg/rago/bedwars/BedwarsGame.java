@@ -66,11 +66,18 @@ class BedwarsGame {
         final Upgrades upgrades = new Upgrades();
         /** How far its base goes around its spawn: for its traps and its Heal Pool. */
         final double baseRadius;
+        /** Where the team hid its bed (2012 Bedwars, {@link Bedwars2012Game}); null: the bed of the map. */
+        MapPoint hiddenBed;
 
         Team(TeamColor color, BedwarsMap.Team points) {
             this.color = color;
             this.points = points;
             this.baseRadius = Upgrades.baseRadius(points);
+        }
+
+        /** Its bed: where the team hid it, else the bed of the map. */
+        MapPoint bedPoint() {
+            return hiddenBed != null ? hiddenBed : points == null ? null : points.bed;
         }
 
         /** True if this place is in the team's base. */
@@ -1316,7 +1323,10 @@ class BedwarsGame {
     /** The team whose bed this block is part of, or null. */
     Team bedTeam(Block block) {
         for (Team team : teams) {
-            for (Block half : Instance.bedOf(team.points.bed.blockIn(instance.world()))) {
+            if (team.bedPoint() == null) {
+                continue;
+            }
+            for (Block half : Instance.bedOf(team.bedPoint().blockIn(instance.world()))) {
                 if (half.equals(block)) {
                     return team;
                 }
@@ -1354,7 +1364,10 @@ class BedwarsGame {
 
     void destroyBed(Team team) {
         team.bed = false;
-        for (Block half : Instance.bedOf(team.points.bed.blockIn(instance.world()))) {
+        if (team.bedPoint() == null) {
+            return;
+        }
+        for (Block half : Instance.bedOf(team.bedPoint().blockIn(instance.world()))) {
             half.setType(Material.AIR, false);
         }
     }

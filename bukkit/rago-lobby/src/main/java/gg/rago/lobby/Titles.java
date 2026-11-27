@@ -158,7 +158,7 @@ final class Titles {
                 new Family("parkour-duel", "Parkour Duel", Arrays.asList("parkour-duel")),
                 new Family("capture-the-flag", "Capture the Flag", Arrays.asList("ctf-bridge-1v1", "ctf-bridge-2v2",
                         "ctf-castle-2v2", "ctf-castle-4v4")),
-                new Family("fast-bedwars", "2017 Bedwars", Arrays.asList("fast-bedwars-1v1", "fast-bedwars-2v2")),
+                new Family("bedwars-2012", "2012 Bedwars", Arrays.asList("bedwars-2012", "bedwars-2012-classique")),
                 new Family("red-rover", "Red Rover", Arrays.asList("red-rover-sumo", "red-rover-block-edit",
                         "red-rover-block-placement", "red-rover-top-bridge")));
         return new Titles(true, steps, families);

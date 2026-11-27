@@ -10,6 +10,7 @@ final class ModeDisplay {
 
     private final GameMode mode;
     private final Material icon;
+    private short iconData;
     private final List<String> description;
     private final String category;
     private final Kit kit;
@@ -98,6 +99,17 @@ final class ModeDisplay {
 
     Material icon() {
         return icon;
+    }
+
+    /** The data of its icon (the colour of a wool, "WOOL:14" in icone:), 0 without. */
+    short iconData() {
+        return iconData;
+    }
+
+    /** Its icon of this data (icone: with a colon), for the menus; the same object. */
+    ModeDisplay withIconData(short data) {
+        this.iconData = data;
+        return this;
     }
 
     /** Lines already coloured (the {@code &} codes are translated). */

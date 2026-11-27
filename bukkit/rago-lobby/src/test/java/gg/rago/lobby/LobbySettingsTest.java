@@ -64,13 +64,15 @@ class LobbySettingsTest {
         assertEquals("lobby", settings.world());
         assertEquals(0, settings.voidHeight());
         assertEquals(0, settings.defaultRating(), "a ranked ELO starts at 0, in Coal");
-        assertEquals(90, settings.modes().size(), "the six ranked duels (plan 3.7), the invis practice and the Bed Break Simulator in 1v1 to 1v4 (and"
+        assertEquals(91, settings.modes().size(), "the six ranked duels (plan 3.7), the invis practice and the Bed Break Simulator in 1v1 to 1v4 (and"
                 + " their kits), with Bedwars Normal (its 4s and 2s) and FFA Archway (its game), the clutch scenario, the bed fight (1v1, 2v2, 1v2), Top"
                 + " BedFight, the bridge fight 2v2, the full map first rush, Sky Rise Resources, the timed bridge, Lobby"
                 + " Fight (1v1, FFA), the Bed Break Simulator, the four modes of FUN PRACTICE (CTF The Bridge 1v1 and"
-                + " 2v2, CTF Castle 2v2 and 4v4 with them, Fast Bedwars 1v1 and 2v2), Red Rover (sumo, block edit, block placement, top bridge),"
+                + " 2v2, CTF Castle 2v2 and 4v4 with them, 2012 Bedwars and its Classic, 2017 Bedwars 1v1 and 2v2 hidden), Red Rover (sumo, block edit, block placement, top bridge),"
                 + " Block aim and Parkour Duel, without the top fight, the ranked scenarios, the Combo bot, Find Your Sensitivity,"
-                + " KB displace (1v1 and against a bot), Pearl practice or Fireball practice (the owner, 23/11)");
+                + " KB displace (1v1 and against a bot), Pearl practice or Fireball practice (the owner, 23/11), nor the bridge fight"
+                + " FFA (the owner, 27/11)");
+        assertNull(settings.display("bridge-fight"), "the bridge fight FFA left the Arenas (the owner, 27/11)");
         assertNull(settings.display("find-your-sensitivity"), "no Find Your Sensitivity in the menus (the owner, 22/11, 19h51)");
         assertEquals("entrainement", settings.display("block-aim").category(), "a training of the placement");
         for (String id : Arrays.asList("red-rover-sumo", "red-rover-block-edit", "red-rover-block-placement",
@@ -115,14 +117,17 @@ class LobbySettingsTest {
         }
         assertEquals(2, settings.catalog().get("ctf-castle-2v2").playersPerTeam());
         assertEquals(4, settings.catalog().get("ctf-castle-4v4").playersPerTeam());
+        // 2012 Bedwars in the place of 2017 Bedwars (the owner, 27/11): 4v4, with or without the diamonds and emeralds
         for (String id : Arrays.asList("fast-bedwars-1v1", "fast-bedwars-2v2")) {
-            assertEquals("fun", settings.display(id).category(), id + ": Fast Bedwars in FUN PRACTICE (plan 6.1)");
-            assertEquals("fast-bedwars", settings.display(id).group(), id + ": its two sizes in one item");
-            assertFalse(settings.catalog().get(id).ranked(), id);
-            assertEquals(2, settings.catalog().get(id).teams(), id);
+            assertTrue(settings.display(id).hidden(), id + ": 2017 Bedwars left the menus, kept hidden for the bots of the CI");
         }
-        assertEquals(1, settings.catalog().get("fast-bedwars-1v1").playersPerTeam());
-        assertEquals(2, settings.catalog().get("fast-bedwars-2v2").playersPerTeam());
+        for (String id : Arrays.asList("bedwars-2012", "bedwars-2012-classique")) {
+            assertEquals("fun", settings.display(id).category(), id + ": in FUN PRACTICE");
+            assertEquals("bedwars-2012", settings.display(id).group(), id + ": its two versions in one item");
+            assertFalse(settings.catalog().get(id).ranked(), id);
+            assertEquals(2, settings.catalog().get(id).teams(), id + ": two great bases");
+            assertEquals(4, settings.catalog().get(id).playersPerTeam(), id + ": four against four");
+        }
         assertEquals("skyrise", settings.display("skyrise-resources-1v1").group(), "beside Sky Rise");
         assertFalse(settings.catalog().get("top-bridge-1v1").ranked(), "Top Bridge: no ELO");
         assertEquals("2v2", settings.catalog().get("top-bridge-2v2").format());
@@ -152,19 +157,22 @@ class LobbySettingsTest {
             {"ranked-1v1", "ranked-2v2", "ranked-3v3", "ranked-4v4"},
             {"bed-fight-1v1", "bed-fight-2v2", "bed-fight-1v2", "ranked-bed-fight-1v1"},
             {"top-bridge-1v1", "top-bridge-2v2", "top-bridge-ffa", "ranked-top-bridge-1v1", "red-rover-top-bridge"},
-            {"bridge-fight", "bridge-fight-1v1", "bridge-fight-2v2", "ranked-bridge-fight-1v1"},
+            {"bridge-fight-1v1", "bridge-fight-2v2", "ranked-bridge-fight-1v1"},
             {"block-fight-1v1", "block-fight-2v2", "block-fight-arena", "ranked-block-fight-1v1", "red-rover-block-placement"},
             {"lobby-fight-ffa", "lobby-fight-1v1"},
             {"sumo", "ranked-sumo", "red-rover-sumo", "event-sumo"},
             {"boxing", "ranked-boxing"},
             {"block-edit", "block-edit-duel", "red-rover-block-edit"},
             {"fireball", "fireball-knockback"},
+            {"clutch", "clutch-top-fight"},
             {"bow-duel", "bow-training", "aim-trainer"},
         };
         for (String[] game : games) {
             Material first = settings.display(game[0]).icon();
+            short data = settings.display(game[0]).iconData();
             for (String id : game) {
                 assertEquals(first, settings.display(id).icon(), id + ": the item of " + game[0]);
+                assertEquals(data, settings.display(id).iconData(), id + ": the colour of the item of " + game[0]);
             }
         }
         assertEquals(Material.BED, settings.group("ranked").icon(), "the group of Ranked Bedwars too");
@@ -182,7 +190,8 @@ class LobbySettingsTest {
         assertEquals(Material.IRON_SWORD, settings.categories().get(2).icon());
         assertEquals("arenes", settings.categories().get(3).id(), "the arenas on the right");
         assertEquals("§c§lArenas", settings.categories().get(3).name());
-        assertEquals(Material.DIAMOND_SWORD, settings.categories().get(3).icon());
+        assertEquals(Material.WOOL, settings.categories().get(3).icon(), "a red wool (the owner, 27/11)");
+        assertEquals(14, settings.categories().get(3).iconData());
         assertEquals("fun", settings.categories().get(4).id(), "FUN PRACTICE (plan 6.1), after the arenas");
         assertEquals("§d§lFun Practice", settings.categories().get(4).name());
         assertEquals("trois-joueurs", settings.categories().get(5).id(), "3 Players (plan 6.6): in the compass only");
@@ -207,13 +216,12 @@ class LobbySettingsTest {
                 "bridge-fight-2v2", "block-fight-1v1", "block-fight-2v2", "sumo")) {
             assertEquals("duels", settings.display(duel).category(), duel + ": in the Duels NPC and compass");
         }
-        for (String arena : Arrays.asList("top-bridge-ffa", "ffa", "lobby-fight-ffa", "free-ffa", "bridge-fight",
-                "block-fight-arena")) {
+        for (String arena : Arrays.asList("top-bridge-ffa", "ffa", "lobby-fight-ffa", "free-ffa", "block-fight-arena")) {
             assertEquals("arenes", settings.display(arena).category(), arena + ": no queue, in the Arenas");
             assertNull(settings.display(arena).group(), arena + ": one item each, side by side");
         }
-        assertEquals(Arrays.asList("top-bridge-ffa", "ffa", "lobby-fight-ffa", "free-ffa", "bridge-fight", "block-fight-arena"),
-                displayIds(settings.modesIn("arenes")), "the six arenas, nothing else");
+        assertEquals(Arrays.asList("top-bridge-ffa", "ffa", "lobby-fight-ffa", "free-ffa", "block-fight-arena"),
+                displayIds(settings.modesIn("arenes")), "the five arenas, nothing else: no bridge fight FFA (the owner, 27/11)");
         assertEquals("duels", settings.display("lobby-fight-1v1").category(), "Lobby Fight 1v1: a duel");
         assertNull(settings.display("lobby-fight-1v1").kit(), "no kit of its own: Lobby Fight FFA's");
         assertEquals("lobby-fight-ffa", settings.kitMode("lobby-fight-1v1"), "one kit for both Lobby Fights (kit-de:)");
@@ -289,10 +297,25 @@ class LobbySettingsTest {
         List<LobbySettings.Entry> duels = settings.entriesIn("duels");
         assertEquals("bed-fight", duels.get(0).group.id(), "the duels: 1v1 or 2v2 in one item each");
         assertEquals("top-bed-fight-1v1", duels.get(1).mode.mode().id(), "Top BedFight next to the bed fight, in 1v1 only");
-        assertEquals("top-bridge", duels.get(2).group.id());
+        // the order of the owner (27/11): our own modes and the most played first, the known ones last
+        assertEquals("block-placement", duels.get(2).group.id());
         assertEquals("bridge-fight", duels.get(3).group.id());
-        assertEquals("block-placement", duels.get(4).group.id());
-        assertEquals("lobby-fight-1v1", duels.get(5).mode.mode().id(), "Lobby Fight after the block placement");
+        assertEquals("top-bridge", duels.get(4).group.id());
+        assertEquals("block-edit-duel", duels.get(5).mode.mode().id());
+        assertEquals("lobby-fight-1v1", duels.get(6).mode.mode().id());
+        assertEquals("red-rover", duels.get(7).group.id());
+        assertEquals(Arrays.asList("boxing", "sumo", "fireball", "bow-duel"), Arrays.asList(duels.get(8).mode.mode().id(),
+                duels.get(9).mode.mode().id(), duels.get(10).mode.mode().id(), duels.get(11).mode.mode().id()));
+        List<LobbySettings.Entry> practice = settings.entriesIn("entrainement");
+        assertEquals("clutch", practice.get(0).group.id(), "Block clutch first in the Practice (the owner, 27/11)");
+        assertEquals(Material.SANDSTONE, settings.group("clutch").icon(), "Block clutch and its top fight: a sandstone (the owner, 27/11)");
+        assertEquals(Material.SANDSTONE, settings.display("clutch-top-fight").icon());
+        assertEquals("fast-defense", practice.get(1).mode.mode().id());
+        assertEquals("bow-training", practice.get(practice.size() - 1).mode.mode().id(), "the bow last: known everywhere");
+        assertEquals(Material.WOOL, settings.group("block-placement").icon(), "a yellow wool (the owner, 27/11)");
+        assertEquals(4, settings.group("block-placement").iconData());
+        assertEquals(Material.LEASH, settings.display("sumo").icon(), "a leash, as on Minemen");
+        assertEquals(Material.IRON_BLOCK, settings.display("top-bed-fight-1v1").icon());
         assertTrue(ranked.size() <= 14, "two rows at most: " + ranked.size());
         assertNull(settings.display("top-fight-1v1"), "no top fight: there are bridge fight and top bridge");
         assertNull(settings.display("combo-bot"), "no Combo bot in the menus (the owner, 22/11)");
@@ -321,9 +344,9 @@ class LobbySettingsTest {
             assertTrue(settings.display(size).hidden(), "played only from Bedwars Normal, not in the selector: " + size);
         }
         assertTrue(settings.display("ffa-archway-partie").hidden(), "played only from FFA Archway, not in the selector");
-        assertEquals(settings.modes().size() - 8, shown,
+        assertEquals(settings.modes().size() - 10, shown,
                 "every mode but the hidden ones (the 3 events, the 2 kits of sizes, the 4s and 2s of Bedwars Normal, the game"
-                        + " of FFA Archway) is in the selector, once");
+                        + " of FFA Archway, 2017 Bedwars 1v1 and 2v2 kept for the bots of the CI) is in the selector, once");
         assertInvalid("groupes:\n  g: {}\nmodes:\n  sumo:\n    groupe: autre\n", "modes.sumo.groupe");
     }
 

@@ -335,7 +335,16 @@ final class BedwarsSettings {
          * its own forges (forge.modes), its events earlier, a smaller shop and no team upgrades by
          * default (fast-bedwars: in config.yml).
          */
-        FAST_BEDWARS("fast-bedwars");
+        FAST_BEDWARS("fast-bedwars"),
+        /**
+         * 2012 Bedwars (the owner's ask of 27/11), as a rush of 2012: two great bases, each team hides
+         * its bed where it likes in the first minute (else it goes behind its base), clay in the
+         * place of the wool, the items and forges of a game, no team upgrades; with the diamonds
+         * of the islands and the emeralds of the middle.
+         */
+        BEDWARS_2012("bedwars-2012"),
+        /** The same without the diamond and emerald generators: the forges of the bases only. */
+        BEDWARS_2012_CLASSIC("bedwars-2012-classique");
 
         /** True if this kind is played in the waiting lobby of its maps, which they must have. */
         boolean inWaitingLobby() {

@@ -16,7 +16,9 @@ export const gui = data.gui as { hotbar: string; selection: string };
 
 /** How to draw an item of the game, by its name in the game (COMPASS, WOOL, SKULL_ITEM...). */
 export function itemArt(material: string): ItemArt {
-  const art = items[material];
+  // an item with its colour after a colon (WOOL:4, a yellow wool: the owner's ask of 27/11) is drawn
+  // with the texture of its item
+  const art = items[material] ?? items[material.split(':')[0] ?? material];
   if (!art) {
     throw new Error(`no texture for the item ${material}: add it to scripts/import-mc-textures.mjs`);
   }

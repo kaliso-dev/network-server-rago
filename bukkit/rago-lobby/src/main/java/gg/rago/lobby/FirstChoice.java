@@ -68,7 +68,7 @@ final class FirstChoice {
      */
     static List<FirstChoice> defaults() {
         return Arrays.asList(
-                new FirstChoice("entrainer", ChatColor.AQUA + "Train a skill", Material.LADDER, grey("Start with the block clutch:",
+                new FirstChoice("entrainer", ChatColor.AQUA + "Train a skill", Material.SANDSTONE, grey("Start with the block clutch:",
                         "a hit throws you off, place", "your wool to save yourself."), "clutch", null),
                 new FirstChoice("ranked", ChatColor.GOLD + "Play Ranked Bedwars", Material.BED, grey("1v1 on the RBW maps, your ELO",
                         "from the first game. Train", "while you wait."), "ranked-1v1", null),

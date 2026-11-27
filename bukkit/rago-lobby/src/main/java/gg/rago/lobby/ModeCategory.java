@@ -17,6 +17,7 @@ final class ModeCategory {
     private final String id;
     private final String name;
     private final Material icon;
+    private short iconData;
     private final List<String> description;
     private final String slogan;
     /** The modes and groups of other categories it shows too (aussi: in config.yml), in that order. */
@@ -58,6 +59,17 @@ final class ModeCategory {
 
     Material icon() {
         return icon;
+    }
+
+    /** The data of its icon (the colour of a wool, "WOOL:14" in icone:), 0 without. */
+    short iconData() {
+        return iconData;
+    }
+
+    /** Its icon of this data (icone: with a colon), for the menus; the same object. */
+    ModeCategory withIconData(short data) {
+        this.iconData = data;
+        return this;
     }
 
     /** Lines already coloured. */

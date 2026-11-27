@@ -207,6 +207,24 @@ final class ShopCatalog {
         return new ShopCatalog(kept, pickaxes, axes, this);
     }
 
+    /**
+     * This shop with clay in the place of the wool (2012 Bedwars, the owner's ask of 27/11): the item
+     * "wool" (its place in the Quick Buy and the hotbars kept) sells 16 clay of the team for 4 iron,
+     * and the Hardened Clay of 12 iron goes, being the same.
+     */
+    ShopCatalog clayForWool() {
+        List<ShopItem> kept = new ArrayList<>();
+        for (ShopItem item : items) {
+            if (item.id().equals("wool")) {
+                kept.add(ShopItem.of("wool", "Clay", item.category(), ShopItem.Kind.TEAM_BLOCK, Material.STAINED_CLAY,
+                        item.amount()).costs(item.price(), item.currency()).build());
+            } else if (!item.id().equals("clay")) {
+                kept.add(item);
+            }
+        }
+        return new ShopCatalog(kept, pickaxes, axes, whole == this ? null : whole);
+    }
+
     /** True if this shop is reduced from a whole one (see {@link #only}). */
     boolean reduced() {
         return whole != this;

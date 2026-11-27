@@ -878,6 +878,33 @@ final class QueueController {
         return counts;
     }
 
+    /**
+     * The players in a game of each mode, by mode id, the private games of the parties included: the
+     * number under each item of the selector (the owner's ask of 27/11, as on Minemen).
+     */
+    Map<String, Integer> playingAll() {
+        Map<String, Integer> counts = new HashMap<>();
+        for (Player player : Bukkit.getOnlinePlayers()) {
+            String mode = state.gameOf(player.getUniqueId());
+            if (mode != null) {
+                counts.merge(mode, 1, Integer::sum);
+            }
+        }
+        return counts;
+    }
+
+    /** The players in a private game of a party: the number under the Party category. */
+    int playingPrivate() {
+        int count = 0;
+        for (Player player : Bukkit.getOnlinePlayers()) {
+            UUID id = player.getUniqueId();
+            if (state.gameOf(id) != null && state.isInPrivateGame(id)) {
+                count++;
+            }
+        }
+        return count;
+    }
+
     // --- Matches --------------------------------------------------------------------------------
 
     /** Once a second: starts the matches that were found, and the direct ones whose map is ready. */
