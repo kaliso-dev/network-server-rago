@@ -56,6 +56,9 @@ modes:
   # 2012 Bedwars (the owner, 27/11), in the place of 2017 Bedwars: on its own map
   bedwars-2012: [Bedwars2012]
   bedwars-2012-classique: [Bedwars2012]
+  # 2017 Bedwars, out of the menus of the lobby (hidden) for the bots of the CI
+  fast-bedwars-1v1: [Antenna, Aquarium, Archway, Artemis, Boletum, Carapace, Catalyst, Chained, Eastwood, Extinction, Invasion, Katsu, Lectus, Obelisk, Paladin, Planet98, Rise, Stonekeep, Swashbuckle, Treenan]
+  fast-bedwars-2v2: [Antenna, Aquarium, Archway, Artemis, Boletum, Carapace, Catalyst, Chained, Eastwood, Extinction, Invasion, Katsu, Lectus, Obelisk, Paladin, Planet98, Rise, Stonekeep, Swashbuckle, Treenan]
   # The ranked duels of Bed Wars (plan 3.7, the owner's choice of 22/11): the same game, maps and kit
   # as their mode of Solo, with their own queue and ELO
   ranked-bed-fight-1v1: [BedFight]
@@ -217,6 +220,8 @@ jeux:
   ctf-castle-4v4: ctf-chateau
   bedwars-2012: bedwars-2012
   bedwars-2012-classique: bedwars-2012-classique
+  fast-bedwars-1v1: fast-bedwars
+  fast-bedwars-2v2: fast-bedwars
   ranked-bed-fight-1v1: bed-fight
   ranked-top-bridge-1v1: top-bridge
   ffa-archway-partie: ffa
@@ -451,6 +456,8 @@ forge:
     bed-break-simulator-1v4: {vitesse: moyenne}
     skyrise-resources-1v1: {vitesse: lente, fer-secondes-par-noeud: 1.5, or-secondes: 12}
     skyrise-resources-2v2: {vitesse: lente, fer-secondes-par-noeud: 1.5, or-secondes: 12}
+    fast-bedwars-1v1: {vitesse: rapide, fer-secondes-par-noeud: 1, or-secondes: 2.5}
+    fast-bedwars-2v2: {vitesse: rapide, fer-secondes-par-noeud: 1, or-secondes: 2.5}
 
 # The diamond and emerald generators: one item every so many seconds, at most so many lying on
 # it; three tiers (I, II, III), faster and faster.

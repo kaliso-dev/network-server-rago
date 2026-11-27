@@ -1553,6 +1553,40 @@
       ]
     },
     {
+      "id": "fast-bedwars-1v1",
+      "name": "2017 Bedwars 1v1",
+      "colour": "#FF55FF",
+      "icon": "BED",
+      "category": "fun",
+      "group": null,
+      "format": "1v1",
+      "ranked": false,
+      "startHere": false,
+      "event": true,
+      "sizeOf": null,
+      "description": "Bed Wars made fast: faster forges, earlier events, the beds gone at 15 minutes, a smaller shop, no upgrades.",
+      "plugins": [
+        "bedwars"
+      ]
+    },
+    {
+      "id": "fast-bedwars-2v2",
+      "name": "2017 Bedwars 2v2",
+      "colour": "#FF55FF",
+      "icon": "BED",
+      "category": "fun",
+      "group": null,
+      "format": "2v2",
+      "ranked": false,
+      "startHere": false,
+      "event": true,
+      "sizeOf": null,
+      "description": "2017 Bedwars, two against two: rush fast, defend fast.",
+      "plugins": [
+        "bedwars"
+      ]
+    },
+    {
       "id": "clutch",
       "name": "Block clutch",
       "colour": "#55FFFF",

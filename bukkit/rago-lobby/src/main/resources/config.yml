@@ -2333,6 +2333,34 @@ modes:
       - "The same rush without the"
       - "diamonds and the emeralds:"
       - "the forges of the bases only."
+  # 2017 Bedwars (Fast Bedwars of plan 6.1) out of the menus (the owner, 27/11: 2012 Bedwars in its
+  # place): hidden (cache: true), kept for the bots of the CI that play its 1v1 and its 2v2
+  # (fast-bots.mjs, and the private games of test-equipes in run-arena-test.sh); its settings in the
+  # config.yml of RagoBedwars (fast-bedwars:).
+  fast-bedwars-1v1:
+    nom: "&d2017 Bedwars 1v1"
+    categorie: fun
+    cache: true
+    icone: BED
+    equipes: 2
+    joueurs-par-equipe: 1
+    classe: false
+    description:
+      - "Bed Wars made fast: faster"
+      - "forges, earlier events, the"
+      - "beds gone at 15 minutes, a"
+      - "smaller shop, no upgrades."
+  fast-bedwars-2v2:
+    nom: "&d2017 Bedwars 2v2"
+    categorie: fun
+    cache: true
+    icone: BED
+    equipes: 2
+    joueurs-par-equipe: 2
+    classe: false
+    description:
+      - "2017 Bedwars, two against"
+      - "two: rush fast, defend fast."
   clutch:
     nom: "&bBlock clutch"
     categorie: entrainement

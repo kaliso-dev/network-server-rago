@@ -64,11 +64,11 @@ class LobbySettingsTest {
         assertEquals("lobby", settings.world());
         assertEquals(0, settings.voidHeight());
         assertEquals(0, settings.defaultRating(), "a ranked ELO starts at 0, in Coal");
-        assertEquals(89, settings.modes().size(), "the six ranked duels (plan 3.7), the invis practice and the Bed Break Simulator in 1v1 to 1v4 (and"
+        assertEquals(91, settings.modes().size(), "the six ranked duels (plan 3.7), the invis practice and the Bed Break Simulator in 1v1 to 1v4 (and"
                 + " their kits), with Bedwars Normal (its 4s and 2s) and FFA Archway (its game), the clutch scenario, the bed fight (1v1, 2v2, 1v2), Top"
                 + " BedFight, the bridge fight 2v2, the full map first rush, Sky Rise Resources, the timed bridge, Lobby"
                 + " Fight (1v1, FFA), the Bed Break Simulator, the four modes of FUN PRACTICE (CTF The Bridge 1v1 and"
-                + " 2v2, CTF Castle 2v2 and 4v4 with them, 2012 Bedwars and its Classic), Red Rover (sumo, block edit, block placement, top bridge),"
+                + " 2v2, CTF Castle 2v2 and 4v4 with them, 2012 Bedwars and its Classic, 2017 Bedwars 1v1 and 2v2 hidden), Red Rover (sumo, block edit, block placement, top bridge),"
                 + " Block aim and Parkour Duel, without the top fight, the ranked scenarios, the Combo bot, Find Your Sensitivity,"
                 + " KB displace (1v1 and against a bot), Pearl practice or Fireball practice (the owner, 23/11), nor the bridge fight"
                 + " FFA (the owner, 27/11)");
@@ -118,7 +118,9 @@ class LobbySettingsTest {
         assertEquals(2, settings.catalog().get("ctf-castle-2v2").playersPerTeam());
         assertEquals(4, settings.catalog().get("ctf-castle-4v4").playersPerTeam());
         // 2012 Bedwars in the place of 2017 Bedwars (the owner, 27/11): 4v4, with or without the diamonds and emeralds
-        assertNull(settings.display("fast-bedwars-1v1"), "2017 Bedwars left the menus");
+        for (String id : Arrays.asList("fast-bedwars-1v1", "fast-bedwars-2v2")) {
+            assertTrue(settings.display(id).hidden(), id + ": 2017 Bedwars left the menus, kept hidden for the bots of the CI");
+        }
         for (String id : Arrays.asList("bedwars-2012", "bedwars-2012-classique")) {
             assertEquals("fun", settings.display(id).category(), id + ": in FUN PRACTICE");
             assertEquals("bedwars-2012", settings.display(id).group(), id + ": its two versions in one item");
@@ -339,9 +341,9 @@ class LobbySettingsTest {
             assertTrue(settings.display(size).hidden(), "played only from Bedwars Normal, not in the selector: " + size);
         }
         assertTrue(settings.display("ffa-archway-partie").hidden(), "played only from FFA Archway, not in the selector");
-        assertEquals(settings.modes().size() - 8, shown,
+        assertEquals(settings.modes().size() - 10, shown,
                 "every mode but the hidden ones (the 3 events, the 2 kits of sizes, the 4s and 2s of Bedwars Normal, the game"
-                        + " of FFA Archway) is in the selector, once");
+                        + " of FFA Archway, 2017 Bedwars 1v1 and 2v2 kept for the bots of the CI) is in the selector, once");
         assertInvalid("groupes:\n  g: {}\nmodes:\n  sumo:\n    groupe: autre\n", "modes.sumo.groupe");
     }
 

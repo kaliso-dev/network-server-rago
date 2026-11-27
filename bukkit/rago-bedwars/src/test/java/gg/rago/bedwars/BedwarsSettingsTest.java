@@ -85,6 +85,7 @@ class BedwarsSettingsTest {
                 "lobby-fight-1v1", "lobby-fight-ffa", "bed-break-simulator-1v1", "bed-break-simulator-1v2",
                 "bed-break-simulator-1v3", "bed-break-simulator-1v4", "red-rover-top-bridge", "ctf-bridge-1v1",
                 "ctf-bridge-2v2", "ctf-castle-2v2", "ctf-castle-4v4", "bedwars-2012", "bedwars-2012-classique",
+                "fast-bedwars-1v1", "fast-bedwars-2v2",
                 "ranked-bed-fight-1v1", "ranked-top-bridge-1v1", "bedwars-normal-4s", "bedwars-normal-2s",
                 "ffa-archway-partie"), settings.modes());
         // Bedwars Normal (the owner's answers of 22/11): a classic game on every map, of 4 teams
@@ -274,6 +275,15 @@ class BedwarsSettingsTest {
         assertEquals(6 * 60, settings.diamondII());
         assertEquals(30 * 60, settings.bedsGone());
         assertEquals(45 * 60, settings.gameEnd());
+        // Fast Bedwars (plan 6.1), hidden in the lobby since 27/11: on the maps of the ranked modes, twice the forge
+        // of a Hypixel map of four teams or fewer (240 iron and 24 gold a minute), the events twice as early
+        for (String size : Arrays.asList("fast-bedwars-1v1", "fast-bedwars-2v2")) {
+            assertEquals(BedwarsSettings.Kind.FAST_BEDWARS, settings.kind(size), size);
+            assertEquals(settings.mapsOf("ranked-1v1"), settings.mapsOf(size), size + ": the 20 maps of the RBW queue");
+            assertFalse(settings.topBridge(size), size);
+            assertEquals(1200 / 240, forge.forMode(size).iron("Archway", 1, 4).ticks, size);
+            assertEquals(1200 / 24, forge.forMode(size).gold(4).ticks, size);
+        }
         // 2012 Bedwars (the owner, 27/11), in the place of 2017 Bedwars: on its own map, the forges of a game
         assertEquals(BedwarsSettings.Kind.BEDWARS_2012, settings.kind("bedwars-2012"));
         assertEquals(BedwarsSettings.Kind.BEDWARS_2012_CLASSIC, settings.kind("bedwars-2012-classique"));
