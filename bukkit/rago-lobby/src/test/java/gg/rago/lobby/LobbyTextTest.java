@@ -22,9 +22,9 @@ class LobbyTextTest {
      */
     private static final List<String> LEFT = Arrays.asList(
             "INFORMATION :",
-            "A server I dreamed of for years, made by a PvP",
-            "and Hypixel player who had nowhere to train.",
-            "No pay to win: Premium gives nothing in gameplay.");
+            "A server to train and have fun with friends.",
+            "Practice modes found nowhere else, made by us",
+            "for real game situations, to help you improve.");
 
     /** The right one. */
     private static final List<String> RIGHT = Arrays.asList(
@@ -45,7 +45,8 @@ class LobbyTextTest {
         assertEquals("§fJoin our Discord: §ediscord.gg/ragooptimizer", right.lines.get(right.lines.size() - 1),
                 "the Discord, as on the products");
         assertTrue(left.lines.size() <= 5 && right.lines.size() <= 5, "short: people do not read long texts (21 lines before)");
-        assertEquals(2, settings.texts().size());
+        assertEquals(3, settings.texts().size(), "and RagoBot's (the owner, 27/11)");
+        assertEquals("§b§l/p invite RagoBot", settings.text("ragobot").lines.get(0));
         assertNull(settings.npc("textremerciement"), "a text, not an NPC");
         assertNull(settings.npc("textremerciement2"));
     }

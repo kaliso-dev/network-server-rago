@@ -40,6 +40,11 @@ final class LobbySettings {
     private BotSettings bots;
     /** The block under each NPC that has one in config.yml (pnj: ... bloc:), by point. */
     private Map<String, Pedestal> pedestals = Collections.emptyMap();
+    /**
+     * The NPCs that look the way their point was placed (pnj: ... regard: point), by point, and not
+     * at the spawn (the owner's ask of 27/11: the Shop and the leaderboards look at the centre).
+     */
+    private Set<String> ownWay = Collections.emptySet();
     /** The points of the daily reward chest and of the quests NPC. */
     private String dailyPoint = DailyChest.POINT;
     private String questsPoint = QuestsNpc.POINT;
@@ -207,6 +212,7 @@ final class LobbySettings {
         }
         BotSettings bots = BotSettings.read(config.getConfigurationSection("ragobot"), modesById, inTurns);
         Map<String, Pedestal> pedestals = readPedestals(config.getConfigurationSection("pnj"));
+        Set<String> ownWay = readOwnWay(config.getConfigurationSection("pnj"));
         String dailyPoint = pointName(config, "point-coffre-du-jour", DailyChest.POINT);
         String questsPoint = pointName(config, "point-pnj-quetes", QuestsNpc.POINT);
         try {
@@ -222,6 +228,7 @@ final class LobbySettings {
             settings.texts = Collections.unmodifiableList(texts);
             settings.bots = bots;
             settings.pedestals = Collections.unmodifiableMap(pedestals);
+            settings.ownWay = Collections.unmodifiableSet(ownWay);
             settings.dailyPoint = dailyPoint;
             settings.questsPoint = questsPoint;
             settings.teamRooms = Collections.unmodifiableMap(teamRooms);
@@ -769,7 +776,8 @@ final class LobbySettings {
             }
             categories.add(new ModeCategory(id, colour(category.getString("nom", id)),
                     icon(where, category.getString("icone", "CHEST")), description(category),
-                    slogan == null || slogan.trim().isEmpty() ? null : colour(slogan), also, party));
+                    slogan == null || slogan.trim().isEmpty() ? null : colour(slogan), also, party)
+                    .withIconData(iconData(where, category.getString("icone", "CHEST"))));
         }
         return categories;
     }
@@ -860,17 +868,39 @@ final class LobbySettings {
                 throw new IllegalArgumentException(where + ": lowercase letters without accents, digits and dashes only");
             }
             groups.add(new ModeCategory(id, colour(group.getString("nom", id)),
-                    icon(where, group.getString("icone", "CHEST")), description(group)));
+                    icon(where, group.getString("icone", "CHEST")), description(group))
+                    .withIconData(iconData(where, group.getString("icone", "CHEST"))));
         }
         return groups;
     }
 
     private static Material icon(String where, String iconName) {
-        Material icon = Material.matchMaterial(iconName);
+        int colon = iconName.indexOf(':');
+        Material icon = Material.matchMaterial((colon < 0 ? iconName : iconName.substring(0, colon)).trim());
         if (icon == null || icon == Material.AIR) {
             throw new IllegalArgumentException(where + ".icone: \"" + iconName + "\" is not a Minecraft 1.8 item");
         }
         return icon;
+    }
+
+    /**
+     * The data of an icone: after its colon, from 0 to 15 ("WOOL:14" a red wool, "WOOL:4" a yellow
+     * one: the owner's ask of 27/11), 0 without a colon.
+     */
+    static short iconData(String where, String iconName) {
+        int colon = iconName.indexOf(':');
+        if (colon < 0) {
+            return 0;
+        }
+        try {
+            int data = Integer.parseInt(iconName.substring(colon + 1).trim());
+            if (data >= 0 && data <= 15) {
+                return (short) data;
+            }
+        } catch (NumberFormatException e) {
+            // said below
+        }
+        throw new IllegalArgumentException(where + ".icone: \"" + iconName + "\": the data after the colon is from 0 to 15");
     }
 
     private static List<String> description(ConfigurationSection section) {
@@ -929,7 +959,8 @@ final class LobbySettings {
             throw new IllegalArgumentException(where + ".format: 1 to 16 characters, as 1v3");
         }
         return new ModeDisplay(mode, icon, description(section), category, kit, group,
-                section.getBoolean("cache", false), section.getBoolean("commencer-ici", false), kitFrom, format);
+                section.getBoolean("cache", false), section.getBoolean("commencer-ici", false), kitFrom, format)
+                .withIconData(iconData(where, section.getString("icone", "PAPER")));
     }
 
     /**
@@ -1095,6 +1126,35 @@ final class LobbySettings {
                 throw new IllegalArgumentException("pnj." + npc.point() + ".rang: \"" + npc.rank() + "\" is not a rank of rangs:");
             }
         }
+    }
+
+    /** Whether the NPC of this point looks the way its point was placed (regard: point), not at the spawn. */
+    boolean facesItsPoint(String point) {
+        return ownWay.contains(point);
+    }
+
+    /**
+     * The NPCs of pnj: with regard: point (they look the way their point was placed, as the builder
+     * looked); regard: spawn, or nothing, looks at the spawn.
+     */
+    static Set<String> readOwnWay(ConfigurationSection section) {
+        Set<String> points = new HashSet<>();
+        if (section == null) {
+            return points;
+        }
+        for (String point : section.getKeys(false)) {
+            ConfigurationSection npc = section.getConfigurationSection(point);
+            if (npc == null || !npc.isSet("regard")) {
+                continue;
+            }
+            String look = npc.getString("regard", "").trim().toLowerCase(java.util.Locale.ROOT);
+            if (look.equals("point")) {
+                points.add(point);
+            } else if (!look.equals("spawn")) {
+                throw new IllegalArgumentException("pnj." + point + ".regard: \"" + look + "\" is point or spawn");
+            }
+        }
+        return points;
     }
 
     /** The bloc: of each NPC of pnj: that has one. */

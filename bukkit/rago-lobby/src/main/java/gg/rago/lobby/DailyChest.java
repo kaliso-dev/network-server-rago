@@ -75,6 +75,7 @@ final class DailyChest {
     }
 
     /** Puts the chest and its lines on its point, after the NPCs (which clear every hologram). */
+    @SuppressWarnings("deprecation") // Block#getData, Block#setData: the 1.8 way to the facing of a chest
     void place(LobbyPoints points, String pointName, World world, FakeEntities fakes) {
         this.fakes = fakes;
         SpawnPoint point = points.get(pointName);
@@ -89,8 +90,23 @@ final class DailyChest {
         if (at.getType() != Material.CHEST) {
             at.setType(Material.CHEST);
         }
+        // its front the way its point was placed, as the builder looked (the owner's ask of 27/11:
+        // towards the centre of the lobby)
+        byte facing = chestFacing(point.yaw());
+        if (at.getData() != facing) {
+            at.setData(facing);
+        }
         Location bottom = at.getLocation().add(0.5, 1.25, 0.5);
         fakes.add(new FakeHologram(bottom, LINES, viewer -> lines(viewer), (player, left) -> claimAtChest(player)));
+    }
+
+    /**
+     * The 1.8 data of a chest whose front looks this way (a yaw: 0 south, 90 west, 180 north, 270
+     * east): 3 south, 4 west, 2 north, 5 east.
+     */
+    static byte chestFacing(float yaw) {
+        int quarter = Math.round(((yaw % 360f) + 360f) % 360f / 90f) % 4;
+        return new byte[] {3, 4, 2, 5}[quarter];
     }
 
     /** True if the block is the daily chest. */

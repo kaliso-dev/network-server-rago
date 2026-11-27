@@ -48,13 +48,30 @@ final class ModeMenu {
     static final String TITLE = "Game modes";
     private static final int PER_ROW = 7;
     /**
-     * The compass with a top row (boussole.haut): six rows (the owner's ask of 22/11, 19h51, "le
-     * menu doit etre beaucoup plus grand"), the top row, the categories of the lobby NPCs in the
-     * middle (CENTRE_ROW), "Popular now" in the bottom row.
+     * The compass with a top row (boussole.haut): five rows (six from 22/11; smaller, everything
+     * centred: the owner's ask of 27/11), the top row, the categories of the lobby NPCs in the
+     * middle (CENTRE_ROW), "Popular now" in the bottom row, a free row between each.
      */
-    static final int COMPASS_SIZE = 54;
-    /** The row of the categories of the lobby NPCs in the compass of six rows. */
+    static final int COMPASS_SIZE = 45;
+    /** The row of the categories of the lobby NPCs in the compass of five rows: the middle one. */
     static final int CENTRE_ROW = 2;
+
+    /**
+     * How many of an icon a slot holds: the players in a game of what it opens, as on Minemen (the
+     * owner's ask of 27/11: the number under the item), from 1 (no number) to 64.
+     */
+    static int stack(int playing) {
+        return Math.max(1, Math.min(64, playing));
+    }
+
+    /** The players in a game of these modes (private games included), from {@link QueueController#playingAll()}. */
+    private static int playingIn(List<ModeDisplay> modes, Map<String, Integer> playing) {
+        int count = 0;
+        for (ModeDisplay display : modes) {
+            count += playing.getOrDefault(display.mode().id(), 0);
+        }
+        return count;
+    }
 
     /**
      * Marks our inventories: a click in one of them is a click in the selector. The view is the
@@ -779,7 +796,7 @@ final class ModeMenu {
     /** A mode of "Popular now": who plays it, who waits for it, and the click. */
     private ItemStack popularIcon(ModeDisplay display, int playing, boolean waitingHere, HumanEntity viewer) {
         GameMode mode = display.mode();
-        ItemStack item = new ItemStack(display.icon());
+        ItemStack item = new ItemStack(display.icon(), stack(queues.playingAll().getOrDefault(mode.id(), 0)), display.iconData());
         ItemMeta meta = item.getItemMeta();
         meta.setDisplayName(mode.name());
         List<String> lore = new ArrayList<>();
@@ -855,7 +872,9 @@ final class ModeMenu {
 
     /** A category in the compass: what it is, its games and queue, and the click to its modes. */
     private ItemStack categoryIcon(ModeCategory category, List<GameMode> current, HumanEntity viewer) {
-        ItemStack item = new ItemStack(category.icon());
+        // the players in a game of its modes; in the Party category, those in a private game
+        int playing = category.party() ? queues.playingPrivate() : playingIn(settings.modesIn(category.id()), queues.playingAll());
+        ItemStack item = new ItemStack(category.icon(), stack(playing), category.iconData());
         ItemMeta meta = item.getItemMeta();
         meta.setDisplayName(category.name());
         List<String> lore = new ArrayList<>();
@@ -909,7 +928,8 @@ final class ModeMenu {
 
     /** A group in its category: its name, what it is, and each of its modes with its queue. */
     private ItemStack icon(ModeCategory group, List<GameMode> current, HumanEntity viewer) {
-        ItemStack item = new ItemStack(group.icon());
+        ItemStack item = new ItemStack(group.icon(), stack(playingIn(settings.modesOfGroup(group.id()), queues.playingAll())),
+                group.iconData());
         ItemMeta meta = item.getItemMeta();
         meta.setDisplayName(group.name());
         boolean startHere = false;
@@ -947,7 +967,7 @@ final class ModeMenu {
 
     private ItemStack icon(ModeDisplay display, boolean waitingHere, HumanEntity viewer) {
         GameMode mode = display.mode();
-        ItemStack item = new ItemStack(display.icon());
+        ItemStack item = new ItemStack(display.icon(), stack(queues.playingAll().getOrDefault(mode.id(), 0)), display.iconData());
         ItemMeta meta = item.getItemMeta();
         meta.setDisplayName(mode.name());
         List<String> lore = new ArrayList<>();

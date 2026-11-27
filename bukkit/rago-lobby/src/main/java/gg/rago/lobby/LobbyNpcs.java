@@ -139,9 +139,13 @@ final class LobbyNpcs implements Listener {
                 continue;
             }
             Location base = point.in(world);
-            // Facing the spawn, where players come from, whatever way the builder looked.
+            // Facing the spawn, where players come from, whatever way the builder looked; with
+            // regard: point, the way its point was placed (the Shop and the leaderboards look at
+            // the centre of the lobby: the owner's ask of 27/11).
             Location spawn = state.spawn();
-            base.setYaw(yawTowards(base.getX(), base.getZ(), spawn.getX(), spawn.getZ()));
+            if (!settings.facesItsPoint(npc.point())) {
+                base.setYaw(yawTowards(base.getX(), base.getZ(), spawn.getX(), spawn.getZ()));
+            }
             base.setPitch(0f);
             Chunk chunk = base.getChunk();
             chunk.load();
