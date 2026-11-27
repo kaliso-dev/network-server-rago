@@ -99,6 +99,7 @@ final class RecordCatalog {
         all.add(entry("fireball-practice", "Fireball practice", Material.FIREBALL, FireballTraining.variants()));
         all.add(entry("aim-trainer", "Aim trainer", Material.BOW, AimTrainer.TARGETS));
         all.add(entry("bow-training", "Bow training", Material.BOW, BowTraining.BOTS));
+        all.add(entry("bow-practice", "Hypixel Bow Practice", Material.BOW, BowPractice.LEVELS));
         all.add(entry("combo-bot", "Combo bot", Material.SKULL_ITEM, ComboBot.variants()));
         all.add(entry("kb-displace-bot", "KB displace against a bot", Material.STICK, KbDisplaceBot.STILL));
         String edit = "Block edit";

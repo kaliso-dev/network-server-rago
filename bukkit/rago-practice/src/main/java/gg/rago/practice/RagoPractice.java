@@ -317,6 +317,9 @@ public final class RagoPractice extends JavaPlugin {
         int bowHits = config.getInt("points-pour-gagner.bow", 10);
         register("bow-training", (h, m, a, t) -> new BowTraining(h, m, a, t, bow), slots, spacing, false);
         register("bow-duel", (h, m, a, t) -> new BowDuel(h, m, a, t, bowHits, bow), slots, spacing, false);
+        // Hypixel Bow Practice (the owner's ask of 27/11): a zombie on a bridge, knocked off and hit in the air
+        BowPractice.Course bowPractice = bowPracticeCourse(config, spacing);
+        register("bow-practice", (h, m, a, t) -> new BowPractice(h, m, a, t, bowPractice), slots, spacing, false);
         // the events of /host: one game at a time each, on the sumo maps
         List<MapZones.ZoneMap> eventMaps = zoneMaps(config, "sumo.cartes", spacing, "the events");
         for (EventGame.Kind kind : EventGame.Kind.values()) {
@@ -444,6 +447,62 @@ public final class RagoPractice extends JavaPlugin {
         MapCopy copy = MapCopy.read(section.getString("monde", ""), numbers(section.getList("zone"), 6), origin, getLogger(),
                 "the bow training");
         return copy == null ? plain : new BowTraining.Course(copy, player, plain.bridgeY, lines);
+    }
+
+    /**
+     * The place of Hypixel Bow Practice (bow-practice in config.yml): the owner's map BowPractice
+     * copied once, and its levels, each the player's start and the bridge of the zombie. With a
+     * mistake in the section, or without the world, the plugin's own levels on plain blocks.
+     */
+    private BowPractice.Course bowPracticeCourse(FileConfiguration config, int spacing) {
+        ConfigurationSection section = config.getConfigurationSection("bow-practice");
+        String problem = section == null ? "the section is missing" : checkBowPractice(section, spacing);
+        if (problem != null) {
+            getLogger().warning("bow-practice in config.yml: " + problem + ". Hypixel Bow Practice plays on the plugin's own levels.");
+            return BowPractice.plainCourse();
+        }
+        int[] origin = numbers(section.getList("centre"), 3);
+        List<double[]> players = new ArrayList<>();
+        List<int[]> bridges = new ArrayList<>();
+        for (Map<?, ?> level : section.getMapList("niveaux")) {
+            List<?> start = (List<?>) level.get("joueur");
+            double[] player = new double[5];
+            for (int k = 0; k < 5; k++) {
+                player[k] = number(start.get(k));
+            }
+            players.add(player);
+            bridges.add(numbers(level.get("pont"), 5));
+        }
+        MapCopy copy = MapCopy.read(section.getString("monde", ""), numbers(section.getList("zone"), 6), origin, getLogger(),
+                "Hypixel Bow Practice");
+        return copy == null ? BowPractice.plainCourse() : new BowPractice.Course(copy, BowPractice.levels(players, bridges, origin));
+    }
+
+    /** What is wrong with the bow-practice section, or null. */
+    static String checkBowPractice(ConfigurationSection section, int spacing) {
+        String world = section.getString("monde", "");
+        Map<String, Object> zoneMap = new HashMap<>();
+        zoneMap.put("monde", world.trim().isEmpty() ? "-" : world);
+        zoneMap.put("centre", section.getList("centre"));
+        zoneMap.put("zone", section.getList("zone"));
+        String zoneProblem = checkZoneMap(zoneMap, spacing);
+        if (zoneProblem != null) {
+            return zoneProblem;
+        }
+        List<Map<?, ?>> levels = section.getMapList("niveaux");
+        if (levels.isEmpty() || levels.size() > 9) {
+            return "niveaux: one to nine levels";
+        }
+        for (Map<?, ?> level : levels) {
+            if (!numbersOf(level.get("joueur") instanceof List ? (List<?>) level.get("joueur") : null, 5)) {
+                return "niveaux: joueur, x, y, z, yaw, pitch of the player's start";
+            }
+            int[] bridge = numbers(level.get("pont"), 5);
+            if (bridge == null || bridge[0] == bridge[3] && bridge[2] == bridge[4]) {
+                return "niveaux: pont, x, y, z of the first block of the bridge (the zombie's start) then x, z of its last";
+            }
+        }
+        return null;
     }
 
     /**
