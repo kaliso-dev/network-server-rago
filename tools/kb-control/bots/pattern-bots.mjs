@@ -180,7 +180,7 @@ async function main () {
   log(`the tunnel of #10 is there: ${walls}`)
 
   finishing = true
-  log('PASSED: the pattern built then the first hit, the next technique by itself, RagoBot's run and hit, the tunnel')
+  log('PASSED: the pattern built then the first hit, the next technique by itself, the run and hit of RagoBot, the tunnel')
   bot.quit()
   await sleep(500)
   process.exit(0)
