@@ -263,6 +263,15 @@ block-in:
   departs:
     - [-68, 76, -22, 135, 60]
     - [-68, 76, -30, 45, 60]
+  # The RBW level (the owner's ask of 27/11): his map Block In Practice RBW, the red bed (lit, tete)
+  # and the island around it (zone), its defense of a game of RBW (end stone, red glass) read from the
+  # map around the bed and put back at each attempt; a ring of glass ten blocks over it, as on the
+  # island, and the same starts. Without the world: the RBW level plays on the island.
+  rbw:
+    monde: "Block In Practice RBW"
+    lit: [-15, 66, -67]
+    tete: [-15, 66, -66]
+    zone: [-23, 55, -76, -7, 80, -58]
 
 # (KB displace, 1v1 and against a bot, left the menus, the owner's ask of 23/11: this section is no
 # longer read, it stays to put them back.)

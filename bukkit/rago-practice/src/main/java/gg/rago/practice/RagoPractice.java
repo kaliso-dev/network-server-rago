@@ -778,7 +778,44 @@ public final class RagoPractice extends JavaPlugin {
         if (copy != null) {
             copy = copy.without(BlockInTraining.defensePlaces(hx, hz));
         }
-        return new BlockInTraining.Island(copy, hx, hz, places);
+        return new BlockInTraining.Island(copy, hx, hz, places, blockInRbw(config));
+    }
+
+    /**
+     * The RBW level of the block in (block-in.rbw, the owner's ask of 27/11): his map Block In
+     * Practice RBW, its bed and the defense around it read from the map, the rest copied once beside
+     * the island. Without the section or its world: null, the RBW level plays on the island.
+     */
+    private BlockInTraining.Rbw blockInRbw(FileConfiguration config) {
+        List<Integer> bed = config.getIntegerList("block-in.rbw.lit");
+        List<Integer> head = config.getIntegerList("block-in.rbw.tete");
+        List<Integer> zone = config.getIntegerList("block-in.rbw.zone");
+        String problem = checkBlockIn(bed, head, zone, Collections.singletonList(java.util.Arrays.asList(0, 0, 0, 0, 0)));
+        if (problem != null) {
+            getLogger().warning("block-in.rbw in config.yml: " + problem + ". The RBW level plays on the island.");
+            return null;
+        }
+        int hx = head.get(0) - bed.get(0);
+        int hz = head.get(2) - bed.get(2);
+        int[] origin = {bed.get(0), bed.get(1) - BlockInTraining.BED_Y, bed.get(2)};
+        int[] box = new int[6];
+        for (int i = 0; i < 6; i++) {
+            box[i] = zone.get(i);
+        }
+        MapCopy copy = MapCopy.read(config.getString("block-in.rbw.monde", ""), box, origin, getLogger(),
+                "the RBW level of the block in");
+        if (copy == null) {
+            return null;
+        }
+        List<int[]> defense = BlockInTraining.defenseOf(copy, hx, hz);
+        List<int[]> out = new ArrayList<>(defense);
+        out.add(new int[] {0, BlockInTraining.BED_Y, 0});
+        out.add(new int[] {hx, BlockInTraining.BED_Y, hz});
+        List<int[]> moved = new ArrayList<>();
+        for (int[] block : defense) {
+            moved.add(new int[] {block[0] + BlockInTraining.RBW_X, block[1], block[2], block[3], block[4]});
+        }
+        return new BlockInTraining.Rbw(copy.without(out).shifted(BlockInTraining.RBW_X, 0, 0), hx, hz, moved);
     }
 
     /** Of the sides of a map, this many are read at most to find the one with the most kinds of situation. */
