@@ -6,11 +6,11 @@ code: bukkit/rago-practice
 ---
 # Code de rago-practice
 
-Le plugin **RagoPractice** (81 classes, ~28 300 lignes) : duels (sumo, boxing, block placement, bridge fight, block edit, fireball, bow), entraînements (une sous-classe de `Training` chacun), arènes ouvertes, events `/host`, Fun Practice, Red Rover, records et défi du jour. **Points d'entrée** : `RagoPractice` (onEnable, enregistrement des `MatchHost`), `PracticeHost`, `PracticeGames` / `PracticeGame` (le moteur commun des duels), `Training` (le moteur commun des entraînements), `Arena` (remise à zéro des blocs), `Records`. Fonctions : [[Entraînements]], [[Duels]], [[Arènes ouvertes]], [[Fun Practice]], [[Events host]]. README : `bukkit/rago-practice/README.md` (630 lignes).
+Le plugin **RagoPractice** (84 classes, ~29 000 lignes) : duels (sumo, boxing, block placement, bridge fight, block edit, fireball, bow), entraînements (une sous-classe de `Training` chacun), arènes ouvertes, events `/host`, Fun Practice, Red Rover, records et défi du jour. **Points d'entrée** : `RagoPractice` (onEnable, enregistrement des `MatchHost`), `PracticeHost`, `PracticeGames` / `PracticeGame` (le moteur commun des duels), `Training` (le moteur commun des entraînements), `Arena` (remise à zéro des blocs), `Records`. Fonctions : [[Entraînements]], [[Duels]], [[Arènes ouvertes]], [[Fun Practice]], [[Events host]]. README : `bukkit/rago-practice/README.md` (630 lignes).
 
-Packages : `gg.rago.practice`. **81 classes, 28282 lignes** (branche de la PR #47, `03beb92`, 28/11 ; `BowPractice` ajoutée par la PR #56, le niveau RBW de `BlockInTraining` par la #57, la cage barrière d'`EditStation` par la #55). Retour à [[Architecture]].
+Packages : `gg.rago.practice`. **84 classes, 28982 lignes** (branche de la PR #47, `d050af8`, 28/11 ; `BowPractice` ajoutée par la PR #56, le niveau RBW de `BlockInTraining` par la #57, la cage barrière d'`EditStation` par la #55, `BlockPatternPractice`, `BlockPatterns` et `PatternBot` par la #58). Retour à [[Architecture]].
 
-**Règle d'enregistrement des modes** (`RagoPractice.registerModes`) : chaque mode reçoit sa zone dans le monde `arenes` dans l'ordre où il est enregistré ; un mode enregistré au milieu décale les zones de tous ceux d'après. **Un nouveau mode s'enregistre toujours à la fin** (commentaire du code depuis la PR #58). Sur `03beb92` (installé le 28/11), `bow-practice` est enregistré au milieu, juste après `bow-duel` : bug corrigé dans la PR #58, pas encore installé ([[Bugs et problèmes connus]]).
+**Règle d'enregistrement des modes** (`RagoPractice.registerModes`) : chaque mode reçoit sa zone dans le monde `arenes` dans l'ordre où il est enregistré ; un mode enregistré au milieu décale les zones de tous ceux d'après. **Un nouveau mode s'enregistre toujours à la fin** (commentaire du code depuis la PR #58). La #56 avait enregistré `bow-practice` au milieu, juste après `bow-duel` : corrigé par la #58 (`bow-practice` puis `block-pattern-practice` à la fin), installé le 28/11 ([[Bugs et problèmes connus]]).
 
 ## Les classes
 Description = la première phrase de la javadoc de la classe, **en anglais comme le code** (le code et ses commentaires sont en anglais ; les README sont en français).
@@ -30,6 +30,8 @@ Description = la première phrase de la javadoc de la classe, **en anglais comme
 | `BlockFight` | 311 | Block placement fight, 1v1 or 2v2, on the owner's block placement maps (block-fight.cartes in config.yml: each side starts on its gold block) or, without them, two small platforms over the void. |
 | `BlockInEnemy` | 190 | The enemy of the Block in training, as a Bed Wars player standing at one side of the player. |
 | `BlockInTraining` | 500 | Block in practice, as on the Ultimate Block-In Practice map: the player stands on a ring of glass ten blocks over a bed and its defense (end stone, glass, then wool on one side and wood on the other), drops on it, blocks |
+| `BlockPatternPractice` | 427 | Block Pattern Practice (the owner's ask of 27/11): the techniques of his video Block Method, one level each (`BlockPatterns`), the first ten for now. |
+| `BlockPatterns` | 139 | The techniques of Block Pattern Practice (the owner's ask of 27/11): the first ten of his video Block Method (#1 to #10), simplest first. |
 | `Bots` | 67 | The bots of the trainings: a zombie the size of a player, in leather of its colour with a sword, that walks to the player and hits them. |
 | `BowDuel` | 129 | The bow 1v1, on the place of the bow training (the red base of Archway and the north of its middle): red on the front of the base, blue on the edge of the middle, facing each other. |
 | `BowPractice` | 414 | Hypixel Bow Practice (the owner's ask of 27/11), on his map BowPractice (bow-practice in config.yml): a zombie comes straight at the player along a bridge of wool over the void. |
@@ -73,15 +75,16 @@ Description = la première phrase de la javadoc de la classe, **en anglais comme
 | `MatchRecap` | 202 | The recap of a duel, told to its players at its end, as the "match details" of the practice servers: for each one, the hits they landed and their best combo (hits in a row without being hit back); then, when the duel had |
 | `ParkourCourse` | 226 | The course of the Parkour Duel (FUN PRACTICE, the owner's choice of 22/11): one lane per player, the same for both, side by side along x. |
 | `ParkourDuel` | 174 | Parkour Duel, the race of FUN PRACTICE (the owner's choice of 22/11, "dans une map stylée"): each side on its own lane of the same course (ParkourCourse), red and blue side by side. |
+| `PatternBot` | 129 | How RagoBot runs in Block Pattern Practice, without Bukkit: the way of its technique, then at the player, sprinting, with the 1.8 physics of a player (`ComboAi#push`). |
 | `PearlTraining` | 309 | Pearl practice on the owner's Bed Wars maps, in a loop: each attempt on the next map (each server start takes the side of one team of each map), at another place and in another direction, the kinds of situation in turn ( |
 | `Ping` | 47 | The ping of a player (the 1.8 API has none: the server's own field), for the sidebars. |
 | `PracticeGame` | 1344 | One game of a practice mode in its arena: its players by side, the 3-2-1 countdown, the rounds, the sidebar, and the way back to the lobby. |
 | `PracticeGames` | 944 | Every practice game running, by player and by entity, and the rules every mode shares: a game's players stand still during the countdown, fall into the void under its floor, never hurt the players of other games, only pl |
 | `PracticeHost` | 292 | Plays one practice mode of the lobby: each match takes a free zone of the mode's row in the arena world, built the first time it is used, and a new game of the mode in it. |
 | `PracticeXp` | 122 | The Network XP of the trainings and the free arenas, where nobody wins a game: a little for each minute played, a little for each attempt, more for each success, never more than a cap a minute (falling on purpose earns n |
-| `RagoPractice` | 1362 | RagoPractice: the practice modes played from the lobby. |
+| `RagoPractice` | 1366 | RagoPractice: the practice modes played from the lobby. |
 | `RecordBook` | 270 | The personal bests of the trainings, board by board ("clutch.single", "bridge.ninja"...): the best score of each player and the best of all, a time (lower is better) or a count (higher is better). |
-| `RecordCatalog` | 197 | Every training with records, in the order of /records and of the wall of the practice records: its mode, its name (that of the lobby's menus), an icon close to the lobby's, and its boards, one per variant (the block edit |
+| `RecordCatalog` | 198 | Every training with records, in the order of /records and of the wall of the practice records: its mode, its name (that of the lobby's menus), an icon close to the lobby's, and its boards, one per variant (the block edit |
 | `Records` | 260 | The record book of the trainings in plugins/RagoPractice/records.yml: read once when the plugin starts, written after each new best, off the main thread (the text is made on the main thread, the disk is written by an asy |
 | `RecordsMenu` | 669 | The records of the trainings. |
 | `RedRover` | 178 | Red Rover Sumo (plan 6.5, solution 1): three friends (a party, or three players of the queue) on the sumo platform, in 1v1, in turn; the one who waits watches. |
@@ -99,18 +102,7 @@ Description = la première phrase de la javadoc de la classe, **en anglais comme
 | `Unbreakable` | 65 | Nothing wears out in the games: every sword, tool, bow and piece of armour of a player carries the Unbreakable tag (its line hidden). |
 | `Utf8Config` | 69 | A YAML file of the plugin read as UTF-8, whatever the charset of the system. |
 
-## Les tests (42 fichiers)
-`AimTrainerTest`, `ArenaRestoreTest`, `BlockAimTest`, `BlockEditTest`, `BlockFightRulesTest`, `BlockInEnemyTest`, `BlockInRbwTest`, `BlockMapsTest`, `BowPracticeTest`, `BowTrainingTest`, `BoxingSpeedTest`, `BridgeArenaTest`, `BridgeTrainingTest`, `ClutchTrainingTest`, `ComboAiTest`, `DailyChallengeTest`, `DuelScoreTest`, `EndInventoriesTest`, `EventsTest`, `FindYourSensitivityTest`, `FireballFightTest`, `FireballKnockbackTest`, `FireballMapsTest`, `FullBoxTest`, `KbDisplaceTest`, `MapPartsTest`, `MapTrainingsTest`, `MatchRecapTest`, `ParkourCourseTest`, `PracticeXpTest`, `RecordBookTest`, `RecordsMenuTest`, `RecordsResetTest`, `RecordsWeeksTest`, `RedRoverTest`, `SettingsCheckTest`, `ShapesTest`, `SnowballSpleefTest`, `SpectatorsTest`, `SumoMapsTest`, `TrainingsTest`, `Utf8ConfigTest`
+## Les tests (43 fichiers)
+`AimTrainerTest`, `ArenaRestoreTest`, `BlockAimTest`, `BlockEditTest`, `BlockFightRulesTest`, `BlockInEnemyTest`, `BlockInRbwTest`, `BlockMapsTest`, `BlockPatternsTest`, `BowPracticeTest`, `BowTrainingTest`, `BoxingSpeedTest`, `BridgeArenaTest`, `BridgeTrainingTest`, `ClutchTrainingTest`, `ComboAiTest`, `DailyChallengeTest`, `DuelScoreTest`, `EndInventoriesTest`, `EventsTest`, `FindYourSensitivityTest`, `FireballFightTest`, `FireballKnockbackTest`, `FireballMapsTest`, `FullBoxTest`, `KbDisplaceTest`, `MapPartsTest`, `MapTrainingsTest`, `MatchRecapTest`, `ParkourCourseTest`, `PracticeXpTest`, `RecordBookTest`, `RecordsMenuTest`, `RecordsResetTest`, `RecordsWeeksTest`, `RedRoverTest`, `SettingsCheckTest`, `ShapesTest`, `SnowballSpleefTest`, `SpectatorsTest`, `SumoMapsTest`, `TrainingsTest`, `Utf8ConfigTest`
 
 Lancer : `./gradlew :rago-practice:test` ([[Construire et tester]]).
-
-## En attente : PR #58 (ni fusionnée ni installée)
-Branche `claude/block-pattern-practice`, commits `1aa63ca` (le code) et `88ec47e` (un bot joue Block Pattern Practice dans le test des arènes : `pattern-bots.mjs`), 28/11, vers la branche de la PR #47 : trois classes en plus (Block Pattern Practice, [[Entraînements]]), et `bow-practice` puis `block-pattern-practice` enregistrés à la fin de `registerModes`.
-
-| Classe | Lignes | Ce qu'elle fait |
-|---|---|---|
-| `BlockPatternPractice` | 427 | Block Pattern Practice (the owner's ask of 27/11): the techniques of his video Block Method, one level each (`BlockPatterns`), the first ten for now. |
-| `BlockPatterns` | 139 | The techniques of Block Pattern Practice (the owner's ask of 27/11): the first ten of his video Block Method (#1 to #10), simplest first. |
-| `PatternBot` | 129 | How RagoBot runs in Block Pattern Practice, without Bukkit: the way of its technique, then at the player, sprinting, with the 1.8 physics of a player (`ComboAi#push`). |
-
-Test en plus : `BlockPatternsTest`.

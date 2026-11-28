@@ -31,7 +31,7 @@ Mode d'emploi (outil ArtifactData, collection `questions`) :
 Pas sur la page (les fils lancés par Abel n'y ont pas accès) : à poser à Abel directement.
 - Les **4 « Pattern » solo** de la fin de la vidéo « Block Method » (après le carton « All the techniques shown can be combined… », sans adversaire), et la séquence finale sans titre : à ajouter à Block Pattern Practice ou non ? ([[Entraînements]], [[RagoBot]])
 - **Block Method 1v1** (pas commencé) : quelle **condition de victoire** ? quel **kit** ? quelle **map** ? Et le « full box » demandé pour RagoBot contredit l'**anti full box** du Block placement (`FullBox`, choix du 22/11 « Interdire de s'enfermer ») : l'autoriser dans ce duel seulement ? ([[Duels]])
-- Block Pattern Practice (PR #58) : les formes des 10 techniques et le trajet du bot sont lus dans la vidéo, **à régler avec Abel en jeu** une fois installé.
+- Block Pattern Practice (PR #58, installé le 28/11) : les formes des 10 techniques et le trajet du bot sont lus dans la vidéo, **à régler avec Abel en jeu**.
 
 ## Réglée sans passer par la page
 - **q128** (préparée le 26/11, jamais posée) : le [[Serveur de test]] tourne sous **JDK 17.0.21** (OBSERVÉ le 28/11 : le lanceur prend `JAVA_HOME` ; `java` seul = Java 8). Rien à ajouter sur la page.

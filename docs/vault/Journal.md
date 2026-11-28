@@ -9,7 +9,8 @@ Une ligne datée par événement marquant, la plus récente en haut. L'histoire 
 
 | Date | Événement | Note |
 |---|---|---|
-| 28/11 | PR #58 ouverte vers la branche de la #47 : Block Pattern Practice (10 premières techniques de Block Method) et correction de l'ordre d'enregistrement des modes de RagoPractice ; CI en cours, ni fusionnée ni installée | [[Entraînements]], [[Bugs et problèmes connus]] |
+| 28/11 | `d050af8` installé vers 11h29 (personne connecté) : jars rago-practice et rago-lobby, mode `block-pattern-practice` ajouté au `config.yml` du lobby (script), sauvegarde `sauvegarde-avant-maj-d050af8\plugins\` ; démarrage vérifié (91 modes, zones d'arène de nouveau dans l'ordre d'avant la #56), arrêt propre | [[Installer une version sur le serveur de test]] |
+| 28/11 | PR #58 fusionnée à 11h28 (`d050af8`, CI 14/14 après le correctif `69c78ac` du script de test) : Block Pattern Practice (10 premières techniques de Block Method), correction de l'ordre d'enregistrement des modes de RagoPractice, test des bots `pattern-bots.mjs` | [[Entraînements]], [[Bugs et problèmes connus]] |
 | 28/11 | Avis sur les deux plugins de fireball proposés par Abel (BedWars1058 DirectionalFireballs, Fireball Launcher) : ne pas installer, la mesure kb-recorder reste la solution | [[Boules de feu et TNT]] |
 | 28/11 | Java du serveur de test lu : JDK 17.0.21 (`JAVA_HOME`) | [[Serveur de test]] |
 | 28/11 | `03beb92` installé vers 10h33 (personne connecté) : jars rago-practice et rago-lobby, sections `bow-practice:`, `block-in.rbw:` et mode `bow-practice` ajoutés à la main, mondes BowPractice et « Block In Practice RBW » copiés ; démarrage vérifié (2012 Bedwars chargé, 90 modes), arrêt propre ; rien joué en jeu | [[Installer une version sur le serveur de test]] |

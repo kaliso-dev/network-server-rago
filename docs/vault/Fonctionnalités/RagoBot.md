@@ -21,7 +21,7 @@ Depuis le 27/11, un texte flottant présente RagoBot (« /p invite RagoBot · No
 
 ## Block Method (EN COURS)
 Plan validé par Abel le 27/11 (« Oui je suis d'accord »), d'après sa vidéo « Block Method » (34 techniques numérotées contre un adversaire, [[Sources]]) :
-- **Block Pattern Practice** (Practice) : un niveau par technique, du plus simple au plus dur, les techniques avec lit à la fin ; le bot rejoue le trajet de l'adversaire de la vidéo ; réussi = niveau suivant, raté = le même ; un réglage coupe le passage automatique. **Les 10 premières techniques sont dans la PR #58** (28/11, ni fusionnée ni installée) ; là, « RagoBot » est un **bot d'entraînement** (zombie avec la tête de qRago, comme le Combo bot, mû par `PatternBot`), **pas ce vrai client RagoBot** ([[Entraînements]]).
+- **Block Pattern Practice** (Practice) : un niveau par technique, du plus simple au plus dur, les techniques avec lit à la fin ; le bot rejoue le trajet de l'adversaire de la vidéo ; réussi = niveau suivant, raté = le même ; un réglage coupe le passage automatique. **Les 10 premières techniques sont en place** (PR #58, fusionnée et installée le 28/11, pas encore jouée en jeu) ; là, « RagoBot » est un **bot d'entraînement** (zombie avec la tête de qRago, comme le Combo bot, mû par `PatternBot`), **pas ce vrai client RagoBot** ([[Entraînements]]).
 - **Block Method 1v1** (Duels) : RagoBot (le vrai client) imite un vrai joueur (preshot, full box, pose de blocs). **Pas commencé** ; questions à Abel : condition de victoire, kit, map, et la règle anti full box du Block Placement (`FullBox`), qui contredit le « full box » demandé ([[Duels]], [[Questions ouvertes]]).
 - Question ouverte : les 4 « Pattern » solo de la fin de la vidéo ([[Questions ouvertes]]).
 

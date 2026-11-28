@@ -32,7 +32,7 @@ La catégorie **Duels** (`duels`) : des 1v1 et 2v2 par la file ou par `/duel <jo
 - Red Rover : [[Red Rover et 3 Players]].
 
 ## Prévu : Block Method 1v1 (pas commencé)
-Un duel contre [[RagoBot]] qui **imite un vrai joueur** (preshot, full box, pose de blocs), tiré de la vidéo « Block Method » d'Abel ; plan validé par Abel le 27/11 (« Oui je suis d'accord ») : d'abord les 10 premières techniques en entraînement (Block Pattern Practice, PR #58, [[Entraînements]]), puis Block Method 1v1 dans Duels. **Pas commencé** : questions à Abel sur la condition de victoire, le kit, la map, et l'**anti full box** du Block placement (`FullBox`, impossible d'enfermer un joueur), qui contredit le « full box » demandé pour RagoBot ([[Questions ouvertes]]).
+Un duel contre [[RagoBot]] qui **imite un vrai joueur** (preshot, full box, pose de blocs), tiré de la vidéo « Block Method » d'Abel ; plan validé par Abel le 27/11 (« Oui je suis d'accord ») : d'abord les 10 premières techniques en entraînement (Block Pattern Practice, PR #58, installé le 28/11, [[Entraînements]]), puis Block Method 1v1 dans Duels. **Pas commencé** : questions à Abel sur la condition de victoire, le kit, la map, et l'**anti full box** du Block placement (`FullBox`, impossible d'enfermer un joueur), qui contredit le « full box » demandé pour RagoBot ([[Questions ouvertes]]).
 
 ## /duel
 `/duel <joueur> [mode]` défie un joueur du lobby ([Accept] / [Deny], une minute, `DuelRequests`) ; le chef d'une party de 2+ qui tape `/duel` sans nom voit les autres parties ([[Party, amis et messages]]). `/duel RagoBot` renvoie vers la party ([[RagoBot]]).

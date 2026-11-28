@@ -16,7 +16,7 @@ Retour à [[Entraînements]]. Détail : `bukkit/rago-practice/README.md` (« Les
 - Dans la boussole, un entraînement montre le top 3 Lifetime de sa première variante ([[Boussole et menus]]).
 - **Défi du jour** (`/challenge`, `defi-du-jour:`) : un entraînement pour tout le serveur chaque jour, à tour de rôle (Block-In côté bois, island clutch, aim trainer, fast defense, ladder, extend…) ; le top 3 gagne de l'XP.
 - **Nouveaux records du 28/11** (`RecordCatalog`) : **Hypixel Bow Practice** (`bow-practice`, PR #56), un record par niveau (pont droit, en diagonale, en hauteur), le score est la série de victoires d'affilée (« wins in a row ») ; **Block in** a un 4e record, « RBW defense » (PR #57), comme ses trois autres niveaux ([[Entraînements]]). Installés le 28/11, aucun score encore fait en jeu.
-- **En attente (PR #58, pas installée)** : **Block Pattern Practice** (`block-pattern-practice`), un record par technique (le temps), 10 techniques ; avec lui, 18 entraînements ont des records (`RecordCatalog`).
+- **Block Pattern Practice** (`block-pattern-practice`, PR #58, installé le 28/11) : un record par technique (le temps), 10 techniques ; avec lui, 18 entraînements ont des records (`RecordCatalog`).
 - Block clutch : tableau des plus grands clutchs sur chaque île et distances de clutch de la semaine (classement de la semaine récompensé, [[Statistiques et classements]]). Aim trainer : `/aimtop`.
 - Les entraînements retirés des menus (KB displace, Pearl practice, Fireball practice, Combo bot, Find Your Sensitivity) gardent leurs records dans les données, hors de `/records` et du mur.
 - Une partie avec un outil Owner actif ne compte pour aucun record ([[Outils Owner]]).

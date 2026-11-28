@@ -24,7 +24,10 @@ La dernière version en service est dans **`C:\Users\rgabe\Downloads\rago-serveu
 8. Écrire dans le journal du suivi : date et heure (de Paris), commit, ce qui change, la sauvegarde, et **« rien n'est encore joué en jeu »** quand c'est le cas.
 9. Mettre à jour [[État actuel]] et [[Journal]] de ce vault.
 
-## Dernière installation (28/11, vers 10h33, personne connecté)
+## Dernière installation (28/11, vers 11h29, personne connecté)
+Commit `d050af8` (PR #58) : sauvegarde `sauvegarde-avant-maj-d050af8\plugins\` ; jars rago-practice et rago-lobby de `d050af8` ; mode `block-pattern-practice` ajouté par script au `config.yml` de RagoLobby du serveur. Démarrage vérifié : 91 modes dans le lobby, « Mode block-pattern-practice hosted by RagoPractice », zones d'arène de nouveau dans l'ordre d'avant la #56 (`bow-practice` puis `block-pattern-practice` à la fin) ; puis arrêt propre. Pas encore joué en jeu.
+
+## Installation d'avant (28/11, vers 10h33, personne connecté)
 Commit `03beb92` (PR #55 à #57, fusionnées le matin) : sauvegarde `sauvegarde-avant-maj-03beb92\` (`plugins\` et `mondes-arenes\`) ; jars rago-practice et rago-lobby de `03beb92` copiés (les trois autres inchangés) ; sections ajoutées à la main (RagoPractice : `bow-practice:`, `block-in.rbw:` ; RagoLobby : mode `bow-practice`) ; mondes BowPractice et « Block In Practice RBW » copiés dans `C:\Users\rgabe\Rago\mondes`. Démarrage vérifié : pas d'erreur nouvelle, « Copied for Hypixel Bow Practice … 5923 blocks », « Copied for the RBW level … 1374 blocks », « Game world bw_Bedwars2012_1 ready (map Bedwars2012) », lobby à 90 modes ; puis arrêt propre. Avertissements déjà connus : `titres.familles.clutch-scenario` sans modes 2v2, 3v3, 4v4 ; mode `bridge-fight` fermé (voulu) ([[Bugs et problèmes connus]]). Pas encore joué en jeu.
 
 ## Accès au PC

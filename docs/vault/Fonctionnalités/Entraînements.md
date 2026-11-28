@@ -34,8 +34,8 @@ Les entraînements solo de la catégorie **Practice** (`entrainement`), joués p
 - Spectateurs possibles (`/spectate`), jusqu'à 10 en même temps testés en CI ([[Replays et spectateurs]]).
 - Rien ne s'use (`Unbreakable`).
 
-## En attente : Block Pattern Practice (PR #58, ni fusionnée ni installée)
-D'après la vidéo « Block Method » d'Abel (34 techniques avec un adversaire, [[Sources]]) ; plan validé par Abel le 27/11 (« Oui je suis d'accord ») : un entraînement de Practice, **un niveau par technique**, du plus simple au plus dur, **d'abord 10 techniques**. Codé dans la **PR #58** (28/11, `claude/block-pattern-practice`, CI en cours, IMPLÉMENTÉ) :
+## Block Pattern Practice (`block-pattern-practice`, depuis le 28/11)
+D'après la vidéo « Block Method » d'Abel (34 techniques avec un adversaire, [[Sources]]) ; plan validé par Abel le 27/11 (« Oui je suis d'accord ») : un entraînement de Practice, **un niveau par technique**, du plus simple au plus dur, **d'abord 10 techniques**. **PR #58**, fusionnée et installée le 28/11 (TESTÉ EN CI : un bot pose le #1 puis touche RagoBot en premier, le #2 arrive seul, RagoBot court et touche quand rien n'est posé, la teinture rouge mène au #10 et son tunnel ; `pattern-bots.mjs`) ; **pas encore joué en jeu** :
 - Mode `block-pattern-practice` (« Block Pattern Practice », Practice, icône laine bleu clair `"WOOL:3"`), classes `BlockPatternPractice`, `BlockPatterns`, `PatternBot` ([[Code de rago-practice]]).
 - Les 10 techniques, changées aux teintures : #1 Block in front, #2 Pillar, #3 Hook, #4 T, #5 Arch, #6 Roof, #7 Door, #8 Far hook, #9 Window, #10 Tunnel. Leurs formes et le trajet du bot sont **lus dans la vidéo, à régler avec Abel en jeu**.
 - « RagoBot » est ici un **bot d'entraînement** (un zombie avec la tête de qRago, comme le Combo bot), pas le vrai client [[RagoBot]] : il court vers le joueur sur le trajet de la technique avec la physique d'un joueur 1.8 (`PatternBot`) : il saute un bloc qui a de la place au-dessus, contourne un mur qu'il ne peut pas sauter, casse pour passer dans le tunnel.
