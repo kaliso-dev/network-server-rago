@@ -208,6 +208,10 @@ final class QueueController {
             player.sendMessage(ChatColor.GRAY + mode.name() + ChatColor.GRAY + " is coming soon.");
             return;
         }
+        if (lobby.bots() != null && lobby.bots().settings().solo(mode.id())) {
+            joinAgainstBot(player, mode, map);
+            return;
+        }
         PartyBook.Party party = parties.together(player.getUniqueId());
         if (party != null) {
             joinTogether(player, party, mode, map);
@@ -219,6 +223,33 @@ final class QueueController {
         Matchmaker.JoinResult result = matchmaker.join(player.getUniqueId(), mode.id(), rating(player.getUniqueId(), mode),
                 System.currentTimeMillis(), map);
         joined(player, mode, map, result, false);
+    }
+
+    /**
+     * A mode a player alone plays against a RagoBot that comes by itself (Block Method 1v1, the
+     * owner's ask of 28/11; ragobot.seul of config.yml): not with a party; the game starts at once
+     * on the map chosen (as soon as its copy is ready), a practice counted in no stats.
+     */
+    private void joinAgainstBot(Player player, GameMode mode, String map) {
+        if (parties.together(player.getUniqueId()) != null) {
+            player.sendMessage(ChatColor.RED + ChatColor.stripColor(mode.name()) + " is played alone against "
+                    + BotSettings.NAME + ": leave your party first (/p leave).");
+            return;
+        }
+        Player bot = lobby.bots().joinFor(player);
+        if (bot == null) {
+            return;
+        }
+        long now = System.currentTimeMillis();
+        List<List<QueueEntry>> teams = new ArrayList<>();
+        teams.add(new ArrayList<>(Collections.singletonList(new QueueEntry(player.getUniqueId(), settings.defaultRating(), now, map))));
+        teams.add(new ArrayList<>(Collections.singletonList(new QueueEntry(bot.getUniqueId(), settings.defaultRating(), now, map))));
+        player.sendMessage(ChatColor.AQUA + BotSettings.NAME + ChatColor.GRAY + " comes for your " + mode.name()
+                + ChatColor.GRAY + (map == null ? "" : " on " + ChatColor.WHITE + map + ChatColor.GRAY) + ".");
+        if (!startDirect(new MatchProposal(mode, teams), true, true) && bot.isOnline()) {
+            // no game (no map for it): its RagoBot goes at once
+            bot.kickPlayer(BotSettings.NAME + " left");
+        }
     }
 
     /** Tells a player alone what joining this queue did; inGame: from their training, or from a game they watch. */

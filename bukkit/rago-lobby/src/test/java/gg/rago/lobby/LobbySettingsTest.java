@@ -64,9 +64,9 @@ class LobbySettingsTest {
         assertEquals("lobby", settings.world());
         assertEquals(0, settings.voidHeight());
         assertEquals(0, settings.defaultRating(), "a ranked ELO starts at 0, in Coal");
-        assertEquals(93, settings.modes().size(), "the six ranked duels (plan 3.7), the invis practice and the Bed Break Simulator in 1v1 to 1v4 (and"
+        assertEquals(94, settings.modes().size(), "the six ranked duels (plan 3.7), the invis practice and the Bed Break Simulator in 1v1 to 1v4 (and"
                 + " their kits), with Bedwars Normal (its 4s and 2s) and FFA Archway (its game), the clutch scenario, the bed fight (1v1, 2v2, 1v2), Top"
-                + " BedFight, the bridge fight 2v2, the full map first rush, Sky Rise Resources, the timed bridge, Lobby"
+                + " BedFight, Block Method 1v1 against RagoBot, the bridge fight 2v2, the full map first rush, Sky Rise Resources, the timed bridge, Lobby"
                 + " Fight (1v1, FFA), the Bed Break Simulator, the four modes of FUN PRACTICE (CTF The Bridge 1v1 and"
                 + " 2v2, CTF Castle 2v2 and 4v4 with them, 2012 Bedwars and its Classic, 2017 Bedwars 1v1 and 2v2 hidden, Hypixel Bow Practice, Block Pattern Practice), Red Rover (sumo, block edit, block placement, top bridge),"
                 + " Block aim and Parkour Duel, without the top fight, the ranked scenarios, the Combo bot, Find Your Sensitivity,"
@@ -297,15 +297,17 @@ class LobbySettingsTest {
         List<LobbySettings.Entry> duels = settings.entriesIn("duels");
         assertEquals("bed-fight", duels.get(0).group.id(), "the duels: 1v1 or 2v2 in one item each");
         assertEquals("top-bed-fight-1v1", duels.get(1).mode.mode().id(), "Top BedFight next to the bed fight, in 1v1 only");
+        assertEquals("block-method-1v1", duels.get(2).mode.mode().id(), "Block Method against RagoBot, a bed fight too (the owner, 28/11)");
+        assertEquals("bed-fight-1v1", settings.kitMode("block-method-1v1"), "the kit of the bed fight");
         // the order of the owner (27/11): our own modes and the most played first, the known ones last
-        assertEquals("block-placement", duels.get(2).group.id());
-        assertEquals("bridge-fight", duels.get(3).group.id());
-        assertEquals("top-bridge", duels.get(4).group.id());
-        assertEquals("block-edit-duel", duels.get(5).mode.mode().id());
-        assertEquals("lobby-fight-1v1", duels.get(6).mode.mode().id());
-        assertEquals("red-rover", duels.get(7).group.id());
-        assertEquals(Arrays.asList("boxing", "sumo", "fireball", "bow-duel"), Arrays.asList(duels.get(8).mode.mode().id(),
-                duels.get(9).mode.mode().id(), duels.get(10).mode.mode().id(), duels.get(11).mode.mode().id()));
+        assertEquals("block-placement", duels.get(3).group.id());
+        assertEquals("bridge-fight", duels.get(4).group.id());
+        assertEquals("top-bridge", duels.get(5).group.id());
+        assertEquals("block-edit-duel", duels.get(6).mode.mode().id());
+        assertEquals("lobby-fight-1v1", duels.get(7).mode.mode().id());
+        assertEquals("red-rover", duels.get(8).group.id());
+        assertEquals(Arrays.asList("boxing", "sumo", "fireball", "bow-duel"), Arrays.asList(duels.get(9).mode.mode().id(),
+                duels.get(10).mode.mode().id(), duels.get(11).mode.mode().id(), duels.get(12).mode.mode().id()));
         List<LobbySettings.Entry> practice = settings.entriesIn("entrainement");
         assertEquals("clutch", practice.get(0).group.id(), "Block clutch first in the Practice (the owner, 27/11)");
         assertEquals(Material.SANDSTONE, settings.group("clutch").icon(), "Block clutch and its top fight: a sandstone (the owner, 27/11)");

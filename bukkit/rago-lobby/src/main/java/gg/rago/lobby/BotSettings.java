@@ -40,6 +40,11 @@ final class BotSettings {
     static final java.util.Set<String> EDIT_MODES = Collections.unmodifiableSet(new java.util.HashSet<>(
             Arrays.asList("block-edit-duel", "red-rover-block-edit")));
     static final int MAX_BOTS = 50;
+    /**
+     * The modes a player alone plays against a RagoBot that comes by itself (the owner's ask of
+     * 28/11: Block Method 1v1, against a RagoBot much weaker than the one of the parties).
+     */
+    static final List<String> DEFAULT_SOLO_MODES = Collections.unmodifiableList(Arrays.asList("block-method-1v1"));
 
     /** False: /p invite RagoBot finds nobody. */
     final boolean enabled;
@@ -52,14 +57,26 @@ final class BotSettings {
     /** The names of these modes, for the messages ("Top Bridge 1v1, Top Bridge 2v2 and Sumo 1v1"). */
     final String modeNames;
     final BotBrain.Skill skill;
+    /** The modes a player alone plays against a RagoBot that comes by itself (ragobot.seul.modes). */
+    final List<String> soloModes;
+    /** The skill of that RagoBot (ragobot.seul.skill): much weaker. */
+    final BotBrain.Skill soloSkill;
 
-    private BotSettings(boolean enabled, String skin, int max, List<String> modes, String modeNames, BotBrain.Skill skill) {
+    private BotSettings(boolean enabled, String skin, int max, List<String> modes, String modeNames, BotBrain.Skill skill,
+            List<String> soloModes, BotBrain.Skill soloSkill) {
         this.enabled = enabled;
         this.skin = skin;
         this.max = max;
         this.modes = Collections.unmodifiableList(new ArrayList<>(modes));
         this.modeNames = modeNames;
         this.skill = skill;
+        this.soloModes = Collections.unmodifiableList(new ArrayList<>(soloModes));
+        this.soloSkill = soloSkill;
+    }
+
+    /** True if a player alone plays this mode against a RagoBot that comes by itself. */
+    boolean solo(String modeId) {
+        return enabled && soloModes.contains(modeId);
     }
 
     /** True if it plays this mode. */
@@ -112,36 +129,61 @@ final class BotSettings {
                 names.add(org.bukkit.ChatColor.stripColor(LobbySettings.colour(mode.name())));
             }
         }
-        BotBrain.Skill skill = readSkill(section == null ? null : section.getConfigurationSection("skill"));
-        return new BotSettings(enabled, skin, max, modes, join(names), skill);
+        BotBrain.Skill skill = readSkill(section == null ? null : section.getConfigurationSection("skill"),
+                BotBrain.Skill.BUNDLED, "ragobot.skill.");
+        ConfigurationSection solo = section == null ? null : section.getConfigurationSection("seul");
+        if (section != null && section.contains("seul") && solo == null) {
+            throw new IllegalArgumentException("ragobot.seul: its modes: and its skill:");
+        }
+        List<String> soloModes = new ArrayList<>();
+        List<String> soloListed = solo == null || !solo.isList("modes") ? DEFAULT_SOLO_MODES : solo.getStringList("modes");
+        for (String id : soloListed) {
+            GameMode mode = byId.get(id);
+            if (mode == null) {
+                if (solo == null) {
+                    // the bundled mode, in a config without it
+                    continue;
+                }
+                throw new IllegalArgumentException("ragobot.seul.modes: no mode " + id + " in modes");
+            }
+            if (mode.ranked() || mode.teams() != 2 || mode.playersPerTeam() != 1) {
+                throw new IllegalArgumentException("ragobot.seul.modes: " + id + " is not a 1v1 out of the ranked");
+            }
+            if (!soloModes.contains(id)) {
+                soloModes.add(id);
+            }
+        }
+        BotBrain.Skill soloSkill = readSkill(solo == null ? null : solo.getConfigurationSection("skill"),
+                BotBrain.Skill.SOLO, "ragobot.seul.skill.");
+        return new BotSettings(enabled, skin, max, modes, join(names), skill, soloModes, soloSkill);
     }
 
-    private static BotBrain.Skill readSkill(ConfigurationSection section) {
-        BotBrain.Skill bundled = BotBrain.Skill.BUNDLED;
+    private static BotBrain.Skill readSkill(ConfigurationSection section, BotBrain.Skill bundled, String path) {
         if (section == null) {
             return bundled;
         }
-        double cps = number(section, "cps", bundled.cps, 1, 20);
-        double accuracy = number(section, "precision", bundled.accuracy, 0, 1);
-        double reach = number(section, "portee", bundled.reach, 1, 3);
-        double strafe = number(section, "strafe", bundled.strafe, 0, 1);
-        double wTap = number(section, "w-tap", bundled.wTap, 0, 1);
-        double jumpReset = number(section, "jump-reset", bundled.jumpReset, 0, 1);
-        int reaction = (int) number(section, "reaction", bundled.reaction, 0, BotBrain.MEMORY - 1);
-        double turn = number(section, "rotation", bundled.turn, 5, 180);
-        double healAt = number(section, "soin-a", bundled.healAt, 0, 20);
-        double blocks = number(section, "blocs-par-seconde", bundled.blocksPerSecond, 1, 20);
-        int ping = (int) number(section, "ping", bundled.ping, 0, BotBrain.MAX_PING);
+        double cps = number(section, path, "cps", bundled.cps, 1, 20);
+        double accuracy = number(section, path, "precision", bundled.accuracy, 0, 1);
+        double reach = number(section, path, "portee", bundled.reach, 1, 3);
+        double strafe = number(section, path, "strafe", bundled.strafe, 0, 1);
+        double wTap = number(section, path, "w-tap", bundled.wTap, 0, 1);
+        double jumpReset = number(section, path, "jump-reset", bundled.jumpReset, 0, 1);
+        int reaction = (int) number(section, path, "reaction", bundled.reaction, 0, BotBrain.MEMORY - 1);
+        double turn = number(section, path, "rotation", bundled.turn, 5, 180);
+        double healAt = number(section, path, "soin-a", bundled.healAt, 0, 20);
+        double blocks = number(section, path, "blocs-par-seconde", bundled.blocksPerSecond, 1, 20);
+        int ping = (int) number(section, path, "ping", bundled.ping, 0, BotBrain.MAX_PING);
         return new BotBrain.Skill(cps, accuracy, reach, strafe, wTap, jumpReset, reaction, turn, healAt, blocks, ping);
     }
 
-    private static double number(ConfigurationSection section, String key, double bundled, double low, double high) {
+    private static double number(ConfigurationSection section, String path, String key, double bundled, double low,
+            double high) {
         if (section.contains(key) && !section.isDouble(key) && !section.isInt(key)) {
-            throw new IllegalArgumentException("ragobot.skill." + key + ": a number from " + plain(low) + " to " + plain(high));
+            throw new IllegalArgumentException(path + key + ": a number from " + plain(low) + " to " + plain(high));
         }
         double value = section.getDouble(key, bundled);
         if (value < low || value > high) {
-            throw new IllegalArgumentException("ragobot.skill." + key + ": from " + plain(low) + " to " + plain(high));
+            throw new IllegalArgumentException(path + key + ": from " + plain(low) + " to " + plain(high));
         }
         return value;
     }

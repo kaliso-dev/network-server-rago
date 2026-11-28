@@ -29,7 +29,8 @@ class BotSettingsTest {
                 new GameMode("block-edit-duel", "&aBlock edit 1v1", 2, 1, false),
                 new GameMode("red-rover-block-edit", "&aRed Rover Block Edit", 1, 3, false),
                 new GameMode("ranked-sumo", "&6Ranked Sumo", 2, 1, true),
-                new GameMode("clutch", "&eClutch", 1, 1, false))) {
+                new GameMode("clutch", "&eClutch", 1, 1, false),
+                new GameMode("block-method-1v1", "&aBlock Method 1v1", 2, 1, false))) {
             byId.put(mode.id(), mode);
         }
         return byId;
@@ -128,6 +129,33 @@ class BotSettingsTest {
     }
 
     @Test
+    void aPlayerAlonePlaysBlockMethodAgainstAWeakerRagoBot() throws Exception {
+        BotSettings bots = BotSettings.read(null, modes(), IN_TURNS);
+        assertEquals(Collections.singletonList("block-method-1v1"), bots.soloModes);
+        assertSame(BotBrain.Skill.SOLO, bots.soloSkill);
+        assertTrue(bots.solo("block-method-1v1"));
+        assertFalse(bots.solo("sumo"), "a party's RagoBot there");
+        assertTrue(BotBrain.Skill.SOLO.cps < BotBrain.Skill.BUNDLED.cps, "much weaker (the owner, 28/11)");
+        assertTrue(BotBrain.Skill.SOLO.accuracy < BotBrain.Skill.BUNDLED.accuracy);
+        assertTrue(BotBrain.Skill.SOLO.reach < BotBrain.Skill.BUNDLED.reach);
+        assertFalse(read("ragobot:\n  actif: false\n").solo("block-method-1v1"), "no RagoBot at all");
+        BotSettings own = read("ragobot:\n  seul:\n    modes: [sumo, sumo]\n    skill:\n      cps: 5\n");
+        assertEquals(Collections.singletonList("sumo"), own.soloModes, "once");
+        assertEquals(5, own.soloSkill.cps, 0);
+        assertEquals(BotBrain.Skill.SOLO.accuracy, own.soloSkill.accuracy, 0, "the rest as the bundled weaker one");
+        assertEquals(BotBrain.Skill.BUNDLED.cps, own.skill.cps, 0, "the party's RagoBot as it was");
+    }
+
+    @Test
+    void refusesWhatItCannotPlayAlone() {
+        assertInvalid("ragobot:\n  seul:\n    modes: [top-bridge-2v2]\n", "ragobot.seul.modes: top-bridge-2v2 is not a 1v1");
+        assertInvalid("ragobot:\n  seul:\n    modes: [ranked-sumo]\n", "ragobot.seul.modes: ranked-sumo is not a 1v1");
+        assertInvalid("ragobot:\n  seul:\n    modes: [nope]\n", "ragobot.seul.modes: no mode nope");
+        assertInvalid("ragobot:\n  seul: oui\n", "ragobot.seul:");
+        assertInvalid("ragobot:\n  seul:\n    skill:\n      cps: 30\n", "ragobot.seul.skill.cps: from 1 to 20");
+    }
+
+    @Test
     void refusesWhatItCannotPlay() {
         assertInvalid("ragobot:\n  modes: [ranked-sumo]\n", "ragobot.modes: ranked-sumo is ranked");
         assertInvalid("ragobot:\n  modes: [clutch]\n", "ragobot.modes: clutch has one team");
@@ -148,6 +176,19 @@ class BotSettingsTest {
         BotSettings bots = LobbySettings.load(LobbySettingsTest.bundledConfig()).bots();
         assertTrue(bots.enabled);
         assertEquals("qRago", bots.skin, "the owner's skin (22/11)");
+        assertEquals(BotSettings.DEFAULT_SOLO_MODES, bots.soloModes);
+        BotBrain.Skill solo = BotBrain.Skill.SOLO;
+        assertEquals(solo.cps, bots.soloSkill.cps, 0);
+        assertEquals(solo.accuracy, bots.soloSkill.accuracy, 0);
+        assertEquals(solo.reach, bots.soloSkill.reach, 0);
+        assertEquals(solo.strafe, bots.soloSkill.strafe, 0);
+        assertEquals(solo.wTap, bots.soloSkill.wTap, 0);
+        assertEquals(solo.jumpReset, bots.soloSkill.jumpReset, 0);
+        assertEquals(solo.reaction, bots.soloSkill.reaction);
+        assertEquals(solo.turn, bots.soloSkill.turn, 0);
+        assertEquals(solo.healAt, bots.soloSkill.healAt, 0);
+        assertEquals(solo.blocksPerSecond, bots.soloSkill.blocksPerSecond, 0);
+        assertEquals(solo.ping, bots.soloSkill.ping);
         assertEquals(BotSettings.DEFAULT_MODES, bots.modes);
         BotBrain.Skill bundled = BotBrain.Skill.BUNDLED;
         assertEquals(bundled.cps, bots.skill.cps, 0);

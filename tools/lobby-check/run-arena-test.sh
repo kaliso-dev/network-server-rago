@@ -46,7 +46,11 @@
 # the hole of the bot and closes the wall, then opens it, hits through the hole and closes it, and
 # wins; it wins its 1v1 of a Red Rover Block Edit with a clean edit; it plays Top Bridge 2v2 in the
 # party's team against two others, and leaves the
-# server once kicked from the party; none of these games is counted as a private game. Last, the
+# server once kicked from the party; none of these games is counted as a private game. Then Block
+# Method 1v1 (tools/kb-control/bots/block-method-bots.mjs): a player alone queues, RagoBot comes for
+# it, bridges over the void of the demo map sneaking at the edges and kills it; the death starts the
+# round again on the map as it was, the blaze rod too, the map opens the menu of the maps; RagoBot
+# leaves once the player is back in the lobby. Last, the
 # Owner tools (tools/kb-control/bots/owner-bots.mjs): /owner for qRago only, Reach that lands from
 # 6 blocks in a sumo and does nothing in a ranked sumo, Scaffold in a Block placement 1v1; the games
 # with a tool on are counted for nobody, the ranked one is.
@@ -342,6 +346,9 @@ KB_HOST=127.0.0.1 KB_PORT=$PORT node "$ROOT/tools/kb-control/bots/party-duel-bot
 # others, and sends it away.
 ragobot_status=0
 KB_HOST=127.0.0.1 KB_PORT=$PORT node "$ROOT/tools/kb-control/bots/ragobot-bots.mjs" || ragobot_status=$?
+# The same server for Block Method 1v1: RagoSeul alone, RagoBot comes for it on the demo map.
+block_method_status=0
+KB_HOST=127.0.0.1 KB_PORT=$PORT node "$ROOT/tools/kb-control/bots/block-method-bots.mjs" || block_method_status=$?
 # The same server for the Owner tools: qRago (the account of outils-owner) and two others; Reach in
 # a sumo and in a ranked sumo, Scaffold in a Block placement 1v1.
 owner_status=0
@@ -372,6 +379,8 @@ server_log_has '[RagoLobby] Private game of a party in fast-bedwars-2v2: not cou
 [[ $party_duel_status -eq 0 ]] || { tail -n 60 "$SERVER_LOG" >&2; fail "the party duel bots stopped with status $party_duel_status"; }
 [[ $ragobot_status -eq 0 ]] || { tail -n 60 "$SERVER_LOG" >&2; fail "the RagoBot bots stopped with status $ragobot_status"; }
 server_log_has '[RagoLobby] RagoBot joined for the party of RagoLeader' || fail "RagoBot did not join for the party of RagoLeader"
+[[ $block_method_status -eq 0 ]] || { tail -n 60 "$SERVER_LOG" >&2; fail "the Block Method bot stopped with status $block_method_status"; }
+server_log_has '[RagoLobby] RagoBot joined for the game of RagoSeul' || fail "RagoBot did not come for the game of RagoSeul"
 # A game with RagoBot counts in the players' stats: none is a private game of the party.
 if grep -n -E 'Private game of a party in (sumo|boxing|top-bridge-1v1|lobby-fight-1v1|block-fight-1v1|red-rover-block-placement|top-bridge-2v2):' "$SERVER_LOG" >&2; then
   fail "a game with RagoBot was counted as a private game (above)"

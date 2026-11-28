@@ -23,6 +23,7 @@ import org.bukkit.event.block.Action;
 import org.bukkit.event.player.PlayerInteractEvent;
 import org.bukkit.event.player.PlayerItemHeldEvent;
 import org.bukkit.event.player.PlayerMoveEvent;
+import org.bukkit.event.player.PlayerToggleSneakEvent;
 import org.bukkit.event.player.PlayerToggleSprintEvent;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.PlayerInventory;
@@ -218,6 +219,14 @@ final class BotBody {
             Bukkit.getPluginManager().callEvent(held);
             if (!held.isCancelled()) {
                 inventory.setHeldItemSlot(controls.slot);
+            }
+        }
+        if (controls.sneak != player.isSneaking()) {
+            // as a client's sneak key: the server holds a sneaking player at the edge of a block
+            PlayerToggleSneakEvent sneak = new PlayerToggleSneakEvent(player, controls.sneak);
+            Bukkit.getPluginManager().callEvent(sneak);
+            if (!sneak.isCancelled()) {
+                player.setSneaking(controls.sneak);
             }
         }
         if (controls.sprint != player.isSprinting()) {

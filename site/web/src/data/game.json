@@ -86,7 +86,7 @@
       ],
       "description": "Bed fight, Top BedFight, top bridge, bridge fight, block placement in 1v1 or 2v2; Lobby Fight, sumo, boxing, fireball fight, bow. /duel a player to challenge them.",
       "skin": "duels",
-      "modes": 20,
+      "modes": 21,
       "also": []
     },
     {
@@ -732,6 +732,23 @@
       "event": false,
       "sizeOf": null,
       "description": "On the bridge at the top of Bed fight: kill them or knock them off, rounds of one life, the first to 5 points wins.",
+      "plugins": [
+        "bedwars"
+      ]
+    },
+    {
+      "id": "block-method-1v1",
+      "name": "Block Method 1v1",
+      "colour": "#55FF55",
+      "icon": "WOOL:11",
+      "category": "duels",
+      "group": null,
+      "format": "1v1",
+      "ranked": false,
+      "startHere": false,
+      "event": false,
+      "sizeOf": null,
+      "description": "Alone against RagoBot on a Bed Fight map: it bridges at you as a player. Block it, box it, kill it: the map starts again.",
       "plugins": [
         "bedwars"
       ]

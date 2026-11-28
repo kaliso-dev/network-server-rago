@@ -50,6 +50,12 @@ final class BotBrain {
          * health, and a ping of 40 ms (the owner's ask of 23/11). To set in game.
          */
         static final Skill BUNDLED = new Skill(11, 0.88, 3.0, 0.8, 0.75, 0.45, 3, 30, 10, 6, 40);
+        /**
+         * The RagoBot of a player alone in Block Method 1v1, much weaker (the owner's ask of 28/11):
+         * 7 CPS, less accurate, a little less reach, little strafe, w-tap or jump reset, twice the
+         * reaction, a slower turn, no golden apple, 4 blocks a second, 80 ms of ping. To set in game.
+         */
+        static final Skill SOLO = new Skill(7, 0.65, 2.9, 0.35, 0.2, 0.15, 6, 18, 0, 4, 80);
 
         /** Clicks a second. */
         final double cps;
@@ -156,6 +162,12 @@ final class BotBrain {
          * wool between it and the other, the blocks it may break ({@link #breakable}).
          */
         boolean edit;
+        /**
+         * Its game is a Bed Fight against one player (Block Method 1v1): the void between its
+         * island and theirs, it bridges to them, breaks the blocks of the players in its way and
+         * gets out of a box ({@link #blocks} with it).
+         */
+        boolean bridge;
     }
 
     /** What the bot presses this tick. */
@@ -184,6 +196,8 @@ final class BotBrain {
         float[] cursor;
         /** The left button held on this block, {x, y, z, side}: it digs it; null: it digs nothing. */
         int[] dig;
+        /** It sneaks (its keys count for {@link #SNEAK_INPUT} of themselves, as a client's). */
+        boolean sneak;
     }
 
     /** The most ticks of reaction: the length of its memory of the other. */
@@ -353,6 +367,11 @@ final class BotBrain {
         boolean digging = !eating && !clutching && sight.blocks && sight.ground != null
                 && undermine(sight, controls, target);
         boolean onBlocks = clutching || digging;
+        if (!eating && !onBlocks && sight.bridge && sight.blocks && sight.ground != null
+                && travel(sight, controls, target, distance)) {
+            // its way to the other in a Bed Fight: out of a box, through a block in its way, a bridge
+            return controls;
+        }
 
         if (--sideTicks <= 0) {
             side = -side;
@@ -414,7 +433,10 @@ final class BotBrain {
             double ez = sight.z;
             double real = reach(ex, ey, ez, sight.tx, sight.ty, sight.tz);
             double off = Math.abs(wrap(controls.yaw - yawTo(sight.tx - sight.x, sight.tz - sight.z)));
-            if (real <= skill.reach && off <= AIM && random.nextDouble() < skill.accuracy) {
+            // in a Bed Fight, never through a block, as a player's hits
+            boolean seen = !sight.bridge || sight.ground == null
+                    || clear(sight.ground, ex, ey, ez, sight.tx, sight.ty + CHEST, sight.tz, null);
+            if (real <= skill.reach && off <= AIM && seen && random.nextDouble() < skill.accuracy) {
                 controls.hit = true;
                 if (random.nextDouble() < skill.wTap) {
                     wTapTicks = 2 + random.nextInt(3);
@@ -692,6 +714,281 @@ final class BotBrain {
         double y = ay - by;
         double z = az - bz;
         return Math.sqrt(x * x + y * y + z * z);
+    }
+
+    // --- Block Method 1v1: its way to the other in a Bed Fight -----------------------------------
+
+    /** A client's keys count for this much of themselves while it sneaks. */
+    static final double SNEAK_INPUT = 0.3;
+    /** Sneaking from this far before the edge of its last block (blocks), bridging. */
+    static final double SNEAK_BEFORE = 0.5;
+    /** Ticks it walks at the other as in a fight after its way ran into a block it cannot break. */
+    static final int DETOUR_TICKS = 30;
+
+    /** The axis of its way to the other: 0 x, 2 z, -1 none yet; and the way along it, 1 or -1. */
+    private int axis = -1;
+    private int along;
+    /** Ticks left of a detour ({@link #DETOUR_TICKS}). */
+    private int detour;
+
+    /**
+     * Its way to the other in a Bed Fight (Block Method 1v1), as a player's there. In a box of
+     * blocks (no way out on foot, no jump out of it), it digs out, on the side away from the other
+     * first. The other out of its hits, or a block between them, it goes at them along the axis they
+     * are furthest along, straight down the middle of a block, as a player bridging: a block of the
+     * players in its way, at its head or under a roof, it digs (its head first); one it can step up,
+     * it jumps; over the void, it bridges ({@link #bridgeTick}). True while it does one of these;
+     * false: it fights as everywhere (the other close and seen, or a detour round a block of the map).
+     */
+    private boolean travel(Sight sight, Controls controls, double[] target, double distance) {
+        Ground ground = sight.ground;
+        int feet = (int) Math.floor(sight.y + 0.01);
+        int bx = (int) Math.floor(sight.x);
+        int bz = (int) Math.floor(sight.z);
+        if (sight.onGround) {
+            int[] out = boxedOut(sight, feet, bx, bz, target);
+            if (out != null) {
+                axis = -1;
+                return breakBlock(sight, controls, out);
+            }
+        }
+        if (detour > 0) {
+            detour--;
+            axis = -1;
+            return false;
+        }
+        boolean seen = clear(ground, sight.x, sight.y + EYES, sight.z, target[0], target[1] + CHEST, target[2], null);
+        double dx = target[0] - sight.x;
+        double dz = target[2] - sight.z;
+        if (distance <= FAR) {
+            axis = -1;
+            if (seen || !sight.onGround || distance < 1e-6) {
+                return false;
+            }
+            // a block between them, right there: it digs the one in its way at them
+            int[] wall = inTheWay(sight, feet, dx / distance, dz / distance);
+            return wall != null && breakBlock(sight, controls, wall);
+        }
+        chooseAxis(dx, dz);
+        int wx = axis == 0 ? along : 0;
+        int wz = axis == 2 ? along : 0;
+        if (sight.onGround) {
+            int[] wall = inTheWay(sight, feet, wx, wz);
+            if (wall != null) {
+                if (sight.breakable == null || sight.breakable.tool(wall[0], wall[1], wall[2]) < 0) {
+                    // a block of the map: round it as in a fight, then the axis again
+                    detour = DETOUR_TICKS;
+                    axis = -1;
+                    return false;
+                }
+                return breakBlock(sight, controls, wall);
+            }
+        }
+        // the last block under it along the way, and the column after it
+        int[] under = ground.solid(bx, feet - 1, bz) ? new int[] {bx, feet - 1, bz}
+                : ground.solid(bx - wx, feet - 1, bz - wz) ? new int[] {bx - wx, feet - 1, bz - wz} : null;
+        boolean voidAhead = under != null && !groundBelow(ground, under[0] + wx, feet, under[2] + wz);
+        if (voidAhead && sight.onGround && sight.block >= 0) {
+            return bridgeTick(sight, controls, under, wx, wz);
+        }
+        if (voidAhead || under == null && sight.onGround) {
+            // no block to bridge with, or held up by something else than a block under it: as in a fight
+            axis = -1;
+            return false;
+        }
+        // on the ground (or a step's jump): along the axis, facing the way, sprinting
+        controls.yaw = turn(sight.yaw, yawTo(wx, wz), skill.turn);
+        controls.pitch = turn(sight.pitch, 0, skill.turn);
+        keys(controls, sight, wx, wz, bx, bz);
+        if (sight.sword >= 0 && sight.held != sight.sword) {
+            controls.slot = sight.sword;
+        }
+        if (sight.onGround && stepAhead(sight, controls.yaw, controls.forward, controls.strafe)) {
+            controls.jump = true;
+        }
+        controls.sprint = controls.forward >= 0.8;
+        return true;
+    }
+
+    /**
+     * The axis it goes along to the other: the one they are furthest along, kept while they are
+     * still ahead on it and not much further along the other one.
+     */
+    void chooseAxis(double dx, double dz) {
+        double on = axis == 0 ? dx * along : axis == 2 ? dz * along : 0;
+        double across = axis == 0 ? Math.abs(dz) : Math.abs(dx);
+        if (axis < 0 || on <= 0.5 || across > on + 3) {
+            axis = Math.abs(dx) >= Math.abs(dz) ? 0 : 2;
+            along = (axis == 0 ? dx : dz) >= 0 ? 1 : -1;
+        }
+    }
+
+    int axis() {
+        return axis;
+    }
+
+    int along() {
+        return along;
+    }
+
+    /**
+     * Its keys for a way along the axis (wx, wz), its body kept down the middle of its block across
+     * it: the world's way turned into forward and strafe for the yaw it has this tick.
+     */
+    private static void keys(Controls controls, Sight sight, int wx, int wz, int bx, int bz) {
+        double across = wx != 0 ? bz + 0.5 - sight.z : bx + 0.5 - sight.x;
+        double mx = wx + (wx == 0 ? clamp(across * 2, -1, 1) : 0);
+        double mz = wz + (wz == 0 ? clamp(across * 2, -1, 1) : 0);
+        double radians = Math.toRadians(controls.yaw);
+        double sin = Math.sin(radians);
+        double cos = Math.cos(radians);
+        // forward is (-sin, cos), strafe to the left (cos, sin): see way()
+        controls.forward = clamp(-mx * sin + mz * cos, -1, 1);
+        controls.strafe = clamp(mx * cos + mz * sin, -1, 1);
+    }
+
+    /** True if a block holds a player up in the column (x, z), at most DROP blocks under feet. */
+    static boolean groundBelow(Ground ground, int x, int feet, int z) {
+        for (int down = 1; down <= DROP; down++) {
+            if (ground.solid(x, feet - down, z)) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    /**
+     * A tick of its bridge, as a player makes one: its back to the other, it walks backwards along
+     * the axis, sneaking from {@link #SNEAK_BEFORE} before the edge (the edge holds a sneaking
+     * player), and, its eyes past the edge, places a block of its kit against the side of the last
+     * block under it (under, the side along the way), its look on that side.
+     */
+    private boolean bridgeTick(Sight sight, Controls controls, int[] under, int wx, int wz) {
+        int side = wx > 0 ? 5 : wx < 0 ? 4 : wz > 0 ? 3 : 2;
+        controls.slot = sight.held == sight.block ? -1 : sight.block;
+        double[] face = faceCentre(under, side);
+        // its back to the other: the yaw of the way back, then down at the side of the block
+        controls.yaw = turn(sight.yaw, yawTo(-wx, -wz), skill.turn);
+        double dx = face[0] - sight.x;
+        double dz = face[2] - sight.z;
+        double dy = face[1] - (sight.y + EYES);
+        float pitch = (float) -Math.toDegrees(Math.atan2(dy, Math.max(Math.sqrt(dx * dx + dz * dz), 0.05)));
+        controls.pitch = (float) clamp(turn(sight.pitch, pitch, skill.turn), -90, 90);
+        keys(controls, sight, wx, wz, (int) Math.floor(sight.x), (int) Math.floor(sight.z));
+        double at = wx != 0 ? sight.x : sight.z;
+        double edge = (wx != 0 ? under[0] : under[2]) + (wx + wz > 0 ? 1 : 0);
+        double left = (edge - at) * (wx + wz);
+        controls.sneak = left < SNEAK_BEFORE;
+        if (controls.sneak) {
+            controls.forward *= SNEAK_INPUT;
+            controls.strafe *= SNEAK_INPUT;
+        }
+        controls.sprint = false;
+        double[] hit = rayHit(sight, controls.yaw, controls.pitch, under[0], under[1], under[2]);
+        if (hit != null && (int) hit[0] == side && placeWait == 0 && sight.held == sight.block) {
+            controls.place = new int[] {under[0], under[1], under[2], side};
+            controls.cursor = new float[] {(float) (hit[1] - under[0]), (float) (hit[2] - under[1]),
+                (float) (hit[3] - under[2])};
+            placeWait = (int) Math.ceil(20 / Math.max(0.1, skill.blocksPerSecond));
+        }
+        return true;
+    }
+
+    /**
+     * In a box of blocks: no side to walk out of, none to step up on (a roof over it, or the side
+     * two blocks high). The block it digs to get out, {x, y, z}: on the side away from the other
+     * first (it flees the box), one with ground beyond before one over the void, the block at its
+     * head first; null if it is not boxed, or no side is of blocks it can break.
+     */
+    int[] boxedOut(Sight sight, int feet, int bx, int bz, double[] target) {
+        Ground ground = sight.ground;
+        boolean roof = ground.solid(bx, feet + 2, bz);
+        for (int face = 2; face < FACES.length; face++) {
+            int nx = bx + FACES[face][0];
+            int nz = bz + FACES[face][2];
+            boolean low = ground.solid(nx, feet, nz);
+            boolean high = ground.solid(nx, feet + 1, nz);
+            if (!low && !high) {
+                return null;
+            }
+            if (low && !high && !roof && !ground.solid(nx, feet + 2, nz)) {
+                return null;
+            }
+        }
+        if (sight.breakable == null) {
+            return null;
+        }
+        double tx = target[0] - sight.x;
+        double tz = target[2] - sight.z;
+        double length = Math.max(1e-6, Math.sqrt(tx * tx + tz * tz));
+        int[] best = null;
+        double bestScore = Double.MAX_VALUE;
+        for (int face = 2; face < FACES.length; face++) {
+            int nx = bx + FACES[face][0];
+            int nz = bz + FACES[face][2];
+            boolean high = ground.solid(nx, feet + 1, nz);
+            int[] block = high ? new int[] {nx, feet + 1, nz} : new int[] {nx, feet, nz};
+            if (sight.breakable.tool(block[0], block[1], block[2]) < 0) {
+                continue;
+            }
+            if (high && ground.solid(nx, feet, nz) && sight.breakable.tool(nx, feet, nz) < 0 && roof) {
+                // the head block goes, the one at its feet stays under a roof: no way out there
+                continue;
+            }
+            double towards = (FACES[face][0] * tx + FACES[face][2] * tz) / length;
+            double score = towards + (ground.solid(nx, feet - 1, nz) ? 0 : 1.5);
+            if (score < bestScore) {
+                bestScore = score;
+                best = block;
+            }
+        }
+        return best;
+    }
+
+    /**
+     * The block in its way along (fx, fz) it cannot just walk or step through: the one at its head,
+     * or the one at its feet under a roof (it could not jump it); null if the way is free or a step.
+     */
+    static int[] inTheWay(Sight sight, int feet, double fx, double fz) {
+        Ground ground = sight.ground;
+        int bx = (int) Math.floor(sight.x);
+        int bz = (int) Math.floor(sight.z);
+        int ax = (int) Math.floor(sight.x + fx * (HALF_WIDTH + 0.35));
+        int az = (int) Math.floor(sight.z + fz * (HALF_WIDTH + 0.35));
+        if (ax == bx && az == bz) {
+            return null;
+        }
+        if (ground.solid(ax, feet + 1, az)) {
+            return new int[] {ax, feet + 1, az};
+        }
+        boolean roof = ground.solid(ax, feet + 2, az) || ground.solid(bx, feet + 2, bz);
+        if (ground.solid(ax, feet, az) && roof) {
+            return new int[] {ax, feet, az};
+        }
+        return null;
+    }
+
+    /**
+     * It digs this block of the players, as a player does: its tool for it in hand, its look on the
+     * side it sees best, the button held once its look is on the block; it stands still meanwhile.
+     * False if it has no tool for it or cannot reach it.
+     */
+    private boolean breakBlock(Sight sight, Controls controls, int[] block) {
+        int tool = sight.breakable == null ? -1 : sight.breakable.tool(block[0], block[1], block[2]);
+        if (tool < 0 || nearest(sight, block) > REACH_BLOCKS) {
+            return false;
+        }
+        controls.slot = sight.held == tool ? -1 : tool;
+        lookAt(sight, controls, faceCentre(block, sideTowards(sight, block)));
+        double[] hit = rayHit(sight, controls.yaw, controls.pitch, block[0], block[1], block[2]);
+        if (hit != null && sight.held == tool) {
+            controls.dig = new int[] {block[0], block[1], block[2], (int) hit[0]};
+        }
+        controls.forward = 0;
+        controls.strafe = 0;
+        controls.jump = false;
+        controls.sprint = false;
+        return true;
     }
 
     // --- The block edit -------------------------------------------------------------------------

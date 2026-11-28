@@ -37,7 +37,7 @@ import org.bukkit.inventory.PlayerInventory;
  * leggings and boots, the sword and the Protection of stuff-ameliore: in config.yml (iron, a stone
  * sword, no Protection to start: the gap is to be set in game with the owner). Main thread only.
  */
-final class BedFightGame extends BedwarsGame {
+class BedFightGame extends BedwarsGame {
 
     /** The kit when the lobby has none for the mode: the materials, with their amount. */
     static final String[] KIT = {"WOOD_SWORD", "WOOD_PICKAXE", "WOOD_AXE", "SHEARS", "WOOL 64"};

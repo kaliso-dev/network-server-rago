@@ -39,6 +39,7 @@ modes:
   bed-fight-1v1: [BedFight]
   bed-fight-2v2: [BedFight]
   bed-fight-1v2: [BedFight]
+  block-method-1v1: [GodMethod1, GodMethod2, MapV2, MinemenBedFight]
   top-bed-fight-1v1: [TopBedFight]
   lobby-fight-1v1: [ArchwayFFA]
   lobby-fight-ffa: [ArchwayFFA]
@@ -120,6 +121,10 @@ modes:
 #              10 minutes, a draw at 15. In a 1v2 (one team of 3 in the lobby's config.yml), the
 #              player alone is drawn at random (not one of a party) and has the better stuff of
 #              stuff-ameliore: below
+#   block-method  Block Method 1v1: Bed Fight as a practice, the player alone against a RagoBot that
+#              comes for them (ragobot.seul in the lobby's config.yml), much weaker than the one of
+#              the parties; no clock, no result: each death starts the round again, the map as at the
+#              start; a blaze rod to start it again, a map to go on on another map of the mode
 #   top-bed-fight  Top Bed Fight, on a map with its own bridge on top (the owner's TopBedFight, at
 #              the build limit): the two players start on the spawns of the map, at its ends, each
 #              with a block at their back they cannot break nor go behind; the bridge breaks (to
@@ -206,6 +211,7 @@ jeux:
   bed-fight-1v1: bed-fight
   bed-fight-2v2: bed-fight
   bed-fight-1v2: bed-fight
+  block-method-1v1: block-method
   top-bed-fight-1v1: top-bed-fight
   lobby-fight-1v1: lobby-fight
   lobby-fight-ffa: lobby-fight-ffa
