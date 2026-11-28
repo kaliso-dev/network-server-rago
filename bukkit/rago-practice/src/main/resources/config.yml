@@ -340,6 +340,27 @@ bow-training:
     - [-9, -24, -9, -61]
     - [-16, -20, -16, -61]
 
+# Hypixel Bow Practice (the owner's ask of 27/11), on his map BowPractice, copied once ("centre"
+# and "zone" as the sumo maps). "niveaux": the levels in their order (the dyes change them), each
+# "joueur", the player's start (x, y, z, yaw, pitch as F3 gives them; they move on 5 by 5 blocks
+# around it) and "pont", the bridge of the zombie: x, y, z of its first block (the zombie starts on
+# it) then x, z of its last one (getting there is a loss). The first arrow knocks the zombie off, two
+# more hits in the air win. Without the world: the plugin's own levels on plain blocks.
+bow-practice:
+  monde: BowPractice
+  centre: [26, 66, 50]
+  zone: [4, 45, 26, 48, 100, 72]
+  niveaux:
+    # level 1 (the gold blocks of the map): a straight bridge
+    - joueur: [36.5, 66, 62.5, 153.5, 0]
+      pont: [31, 66, 51, 31, 59]
+    # level 2 (the diamond blocks): a diagonal bridge
+    - joueur: [31.5, 66, 62.5, 114.8, 3.4]
+      pont: [15, 65, 52, 26, 62]
+    # level 3 (the emerald blocks): a high bridge
+    - joueur: [22.5, 65, 33.5, -46.4, -7.9]
+      pont: [31, 67, 49, 31, 36]
+
 # FUN PRACTICE (plan 6.1). The values below are starting values, to tune in game with the owner:
 # the owner still has to choose the rounds, the radius, the fireballs and the delay of the gust.
 #

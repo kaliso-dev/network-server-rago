@@ -67,7 +67,9 @@ class RecordsMenuTest {
                 assertEquals(board.id, Records.fromKey(Records.toKey(board.id)), "the file gives it back");
             }
         }
-        assertEquals(16, RecordCatalog.ALL.size(), "with the timed bridge and block aim");
+        assertEquals(17, RecordCatalog.ALL.size(), "with the timed bridge, block aim and Hypixel Bow Practice (27/11)");
+        assertEquals(Arrays.asList("bow-practice.straight", "bow-practice.diagonal", "bow-practice.high"),
+                idsOf(RecordCatalog.of("bow-practice")), "a record for each of its three levels");
         assertEquals(Arrays.asList("block-aim.level1", "block-aim.level2", "block-aim.level3", "block-aim.level4",
                 "block-aim.level5"), idsOf(RecordCatalog.of("block-aim")), "a record for each level");
         assertEquals("clutch", RecordCatalog.ALL.get(0).modeId, "the block clutch first");

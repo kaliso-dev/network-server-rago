@@ -2533,6 +2533,20 @@ modes:
   # The Combo bot training left the menus (the owner, 22/11: "le combo bot on le supprime"): its
   # records stay in RagoPractice's data, its fight goes to RagoBot. KB displace against a bot too
   # (the owner, 23/11), its records kept.
+  # Hypixel Bow Practice (the owner's ask of 27/11), played by RagoPractice on the owner's map
+  # BowPractice: three levels, the dyes change them.
+  bow-practice:
+    nom: "&bHypixel Bow Practice"
+    categorie: entrainement
+    icone: BOW
+    equipes: 1
+    joueurs-par-equipe: 1
+    classe: false
+    description:
+      - "A zombie comes along a bridge:"
+      - "knock it off with your bow,"
+      - "then hit it twice in the air."
+      - "Three levels, the dyes."
   bow-training:
     nom: "&bBow training"
     categorie: entrainement

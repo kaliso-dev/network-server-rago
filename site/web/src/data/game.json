@@ -42,7 +42,7 @@
       ],
       "description": "Clutch, block in, fast defense, bridging, extend, bow, aim: one skill at a time.",
       "skin": "practice",
-      "modes": 13,
+      "modes": 14,
       "also": []
     },
     {
@@ -1803,6 +1803,23 @@
       "event": false,
       "sizeOf": null,
       "description": "Aim training, solo, moving targets. XP for each second on the target, and a top of the best.",
+      "plugins": [
+        "practice"
+      ]
+    },
+    {
+      "id": "bow-practice",
+      "name": "Hypixel Bow Practice",
+      "colour": "#55FFFF",
+      "icon": "BOW",
+      "category": "entrainement",
+      "group": null,
+      "format": "Solo",
+      "ranked": false,
+      "startHere": false,
+      "event": false,
+      "sizeOf": null,
+      "description": "A zombie comes along a bridge: knock it off with your bow, then hit it twice in the air. Three levels, the dyes.",
       "plugins": [
         "practice"
       ]
