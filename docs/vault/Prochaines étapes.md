@@ -12,7 +12,7 @@ Ce qui reste à faire avant la sortie publique, dans l'ordre du plan de Sofiene.
 2. **Essai en jeu par Abel** de ce qui est installé (rien n'est encore joué, 28/11) : liste du 27/11 (boussole, icônes, PNJ, textes), 2012 Bedwars, Block edit en barrière, Hypixel Bow Practice, niveau RBW du Block in ; et la version du 25/11 (Private game, déconnexion en party, duels entre parties) ([[État actuel]]).
 3. **Abel, en jeu** : poser `salle-attente:` sur chaque map de Bedwars Normal (`/bw edit <map>`, debout sur le sol voulu, `/bw lobbyfight`) pour que la party attende au-dessus de sa map ([[Parties privées]]) ; poser les spawns de First Rush (pas encore faits, seules Nebuc et Gelato en ont) ([[Bed Wars]]) ; faire la séance de mesure des boules de feu et de la TNT ([[Boules de feu et TNT]]). Recevoir aussi ce qu'Abel a fini (Top Bed Fight 2v2, Attack and Defense).
 4. Valider les propositions en attente : RagoBot qui suit la map et pose des blocs, build du lobby, fireballs de Minemen (23/11) ; duels entre parties dans tous les modes (25/11) ; étape 8 ([[Questions ouvertes]]).
-5. Fusionner la PR #53 (vault) dans `main`, puis la PR du vault du 28/11 ; décider de fusionner la PR #47 dans `main` (sur demande d'Abel ou de Sofiene) ([[Branches et PR]]).
+5. Fusionner la PR #53 (vault) dans `main`, puis la PR #59 (vault du 28/11) ; décider de fusionner la PR #47 dans `main` (sur demande d'Abel ou de Sofiene) ([[Branches et PR]]).
 6. Mettre à jour les README de RagoLobby, RagoBedwars et RagoPractice et `docs/suivi-sortie-publique.md` pour les PR #54 à #57 ([[Bugs et problèmes connus]]).
 
 ## Étapes du plan encore ouvertes

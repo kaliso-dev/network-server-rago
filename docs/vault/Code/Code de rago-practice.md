@@ -105,7 +105,7 @@ Description = la première phrase de la javadoc de la classe, **en anglais comme
 Lancer : `./gradlew :rago-practice:test` ([[Construire et tester]]).
 
 ## En attente : PR #58 (ni fusionnée ni installée)
-Branche `claude/block-pattern-practice`, commit `1aa63ca` (28/11), vers la branche de la PR #47 : trois classes en plus (Block Pattern Practice, [[Entraînements]]), et `bow-practice` puis `block-pattern-practice` enregistrés à la fin de `registerModes`.
+Branche `claude/block-pattern-practice`, commits `1aa63ca` (le code) et `88ec47e` (un bot joue Block Pattern Practice dans le test des arènes : `pattern-bots.mjs`), 28/11, vers la branche de la PR #47 : trois classes en plus (Block Pattern Practice, [[Entraînements]]), et `bow-practice` puis `block-pattern-practice` enregistrés à la fin de `registerModes`.
 
 | Classe | Lignes | Ce qu'elle fait |
 |---|---|---|

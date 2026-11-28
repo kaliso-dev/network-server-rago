@@ -12,8 +12,8 @@ Toutes les PR du dépôt `kaliso-dev/network-server-rago` au 28/11/2026. État a
 |---|---|---|---|
 | **#47** | Reset des arènes, spectateurs, kit Bed Fight, stats fiables, et checklist de la sortie publique | `claude/project-thread-wi9w0x` | ouverte le 21/11 ; **tout le travail sur le jeu depuis le 21/11** (183 commits au 28/11, dont les PR #54 à #57) ; sans conflit avec `main` ; la fusion attend Sofiene ou Abel |
 | #53 | Vault : réponses d'Abel du 26/11, PR #48 et #10 fermées, accord d'Abel | `claude/vault-abel-26-11` | ouverte le 26/11 ; `docs/vault/` et `CLAUDE.md` seulement ; la fusion attend Abel ou Sofiene |
-| #58 | Block Pattern Practice: the first ten techniques of Block Method | `claude/block-pattern-practice` | ouverte le 28/11 vers la branche de la #47 (`1aa63ca`) : entraînement `block-pattern-practice` et correction de l'ordre d'enregistrement des modes de RagoPractice ; CI en cours ; ni fusionnée ni installée |
-| (28/11) | Vault : PR #54 à #57, installation du 28/11, Block Method | `claude/vault-28-11` | ouverte le 28/11, base `claude/vault-abel-26-11` : à fusionner après la #53 ; `docs/vault/` seulement |
+| #58 | Block Pattern Practice: the first ten techniques of Block Method | `claude/block-pattern-practice` | ouverte le 28/11 vers la branche de la #47 (`1aa63ca`, puis `88ec47e` : un bot qui la joue dans le test des arènes) : entraînement `block-pattern-practice` et correction de l'ordre d'enregistrement des modes de RagoPractice ; CI en cours ; ni fusionnée ni installée |
+| #59 | Vault : PR #54 à #57, installation du 28/11, Block Method | `claude/vault-28-11` | ouverte le 28/11, base `claude/vault-abel-26-11` : à fusionner après la #53 ; `docs/vault/` seulement |
 
 ## Fusionnées dans la branche de la PR #47 (`claude/project-thread-wi9w0x`)
 | PR | Fusion | Titre | Branche | Contenu |
