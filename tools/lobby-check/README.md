@@ -139,6 +139,11 @@ coup), le frappe par ce trou en le repoussant à l'opposé, et casse à nouveau,
 frapper, le bloc que le bot remet à chaque fois ; et que rien d'autre n'est cassé (les autres
 côtés, le verre).
 
+Puis un bot (`tools/kb-control/bots/pattern-bots.mjs`) joue Block Pattern Practice : au #1 il pose
+le bloc devant lui (la training dit que le motif est posé) et touche RagoBot en premier, et le #2
+arrive tout seul ; au #2 il ne pose rien, RagoBot court jusqu'à lui et le touche en premier (le #2
+recommence) ; avec la teinture rouge il passe au #1 puis au #10, dont le tunnel l'entoure.
+
 Puis un bot joue l'entraînement Block clutch pendant que dix autres le regardent en même temps avec
 `/spectate` (`tools/kb-control/bots/spectate-bots.mjs`) : chacun passe en mode spectateur près du
 joueur, le joueur est prévenu de chacun (en rouge et en gras, avec un ding) et continue de jouer, les dix sont toujours là quelques
