@@ -1,7 +1,7 @@
 ---
 type: pilotage
 tags: [journal]
-maj: 2026-11-26
+maj: 2026-11-28
 ---
 # Journal
 
@@ -9,6 +9,14 @@ Une ligne datée par événement marquant, la plus récente en haut. L'histoire 
 
 | Date | Événement | Note |
 |---|---|---|
+| 28/11 | PR #58 ouverte vers la branche de la #47 : Block Pattern Practice (10 premières techniques de Block Method) et correction de l'ordre d'enregistrement des modes de RagoPractice ; CI en cours, ni fusionnée ni installée | [[Entraînements]], [[Bugs et problèmes connus]] |
+| 28/11 | Avis sur les deux plugins de fireball proposés par Abel (BedWars1058 DirectionalFireballs, Fireball Launcher) : ne pas installer, la mesure kb-recorder reste la solution | [[Boules de feu et TNT]] |
+| 28/11 | Java du serveur de test lu : JDK 17.0.21 (`JAVA_HOME`) | [[Serveur de test]] |
+| 28/11 | `03beb92` installé vers 10h33 (personne connecté) : jars rago-practice et rago-lobby, sections `bow-practice:`, `block-in.rbw:` et mode `bow-practice` ajoutés à la main, mondes BowPractice et « Block In Practice RBW » copiés ; démarrage vérifié (2012 Bedwars chargé, 90 modes), arrêt propre ; rien joué en jeu | [[Installer une version sur le serveur de test]] |
+| 28/11 | PR #55, #56, #57 fusionnées dans la branche de la #47 (CI 14/14) : Block edit en barrière, Hypixel Bow Practice, niveau RBW du Block in | [[Pull requests]], [[Entraînements]] |
+| 27/11 | Réponses d'Abel : Bow Practice « 2 touche », « Teinture oui comme les autres niveaux », Block in RBW « Niveau », barrière partout « Oui », Block Method « Oui je suis d'accord » (10 techniques d'abord) | [[Décisions]] |
+| 27/11 | Vidéo « Block Method » d'Abel étudiée : 34 techniques contre un adversaire, puis 4 « Pattern » solo ; plan Block Pattern Practice et Block Method 1v1 | [[Entraînements]], [[RagoBot]] |
+| 27/11 | PR #54 fusionnée dans la branche de la #47 (`1bf902d`) et installée le soir : liste d'Abel du 27/11 pour le lobby et les menus, 2012 Bedwars à la place de 2017 Bedwars (map Bedwars2012) | [[Boussole et menus]], [[Bed Wars]] |
 | 26/11 | Réponses d'Abel dans Rago Hub : qRago et le PC du serveur de test (« FULL PC GAMER ») sont à lui, dernière version dans `Downloads\rago-serveur-de-test (19)` ; c'est lui qui fait essais en jeu, réglages de maps et mesures ; Rago Practice est un projet à part ; domaine, Discord, site et hébergeur mis de côté ; maps et modes finis, restent le lobby d'attente de Bedwars Normal, les spawns de First Rush et la mesure des boules de feu | [[État actuel]], [[Personnes et comptes]] |
 | 26/11 | Abel : essai en jeu de la version du 25/11 pas encore fait ; Top Bed Fight 2v2 et Attack and Defense finis, à envoyer ; plugins qui imitent les fireballs d'Hypixel trouvés (piste provisoire) ; Java du serveur de test inconnu | [[État actuel]], [[Boules de feu et TNT]] |
 | 26/11 | Sofiene : « l'accord d'abel suffira désormais » (GitHub et serveur de test) | [[Règles de travail]] |

@@ -1,12 +1,12 @@
 ---
 type: fonctionnalité
 tags: [bedwars, ragobedwars, rbw]
-maj: 2026-11-26
+maj: 2026-11-28
 code: bukkit/rago-bedwars (BedwarsGame, BedwarsHost, Instances…)
 ---
 # Bed Wars
 
-Les modes Bed Wars sont joués par **RagoBedwars** (`bukkit/rago-bedwars`, 59 classes, environ 21 000 lignes) : Ranked Bedwars 1v1 à 4v4 et toutes les variantes de la catégorie **Bedwars Modes** (s'appelait « RBW Modes »), plus les Bed Fight, Top Bridge, CTF, 2017 Bedwars et Bedwars Normal. Chaque partie se joue sur **une copie de la map** chargée comme un monde à part (`bw_<map>_<n>`, `Instance`), refaite après chaque partie. Règles visées : **celles d'Hypixel** (valeurs mesurées sur Hypixel ou reprises de BedWars1058, la copie ouverte du Bed Wars d'Hypixel). Détail complet : `bukkit/rago-bedwars/README.md` (808 lignes). Code : [[Code de rago-bedwars]]. Maps : [[Maps et mondes]]. Retour à [[Catalogue des modes]].
+Les modes Bed Wars sont joués par **RagoBedwars** (`bukkit/rago-bedwars`, 60 classes, environ 21 600 lignes) : Ranked Bedwars 1v1 à 4v4 et toutes les variantes de la catégorie **Bedwars Modes** (s'appelait « RBW Modes »), plus les Bed Fight, Top Bridge, CTF, 2012 Bedwars et Bedwars Normal. Chaque partie se joue sur **une copie de la map** chargée comme un monde à part (`bw_<map>_<n>`, `Instance`), refaite après chaque partie. Règles visées : **celles d'Hypixel** (valeurs mesurées sur Hypixel ou reprises de BedWars1058, la copie ouverte du Bed Wars d'Hypixel). Détail complet : `bukkit/rago-bedwars/README.md` (808 lignes). Code : [[Code de rago-bedwars]]. Maps : [[Maps et mondes]]. Retour à [[Catalogue des modes]].
 
 ## La partie classique (Ranked Bedwars, Sky Rise, First Rush, Bedwars Normal)
 - Chaque équipe sur son île, épée en bois, cuir à sa couleur ; décompte 3 s puis « Fight! ». Sur une map à plus d'îles que d'équipes, des îles éloignées (sauf First Rush : **îles voisines**) et les lits des îles vides sont enlevés.
@@ -17,7 +17,7 @@ Les modes Bed Wars sont joués par **RagoBedwars** (`bukkit/rago-bedwars`, 59 cl
 - **Morts** : le kill revient au dernier qui a frappé dans les 10 s, avec ses ressources ; retour au bout de **5 s** tant que le lit tient (spectateur en attendant), sinon **final kill** ; « X was Y's final #41,000. FINAL KILL! » (total à vie) ; protection au respawn 1,5 s dans tous les modes où l'on revient.
 - **Lits** : on ne casse pas le sien ; l'annonce donne le total de lits cassés du joueur. **Blocs** : on ne casse que ce qui a été posé ; pas de bloc à moins de 3 blocs d'un spawn, 2 d'un générateur, ni au-dessus de `hauteur-max` ; explosions : jamais le verre blast-proof, l'obsidienne ni les lits ; l'end stone résiste aux boules de feu, pas à la TNT.
 - **Fin** : la dernière équipe gagne ; récap (1st/2nd/3rd Killer) ; 3 s dans l'arène avec Play again et Leave ; `/spawn` en partie = défaite. Un éliminé reçoit [PLAY AGAIN] tout de suite.
-- **Déconnexion** (23/11) : la partie continue ; tant qu'un coéquipier vit, on peut revenir ; sinon 3 minutes, puis éliminé (un abandon : files classées fermées un moment). De retour : 10 s en spectateur puis sur son île ; sans lit, éliminé. Vaut pour Ranked Bedwars, Sky Rise, First Rush et Bedwars Normal, pas pour les duels ni 2017 Bedwars.
+- **Déconnexion** (23/11) : la partie continue ; tant qu'un coéquipier vit, on peut revenir ; sinon 3 minutes, puis éliminé (un abandon : files classées fermées un moment). De retour : 10 s en spectateur puis sur son île ; sans lit, éliminé. Vaut pour Ranked Bedwars, Sky Rise, First Rush et Bedwars Normal (la partie classique, `BedwarsGame.waitsForReturn`), pas pour les duels ni pour les jeux qui ont leur propre classe (dont 2012 Bedwars) : là, un joueur qui part est éliminé tout de suite.
 - En partie classée, la barre d'XP montre l'ELO du joueur dans le mode.
 
 ## Les modes
@@ -33,8 +33,18 @@ Les modes Bed Wars sont joués par **RagoBedwars** (`bukkit/rago-bedwars`, 59 cl
 | Clutch Scenario | `clutch-scenario-1v1` à `1v4` | une vraie partie RBW sur **Sky Rise ou Archway** « à 18 minutes » : bridges déjà posés (vers diamants, mid, et le rush jusqu'à la base ennemie, `Bridges`), la défense du lit perdu cassée ; le joueur seul (tiré au sort, une party reste ensemble) n'a pas de lit et une vie, les autres gardent le leur |
 | Attack and Defense | `attack-defense-1v1/2v2` | sur **BioHazard** : les attaquants depuis le pont rose (une vie, fer, kit d'attaque au choix : Rusher…), les défenseurs avec forge, shop et kit de défense ; Protection II des deux côtés ; premier à **3 manches**, rôles échangés à chaque manche ; `/kit` ; la version d'Abel est finie (26/11), il l'envoie : le mode changera peut-être à réception |
 | Bedwars Normal | `bedwars-normal` (+ `-4s`, `-2s` cachés) | partie privée d'une party : [[Parties privées]] |
+| **2012 Bedwars** (catégorie Fun Practice) | `bedwars-2012`, `bedwars-2012-classique` | voir plus bas |
 
-Les duels de RagoBedwars (Bed Fight, Top BedFight, Top Bridge, Lobby Fight 1v1, Red Rover Top Bridge) sont dans [[Duels]] et [[Red Rover et 3 Players]] ; les FFA dans [[Arènes ouvertes]] ; CTF et 2017 Bedwars dans [[Fun Practice]] ; Fast Shop dans [[Entraînements]].
+## 2012 Bedwars (depuis le 27/11, à la place de 2017 Bedwars)
+Demande d'Abel du 27/11, PR #54 (classe `Bedwars2012Game`, jeux `bedwars-2012` et `bedwars-2012-classique` du `config.yml` de RagoBedwars). Un rush de 2012, **4v4 sur sa propre map** `Bedwars2012` : la map « Rush » de Dono9999, adaptée (les 2 bases gardées, le mid à émeraudes, 2 îles à diamants ; le lobby en redstone retiré), dans `C:\Users\rgabe\Rago\mondes\Bedwars2012` ([[Maps et mondes]]).
+- **Cacher son lit** : pendant la **première minute** (60 s), chaque joueur a le lit de son équipe dans la barre ; un clic droit sur le dessus d'un bloc le pose là, partout où un bloc peut aller, **sauf** sur un spawn, sur un générateur ou contre un shop (3 blocs autour des PNJ). Le premier lit posé est celui de l'équipe, les autres disparaissent. Une équipe qui ne l'a pas caché reçoit le lit de la map, derrière sa base.
+- **Argile à la place de la laine** : même prix, même place dans le Quick Buy et les barres ; l'argile durcie à 12 fers disparaît (doublon).
+- Shop et forges d'une partie normale, **pas d'améliorations d'équipe**. `bedwars-2012` (« 2012 Bedwars ») : avec les diamants des îles et les émeraudes du mid ; `bedwars-2012-classique` (« 2012 Bedwars Classic ») : sans, seulement les forges des bases (et sans les événements de diamant et d'émeraude).
+- Un seul objet **2012 Bedwars** (groupe `bedwars-2012`) dans Fun Practice ; titre « 2012 Bedwars » (`titres.familles.bedwars-2012`).
+- État : TESTÉ EN CI (`Bedwars2012GameTest`, CI 14/14 de la PR #54) ; installé le 27/11 au soir, la map est chargée au démarrage du 28/11 (« Game world bw_Bedwars2012_1 ready (map Bedwars2012) ») ; **pas encore joué en jeu**.
+- **2017 Bedwars** (`fast-bedwars-1v1`, `fast-bedwars-2v2`, classe `FastBedwarsGame`) : retiré des menus le 27/11, gardé caché (`cache: true`) pour les bots de la CI ; absent du `config.yml` du lobby du serveur de test ([[Catalogue des modes]]).
+
+Les duels de RagoBedwars (Bed Fight, Top BedFight, Top Bridge, Lobby Fight 1v1, Red Rover Top Bridge) sont dans [[Duels]] et [[Red Rover et 3 Players]] ; les FFA dans [[Arènes ouvertes]] ; CTF et 2012 Bedwars dans [[Fun Practice]] ; Fast Shop dans [[Entraînements]].
 
 ## Réglage des maps
 `/bw` (permission `rago.bedwars.admin`) pose les points d'une map dans son `bedwars.yml` (réglages faits en jeu par Abel) ; l'outil `tools/bedwars-maps` les trouve tout seul sur une map d'Hypixel ([[Maps et mondes]]). `parties-max: 8` copies en même temps ; une map de démo (`carte-demo: true`) quand aucune map n'est prête.

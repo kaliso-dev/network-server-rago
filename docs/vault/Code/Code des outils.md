@@ -1,7 +1,7 @@
 ---
 type: code
 tags: [code, outils]
-maj: 2026-11-25
+maj: 2026-11-28
 code: tools/
 ---
 # Code des outils
@@ -22,7 +22,7 @@ Le test de contrôle sur un vrai PandaSpigot : `run-control-test.sh` (lance tout
 
 ### Les bots (`tools/kb-control/bots/`, Node 22, mineflayer 4.39.0)
 Partagés par tous les tests sur vrai serveur (un `package.json` et un `package-lock.json` communs) :
-`control-bots.mjs` (knockback), `hit-delay-bots.mjs` (délai entre deux coups), `lobby-bots.mjs` (1 527 lignes : le test du lobby), `arena-bots.mjs`, `visibility-bots.mjs`, `blockin-bots.mjs`, `fast-bots.mjs` (2017 Bedwars, Fast Shop), `fun-bots.mjs` (Fun Practice), `parkour-runner.mjs`, `ctf-bots.mjs`, `rover-bots.mjs` (Red Rover), `private-bots.mjs` (parties privées), `party-duel-bots.mjs` (duels entre parties), `ragobot-bots.mjs` (RagoBot), `owner-bots.mjs` (outils Owner), `spectate-bots.mjs`, `recorder-attacker.mjs` (attaquant du test bout en bout de kb-recorder).
+`control-bots.mjs` (knockback), `hit-delay-bots.mjs` (délai entre deux coups), `lobby-bots.mjs` (1 528 lignes : le test du lobby ; depuis le 27/11 il lit la boussole de 5 lignes, la laine des Arenas, la laisse du sumo et le nouveau texte de la salle des remerciements), `arena-bots.mjs`, `visibility-bots.mjs`, `blockin-bots.mjs`, `fast-bots.mjs` (2017 Bedwars, caché des menus depuis le 27/11 mais gardé pour ce test ; Fast Shop), `fun-bots.mjs` (Fun Practice), `parkour-runner.mjs`, `ctf-bots.mjs`, `rover-bots.mjs` (Red Rover), `private-bots.mjs` (parties privées), `party-duel-bots.mjs` (duels entre parties), `ragobot-bots.mjs` (RagoBot), `owner-bots.mjs` (outils Owner), `spectate-bots.mjs`, `recorder-attacker.mjs` (attaquant du test bout en bout de kb-recorder).
 
 ## kb-analyzer (`tools/kb-analyzer`, module `:kb-analyzer`, Java + Gson)
 | Classe | Lignes | Ce qu'elle fait (javadoc, en anglais) |

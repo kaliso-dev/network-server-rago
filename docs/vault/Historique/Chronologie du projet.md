@@ -1,7 +1,7 @@
 ---
 type: historique
 tags: [historique, chronologie]
-maj: 2026-11-25
+maj: 2026-11-28
 ---
 # Chronologie du projet
 
@@ -32,3 +32,6 @@ Liste de 20h54 : déconnexion en Bed Wars, anti full box, UTF-8, 2017 Bedwars, B
 
 ## 24-25/11
 24/11 : `ab689ad` installé (lobby d'attente des parties privées, remise à zéro des stats au démarrage). 25/11 (liste de 9h19) : Private game refaite, 60 s pour revenir dans sa party, duels entre parties ; `2de1bca` installé ; Sofiene passe sur un abonnement Claude Team et demande **ce vault** pour que le projet survive au changement de compte.
+
+## 26-28/11
+26/11 : réponses d'Abel dans Rago Hub (le PC du serveur de test est le sien, maps et modes finis, domaine et site mis de côté) ; l'accord d'Abel suffit désormais ; PR #48 et #10 fermées. 27/11 : **liste d'Abel** : lobby et menus (boussole de 5 lignes, joueurs en partie sous chaque objet, icônes en couleur), **2012 Bedwars** à la place de 2017 Bedwars, Bridge fight FFA retiré des Arenas (PR #54, installée le soir) ; ses réponses sur Bow Practice, Block in RBW, la barrière et Block Method. 28/11 : PR #55 à #57 fusionnées (Block edit en barrière, **Hypixel Bow Practice**, niveau **RBW defense** du Block in) et `03beb92` installé ; PR #58 ouverte (**Block Pattern Practice**, les 10 premières techniques de Block Method).

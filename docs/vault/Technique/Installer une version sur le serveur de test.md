@@ -1,7 +1,7 @@
 ---
 type: technique
 tags: [installation, serveur-de-test, procédure]
-maj: 2026-11-26
+maj: 2026-11-28
 ---
 # Installer une version sur le serveur de test
 
@@ -15,16 +15,20 @@ La dernière version en service est dans **`C:\Users\rgabe\Downloads\rago-serveu
 
 ## Étapes
 1. La version est **un commit poussé et vert en CI** ; récupérer l'artefact **`rago-serveur-de-test`** de ce commit (ou les jars construits), vérifier l'empreinte du zip.
-2. **Arrêter le serveur** (`stop` dans sa fenêtre). Ne pas le relancer sauf demande.
-3. **Sauvegarde** dans le dossier du serveur : `sauvegarde-avant-maj-<sha>` (les 5 jars, les `config.yml` modifiés, `points.yml` du lobby si on le touche). Jamais de suppression des données listées dans [[Serveur de test]].
+2. **Arrêter le serveur** proprement (`stop` dans sa console ; jamais en tuant java), de préférence quand personne n'est connecté.
+3. **Sauvegarde** dans le dossier du serveur : `sauvegarde-avant-maj-<sha>` (au moins `plugins\` : les jars et les `config.yml` ; `points.yml` du lobby si on le touche ; le 28/11 aussi `mondes-arenes\`). Jamais de suppression des données listées dans [[Serveur de test]].
 4. Remplacer les jars qui changent (RagoCombatEngine, RagoBuildTools, RagoLobby, RagoPractice, RagoBedwars) ; noter lesquels sont identiques.
-5. **Fusionner les `config.yml`** (lobby, practice, bedwars) : garder chaque réglage déjà fait sur le serveur, ajouter les nouvelles clés du jar ; noter les lignes ajoutées et retirées et tout conflit (ex. 22/11 : conflit dans `classements:`, murs déjà posés gardés). Des scripts de fusion ponctuels ont servi (`serveur-de-test/install-*/appliquer-config.py`, hors dépôt).
-6. Ne toucher **ni** à `server.properties`, **ni** à l'icône, **ni** aux mondes (on peut lire `online-mode` et `bungeecord` sans rien changer).
-7. Écrire dans le journal du suivi : date et heure (de Paris), commit, ce qui change, la sauvegarde, et **« rien n'est encore joué en jeu »** quand c'est le cas.
-8. Mettre à jour [[État actuel]] et [[Journal]] de ce vault.
+5. **Fusionner les `config.yml`** (lobby, practice, bedwars) : un nouveau jar ne réécrit pas le `config.yml` en place ; garder chaque réglage déjà fait sur le serveur, **ajouter à la main** les nouvelles sections ou clés du jar ; noter les lignes ajoutées et retirées et tout conflit (ex. 22/11 : conflit dans `classements:`, murs déjà posés gardés ; 28/11 : `bow-practice:` et `block-in.rbw:` dans RagoPractice, le mode `bow-practice` dans RagoLobby). Des scripts de fusion ponctuels ont servi (`serveur-de-test/install-*/appliquer-config.py`, hors dépôt).
+6. Ne toucher **ni** à `server.properties`, **ni** à l'icône, **ni** aux mondes déjà en place (on peut lire `online-mode` et `bungeecord` sans rien changer) ; seulement **ajouter** dans `C:\Users\rgabe\Rago\mondes` la map d'un nouveau mode (28/11 : BowPractice et « Block In Practice RBW »).
+7. **Vérifier le démarrage** si on le lance : lire le log (pas d'erreur nouvelle, les lignes « Copied for … » des nouvelles maps, le nombre de modes du lobby), puis l'arrêter proprement s'il n'était pas en marche avant.
+8. Écrire dans le journal du suivi : date et heure (de Paris), commit, ce qui change, la sauvegarde, et **« rien n'est encore joué en jeu »** quand c'est le cas.
+9. Mettre à jour [[État actuel]] et [[Journal]] de ce vault.
+
+## Dernière installation (28/11, vers 10h33, personne connecté)
+Commit `03beb92` (PR #55 à #57, fusionnées le matin) : sauvegarde `sauvegarde-avant-maj-03beb92\` (`plugins\` et `mondes-arenes\`) ; jars rago-practice et rago-lobby de `03beb92` copiés (les trois autres inchangés) ; sections ajoutées à la main (RagoPractice : `bow-practice:`, `block-in.rbw:` ; RagoLobby : mode `bow-practice`) ; mondes BowPractice et « Block In Practice RBW » copiés dans `C:\Users\rgabe\Rago\mondes`. Démarrage vérifié : pas d'erreur nouvelle, « Copied for Hypixel Bow Practice … 5923 blocks », « Copied for the RBW level … 1374 blocks », « Game world bw_Bedwars2012_1 ready (map Bedwars2012) », lobby à 90 modes ; puis arrêt propre. Avertissements déjà connus : `titres.familles.clutch-scenario` sans modes 2v2, 3v3, 4v4 ; mode `bridge-fight` fermé (voulu) ([[Bugs et problèmes connus]]). Pas encore joué en jeu.
 
 ## Accès au PC
-Le PC est celui d'**Abel**, « FULL PC GAMER », profil Windows `rgabe` (réponse du 26/11 à q123). Les installations passées ont été faites à distance depuis des sessions Claude (accès au dossier ou Remote Control) : le moyen exact reste **À VÉRIFIER**. Sans accès, préparer le zip et le mode d'emploi pour qu'Abel l'installe sur son PC.
+Le PC est celui d'**Abel**, « FULL PC GAMER », profil Windows `rgabe` (réponse du 26/11 à q123). Depuis le 27/11 (OBSERVÉ), les installations sont faites par une **session Claude Code qui tourne sur ce PC** : clone de travail `C:\Users\rgabe\rago-serveur-code`, `git push` par Git Credential Manager. Les installations d'avant le 27/11 ont été faites depuis d'autres sessions (accès au dossier ou Remote Control ; moyen exact non noté). Sans accès, préparer le zip et le mode d'emploi pour qu'Abel l'installe sur son PC.
 
 ## Revenir en arrière
 Arrêter le serveur, remettre les jars et configs de `sauvegarde-avant-maj-<sha>`. Les mondes : sauvegardes automatiques zip du lanceur dans `C:\Users\rgabe\Rago\sauvegardes`.

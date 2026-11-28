@@ -1,7 +1,7 @@
 ---
 type: technique
 tags: [architecture, modules]
-maj: 2026-11-25
+maj: 2026-11-28
 ---
 # Architecture
 
@@ -26,15 +26,15 @@ Un serveur **PandaSpigot 1.8.8 build 226**, joué en **1.8.9**, avec les plugins
 - Les arènes practice sont des zones du monde `arenes` refait à chaque démarrage (`ArenaGrid`, `Arena` remet chaque bloc). Les parties de Bed Wars se jouent dans une **copie de la map** (`bw_<map>_<n>`, `Instance`), remise à neuf après chaque partie, supprimée à l'arrêt ; `parties-max: 8`.
 - Tout est en anglais en jeu ; clés de config en français.
 
-## Taille du code (25/11, branche de la PR #47)
+## Taille du code (28/11, branche de la PR #47, `03beb92` ; seuls lobby, practice et bedwars ont changé depuis le 25/11)
 | Module | Classes | Lignes (Java) | Tests |
 |---|---|---|---|
 | rago-combat-model | 9 | 854 | 7 |
 | rago-combat-engine | 12 | 1 464 | 3 |
 | rago-game-model | 10 | 1 639 | 7 |
-| rago-lobby | 128 | ~42 400 | 58 |
-| rago-practice | 80 | ~27 600 | 40 |
-| rago-bedwars | 59 | ~21 300 | 34 |
+| rago-lobby | 128 | ~42 600 | 58 |
+| rago-practice | 81 | ~28 300 | 42 |
+| rago-bedwars | 60 | ~21 600 | 35 |
 | build-tools | 9 | 1 147 | 6 |
 | kb-control / kb-analyzer / kb-recorder | 7 / 13 / 13 | 1 751 / 2 318 / 1 276 | 5 / 3 / 4 |
 

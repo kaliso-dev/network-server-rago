@@ -1,14 +1,14 @@
 ---
 type: code
 tags: [code, rago-bedwars]
-maj: 2026-11-25
+maj: 2026-11-28
 code: bukkit/rago-bedwars
 ---
 # Code de rago-bedwars
 
-Le plugin **RagoBedwars** (59 classes, ~21 300 lignes) : tout ce qui se joue sur une map de Bed Wars. **Points d'entrée** : `RagoBedwars` (onEnable), `BedwarsHost` (le `MatchHost` de tous les modes, choix de la map et de la copie), `BedwarsGame` (la partie classique, 2 937 lignes), `BedwarsSettings` (`config.yml`), `BedwarsMap` et `MapCommands` (`bedwars.yml`, `/bw`), `Instances` / `Instance` (les copies `bw_<map>_<n>`). Chaque autre jeu a sa classe (`FfaGame`, `InvisGame`, `BedBreakGame`, `CaptureTheFlagGame`…). Fonction : [[Bed Wars]]. README : `bukkit/rago-bedwars/README.md` (808 lignes).
+Le plugin **RagoBedwars** (60 classes, ~21 600 lignes) : tout ce qui se joue sur une map de Bed Wars. **Points d'entrée** : `RagoBedwars` (onEnable), `BedwarsHost` (le `MatchHost` de tous les modes, choix de la map et de la copie), `BedwarsGame` (la partie classique, 2 950 lignes), `BedwarsSettings` (`config.yml`), `BedwarsMap` et `MapCommands` (`bedwars.yml`, `/bw`), `Instances` / `Instance` (les copies `bw_<map>_<n>`). Chaque autre jeu a sa classe (`FfaGame`, `InvisGame`, `BedBreakGame`, `CaptureTheFlagGame`…). Fonction : [[Bed Wars]]. README : `bukkit/rago-bedwars/README.md` (808 lignes).
 
-Packages : `gg.rago.bedwars`. **59 classes, 21264 lignes** (branche de la PR #47, `ce8edc5`, 25/11). Retour à [[Architecture]].
+Packages : `gg.rago.bedwars`. **60 classes, 21649 lignes** (branche de la PR #47, `03beb92`, 28/11 ; `Bedwars2012Game` ajoutée par la PR #54, avec `ShopCatalog.clayForWool` et le lit caché d'une équipe dans `BedwarsGame`). `FastBedwarsGame` (2017 Bedwars) reste, caché des menus depuis le 27/11, pour les bots de la CI. Retour à [[Architecture]].
 
 ## Les classes
 Description = la première phrase de la javadoc de la classe, **en anglais comme le code** (le code et ses commentaires sont en anglais ; les README sont en français).
@@ -19,10 +19,11 @@ Description = la première phrase de la javadoc de la classe, **en anglais comme
 | `AttackDefenseGame` | 751 | Attack and Defense, on the owner's maps of it (Bio Hazard first): one base and its bed, the defenders' (gray on Bio Hazard), and the bridge the attackers come by (pink), nothing else. |
 | `BedBreakGame` | 969 | Bed Break Simulator, a situation of Ranked Bedwars: 2 to 5 players on the map chosen (Archway or Invasion), in rounds of three minutes, on two opposite islands. |
 | `BedFightGame` | 355 | Bed Fight, 1v1 or 2v2, as on Minemen: two islands face to face, each with its bed under the defense the map has on it (wood and end stone on the owner's Bed Fight map), which the players break as in a game. |
-| `BedwarsGame` | 2937 | One Bed Wars game in one game world: the teams on their islands, their beds, generators and shops, the deaths, the beds broken and the final kills, the timed events (the diamond and emerald generators going up a tier, th |
-| `BedwarsHost` | 1853 | Plays the Bed Wars modes of the lobby: takes a free copy of a map for each match (or has one made, and the match waits in the queue for a second), starts the game, and applies the Bed Wars rules in the game worlds: block |
+| `Bedwars2012Game` | 325 | 2012 Bedwars (the owner's ask of 27/11), as a rush of 2012: two great bases far apart, the emeralds in the middle and the diamonds on an island on each side (the version with them), or the forges of the bases only (the classic version). |
+| `BedwarsGame` | 2950 | One Bed Wars game in one game world: the teams on their islands, their beds, generators and shops, the deaths, the beds broken and the final kills, the timed events (the diamond and emerald generators going up a tier, th |
+| `BedwarsHost` | 1873 | Plays the Bed Wars modes of the lobby: takes a free copy of a map for each match (or has one made, and the match waits in the queue for a second), starts the game, and applies the Bed Wars rules in the game worlds: block |
 | `BedwarsMap` | 1049 | A Bed Wars map: a world of the server's world folder, with the points of the game kept in #FILE_NAME inside the world's own folder, placed in game with /bw. |
-| `BedwarsSettings` | 1003 | The settings of config.yml, checked. |
+| `BedwarsSettings` | 1012 | The settings of config.yml, checked. |
 | `BlockDecay` | 59 | The blocks placed in an open game go after a while, oldest first, so that the map never fills up: what the map had there comes back. |
 | `Bridges` | 402 | The bridges a Clutch Scenario game starts with, as a real game has them at 18 minutes: from the base of each team, one to its diamond island and one to mid, and the one it rushed the enemy base by, from mid; one block wi |
 | `CaptureFlags` | 193 | The flags of a Capture the Flag game and its score, without Bukkit: each team has its flag, at its base, carried by an enemy, or dropped where its carrier died (back at its base when one of its team touches it, or after  |
@@ -60,7 +61,7 @@ Description = la première phrase de la javadoc de la classe, **en anglais comme
 | `RedRoverTopBridgeGame` | 404 | Red Rover Top Bridge (plan 6.5, solution 1), as the Red Rovers of RagoPractice: three players or more (one team of the lobby's queue) on the top bridge, in 1v1, in turn; who waits watches above the bridge. |
 | `ReplayWorlds` | 69 | The worlds of the replays of the Bed Wars games (/replay of the lobby): a free copy of the game's map, taken as a game takes one, and given back to the games when the replay is over. |
 | `RoundKit` | 176 | A kit a player chooses before a round of Attack and Defense or of the Bed Break Simulator: its name, its icon, a few words, and its items, those of the item shop by their id, with their amount ("wool 64", "fireball 3", g |
-| `ShopCatalog` | 291 | What the item shop sells, by category, at the usual Bed Wars prices of a solo or doubles game. |
+| `ShopCatalog` | 309 | What the item shop sells, by category, at the usual Bed Wars prices of a solo or doubles game. |
 | `ShopItem` | 305 | Something the item shop sells: what it gives, for how much, in which category, and how it is given (a block in the team's colour, a sword that replaces the wooden one, armour kept until the end, a tool with tiers...). |
 | `ShopMenu` | 167 | The item shop, laid out as on Hypixel: the Quick Buy and the categories along the top row, a row of glass under them (green under the one open), then three rows of seven items. |
 | `SpawnProtection` | 27 | The protection of a player who has just respawned (Bed Fight, as on Minemen): for a moment, no enemy can hurt them; it ends at once when they hit an enemy themselves (they engaged a fight). |
@@ -75,7 +76,7 @@ Description = la première phrase de la javadoc de la classe, **en anglais comme
 | `Utilities` | 427 | The special items of the shop, as on Hypixel. |
 | `Watchers` | 317 | Those who watch a game without playing it (the lobby's /spectate): in the spectator mode, which the players do not see, flying in the game's world and touching nothing, not even a chest. |
 
-## Les tests (34 fichiers)
-`AttackDefenseGameTest`, `BedBreakGameTest`, `BedFightGameTest`, `BedwarsMapTest`, `BedwarsModesTest`, `BedwarsSettingsTest`, `BridgesTest`, `CaptureFlagsTest`, `CaptureTheFlagGameTest`, `ClutchScenarioGameTest`, `CtfMapsTest`, `DemoMapTest`, `FastBedwarsGameTest`, `InstanceTest`, `InvisGameTest`, `KillLinesTest`, `LineupTest`, `LobbyFightTest`, `MapDrawTest`, `MapLeftoversTest`, `MapStoreTest`, `NpcSpotTest`, `PrivateRulesTest`, `QuickDepositTest`, `RedRoverTopBridgeTest`, `ShopCatalogTest`, `SidebarModeTest`, `SpawnProtectionTest`, `TopBedFightGameTest`, `TopBridgeTest`, `UpgradesTest`, `Utf8ConfigTest`, `UtilitiesTest`, `WatchersTest`
+## Les tests (35 fichiers)
+`AttackDefenseGameTest`, `BedBreakGameTest`, `BedFightGameTest`, `Bedwars2012GameTest`, `BedwarsMapTest`, `BedwarsModesTest`, `BedwarsSettingsTest`, `BridgesTest`, `CaptureFlagsTest`, `CaptureTheFlagGameTest`, `ClutchScenarioGameTest`, `CtfMapsTest`, `DemoMapTest`, `FastBedwarsGameTest`, `InstanceTest`, `InvisGameTest`, `KillLinesTest`, `LineupTest`, `LobbyFightTest`, `MapDrawTest`, `MapLeftoversTest`, `MapStoreTest`, `NpcSpotTest`, `PrivateRulesTest`, `QuickDepositTest`, `RedRoverTopBridgeTest`, `ShopCatalogTest`, `SidebarModeTest`, `SpawnProtectionTest`, `TopBedFightGameTest`, `TopBridgeTest`, `UpgradesTest`, `Utf8ConfigTest`, `UtilitiesTest`, `WatchersTest`
 
 Lancer : `./gradlew :rago-bedwars:test` ([[Construire et tester]]).

@@ -1,17 +1,27 @@
 ---
 type: historique
 tags: [historique, pr, github]
-maj: 2026-11-26
+maj: 2026-11-28
 ---
 # Pull requests
 
-Toutes les PR du dépôt `kaliso-dev/network-server-rago` au 26/11/2026. État actuel des branches : [[Branches et PR]]. Retour à [[Chronologie du projet]].
+Toutes les PR du dépôt `kaliso-dev/network-server-rago` au 28/11/2026. État actuel des branches : [[Branches et PR]]. Retour à [[Chronologie du projet]].
 
 ## Ouvertes
 | PR | Titre | Branche | Note |
 |---|---|---|---|
-| **#47** | Reset des arènes, spectateurs, kit Bed Fight, stats fiables, et checklist de la sortie publique | `claude/project-thread-wi9w0x` | ouverte le 21/11 ; **tout le travail du 21 au 25/11** (172 commits) ; fusionnable, CI 14/14 verte ; la fusion attend Sofiene |
+| **#47** | Reset des arènes, spectateurs, kit Bed Fight, stats fiables, et checklist de la sortie publique | `claude/project-thread-wi9w0x` | ouverte le 21/11 ; **tout le travail sur le jeu depuis le 21/11** (183 commits au 28/11, dont les PR #54 à #57) ; sans conflit avec `main` ; la fusion attend Sofiene ou Abel |
 | #53 | Vault : réponses d'Abel du 26/11, PR #48 et #10 fermées, accord d'Abel | `claude/vault-abel-26-11` | ouverte le 26/11 ; `docs/vault/` et `CLAUDE.md` seulement ; la fusion attend Abel ou Sofiene |
+| #58 | Block Pattern Practice: the first ten techniques of Block Method | `claude/block-pattern-practice` | ouverte le 28/11 vers la branche de la #47 (`1aa63ca`) : entraînement `block-pattern-practice` et correction de l'ordre d'enregistrement des modes de RagoPractice ; CI en cours ; ni fusionnée ni installée |
+| (28/11) | Vault : PR #54 à #57, installation du 28/11, Block Method | `claude/vault-28-11` | ouverte le 28/11, base `claude/vault-abel-26-11` : à fusionner après la #53 ; `docs/vault/` seulement |
+
+## Fusionnées dans la branche de la PR #47 (`claude/project-thread-wi9w0x`)
+| PR | Fusion | Titre | Branche | Contenu |
+|---|---|---|---|---|
+| #54 | 27/11, 21h33 (`1bf902d`) | Lobby (liste d'Abel du 27/11) et 2012 Bedwars | `claude/menus-lobby-2012-bedwars` | boussole de 5 lignes, joueurs en partie sous chaque objet, icônes en couleur, ordre d'Abel, Bridge fight FFA retiré des Arenas, `regard: point`, textes de la salle des remerciements et de RagoBot ; 2012 Bedwars à la place de 2017 Bedwars ; CI 14/14 ; installée le 27/11 au soir |
+| #55 | 28/11, vers 10h32 (`fefff6e`) | Block edit: barrier blocks in the place of the glass case | `claude/block-edit-barrier` | la cage du Block edit en blocs barrière (entraînement, Block edit 1v1, Red Rover Block Edit) ; CI 14/14 ; installée le 28/11 |
+| #56 | 28/11, vers 10h32 (`843c0d6`) | Hypixel Bow Practice (new training) | `claude/hypixel-bow-practice` | entraînement `bow-practice` sur la map BowPractice ; CI 14/14 ; installée le 28/11 |
+| #57 | 28/11, vers 10h32 (`03beb92`) | Block in: the RBW level | `claude/block-in-rbw` | niveau « RBW defense » du Block in sur la map « Block In Practice RBW » ; CI 14/14 ; installée le 28/11 |
 
 ## Fermées sans fusion
 **#48** « Events: red dye to leave or cancel, clearer announcement every 20 s » (`claude/project-thread-5mjx75`, ouverte le 21/11) : fermée le 26/11, dépassée par #47 qui fait la même chose sur le code récent · **#10** « CI : vérifier aussi le serveur sous Java 25 » (`claude/ci-java-25`, ouverte le 11/11) : fermée le 26/11, pas utile pour l'instant, à refaire si la production tourne sous Java 25 · #3, #5, #6, #7 (leur contenu est arrivé dans `main` par la ligne principale, fusions directes du 11/11 : « Merge /kb sparring », « Merge the KB recorder mod and kb-analyzer », « Merge the measured hypixel-approx-v1 profile ») ; **#8** : ping simulé (abandonné, [[Knockback et combat]]).

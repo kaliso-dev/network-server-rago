@@ -1,16 +1,16 @@
 ---
 type: référence
 tags: [modes, catalogue]
-maj: 2026-11-25
+maj: 2026-11-28
 source: bukkit/rago-lobby/src/main/resources/config.yml (modes:, categories:) sur la branche de la PR #47
 ---
 # Catalogue des modes
 
-Tous les modes du jeu au 25/11/2026, lus dans la section `modes:` du `config.yml` fourni avec RagoLobby (branche de la PR #47) : **90 modes**, dont 9 cachés (ils ne se lancent pas seuls : le parent d'un groupe dont seuls les formats se jouent, les tailles cachées de Bedwars Normal, le jeu interne du FFA Archway, et les trois events lancés par `/host`). Chaque mode a un id (utilisé dans les commandes, les stats et les configs), un nom en jeu, une catégorie, un nombre d'équipes et de joueurs par équipe, et un plugin qui le joue. Retour à [[Projet]] ; la boussole qui les montre : [[Boussole et menus]].
+Tous les modes du jeu au 28/11/2026, lus dans la section `modes:` du `config.yml` fourni avec RagoLobby (branche de la PR #47, commit `03beb92`) : **92 modes**, dont 10 cachés (`cache: true` : ils ne se lancent pas seuls ou ne sont plus dans les menus : le parent d'un groupe dont seuls les formats se jouent (`invis-practice`, `bed-break-simulator`), les tailles cachées de Bedwars Normal, le jeu interne du FFA Archway, les trois events lancés par `/host`, et 2017 Bedwars 1v1 et 2v2 gardés pour les bots de la CI). Sur le [[Serveur de test]], dont le `config.yml` est tenu à la main, le lobby annonce **90 modes** au démarrage du 28/11 : les mêmes, sans les deux 2017 Bedwars (OBSERVÉ, log du 28/11). Dans chaque tableau, les modes sont dans l'ordre du `config.yml`, qui est celui des menus (Practice et Duels dans l'ordre d'Abel du 27/11, Block clutch en premier). Chaque mode a un id (utilisé dans les commandes, les stats et les configs), un nom en jeu, une catégorie, un nombre d'équipes et de joueurs par équipe, et un plugin qui le joue. Retour à [[Projet]] ; la boussole qui les montre : [[Boussole et menus]].
 
 **Catégories** (`categories:`) : Practice (`entrainement`, bleu clair), Bedwars Modes (`ranked`, or ; s'appelait « RBW Modes » jusqu'au 23/11), Duels (`duels`, vert), Arenas (`arenes`, rouge), Fun Practice (`fun`, rose), 3 Players (`trois-joueurs`, jaune, qui reprend des modes d'autres catégories par `aussi:`), Party (`party`, bleu, ce que la party joue contre elle-même), Ranked (`classe`, or). Un **groupe** (`groupes:`) montre plusieurs tailles d'un même jeu comme un seul objet du menu (ex. `bed-fight` : 1v1, 2v2, 1v2).
 
-**Retirés des menus** (code et records gardés, plus jouables) : `kb-displace` et KB displace contre un bot, Pearl practice, Fireball practice (23/11) ; Combo bot, Find Your Sensitivity (22/11). Voir [[Décisions]].
+**Retirés des menus** (code et records gardés, plus jouables) : Bridge fight FFA (`bridge-fight`, retiré des Arenas le 27/11 et du `config.yml` du lobby : RagoPractice le laisse fermé au démarrage ; les Bridge fight 1v1 et 2v2 restent dans Duels) ; 2017 Bedwars (`fast-bedwars-1v1`, `fast-bedwars-2v2`, 27/11 : remplacé par 2012 Bedwars, gardé caché pour les bots de la CI) ; `kb-displace` et KB displace contre un bot, Pearl practice, Fireball practice (23/11) ; Combo bot, Find Your Sensitivity (22/11). Voir [[Décisions]].
 
 Le détail de chaque jeu : [[Entraînements]], [[Duels]], [[Arènes ouvertes]], [[Bed Wars]], [[Fun Practice]], [[Red Rover et 3 Players]], [[Parties privées]], [[Events host]]. Les modes classés et l'ELO : [[Files, Ranked et ELO]].
 
@@ -35,17 +35,20 @@ Le détail de chaque jeu : [[Entraînements]], [[Duels]], [[Arènes ouvertes]], 
 |---|---|---|---|---|
 | `clutch` | Block clutch | solo / ouvert ; groupe `clutch` | RagoPractice | Solo, on a small island next to the islands of the others: a hit throws you off, place your wool to save yourself. Set the knockback, the hits, a KB stick in the hotbar. |
 | `clutch-top-fight` | Block clutch: top fight | solo / ouvert ; groupe `clutch` | RagoPractice | The block clutch on a top fight platform, at the build limit: no block above it. |
-| `block-in` | Block in practice | solo / ouvert | RagoPractice | Drop on a bed defense, block yourself in and dig to the bed: the time of each layer. |
 | `fast-defense` | Fast defense | solo / ouvert | RagoPractice | Build a bed defense as fast as you can: Ranked (end stone, glass) or duo (end stone, wool). |
 | `block-edit` | Block edit | solo / ouvert | RagoPractice | Break a block of the wall, hit the bot behind it, put the block back before it hits you. |
+| `shop-practice` | Fast Shop | solo / ouvert | RagoBedwars | Buy lists of items as fast as you can, with your own Hypixel quick buy (copy it in one click: the book). |
 | `extend-practice` | Extend practice | solo / ouvert | RagoPractice | Double and triple extends: jump a gap too long, extend your wool in the air (5+1, 6+0, 6+1, 7+0, 7-1, 7-2). Chain: 10 pads in a row, no stop. Ladders included. |
 | `block-extend` | Block extend | solo / ouvert | RagoPractice | As in a real bed fight: take a hit on the bridge, save yourself with your wool. Gold, Diamond, Emerald: the hit comes from your look. Wool and ladders. |
-| `bridge-chrono` | Timed bridge | solo / ouvert | RagoPractice | Bridge 16, 32 or 64 blocks against the clock, with any technique: straight or diagonal, flat or uphill, or with a turn. A record for each course. |
 | `ladder-practice` | Ladder practice | solo / ouvert | RagoPractice | Block-ladder clutch: jump from 4 to 24 blocks, wool and a ladder before the ground. |
-| `shop-practice` | Fast Shop | solo / ouvert | RagoBedwars | Buy lists of items as fast as you can, with your own Hypixel quick buy (copy it in one click: the book). |
-| `bow-training` | Bow training | solo / ouvert | RagoPractice | On Archway: bots bridge from the middle to your base, knock them off with your bow. Hits, accuracy, the longest shot. |
-| `aim-trainer` | Aim trainer | solo / ouvert | RagoPractice | Aim training, solo, moving targets. XP for each second on the target, and a top of the best. |
+| `block-in` | Block in practice | solo / ouvert | RagoPractice | Drop on a bed defense, block yourself in and dig to the bed: the time of each layer. |
+| `bridge-chrono` | Timed bridge | solo / ouvert | RagoPractice | Bridge 16, 32 or 64 blocks against the clock, with any technique: straight or diagonal, flat or uphill, or with a turn. A record for each course. |
 | `block-aim` | Block aim | solo / ouvert | RagoPractice | A face lights up: under your feet, on the side of the bridge or on the bed. A block on it, faster at each level. |
+| `aim-trainer` | Aim trainer | solo / ouvert | RagoPractice | Aim training, solo, moving targets. XP for each second on the target, and a top of the best. |
+| `bow-practice` | Hypixel Bow Practice | solo / ouvert | RagoPractice | A zombie comes along a bridge: knock it off with your bow, then hit it twice in the air. Three levels, the dyes. |
+| `bow-training` | Bow training | solo / ouvert | RagoPractice | On Archway: bots bridge from the middle to your base, knock them off with your bow. Hits, accuracy, the longest shot. |
+
+En attente (PR #58, ni fusionnée ni installée au 28/11) : `block-pattern-practice` (« Block Pattern Practice », laine bleu clair, entre Block in et Timed bridge : « RagoBot runs at you: place the blocks of the technique, then hit it first. Ten techniques of Block Method, the dyes. ») ([[Entraînements]]).
 
 ## Bedwars Modes (`ranked`)
 
@@ -89,20 +92,20 @@ Le détail de chaque jeu : [[Entraînements]], [[Duels]], [[Arènes ouvertes]], 
 | `bed-fight-2v2` | Bed fight 2v2 | 2v2 ; groupe `bed-fight` | RagoBedwars | Bed fight, two against two: break their bed, then the last team standing wins. |
 | `bed-fight-1v2` | Bed fight 1v2 | 1v2 ; groupe `bed-fight` | RagoBedwars | Bed fight, one against two: the player alone, drawn at random, has a better stuff than the two others. |
 | `top-bed-fight-1v1` | Top BedFight 1v1 | 1v1 | RagoBedwars | On the bridge at the top of Bed fight: kill them or knock them off, rounds of one life, the first to 5 points wins. |
-| `top-bridge-1v1` | Top Bridge 1v1 | 1v1 ; groupe `top-bridge` | RagoBedwars | On top of the top bridge of Antenna, on the 20 RBW maps: no bed, rounds of one life, the first to 5 points wins. |
-| `top-bridge-2v2` | Top Bridge 2v2 | 2v2 ; groupe `top-bridge` | RagoBedwars | Top Bridge, two against two: the first team to 5 points. |
-| `bridge-fight-1v1` | Bridge fight 1v1 | 1v1 ; groupe `bridge-fight` | RagoPractice | A real 1v1 on a platform of its own, no blocks: a kill or a fall is a point. First to 5. |
-| `bridge-fight-2v2` | Bridge fight 2v2 | 2v2 ; groupe `bridge-fight` | RagoPractice | The bridge fight, two against two on one platform: when a whole team is out, the other scores. First to 5. |
 | `block-fight-1v1` | Block placement 1v1 | 1v1 ; groupe `block-placement` | RagoPractice | On the block placement maps, as on Minemen: each hit is a point, the void costs 10. Build, clutch, knock them off: first to 100. |
 | `block-fight-2v2` | Block placement 2v2 | 2v2 ; groupe `block-placement` | RagoPractice | Block placement, two against two: each hit is a point, the void costs 10. First to 100. |
+| `bridge-fight-1v1` | Bridge fight 1v1 | 1v1 ; groupe `bridge-fight` | RagoPractice | A real 1v1 on a platform of its own, no blocks: a kill or a fall is a point. First to 5. |
+| `bridge-fight-2v2` | Bridge fight 2v2 | 2v2 ; groupe `bridge-fight` | RagoPractice | The bridge fight, two against two on one platform: when a whole team is out, the other scores. First to 5. |
+| `top-bridge-1v1` | Top Bridge 1v1 | 1v1 ; groupe `top-bridge` | RagoBedwars | On top of the top bridge of Antenna, on the 20 RBW maps: no bed, rounds of one life, the first to 5 points wins. |
+| `top-bridge-2v2` | Top Bridge 2v2 | 2v2 ; groupe `top-bridge` | RagoBedwars | Top Bridge, two against two: the first team to 5 points. |
+| `block-edit-duel` | Block edit 1v1 | 1v1 | RagoPractice | A wall of wool between you: open, hit, close before they hit you back. First to 5. |
 | `lobby-fight-1v1` | Lobby Fight 1v1 | 1v1 | RagoBedwars | In the waiting lobby of Archway FFA, with the kit of Lobby Fight: rounds of one life, knock them out; the first to 3 points wins. |
-| `sumo` | Sumo duel | 1v1 | RagoPractice | Knock the other player off the platform: great for working on knockback. |
 | `red-rover-sumo` | Red Rover Sumo | 1v1v1 ; groupe `red-rover` | RagoPractice | Three players, 1v1 in turn on the sumo platform: who waits watches the 1v1. |
 | `red-rover-block-edit` | Red Rover Block Edit | 1v1v1 ; groupe `red-rover` | RagoPractice | Three players, 1v1 in turn at the wall of wool: a clean edit wins the 1v1. |
 | `red-rover-block-placement` | Red Rover Block Placement | 1v1v1 ; groupe `red-rover` | RagoPractice | Three players, 1v1 in turn on the block placement maps: a hit +1, the void +10, first to 10 wins the 1v1. |
 | `red-rover-top-bridge` | Red Rover Top Bridge | 1v1v1 ; groupe `red-rover` | RagoBedwars | Three players, 1v1 in turn on the top bridge: a round of one life wins the 1v1. |
 | `boxing` | Boxing | 1v1 | RagoPractice | First to 100 hits, to work on your combos. /speed: Speed II off or on. |
-| `block-edit-duel` | Block edit 1v1 | 1v1 | RagoPractice | A wall of wool between you: open, hit, close before they hit you back. First to 5. |
+| `sumo` | Sumo duel | 1v1 | RagoPractice | Knock the other player off the platform: great for working on knockback. |
 | `fireball` | Fireball fight | 1v1 | RagoPractice | Fireballs and TNT: break their bed, the last one standing wins. Blasts and falls do no damage. |
 | `bow-duel` | Bow duel | 1v1 | RagoPractice | Bow 1v1 on Archway, the base against the middle: each arrow that hits is a point. First to 10. |
 | `event-sumo` | Sumo event | solo / ouvert ; caché | RagoPractice | Hosted with /host: one 1v1 at a time, the last one in wins. |
@@ -117,7 +120,6 @@ Le détail de chaque jeu : [[Entraînements]], [[Duels]], [[Arènes ouvertes]], 
 | `ffa` | FFA Ranked Bedwars | solo / ouvert | RagoBedwars | Free for all on Archway FFA, in diamond armour: spawn on the top bridge, low, mid or at random; come and go when you like. A kill heals you and gives your whole kit back. |
 | `lobby-fight-ffa` | Lobby Fight FFA | solo / ouvert | RagoBedwars | The FFA in the waiting lobby of Archway FFA, a sword, 5 golden apples (back to 5 at each kill), 3 fireballs, blocks, a pickaxe, a pearl and shears: come and go when you like, fall out of it and you die. |
 | `free-ffa` | Arena Free | solo / ouvert | RagoPractice | Free for all in the arena, a sword only and Resistance: nobody dies, it is a practice. The slime of the black pit throws you out. |
-| `bridge-fight` | Bridge fight | solo / ouvert | RagoPractice | Free for all, no blocks: the hits only push, knock them into the void. Real damage on the middle platform only. |
 | `block-fight-arena` | Block placement arena | solo / ouvert | RagoPractice | Block placement in an arena, with everyone: wool and shears, no damage, knock them off. The blocks break after 15 seconds. |
 
 ## Fun Practice (`fun`)
@@ -131,5 +133,7 @@ Le détail de chaque jeu : [[Entraînements]], [[Duels]], [[Arènes ouvertes]], 
 | `ctf-bridge-2v2` | CTF The Bridge 2v2 | 2v2 ; groupe `ctf-bridge` | RagoBedwars | CTF The Bridge, two against two: one takes their flag, the other guards yours. |
 | `ctf-castle-2v2` | CTF Castle 2v2 | 2v2 ; groupe `ctf-castle` | RagoBedwars | Castle against castle, a mid between: Bed Wars with a flag in each keep in place of the bed. Bring theirs to yours. |
 | `ctf-castle-4v4` | CTF Castle 4v4 | 4v4 ; groupe `ctf-castle` | RagoBedwars | CTF Castle, four against four: defend your keep, raid theirs. |
-| `fast-bedwars-1v1` | 2017 Bedwars 1v1 | 1v1 ; groupe `fast-bedwars` | RagoBedwars | Bed Wars made fast: faster forges, earlier events, the beds gone at 15 minutes, a smaller shop, no upgrades. |
-| `fast-bedwars-2v2` | 2017 Bedwars 2v2 | 2v2 ; groupe `fast-bedwars` | RagoBedwars | 2017 Bedwars, two against two: rush fast, defend fast. |
+| `bedwars-2012` | 2012 Bedwars | 4v4 ; groupe `bedwars-2012` | RagoBedwars | A rush of 2012, four against four: hide your bed in the first minute. Clay, diamonds and emeralds, no upgrades. |
+| `bedwars-2012-classique` | 2012 Bedwars Classic | 4v4 ; groupe `bedwars-2012` | RagoBedwars | The same rush without the diamonds and the emeralds: the forges of the bases only. |
+| `fast-bedwars-1v1` | 2017 Bedwars 1v1 | 1v1 ; caché | RagoBedwars | Bed Wars made fast: faster forges, earlier events, the beds gone at 15 minutes, a smaller shop, no upgrades. |
+| `fast-bedwars-2v2` | 2017 Bedwars 2v2 | 2v2 ; caché | RagoBedwars | 2017 Bedwars, two against two: rush fast, defend fast. |

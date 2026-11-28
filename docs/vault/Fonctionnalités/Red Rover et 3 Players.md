@@ -1,7 +1,7 @@
 ---
 type: fonctionnalité
 tags: [red-rover, 3-players, 1v2]
-maj: 2026-11-25
+maj: 2026-11-28
 code: game/rago-game-model (RedRoverRotation), bukkit/rago-practice (RedRover, RedRoverTurns, Duel.asRedRover), bukkit/rago-bedwars (RedRoverTopBridgeGame)
 ---
 # Red Rover et 3 Players
@@ -14,7 +14,7 @@ Trois joueurs (une party de 3 ou la file) en **1v1 chacun leur tour** ; celui qu
 | Mode (id) | Plugin | Un 1v1 se gagne… |
 |---|---|---|
 | Red Rover Sumo (`red-rover-sumo`) | RagoPractice | le premier qui tombe perd (maps du sumo) |
-| Red Rover Block Edit (`red-rover-block-edit`) | RagoPractice | un edit propre au mur de laine |
+| Red Rover Block Edit (`red-rover-block-edit`) | RagoPractice | un edit propre au mur de laine (cage en blocs barrière depuis le 28/11, comme le Block edit : PR #55) |
 | Red Rover Block Placement (`red-rover-block-placement`) | RagoPractice | premier à `points-par-1v1-block-placement` (10) points (coup +1, vide +10) |
 | Red Rover Top Bridge (`red-rover-top-bridge`) | RagoBedwars | premier à `points-par-1v1-top-bridge` manches d'une vie (1) |
 
