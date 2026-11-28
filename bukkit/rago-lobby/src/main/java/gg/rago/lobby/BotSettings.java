@@ -1,0 +1,205 @@
+package gg.rago.lobby;
+
+import gg.rago.game.GameMode;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.List;
+import java.util.Map;
+import org.bukkit.configuration.ConfigurationSection;
+
+/**
+ * RagoBot as config.yml sets it (ragobot:): a player of the server, invited into a party with
+ * /p invite RagoBot, who plays the party's games with it, as a real player, at one fixed skill.
+ * Never ranked, never a random queue. Without ragobot:, the values of the bundled config.
+ * Immutable.
+ */
+final class BotSettings {
+
+    /** The name it plays under, the same for every RagoBot online (one per party). */
+    static final String NAME = "RagoBot";
+    /**
+     * The modes of the bundled config: those the owner asked for first (22/11), then Boxing and
+     * Lobby Fight 1v1, step 1 of the owner's order of 22/11 (17h54), then the Block Placement 1v1
+     * and 2v2 and its Red Rover, step 2, then the Block edit 1v1 and its Red Rover, step 3.
+     */
+    static final List<String> DEFAULT_MODES = Collections.unmodifiableList(Arrays.asList("top-bridge-1v1", "top-bridge-2v2",
+            "sumo", "boxing", "lobby-fight-1v1", "block-fight-1v1", "block-fight-2v2", "red-rover-block-placement",
+            "block-edit-duel", "red-rover-block-edit"));
+    /**
+     * The modes where it places and breaks blocks, as a player there (step 2 of the owner's order
+     * of 22/11, 17h54: the Block Placement 1v1 and 2v2, and its Red Rover).
+     */
+    static final java.util.Set<String> BLOCK_MODES = Collections.unmodifiableSet(new java.util.HashSet<>(
+            Arrays.asList("block-fight-1v1", "block-fight-2v2", "red-rover-block-placement")));
+    /**
+     * The modes of the block edit, the wall of wool between it and the other (step 3 of the owner's
+     * order of 22/11, the choices by default of its proposal, approved on 23/11): it opens the wall,
+     * hits through the hole and closes it, as a player there.
+     */
+    static final java.util.Set<String> EDIT_MODES = Collections.unmodifiableSet(new java.util.HashSet<>(
+            Arrays.asList("block-edit-duel", "red-rover-block-edit")));
+    static final int MAX_BOTS = 50;
+    /**
+     * The modes a player alone plays against a RagoBot that comes by itself (the owner's ask of
+     * 28/11: Block Method 1v1, against a RagoBot much weaker than the one of the parties).
+     */
+    static final List<String> DEFAULT_SOLO_MODES = Collections.unmodifiableList(Arrays.asList("block-method-1v1"));
+
+    /** False: /p invite RagoBot finds nobody. */
+    final boolean enabled;
+    /** The account whose skin it wears (qRago). */
+    final String skin;
+    /** RagoBots online at once at most, one per party. */
+    final int max;
+    /** The ids of the modes it plays, in the order of the config. */
+    final List<String> modes;
+    /** The names of these modes, for the messages ("Top Bridge 1v1, Top Bridge 2v2 and Sumo 1v1"). */
+    final String modeNames;
+    final BotBrain.Skill skill;
+    /** The modes a player alone plays against a RagoBot that comes by itself (ragobot.seul.modes). */
+    final List<String> soloModes;
+    /** The skill of that RagoBot (ragobot.seul.skill): much weaker. */
+    final BotBrain.Skill soloSkill;
+
+    private BotSettings(boolean enabled, String skin, int max, List<String> modes, String modeNames, BotBrain.Skill skill,
+            List<String> soloModes, BotBrain.Skill soloSkill) {
+        this.enabled = enabled;
+        this.skin = skin;
+        this.max = max;
+        this.modes = Collections.unmodifiableList(new ArrayList<>(modes));
+        this.modeNames = modeNames;
+        this.skill = skill;
+        this.soloModes = Collections.unmodifiableList(new ArrayList<>(soloModes));
+        this.soloSkill = soloSkill;
+    }
+
+    /** True if a player alone plays this mode against a RagoBot that comes by itself. */
+    boolean solo(String modeId) {
+        return enabled && soloModes.contains(modeId);
+    }
+
+    /** True if it plays this mode. */
+    boolean plays(String modeId) {
+        return modes.contains(modeId);
+    }
+
+    /**
+     * ragobot: of config.yml; byId the modes of modes:. Its modes must exist, be played by two
+     * teams (or be a Red Rover, each player against the others in turn: inTurns, the modes whose
+     * format: is 1v1v1), and not be ranked: RagoBot never moves an ELO.
+     */
+    static BotSettings read(ConfigurationSection section, Map<String, GameMode> byId) {
+        return read(section, byId, Collections.<String>emptySet());
+    }
+
+    static BotSettings read(ConfigurationSection section, Map<String, GameMode> byId, java.util.Set<String> inTurns) {
+        boolean enabled = section == null || section.getBoolean("actif", true);
+        String skin = section == null ? "qRago" : section.getString("skin", "qRago");
+        if (!AccountSkins.validName(skin)) {
+            throw new IllegalArgumentException("ragobot.skin: the name of a Minecraft account, as qRago");
+        }
+        int max = section == null ? 10 : section.getInt("max", 10);
+        if (max < 1 || max > MAX_BOTS) {
+            throw new IllegalArgumentException("ragobot.max: from 1 to " + MAX_BOTS + " RagoBots online at once");
+        }
+        List<String> modes = new ArrayList<>();
+        List<String> listed = section == null || !section.isList("modes") ? DEFAULT_MODES : section.getStringList("modes");
+        if (section != null && section.contains("modes") && !section.isList("modes")) {
+            throw new IllegalArgumentException("ragobot.modes: a list of modes, as [top-bridge-1v1, sumo]");
+        }
+        List<String> names = new ArrayList<>();
+        for (String id : listed) {
+            GameMode mode = byId.get(id);
+            if (mode == null) {
+                if (section == null) {
+                    // the bundled modes, in a config without them: RagoBot plays the others
+                    continue;
+                }
+                throw new IllegalArgumentException("ragobot.modes: no mode " + id + " in modes");
+            }
+            if (mode.ranked()) {
+                throw new IllegalArgumentException("ragobot.modes: " + id + " is ranked, RagoBot never plays ranked");
+            }
+            if (mode.teams() < 2 && !inTurns.contains(id)) {
+                throw new IllegalArgumentException("ragobot.modes: " + id + " has one team, RagoBot plays against the others");
+            }
+            if (!modes.contains(id)) {
+                modes.add(id);
+                names.add(org.bukkit.ChatColor.stripColor(LobbySettings.colour(mode.name())));
+            }
+        }
+        BotBrain.Skill skill = readSkill(section == null ? null : section.getConfigurationSection("skill"),
+                BotBrain.Skill.BUNDLED, "ragobot.skill.");
+        ConfigurationSection solo = section == null ? null : section.getConfigurationSection("seul");
+        if (section != null && section.contains("seul") && solo == null) {
+            throw new IllegalArgumentException("ragobot.seul: its modes: and its skill:");
+        }
+        List<String> soloModes = new ArrayList<>();
+        List<String> soloListed = solo == null || !solo.isList("modes") ? DEFAULT_SOLO_MODES : solo.getStringList("modes");
+        for (String id : soloListed) {
+            GameMode mode = byId.get(id);
+            if (mode == null) {
+                if (solo == null) {
+                    // the bundled mode, in a config without it
+                    continue;
+                }
+                throw new IllegalArgumentException("ragobot.seul.modes: no mode " + id + " in modes");
+            }
+            if (mode.ranked() || mode.teams() != 2 || mode.playersPerTeam() != 1) {
+                throw new IllegalArgumentException("ragobot.seul.modes: " + id + " is not a 1v1 out of the ranked");
+            }
+            if (!soloModes.contains(id)) {
+                soloModes.add(id);
+            }
+        }
+        BotBrain.Skill soloSkill = readSkill(solo == null ? null : solo.getConfigurationSection("skill"),
+                BotBrain.Skill.SOLO, "ragobot.seul.skill.");
+        return new BotSettings(enabled, skin, max, modes, join(names), skill, soloModes, soloSkill);
+    }
+
+    private static BotBrain.Skill readSkill(ConfigurationSection section, BotBrain.Skill bundled, String path) {
+        if (section == null) {
+            return bundled;
+        }
+        double cps = number(section, path, "cps", bundled.cps, 1, 20);
+        double accuracy = number(section, path, "precision", bundled.accuracy, 0, 1);
+        double reach = number(section, path, "portee", bundled.reach, 1, 3);
+        double strafe = number(section, path, "strafe", bundled.strafe, 0, 1);
+        double wTap = number(section, path, "w-tap", bundled.wTap, 0, 1);
+        double jumpReset = number(section, path, "jump-reset", bundled.jumpReset, 0, 1);
+        int reaction = (int) number(section, path, "reaction", bundled.reaction, 0, BotBrain.MEMORY - 1);
+        double turn = number(section, path, "rotation", bundled.turn, 5, 180);
+        double healAt = number(section, path, "soin-a", bundled.healAt, 0, 20);
+        double blocks = number(section, path, "blocs-par-seconde", bundled.blocksPerSecond, 1, 20);
+        int ping = (int) number(section, path, "ping", bundled.ping, 0, BotBrain.MAX_PING);
+        return new BotBrain.Skill(cps, accuracy, reach, strafe, wTap, jumpReset, reaction, turn, healAt, blocks, ping);
+    }
+
+    private static double number(ConfigurationSection section, String path, String key, double bundled, double low,
+            double high) {
+        if (section.contains(key) && !section.isDouble(key) && !section.isInt(key)) {
+            throw new IllegalArgumentException(path + key + ": a number from " + plain(low) + " to " + plain(high));
+        }
+        double value = section.getDouble(key, bundled);
+        if (value < low || value > high) {
+            throw new IllegalArgumentException(path + key + ": from " + plain(low) + " to " + plain(high));
+        }
+        return value;
+    }
+
+    private static String plain(double value) {
+        return value == Math.rint(value) ? String.valueOf((long) value) : String.valueOf(value);
+    }
+
+    /** "a, b and c". */
+    static String join(List<String> names) {
+        if (names.isEmpty()) {
+            return "no mode";
+        }
+        if (names.size() == 1) {
+            return names.get(0);
+        }
+        return String.join(", ", names.subList(0, names.size() - 1)) + " and " + names.get(names.size() - 1);
+    }
+}

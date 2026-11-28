@@ -32,7 +32,8 @@ import org.bukkit.scheduler.BukkitTask;
  *       {@value #DECAY_SECONDS} seconds, and it lasts {@value #PRACTICE_MINUTES} minutes at most.
  * </ul>
  *
- * {@link TopBedFightGame} plays these rounds on the owner's own bridge. Main thread only.
+ * {@link TopBedFightGame} plays these rounds on the owner's own bridge, {@link RedRoverTopBridgeGame}
+ * in the 1v1 of a Red Rover. Main thread only.
  */
 class TopBridgeGame extends BedwarsGame {
 
@@ -46,7 +47,7 @@ class TopBridgeGame extends BedwarsGame {
     /** The countdown at the start of the game, before the first round. */
     private static final int COUNTDOWN = 3;
     /** Before the end of the game, once its last round is won. */
-    private static final long BETWEEN_TICKS = 20L;
+    static final long BETWEEN_TICKS = 20L;
     /** Between the end of a round and the next one: a tick, to be out of the event of the death. */
     static final long NEXT_ROUND_TICKS = 1L;
     /** The kit when the lobby has none for the mode: the owner's fight kit. */
@@ -55,7 +56,8 @@ class TopBridgeGame extends BedwarsGame {
     /** The private top bridge of a party (the Private games): the practice without rounds. */
     final boolean practice;
     private final BlockDecay decay = new BlockDecay(DECAY_SECONDS);
-    private final int[] points;
+    /** The rounds won by each team (in a Red Rover, in this 1v1: see {@link #resetPoints}). */
+    int[] points;
     private int round = 1;
     private boolean roundOver;
     /** The countdown before the current round, while it runs. */
@@ -95,6 +97,12 @@ class TopBridgeGame extends BedwarsGame {
     /** The private top bridge of a party, a practice, is not kept for /replay; a game of rounds is. */
     @Override
     boolean recorded() {
+        return !practice;
+    }
+
+    /** A fall in a practice is no death; in a game of rounds, it is one. */
+    @Override
+    boolean countsDeaths() {
         return !practice;
     }
 
@@ -312,12 +320,11 @@ class TopBridgeGame extends BedwarsGame {
         broadcast(winner == null ? ChatColor.YELLOW + "Round " + round + ": nobody is left, no point. " + score
                 : winner.color.coloured() + ChatColor.YELLOW + " wins round " + round + "! " + score,
                 winner == null ? Sound.NOTE_BASS : Sound.LEVEL_UP);
+        if (winner != null) {
+            ding(winner);
+        }
         if (winner != null && points[teams.indexOf(winner)] >= pointsToWin()) {
-            later(BETWEEN_TICKS, () -> {
-                if (phase != Phase.ENDED) {
-                    end(winner);
-                }
-            });
+            reachedTarget(winner);
             sidebars();
             return;
         }
@@ -325,8 +332,25 @@ class TopBridgeGame extends BedwarsGame {
         sidebars();
     }
 
+    /**
+     * This team reached the points to win: it wins the game, a second later. A Red Rover
+     * ({@link RedRoverTopBridgeGame}): its fighter wins the 1v1.
+     */
+    void reachedTarget(Team winner) {
+        later(BETWEEN_TICKS, () -> {
+            if (phase != Phase.ENDED) {
+                end(winner);
+            }
+        });
+    }
+
+    /** The points of every team back to 0, one per team (a Red Rover, at each 1v1). */
+    void resetPoints() {
+        points = new int[teams.size()];
+    }
+
     /** "Red 2 - 1 Blue". */
-    private String score() {
+    String score() {
         List<String> parts = new ArrayList<>();
         for (int i = 0; i < teams.size(); i++) {
             parts.add(teams.get(i).color.chat() + "" + points[i]);
@@ -348,7 +372,7 @@ class TopBridgeGame extends BedwarsGame {
      * The map as it was, the bridge again, everyone on top, and the fight (after the countdown of
      * roundCountdown, if any): the title says the round, and who won the last one.
      */
-    private void nextRound(Team lastWinner) {
+    void nextRound(Team lastWinner) {
         if (phase == Phase.ENDED) {
             return;
         }
@@ -371,11 +395,7 @@ class TopBridgeGame extends BedwarsGame {
             Player player = Bukkit.getPlayer(gamer.id);
             if (player != null) {
                 place(player, gamer);
-                String last = lastWinner == null ? ChatColor.YELLOW + "No point"
-                        : gamer.team == lastWinner ? ChatColor.GOLD + "Round won" : ChatColor.RED + "Round lost";
-                player.sendTitle(countdown > 0 ? ChatColor.YELLOW + "" + ChatColor.BOLD + "ROUND " + round
-                        : ChatColor.GREEN + "" + ChatColor.BOLD + "ROUND " + round + " - FIGHT!",
-                        last + ChatColor.GRAY + " · " + score());
+                roundTitle(player, gamer, lastWinner, countdown);
             }
         }
         if (countdown <= 0) {
@@ -404,6 +424,15 @@ class TopBridgeGame extends BedwarsGame {
             title(ChatColor.GREEN + "" + ChatColor.BOLD + "FIGHT!", "");
             sidebars();
         });
+    }
+
+    /** The title at the start of a round after the first: the round, who won the last one, the score. */
+    void roundTitle(Player player, Gamer gamer, Team lastWinner, int countdown) {
+        String last = lastWinner == null ? ChatColor.YELLOW + "No point"
+                : gamer.team == lastWinner ? ChatColor.GOLD + "Round won" : ChatColor.RED + "Round lost";
+        player.sendTitle(countdown > 0 ? ChatColor.YELLOW + "" + ChatColor.BOLD + "ROUND " + round
+                : ChatColor.GREEN + "" + ChatColor.BOLD + "ROUND " + round + " - FIGHT!",
+                last + ChatColor.GRAY + " · " + score());
     }
 
     @Override

@@ -5,6 +5,8 @@ import java.io.IOException;
 import java.text.SimpleDateFormat;
 import java.util.Arrays;
 import java.util.Date;
+import java.util.Set;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.atomic.AtomicLong;
 
 /**
@@ -29,6 +31,8 @@ final class Recorder {
     private volatile RecordingWriter writer;
     private volatile int tick;
     private volatile int[] trackedEntities = new int[0];
+    /** Primed TNT and fireballs seen spawning, until they are destroyed or the world changes. */
+    private final Set<Integer> explosives = ConcurrentHashMap.newKeySet();
 
     Recorder(File directory, Clock clock) {
         this.directory = directory;
@@ -62,6 +66,7 @@ final class Recorder {
             File file = newFile(label);
             tick = 0;
             errors.set(0);
+            explosives.clear();
             RecordingWriter started = new RecordingWriter(file);
             started.submit(line("session")
                     .add("format", FORMAT)
@@ -142,7 +147,40 @@ final class Recorder {
     }
 
     boolean isTracked(int entityId) {
-        return Arrays.binarySearch(trackedEntities, entityId) >= 0;
+        return Arrays.binarySearch(trackedEntities, entityId) >= 0 || explosives.contains(entityId);
+    }
+
+    /**
+     * Whether a received packet about entities is kept, by the way it names them. Packets about
+     * the player and the players around are kept, as are the spawn and the destruction of primed
+     * TNT and fireballs, which are then followed like players until they are destroyed.
+     */
+    boolean keeps(PacketBytes.EntityIdFormat format, byte[] data) {
+        switch (format) {
+            case NONE:
+                return true;
+            case NEW_WORLD:
+                // Entity ids start again on a new server or world, and no destroy packet comes.
+                explosives.clear();
+                return true;
+            case SPAWN_OBJECT:
+                if (!PacketBytes.isExplosive(PacketBytes.objectType(data))) {
+                    return false;
+                }
+                explosives.add(PacketBytes.entityId(data, format));
+                return true;
+            case ENTITY_LIST:
+                int[] ids = PacketBytes.entityIds(data);
+                boolean kept = false;
+                if (ids != null) {
+                    for (int id : ids) {
+                        kept |= explosives.remove(id);
+                    }
+                }
+                return kept;
+            default:
+                return isTracked(PacketBytes.entityId(data, format));
+        }
     }
 
     /** Never lets a recording problem reach the game: counts it, and writes the first few. */

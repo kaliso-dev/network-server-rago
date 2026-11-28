@@ -18,6 +18,11 @@ enum BoardStat {
     FKDR("fkdr", "FKDR", Choice.NONE),
     /** The Network level, ranked by XP. */
     LEVEL("niveau", "Network level", Choice.NONE),
+    /**
+     * The wins over the losses, every mode together, ever (the wins alone without a loss), ranked
+     * by hundredths as the FKDR.
+     */
+    WLR("wlr", "WLR", Choice.NONE),
     /** The ELO of a ranked mode: a click changes the mode. */
     ELO("elo", "Ranked Elo", Choice.RANKED_MODE);
 
@@ -55,9 +60,13 @@ enum BoardStat {
         return choice;
     }
 
-    /** "2.5", "3", "0.33": a value of the FKDR board, ranked by hundredths. */
+    /**
+     * "6.42", "2.50", "3.00", "0.33": an FKDR in hundredths, always with its two decimals (the
+     * plan: "6.42 FKDR", never a whole number alone), on the boards as in the menus.
+     */
     static String hundredths(int value) {
-        return value % 100 == 0 ? String.valueOf(value / 100) : String.valueOf(value / 100.0);
+        int hundredths = Math.abs(value) % 100;
+        return (value < 0 ? "-" : "") + Math.abs(value) / 100 + "." + (hundredths < 10 ? "0" : "") + hundredths;
     }
 
     /** The FKDR in hundredths (the final kills alone without a final death). */
@@ -80,7 +89,7 @@ enum BoardStat {
         return null;
     }
 
-    /** "victoires, parties, series, kills, fkdr, niveau or elo", for the errors of config.yml. */
+    /** "victoires, parties, series, kills, fkdr, niveau, wlr or elo", for the errors of config.yml. */
     static String keys() {
         StringBuilder text = new StringBuilder();
         BoardStat[] all = values();

@@ -1,8 +1,13 @@
 package gg.rago.bedwars;
 
+import gg.rago.lobby.api.ModeRecord;
 import java.io.File;
 import java.io.IOException;
+import java.util.AbstractMap;
+import java.util.ArrayList;
+import java.util.Comparator;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.UUID;
 import java.util.concurrent.Executor;
@@ -42,6 +47,30 @@ final class FastShopRecords {
         this.file = file;
         this.io = io;
         this.logger = logger;
+    }
+
+    /**
+     * Once for this name (the owner's reset of every player's stats): the file set aside as
+     * fastshop-sauvegarde-&lt;name&gt;.yml, kept as it was, and the records start again. That copy
+     * marks the reset as done (an empty one when there were no records yet). Before {@link #load}.
+     */
+    void resetOnce(String name) {
+        File copy = new File(file.getAbsoluteFile().getParentFile(), "fastshop-sauvegarde-" + name + ".yml");
+        if (copy.exists()) {
+            return;
+        }
+        try {
+            java.nio.file.Files.createDirectories(copy.getParentFile().toPath());
+            if (file.isFile()) {
+                java.nio.file.Files.move(file.toPath(), copy.toPath());
+                logger.info("Fast Shop records reset (" + name + "); the records before are in " + copy.getName());
+            } else {
+                java.nio.file.Files.write(copy.toPath(),
+                        "# No Fast Shop records before the reset.\n".getBytes(java.nio.charset.StandardCharsets.UTF_8));
+            }
+        } catch (IOException e) {
+            logger.log(Level.WARNING, "Cannot set " + file + " aside: the Fast Shop records are not reset (" + name + ")", e);
+        }
     }
 
     /** Reads the file, at the start of the plugin. Nothing if there is none yet. */
@@ -127,6 +156,51 @@ final class FastShopRecords {
             }
         }
         return top;
+    }
+
+    /** Everyone's best time on this list, the fastest first; at equal times, by name. */
+    List<Best> ranked(String order) {
+        List<Best> ranked = new ArrayList<>();
+        Map<UUID, Long> best = times.get(order);
+        if (best != null) {
+            for (Map.Entry<UUID, Long> time : best.entrySet()) {
+                String name = names.get(time.getKey());
+                ranked.add(new Best(time.getKey(), name == null ? "?" : name, time.getValue()));
+            }
+        }
+        ranked.sort(Comparator.comparingLong((Best time) -> time.millis)
+                .thenComparing(time -> time.name, String.CASE_INSENSITIVE_ORDER)
+                .thenComparing(time -> time.player));
+        return ranked;
+    }
+
+    /** The player's place on this list, from 1; 0 without a time. */
+    int rank(String order, UUID player) {
+        List<Best> ranked = ranked(order);
+        for (int i = 0; i < ranked.size(); i++) {
+            if (ranked.get(i).player.equals(player)) {
+                return i + 1;
+            }
+        }
+        return 0;
+    }
+
+    /**
+     * The record of this list as the menus of the lobby show it under Fast Shop, in the place of
+     * its Daily Streak (plan 3.4): its name, its best times (this many at most), and the viewer's
+     * best and place (viewer: null for none). Times as the game shows them: "4.21 s".
+     */
+    ModeRecord modeRecord(String order, String name, UUID viewer, int size) {
+        List<Map.Entry<String, String>> top = new ArrayList<>();
+        for (Best best : ranked(order)) {
+            if (top.size() == size) {
+                break;
+            }
+            top.add(new AbstractMap.SimpleImmutableEntry<>(best.name, FastShopGame.seconds(best.millis) + " s"));
+        }
+        Long mine = viewer == null ? null : best(order, viewer);
+        return new ModeRecord(name, top, mine == null ? null : FastShopGame.seconds(mine) + " s",
+                mine == null ? 0 : rank(order, viewer));
     }
 
     private void save() {

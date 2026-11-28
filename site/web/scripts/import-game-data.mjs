@@ -123,6 +123,17 @@ function settingRange(source, name) {
   return { min: Number(match[1]), max: Number(match[2]) };
 }
 
+/** The Rago Points the Daily Chest gives (coffre-du-jour.recompenses: "100-200" or 250): the least and the most. */
+function dailyChestPoints(chest) {
+  const ranges = Object.values(chest?.recompenses ?? {})
+    .filter((reward) => reward['rago-points'] != null)
+    .map((reward) => String(reward['rago-points']).split('-').map((part) => Number(part.trim())));
+  if (!ranges.length || ranges.some((range) => range.some((value) => !Number.isInteger(value)))) {
+    throw new Error('no Rago Points in coffre-du-jour.recompenses of the lobby config');
+  }
+  return { min: Math.min(...ranges.map((range) => range[0])), max: Math.max(...ranges.map((range) => range[range.length - 1])) };
+}
+
 /** "4.99€" gives 4.99. */
 function amount(price) {
   const match = /(\d+(?:[.,]\d+)?)/.exec(String(price));
@@ -132,12 +143,20 @@ function amount(price) {
   return Number(match[1].replace(',', '.'));
 }
 
+/** A ranked duel of the practice plugin, on the host of its mode of Solo: alsoRanked(..., "ranked-boxing"); */
+const RANKED_TWIN = /alsoRanked\([^;]*?,\s*"([a-z0-9-]+)"\);/g;
+
 /** The modes each plugin runs: the Bed Wars plugin by its config, the practice plugin by its code. */
 function plugins(lobby) {
   const bedwars = new Set(Object.keys(parse(read(SOURCES.bedwarsConfig)).modes ?? {}));
-  const practice = new Set([...read(SOURCES.practicePlugin).matchAll(/register\("([a-z0-9-]+)"/g)].map((m) => m[1]));
-  const sumo = /MODE_ID\s*=\s*"([a-z0-9-]+)"/.exec(read(SOURCES.sumoHost));
-  if (sumo) {
+  const practiceCode = read(SOURCES.practicePlugin);
+  const practice = new Set([...practiceCode.matchAll(/register\("([a-z0-9-]+)"/g)].map((m) => m[1]));
+  // the ranked duels (plan 3.7), played by the hosts of their modes of Solo: alsoRanked(host, "id")
+  for (const twin of practiceCode.matchAll(RANKED_TWIN)) {
+    practice.add(twin[1]);
+  }
+  // the sumo and the ranked sumo
+  for (const sumo of read(SOURCES.sumoHost).matchAll(/MODE_ID\s*=\s*"([a-z0-9-]+)"/g)) {
     practice.add(sumo[1]);
   }
   for (const kind of read(SOURCES.eventGame).matchAll(/^\s*[A-Z_]+\("([a-z0-9-]+)",/gm)) {
@@ -150,13 +169,26 @@ function plugins(lobby) {
     return found;
   };
   // a private game plays the modes of its list (parties-privees), with the party
-  const privateGames = lobby['parties-privees'] ?? {};
+  const privateGames = privateRoutes(lobby);
   return (id) => {
     if (privateGames[id]) {
       return [...new Set(privateGames[id].flatMap(of))];
     }
     return of(id);
   };
+}
+
+/**
+ * The modes each private game plays: those of its list in parties-privees (the size follows the
+ * party), and for those whose players choose their teams (parties-privees-equipes: Bedwars
+ * Normal) the modes of their maps (cartes:).
+ */
+function privateRoutes(lobby) {
+  const routes = { ...(lobby['parties-privees'] ?? {}) };
+  for (const [id, room] of Object.entries(lobby['parties-privees-equipes'] ?? {})) {
+    routes[id] = room.cartes ?? [];
+  }
+  return routes;
 }
 
 /**
@@ -214,8 +246,29 @@ export function buildGameData() {
     return { id: found.id, type: found.type, name: found.name };
   };
 
-  // a mode whose kit others play (kit-de:) only holds it: not a mode of its own on the site
-  const kitHolders = new Set(Object.values(lobby.modes).map((mode) => mode['kit-de']).filter(Boolean));
+  // a mode out of the selector (cache: true) whose kit others play (kit-de:) only holds it: not a
+  // mode of its own on the site; one in the selector (Lobby Fight FFA, whose kit the 1v1 plays) is
+  const kitHolders = new Set(Object.values(lobby.modes).map((mode) => mode['kit-de'])
+    .filter((id) => id && lobby.modes[id]?.cache === true));
+  // the sizes of a private game whose players choose their teams (parties-privees-equipes: the 4s
+  // and 2s of Bedwars Normal), out of the selector too: played only from it, not modes of their own;
+  // so is the game of a private game whose size follows the party (parties-privees) out of the
+  // selector (the game of FFA Archway)
+  const sizeOf = {};
+  for (const [room, settings] of Object.entries(lobby['parties-privees-equipes'] ?? {})) {
+    for (const id of settings.cartes ?? []) {
+      if (lobby.modes[id]?.cache === true) {
+        sizeOf[id] = room;
+      }
+    }
+  }
+  for (const [route, targets] of Object.entries(lobby['parties-privees'] ?? {})) {
+    for (const id of targets ?? []) {
+      if (lobby.modes[id]?.cache === true) {
+        sizeOf[id] = route;
+      }
+    }
+  }
   const modes = Object.entries(lobby.modes).filter(([id]) => !kitHolders.has(id)).map(([id, mode]) => ({
     id,
     name: plain(mode.nom),
@@ -226,23 +279,40 @@ export function buildGameData() {
     format: format(mode),
     ranked: mode.classe === true,
     startHere: mode['commencer-ici'] === true,
-    event: mode.cache === true,
+    event: mode.cache === true && !(id in sizeOf),
+    sizeOf: sizeOf[id] ?? null,
     description: paragraph(mode.description),
     plugins: pluginsOf(id),
   }));
 
+  // in the selector: neither an event of /host nor a size of a private game
+  const inSelector = (mode) => !mode.event && mode.sizeOf == null;
+
   // the NPCs of the ways to play wear the skin of their category
   const npcs = Object.values(lobby.pnj ?? {});
-  const categories = Object.entries(lobby.categories).map(([id, category]) => ({
-    id,
-    name: plain(category.nom),
-    colour: colourOf(category.nom),
-    icon: category.icone ?? null,
-    slogan: segments(category.slogan),
-    description: paragraph(category.description),
-    skin: npcs.find((npc) => npc.categorie === id && !npc.type)?.skin ?? null,
-    modes: modes.filter((mode) => mode.category === id && !mode.event).length,
-  }));
+  // the category of the parties (party: true, plan 3.7) has no modes of its own: in the compass, the
+  // games of the viewer's party at its size; not a way to play of the site
+  const categories = Object.entries(lobby.categories).filter(([, category]) => category.party !== true).map(([id, category]) => {
+    // aussi: the modes (or groups) of other categories it shows too, after its own, as 3 Players
+    // shows Red Rover of the Duels: the same modes, still in their own category
+    const also = (category.aussi ?? []).flatMap((key) => {
+      const wanted = String(key).trim().toLowerCase();
+      return lobby.groupes?.[wanted]
+        ? modes.filter((mode) => mode.group === wanted && inSelector(mode)).map((mode) => mode.id)
+        : [wanted];
+    });
+    return {
+      id,
+      name: plain(category.nom),
+      colour: colourOf(category.nom),
+      icon: category.icone ?? null,
+      slogan: segments(category.slogan),
+      description: paragraph(category.description),
+      skin: npcs.find((npc) => npc.categorie === id && !npc.type)?.skin ?? null,
+      modes: modes.filter((mode) => mode.category === id && inSelector(mode)).length + also.length,
+      also,
+    };
+  });
 
   const groups = Object.entries(lobby.groupes).map(([id, group]) => ({
     id,
@@ -341,7 +411,11 @@ export function buildGameData() {
     partyMax: number('parties', /MAX_SIZE = (\d+)/),
     topBridgeMinutes: number('topBridge', /PRACTICE_MINUTES = (\d+)/),
     topBridgeBlockSeconds: number('topBridge', /DECAY_SECONDS = (\d+)/),
-    modes: Object.fromEntries(Object.entries(lobby['parties-privees'] ?? {})),
+    modes: privateRoutes(lobby),
+    // the seconds the players of a party have to choose their teams (Bedwars Normal)
+    teamChoiceSeconds: Object.fromEntries(
+      Object.entries(lobby['parties-privees-equipes'] ?? {}).map(([id, room]) => [id, room['compte-a-rebours'] ?? 20]),
+    ),
   };
 
   return {
@@ -377,7 +451,7 @@ export function buildGameData() {
       win: lobby['rago-points'].victoire,
       loss: lobby['rago-points'].defaite,
       kill: lobby['rago-points'].kill,
-      daily: lobby['rago-points'].quotidien,
+      daily: dailyChestPoints(lobby['coffre-du-jour']),
     },
     events: {
       automatic: automatic.actif === true,

@@ -14,15 +14,15 @@ import org.bukkit.Material;
 import org.bukkit.World;
 import org.bukkit.block.Block;
 import org.bukkit.entity.Player;
-import org.bukkit.inventory.ItemStack;
 
 /**
- * The quests NPC of the spawn: a figure in the skin quetes beside the daily reward chest, holding
- * a book and quill, facing the spawn, with lines above its head that tell each player how many of
+ * The quests NPC of the spawn: a figure in the skin quetes beside the daily reward chest, facing
+ * the spawn, with lines above its head that tell each player how many of
  * the daily and weekly quests they have done. A click on it or on its lines opens the quests (the
- * page of /quests). It stands on the point "quests" once one is placed (/lobby point quests);
- * else two blocks beside the daily chest (three if that spot is taken), on the side away from
- * the other figures. Without either point, there is none. Main thread only.
+ * page of /quests). It stands on its point once one is placed ("quests", /lobby point quests;
+ * point-pnj-quetes: in config.yml names another one); else two blocks beside the daily chest
+ * (three if that spot is taken), on the side away from the other figures. Without either point,
+ * there is none. Main thread only.
  */
 final class QuestsNpc {
 
@@ -60,32 +60,33 @@ final class QuestsNpc {
      * Places the figure and its lines, after the NPCs (which clear every fake). Returns where it
      * stands, or null when it has nowhere to stand.
      */
-    Location place(LobbyPoints points, World world, Location spawn, FakeEntities fakes) {
-        Location at = spot(points, world, spawn);
+    Location place(LobbyPoints points, String ownPoint, String chestPoint, World world, Location spawn,
+            FakeEntities fakes) {
+        Location at = spot(points, ownPoint, chestPoint, world, spawn);
         if (at == null) {
             return null;
         }
         FakeEntities.Clicker click = (player, left) -> click(player);
-        fakes.add(new FakePlayer(at, LobbyNpcs.questsName(), skins.apply(SKIN), new ItemStack(Material.BOOK_AND_QUILL), click));
+        fakes.add(new FakePlayer(at, LobbyNpcs.questsName(), skins.apply(SKIN), click));
         fakes.add(new FakeHologram(at.clone().add(0, LobbyNpcs.ABOVE_HEAD, 0), LINES, this::lines, click));
         return at;
     }
 
     /** Its point, else beside the daily chest; facing the spawn. Null without a spot. */
-    private static Location spot(LobbyPoints points, World world, Location spawn) {
-        SpawnPoint own = points.get(POINT);
+    private static Location spot(LobbyPoints points, String ownPoint, String chestPoint, World world, Location spawn) {
+        SpawnPoint own = points.get(ownPoint);
         Location at;
         if (own != null) {
             at = own.in(world);
         } else {
-            SpawnPoint chest = points.get(DailyChest.POINT);
+            SpawnPoint chest = points.get(chestPoint);
             if (chest == null) {
                 return null;
             }
             Block block = chest.in(world).getBlock();
             List<double[]> others = new ArrayList<>();
             for (Map.Entry<String, SpawnPoint> point : points.all().entrySet()) {
-                if (!point.getKey().equals(DailyChest.POINT)) {
+                if (!point.getKey().equals(chestPoint)) {
                     others.add(new double[] {point.getValue().x(), point.getValue().z()});
                 }
             }

@@ -154,7 +154,9 @@ class GettingStartedTest {
             assertEquals(mine.description(), choices.get(i).description());
             assertEquals(mine.modeId(), choices.get(i).modeId());
             assertEquals(mine.categoryId(), choices.get(i).categoryId());
+            assertEquals(mine.icon(), choices.get(i).icon());
         }
+        assertEquals(settings.display("ffa").icon(), choices.get(3).icon(), "fight now: the item of the FFA (22/11)");
     }
 
     @Test

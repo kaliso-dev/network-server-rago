@@ -6,6 +6,7 @@ import java.util.Collections;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import org.bukkit.Material;
 import org.bukkit.configuration.ConfigurationSection;
 
 /** The settings of config.yml, checked. Immutable. */
@@ -158,6 +159,61 @@ final class BedwarsSettings {
      * on each axis), away from the blast and upwards, which replaces the blast's own; its fixed
      * damage, armour or not, in half hearts.
      */
+    /**
+     * The better stuff of the player alone of a Bed Fight 1v2 (stuff-ameliore: in config.yml): the
+     * tier of their leggings and boots (0 leather as the others, 1 chainmail, 2 iron, 3 diamond),
+     * their sword in place of the kit's, the Protection level on their armour. Starting values, to
+     * set in game with the owner.
+     */
+    static final class Stuff {
+        final int armour;
+        final Material sword;
+        final int protection;
+
+        Stuff(int armour, Material sword, int protection) {
+            this.armour = armour;
+            this.sword = sword;
+            this.protection = protection;
+        }
+    }
+
+    /**
+     * Capture the Flag (ctf: in config.yml): the captures that win, the minutes a game of The Bridge
+     * and of the castles lasts at most, the seconds before a dropped flag goes back by itself.
+     * Starting values, to set in game with the owner.
+     */
+    static final class Ctf {
+        final int captures;
+        final int bridgeMinutes;
+        final int castleMinutes;
+        final int returnSeconds;
+
+        Ctf(int captures, int bridgeMinutes, int castleMinutes, int returnSeconds) {
+            this.captures = captures;
+            this.bridgeMinutes = bridgeMinutes;
+            this.castleMinutes = castleMinutes;
+            this.returnSeconds = returnSeconds;
+        }
+    }
+
+    /**
+     * Fast Bedwars (fast-bedwars: in config.yml): when its events come, in seconds of game (as the
+     * six of evenements:), the ids of the items its shop sells, and whether it has the team
+     * upgrades (their NPC; the diamonds of the map, which buy only them). Starting values, to set
+     * in game with the owner.
+     */
+    static final class Fast {
+        final int[] events;
+        final List<String> shop;
+        final boolean upgrades;
+
+        Fast(int[] events, List<String> shop, boolean upgrades) {
+            this.events = events.clone();
+            this.shop = Collections.unmodifiableList(new ArrayList<>(shop));
+            this.upgrades = upgrades;
+        }
+    }
+
     static final class Fireball {
         final double speed;
         final double radius;
@@ -231,8 +287,9 @@ final class BedwarsSettings {
          */
         ATTACK_DEFENSE("attaque-defense"),
         /**
-         * Clutch Scenario: a real game where one team has lost its bed already, the other keeps it
-         * under a ranked defense; iron armour, a stone sword and full forges from the start.
+         * Clutch Scenario: a real game, 1v1 to 1v4, where one team has lost its bed already (from
+         * 1v2 the player alone, one life), the other keeps it under a ranked defense; iron armour,
+         * a stone sword and full forges from the start.
          */
         CLUTCH_SCENARIO("clutch-scenario"),
         /**
@@ -240,6 +297,12 @@ final class BedwarsSettings {
          * nor shop, the mode's kit at each life; back while the bed stands, the last team wins.
          */
         BED_FIGHT("bed-fight"),
+        /**
+         * Block Method 1v1 (the owner's ask of 28/11): Bed Fight as a practice against a RagoBot
+         * that came for the player alone; each death starts the round again, the map as at the
+         * start; a blaze rod to start it again, a map to go on on another map of the mode.
+         */
+        BLOCK_METHOD("block-method"),
         /**
          * Top Bed Fight: Top Bridge's rounds of one life to 5 points on the bridge a map has on top,
          * the spawns of the map at its ends, in leather armour with the mode's kit.
@@ -256,7 +319,38 @@ final class BedwarsSettings {
          * Bed Break Simulator: 2 to 5 players, each in turn attacks from the top bridge with a kit
          * of bed-break: to break the bed of the others, who defend with their forge full.
          */
-        BED_BREAK("bed-break");
+        BED_BREAK("bed-break"),
+        /**
+         * Red Rover Top Bridge (plan 6.5): three players or more on the top bridge, in 1v1 in turn,
+         * each 1v1 played as Top Bridge's rounds; the settings of every Red Rover (red-rover in the
+         * config.yml of RagoPractice).
+         */
+        RED_ROVER_TOP_BRIDGE("red-rover-top-bridge"),
+        /**
+         * Capture the Flag, The Bridge (plan 6.2): two bases joined by a bridge of clay that breaks,
+         * the kit of The Bridge, a flag at the back of each base; no bed, no forge, no shop.
+         */
+        CTF_BRIDGE("ctf-bridge"),
+        /**
+         * Capture the Flag, castle against castle (plan 6.2): a big map, a castle for each team and a
+         * middle, the forges, shops and upgrades of Bed Wars; a flag in each keep, no bed.
+         */
+        CTF_CASTLE("ctf-chateau"),
+        /**
+         * Fast Bedwars (plan 6.1): a game of Bed Wars made fast and simple, on the maps of Bed Wars:
+         * its own forges (forge.modes), its events earlier, a smaller shop and no team upgrades by
+         * default (fast-bedwars: in config.yml).
+         */
+        FAST_BEDWARS("fast-bedwars"),
+        /**
+         * 2012 Bedwars (the owner's ask of 27/11), as a rush of 2012: two great bases, each team hides
+         * its bed where it likes in the first minute (else it goes behind its base), clay in the
+         * place of the wool, the items and forges of a game, no team upgrades; with the diamonds
+         * of the islands and the emeralds of the middle.
+         */
+        BEDWARS_2012("bedwars-2012"),
+        /** The same without the diamond and emerald generators: the forges of the bases only. */
+        BEDWARS_2012_CLASSIC("bedwars-2012-classique");
 
         /** True if this kind is played in the waiting lobby of its maps, which they must have. */
         boolean inWaitingLobby() {
@@ -319,6 +413,14 @@ final class BedwarsSettings {
     private final List<String> allForgeModes;
     /** The modes whose games have an item shop on every island of the map, the empty ones' too. */
     private final List<String> allShopModes;
+    /** equipes-exactes: see {@link #exactTeams}. */
+    private List<String> exactTeamModes = Collections.emptyList();
+    /** reglages-prives: see {@link #privateRules}. */
+    private List<String> privateRuleModes = Collections.emptyList();
+    /** ffa-privee-minutes: see {@link #privateFfaMinutes}. */
+    private int privateFfaMinutes = 30;
+    /** salle-attente-privee: see {@link #privateWaitingMap}. */
+    private String privateWaitingMap = "";
     /** The kits of Attack and Defense to choose from, each side its own (attaque-defense:). */
     private final List<RoundKit> attackKits;
     private final List<RoundKit> defenseKits;
@@ -328,13 +430,19 @@ final class BedwarsSettings {
     private final List<RoundKit> bedBreakKits;
     /** The Protection level on the armour of everyone in the Bed Break Simulator (bed-break.protection). */
     private final int bedBreakProtection;
+    /** The better stuff of the player alone of a Bed Fight 1v2 (stuff-ameliore:). */
+    private final Stuff strongStuff;
+    /** Capture the Flag (ctf:). */
+    private final Ctf ctf;
+    /** Fast Bedwars (fast-bedwars:). */
+    private final Fast fast;
 
     private BedwarsSettings(Map<String, List<String>> modes, Map<String, Kind> kinds, int maxGames, boolean demo,
             int respawnSeconds, Forge forge, double forgeShare, List<Rate> diamond, List<Rate> emerald, int[] events,
             Fireball fireball,
             List<String> neighbourModes, List<String> topBridgeModes, List<String> allForgeModes, List<String> allShopModes,
             List<RoundKit> attackKits, List<RoundKit> defenseKits, int attackDefenseProtection, List<RoundKit> bedBreakKits,
-            int bedBreakProtection) {
+            int bedBreakProtection, Stuff strongStuff, Ctf ctf, Fast fast) {
         this.modes = Collections.unmodifiableMap(modes);
         this.kinds = Collections.unmodifiableMap(kinds);
         this.maxGames = maxGames;
@@ -360,6 +468,9 @@ final class BedwarsSettings {
         this.attackDefenseProtection = attackDefenseProtection;
         this.bedBreakKits = bedBreakKits;
         this.bedBreakProtection = bedBreakProtection;
+        this.strongStuff = strongStuff;
+        this.ctf = ctf;
+        this.fast = fast;
     }
 
     /** The word for every map, in the maps of a mode. */
@@ -380,19 +491,7 @@ final class BedwarsSettings {
         double forgeShare = number(config, "forge.partage-rayon", 2.5, 0, 8);
         List<Rate> diamond = tiers(config, "generateurs.diamant", new double[] {30, 23, 12}, 4);
         List<Rate> emerald = tiers(config, "generateurs.emeraude", new double[] {65, 50, 35}, 2);
-        String[] keys = {"diamant-2", "emeraude-2", "diamant-3", "emeraude-3", "fin-des-lits", "fin-de-partie"};
-        double[] defaults = {6, 12, 18, 24, 30, 45};
-        int[] events = new int[keys.length];
-        int previous = 0;
-        for (int i = 0; i < keys.length; i++) {
-            String path = "evenements." + keys[i];
-            double minutes = config.getDouble(path, defaults[i]);
-            events[i] = (int) Math.round(minutes * 60);
-            if (events[i] <= previous || minutes > 180) {
-                throw new IllegalArgumentException(path + ": in minutes of game, after the event above and 180 at most");
-            }
-            previous = events[i];
-        }
+        int[] events = events(config, "evenements.", new double[] {6, 12, 18, 24, 30, 45});
         Fireball fireball = new Fireball(number(config, "boule-de-feu.vitesse", 1.0, 0.1, 5),
                 number(config, "boule-de-feu.rayon", 3, 1, 8),
                 number(config, "boule-de-feu.recul-horizontal", 1.0, 0, 5),
@@ -417,8 +516,8 @@ final class BedwarsSettings {
         List<String> allShops = new ArrayList<>();
         List<String> shopsListed = config.contains("shops-partout") ? config.getStringList("shops-partout")
                 : Arrays.asList("ranked-1v1", "ranked-2v2", "ranked-3v3", "ranked-4v4", "first-rush-full", "first-rush-full-duo",
-                        "skyrise-resources-1v1", "skyrise-resources-2v2", "clutch-scenario-1v1", "clutch-scenario-2v2",
-                        "clutch-scenario-3v3", "clutch-scenario-4v4");
+                        "skyrise-resources-1v1", "skyrise-resources-2v2", "clutch-scenario-1v1", "clutch-scenario-1v2",
+                        "clutch-scenario-1v3", "clutch-scenario-1v4");
         for (String mode : shopsListed) {
             allShops.add(modeId(mode, "shops-partout"));
         }
@@ -435,9 +534,121 @@ final class BedwarsSettings {
         if (bedBreakProtection < 0 || bedBreakProtection > 4) {
             throw new IllegalArgumentException("bed-break.protection: from 0 to 4");
         }
-        return new BedwarsSettings(modes, kinds(config), maxGames, config.getBoolean("carte-demo", true), respawn, forge,
-                forgeShare, diamond, emerald, events, fireball, neighbours, topBridge, allForges, allShops, attackKits,
-                defenseKits, attackDefenseProtection, bedBreakKits, bedBreakProtection);
+        List<String> exactTeams = new ArrayList<>();
+        for (String mode : config.getStringList("equipes-exactes")) {
+            exactTeams.add(modeId(mode, "equipes-exactes"));
+        }
+        BedwarsSettings settings = new BedwarsSettings(modes, kinds(config), maxGames, config.getBoolean("carte-demo", true),
+                respawn, forge, forgeShare, diamond, emerald, events, fireball, neighbours, topBridge, allForges, allShops,
+                attackKits, defenseKits, attackDefenseProtection, bedBreakKits, bedBreakProtection, strongStuff(config),
+                ctf(config), fast(config));
+        settings.exactTeamModes = Collections.unmodifiableList(exactTeams);
+        List<String> privateRules = new ArrayList<>();
+        for (String mode : config.getStringList("reglages-prives")) {
+            privateRules.add(modeId(mode, "reglages-prives"));
+        }
+        settings.privateRuleModes = Collections.unmodifiableList(privateRules);
+        int ffaMinutes = config.getInt("ffa-privee-minutes", 30);
+        if (ffaMinutes < 1 || ffaMinutes > 120) {
+            throw new IllegalArgumentException("ffa-privee-minutes: from 1 to 120");
+        }
+        settings.privateFfaMinutes = ffaMinutes;
+        settings.privateWaitingMap = config.getString("salle-attente-privee", "").trim();
+        return settings;
+    }
+
+    /** The keys of the six timed events of a game, in their order. */
+    private static final String[] EVENT_KEYS = {"diamant-2", "emeraude-2", "diamant-3", "emeraude-3", "fin-des-lits",
+        "fin-de-partie"};
+
+    /** The six timed events under this path (evenements.), in seconds, each after the one above. */
+    private static int[] events(ConfigurationSection config, String prefix, double[] defaults) {
+        int[] events = new int[EVENT_KEYS.length];
+        int previous = 0;
+        for (int i = 0; i < EVENT_KEYS.length; i++) {
+            String path = prefix + EVENT_KEYS[i];
+            double minutes = config.getDouble(path, defaults[i]);
+            events[i] = (int) Math.round(minutes * 60);
+            if (events[i] <= previous || minutes > 180) {
+                throw new IllegalArgumentException(path + ": in minutes of game, after the event above and 180 at most");
+            }
+            previous = events[i];
+        }
+        return events;
+    }
+
+    /**
+     * fast-bedwars: Fast Bedwars; by default its events twice as early as those of a game (3, 6,
+     * 9, 12, 15 and 22.5 minutes), the shop of the items of the default quick buy, no upgrades.
+     */
+    private static Fast fast(ConfigurationSection config) {
+        int[] events = events(config, "fast-bedwars.evenements.", new double[] {3, 6, 9, 12, 15, 22.5});
+        List<String> shop = new ArrayList<>();
+        if (config.contains("fast-bedwars.shop")) {
+            if (!config.isList("fast-bedwars.shop")) {
+                throw new IllegalArgumentException("fast-bedwars.shop: a list of the items of the shop, such as [wool, stone_sword]");
+            }
+            ShopCatalog catalog = ShopCatalog.standard();
+            for (String id : config.getStringList("fast-bedwars.shop")) {
+                String key = id.trim().toLowerCase(java.util.Locale.ROOT);
+                if (catalog.byId(key) == null) {
+                    throw new IllegalArgumentException("fast-bedwars.shop: \"" + id + "\" is not an item of the shop (its ids:"
+                            + " wool, stone_sword, chainmail, pickaxe, bow, speed, tnt...)");
+                }
+                if (!shop.contains(key)) {
+                    shop.add(key);
+                }
+            }
+            if (shop.isEmpty()) {
+                throw new IllegalArgumentException("fast-bedwars.shop: at least one item");
+            }
+        } else {
+            for (String id : ShopCatalog.DEFAULT_QUICK_BUY) {
+                if (id != null) {
+                    shop.add(id);
+                }
+            }
+        }
+        return new Fast(events, shop, config.getBoolean("fast-bedwars.ameliorations", false));
+    }
+
+    /** ctf: Capture the Flag (3 captures, 15 minutes on The Bridge, 20 in the castles, 30 seconds by default). */
+    private static Ctf ctf(ConfigurationSection config) {
+        int captures = config.getInt("ctf.captures", 3);
+        if (captures < 1 || captures > 20) {
+            throw new IllegalArgumentException("ctf.captures: from 1 to 20");
+        }
+        int bridge = config.getInt("ctf.minutes-bridge", 15);
+        if (bridge < 1 || bridge > 60) {
+            throw new IllegalArgumentException("ctf.minutes-bridge: from 1 to 60");
+        }
+        int castle = config.getInt("ctf.minutes-chateau", 20);
+        if (castle < 1 || castle > 60) {
+            throw new IllegalArgumentException("ctf.minutes-chateau: from 1 to 60");
+        }
+        int back = config.getInt("ctf.retour-drapeau-secondes", 30);
+        if (back < 5 || back > 300) {
+            throw new IllegalArgumentException("ctf.retour-drapeau-secondes: from 5 to 300");
+        }
+        return new Ctf(captures, bridge, castle, back);
+    }
+
+    /** stuff-ameliore: the better stuff of the player alone of a Bed Fight 1v2 (iron, a stone sword, no Protection by default). */
+    private static Stuff strongStuff(ConfigurationSection config) {
+        int armour = config.getInt("stuff-ameliore.armure", 2);
+        if (armour < 0 || armour > 3) {
+            throw new IllegalArgumentException("stuff-ameliore.armure: from 0 (leather) to 3 (diamond)");
+        }
+        String name = config.getString("stuff-ameliore.epee", "STONE_SWORD");
+        Material sword = Material.matchMaterial(name.trim());
+        if (sword == null || !sword.name().endsWith("_SWORD")) {
+            throw new IllegalArgumentException("stuff-ameliore.epee: a sword, such as STONE_SWORD or IRON_SWORD");
+        }
+        int protection = config.getInt("stuff-ameliore.protection", 0);
+        if (protection < 0 || protection > 4) {
+            throw new IllegalArgumentException("stuff-ameliore.protection: from 0 to 4");
+        }
+        return new Stuff(armour, sword, protection);
     }
 
     /** jeux: the modes that are not a classic game, each with its kind. */
@@ -636,6 +847,18 @@ final class BedwarsSettings {
         return kind == null ? Kind.CLASSIC : kind;
     }
 
+    /** True if a mode lists this map by its name (in modes:). */
+    boolean playsMap(String world) {
+        for (List<String> maps : modes.values()) {
+            for (String map : maps) {
+                if (map.equalsIgnoreCase(world)) {
+                    return true;
+                }
+            }
+        }
+        return false;
+    }
+
     /** The names of this mode's maps, in the order given; empty for every map. */
     List<String> mapsOf(String modeId) {
         List<String> maps = modes.get(modeId);
@@ -716,6 +939,40 @@ final class BedwarsSettings {
         return allForgeModes.contains(modeId);
     }
 
+    /**
+     * True for a mode played only on the maps of exactly as many teams as the mode has
+     * (equipes-exactes: Bedwars Normal, its 4s on the maps of 4 teams, its 2s on those of 8).
+     */
+    boolean exactTeams(String modeId) {
+        return exactTeamModes.contains(modeId);
+    }
+
+    /**
+     * True for a mode whose private games the party leader sets ({@link PrivateRules}: Speed, Max
+     * Diamond...), in the lobby before the game (reglages-prives: Bedwars Normal, its 4s and 2s).
+     */
+    boolean privateRules(String modeId) {
+        return privateRuleModes.contains(modeId);
+    }
+
+    /**
+     * How many minutes the FFA of a party lasts (FFA Archway in the Private games, the owner's
+     * choice of 23/11: 30), before the kills leaderboard of the game (ffa-privee-minutes).
+     */
+    int privateFfaMinutes() {
+        return privateFfaMinutes;
+    }
+
+    /**
+     * The map whose waiting lobby (salle-attente: in its bedwars.yml) the party of a private game of
+     * Bedwars Normal waits in, a copy of its own, when the map its leader chose has none of its own
+     * (salle-attente-privee; the owner's ask of 25/11: the waiting lobby over the map chosen); "" for
+     * none: the teams are chosen from the lobby.
+     */
+    String privateWaitingMap() {
+        return privateWaitingMap;
+    }
+
     /** True if the games of this mode have an item shop on every island of the map, the empty ones' too. */
     boolean allShops(String modeId) {
         return allShopModes.contains(modeId);
@@ -744,5 +1001,18 @@ final class BedwarsSettings {
     /** The Protection level on the armour of everyone in the Bed Break Simulator, from 0 (none) to 4. */
     int bedBreakProtection() {
         return bedBreakProtection;
+    }
+
+    /** The better stuff of the player alone of a Bed Fight 1v2. */
+    Stuff strongStuff() {
+        return strongStuff;
+    }
+
+    Ctf ctf() {
+        return ctf;
+    }
+
+    Fast fast() {
+        return fast;
     }
 }

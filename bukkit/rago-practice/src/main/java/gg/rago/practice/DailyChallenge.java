@@ -69,8 +69,10 @@ final class DailyChallenge {
         add(catalog, "aim-trainer", "Aim trainer", AimTrainer.TARGETS);
         add(catalog, "fast-defense", "Fast defense", FastDefenseTraining.DEFENSES);
         add(catalog, "ladder-practice", "Ladder practice", LadderTraining.variants());
+        // the Combo bot left the menus (22/11): a config that still lists it reads, and leaves it out
         add(catalog, "combo-bot", "Combo bot", ComboBot.variants());
         add(catalog, "extend-practice", "Extend practice", ExtendTraining.variants());
+        // KB displace against a bot left the menus (23/11): a config that still lists it reads, and leaves it out
         add(catalog, "kb-displace-bot", "KB displace against a bot", KbDisplaceBot.STILL);
         add(catalog, "block-edit", "Block edit", BlockEditTraining.BOT);
         // a distance of the timed bridge, straight and flat
@@ -89,8 +91,7 @@ final class DailyChallenge {
     static final class Settings {
         static final List<String> DEFAULT_BOARDS = Collections.unmodifiableList(java.util.Arrays.asList(
                 "block-in.wood", "clutch.island", "aim-trainer.strafe", "fast-defense.ranked", "ladder-practice.random",
-                "combo-bot.hard", "extend-practice.chain", "clutch-top-fight.top", "block-edit.bot", "block-in.two",
-                "aim-trainer.circle", "kb-displace-bot.still"));
+                "extend-practice.chain", "clutch-top-fight.top", "block-edit.bot", "block-in.two", "aim-trainer.circle"));
         /** Without the section: on, every training of the list, 100 XP a day (+25 a day in a row), 750, 500 and 300 XP. */
         static final Settings DEFAULT = new Settings(true, DEFAULT_BOARDS, 100, 25, 7, java.util.Arrays.asList(750, 500, 300));
         /** No challenge (a wrong section). */

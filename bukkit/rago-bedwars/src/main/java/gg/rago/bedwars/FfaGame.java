@@ -39,10 +39,14 @@ import org.bukkit.inventory.PlayerInventory;
  * boards of the most kills ever in the mode float in the air beside the fight (see
  * {@link #boardPlaces}), and the sidebar shows the 3 players with the most kills in the game. Lobby
  * Fight FFA (lobby-fight-ffa) is the FFA in the waiting lobby of the map (see {@link LobbyFight}):
- * its own kit (in the lobby's config.yml: a stone sword, 5 golden apples and 3 fireballs), each
- * kill bringing the killer's golden apples back to the kit's, at most {@value #LOBBY_MAX_PLAYERS}
- * players, each life somewhere on its floor away from the others, dead a few blocks under it, the
- * blocks in the lobby only. Main thread only.
+ * its own kit (in the lobby's config.yml: a stone sword, 5 golden apples, 3 fireballs, 12 end stone,
+ * a wooden pickaxe, a pearl, 2 stacks of wool and shears) with Haste, each kill bringing the
+ * killer's golden apples back to the kit's,
+ * at most {@value #LOBBY_MAX_PLAYERS} players, each life somewhere on its floor away from the
+ * others, dead a few blocks under it, the blocks in the lobby only. FFA Archway (the Private
+ * games, the owner's choice of 23/11): the FFA of a party alone, in a copy of the map of its own,
+ * which ends after its minutes (ffa-privee-minutes: 30) with the kills leaderboard of the game; in
+ * no stats, without the board of the most kills ever. Main thread only.
  */
 final class FfaGame extends BedwarsGame {
 
@@ -98,10 +102,22 @@ final class FfaGame extends BedwarsGame {
     /** The two islands of the top bridge, once it is planned; null without one. */
     private Team[] bridged;
     private int colours;
+    /** FFA Archway, the FFA of a party alone: the minutes it lasts; 0 for an open game, which never ends. */
+    private int partyMinutes;
 
     FfaGame(RagoBedwars plugin, BedwarsHost host, Instance instance, String modeId, String modeName,
             List<List<Player>> sides, boolean arena) {
         this(plugin, host, instance, modeId, modeName, sides, arena, false);
+    }
+
+    /**
+     * FFA Archway: the FFA of a party alone (the Private games), nobody else joining it, which ends
+     * after these minutes with the kills leaderboard; its other players join it once it has begun.
+     */
+    FfaGame(RagoBedwars plugin, BedwarsHost host, Instance instance, String modeId, String modeName,
+            List<List<Player>> sides, int partyMinutes) {
+        this(plugin, host, instance, modeId, modeName, sides, false, false);
+        this.partyMinutes = partyMinutes;
     }
 
     /** The FFA, the arena, or Lobby Fight FFA (inLobby: in the map's waiting lobby, which it must have). */
@@ -125,9 +141,22 @@ final class FfaGame extends BedwarsGame {
         return false;
     }
 
+    /** A free for all: a fall nobody gets the kill of is no death (a kill counts for both). */
+    @Override
+    boolean countsDeaths() {
+        return false;
+    }
+
+    /** The FFA of a party is the party's alone: nobody joins it. */
     @Override
     boolean joinable() {
-        return phase != Phase.ENDED && present().size() < (lobby != null ? LOBBY_MAX_PLAYERS : MAX_PLAYERS);
+        return partyMinutes == 0 && phase != Phase.ENDED
+                && present().size() < (lobby != null ? LOBBY_MAX_PLAYERS : MAX_PLAYERS);
+    }
+
+    /** True for FFA Archway, the FFA of a party alone, which ends after its minutes. */
+    boolean ofAParty() {
+        return partyMinutes > 0;
     }
 
     /** True for Lobby Fight FFA, in the map's waiting lobby. */
@@ -463,7 +492,7 @@ final class FfaGame extends BedwarsGame {
             return;
         } else {
             player.sendMessage(ChatColor.GRAY + "Your kit (arranged in the lobby's kit editor) comes back at each life, "
-                    + "and a kill heals you.");
+                    + "and a kill heals you and gives your whole kit back.");
             if (choosesSpawn()) {
                 sendButton(player, ChatColor.GRAY + "Where you spawn: "
                         + String.join(", ", instance.map().spawnChoices().keySet()) + " or Random. ",
@@ -481,8 +510,8 @@ final class FfaGame extends BedwarsGame {
     }
 
     /**
-     * FFA: the mode's kit and the fight armour, its leather red for everyone, at each life. Arena:
-     * the start of a Bed Wars life.
+     * FFA: the mode's kit and the fight armour, its leather red for everyone, at each life (Lobby
+     * Fight FFA: with Haste). Arena: the start of a Bed Wars life.
      */
     @Override
     void giveKit(Player player, Gamer gamer) {
@@ -496,11 +525,14 @@ final class FfaGame extends BedwarsGame {
         if (kit != null) {
             inventory.setContents(kit);
         } else {
-            for (ItemStack item : fightKit(!onTheBridge())) {
+            for (ItemStack item : lobby != null ? LobbyFight.fallbackKit() : fightKit(!onTheBridge())) {
                 inventory.addItem(kitItem(item, gamer));
             }
         }
         fightArmour(player, TeamColor.RED.leather());
+        if (lobby != null) {
+            LobbyFight.haste(player);
+        }
         player.updateInventory();
     }
 
@@ -554,8 +586,52 @@ final class FfaGame extends BedwarsGame {
             killer.setHealth(killer.getMaxHealth());
             if (lobby != null) {
                 refillApples(killer, author);
+            } else if (!onTheBridge()) {
+                refillKit(killer, author);
             }
         }
+    }
+
+    /**
+     * The FFA (the owner's ask of 22/11): a kill brings the killer's whole kit back, each of its
+     * items to as many as the kit gives (fireballs, pearl, wool, golden apples...), as the lobby's
+     * kit editor arranged it, else the owner's fight kit.
+     */
+    private void refillKit(Player killer, Gamer author) {
+        ItemStack[] kit = lobbyKit(killer, author);
+        if (kit == null) {
+            List<ItemStack> items = fightKit(true);
+            kit = new ItemStack[items.size()];
+            for (int i = 0; i < kit.length; i++) {
+                kit[i] = kitItem(items.get(i), author);
+            }
+        }
+        PlayerInventory inventory = killer.getInventory();
+        ItemStack[] contents = inventory.getContents();
+        // the stacks grown are the inventory's own (a stack being eaten goes on being eaten); set the new ones
+        for (int slot : refillAll(contents, kit)) {
+            inventory.setItem(slot, contents[slot]);
+        }
+        killer.updateInventory();
+    }
+
+    /**
+     * Brings these contents back to the kit: each of its items, in the order of its slots, to as
+     * many as it gives, as {@link #refill} does for one. Returns the slots that were empty and now
+     * hold a stack, for the inventory to set.
+     */
+    static List<Integer> refillAll(ItemStack[] contents, ItemStack[] kit) {
+        List<Integer> filled = new ArrayList<>();
+        List<Material> done = new ArrayList<>();
+        for (int slot = 0; kit != null && slot < kit.length; slot++) {
+            ItemStack item = kit[slot];
+            if (item == null || item.getType() == Material.AIR || done.contains(item.getType())) {
+                continue;
+            }
+            done.add(item.getType());
+            filled.addAll(refill(contents, kit, item.getType()));
+        }
+        return filled;
     }
 
     /** Lobby Fight FFA: a kill brings the killer's golden apples back to as many as their kit gives. */
@@ -671,7 +747,18 @@ final class FfaGame extends BedwarsGame {
     @Override
     void everySecond() {
         decay.tick(instance, instance.world(), seconds);
-        if (!arena && seconds % BOARD_SECONDS == 1) {
+        if (ofAParty()) {
+            int limit = partyMinutes * 60;
+            if (seconds == limit - 60) {
+                broadcast(ChatColor.YELLOW + "One minute left.", Sound.NOTE_STICKS);
+            } else if (seconds >= limit) {
+                broadcast(ChatColor.YELLOW + "Time is up.", Sound.NOTE_BASS);
+                end(mostKills());
+                return;
+            }
+        }
+        // the board of the most kills ever in the mode: not in the FFA of a party, which counts in no stats
+        if (!arena && !ofAParty() && seconds % BOARD_SECONDS == 1) {
             updateBoard();
         }
         if (arena && seconds % REPAIR_SECONDS == 0) {
@@ -774,6 +861,70 @@ final class FfaGame extends BedwarsGame {
         }
     }
 
+    /** The FFA of a party at the end of its minutes: the team of who has the most kills; null when several are level. */
+    private Team mostKills() {
+        Gamer best = null;
+        boolean level = false;
+        for (Gamer gamer : gamers.values()) {
+            if (best == null || gamer.kills > best.kills) {
+                best = gamer;
+                level = false;
+            } else if (gamer.kills == best.kills) {
+                level = true;
+            }
+        }
+        return best == null || level ? null : best.team;
+    }
+
+    /** The FFA of a party: the kills leaderboard of the game, every player in it; else the three first killers. */
+    @Override
+    List<String> endBoard() {
+        if (!ofAParty()) {
+            return super.endBoard();
+        }
+        List<Map.Entry<String, int[]>> players = new ArrayList<>();
+        for (Gamer gamer : gamers.values()) {
+            players.add(new java.util.AbstractMap.SimpleEntry<>(gamer.coloured(),
+                    new int[] {gamer.kills, deaths.getOrDefault(gamer.id, 0)}));
+        }
+        return leaderboard(players);
+    }
+
+    /**
+     * The kills leaderboard at the end of the FFA of a party (the owner's choice of 23/11): a title,
+     * then every player, the most kills first (by name when level), "1. Sofiene - 12 kills, 3
+     * deaths"; players level in kills share their place (12, 12 and 5 kills: 1, 1 and 3).
+     */
+    static List<String> leaderboard(List<Map.Entry<String, int[]>> players) {
+        List<Map.Entry<String, int[]>> sorted = new ArrayList<>(players);
+        sorted.sort((a, b) -> a.getValue()[0] != b.getValue()[0] ? Integer.compare(b.getValue()[0], a.getValue()[0])
+                : ChatColor.stripColor(a.getKey()).compareToIgnoreCase(ChatColor.stripColor(b.getKey())));
+        List<String> lines = new ArrayList<>();
+        lines.add("  " + ChatColor.GOLD + ChatColor.BOLD + "Kills leaderboard");
+        int place = 0;
+        for (int i = 0; i < sorted.size(); i++) {
+            int[] score = sorted.get(i).getValue();
+            if (i == 0 || score[0] != sorted.get(i - 1).getValue()[0]) {
+                place = i + 1;
+            }
+            lines.add("  " + ChatColor.YELLOW + place + ". " + ChatColor.WHITE + sorted.get(i).getKey() + ChatColor.GRAY + " - "
+                    + ChatColor.WHITE + score[0] + (score[0] == 1 ? " kill" : " kills") + ChatColor.GRAY + ", " + score[1]
+                    + (score[1] == 1 ? " death" : " deaths"));
+        }
+        return lines;
+    }
+
+    /** The FFA of a party: the player's kills and deaths; no final kill nor bed in a free for all. */
+    @Override
+    String summaryLine(Gamer gamer) {
+        if (!ofAParty()) {
+            return super.summaryLine(gamer);
+        }
+        int died = deaths.getOrDefault(gamer.id, 0);
+        return ChatColor.GRAY + "  You: " + gamer.kills + (gamer.kills == 1 ? " kill, " : " kills, ") + died
+                + (died == 1 ? " death" : " deaths");
+    }
+
     @Override
     List<String> lines(Gamer viewer) {
         List<String> lines = new ArrayList<>();
@@ -781,6 +932,9 @@ final class FfaGame extends BedwarsGame {
         lines.add(modeLine != null ? modeLine + " " + ChatColor.GRAY + instance.map().world()
                 : ChatColor.WHITE + (arena ? "Arena on " : bridged != null ? "Top Bridge on " : "FFA on ") + ChatColor.GREEN
                         + instance.map().world());
+        if (ofAParty()) {
+            lines.add(ChatColor.WHITE + "Ends in: " + ChatColor.GREEN + clock(Math.max(0, partyMinutes * 60 - seconds)));
+        }
         lines.add("");
         List<Gamer> here = present();
         lines.add(ChatColor.WHITE + "Players: " + ChatColor.GREEN + here.size());

@@ -37,7 +37,7 @@ import org.bukkit.potion.PotionEffectType;
 /**
  * One game being recorded: each tick, where its players are, how they look and what they hold,
  * the blocks that changed in its part of the world and its projectiles; with the hits, swings,
- * explosions and chat lines the service passes on. Kept gzipped in memory until the end of the
+ * explosions, sounds, broken blocks and chat lines the service passes on. Kept gzipped in memory until the end of the
  * game, then written by the service. Main thread only (the world hook may add changed blocks).
  */
 final class ReplayRecorder implements ReplayRecording {
@@ -93,6 +93,8 @@ final class ReplayRecorder implements ReplayRecording {
     /** The state last written of each block that changed: id << 4 | data. */
     private final Map<Long, Integer> written = new HashMap<>();
     private final Map<Integer, Followed> followed = new HashMap<>();
+    /** The sounds written in this tick: one sound heard by every player is written once. */
+    private final Set<String> heard = new HashSet<>();
     private int nextThing = 1;
     private boolean done;
     private String id;
@@ -212,9 +214,30 @@ final class ReplayRecorder implements ReplayRecording {
         }
     }
 
+    /** A sound the server played to a player of the game, in its world: written once a tick. */
+    void sound(String name, double x, double y, double z, float volume, int pitch) {
+        if (done || !setup.contains((int) Math.floor(x), (int) Math.floor(z))) {
+            return;
+        }
+        int fx = ReplayData.fixed(x, setup.originX());
+        int fy = ReplayData.fixed(y, setup.originY());
+        int fz = ReplayData.fixed(z, setup.originZ());
+        if (heard.add(name + ' ' + fx + ' ' + fy + ' ' + fz + ' ' + volume + ' ' + pitch)) {
+            body.sound(name, fx, fy, fz, volume, pitch);
+        }
+    }
+
+    /** A player broke this block (id | data << 12): its sound and bits in the replay. */
+    void broke(int x, int y, int z, int block) {
+        if (!done && setup.contains(x, z)) {
+            body.broke(x - setup.originX(), y - setup.originY(), z - setup.originZ(), block);
+        }
+    }
+
     /** The end of a tick: the players, the blocks and the projectiles as they are now. */
     @SuppressWarnings("deprecation") // Block#getTypeId and getData: the 1.8 block id and data
     void tick(List<Entity> things) {
+        heard.clear();
         if (done || body.ticks() >= MAX_TICKS) {
             return;
         }

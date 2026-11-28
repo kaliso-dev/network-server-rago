@@ -6,7 +6,7 @@
 #    RagoPractice and RagoBedwars;
 # 2. lets two bots (tools/kb-control/bots/lobby-bots.mjs) go through the lobby, the selector, the
 #    queue, a sumo duel won 3 - 0, the return to the lobby, a forfeit, and a game of Ranked
-#    Bedwars 1v1 on the demo map of RagoBedwars;
+#    Bedwars 1v1 on the demo map of RagoBedwars, then a third (an operator) hosts an event;
 # 3. fails if the bots fail, or if the server log has an error or an exception.
 #
 # Run from anywhere, after the build:
@@ -99,17 +99,31 @@ settings:
   allow-end: false
 YAML
 # The bundled config.yml of the lobby, with a kit for the sumo (it gives none by default): a stick,
-# which the bots move in the kit editor and find where they put it in the duel.
+# which the bots move in the kit editor and find where they put it in the duel. Without the skins of
+# Minecraft accounts (skin-joueur:): the server asks Mojang for none, and does not place the NPCs
+# again when one arrives (they vanish for a moment) while the bots look at them; qRago wears Steve.
 mkdir -p "$SERVER_DIR/plugins/RagoLobby"
-sed '/^  sumo:$/a\    kit: [STICK]' "$ROOT/bukkit/rago-lobby/src/main/resources/config.yml" \
+sed -e '/^  sumo:$/a\    kit: [STICK]' -e '/^    skin-joueur: /d' "$ROOT/bukkit/rago-lobby/src/main/resources/config.yml" \
   >"$SERVER_DIR/plugins/RagoLobby/config.yml"
 grep -q '^    kit: \[STICK\]$' "$SERVER_DIR/plugins/RagoLobby/config.yml" || fail "could not give the sumo a kit"
+grep -q '^    skin-joueur: ' "$SERVER_DIR/plugins/RagoLobby/config.yml" && fail "could not leave out the skins of the accounts"
 # The bundled config.yml of RagoPractice, with a sumo of three rounds (one by default), so that the
-# bots play its rounds: RagoDeux falls three times and RagoUn wins 3 - 0.
+# bots play its rounds: RagoDeux falls three times and RagoUn wins 3 - 0; and the events of /host
+# waiting 25 seconds (60 by default) before they start: the announcement comes back once, at 20.
 mkdir -p "$SERVER_DIR/plugins/RagoPractice"
-sed 's/^  points-pour-gagner: 1$/  points-pour-gagner: 3/' "$ROOT/bukkit/rago-practice/src/main/resources/config.yml" \
-  >"$SERVER_DIR/plugins/RagoPractice/config.yml"
-grep -q '^  points-pour-gagner: 3$' "$SERVER_DIR/plugins/RagoPractice/config.yml" || fail "could not give the sumo three rounds"
+sed -e '/^sumo:$/,/^[a-z]/s/^  points-pour-gagner: 1$/  points-pour-gagner: 3/' -e 's/^  attente-secondes: 60$/  attente-secondes: 25/' \
+  "$ROOT/bukkit/rago-practice/src/main/resources/config.yml" >"$SERVER_DIR/plugins/RagoPractice/config.yml"
+sed -n '/^sumo:$/,/^[a-z]/p' "$SERVER_DIR/plugins/RagoPractice/config.yml" | grep -q '^  points-pour-gagner: 3$' \
+  || fail "could not give the sumo three rounds"
+grep -q '^  attente-secondes: 25$' "$SERVER_DIR/plugins/RagoPractice/config.yml" || fail "could not shorten the wait of the events"
+# RagoTrois is an operator: it hosts an event (rago.perk.host, given to the operators). Its UUID is
+# the one of an offline-mode player: the version 3 UUID of "OfflinePlayer:RagoTrois".
+offline_uuid() {
+  node -e 'const h = require("crypto").createHash("md5").update("OfflinePlayer:" + process.argv[1]).digest()
+h[6] = (h[6] & 0x0f) | 0x30; h[8] = (h[8] & 0x3f) | 0x80
+const x = h.toString("hex"); console.log([x.slice(0, 8), x.slice(8, 12), x.slice(12, 16), x.slice(16, 20), x.slice(20)].join("-"))' "$1"
+}
+printf '[{"uuid":"%s","name":"RagoTrois","level":4}]\n' "$(offline_uuid RagoTrois)" >"$SERVER_DIR/ops.json"
 # Every bundled skin of the NPCs counts as signed already (skins.yml: the hash of its PNG and empty
 # textures, so the NPCs look like Steve): the server sends nothing to MineSkin, and does not place
 # the NPCs again after each skin signed (they vanish for a moment) while the bots look at them.
@@ -125,8 +139,10 @@ sed -e 's/^  fer-secondes-par-noeud: [0-9.]*$/  fer-secondes-par-noeud: 1/' \
   "$ROOT/bukkit/rago-bedwars/src/main/resources/config.yml" >"$SERVER_DIR/plugins/RagoBedwars/config.yml"
 grep -q '^  fer-secondes-par-noeud: 1$' "$SERVER_DIR/plugins/RagoBedwars/config.yml" || fail "could not speed up the iron"
 # Around the spawn of the new lobby world: the NPC of the Duels category (on its point of the
-# bundled config, duels), a stats NPC (profil), a wall of leaderboards (leaderboards), the main
-# leaderboard (top, within click range of the spawn) and the kills leaderboard (joueurs).
+# bundled config, duels), a stats NPC (profil), a person of the thank-you room (qrago), a product
+# of Rago (ragoclient), the thank-you text on both sides (textremerciement, textremerciement2), a wall of leaderboards
+# (leaderboards), the main leaderboard (top, within click range of the spawn) and the kills
+# leaderboard (joueurs).
 mkdir -p "$SERVER_DIR/lobby"
 cat >"$SERVER_DIR/lobby/points.yml" <<'YAML'
 duels:
@@ -139,6 +155,30 @@ profil:
   x: -3.5
   y: 65.0
   z: 0.5
+  yaw: 0.0
+  pitch: 0.0
+qrago:
+  x: -3.5
+  y: 65.0
+  z: -3.5
+  yaw: 0.0
+  pitch: 0.0
+ragoclient:
+  x: 3.5
+  y: 65.0
+  z: -3.5
+  yaw: 0.0
+  pitch: 0.0
+textremerciement:
+  x: -8.5
+  y: 65.0
+  z: -3.5
+  yaw: 0.0
+  pitch: 0.0
+textremerciement2:
+  x: 8.5
+  y: 65.0
+  z: -3.5
   yaw: 0.0
   pitch: 0.0
 leaderboards:
@@ -196,7 +236,9 @@ if [[ "$started" != true ]]; then
 fi
 for expected in '[RagoLobby] Lobby in the world lobby' 'Mode sumo hosted by RagoPractice' \
     '[RagoPractice] Arenas in the world arenes' '[RagoBedwars] Demo map bw-demo created' \
-    'Mode ranked-1v1 hosted by RagoBedwars' '[RagoBedwars] Bed Wars maps ready: bw-demo;'; do
+    'Mode ranked-1v1 hosted by RagoBedwars' '[RagoBedwars] Capture the Flag map CtfBridge created' \
+    '[RagoBedwars] Capture the Flag map CtfCastle created' \
+    '[RagoBedwars] Bed Wars maps ready: bw-demo, CtfBridge, CtfCastle;'; do
   server_log_has "$expected" || { grep -n 'Rago' "$SERVER_LOG" >&2 || true; fail "missing in the server log: $expected"; }
 done
 log "server started with the lobby, the sumo duel and Bed Wars"

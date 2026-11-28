@@ -268,6 +268,35 @@ class BedwarsMapTest {
     }
 
     @Test
+    void theWayUpOfBedBreakReadsBackAsWritten() throws Exception {
+        assertNull(demo().bedBreakTop(), "a map without: none");
+        assertFalse(demo().toYaml().contains("bed-break"));
+        BedwarsMap map = BedwarsMap.fromYaml("Invasion", "actif: true\nbed-break:\n  escalier:\n  - 33 93 -39\n  - 32 93 -39\n"
+                + "  - 8 114 -21\n  plateforme:\n    y: 114\n    de: {x: 8, z: 21}\n    a: {x: -8, z: -21}\n");
+        BedwarsMap.BedBreakTop top = map.bedBreakTop();
+        assertEquals(3, top.stairs.size());
+        assertEquals(Arrays.asList(33, 93, -39), Arrays.asList(top.stairs.get(0)[0], top.stairs.get(0)[1], top.stairs.get(0)[2]));
+        assertEquals(Arrays.asList(8, 114, -21), Arrays.asList(top.stairs.get(2)[0], top.stairs.get(2)[1], top.stairs.get(2)[2]));
+        assertEquals(114, top.platformY);
+        assertEquals(Arrays.asList(-8, -21, 8, 21), Arrays.asList(top.minX, top.minZ, top.maxX, top.maxZ), "the corners in any order");
+        BedwarsMap.BedBreakTop again = map.copy().bedBreakTop();
+        assertEquals(top.stairs.size(), again.stairs.size(), "written back as read (a /bw save keeps it)");
+        for (int i = 0; i < top.stairs.size(); i++) {
+            assertTrue(Arrays.equals(top.stairs.get(i), again.stairs.get(i)), "block " + i);
+        }
+        assertEquals(Arrays.asList(114, -8, -21, 8, 21), Arrays.asList(again.platformY, again.minX, again.minZ, again.maxX, again.maxZ));
+        String platform = "  plateforme:\n    y: 114\n    de: {x: 8, z: 21}\n    a: {x: -8, z: -21}\n";
+        assertThrows(IllegalArgumentException.class, () -> BedwarsMap.fromYaml("m", "bed-break:\n  escalier:\n  - 33 93\n" + platform));
+        assertThrows(IllegalArgumentException.class, () -> BedwarsMap.fromYaml("m", "bed-break:\n  escalier:\n  - 33 trois -39\n" + platform));
+        assertThrows(IllegalArgumentException.class, () -> BedwarsMap.fromYaml("m", "bed-break:\n  escalier:\n  - 1 2 3\n"));
+        assertThrows(IllegalArgumentException.class, () -> BedwarsMap.fromYaml("m", "bed-break:\n  escalier:\n  - 1 2 3\n"
+                + platform.replace("y: 114", "y: 300")));
+        assertThrows(IllegalArgumentException.class, () -> BedwarsMap.fromYaml("m", "bed-break:\n  escalier:\n  - 1 2 3\n"
+                + platform.replace("de: {x: 8, z: 21}", "de: {x: 8}")));
+        assertThrows(IllegalArgumentException.class, () -> BedwarsMap.fromYaml("m", "bed-break:\n" + platform));
+    }
+
+    @Test
     void theIslandsKeepTheBlocksOffTheBridges() throws Exception {
         BedwarsMap map = read("actif: true\niles:\n"
                 + "- {centre: {x: 0.5, z: -0.5}, rayon: 27.5, bas: 55, haut: 80}\n"
@@ -312,6 +341,26 @@ class BedwarsMapTest {
         players.add(new java.util.AbstractMap.SimpleEntry<>("AVeryLongNameOfAPlayer", 5));
         assertEquals(java.util.Arrays.asList("Top kills", "1. Sofiene 12", "2. Bob 8", "3. AVeryLongNameOfA 5"),
                 plain(FfaGame.topLines(players, 3)), "three at most");
+    }
+
+    @Test
+    void theFfaOfAPartyEndsWithItsKillsLeaderboard() {
+        // FFA Archway (the owner's choice of 23/11): every player, the most kills first, level ones at the same place
+        List<Map.Entry<String, int[]>> players = new java.util.ArrayList<>();
+        players.add(new java.util.AbstractMap.SimpleEntry<>("\u00a7cZoe", new int[] {5, 2}));
+        players.add(new java.util.AbstractMap.SimpleEntry<>("\u00a79Sofiene", new int[] {12, 3}));
+        players.add(new java.util.AbstractMap.SimpleEntry<>("\u00a7aali", new int[] {5, 1}));
+        players.add(new java.util.AbstractMap.SimpleEntry<>("\u00a7eBob", new int[] {1, 0}));
+        players.add(new java.util.AbstractMap.SimpleEntry<>("\u00a7dNew", new int[] {0, 1}));
+        assertEquals(java.util.Arrays.asList("  Kills leaderboard", "  1. Sofiene - 12 kills, 3 deaths",
+                "  2. ali - 5 kills, 1 death", "  2. Zoe - 5 kills, 2 deaths", "  4. Bob - 1 kill, 0 deaths",
+                "  5. New - 0 kills, 1 death"), plain(FfaGame.leaderboard(players)),
+                "level in kills: the same place, by name; the next one after them");
+        List<Map.Entry<String, int[]>> none = new java.util.ArrayList<>();
+        none.add(new java.util.AbstractMap.SimpleEntry<>("B", new int[] {0, 0}));
+        none.add(new java.util.AbstractMap.SimpleEntry<>("A", new int[] {0, 2}));
+        assertEquals(java.util.Arrays.asList("  Kills leaderboard", "  1. A - 0 kills, 2 deaths", "  1. B - 0 kills, 0 deaths"),
+                plain(FfaGame.leaderboard(none)), "nobody with a kill: all first");
     }
 
     @Test

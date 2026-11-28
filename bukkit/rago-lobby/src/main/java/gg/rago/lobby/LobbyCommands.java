@@ -32,6 +32,9 @@ final class LobbyCommands implements TabExecutor {
 
     private static final List<String> ADMIN = Arrays.asList("setspawn", "build", "modes", "point", "points");
 
+    /** The category /ranked opens: Ranked in the compass (the owner's ask of 23/11). */
+    static final String RANKED_CATEGORY = "classe";
+
     private final RagoLobby lobby;
 
     LobbyCommands(RagoLobby lobby) {
@@ -56,6 +59,18 @@ final class LobbyCommands implements TabExecutor {
         switch (name) {
             case "party":
                 return lobby.parties().command(player, args);
+            case "privategame":
+                // /pg team: the team menu of a private game of Bedwars Normal, while the party chooses
+                if (args.length == 1 && args[0].equalsIgnoreCase("team")) {
+                    lobby.queues().rooms().openTeams(player);
+                    return true;
+                }
+                // /pg settings: the party leader sets the game (Speed, Max Diamond...)
+                if (args.length == 1 && args[0].equalsIgnoreCase("settings")) {
+                    lobby.queues().rooms().openSettings(player);
+                    return true;
+                }
+                return false;
             case "pc":
                 if (args.length == 0) {
                     return false;
@@ -74,6 +89,9 @@ final class LobbyCommands implements TabExecutor {
                 return queue(player, args);
             case "play":
                 return play(player, args);
+            case "ranked":
+                // /ranked: the Ranked menu of the compass, as /play does it (the owner's ask of 23/11)
+                return play(player, new String[] {RANKED_CATEGORY});
             case "duel":
                 return duel(player, args);
             case "hypixel":
@@ -163,11 +181,21 @@ final class LobbyCommands implements TabExecutor {
 
     private boolean duel(Player player, String[] args) {
         if (args.length == 2 && (args[0].equalsIgnoreCase("accept") || args[0].equalsIgnoreCase("accepter"))) {
-            lobby.duels().accept(player, args[1]);
+            // a party duel of that leader's party first, else a duel of that player
+            if (!lobby.partyDuels().accept(player, args[1])) {
+                lobby.duels().accept(player, args[1]);
+            }
             return true;
         }
         if (args.length == 2 && (args[0].equalsIgnoreCase("deny") || args[0].equalsIgnoreCase("refuser"))) {
-            lobby.duels().refuse(player, args[1]);
+            if (!lobby.partyDuels().refuse(player, args[1])) {
+                lobby.duels().refuse(player, args[1]);
+            }
+            return true;
+        }
+        if (args.length == 0 && lobby.parties().book().together(player.getUniqueId()) != null) {
+            // in a party of two or more: the other parties of the server (the owner's ask of 25/11)
+            lobby.partyDuels().open(player);
             return true;
         }
         if (args.length == 0 || args.length > 2) {
@@ -264,9 +292,12 @@ final class LobbyCommands implements TabExecutor {
         for (java.util.Map.Entry<String, SpawnPoint> entry : all.entrySet()) {
             SpawnPoint p = entry.getValue();
             LobbyNpc npc = lobby.settings().npc(entry.getKey());
+            LobbyText text = lobby.settings().text(entry.getKey());
             player.sendMessage(ChatColor.GRAY + " " + entry.getKey() + ": " + (int) Math.floor(p.x()) + " "
                     + (int) Math.floor(p.y()) + " " + (int) Math.floor(p.z())
-                    + (npc == null ? ChatColor.DARK_GRAY + " (no NPC)" : ChatColor.GREEN + " → " + npc.name()));
+                    + (npc != null ? ChatColor.GREEN + " → " + npc.name()
+                            : text != null ? ChatColor.GREEN + " → a text of " + text.lines.size() + " lines"
+                            : ChatColor.DARK_GRAY + " (no NPC)"));
         }
         List<String> missing = new ArrayList<>();
         for (LobbyNpc npc : lobby.settings().npcs()) {
@@ -274,8 +305,13 @@ final class LobbyCommands implements TabExecutor {
                 missing.add(npc.point());
             }
         }
+        for (LobbyText text : lobby.settings().texts()) {
+            if (!all.containsKey(text.point)) {
+                missing.add(text.point);
+            }
+        }
         if (!missing.isEmpty()) {
-            player.sendMessage(ChatColor.GRAY + "NPCs without a point (/lobby point <name>): " + String.join(", ", missing));
+            player.sendMessage(ChatColor.GRAY + "NPCs and texts without a point (/lobby point <name>): " + String.join(", ", missing));
         }
     }
 

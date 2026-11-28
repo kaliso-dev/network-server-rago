@@ -45,19 +45,20 @@ final class RoundKit {
 
     /**
      * The attacker's kits of the Bed Break Simulator, the owner's three: the classic one (a tier III
-     * pickaxe, two stacks of blocks), the fireball one (a fireball, a tier II pickaxe, two stacks),
-     * the fighter (a tier I pickaxe, a golden apple, ladders, the knockback stick); each with a stone
-     * sword.
+     * pickaxe and axe, two stacks of blocks), the fireball one (a fireball, a tier II pickaxe and
+     * axe, two stacks), the fighter (a tier I pickaxe and axe, a golden apple, ladders, the knockback
+     * stick); each with a stone sword and shears.
      */
     static final List<RoundKit> BED_BREAK = Collections.unmodifiableList(Arrays.asList(
             new RoundKit("Classic", Material.GOLD_PICKAXE, Arrays.asList("The Golden Pickaxe (tier III)", "digs the end stone fast:",
-                    "two stacks to bridge in."), Arrays.asList("stone_sword", "golden_pickaxe", "wool 64", "wool 64")),
-            new RoundKit("Fireball", Material.FIREBALL, Arrays.asList("A fireball to blow the wool and", "knock a defender off, the",
-                    "Iron Pickaxe (tier II), two stacks."), Arrays.asList("stone_sword", "fireball", "iron_pickaxe", "wool 64",
+                    "two stacks to bridge in."), Arrays.asList("stone_sword", "golden_pickaxe", "iron_axe", "shears", "wool 64",
                     "wool 64")),
+            new RoundKit("Fireball", Material.FIREBALL, Arrays.asList("A fireball to blow the wool and", "knock a defender off, the",
+                    "Iron Pickaxe (tier II), two stacks."), Arrays.asList("stone_sword", "fireball", "iron_pickaxe", "stone_axe",
+                    "shears", "wool 64", "wool 64")),
             new RoundKit("Fighter", Material.STICK, Arrays.asList("Knock them off with the stick,", "a golden apple to last, ladders",
-                    "to climb; the Wooden Pickaxe."), Arrays.asList("stone_sword", "wooden_pickaxe", "golden_apple", "ladder 8",
-                    "stick"))));
+                    "to climb; the Wooden Pickaxe."), Arrays.asList("stone_sword", "wooden_pickaxe", "wooden_axe", "shears",
+                    "golden_apple", "ladder 8", "stick"))));
 
     final String name;
     final Material icon;

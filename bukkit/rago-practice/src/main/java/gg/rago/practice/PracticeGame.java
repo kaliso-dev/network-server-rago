@@ -31,6 +31,7 @@ import org.bukkit.event.entity.EntityDamageByEntityEvent;
 import org.bukkit.event.entity.EntityDamageEvent;
 import org.bukkit.event.entity.ProjectileLaunchEvent;
 import org.bukkit.event.player.PlayerInteractEvent;
+import org.bukkit.event.player.PlayerToggleFlightEvent;
 import org.bukkit.event.player.PlayerTeleportEvent;
 import org.bukkit.event.player.PlayerVelocityEvent;
 import org.bukkit.inventory.ItemStack;
@@ -207,6 +208,13 @@ abstract class PracticeGame implements Spectators.Watched {
 
     /** The player moved (in the fight or not, not in the void). */
     void moved(Player player, Location from, Location to) {
+    }
+
+    /**
+     * A player of the game (not watching) pressed jump twice in the air, which starts a flight
+     * when they may fly: by default nothing more happens (a mode lets them fly, or not).
+     */
+    void toggledFlight(Player player, PlayerToggleFlightEvent event) {
     }
 
     /**
@@ -671,6 +679,13 @@ abstract class PracticeGame implements Spectators.Watched {
                 }
             }
             plugin.lobby().recordMatch(mode.id(), winners, losers);
+        } else if (winner < 0 && sides.size() > 1 && counts()) {
+            // a draw is a game played for everyone in it
+            List<UUID> players = new ArrayList<>();
+            for (List<UUID> side : sides) {
+                players.addAll(side);
+            }
+            plugin.lobby().recordDraw(mode.id(), players);
         }
         for (Player player : online()) {
             if (winner < 0) {
@@ -682,6 +697,7 @@ abstract class PracticeGame implements Spectators.Watched {
                 player.sendMessage(ChatColor.GOLD + "" + ChatColor.BOLD + "Victory!" + ChatColor.GRAY + " " + result(winner)
                         + (why == null ? "" : " " + why));
                 player.playSound(player.getLocation(), Sound.LEVEL_UP, 1f, 1f);
+                ding(player);
             } else {
                 player.sendMessage(ChatColor.RED + "" + ChatColor.BOLD + "Defeat." + ChatColor.GRAY + " " + result(winner));
             }
@@ -831,6 +847,11 @@ abstract class PracticeGame implements Spectators.Watched {
 
     List<UUID> players() {
         return new ArrayList<>(names.keySet());
+    }
+
+    @Override
+    public List<Player> watchedPlayers() {
+        return online();
     }
 
     /** The players still in this game, online. */
@@ -1121,7 +1142,8 @@ abstract class PracticeGame implements Spectators.Watched {
             if (!Fireballs.reaches(at.getX() - centre.getX(), at.getY() - centre.getY(), at.getZ() - centre.getZ())) {
                 continue;
             }
-            double[] push = Fireballs.push(centre.getX(), centre.getY(), centre.getZ(), at.getX(), at.getY(), at.getZ());
+            double[] push = fireballPush(player, thrower,
+                    Fireballs.push(centre.getX(), centre.getY(), centre.getZ(), at.getX(), at.getY(), at.getZ()));
             player.setVelocity(new Vector(push[0], push[1], push[2]));
             double damage;
             if (thrower == null || thrower.equals(player)) {
@@ -1142,6 +1164,15 @@ abstract class PracticeGame implements Spectators.Watched {
                 entity.setVelocity(new Vector(push[0], push[1], push[2]));
             }
         }
+    }
+
+    /**
+     * The push of a fireball's blast on this player, from the one of Bed Wars ({@link Fireballs#push}):
+     * a mode may make it stronger (the Fireball Fight of FUN PRACTICE). Thrower: the player of the
+     * game who threw it, or null. Default: as it is.
+     */
+    double[] fireballPush(Player player, Player thrower, double[] push) {
+        return push;
     }
 
     /** True if the TNT of this mode hurts as the server's own does; false: it only pushes ({@link #tntBlast}). */
@@ -1209,6 +1240,14 @@ abstract class PracticeGame implements Spectators.Watched {
 
     static void sound(Player player, Sound sound, float pitch) {
         player.playSound(player.getLocation(), sound, 1f, pitch);
+    }
+
+    /**
+     * The ding (the owner's ask of 22/11), the sound of an XP orb: each round, point or game won
+     * rings it for those who won it (a point of a duel already rang it: {@link Duel#pointSound}).
+     */
+    static void ding(Player player) {
+        sound(player, Sound.ORB_PICKUP, 1f);
     }
 
     @SuppressWarnings("deprecation") // Player#sendTitle is marked "API subject to change" in 1.8.8

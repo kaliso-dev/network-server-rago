@@ -1,13 +1,25 @@
 package gg.rago.bedwars;
 
+import gg.rago.game.RedRoverRotation;
 import gg.rago.lobby.api.LobbyService;
+import gg.rago.lobby.api.ModeRecord;
 import java.io.File;
+import java.io.IOException;
+import java.nio.charset.StandardCharsets;
+import java.nio.file.Files;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.UUID;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
+import java.util.function.Consumer;
+import java.util.function.Supplier;
+import java.util.logging.Level;
 import org.bukkit.command.PluginCommand;
+import org.bukkit.configuration.ConfigurationSection;
+import org.bukkit.configuration.file.FileConfiguration;
+import org.bukkit.plugin.Plugin;
 import org.bukkit.plugin.java.JavaPlugin;
 
 /**
@@ -16,6 +28,9 @@ import org.bukkit.plugin.java.JavaPlugin;
  * its map. See the module README.
  */
 public final class RagoBedwars extends JavaPlugin {
+
+    /** The owner's reset of every player's stats, 23/11/2026: its name, as in RagoLobby. */
+    static final String STATS_RESET = "stats-2026-11";
 
     /** How often the items of the players in a game are made unbreakable, the new ones (see Unbreakable). */
     static final long UNBREAKABLE_TICKS = 5L;
@@ -34,6 +49,35 @@ public final class RagoBedwars extends JavaPlugin {
     private BedwarsHost host;
     /** Those who watch a game with the lobby's /spectate. */
     private Watchers watchers;
+    /** The last problem told about the Red Rover settings, not told again. */
+    private String redRoverWarned;
+
+    /** config.yml, read as UTF-8 ({@link Utf8Config}): Bukkit 1.8 reads it in the system's charset. */
+    private FileConfiguration utf8Config;
+
+    @Override
+    public FileConfiguration getConfig() {
+        if (utf8Config == null) {
+            reloadConfig();
+        }
+        return utf8Config;
+    }
+
+    @Override
+    public void reloadConfig() {
+        utf8Config = Utf8Config.read(new File(getDataFolder(), "config.yml"), getResource("config.yml"), getLogger());
+    }
+
+    @Override
+    public void saveConfig() {
+        File file = new File(getDataFolder(), "config.yml");
+        try {
+            Files.createDirectories(getDataFolder().toPath());
+            Files.write(file.toPath(), getConfig().saveToString().getBytes(StandardCharsets.UTF_8));
+        } catch (IOException e) {
+            getLogger().log(Level.SEVERE, "Could not save " + file, e);
+        }
+    }
 
     @Override
     public void onEnable() {
@@ -61,6 +105,8 @@ public final class RagoBedwars extends JavaPlugin {
         File container = getServer().getWorldContainer();
         maps = new MapStore(container, io, getLogger());
         fastShopRecords = new FastShopRecords(new File(getDataFolder(), "fastshop.yml"), io, getLogger());
+        // the owner's reset of every player's stats (23/11/2026, RagoLobby does the rest), once
+        fastShopRecords.resetOnce(STATS_RESET);
         fastShopRecords.load();
         instances = new Instances(this, container, io, settings.maxGames());
         instances.deleteLeftovers();
@@ -71,6 +117,9 @@ public final class RagoBedwars extends JavaPlugin {
             maps.save(demo);
             getLogger().info("Demo map " + DemoMap.WORLD + " created (carte-demo: false in config.yml turns it off)");
         }
+        // the maps of Capture the Flag, made the first time a mode of config.yml plays them
+        ctfMap(CtfMaps.BRIDGE, CtfMaps::bridgePlan, CtfMaps::bridgeLayout);
+        ctfMap(CtfMaps.CASTLE, CtfMaps::castlePlan, CtfMaps::castleLayout);
 
         watchers = new Watchers(this);
         getServer().getPluginManager().registerEvents(watchers, this);
@@ -120,6 +169,11 @@ public final class RagoBedwars extends JavaPlugin {
                 getLogger().warning("The lobby has no mode \"" + mode + "\" in its config.yml: it stays closed.");
             }
         }
+        // under Fast Shop in the menus of the lobby: the record of its first list, in the place of the Daily Streak
+        lobby.setModeRecords(this, this::modeRecord);
+        // Once: the kills and deaths of the Bed Wars modes start again from 0, since a final kill
+        // no longer counts as a kill too and a death in the void without a killer counts (21/11/2026)
+        lobby.resetKillsOnce("kills-bedwars-2026-11", settings.modes());
         List<BedwarsMap> playable = playableMaps();
         List<String> names = new ArrayList<>();
         for (BedwarsMap map : playable) {
@@ -142,6 +196,20 @@ public final class RagoBedwars extends JavaPlugin {
         // the first copy is of a real map when there is one: the demo map only serves without them
         getServer().getScheduler().runTaskLater(this,
                 () -> instances.prepare(MapStore.inAdvance(playableMaps()), false), PREWARM_TICKS);
+    }
+
+    /**
+     * A map of Capture the Flag ({@link CtfMaps}), built and set up the first time a mode of
+     * config.yml lists it; left as it is once its world exists (its points can be changed with /bw).
+     */
+    private void ctfMap(String name, Supplier<CtfMaps.Plan> plan, Consumer<BedwarsMap> layout) {
+        if (!settings.playsMap(name) || !CtfMaps.buildIfMissing(name, plan)) {
+            return;
+        }
+        BedwarsMap map = maps.getOrCreate(name);
+        layout.accept(map);
+        maps.save(map);
+        getLogger().info("Capture the Flag map " + name + " created");
     }
 
     @Override
@@ -193,6 +261,46 @@ public final class RagoBedwars extends JavaPlugin {
         return settings;
     }
 
+    /**
+     * The settings of every Red Rover, for Red Rover Top Bridge: red-rover in the config.yml of
+     * RagoPractice, where the owner sets those of all the Red Rovers; the defaults without it, or
+     * when they are wrong (told once in the log).
+     */
+    RedRoverRotation.Settings redRover() {
+        ConfigurationSection section = redRoverSection();
+        RedRoverRotation.Settings rover = section == null ? null : RedRoverTopBridgeGame.settingsOf(section);
+        if (rover == null) {
+            warnRedRover(section == null ? "no red-rover in the config.yml of RagoPractice (is it installed?)"
+                    : RedRoverTopBridgeGame.problemOf(section));
+            return RedRoverRotation.Settings.DEFAULTS;
+        }
+        return rover;
+    }
+
+    /** The rounds that win a 1v1 of Red Rover Top Bridge (red-rover.points-par-1v1-top-bridge of RagoPractice). */
+    int redRoverRounds() {
+        ConfigurationSection section = redRoverSection();
+        int rounds = section == null ? RedRoverTopBridgeGame.ROUNDS_PER_1V1 : RedRoverTopBridgeGame.roundsOf(section);
+        if (rounds < 0) {
+            warnRedRover("points-par-1v1-top-bridge must be from 1 to " + RedRoverTopBridgeGame.MAX_ROUNDS_PER_1V1);
+            return RedRoverTopBridgeGame.ROUNDS_PER_1V1;
+        }
+        return rounds;
+    }
+
+    /** red-rover in the config.yml of RagoPractice, or null. */
+    private ConfigurationSection redRoverSection() {
+        Plugin practice = getServer().getPluginManager().getPlugin("RagoPractice");
+        return practice == null ? null : practice.getConfig().getConfigurationSection("red-rover");
+    }
+
+    private void warnRedRover(String problem) {
+        if (!problem.equals(redRoverWarned)) {
+            redRoverWarned = problem;
+            getLogger().warning("Red Rover Top Bridge: " + problem + ". It plays with the default settings of Red Rover.");
+        }
+    }
+
     ShopCatalog catalog() {
         return catalog;
     }
@@ -200,6 +308,22 @@ public final class RagoBedwars extends JavaPlugin {
     /** The best times of Fast Shop. */
     FastShopRecords fastShopRecords() {
         return fastShopRecords;
+    }
+
+    /** Rows of the top under Fast Shop in the menus of the lobby (plan 3.4: a top 3). */
+    static final int MODE_TOP = 3;
+
+    /**
+     * The record the menus of the lobby show under a Fast Shop mode, in the place of its Daily
+     * Streak (plan 3.4), lifetime: its first list, the one each game starts on, as a training
+     * shows the variant it starts on. Null for the other modes: they keep their Daily Streak.
+     */
+    ModeRecord modeRecord(String modeId, UUID viewer) {
+        if (settings.kind(modeId) != BedwarsSettings.Kind.FAST_SHOP) {
+            return null;
+        }
+        FastShopGame.Order first = FastShopGame.ORDERS.get(0);
+        return fastShopRecords.modeRecord(first.id, first.name, viewer, MODE_TOP);
     }
 
     /** The shop of the arena (Free FFA). */

@@ -13,17 +13,24 @@ import org.bukkit.inventory.meta.ItemMeta;
 import org.bukkit.inventory.meta.SkullMeta;
 
 /**
- * The menu of a stats NPC: the player's head with their totals, then every mode of the catalogue
- * with the player's stats in it (hover a mode to read them), the modes they played first. More
- * modes than a chest holds go on pages, the arrows at the top turn them. Nothing in it can be
- * taken. Main thread only.
+ * The menu of a stats NPC: the player's head with their totals, then the categories of the
+ * selector (Practice, RBW Modes, Duels, Arenas), each with the player's totals in it; a click on
+ * one shows its modes with the player's stats in each (hover a mode to read them), the modes they
+ * played first, and Back returns to the categories. Without categories in config.yml, every mode
+ * at once, as before. More modes than a chest holds go on pages, the arrows at the top turn them.
+ * Nothing in it can be taken. Main thread only.
  */
 final class StatsMenu {
 
     private static final int HEAD_SLOT = 4;
-    private static final int PREVIOUS_SLOT = 0;
+    private static final int BACK_SLOT = 0;
+    private static final int PREVIOUS_SLOT = 7;
     private static final int NEXT_SLOT = 8;
     private static final int FIRST_MODE_SLOT = 9;
+    /** The categories on the first page: in the third row. */
+    static final int CATEGORY_ROW = 18;
+    /** The modes of no category the selector has, as one more category. */
+    static final String OTHER = "";
     /** The modes of one page: the five rows under the head. */
     static final int PAGE_SIZE = 45;
 
@@ -45,19 +52,119 @@ final class StatsMenu {
         open(player, player.getUniqueId(), player.getName());
     }
 
-    /** The stats of another player (a player clicked in the lobby), or the viewer's own. */
+    /**
+     * The stats of another player (a player clicked in the lobby), or the viewer's own: the
+     * categories, or every mode at once without categories.
+     */
     void open(Player viewer, UUID player, String name) {
-        open(viewer, player, name, 0);
+        if (settings.categories().isEmpty()) {
+            openModes(viewer, player, name, null, 0);
+        } else {
+            openCategories(viewer, player, name);
+        }
     }
 
-    /** One page of them, from 0. */
-    private void open(Player viewer, UUID player, String name, int page) {
+    private static String titleOf(Player viewer, UUID player, String name) {
+        return player.equals(viewer.getUniqueId()) ? "Your stats" : "Stats of " + name;
+    }
+
+    /** The first page: the head, then a button for each category with the player's totals in it. */
+    private void openCategories(Player viewer, UUID player, String name) {
         PlayerStats stats = book.get(player);
-        List<ModeDisplay> modes = ordered(settings.modes(), id -> played(stats, id));
+        List<String> ids = new ArrayList<>();
+        for (ModeCategory category : settings.categories()) {
+            ids.add(category.id());
+        }
+        List<ModeDisplay> others = modesOf(settings.modes(), OTHER, ids);
+        boolean other = !ordered(others, id -> played(stats, id)).isEmpty();
+        List<ModeCategory> shown = withModes(settings.categories(), settings.modes());
+        int count = shown.size() + (other ? 1 : 0);
+        int[] slots = categorySlots(count);
+        // the head, a row of space, then the categories
+        ClickMenu menu = new ClickMenu(slots[slots.length - 1] / 9 + 1, titleOf(viewer, player, name));
+        long now = System.currentTimeMillis();
+        String day = StatsPeriod.dayKey(now);
+        String week = StatsPeriod.weekKey(now);
+        menu.set(HEAD_SLOT, head(player, name, stats, day, week), null);
+        int at = 0;
+        for (ModeCategory category : shown) {
+            final String id = category.id();
+            menu.set(slots[at++], categoryItem(category.icon(), category.name(), category.slogan(),
+                    modesOf(settings.modes(), id, ids), stats, day, week),
+                    (clicker, right) -> openModes(clicker, player, name, id, 0));
+        }
+        if (other) {
+            menu.set(slots[at], categoryItem(Material.CHEST, ChatColor.WHITE + "" + ChatColor.BOLD + "Other modes", null, others,
+                    stats, day, week), (clicker, right) -> openModes(clicker, player, name, OTHER, 0));
+        }
+        menu.open(viewer);
+    }
+
+    /**
+     * The slots of so many categories in the third row of the first page: one slot apart, in the
+     * middle (four: 19, 21, 23, 25), as the selector does; side by side from 18 above five.
+     */
+    static int[] categorySlots(int count) {
+        int[] slots = new int[Math.max(1, count)];
+        for (int i = 0; i < slots.length; i++) {
+            slots[i] = slots.length <= 5 ? CATEGORY_ROW + 4 - (slots.length - 1) + 2 * i : CATEGORY_ROW + i;
+        }
+        return slots;
+    }
+
+    /**
+     * The categories with a button: those with modes of their own. One of the modes of others only
+     * (aussi:, as 3 Players) has none, their stats are in their own categories.
+     */
+    static List<ModeCategory> withModes(List<ModeCategory> categories, List<ModeDisplay> modes) {
+        List<String> ids = new ArrayList<>();
+        for (ModeCategory category : categories) {
+            ids.add(category.id());
+        }
+        List<ModeCategory> shown = new ArrayList<>();
+        for (ModeCategory category : categories) {
+            if (!modesOf(modes, category.id(), ids).isEmpty()) {
+                shown.add(category);
+            }
+        }
+        return shown;
+    }
+
+    /** The modes of this category (OTHER: of none of these categories), in the order of config.yml. */
+    static List<ModeDisplay> modesOf(List<ModeDisplay> modes, String category, List<String> categories) {
+        List<ModeDisplay> of = new ArrayList<>();
+        for (ModeDisplay display : modes) {
+            String id = display.category();
+            if (OTHER.equals(category) ? id == null || !categories.contains(id) : category.equals(id)) {
+                of.add(display);
+            }
+        }
+        return of;
+    }
+
+    /**
+     * One page of the modes of a category (null: every mode), from 0: the head, Back to the
+     * categories, and the modes, those played first.
+     */
+    private void openModes(Player viewer, UUID player, String name, String category, int page) {
+        PlayerStats stats = book.get(player);
+        List<String> ids = new ArrayList<>();
+        String label = null;
+        for (ModeCategory each : settings.categories()) {
+            ids.add(each.id());
+            if (each.id().equals(category)) {
+                label = ChatColor.stripColor(each.name());
+            }
+        }
+        if (OTHER.equals(category)) {
+            label = "Other modes";
+        }
+        List<ModeDisplay> all = category == null ? settings.modes() : modesOf(settings.modes(), category, ids);
+        List<ModeDisplay> modes = ordered(all, id -> played(stats, id));
         int pages = pages(modes.size());
         int shownPage = Math.max(0, Math.min(page, pages - 1));
         List<ModeDisplay> shown = page(modes, shownPage);
-        String title = player.equals(viewer.getUniqueId()) ? "Your stats" : "Stats of " + name;
+        String title = titleOf(viewer, player, name) + (label == null ? "" : ": " + label);
         if (pages > 1) {
             title = title + " (" + (shownPage + 1) + "/" + pages + ")";
         }
@@ -69,17 +176,110 @@ final class StatsMenu {
         for (int i = 0; i < shown.size(); i++) {
             menu.set(FIRST_MODE_SLOT + i, mode(player, shown.get(i), stats, day, week), null);
         }
+        if (category != null) {
+            // the "Go back" of the other menus, at the top: the last row can hold modes
+            menu.set(BACK_SLOT, ClickMenu.back("every category"), (clicker, right) -> openCategories(clicker, player, name));
+        }
         if (shownPage > 0) {
             menu.set(PREVIOUS_SLOT, ClickMenu.item(Material.ARROW, ChatColor.YELLOW + "Previous page",
                     ChatColor.GRAY + "Page " + shownPage + "/" + pages),
-                    (clicker, right) -> open(clicker, player, name, shownPage - 1));
+                    (clicker, right) -> openModes(clicker, player, name, category, shownPage - 1));
         }
         if (shownPage < pages - 1) {
             menu.set(NEXT_SLOT, ClickMenu.item(Material.ARROW, ChatColor.YELLOW + "Next page",
                     ChatColor.GRAY + "Page " + (shownPage + 2) + "/" + pages),
-                    (clicker, right) -> open(clicker, player, name, shownPage + 1));
+                    (clicker, right) -> openModes(clicker, player, name, category, shownPage + 1));
         }
         menu.open(viewer);
+    }
+
+    /** The totals of the player in some modes: summed, the best win streak the best of them. */
+    static final class Totals {
+        int wins;
+        int losses;
+        int draws;
+        int kills;
+        int deaths;
+        int finalKills;
+        int finalDeaths;
+        int beds;
+        int bestStreak;
+        int winsToday;
+        int winsThisWeek;
+        /** The modes with a game, a kill or a death. */
+        int played;
+
+        int games() {
+            return wins + losses + draws;
+        }
+    }
+
+    static Totals totals(List<ModeStats> modes, String day, String week) {
+        Totals totals = new Totals();
+        for (ModeStats m : modes) {
+            if (m == null) {
+                continue;
+            }
+            totals.wins += m.wins;
+            totals.losses += m.losses;
+            totals.draws += m.draws;
+            totals.kills += m.kills;
+            totals.deaths += m.deaths;
+            totals.finalKills += m.finalKills;
+            totals.finalDeaths += m.finalDeaths;
+            totals.beds += m.beds;
+            totals.bestStreak = Math.max(totals.bestStreak, m.bestStreak);
+            totals.winsToday += m.wins(StatsPeriod.DAY, day, week);
+            totals.winsThisWeek += m.wins(StatsPeriod.WEEK, day, week);
+            if (m.games() > 0 || m.kills > 0 || m.deaths > 0) {
+                totals.played++;
+            }
+        }
+        return totals;
+    }
+
+    /** A category of the first page: its name, its slogan, the player's totals in its modes. */
+    private ItemStack categoryItem(Material icon, String name, String slogan, List<ModeDisplay> modes, PlayerStats stats,
+            String day, String week) {
+        List<ModeStats> of = new ArrayList<>();
+        int shown = 0;
+        for (ModeDisplay display : modes) {
+            of.add(stats == null ? null : stats.mode(display.mode().id()));
+            if (!display.hidden()) {
+                shown++;
+            }
+        }
+        Totals t = totals(of, day, week);
+        List<String> lore = new ArrayList<>();
+        if (slogan != null) {
+            lore.add(slogan);
+            lore.add("");
+        }
+        if (t.played == 0) {
+            lore.add(ChatColor.DARK_GRAY + "No game yet");
+        } else {
+            lore.add(line("Games played", ChatColor.WHITE, t.games()));
+            lore.add(line("Wins", ChatColor.GREEN, t.wins));
+            lore.add(line("Losses", ChatColor.RED, t.losses));
+            lore.add(ChatColor.GRAY + "WLR: " + ChatColor.GOLD + ratio(t.wins, t.losses));
+            lore.add(line("Best win streak", Brand.ACCENT, t.bestStreak));
+            lore.add(line("Kills", ChatColor.GREEN, t.kills));
+            lore.add(line("Deaths", ChatColor.RED, t.deaths));
+            lore.add(ChatColor.GRAY + "K/D ratio: " + Brand.ACCENT + ratio(t.kills, t.deaths));
+            if (t.finalKills > 0 || t.finalDeaths > 0 || t.beds > 0) {
+                lore.add(line("Final kills", ChatColor.GREEN, t.finalKills));
+                lore.add(line("Final deaths", ChatColor.RED, t.finalDeaths));
+                lore.add(ChatColor.GRAY + "FKDR: " + ChatColor.GOLD + fkdr(t.finalKills, t.finalDeaths));
+                lore.add(line("Beds broken", Brand.ACCENT, t.beds));
+            }
+            lore.add("");
+            lore.add(line("Wins today", ChatColor.GREEN, t.winsToday));
+            lore.add(line("Wins this week", ChatColor.GREEN, t.winsThisWeek));
+        }
+        lore.add("");
+        lore.add(ChatColor.GRAY + "Modes played: " + ChatColor.WHITE + t.played + ChatColor.GRAY + "/" + Math.max(shown, t.played));
+        lore.add(Brand.ACCENT + "Click to see each mode");
+        return ClickMenu.item(icon, name, lore.toArray(new String[0]));
     }
 
     /** True if the player has a game, a kill or a death in the mode. */
@@ -145,7 +345,7 @@ final class StatsMenu {
         int losses = stats == null ? 0 : stats.losses();
         lore.add(line("Wins", ChatColor.GREEN, wins));
         lore.add(line("Losses", ChatColor.RED, losses));
-        lore.add(line("Games played", ChatColor.WHITE, wins + losses));
+        lore.add(line("Games played", ChatColor.WHITE, stats == null ? 0 : stats.games()));
         lore.add(ChatColor.GRAY + "WLR (wins / losses): " + ChatColor.GOLD + ratio(wins, losses));
         lore.add(line("Best win streak", Brand.ACCENT, stats == null ? 0 : stats.best(StatsPeriod.ALL, null, day, week)));
         int kills = stats == null ? 0 : stats.kills(StatsPeriod.ALL, null, day, week);
@@ -157,7 +357,7 @@ final class StatsMenu {
         int finalDeaths = stats == null ? 0 : stats.finalDeaths();
         lore.add(line("Final kills", ChatColor.GREEN, finals));
         lore.add(line("Final deaths", ChatColor.RED, finalDeaths));
-        lore.add(ChatColor.GRAY + "FKDR (final kills / final deaths): " + ChatColor.GOLD + ratio(finals, finalDeaths));
+        lore.add(ChatColor.GRAY + "FKDR (final kills / final deaths): " + ChatColor.GOLD + fkdr(finals, finalDeaths));
         lore.add("");
         lore.add(line("Wins today", ChatColor.GREEN, stats == null ? 0 : stats.wins(StatsPeriod.DAY, null, day, week)));
         lore.add(line("Wins this week", ChatColor.GREEN, stats == null ? 0 : stats.wins(StatsPeriod.WEEK, null, day, week)));
@@ -198,7 +398,7 @@ final class StatsMenu {
             if (m.finalKills > 0 || m.finalDeaths > 0 || m.beds > 0) {
                 lore.add(line("Final kills", ChatColor.GREEN, m.finalKills));
                 lore.add(line("Final deaths", ChatColor.RED, m.finalDeaths));
-                lore.add(ChatColor.GRAY + "FKDR: " + ChatColor.GOLD + ratio(m.finalKills, m.finalDeaths));
+                lore.add(ChatColor.GRAY + "FKDR: " + ChatColor.GOLD + fkdr(m.finalKills, m.finalDeaths));
                 lore.add(line("Beds broken", Brand.ACCENT, m.beds));
             }
             lore.add("");
@@ -221,6 +421,11 @@ final class StatsMenu {
         return ChatColor.GRAY + what + ": " + colour + value;
     }
 
+    /** The FKDR with two decimals ("6.42", "3.00"); the final kills alone without a final death. */
+    static String fkdr(int finalKills, int finalDeaths) {
+        return BoardStat.hundredths(BoardStat.fkdr(finalKills, finalDeaths));
+    }
+
     /** 2.5, or the wins alone when there is no loss. */
     static String ratio(int wins, int losses) {
         if (losses == 0) {
@@ -240,11 +445,21 @@ final class StatsMenu {
         return ranked;
     }
 
-    /** "1v1" for a 1 against 1, else the mode's name without colours. */
+    /**
+     * The ranked mode in a few letters, after "Elo": "1v1" for Ranked Bedwars 1v1, its game for
+     * the other ranked duels (plan 3.7: "Sumo", "Bed Fight 1v1"), else the mode's name without
+     * colours.
+     */
     static String shortName(GameMode mode) {
+        String name = ChatColor.stripColor(mode.name());
+        if (name.startsWith(RANKED) && !name.startsWith(RANKED + "Bedwars ")) {
+            return name.substring(RANKED.length());
+        }
         if (mode.teams() == 2) {
             return mode.playersPerTeam() + "v" + mode.playersPerTeam();
         }
-        return ChatColor.stripColor(mode.name());
+        return name;
     }
+
+    private static final String RANKED = "Ranked ";
 }

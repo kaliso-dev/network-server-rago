@@ -66,12 +66,12 @@ test.describe('the home page, before the opening', () => {
   test('tells what a party plays in a private game, and that nothing counts', async ({ page }) => {
     await page.goto(SOON);
     const games = page.locator('section[aria-labelledby="private"]');
-    for (const id of ['partie-privee', 'top-bridge-prive']) {
-      const mode = game.modes.find((m) => m.id === id)!;
-      await expect(games.getByRole('heading', { name: mode.name, exact: true })).toBeVisible();
-    }
+    // Bedwars Normal, in the place of the two private games of before (the owner's answers of 22/11)
+    const normal = game.modes.find((m) => m.id === 'bedwars-normal')!;
+    await expect(games.getByRole('heading', { name: normal.name, exact: true })).toBeVisible();
     await expect(games).toContainText(`Up to ${game.privateGames.partyMax} players`);
-    await expect(games).toContainText('1v1, 2v2, 3v3 or 4v4');
+    await expect(games).toContainText('a map of 4s or 2s');
+    await expect(games).toContainText(`${game.privateGames.teamChoiceSeconds['bedwars-normal']} seconds later`);
     await expect(games).toContainText('A private game moves no ELO, gives no XP and counts in no stats.');
   });
 

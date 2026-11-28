@@ -9,7 +9,10 @@
 // Every attack is written as an "attack" line in the same format as control-bots.mjs, so that
 // ControlCheck's readers apply.
 //
-// RagoAttacker must be an operator: it runs the /kb, /tp and /effect commands.
+// Then it summons a primed TNT and a fireball far from both players, written as "explosion" lines:
+// ExplosionCheck (tools/kb-control) looks for them in the recording.
+//
+// RagoAttacker must be an operator: it runs the /kb, /tp, /effect and /summon commands.
 //
 // Environment: KB_HOST (127.0.0.1), KB_PORT (25565), KB_VICTIM (player name of the client, required),
 // KB_ATTACKS (attacks.jsonl), KB_HITS_PER_PHASE (12), KB_SEED (189).
@@ -37,6 +40,15 @@ const SETTLE_MS = 600
 // The victim joined before the bot; 60 ticks of spawn invulnerability, plus a margin.
 const WAIT_BEFORE_FIRST_HIT_TICKS = 100
 const TEST_TIMEOUT_MS = 10 * 60 * 1000
+
+// Far from both players, who stay within 7 blocks of 0.5 0.5: a TNT pushes entities up to 8 blocks
+// away, and the victim must get no velocity packet that the hit check would not expect. 12 blocks
+// apart, so that the fireball falls on ground the TNT left intact. The strength is the server's
+// (the vanilla TNT, and a fireball's default explosion power).
+const EXPLOSIONS = [
+  { kind: 'tnt', x: 20.5, y: GROUND_Y, z: 0.5, strength: 4, nbt: '{Fuse:20}', entity: 'PrimedTnt', waitMs: 3000 },
+  { kind: 'fireball', x: 20.5, y: GROUND_Y + 3, z: 12.5, strength: 1, nbt: '{direction:[0.0,-1.0,0.0]}', entity: 'Fireball', waitMs: 2000 }
+]
 
 const PHASES = [
   { name: 'observe-vanilla', commands: ['/kb mode observe', '/kb profile vanilla'] },
@@ -244,6 +256,13 @@ async function main () {
       for (let index = 0; index < HITS_PER_PHASE; index++) {
         await hit(bot, phase, index)
       }
+    }
+    for (const explosion of EXPLOSIONS) {
+      await command(bot, `/summon ${explosion.entity} ${coordinate(explosion.x)} ${coordinate(explosion.y)} ` +
+        `${coordinate(explosion.z)} ${explosion.nbt}`, /summoned|commands\.summon\.success/i)
+      record({ type: 'explosion', time: Date.now(), kind: explosion.kind, x: explosion.x, y: explosion.y, z: explosion.z, strength: explosion.strength })
+      console.log(`summoned: ${explosion.kind}`)
+      await sleep(explosion.waitMs)
     }
     // Leave time for the last packets to reach the client.
     await sleep(1000)

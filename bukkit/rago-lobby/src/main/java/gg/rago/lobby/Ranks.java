@@ -211,7 +211,7 @@ final class Ranks {
         ranks.add(staff("owner", "§4[OWNER] ", "§4", "admin", "rago.admin"));
         ranks.add(staff("admin", "§c[ADMIN] ", "§c", "mod", "rago.admin"));
         ranks.add(staff("dev", "§b[DEV] ", "§b", "mod", "rago.admin"));
-        ranks.add(staff("mod", "§2[MOD] ", "§2", "helper", "rago.mod"));
+        ranks.add(staff("mod", "§e[MOD] ", "§e", "helper", "rago.mod"));
         ranks.add(staff("helper", "§9[HELPER] ", "§9", PREMIUM, "rago.staff"));
         ranks.add(staff("builder", "§3[BUILDER] ", "§3", PREMIUM, "rago.staff", "rago.lobby.admin"));
         ranks.add(new RankDef("media", "§c[§fMEDIA§c] ", "§c", "§f", false, Collections.<String>emptyList(), PREMIUM,

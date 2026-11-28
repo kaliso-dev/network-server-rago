@@ -6,8 +6,10 @@ import java.util.List;
 import java.util.Map;
 import java.util.UUID;
 import org.bukkit.Bukkit;
+import org.bukkit.ChatColor;
 import org.bukkit.GameMode;
 import org.bukkit.Location;
+import org.bukkit.Sound;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.EventPriority;
@@ -18,11 +20,13 @@ import org.bukkit.event.entity.EntityDamageEvent;
 import org.bukkit.event.entity.FoodLevelChangeEvent;
 import org.bukkit.event.inventory.InventoryClickEvent;
 import org.bukkit.event.player.PlayerDropItemEvent;
+import org.bukkit.event.player.PlayerGameModeChangeEvent;
 import org.bukkit.event.player.PlayerInteractEntityEvent;
 import org.bukkit.event.player.PlayerInteractEvent;
 import org.bukkit.event.player.PlayerMoveEvent;
 import org.bukkit.event.player.PlayerPickupItemEvent;
 import org.bukkit.event.player.PlayerQuitEvent;
+import org.bukkit.event.player.PlayerRespawnEvent;
 import org.bukkit.event.player.PlayerTeleportEvent;
 import org.bukkit.potion.PotionEffect;
 
@@ -62,16 +66,38 @@ final class Watchers implements Listener {
         watcher.setFireTicks(0);
         watcher.setFallDistance(0f);
         watcher.setGameMode(GameMode.SPECTATOR);
-        Location at = target.getLocation();
-        watcher.teleport(holds(game, at) ? at : game.watchPoint());
+        // counted as a watcher before the teleport: what happens on the way into the game's world
+        // (another plugin's change of game mode) is already refused
         games.put(watcher.getUniqueId(), game);
         targets.put(watcher.getUniqueId(), target.getUniqueId());
+        Location at = target.getLocation();
+        watcher.teleport(holds(game, at) ? at : game.watchPoint());
+        if (watcher.getGameMode() != GameMode.SPECTATOR) {
+            watcher.setGameMode(GameMode.SPECTATOR);
+        }
+        if (plugin.lobby().announcesSpectator(watcher)) {
+            // in red and bold, with a ding (the owner's ask of 22/11): the players see it at once
+            String line = spectatingLine(watcher.getDisplayName());
+            for (BedwarsGame.Gamer gamer : game.present()) {
+                Player player = Bukkit.getPlayer(gamer.id);
+                if (player != null && !player.equals(watcher)) {
+                    player.sendMessage(line);
+                    player.playSound(player.getLocation(), Sound.ORB_PICKUP, 1f, 1f);
+                }
+            }
+        }
     }
 
     /** True if a watcher of this game may be there: in its world, not far under its void. */
     static boolean holds(BedwarsGame game, Location location) {
         return location.getWorld() != null && location.getWorld().equals(game.instance().world())
                 && location.getY() >= game.instance().map().voidY() - UNDER_THE_VOID;
+    }
+
+    /** "<name> is now spectating your game.", all in red and bold (the name without its rank's colours). */
+    static String spectatingLine(String displayName) {
+        String red = ChatColor.RED + "" + ChatColor.BOLD;
+        return red + ChatColor.stripColor(displayName) + red + " is now spectating your game.";
     }
 
     boolean isWatching(UUID player) {
@@ -162,12 +188,12 @@ final class Watchers implements Listener {
     }
 
     /**
-     * The game this player watches, or null. One the lobby took back by other means (or whom a
-     * command took out of the spectator mode) is forgotten: they watch nothing any more.
+     * The game this player watches, or null. One the lobby took back by other means is forgotten:
+     * they watch nothing any more. (Nothing takes a watcher out of the spectator mode: {@link #onMode}.)
      */
     private BedwarsGame watching(Player player) {
         BedwarsGame game = games.get(player.getUniqueId());
-        if (game != null && (player.getGameMode() != GameMode.SPECTATOR || !plugin.lobby().isInGame(player))) {
+        if (game != null && !plugin.lobby().isInGame(player)) {
             forget(player.getUniqueId());
             return null;
         }
@@ -257,6 +283,29 @@ final class Watchers implements Listener {
     public void onPickup(PlayerPickupItemEvent event) {
         if (games.containsKey(event.getPlayer().getUniqueId())) {
             event.setCancelled(true);
+        }
+    }
+
+    /**
+     * A watcher stays in the spectator mode until they leave the game (/spawn, its end): another
+     * plugin (the build tools on a change of world) or a command would otherwise put them in the
+     * game in survival, where the players could hit and kill them.
+     */
+    @EventHandler(priority = EventPriority.HIGHEST, ignoreCancelled = true)
+    public void onMode(PlayerGameModeChangeEvent event) {
+        if (event.getNewGameMode() != GameMode.SPECTATOR && games.containsKey(event.getPlayer().getUniqueId())
+                && plugin.lobby().isInGame(event.getPlayer())) {
+            event.setCancelled(true);
+            event.getPlayer().sendMessage(ChatColor.GRAY + "You are spectating a game: /spawn to leave it.");
+        }
+    }
+
+    /** A watcher killed all the same (a /kill): back at the game's spectators' point, still watching. */
+    @EventHandler(priority = EventPriority.HIGHEST)
+    public void onRespawn(PlayerRespawnEvent event) {
+        BedwarsGame game = games.get(event.getPlayer().getUniqueId());
+        if (game != null) {
+            event.setRespawnLocation(game.watchPoint());
         }
     }
 

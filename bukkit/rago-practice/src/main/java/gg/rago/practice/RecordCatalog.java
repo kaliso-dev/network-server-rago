@@ -2,7 +2,9 @@ package gg.rago.practice;
 
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 import org.bukkit.Material;
 
 /**
@@ -53,17 +55,36 @@ final class RecordCatalog {
         final String title;
         final Material icon;
         final List<Board> boards;
+        /**
+         * The record of the training, the one the menus of the lobby show under its mode: the board
+         * of the variant it starts on (its first; the block edit: the bot's default speed).
+         */
+        final Board main;
+        /** How many boards each row of its page shows (the timed bridge: 6, 6, 3); null: rows of the same size. */
+        final int[] rows;
 
         Entry(String modeId, String title, Material icon, List<Board> boards) {
+            this(modeId, title, icon, boards, boards.get(0));
+        }
+
+        Entry(String modeId, String title, Material icon, List<Board> boards, Board main) {
+            this(modeId, title, icon, boards, main, null);
+        }
+
+        Entry(String modeId, String title, Material icon, List<Board> boards, Board main, int[] rows) {
             this.modeId = modeId;
             this.title = title;
             this.icon = icon;
             this.boards = Collections.unmodifiableList(boards);
+            this.main = main;
+            this.rows = rows;
         }
     }
 
     /** Every training, the block clutch first. */
     static final List<Entry> ALL;
+    /** The id of every board of records. */
+    private static final Set<String> IDS;
 
     static {
         List<Entry> all = new ArrayList<>();
@@ -72,12 +93,14 @@ final class RecordCatalog {
         all.add(entry("block-in", "Block in practice", Material.ENDER_STONE, BlockInTraining.DEFENSES));
         all.add(entry("fast-defense", "Fast defense", Material.OBSIDIAN, FastDefenseTraining.DEFENSES));
         all.add(entry("extend-practice", "Extend practice", Material.QUARTZ_BLOCK, ExtendTraining.variants()));
-        all.add(entry("block-extend", "Block extend", Material.SANDSTONE, BlockExtendTraining.variants()));
+        all.add(entry("block-extend", "Block extend", Material.WOOL, BlockExtendTraining.variants()));
         all.add(entry("ladder-practice", "Ladder practice", Material.LADDER, LadderTraining.variants()));
         all.add(entry("pearl-practice", "Pearl practice", Material.ENDER_PEARL, PearlTraining.variants()));
         all.add(entry("fireball-practice", "Fireball practice", Material.FIREBALL, FireballTraining.variants()));
         all.add(entry("aim-trainer", "Aim trainer", Material.BOW, AimTrainer.TARGETS));
-        all.add(entry("bow-training", "Bow training", Material.ARROW, BowTraining.BOTS));
+        all.add(entry("bow-training", "Bow training", Material.BOW, BowTraining.BOTS));
+        all.add(entry("bow-practice", "Hypixel Bow Practice", Material.BOW, BowPractice.LEVELS));
+        all.add(entry("block-pattern-practice", "Block Pattern Practice", Material.WOOL, BlockPatternPractice.LEVELS));
         all.add(entry("combo-bot", "Combo bot", Material.SKULL_ITEM, ComboBot.variants()));
         all.add(entry("kb-displace-bot", "KB displace against a bot", Material.STICK, KbDisplaceBot.STILL));
         String edit = "Block edit";
@@ -86,8 +109,9 @@ final class RecordCatalog {
             edits.add(new Board("block-edit", edit, BlockEditTraining.BOT, ".speed" + speed, BlockEditTraining.BOT.label + ", speed " + speed,
                     speed == BlockEditTraining.DEFAULT_SPEED));
         }
-        all.add(new Entry("block-edit", edit, Material.SHEARS, edits));
-        // the timed bridge: a board for each course, flat then uphill, straight then diagonal
+        all.add(new Entry("block-edit", edit, Material.SHEARS, edits, edits.get(BlockEditTraining.DEFAULT_SPEED - 1)));
+        // the timed bridge: a board for each course, flat then uphill, straight then diagonal, then
+        // the courses with a turn: a row each on its page
         String bridge = "Timed bridge";
         List<Board> courses = new ArrayList<>();
         for (boolean uphill : new boolean[] {false, true}) {
@@ -98,8 +122,25 @@ final class RecordCatalog {
                 }
             }
         }
-        all.add(new Entry("bridge-chrono", bridge, Material.SANDSTONE, courses));
+        for (Training.Variant distance : BridgeTraining.VARIANTS) {
+            courses.add(new Board("bridge-chrono", bridge, distance, BridgeTraining.suffix(false, false, true),
+                    BridgeTraining.label(distance, false, false, true), false));
+        }
+        int each = 2 * BridgeTraining.VARIANTS.length;
+        all.add(new Entry("bridge-chrono", bridge, Material.SANDSTONE, courses, courses.get(0),
+                new int[] {each, each, BridgeTraining.VARIANTS.length}));
+        all.add(entry("block-aim", "Block aim", Material.GLOWSTONE_DUST, BlockAimTraining.variants()));
         ALL = Collections.unmodifiableList(all);
+        Set<String> ids = new HashSet<>();
+        for (Board board : boards(ALL)) {
+            ids.add(board.id);
+        }
+        IDS = Collections.unmodifiableSet(ids);
+    }
+
+    /** True for a board of records ("clutch.island"), not one of the weeks or of the biggest clutches. */
+    static boolean isRecord(String board) {
+        return IDS.contains(board);
     }
 
     private RecordCatalog() {

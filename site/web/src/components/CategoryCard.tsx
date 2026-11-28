@@ -5,7 +5,7 @@ import { CATEGORY_TAG, Tag } from './ui';
 import styles from './CategoryCard.module.css';
 
 /**
- * A category of the compass (Practice, RBW Modes, Duels, Arenas), carried by the NPC that opens it
+ * A category of the compass (Practice, Bedwars Modes, Duels, Arenas), carried by the NPC that opens it
  * in the lobby: its skin, its slogan and description from config.yml, the real number of modes.
  * The skin is served as rendered (unoptimized), so its pixels stay sharp.
  */

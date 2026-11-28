@@ -2,7 +2,6 @@ package gg.rago.practice;
 
 import gg.rago.game.GameMode;
 import java.time.LocalDate;
-import java.time.temporal.WeekFields;
 import java.util.AbstractMap;
 import java.util.ArrayList;
 import java.util.List;
@@ -172,7 +171,7 @@ final class ClutchTraining extends Training {
 
     /** The week of this day, from Monday: "2026w46". */
     static String week(LocalDate day) {
-        return day.get(WeekFields.ISO.weekBasedYear()) + "w" + day.get(WeekFields.ISO.weekOfWeekBasedYear());
+        return RecordBook.week(day);
     }
 
     @Override

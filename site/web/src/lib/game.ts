@@ -21,6 +21,8 @@ export interface Category {
   description: string;
   skin: string | null;
   modes: number;
+  /** The ids of the modes of other categories it shows too, after its own (3 Players: Red Rover...). */
+  also: string[];
 }
 
 export interface Mode {
@@ -35,6 +37,8 @@ export interface Mode {
   ranked: boolean;
   startHere: boolean;
   event: boolean;
+  /** The private game whose size this mode is (the 4s and 2s of Bedwars Normal): played only from it. */
+  sizeOf: string | null;
   description: string;
   plugins: string[];
 }
@@ -108,7 +112,8 @@ export interface GameData {
     cosmetics: CosmeticRef[];
   };
   cosmetics: Cosmetic[];
-  ragoPoints: { win: number; loss: number; kill: number; daily: number };
+  /** daily: the least and the most Rago Points of the Daily Chest. */
+  ragoPoints: { win: number; loss: number; kill: number; daily: { min: number; max: number } };
   events: { automatic: boolean; everyMinutes: number | null; lobbyPlayers: number | null; maxPlayers: number | null };
   attackDefense: { protection: number; attack: RoundKit[]; defense: RoundKit[] };
   /** The numbers of the block duels and trainings, read in the constants of their classes. */
@@ -126,6 +131,7 @@ export interface GameData {
     topBridgeMinutes: number;
     topBridgeBlockSeconds: number;
     modes: Record<string, string[]>;
+    teamChoiceSeconds: Record<string, number>;
   };
   /** The points (or hits) that win a duel, by kind of duel. */
   pointsToWin: Record<string, number>;
@@ -143,8 +149,17 @@ export const categoryOf = (id: string): Category => {
   return found;
 };
 
-/** The modes of the selector: every mode but the events of /host, which have no queue. */
-export const playableModes = (): Mode[] => game.modes.filter((mode) => !mode.event);
+/**
+ * The modes of the selector: every mode but the events of /host, which have no queue, and the sizes
+ * of a private game (the 4s and 2s of Bedwars Normal), played only from it.
+ */
+export const playableModes = (): Mode[] => game.modes.filter((mode) => !mode.event && mode.sizeOf == null);
+
+/** The modes a category shows, as the compass of the lobby: its own, then those of others it shows too. */
+export const modesShownIn = (category: Category): Mode[] => [
+  ...playableModes().filter((mode) => mode.category === category.id),
+  ...category.also.map((id) => playableModes().find((mode) => mode.id === id)).filter((mode): mode is Mode => mode != null),
+];
 
 export const eventModes = (): Mode[] => game.modes.filter((mode) => mode.event);
 

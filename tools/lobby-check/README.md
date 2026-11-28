@@ -1,28 +1,39 @@
-# lobby-check : le lobby, le duel sumo et Bed Wars joués par deux bots
+# lobby-check : le lobby, le duel sumo, Bed Wars et un event joués par des bots
 
 Un test sur un vrai serveur PandaSpigot 1.8.8 (le build 226 du test de contrôle), avec
-RagoCombatEngine, RagoLobby, RagoPractice et RagoBedwars. Deux bots mineflayer (le script
+RagoCombatEngine, RagoLobby, RagoPractice et RagoBedwars. Deux bots mineflayer, puis trois (le script
 `tools/kb-control/bots/lobby-bots.mjs`, qui partage les dépendances des bots du test de contrôle)
 jouent comme des joueurs :
 
 1. ils arrivent dans le lobby pour la première fois : « What do you want to do? » s'ouvre un
    instant après l'accueil (quatre façons de jouer, le livre de Getting started), et ils le
    ferment ; mode aventure, la boussole, le livre de l'éditeur de kit et le
-   colorant dans la barre d'objets, le scoreboard. Le script donne au sumo un kit d'un bâton (le
+   colorant dans la barre d'objets, le scoreboard ; le PNJ Duels se tient sur un bloc de quartz
+   et le PNJ de stats sur un bloc de fer (plan 5.3), tous deux les mains vides (22/11) ; qRago (plan 5.6) se tient sur de
+   l'obsidienne sous « [OWNER] qRago », les mains vides, et un clic dessus n'ouvre rien (le script
+   retire les `skin-joueur:` du config.yml : le serveur ne demande rien à Mojang, qRago est en Steve). Le script donne au sumo un kit d'un bâton (le
    config.yml fourni n'en a pas) : RagoUn ouvre l'éditeur avec le livre, choisit le sumo, déplace
-   le bâton de la première case à la quatrième, enregistre, et le retrouve là en rouvrant
+   le bâton de la première case à la quatrième, enregistre (Save ramène à la liste des kits), et le retrouve là en rouvrant
    l'éditeur. Le serveur de test n'a pas de clé d'API Hypixel : RagoDeux trouve l'émeraude et le
    coffre de l'import Hypixel en bas du livre, et l'émeraude comme `/hypixel import Notch` disent
    que l'import n'est pas en place, `/hypixel shop` que rien n'a été importé ;
-2. RagoUn ouvre le sélecteur d'un clic droit et clique sur le duel sumo ; RagoDeux tape
-   `/queue sumo` ;
+2. RagoUn ouvre le sélecteur d'un clic droit : Red Rover, Party, 3 Players et Ranked sur la
+   ligne du haut, une case entre chacun, les cinq autres catégories en dessous, Duels au centre
+   (ton choix du 22/11, 17h54) ; Red Rover ouvre ses modes, dont le bouton retour revient à la
+   boussole ; il clique sur Duels : ses jeux s'ouvrent, rien sur leur ligne du haut (le sumo montre
+   « In queue: 0 ») ; il clique sur le duel sumo : sous le PNJ Duels, RagoDeux lit « 0 in queue » puis « 1 in queue » (plan 3.8) ;
+   RagoDeux tape `/queue sumo` ;
 3. le duel démarre, après le décompte 3, 2, 1, « Fight! » affiché en titre (sans fondu), chacun a
    le bâton là où il l'a rangé (RagoUn : quatrième case, RagoDeux : la première, celle du kit), et
    le scoreboard montre l'adversaire et le ping des deux joueurs :
    RagoUn frappe RagoDeux une fois (il doit recevoir du knockback et aucun
-   dégât), puis RagoDeux tombe trois fois de la plateforme : RagoUn gagne 3 - 0 ;
-4. les deux reviennent au lobby, au spawn, avec les objets du lobby. Chacun lit son profil
-   au-dessus du PNJ de stats (victoires, kills) et les classements (RagoUn premier, 3 kills) ; la
+   dégât), puis RagoDeux tombe trois fois de la plateforme : RagoUn gagne 3 - 0, et entend le
+   ding (`random.orb`) à chaque point, et une fois de plus à la victoire ;
+4. les deux reviennent au lobby, au spawn, avec les objets du lobby, et le PNJ Duels montre de
+   nouveau « 0 in queue ». Chacun lit son profil
+   au-dessus du PNJ de stats (victoires, kills) et les classements (RagoUn premier, 3 kills) ;
+   RagoUn ouvre le menu du PNJ de stats : la catégorie Duels a sa victoire et ses 3 kills, un clic
+   dessus montre le sumo avec les mêmes stats, « Go back » ramène aux catégories ; la
    barre d'XP montre le niveau Network (65 XP pour RagoUn : la victoire et trois kills, 15 pour
    RagoDeux) ; RagoUn clique sur le classement principal (clic droit : Elo, puis Kills, clic
    gauche : la semaine, clic droit : niveau Network) ; dans le menu du PNJ Duels, le sumo montre
@@ -48,10 +59,33 @@ jouent comme des joueurs :
    `/spawn` : RagoUn gagne et les deux reviennent au lobby.
 9. une party : RagoUn invite RagoDeux avec `/p RagoDeux`, RagoDeux accepte, `/party list` et
    `/pc` marchent ; RagoDeux ne peut pas lancer de file (seul le chef le fait). RagoUn lance le
-   sumo : partie privée entre eux, sans stats ni XP. RagoUn lance Ranked Bedwars 2v2 : refusé,
+   sumo : partie privée entre eux, sans stats ni XP. RagoUn regarde le replay d'un duel de sumo
+   (`/replay`, le menu de ses parties) et y fait venir RagoDeux avec `/p warp` : RagoDeux arrive à
+   côté de RagoUn, au même moment du replay, avec seulement les joueurs et le lit dans sa barre
+   (le chef mène le replay), et revient au lobby quand RagoUn quitte le replay. RagoUn lance
+   Ranked Bedwars 2v2 : refusé,
    RagoDeux a quitté une partie classée il y a un instant. RagoUn lance First Rush duo (2v2, non
    classé) : la party attend dans la même équipe, et quitte la file avec RagoDeux. RagoUn dissout
    la party.
+10. RagoDeux quitte le serveur dans une party : RagoUn lit qu'il a 60 secondes pour revenir, et
+    `/p list` le montre encore ; RagoDeux, revenu, est toujours dans la party (les deux le lisent,
+    `/p list` : 2 membres) et voit de nouveau le pseudo de RagoUn au-dessus de sa tête ; RagoUn
+    dissout la party. La sortie au bout de 60 s est vérifiée par les tests unitaires
+    (`PartyBookTest`).
+11. un event de `/host` (plan 4.2) : un troisième bot, RagoTrois, opérateur (le script écrit son
+    `ops.json`), lance un event Sumo. Tout le serveur lit l'annonce (« SUMO EVENT », « Hosted by
+    RagoTrois », « Starts in 25s • 1/40 players »), avec un **[CLICK TO JOIN]** qui lance `/join` ;
+    RagoTrois lit « You are in! » et a la poudre rouge « Cancel the event » dans le dernier slot.
+    RagoDeux, en plein Block clutch, s'inscrit et reste dans son entraînement ; RagoUn s'inscrit
+    depuis le lobby, ne bouge pas et reçoit la poudre rouge « Leave the event » : il la clique, sort
+    de l'event (son profil revient dans le slot), et s'inscrit de nouveau. L'annonce revient 20
+    secondes après la première (« Starts in 5s • 3/40 players »). À la fin de l'attente
+    (25 secondes : le script réduit `attente-secondes`), RagoDeux quitte son Block clutch comme
+    avec `/spawn` (il lit « The Sumo event starts: you leave your game for it. ») et les trois
+    partent à l'event (« The Sumo event starts with 3 players! »). Au premier combat, RagoTrois
+    puis RagoDeux quittent l'event avec `/spawn` : RagoUn gagne, tout le serveur est prévenu, et
+    chacun revient au lobby. Enfin RagoTrois lance un autre event et l'annule avec sa poudre rouge :
+    tout le serveur lit qu'il est annulé.
 
 Le test échoue si un bot n'obtient pas ce qu'il attend, ou si le journal du serveur contient une
 erreur ou une exception.
@@ -66,6 +100,213 @@ Lancer un serveur Minecraft demande d'accepter le CLUF de Minecraft (https://aka
 le script refuse de démarrer sans `KB_ACCEPT_EULA=true`. Réglages : `KB_SERVER_JAVA` (le java du
 serveur), `KB_PORT` (25565) et `LOBBY_RUN_DIR` (`lobby-run` à la racine du dépôt, où restent le
 journal et le dossier du serveur). La CI le lance à chaque pull request, sous Java 8 et Java 21.
+
+## Le reset des arènes des modes à blocs, et la visibilité au lobby
+
+`run-arena-test.sh` lance le même serveur, avec Block placement gagné à 10 points (une chute
+dans le vide en donne 10) et Block edit à 2. Deux bots (`tools/kb-control/bots/arena-bots.mjs`)
+jouent plusieurs parties de suite, et vérifient au début de chacune que sa zone est exactement
+comme le mode l'a construite : aucun bloc laissé par la partie d'avant, aucun qui manque. Sans les
+maps du propriétaire (le serveur de test n'en a pas), chaque mode construit sa propre arène dans
+la première zone libre de sa rangée : une partie après l'autre se joue dans la même zone.
+
+1. Block placement 1v1 : à chaque partie, les deux bots posent de la laine à côté de leur
+   plateforme, celui de l'ouest aussi une échelle et de l'end stone, puis casse la laine qui tient
+   l'échelle (l'échelle tombe avec, la laine tombe par terre). À la première partie, le bot de
+   l'ouest s'enferme sauf au-dessus de sa tête : ce dernier bloc est refusé (l'anti full box). Les parties finissent de toutes les façons : chute dans le
+   vide (victoire, écran de fin), `/spawn` (abandon), un bot qui quitte le serveur, `/playagain`
+   depuis l'écran de fin (la partie suivante va dans une autre zone pendant que l'écran de fin
+   garde la première), et `/l` ;
+2. Block edit 1v1 : des trous dans le mur et de la laine remise dedans ; un abandon le mur ouvert,
+   un bot qui quitte le serveur, et des edits propres (un trou, un coup à travers, le bloc remis :
+   un point, et le mur entier pour la manche suivante) ;
+3. l'entraînement Block edit contre le bot : des trous dans le mur et de la laine remise, puis
+   `/spawn`, deux fois.
+
+Sur le même serveur, deux autres bots (`tools/kb-control/bots/visibility-bots.mjs`) vérifient
+ensuite qu'un joueur qui arrive sur le serveur est vu par celui qui attend au spawn du lobby, et le
+voit : chaque bot enregistre tous les paquets reçus sur les joueurs, et le corps de l'autre doit
+arriver après son entrée dans la tab list (un client 1.8.9 ne dessine pas le corps d'un joueur
+qu'il ne connaît pas encore : il ne reste que la ligne au-dessus du nom), ni en mode spectateur ni
+invisible. Les arrivées : la première fois, en revenant du lobby, après avoir quitté le serveur
+pendant une training, pendant un duel, et l'arrivée de celui qui attendait.
+
+Enfin, un bot (`tools/kb-control/bots/blockin-bots.mjs`) joue l'entraînement Block in sur l'île
+du plugin (le serveur de test n'a pas la map) : depuis son départ sur un coin de l'anneau de verre,
+il s'enferme dans la laine (les quatre côtés, aux pieds et à la tête), puis vérifie que l'ennemi
+ne le frappe pas tant qu'il est enfermé, casse un bloc d'un côté avec ses fissures (pas d'un
+coup), le frappe par ce trou en le repoussant à l'opposé, et casse à nouveau, du même côté et sans
+frapper, le bloc que le bot remet à chaque fois ; et que rien d'autre n'est cassé (les autres
+côtés, le verre).
+
+Puis un bot (`tools/kb-control/bots/pattern-bots.mjs`) joue Block Pattern Practice : au #1 il pose
+le bloc devant lui (la training dit que le motif est posé) et touche RagoBot en premier, et le #2
+arrive tout seul ; au #2 il ne pose rien, RagoBot court jusqu'à lui et le touche en premier (le #2
+recommence) ; avec la teinture rouge il passe au #1 puis au #10, dont le tunnel l'entoure.
+
+Puis un bot joue l'entraînement Block clutch pendant que dix autres le regardent en même temps avec
+`/spectate` (`tools/kb-control/bots/spectate-bots.mjs`) : chacun passe en mode spectateur près du
+joueur, le joueur est prévenu de chacun (en rouge et en gras, avec un ding) et continue de jouer, les dix sont toujours là quelques
+secondes plus tard, et `/spawn` les ramène tous au lobby. Le serveur de test a les 50 places du
+`server.properties` du serveur local (il en avait 8, trop peu pour une partie et dix spectateurs).
+
+Pour finir, des bots jouent les modes de FUN PRACTICE (`tools/kb-control/bots/fun-bots.mjs`),
+avec les réglages livrés (une manche) : au Snowball Spleef (deux bots), la pelle casse un bloc de
+neige et donne une boule, la boule casse la neige où elle tombe, une boule lancée sur l'autre le
+pousse sans le blesser ni casser de neige là, puis l'autre casse la neige sous ses pieds, tombe
+sur le deuxième étage (9 blocs plus bas), y lance sa boule vers l'étage du haut (elle n'y casse
+rien), marche vers le milieu, casse le deuxième étage, tombe sur le troisième, étroit (5 blocs plus
+bas ; pas de neige à 10 blocs du milieu), le casse, tombe et le premier gagne ; au Fireball Fight (trois bots, chacun pour soi, sur la plateforme
+de rayon 20), chacun a 64 fireballs et 64 laines de sa couleur (rouge, bleu, vert), pas de plume,
+et le double saut dès le départ ; le bleu frappe trois fois le vert sans le pousser ni le blesser
+(pas de coups), le vert fait un double saut regard en l'air (il monte, un deuxième tout de suite
+doit attendre, il retombe sans dégât), le rouge pose une laine (sa pile reste à 64, le bloc part
+au bout de 3 secondes) puis lance une fireball qui repousse le vert sans dégât ; le bleu tombe de
+la plateforme (il regarde, les deux autres continuent), puis le vert : le rouge, le dernier
+dessus, gagne. Tous reviennent au lobby après chaque partie.
+
+Puis trois bots jouent Red Rover Sumo (`tools/kb-control/bots/rover-bots.mjs`), avec les réglages
+livrés (aux points, le gagnant reste, premier à 3) : ils entrent seuls dans la file et jouent
+ensemble, deux s'affrontent pendant que le troisième regarde en spectateur ; trois 1v1 de suite où
+l'autre combattant sort de la plateforme, le gagnant restant contre celui qui attendait et le
+perdant passant spectateur ; au troisième 1v1 gagné, victoire du gagnant, défaite des deux autres,
+le top 3 lu par les trois (le gagnant premier avec ses 3 1v1 gagnés), et retour des trois au lobby. Ils jouent ensuite Red Rover Block Placement, sur les deux plateformes
+du plugin : un combattant sort de la sienne, le vide donne 10 à l'autre qui gagne ainsi le 1v1, et
+le 1v1 suivant l'oppose à celui qui attendait ; celui qui attend quitte la partie (`/spawn`), puis
+un combattant, et le dernier en jeu gagne. Puis Red Rover Block Edit : un combattant quitte le
+1v1, celui qui attendait entre contre l'autre, puis celui-là quitte aussi et le dernier gagne.
+Enfin Red Rover Top Bridge (RagoBedwars, sur sa carte de démo `bw-demo`) : un combattant sort du
+côté du top bridge, l'autre gagne le round et donc le 1v1 (un round d'une vie), le 1v1 suivant
+l'oppose à celui qui attendait ; celui qui attend quitte la partie, puis un combattant, et le
+dernier en jeu gagne.
+
+Enfin deux bots jouent CTF The Bridge 1v1 (`tools/kb-control/bots/ctf-bots.mjs`, RagoBedwars, sur
+la carte `CtfBridge` que le plugin fabrique), avec les réglages livrés (premier à 3 captures) :
+chacun part de sa base tourné vers le pont, avec le kit de The Bridge (épée en fer, arc, pioche en
+diamant, deux stacks d'argile de son équipe, 8 pommes d'or, la flèche dans la dernière case) et
+l'armure en cuir sans casque ; le pont fait un bloc de large, chaque drapeau est une bannière sur
+de l'or, tous deux « Safe » dans le scoreboard. Le défenseur casse le bout du pont de son côté à la
+pioche et remet de l'argile, mange une pomme d'or (absorption, pas de régénération), tire sa flèche
+qui revient dans la dernière case environ 3,5 s plus tard, puis s'écarte. L'attaquant traverse,
+prend le drapeau adverse (la bannière sur sa tête, « Taken » chez le défenseur), saute dans le vide
+avec : le drapeau retourne à sa base et l'attaquant revient aussitôt sur la sienne avec son kit.
+Puis trois fois il prend le drapeau et le ramène au sien : une capture à chaque fois, la troisième
+gagne la partie (le gagnant et les captures dans le résumé de fin), et les deux reviennent au lobby.
+Puis quatre bots jouent CTF Castle 2v2 (sur `CtfCastle`, l'autre carte du plugin) : chacun part
+dans la cour de son château avec le départ de Bed Wars (épée en bois, armure en cuir), les drapeaux
+« Safe » ; la porte du château est ouverte, les murs de chaque côté, le drapeau est une bannière sur
+de l'or dans le donjon, la forge sur son fer, l'item shop dans la cour, l'émeraude et les diamants
+au mid ; un bot rouge ramasse du fer à sa forge puis entre dans son donjon jusqu'à son drapeau :
+rien ne se passe (il est chez lui). Les deux bleus quittent la partie : les rouges gagnent, et les
+quatre reviennent au lobby.
+Enfin deux bots jouent Fast Bedwars 1v1 (`tools/kb-control/bots/fast-bots.mjs`, RagoBedwars, sur
+la carte démo : aucune de ses 20 maps n'est sur le serveur de test). Chacun part sur son île avec le
+départ de Bed Wars et lit les deux lignes d'accueil (forges plus rapides, shop plus petit, pas
+d'améliorations, les lits à 15:00, la fin à 22:30) ; le scoreboard annonce Emerald II à 6 minutes,
+sans Diamond II ; il voit le générateur d'émeraudes, aucun de diamants, l'item shop et pas de PNJ
+des améliorations. Le bot rouge ramasse au moins 7 ors en 12 secondes sur son spawn (une forge deux
+fois plus rapide ; 4 ou 5 avec celle d'une partie), ouvre le shop : le Quick Buy par défaut, sa 21e
+case vide sans panneau, et les Blocks avec seulement laine, verre, end stone et planches ; il achète
+de la laine. Le bleu quitte la partie : le rouge gagne, et les deux reviennent au lobby.
+Puis trois bots en party jouent les parties privées (`tools/kb-control/bots/private-bots.mjs`,
+Bedwars Normal). D'abord, RagoSalleOp (opérateur) fait de l'île du milieu de la carte démo son lobby
+d'attente (`/bw lobbyfight`). Seul le chef de la party lance la partie privée ; son menu des maps
+s'ouvre au lobby (ta demande du 25/11 : personne ne bouge encore) et montre les deux lignes 4s et
+2s, sans carte (le serveur de test n'a aucune map de 4 ou 8 équipes), et `/queue bedwars-normal-4s`
+seul est refusé. Le reste passe par `test-equipes`, un mode caché que le script ajoute à la config du
+lobby avec le même choix des équipes (`parties-privees-equipes`) sur Fast Bedwars 2v2, donc sur la
+carte démo, avec un compte à rebours de 8 secondes. Un premier essai : le chef choisit `bw-demo` au
+lobby, les trois vont au lobby d'attente au-dessus de la carte, sur une copie à eux ; le `/spawn` du
+deuxième annule la partie privée pour tous, revenus au lobby. Le script donne aussi les réglages du chef de
+party (`reglages-prives`) à Fast Bedwars 2v2 : un autre joueur ne peut pas régler (`/pg settings`) ;
+le chef ouvre « Game settings » depuis le menu des maps, met Speed II (trois clics, puis un clic
+droit en arrière), Max Diamond, Max Emerald et Break the Map, puis ceux d'Hypixel : Double Health,
+Low Gravity, Respawn Time à 1 seconde, Event Times à 2x (deux clics), Bed Instabreak et One Hit One
+Kill, dont le clic ouvre les huit armes, toutes Off : il met la Wooden Sword On, le Bow On puis Off,
+revient aux réglages (« 1/8 »), puis au menu des maps qui les montre. Le chef clique `bw-demo` : les
+trois vont au lobby d'attente au-dessus de la carte, en aventure, avec « Choose your team » (case
+5), le chef aussi avec « Game settings » (case 2), et le menu des équipes s'ouvre pour les trois
+(laine rouge et bleue, les réglages dans celui du chef seulement) ; le chef et le deuxième prennent rouge, le troisième
+aussi : « Red is full. » ; il ferme son menu, `/pg team` le rouvre avec les deux noms sous rouge. À
+la fin du compte à rebours la partie part seule, sur cette même copie : rouge les deux qui l'ont choisi, bleu le troisième
+(l'équipe la plus vide), sans stats (le log du serveur le dit), les réglages écrits. Chacun est sur
+l'île de son équipe ; le chef a Speed II, Protection IV sur son armure et Sharpness sur son épée dès
+le début, voit le générateur d'émeraudes au Tier III et les lits comme prochain événement (aucun
+Emerald), la fin des lits à moins de 7 min 30 (la moitié des 15 min de Fast Bedwars), 20 cœurs et
+Jump Boost III, et casse à la main un bloc de son île ; puis il marche dans le vide et revient sur son
+île une seconde plus tard, ses 20 cœurs pleins ; le troisième s'en va, rouge gagne, et les trois
+reviennent au lobby. Une vraie partie sur une map de 4s ou de 2s n'est pas jouée par les bots, ni
+Bed Instabreak ni One Hit One Kill (aucun bot ne va jusqu'à l'autre île) : ceux-ci n'ont que leurs
+tests unitaires (la ligne « Settings » du départ porte « One Hit One Kill: Wooden Sword »).
+Ensuite la même party joue FFA Archway (ton choix du 23/11) : `/queue ffa-archway-partie` est
+refusé (« played with your party »), le deuxième ne peut pas le lancer, le chef le lance
+(`/queue ffa-archway`) : les trois sont dans le FFA de la party, sur la carte démo ici (« A vs B vs
+C », sans stats), « Ends in » et « Players: 3 » dans la sidebar ; le troisième marche dans le vide et
+revient tout de suite. Le script met `ffa-privee-minutes` à 1 (30 sur le serveur) : au bout d'une
+minute, « Time is up. », personne n'a de kill donc égalité, et le classement des kills donne les
+trois à la même place, par nom, le troisième avec sa mort ; les trois reviennent au lobby. Un kill
+entre deux bots n'est pas joué : l'ordre du classement avec des kills est vérifié par les tests
+unitaires (`BedwarsMapTest`).
+Puis deux parties de deux se défient (`tools/kb-control/bots/party-duel-bots.mjs`, ta demande du
+25/11) : RagoDuoUn mène RagoDuoDeux, RagoDuoTrois mène RagoDuoQuatre. `/duel` de RagoDuoDeux est
+refusé (seul le chef défie). RagoDuoUn ouvre la catégorie Party (`/play party`) : « Party Duels »
+dans sa dernière case ; le clic montre les parties du serveur, celle de RagoDuoTrois avec la tête
+de son chef et ses deux joueurs ; le clic sur elle montre les modes des Duels pour deux parties de
+deux, Top Bridge 2v2 parmi eux, que des 2v2 ; le clic sur Top Bridge 2v2 envoie le défi, lu par les
+quatre (RagoDuoTrois avec [Accept] [Deny]) ; `/duel deny RagoDuoUn` le refuse. RagoDuoUn défie de
+nouveau, depuis `/duel` cette fois ; `/duel accept RagoDuoUn` : les quatre lisent le duel de
+parties et jouent Top Bridge 2v2, chaque party dans son équipe ; la party de RagoDuoTrois part avec
+`/spawn`, les quatre reviennent au lobby.
+Enfin un bot invite RagoBot dans sa party (`tools/kb-control/bots/ragobot-bots.mjs`) : RagoBot
+entre tout de suite, à côté de lui ; une deuxième invitation, une file classée, un mode qu'il ne
+joue pas et un `/duel RagoBot` d'un autre joueur sont refusés. Le bot joue le Sumo duel contre
+RagoBot sans bouger : RagoBot vient à lui, frappe, le pousse et le sort de la plateforme. En Boxing
+(premier à 10 coups pour le test), RagoBot place ses 10 coups le premier : 10 - 0. En Top Bridge
+1v1 (carte démo), RagoBot traverse le pont, le frappe à l'épée et gagne une manche ; le bot s'en
+va. Pour le Lobby Fight 1v1, RagoMapOp (opérateur) fait de l'île du milieu de la carte démo sa
+salle d'attente (`/bw lobbyfight`, 121 blocs), comme sur Archway FFA ; RagoBot y frappe le bot à
+l'épée en pierre et gagne une manche ; le bot s'en va. En Block placement 1v1, sur les deux
+plateformes que le mode construit sans carte (à 16 blocs l'une de l'autre au-dessus du vide, que
+RagoBot ne sait pas encore relier : le bridge est l'étape 4), RagoArbitre (opérateur) déplace les
+joueurs avec `/tp`. Le clutch : RagoBot, mis au-dessus du vide à côté de sa plateforme, pose de la
+laine sous lui et y reste debout. Le bloc sous l'autre : le bot pose trois laines au bout de sa
+plateforme et casse les deux premières ; le bot sur la troisième, seule au-dessus du vide, et
+RagoBot sur la plateforme du bot, hors de portée de ses coups : RagoBot casse la laine sans le
+frapper, le bot tombe, +10 pour Blue, le bot perd. En Red Rover Block Placement, un deuxième bot
+entre dans la party et les trois jouent leurs 1v1 à tour de rôle ; dans le 1v1 de RagoBot, RagoArbitre
+amène l'autre sur lui (`/tp`) : RagoBot le frappe et gagne son 1v1 ; les deux bots s'en vont.
+En Block edit 1v1 (premier à 2 pour le test), la défense : au « Fight! », le bot casse le bloc du
+mur à hauteur de tête en face de RagoBot et le frappe par le trou depuis son départ, hors de portée
+des coups de RagoBot ; puis il vient au mur : RagoBot le frappe en retour (« Hit back: your point
+is gone. »), ne casse aucun autre bloc et referme le mur (« RagoBot made a clean edit. »).
+L'attaque : le bot reste contre le mur ; RagoBot ouvre le mur en face de lui, le frappe par le trou
+et referme : 2 - 0. En Red Rover Block Edit, un autre bot rentre dans la party ; dans le 1v1 de
+RagoBot, l'autre reste contre le mur et RagoBot gagne son 1v1 par un edit propre.
+En Top Bridge 2v2, la party (le bot et RagoBot) attend dans la file comme une équipe, deux
+autres bots seuls la rejoignent : RagoBot frappe l'un d'eux, ils s'en vont. Après `/p kick
+RagoBot`, puis après une party dissoute, RagoBot quitte le serveur. Le log du serveur ne doit
+compter aucune de ces parties comme partie privée (elles comptent dans les stats). Les bots notent
+ce que leur client voit de RagoBot pendant chaque partie (ses apparitions, ses déplacements, ses
+coups ; les coups reçus, les knockbacks, les téléportations, le bloc sous les pieds, le chemin) :
+le joueur doit voir RagoBot venir et recevoir son knockback, vérifié après toutes les parties.
+Pour finir, les outils Owner (`tools/kb-control/bots/owner-bots.mjs`), avec dans `config.yml` l'id
+offline de qRago (`outils-owner.uuid`) et qRago et RagoOp opérateurs : `/owner` est une commande
+inconnue pour RagoCible et pour RagoOp ; qRago voit ses outils coupés et une portée hors de 3 à 6
+est refusée. En Sumo duel, qRago active Reach 6 dans la partie (elle ne compte plus pour personne)
+et frappe RagoCible à 6 blocs : le coup porte (knockback, compté dans le récap), sans XP ni points.
+En Ranked Sumo, Reach ne fait rien (« Never in a ranked game »), ses coups à 6 blocs ne poussent
+personne. En Block placement 1v1, Scaffold actif, qRago recule hors de sa plateforme, laine en
+main : la laine se pose sous lui et il ne tombe pas. Le log du serveur doit dire que le Sumo et le
+Block placement n'ont pas compté, et rien de tel pour la partie classée.
+
+```bash
+./gradlew build
+(cd tools/kb-control/bots && npm ci)
+KB_ACCEPT_EULA=true tools/lobby-check/run-arena-test.sh
+```
+
+Réglages : `KB_SERVER_JAVA`, `KB_PORT` et `ARENA_RUN_DIR` (`arena-run` à la racine du dépôt). La
+CI le lance à chaque pull request, sous Java 21.
 
 ## Les panneaux publicitaires vus par un vrai client Minecraft 1.8.9
 

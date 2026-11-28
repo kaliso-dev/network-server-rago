@@ -97,7 +97,7 @@ class BoostersTest {
         assertEquals(1, points.forXp(1), "at least one");
         assertEquals(83, points.forXp(250), "an event won");
         assertEquals(0, points.forXp(0));
-        assertEquals(0, new ServerSettings.Points(20, 5, 2, 10, 100, 25, 0).forXp(50), "0: the trainings give none");
+        assertEquals(0, new ServerSettings.Points(20, 5, 2, 10, 25, 0).forXp(50), "0: the trainings give none");
     }
 
     @Test

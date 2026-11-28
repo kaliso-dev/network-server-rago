@@ -55,8 +55,11 @@ import org.bukkit.potion.PotionEffect;
  * One player watching a replay: the game's players are bodies sent to their client alone (through
  * PacketEvents), moved each tick as they moved, with their items, hits and swings; the blocks
  * change in the stage world as they changed in the game, and are put back when the replay jumps
- * back or ends. The viewer flies around, and the hotbar runs the replay: the players, 10 seconds
- * back, pause, 10 seconds forward, the speed, leave. Main thread only.
+ * back or ends; the viewer hears what the players heard, and sees the bits of the blocks they
+ * broke. The viewer flies around, and the hotbar runs the replay: the players, 10 seconds
+ * back, pause, 10 seconds forward, the speed, leave. A party member the leader warped in (/p warp)
+ * follows the leader's replay (see {@link #lead}): on the same stage, at the leader's moment, the
+ * blocks changed by the leader's replay; their hotbar has the players and leave. Main thread only.
  */
 final class ReplayViewer {
 
@@ -95,6 +98,12 @@ final class ReplayViewer {
     private final int oy;
     private final int oz;
     private final Runnable release;
+    /**
+     * The replay this one follows, a party leader's, for a member they warped in (/p warp); null
+     * for a replay of its own. A follower shows the leader's moment, and leaves the blocks to the
+     * leader's replay: the stage is the same.
+     */
+    private final ReplayViewer lead;
     private final String title;
     /** The middle of the game: where its players first were, on average. */
     private final Location centre;
@@ -121,6 +130,16 @@ final class ReplayViewer {
     private final Map<ReplayData.Item, com.github.retrooper.packetevents.protocol.item.ItemStack> items = new HashMap<>();
 
     ReplayViewer(ReplayService service, Player viewer, ReplayData data, World world, int ox, int oy, int oz, Runnable release) {
+        this(service, viewer, data, world, ox, oy, oz, release, null);
+    }
+
+    /** A party member warped into the leader's replay: its stage, its moment. */
+    ReplayViewer(ReplayService service, Player viewer, ReplayViewer lead) {
+        this(service, viewer, lead.data, lead.world, lead.ox, lead.oy, lead.oz, () -> { }, lead);
+    }
+
+    private ReplayViewer(ReplayService service, Player viewer, ReplayData data, World world, int ox, int oy, int oz,
+            Runnable release, ReplayViewer lead) {
         this.service = service;
         this.viewer = viewer;
         this.data = data;
@@ -129,6 +148,7 @@ final class ReplayViewer {
         this.oy = oy;
         this.oz = oz;
         this.release = release;
+        this.lead = lead;
         String mode = data.info.modeName.isEmpty() ? data.info.modeId : data.info.modeName;
         this.title = mode + (data.info.mapName.isEmpty() ? "" : " on " + data.info.mapName);
         int actors = data.actors();
@@ -186,6 +206,11 @@ final class ReplayViewer {
         return release;
     }
 
+    /** The leader's replay this one follows, or null for a replay of its own. */
+    ReplayViewer lead() {
+        return lead;
+    }
+
     /** Where the stage's origin is in its world. */
     Location origin() {
         return new Location(world, ox + 0.5, oy, oz + 0.5);
@@ -201,6 +226,10 @@ final class ReplayViewer {
     /** The viewer goes to the stage, where the first player starts, flying, with the hotbar of the replay. */
     void begin() {
         Location start = startPoint();
+        if (lead != null && lead.player().isOnline() && lead.player().getWorld().equals(world)) {
+            // beside the leader
+            start = lead.player().getLocation();
+        }
         viewer.teleport(start);
         viewer.setGameMode(GameMode.ADVENTURE);
         viewer.setAllowFlight(true);
@@ -213,8 +242,14 @@ final class ReplayViewer {
             viewer.removePotionEffect(effect.getType());
         }
         hotbar();
-        viewer.sendMessage(ChatColor.GREEN + "Replay of " + ChatColor.WHITE + title + ChatColor.GREEN + ", "
-                + ReplayData.clock(data.ticks) + " long. " + ChatColor.GRAY + "Fly around; the hotbar runs the replay.");
+        if (lead != null) {
+            viewer.sendMessage(ChatColor.WHITE + lead.player().getName() + ChatColor.GREEN + " warped you into the replay of "
+                    + ChatColor.WHITE + title + ChatColor.GREEN + ", " + ReplayData.clock(data.ticks) + " long. "
+                    + ChatColor.GRAY + "They run it; fly around, the bed leaves.");
+        } else {
+            viewer.sendMessage(ChatColor.GREEN + "Replay of " + ChatColor.WHITE + title + ChatColor.GREEN + ", "
+                    + ReplayData.clock(data.ticks) + " long. " + ChatColor.GRAY + "Fly around; the hotbar runs the replay.");
+        }
         if (!data.info.result.isEmpty()) {
             viewer.sendMessage(ChatColor.GRAY + "Result: " + ChatColor.WHITE + data.info.result);
         }
@@ -261,7 +296,9 @@ final class ReplayViewer {
 
     void tick() {
         age++;
-        if (!paused && !ended) {
+        if (lead != null) {
+            follow();
+        } else if (!paused && !ended) {
             position += SPEEDS[speed];
             int target = (int) Math.min(data.ticks - 1, Math.floor(position));
             if (target > tick) {
@@ -282,8 +319,33 @@ final class ReplayViewer {
         }
     }
 
+    /**
+     * A party member's replay: at the leader's moment, forward or back, with the leader's pause and
+     * speed (for the sidebar). The leader's replay changes the blocks of the stage.
+     */
+    private void follow() {
+        int target = lead.tick;
+        if (tick < 0 && target > 0) {
+            // warped in during the replay: at the leader's moment, without what was said before
+            tick = target;
+            things();
+        } else if (target > tick) {
+            forward(target, target - tick > 4);
+        } else if (target < tick) {
+            tick = target;
+            things();
+        }
+        position = lead.position;
+        paused = lead.paused;
+        speed = lead.speed;
+        if (lead.ended && !ended) {
+            viewer.sendMessage(ChatColor.GRAY + "End of the replay. The bed leaves.");
+        }
+        ended = lead.ended;
+    }
+
     /** Forward to this tick: what happened on the way, at once when it is a jump. */
-    @SuppressWarnings("deprecation") // Player#playEffect(Location, Effect, int): the 1.8 way to show a blast to one player
+    @SuppressWarnings("deprecation") // Player#playEffect(Location, Effect, int): the 1.8 way to show a blast or a broken block to one player
     private void forward(int target, boolean jump) {
         int lines = 0;
         for (int t = tick + 1; t <= target; t++) {
@@ -291,7 +353,10 @@ final class ReplayViewer {
             for (ReplayData.Event event : data.events(t)) {
                 switch (event.type) {
                     case ReplayData.BLOCK:
-                        block(t, event.a, event.b, event.c, event.d, event.e);
+                        // a follower's stage is the leader's: their replay changes the blocks
+                        if (lead == null) {
+                            block(t, event.a, event.b, event.c, event.d, event.e);
+                        }
                         break;
                     case ReplayData.SWING:
                         if (last && shown[event.a]) {
@@ -330,6 +395,20 @@ final class ReplayViewer {
                                     oy + event.b / (double) ReplayData.UNIT, oz + event.c / (double) ReplayData.UNIT);
                             viewer.playEffect(at, Effect.EXPLOSION_LARGE, 0);
                             viewer.playSound(at, Sound.EXPLODE, 2.0F, 1.0F);
+                        }
+                        break;
+                    case ReplayData.SOUND:
+                        // what the players heard there, as the server sent it (pitch: 63 for 1.0)
+                        if (last) {
+                            Location at = new Location(world, ox + event.a / (double) ReplayData.UNIT,
+                                    oy + event.b / (double) ReplayData.UNIT, oz + event.c / (double) ReplayData.UNIT);
+                            viewer.playSound(at, event.text, Float.intBitsToFloat(event.d), (event.e + 0.5F) / 63F);
+                        }
+                        break;
+                    case ReplayData.BREAK:
+                        // the sound and bits of the broken block, as the players near it got them
+                        if (last) {
+                            viewer.playEffect(new Location(world, ox + event.a, oy + event.b, oz + event.c), Effect.STEP_SOUND, event.d);
                         }
                         break;
                     default:
@@ -642,6 +721,11 @@ final class ReplayViewer {
         }
         if (name.equals(PLAYERS)) {
             service.playersMenu(this);
+        } else if (name.equals(LEAVE)) {
+            service.leave(viewer);
+        } else if (lead != null) {
+            // the leader runs the replay
+            return false;
         } else if (name.equals(BACK)) {
             seek(tick - JUMP_TICKS);
         } else if (name.equals(FORWARD)) {
@@ -658,8 +742,6 @@ final class ReplayViewer {
             speed = Math.max(0, Math.min(SPEEDS.length - 1, speed + (right ? 1 : -1)));
             hotbar();
             sidebar();
-        } else if (name.equals(LEAVE)) {
-            service.leave(viewer);
         } else {
             return false;
         }
@@ -689,6 +771,12 @@ final class ReplayViewer {
         inventory.clear();
         inventory.setArmorContents(new ItemStack[4]);
         inventory.setItem(SLOT_PLAYERS, ClickMenu.item(Material.COMPASS, PLAYERS, "Go to a player of the game."));
+        if (lead != null) {
+            // the leader runs the replay
+            inventory.setItem(SLOT_LEAVE, ClickMenu.item(Material.BED, LEAVE, "Back to the lobby."));
+            viewer.updateInventory();
+            return;
+        }
         inventory.setItem(SLOT_BACK, ClickMenu.item(Material.ARROW, BACK, "Back in the game."));
         boolean playing = !paused;
         inventory.setItem(SLOT_PAUSE, ClickMenu.item(Material.INK_SACK, playing ? 10 : 8, playing ? PAUSE : PLAY,
@@ -743,6 +831,9 @@ final class ReplayViewer {
     // --- Packets --------------------------------------------------------------------------------
 
     private void send(PacketWrapper<?> packet) {
+        if (RagoBots.isBot(viewer)) {
+            return;
+        }
         PacketEvents.getAPI().getPlayerManager().sendPacket(viewer, packet);
     }
 

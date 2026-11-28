@@ -54,12 +54,21 @@ dans les files d'attente des modes de jeu.
 - **La vitesse du lobby (PREMIUM).** Dans les réglages du profil, « Lobby speed » : Speed I, II ou
   III dans le lobby, ou rien (clic gauche plus vite, clic droit moins vite). La permission est
   `rago.perk.speed`.
-- **L'éditeur de kit.** Le livre (deuxième case) liste les modes qui ont un kit (`kit:` sous le
-  mode dans config.yml). Un clic sur un mode met son kit dans l'inventaire du joueur, rangé comme
-  il l'a laissé la dernière fois, sous un petit coffre : Save, Reset (le rangement du kit) et
-  Cancel. Le joueur déplace et échange les objets comme il veut ; il ne peut pas couper une pile,
-  en fusionner deux, jeter un objet ni en mettre un dans le coffre. Fermer le coffre enregistre
-  aussi. Le rangement est gardé par joueur et par mode dans `plugins/RagoLobby/kits/<uuid>.yml` :
+- **L'éditeur de kit.** Le livre (deuxième case) range les modes qui ont un kit (`kit:` sous le
+  mode dans config.yml) comme la boussole (ta demande du 22/11, 19h51) : d'abord les catégories
+  qui ont un kit, sur la ligne du milieu, une case entre chacune, dans l'ordre du sélecteur
+  (Practice, RBW Modes, Duels, Arenas, Fun Practice ; les modes d'aucune de ces catégories à la
+  fin, « Other kits »), avec leur icône, leur nom, leur slogan et leur nombre de kits. Un clic sur
+  une catégorie ouvre ses kits, triés par nom, sept par ligne sous une ligne vide comme les menus
+  de la boussole, avec « Back to the categories » en bas. Sans catégories, le livre montre tous
+  les kits d'un coup. Chaque kit dit s'il est rangé par le joueur (« Your layout is saved. ») ou
+  non, et quels autres modes le jouent (`kit-de:`, « Also for: … »). La dernière ligne du premier
+  coffre a l'import Hypixel, un livre « How it works » et la boutique Hypixel importée. Un clic
+  sur un mode met son kit dans l'inventaire du joueur, rangé comme il l'a laissé la dernière
+  fois, sous un petit coffre : Save, Reset (le rangement du kit) et Cancel ; Save et Cancel
+  ramènent aux kits de sa catégorie. Le joueur déplace et échange les objets comme il veut ; il ne peut pas
+  couper une pile, en fusionner deux, jeter un objet ni en mettre un dans le coffre. Fermer le
+  coffre enregistre aussi, et ferme l'éditeur. Le rangement est gardé par joueur et par mode dans `plugins/RagoLobby/kits/<uuid>.yml` :
   ses prochaines parties de ce mode lui donnent le kit comme ça (RagoPractice et RagoBedwars le
   lisent : duels, FFA, invis practice...). Un mode sans `kit:` garde le kit de son jeu. Plusieurs
   modes peuvent jouer le kit d'un autre (`kit-de:`) : les quatre formats de l'Invis practice
@@ -70,9 +79,14 @@ dans les files d'attente des modes de jeu.
   l'éditeur en duel.
 - **Les parties, comme sur Hypixel.** `/p <joueur>` (ou `/party invite`) invite ; l'invitation
   dure une minute, avec un « Click here to join! » cliquable, et la party naît avec la première
-  invitation (8 joueurs au plus). `/party accept`, `leave`, `list`, `kick`, `transfer`, `warp`
+  invitation (16 joueurs au plus depuis le 22/11, ta limite pour Bedwars Normal ; 8 avant, comme
+  sur Hypixel sans grade). `/party accept`, `leave`, `list`, `kick`, `transfer`, `warp`
   (les membres du lobby viennent au chef), `disband`, et le chat de party avec `/pc <message>` ou
-  `/chat party` (`/chat all` pour revenir). Les messages sont entre deux lignes bleues. Seul le
+  `/chat party` (`/chat all` pour revenir). Les messages sont entre deux lignes bleues. Un
+  joueur qui quitte le serveur reste dans sa party 60 secondes (ta demande du 25/11) : les autres
+  le lisent, `/party list` le montre avec un point rouge, le chef peut le `kick` ; revenu à temps,
+  il est toujours dedans ; sinon il en sort (si c'était le chef, le suivant présent sur le serveur
+  mène). La party quitte la file où elle attendait. RagoBot, lui, en sort tout de suite. Seul le
   chef lance une file, pour toute la party :
   - une party qui remplit toute la partie (deux joueurs dans un mode 1v1, quatre dans un 2v2...)
     joue tout de suite une partie privée entre ses joueurs, qui ne compte dans aucune stat (ni
@@ -82,6 +96,107 @@ dans les files d'attente des modes de jeu.
   - plus grande qu'une équipe sans remplir la partie, elle est refusée.
   Un joueur qui quitte la file, la party, ou le serveur fait sortir toute la party de la file. Un
   chef qui part laisse la party au joueur suivant.
+- **Les duels entre parties** (`PartyDuels`, ta demande du 25/11). Le chef d'une party de deux ou
+  plus ouvre les autres parties du serveur avec `/duel` (sans nom), ou avec « Party Duels », la
+  dernière case de la catégorie Party de la boussole : chaque party, la tête de son chef et ses
+  joueurs (une party dont le chef est déconnecté n'y est pas). Le clic sur l'une montre les modes
+  de la catégorie Duels dont les deux équipes ont la taille des deux parties (deux parties de deux :
+  les 2v2 des Duels ; des tailles différentes, ou 3 et plus tant qu'il n'y a pas de mode 3v3 ou 4v4
+  dans Duels : aucun) ; le clic sur un mode envoie le défi. Le chef de l'autre party a une minute
+  pour répondre ([Accept] [Deny], ou `/duel accept <chef>`, `/duel deny <chef>`) ; les deux parties
+  jouent alors la partie, une équipe chacune, sans la file, comme un `/duel` : ni ELO ni série de
+  victoires, les victoires et l'XP comptent. Tous doivent être au lobby, aucun gelé par le staff,
+  sans RagoBot.
+- **Les Private games : Bedwars Normal** (`parties-privees-equipes:`, tes réponses du 22/11 ; il
+  remplace la Private game, RBW 1v1 à 4v4, et le Private top bridge). Dans Bedwars Modes, l'objet
+  Private games, le chef de party clique Bedwars Normal et choisit la map dans son menu, au lobby
+  (rien ne change encore pour la party) : une ligne pour les 4s (les maps à 4 équipes,
+  `bedwars-normal-4s`), une pour les 2s (les maps à 8 équipes, `bedwars-normal-2s`). Dès que la map
+  est choisie, toute la party part dans le **lobby d'attente au-dessus de cette map**, comme pour
+  une partie (ta demande du 25/11 : « dès qu'il choisit la map ça le tp lui et les membres de la
+  party sur le lobby d'attente au-dessus de la map qu'il a choisie »), dans une copie à la party
+  (`MatchHost.canGather` et `gather`, voir le README de RagoBedwars). Si la copie se fait encore,
+  la party l'attend au lobby quelques secondes. Là-bas, en mode aventure, le chef a l'objet des
+  réglages (un comparateur, case 2), tout le monde celui des équipes (une laine, case 5). Le chat
+  du lobby d'attente est celui de la party seule. `/spawn` ramène au lobby, et annule la partie
+  pour toute la party. Une map sans lobby d'attente : la party attend dans celui de
+  `salle-attente-privee` (Archway FFA) ; sans aucun, les équipes se choisissent au lobby, comme
+  avant. Chaque joueur de la party choisit
+  ensuite son équipe dans un menu (les couleurs de la map, `/pg team` le rouvre) pendant 30
+  secondes (`compte-a-rebours`, ta demande du 23/11), ramenées à 15 dès que tout le monde a
+  choisi (sauf s'il en reste déjà moins), puis la partie part seule, sans compter dans les stats : des
+  équipes de 4 sur une map de 4s, de 2 sur une map de 2s, comme sur Hypixel. Une équipe pleine
+  refuse un joueur, et aussi celle qui contiendrait toute la party (il faut deux équipes) ; celui
+  qui n'a pas choisi va dans l'équipe la moins remplie, en ouvrant les équipes qu'il faut à la
+  taille de la map (deux au moins : 5 joueurs sans choix sur une 2s font 2, 2 et 1 ; 6 sur une 4s
+  font 3 et 3). Le compte à rebours fini, la partie part sur la map choisie, sur la copie
+  même du lobby d'attente (avec celui d'Archway FFA, sur une copie de la map choisie). De 2 à 16 joueurs ; une party
+  qui change, ou un joueur qui quitte le lobby d'attente (ou le lobby), annule.
+  La logique des équipes est dans `TeamRoom` (testée par `TeamRoomTest`), les menus dans
+  `TeamRooms`. Le chef de party règle la partie (ta réponse 7) : le comparateur « Game settings »
+  de la dernière ligne du menu des maps, celui de son menu d'équipes, l'objet des réglages du lobby
+  d'attente, ou `/pg settings` ; un clic
+  passe au choix suivant, un clic droit revient au précédent, et la party lit chaque changement
+  pendant le choix des équipes. Un réglage d'objets à cocher (`PrivateSetting.toggles`, One Hit One
+  Kill) ouvre au clic son propre menu : chaque objet avec son icône, un clic le met On ou Off, la
+  flèche revient aux réglages ; son choix est un bit par objet coché. Les réglages viennent du
+  plugin du mode (`MatchHost.privateSettings`, pour Bedwars Normal : Speed, Max Diamond, Max
+  Emerald, Break the Map, puis Health Buff, Low Gravity, Respawn Time, Event Times, Bed Instabreak
+  et One Hit One Kill, voir le README de RagoBedwars) ; le lobby les donne à la partie
+  (`LobbyService.privateSettings`). Ils restent ceux
+  du chef pour ses parties suivantes, jusqu'à ce qu'il quitte le serveur.
+- **Les Private games : FFA Archway** (`parties-privees:`, ton choix du 23/11 : « 30 minutes, puis
+  classement des kills »). Dans l'objet Private games, à côté de Bedwars Normal, le chef de party
+  clique FFA Archway (`ffa-archway`) : toute la party (de 2 à 16 joueurs) entre dans sa propre
+  copie d'Archway FFA, chacun pour soi, avec les règles et le kit du FFA (`kit-de: ffa`, tel que
+  chacun l'a rangé), sans compter dans les stats. Personne d'autre n'y entre. Son jeu,
+  `ffa-archway-partie` (16 équipes d'un joueur, caché), ne se lance que depuis FFA Archway :
+  `/queue ffa-archway-partie` renvoie vers lui. La partie finit au bout de 30 minutes
+  (`ffa-privee-minutes` dans le config.yml de RagoBedwars) avec le classement des kills de la
+  partie (voir le README de RagoBedwars). Une liste de `parties-privees:` dont le mode a plus de
+  deux équipes d'un joueur (`QueueController.eachForThemselves`) prend une party de 2 joueurs
+  jusqu'à son nombre d'équipes, un par équipe ; les autres modes restent à leur taille exacte.
+- **RagoBot** (`ragobot:`, le choix du propriétaire du 22/11). `/p invite RagoBot` (ou `/p RagoBot`)
+  le fait entrer tout de suite dans la party, à côté du chef : un vrai joueur du serveur, avec le
+  skin d'un compte (`skin:`, qRago) et le nom RagoBot, un par party qui l'invite (`max:` à la
+  fois, de 1 à 50). Il joue les parties de la party dans ses modes (`modes:`, Top Bridge 1v1 et
+  2v2 et le Sumo 1v1 d'abord ; puis Boxing et Lobby Fight 1v1, l'étape 1 de l'ordre que tu as
+  validé le 22/11 ; puis Block placement 1v1, 2v2 et Red Rover Block Placement, l'étape 2 ; puis
+  Block edit 1v1 et Red Rover Block Edit, l'étape 3 : voir le suivi), comme un membre : une party de deux joue le 1v1 contre lui, une party avec lui attend
+  dans la file du 2v2 comme une équipe, une party de trois joue un Red Rover avec lui (il se bat
+  contre celui de son 1v1). En Block placement et en Block edit, il pose et casse des blocs par les
+  paquets d'un client, dans les règles de la partie : au-dessus du vide, il pose un bloc de son kit
+  sous lui (le clutch) ; l'autre debout sur un seul bloc au-dessus du vide, hors de ses coups, il
+  s'arrête et casse ce bloc (laine aux cisailles, end stone à la pioche) ; il saute les marches
+  d'un bloc. En Block edit, au mur de laine, avec les choix par défaut de sa proposition (validée
+  le 23/11) : mur entier, il se met contre le mur en face de l'autre, casse aux cisailles le bloc à
+  hauteur de sa tête quand l'autre est dans ses coups par ce trou, le frappe par le trou après son
+  temps de réaction, puis remet un bloc de laine dans le trou (son point si son coup était le
+  dernier) ; l'autre sorti de ses coups sans être touché, il referme quand même. Touché par l'autre,
+  il le frappe en retour par le trou dès qu'il est dans ses coups, puis referme ; reculé, il revient
+  au mur en face du trou. Par le trou de l'autre, il joue sans casser d'autre bloc. Il ne frappe
+  jamais à travers un bloc. Sa vitesse de pose : `skill.blocs-par-seconde`. Son ping
+  (`skill.ping`, 40 ms, ta demande du 23/11 : sans ping il avait le premier coup à chaque fois) :
+  ses coups se jouent sur l'endroit où l'autre était il y a 40 ms, comme ceux d'un joueur ; l'autre
+  qui arrive dans sa portée n'est touché que le tick d'après. Jamais en classé, jamais pour remplir
+  une file au hasard, jamais chef de la party (le chef qui part la laisse au joueur suivant ; sans
+  autre joueur, elle est dissoute). Une partie avec lui compte dans les stats et l'XP des joueurs,
+  jamais dans l'ELO ; lui n'a pas de stats. Un seul niveau (`skill:` : CPS, précision, portée,
+  strafe, w-tap, jump reset, réaction, rotation, pomme d'or sous `soin-a`), pas de niveaux. Il
+  quitte le serveur une fois revenu au lobby sans party (`/p kick RagoBot`, party dissoute).
+  `/duel RagoBot` renvoie vers la party. Les valeurs du `config.yml` sont à confirmer en jeu.
+- **Les outils Owner** (`outils-owner:`, plan 7.1, le choix du propriétaire du 22/11), pour tester le
+  PvP et les protections du serveur. `/owner reach <3-6|off>` : les coups du propriétaire portent
+  jusqu'à cette distance (3 pour un joueur normal), comme ceux d'un reach : le premier joueur dans
+  sa visée, sans bloc entre eux, prend le coup comme le serveur fait un coup. `/owner scaffold
+  [on|off]` : en sortant d'un bord, un bloc de celui qu'il tient se pose sous ses pieds, comme avec
+  un scaffold (là où la partie le laisse poser un bloc). `/owner off` coupe tout, `/owner` seul dit
+  ce qui est actif. Pour le compte `compte:` (qRago) seulement, qui doit avoir aussi `rago.admin`
+  (le rang owner, ou op) : pour tous les autres, opérateurs compris, la commande n'existe pas (la
+  réponse de Spigot à une commande inconnue). Coupés par défaut, et de nouveau en quittant le
+  serveur. Jamais en classé : ils n'y font rien. Une partie où un outil est actif ne compte pour
+  personne : ni stats, ni XP, ni ELO, ni record. Sur un serveur en mode offline (les noms n'y sont
+  pas vérifiés), il faut l'id du compte dans `uuid:`, sinon les outils restent coupés.
 - **L'import Hypixel.** Pour les modes qui se jouent sur une map de Bed Wars (Ranked Bedwars,
   First Rush, Private Game) et Fast Shop, chaque joueur copie son shop Hypixel : le quick buy
   (les 21 cases, trois lignes de sept) et le hotbar manager (le genre d'objet de chaque case de la
@@ -106,11 +221,17 @@ dans les files d'attente des modes de jeu.
   victoires d'affilée du joueur dans ce mode aujourd'hui) puis les trois plus longues séries du
   jour, avec les pseudos de toute l'équipe en 2v2, 3v3... (« 1. Alice, Bob - 24 »). Une série
   appartient à une équipe : les mêmes joueurs ensemble. Elles sont gardées dans
-  `plugins/RagoLobby/stats/equipes/`, un fichier par mode.
-- **« Popular now ».** La ligne du haut de la boussole et de chaque catégorie montre les modes où
-  il y a du monde en ce moment : au moins un joueur en partie ou en file, les plus joués d'abord
-  (à égalité, celui où l'on attend : une partie bientôt), trois au plus, ceux de la catégorie dans
-  une catégorie. Chacun dit combien jouent et attendent, et un clic entre dans sa file comme
+  `plugins/RagoLobby/stats/equipes/`, un fichier par mode. Un entraînement (Block clutch, Block
+  in, Aim trainer...) montre à la place son record Lifetime, que lui donne RagoPractice
+  (`LobbyService.setModeRecords`) : « Lifetime record: Island clutch », le top 3 et le meilleur
+  score du joueur avec sa place (« Your best: 8 clutches (#5) »). C'est le record de la variante
+  sur laquelle l'entraînement commence : la première, et pour le block edit la vitesse du bot par
+  défaut. Les duels gardent leur Daily Streak.
+- **« Popular now ».** La ligne du bas de la boussole, sous les catégories, montre les modes
+  où il y a du monde en ce moment, toutes catégories confondues : au moins un joueur en partie ou
+  en file, les plus joués d'abord (à égalité, celui où l'on attend : une partie bientôt), trois au
+  plus. Le menu d'une catégorie (depuis la boussole, son PNJ ou `/play`) n'a rien sur sa ligne du
+  haut (ta demande du 22/11). Chacun dit combien jouent et attendent, et un clic entre dans sa file comme
   ailleurs. Au bout de la ligne, le **défi du jour** des entraînements (une montre qui brille, ce
   qu'il demande) : un clic le lance (`/challenge play`), depuis le lobby ou depuis un entraînement.
   Les parties privées ne comptent pas. La ligne se met à jour chaque seconde avec le menu.
@@ -147,22 +268,33 @@ dans les files d'attente des modes de jeu.
   entraînements) et les parties de Bed Wars en équipes (pas les FFA, Fast Shop, Invis, le Bed Break
   Simulator ni le Top Bridge d'entraînement d'une party) sont enregistrés : les joueurs (leurs mouvements, leurs coups,
   leur vie, ce qu'ils tiennent et portent), les blocs posés et cassés, les flèches, boules de feu,
-  perles et TNT, et les messages de la partie. `/replay` ouvre le menu de ses parties des derniers
+  perles et TNT, les messages de la partie, et ses **sons** : ceux que le serveur envoie aux joueurs
+  de la partie (coups, blocs posés, arcs, compte à rebours, sons des jeux…, une seule fois chacun
+  même entendu par tous), et le bruit et les éclats des blocs cassés. Les pas, que le serveur
+  n'envoie jamais, n'y sont pas. Un replay d'avant n'a pas de sons. `/replay` ouvre le menu de ses parties des derniers
   jours, `/replay CODE` montre n'importe quelle partie par son code (à partager), et **[REPLAY]**
   celle qu'on vient de jouer. On regarde depuis le lobby (demandé pendant une partie, le replay
   attend le retour au lobby), en volant autour des joueurs. La barre met en pause, recule ou avance
   de 10 secondes, change la vitesse (x0.25 à x4 : clic droit plus vite, clic gauche moins vite sur
   l'horloge), va voir un joueur (la boussole), et le lit (ou `/replay leave`, ou `/spawn`) ramène
-  au lobby. Un duel est rejoué dans un monde à part (`rago_replays`, effacé à chaque démarrage),
+  au lobby. **En party**, le chef qui regarde un replay y fait venir ses membres avec `/p warp`
+  (comme `/p warp` au lobby : un membre en partie la quitte, un membre dans un autre replay le
+  quitte) : ils arrivent à côté de lui et voient le même moment du replay, que le chef mène (pause,
+  recul, vitesse) ; leur barre n'a que les joueurs et le lit, et quand le chef quitte le replay, ils
+  reviennent au lobby. Un chef de party qui lance un replay voit « /p warp » en rappel. Un duel est
+  rejoué dans un monde à part (`rago_replays`, effacé à chaque démarrage),
   une partie de Bed Wars dans une copie libre de sa map. Les fichiers sont dans
   `plugins/RagoLobby/replays` : quelques dizaines de Ko pour un duel, quelques centaines pour une
   partie de Bed Wars. Réglages dans `replays:` : `jours` (3), `taille-max-mo` (2000 ; au-delà, les
-  plus vieux partent d'abord), `spectateurs-max` (6 replays regardés en même temps), et
+  plus vieux partent d'abord), `spectateurs-max` (6 replays regardés en même temps ; les membres d'une party venus dans le replay du chef ne comptent pas), et
   `actif: false` pour ne rien enregistrer.
-- **Regarder une partie en direct.** `/spectate <joueur>` (ou `/spec`) depuis le lobby : la partie
-  d'un ami, et n'importe quelle partie pour le staff (un soupçon de triche) et pour un rang qui a
-  `rago.perk.spectate` (MEDIA, mais pas la partie d'un joueur sous un nick, qui reste caché sauf
-  pour le staff et ses amis). Le spectateur arrive là où est le joueur, en mode spectateur : les
+- **Regarder une partie en direct.** `/spectate <joueur>` (ou `/spec`) depuis le lobby : n'importe
+  quelle partie, pour tout le monde (sauf la partie d'un joueur sous un nick, qui reste caché sauf
+  pour le staff et ses amis). Les joueurs de la partie lisent « <nom> is now spectating your
+  game. », en rouge et en gras, avec un ding (le son de l'orbe d'XP ; ta demande du 22/11), pas pour
+  un membre du staff en vanish (le message vient de RagoPractice ou de RagoBedwars, selon la partie). Rien ne sort le spectateur du mode spectateur
+  tant qu'il regarde (ni un autre plugin, ni une commande) : il ne peut ni frapper, ni être frappé,
+  ni mourir, et revient au lobby par `/spawn` ou la fin de la partie. Le spectateur arrive là où est le joueur, en mode spectateur : les
   joueurs ne le voient pas (même pas son corps, seulement son nom grisé dans le Tab), il vole à
   travers tout et ne touche à rien. Un clic gauche sur un joueur montre la partie par ses yeux, et
   les touches de la barre ne l'emmènent que vers les joueurs de la partie. Il lit les messages de
@@ -177,16 +309,19 @@ dans les files d'attente des modes de jeu.
   ranked ELO. »).
 - **Le scoreboard.** Peu de mots et de l'espace, titre en rouge : le rang, le niveau et l'avancée
   vers le suivant en % ; les Rago Points (« Points ») et la meilleure division classée ; le ping et
-  les joueurs connectés ; la file et le temps d'attente quand on attend ; l'adresse en rouge tout en
+  les joueurs connectés ; la file et le temps d'attente quand on attend ; l'adresse en jaune tout en
   bas. Le Tab aussi (RAGO PRACTICE en rouge et le slogan en haut ; les joueurs, le ping, la boutique
-  et rago.gg en bas). En partie : le mode en tête, à la couleur de sa catégorie (Bed Wars compris),
+  et rago.gg, en jaune, en bas). En partie : le mode en tête, à la couleur de sa catégorie (Bed Wars compris),
   le ping du joueur, et en 1v1 l'adversaire et son
   ping (vert sous 80 ms, jaune sous 150, rouge au-delà). Un jeu qui donne ses propres lignes sans
   ping (Bed Wars, entraînements) reçoit en dessous « Your ping » et « Their ping » (celui de
   l'adversaire en 1v1, de chacun jusqu'à trois, la moyenne au-delà). Une ligne n'est renvoyée que
   quand elle change. En partie, la vie des joueurs autour s'affiche sous leur nom (« 20 ❤ », l'absorption
   comprise), mise à jour à chaque tick, et leur niveau Network reste après leur nom au-dessus de
-  leur tête.
+  leur tête. En partie classée qui compte (Ranked depuis la file, pas une partie privée ni un
+  `/duel`), c'est l'ELO du joueur dans ce mode qui suit son nom, à la place du niveau, au-dessus de
+  sa tête et dans le Tab (plan 3.6) : `R Sofiene Gold 245`, dès le compte à rebours. Pas pour un
+  joueur sous `/nick`, que son ELO trahirait.
 - **Le niveau Network.** Chaque partie donne de l'XP (50 pour une victoire, 15 pour une défaite),
   chaque kill 5 de plus. On commence niveau 1, et chaque niveau demande 50 XP de plus que le
   précédent (100, 150, 200...). Le niveau s'affiche comme sur Hypixel, `[12✫]`, au-dessus de la
@@ -262,8 +397,8 @@ dans les files d'attente des modes de jeu.
   trois gadgets à lui (bat blaster, mouton explosif, boule disco : `rago.perk.gadgets`), les effets
   de kill et de victoire les plus rares (squid rocket, météore, dieu du tonnerre, pluie de météores)
   un booster d'XP gratuit par jour (`rago.perk.booster`) et les events pour tout le serveur avec
-  `/host` (`rago.perk.host`, voir RagoPractice). Le staff et MEDIA en héritent. MEDIA a aussi
-  `/spectate` pour toutes les parties (`rago.perk.spectate`).
+  `/host` (`rago.perk.host`, voir RagoPractice). Le staff et MEDIA en héritent. (`/spectate` est
+  maintenant ouvert à tous ; `rago.perk.spectate` ne change plus rien.)
 - **Le + de [PREMIUM+].** Le `{+}` d'un préfixe (`prefixe: "&d[PREMIUM{+}] "`) est un + que chaque
   joueur colore dans `/style` (« Colour of your + ») : blanc par défaut, six couleurs vives en
   récompense de niveau (`plus-jaune` au niveau 5... `plus-bleu` au 85), et le noir, le plus rare, à
@@ -278,9 +413,14 @@ dans les files d'attente des modes de jeu.
   de pièces peuvent tourner en même temps. La boutique en ligne en donne avec
   `/booster give <joueur> [nombre] [xp|coins|daily]` (xp par défaut).
 - **La ligne au-dessus du pseudo (`/display`).** Au lobby, chaque joueur a une ligne au-dessus
-  de son pseudo, qu'il choisit : son ELO classé (par défaut, « Unranked » sans partie classée),
-  son niveau, ses victoires, ses kills, sa meilleure série, le titre qu'il porte, un message à lui (PREMIUM :
+  de son pseudo, qu'il choisit : son niveau Network (par défaut, plan 3.5 : `Level [12✫]`), son
+  ELO classé (« Unranked » sans partie classée), ses victoires, ses kills, sa meilleure série, le
+  titre qu'il porte, un message à lui (PREMIUM :
   `/display message <texte>`, 32 caractères, couleurs avec `&`, sans texte brouillé) ou rien. Le
+  choix fait avant reste (qui avait choisi l'ELO le garde). Quand la ligne montre le niveau, le
+  pseudo ne le répète pas après lui (il garde son badge). Hors du lobby (entraînements, duels, Bed
+  Wars), le niveau reste après le pseudo, et passe avant le badge quand les deux ne tiennent pas
+  dans les 16 caractères d'une équipe 1.8. Le
   menu est dans le profil. C'est un porte-armure invisible, sans hitbox, connu des seuls clients,
   qui suit le joueur (mêmes paquets de mouvement) ; la ligne change au plus une fois par seconde.
 - **`/nick` (PREMIUM).** On joue sous un autre pseudo (3 à 16 lettres, chiffres ou `_`, pas celui
@@ -328,8 +468,8 @@ dans les files d'attente des modes de jeu.
 - **Les Rago Points et la boutique (`/shop`).** Les points se gagnent en partie (20 par victoire,
   5 par défaite, 2 par kill), dans le practice, les entraînements, l'aim trainer et les events
   (un point pour 3 XP Network qu'ils donnent, au moins un : `rago-points.xp-par-point`), à chaque
-  niveau (le niveau fois 10) et avec la récompense du jour
-  (`/daily` : 100, plus 25 par jour d'affilée, jusqu'à 7 jours). La boutique vend 18 cosmétiques
+  niveau (le niveau fois 10) et avec le Daily Chest (`/daily`, ci-dessous : de 100 à 500, plus
+  25 par jour d'affilée après le premier, jusqu'à 7 jours). La boutique vend 18 cosmétiques
   (traînées de projectiles, effets de kill, effets de victoire), chacun débloqué à un niveau
   Network, et montre le rang PREMIUM et les styles de pseudo. Un rang peut aussi se vendre en
   points (`prix:` et `niveau:` dans `rangs:`). Les cosmétiques ne jouent qu'en partie.
@@ -377,15 +517,51 @@ dans les files d'attente des modes de jeu.
   feu d'artifice de sa couleur avec `rago.perk.join` (PREMIUM et le staff).
 - **Le coffre de la récompense du jour.** `/lobby point daily` pose un coffre à cet endroit (au
   spawn), avec au-dessus « DAILY REWARD », si la récompense attend ou dans combien de temps vient
-  la suivante, et la série de jours. Un clic dessus la donne, comme `/daily`.
+  la suivante, et la série de jours. Un clic dessus l'ouvre, comme `/daily`, le profil et la
+  boutique. `point-coffre-du-jour:` dans config.yml lui donne un autre point (`newdailychest` sur
+  le serveur de test, posé sur un bloc de diamant).
+- **Le Daily Chest** (ta demande du 22/11, 18h22 : « je veux quelque chose d'impressionnant »).
+  Une fois par jour, un menu « Daily Chest » s'ouvre : au milieu, une bande de récompenses défile
+  entre des vitres qui changent de couleur à chaque pas, sur une note qui monte, de plus en plus
+  lentement (64 objets en 4,5 secondes, jusqu'à deux objets par tick au début ; ta demande du 23/11 :
+  un peu plus court, les objets beaucoup plus vite ; avant, 32 objets en 5,7 secondes) ; elle s'arrête sur la récompense du joueur, au centre
+  sous l'entonnoir (qui donne les chances de chaque rareté). Un court silence, puis la récompense
+  s'allume dans la couleur de sa rareté, le reste de la bande s'éteint, les vitres prennent sa
+  couleur (elles clignotent pour Epic et Legendary) avec le son de sa rareté ; le chat la donne.
+  Le menu se ferme sur un grand titre (« RARE! » et la récompense dessous). Au coffre du spawn,
+  le couvercle s'ouvre pendant le tirage, des glyphes d'enchantement tournent autour, et à la
+  fin des étincelles, un feu d'artifice bleu (Rare), violet (Epic) ou trois dorés (Legendary)
+  au-dessus. Une récompense Legendary est annoncée à tout le lobby. Fermer le menu avant la fin
+  donne la récompense tout de suite (de même si le joueur part ou si le serveur s'arrête) ; le
+  jour est noté dès l'ouverture, une seule fois par jour.
+  Ce qu'il donne (`coffre-du-jour.recompenses:`, chaque ligne : sa rareté, ce qu'elle donne, de
+  combien à combien, sa chance en %) — mes choix, comme tu me l'as demandé, modifiables :
+
+  | Rareté | Récompense | Chance |
+  |---|---|---|
+  | Common (blanc) | 100 à 200 Rago Points | 30 % |
+  | Common | 100 à 500 XP Network | 25 % |
+  | Rare (bleu) | 200 à 350 Rago Points | 15 % |
+  | Rare | 500 à 1 000 XP Network | 13 % |
+  | Epic (violet) | 350 à 500 Rago Points | 6 % |
+  | Epic | 1 000 à 2 000 XP Network | 6 % |
+  | Legendary (or) | un cosmétique de la boutique | 5 % |
+
+  Soit Common 55 %, Rare 28 %, Epic 12 %, Legendary 5 % (un cosmétique tous les 20 jours en
+  moyenne). Jamais de doublon : le cosmétique est tiré parmi ceux que le joueur n'a pas (ni
+  achetés, ni donnés par son rang), jamais un de PREMIUM ; s'il les a tous, il reçoit à la place
+  la plus grosse récompense en Rago Points de la liste (500). L'XP est donnée telle quelle, sans
+  les boosters. La série (`rago-points.quotidien-serie`, 25) s'ajoute en Rago Points à partir du
+  deuxième jour d'affilée ; `rago-points.quotidien` ne sert plus (le coffre tire la récompense).
 - **Le PNJ des quêtes.** À deux blocs du coffre de la récompense du jour (trois si la place est
   prise), du côté le plus loin des autres PNJ, face au spawn : un PNJ dans son skin (`quetes`),
-  un livre à la main, avec au-dessus « QUESTS », où en est chacun (« Daily 2/4 · Weekly 0/4 »,
+  avec au-dessus « QUESTS », où en est chacun (« Daily 2/4 · Weekly 0/4 »,
   avec « Start 1/5 » devant tant que Getting started n'est pas fini) et « Click to see them ». Un clic dessus (ou sur ses lignes) ouvre les quêtes du jour et de la
-  semaine, comme `/quests`. `/lobby point quests` le place ailleurs ; sans coffre ni ce point, il
+  semaine, comme `/quests`. `/lobby point quests` le place ailleurs (`point-pnj-quetes:` dans
+  config.yml lui donne un autre point : `newquest` sur le serveur de test) ; sans coffre ni ce point, il
   n'y en a pas.
 - **Le clic sur un joueur.** Un clic droit sur un joueur du lobby ouvre son menu : sa tête avec
-  son rang, son niveau et ses divisions, un duel (le choix du mode), ses stats mode par mode, une
+  son rang, son niveau et ses divisions, un duel (le choix du mode), ses stats (par catégorie, puis mode par mode), une
   invitation dans sa party, une demande d'ami et un rang à lui offrir.
 - **Offrir un rang (`/gift <joueur>`, le bouton « Gift a rank » du shop, ou le clic sur un
   joueur).** Payé avec ses propres Rago Points, même un rang de la boutique en ligne : VIP pour
@@ -428,16 +604,19 @@ commentaires de `config.yml`. Les mots français de la première version (`quitt
 | `/spawn` (ou `/hub`) | retour au spawn ; pendant une partie, c'est un abandon | tout le monde |
 | `/playagain` (ou `/again`) | la partie suivante du même mode : quitte la partie (comme `/spawn`) et remet dans sa file tout de suite ; au lobby, comme le papier Play again | tout le monde |
 | `/replay`, `/replay <code>`, `/replay leave` (ou `/replays`) | le menu de ses dernières parties, une partie par son code, quitter le replay | tout le monde |
-| `/spectate <joueur>` (ou `/spec`) | regarder la partie d'un ami, invisible (`/spawn` pour revenir) | tout le monde ; toutes les parties : `rago.perk.spectate` (MEDIA, le staff) |
+| `/spectate <joueur>` (ou `/spec`) | regarder une partie, invisible (`/spawn` pour revenir) | tout le monde (la partie d'un joueur sous un nick : le staff et ses amis) |
+| `/ping [joueur]` | son ping, ou celui d'un joueur (comme sur Minemen) : en vert sous 80 ms, en jaune sous 150, en rouge au-delà, comme dans les barres des parties. Un joueur sous un nick se trouve par son nick ; par son vrai nom, seulement pour le staff | tout le monde |
 | `/queue <mode> [map]`, `/queue leave [mode]` (ou `/file`, `/q`) | entrer dans une file (sur une map, ou `random`), aussi depuis un entraînement ; sortir de toutes, ou d'une | tout le monde |
 | `/duel <joueur> [mode]` | défier un joueur du lobby dans un mode 1v1 (sans mode : un menu des modes 1v1) | tout le monde |
-| `/duel accept <joueur>`, `/duel deny <joueur>` | répondre à un défi (valable une minute) | tout le monde |
+| `/duel` (chef d'une party de deux ou plus) | les autres parties du serveur, à défier dans un mode des Duels à leur taille | tout le monde |
+| `/duel accept <joueur>`, `/duel deny <joueur>` | répondre à un défi, d'un joueur ou de la party d'un chef (valable une minute) | tout le monde |
 | `/party invite <joueur>` (ou `/p <joueur>`), `/party accept <joueur>` | inviter dans sa party (valable une minute), rejoindre une party | tout le monde |
 | `/party leave`, `list`, `kick <joueur>`, `transfer <joueur>`, `warp`, `disband` | quitter, voir, gérer la party (le chef) | tout le monde |
 | `/pc <message>`, `/chat party`, `/chat all` | écrire à sa party, y envoyer tout son chat, revenir au chat de tous | tout le monde |
 | `/hypixel import [pseudo]` | copier le shop Bed Wars (quick buy et hotbar manager) de son compte Hypixel, ou de celui de ce pseudo | tout le monde |
 | `/hypixel shop` | voir le shop Hypixel copié | tout le monde |
-| `/play [catégorie]` (ou `/modes`, `/games`, `/jouer`) | la boussole, ou les modes d'une catégorie (son id ou son nom : `/play duels`, `/play rbw modes`) | tout le monde |
+| `/play [catégorie]` (ou `/modes`, `/games`, `/jouer`) | la boussole, ou les modes d'une catégorie (son id ou son nom : `/play duels`, `/play bedwars modes`) | tout le monde |
+| `/ranked` | le menu Ranked de la boussole : Ranked Bedwars et les duels classés (ta demande du 23/11) | tout le monde |
 | `/lobby modes` | les modes et leur file (aussi depuis la console) | tout le monde |
 | `/lobby setspawn` | place le spawn du lobby là où tu es (écrit dans `spawn.yml`, dans le dossier du monde du lobby) | `rago.lobby.admin` |
 | `/lobby point <nom>` | place ou déplace un point nommé là où tu es : où iront les PNJ des modes, les classements, les décorations (écrit dans `points.yml`, dans le dossier du monde) | `rago.lobby.admin` |
@@ -478,6 +657,13 @@ ligne du scoreboard, les réglages de la file classée, et la liste des modes (n
 joueurs par équipe, classé, description). Le fichier fourni explique chaque réglage. Un fichier
 invalide désactive le plugin avec un message qui dit quoi corriger.
 
+Les trois plugins (RagoLobby, RagoPractice, RagoBedwars) lisent leur `config.yml` en UTF-8, quel que
+soit le système (ton signalement du 23/11 : les badges et les € et $ du shop cassés). Bukkit 1.8 le
+lit dans le jeu de caractères du système, Windows-1252 sur un Windows français, où « 4.99€ »
+devenait « 4.99â‚¬ » et le ✦ des badges des caractères au hasard. Un fichier enregistré en « ANSI »
+par un éditeur se lit encore comme avant. Les records et les réglages des entraînements
+(`records.yml`, `reglages.yml`), déjà écrits en UTF-8, sont aussi relus en UTF-8.
+
 Si le monde du lobby n'existe pas, le plugin le crée : un monde vide avec une plateforme de
 quartz. On peut construire le lobby directement dedans (`/lobby build`), ou mettre le nom d'un autre
 monde dans `monde`, puis `/lobby setspawn`. Le spawn et les points sont rangés dans le dossier du
@@ -488,34 +674,38 @@ générateur vide ; un monde de build peut donc servir de lobby.
 ## Les couleurs du serveur
 
 Le serveur se reconnaît partout aux couleurs de son logo, le rouge, le blanc et le gris, et le
-config.yml fourni les suit :
+config.yml fourni les suit. Depuis la demande du 22/11 (« moins de rouge »), le rouge est la
+signature, pas la couleur de tout :
 
-- **La marque** : le rouge clair (`&c`). Le titre du sidebar, la liste des serveurs, le Tab,
-  l'adresse rago.gg, le préfixe des messages du serveur et ce qu'ils montrent (une commande, un
-  lien), les titres des murs de classement et du règlement.
+- **La marque, en rouge clair (`&c`)** : le nom RAGO PRACTICE (titre du sidebar, liste des
+  serveurs, haut du Tab) et le « RAGO » du préfixe des messages du serveur. Le rouge sert aussi à
+  une erreur ou un départ, et à l'alerte d'un spectateur (ta demande du 22/11).
+- **Ce qu'on peut faire, en jaune (`&e`)** : « Click to open », « Click to buy », la commande à
+  taper (`/shop`, `/daily`), le lien (le site, le Discord), l'adresse rago.gg en bas du sidebar et
+  du Tab, les menus du practice et des Bed Wars aussi. C'est le jaune des clics de Minecraft, qui ne
+  se confond plus avec une erreur ; l'XP Network garde le même jaune.
+- **Les titres, en or (`&6`)** : les murs de classement, le règlement, « NEW » dans la liste des
+  serveurs ; l'or reste aussi celui des Rago Points et du Starter Pack.
+- **La party et les amis, en bleu (`&9`)** : leurs traits et « Party » dans le chat de la party,
+  le bleu de la catégorie Party.
 - **Le texte** : `&f` blanc pour les valeurs, `&7` gris pour les étiquettes, `&8` gris foncé pour
   les séparateurs.
-- **Le sens** : `&a` vert pour jouer et réussir ; le rouge reste celui d'une erreur ou d'un départ.
-- **Les menus** : ce qu'on peut faire est en rouge (« Click to open », « Click to buy », la commande
-  à taper), ce qu'on ne peut pas encore faire en gris foncé (« Locked », « Not enough Rago Points »),
-  ce qui est déjà pris en vert (« Worn », « Unlocked »).
+- **Le sens** : `&a` vert pour jouer et réussir ; ce qu'on ne peut pas encore faire en gris foncé
+  (« Locked », « Not enough Rago Points »), ce qui est déjà pris en vert (« Worn », « Unlocked »).
 - **Les messages** : une information est en gris, les noms et les nombres en blanc (la file, la
-  partie, les amis, le kit, les replays) ; les messages de party et d'amis sont entre deux traits
-  rouges, et le chat de la party commence par « Party » en rouge.
-- **Le jaune** ne sert plus qu'à l'XP Network, au ping moyen (vert, jaune, rouge) et au palier Gold
-  des titres ; le Bed Wars garde ses couleurs de jeu (les équipes, la boutique d'objets).
+  partie, les amis, le kit, les replays).
 - **Les récompenses** gardent leurs couleurs : l'XP Network en jaune, les Rago Points en or.
 - **Les catégories** : Practice `&b`, RBW Modes `&6`, Duels `&a`, Arenas `&c`. Le nom de chaque mode
   et de chaque groupe prend la couleur de sa catégorie : c'est aussi la ligne du mode en tête du
-  sidebar en partie.
+  sidebar en partie. Les PNJ portent la même couleur que leur catégorie.
 - **Les rangs** : VIP `&b`, PREMIUM+ `&d` ; le rose ne sert à rien d'autre.
 - **Un seul préfixe** pour les messages du serveur : `&c&lRAGO &8» `, puis le texte en blanc, court,
   en anglais, qui commence par un verbe (les astuces, `/discord`, `/site`, `/store`, un rang acheté,
-  un pack reçu).
+  un pack reçu) ; la commande ou le lien qu'il donne, en jaune.
 - **Le slogan** : « Train. Clutch. Climb. » (s'entraîner, gagner ses duels, monter en Ranked), sous
   le nom dans le Tab et dans l'accueil.
 - **La liste des serveurs** : la ligne 1 dit ce qu'est le serveur (« RAGO PRACTICE • Bed Wars
-  Practice, Ranked & Duels »), la ligne 2 ce qui est nouveau : « NEW » en rouge gras, puis la
+  Practice, Ranked & Duels »), la ligne 2 ce qui est nouveau : « NEW » en or gras, puis la
   nouveauté, à changer à chaque mise à jour. Une ligne fait 270 pixels au plus (une lettre 6, un
   espace 4, un i 2, 1 de plus en gras) : plus longue, elle passe à la ligne et cache la suivante, et
   le plugin le dit au démarrage. L'icône est le `server-icon.png` (64x64) à la racine du serveur :
@@ -523,50 +713,133 @@ config.yml fourni les suit :
 
 ## Catégories, PNJ et classements
 
-- `categories:` range les modes par zone du lobby : la boussole montre les catégories (Practice à
-  gauche, RBW Modes avec un lit, Duels, Arenas à droite : les modes sans file, FFA, Top Bridge FFA,
-  Lobby Fight FFA, Bridge fight, Block placement arena et Arena Free, où l'on entre tout de suite ;
-  Lobby Fight 1v1 est dans Duels),
-  puis les jeux de celle qu'on choisit (7 catégories, 28 objets par catégorie au plus, un groupe
-  comptant pour un). Chaque mode dit sa `categorie:`. Le `slogan:` d'une catégorie (40 caractères au
+- `categories:` range les modes par zone du lobby. La boussole (tes demandes du 22/11, 17h54 et
+  19h51, `boussole: haut:`) a six lignes, centrées, une case entre chaque objet : en haut Ranked,
+  Party, Red Rover (le groupe, qui ouvre ses quatre modes, et son bouton retour revient à la
+  boussole) et 3 Players ; au centre (troisième ligne) les catégories des PNJ du lobby : Practice,
+  RBW Modes avec un lit, Duels au milieu, Arenas (les modes sans file, FFA, Top Bridge FFA, Lobby
+  Fight FFA, Bridge fight, Block placement arena et Arena Free, où l'on entre tout de suite ; Lobby
+  Fight 1v1 est dans Duels) et Fun Practice ; en bas « Popular now ». Un clic ouvre les jeux de celle qu'on choisit, avec « Back to the categories » en bas
+  (9 catégories, 28 objets par catégorie au plus, un groupe comptant pour un). `boussole: haut:`
+  prend des catégories ou des groupes (`groupes:`), 9 au plus, chacun une fois ; sans lui, la
+  boussole d'avant, en trois lignes : « Popular now » en haut, toutes les catégories côte à côte en dessous. Chaque
+  mode dit sa `categorie:`. Le `slogan:` d'une catégorie (40 caractères au
   plus) dit ce qu'on y fait : sous son nom dans la boussole, sous son PNJ et dans l'accueil.
+- `aussi:` d'une catégorie montre en plus des jeux d'autres catégories (des modes ou des groupes),
+  après les siens, avec les mêmes files. « 3 Players » (plan 6.6), dans la boussole seulement, sans
+  PNJ (ton choix du 21/11), montre ainsi Red Rover des Duels et les 1v2 de Bed Break Simulator et
+  d'Invis Practice ; ces modes restent dans leur catégorie, leurs stats aussi (le menu des stats n'a
+  pas de bouton pour une catégorie sans modes à elle). Son nom, son slogan et sa description sont à
+  confirmer.
+- **Solo / Party / Ranked (plan 3.7).** Les six premières catégories sont le Solo d'avant ; **Ranked**
+  (`classe`) tient tous les modes classés, chacun avec son ELO, sa division, sa file par ELO et son
+  classement : Ranked Bedwars 1v1 à 4v4 (sorti de RBW Modes, ses ELO gardés) et les six grands duels
+  en 1v1 (ton choix du 22/11) : Ranked Bed Fight, Ranked Top Bridge, Ranked Bridge Fight, Ranked
+  Block Placement, Ranked Sumo et Ranked Boxing. Chacun est le même jeu que son mode de Solo (même
+  map, même kit avec `kit-de:`, arrangé une fois dans l'éditeur), joué par le même plugin sur les
+  mêmes zones, avec sa propre file ; le mode de Solo ne change pas, et `/duel` ne propose que lui
+  (un `/duel` n'est jamais classé). **Party** (`party: true`, une catégorie au plus, sans modes à
+  elle) montre au joueur ce que sa party joue contre elle-même à sa taille : à deux les 1v1, à trois
+  les 1v2 et Red Rover, à quatre les 2v2... et la partie privée de Ranked Bedwars ; hors party, un
+  objet dit comment en créer une. Une party qui tient dans une équipe file toujours contre d'autres
+  depuis les autres catégories, Ranked compris (avec la moyenne de ses ELO). `/play ranked` ouvre
+  toujours Bedwars Modes (son id ; RBW Modes avant ta demande du 23/11), `/play classe` et
+  `/ranked` (ta demande du 23/11) ouvrent Ranked.
 - `groupes:` réunit les tailles d'un même jeu en un seul objet de sa catégorie, comme les jeux de
   Hypixel : Ranked Bedwars ouvre 1v1, 2v2, 3v3 et 4v4 côte à côte, Top Bridge ouvre 1v1, 2v2 et
   FFA, etc. Un mode y entre avec `groupe:` ; l'objet du groupe montre chaque taille avec sa file.
   Un mode `cache: true` ne paraît pas dans la boussole et ne se joue qu'en partie privée.
 - `pnj:` place un PNJ sur un point de `/lobby point` (la clé) : un joueur dans son skin, tourné
-  vers le spawn, qui tient l'icône du mode, avec son nom et le nombre de joueurs en file au-dessus
-  de la tête. Un clic rejoint la file du mode, ou ouvre un menu quand le PNJ a plusieurs modes ;
+  vers le spawn, les mains vides (aucun PNJ ne tient d'objet depuis la demande du 22/11), avec son
+  nom et le nombre de joueurs en file au-dessus de la tête. Un clic rejoint la file du mode, ou ouvre un menu quand le PNJ a plusieurs modes ;
   dans ce menu, les tailles d'un même groupe ne font qu'un objet (Top Bridge, une échelle qui ouvre
-  1v1, 2v2 et FFA), sauf si le PNJ n'a que ce groupe. Un PNJ avec `categorie:` ouvre toute sa
-  catégorie, comme la boussole. Au centre, quatre PNJ seulement, un par façon de jouer, pour qu'un
-  nouveau joueur ne s'y perde pas : Practice, RBW Modes, Duels et Arenas (les points `practice`,
-  `rbw`, `duels` et `arenas`), plus un PNJ **Private game** (point `prive`) pour les parties
-  privées, qui restent aussi dans RBW Modes. Les PNJ d'un mode (Ranked Bedwars, FFA,
+  1v1, 2v2 et FFA), sauf si le PNJ n'a que ce groupe. Un PNJ avec `categorie:` ouvre les jeux de
+  sa catégorie, rien d'autre au-dessus. Au centre, quatre PNJ seulement, un par façon de jouer, pour qu'un
+  nouveau joueur ne s'y perde pas : Practice, Bedwars Modes (RBW Modes avant le 23/11), Duels et
+  Arenas (les points `practice`, `rbw`, `duels` et `arenas`), plus le PNJ **Ranked** sur le point
+  `prive` (ta demande du 23/11) : il ouvre le menu Ranked de la boussole, comme `/ranked`, avec son
+  nom en rouge et gras et le slogan de Ranked dessous en rouge et gris, comme le PNJ Arenas (son
+  skin, celui de l'ancien PNJ Ranked Bedwars, est à confirmer). Le PNJ **Fun Practice**, qui était
+  sur ce point depuis le 22/11, a maintenant son propre point : `/lobby point funpractice` là où
+  il doit aller (il n'apparaît pas avant). Le bloc de quartz que le plugin a pu poser sous un
+  ancien point reste, à casser à la main si tu veux. Les parties privées
+  sont dans Bedwars Modes (l'objet Private games) ; le PNJ Private game est en commentaire dans
+  `pnj:` (`partieprivee`), pour un autre point. Les PNJ d'un mode (Ranked Bedwars, FFA,
   Clutch Scenario, Attack and Defense, Sky Rise, First rush, Invis, Bridge fight,
   Block placement) et ceux des zones Practice et Duels sont en commentaire dans `pnj:` ; leurs
   modes restent dans la boussole et dans les menus des quatre. Un PNJ de catégorie montre le
   slogan de sa catégorie sous son nom, un autre PNJ une ligne à lui avec `sous-titre:`. Les PNJ
   réapparaissent quand un point bouge.
+- `bloc:` sous un PNJ choisit le bloc sur lequel il se tient (plan 5.3) : posé là où étaient ses
+  pieds sur son point, le PNJ un bloc plus haut, comme l'andésite polie d'avant (sans `bloc:`). Un
+  nom ou un id, avec la data après deux-points (`QUARTZ_BLOCK`, `"STONE:6"`, `"159:14"`). Si ce
+  bloc est déjà sous le point, seul (posé à la main ; pas un sol de ce bloc, comme la plateforme
+  de quartz d'un nouveau lobby), le PNJ se tient dessus et rien n'est posé. Le
+  config.yml fourni met du quartz sous les PNJ des façons de jouer (Fun Practice compris), du fer sous
+  les PNJ de stats et de l'émeraude sous le Shop.
 - `skin:` sous un PNJ lui donne un skin : `skins/<nom>.png` dans le dossier du plugin (64x64, le
-  vôtre), sinon celui de ce nom dans le jar. Le jar en a un par mode, originaux : `ranked` (armure
-  de diamant et trophée), `prive` (costume et lunettes noires), `ffa` (bandeau rouge, épées
-  croisées), `skyrise` (lunettes d'aviateur, nuage), `rush` (casquette, éclair), `invis` (capuche
-  violette, potion), `clutch` (end stone, laine, lit), `attaque` (chevalier de fer au tabard
-  rouge), `bridge` (bleu et blanc), `arena` (gladiateur vert), `blocs` (casque de chantier, laine
-  de toutes les couleurs), `duels` (moitié rouge moitié bleu, casque de diamant), `practice`
-  (survêtement de coach), `shop` (marchand au tablier vert, émeraude) et `stats` (robe de savant,
-  lunettes, livre). Sans `skin:`, Steve. Un client 1.8 ne montre le skin d'un PNJ que signé par
+  vôtre), sinon celui de ce nom dans le jar. Le jar en a un par mode, originaux. Ceux des PNJ du
+  `config.yml` fourni, redessinés le 22/11 avec la deuxième couche (casquette, capuche, casque) et
+  chacun dans la couleur de sa catégorie : `practice` (le coach, casquette et survêtement turquoise,
+  sifflet), `ranked` (le joueur de Bed Wars, cuir doré, jambières de diamant, le lit sur la
+  poitrine), `duels` (le duelliste, tunique verte, avant-bras en mailles, épées croisées), `arena`
+  (le gladiateur, casque de bronze à crête), `fun` (capuche violette, boule de neige, baskets),
+  `shop` (le marchand, casquette, tablier vert et émeraude), `stats` (l'analyste, costume bleu
+  nuit, cravate et lunettes dorées) et `quetes` (l'explorateur, chapeau, veste de cuir, boussole
+  dorée) ; `tools/npc-skins/npc_skins.py` les redessine. Les autres, pour les PNJ laissés en
+  commentaire : `prive` (costume et lunettes noires), `ffa` (bandeau rouge, épées croisées),
+  `skyrise` (lunettes d'aviateur, nuage), `rush` (casquette, éclair), `invis` (capuche violette,
+  potion), `clutch` (end stone, laine, lit), `attaque` (chevalier de fer au tabard rouge), `bridge`
+  (bleu et blanc), `blocs` (casque de chantier, laine de toutes les couleurs). Sans `skin:`, Steve.
+  Aucun PNJ ne tient d'objet. Un client 1.8 ne montre le skin d'un PNJ que signé par
   Mojang : au démarrage, le serveur envoie une fois chaque nouveau PNG à MineSkin
   (api.mineskin.org), garde la réponse dans `skins.yml` (avec l'empreinte du PNG : un PNG changé
   est signé à nouveau) et replace les PNJ ; en attendant, Steve. Si MineSkin refuse sans clé, le
   log le dit : une clé gratuite (account.mineskin.org/keys) va dans `cle-mineskin:`.
-- `pnj:` avec `type: stats` place un PNJ de stats : un joueur (skin `stats`) qui tient un livre, avec au-dessus
+- `skin-joueur:` sous un PNJ, à la place de `skin:`, lui donne le skin d'un compte Minecraft (son
+  pseudo) : Mojang signe lui-même le skin d'un compte, le serveur le lit chez Mojang (l'UUID du
+  pseudo, puis le serveur de sessions), hors du fil principal, la première fois qu'un PNJ posé le
+  porte depuis le démarrage, et le garde dans `skins-joueurs.yml` : au démarrage suivant le PNJ le
+  porte tout de suite, même si Mojang ne répond pas ; un skin changé depuis replace les PNJ. En
+  attendant la première réponse, Steve ; un pseudo sans compte est dit dans le log.
+- `pnj:` avec `type: personne` place une personne du serveur (la salle des remerciements, plan
+  5.6) : un joueur dans le skin de son compte (`skin-joueur:`), les mains vides, avec au-dessus son
+  nom après le préfixe de son rang (`rang:`, un rang de `rangs:`), comme au-dessus de la tête d'un
+  joueur : « [OWNER] qRago ». Un clic ne fait rien. Un `rang:` absent de `rangs:` est refusé au
+  démarrage. Le config.yml fourni place `qrago` (qRago, Owner, skin du compte qRago) et
+  `kalisodev` (kaliso_dev, Dev, skin du compte kaliso_dev), sur de l'obsidienne, un bloc plus haut
+  que leur point. Sans `bloc:`, une personne est sur le bloc de tous les PNJ (andésite polie). Les
+  deux modérateurs (plan 5.6C), `jncl` (affiché « directement ») et `nativ` (affiché « woryes »),
+  sont retirés à ta demande du 22/11 (17h56) : ils restent en commentaire dans le config.yml,
+  leurs points dans `points.yml`. Le rang Mod reste en jaune clair (`&e[MOD]`).
+- `pnj:` avec `type: produit` place un produit de Rago (OUR OTHER PRODUCTS, plan 5.6A) : un joueur
+  les mains vides, avec au-dessus son titre (`titre:`), son nom, et une ligne dessous si
+  `sous-titre:` est donné. Un clic écrit ses liens dans le chat, ligne par ligne (`liens:`, de 1 à
+  8 lignes, avec les couleurs `&`), comme `/discord` et `/store`. Ni `modes:`, ni `categorie:`, ni
+  `rang:`. Le config.yml fourni place `ragoclient` (Rago Client) et `ragooptimizer` (Rago
+  Optimizer), tous deux dans le skin du compte qRago, sur un bloc de diamant, avec « OUR OTHER
+  PRODUCTS » au-dessus de chacun ; leurs liens : `rago-optimizer.com` et `discord.gg/ragooptimizer`.
+- `textes:` place un texte sur son point (pas un PNJ) : ses lignes (`lignes:`, de 1 à 30, de haut
+  en bas, avec les couleurs `&`) flottent au-dessus du point, la dernière à 0,45 bloc, les autres
+  au-dessus, à 0,27 bloc l'une de l'autre. `""` laisse un blanc. Une ligne fait 64 caractères au
+  plus, codes de couleur compris : une plus longue est refusée au démarrage (la couper en deux), et
+  un texte sur le point d'un PNJ aussi. Chacun lit le même ; un clic ne fait rien. Le config.yml
+  fourni place deux textes des deux côtés de la salle des remerciements, à gauche sur
+  `textremerciement` et à droite sur `textremerciement2` : « INFORMATION : » en titre des deux
+  côtés à la place de « THANK YOU », et 3 lignes chacun au lieu des 21 du texte du 22/11, quelques
+  mots en jaune (ta demande du 23/11 : les gens ne lisent pas les longs textes ; les mots sont à
+  confirmer). `/lobby points` les montre.
+- `pnj:` avec `type: stats` place un PNJ de stats : un joueur (skin `stats`), avec au-dessus
   le profil de celui qui le regarde (niveau Network et rang, victoires, défaites, kills, meilleure
   série, victoires du jour, ELO de chaque mode classé). Chaque joueur lit le sien. Un clic ouvre
   « Your stats » : la tête du joueur avec son niveau, son XP, son rang, le prochain rang et ses
-  totaux (kills, morts et K/D compris), puis chaque mode avec ses stats (survoler un mode pour les
-  lire).
+  totaux (kills, morts et K/D compris), puis les catégories du sélecteur (Practice, RBW Modes,
+  Duels, Arenas), chacune avec ses totaux dans ses modes (parties, victoires, défaites, WLR,
+  meilleure série, kills, morts, K/D, final kills et lits quand il y en a, victoires du jour et de
+  la semaine, modes joués) ; « Other modes » s'ajoute si le joueur a joué un mode d'aucune
+  catégorie. Un clic sur une catégorie montre ses modes avec les stats de chacun (survoler un mode
+  pour les lire), ceux joués d'abord ; « Go back » (en haut à gauche) ramène aux catégories, les flèches de page sont en
+  haut à droite. Sans `categories:` dans config.yml, tous les modes d'un coup, comme avant.
 - `classements:` place un mur de classements sur un point : de 1 à 5 tableaux côte à côte, face au
   spawn (`tableaux: [victoires, series, parties, kills, niveau, elo]`). Chaque tableau montre le
   top 10, la place de celui qui regarde et quand il repart de zéro. Un clic sur un tableau change
@@ -574,7 +847,8 @@ config.yml fourni les suit :
   mode classé. Un tableau peut regrouper plusieurs classements entre crochets
   (`tableaux: [[niveau, elo, fkdr, kills, parties]]`, celui du mur `top`, qui montre
   d'abord le niveau Network, sur le tableau et sur le podium, puis l'ELO, le FKDR, les kills et les
-  parties jouées) :
+  parties jouées ; le FKDR s'écrit toujours avec deux décimales, « 6.42 », « 3.00 », comme dans
+  les menus, le profil et `/stats`) :
   un clic droit passe au classement suivant, un clic gauche change la période ou le mode classé, et un clic sur la ligne
   « Click here: next leaderboard » ou « Click here: change the period » fait ce qu'elle dit. Un
   clic gauche atteint un tableau de 16 blocs, n'importe où sur son texte : le plugin suit le
@@ -585,6 +859,30 @@ config.yml fourni les suit :
   `periode: semaine` (ou `jour`, `toujours`) fixe la période des tableaux d'un mur : un clic ne fait
   plus que passer au classement suivant. C'est le mur `semaine`, dont chaque tableau dit sous la
   place du joueur ce que son top gagne le lundi.
+- **Le sélecteur de leaderboards** (plan 3.1) : `pnj:` avec `type: selecteur` (le PNJ
+  `newleaderboardselector`). Un clic ouvre « Leaderboards », un menu de ses stats (`stats:`, par
+  défaut celles du plan dans son ordre : la meilleure série, le niveau Network, l'ELO avec un objet
+  par mode classé, les victoires, les kills, le FKDR, le WLR, puis les parties jouées), rangé
+  (ta demande du 22/11, 19h51 : « trier et faire en sorte que ce soit plus clair ») : les stats
+  sur une ligne à elles, dans cet ordre, sept par ligne sous une ligne vide comme les menus de la
+  boussole ; en dessous, après une ligne vide, l'ELO de chaque mode classé, avec l'icône et le nom
+  du mode, triés par nom (Ranked Bed Fight 1v1, Ranked Bedwars 1v1 à 4v4, Ranked Block Placement
+  1v1, Ranked Boxing…) ; une ligne vide en bas. Côte à côte comme avant si cela ne tient pas en
+  six lignes. La stat
+  choisie s'affiche aussitôt, pour celui qui l'a choisie, sur les murs qui suivent le sélecteur :
+  dans `classements:`, un mur avec `selecteur: newleaderboardselector` et sa `periode` (`jour`,
+  `semaine` ou `toujours`), sans `tableaux`. Les trois murs Daily, Weekly et Lifetime montrent donc
+  la même stat, chacun sur sa période ; un clic sur l'un d'eux passe à la stat suivante sur les
+  trois. Sur un jour ou une semaine : les victoires, kills, parties et la meilleure série de la
+  période ; pour le niveau Network, l'XP gagnée (« 1,250 XP ») ; pour l'ELO, l'ELO gagné dans le
+  mode classé, négatif s'il est perdu (« +25 », « -10 »), pour tous ceux qui l'ont joué ; pour le
+  FKDR et le WLR, le ratio des compteurs de la période, pour les joueurs qui ont au moins
+  `minimum-parties` parties dans la période (5 le jour et 15 la semaine par défaut ; pour le FKDR,
+  les parties des modes Bed Wars, ceux qui ont des final kills). Lifetime est le classement à vie,
+  sans minimum. Le WLR (`wlr`) est aussi un tableau ordinaire : victoires / défaites à vie, avec
+  deux décimales. Les compteurs du jour et de la semaine de l'XP, de l'ELO, des final kills, des
+  final deaths et des défaites sont dans les fichiers de stats (`xp-jour`, `xp-semaine`,
+  `jour.elo`, `semaine.defaites`...) et partent de zéro avec la version qui les a ajoutés.
 - `podium:` (dans un mur de `classements:`) : jusqu'à 5 marches, la 1re place d'abord. Sur chacune
   se tient le joueur à cette place du premier tableau du mur, avec son skin, et deux lignes
   au-dessus : la place, son rang et son pseudo dans sa couleur (« #1 [PREMIUM+] Pseudo »), puis son
@@ -631,13 +929,35 @@ Les plugins de jeu donnent le résultat de chaque partie au lobby (`recordMatch`
 victoires, défaites, série de victoires en cours et meilleure série, par mode, à vie, du jour et
 de la semaine (heure de Paris : le jour repart à minuit, la semaine le lundi à minuit). Un abandon
 compte comme une défaite. Les kills et les morts aussi (`recordKill`) : au sumo, chaque point est
-un kill pour celui qui le marque et une mort pour celui qui tombe. Chaque joueur garde aussi son
+un kill pour celui qui le marque et une mort pour celui qui tombe ; une mort sans tueur (une chute
+dans le vide sans coup juste avant) compte une mort, sans kill. En Bed Wars, un final kill compte
+dans les final kills seulement et la victime dans les final deaths seulement, pas une deuxième fois
+dans les kills et les morts, comme sur Hypixel (le tueur a quand même l'XP d'un kill). Une partie
+sans gagnant (`recordDraw` : temps écoulé, plus personne debout) compte une partie jouée pour
+chacun, ni victoire ni défaite : Games played = victoires + défaites + égalités. Chaque joueur garde aussi son
 XP Network. Une partie d'un mode classé trouvée par la file fait aussi bouger l'ELO des deux
 camps (voir « L'ELO classé ») ; un duel ou une partie privée ne touche ni l'ELO ni les séries.
 
 Sur le serveur de test, les stats sont gardées dans `plugins/RagoLobby/stats/` (un fichier par
-joueur), lues au démarrage et écrites à chaque partie, jamais sur le thread principal. Sur le
-réseau, elles passeront dans la base de données.
+joueur), lues au démarrage et écrites à chaque partie, jamais sur le thread principal. Un profil
+fait avant la fin de la lecture (un joueur en ligne pendant un `/reload`) est remplacé par son
+fichier, qui est réécrit aussitôt. Un plugin de jeu peut demander une seule fois une remise à zéro
+des kills et des morts de ses modes (`resetKillsOnce`), quand la façon de les compter change : le
+dossier `stats/` est d'abord copié dans `stats-sauvegarde-<nom>/`, et le nom est noté dans
+`stats-remises-a-zero.txt` pour ne jamais la refaire. Sur le réseau, elles passeront dans la base de données.
+
+Remise à zéro des stats du 23/11/2026 (`stats-2026-11`, demandée par le propriétaire : « les stats
+seulement ») : au premier démarrage avec cette version, une fois les fichiers lus, le dossier
+`stats/` est copié dans `stats-sauvegarde-stats-2026-11/` ; si la copie échoue, rien n'est remis à
+zéro (le démarrage suivant réessaie). Puis l'XP (donc le niveau), du jour, de la semaine et de
+toujours, et tous les modes de chaque joueur (victoires, kills, morts, ELO, séries, meilleurs scores)
+repartent de rien, ainsi que les séries des équipes (`stats/equipes/`). Restent : les Rago Points,
+les rangs, les cosmétiques, les amis, les réglages, les quêtes, les récompenses de niveau déjà
+données, les saisons finies. Les titres suivent les victoires : ils reviennent avec elles. RagoPractice
+vide en même temps tous ses records et top scores (`records-sauvegarde-stats-2026-11.yml`) et le défi
+du jour (`defi-sauvegarde-stats-2026-11.yml`), RagoBedwars ceux du Fast Shop
+(`fastshop-sauvegarde-stats-2026-11.yml`). Aucune autre remise à zéro des stats, des records ni des
+classements jusqu'à la sortie publique.
 
 ## Pour les plugins de jeu
 
@@ -657,7 +977,8 @@ mode rangé comme le joueur l'a voulu (36 cases, `null` si le mode n'a pas de ki
 `player.getInventory().setContents(kit)`. Pendant la partie, les joueurs appartiennent au jeu,
 qui les rend avec `lobby.sendToLobby(player)`. `MatchHost.abandon(player)` est appelé quand un
 joueur tape `/spawn` en pleine partie. `lobby.recordKill("sumo", tueur, victime)` compte un kill
-(et l'XP qui va avec). Un entraînement donne de l'XP Network avec
+(et l'XP qui va avec) ; `tueur` à `null` : une mort sans tueur. `lobby.recordKill(mode, tueur,
+victime, true)` donne l'XP d'un final kill sans le compter dans les kills. Un entraînement donne de l'XP Network avec
 `lobby.giveXp("aim-trainer", joueur, xp, "aim trainer")` (rien dans une partie privée). Un joueur qui quitte une partie qu'il joue encore
 (un abandon) est signalé avec `lobby.forfeited("sumo", joueur)` avant d'être rendu au lobby : après
 une partie classée, les files classées lui sont fermées un moment. À la fin, `lobby.recordMatch("sumo", gagnants, perdants)` compte la partie

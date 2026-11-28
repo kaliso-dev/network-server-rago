@@ -1,7 +1,9 @@
 package gg.rago.practice;
 
 import gg.rago.game.ArenaGrid;
+import gg.rago.game.RedRoverRotation;
 import gg.rago.lobby.api.LobbyService;
+import gg.rago.lobby.api.MatchHost;
 import gg.rago.lobby.api.VoidGenerator;
 import java.io.File;
 import java.io.IOException;
@@ -29,6 +31,9 @@ import org.bukkit.plugin.java.JavaPlugin;
  * open arenas (block placement, bridge fight), each in zones of an empty world. See the README.
  */
 public final class RagoPractice extends JavaPlugin {
+
+    /** The owner's reset of every player's stats, 23/11/2026: its name, as in RagoLobby. */
+    static final String STATS_RESET = "stats-2026-11";
 
     /** Height of the arena platforms. */
     static final int ARENA_Y = VoidGenerator.PLATFORM_Y;
@@ -59,12 +64,41 @@ public final class RagoPractice extends JavaPlugin {
     /** The challenge of the day (/challenge). */
     private Challenges challenges;
     private final List<String> hosted = new ArrayList<>();
+    /** The ranked twins of the duels (plan 3.7), played by the hosts of their modes of Solo. */
+    private final List<String> rankedTwins = new ArrayList<>();
     /** The Network XP of the trainings and the free arenas, given every two minutes. */
     private PracticeXp xp;
     /** How often the XP of the trainings goes to the lobby: two minutes. */
     static final long XP_PAY_TICKS = 2400L;
     /** How often the items of the players in a game are made unbreakable, the new ones (see Unbreakable). */
     static final long UNBREAKABLE_TICKS = 5L;
+
+    /** config.yml, read as UTF-8 ({@link Utf8Config}): Bukkit 1.8 reads it in the system's charset. */
+    private FileConfiguration utf8Config;
+
+    @Override
+    public FileConfiguration getConfig() {
+        if (utf8Config == null) {
+            reloadConfig();
+        }
+        return utf8Config;
+    }
+
+    @Override
+    public void reloadConfig() {
+        utf8Config = Utf8Config.read(new File(getDataFolder(), "config.yml"), getResource("config.yml"), getLogger());
+    }
+
+    @Override
+    public void saveConfig() {
+        File file = new File(getDataFolder(), "config.yml");
+        try {
+            Files.createDirectories(getDataFolder().toPath());
+            Files.write(file.toPath(), getConfig().saveToString().getBytes(StandardCharsets.UTF_8));
+        } catch (IOException e) {
+            getLogger().log(Level.SEVERE, "Could not save " + file, e);
+        }
+    }
 
     @Override
     public void onEnable() {
@@ -96,10 +130,20 @@ public final class RagoPractice extends JavaPlugin {
         getServer().getScheduler().runTaskTimer(this, this::payXp, XP_PAY_TICKS, XP_PAY_TICKS);
         records = new Records(this, new File(getDataFolder(), "records.yml"));
         records.load();
+        // Block in: the enemy breaks the block-in for real now (see BlockInTraining); the times of
+        // before, against the enemy of before, start again from nothing (a copy is kept)
+        records.resetOnce("block-in-2026-11", "block-in.");
+        // The owner's reset of every player's stats (23/11/2026, RagoLobby does the rest): every
+        // record and top score starts again, and so does the challenge of the day (copies kept).
+        // No other reset of the records until the release.
+        File challengeFile = new File(getDataFolder(), "defi.yml");
+        if (records.resetOnce(STATS_RESET, "") >= 0) {
+            setAside(challengeFile, new File(getDataFolder(), "defi-sauvegarde-" + STATS_RESET + ".yml"));
+        }
         RecordCatalog.define(records.book());
         prefs = new TrainingPrefs(this, new File(getDataFolder(), "reglages.yml"));
         prefs.load();
-        challenges = new Challenges(this, challengeSettings(config), new File(getDataFolder(), "defi.yml"));
+        challenges = new Challenges(this, challengeSettings(config), challengeFile);
 
         spectators = new Spectators(this);
         getServer().getPluginManager().registerEvents(spectators, this);
@@ -111,6 +155,8 @@ public final class RagoPractice extends JavaPlugin {
         getServer().getPluginManager().registerEvents(sumo, this);
         if (!lobby.registerHost(this, SumoHost.MODE_ID, sumo)) {
             getLogger().warning("The lobby has no mode \"" + SumoHost.MODE_ID + "\" in its config.yml: the sumo duel stays closed.");
+        } else {
+            alsoRanked(sumo, SumoHost.RANKED_MODE_ID);
         }
 
         games = new PracticeGames(this, world);
@@ -131,12 +177,13 @@ public final class RagoPractice extends JavaPlugin {
         getCommand("center").setExecutor(new CenterCommand(this));
         startRecords(config);
         getLogger().info("Arenas in the world " + world.getName() + ": " + slots + " games of each mode at once at most. Modes: "
-                + String.join(", ", hosted));
+                + String.join(", ", hosted) + (rankedTwins.isEmpty() ? "" : "; ranked: " + String.join(", ", rankedTwins)));
     }
 
     /**
-     * /records, the wall of the records on its point of the lobby (mur-des-records, "" for none)
-     * and the boards of the biggest clutches of the week, rewarded with the lobby's on Monday.
+     * /records, the wall of the records on its point of the lobby (mur-des-records, "" for none),
+     * the record of each training under its mode in the menus of the lobby, and the boards of the
+     * biggest clutches of the week, rewarded with the lobby's on Monday.
      */
     private void startRecords(FileConfiguration config) {
         recordsMenu = new RecordsMenu(this, RecordCatalog.played(hosted));
@@ -146,6 +193,8 @@ public final class RagoPractice extends JavaPlugin {
         if (wall != null && !wall.trim().isEmpty()) {
             lobby.setLobbyBoard(this, wall.trim(), RecordsMenu.WALL_LINES, recordsMenu::wall, recordsMenu::wallClick);
         }
+        // under each training in the menus of the lobby: its record, in the place of the Daily Streak
+        lobby.setModeRecords(this, recordsMenu::modeRecord);
         if (hosted.contains("clutch")) {
             String board = "clutch." + ClutchTraining.ISLAND.id;
             lobby.addWeeklyBoard(this, "Biggest clutches", week -> ClutchTraining.weekRanking(records.book(), board, week));
@@ -202,7 +251,6 @@ public final class RagoPractice extends JavaPlugin {
     /** Every practice mode, on its own row of zones. */
     private void registerModes(FileConfiguration config, World world, int slots, int spacing) {
         int boxing = config.getInt("points-pour-gagner.boxing", 100);
-        int kb = config.getInt("points-pour-gagner.kb-displace", 3);
         int blocks = config.getInt("points-pour-gagner.block-fight", 100);
         int edit = config.getInt("points-pour-gagner.block-edit", 5);
         int bridge = config.getInt("points-pour-gagner.bridge-fight", 5);
@@ -211,12 +259,18 @@ public final class RagoPractice extends JavaPlugin {
         int aimHits = config.getInt("aim-trainer.touches-par-xp", 10);
         BlockInTraining.Island island = blockInIsland(config);
 
-        List<MapZones.ZoneMap> arenas = zoneMaps(config, "boxing.cartes", spacing, "the boxing and the combo bot");
-        onMaps(register("boxing", (h, m, a, t) -> new Boxing(h, m, a, t, boxing), slots, spacing, false), arenas);
-        KbDisplace.Place kbPlace = kbDisplacePlace(config, spacing);
-        register("kb-displace", (h, m, a, t) -> new KbDisplace(h, m, a, t, kb, kbPlace), slots, spacing, false);
+        List<MapZones.ZoneMap> arenas = zoneMaps(config, "boxing.cartes", spacing, "the boxing");
+        PracticeHost boxingHost = register("boxing", (h, m, a, t) -> new Boxing(h, m, a, t, boxing), slots, spacing, false);
+        onMaps(boxingHost, arenas);
+        alsoRanked(boxingHost, "ranked-boxing");
+        // KB displace 1v1 left the menus (the owner, 23/11): its row stays reserved, so that the other
+        // modes keep their zones; its code stays, unplugged
+        hosted.add("(kb-displace)");
         List<MapZones.ZoneMap> blockMaps = zoneMaps(config, "block-fight.cartes", spacing, "the block placement");
-        onMaps(register("block-fight-1v1", (h, m, a, t) -> new BlockFight(h, m, a, t, blocks), slots, spacing, false), blockMaps);
+        PracticeHost blockFight = register("block-fight-1v1", (h, m, a, t) -> new BlockFight(h, m, a, t, blocks), slots, spacing,
+                false);
+        onMaps(blockFight, blockMaps);
+        alsoRanked(blockFight, "ranked-block-fight-1v1");
         onMaps(register("block-fight-2v2", (h, m, a, t) -> new BlockFight(h, m, a, t, blocks), slots, spacing, false), blockMaps);
         // the rows of the old Top Fight, and of Attack and Defense (on the owner's maps, in the Bed
         // Wars plugin), stay reserved, so that the other modes keep their zones
@@ -233,15 +287,17 @@ public final class RagoPractice extends JavaPlugin {
         register("fast-defense", FastDefenseTraining::new, slots, spacing, false);
         register("extend-practice", ExtendTraining::new, slots, spacing, false);
         register("ladder-practice", LadderTraining::new, slots, spacing, false);
-        // the pearl practice and the fireball practice on the same parts of the Bed Wars maps, read once
-        List<MapParts.Part> parts = mapParts(config);
-        MapLoopTraining.Places pearlPlaces = new MapLoopTraining.Places(parts, false);
-        register("pearl-practice", (h, m, a, t) -> new PearlTraining(h, m, a, t, pearlPlaces), slots, spacing, false);
-        MapLoopTraining.Places fireballPlaces = new MapLoopTraining.Places(parts, true);
-        register("fireball-practice", (h, m, a, t) -> new FireballTraining(h, m, a, t, fireballPlaces), slots, spacing, false);
+        // the pearl practice and the fireball practice left the menus (the owner, 23/11): their rows stay
+        // reserved, their records stay (RecordCatalog), out of /records and the wall; the Bed Wars maps
+        // they played on are no longer read
+        hosted.add("(pearl-practice)");
+        hosted.add("(fireball-practice)");
         register("aim-trainer", (h, m, a, t) -> new AimTrainer(h, m, a, t, aimXp, aimHits), slots, spacing, false);
-        onMaps(register("combo-bot", ComboBot::new, slots, spacing, false), arenas);
-        register("kb-displace-bot", (h, m, a, t) -> new KbDisplaceBot(h, m, a, t, kbPlace), slots, spacing, false);
+        // the Combo bot left the menus (the owner, 22/11): its row stays reserved, so that the other
+        // modes keep their zones; its records stay (RecordCatalog), out of /records and the wall
+        hosted.add("(combo-bot)");
+        // KB displace against a bot left the menus too (the owner, 23/11), its records kept
+        hosted.add("(kb-displace-bot)");
         List<MapZones.ZoneMap> arenaMaps = withoutBlocks(zoneMaps(config, "block-fight-arena.cartes", spacing,
                 "the block placement arena"), GOLD_ID);
         onMaps(register("block-fight-arena", (h, m, a, t) -> new BlockArena(h, m, a, t, false), slots, spacing, true), arenaMaps);
@@ -253,7 +309,8 @@ public final class RagoPractice extends JavaPlugin {
         register("clutch-top-fight", (h, m, a, t) -> new ClutchTraining(h, m, a, t, true, null), slots, ClutchTraining.SPACING, false);
         register("block-edit", BlockEditTraining::new, slots, spacing, false);
         register("block-edit-duel", (h, m, a, t) -> new BlockEditDuel(h, m, a, t, edit), slots, spacing, false);
-        register("bridge-fight-1v1", (h, m, a, t) -> new BridgeDuel(h, m, a, t, bridge, bridgeProtection), slots, spacing, false);
+        alsoRanked(register("bridge-fight-1v1", (h, m, a, t) -> new BridgeDuel(h, m, a, t, bridge, bridgeProtection), slots,
+                spacing, false), "ranked-bridge-fight-1v1");
         BlockExtendTraining.Course course = blockExtendCourse(config, spacing);
         register("block-extend", (h, m, a, t) -> new BlockExtendTraining(h, m, a, t, course), slots, spacing, false);
         BowTraining.Course bow = bowCourse(config, spacing);
@@ -271,6 +328,99 @@ public final class RagoPractice extends JavaPlugin {
         register("bridge-fight-2v2", (h, m, a, t) -> new BridgeDuel(h, m, a, t, bridge, bridgeProtection), slots, spacing, false);
         // the timed bridge, its twelve courses side by side; last too
         register("bridge-chrono", BridgeTraining::new, slots, spacing, false);
+        // FUN PRACTICE (plan 6.1), after the others so that they keep their zones: the Fireball Fight
+        // of the knockback, three players each for themselves (a player a side), on the plugin's
+        // platform or on the maps of fireball-knockback.cartes, and the Snowball Spleef
+        int fireballPoints = Math.max(1, Math.min(10, config.getInt("fireball-knockback.points-pour-gagner", 1)));
+        FireballKnockback.Settings fireball = fireballKnockback(config);
+        onMaps(register("fireball-knockback", (h, m, a, t) -> new FireballKnockback(h, m, a, RedRover.alone(t), fireballPoints,
+                fireball), slots, spacing, false), zoneMaps(config, "fireball-knockback.cartes", spacing,
+                "the Fireball Fight of FUN PRACTICE"));
+        int spleefPoints = Math.max(1, Math.min(10, config.getInt("snowball-spleef.points-pour-gagner", 1)));
+        SnowballSpleef.Settings spleef = snowballSpleef(config);
+        register("snowball-spleef", (h, m, a, t) -> new SnowballSpleef(h, m, a, t, spleefPoints, spleef), slots, spacing, false);
+        // Red Rover (plan 6.5), after the others too: the sumo in 1v1 in turn, on the sumo maps
+        RedRoverRotation.Settings rover = redRover(config);
+        int sumoRadius = config.getInt("sumo.rayon", 7);
+        onMaps(register("red-rover-sumo", (h, m, a, t) -> new RedRover(h, m, a, t, rover, sumoRadius), slots, spacing, false),
+                zoneMaps(config, "sumo.cartes", spacing, "the Red Rover Sumo"));
+        // the duels played as Red Rovers: the block edit (a clean edit wins the 1v1) and the block
+        // placement on its maps (the first to red-rover.points-par-1v1-block-placement wins it)
+        register("red-rover-block-edit", (h, m, a, t) -> new BlockEditDuel(h, m, a, RedRover.alone(t), edit)
+                .asRedRover("Red Rover Block Edit", rover), slots, spacing, false);
+        int roverBlocks = config.getInt("red-rover.points-par-1v1-block-placement", 10);
+        onMaps(register("red-rover-block-placement", (h, m, a, t) -> new BlockFight(h, m, a, RedRover.alone(t), roverBlocks)
+                .asRedRover("Red Rover Block Placement", rover), slots, spacing, false), blockMaps);
+        // Find Your Sensitivity (plan, step 7) left the menus (the owner, 22/11, 19h51): its row stays
+        // reserved, so that the other modes keep their zones; its code stays, unplugged
+        hosted.add("(find-your-sensitivity)");
+        // Block aim, the placement on a target (plan, step 6.4), after them all too
+        register("block-aim", BlockAimTraining::new, slots, spacing, false);
+        // Parkour Duel (FUN PRACTICE, the owner's choice of 22/11), last, so that the others keep their zones
+        int parkourPoints = Math.max(1, Math.min(10, config.getInt("parkour-duel.points-pour-gagner", 1)));
+        register("parkour-duel", (h, m, a, t) -> new ParkourDuel(h, m, a, t, parkourPoints), slots, spacing, false);
+        // the modes of 27/11 and after, each after the others, so that the others keep their zones
+        // (a mode registered among them moves every zone after it): new modes go at the end
+        // Hypixel Bow Practice (the owner's ask of 27/11): a zombie on a bridge, knocked off and hit in the air
+        BowPractice.Course bowPractice = bowPracticeCourse(config, spacing);
+        register("bow-practice", (h, m, a, t) -> new BowPractice(h, m, a, t, bowPractice), slots, spacing, false);
+        // Block Pattern Practice (the owner's ask of 27/11): the techniques of his video Block Method
+        register("block-pattern-practice", BlockPatternPractice::new, slots, spacing, false);
+    }
+
+    /** The settings of Red Rover (red-rover); the defaults when they are wrong. */
+    private RedRoverRotation.Settings redRover(FileConfiguration config) {
+        String variant = config.getString("red-rover.variante", "points");
+        String stays = config.getString("red-rover.reste", "gagnant");
+        int target = config.getInt("red-rover.points-pour-gagner", 3);
+        int seconds = config.getInt("red-rover.secondes-par-1v1", 90);
+        String problem = RedRoverRotation.Settings.check(variant, stays, target, seconds);
+        if (problem != null) {
+            getLogger().warning("red-rover in config.yml: " + problem + ". Red Rover plays with its default settings.");
+            return RedRoverRotation.Settings.DEFAULTS;
+        }
+        return RedRoverRotation.Settings.of(variant, stays, target, seconds);
+    }
+
+    /** The settings of the Fireball Fight of FUN PRACTICE (fireball-knockback); the defaults when they are wrong. */
+    private FireballKnockback.Settings fireballKnockback(FileConfiguration config) {
+        int radius = config.getInt("fireball-knockback.rayon", 20);
+        double across = config.getDouble("fireball-knockback.recul-horizontal", 1.5);
+        double up = config.getDouble("fireball-knockback.recul-vertical", 1.2);
+        int fireballs = config.getInt("fireball-knockback.fireballs", 0);
+        int gust = config.getInt("fireball-knockback.souffle-secondes", 3);
+        int blocks = config.getInt("fireball-knockback.blocs-secondes", 3);
+        int points = config.getInt("fireball-knockback.points-pour-gagner", 1);
+        String problem = FireballKnockback.Settings.check(radius, across, up, fireballs, gust, blocks);
+        if (problem == null && (points < 1 || points > 10)) {
+            problem = "points-pour-gagner must be from 1 to 10";
+        }
+        if (problem != null) {
+            getLogger().warning("fireball-knockback in config.yml: " + problem + ". The Fireball Fight of FUN PRACTICE plays with"
+                    + " its default settings.");
+            return new FireballKnockback.Settings(20, 1.5, 1.2, 0, 3, 3);
+        }
+        return new FireballKnockback.Settings(radius, across, up, fireballs, gust, blocks);
+    }
+
+    /** The settings of the Snowball Spleef (snowball-spleef); the defaults when they are wrong. */
+    private SnowballSpleef.Settings snowballSpleef(FileConfiguration config) {
+        int radius = config.getInt("snowball-spleef.rayon", 18);
+        int floors = config.getInt("snowball-spleef.etages", 2);
+        int gap = config.getInt("snowball-spleef.ecart-etages", 9);
+        int snowballs = config.getInt("snowball-spleef.boules-par-bloc", 1);
+        int points = config.getInt("snowball-spleef.points-pour-gagner", 1);
+        int narrowRadius = config.getInt("snowball-spleef.etage-etroit-rayon", 0);
+        int narrowGap = config.getInt("snowball-spleef.etage-etroit-ecart", 5);
+        String problem = SnowballSpleef.Settings.check(radius, floors, gap, snowballs, narrowRadius, narrowGap);
+        if (problem == null && (points < 1 || points > 10)) {
+            problem = "points-pour-gagner must be from 1 to 10";
+        }
+        if (problem != null) {
+            getLogger().warning("snowball-spleef in config.yml: " + problem + ". The Snowball Spleef plays with its default settings.");
+            return new SnowballSpleef.Settings(18, 2, 9, 1, 9, 5);
+        }
+        return new SnowballSpleef.Settings(radius, floors, gap, snowballs, narrowRadius, narrowGap);
     }
 
     /**
@@ -301,6 +451,62 @@ public final class RagoPractice extends JavaPlugin {
         MapCopy copy = MapCopy.read(section.getString("monde", ""), numbers(section.getList("zone"), 6), origin, getLogger(),
                 "the bow training");
         return copy == null ? plain : new BowTraining.Course(copy, player, plain.bridgeY, lines);
+    }
+
+    /**
+     * The place of Hypixel Bow Practice (bow-practice in config.yml): the owner's map BowPractice
+     * copied once, and its levels, each the player's start and the bridge of the zombie. With a
+     * mistake in the section, or without the world, the plugin's own levels on plain blocks.
+     */
+    private BowPractice.Course bowPracticeCourse(FileConfiguration config, int spacing) {
+        ConfigurationSection section = config.getConfigurationSection("bow-practice");
+        String problem = section == null ? "the section is missing" : checkBowPractice(section, spacing);
+        if (problem != null) {
+            getLogger().warning("bow-practice in config.yml: " + problem + ". Hypixel Bow Practice plays on the plugin's own levels.");
+            return BowPractice.plainCourse();
+        }
+        int[] origin = numbers(section.getList("centre"), 3);
+        List<double[]> players = new ArrayList<>();
+        List<int[]> bridges = new ArrayList<>();
+        for (Map<?, ?> level : section.getMapList("niveaux")) {
+            List<?> start = (List<?>) level.get("joueur");
+            double[] player = new double[5];
+            for (int k = 0; k < 5; k++) {
+                player[k] = number(start.get(k));
+            }
+            players.add(player);
+            bridges.add(numbers(level.get("pont"), 5));
+        }
+        MapCopy copy = MapCopy.read(section.getString("monde", ""), numbers(section.getList("zone"), 6), origin, getLogger(),
+                "Hypixel Bow Practice");
+        return copy == null ? BowPractice.plainCourse() : new BowPractice.Course(copy, BowPractice.levels(players, bridges, origin));
+    }
+
+    /** What is wrong with the bow-practice section, or null. */
+    static String checkBowPractice(ConfigurationSection section, int spacing) {
+        String world = section.getString("monde", "");
+        Map<String, Object> zoneMap = new HashMap<>();
+        zoneMap.put("monde", world.trim().isEmpty() ? "-" : world);
+        zoneMap.put("centre", section.getList("centre"));
+        zoneMap.put("zone", section.getList("zone"));
+        String zoneProblem = checkZoneMap(zoneMap, spacing);
+        if (zoneProblem != null) {
+            return zoneProblem;
+        }
+        List<Map<?, ?>> levels = section.getMapList("niveaux");
+        if (levels.isEmpty() || levels.size() > 9) {
+            return "niveaux: one to nine levels";
+        }
+        for (Map<?, ?> level : levels) {
+            if (!numbersOf(level.get("joueur") instanceof List ? (List<?>) level.get("joueur") : null, 5)) {
+                return "niveaux: joueur, x, y, z, yaw, pitch of the player's start";
+            }
+            int[] bridge = numbers(level.get("pont"), 5);
+            if (bridge == null || bridge[0] == bridge[3] && bridge[2] == bridge[4]) {
+                return "niveaux: pont, x, y, z of the first block of the bridge (the zombie's start) then x, z of its last";
+            }
+        }
+        return null;
     }
 
     /**
@@ -576,7 +782,44 @@ public final class RagoPractice extends JavaPlugin {
         if (copy != null) {
             copy = copy.without(BlockInTraining.defensePlaces(hx, hz));
         }
-        return new BlockInTraining.Island(copy, hx, hz, places);
+        return new BlockInTraining.Island(copy, hx, hz, places, blockInRbw(config));
+    }
+
+    /**
+     * The RBW level of the block in (block-in.rbw, the owner's ask of 27/11): his map Block In
+     * Practice RBW, its bed and the defense around it read from the map, the rest copied once beside
+     * the island. Without the section or its world: null, the RBW level plays on the island.
+     */
+    private BlockInTraining.Rbw blockInRbw(FileConfiguration config) {
+        List<Integer> bed = config.getIntegerList("block-in.rbw.lit");
+        List<Integer> head = config.getIntegerList("block-in.rbw.tete");
+        List<Integer> zone = config.getIntegerList("block-in.rbw.zone");
+        String problem = checkBlockIn(bed, head, zone, Collections.singletonList(java.util.Arrays.asList(0, 0, 0, 0, 0)));
+        if (problem != null) {
+            getLogger().warning("block-in.rbw in config.yml: " + problem + ". The RBW level plays on the island.");
+            return null;
+        }
+        int hx = head.get(0) - bed.get(0);
+        int hz = head.get(2) - bed.get(2);
+        int[] origin = {bed.get(0), bed.get(1) - BlockInTraining.BED_Y, bed.get(2)};
+        int[] box = new int[6];
+        for (int i = 0; i < 6; i++) {
+            box[i] = zone.get(i);
+        }
+        MapCopy copy = MapCopy.read(config.getString("block-in.rbw.monde", ""), box, origin, getLogger(),
+                "the RBW level of the block in");
+        if (copy == null) {
+            return null;
+        }
+        List<int[]> defense = BlockInTraining.defenseOf(copy, hx, hz);
+        List<int[]> out = new ArrayList<>(defense);
+        out.add(new int[] {0, BlockInTraining.BED_Y, 0});
+        out.add(new int[] {hx, BlockInTraining.BED_Y, hz});
+        List<int[]> moved = new ArrayList<>();
+        for (int[] block : defense) {
+            moved.add(new int[] {block[0] + BlockInTraining.RBW_X, block[1], block[2], block[3], block[4]});
+        }
+        return new BlockInTraining.Rbw(copy.without(out).shifted(BlockInTraining.RBW_X, 0, 0), hx, hz, moved);
     }
 
     /** Of the sides of a map, this many are read at most to find the one with the most kinds of situation. */
@@ -862,7 +1105,37 @@ public final class RagoPractice extends JavaPlugin {
         return null;
     }
 
+    /**
+     * The ranked twin of a duel (plan 3.7, the owner's choice of 22/11): the same game, maps and kit
+     * as its mode of Solo, played by the same host on the same zones (its row is not shifted, nor
+     * those of the modes after it), with its own queue, ELO and leaderboards in the lobby. Nothing
+     * when the duel is closed or the lobby has no such mode.
+     */
+    private void alsoRanked(MatchHost host, String rankedId) {
+        if (host == null) {
+            return;
+        }
+        if (lobby.registerHost(this, rankedId, host)) {
+            rankedTwins.add(rankedId);
+        } else {
+            getLogger().warning("The lobby has no mode \"" + rankedId + "\" in its config.yml: it stays closed.");
+        }
+    }
+
     /** The host of the mode, or null when the lobby does not have the mode. */
+    /** A file set aside under this name (a reset), unless a copy is there already: kept as it was. */
+    private void setAside(File file, File copy) {
+        if (!file.isFile() || copy.exists()) {
+            return;
+        }
+        try {
+            java.nio.file.Files.move(file.toPath(), copy.toPath());
+            getLogger().info(file.getName() + " starts again; the one before is " + copy.getName());
+        } catch (java.io.IOException e) {
+            getLogger().log(Level.WARNING, "Cannot set " + file + " aside: it stays", e);
+        }
+    }
+
     private PracticeHost register(String modeId, PracticeHost.Factory factory, int slots, int spacing, boolean open) {
         int row = FIRST_ROW_Z + ROW_SPACING * hosted.size();
         PracticeHost host = new PracticeHost(this, games, modeId, factory, new ArenaGrid(open ? 1 : slots, spacing), row, open);
@@ -958,6 +1231,11 @@ public final class RagoPractice extends JavaPlugin {
         return events;
     }
 
+    /** True if the lobby opened this mode (it has the mode in its config.yml). */
+    boolean hosts(String modeId) {
+        return hosted.contains(modeId);
+    }
+
     /** Gives the lobby the XP waiting for every player. */
     void payXp() {
         if (xp == null) {
@@ -1041,6 +1319,9 @@ public final class RagoPractice extends JavaPlugin {
             {"xp-entrainement.reussite", "3", "0", "50"},
             {"xp-entrainement.max-par-minute", "8", "0", "100"},
             {"points-pour-gagner.bow", "10", "1", "50"},
+            {"red-rover.points-par-1v1-block-placement", "10", "1", "500"},
+            // read by RagoBedwars (Red Rover Top Bridge), checked here with the other Red Rover settings
+            {"red-rover.points-par-1v1-top-bridge", "1", "1", "5"},
         };
         for (String[] range : ranges) {
             int value = config.getInt(range[0], Integer.parseInt(range[1]));

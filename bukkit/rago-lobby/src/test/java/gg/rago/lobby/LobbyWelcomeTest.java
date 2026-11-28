@@ -13,14 +13,15 @@ import java.util.List;
 import org.bukkit.ChatColor;
 import org.junit.jupiter.api.Test;
 
-/** The welcome of the lobby: the four ways to play, clickable. */
+/** The welcome of the lobby: the ways to play, clickable. */
 class LobbyWelcomeTest {
 
     @Test
-    void itShowsTheFourWaysToPlayOfTheBundledConfig() throws Exception {
+    void itShowsTheWaysToPlayOfTheBundledConfig() throws Exception {
         LobbySettings settings = LobbySettings.load(LobbySettingsTest.bundledConfig());
         List<ModeCategory> categories = settings.categories();
-        assertEquals("Practice · RBW Modes · Duels · Arenas", ChatColor.stripColor(LobbyWelcome.subtitle(categories)),
+        assertEquals("Practice · Bedwars Modes · Duels · Arenas · Fun Practice · 3 Players · Party · Ranked",
+                ChatColor.stripColor(LobbyWelcome.subtitle(categories)),
                 "the title, the first time");
         for (ModeCategory category : categories) {
             JsonObject line = new JsonParser().parse(LobbyWelcome.json(category)).getAsJsonObject();
@@ -51,13 +52,19 @@ class LobbyWelcomeTest {
         List<ModeCategory> categories = LobbySettings.load(LobbySettingsTest.bundledConfig()).categories();
         assertEquals("entrainement", LobbyWelcome.find(categories, "entrainement").id());
         assertEquals("entrainement", LobbyWelcome.find(categories, "Practice").id(), "its name, any case");
-        assertEquals("ranked", LobbyWelcome.find(categories, "rbw modes").id());
-        assertEquals("ranked", LobbyWelcome.find(categories, "RBW-Modes").id());
+        assertEquals("ranked", LobbyWelcome.find(categories, "bedwars modes").id(), "RBW Modes before (23/11)");
+        assertEquals("ranked", LobbyWelcome.find(categories, "Bedwars-Modes").id());
         assertSame(categories.get(2), LobbyWelcome.find(categories, "DUELS"));
         assertNull(LobbyWelcome.find(categories, "bedwars"));
         assertNull(LobbyWelcome.find(categories, " "));
         assertEquals("arenes", LobbyWelcome.find(categories, "arenas").id());
-        assertEquals(Arrays.asList("entrainement", "ranked", "duels", "arenes"), LobbyWelcome.ids(categories));
+        assertEquals("fun", LobbyWelcome.find(categories, "fun practice").id());
+        assertEquals("trois-joueurs", LobbyWelcome.find(categories, "3 players").id());
+        assertEquals("party", LobbyWelcome.find(categories, "party").id());
+        assertEquals("classe", LobbyWelcome.find(categories, "classe").id(), "Ranked (plan 3.7)");
+        assertEquals("ranked", LobbyWelcome.find(categories, "ranked").id(), "the id first: /play ranked opens Bedwars Modes, as before");
+        assertEquals(Arrays.asList("entrainement", "ranked", "duels", "arenes", "fun", "trois-joueurs", "party", "classe"),
+                LobbyWelcome.ids(categories));
     }
 
     @Test

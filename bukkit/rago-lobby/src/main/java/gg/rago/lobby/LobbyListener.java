@@ -17,6 +17,7 @@ import org.bukkit.event.entity.EntityDamageEvent;
 import org.bukkit.event.entity.FoodLevelChangeEvent;
 import org.bukkit.event.hanging.HangingBreakByEntityEvent;
 import org.bukkit.event.inventory.InventoryClickEvent;
+import org.bukkit.event.inventory.InventoryCloseEvent;
 import org.bukkit.event.inventory.InventoryDragEvent;
 import org.bukkit.event.player.PlayerAnimationEvent;
 import org.bukkit.event.player.PlayerAnimationType;
@@ -35,6 +36,7 @@ import org.bukkit.event.player.PlayerRespawnEvent;
 import org.bukkit.event.weather.ThunderChangeEvent;
 import org.bukkit.event.weather.WeatherChangeEvent;
 import org.bukkit.event.world.WorldLoadEvent;
+import org.spigotmc.event.player.PlayerSpawnLocationEvent;
 
 /**
  * The lobby rules. In the lobby world, outside the build mode: nobody takes damage or gets
@@ -68,9 +70,27 @@ final class LobbyListener implements Listener {
 
     // --- Arriving and leaving -------------------------------------------------------------------
 
+    /**
+     * The player comes into the server at the lobby spawn, in the lobby world. Teleported there
+     * only by the join below, from another world (the default world on a first arrival, the arena
+     * world after leaving in a game), the server would add them to the lobby world inside the join
+     * event, before the tab list entry it sends the others after it: the others get the body first,
+     * and a 1.8.9 client draws none (only the line above the name is left). The join's teleport is
+     * then in the same world, and the body comes after the tab list entry.
+     */
+    @EventHandler(priority = EventPriority.HIGHEST)
+    public void onSpawnLocation(PlayerSpawnLocationEvent event) {
+        event.setSpawnLocation(state.spawn());
+    }
+
     @EventHandler(priority = EventPriority.HIGHEST)
     public void onJoin(PlayerJoinEvent event) {
         event.setJoinMessage(null);
+        if (RagoBots.isBot(event.getPlayer())) {
+            // RagoBot: in the lobby state, without a player's welcome, stats nor Hypixel profile
+            lobby.sendToLobby(event.getPlayer());
+            return;
+        }
         lobby.joined(event.getPlayer());
         lobby.sendToLobby(event.getPlayer());
     }
@@ -127,6 +147,14 @@ final class LobbyListener implements Listener {
     @EventHandler(priority = EventPriority.LOW)
     public void onInteract(PlayerInteractEvent event) {
         Player player = event.getPlayer();
+        if ((event.getAction() == Action.RIGHT_CLICK_AIR || event.getAction() == Action.RIGHT_CLICK_BLOCK)
+                && lobby.queues().rooms().useItem(player, event.getItem())) {
+            // the items of the waiting lobby of a private game: the settings, the teams
+            event.setUseItemInHand(Event.Result.DENY);
+            event.setUseInteractedBlock(Event.Result.DENY);
+            event.setCancelled(true);
+            return;
+        }
         if (!state.isProtected(player)) {
             return;
         }
@@ -140,11 +168,18 @@ final class LobbyListener implements Listener {
         if (event.getClickedBlock() != null && lobby.daily() != null && lobby.daily().isChest(event.getClickedBlock())) {
             // The daily chest of the spawn, whatever is in the hand.
             event.setCancelled(true);
-            lobby.daily().claim(player);
+            lobby.daily().claimAtChest(player);
             return;
         }
         // Chests, doors, buttons and the like are not used in the lobby.
         event.setUseInteractedBlock(Event.Result.DENY);
+        if ((event.getAction() == Action.RIGHT_CLICK_AIR || event.getAction() == Action.RIGHT_CLICK_BLOCK)
+                && lobby.useExtra(player, event.getItem())) {
+            // The item of another plugin in the last slot, as the red dye of an event (setHotbarExtra).
+            event.setUseItemInHand(Event.Result.DENY);
+            event.setCancelled(true);
+            return;
+        }
         HotbarItem item = HotbarItem.of(event.getItem());
         if (item == null) {
             return;
@@ -212,6 +247,14 @@ final class LobbyListener implements Listener {
         }
         if (state.isProtected(player)) {
             event.setCancelled(true);
+        }
+    }
+
+    /** The menu of the Daily Chest closed during its spin: the reward at once. */
+    @EventHandler
+    public void onInventoryClose(InventoryCloseEvent event) {
+        if (event.getPlayer() instanceof Player && lobby.daily() != null) {
+            lobby.daily().closed((Player) event.getPlayer(), event.getInventory());
         }
     }
 

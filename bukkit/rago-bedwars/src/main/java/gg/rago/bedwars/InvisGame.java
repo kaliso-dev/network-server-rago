@@ -614,6 +614,9 @@ final class InvisGame extends BedwarsGame {
                 continue;
             }
             boolean won = gamer.id.equals(invisible) == invisibleWon;
+            if (won) {
+                ding(player);
+            }
             if (!watching.contains(gamer.id)) {
                 player.sendTitle(won ? ChatColor.GOLD + "" + ChatColor.BOLD + "ROUND WON" : ChatColor.RED + "" + ChatColor.BOLD
                         + "ROUND LOST", "");
@@ -736,18 +739,25 @@ final class InvisGame extends BedwarsGame {
             }
             return Integer.compare(quickest.getOrDefault(a.id, Integer.MAX_VALUE), quickest.getOrDefault(b.id, Integer.MAX_VALUE));
         });
-        int most = ranking.isEmpty() ? 0 : points.getOrDefault(ranking.get(0).id, 0);
         List<UUID> winners = new ArrayList<>();
         List<UUID> losers = new ArrayList<>();
+        List<UUID> hereIds = new ArrayList<>();
         for (Gamer gamer : here) {
-            if (most > 0 && points.getOrDefault(gamer.id, 0) == most) {
-                winners.add(gamer.id);
-            } else {
-                losers.add(gamer.id);
-            }
+            hereIds.add(gamer.id);
         }
+        // the players of the first round: one who left before the end loses (a forfeit)
+        Lineup.result(points.keySet(), hereIds, points, winners, losers);
         if (!winners.isEmpty()) {
             plugin.lobby().recordMatch(modeId, winners, losers);
+        } else if (!hereIds.isEmpty()) {
+            // nobody scored: a draw, a game played for everyone of the first round
+            List<UUID> players = new ArrayList<>(points.keySet());
+            for (UUID id : hereIds) {
+                if (!players.contains(id)) {
+                    players.add(id);
+                }
+            }
+            plugin.lobby().recordDraw(modeId, players);
         }
         List<String> summary = new ArrayList<>();
         summary.add(ChatColor.GREEN + "" + ChatColor.STRIKETHROUGH + "                                        ");
@@ -773,6 +783,7 @@ final class InvisGame extends BedwarsGame {
             if (winners.contains(gamer.id)) {
                 player.sendTitle(ChatColor.GOLD + "" + ChatColor.BOLD + "VICTORY!", "");
                 player.playSound(player.getLocation(), Sound.LEVEL_UP, 1f, 1f);
+                ding(player);
             } else {
                 player.sendTitle(winners.isEmpty() ? ChatColor.YELLOW + "" + ChatColor.BOLD + "DRAW"
                         : ChatColor.RED + "" + ChatColor.BOLD + "GAME OVER!", "");

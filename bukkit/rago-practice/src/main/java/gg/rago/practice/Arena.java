@@ -223,6 +223,39 @@ final class Arena {
         placed.add(block);
     }
 
+    /**
+     * A player of the game clicked this block, or stepped on it: a trapdoor, a fence gate or a door
+     * of the map opens or closes with no event of its own, a field turns to dirt under a jump. As it
+     * is now, before the click changes it, it comes back at the next restore; a door with both its
+     * halves (whether it is open is in its lower half).
+     */
+    void clicked(Block block) {
+        touch(block);
+        if (isDoor(block.getType())) {
+            for (int dy = -1; dy <= 1; dy += 2) {
+                Block half = block.getRelative(0, dy, 0);
+                if (isDoor(half.getType())) {
+                    touch(half);
+                }
+            }
+        }
+    }
+
+    static boolean isDoor(Material type) {
+        switch (type) {
+            case WOODEN_DOOR:
+            case IRON_DOOR_BLOCK:
+            case SPRUCE_DOOR:
+            case BIRCH_DOOR:
+            case JUNGLE_DOOR:
+            case ACACIA_DOOR:
+            case DARK_OAK_DOOR:
+                return true;
+            default:
+                return false;
+        }
+    }
+
     /** Remembers the block as it is, before a player or the game changes it in a round. */
     @SuppressWarnings("deprecation") // Block#getTypeId and getData: the 1.8 block id and data
     void touch(Block block) {
@@ -293,26 +326,35 @@ final class Arena {
     }
 
     /** Every block changed since the last restore goes back to what it was. */
-    @SuppressWarnings("deprecation") // Block#setTypeIdAndData
     void restore() {
         // the last changes first, so that a block changed twice ends as it was at the very start
         Block[] blocks = changed.keySet().toArray(new Block[0]);
         for (int i = blocks.length - 1; i >= 0; i--) {
-            Before before = changed.get(blocks[i]);
-            blocks[i].setTypeIdAndData(before.id, before.data, false);
+            setBack(blocks[i], changed.get(blocks[i]));
         }
         changed.clear();
         placed.clear();
     }
 
     /** One block back to what it was before this round (a placed block that decays). */
-    @SuppressWarnings("deprecation") // Block#setTypeIdAndData
     void restore(Block block) {
         Before before = changed.remove(block);
         placed.remove(block);
         if (before != null) {
-            block.setTypeIdAndData(before.id, before.data, false);
+            setBack(block, before);
         }
+    }
+
+    /**
+     * Sets this block back through the world, not through the block kept since the event: when the
+     * players left the zone before the restore (Play again or Leave on the end screen), the server
+     * has unloaded its chunks, and the block kept still points to the chunk unloaded: a block set
+     * there is lost, and the chunk comes back from the disk with the blocks of the game. The world
+     * loads the chunk again.
+     */
+    @SuppressWarnings("deprecation") // Block#setTypeIdAndData
+    private static void setBack(Block block, Before before) {
+        block.getWorld().getBlockAt(block.getX(), block.getY(), block.getZ()).setTypeIdAndData(before.id, before.data, false);
     }
 
     /** How many blocks changed since the last restore. */

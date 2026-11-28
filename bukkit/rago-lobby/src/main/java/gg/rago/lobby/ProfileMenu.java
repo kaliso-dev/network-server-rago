@@ -89,7 +89,7 @@ final class ProfileMenu {
     /** What shows above the name: each choice, with the line it gives. */
     void openDisplay(Player player) {
         PlayerStats profile = profiles.of(player);
-        HeadLines.Shown now = HeadLines.Shown.of(profile.headLine() == null ? "elo" : profile.headLine());
+        HeadLines.Shown now = HeadLines.Shown.chosen(profile.headLine());
         ClickMenu menu = new ClickMenu(4, "Above your name");
         int slot = 10;
         for (HeadLines.Shown shown : HeadLines.Shown.values()) {
@@ -164,10 +164,10 @@ final class ProfileMenu {
                     "", Brand.ACCENT + "Click to change")), (p, right) -> styles.open(p));
         }
         PlayerStats mine = profiles.of(player);
-        HeadLines.Shown above = HeadLines.Shown.of(mine.headLine() == null ? "elo" : mine.headLine());
+        HeadLines.Shown above = HeadLines.Shown.chosen(mine.headLine());
         menu.set(28, ClickMenu.item(Material.SIGN, 0, ChatColor.GREEN + "Above your name", listOf(
-                "What the others read above", "your name: your ELO, level,", "wins, kills, best streak,",
-                "title, or a message of yours", "(PREMIUM).", "", "Now: " + Brand.ACCENT + (above == null ? "Ranked ELO" : above.title()), "",
+                "What the others read above", "your name: your level, ELO,", "wins, kills, best streak,",
+                "title, or a message of yours", "(PREMIUM).", "", "Now: " + Brand.ACCENT + above.title(), "",
                 Brand.ACCENT + "Click to change")), (p, right) -> openDisplay(p));
         if (levels != null) {
             menu.set(32, ClickMenu.item(Material.BREWING_STAND_ITEM, 0, ChatColor.AQUA + "Network Level & quests", listOf(
@@ -191,8 +191,10 @@ final class ProfileMenu {
         menu.set(41, ClickMenu.item(ready ? Material.CHEST : Material.ENDER_CHEST, ChatColor.AQUA + "Daily reward",
                 ready ? Brand.ACCENT + "Click to claim" : ChatColor.GRAY + "Claimed today, come back tomorrow"),
                 (p, right) -> {
-                    profiles.claimDaily(p);
-                    open(p);
+                    // ready: the spin of the Daily Chest opens in place of the profile
+                    if (!lobby.daily().claim(p)) {
+                        open(p);
+                    }
                 });
         menu.open(player);
     }

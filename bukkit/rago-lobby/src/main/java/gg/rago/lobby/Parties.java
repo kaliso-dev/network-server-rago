@@ -3,9 +3,11 @@ package gg.rago.lobby;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Locale;
+import java.util.Map;
 import java.util.Set;
 import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
@@ -25,7 +27,7 @@ import org.bukkit.event.player.AsyncPlayerChatEvent;
  */
 final class Parties implements Listener {
 
-    static final String LINE = Brand.ACCENT.toString() + ChatColor.STRIKETHROUGH
+    static final String LINE = Brand.SOCIAL.toString() + ChatColor.STRIKETHROUGH
             + "-----------------------------------------------------";
     private static final List<String> SUBCOMMANDS = Arrays.asList("invite", "accept", "leave", "list", "disband",
             "kick", "remove", "transfer", "promote", "warp", "chat");
@@ -35,10 +37,16 @@ final class Parties implements Listener {
     private final LobbyState state;
     private final NetworkRanks ranks;
     private QueueController queues;
+    /** RagoBot, who comes into a party at once (/p invite RagoBot); null: none. */
+    private RagoBots bots;
     /** Whether a player may invite another (their settings): yes to everyone by default. */
     private java.util.function.BiPredicate<Player, Player> gate = (from, to) -> true;
     /** The players whose chat goes to their party (/chat party). Read by the chat thread. */
     private final Set<UUID> partyChannel = ConcurrentHashMap.newKeySet();
+    /** The names of the members off the server who are still in their party (/party kick)... */
+    private final Map<UUID, String> offlineNames = new HashMap<>();
+    /** ...and as the chat showed them, with their level and rank (the messages). */
+    private final Map<UUID, String> offlineShown = new HashMap<>();
 
     Parties(RagoLobby lobby, PartyBook book, LobbyState state, NetworkRanks ranks) {
         this.lobby = lobby;
@@ -49,6 +57,10 @@ final class Parties implements Listener {
 
     void setQueues(QueueController queues) {
         this.queues = queues;
+    }
+
+    void setBots(RagoBots bots) {
+        this.bots = bots;
     }
 
     /** Who may invite whom: the gate tells the inviter why not. */
@@ -170,6 +182,10 @@ final class Parties implements Listener {
     }
 
     private void invite(Player player, String name) {
+        if (bots != null && bots.enabled() && name.equalsIgnoreCase(BotSettings.NAME)) {
+            inviteBot(player);
+            return;
+        }
         Player target = Bukkit.getPlayerExact(name);
         if (target == null || !lobby.canSee(player, target)) {
             boxed(player, ChatColor.RED + "Couldn't find a player with that name!");
@@ -206,6 +222,48 @@ final class Parties implements Listener {
         // Clickable through the vanilla /tellraw, as the duel buttons: names are letters, digits and _.
         Bukkit.dispatchCommand(Bukkit.getConsoleSender(), "tellraw " + target.getName() + " " + joinButton(player.getName()));
         target.sendMessage(LINE);
+    }
+
+    /**
+     * /p invite RagoBot: it joins the party at once, as a member (a RagoBot of its own for each
+     * party), next to the leader. One per party.
+     */
+    private void inviteBot(Player player) {
+        if (RagoBots.isBot(player)) {
+            return;
+        }
+        PartyBook.Party party = book.of(player.getUniqueId());
+        if (party != null && !party.isLeader(player.getUniqueId())) {
+            boxed(player, ChatColor.RED + "You are not the party leader!");
+            return;
+        }
+        if (RagoBots.botOf(party) != null) {
+            boxed(player, ChatColor.GRAY + BotSettings.NAME + ChatColor.RED + " is already in the party.");
+            return;
+        }
+        if (party != null && party.size() >= PartyBook.MAX_SIZE) {
+            boxed(player, ChatColor.RED + "The party is full (" + PartyBook.MAX_SIZE + " players).");
+            return;
+        }
+        Player bot = bots.join(player);
+        if (bot == null) {
+            return;
+        }
+        long now = System.currentTimeMillis();
+        if (book.invite(player.getUniqueId(), bot.getUniqueId(), now) != PartyBook.Invite.SENT
+                || book.accept(bot.getUniqueId(), player.getUniqueId(), now) != PartyBook.Accept.JOINED) {
+            // the party changed while it joined: without a party, it leaves the server the next second
+            boxed(player, ChatColor.RED + BotSettings.NAME + " could not join your party: try again.");
+            return;
+        }
+        PartyBook.Party joined = book.of(player.getUniqueId());
+        changed(joined.members());
+        tellParty(joined, name(bot) + ChatColor.GRAY + " joined the party.");
+        BotSettings settings = bots.settings();
+        boxed(player, ChatColor.GRAY + BotSettings.NAME + " plays " + ChatColor.WHITE + settings.modeNames + ChatColor.GRAY
+                + " with your party, never ranked: your games with it count in your stats, never in the ELO.",
+                ChatColor.GRAY + "Pick a mode as the leader. " + ChatColor.WHITE + "/p kick " + BotSettings.NAME
+                + ChatColor.GRAY + " sends it away.");
     }
 
     /** The JSON of "You have 60 seconds to accept. Click here to join!" for an invite of this player. */
@@ -271,15 +329,20 @@ final class Parties implements Listener {
         player.sendMessage(LINE);
         player.sendMessage(ChatColor.GOLD + "Party Members (" + members.size() + ")");
         player.sendMessage("");
-        player.sendMessage(ChatColor.GRAY + "Party Leader: " + nameOf(members.get(0)) + ChatColor.GREEN + " ●");
+        player.sendMessage(ChatColor.GRAY + "Party Leader: " + nameOf(members.get(0)) + dot(members.get(0)));
         if (members.size() > 1) {
             StringBuilder others = new StringBuilder(ChatColor.GRAY + "Party Members: ");
             for (UUID member : members.subList(1, members.size())) {
-                others.append(nameOf(member)).append(ChatColor.GREEN).append(" ● ");
+                others.append(nameOf(member)).append(dot(member)).append(' ');
             }
             player.sendMessage(others.toString().trim());
         }
         player.sendMessage(LINE);
+    }
+
+    /** The dot after a name in /party list: green on the server, red off it (back within a minute, or out). */
+    private static String dot(UUID member) {
+        return (Bukkit.getPlayer(member) != null ? ChatColor.GREEN : ChatColor.RED) + " ●";
     }
 
     private void disband(Player player) {
@@ -338,6 +401,14 @@ final class Parties implements Listener {
             boxed(player, ChatColor.RED + "That player is not in your party.");
             return;
         }
+        if (RagoBots.isBot(target)) {
+            boxed(player, ChatColor.GRAY + BotSettings.NAME + ChatColor.RED + " cannot lead a party.");
+            return;
+        }
+        if (book.isOffline(target)) {
+            boxed(player, nameOf(target) + ChatColor.RED + " is not on the server: they cannot lead the party now.");
+            return;
+        }
         changed(party.members());
         book.transfer(player.getUniqueId(), target);
         tellParty(party, ChatColor.GRAY + "The party was transferred to " + nameOf(target) + ChatColor.GRAY + " by "
@@ -347,12 +418,20 @@ final class Parties implements Listener {
     /**
      * As on Hypixel, every online member comes to the leader: a member in a game leaves it (as with
      * /spawn, a forfeit in a duel), a member elsewhere comes back to the lobby, then each one stands
-     * where the leader stands. The leader warps from the lobby.
+     * where the leader stands. The leader warps from the lobby, or from a replay they watch: the
+     * members then come into the replay ({@link ReplayService#warpParty}).
      */
     private void warp(Player player) {
         PartyBook.Party party = book.together(player.getUniqueId());
         if (party == null || !party.isLeader(player.getUniqueId())) {
             boxed(player, ChatColor.RED + (party == null ? "You are not currently in a party." : "You are not the party leader!"));
+            return;
+        }
+        ReplayService replays = lobby.replayService();
+        if (replays != null && replays.watching(player)) {
+            int warped = replays.warpParty(player, party.members());
+            boxed(player, ChatColor.GRAY + "You summoned " + ChatColor.WHITE + warped + ChatColor.GRAY
+                    + (warped == 1 ? " player" : " players") + " to your replay.");
             return;
         }
         if (!state.isInLobby(player)) {
@@ -398,7 +477,7 @@ final class Parties implements Listener {
             player.sendMessage(muted);
             return;
         }
-        String line = Brand.ACCENT + "Party " + ChatColor.DARK_GRAY + "> " + name(player) + ChatColor.WHITE + ": " + message;
+        String line = Brand.SOCIAL + "Party " + ChatColor.DARK_GRAY + "> " + name(player) + ChatColor.WHITE + ": " + message;
         for (UUID member : party.members()) {
             Player other = Bukkit.getPlayer(member);
             if (other != null) {
@@ -426,10 +505,19 @@ final class Parties implements Listener {
 
     // --- Time and quits -------------------------------------------------------------------------
 
-    /** Once a second: the invites of more than a minute expire. */
+    /**
+     * Once a second: the members off the server for more than a minute are out of their party, the
+     * invites of more than a minute expire.
+     */
     void tick() {
+        long now = System.currentTimeMillis();
+        for (UUID gone : book.offlineTooLong(now)) {
+            removeOffline(gone);
+        }
+        offlineNames.keySet().removeIf(id -> !book.isOffline(id));
+        offlineShown.keySet().removeIf(id -> !book.isOffline(id));
         Set<PartyBook.Party> disbanded = new HashSet<>();
-        for (PartyBook.Expired expired : book.expire(System.currentTimeMillis())) {
+        for (PartyBook.Expired expired : book.expire(now)) {
             Player invited = Bukkit.getPlayer(expired.invited);
             if (invited != null) {
                 boxed(invited, ChatColor.GRAY + "The party invite from " + nameOf(expired.leader) + ChatColor.GRAY
@@ -453,19 +541,84 @@ final class Parties implements Listener {
         }
     }
 
-    /** The player left the server: out of the party (the next player leads if they led it). */
+    /**
+     * The player leaves the server, before the lobby forgets their rank: their name as the chat
+     * shows it, for the messages of their party while they are off the server.
+     */
+    void leaving(Player player) {
+        if (book.of(player.getUniqueId()) != null) {
+            offlineShown.put(player.getUniqueId(), name(player));
+        }
+    }
+
+    /**
+     * The player left the server: still in their party for a minute (the owner's ask of 25/11), out
+     * of it if they are not back by then ({@link #tick}); the party leaves the queue it waited in.
+     * RagoBot is out of it at once.
+     */
     void forget(UUID player) {
-        partyChannel.remove(player);
         PartyBook.Party party = book.of(player);
+        if (party == null) {
+            partyChannel.remove(player);
+            return;
+        }
+        List<UUID> before = new ArrayList<>(party.members());
+        changed(before);
+        String shown = offlineShown.get(player);
+        String name = shown != null ? shown : nameOf(player);
+        before.remove(player);
+        if (RagoBots.isBot(player)) {
+            offlineShown.remove(player);
+            partyChannel.remove(player);
+            book.leave(player);
+            told(party, before, name + ChatColor.GRAY + " left the server and the party.");
+            return;
+        }
+        Player online = Bukkit.getPlayer(player);
+        if (online != null) {
+            offlineNames.put(player, online.getName());
+        }
+        book.wentOffline(player, System.currentTimeMillis());
+        told(party, before, name + ChatColor.GRAY + " disconnected: they have " + ChatColor.WHITE + PartyBook.OFFLINE_MS / 1000
+                + ChatColor.GRAY + " seconds to rejoin before they are removed from the party.");
+    }
+
+    /** The player is back on the server: back in their party if they left it less than a minute ago. */
+    void rejoined(Player player) {
+        UUID id = player.getUniqueId();
+        offlineNames.remove(id);
+        offlineShown.remove(id);
+        PartyBook.Party party = book.backOnline(id);
+        if (party == null) {
+            return;
+        }
+        Player leader = Bukkit.getPlayer(party.leader());
+        boxed(player, ChatColor.GRAY + "You are back in " + (leader == null ? "the" : leader.equals(player) ? "your"
+                : name(leader) + ChatColor.GRAY + "'s") + " party.");
+        for (UUID member : party.members()) {
+            Player other = Bukkit.getPlayer(member);
+            if (other != null && !other.equals(player)) {
+                boxed(other, name(player) + ChatColor.GRAY + " rejoined the party.");
+            }
+        }
+    }
+
+    /** The member did not come back on the server within a minute: out of their party (the next player leads if they led it). */
+    private void removeOffline(UUID player) {
+        PartyBook.Party party = book.of(player);
+        String name = nameOf(player);
+        partyChannel.remove(player);
         if (party == null) {
             return;
         }
         List<UUID> before = new ArrayList<>(party.members());
         changed(before);
-        String name = nameOf(player);
         book.leave(player);
+        offlineNames.remove(player);
+        offlineShown.remove(player);
         before.remove(player);
-        told(party, before, name + ChatColor.GRAY + " left the server and the party.");
+        told(party, before, name + ChatColor.GRAY + " did not rejoin within " + PartyBook.OFFLINE_MS / 1000
+                + " seconds and was removed from the party.");
     }
 
     // --- Helpers --------------------------------------------------------------------------------
@@ -511,11 +664,12 @@ final class Parties implements Listener {
         player.sendMessage(LINE);
     }
 
-    /** The member of the party with this name, or null. */
-    private static UUID member(PartyBook.Party party, String name) {
+    /** The member of the party with this name, on the server or off it for less than a minute, or null. */
+    private UUID member(PartyBook.Party party, String name) {
         for (UUID member : party.members()) {
             Player online = Bukkit.getPlayer(member);
-            if (online != null && online.getName().equalsIgnoreCase(name)) {
+            String named = online != null ? online.getName() : offlineNames.get(member);
+            if (named != null && named.equalsIgnoreCase(name)) {
                 return member;
             }
         }
@@ -529,7 +683,15 @@ final class Parties implements Listener {
 
     private String nameOf(UUID id) {
         Player player = Bukkit.getPlayer(id);
-        return player == null ? ChatColor.GRAY + "someone" : name(player);
+        if (player != null) {
+            return name(player);
+        }
+        String shown = offlineShown.get(id);
+        if (shown != null) {
+            return shown;
+        }
+        String offline = offlineNames.get(id);
+        return offline == null ? ChatColor.GRAY + "someone" : ranks.chatName(id, offline);
     }
 
     /** The words after /party for tab completion. */

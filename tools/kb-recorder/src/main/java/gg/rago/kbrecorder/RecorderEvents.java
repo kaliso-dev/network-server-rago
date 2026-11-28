@@ -33,7 +33,9 @@ public final class RecorderEvents {
         try {
             ChannelPipeline pipeline = event.manager.channel().pipeline();
             if (pipeline.get(PacketTap.NAME) == null) {
-                pipeline.addBefore(MINECRAFT_HANDLER, PacketTap.NAME, new PacketTap(recorder));
+                Minecraft mc = control.minecraft();
+                pipeline.addBefore(MINECRAFT_HANDLER, PacketTap.NAME,
+                        new PacketTap(recorder, explosion -> ExplosionBlocks.readBefore(mc, recorder, explosion)));
             }
         } catch (RuntimeException e) {
             LOGGER.error("Could not add the packet tap; packets will not be recorded on this connection", e);

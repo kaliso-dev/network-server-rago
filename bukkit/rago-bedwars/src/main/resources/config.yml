@@ -33,11 +33,13 @@ modes:
   attack-defense-1v1: [BioHazard]
   attack-defense-2v2: [BioHazard]
   clutch-scenario-1v1: [SkyRise, Archway]
-  clutch-scenario-2v2: [SkyRise, Archway]
-  clutch-scenario-3v3: [SkyRise, Archway]
-  clutch-scenario-4v4: [SkyRise, Archway]
+  clutch-scenario-1v2: [SkyRise, Archway]
+  clutch-scenario-1v3: [SkyRise, Archway]
+  clutch-scenario-1v4: [SkyRise, Archway]
   bed-fight-1v1: [BedFight]
   bed-fight-2v2: [BedFight]
+  bed-fight-1v2: [BedFight]
+  block-method-1v1: [GodMethod1, GodMethod2, MapV2, MinemenBedFight]
   top-bed-fight-1v1: [TopBedFight]
   lobby-fight-1v1: [ArchwayFFA]
   lobby-fight-ffa: [ArchwayFFA]
@@ -45,6 +47,31 @@ modes:
   bed-break-simulator-1v2: [Archway, Invasion]
   bed-break-simulator-1v3: [Archway, Invasion]
   bed-break-simulator-1v4: [Archway, Invasion]
+  red-rover-top-bridge: [Antenna, Aquarium, Archway, Artemis, Boletum, Carapace, Catalyst, Chained, Eastwood, Extinction, Invasion, Katsu, Lectus, Obelisk, Paladin, Planet98, Rise, Stonekeep, Swashbuckle, Treenan]
+  # Capture the Flag: the two maps the plugin makes itself the first time a mode lists them
+  ctf-bridge-1v1: [CtfBridge]
+  ctf-bridge-2v2: [CtfBridge]
+  ctf-castle-2v2: [CtfCastle]
+  ctf-castle-4v4: [CtfCastle]
+  # Fast Bedwars: the 20 maps of the RBW queue, as the ranked modes (to confirm with the owner)
+  # 2012 Bedwars (the owner, 27/11), in the place of 2017 Bedwars: on its own map
+  bedwars-2012: [Bedwars2012]
+  bedwars-2012-classique: [Bedwars2012]
+  # 2017 Bedwars, out of the menus of the lobby (hidden) for the bots of the CI
+  fast-bedwars-1v1: [Antenna, Aquarium, Archway, Artemis, Boletum, Carapace, Catalyst, Chained, Eastwood, Extinction, Invasion, Katsu, Lectus, Obelisk, Paladin, Planet98, Rise, Stonekeep, Swashbuckle, Treenan]
+  fast-bedwars-2v2: [Antenna, Aquarium, Archway, Artemis, Boletum, Carapace, Catalyst, Chained, Eastwood, Extinction, Invasion, Katsu, Lectus, Obelisk, Paladin, Planet98, Rise, Stonekeep, Swashbuckle, Treenan]
+  # The ranked duels of Bed Wars (plan 3.7, the owner's choice of 22/11): the same game, maps and kit
+  # as their mode of Solo, with their own queue and ELO
+  ranked-bed-fight-1v1: [BedFight]
+  ranked-top-bridge-1v1: [Antenna, Aquarium, Archway, Artemis, Boletum, Carapace, Catalyst, Chained, Eastwood, Extinction, Invasion, Katsu, Lectus, Obelisk, Paladin, Planet98, Rise, Stonekeep, Swashbuckle, Treenan]
+  # Bedwars Normal, the private game of a party (the owner's answers of 22/11: "toutes les maps
+  # qu'on a, map 2s map 4s"): a classic game on every map of the server, only those of 4 teams for
+  # the 4s and of 8 teams for the 2s (equipes-exactes: below); the lobby's party chooses the map,
+  # then its teams (parties-privees-equipes in the lobby's config.yml)
+  bedwars-normal-4s: toutes
+  bedwars-normal-2s: toutes
+  # FFA Archway, the private FFA of a party (the owner's choice of 23/11): the FFA's map
+  ffa-archway-partie: [ArchwayFFA]
 
 # The modes that are not a classic Bed Wars game, each with its kind of game:
 #   ffa        free for all, open: players join and leave when they like, each for themselves, and
@@ -78,9 +105,12 @@ modes:
 #              game, and is whole again each round. The attackers win the round by breaking the bed
 #              and killing the defenders, the defenders by killing the attackers or holding 5 minutes
 #   clutch-scenario  Clutch Scenario: a real game on Sky Rise or Archway, the two teams on opposite
-#              islands; one, drawn at random, has lost its bed already (one life each: clutch),
-#              the other keeps it under the owner's duo defense (end stone, then wool); everyone
-#              in iron armour with a stone sword, no enchantment, no emerald, every forge of the
+#              islands, 1v1 to 1v4 as Invis Practice and the Bed Break Simulator (the owner's
+#              choice, 22/11); one has lost its bed already, with one life (clutch): in 1v1 one of
+#              the two drawn at random, from 1v2 the player alone (drawn at random among the
+#              players of the game); the other keeps it under the owner's duo defense (end stone,
+#              then wool); everyone in iron armour with a stone sword, no enchantment, no emerald,
+#              every forge of the
 #              map full of iron and gold (the empty islands' too), the diamonds at Tier III and the
 #              emeralds at Tier II; each base has its bridges built, to its diamond island and to
 #              mid, and the bedless team's defense stands broken where its bed was
@@ -88,7 +118,13 @@ modes:
 #              map has on it (wood and end stone, breakable as in a game), no forge, no shop, no
 #              upgrade; the mode's kit (the lobby's kit editor) in leather armour of the team's
 #              colour at each life; back while the bed stands, the last team wins; the beds go at
-#              10 minutes, a draw at 15
+#              10 minutes, a draw at 15. In a 1v2 (one team of 3 in the lobby's config.yml), the
+#              player alone is drawn at random (not one of a party) and has the better stuff of
+#              stuff-ameliore: below
+#   block-method  Block Method 1v1: Bed Fight as a practice, the player alone against a RagoBot that
+#              comes for them (ragobot.seul in the lobby's config.yml), much weaker than the one of
+#              the parties; no clock, no result: each death starts the round again, the map as at the
+#              start; a blaze rod to start it again, a map to go on on another map of the mode
 #   top-bed-fight  Top Bed Fight, on a map with its own bridge on top (the owner's TopBedFight, at
 #              the build limit): the two players start on the spawns of the map, at its ends, each
 #              with a block at their back they cannot break nor go behind; the bridge breaks (to
@@ -97,24 +133,64 @@ modes:
 #              kill or a fall off the bridge (under hauteur-vide) gives a point, the first to 5 wins
 #   fast-shop  Fast Shop: each player on an island with its shop, lists of items to buy as fast as
 #              possible with their own quick buy (copied from Hypixel in the lobby), and records
-#   lobby-fight  Lobby Fight: the rounds of Top Bridge (one life, the first to 5 points) in the
+#   lobby-fight  Lobby Fight: the rounds of Top Bridge (one life, the first to 3 points) in the
 #              waiting lobby of the map, the platform over it where the players wait before a game
 #              (salle-attente: in its bedwars.yml, set with /bw lobbyfight on its floor; Archway FFA
-#              has one): the two players face to face across its middle, the kit of the FFA (ffa:
-#              in the lobby's config.yml, as each player arranged it) with diamond leggings and boots,
-#              dead a few blocks under its floor, the blocks in the lobby only
+#              has one): the two players face to face across its middle, the kit of Lobby Fight
+#              (lobby-fight-ffa: in the lobby's config.yml, as each player arranged it) with Haste
+#              and diamond leggings and boots, dead a few blocks under its floor, the blocks in the
+#              lobby only, gone 10 seconds after being placed
 #   lobby-fight-ffa  Lobby Fight FFA: the FFA in the waiting lobby (12 players at most), with
-#              its own kit (lobby-fight-ffa: in the lobby's config.yml: a sword, 5 golden apples
-#              that each kill brings back to 5, and 3 fireballs), each life somewhere on its floor
+#              the kit of Lobby Fight (lobby-fight-ffa: in the lobby's config.yml: a sword, 5 golden
+#              apples that each kill brings back to 5, 3 fireballs, 12 end stone, a wooden pickaxe,
+#              a pearl, 2 stacks of wool and shears) and Haste, each life somewhere on its floor
 #              away from the others
 #   bed-break  Bed Break Simulator: 1v1 to 1v4 (2 to 5 players, as the invis practice), on the
-#              map chosen, rounds of 3 minutes, the two
-#              opposite islands linked by a top bridge; each player in turn attacks from the middle
-#              of the top bridge with one life and the kit they choose (see bed-break: below), and
-#              wins the round only by breaking the bed; the others defend it (4 at most) with no kit,
-#              their forge full and their item shop, the bed under the owner's duo defense, back 5
-#              seconds after a death; everyone in iron armour, Protection II, no Sharpness; a bed
-#              broken or the attacker killed gives a point; it starts as the invis practice
+#              map chosen, rounds of 3 minutes, on two opposite islands; each player in turn
+#              attacks with one life and the kit they choose (see bed-break: below), from the
+#              middle of their bridge: one block wide, in their colour, from their island to the
+#              bed, straight, or along the side of the map then the other with one turn, never a
+#              diagonal (the defenders may break it); no block over the map's hauteur-max; they win
+#              the round only by breaking the bed; the others defend it (4 at most) with no kit,
+#              their forge full and their item shop, the bed under the Ranked Bedwars defense (end
+#              stone under glass), back 5 seconds after a death; everyone in iron armour,
+#              Protection II, no Sharpness; a bed broken or the attacker killed gives a point; it
+#              starts as the invis practice
+#   red-rover-top-bridge  Red Rover Top Bridge (plan 6.5): three players (one team of the lobby's
+#              queue) on the top bridge of Top Bridge, on its maps, in 1v1 in turn; who waits
+#              watches above the bridge. A 1v1 is played as Top Bridge (one life a round, the kit of
+#              Top Bridge 1v1); who fights next and how the game is won, as in the Red Rovers of the
+#              practice plugin: their settings, red-rover in the config.yml of RagoPractice
+#              (points-par-1v1-top-bridge: the rounds that win a 1v1)
+#   ctf-bridge  Capture the Flag, The Bridge (plan 6.2, the owner's choice of 22/11): on CtfBridge,
+#              made by the plugin, two bases of quartz joined by a bridge of clay that breaks; at
+#              the back of each base its flag, a banner of the team on gold. Walk onto the enemy
+#              flag to take it (it goes on your head), bring it to your own flag while yours is at
+#              home: a capture. A carrier who dies drops it there: the enemy takes it again, its team
+#              brings it back by touching it, else it goes back by itself (ctf: below); into the
+#              void it goes back at once. No bed, no forge, no shop: back at once after a death,
+#              with the kit of The Bridge (Hypixel's): leather armour of the team without the cap,
+#              the mode's kit (the lobby's kit editor: an iron sword, a bow, a diamond pickaxe with
+#              Efficiency II, two stacks of clay of the team, 8 golden apples that heal at once and
+#              give two hearts of absorption, one arrow that comes back 3.5 seconds after being
+#              shot), where each player put it at their last death; nobody builds on a flag
+#   ctf-chateau  Capture the Flag, castle against castle (the owner's choice of 22/11): on
+#              CtfCastle, made by the plugin, a castle of stone bricks for each team (walls, four
+#              towers, a gate towards the middle, the keep with the flag at the back) and one
+#              middle island with the diamonds and the emerald; the forge, the shop and the upgrades
+#              of Bed Wars in each courtyard, the generators going up a tier as in a game; the flags
+#              as in ctf-bridge; no bed: back after reapparition-secondes, each time
+#   fast-bedwars  Fast Bedwars (plan 6.1, as proposed on 21/11): a game of Bed Wars, fast and
+#              simple, on the maps of Bed Wars: the forges of its modes in forge.modes (twice those
+#              of a Hypixel map of four teams or fewer, to start), its events earlier, a smaller shop
+#              and no team upgrades (see fast-bedwars: below); without the upgrades, no diamond
+#              generator (the diamonds buy only the upgrades), so no Diamond II nor III
+#   bedwars-2012  2012 Bedwars (the owner's ask of 27/11), a rush of 2012: two great bases, each
+#              team hides its bed in the first minute (right click on the top of a block with it,
+#              not on a spawn, a generator or next to a shop), else it goes on the bed of the
+#              map, behind its base; clay in the place of the wool, the shop and forges of a
+#              game, no team upgrades; the diamonds of the islands and the emeralds of the middle
+#   bedwars-2012-classique  the same without the diamond and emerald generators
 # A mode not listed is a classic game.
 jeux:
   top-bridge-1v1: top-bridge
@@ -129,11 +205,13 @@ jeux:
   attack-defense-1v1: attaque-defense
   attack-defense-2v2: attaque-defense
   clutch-scenario-1v1: clutch-scenario
-  clutch-scenario-2v2: clutch-scenario
-  clutch-scenario-3v3: clutch-scenario
-  clutch-scenario-4v4: clutch-scenario
+  clutch-scenario-1v2: clutch-scenario
+  clutch-scenario-1v3: clutch-scenario
+  clutch-scenario-1v4: clutch-scenario
   bed-fight-1v1: bed-fight
   bed-fight-2v2: bed-fight
+  bed-fight-1v2: bed-fight
+  block-method-1v1: block-method
   top-bed-fight-1v1: top-bed-fight
   lobby-fight-1v1: lobby-fight
   lobby-fight-ffa: lobby-fight-ffa
@@ -141,6 +219,18 @@ jeux:
   bed-break-simulator-1v2: bed-break
   bed-break-simulator-1v3: bed-break
   bed-break-simulator-1v4: bed-break
+  red-rover-top-bridge: red-rover-top-bridge
+  ctf-bridge-1v1: ctf-bridge
+  ctf-bridge-2v2: ctf-bridge
+  ctf-castle-2v2: ctf-chateau
+  ctf-castle-4v4: ctf-chateau
+  bedwars-2012: bedwars-2012
+  bedwars-2012-classique: bedwars-2012-classique
+  fast-bedwars-1v1: fast-bedwars
+  fast-bedwars-2v2: fast-bedwars
+  ranked-bed-fight-1v1: bed-fight
+  ranked-top-bridge-1v1: top-bridge
+  ffa-archway-partie: ffa
 
 # Attack and Defense: the kits each player chooses from before each round, in a menu that opens by
 # itself (/kit opens it again); the countdown is 10 seconds, 3 once everyone has chosen. The
@@ -195,15 +285,90 @@ bed-break:
     - nom: Classic
       icone: GOLD_PICKAXE
       description: ["The Golden Pickaxe (tier III)", "digs the end stone fast:", "two stacks to bridge in."]
-      objets: [stone_sword, golden_pickaxe, "wool 64", "wool 64"]
+      objets: [stone_sword, golden_pickaxe, iron_axe, shears, "wool 64", "wool 64"]
     - nom: Fireball
       icone: FIREBALL
       description: ["A fireball to blow the wool and", "knock a defender off, the", "Iron Pickaxe (tier II), two stacks."]
-      objets: [stone_sword, fireball, iron_pickaxe, "wool 64", "wool 64"]
+      objets: [stone_sword, fireball, iron_pickaxe, stone_axe, shears, "wool 64", "wool 64"]
     - nom: Fighter
       icone: STICK
       description: ["Knock them off with the stick,", "a golden apple to last, ladders", "to climb; the Wooden Pickaxe."]
-      objets: [stone_sword, wooden_pickaxe, golden_apple, "ladder 8", stick]
+      objets: [stone_sword, wooden_pickaxe, wooden_axe, shears, golden_apple, "ladder 8", stick]
+
+# Bed Fight 1v2: the better stuff of the player alone, at each life, against the two others in the
+# mode's kit and leather armour. armure: the tier of their leggings and boots (0 leather as the
+# others, 1 chainmail, 2 iron, 3 diamond); epee: their sword in place of the kit's (WOOD_SWORD,
+# STONE_SWORD, GOLD_SWORD, IRON_SWORD, DIAMOND_SWORD); protection: the Protection level on their
+# armour, from 0 to 4. Starting values, to set in game.
+stuff-ameliore:
+  armure: 2
+  epee: STONE_SWORD
+  protection: 0
+
+# Capture the Flag (ctf-bridge and ctf-chateau): captures, the captures that win (1 to 20);
+# minutes-bridge and minutes-chateau, how long a game lasts at most (1 to 60): then the team with
+# the most captures wins, a draw when they have as many; retour-drapeau-secondes, how long a dropped
+# flag waits before it goes back to its base by itself (5 to 300). Starting values, to set in game.
+ctf:
+  captures: 3
+  minutes-bridge: 15
+  minutes-chateau: 20
+  retour-drapeau-secondes: 30
+
+# Fast Bedwars (fast-bedwars in jeux:): starting values, to set in game with the owner.
+#   evenements     when its events come, in minutes of game, each after the one above (as
+#                  evenements: below): twice as early as in a game, to start
+#   shop           the items its item shop sells, by their id (those of the kits of attaque-defense:);
+#                  the others are not in its categories nor in the Quick Buy. To start, the 20 items
+#                  of the default Quick Buy: wool, oak planks, end stone, blast-proof glass, the
+#                  stone and iron swords, the chainmail and iron armour, shears, the pickaxe and the
+#                  axe, the bow and the arrows, the speed and jump potions, TNT, the water bucket,
+#                  the golden apple, the fireball and the ender pearl. All the ids: wool, clay, glass,
+#                  end_stone, ladder, plank, obsidian, stone_sword, iron_sword, diamond_sword, stick,
+#                  chainmail, iron_boots, diamond_boots, shears, pickaxe, axe, arrow, bow,
+#                  bow_(power_i), bow_(power_i__punch_i), speed, jump, invisibility, golden_apple,
+#                  fireball, tnt, ender_pearl, water, sponge, bedbug, dream_defender, bridge_egg,
+#                  milk, tower
+#   ameliorations  true: the team upgrades and traps (their NPC) and the diamond generators, as in
+#                  a game; false: neither
+fast-bedwars:
+  evenements:
+    diamant-2: 3
+    emeraude-2: 6
+    diamant-3: 9
+    emeraude-3: 12
+    fin-des-lits: 15
+    fin-de-partie: 22.5
+  shop: [wool, plank, end_stone, glass, stone_sword, iron_sword, chainmail, iron_boots, shears, pickaxe, axe,
+    bow, arrow, speed, jump, tnt, water, golden_apple, fireball, ender_pearl]
+  ameliorations: false
+
+# The modes played only on the maps of exactly as many teams as the mode (in the lobby's
+# config.yml): Bedwars Normal, its 4s (4 teams) on the maps of 4 teams, its 2s (8 teams) on those of 8.
+equipes-exactes: [bedwars-normal-4s, bedwars-normal-2s]
+
+# The modes whose private games the party leader sets in the lobby before the game (Bedwars Normal,
+# the owner's answers of 22/11): Speed (none, I, II or III for everyone), Max Diamond (every team
+# with Sharpened Swords and Reinforced Armor IV from the start), Max Emerald (the emerald generators
+# at Tier III from the start, the game as long as usual), Break the Map (every block of the map
+# breaks, but around the spawns and the generators); then those of Hypixel's private games: Health
+# Buff, Low Gravity, Respawn Time, Event Times and Bed Instabreak. Each is as in a normal game until set.
+reglages-prives: [bedwars-normal-4s, bedwars-normal-2s]
+
+# FFA Archway, the FFA of a party alone in the Private games (the owner's choice of 23/11: « 30
+# minutes, puis classement des kills »): a game of a mode of kind ffa started as a private game of a
+# party ends after this many minutes (from 1 to 120), with the kills leaderboard of the game; who
+# has the most kills wins (several level at the top: a draw). The open FFA never ends.
+ffa-privee-minutes: 30
+
+# The private games of Bedwars Normal (the owner's ask of 25/11): once its leader has chosen the map
+# in the lobby, the party goes to the waiting lobby over that map (salle-attente: in its bedwars.yml,
+# set with /bw lobbyfight on its floor), in a copy of its own, chooses its teams there while the
+# leader sets the game, then plays on that copy. A map without its waiting lobby: the party waits
+# in the one of this map instead (Archway FFA, the only one set on the owner's server for now, to
+# confirm), then plays on a copy of the map chosen. "" or a map without one: the teams are chosen
+# from the lobby, as before.
+salle-attente-privee: ArchwayFFA
 
 # How many game worlds the server keeps at most, so how many games at once (from 1 to 50).
 parties-max: 8
@@ -223,7 +388,7 @@ reapparition-secondes: 5
 # goes with the game. In a free for all (top-bridge-ffa), it links the two islands farthest apart,
 # and everyone starts and comes back on the platform, with a sword only; a player 10 blocks under
 # it has fallen, dead as in the void (in the top-bridge games too).
-top-bridge: [top-bridge-1v1, top-bridge-2v2, top-bridge-ffa]
+top-bridge: [top-bridge-1v1, top-bridge-2v2, top-bridge-ffa, ranked-top-bridge-1v1]
 
 # The modes whose teams play on neighbouring islands (First Rush: the first island and the one
 # next to it), instead of opposite islands as in the other modes.
@@ -233,16 +398,16 @@ iles-voisines: [first-rush, first-rush-duo, first-rush-full, first-rush-full-duo
 # Bedwars queue on the side islands of its maps of four, First Rush full map, Sky Rise Resources,
 # Clutch Scenario: their iron and gold for whoever goes to take it, with the diamonds and emeralds).
 forges-partout: [ranked-1v1, ranked-2v2, ranked-3v3, ranked-4v4, first-rush-full, first-rush-full-duo,
-  skyrise-resources-1v1, skyrise-resources-2v2, clutch-scenario-1v1, clutch-scenario-2v2, clutch-scenario-3v3,
-  clutch-scenario-4v4]
+  skyrise-resources-1v1, skyrise-resources-2v2, clutch-scenario-1v1, clutch-scenario-1v2, clutch-scenario-1v3,
+  clutch-scenario-1v4]
 
 # The modes whose games have an item shop on every island of the map, the empty islands' too (the
 # Ranked Bedwars queue, First Rush full map, Sky Rise Resources, Clutch Scenario: whoever goes to
 # take the iron of another island buys there), and its upgrades NPC: it opens the upgrades of
 # whoever clicks it. The same modes as forges-partout.
 shops-partout: [ranked-1v1, ranked-2v2, ranked-3v3, ranked-4v4, first-rush-full, first-rush-full-duo,
-  skyrise-resources-1v1, skyrise-resources-2v2, clutch-scenario-1v1, clutch-scenario-2v2, clutch-scenario-3v3,
-  clutch-scenario-4v4]
+  skyrise-resources-1v1, skyrise-resources-2v2, clutch-scenario-1v1, clutch-scenario-1v2, clutch-scenario-1v3,
+  clutch-scenario-1v4]
 
 # The forge of each island, as on Hypixel (its iron and gold counted a minute long on each map): an
 # iron node drops an ingot every fer-secondes-par-noeud seconds (30 a minute), and a forge has 1
@@ -266,7 +431,9 @@ shops-partout: [ranked-1v1, ranked-2v2, ranked-3v3, ranked-4v4, first-rush-full,
 #              Hypixel 4v4: 60 iron and 8 gold a minute in 1v1 (lente, one node more on its maps),
 #              90 iron and 12 gold in 2v2, 3v3 and 4v4 (moyenne), not 120. Sky Rise Resources, where
 #              every island's forge goes, has slow ones: 40 iron and 5 gold a minute each. The Bed
-#              Break Simulator has the forge of the RBW queue in 2v2 to 4v4 (moyenne).
+#              Break Simulator has the forge of the RBW queue in 2v2 to 4v4 (moyenne). Fast Bedwars
+#              has twice the forge of a Hypixel map of four teams or fewer, to start: 240 iron and
+#              24 gold a minute (rapide, an iron node every second, gold every 2.5 seconds).
 forge:
   fer-secondes-par-noeud: 2
   fer-par-lot: [2]
@@ -295,6 +462,8 @@ forge:
     bed-break-simulator-1v4: {vitesse: moyenne}
     skyrise-resources-1v1: {vitesse: lente, fer-secondes-par-noeud: 1.5, or-secondes: 12}
     skyrise-resources-2v2: {vitesse: lente, fer-secondes-par-noeud: 1.5, or-secondes: 12}
+    fast-bedwars-1v1: {vitesse: rapide, fer-secondes-par-noeud: 1, or-secondes: 2.5}
+    fast-bedwars-2v2: {vitesse: rapide, fer-secondes-par-noeud: 1, or-secondes: 2.5}
 
 # The diamond and emerald generators: one item every so many seconds, at most so many lying on
 # it; three tiers (I, II, III), faster and faster.

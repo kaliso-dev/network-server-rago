@@ -179,6 +179,10 @@ final class FakeEntities implements Listener {
     /** Twice a second: who sees what, and what changed. */
     void tick() {
         for (Player viewer : Bukkit.getOnlinePlayers()) {
+            if (RagoBots.isBot(viewer)) {
+                // no client to see them
+                continue;
+            }
             Set<Fake> seen = shown.get(viewer.getUniqueId());
             if (!viewer.getWorld().equals(world)) {
                 if (seen != null) {
@@ -219,6 +223,10 @@ final class FakeEntities implements Listener {
 
     /** Sends a packet to one player. */
     void send(Player viewer, PacketWrapper<?> packet) {
+        if (RagoBots.isBot(viewer)) {
+            // PacketEvents knows no RagoBot: it has no client
+            return;
+        }
         PacketEvents.getAPI().getPlayerManager().sendPacket(viewer, packet);
     }
 

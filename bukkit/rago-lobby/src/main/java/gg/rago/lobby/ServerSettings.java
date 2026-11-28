@@ -14,8 +14,8 @@ import org.bukkit.configuration.ConfigurationSection;
  * badges (styles), the ELO divisions (elo), the
  * Rago Points (rago-points), the prices of the shop (boutique), the chat rules (chat), the tab
  * list (tab), the server list message (motd), the announcements (annonces), the links (liens), the
- * rewards of the Network levels (niveau.recompenses), the quests (quetes) and the titles of the
- * modes (titres).
+ * rewards of the Network levels (niveau.recompenses), the quests (quetes), the Daily Chest
+ * (coffre-du-jour) and the titles of the modes (titres).
  * Every section is optional: a config.yml of an earlier version gets the defaults. Immutable.
  */
 final class ServerSettings {
@@ -27,8 +27,10 @@ final class ServerSettings {
         final int kill;
         /** A new level gives the level times this. */
         final int perLevel;
-        /** The daily reward, and what each day of a streak adds to it (up to {@link #MAX_STREAK} days). */
-        final int daily;
+        /**
+         * What each day of a streak of the Daily Chest adds to its reward, in Rago Points (up to
+         * {@link #MAX_STREAK} days); the chest draws the reward itself ({@link DailyRewards}).
+         */
         final int dailyStreak;
         /**
          * The trainings, the practice, the aim trainer and the events: one point for each xpPerPoint
@@ -38,16 +40,15 @@ final class ServerSettings {
 
         static final int MAX_STREAK = 7;
 
-        Points(int win, int loss, int kill, int perLevel, int daily, int dailyStreak) {
-            this(win, loss, kill, perLevel, daily, dailyStreak, 3);
+        Points(int win, int loss, int kill, int perLevel, int dailyStreak) {
+            this(win, loss, kill, perLevel, dailyStreak, 3);
         }
 
-        Points(int win, int loss, int kill, int perLevel, int daily, int dailyStreak, int xpPerPoint) {
+        Points(int win, int loss, int kill, int perLevel, int dailyStreak, int xpPerPoint) {
             this.win = win;
             this.loss = loss;
             this.kill = kill;
             this.perLevel = perLevel;
-            this.daily = daily;
             this.dailyStreak = dailyStreak;
             this.xpPerPoint = xpPerPoint;
         }
@@ -60,9 +61,9 @@ final class ServerSettings {
             return Math.max(1, xp / xpPerPoint);
         }
 
-        /** The reward of the n-th day in a row (1 for the first). */
-        int dailyReward(int day) {
-            return daily + dailyStreak * (Math.max(1, Math.min(MAX_STREAK, day)) - 1);
+        /** The streak bonus of the n-th day in a row (1 for the first: none). */
+        int streakBonus(int day) {
+            return dailyStreak * (Math.max(1, Math.min(MAX_STREAK, day)) - 1);
         }
     }
 
@@ -83,6 +84,7 @@ final class ServerSettings {
     private final Map<String, List<String>> links;
     private final LevelRewards levelRewards;
     private final Quests quests;
+    private final DailyRewards dailyRewards;
     private final GettingStarted gettingStarted;
     private final StarterPack starterPack;
     private final Season season;
@@ -92,7 +94,7 @@ final class ServerSettings {
     private ServerSettings(Ranks ranks, Map<String, NameStyle> styles, EloLadder elo, Points points, Map<String, Cosmetic> cosmetics, long chatCooldownMillis,
             boolean blockRepeats, List<String> tabHeader, List<String> tabFooter, List<String> motd, int announceMinutes,
             List<String> announcements, Map<String, List<String>> links, LevelRewards levelRewards, Quests quests,
-            GettingStarted gettingStarted, StarterPack starterPack, Season season, WeeklyRewards.Settings weekly, Titles titles) {
+            DailyRewards dailyRewards, GettingStarted gettingStarted, StarterPack starterPack, Season season, WeeklyRewards.Settings weekly, Titles titles) {
         this.ranks = ranks;
         this.styles = Collections.unmodifiableMap(styles);
         this.elo = elo;
@@ -108,6 +110,7 @@ final class ServerSettings {
         this.links = Collections.unmodifiableMap(links);
         this.levelRewards = levelRewards;
         this.quests = quests;
+        this.dailyRewards = dailyRewards;
         this.gettingStarted = gettingStarted;
         this.starterPack = starterPack;
         this.season = season;
@@ -122,8 +125,7 @@ final class ServerSettings {
         ConfigurationSection p = config.getConfigurationSection("rago-points");
         Points points = new Points(count(p, "rago-points", "victoire", 20), count(p, "rago-points", "defaite", 5),
                 count(p, "rago-points", "kill", 2), count(p, "rago-points", "par-niveau", 10),
-                count(p, "rago-points", "quotidien", 100), count(p, "rago-points", "quotidien-serie", 25),
-                count(p, "rago-points", "xp-par-point", 3));
+                count(p, "rago-points", "quotidien-serie", 25), count(p, "rago-points", "xp-par-point", 3));
         Map<String, Cosmetic> cosmetics = new LinkedHashMap<>();
         ConfigurationSection shop = config.getConfigurationSection("boutique");
         for (Cosmetic cosmetic : Cosmetic.catalogue().values()) {
@@ -174,6 +176,10 @@ final class ServerSettings {
         LevelRewards rewards = readRewards(config.getConfigurationSection("niveau.recompenses"),
                 config.getConfigurationSection("niveau.prestiges"), cosmetics, styles);
         Quests quests = readQuests(config.getConfigurationSection("quetes"));
+        if (config.isSet("coffre-du-jour") && !config.isConfigurationSection("coffre-du-jour")) {
+            throw new IllegalArgumentException("coffre-du-jour: a section (recompenses)");
+        }
+        DailyRewards daily = DailyRewards.read(config.getConfigurationSection("coffre-du-jour"));
         GettingStarted gettingStarted = readGettingStarted(config.getConfigurationSection("quetes.debut"), cosmetics, styles);
         StarterPack pack = StarterPack.read(config.getConfigurationSection("pack-depart"), cosmetics, ranks);
         Season season = Season.read(config.getConfigurationSection("saison"), elo);
@@ -183,7 +189,7 @@ final class ServerSettings {
         }
         Titles titles = readTitles(config.getConfigurationSection("titres"));
         return new ServerSettings(ranks, styles, elo, points, cosmetics, cooldown * 1000L, repeats, header, footer, motd,
-                minutes, announcements, links, rewards, quests, gettingStarted, pack, season, weekly, titles);
+                minutes, announcements, links, rewards, quests, daily, gettingStarted, pack, season, weekly, titles);
     }
 
     /**
@@ -792,6 +798,11 @@ final class ServerSettings {
 
     Quests quests() {
         return quests;
+    }
+
+    /** What the Daily Chest gives (coffre-du-jour). */
+    DailyRewards dailyRewards() {
+        return dailyRewards;
     }
 
     /** Getting started, the quests of a new player (quetes.debut). */

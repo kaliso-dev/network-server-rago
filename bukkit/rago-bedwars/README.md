@@ -4,8 +4,8 @@ Un plugin Bukkit 1.8.8 qui joue les modes Bed Wars du lobby (`bukkit/rago-lobby`
 Bedwars 1v1, 2v2, 3v3 et 4v4**, **RBW Sky Rise** en solo et en duo (et **Sky Rise Resources**), avec
 les règles d'une partie classique d'Hypixel, **First Rush** en solo et en duo (la même partie, sur deux îles voisines), les
 **parties privées** d'une party (le lobby choisit le 1v1, 2v2, 3v3 ou 4v4 selon sa taille), et
-huit jeux à part sur des maps de Bed Wars : **Top Bridge**, **Attack and Defense**, **Clutch
-Scenario**, **Bed Break Simulator**,
+neuf jeux à part sur des maps de Bed Wars : **Top Bridge**, **Red Rover Top Bridge**, **Attack
+and Defense**, **Clutch Scenario**, **Bed Break Simulator**,
 **FFA** (dont le Top Bridge FFA), **Lobby Fight** (1v1 et FFA, dans la salle d'attente de la map),
 **Invis practice** et **Fast Shop**. Chaque mode a ses maps.
 
@@ -17,7 +17,11 @@ Toutes les parties se regardent avec `/spectate` (voir le README du lobby) : le 
 dans le monde de la partie (pas loin sous son vide), sans rien toucher, pas même un coffre. Il
 entend ce que les spectateurs d'une partie entendent (pas le chat d'une équipe), parle avec les
 autres spectateurs et les joueurs éliminés (« [SPECTATOR] »), voit le sidebar du joueur qu'il est
-venu voir et revient au lobby à la fin, avant les joueurs.
+venu voir et revient au lobby à la fin, avant les joueurs. Les joueurs lisent l'arrivée de chacun
+en rouge et en gras, avec un ding.
+
+**Le ding** (ta demande du 22/11) : chaque manche, point (une capture du CTF) ou partie gagnés le fait sonner pour ceux
+qui l'ont gagné, le son de l'orbe d'XP (`ORB_PICKUP`). La victoire garde aussi son son de level up.
 
 ## La partie
 
@@ -72,6 +76,10 @@ venu voir et revient au lobby à la fin, avant les joueurs.
   message donne le total de final kills du tueur, toutes parties confondues, comme sur Hypixel :
   « vaggww78 was qAbel's final #41,000. FINAL KILL! » (sans total dans une partie privée, qui ne
   compte pas dans les stats).
+- **Protection au respawn**, dans tous les modes où l'on revient pendant la partie (d'abord faite
+  pour Bed Fight, puis demandée pour les autres modes) : 1,5 seconde, la durée de Minemen, pendant
+  laquelle aucun coup d'un ennemi ne fait rien, ni dégât ni recul ; elle est coupée dès que le
+  joueur frappe un ennemi.
 - **Lits** : on ne casse pas le sien. Casser celui d'une autre équipe l'annonce à tous, avec le
   total de lits cassés du joueur (« Red Bed was destroyed by qAbel's bed #1,250! »), et ses joueurs
   ne reviendront plus.
@@ -95,8 +103,68 @@ venu voir et revient au lobby à la fin, avant les joueurs.
   Tout le monde reste 3 secondes dans l'arène (`fin-de-partie-secondes` du config.yml du lobby,
   0 pour repartir tout de suite), le temps de voir les gagnants et leur effet de victoire, avec le
   papier **Play again** et le lit **Leave** dans la barre (et les deux boutons dans le chat) qui
-  marchent tout de suite ; puis retour au lobby. Après une égalité, retour immédiat. Quitter le
-  serveur ou taper `/spawn` pendant la partie, c'est l'abandonner (une défaite).
+  marchent tout de suite ; puis retour au lobby. Après une égalité, retour immédiat. Taper
+  `/spawn` pendant la partie, c'est l'abandonner (une défaite).
+- **Déconnexion** (ta demande du 23/11, dans les parties classiques : Ranked Bedwars, Sky Rise,
+  First Rush, les parties privées de Bedwars Normal ; pas les duels ni les autres modes, où quitter
+  le serveur reste un abandon) : la partie continue (« X disconnected. »), son équipe le garde.
+  Tant qu'un coéquipier joue encore, il peut revenir quand il veut ; sinon (un 1v1, ou le dernier
+  de son équipe), il a 3 minutes : passé ce temps, il est éliminé (« did not come back in time »,
+  un abandon : files classées fermées un moment) et la partie continue sans lui (en 1v1, l'autre
+  gagne). De retour sur le serveur, il revient dans la partie (« X reconnected. ») comme après une
+  mort : inventaire perdu, outils d'un niveau en moins, spectateur 10 secondes, puis sur son île ;
+  sans lit (cassé pendant son absence ou pendant ces 10 secondes), il est éliminé.
+
+## Bedwars Normal
+
+`bedwars-normal-4s` et `bedwars-normal-2s` (tes réponses du 22/11) : la partie privée d'une party
+du lobby, une partie classique, sur toutes les maps du serveur (`toutes`), seulement celles de 4
+équipes pour la 4s et de 8 équipes pour la 2s (`equipes-exactes:`). Le lobby choisit la map et les
+équipes (voir le README de RagoLobby) : son match donne les équipes de la map dans l'ordre des
+couleurs, une équipe que personne n'a choisie vide. Elle ne joue pas : son lit est enlevé, comme
+celui des îles vides. Le menu des équipes du lobby montre les couleurs que l'hôte donne pour la
+map (`teamIcons`).
+
+**Le lobby d'attente** (ta demande du 25/11 ; `PrivateWaitingLobby`) : la map choisie par le chef
+au lobby, la party part dans la salle d'attente de cette map (`salle-attente:` de son bedwars.yml,
+posée avec `/bw lobbyfight` sur son sol), dans une copie à elle seule, au milieu du sol, en mode
+aventure, sans rien en main ; chacun y choisit son équipe pendant que le chef règle la partie, avec
+les objets et les menus du lobby (voir le README de RagoLobby). Personne n'y prend de dégâts ni n'a
+faim, personne n'y construit ni n'utilise les portes, coffres ou boutons ; qui tombe du sol (3 blocs
+sous lui) revient au milieu ; on n'y jette rien ; son chat est celui de la party seule. La partie se
+joue ensuite sur cette même copie, sous leurs pieds. Une map sans salle d'attente : la party attend
+dans celle de la map de `salle-attente-privee:` (Archway FFA, la seule réglée sur ton serveur pour
+l'instant, à confirmer), puis joue sur une copie de la map choisie ; cette copie-là est libre dès
+que le dernier joueur en est parti. Aucune : les équipes se choisissent au lobby, comme avant.
+
+Les réglages du chef de party (`reglages-prives:`, `PrivateRules`, testés par `PrivateRulesTest`),
+tes quatre d'abord ; chacun est celui d'une partie normale tant qu'il n'est pas changé :
+- **Speed** : aucun, Speed I, II ou III pour tous, toute la partie (une potion du shop plus forte
+  passe devant le temps qu'elle dure) ;
+- **Max Diamond** (« tout les enchantement debloqué ») : chaque équipe commence avec Sharpened
+  Swords et Reinforced Armor IV. Maniac Miner, la Forge et le Heal Pool restent à acheter, à
+  confirmer ;
+- **Max Emerald** (« event au max Emerald 3 mais avec le temps normal d'une game ») : les
+  générateurs d'émeraudes partent au Tier III ; Emerald II et III ne viennent plus, les lits et la
+  fin de partie à leur heure ;
+- **Break the Map** : tout bloc de la map se casse, sauf autour des spawns et des générateurs (là
+  où on ne peut rien poser) ; les lits restent ceux de la partie, la copie de la map part avec elle.
+Puis ceux des parties privées d'Hypixel (« comme sur hypixel »), comme son menu les décrit :
+- **Health Buff** : Normal, Double ou Triple Health (10, 20 ou 30 cœurs), par un Health Boost sur
+  chaque joueur, ses cœurs pleins au départ et à chaque retour ;
+- **Low Gravity** : Jump Boost III pour tous, toute la partie ;
+- **Respawn Time** : 1 ou 10 secondes au lieu de celui de la partie (`reapparition-secondes`, 5) ;
+- **Event Times** : 0.5x (plus lent), 2x (plus rapide) ou 4x (le plus rapide) : chaque événement
+  (les tiers des générateurs, la fin des lits, la fin de partie) vient deux fois plus tard, deux ou
+  quatre fois plus tôt ; avec Max Emerald, toujours sans Emerald II ni III ;
+- **Bed Instabreak** : le lit d'une autre équipe se casse d'un seul coup de poing (le sien, jamais) ;
+- **One Hit One Kill** (ton choix du 23/11 : « Le chef choisit les armes ») : comme le menu d'Hypixel (« Select which items should instantly kill enemies »), un clic
+  ouvre les armes, chacune On ou Off : Wooden Sword, Stone Sword, Iron Sword, Diamond Sword,
+  Knockback Stick, Bow, Fireball, TNT (les armes de la boutique, la liste exacte d'Hypixel n'étant
+  écrite nulle part ; le poing n'y est pas). Un coup d'une arme cochée sur un ennemi
+  le tue d'un coup, comme un coup mortel : l'épée ou le bâton en main, la flèche d'un arc, la TNT
+  allumée par un joueur, la fireball par son explosion (jamais sur soi ni un coéquipier, jamais
+  pendant la protection après un retour).
 
 ## First Rush
 
@@ -118,7 +186,8 @@ et 5 or par minute chacune, au lieu de 90 et 8.
 
 ## Top Bridge
 
-`top-bridge-1v1` et `top-bridge-2v2` (le jeu `top-bridge`) se jouent sur les 20 maps de la file,
+`top-bridge-1v1`, `top-bridge-2v2` et la version classée `ranked-top-bridge-1v1` (plan 3.7 : sa propre
+file et son ELO, catégorie Ranked) (le jeu `top-bridge`) se jouent sur les 20 maps de la file,
 sur le **top bridge** construit sur Antenna : au début de la partie, le plugin pose sur la copie
 une plateforme de laine de 17 blocs de large au-dessus du milieu, chaque moitié à la couleur de
 l'équipe de son côté (un bloc blanc au centre), et depuis le bord de chaque île un escalier de laine
@@ -146,9 +215,24 @@ attendent regardent depuis le dessus du milieu.
   30 minutes, l'équipe en tête gagne. Une party qui remplit le match depuis les Duels (deux
   joueurs en 1v1, quatre en 2v2) joue les mêmes manches jusqu'à 5 points, en partie privée : rien
   ne compte dans les stats.
-- **Le mode Private top bridge** (le PNJ des parties privées) : un practice sans fin. Personne
+- **Le practice des Private games** (le Private top bridge, remplacé par Bedwars Normal le 22/11 :
+  aucun mode du lobby ne le joue plus, le code reste) : un practice sans fin. Personne
   n'est éliminé : on revient en haut tout de suite après une mort, les blocs posés partent au bout de
   45 secondes, et la partie dure 30 minutes au plus. Rien ne compte dans les stats.
+
+`red-rover-top-bridge` (le jeu `red-rover-top-bridge`, `RedRoverTopBridgeGame`) est le Red Rover
+du Top Bridge (plan 6.5) : trois joueurs (une équipe de trois de la file du lobby) sur le top bridge,
+sur les maps de Top Bridge, en 1v1 chacun leur tour ; celui qui attend regarde au-dessus du pont en
+spectateur. Les deux qui se battent sont les deux équipes d'un Top Bridge 1v1 (ses deux îles, son
+kit rangé par chaque joueur) et jouent ses manches d'une vie : le premier à
+`red-rover.points-par-1v1-top-bridge` manches (1, choisi par le propriétaire) gagne le 1v1, puis le 1v1 suivant
+part tout de suite sur la map refaite. Qui affronte qui et comment la partie se gagne sont ceux des
+Red Rovers du practice (`RedRoverRotation` du `rago-game-model`), avec leurs réglages : `red-rover:`
+du config.yml de **RagoPractice**, lu par ce plugin (sans RagoPractice, ou s'ils sont faux, les
+réglages par défaut, dit une fois dans la console). Au bout de `secondes-par-1v1`, celui qui a porté
+le plus de coups dans le 1v1 le gagne. Celui qui quitte est éliminé (une défaite) ; un seul gagne la
+partie, tous les autres la perdent. À la fin, le top 3 de la partie, comme pour les Red Rovers du
+practice (voir son README).
 
 `top-bridge-ffa` est le FFA libre sur le pont, sur Invasion seulement : on entre et on sort quand on veut,
 chacun pour soi, avec le même stuff de combat à chaque vie. Le top bridge relie les
@@ -209,10 +293,14 @@ gagne la partie.
 
 ## Clutch Scenario
 
-`clutch-scenario-1v1`, `-2v2`, `-3v3` et `-4v4` (le genre `clutch-scenario`) : une vraie partie de
+`clutch-scenario-1v1`, `-1v2`, `-1v3` et `-1v4` (le genre `clutch-scenario`), comme Invis Practice
+et le Bed Break Simulator (ton choix du 22/11, à la place des 2v2, 3v3 et 4v4) : une vraie partie de
 Ranked Bedwars sur Sky Rise ou Archway (les maps du mode dans `config.yml`), les deux équipes sur
-des îles opposées. L'une, tirée au sort, a déjà perdu son lit : une seule vie
-chacun, elle doit clutch. L'autre garde le sien, sous une défense duo déjà posée, celle de la map
+des îles opposées. L'une a déjà perdu son lit : une seule vie, elle doit clutch. En 1v1, l'un des
+deux tiré au sort ; à partir du 1v2, le joueur seul (ton choix du 21/11) : le lobby envoie les 3 à
+5 joueurs en une équipe, et la partie en tire un au sort, seul sur son île, contre les autres
+ensemble ; une party reste ensemble (ton choix du 22/11) : le joueur seul est tiré parmi ceux qui
+n'ont pas d'ami de leur party dans la partie, parmi tous quand chacun en a un. L'autre garde le sien, sous une défense duo déjà posée, celle de la map
 « Defense Claude » du propriétaire : de l'end stone autour du lit et dessus (avec un bloc de plus
 derrière la tête), puis de la laine de l'équipe par-dessus (12 end stone, 23 laines). Tout le monde part de sa base en armure de fer avec une épée en pierre, sans
 enchantement ni émeraude. Toutes les forges de la map marchent, celles des îles vides aussi
@@ -241,17 +329,32 @@ qu'il ne reste qu'une équipe.
 
 ## Bed Fight
 
-`bed-fight-1v1` et `bed-fight-2v2` (le genre `bed-fight`), comme le Bed Fight de Minemen, sur la
+`bed-fight-1v1`, `bed-fight-2v2`, `bed-fight-1v2` et leur version classée `ranked-bed-fight-1v1`
+(plan 3.7 : sa propre file et son ELO, catégorie Ranked) (le genre `bed-fight`), comme le Bed Fight de Minemen, sur la
 map BedFight du propriétaire : deux îles face à face, chaque lit sous la défense que la map a déjà
 (bois et end stone), que les joueurs cassent comme dans une partie. Ni forge, ni shop, ni
 amélioration, ni diamant : chacun a le kit du mode (l'éditeur de kit du lobby ; sinon une épée,
 une pioche et une hache en bois, des cisailles et un stack de laine) en armure de cuir
-de la couleur de son équipe, à chaque vie ; la pioche et la hache ont Efficiency I. On revient tant
-que son lit tient, 3 secondes après une mort (au plus : `reapparition-secondes` si c'est moins) ;
-la dernière équipe en vie gagne. Les lits partent à 10 minutes, égalité à 15. Les blocs se posent
+de la couleur de son équipe, à chaque vie ; la pioche et la hache ont Efficiency I. Chaque vie
+rend le kit rangé comme le joueur l'avait au moment de sa mort, quelle qu'elle soit (un coup, le
+vide) : un objet déplacé pendant la partie y reste à la vie suivante (une sorte d'objet épuisée,
+toute la laine posée, garde la case qu'elle avait). La première vie a le rangement du lobby. On revient tant
+que son lit tient, 3 secondes après une mort (au plus : `reapparition-secondes` si c'est moins),
+protégé 1,5 seconde (la durée de Minemen) : aucun coup d'un ennemi ne lui fait rien, ni dégât ni
+recul, sauf s'il frappe un ennemi le premier, ce qui coupe sa protection tout de suite ; la
+dernière équipe en vie gagne. Les lits partent à 10 minutes, égalité à 15. Les blocs se posent
 partout sous la limite de construction, spawns compris : à chaque respawn, les deux blocs où le
 joueur revient (pieds et tête) partent. Aucun dégât de chute. Chaque mort fait sonner le ding de
 l'XP chez tous les joueurs de la partie.
+
+Le 1v2 (le « stuff amélioré » du plan, ton choix du 22/11) : les trois joueurs arrivent du lobby en
+une seule équipe de 3, que la partie partage comme le Clutch Scenario. Le joueur seul est tiré au
+sort parmi eux, mais pas un joueur d'une party : des amis jouent ensemble. Il a un meilleur stuff que
+les deux autres, à chaque vie, réglé dans `stuff-ameliore:` du `config.yml` : `armure`, le niveau
+de ses jambières et bottes (0 cuir comme les autres, 1 maille, 2 fer, 3 diamant) ; `epee`, son
+épée à la place de celle du kit, dans la case où il l'a rangée (`STONE_SWORD`, `IRON_SWORD`…) ;
+`protection`, la Protection sur son armure, de 0 à 4. Les valeurs de départ (fer, épée en pierre,
+sans Protection) sont à régler en jeu. Au début, le chat dit à chacun le stuff du joueur seul.
 
 La map n'est pas dans le dépôt : son `bedwars.yml` donne à chaque équipe son spawn (sur la map du
 propriétaire, le petit bloc de laine rouge ou bleue de sa base) et son lit ; le générateur et le
@@ -278,6 +381,105 @@ de 10 blocs sur les côtés du pont. Les lits restent en bas, sur les îles, hor
 
 La map n'est pas dans le dépôt : son `bedwars.yml` donne les deux spawns (juste devant le bloc du
 bout, face à face), les lits des îles, et le générateur et le shop, inutilisés, sur les spawns.
+
+## Capture the Flag
+
+Le CTF du plan (6.2), en deux types, tes deux du 22/11 : The Bridge, `ctf-bridge-1v1` et
+`ctf-bridge-2v2` (le genre `ctf-bridge`), et le type normal, château contre château avec un mid,
+`ctf-castle-2v2` et `ctf-castle-4v4` (le genre `ctf-chateau`). Tous dans Fun Practice.
+
+Chaque équipe a son drapeau, une bannière de sa couleur sur un bloc d'or au fond de sa base (le
+point du lit de la map). Un ennemi qui marche dessus le prend : la bannière passe sur sa tête, toute
+la partie l'entend. Il marque en l'apportant sur son propre drapeau, si celui-ci est chez lui (sinon
+le chat le lui dit) ; le drapeau ennemi retourne à sa base. Le porteur qui meurt lâche le drapeau là
+où il tombe, une bannière qui flotte avec le temps qui reste : un ennemi le reprend en marchant
+dessus, un joueur de son équipe le ramène chez lui en le touchant, sinon il rentre seul après
+`ctf.retour-drapeau-secondes` (30). Tombé dans le vide, il rentre tout de suite ; un porteur qui
+quitte la partie aussi. Personne n'est jamais éliminé : il n'y a pas de lit. On ne pose aucun bloc
+sur un drapeau (son bloc et celui du dessus), pour qu'il puisse toujours rentrer ; autour, oui. Un
+porteur n'est jamais invisible. La première équipe à `ctf.captures` (3) captures gagne ; à la fin du
+temps, celle qui en a le plus, égalité si elles en ont autant. Le tableau de droite donne le score,
+l'état de chaque drapeau (« Safe », « Taken », « Dropped 24s ») et les captures du joueur.
+
+**The Bridge** : sur CtfBridge, une map que le plugin construit lui-même la première fois qu'un mode
+de `modes:` la cite (comme la map démo), rouge à l'ouest et bleu à l'est. Comme le The Bridge
+d'Hypixel : un pont d'argile d'un bloc de large et de 41 de long entre les deux bases (rouge sur la
+moitié rouge, bleu sur la bleue, blanc au milieu), qu'on casse et sur lequel on construit, de 4 blocs
+sous le pont à 4 au-dessus (les 9 blocs de hauteur de The Bridge). Les bases, en quartz, ne se
+cassent pas ; leur drapeau est au fond, devant un mur aux vitres de la couleur de l'équipe. Ni forge
+ni shop ; on revient tout de suite après une mort, avec le kit de The Bridge (le wiki Hypixel) rangé
+comme on l'avait à sa mort : l'armure de cuir de l'équipe sans le casque, une épée en fer, un arc,
+une pioche en diamant Efficiency II, deux stacks d'argile de l'équipe, 8 pommes en or et une flèche
+qui revient 3,5 secondes après avoir été tirée, dans la case où elle était (jamais plus d'une).
+Une pomme en or remet toute la vie d'un coup et donne deux cœurs d'absorption. Les deux tailles
+partagent un kit, à ranger dans l'éditeur de kit du lobby. `ctf.minutes-bridge` (15, la durée
+d'Hypixel en 1v1 et 2v2).
+
+**Château contre château** : sur CtfCastle, l'autre map que le plugin construit (même règle), une
+grande map de 151 blocs de long, rouge à l'ouest et bleu à l'est. Deux châteaux de pierre taillée
+(un peu moussue et fissurée, pareil des deux côtés) de 31 blocs sur 31, et un mid rond entre les
+deux, à 34 blocs de vide de chaque château, avec l'émeraude au centre et deux diamants, entre des
+ruines. Chaque château a ses murs de deux blocs d'épaisseur avec leurs créneaux, quatre tours aux
+coins, une porte de 3 de large vers le mid, une cour avec le spawn, la forge (sur du fer), l'item
+shop et les améliorations, et au fond le donjon, où le drapeau est posé sur de l'or ; les murs et
+les tours sont éclairés. C'est une partie de Bed Wars : la forge, le shop, les améliorations et les
+pièges de chaque équipe, les générateurs du mid qui montent de niveau comme dans une partie, les
+blocs que l'on pose pour traverser le vide ; seuls les blocs posés par les joueurs se cassent. Sans
+lit, on revient toujours, après `reapparition-secondes`. `ctf.minutes-chateau` (20).
+
+Les valeurs (captures, durées, retour du drapeau) sont dans `ctf:` du `config.yml`, à régler en
+jeu. Le dessin des deux maps est à valider : on peut les modifier en jeu et les sauver, le plugin
+ne les reconstruit pas tant que leur dossier existe.
+
+## 2012 Bedwars
+
+Ta demande du 27/11, à la place de 2017 Bedwars dans les menus : `bedwars-2012` et
+`bedwars-2012-classique` (le genre `bedwars-2012`, classe `Bedwars2012Game`), en 4v4, sur sa propre
+map `Bedwars2012` (la map « Rush » de Dono9999 : ses deux bases gardées, un milieu à émeraudes et
+deux îles à diamants ajoutés, son lobby en redstone retiré ; `cartes:` du `config.yml`).
+
+- **le lit caché** : pendant la première minute, chaque joueur a le lit de son équipe dans sa barre ;
+  un clic droit sur le dessus d'un bloc le pose, partout où un bloc peut aller (pas sur un spawn ni
+  un générateur, comme dans toute partie) et pas à moins de 3 blocs d'un PNJ. Le premier posé est
+  celui de l'équipe, les autres disparaissent. Une équipe qui ne l'a pas caché a le lit de la map,
+  derrière sa base ;
+- **de l'argile à la place de la laine** (même prix, même place dans le Quick Buy), le shop et les
+  forges d'une partie, **pas d'améliorations d'équipe** ;
+- `bedwars-2012` a les diamants des îles et les émeraudes du milieu, `bedwars-2012-classique`
+  seulement les forges des bases.
+
+Le reste est une partie de Bed Wars ; rien n'est gardé d'une partie à l'autre.
+
+## 2017 Bedwars (Fast Bedwars avant le 23/11)
+
+Cachés des menus depuis le 27/11 (2012 Bedwars les remplace) : `fast-bedwars-1v1` et `-2v2` restent
+dans le `config.yml` du lobby, avec `cache: true`, pour les bots de la CI.
+
+Renommé « 2017 Bedwars » le 23/11 (ta demande) : seul le nom que voient les joueurs change (les
+`nom:` du `config.yml` du lobby et le titre) ; les ids `fast-bedwars-*` et la section
+`fast-bedwars:` restent, les stats avec eux.
+
+Le Bedwars simplifié du plan (6.1), « rapide, simple et amusant », comme proposé le 21/11 :
+`fast-bedwars-1v1` et `fast-bedwars-2v2` (le genre `fast-bedwars`), dans Fun Practice, sur les 20
+maps de la file RBW. C'est une partie de Bed Wars (lits, îles, forge, shop, émeraudes, réapparition
+tant que le lit tient), avec :
+
+- **des forges plus rapides** : celles de ses modes dans `forge.modes`, deux fois celles d'une map
+  Hypixel de quatre équipes ou moins pour commencer (240 fers et 24 ors par minute) ;
+- **des événements plus tôt** : `fast-bedwars.evenements`, deux fois plus tôt qu'une partie pour
+  commencer (Emerald II à 6 minutes, Emerald III à 12, la fin des lits à 15, la fin à 22 min 30) ;
+- **un shop plus petit** : `fast-bedwars.shop`, la liste des objets vendus, par leur id ; pour
+  commencer, les 20 objets du Quick Buy par défaut (laine, planches, end stone, verre, épées en
+  pierre et en fer, armures en mailles et en fer, cisailles, pioche, hache, arc, flèches, potions de
+  vitesse et de saut, TNT, seau d'eau, pomme en or, fireball, ender pearl). Les autres ne sont ni
+  dans les catégories ni dans le Quick Buy du joueur (une case vide, sans le panneau « Empty slot! ») ;
+- **pas d'améliorations d'équipe** : `fast-bedwars.ameliorations: false`, ni PNJ des améliorations
+  ni pièges ; les diamants n'achetant que les améliorations, la map n'a alors pas de générateur de
+  diamants (ni Diamond II ni III). `true` remet les améliorations et les diamants.
+
+Le message d'accueil le dit en une ligne. Toutes ces valeurs, les tailles (1v1, 2v2) et les maps
+sont des valeurs de départ à régler en jeu ; ce que « le Bedwars de 2018 » veut dire pour toi est
+encore à préciser.
 
 ## Améliorations et pièges
 
@@ -342,8 +544,9 @@ Dans `jeux:` du config.yml, un mode peut jouer autre chose qu'une partie classiq
   stuff de combat du propriétaire, une épée en pierre et un stack de pommes d'or, avec 3 boules de
   feu, une perle, 2 stacks de laine et des cisailles, et à chaque vie l'armure de combat d'une partie,
   Protection IV : jambières et bottes en diamant, casque et plastron en cuir rouge (sans effet
-  d'absorption) ; on revient tout de suite après une mort ; un kill soigne ; les
-  blocs posés partent au bout de 10 secondes ; les kills comptent dans les stats. Archway FFA (le
+  d'absorption) ; on revient tout de suite après une mort ; un kill soigne et redonne tout le kit
+  (ta demande du 22/11 : chaque objet remis au nombre du kit, boules de feu, perle, laine, pommes,
+  sur ses piles ou à sa place dans le kit) ; les blocs posés partent au bout de 10 secondes ; les kills comptent dans les stats. Archway FFA (le
   dossier `ArchwayFFA`) est l'Archway du propriétaire : des ponts de laine entre les îles, une
   défense d'end stone et de verre sur les lits rouge et vert pour les top fights, et depuis ces deux
   îles un escalier jusqu'au top bridge au-dessus du milieu (sa plateforme à y 85) ; on construit
@@ -376,19 +579,33 @@ Dans `jeux:` du config.yml, un mode peut jouer autre chose qu'une partie classiq
   milieu de la plateforme, 8 blocs après son bord et 7 blocs au-dessus. La sidebar montre le
   **top 3 des kills** de la partie en cours (les joueurs présents), sous ses kills, morts et
   série.
+  **FFA Archway** (`ffa-archway-partie`, ton choix du 23/11 : « 30 minutes, puis classement des
+  kills ») : le FFA d'une party seule, lancé par son chef dans les Private games du lobby. Une
+  partie de `ffa` lancée comme partie privée d'une party (le lobby le dit à `BedwarsHost.start`)
+  a sa propre copie de la map, que personne d'autre ne rejoint ; le premier joueur la commence, les
+  autres y entrent aussitôt, chacun dans sa couleur. Mêmes règles et même kit que le FFA, sans le
+  classement des kills à vie (la partie ne compte dans aucune stat). La sidebar montre « Ends in »,
+  « One minute left. » une minute avant la fin, puis au bout de `ffa-privee-minutes` (30, de 1 à
+  120) « Time is up. » : celui qui a le plus de kills gagne (plusieurs à égalité en tête : égalité),
+  et le résumé de fin donne le **classement des kills** de la partie, tous les joueurs encore là,
+  du plus de kills au moins (par nom à égalité, à la même place), avec leurs morts
+  (`FfaGame.leaderboard`). Puis tout le monde revient au lobby.
 - **Lobby Fight** (`lobby-fight` pour `lobby-fight-1v1`, `lobby-fight-ffa` pour `lobby-fight-ffa`) :
   le combat dans la **salle d'attente** de la map, là où l'on attend le début d'une partie de Bed
   Wars (sur Archway FFA, son sol de verre tout en haut au-dessus du milieu), avec la même armure
-  de combat que le FFA (le cuir à la couleur de l'équipe en 1v1, rouge dans le FFA). Le 1v1 a le
-  kit du FFA (celui que le joueur a rangé pour le FFA dans l'éditeur de kit du lobby), le FFA son
-  propre kit : une épée en pierre, 5 pommes en or et 3 fireballs, sans blocs ni pearl
-  (`lobby-fight-ffa:` dans le `config.yml` du lobby) ; chaque kill soigne le tueur et remet ses
-  pommes en or à 5 (au nombre du kit), sur sa pile de pommes ou, s'il n'en a plus, à leur place
-  dans son kit.
+  de combat que le FFA (le cuir à la couleur de l'équipe en 1v1, rouge dans le FFA). Le 1v1 et le
+  FFA ont le même kit, rangé une seule fois dans l'éditeur de kit du lobby (`lobby-fight-ffa:` dans
+  le `config.yml` du lobby, que le 1v1 joue avec `kit-de:`) : une épée en pierre, 5 pommes en or,
+  3 fireballs, 12 end stone, une pioche en bois, et ce qu'avait le 1v1 avant : une pearl, 2 stacks
+  de laine et des cisailles (ajoutés en dernier : un rangement fait avant garde ses objets à leur
+  place), avec Haste I pour miner l'end stone. Les blocs posés ne vont que dans la salle et partent 10 secondes après avoir été posés ;
+  seuls les blocs posés se cassent, jamais ceux de la salle. Dans le FFA, chaque kill soigne le
+  tueur et remet ses pommes en or à 5 (au nombre du kit), sur sa pile de pommes ou, s'il n'en a
+  plus, à leur place dans son kit.
   En **1v1**, des manches d'une vie comme le Top Bridge : les deux joueurs partent face à face de
   part et d'autre du milieu de la salle, le plus loin possible sans rien entre eux (les poteaux du
   pavillon), au plus aux trois quarts du rayon ; un kill ou une chute hors de la salle (3 blocs
-  sous son sol) donne le point à l'autre, le premier à 5 gagne, 3 secondes de compte à rebours
+  sous son sol) donne le point à l'autre, le premier à 3 gagne, 3 secondes de compte à rebours
   avant chaque manche ; la copie redevient la map à chaque manche. Le **FFA** est ouvert comme le
   FFA (12 joueurs au plus) : on apparaît n'importe où sur le sol, le plus loin des autres, et on
   revient tout de suite après une mort. Les blocs ne se posent que dans la salle, jusqu'à 6 blocs
@@ -426,21 +643,38 @@ Dans `jeux:` du config.yml, un mode peut jouer autre chose qu'une partie classiq
   comme avant les formats : de 2 à 5 joueurs, il part 10 secondes après l'arrivée du deuxième, 3
   secondes quand ils sont cinq.
 - **Fast Shop** (`fast-shop`) : acheter le plus vite possible avec son propre quick buy (copié
-  d'Hypixel dans le lobby). Sept listes, chacune avec ses records : le premier achat, l'armure de
-  fer, les outils, un fireball fight, une défense de lit, un rush, et une liste au hasard. Un clic
-  sur un objet qui n'est pas sur la liste compte comme une erreur. Comme les entraînements du
+  d'Hypixel dans le lobby). Dix listes à la suite, chacune avec ses records (`fastshop.yml`) : Rush
+  start, les défenses de lit Ranked et Solo, l'armure de fer et les outils, un fireball fight, un
+  bed break, deux clutchs, les émeraudes et un rush invisible (`FastShopGame.ORDERS`). Un clic
+  sur un objet qui n'est pas sur la liste compte comme une erreur. Dans les menus du lobby, Fast
+  Shop montre à la place de sa Daily Streak le record Lifetime de sa première liste, Rush start,
+  celle par laquelle chaque partie commence : le top 3 et le meilleur temps du joueur avec sa
+  place. Comme les entraînements du
   practice, il garde la place du joueur dans les files : la partie trouvée l'en sort directement,
   et ses scores et ses minutes font avancer les quêtes du lobby (Getting started, les réussites,
   les records, les minutes d'entraînement).
 - **Bed Break Simulator** (`bed-break`) : une situation de Ranked Bedwars, sur Archway et Invasion,
   en 1v1, 1v2, 1v3 ou 1v4 (de 2 à 5 joueurs, `bed-break-simulator-1v1` à `bed-break-simulator-1v4`),
-  en manches de 3 minutes, les deux îles opposées reliées par le
-  top bridge du mode Top Bridge. À chaque manche, un joueur attaque : il part du milieu du top
-  bridge, tourné vers la base à attaquer, avec une seule vie et le kit qu'il a choisi, et ne gagne
-  la manche qu'en cassant le lit. Les autres, de un à quatre selon le format, défendent sans kit : l'épée en bois
+  en manches de 3 minutes, sur deux îles opposées. À chaque manche, un joueur attaque. Sur une map
+  qui a son chemin par le haut (`bed-break:` de son `bedwars.yml`, voir plus bas), il vient d'en
+  haut : la plateforme du Top Bridge (17 de large, chaque moitié à la couleur de l'équipe de son
+  côté, un bloc blanc au milieu) est posée au haut de l'escalier que le propriétaire a construit
+  depuis l'île défendue ; l'escalier est posé en laine des défenseurs, comme par un joueur (ils
+  peuvent le casser), la plateforme fait partie de la map pour la manche ; les deux disparaissent
+  à la fin de la manche ; l'attaquant part du milieu de la plateforme, tourné vers la moitié des
+  défenseurs. Sinon, son bridge
+  est posé comme un joueur le construit en Ranked Bedwars : un bloc de large, en laine de sa
+  couleur, de son île jusqu'au lit, à la hauteur des îles, droit le long d'un axe, ou le long d'un
+  côté de la map puis de l'autre avec un seul virage, jamais en diagonale ; sur une île
+  au bord arrondi, il part du haut du bord, pas du dessous. Les défenseurs peuvent le casser, et il
+  disparaît à la fin de la manche ; l'attaquant part du milieu de son bridge, tourné vers la suite
+  du chemin. Il a une seule vie et le kit qu'il a choisi, ne pose aucun bloc au-dessus de la
+  hauteur max de la map (`hauteur-max:` de son `bedwars.yml`), et ne gagne la manche qu'en cassant
+  le lit. Les autres, de un à quatre selon le format, défendent sans kit : l'épée en bois
   d'un début de partie, leur forge pleine de fer et d'or (la forge de la file RBW en 2v2 à 4v4) et
   le shop de leur île, sans améliorations, ni diamants ni émeraudes ; le lit est sous la défense
-  duo du propriétaire (end stone puis laine), et ils reviennent 5 secondes après une mort. Ils
+  de Ranked Bedwars (end stone sous le verre, celle de l'entraînement Fast defense), et ils
+  reviennent 5 secondes après une mort. Ils
   gagnent la manche en tuant l'attaquant ou en tenant 3 minutes. Tout le monde est en armure de
   fer Protection II (`bed-break.protection:`, de 0 à 4), sans Sharpness. Chacun attaque à son tour
   (deux fois chacun à 2 ou 3 joueurs) ; un lit cassé ou l'attaquant tué rapporte un point, le plus
@@ -452,9 +686,25 @@ Dans `jeux:` du config.yml, un mode peut jouer autre chose qu'une partie classiq
 
 | Kit d'attaque | Objets |
 |---|---|
-| Classic | épée en pierre, pioche en or (tier III : Efficacité III, Tranchant II), 2 stacks de laine |
-| Fireball | épée en pierre, une boule de feu, pioche en fer (tier II : Efficacité II), 2 stacks de laine |
-| Fighter | épée en pierre, pioche en bois (tier I : Efficacité I), pomme d'or, 8 échelles, bâton Recul I |
+| Classic | épée en pierre, pioche en or (tier III : Efficacité III, Tranchant II), hache en fer (tier III : Efficacité II), cisailles, 2 stacks de laine |
+| Fireball | épée en pierre, une boule de feu, pioche en fer (tier II : Efficacité II), hache en pierre (tier II : Efficacité I), cisailles, 2 stacks de laine |
+| Fighter | épée en pierre, pioche en bois et hache en bois (tier I : Efficacité I), cisailles, pomme d'or, 8 échelles, bâton Recul I |
+
+Le chemin par le haut d'une map, dans son `bedwars.yml` (relevé dans `/bw edit`, gardé par les
+sauvegardes de `/bw`) :
+
+```yaml
+bed-break:
+  # l'escalier, de l'île défendue jusqu'en haut : ses blocs, "x y z"
+  escalier:
+  - 33 93 -39
+  - 32 93 -39
+  # la plateforme : sa hauteur et deux coins opposés ; sous la hauteur max de la map
+  plateforme:
+    y: 114
+    de: {x: -8, z: -21}
+    a: {x: 8, z: 21}
+```
 
 Les kits du Bed Break Simulator se changent dans `bed-break:` du `config.yml` (de 1 à 7, les objets
 du shop par leur id, avec leur nombre) ; un kit sans épée reçoit l'épée en bois. Les objets suivent

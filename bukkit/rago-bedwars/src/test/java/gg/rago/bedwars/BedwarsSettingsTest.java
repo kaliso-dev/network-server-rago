@@ -80,11 +80,52 @@ class BedwarsSettingsTest {
                 "top-bridge-2v2", "skyrise-1v1", "skyrise-2v2", "skyrise-resources-1v1", "skyrise-resources-2v2",
                 "first-rush", "first-rush-duo", "first-rush-full", "first-rush-full-duo", "top-bridge-ffa", "ffa",
                 "invis-practice-1v1", "invis-practice-1v2", "invis-practice-1v3", "invis-practice-1v4", "shop-practice",
-                "attack-defense-1v1", "attack-defense-2v2", "clutch-scenario-1v1", "clutch-scenario-2v2",
-                "clutch-scenario-3v3", "clutch-scenario-4v4", "bed-fight-1v1", "bed-fight-2v2", "top-bed-fight-1v1",
+                "attack-defense-1v1", "attack-defense-2v2", "clutch-scenario-1v1", "clutch-scenario-1v2",
+                "clutch-scenario-1v3", "clutch-scenario-1v4", "bed-fight-1v1", "bed-fight-2v2", "bed-fight-1v2", "block-method-1v1", "top-bed-fight-1v1",
                 "lobby-fight-1v1", "lobby-fight-ffa", "bed-break-simulator-1v1", "bed-break-simulator-1v2",
-                "bed-break-simulator-1v3", "bed-break-simulator-1v4"),
-                settings.modes());
+                "bed-break-simulator-1v3", "bed-break-simulator-1v4", "red-rover-top-bridge", "ctf-bridge-1v1",
+                "ctf-bridge-2v2", "ctf-castle-2v2", "ctf-castle-4v4", "bedwars-2012", "bedwars-2012-classique",
+                "fast-bedwars-1v1", "fast-bedwars-2v2",
+                "ranked-bed-fight-1v1", "ranked-top-bridge-1v1", "bedwars-normal-4s", "bedwars-normal-2s",
+                "ffa-archway-partie"), settings.modes());
+        // Bedwars Normal (the owner's answers of 22/11): a classic game on every map, of 4 teams
+        // for the 4s and of 8 for the 2s
+        for (String size : Arrays.asList("bedwars-normal-4s", "bedwars-normal-2s")) {
+            assertEquals(BedwarsSettings.Kind.CLASSIC, settings.kind(size), size);
+            assertEquals(Collections.emptyList(), settings.mapsOf(size), size + ": every map (toutes)");
+            assertTrue(settings.exactTeams(size), size + ": only the maps of its number of teams");
+            assertTrue(settings.privateRules(size), size + ": the party leader sets its private games");
+        }
+        assertFalse(settings.exactTeams("first-rush-full"), "First Rush on any map of 4 teams or more");
+        assertFalse(settings.privateRules("bedwars-2012"), "only Bedwars Normal has the settings of the leader");
+        // the ranked duels (plan 3.7): the game and the maps of their mode of Solo, top bridge included
+        assertEquals(BedwarsSettings.Kind.BED_FIGHT, settings.kind("ranked-bed-fight-1v1"));
+        assertEquals(settings.mapsOf("bed-fight-1v1"), settings.mapsOf("ranked-bed-fight-1v1"));
+        assertEquals(BedwarsSettings.Kind.TOP_BRIDGE, settings.kind("ranked-top-bridge-1v1"));
+        assertEquals(settings.mapsOf("top-bridge-1v1"), settings.mapsOf("ranked-top-bridge-1v1"));
+        assertTrue(settings.topBridge("ranked-top-bridge-1v1"), "the platform of Top Bridge");
+        assertFalse(settings.topBridge("ranked-bed-fight-1v1"));
+        for (String size : Arrays.asList("ctf-bridge-1v1", "ctf-bridge-2v2")) {
+            assertEquals(BedwarsSettings.Kind.CTF_BRIDGE, settings.kind(size), size);
+            assertEquals(Collections.singletonList(CtfMaps.BRIDGE), settings.mapsOf(size), size + ": the map the plugin makes");
+            assertFalse(settings.topBridge(size), size);
+        }
+        for (String size : Arrays.asList("ctf-castle-2v2", "ctf-castle-4v4")) {
+            assertEquals(BedwarsSettings.Kind.CTF_CASTLE, settings.kind(size), size);
+            assertEquals(Collections.singletonList(CtfMaps.CASTLE), settings.mapsOf(size), size + ": the map the plugin makes");
+            assertFalse(settings.topBridge(size), size);
+        }
+        assertTrue(settings.playsMap("ctfbridge"), "the map is made: a mode lists it");
+        assertTrue(settings.playsMap(CtfMaps.CASTLE));
+        assertFalse(settings.playsMap("Nowhere"));
+        BedwarsSettings.Ctf ctf = settings.ctf();
+        assertEquals(3, ctf.captures, "first to 3 captures, to start");
+        assertEquals(15, ctf.bridgeMinutes, "15 minutes, as a game of The Bridge 1v1 or 2v2 on Hypixel");
+        assertEquals(20, ctf.castleMinutes, "20 minutes in the castles, a bigger map");
+        assertEquals(30, ctf.returnSeconds);
+        assertEquals(BedwarsSettings.Kind.RED_ROVER_TOP_BRIDGE, settings.kind("red-rover-top-bridge"));
+        assertEquals(settings.mapsOf("top-bridge-1v1"), settings.mapsOf("red-rover-top-bridge"),
+                "Red Rover Top Bridge on the maps of Top Bridge");
         for (int defenders = 1; defenders <= 4; defenders++) {
             String size = "bed-break-simulator-1v" + defenders;
             assertEquals(BedwarsSettings.Kind.BED_BREAK, settings.kind(size), size);
@@ -117,6 +158,11 @@ class BedwarsSettingsTest {
                 "not a mode of its own any more: its sizes are (it holds their kit in the lobby)");
         assertEquals(BedwarsSettings.Kind.FAST_SHOP, settings.kind("shop-practice"));
         assertEquals(Arrays.asList("ArchwayFFA"), settings.mapsOf("ffa"), "the owner's Archway FFA only: no map to choose");
+        // FFA Archway (the owner's choice of 23/11): the FFA of a party alone, on the FFA's map, 30 minutes
+        assertEquals(BedwarsSettings.Kind.FFA, settings.kind("ffa-archway-partie"));
+        assertEquals(settings.mapsOf("ffa"), settings.mapsOf("ffa-archway-partie"), "the map of the FFA");
+        assertFalse(settings.privateRules("ffa-archway-partie"), "no settings of the leader: the FFA's rules");
+        assertEquals(30, settings.privateFfaMinutes(), "30 minutes, then the kills leaderboard");
         assertEquals(BedwarsSettings.Kind.FFA, settings.kind("top-bridge-ffa"), "a free for all...");
         assertTrue(settings.topBridge("top-bridge-ffa"), "...with the top bridge");
         assertEquals(java.util.Collections.singletonList("Invasion"), settings.mapsOf("top-bridge-ffa"),
@@ -129,7 +175,7 @@ class BedwarsSettingsTest {
         assertEquals(BedwarsSettings.Kind.ATTACK_DEFENSE, settings.kind("attack-defense-1v1"));
         assertEquals(BedwarsSettings.Kind.ATTACK_DEFENSE, settings.kind("attack-defense-2v2"));
         assertEquals(Collections.singletonList("BioHazard"), settings.mapsOf("attack-defense-2v2"), "the owner's Bio Hazard");
-        assertEquals(BedwarsSettings.Kind.CLUTCH_SCENARIO, settings.kind("clutch-scenario-3v3"));
+        assertEquals(BedwarsSettings.Kind.CLUTCH_SCENARIO, settings.kind("clutch-scenario-1v3"));
         assertEquals(Arrays.asList("Rusher", "Breaker", "Ninja"), kitNames(settings.roundKits(true)), "the config's kits");
         assertEquals(Arrays.asList("Guardian", "Archer", "Builder"), kitNames(settings.roundKits(false)));
         assertEquals(RoundKit.ATTACK.get(1).items, settings.roundKits(true).get(1).items, "the config gives the defaults");
@@ -138,7 +184,16 @@ class BedwarsSettingsTest {
         assertEquals(BedwarsSettings.Kind.BED_FIGHT, settings.kind("bed-fight-1v1"));
         assertEquals(BedwarsSettings.Kind.BED_FIGHT, settings.kind("bed-fight-2v2"));
         assertEquals(Collections.singletonList("BedFight"), settings.mapsOf("bed-fight-2v2"), "the owner's Bed Fight map");
-        for (String size : Arrays.asList("1v1", "2v2", "3v3", "4v4")) {
+        assertEquals(BedwarsSettings.Kind.BED_FIGHT, settings.kind("bed-fight-1v2"));
+        assertEquals(Collections.singletonList("BedFight"), settings.mapsOf("bed-fight-1v2"), "the 1v2 on the same map");
+        assertEquals(BedwarsSettings.Kind.BLOCK_METHOD, settings.kind("block-method-1v1"));
+        assertEquals(Arrays.asList("GodMethod1", "GodMethod2", "MapV2", "MinemenBedFight"), settings.mapsOf("block-method-1v1"),
+                "the four maps of the owner (28/11), the player chooses among them");
+        BedwarsSettings.Stuff stuff = settings.strongStuff();
+        assertEquals(2, stuff.armour, "the player alone of the 1v2: iron leggings and boots to start");
+        assertEquals(org.bukkit.Material.STONE_SWORD, stuff.sword);
+        assertEquals(0, stuff.protection);
+        for (String size : Arrays.asList("1v1", "1v2", "1v3", "1v4")) {
             assertEquals(Arrays.asList("SkyRise", "Archway"), settings.mapsOf("clutch-scenario-" + size),
                     "the owner's two maps for it");
         }
@@ -160,13 +215,13 @@ class BedwarsSettingsTest {
         assertTrue(settings.allShops("first-rush-full") && settings.allShops("first-rush-full-duo"),
                 "the full map First Rush: an item shop on every island");
         assertTrue(!settings.allShops("first-rush"));
-        assertTrue(settings.allShops("clutch-scenario-1v1") && settings.allShops("clutch-scenario-4v4"),
+        assertTrue(settings.allShops("clutch-scenario-1v1") && settings.allShops("clutch-scenario-1v4"),
                 "Clutch Scenario: the shop and upgrades of the islands whose forge runs");
         for (String size : new String[] {"1v1", "2v2", "3v3", "4v4"}) {
             assertTrue(settings.allForges("ranked-" + size) && settings.allShops("ranked-" + size),
                     "Ranked Bedwars: the forges and the item shops of the side islands too");
         }
-        for (String size : new String[] {"1v1", "2v2", "3v3", "4v4"}) {
+        for (String size : new String[] {"1v1", "1v2", "1v3", "1v4"}) {
             assertTrue(settings.allForges("clutch-scenario-" + size), "Clutch Scenario: every forge of the map too");
         }
         assertTrue(!settings.neighbours("skyrise-1v1"));
@@ -223,6 +278,31 @@ class BedwarsSettingsTest {
         assertEquals(6 * 60, settings.diamondII());
         assertEquals(30 * 60, settings.bedsGone());
         assertEquals(45 * 60, settings.gameEnd());
+        // Fast Bedwars (plan 6.1), hidden in the lobby since 27/11: on the maps of the ranked modes, twice the forge
+        // of a Hypixel map of four teams or fewer (240 iron and 24 gold a minute), the events twice as early
+        for (String size : Arrays.asList("fast-bedwars-1v1", "fast-bedwars-2v2")) {
+            assertEquals(BedwarsSettings.Kind.FAST_BEDWARS, settings.kind(size), size);
+            assertEquals(settings.mapsOf("ranked-1v1"), settings.mapsOf(size), size + ": the 20 maps of the RBW queue");
+            assertFalse(settings.topBridge(size), size);
+            assertEquals(1200 / 240, forge.forMode(size).iron("Archway", 1, 4).ticks, size);
+            assertEquals(1200 / 24, forge.forMode(size).gold(4).ticks, size);
+        }
+        // 2012 Bedwars (the owner, 27/11), in the place of 2017 Bedwars: on its own map, the forges of a game
+        assertEquals(BedwarsSettings.Kind.BEDWARS_2012, settings.kind("bedwars-2012"));
+        assertEquals(BedwarsSettings.Kind.BEDWARS_2012_CLASSIC, settings.kind("bedwars-2012-classique"));
+        for (String version : Arrays.asList("bedwars-2012", "bedwars-2012-classique")) {
+            assertEquals(Collections.singletonList("Bedwars2012"), settings.mapsOf(version), version + ": its own map");
+            assertFalse(settings.topBridge(version), version);
+            assertEquals(forge.iron("Archway", 1, 4).ticks, forge.forMode(version).iron("Archway", 1, 4).ticks,
+                    version + ": the forge of a game");
+        }
+        assertEquals(1200 / 120, forge.iron("Archway", 1, 4).ticks, "a Hypixel map of four teams: 120 iron a minute");
+        assertEquals(1200 / 12, forge.gold(4).ticks, "and 12 gold");
+        BedwarsSettings.Fast fast = settings.fast();
+        assertArrayEquals(new int[] {3 * 60, 6 * 60, 9 * 60, 12 * 60, 15 * 60, 22 * 60 + 30}, fast.events);
+        assertEquals(20, fast.shop.size(), "the 20 items of the default quick buy");
+        assertTrue(fast.shop.containsAll(ShopCatalog.DEFAULT_QUICK_BUY.subList(0, 20)), fast.shop.toString());
+        assertFalse(fast.upgrades, "no team upgrades, to start");
         BedwarsSettings.Fireball fireball = settings.fireball();
         assertEquals(1.0, fireball.speed);
         assertEquals(2.0, fireball.self);
@@ -272,6 +352,7 @@ class BedwarsSettingsTest {
     void anEmptyConfigGivesTheDefaults() {
         BedwarsSettings settings = BedwarsSettings.read(new YamlConfiguration());
         assertTrue(settings.modes().isEmpty());
+        assertEquals(30, settings.privateFfaMinutes(), "FFA Archway: 30 minutes");
         assertEquals(13, settings.forge().iron("Gelato", 1, 8).ticks, "90 a minute");
         assertEquals(40, settings.forge().iron("Lighthouse", 1, 8).ticks, "30 a minute");
         assertArrayEquals(new int[] {2}, settings.forge().iron("Gelato", 1, 8).batches);
@@ -281,6 +362,55 @@ class BedwarsSettingsTest {
         assertTrue(settings.neighbours("first-rush"));
         assertEquals(RoundKit.BED_BREAK, settings.bedBreakKits(), "the owner's three attack kits");
         assertEquals(2, settings.bedBreakProtection());
+        assertEquals(2, settings.strongStuff().armour, "without stuff-ameliore: the same as the bundled config");
+        assertEquals(org.bukkit.Material.STONE_SWORD, settings.strongStuff().sword);
+        assertEquals(0, settings.strongStuff().protection);
+        assertEquals(3, settings.ctf().captures, "without ctf: the same as the bundled config");
+        assertEquals(15, settings.ctf().bridgeMinutes);
+        assertEquals(20, settings.ctf().castleMinutes);
+        assertEquals(30, settings.ctf().returnSeconds);
+        BedwarsSettings.Fast fast = settings.fast();
+        assertArrayEquals(new int[] {180, 360, 540, 720, 900, 1350}, fast.events, "without fast-bedwars: as the bundled config");
+        assertEquals(new java.util.ArrayList<>(ShopCatalog.DEFAULT_QUICK_BUY.subList(0, 20)), fast.shop,
+                "the items of the default quick buy, in its order");
+        assertFalse(fast.upgrades);
+    }
+
+    @Test
+    void fastBedwarsIsSetInTheConfig() throws Exception {
+        YamlConfiguration config = new YamlConfiguration();
+        config.loadFromString("fast-bedwars:\n  evenements:\n    diamant-2: 2\n    emeraude-2: 4\n    diamant-3: 6\n"
+                + "    emeraude-3: 8\n    fin-des-lits: 10\n    fin-de-partie: 15\n  shop: [WOOL, tnt, wool, \" pickaxe\"]\n"
+                + "  ameliorations: true");
+        BedwarsSettings.Fast fast = BedwarsSettings.read(config).fast();
+        assertArrayEquals(new int[] {120, 240, 360, 480, 600, 900}, fast.events);
+        assertEquals(Arrays.asList("wool", "tnt", "pickaxe"), fast.shop, "the case does not matter, each item once");
+        assertTrue(fast.upgrades);
+        YamlConfiguration some = new YamlConfiguration();
+        some.loadFromString("fast-bedwars:\n  evenements:\n    fin-de-partie: 30");
+        assertArrayEquals(new int[] {180, 360, 540, 720, 900, 1800}, BedwarsSettings.read(some).fast().events,
+                "the events not given: those of Fast Bedwars by default");
+    }
+
+    @Test
+    void theCaptureTheFlagIsSetInTheConfig() throws Exception {
+        YamlConfiguration config = new YamlConfiguration();
+        config.loadFromString("ctf:\n  captures: 5\n  minutes-bridge: 10\n  minutes-chateau: 30\n  retour-drapeau-secondes: 15");
+        BedwarsSettings.Ctf ctf = BedwarsSettings.read(config).ctf();
+        assertEquals(5, ctf.captures);
+        assertEquals(10, ctf.bridgeMinutes);
+        assertEquals(30, ctf.castleMinutes);
+        assertEquals(15, ctf.returnSeconds);
+    }
+
+    @Test
+    void theBetterStuffOfTheBedFight1v2IsSetInTheConfig() throws Exception {
+        YamlConfiguration config = new YamlConfiguration();
+        config.loadFromString("stuff-ameliore:\n  armure: 3\n  epee: iron_sword\n  protection: 1");
+        BedwarsSettings.Stuff stuff = BedwarsSettings.read(config).strongStuff();
+        assertEquals(3, stuff.armour);
+        assertEquals(org.bukkit.Material.IRON_SWORD, stuff.sword, "the case does not matter");
+        assertEquals(1, stuff.protection);
     }
 
     @Test
@@ -314,6 +444,8 @@ class BedwarsSettingsTest {
         assertProblem("modes: [\"Ranked 1v1\"]", "modes");
         assertProblem("parties-max: 0", "parties-max");
         assertProblem("reapparition-secondes: 60", "reapparition-secondes");
+        assertProblem("ffa-privee-minutes: 0", "ffa-privee-minutes");
+        assertProblem("ffa-privee-minutes: 121", "ffa-privee-minutes");
         assertProblem("forge:\n  fer-secondes-par-noeud: 0", "forge.fer-secondes-par-noeud");
         assertProblem("forge:\n  vitesses:\n    Lotus: vite", "forge.vitesses.Lotus");
         assertProblem("forge:\n  vitesses:\n    Lotus: {solo: lente}", "forge.vitesses.Lotus.equipes");
@@ -331,6 +463,18 @@ class BedwarsSettingsTest {
         assertProblem("modes:\n  first-rush: [\"Gel ato\"]", "modes.first-rush");
         assertProblem("modes:\n  First Rush: [Gelato]", "modes");
         assertProblem("bed-break:\n  protection: 5", "bed-break.protection");
+        assertProblem("stuff-ameliore:\n  armure: 4", "stuff-ameliore.armure");
+        assertProblem("stuff-ameliore:\n  epee: IRON_AXE", "stuff-ameliore.epee");
+        assertProblem("stuff-ameliore:\n  epee: Excalibur", "stuff-ameliore.epee");
+        assertProblem("stuff-ameliore:\n  protection: -1", "stuff-ameliore.protection");
+        assertProblem("ctf:\n  captures: 0", "ctf.captures");
+        assertProblem("ctf:\n  minutes-bridge: 61", "ctf.minutes-bridge");
+        assertProblem("ctf:\n  minutes-chateau: 0", "ctf.minutes-chateau");
+        assertProblem("ctf:\n  retour-drapeau-secondes: 2", "ctf.retour-drapeau-secondes");
+        assertProblem("fast-bedwars:\n  shop: [wool, excalibur]", "fast-bedwars.shop");
+        assertProblem("fast-bedwars:\n  shop: []", "fast-bedwars.shop");
+        assertProblem("fast-bedwars:\n  shop: wool", "fast-bedwars.shop");
+        assertProblem("fast-bedwars:\n  evenements:\n    fin-des-lits: 1", "fast-bedwars.evenements.fin-des-lits");
         assertProblem("bed-break:\n  kits:\n    - {nom: X, icone: TNT, objets: [\"tnt 99\"]}", "bed-break.kits[1].objets");
     }
 

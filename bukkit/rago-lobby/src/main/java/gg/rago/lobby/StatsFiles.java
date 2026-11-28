@@ -44,6 +44,14 @@ final class StatsFiles {
         yaml.options().header("Stats of " + stats.name() + ", written by RagoLobby.");
         yaml.set("nom", stats.name());
         yaml.set("xp", stats.xp());
+        if (stats.dayXp() > 0) {
+            yaml.set("xp-jour.date", stats.xpDay());
+            yaml.set("xp-jour.xp", stats.dayXp());
+        }
+        if (stats.weekXp() > 0) {
+            yaml.set("xp-semaine.date", stats.xpWeek());
+            yaml.set("xp-semaine.xp", stats.weekXp());
+        }
         yaml.set("elo-saison", season);
         for (Map.Entry<Integer, PlayerStats.SeasonResult> ended : stats.seasons().entrySet()) {
             String path = "profil.saisons." + ended.getKey();
@@ -126,6 +134,9 @@ final class StatsFiles {
             ConfigurationSection section = yaml.createSection("modes." + entry.getKey());
             section.set("victoires", m.wins);
             section.set("defaites", m.losses);
+            if (m.draws > 0) {
+                section.set("egalites", m.draws);
+            }
             section.set("serie", m.streak);
             section.set("meilleure-serie", m.bestStreak);
             if (m.rated()) {
@@ -150,13 +161,28 @@ final class StatsFiles {
             section.set("jour.parties", m.dayGames);
             section.set("jour.meilleure-serie", m.dayBest);
             section.set("jour.kills", m.dayKills);
+            setIfAny(section, "jour.defaites", m.dayLosses);
+            setIfAny(section, "jour.final-kills", m.dayFinalKills);
+            setIfAny(section, "jour.morts-finales", m.dayFinalDeaths);
+            setIfAny(section, "jour.elo", m.dayElo);
             section.set("semaine.date", m.week);
             section.set("semaine.victoires", m.weekWins);
             section.set("semaine.parties", m.weekGames);
             section.set("semaine.meilleure-serie", m.weekBest);
             section.set("semaine.kills", m.weekKills);
+            setIfAny(section, "semaine.defaites", m.weekLosses);
+            setIfAny(section, "semaine.final-kills", m.weekFinalKills);
+            setIfAny(section, "semaine.morts-finales", m.weekFinalDeaths);
+            setIfAny(section, "semaine.elo", m.weekElo);
         }
         return yaml.saveToString();
+    }
+
+    /** Written only when not 0 (an ELO lost is under 0), so that the files stay short. */
+    private static void setIfAny(ConfigurationSection section, String key, int value) {
+        if (value != 0) {
+            section.set(key, value);
+        }
     }
 
     /** The win streaks of a mode's teams. */
@@ -232,6 +258,8 @@ final class StatsFiles {
         yaml.loadFromString(text);
         PlayerStats stats = new PlayerStats(player, yaml.getString("nom", "?"));
         stats.addXp(Math.max(0, yaml.getInt("xp")));
+        stats.setPeriodXp(yaml.getString("xp-jour.date", ""), yaml.getInt("xp-jour.xp"),
+                yaml.getString("xp-semaine.date", ""), yaml.getInt("xp-semaine.xp"));
         int fileSeason = yaml.getInt("elo-saison", 1);
         boolean thisSeason = fileSeason == season;
         ConfigurationSection ended = yaml.getConfigurationSection("profil.saisons");
@@ -313,6 +341,7 @@ final class StatsFiles {
                 ModeStats m = stats.modeOrNew(modeId);
                 m.wins = Math.max(0, section.getInt("victoires"));
                 m.losses = Math.max(0, section.getInt("defaites"));
+                m.draws = Math.max(0, section.getInt("egalites"));
                 m.streak = Math.max(0, section.getInt("serie"));
                 m.bestStreak = Math.max(m.streak, section.getInt("meilleure-serie"));
                 int elo = Math.max(0, section.getInt("elo"));
@@ -330,11 +359,19 @@ final class StatsFiles {
                 m.dayGames = Math.max(0, section.getInt("jour.parties"));
                 m.dayBest = Math.max(0, section.getInt("jour.meilleure-serie"));
                 m.dayKills = Math.max(0, section.getInt("jour.kills"));
+                m.dayLosses = Math.max(0, section.getInt("jour.defaites"));
+                m.dayFinalKills = Math.max(0, section.getInt("jour.final-kills"));
+                m.dayFinalDeaths = Math.max(0, section.getInt("jour.morts-finales"));
+                m.dayElo = section.getInt("jour.elo");
                 m.week = section.getString("semaine.date", "");
                 m.weekWins = Math.max(0, section.getInt("semaine.victoires"));
                 m.weekGames = Math.max(0, section.getInt("semaine.parties"));
                 m.weekBest = Math.max(0, section.getInt("semaine.meilleure-serie"));
                 m.weekKills = Math.max(0, section.getInt("semaine.kills"));
+                m.weekLosses = Math.max(0, section.getInt("semaine.defaites"));
+                m.weekFinalKills = Math.max(0, section.getInt("semaine.final-kills"));
+                m.weekFinalDeaths = Math.max(0, section.getInt("semaine.morts-finales"));
+                m.weekElo = section.getInt("semaine.elo");
             }
         }
         if (!thisSeason && fileSeason >= Season.FIRST_WITH_DIVISIONS && fileSeason < season && seasonBest > 0

@@ -8,26 +8,44 @@ import org.bukkit.Material;
  * A category of the selector, matching a zone of the lobby; or a group of a category (groupes:
  * in config.yml), the sizes of one game shown as one item. A category may have a slogan: what a
  * player does there, in a few words ("Train alone"), shown under its name in the compass, under
- * its NPC and in the welcome of the lobby. Immutable.
+ * its NPC and in the welcome of the lobby. A category may be the one of the parties (party: true
+ * in config.yml, plan 3.7): no modes of its own, the compass shows there what the viewer's party
+ * plays against itself at its size. Immutable.
  */
 final class ModeCategory {
 
     private final String id;
     private final String name;
     private final Material icon;
+    private short iconData;
     private final List<String> description;
     private final String slogan;
+    /** The modes and groups of other categories it shows too (aussi: in config.yml), in that order. */
+    private final List<String> also;
+    /** True for the category of the parties: its modes follow the size of the viewer's party. */
+    private final boolean party;
 
     ModeCategory(String id, String name, Material icon, List<String> description) {
         this(id, name, icon, description, null);
     }
 
     ModeCategory(String id, String name, Material icon, List<String> description, String slogan) {
+        this(id, name, icon, description, slogan, Collections.<String>emptyList());
+    }
+
+    ModeCategory(String id, String name, Material icon, List<String> description, String slogan, List<String> also) {
+        this(id, name, icon, description, slogan, also, false);
+    }
+
+    ModeCategory(String id, String name, Material icon, List<String> description, String slogan, List<String> also,
+            boolean party) {
+        this.party = party;
         this.id = id;
         this.name = name;
         this.icon = icon;
         this.description = Collections.unmodifiableList(description);
         this.slogan = slogan;
+        this.also = Collections.unmodifiableList(new java.util.ArrayList<>(also));
     }
 
     String id() {
@@ -43,6 +61,17 @@ final class ModeCategory {
         return icon;
     }
 
+    /** The data of its icon (the colour of a wool, "WOOL:14" in icone:), 0 without. */
+    short iconData() {
+        return iconData;
+    }
+
+    /** Its icon of this data (icone: with a colon), for the menus; the same object. */
+    ModeCategory withIconData(short data) {
+        this.iconData = data;
+        return this;
+    }
+
     /** Lines already coloured. */
     List<String> description() {
         return description;
@@ -51,5 +80,22 @@ final class ModeCategory {
     /** What a player does there, coloured, or null. */
     String slogan() {
         return slogan;
+    }
+
+    /**
+     * The ids of the modes and groups of other categories that this one shows too, as the
+     * category of the games for three players shows Red Rover of the Duels: the same modes and
+     * queues, one more way to them. Empty for most.
+     */
+    List<String> also() {
+        return also;
+    }
+
+    /**
+     * True for the category of the parties (plan 3.7): it has no modes of its own; the compass
+     * shows there the games the viewer's party plays against itself, at its size.
+     */
+    boolean party() {
+        return party;
     }
 }

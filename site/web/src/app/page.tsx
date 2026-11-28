@@ -50,17 +50,16 @@ export default function Home() {
   const modeCount = playableModes().length;
   const trainings = playableModes().filter((mode) => mode.category === 'entrainement').length;
   const practice = categoryOf('entrainement');
-  const rankedFormats = game.modes.filter((mode) => mode.ranked).map((mode) => mode.format);
+  // the sizes of Ranked Bedwars (its group): the other ranked modes are duels in 1v1 (plan 3.7)
+  const rankedFormats = game.modes.filter((mode) => mode.ranked && mode.group === 'ranked').map((mode) => mode.format);
   const pack = game.starterPack;
   const queue = game.ranked.queue;
   const blockTrainings = playableModes().filter((mode) => BLOCK_TRAININGS.includes(mode.id));
   const blockTarget = game.pointsToWin['block-fight'];
   const priv = game.privateGames;
-  // the sizes a private game plays, "1v1, 2v2, 3v3 or 4v4"
-  const privateFormats = (id: string) => {
-    const sizes = (priv.modes[id] ?? []).map((mode) => modeOf(mode).format);
-    return sizes.length <= 1 ? (sizes[0] ?? '') : `${sizes.slice(0, -1).join(', ')} or ${sizes[sizes.length - 1]}`;
-  };
+  // Bedwars Normal: its sizes, as their maps are named ("4s or 2s"), and the seconds to choose the teams
+  const normalSizes = (priv.modes['bedwars-normal'] ?? []).map((mode) => modeOf(mode).format).join(' or ');
+  const teamChoiceSeconds = priv.teamChoiceSeconds['bedwars-normal'];
 
   const showcase: ShowcaseMode[] = FLAGSHIPS.map((flagship) => ({
     slug: flagship.slug,
@@ -256,7 +255,7 @@ export default function Home() {
             id="play"
             eyebrow={`${modeCount} modes, ${game.categories.length} ways to play`}
             title="And every other way to play"
-            lead="In the lobby, four characters open the modes, as the compass does. Every mode is free."
+            lead="In the lobby, six characters open the modes, as the compass does. Every mode is free."
           />
           <ul className={styles.npcs}>
             {game.categories.map((category) => (
@@ -265,14 +264,16 @@ export default function Home() {
                   <span className={styles.npcName}>
                     <McText segments={[{ text: category.name, colour: category.colour, bold: true }]} ground="#000000" />
                   </span>
-                  <Image
-                    src={`/skins/${category.skin}.png`}
-                    alt=""
-                    width={96}
-                    height={192}
-                    unoptimized
-                    className={styles.npcSkin}
-                  />
+                  {category.skin ? (
+                    <Image
+                      src={`/skins/${category.skin}.png`}
+                      alt=""
+                      width={96}
+                      height={192}
+                      unoptimized
+                      className={styles.npcSkin}
+                    />
+                  ) : null}
                   <span className={styles.npcSlogan}>
                     <McText segments={category.slogan} ground="#121418" />
                   </span>
@@ -295,14 +296,14 @@ export default function Home() {
               <McText segments={mc('&6&lPrivate game')} ground="#000000" />
             </span>
             <Image src="/skins/prive.png" alt="" width={96} height={192} unoptimized className={styles.privateSkin} />
-            <figcaption className="notice">In the lobby, this character opens the private games. They are in RBW Modes too.</figcaption>
+            <figcaption className="notice">In the lobby, this character opens the private games. They are in Bedwars Modes too.</figcaption>
           </figure>
           <div>
             <SectionHeading
               id="private"
               eyebrow="Private games"
               title="Play it with your party"
-              lead="Bring your friends and play between yourselves: a real Ranked Bedwars game or the top bridge, at the size of your party."
+              lead="Bring your friends and play between yourselves: a Bed Wars game as on Hypixel, on the map you choose, in the teams you choose."
             />
             <ul className={styles.privateList}>
               <li>
@@ -318,21 +319,11 @@ export default function Home() {
               <li>
                 <McItem material="BED" size={32} />
                 <div>
-                  <h3>{modeOf('partie-privee').name}</h3>
+                  <h3>{modeOf('bedwars-normal').name}</h3>
                   <p>
-                    A real Ranked Bedwars game between you, on the maps of the RBW queue: {privateFormats('partie-privee')},
-                    the size follows the party.
-                  </p>
-                </div>
-              </li>
-              <li>
-                <McItem material="LADDER" size={32} />
-                <div>
-                  <h3>{modeOf('top-bridge-prive').name}</h3>
-                  <p>
-                    The top bridge as a practice: nobody is out, you are back on top right after a death, the blocks
-                    placed go after {priv.topBridgeBlockSeconds} seconds, {priv.topBridgeMinutes} minutes at most. In{' '}
-                    {privateFormats('top-bridge-prive')}, as the party.
+                    The leader picks a map of {normalSizes}: four teams of four, or eight teams of two. Then everyone
+                    picks their team, and the game starts {teamChoiceSeconds} seconds later. From 2 to {priv.partyMax}{' '}
+                    players.
                   </p>
                 </div>
               </li>
@@ -488,7 +479,8 @@ export default function Home() {
           </div>
           <p className="notice">
             Rago Points are earned in the game ({game.ragoPoints.win} a win, {game.ragoPoints.kill} a kill,{' '}
-            {game.ragoPoints.daily} a day) and have no value outside it. Videos of each effect are on their way.
+            {game.ragoPoints.daily.min} to {game.ragoPoints.daily.max} in the Daily Chest each day) and have no value
+            outside it. Videos of each effect are on their way.
           </p>
         </div>
       </section>

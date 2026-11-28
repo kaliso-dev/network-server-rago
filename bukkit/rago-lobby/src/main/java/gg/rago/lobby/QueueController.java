@@ -63,6 +63,8 @@ final class QueueController {
     /** The place of each player in the queues, from their ranks (PREMIUM+ before VIP before the others). */
     private java.util.function.ToIntFunction<UUID> priorities = id -> 0;
     private final Map<UUID, Long> announcedAt = new HashMap<>();
+    /** The parties choosing their teams before a private game of Bedwars Normal. */
+    private final TeamRooms rooms;
 
     /** How the messages show the size of a mode: its own format: of config.yml ("1v3"), else the mode's. */
     private String format(GameMode mode) {
@@ -79,6 +81,12 @@ final class QueueController {
         this.matchmaker = new Matchmaker(settings.catalog().all(), settings.window());
         this.matchmaker.setPriorities(id -> priorities.applyAsInt(id));
         this.onChange = onChange;
+        this.rooms = new TeamRooms(this, settings, state, parties, lobby);
+    }
+
+    /** The private games whose players choose their teams (Bedwars Normal). */
+    TeamRooms rooms() {
+        return rooms;
     }
 
     void setBook(StatsBook book) {
@@ -118,6 +126,12 @@ final class QueueController {
         if (!closed.isEmpty()) {
             onChange.run();
         }
+    }
+
+    /** The players of this player's party, 0 out of a party (for the Party category of the compass). */
+    int partySize(Player player) {
+        PartyBook.Party party = parties.together(player.getUniqueId());
+        return party == null ? 0 : party.size();
     }
 
     /**
@@ -167,12 +181,35 @@ final class QueueController {
             player.sendMessage(ChatColor.RED + "You are frozen by the staff: you cannot join a game.");
             return;
         }
+        if (rooms.handles(mode.id())) {
+            // Bedwars Normal: the leader chooses the map, then everyone their team
+            rooms.open(player, mode);
+            return;
+        }
+        GameMode room = rooms.roomOfTarget(mode.id());
+        if (room != null) {
+            // its 4s or 2s (/queue bedwars-normal-4s): only from Bedwars Normal, with a party
+            player.sendMessage(ChatColor.RED + mode.name() + ChatColor.RED + " " + format(mode) + " is played with your party: "
+                    + "its leader clicks " + room.name() + ChatColor.RED + " in the Private games.");
+            return;
+        }
         if (settings.privateRoutes().containsKey(mode.id())) {
             joinPrivate(player, mode, map);
             return;
         }
+        GameMode route = privateRouteOf(mode.id());
+        if (route != null) {
+            // FFA Archway's game (/queue ffa-archway-partie): only from FFA Archway, with a party
+            player.sendMessage(ChatColor.RED + mode.name() + ChatColor.RED + " is played with your party: its leader clicks "
+                    + route.name() + ChatColor.RED + " in the Private games.");
+            return;
+        }
         if (!isPlayable(mode.id())) {
             player.sendMessage(ChatColor.GRAY + mode.name() + ChatColor.GRAY + " is coming soon.");
+            return;
+        }
+        if (lobby.bots() != null && lobby.bots().settings().solo(mode.id())) {
+            joinAgainstBot(player, mode, map);
             return;
         }
         PartyBook.Party party = parties.together(player.getUniqueId());
@@ -186,6 +223,33 @@ final class QueueController {
         Matchmaker.JoinResult result = matchmaker.join(player.getUniqueId(), mode.id(), rating(player.getUniqueId(), mode),
                 System.currentTimeMillis(), map);
         joined(player, mode, map, result, false);
+    }
+
+    /**
+     * A mode a player alone plays against a RagoBot that comes by itself (Block Method 1v1, the
+     * owner's ask of 28/11; ragobot.seul of config.yml): not with a party; the game starts at once
+     * on the map chosen (as soon as its copy is ready), a practice counted in no stats.
+     */
+    private void joinAgainstBot(Player player, GameMode mode, String map) {
+        if (parties.together(player.getUniqueId()) != null) {
+            player.sendMessage(ChatColor.RED + ChatColor.stripColor(mode.name()) + " is played alone against "
+                    + BotSettings.NAME + ": leave your party first (/p leave).");
+            return;
+        }
+        Player bot = lobby.bots().joinFor(player);
+        if (bot == null) {
+            return;
+        }
+        long now = System.currentTimeMillis();
+        List<List<QueueEntry>> teams = new ArrayList<>();
+        teams.add(new ArrayList<>(Collections.singletonList(new QueueEntry(player.getUniqueId(), settings.defaultRating(), now, map))));
+        teams.add(new ArrayList<>(Collections.singletonList(new QueueEntry(bot.getUniqueId(), settings.defaultRating(), now, map))));
+        player.sendMessage(ChatColor.AQUA + BotSettings.NAME + ChatColor.GRAY + " comes for your " + mode.name()
+                + ChatColor.GRAY + (map == null ? "" : " on " + ChatColor.WHITE + map + ChatColor.GRAY) + ".");
+        if (!startDirect(new MatchProposal(mode, teams), true, true) && bot.isOnline()) {
+            // no game (no map for it): its RagoBot goes at once
+            bot.kickPlayer(BotSettings.NAME + " left");
+        }
     }
 
     /** Tells a player alone what joining this queue did; inGame: from their training, or from a game they watch. */
@@ -443,10 +507,12 @@ final class QueueController {
         }
         GameMode chosen = null;
         List<String> sizes = new ArrayList<>();
+        boolean free = false;
         for (GameMode target : settings.privateRoutes().get(mode.id())) {
             if (hosts.containsKey(target.id())) {
-                sizes.add(String.valueOf(target.playersPerMatch()));
-                if (chosen == null && target.playersPerMatch() == players.size()) {
+                free |= eachForThemselves(target);
+                sizes.add(eachForThemselves(target) ? "2 to " + target.playersPerMatch() : String.valueOf(target.playersPerMatch()));
+                if (chosen == null && takesParty(target, players.size())) {
                     chosen = target;
                 }
             }
@@ -454,17 +520,62 @@ final class QueueController {
         if (chosen == null) {
             Parties.boxed(player, ChatColor.RED + (sizes.isEmpty() ? mode.name() + ChatColor.RED + " is coming soon."
                     : "Your party has " + players.size() + " players: " + mode.name() + ChatColor.RED + " is played with "
-                    + String.join(", ", sizes) + " players, two teams of the same size."));
+                    + String.join(", ", sizes) + (free ? " players." : " players, two teams of the same size.")));
+            return;
+        }
+        if (botRefuses(player, party, chosen)) {
             return;
         }
         // from the Private games: the practice of the mode (the top bridge without rounds)
         startPrivate(party, players, chosen, map, true);
     }
 
+    /**
+     * The private game (parties-privees) whose hidden mode this is, played only from it (FFA
+     * Archway, for its game ffa-archway-partie); null for another mode.
+     */
+    private GameMode privateRouteOf(String modeId) {
+        ModeDisplay display = settings.display(modeId);
+        if (display == null || !display.hidden()) {
+            return null;
+        }
+        for (Map.Entry<String, List<GameMode>> route : settings.privateRoutes().entrySet()) {
+            for (GameMode target : route.getValue()) {
+                ModeDisplay from = settings.display(route.getKey());
+                if (target.id().equals(modeId) && from != null) {
+                    return from.mode();
+                }
+            }
+        }
+        return null;
+    }
+
+    /**
+     * True for a mode of more than two teams of one player each: a free for all (FFA Archway in
+     * the Private games, the owner's choice of 23/11), which a party plays each for themselves.
+     */
+    static boolean eachForThemselves(GameMode mode) {
+        return mode.teams() > 2 && mode.playersPerTeam() == 1;
+    }
+
+    /**
+     * True if a party of this size plays this mode of a private game (parties-privees): a free for
+     * all from 2 players to as many as its teams, one in each; another mode at its exact size.
+     */
+    static boolean takesParty(GameMode target, int size) {
+        if (eachForThemselves(target)) {
+            return size >= 2 && size <= target.playersPerMatch();
+        }
+        return target.playersPerMatch() == size;
+    }
+
     /** The leader queues the party: a private game if it fills the match, else the queue, in one team. */
     private void joinTogether(Player leader, PartyBook.Party party, GameMode mode, String map) {
         if (!party.isLeader(leader.getUniqueId())) {
             Parties.boxed(leader, ChatColor.RED + "Only the party leader can join a queue.");
+            return;
+        }
+        if (botRefuses(leader, party, mode)) {
             return;
         }
         List<Player> players = new ArrayList<>();
@@ -536,6 +647,29 @@ final class QueueController {
     }
 
     /**
+     * RagoBot plays only its modes (ragobot.modes), never ranked: a party with it is told so, and
+     * stays out of the queue. False when the party may go.
+     */
+    private boolean botRefuses(Player leader, PartyBook.Party party, GameMode mode) {
+        if (RagoBots.botOf(party) == null) {
+            return false;
+        }
+        BotSettings bot = lobby.bots() == null ? null : lobby.bots().settings();
+        if (mode.ranked()) {
+            Parties.boxed(leader, ChatColor.GRAY + BotSettings.NAME + ChatColor.RED + " never plays ranked: "
+                    + ChatColor.WHITE + "/p kick " + BotSettings.NAME + ChatColor.RED + " first.");
+            return true;
+        }
+        if (bot == null || !bot.plays(mode.id())) {
+            Parties.boxed(leader, ChatColor.GRAY + BotSettings.NAME + ChatColor.RED + " plays "
+                    + (bot == null ? "no mode" : bot.modeNames) + " only: " + ChatColor.WHITE + "/p kick "
+                    + BotSettings.NAME + ChatColor.RED + " to play " + mode.name() + ChatColor.RED + ".");
+            return true;
+        }
+        return false;
+    }
+
+    /**
      * A team of a 2v2 joined its queue (a player alone, or a party): the rest of the lobby (not in a
      * queue nor a game) is told,
      * "Sofiene's team is queuing Bed fight 2v2 [JOIN NOW]", and the button joins the same queue,
@@ -577,6 +711,9 @@ final class QueueController {
      * nowhere; from the Private games (parties-privees), the practice of the mode.
      */
     private void startPrivate(PartyBook.Party party, List<Player> players, GameMode mode, String map, boolean practice) {
+        // with RagoBot, the game counts as one against a player (stats, XP), never in the ELO; its
+        // practice, as every practice, in nothing
+        boolean counted = !practice && RagoBots.botOf(party) != null;
         long now = System.currentTimeMillis();
         List<List<QueueEntry>> teams = new ArrayList<>();
         List<List<String>> names = new ArrayList<>();
@@ -591,14 +728,19 @@ final class QueueController {
         }
         List<String> sides = new ArrayList<>();
         for (List<String> side : names) {
-            sides.add(String.join(" and ", side));
+            if (!side.isEmpty()) {
+                sides.add(String.join(" and ", side));
+            }
         }
         for (Player member : players) {
-            member.sendMessage(ChatColor.LIGHT_PURPLE + "Private game of your party in " + mode.name() + ChatColor.LIGHT_PURPLE
-                    + ": " + ChatColor.WHITE + String.join(ChatColor.LIGHT_PURPLE + " vs " + ChatColor.WHITE, sides)
-                    + ChatColor.LIGHT_PURPLE + ". It counts in no stats.");
+            member.sendMessage(ChatColor.LIGHT_PURPLE + (counted ? "Game of your party in " : "Private game of your party in ")
+                    + mode.name() + ChatColor.LIGHT_PURPLE + ": " + ChatColor.WHITE
+                    + String.join(ChatColor.LIGHT_PURPLE + " vs " + ChatColor.WHITE, sides) + ChatColor.LIGHT_PURPLE
+                    + (counted ? ". It counts in your stats, never in the ELO." : ". It counts in no stats."));
         }
-        startDirect(new MatchProposal(mode, teams), true, practice);
+        // a free for all: one player in each team, the others empty
+        startDirect(eachForThemselves(mode) ? MatchProposal.withChosenTeams(mode, teams) : new MatchProposal(mode, teams),
+                !counted, practice);
     }
 
     /**
@@ -606,6 +748,7 @@ final class QueueController {
      * transferred): those who waited, with their party or alone, leave the queue.
      */
     void partyChanged(Collection<UUID> players) {
+        rooms.partyChanged(players);
         for (UUID id : players) {
             List<GameMode> waiting = matchmaker.queuesOf(id);
             if (waiting.isEmpty()) {
@@ -710,6 +853,7 @@ final class QueueController {
 
     /** The player left the server: their party leaves the queue with them. */
     void forget(UUID player) {
+        rooms.forget(player);
         List<UUID> together = matchmaker.partyOf(player);
         GameMode left = matchmaker.leave(player);
         if (left != null) {
@@ -765,10 +909,38 @@ final class QueueController {
         return counts;
     }
 
+    /**
+     * The players in a game of each mode, by mode id, the private games of the parties included: the
+     * number under each item of the selector (the owner's ask of 27/11, as on Minemen).
+     */
+    Map<String, Integer> playingAll() {
+        Map<String, Integer> counts = new HashMap<>();
+        for (Player player : Bukkit.getOnlinePlayers()) {
+            String mode = state.gameOf(player.getUniqueId());
+            if (mode != null) {
+                counts.merge(mode, 1, Integer::sum);
+            }
+        }
+        return counts;
+    }
+
+    /** The players in a private game of a party: the number under the Party category. */
+    int playingPrivate() {
+        int count = 0;
+        for (Player player : Bukkit.getOnlinePlayers()) {
+            UUID id = player.getUniqueId();
+            if (state.gameOf(id) != null && state.isInPrivateGame(id)) {
+                count++;
+            }
+        }
+        return count;
+    }
+
     // --- Matches --------------------------------------------------------------------------------
 
     /** Once a second: starts the matches that were found, and the direct ones whose map is ready. */
     void tick() {
+        rooms.tick();
         startWaiting();
         List<MatchProposal> matches = matchmaker.poll(System.currentTimeMillis());
         for (MatchProposal match : matches) {
@@ -792,8 +964,25 @@ final class QueueController {
         return startDirect(match, privateGame, false);
     }
 
-    /** As {@link #startDirect(MatchProposal, boolean)}; practice: a private game played as a practice. */
+    /**
+     * A private game whose party leader set the game (Bedwars Normal): as
+     * {@link #startDirect(MatchProposal, boolean)}, the game getting the settings
+     * ({@link gg.rago.lobby.api.LobbyService#privateSettings}).
+     */
+    boolean startDirect(MatchProposal match, Map<String, Integer> leaderSettings) {
+        return startDirect(match, true, false, leaderSettings);
+    }
+
     private boolean startDirect(MatchProposal match, boolean privateGame, boolean practice) {
+        return startDirect(match, privateGame, practice, null);
+    }
+
+    /**
+     * As {@link #startDirect(MatchProposal, boolean)}; practice: a private game played as a practice;
+     * leaderSettings: those of its party leader, or null.
+     */
+    private boolean startDirect(MatchProposal match, boolean privateGame, boolean practice,
+            Map<String, Integer> leaderSettings) {
         for (UUID id : match.players()) {
             Player player = Bukkit.getPlayer(id);
             if (player != null) {
@@ -804,12 +993,13 @@ final class QueueController {
         MatchHost host = hosts.get(match.mode().id());
         if (host != null && !ready(host, match)) {
             // a copy of the map is being made: the game starts as soon as it is there
-            waitingDirect.add(new DirectWait(match, privateGame, practice, System.currentTimeMillis() + DIRECT_WAIT_MILLIS));
+            waitingDirect.add(new DirectWait(match, privateGame, practice, leaderSettings,
+                    System.currentTimeMillis() + DIRECT_WAIT_MILLIS));
             tell(match, ChatColor.GRAY + "The map is being prepared: the game starts in a moment.");
             onChange.run();
             return true;
         }
-        boolean started = start(match, false, privateGame, practice);
+        boolean started = start(match, false, privateGame, practice, leaderSettings);
         onChange.run();
         return started;
     }
@@ -819,12 +1009,15 @@ final class QueueController {
         final MatchProposal match;
         final boolean privateGame;
         final boolean practice;
+        /** The settings of the party leader (Bedwars Normal), or null. */
+        final Map<String, Integer> leaderSettings;
         final long until;
 
-        DirectWait(MatchProposal match, boolean privateGame, boolean practice, long until) {
+        DirectWait(MatchProposal match, boolean privateGame, boolean practice, Map<String, Integer> leaderSettings, long until) {
             this.match = match;
             this.privateGame = privateGame;
             this.practice = practice;
+            this.leaderSettings = leaderSettings;
             this.until = until;
         }
     }
@@ -841,7 +1034,7 @@ final class QueueController {
                 tell(wait.match, ChatColor.GRAY + "The game was cancelled: a player is no longer in the lobby.");
             } else if (ready(host, wait.match)) {
                 waitingDirect.remove(wait);
-                start(wait.match, false, wait.privateGame, wait.practice);
+                start(wait.match, false, wait.privateGame, wait.practice, wait.leaderSettings);
                 onChange.run();
             } else if (now > wait.until) {
                 waitingDirect.remove(wait);
@@ -890,10 +1083,35 @@ final class QueueController {
     }
 
     private boolean start(MatchProposal match, boolean requeue) {
-        return start(match, requeue, false, false);
+        return start(match, requeue, false, false, null);
     }
 
-    private boolean start(MatchProposal match, boolean requeue, boolean privateGame, boolean practice) {
+    private boolean start(MatchProposal match, boolean requeue, boolean privateGame, boolean practice,
+            Map<String, Integer> leaderSettings) {
+        return start(match, requeue, privateGame, practice, leaderSettings, false);
+    }
+
+    /**
+     * A private game whose party chose its map, its settings and its teams in the waiting lobby of
+     * its host ({@link TeamRooms}, the owner's ask of 23/11), once {@link #mapReady}: the host takes
+     * the players from the waiting lobby to the map. False if it did not start.
+     */
+    boolean startFromWaitingLobby(MatchProposal match, Map<String, Integer> leaderSettings) {
+        forgetWaiting(match.players());
+        boolean started = start(match, false, true, false, leaderSettings, true);
+        onChange.run();
+        return started;
+    }
+
+    /** True if the host of this match can start it now (a copy of its map is free); asking may start the copy. */
+    boolean mapReady(MatchProposal match) {
+        MatchHost host = hosts.get(match.mode().id());
+        return host == null || ready(host, match);
+    }
+
+    /** As above; fromWaitingLobby: the players wait in the waiting lobby of their private game, not in the lobby. */
+    private boolean start(MatchProposal match, boolean requeue, boolean privateGame, boolean practice,
+            Map<String, Integer> leaderSettings, boolean fromWaitingLobby) {
         String modeId = match.mode().id();
         MatchHost host = hosts.get(modeId);
         List<Player> players = new ArrayList<>();
@@ -901,8 +1119,9 @@ final class QueueController {
             Player player = Bukkit.getPlayer(id);
             // A player who left the lobby without leaving the queue (sent elsewhere by a command)
             // is not started: the others go back to the queue. From the queue, a player in a
-            // training is: the training lets them go.
-            if (player != null && (requeue ? available(player) : state.isInLobby(player))) {
+            // training is: the training lets them go. From the waiting lobby of a private game: in it.
+            if (player != null && (requeue ? available(player) : fromWaitingLobby ? state.isInGame(player)
+                    : state.isInLobby(player))) {
                 players.add(player);
             }
         }
@@ -925,6 +1144,7 @@ final class QueueController {
         if (requeue && !releaseAll(match, players)) {
             return false;
         }
+        boolean withBot = RagoBots.anyBot(match.players());
         // The players belong to the game before it starts: the host teleports them during start().
         for (Player player : players) {
             lobby.enterGame(player, modeId);
@@ -933,9 +1153,10 @@ final class QueueController {
                 if (practice) {
                     state.markPractice(player.getUniqueId());
                 }
+                state.setPrivateSettings(player.getUniqueId(), leaderSettings);
             }
-            if (!requeue) {
-                // not from the queue (a /duel): no ELO, no win streak
+            if (!requeue || withBot) {
+                // not from the queue (a /duel), or with RagoBot: no ELO, no win streak
                 state.markUnrated(player.getUniqueId());
             }
         }
@@ -946,6 +1167,7 @@ final class QueueController {
             }
             for (QueueEntry entry : team) {
                 state.setOpponents(entry.player(), others);
+                state.setTogether(entry.player(), new ArrayList<>(match.players()));
             }
         }
         boolean started;

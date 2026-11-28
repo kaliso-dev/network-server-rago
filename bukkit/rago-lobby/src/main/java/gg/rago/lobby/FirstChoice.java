@@ -68,13 +68,13 @@ final class FirstChoice {
      */
     static List<FirstChoice> defaults() {
         return Arrays.asList(
-                new FirstChoice("entrainer", ChatColor.AQUA + "Train a skill", Material.LADDER, grey("Start with the block clutch:",
+                new FirstChoice("entrainer", ChatColor.AQUA + "Train a skill", Material.SANDSTONE, grey("Start with the block clutch:",
                         "a hit throws you off, place", "your wool to save yourself."), "clutch", null),
                 new FirstChoice("ranked", ChatColor.GOLD + "Play Ranked Bedwars", Material.BED, grey("1v1 on the RBW maps, your ELO",
                         "from the first game. Train", "while you wait."), "ranked-1v1", null),
                 new FirstChoice("duel", ChatColor.GREEN + "Duel a friend", Material.IRON_SWORD, grey("/duel <player> challenges a",
                         "friend; or a duel with anyone:", "sumo, boxing, bridge..."), null, "duels"),
-                new FirstChoice("arenes", ChatColor.RED + "Fight now", Material.DIAMOND_SWORD, grey("The FFA: no queue, in at once",
+                new FirstChoice("arenes", ChatColor.RED + "Fight now", Material.STONE_SWORD, grey("The FFA: no queue, in at once",
                         "with whoever is there."), "ffa", null));
     }
 

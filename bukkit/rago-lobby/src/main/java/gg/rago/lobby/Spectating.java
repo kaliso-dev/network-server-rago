@@ -9,8 +9,8 @@ import org.bukkit.ChatColor;
 import org.bukkit.entity.Player;
 
 /**
- * /spectate: watching the game of a friend; the staff (a check for cheating) and the content
- * creators, any game. The watcher is invisible to its players (the spectator mode), flies through
+ * /spectate: watching any game, open to every player (only the game of a player under a nick stays
+ * for the staff and that player's friends, so that the nick keeps who they are hidden). The watcher is invisible to its players (the spectator mode), flies through
  * it and touches nothing, until /spawn or the end of the game; a left click on a player shows the
  * game through their eyes. The lobby checks who may watch whom and counts the watcher in the game
  * (a queue they wait in keeps their place: the match found takes them out of it); the game's host
@@ -19,7 +19,7 @@ import org.bukkit.entity.Player;
  */
 final class Spectating {
 
-    /** Watching any game, not only a friend's: the staff has it, a rank can give it (the content creators). */
+    /** Kept for the ranks that list it (MEDIA): every player may now watch any game (see {@link #mayWatch}). */
     static final String ANY_GAME = "rago.perk.spectate";
 
     private final RagoLobby lobby;
@@ -29,12 +29,11 @@ final class Spectating {
     }
 
     /**
-     * True if a player may watch the game of another: the staff any game; a friend any game of
-     * theirs; a content creator any game, but not one of a player under a nick (who they are stays
-     * hidden but from the staff and their friends).
+     * True if a player may watch the game of another: every player any game, but not one of a
+     * player under a nick (who they are stays hidden but from the staff and their friends).
      */
-    static boolean mayWatch(boolean staff, boolean anyGame, boolean friend, boolean targetNicked) {
-        return staff || friend || anyGame && !targetNicked;
+    static boolean mayWatch(boolean staff, boolean friend, boolean targetNicked) {
+        return staff || friend || !targetNicked;
     }
 
     /** /spectate [player]. */
@@ -65,8 +64,8 @@ final class Spectating {
         UUID id = target.getUniqueId();
         boolean staff = watcher.hasPermission("rago.staff");
         boolean nicked = lobby.profiles().names().nick(id) != null;
-        if (!mayWatch(staff, watcher.hasPermission(ANY_GAME), lobby.social().friends(id, watcher.getUniqueId()), nicked)) {
-            watcher.sendMessage(ChatColor.RED + "You can only spectate your friends' games.");
+        if (!mayWatch(staff, lobby.social().friends(id, watcher.getUniqueId()), nicked)) {
+            watcher.sendMessage(ChatColor.RED + "You cannot spectate this game.");
             return;
         }
         String modeId = state.gameOf(id);

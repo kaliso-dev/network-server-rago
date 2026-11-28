@@ -173,6 +173,31 @@ class NameStyleTest {
     }
 
     @Test
+    void inARankedGameTheEloFollowsTheNameInPlaceOfTheLevel() {
+        assertEquals(" §6Gold 245", LobbyScoreboard.eloTag(EloLadder.DEFAULT, 245));
+        assertEquals(" §8Coal 0", LobbyScoreboard.eloTag(EloLadder.DEFAULT, 0));
+        assertEquals(" §0Obsidian 1000", LobbyScoreboard.eloTag(EloLadder.DEFAULT, 1000), "16 characters: it fits");
+        assertEquals(" §010000", LobbyScoreboard.eloTag(EloLadder.DEFAULT, 10000), "too long: the ELO in its colour");
+        for (int elo = 0; elo <= 20000; elo += 50) {
+            assertTrue(LobbyScoreboard.eloTag(EloLadder.DEFAULT, elo).length() <= 16, String.valueOf(elo));
+        }
+    }
+
+    @Test
+    void theLevelIsNotTwiceAboveTheHeadAndAlwaysThereInAGame() {
+        // in the lobby, the line above the name shows the level: the name keeps its badge alone
+        assertEquals(" §d§l✦", LobbyScoreboard.suffix(" §d§l✦", " §7[12✫]", " §7[12✫]", true, false));
+        assertEquals("", LobbyScoreboard.suffix("", " §7[12✫]", " §7[12✫]", true, false));
+        // in the lobby with another line: as before, the badge when both do not fit
+        assertEquals(" §c§lRAGO", LobbyScoreboard.suffix(" §c§lRAGO", " §7[12✫]", " §7[12✫]", false, false));
+        // in a training or another game: both when they fit, else the level
+        assertEquals(" §d§l✦ §7[12✫]", LobbyScoreboard.suffix(" §d§l✦", " §7[12✫]", " §7[12✫]", false, true));
+        assertEquals(" §7[12✫]", LobbyScoreboard.suffix(" §6§lBETTER", " §7[12✫]", " §7[12✫]", false, true));
+        assertEquals(" §e[§f234§e✫]", LobbyScoreboard.suffix(" §6§lBETTER", " §e[234✫]", " §e[§f234§e✫]", false, true),
+                "the level alone in its longest form");
+    }
+
+    @Test
     void theStyleCommandFindsAStyleByItsKeyOrItsId() {
         ServerSettings server = ServerSettings.load(new YamlConfiguration());
         assertEquals("couleur-feu", NetworkCommands.styleNamed(server, "couleur-feu").key());

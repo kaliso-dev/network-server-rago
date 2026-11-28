@@ -3,6 +3,7 @@ package gg.rago.lobby;
 import gg.rago.game.GameMode;
 import gg.rago.lobby.api.LobbyService;
 import gg.rago.lobby.api.MatchHost;
+import gg.rago.lobby.api.ModeRecord;
 import gg.rago.lobby.api.Replays;
 import gg.rago.lobby.api.VoidGenerator;
 import java.io.File;
@@ -23,6 +24,7 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
 import java.util.function.BiConsumer;
+import java.util.function.BiFunction;
 import java.util.function.Function;
 import java.util.logging.Level;
 import org.bukkit.ChatColor;
@@ -31,6 +33,7 @@ import org.bukkit.Material;
 import org.bukkit.Sound;
 import org.bukkit.World;
 import org.bukkit.WorldCreator;
+import org.bukkit.configuration.file.FileConfiguration;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.PlayerInventory;
@@ -60,6 +63,13 @@ public final class RagoLobby extends JavaPlugin implements LobbyService {
     private LobbyScoreboard scoreboard;
     /** Writes files (spawn.yml, points.yml) away from the main thread, one at a time. */
     private ExecutorService writer;
+    /**
+     * The reset of every player's stats asked by the owner on 23/11/2026 (the XP, the levels, the
+     * wins, the kills, the ELO; not the Rago Points, the ranks, the cosmetics, the friends, the
+     * settings). Done once: its name is kept in plugins/RagoLobby/stats-remises-a-zero.txt. No other
+     * reset of the stats, the records or the leaderboards until the release.
+     */
+    static final String STATS_RESET = "stats-2026-11";
     private LobbyPoints points;
     private LobbyNpcs npcs;
     private DailyChest daily;
@@ -69,6 +79,7 @@ public final class RagoLobby extends JavaPlugin implements LobbyService {
     private FakeEntities fakes;
     private Billboards billboards;
     private DuelRequests duels;
+    private PartyDuels partyDuels;
     private StatsService stats;
     private StatsDisplays statsDisplays;
     private NetworkRanks ranks;
@@ -79,7 +90,13 @@ public final class RagoLobby extends JavaPlugin implements LobbyService {
     private HypixelProfiles hypixel;
     private Skins skins;
     private NpcSkins npcSkins;
+    private AccountSkins accountSkins;
     private Parties parties;
+    /** RagoBot, invited into the parties (/p invite RagoBot). */
+    private RagoBots bots;
+    /** outils-owner: of config.yml, read at the start. */
+    private OwnerTools.Settings ownerSettings;
+    private OwnerTools ownerTools;
     private ServerSettings server;
     private Profiles profiles;
     private ShopMenu shop;
@@ -110,6 +127,9 @@ public final class RagoLobby extends JavaPlugin implements LobbyService {
     private final Map<UUID, String> playAgain = new HashMap<>();
     /** Until when the Play again paper stays in the hotbar (then [PLAY AGAIN] and /playagain only). */
     private final Map<UUID, Long> paperUntil = new HashMap<>();
+    /** The items of other plugins in the last slot of the hotbar (setHotbarExtra), and their right click. */
+    private final Map<UUID, ItemStack> extraItems = new HashMap<>();
+    private final Map<UUID, java.util.function.Consumer<Player>> extraUses = new HashMap<>();
     /** How long the Play again paper stays in the hotbar after a game. */
     static final long PLAY_AGAIN_PAPER_MS = 10000L;
     private final NextGame nextGame = new NextGame(this);
@@ -147,6 +167,33 @@ public final class RagoLobby extends JavaPlugin implements LobbyService {
         }
     }
 
+    /** config.yml, read as UTF-8 ({@link Utf8Config}): Bukkit 1.8 reads it in the system's charset. */
+    private FileConfiguration utf8Config;
+
+    @Override
+    public FileConfiguration getConfig() {
+        if (utf8Config == null) {
+            reloadConfig();
+        }
+        return utf8Config;
+    }
+
+    @Override
+    public void reloadConfig() {
+        utf8Config = Utf8Config.read(new File(getDataFolder(), "config.yml"), getResource("config.yml"), getLogger());
+    }
+
+    @Override
+    public void saveConfig() {
+        File file = new File(getDataFolder(), "config.yml");
+        try {
+            Files.createDirectories(getDataFolder().toPath());
+            Files.write(file.toPath(), getConfig().saveToString().getBytes(StandardCharsets.UTF_8));
+        } catch (IOException e) {
+            getLogger().log(Level.SEVERE, "Could not save " + file, e);
+        }
+    }
+
     @Override
     public void onEnable() {
         saveDefaultConfig();
@@ -154,8 +201,10 @@ public final class RagoLobby extends JavaPlugin implements LobbyService {
         try {
             settings = LobbySettings.load(getConfig());
             server = ServerSettings.load(getConfig());
+            LobbySettings.checkRanks(settings.npcs(), server.ranks());
             endSeconds = Math.max(0, Math.min(10, getConfig().getInt("fin-de-partie-secondes", 3)));
             rankedBans = new RankedBans(getConfig().getInt("file.abandon-classe-minutes", 5));
+            ownerSettings = OwnerTools.Settings.read(getConfig().getConfigurationSection("outils-owner"));
         } catch (IllegalArgumentException e) {
             getLogger().severe("config.yml is invalid, RagoLobby is disabled: " + e.getMessage());
             getServer().getPluginManager().disablePlugin(this);
@@ -222,6 +271,8 @@ public final class RagoLobby extends JavaPlugin implements LobbyService {
         boosters = new XpBoosters(this, profiles, stats.book(), state);
         // The rank's boost (PREMIUM: x1.5), times 2 while an XP booster runs.
         stats.book().setBoost(id -> names.xpBoost(id) * boosters.multiplier(id));
+        // RagoBot has no stats of its own: its games count for the players against it
+        stats.book().setCounted(id -> !RagoBots.isBot(id));
         queues.setPriorities(names::queuePriority);
         stats.setCoinBoost(boosters::coinMultiplier);
         stats.setPrestiges(this::prestige);
@@ -245,9 +296,16 @@ public final class RagoLobby extends JavaPlugin implements LobbyService {
         duels.setGate(social::acceptsDuel);
         duels.setFrozen(this::isFrozen);
         menu.setDuels(duels);
+        partyDuels = new PartyDuels(settings, state, queues, partyBook, ranks);
+        partyDuels.setGate(social::acceptsDuel);
+        partyDuels.setFrozen(this::isFrozen);
+        menu.setPartyDuels(partyDuels);
         firstJoin = new FirstJoinMenu(this, settings, queues, menu);
         // once every file is read: the week may have turned while the server was off
         stats.load(this::checkWeek);
+        // then, once ever: every player's stats start again from nothing (the owner, 23/11/2026),
+        // a copy of them kept
+        stats.resetStatsOnce(STATS_RESET);
         fakes = new FakeEntities(this, world);
         fakes.start();
         getServer().getPluginManager().registerEvents(fakes, this);
@@ -289,7 +347,22 @@ public final class RagoLobby extends JavaPlugin implements LobbyService {
         skinIds.add(QuestsNpc.SKIN);
         npcSkins.load(skinIds);
         npcs.setSkins(npcSkins::get);
+        // skin-joueur: the skin of a Minecraft account, read from Mojang (skins-joueurs.yml keeps it)
+        accountSkins = new AccountSkins(this, this::write);
+        accountSkins.load();
+        npcs.setAccountSkins(accountSkins::get);
+        npcs.setRanks(id -> server.ranks().get(id));
         getServer().getPluginManager().registerEvents(npcs, this);
+        // RagoBot wears the skin of its account (qRago), from the same file
+        bots = new RagoBots(this, settings.bots(), state, partyBook, accountSkins::get);
+        partyBook.setMayLead(id -> !RagoBots.isBot(id));
+        parties.setBots(bots);
+        getServer().getPluginManager().registerEvents(bots, this);
+        // outils-owner: the Owner's test tools (/owner), for their account only
+        ownerTools = new OwnerTools(this, state, ownerSettings);
+        getServer().getPluginManager().registerEvents(ownerTools, this);
+        getCommand("owner").setExecutor(ownerTools);
+        getCommand("owner").setTabCompleter(ownerTools);
 
         getServer().getPluginManager().registerEvents(new LobbyListener(this, state, visibility), this);
         // every world of the server: the lobby's, the maps, the arenas (those loaded later too: the listener)
@@ -313,6 +386,7 @@ public final class RagoLobby extends JavaPlugin implements LobbyService {
         profiles.names().setNicks(nicks::nick);
         headLines = new HeadLines(world, this::headLine);
         headLines.start();
+        scoreboard.setLevelAbove(world, this::levelAbove);
         getServer().getPluginManager().registerEvents(headLines, this);
         cosmetics.start();
         getServer().getPluginManager().registerEvents(kitEditor, this);
@@ -322,8 +396,8 @@ public final class RagoLobby extends JavaPlugin implements LobbyService {
             replays.start();
         }
         LobbyCommands commands = new LobbyCommands(this);
-        for (String name : new String[] {"lobby", "spawn", "playagain", "queue", "play", "duel", "hypixel", "party", "pc", "chat",
-                "replay"}) {
+        for (String name : new String[] {"lobby", "spawn", "playagain", "queue", "play", "ranked", "duel", "hypixel", "party", "pc",
+                "chat", "replay", "privategame"}) {
             getCommand(name).setExecutor(commands);
             getCommand(name).setTabCompleter(commands);
         }
@@ -348,6 +422,8 @@ public final class RagoLobby extends JavaPlugin implements LobbyService {
             }
             scoreboard.updateAll();
             headLines.tick();
+            bots.second();
+            ownerTools.second();
             menu.refreshOpen();
             npcs.update();
             if (seconds % 20 == 0) {
@@ -355,6 +431,8 @@ public final class RagoLobby extends JavaPlugin implements LobbyService {
             }
         }, 20L, 20L);
         getServer().getScheduler().runTaskTimer(this, fakes::tick, 10L, 10L);
+        // RagoBot plays each tick, as a client sends its moves each tick
+        getServer().getScheduler().runTaskTimer(this, bots::tick, 1L, 1L);
         getServer().getScheduler().runTaskTimer(this, billboards::tick, 1L, 1L);
         // In a game, the health under the names: a hit shows at once.
         getServer().getScheduler().runTaskTimer(this, scoreboard::updateHealth, 20L, 1L);
@@ -366,10 +444,13 @@ public final class RagoLobby extends JavaPlugin implements LobbyService {
             names.advance();
             scoreboard.updateListNames();
         }, 16L, 6L);
-        daily = new DailyChest(profiles);
+        daily = new DailyChest(this, profiles);
+        shop.setDaily(daily);
         questsNpc = new QuestsNpc(stats.book(), server, levelMenu::openQuests);
         questsNpc.setStartSteps(this::gettingStartedSteps);
         questsNpc.setSkins(npcSkins::get);
+        // a skin of an account that changed since the last start: the NPCs are placed again
+        accountSkins.onChange(this::placeDecor);
         int placed = placeDecor();
         List<String> missing = npcs.missingPoints();
         getLogger().info(placed + " NPCs and leaderboards placed" + (missing.isEmpty() ? ""
@@ -396,6 +477,14 @@ public final class RagoLobby extends JavaPlugin implements LobbyService {
     @Override
     public void onDisable() {
         getServer().getServicesManager().unregisterAll(this);
+        if (daily != null) {
+            // a Daily Chest that spins gives its reward, saved with the others below
+            daily.stop();
+        }
+        if (bots != null) {
+            // no RagoBot without its plugin: it would stand still
+            bots.removeAll();
+        }
         if (replays != null && replays.enabled()) {
             replays.stop();
         }
@@ -433,6 +522,9 @@ public final class RagoLobby extends JavaPlugin implements LobbyService {
         }
         if (npcSkins != null) {
             npcSkins.stop();
+        }
+        if (accountSkins != null) {
+            accountSkins.stop();
         }
         if (writer != null) {
             writer.shutdown();
@@ -675,6 +767,17 @@ public final class RagoLobby extends JavaPlugin implements LobbyService {
         visibility.showAll(player);
     }
 
+    /** Back on the server, into the game of this mode that waited for them: in it again, out of the queues. */
+    @Override
+    public boolean backInGame(Player player, String modeId) {
+        if (queues.hostOf(modeId) == null) {
+            return false;
+        }
+        queues.leave(player, false);
+        enterGame(player, modeId);
+        return true;
+    }
+
     /** The game did not start after all. */
     void cancelGame(Player player) {
         state.leaveGame(player.getUniqueId());
@@ -686,6 +789,11 @@ public final class RagoLobby extends JavaPlugin implements LobbyService {
         } else {
             sendToLobby(player);
         }
+    }
+
+    @Override
+    public void leaveGame(Player player) {
+        goToSpawn(player);
     }
 
     /** /spawn: back to the lobby, through the game's host when in a game. */
@@ -760,6 +868,7 @@ public final class RagoLobby extends JavaPlugin implements LobbyService {
     void forget(Player player) {
         final UUID id = player.getUniqueId();
         Runnable[] steps = {
+            () -> daily.forget(player),
             () -> arrivedOnce.remove(id),
             () -> info.forget(id),
             () -> social.announce(player, false),
@@ -770,10 +879,13 @@ public final class RagoLobby extends JavaPlugin implements LobbyService {
             () -> gameKills.remove(id),
             () -> playAgain.remove(id),
             () -> paperUntil.remove(id),
+            () -> extraItems.remove(id),
+            () -> extraUses.remove(id),
             () -> kitEditor.forget(id),
             () -> kits.forget(id),
             () -> hypixel.forget(id),
             () -> statsDisplays.forget(id),
+            () -> parties.leaving(player),
             () -> ranks.forget(id),
             () -> queues.forget(id),
             () -> parties.forget(id),
@@ -888,8 +1000,42 @@ public final class RagoLobby extends JavaPlugin implements LobbyService {
             }
         }
         inventory.setItem(HotbarItem.SHOP.slot(), HotbarItem.SHOP.create());
-        inventory.setItem(HotbarItem.PROFILE.slot(), ownHead(player));
+        ItemStack extra = extraItems.get(player.getUniqueId());
+        inventory.setItem(HotbarItem.PROFILE.slot(), extra != null ? extra.clone() : ownHead(player));
         player.updateInventory();
+    }
+
+    @Override
+    public void setHotbarExtra(Player player, ItemStack item, java.util.function.Consumer<Player> onUse) {
+        UUID id = player.getUniqueId();
+        if (item == null || onUse == null) {
+            if (extraItems.remove(id) == null) {
+                return;
+            }
+            extraUses.remove(id);
+        } else {
+            extraItems.put(id, item.clone());
+            extraUses.put(id, onUse);
+        }
+        if (player.isOnline() && state.isProtected(player)) {
+            giveHotbar(player);
+        }
+    }
+
+    /**
+     * A right click with this item in the lobby: true if it is this player's item of another plugin
+     * (setHotbarExtra), whose use then runs.
+     */
+    boolean useExtra(Player player, ItemStack item) {
+        ItemStack extra = extraItems.get(player.getUniqueId());
+        if (item == null || extra == null || !extra.isSimilar(item)) {
+            return false;
+        }
+        java.util.function.Consumer<Player> use = extraUses.get(player.getUniqueId());
+        if (use != null) {
+            use.accept(player);
+        }
+        return true;
     }
 
     /**
@@ -1056,13 +1202,21 @@ public final class RagoLobby extends JavaPlugin implements LobbyService {
 
     /**
      * The NPCs, the leaderboards, then the daily chest and the quests NPC beside it, on their
-     * points, and the billboards. The number of NPCs placed.
+     * points, the billboards and the texts (textes:, the thank-you text). The number of NPCs placed.
      */
     private int placeDecor() {
         int placed = npcs.spawnAll();
-        daily.place(points, state.world(), fakes);
-        questsNpc.place(points, state.world(), state.spawn(), fakes);
+        daily.place(points, settings.dailyPoint(), state.world(), fakes);
+        questsNpc.place(points, settings.questsPoint(), settings.dailyPoint(), state.world(), state.spawn(), fakes);
         billboards.place(points, state.spawn(), fakes);
+        for (LobbyText text : settings.texts()) {
+            SpawnPoint point = points.get(text.point);
+            if (point != null) {
+                List<String> lines = text.lines;
+                fakes.add(new FakeHologram(point.in(state.world()).add(0, LobbyText.BOTTOM, 0), lines.size(),
+                        viewer -> lines, null));
+            }
+        }
         for (PluginBoard board : pluginBoards.values()) {
             SpawnPoint point = points.get(board.point);
             if (point != null) {
@@ -1132,6 +1286,9 @@ public final class RagoLobby extends JavaPlugin implements LobbyService {
     @Override
     public void unregisterHosts(Plugin plugin) {
         queues.unregister(plugin);
+        if (menu != null) {
+            menu.dropRecords(plugin);
+        }
         for (java.util.Iterator<PluginBoard> boards = pluginBoards.values().iterator(); boards.hasNext();) {
             PluginBoard board = boards.next();
             if (board.plugin.equals(plugin)) {
@@ -1368,6 +1525,10 @@ public final class RagoLobby extends JavaPlugin implements LobbyService {
             getLogger().info("Private game of a party in " + modeId + ": not counted in the stats");
             return;
         }
+        if (isOwnerToolGame(winners) || isOwnerToolGame(losers)) {
+            getLogger().info("Game with an Owner tool in " + modeId + ": not counted in the stats");
+            return;
+        }
         boolean rated = !isUnrated(winners) && !isUnrated(losers);
         // the week before gets its results before a game of the new week starts the counters again
         checkWeek();
@@ -1388,6 +1549,36 @@ public final class RagoLobby extends JavaPlugin implements LobbyService {
             gameKills.remove(player);
         }
         for (UUID player : losers) {
+            gameKills.remove(player);
+        }
+    }
+
+    @Override
+    public void resetKillsOnce(String name, java.util.Collection<String> modeIds) {
+        if (stats != null) {
+            stats.resetKillsOnce(name, modeIds);
+        }
+    }
+
+    @Override
+    public void recordDraw(String modeId, List<UUID> players) {
+        GameMode mode = settings.catalog().get(modeId);
+        if (mode == null) {
+            getLogger().warning("Draw of an unknown mode ignored: " + modeId);
+            return;
+        }
+        if (players.isEmpty() || isPrivate(players) || isOwnerToolGame(players)) {
+            return;
+        }
+        checkWeek();
+        stats.draw(mode, players);
+        if (mode.teams() == 2 && mode.playersPerTeam() == 1) {
+            // a 1v1 played to the end: "Play a duel" of Getting started
+            for (UUID player : players) {
+                gettingStarted(player, GettingStarted.Step.DUEL);
+            }
+        }
+        for (UUID player : players) {
             gameKills.remove(player);
         }
     }
@@ -1436,7 +1627,8 @@ public final class RagoLobby extends JavaPlugin implements LobbyService {
 
     @Override
     public int recordFinalKill(String modeId, UUID killer) {
-        if (killer == null || settings.catalog().get(modeId) == null || state.isInPrivateGame(killer)) {
+        if (killer == null || settings.catalog().get(modeId) == null || state.countsNothing(killer)
+                || RagoBots.isBot(killer)) {
             return 0;
         }
         return stats.finalKill(modeId, killer);
@@ -1444,14 +1636,16 @@ public final class RagoLobby extends JavaPlugin implements LobbyService {
 
     @Override
     public void recordFinalDeath(String modeId, UUID player) {
-        if (player != null && settings.catalog().get(modeId) != null && !state.isInPrivateGame(player)) {
+        if (player != null && settings.catalog().get(modeId) != null && !state.countsNothing(player)
+                && !RagoBots.isBot(player)) {
             stats.finalDeath(modeId, player);
         }
     }
 
     @Override
     public int recordBedBroken(String modeId, UUID player) {
-        if (player == null || settings.catalog().get(modeId) == null || state.isInPrivateGame(player)) {
+        if (player == null || settings.catalog().get(modeId) == null || state.countsNothing(player)
+                || RagoBots.isBot(player)) {
             return 0;
         }
         return stats.bedBroken(modeId, player);
@@ -1459,15 +1653,20 @@ public final class RagoLobby extends JavaPlugin implements LobbyService {
 
     @Override
     public void recordKill(String modeId, UUID killer, UUID victim) {
+        recordKill(modeId, killer, victim, false);
+    }
+
+    @Override
+    public void recordKill(String modeId, UUID killer, UUID victim, boolean finalKill) {
         if (settings.catalog().get(modeId) == null) {
             getLogger().warning("Kill in an unknown mode ignored: " + modeId);
             return;
         }
-        if ((killer != null && state.isInPrivateGame(killer)) || (victim != null && state.isInPrivateGame(victim))) {
+        if ((killer != null && state.countsNothing(killer)) || (victim != null && state.countsNothing(victim))) {
             return;
         }
         checkWeek();
-        stats.kill(modeId, killer, victim);
+        stats.kill(modeId, killer, victim, finalKill);
         if (killer != null && !killer.equals(victim)) {
             Integer kills = gameKills.get(killer);
             gameKills.put(killer, kills == null ? 1 : kills + 1);
@@ -1481,7 +1680,7 @@ public final class RagoLobby extends JavaPlugin implements LobbyService {
             getLogger().warning("XP of an unknown mode ignored: " + modeId);
             return;
         }
-        if (player == null || xp <= 0 || state.isInPrivateGame(player)) {
+        if (player == null || xp <= 0 || state.countsNothing(player) || RagoBots.isBot(player)) {
             return;
         }
         stats.giveXp(player, xp, reason);
@@ -1493,14 +1692,40 @@ public final class RagoLobby extends JavaPlugin implements LobbyService {
     }
 
     @Override
+    public Map<String, Integer> privateSettings(UUID player) {
+        return state.privateSettings(player);
+    }
+
+    @Override
+    public boolean inOwnerToolGame(UUID player) {
+        return state.isOwnerToolGame(player);
+    }
+
+    @Override
     public boolean inPartyPractice(UUID player) {
         return state.isInPractice(player);
+    }
+
+    @Override
+    public boolean sameParty(UUID one, UUID other) {
+        PartyBook.Party party = parties.book().together(one);
+        return party != null && !one.equals(other) && party == parties.book().together(other);
     }
 
     /** True if one of these players plays a game started without the queue (a /duel). */
     private boolean isUnrated(List<UUID> players) {
         for (UUID player : players) {
             if (state.isUnrated(player)) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    /** True if one of these players plays a game where the Owner had a test tool on (/owner). */
+    private boolean isOwnerToolGame(List<UUID> players) {
+        for (UUID player : players) {
+            if (state.isOwnerToolGame(player)) {
                 return true;
             }
         }
@@ -1631,7 +1856,7 @@ public final class RagoLobby extends JavaPlugin implements LobbyService {
 
     /** A training of a mode of this lobby, not in a private game: the quests count it. */
     private boolean countsForQuests(Player player, String modeId) {
-        return player != null && settings.catalog().get(modeId) != null && !state.isInPrivateGame(player.getUniqueId());
+        return player != null && settings.catalog().get(modeId) != null && !state.countsNothing(player.getUniqueId());
     }
 
     /** The steps of Getting started on this server: the Hypixel import needs its key, the Discord its link. */
@@ -1642,6 +1867,9 @@ public final class RagoLobby extends JavaPlugin implements LobbyService {
 
     /** The player did this step of Getting started: its points the first time, and the next one. */
     void gettingStarted(UUID player, GettingStarted.Step step) {
+        if (RagoBots.isBot(player)) {
+            return;
+        }
         stats.gettingStarted(player, step, gettingStartedSteps());
     }
 
@@ -1649,6 +1877,13 @@ public final class RagoLobby extends JavaPlugin implements LobbyService {
     public void setDailyChallenge(String modeId, String label) {
         if (menu != null) {
             menu.setChallenge(modeId, label);
+        }
+    }
+
+    @Override
+    public void setModeRecords(Plugin plugin, BiFunction<String, UUID, ModeRecord> records) {
+        if (menu != null && records != null) {
+            menu.setRecords(plugin, records);
         }
     }
 
@@ -1664,24 +1899,42 @@ public final class RagoLobby extends JavaPlugin implements LobbyService {
         return profile == null ? null : profile.hotbar();
     }
 
-    /** The line above the name of a lobby player (none while nicked): what they chose, the ELO by default. */
-    private String headLine(Player player) {
+    /**
+     * What shows above the name of a lobby player: what they chose, the Network level by default (plan
+     * 3.5); null while nicked (nothing).
+     */
+    private HeadLines.Shown headChoice(Player player) {
         UUID id = player.getUniqueId();
         if (nicks.nick(id) != null) {
+            return null;
+        }
+        PlayerStats profile = stats.book().get(id);
+        HeadLines.Shown shown = HeadLines.Shown.chosen(profile == null ? null : profile.headLine());
+        if (shown == HeadLines.Shown.MESSAGE && (profile.headMessage() == null || !player.hasPermission("rago.perk.message"))
+                || shown == HeadLines.Shown.TITLE && !server.titles().on()) {
+            shown = HeadLines.Shown.DEFAULT;
+        }
+        return shown;
+    }
+
+    /** In the lobby, the line above the name of this player shows their level (they are not nicked). */
+    private boolean levelAbove(Player player) {
+        return headChoice(player) == HeadLines.Shown.LEVEL;
+    }
+
+    /** The line above the name of a lobby player (none while nicked): what they chose, the Network level by default. */
+    private String headLine(Player player) {
+        UUID id = player.getUniqueId();
+        HeadLines.Shown shown = headChoice(player);
+        if (shown == null) {
             return "";
         }
         PlayerStats profile = stats.book().get(id);
-        HeadLines.Shown shown = profile == null || profile.headLine() == null ? HeadLines.Shown.ELO
-                : HeadLines.Shown.of(profile.headLine());
-        if (shown == null || shown == HeadLines.Shown.MESSAGE && (profile.headMessage() == null
-                || !player.hasPermission("rago.perk.message")) || shown == HeadLines.Shown.TITLE && !server.titles().on()) {
-            shown = HeadLines.Shown.ELO;
-        }
         Titles.Title title = shown == HeadLines.Shown.TITLE ? server.titles().worn(profile) : null;
         int elo = -1;
         for (GameMode mode : settings.catalog().all()) {
             ModeStats played = profile == null ? null : profile.mode(mode.id());
-            if (mode.ranked() && played != null && played.games() > 0) {
+            if (mode.ranked() && played != null && played.decided() > 0) {
                 elo = Math.max(elo, played.elo);
             }
         }
@@ -1730,6 +1983,8 @@ public final class RagoLobby extends JavaPlugin implements LobbyService {
         }
         visibility.applyVanish(player);
         social.announce(player, true);
+        // back within a minute of leaving: still in their party (the owner's ask of 25/11)
+        parties.rejoined(player);
         LobbyWelcome.clearTitle(player);
         LobbyWelcome.greet(player, settings);
         if (profiles.dailyReady(player.getUniqueId())) {
@@ -1797,6 +2052,11 @@ public final class RagoLobby extends JavaPlugin implements LobbyService {
 
     boolean canSee(Player viewer, Player target) {
         return visibility.canSee(viewer, target);
+    }
+
+    @Override
+    public boolean announcesSpectator(Player watcher) {
+        return canBeSeen(watcher);
     }
 
     /** False for a vanished member of the staff. */
@@ -1884,8 +2144,17 @@ public final class RagoLobby extends JavaPlugin implements LobbyService {
         return duels;
     }
 
+    PartyDuels partyDuels() {
+        return partyDuels;
+    }
+
     Parties parties() {
         return parties;
+    }
+
+    /** RagoBot, null before the start. */
+    RagoBots bots() {
+        return bots;
     }
 
     LobbySettings settings() {

@@ -5,6 +5,7 @@ import gg.rago.game.MatchProposal;
 import java.util.Collections;
 import java.util.List;
 import org.bukkit.entity.Player;
+import org.bukkit.inventory.ItemStack;
 
 /**
  * What a game plugin gives the lobby for each mode it plays. The lobby calls it on the main
@@ -74,5 +75,56 @@ public interface MatchHost {
      */
     default List<String> maps(GameMode mode) {
         return Collections.emptyList();
+    }
+
+    /**
+     * The settings the party leader chooses in the lobby for a private game of this mode, in the
+     * order of the menu (Bedwars Normal: Speed, Max Diamond...); empty, the default, when it has none.
+     */
+    default List<PrivateSetting> privateSettings(GameMode mode) {
+        return Collections.emptyList();
+    }
+
+    /**
+     * The teams of this map in this mode, in their order, each as the icon of its colour (a wool
+     * named in its colour): the team menu of a private game whose players choose their teams
+     * (Bedwars Normal), whose match then lists them in this order
+     * ({@link MatchProposal#withChosenTeams}). Empty, the default: the lobby shows numbered teams.
+     */
+    default List<ItemStack> teamIcons(GameMode mode, String map) {
+        return Collections.emptyList();
+    }
+
+    /** What {@link #canGather} answers. */
+    enum Gathering {
+        /** This host has no waiting lobby for the private games of this mode: the lobby's menus, as before. */
+        NONE,
+        /** Its waiting lobby is being made ready (a copy of its map): the lobby asks again each second. */
+        PREPARING,
+        /** A party can go to it now ({@link #gather}). */
+        READY
+    }
+
+    /**
+     * May a party go now to the waiting lobby of its private game of this mode on this map, the map
+     * its leader chose in the lobby (the owner's ask of 25/11: once the map is chosen, the party goes
+     * to the waiting lobby over it, as for a game, and there everyone chooses their team while the
+     * leader sets the game)? Asking may get one ready (start the copy of its map). NONE, the default:
+     * this host has none.
+     */
+    default Gathering canGather(GameMode mode, String map) {
+        return Gathering.NONE;
+    }
+
+    /**
+     * Takes these players, a party, its leader first, to a waiting lobby of their own for their
+     * private game of this mode on this map, after {@link #canGather} said READY; the lobby made them
+     * belong to this mode's game first. They stay in it until their game starts ({@link #start} takes
+     * them from it to the map, the same copy when it is the waiting lobby of that map) or they leave it
+     * ({@link #abandon}, back to the lobby). False if it could not after all (the default): they are
+     * still in the lobby.
+     */
+    default boolean gather(GameMode mode, String map, List<Player> players) {
+        return false;
     }
 }

@@ -143,10 +143,10 @@ class NetworkFeaturesTest {
         assertEquals(4, Profiles.nextStreak("2026-11-08", 3, "2026-11-09", "2026-11-08"), "claimed yesterday");
         assertEquals(1, Profiles.nextStreak("2026-11-06", 3, "2026-11-09", "2026-11-08"), "a missed day");
         assertEquals(0, Profiles.nextStreak("2026-11-09", 4, "2026-11-09", "2026-11-08"), "already claimed today");
-        ServerSettings.Points points = new ServerSettings.Points(20, 5, 2, 10, 100, 25);
-        assertEquals(100, points.dailyReward(1));
-        assertEquals(150, points.dailyReward(3));
-        assertEquals(250, points.dailyReward(30), "up to seven days");
+        ServerSettings.Points points = new ServerSettings.Points(20, 5, 2, 10, 25);
+        assertEquals(0, points.streakBonus(1), "the first day: what the Daily Chest gives, no bonus");
+        assertEquals(50, points.streakBonus(3));
+        assertEquals(150, points.streakBonus(30), "up to seven days");
         assertEquals("2026-11-08", StatsPeriod.previousDayKey(java.time.ZonedDateTime.of(2026, 11, 9, 12, 0, 0, 0,
                 StatsPeriod.ZONE).toInstant().toEpochMilli()));
     }
@@ -315,17 +315,20 @@ class NetworkFeaturesTest {
         assertEquals(8, settings.cosmetics(Cosmetic.Type.TRAIL).size());
         assertEquals(2000L, settings.chatCooldownMillis());
         assertTrue(settings.blockRepeats());
-        // the colours of the server, those of the logo: its name in red, the slogan, rago.gg at the bottom of the tab list
+        // the colours of the server, those of the logo: its name in red, the slogan, rago.gg at the bottom of the tab
+        // list, in the yellow of what one can do (the owner's ask of 22/11: less red)
         assertEquals(Arrays.asList(Brand.NAME, Brand.SLOGAN, ""), settings.tabHeader());
         assertEquals(4, settings.tabFooter().size());
         assertEquals(Brand.ADDRESS, settings.tabFooter().get(3));
         assertEquals(Arrays.asList("§cRAGO PRACTICE §8• §fBed Wars Practice, Ranked & Duels",
-                "§c§lNEW §8» §fHypixel knockback, prestiges & season badges"), settings.motd(), "what it is, then what is new");
+                "§6§lNEW §8» §fHypixel knockback, prestiges & season badges"), settings.motd(), "what it is, then what is new");
         assertEquals("§c§lRAGO PRACTICE", Brand.NAME, "red, white and grey: the colours of the logo");
         assertEquals("§c§lRAGO §8» §f", Brand.PREFIX);
-        assertEquals("§crago.gg", Brand.ADDRESS);
+        assertEquals("§erago.gg", Brand.ADDRESS);
         for (String line : settings.announcements()) {
-            assertFalse(line.contains("§e"), "no yellow of the old colours: " + line);
+            // red for RAGO only, yellow for the command or the link
+            assertEquals(1, line.split("§c", -1).length - 1, "one red, the RAGO of the prefix: " + line);
+            assertTrue(line.contains("§e"), "what to type or open, in yellow: " + line);
         }
         assertEquals(Collections.emptyList(), ServerInfo.tooWide(settings.motd()), "each line fits in the server list");
         assertEquals(5, settings.announceMinutes());

@@ -6,6 +6,8 @@ import java.util.Map;
 import java.util.Set;
 import java.util.UUID;
 import java.util.function.BiConsumer;
+import java.util.function.BiFunction;
+import java.util.function.Consumer;
 import java.util.function.Function;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
@@ -45,6 +47,23 @@ public interface LobbyService {
     boolean isInGame(Player player);
 
     /**
+     * The player leaves their game as with /spawn: a forfeit while they still play (the game's
+     * host ends their part), then the lobby spawn. Out of a game, the lobby spawn only. The event
+     * of /host takes its players out of their games this way when it starts.
+     */
+    default void leaveGame(Player player) {
+        sendToLobby(player);
+    }
+
+    /**
+     * True if the players of a game are told that this player starts to watch it (/spectate):
+     * everyone but a vanished member of the staff, who checks a game without being seen.
+     */
+    default boolean announcesSpectator(Player watcher) {
+        return true;
+    }
+
+    /**
      * Puts the player alone in the queue of this mode, as the selector does but without a word: a
      * game plugin's own way into a mode (an event hosted with /host, in a mode hidden from the
      * selector). The match starts at the next tick of the queues, within a second. False when the
@@ -80,6 +99,31 @@ public interface LobbyService {
     void recordMatch(String modeId, List<UUID> winners, List<UUID> losers);
 
     /**
+     * Once ever for this name: the kills and the deaths of these modes go back to 0 for every
+     * player (ever, of the day, of the week), after a copy of the stats files. For a change in how
+     * they are counted: everyone starts again from the same rule. The rest of the stats stays.
+     */
+    default void resetKillsOnce(String name, java.util.Collection<String> modeIds) {
+    }
+
+    /**
+     * A game of this mode is over without a winner (a draw: the time ran out, nobody left
+     * standing): every player of it gets a game played and its XP, neither a win nor a loss; the
+     * ELO and the streaks do not move. Players may have left the server already.
+     */
+    default void recordDraw(String modeId, List<UUID> players) {
+    }
+
+    /**
+     * The player, back on the server, goes back into their game of this mode, which waited for them
+     * (a disconnection in a game of Bed Wars): the lobby counts them in it again, as at its start.
+     * The game puts them back in it. False, the default: the lobby cannot, the game lets them go.
+     */
+    default boolean backInGame(Player player, String modeId) {
+        return false;
+    }
+
+    /**
      * The player leaves a game of this mode they still play (a forfeit: /spawn, Play again, leaving
      * the server), not one they are out of. Called before giving them back to the lobby. After a
      * ranked game that moves the ELO, the ranked queues stay closed to them for a while
@@ -91,9 +135,22 @@ public interface LobbyService {
     /**
      * A kill in a game of this mode (in a sumo: the victim fell off and the killer got the point).
      * The killer gets a kill and some Network XP, the victim a death (null when nobody died).
-     * Counted in the stats and the kill leaderboards, of the day, the week and ever.
+     * Counted in the stats and the kill leaderboards, of the day, the week and ever. A death
+     * nobody gets the kill of (killer null: the void, a fall) is a death all the same.
      */
     void recordKill(String modeId, UUID killer, UUID victim);
+
+    /**
+     * As {@link #recordKill(String, UUID, UUID)}; for a Bed Wars final kill ({@code finalKill}),
+     * the killer gets the Network XP, the points and the quests of a kill, but the kill is counted
+     * in the final kills only ({@link #recordFinalKill}) and the death in the final deaths only
+     * ({@link #recordFinalDeath}), not again in the kills and the deaths, as on Hypixel.
+     */
+    default void recordKill(String modeId, UUID killer, UUID victim, boolean finalKill) {
+        if (!finalKill) {
+            recordKill(modeId, killer, victim);
+        }
+    }
 
     /**
      * The player's ELO in this ranked mode (the starting ELO before their first game), shown in
@@ -146,12 +203,48 @@ public interface LobbyService {
     }
 
     /**
+     * The settings the party leader chose for the private game this player plays (setting id: the
+     * index of its choice in {@link PrivateSetting#choices}, or the bits of the items ticked for
+     * {@link PrivateSetting#toggles}; 0 for that of a normal game), as the host of its mode offered
+     * them ({@link MatchHost#privateSettings}); empty when none. The lobby knows them before the
+     * game starts.
+     */
+    default Map<String, Integer> privateSettings(UUID player) {
+        return Collections.emptyMap();
+    }
+
+    /**
+     * True if this player's game is one where the Owner had a test tool on (/owner, Reach or
+     * Scaffold): it counts for nobody, so a training keeps no record of it either.
+     */
+    default boolean inOwnerToolGame(UUID player) {
+        return false;
+    }
+
+    /**
      * True if this player's private game came from the Private games (parties-privees, such as the
      * private top bridge): the practice of its mode, without rounds. A party that fills a mode of
      * the Duels plays it as everyone does, in no stats.
      */
     default boolean inPartyPractice(UUID player) {
         return false;
+    }
+
+    /**
+     * True if these two players are in the same party of two or more, as the friends who queued a
+     * Clutch Scenario 1v2 together: they play on one side. False without the lobby.
+     */
+    default boolean sameParty(UUID one, UUID other) {
+        return false;
+    }
+
+    /**
+     * An item of another plugin in this player's lobby hotbar, in its last slot (that of the
+     * profile) while it is set, as the red dye of an event the player waits for: a right click on
+     * it runs {@code onUse}. It shows whenever they are in the lobby, and goes with a null item (or
+     * when they leave the server). A lobby without it ignores it.
+     */
+    default void setHotbarExtra(Player player, ItemStack item, Consumer<Player> onUse) {
     }
 
     /**
@@ -272,6 +365,16 @@ public interface LobbyService {
      * keeps the week before until then.
      */
     default void addWeeklyBoard(Plugin plugin, String name, Function<String, List<Map.Entry<UUID, String>>> ranking) {
+    }
+
+    /**
+     * The records of the modes of this plugin (its trainings), shown under a mode in the menus of
+     * the lobby in the place of its Daily Streak, which a training has no use for: for a mode and
+     * the player who looks ({@code records}: the mode's id and the viewer), its record with its top
+     * 3, or null for a mode without one (it keeps its Daily Streak). Asked each time a menu opens,
+     * on the main thread. A second call of the same plugin replaces its first.
+     */
+    default void setModeRecords(Plugin plugin, BiFunction<String, UUID, ModeRecord> records) {
     }
 
     /** The friends of this player (/friend), for their place among their friends; none by default. */

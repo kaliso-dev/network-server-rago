@@ -514,6 +514,9 @@ final class AttackDefenseGame extends BedwarsGame implements KitMenu.Chooser {
                 boolean won = sideOf(gamer.id) == winner;
                 player.sendTitle(won ? ChatColor.GOLD + "" + ChatColor.BOLD + "ROUND WON"
                         : ChatColor.RED + "" + ChatColor.BOLD + "ROUND LOST", score());
+                if (won) {
+                    ding(player);
+                }
             }
         }
         later(BETWEEN_TICKS, wins[winner] >= WINS ? () -> finish(-2) : this::nextRound);
@@ -625,6 +628,11 @@ final class AttackDefenseGame extends BedwarsGame implements KitMenu.Chooser {
             winners.addAll(sideMembers.get(winner));
             losers.addAll(sideMembers.get(1 - winner));
             plugin.lobby().recordMatch(modeId, winners, losers);
+        } else {
+            // a draw: a game played for everyone in it
+            List<UUID> players = new ArrayList<>(sideMembers.get(0));
+            players.addAll(sideMembers.get(1));
+            plugin.lobby().recordDraw(modeId, players);
         }
         List<String> summary = new ArrayList<>();
         summary.add(ChatColor.GREEN + "" + ChatColor.STRIKETHROUGH + "                                        ");
@@ -651,6 +659,7 @@ final class AttackDefenseGame extends BedwarsGame implements KitMenu.Chooser {
             if (winners.contains(gamer.id)) {
                 player.sendTitle(ChatColor.GOLD + "" + ChatColor.BOLD + "VICTORY!", "");
                 player.playSound(player.getLocation(), Sound.LEVEL_UP, 1f, 1f);
+                ding(player);
             } else {
                 player.sendTitle(winner < 0 ? ChatColor.YELLOW + "" + ChatColor.BOLD + "DRAW"
                         : ChatColor.RED + "" + ChatColor.BOLD + "GAME OVER!", "");

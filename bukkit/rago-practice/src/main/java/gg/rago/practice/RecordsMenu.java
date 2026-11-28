@@ -1,5 +1,6 @@
 package gg.rago.practice;
 
+import gg.rago.lobby.api.ModeRecord;
 import java.util.AbstractMap;
 import java.util.ArrayList;
 import java.util.Collections;
@@ -31,10 +32,11 @@ import org.bukkit.inventory.meta.ItemMeta;
 
 /**
  * The records of the trainings. /records [player]: a menu of the trainings, with the player's best
- * on each board and their place; a training opens its boards, each with its top 10 and the
- * player's place among their friends, and a click on a board plays it. And the wall of the practice
- * records, on a point of the lobby: the top 10 of a board after the other, the player's place under
- * it (a left click: the next board, a right click: /records). Main thread.
+ * on each board and their place; a training opens its boards, each with its lifetime top 10, the
+ * player's place among their friends, the top 3 of this week and the best of each week kept before,
+ * and a click on a board plays it. And the wall of the practice records, on a point of the lobby:
+ * the lifetime top 10 of a board after the other, the best of this week and the player's place
+ * under it (a left click: the next board, a right click: /records). Main thread.
  */
 final class RecordsMenu implements CommandExecutor, Listener {
 
@@ -42,6 +44,10 @@ final class RecordsMenu implements CommandExecutor, Listener {
     static final int WALL_LINES = 19;
     /** Rows of a top. */
     static final int TOP = 10;
+    /** Rows of the top of this week. */
+    static final int WEEK_TOP = 3;
+    /** Rows of the top under a mode in the menus of the lobby (plan 3.4: a top 3). */
+    static final int MODE_TOP = 3;
     /** The wall shows the next board after this long. */
     static final long TURN_MS = 8_000L;
     /** A board chosen with a click stays this long before the wall turns again. */
@@ -212,12 +218,16 @@ final class RecordsMenu implements CommandExecutor, Listener {
         about.add(ChatColor.GRAY + "Click a board to play it.");
         page.inventory.setItem(TOP_SLOT, item(entry.icon, ChatColor.AQUA + "" + ChatColor.BOLD + entry.title, about));
         Set<UUID> friends = mine ? plugin.lobby().friends(player) : Collections.<UUID>emptySet();
-        int count = Math.min(entry.boards.size(), PER_ROW * 2);
+        int count = Math.min(entry.boards.size(), entry.rows == null ? PER_ROW * 2 : PER_ROW * 3);
         for (int i = 0; i < count; i++) {
-            int slot = boardSlot(i, count);
+            int slot = entry.rows == null ? boardSlot(i, count) : boardSlot(i, entry.rows);
+            if (slot < 0) {
+                continue;
+            }
             RecordCatalog.Board board = entry.boards.get(i);
             page.boards.put(slot, board);
-            ItemStack icon = item(entry.icon, ChatColor.YELLOW + board.label, boardLore(book, board, player, name, mine, friends, daily(board)));
+            ItemStack icon = item(entry.icon, ChatColor.YELLOW + board.label,
+                    boardLore(book, board, player, name, mine, friends, daily(board), plugin.records().weeks()));
             page.inventory.setItem(slot, book.rank(board.id, player) == 1 ? glow(icon) : icon);
         }
         List<String> back = new ArrayList<>();
@@ -237,6 +247,24 @@ final class RecordsMenu implements CommandExecutor, Listener {
         int row = i / perRow;
         int inRow = Math.min(perRow, count - row * perRow);
         return 9 * (2 + row) + (9 - inRow) / 2 + i % perRow;
+    }
+
+    /**
+     * The slot of the board i on a page whose rows show these many boards each (three at most, of
+     * seven at most), each row in the middle: the timed bridge's 6 flat courses, its 6 uphill ones,
+     * its 3 with a turn. Three rows start right under the summary; -1 for a board past the rows.
+     */
+    static int boardSlot(int i, int[] rows) {
+        int first = rows.length >= 3 ? 1 : 2;
+        int before = 0;
+        for (int row = 0; row < rows.length && row < 3; row++) {
+            int inRow = Math.min(PER_ROW, rows[row]);
+            if (i < before + inRow) {
+                return 9 * (first + row) + (9 - inRow) / 2 + i - before;
+            }
+            before += rows[row];
+        }
+        return -1;
     }
 
     /** {boards with a score of the player, first places, places in a top 10}. */
@@ -266,7 +294,7 @@ final class RecordsMenu implements CommandExecutor, Listener {
                     + board.format(best) + " " + place(book.rank(board.id, player))));
         }
         lore.add("");
-        lore.add(ChatColor.RED + "Click: the top 10 of each");
+        lore.add(ChatColor.YELLOW + "Click: the top 10 of each");
         return lore;
     }
 
@@ -277,10 +305,12 @@ final class RecordsMenu implements CommandExecutor, Listener {
 
     /**
      * The lines of a board: the player's best and place, their place among their friends (on their
-     * own page), the top 10 (and the player under it, further down) and the click that plays it.
+     * own page), the lifetime top 10 (and the player under it, further down), the top 3 of this
+     * week (weeks: this one first, then those kept before), the best of each week before, and the
+     * click that plays it.
      */
     static List<String> boardLore(RecordBook book, RecordCatalog.Board board, UUID player, String name, boolean mine,
-            Set<UUID> friends, boolean daily) {
+            Set<UUID> friends, boolean daily, List<String> weeks) {
         List<String> lore = new ArrayList<>();
         if (daily) {
             lore.add(ChatColor.GOLD + "✦ The challenge of the day");
@@ -301,7 +331,7 @@ final class RecordsMenu implements CommandExecutor, Listener {
             }
         }
         lore.add("");
-        lore.add(ChatColor.GOLD + "" + ChatColor.BOLD + "Top 10");
+        lore.add(ChatColor.GOLD + "" + ChatColor.BOLD + "Lifetime top 10");
         if (ranked.isEmpty()) {
             lore.add(ChatColor.GRAY + "Nobody yet: be the first!");
         }
@@ -313,8 +343,49 @@ final class RecordsMenu implements CommandExecutor, Listener {
             lore.add(topLine(board, ranked.get(rank - 1), rank, player));
         }
         lore.add("");
-        lore.add(ChatColor.RED + "Click to play it");
+        lore.addAll(weekLines(book, board, player, weeks));
+        lore.add("");
+        lore.add(ChatColor.YELLOW + "Click to play it");
         return lore;
+    }
+
+    /**
+     * The weeks of a board: the top 3 of this week (and the player under it), then the best of
+     * each week before that has one: "Last week", "2 weeks ago"...
+     */
+    static List<String> weekLines(RecordBook book, RecordCatalog.Board board, UUID player, List<String> weeks) {
+        List<String> lines = new ArrayList<>();
+        lines.add(ChatColor.AQUA + "" + ChatColor.BOLD + "This week");
+        List<RecordBook.Entry> week = book.ranked(RecordBook.weekly(board.id, weeks.get(0)));
+        if (week.isEmpty()) {
+            lines.add(ChatColor.GRAY + "Nobody yet this week");
+        }
+        int rank = 0;
+        for (int i = 0; i < week.size(); i++) {
+            if (i < WEEK_TOP) {
+                lines.add(topLine(board, week.get(i), i + 1, player));
+            }
+            rank = week.get(i).player.equals(player) ? i + 1 : rank;
+        }
+        if (rank > WEEK_TOP) {
+            lines.add(ChatColor.DARK_GRAY + "...");
+            lines.add(topLine(board, week.get(rank - 1), rank, player));
+        }
+        List<String> before = new ArrayList<>();
+        for (int back = 1; back < weeks.size(); back++) {
+            RecordBook.Entry best = book.top(RecordBook.weekly(board.id, weeks.get(back)));
+            if (best != null) {
+                before.add(ChatColor.GRAY + (back == 1 ? "Last week" : back + " weeks ago") + ": "
+                        + (best.player.equals(player) ? ChatColor.GREEN : ChatColor.WHITE) + best.name
+                        + ChatColor.DARK_GRAY + " - " + ChatColor.YELLOW + board.format(best.value));
+            }
+        }
+        if (!before.isEmpty()) {
+            lines.add("");
+            lines.add(ChatColor.GRAY + "" + ChatColor.BOLD + "Best of the weeks before");
+            lines.addAll(before);
+        }
+        return lines;
     }
 
     private static String topLine(RecordCatalog.Board board, RecordBook.Entry entry, int rank, UUID player) {
@@ -433,6 +504,40 @@ final class RecordsMenu implements CommandExecutor, Listener {
         lastClick.remove(player);
     }
 
+    // --- The menus of the lobby -----------------------------------------------------------------
+
+    /**
+     * The record a menu of the lobby shows under the mode of a training, in the place of its Daily
+     * Streak (plan 3.4): its main board, lifetime for now, its top 3 and the viewer's best and place
+     * (viewer: null for none); null for a mode without records.
+     */
+    static ModeRecord modeRecord(RecordBook book, RecordCatalog.Entry entry, UUID viewer) {
+        if (entry == null) {
+            return null;
+        }
+        RecordCatalog.Board board = entry.main;
+        List<Map.Entry<String, String>> top = new ArrayList<>();
+        for (RecordBook.Entry best : book.ranked(board.id)) {
+            if (top.size() == MODE_TOP) {
+                break;
+            }
+            top.add(new AbstractMap.SimpleImmutableEntry<>(best.name, board.format(best.value)));
+        }
+        Long mine = viewer == null ? null : book.best(board.id, viewer);
+        return new ModeRecord(board.label, top, mine == null ? null : board.format(mine),
+                mine == null ? 0 : book.rank(board.id, viewer));
+    }
+
+    /** The record of this mode if this server plays it, for the menus of the lobby; null otherwise. */
+    ModeRecord modeRecord(String modeId, UUID viewer) {
+        for (RecordCatalog.Entry entry : entries) {
+            if (entry.modeId.equals(modeId)) {
+                return modeRecord(book(), entry, viewer);
+            }
+        }
+        return null;
+    }
+
     // --- The wall of the lobby ------------------------------------------------------------------
 
     /** The lines of the wall this player reads now. */
@@ -444,7 +549,7 @@ final class RecordsMenu implements CommandExecutor, Listener {
         }
         int index = wallIndex(System.currentTimeMillis(), picks.get(viewer.getUniqueId()), shown.size());
         RecordCatalog.Board board = shown.get(index);
-        return wallLines(book, board, viewer.getUniqueId(), index, shown.size(), daily(board));
+        return wallLines(book, board, viewer.getUniqueId(), index, shown.size(), daily(board), plugin.records().weeks().get(0));
     }
 
     /** A click on the wall: a left one shows the next board, a right one opens /records. */
@@ -496,10 +601,11 @@ final class RecordsMenu implements CommandExecutor, Listener {
 
     /**
      * The lines of the wall on a board, as the boards of the lobby: the training, the board, the
-     * top 10, the player's place, the challenge of the day, the board's place among the others and
-     * what the clicks do.
+     * lifetime top 10, the best of this week (week: "2026w47"), the player's place, the challenge of
+     * the day, the board's place among the others and what the clicks do.
      */
-    static List<String> wallLines(RecordBook book, RecordCatalog.Board board, UUID viewer, int index, int count, boolean daily) {
+    static List<String> wallLines(RecordBook book, RecordCatalog.Board board, UUID viewer, int index, int count, boolean daily,
+            String week) {
         List<String> lines = new ArrayList<>();
         lines.add(ChatColor.AQUA + "" + ChatColor.BOLD + board.title);
         lines.add(ChatColor.GRAY + board.label);
@@ -522,14 +628,17 @@ final class RecordsMenu implements CommandExecutor, Listener {
         while (lines.size() < 3 + TOP) {
             lines.add("");
         }
-        lines.add("");
+        RecordBook.Entry weekBest = book.top(RecordBook.weekly(board.id, week));
+        lines.add(weekBest == null ? ChatColor.AQUA + "This week: " + ChatColor.GRAY + "nobody yet"
+                : ChatColor.AQUA + "This week: " + ChatColor.WHITE + weekBest.name + ChatColor.GRAY + " - "
+                        + ChatColor.YELLOW + board.format(weekBest.value));
         lines.add(rank == 0 ? ChatColor.GRAY + "You: " + ChatColor.DARK_GRAY + "no record yet"
                 : ChatColor.GRAY + "You: " + ChatColor.YELLOW + "#" + rank + ChatColor.GRAY + " - "
                         + ChatColor.YELLOW + board.format(ranked.get(rank - 1).value));
         lines.add(daily ? ChatColor.GOLD + "✦ The challenge of the day" : "");
         lines.add(ChatColor.DARK_GRAY + "Practice records " + (index + 1) + "/" + count);
         lines.add(ChatColor.GOLD + "" + ChatColor.BOLD + "» " + ChatColor.GOLD + "Left click: next board");
-        lines.add(ChatColor.YELLOW + "" + ChatColor.BOLD + "» " + ChatColor.RED + "Right click: all your records");
+        lines.add(ChatColor.YELLOW + "" + ChatColor.BOLD + "» " + ChatColor.YELLOW + "Right click: all your records");
         return lines;
     }
 

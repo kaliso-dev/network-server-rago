@@ -4,6 +4,13 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.UUID;
 import org.junit.jupiter.api.Test;
 
 /** The sizes of the invis practice and of the Bed Break Simulator: 1v1 to 1v4, or open. */
@@ -39,5 +46,54 @@ class LineupTest {
         assertEquals(Lineup.WAIT_SECONDS, open.startIn(2));
         assertEquals(Lineup.FULL_WAIT_SECONDS, open.startIn(5));
         assertTrue(new Lineup(0, 5).open(), "no size: open");
+    }
+
+    private static final UUID A = new UUID(0, 1);
+    private static final UUID B = new UUID(0, 2);
+    private static final UUID C = new UUID(0, 3);
+
+    private static Map<UUID, Integer> points(int a, int b, int c) {
+        Map<UUID, Integer> points = new HashMap<>();
+        points.put(A, a);
+        points.put(B, b);
+        points.put(C, c);
+        return points;
+    }
+
+    @Test
+    void theMostPointsWinAndTheOthersLose() {
+        List<UUID> winners = new ArrayList<>();
+        List<UUID> losers = new ArrayList<>();
+        Map<UUID, Integer> points = points(2, 3, 3);
+        Lineup.result(points.keySet(), Arrays.asList(A, B, C), points, winners, losers);
+        assertEquals(Arrays.asList(B, C), sorted(winners), "a tie: both win");
+        assertEquals(Collections.singletonList(A), losers);
+    }
+
+    @Test
+    void aPlayerWhoLeftBeforeTheEndLosesTheGame() {
+        List<UUID> winners = new ArrayList<>();
+        List<UUID> losers = new ArrayList<>();
+        Map<UUID, Integer> points = points(1, 0, 2);
+        // C had the most points and left: a forfeit, the best of the players still there wins
+        Lineup.result(points.keySet(), Arrays.asList(A, B), points, winners, losers);
+        assertEquals(Collections.singletonList(A), winners);
+        assertEquals(Arrays.asList(B, C), sorted(losers), "counted in the games played of the one who left");
+    }
+
+    @Test
+    void withoutAPointAmongThePlayersStillThereNobodyWins() {
+        List<UUID> winners = new ArrayList<>();
+        List<UUID> losers = new ArrayList<>();
+        Map<UUID, Integer> points = points(0, 0, 4);
+        Lineup.result(points.keySet(), Arrays.asList(A, B), points, winners, losers);
+        assertTrue(winners.isEmpty());
+        assertTrue(losers.isEmpty(), "no result");
+    }
+
+    private static List<UUID> sorted(List<UUID> ids) {
+        List<UUID> copy = new ArrayList<>(ids);
+        Collections.sort(copy);
+        return copy;
     }
 }

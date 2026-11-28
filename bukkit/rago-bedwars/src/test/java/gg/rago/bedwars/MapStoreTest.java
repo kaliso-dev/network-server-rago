@@ -53,6 +53,12 @@ class MapStoreTest {
         assertEquals(Collections.singletonList(archway), MapStore.inAdvance(Arrays.asList(demo, archway)));
         assertEquals(Collections.singletonList(demo), MapStore.inAdvance(Collections.singletonList(demo)));
         assertTrue(MapStore.inAdvance(Collections.<BedwarsMap>emptyList()).isEmpty());
+        // the map of Capture the Flag is not the one copied in advance, even beside the demo map alone
+        BedwarsMap bridge = new BedwarsMap(CtfMaps.BRIDGE);
+        CtfMaps.bridgeLayout(bridge);
+        assertEquals(Collections.singletonList(archway), MapStore.inAdvance(Arrays.asList(demo, bridge, archway)));
+        assertEquals(Collections.singletonList(demo), MapStore.inAdvance(Arrays.asList(demo, bridge)));
+        assertEquals(Collections.singletonList(bridge), MapStore.inAdvance(Collections.singletonList(bridge)));
     }
 
     @Test
@@ -79,6 +85,14 @@ class MapStoreTest {
                 "the maps named, in their order, whatever the case");
         assertEquals(Arrays.asList(archway, gelato, nebuc), MapStore.named(all, 2, Collections.<String>emptyList()),
                 "every map with two teams or more, and never the demo map");
+        BedwarsMap ctf = withTeams(CtfMaps.BRIDGE, 2);
+        BedwarsMap castle = withTeams(CtfMaps.CASTLE, 2);
+        List<BedwarsMap> withCtf = Arrays.asList(demo, archway, ctf, castle, gelato);
+        assertEquals(Arrays.asList(archway, gelato), MapStore.named(withCtf, 2, Collections.<String>emptyList()),
+                "every map is never a map of Capture the Flag: it has no bed");
+        assertEquals(Collections.singletonList(ctf), MapStore.named(withCtf, 2, Collections.singletonList("ctfbridge")),
+                "the modes that name it play on it");
+        assertEquals(Collections.singletonList(castle), MapStore.named(withCtf, 2, Collections.singletonList(CtfMaps.CASTLE)));
         assertEquals(Collections.singletonList(demo), MapStore.named(all, 2, Collections.singletonList("Missing")),
                 "none of its maps is on the server: the demo map");
         assertTrue(MapStore.named(Arrays.asList(archway, gelato), 2, Collections.singletonList("Missing")).isEmpty());

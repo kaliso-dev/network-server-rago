@@ -16,18 +16,17 @@ import org.junit.jupiter.api.Test;
 class SpectatingTest {
 
     @Test
-    void friendsWatchEachOtherTheStaffAndTheCreatorsAnyGame() {
-        assertTrue(Spectating.mayWatch(false, false, true, false), "a friend");
-        assertFalse(Spectating.mayWatch(false, false, false, false), "a stranger");
-        assertTrue(Spectating.mayWatch(true, true, false, false), "the staff");
-        assertTrue(Spectating.mayWatch(false, true, false, false), "a content creator");
+    void everyPlayerMayWatchAnyGame() {
+        assertTrue(Spectating.mayWatch(false, true, false), "a friend");
+        assertTrue(Spectating.mayWatch(false, false, false), "any other player");
+        assertTrue(Spectating.mayWatch(true, false, false), "the staff");
     }
 
     @Test
     void aNickStaysHiddenButFromTheStaffAndTheFriends() {
-        assertFalse(Spectating.mayWatch(false, true, false, true), "a creator would see who plays under the nick");
-        assertTrue(Spectating.mayWatch(true, true, false, true));
-        assertTrue(Spectating.mayWatch(false, false, true, true));
+        assertFalse(Spectating.mayWatch(false, false, true), "a stranger would see who plays under the nick");
+        assertTrue(Spectating.mayWatch(true, false, true));
+        assertTrue(Spectating.mayWatch(false, true, true));
     }
 
     @Test

@@ -147,6 +147,43 @@ class ReplayDataTest {
         assertArrayEquals(new double[] {0, -0.05, 0}, data.velocityOf(99), 1e-9);
     }
 
+    /** Plan 4.1b: the sounds the players heard and the blocks they broke come back as written. */
+    @Test
+    void theSoundsAndTheBrokenBlocksComeBackFromTheFile() throws IOException {
+        ReplayData.BodyWriter body = new ReplayData.BodyWriter();
+        body.position(0, 0, 0, 0, 0, 0);
+        body.flags(0, 0);
+        // tick 0: a block placed (its sound), the same sound again is the service's to leave out
+        body.sound("dig.stone", 48, 32, -16, 1.0F, 50);
+        body.tick();
+        // tick 1: the countdown's note, then a block of red wool broken
+        body.sound("note.pling", -320, 64, 0, 0.5F, 63);
+        body.broke(3, 1, -2, 35 | 14 << 12);
+        body.tick();
+        ReplayData data = ReplayData.read(new ByteArrayInputStream(file(info(2), new int[0], body.finish())));
+
+        ReplayData.Event placed = data.events(0).get(0);
+        assertEquals(ReplayData.SOUND, placed.type);
+        assertEquals("dig.stone", placed.text);
+        assertEquals(48, placed.a);
+        assertEquals(32, placed.b);
+        assertEquals(-16, placed.c);
+        assertEquals(1.0F, Float.intBitsToFloat(placed.d));
+        assertEquals(50, placed.e);
+        List<ReplayData.Event> second = data.events(1);
+        assertEquals(2, second.size());
+        assertEquals("note.pling", second.get(0).text);
+        assertEquals(0.5F, Float.intBitsToFloat(second.get(0).d));
+        assertEquals(63, second.get(0).e, "a pitch of 1.0, as the 1.8 protocol sends it");
+        ReplayData.Event broken = second.get(1);
+        assertEquals(ReplayData.BREAK, broken.type);
+        assertEquals(3, broken.a);
+        assertEquals(1, broken.b);
+        assertEquals(-2, broken.c);
+        assertEquals(35, broken.d & 0xFFF, "the block's id");
+        assertEquals(14, broken.d >> 12, "its data: red");
+    }
+
     @Test
     void theMenuReadsTheInfoAlone() throws IOException {
         ReplayData.Info read = ReplayData.readInfo(new ByteArrayInputStream(file(info(5), new int[] {1, 2, 3, 4, 5},

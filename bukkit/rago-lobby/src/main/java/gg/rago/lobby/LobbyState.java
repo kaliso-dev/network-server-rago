@@ -26,6 +26,8 @@ final class LobbyState {
     private final Set<UUID> privateGame = new HashSet<>();
     /** Those of them whose game came from the Private games (parties-privees): its practice. */
     private final Set<UUID> practice = new HashSet<>();
+    /** Those of them whose party leader set the game (Bedwars Normal): setting id, index of its choice. */
+    private final Map<UUID, Map<String, Integer>> privateSettings = new HashMap<>();
     /**
      * The players of a game started without the queue (a /duel): it counts, but never moves the
      * ranked ELO nor the win streaks, which two friends could farm against each other.
@@ -36,6 +38,10 @@ final class LobbyState {
      * when they come back, and the sidebar of that player.
      */
     private final Map<UUID, UUID> watching = new HashMap<>();
+    /** The players of each player's game, from its start (the player too). */
+    private final Map<UUID, List<UUID>> together = new HashMap<>();
+    /** The players of a game where the Owner had a test tool on (/owner): it counts for nobody. */
+    private final Set<UUID> ownerTool = new HashSet<>();
 
     LobbyState(World world, SpawnPoint spawn) {
         this.world = world;
@@ -100,8 +106,11 @@ final class LobbyState {
     void leaveGame(UUID player) {
         inGame.remove(player);
         opponents.remove(player);
+        together.remove(player);
+        ownerTool.remove(player);
         privateGame.remove(player);
         practice.remove(player);
+        privateSettings.remove(player);
         unrated.remove(player);
         watching.remove(player);
     }
@@ -115,6 +124,19 @@ final class LobbyState {
 
     boolean isInPrivateGame(UUID player) {
         return privateGame.contains(player);
+    }
+
+    /** The settings the party leader chose for this player's private game (Bedwars Normal). */
+    void setPrivateSettings(UUID player, Map<String, Integer> settings) {
+        if (privateGame.contains(player) && settings != null && !settings.isEmpty()) {
+            privateSettings.put(player, Collections.unmodifiableMap(new HashMap<>(settings)));
+        }
+    }
+
+    /** The settings of this player's private game: empty when the leader set none. */
+    Map<String, Integer> privateSettings(UUID player) {
+        Map<String, Integer> settings = privateSettings.get(player);
+        return settings == null ? Collections.<String, Integer>emptyMap() : settings;
     }
 
     /** The player's private game came from the Private games: the practice of its mode. */
@@ -150,6 +172,33 @@ final class LobbyState {
         return others == null ? Collections.<UUID>emptyList() : others;
     }
 
+    /** The players of the player's game, the player too, as it started. */
+    void setTogether(UUID player, List<UUID> players) {
+        together.put(player, Collections.unmodifiableList(players));
+    }
+
+    /** The players of the player's game (the player too); empty out of a game or unknown. */
+    List<UUID> togetherWith(UUID player) {
+        List<UUID> players = inGame.containsKey(player) ? together.get(player) : null;
+        return players == null ? Collections.<UUID>emptyList() : players;
+    }
+
+    /** The Owner had a test tool on in the player's game: it counts for nobody. */
+    void markOwnerTool(UUID player) {
+        if (inGame.containsKey(player)) {
+            ownerTool.add(player);
+        }
+    }
+
+    boolean isOwnerToolGame(UUID player) {
+        return ownerTool.contains(player);
+    }
+
+    /** The player's game counts in no stats: a party's private game, or one with an Owner tool. */
+    boolean countsNothing(UUID player) {
+        return privateGame.contains(player) || ownerTool.contains(player);
+    }
+
     boolean isBuilding(Player player) {
         return building.contains(player.getUniqueId());
     }
@@ -166,9 +215,12 @@ final class LobbyState {
     void forget(UUID player) {
         inGame.remove(player);
         opponents.remove(player);
+        together.remove(player);
+        ownerTool.remove(player);
         building.remove(player);
         privateGame.remove(player);
         practice.remove(player);
+        privateSettings.remove(player);
         unrated.remove(player);
         watching.remove(player);
     }

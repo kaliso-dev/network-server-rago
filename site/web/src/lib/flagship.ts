@@ -182,18 +182,18 @@ export const FLAGSHIPS: Flagship[] = [
   {
     slug: 'clutch-scenario',
     name: 'Clutch scenario',
-    modes: ['clutch-scenario-1v1', 'clutch-scenario-2v2', 'clutch-scenario-3v3', 'clutch-scenario-4v4'],
+    modes: ['clutch-scenario-1v1', 'clutch-scenario-1v2', 'clutch-scenario-1v3', 'clutch-scenario-1v4'],
     icon: 'IRON_CHESTPLATE',
     skin: 'clutch',
     category: 'ranked',
-    where: 'Compass, RBW Modes, Clutch scenario',
+    where: 'Compass, Bedwars Modes, Clutch scenario',
     hook: 'A Ranked game at 18 minutes. One team has no bed left.',
     summary:
-      'A real Ranked Bedwars game, already half played. One team, drawn at random, has lost its bed and each of its players has one life. The other keeps its bed under a defense already built. Clutch your way back, or close it out.',
+      'A real Ranked Bedwars game, already half played, from 1v1 to 1v4. One side has lost its bed and has one life: in 1v1 one of you, drawn at random, from 1v2 the player alone. The other side keeps its bed under a defense already built. Clutch your way back, or close it out.',
     steps: [
       {
         title: 'The draw',
-        text: 'The two teams start on opposite islands. One of them, drawn at random, has no bed: one life each.',
+        text: 'The two sides start on opposite islands. In 1v1, one of you, drawn at random, has no bed; from 1v2, the player alone, drawn at random: one life.',
       },
       {
         title: 'A mid-game kit',
@@ -209,9 +209,9 @@ export const FLAGSHIPS: Flagship[] = [
       },
     ],
     facts: [
-      { label: 'Formats', value: formats(['clutch-scenario-1v1', 'clutch-scenario-2v2', 'clutch-scenario-3v3', 'clutch-scenario-4v4']) },
+      { label: 'Formats', value: formats(['clutch-scenario-1v1', 'clutch-scenario-1v2', 'clutch-scenario-1v3', 'clutch-scenario-1v4']) },
       { label: 'Maps', value: 'Any RBW map' },
-      { label: 'Without a bed', value: 'One life each' },
+      { label: 'Without a bed', value: 'One life' },
       { label: 'With a bed', value: 'End stone, then wool' },
     ],
     source: 'ClutchScenarioGame',
@@ -223,7 +223,7 @@ export const FLAGSHIPS: Flagship[] = [
     icon: 'IRON_SWORD',
     skin: 'attaque',
     category: 'ranked',
-    where: 'Compass, RBW Modes, Attack and defense',
+    where: 'Compass, Bedwars Modes, Attack and defense',
     hook: 'One bridge, one bed, one life to break it.',
     summary:
       'On Bio Hazard, the attackers come by the pink bridge with one life. The defenders hold their base with its forge and its item shop, and come back while their bed stands. The roles swap every round.',

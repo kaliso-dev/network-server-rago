@@ -3,7 +3,7 @@ import path from 'node:path';
 import { describe, expect, it } from 'vitest';
 import { parse } from 'yaml';
 import { buildGameData, REPO, SOURCES } from '../../scripts/import-game-data.mjs';
-import { game, playableModes } from '@/lib/game';
+import { categoryOf, game, modeOf, modesShownIn } from '@/lib/game';
 
 /**
  * What the site shows of the game must be what the game does. These tests read the files of the
@@ -88,16 +88,25 @@ describe('the game data', () => {
       plugin === 'bedwars'
         ? bedwars.has(id)
         : practice.includes(`register("${id}"`) ||
+          // a ranked duel (plan 3.7), on the host of its mode of Solo
+          new RegExp(`alsoRanked\\([^;]*?,\\s*"${id}"\\);`).test(practice) ||
           sumo.includes(`MODE_ID = "${id}"`) ||
           (id.startsWith('event-') && events.includes(`("${id.slice('event-'.length)}",`));
-    // a private game plays the modes of its list, with the party
-    const privateGames: Record<string, string[]> = lobby['parties-privees'] ?? {};
-    // a mode whose kit others play (kit-de:) only holds that kit: hidden, not a mode of the site
-    const configModes: Record<string, Record<string, unknown>> = lobby.modes;
-    const kitHolders = new Set(Object.values(configModes).map((mode) => mode['kit-de']).filter(Boolean));
-    for (const id of kitHolders) {
-      expect(configModes[String(id)]?.cache, `${String(id)} holds a kit`).toBe(true);
+    // a private game plays the modes of its list, with the party; Bedwars Normal those of its maps
+    const privateGames: Record<string, string[]> = { ...(lobby['parties-privees'] ?? {}) };
+    for (const [id, room] of Object.entries<{ cartes?: string[] }>(lobby['parties-privees-equipes'] ?? {})) {
+      privateGames[id] = room.cartes ?? [];
     }
+    // a hidden mode whose kit others play (kit-de:) only holds that kit: not a mode of the site;
+    // one in the selector (Lobby Fight FFA, whose kit the 1v1 plays) is a mode of its own
+    const configModes: Record<string, Record<string, unknown>> = lobby.modes;
+    const kitHolders = new Set(
+      Object.values(configModes)
+        .map((mode) => mode['kit-de'])
+        .filter((id) => id && configModes[String(id)]?.cache === true),
+    );
+    expect(kitHolders.has('invis-practice') && kitHolders.has('bed-break-simulator')).toBe(true);
+    expect(kitHolders.has('lobby-fight-ffa'), 'Lobby Fight FFA is played from the selector').toBe(false);
     const shown = Object.keys(configModes).filter((id) => !kitHolders.has(id));
     expect(game.modes.map((mode) => mode.id).sort()).toEqual(shown.sort());
     for (const mode of game.modes) {
@@ -111,16 +120,36 @@ describe('the game data', () => {
 
   it('counts the modes of each category as the compass shows them', () => {
     for (const category of game.categories) {
-      const modes = playableModes().filter((mode) => mode.category === category.id);
+      const modes = modesShownIn(category);
       expect(category.modes).toBe(modes.length);
       expect(category.modes).toBeGreaterThan(0);
+      for (const id of category.also) {
+        // the modes it shows too keep their own category
+        expect(modeOf(id).category, id).not.toBe(category.id);
+      }
     }
+    // 3 Players, in the compass only: Red Rover of the Duels, the 1v2 of the RBW modes and the Bed fight 1v2
+    const three = categoryOf('trois-joueurs');
+    expect(three.also).toEqual(['red-rover-sumo', 'red-rover-block-edit', 'red-rover-block-placement', 'red-rover-top-bridge',
+      'bed-break-simulator-1v2', 'invis-practice-1v2', 'clutch-scenario-1v2', 'bed-fight-1v2']);
     const events = game.modes.filter((mode) => mode.event);
     expect(events.every((mode) => lobby.modes[mode.id].cache === true)).toBe(true);
+    // the 4s and 2s of Bedwars Normal: hidden too, but no events, played only from Bedwars Normal
+    for (const size of ['bedwars-normal-4s', 'bedwars-normal-2s']) {
+      expect(modeOf(size).event, size).toBe(false);
+      expect(modeOf(size).sizeOf, size).toBe('bedwars-normal');
+    }
   });
 
   it('gives each category the skin of its NPC in the lobby, and the skin is rendered', () => {
+    // the NPC of FUN PRACTICE has its own skin since 22/11 (fun), Ranked has its NPC since 23/11
+    // (ranked); 3 Players is in the compass only, without NPC (the owner's choice, 21/11): no picture
+    const withoutSkinYet = ['trois-joueurs'];
     for (const category of game.categories) {
+      if (withoutSkinYet.includes(category.id)) {
+        expect(category.skin, category.id).toBeNull();
+        continue;
+      }
       expect(category.skin, category.id).not.toBeNull();
       const skin = readFileSync(path.join(REPO, 'site/web/public/skins', `${category.skin}.png`));
       expect(skin.subarray(1, 4).toString()).toBe('PNG');

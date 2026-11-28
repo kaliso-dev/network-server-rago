@@ -34,7 +34,8 @@ import java.util.stream.Collectors;
  *   <li>every hit has the player's hurt animation (entity status 2), recorded just before its
  *       velocity packet;</li>
  *   <li>in the last tick line before each hit, the attacker's sprint flag is the one the server used;</li>
- *   <li>every attack the bot sent gave one logged hit.</li>
+ *   <li>every attack the bot sent gave one logged hit;</li>
+ *   <li>the explosions the bot caused are in the recording ({@link ExplosionCheck}).</li>
  * </ul>
  */
 public final class RecorderCheck {
@@ -108,14 +109,17 @@ public final class RecorderCheck {
             return;
         }
 
-        Result result = check(Recording.read(recording), ControlCheck.readHits(hits),
+        List<String> lines = Files.readAllLines(recording, StandardCharsets.UTF_8);
+        Result result = check(Recording.parse(lines), ControlCheck.readHits(hits),
                 ControlCheck.readAttacks(attacks), label, attacker, minHits);
-        String markdown = result.toMarkdown();
+        ExplosionCheck.Result explosions = ExplosionCheck.check(gg.rago.tools.kbanalyzer.Recording.parse(lines),
+                ExplosionCheck.read(attacks));
+        String markdown = result.toMarkdown() + explosions.toMarkdown();
         System.out.println(markdown);
         if (report != null) {
             Files.write(report, markdown.getBytes(StandardCharsets.UTF_8));
         }
-        System.exit(result.passed() ? 0 : 1);
+        System.exit(result.passed() && explosions.passed() ? 0 : 1);
     }
 
     private static void usage(String problem) {

@@ -142,11 +142,11 @@ class StatsDisplaysTest {
         List<String> fkdr = plain(displays.board(stats, key, alice, SUNDAY));
         assertEquals("FKDR", fkdr.get(0), "then the FKDR");
         assertEquals("All modes · Lifetime", fkdr.get(1));
-        assertEquals("1. Alice - 2.5", fkdr.get(3), "5 final kills, 2 final deaths");
+        assertEquals("1. Alice - 2.50", fkdr.get(3), "5 final kills, 2 final deaths: two decimals");
         assertEquals("2. Bob - 0.67", fkdr.get(4), "2 final kills, 3 final deaths");
-        assertEquals("You: #1 - 2.5", fkdr.get(3 + StatsDisplays.TOP + 1));
+        assertEquals("You: #1 - 2.50", fkdr.get(3 + StatsDisplays.TOP + 1));
         assertEquals(StatsDisplays.BOARD_LINES - 1, fkdr.size(), "one click line: nothing to change on it");
-        assertEquals(java.util.Arrays.asList("#1 Alice", "2.5 FKDR"), plain(displays.podiumLines(stats, key, ALICE, 0, SUNDAY)));
+        assertEquals(java.util.Arrays.asList("#1 Alice", "2.50 FKDR"), plain(displays.podiumLines(stats, key, ALICE, 0, SUNDAY)));
 
         displays.next(alice, stats, key, false);
         List<String> kills = plain(displays.board(stats, key, alice, SUNDAY));
@@ -173,6 +173,133 @@ class StatsDisplaysTest {
         assertEquals("Ranked Elo", plain(displays.board(stats, key, alice, SUNDAY)).get(0));
         assertEquals("Network level", plain(displays.board(stats, key, player(BOB), SUNDAY)).get(0),
                 "each player has their own choice");
+    }
+
+    @Test
+    void theThreeWallsOfTheSelectorShowTheSameStatEachOnItsPeriod() throws Exception {
+        YamlConfiguration yaml = LobbySettingsTest.bundledConfig();
+        String[][] walls = {{"sel-jour", "jour"}, {"sel-semaine", "semaine"}, {"sel-toujours", "toujours"}};
+        for (String[] wall : walls) {
+            yaml.set("classements." + wall[0] + ".selecteur", "newleaderboardselector");
+            yaml.set("classements." + wall[0] + ".periode", wall[1]);
+        }
+        LobbySettings settings = LobbySettings.load(yaml);
+        LobbyNpc selector = settings.npc("newleaderboardselector");
+        assertEquals(LobbyNpc.Kind.SELECTOR, selector.kind());
+        List<BoardStat> stats = selector.boards().get(0);
+        assertEquals(Arrays.asList(BoardStat.STREAK, BoardStat.LEVEL, BoardStat.ELO, BoardStat.WINS, BoardStat.KILLS,
+                BoardStat.FKDR, BoardStat.WLR, BoardStat.GAMES), stats, "the stats of the plan, in its order, then the games played");
+        StatsBook book = new StatsBook(1000, settings.levels());
+        book.record(settings.catalog().get("ranked-1v1"), Collections.singletonList(ALICE), Collections.singletonList(BOB), NAMES,
+                SUNDAY);
+        StatsDisplays displays = new StatsDisplays(settings, book, new StatsMenu(settings, book), new FakeEntities(null, null));
+        displays.setWeekly(ServerSettings.readWeekly(null, NameStyle.catalogue()), "§6§l♛");
+        for (String[] wall : walls) {
+            LobbyNpc npc = settings.npc(wall[0]);
+            assertEquals("newleaderboardselector", npc.selector());
+            assertEquals(Collections.singletonList(stats), npc.boards(), "a wall of the selector: one board, its stats");
+            displays.addWall(npc, new Location(null, 0.5, 65, 0.5));
+        }
+        Player alice = player(ALICE);
+        // first the win streak, each wall on its period
+        assertEquals(Arrays.asList("Best win streak", "All modes · Daily"),
+                plain(displays.board(stats, "sel-jour#0", alice, SUNDAY)).subList(0, 2));
+        assertEquals("All modes · Weekly", plain(displays.board(stats, "sel-semaine#0", alice, SUNDAY)).get(1));
+        assertEquals("All modes · Lifetime", plain(displays.board(stats, "sel-toujours#0", alice, SUNDAY)).get(1));
+
+        // the Network level chosen at the selector: the XP earned today and this week, the level ever
+        displays.select(ALICE, "newleaderboardselector", 1, 0);
+        List<String> day = plain(displays.board(stats, "sel-jour#0", alice, SUNDAY));
+        assertEquals(Arrays.asList("Network level", "All modes · Daily", "", "1. Alice - 50 XP", "2. Bob - 15 XP"), day.subList(0, 5));
+        assertEquals("Resets in 14 h", day.get(16));
+        assertEquals("1. Alice - 50 XP", plain(displays.board(stats, "sel-semaine#0", alice, SUNDAY)).get(3));
+        List<String> ever = plain(displays.board(stats, "sel-toujours#0", alice, SUNDAY));
+        assertEquals(Arrays.asList("Network level", "All modes · Lifetime"), ever.subList(0, 2));
+        assertEquals("1. Alice - 1", ever.get(3), "ever: the level");
+        assertEquals("Never resets", ever.get(16));
+        assertEquals("Best win streak", plain(displays.board(stats, "sel-jour#0", player(BOB), SUNDAY)).get(0),
+                "each player has their own choice");
+
+        // the Elo of a ranked mode: won today, the Elo of the season ever
+        displays.select(ALICE, "newleaderboardselector", 2, 0);
+        List<String> eloToday = plain(displays.board(stats, "sel-jour#0", alice, SUNDAY));
+        assertEquals(Arrays.asList("Ranked Elo", "Ranked Bedwars 1v1 · Daily"), eloToday.subList(0, 2));
+        assertTrue(eloToday.get(3).startsWith("1. Alice - +"), eloToday.get(3));
+        assertEquals("Resets in 14 h", eloToday.get(16));
+        List<String> eloEver = plain(displays.board(stats, "sel-toujours#0", alice, SUNDAY));
+        assertEquals("Ranked Bedwars 1v1 · Lifetime", eloEver.get(1));
+        assertEquals("Season Elo", eloEver.get(16));
+
+        // the FKDR of a day or a week needs its games
+        displays.select(ALICE, "newleaderboardselector", 5, 0);
+        assertEquals("Ranked from 5 Bed Wars games today", plain(displays.board(stats, "sel-jour#0", alice, SUNDAY)).get(15));
+        assertEquals("Ranked from 15 Bed Wars games this week", plain(displays.board(stats, "sel-semaine#0", alice, SUNDAY)).get(15));
+        assertEquals("", plain(displays.board(stats, "sel-toujours#0", alice, SUNDAY)).get(15), "Lifetime has no minimum");
+
+        // a click on one of the walls: the next stat, on the three
+        displays.next(alice, stats, "sel-semaine#0", false);
+        assertEquals("WLR", plain(displays.board(stats, "sel-jour#0", alice, SUNDAY)).get(0));
+        List<String> wlr = plain(displays.board(stats, "sel-toujours#0", alice, SUNDAY));
+        assertEquals(Arrays.asList("WLR", "All modes · Lifetime", "", "1. Alice - 1.00"), wlr.subList(0, 4), "1 win, no loss");
+        assertEquals("Nobody yet", plain(displays.board(stats, "sel-jour#0", alice, SUNDAY)).get(3), "one game: not 5 today");
+
+        // the menu of the selector: an item for each stat, for the Elo one for each ranked mode
+        int rankedModes = StatsMenu.rankedModes(settings).size();
+        assertEquals(stats.size() - 1 + rankedModes, StatsDisplays.selectorItems(stats, rankedModes).size());
+        assertTrue(StatsDisplays.selectorLore(BoardStat.FKDR, selector).contains("§7Ranked from 5 games a day, 15 a week"));
+        assertEquals(Arrays.asList("§7Daily, Weekly: the XP earned", "§7Lifetime: the Network level"),
+                StatsDisplays.selectorLore(BoardStat.LEVEL, selector));
+    }
+
+    /**
+     * The menu of the selector, sorted and clearer (the owner's ask of 22/11, 19h51): the stats on
+     * their row, the Elo of each ranked mode under them, sorted by name.
+     */
+    @Test
+    void theSelectorMenuPutsTheStatsThenTheEloOfEachRankedModeByName() throws Exception {
+        LobbySettings settings = bundledSettings();
+        List<BoardStat> stats = settings.npc("newleaderboardselector").boards().get(0);
+        List<String> names = new java.util.ArrayList<>();
+        for (GameMode mode : StatsMenu.rankedModes(settings)) {
+            names.add(ChatColor.stripColor(mode.name()));
+        }
+        assertEquals(10, names.size(), "the ranked modes of the bundled config");
+        StatsDisplays.SelectorLayout layout = StatsDisplays.selectorLayout(stats, names);
+        assertEquals(6, layout.rows);
+        assertEquals(17, layout.items.size(), "7 stats and the Elo of 10 ranked modes");
+        // the 7 stats, in their order, on the second row (slots 10 to 16)
+        for (int i = 0; i < 7; i++) {
+            assertEquals(10 + i, layout.items.get(i)[2]);
+            assertTrue(stats.get(layout.items.get(i)[0]).choice() != BoardStat.Choice.RANKED_MODE);
+        }
+        assertEquals(BoardStat.STREAK, stats.get(layout.items.get(0)[0]), "the order of stats: (the plan's)");
+        assertEquals(BoardStat.GAMES, stats.get(layout.items.get(6)[0]));
+        // an empty row, then the Elo, seven a row, by the name of the mode
+        List<String> elo = new java.util.ArrayList<>();
+        List<Integer> slots = new java.util.ArrayList<>();
+        for (int[] item : layout.items.subList(7, 17)) {
+            assertEquals(BoardStat.ELO, stats.get(item[0]));
+            elo.add(names.get(item[1]));
+            slots.add(item[2]);
+        }
+        assertEquals(Arrays.asList("Ranked Bed Fight 1v1", "Ranked Bedwars 1v1", "Ranked Bedwars 2v2", "Ranked Bedwars 3v3",
+                "Ranked Bedwars 4v4", "Ranked Block Placement 1v1", "Ranked Boxing", "Ranked Bridge Fight 1v1", "Ranked Sumo",
+                "Ranked Top Bridge 1v1"), elo);
+        assertEquals(Arrays.asList(28, 29, 30, 31, 32, 33, 34, 37, 38, 39), slots);
+        // without ranked modes: the stats alone, framed
+        StatsDisplays.SelectorLayout alone = StatsDisplays.selectorLayout(stats, Collections.<String>emptyList());
+        assertEquals(3, alone.rows);
+        assertEquals(7, alone.items.size());
+        // too many to frame in six rows: side by side, as before
+        List<String> many = new java.util.ArrayList<>();
+        for (int i = 0; i < 20; i++) {
+            many.add("Ranked " + (char) ('A' + i));
+        }
+        StatsDisplays.SelectorLayout packed = StatsDisplays.selectorLayout(stats, many);
+        assertEquals(3, packed.rows);
+        for (int i = 0; i < packed.items.size(); i++) {
+            assertEquals(i, packed.items.get(i)[2]);
+        }
     }
 
     @Test
@@ -254,7 +381,7 @@ class StatsDisplaysTest {
         StatsBook book = new StatsBook(1000, settings.levels());
         ModeMenu menu = new ModeMenu(settings, null, book);
         long now = System.currentTimeMillis();
-        assertEquals(Arrays.asList("§cDaily Streak: 0", "§cYour position: §7-"),
+        assertEquals(Arrays.asList("§eDaily Streak: 0", "§eYour position: §7-"),
                 menu.streakLines(settings.catalog().get("block-fight-2v2"), player(ALICE)), "nobody yet: no top");
         UUID carl = new UUID(0, 3);
         UUID dave = new UUID(0, 4);
@@ -263,14 +390,38 @@ class StatsDisplaysTest {
             book.record(settings.catalog().get("block-fight-2v2"), Arrays.asList(BOB, ALICE), Arrays.asList(carl, dave), names, now);
         }
         book.record(settings.catalog().get("block-fight-2v2"), Arrays.asList(carl, dave), Arrays.asList(ALICE, BOB), names, now);
-        assertEquals(Arrays.asList("§cDaily Streak: 0", "§c 1. §fAlice, bob§c - 2", "§c 2. §fCarl, Dave§c - 1",
-                "§cYour position: §f#1§7 (2)"), menu.streakLines(settings.catalog().get("block-fight-2v2"), player(ALICE)),
+        assertEquals(Arrays.asList("§eDaily Streak: 0", "§e 1. §fAlice, bob§e - 2", "§e 2. §fCarl, Dave§e - 1",
+                "§eYour position: §f#1§7 (2)"), menu.streakLines(settings.catalog().get("block-fight-2v2"), player(ALICE)),
                 "the best of the day of the viewer's team, then their place");
         List<String> carls = menu.streakLines(settings.catalog().get("block-fight-2v2"), player(carl));
-        assertEquals("§cDaily Streak: 1", carls.get(0), "the viewer's wins in a row");
-        assertEquals("§cYour position: §f#2§7 (1)", carls.get(carls.size() - 1));
-        assertEquals("§cYour position: §7-", ModeMenu.positionLine(book.topStreaks("block-fight-2v2", StatsPeriod.DAY, now),
+        assertEquals("§eDaily Streak: 1", carls.get(0), "the viewer's wins in a row");
+        assertEquals("§eYour position: §f#2§7 (1)", carls.get(carls.size() - 1));
+        assertEquals("§eYour position: §7-", ModeMenu.positionLine(book.topStreaks("block-fight-2v2", StatsPeriod.DAY, now),
                 new UUID(0, 9)), "not on the board today");
+    }
+
+    @Test
+    void aTrainingShowsItsRecordInThePlaceOfItsDailyStreak() throws Exception {
+        LobbySettings settings = bundledSettings();
+        ModeMenu menu = new ModeMenu(settings, null, new StatsBook(1000, settings.levels()));
+        gg.rago.lobby.api.ModeRecord clutch = new gg.rago.lobby.api.ModeRecord("Island clutch", Arrays.asList(
+                new java.util.AbstractMap.SimpleImmutableEntry<>("Alice", "20 clutches"),
+                new java.util.AbstractMap.SimpleImmutableEntry<>("bob", "12 clutches")), "8 clutches", 5);
+        assertEquals(Arrays.asList("§eLifetime record: §fIsland clutch", "§e 1. §fAlice§e - 20 clutches", "§e 2. §fbob§e - 12 clutches",
+                "§eYour best: §f8 clutches§7 (#5)"), ModeMenu.recordLines(clutch));
+        assertEquals(Arrays.asList("§eLifetime record: §f3 layers, wood side", "§7 Nobody yet: be the first!", "§eYour best: §7-"),
+                ModeMenu.recordLines(new gg.rago.lobby.api.ModeRecord("3 layers, wood side",
+                        Collections.<java.util.Map.Entry<String, String>>emptyList(), null, 0)));
+
+        // the plugin of the trainings gives the records of its modes; the others keep their Daily Streak
+        org.bukkit.plugin.Plugin practice = (org.bukkit.plugin.Plugin) Proxy.newProxyInstance(
+                org.bukkit.plugin.Plugin.class.getClassLoader(), new Class<?>[] {org.bukkit.plugin.Plugin.class},
+                (proxy, method, args) -> method.getName().equals("hashCode") ? 7 : method.getName().equals("equals") ? proxy == args[0] : null);
+        menu.setRecords(practice, (modeId, viewer) -> modeId.equals("clutch") && ALICE.equals(viewer) ? clutch : null);
+        assertEquals(clutch, menu.recordOf("clutch", ALICE));
+        assertEquals(null, menu.recordOf("block-fight-2v2", ALICE), "a duel: no record, its Daily Streak");
+        menu.dropRecords(practice);
+        assertEquals(null, menu.recordOf("clutch", ALICE), "the plugin gone: the Daily Streak again");
     }
 
     @Test
@@ -295,7 +446,7 @@ class StatsDisplaysTest {
         assertTrue(lines.contains("Network level: [6" + NetworkLevel.STAR + "]"), lines.toString());
         assertTrue(lines.contains("Kills: 1 · Final kills: 0"), lines.toString());
         assertTrue(lines.contains("Games played: 0"), lines.toString());
-        assertTrue(lines.contains("FKDR: 0"), lines.toString());
+        assertTrue(lines.contains("FKDR: 0.00"), lines.toString());
         assertEquals("CLICK FOR YOUR STATS", lines.get(lines.size() - 1));
         assertEquals(11, lines.size(), "the lines of the hologram");
     }
@@ -324,7 +475,7 @@ class StatsDisplaysTest {
         assertTrue(lines.contains("Games played: 5"), lines.toString());
         assertTrue(lines.contains("Wins: 3 · Losses: 2"), lines.toString());
         assertTrue(lines.contains("WLR: 1.5"), lines.toString());
-        assertTrue(lines.contains("FKDR: 2.5"), "5 final kills, 2 final deaths: " + lines);
+        assertTrue(lines.contains("FKDR: 2.50"), "5 final kills, 2 final deaths: " + lines);
         PlayerStats read = StatsFiles.fromYaml(ALICE, StatsFiles.toYaml(alice));
         assertEquals(2, read.finalDeaths(), "kept in the file");
         assertEquals(1, read.mode("ranked-2v2").finalDeaths);

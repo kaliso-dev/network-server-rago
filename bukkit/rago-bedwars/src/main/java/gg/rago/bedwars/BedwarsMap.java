@@ -88,6 +88,8 @@ final class BedwarsMap {
     private final List<Island> islands = new ArrayList<>();
     /** The waiting lobby (salle-attente:), where Lobby Fight is played; null: none. */
     private WaitingLobby waitingLobby;
+    /** The way up of Bed Break Simulator (bed-break:); null if the map has none. */
+    private BedBreakTop bedBreakTop;
 
     /**
      * The waiting lobby of a map (salle-attente:), the platform high over it where the players wait
@@ -407,6 +409,103 @@ final class BedwarsMap {
         }
     }
 
+    /**
+     * The way up of Bed Break Simulator on this map (bed-break: in its bedwars.yml), as the owner
+     * built it in /bw edit: the stairway of wool from the defended island up to the top, one block
+     * wide, climbing one block every two (escalier: its blocks, "x y z" each); and the platform at
+     * its top (plateforme: its height y and two opposite corners de and a, x and z each), the one of
+     * Top Bridge, to be under the map's build limit. Immutable.
+     */
+    static final class BedBreakTop {
+        /** The stairway's blocks, {x, y, z}, from the island up. */
+        final List<int[]> stairs;
+        final int platformY;
+        final int minX;
+        final int minZ;
+        final int maxX;
+        final int maxZ;
+
+        BedBreakTop(List<int[]> stairs, int platformY, int x1, int z1, int x2, int z2) {
+            List<int[]> copy = new ArrayList<>();
+            for (int[] block : stairs) {
+                copy.add(block.clone());
+            }
+            this.stairs = Collections.unmodifiableList(copy);
+            this.platformY = platformY;
+            this.minX = Math.min(x1, x2);
+            this.minZ = Math.min(z1, z2);
+            this.maxX = Math.max(x1, x2);
+            this.maxZ = Math.max(z1, z2);
+        }
+
+        Map<String, Object> toMap() {
+            Map<String, Object> map = new java.util.LinkedHashMap<>();
+            List<String> blocks = new ArrayList<>();
+            for (int[] block : stairs) {
+                blocks.add(block[0] + " " + block[1] + " " + block[2]);
+            }
+            map.put("escalier", blocks);
+            Map<String, Object> platform = new java.util.LinkedHashMap<>();
+            platform.put("y", platformY);
+            platform.put("de", corner(minX, minZ));
+            platform.put("a", corner(maxX, maxZ));
+            map.put("plateforme", platform);
+            return map;
+        }
+
+        private static Map<String, Object> corner(int x, int z) {
+            Map<String, Object> map = new java.util.LinkedHashMap<>();
+            map.put("x", x);
+            map.put("z", z);
+            return map;
+        }
+
+        static BedBreakTop fromSection(ConfigurationSection section, String where) {
+            List<int[]> stairs = new ArrayList<>();
+            List<?> blocks = section.getList("escalier");
+            if (blocks == null) {
+                throw new IllegalArgumentException(where + ".escalier: the blocks of the stairway, \"x y z\" each");
+            }
+            for (int i = 0; i < blocks.size(); i++) {
+                String[] parts = String.valueOf(blocks.get(i)).trim().split("\\s+");
+                int[] block = new int[3];
+                try {
+                    if (parts.length != 3) {
+                        throw new NumberFormatException();
+                    }
+                    for (int k = 0; k < 3; k++) {
+                        block[k] = Integer.parseInt(parts[k]);
+                    }
+                } catch (NumberFormatException e) {
+                    throw new IllegalArgumentException(where + ".escalier[" + i + "]: \"x y z\", three whole numbers");
+                }
+                if (block[1] < 0 || block[1] > 255) {
+                    throw new IllegalArgumentException(where + ".escalier[" + i + "]: y from 0 to 255");
+                }
+                stairs.add(block);
+            }
+            ConfigurationSection platform = section.getConfigurationSection("plateforme");
+            if (platform == null || !platform.isInt("y")) {
+                throw new IllegalArgumentException(where + ".plateforme: its height y and its corners de and a (x and z)");
+            }
+            int y = platform.getInt("y");
+            if (y < 0 || y > 255) {
+                throw new IllegalArgumentException(where + ".plateforme.y: from 0 to 255");
+            }
+            int[] from = corner(platform, "de", where + ".plateforme");
+            int[] to = corner(platform, "a", where + ".plateforme");
+            return new BedBreakTop(stairs, y, from[0], from[1], to[0], to[1]);
+        }
+
+        private static int[] corner(ConfigurationSection platform, String key, String where) {
+            ConfigurationSection corner = platform.getConfigurationSection(key);
+            if (corner == null || !(corner.get("x") instanceof Number) || !(corner.get("z") instanceof Number)) {
+                throw new IllegalArgumentException(where + "." + key + ": x and z, whole numbers");
+            }
+            return new int[] {corner.getInt("x"), corner.getInt("z")};
+        }
+    }
+
     BedwarsMap(String world) {
         this.world = world;
     }
@@ -614,6 +713,15 @@ final class BedwarsMap {
         this.waitingLobby = waitingLobby;
     }
 
+    /** The way up of Bed Break Simulator (bed-break:): the owner's stairway and the platform; null if the map has none. */
+    BedBreakTop bedBreakTop() {
+        return bedBreakTop;
+    }
+
+    void setBedBreakTop(BedBreakTop bedBreakTop) {
+        this.bedBreakTop = bedBreakTop;
+    }
+
     /**
      * Why the islands of the map (iles:) keep a block from going there, null when they let it: off
      * every island (on a bridge, over the void), or above the top of the island under it.
@@ -794,6 +902,9 @@ final class BedwarsMap {
         if (waitingLobby != null) {
             yaml.createSection("salle-attente", waitingLobby.toMap());
         }
+        if (bedBreakTop != null) {
+            yaml.createSection("bed-break", bedBreakTop.toMap());
+        }
         return yaml.saveToString();
     }
 
@@ -905,6 +1016,13 @@ final class BedwarsMap {
                 throw new IllegalArgumentException("salle-attente: centre (x and z), y and rayon");
             }
             map.waitingLobby = WaitingLobby.fromSection(lobby, "salle-attente");
+        }
+        if (yaml.contains("bed-break")) {
+            ConfigurationSection top = yaml.getConfigurationSection("bed-break");
+            if (top == null) {
+                throw new IllegalArgumentException("bed-break: escalier and plateforme");
+            }
+            map.bedBreakTop = BedBreakTop.fromSection(top, "bed-break");
         }
         return map;
     }

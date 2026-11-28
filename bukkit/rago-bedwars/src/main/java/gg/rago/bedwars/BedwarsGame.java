@@ -66,11 +66,18 @@ class BedwarsGame {
         final Upgrades upgrades = new Upgrades();
         /** How far its base goes around its spawn: for its traps and its Heal Pool. */
         final double baseRadius;
+        /** Where the team hid its bed (2012 Bedwars, {@link Bedwars2012Game}); null: the bed of the map. */
+        MapPoint hiddenBed;
 
         Team(TeamColor color, BedwarsMap.Team points) {
             this.color = color;
             this.points = points;
             this.baseRadius = Upgrades.baseRadius(points);
+        }
+
+        /** Its bed: where the team hid it, else the bed of the map. */
+        MapPoint bedPoint() {
+            return hiddenBed != null ? hiddenBed : points == null ? null : points.bed;
         }
 
         /** True if this place is in the team's base. */
@@ -111,6 +118,12 @@ class BedwarsGame {
         /** Their ender chest in this game, made when first opened. */
         Inventory enderChest;
         BukkitTask respawn;
+        /** Gone from the server in the middle of the game, and may come back: see {@link BedwarsGame#away}. */
+        boolean away;
+        /** When they left the server, while {@link #away}. */
+        long awaySince;
+        /** After a respawn, while no enemy can hurt them: see {@link BedwarsGame#spawnProtectionMillis}. */
+        final SpawnProtection protection = new SpawnProtection();
 
         Gamer(Player player, Team team, List<String> hotbar, List<ShopItem> quickBuy) {
             this.id = player.getUniqueId();
@@ -127,6 +140,12 @@ class BedwarsGame {
 
     /** A hit gives the kill to its author if the player dies within this time (a fall in the void). */
     static final long CREDIT_MS = 10_000L;
+    /**
+     * The protection after a respawn, in every mode where a player comes back during the game: the
+     * one of Minemen's Bed Fight (1.5 s, as the owner measured it there), first made for Bed Fight
+     * and then asked for the other Bed Wars modes.
+     */
+    static final long SPAWN_PROTECTION_MILLIS = 1_500L;
     /** Around a spawn, no block can be placed: this many blocks, horizontally. */
     static final double SPAWN_PROTECTION = 3.0;
     /** Around a generator, no block can be placed. */
@@ -160,6 +179,8 @@ class BedwarsGame {
     final List<Generator> forges = new ArrayList<>();
     final List<Generator> diamonds = new ArrayList<>();
     final List<Generator> emeralds = new ArrayList<>();
+    /** The settings of the party leader of a private game of Bedwars Normal; those of a normal game else. */
+    PrivateRules rules = PrivateRules.NONE;
     /** The shop and upgrades NPCs, and where they stand. */
     private final Map<Entity, Location> npcs = new HashMap<>();
     /** The upgrades NPCs (each opens the upgrades of the team of whoever clicks it). */
@@ -208,6 +229,10 @@ class BedwarsGame {
         this.catalog = catalog;
         List<TeamColor> colors = teamColors(sides.size());
         for (int i = 0; i < sides.size(); i++) {
+            if (sides.get(i).isEmpty()) {
+                // a team nobody chose in a private game of Bedwars Normal: no team, its bed taken away
+                continue;
+            }
             TeamColor color = colors.get(i);
             Team team = new Team(color, instance.map().teams().get(color));
             teams.add(team);
@@ -361,6 +386,7 @@ class BedwarsGame {
             economyUp(islands());
         }
         setUp();
+        applyRules();
         for (Gamer gamer : gamers.values()) {
             Player player = Bukkit.getPlayer(gamer.id);
             if (player == null) {
@@ -368,6 +394,10 @@ class BedwarsGame {
             }
             place(player, gamer);
             welcome(player, gamer);
+            if (rules.any()) {
+                player.sendMessage(ChatColor.GOLD + "Settings of the party leader: " + ChatColor.WHITE
+                        + String.join(", ", rules.summary()));
+            }
             if (teamNameTags()) {
                 plugin.lobby().setGameNameTag(player, gamer.team.color.letter() + " " + gamer.team.color.chat());
             }
@@ -629,7 +659,7 @@ class BedwarsGame {
             }
         }
         npcsUp(islands);
-        for (MapPoint point : midGenerators() ? map.diamonds() : Collections.<MapPoint>emptyList()) {
+        for (MapPoint point : midGenerators() && diamondGenerators() ? map.diamonds() : Collections.<MapPoint>emptyList()) {
             Generator generator = new Generator(point.in(world), Material.DIAMOND, settings.diamond().get(0), "Diamond");
             diamonds.add(generator);
         }
@@ -772,6 +802,21 @@ class BedwarsGame {
         return true;
     }
 
+    /** True if the map's diamond generators go with its emerald ones (see {@link #midGenerators}). */
+    boolean diamondGenerators() {
+        return true;
+    }
+
+    /**
+     * When the timed events come, in seconds of game: tier II and III of the diamonds and the
+     * emeralds, the end of the beds, the end (those of evenements: in config.yml); -1 for one that
+     * does not come.
+     */
+    int[] times() {
+        return new int[] {settings.diamondII(), settings.emeraldII(), settings.diamondIII(), settings.emeraldIII(),
+            settings.bedsGone(), settings.gameEnd()};
+    }
+
     /** Before the players are placed: what the game builds or changes on the map. */
     void setUp() {
     }
@@ -817,9 +862,9 @@ class BedwarsGame {
         return true;
     }
 
-    /** The seconds before a dead player comes back. */
+    /** The seconds before a dead player comes back (Respawn Time of the party leader's settings). */
     int respawnSeconds() {
-        return settings.respawnSeconds();
+        return rules.respawnSeconds(settings.respawnSeconds());
     }
 
     /** A player died (author: who gets the kill, or null), after the game counted it. */
@@ -1042,6 +1087,9 @@ class BedwarsGame {
                 utilities.second();
                 everySecond();
             }
+            if (phase == Phase.PLAYING) {
+                awayTooLong();
+            }
         }
         for (Generator generator : diamonds) {
             generator.refreshText();
@@ -1059,17 +1107,40 @@ class BedwarsGame {
         }
     }
 
+    /**
+     * Before the players are placed: the settings of the party leader ({@link PrivateRules}): with Max
+     * Diamond, every team with Sharpened Swords and Reinforced Armor IV; with Max Emerald, the emerald
+     * generators at Tier III (Emerald II and III then do not come, see {@link #events}). Speed, Low
+     * Gravity and Health Buff are on the players each second ({@link #teamEffects}), Break the Map at
+     * each block ({@link #breaksMap}), Respawn Time at each death ({@link #respawnSeconds}), Event
+     * Times in {@link #events}, Bed Instabreak at each punch on a bed (BedwarsHost.onBedPunch).
+     */
+    void applyRules() {
+        if (rules.maxDiamond()) {
+            for (Team team : teams) {
+                team.upgrades.setTier(Upgrades.Kind.SHARPENED_SWORDS, Upgrades.Kind.SHARPENED_SWORDS.tiers());
+                team.upgrades.setTier(Upgrades.Kind.REINFORCED_ARMOR, Upgrades.Kind.REINFORCED_ARMOR.tiers());
+            }
+        }
+        if (rules.maxEmerald()) {
+            for (Generator generator : emeralds) {
+                generator.upgrade(3, settings.emerald().get(2));
+            }
+        }
+    }
+
     /** The timed events of a game: the generators going up a tier, the end of the beds, the end. */
     void events() {
-        if (seconds == settings.diamondII()) {
+        int[] times = rules.times(times());
+        if (seconds == times[0]) {
             upgrade(diamonds, 2, settings.diamond().get(1), "Diamond");
-        } else if (seconds == settings.emeraldII()) {
+        } else if (seconds == times[1]) {
             upgrade(emeralds, 2, settings.emerald().get(1), "Emerald");
-        } else if (seconds == settings.diamondIII()) {
+        } else if (seconds == times[2]) {
             upgrade(diamonds, 3, settings.diamond().get(2), "Diamond");
-        } else if (seconds == settings.emeraldIII()) {
+        } else if (seconds == times[3]) {
             upgrade(emeralds, 3, settings.emerald().get(2), "Emerald");
-        } else if (seconds == settings.bedsGone()) {
+        } else if (seconds == times[4]) {
             for (Team team : teams) {
                 if (team.bed) {
                     destroyBed(team);
@@ -1077,7 +1148,7 @@ class BedwarsGame {
             }
             broadcast(ChatColor.RED + "" + ChatColor.BOLD + "All beds have been destroyed!", Sound.ENDERDRAGON_GROWL);
             title(ChatColor.RED + "" + ChatColor.BOLD + "BEDS DESTROYED", ChatColor.WHITE + "Nobody respawns any more!");
-        } else if (seconds >= settings.gameEnd()) {
+        } else if (seconds >= times[5]) {
             broadcast(ChatColor.YELLOW + "Time is up: the game ends in a draw.", Sound.NOTE_BASS);
             end(null);
         }
@@ -1095,8 +1166,7 @@ class BedwarsGame {
 
     /** The next timed event and when: "Diamond II", 180 seconds. */
     private String nextEvent() {
-        int[] times = {settings.diamondII(), settings.emeraldII(), settings.diamondIII(), settings.emeraldIII(),
-            settings.bedsGone(), settings.gameEnd()};
+        int[] times = rules.times(times());
         String[] names = {"Diamond II", "Emerald II", "Diamond III", "Emerald III", "Bed Gone", "Game End"};
         for (int i = 0; i < times.length; i++) {
             if (times[i] > seconds) {
@@ -1171,10 +1241,11 @@ class BedwarsGame {
 
     /**
      * True if this block of the map, not placed by a player, may be broken (the rollback puts it
-     * back): never, but on the bridge of Top Bed Fight.
+     * back): never, but on the bridge of Top Bed Fight, and where a block may be placed in a private
+     * game of Bedwars Normal with Break the Map (so not around the spawns and the generators).
      */
     boolean breaksMap(Block block) {
-        return false;
+        return rules.breakMap() && cannotBuildAt(block) == null;
     }
 
     /**
@@ -1252,7 +1323,10 @@ class BedwarsGame {
     /** The team whose bed this block is part of, or null. */
     Team bedTeam(Block block) {
         for (Team team : teams) {
-            for (Block half : Instance.bedOf(team.points.bed.blockIn(instance.world()))) {
+            if (team.bedPoint() == null) {
+                continue;
+            }
+            for (Block half : Instance.bedOf(team.bedPoint().blockIn(instance.world()))) {
                 if (half.equals(block)) {
                     return team;
                 }
@@ -1290,7 +1364,10 @@ class BedwarsGame {
 
     void destroyBed(Team team) {
         team.bed = false;
-        for (Block half : Instance.bedOf(team.points.bed.blockIn(instance.world()))) {
+        if (team.bedPoint() == null) {
+            return;
+        }
+        for (Block half : Instance.bedOf(team.bedPoint().blockIn(instance.world()))) {
             half.setType(Material.AIR, false);
         }
     }
@@ -1371,7 +1448,8 @@ class BedwarsGame {
             } else {
                 author.kills++;
             }
-            plugin.lobby().recordKill(modeId, author.id, gamer.id);
+            // a final kill: the XP of a kill, counted in the final kills only (not again in the kills)
+            plugin.lobby().recordKill(modeId, author.id, gamer.id, finalKill);
             Player authorPlayer = Bukkit.getPlayer(author.id);
             if (authorPlayer != null) {
                 loot(victim, authorPlayer);
@@ -1379,7 +1457,11 @@ class BedwarsGame {
                     authorPlayer.playSound(authorPlayer.getLocation(), Sound.ORB_PICKUP, 1f, 1f);
                 }
             }
+        } else if (!finalKill && countsDeaths()) {
+            // a death nobody gets the kill of (the void, a fall): a death all the same
+            plugin.lobby().recordKill(modeId, null, gamer.id);
         }
+        beforeDeath(victim, gamer);
         // Tools lose a tier at each death; armour and shears stay.
         if (gamer.pickaxe > 0) {
             gamer.pickaxe--;
@@ -1408,6 +1490,23 @@ class BedwarsGame {
             respawnLater(victim, gamer);
         }
         sidebars();
+    }
+
+    /**
+     * True if a death nobody gets the kill of (the void, a fall) counts in the player's deaths: in a
+     * game against other players. False in a free for all or a training, where one falls as one
+     * likes (a kill there still counts, for the killer and the victim).
+     */
+    boolean countsDeaths() {
+        return true;
+    }
+
+    /** A death of the player (by a hit, the void, anything), before their inventory is emptied: a mode may look at it. */
+    void beforeDeath(Player victim, Gamer gamer) {
+    }
+
+    /** The player ate or drank this (a golden apple, a potion), after the game let them: a mode may add to it. */
+    void ate(Player player, ItemStack item) {
     }
 
     /** A final death: what the player is told, with [PLAY AGAIN] and [LEAVE] to go on at once. */
@@ -1454,13 +1553,20 @@ class BedwarsGame {
     }
 
     private void respawnLater(final Player victim, final Gamer gamer) {
-        final int total = respawnSeconds();
+        respawnLater(victim, gamer, respawnSeconds(), ChatColor.RED + "" + ChatColor.BOLD + "YOU DIED!", false);
+    }
+
+    /**
+     * Back in the game after these seconds as a spectator, under this title; with needsBed (a
+     * return to the game, {@link #returned}), out of the game instead if the bed is gone by then.
+     */
+    private void respawnLater(final Player victim, final Gamer gamer, final int total, final String title,
+            final boolean needsBed) {
         if (total <= 0) {
             respawn(victim, gamer);
             return;
         }
-        victim.sendTitle(ChatColor.RED + "" + ChatColor.BOLD + "YOU DIED!",
-                ChatColor.YELLOW + "You will respawn in " + ChatColor.RED + total + ChatColor.YELLOW + " seconds!");
+        victim.sendTitle(title, ChatColor.YELLOW + "You will respawn in " + ChatColor.RED + total + ChatColor.YELLOW + " seconds!");
         gamer.respawn = Bukkit.getScheduler().runTaskTimer(plugin, new Runnable() {
             private int left = total;
 
@@ -1473,11 +1579,15 @@ class BedwarsGame {
                     return;
                 }
                 if (left > 0) {
-                    player.sendTitle(ChatColor.RED + "" + ChatColor.BOLD + "YOU DIED!", ChatColor.YELLOW
+                    player.sendTitle(title, ChatColor.YELLOW
                             + "You will respawn in " + ChatColor.RED + left + ChatColor.YELLOW + " seconds!");
                     return;
                 }
                 cancel(gamer.respawn);
+                if (needsBed && !gamer.team.bed) {
+                    outWithoutBed(player, gamer);
+                    return;
+                }
                 respawn(player, gamer);
             }
         }, 20L, 20L);
@@ -1486,6 +1596,7 @@ class BedwarsGame {
     void respawn(Player player, Gamer gamer) {
         gamer.respawning = false;
         gamer.respawn = null;
+        gamer.protection.start(System.currentTimeMillis(), spawnProtectionMillis());
         heal(player);
         player.setGameMode(GameMode.SURVIVAL);
         player.teleport(spawnOf(gamer));
@@ -1493,6 +1604,152 @@ class BedwarsGame {
         teamEffects(player, gamer);
         player.sendTitle(ChatColor.GREEN + "" + ChatColor.BOLD + "RESPAWNED!", "");
         player.sendMessage(ChatColor.YELLOW + "You have respawned!");
+    }
+
+    /**
+     * How long no enemy can hurt a player who has just respawned ({@value #SPAWN_PROTECTION_MILLIS}
+     * ms in every mode; 0: no protection); a hit of their own on an enemy ends it at once
+     * ({@link SpawnProtection}, {@link BedwarsHost#onDamage}).
+     */
+    long spawnProtectionMillis() {
+        return SPAWN_PROTECTION_MILLIS;
+    }
+
+    // --- Back after a disconnection -------------------------------------------------------------
+
+    /** How long a player gone from the server has to come back, when no teammate plays on: 3 minutes. */
+    static final long RETURN_MILLIS = 3 * 60_000L;
+    /** Back on the server: a spectator for this long first, as after a death, then back on their island. */
+    static final int RETURN_SPECTATOR_SECONDS = 10;
+
+    /**
+     * True if a player who leaves the server in the middle of this game may come back into it (the
+     * owner's ask of 23/11: in the Bed Wars games and in ranked, not in the duels): a classic game
+     * of Bed Wars, so Ranked Bedwars, Sky Rise, First Rush and the private games of Bedwars Normal.
+     * The other modes of the plugin (duels, trainings, arenas, fun modes) each have their own class:
+     * a player who leaves is out at once, as before.
+     */
+    boolean waitsForReturn() {
+        return getClass() == BedwarsGame.class;
+    }
+
+    /** True if this player, leaving the server now, may come back into this game ({@link #away}). */
+    boolean mayComeBack(Player player) {
+        Gamer gamer = gamers.get(player.getUniqueId());
+        return gamer != null && !gamer.eliminated && !gamer.away && waitsForReturn() && host.gameOf(gamer.id) == this
+                && (phase == Phase.PLAYING || phase == Phase.STARTING);
+    }
+
+    /**
+     * The player left the server in the middle of the game ({@link #mayComeBack}): the game goes on
+     * without them, their team keeps them. In a game where a teammate of theirs plays on, they may
+     * come back as long as one does; else (a 1v1, or the last of their team) within
+     * {@link #RETURN_MILLIS}, or they are out and the game goes on (a 1v1: the other wins). Back,
+     * {@link #returned}.
+     */
+    void away(Player player) {
+        Gamer gamer = gamers.get(player.getUniqueId());
+        plugin.watchers().playerLeft(this, player);
+        gamer.away = true;
+        gamer.awaySince = System.currentTimeMillis();
+        gamer.respawning = false;
+        cancel(gamer.respawn);
+        gamer.respawn = null;
+        broadcast(gamer.coloured() + ChatColor.GRAY + " disconnected.", null);
+        sidebars();
+    }
+
+    /** True if this player left the server in this game and may still come back into it. */
+    boolean awaits(UUID player) {
+        Gamer gamer = gamers.get(player);
+        return gamer != null && gamer.away && !gamer.eliminated && phase != Phase.ENDED && host.gameOf(player) == this;
+    }
+
+    /**
+     * Back on the server ({@link #awaits}), the lobby has them in this game again: as after a
+     * death, a spectator for {@value #RETURN_SPECTATOR_SECONDS} seconds (their inventory gone, their
+     * tools a tier down), then back on their island; out of the game at once if their bed is gone,
+     * or if it is gone by then.
+     */
+    void returned(Player player) {
+        Gamer gamer = gamers.get(player.getUniqueId());
+        gamer.away = false;
+        if (phase == Phase.STARTING) {
+            // the game has not begun: on their spawn, as the others
+            place(player, gamer);
+            welcome(player, gamer);
+            if (teamNameTags()) {
+                plugin.lobby().setGameNameTag(player, gamer.team.color.letter() + " " + gamer.team.color.chat());
+            }
+            sidebars();
+            return;
+        }
+        if (gamer.pickaxe > 0) {
+            gamer.pickaxe--;
+        }
+        if (gamer.axe > 0) {
+            gamer.axe--;
+        }
+        prepare(player);
+        player.setGameMode(GameMode.SPECTATOR);
+        player.teleport(watchPoint());
+        if (teamNameTags()) {
+            plugin.lobby().setGameNameTag(player, gamer.team.color.letter() + " " + gamer.team.color.chat());
+        }
+        broadcast(gamer.coloured() + ChatColor.GRAY + " reconnected.", null);
+        if (!gamer.team.bed) {
+            outWithoutBed(player, gamer);
+            return;
+        }
+        gamer.respawning = true;
+        respawnLater(player, gamer, RETURN_SPECTATOR_SECONDS, ChatColor.YELLOW + "" + ChatColor.BOLD + "RECONNECTED!", true);
+        sidebars();
+    }
+
+    /** Back with no bed (on their return, or by the end of its seconds): out of the game, a spectator. */
+    private void outWithoutBed(Player player, Gamer gamer) {
+        gamer.respawning = false;
+        gamer.eliminated = true;
+        broadcast(gamer.coloured() + ChatColor.GRAY + " has no bed any more: out of the game.", null);
+        outOfGame(player, gamer);
+        teamOut(gamer.team);
+        sidebars();
+        checkEnd();
+    }
+
+    /** True if a teammate of this player plays on: in the game, on the server. */
+    private boolean teammatePlays(Gamer gamer) {
+        for (UUID member : gamer.team.members) {
+            Gamer mate = gamers.get(member);
+            if (mate != gamer && mate != null && !mate.eliminated && !mate.away && host.gameOf(member) == this) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    /**
+     * Each second: a player gone for {@link #RETURN_MILLIS} with no teammate playing on is out of
+     * the game, a forfeit (the ranked queues close for a while, as when one leaves).
+     */
+    private void awayTooLong() {
+        long now = System.currentTimeMillis();
+        for (Gamer gamer : new ArrayList<>(gamers.values())) {
+            if (phase != Phase.PLAYING) {
+                return;
+            }
+            if (!gamer.away || gamer.eliminated || now - gamer.awaySince < RETURN_MILLIS || teammatePlays(gamer)) {
+                continue;
+            }
+            gamer.eliminated = true;
+            plugin.lobby().forfeited(modeId, gamer.id);
+            host.release(gamer.id);
+            broadcast(gamer.coloured() + ChatColor.GRAY + " did not come back in time: out of the game.", null);
+            left(gamer);
+            teamOut(gamer.team);
+            sidebars();
+            checkEnd();
+        }
     }
 
     /** The player left the game: out of the server, or /spawn. Their team plays on without them. */
@@ -1584,8 +1841,16 @@ class BedwarsGame {
                 }
             }
             plugin.lobby().recordMatch(modeId, winners, losers);
+        } else if (teams.size() > 1 && !present().isEmpty()) {
+            // a draw (the time ran out, nobody left standing): a game played for everyone in it;
+            // nothing when everyone left
+            List<UUID> players = new ArrayList<>();
+            for (Team team : teams) {
+                players.addAll(team.members);
+            }
+            plugin.lobby().recordDraw(modeId, players);
         }
-        List<Gamer> killers = topKillers(new ArrayList<>(gamers.values()));
+        List<String> board = endBoard();
         for (Gamer gamer : gamers.values()) {
             Player player = Bukkit.getPlayer(gamer.id);
             if (player == null || host.gameOf(gamer.id) != this) {
@@ -1596,6 +1861,7 @@ class BedwarsGame {
             } else if (gamer.team == winner) {
                 player.sendTitle(ChatColor.GOLD + "" + ChatColor.BOLD + "VICTORY!", "");
                 player.playSound(player.getLocation(), Sound.LEVEL_UP, 1f, 1f);
+                ding(player);
             } else {
                 player.sendTitle(ChatColor.RED + "" + ChatColor.BOLD + "GAME OVER!", "");
             }
@@ -1603,31 +1869,44 @@ class BedwarsGame {
             player.sendMessage(ChatColor.WHITE + "" + ChatColor.BOLD + "  " + modeName);
             player.sendMessage(winner == null ? ChatColor.YELLOW + "  Draw: no team won."
                     : ChatColor.YELLOW + "  Winner: " + winner.color.coloured() + ChatColor.YELLOW + " - " + names(winner));
-            if (!killers.isEmpty()) {
+            if (!board.isEmpty()) {
                 player.sendMessage("");
             }
-            for (int i = 0; i < killers.size(); i++) {
-                Gamer killer = killers.get(i);
-                player.sendMessage(KILLER_PLACES[i] + ChatColor.GRAY + " - " + killer.coloured() + ChatColor.GRAY + " - "
-                        + ChatColor.WHITE + (killer.kills + killer.finalKills));
+            for (String line : board) {
+                player.sendMessage(line);
             }
-            player.sendMessage(ChatColor.GRAY + "  You: " + gamer.kills + " kills, " + gamer.finalKills
-                    + " final kills, " + gamer.beds + " beds broken");
+            player.sendMessage(summaryLine(gamer));
             player.sendMessage(ChatColor.GREEN + "" + ChatColor.STRIKETHROUGH + "                                        ");
         }
         // the end for the replay and those who watch the game
         replayChat(winner == null ? ChatColor.YELLOW + "Draw: no team won."
                 : ChatColor.YELLOW + "Winner: " + winner.color.coloured() + ChatColor.YELLOW + " - " + names(winner));
-        for (int i = 0; i < killers.size(); i++) {
-            Gamer killer = killers.get(i);
-            replayChat(KILLER_PLACES[i] + ChatColor.GRAY + " - " + killer.coloured() + ChatColor.GRAY + " - "
-                    + ChatColor.WHITE + (killer.kills + killer.finalKills));
+        for (String line : board) {
+            replayChat(line);
         }
         if (replay != null) {
             replay.finish(winner == null ? "Draw" : winner.color.displayName() + " won (" + names(winner) + ")");
             replay = null;
         }
         afterTheEnd(winner != null);
+    }
+
+    /** The lines of the end summary under the winner: the three first killers, as on Hypixel (none without a kill). */
+    List<String> endBoard() {
+        List<String> lines = new ArrayList<>();
+        List<Gamer> killers = topKillers(new ArrayList<>(gamers.values()));
+        for (int i = 0; i < killers.size(); i++) {
+            Gamer killer = killers.get(i);
+            lines.add(KILLER_PLACES[i] + ChatColor.GRAY + " - " + killer.coloured() + ChatColor.GRAY + " - "
+                    + ChatColor.WHITE + (killer.kills + killer.finalKills));
+        }
+        return lines;
+    }
+
+    /** The player's own line of the end summary: their kills, final kills and beds broken. */
+    String summaryLine(Gamer gamer) {
+        return ChatColor.GRAY + "  You: " + gamer.kills + " kills, " + gamer.finalKills + " final kills, " + gamer.beds
+                + " beds broken";
     }
 
     /** The places of the end summary, as on Hypixel. */
@@ -1701,6 +1980,18 @@ class BedwarsGame {
         }
         cleanUp();
         host.finished(this);
+    }
+
+    /**
+     * Its players go on in another game at once (a Block Method practice on another map): this one
+     * ends without a result, nobody sent anywhere; the host then frees its copy of the map.
+     */
+    void handOver() {
+        phase = Phase.ENDED;
+        stopTasks();
+        cancelReplay();
+        plugin.watchers().ended(this);
+        cleanUp();
     }
 
     /** The plugin stops: the game ends without a result. */
@@ -2121,7 +2412,8 @@ class BedwarsGame {
     /**
      * A fireball thrown by this player (or null) has exploded: each player of the game around it is
      * pushed away and up, as on Hypixel, and takes its fixed damage (none to a teammate). Hurting an
-     * enemy counts as a hit, for the kill if they fall.
+     * enemy counts as a hit, for the kill if they fall; with the fireball in One Hit One Kill (a
+     * private game's setting), it kills them.
      */
     void blast(org.bukkit.entity.Fireball fireball, Player thrower) {
         if (phase != Phase.PLAYING) {
@@ -2153,6 +2445,10 @@ class BedwarsGame {
             } else {
                 damage = rules.enemies;
                 hit(gamer, author);
+                if (this.rules.oneHitKills(PrivateRules.FIREBALL)) {
+                    kill(player, thrower, false);
+                    continue;
+                }
             }
             if (damage <= 0) {
                 continue;
@@ -2449,9 +2745,27 @@ class BedwarsGame {
 
     /**
      * The upgrades of the player's team on them, each second and at each respawn: Haste, Sharpness on
-     * the swords and axes they carry, the Heal Pool's Regeneration while they are in their base.
+     * the swords and axes they carry, the Heal Pool's Regeneration while they are in their base; and
+     * the party leader's settings: Speed, Low Gravity, Health Buff.
      */
     void teamEffects(Player player, Gamer gamer) {
+        if (rules.speed() > 0) {
+            // the Speed of the party leader's settings, under a stronger potion of the shop
+            keep(player, PotionEffectType.SPEED, rules.speed() - 1);
+        }
+        if (rules.lowGravity()) {
+            // Low Gravity: Jump Boost III, as on Hypixel
+            keep(player, PotionEffectType.JUMP, 2);
+        }
+        if (rules.healthBoost() >= 0) {
+            // Health Buff: the hearts more, full at the start and at each respawn
+            PotionEffect now = effect(player, PotionEffectType.HEALTH_BOOST);
+            if (now == null || now.getAmplifier() < rules.healthBoost()) {
+                player.addPotionEffect(new PotionEffect(PotionEffectType.HEALTH_BOOST, FOREVER, rules.healthBoost(), true, false),
+                        true);
+                player.setHealth(player.getMaxHealth());
+            }
+        }
         Upgrades upgrades = gamer.team.upgrades;
         if (upgrades.haste() > 0) {
             keep(player, PotionEffectType.FAST_DIGGING, upgrades.haste() - 1);
@@ -2600,6 +2914,24 @@ class BedwarsGame {
     }
 
     // --- Messages -------------------------------------------------------------------------------
+
+    /**
+     * The ding (the owner's ask of 22/11), the sound of an XP orb: each round, point or game won
+     * rings it for those who won it.
+     */
+    static void ding(Player player) {
+        player.playSound(player.getLocation(), Sound.ORB_PICKUP, 1f, 1f);
+    }
+
+    /** The ding for the players of this team still in the game. */
+    void ding(Team team) {
+        for (UUID id : team.members) {
+            Player player = Bukkit.getPlayer(id);
+            if (player != null && host.gameOf(id) == this) {
+                ding(player);
+            }
+        }
+    }
 
     void broadcast(String message, Sound sound) {
         replayChat(message);

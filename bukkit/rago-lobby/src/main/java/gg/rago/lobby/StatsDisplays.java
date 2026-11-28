@@ -20,7 +20,7 @@ import org.bukkit.util.Vector;
 /**
  * What the stats show in the lobby, each player reading their own:
  * <ul>
- * <li>a stats NPC: a Steve holding a book, with the player's profile floating above its head
+ * <li>a stats NPC: a body in its skin, with the player's profile floating above its head
  * (Network level and rank, wins, losses, kills, best streak, wins of the day, ELO of each ranked
  * mode); a click opens {@link StatsMenu};
  * <li>a leaderboard wall: boards side by side, each with its top 10, the player's own place and
@@ -95,6 +95,11 @@ final class StatsDisplays {
     private final List<Spot> spots = new ArrayList<>();
     /** The boards whose period is fixed by their wall, by key. */
     private final Map<String, StatsPeriod> fixed = new HashMap<>();
+    /**
+     * The boards that follow a leaderboard selector, by key: their wall. They share one choice, the
+     * stat chosen at the selector ({@link #choiceKey}), each on the period of its wall.
+     */
+    private final Map<String, LobbyNpc> followers = new HashMap<>();
     /** What the top of the leaderboards of the week wins: nothing until {@link #setWeekly}. */
     private WeeklyRewards.Settings weekly = WeeklyRewards.Settings.OFF;
     private String weeklyBadge;
@@ -128,14 +133,14 @@ final class StatsDisplays {
 
     // --- Stats NPC ------------------------------------------------------------------------------
 
-    /** A body holding a book on the point (in its skin, Steve without one), the player's profile above it. */
+    /** A body on the point (in its skin, Steve without one), the player's profile above it. */
     void addStatsNpc(final LobbyNpc npc, String bodyName, Skin skin, Location base) {
         FakeEntities.Clicker open = (player, left) -> {
             if (cooled(player)) {
                 menu.open(player);
             }
         };
-        fakes.add(new FakePlayer(base, bodyName, skin, new ItemStack(Material.BOOK), open));
+        fakes.add(new FakePlayer(base, bodyName, skin, open));
         Location bottom = base.clone().add(0, LobbyNpcs.ABOVE_HEAD, 0);
         fakes.add(new FakeHologram(bottom, PROFILE_LINES, viewer -> profile(npc, viewer), open));
     }
@@ -154,12 +159,12 @@ final class StatsDisplays {
         int losses = stats == null ? 0 : stats.losses();
         int finals = stats == null ? 0 : stats.finalKills();
         String dot = ChatColor.DARK_GRAY + " · ";
-        lines.add(ChatColor.GRAY + "Games played: " + ChatColor.WHITE + (wins + losses));
+        lines.add(ChatColor.GRAY + "Games played: " + ChatColor.WHITE + (stats == null ? 0 : stats.games()));
         lines.add(ChatColor.GRAY + "Wins: " + ChatColor.GREEN + wins + dot + ChatColor.GRAY + "Losses: " + ChatColor.RED + losses);
         lines.add(ChatColor.GRAY + "WLR: " + ChatColor.GOLD + StatsMenu.ratio(wins, losses));
         lines.add(ChatColor.GRAY + "Kills: " + ChatColor.GREEN + (stats == null ? 0 : stats.kills(StatsPeriod.ALL, null, day, week))
                 + dot + ChatColor.GRAY + "Final kills: " + ChatColor.GREEN + finals);
-        lines.add(ChatColor.GRAY + "FKDR: " + ChatColor.GOLD + StatsMenu.ratio(finals, stats == null ? 0 : stats.finalDeaths()));
+        lines.add(ChatColor.GRAY + "FKDR: " + ChatColor.GOLD + StatsMenu.fkdr(finals, stats == null ? 0 : stats.finalDeaths()));
         lines.add(ChatColor.GRAY + "Best win streak: " + Brand.ACCENT + (stats == null ? 0 : stats.best(StatsPeriod.ALL, null, day, week))
                 + dot + ChatColor.GRAY + "Wins today: " + ChatColor.GREEN
                 + (stats == null ? 0 : stats.wins(StatsPeriod.DAY, null, day, week)));
@@ -186,6 +191,7 @@ final class StatsDisplays {
     void clearWalls() {
         spots.clear();
         fixed.clear();
+        followers.clear();
     }
 
     /** The boards of a wall side by side, facing the spawn, the first one on the left. */
@@ -200,6 +206,9 @@ final class StatsDisplays {
             final String key = wall.point() + "#" + i;
             if (wall.period() != null) {
                 fixed.put(key, wall.period());
+            }
+            if (wall.selector() != null) {
+                followers.put(key, wall);
             }
             double offset = (i - (boards.size() - 1) / 2.0) * BOARD_GAP;
             Location bottom = base.clone().add(rightX * offset, BOARD_BOTTOM, rightZ * offset);
@@ -227,12 +236,23 @@ final class StatsDisplays {
         final GameMode mode;
         /** Null for an ELO board without any ranked mode. */
         final StatsBook.Ranking ranking;
+        /**
+         * The wall of a board of the selector (every stat on its period), or null: a stat that has no
+         * period (level, FKDR, WLR, ELO) is then its lifetime one.
+         */
+        final LobbyNpc follows;
 
-        View(BoardStat stat, StatsPeriod period, GameMode mode, StatsBook.Ranking ranking) {
+        View(BoardStat stat, StatsPeriod period, GameMode mode, StatsBook.Ranking ranking, LobbyNpc follows) {
             this.stat = stat;
             this.period = period;
             this.mode = mode;
             this.ranking = ranking;
+            this.follows = follows;
+        }
+
+        /** A stat without a period of its own shown over a day or a week: the XP earned, the ELO won, a ratio of the period. */
+        boolean overPeriod() {
+            return follows != null && period != StatsPeriod.ALL && !stat.periodic();
         }
     }
 
@@ -243,9 +263,14 @@ final class StatsDisplays {
                 : StatsPeriod.values()[choice.option % StatsPeriod.values().length];
         GameMode mode = stat.choice() != BoardStat.Choice.RANKED_MODE || ranked.isEmpty() ? null
                 : ranked.get(choice.option % ranked.size());
-        StatsBook.Ranking ranking = stat.choice() != BoardStat.Choice.RANKED_MODE || mode != null
-                ? book.ranking(stat, period, mode == null ? null : mode.id(), now) : null;
-        return new View(stat, period, mode, ranking);
+        LobbyNpc follows = followers.get(key);
+        StatsBook.Ranking ranking = null;
+        if (stat.choice() != BoardStat.Choice.RANKED_MODE || mode != null) {
+            String modeId = mode == null ? null : mode.id();
+            ranking = follows != null ? book.ranking(stat, period, modeId, now, follows.minimumGames(period))
+                    : book.ranking(stat, period, modeId, now);
+        }
+        return new View(stat, period, mode, ranking, follows);
     }
 
     /** The lines of a board for this player. */
@@ -256,15 +281,18 @@ final class StatsDisplays {
         GameMode mode = view.mode;
         List<String> lines = new ArrayList<>();
         lines.add(ChatColor.AQUA + "" + ChatColor.BOLD + stat.title());
+        // the period of the board: its own, or ever for a stat without one, but on a wall of the selector
+        StatsPeriod shownPeriod = stat.periodic() || view.follows != null ? period : StatsPeriod.ALL;
         switch (stat.choice()) {
             case PERIOD:
                 lines.add(ChatColor.GRAY + "All modes " + ChatColor.DARK_GRAY + "· " + ChatColor.WHITE + period.label());
                 break;
             case RANKED_MODE:
-                lines.add(ChatColor.GRAY + (mode == null ? "No ranked mode" : ChatColor.stripColor(mode.name())));
+                lines.add(ChatColor.GRAY + (mode == null ? "No ranked mode" : ChatColor.stripColor(mode.name()))
+                        + (view.follows == null ? "" : " " + ChatColor.DARK_GRAY + "· " + ChatColor.WHITE + period.label()));
                 break;
             default:
-                lines.add(ChatColor.GRAY + "All modes " + ChatColor.DARK_GRAY + "· " + ChatColor.WHITE + StatsPeriod.ALL.label());
+                lines.add(ChatColor.GRAY + "All modes " + ChatColor.DARK_GRAY + "· " + ChatColor.WHITE + shownPeriod.label());
                 break;
         }
         lines.add("");
@@ -274,7 +302,7 @@ final class StatsDisplays {
             if (i < rows.size()) {
                 StatsBook.Row row = rows.get(i);
                 lines.add(Brand.ACCENT + "" + (i + 1) + ". " + ChatColor.WHITE + row.name() + ChatColor.GRAY + " - "
-                        + shown(stat, row.value()));
+                        + shown(view, row.value()));
             } else if (i == 0) {
                 lines.add(ChatColor.GRAY + "Nobody yet");
             } else {
@@ -285,19 +313,26 @@ final class StatsDisplays {
         StatsBook.Row own = ranking == null ? null : ranking.rowOf(viewer.getUniqueId());
         lines.add(own == null ? ChatColor.GRAY + "You: " + ChatColor.DARK_GRAY + "not ranked yet"
                 : ChatColor.GRAY + "You: " + Brand.ACCENT + "#" + ranking.position(viewer.getUniqueId())
-                        + ChatColor.GRAY + " - " + shown(stat, own.value()));
-        // the board of the week: what its top wins on Monday
-        lines.add(stat.periodic() && period == StatsPeriod.WEEK && weekly.rewards(stat)
-                ? WeeklyRewards.boardLine(weekly, weeklyBadge) : "");
+                        + ChatColor.GRAY + " - " + shown(view, own.value()));
+        // the board of the week: what its top wins on Monday; a ratio of a day or a week: the games it needs
+        int minimum = view.follows == null ? 0 : view.follows.minimumGames(period);
+        if (stat.periodic() && period == StatsPeriod.WEEK && weekly.rewards(stat)) {
+            lines.add(WeeklyRewards.boardLine(weekly, weeklyBadge));
+        } else if (view.overPeriod() && minimum > 0 && (stat == BoardStat.FKDR || stat == BoardStat.WLR)) {
+            lines.add(ChatColor.GRAY + "Ranked from " + minimum + (stat == BoardStat.FKDR ? " Bed Wars" : "") + " games "
+                    + (period == StatsPeriod.DAY ? "today" : "this week"));
+        } else {
+            lines.add("");
+        }
         switch (stat.choice()) {
             case PERIOD:
                 lines.add(ChatColor.GRAY + period.resetText(now));
                 break;
             case RANKED_MODE:
-                lines.add(ChatColor.GRAY + "Season Elo");
+                lines.add(ChatColor.GRAY + (view.overPeriod() ? period.resetText(now) : "Season Elo"));
                 break;
             default:
-                lines.add(ChatColor.GRAY + StatsPeriod.ALL.resetText(now));
+                lines.add(ChatColor.GRAY + shownPeriod.resetText(now));
                 break;
         }
         if (stats.size() > 1) {
@@ -356,7 +391,11 @@ final class StatsDisplays {
         }
         StatsBook.Row row = view.ranking.rows().get(place);
         String score;
-        if (view.stat == BoardStat.ELO) {
+        if (view.overPeriod() && (view.stat == BoardStat.ELO || view.stat == BoardStat.LEVEL)) {
+            score = shown(view, row.value()) + ChatColor.GRAY + (view.stat == BoardStat.ELO ? " Elo" : "");
+        } else if (view.stat == BoardStat.WLR) {
+            score = Brand.ACCENT + BoardStat.hundredths(row.value()) + ChatColor.GRAY + " WLR";
+        } else if (view.stat == BoardStat.ELO) {
             score = book.ladder().format(row.value());
         } else if (view.stat == BoardStat.LEVEL) {
             int level = book.levels().level(row.value());
@@ -373,9 +412,21 @@ final class StatsDisplays {
 
     /**
      * The value a board shows: the level for the Network level (ranked by XP), the division with
-     * the ELO ("Gold 245"), the ratio for the FKDR ("2.5"), the number otherwise.
+     * the ELO ("Gold 245"), the ratio for the FKDR and the WLR ("2.50"), the number otherwise. Over
+     * a day or a week on a wall of the selector: the XP earned ("1,250 XP"), the ELO won ("+25",
+     * "-10").
      */
-    private String shown(BoardStat stat, int value) {
+    private String shown(View view, int value) {
+        BoardStat stat = view.stat;
+        if (view.overPeriod() && stat == BoardStat.LEVEL) {
+            return Brand.ACCENT + String.format(java.util.Locale.US, "%,d", value) + ChatColor.GRAY + " XP";
+        }
+        if (view.overPeriod() && stat == BoardStat.ELO) {
+            return (value > 0 ? ChatColor.GREEN + "+" : value < 0 ? ChatColor.RED + "" : ChatColor.GRAY + "") + value;
+        }
+        if (stat == BoardStat.WLR) {
+            return Brand.ACCENT + BoardStat.hundredths(value);
+        }
         if (stat == BoardStat.LEVEL) {
             return book.levels().paint(String.valueOf(book.levels().level(value)), book.levels().level(value));
         }
@@ -388,7 +439,12 @@ final class StatsDisplays {
         return Brand.ACCENT + String.valueOf(value);
     }
 
+    /** The choice a player made on this board: its own, or the one of the selector it follows. */
     private Choice choice(UUID player, String key) {
+        return choiceAt(player, choiceKey(key));
+    }
+
+    private Choice choiceAt(UUID player, String key) {
         Map<String, Choice> mine = choices.get(player);
         if (mine == null) {
             mine = new HashMap<>();
@@ -400,6 +456,185 @@ final class StatsDisplays {
             mine.put(key, choice);
         }
         return choice;
+    }
+
+    /** The choice a board reads: its own, or the one of the selector it follows, shared by its walls. */
+    private String choiceKey(String key) {
+        LobbyNpc follows = followers.get(key);
+        return follows == null ? key : selectorKey(follows.selector());
+    }
+
+    private static String selectorKey(String selector) {
+        return "selector:" + selector;
+    }
+
+    // --- Leaderboard selector -----------------------------------------------------------------------
+
+    /**
+     * The NPC of the leaderboard selector (plan 3.1): the menu of its stats, one item for each, and
+     * for the ELO one for each ranked mode, laid out by {@link #selectorLayout}. The stat clicked
+     * shows on the walls that follow it, on the period of each (Daily, Weekly, Lifetime), for the
+     * one who clicked.
+     */
+    void openSelector(Player player, LobbyNpc selector) {
+        List<BoardStat> stats = selector.boards().get(0);
+        List<String> rankedNames = new ArrayList<>();
+        for (GameMode mode : ranked) {
+            rankedNames.add(ChatColor.stripColor(mode.name()));
+        }
+        SelectorLayout layout = selectorLayout(stats, rankedNames);
+        ClickMenu chest = new ClickMenu(layout.rows, "Leaderboards");
+        Choice now = choiceAt(player.getUniqueId(), selectorKey(selector.point()));
+        for (int[] each : layout.items) {
+            final int stat = each[0];
+            final int option = each[1];
+            BoardStat shown = stats.get(stat);
+            GameMode mode = shown.choice() == BoardStat.Choice.RANKED_MODE && !ranked.isEmpty() ? ranked.get(option) : null;
+            String name = selectorName(shown, mode);
+            List<String> lore = new ArrayList<>();
+            if (mode != null) {
+                // the Elo of one ranked mode: its name and its icon, as in the menus
+                lore.add(ChatColor.GRAY + shown.title());
+            }
+            lore.addAll(selectorLore(shown, selector));
+            boolean chosen = now.stat % stats.size() == stat && (mode == null || now.option % ranked.size() == option);
+            lore.add("");
+            lore.add(chosen ? ChatColor.GREEN + "Shown now" : ChatColor.YELLOW + "Click to show it");
+            ModeDisplay display = mode == null ? null : settings.display(mode.id());
+            Material icon = display != null ? display.icon() : selectorIcon(shown);
+            String title = mode == null ? shown.title() : ChatColor.stripColor(mode.name());
+            ItemStack item = ClickMenu.item(icon, 0, ChatColor.AQUA + "" + ChatColor.BOLD + title, lore);
+            chest.set(each[2], chosen ? ClickMenu.glow(item) : item, (clicker, right) -> {
+                select(clicker.getUniqueId(), selector.point(), stat, option);
+                clicker.closeInventory();
+                clicker.sendMessage(ChatColor.GREEN + "Leaderboards: " + ChatColor.WHITE + name);
+            });
+        }
+        chest.open(player);
+    }
+
+    /** The menu of a selector: each item {the stat's index, its option, its slot}, and the rows of its chest. */
+    static final class SelectorLayout {
+        final List<int[]> items = new ArrayList<>();
+        int rows;
+    }
+
+    /**
+     * The menu of a selector, sorted and clearer (the owner's ask of 22/11, 19h51): its stats on a
+     * row of their own, in their order (stats:), seven a row under an empty row, as in the menus of
+     * the compass; under them, after an empty row, the Elo of each ranked mode, sorted by the name
+     * of the mode (colours and case aside), seven a row; an empty row at the bottom. Side by side
+     * from the top, as before, when that does not fit in six rows.
+     */
+    static SelectorLayout selectorLayout(List<BoardStat> stats, List<String> rankedNames) {
+        List<int[]> general = new ArrayList<>();
+        List<int[]> elo = new ArrayList<>();
+        for (int[] item : selectorItems(stats, rankedNames.size())) {
+            (stats.get(item[0]).choice() == BoardStat.Choice.RANKED_MODE ? elo : general).add(item);
+        }
+        elo.sort((a, b) -> rankedNames.get(a[1]).toLowerCase(java.util.Locale.ROOT)
+                .compareTo(rankedNames.get(b[1]).toLowerCase(java.util.Locale.ROOT)));
+        int generalRows = (general.size() + 6) / 7;
+        int eloRows = (elo.size() + 6) / 7;
+        int gap = generalRows > 0 && eloRows > 0 ? 1 : 0;
+        SelectorLayout layout = new SelectorLayout();
+        layout.rows = 1 + generalRows + gap + eloRows + 1;
+        if (layout.rows > 6) {
+            List<int[]> all = new ArrayList<>(general);
+            all.addAll(elo);
+            for (int i = 0; i < all.size() && i < 54; i++) {
+                layout.items.add(new int[] {all.get(i)[0], all.get(i)[1], i});
+            }
+            layout.rows = Math.max(1, Math.min(6, (all.size() + 8) / 9));
+            return layout;
+        }
+        for (int i = 0; i < general.size(); i++) {
+            layout.items.add(new int[] {general.get(i)[0], general.get(i)[1], (1 + i / 7) * 9 + 1 + i % 7});
+        }
+        int first = 1 + generalRows + gap;
+        for (int i = 0; i < elo.size(); i++) {
+            layout.items.add(new int[] {elo.get(i)[0], elo.get(i)[1], (first + i / 7) * 9 + 1 + i % 7});
+        }
+        return layout;
+    }
+
+    /**
+     * The items of the menu of a selector, in order: {the stat's index, its option}; the option is
+     * the ranked mode of an ELO (one item for each of them), 0 otherwise.
+     */
+    static List<int[]> selectorItems(List<BoardStat> stats, int rankedModes) {
+        List<int[]> items = new ArrayList<>();
+        for (int i = 0; i < stats.size(); i++) {
+            if (stats.get(i).choice() == BoardStat.Choice.RANKED_MODE) {
+                for (int mode = 0; mode < rankedModes; mode++) {
+                    items.add(new int[] {i, mode});
+                }
+            } else {
+                items.add(new int[] {i, 0});
+            }
+        }
+        return items;
+    }
+
+    /** The stat this player chose at this selector, and its ranked mode: every wall that follows it shows it. */
+    void select(UUID player, String selector, int stat, int option) {
+        Choice choice = choiceAt(player, selectorKey(selector));
+        choice.stat = stat;
+        choice.option = option;
+    }
+
+    /** "Kills", "Ranked Elo: Ranked 1v1". */
+    private static String selectorName(BoardStat stat, GameMode mode) {
+        return mode == null ? stat.title() : stat.title() + ": " + ChatColor.stripColor(mode.name());
+    }
+
+    /** What the three periods of a stat rank, for its item in the menu of the selector. */
+    static List<String> selectorLore(BoardStat stat, LobbyNpc selector) {
+        List<String> lore = new ArrayList<>();
+        switch (stat) {
+            case LEVEL:
+                lore.add(ChatColor.GRAY + "Daily, Weekly: the XP earned");
+                lore.add(ChatColor.GRAY + "Lifetime: the Network level");
+                break;
+            case ELO:
+                lore.add(ChatColor.GRAY + "Daily, Weekly: the Elo won");
+                lore.add(ChatColor.GRAY + "Lifetime: the Elo of the season");
+                break;
+            case FKDR:
+            case WLR:
+                lore.add(ChatColor.GRAY + "Daily, Weekly, Lifetime");
+                int day = selector.minimumGames(StatsPeriod.DAY);
+                int week = selector.minimumGames(StatsPeriod.WEEK);
+                if (day > 0 || week > 0) {
+                    lore.add(ChatColor.GRAY + "Ranked from " + day + " games a day, " + week + " a week");
+                }
+                break;
+            default:
+                lore.add(ChatColor.GRAY + "Daily, Weekly, Lifetime");
+                break;
+        }
+        return lore;
+    }
+
+    private static Material selectorIcon(BoardStat stat) {
+        switch (stat) {
+            case WINS:
+                return Material.GOLD_INGOT;
+            case GAMES:
+                return Material.PAPER;
+            case STREAK:
+                return Material.BLAZE_POWDER;
+            case KILLS:
+                return Material.IRON_SWORD;
+            case FKDR:
+                return Material.BED;
+            case WLR:
+                return Material.GOLD_NUGGET;
+            case LEVEL:
+                return Material.EXP_BOTTLE;
+            default:
+                return Material.DIAMOND;
+        }
     }
 
     /**

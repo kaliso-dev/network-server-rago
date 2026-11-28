@@ -9,8 +9,10 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
+import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.UUID;
 import java.util.concurrent.Executor;
 import java.util.logging.Level;
@@ -73,6 +75,13 @@ final class StatsService {
 
     /** True once every player's file is read and in the book. */
     private boolean filesRead;
+    /** Beside the stats folder: the names of the resets done ({@link #resetKillsOnce}), one a line. */
+    static final String RESETS_FILE = "stats-remises-a-zero.txt";
+    /** Beside the stats folder: the copy of the stats folder made before a reset, this name then the reset's. */
+    static final String BACKUP_PREFIX = "stats-sauvegarde-";
+    private final Set<String> resetsDone = new LinkedHashSet<>();
+    /** What waits for the files to be read. */
+    private final List<Runnable> afterLoad = new ArrayList<>();
 
     /** Reads every player's file on the writer thread, then fills the book on the main thread. */
     void load() {
@@ -90,6 +99,20 @@ final class StatsService {
      */
     void load(Runnable whenLoaded) {
         io.execute(() -> {
+            final List<String> resets = new ArrayList<>();
+            File resetsFile = new File(plugin.getDataFolder(), RESETS_FILE);
+            if (resetsFile.isFile()) {
+                try {
+                    for (String line : Files.readAllLines(resetsFile.toPath(), StandardCharsets.UTF_8)) {
+                        if (!line.trim().isEmpty()) {
+                            resets.add(line.trim());
+                        }
+                    }
+                } catch (IOException e) {
+                    plugin.getLogger().log(Level.WARNING, "Unreadable " + resetsFile + ": its resets are not done again", e);
+                    resets.add("*");
+                }
+            }
             final List<PlayerStats> loaded = new ArrayList<>();
             final Map<String, List<TeamStreak>> loadedTeams = new HashMap<>();
             File[] teamFiles = new File(folder, StatsFiles.TEAMS_FOLDER).listFiles((dir, name) -> name.endsWith(".yml"));
@@ -122,11 +145,14 @@ final class StatsService {
                     int added = 0;
                     for (PlayerStats stats : loaded) {
                         if (book.load(stats)) {
-                            added++;
-                            if (Bukkit.getPlayer(stats.id()) != null) {
-                                // Online before the files were read (a /reload): level and rank follow.
-                                xpListener.xpChanged(stats.id());
-                            }
+                            // A profile made before the files were read (a /reload) may have been
+                            // written over the file meanwhile: the file's stats are written again.
+                            save(stats);
+                        }
+                        added++;
+                        if (Bukkit.getPlayer(stats.id()) != null) {
+                            // Online before the files were read (a /reload): level and rank follow.
+                            xpListener.xpChanged(stats.id());
                         }
                     }
                     for (Map.Entry<String, List<TeamStreak>> mode : loadedTeams.entrySet()) {
@@ -135,8 +161,15 @@ final class StatsService {
                         }
                     }
                     plugin.getLogger().info("Stats of " + added + " players loaded");
+                    resetsDone.addAll(resets);
                     filesRead = true;
+                    // the week that ended gets its results first, then the resets waiting
                     whenLoaded.run();
+                    List<Runnable> waiting = new ArrayList<>(afterLoad);
+                    afterLoad.clear();
+                    for (Runnable task : waiting) {
+                        task.run();
+                    }
                 });
             }
         });
@@ -188,6 +221,138 @@ final class StatsService {
                 }
             }
             questsDone(stats, done);
+            gained(stats, old);
+            save(stats);
+        }
+    }
+
+    /**
+     * Once ever for this name (kept in plugins/RagoLobby/{@value #RESETS_FILE}): the kills and the
+     * deaths of these modes go back to 0 for every player (ever, of the day, of the week), after a
+     * copy of the stats folder in plugins/RagoLobby/{@value #BACKUP_PREFIX}name/ (never written
+     * over: a copy already there stays). The rest of the stats stays as it is. For a change in how
+     * they are counted, so that everyone starts again from the same rule. Waits for the files to be
+     * read. Main thread.
+     */
+    void resetKillsOnce(String name, Collection<String> modeIds) {
+        if (!filesRead) {
+            afterLoad.add(() -> resetKillsOnce(name, modeIds));
+            return;
+        }
+        if (resetsDone.contains("*") || !resetsDone.add(name)) {
+            return;
+        }
+        final File backup = new File(plugin.getDataFolder(), BACKUP_PREFIX + name);
+        // on the writer thread, before the files written below: the copy is of the stats as they were
+        io.execute(() -> {
+            if (backup.exists()) {
+                return;
+            }
+            try {
+                copyFolder(folder.toPath(), backup.toPath());
+            } catch (IOException e) {
+                plugin.getLogger().log(Level.WARNING, "Cannot copy the stats in " + backup, e);
+            }
+        });
+        List<PlayerStats> changed = book.resetKills(modeIds);
+        for (PlayerStats stats : changed) {
+            save(stats);
+        }
+        writer.write(new File(plugin.getDataFolder(), RESETS_FILE), String.join("\n", resetsDone) + "\n");
+        plugin.getLogger().info("Kills and deaths of " + modeIds + " back to 0 (" + name + ") for " + changed.size()
+                + " players; the stats before are in " + backup);
+    }
+
+    /**
+     * Once ever for this name (kept in plugins/RagoLobby/{@value #RESETS_FILE}): every player's
+     * stats back to nothing ({@link StatsBook#resetStats}: the XP and the level, the wins, the
+     * kills, the ELO, the streaks, and those of the teams), after a copy of the stats folder in
+     * plugins/RagoLobby/{@value #BACKUP_PREFIX}name/. Nothing is reset if the copy cannot be made
+     * (the next start tries again); a copy already there stays, never written over. The rest of
+     * the profile stays (Rago Points, ranks, cosmetics, friends, settings). Waits for the files to
+     * be read. Main thread.
+     */
+    void resetStatsOnce(String name) {
+        if (!filesRead) {
+            afterLoad.add(() -> resetStatsOnce(name));
+            return;
+        }
+        if (resetsDone.contains("*") || resetsDone.contains(name)) {
+            return;
+        }
+        final File backup = new File(plugin.getDataFolder(), BACKUP_PREFIX + name);
+        // the copy first, on the writer thread after the files written so far; the reset after it
+        io.execute(() -> {
+            boolean copied = true;
+            if (!backup.exists()) {
+                try {
+                    copyFolder(folder.toPath(), backup.toPath());
+                } catch (IOException e) {
+                    plugin.getLogger().log(Level.SEVERE, "Cannot copy the stats in " + backup + ": they are not reset ("
+                            + name + ")", e);
+                    copied = false;
+                }
+            }
+            if (copied && plugin.isEnabled()) {
+                Bukkit.getScheduler().runTask(plugin, () -> resetStatsNow(name, backup));
+            }
+        });
+    }
+
+    /** The reset of {@link #resetStatsOnce}, the copy made. Main thread. */
+    private void resetStatsNow(String name, File backup) {
+        if (!resetsDone.add(name)) {
+            return;
+        }
+        Set<String> teamModes = book.teamModes();
+        List<PlayerStats> changed = book.resetStats();
+        for (PlayerStats stats : changed) {
+            save(stats);
+            if (Bukkit.getPlayer(stats.id()) != null) {
+                xpListener.xpChanged(stats.id());
+            }
+        }
+        for (String mode : teamModes) {
+            writer.write(new File(new File(folder, StatsFiles.TEAMS_FOLDER), mode + ".yml"),
+                    StatsFiles.teamsToYaml(mode, Collections.<TeamStreak>emptyList()));
+        }
+        writer.write(new File(plugin.getDataFolder(), RESETS_FILE), String.join("\n", resetsDone) + "\n");
+        plugin.getLogger().info("Stats of " + changed.size() + " players and the team streaks of " + teamModes.size()
+                + " modes back to 0 (" + name + "); the stats before are in " + backup);
+    }
+
+    /** Copies a folder and everything in it, its files kept as they are. Writer thread. */
+    private static void copyFolder(java.nio.file.Path from, java.nio.file.Path to) throws IOException {
+        if (!Files.isDirectory(from)) {
+            return;
+        }
+        try (java.util.stream.Stream<java.nio.file.Path> paths = Files.walk(from)) {
+            for (java.nio.file.Path path : (Iterable<java.nio.file.Path>) paths::iterator) {
+                java.nio.file.Path target = to.resolve(from.relativize(path).toString());
+                if (Files.isDirectory(path)) {
+                    Files.createDirectories(target);
+                } else {
+                    Files.copy(path, target, java.nio.file.StandardCopyOption.COPY_ATTRIBUTES);
+                }
+            }
+        }
+    }
+
+    /**
+     * A game without a winner: a game played for each player (its XP, its Rago Points, the quests
+     * of games), told to them, and their files written. Neither the ELO nor the streaks move.
+     */
+    void draw(GameMode mode, Collection<UUID> players) {
+        Map<UUID, Integer> before = xpOf(players, Collections.<UUID>emptyList());
+        for (PlayerStats stats : book.draw(mode, players, StatsService::nameOf, System.currentTimeMillis())) {
+            Integer old = before.get(stats.id());
+            Player player = Bukkit.getPlayer(stats.id());
+            if (player != null && old != null && stats.xp() > old) {
+                player.sendMessage(Brand.XP + "+" + (stats.xp() - old) + " Network XP" + ChatColor.GRAY + " (game played)"
+                        + boostNote(stats.id()));
+            }
+            played(stats, server.points().loss, "game played");
+            questsDone(stats, quest(stats, Quests.Goal.GAMES, mode.id()));
             gained(stats, old);
             save(stats);
         }
@@ -261,9 +426,22 @@ final class StatsService {
 
     /** A kill in a game: counts it, gives the killer some XP, and writes both files. */
     void kill(String modeId, UUID killer, UUID victim) {
-        Map<UUID, Integer> before = xpOf(Collections.singletonList(killer),
+        kill(modeId, killer, victim, false);
+    }
+
+    /**
+     * A kill in a game (killer null: a death nobody gets the kill of), or a Bed Wars final kill: the
+     * XP, the points and the quests of a kill, but counted in the final kills only (see
+     * {@link StatsBook#kill(String, UUID, UUID, boolean, StatsBook.Names, long)}). Writes the files.
+     */
+    void kill(String modeId, UUID killer, UUID victim, boolean finalKill) {
+        if (killer != null && killer.equals(victim)) {
+            // no kill of oneself: a death
+            killer = null;
+        }
+        Map<UUID, Integer> before = xpOf(killer == null ? Collections.<UUID>emptyList() : Collections.singletonList(killer),
                 victim == null ? Collections.<UUID>emptyList() : Collections.singletonList(victim));
-        for (PlayerStats stats : book.kill(modeId, killer, victim, StatsService::nameOf, System.currentTimeMillis())) {
+        for (PlayerStats stats : book.kill(modeId, killer, victim, finalKill, StatsService::nameOf, System.currentTimeMillis())) {
             Integer old = before.get(stats.id());
             Player player = Bukkit.getPlayer(stats.id());
             if (player != null && old != null && stats.xp() > old) {
@@ -312,6 +490,18 @@ final class StatsService {
                     + boostNote(id));
         }
         played(stats, server.points().forXp(xp), reason);
+        gained(stats, old);
+        save(stats);
+    }
+
+    /**
+     * Network XP of a reward (the Daily Chest): as it is, without the boosters nor the Rago Points of
+     * the trainings; a new level gives its own. The caller tells the player. The file is written.
+     */
+    void rewardXp(UUID id, int xp) {
+        PlayerStats stats = book.profile(id, nameOf(id));
+        int old = stats.xp();
+        book.rewardXp(stats, xp);
         gained(stats, old);
         save(stats);
     }

@@ -36,6 +36,15 @@ class HeadLineNickTest {
     }
 
     @Test
+    void theNetworkLevelShowsAboveTheNameOfWhoNeverChose() {
+        assertEquals(HeadLines.Shown.LEVEL, HeadLines.Shown.DEFAULT, "plan 3.5");
+        assertEquals(HeadLines.Shown.LEVEL, HeadLines.Shown.chosen(null));
+        assertEquals(HeadLines.Shown.LEVEL, HeadLines.Shown.chosen("dance"), "an unknown choice");
+        assertEquals(HeadLines.Shown.ELO, HeadLines.Shown.chosen("elo"), "who chose the ELO keeps it");
+        assertEquals(HeadLines.Shown.KILLS, HeadLines.Shown.chosen("kills"));
+    }
+
+    @Test
     void aMessageIsShortColouredAndNeverObfuscated() {
         assertEquals("§dGG §fwell played", HeadLines.cleanMessage("  &dGG &fwell played "));
         assertEquals("§cno magic", HeadLines.cleanMessage("&c&kno magic"));

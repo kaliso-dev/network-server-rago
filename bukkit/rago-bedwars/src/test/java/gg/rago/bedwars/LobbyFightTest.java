@@ -194,7 +194,31 @@ class LobbyFightTest {
         assertEquals(180f, Math.abs(LobbyFight.yaw(0, -1)), 1e-3, "north");
     }
 
-    /** The kit of the Lobby Fight FFA: a stone sword, 5 golden apples and 3 fireballs, in the first slots. */
+    @Test
+    void lobbyFightHasItsOwnKitHasteAndThreeRoundsToWin() {
+        assertEquals("lobby-fight-ffa", LobbyFight.KIT_MODE, "the 1v1 plays the kit of Lobby Fight FFA, not the FFA's");
+        List<ItemStack> kit = LobbyFight.fallbackKit();
+        assertEquals(9, kit.size());
+        assertEquals(Material.STONE_SWORD, kit.get(0).getType());
+        assertEquals(Material.GOLDEN_APPLE, kit.get(1).getType());
+        assertEquals(5, kit.get(1).getAmount(), "5 golden apples");
+        assertEquals(Material.FIREBALL, kit.get(2).getType());
+        assertEquals(3, kit.get(2).getAmount(), "3 fireballs");
+        assertEquals(Material.ENDER_STONE, kit.get(3).getType());
+        assertEquals(12, kit.get(3).getAmount(), "12 end stone");
+        assertEquals(Material.WOOD_PICKAXE, kit.get(4).getType(), "a wooden pickaxe");
+        assertEquals(Material.ENDER_PEARL, kit.get(5).getType(), "the pearl of the 1v1 of before");
+        assertEquals(Material.WOOL, kit.get(6).getType(), "its wool");
+        assertEquals(64, kit.get(6).getAmount());
+        assertEquals(Material.WOOL, kit.get(7).getType(), "2 stacks");
+        assertEquals(64, kit.get(7).getAmount());
+        assertEquals(Material.SHEARS, kit.get(8).getType(), "and its shears");
+        assertEquals(0, LobbyFight.HASTE, "Haste I");
+        assertEquals(3, LobbyFightGame.ROUNDS_TO_WIN, "the first to 3");
+        assertEquals(10, FfaGame.DECAY_SECONDS, "the blocks go after 10 seconds");
+    }
+
+    /** The first slots of the kit of Lobby Fight: a stone sword, 5 golden apples and 3 fireballs. */
     private static ItemStack[] lobbyFfaKit() {
         ItemStack[] kit = new ItemStack[36];
         kit[0] = new ItemStack(Material.STONE_SWORD);
@@ -209,6 +233,37 @@ class LobbyFightTest {
             copy[slot] = stacks[slot] == null ? null : stacks[slot].clone();
         }
         return copy;
+    }
+
+    @Test
+    void aKillInTheFfaBringsTheWholeKitBack() {
+        // the owner's fight kit of the FFA: a sword, 64 apples, 3 fireballs, a pearl, 2 stacks of wool, shears
+        ItemStack[] kit = FfaGame.fightKit(true).toArray(new ItemStack[0]);
+        assertEquals(Material.FIREBALL, kit[2].getType());
+        ItemStack[] contents = copy(kit);
+        contents[1].setAmount(60);
+        contents[2] = null;
+        contents[3] = null;
+        contents[4].setAmount(10);
+        contents[5] = null;
+        ItemStack sword = contents[0];
+        // the new stacks, in the order of the kit: the fireballs, the pearl, the second stack of wool
+        assertEquals(Arrays.asList(2, 3, 5), FfaGame.refillAll(contents, kit));
+        assertEquals(64, contents[1].getAmount(), "the apples back to 64 on their stack");
+        assertEquals(3, contents[2].getAmount());
+        assertEquals(Material.ENDER_PEARL, contents[3].getType());
+        assertEquals(64, contents[4].getAmount(), "the wool held grows first");
+        assertEquals(64, contents[5].getAmount());
+        assertSame(sword, contents[0], "the sword as it was");
+        assertEquals(Material.SHEARS, contents[6].getType());
+
+        // the whole kit in hand: nothing changes; no kit: nothing
+        contents = copy(kit);
+        assertTrue(FfaGame.refillAll(contents, kit).isEmpty());
+        assertEquals(64, contents[1].getAmount());
+        contents[2] = null;
+        assertTrue(FfaGame.refillAll(contents, null).isEmpty());
+        assertNull(contents[2]);
     }
 
     @Test

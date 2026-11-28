@@ -51,3 +51,8 @@ Les maps ne sont pas dans ce dépôt.
 Sur 54 maps solo/doubles et 4 équipes, toutes ont eu leurs équipes complètes, et 344 îles sur 408
 ont leurs deux PNJ sous des barrières. Les points trouvés par la forme de la map, et les PNJ placés
 au bord de l'île, sont les moins sûrs : à regarder en premier.
+
+Un générateur trouvé par une fosse d'un bloc (« pit » dans le résumé), et non par une fosse de
+dalles, est aussi à vérifier en jeu. Sur Invasion, la seule des 17 maps de `maps-bedwars` dans ce
+cas, la fosse trouvée était le sol vitré au milieu du dôme ; la forge est le carré de quatre
+lanternes marines au fond de chaque base. Son `bedwars.yml` a été corrigé à la main (21/11).

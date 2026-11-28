@@ -38,10 +38,9 @@ sumo:
       centre: [0, 64, 0]
       zone: [-22, 57, -24, 22, 96, 44]
 
-# The boxing and the combo bot play on these arenas, as the sumo on its maps: the Minemen arenas
-# of 2022 the owner gave (worlds of the folder of the worlds). "departs": where the two players
-# start, x, y of the feet, z, yaw (the diamond blocks of the map). The combo bot starts the player
-# on the first one and the bot 8 blocks in front of them. Without these worlds: a ring.
+# The boxing plays on these arenas, as the sumo on its maps: the Minemen arenas of 2022 the owner
+# gave (worlds of the folder of the worlds). "departs": where the two players start, x, y of the
+# feet, z, yaw (the diamond blocks of the map). Without these worlds: a ring.
 boxing:
   cartes:
     - monde: "Minemen Cobble"
@@ -172,16 +171,19 @@ xp-entrainement:
 # The events PREMIUM players host with /host (the permission rago.perk.host, given by the PREMIUM
 # rank of the lobby), as on Minemen: Sumo, Brackets (1v1 tournament with a sword and armour) and
 # Last Man Standing. They play on the sumo maps above (one at a time), in the hidden modes
-# event-sumo, event-brackets and event-lms of the lobby's config.yml. The whole server is told with
-# a [Click to join] for attente-secondes, then the event starts with joueurs-min players at least
-# (otherwise it is called off), joueurs-max at most. A host waits cooldown-minutes before hosting
+# event-sumo, event-brackets and event-lms of the lobby's config.yml. The whole server is told every
+# 10 seconds, with a [Click to join] (/join), until it starts. Joining does not move a player: they
+# keep playing their game until then (/event leave takes them out). After attente-secondes, it
+# starts as soon as joueurs-min players are in: those still in a game leave it, as with /spawn (a
+# forfeit while they play), and all go to it. joueurs-max players at most. A host waits cooldown-minutes before hosting
 # again (the staff, rago.staff, never waits), and the server pause-secondes between two events.
 # The winner gets xp-gagnant Network XP, every other player xp-participation.
 # automatiques: the server hosts events on its own, under the name "Rago", when nobody does: once
 # the lobby has joueurs-lobby players out of a game (2 to 200) and no event ran for minutes minutes
-# (5 to 1440), it announces the next of types (sumo, brackets, lms, in turn) with a [Click to join];
-# the first player in starts it, and it plays as a hosted one. actif: false turns them off; without
-# the section, they run with these settings.
+# (5 to 1440), it announces the next of types (sumo, brackets, lms, in turn) the same way; players
+# join it as a hosted one, and it starts the same way at the end of attente-secondes, or is dropped
+# without joueurs-min players in then. actif: false turns them off; without the section,
+# they run with these settings.
 evenements:
   attente-secondes: 60
   joueurs-min: 2
@@ -203,15 +205,14 @@ evenements:
 # in a row they played it (jours-de-suite-max days at most). The trainings: block-in.wood,
 # block-in.wool, block-in.two, clutch.island, clutch-top-fight.top, aim-trainer.strafe,
 # aim-trainer.jump, aim-trainer.circle, fast-defense.ranked, fast-defense.duo, ladder-practice.h4
-# (h8 ... h24), ladder-practice.random, combo-bot.easy (normal, hard, expert),
-# extend-practice.chain (and its jumps: double-5-1...), kb-displace-bot.still, block-edit.bot,
+# (h8 ... h24), ladder-practice.random,
+# extend-practice.chain (and its jumps: double-5-1...), block-edit.bot,
 # bridge-chrono.16 (32, 64: the timed bridge, straight and flat).
 # actif: false turns it off; without the section, it runs with these settings.
 defi-du-jour:
   actif: true
   epreuves: [block-in.wood, clutch.island, aim-trainer.strafe, fast-defense.ranked, ladder-practice.random,
-    combo-bot.hard, extend-practice.chain, clutch-top-fight.top, block-edit.bot, block-in.two, aim-trainer.circle,
-    kb-displace-bot.still]
+    extend-practice.chain, clutch-top-fight.top, block-edit.bot, block-in.two, aim-trainer.circle]
   xp-participation: 100
   xp-par-jour-de-suite: 25
   jours-de-suite-max: 7
@@ -228,6 +229,8 @@ aim-trainer:
   xp-par-seconde: 1
   touches-par-xp: 10
 
+# (Pearl practice and fireball practice left the menus, the owner's ask of 23/11: this section is no
+# longer read, it stays to put them back.)
 # Pearl practice and fireball practice, in a loop on the Bed Wars maps: each attempt on the next map
 # of this list that the server has (its world in the folder of the worlds, with its bedwars.yml of
 # the Bed Wars plugin), at another place, in another direction. Of each map, the side of a team is
@@ -260,7 +263,18 @@ block-in:
   departs:
     - [-68, 76, -22, 135, 60]
     - [-68, 76, -30, 45, 60]
+  # The RBW level (the owner's ask of 27/11): his map Block In Practice RBW, the red bed (lit, tete)
+  # and the island around it (zone), its defense of a game of RBW (end stone, red glass) read from the
+  # map around the bed and put back at each attempt; a ring of glass ten blocks over it, as on the
+  # island, and the same starts. Without the world: the RBW level plays on the island.
+  rbw:
+    monde: "Block In Practice RBW"
+    lit: [-15, 66, -67]
+    tete: [-15, 66, -66]
+    zone: [-23, 55, -76, -7, 80, -58]
 
+# (KB displace, 1v1 and against a bot, left the menus, the owner's ask of 23/11: this section is no
+# longer read, it stays to put them back.)
 # KB displace (the duel and the drill against a bot) on the owner's map KbDisplace: its bridge and
 # islands copied once ("centre" and "zone" as the sumo maps); "defenseur", the defender's place
 # (the notch of the bridge, between its two raised blocks; the bot stands there), and "attaquant",
@@ -334,3 +348,104 @@ bow-training:
     - [-13, -22, -13, -61]
     - [-9, -24, -9, -61]
     - [-16, -20, -16, -61]
+
+# Hypixel Bow Practice (the owner's ask of 27/11), on his map BowPractice, copied once ("centre"
+# and "zone" as the sumo maps). "niveaux": the levels in their order (the dyes change them), each
+# "joueur", the player's start (x, y, z, yaw, pitch as F3 gives them; they move on 5 by 5 blocks
+# around it) and "pont", the bridge of the zombie: x, y, z of its first block (the zombie starts on
+# it) then x, z of its last one (getting there is a loss). The first arrow knocks the zombie off, two
+# more hits in the air win. Without the world: the plugin's own levels on plain blocks.
+bow-practice:
+  monde: BowPractice
+  centre: [26, 66, 50]
+  zone: [4, 45, 26, 48, 100, 72]
+  niveaux:
+    # level 1 (the gold blocks of the map): a straight bridge
+    - joueur: [36.5, 66, 62.5, 153.5, 0]
+      pont: [31, 66, 51, 31, 59]
+    # level 2 (the diamond blocks): a diagonal bridge
+    - joueur: [31.5, 66, 62.5, 114.8, 3.4]
+      pont: [15, 65, 52, 26, 62]
+    # level 3 (the emerald blocks): a high bridge
+    - joueur: [22.5, 65, 33.5, -46.4, -7.9]
+      pont: [31, 67, 49, 31, 36]
+
+# FUN PRACTICE (plan 6.1). The values below are starting values, to tune in game with the owner:
+# the owner still has to choose the rounds, the radius, the fireballs and the delay of the gust.
+#
+# Fireball Fight (the "fireball-knockback" mode of the lobby, not the "fireball" of the Duels with
+# its beds): three players at once, each for themselves (the owner's ask of 22/11, 19h55), on a big
+# round platform of quartz over the void (rayon, 5 to 30; 10 before the ask "agrandi beaucoup la
+# plateforme", 20 now: to confirm); knock the others off with fireballs, which push the others
+# recul-horizontal times (across) and recul-vertical times (up) as hard as in Bed Wars (0.5 to 5; the
+# thrower's own fireball jump stays as in Bed Wars); fireballs: how many in each round (0: no limit,
+# one every half second as in Bed Wars). The double jump from the start (jump twice in the air, in
+# place of the feather of the wind gust): it throws the player up and forward as the lobby's leap
+# feather, once every souffle-secondes (0 to 60; the bar of experience fills up again). Wool of the
+# player's colour that never runs out; each block placed goes after blocs-secondes (1 to 30; 3 to
+# start, "despawn très vite": to confirm), cracking more and more. No hits and no damage: only the
+# fireballs push. The last one on the platform wins the round, the first to points-pour-gagner rounds
+# (1 to 10) wins. cartes: the owner's maps, as the boxing's (with "departs", one for each of the
+# three); none: the platform of the plugin.
+fireball-knockback:
+  points-pour-gagner: 1
+  rayon: 20
+  recul-horizontal: 1.5
+  recul-vertical: 1.2
+  fireballs: 0
+  souffle-secondes: 3
+  blocs-secondes: 3
+  cartes: []
+
+# Snowball Spleef: floors of snow over the void (etages, 1 to 5, ecart-etages blocks one under the
+# other, 3 to 20), each of radius rayon (5 to 40). A diamond shovel (Efficiency V) breaks the snow
+# at once, and each block it breaks gives boules-par-bloc snowballs (0 to 16); a snowball breaks
+# the snow it lands on. No hits with the hand; a snowball hits a player (the owner's ask of 22/11,
+# 19h55): it pushes them as in Minecraft, without damage, and breaks no snow there. Nobody breaks
+# the snow of a floor above them, with the shovel or a snowball. The first under the lowest floor
+# loses the round; the floors are whole again at each round; the first to points-pour-gagner rounds
+# (1 to 10) wins. Two floors and a bigger map: the owner's choice of 22/11 (a radius of 18, to
+# confirm). The lower floor 9 blocks under the top one (6 before; the owner's ask of 22/11, 19h55:
+# out of reach from below): a 1.8 player reaches a block 4.5 blocks from the eyes, 1.62 above the
+# feet, 1.25 higher at the top of a jump: standing on the lower floor (its top 1 block above it),
+# up to 1 + 1.62 + 1.25 + 4.5 = 8.37 blocks above it; the top floor starts 9 above it. Under them, a
+# narrower floor (the owner's ask of 23/11: « un troisième étage plus petit (étroit) et moins bas
+# (4-5 blocks) »): etage-etroit-rayon (0 for none, else 3 to less than rayon; 9, half of the others,
+# to confirm), etage-etroit-ecart blocks under the last one (3 to 20; 5).
+snowball-spleef:
+  points-pour-gagner: 1
+  rayon: 18
+  etages: 2
+  ecart-etages: 9
+  etage-etroit-rayon: 9
+  etage-etroit-ecart: 5
+  boules-par-bloc: 1
+
+# Parkour Duel: a race on a course of the plugin, each side on its own lane of the same course (five
+# sections, four checkpoints). A fall takes the player back to their last checkpoint; no hits, no
+# fall damage. The first to the finish wins the round; the first to points-pour-gagner rounds (1 to
+# 10) wins the duel.
+parkour-duel:
+  points-pour-gagner: 1
+
+# Red Rover (plan 6.5, solution 1): three players in 1v1, in turn; the one who waits watches. Each
+# 1v1 is a round of its mode: the sumo (on sumo.cartes, or a platform of sumo.rayon), the block
+# edit (a clean edit), the block placement (on block-fight.cartes: the first to
+# points-par-1v1-block-placement, a hit +1, a fall into the void +10, chosen by the owner), the top
+# bridge (in RagoBedwars, on the maps of Top Bridge: the first to points-par-1v1-top-bridge rounds
+# of one life, chosen by the owner). The same settings for all, the top bridge's too (RagoBedwars
+# reads them here).
+# Starting values, to set with the owner.
+red-rover:
+  # points: the first to points-pour-gagner 1v1 won wins; elimination: a lost 1v1 is out, the last
+  # one in wins
+  variante: points
+  # with points, who stays on for the next 1v1: gagnant (the winner) or perdant (the loser)
+  reste: gagnant
+  points-pour-gagner: 3
+  # a 1v1 ends after this long (0: never): the one who landed more hits wins it (as in the events)
+  secondes-par-1v1: 90
+  # the block placement: the points that win a 1v1 (1 to 500; the duel plays to 100), chosen by the owner
+  points-par-1v1-block-placement: 10
+  # the top bridge: the rounds of one life that win a 1v1 (1 to 5; Top Bridge plays to 5), chosen by the owner
+  points-par-1v1-top-bridge: 1

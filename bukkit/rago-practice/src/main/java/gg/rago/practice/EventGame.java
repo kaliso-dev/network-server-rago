@@ -19,10 +19,11 @@ import org.bukkit.event.entity.EntityDamageEvent;
 import org.bukkit.inventory.ItemStack;
 
 /**
- * An event a PREMIUM player hosts with /host, as on Minemen: the whole server is told for a
- * minute ([Click to join], /join), the players wait on the map watching, then the event plays on
- * one of the sumo maps. Sumo and Brackets: one 1v1 at a time on the platform, the others watching,
- * in rounds (a player without an opponent goes through); the loser is out, until one is left.
+ * An event a PREMIUM player hosts with /host, as on Minemen: the whole server is told every 10
+ * seconds ([Click to join], /join) and its players keep playing (see {@link Events}); once it
+ * starts, they come to one of the sumo maps, and it plays as soon as they are all there. Sumo and
+ * Brackets: one 1v1 at a time on the platform, the others watching, in rounds (a player without an
+ * opponent goes through); the loser is out, until one is left.
  * Sumo is knockback only; Brackets is a fight with a Bed Wars kit (a fall or a death is out). Last
  * Man Standing: everyone at once with the kit, the last one standing wins. The winner is told to
  * the whole server and gets Network XP; every player gets a little.
@@ -55,6 +56,18 @@ final class EventGame extends PracticeGame {
             return "event-" + id;
         }
 
+        /** The event in one line, for the announcement. */
+        String tagline() {
+            switch (this) {
+                case SUMO:
+                    return "Knock your opponent off the platform.";
+                case BRACKETS:
+                    return "A 1v1 tournament with a Bed Wars kit.";
+                default:
+                    return "Everyone at once: the last one standing wins.";
+            }
+        }
+
         static Kind ofMode(String modeId) {
             for (Kind kind : values()) {
                 if (kind.modeId().equals(modeId)) {
@@ -85,8 +98,8 @@ final class EventGame extends PracticeGame {
     static final int FIGHT_COUNTDOWN = 3;
     /** A 1v1 ends after this long: the one who landed more hits goes through. */
     static final int FIGHT_SECONDS = 90;
-    /** The seconds before the end of the wait when the server is told again. */
-    static final int[] ANNOUNCE_AT = {45, 30, 15, 5};
+    /** The most seconds the event waits for the players sent to it before it plays. */
+    static final int GATHER_SECONDS = 10;
 
     private final Events events;
     private final Kind kind;
@@ -116,7 +129,7 @@ final class EventGame extends PracticeGame {
         this.kind = ofMode == null ? Kind.SUMO : ofMode;
         Events.Hosting hosting = events.hosting();
         this.hostName = hosting != null && hosting.kind == kind ? hosting.hostName : teams.get(0).get(0).getName();
-        this.waitLeft = events.settings().waitSeconds;
+        this.waitLeft = GATHER_SECONDS;
         for (List<Player> team : teams) {
             for (Player player : team) {
                 alive.add(player.getUniqueId());
@@ -295,19 +308,14 @@ final class EventGame extends PracticeGame {
             return;
         }
         stage = Stage.WAITING;
-        events.announce(this, waitLeft);
     }
 
     @Override
     void onSecond() {
         if (stage == Stage.WAITING) {
+            // it plays once every player sent to it is there, or after GATHER_SECONDS
             waitLeft--;
-            for (int at : ANNOUNCE_AT) {
-                if (waitLeft == at) {
-                    events.announce(this, waitLeft);
-                }
-            }
-            if (waitLeft <= 0) {
+            if (waitLeft <= 0 || alive.size() >= events.going(this)) {
                 startEvent();
             }
             return;
@@ -451,7 +459,7 @@ final class EventGame extends PracticeGame {
 
     // --- The event ------------------------------------------------------------------------------
 
-    /** The wait is over: the event starts, or is called off without enough players. */
+    /** Its players are there: the event starts, or is called off without enough of them. */
     private void startEvent() {
         alive.removeIf(id -> Bukkit.getPlayer(id) == null || host.gameOf(id) != this);
         if (alive.size() < events.settings().minPlayers) {
@@ -558,6 +566,7 @@ final class EventGame extends PracticeGame {
             Player won = Bukkit.getPlayer(winner);
             if (won != null && host.gameOf(winner) == this) {
                 sound(won, Sound.LEVEL_UP, 1.2f);
+                ding(won);
                 spectate(won);
             }
         }
@@ -617,10 +626,10 @@ final class EventGame extends PracticeGame {
         lines.add(Duel.cut(ChatColor.WHITE + "Host: " + ChatColor.YELLOW + hostName));
         lines.add("");
         if (stage == Stage.WAITING) {
+            // the players sent to it arriving
             lines.add(ChatColor.WHITE + "Starts in: " + ChatColor.GREEN + clock(waitLeft));
             lines.add(ChatColor.WHITE + "Players: " + ChatColor.GREEN + alive.size() + ChatColor.GRAY + "/"
-                    + events.settings().maxPlayers);
-            lines.add(ChatColor.GRAY + "Invite them: /join");
+                    + Math.max(alive.size(), events.going(this)));
         } else {
             if (kind != Kind.LMS) {
                 lines.add(ChatColor.WHITE + "Round: " + ChatColor.GREEN + roundNumber);

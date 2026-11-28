@@ -175,7 +175,7 @@ final class PracticeHost implements MatchHost {
         }
         int half = grid.spacing() / 2;
         int halfRow = RagoPractice.ROW_SPACING / 2;
-        ReplaySetup setup = ReplaySetup.ofBlocks(modeId, ChatColor.stripColor(game.mode.name()),
+        ReplaySetup setup = ReplaySetup.ofBlocks(game.mode.id(), ChatColor.stripColor(game.mode.name()),
                 arena.map() == null ? "" : arena.map().name, arena.world(), arena.centreX(), arena.floorY(), arena.centreZ(),
                 arena.centreX() - half, arena.centreX() + half - 1, arena.centreZ() - halfRow, arena.centreZ() + halfRow - 1,
                 arena.now(design));

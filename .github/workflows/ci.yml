@@ -65,7 +65,8 @@ jobs:
           digest=$(printf '%s' "$release" | jq -r '.assets[] | select(.name == "packetevents-spigot-2.14.0.jar") | .digest')
           echo "packetevents-spigot-2.14.0.jar: $digest"
           [[ "$digest" == sha256:* ]] || { echo "::error::no SHA-256 for packetevents-spigot-2.14.0.jar on its release"; exit 1; }
-          for file in tools/local-server/lancer-mac-linux.sh tools/local-server/lancer.ps1 tools/lobby-check/run-lobby-test.sh; do
+          for file in tools/local-server/lancer-mac-linux.sh tools/local-server/lancer.ps1 tools/lobby-check/run-lobby-test.sh \
+            tools/lobby-check/run-arena-test.sh; do
             grep -qF "${digest#sha256:}" "$file" || {
               echo "::error::$file does not pin the SHA-256 of the PacketEvents release ($digest)"; exit 1; }
           done
@@ -328,6 +329,51 @@ jobs:
             lobby-run/server/logs/
           if-no-files-found: warn
 
+  # Two bots play the block modes of RagoPractice several times in a row, ending the games in every
+  # way: each zone played again must be exactly as built; then two others check that a player who
+  # joins is seen by the one waiting in the lobby, and one plays the Block in training against its
+  # enemy (tools/lobby-check/run-arena-test.sh).
+  arena-test:
+    name: Arena reset and lobby visibility test (PandaSpigot 1.8.8, Java 21)
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v7
+
+      - uses: actions/setup-java@v6
+        with:
+          distribution: temurin
+          java-version: 21
+
+      - uses: gradle/actions/setup-gradle@v6
+
+      - uses: actions/setup-node@v7
+        with:
+          node-version: 22
+          cache: npm
+          cache-dependency-path: tools/kb-control/bots/package-lock.json
+
+      - run: ./gradlew assemble
+
+      - run: npm ci
+        working-directory: tools/kb-control/bots
+
+      - name: Run the arena reset and lobby visibility test
+        env:
+          # The test starts a Minecraft server, which requires accepting the Minecraft EULA:
+          # https://aka.ms/MinecraftEULA
+          KB_ACCEPT_EULA: "true"
+        run: tools/lobby-check/run-arena-test.sh
+
+      - uses: actions/upload-artifact@v7
+        if: always()
+        with:
+          name: arena-test
+          path: |
+            arena-run/server.log
+            arena-run/server/logs/
+          if-no-files-found: warn
+
   # A real Minecraft 1.8.9 client in the lobby: it must draw the billboards (panneaux:), walls of
   # item frames that exist only in its packets (tools/lobby-check/run-billboard-test.sh).
   billboard-test:
@@ -472,7 +518,10 @@ jobs:
           expect "[RagoBuildTools] Worlds of $data/mondes" logs/latest.log
           expect '[RagoLobby] Lobby in the world lobby' logs/latest.log
           expect '[RagoPractice] Arenas in the world arenes' logs/latest.log
-          expect '[RagoBedwars] Bed Wars maps ready: bw-demo;' logs/latest.log
+          # The maps of Capture the Flag, made by the plugin since its modes list them in its config.yml.
+          expect '[RagoBedwars] Capture the Flag map CtfBridge created' logs/latest.log
+          expect '[RagoBedwars] Capture the Flag map CtfCastle created' logs/latest.log
+          expect '[RagoBedwars] Bed Wars maps ready: bw-demo, CtfBridge, CtfCastle;' logs/latest.log
           echo 'monde creer ci vide' >&3
           wait_for 'World ci created' 30 || fail "/monde creer did not create the world"
           echo 'schematic list' >&3
@@ -486,7 +535,9 @@ jobs:
           expect '[RagoBuildTools] World ci loaded' logs/latest.log
           # The demo map of RagoBedwars, made at the first launch, is read back from its folder.
           [ -f "$data/mondes/bw-demo/bedwars.yml" ] || fail "the Bed Wars demo map was not saved in $data/mondes"
-          expect '[RagoBedwars] Bed Wars maps ready: bw-demo;' logs/latest.log
+          [ -f "$data/mondes/CtfBridge/bedwars.yml" ] || fail "the map of CTF The Bridge was not saved in $data/mondes"
+          [ -f "$data/mondes/CtfCastle/bedwars.yml" ] || fail "the map of CTF Castle was not saved in $data/mondes"
+          expect '[RagoBedwars] Bed Wars maps ready: bw-demo, CtfBridge, CtfCastle;' logs/latest.log
           [ -f "$data/mondes/lobby/level.dat" ] || fail "the lobby world was not saved in $data/mondes"
           archive=$(ls "$data"/sauvegardes/mondes-*.tar.gz | sort | tail -n 1)
           echo "Backup: $archive"
@@ -540,7 +591,8 @@ jobs:
               'hit delay 9 ticks, locked',
               '[WorldEdit] Enabling WorldEdit v6.1', "[RagoBuildTools] Worlds of $data\mondes",
               '[RagoLobby] Lobby in the world lobby', '[RagoPractice] Arenas in the world arenes',
-              '[RagoBedwars] Bed Wars maps ready: bw-demo;') {
+              '[RagoBedwars] Capture the Flag map CtfBridge created', '[RagoBedwars] Capture the Flag map CtfCastle created',
+              '[RagoBedwars] Bed Wars maps ready: bw-demo, CtfBridge, CtfCastle;') {
             Assert-Log $expected
           }
           $config = Get-Content plugins/WorldEdit/config.yml -Raw

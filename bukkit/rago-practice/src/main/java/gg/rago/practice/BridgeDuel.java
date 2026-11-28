@@ -85,6 +85,9 @@ final class BridgeDuel extends Duel {
         org.bukkit.Bukkit.getScheduler().runTaskLater(plugin, () -> {
             if (player.isOnline()) {
                 player.playSound(player.getLocation(), ours ? Sound.LEVEL_UP : Sound.ANVIL_LAND, 1f, ours ? 1f : 0.8f);
+                if (ours) {
+                    ding(player);
+                }
             }
         }, 1L);
     }

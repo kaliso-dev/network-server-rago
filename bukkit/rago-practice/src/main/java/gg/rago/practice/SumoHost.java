@@ -38,7 +38,8 @@ import org.bukkit.event.player.PlayerPickupItemEvent;
 import org.bukkit.event.player.PlayerQuitEvent;
 
 /**
- * Plays the "sumo" mode of the lobby: takes an arena slot for each match, on one of the sumo maps
+ * Plays the "sumo" mode of the lobby, and its ranked twin "ranked-sumo" (plan 3.7: the same duel on
+ * the same maps, with its own queue and ELO): takes an arena slot for each match, on one of the sumo maps
  * of the server (see {@link MapZones}) or, without them, on a round platform built the first time
  * the slot is used, and applies the duel rules to its players (no damage, only knockback; no
  * blocks, no items; standing still during the countdown; the water under the maps is a fall).
@@ -46,6 +47,8 @@ import org.bukkit.event.player.PlayerQuitEvent;
 final class SumoHost implements MatchHost, Listener {
 
     static final String MODE_ID = "sumo";
+    /** The ranked sumo (plan 3.7), played the same way on the same zones. */
+    static final String RANKED_MODE_ID = "ranked-sumo";
 
     private final RagoPractice plugin;
     private final World world;
@@ -85,18 +88,18 @@ final class SumoHost implements MatchHost, Listener {
         }
         Location centre = platform(slot);
         String map = zones.isEmpty() ? null : zones.mapOf(slot).name;
-        SumoMatch duel = new SumoMatch(plugin, this, slot, centre, map, first, second, target);
+        SumoMatch duel = new SumoMatch(plugin, this, match.mode().id(), slot, centre, map, first, second, target);
         matches.put(first.getUniqueId(), duel);
         matches.put(second.getUniqueId(), duel);
         running.add(duel);
         duel.begin();
-        duel.record(record(slot, map, ChatColor.stripColor(match.mode().name())));
+        duel.record(record(match.mode().id(), slot, map, ChatColor.stripColor(match.mode().name())));
         return true;
     }
 
     /** The recording of a duel in this slot for /replay, or null when the lobby keeps no replays. */
     @SuppressWarnings("deprecation") // Material#getId: the 1.8 block id
-    private ReplayRecording record(int slot, String map, String modeName) {
+    private ReplayRecording record(String modeId, int slot, String map, String modeName) {
         Replays replays = plugin.lobby().replays();
         if (replays == null) {
             return null;
@@ -124,7 +127,7 @@ final class SumoHost implements MatchHost, Listener {
         int cx = grid.centreX(slot);
         int half = grid.spacing() / 2;
         int halfRow = RagoPractice.ROW_SPACING / 2;
-        return replays.record(ReplaySetup.ofBlocks(MODE_ID, modeName, map == null ? "" : map, world, cx, RagoPractice.ARENA_Y, 0,
+        return replays.record(ReplaySetup.ofBlocks(modeId, modeName, map == null ? "" : map, world, cx, RagoPractice.ARENA_Y, 0,
                 cx - half, cx + half - 1, -halfRow, halfRow - 1, design));
     }
 

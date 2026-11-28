@@ -18,7 +18,7 @@ slime:
 
 # The lobby scoreboard: its title (32 characters at most) and its last line.
 titre: "&c&lRAGO PRACTICE"
-adresse: "&crago.gg"
+adresse: "&erago.gg"
 
 # The queues. A ranked queue matches players by their ELO (see elo: below), from
 # elo-par-defaut before a player's first ranked game: the ELO gap accepted starts at
@@ -50,12 +50,23 @@ replays:
   taille-max-mo: 2000
   spectateurs-max: 6
 
-# The categories of the selector, one per zone of the lobby, in the order of the menu (7 at most):
-# left to right, as in the lobby. The compass first shows the categories, then the games of the
-# one picked (28 modes at most per category). Without a categories section, the compass shows
-# every mode at once (35 at most). slogan: what a player does there, in a few words (40 characters
-# at most, colours not counted): under its name in the compass, under its NPC, and in the welcome
-# of the lobby; its key words in the colour of the category, the rest in grey (&7).
+# The compass (the owner's asks of 22/11, 17h54 and 19h51): six rows; its top row holds these
+# categories or groups (groupes:), in this order, one slot apart and centred; the other categories
+# (those of the lobby NPCs) go in the middle, one slot apart up to five (side by side beyond), and
+# "Popular now" in the bottom row. A group (Red Rover) opens its modes, whose back button comes
+# back to the compass. Empty or missing: the compass as before, in three rows, "Popular now" on top
+# and every category in the middle row.
+boussole:
+  haut: [classe, party, red-rover, trois-joueurs]
+
+# The categories of the selector, one per zone of the lobby, in the order of the menu (9 at most,
+# side by side in the top row of the compass): left to right, as in the lobby. The compass first
+# shows the categories, then the games of the one picked (28 modes at most per category). Without
+# a categories section, the compass shows every mode at once (35 at most). slogan: what a player
+# does there, in a few words (40 characters at most, colours not counted): under its name in the
+# compass, under its NPC, and in the welcome of the lobby; its key words in the colour of the
+# category, the rest in grey (&7). party: true makes it the category of the parties (one at
+# most): no modes of its own, the games each viewer's party plays against itself at its size.
 categories:
   entrainement:
     nom: "&b&lPractice"
@@ -63,21 +74,21 @@ categories:
     slogan: "&bTrain alone&7, at your &bown pace"
     description:
       - "Clutch, block in, fast defense,"
-      - "bridging, extend, pearls, bow,"
-      - "fireballs, aim, bots: one skill"
-      - "at a time."
+      - "bridging, extend, bow, aim: one"
+      - "skill at a time."
+  # Bedwars Modes, RBW Modes before (renamed by the owner, 23/11)
   ranked:
-    nom: "&6&lRBW Modes"
+    nom: "&6&lBedwars Modes"
     icone: BED
-    slogan: "&6Ranked &7and &6RBW situations"
+    slogan: "&6RBW situations &7to practice"
     description:
-      - "Ranked 1v1 to 4v4, and modes"
-      - "close to Ranked Bedwars: Sky"
-      - "Rise, first rush, invis, clutch"
-      - "scenarios, attack and defense,"
-      - "Bed Break Simulator, private"
-      - "games. With the server or your"
-      - "friends."
+      - "Modes close to Ranked Bedwars:"
+      - "Sky Rise, first rush, invis,"
+      - "clutch scenarios, attack and"
+      - "defense, Bed Break Simulator,"
+      - "private games. With the server"
+      - "or your friends. Ranked Bedwars"
+      - "is in Ranked."
   duels:
     nom: "&a&lDuels"
     icone: IRON_SWORD
@@ -86,20 +97,75 @@ categories:
       - "Bed fight, Top BedFight, top"
       - "bridge, bridge fight, block"
       - "placement in 1v1 or 2v2; Lobby"
-      - "Fight, sumo, boxing, KB displace,"
-      - "fireball fight, bow."
+      - "Fight, sumo, boxing, fireball"
+      - "fight, bow."
       - "/duel a player to challenge them."
   # the modes without a queue: in at once, with whoever is there
   arenes:
     nom: "&c&lArenas"
-    icone: DIAMOND_SWORD
+    icone: "WOOL:14"
     slogan: "&cJump in &7and &cfight now"
     description:
       - "No queue, come and go when you"
       - "like: the FFA, Top Bridge FFA,"
-      - "Lobby Fight FFA, bridge fight,"
-      - "block placement arena and Arena"
-      - "Free. Someone to fight at once."
+      - "Lobby Fight FFA, block placement"
+      - "arena and Arena Free. Someone to"
+      - "fight at once."
+  # FUN PRACTICE (plan 6.1): the fun modes, one after the other
+  fun:
+    nom: "&d&lFun Practice"
+    icone: SNOW_BALL
+    slogan: "&dFun modes &7to play with &danyone"
+    description:
+      - "Fireball Fight: knock them off"
+      - "with fireballs, three at once;"
+      - "Snowball Spleef: break the snow"
+      - "under their feet; Capture the"
+      - "Flag on The Bridge or castle"
+      - "against castle; 2012 Bedwars;"
+      - "Parkour Duel: race them to the"
+      - "finish."
+  # The games for three players (plan 6.6), in the compass only (the owner's choice, 21/11): no NPC.
+  # aussi: the modes (or groups) of other categories it shows too, with the same queues: Red Rover
+  # of the Duels, the 1v2 of the RBW modes. Its name, slogan and description are to confirm.
+  trois-joueurs:
+    nom: "&e&l3 Players"
+    icone: SKULL_ITEM
+    slogan: "&eThree friends&7? Play &etogether"
+    description:
+      - "Red Rover: 1v1 in turn, who"
+      - "waits watches. Bed Break"
+      - "Simulator, Invis Practice,"
+      - "Clutch Scenario and Bed Fight:"
+      - "one against two."
+    aussi: [red-rover, bed-break-simulator-1v2, invis-practice-1v2, clutch-scenario-1v2, bed-fight-1v2]
+  # PARTY (plan 3.7): no modes of its own (party: true). The compass shows there what the viewer's
+  # party plays against itself, at its size: two players the 1v1s, three the 1v2s and Red Rover,
+  # four the 2v2s... (a private game, in no stats). A party that fits in one team (two players in a
+  # 2v2) still queues against others from the other categories, ranked too (with the mean ELO).
+  party:
+    nom: "&9&lParty"
+    icone: NAME_TAG
+    slogan: "&9Your party &7against &9itself"
+    party: true
+    description:
+      - "The games your party plays"
+      - "against itself, at its size."
+      - "Only the leader starts one."
+  # RANKED (plan 3.7, the owner's choice of 22/11): every ranked mode (classe: true), each with its
+  # own ELO, division, queue by ELO and leaderboard: Ranked Bedwars 1v1 to 4v4, and the six great
+  # duels in 1v1, the same games as their unranked modes (same maps, same kit, arranged once in the
+  # kit editor), with their own queue. /duel and the private games of a party are never ranked.
+  classe:
+    nom: "&6&lRanked"
+    icone: DIAMOND_SWORD
+    slogan: "&6Your ELO &7in every game"
+    description:
+      - "Ranked Bedwars 1v1 to 4v4, and"
+      - "Bed Fight, Top Bridge, Bridge"
+      - "Fight, Block Placement, Sumo"
+      - "and Boxing in 1v1: each with"
+      - "its own ELO and divisions."
 
 # At each arrival in the lobby, the ways to play in the chat: a line per category (its name and
 # slogan), a click opens its modes (/play category); at the first arrival, a title too. false: none.
@@ -112,7 +178,7 @@ accueil: true
 premiere-venue:
   entrainer:
     nom: "&bTrain a skill"
-    icone: LADDER
+    icone: SANDSTONE
     mode: clutch
     description:
       - "Start with the block clutch:"
@@ -136,7 +202,7 @@ premiere-venue:
       - "sumo, boxing, bridge..."
   arenes:
     nom: "&cFight now"
-    icone: DIAMOND_SWORD
+    icone: STONE_SWORD
     mode: ffa
     description:
       - "The FFA: no queue, in at once"
@@ -175,6 +241,14 @@ groupes:
       - "Two islands, a bed each: break"
       - "theirs and kill them. You come"
       - "back while your bed stands."
+  red-rover:
+    nom: "&aRed Rover"
+    icone: REDSTONE
+    description:
+      - "Three players, 1v1 in turn,"
+      - "who waits watches: the sumo,"
+      - "the block edit, the block"
+      - "placement, the top bridge."
   top-bridge:
     nom: "&aTop Bridge"
     icone: LADDER
@@ -200,7 +274,7 @@ groupes:
       - "a 1v1 or a 2v2, first to 5."
   block-placement:
     nom: "&aBlock placement"
-    icone: SANDSTONE
+    icone: "WOOL:4"
     description:
       - "Build, clutch and fight on the"
       - "block placement maps: 1v1"
@@ -209,9 +283,9 @@ groupes:
     nom: "&6Private games"
     icone: NAME_TAG
     description:
-      - "With your party: a real RBW"
-      - "game or a top bridge, the size"
-      - "follows the party."
+      - "With your party: Bedwars"
+      - "Normal on a map of 4s or 2s,"
+      - "2 to 16 players."
   attack-defense:
     nom: "&6Attack and defense"
     icone: IRON_SWORD
@@ -235,13 +309,37 @@ groupes:
     icone: DIAMOND_PICKAXE
     description:
       - "Archway or Invasion: attack"
-      - "from the top bridge with one of"
+      - "from the top with one of"
       - "3 kits and break the bed; the"
       - "defenders have their forge full."
       - "Each in turn, 1v1 to 1v4."
+  # Capture the Flag (category fun)
+  ctf-bridge:
+    nom: "&dCTF The Bridge"
+    icone: BOW
+    description:
+      - "The Bridge with a flag in each"
+      - "base: take theirs, bring it"
+      - "home. 1v1 or 2v2."
+  ctf-castle:
+    nom: "&dCTF Castle"
+    icone: IRON_SWORD
+    description:
+      - "A big map, castle against"
+      - "castle and a mid: Bed Wars with"
+      - "a flag in each keep. 2v2, 4v4."
+  # 2012 Bedwars (category fun), in the place of 2017 Bedwars (the owner, 27/11)
+  bedwars-2012:
+    nom: "&d2012 Bedwars"
+    icone: BED
+    description:
+      - "A rush of 2012, 4v4: hide"
+      - "your bed, clay, no upgrades."
+      - "With or without the diamonds"
+      - "and the emeralds."
   clutch:
     nom: "&bBlock clutch"
-    icone: LADDER
+    icone: SANDSTONE
     description:
       - "A hit throws you off: place"
       - "your wool to save yourself."
@@ -252,36 +350,61 @@ groupes:
 # An NPC whose point is not placed yet does not show.
 #   skin   the skin it wears: skins/<skin>.png in the folder of the plugin (64x64, yours), else
 #          the one of that name in the jar (attaque, clutch, ranked, prive, ffa, skyrise, rush,
-#          invis, bridge, arena, blocs, duels, practice, shop, stats, quetes). Without it: Steve.
+#          invis, bridge, arena, blocs, duels, practice, fun, shop, stats, quetes). Without it:
+#          Steve. The NPCs wear no item in their hands (the owner's ask of 22/11).
 #          A 1.8 client shows a skin on an NPC only once Mojang signed it: at the start the server
 #          sends each new PNG once to MineSkin (api.mineskin.org) and keeps the answer in skins.yml.
+#   skin-joueur  in place of skin: the skin of this Minecraft account (its name), read from Mojang
+#          at each start and kept in skins-joueurs.yml (worn at once on the next start).
+#   bloc   the block it stands on, put where the feet were on its point (the NPC one block
+#          higher): a name or an id, with its data after a colon (QUARTZ_BLOCK, "STONE:6",
+#          "159:14"). If that block is already under the point, on its own (you put it there; not
+#          a floor of it), the NPC stands on it and nothing is put. Without it: polished andesite,
+#          as on Hypixel.
+#   regard  point: it looks the way its point was placed (the way you looked when you placed it);
+#          without it (or spawn): at the spawn, where players come from.
 pnj:
   # The ways to play: each NPC opens its whole category (the menu of the compass), with the slogan
-  # of the category under its name (sous-titre: another line). Their points: /lobby point
-  # practice, rbw, duels, arenas.
+  # of the category under its name (sous-titre: another line), on a block of quartz. Their
+  # points: /lobby point practice, rbw, duels, arenas.
   practice:
     nom: "&b&lPractice"
     categorie: entrainement
     skin: practice
+    bloc: QUARTZ_BLOCK
   rbw:
-    nom: "&6&lRBW Modes"
+    nom: "&6&lBedwars Modes"
     categorie: ranked
     skin: ranked
+    bloc: QUARTZ_BLOCK
   duels:
     nom: "&a&lDuels"
     categorie: duels
     skin: duels
+    bloc: QUARTZ_BLOCK
   arenas:
     nom: "&c&lArenas"
     categorie: arenes
     skin: arena
-  # The private games (a Ranked Bedwars or a Top Bridge with friends, the host's settings): /lobby
-  # point prive. They stay in the RBW Modes too.
+    bloc: QUARTZ_BLOCK
+  # RANKED (the owner's ask of 23/11): on the point prive, in the place of the Fun Practice NPC,
+  # it opens the Ranked menu of the compass (as /ranked), on a block of quartz; its name tag in the
+  # colours and the layout of the Arenas NPC: its name in red and bold, the slogan of Ranked under
+  # it in red and grey. Its skin, the one of the old Ranked Bedwars NPC, is to confirm.
   prive:
-    nom: "&6&lPrivate game"
-    sous-titre: "&7Your game, your friends, your rules"
-    skin: prive
-    modes: [partie-privee, top-bridge-prive]
+    nom: "&c&lRanked"
+    categorie: classe
+    sous-titre: "&cYour ELO &7in every game"
+    skin: ranked
+    bloc: QUARTZ_BLOCK
+  # FUN PRACTICE (plan 6.1): its NPC left the point prive for the Ranked NPC (the owner, 23/11); it
+  # shows once its own point is placed: /lobby point funpractice where it goes. The private games
+  # are in the Bedwars Modes (the item Private games).
+  funpractice:
+    nom: "&d&lFun Practice"
+    categorie: fun
+    skin: fun
+    bloc: QUARTZ_BLOCK
   # Only the NPCs of the ways to play, so that a new player is not lost: every mode stays in its
   # category, in the compass and in the menus of the four. Remove the # before the lines of one to
   # show it again, on its point (/lobby point <name>; for the ones without a point now, place a
@@ -297,7 +420,7 @@ pnj:
   # clutchscenario:
   #   nom: "&6Clutch Scenario"
   #   skin: clutch
-  #   modes: [clutch-scenario-1v1, clutch-scenario-2v2, clutch-scenario-3v3, clutch-scenario-4v4]
+  #   modes: [clutch-scenario-1v1, clutch-scenario-1v2, clutch-scenario-1v3, clutch-scenario-1v4]
   # attackanddefense:
   #   nom: "&6Attack and Defense"
   #   skin: attaque
@@ -322,6 +445,14 @@ pnj:
   #   nom: "&aBlock placement"
   #   skin: blocs
   #   modes: [block-fight-1v1, block-fight-2v2, block-fight-arena]
+  # The Private game NPC (Bedwars Normal with friends since 22/11), on a point of its own (/lobby
+  # point partieprivee): the private games stay in the Bedwars Modes too.
+  # partieprivee:
+  #   nom: "&6&lPrivate game"
+  #   sous-titre: "&7Your game, your friends, your rules"
+  #   skin: prive
+  #   modes: [bedwars-normal]
+  #   bloc: QUARTZ_BLOCK
   # The NPCs of the side zones, on their front sign, if you want them there too:
   # attackdefenseversionrbw:
   #   nom: "&a&lDuels"
@@ -332,24 +463,136 @@ pnj:
   #   categorie: entrainement
   #   skin: practice
   # The Shop NPC (type: shop), at the centre: a click opens the store, the starter pack
-  # (pack-depart) and VIP, then what Rago Points buy. sous-titre: the line under its name.
-  # Its point: /lobby point shop.
+  # (pack-depart) and VIP, then what Rago Points buy. sous-titre: the line under its name. On a
+  # block of emerald. Its point: /lobby point shop.
   shop:
     nom: "&a&lSHOP"
-    sous-titre: "&cStarter Pack &7· &bVIP"
+    sous-titre: "&6Starter Pack &7· &bVIP"
     type: shop
+    # it looks the way its point was placed: at the centre of the lobby (the owner, 27/11)
+    regard: point
     skin: shop
+    bloc: EMERALD_BLOCK
   # The stats NPCs (type: stats): everyone sees their own profile above it, and a click opens
-  # their stats mode by mode. nom: the first line of the profile. Their points: /lobby point
-  # profil, profil2.
+  # their stats by category. nom: the first line of the profile. On a block of iron. Their
+  # points: /lobby point profil, profil2.
   profil:
     nom: "&6&lYour Rago profile"
     type: stats
     skin: stats
+    bloc: IRON_BLOCK
   profil2:
     nom: "&6&lYour Rago profile"
     type: stats
     skin: stats
+    bloc: IRON_BLOCK
+  # The leaderboard selector (type: selecteur): a click opens the menu of its stats, and the one
+  # chosen shows at once on the three walls that follow it (selecteur: in classements:), Daily,
+  # Weekly and Lifetime, for the one who chose. Its point: /lobby point newleaderboardselector.
+  #   stats            its stats, in the order of the menu (victoires, parties, series, kills,
+  #                    fkdr, niveau, wlr, elo: one item for each ranked mode); left out: series,
+  #                    niveau, elo, victoires, kills, fkdr, wlr, parties
+  #   minimum-parties  the games a ratio (FKDR, WLR) of a day and of a week needs, so that one game
+  #                    is not the first: jour 5 and semaine 15 when left out; for the FKDR, the games
+  #                    of the Bed Wars modes. Lifetime has none.
+  # Over a day or a week, the Network level ranks the XP earned, the ELO the ELO won (or lost).
+  newleaderboardselector:
+    nom: "&b&lLEADERBOARDS"
+    sous-titre: "&7Click to choose the stat"
+    type: selecteur
+    # it looks the way its point was placed: at the centre of the lobby (the owner, 27/11)
+    regard: point
+    skin: stats
+    minimum-parties: {jour: 5, semaine: 15}
+  # The people of the server in the thank-you room (type: personne): their name after the prefix
+  # of their rank (rang:, a rank of rangs:), as above a player's head, in the skin of their account;
+  # a click does nothing. One block higher than their point, on their block: obsidian for the Owner
+  # and the Dev; without bloc:, the block of every NPC. Their points: /lobby point qrago, kalisodev.
+  qrago:
+    nom: "qRago"
+    type: personne
+    rang: owner
+    skin-joueur: qRago
+    bloc: OBSIDIAN
+  kalisodev:
+    nom: "kaliso_dev"
+    type: personne
+    rang: dev
+    skin-joueur: kaliso_dev
+    bloc: OBSIDIAN
+  # The moderators directement (point jncl) and woryes (point nativ), out of the thank-you room at
+  # the owner's ask of 22/11 (17h56); their points stay in points.yml. To bring one back, take the
+  # # off its lines:
+  # jncl:
+  #   nom: "directement"
+  #   type: personne
+  #   rang: mod
+  #   skin-joueur: jncl
+  # nativ:
+  #   nom: "woryes"
+  #   type: personne
+  #   rang: mod
+  #   skin-joueur: Woryes
+  # OUR OTHER PRODUCTS (plan 5.6A), in the thank-you room (type: produit): its title (titre:) above
+  # its name, a line under it if sous-titre: is given; a click shows its links in the chat, line by
+  # line (liens:, from 1 to 8 lines). On a block of diamond. Their points: /lobby point ragoclient,
+  # ragooptimizer.
+  ragoclient:
+    nom: "&b&lRago Client"
+    type: produit
+    titre: "&6&lOUR OTHER PRODUCTS"
+    skin-joueur: qRago
+    bloc: DIAMOND_BLOCK
+    liens:
+      - "&c&lRAGO &8» &fRago Client: &erago-optimizer.com"
+      - "&c&lRAGO &8» &fJoin our Discord: &ediscord.gg/ragooptimizer"
+  ragooptimizer:
+    nom: "&b&lRago Optimizer"
+    type: produit
+    titre: "&6&lOUR OTHER PRODUCTS"
+    skin-joueur: qRago
+    bloc: DIAMOND_BLOCK
+    liens:
+      - "&c&lRAGO &8» &fRago Optimizer: &erago-optimizer.com"
+      - "&c&lRAGO &8» &fJoin our Discord: &ediscord.gg/ragooptimizer"
+
+# The texts of the lobby (textes:), each on its own point (/lobby point <name>), the same for
+# everyone; a click does nothing. Its lines (lignes:, from 1 to 30, top to bottom, colours with &)
+# float above the point: the last one half a block high, the others above it, 0.27 block apart
+# (20 lines rise 5.6 blocks). "" leaves a gap; a line is 64 characters at most, its colour codes
+# included (cut a longer one in two).
+textes:
+  # The texts on the two sides of the thank-you room (points textremerciement, on the left, and
+  # textremerciement2, on the right): INFORMATION : on both, in place of THANK YOU, and much
+  # shorter than the text of 22/11, a few words in yellow (the owner's ask of 23/11: people do not
+  # read long texts). The words are to confirm. /lobby point textremerciement, and
+  # textremerciement2.
+  textremerciement:
+    lignes:
+      - "&6&lINFORMATION :"
+      - "&fA server to &etrain &fand have &efun with friends&f."
+      - "&fPractice modes &efound nowhere else&f, made by us"
+      - "&ffor &ereal game situations&f, to help you &eimprove&f."
+  textremerciement2:
+    lignes:
+      - "&6&lINFORMATION :"
+      - "&fTrain Block Placement, Bedwars and RBW with"
+      - "&eHypixel KB &fand &elow ping&f, alone or with friends."
+      - "&fJoin our Discord: &ediscord.gg/ragooptimizer"
+  # RagoBot, the feature of the server (the owner, 27/11), on its point ragobot (-3 65 10 on the
+  # test server)
+  ragobot:
+    lignes:
+      - "&b&l/p invite RagoBot"
+      - "&fNo friends online? &eRagoBot &fplays with you, any time."
+      - "&fEvery mode, like a real player, &e40 ms &fping."
+      - "&eWarm up before Ranked&f, or learn with &eno pressure&f."
+
+# The points of the daily reward chest (DAILY REWARD above it, a click opens the Daily Chest)
+# and of the quests NPC (/lobby point <name>): daily and quests when left out. The chest stands on
+# its point (on the block under it); the quests NPC on its point, or beside the chest without one.
+point-coffre-du-jour: daily
+point-pnj-quetes: quests
 
 # A MineSkin API key (free, https://account.mineskin.org/keys), only if MineSkin refuses to sign
 # the skins of the NPCs without one (the log says so). "" asks without a key.
@@ -521,8 +764,8 @@ rangs:
     permissions: [rago.admin]
     herite: mod
   mod:
-    prefixe: "&2[MOD] "
-    couleur: "&2"
+    prefixe: "&e[MOD] "
+    couleur: "&e"
     staff: true
     permissions: [rago.mod]
     herite: helper
@@ -666,18 +909,36 @@ saison:
     Opal: 5000, Amethyst: 7500, Obsidian: 10000}
 
 # The Rago Points, spent in the shop: for a win, a game played (lost), a kill, each new level
-# (the level times par-niveau: 100 for level 10), and the daily reward (/daily): quotidien, plus
-# quotidien-serie for each day in a row, up to 7 days. The trainings, the practice, the aim
-# trainer and the events give one point for each xp-par-point Network XP they give (at least one;
-# 0: none). A points booster (x3) multiplies the points of the games, kills and trainings.
+# (the level times par-niveau: 100 for level 10), and the streak of the Daily Chest (/daily):
+# quotidien-serie for each day in a row after the first, up to 7 days, on top of what the chest
+# gives (coffre-du-jour: below). The trainings, the practice, the aim trainer and the events give
+# one point for each xp-par-point Network XP they give (at least one; 0: none). A points booster
+# (x3) multiplies the points of the games, kills and trainings.
 rago-points:
   victoire: 20
   defaite: 5
   kill: 2
   par-niveau: 10
-  quotidien: 100
   quotidien-serie: 25
   xp-par-point: 3
+
+# The Daily Chest (its chest at the spawn, /daily, the profile, the shop): once a day, a reel of
+# rewards spins, slows down and stops on the player's reward, which lights up in the colour of its
+# rarity. Each reward of recompenses, by name: rarete (commun white, rare blue, epique purple,
+# legendaire gold: the bigger the rarity, the bigger its show; a legendary is told to the lobby),
+# what it gives (rago-points or xp, Network XP without the boosters: an amount, or "min-max" for a
+# draw between both; or cosmetique: true, a cosmetic of the shop the player does not own yet,
+# never one of PREMIUM: with none left, the largest rago-points of the list instead) and chance
+# (in %, of the total of the list: 100 here). The menu shows the chance of each rarity.
+coffre-du-jour:
+  recompenses:
+    points-commun: {rarete: commun, rago-points: 100-200, chance: 30}
+    xp-commun: {rarete: commun, xp: 100-500, chance: 25}
+    points-rare: {rarete: rare, rago-points: 200-350, chance: 15}
+    xp-rare: {rarete: rare, xp: 500-1000, chance: 13}
+    points-epique: {rarete: epique, rago-points: 350-500, chance: 6}
+    xp-epique: {rarete: epique, xp: 1000-2000, chance: 6}
+    cosmetique: {rarete: legendaire, cosmetique: true, chance: 5}
 
 # The cosmetics of the shop: projectile trails, kill effects and victory effects. Each one has a
 # price in Rago Points and a Network level needed, which can be changed here by its name:
@@ -716,7 +977,7 @@ chat:
 
 # The header and footer of the tab list (4 lines each at most): {joueurs} the players online,
 # {ping} the player's ping. In the colours of the server (README: Les couleurs du serveur): its
-# name in red, the slogan, rago.gg in red at the bottom.
+# name in red, the slogan, rago.gg and what to type in yellow at the bottom.
 tab:
   haut:
     - "&c&lRAGO PRACTICE"
@@ -725,41 +986,41 @@ tab:
   bas:
     - ""
     - "&f{joueurs} &7players online &8• &7Ping: &f{ping} ms"
-    - "&7Ranks, Rago Points & more: &c/shop"
-    - "&crago.gg"
+    - "&7Ranks, Rago Points & more: &e/shop"
+    - "&erago.gg"
 
 # The message under the server's name in the server list: 2 lines of about 270 pixels each (a
 # letter is 6, a space 4, 1 more in bold; longer, the first line wraps and hides the second). The
-# first says what the server is; the second, NEW in red then what is new: change it at each update.
+# first says what the server is; the second, NEW in gold then what is new: change it at each update.
 motd:
   - "&cRAGO PRACTICE &8• &fBed Wars Practice, Ranked & Duels"
-  - "&c&lNEW &8» &fHypixel knockback, prestiges & season badges"
+  - "&6&lNEW &8» &fHypixel knockback, prestiges & season badges"
 
 # The tips told to the lobby, one every "minutes", in turn. One prefix for the server's messages:
 # RAGO in bold red, then » in dark grey; short lines in English, starting with a verb.
 annonces:
   minutes: 5
   messages:
-    - "&c&lRAGO &8» &fEarn Rago Points in every game, spend them in the &c/shop&f."
-    - "&c&lRAGO &8» &fClaim your daily reward with &c/daily&f: days in a row give more."
-    - "&c&lRAGO &8» &fAdd your friends with &c/friend add&f, play together in a &c/party&f."
-    - "&c&lRAGO &8» &fClimb the ranked divisions, from Coal to Obsidian: &c/top elo&f."
-    - "&c&lRAGO &8» &fRead the news and the store on &crago-optimizer.com&f."
-    - "&c&lRAGO &8» &fPick ranks, cosmetics and the colour of your &d+&f in the &c/shop&f."
-    - "&c&lRAGO &8» &fGo &d[PREMIUM+]&f: +50% XP, /fly, the &d+&f and gadgets of its own on &crago-optimizer.com&f."
-    - "&c&lRAGO &8» &fGet Rago Optimizer on &crago-optimizer.com&f."
-    - "&c&lRAGO &8» &fPlay any game for Rago Points, spend them in the &c/shop&f."
-    - "&c&lRAGO &8» &fDownload Rago Optimizer and read its news: &crago-optimizer.com&f."
-    - "&c&lRAGO &8» &fGrab the &6Starter Pack&f: 20,000 Rago Points, 5 boosters and 3 cosmetics for 3.99€: &c/pack"
-    - "&c&lRAGO &8» &fHost Sumo, Brackets and LMS for the whole server with &d[PREMIUM+]&f: &c/host"
+    - "&c&lRAGO &8» &fEarn Rago Points in every game, spend them in the &e/shop&f."
+    - "&c&lRAGO &8» &fClaim your daily reward with &e/daily&f: days in a row give more."
+    - "&c&lRAGO &8» &fAdd your friends with &e/friend add&f, play together in a &e/party&f."
+    - "&c&lRAGO &8» &fClimb the ranked divisions, from Coal to Obsidian: &e/top elo&f."
+    - "&c&lRAGO &8» &fRead the news and the store on &erago-optimizer.com&f."
+    - "&c&lRAGO &8» &fPick ranks, cosmetics and the colour of your &d+&f in the &e/shop&f."
+    - "&c&lRAGO &8» &fGo &d[PREMIUM+]&f: +50% XP, /fly, the &d+&f and gadgets of its own on &erago-optimizer.com&f."
+    - "&c&lRAGO &8» &fGet Rago Optimizer on &erago-optimizer.com&f."
+    - "&c&lRAGO &8» &fPlay any game for Rago Points, spend them in the &e/shop&f."
+    - "&c&lRAGO &8» &fDownload Rago Optimizer and read its news: &erago-optimizer.com&f."
+    - "&c&lRAGO &8» &fGrab the &6Starter Pack&f: 20,000 Rago Points, 5 boosters and 3 cosmetics for 3.99€: &e/pack"
+    - "&c&lRAGO &8» &fHost Sumo, Brackets and LMS for the whole server with &d[PREMIUM+]&f: &e/host"
 
 # What /discord, /site, /rules and /store show (one line or a list).
 liens:
-  discord: "&c&lRAGO &8» &fJoin our Discord: &cdiscord.gg/ragooptimizer"
-  site: "&c&lRAGO &8» &fOur website: &crago-optimizer.com"
-  boutique: "&c&lRAGO &8» &fThe store: &crago-optimizer.com"
+  discord: "&c&lRAGO &8» &fJoin our Discord: &ediscord.gg/ragooptimizer"
+  site: "&c&lRAGO &8» &fOur website: &erago-optimizer.com"
+  boutique: "&c&lRAGO &8» &fThe store: &erago-optimizer.com"
   regles:
-    - "&c&lRules"
+    - "&6&lRules"
     - "&71. No cheats, macros or unfair mods."
     - "&72. No insults, spam or advertising."
     - "&73. No teaming in solo modes, no boosting."
@@ -805,10 +1066,13 @@ panneaux: {}
 #             who stands on it go. A click on a step opens that player's stats.
 #   periode   jour, semaine or toujours: the boards of the wall stay on that period (a click only
 #             goes to the next leaderboard of a board). Left out, each player chooses it.
+#   selecteur the point of a leaderboard selector (pnj:, type: selecteur): the wall has one board,
+#             with the stat each player chose at the selector, on its periode (needed), and no
+#             tableaux. A click on it goes to the next stat on every wall of the selector.
 # A board of the week says, under the player's place, what its top wins on Monday (semaine:).
 classements:
   top:
-    nom: "&c&lTop players"
+    nom: "&6&lTop players"
     # The Network level first (and on the podium); a click goes to the ELO, the FKDR, the kills,
     # then the games played.
     tableaux: [[niveau, elo, fkdr, kills, parties]]
@@ -816,21 +1080,36 @@ classements:
     # top1 (the first), top2, then top3.
     podium: [top1, top2, top3]
   leaderboards:
-    nom: "&c&lLeaderboards"
+    nom: "&6&lLeaderboards"
     tableaux: [victoires, series, parties]
   # The kills in the middle (on the point), the win streaks on the left, the Network level on the right.
   joueurs:
-    nom: "&c&lPlayer leaderboards"
+    nom: "&6&lPlayer leaderboards"
     tableaux: [series, kills, niveau]
   # The wall of the week: its boards stay on this week and show what their top 3 wins on Monday
   # (semaine: below). Place it with /lobby point semaine where it is seen from the spawn.
   semaine:
-    nom: "&c&lThis week"
+    nom: "&6&lThis week"
     periode: semaine
     tableaux: [victoires, series, [kills, parties]]
     # The podium in front of it: the top 3 of the wins of the week, in their skin. Stand on each
     # step and type /lobby point semaine1 (the first), semaine2, then semaine3.
     podium: [semaine1, semaine2, semaine3]
+  # The three walls of the leaderboard selector (pnj: newleaderboardselector), Daily, Weekly and
+  # Lifetime, the same stat on the three: the one each player chose at the selector. For example,
+  # on three points of their own (in the place of three walls above, take theirs away first):
+  # selecteur-jour:
+  #   nom: "&c&lDaily"
+  #   selecteur: newleaderboardselector
+  #   periode: jour
+  # selecteur-semaine:
+  #   nom: "&c&lWeekly"
+  #   selecteur: newleaderboardselector
+  #   periode: semaine
+  # selecteur-toujours:
+  #   nom: "&c&lLifetime"
+  #   selecteur: newleaderboardselector
+  #   periode: toujours
 
 # The leaderboards of the week: on Monday at midnight (Paris time), the first of each one win
 # Rago Points and the badge of the week, worn until the next results, and the whole server hears
@@ -872,10 +1151,11 @@ titres:
   familles:
     sky-rise: {nom: "Sky Rise", modes: [skyrise-1v1, skyrise-2v2, skyrise-resources-1v1, skyrise-resources-2v2]}
     first-rush: {nom: "First Rush", modes: [first-rush, first-rush-duo, first-rush-full, first-rush-full-duo]}
-    bed-fight: {nom: "Bed Fight", modes: [bed-fight-1v1, bed-fight-2v2, top-bed-fight-1v1]}
+    bed-fight: {nom: "Bed Fight", modes: [bed-fight-1v1, bed-fight-2v2, bed-fight-1v2, top-bed-fight-1v1]}
     top-bridge: {nom: "Top Bridge", modes: [top-bridge-1v1, top-bridge-2v2, top-bridge-ffa]}
-    clutch-scenario: {nom: "Clutch Scenario", modes: [clutch-scenario-1v1, clutch-scenario-2v2, clutch-scenario-3v3,
-      clutch-scenario-4v4]}
+    # with the 2v2, 3v3 and 4v4 of before 22/11: their wins still count
+    clutch-scenario: {nom: "Clutch Scenario", modes: [clutch-scenario-1v1, clutch-scenario-1v2, clutch-scenario-1v3,
+      clutch-scenario-1v4, clutch-scenario-2v2, clutch-scenario-3v3, clutch-scenario-4v4]}
     attack-defense: {nom: "Attack Defense", modes: [attack-defense-1v1, attack-defense-2v2]}
     invis: {nom: "Invis", modes: [invis-practice, invis-practice-1v1, invis-practice-1v2, invis-practice-1v3,
       invis-practice-1v4]}
@@ -883,12 +1163,18 @@ titres:
       bed-break-simulator-1v3, bed-break-simulator-1v4]}
     sumo: {nom: "Sumo", modes: [sumo]}
     boxing: {nom: "Boxing", modes: [boxing]}
-    kb-displace: {nom: "KB Displace", modes: [kb-displace]}
     block-placement: {nom: "Block Placement", modes: [block-fight-1v1, block-fight-2v2]}
     bridge-fight: {nom: "Bridge Fight", modes: [bridge-fight-1v1, bridge-fight-2v2]}
     block-edit: {nom: "Block Edit", modes: [block-edit-duel]}
     fireball: {nom: "Fireball Fight", modes: [fireball]}
     bow: {nom: "Bow Duel", modes: [bow-duel]}
+    fireball-knockback: {nom: "Fireball Fight (Fun)", modes: [fireball-knockback]}
+    snowball-spleef: {nom: "Snowball Spleef", modes: [snowball-spleef]}
+    parkour-duel: {nom: "Parkour Duel", modes: [parkour-duel]}
+    capture-the-flag: {nom: "Capture the Flag", modes: [ctf-bridge-1v1, ctf-bridge-2v2, ctf-castle-2v2, ctf-castle-4v4]}
+    bedwars-2012: {nom: "2012 Bedwars", modes: [bedwars-2012, bedwars-2012-classique]}
+    red-rover: {nom: "Red Rover", modes: [red-rover-sumo, red-rover-block-edit, red-rover-block-placement,
+        red-rover-top-bridge]}
 
 # The Hypixel import: players copy the quick buy of their Bed Wars shop and their hotbar manager
 # from Hypixel, in one click (the emerald in the kit editor book) or with /hypixel import <name>,
@@ -902,16 +1188,131 @@ hypixel:
 # The private games whose size follows the party: a party leader who clicks one of these modes
 # starts a private game of the party against itself (in no stats), in the one of its modes made
 # for the party's size: 2 players play the 1v1, 4 the 2v2, 6 the 3v3, 8 the 4v4. A player without
-# a party is asked to make one (/party invite <name>).
+# a party is asked to make one (/party invite <name>). Since 22/11 the Private game (RBW 1v1 to
+# 4v4) and the Private top bridge are replaced by Bedwars Normal (the owner's answer), below:
+#   partie-privee: [ranked-1v1, ranked-2v2, ranked-3v3, ranked-4v4]
+# A free for all (more than two teams of one player) takes a party of 2 players up to its number
+# of teams, each for themselves: FFA Archway (the owner's choice of 23/11), its game in modes.
 parties-privees:
-  partie-privee: [ranked-1v1, ranked-2v2, ranked-3v3, ranked-4v4]
-  top-bridge-prive: [top-bridge-1v1, top-bridge-2v2]
+  ffa-archway: [ffa-archway-partie]
+
+# The private games whose players choose their teams: Bedwars Normal (the owner's answers of
+# 22/11), as on Hypixel. The party leader clicks it and chooses a map, in a row for each mode of
+# cartes (the 4s, then the 2s; the maps of each as its game plugin gives them: in Bed Wars, every
+# map of 4 teams for the 4s, of 8 teams for the 2s). Then each player of the party chooses their
+# team, among the colours of the map, for compte-a-rebours seconds (30, the owner's ask of 23/11;
+# 15 once everyone has chosen, unless fewer are left; /pg team opens the menu again), and the game
+# starts by itself, in no stats: the teams of the map's size (4 players in
+# the 4s, 2 in the 2s), as many as the party fills, two at least; a team full refuses a player,
+# and so does a team that would hold the whole party; who chose none goes in the emptiest. A
+# party of 2 to 16 players (the owner's limit). The party changing cancels it.
+parties-privees-equipes:
+  bedwars-normal:
+    cartes: [bedwars-normal-4s, bedwars-normal-2s]
+    compte-a-rebours: 30
+
+# RagoBot: a player of the server, with the skin of an account and the name RagoBot, invited
+# into a party with /p invite RagoBot (or /p RagoBot): it joins at once, next to the leader, one
+# for each party that invites it. It plays the party's games of its modes with it, as a member
+# of the party (a party of two plays the 1v1 against it, a party with it waits in the 2v2 queue as
+# one team), never ranked, never in a random queue, and never leads the party. A game with it
+# counts in the players' stats and XP, never in the ELO; it has no stats of its own. It leaves
+# the server once back in the lobby without a party (/p kick RagoBot, the party disbanded).
+#   actif   false: /p invite RagoBot finds nobody
+#   skin    the account whose skin it wears
+#   max     RagoBots online at once at most, 1 to 50 (each is a player of the server)
+#   modes   the modes it plays (two teams, or a Red Rover; not ranked). In the Block Placement
+#           (1v1, 2v2, Red Rover) it uses the blocks of its kit as a player: knocked off over the
+#           void, it clutches (a block under its feet); the other on one block of theirs over the
+#           void, out of its hits, it breaks that block (shears on the wool, pickaxe on the end
+#           stone) and they fall; it jumps up the steps of the maps
+#   skill   its one skill, the same for every RagoBot (no levels), to set in game:
+#     cps         clicks a second (1 to 20)
+#     precision   the chance that a click with its aim on the other lands (0 to 1)
+#     portee      its reach, from its eyes to the other's box (1 to 3)
+#     strafe      how much it strafes around the other once close (0 to 1)
+#     w-tap       the chance of a w-tap after one of its hits (0 to 1)
+#     jump-reset  the chance of a jump reset when it is hit on the ground (0 to 1)
+#     reaction    how many ticks behind the other it steers (0 to 9)
+#     rotation    the degrees it turns its head a tick at most (5 to 180)
+#     soin-a      under this health (20 is full), it eats a golden apple of its kit (0 to 20)
+#     blocs-par-seconde  blocks it places a second at most (1 to 20)
+#     ping        its ping in milliseconds (0 to 300): its hits go by where the other was this long
+#                 ago, as a player's do (40, the owner's ask of 23/11: without, it had the first hit
+#                 every time)
+#   The values below: the "hard" level of the old combo bot, a turn of 30 degrees a tick, a golden
+#   apple under 10 health, 6 blocks a second, a ping of 40 ms, and 10 RagoBots at most; all to
+#   confirm in game.
+ragobot:
+  actif: true
+  skin: qRago
+  max: 10
+  # Boxing and Lobby Fight 1v1: step 1 of the owner's order of 22/11 (17h54), no new skill; the
+  # Block Placement 1v1, 2v2 and its Red Rover: step 2, with the blocks; the Block edit 1v1 and its
+  # Red Rover: step 3 (it opens the wall, hits through the hole, closes it)
+  modes: [top-bridge-1v1, top-bridge-2v2, sumo, boxing, lobby-fight-1v1, block-fight-1v1, block-fight-2v2,
+    red-rover-block-placement, block-edit-duel, red-rover-block-edit]
+  skill:
+    cps: 11
+    precision: 0.88
+    portee: 3.0
+    strafe: 0.8
+    w-tap: 0.75
+    jump-reset: 0.45
+    reaction: 3
+    rotation: 30
+    soin-a: 10
+    blocs-par-seconde: 6
+    ping: 40
+  # Block Method 1v1 (the owner's ask of 28/11): a player alone plays these modes against a
+  # RagoBot that comes by itself (no party, never with one), much weaker than the one above (its
+  # skill here, to set in game): on the islands of a Bed Fight, it bridges at the player as a
+  # player does (backwards, sneaking at the edge), breaks the blocks of the player in its way and
+  # gets out of a full box. 1v1 modes out of the ranked only.
+  seul:
+    modes: [block-method-1v1]
+    skill:
+      cps: 7
+      precision: 0.65
+      portee: 2.9
+      strafe: 0.35
+      w-tap: 0.2
+      jump-reset: 0.15
+      reaction: 6
+      rotation: 18
+      soin-a: 0
+      blocs-par-seconde: 4
+      ping: 80
+
+# The Owner's test tools (plan 7.1), to test the PvP and the protections of the server:
+#   /owner reach <3-6|off>     the Owner's hits land up to that far (a fair player's reach is 3),
+#                              as a reach cheat's: the first player along their aim, with no block
+#                              between, as the server makes a hit
+#   /owner scaffold [on|off]   walking off an edge, a block of the one in hand goes under their feet,
+#                              as a scaffold cheat's (where the game lets them place a block)
+#   /owner off                 both off; /owner alone: what is on
+# For this account only: anyone else reads what Spigot answers for a command it does not know (the
+# account needs rago.admin too: the owner rank, or op). Off until the Owner turns them on, off
+# again once they leave the server. Never in a ranked game: they do nothing there. A game where
+# the Owner has a tool on counts for nobody in it: no stats, no XP, no ELO, no record.
+#   compte  the Owner's account ("": no tool for anyone)
+#   uuid    "" on a server that verifies the names (online mode, or behind BungeeCord); in offline
+#           mode, the id of the account on this server, without which the tools stay off (anyone
+#           can take a name there)
+outils-owner:
+  compte: qRago
+  uuid: ""
 
 # The modes, in the order of the selector. The id (the key) holds only lowercase letters without
 # accents, digits and dashes. A mode stays "Coming soon" in the selector until a game plugin
 # hosts it.
 #   nom                the name shown (colour codes with &)
-#   icone              the item shown in the selector (a Minecraft 1.8 item name)
+#   icone              the item shown in the selector (a Minecraft 1.8 item name). One game keeps
+#                      one item in all its modes (FFA, duel, practice, ranked, Red Rover), in the
+#                      menus and the NPCs, so that players find it again (the owner's ask of 22/11)
+#                      With a colour after a colon, from 0 to 15: "WOOL:14" a red wool, "WOOL:4"
+#                      a yellow one (the owner's ask of 27/11). Under it, the players in a game of
+#                      it, as on Minemen (1 to 64)
 #   equipes            the number of teams in a game
 #   joueurs-par-equipe the number of players in each team
 #   categorie          the category of the mode (one of categories: above)
@@ -939,7 +1340,7 @@ parties-privees:
 modes:
   ranked-1v1:
     nom: "&6Ranked Bedwars 1v1"
-    categorie: ranked
+    categorie: classe
     groupe: ranked
     icone: BED
     equipes: 2
@@ -952,9 +1353,9 @@ modes:
       - "down after every game."
   ranked-2v2:
     nom: "&6Ranked Bedwars 2v2"
-    categorie: ranked
+    categorie: classe
     groupe: ranked
-    icone: DIAMOND_SWORD
+    icone: BED
     equipes: 2
     joueurs-par-equipe: 2
     classe: true
@@ -963,9 +1364,9 @@ modes:
       - "two, on the RBW maps."
   ranked-3v3:
     nom: "&6Ranked Bedwars 3v3"
-    categorie: ranked
+    categorie: classe
     groupe: ranked
-    icone: DIAMOND_CHESTPLATE
+    icone: BED
     equipes: 2
     joueurs-par-equipe: 3
     classe: true
@@ -974,15 +1375,84 @@ modes:
       - "three, on the RBW maps."
   ranked-4v4:
     nom: "&6Ranked Bedwars 4v4"
-    categorie: ranked
+    categorie: classe
     groupe: ranked
-    icone: DIAMOND_BLOCK
+    icone: BED
     equipes: 2
     joueurs-par-equipe: 4
     classe: true
     description:
       - "Ranked Bedwars, four against"
       - "four, on the RBW maps."
+  # The six great duels in ranked 1v1 (plan 3.7, the owner's choice of 22/11): the game of their
+  # unranked mode (kit-de: its kit, as each player arranged it), with their own queue by ELO.
+  ranked-bed-fight-1v1:
+    nom: "&6Ranked Bed Fight 1v1"
+    categorie: classe
+    icone: BED
+    equipes: 2
+    joueurs-par-equipe: 1
+    classe: true
+    kit-de: bed-fight-1v1
+    description:
+      - "Bed fight in 1v1, ranked: your"
+      - "ELO goes up or down after"
+      - "every game."
+  ranked-top-bridge-1v1:
+    nom: "&6Ranked Top Bridge 1v1"
+    categorie: classe
+    icone: LADDER
+    equipes: 2
+    joueurs-par-equipe: 1
+    classe: true
+    kit-de: top-bridge-1v1
+    description:
+      - "Top Bridge in 1v1, ranked: the"
+      - "first to 5 points wins, your"
+      - "ELO follows."
+  ranked-bridge-fight-1v1:
+    nom: "&6Ranked Bridge Fight 1v1"
+    categorie: classe
+    icone: WOOL
+    equipes: 2
+    joueurs-par-equipe: 1
+    classe: true
+    kit-de: bridge-fight-1v1
+    description:
+      - "Bridge fight in 1v1, ranked:"
+      - "first to 5, your ELO follows."
+  ranked-block-fight-1v1:
+    nom: "&6Ranked Block Placement 1v1"
+    categorie: classe
+    icone: "WOOL:4"
+    equipes: 2
+    joueurs-par-equipe: 1
+    classe: true
+    kit-de: block-fight-1v1
+    description:
+      - "Block placement in 1v1, ranked:"
+      - "first to 100, your ELO follows."
+  ranked-sumo:
+    nom: "&6Ranked Sumo"
+    categorie: classe
+    icone: LEASH
+    equipes: 2
+    joueurs-par-equipe: 1
+    classe: true
+    description:
+      - "The sumo duel, ranked: knock"
+      - "them off, your ELO follows."
+  ranked-boxing:
+    nom: "&6Ranked Boxing"
+    categorie: classe
+    icone: DIAMOND_SWORD
+    equipes: 2
+    joueurs-par-equipe: 1
+    classe: true
+    kit-de: boxing
+    description:
+      - "Boxing, ranked: first to 100"
+      - "hits, your ELO follows."
   skyrise-1v1:
     nom: "&6RBW Sky Rise 1v1"
     categorie: ranked
@@ -1112,10 +1582,29 @@ modes:
       - "Bed fight, two against two:"
       - "break their bed, then the last"
       - "team standing wins."
+  # one team of 3 here, split by the game: the player alone, drawn at random (not one of a party),
+  # against the two others
+  bed-fight-1v2:
+    nom: "&aBed fight 1v2"
+    categorie: duels
+    groupe: bed-fight
+    icone: BED
+    equipes: 1
+    joueurs-par-equipe: 3
+    format: 1v2
+    classe: false
+    # with full leather armour in the colour of the team; the player alone has the better stuff of
+    # stuff-ameliore: in the config.yml of rago-bedwars
+    kit: [WOOD_SWORD, WOOD_PICKAXE, WOOD_AXE, SHEARS, "WOOL 64"]
+    description:
+      - "Bed fight, one against two:"
+      - "the player alone, drawn at"
+      - "random, has a better stuff"
+      - "than the two others."
   top-bed-fight-1v1:
     nom: "&aTop BedFight 1v1"
     categorie: duels
-    icone: SHEARS
+    icone: IRON_BLOCK
     equipes: 2
     joueurs-par-equipe: 1
     classe: false
@@ -1126,36 +1615,51 @@ modes:
       - "Bed fight: kill them or knock"
       - "them off, rounds of one life,"
       - "the first to 5 points wins."
-  top-bridge-1v1:
-    nom: "&aTop Bridge 1v1"
+  # Block Method 1v1 (the owner's ask of 28/11): alone against RagoBot (ragobot.seul: above), on
+  # the owner's four Bed Fight maps, chosen when joining and changed in game; the kit of Bed Fight
+  # (as each player arranged it), RagoBot too; nobody wins: each death and the blaze rod start
+  # again on the map as it was
+  block-method-1v1:
+    nom: "&aBlock Method 1v1"
     categorie: duels
-    groupe: top-bridge
-    icone: LADDER
+    icone: "WOOL:11"
     equipes: 2
     joueurs-par-equipe: 1
     classe: false
-    # the fight kit: diamond leggings and boots, a leather helmet and chestplate in the team's
-    # colour, all with Protection IV
-    kit: [STONE_SWORD, "GOLDEN_APPLE 64"]
+    kit-de: bed-fight-1v1
     description:
-      - "On top of the top bridge of"
-      - "Antenna, on the 20 RBW maps:"
-      - "no bed, rounds of one life,"
-      - "the first to 5 points wins."
-  top-bridge-2v2:
-    nom: "&aTop Bridge 2v2"
+      - "Alone against RagoBot on a Bed"
+      - "Fight map: it bridges at you as"
+      - "a player. Block it, box it, kill"
+      - "it: the map starts again."
+  block-fight-1v1:
+    nom: "&aBlock placement 1v1"
     categorie: duels
-    groupe: top-bridge
-    icone: LADDER
+    groupe: block-placement
+    icone: "WOOL:4"
+    equipes: 2
+    joueurs-par-equipe: 1
+    classe: false
+    kit: [WOOD_SWORD, WOOD_PICKAXE, WOOD_AXE, SHEARS, "WOOL 64", "ENDER_STONE 12", "WOOL 64", "LADDER 16"]
+    description:
+      - "On the block placement maps,"
+      - "as on Minemen: each hit is a"
+      - "point, the void costs 10."
+      - "Build, clutch, knock them off:"
+      - "first to 100."
+  block-fight-2v2:
+    nom: "&aBlock placement 2v2"
+    categorie: duels
+    groupe: block-placement
+    icone: "WOOL:4"
     equipes: 2
     joueurs-par-equipe: 2
     classe: false
-    # the fight kit: diamond leggings and boots, a leather helmet and chestplate in the team's
-    # colour, all with Protection IV
-    kit: [STONE_SWORD, "GOLDEN_APPLE 64"]
+    kit: [WOOD_SWORD, WOOD_PICKAXE, WOOD_AXE, SHEARS, "WOOL 64", "ENDER_STONE 12", "WOOL 64", "LADDER 16"]
     description:
-      - "Top Bridge, two against two:"
-      - "the first team to 5 points."
+      - "Block placement, two against"
+      - "two: each hit is a point,"
+      - "the void costs 10. First to 100."
   top-bridge-ffa:
     nom: "&cTop Bridge FFA"
     categorie: arenes
@@ -1186,22 +1690,27 @@ modes:
       - "in diamond armour: spawn on"
       - "the top bridge, low, mid or"
       - "at random; come and go when"
-      - "you like, a kill heals you."
+      - "you like. A kill heals you and"
+      - "gives your whole kit back."
   lobby-fight-ffa:
     nom: "&cLobby Fight FFA"
     categorie: arenes
-    icone: FIREBALL
+    icone: ENDER_PEARL
     equipes: 1
     joueurs-par-equipe: 1
     classe: false
-    # a stone sword, 5 golden apples (each kill brings them back to 5) and 3 fireballs, nothing
-    # more (no blocks, no pearl), with the red leather of the FFA
-    kit: [STONE_SWORD, "GOLDEN_APPLE 5", "FIREBALL 3"]
+    # the kit of Lobby Fight, that Lobby Fight 1v1 plays too (kit-de:): a stone sword, 5 golden
+    # apples (each kill brings them back to 5), 3 fireballs, 12 end stone and a wooden pickaxe,
+    # then what the 1v1 had before them: a pearl, 2 stacks of wool and shears (the blocks go 10 s
+    # after being placed; the items added last, so that the layouts saved before stay as they
+    # were), with Haste, and the red leather of the FFA
+    kit: [STONE_SWORD, "GOLDEN_APPLE 5", "FIREBALL 3", "ENDER_STONE 12", WOOD_PICKAXE, ENDER_PEARL, "WOOL 64", "WOOL 64", SHEARS]
     description:
       - "The FFA in the waiting lobby of"
       - "Archway FFA, a sword, 5 golden"
-      - "apples (back to 5 at each kill)"
-      - "and 3 fireballs: come and go"
+      - "apples (back to 5 at each kill),"
+      - "3 fireballs, blocks, a pickaxe,"
+      - "a pearl and shears: come and go"
       - "when you like, fall out of it"
       - "and you die."
   free-ffa:
@@ -1296,19 +1805,8 @@ modes:
       - "An invisible attacker against"
       - "four defenders: 5 players,"
       - "each attacks once, in turn."
-  bridge-fight:
-    nom: "&cBridge fight"
-    categorie: arenes
-    icone: WOOL
-    equipes: 1
-    joueurs-par-equipe: 1
-    classe: false
-    kit: [WOOD_SWORD, "GOLDEN_APPLE 2"]
-    description:
-      - "Free for all, no blocks: the"
-      - "hits only push, knock them into"
-      - "the void. Real damage on the"
-      - "middle platform only."
+  # Bridge fight FFA (the arena of several platforms) left the Arenas (the owner, 27/11): its
+  # records stay in the data; the Bridge fight 1v1 and 2v2 stay in the Duels
   bridge-fight-1v1:
     nom: "&aBridge fight 1v1"
     categorie: duels
@@ -1336,52 +1834,53 @@ modes:
       - "two on one platform: when a"
       - "whole team is out, the other"
       - "scores. First to 5."
-  block-fight-1v1:
-    nom: "&aBlock placement 1v1"
+  top-bridge-1v1:
+    nom: "&aTop Bridge 1v1"
     categorie: duels
-    groupe: block-placement
-    icone: SANDSTONE
+    groupe: top-bridge
+    icone: LADDER
     equipes: 2
     joueurs-par-equipe: 1
     classe: false
-    kit: [WOOD_SWORD, WOOD_PICKAXE, WOOD_AXE, SHEARS, "WOOL 64", "ENDER_STONE 12", "WOOL 64", "LADDER 16"]
+    # the fight kit: diamond leggings and boots, a leather helmet and chestplate in the team's
+    # colour, all with Protection IV
+    kit: [STONE_SWORD, "GOLDEN_APPLE 64"]
     description:
-      - "On the block placement maps,"
-      - "as on Minemen: each hit is a"
-      - "point, the void costs 10."
-      - "Build, clutch, knock them off:"
-      - "first to 100."
-  block-fight-2v2:
-    nom: "&aBlock placement 2v2"
+      - "On top of the top bridge of"
+      - "Antenna, on the 20 RBW maps:"
+      - "no bed, rounds of one life,"
+      - "the first to 5 points wins."
+  top-bridge-2v2:
+    nom: "&aTop Bridge 2v2"
     categorie: duels
-    groupe: block-placement
-    icone: SANDSTONE
+    groupe: top-bridge
+    icone: LADDER
     equipes: 2
     joueurs-par-equipe: 2
     classe: false
-    kit: [WOOD_SWORD, WOOD_PICKAXE, WOOD_AXE, SHEARS, "WOOL 64", "ENDER_STONE 12", "WOOL 64", "LADDER 16"]
+    # the fight kit: diamond leggings and boots, a leather helmet and chestplate in the team's
+    # colour, all with Protection IV
+    kit: [STONE_SWORD, "GOLDEN_APPLE 64"]
     description:
-      - "Block placement, two against"
-      - "two: each hit is a point,"
-      - "the void costs 10. First to 100."
-  lobby-fight-1v1:
-    nom: "&aLobby Fight 1v1"
+      - "Top Bridge, two against two:"
+      - "the first team to 5 points."
+  # KB displace 1v1 left the menus (the owner, 23/11): its records and wins stay in the data
+  block-edit-duel:
+    nom: "&aBlock edit 1v1"
     categorie: duels
-    icone: ENDER_PEARL
+    icone: SHEARS
     equipes: 2
     joueurs-par-equipe: 1
     classe: false
-    # no kit of its own: the kit of the FFA (ffa:), as each player arranged it, with diamond
-    # leggings and boots, a leather helmet and chestplate in the team's colour, Protection IV
+    kit: [WOOD_SWORD, SHEARS, "WOOL 64"]
     description:
-      - "In the waiting lobby of Archway"
-      - "FFA, with the kit of the FFA:"
-      - "rounds of one life, knock them"
-      - "out; the first to 5 points wins."
+      - "A wall of wool between you:"
+      - "open, hit, close before they hit"
+      - "you back. First to 5."
   block-fight-arena:
     nom: "&cBlock placement arena"
     categorie: arenes
-    icone: SANDSTONE
+    icone: "WOOL:4"
     equipes: 1
     joueurs-par-equipe: 1
     classe: false
@@ -1402,42 +1901,50 @@ modes:
       - "A real RBW game: one of you"
       - "has no bed and must clutch,"
       - "the other's bed is defended."
-  clutch-scenario-2v2:
-    nom: "&6Clutch scenario 2v2"
+  # 1v2 to 1v4, as Invis Practice and the Bed Break Simulator (the owner's choice, 22/11, in place of
+  # the 2v2, 3v3 and 4v4): the players come as one team, the game draws the one alone.
+  clutch-scenario-1v2:
+    nom: "&6Clutch scenario 1v2"
     categorie: ranked
     groupe: clutch-scenario
     icone: IRON_CHESTPLATE
-    equipes: 2
-    joueurs-par-equipe: 2
-    classe: false
-    description:
-      - "A real RBW game, 2v2: one"
-      - "team has no bed and clutches,"
-      - "the other's bed is defended."
-  clutch-scenario-3v3:
-    nom: "&6Clutch scenario 3v3"
-    categorie: ranked
-    groupe: clutch-scenario
-    icone: IRON_CHESTPLATE
-    equipes: 2
+    equipes: 1
     joueurs-par-equipe: 3
+    format: 1v2
     classe: false
     description:
-      - "A real RBW game, 3v3: one"
-      - "team has no bed and clutches,"
-      - "the other's bed is defended."
-  clutch-scenario-4v4:
-    nom: "&6Clutch scenario 4v4"
+      - "A real RBW game: the player"
+      - "alone has no bed and must"
+      - "clutch, the bed of the 2"
+      - "others is defended."
+  clutch-scenario-1v3:
+    nom: "&6Clutch scenario 1v3"
     categorie: ranked
     groupe: clutch-scenario
     icone: IRON_CHESTPLATE
-    equipes: 2
+    equipes: 1
     joueurs-par-equipe: 4
+    format: 1v3
     classe: false
     description:
-      - "A real RBW game, 4v4: one"
-      - "team has no bed and clutches,"
-      - "the other's bed is defended."
+      - "A real RBW game: the player"
+      - "alone has no bed and must"
+      - "clutch, the bed of the 3"
+      - "others is defended."
+  clutch-scenario-1v4:
+    nom: "&6Clutch scenario 1v4"
+    categorie: ranked
+    groupe: clutch-scenario
+    icone: IRON_CHESTPLATE
+    equipes: 1
+    joueurs-par-equipe: 5
+    format: 1v4
+    classe: false
+    description:
+      - "A real RBW game: the player"
+      - "alone has no bed and must"
+      - "clutch, the bed of the 4"
+      - "others is defended."
   attack-defense-1v1:
     nom: "&6Attack and defense 1v1"
     categorie: ranked
@@ -1482,11 +1989,13 @@ modes:
     cache: true
     # the items of the three attack kits (Classic, Fireball, Fighter) of the bedwars plugin, to
     # arrange in the kit editor: each kit puts its items in their slots; a kit's Iron or Wooden
-    # Pickaxe takes the slot of the Golden one. The defenders have no kit: their forge full.
-    kit: [STONE_SWORD, GOLD_PICKAXE, "WOOL 64", "WOOL 64", FIREBALL, GOLDEN_APPLE, "LADDER 8", STICK]
+    # Pickaxe takes the slot of the Golden one, its Stone or Wooden Axe that of the Iron one (the
+    # axe and the shears last, so that the layouts saved before them stay as they were). The
+    # defenders have no kit: their forge full.
+    kit: [STONE_SWORD, GOLD_PICKAXE, "WOOL 64", "WOOL 64", FIREBALL, GOLDEN_APPLE, "LADDER 8", STICK, IRON_AXE, SHEARS]
     description:
       - "Archway or Invasion: attack"
-      - "from the top bridge with one of"
+      - "from the top with one of"
       - "3 kits and break the bed; the"
       - "defenders have their forge full."
       - "3-minute rounds, each in turn."
@@ -1548,42 +2057,148 @@ modes:
       - "One attacker against four"
       - "defenders: 5 players, each"
       - "attacks once, in turn."
-  partie-privee:
-    nom: "&6Private game"
+  # The Private games (the owner's answers of 22/11: they replace the Private game, RBW 1v1 to 4v4,
+  # and the Private top bridge): Bedwars Normal, see parties-privees-equipes. Its two sizes below
+  # are not in the selector (cache: true): the leader chooses one of their maps after the click.
+  bedwars-normal:
+    nom: "&6Bedwars Normal"
     categorie: ranked
     groupe: prive
-    icone: NAME_TAG
+    icone: BED
     equipes: 2
     joueurs-par-equipe: 1
+    format: "2 to 16"
     classe: false
     description:
-      - "A real private RBW game with your"
-      - "party: 1v1, 2v2, 3v3 or 4v4, the"
-      - "size follows the party."
-  top-bridge-prive:
-    nom: "&6Private top bridge"
+      - "A Bed Wars game with your party,"
+      - "as on Hypixel: choose a map of"
+      - "4s or 2s, then everyone their"
+      - "team. 2 to 16 players."
+  bedwars-normal-4s:
+    nom: "&6Bedwars Normal"
+    categorie: ranked
+    icone: BED
+    equipes: 4
+    joueurs-par-equipe: 4
+    format: 4s
+    classe: false
+    cache: true
+  bedwars-normal-2s:
+    nom: "&6Bedwars Normal"
+    categorie: ranked
+    icone: BED
+    equipes: 8
+    joueurs-par-equipe: 2
+    format: 2s
+    classe: false
+    cache: true
+  # FFA Archway (the owner's choice of 23/11): the FFA of Archway FFA with the party alone, in a
+  # copy of the map of its own, each for themselves, as the FFA (its kit as each player arranged
+  # it, kit-de: ffa), in no stats; it ends after 30 minutes with the kills leaderboard of the game
+  # (ffa-privee-minutes in the config.yml of RagoBedwars). Its game, ffa-archway-partie, is not in
+  # the selector (cache: true): 16 teams of one, a party of 2 to 16 players, one in each.
+  ffa-archway:
+    nom: "&6FFA Archway"
     categorie: ranked
     groupe: prive
-    icone: LADDER
+    icone: STONE_SWORD
     equipes: 2
     joueurs-par-equipe: 1
+    format: "2 to 16"
     classe: false
     description:
-      - "A practice with your party on"
-      - "the top bridge: no bed, back on"
-      - "top at each death, 30 minutes."
-      - "1v1 or 2v2, as the party."
-  sumo:
-    nom: "&aSumo duel"
+      - "The FFA of Archway with your"
+      - "party alone, each for"
+      - "themselves: 30 minutes, then"
+      - "the kills leaderboard."
+      - "2 to 16 players."
+  ffa-archway-partie:
+    nom: "&6FFA Archway"
+    categorie: ranked
+    icone: STONE_SWORD
+    equipes: 16
+    joueurs-par-equipe: 1
+    format: "2 to 16"
+    classe: false
+    cache: true
+    kit-de: ffa
+  lobby-fight-1v1:
+    nom: "&aLobby Fight 1v1"
     categorie: duels
-    icone: SLIME_BALL
+    icone: ENDER_PEARL
     equipes: 2
     joueurs-par-equipe: 1
     classe: false
+    # the kit of Lobby Fight FFA (lobby-fight-ffa:), as each player arranged it, with Haste and
+    # diamond leggings and boots, a leather helmet and chestplate in the team's colour, Protection IV
+    kit-de: lobby-fight-ffa
     description:
-      - "Knock the other player off"
-      - "the platform: great for"
-      - "working on knockback."
+      - "In the waiting lobby of Archway"
+      - "FFA, with the kit of Lobby Fight:"
+      - "rounds of one life, knock them"
+      - "out; the first to 3 points wins."
+  # Red Rover (plan 6.5): three players (a party of three, or three of the queue), 1v1 in turn on
+  # the sumo platform, at the wall of the block edit, on the block placement maps, on the top bridge
+  # (RagoBedwars); the rules in red-rover of RagoPractice's config.yml
+  red-rover-sumo:
+    nom: "&aRed Rover Sumo"
+    categorie: duels
+    groupe: red-rover
+    icone: LEASH
+    equipes: 1
+    joueurs-par-equipe: 3
+    format: 1v1v1
+    classe: false
+    description:
+      - "Three players, 1v1 in turn"
+      - "on the sumo platform: who"
+      - "waits watches the 1v1."
+  red-rover-block-edit:
+    nom: "&aRed Rover Block Edit"
+    categorie: duels
+    groupe: red-rover
+    icone: SHEARS
+    equipes: 1
+    joueurs-par-equipe: 3
+    format: 1v1v1
+    classe: false
+    # the kit of the block edit duel, as each player arranged it
+    kit-de: block-edit-duel
+    description:
+      - "Three players, 1v1 in turn"
+      - "at the wall of wool: a clean"
+      - "edit wins the 1v1."
+  red-rover-block-placement:
+    nom: "&aRed Rover Block Placement"
+    categorie: duels
+    groupe: red-rover
+    icone: "WOOL:4"
+    equipes: 1
+    joueurs-par-equipe: 3
+    format: 1v1v1
+    classe: false
+    # the kit of the block placement 1v1, as each player arranged it
+    kit-de: block-fight-1v1
+    description:
+      - "Three players, 1v1 in turn"
+      - "on the block placement maps:"
+      - "a hit +1, the void +10, first"
+      - "to 10 wins the 1v1."
+  red-rover-top-bridge:
+    nom: "&aRed Rover Top Bridge"
+    categorie: duels
+    groupe: red-rover
+    icone: LADDER
+    equipes: 1
+    joueurs-par-equipe: 3
+    format: 1v1v1
+    classe: false
+    # the kit of Top Bridge 1v1, as each player arranged it
+    kit-de: top-bridge-1v1
+    description:
+      - "Three players, 1v1 in turn"
+      - "on the top bridge: a round"
+      - "of one life wins the 1v1."
   boxing:
     nom: "&aBoxing"
     categorie: duels
@@ -1596,30 +2211,17 @@ modes:
       - "First to 100 hits,"
       - "to work on your combos."
       - "/speed: Speed II off or on."
-  kb-displace:
-    nom: "&aKB displace 1v1"
+  sumo:
+    nom: "&aSumo duel"
     categorie: duels
-    icone: STICK
+    icone: LEASH
     equipes: 2
     joueurs-par-equipe: 1
     classe: false
-    kit: [STONE_SWORD]
     description:
-      - "A real top fight: run along the"
-      - "bridge and knock the defender"
-      - "off sideways. Roles swap each hit."
-  block-edit-duel:
-    nom: "&aBlock edit 1v1"
-    categorie: duels
-    icone: SHEARS
-    equipes: 2
-    joueurs-par-equipe: 1
-    classe: false
-    kit: [WOOD_SWORD, SHEARS, "WOOL 64"]
-    description:
-      - "A wall of wool between you:"
-      - "open, hit, close before they hit"
-      - "you back. First to 5."
+      - "Knock the other player off"
+      - "the platform: great for"
+      - "working on knockback."
   fireball:
     nom: "&aFireball fight"
     categorie: duels
@@ -1633,11 +2235,173 @@ modes:
       - "their bed, the last one"
       - "standing wins. Blasts and"
       - "falls do no damage."
+  # FUN PRACTICE (plan 6.1). The Fireball Fight of the knockback (not the one above, with beds):
+  # three players at once, each for themselves (the owner's ask of 22/11): a party of three, or
+  # three of the queue. The fireballs as many as the player likes, one every half second, unless
+  # fireball-knockback in the config.yml of RagoPractice says how many; the double jump from the
+  # start (no feather); wool that never runs out, each block gone after a few seconds; no hits.
+  fireball-knockback:
+    nom: "&dFireball Fight"
+    categorie: fun
+    icone: FIREBALL
+    equipes: 1
+    joueurs-par-equipe: 3
+    format: 1v1v1
+    classe: false
+    kit: ["FIREBALL 64", "WOOL 64"]
+    description:
+      - "Three players on a big"
+      - "platform over the void:"
+      - "knock them off with"
+      - "fireballs. Double jump, and"
+      - "wool that goes fast. No"
+      - "hits, no damage."
+  snowball-spleef:
+    nom: "&dSnowball Spleef"
+    categorie: fun
+    icone: SNOW_BALL
+    equipes: 2
+    joueurs-par-equipe: 1
+    classe: false
+    kit: [DIAMOND_SPADE]
+    description:
+      - "Break the snow under them:"
+      - "each block gives a snowball"
+      - "that breaks the snow too,"
+      - "or pushes them. Two floors,"
+      - "no hand hits: don't fall!"
+  # Parkour Duel (the owner's choice of 22/11): a race on RagoPractice's course, each side on its
+  # own lane; a fall takes the player back to their last checkpoint. No kit, no hits.
+  parkour-duel:
+    nom: "&dParkour Duel"
+    categorie: fun
+    icone: FEATHER
+    equipes: 2
+    joueurs-par-equipe: 1
+    classe: false
+    description:
+      - "Race them on your own lane:"
+      - "five sections, four"
+      - "checkpoints. A fall takes"
+      - "you back to the last one."
+      - "First to the finish wins!"
+  # Capture the Flag (plan 6.2), The Bridge: played by RagoBedwars on its map CtfBridge; the kit of
+  # The Bridge (Hypixel's), in leather armour of the team without the cap; the clay in the team's
+  # colour, the pickaxe with Efficiency II, the arrow back 3.5 seconds after being shot. The two
+  # sizes share one kit.
+  ctf-bridge-1v1:
+    nom: "&dCTF The Bridge 1v1"
+    categorie: fun
+    groupe: ctf-bridge
+    icone: BOW
+    equipes: 2
+    joueurs-par-equipe: 1
+    classe: false
+    kit: [IRON_SWORD, BOW, DIAMOND_PICKAXE, "STAINED_CLAY 64", "STAINED_CLAY 64", "GOLDEN_APPLE 8", "", "", ARROW]
+    description:
+      - "The Bridge with a flag: take"
+      - "theirs at the back of their"
+      - "base and bring it home over"
+      - "the bridge to capture it."
+  ctf-bridge-2v2:
+    nom: "&dCTF The Bridge 2v2"
+    categorie: fun
+    groupe: ctf-bridge
+    icone: BOW
+    equipes: 2
+    joueurs-par-equipe: 2
+    classe: false
+    kit-de: ctf-bridge-1v1
+    description:
+      - "CTF The Bridge, two against"
+      - "two: one takes their flag,"
+      - "the other guards yours."
+  ctf-castle-2v2:
+    nom: "&dCTF Castle 2v2"
+    categorie: fun
+    groupe: ctf-castle
+    icone: IRON_SWORD
+    equipes: 2
+    joueurs-par-equipe: 2
+    classe: false
+    description:
+      - "Castle against castle, a mid"
+      - "between: Bed Wars with a flag"
+      - "in each keep in place of the"
+      - "bed. Bring theirs to yours."
+  ctf-castle-4v4:
+    nom: "&dCTF Castle 4v4"
+    categorie: fun
+    groupe: ctf-castle
+    icone: IRON_SWORD
+    equipes: 2
+    joueurs-par-equipe: 4
+    classe: false
+    description:
+      - "CTF Castle, four against four:"
+      - "defend your keep, raid theirs."
+  # 2012 Bedwars (the owner's ask of 27/11), in the place of 2017 Bedwars, whose stats are not kept
+  # (as every mode of the Fun Practice): a rush of 2012, four against four on its own map, each
+  # team hides its bed in the first minute; played by RagoBedwars (bedwars-2012 and
+  # bedwars-2012-classique in its jeux:), with or without the diamonds and the emeralds.
+  bedwars-2012:
+    nom: "&d2012 Bedwars"
+    categorie: fun
+    groupe: bedwars-2012
+    icone: BED
+    equipes: 2
+    joueurs-par-equipe: 4
+    classe: false
+    description:
+      - "A rush of 2012, four against"
+      - "four: hide your bed in the"
+      - "first minute. Clay, diamonds"
+      - "and emeralds, no upgrades."
+  bedwars-2012-classique:
+    nom: "&d2012 Bedwars Classic"
+    categorie: fun
+    groupe: bedwars-2012
+    icone: BED
+    equipes: 2
+    joueurs-par-equipe: 4
+    classe: false
+    description:
+      - "The same rush without the"
+      - "diamonds and the emeralds:"
+      - "the forges of the bases only."
+  # 2017 Bedwars (Fast Bedwars of plan 6.1) out of the menus (the owner, 27/11: 2012 Bedwars in its
+  # place): hidden (cache: true), kept for the bots of the CI that play its 1v1 and its 2v2
+  # (fast-bots.mjs, and the private games of test-equipes in run-arena-test.sh); its settings in the
+  # config.yml of RagoBedwars (fast-bedwars:).
+  fast-bedwars-1v1:
+    nom: "&d2017 Bedwars 1v1"
+    categorie: fun
+    cache: true
+    icone: BED
+    equipes: 2
+    joueurs-par-equipe: 1
+    classe: false
+    description:
+      - "Bed Wars made fast: faster"
+      - "forges, earlier events, the"
+      - "beds gone at 15 minutes, a"
+      - "smaller shop, no upgrades."
+  fast-bedwars-2v2:
+    nom: "&d2017 Bedwars 2v2"
+    categorie: fun
+    cache: true
+    icone: BED
+    equipes: 2
+    joueurs-par-equipe: 2
+    classe: false
+    description:
+      - "2017 Bedwars, two against"
+      - "two: rush fast, defend fast."
   clutch:
     nom: "&bBlock clutch"
     categorie: entrainement
     groupe: clutch
-    icone: LADDER
+    icone: SANDSTONE
     # "Start here" in the menus: the first training of a new player (one mode or more)
     commencer-ici: true
     equipes: 1
@@ -1654,7 +2418,7 @@ modes:
     nom: "&bBlock clutch: top fight"
     categorie: entrainement
     groupe: clutch
-    icone: WOOL
+    icone: SANDSTONE
     equipes: 1
     joueurs-par-equipe: 1
     classe: false
@@ -1662,17 +2426,6 @@ modes:
       - "The block clutch on a top"
       - "fight platform, at the build"
       - "limit: no block above it."
-  block-in:
-    nom: "&bBlock in practice"
-    categorie: entrainement
-    icone: ENDER_STONE
-    equipes: 1
-    joueurs-par-equipe: 1
-    classe: false
-    description:
-      - "Drop on a bed defense, block"
-      - "yourself in and dig to the bed:"
-      - "the time of each layer."
   fast-defense:
     nom: "&bFast defense"
     categorie: entrainement
@@ -1697,6 +2450,20 @@ modes:
       - "Break a block of the wall, hit"
       - "the bot behind it, put the block"
       - "back before it hits you."
+  # Pearl practice and Fireball practice left the menus (the owner, 23/11): their records stay in
+  # RagoPractice's data
+  shop-practice:
+    nom: "&bFast Shop"
+    categorie: entrainement
+    icone: GOLD_INGOT
+    equipes: 1
+    joueurs-par-equipe: 1
+    classe: false
+    description:
+      - "Buy lists of items as fast"
+      - "as you can, with your own"
+      - "Hypixel quick buy (copy it"
+      - "in one click: the book)."
   extend-practice:
     nom: "&bExtend practice"
     categorie: entrainement
@@ -1725,19 +2492,6 @@ modes:
       - "Gold, Diamond, Emerald: the"
       - "hit comes from your look."
       - "Wool and ladders."
-  bridge-chrono:
-    nom: "&bTimed bridge"
-    categorie: entrainement
-    icone: SANDSTONE
-    equipes: 1
-    joueurs-par-equipe: 1
-    classe: false
-    description:
-      - "Bridge 16, 32 or 64 blocks"
-      - "against the clock, with any"
-      - "technique: straight or"
-      - "diagonal, flat or uphill."
-      - "A record for each course."
   ladder-practice:
     nom: "&bLadder practice"
     categorie: entrainement
@@ -1749,83 +2503,63 @@ modes:
       - "Block-ladder clutch: jump from"
       - "4 to 24 blocks, wool and a"
       - "ladder before the ground."
-  pearl-practice:
-    nom: "&bPearl practice"
+  block-in:
+    nom: "&bBlock in practice"
     categorie: entrainement
-    icone: ENDER_PEARL
+    icone: ENDER_STONE
     equipes: 1
     joueurs-par-equipe: 1
     classe: false
     description:
-      - "A new Bed Wars map each try:"
-      - "pearl onto an island, back"
-      - "after a hit, and the pearl"
-      - "block clutch: to the wall of"
-      - "an island, then wool under you."
-  fireball-practice:
-    nom: "&bFireball practice"
+      - "Drop on a bed defense, block"
+      - "yourself in and dig to the bed:"
+      - "the time of each layer."
+  # Block Pattern Practice (the owner's ask of 27/11), played by RagoPractice: the techniques of his
+  # video Block Method, one level each (the first ten), RagoBot running at the player.
+  block-pattern-practice:
+    nom: "&bBlock Pattern Practice"
     categorie: entrainement
-    icone: FIREBALL
+    icone: "WOOL:3"
     equipes: 1
     joueurs-par-equipe: 1
     classe: false
     description:
-      - "A new Bed Wars map each try:"
-      - "fireball jump a broken bridge,"
-      - "knock bridgers and rushers"
-      - "into the void, and hit their"
-      - "fireballs back."
-  shop-practice:
-    nom: "&bFast Shop"
+      - "RagoBot runs at you: place the"
+      - "blocks of the technique, then"
+      - "hit it first. Ten techniques"
+      - "of Block Method, the dyes."
+  bridge-chrono:
+    nom: "&bTimed bridge"
     categorie: entrainement
-    icone: GOLD_INGOT
+    icone: SANDSTONE
     equipes: 1
     joueurs-par-equipe: 1
     classe: false
     description:
-      - "Buy lists of items as fast"
-      - "as you can, with your own"
-      - "Hypixel quick buy (copy it"
-      - "in one click: the book)."
-  combo-bot:
-    nom: "&bCombo bot"
+      - "Bridge 16, 32 or 64 blocks"
+      - "against the clock, with any"
+      - "technique: straight or"
+      - "diagonal, flat or uphill, or"
+      - "with a turn. A record for"
+      - "each course."
+  # Find your sensitivity left the menus (the owner, 22/11, 19h51: "Find your sensivity
+  # supprime"): RagoPractice no longer opens it; its code stays, unplugged.
+  block-aim:
+    nom: "&bBlock aim"
     categorie: entrainement
-    icone: SKULL_ITEM
+    icone: GLOWSTONE_DUST
     equipes: 1
     joueurs-par-equipe: 1
     classe: false
     description:
-      - "An AI that fights as a player:"
-      - "sprint hits, strafes, w-taps,"
-      - "jump resets. Easy to Expert:"
-      - "combo it without being hit."
-  kb-displace-bot:
-    nom: "&bKB displace against a bot"
-    categorie: entrainement
-    icone: STICK
-    equipes: 1
-    joueurs-par-equipe: 1
-    classe: false
-    description:
-      - "Run, turn your head, hit: knock"
-      - "the bot off sideways. Back at"
-      - "the start after each hit."
-  bow-training:
-    nom: "&bBow training"
-    categorie: entrainement
-    icone: BOW
-    equipes: 1
-    joueurs-par-equipe: 1
-    classe: false
-    description:
-      - "On Archway: bots bridge from"
-      - "the middle to your base, knock"
-      - "them off with your bow. Hits,"
-      - "accuracy, the longest shot."
+      - "A face lights up: under your"
+      - "feet, on the side of the"
+      - "bridge or on the bed. A block"
+      - "on it, faster at each level."
   bow-duel:
     nom: "&aBow duel"
     categorie: duels
-    icone: ARROW
+    icone: BOW
     equipes: 2
     joueurs-par-equipe: 1
     classe: false
@@ -1846,13 +2580,42 @@ modes:
       - "moving targets. XP for"
       - "each second on the target,"
       - "and a top of the best."
+  # The Combo bot training left the menus (the owner, 22/11: "le combo bot on le supprime"): its
+  # records stay in RagoPractice's data, its fight goes to RagoBot. KB displace against a bot too
+  # (the owner, 23/11), its records kept.
+  # Hypixel Bow Practice (the owner's ask of 27/11), played by RagoPractice on the owner's map
+  # BowPractice: three levels, the dyes change them.
+  bow-practice:
+    nom: "&bHypixel Bow Practice"
+    categorie: entrainement
+    icone: BOW
+    equipes: 1
+    joueurs-par-equipe: 1
+    classe: false
+    description:
+      - "A zombie comes along a bridge:"
+      - "knock it off with your bow,"
+      - "then hit it twice in the air."
+      - "Three levels, the dyes."
+  bow-training:
+    nom: "&bBow training"
+    categorie: entrainement
+    icone: BOW
+    equipes: 1
+    joueurs-par-equipe: 1
+    classe: false
+    description:
+      - "On Archway: bots bridge from"
+      - "the middle to your base, knock"
+      - "them off with your bow. Hits,"
+      - "accuracy, the longest shot."
   # The events a PREMIUM player hosts with /host (RagoPractice): hidden from the selector, the
   # players come in with /join while the server is told about it.
   event-sumo:
     nom: "&aSumo event"
     categorie: duels
     cache: true
-    icone: SLIME_BALL
+    icone: LEASH
     equipes: 1
     joueurs-par-equipe: 1
     classe: false

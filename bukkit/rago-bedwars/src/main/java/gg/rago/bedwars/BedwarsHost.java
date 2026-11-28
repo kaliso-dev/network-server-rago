@@ -7,13 +7,17 @@ import gg.rago.game.MatchProposal;
 import gg.rago.game.QueueEntry;
 import gg.rago.lobby.api.EndOfGame;
 import gg.rago.lobby.api.MatchHost;
+import gg.rago.lobby.api.PrivateSetting;
 import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collections;
 import java.util.EnumSet;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
+import java.util.Random;
 import java.util.Set;
 import java.util.UUID;
 import java.util.WeakHashMap;
@@ -28,6 +32,7 @@ import org.bukkit.Material;
 import org.bukkit.Sound;
 import org.bukkit.World;
 import org.bukkit.block.Block;
+import org.bukkit.entity.Arrow;
 import org.bukkit.entity.Egg;
 import org.bukkit.entity.EnderPearl;
 import org.bukkit.entity.Entity;
@@ -46,6 +51,7 @@ import org.bukkit.event.Listener;
 import org.bukkit.event.block.Action;
 import org.bukkit.event.block.BlockBreakEvent;
 import org.bukkit.event.block.BlockBurnEvent;
+import org.bukkit.event.block.BlockDamageEvent;
 import org.bukkit.event.block.BlockFadeEvent;
 import org.bukkit.event.block.BlockFormEvent;
 import org.bukkit.event.block.BlockFromToEvent;
@@ -79,6 +85,7 @@ import org.bukkit.event.player.PlayerInteractEntityEvent;
 import org.bukkit.event.player.PlayerInteractEvent;
 import org.bukkit.event.player.PlayerItemConsumeEvent;
 import org.bukkit.event.player.PlayerItemDamageEvent;
+import org.bukkit.event.player.PlayerJoinEvent;
 import org.bukkit.event.player.PlayerMoveEvent;
 import org.bukkit.event.player.PlayerPickupItemEvent;
 import org.bukkit.event.player.PlayerQuitEvent;
@@ -113,6 +120,10 @@ final class BedwarsHost implements MatchHost, Listener {
     private final RagoBedwars plugin;
     private final Map<UUID, BedwarsGame> games = new HashMap<>();
     private final List<BedwarsGame> running = new ArrayList<>();
+    /** The players in the waiting lobby of their private game (Bedwars Normal), by its waiting lobby. */
+    private final Map<UUID, PrivateWaitingLobby> waiting = new HashMap<>();
+    /** The server has been told once that salle-attente-privee names no map with a waiting lobby. */
+    private boolean warnedNoWaitingLobby;
     /** Who lit each TNT: the kill goes to them (1.8 cannot give a TNT its source). */
     private final Map<Entity, UUID> tntOwners = new WeakHashMap<>();
     /** Players already told that no map is ready, so that they are not told every second. */
@@ -141,12 +152,32 @@ final class BedwarsHost implements MatchHost, Listener {
                 && joinable(match.mode().id(), maps) != null) {
             return true;
         }
+        if (waitingOn(sidesOf(match), maps) != null) {
+            // a private game whose waiting lobby is over its map: played on that copy
+            return true;
+        }
         List<BedwarsMap> drawn = drawn(match.mode(), maps);
         if (plugin.instances().hasFree(drawn)) {
             return true;
         }
         plugin.instances().prepare(drawn, true);
         return false;
+    }
+
+    /** The online players of the match, by team; a team without a player online stays empty. */
+    private static List<List<Player>> sidesOf(MatchProposal match) {
+        List<List<Player>> sides = new ArrayList<>();
+        for (List<QueueEntry> team : match.teams()) {
+            List<Player> side = new ArrayList<>();
+            for (QueueEntry entry : team) {
+                Player player = Bukkit.getPlayer(entry.player());
+                if (player != null) {
+                    side.add(player);
+                }
+            }
+            sides.add(side);
+        }
+        return sides;
     }
 
     /**
@@ -209,7 +240,10 @@ final class BedwarsHost implements MatchHost, Listener {
             return false;
         }
         BedwarsSettings.Kind kind = plugin.settings().kind(mode.id());
-        BedwarsGame joinable = kind == BedwarsSettings.Kind.CLASSIC ? null : joinable(mode.id(), maps);
+        // FFA Archway (the Private games, the owner's choice of 23/11): the party's own FFA, in a copy
+        // of the map of its own, nobody else in it, until the end of its minutes
+        boolean partyFfa = kind == BedwarsSettings.Kind.FFA && plugin.lobby().inPrivateGame(firstPlayer(sides));
+        BedwarsGame joinable = kind == BedwarsSettings.Kind.CLASSIC || partyFfa ? null : joinable(mode.id(), maps);
         if (joinable != null) {
             // an open game with room, an invis practice still waiting for its players: in it at once
             for (List<Player> side : sides) {
@@ -220,8 +254,23 @@ final class BedwarsHost implements MatchHost, Listener {
             }
             return true;
         }
-        List<BedwarsMap> drawn = drawn(mode, maps);
-        Instance instance = plugin.instances().acquire(drawn);
+        PrivateWaitingLobby waitedOn = waitingOn(sides, maps);
+        List<BedwarsMap> drawn = waitedOn != null ? Collections.singletonList(waitedOn.instance().map()) : drawn(mode, maps);
+        Instance instance;
+        if (waitedOn != null) {
+            // the private game waited over its map: played on that copy, which stays taken
+            instance = waitedOn.instance();
+            if (instance.map().sides() < islands(mode)) {
+                // the players still stand in it: their copy is freed when they leave it
+                return false;
+            }
+            for (UUID id : waitedOn.players()) {
+                waiting.remove(id);
+                waitedOn.remove(id);
+            }
+        } else {
+            instance = plugin.instances().acquire(drawn);
+        }
         if (instance == null) {
             // a match waits: a copy of its map is made, room made for it if need be
             plugin.instances().prepare(drawn, true);
@@ -231,8 +280,22 @@ final class BedwarsHost implements MatchHost, Listener {
             plugin.instances().release(instance);
             return false;
         }
-        BedwarsGame game = create(kind, instance, mode, sides);
+        // the party's FFA starts with its first player; the others join it at once, each in a colour of their own
+        List<Player> joining = new ArrayList<>();
+        if (partyFfa) {
+            for (List<Player> side : sides) {
+                joining.addAll(side);
+            }
+            sides = new ArrayList<>();
+            sides.add(new ArrayList<>(Collections.singletonList(joining.remove(0))));
+        }
+        BedwarsGame game = partyFfa ? new FfaGame(plugin, this, instance, mode.id(), ChatColor.stripColor(mode.name()), sides,
+                plugin.settings().privateFfaMinutes()) : create(kind, instance, mode, sides);
         game.modeLine = mode.name();
+        if (plugin.settings().privateRules(mode.id())) {
+            // Bedwars Normal: the settings its party leader chose in the lobby, if a private game
+            game.rules = PrivateRules.of(plugin.lobby().privateSettings(firstPlayer(sides)));
+        }
         for (List<Player> side : sides) {
             for (Player player : side) {
                 games.put(player.getUniqueId(), game);
@@ -243,6 +306,14 @@ final class BedwarsHost implements MatchHost, Listener {
         // recorded for /replay from before its start: the blocks the start changes are in the replay
         game.record();
         game.begin();
+        for (Player player : joining) {
+            toldNoMap.remove(player.getUniqueId());
+            game.join(player);
+        }
+        // a private game of Bedwars Normal: its players came from its waiting lobby, now on the map
+        for (UUID id : game.players()) {
+            leaveWaiting(id);
+        }
         // The next game of the mode is on another map, drawn now; the next match should not wait for
         // its copy: one is made now if none is free and there is room.
         if (maps.size() > 1) {
@@ -277,6 +348,8 @@ final class BedwarsHost implements MatchHost, Listener {
                 return new ClutchScenarioGame(plugin, this, instance, mode.id(), name, sides);
             case BED_FIGHT:
                 return new BedFightGame(plugin, this, instance, mode.id(), name, sides);
+            case BLOCK_METHOD:
+                return new BlockMethodGame(plugin, this, instance, mode.id(), name, sides);
             case TOP_BED_FIGHT:
                 return new TopBedFightGame(plugin, this, instance, mode.id(), name, sides);
             case LOBBY_FIGHT:
@@ -285,6 +358,19 @@ final class BedwarsHost implements MatchHost, Listener {
                 return new FfaGame(plugin, this, instance, mode.id(), name, sides, false, true);
             case BED_BREAK:
                 return new BedBreakGame(plugin, this, instance, mode.id(), name, sides, mode.playersPerMatch());
+            case RED_ROVER_TOP_BRIDGE:
+                return new RedRoverTopBridgeGame(plugin, this, instance, mode.id(), name, sides, plugin.redRover(),
+                        plugin.redRoverRounds(), new Random());
+            case CTF_BRIDGE:
+                return new CaptureTheFlagGame(plugin, this, instance, mode.id(), name, sides, true);
+            case CTF_CASTLE:
+                return new CaptureTheFlagGame(plugin, this, instance, mode.id(), name, sides, false);
+            case FAST_BEDWARS:
+                return new FastBedwarsGame(plugin, this, instance, mode.id(), name, sides);
+            case BEDWARS_2012:
+                return new Bedwars2012Game(plugin, this, instance, mode.id(), name, sides, true);
+            case BEDWARS_2012_CLASSIC:
+                return new Bedwars2012Game(plugin, this, instance, mode.id(), name, sides, false);
             default:
                 return new BedwarsGame(plugin, this, instance, mode.id(), name, sides);
         }
@@ -317,9 +403,12 @@ final class BedwarsHost implements MatchHost, Listener {
         return null;
     }
 
-    /** The islands a game of this mode needs: one per team, two at least. */
-    static int islands(GameMode mode) {
-        return Math.max(2, mode.teams());
+    /**
+     * The islands a game of this mode needs: one per team, two at least; a free for all, two (FFA
+     * Archway, 16 teams of one: its players come back on any island, see {@link FfaGame}).
+     */
+    int islands(GameMode mode) {
+        return plugin.settings().kind(mode.id()) == BedwarsSettings.Kind.FFA ? 2 : Math.max(2, mode.teams());
     }
 
     /**
@@ -332,7 +421,225 @@ final class BedwarsHost implements MatchHost, Listener {
             maps = new ArrayList<>(maps);
             maps.removeIf(map -> map.waitingLobby() == null);
         }
+        if (plugin.settings().exactTeams(mode.id())) {
+            // Bedwars Normal: the 4s on the maps of 4 teams, the 2s on those of 8 (not the demo map)
+            maps = new ArrayList<>(maps);
+            maps.removeIf(map -> map.completeTeams().size() != mode.teams());
+        }
         return maps;
+    }
+
+    /** The first player of the match, or null. */
+    private static UUID firstPlayer(List<List<Player>> sides) {
+        for (List<Player> side : sides) {
+            if (!side.isEmpty()) {
+                return side.get(0).getUniqueId();
+            }
+        }
+        return null;
+    }
+
+    /**
+     * The settings the party leader chooses in the lobby for a private game of Bedwars Normal
+     * (reglages-prives): Speed, Max Diamond, Max Emerald, Break the Map ({@link PrivateRules}).
+     */
+    @Override
+    public List<PrivateSetting> privateSettings(GameMode mode) {
+        if (!plugin.settings().privateRules(mode.id())) {
+            return Collections.emptyList();
+        }
+        List<PrivateSetting> offered = new ArrayList<>();
+        for (PrivateRules.Setting setting : PrivateRules.SETTINGS) {
+            offered.add(setting.toggles
+                    ? PrivateSetting.toggles(setting.id, setting.name, iconOf(setting.id), setting.choices, WEAPON_ICONS,
+                            setting.description)
+                    : new PrivateSetting(setting.id, setting.name, iconOf(setting.id), setting.choices, setting.description));
+        }
+        return offered;
+    }
+
+    /** The icons of the weapons of One Hit One Kill in its menu, in the order of {@link PrivateRules#WEAPONS}. */
+    private static final List<Material> WEAPON_ICONS = Arrays.asList(Material.WOOD_SWORD, Material.STONE_SWORD,
+            Material.IRON_SWORD, Material.DIAMOND_SWORD, Material.STICK, Material.BOW, Material.FIREBALL, Material.TNT);
+
+    private static Material iconOf(String setting) {
+        switch (setting) {
+            case PrivateRules.SPEED:
+                return Material.SUGAR;
+            case PrivateRules.MAX_DIAMOND:
+                return Material.DIAMOND;
+            case PrivateRules.MAX_EMERALD:
+                return Material.EMERALD;
+            case PrivateRules.BREAK_MAP:
+                return Material.IRON_PICKAXE;
+            case PrivateRules.HEALTH_BUFF:
+                return Material.GOLDEN_APPLE;
+            case PrivateRules.LOW_GRAVITY:
+                return Material.FEATHER;
+            case PrivateRules.RESPAWN_TIME:
+                return Material.WATCH;
+            case PrivateRules.EVENT_TIMES:
+                return Material.EXP_BOTTLE;
+            case PrivateRules.BED_INSTABREAK:
+                return Material.BED;
+            case PrivateRules.ONE_HIT_ONE_KILL:
+                return Material.DIAMOND_SWORD;
+            default:
+                return Material.PAPER;
+        }
+    }
+
+    /**
+     * The teams of this map in the order a game of this mode gives them to the sides of its match
+     * (the map's complete teams, in the order of the colours): a wool of each colour, named in it,
+     * for the team menu of Bedwars Normal in the lobby. Empty when the map does not play this mode.
+     */
+    @Override
+    public List<ItemStack> teamIcons(GameMode mode, String map) {
+        List<ItemStack> icons = new ArrayList<>();
+        for (BedwarsMap playable : mapsFor(mode)) {
+            if (!playable.world().equalsIgnoreCase(map)) {
+                continue;
+            }
+            for (TeamColor color : playable.playingTeams(mode.teams())) {
+                ItemStack wool = new ItemStack(Material.WOOL, 1, color.woolData());
+                org.bukkit.inventory.meta.ItemMeta meta = wool.getItemMeta();
+                if (meta != null) {
+                    meta.setDisplayName(ChatColor.RESET + color.coloured());
+                    wool.setItemMeta(meta);
+                }
+                icons.add(wool);
+            }
+        }
+        return icons;
+    }
+
+    /**
+     * The waiting lobby of a private game of Bedwars Normal on the map its leader chose (the owner's
+     * ask of 25/11): that map's own (salle-attente:), else the map of salle-attente-privee (Archway
+     * FFA). READY when a copy is free, else PREPARING (a copy is made); NONE when neither has one.
+     */
+    @Override
+    public Gathering canGather(GameMode mode, String map) {
+        BedwarsMap waitingMap = waitingMapFor(mode, map);
+        if (waitingMap == null) {
+            return Gathering.NONE;
+        }
+        List<BedwarsMap> maps = Collections.singletonList(waitingMap);
+        if (plugin.instances().hasFree(maps)) {
+            return Gathering.READY;
+        }
+        plugin.instances().prepare(maps, true);
+        return Gathering.PREPARING;
+    }
+
+    /** The party in the waiting lobby of a copy of its own of the map it chose (or of salle-attente-privee). */
+    @Override
+    public boolean gather(GameMode mode, String map, List<Player> players) {
+        BedwarsMap waitingMap = waitingMapFor(mode, map);
+        if (waitingMap == null) {
+            return false;
+        }
+        for (Player player : players) {
+            if (games.containsKey(player.getUniqueId()) || waiting.containsKey(player.getUniqueId())) {
+                return false;
+            }
+        }
+        Instance instance = plugin.instances().acquire(Collections.singletonList(waitingMap));
+        if (instance == null) {
+            return false;
+        }
+        if (instance.map().waitingLobby() == null) {
+            // a copy made before the map had its waiting lobby
+            plugin.instances().release(instance);
+            return false;
+        }
+        PrivateWaitingLobby lobby = new PrivateWaitingLobby(instance);
+        for (Player player : players) {
+            toldNoMap.remove(player.getUniqueId());
+            waiting.put(player.getUniqueId(), lobby);
+            lobby.welcome(player);
+        }
+        return true;
+    }
+
+    /**
+     * Where a private game of this mode on this map waits: the chosen map if it has its waiting
+     * lobby, else the map of salle-attente-privee; null if neither.
+     */
+    private BedwarsMap waitingMapFor(GameMode mode, String map) {
+        if (map != null) {
+            for (BedwarsMap candidate : mapsFor(mode)) {
+                if (candidate.world().equalsIgnoreCase(map) && candidate.playable() && candidate.waitingLobby() != null) {
+                    return candidate;
+                }
+            }
+        }
+        return privateWaitingMap();
+    }
+
+    /**
+     * The waiting lobby all the players of these sides wait in, if it is a copy of one of these maps:
+     * their game is played on that copy, under their feet (the owner's ask of 25/11); else null.
+     */
+    private PrivateWaitingLobby waitingOn(List<List<Player>> sides, List<BedwarsMap> maps) {
+        PrivateWaitingLobby lobby = null;
+        for (List<Player> side : sides) {
+            for (Player player : side) {
+                PrivateWaitingLobby of = waiting.get(player.getUniqueId());
+                if (of == null || lobby != null && of != lobby) {
+                    return null;
+                }
+                lobby = of;
+            }
+        }
+        if (lobby == null || lobby.players().size() != count(sides)) {
+            return null;
+        }
+        for (BedwarsMap map : maps) {
+            if (map.world().equals(lobby.instance().map().world())) {
+                return lobby;
+            }
+        }
+        return null;
+    }
+
+    private static int count(List<List<Player>> sides) {
+        int count = 0;
+        for (List<Player> side : sides) {
+            count += side.size();
+        }
+        return count;
+    }
+
+    /** The map of salle-attente-privee if it has a waiting lobby and can be played, else null (told once in the log). */
+    private BedwarsMap privateWaitingMap() {
+        String name = plugin.settings().privateWaitingMap();
+        if (name.isEmpty()) {
+            return null;
+        }
+        for (BedwarsMap map : plugin.maps().all()) {
+            if (map.world().equalsIgnoreCase(name) && map.playable() && map.waitingLobby() != null) {
+                return map;
+            }
+        }
+        if (!warnedNoWaitingLobby) {
+            warnedNoWaitingLobby = true;
+            plugin.getLogger().warning("salle-attente-privee: " + name + " is no map with a waiting lobby (/bw lobbyfight on"
+                    + " its floor): the private games of Bedwars Normal choose their map in the lobby.");
+        }
+        return null;
+    }
+
+    /** The player is no longer in the waiting lobby of their private game; its copy is free again once it is empty. */
+    private void leaveWaiting(UUID player) {
+        PrivateWaitingLobby lobby = waiting.remove(player);
+        if (lobby != null) {
+            lobby.remove(player);
+            if (lobby.empty()) {
+                plugin.instances().release(lobby.instance());
+            }
+        }
     }
 
     /**
@@ -411,6 +718,8 @@ final class BedwarsHost implements MatchHost, Listener {
         }
         BedwarsGame game = games.get(player.getUniqueId());
         if (game == null) {
+            // in the waiting lobby of their private game, or nowhere: back to the lobby
+            leaveWaiting(player.getUniqueId());
             plugin.lobby().sendToLobby(player);
         } else {
             game.leave(player, true);
@@ -459,6 +768,42 @@ final class BedwarsHost implements MatchHost, Listener {
         games.put(player, game);
     }
 
+    /** The maps a Block Method practice of this mode goes on on (its menu of maps). */
+    List<BedwarsMap> blockMethodMaps(String modeId) {
+        return plugin.maps().playable(2, plugin.settings().mapsOf(modeId));
+    }
+
+    /**
+     * A Block Method practice goes on on another map: a new game on a copy of it, with the same
+     * players, its round and counts, the old one handed over. False if no copy is free yet (one is
+     * made: the practice asks again a second later); true once done, or if nobody is left.
+     */
+    boolean moveTo(BlockMethodGame old, BedwarsMap map) {
+        List<BedwarsMap> one = Collections.singletonList(map);
+        List<List<Player>> sides = old.sides();
+        if (sides == null) {
+            return true;
+        }
+        Instance instance = plugin.instances().acquire(one);
+        if (instance == null) {
+            plugin.instances().prepare(one, true);
+            return false;
+        }
+        BlockMethodGame game = new BlockMethodGame(plugin, this, instance, old.modeId(), old.modeName, sides);
+        game.modeLine = old.modeLine;
+        game.carryFrom(old);
+        old.handOver();
+        for (List<Player> side : sides) {
+            for (Player player : side) {
+                games.put(player.getUniqueId(), game);
+            }
+        }
+        running.add(game);
+        finished(old);
+        game.begin();
+        return true;
+    }
+
     /** The game is over and its players are gone: its world is made ready for the next one. */
     void finished(BedwarsGame game) {
         for (UUID id : game.players()) {
@@ -476,6 +821,13 @@ final class BedwarsHost implements MatchHost, Listener {
         for (BedwarsGame game : new ArrayList<>(running)) {
             game.abort();
             finished(game);
+        }
+        for (UUID id : new ArrayList<>(waiting.keySet())) {
+            leaveWaiting(id);
+            Player player = Bukkit.getPlayer(id);
+            if (player != null) {
+                plugin.lobby().sendToLobby(player);
+            }
         }
     }
 
@@ -513,6 +865,12 @@ final class BedwarsHost implements MatchHost, Listener {
     public void onMove(PlayerMoveEvent event) {
         BedwarsGame game = games.get(event.getPlayer().getUniqueId());
         if (game == null) {
+            PrivateWaitingLobby lobby = waiting.get(event.getPlayer().getUniqueId());
+            if (lobby != null && event.getTo().getY() < lobby.fallLine()) {
+                // off the waiting lobby: back in its middle
+                event.getPlayer().setFallDistance(0f);
+                event.setTo(lobby.middle());
+            }
             return;
         }
         Location from = event.getFrom();
@@ -547,6 +905,11 @@ final class BedwarsHost implements MatchHost, Listener {
     @EventHandler
     public void onChangedWorld(PlayerChangedWorldEvent event) {
         final Player player = event.getPlayer();
+        PrivateWaitingLobby lobby = waiting.get(player.getUniqueId());
+        if (lobby != null && event.getFrom().equals(lobby.instance().world())) {
+            // out of the waiting lobby of their private game (to its map, the lobby, a command)
+            leaveWaiting(player.getUniqueId());
+        }
         final BedwarsGame game = games.get(player.getUniqueId());
         if (game != null && event.getFrom().equals(game.instance().world())
                 && !player.getWorld().equals(game.instance().world())) {
@@ -561,8 +924,10 @@ final class BedwarsHost implements MatchHost, Listener {
     // --- Damage, deaths -------------------------------------------------------------------------
 
     /**
-     * In a game world, only players take damage. Between players: no friendly fire, the hit is
-     * remembered for the kill, and a hit that would kill is the death of Bed Wars (respawn or out).
+     * In a game world, only players take damage. Between players: no friendly fire, no hit on a
+     * player still protected after a respawn (Bed Fight), the hit is remembered for the kill, and a
+     * hit that would kill is the death of Bed Wars (respawn or out), as is the hit of an enemy with a
+     * weapon of One Hit One Kill (a private game's setting).
      */
     @EventHandler(priority = EventPriority.HIGH, ignoreCancelled = true)
     public void onDamage(EntityDamageEvent event) {
@@ -576,6 +941,10 @@ final class BedwarsHost implements MatchHost, Listener {
         Player victim = (Player) entity;
         BedwarsGame game = games.get(victim.getUniqueId());
         if (game == null) {
+            if (waiting.containsKey(victim.getUniqueId())) {
+                // nobody is hurt in the waiting lobby of a private game
+                event.setCancelled(true);
+            }
             return;
         }
         if (event.getCause() == EntityDamageEvent.DamageCause.VOID) {
@@ -631,7 +1000,19 @@ final class BedwarsHost implements MatchHost, Listener {
                     event.setCancelled(true);
                     return;
                 }
+                // Hitting an enemy ends the author's own protection after a respawn at once; the
+                // victim's, while it lasts, makes the hit do nothing: no damage, no knockback.
+                author.protection.engaged();
+                if (target.protection.on(System.currentTimeMillis())) {
+                    event.setCancelled(true);
+                    return;
+                }
                 game.hit(target, author);
+                if (game.rules.oneHitKills(weaponOf(damager))) {
+                    event.setCancelled(true);
+                    game.kill(victim, attacker, false);
+                    return;
+                }
             } else {
                 // Their own fireball or TNT: the damage and the jump, nobody to credit.
                 attacker = null;
@@ -791,6 +1172,22 @@ final class BedwarsHost implements MatchHost, Listener {
         }
     }
 
+    /**
+     * The weapon of One Hit One Kill of this damage (an index of {@link PrivateRules#WEAPONS}), -1
+     * if none: the item in the hand of the one who hit, the arrow of a bow, the TNT. The fireball's
+     * is in {@link BedwarsGame#blast}, its hit hurting nobody here.
+     */
+    private static int weaponOf(Entity damager) {
+        if (damager instanceof Player) {
+            ItemStack hand = ((Player) damager).getItemInHand();
+            return hand == null ? -1 : PrivateRules.weaponInHand(hand.getType().name());
+        }
+        if (damager instanceof Arrow) {
+            return PrivateRules.BOW;
+        }
+        return damager instanceof TNTPrimed ? PrivateRules.TNT : -1;
+    }
+
     /** The player behind this damage: the one who hit, shot, threw the fireball or lit the TNT. */
     private Player attacker(Entity damager) {
         if (damager instanceof Player) {
@@ -845,7 +1242,7 @@ final class BedwarsHost implements MatchHost, Listener {
 
     @EventHandler(ignoreCancelled = true)
     public void onHunger(FoodLevelChangeEvent event) {
-        if (games.containsKey(event.getEntity().getUniqueId())) {
+        if (games.containsKey(event.getEntity().getUniqueId()) || waiting.containsKey(event.getEntity().getUniqueId())) {
             event.setCancelled(true);
             if (event.getEntity() instanceof Player) {
                 ((Player) event.getEntity()).setFoodLevel(20);
@@ -956,6 +1353,22 @@ final class BedwarsHost implements MatchHost, Listener {
         game.instance().unmark(block);
     }
 
+    /**
+     * Bed Instabreak, a setting of the party leader: the first punch on the bed of another team breaks
+     * it, then {@link #onBreak} takes it as any bed broken.
+     */
+    @EventHandler(priority = EventPriority.HIGH, ignoreCancelled = true)
+    public void onBedPunch(BlockDamageEvent event) {
+        BedwarsGame game = playing(event.getPlayer());
+        if (game == null || !game.rules.bedInstabreak() || event.getBlock().getType() != Material.BED_BLOCK) {
+            return;
+        }
+        BedwarsGame.Team bed = game.bedTeam(event.getBlock());
+        if (bed != null && bed != game.gamer(event.getPlayer().getUniqueId()).team) {
+            event.setInstaBreak(true);
+        }
+    }
+
     @EventHandler(priority = EventPriority.HIGH, ignoreCancelled = true)
     public void onBucketEmpty(PlayerBucketEmptyEvent event) {
         final Player player = event.getPlayer();
@@ -1044,14 +1457,41 @@ final class BedwarsHost implements MatchHost, Listener {
 
     // --- Items ----------------------------------------------------------------------------------
 
+    /**
+     * 2012 Bedwars: a right click on the top of a block with the team's bed hides it there (the game
+     * puts it, not the client: the places it refuses, its message).
+     */
+    @EventHandler(priority = EventPriority.LOW)
+    public void onHideBed(PlayerInteractEvent event) {
+        if (event.getAction() != Action.RIGHT_CLICK_BLOCK || !Bedwars2012Game.isBedToHide(event.getItem())) {
+            return;
+        }
+        BedwarsGame game = games.get(event.getPlayer().getUniqueId());
+        if (game instanceof Bedwars2012Game) {
+            event.setCancelled(true);
+            ((Bedwars2012Game) game).hideBed(event.getPlayer(), event.getClickedBlock(), event.getBlockFace());
+        }
+    }
+
     @EventHandler(priority = EventPriority.HIGH)
     public void onInteract(PlayerInteractEvent event) {
         Player player = event.getPlayer();
         BedwarsGame game = games.get(player.getUniqueId());
         if (game == null) {
+            if (waiting.containsKey(player.getUniqueId())) {
+                // the waiting lobby of a private game: its doors, chests and buttons are not used
+                event.setUseInteractedBlock(Event.Result.DENY);
+            }
             return;
         }
         if (event.getAction() == Action.PHYSICAL) {
+            return;
+        }
+        if (game instanceof BlockMethodGame
+                && (event.getAction() == Action.RIGHT_CLICK_AIR || event.getAction() == Action.RIGHT_CLICK_BLOCK)
+                && ((BlockMethodGame) game).use(player, event.getItem())) {
+            // Block Method: the blaze rod (the round again), the map (the menu of the maps)
+            event.setCancelled(true);
             return;
         }
         if ((event.getAction() == Action.RIGHT_CLICK_AIR || event.getAction() == Action.RIGHT_CLICK_BLOCK)
@@ -1175,12 +1615,19 @@ final class BedwarsHost implements MatchHost, Listener {
         }
     }
 
-    /** The empty bottle of a potion goes, as on Hypixel. */
+    /** The empty bottle of a potion goes, as on Hypixel; the mode may add to what was eaten. */
     @EventHandler(priority = EventPriority.MONITOR, ignoreCancelled = true)
     public void onConsume(PlayerItemConsumeEvent event) {
         final Player player = event.getPlayer();
-        if (games.containsKey(player.getUniqueId()) && event.getItem().getType() == Material.POTION) {
+        BedwarsGame game = games.get(player.getUniqueId());
+        if (game == null) {
+            return;
+        }
+        if (event.getItem().getType() == Material.POTION) {
             Bukkit.getScheduler().runTask(plugin, () -> player.getInventory().remove(Material.GLASS_BOTTLE));
+        }
+        if (playing(player) == game) {
+            game.ate(player, event.getItem());
         }
     }
 
@@ -1192,12 +1639,14 @@ final class BedwarsHost implements MatchHost, Listener {
         Player player = (Player) event.getWhoClicked();
         InventoryHolder menu = event.getView().getTopInventory().getHolder();
         if (menu instanceof ShopMenu.Holder || menu instanceof UpgradeMenu.Holder || menu instanceof FfaSpawnMenu.Holder
-                || menu instanceof KitMenu.Holder) {
+                || menu instanceof KitMenu.Holder || menu instanceof BlockMethodMenu.Holder) {
             event.setCancelled(true);
             if (event.getRawSlot() < 0 || event.getRawSlot() >= event.getView().getTopInventory().getSize()) {
                 return;
             }
-            if (menu instanceof KitMenu.Holder) {
+            if (menu instanceof BlockMethodMenu.Holder) {
+                BlockMethodMenu.click(player, (BlockMethodMenu.Holder) menu, event.getRawSlot());
+            } else if (menu instanceof KitMenu.Holder) {
                 KitMenu.click(player, (KitMenu.Holder) menu, event.getRawSlot());
             } else if (menu instanceof FfaSpawnMenu.Holder) {
                 FfaSpawnMenu.click(player, (FfaSpawnMenu.Holder) menu, event.getRawSlot());
@@ -1218,7 +1667,7 @@ final class BedwarsHost implements MatchHost, Listener {
     public void onDrag(InventoryDragEvent event) {
         InventoryHolder menu = event.getView().getTopInventory().getHolder();
         if (menu instanceof ShopMenu.Holder || menu instanceof UpgradeMenu.Holder || menu instanceof FfaSpawnMenu.Holder
-                || menu instanceof KitMenu.Holder) {
+                || menu instanceof KitMenu.Holder || menu instanceof BlockMethodMenu.Holder) {
             event.setCancelled(true);
         }
     }
@@ -1234,10 +1683,21 @@ final class BedwarsHost implements MatchHost, Listener {
     @EventHandler(priority = EventPriority.HIGH, ignoreCancelled = true)
     public void onDrop(PlayerDropItemEvent event) {
         Player player = event.getPlayer();
+        if (waiting.containsKey(player.getUniqueId())) {
+            // the items of the waiting lobby stay
+            event.setCancelled(true);
+            return;
+        }
         if (!games.containsKey(player.getUniqueId())) {
             return;
         }
         String type = event.getItemDrop().getItemStack().getType().name();
+        if (games.get(player.getUniqueId()) instanceof BlockMethodGame
+                && BlockMethodGame.isTool(event.getItemDrop().getItemStack().getType())) {
+            // the blaze rod and the map of Block Method stay in the hotbar
+            event.setCancelled(true);
+            return;
+        }
         if (playing(player) == null || type.equals("WOOD_SWORD") || type.endsWith("_PICKAXE") || type.endsWith("_AXE")
                 || type.equals("SHEARS")) {
             event.setCancelled(true);
@@ -1247,7 +1707,7 @@ final class BedwarsHost implements MatchHost, Listener {
     @EventHandler(priority = EventPriority.HIGH, ignoreCancelled = true)
     public void onPickup(PlayerPickupItemEvent event) {
         Player player = event.getPlayer();
-        if (games.containsKey(player.getUniqueId()) && playing(player) == null) {
+        if (games.containsKey(player.getUniqueId()) && playing(player) == null || waiting.containsKey(player.getUniqueId())) {
             event.setCancelled(true);
         }
     }
@@ -1306,10 +1766,16 @@ final class BedwarsHost implements MatchHost, Listener {
             event.setFormat(ChatColor.GRAY + "[SPECTATOR] " + event.getFormat());
             return;
         }
+        final PrivateWaitingLobby lobby = waiting.get(sender.getUniqueId());
+        if (lobby != null) {
+            // the waiting lobby of a private game: its party only
+            event.getRecipients().removeIf(player -> waiting.get(player.getUniqueId()) != lobby);
+            return;
+        }
         final BedwarsGame game = games.get(sender.getUniqueId());
         if (game == null) {
             event.getRecipients().removeIf(player -> games.containsKey(player.getUniqueId())
-                    || watchers.isWatching(player.getUniqueId()));
+                    || watchers.isWatching(player.getUniqueId()) || waiting.containsKey(player.getUniqueId()));
             return;
         }
         event.getRecipients().removeIf(player -> games.get(player.getUniqueId()) != game
@@ -1340,13 +1806,41 @@ final class BedwarsHost implements MatchHost, Listener {
 
     // --- Leaving --------------------------------------------------------------------------------
 
-    /** Leaving the server in the middle of a game: out of it. Before RagoLobby forgets the player. */
+    /**
+     * Leaving the server in the middle of a game: out of it, or in a game that waits for them (a
+     * classic game of Bed Wars, ranked or not: {@link BedwarsGame#mayComeBack}) gone for a while,
+     * their place kept. Before RagoLobby forgets the player.
+     */
     @EventHandler
     public void onQuit(PlayerQuitEvent event) {
         toldNoMap.remove(event.getPlayer().getUniqueId());
+        leaveWaiting(event.getPlayer().getUniqueId());
         BedwarsGame game = games.get(event.getPlayer().getUniqueId());
         if (game != null) {
-            game.leave(event.getPlayer(), false);
+            if (game.mayComeBack(event.getPlayer())) {
+                game.away(event.getPlayer());
+            } else {
+                game.leave(event.getPlayer(), false);
+            }
+        }
+    }
+
+    /**
+     * Back on the server while their game waits for them ({@link BedwarsGame#awaits}): after the
+     * lobby (MONITOR, the lobby is HIGHEST), back in the game. A game that no longer waits for them
+     * lets them go.
+     */
+    @EventHandler(priority = EventPriority.MONITOR)
+    public void onJoin(PlayerJoinEvent event) {
+        Player player = event.getPlayer();
+        BedwarsGame game = games.get(player.getUniqueId());
+        if (game == null) {
+            return;
+        }
+        if (game.awaits(player.getUniqueId()) && plugin.lobby().backInGame(player, game.modeId())) {
+            game.returned(player);
+        } else {
+            games.remove(player.getUniqueId());
         }
     }
 

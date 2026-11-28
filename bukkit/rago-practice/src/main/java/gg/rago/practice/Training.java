@@ -65,6 +65,10 @@ abstract class Training extends PracticeGame {
         /** Its value by default, that "Reset to default" (or shift and a right click on the blaze rod) gives back. */
         final int initial;
         int value;
+        /** A step besides the step of one (-10 and +10 beside - and +), for a setting of many values; 0 without. */
+        int bigStep;
+        /** What the value is in, written after it ("%") instead of "/max"; null: "/max". */
+        String unit;
 
         Setting(String label, int min, int max, int value, boolean toggle) {
             this.label = label;
@@ -79,10 +83,20 @@ abstract class Training extends PracticeGame {
             return value != 0;
         }
 
-        /** The value as the player reads it: "3/5" with a bar, or On / Off. */
+        /** The same setting with a step of this many besides the step of one, its value written in this unit. */
+        Setting big(int step, String unit) {
+            this.bigStep = step;
+            this.unit = unit;
+            return this;
+        }
+
+        /** The value as the player reads it: "3/5" with a bar, "100%" in its unit, or On / Off. */
         String text() {
             if (toggle) {
                 return on() ? ChatColor.GREEN + "On" : ChatColor.RED + "Off";
+            }
+            if (unit != null) {
+                return ChatColor.WHITE + "" + value + unit;
             }
             StringBuilder bar = new StringBuilder();
             for (int i = min; i <= max && max - min <= 10; i++) {
@@ -667,6 +681,9 @@ abstract class Training extends PracticeGame {
     static final int LOWER_COLUMN = 3;
     static final int VALUE_COLUMN = 4;
     static final int RAISE_COLUMN = 5;
+    /** The bigger steps of a setting that has them (-10, +10), beside - and +. */
+    static final int BIG_LOWER_COLUMN = 2;
+    static final int BIG_RAISE_COLUMN = 6;
 
     /**
      * A new attempt while the settings are open (a fall that began before they opened): the
@@ -705,19 +722,25 @@ abstract class Training extends PracticeGame {
             Setting setting = settings.get(i);
             int row = (firstSettingRow() + i) * 9;
             String byDefault = ChatColor.GRAY + "Default: " + (setting.toggle ? (setting.initial != 0 ? "On" : "Off")
-                    : ChatColor.WHITE + "" + setting.initial);
+                    : ChatColor.WHITE + "" + setting.initial + (setting.unit == null ? "" : setting.unit));
             if (setting.toggle) {
                 items[row + VALUE_COLUMN] = named(Material.INK_SACK, 1, setting.on() ? GREEN_DYE : GRAY_DYE,
-                        ChatColor.WHITE + setting.label + ": " + setting.text(), byDefault, ChatColor.RED + "Click: on or off");
+                        ChatColor.WHITE + setting.label + ": " + setting.text(), byDefault, ChatColor.YELLOW + "Click: on or off");
                 continue;
             }
             int amount = Math.max(1, Math.min(64, setting.value));
             items[row + LOWER_COLUMN] = named(Material.STAINED_GLASS_PANE, 1, RED_PANE, ChatColor.RED + "- " + setting.label,
-                    ChatColor.RED + "Click: lower");
+                    ChatColor.YELLOW + "Click: lower");
             items[row + VALUE_COLUMN] = named(Material.PAPER, amount, 0, ChatColor.WHITE + setting.label + ": " + setting.text(),
                     byDefault);
             items[row + RAISE_COLUMN] = named(Material.STAINED_GLASS_PANE, 1, GREEN_PANE, ChatColor.GREEN + "+ " + setting.label,
-                    ChatColor.RED + "Click: raise");
+                    ChatColor.YELLOW + "Click: raise");
+            if (setting.bigStep > 0) {
+                items[row + BIG_LOWER_COLUMN] = named(Material.STAINED_GLASS_PANE, 1, RED_PANE, ChatColor.RED + "-" + setting.bigStep
+                        + " " + setting.label, ChatColor.YELLOW + "Click: lower by " + setting.bigStep);
+                items[row + BIG_RAISE_COLUMN] = named(Material.STAINED_GLASS_PANE, 1, GREEN_PANE, ChatColor.GREEN + "+" + setting.bigStep
+                        + " " + setting.label, ChatColor.YELLOW + "Click: raise by " + setting.bigStep);
+            }
         }
         int bottom = bottomRow() * 9;
         if (!settings.isEmpty()) {
@@ -728,7 +751,7 @@ abstract class Training extends PracticeGame {
             Preset preset = presets.get(i);
             List<String> lore = new ArrayList<>();
             lore.add(ChatColor.GRAY + preset.description);
-            lore.add(matches(preset) ? ChatColor.GREEN + "Your settings now" : ChatColor.RED + "Click: use it");
+            lore.add(matches(preset) ? ChatColor.GREEN + "Your settings now" : ChatColor.YELLOW + "Click: use it");
             items[bottom + presetColumn(i)] = named(preset.icon, 1, 0, ChatColor.GOLD + "Preset: " + preset.name,
                     lore.toArray(new String[0]));
         }
@@ -745,7 +768,7 @@ abstract class Training extends PracticeGame {
         if (host.challenges() != null && host.challenges().isToday(mode.id() + "." + v.id)) {
             lore.add(ChatColor.GOLD + "\u2726 Challenge of the day");
         }
-        lore.add(index == variant ? ChatColor.GREEN + "Playing now" : ChatColor.RED + "Click: play this mode");
+        lore.add(index == variant ? ChatColor.GREEN + "Playing now" : ChatColor.YELLOW + "Click: play this mode");
         ItemStack item = named(index == variant ? Material.EMPTY_MAP : Material.PAPER, index + 1, 0,
                 (index == variant ? ChatColor.GREEN : ChatColor.WHITE) + v.label, lore.toArray(new String[0]));
         return item;
@@ -785,7 +808,8 @@ abstract class Training extends PracticeGame {
         int index = row - firstSettingRow();
         if (index >= 0 && index < settings.size()) {
             Setting setting = settings.get(index);
-            int by = setting.toggle ? (column == VALUE_COLUMN ? 1 : 0) : column == RAISE_COLUMN ? 1 : column == LOWER_COLUMN ? -1 : 0;
+            int by = setting.toggle ? (column == VALUE_COLUMN ? 1 : 0) : column == RAISE_COLUMN ? 1 : column == LOWER_COLUMN ? -1
+                    : column == BIG_RAISE_COLUMN ? setting.bigStep : column == BIG_LOWER_COLUMN ? -setting.bigStep : 0;
             if (by == 0) {
                 return;
             }
@@ -793,6 +817,7 @@ abstract class Training extends PracticeGame {
                 sound(player, Sound.VILLAGER_NO, 1f);
                 return;
             }
+            stepped(setting);
             remember();
             changed(player, Sound.CLICK, by > 0 ? 1.2f : 0.9f);
             return;
@@ -817,6 +842,13 @@ abstract class Training extends PracticeGame {
                 }
             }
         }
+    }
+
+    /**
+     * A setting changed in the menu, before it is kept and shown: a training whose settings go
+     * against each other (a course with a turn is not diagonal) puts the others right here.
+     */
+    void stepped(Setting setting) {
     }
 
     /** The settings take the values of this preset. */
@@ -960,6 +992,15 @@ abstract class Training extends PracticeGame {
      * the challenge of the day when this is its training.
      */
     void score(long value, boolean quiet) {
+        if (host.plugin().lobby().inOwnerToolGame(me)) {
+            // the Owner had a test tool on (/owner): no record, no challenge
+            last = format(value);
+            Player player = player();
+            if (player != null && !quiet) {
+                player.sendMessage(ChatColor.GRAY + format(value) + " (not counted: an Owner tool is on)");
+            }
+            return;
+        }
         record(value, quiet);
         if (host.challenges() != null) {
             host.challenges().scored(me, myName, challengeBoard(), value);
@@ -1002,6 +1043,10 @@ abstract class Training extends PracticeGame {
      * nothing said; the other trainings of the board see the new best at once.
      */
     RecordBook.Result submitTo(String board, long value) {
+        if (host.plugin().lobby().inOwnerToolGame(me)) {
+            // the Owner had a test tool on: on no board
+            return new RecordBook.Result(host.records().book().best(board, me), false, false);
+        }
         RecordBook.Result result = host.records().submit(board, me, myName, value);
         if (result.personalBest) {
             othersOn(board);

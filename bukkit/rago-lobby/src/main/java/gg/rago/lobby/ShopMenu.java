@@ -32,6 +32,13 @@ final class ShopMenu {
         this.boosters = boosters;
     }
 
+    /** The Daily Chest, which a click on the daily reward opens. */
+    private DailyChest daily;
+
+    void setDaily(DailyChest daily) {
+        this.daily = daily;
+    }
+
     /** Opens the store menu (everything sold, the starter pack first). */
     private java.util.function.Consumer<Player> store;
 
@@ -115,20 +122,25 @@ final class ShopMenu {
                     "", Brand.ACCENT + "Click to browse")), (p, right) -> styles.open(p));
         }
         boolean ready = profiles.dailyReady(player.getUniqueId());
-        int next = profiles.server().points().dailyReward(
+        int bonus = profiles.server().points().streakBonus(
                 Profiles.nextStreak(profile.dailyDay(), profile.dailyStreak(), StatsPeriod.dayKey(System.currentTimeMillis()),
                         StatsPeriod.previousDayKey(System.currentTimeMillis())));
         menu.set(31, ClickMenu.item(ready ? Material.CHEST : Material.ENDER_CHEST, ChatColor.AQUA + "Daily reward",
-                ready ? ChatColor.GOLD + "+" + next + " Rago Points" : ChatColor.GRAY + "Claimed today",
+                ready ? Brand.ACCENT + "The Daily Chest waits!" : ChatColor.GRAY + "Claimed today",
                 "",
+                "Rago Points, Network XP or a",
+                "cosmetic you do not own yet,",
+                "from Common to Legendary.",
                 "A few days in a row give more.",
-                "Streak: " + ChatColor.WHITE + profile.dailyStreak() + " days",
+                "Streak: " + ChatColor.WHITE + profile.dailyStreak() + " days"
+                        + (ready && bonus > 0 ? ChatColor.GOLD + " (+" + bonus + " Rago Points)" : ""),
                 "",
-                ready ? Brand.ACCENT + "Click to claim" : ChatColor.GRAY
+                ready ? Brand.ACCENT + "Click to open" : ChatColor.GRAY
                         + StatsPeriod.DAY.resetText(System.currentTimeMillis()).replace("Resets in", "Again in")),
                 (p, right) -> {
-                    profiles.claimDaily(p);
-                    open(p);
+                    if (daily == null || !daily.claim(p)) {
+                        open(p);
+                    }
                 });
         if (boosters != null) {
             long left = profile.boosterLeftMs();

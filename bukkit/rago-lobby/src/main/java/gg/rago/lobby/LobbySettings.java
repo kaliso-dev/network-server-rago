@@ -6,8 +6,11 @@ import gg.rago.game.RatingWindow;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
+import java.util.HashSet;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import org.bukkit.ChatColor;
 import org.bukkit.Material;
 import org.bukkit.configuration.ConfigurationSection;
@@ -28,8 +31,23 @@ final class LobbySettings {
     private boolean welcome = true;
     /** The menu of the first arrival ({@link FirstJoinMenu}): empty for none. */
     private List<FirstChoice> firstChoices = Collections.emptyList();
+    private List<String> compassTop = Collections.emptyList();
     /** The billboards of the lobby ({@link Billboards}): none without panneaux:. */
     private List<Billboard> billboards = Collections.emptyList();
+    /** The texts of the lobby ({@link LobbyText}): none without textes:. */
+    private List<LobbyText> texts = Collections.emptyList();
+    /** RagoBot (ragobot:). */
+    private BotSettings bots;
+    /** The block under each NPC that has one in config.yml (pnj: ... bloc:), by point. */
+    private Map<String, Pedestal> pedestals = Collections.emptyMap();
+    /**
+     * The NPCs that look the way their point was placed (pnj: ... regard: point), by point, and not
+     * at the spawn (the owner's ask of 27/11: the Shop and the leaderboards look at the centre).
+     */
+    private Set<String> ownWay = Collections.emptySet();
+    /** The points of the daily reward chest and of the quests NPC. */
+    private String dailyPoint = DailyChest.POINT;
+    private String questsPoint = QuestsNpc.POINT;
     private final String title;
     private final String address;
     private final int defaultRating;
@@ -41,8 +59,10 @@ final class LobbySettings {
      * modes of a group are one item there.
      */
     static final int MAX_MODES_PER_CATEGORY = 28;
-    /** One row of the category menu. */
-    static final int MAX_CATEGORIES = 7;
+    /** One row: the top row of the compass, where they sit side by side. */
+    static final int MAX_CATEGORIES = 9;
+    /** The lines a click on a product NPC shows in the chat (liens:), at most. */
+    static final int MAX_PRODUCT_LINKS = 8;
     /** The slogan of a category, without its colours: one line above an NPC. */
     static final int MAX_SLOGAN = 40;
     /** Leaderboards side by side on one point. */
@@ -59,6 +79,7 @@ final class LobbySettings {
     private final NetworkLevel levels;
     private final String hypixelKey;
     private final Map<String, List<GameMode>> privateRoutes;
+    private Map<String, Integer> teamRooms = Collections.emptyMap();
 
     private LobbySettings(String world, int voidHeight, String title, String address, int defaultRating,
             RatingWindow window, List<ModeCategory> categories, List<ModeCategory> groups, List<ModeDisplay> modes,
@@ -93,7 +114,7 @@ final class LobbySettings {
         if (ChatColor.stripColor(title).isEmpty() || title.length() > 32) {
             throw new IllegalArgumentException("titre: from 1 to 32 characters, colour codes included");
         }
-        String address = colour(config.getString("adresse", "&crago.gg"));
+        String address = colour(config.getString("adresse", "&erago.gg"));
         if (address.length() > 40) {
             throw new IllegalArgumentException("adresse: 40 characters at most, colour codes included");
         }
@@ -119,6 +140,7 @@ final class LobbySettings {
                     + " shows no more");
         }
         List<ModeCategory> groups = readGroups(config.getConfigurationSection("groupes"));
+        List<String> compassTop = readCompassTop(config.getConfigurationSection("boussole"), categories, groups);
         Map<String, Integer> perCategory = new HashMap<>();
         Map<String, String> groupCategory = new HashMap<>();
         java.util.Set<String> groupsSeen = new java.util.HashSet<>();
@@ -147,6 +169,7 @@ final class LobbySettings {
             modes.add(display);
         }
         checkKitFrom(modes);
+        checkAlso(categories, groups, modes, perCategory);
         List<LobbyNpc> npcs = readNpcs(config, modes, categories);
         NetworkLevel levels = readLevels(config.getConfigurationSection("niveau"));
         String hypixelKey = config.getString("hypixel.cle-api", "").trim();
@@ -155,6 +178,8 @@ final class LobbySettings {
                     + " with dashes, from developer.hypixel.net), or \"\" for no import");
         }
         Map<String, List<GameMode>> privateRoutes = readPrivateRoutes(config.getConfigurationSection("parties-privees"), modes);
+        Map<String, Integer> teamRooms = readTeamRooms(config.getConfigurationSection("parties-privees-equipes"), modes,
+                privateRoutes);
         String mineskinKey = config.getString("cle-mineskin", "").trim();
         if (!mineskinKey.isEmpty() && !mineskinKey.matches("[A-Za-z0-9_.-]{8,200}")) {
             throw new IllegalArgumentException("cle-mineskin: not a MineSkin API key (account.mineskin.org/keys),"
@@ -167,6 +192,29 @@ final class LobbySettings {
         }
         List<FirstChoice> firstChoices = readFirstChoices(config.getConfigurationSection("premiere-venue"), modes, categories);
         List<Billboard> billboards = Billboard.read(config.getConfigurationSection("panneaux"));
+        List<LobbyText> texts = LobbyText.read(config.getConfigurationSection("textes"));
+        for (LobbyText text : texts) {
+            for (LobbyNpc npc : npcs) {
+                if (npc.point().equals(text.point)) {
+                    throw new IllegalArgumentException("textes." + text.point + ": the point of an NPC (pnj:), a text needs"
+                            + " its own point");
+                }
+            }
+        }
+        Map<String, GameMode> modesById = new HashMap<>();
+        Set<String> inTurns = new HashSet<>();
+        for (ModeDisplay display : modes) {
+            modesById.put(display.mode().id(), display.mode());
+            if ("1v1v1".equals(display.format())) {
+                // a Red Rover: each player against the others, in turn
+                inTurns.add(display.mode().id());
+            }
+        }
+        BotSettings bots = BotSettings.read(config.getConfigurationSection("ragobot"), modesById, inTurns);
+        Map<String, Pedestal> pedestals = readPedestals(config.getConfigurationSection("pnj"));
+        Set<String> ownWay = readOwnWay(config.getConfigurationSection("pnj"));
+        String dailyPoint = pointName(config, "point-coffre-du-jour", DailyChest.POINT);
+        String questsPoint = pointName(config, "point-pnj-quetes", QuestsNpc.POINT);
         try {
             LobbySettings settings = new LobbySettings(world, voidHeight, title, address, defaultRating, window, categories,
                     groups, modes, npcs, levels, hypixelKey, privateRoutes);
@@ -175,7 +223,15 @@ final class LobbySettings {
             settings.mineskinKey = mineskinKey;
             settings.welcome = config.getBoolean("accueil", true);
             settings.firstChoices = Collections.unmodifiableList(firstChoices);
+            settings.compassTop = Collections.unmodifiableList(compassTop);
             settings.billboards = billboards;
+            settings.texts = Collections.unmodifiableList(texts);
+            settings.bots = bots;
+            settings.pedestals = Collections.unmodifiableMap(pedestals);
+            settings.ownWay = Collections.unmodifiableSet(ownWay);
+            settings.dailyPoint = dailyPoint;
+            settings.questsPoint = questsPoint;
+            settings.teamRooms = Collections.unmodifiableMap(teamRooms);
             return settings;
         } catch (IllegalArgumentException e) {
             throw new IllegalArgumentException("modes: " + e.getMessage(), e);
@@ -223,9 +279,74 @@ final class LobbySettings {
         return routes;
     }
 
+    /**
+     * parties-privees-equipes: the private games whose players choose their teams (Bedwars Normal,
+     * the owner's answers of 22/11), each with the countdown of its team choice, in seconds. Their
+     * modes (cartes:, a row of maps each, in their order) go in the routes too, as those of
+     * parties-privees: the mode is open when one of them is.
+     */
+    private static Map<String, Integer> readTeamRooms(ConfigurationSection section, List<ModeDisplay> modes,
+            Map<String, List<GameMode>> routes) {
+        Map<String, Integer> rooms = new LinkedHashMap<>();
+        if (section == null) {
+            return rooms;
+        }
+        Map<String, GameMode> byId = new HashMap<>();
+        for (ModeDisplay display : modes) {
+            byId.put(display.mode().id(), display.mode());
+        }
+        for (String id : section.getKeys(false)) {
+            String where = "parties-privees-equipes." + id;
+            if (!byId.containsKey(id)) {
+                throw new IllegalArgumentException(where + ": no mode " + id + " in modes");
+            }
+            if (routes.containsKey(id)) {
+                throw new IllegalArgumentException(where + ": already in parties-privees");
+            }
+            ConfigurationSection room = section.getConfigurationSection(id);
+            if (room == null) {
+                throw new IllegalArgumentException(where + ": cartes and compte-a-rebours, as {cartes: [a-4s, a-2s],"
+                        + " compte-a-rebours: 30}");
+            }
+            List<GameMode> targets = new ArrayList<>();
+            for (String target : room.getStringList("cartes")) {
+                GameMode mode = byId.get(target);
+                if (mode == null) {
+                    throw new IllegalArgumentException(where + ".cartes: no mode " + target + " in modes");
+                }
+                if (mode.teams() < 2) {
+                    throw new IllegalArgumentException(where + ".cartes: " + target
+                            + " has one team, a private game needs two at least");
+                }
+                if (target.equals(id)) {
+                    throw new IllegalArgumentException(where + ".cartes: a mode cannot play itself");
+                }
+                targets.add(mode);
+            }
+            if (targets.isEmpty()) {
+                throw new IllegalArgumentException(where + ".cartes: a list of modes, as [bedwars-normal-4s, bedwars-normal-2s]");
+            }
+            int seconds = room.getInt("compte-a-rebours", 30);
+            if (seconds < 1 || seconds > 300) {
+                throw new IllegalArgumentException(where + ".compte-a-rebours: from 1 to 300 seconds");
+            }
+            routes.put(id, targets);
+            rooms.put(id, seconds);
+        }
+        return rooms;
+    }
+
     /** The private game modes whose size follows the party, with the modes each plays, smallest first. */
     Map<String, List<GameMode>> privateRoutes() {
         return privateRoutes;
+    }
+
+    /**
+     * The private games whose players choose their teams (Bedwars Normal), with the seconds of the
+     * team choice; their modes, a row of maps each, are their {@link #privateRoutes}, in their order.
+     */
+    Map<String, Integer> teamRooms() {
+        return teamRooms;
     }
 
     /** The skin of an NPC (skin: id), or null for Steve. */
@@ -270,11 +391,53 @@ final class LobbySettings {
                         throw new IllegalArgumentException(where + ": the Shop NPC has neither modes nor categorie");
                     }
                     npcs.add(LobbyNpc.shop(point, colour(npc.getString("nom", "&a&lSHOP")),
-                            colour(npc.getString("sous-titre", "&cStarter Pack &7· &bVIP"))).withSkin(skin(npc, where)));
+                            colour(npc.getString("sous-titre", "&6Starter Pack &7· &bVIP"))).withSkin(skin(npc, where)));
+                    continue;
+                }
+                if ("selecteur".equals(type)) {
+                    if (npc.contains("modes") || npc.contains("categorie")) {
+                        throw new IllegalArgumentException(where + ": the leaderboard selector has neither modes nor categorie");
+                    }
+                    String subtitle = npc.getString("sous-titre", "");
+                    npcs.add(LobbyNpc.selector(point, colour(npc.getString("nom", "&b&lLEADERBOARDS")), selectorStats(npc, where),
+                            minimumGames(npc, where, "jour", DEFAULT_MINIMUM_DAY), minimumGames(npc, where, "semaine",
+                                    DEFAULT_MINIMUM_WEEK))
+                            .withSubtitle(subtitle.trim().isEmpty() ? null : colour(subtitle)).withSkin(skin(npc, where)));
+                    continue;
+                }
+                if ("personne".equals(type)) {
+                    if (npc.contains("modes") || npc.contains("categorie")) {
+                        throw new IllegalArgumentException(where + ": a person has neither modes nor categorie");
+                    }
+                    String rank = npc.getString("rang", "").trim();
+                    npcs.add(LobbyNpc.person(point, colour(npc.getString("nom", point)), rank.isEmpty() ? null : rank)
+                            .withSkin(skin(npc, where)));
+                    continue;
+                }
+                if ("produit".equals(type)) {
+                    if (npc.contains("modes") || npc.contains("categorie") || npc.contains("rang")) {
+                        throw new IllegalArgumentException(where + ": a product has neither modes, categorie nor rang");
+                    }
+                    List<String> links = new ArrayList<>();
+                    for (String line : npc.getStringList("liens")) {
+                        if (!line.trim().isEmpty()) {
+                            links.add(colour(line));
+                        }
+                    }
+                    if (links.isEmpty() || links.size() > MAX_PRODUCT_LINKS) {
+                        throw new IllegalArgumentException(where + ".liens: from 1 to " + MAX_PRODUCT_LINKS
+                                + " lines, what a click shows in the chat");
+                    }
+                    String title = npc.getString("titre", "");
+                    String subtitle = npc.getString("sous-titre", "");
+                    npcs.add(LobbyNpc.product(point, colour(npc.getString("nom", point)),
+                            title.trim().isEmpty() ? null : colour(title), links)
+                            .withSubtitle(subtitle.trim().isEmpty() ? null : colour(subtitle)).withSkin(skin(npc, where)));
                     continue;
                 }
                 if (!"modes".equals(type)) {
-                    throw new IllegalArgumentException(where + ".type: \"" + type + "\" is not modes, stats or shop");
+                    throw new IllegalArgumentException(where + ".type: \"" + type
+                            + "\" is not modes, stats, shop, selecteur, personne or produit");
                 }
                 String category = npc.getString("categorie");
                 List<String> ids = new ArrayList<>(npc.getStringList("modes"));
@@ -312,6 +475,23 @@ final class LobbySettings {
                 npcs.add(LobbyNpc.modes(point, colour(npc.getString("nom", point)), ids, category)
                         .withSubtitle(subtitle == null || subtitle.trim().isEmpty() ? null : colour(subtitle)).withSkin(skin(npc, where)));
             }
+            // skin-joueur: the skin of a Minecraft account, in place of skin:
+            for (int i = 0; i < npcs.size(); i++) {
+                LobbyNpc read = npcs.get(i);
+                String where = "pnj." + read.point();
+                String account = section.getConfigurationSection(read.point()).getString("skin-joueur", "").trim();
+                if (account.isEmpty()) {
+                    continue;
+                }
+                if (!AccountSkins.validName(account)) {
+                    throw new IllegalArgumentException(where + ".skin-joueur: \"" + account
+                            + "\" is not a Minecraft name (3 to 16 letters, digits or _)");
+                }
+                if (read.skin() != null) {
+                    throw new IllegalArgumentException(where + ": skin or skin-joueur, not both");
+                }
+                npcs.set(i, read.withAccount(account));
+            }
         }
         ConfigurationSection boards = config.getConfigurationSection("classements");
         if (boards != null) {
@@ -324,13 +504,32 @@ final class LobbySettings {
                 List<String> podium = new ArrayList<>();
                 String name;
                 ConfigurationSection board = boards.getConfigurationSection(point);
+                // a wall of the selector: the stat each player chose there, on the period of the wall
+                LobbyNpc chooser = null;
+                if (board != null && board.isSet("selecteur")) {
+                    String of = board.getString("selecteur", "").trim();
+                    for (LobbyNpc npc : npcs) {
+                        if (npc.point().equals(of) && npc.kind() == LobbyNpc.Kind.SELECTOR) {
+                            chooser = npc;
+                        }
+                    }
+                    if (chooser == null) {
+                        throw new IllegalArgumentException(where + ".selecteur: \"" + of + "\" is not an NPC of pnj: of type"
+                                + " selecteur");
+                    }
+                    if (board.isSet("tableaux") || !board.isSet("periode")) {
+                        throw new IllegalArgumentException(where + ": a wall of the selector has its periode (jour, semaine or"
+                                + " toujours) and no tableaux: it shows the stats of the selector");
+                    }
+                }
                 if (board == null) {
                     // The short form: only the title, over a board of wins.
                     name = boards.getString(point, point);
                     stats.add(Collections.singletonList(BoardStat.WINS));
                 } else {
                     name = board.getString("nom", "");
-                    List<?> entries = board.getList("tableaux");
+                    // a wall of the selector takes its stats (LobbyNpc#following): nothing to read
+                    List<?> entries = chooser != null ? Collections.singletonList(BoardStat.WINS.key()) : board.getList("tableaux");
                     for (Object entry : entries == null ? Collections.emptyList() : entries) {
                         // A list in the list: one board whose right click goes from one stat to the next.
                         List<?> keys = entry instanceof List ? (List<?>) entry : Collections.singletonList(entry);
@@ -372,10 +571,55 @@ final class LobbySettings {
                                 + " chooses it with a click)");
                     }
                 }
-                npcs.add(LobbyNpc.leaderboards(point, colour(name), stats, podium).withPeriod(period));
+                LobbyNpc wall = LobbyNpc.leaderboards(point, colour(name), stats, podium).withPeriod(period);
+                npcs.add(chooser == null ? wall : wall.following(chooser));
             }
         }
         return npcs;
+    }
+
+    /** The games a ratio of a day needs on the walls of a selector, unless its config says otherwise (plan 3.1). */
+    static final int DEFAULT_MINIMUM_DAY = 5;
+    /** The games a ratio of a week needs. */
+    static final int DEFAULT_MINIMUM_WEEK = 15;
+
+    /**
+     * The stats of a leaderboard selector, in the order of its menu (stats:), by default those of
+     * the plan: the win streak, the Network level, the ELO, the wins, the kills, the FKDR, the WLR,
+     * then the games played.
+     */
+    private static List<BoardStat> selectorStats(ConfigurationSection npc, String where) {
+        List<BoardStat> stats = new ArrayList<>();
+        if (!npc.isSet("stats")) {
+            return java.util.Arrays.asList(BoardStat.STREAK, BoardStat.LEVEL, BoardStat.ELO, BoardStat.WINS, BoardStat.KILLS,
+                    BoardStat.FKDR, BoardStat.WLR, BoardStat.GAMES);
+        }
+        for (String key : npc.getStringList("stats")) {
+            BoardStat stat = BoardStat.of(key.trim());
+            if (stat == null) {
+                throw new IllegalArgumentException(where + ".stats: \"" + key + "\" is not " + BoardStat.keys());
+            }
+            if (!stats.contains(stat)) {
+                stats.add(stat);
+            }
+        }
+        if (stats.isEmpty()) {
+            throw new IllegalArgumentException(where + ".stats: at least one stat");
+        }
+        return stats;
+    }
+
+    /** minimum-parties.jour (or semaine) of a selector: the games a ratio of the period needs, 0 or more. */
+    private static int minimumGames(ConfigurationSection npc, String where, String period, int fallback) {
+        String key = "minimum-parties." + period;
+        if (!npc.isSet(key)) {
+            return fallback;
+        }
+        int games = npc.getInt(key, -1);
+        if (games < 0) {
+            throw new IllegalArgumentException(where + "." + key + ": a number of games, 0 or more");
+        }
+        return games;
     }
 
     /** The period of a wall of config.yml: jour, semaine or toujours; null for another word. */
@@ -511,9 +755,29 @@ final class LobbySettings {
                 throw new IllegalArgumentException(where + ".slogan: " + MAX_SLOGAN + " characters at most (it shows under"
                         + " the NPC of the category)");
             }
+            boolean party = category.getBoolean("party", false);
+            for (ModeCategory before : categories) {
+                if (party && before.party()) {
+                    throw new IllegalArgumentException(where + ".party: one category of the parties at most, \""
+                            + before.id() + "\" is");
+                }
+            }
+            if (party && !category.getStringList("aussi").isEmpty()) {
+                throw new IllegalArgumentException(where + ".aussi: not in the category of the parties (party: true), whose"
+                        + " modes follow the size of the viewer's party");
+            }
+            List<String> also = new ArrayList<>();
+            for (String other : category.getStringList("aussi")) {
+                String key = other.trim().toLowerCase(java.util.Locale.ROOT);
+                if (also.contains(key)) {
+                    throw new IllegalArgumentException(where + ".aussi: \"" + other + "\" twice");
+                }
+                also.add(key);
+            }
             categories.add(new ModeCategory(id, colour(category.getString("nom", id)),
                     icon(where, category.getString("icone", "CHEST")), description(category),
-                    slogan == null || slogan.trim().isEmpty() ? null : colour(slogan)));
+                    slogan == null || slogan.trim().isEmpty() ? null : colour(slogan), also, party)
+                    .withIconData(iconData(where, category.getString("icone", "CHEST"))));
         }
         return categories;
     }
@@ -604,17 +868,39 @@ final class LobbySettings {
                 throw new IllegalArgumentException(where + ": lowercase letters without accents, digits and dashes only");
             }
             groups.add(new ModeCategory(id, colour(group.getString("nom", id)),
-                    icon(where, group.getString("icone", "CHEST")), description(group)));
+                    icon(where, group.getString("icone", "CHEST")), description(group))
+                    .withIconData(iconData(where, group.getString("icone", "CHEST"))));
         }
         return groups;
     }
 
     private static Material icon(String where, String iconName) {
-        Material icon = Material.matchMaterial(iconName);
+        int colon = iconName.indexOf(':');
+        Material icon = Material.matchMaterial((colon < 0 ? iconName : iconName.substring(0, colon)).trim());
         if (icon == null || icon == Material.AIR) {
             throw new IllegalArgumentException(where + ".icone: \"" + iconName + "\" is not a Minecraft 1.8 item");
         }
         return icon;
+    }
+
+    /**
+     * The data of an icone: after its colon, from 0 to 15 ("WOOL:14" a red wool, "WOOL:4" a yellow
+     * one: the owner's ask of 27/11), 0 without a colon.
+     */
+    static short iconData(String where, String iconName) {
+        int colon = iconName.indexOf(':');
+        if (colon < 0) {
+            return 0;
+        }
+        try {
+            int data = Integer.parseInt(iconName.substring(colon + 1).trim());
+            if (data >= 0 && data <= 15) {
+                return (short) data;
+            }
+        } catch (NumberFormatException e) {
+            // said below
+        }
+        throw new IllegalArgumentException(where + ".icone: \"" + iconName + "\": the data after the colon is from 0 to 15");
     }
 
     private static List<String> description(ConfigurationSection section) {
@@ -643,6 +929,10 @@ final class LobbySettings {
             boolean known = false;
             for (ModeCategory c : categories) {
                 known |= c.id().equals(category);
+                if (c.id().equals(category) && c.party()) {
+                    throw new IllegalArgumentException(where + ".categorie: \"" + category + "\" is the category of the"
+                            + " parties (party: true): it has no modes of its own, it shows those of the others");
+                }
             }
             if (!known) {
                 throw new IllegalArgumentException(where + ".categorie: \"" + category
@@ -669,7 +959,8 @@ final class LobbySettings {
             throw new IllegalArgumentException(where + ".format: 1 to 16 characters, as 1v3");
         }
         return new ModeDisplay(mode, icon, description(section), category, kit, group,
-                section.getBoolean("cache", false), section.getBoolean("commencer-ici", false), kitFrom, format);
+                section.getBoolean("cache", false), section.getBoolean("commencer-ici", false), kitFrom, format)
+                .withIconData(iconData(where, section.getString("icone", "PAPER")));
     }
 
     /**
@@ -750,9 +1041,149 @@ final class LobbySettings {
         return firstChoices;
     }
 
+    /**
+     * The top row of the compass (boussole.haut, the owner's choice of 22/11): categories or groups
+     * by id, in their order; empty: "Popular now" on top and every category under it.
+     */
+    List<String> compassTop() {
+        return compassTop;
+    }
+
+    /** boussole.haut: ids of categories or groups, each once, a row of 9 at most; empty without it. */
+    static List<String> readCompassTop(ConfigurationSection compass, List<ModeCategory> categories, List<ModeCategory> groups) {
+        List<String> top = new ArrayList<>();
+        if (compass == null) {
+            return top;
+        }
+        java.util.Set<String> known = new java.util.HashSet<>();
+        for (ModeCategory category : categories) {
+            known.add(category.id());
+        }
+        for (ModeCategory group : groups) {
+            known.add(group.id());
+        }
+        for (String id : compass.getStringList("haut")) {
+            if (!known.contains(id)) {
+                throw new IllegalArgumentException("boussole.haut: \"" + id + "\" is neither a category (categories:) nor a group"
+                        + " (groupes:)");
+            }
+            if (top.contains(id)) {
+                throw new IllegalArgumentException("boussole.haut: \"" + id + "\" twice");
+            }
+            top.add(id);
+        }
+        if (top.size() > 9) {
+            throw new IllegalArgumentException("boussole.haut: 9 at most, the top row of the compass");
+        }
+        return top;
+    }
+
     /** The billboards of the lobby (panneaux:); empty: none. */
     List<Billboard> billboards() {
         return billboards;
+    }
+
+    /** RagoBot (ragobot:). */
+    BotSettings bots() {
+        return bots;
+    }
+
+    /** The texts of the lobby (textes:), each on its point; empty: none. */
+    List<LobbyText> texts() {
+        return texts;
+    }
+
+    /** The text on this point, or null. */
+    LobbyText text(String point) {
+        for (LobbyText text : texts) {
+            if (text.point.equals(point)) {
+                return text;
+            }
+        }
+        return null;
+    }
+
+    /** The block the NPC of this point stands on: its bloc:, else polished andesite. */
+    Pedestal pedestal(String point) {
+        Pedestal pedestal = pedestals.get(point);
+        return pedestal == null ? Pedestal.ANDESITE : pedestal;
+    }
+
+    /** The point of the daily reward chest (point-coffre-du-jour:, daily without it). */
+    String dailyPoint() {
+        return dailyPoint;
+    }
+
+    /** The point of the quests NPC (point-pnj-quetes:, quests without it). */
+    String questsPoint() {
+        return questsPoint;
+    }
+
+    /** Refuses a person (type: personne) whose rang: is not a rank of rangs:. */
+    static void checkRanks(List<LobbyNpc> npcs, Ranks ranks) {
+        for (LobbyNpc npc : npcs) {
+            if (npc.rank() != null && ranks.get(npc.rank()) == null) {
+                throw new IllegalArgumentException("pnj." + npc.point() + ".rang: \"" + npc.rank() + "\" is not a rank of rangs:");
+            }
+        }
+    }
+
+    /** Whether the NPC of this point looks the way its point was placed (regard: point), not at the spawn. */
+    boolean facesItsPoint(String point) {
+        return ownWay.contains(point);
+    }
+
+    /**
+     * The NPCs of pnj: with regard: point (they look the way their point was placed, as the builder
+     * looked); regard: spawn, or nothing, looks at the spawn.
+     */
+    static Set<String> readOwnWay(ConfigurationSection section) {
+        Set<String> points = new HashSet<>();
+        if (section == null) {
+            return points;
+        }
+        for (String point : section.getKeys(false)) {
+            ConfigurationSection npc = section.getConfigurationSection(point);
+            if (npc == null || !npc.isSet("regard")) {
+                continue;
+            }
+            String look = npc.getString("regard", "").trim().toLowerCase(java.util.Locale.ROOT);
+            if (look.equals("point")) {
+                points.add(point);
+            } else if (!look.equals("spawn")) {
+                throw new IllegalArgumentException("pnj." + point + ".regard: \"" + look + "\" is point or spawn");
+            }
+        }
+        return points;
+    }
+
+    /** The bloc: of each NPC of pnj: that has one. */
+    static Map<String, Pedestal> readPedestals(ConfigurationSection section) {
+        Map<String, Pedestal> pedestals = new HashMap<>();
+        if (section == null) {
+            return pedestals;
+        }
+        for (String point : section.getKeys(false)) {
+            ConfigurationSection npc = section.getConfigurationSection(point);
+            if (npc == null || !npc.isSet("bloc")) {
+                continue;
+            }
+            try {
+                pedestals.put(point, Pedestal.parse(String.valueOf(npc.get("bloc"))));
+            } catch (IllegalArgumentException e) {
+                throw new IllegalArgumentException("pnj." + point + ".bloc: " + e.getMessage(), e);
+            }
+        }
+        return pedestals;
+    }
+
+    /** A point name of config.yml (a name of /lobby point), or its default without the key. */
+    private static String pointName(ConfigurationSection config, String key, String fallback) {
+        String name = config.getString(key, fallback).trim();
+        if (!LobbyPoints.validName(name)) {
+            throw new IllegalArgumentException(key + ": \"" + name + "\" is not a point name of /lobby point");
+        }
+        return name;
     }
 
     double slimeForward() {
@@ -870,7 +1301,7 @@ final class LobbySettings {
     List<Entry> entriesIn(String categoryId) {
         List<Entry> entries = new ArrayList<>();
         java.util.Set<String> seen = new java.util.HashSet<>();
-        for (ModeDisplay display : modesIn(categoryId)) {
+        for (ModeDisplay display : ownModes(categoryId)) {
             if (display.hidden()) {
                 continue;
             }
@@ -880,7 +1311,57 @@ final class LobbySettings {
                 entries.add(new Entry(null, group(display.group())));
             }
         }
+        // then those of other categories it shows too: a group as one item, a mode alone
+        ModeCategory category = categoryId == null ? null : category(categoryId);
+        for (String id : category == null ? Collections.<String>emptyList() : category.also()) {
+            ModeCategory group = group(id);
+            ModeDisplay display = display(id);
+            if (group != null) {
+                entries.add(new Entry(null, group));
+            } else if (display != null && !display.hidden()) {
+                entries.add(new Entry(display, null));
+            }
+        }
         return entries;
+    }
+
+    /**
+     * aussi: of each category: modes or groups of the modes list, not hidden, of another category;
+     * with its own items, a category shows MAX_MODES_PER_CATEGORY at most.
+     */
+    private static void checkAlso(List<ModeCategory> categories, List<ModeCategory> groups, List<ModeDisplay> modes,
+            Map<String, Integer> perCategory) {
+        for (ModeCategory category : categories) {
+            String where = "categories." + category.id() + ".aussi";
+            for (String id : category.also()) {
+                boolean isGroup = false;
+                for (ModeCategory group : groups) {
+                    isGroup |= group.id().equals(id);
+                }
+                String home = null;
+                boolean found = false;
+                for (ModeDisplay display : modes) {
+                    if (isGroup ? id.equals(display.group()) : display.mode().id().equals(id)) {
+                        if (display.hidden() && !isGroup) {
+                            throw new IllegalArgumentException(where + ": \"" + id + "\" is hidden from the selector");
+                        }
+                        found = true;
+                        home = display.category();
+                    }
+                }
+                if (!found) {
+                    throw new IllegalArgumentException(where + ": \"" + id + "\" is neither a mode nor a group with modes");
+                }
+                if (category.id().equals(home)) {
+                    throw new IllegalArgumentException(where + ": \"" + id + "\" is of this category already");
+                }
+            }
+            int items = perCategory.getOrDefault(category.id(), 0) + category.also().size();
+            if (items > MAX_MODES_PER_CATEGORY) {
+                throw new IllegalArgumentException(where + ": " + MAX_MODES_PER_CATEGORY + " items at most in a category,"
+                        + " its own and those of aussi");
+            }
+        }
     }
 
     /**
@@ -958,8 +1439,29 @@ final class LobbySettings {
         return display.kitFrom() + (slash < 0 ? "" : modeId.substring(slash));
     }
 
-    /** The modes of one category (all of them for null), in the order of config.yml. */
+    /**
+     * The modes of one category (all of them for null), in the order of config.yml, then those of
+     * other categories it shows too (aussi:).
+     */
     List<ModeDisplay> modesIn(String categoryId) {
+        if (categoryId == null) {
+            return modes;
+        }
+        List<ModeDisplay> result = ownModes(categoryId);
+        ModeCategory category = category(categoryId);
+        for (String id : category == null ? Collections.<String>emptyList() : category.also()) {
+            List<ModeDisplay> more = group(id) != null ? modesOfGroup(id) : Collections.singletonList(display(id));
+            for (ModeDisplay display : more) {
+                if (display != null && !result.contains(display)) {
+                    result.add(display);
+                }
+            }
+        }
+        return result;
+    }
+
+    /** The modes whose category is this one, in the order of config.yml. */
+    private List<ModeDisplay> ownModes(String categoryId) {
         if (categoryId == null) {
             return modes;
         }

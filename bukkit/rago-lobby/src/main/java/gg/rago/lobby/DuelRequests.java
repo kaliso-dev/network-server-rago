@@ -32,6 +32,9 @@ final class DuelRequests {
         }
     }
 
+    /** The id of a ranked twin: ranked- and the id of its mode of Solo. */
+    private static final String RANKED_PREFIX = "ranked-";
+
     private final LobbySettings settings;
     private final LobbyState state;
     private final QueueController queues;
@@ -62,11 +65,25 @@ final class DuelRequests {
     List<ModeDisplay> duelModes() {
         List<ModeDisplay> modes = new ArrayList<>();
         for (ModeDisplay display : settings.modes()) {
-            if (isDuelMode(display.mode()) && !display.hidden()) {
+            if (isDuelMode(display.mode()) && !display.hidden() && !isRankedTwin(display.mode())) {
                 modes.add(display);
             }
         }
         return modes;
+    }
+
+    /**
+     * A ranked duel that is a mode of Solo played for ELO (plan 3.7: ranked-sumo for the sumo,
+     * ranked-boxing for the boxing...). A /duel is never ranked, so it would be the same duel as
+     * its mode of Solo, which the list already has: it is left out. Ranked Bedwars 1v1 has no such
+     * mode of Solo and stays.
+     */
+    private boolean isRankedTwin(GameMode mode) {
+        if (!mode.ranked() || !mode.id().startsWith(RANKED_PREFIX)) {
+            return false;
+        }
+        GameMode solo = settings.catalog().get(mode.id().substring(RANKED_PREFIX.length()));
+        return solo != null && !solo.ranked() && isDuelMode(solo);
     }
 
     static boolean isDuelMode(GameMode mode) {
@@ -86,6 +103,12 @@ final class DuelRequests {
         }
         if (target.equals(challenger)) {
             challenger.sendMessage(ChatColor.RED + "You cannot duel yourself.");
+            return false;
+        }
+        if (RagoBots.isBot(target)) {
+            // it plays in a party only, never by a duel request
+            challenger.sendMessage(ChatColor.GRAY + BotSettings.NAME + " plays with your party: " + ChatColor.WHITE
+                    + "/p invite " + BotSettings.NAME + ChatColor.GRAY + ", then pick its mode as the leader.");
             return false;
         }
         if (!state.isInLobby(challenger) || state.isInGame(challenger)) {

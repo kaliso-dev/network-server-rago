@@ -2,10 +2,16 @@ package gg.rago.lobby;
 
 import gg.rago.game.GameMode;
 import gg.rago.game.Matchmaker;
+import gg.rago.lobby.api.ModeRecord;
 import java.util.ArrayList;
 import java.util.Comparator;
+import java.util.HashSet;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
+import java.util.UUID;
+import java.util.function.BiFunction;
 import java.util.function.ToIntFunction;
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
@@ -16,31 +22,62 @@ import org.bukkit.inventory.Inventory;
 import org.bukkit.inventory.InventoryHolder;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.ItemMeta;
+import org.bukkit.plugin.Plugin;
 
 /**
  * The mode selector, a chest menu. With categories in config.yml, the compass first shows one item
- * per category (a zone of the lobby); clicking one opens that category's modes, with a back
- * button in the bottom row. The modes of one group (groupes: in config.yml, the sizes of one game:
+ * per category: with a top row (boussole.haut), six rows, that row on top, the other categories in
+ * the middle, "Popular now" at the bottom (the owner's asks of 22/11); clicking one opens that
+ * category's modes, with a back button in the bottom row. A lobby NPC
+ * and /play open a category's modes at once, with nothing above them. The modes of one group (groupes: in config.yml, the sizes of one game:
  * 1v1, 2v2...) are one item there, which opens them side by side, as the games of Hypixel. Without categories, every mode is shown at once. Modes are seven per
  * row, framed by an empty row above and below. Clicking a playable mode joins its queue; clicking
  * the mode one waits for leaves it. A mode whose game offers several maps first asks which one:
  * a map, or any map (the queue is shorter). Hovering a mode shows the player's win streak of the
  * day in it, the three teams with the longest streaks of the day (every name of a team of two
  * or more), as on Minemen, and the player's position among all of them. Open menus are refreshed every second, for the queue counts.
- * The top row of the compass and of each category is "Popular now": the modes with players in a
- * game or in the queue right now (the most first, three at most) and the challenge of the day of
- * the trainings, each a click away. The mode marked commencer-ici: (the block clutch) shines with
- * "Start here", in its category, its group and on the category's item.
+ * The top row of the compass is "Popular now": the modes with players in a game or in the queue
+ * right now (the most first, three at most) and the challenge of the day of the trainings, each a
+ * click away. The mode marked commencer-ici: (the block clutch) shines with
+ * "Start here", in its category, its group and on the category's item. The category of the parties
+ * (party: true, plan 3.7) has no modes of its own: it shows the games the viewer's party plays
+ * against itself, at its size.
  */
 final class ModeMenu {
 
     static final String TITLE = "Game modes";
     private static final int PER_ROW = 7;
+    /**
+     * The compass with a top row (boussole.haut): five rows (six from 22/11; smaller, everything
+     * centred: the owner's ask of 27/11), the top row, the categories of the lobby NPCs in the
+     * middle (CENTRE_ROW), "Popular now" in the bottom row, a free row between each.
+     */
+    static final int COMPASS_SIZE = 45;
+    /** The row of the categories of the lobby NPCs in the compass of five rows: the middle one. */
+    static final int CENTRE_ROW = 2;
+
+    /**
+     * How many of an icon a slot holds: the players in a game of what it opens, as on Minemen (the
+     * owner's ask of 27/11: the number under the item), from 1 (no number) to 64.
+     */
+    static int stack(int playing) {
+        return Math.max(1, Math.min(64, playing));
+    }
+
+    /** The players in a game of these modes (private games included), from {@link QueueController#playingAll()}. */
+    private static int playingIn(List<ModeDisplay> modes, Map<String, Integer> playing) {
+        int count = 0;
+        for (ModeDisplay display : modes) {
+            count += playing.getOrDefault(display.mode().id(), 0);
+        }
+        return count;
+    }
 
     /**
      * Marks our inventories: a click in one of them is a click in the selector. The view is the
-     * category menu (CATEGORIES), one category's modes (its id), an NPC's modes (NPC + its
-     * point), or every mode (null).
+     * category menu (CATEGORIES), one category's modes (its id), an NPC's modes (NPC + its point),
+     * a group's modes (GROUP + its id), a mode's maps (MAPS + its id), the modes of /duel (DUEL),
+     * or every mode (null).
      */
     static final class Holder implements InventoryHolder {
         static final String CATEGORIES = "";
@@ -50,12 +87,19 @@ final class ModeMenu {
         static final String GROUP = "groupe:";
         /** After a group's id: the NPC its menu was opened from, to go back to. */
         static final String FROM_NPC = "|";
+        /**
+         * After a group's id: the category its menu was opened from when it is not the group's own
+         * (aussi:, as Red Rover in 3 Players), to go back to.
+         */
+        static final String FROM_CATEGORY = ">";
         /** In the top row of "Popular now": the challenge of the day, not a mode. */
         static final String CHALLENGE = "*defi";
         private Inventory inventory;
         private final String view;
-        /** What each slot of the top row shows in "Popular now" (a mode id, CHALLENGE), else null. */
-        private final String[] popular = new String[9];
+        /** In the compass: what each slot shows in "Popular now" (a mode id, CHALLENGE), else null. */
+        private final String[] popular = new String[COMPASS_SIZE];
+        /** In the compass: the category or group each slot opens (its id), else null. */
+        private final String[] links = new String[COMPASS_SIZE];
 
         Holder(String view) {
             this.view = view;
@@ -75,15 +119,28 @@ final class ModeMenu {
     private final QueueController queues;
     private final StatsBook book;
     private DuelRequests duels;
+    /** Party Duels, in the Party category (the owner's ask of 25/11); null: not there. */
+    private PartyDuels partyDuels;
     /** The mode of the challenge of the day (a training) and what it asks, or null: none. */
     private String challengeMode;
     private String challengeLabel;
+    /** The records of the modes of each plugin that has some (the trainings), in the order they came. */
+    private final Map<Plugin, BiFunction<String, UUID, ModeRecord>> records = new LinkedHashMap<>();
 
     /** Modes in "Popular now", at most. */
     static final int MAX_POPULAR = 3;
 
     void setDuels(DuelRequests duels) {
         this.duels = duels;
+    }
+
+    void setPartyDuels(PartyDuels partyDuels) {
+        this.partyDuels = partyDuels;
+    }
+
+    /** Party Duels in the Party category: the last slot of its bottom row, right of the back button. */
+    static int partyDuelsSlot(int size) {
+        return size - 1;
     }
 
     /**
@@ -93,6 +150,27 @@ final class ModeMenu {
     void setChallenge(String modeId, String label) {
         this.challengeMode = modeId;
         this.challengeLabel = label;
+    }
+
+    /** The records of the modes of this plugin, under its modes in the place of their Daily Streak. */
+    void setRecords(Plugin plugin, BiFunction<String, UUID, ModeRecord> records) {
+        this.records.put(plugin, records);
+    }
+
+    /** The plugin goes: its modes show their Daily Streak again. */
+    void dropRecords(Plugin plugin) {
+        records.remove(plugin);
+    }
+
+    /** The record of this mode, from the plugin that plays it; null for a mode without one. */
+    ModeRecord recordOf(String modeId, UUID viewer) {
+        for (BiFunction<String, UUID, ModeRecord> of : records.values()) {
+            ModeRecord record = of.apply(modeId, viewer);
+            if (record != null) {
+                return record;
+            }
+        }
+        return null;
     }
 
     /** /duel <player>: the 1v1 modes, a click challenges that player. */
@@ -110,20 +188,23 @@ final class ModeMenu {
     /** The compass: the categories if there are any, else every mode. */
     void open(Player player) {
         if (settings.categories().isEmpty()) {
-            show(player, null, 2 + rowsFor(settings.modes().size()), TITLE);
+            show(player, (String) null, 2 + rowsFor(settings.modes().size()), TITLE);
         } else {
-            show(player, Holder.CATEGORIES, 3, TITLE);
+            show(player, Holder.CATEGORIES, settings.compassTop().isEmpty() ? 3 : COMPASS_SIZE / 9, TITLE);
         }
     }
 
-    /** One category's modes, from the category menu or later from a lobby NPC. False if unknown. */
+    /**
+     * One category's modes, with nothing above them: from the compass, a lobby NPC, /play or the
+     * back button of a group. False if unknown.
+     */
     boolean openCategory(Player player, String categoryId) {
         ModeCategory category = settings.category(categoryId);
         if (category == null) {
             return false;
         }
         String title = ChatColor.stripColor(category.name());
-        show(player, categoryId, 3 + rowsFor(settings.entriesIn(categoryId).size()),
+        show(player, categoryId, 3 + rowsFor(compassEntries(categoryId, player).size()),
                 title.length() > 32 ? title.substring(0, 32) : title);
         return true;
     }
@@ -135,10 +216,18 @@ final class ModeMenu {
 
     /** The same, from a lobby NPC's menu (its point; null: from the compass), which the back button reopens. */
     void openGroup(Player player, ModeCategory group, String npcPoint) {
+        openGroup(player, group, npcPoint, null);
+    }
+
+    /** The same, from a category that shows it but is not its own (aussi:), which the back button reopens. */
+    private void openGroup(Player player, ModeCategory group, String npcPoint, String fromCategory) {
         String title = ChatColor.stripColor(group.name());
-        int modes = settings.modesOfGroup(group.id()).size();
-        show(player, Holder.GROUP + group.id() + (npcPoint == null ? "" : Holder.FROM_NPC + npcPoint),
-                modes <= 4 ? 4 : 3 + rowsFor(modes), title.length() > 32 ? title.substring(0, 32) : title);
+        List<ModeDisplay> modes = settings.modesOfGroup(group.id());
+        String from = npcPoint != null ? Holder.FROM_NPC + npcPoint
+                : fromCategory != null && !modes.isEmpty() && !fromCategory.equals(modes.get(0).category())
+                        ? Holder.FROM_CATEGORY + fromCategory : "";
+        show(player, Holder.GROUP + group.id() + from,
+                modes.size() <= 4 ? 4 : 3 + rowsFor(modes.size()), title.length() > 32 ? title.substring(0, 32) : title);
     }
 
     /** The group of a group view, or null for another view. */
@@ -150,7 +239,16 @@ final class ModeMenu {
     private static String groupId(String view) {
         String id = view.substring(Holder.GROUP.length());
         int from = id.indexOf(Holder.FROM_NPC);
+        if (from < 0) {
+            from = id.indexOf(Holder.FROM_CATEGORY);
+        }
         return from < 0 ? id : id.substring(0, from);
+    }
+
+    /** The category a group view was opened from when it is not the group's own (aussi:), or null. */
+    private static String fromCategory(String view) {
+        int from = view == null || !view.startsWith(Holder.GROUP) ? -1 : view.indexOf(Holder.FROM_CATEGORY);
+        return from < 0 ? null : view.substring(from + Holder.FROM_CATEGORY.length());
     }
 
     /** The NPC a group view was opened from, or null. */
@@ -204,7 +302,7 @@ final class ModeMenu {
         return settings.modesIn(view);
     }
 
-    /** Whether a view has the back button: only a category's modes. */
+    /** Whether a view has the back button: a group's modes and a mode's maps (the compass has its categories). */
     private static boolean hasBack(String view) {
         return view != null && !view.startsWith(Holder.NPC) && !view.startsWith(Holder.DUEL);
     }
@@ -214,7 +312,10 @@ final class ModeMenu {
     }
 
     private void show(Player player, String view, int rows, String title) {
-        Holder holder = new Holder(view);
+        show(player, new Holder(view), rows, title);
+    }
+
+    private void show(Player player, Holder holder, int rows, String title) {
         Inventory inventory = Bukkit.createInventory(holder, Math.min(6, rows) * 9, title);
         holder.inventory = inventory;
         fill(inventory, player);
@@ -238,9 +339,20 @@ final class ModeMenu {
         return 9 + (9 - count) / 2 + index;
     }
 
-    /** The slot of the n-th of {@code count} items of "Popular now", centred in the top row. */
+    /** The slot of the n-th of {@code count} items of "Popular now", centred in its row of the compass (0 to 8). */
     static int popularSlot(int index, int count) {
         return categorySlot(index, count) - 9;
+    }
+
+    /**
+     * The column (0 to 8) of the n-th of {@code count} in a row of the compass, centred: one slot
+     * apart up to five (the owner's ask of 22/11, "plus clair"), side by side beyond.
+     */
+    static int compassColumn(int index, int count) {
+        if (2 * count - 1 <= 9) {
+            return (9 - (2 * count - 1)) / 2 + 2 * index;
+        }
+        return (9 - count) / 2 + index;
     }
 
     /** The back button: middle of the bottom row. */
@@ -248,20 +360,165 @@ final class ModeMenu {
         return size - 5;
     }
 
+    /**
+     * The items of a category's menu: its modes and groups, or for the category of the parties
+     * those of the viewer's party at its size.
+     */
+    private List<LobbySettings.Entry> compassEntries(String categoryId, HumanEntity viewer) {
+        ModeCategory category = categoryId == null ? null : settings.category(categoryId);
+        if (category == null || !category.party()) {
+            return settings.entriesIn(categoryId);
+        }
+        return partyEntries(partySize(viewer));
+    }
+
+    /** The players of the viewer's party, 0 out of a party. */
+    private int partySize(HumanEntity viewer) {
+        return viewer instanceof Player ? queues.partySize((Player) viewer) : 0;
+    }
+
+    /**
+     * What a party of this size plays against itself (plan 3.7), in the order of the compass: the
+     * modes whose game it fills (two players the 1v1s, four the 2v2s...), those whose one team it
+     * makes (the 1v2s and Red Rover for three), and the private games whose size follows the party.
+     * A group with one such mode is that mode, with several the group. Empty out of a party.
+     */
+    List<LobbySettings.Entry> partyEntries(int size) {
+        List<LobbySettings.Entry> result = new ArrayList<>();
+        if (size < 2) {
+            return result;
+        }
+        Set<String> seen = new HashSet<>();
+        for (ModeCategory category : settings.categories()) {
+            if (category.party()) {
+                continue;
+            }
+            for (LobbySettings.Entry entry : settings.entriesIn(category.id())) {
+                if (entry.group == null) {
+                    if (forParty(entry.mode, size) && seen.add(entry.mode.mode().id())) {
+                        result.add(entry);
+                    }
+                    continue;
+                }
+                List<ModeDisplay> fit = new ArrayList<>();
+                for (ModeDisplay display : settings.modesOfGroup(entry.group.id())) {
+                    if (forParty(display, size)) {
+                        fit.add(display);
+                    }
+                }
+                if (fit.isEmpty() || !seen.add(Holder.GROUP + entry.group.id())) {
+                    continue;
+                }
+                if (fit.size() == 1) {
+                    if (seen.add(fit.get(0).mode().id())) {
+                        result.add(new LobbySettings.Entry(fit.get(0), null));
+                    }
+                } else {
+                    result.add(entry);
+                }
+            }
+        }
+        return result;
+    }
+
+    /**
+     * Whether a party of this size plays this mode, played now, against itself. A private game whose
+     * size follows the party is shown for a mode of its list that does not show itself: Ranked
+     * Bedwars (the private game is never ranked); the private Top Bridge 1v1 is Top Bridge 1v1, shown.
+     */
+    private boolean forParty(ModeDisplay display, int size) {
+        GameMode mode = display.mode();
+        if (display.hidden() || !queues.isPlayable(mode.id())) {
+            return false;
+        }
+        List<GameMode> routes = settings.privateRoutes().get(mode.id());
+        if (routes != null && settings.teamRooms().containsKey(mode.id())) {
+            // Bedwars Normal: from 2 players to the size of its maps (16), the teams chosen
+            for (GameMode target : routes) {
+                if (size >= 2 && size <= target.playersPerMatch() && queues.isPlayable(target.id())) {
+                    return true;
+                }
+            }
+            return false;
+        }
+        if (routes != null) {
+            // FFA Archway: its free for all, hidden, from 2 players to 16
+            for (GameMode target : routes) {
+                if (QueueController.takesParty(target, size) && (target.ranked() || QueueController.eachForThemselves(target))
+                        && queues.isPlayable(target.id())) {
+                    return true;
+                }
+            }
+            return false;
+        }
+        return fitsParty(mode, size);
+    }
+
+    /**
+     * Whether a party of this size plays this mode against itself: it fills a game of two teams or
+     * more (unranked: a private game counts in no ELO), or makes its one team (a 1v2 of three).
+     */
+    static boolean fitsParty(GameMode mode, int size) {
+        if (size < 2) {
+            return false;
+        }
+        return mode.teams() >= 2 ? !mode.ranked() && mode.playersPerMatch() == size : mode.playersPerTeam() == size;
+    }
+
+    /** Party Duels, in the category of the parties: the other parties of the server, to challenge. */
+    private static ItemStack partyDuelsIcon(int size) {
+        ItemStack item = new ItemStack(Material.IRON_SWORD);
+        ItemMeta meta = item.getItemMeta();
+        meta.setDisplayName(ChatColor.BLUE + "" + ChatColor.BOLD + "Party Duels");
+        List<String> lore = new ArrayList<>();
+        lore.add(ChatColor.GRAY + "Challenge another party of the");
+        lore.add(ChatColor.GRAY + "server in a mode of the Duels,");
+        lore.add(ChatColor.GRAY + "a team of each party (two");
+        lore.add(ChatColor.GRAY + "parties of two: the 2v2s).");
+        lore.add(ChatColor.GRAY + "Also with " + ChatColor.WHITE + "/duel" + ChatColor.GRAY + ".");
+        lore.add("");
+        lore.add(size < 2 ? ChatColor.GRAY + "You are not in a party" : ChatColor.GREEN + "Click to see the parties");
+        meta.setLore(lore);
+        meta.addItemFlags(org.bukkit.inventory.ItemFlag.HIDE_ATTRIBUTES);
+        item.setItemMeta(meta);
+        return item;
+    }
+
+    /** In the category of the parties, with no game to show: how to make a party, or that none fits its size. */
+    private static ItemStack partyHint(int size) {
+        ItemStack item = new ItemStack(Material.NAME_TAG);
+        ItemMeta meta = item.getItemMeta();
+        List<String> lore = new ArrayList<>();
+        if (size < 2) {
+            meta.setDisplayName(ChatColor.BLUE + "" + ChatColor.BOLD + "You are not in a party");
+            lore.add(ChatColor.GRAY + "Invite your friends with");
+            lore.add(ChatColor.WHITE + "/party invite <name>" + ChatColor.GRAY + ":");
+            lore.add(ChatColor.GRAY + "your party then plays here");
+            lore.add(ChatColor.GRAY + "against itself, at its size.");
+        } else {
+            meta.setDisplayName(ChatColor.BLUE + "" + ChatColor.BOLD + "No game for a party of " + size);
+            lore.add(ChatColor.GRAY + "Two players play the 1v1s,");
+            lore.add(ChatColor.GRAY + "three the 1v2s, four the 2v2s.");
+        }
+        meta.setLore(lore);
+        item.setItemMeta(meta);
+        return item;
+    }
+
     /** Clicked in our menu: open a category, go back, or join or leave a mode's queue. */
     void click(Player player, Holder holder, int slot) {
         String view = holder.view();
-        if (slot >= 0 && slot < holder.popular.length && holder.popular[slot] != null) {
-            clickPopular(player, holder.popular[slot]);
-            return;
-        }
         if (Holder.CATEGORIES.equals(view)) {
-            List<ModeCategory> categories = settings.categories();
-            for (int i = 0; i < categories.size(); i++) {
-                if (categorySlot(i, categories.size()) == slot) {
-                    openCategory(player, categories.get(i).id());
-                    return;
-                }
+            if (slot >= 0 && slot < holder.popular.length && holder.popular[slot] != null) {
+                clickPopular(player, holder.popular[slot]);
+                return;
+            }
+            String link = slot >= 0 && slot < holder.links.length ? holder.links[slot] : null;
+            if (link != null && settings.category(link) != null) {
+                openCategory(player, link);
+            } else if (link != null && settings.group(link) != null) {
+                // a group of the top row (Red Rover): its back button comes back to the compass
+                openGroup(player, settings.group(link), null, Holder.CATEGORIES);
             }
             return;
         }
@@ -272,9 +529,15 @@ final class ModeMenu {
                 return;
             }
             List<ModeDisplay> grouped = groupOf(view) == null ? null : modesFor(view);
-            if (grouped != null && !grouped.isEmpty() && grouped.get(0).category() != null) {
+            GameMode maps = mapsMode(view);
+            ModeDisplay mapsDisplay = maps == null ? null : settings.display(maps.id());
+            if (Holder.CATEGORIES.equals(fromCategory(view))) {
+                open(player);
+            } else if (fromCategory(view) != null && settings.category(fromCategory(view)) != null) {
+                openCategory(player, fromCategory(view));
+            } else if (grouped != null && !grouped.isEmpty() && grouped.get(0).category() != null) {
                 openCategory(player, grouped.get(0).category());
-            } else {
+            } else if (mapsDisplay == null || mapsDisplay.category() == null || !openCategory(player, mapsDisplay.category())) {
                 open(player);
             }
             return;
@@ -285,11 +548,15 @@ final class ModeMenu {
             return;
         }
         if (settings.category(view) != null) {
-            List<LobbySettings.Entry> entries = settings.entriesIn(view);
+            if (settings.category(view).party() && partyDuels != null && slot == partyDuelsSlot(holder.getInventory().getSize())) {
+                partyDuels.open(player);
+                return;
+            }
+            List<LobbySettings.Entry> entries = compassEntries(view, player);
             for (int i = 0; i < entries.size(); i++) {
                 if (slotOf(i) == slot) {
                     if (entries.get(i).group != null) {
-                        openGroup(player, entries.get(i).group);
+                        openGroup(player, entries.get(i).group, null, view);
                     } else {
                         toggle(player, entries.get(i).mode.mode());
                     }
@@ -408,20 +675,51 @@ final class ModeMenu {
             return;
         }
         if (Holder.CATEGORIES.equals(view)) {
-            List<ModeCategory> categories = settings.categories();
-            for (int i = 0; i < categories.size(); i++) {
-                inventory.setItem(categorySlot(i, categories.size()), icon(categories.get(i), current));
+            // the top row (boussole.haut), the other categories in the middle (CENTRE_ROW), "Popular
+            // now" in the bottom row of the six (the owner's ask of 22/11, 19h51: a much bigger menu);
+            // without a top row, the compass as before, in three rows: "Popular now" on top, every
+            // category under it
+            Holder holder = (Holder) inventory.getHolder();
+            java.util.Arrays.fill(holder.links, null);
+            List<String> top = settings.compassTop();
+            List<ModeCategory> middle = new ArrayList<>();
+            for (ModeCategory category : settings.categories()) {
+                if (!top.contains(category.id())) {
+                    middle.add(category);
+                }
             }
-            fillPopular(inventory, settings.modes(), current, viewer);
+            for (int i = 0; i < top.size(); i++) {
+                ModeCategory category = settings.category(top.get(i));
+                int slot = compassColumn(i, top.size());
+                inventory.setItem(slot, category != null ? categoryIcon(category, current, viewer)
+                        : icon(settings.group(top.get(i)), current, viewer));
+                holder.links[slot] = top.get(i);
+            }
+            for (int i = 0; i < middle.size(); i++) {
+                int slot = top.isEmpty() ? categorySlot(i, middle.size()) : 9 * CENTRE_ROW + compassColumn(i, middle.size());
+                inventory.setItem(slot, categoryIcon(middle.get(i), current, viewer));
+                holder.links[slot] = middle.get(i).id();
+            }
+            fillPopular(inventory, settings.modes(), current, viewer, top.isEmpty() ? 0 : COMPASS_SIZE / 9 - 1);
             return;
-        }
-        if (settings.category(view) != null) {
-            fillPopular(inventory, settings.modesIn(view), current, viewer);
         }
         int last = hasBack(view) ? backSlot(inventory.getSize()) - 4 : inventory.getSize();
         LobbyNpc npc = view != null && view.startsWith(Holder.NPC) ? settings.npc(view.substring(Holder.NPC.length())) : null;
-        if (settings.category(view) != null || npc != null) {
-            List<LobbySettings.Entry> entries = npc != null ? settings.entriesOf(npc.modeIds()) : settings.entriesIn(view);
+        ModeCategory category = settings.category(view);
+        if (category != null || npc != null) {
+            List<LobbySettings.Entry> entries = npc != null ? settings.entriesOf(npc.modeIds()) : compassEntries(view, viewer);
+            if (category != null) {
+                // the games of a party change with its size: nothing stays of the ones before
+                for (int slot = 0; slot < last; slot++) {
+                    inventory.setItem(slot, null);
+                }
+                if (entries.isEmpty() && category.party()) {
+                    inventory.setItem(slotOf(PER_ROW / 2), partyHint(partySize(viewer)));
+                }
+                if (category.party() && partyDuels != null) {
+                    inventory.setItem(partyDuelsSlot(inventory.getSize()), partyDuelsIcon(partySize(viewer)));
+                }
+            }
             for (int i = 0; i < entries.size() && slotOf(i) < last; i++) {
                 LobbySettings.Entry entry = entries.get(i);
                 inventory.setItem(slotOf(i), entry.group != null ? icon(entry.group, current, viewer)
@@ -436,18 +734,17 @@ final class ModeMenu {
         if (hasBack(view)) {
             ItemStack back = new ItemStack(Material.ARROW);
             ItemMeta meta = back.getItemMeta();
-            ModeCategory group = groupOf(view);
-            meta.setDisplayName(ChatColor.GRAY + (group != null ? "Back to the modes" : "Back to the categories"));
+            meta.setDisplayName(ChatColor.GRAY + (category != null ? "Back to the categories" : "Back to the modes"));
             back.setItemMeta(meta);
             inventory.setItem(backSlot(inventory.getSize()), back);
         }
     }
 
     /**
-     * "Popular now", the top row: the modes of the view with players right now, the most first,
+     * "Popular now", the top row of the compass: the modes with players right now, the most first,
      * then the challenge of the day. What each slot holds goes in the holder, for the click.
      */
-    private void fillPopular(Inventory inventory, List<ModeDisplay> modes, List<GameMode> current, HumanEntity viewer) {
+    private void fillPopular(Inventory inventory, List<ModeDisplay> modes, List<GameMode> current, HumanEntity viewer, int row) {
         Holder holder = (Holder) inventory.getHolder();
         Map<String, Integer> playing = queues.playing();
         List<String> candidates = new ArrayList<>();
@@ -461,13 +758,13 @@ final class ModeMenu {
         if (challengeMode != null && queues.isPlayable(challengeMode)) {
             shown.add(Holder.CHALLENGE);
         }
-        for (int slot = 0; slot < holder.popular.length; slot++) {
+        for (int slot = 9 * row; slot < 9 * row + 9; slot++) {
             holder.popular[slot] = null;
             inventory.setItem(slot, null);
         }
         for (int i = 0; i < shown.size(); i++) {
             String id = shown.get(i);
-            int slot = popularSlot(i, shown.size());
+            int slot = 9 * row + popularSlot(i, shown.size());
             holder.popular[slot] = id;
             if (Holder.CHALLENGE.equals(id)) {
                 inventory.setItem(slot, challengeIcon());
@@ -499,7 +796,7 @@ final class ModeMenu {
     /** A mode of "Popular now": who plays it, who waits for it, and the click. */
     private ItemStack popularIcon(ModeDisplay display, int playing, boolean waitingHere, HumanEntity viewer) {
         GameMode mode = display.mode();
-        ItemStack item = new ItemStack(display.icon());
+        ItemStack item = new ItemStack(display.icon(), stack(queues.playingAll().getOrDefault(mode.id(), 0)), display.iconData());
         ItemMeta meta = item.getItemMeta();
         meta.setDisplayName(mode.name());
         List<String> lore = new ArrayList<>();
@@ -568,13 +865,16 @@ final class ModeMenu {
         }
         ItemStack back = new ItemStack(Material.ARROW);
         meta = back.getItemMeta();
-        meta.setDisplayName(ChatColor.GRAY + "Back to the categories");
+        meta.setDisplayName(ChatColor.GRAY + "Back to the modes");
         back.setItemMeta(meta);
         inventory.setItem(backSlot(inventory.getSize()), back);
     }
 
-    private ItemStack icon(ModeCategory category, List<GameMode> current) {
-        ItemStack item = new ItemStack(category.icon());
+    /** A category in the compass: what it is, its games and queue, and the click to its modes. */
+    private ItemStack categoryIcon(ModeCategory category, List<GameMode> current, HumanEntity viewer) {
+        // the players in a game of its modes; in the Party category, those in a private game
+        int playing = category.party() ? queues.playingPrivate() : playingIn(settings.modesIn(category.id()), queues.playingAll());
+        ItemStack item = new ItemStack(category.icon(), stack(playing), category.iconData());
         ItemMeta meta = item.getItemMeta();
         meta.setDisplayName(category.name());
         List<String> lore = new ArrayList<>();
@@ -583,6 +883,18 @@ final class ModeMenu {
             lore.add("");
         }
         lore.addAll(category.description());
+        if (category.party()) {
+            int size = partySize(viewer);
+            int games = partyEntries(size).size();
+            lore.add("");
+            lore.add(size < 2 ? ChatColor.GRAY + "You are not in a party"
+                    : ChatColor.GRAY + "Your party of " + ChatColor.WHITE + size + ChatColor.GRAY + ": " + ChatColor.WHITE + games
+                            + ChatColor.GRAY + (games == 1 ? " game" : " games"));
+            lore.add(ChatColor.GREEN + "Click to see the modes");
+            meta.setLore(lore);
+            item.setItemMeta(meta);
+            return item;
+        }
         List<ModeDisplay> modes = settings.modesIn(category.id());
         int waiting = 0;
         boolean here = false;
@@ -616,7 +928,8 @@ final class ModeMenu {
 
     /** A group in its category: its name, what it is, and each of its modes with its queue. */
     private ItemStack icon(ModeCategory group, List<GameMode> current, HumanEntity viewer) {
-        ItemStack item = new ItemStack(group.icon());
+        ItemStack item = new ItemStack(group.icon(), stack(playingIn(settings.modesOfGroup(group.id()), queues.playingAll())),
+                group.iconData());
         ItemMeta meta = item.getItemMeta();
         meta.setDisplayName(group.name());
         boolean startHere = false;
@@ -654,7 +967,7 @@ final class ModeMenu {
 
     private ItemStack icon(ModeDisplay display, boolean waitingHere, HumanEntity viewer) {
         GameMode mode = display.mode();
-        ItemStack item = new ItemStack(display.icon());
+        ItemStack item = new ItemStack(display.icon(), stack(queues.playingAll().getOrDefault(mode.id(), 0)), display.iconData());
         ItemMeta meta = item.getItemMeta();
         meta.setDisplayName(mode.name());
         List<String> lore = new ArrayList<>();
@@ -665,7 +978,8 @@ final class ModeMenu {
         lore.add("");
         lore.addAll(display.description());
         lore.add("");
-        lore.addAll(streakLines(mode, viewer));
+        ModeRecord record = recordOf(mode.id(), viewer == null ? null : viewer.getUniqueId());
+        lore.addAll(record != null ? recordLines(record) : streakLines(mode, viewer));
         lore.add("");
         if (!queues.isPlayable(mode.id())) {
             lore.add(ChatColor.GRAY + "Coming soon");
@@ -698,7 +1012,7 @@ final class ModeMenu {
         }
     }
 
-    /** Lines of the top of the day under "Daily Streak". */
+    /** Lines of the top of the day under "Daily Streak", and of the top of a training's record. */
     static final int TOP_STREAKS = 3;
 
     /**
@@ -721,6 +1035,26 @@ final class ModeMenu {
         if (viewer != null) {
             lines.add(positionLine(top, viewer.getUniqueId()));
         }
+        return lines;
+    }
+
+    /**
+     * The record of a training in the place of its Daily Streak (plan 3.4), lifetime for now: what
+     * it is, "Lifetime record: Island clutch", its top 3, "1. Alice - 12 clutches", and the viewer's
+     * best and place: "Your best: 8 clutches (#5)".
+     */
+    static List<String> recordLines(ModeRecord record) {
+        List<String> lines = new ArrayList<>();
+        lines.add(Brand.ACCENT + "Lifetime record: " + ChatColor.WHITE + record.name);
+        if (record.top.isEmpty()) {
+            lines.add(ChatColor.GRAY + " Nobody yet: be the first!");
+        }
+        for (int i = 0; i < record.top.size() && i < TOP_STREAKS; i++) {
+            lines.add(Brand.ACCENT + " " + (i + 1) + ". " + ChatColor.WHITE + record.top.get(i).getKey() + Brand.ACCENT
+                    + " - " + record.top.get(i).getValue());
+        }
+        lines.add(record.best == null ? Brand.ACCENT + "Your best: " + ChatColor.GRAY + "-"
+                : Brand.ACCENT + "Your best: " + ChatColor.WHITE + record.best + ChatColor.GRAY + " (#" + record.place + ")");
         return lines;
     }
 

@@ -6,18 +6,23 @@
 //      after the welcome (four ways to play, the book of Getting started), and they close it;
 //      adventure mode, the selector in the first hotbar slot, the kit
 //      editor book in the second, the sidebar; the Duels NPC is a Steve holding a sword, out of
-//      the tab list, and a click on it opens Duels; RagoUn opens the kit editor with the book and
-//      moves the stick of the sumo kit (run-lobby-test.sh gives the sumo one) from the first
+//      the tab list, and a click on it opens Duels; RagoUn opens the kit editor with the book (the
+//      categories first, as in the compass), opens Duels there, then the sumo kit, and
+//      moves its stick (run-lobby-test.sh gives the sumo a kit) from the first
 //      hotbar slot to the fourth, saves, and finds it there when it opens the editor again;
-//   2. RagoUn opens the selector with a right click, opens the Duels category (Daily Streak: 0 on
-//      the sumo, nobody in its top yet), then clicks the sumo duel; RagoDeux types /queue sumo;
+//   2. RagoUn opens the selector with a right click: six rows, Ranked, Party, Red Rover and 3 Players
+//      in its top row, the five other categories in the centre; Red Rover opens its modes, whose back button
+//      comes back to the compass; it opens the Duels category (Daily Streak: 0 on
+//      the sumo, nobody in its top yet, nobody in its queue), then clicks the sumo duel: the line
+//      under the Duels NPC goes from 0 to 1 in queue; RagoDeux types /queue sumo;
 //   3. the duel starts after a 3, 2, 1 countdown in titles, each bot gets the stick where it put
 //      it (RagoUn: fourth slot, RagoDeux: the kit's first), the sidebar shows the opponent and both
 //      pings: RagoUn walks up to RagoDeux and hits it once (knockback, no damage), then
 //      RagoDeux walks off the platform three times, so RagoUn wins 3 - 0;
-//   4. both come back to the lobby, and read their own stats above the stats NPC and on the
+//   4. both come back to the lobby (0 in queue again under the Duels NPC), and read their own stats above the stats NPC and on the
 //      leaderboard wall (RagoUn first with one win, and three kills); a click on the stats NPC opens
-//      the stats menu; the XP bar shows the Network level; clicks on the main leaderboard go from the
+//      the stats menu (its categories: the Duels hold the sumo's win, a click shows the sumo, Back
+//      returns); the XP bar shows the Network level; clicks on the main leaderboard go from the
 //      Network level to the Elo, the FKDR, the kills (a click on their period line: the kills of the
 //      week) and the games played; the sumo of the Duels NPC shows RagoUn first in the top win
 //      streaks of the day;
@@ -29,7 +34,9 @@
 //      the item shop villager (under its floating name, ITEM SHOP) and buys wool from its Quick Buy, cannot place it near its spawn,
 //      places it by its bed and breaks it again, cannot break its own bed, buys a fireball and
 //      jumps on it at its feet (the blast lifts it and takes a heart, not its life); RagoDeux walks off its
-//      island, dies in the void and respawns (its bed stands), then leaves with /spawn: RagoUn
+//      island, dies in the void and respawns (its bed stands), leaves the server and comes back:
+//      the game waited for it, a spectator for 10 seconds then back on its island (the owner's ask
+//      of 23/11), then leaves with /spawn: RagoUn
 //      wins, and both are back in the lobby; RagoDeux left a ranked game it still played, so the
 //      ranked queues are closed to it for 5 minutes;
 //   8. a First Rush, a real 1v1: RagoUn asks for a map the mode does not have, then for bw-demo,
@@ -39,9 +46,28 @@
 //      cannot queue (only the leader does); RagoUn queues the sumo: a private game between them,
 //      without stats or XP; RagoUn queues Ranked Bedwars 2v2: refused, RagoDeux left a ranked game
 //      a moment ago; RagoUn queues First Rush duo (2v2, unranked): the party waits in one team, and
-//      leaves the queue with RagoDeux; RagoUn disbands the party;
+//      leaves the queue with RagoDeux; RagoUn disbands the party; in between, RagoUn watches the
+//      replay of the sumo duel it won 3 - 0 (/replay, the menu of its games), hears its countdown
+//      (the sounds of the game come back in the replay), and brings RagoDeux into it with /p warp:
+//      RagoDeux comes beside RagoUn, at the same moment of the replay, with only the players and
+//      leave in its hotbar (the leader runs it), hears the countdown of a later round, and goes back
+//      to the lobby when RagoUn leaves;
 //  10. a member leaves the server in a party: RagoUn is told, and RagoDeux, back on the server,
-//      sees RagoUn's name tag (its team) again.
+//      sees RagoUn's name tag (its team) again;
+//  11. an event of /host (plan 4.2): RagoTrois (an operator, run-lobby-test.sh) hosts a Sumo
+//      event; the whole server reads its announcement with a [CLICK TO JOIN] that runs /join, and
+//      RagoTrois, in it, reads "You are in!" and has the red dye "Cancel the event" in its last
+//      slot; RagoDeux, playing the Block clutch, joins and stays in its training, RagoUn joins from
+//      the lobby and stays there, with the red dye "Leave the event": a right click takes it out (its
+//      profile comes back), and it joins again; the announcement comes back 20 seconds later; at
+//      the end of the wait (25 seconds, run-lobby-test.sh), RagoDeux leaves its training for it and
+//      the three go to it; RagoTrois and RagoDeux leave the fight with /spawn, RagoUn wins, and the
+//      server is told; then RagoTrois hosts another one and calls it off with its red dye;
+//  12. the Daily Chest (the owner's ask of 22/11, 18h22): RagoTrois types /daily, the menu Daily
+//      Chest opens with the chances of each rarity on the hopper above its centre; its reel moves on
+//      a note that rises, slows down and stops: the chat tells the reward and its rarity, and the
+//      first day of the streak; the menu closes on the title of that rarity; a second /daily is
+//      refused until tomorrow.
 //
 // Environment: KB_HOST (127.0.0.1), KB_PORT (25565).
 
@@ -53,18 +79,48 @@ const PORT = Number(process.env.KB_PORT ?? '25565')
 const TEST_TIMEOUT_MS = 7 * 60 * 1000
 // A new lobby world has a platform at y = 64: players stand at y = 65, at the centre.
 const LOBBY_SPAWN = { x: 0.5, y: 65, z: 0.5 }
-// The bundled config.yml has four categories, one slot apart in the middle row: Practice on the
-// left (slot 10), RBW Modes, Duels in slot 14, the Arenas on the right. The top row of the menus is
-// "Popular now" (the modes with players right now). The sumo is the slime ball of the Duels menu,
-// under that row (Bed Fight comes first).
-const DUELS_SLOT = 14
+// The compass (ModeMenu, the owner's asks of 22/11, 17h54 and 19h51, boussole.haut of the bundled
+// config.yml): five rows since 27/11 (smaller, everything centred); Ranked, Party, Red Rover and 3 Players in the top row, one slot apart
+// (ModeMenu.compassColumn); Practice, RBW Modes, Duels, the Arenas and Fun Practice (the categories
+// of the lobby NPCs) in the third row (ModeMenu.CENTRE_ROW), one slot apart, Duels in the middle
+// (slot 22); "Popular now" in the bottom row (the modes with players right now).
+// A click on Duels opens its modes in a menu of their own, with nothing in its top row: the sumo is
+// its lead (a leash, as on Minemen: the owner, 27/11; Bed Fight comes first), the back button in the
+// bottom row. The Arenas are a red wool (the owner, 27/11).
+const COMPASS = { 1: 'diamond_sword', 3: 'name_tag', 5: 'redstone', 7: 'skull', 18: 'sandstone', 20: 'bed', 22: 'iron_sword', 24: 'wool', 26: 'snowball' }
+const COMPASS_ROWS = 5
+const RED_ROVER_SLOT = 5
+const DUELS_SLOT = 22
 const POINTS_TO_WIN = 3
 // run-lobby-test.sh places the NPC of the Duels category (point duels), a stats NPC
 // (profil), a wall of leaderboards (leaderboards), the main leaderboard
 // (top) and the kills leaderboard (joueurs) around the spawn. The points
-// are at y = 65; each NPC stands a block higher, on the block of polished andesite put at its point.
+// are at y = 65; each NPC stands a block higher, on the block put at its point (its bloc: in the
+// bundled config.yml: quartz under the Duels NPC, iron under the stats NPC).
 const DUELS_NPC = { x: 3.5, y: 66, z: 0.5 }
 const STATS_NPC = { x: -3.5, y: 66, z: 0.5 }
+// qRago (point qrago), a person of the thank-you room, on obsidian
+const PERSON_NPC = { x: -3.5, y: 66, z: -3.5 }
+// Rago Client (point ragoclient), a product of Rago (OUR OTHER PRODUCTS), on diamond
+const PRODUCT_NPC = { x: 3.5, y: 66, z: -3.5 }
+// The texts of the thank-you room: INFORMATION : on both sides, short (the owner's ask of 23/11),
+// on the left (point textremerciement) and on the right (point textremerciement2). The lines of
+// each float above its point, the last one 0.45 block high, the others 0.27 block apart
+// (LobbyText, FakeHologram); an empty one shows nothing.
+const THANK_YOU_TEXTS = [{ x: -8.5, y: 65, z: -3.5 }, { x: 8.5, y: 65, z: -3.5 }]
+const THANK_YOU_LINES = [[
+  'INFORMATION :',
+  'A server to train and have fun with friends.',
+  'Practice modes found nowhere else, made by us',
+  'for real game situations, to help you improve.'
+], [
+  'INFORMATION :',
+  'Train Block Placement, Bedwars and RBW with',
+  'Hypixel KB and low ping, alone or with friends.',
+  'Join our Discord: discord.gg/ragooptimizer'
+]]
+// no empty line: 4 on each side
+const THANK_YOU_ROWS = [4, 4]
 const MAIN_BOARD = { x: 0.5, z: 5.5 }
 // The kit editor: the book in the second hotbar slot, the Save button of its chest of 27 slots,
 // whose window shows the player's hotbar from slot 54 (27 of the chest, 27 of the inventory).
@@ -120,6 +176,9 @@ function join (username) {
     const bot = mineflayer.createBot({ host: HOST, port: PORT, username, auth: 'offline', version: '1.8.8' })
     chats.set(username, [])
     bot.velocities = []
+    // the sounds the server sends (1.8: their names), for the sounds of the replays
+    bot.sounds = []
+    bot._client.on('named_sound_effect', (packet) => bot.sounds.push(packet.soundName))
     bot.titles = []
     bot.titleTimes = []
     bot.on('title', (text, type) => { if (type === 'title') bot.titles.push(plainText(text)) })
@@ -134,6 +193,12 @@ function join (username) {
       chats.get(username).push(message)
       log(`${username} < ${message}`)
     })
+    // the sounds heard by name: the ding of a point or a game won is random.orb (the owner's ask of 22/11)
+    bot.sounds = []
+    bot.on('soundEffectHeard', (name) => bot.sounds.push(name))
+    // the chat lines as sent, for their click events
+    bot.jsonChats = []
+    bot.on('message', (message) => bot.jsonChats.push(message.json))
     bot._client.on('entity_velocity', (packet) => {
       if (bot.entity != null && packet.entityId === bot.entity.id) {
         bot.velocities.push({ time: Date.now(), velocity: packet.velocity })
@@ -179,7 +244,7 @@ function hotbarItem (bot, slot) {
 async function closeFirstMenu (bot) {
   await waitFor(() => bot.firstMenu != null, 8000, `${bot.username}: the menu of the first arrival`)
   const icons = [10, 12, 14, 16, 31].map((slot) => bot.firstMenu.slots[slot]?.name ?? null)
-  if (JSON.stringify(icons) !== JSON.stringify(['ladder', 'bed', 'iron_sword', 'diamond_sword', 'book'])) {
+  if (JSON.stringify(icons) !== JSON.stringify(['sandstone', 'bed', 'iron_sword', 'stone_sword', 'book'])) {
     throw new Error(`${bot.username}: the menu of the first arrival holds ${JSON.stringify(icons)}`)
   }
   bot.closeWindow(bot.firstMenu)
@@ -216,22 +281,41 @@ async function openSelectorAndJoinSumo (bot) {
   if (window == null) throw new Error(`${bot.username}: the selector did not open on a right click`)
   const title = typeof window.title === 'string' ? window.title : JSON.stringify(window.title)
   if (!title.includes('Game modes')) throw new Error(`${bot.username}: unexpected window title ${title}`)
-  if (window.slots[DUELS_SLOT]?.name !== 'iron_sword') {
-    throw new Error(`${bot.username}: slot ${DUELS_SLOT} holds ${window.slots[DUELS_SLOT]?.name}, not the Duels category`)
+  if (window.inventoryStart !== 9 * COMPASS_ROWS) throw new Error(`${bot.username}: the compass should have five rows, not ${window.inventoryStart / 9}`)
+  checkCompass(bot, window)
+  // Red Rover (a group of the top row): its modes, whose back button comes back to the compass
+  const roverOpened = new Promise((resolve) => bot.once('windowOpen', resolve))
+  bot.clickWindow(RED_ROVER_SLOT, 0, 0).catch(() => {})
+  const rover = await Promise.race([roverOpened, sleep(5000).then(() => null)])
+  if (rover == null || !windowTitle(rover).includes('Red Rover')) {
+    throw new Error(`${bot.username}: Red Rover in the compass opened ${rover == null ? 'nothing' : windowTitle(rover)}`)
   }
+  const backSlot = rover.inventoryStart - 5
+  if (rover.slots[backSlot]?.name !== 'arrow') throw new Error(`${bot.username}: no back button in Red Rover: ${rover.slots[backSlot]?.name}`)
+  const compassAgain = new Promise((resolve) => bot.once('windowOpen', resolve))
+  bot.clickWindow(backSlot, 0, 0).catch(() => {})
+  const again = await Promise.race([compassAgain, sleep(5000).then(() => null)])
+  if (again == null || !windowTitle(again).includes('Game modes')) {
+    throw new Error(`${bot.username}: the back button of Red Rover opened ${again == null ? 'nothing' : windowTitle(again)}`)
+  }
+  checkCompass(bot, again)
+  log(`${bot.username}: a compass of five rows, Ranked, Party, Red Rover and 3 Players on top, the categories of the NPCs in the centre; Red Rover and its back button`)
   const duelsOpened = new Promise((resolve) => bot.once('windowOpen', resolve))
   bot.clickWindow(DUELS_SLOT, 0, 0).catch(() => {})
   const duels = await Promise.race([duelsOpened, sleep(5000).then(() => null)])
   if (duels == null) throw new Error(`${bot.username}: the Duels category did not open`)
-  const duelsTitle = typeof duels.title === 'string' ? duels.title : JSON.stringify(duels.title)
+  const duelsTitle = windowTitle(duels)
   if (!duelsTitle.includes('Duels')) throw new Error(`${bot.username}: unexpected category title ${duelsTitle}`)
+  checkNothingOnTop(bot, duels, 'Duels')
+  log(`${bot.username} clicked Duels in the compass: its modes opened, with nothing in their top row`)
   const sumo = sumoSlot(duels)
   if (sumo < 0) throw new Error(`${bot.username}: no sumo in Duels: ${JSON.stringify(duels.slots.slice(0, duels.inventoryStart).map((item) => item?.name))}`)
   const icon = duels.slots[sumo]
   const lore = JSON.stringify(icon.nbt ?? null)
-  if (!lore.includes('§cDaily Streak: 0') || lore.includes(' 1. ')) {
+  if (!lore.includes('§eDaily Streak: 0') || lore.includes(' 1. ')) {
     throw new Error(`${bot.username}: the sumo should show Daily Streak: 0 and nobody in its top: ${lore}`)
   }
+  if (!lore.includes('§7In queue: §f0')) throw new Error(`${bot.username}: the sumo should show nobody in its queue: ${lore}`)
   const from = mark(bot)
   // The server cancels the click (the menu cannot be emptied): do not wait for its acceptance.
   bot.clickWindow(sumo, 0, 0).catch(() => {})
@@ -239,9 +323,27 @@ async function openSelectorAndJoinSumo (bot) {
   log(`${bot.username} joined the sumo queue from the selector`)
 }
 
-/** The slot of the sumo in the Duels menu: its slime ball under the top row ("Popular now"), or -1. */
+/** The rows of the compass above "Popular now" (its bottom row): the categories (COMPASS), and nothing else in them. */
+function checkCompass (bot, window) {
+  const above = 9 * (COMPASS_ROWS - 1)
+  for (let slot = 0; slot < above; slot++) {
+    const name = window.slots[slot]?.name ?? null
+    if (name !== (COMPASS[slot] ?? null)) {
+      throw new Error(`${bot.username}: slot ${slot} of the compass holds ${name}, not ${COMPASS[slot] ?? 'nothing'}: ` +
+        JSON.stringify(window.slots.slice(0, above).map((item) => item?.name ?? null)))
+    }
+  }
+}
+
+/** The slot of the sumo in the Duels menu: its lead under the top row, above the back button's row, or -1. */
 function sumoSlot (window) {
-  return window.slots.findIndex((item, slot) => slot >= 9 && slot < window.inventoryStart && item?.name === 'slime_ball')
+  return window.slots.findIndex((item, slot) => slot >= 9 && slot < window.inventoryStart - 9 && item?.name === 'lead')
+}
+
+/** The menu of a category (from the compass or its NPC) has nothing in its top row (the owner's ask of 22/11). */
+function checkNothingOnTop (bot, window, name) {
+  const top = window.slots.slice(0, 9).map((item) => item?.name ?? null)
+  if (top.some((item) => item != null)) throw new Error(`${bot.username}: the top row of ${name} should be empty: ${JSON.stringify(top)}`)
 }
 
 function windowTitle (window) {
@@ -255,9 +357,23 @@ async function openSumoKit (bot) {
   const list = await Promise.race([listOpened, sleep(5000).then(() => null)])
   if (list == null) throw new Error(`${bot.username}: the kit editor did not open on a right click on the book`)
   if (!windowTitle(list).includes('Kit editor')) throw new Error(`${bot.username}: the book opened ${windowTitle(list)}`)
-  const sumo = list.slots.findIndex((item, slot) => slot < list.inventoryStart &&
+  // as the compass (the owner's ask of 22/11, 19h51): the categories first, in the middle row; the
+  // sumo is in Duels (an iron sword)
+  const duels = list.slots.findIndex((item, slot) => slot >= 9 && slot < 18 && item?.name === 'iron_sword' &&
+    JSON.stringify(item?.nbt ?? null).includes('Duels'))
+  if (duels < 0) throw new Error(`${bot.username}: no Duels in the middle row of the kit editor: ${JSON.stringify(list.slots.slice(0, list.inventoryStart).map((item) => item?.name ?? null))}`)
+  const kitsOpened = new Promise((resolve) => bot.once('windowOpen', resolve))
+  bot.clickWindow(duels, 0, 0).catch(() => {})
+  const kits = await Promise.race([kitsOpened, sleep(5000).then(() => null)])
+  if (kits == null || !windowTitle(kits).includes('Kit editor: Duels')) {
+    throw new Error(`${bot.username}: Duels in the kit editor opened ${kits == null ? 'nothing' : windowTitle(kits)}`)
+  }
+  if (kits.slots[kits.inventoryStart - 5]?.name !== 'arrow') {
+    throw new Error(`${bot.username}: no back button in the kits of Duels: ${kits.slots[kits.inventoryStart - 5]?.name}`)
+  }
+  const sumo = kits.slots.findIndex((item, slot) => slot < kits.inventoryStart &&
     JSON.stringify(item?.nbt ?? null).includes('Sumo duel'))
-  if (sumo < 0) throw new Error(`${bot.username}: no sumo in the kit editor: ${JSON.stringify(list.slots.map((item) => item?.name))}`)
+  if (sumo < 0) throw new Error(`${bot.username}: no sumo in the kits of Duels: ${JSON.stringify(kits.slots.map((item) => item?.name))}`)
   const editorOpened = new Promise((resolve) => bot.once('windowOpen', resolve))
   // The server cancels the click (the list cannot be emptied): do not wait for its acceptance.
   bot.clickWindow(sumo, 0, 0).catch(() => {})
@@ -275,11 +391,18 @@ async function arrangeSumoKit (bot) {
   await bot.clickWindow(EDITOR_HOTBAR, 0, 0)
   await bot.clickWindow(EDITOR_HOTBAR + STICK_SLOT, 0, 0)
   let from = mark(bot)
+  // Save goes back to the kits of Duels, with the lobby hotbar under it
+  const listAgain = new Promise((resolve) => bot.once('windowOpen', resolve))
   bot.clickWindow(KIT_SAVE, 0, 0).catch(() => {})
   await chatLine(bot, /Kit saved for Sumo duel/, 5000, from)
-  await waitFor(() => bot.currentWindow == null && hotbarItem(bot, 0)?.name === 'compass' &&
-    hotbarItem(bot, KIT_EDITOR_SLOT)?.name === 'book', 5000, `${bot.username} to get the lobby hotbar back after saving`)
-  log(`${bot.username} moved the stick of the sumo kit to hotbar slot ${STICK_SLOT + 1} and saved`)
+  const list = await Promise.race([listAgain, sleep(5000).then(() => null)])
+  if (list == null || !windowTitle(list).includes('Kit editor: Duels')) {
+    throw new Error(`${bot.username}: Save did not go back to the kits of Duels: ${list == null ? 'nothing opened' : windowTitle(list)}`)
+  }
+  await waitFor(() => hotbarItem(bot, 0)?.name === 'compass' && hotbarItem(bot, KIT_EDITOR_SLOT)?.name === 'book', 5000,
+    `${bot.username} to get the lobby hotbar back after saving`)
+  bot.closeWindow(list)
+  log(`${bot.username} opened Duels in the categories of the kit editor, moved the stick of the sumo kit to hotbar slot ${STICK_SLOT + 1}, saved, and is back in the kits of Duels`)
 
   const again = await openSumoKit(bot)
   await waitFor(() => again.slots[EDITOR_HOTBAR + STICK_SLOT]?.name === 'stick' && again.slots[EDITOR_HOTBAR] == null, 5000,
@@ -327,13 +450,25 @@ function npcAt (bot, where) {
     Math.hypot(e.position.x - where.x, e.position.y - where.y, e.position.z - where.z) < 0.5)
 }
 
-/** The Duels NPC: a Steve with the category's sword, out of the tab list, name tag hidden; a click opens Duels. */
+/** The Duels NPC: a Steve with empty hands (the owner's ask of 22/11), out of the tab list, name tag hidden; a click opens Duels. */
 async function checkDuelsNpc (bot) {
   await waitFor(() => npcAt(bot, DUELS_NPC) != null, 10000,
     `the Duels NPC at ${JSON.stringify(DUELS_NPC)}; players: ${JSON.stringify(Object.values(bot.entities)
       .filter((e) => e.type === 'player').map((e) => [e.username, e.position]))}`)
   const npc = npcAt(bot, DUELS_NPC)
-  await waitFor(() => npc.heldItem?.name === 'iron_sword', 5000, `the Duels NPC holding a sword (holds ${npc.heldItem?.name})`)
+  // its equipment would come with it: a moment later, still nothing in its hand, nor in the stats NPC's
+  await waitFor(() => npcAt(bot, STATS_NPC) != null, 5000, `the stats NPC at ${JSON.stringify(STATS_NPC)}`)
+  await sleep(1000)
+  for (const [what, body] of [['the Duels NPC', npc], ['the stats NPC', npcAt(bot, STATS_NPC)]]) {
+    if (body == null) throw new Error(`${what} is not there`)
+    if (body.heldItem != null) throw new Error(`${what} holds ${body.heldItem.name}`)
+  }
+  // plan 5.3: an NPC to play stands on quartz, the stats NPC on iron (bloc: of the bundled config)
+  const V = bot.entity.position.constructor
+  const under = (where) => bot.blockAt(new V(where.x, where.y - 1, where.z))?.name
+  await waitFor(() => under(DUELS_NPC) === 'quartz_block' && under(STATS_NPC) === 'iron_block', 5000,
+    `the Duels NPC on quartz and the stats NPC on iron (they stand on ${under(DUELS_NPC)} and ${under(STATS_NPC)})`)
+  log('the Duels NPC stands on quartz, the stats NPC on iron')
   const team = bot.teamMap?.[npc.username]
   if (team?.team !== 'pnj' || team.nameTagVisibility !== 'never') {
     throw new Error(`the name tag of ${JSON.stringify(npc.username)} is not hidden: team ${team?.team}, ${team?.nameTagVisibility}`)
@@ -345,8 +480,106 @@ async function checkDuelsNpc (bot) {
   if (window == null) throw new Error('a click on the Duels NPC did not open a menu')
   const title = typeof window.title === 'string' ? window.title : JSON.stringify(window.title)
   if (!title.includes('Duels')) throw new Error(`the Duels NPC opened ${title}`)
+  checkNothingOnTop(bot, window, 'the menu of the Duels NPC')
   bot.closeWindow(window)
-  log('the Duels NPC is a Steve holding a sword, out of the tab list, and its click opens Duels')
+  log('the Duels NPC is a Steve holding a sword, out of the tab list, and its click opens Duels, with nothing in its top row')
+  await checkPersonNpc(bot)
+  await checkProductNpc(bot)
+  await checkThankYouText(bot)
+}
+
+/** qRago (plan 5.6): on obsidian, "[OWNER] qRago" above the head, empty hands; a click opens nothing. */
+async function checkPersonNpc (bot) {
+  await waitFor(() => npcAt(bot, PERSON_NPC) != null, 10000, `the NPC qRago at ${JSON.stringify(PERSON_NPC)}`)
+  const npc = npcAt(bot, PERSON_NPC)
+  const V = bot.entity.position.constructor
+  const under = () => bot.blockAt(new V(PERSON_NPC.x, PERSON_NPC.y - 1, PERSON_NPC.z))?.name
+  const line = () => Object.values(bot.entities).find((e) => typeof e.metadata?.[2] === 'string' &&
+    e.metadata[2].includes('qRago') && Math.hypot(e.position.x - PERSON_NPC.x, e.position.z - PERSON_NPC.z) < 1)
+    ?.metadata[2].replace(/§./g, '')
+  await waitFor(() => under() === 'obsidian' && line() === '[OWNER] qRago', 5000,
+    `qRago on obsidian under "[OWNER] qRago" (stands on ${under()}, reads ${JSON.stringify(line())})`)
+  if (npc.heldItem != null) throw new Error(`qRago holds ${npc.heldItem.name}`)
+  let opened = null
+  const onOpen = (window) => { opened = window }
+  bot.on('windowOpen', onOpen)
+  bot.activateEntity(npc)
+  await sleep(1500)
+  bot.removeListener('windowOpen', onOpen)
+  if (opened != null) {
+    bot.closeWindow(opened)
+    throw new Error('a click on qRago opened a menu')
+  }
+  log('qRago stands on obsidian under "[OWNER] qRago", empty-handed, and a click on the NPC opens nothing')
+}
+
+/**
+ * Rago Client (plan 5.6A): on diamond, "OUR OTHER PRODUCTS" above "Rago Client", empty hands; a
+ * click opens nothing and writes its links in the chat.
+ */
+async function checkProductNpc (bot) {
+  await waitFor(() => npcAt(bot, PRODUCT_NPC) != null, 10000, `the NPC Rago Client at ${JSON.stringify(PRODUCT_NPC)}`)
+  const npc = npcAt(bot, PRODUCT_NPC)
+  const V = bot.entity.position.constructor
+  const under = () => bot.blockAt(new V(PRODUCT_NPC.x, PRODUCT_NPC.y - 1, PRODUCT_NPC.z))?.name
+  // its lines from the top: the title, then the name
+  const lines = () => Object.values(bot.entities).filter((e) => typeof e.metadata?.[2] === 'string' &&
+    e.metadata[2].length > 0 && Math.hypot(e.position.x - PRODUCT_NPC.x, e.position.z - PRODUCT_NPC.z) < 1)
+    .sort((a, b) => b.position.y - a.position.y).map((e) => e.metadata[2].replace(/§./g, ''))
+  await waitFor(() => under() === 'diamond_block' && JSON.stringify(lines()) === JSON.stringify(['OUR OTHER PRODUCTS', 'Rago Client']),
+    5000, `Rago Client on diamond under "OUR OTHER PRODUCTS" (stands on ${under()}, reads ${JSON.stringify(lines())})`)
+  if (npc.heldItem != null) throw new Error(`Rago Client holds ${npc.heldItem.name}`)
+  let opened = null
+  const onOpen = (window) => { opened = window }
+  bot.on('windowOpen', onOpen)
+  const from = mark(bot)
+  bot.activateEntity(npc)
+  await chatLine(bot, /Rago Client: rago-optimizer\.com/, 5000, from)
+  await chatLine(bot, /Join our Discord: discord\.gg\/ragooptimizer/, 5000, from)
+  bot.removeListener('windowOpen', onOpen)
+  if (opened != null) {
+    bot.closeWindow(opened)
+    throw new Error('a click on Rago Client opened a menu')
+  }
+  log('Rago Client stands on diamond under "OUR OTHER PRODUCTS", empty-handed, and a click writes its two links in the chat')
+}
+
+/**
+ * The thank-you text (plan 5.7), cut in two: the lines of each side on its point, top to bottom,
+ * as the owner validated them; the last 0.45 block above the point, the first (rows - 1) * 0.27
+ * above it (a name floats a block above its small stand).
+ */
+async function checkThankYouText (bot) {
+  for (const [side, at] of THANK_YOU_TEXTS.entries()) {
+    const stands = () => Object.values(bot.entities).filter((e) => typeof e.metadata?.[2] === 'string' &&
+      e.metadata[2].length > 0 && Math.hypot(e.position.x - at.x, e.position.z - at.z) < 0.5)
+      .sort((a, b) => b.position.y - a.position.y)
+    const lines = () => stands().map((e) => e.metadata[2].replace(/§./g, ''))
+    const where = side === 0 ? 'on the left (textremerciement)' : 'on the right (textremerciement2)'
+    await waitFor(() => JSON.stringify(lines()) === JSON.stringify(THANK_YOU_LINES[side]), 10000,
+      `the thank-you text ${where} (reads ${JSON.stringify(lines())})`)
+    const all = stands()
+    const top = all[0].position.y + 1 - at.y
+    const bottom = all[all.length - 1].position.y + 1 - at.y
+    if (Math.abs(top - (0.45 + (THANK_YOU_ROWS[side] - 1) * 0.27)) > 0.05 || Math.abs(bottom - 0.45) > 0.05) {
+      throw new Error(`the thank-you text ${where} floats from ${bottom.toFixed(2)} to ${top.toFixed(2)} blocks above its point`)
+    }
+    log(`the thank-you text ${where} reads its ${THANK_YOU_LINES[side].length} lines as validated, from ${bottom.toFixed(2)} to ${top.toFixed(2)} blocks above its point`)
+  }
+}
+
+/** The queue line under the Duels NPC ("1 in queue · Click to play"), without colours, or undefined. */
+function duelsQueueLine (bot) {
+  const line = Object.values(bot.entities).find((e) => typeof e.metadata?.[2] === 'string' &&
+    e.metadata[2].includes('in queue') && Math.hypot(e.position.x - DUELS_NPC.x, e.position.z - DUELS_NPC.z) < 1)
+  return line?.metadata[2].replace(/§./g, '')
+}
+
+/** The Duels NPC counts the players in the queues of its modes; the line changes within a second or two. */
+async function expectDuelsQueue (bot, count, what) {
+  const expected = `${count} in queue · Click to play`
+  await waitFor(() => duelsQueueLine(bot) === expected, 5000,
+    `${bot.username} to read "${expected}" under the Duels NPC (${what}): ${JSON.stringify(duelsQueueLine(bot))}`)
 }
 
 /** Every line of floating text this bot sees: the names of the armor stands, without colours. */
@@ -431,7 +664,7 @@ async function checkTopStreak (bot) {
   const window = await Promise.race([opened, sleep(5000).then(() => null)])
   if (window == null) throw new Error('a click on the Duels NPC did not open a menu')
   const lore = JSON.stringify(window.slots[sumoSlot(window)]?.nbt ?? null)
-  if (!lore.includes('§cDaily Streak: 0') || !lore.includes('§c 1. §fRagoUn§c - 1')) {
+  if (!lore.includes('§eDaily Streak: 0') || !lore.includes('§e 1. §fRagoUn§e - 1')) {
     throw new Error(`${bot.username}: the sumo of the Duels NPC does not show RagoUn's streak: ${lore}`)
   }
   bot.closeWindow(window)
@@ -456,14 +689,36 @@ async function checkStats (one, two) {
   one.activateEntity(npc)
   const window = await Promise.race([opened, sleep(5000).then(() => null)])
   if (window == null) throw new Error('a click on the stats NPC did not open a menu')
-  const title = typeof window.title === 'string' ? window.title : JSON.stringify(window.title)
+  const title = windowTitle(window)
   if (!title.includes('Your stats')) throw new Error(`the stats NPC opened ${title}`)
-  const sumo = window.slots.find((item) => item?.name === 'slime_ball')
+  // the first page: the categories of the selector, the Duels (an iron sword) with the sumo's win and kills
+  const duelsSlot = window.slots.findIndex((item, slot) => slot < window.inventoryStart && item?.name === 'iron_sword')
+  const duels = JSON.stringify(window.slots[duelsSlot]?.nbt ?? null)
+  if (duelsSlot < 0 || !duels.includes('Wins: §a1') || !duels.includes('Kills: §a3')) {
+    throw new Error(`no Duels category with the sumo's win and kills in the stats menu: ${duels}`)
+  }
+  // a click on it: its modes, the sumo (its lead) with its stats
+  const modesOpened = new Promise((resolve) => one.once('windowOpen', resolve))
+  one.clickWindow(duelsSlot, 0, 0).catch(() => {})
+  const modes = await Promise.race([modesOpened, sleep(5000).then(() => null)])
+  if (modes == null || !windowTitle(modes).includes('Your stats: Duels')) {
+    throw new Error(`a click on the Duels of the stats menu opened ${modes == null ? 'nothing' : windowTitle(modes)}`)
+  }
+  const sumo = modes.slots.find((item, slot) => slot < modes.inventoryStart && item?.name === 'lead')
   const lore = JSON.stringify(sumo?.nbt ?? null)
   if (!lore.includes('Wins: §a1')) throw new Error(`no sumo win in the stats menu: ${lore}`)
   if (!lore.includes('Kills: §a3')) throw new Error(`no sumo kills in the stats menu: ${lore}`)
-  one.closeWindow(window)
-  log('stats: each bot reads its own profile, the leaderboard has RagoUn first, the menu opens')
+  // Back: the categories again
+  const backOpened = new Promise((resolve) => one.once('windowOpen', resolve))
+  one.clickWindow(0, 0, 0).catch(() => {})
+  const back = await Promise.race([backOpened, sleep(5000).then(() => null)])
+  if (back == null || windowTitle(back).includes(':') ||
+    !back.slots.some((item, slot) => slot < back.inventoryStart && item?.name === 'iron_sword')) {
+    throw new Error(`Back in the stats menu opened ${back == null ? 'nothing' : windowTitle(back)}`)
+  }
+  one.closeWindow(back)
+  log('stats: each bot reads its own profile, the leaderboard has RagoUn first, the menu opens on the categories, ' +
+    'the Duels show the sumo, Back returns')
   // Three points: three kills for RagoUn, three deaths for RagoDeux.
   await expectFloating(one, 'Kills: 3 · Final kills: 0', 'the kills of the winner')
   await expectFloating(two, 'Kills: 0 · Final kills: 0', 'the kills of the loser')
@@ -645,7 +900,10 @@ async function voidAndRespawn (bot, other) {
   log(`${bot.username} fell into the void and respawned`)
 }
 
-/** Ranked Bedwars 1v1 on the demo map, ending with RagoDeux leaving: RagoUn wins. */
+/**
+ * Ranked Bedwars 1v1 on the demo map: RagoDeux leaves the server and comes back into the game,
+ * then leaves it with /spawn: RagoUn wins. Returns the RagoDeux of now.
+ */
 async function playBedwars (one, two) {
   const fromOne = mark(one)
   const fromTwo = mark(two)
@@ -657,6 +915,7 @@ async function playBedwars (one, two) {
   await chatLine(one, /Fight!/, 10000, fromOne)
   await shopAndBuild(one)
   await voidAndRespawn(two, one)
+  two = await disconnectAndReturn(one, two)
   const fromEnd = mark(one)
   const fromLeft = mark(two)
   two.chat('/spawn')
@@ -667,6 +926,35 @@ async function playBedwars (one, two) {
   await expectInLobby(one, 'after the Bed Wars game')
   await expectInLobby(two, 'after /spawn in the Bed Wars game')
   log('Bed Wars: RagoDeux left, RagoUn won, both are back in the lobby; no ranked queue for RagoDeux for 5 minutes')
+  return two
+}
+
+/**
+ * RagoDeux leaves the server in the middle of the game (the owner's ask of 23/11): the game goes on
+ * without it, RagoUn does not win; back on the server, it is in the game again, a spectator for 10
+ * seconds as after a death, then on its island (its bed stands). Returns the RagoDeux of now.
+ */
+async function disconnectAndReturn (one, two) {
+  const fromOne = mark(one)
+  two.leaving = true
+  two.quit()
+  await chatLine(one, /RagoDeux disconnected\./, 5000, fromOne)
+  await sleep(3000)
+  const ended = chats.get(one.username).slice(fromOne).find((line) => /Winner:|left the game/.test(line))
+  if (ended != null) throw new Error(`the game did not wait for RagoDeux, gone from the server: ${ended}`)
+  if (one.game.gameMode !== 'survival') throw new Error(`RagoUn is no longer playing: ${one.game.gameMode}`)
+  const back = await join('RagoDeux')
+  await chatLine(one, /RagoDeux reconnected\./, 10000, fromOne)
+  await waitFor(() => back.game.gameMode === 'spectator', 5000, `RagoDeux, back, a spectator first: ${back.game.gameMode}`)
+  const backAt = Date.now()
+  await chatLine(back, /You have respawned!/, 15000, 0)
+  const waited = Date.now() - backAt
+  if (waited < 8000) throw new Error(`RagoDeux respawned ${waited} ms after its return: 10 seconds as a spectator first`)
+  await waitFor(() => back.game.gameMode === 'survival' && countOf(back, 'wooden_sword') === 1 &&
+    Math.abs(back.entity.position.y - (BEDWARS_FLOOR + 1)) < 0.5, 5000,
+  `RagoDeux back on its island with its sword: ${back.game.gameMode} at ${back.entity.position}`)
+  log(`Bed Wars: RagoDeux left the server, the game went on; back, a spectator for ${(waited / 1000).toFixed(1)} s, then on its island`)
+  return back
 }
 
 /** First Rush: a real 1v1 on two neighbouring islands, on the map chosen in the queue. */
@@ -731,6 +1019,7 @@ async function playParty (one, two) {
   const xp = chats.get(one.username).slice(fromOne).find((line) => /Network XP/.test(line))
   if (xp != null) throw new Error(`the private game of the party was counted: ${xp}`)
   log('party: two in a 1v1 mode play a private game against each other, without stats')
+  await partyReplay(one, two)
 
   // two in a 2v2 mode: no ranked queue, RagoDeux left a ranked game a moment ago (playBedwars);
   // the queue of an unranked one, in one team
@@ -750,10 +1039,84 @@ async function playParty (one, two) {
   log('party: no ranked queue after RagoDeux left a ranked game; in a 2v2 mode the party queues together, leaves together, then is disbanded')
 }
 
+/** The elapsed and total seconds of the replay in the sidebar ("▶ 0:05 / 0:12"), or null. */
+function replayClock (bot) {
+  for (const line of sidebarLines(bot)) {
+    const clock = /(\d+):(\d\d) \/ (\d+):(\d\d)/.exec(line)
+    if (clock != null) {
+      return { at: Number(clock[1]) * 60 + Number(clock[2]), length: Number(clock[3]) * 60 + Number(clock[4]) }
+    }
+  }
+  return null
+}
+
 /**
- * RagoDeux leaves the server while in RagoUn's party, then comes back: RagoUn is told, and the
- * lobby forgot RagoDeux whole (an error there left its old scoreboard: no name tags at all).
- * Returns the RagoDeux of now.
+ * Plan 4.1: RagoUn, leader of the party, watches the replay of its 3 - 0 sumo duel from /replay,
+ * then /p warp brings RagoDeux into it: beside RagoUn, at the same moment, with the players and
+ * leave only (the leader runs the replay). RagoUn leaves: RagoDeux goes back to the lobby with it.
+ * Plan 4.1b: both hear the notes of the duel's countdowns, recorded with the game.
+ */
+async function partyReplay (one, two) {
+  let fromOne = mark(one)
+  let fromTwo = mark(two)
+  const heardOne = one.sounds.length
+  const opened = new Promise((resolve) => one.once('windowOpen', resolve))
+  one.chat('/replay')
+  const menu = await Promise.race([opened, sleep(5000).then(() => null)])
+  if (menu == null) throw new Error('/replay did not open the menu of the replays')
+  if (!windowTitle(menu).includes('Your replays')) throw new Error(`/replay opened ${windowTitle(menu)}`)
+  // the duel RagoUn won 3 - 0: three rounds, each after a countdown
+  const sumo = menu.slots.findIndex((item, slot) => slot < 45 && item != null && /Sumo/i.test(JSON.stringify(item.nbt ?? null)) &&
+    JSON.stringify(item.nbt ?? null).includes('RagoUn won (3 - 0)'))
+  if (sumo < 0) {
+    throw new Error(`no 3 - 0 sumo duel in RagoUn's replays: ${JSON.stringify(menu.slots.slice(0, 45).filter((item) => item != null).map((item) => item.nbt))}`)
+  }
+  one.clickWindow(sumo, 0, 0).catch(() => {})
+  await chatLine(one, /^Replay of .*Sumo.*long\./, 15000, fromOne)
+  await chatLine(one, /Your party can watch it with you: \/p warp/, 5000, fromOne)
+  await waitFor(() => hotbarItem(one, 3)?.name === 'dye', 5000,
+    `the pause button of the replay in RagoUn's hotbar: ${hotbarItem(one, 3)?.name}`)
+  log('party replay: RagoUn, the leader, watches the replay of a sumo duel, and is told /p warp brings the party')
+  await waitFor(() => one.sounds.slice(heardOne).some((name) => /^note\./.test(name)), 10000,
+    `RagoUn to hear the countdown in the replay; sounds: ${JSON.stringify(one.sounds.slice(heardOne))}`)
+  log(`party replay: RagoUn hears the sounds of the duel (${JSON.stringify([...new Set(one.sounds.slice(heardOne))])})`)
+
+  fromOne = mark(one)
+  one.chat('/p warp')
+  await chatLine(one, /You summoned 1 player to your replay\./, 5000, fromOne)
+  await chatLine(two, /RagoUn warped you into the replay of .*Sumo/, 5000, fromTwo)
+  await waitFor(() => hotbarItem(two, 0)?.name === 'compass' && hotbarItem(two, 8)?.name === 'bed', 5000,
+    `the players and leave in RagoDeux's hotbar: ${hotbarItem(two, 0)?.name}, ${hotbarItem(two, 8)?.name}`)
+  for (const slot of [2, 3, 4, 6]) {
+    if (hotbarItem(two, slot) != null) throw new Error(`RagoDeux has ${hotbarItem(two, slot).name} in slot ${slot}: the leader runs the replay`)
+  }
+  const distance = one.entity.position.distanceTo(two.entity.position)
+  if (distance > 2) throw new Error(`RagoDeux is ${distance.toFixed(1)} blocks from RagoUn in the replay`)
+  await waitFor(() => {
+    const a = replayClock(one)
+    const b = replayClock(two)
+    return a != null && b != null && a.length === b.length && Math.abs(a.at - b.at) <= 1
+  }, 5000, `the same moment of the replay in both sidebars: ${JSON.stringify(sidebarLines(one))} / ${JSON.stringify(sidebarLines(two))}`)
+  log(`party replay: /p warp brought RagoDeux beside RagoUn, same moment (${JSON.stringify(replayClock(two))}), players and leave only`)
+  const heardTwo = two.sounds.length
+  await waitFor(() => two.sounds.slice(heardTwo).some((name) => /^note\./.test(name)), 30000,
+    `RagoDeux to hear a countdown of the replay; sounds: ${JSON.stringify(two.sounds.slice(heardTwo))}`)
+  log(`party replay: RagoDeux hears the sounds of the replay too (${JSON.stringify([...new Set(two.sounds.slice(heardTwo))])})`)
+
+  fromTwo = mark(two)
+  one.chat('/replay leave')
+  await chatLine(two, /RagoUn left the replay\./, 5000, fromTwo)
+  await expectInLobby(one, 'after leaving the replay')
+  await expectInLobby(two, 'after the leader left the replay')
+  log('party replay: RagoUn left, and RagoDeux went back to the lobby with it')
+}
+
+/**
+ * RagoDeux leaves the server while in RagoUn's party, then comes back: RagoUn is told that it has
+ * 60 seconds to rejoin (the owner's ask of 25/11: the party is not left at once) and still lists it
+ * in the party; back, RagoDeux is in it again, and the lobby forgot RagoDeux whole (an error there
+ * left its old scoreboard: no name tags at all). The minute itself is played by the unit tests
+ * (PartyBookTest). RagoUn then disbands the party. Returns the RagoDeux of now.
  */
 async function quitInParty (one, two) {
   let fromOne = mark(one)
@@ -765,13 +1128,190 @@ async function quitInParty (one, two) {
   fromOne = mark(one)
   two.leaving = true
   two.quit()
-  await chatLine(one, /RagoDeux left the server and the party\./, 5000, fromOne)
+  await chatLine(one, /RagoDeux disconnected: they have 60 seconds to rejoin before they are removed from the party\./, 5000, fromOne)
+  fromOne = mark(one)
+  one.chat('/p list')
+  await chatLine(one, /Party Members: .*RagoDeux ●/, 5000, fromOne)
+  fromOne = mark(one)
   const back = await join('RagoDeux')
   await expectInLobby(back, 'back on the server')
+  await chatLine(back, /You are back in .*RagoUn's party\./, 10000)
+  await chatLine(one, /RagoDeux rejoined the party\./, 5000, fromOne)
   await waitFor(() => back.teamMap?.RagoUn != null, 5000,
     `RagoDeux, back, to see the name tag of RagoUn: teams ${JSON.stringify(Object.keys(back.teamMap ?? {}))}`)
-  log('party: RagoDeux left the server in the party, RagoUn was told, and back it sees the name tags')
+  let fromBack = mark(back)
+  back.chat('/p list')
+  await chatLine(back, /Party Members \(2\)/, 5000, fromBack)
+  fromBack = mark(back)
+  one.chat('/p disband')
+  await chatLine(back, /RagoUn has disbanded the party!/, 5000, fromBack)
+  log('party: RagoDeux left the server in the party, RagoUn was told it has 60 seconds; back, RagoDeux is still in'
+    + ' the party and sees the name tags; RagoUn disbanded it')
   return back
+}
+
+/** The commands a click on this chat line runs (its run_command click events, at any depth). */
+function clickCommands (json) {
+  const found = []
+  const walk = (part) => {
+    if (part == null || typeof part !== 'object') return
+    if (Array.isArray(part)) { part.forEach(walk); return }
+    if (part.clickEvent?.action === 'run_command') found.push(part.clickEvent.value)
+    walk(part.extra)
+  }
+  walk(json)
+  return found
+}
+
+/** The red dye of an event in the last slot of the lobby hotbar, with this name (Leave or Cancel the event). */
+function eventDye (bot, name) {
+  const item = hotbarItem(bot, 8)
+  return item?.name === 'dye' && item.metadata === 1 && JSON.stringify(item.nbt ?? null).includes(name)
+}
+
+/**
+ * A right click on the floor with the item of this slot, as a player does: the use packet in the air
+ * that activateItem sends is dropped by the server when the player looks at a block after placing
+ * one (RagoUn placed its wool in Bed Wars), as in fireballJump.
+ */
+async function useOnFloor (bot, slot) {
+  bot.setQuickBarSlot(slot)
+  await sleep(250)
+  bot.activateBlock(bot.blockAt(bot.entity.position.offset(0, -1, 0))).catch(() => {})
+}
+
+/**
+ * An event of /host (plan 4.2): announced to the whole server every 20 seconds with a [CLICK TO
+ * JOIN] until it starts; joining does not move a player, who keeps playing, and the red dye of the
+ * lobby hotbar takes them out (its host's calls it off); at the end of the wait, those still in a
+ * game leave it, as with /spawn, and all its players go to it.
+ */
+async function playEvent (one, two, three) {
+  // RagoDeux plays the Block clutch training: it stays in it until the event starts
+  let fromTwo = mark(two)
+  two.chat('/queue clutch')
+  await chatLine(two, /Block clutch - /, 15000, fromTwo)
+  await waitFor(() => two.game.gameMode === 'survival', 5000, 'RagoDeux in survival mode in the Block clutch')
+  const inTraining = (what) => {
+    if (two.game.gameMode !== 'survival' || hotbarItem(two, 0)?.name === 'compass') {
+      throw new Error(`RagoDeux left its Block clutch (${what}): mode ${two.game.gameMode}, slot 0 ${hotbarItem(two, 0)?.name}`)
+    }
+  }
+  log('event: RagoDeux plays the Block clutch')
+
+  // where each one stands: joining moves nobody
+  const stayed = (bot, at, what) => {
+    if (bot.game.gameMode !== 'adventure' || hotbarItem(bot, 0)?.name !== 'compass' || bot.entity.position.distanceTo(at) > 1) {
+      throw new Error(`${bot.username} moved (${what}): mode ${bot.game.gameMode}, slot 0 ${hotbarItem(bot, 0)?.name}, ` +
+        `at ${bot.entity.position}, was at ${at}`)
+    }
+  }
+  const oneAt = one.entity.position.clone()
+  const threeAt = three.entity.position.clone()
+  let fromOne = mark(one)
+  fromTwo = mark(two)
+  let fromThree = mark(three)
+  const jsonFrom = one.jsonChats.length
+  three.chat('/host sumo')
+  const hosting = /SUMO EVENT[\s\S]*Hosted by RagoTrois[\s\S]*Knock your opponent off the platform\./
+  await chatLine(one, hosting, 5000, fromOne)
+  const firstAt = Date.now()
+  await chatLine(two, hosting, 5000, fromTwo)
+  await chatLine(three, /SUMO EVENT[\s\S]*Starts in 25s\s+•\s+1\/40 players[\s\S]*You are in!/, 5000, fromThree)
+  await chatLine(one, /Starts in 25s\s+•\s+1\/40 players[\s\S]*\[CLICK TO JOIN\]/, 5000, fromOne)
+  const button = one.jsonChats.slice(jsonFrom).find((json) => clickCommands(json).length > 0)
+  if (button == null || JSON.stringify(clickCommands(button)) !== JSON.stringify(['/join'])) {
+    throw new Error(`the announcement of the event has no [CLICK TO JOIN] that runs /join: ${JSON.stringify(one.jsonChats.slice(jsonFrom))}`)
+  }
+  // a player in a game reads it too, with the same button
+  await chatLine(two, /Starts in 25s\s+•\s+1\/40 players[\s\S]*\[CLICK TO JOIN\]/, 5000, fromTwo)
+  await waitFor(() => eventDye(three, 'Cancel the event'), 3000,
+    `the red dye Cancel the event in the last slot of RagoTrois: ${JSON.stringify(hotbarItem(three, 8) ?? null)}`)
+  log('event: RagoTrois hosts a Sumo event, the whole server reads it with a [CLICK TO JOIN] that runs /join; RagoTrois has the red dye Cancel the event')
+
+  // joining moves nobody: RagoDeux from its training, RagoUn from the lobby (the button runs /join)
+  fromTwo = mark(two)
+  two.chat('/join')
+  await chatLine(two, /You joined the Sumo event of RagoTrois \(2\/40 players \(1 in a game\), starts in \d+s\)\. Keep playing/, 5000, fromTwo)
+  fromOne = mark(one)
+  one.chat('/join')
+  await chatLine(one, /You joined the Sumo event of RagoTrois \(3\/40 players \(1 in a game\), starts in \d+s\)\. Keep playing/, 5000, fromOne)
+  // the red dye of RagoUn takes it out of the event, its profile comes back; it joins again
+  await waitFor(() => eventDye(one, 'Leave the event'), 3000,
+    `the red dye Leave the event in the last slot of RagoUn: ${JSON.stringify(hotbarItem(one, 8) ?? null)}`)
+  fromOne = mark(one)
+  await useOnFloor(one, 8)
+  await chatLine(one, /You left the Sumo event\./, 3000, fromOne)
+  await waitFor(() => hotbarItem(one, 8)?.name === 'skull', 3000,
+    `the profile back in the last slot of RagoUn: ${JSON.stringify(hotbarItem(one, 8) ?? null)}`)
+  one.setQuickBarSlot(0)
+  fromOne = mark(one)
+  one.chat('/join')
+  await chatLine(one, /You joined the Sumo event of RagoTrois \(3\/40 players \(1 in a game\), starts in \d+s\)\. Keep playing/, 5000, fromOne)
+  await waitFor(() => eventDye(one, 'Leave the event'), 3000, 'the red dye of RagoUn again')
+  log('event: RagoUn left the event with its red dye (its profile came back) and joined again')
+  await sleep(1000)
+  inTraining('after /join')
+  stayed(one, oneAt, 'after /join')
+  stayed(three, threeAt, 'after /host')
+  log('event: RagoDeux joined from its Block clutch and stays in it, RagoUn joined and stays in the lobby')
+
+  // the message again, 20 seconds after the first, with where the event stands
+  fromOne = mark(one)
+  fromTwo = mark(two)
+  await chatLine(one, hosting, 25000, fromOne)
+  const again = (Date.now() - firstAt) / 1000
+  if (again < 18 || again > 22) throw new Error(`the announcement came back after ${again.toFixed(1)} s, not 20`)
+  await chatLine(one, /Starts in 5s\s+•\s+3\/40 players[\s\S]*You are in!/, 2000, fromOne)
+  await chatLine(two, /Starts in 5s\s+•\s+3\/40 players[\s\S]*You are in!/, 2000, fromTwo)
+  inTraining('at the second announcement')
+  stayed(one, oneAt, 'at the second announcement')
+  log(`event: the announcement came back ${again.toFixed(1)} s after the first, RagoUn and RagoDeux read they are in`)
+
+  // the end of the wait: RagoDeux leaves its Block clutch for it, as with /spawn; the three go to it
+  fromOne = mark(one)
+  fromTwo = mark(two)
+  fromThree = mark(three)
+  const bots = { RagoUn: one, RagoDeux: two, RagoTrois: three }
+  const titlesFrom = Object.fromEntries(Object.entries(bots).map(([name, bot]) => [name, bot.titles.length]))
+  await chatLine(two, /The Sumo event starts: you leave your game for it\./, 10000, fromTwo)
+  await chatLine(two, /You joined the Sumo event of RagoTrois\. /, 5000, fromTwo)
+  await chatLine(one, /You joined the Sumo event of RagoTrois\. /, 5000, fromOne)
+  await chatLine(three, /You joined the Sumo event of RagoTrois\. /, 5000, fromThree)
+  await chatLine(one, /The Sumo event starts with 3 players!/, 12000, fromOne)
+  const vs = (await chatLine(one, /(RagoUn|RagoDeux|RagoTrois) vs (RagoUn|RagoDeux|RagoTrois)/, 5000, fromOne))
+    .match(/(RagoUn|RagoDeux|RagoTrois) vs (RagoUn|RagoDeux|RagoTrois)/)
+  log(`event: RagoDeux left its Block clutch for it at the end of the wait, the three went to it; first fight ${vs[1]} vs ${vs[2]}`)
+
+  const fighter = bots[vs[1]]
+  await waitFor(() => fighter.titles.slice(titlesFrom[vs[1]]).includes('Fight!'), 10000,
+    `the fight of the event; titles of ${vs[1]}: ${JSON.stringify(fighter.titles.slice(titlesFrom[vs[1]]))}`)
+  fromOne = mark(one)
+  fromTwo = mark(two)
+  fromThree = mark(three)
+  three.chat('/spawn')
+  await expectInLobby(three, 'after /spawn in the event')
+  two.chat('/spawn')
+  await expectInLobby(two, 'after /spawn in the event')
+  await chatLine(one, /RagoUn won the Sumo event of RagoTrois!/, 10000, fromOne)
+  await chatLine(two, /RagoUn won the Sumo event of RagoTrois!/, 5000, fromTwo)
+  await chatLine(three, /RagoUn won the Sumo event of RagoTrois!/, 5000, fromThree)
+  await expectInLobby(one, 'after winning the event')
+  log('event: RagoTrois and RagoDeux left it, RagoUn won and the server was told; the three are back in the lobby')
+
+  // another one, called off by its host with its red dye; nobody keeps a red dye
+  fromOne = mark(one)
+  fromThree = mark(three)
+  three.chat('/host sumo')
+  await chatLine(one, hosting, 5000, fromOne)
+  await waitFor(() => eventDye(three, 'Cancel the event'), 3000, 'the red dye Cancel the event of RagoTrois')
+  await useOnFloor(three, 8)
+  await chatLine(one, /The Sumo event of RagoTrois is called off: called off by its host\./, 3000, fromOne)
+  await chatLine(three, /The Sumo event of RagoTrois is called off: called off by its host\./, 3000, fromThree)
+  await waitFor(() => hotbarItem(three, 8)?.name === 'skull', 3000,
+    `the profile back in the last slot of RagoTrois: ${JSON.stringify(hotbarItem(three, 8) ?? null)}`)
+  three.setQuickBarSlot(0)
+  log('event: RagoTrois hosted another one and called it off with its red dye, the server was told')
 }
 
 async function fallOff (bot) {
@@ -783,9 +1323,52 @@ function stop (bot) {
   bot.clearControlStates()
 }
 
+// The Daily Chest: its centre, where the reel stops, and the pointer above it with the chances.
+const DAILY_CENTRE = 13
+const DAILY_POINTER = 4
+
+async function checkDailyChest (bot) {
+  const from = mark(bot)
+  const heard = bot.sounds.length
+  const titles = bot.titles.length
+  bot.chat('/daily')
+  await waitFor(() => bot.currentWindow != null && windowTitle(bot.currentWindow).includes('Daily Chest'), 5000,
+    `${bot.username}: the menu of the Daily Chest after /daily`)
+  const window = bot.currentWindow
+  const pointer = JSON.stringify(window.slots[DAILY_POINTER]?.nbt ?? null)
+  if (window.slots[DAILY_POINTER]?.name !== 'hopper' || !pointer.includes('Common') || !pointer.includes('55%') ||
+      !pointer.includes('Legendary') || !pointer.includes('5%')) {
+    throw new Error(`${bot.username}: the chances of the Daily Chest on its hopper: ${window.slots[DAILY_POINTER]?.name} ${pointer}`)
+  }
+  const centre = () => JSON.stringify(window.slots[DAILY_CENTRE]?.nbt ?? null)
+  const first = centre()
+  await waitFor(() => centre() !== first, 3000, `${bot.username}: the reel of the Daily Chest to move`)
+  const line = await chatLine(bot, /DAILY CHEST! (COMMON|RARE|EPIC|LEGENDARY) /, 12000, from)
+  const rarity = line.match(/DAILY CHEST! (COMMON|RARE|EPIC|LEGENDARY) /)[1]
+  const notes = bot.sounds.slice(heard).filter((name) => name === 'note.pling').length
+  if (notes < 20) {
+    throw new Error(`${bot.username}: the notes of the spin, one a step: ${notes}; sounds: ${JSON.stringify(bot.sounds.slice(heard))}`)
+  }
+  if (!centre().includes(rarity)) {
+    throw new Error(`${bot.username}: the reel stopped on another reward than the ${rarity} told: ${centre()}`)
+  }
+  await chatLine(bot, /Day 1 in a row: come back tomorrow for a streak bonus\./, 3000, from)
+  await waitFor(() => bot.currentWindow == null && bot.titles.slice(titles).includes(`${rarity}!`), 6000,
+    `${bot.username}: the menu of the Daily Chest to close on the title ${rarity}!; titles: ${JSON.stringify(bot.titles.slice(titles))}`)
+  log(`Daily Chest: the reel spun (${notes} notes) and stopped on a ${rarity} reward: ${line.replace(/^.*DAILY CHEST! /, '')}`)
+  const again = mark(bot)
+  bot.chat('/daily')
+  await chatLine(bot, /You already claimed today's reward\. Come back in/, 5000, again)
+  await sleep(500)
+  if (bot.currentWindow != null) {
+    throw new Error(`${bot.username}: a second /daily the same day opened ${windowTitle(bot.currentWindow)}`)
+  }
+  log('Daily Chest: a second /daily the same day is refused')
+}
+
 async function main () {
   const one = await join('RagoUn')
-  const two = await join('RagoDeux')
+  let two = await join('RagoDeux')
   log('both bots joined')
 
   // 1. The lobby.
@@ -810,8 +1393,11 @@ async function main () {
   await arrangeSumoKit(one)
   await checkHypixelImport(two)
 
-  // 2. The queue.
+  // 2. The queue, and its count under the Duels NPC (plan 3.8).
+  await expectDuelsQueue(two, 0, 'nobody waits yet')
   await openSelectorAndJoinSumo(one)
+  await expectDuelsQueue(two, 1, 'RagoUn waits for a sumo duel')
+  log('the Duels NPC counts RagoUn in its queue')
   let fromOne = mark(one)
   let fromTwo = mark(two)
   two.chat('/queue sumo')
@@ -858,11 +1444,16 @@ async function main () {
       if (two.health < 20) throw new Error(`RagoDeux took damage in the sumo duel (health ${two.health})`)
       log('hit: RagoDeux got knockback and no damage')
     }
+    const heard = one.sounds.length
     await fallOff(two)
     await chatLine(two, /Point for RagoUn/, 10000, fromTwo)
     stop(two)
     await chatLine(one, /Your point/, 5000, fromOne)
-    log(`round ${round}: RagoDeux fell, point for RagoUn`)
+    // the ding of the point won, and on the last one the ding of the game won too
+    const dings = () => one.sounds.slice(heard).filter((name) => name === 'random.orb').length
+    const want = round === POINTS_TO_WIN ? 2 : 1
+    await waitFor(() => dings() >= want, 3000, `RagoUn to hear ${want} ding(s) for round ${round}; sounds: ${JSON.stringify(one.sounds.slice(heard))}`)
+    log(`round ${round}: RagoDeux fell, point for RagoUn (${dings()} ding${dings() > 1 ? 's' : ''})`)
   }
   await chatLine(one, /Victory!.*3 - 0/, 5000, fromOne)
   await chatLine(two, /Defeat.*0 - 3/, 5000, fromTwo)
@@ -872,6 +1463,8 @@ async function main () {
   await expectInLobby(one, 'after the duel')
   await expectInLobby(two, 'after the duel')
   log('both are back in the lobby')
+  await expectDuelsQueue(two, 0, 'the duel took both out of the queue')
+  log('the Duels NPC counts nobody in its queue again')
   await checkStats(one, two)
 
   // 5. A forfeit.
@@ -902,8 +1495,8 @@ async function main () {
   await expectInLobby(two, 'after /spawn in the /duel match')
   log('/duel: RagoDeux accepted, the duel started without the queue')
 
-  // 7. Ranked Bedwars 1v1 (RagoBedwars), on its demo map.
-  await playBedwars(one, two)
+  // 7. Ranked Bedwars 1v1 (RagoBedwars), on its demo map: RagoDeux leaves the server and comes back.
+  two = await playBedwars(one, two)
 
   // 8. First Rush: a real game on two islands side by side.
   await playFirstRush(one, two)
@@ -914,9 +1507,19 @@ async function main () {
   // 10. A member leaves the server in a party, then comes back.
   const back = await quitInParty(one, two)
 
+  // 11. An event of /host, hosted by an operator.
+  const three = await join('RagoTrois')
+  await closeFirstMenu(three)
+  await expectInLobby(three, 'on joining')
+  await playEvent(one, back, three)
+
+  // 12. The Daily Chest.
+  await checkDailyChest(three)
+
   finishing = true
   one.quit()
   back.quit()
+  three.quit()
   await sleep(500)
   log('PASSED')
   process.exit(0)

@@ -1,6 +1,7 @@
 package gg.rago.practice;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
@@ -135,12 +136,56 @@ class EventsTest {
     }
 
     @Test
-    void theButtonRunsJoin() {
-        String json = Events.button(EventGame.Kind.SUMO);
+    void theAnnouncementRunsJoin() {
+        String json = Events.announcement(EventGame.Kind.SUMO, "Steve", 40, 3, 40, 0, false);
         assertTrue(json.contains("\"action\":\"run_command\",\"value\":\"/join\""), json);
-        assertTrue(json.contains("Join the Sumo event"), json);
-        // well formed: as many { as }, as many [ as ]
-        assertEquals(json.chars().filter(c -> c == '{').count(), json.chars().filter(c -> c == '}').count());
-        assertEquals(json.chars().filter(c -> c == '[').count(), json.chars().filter(c -> c == ']').count());
+        assertTrue(json.contains("Click to join the Sumo event"), json);
+        assertTrue(json.contains("[CLICK TO JOIN]"), json);
+        assertTrue(json.contains("SUMO EVENT") && json.contains("Steve") && json.contains("40s"), json);
+        // a line above and a line under
+        assertEquals(2, json.split(java.util.regex.Pattern.quote(Events.SEPARATOR), -1).length - 1, json);
+        com.google.gson.JsonObject parsed = new com.google.gson.JsonParser().parse(json).getAsJsonObject();
+        assertEquals("/join", parsed.getAsJsonObject("clickEvent").get("value").getAsString());
+        // once the wait is over: how many more players it needs
+        String waiting = Events.announcement(EventGame.Kind.LMS, Events.SERVER_HOST, 0, 1, 40, 1, false);
+        assertTrue(waiting.contains("Needs 1 more player"), waiting);
+        new com.google.gson.JsonParser().parse(waiting);
+        // its own players: no button, nothing to click
+        String in = Events.announcement(EventGame.Kind.BRACKETS, "Steve", 20, 2, 40, 0, true);
+        assertTrue(in.contains("You are in!") && !in.contains("[CLICK TO JOIN]") && !in.contains("clickEvent"), in);
+        new com.google.gson.JsonParser().parse(in);
+    }
+
+    @Test
+    void theLinesAreCentred() {
+        String pad = Events.pad("[CLICK TO JOIN]", true);
+        int middle = Events.width(pad, false) + Events.width("[CLICK TO JOIN]", true) / 2;
+        assertTrue(Math.abs(Events.CHAT_WIDTH / 2 - middle) <= 4, "centred: " + middle);
+        assertTrue(Events.width(Events.SEPARATOR, false) <= Events.CHAT_WIDTH, "the line fits the chat");
+    }
+
+    @Test
+    void anEventIsAnnouncedEveryTwentySeconds() {
+        assertEquals(20, Events.ANNOUNCE_EVERY);
+    }
+
+    @Test
+    void theStatusSaysWhenItStarts() {
+        assertEquals("1/40 players, starts in 50s", Events.status(1, 40, 0, 50, 2));
+        assertEquals("3/40 players (2 in a game), starts in 5s", Events.status(3, 40, 2, 5, 2));
+        assertEquals("3/40 players, starting", Events.status(3, 40, 0, 0, 2));
+        assertEquals("3/40 players (2 in a game), starting", Events.status(3, 40, 2, 0, 2),
+                "those in a game leave it when it starts");
+        assertEquals("4/40 players (4 in a game), starting", Events.status(4, 40, 4, 0, 3));
+        assertEquals("1/40 players, needs 1 more player to start", Events.status(1, 40, 0, 0, 2));
+        assertEquals("1/40 players (1 in a game), needs 2 more players to start", Events.status(1, 40, 1, 0, 3));
+    }
+
+    @Test
+    void itStartsAfterTheWaitWithEnoughPlayersInGamesOrNot() {
+        assertFalse(Events.launches(1, 10, 2), "the wait is not over");
+        assertFalse(Events.launches(0, 1, 2), "one player in, two needed");
+        assertTrue(Events.launches(0, 2, 2), "two players in, in a game or not: they leave their games");
+        assertTrue(Events.launches(0, 5, 2));
     }
 }

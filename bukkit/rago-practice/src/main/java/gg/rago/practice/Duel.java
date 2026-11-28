@@ -1,9 +1,13 @@
 package gg.rago.practice;
 
 import gg.rago.game.GameMode;
+import gg.rago.game.RedRoverRotation;
 import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collections;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Random;
 import java.util.Set;
 import java.util.UUID;
 import org.bukkit.Bukkit;
@@ -20,6 +24,11 @@ import org.bukkit.inventory.PlayerInventory;
  * of the round (watching from above); when a whole side is out, the other side gets the point and
  * the next round starts on the arena as built. The first side to the target wins. Each fall or
  * death after a hit is a kill of the one who hit, in the lobby's stats.
+ *
+ * <p>Played as a Red Rover ({@link #asRedRover}), each player is a side of their own and two of them
+ * fight at a time, red (place 0) and blue (place 1): a point is a 1v1 won (or the target of the
+ * duel, for the block placement), and {@link RedRoverTurns} says who fights next. The code of a
+ * duel speaks of the places of the 1v1 ({@link #slotOf}), which are the sides in a duel.
  */
 abstract class Duel extends PracticeGame {
 
@@ -32,10 +41,49 @@ abstract class Duel extends PracticeGame {
     final int[] points = new int[2];
     /** The players out of the current round. */
     final Set<UUID> out = new HashSet<>();
+    /** The turns of a Red Rover, null for a duel of two sides. */
+    RedRoverTurns rover;
 
     Duel(PracticeHost host, GameMode mode, Arena arena, List<List<Player>> teams, int target) {
         super(host, mode, arena, teams);
         this.target = target;
+    }
+
+    /**
+     * This duel played as a Red Rover named so ("Red Rover Block Edit"), its teams split a player a
+     * side ({@link RedRover#alone}): before the game begins.
+     */
+    Duel asRedRover(String name, RedRoverRotation.Settings settings) {
+        rover = new RedRoverTurns(this, name, settings, new Random());
+        return this;
+    }
+
+    /** The place of this player in the fight: their side in a duel; in a Red Rover 0 or 1, -1 for one who waits. */
+    int slotOf(UUID player) {
+        return rover == null ? sideOf(player) : rover.slotOf(player);
+    }
+
+    /** The players of this place in the fight still here (in a Red Rover, its fighter). */
+    List<Player> fighters(int slot) {
+        if (rover == null) {
+            return online(slot);
+        }
+        UUID id = rover.fighter(slot);
+        for (Player player : online()) {
+            if (player.getUniqueId().equals(id)) {
+                return Collections.singletonList(player);
+            }
+        }
+        return Collections.emptyList();
+    }
+
+    /** The name of a place in the messages: its team ("Red"), in a Red Rover its fighter. */
+    String slotName(int slot) {
+        if (rover == null) {
+            return TEAMS[slot];
+        }
+        UUID id = rover.fighter(slot);
+        return id == null ? TEAMS[slot] : nameOf(id);
     }
 
     /** The duel's name in the messages. */
@@ -53,6 +101,10 @@ abstract class Duel extends PracticeGame {
 
     @Override
     void intro(Player player) {
+        if (rover != null) {
+            rover.intro(player);
+            return;
+        }
         int side = sideOf(player.getUniqueId());
         // the name of each player in the colour of their side, above their head and in the tab list
         plugin.lobby().setGameNameTag(player, CHAT[Math.max(0, side)].toString());
@@ -66,6 +118,48 @@ abstract class Duel extends PracticeGame {
     @Override
     void roundReset() {
         out.clear();
+        if (rover != null) {
+            // each 1v1 from 0 - 0
+            Arrays.fill(points, 0);
+            rover.roundStarted();
+        }
+    }
+
+    /** In a Red Rover, the two who fight at their start, in the colour of their place; the others watch. */
+    @Override
+    void placeAtStart(Player player) {
+        if (rover != null) {
+            int slot = rover.slotOf(player.getUniqueId());
+            if (slot < 0) {
+                spectate(player);
+                return;
+            }
+            plugin.lobby().setGameNameTag(player, CHAT[slot].toString());
+        }
+        super.placeAtStart(player);
+    }
+
+    @Override
+    void onFight() {
+        if (rover != null) {
+            rover.onFight();
+        }
+    }
+
+    @Override
+    void onSecond() {
+        if (rover != null) {
+            rover.second(seconds);
+        }
+    }
+
+    @Override
+    void leave(Player player, boolean toLobby) {
+        if (rover != null) {
+            rover.leave(player, toLobby);
+            return;
+        }
+        super.leave(player, toLobby);
     }
 
     @Override
@@ -89,13 +183,14 @@ abstract class Duel extends PracticeGame {
      */
     void out(Player player, boolean fell) {
         UUID id = player.getUniqueId();
-        int side = sideOf(id);
+        int side = slotOf(id);
         if (side < 0 || phase != Phase.PLAYING || out.contains(id)) {
             return;
         }
         UUID by = killerOf(id);
         deathMessage(player, by, fell);
-        if (by != null && counts()) {
+        if (counts()) {
+            // by null: a death nobody gets the kill of (the void, a fall), a death all the same
             plugin.lobby().recordKill(mode.id(), by, id);
         }
         out.add(id);
@@ -107,13 +202,13 @@ abstract class Duel extends PracticeGame {
     }
 
     void deathMessage(Player player, UUID by, boolean fell) {
-        int side = sideOf(player.getUniqueId());
+        int side = Math.max(0, slotOf(player.getUniqueId()));
         String victim = CHAT[side] + player.getDisplayName() + ChatColor.GRAY;
         String text;
         if (by == null) {
             text = victim + (fell ? " fell into the void." : " died.");
         } else {
-            String killer = CHAT[Math.max(0, sideOf(by))] + nameOf(by) + ChatColor.GRAY;
+            String killer = CHAT[Math.max(0, slotOf(by))] + nameOf(by) + ChatColor.GRAY;
             text = victim + (fell ? " was knocked into the void by " : " was killed by ") + killer + ".";
         }
         broadcast(text, null);
@@ -126,7 +221,7 @@ abstract class Duel extends PracticeGame {
 
     /** True while a player of this side is still in the round. */
     boolean alive(int side) {
-        for (Player player : online(side)) {
+        for (Player player : fighters(side)) {
             if (!out.contains(player.getUniqueId())) {
                 return true;
             }
@@ -137,6 +232,10 @@ abstract class Duel extends PracticeGame {
     /** A point for this side: the round is over, the next one starts unless the side reached the target. */
     void point(int side) {
         if (phase != Phase.PLAYING) {
+            return;
+        }
+        if (rover != null) {
+            rover.won(rover.fighter(side));
             return;
         }
         points[side]++;
@@ -152,6 +251,15 @@ abstract class Duel extends PracticeGame {
         } else {
             startRound();
         }
+    }
+
+    /** This side reached the target of the duel: it wins; in a Red Rover, its fighter wins the 1v1. */
+    void wonBy(int side) {
+        if (rover != null) {
+            rover.won(rover.fighter(side));
+            return;
+        }
+        finish(side, null);
     }
 
     /** The sound of a point for this player: their side's point, or the other side's. */
@@ -170,6 +278,9 @@ abstract class Duel extends PracticeGame {
 
     @Override
     String result(int winner) {
+        if (rover != null) {
+            return rover.result();
+        }
         if (winner < 0) {
             return "(" + points[0] + " - " + points[1] + ")";
         }
@@ -178,6 +289,11 @@ abstract class Duel extends PracticeGame {
 
     @Override
     List<String> sidebar(UUID viewer) {
+        if (rover != null) {
+            List<String> lines = rover.sidebar(viewer, pointsIn1v1() ? points : null);
+            extraLines(viewer, lines);
+            return lines;
+        }
         int side = Math.max(0, sideOf(viewer));
         List<String> lines = new ArrayList<>();
         lines.add(cut(mode.name()));
@@ -207,6 +323,11 @@ abstract class Duel extends PracticeGame {
         return String.valueOf(points[side]);
     }
 
+    /** True if the points of a Red Rover's 1v1 are worth showing (the block placement's hits). */
+    boolean pointsIn1v1() {
+        return false;
+    }
+
     /** More lines of the sidebar, after the score (a phase, a timer...). */
     void extraLines(UUID viewer, List<String> lines) {
     }
@@ -220,7 +341,7 @@ abstract class Duel extends PracticeGame {
     void giveKit(Player player) {
         super.giveKit(player);
         if (colouredBlocks()) {
-            recolour(player.getInventory(), WOOL[Math.max(0, sideOf(player.getUniqueId()))]);
+            recolour(player.getInventory(), WOOL[Math.max(0, slotOf(player.getUniqueId()))]);
         }
     }
 

@@ -108,7 +108,8 @@ final class ShopMenu {
             ShopItem item = shown.get(i);
             int slot = ITEM_SLOTS[i];
             if (item == null) {
-                if (holder.category == null) {
+                // a slot of the player's own, empty; in a reduced shop (Fast Bedwars), also an item it does not sell
+                if (holder.category == null && !holder.game.catalog().reduced()) {
                     inventory.setItem(slot, icon(Material.STAINED_GLASS_PANE, RED, ChatColor.RED + "Empty slot!",
                             ChatColor.GRAY + "Set your Quick Buy on Hypixel,", ChatColor.GRAY + "then copy it in the lobby:",
                             ChatColor.GRAY + "/hypixel import"));

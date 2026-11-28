@@ -63,6 +63,10 @@
       "kind": "item",
       "src": "/mc/items/eye_of_ender.png"
     },
+    "FEATHER": {
+      "kind": "item",
+      "src": "/mc/items/feather.png"
+    },
     "FIREBALL": {
       "kind": "item",
       "src": "/mc/items/fireball.png"
@@ -91,6 +95,11 @@
       "kind": "item",
       "src": "/mc/items/ink_sack.png"
     },
+    "IRON_BLOCK": {
+      "kind": "block",
+      "top": "/mc/blocks/iron_block.png",
+      "side": "/mc/blocks/iron_block.png"
+    },
     "IRON_CHESTPLATE": {
       "kind": "item",
       "src": "/mc/items/iron_chestplate.png"
@@ -111,6 +120,10 @@
     "LADDER": {
       "kind": "item",
       "src": "/mc/items/ladder.png"
+    },
+    "LEASH": {
+      "kind": "item",
+      "src": "/mc/items/leash.png"
     },
     "MAGMA_CREAM": {
       "kind": "item",
@@ -169,6 +182,10 @@
       "kind": "item",
       "src": "/mc/items/slime_ball.png"
     },
+    "SNOW_BALL": {
+      "kind": "item",
+      "src": "/mc/items/snow_ball.png"
+    },
     "STICK": {
       "kind": "item",
       "src": "/mc/items/stick.png"
@@ -186,6 +203,16 @@
       "kind": "block",
       "top": "/mc/blocks/wool_colored_white.png",
       "side": "/mc/blocks/wool_colored_white.png"
+    },
+    "WOOL:14": {
+      "kind": "block",
+      "top": "/mc/blocks/wool_colored_red.png",
+      "side": "/mc/blocks/wool_colored_red.png"
+    },
+    "WOOL:4": {
+      "kind": "block",
+      "top": "/mc/blocks/wool_colored_yellow.png",
+      "side": "/mc/blocks/wool_colored_yellow.png"
     },
     "PLAYER_HEAD": {
       "kind": "head",

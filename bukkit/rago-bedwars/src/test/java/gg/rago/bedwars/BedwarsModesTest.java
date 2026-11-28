@@ -169,6 +169,57 @@ class BedwarsModesTest {
         assertEquals("Alice", again.top("rush").name);
     }
 
+    /** The owner's reset of every player's stats (23/11/2026): the records start again, once, a copy kept. */
+    @Test
+    void fastShopRecordsStartAgainOnceAtTheResetOfTheStats(@org.junit.jupiter.api.io.TempDir java.io.File folder) throws Exception {
+        java.util.logging.Logger log = java.util.logging.Logger.getLogger("fastshop-test");
+        java.io.File file = new java.io.File(folder, "fastshop.yml");
+        java.nio.file.Files.write(file.toPath(),
+                "records:\n  rush:\n    00000000-0000-0000-0000-000000000001: 6543\n".getBytes(java.nio.charset.StandardCharsets.UTF_8));
+        FastShopRecords records = new FastShopRecords(file, null, log);
+        records.resetOnce("stats-2026-11");
+        records.load();
+        assertNull(records.top("rush"), "the records start again");
+        FastShopRecords copy = new FastShopRecords(new java.io.File(folder, "fastshop-sauvegarde-stats-2026-11.yml"), null, log);
+        copy.load();
+        assertEquals(Long.valueOf(6543), copy.best("rush", new UUID(0, 1)), "the records before, kept");
+        java.nio.file.Files.write(file.toPath(),
+                "records:\n  rush:\n    00000000-0000-0000-0000-000000000002: 5000\n".getBytes(java.nio.charset.StandardCharsets.UTF_8));
+        FastShopRecords again = new FastShopRecords(file, null, log);
+        again.resetOnce("stats-2026-11");
+        again.load();
+        assertEquals(Long.valueOf(5000), again.best("rush", new UUID(0, 2)), "once: the records made after it stay");
+    }
+
+    @Test
+    void fastShopShowsTheRecordOfItsFirstListInTheMenusOfTheLobby() {
+        FastShopRecords records = new FastShopRecords(new java.io.File("unused"), null, null);
+        UUID alice = new UUID(0, 1);
+        UUID bob = new UUID(0, 2);
+        UUID carl = new UUID(0, 3);
+        UUID dan = new UUID(0, 4);
+        records.record("rush-start", alice, "Alice", 4210);
+        records.record("rush-start", bob, "Bob", 2910);
+        records.record("rush-start", carl, "Carl", 3500);
+        records.record("rush-start", dan, "Dan", 3500);
+        records.record("fireball-fight", alice, "Alice", 1000);
+        gg.rago.lobby.api.ModeRecord rush = records.modeRecord("rush-start", "Rush start", alice, 3);
+        assertEquals("Rush start", rush.name);
+        assertEquals(3, rush.top.size(), "a top 3");
+        assertEquals("Bob", rush.top.get(0).getKey());
+        assertEquals("2.91 s", rush.top.get(0).getValue(), "as the game shows a time");
+        assertEquals("Carl", rush.top.get(1).getKey(), "at equal times, by name");
+        assertEquals("Dan", rush.top.get(2).getKey());
+        assertEquals("4.21 s", rush.best);
+        assertEquals(4, rush.place, "the slowest of four, another list apart");
+        gg.rago.lobby.api.ModeRecord none = records.modeRecord("emeralds", "Emeralds: the late game", null, 3);
+        assertTrue(none.top.isEmpty());
+        assertNull(none.best);
+        assertEquals(0, none.place);
+        assertEquals(0, records.rank("rush-start", UUID.randomUUID()));
+        assertEquals("rush-start", FastShopGame.ORDERS.get(0).id, "each game starts on this list");
+    }
+
     @Test
     void theInvisAttackerHasTheOwnersKit() {
         ShopCatalog shop = ShopCatalog.standard();

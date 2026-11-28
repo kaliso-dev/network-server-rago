@@ -47,14 +47,31 @@ export function watch(page: Page) {
   return { errors, foreign };
 }
 
-/** Scrolls to the end and back, so that every lazy image of the page loads. */
+/**
+ * Scrolls to the end and back, so that every lazy image of the page loads. The page scrolls
+ * smoothly (globals.css): a smooth scroll every 30 ms would never get far, and the checks that
+ * follow would measure the page on its way back up, under the sticky header. So the steps go at
+ * once, and the page is back at its top before the checks.
+ */
 export async function scrollThrough(page: Page) {
   await page.evaluate(async () => {
+    const root = document.documentElement;
+    const behaviour = root.style.scrollBehavior;
+    root.style.scrollBehavior = 'auto';
     const step = window.innerHeight / 2;
     for (let y = 0; y < document.body.scrollHeight; y += step) {
       window.scrollTo(0, y);
       await new Promise((resolve) => setTimeout(resolve, 30));
     }
     window.scrollTo(0, 0);
+    await new Promise((resolve) => requestAnimationFrame(resolve));
+    root.style.scrollBehavior = behaviour;
+  });
+  // what loaded on the way may move the page a little: back to the top until it stays there
+  await page.waitForFunction(() => {
+    if (window.scrollY !== 0) {
+      window.scrollTo({ top: 0, behavior: 'instant' });
+    }
+    return window.scrollY === 0;
   });
 }

@@ -27,8 +27,16 @@ aussi (sans [View]) ; pas dans les events.
 Ceux qui regardent un duel ou un entraînement (`/spectate`, voir le
 [README du lobby](../rago-lobby/README.md)) lisent ses messages et son récap, voient le sidebar du
 joueur qu'ils sont venus voir, ne s'éloignent pas de l'arène et reviennent au lobby à la fin.
+Les joueurs lisent l'arrivée de chacun en rouge et en gras, avec un ding.
+**Le ding** (ta demande du 22/11) : chaque point, manche ou partie gagnés le fait sonner pour ceux
+qui l'ont gagné, le son de l'orbe d'XP (`ORB_PICKUP`). La victoire garde aussi son son de level up.
 Chaque duel, sumo compris, est enregistré : `/replay` le montre à nouveau depuis le lobby, avec
 **[REPLAY]** dans la ligne d'après-partie (voir le [README du lobby](../rago-lobby/README.md)).
+Quatre duels ont leur version classée (plan 3.7, catégorie Ranked de la boussole) : `ranked-sumo`,
+`ranked-boxing`, `ranked-block-fight-1v1` et `ranked-bridge-fight-1v1`. Chacune est jouée par l'hôte
+de son mode de Solo, sur ses zones et ses maps (les rangées des autres modes ne bougent pas), avec
+sa propre file et son propre ELO ; les stats, les kills et le replay de la partie vont à la version
+jouée.
 
 - **Sumo** : sur les maps sumo du serveur (Ponsen, Fort Royale, White Crystal, Space Mine, Sumo,
   dans le dossier des mondes), tirées au hasard à chaque duel ; sans elles, une plateforme ronde.
@@ -45,7 +53,7 @@ Chaque duel, sumo compris, est enregistré : `/replay` le montre à nouveau depu
   suite en partie, sinon pour ses prochains boxings, jusqu'au redémarrage). Avec un nombre, c'est
   toujours la vitesse de vol des builders (`/vitesse` de RagoBuildTools). Les arènes sont copiées
   comme les maps du sumo et ne sont pas dans le dépôt.
-- **KB displace**, comme un vrai top fight de Bed Fight, sur la map KbDisplace du propriétaire
+- **KB displace** (retiré des menus le 23/11, ta demande : il n'est plus ouvert, ses records et ses victoires restent dans les données, hors de `/records` et du mur ; son code reste, débranché. Ce qui suit le décrit tel qu'il était), comme un vrai top fight de Bed Fight, sur la map KbDisplace du propriétaire
   (section `kb-displace` de `config.yml`, copiée une fois au démarrage) : son pont d'un bloc de
   large, rien sur les côtés : l'attaquant part du bloc d'or, le défenseur se tient dans le creux du
   pont, entre ses deux blocs surélevés, 9 blocs devant lui.
@@ -75,7 +83,15 @@ Chaque duel, sumo compris, est enregistré : `/replay` le montre à nouveau depu
   coups : chaque coup donné à l'autre camp vaut un point (le coup ne fait pas de dégâts, seulement
   son recul), et faire tomber un adversaire dans le vide donne 10 points à son camp ; seul celui
   qui est tombé revient tout de suite sur son bloc d'or, avec tout son kit à nouveau (deux stacks
-  de laine), les autres continuent et les blocs restent. Premier à
+  de laine), les autres continuent et les blocs restent. Un bloc cassé tombe par terre, comme
+  au Fireball Fight : la laine de sa couleur, l'end stone, l'échelle, à ramasser par n'importe qui
+  (ta demande du 22/11). **Anti full box** (ton choix du 22/11) : un bloc qui enfermerait
+  complètement un joueur, celui qui le pose ou un autre (ses quatre côtés aux pieds et à la tête,
+  et au-dessus de sa tête), est refusé (« You can't box yourself in! », « You can't box a player
+  in! ») ; le sol ne compte pas. Et comme en Bed Fight (ta demande du 23/11 : on revenait coincé
+  dans des blocs) : les deux blocs où un joueur revient, pieds et tête, sont enlevés juste avant,
+  après une chute comme au début d'un 1v1 du Red Rover. Les deux valent pour le 1v1, le 2v2, le
+  Ranked et le Red Rover Block Placement, le même jeu. Premier à
   `points-pour-gagner.block-fight` (100). Les cœurs disent le score : un joueur a toute sa vie
   tant que l'autre camp n'a aucun point, et plus rien quand il en a 100 (20 PV à 0 coup, 0 PV à
   100 coups, une demi-vie au moins : le score ne tue pas) ; la vie ne remonte pas toute seule.
@@ -163,21 +179,31 @@ donnent la leur à la fin ; l'aim trainer garde la sienne.
 score du joueur et sa place sur chaque record (une variante, une vitesse du bot du block edit, ou
 un parcours du timed bridge),
 et le résumé : combien de records, de premières places et de places dans un top 10. Un
-entraînement ouvre ses records, chacun avec son top 10, la place du joueur (sous le top quand il
-est plus loin) et sa place parmi ses amis (`/friend`). Un clic sur un record le joue : dans cet
+entraînement ouvre ses records, chacun avec son top 10 Lifetime, la place du joueur (sous le top
+quand il est plus loin) et sa place parmi ses amis (`/friend`), puis le top 3 de la semaine
+(« This week », et le joueur sous lui quand il est plus loin) et le meilleur de chacune des cinq
+semaines d'avant qui en a un (« Last week », « 2 weeks ago »…). Un clic sur un record le joue : dans cet
 entraînement, il y passe et recommence ; depuis le lobby ou un autre entraînement, le lobby y
 emmène et l'entraînement commence dessus. `/records <joueur>` montre ceux d'un autre.
 
+**Lifetime et Weekly.** Les records sont Lifetime : jamais vidés (sauf une remise à zéro
+demandée, comme celle du Block in), c'est eux que montrent d'abord `/records`, le mur et le
+scoreboard des entraînements. Chaque score compte aussi pour la semaine, du lundi au dimanche,
+heure de Paris (`weekly.2026w47.clutch.island` dans `records.yml`). Une semaine est gardée et
+montrée encore cinq semaines après la sienne, au moins un mois, puis retirée du fichier ; les
+records Lifetime restent. Pas de records Daily pour l'instant (le défi du jour garde son top du
+jour).
+
 **Le mur des records.** Au lobby, sur le point `records` (`/lobby point records`,
 `mur-des-records` dans `config.yml`, `""` pour aucun), un tableau comme ceux du lobby montre le
-top 10 d'un record après l'autre (ceux qui ont au moins un score), toutes les 8 secondes, avec la
-place de celui qui regarde et le défi du jour. Un clic gauche passe au record suivant (gardé
+top 10 Lifetime d'un record après l'autre (ceux qui ont au moins un score), toutes les 8 secondes,
+avec le meilleur de la semaine (« This week »), la place de celui qui regarde et le défi du jour. Un clic gauche passe au record suivant (gardé
 20 secondes, le temps de le lire), un clic droit ouvre `/records`.
 
 **Le défi du jour (`/challenge`).** Chaque jour (heure de Paris), un entraînement pour tout le
 serveur, le suivant de `defi-du-jour.epreuves` à tour de rôle (le même toute la journée, même après
-un redémarrage) : Block-In côté bois, island clutch, aim trainer, fast defense, ladder, combo bot
-difficile, extend en chaîne... Le meilleur score de chaque joueur du jour fait le classement du
+un redémarrage) : Block-In côté bois, island clutch, aim trainer, fast defense, ladder, extend en
+chaîne... Le meilleur score de chaque joueur du jour fait le classement du
 jour ; à minuit, le 1er, le 2e et le 3e gagnent 750, 500 et 300 XP Network (`xp-podium`), annoncés à
 tout le serveur (même si le serveur était éteint à minuit). Le premier score du jour d'un joueur
 lui donne 100 XP, plus 25 par jour d'affilée où il a joué le défi (7 jours au plus : 250). À
@@ -215,6 +241,11 @@ réglages. Un entraînement de la liste que le serveur ne joue pas est laissé d
   le premier bloc. Le temps ne compte pour le classement que si le joueur s'est enfermé : une fois,
   les quatre côtés à ses pieds et à sa tête fermés, dont au moins un bloc à lui (sinon casser le lit
   au plus vite, sans bloc, serait premier). Sans ça, « Not counted ».
+  Le dernier niveau, **RBW defense** (ta demande du 27/11), se joue sur ta map « Block In Practice
+  RBW » (`block-in.rbw` dans `config.yml` : le monde, le pied `lit` et la tête `tete` du lit rouge,
+  la zone) : la map est copiée une fois à côté de l'île, le lit et sa défense (end stone, verre
+  rouge) sont lus sur la map et remis à chaque essai, l'anneau de verre et les départs tournés vers
+  ce lit. Sans la map, ce niveau se joue sur l'île.
 - **Fast defense** : couvrir son lit le plus vite possible, avec les défenses du propriétaire. La
   défense à construire se montre 3 secondes au premier essai de chaque défense ; les essais
   suivants partent tout de suite, le chrono au premier bloc.
@@ -249,15 +280,19 @@ réglages. Un entraînement de la liste que le serveur ne joue pas est laissé d
   posent qu'entre les deux pads, et un essai a 3 secondes par bloc de distance au plus. La fin dit
   le temps, les blocs posés et les blocs par seconde. Laine et sandstone, sans fin. La distance se
   choisit dans la ligne du mode des réglages, la diagonale et la montée sont deux réglages oui/non.
-  Les douze parcours sont côte à côte dans l'arène, chacun avec son record (`/records` les montre
-  en deux rangées : à plat, puis en montée). Pour en faire un défi du jour : `bridge-chrono.16`,
-  `.32` ou `.64` (droit et à plat) dans `defi-du-jour.epreuves`.
+  Le réglage « Turn » (Block Aim Practice, étape 7) donne un pont avec un virage : vers l'ouest
+  jusqu'à la moitié de la distance, puis à droite (vers le nord) jusqu'au pad vert, à plat ; il
+  enlève la diagonale et la montée, qui l'enlèvent à leur tour (le virage à droite et sa place à
+  mi-chemin sont à confirmer). Les quinze parcours sont côte à côte dans l'arène, à moins de 64
+  blocs du centre, chacun avec son record (`/records` les montre en trois rangées : à plat, en
+  montée, avec un virage). Pour en faire un défi du jour : `bridge-chrono.16`, `.32` ou `.64`
+  (droit et à plat) dans `defi-du-jour.epreuves`.
 - **Ladder practice** : le block-ladder clutch de la map de lavy. Le joueur saute d'une
   plateforme de 4 à 24 blocs et, en tombant, pose une laine sur le pad de pierre et une échelle
   sur son côté, puis tombe dans l'échelle. De haut la chute va vite : l'échelle posée au dernier
   moment arrive au serveur juste après l'atterrissage, alors l'atterrissage est jugé 5 ticks plus
   tard, échelle comprise, au lieu de renvoyer le joueur tout de suite. Série.
-- **Pearl practice** : en boucle sur les maps de Bed Wars, rien à choisir : chaque essai sur la
+- **Pearl practice** (retiré des menus le 23/11, ta demande : il n'est plus ouvert, ses records restent dans les données, hors de `/records` et du mur ; son code reste, débranché. Ce qui suit le décrit tel qu'il était) : en boucle sur les maps de Bed Wars, rien à choisir : chaque essai sur la
   map suivante de `pearl.cartes` (`config.yml`) que le serveur a (son monde dans le dossier des
   mondes, avec le `bedwars.yml` du plugin Bed Wars), à un autre endroit, dans une autre direction.
   De chaque map, le côté d'une équipe est copié une fois : sa base, ses îles aux diamants et le
@@ -277,7 +312,7 @@ réglages. Un entraînement de la liste que le serveur ne joue pas est laissé d
   sinon le serveur donne son chunk vide et les blocs se perdent. Chaque tour de la boucle passe par
   toutes les maps dans un nouvel ordre, jamais deux fois la même à la suite : une map ne revient pas
   toujours avec le même genre de situation. Sans aucune des maps, des îles simples du plugin.
-- **Fireball practice** : en boucle comme le pearl practice, sur les mêmes maps (`pearl.cartes`,
+- **Fireball practice** (retiré des menus le 23/11, ta demande : il n'est plus ouvert, ses records restent dans les données, hors de `/records` et du mur ; son code reste, débranché. Ce qui suit le décrit tel qu'il était) : en boucle comme le pearl practice, sur les mêmes maps (`pearl.cartes`,
   la même partie copiée), rien à choisir : chaque essai sur une autre map, à un autre endroit, dans
   une autre direction. Les situations viennent des ponts entre les îles (`MapFinder`), celles d'une
   vraie partie : le pont du joueur vers une île est cassé (7 à 9 blocs de vide), un fireball jump
@@ -305,6 +340,30 @@ réglages. Un entraînement de la liste que le serveur ne joue pas est laissé d
   les touches, la précision et le tir le plus long. Réglages : la vitesse des bots (2,6 à 5 blocs
   par seconde) et combien viennent à la fois (1 à 3). Sans le monde, des plateformes aux mêmes
   endroits.
+- **Hypixel Bow Practice** (`bow-practice`, ta demande du 27/11) : sur ta map BowPractice
+  (`bow-practice` dans `config.yml` : le monde, le centre, la zone, et pour chaque niveau le départ
+  du joueur et le premier et le dernier bloc du pont). Un zombie avance sur un pont de laine
+  au-dessus du vide ; la première flèche le fait tomber (elle ne compte pas), puis il faut le
+  toucher 2 fois en l'air avant qu'il meure dans le vide : une victoire. Il gagne s'il arrive au
+  bout de son pont, ou s'il meurt sans ses deux touches. Arc Infinity et Power IV ; le joueur reste
+  dans un carré de 5 sur 5 autour de son départ. Trois niveaux (les teintures) : Level 1 un pont
+  droit, Level 2 un pont en diagonale, Level 3 un pont en hauteur. Un nouveau zombie aussitôt,
+  avec le son d'une victoire ou d'une défaite ; le score est la série de victoires. Sans la map,
+  trois plateformes du plugin.
+- **Block Pattern Practice** (`block-pattern-practice`, ta demande du 27/11) : les techniques de ta
+  vidéo Block Method, un niveau chacune (les teintures), les dix premières pour commencer
+  (`BlockPatterns`) : #1 Block in front, #2 Pillar, #3 Hook, #4 T, #5 Arch, #6 Roof, #7 Door,
+  #8 Far hook, #9 Window, #10 Tunnel. Sur une île du plugin, RagoBot (un bot d'entraînement avec ta
+  tête, déplacé avec la physique d'un joueur par `PatternBot`) attend un peu puis court vers le
+  joueur par le chemin de la technique : il saute un bloc qui a de la place au-dessus, contourne un
+  mur qu'il ne peut pas sauter, et casse ce qui ferme le tunnel du #10. Le joueur pose les blocs de
+  la technique (de la poussière bleue les montre tant qu'ils manquent ; laine bleu clair, épée en
+  pierre, cisailles), puis touche RagoBot en premier : réussi, le temps va sur le tableau de la
+  technique. RagoBot touche le joueur en premier (seulement ce qu'il voit, à 3 blocs), le temps
+  passe (15 secondes) ou le joueur tombe : la même technique recommence. Réglages : « Next technique
+  on success » (activé : la technique suivante vient seule après une réussite) et « Show the
+  pattern » (la poussière). Les formes et les chemins sont lus dans la vidéo, à régler avec toi en
+  jeu.
 - **Aim trainer** : une cible de la taille d'un joueur qui strafe, saute ou tourne autour ; 30
   secondes, les coups qui touchent et la précision. Chaque seconde où le viseur reste sur la
   cible (12 ticks sur 20) ou la touche donne de l'XP, avec un son qui monte avec la série (et un
@@ -312,7 +371,36 @@ réglages. Un entraînement de la liste que le serveur ne joue pas est laissé d
   barre d'XP montre l'XP de l'essai, la barre le temps qui reste. À la fin, le joueur reçoit
   cette XP en XP Network, plus 1 pour 10 coups (`aim-trainer` dans `config.yml`), et voit le top 5
   de la variante. `/aimtop [strafe|jump|circle]` montre le top de partout.
-- **Combo bot** : une IA qui se bat comme un joueur 1.8 (`ComboAi`), sans dégâts ; le plus long
+- **Find your sensitivity** (étape 7) : **retiré des menus** (ta demande du 22/11, 19h51 : « Find
+  your sensivity supprime ») : RagoPractice ne l'ouvre plus, sa rangée de zones reste réservée et
+  son code reste dans le dépôt, débranché. Ce qu'il faisait (le protocole de la proposition) : le joueur donne la
+  sensibilité de ses options (Options > Controls > Mouse Settings) avec le comparateur (pas de 1
+  ou de 10, 100 % par défaut comme dans le jeu), puis joue la même série à cette sensibilité et à
+  deux autres autour : une qui tourne 20 % moins vite et une 20 % plus vite, sur la courbe du
+  client 1.8.9 (100 % donne 88 % et 110 %). Une série : 12 flicks de 35 à 120° de part et d'autre
+  du viseur et 4 demi-tours (une cible derrière), chacun fini par un clic sur la cible (3 secondes
+  au plus), puis 20 secondes à suivre une cible qui strafe comme celle de l'aim trainer. Le
+  joueur reste sur son bloc (des barrières autour), donc chaque cible est aussi loin (6 blocs).
+  À la fin : chaque série (temps jusqu'à la cible, dépassements, arrêts avant la cible,
+  corrections, suivi), la plus précise (le meilleur total des rangs sur ces quatre mesures), le
+  sens à prendre (plus de dépassements : plus bas ; plus d'arrêts avant : plus haut), et que cela
+  ne vaut que pour cette souris à son DPI, le ping pouvant le décaler. Rien n'est gardé : ni
+  record, ni historique. Toutes ces valeurs sont des valeurs de départ, à confirmer.
+- **Block aim** (`block-aim`, plan 6.4, le placement sur cible de la proposition de l'étape 7) :
+  une île de 4 sur 3 avec un lit au milieu et un pont de laine de 3 blocs qui en sort. Une face
+  s'allume (de la poussière verte dessus) : sous les pieds au bout du pont (il faut s'avancer au
+  bord, shift tenu), sur le côté du pont, ou sur le lit à couvrir (dessus, ses côtés, ses bouts ;
+  shift tenu pour poser contre le lit, comme sur Hypixel). Le joueur y pose un bloc le plus vite
+  possible ; le bloc part aussitôt et la face suivante s'allume, à 4,5 blocs au plus de la
+  précédente, jamais la même. Comme les hauteurs de Ladder practice, 5 niveaux de plus en plus
+  rapides (3 s, 2,5 s, 2 s, 1,5 s puis 1 s par cible), chacun son record : chaque cible posée à
+  temps ajoute un à la série, une cible pas posée à temps ou une chute la finit. La première cible
+  d'un essai attend : elle lance la série quand le joueur est prêt. Le temps moyen par cible et les
+  blocs posés ailleurs sont comptés et montrés (un bloc posé ailleurs part aussi, il ne finit pas
+  la série). Toutes ces valeurs sont des valeurs de départ, à confirmer.
+- **Combo bot** (retiré des menus le 22/11, ta demande « le combo bot on le supprime » : il n'est plus
+  ouvert, ses records restent dans les données, hors de `/records` et du mur ; son combat, `ComboAi`,
+  servira à RagoBot. Ce qui suit décrit l'entraînement tel qu'il était) : une IA qui se bat comme un joueur 1.8 (`ComboAi`), sans dégâts ; le plus long
   combo. Elle sprinte vers le joueur, strafe une fois proche, clique à son CPS avec sa précision et
   sa reach (mesurée jusqu'à la hitbox), et ses coups poussent comme ceux d'un joueur (un coup en
   sprint pousse plus loin). Après un coup elle peut w-tap, touchée au sol elle peut jump reset, et
@@ -323,12 +411,12 @@ réglages. Un entraînement de la liste que le serveur ne joue pas est laissé d
   déplace chaque tick avec la physique d'un joueur. Le scoreboard compte aussi les coups de chacun
   et le plus long combo du bot. Sur les arènes du boxing : le joueur sur le premier bloc de
   diamant, le bot 8 blocs devant lui.
-- **KB displace contre un bot** : le même pont (celui de la map KbDisplace quand le serveur l'a),
+- **KB displace contre un bot** (retiré des menus le 23/11, ta demande : il n'est plus ouvert, ses records restent dans les données, hors de `/records` et du mur ; son code reste, débranché. Ce qui suit le décrit tel qu'il était) : le même pont (celui de la map KbDisplace quand le serveur l'a),
   le joueur sur le bloc d'or, le bot à la place du défenseur, dans le creux. Après chaque coup
   on revient tout de suite au départ, pour reprendre de l'élan, jusqu'à ce que le bot tombe ; seul
   un coup depuis le pont, de face, compte, et son recul part dans l'axe du pont : seul le coup de
   tête envoie le bot sur le côté. Le score est le temps, et le scoreboard compte les essais.
-- **Block edit**, comme sur la map Block Edit Practice du propriétaire : une cage de verre, un mur
+- **Block edit**, comme sur la map Block Edit Practice du propriétaire : une cage de blocs barrière (invisibles ; de verre jusqu'au 27/11, demande du propriétaire), un mur
   de laine rouge de 5 sur 3, et derrière, un bot dans une petite pièce en bois. Casser un bloc du
   mur, frapper le bot par le trou, remettre le bloc avant qu'il ne frappe. Le bot frappe comme un
   joueur, à 3 blocs, une fois qu'il a vu le trou pendant son temps de réaction ; la hotbar règle
@@ -401,28 +489,144 @@ l'autre (un son de victoire pour qui gagne la manche, un autre pour qui la perd)
 `bridge-fight-2v2` est le même en 2v2 (avec la même épée en bois) : chaque équipe côte à côte sur son carré, le point quand
 toute l'équipe d'en face est tombée ou morte.
 
+## FUN PRACTICE (plan 6.1)
+
+Trois modes dans la catégorie FUN PRACTICE du lobby (son PNJ Fun Practice, sur un bloc de quartz,
+au point `prive` où était le PNJ Private game : ta demande du 22/11) : le Fireball Fight à trois,
+chacun pour soi, le Snowball Spleef et le Parkour Duel en 1v1. Aucun dégât dans les trois. Au
+Snowball Spleef, le premier qui tombe donne le point à l'autre, comme au sumo ; au Fireball Fight,
+le dernier sur la plateforme gagne la manche ; au Parkour Duel, une chute ramène au dernier
+checkpoint. Les valeurs de départ ci-dessous sont **à régler avec le propriétaire**.
+
+- **Fireball Fight** (`fireball-knockback`, pas le Fireball fight des duels avec ses lits) : trois
+  joueurs en même temps, chacun pour soi (rouge, bleu, vert ; une party de trois ou trois joueurs
+  de la file), sur une grande plateforme ronde de quartz au-dessus du vide (`rayon` 20, 10 avant
+  ta demande du 22/11 « agrandi beaucoup la plateforme » : à confirmer), chacun à mi-chemin du
+  bord, à un tiers de tour des autres, tourné vers le milieu. Des fireballs (clic droit, une toutes
+  les demi-secondes ; `fireballs` 0 : autant qu'on veut, la pile reste pleine) qui poussent les
+  autres plus fort qu'en Bed Wars (`recul-horizontal` 1,5 et `recul-vertical` 1,2 fois), le saut
+  sur sa propre fireball restant celui de Bed Wars. Le **double saut** dès le départ (sauter deux
+  fois en l'air, à la place de la plume) : le saut de la plume du lobby, une fois toutes les
+  `souffle-secondes` (3), la barre d'expérience montrant quand il revient. De la laine de sa
+  couleur qui ne s'épuise jamais ; chaque bloc posé se fissure et part au bout de
+  `blocs-secondes` (3, « despawn très vite » : à confirmer). Aucune frappe : ni poussée, ni dégât.
+  Les maps du propriétaire pourront aller dans `fireball-knockback.cartes` (comme celles du sumo,
+  avec un départ pour chacun des trois) ; sans map, la plateforme du plugin.
+- **Snowball Spleef** (`snowball-spleef`) : deux sols de neige au-dessus du vide, l'un sous
+  l'autre (`etages` 2, `ecart-etages` 9 blocs entre eux, 6 avant ta demande du 22/11 à 19h55 ;
+  `rayon` 18, à confirmer : ton choix du 22/11, « agrandi la map, fait 2 étages »), une pelle en
+  diamant Efficacité V qui casse la neige d'un coup, et `boules-par-bloc` (1) boule de neige par
+  bloc cassé. Une boule casse toujours le bloc de neige où elle tombe (ta demande du 23/11, « 100%
+  du temps ») : le serveur suit son chemin bloc par bloc, même un coin ou une arête qu'elle frôle
+  (avant, il regardait tous les dixièmes de bloc et pouvait passer à côté d'un coin). Sous les deux
+  étages, un troisième plus étroit et plus proche (ta demande du 23/11, « plus petit (étroit) et
+  moins bas (4-5 blocks) ») : `etage-etroit-ecart` 5 blocs sous le deuxième, `etage-etroit-rayon`
+  9 (la moitié des autres, à confirmer ; 0 pour ne pas l'avoir) ; le départ de chacun, à 9 blocs du
+  milieu, est au-dessus de son bord. Pas de coups à la main ; une boule qui
+  touche un joueur le pousse comme dans Minecraft, sans dégât, et ne casse pas de neige là.
+  Personne ne casse la neige d'un étage au-dessus de lui (ni à la pelle, ni avec une boule) ; à
+  9 blocs, l'étage du haut est de toute façon hors de portée depuis celui du bas (en 1.8, la
+  portée est de 4,5 blocs depuis les yeux, à 1,62 au-dessus des pieds, 1,25 de plus en haut d'un
+  saut : jusqu'à 8,37 blocs au-dessus du sol du bas). Tomber sous le dernier étage fait perdre la
+  manche (le troisième, étroit, est le dernier) ; les étages sont remis à neuf à chaque manche.
+- **Parkour Duel** (`parkour-duel`, ton choix du 22/11, « dans une map stylée ») : une course sur un
+  parcours du plugin (`ParkourCourse`), le même pour les deux, chacun sur sa piste (rouge et bleue,
+  côte à côte, 10 blocs l'une de l'autre). Cinq sections à thème : des piliers de quartz, un
+  escalier de verre bleu clair qui monte, un zigzag de prismarine et un saut de trois blocs au
+  bout, des lanternes aquatiques qui descendent et remontent, une ligne d'or jusqu'à l'arrivée
+  (de l'or, un bloc de diamant au milieu, sous une arche d'or et de glowstone). Quatre checkpoints
+  entre les sections (une lanterne sous une plaque d'or, bordée de la couleur de la piste) : une
+  chute ramène au dernier atteint. Le premier sur l'arrivée gagne la manche. Aucun kit, aucun coup,
+  aucun dégât de chute. Chaque saut a été essayé avec la physique de Minecraft 1.8
+  (prismarine-physics) : trois blocs de vide au plus (deux en montant d'un bloc).
+
+Les trois : `points-pour-gagner` 1 (de 1 à 10). Des réglages faux sont signalés au démarrage, et le
+mode joue alors avec les valeurs de départ.
+
+## Red Rover (plan 6.5, solution 1)
+
+Trois joueurs, une party de trois ou trois joueurs de la file, en 1v1 chacun leur tour ; celui
+qui attend regarde le 1v1 en spectateur. Chaque 1v1 est une manche de son mode, avec une seconde de
+décompte entre deux, et le suivant repart sur la map telle qu'elle a été construite. Les quatre
+modes sont un seul item, **Red Rover**, dans Duels :
+
+- **Red Rover Sumo** (`red-rover-sumo`) : sur la plateforme du sumo (ses maps `sumo.cartes`, ou
+  une plateforme du rayon `sumo.rayon`), recul seul, le premier qui tombe perd le 1v1 ;
+- **Red Rover Block Edit** (`red-rover-block-edit`) : le block edit en duel, au mur de laine ; un
+  edit propre (ouvrir, toucher, refermer avant d'être touché) gagne le 1v1 ;
+- **Red Rover Block Placement** (`red-rover-block-placement`) : le block placement en duel, sur ses
+  maps `block-fight.cartes` (ou les deux plateformes du plugin) ; un coup +1, une chute dans le
+  vide +10, le premier à `points-par-1v1-block-placement` (10) gagne le 1v1 ;
+- **Red Rover Top Bridge** (`red-rover-top-bridge`), joué par RagoBedwars (voir son README) : sur
+  le top bridge des maps de Top Bridge, des manches d'une vie, le premier à
+  `points-par-1v1-top-bridge` manches (1) gagne le 1v1.
+
+À la fin de la partie, tous lisent le **top 3** (ta demande du 22/11) : « 1st - Alice - 3 1v1 won »,
+puis 2nd et 3rd, colorés comme les meilleurs tueurs de la fin d'une partie de Bed Wars. Le gagnant
+de la partie est premier ; puis le classement va aux 1v1 gagnés ; à égalité, un joueur encore là
+passe avant un joueur sorti, le dernier sorti avant ceux sortis plus tôt, sinon l'ordre du début
+(`RedRoverRotation.top`, le même pour les quatre Red Rovers).
+
+Block Edit et Block Placement sont les duels `BlockEditDuel` et `BlockFight` joués en Red Rover
+(`Duel.asRedRover`) : chaque joueur est un camp à lui, les deux qui se battent ont une place dans le
+1v1 (rouge, bleu), et `RedRoverTurns` tient les tours pour les trois modes du practice. Qui
+affronte qui (`RedRoverRotation`) et les réglages sont dans `rago-game-model`, partagés avec
+RagoBedwars. Les kits sont ceux du block edit, du block placement 1v1 et de Top Bridge 1v1, comme
+chaque joueur les a rangés (`kit-de:` dans le lobby). Les réglages, dans `red-rover:`, valent pour
+les quatre (RagoBedwars les lit dans ce config.yml) et sont des valeurs de départ **à régler avec
+le propriétaire** :
+
+- `variante` : `points` (le premier à `points-pour-gagner` 1v1 gagnés, 3, gagne la partie) ou
+  `elimination` (le perdant d'un 1v1 est éliminé, le dernier en jeu gagne) ;
+- `reste` (aux points) : qui reste pour le 1v1 suivant, `gagnant` ou `perdant` ; il affronte
+  celui qui attendait, l'autre attend à son tour ;
+- `secondes-par-1v1` (90, comme les events ; 0 : sans limite) : au bout de ce temps, celui qui a
+  porté le plus de coups gagne le 1v1 ;
+- `points-par-1v1-block-placement` (10, de 1 à 500 ; le duel se joue à 100) : les points qui
+  gagnent un 1v1 de Red Rover Block Placement (choisi par le propriétaire) ;
+- `points-par-1v1-top-bridge` (1, de 1 à 5 ; Top Bridge se joue à 5) : les manches d'une vie qui
+  gagnent un 1v1 de Red Rover Top Bridge (choisi par le propriétaire).
+
+Celui qui quitte la partie est éliminé (une défaite) ; le dernier en jeu gagne. Si c'était un des
+deux combattants, celui qui attendait entre aussitôt contre l'autre.
+
 ## Les events (/host)
 
 Comme sur Minemen, un joueur PREMIUM (`rago.perk.host`) lance un event pour tout le serveur avec
 `/host` : un menu avec Sumo, Brackets (un tournoi en 1v1 avec épée et armure) et Last Man
 Standing (tout le monde en même temps, le dernier debout gagne), ou directement
-`/host sumo|brackets|lms`. Tout le serveur hors partie est prévenu avec un **[Click to join]**
-(ou `/join`), puis encore à 45, 30, 15 et 5 secondes. Pendant l'attente, les joueurs sont sur la
-plateforme sans kit et sans coups ; ensuite, au Sumo et aux Brackets, un 1v1 à la fois pendant
+`/host sumo|brackets|lms`. Tout le serveur est prévenu dans le chat toutes les 20 secondes
+(demande du propriétaire, 21/11), jusqu'au lancement : un message centré entre deux lignes
+(« SUMO EVENT », « Hosted by … », l'event en une ligne, « Starts in 40s • 3/40 players ») et un
+**[CLICK TO JOIN]** vert ; tout le message lance `/join`. Ses inscrits lisent « You are in! » à la
+place du bouton. S'inscrire ne téléporte pas : le joueur continue sa partie ou son entraînement,
+reste dans son mode Practice et garde son inscription. Au lobby, une poudre rouge prend le
+dernier slot de sa barre (à la place du profil) tant que l'event attend : « Leave the event » le
+désinscrit, et pour l'hôte « Cancel the event » l'annule (`/event leave` et `/event cancel` font
+pareil). Après `attente-secondes`, l'event commence dès
+qu'il a `joueurs-min` inscrits, en partie ou non : les inscrits encore en partie la quittent comme
+avec `/spawn` (un abandon s'ils jouent, avec ses suites habituelles : après une partie classée, la
+file classée leur est fermée `file.abandon-classe-minutes` du lobby), puis tous y vont ensemble. Il attend ses joueurs 10 secondes au plus sur
+la plateforme, puis au Sumo et aux Brackets, un 1v1 à la fois pendant
 que les autres regardent, par manches (un joueur sans adversaire passe), 90 secondes au plus par
 combat (celui qui a touché le plus passe). Le gagnant est annoncé à tout le serveur et gagne
 `xp-gagnant` XP Network, chaque autre joueur `xp-participation`. Un event à la fois, une pause
 entre deux, et un délai pour chaque hôte (le staff n'attend pas). `/event` dit où en est l'event,
-`/event leave` le quitte (comme `/spawn`), `/event cancel` l'annule (son hôte ou le staff).
+`/event leave` le quitte (avant le lancement : l'inscription ; pendant : comme `/spawn`),
+`/event cancel` l'annule, avant ou après le lancement (son hôte ou le staff). Un event d'un
+joueur attend tant qu'il n'a pas assez d'inscrits ; il tombe si son hôte quitte le serveur sans
+autre inscrit.
 Les events se jouent sur les maps du sumo, dans les modes cachés `event-sumo`, `event-brackets` et
 `event-lms` du lobby. Tout se règle dans `evenements:`.
 
 **Les events automatiques.** Quand personne n'en lance, le serveur en lance lui-même, au nom de
 « Rago » : dès qu'il y a `joueurs-lobby` joueurs hors partie (6 par défaut) et qu'aucun event n'a
 eu lieu depuis `minutes` minutes (20), il annonce le suivant de `types` (sumo, brackets, lms, à
-tour de rôle) avec son **[Click to join]**. Le premier qui le rejoint le lance, et il se joue
-comme un event lancé par un joueur ; sans personne pendant l'attente, l'annonce tombe. Un joueur
-PREMIUM peut toujours lancer le sien. Dans `evenements.automatiques` (`actif: false` les coupe ;
+tour de rôle) de la même façon, toutes les 20 secondes avec son **[CLICK TO JOIN]**. Les joueurs
+s'y inscrivent comme à un event lancé par un joueur, et il commence de la même façon à la fin de
+`attente-secondes` ; sans `joueurs-min` inscrits à ce moment, il tombe (sans un mot
+si personne ne s'était inscrit). Tant que personne ne s'y est inscrit, un joueur PREMIUM peut
+lancer le sien à sa place. Dans `evenements.automatiques` (`actif: false` les coupe ;
 sans la section, ils tournent avec ces réglages).
 
 ## Les arènes

@@ -50,6 +50,14 @@ final class ReplayData {
     static final int ENT_GONE = 11;
     static final int CHAT = 12;
     static final int EXPLODE = 13;
+    /**
+     * A sound the server played to the players of the game (its 1.8 name, where, how loud, its
+     * pitch as the 1.8 protocol sends it, 63 for 1.0). A file of before has none: it reads as
+     * before.
+     */
+    static final int SOUND = 14;
+    /** A block a player broke: its sound and its bits, as the players near it saw them. */
+    static final int BREAK = 15;
 
     /** The flags of a player. */
     static final int SNEAK = 0x01;
@@ -467,6 +475,34 @@ final class ReplayData {
             }
         }
 
+        /** A sound at (x, y, z) in 1/32 of a block from the origin; the pitch from 0 to 255. */
+        void sound(String name, int x, int y, int z, float volume, int pitch) {
+            try {
+                out.writeByte(SOUND);
+                out.writeUTF(name.length() > 255 ? name.substring(0, 255) : name);
+                out.writeInt(x);
+                out.writeInt(y);
+                out.writeInt(z);
+                out.writeFloat(volume);
+                out.writeByte(Math.max(0, Math.min(255, pitch)));
+            } catch (IOException e) {
+                throw new UncheckedIOException(e);
+            }
+        }
+
+        /** The block at (x, y, z) from the origin broken: its id and data as id | data << 12. */
+        void broke(int x, int y, int z, int block) {
+            try {
+                out.writeByte(BREAK);
+                out.writeInt(x);
+                out.writeInt(y);
+                out.writeInt(z);
+                out.writeInt(block);
+            } catch (IOException e) {
+                throw new UncheckedIOException(e);
+            }
+        }
+
         /** The body, gzipped: nothing more can be written. */
         byte[] finish() {
             try {
@@ -766,6 +802,16 @@ final class ReplayData {
                     break;
                 case EXPLODE:
                     events.add(new Event(tick, type, in.readInt(), in.readInt(), in.readInt(), 0, 0, 0, 0, null));
+                    break;
+                case SOUND: {
+                    String name = in.readUTF();
+                    // the volume's bits in d (Float.intBitsToFloat), the pitch in e
+                    events.add(new Event(tick, type, in.readInt(), in.readInt(), in.readInt(), Float.floatToIntBits(in.readFloat()),
+                            in.readUnsignedByte(), 0, 0, name));
+                    break;
+                }
+                case BREAK:
+                    events.add(new Event(tick, type, in.readInt(), in.readInt(), in.readInt(), in.readInt(), 0, 0, 0, null));
                     break;
                 default:
                     throw new IOException("unknown record " + type + " at tick " + tick);
