@@ -31,8 +31,14 @@ La catégorie **Duels** (`duels`) : des 1v1 et 2v2 par la file ou par `/duel <jo
 - **Lobby Fight 1v1** (`lobby-fight-1v1`) : dans le lobby d'attente d'Archway FFA avec le kit du Lobby Fight, manches d'une vie, premier à 3 ([[Arènes ouvertes]]).
 - Red Rover : [[Red Rover et 3 Players]].
 
-## Prévu : Block Method 1v1 (pas commencé)
-Un duel contre [[RagoBot]] qui **imite un vrai joueur** (preshot, full box, pose de blocs), tiré de la vidéo « Block Method » d'Abel ; plan validé par Abel le 27/11 (« Oui je suis d'accord ») : d'abord les 10 premières techniques en entraînement (Block Pattern Practice, PR #58, installé le 28/11, [[Entraînements]]), puis Block Method 1v1 dans Duels. **Pas commencé** : questions à Abel sur la condition de victoire, le kit, la map, et l'**anti full box** du Block placement (`FullBox`, impossible d'enfermer un joueur), qui contredit le « full box » demandé pour RagoBot ([[Questions ouvertes]]).
+## Block Method 1v1 (`block-method-1v1`, PR #61, 28/11)
+Tiré de la vidéo « Block Method » d'Abel ; demande d'Abel du 28/11 : « On est contre rago bot mais en beaucoup moins fort, il doit avancé de maniere precise comme un vrai joueur. On gagne pas, c'est du practice mais a chaque fois qu'on tue le bot ca recommence ». Dans Duels, après Bed Fight 1v1 ; hébergé par RagoBedwars (sorte `block-method`, `BlockMethodGame`, une Bed Fight sans fin).
+- **Seul dans la file** : RagoBot vient (`ragobot.seul` du `config.yml` du lobby, niveau `SOLO`, bien moins fort que celui des parties). Pas de victoire : chaque mort (du joueur ou de RagoBot) **recommence la manche**, la map remise comme au début (blocs posés enlevés, lits remis). Ni stats, ni ELO, ni compte de parties ; le tableau de côté montre la map, la manche, les kills et les morts.
+- **Kit** : celui de Bed Fight 1v1, 20 PV, mêmes dégâts (même kit pour RagoBot). En plus : **bâton de blaze** (« Reset », clic droit : la manche recommence, une seconde entre deux) et **carte** (« Maps » : menu des maps, la map jouée en vert ; un clic emmène sur une autre copie). Les deux restent à la place où le joueur les a mis ; on ne peut pas les jeter.
+- **Maps** (de Abel, 28/11) : GodMethod1, GodMethod2, MapV2, MinemenBedFight (`block-method-1v1:` du `config.yml` de RagoBedwars, [[Maps et mondes]]).
+- **RagoBot** avance comme un joueur : pont en marche arrière, accroupi au bord, bloc posé contre le côté du dernier ; il suit l'axe où l'autre est le plus loin, saute les marches, casse ce qui le gêne à la tête ; enfermé dans une **full box**, il creuse du côté opposé au joueur (cisaille pour la laine) ([[RagoBot]]).
+- `/spawn` ramène au lobby ; RagoBot quitte alors le serveur.
+- Pas encore joué en jeu par Abel (28/11). Les 4 « Pattern » solo de la vidéo : en attente d'Abel ([[Questions ouvertes]]).
 
 ## /duel
 `/duel <joueur> [mode]` défie un joueur du lobby ([Accept] / [Deny], une minute, `DuelRequests`) ; le chef d'une party de 2+ qui tape `/duel` sans nom voit les autres parties ([[Party, amis et messages]]). `/duel RagoBot` renvoie vers la party ([[RagoBot]]).

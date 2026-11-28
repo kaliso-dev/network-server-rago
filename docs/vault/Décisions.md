@@ -76,6 +76,7 @@ Les décisions sur Rago Practice, datées, avec les mots de leur auteur quand il
 | 27/11 | Block in RBW : « Niveau » (un niveau de Block in, pas un mode à part) | [[Entraînements]] |
 | 27/11 | Block edit en barrière partout (entraînement, Block edit 1v1, Red Rover Block Edit) : « Oui » | [[Duels]], [[Red Rover et 3 Players]] |
 | 27/11 | Block Method : « Oui je suis d'accord » : d'abord 10 techniques, **Block Pattern Practice** dans Practice, **Block Method 1v1** dans Duels | [[Entraînements]], [[RagoBot]] |
+| 28/11 | Block Method 1v1 (Abel) : contre RagoBot « en beaucoup moins fort » qui avance « comme un vrai joueur » ; « On gagne pas, c'est du practice » : chaque kill recommence la manche, map remise comme au début, bâton de blaze pour recommencer ; 20 PV, dégâts et kit de Bed Fight 1v1 ; ses 4 maps, au choix ; « Bedfight Full Box oui mais rago bot doit pouvoir essayer de s'enfuir de la full box » ; les « Pattern » : oui | [[Duels]], [[RagoBot]] |
 
 ## Abandonné
 - 07/11 : ping simulé au corps à corps (PR #8 fermée) : injouable en jeu.

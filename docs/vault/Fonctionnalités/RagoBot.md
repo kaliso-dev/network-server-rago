@@ -19,11 +19,11 @@ Un **adversaire bot** qu'on invite dans sa party (`ragobot:` du `config.yml` du 
 ## Au lobby
 Depuis le 27/11, un texte flottant présente RagoBot (« /p invite RagoBot · No friends online? RagoBot plays with you, any time. · Every mode, like a real player, 40 ms ping. · Warm up before Ranked, or learn with no pressure. », `textes.ragobot`, point `ragobot`) ([[Lobby]]).
 
-## Block Method (EN COURS)
+## Block Method
 Plan validé par Abel le 27/11 (« Oui je suis d'accord »), d'après sa vidéo « Block Method » (34 techniques numérotées contre un adversaire, [[Sources]]) :
 - **Block Pattern Practice** (Practice) : un niveau par technique, du plus simple au plus dur, les techniques avec lit à la fin ; le bot rejoue le trajet de l'adversaire de la vidéo ; réussi = niveau suivant, raté = le même ; un réglage coupe le passage automatique. **Les 10 premières techniques sont en place** (PR #58, fusionnée et installée le 28/11, pas encore jouée en jeu) ; là, « RagoBot » est un **bot d'entraînement** (zombie avec la tête de qRago, comme le Combo bot, mû par `PatternBot`), **pas ce vrai client RagoBot** ([[Entraînements]]).
-- **Block Method 1v1** (Duels) : RagoBot (le vrai client) imite un vrai joueur (preshot, full box, pose de blocs). **Pas commencé** ; questions à Abel : condition de victoire, kit, map, et la règle anti full box du Block Placement (`FullBox`), qui contredit le « full box » demandé ([[Duels]], [[Questions ouvertes]]).
-- Question ouverte : les 4 « Pattern » solo de la fin de la vidéo ([[Questions ouvertes]]).
+- **Block Method 1v1** (Duels, PR #61, installé le 28/11) : un joueur **seul** dans la file ; RagoBot (le vrai client) vient pour lui, niveau **`SOLO`** (`ragobot.seul` du `config.yml` du lobby : bien moins fort que celui des parties). Il avance comme un joueur : pont en marche arrière, accroupi au bord (touches d'un client accroupi), bloc posé contre le côté du dernier ; il suit l'axe où le joueur est le plus loin, saute les marches, casse un bloc à hauteur de tête, et sort d'une **full box** en creusant du côté opposé au joueur. Pas de victoire : chaque mort recommence la manche ([[Duels]]). Il quitte le serveur quand le joueur revient au lobby. Testé en CI (`block-method-bots.mjs`) et en local sur GodMethod1 et GodMethod2 (28/11).
+- En attente d'Abel : les 4 « Pattern » solo de la fin de la vidéo ([[Questions ouvertes]]).
 
 ## Limites
 Jamais en classé, jamais pour remplir une file, jamais chef de party (le chef qui part passe la main au joueur suivant ; sans autre joueur, la party est dissoute). Une partie avec lui compte dans les stats et l'XP des joueurs, **jamais dans l'ELO** ; lui n'a pas de stats. Il quitte le serveur une fois revenu au lobby sans party (`/p kick RagoBot`). `/duel RagoBot` renvoie vers la party. Il quitte une party tout de suite (pas les 60 s de grâce des joueurs).

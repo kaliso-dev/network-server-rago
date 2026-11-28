@@ -29,8 +29,8 @@ Mode d'emploi (outil ArtifactData, collection `questions`) :
 
 ## Questions pour Abel (28/11, Block Method)
 Pas sur la page (les fils lancés par Abel n'y ont pas accès) : à poser à Abel directement.
-- Les **4 « Pattern » solo** de la fin de la vidéo « Block Method » (après le carton « All the techniques shown can be combined… », sans adversaire), et la séquence finale sans titre : à ajouter à Block Pattern Practice ou non ? ([[Entraînements]], [[RagoBot]])
-- **Block Method 1v1** (pas commencé) : quelle **condition de victoire** ? quel **kit** ? quelle **map** ? Et le « full box » demandé pour RagoBot contredit l'**anti full box** du Block placement (`FullBox`, choix du 22/11 « Interdire de s'enfermer ») : l'autoriser dans ce duel seulement ? ([[Duels]])
+- Les **4 « Pattern » solo** de la fin de la vidéo « Block Method » : Abel a répondu oui le 28/11 (« le joueur doit faire des pattern », dans la simulation de vraie partie contre RagoBot) ; mais les images de la vidéo sont trop rapides et floues pour les recopier bloc par bloc : **demander à Abel de les construire sur une map** (ou de les décrire) pour les recopier à l'identique ([[Duels]], [[Entraînements]])
+- Block Method 1v1 : réponses d'Abel du 28/11 reçues (pas de victoire, la mort recommence, kit de Bed Fight 1v1, ses 4 maps, RagoBot sort d'une full box) ; fait (PR #61) ([[Duels]])
 - Block Pattern Practice (PR #58, installé le 28/11) : les formes des 10 techniques et le trajet du bot sont lus dans la vidéo, **à régler avec Abel en jeu**.
 
 ## Réglée sans passer par la page

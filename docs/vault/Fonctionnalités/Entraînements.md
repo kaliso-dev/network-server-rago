@@ -42,6 +42,6 @@ D'après la vidéo « Block Method » d'Abel (34 techniques avec un adversaire, 
 - Le joueur pose les blocs de la technique (une poussière bleue les montre tant qu'ils manquent), puis **touche RagoBot en premier** : réussite, le temps va sur le tableau de la technique. RagoBot touche en premier (seulement ce qu'il voit, à 3 blocs), temps écoulé ou chute : la même technique à refaire.
 - Réglages : « Next technique on success » (activé : passage automatique à la suivante) et « Show the pattern » (activé).
 - Records : un tableau par technique (temps) ; la liste des entraînements à records passe à 18 ([[Records des entraînements]]).
-Son pendant en duel, Block Method 1v1, n'est **pas commencé** ([[Duels]]).
+Son pendant en duel, **Block Method 1v1** (PR #61, installé le 28/11), est une Bed Fight sans fin contre un RagoBot moins fort ([[Duels]]).
 
 Voir aussi [[Duels]], [[Arènes ouvertes]], [[Code de rago-practice]].

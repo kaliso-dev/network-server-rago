@@ -6,9 +6,9 @@ code: bukkit/rago-bedwars
 ---
 # Code de rago-bedwars
 
-Le plugin **RagoBedwars** (60 classes, ~21 600 lignes) : tout ce qui se joue sur une map de Bed Wars. **Points d'entrée** : `RagoBedwars` (onEnable), `BedwarsHost` (le `MatchHost` de tous les modes, choix de la map et de la copie), `BedwarsGame` (la partie classique, 2 950 lignes), `BedwarsSettings` (`config.yml`), `BedwarsMap` et `MapCommands` (`bedwars.yml`, `/bw`), `Instances` / `Instance` (les copies `bw_<map>_<n>`). Chaque autre jeu a sa classe (`FfaGame`, `InvisGame`, `BedBreakGame`, `CaptureTheFlagGame`…). Fonction : [[Bed Wars]]. README : `bukkit/rago-bedwars/README.md` (808 lignes).
+Le plugin **RagoBedwars** (62 classes, ~22 100 lignes) : tout ce qui se joue sur une map de Bed Wars. **Points d'entrée** : `RagoBedwars` (onEnable), `BedwarsHost` (le `MatchHost` de tous les modes, choix de la map et de la copie), `BedwarsGame` (la partie classique, 2 950 lignes), `BedwarsSettings` (`config.yml`), `BedwarsMap` et `MapCommands` (`bedwars.yml`, `/bw`), `Instances` / `Instance` (les copies `bw_<map>_<n>`). Chaque autre jeu a sa classe (`FfaGame`, `InvisGame`, `BedBreakGame`, `CaptureTheFlagGame`…). Fonction : [[Bed Wars]]. README : `bukkit/rago-bedwars/README.md` (808 lignes).
 
-Packages : `gg.rago.bedwars`. **60 classes, 21649 lignes** (branche de la PR #47, `03beb92`, 28/11 ; `Bedwars2012Game` ajoutée par la PR #54, avec `ShopCatalog.clayForWool` et le lit caché d'une équipe dans `BedwarsGame`). `FastBedwarsGame` (2017 Bedwars) reste, caché des menus depuis le 27/11, pour les bots de la CI. Retour à [[Architecture]].
+Packages : `gg.rago.bedwars`. **62 classes, 22149 lignes** (branche de la PR #47, `3316b1f`, 28/11 ; `BlockMethodGame` et `BlockMethodMenu` ajoutées par la PR #61 (Block Method 1v1), avec la sorte `BLOCK_METHOD` de `BedwarsSettings`, `BedwarsGame.handOver` et `BedwarsHost.moveTo` ; `Bedwars2012Game` ajoutée par la PR #54, avec `ShopCatalog.clayForWool` et le lit caché d'une équipe dans `BedwarsGame`). `FastBedwarsGame` (2017 Bedwars) reste, caché des menus depuis le 27/11, pour les bots de la CI. Retour à [[Architecture]].
 
 ## Les classes
 Description = la première phrase de la javadoc de la classe, **en anglais comme le code** (le code et ses commentaires sont en anglais ; les README sont en français).
@@ -25,6 +25,8 @@ Description = la première phrase de la javadoc de la classe, **en anglais comme
 | `BedwarsMap` | 1049 | A Bed Wars map: a world of the server's world folder, with the points of the game kept in #FILE_NAME inside the world's own folder, placed in game with /bw. |
 | `BedwarsSettings` | 1012 | The settings of config.yml, checked. |
 | `BlockDecay` | 59 | The blocks placed in an open game go after a while, oldest first, so that the map never fills up: what the map had there comes back. |
+| `BlockMethodGame` | 353 | Block Method 1v1 (the owner's ask of 28/11): Bed Fight as a practice, the player alone against a RagoBot much weaker than the one of the parties; nobody wins: each death starts the round again, the map as at the start; the blaze rod starts it again, the map goes on another map of the mode. |
+| `BlockMethodMenu` | 76 | The menu of the maps of Block Method 1v1, from the map of the player's hotbar: one item per map of the mode, the one they play on lit; a click on another goes on there. |
 | `Bridges` | 402 | The bridges a Clutch Scenario game starts with, as a real game has them at 18 minutes: from the base of each team, one to its diamond island and one to mid, and the one it rushed the enemy base by, from mid; one block wi |
 | `CaptureFlags` | 193 | The flags of a Capture the Flag game and its score, without Bukkit: each team has its flag, at its base, carried by an enemy, or dropped where its carrier died (back at its base when one of its team touches it, or after  |
 | `CaptureTheFlagGame` | 591 | Capture the Flag (plan 6.2), in its two kinds, the owner's two of 22/11: « 1. |
@@ -77,6 +79,6 @@ Description = la première phrase de la javadoc de la classe, **en anglais comme
 | `Watchers` | 317 | Those who watch a game without playing it (the lobby's /spectate): in the spectator mode, which the players do not see, flying in the game's world and touching nothing, not even a chest. |
 
 ## Les tests (35 fichiers)
-`AttackDefenseGameTest`, `BedBreakGameTest`, `BedFightGameTest`, `Bedwars2012GameTest`, `BedwarsMapTest`, `BedwarsModesTest`, `BedwarsSettingsTest`, `BridgesTest`, `CaptureFlagsTest`, `CaptureTheFlagGameTest`, `ClutchScenarioGameTest`, `CtfMapsTest`, `DemoMapTest`, `FastBedwarsGameTest`, `InstanceTest`, `InvisGameTest`, `KillLinesTest`, `LineupTest`, `LobbyFightTest`, `MapDrawTest`, `MapLeftoversTest`, `MapStoreTest`, `NpcSpotTest`, `PrivateRulesTest`, `QuickDepositTest`, `RedRoverTopBridgeTest`, `ShopCatalogTest`, `SidebarModeTest`, `SpawnProtectionTest`, `TopBedFightGameTest`, `TopBridgeTest`, `UpgradesTest`, `Utf8ConfigTest`, `UtilitiesTest`, `WatchersTest`
+`AttackDefenseGameTest`, `BedBreakGameTest`, `BedFightGameTest`, `Bedwars2012GameTest`, `BedwarsMapTest`, `BedwarsModesTest`, `BedwarsSettingsTest`, `BlockMethodGameTest`, `BridgesTest`, `CaptureFlagsTest`, `CaptureTheFlagGameTest`, `ClutchScenarioGameTest`, `CtfMapsTest`, `DemoMapTest`, `FastBedwarsGameTest`, `InstanceTest`, `InvisGameTest`, `KillLinesTest`, `LineupTest`, `LobbyFightTest`, `MapDrawTest`, `MapLeftoversTest`, `MapStoreTest`, `NpcSpotTest`, `PrivateRulesTest`, `QuickDepositTest`, `RedRoverTopBridgeTest`, `ShopCatalogTest`, `SidebarModeTest`, `SpawnProtectionTest`, `TopBedFightGameTest`, `TopBridgeTest`, `UpgradesTest`, `Utf8ConfigTest`, `UtilitiesTest`, `WatchersTest`
 
 Lancer : `./gradlew :rago-bedwars:test` ([[Construire et tester]]).

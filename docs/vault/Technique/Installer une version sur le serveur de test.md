@@ -24,10 +24,13 @@ La dernière version en service est dans **`C:\Users\rgabe\Downloads\rago-serveu
 8. Écrire dans le journal du suivi : date et heure (de Paris), commit, ce qui change, la sauvegarde, et **« rien n'est encore joué en jeu »** quand c'est le cas.
 9. Mettre à jour [[État actuel]] et [[Journal]] de ce vault.
 
-## Dernière installation (28/11, vers 11h29, personne connecté)
+## Dernière installation (28/11, vers 16h30, personne connecté)
+Commit `3316b1f` (PR #61) : serveur arrêté par Abel à 15h46 ; sauvegarde `sauvegarde-avant-maj-3316b1f\plugins\` ; jars rago-lobby et rago-bedwars de `3316b1f` ; ajoutés par script (`install_configs_28b.py`, à relancer sans risque) : le mode `block-method-1v1` (avant `block-fight-1v1`) et la section `ragobot.seul` au `config.yml` de RagoLobby, `block-method-1v1:` (maps et sorte) au `config.yml` de RagoBedwars ; mondes GodMethod1, GodMethod2, MapV2 et MinemenBedFight copiés dans `C:\Users\rgabe\Rago\mondes`. Démarrage vérifié : 92 modes, « Mode block-method-1v1 hosted by RagoBedwars », les 4 maps prêtes, aucune erreur (seulement les avertissements déjà connus). Laissé allumé pour l'essai d'Abel. Rien n'est encore joué en jeu.
+
+## Installation d'avant (28/11, vers 11h29, personne connecté)
 Commit `d050af8` (PR #58) : sauvegarde `sauvegarde-avant-maj-d050af8\plugins\` ; jars rago-practice et rago-lobby de `d050af8` ; mode `block-pattern-practice` ajouté par script au `config.yml` de RagoLobby du serveur. Démarrage vérifié : 91 modes dans le lobby, « Mode block-pattern-practice hosted by RagoPractice », zones d'arène de nouveau dans l'ordre d'avant la #56 (`bow-practice` puis `block-pattern-practice` à la fin) ; puis arrêt propre. Pas encore joué en jeu.
 
-## Installation d'avant (28/11, vers 10h33, personne connecté)
+## Installation encore avant (28/11, vers 10h33, personne connecté)
 Commit `03beb92` (PR #55 à #57, fusionnées le matin) : sauvegarde `sauvegarde-avant-maj-03beb92\` (`plugins\` et `mondes-arenes\`) ; jars rago-practice et rago-lobby de `03beb92` copiés (les trois autres inchangés) ; sections ajoutées à la main (RagoPractice : `bow-practice:`, `block-in.rbw:` ; RagoLobby : mode `bow-practice`) ; mondes BowPractice et « Block In Practice RBW » copiés dans `C:\Users\rgabe\Rago\mondes`. Démarrage vérifié : pas d'erreur nouvelle, « Copied for Hypixel Bow Practice … 5923 blocks », « Copied for the RBW level … 1374 blocks », « Game world bw_Bedwars2012_1 ready (map Bedwars2012) », lobby à 90 modes ; puis arrêt propre. Avertissements déjà connus : `titres.familles.clutch-scenario` sans modes 2v2, 3v3, 4v4 ; mode `bridge-fight` fermé (voulu) ([[Bugs et problèmes connus]]). Pas encore joué en jeu.
 
 ## Accès au PC
