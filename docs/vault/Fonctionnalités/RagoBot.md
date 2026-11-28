@@ -1,7 +1,7 @@
 ---
 type: fonctionnalité
 tags: [ragobot, bot, party]
-maj: 2026-11-25
+maj: 2026-11-28
 code: bukkit/rago-lobby (RagoBots, BotBrain, BotBody, BotSettings)
 ---
 # RagoBot
@@ -15,6 +15,15 @@ Un **adversaire bot** qu'on invite dans sa party (`ragobot:` du `config.yml` du 
 - En Block placement et Block edit, il **pose et casse des blocs par les paquets d'un client**, dans les règles : clutch au-dessus du vide, casse le bloc sous un adversaire hors de portée (laine aux cisailles, end stone à la pioche), saute les marches d'un bloc. Au mur du Block edit (proposition validée le 23/11) : casse le bloc à hauteur de tête, frappe par le trou après son temps de réaction, rebouche. Il ne frappe jamais à travers un bloc.
 - **Ping simulé de 40 ms** (`skill.ping`, demande du 23/11 : sans ping il avait le premier coup à chaque fois) : ses coups visent l'endroit où l'autre était 40 ms plus tôt.
 - Un seul niveau (`skill:`) : CPS 11, précision 0,88, portée 3,0, strafe 0,8, w-tap 0,75, jump reset 0,45, réaction 3 ticks, rotation 30, pomme d'or sous 10 de vie (`soin-a`), 6 blocs par seconde, ping 40. **Valeurs à confirmer en jeu.**
+
+## Au lobby
+Depuis le 27/11, un texte flottant présente RagoBot (« /p invite RagoBot · No friends online? RagoBot plays with you, any time. · Every mode, like a real player, 40 ms ping. · Warm up before Ranked, or learn with no pressure. », `textes.ragobot`, point `ragobot`) ([[Lobby]]).
+
+## Block Method
+Plan validé par Abel le 27/11 (« Oui je suis d'accord »), d'après sa vidéo « Block Method » (34 techniques numérotées contre un adversaire, [[Sources]]) :
+- **Block Pattern Practice** (Practice) : un niveau par technique, du plus simple au plus dur, les techniques avec lit à la fin ; le bot rejoue le trajet de l'adversaire de la vidéo ; réussi = niveau suivant, raté = le même ; un réglage coupe le passage automatique. **Les 10 premières techniques sont en place** (PR #58, fusionnée et installée le 28/11, pas encore jouée en jeu) ; là, « RagoBot » est un **bot d'entraînement** (zombie avec la tête de qRago, comme le Combo bot, mû par `PatternBot`), **pas ce vrai client RagoBot** ([[Entraînements]]).
+- **Block Method 1v1** (Duels, PR #61, installé le 28/11) : un joueur **seul** dans la file ; RagoBot (le vrai client) vient pour lui, niveau **`SOLO`** (`ragobot.seul` du `config.yml` du lobby : bien moins fort que celui des parties). Il avance comme un joueur : pont en marche arrière, accroupi au bord (touches d'un client accroupi), bloc posé contre le côté du dernier ; il suit l'axe où le joueur est le plus loin, saute les marches, casse un bloc à hauteur de tête, et sort d'une **full box** en creusant du côté opposé au joueur. Pas de victoire : chaque mort recommence la manche ([[Duels]]). Il quitte le serveur quand le joueur revient au lobby. Testé en CI (`block-method-bots.mjs`) et en local sur GodMethod1 et GodMethod2 (28/11).
+- En attente d'Abel : les 4 « Pattern » solo de la fin de la vidéo ([[Questions ouvertes]]).
 
 ## Limites
 Jamais en classé, jamais pour remplir une file, jamais chef de party (le chef qui part passe la main au joueur suivant ; sans autre joueur, la party est dissoute). Une partie avec lui compte dans les stats et l'XP des joueurs, **jamais dans l'ELO** ; lui n'a pas de stats. Il quitte le serveur une fois revenu au lobby sans party (`/p kick RagoBot`). `/duel RagoBot` renvoie vers la party. Il quitte une party tout de suite (pas les 60 s de grâce des joueurs).

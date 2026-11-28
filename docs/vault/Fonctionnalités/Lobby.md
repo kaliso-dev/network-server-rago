@@ -1,7 +1,7 @@
 ---
 type: fonctionnalité
 tags: [lobby, ragolobby]
-maj: 2026-11-25
+maj: 2026-11-28
 code: bukkit/rago-lobby
 ---
 # Lobby
@@ -27,9 +27,11 @@ Le livre range les modes qui ont un `kit:` comme la boussole (22/11, 19h51) : le
 - Les **points** du lobby sont posés par `/lobby point <nom>` et gardés dans `mondes/lobby/points.yml` ; chaque PNJ de `pnj:` (config.yml) se tient sur un point. Les corps des PNJ sont de faux joueurs envoyés par paquets (PacketEvents), mains vides, skin de leur catégorie (`NpcSkins`, `skins.yml`, signés par MineSkin), sur un **bloc** : andésite polie par défaut, **quartz** sous les 5 PNJ pour jouer, **fer** sous les PNJ de stats, **émeraude** sous le Shop, **diamant** sous le Daily Chest et les produits, **obsidienne** un bloc plus haut sous les personnes.
 - PNJ de modes (ouvrent leur catégorie de la boussole) dont **Ranked** (sur le point du PNJ Fun Practice depuis le 23/11, nom rouge gras comme Arenas, skin `ranked` à confirmer) ; le PNJ **Fun Practice** se pose avec `/lobby point funpractice`.
 - **Stats** (le profil du joueur au-dessus de la tête, [[Statistiques et classements]]), **Shop** (point `newshop`), **quêtes** (point `newquest`, `point-pnj-quetes:`), **Daily Chest** (point `newdailychest`, `point-coffre-du-jour:`), **sélecteur de leaderboard** (point `newleaderboardselector`).
+- **Où regardent les PNJ** : vers le spawn par défaut ; avec `regard: point` (27/11, liste d'Abel, PR #54), dans le sens où leur point a été posé (le regard de celui qui l'a posé). Le **Shop** et les **Leaderboards** l'ont : ils regardent le centre du lobby. Le **coffre du jour** se tourne aussi dans le sens de son point (`DailyChest`).
 - **OUR OTHER PRODUCTS** : PNJ « Rago Client » et « Rago Optimizer » (`type: produit`, points `ragoclient` et `ragooptimizer`, skin de qRago), un clic écrit `rago-optimizer.com` et `discord.gg/ragooptimizer` dans le chat ; derrière eux, les panneaux `rago-client` et `rago-optimizer`.
 - **Personnes** : « [OWNER] qRago » et « [DEV] kaliso_dev » (`type: personne`, points `qrago` et `kalisodev`, skin lu chez Mojang par `skin-joueur:`, pas encore vu en jeu). Les modérateurs jncl et nativ ont été retirés le 22/11.
-- **Salle des remerciements** (point `textremerciement`, `textes:`) : le texte de remerciement en anglais (validé le 22/11 : « Le texte est parfait »), avec qRago et kaliso_dev ; sur les côtés, deux blocs « INFORMATION : » de quatre lignes (23/11, mots « à confirmer »).
+- **Salle des remerciements** (point `textremerciement`, `textes:`) : le texte de remerciement en anglais (validé le 22/11 : « Le texte est parfait »), avec qRago et kaliso_dev ; sur les côtés, deux blocs « INFORMATION : » de quatre lignes. Celui de gauche (`textremerciement`) a un **nouveau texte depuis le 27/11** (liste d'Abel) : « A server to train and have fun with friends. Practice modes found nowhere else, made by us for real game situations, to help you improve. » ; l'autre (`textremerciement2` : Hypixel KB, low ping, Discord) ne change pas.
+- **Texte de RagoBot** (27/11, `textes.ragobot`, sur le point `ragobot`, posé en -3 65 10 sur le serveur de test d'après le `config.yml`) : « /p invite RagoBot · No friends online? RagoBot plays with you, any time. · Every mode, like a real player, 40 ms ping. · Warm up before Ranked, or learn with no pressure. » ([[RagoBot]]).
 - **Podiums** et murs de classement (`classements:`), mur des records des entraînements (point `records`, [[Records des entraînements]]).
 - **Panneaux publicitaires** (`panneaux:`, PR #41) : des images du dossier `plugins/RagoLobby/panneaux/` dessinées sur des murs de cartes (cadres), comme sur Hypixel ; le serveur de test a 46 lignes de `panneaux:`. Testé avec un vrai client 1.8.9 en CI (PR #45).
 - Points prévus sans PNJ relié : `funmod2`, `fpsbenchmark` ([[Plan de sortie publique]]).

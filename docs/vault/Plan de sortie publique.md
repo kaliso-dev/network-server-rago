@@ -1,7 +1,7 @@
 ---
 type: pilotage
 tags: [pilotage, plan, sortie]
-maj: 2026-11-26
+maj: 2026-11-28
 ---
 # Plan de sortie publique
 
@@ -37,7 +37,7 @@ Architecture relevée (voir [[Architecture]]), systèmes partagés à corriger u
 5.1 moins de rouge : TESTÉ EN CI · 5.2 build monumental « RAGO PRACTICE » : BLOQUÉ (proposition du 23/11) · 5.3 blocs sous les PNJ (quartz, fer, émeraude) : TESTÉ EN CI · 5.4 NewQuest, NewShop, NewDailyChest : TESTÉ EN CI · 5.5 Daily Chest animé : TESTÉ EN CI · 5.6A PNJ Rago Client et Rago Optimizer : IMPLÉMENTÉ · 5.6B PNJ qRago et kaliso_dev : TESTÉ EN CI · 5.6C modérateurs : RETIRÉS · 5.7 texte de remerciement : validé, installé · 5.8 skins des PNJ : TESTÉ EN CI · 5.9 boussole Minemen : RETIRÉE (boussole d'avant + 4 catégories en haut). Détail : [[Lobby]], [[Boussole et menus]].
 
 ## Étape 7 : nouveaux modes (proposés avant le code)
-6.1 Fun Practice : Snowball Spleef, Fireball Fight à trois, 2017 Bedwars, Parkour Duel, CTF (deux types) : TESTÉS EN CI par les bots · 6.3 Find Your Sensitivity : fait puis retiré des menus · 6.4 Block Aim et bridge avec virage : IMPLÉMENTÉ · 6.5.1 Red Rover (Sumo, Block Edit, Block Placement, Top Bridge) : TESTÉ EN CI · 6.5.2 Clutch Scenario 1v1 à 1v4 et Bed Fight 1v2 : IMPLÉMENTÉ · 6.5.3 RagoBot : étapes 1 à 3 TESTÉES EN CI, la suite BLOQUÉE · 6.6 catégorie 3 Players : IMPLÉMENTÉ. Détail : [[Fun Practice]], [[Red Rover et 3 Players]], [[RagoBot]].
+6.1 Fun Practice : Snowball Spleef, Fireball Fight à trois, 2017 Bedwars (remplacé dans les menus par 2012 Bedwars le 27/11), Parkour Duel, CTF (deux types) : TESTÉS EN CI par les bots · 6.3 Find Your Sensitivity : fait puis retiré des menus · 6.4 Block Aim et bridge avec virage : IMPLÉMENTÉ · 6.5.1 Red Rover (Sumo, Block Edit, Block Placement, Top Bridge) : TESTÉ EN CI · 6.5.2 Clutch Scenario 1v1 à 1v4 et Bed Fight 1v2 : IMPLÉMENTÉ · 6.5.3 RagoBot : étapes 1 à 3 TESTÉES EN CI, la suite BLOQUÉE · 6.6 catégorie 3 Players : IMPLÉMENTÉ. Détail : [[Fun Practice]], [[Red Rover et 3 Players]], [[RagoBot]].
 
 ## Étape 8 : administration et benchmark
 7.1 Outils Owner (Reach, Scaffold) : TESTÉ EN CI ([[Outils Owner]]) · 7.2 rejoindre une partie en cours (admin) : BLOQUÉ · 7.3 anticheat (Grim proposé) : BLOQUÉ · 7.4 FPS benchmark : BLOQUÉ.
@@ -46,4 +46,4 @@ Architecture relevée (voir [[Architecture]]), systèmes partagés à corriger u
 8.1 hébergeur européen ≤ 30 €/mois et 8.2 site, liens, Netlify, domaine : **mis de côté jusqu'à ce que le serveur soit fini** (Abel, 26/11) · 9 sécurité et tests finaux : À FAIRE. Voir [[Hébergement et production]].
 
 ## Les listes de retours après les essais en jeu
-Depuis le 22/11, la version installée est essayée en jeu (les essais en jeu sont faits par Abel, précisé le 26/11) et une liste datée de retours arrive (22/11 à 16h22, 17h54, 18h22, 19h51 ; 23/11 à 20h54 ; 25/11 à 9h19). Abel a annoncé le 26/11 une nouvelle liste de maps, modes et features à ajouter. Chaque point est codé un par un, les simples d'abord, les gros passent par une proposition. Les points de la liste du 23/11 encore ouverts : RagoBot qui joue sur la map, RagoBot qui pose des blocs, Top Bed Fight 2v2 (sa map) et Attack and Defense (sa vision), tous deux finis par Abel et à recevoir (26/11), build du lobby, fireballs de Minemen (Abel propose en attendant des plugins qui imitent les fireballs d'Hypixel, [[Boules de feu et TNT]]). L'essai en jeu de la version installée le 25/11 n'est pas encore fait (Abel, 26/11).
+Depuis le 22/11, la version installée est essayée en jeu (les essais en jeu sont faits par Abel, précisé le 26/11) et une liste datée de retours arrive (22/11 à 16h22, 17h54, 18h22, 19h51 ; 23/11 à 20h54 ; 25/11 à 9h19). La liste annoncée par Abel le 26/11 est arrivée le **27/11** (lobby et menus, 2012 Bedwars, Block edit en barrière, Hypixel Bow Practice, niveau RBW du Block in, Block Method) : PR #54 à #58 fusionnées et installées le 27-28/11 (Block Pattern Practice par la #58) ; elle n'est pas encore écrite dans `docs/suivi-sortie-publique.md` ([[État actuel]]). Chaque point est codé un par un, les simples d'abord, les gros passent par une proposition. Les points de la liste du 23/11 encore ouverts : RagoBot qui joue sur la map, RagoBot qui pose des blocs, Top Bed Fight 2v2 (sa map) et Attack and Defense (sa vision), tous deux finis par Abel et à recevoir (26/11), build du lobby, fireballs de Minemen (Abel propose en attendant des plugins qui imitent les fireballs d'Hypixel, [[Boules de feu et TNT]]). L'essai en jeu de la version installée le 25/11 n'est pas encore fait (Abel, 26/11).

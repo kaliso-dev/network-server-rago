@@ -1,7 +1,7 @@
 ---
 type: technique
 tags: [maps, mondes, bedwars.yml]
-maj: 2026-11-26
+maj: 2026-11-28
 code: bukkit/rago-bedwars (MapCommands, BedwarsMap, MapStore, Instances), bukkit/rago-practice (MapFinder, MapCopy, MapParts), tools/bedwars-maps, tools/build-tools
 ---
 # Maps et mondes
@@ -15,16 +15,20 @@ code: bukkit/rago-bedwars (MapCommands, BedwarsMap, MapStore, Instances), bukkit
 ## Les maps attendues par les modes
 | Usage | Maps |
 |---|---|
-| Ranked Bedwars, Invis practice, Top Bridge, 2017 Bedwars (20 maps RBW) | Antenna, Aquarium, Archway, Artemis, Boletum, Carapace, Catalyst, Chained, Eastwood, Extinction, Invasion, Katsu, Lectus, Obelisk, Paladin, Planet98, Rise, Stonekeep, Swashbuckle, Treenan (chacune avec sa `hauteur-max` de la file) |
+| Ranked Bedwars, Invis practice, Top Bridge, 2017 Bedwars caché (20 maps RBW) | Antenna, Aquarium, Archway, Artemis, Boletum, Carapace, Catalyst, Chained, Eastwood, Extinction, Invasion, Katsu, Lectus, Obelisk, Paladin, Planet98, Rise, Stonekeep, Swashbuckle, Treenan (chacune avec sa `hauteur-max` de la file) |
 | RBW Sky Rise, Clutch Scenario | SkyRise (`hauteur-min: 63`) ; Clutch Scenario aussi Archway |
 | First Rush | Acropolis, Ambush, Aqil, Cascade, Crogorm, Frosted, Gelato, Lighthouse, Lotus, Nebuc (spawns corrigés sur Nebuc et Gelato le 21/11 ; sur les autres, pas encore posés : à faire par Abel, 26/11) |
 | Bed Break Simulator | Archway, Invasion (escalier et plateforme `bed-break:`) |
 | Attack and Defense | BioHazard (`attaquants:`) |
 | FFA, Lobby Fight, FFA Archway, salle d'attente privée | ArchwayFFA (`salle-attente: {centre: {x: 0.5, z: 0.5}, y: 117, rayon: 11.5}`) ; c'est la seule map qui a une `salle-attente:` (26/11) : à poser par Abel sur chaque map de Bedwars Normal ([[Parties privées]]) |
 | Top Bridge FFA | le top bridge d'Invasion |
+| 2012 Bedwars (27/11) | **Bedwars2012** : la map « Rush » de Dono9999, adaptée (2 bases gardées, mid à émeraudes, 2 îles à diamants ; le lobby en redstone retiré), dans `C:\Users\rgabe\Rago\mondes\Bedwars2012` ; prête au démarrage du 28/11 (« Game world bw_Bedwars2012_1 ready ») ([[Bed Wars]]) |
 | Bed Fight, Top BedFight | map Bed Fight du propriétaire |
+| Block Method 1v1 (28/11) | **GodMethod1**, **GodMethod2**, **MapV2**, **MinemenBedFight** : les 4 maps d'Abel (« Map 1 God method », « Map 2 god Method », « Map 3 v 2 », « eu_minemen_club », dossier « Server Map/Nouvelle Map/Block Method 1v1 » de CapCut), deux îles face à face, chaque spawn sur le bloc de laine seul de sa base, ni forge ni shop (`block-method-1v1:` du `config.yml` de RagoBedwars) |
 | CTF | CtfBridge et CtfCastle (construites par le plugin, à valider) |
-| Practice | BlockClutchNew, BlockClutchExtend, KbDisplace, Block Edit Practice, Bridge Fight Plateform, Arena (l'arène verte), arènes Boxing Minemen 2022 (Cobble, Shy Guy, Redstone, Cave, Fishtank, Goku, Lollipop, Pokemon), sumo (Ponsen, Fort Royale, White Crystal, Space Mine, Sumo), maps de block placement (`block-fight.cartes`), map du ladder de lavy |
+| Practice | BlockClutchNew, BlockClutchExtend, KbDisplace, Block Edit Practice, Bridge Fight Plateform (Bridge fight 1v1 et 2v2 ; le FFA est fermé depuis le 27/11), Arena (l'arène verte), arènes Boxing Minemen 2022 (Cobble, Shy Guy, Redstone, Cave, Fishtank, Goku, Lollipop, Pokemon), sumo (Ponsen, Fort Royale, White Crystal, Space Mine, Sumo), maps de block placement (`block-fight.cartes`), map du ladder de lavy, Ultimate Block-In Practice (Block in) |
+| Hypixel Bow Practice (28/11) | **BowPractice**, la map d'Abel (section `bow-practice`), copiée une fois dans `arenes` : « Copied for Hypixel Bow Practice from the map "BowPractice": 5923 blocks » au démarrage du 28/11 ; les marqueurs de la map (blocs d'or, de diamant, d'émeraude des 3 niveaux) remplacés par laine, herbe, terre et andésite sur le PC d'Abel ([[Entraînements]]) |
+| Block in, niveau RBW defense (28/11) | **Block In Practice RBW**, la map d'Abel (section `block-in.rbw`), copiée une fois à côté de l'île du Block in : « Copied for the RBW level of the block in from the map "Block In Practice RBW": 1374 blocks » au démarrage du 28/11 ([[Entraînements]]) |
 
 Une map absente est sautée (la console le dit). Une map sert à un mode si elle a au moins autant d'équipes complètes (spawn, lit, générateur, shop).
 

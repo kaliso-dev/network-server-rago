@@ -1,7 +1,7 @@
 ---
 type: pilotage
 tags: [pilotage, à-décider, à-vérifier]
-maj: 2026-11-26
+maj: 2026-11-28
 ---
 # Questions ouvertes
 
@@ -27,9 +27,15 @@ Mode d'emploi (outil ArtifactData, collection `questions`) :
 - **q123** (PC du serveur de test) : le PC d'**Abel**, « FULL PC GAMER », profil Windows `rgabe` ; dernière version dans `C:\Users\rgabe\Downloads\rago-serveur-de-test (19)`. Traitement : « Serveur de test sur le PC d'Abel FULL PC GAMER : Serveur de test, État actuel, Installer une version, Reprendre le développement mis à jour (26/11). »
 - **q126** (projet à part ?) : **projet à part**, pas une partie de Rago Client. Traitement : « Rago Practice est un projet à part : Autres projets Rago et Projet mis à jour (26/11). »
 
-## Nouvelles questions préparées le 26/11 (à ajouter sur la page)
-- **q128** : le [[Serveur de test]] tourne-t-il sous **Java 17** (ce que dit le suivi des 21-25/11) ou **Java 25** (ce que dit la description de la PR #10 du 11/11) ? **À VÉRIFIER** : Abel ne sait pas (26/11) ; la réponse est en tête de la fenêtre de `lancer-windows.bat` (ligne « Java: … »).
-- Répondu sans passer par la page (Abel, 26/11) : l'essai en jeu de la version du 25/11 n'est **pas encore fait** ; Top Bed Fight 2v2 et Attack and Defense sont **finis** de son côté, il les envoie, avec des plugins qui imitent les fireballs d'Hypixel ([[État actuel]]).
+## Questions pour Abel (28/11, Block Method)
+Pas sur la page (les fils lancés par Abel n'y ont pas accès) : à poser à Abel directement.
+- Les **4 « Pattern » solo** de la fin de la vidéo « Block Method » : Abel a répondu oui le 28/11 (« le joueur doit faire des pattern », dans la simulation de vraie partie contre RagoBot) ; mais les images de la vidéo sont trop rapides et floues pour les recopier bloc par bloc : **demander à Abel de les construire sur une map** (ou de les décrire) pour les recopier à l'identique ([[Duels]], [[Entraînements]])
+- Block Method 1v1 : réponses d'Abel du 28/11 reçues (pas de victoire, la mort recommence, kit de Bed Fight 1v1, ses 4 maps, RagoBot sort d'une full box) ; fait (PR #61) ([[Duels]])
+- Block Pattern Practice (PR #58, installé le 28/11) : les formes des 10 techniques et le trajet du bot sont lus dans la vidéo, **à régler avec Abel en jeu**.
+
+## Réglée sans passer par la page
+- **q128** (préparée le 26/11, jamais posée) : le [[Serveur de test]] tourne sous **JDK 17.0.21** (OBSERVÉ le 28/11 : le lanceur prend `JAVA_HOME` ; `java` seul = Java 8). Rien à ajouter sur la page.
+- Abel, 26/11 : l'essai en jeu de la version du 25/11 n'était **pas encore fait** (toujours pas au 28/11, avec celles du 27/11 et du 28/11) ; Top Bed Fight 2v2 et Attack and Defense sont **finis** de son côté, il les envoie ([[État actuel]]). Les plugins de fireball qu'il a proposés : avis du 28/11, ne pas les installer ([[Boules de feu et TNT]]).
 ## Dans les propositions envoyées à Sofiene (pas sur la page)
 Ces questions sont dans des documents de proposition ; leurs réponses arrivent dans les fils de travail. Détail : [[Plan de sortie publique]].
 - **Propositions du 23/11** (https://claude.ai/artifact/HbZBGpwTZadVRtzdcsCyPY) : 1. RagoBot qui se déplace sur la map (3 questions) ; 2. RagoBot qui pose des blocs devant l'adversaire puis le combo (3 questions) ; 3. construire le lobby d'après l'image de référence (4 questions) ; 4. fireballs comme sur Minemen, à mesurer (2 questions).
@@ -38,7 +44,7 @@ Ces questions sont dans des documents de proposition ; leurs réponses arrivent 
 - **Étape 7** : document « Étape 7 : propositions des nouveaux modes » (21/11), 13 questions ; une partie a été tranchée le 22/11 ([[Décisions]]), le reste garde des « valeurs à confirmer » ([[Fun Practice]], [[Red Rover et 3 Players]]).
 
 ## Valeurs « à confirmer » en jeu
-Beaucoup de réglages ont été choisis par Claude en attendant l'avis de Sofiene en jeu : rayon et étages du Snowball Spleef, valeurs du Fireball Fight, durée et forges de 2017 Bedwars, captures et durées des CTF, écart de stuff du Bed Fight 1v2, temps de RagoBot (`ragobot.skill`), skin du PNJ Ranked, noms des catégories Fun Practice et 3 Players. Chaque note de mode les liste.
+Beaucoup de réglages ont été choisis par Claude en attendant l'avis de Sofiene en jeu : rayon et étages du Snowball Spleef, valeurs du Fireball Fight, captures et durées des CTF, écart de stuff du Bed Fight 1v2, temps de RagoBot (`ragobot.skill`), skin du PNJ Ranked, noms des catégories Fun Practice et 3 Players. Chaque note de mode les liste.
 
 ## À vérifier (sans question posée)
 - Le skin des PNJ lu chez Mojang (`skin-joueur:`) n'a pas été vu en jeu ([[Lobby]]).

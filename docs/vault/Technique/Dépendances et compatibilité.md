@@ -1,7 +1,7 @@
 ---
 type: technique
 tags: [dépendances, versions, java]
-maj: 2026-11-26
+maj: 2026-11-28
 ---
 # Dépendances et compatibilité
 
@@ -13,7 +13,7 @@ Source : `docs/compatibility.md` (à tenir à jour : toute nouvelle dépendance 
 | Client | Minecraft **1.8.9** (protocole 47), Rago Client ou vanilla (le serveur n'exige jamais Rago Client) |
 | Serveur | **PandaSpigot 1.8.8, build 226** (`git-PandaSpigot-226`), SHA-256 `ac73146b…6359b` vérifié à chaque test, téléchargé sur downloads.hpfxd.com |
 | Bytecode | **Java 8** (`--release 8`) |
-| Java des serveurs | Java 8 et Java 21 (les deux testés en CI) ; sur le serveur de test (PC d'Abel) : Java 17 d'après le suivi, Java 25 d'après la PR #10 : **À VÉRIFIER** ([[Serveur de test]]) |
+| Java des serveurs | Java 8 et Java 21 (les deux testés en CI) ; sur le serveur de test (PC d'Abel) : **JDK 17.0.21** (OBSERVÉ le 28/11, par `JAVA_HOME` ; `java` seul y est Java 8) ([[Serveur de test]]) |
 
 ## Build
 JDK 17+ (CI 21) · Gradle 9.8.2 (wrapper) · Node.js 22 (bots, site) · kb-recorder : Forge 1.8.9-11.15.1.2318, Loom d'Essential 0.10.0.5 (figé), architectury-pack200 0.1.3, MCP `mcp_stable` 22-1.8.9, Gradle 8.8, foojay 0.8.0.

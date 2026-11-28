@@ -1,7 +1,7 @@
 ---
 type: pilotage
 tags: [décisions]
-maj: 2026-11-26
+maj: 2026-11-28
 ---
 # Décisions
 
@@ -66,6 +66,18 @@ Les décisions sur Rago Practice, datées, avec les mots de leur auteur quand il
 | 26/11 | **Fermer sans fusion** la PR #48 (events, teinture rouge : dépassée par #47) et la PR #10 (CI sous Java 25 : ne change pas le jeu) ; demande d'Abel (« Je valide »), conseil du Chef ; **fait le 26/11** | [[Branches et PR]] |
 | 26/11 | Les mises à jour du vault passent par une **petite PR vers `main`** (option A, « Go A ») : le vault n'existe pas sur la branche de la PR #47 | [[Branches et PR]] |
 
+## Liste et réponses d'Abel (27/11)
+| Date | Décision | Note |
+|---|---|---|
+| 27/11 | **Liste d'Abel pour le lobby et les menus** (détail dans la PR #54) : boussole de 5 lignes, tout centré ; le nombre de joueurs en partie sous chaque objet, comme sur Minemen ; Arenas en laine rouge, Block Placement en laine jaune, Sumo une laisse, Top BedFight un bloc de fer ; Practice et Duels dans son ordre (Block clutch en premier) ; **Bridge fight FFA retiré des Arenas** ; le Shop, les Leaderboards et le coffre du jour tournés vers le centre du lobby ; nouveau texte à gauche de la salle des remerciements, texte de RagoBot | [[Boussole et menus]], [[Lobby]] |
+| 27/11 | **2012 Bedwars à la place de 2017 Bedwars** : 4v4 sur sa propre map, lit caché dans la première minute, argile, pas d'améliorations, avec ou sans diamants et émeraudes | [[Bed Wars]], [[Fun Practice]] |
+| 27/11 | Demandes d'Abel : la cage du Block edit en blocs barrière ; un nouvel entraînement Hypixel Bow Practice sur sa map BowPractice ; un niveau RBW dans Block in sur sa map « Block In Practice RBW » (PR #55, #56, #57) | [[Entraînements]] |
+| 27/11 | Bow Practice : « 2 touche » (2 touches en l'air après la flèche qui fait tomber le zombie) ; niveaux : « Teinture oui comme les autres niveaux » | [[Entraînements]] |
+| 27/11 | Block in RBW : « Niveau » (un niveau de Block in, pas un mode à part) | [[Entraînements]] |
+| 27/11 | Block edit en barrière partout (entraînement, Block edit 1v1, Red Rover Block Edit) : « Oui » | [[Duels]], [[Red Rover et 3 Players]] |
+| 27/11 | Block Method : « Oui je suis d'accord » : d'abord 10 techniques, **Block Pattern Practice** dans Practice, **Block Method 1v1** dans Duels | [[Entraînements]], [[RagoBot]] |
+| 28/11 | Block Method 1v1 (Abel) : contre RagoBot « en beaucoup moins fort » qui avance « comme un vrai joueur » ; « On gagne pas, c'est du practice » : chaque kill recommence la manche, map remise comme au début, bâton de blaze pour recommencer ; 20 PV, dégâts et kit de Bed Fight 1v1 ; ses 4 maps, au choix ; « Bedfight Full Box oui mais rago bot doit pouvoir essayer de s'enfuir de la full box » ; les « Pattern » : oui | [[Duels]], [[RagoBot]] |
+
 ## Abandonné
 - 07/11 : ping simulé au corps à corps (PR #8 fermée) : injouable en jeu.
 - 22/11 : PNJ des modérateurs jncl (« directement ») et nativ (« woryes ») au lobby, retirés à la demande de Sofiene ; le rang Mod en jaune clair reste.
@@ -75,3 +87,6 @@ Les décisions sur Rago Practice, datées, avec les mots de leur auteur quand il
 - 23/11 : KB displace (1v1 et contre un bot), Pearl practice, Fireball practice, titre KB Displace retirés des menus (code et records gardés).
 - 23/11 : Private game qui envoie la party au lobby d'attente d'Archway dès le clic : remplacée le 25/11 (la map d'abord, au lobby).
 - 26/11 : CI sous Java 25 (PR #10 fermée sans fusion) : pas utile pour l'instant ; à refaire si l'hébergeur de production tourne sous Java 25. (La PR #48, fermée le même jour, n'abandonne rien : son contenu est dans la #47.)
+- 27/11 : Bridge fight FFA (`bridge-fight`) retiré des Arenas et du `config.yml` du lobby (code et records gardés, le mode reste fermé) : liste d'Abel ; les Bridge fight 1v1 et 2v2 restent.
+- 27/11 : 2017 Bedwars (l'ancien Fast Bedwars) retiré des menus : remplacé par 2012 Bedwars (demande d'Abel) ; gardé caché seulement pour les bots de la CI.
+- 27/11 : la cage de verre du Block edit, remplacée par des blocs barrière (demande d'Abel).

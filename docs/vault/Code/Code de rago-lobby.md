@@ -1,14 +1,14 @@
 ---
 type: code
 tags: [code, rago-lobby]
-maj: 2026-11-25
+maj: 2026-11-28
 code: bukkit/rago-lobby
 ---
 # Code de rago-lobby
 
-Le plugin **RagoLobby**, le plus gros (128 classes, ~42 400 lignes) : spawn et protection, barre d'objets et gadgets, boussole et menus, PNJ et hologrammes (par paquets, PacketEvents), files et matchmaking, parties privées et duels entre parties, stats, classements, niveau, quêtes, Daily Chest, rangs, boutique, styles, nicks, party, amis, staff, replays, spectateurs, import Hypixel, RagoBot, outils Owner. Il publie l'API des plugins de jeu (package `gg.rago.lobby.api` : `LobbyService`, `MatchHost`…). **Points d'entrée** : `RagoLobby` (onEnable, l'implémentation de `LobbyService`), `LobbySettings` (lecture de `config.yml`), `QueueController` (files), `ModeMenu` (boussole), `StatsService` / `StatsBook` (stats et ELO), `ReplayService`. Fonctions : [[Lobby]], [[Boussole et menus]], [[Statistiques et classements]]… README : `bukkit/rago-lobby/README.md` (1 055 lignes).
+Le plugin **RagoLobby**, le plus gros (128 classes, ~43 000 lignes) : spawn et protection, barre d'objets et gadgets, boussole et menus, PNJ et hologrammes (par paquets, PacketEvents), files et matchmaking, parties privées et duels entre parties, stats, classements, niveau, quêtes, Daily Chest, rangs, boutique, styles, nicks, party, amis, staff, replays, spectateurs, import Hypixel, RagoBot, outils Owner. Il publie l'API des plugins de jeu (package `gg.rago.lobby.api` : `LobbyService`, `MatchHost`…). **Points d'entrée** : `RagoLobby` (onEnable, l'implémentation de `LobbyService`), `LobbySettings` (lecture de `config.yml`), `QueueController` (files), `ModeMenu` (boussole), `StatsService` / `StatsBook` (stats et ELO), `ReplayService`. Fonctions : [[Lobby]], [[Boussole et menus]], [[Statistiques et classements]]… README : `bukkit/rago-lobby/README.md` (1 055 lignes).
 
-Packages : `gg.rago.lobby`, `gg.rago.lobby.api`. **128 classes, 42403 lignes** (branche de la PR #47, `ce8edc5`, 25/11). Retour à [[Architecture]].
+Packages : `gg.rago.lobby`, `gg.rago.lobby.api`. **128 classes, 42969 lignes** (branche de la PR #47, `3316b1f`, 28/11). Aucune classe ajoutée depuis le 25/11 ; la PR #61 (Block Method 1v1) a changé `BotBrain` (niveau `SOLO` : pont accroupi au bord, sortie d'une full box), `BotBody` (accroupi), `BotSettings` (section `seul`), `RagoBots` (`joinFor`) et `QueueController` (`joinAgainstBot`) ; la PR #54 (liste d'Abel du 27/11) a changé `ModeMenu` (boussole de 5 lignes, nombre de joueurs en partie sous chaque objet), `QueueController` (`playingAll`, `playingPrivate`), `LobbySettings`, `ModeCategory` et `ModeDisplay` (`icone:` avec une couleur, `regard: point`), `LobbyNpcs` et `DailyChest` (sens du point), `FirstChoice` et `Titles` (2012 Bedwars). Retour à [[Architecture]].
 
 ## Les classes
 Description = la première phrase de la javadoc de la classe, **en anglais comme le code** (le code et ses commentaires sont en anglais ; les README sont en français).
@@ -21,13 +21,13 @@ Description = la première phrase de la javadoc de la classe, **en anglais comme
 | `BoardStat` | 101 | What a leaderboard ranks (config.yml, classements: ... |
 | `Books` | 54 | Opens a written book on a player's screen, as Hypixel does, without giving it: the client is told the book is in their hand, then to open it (MC/BOpen); a tick later it is told the real item again. |
 | `BotBody` | 745 | The body of RagoBot on the server: a player of the server with no client behind it. |
-| `BotBrain` | 1224 | The mind of RagoBot, without Bukkit: each tick it gets what a player sees (Sight) and gives what a player presses (Controls): forward, strafe, jump, sprint, where it looks, its clicks, its hotbar slot, eating. |
+| `BotBrain` | 1521 | The mind of RagoBot, without Bukkit: each tick it gets what a player sees (Sight) and gives what a player presses (Controls): forward, strafe, jump, sprint, where it looks, its clicks, its hotbar slot, eating. |
 | `BotSettings` | 163 | RagoBot as config.yml sets it (ragobot:): a player of the server, invited into a party with /p invite RagoBot, who plays the party's games with it, as a real player, at one fixed skill. |
 | `Brand` | 34 | The look of Rago Practice, the same everywhere (the README of the module, "Les couleurs du serveur"): red, white and grey, the colours of the logo, with red kept for the signature (the owner's ask of 22/11: less red). |
 | `ClickMenu` | 127 | A chest menu whose items each run an action when clicked: the shop, the profile, the friends, the settings. |
 | `Cosmetic` | 165 | A cosmetic of the shop, bought with Rago Points once a player reaches its Network level: a trail behind their projectiles, an effect where their victims die, or an effect around them when they win. |
 | `CosmeticEffects` | 362 | The cosmetics at work in the games: the trail behind a player's projectiles, the effect where their victim dies, the effect around them when they win. |
-| `DailyChest` | 466 | The Daily Chest of the spawn, as on Hypixel: a chest on its point ("daily", /lobby point daily, where the chest goes; point-coffre-du-jour: in config.yml names another one), with lines above it that tell each player whet |
+| `DailyChest` | 482 | The Daily Chest of the spawn, as on Hypixel: a chest on its point ("daily", /lobby point daily, where the chest goes; point-coffre-du-jour: in config.yml names another one), with lines above it that tell each player whet |
 | `DailyRewards` | 369 | What the Daily Chest gives (config.yml, coffre-du-jour:): a list of rewards, each with its rarity, what it gives (Rago Points, Network XP, or a cosmetic of the shop the player does not own yet) and its chance. |
 | `DuelRequests` | 226 | /duel: a player challenges a friend in the lobby to a 1v1 mode, without the queue. |
 | `EloLadder` | 138 | The ELO of the ranked modes, as on the Ranked Bedwars servers (config.yml, elo:): everyone starts at 0, and every 100 ELO is a division (Coal, Iron, Gold...). |
@@ -57,20 +57,20 @@ Description = la première phrase de la javadoc de la classe, **en anglais comme
 | `LobbyGadgets` | 875 | The toys of the lobby hotbar. |
 | `LobbyListener` | 389 | The lobby rules. |
 | `LobbyNpc` | 301 | What stands on a lobby point (config.yml, pnj: and classements:): a mode NPC that opens its modes or a whole category, a stats NPC that shows each player their own stats, the Shop, the leaderboard selector, a person of t |
-| `LobbyNpcs` | 463 | The NPCs and leaderboards of the lobby, standing on the /lobby points named in config.yml. |
+| `LobbyNpcs` | 467 | The NPCs and leaderboards of the lobby, standing on the /lobby points named in config.yml. |
 | `LobbyPoints` | 88 | Named spots of the lobby, placed with /lobby point while the map is built and kept in points.yml: where the mode NPCs, the leaderboards and the other decorations will stand once they exist. |
 | `LobbyScoreboard` | 741 | The lobby sidebar: players online, the player's Network level and rank, the queue one waits in and for how long. |
 | `LobbyService` (api) | 384 | The lobby as the game plugins see it, from Bukkit's services manager: getServer().getServicesManager().load(LobbyService.class). |
-| `LobbySettings` | 1429 | The lobby's config.yml, read and checked once. |
+| `LobbySettings` | 1489 | The lobby's config.yml, read and checked once. |
 | `LobbyState` | 227 | Where each player is, for the lobby: the lobby world and its spawn, who belongs to a game (which mode, against whom), and who is building in the lobby. |
 | `LobbyText` | 79 | A text of the lobby as config.yml gives it (textes:): lines floating above its point, the same for everyone, as a hologram (FakeHologram); a click does nothing. |
 | `LobbyWelcome` | 191 | The welcome of the lobby, so that a player sees at once what they can do here: at each arrival, the name and the slogan of the server, then the ways to play in the chat, one line per category of the compass (its name and |
 | `MapArt` | 173 | An image drawn on the maps of a billboard (FakeBillboard): brought to columns x rows maps of 128 x 128 pixels, whole and centred (black around it when its shape is not the board's), in the colours a 1.8 client draws on a |
 | `MatchHost` (api) | 130 | What a game plugin gives the lobby for each mode it plays. |
 | `MineSkin` | 187 | Signs a skin through MineSkin (api.mineskin.org, v2): the PNG goes up, a Minecraft account of theirs wears it, and Mojang's signed textures come back, the only ones a 1.8 client shows on an NPC. |
-| `ModeCategory` | 89 | A category of the selector, matching a zone of the lobby; or a group of a category (groupes: in config.yml), the sizes of one game shown as one item. |
-| `ModeDisplay` | 107 | A mode of the catalogue with how the selector shows it. |
-| `ModeMenu` | 1051 | The mode selector, a chest menu. |
+| `ModeCategory` | 101 | A category of the selector, matching a zone of the lobby; or a group of a category (groupes: in config.yml), the sizes of one game shown as one item. |
+| `ModeDisplay` | 119 | A mode of the catalogue with how the selector shows it. |
+| `ModeMenu` | 1071 | The mode selector, a chest menu. |
 | `ModeRecord` (api) | 30 | The record of a mode with records (a training), as the menus of the lobby show it under the mode in the place of its Daily Streak (LobbyService#setModeRecords): what the record is, its best players and the viewer's best. |
 | `ModeStats` | 252 | One player's stats in one mode: ever, and for the current day and week (the counters of a day that is over count as zero, and start again at the next game). |
 | `NameLooks` | 312 | How a player's name looks: their rank, the colour of their name (a gradient of NameStyle, or the colour of the rank) and their badge. |
@@ -98,8 +98,8 @@ Description = la première phrase de la javadoc de la classe, **en anglais comme
 | `Punishments` | 479 | The sanctions of the staff: bans and mutes (for a time or for good), kicks and warnings, and the history of each player, in plugins/RagoLobby/sanctions.yml. |
 | `Quests` | 353 | The quests (config.yml, quetes:): daily ones and weekly ones, longer and worth more Network XP. |
 | `QuestsNpc` | 213 | The quests NPC of the spawn: a figure in the skin quetes beside the daily reward chest, facing the spawn, with lines above its head that tell each player how many of the daily and weekly quests they have done. |
-| `QueueController` | 1234 | The local queues: the lobby's matchmaker and the game plugins that play each mode. |
-| `RagoBots` | 430 | The RagoBots online: one per party that invited it (/p invite RagoBot), each a player of the server (BotBody) with its mind (BotBrain). |
+| `QueueController` | 1261 | The local queues: the lobby's matchmaker and the game plugins that play each mode. |
+| `RagoBots` | 466 | The RagoBots online: one per party that invited it (/p invite RagoBot), each a player of the server (BotBody) with its mind (BotBrain). |
 | `RagoLobby` | 2188 | RagoLobby: the main lobby of Rago Practice. |
 | `RankDef` | 271 | A rank of config.yml (rangs:): its prefix before the name ("§c[ADMIN] "), the colour of the name and of the messages, its permissions (with those of the rank it inherits), and for a rank of the shop its price in Rago Poi |
 | `RankedBans` | 66 | The ranked queues closed for a while to a player who left a ranked game they still played (a forfeit: /spawn, Play again, leaving the server), as on the ranked servers: the game counts as lost, and the queues of the rank |
@@ -145,6 +145,6 @@ Description = la première phrase de la javadoc de la classe, **en anglais comme
 | `XpBoosters` | 317 | The boosters (/booster), each for 30 minutes of play, the time running only while the player is in a game. |
 
 ## Les tests (58 fichiers)
-`BillboardTest`, `BoostersTest`, `BotBrainTest`, `BotSettingsTest`, `ConfigAsWrittenTest`, `DailyRewardsTest`, `DuelRequestsTest`, `EndOfGameTest`, `FireballAimTest`, `GameSidebarTest`, `GettingStartedTest`, `GiftRequestsTest`, `HeadLineNickTest`, `HypixelMenuTest`, `HypixelProfileTest`, `HypixelProfilesTest`, `KitEditorTest`, `KitTest`, `LayoutTest`, `LevelQuestTest`, `LobbyGadgetsTest`, `LobbyPointsTest`, `LobbySettingsTest`, `LobbyTextTest`, `LobbyWelcomeTest`, `MapArtTest`, `MineSkinTest`, `NameStyleTest`, `NetworkFeaturesTest`, `NetworkLevelTest`, `NextGameTest`, `OwnerRulesTest`, `OwnerSettingsTest`, `PacketWarmupTest`, `PartyBookTest`, `PedestalTest`, `PersonNpcTest`, `PingCommandTest`, `PodiumTest`, `PrestigeTest`, `PrivateSettingTest`, `ProductNpcTest`, `QuestDrawTest`, `QuestsNpcTest`, `RankedBansTest`, `ReplayDataTest`, `SeasonTest`, `SpawnPointTest`, `SpectatingTest`, `StarterPackTest`, `StatsBookTest`, `StatsDisplaysTest`, `StatsMenuTest`, `StatsPeriodTest`, `TeamRoomTest`, `TitlesTest`, `Utf8ConfigTest`, `WeeklyRewardsTest`
+`BillboardTest`, `BoostersTest`, `BotBrainTest`, `BotBrainTravelTest`, `BotSettingsTest`, `ConfigAsWrittenTest`, `DailyRewardsTest`, `DuelRequestsTest`, `EndOfGameTest`, `FireballAimTest`, `GameSidebarTest`, `GettingStartedTest`, `GiftRequestsTest`, `HeadLineNickTest`, `HypixelMenuTest`, `HypixelProfileTest`, `HypixelProfilesTest`, `KitEditorTest`, `KitTest`, `LayoutTest`, `LevelQuestTest`, `LobbyGadgetsTest`, `LobbyPointsTest`, `LobbySettingsTest`, `LobbyTextTest`, `LobbyWelcomeTest`, `MapArtTest`, `MineSkinTest`, `NameStyleTest`, `NetworkFeaturesTest`, `NetworkLevelTest`, `NextGameTest`, `OwnerRulesTest`, `OwnerSettingsTest`, `PacketWarmupTest`, `PartyBookTest`, `PedestalTest`, `PersonNpcTest`, `PingCommandTest`, `PodiumTest`, `PrestigeTest`, `PrivateSettingTest`, `ProductNpcTest`, `QuestDrawTest`, `QuestsNpcTest`, `RankedBansTest`, `ReplayDataTest`, `SeasonTest`, `SpawnPointTest`, `SpectatingTest`, `StarterPackTest`, `StatsBookTest`, `StatsDisplaysTest`, `StatsMenuTest`, `StatsPeriodTest`, `TeamRoomTest`, `TitlesTest`, `Utf8ConfigTest`, `WeeklyRewardsTest`
 
 Lancer : `./gradlew :rago-lobby:test` ([[Construire et tester]]).
