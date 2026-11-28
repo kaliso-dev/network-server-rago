@@ -64,11 +64,11 @@ class LobbySettingsTest {
         assertEquals("lobby", settings.world());
         assertEquals(0, settings.voidHeight());
         assertEquals(0, settings.defaultRating(), "a ranked ELO starts at 0, in Coal");
-        assertEquals(92, settings.modes().size(), "the six ranked duels (plan 3.7), the invis practice and the Bed Break Simulator in 1v1 to 1v4 (and"
+        assertEquals(93, settings.modes().size(), "the six ranked duels (plan 3.7), the invis practice and the Bed Break Simulator in 1v1 to 1v4 (and"
                 + " their kits), with Bedwars Normal (its 4s and 2s) and FFA Archway (its game), the clutch scenario, the bed fight (1v1, 2v2, 1v2), Top"
                 + " BedFight, the bridge fight 2v2, the full map first rush, Sky Rise Resources, the timed bridge, Lobby"
                 + " Fight (1v1, FFA), the Bed Break Simulator, the four modes of FUN PRACTICE (CTF The Bridge 1v1 and"
-                + " 2v2, CTF Castle 2v2 and 4v4 with them, 2012 Bedwars and its Classic, 2017 Bedwars 1v1 and 2v2 hidden, Hypixel Bow Practice), Red Rover (sumo, block edit, block placement, top bridge),"
+                + " 2v2, CTF Castle 2v2 and 4v4 with them, 2012 Bedwars and its Classic, 2017 Bedwars 1v1 and 2v2 hidden, Hypixel Bow Practice, Block Pattern Practice), Red Rover (sumo, block edit, block placement, top bridge),"
                 + " Block aim and Parkour Duel, without the top fight, the ranked scenarios, the Combo bot, Find Your Sensitivity,"
                 + " KB displace (1v1 and against a bot), Pearl practice or Fireball practice (the owner, 23/11), nor the bridge fight"
                 + " FFA (the owner, 27/11)");

@@ -2478,6 +2478,20 @@ modes:
       - "Drop on a bed defense, block"
       - "yourself in and dig to the bed:"
       - "the time of each layer."
+  # Block Pattern Practice (the owner's ask of 27/11), played by RagoPractice: the techniques of his
+  # video Block Method, one level each (the first ten), RagoBot running at the player.
+  block-pattern-practice:
+    nom: "&bBlock Pattern Practice"
+    categorie: entrainement
+    icone: "WOOL:3"
+    equipes: 1
+    joueurs-par-equipe: 1
+    classe: false
+    description:
+      - "RagoBot runs at you: place the"
+      - "blocks of the technique, then"
+      - "hit it first. Ten techniques"
+      - "of Block Method, the dyes."
   bridge-chrono:
     nom: "&bTimed bridge"
     categorie: entrainement

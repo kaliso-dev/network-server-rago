@@ -42,7 +42,7 @@
       ],
       "description": "Clutch, block in, fast defense, bridging, extend, bow, aim: one skill at a time.",
       "skin": "practice",
-      "modes": 14,
+      "modes": 15,
       "also": []
     },
     {
@@ -1735,6 +1735,23 @@
       "event": false,
       "sizeOf": null,
       "description": "Drop on a bed defense, block yourself in and dig to the bed: the time of each layer.",
+      "plugins": [
+        "practice"
+      ]
+    },
+    {
+      "id": "block-pattern-practice",
+      "name": "Block Pattern Practice",
+      "colour": "#55FFFF",
+      "icon": "WOOL:3",
+      "category": "entrainement",
+      "group": null,
+      "format": "Solo",
+      "ranked": false,
+      "startHere": false,
+      "event": false,
+      "sizeOf": null,
+      "description": "RagoBot runs at you: place the blocks of the technique, then hit it first. Ten techniques of Block Method, the dyes.",
       "plugins": [
         "practice"
       ]

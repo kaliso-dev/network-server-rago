@@ -317,9 +317,6 @@ public final class RagoPractice extends JavaPlugin {
         int bowHits = config.getInt("points-pour-gagner.bow", 10);
         register("bow-training", (h, m, a, t) -> new BowTraining(h, m, a, t, bow), slots, spacing, false);
         register("bow-duel", (h, m, a, t) -> new BowDuel(h, m, a, t, bowHits, bow), slots, spacing, false);
-        // Hypixel Bow Practice (the owner's ask of 27/11): a zombie on a bridge, knocked off and hit in the air
-        BowPractice.Course bowPractice = bowPracticeCourse(config, spacing);
-        register("bow-practice", (h, m, a, t) -> new BowPractice(h, m, a, t, bowPractice), slots, spacing, false);
         // the events of /host: one game at a time each, on the sumo maps
         List<MapZones.ZoneMap> eventMaps = zoneMaps(config, "sumo.cartes", spacing, "the events");
         for (EventGame.Kind kind : EventGame.Kind.values()) {
@@ -362,6 +359,13 @@ public final class RagoPractice extends JavaPlugin {
         // Parkour Duel (FUN PRACTICE, the owner's choice of 22/11), last, so that the others keep their zones
         int parkourPoints = Math.max(1, Math.min(10, config.getInt("parkour-duel.points-pour-gagner", 1)));
         register("parkour-duel", (h, m, a, t) -> new ParkourDuel(h, m, a, t, parkourPoints), slots, spacing, false);
+        // the modes of 27/11 and after, each after the others, so that the others keep their zones
+        // (a mode registered among them moves every zone after it): new modes go at the end
+        // Hypixel Bow Practice (the owner's ask of 27/11): a zombie on a bridge, knocked off and hit in the air
+        BowPractice.Course bowPractice = bowPracticeCourse(config, spacing);
+        register("bow-practice", (h, m, a, t) -> new BowPractice(h, m, a, t, bowPractice), slots, spacing, false);
+        // Block Pattern Practice (the owner's ask of 27/11): the techniques of his video Block Method
+        register("block-pattern-practice", BlockPatternPractice::new, slots, spacing, false);
     }
 
     /** The settings of Red Rover (red-rover); the defaults when they are wrong. */

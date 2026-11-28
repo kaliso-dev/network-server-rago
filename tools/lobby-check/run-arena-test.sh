@@ -9,7 +9,9 @@
 # one waiting in the lobby, and sees them (the first time, back from the lobby, from a training,
 # from a duel). Then a bot (tools/kb-control/bots/blockin-bots.mjs) blocks itself in in the Block in
 # training and checks the enemy: it breaks its way in at one side, with the cracks, hits only
-# through the hole, and breaks again a block put back. Then a bot plays the Block clutch training
+# through the hole, and breaks again a block put back. Then a bot plays Block Pattern Practice
+# (tools/kb-control/bots/pattern-bots.mjs): #1 built and RagoBot hit first, #2 by itself, RagoBot's
+# run and hit when nothing is built, the tunnel of #10. Then a bot plays the Block clutch training
 # while ten others watch it at once with /spectate (tools/kb-control/bots/spectate-bots.mjs). Last,
 # bots play the modes of FUN PRACTICE (tools/kb-control/bots/fun-bots.mjs): two the Snowball Spleef
 # (the shovel, the snowballs, one that pushes, none that breaks a floor from below, a fall under the
@@ -301,6 +303,10 @@ KB_HOST=127.0.0.1 KB_PORT=$PORT node "$ROOT/tools/kb-control/bots/visibility-bot
 # The same server for the Block in training: one bot, against the enemy.
 blockin_status=0
 KB_HOST=127.0.0.1 KB_PORT=$PORT node "$ROOT/tools/kb-control/bots/blockin-bots.mjs" || blockin_status=$?
+# The same server for Block Pattern Practice: one bot, #1 built and RagoBot hit first, #2 where
+# RagoBot runs at it and hits it first, the tunnel of #10.
+pattern_status=0
+KB_HOST=127.0.0.1 KB_PORT=$PORT node "$ROOT/tools/kb-control/bots/pattern-bots.mjs" || pattern_status=$?
 # The same server for the spectators: one bot in the Block clutch, ten watching it at once.
 spectate_status=0
 KB_HOST=127.0.0.1 KB_PORT=$PORT node "$ROOT/tools/kb-control/bots/spectate-bots.mjs" || spectate_status=$?
@@ -353,6 +359,7 @@ fi
 [[ $bots_status -eq 0 ]] || { tail -n 60 "$SERVER_LOG" >&2; fail "the arena bots stopped with status $bots_status"; }
 [[ $visibility_status -eq 0 ]] || { tail -n 60 "$SERVER_LOG" >&2; fail "the visibility bots stopped with status $visibility_status"; }
 [[ $blockin_status -eq 0 ]] || { tail -n 60 "$SERVER_LOG" >&2; fail "the Block in bot stopped with status $blockin_status"; }
+[[ $pattern_status -eq 0 ]] || { tail -n 60 "$SERVER_LOG" >&2; fail "the Block Pattern Practice bot stopped with status $pattern_status"; }
 [[ $spectate_status -eq 0 ]] || { tail -n 60 "$SERVER_LOG" >&2; fail "the spectator bots stopped with status $spectate_status"; }
 [[ $fun_status -eq 0 ]] || { tail -n 60 "$SERVER_LOG" >&2; fail "the FUN PRACTICE bots stopped with status $fun_status"; }
 [[ $rover_status -eq 0 ]] || { tail -n 60 "$SERVER_LOG" >&2; fail "the Red Rover bots stopped with status $rover_status"; }
