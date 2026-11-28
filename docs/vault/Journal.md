@@ -9,6 +9,7 @@ Une ligne datée par événement marquant, la plus récente en haut. L'histoire 
 
 | Date | Événement | Note |
 |---|---|---|
+| 28/11 | PR #60 fusionnée à 15h30 (`10eaad8`) : README de rago-practice (Hypixel Bow Practice, Block Pattern Practice, niveau RBW du Block in) et de rago-bedwars (2012 Bedwars) ; liste de vérification envoyée à Abel ; questions sur Block Method 1v1 | [[Entraînements]], [[Bed Wars]] |
 | 28/11 | `d050af8` installé vers 11h29 (personne connecté) : jars rago-practice et rago-lobby, mode `block-pattern-practice` ajouté au `config.yml` du lobby (script), sauvegarde `sauvegarde-avant-maj-d050af8\plugins\` ; démarrage vérifié (91 modes, zones d'arène de nouveau dans l'ordre d'avant la #56), arrêt propre | [[Installer une version sur le serveur de test]] |
 | 28/11 | PR #58 fusionnée à 11h28 (`d050af8`, CI 14/14 après le correctif `69c78ac` du script de test) : Block Pattern Practice (10 premières techniques de Block Method), correction de l'ordre d'enregistrement des modes de RagoPractice, test des bots `pattern-bots.mjs` | [[Entraînements]], [[Bugs et problèmes connus]] |
 | 28/11 | Avis sur les deux plugins de fireball proposés par Abel (BedWars1058 DirectionalFireballs, Fireball Launcher) : ne pas installer, la mesure kb-recorder reste la solution | [[Boules de feu et TNT]] |

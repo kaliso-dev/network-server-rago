@@ -10,7 +10,7 @@ Toutes les PR du dépôt `kaliso-dev/network-server-rago` au 28/11/2026. État a
 ## Ouvertes
 | PR | Titre | Branche | Note |
 |---|---|---|---|
-| **#47** | Reset des arènes, spectateurs, kit Bed Fight, stats fiables, et checklist de la sortie publique | `claude/project-thread-wi9w0x` | ouverte le 21/11 ; **tout le travail sur le jeu depuis le 21/11** (187 commits au 28/11, dont les PR #54 à #58) ; sans conflit avec `main` ; la fusion attend Sofiene ou Abel |
+| **#47** | Reset des arènes, spectateurs, kit Bed Fight, stats fiables, et checklist de la sortie publique | `claude/project-thread-wi9w0x` | ouverte le 21/11 ; **tout le travail sur le jeu depuis le 21/11** (189 commits au 28/11, dont les PR #54 à #58 et #60) ; sans conflit avec `main` ; la fusion attend Sofiene ou Abel |
 | #53 | Vault : réponses d'Abel du 26/11, PR #48 et #10 fermées, accord d'Abel | `claude/vault-abel-26-11` | ouverte le 26/11 ; `docs/vault/` et `CLAUDE.md` seulement ; la fusion attend Abel ou Sofiene |
 | #59 | Vault : PR #54 à #57, installation du 28/11, Block Method | `claude/vault-28-11` | ouverte le 28/11, base `claude/vault-abel-26-11` : à fusionner après la #53 ; `docs/vault/` seulement |
 
@@ -22,6 +22,7 @@ Toutes les PR du dépôt `kaliso-dev/network-server-rago` au 28/11/2026. État a
 | #56 | 28/11, vers 10h32 (`843c0d6`) | Hypixel Bow Practice (new training) | `claude/hypixel-bow-practice` | entraînement `bow-practice` sur la map BowPractice ; CI 14/14 ; installée le 28/11 |
 | #57 | 28/11, vers 10h32 (`03beb92`) | Block in: the RBW level | `claude/block-in-rbw` | niveau « RBW defense » du Block in sur la map « Block In Practice RBW » ; CI 14/14 ; installée le 28/11 |
 | #58 | 28/11, 11h28 (`d050af8`) | Block Pattern Practice: the first ten techniques of Block Method | `claude/block-pattern-practice` | entraînement `block-pattern-practice`, correction de l'ordre d'enregistrement des modes de RagoPractice, test des bots `pattern-bots.mjs` ; CI 14/14 (après le correctif `69c78ac` du script de test) ; installée le 28/11 vers 11h29 |
+| #60 | 28/11, 15h30 (`10eaad8`) | READMEs: 2012 Bedwars, Hypixel Bow Practice, Block Pattern Practice | `claude/readme-27-11` | README de rago-practice (Hypixel Bow Practice, Block Pattern Practice, niveau RBW du Block in) et de rago-bedwars (2012 Bedwars) ; texte seulement, rien à installer |
 
 ## Fermées sans fusion
 **#48** « Events: red dye to leave or cancel, clearer announcement every 20 s » (`claude/project-thread-5mjx75`, ouverte le 21/11) : fermée le 26/11, dépassée par #47 qui fait la même chose sur le code récent · **#10** « CI : vérifier aussi le serveur sous Java 25 » (`claude/ci-java-25`, ouverte le 11/11) : fermée le 26/11, pas utile pour l'instant, à refaire si la production tourne sous Java 25 · #3, #5, #6, #7 (leur contenu est arrivé dans `main` par la ligne principale, fusions directes du 11/11 : « Merge /kb sparring », « Merge the KB recorder mod and kb-analyzer », « Merge the measured hypixel-approx-v1 profile ») ; **#8** : ping simulé (abandonné, [[Knockback et combat]]).
