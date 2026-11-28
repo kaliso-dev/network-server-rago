@@ -387,7 +387,7 @@ réglages. Un entraînement de la liste que le serveur ne joue pas est laissé d
   on revient tout de suite au départ, pour reprendre de l'élan, jusqu'à ce que le bot tombe ; seul
   un coup depuis le pont, de face, compte, et son recul part dans l'axe du pont : seul le coup de
   tête envoie le bot sur le côté. Le score est le temps, et le scoreboard compte les essais.
-- **Block edit**, comme sur la map Block Edit Practice du propriétaire : une cage de verre, un mur
+- **Block edit**, comme sur la map Block Edit Practice du propriétaire : une cage de blocs barrière (invisibles ; de verre jusqu'au 27/11, demande du propriétaire), un mur
   de laine rouge de 5 sur 3, et derrière, un bot dans une petite pièce en bois. Casser un bloc du
   mur, frapper le bot par le trou, remettre le bloc avant qu'il ne frappe. Le bot frappe comme un
   joueur, à 3 blocs, une fois qu'il a vu le trou pendant son temps de réaction ; la hotbar règle

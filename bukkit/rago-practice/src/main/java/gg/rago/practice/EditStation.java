@@ -4,7 +4,8 @@ import org.bukkit.Material;
 import org.bukkit.block.Block;
 
 /**
- * The station of the block edit, as on the owner's Block Edit Practice map: a glass case, a wall
+ * The station of the block edit, as on the owner's Block Edit Practice map: a case of barrier
+ * blocks (glass until 27/11: the owner's ask, nothing in the view), a wall
  * of wool five wide and three high across it, the player on one side and their enemy on the
  * other. The wall stands at x = 0 of the arena; the player's room is the five blocks west of it.
  * Against the bot, the bot's room behind the wall is two blocks deep and of wood; in a duel, the
@@ -56,12 +57,12 @@ final class EditStation {
         int west = -ROOM - 1;
         int east = east(duel) + 1;
         int side = WALL_HALF + 1;
-        // the glass case, one block around the inside
+        // the case, one block around the inside: barrier blocks, which a player does not see
         for (int x = west; x <= east; x++) {
             for (int y = 0; y <= WALL_HEIGHT + 2; y++) {
                 for (int z = -side; z <= side; z++) {
                     if (x == west || x == east || Math.abs(z) == side || y == 0 || y == WALL_HEIGHT + 2) {
-                        arena.build(x, y, z, Material.GLASS);
+                        arena.build(x, y, z, Material.BARRIER);
                     }
                 }
             }
