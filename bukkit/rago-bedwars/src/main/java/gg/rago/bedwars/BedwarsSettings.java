@@ -298,6 +298,12 @@ final class BedwarsSettings {
          */
         BED_FIGHT("bed-fight"),
         /**
+         * Block Method 1v1 (the owner's ask of 28/11): Bed Fight as a practice against a RagoBot
+         * that came for the player alone; each death starts the round again, the map as at the
+         * start; a blaze rod to start it again, a map to go on on another map of the mode.
+         */
+        BLOCK_METHOD("block-method"),
+        /**
          * Top Bed Fight: Top Bridge's rounds of one life to 5 points on the bridge a map has on top,
          * the spawns of the map at its ends, in leather armour with the mode's kit.
          */

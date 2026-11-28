@@ -1264,6 +1264,25 @@ ragobot:
     soin-a: 10
     blocs-par-seconde: 6
     ping: 40
+  # Block Method 1v1 (the owner's ask of 28/11): a player alone plays these modes against a
+  # RagoBot that comes by itself (no party, never with one), much weaker than the one above (its
+  # skill here, to set in game): on the islands of a Bed Fight, it bridges at the player as a
+  # player does (backwards, sneaking at the edge), breaks the blocks of the player in its way and
+  # gets out of a full box. 1v1 modes out of the ranked only.
+  seul:
+    modes: [block-method-1v1]
+    skill:
+      cps: 7
+      precision: 0.65
+      portee: 2.9
+      strafe: 0.35
+      w-tap: 0.2
+      jump-reset: 0.15
+      reaction: 6
+      rotation: 18
+      soin-a: 0
+      blocs-par-seconde: 4
+      ping: 80
 
 # The Owner's test tools (plan 7.1), to test the PvP and the protections of the server:
 #   /owner reach <3-6|off>     the Owner's hits land up to that far (a fair player's reach is 3),
@@ -1596,6 +1615,23 @@ modes:
       - "Bed fight: kill them or knock"
       - "them off, rounds of one life,"
       - "the first to 5 points wins."
+  # Block Method 1v1 (the owner's ask of 28/11): alone against RagoBot (ragobot.seul: above), on
+  # the owner's four Bed Fight maps, chosen when joining and changed in game; the kit of Bed Fight
+  # (as each player arranged it), RagoBot too; nobody wins: each death and the blaze rod start
+  # again on the map as it was
+  block-method-1v1:
+    nom: "&aBlock Method 1v1"
+    categorie: duels
+    icone: "WOOL:11"
+    equipes: 2
+    joueurs-par-equipe: 1
+    classe: false
+    kit-de: bed-fight-1v1
+    description:
+      - "Alone against RagoBot on a Bed"
+      - "Fight map: it bridges at you as"
+      - "a player. Block it, box it, kill"
+      - "it: the map starts again."
   block-fight-1v1:
     nom: "&aBlock placement 1v1"
     categorie: duels

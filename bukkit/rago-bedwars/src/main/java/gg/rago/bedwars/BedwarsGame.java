@@ -1982,6 +1982,18 @@ class BedwarsGame {
         host.finished(this);
     }
 
+    /**
+     * Its players go on in another game at once (a Block Method practice on another map): this one
+     * ends without a result, nobody sent anywhere; the host then frees its copy of the map.
+     */
+    void handOver() {
+        phase = Phase.ENDED;
+        stopTasks();
+        cancelReplay();
+        plugin.watchers().ended(this);
+        cleanUp();
+    }
+
     /** The plugin stops: the game ends without a result. */
     void abort() {
         phase = Phase.ENDED;

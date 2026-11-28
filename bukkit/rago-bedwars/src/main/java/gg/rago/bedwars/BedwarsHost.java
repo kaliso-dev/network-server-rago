@@ -348,6 +348,8 @@ final class BedwarsHost implements MatchHost, Listener {
                 return new ClutchScenarioGame(plugin, this, instance, mode.id(), name, sides);
             case BED_FIGHT:
                 return new BedFightGame(plugin, this, instance, mode.id(), name, sides);
+            case BLOCK_METHOD:
+                return new BlockMethodGame(plugin, this, instance, mode.id(), name, sides);
             case TOP_BED_FIGHT:
                 return new TopBedFightGame(plugin, this, instance, mode.id(), name, sides);
             case LOBBY_FIGHT:
@@ -764,6 +766,42 @@ final class BedwarsHost implements MatchHost, Listener {
     /** The player joined this game while it was on (an open game, a practice waiting for its players). */
     void joined(UUID player, BedwarsGame game) {
         games.put(player, game);
+    }
+
+    /** The maps a Block Method practice of this mode goes on on (its menu of maps). */
+    List<BedwarsMap> blockMethodMaps(String modeId) {
+        return plugin.maps().playable(2, plugin.settings().mapsOf(modeId));
+    }
+
+    /**
+     * A Block Method practice goes on on another map: a new game on a copy of it, with the same
+     * players, its round and counts, the old one handed over. False if no copy is free yet (one is
+     * made: the practice asks again a second later); true once done, or if nobody is left.
+     */
+    boolean moveTo(BlockMethodGame old, BedwarsMap map) {
+        List<BedwarsMap> one = Collections.singletonList(map);
+        List<List<Player>> sides = old.sides();
+        if (sides == null) {
+            return true;
+        }
+        Instance instance = plugin.instances().acquire(one);
+        if (instance == null) {
+            plugin.instances().prepare(one, true);
+            return false;
+        }
+        BlockMethodGame game = new BlockMethodGame(plugin, this, instance, old.modeId(), old.modeName, sides);
+        game.modeLine = old.modeLine;
+        game.carryFrom(old);
+        old.handOver();
+        for (List<Player> side : sides) {
+            for (Player player : side) {
+                games.put(player.getUniqueId(), game);
+            }
+        }
+        running.add(game);
+        finished(old);
+        game.begin();
+        return true;
     }
 
     /** The game is over and its players are gone: its world is made ready for the next one. */
@@ -1449,6 +1487,13 @@ final class BedwarsHost implements MatchHost, Listener {
         if (event.getAction() == Action.PHYSICAL) {
             return;
         }
+        if (game instanceof BlockMethodGame
+                && (event.getAction() == Action.RIGHT_CLICK_AIR || event.getAction() == Action.RIGHT_CLICK_BLOCK)
+                && ((BlockMethodGame) game).use(player, event.getItem())) {
+            // Block Method: the blaze rod (the round again), the map (the menu of the maps)
+            event.setCancelled(true);
+            return;
+        }
         if ((event.getAction() == Action.RIGHT_CLICK_AIR || event.getAction() == Action.RIGHT_CLICK_BLOCK)
                 && EndOfGame.clicked(plugin, player, event.getItem())) {
             // the end of the game: the Play again paper or the Leave bed
@@ -1594,12 +1639,14 @@ final class BedwarsHost implements MatchHost, Listener {
         Player player = (Player) event.getWhoClicked();
         InventoryHolder menu = event.getView().getTopInventory().getHolder();
         if (menu instanceof ShopMenu.Holder || menu instanceof UpgradeMenu.Holder || menu instanceof FfaSpawnMenu.Holder
-                || menu instanceof KitMenu.Holder) {
+                || menu instanceof KitMenu.Holder || menu instanceof BlockMethodMenu.Holder) {
             event.setCancelled(true);
             if (event.getRawSlot() < 0 || event.getRawSlot() >= event.getView().getTopInventory().getSize()) {
                 return;
             }
-            if (menu instanceof KitMenu.Holder) {
+            if (menu instanceof BlockMethodMenu.Holder) {
+                BlockMethodMenu.click(player, (BlockMethodMenu.Holder) menu, event.getRawSlot());
+            } else if (menu instanceof KitMenu.Holder) {
                 KitMenu.click(player, (KitMenu.Holder) menu, event.getRawSlot());
             } else if (menu instanceof FfaSpawnMenu.Holder) {
                 FfaSpawnMenu.click(player, (FfaSpawnMenu.Holder) menu, event.getRawSlot());
@@ -1620,7 +1667,7 @@ final class BedwarsHost implements MatchHost, Listener {
     public void onDrag(InventoryDragEvent event) {
         InventoryHolder menu = event.getView().getTopInventory().getHolder();
         if (menu instanceof ShopMenu.Holder || menu instanceof UpgradeMenu.Holder || menu instanceof FfaSpawnMenu.Holder
-                || menu instanceof KitMenu.Holder) {
+                || menu instanceof KitMenu.Holder || menu instanceof BlockMethodMenu.Holder) {
             event.setCancelled(true);
         }
     }
@@ -1645,6 +1692,12 @@ final class BedwarsHost implements MatchHost, Listener {
             return;
         }
         String type = event.getItemDrop().getItemStack().getType().name();
+        if (games.get(player.getUniqueId()) instanceof BlockMethodGame
+                && BlockMethodGame.isTool(event.getItemDrop().getItemStack().getType())) {
+            // the blaze rod and the map of Block Method stay in the hotbar
+            event.setCancelled(true);
+            return;
+        }
         if (playing(player) == null || type.equals("WOOD_SWORD") || type.endsWith("_PICKAXE") || type.endsWith("_AXE")
                 || type.equals("SHEARS")) {
             event.setCancelled(true);

@@ -81,7 +81,7 @@ class BedwarsSettingsTest {
                 "first-rush", "first-rush-duo", "first-rush-full", "first-rush-full-duo", "top-bridge-ffa", "ffa",
                 "invis-practice-1v1", "invis-practice-1v2", "invis-practice-1v3", "invis-practice-1v4", "shop-practice",
                 "attack-defense-1v1", "attack-defense-2v2", "clutch-scenario-1v1", "clutch-scenario-1v2",
-                "clutch-scenario-1v3", "clutch-scenario-1v4", "bed-fight-1v1", "bed-fight-2v2", "bed-fight-1v2", "top-bed-fight-1v1",
+                "clutch-scenario-1v3", "clutch-scenario-1v4", "bed-fight-1v1", "bed-fight-2v2", "bed-fight-1v2", "block-method-1v1", "top-bed-fight-1v1",
                 "lobby-fight-1v1", "lobby-fight-ffa", "bed-break-simulator-1v1", "bed-break-simulator-1v2",
                 "bed-break-simulator-1v3", "bed-break-simulator-1v4", "red-rover-top-bridge", "ctf-bridge-1v1",
                 "ctf-bridge-2v2", "ctf-castle-2v2", "ctf-castle-4v4", "bedwars-2012", "bedwars-2012-classique",
@@ -186,6 +186,9 @@ class BedwarsSettingsTest {
         assertEquals(Collections.singletonList("BedFight"), settings.mapsOf("bed-fight-2v2"), "the owner's Bed Fight map");
         assertEquals(BedwarsSettings.Kind.BED_FIGHT, settings.kind("bed-fight-1v2"));
         assertEquals(Collections.singletonList("BedFight"), settings.mapsOf("bed-fight-1v2"), "the 1v2 on the same map");
+        assertEquals(BedwarsSettings.Kind.BLOCK_METHOD, settings.kind("block-method-1v1"));
+        assertEquals(Arrays.asList("GodMethod1", "GodMethod2", "MapV2", "MinemenBedFight"), settings.mapsOf("block-method-1v1"),
+                "the four maps of the owner (28/11), the player chooses among them");
         BedwarsSettings.Stuff stuff = settings.strongStuff();
         assertEquals(2, stuff.armour, "the player alone of the 1v2: iron leggings and boots to start");
         assertEquals(org.bukkit.Material.STONE_SWORD, stuff.sword);

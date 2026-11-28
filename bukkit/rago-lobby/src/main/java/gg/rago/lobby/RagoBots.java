@@ -53,13 +53,22 @@ final class RagoBots implements Listener {
     /** False once its clicks on blocks failed: it plays without them until a restart. */
     private boolean blocksWork = true;
 
+    /** A RagoBot that came by itself for a player alone stays this long in the lobby, its game on its way. */
+    static final long SOLO_WAIT_MILLIS = 60_000L;
+
     private static final class Bot {
         final BotBody body;
         final BotBrain brain;
+        /** The player alone it came for (Block Method 1v1), or null: the RagoBot of a party. */
+        final UUID owner;
+        final long since = System.currentTimeMillis();
+        /** It was in a game (the one of the player alone it came for). */
+        boolean played;
 
-        Bot(BotBody body, BotBrain brain) {
+        Bot(BotBody body, BotBrain brain, UUID owner) {
             this.body = body;
             this.brain = brain;
+            this.owner = owner;
         }
     }
 
@@ -123,6 +132,20 @@ final class RagoBots implements Listener {
      * the lobby). Null if none can come: they are told why.
      */
     Player join(Player leader) {
+        return join(leader, settings.skill, null);
+    }
+
+    /**
+     * A new RagoBot for a player alone, for a game of a mode it comes by itself for (Block Method
+     * 1v1, ragobot.seul), with the weaker skill: no party; it leaves the server once back in the
+     * lobby after that game (or if the game did not start within {@link #SOLO_WAIT_MILLIS}). Null if
+     * none can come: the player is told why.
+     */
+    Player joinFor(Player player) {
+        return join(player, settings.soloSkill, player.getUniqueId());
+    }
+
+    private Player join(Player leader, BotBrain.Skill skill, UUID owner) {
         if (broken) {
             Parties.boxed(leader, ChatColor.RED + BotSettings.NAME + " cannot play on this server right now.");
             return null;
@@ -160,12 +183,12 @@ final class RagoBots implements Listener {
             Parties.boxed(leader, ChatColor.RED + BotSettings.NAME + " cannot play on this server right now.");
             return null;
         }
-        bots.put(id, new Bot(body, new BotBrain(settings.skill, new Random())));
+        bots.put(id, new Bot(body, new BotBrain(skill, new Random()), owner));
         if (!at.equals(state.spawn()) && body.player.isOnline()) {
             body.player.teleport(at);
         }
-        lobby.getLogger().info(BotSettings.NAME + " joined for the party of " + leader.getName() + " ("
-                + bots.size() + " online)");
+        lobby.getLogger().info(BotSettings.NAME + " joined for " + (owner == null ? "the party of " : "the game of ")
+                + leader.getName() + " (" + bots.size() + " online)");
         return body.player;
     }
 
@@ -216,7 +239,9 @@ final class RagoBots implements Listener {
         boolean edit = BotSettings.EDIT_MODES.contains(game);
         BotBrain.Sight sight = sight(player, body, knocked, target, edit);
         sight.edit = edit;
-        sight.blocks = blocksWork && (edit || BotSettings.BLOCK_MODES.contains(game));
+        // Block Method 1v1 (a player alone against it): a Bed Fight, its bridge to the other
+        sight.bridge = game != null && settings.solo(game);
+        sight.blocks = blocksWork && (edit || sight.bridge || BotSettings.BLOCK_MODES.contains(game));
         BotBrain.Controls controls = bot.brain.think(sight);
         body.act(controls, target);
         if (blocksWork) {
@@ -350,7 +375,18 @@ final class RagoBots implements Listener {
     void second() {
         for (Bot bot : new ArrayList<>(bots.values())) {
             Player player = bot.body.player;
+            if (player.isOnline() && state.isInGame(player)) {
+                bot.played = true;
+            }
             if (!player.isOnline() || state.isInGame(player) || !state.isInLobby(player)) {
+                continue;
+            }
+            if (bot.owner != null) {
+                // the RagoBot of a player alone: gone after its game, or if its game never came
+                if (bot.played || Bukkit.getPlayer(bot.owner) == null
+                        || System.currentTimeMillis() - bot.since > SOLO_WAIT_MILLIS) {
+                    player.kickPlayer(BotSettings.NAME + " left");
+                }
                 continue;
             }
             PartyBook.Party party = parties.of(player.getUniqueId());
