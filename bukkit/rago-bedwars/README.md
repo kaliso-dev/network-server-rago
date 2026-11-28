@@ -431,7 +431,29 @@ Les valeurs (captures, durées, retour du drapeau) sont dans `ctf:` du `config.y
 jeu. Le dessin des deux maps est à valider : on peut les modifier en jeu et les sauver, le plugin
 ne les reconstruit pas tant que leur dossier existe.
 
+## 2012 Bedwars
+
+Ta demande du 27/11, à la place de 2017 Bedwars dans les menus : `bedwars-2012` et
+`bedwars-2012-classique` (le genre `bedwars-2012`, classe `Bedwars2012Game`), en 4v4, sur sa propre
+map `Bedwars2012` (la map « Rush » de Dono9999 : ses deux bases gardées, un milieu à émeraudes et
+deux îles à diamants ajoutés, son lobby en redstone retiré ; `cartes:` du `config.yml`).
+
+- **le lit caché** : pendant la première minute, chaque joueur a le lit de son équipe dans sa barre ;
+  un clic droit sur le dessus d'un bloc le pose, partout où un bloc peut aller (pas sur un spawn ni
+  un générateur, comme dans toute partie) et pas à moins de 3 blocs d'un PNJ. Le premier posé est
+  celui de l'équipe, les autres disparaissent. Une équipe qui ne l'a pas caché a le lit de la map,
+  derrière sa base ;
+- **de l'argile à la place de la laine** (même prix, même place dans le Quick Buy), le shop et les
+  forges d'une partie, **pas d'améliorations d'équipe** ;
+- `bedwars-2012` a les diamants des îles et les émeraudes du milieu, `bedwars-2012-classique`
+  seulement les forges des bases.
+
+Le reste est une partie de Bed Wars ; rien n'est gardé d'une partie à l'autre.
+
 ## 2017 Bedwars (Fast Bedwars avant le 23/11)
+
+Cachés des menus depuis le 27/11 (2012 Bedwars les remplace) : `fast-bedwars-1v1` et `-2v2` restent
+dans le `config.yml` du lobby, avec `cache: true`, pour les bots de la CI.
 
 Renommé « 2017 Bedwars » le 23/11 (ta demande) : seul le nom que voient les joueurs change (les
 `nom:` du `config.yml` du lobby et le titre) ; les ids `fast-bedwars-*` et la section
