@@ -241,6 +241,11 @@ réglages. Un entraînement de la liste que le serveur ne joue pas est laissé d
   le premier bloc. Le temps ne compte pour le classement que si le joueur s'est enfermé : une fois,
   les quatre côtés à ses pieds et à sa tête fermés, dont au moins un bloc à lui (sinon casser le lit
   au plus vite, sans bloc, serait premier). Sans ça, « Not counted ».
+  Le dernier niveau, **RBW defense** (ta demande du 27/11), se joue sur ta map « Block In Practice
+  RBW » (`block-in.rbw` dans `config.yml` : le monde, le pied `lit` et la tête `tete` du lit rouge,
+  la zone) : la map est copiée une fois à côté de l'île, le lit et sa défense (end stone, verre
+  rouge) sont lus sur la map et remis à chaque essai, l'anneau de verre et les départs tournés vers
+  ce lit. Sans la map, ce niveau se joue sur l'île.
 - **Fast defense** : couvrir son lit le plus vite possible, avec les défenses du propriétaire. La
   défense à construire se montre 3 secondes au premier essai de chaque défense ; les essais
   suivants partent tout de suite, le chrono au premier bloc.
@@ -335,6 +340,30 @@ réglages. Un entraînement de la liste que le serveur ne joue pas est laissé d
   les touches, la précision et le tir le plus long. Réglages : la vitesse des bots (2,6 à 5 blocs
   par seconde) et combien viennent à la fois (1 à 3). Sans le monde, des plateformes aux mêmes
   endroits.
+- **Hypixel Bow Practice** (`bow-practice`, ta demande du 27/11) : sur ta map BowPractice
+  (`bow-practice` dans `config.yml` : le monde, le centre, la zone, et pour chaque niveau le départ
+  du joueur et le premier et le dernier bloc du pont). Un zombie avance sur un pont de laine
+  au-dessus du vide ; la première flèche le fait tomber (elle ne compte pas), puis il faut le
+  toucher 2 fois en l'air avant qu'il meure dans le vide : une victoire. Il gagne s'il arrive au
+  bout de son pont, ou s'il meurt sans ses deux touches. Arc Infinity et Power IV ; le joueur reste
+  dans un carré de 5 sur 5 autour de son départ. Trois niveaux (les teintures) : Level 1 un pont
+  droit, Level 2 un pont en diagonale, Level 3 un pont en hauteur. Un nouveau zombie aussitôt,
+  avec le son d'une victoire ou d'une défaite ; le score est la série de victoires. Sans la map,
+  trois plateformes du plugin.
+- **Block Pattern Practice** (`block-pattern-practice`, ta demande du 27/11) : les techniques de ta
+  vidéo Block Method, un niveau chacune (les teintures), les dix premières pour commencer
+  (`BlockPatterns`) : #1 Block in front, #2 Pillar, #3 Hook, #4 T, #5 Arch, #6 Roof, #7 Door,
+  #8 Far hook, #9 Window, #10 Tunnel. Sur une île du plugin, RagoBot (un bot d'entraînement avec ta
+  tête, déplacé avec la physique d'un joueur par `PatternBot`) attend un peu puis court vers le
+  joueur par le chemin de la technique : il saute un bloc qui a de la place au-dessus, contourne un
+  mur qu'il ne peut pas sauter, et casse ce qui ferme le tunnel du #10. Le joueur pose les blocs de
+  la technique (de la poussière bleue les montre tant qu'ils manquent ; laine bleu clair, épée en
+  pierre, cisailles), puis touche RagoBot en premier : réussi, le temps va sur le tableau de la
+  technique. RagoBot touche le joueur en premier (seulement ce qu'il voit, à 3 blocs), le temps
+  passe (15 secondes) ou le joueur tombe : la même technique recommence. Réglages : « Next technique
+  on success » (activé : la technique suivante vient seule après une réussite) et « Show the
+  pattern » (la poussière). Les formes et les chemins sont lus dans la vidéo, à régler avec toi en
+  jeu.
 - **Aim trainer** : une cible de la taille d'un joueur qui strafe, saute ou tourne autour ; 30
   secondes, les coups qui touchent et la précision. Chaque seconde où le viseur reste sur la
   cible (12 ticks sur 20) ou la touche donne de l'XP, avec un son qui monte avec la série (et un
